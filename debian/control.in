@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Akira TAGOH <tagoh@debian.org>
 Uploaders: @GNOME_TEAM@
-Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.2.0), xlibs-pic (>= 4.2.1-6), xlibs-dev, libtiff3g-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
+Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.6.0-1), xlibs-pic (>= 4.2.1-6), xlibs-dev, libtiff3g-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
 Build-Depends-Indep: gtk-doc-tools, docbook-xml
 Standards-Version: 3.6.1.0
 
@@ -38,7 +38,7 @@ Description: Common files for the GTK+ graphical user interface library
 Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.2.0), xlibs-dev, pkg-config
+Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.6.0-1), xlibs-dev, pkg-config
 Suggests: libgtk2.0-doc
 Replaces: libgtk1.3-dev
 Conflicts: libgtk1.3-dev

@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Akira TAGOH <tagoh@debian.org>
 Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Andrew Lau <netsnipe@users.sourceforge.net>, Edd Dumbill <ejad@debian.org>, Emil Soleyman-Zomalan <emil@nishra.com>, Gustavo Noronha Silva <kov@debian.org>, J.H.M. Dassen (Ray) <jdassen@debian.org>, Johannes Rohr <j.rohr@comlink.org>, Jordi Mallach <jordi@debian.org>, Jose Carlos Garcia Sogo <jsogo@debian.org>, Josselin Mouette <joss@debian.org>, Ondřej Surý <ondrej@debian.org>, Rob Bradford <rob@debianplanet.org>, Robert McQueen <robot101@debian.org>, Ross Burton <ross@burtonini.com>, Sebastien Bacher <seb128@debian.org>, Takuo KITAME <kitame@debian.org>
-Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.2.0), xlibs-pic (>= 4.2.1-6), xlibs-dev, libtiff3g-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
+Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.6.0-1), xlibs-pic (>= 4.2.1-6), xlibs-dev, libtiff3g-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
 Build-Depends-Indep: gtk-doc-tools, docbook-xml
 Standards-Version: 3.6.1.0
 
@@ -38,7 +38,7 @@ Description: Common files for the GTK+ graphical user interface library
 Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk2.0-0 (= ${Source-Version}), libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.2.0), xlibs-dev, pkg-config
+Depends: libgtk2.0-0 (= ${Source-Version}), libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.6.0-1), xlibs-dev, pkg-config
 Suggests: libgtk2.0-doc
 Replaces: libgtk1.3-dev
 Conflicts: libgtk1.3-dev
