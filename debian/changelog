@@ -1,3 +1,11 @@
+gtk+2.0 (2.2.4-3) UNRELEASED; urgency=low
+
+  * debian/patches/:
+    - 002_gtk+-debian-freetype.patch: patch from Daniel Schepler to fix the 
+      build failure due to freetype (Closes: #225129).
+
+ -- Sebastien Bacher <seb128@debian.org>  Sat, 27 Dec 2003 13:00:17 +0100
+
 gtk+2.0 (2.2.4-2) unstable; urgency=low
 
   * debian/control:
