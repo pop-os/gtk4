@@ -1,29 +1,26 @@
---- gtk+2.0-2.2.4.old/debian/patches/002_gtk+-debian-freetype.patch	1970-01-01 00:00:00.000000000 +0000
-+++ gtk+2.0-2.2.4/debian/patches/002_gtk+-debian-freetype.patch	2003-12-26 15:42:06.000000000 +0000
-@@ -0,0 +1,26 @@
-+diff -Nru gtk+-2.2.4.orig/configure gtk+-2.2.4/configure
-+--- gtk+-2.2.4.orig/configure	2003-12-26 15:02:48.427829000 +0000
-++++ gtk+-2.2.4/configure	2003-12-26 15:41:00.350762731 +0000
-+@@ -24745,7 +24745,8 @@
-+ cat >>conftest.$ac_ext <<_ACEOF
-+ /* end confdefs.h.  */
-+ 
-+-#include <freetype/freetype.h>
-++#include <ft2build.h>
-++#include FT_FREETYPE_H
-+ #include FT_ERRORS_H
-+ 
-+ int
-+diff -Nru gtk+-2.2.4.orig/configure.in gtk+-2.2.4/configure.in
-+--- gtk+-2.2.4.orig/configure.in	2003-12-26 15:02:48.324791000 +0000
-++++ gtk+-2.2.4/configure.in	2003-12-26 15:36:27.533900776 +0000
-+@@ -964,7 +964,8 @@
-+ 
-+       AC_MSG_CHECKING([For sufficiently new FreeType (at least 2.0.1)])
-+       AC_TRY_COMPILE([
-+-#include <freetype/freetype.h>
-++#include <ft2build.h>
-++#include FT_FREETYPE_H
-+ #include FT_ERRORS_H
-+     ],
-+ 	             [(void)1;],:,have_freetype=false)
+diff -Nru gtk+-2.2.4.orig/configure gtk+-2.2.4/configure
+--- gtk+-2.2.4.orig/configure	2003-12-26 15:02:48.427829000 +0000
++++ gtk+-2.2.4/configure	2003-12-26 15:41:00.350762731 +0000
+@@ -24745,7 +24745,8 @@
+ cat >>conftest.$ac_ext <<_ACEOF
+ /* end confdefs.h.  */
+ 
+-#include <freetype/freetype.h>
++#include <ft2build.h>
++#include FT_FREETYPE_H
+ #include FT_ERRORS_H
+ 
+ int
+diff -Nru gtk+-2.2.4.orig/configure.in gtk+-2.2.4/configure.in
+--- gtk+-2.2.4.orig/configure.in	2003-12-26 15:02:48.324791000 +0000
++++ gtk+-2.2.4/configure.in	2003-12-26 15:36:27.533900776 +0000
+@@ -964,7 +964,8 @@
+ 
+       AC_MSG_CHECKING([For sufficiently new FreeType (at least 2.0.1)])
+       AC_TRY_COMPILE([
+-#include <freetype/freetype.h>
++#include <ft2build.h>
++#include FT_FREETYPE_H
+ #include FT_ERRORS_H
+     ],
+ 	             [(void)1;],:,have_freetype=false)
