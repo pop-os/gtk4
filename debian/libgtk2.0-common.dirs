@@ -1,3 +1,2 @@
-usr/bin
-usr/sbin
-etc/gtk-2.0
+usr/share/locale
+usr/share/themes

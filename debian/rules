@@ -199,9 +199,9 @@ install: install-static install-shared
 
 	# debian files
 	install -m 755 $(CURDIR)/debian/update-gtk-immodules \
-		       $(CURDIR)/debian/libgtk$(apiver)-common/usr/sbin/
+		       $(CURDIR)/debian/libgtk$(apiver)-bin/usr/sbin/
 	install -m 755 $(CURDIR)/debian/update-gdkpixbuf-loaders \
-		       $(CURDIR)/debian/libgtk$(apiver)-common/usr/sbin/
+		       $(CURDIR)/debian/libgtk$(apiver)-bin/usr/sbin/
 
 	# don't need executable attribute
 	for f in `find $(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/share/themes -type f`; do \
@@ -215,7 +215,7 @@ install: install-static install-shared
 	-find $(CURDIR)/debian/ -type d -empty | xargs rmdir -p 2>&1 > /dev/null
 
 	# don't delete /etc/gtk-2.0
-	install -d $(CURDIR)/debian/libgtk$(apiver)-common/etc/gtk-$(apiver)
+	install -d $(CURDIR)/debian/libgtk$(apiver)-bin/etc/gtk-$(apiver)
 
 # Build architecture-independent files here.
 binary-indep: build install
@@ -224,7 +224,7 @@ binary-indep: build install
 
 	dh_installdocs -i
 
-	rm -rf $(CURDIR)/debian/libgtk$(apiver)-data/usr/share/doc/libgtk$(apiver)-data
+	rm -rf $(CURDIR)/debian/libgtk$(apiver)-common/usr/share/doc/libgtk$(apiver)-common
 
 	dh_link -plibgtk$(apiver)-doc				\
 		usr/share/doc/libglib$(glibver)-doc/glib	\
@@ -238,9 +238,9 @@ binary-indep: build install
 	dh_link -plibgtk$(apiver)-doc				\
 		usr/share/doc/libpango$(pangover)-doc/pango	\
 		usr/share/doc/libgtk$(apiver)-doc/pango
-	dh_link -plibgtk$(apiver)-data				\
+	dh_link -plibgtk$(apiver)-common			\
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
-		usr/share/doc/libgtk$(apiver)-data
+		usr/share/doc/libgtk$(apiver)-common
 	
 	# create symlinks in /usr/share/gtk-doc/html
 	for i in gdk gdk-pixbuf gtk gtk-faq gtk-tutorial; do	\
@@ -269,7 +269,7 @@ binary-arch: build install
 
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dbg/usr/share/doc/libgtk$(apiver)-dbg
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dev/usr/share/doc/libgtk$(apiver)-dev
-	rm -rf $(CURDIR)/debian/libgtk$(apiver)-common/usr/share/doc/libgtk$(apiver)-common
+	rm -rf $(CURDIR)/debian/libgtk$(apiver)-bin/usr/share/doc/libgtk$(apiver)-bin
 
 	dh_link -plibgtk$(apiver)-dbg \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
@@ -277,9 +277,9 @@ binary-arch: build install
 	dh_link -plibgtk$(apiver)-dev \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-dev
-	dh_link -plibgtk$(apiver)-common \
+	dh_link -plibgtk$(apiver)-bin \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
-		usr/share/doc/libgtk$(apiver)-common
+		usr/share/doc/libgtk$(apiver)-bin
 
 	dh_installexamples -a
 
