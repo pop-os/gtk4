@@ -1,6 +1,22 @@
-gtk+2.0 (2.4.0) experimental; urgency=low
+gtk+2.0 (2.4.0-1) UNRELEASED; urgency=low
   * debian/control
-    - upgraded to 2.4.0
+    - updated for 2.4.0
+  * debian/sources
+    - updated for 2.4.0
+  * debian/control.in
+    - updated for 2.4.0
+  * debian/scripts/vars
+    - updated for 2.4.0
+  * debian/patches/:
+    - removed 002_gtk+-debian-freetype.patch - not needed any more, configure already has the changes
+    - removed 000_gtk+-2.2.4-non-weak-symbols.patch - fixed in upstream source
+    - removed 000_gtk+-2.2.4-socketfocus.patch - fixed in upstream source
+    - 001_gtk+-debian-aclocal-pass_all.patch - updated
+    - removed 001_gtk+-ximian-gtk2-filesel-navbutton-5.patch - completely irrelevent due to fileselector changes
+    - 000_gtk+-2.2.0-buildfix-immodule.patch - updated
+    - 000_gtk+-debian-xinerama-pic.patch - updated
+  * debian/watch
+    - updated for 2.4.0
 
  -- Rob Taylor <robtaylor@fastmail.fm>  Thu, 18 Mar 2004 19:19:07 -0300
 
