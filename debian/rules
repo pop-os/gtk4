@@ -47,7 +47,7 @@ libpath=$(CURDIR)/$(BUILD_SHARED_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_SHARED_
 debian/control:
 	dh_testdir
 
-	sed -e 's/@SONAME@/${soname}${suffix}/g' -e 's/@VERSION@/${version}/g' $@.in > $@
+	sed -e 's/@SONAME@/${soname}${suffix}/g' -e 's/@VERSION@/${version}/g' -e 's/@GNOME_TEAM@/${uploaders}/' $@.in > $@
 
 extract: $(STAMP_DIR)/extract-stamp
 $(STAMP_DIR)/extract-stamp:
