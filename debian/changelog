@@ -1,3 +1,12 @@
+gtk+2.0 (2.4.3-1) unstable; urgency=medium
+
+  * New upstream release 
+    - fix the button size allocation logic (Closes: #253971, #253974).
+  * debian/rules
+    - updated the shlibs.
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 15 Jun 2004 11:29:13 +0200
+
 gtk+2.0 (2.4.2-1) unstable; urgency=low
 
   * New upstream release (Closes: #252690).
