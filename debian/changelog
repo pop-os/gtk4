@@ -2,6 +2,8 @@ gtk+2.0 (2.4.0-2) experimental; urgency=low
 
   * debian/rules:
     + Updated shver.
+  * debian/control.in:
+    + Added again Build-Depends removed in 2.4.0-1.
 
  -- Sebastien Bacher <seb128@debian.org>  Wed, 24 Mar 2004 21:11:41 +0100
 
