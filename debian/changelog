@@ -1,24 +1,38 @@
-gtk+2.0 (2.4.0-1) UNRELEASED; urgency=low
-  * debian/control
-    - updated for 2.4.0
-  * debian/sources
-    - updated for 2.4.0
-  * debian/control.in
-    - updated for 2.4.0
-  * debian/scripts/vars
-    - updated for 2.4.0
-  * debian/patches/:
-    - removed 002_gtk+-debian-freetype.patch - not needed any more, configure already has the changes
-    - removed 000_gtk+-2.2.4-non-weak-symbols.patch - fixed in upstream source
-    - removed 000_gtk+-2.2.4-socketfocus.patch - fixed in upstream source
-    - 001_gtk+-debian-aclocal-pass_all.patch - updated
-    - removed 001_gtk+-ximian-gtk2-filesel-navbutton-5.patch - completely irrelevent due to fileselector changes
-    - 000_gtk+-2.2.0-buildfix-immodule.patch - updated
-    - 000_gtk+-debian-xinerama-pic.patch - updated
-  * debian/watch
-    - updated for 2.4.0
+gtk+2.0 (2.4.0-1) experimental; urgency=low
 
- -- Rob Taylor <robtaylor@fastmail.fm>  Thu, 18 Mar 2004 19:19:07 -0300
+  * First upload of new GTK+ branch in experimental (Closes: #238479):
+    + back out locale-dependent interpretation of KP_Decimal (Closes: #234902).
+    + change scrolling method (Closes: #161244).
+    + first day of the week depends of the locale (Closes: #228603).
+    + fix fileselector multiple selection handling after keyboard validation 
+      (Closes: #208744).  
+    + fix gtktreeview crash when expanding nodes (Closes: #232081).  
+    + fix quotes missing in gtk-2.0.m4 (Closes: #223316).
+    + use the new file selector (Closes: #203677, #201429, #201507).
+    + and probably a lot of other bug fixes and improvements ...
+  * Sebastien Bacher <seb128@debian.org>:
+    * debian/control.in:
+      - removed Build-Depends on docbook-utils and linuxdoc-tools-text.
+    * patches/001_gtk+-debian-docfix-dtds.patch:
+      - removed since we have a xml catalog now.
+  * Rob Taylor <robtaylor@fastmail.fm>:
+    * debian/control.in, debian/sources, debian/scripts/vars, debian/watch:
+      - updated for 2.4.0.
+    * debian/patches/:
+      - 002_gtk+-debian-freetype.patch:
+        + removed, not needed any more, configure already has the changes.
+      - 000_gtk+-2.2.4-non-weak-symbols.patch:
+        + removed, fixed in upstream source.
+      - 000_gtk+-2.2.4-socketfocus.patch:
+        + removed, fixed in upstream source.
+      - 001_gtk+-debian-aclocal-pass_all.patch :
+        + updated.
+      - 000_gtk+-2.2.0-buildfix-immodule.patch 
+        + updated.
+      - 000_gtk+-debian-xinerama-pic.patch 
+        + updated.
+
+ -- Sebastien Bacher <seb128@debian.org>  Mon, 22 Mar 2004 22:00:09 +0100
 
 gtk+2.0 (2.2.4-3) unstable; urgency=low
 
