@@ -212,7 +212,7 @@ install: install-static install-shared
 	rm -rf debian/libgtk$(apiver)-$(soname)$(suffix)/usr/share/gtk-doc
 
 	dh_movefiles --sourcedir=debian/libgtk$(apiver)-$(soname)$(suffix)
-	-find $(CURDIR)/debian/ -type d -empty | xargs rmdir -p 2>&1 > /dev/null
+	-find $(CURDIR)/debian/ -type d -empty | xargs rmdir -p > /dev/null 2>&1
 
 	# don't delete /etc/gtk-2.0
 	install -d $(CURDIR)/debian/libgtk$(apiver)-bin/etc/gtk-$(apiver)
