@@ -1,3 +1,21 @@
+gtk+2.0 (2.4.4-1) unstable; urgency=low
+
+  * New upstream release
+    - fix the problem with directories displayed twice in the file chooser
+      (Closes: #249057).
+  * debian/control.in:
+    - libgtk2.0-bin Conflicts with old libgtk2.0-dev.
+
+ -- Sebastien Bacher <seb128@debian.org>  Sun, 11 Jul 2004 00:33:45 +0200
+
+gtk+2.0 (2.4.3-3) unstable; urgency=low
+
+  * debian/control.in:
+    - since manpages have moved from libgtk2.0-dev to libgtk2.0-bin we need
+      to update the Replaces.
+
+ -- Sebastien Bacher <seb128@debian.org>  Mon,  5 Jul 2004 21:15:25 +0200
+
 gtk+2.0 (2.4.3-2) unstable; urgency=low
 
   * debian/libgtk2.0-bin.files:
