@@ -334,13 +334,13 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
 +		  link_target[len - 1] = '\0';
 +		}
 +
-+	      if (!strcmp (link_target, ".gnome-desktop")) 
++	      if (!strcmp (link_target, "Desktop")) 
 +		{
 +		  g_free (filename);
 +		  return g_build_filename (g_get_home_dir (), "Desktop", G_DIR_SEPARATOR_S, NULL);
 +		}
 +	      
-+	      desktop_filename = g_build_filename (g_get_home_dir (), ".gnome-desktop", NULL);
++	      desktop_filename = g_build_filename (g_get_home_dir (), "Desktop", NULL);
 +	      if (!strcmp (link_target, desktop_filename)) 
 +		{
 +		  g_free (desktop_filename);
@@ -353,7 +353,7 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
 +    }
 +  g_free (filename);
 +
-+  return g_build_filename (g_get_home_dir (), ".gnome-desktop", G_DIR_SEPARATOR_S, NULL);
++  return g_build_filename (g_get_home_dir (), "Desktop", G_DIR_SEPARATOR_S, NULL);
 +}
 +
 +

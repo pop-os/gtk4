@@ -1,8 +1,11 @@
-gtk+2.0 (2.2.4-2) UNRELEASED urgency=low
+gtk+2.0 (2.2.4-2) UNRELEASED; urgency=low
 
   * debian/control:
     - added Uploaders to maintain as team.
     - added gnome-pkg-tools to Build-Depends.
+  * debian/patches/:
+    - 001_gtk+-ximian-gtk2-filesel-navbutton-5.patch: updated 
+      (closes: Bug#216660).
   * debian/rules:
     - modified to generate debian/control using gnome-pkg-tools.
   
