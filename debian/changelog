@@ -1,3 +1,9 @@
+gtk+2.0 (2.4.11-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Sebastien Bacher <seb128@debian.org>  Mon, 11 Oct 2004 19:48:52 +0200
+
 gtk+2.0 (2.4.10-1) unstable; urgency=low
 
   * New upstream release.
