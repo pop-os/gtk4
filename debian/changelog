@@ -1,3 +1,20 @@
+gtk+2.0 (2.4.10-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/patches/002_xpmico.patch:
+    - updated, the two xpm fixes are in the new version.
+
+ -- Sebastien Bacher <seb128@debian.org>  Sun, 19 Sep 2004 00:19:27 +0200
+
+gtk+2.0 (2.4.9-2) unstable; urgency=high
+
+  * debian/patches/002_xpmico.patch:
+    - fix CAN-2004-0782 Heap-based overflow in pixbuf_create_from_xpm.
+    - fix CAN-2004-0783 Stack-based overflow in xpm_extract_color.
+    - fix CAN-2004-0788 ico loader integer overflow.
+
+ -- Sebastien Bacher <seb128@debian.org>  Fri, 17 Sep 2004 12:23:02 +0200
+
 gtk+2.0 (2.4.9-1) unstable; urgency=medium
 
   * GNOME team upload.
