@@ -230,6 +230,9 @@ install-indep: build-indep install-test
 	$(MAKE) -C $(BUILD_INDEP_DIR)/docs install \
 		DESTDIR=$(CURDIR)/debian/libgtk$(apiver)-doc
 
+	# we don't want to manpages in -doc
+	-rm -rf $(CURDIR)/debian/libgtk$(apiver)-doc/usr/share/man/
+
 	# for -doc
 	cp -a $(BUILD_INDEP_DIR)/docs/faq/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq/
 	cp -a $(BUILD_INDEP_DIR)/docs/tutorial/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
