@@ -1,11 +1,16 @@
-gtk+2.0 (2.4.0-3) UNRELEASED; urgency=low
+gtk+2.0 (2.4.0-3) experimental; urgency=low
 
   * Akira TAGOH <tagoh@debian.org>
   + debian/rules:
     - modified the sed script to strip the version properly.
       (closes: Bug#241860)
+    - clean up.
+  + debian/control:
+    - updated the dependencies for the separated xlibs-dev. (from 2.2.4-4)
+    - separated arch-independent data to libgtk2.0-data package.
+      (from 2.2.4-4)
 
- -- Akira TAGOH <tagoh@debian.org>  Mon,  5 Apr 2004 22:16:26 +0900
+ -- Akira TAGOH <tagoh@debian.org>  Fri, 23 Apr 2004 22:43:58 +0900
 
 gtk+2.0 (2.4.0-2) experimental; urgency=low
 
@@ -55,6 +60,21 @@ gtk+2.0 (2.4.0-1) experimental; urgency=low
         + updated.
 
  -- Sebastien Bacher <seb128@debian.org>  Mon, 22 Mar 2004 22:00:09 +0100
+
+gtk+2.0 (2.2.4-4) unstable; urgency=low
+
+  * Akira TAGOH <tagoh@debian.org>
+  + debian/rules:
+    - bumped the shlib version to 2.2.1-3. (closes: Bug#208671)
+  + debian/control:
+    - separated arch-independent data to libgtk2.0-data package.
+      (closes: Bug#233396)
+    - fixed the dependencies for the separated xlibs-dev.
+      (closes: Bug#241782, Bug#241522)
+  + debian/libgtk2.0-data.{dir,files}:
+    - added.
+
+ -- Akira TAGOH <tagoh@debian.org>  Thu, 22 Apr 2004 00:42:02 +0900
 
 gtk+2.0 (2.2.4-3) unstable; urgency=low
 

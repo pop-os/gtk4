@@ -7,7 +7,6 @@ include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 BUILD_DIR=$(SOURCE_DIR)/$(TAR_DIR)
 BUILD_SHARED_DIR=$(SOURCE_DIR)/$(TAR_DIR)-shared
 BUILD_STATIC_DIR=$(SOURCE_DIR)/$(TAR_DIR)-static
-BUILD_INDEP_DIR=$(SOURCE_DIR)/$(TAR_DIR)-indep
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
@@ -59,10 +58,6 @@ $(STAMP_DIR)/extract-stamp:
 	   cp -f /usr/share/misc/config.sub $(BUILD_DIR)/config.sub
 	-test -r /usr/share/misc/config.guess && \
 	   cp -f /usr/share/misc/config.guess $(BUILD_DIR)/config.guess
-
-	-rm -rf $(BUILD_DIR)/docs/faq/html
-	-rm -rf $(BUILD_DIR)/docs/reference/gtk/html
-	-rm -rf $(BUILD_DIR)/docs/tutorial/html
 
 	touch $@
 
@@ -121,51 +116,7 @@ $(STAMP_DIR)/configure-static-stamp:
 
 	touch $@
 
-configure-indep: extract $(STAMP_DIR)/configure-indep-stamp
-$(STAMP_DIR)/configure-indep-stamp:
-	dh_testdir
-
-	cp -ar $(BUILD_DIR) $(BUILD_INDEP_DIR)
-
-	# Add here commands to configure the package.
-	cd $(BUILD_INDEP_DIR) && \
-	./configure	--host=$(DEB_HOST_GNU_TYPE) \
-			--build=$(DEB_BUILD_GNU_TYPE) \
-			--prefix=/usr \
-			--mandir=\$${prefix}/share/man \
-			--infodir=\$${prefix}/share/info \
-			--sysconfdir=/etc \
-			--with-html-dir=\$${prefix}/share/doc/libgtk$(apiver)-doc \
-			--with-xinput=yes \
-			--enable-shared \
-			--disable-static \
-			--enable-gtk-doc
-
-	cd $(BUILD_INDEP_DIR) && \
-	sed < libtool > libtool-2 \
-	 -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	 -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
-	mv libtool-2 libtool
-
-	touch $@
-
 configure: configure-static configure-shared
-
-build-indep: debian/control configure-indep $(STAMP_DIR)/build-indep-stamp
-$(STAMP_DIR)/build-indep-stamp:
-	dh_testdir
-
-	-rm -f $(STAMP_DIR)/install-test-stamp
-
-	$(MAKE) -C $(BUILD_INDEP_DIR) \
-		LD_LIBRARY_PATH=$(libpath):$(LD_LIBRARY_PATH)
-	# regenerating html files
-	#  -- needs to update due to applying the patches.
-	$(MAKE) -C $(BUILD_INDEP_DIR)/docs/faq html
-	$(MAKE) -C $(BUILD_INDEP_DIR)/docs/reference
-	$(MAKE) -C $(BUILD_INDEP_DIR)/docs/tutorial html
-
-	touch $@
 
 build-shared: debian/control configure-shared $(STAMP_DIR)/build-shared-stamp
 $(STAMP_DIR)/build-shared-stamp:
@@ -226,24 +177,17 @@ install-static: build-static install-test
 		RUN_QUERY_IMMODULES_TEST=false \
 		RUN_QUERY_LOADER_TEST=false
 
-install-indep: build-indep install-test
-	$(MAKE) -C $(BUILD_INDEP_DIR)/docs install \
-		DESTDIR=$(CURDIR)/debian/libgtk$(apiver)-doc
-
-	# we don't want to manpages in -doc
-	-rm -rf $(CURDIR)/debian/libgtk$(apiver)-doc/usr/share/man/
-
-	# for -doc
-	cp -a $(BUILD_INDEP_DIR)/docs/faq/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq/
-	cp -a $(BUILD_INDEP_DIR)/docs/tutorial/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
-	cp -ar $(BUILD_INDEP_DIR)/docs/tutorial/images debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
-	cp $(BUILD_INDEP_DIR)/docs/*.txt debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc
-
 install: install-static install-shared
 	# generating debian files from .in
 	for f in `find debian/ -name "[^c]*.in"`; do \
 		sed -e "s/@VERSION@/${version}/g" -e "s/@MODVER@/${modver}/g" -e "s/@APIVER@/${apiver}/g" $$f > `echo $$f | sed -e "s/\.in//"`; \
 	done
+
+	# for -doc
+	cp -a $(BUILD_SHARED_DIR)/docs/faq/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq/
+	cp -a $(BUILD_SHARED_DIR)/docs/tutorial/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
+	cp -ar $(BUILD_SHARED_DIR)/docs/tutorial/images debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
+	cp $(BUILD_SHARED_DIR)/docs/*.txt debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc
 
 	# for -dbg
 	-rm -rf $(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/lib/debug
@@ -274,11 +218,13 @@ install: install-static install-shared
 	install -d $(CURDIR)/debian/libgtk$(apiver)-common/etc/gtk-$(apiver)
 
 # Build architecture-independent files here.
-binary-indep: build build-indep install-indep
+binary-indep: build install
 	dh_testdir -i
 	dh_testroot -i
 
 	dh_installdocs -i
+
+	rm -rf $(CURDIR)/debian/libgtk$(apiver)-data/usr/share/doc/libgtk$(apiver)-data
 
 	dh_link -plibgtk$(apiver)-doc				\
 		usr/share/doc/libglib$(glibver)-doc/glib	\
@@ -292,6 +238,9 @@ binary-indep: build build-indep install-indep
 	dh_link -plibgtk$(apiver)-doc				\
 		usr/share/doc/libpango$(pangover)-doc/pango	\
 		usr/share/doc/libgtk$(apiver)-doc/pango
+	dh_link -plibgtk$(apiver)-data				\
+		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
+		usr/share/doc/libgtk$(apiver)-data
 	
 	# create symlinks in /usr/share/gtk-doc/html
 	for i in gdk gdk-pixbuf gtk gtk-faq gtk-tutorial; do	\
@@ -321,7 +270,6 @@ binary-arch: build install
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dbg/usr/share/doc/libgtk$(apiver)-dbg
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dev/usr/share/doc/libgtk$(apiver)-dev
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-common/usr/share/doc/libgtk$(apiver)-common
-	rm -rf $(CURDIR)/debian/libgtk-common/usr/share/doc/libgtk-common
 
 	dh_link -plibgtk$(apiver)-dbg \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
@@ -332,9 +280,6 @@ binary-arch: build install
 	dh_link -plibgtk$(apiver)-common \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-common
-	dh_link -plibgtk-common \
-		usr/share/doc/libgtk$(apiver)-common \
-		usr/share/doc/libgtk-common
 
 	dh_installexamples -a
 
