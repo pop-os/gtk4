@@ -1,9 +1,14 @@
 gtk+2.0 (2.6.2-4) unstable; urgency=low
 
-  * debian/shlibs.local:
-    - dropped, fix the self depends (Closes: #296175).
+  * Sjoerd Simons:
+    - debian/patches/003_iconcache.patch
+      + Updated. Let updateiconcache.c include config.h so it's correctly build
+        with large file support. (Closes: #295777)
+  * Sebastien Bacher:
+    - debian/shlibs.local:
+      + dropped, fix the self depends (Closes: #296175).
 
- -- Sebastien Bacher <seb128@debian.org>  Tue, 22 Feb 2005 14:42:25 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Tue, 22 Feb 2005 14:52:34 +0100
 
 gtk+2.0 (2.6.2-3) unstable; urgency=low
 
