@@ -1,3 +1,10 @@
+gtk+2.0 (2.4.13-1) unstable; urgency=low
+
+  * New upstream release:
+    - make new notebook tabs appear again (Closes: #276266).
+
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 13 Oct 2004 16:48:13 +0200
+
 gtk+2.0 (2.4.11-1) unstable; urgency=low
 
   * New upstream release.
