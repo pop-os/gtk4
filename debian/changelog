@@ -1,3 +1,11 @@
+gtk+2.0 (2.4.1-2) experimental; urgency=low
+
+  * debian/control.in: 
+    + Conflict with old versions of packages that need a rebuild to work with 
+      gtk+2.4 to force the updates.
+
+ -- Sebastien Bacher <seb128@debian.org>  Sat, 15 May 2004 23:24:07 +0200
+
 gtk+2.0 (2.4.1-1) experimental; urgency=low
   
   * New upstream release.
