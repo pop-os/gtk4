@@ -7,6 +7,8 @@ gtk+2.0 (2.4.1-1) experimental; urgency=low
   * Sebastien Bacher <seb128@debian.org>
   + debian/control.in:
     - added Build-Depends on libxext-dev (Closes: #247469).
+  + debian/rules:
+    - updated shlib to 2.4.1.
   
  -- Sebastien Bacher <seb128@debian.org>  Wed,  5 May 2004 23:32:54 +0200
 
