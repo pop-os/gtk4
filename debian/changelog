@@ -1,3 +1,11 @@
+gtk+2.0 (2.4.1-2) experimental; urgency=low
+
+  * Akira TAGOH <tagoh@debian.org>
+  + debian/control:
+    - libgtk2.0-dev requires libxext-dev. (real close for Bug#247469)
+
+ -- Akira TAGOH <tagoh@debian.org>  Thu,  6 May 2004 15:52:38 +0900
+
 gtk+2.0 (2.4.1-1) experimental; urgency=low
   
   * New upstream release.
