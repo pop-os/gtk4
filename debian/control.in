@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Akira TAGOH <tagoh@debian.org>
 Uploaders: @GNOME_TEAM@
-Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.6.0-1), xlibs-pic (>= 4.2.1-6), xlibs-dev, libtiff3g-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
+Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.4.0-1), libpango1.0-dev (>= 1.4.0-1), libatk1.0-dev (>= 1.6.0-1), xlibs-pic (>= 4.2.1-6), xlibs-dev, libxcursor-dev, libtiff3g-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
 Build-Depends-Indep: gtk-doc-tools, docbook-xml
 Standards-Version: 3.6.1.0
 

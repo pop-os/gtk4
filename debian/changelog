@@ -4,8 +4,9 @@ gtk+2.0 (2.4.0-2) experimental; urgency=low
     + Updated shver.
   * debian/control.in:
     + Added again Build-Depends removed in 2.4.0-1.
+    + Added build dependency on libxcursor-dev. (Closes: #239886)
 
- -- Sebastien Bacher <seb128@debian.org>  Wed, 24 Mar 2004 21:11:41 +0100
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 24 Mar 2004 23:54:54 +0100
 
 gtk+2.0 (2.4.0-1) experimental; urgency=low
 
