@@ -1,3 +1,12 @@
+gtk+2.0 (2.4.7-1) unstable; urgency=medium
+
+  * GNOME team upload.
+  * New upstream release.
+  * debian/patches/002_gtk+-pixbuf-breakage.patch: new, apply patch
+    from CVS to fix thumbnail corruption in nautilus.
+
+ -- Jordi Mallach <jordi@debian.org>  Wed, 25 Aug 2004 15:32:28 +0200
+
 gtk+2.0 (2.4.4-2) unstable; urgency=medium
 
   * Rebuilt with libtiff4.
