@@ -1,3 +1,9 @@
+gtk+2.0 (2.4.2-1) unstable; urgency=low
+
+  * New upstream release (Closes: #252690).
+
+ -- Sebastien Bacher <seb128@debian.org>  Sat,  5 Jun 2004 17:23:57 +0200
+
 gtk+2.0 (2.4.1-4) unstable; urgency=low
 
   * Conflict with librsvg2-common << 2.6.3-1 (closes: #250714, #250647).
