@@ -26,6 +26,10 @@ ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 	INSTALL_PROGRAM += -s
 endif
 
+ifneq (,$(findstring $(DEB_HOST_GNU_TYPE),mipsel-linux mips-linux))
+	STATIC_CONFIG_ARGS = --disable-testsuite
+endif
+
 ##
 version=$(shell dpkg-parsechangelog | grep '^Version: ' | sed -e 's/^Version: //' -e 's/-[A-Za-z0-9\.\+]*$$//g' -e 's/+[A-Za-z0-9\.]*$$//g')
 major=$(shell echo ${version} | sed -e 's/\(^[0-9]*\)\.[0-9]*\.[0-9]*$$/\1/')
@@ -106,7 +110,8 @@ $(STAMP_DIR)/configure-static-stamp:
 			--with-included-loaders=yes \
 			--disable-modules \
 			--disable-shared \
-			--enable-static
+			--enable-static \
+			$(STATIC_CONFIG_ARGS)
 
 	cd $(BUILD_STATIC_DIR) && \
 	sed < libtool > libtool-2 \
