@@ -119,6 +119,8 @@ Description: Examples files for the GTK+ 2.0
  for the GTK+-2.0.
 
 Package: gtk2-engines-pixbuf
+Section: graphics
+Priority: optional
 Architecture: any
 Depends: ${shlibs:Depends}
 Suggests: gtk-engines-pixmap

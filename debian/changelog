@@ -7,8 +7,12 @@ gtk+2.0 (2.6.2-4) unstable; urgency=low
   * Sebastien Bacher:
     - debian/shlibs.local:
       + dropped, fix the self depends (Closes: #296175).
+  * Loic Minier:
+    - debian/control*
+      + added gtk2-engines-pixbuf subsection and priority to sync with
+        override
 
- -- Sjoerd Simons <sjoerd@debian.org>  Tue, 22 Feb 2005 14:52:34 +0100
+ -- Loic Minier <lool@dooz.org>  Sat, 26 Feb 2005 22:09:31 +0100
 
 gtk+2.0 (2.6.2-3) unstable; urgency=low
 
