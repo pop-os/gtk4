@@ -1,18 +1,19 @@
-gtk+2.0 (2.6.2-4) unstable; urgency=low
+gtk+2.0 (2.6.2-4) unstable; urgency=high
 
   * Sjoerd Simons:
     - debian/patches/003_iconcache.patch
       + Updated. Let updateiconcache.c include config.h so it's correctly build
-        with large file support. (Closes: #295777)
+        with large file support (Closes: #295777).
   * Sebastien Bacher:
     - debian/shlibs.local:
       + dropped, fix the self depends (Closes: #296175).
   * Loic Minier:
     - debian/control*
       + added gtk2-engines-pixbuf subsection and priority to sync with
-        override
+        the override.
+  * Use high urgency so that icon themes can propagate to testing.
 
- -- Loic Minier <lool@dooz.org>  Sat, 26 Feb 2005 22:09:31 +0100
+ -- Josselin Mouette <joss@debian.org>  Wed,  2 Mar 2005 22:28:38 +0100
 
 gtk+2.0 (2.6.2-3) unstable; urgency=low
 
