@@ -1,3 +1,56 @@
+gtk+2.0 (2.6.0-1) experimental; urgency=low
+
+  * New upstream release (Closes: #275239).
+  * debian/control.in:
+    - create a gtk2-engines-pixbuf package.
+    - recommends hicolor-icon-theme (Closes: #287334).
+    - rename libgtk2.0-dbg to libgtk2.0-0-dbg.
+    - updated the Build-Depends.
+  * debian/gtk2-engines-pixbuf.files:
+    - added.
+  * debian/libgtk2.0-bin.files:
+    - install gtk-update-icon-cache here.
+  * debian/libgtk2.0-bin.postinst:
+    - call gtk-update-icon-cache.
+  * debian/patches/001_gtk+-debian-aclocal-pass_all.patch:
+    - removed, should not be needed with the new version.
+  * debian/patches/003_treeview-typeahead.patch,
+    debian/patches/003_filechooser-search.patch,
+    debian/patches/004_treeview-activate.patch,
+    debian/patches/005_modifiers.patch:
+    - removed, these changes are in the new version.
+  * debian/rules:
+    - updated the shlibs.
+    - use dh_strip to make the debug package.  
+  * update-gtk-immodules.in:
+  * update-gdkpixbuf-loaders.in:
+    - module version is 2.4.0.
+  * debian/watch:
+    - updated.
+
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 29 Dec 2004 18:55:11 +0100
+
+gtk+2.0 (2.4.14-2) unstable; urgency=low
+
+  * debian/patches/003_filechooser-search.patch:
+    - open the path entry if "/" is enter in the file-selector.
+  * debian/patches/004_treeview-activate.patch:
+    - typeahead active the row.
+  * debian/patches/005_modifiers.patch:
+    - accept shift-/ for bringing up the location popup.
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 21 Dec 2004 16:21:15 +0100
+
+gtk+2.0 (2.4.14-1) unstable; urgency=low
+
+  * New upstream release (Closes: #286021).
+  * debian/control.in:
+    - set myself as maintainer.
+  * debian/patches/003_treeview-typeahead.patch:
+    - backport of the typeahead feature for the treeviews.  
+
+ -- Sebastien Bacher <seb128@debian.org>  Sun, 19 Dec 2004 14:55:07 +0100
+
 gtk+2.0 (2.4.13-1) unstable; urgency=low
 
   * New upstream release:

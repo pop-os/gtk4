@@ -10,6 +10,7 @@ if [ "x$1" != "x" ]; then
 else
 	VERSION=$defaultver
 fi
+VERSION=2.4.0
 apiver=2.0
 shortver=`echo $VERSION | sed -e 's/\.[0-9]*$//'`
 

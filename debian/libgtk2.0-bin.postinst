@@ -27,6 +27,7 @@ case "$1" in
     configure)
 	/usr/sbin/update-gtk-immodules
 	/usr/sbin/update-gdkpixbuf-loaders
+	/usr/bin/gtk-update-icon-cache /usr/share/icons
     ;;
 
     abort-upgrade|abort-remove|abort-deconfigure)

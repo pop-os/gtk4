@@ -39,7 +39,7 @@ modver=$(major).$(minor).0
 glibver=2.0
 atkver=1.0
 pangover=1.0
-shver=2.4.4
+shver=2.6.0
 libpath=$(CURDIR)/$(BUILD_SHARED_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gtk/.libs
 
 
@@ -103,8 +103,8 @@ $(STAMP_DIR)/configure-static-stamp:
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
 			--with-xinput=yes \
-			--disable-modules \
 			--with-included-loaders=yes \
+			--disable-modules \
 			--disable-shared \
 			--enable-static
 
@@ -192,14 +192,6 @@ install: install-static install-shared
 
 	cp -ar $(BUILD_SHARED_DIR)/docs/tutorial/images debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
 	cp $(BUILD_SHARED_DIR)/docs/*.txt debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc
-
-	# for -dbg
-	-rm -rf $(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/lib/debug
-	mkdir -p $(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/lib/debug
-	for l in `find $(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/lib -name 'lib*.so*'`; do \
-		cp -vdf $$l \
-			$(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/lib/debug; \
-	done
 
 	# debian files
 	install -m 755 $(CURDIR)/debian/update-gtk-immodules \
@@ -292,7 +284,7 @@ binary-arch: build install
 	dh_installman -a
 	dh_installinfo -a
 	dh_installchangelogs -a $(BUILD_DIR)/ChangeLog
-	dh_strip -a -Nlibgtk$(apiver)-dbg
+	dh_strip -a --dbg-package=libgtk$(apiver)-$(soname)
 	dh_compress -a
 	dh_fixperms -a
 	dh_makeshlibs -a -Nlibgtk$(apiver)-dbg

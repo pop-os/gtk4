@@ -11,7 +11,7 @@ if [ "x$1" != "x" ]; then
 else
 	VERSION=$defaultver
 fi
-
+VERSION=2.4.0
 if ! test -d /usr/lib/gtk-$apiver/$VERSION/immodules; then
 	echo "You don't have immodules directory for version $VERSION."
 	echo "Use default version instead."
@@ -19,7 +19,7 @@ if ! test -d /usr/lib/gtk-$apiver/$VERSION/immodules; then
 fi
 
 echo -n "Updating the IM modules list for GTK+-$VERSION..."
-/usr/bin/gtk-query-immodules-$apiver `find /usr/lib/gtk-$apiver/$VERSION/immodules -name '*.so'` > $TMPFILE
+/usr/bin/gtk-query-immodules-$apiver `find /usr/lib/gtk-$apiver/2.4.0/immodules -name '*.so'` > $TMPFILE
 if [ "x`cat $TMPFILE | grep -v '^#'`" = "x" ]; then
 	echo "the GTK+ IM modules was not found."
 else

@@ -2,14 +2,15 @@
 
 set -e
 
-TMPFILE=`mktemp /tmp/gtk+-2.4.3.XXXXXXXXXX`
-defaultver=2.4.0
+TMPFILE=`mktemp /tmp/gtk+-2.5.6.XXXXXXXXXX`
+defaultver=2.5.0
 
 if [ "x$1" != "x" ]; then
 	VERSION=`echo $1 | sed -e 's/-[A-Za-z0-9\.]*$//' -e 's/+[A-Za-z0-9\.]*$//'`
 else
 	VERSION=$defaultver
 fi
+VERSION=2.4.0
 apiver=2.0
 shortver=`echo $VERSION | sed -e 's/\.[0-9]*$//'`
 

@@ -3,3 +3,5 @@ usr/share/man/man1/gtk-query-immodules-2.0.1*
 usr/bin/gdk-pixbuf-query-loaders
 usr/share/man/man1/gdk-pixbuf-query-loaders.1*
 etc/gtk-2.0/*
+usr/bin/gtk-update-icon-cache
+usr/share/man/man1/gtk-update-icon-cache.1*
