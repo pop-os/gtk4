@@ -3,9 +3,15 @@ gtk+2.0 (2.2.4-2) UNRELEASED; urgency=low
   * debian/control:
     - added Uploaders to maintain as team.
     - added gnome-pkg-tools to Build-Depends.
+  * debian/libgtk2.0-doc.doc-base.gtk-faq
+  * debian/libgtk2.0-doc.doc-base.gtk-tutorial:
+    - replaced book1.html by index.html (closes: Bug#215382).
   * debian/patches/:
+    - 000_gtk+-2.2.4-socketfocus.patch: new patch to fix a GtkSocket focus
+      problem that hang the system tray applet. 
+      (closes: Bug#210813, Bug#212772).
     - 001_gtk+-ximian-gtk2-filesel-navbutton-5.patch: updated 
-      (closes: Bug#216660).
+      (closes: Bug#216660). 
   * debian/rules:
     - modified to generate debian/control using gnome-pkg-tools.
   
