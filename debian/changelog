@@ -1,8 +1,10 @@
-gtk+2.0 (2.2.4-2) UNRELEASED; urgency=low
+gtk+2.0 (2.2.4-2) unstable; urgency=low
 
   * debian/control:
     - added Uploaders to maintain as team.
     - added gnome-pkg-tools to Build-Depends.
+  * debian/gtk-options.7:
+    - included a manpage with the help on the options (Closes: Bug#216897).
   * debian/libgtk2.0-doc.doc-base.gtk-faq
   * debian/libgtk2.0-doc.doc-base.gtk-tutorial:
     - replaced book1.html by index.html (closes: Bug#215382).
