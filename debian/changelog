@@ -1,3 +1,21 @@
+gtk+2.0 (2.6.2-2) unstable; urgency=low
+
+  * debian/libgtk2.0-bin.postinst:
+    - don't run gtk-update-icon-cache, the themes should do that 
+      (Closes: #293568).
+  * debian/patches/003_iconcache.patch:
+    - should fix the gtk-update-icon-cache issue on sparc. 
+
+ -- Sebastien Bacher <seb128@debian.org>  Sun,  6 Feb 2005 19:57:57 +0100
+
+gtk+2.0 (2.6.2-1) unstable; urgency=low
+
+  * New upstream release:
+    - fix the loop in gtkdialog (Closes: #291051).
+    - should fix the issue on sparc (Closes: #293711).
+
+ -- Sebastien Bacher <seb128@debian.org>  Sun,  6 Feb 2005 00:16:52 +0100
+
 gtk+2.0 (2.6.1-2) unstable; urgency=low
 
   * Upload to unstable.
