@@ -1,3 +1,12 @@
+gtk+2.0 (2.4.9-1) unstable; urgency=medium
+
+  * GNOME team upload.
+  * New upstream release.
+  * debian/patches/002_gtk+-pixbuf-breakage.patch: removed, included in
+    upstream version 2.4.8.
+
+ -- Jordi Mallach <jordi@debian.org>  Thu, 26 Aug 2004 14:41:17 +0200
+
 gtk+2.0 (2.4.7-1) unstable; urgency=medium
 
   * GNOME team upload.
