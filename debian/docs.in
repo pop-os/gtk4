@@ -1,0 +1,5 @@
+build-tree/gtk+-@VERSION@/NEWS
+build-tree/gtk+-@VERSION@/README
+build-tree/gtk+-@VERSION@/ChangeLog.pre-1-0
+build-tree/gtk+-@VERSION@/ChangeLog.pre-1-2
+build-tree/gtk+-@VERSION@/ChangeLog.pre-2-0

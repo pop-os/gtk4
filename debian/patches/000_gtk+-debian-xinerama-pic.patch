@@ -1,0 +1,44 @@
+diff -ruN gtk+-2.2.2.orig/configure gtk+-2.2.2/configure
+--- gtk+-2.2.2.orig/configure	2003-06-10 05:30:17.000000000 +0900
++++ gtk+-2.2.2/configure	2003-07-13 02:01:52.000000000 +0900
+@@ -26592,13 +26592,13 @@
+       *)
+ 	  # Check for XFree
+ 	  use_xfree_xinerama=yes
+-	  echo "$as_me:$LINENO: checking for XineramaQueryExtension in -lXinerama" >&5
+-echo $ECHO_N "checking for XineramaQueryExtension in -lXinerama... $ECHO_C" >&6
++	  echo "$as_me:$LINENO: checking for XineramaQueryExtension in -lXinerama_pic" >&5
++echo $ECHO_N "checking for XineramaQueryExtension in -lXinerama_pic... $ECHO_C" >&6
+ if test "${ac_cv_lib_Xinerama_XineramaQueryExtension+set}" = set; then
+   echo $ECHO_N "(cached) $ECHO_C" >&6
+ else
+   ac_check_lib_save_LIBS=$LIBS
+-LIBS="-lXinerama -lXext $x_libs_for_checks $LIBS"
++LIBS="-lXinerama_pic -lXext $x_libs_for_checks $LIBS"
+ cat >conftest.$ac_ext <<_ACEOF
+ #line $LINENO "configure"
+ /* confdefs.h.  */
+@@ -26687,7 +26687,7 @@
+ echo "$as_me:$LINENO: result: $ac_cv_header_X11_extensions_Xinerama_h" >&5
+ echo "${ECHO_T}$ac_cv_header_X11_extensions_Xinerama_h" >&6
+ if test $ac_cv_header_X11_extensions_Xinerama_h = yes; then
+-  x_extra_libs="-lXinerama $x_extra_libs"
++  x_extra_libs="-lXinerama_pic $x_extra_libs"
+ 		  if test -z "`echo $x_extra_libs $x_libs | grep "\-lXext" 2> /dev/null`"; then
+ 		      x_extra_libs="-lXext $x_extra_libs"
+ 		  fi
+diff -ruN gtk+-2.2.2.orig/configure.in gtk+-2.2.2/configure.in
+--- gtk+-2.2.2.orig/configure.in	2003-06-09 13:24:51.000000000 +0900
++++ gtk+-2.2.2/configure.in	2003-07-13 01:58:11.000000000 +0900
+@@ -1119,9 +1119,9 @@
+       *)
+ 	  # Check for XFree
+ 	  use_xfree_xinerama=yes
+-	  AC_CHECK_LIB(Xinerama, XineramaQueryExtension,
++	  AC_CHECK_LIB(Xinerama_pic, XineramaQueryExtension,
+ 	      [AC_CHECK_HEADER(X11/extensions/Xinerama.h, 
+-		  x_extra_libs="-lXinerama $x_extra_libs"   
++		  x_extra_libs="-lXinerama_pic $x_extra_libs"   
+ 		  if test -z "`echo $x_extra_libs $x_libs | grep "\-lXext" 2> /dev/null`"; then
+ 		      x_extra_libs="-lXext $x_extra_libs"
+ 		  fi

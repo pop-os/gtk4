@@ -1,0 +1,34 @@
+GTK+2.0 for Debian
+-------------------
+
+Static libraries issue
+======================
+If you wish to link the GTK+ 2.0 libraries statically into your program,
+please note that you *can not* use the '-static' flag to gcc.
+Instead, you have to link your program *dynamically* and link *only*
+the GTK+ 2.0 libraries statically, like this:
+
+$ gcc -export-dynamic -o foo foo.c \
+  -Wl,-Bstatic `pkg-config --cflags --libs gtk+-2.0` -Wl,-Bdynamic \
+  [other dynamically linked libraries]
+
+The reason for this is that GTK+ 2.0 uses dlopen(3) in order to load
+some modules.  Undefined symbols in these modules are resolved by the
+dynamic linker.  If the program is linked statically, the linker has
+no way of finding out which symbols are already present in the program
+and might causes strange problem so that proper symbols isn't used --
+Initialize function in statically linked libraries is called, and some
+global variable is initialized, dynamically loaded modules might also
+expects those initialized global variable.
+
+
+Key binding
+===========
+gnome-settings-daemon overrides gtk-key-theme-name in your gtkrc. so if you
+use GNOME 2, it won't work, and it's not a bug.
+Please use gnome-keybinding-properties instead of gtk-key-theme-name in your
+gtkrc.
+
+
+ -- Akira TAGOH <tagoh@debian.org>, Mon, 03 Mar 2003 00:49:13 +0900
+

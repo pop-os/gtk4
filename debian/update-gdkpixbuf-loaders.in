@@ -1,0 +1,39 @@
+#! /bin/sh
+
+set -e
+
+TMPFILE=`mktemp /tmp/gtk+-@VERSION@.XXXXXXXXXX`
+defaultver=@MODVER@
+
+if [ "x$1" != "x" ]; then
+	VERSION=`echo $1 | sed -e 's/-[A-Za-z0-9\.]*$//' -e 's/+[A-Za-z0-9\.]*$//'`
+else
+	VERSION=$defaultver
+fi
+apiver=2.0
+shortver=`echo $VERSION | sed -e 's/\.[0-9]*$//'`
+
+if ! test -d /usr/lib/gtk-$apiver/$VERSION/loaders; then
+	echo "You don't have gdk-pixbuf loaders directory for version $VERSION."
+	echo "Use default version instead."
+	VERSION=$defaultver
+	shortver=`echo $VERSION | sed -e 's/\.[0-9]*$//'`
+fi
+
+echo -n "Updating the gdk-pixbuf loaders list for GTK+-$VERSION..."
+/usr/bin/gdk-pixbuf-query-loaders > $TMPFILE
+if [ "x`cat $TMPFILE | grep -v '^#'`" = "x" ]; then
+	echo "the gdk-pixbuf loaders was not found."
+else
+	echo "done."
+fi
+if ! test -d /etc/gtk-$apiver; then
+	echo -n "Creating /etc/gtk-$apiver..."
+	mkdir /etc/gtk-$apiver
+	echo "done."
+fi
+cp $TMPFILE /etc/gtk-$apiver/gdk-pixbuf.loaders
+chmod 644 /etc/gtk-$apiver/gdk-pixbuf.loaders
+
+rm -f $TMPFILE
+

@@ -1,0 +1,36 @@
+.\"                                      Hey, EMACS: -*- nroff -*-
+.\" First parameter, NAME, should be all caps
+.\" Second parameter, SECTION, should be 1-8, maybe w/ subsection
+.\" other parameters are allowed: see man(7), man(1)
+.TH UPDATE-GTK-IMMODULES 1 "13 mars 2002"
+.\" Please adjust this date whenever revising the manpage.
+.\"
+.\" Some roff macros, for reference:
+.\" .nh        disable hyphenation
+.\" .hy        enable hyphenation
+.\" .ad l      left justify
+.\" .ad b      justify to both left and right margins
+.\" .nf        disable filling
+.\" .fi        enable filling
+.\" .br        insert line break
+.\" .sp <n>    insert n+1 empty lines
+.\" for manpage-specific macros, see man(7)
+.SH NOM
+update-gtk-immodules \- Script de mise à jour de la liste des modules
+GTK+ IM
+.SH SYNOPSIS
+.B update-gtk-immodules
+.I paquet\| version
+.SH DESCRIPTION
+\fIupdate-gtk-immodules\fP est un script d'analyse pour la mise à jour de 
+/etc/gtk-2.0/gtk.immodules en utilisant \fIgtk-query-immodules-2.0\fP.
+.br
+\fIupdate-gtk-immodules\fP reçoit un argument et /etc/gtk-2.0/gtk.immodules sera
+généré pour cette version par \fIgtk-query-immodules-2.0\fP.
+.SH VOIR AUSSI
+.BR gtk-query-immodules-2.0 (1)
+.SH AUTEUR
+Cette page de manuel a été écrite par Akira TAGOH <tagoh@debian.org>,
+pour le système Debian GNU/Linux.
+.SH TRADUCTION
+Julien Louis <leonptitlouis@ifrance.com>

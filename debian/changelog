@@ -1,0 +1,419 @@
+gtk+2.0 (2.2.4-2) UNRELEASED urgency=low
+
+  * debian/control:
+    - added Uploaders to maintain as team.
+    - added gnome-pkg-tools to Build-Depends.
+  * debian/rules:
+    - modified to generate debian/control using gnome-pkg-tools.
+  
+ -- Sebastien Bacher <seb128@debian.org>  Fri, 31 Oct 2003 21:32:29 +0100
+
+gtk+2.0 (2.2.4-1) unstable; urgency=low
+
+  * New upstream release.
+    - implemented the im module that produces C_WITH_CEDILLA rather than
+      C_WITH_ACUTE for dead_acute+c combinations. it will be used as default
+      im module for fr and pt. (closes: Bug#168557)
+    - reworked the handling of XIM's status window. (closes: Bug#203009)
+  * debian/control:
+    - removed libgtk2.0-0png3 which is unnecessary anymore.
+    - added non-versioned Conflicts: libgtk2.0-0png3.
+    - bumped Standards-Version to 3.6.1.0.
+  * debian/patches/: removed the backported patches.
+    - 000_gtk+-2.2.2-docfix-gtk2compliant.patch
+    - 000_gtk+-2.2.2-docfix-gtktreemodel.patch
+    - 000_gtk+-2.2.2-gtkwidget-viewable.patch
+    - 000_gtk+-2.2.2-imxim-reconnect.patch
+
+ -- Akira TAGOH <tagoh@debian.org>  Mon,  8 Sep 2003 03:42:18 +0900
+
+gtk+2.0 (2.2.2-3) unstable; urgency=low
+
+  * debian/patches/:
+    - 000_gtk+-2.2.2-docfix-gtk2compliant.patch: applied a backported patch
+      from CVS to fix the old documentation. (closes: Bug#146723)
+    - 000_gtk+-2.2.2-docfix-gtktreemodel.patch: applied a backported patch
+      from CVS to fix the sample code. (closes: Bug#201322)
+    - 000_gtk+-2.2.2-gtkwidget-viewable.patch: applied a backported patch from
+      CVS to fix the garbled pixmaps. (closes: Bug#201808, Bug#202486)
+    - 000_gtk+-2.2.2-imxim-reconnect.patch: applied a backported patch from
+      CVS to fix the segfaults if the XIM server is killed during running gtk2
+      applications.
+    - 001_gtk+-debian-docfix-dtds.patch: applied to use the local DTD.
+  * debian/control:
+    - added Build-Depends-Indep: gtk-doc-tools, docbook-xml to re-generate the
+      fixed documents.
+
+ -- Akira TAGOH <tagoh@debian.org>  Thu,  7 Aug 2003 01:42:46 +0900
+
+gtk+2.0 (2.2.2-2) unstable; urgency=low
+
+  * debian/patches/:
+    - 001_gtk+-debian-aclocal-pass_all.patch: re-applied a patch to fix FTBFS
+      on arm. (closes: Bug#201443)
+
+ -- Akira TAGOH <tagoh@debian.org>  Thu, 24 Jul 2003 03:14:10 +0900
+
+gtk+2.0 (2.2.2-1) unstable; urgency=low
+
+  * New upstream release. (closes: Bug#200350)
+    - Fixed threadlocks on GtkTreeView. (closes: Bug#192136)
+    - Fixed the crash on moving the cursor when the cursor is invisible.
+      (closes: Bug#187858)
+    - Fixed the compose table for ascending order. (closes: Bug#182073)
+  * debian/control:
+    - fix the FTBFS. Thanks to Daniel Baeyens.
+    - bumped Standards-Version to 3.6.0.
+  * debian/rules:
+    - removed dh_undocumented.
+    - don't claim the newer shlibs.
+  * debian/patches/:
+    - 000_gtk+-2.2.1-gdk_event_copy_for_xinput.patch: removed.
+    - 000_gtk+-2.2.1-gdk_visual_get_best_with_depth.patch: removed.
+    - 000_gtk+-2.2.1-gtk_text_line_previous_could_contain_tag.patch: removed.
+    - 000_gtk+-2.2.1-gtktreeview-scroll.patch: removed.
+    - 000_gtk+-debian-xinerama-pic.patch: updated.
+    - 001_gtk+-debian-aclocal.patch: removed.
+    - 001_gtk+-ximian-gtk2-filesel-navbutton-5.patch: applied a Ximian patch
+      to improve the GtkFileSel UI. Requested from Ross Burton.
+    - 000_gtk+-2.2.2-non-weak-symbols.patch: applied to fix the undefined non
+      weak symbols. (closes: Bug#193774)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sun, 13 Jul 2003 21:26:49 +0900
+
+gtk+2.0 (2.2.1-6) unstable; urgency=low
+
+  * debian/patches/001_gtk+-debian-aclocal.patch:
+    - damn. forgot to re-run automake and autoconf. fix again.
+      (closes: Bug#190569)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sat,  3 May 2003 16:56:18 +0900
+
+gtk+2.0 (2.2.1-5) unstable; urgency=low
+
+  * debian/control:
+    - changed a section for libgtk2.0-dbg to libdevel.
+  * debian/patches/000_gtk+-debian-aclocal.patch:
+    - applied to fix Xinerama library linkage broken on arm and m68k.
+      (closes: Bug#190569)
+      Thanks to James Troup and Phil Blundell.
+
+ -- Akira TAGOH <tagoh@debian.org>  Sat,  3 May 2003 01:50:52 +0900
+
+gtk+2.0 (2.2.1-4) unstable; urgency=low
+
+  * debian/patches/:
+    - 000_gtk+-2.2.1-gtk_text_line_previous_could_contain_tag.patch:
+      applied a backported patch from CVS. (closes: Bug#185066)
+    - 000_gtk+-2.2.1-gtktreeview-scroll.patch:
+      applied a patch from Red Hat to fix infinite expose loops in TreeView.
+      (closes: Bug#187312)
+  * debian/control:
+    - bumped Standards-Version to 3.5.9.
+    - changed a section for libgtk2.0-dev to libdevel.
+  * debian/rules:
+    - fixed the symlinks on /usr/share/gtk-doc/html. (closes: Bug#183377)
+  * debian/compat:
+    - use it instead of DH_COMPAT.
+
+ -- Akira TAGOH <tagoh@debian.org>  Fri,  4 Apr 2003 01:55:35 +0900
+
+gtk+2.0 (2.2.1-3) unstable; urgency=low
+
+  * build against the latest xlibs and xlibs-pic. so now correct
+    libXinerama_pic.a is linked and supporting xinarama is re-enabled.
+    (closes: Bug#177318)
+  * debian/control:
+    - depend on xlibs-pic (>= 4.2.1-6)
+  * debian/README.Debian:
+    - improve description of static libraries issue. (closes: Bug#181879)
+      Thanks to Marcelo E. Magallon <mmagallo@debian.org>
+    - mention gtk-key-theme-name and gnome-settings-daemon.
+  * debian/rules:
+    - create the symlinks in /usr/share/gtk-doc
+
+ -- Akira TAGOH <tagoh@debian.org>  Mon,  3 Mar 2003 01:35:04 +0900
+
+gtk+2.0 (2.2.1-2) unstable; urgency=low
+
+  * debian/patches/:
+    - 000_gtk+-2.2.1-gdk_visual_get_best_with_depth.patch:
+      backport from CVS to fix wrong pointer returned. (closes: Bug#180786)
+    - 000_gtk+-2.2.1-gdk_event_copy_for_xinput.patch:
+      applied to fix a crash when using xinput. (closes: Bug#178908)
+
+ -- Akira TAGOH <tagoh@debian.org>  Wed, 19 Feb 2003 03:10:55 +0900
+
+gtk+2.0 (2.2.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/patches/: removed patches. they were fixed in this release.
+    - 000_gtk+-2.2.0-buildfix-modules.patch
+    - 000_gtk+-2.2.0-fix-es.po.patch
+    - 000_gtk+-2.2.0-fnmatch-undef.patch
+    - 002_gtk+-2.2.0-fixtypo-xinput.patch
+  * debian/patches/000_gtk+-debian-xinerama-pic.patch: update.
+
+ -- Akira TAGOH <tagoh@debian.org>  Fri,  7 Feb 2003 03:37:44 +0900
+
+gtk+2.0 (2.2.0-3) unstable; urgency=low
+
+  * debian/: clean the unnecessary files up. (closes: Bug#177809)
+  * debian/rules:
+    remove the old debug libraries on install process if exists. (closes:
+    Bug#177376)
+  * debian/patches/:
+    - 002_gtk+-2.2.0-fixtypo-xinput.patch:
+      fix to enable XFree86 xinput extension. (closes: Bug#176104)
+    - 000_gtk+-2.2.0-fix-es.po.patch:
+      applied to fix es.po. (closes: Bug#178870)
+
+ -- Akira TAGOH <tagoh@debian.org>  Wed, 29 Jan 2003 23:01:43 +0900
+
+gtk+2.0 (2.2.0-2) unstable; urgency=low
+
+  * debian/control:
+    - add Conflicts libgnomeui-0 (<< 2.0.6-2) to avoid the gtk+ 2.2 breakage.
+      (closes: Bug#175946)
+    - add Conflicts gtk2.0-examples (<< 2.2.0) (closes: Bug#175868)
+    - add dependency of libgtk2.0-common. (closes: Bug#175873)
+    - removed libgtk-common package. it's no longer needed. I hope the loop
+      dependency will be disappeared.
+    - used libpng12-0-dev instead of libpng3-dev for Build-Depends.
+  * debian/patches/001_gtk+-2.2.0-xinerama-pic.patch:
+    disabled Xinerama support until xlibs-pic has libXinerama_pic.a.
+    (closes: Bug#175923)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sat, 11 Jan 2003 05:09:12 +0900
+
+gtk+2.0 (2.2.0-1) unstable; urgency=low
+
+  * New upstream release.
+    - upstream bug were closed. so it should be fixed. (closes: Bug#147697)
+  * debian/control:
+    - updated Build-Depends.
+    - bumped Standards-Version to 3.5.8.
+    - fix description-synopsis-ends-with-full-stop stuff.
+  * debian/update-gdkpixbuf-loaders: add brand-new wrapper script.
+  * debian/update-gdkpixbuf-loaders.1: add manpage.
+  * debian/rules:
+    modified to build the static libraries. (closes: Bug#161938)
+  * debian/README.Debian: updated.
+  * debian/patches/:
+    - 000_gtk+-2.0.6-extranotify.patch: removed.
+    - 000_gtk+-2.0.6-scroll_to.patch: removed.
+    - 000_gtk+-2.2.0-fnmatch-undef.patch:
+      applied to fix having main() in the library.
+    - 000_gtk+-2.2.0-buildfix-immodule.patch:
+      applied to build the static libraries.
+    - 000_gtk+-2.2.0-buildfix-modules.patch:
+      applied to fix a typo in configure.in.
+
+ -- Akira TAGOH <tagoh@debian.org>  Mon,  6 Jan 2003 18:34:31 +0900
+
+gtk+2.0 (2.0.9-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/patches/000_gtk+-2.0.8-refcolormap.patch: this release contains it.
+    removed.
+
+ -- Akira TAGOH <tagoh@debian.org>  Sun, 24 Nov 2002 00:08:42 +0900
+
+gtk+2.0 (2.0.8-2) unstable; urgency=low
+
+  * debian/patches/000_gtk+-2.0.8-refcolormap.patch: applied to fix the crash
+    problem with close. For solve your problem, I recommend you restart all
+    processes related gtk+2.0. (closes: Bug#169005)
+
+ -- Akira TAGOH <tagoh@debian.org>  Fri, 15 Nov 2002 09:16:40 +0900
+
+gtk+2.0 (2.0.8-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/patches/000_gtk+-2.0.7-gifsymbol.patch: it's no longer needed.
+  * debian/rules: fix twice called ldconfig. (closes: Bug#168071)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sun, 10 Nov 2002 16:36:45 +0900
+
+gtk+2.0 (2.0.7-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/rules:
+    - support noopt option for DEB_BUILD_OPTIONS.
+    - add symlink for gobject. (closes: Bug#167755)
+  * Hm, closed a bug which is marked as NMU due to mis-upload. (closes:
+    Bug#166442)
+  * debian/patches: these patches are no longer needed, so removed.
+    - 000_gtk+-2.0.6-64bitfix.patch
+    - 000_gtk+-2.0.6-imenvvar.patch
+    - 000_gtk+-2.0.6-keycode.patch
+    - 000_gtk+-2.0.6-usintl.patch
+  * debian/patches/000_gtk+-2.0.7-gifsymbol.patch: applied to fix the
+    undefined symbol issue on libpixbufloader-gif.so.
+
+ -- Akira TAGOH <tagoh@debian.org>  Wed,  6 Nov 2002 01:42:22 +0900
+
+gtk+2.0 (2.0.6-4) unstable; urgency=low
+
+  * debian/patches/000_gtk+-2.0.6-64bitfix.patch: applied to fix a segfault on
+    IA64. (closes: Bug#166442)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sun, 27 Oct 2002 03:07:59 +0900
+
+gtk+2.0 (2.0.6-3) unstable; urgency=low
+
+  * debian/control: moved libgtk2.0-0png3 to the last entry.
+  * debian/rule: fix invalid symlink.
+
+ -- Akira TAGOH <tagoh@debian.org>  Sat, 31 Aug 2002 09:46:36 +0900
+
+gtk+2.0 (2.0.6-2) unstable; urgency=low
+
+  * debian/control:
+    - bumped Standards-Version and depends debhelper (>> 4).
+    - revert to libgtk2.0-0 and remove Conflicts libgtk2.0-0, then add
+      versioned conflict to work eog2, gnome-panel2, celestia, gimp1.3 and
+      metatheme. (closes: Bug#155689, Bug#155854)
+    - add libgtk2.0-0png3 to Conflicts, Replaces.
+    - add a dummy package for libgtk2.0-0png3.
+    - remove the image libraries dependency. (closes: Bug#158858)
+    - clean up -dev's Depends.
+    - add libglib2.0-doc, libatk1.0-doc and libpango1.0-doc to Suggests.
+  * debian/patches/: from Red Hat.
+    - 000_gtk+-2.0.6-exportsymbols.patch:
+      applied to fix stripping the wrong symbols due to libtool's bug. but
+      it's not affected about the symbols used by ld and ld.so. mainly for nm,
+      gdb and etc.
+    - 000_gtk+-2.0.6-extranotify.patch:
+      applied to fix extra settings notifies on startup that were causing
+      significant performance problems as fonts were reloaded.
+    - 000_gtk+-2.0.6-imenvvar.patch:
+      applied to fix a bug with GTK_IM_MODULE environment variable.
+    - 000_gtk+-2.0.6-keycode.patch: applied to fix a problem with keycodes
+      passed to GtkIMContextXIM.
+    - 000_gtk+-2.0.6-usintl.patch:
+      applied to fix to GtkIMContextSimple compose for us-intl keyboards.
+      should be fixed. (closes: Bug#149515)
+    - 000_gtk+-2.0.6-scroll_to.patch:
+      applied to fix gtk_tree_view_scroll_to_cell.
+  * debian/rules: add symlink to fix the missing symlink for glib, atk and
+    pango. (closes: Bug#158107)
+  * debian/update-gtk-immodules.fr.1: added. Thanks Julien Louis. (closes:
+    Bug#156985)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sat, 31 Aug 2002 05:22:33 +0900
+
+gtk+2.0 (2.0.6-1) unstable; urgency=low
+
+  * New upstream release.
+  * Build against libpng3 (closes: 147852)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sun,  4 Aug 2002 18:31:53 +0900
+
+gtk+2.0 (2.0.5-2) unstable; urgency=low
+
+  * debian/rules: add --with-xinput=xfree. (closes: Bug#151668)
+  * debian/control:
+    - add Conflicts: libgdkxft0 to avoid some problem. (closes: Bug#151439).
+    - changed a summary from 'Dummy' to 'Empty'.
+
+ -- Akira TAGOH <tagoh@debian.org>  Thu,  4 Jul 2002 00:18:53 +0900
+
+gtk+2.0 (2.0.5-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/control: fix typo (closes: Bug#150147)
+
+ -- Akira TAGOH <tagoh@debian.org>  Mon, 17 Jun 2002 01:07:20 +0900
+
+gtk+2.0 (2.0.4-1) unstable; urgency=low
+
+  * New upstream release.
+    - should be fixed in this release. (closes: Bug#149667)
+    - now it's not linked to the Pango docs (closes: Bug#149143)
+  * debian/libgtk2.0-doc.doc-base.{gdk,gdk-pixbuf,gtk,gtk-faq,gtk-tutorial}:
+    add a new line before Format: (closes: Bug#149548, Bug#150043)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sun, 16 Jun 2002 05:16:29 +0900
+
+gtk+2.0 (2.0.3-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/libgtk2.0-doc.doc-base.{gtk-faq,gtk-tutorial}:
+    changed an index file.
+
+ -- Akira TAGOH <tagoh@debian.org>  Thu, 30 May 2002 23:35:52 +0900
+
+gtk+2.0 (2.0.2-5) unstable; urgency=high
+
+  * debian/control: add libtiff3g-dev, libpng2-dev and libjpeg62-dev to
+    Depends for -dev.
+  * set urgency=high because previous version violated our policy 2.3.4.
+    it should be into woody as far as possible.
+
+ -- Akira TAGOH <tagoh@debian.org>  Thu, 23 May 2002 00:31:52 +0900
+
+gtk+2.0 (2.0.2-4) unstable; urgency=high
+
+  * debian/patches/000_gtk+2.0-2.0.2-bigendian.patch: applied to fix a problem
+    for big endian machines. (closes: Bug#145285)
+  * set urgency=high because it should be in woody.
+
+ -- Akira TAGOH <tagoh@debian.org>  Wed,  1 May 2002 02:46:12 +0900
+
+gtk+2.0 (2.0.2-3) unstable; urgency=low
+
+  * debian/update-gtk-immodules: create /etc/gtk-2.0 directory for workaround,
+    if it's not found. oh, why didn't you have it? (closes: Bug#143508,
+    Bug#144673)
+
+ -- Akira TAGOH <tagoh@debian.org>  Sun, 28 Apr 2002 04:46:30 +0900
+
+gtk+2.0 (2.0.2-2) unstable; urgency=low
+
+  * debian/libgtk2.0-doc.doc-base.{gtk-faq,gtk-tutorial}:
+    Grr, fix again... (closes: Bug#141069)
+  * debian/scripts/vars.build: fix bashism.
+
+ -- Akira TAGOH <tagoh@debian.org>  Sat,  6 Apr 2002 04:26:14 +0900
+
+gtk+2.0 (2.0.2-1) unstable; urgency=low
+
+  * New upstream release.
+    - this release has bug fix only.
+  * debian/control: forgot to update versioned dependency for -dev.
+  * debian/libgtk2.0-doc.doc-base.gtk-faq,
+    debian/libgtk2.0-doc.doc-base.gtk-tutorial:
+    fix wrong index. (closes: Bug#141069)
+
+ -- Akira TAGOH <tagoh@debian.org>  Thu,  4 Apr 2002 02:49:49 +0900
+
+gtk+2.0 (2.0.1-1) unstable; urgency=low
+
+  * New upstream release.
+  * debian/update-gtk-immodules: check the immodules directory.
+
+ -- Akira TAGOH <tagoh@debian.org>  Sun, 31 Mar 2002 00:59:03 +0900
+
+gtk+2.0 (2.0.0-3) unstable; urgency=low
+
+  * debian/rules: removed regenerate shlibs. all packages no longer needs to
+    depend on -common.
+
+ -- Akira TAGOH <tagoh@debian.org>  Sat, 16 Mar 2002 21:51:08 +0900
+
+gtk+2.0 (2.0.0-2) unstable; urgency=low
+
+  * debian/control: changed Build-Depends to libpango1.0-dev (>= 1.0.0-3)
+  * debian/{control,rules}: add libgtk-common as dummy package for upgrading.
+  * debian/rules: fix the missing directory.
+  * debian/update-gtk-immodules: fix file attribute for gtk.immodules.
+
+ -- Akira TAGOH <tagoh@debian.org>  Sat, 16 Mar 2002 04:34:39 +0900
+
+gtk+2.0 (2.0.0-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Akira TAGOH <tagoh@debian.org>  Wed, 13 Mar 2002 00:07:25 +0900
+
