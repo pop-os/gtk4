@@ -1,0 +1,16 @@
+===================================================================
+RCS file: /cvs/gnome/gtk+/gtk/gtkmodules.c,v
+retrieving revision 1.4
+retrieving revision 1.5
+diff -u -r1.4 -r1.5
+--- gtkmodules.c	2005/01/01 03:04:17	1.4
++++ gtk+-2.6.1/gtk/gtkmodules.c	2005/01/20 13:33:44	1.5
+@@ -297,7 +297,7 @@
+ 		      g_module_symbol (module, "gtk_module_display_init",
+ 				       (gpointer *) &info->display_init_func);
+ 		      
+-		      gtk_modules = g_slist_prepend (gtk_modules, info);
++		      gtk_modules = g_slist_append (gtk_modules, info);
+ 		      
+ 		      /* display_init == NULL indicates a non-multihead aware module.
+ 		       * For these, we delay the call to init_func until first display is 
