@@ -1,3 +1,10 @@
+gtk+2.0 (2.6.2-4) unstable; urgency=low
+
+  * debian/shlibs.local:
+    - dropped, fix the self depends (Closes: #296175).
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 22 Feb 2005 14:42:25 +0100
+
 gtk+2.0 (2.6.2-3) unstable; urgency=low
 
   * Patch from Steve Langasek <vorlon@debian.org>:

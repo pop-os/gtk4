@@ -1,4 +1,0 @@
-libgdk_pixbuf-2.0 0 libgtk2.0-0 (>= 2.4.3)
-libgdk-x11-2.0 0 libgtk2.0-0 (>= 2.4.3)
-libgtk-x11-2.0 0 libgtk2.0-0 (>= 2.4.3)
-libgdk_pixbuf_xlib-2.0 0 libgtk2.0-0 (>= 2.4.3)
