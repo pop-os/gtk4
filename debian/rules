@@ -185,7 +185,11 @@ install: install-static install-shared
 
 	# for -doc
 	cp -a $(BUILD_SHARED_DIR)/docs/faq/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq/
+	cp -a $(CURDIR)/debian/gtk-faq.devhelp debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq/
+
 	cp -a $(BUILD_SHARED_DIR)/docs/tutorial/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
+	cp $(CURDIR)/debian/gtk-tutorial.devhelp debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
+
 	cp -ar $(BUILD_SHARED_DIR)/docs/tutorial/images debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
 	cp $(BUILD_SHARED_DIR)/docs/*.txt debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc
 
@@ -241,8 +245,8 @@ binary-indep: build install
 	dh_link -plibgtk$(apiver)-common			\
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-common
-	
-	# create symlinks in /usr/share/gtk-doc/html
+
+# create symlinks in /usr/share/gtk-doc/html
 	for i in gdk gdk-pixbuf gtk gtk-faq gtk-tutorial; do	\
 		dh_link -plibgtk$(apiver)-doc			\
 			usr/share/doc/libgtk$(apiver)-doc/$$i	\

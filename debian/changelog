@@ -1,3 +1,16 @@
+gtk+2.0 (2.4.3-2) unstable; urgency=low
+
+  * debian/libgtk2.0-bin.files:
+    - moved gdk-pixbuf-query-loader and gtk-query-immodules-2.0 manpages
+      to libgtk2.0-bin. (Closes: #257399).
+  * debian/libgtk2.0-doc.doc-base.gtk-faq,
+    debian/libgtk2.0-doc.doc-base.gtk-tutorial:
+    - changed index.html with book1.html.
+  * Included devehelp files from Richard Cohen <richard@daijobu.co.uk> 
+    for the faq and the tutorial (Closes: #256844).
+
+ -- Sebastien Bacher <seb128@debian.org>  Sat,  3 Jul 2004 12:14:38 +0200
+
 gtk+2.0 (2.4.3-1) unstable; urgency=medium
 
   * New upstream release 
