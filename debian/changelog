@@ -1,3 +1,11 @@
+gtk+2.0 (2.4.4-2) unstable; urgency=medium
+
+  * Rebuilt with libtiff4.
+  * debian/control.in:
+    - Build-Depends on libtiff4-dev.
+
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 28 Jul 2004 23:11:54 +0200
+
 gtk+2.0 (2.4.4-1) unstable; urgency=low
 
   * New upstream release
