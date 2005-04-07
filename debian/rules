@@ -121,7 +121,7 @@ $(STAMP_DIR)/configure-static-stamp:
 
 	touch $@
 
-configure: configure-static configure-shared
+configure: configure-shared
 
 build-shared: debian/control configure-shared $(STAMP_DIR)/build-shared-stamp
 $(STAMP_DIR)/build-shared-stamp:
@@ -147,7 +147,7 @@ $(STAMP_DIR)/build-static-stamp:
 
 	touch $@
 
-build: build-static build-shared
+build: build-shared
 
 clean:: debian/control
 	dh_testdir
@@ -182,7 +182,7 @@ install-static: build-static install-test
 		RUN_QUERY_IMMODULES_TEST=false \
 		RUN_QUERY_LOADER_TEST=false
 
-install: install-static install-shared
+install: install-shared
 	# generating debian files from .in
 	for f in `find debian/ -name "[^c]*.in"`; do \
 		sed -e "s/@VERSION@/${version}/g" -e "s/@MODVER@/${modver}/g" -e "s/@APIVER@/${apiver}/g" $$f > `echo $$f | sed -e "s/\.in//"`; \
@@ -268,13 +268,13 @@ binary-arch: build install
 #	dh_installdebconf	
 	dh_installdocs -a
 
-	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dbg/usr/share/doc/libgtk$(apiver)-dbg
+	rm -rf $(CURDIR)/debian/libgtk$(apiver)-$(soname)-dbg/usr/share/doc/libgtk$(apiver)-$(soname)-dbg
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dev/usr/share/doc/libgtk$(apiver)-dev
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-bin/usr/share/doc/libgtk$(apiver)-bin
 
-	dh_link -plibgtk$(apiver)-dbg \
+	dh_link -plibgtk$(apiver)-$(soname)-dbg \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
-		usr/share/doc/libgtk$(apiver)-dbg
+		usr/share/doc/libgtk$(apiver)-$(soname)-dbg
 	dh_link -plibgtk$(apiver)-dev \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-dev
@@ -292,7 +292,7 @@ binary-arch: build install
 	dh_strip -a --dbg-package=libgtk$(apiver)-$(soname)
 	dh_compress -a
 	dh_fixperms -a
-	dh_makeshlibs -a -Nlibgtk$(apiver)-dbg
+	dh_makeshlibs -a -Nlibgtk$(apiver)-$(soname)-dbg
 	dh_makeshlibs -n -X usr/lib/gtk-$(apiver) -plibgtk$(apiver)-$(soname)$(suffix) -V "libgtk${apiver}-${soname}${suffix} (>= ${shver})"
 	dh_installdeb -a
 	dh_shlibdeps -l$(libpath) -a
@@ -302,4 +302,4 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: build build-shared build-static clean binary-indep binary-arch binary install install-shared install-static configure configure-shared configure-static debian/control
+.PHONY: build build-shared clean binary-indep binary-arch binary install install-shared configure configure-shared debian/control

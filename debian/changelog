@@ -1,3 +1,17 @@
+gtk+2.0 (2.6.4-1) unstable; urgency=medium
+
+  * New upstream release.
+  * debian/patches/004_fs_newdir.patch:
+    - fix a crash in the fileselector when creating a directory.
+  * debian/patches/003_iconcache.patch:
+    - this bug is fixed in the new version.
+  * debian/patches/004_mipsbuild.patch:
+    - dropped, this change is not required.
+  * debian/patches/002_bmp.patch:
+     - fix CAN-2005-0891: BMP double free Dos (Closes: #303141).
+  
+ -- Sebastien Bacher <seb128@debian.org>  Tue,  5 Apr 2005 21:09:01 +0200
+
 gtk+2.0 (2.6.2-4) unstable; urgency=high
 
   * Sjoerd Simons:
