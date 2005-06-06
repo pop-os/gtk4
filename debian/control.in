@@ -54,7 +54,7 @@ Description: The programs for the GTK+ graphical user interface library
 Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), libglib2.0-dev (>= 2.4.1-2), libpango1.0-dev (>= 1.4.0-3), libatk1.0-dev (>= 1.6.1-2), libx11-dev | xlibs-dev, libxext-dev | xlibs-dev, pkg-config
+Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), libglib2.0-dev (>= 2.4.1-2), libpango1.0-dev (>= 1.5.1), libatk1.0-dev (>= 1.6.1-2), libx11-dev | xlibs-dev, libxext-dev | xlibs-dev, pkg-config
 Suggests: libgtk2.0-doc
 Replaces: libgtk1.3-dev
 Conflicts: libgtk1.3-dev

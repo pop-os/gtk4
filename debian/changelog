@@ -1,3 +1,30 @@
+gtk+2.0 (2.6.7-2) unstable; urgency=low
+
+  * Upload to unstable.
+  * Forward patches from 2.6.4 branch:
+    + 003_focus_issues.patch: stolen from CVS HEAD to fix focus issues.
+    + debian/gtk-tutorial.devhelp: updated to reflect the reality of the
+      html files.
+  * Loïc Minier:
+    + Document the configuration of Emacs-style key bindings in README.Debian,
+      with additional instructions for GNOME users. [debian/README.Debian]
+      (Closes: #309530)
+
+ -- Josselin Mouette <joss@debian.org>  Mon,  6 Jun 2005 22:39:27 +0200
+
+gtk+2.0 (2.6.7-1) experimental; urgency=low
+
+  * New upstream version:
+    - Fix compilation with gcc 4.0 (Closes: #303646).
+  * debian/rules:
+    - clean from the mips changes.
+  * debian/patches/002_bmp.patch:
+    - the new version fixes that.
+  * debian/patches/004_fs_newdir.patch:
+    - the new version fixes that.
+  
+ -- Sebastien Bacher <seb128@debian.org>  Thu, 14 Apr 2005 22:06:53 +0200
+
 gtk+2.0 (2.6.4-1) unstable; urgency=medium
 
   * New upstream release.

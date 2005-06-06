@@ -26,10 +26,6 @@ ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 	INSTALL_PROGRAM += -s
 endif
 
-ifneq (,$(findstring $(DEB_HOST_GNU_TYPE),mipsel-linux mips-linux))
-	STATIC_CONFIG_ARGS = --disable-testsuite
-endif
-
 ##
 version=$(shell dpkg-parsechangelog | grep '^Version: ' | sed -e 's/^Version: //' -e 's/-[A-Za-z0-9\.\+]*$$//g' -e 's/+[A-Za-z0-9\.]*$$//g')
 major=$(shell echo ${version} | sed -e 's/\(^[0-9]*\)\.[0-9]*\.[0-9]*$$/\1/')
@@ -110,8 +106,7 @@ $(STAMP_DIR)/configure-static-stamp:
 			--with-included-loaders=yes \
 			--disable-modules \
 			--disable-shared \
-			--enable-static \
-			$(STATIC_CONFIG_ARGS)
+			--enable-static
 
 	cd $(BUILD_STATIC_DIR) && \
 	sed < libtool > libtool-2 \
@@ -121,7 +116,7 @@ $(STAMP_DIR)/configure-static-stamp:
 
 	touch $@
 
-configure: configure-shared
+configure: configure-static configure-shared
 
 build-shared: debian/control configure-shared $(STAMP_DIR)/build-shared-stamp
 $(STAMP_DIR)/build-shared-stamp:
@@ -147,7 +142,7 @@ $(STAMP_DIR)/build-static-stamp:
 
 	touch $@
 
-build: build-shared
+build: build-static build-shared
 
 clean:: debian/control
 	dh_testdir
@@ -182,7 +177,7 @@ install-static: build-static install-test
 		RUN_QUERY_IMMODULES_TEST=false \
 		RUN_QUERY_LOADER_TEST=false
 
-install: install-shared
+install: install-static install-shared
 	# generating debian files from .in
 	for f in `find debian/ -name "[^c]*.in"`; do \
 		sed -e "s/@VERSION@/${version}/g" -e "s/@MODVER@/${modver}/g" -e "s/@APIVER@/${apiver}/g" $$f > `echo $$f | sed -e "s/\.in//"`; \
@@ -302,4 +297,4 @@ binary-arch: build install
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: build build-shared clean binary-indep binary-arch binary install install-shared configure configure-shared debian/control
+.PHONY: build build-shared build-static clean binary-indep binary-arch binary install install-shared install-static configure configure-shared configure-static debian/control

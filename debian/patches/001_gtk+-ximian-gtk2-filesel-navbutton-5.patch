@@ -1,7 +1,7 @@
-diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel.c gtk+-2.2.1/gtk/gtkfilesel.c
---- gtk+-2.2.1.orig/gtk/gtkfilesel.c	2003-01-30 15:49:14.000000000 -0500
-+++ gtk+-2.2.1/gtk/gtkfilesel.c	2003-05-14 15:55:33.000000000 -0400
-@@ -82,9 +82,13 @@
+diff -Nur gtk+-2.6.7.orig/gtk/gtkfilesel.c gtk+-2.6.7/gtk/gtkfilesel.c
+--- gtk+-2.6.7.orig/gtk/gtkfilesel.c	2005-04-07 06:45:30.000000000 +0200
++++ gtk+-2.6.7/gtk/gtkfilesel.c	2005-04-14 22:33:08.956692576 +0200
+@@ -83,9 +83,13 @@
  #include "gtkoptionmenu.h"
  #define GTK_DISABLE_DEPRECATED
  
@@ -12,10 +12,10 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
  
 +#include "stock-icons/ximian-icons.h"
 +
+ #include "gtkalias.h"
+ 
  #ifdef G_OS_WIN32
- #include <direct.h>
- #include <io.h>
-@@ -319,6 +323,9 @@
+@@ -321,6 +325,9 @@
   */
  static gchar*              cmpl_completion_fullname (const gchar*, CompletionState* cmpl_state);
  
@@ -25,7 +25,7 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
  
  /* Directory operations. */
  static CompletionDir* open_ref_dir         (gchar* text_to_complete,
-@@ -663,6 +670,10 @@
+@@ -665,6 +672,10 @@
    GtkWidget *spacer;
    GtkDialog *dialog;
  
@@ -36,7 +36,7 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
    GtkListStore *model;
    GtkTreeViewColumn *column;
    
-@@ -676,18 +687,9 @@
+@@ -678,18 +689,9 @@
    filesel->main_vbox = dialog->vbox;
    gtk_container_set_border_width (GTK_CONTAINER (filesel), 10);
  
@@ -56,7 +56,7 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
    gtk_box_pack_start (GTK_BOX (filesel->main_vbox), pulldown_hbox, FALSE, FALSE, 0);
    gtk_widget_show (pulldown_hbox);
    
-@@ -699,14 +701,27 @@
+@@ -701,14 +703,27 @@
      
    /*  The horizontal box containing the directory and file listboxes  */
  
@@ -86,7 +86,7 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
    if (WANT_HPANED)
      list_container = g_object_new (GTK_TYPE_HPANED,
  				   "visible", TRUE,
-@@ -718,9 +733,78 @@
+@@ -720,9 +735,78 @@
  
    spacer = gtk_hbox_new (FALSE, 0);
    gtk_widget_set_size_request (spacer, -1, 5);
@@ -166,7 +166,7 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
    /* The directories list */
  
    model = gtk_list_store_new (1, G_TYPE_STRING);
-@@ -793,6 +877,15 @@
+@@ -795,6 +879,15 @@
    gtk_widget_show (filesel->file_list);
    gtk_widget_show (scrolled_win);
  
@@ -182,7 +182,7 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
    /* action area for packing buttons into. */
    filesel->action_area = gtk_hbox_new (TRUE, 0);
    gtk_box_pack_start (GTK_BOX (filesel->main_vbox), filesel->action_area, 
-@@ -1107,39 +1200,94 @@
+@@ -1114,39 +1207,94 @@
  void
  gtk_file_selection_show_fileop_buttons (GtkFileSelection *filesel)
  {
@@ -291,7 +291,7 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
        gtk_widget_show (filesel->fileop_ren_file);
      }
    
-@@ -1841,6 +1989,95 @@
+@@ -1848,6 +1996,95 @@
      gtk_widget_set_sensitive (fs->fileop_ren_file, sensitive);
  }
  
@@ -387,9 +387,9 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/gtkfilesel
  static gint
  gtk_file_selection_key_press (GtkWidget   *widget,
  			      GdkEventKey *event,
-diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/stock-icons/ximian-icons.h gtk+-2.2.1/gtk/stock-icons/ximian-icons.h
---- gtk+-2.2.1.orig/gtk/stock-icons/ximian-icons.h	1969-12-31 19:00:00.000000000 -0500
-+++ gtk+-2.2.1/gtk/stock-icons/ximian-icons.h	2003-05-14 14:39:18.000000000 -0400
+diff -Nur gtk+-2.6.7.orig/gtk/stock-icons/ximian-icons.h gtk+-2.6.7/gtk/stock-icons/ximian-icons.h
+--- gtk+-2.6.7.orig/gtk/stock-icons/ximian-icons.h	1970-01-01 01:00:00.000000000 +0100
++++ gtk+-2.6.7/gtk/stock-icons/ximian-icons.h	2005-04-14 22:31:10.372720080 +0200
 @@ -0,0 +1,825 @@
 +/* GdkPixbuf RGBA C-Source image dump 1-byte-run-length-encoded */
 +
@@ -1216,5 +1216,3 @@ diff -Nru -x '*~' -x '*.o' -x '*.orig' -x '*.rej' gtk+-2.2.1.orig/gtk/stock-icon
 +  "\377\0\0\0\0\345\0\0\0\0"};
 +
 +
---- gtkfilesel.c.orig	2004-03-11 19:04:42.000000000 +0000
-+++ gtkfilesel.c	2004-03-20 09:18:50.000000000 +0000
