@@ -2,7 +2,7 @@
 
 set -e
 
-TMPFILE=`mktemp /tmp/gtk+-2.6.4.XXXXXXXXXX`
+TMPFILE=`mktemp /tmp/gtk+-2.6.7.XXXXXXXXXX`
 defaultver=2.6.0
 
 if [ "x$1" != "x" ]; then
