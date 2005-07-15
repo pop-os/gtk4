@@ -39,7 +39,7 @@ modver=$(major).$(minor).0
 glibver=2.0
 atkver=1.0
 pangover=1.0
-shver=2.6.0
+shver=2.7.0
 libpath=$(CURDIR)/$(BUILD_SHARED_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gtk/.libs
 
 

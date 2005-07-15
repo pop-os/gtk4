@@ -1,3 +1,16 @@
+gtk+2.0 (2.7.2-1) experimental; urgency=low
+
+  * New upstream version.
+  * debian/control.in:
+    - updated the Build-Depends.
+  * debian/rules:
+    - updated the shlibs.
+    - use cairo.
+  * debian/watch:
+    - updated.
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 12 Jul 2005 01:06:55 +0200
+
 gtk+2.0 (2.6.8-1) unstable; urgency=low
 
   * New upstream version.
