@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
 Uploaders: @GNOME_TEAM@
-Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.6.0), libpango1.0-dev (>= 1.7.0), libatk1.0-dev (>= 1.6.1-2), xlibs-static-pic | xlibs-pic (>= 4.2.1-6), libx11-dev | xlibs-dev, libxext-dev | xlibs-dev, libxi-dev | xlibs-dev, libxrandr-dev | xlibs-dev, libxt-dev | xlibs-dev, libxrender-dev, libxft-dev, libxcursor-dev, libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
+Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.6.0), libpango1.0-dev (>= 1.7.0), libatk1.0-dev (>= 1.6.1-2), xlibs-static-pic | xlibs-pic (>= 4.2.1-6), libx11-dev | xlibs-dev, libxext-dev | xlibs-dev, libxi-dev | xlibs-dev, libxrandr-dev | xlibs-dev, libxt-dev | xlibs-dev, libxrender-dev, libxft-dev, libxcursor-dev, libxinerama-dev, libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
 Build-Depends-Indep: gtk-doc-tools, docbook-xml
 Standards-Version: 3.6.1.0
 
