@@ -1,3 +1,10 @@
+gtk+2.0 (2.6.10-1) unstable; urgency=low
+
+  * New upstream version.
+    - fix epiphany menu and crasher bugs (closes: #321297, #323109).
+
+ -- Jordi Mallach <jordi@debian.org>  Thu,  1 Sep 2005 00:13:29 +0200
+
 gtk+2.0 (2.6.9-1) unstable; urgency=low
 
   * New upstream version:
