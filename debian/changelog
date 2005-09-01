@@ -1,3 +1,57 @@
+gtk+2.0 (2.8.2-1) experimental; urgency=low
+
+  * New upstream version:
+    - Fix a crash with custom icon themes, which affected 
+      the gnome-theme-manager.
+    - Make sure font and cursor settings are propaged down
+      to the screen initially. 
+  * debian/control.in:
+    - require the current pango.
+
+ -- Sebastien Bacher <seb128@debian.org>  Thu, 25 Aug 2005 00:36:18 +0200
+
+gtk+2.0 (2.8.1-1) experimental; urgency=low
+
+  * New upstream version:
+    - gtk-update-icon-cache no longer stores copies of symlinked icons,
+      and it has a --index-only option to omit image data from the cache.
+    - Make large GtkSizeGroups more efficient.
+    - Improve positioning of menus in GtkToolbar.
+    - Make scrolling work on unrealized icon views.
+    - Avoid unnecessary redraws on range widgets.
+    - Make sure that all GTK+ applications reload icon themes promptly.
+    - Ensure that gdk_pango_get_context() and gtk_widget_get_pango_context()
+      use the same font options and dpi value.
+    - Multiple memory leak fixes.
+  * debian/control.in:
+    - updated the libgtk2.0-dev Depends according to the changes.
+  * debian/rules:
+    Add --enable-explicit-deps=yes to make sure stuff like x11 gets listed as a
+    Requires: in gdk(-x11)-2.0.pc, because otherwise linkage against -lX11 and
+    friends doesn't get carried through.  Whether or not this is correct is
+    arguable, since libgdk-x11-2.0.so.0* ends up linked against it anyway, but
+    stuff like gnome-panel seems to be relying on this transience.
+    Change by Daniel Stone.
+
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 24 Aug 2005 11:24:16 +0200
+
+gtk+2.0 (2.8.0-1) experimental; urgency=low
+
+  * New upstream version.
+  * debian/control.in:
+    - build with the new cairo (Closes: #323705).
+    - updated the Build-Depends for xorg (Closes: #323080).
+  * debian/copyright:
+    - use License instead of Copyright (Closes: #323209).
+  * debian/patches/001_fs_documents.patch:
+    - default to Documents.
+  * debian/rules:
+    - updated the shlibs.
+  * debian/watch:
+    - updated.
+
+ -- Sebastien Bacher <seb128@debian.org>  Thu, 18 Aug 2005 12:19:41 +0200
+
 gtk+2.0 (2.7.2-1) experimental; urgency=low
 
   * New upstream version.

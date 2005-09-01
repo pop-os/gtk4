@@ -3,6 +3,8 @@ Wed, 13 Mar 2002 00:07:25 +0900.
 
 It was downloaded from ftp://ftp.gtk.org/ .
 
+Copyright Holder:
+
 Original Authors
 ----------------
 Peter Mattis      <petm@xcf.berkeley.edu>
@@ -33,7 +35,9 @@ Jay Painter       <jpaint@gtk.org>
 Manish Singh      <manish@gtk.org>
 Owen Taylor       <otaylor@gtk.org>
 
-Copyright:
+
+License:
+
  This library is free software; you can redistribute it and/or
  modify it under the terms of the GNU Lesser General Public
  License as published by the Free Software Foundation; either
