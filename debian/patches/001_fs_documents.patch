@@ -1,0 +1,89 @@
+diff -Nur gtk+-2.4.7/gtk.orig/gtkfilechooserdefault.c gtk+-2.4.7/gtk/gtkfilechooserdefault.c
+--- gtk+-2.4.7/gtk.orig/gtkfilechooserdefault.c	2004-08-14 20:08:50.000000000 +0200
++++ gtk+-2.4.7/gtk/gtkfilechooserdefault.c	2004-08-15 01:00:18.000000000 +0200
+@@ -130,6 +130,7 @@
+   GtkFileFilter *current_filter;
+   GSList *filters;
+ 
++  gboolean has_documents;
+   gboolean has_home;
+   gboolean has_desktop;
+ 
+@@ -241,6 +242,7 @@
+ 
+ /* Interesting places in the shortcuts bar */
+ typedef enum {
++  SHORTCUTS_DOCUMENTS,
+   SHORTCUTS_HOME,
+   SHORTCUTS_DESKTOP,
+   SHORTCUTS_VOLUMES,
+@@ -1109,6 +1111,33 @@
+   gtk_file_path_free (path);
+ }
+ 
++
++/* Appends the ~/Documents directory to the shortcuts model */
++static void
++shortcuts_append_documents (GtkFileChooserDefault *impl)
++{
++  char *name;
++  GtkFilePath *path;
++
++  name = g_build_filename (g_get_home_dir (), "Documents", NULL);
++  path = gtk_file_system_filename_to_path (impl->file_system, name);
++  g_free (name);
++
++  impl->has_documents = shortcuts_insert_path (impl, -1, FALSE, NULL, path, _("Documents"), FALSE, NULL);
++  /* We do not actually pop up an error dialog if there is no document directory
++   * because some people may really not want to have one.
++   */
++
++  gtk_file_path_free (path);
++}
++
++
++
++
++
++
++
++
+ /* Appends a list of GtkFilePath to the shortcuts model; returns how many were inserted */
+ static int
+ shortcuts_append_paths (GtkFileChooserDefault *impl,
+@@ -1151,6 +1180,11 @@
+ 
+   n = 0;
+ 
++  if (where == SHORTCUTS_DOCUMENTS)
++    goto out;
++
++  n += impl->has_documents ? 1 : 0;
++
+   if (where == SHORTCUTS_HOME)
+     goto out;
+ 
+@@ -1477,6 +1511,7 @@
+ 
+   if (impl->file_system)
+     {
++      shortcuts_append_documents (impl);
+       shortcuts_append_home (impl);
+       shortcuts_append_desktop (impl);
+       shortcuts_add_volumes (impl);
+diff -Nur gtk+-2.4.7/gtk.orig/gtkfilechooserwidget.c gtk+-2.4.7/gtk/gtkfilechooserwidget.c
+--- gtk+-2.4.7/gtk.orig/gtkfilechooserwidget.c	2004-03-16 01:04:46.000000000 +0100
++++ gtk+-2.4.7/gtk/gtkfilechooserwidget.c	2004-08-15 01:00:45.000000000 +0200
+@@ -157,7 +157,11 @@
+   gtk_box_pack_start (GTK_BOX (object), priv->impl, TRUE, TRUE, 0);
+   gtk_widget_show (priv->impl);
+ 
+-  current_folder = g_get_current_dir ();
++  if(g_file_test(g_build_filename (g_get_home_dir (), "Documents", NULL), G_FILE_TEST_IS_DIR))
++    current_folder = g_build_filename (g_get_home_dir (), "Documents", NULL);
++  else
++    current_folder = g_get_current_dir ();
++
+   gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (priv->impl), current_folder);
+   g_free (current_folder);
+   
