@@ -6,8 +6,11 @@ gtk+2.0 (2.6.10-2) UNRELEASED; urgency=low
   * Backport patch from the 2.8 branch removing the warning introduced
     somewhere in 2.6 when length wraps in calculation in gdk_property_get.
     (Closes: #315083) [debian/patches/064_gdk-property-get-no-warning.patch]
+  * Add ${misc:Depends} to all packages.
+  * Remove libgtk2.0-0 dependency from libgtk2.0-common to break the circular
+    dependency; cross your fingers, don't hold your breath. (Closes: #309437)
 
- -- Loic Minier <lool@dooz.org>  Sun,  2 Oct 2005 11:28:33 +0200
+ -- Loic Minier <lool@dooz.org>  Sun,  2 Oct 2005 16:40:26 +0200
 
 gtk+2.0 (2.6.10-1) unstable; urgency=low
 
