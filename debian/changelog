@@ -1,3 +1,10 @@
+gtk+2.0 (2.8.3-2) UNRELEASED; urgency=low
+
+  * Drop xlibs-dev deps and build-deps.
+    [debian/control, debian/control.in]
+
+ -- Loic Minier <lool@dooz.org>  Fri, 11 Nov 2005 15:32:09 +0100
+
 gtk+2.0 (2.8.3-1) experimental; urgency=low
 
   * New upstream version:
