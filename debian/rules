@@ -184,10 +184,10 @@ install: install-static install-shared
 	done
 
 	# for -doc
-	cp -a $(BUILD_SHARED_DIR)/docs/faq/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq/
+	cp -a $(BUILD_SHARED_DIR)/docs/faq/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq
 	cp -a $(CURDIR)/debian/gtk-faq.devhelp debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq/
 
-	cp -a $(BUILD_SHARED_DIR)/docs/tutorial/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
+	cp -a $(BUILD_SHARED_DIR)/docs/tutorial/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial
 	cp $(CURDIR)/debian/gtk-tutorial.devhelp debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
 
 	cp -ar $(BUILD_SHARED_DIR)/docs/tutorial/images debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/

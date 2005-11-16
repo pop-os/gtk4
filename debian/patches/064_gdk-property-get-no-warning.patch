@@ -1,15 +1,15 @@
---- gdk/x11/gdkproperty-x11.c   2005-05-18 16:46:14.000000000 +0200
-+++ /tmp/gtk2.0/gtk+2.0-2.8.3/upstream/tarballs/gtk+-2.8.3/gdk/x11/gdkproperty-x11.c    2005-08-27 06:23:04.000000000 +0200
+diff -Nur gtk+-2.6.10.orig/gdk/x11/gdkproperty-x11.c gtk+-2.6.10/gdk/x11/gdkproperty-x11.c
+--- gtk+-2.6.10.orig/gdk/x11/gdkproperty-x11.c	2005-11-16 17:33:16.000000000 +0100
++++ gtk+-2.6.10/gdk/x11/gdkproperty-x11.c	2005-11-16 17:37:15.000000000 +0100
 @@ -530,11 +530,8 @@
     */
    get_length = length + 3;
    if (get_length > G_MAXLONG)
 -    {
 -      g_warning ("gdk_property_get(): length value has wrapped in calculation "
--                "(did you pass G_MAXLONG?)");
--      get_length = G_MAXLONG;
+-		 "(did you pass G_MAXLONG?)");
+       get_length = G_MAXLONG;
 -    }
-+    get_length = G_MAXLONG;
 +
    /* To fail, either the user passed 0 or G_MAXULONG */
    get_length = get_length / 4;

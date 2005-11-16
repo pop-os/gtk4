@@ -1,5 +1,21 @@
-gtk+2.0 (2.6.10-2) UNRELEASED; urgency=low
+gtk+2.0 (2.6.10-2) unstable; urgency=medium
 
+  [ Sebastien Bacher ]
+  * Patch from Ubuntu update, thanks Martin Pitt.
+  * SECURITY UPDATE: Arbitrary code execution and DoS.
+  * Add debian/patches/010_xpm-colors-overflow_CVE-2005-3186.patch: 
+    - io-xpm.c: Add check to XPM reader to prevent integer overflow for
+    specially crafted number of colors (Closes: #339431).
+    - CVE-2005-3186
+  * Add debian/patches/011_xpm-colors-loop_CVE-2005-2975.patch:
+    - io-xpm.c: Fix endless loop with specially crafted number of colors.
+    - CVE-2005-2975 
+  
+  * debian/rules:
+    - fix confusing cp usage.
+
+  [ Loic Minier ]
+  
   * Update FSF address. [debian/copyright]
   * Remove "Copyright:" line, the whole file expresses the copyright already.
     (Closes: #323209) [debian/copyright]
@@ -9,8 +25,8 @@ gtk+2.0 (2.6.10-2) UNRELEASED; urgency=low
   * Add ${misc:Depends} to all packages.
   * Remove libgtk2.0-0 dependency from libgtk2.0-common to break the circular
     dependency; cross your fingers, don't hold your breath. (Closes: #309437)
-
- -- Loic Minier <lool@dooz.org>  Sun,  2 Oct 2005 16:40:26 +0200
+  
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 16 Nov 2005 16:56:39 +0100
 
 gtk+2.0 (2.6.10-1) unstable; urgency=low
 
