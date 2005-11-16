@@ -1,9 +1,20 @@
-gtk+2.0 (2.8.3-2) UNRELEASED; urgency=low
+gtk+2.0 (2.8.7-1) experimental; urgency=low
 
+  * New upstream version.
+  * Security fixes:
+    - Add check to XPM reader to prevent integer overflow for specially crafted
+      number of colors (CVE-2005-3186) (Closes: #339431).
+    - Fix endless loop with specially crafted number of colors (CVE-2005-2975).
+  * debian/patches/001_fs_documents.patch:
+    - updated.
+  * debian/rules:
+    - fix confusing cp usage.
+  
+  [ Loic Minier ]
   * Drop xlibs-dev deps and build-deps.
     [debian/control, debian/control.in]
 
- -- Loic Minier <lool@dooz.org>  Fri, 11 Nov 2005 15:32:09 +0100
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 16 Nov 2005 11:54:11 +0100
 
 gtk+2.0 (2.8.3-1) experimental; urgency=low
 
