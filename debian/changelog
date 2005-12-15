@@ -1,3 +1,40 @@
+gtk+2.0 (2.8.9-2) unstable; urgency=low
+
+  * Upload to unstable
+
+ -- Sebastien Bacher <seb128@debian.org>  Thu, 15 Dec 2005 15:13:32 +0100
+
+gtk+2.0 (2.8.9-1) experimental; urgency=low
+
+  * New upstream version:
+    Bugs fixed:
+    - File chooser filter behaves weird 
+    - 2.8.4 to 2.8.6: sound-juicer crash, fileselector assertions
+    - On unsetting the Model, GtkTreeView does not clear 
+      it's associated TreeSelection
+    - Crash on selecting a file of null mime-type 
+    - gtktoolbutton leaks a pixbuf
+    - GdkEvent leaked in gtktreeview.c / gtk_tree_view_key_press 
+    - Typo in trap_activate_cb() 
+    - gtkcalendar.c: The identifier is already declared. 
+    - gtk_menu_attach_to_widget() does not take NULL detacher 
+    - Unhinted fonts are measured incorrectly and drawing 
+      problems occur as a result
+    - unwanted scrolling in recent gtk 
+    - Toolbars without icons are invisible in icon-only mode 
+    - Search-entry in the TreeView not working properly 
+    - gtktoolbutton.c:562: warning: 'image' is used 
+      uninitialized in this function 
+    - reference count of textbuffer increases with each paste 
+    - gtk_selection_data_get_uris leaks memory
+    Other changes:
+    - Remove GMemChunk from public header files to 
+      support building against GLib 2.10 
+    - Report errors in option parsing 
+    - Merge upstream xdgmime changes to handle duplicate glob patterns 
+  
+ -- Sebastien Bacher <seb128@debian.org>  Sat, 10 Dec 2005 18:22:50 +0100
+
 gtk+2.0 (2.8.8-1) experimental; urgency=low
 
   * New upstream version:
