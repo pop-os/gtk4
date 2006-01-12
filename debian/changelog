@@ -1,3 +1,13 @@
+gtk+2.0 (2.8.10-1) unstable; urgency=low
+
+  * New upstream version
+  * debian/control.in:
+    - updated the glib requirement
+  * debian/patches/001_fs_documents.patch:
+    - dropped, stick with upstream behaviour rather
+
+ -- Sebastien Bacher <seb128@debian.org>  Thu, 12 Jan 2006 13:34:37 +0100
+
 gtk+2.0 (2.8.9-2) unstable; urgency=low
 
   * Upload to unstable
