@@ -1,3 +1,21 @@
+gtk+2.0 (2.8.11-1) unstable; urgency=low
+
+  * New upstream version
+    * Avoid memory overruns in the pixbuf theme engine with nonsensical 
+      gradient specifications.  [Matthias]
+    * Bugs fixed:
+    - Cursor doesn't move as expected
+    - Segfault from combination of gtk_container_set_resize_mode() 
+      and GtkComboBox
+    - segfault in update_cursor on amd64
+    - eog crashes at launch under AIX 
+    - "~" should bring up the location dialog
+    - gtk_text_layout_get_cursor_locations() chokes on layout=0x0
+    * Documentation improvements [Federico Mena Quintero]
+    * Translation updates (es,pt_BR,zh_HK,zh_TW)
+
+ -- Sebastien Bacher <seb128@debian.org>  Fri, 27 Jan 2006 22:28:05 +0100
+
 gtk+2.0 (2.8.10-1) unstable; urgency=low
 
   * New upstream version
