@@ -1,3 +1,22 @@
+gtk+2.0 (2.8.13-1) unstable; urgency=low
+
+  * New upstream version:
+    * Bugs fixed:
+    - Can't select some items in GtkIconView 
+    - gtk_icon_theme_list_icons: example contexts don't work
+    - gnopernicus crashes on changing display screen source for magnifier
+    - evince crashes in gdk_region_union_with_rect 
+    - Small error in _gdk_gc_update_context 
+    - gtk.Notebook.get_current_page() returns incorrect page number 
+      when pages hidden
+    - GtkAboutDialog not responsive to Escape key
+    - GtkNotebook popup menu not keynavigatable
+    - GtkRadioButton does not issue notify::active
+    - Make more use of G_DISABLE_ASSERT in TextView code  
+    * Updated translations 
+
+ -- Sebastien Bacher <seb128@debian.org>  Sat, 25 Feb 2006 23:56:58 +0100
+
 gtk+2.0 (2.8.12-1) unstable; urgency=low
 
   * New upstream bugfix release.
