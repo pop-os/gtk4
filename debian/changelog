@@ -1,3 +1,16 @@
+gtk+2.0 (2.8.15-1) unstable; urgency=low
+
+  * New upstream version:
+    * Bugs fixed:
+      - Keys P and N in "open file" dialog have special meaning
+      - MS-Windows theme (GTK-Wimp) shows all funky characters
+      - Optimize gdk on win32 
+      - Hollow polygons have wrong linecaps 
+      - panel crash with a11y enabled
+    * Updated translations (bg,bn,cs,eu,ro)
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 14 Mar 2006 15:41:56 +0100
+
 gtk+2.0 (2.8.13-1) unstable; urgency=low
 
   * New upstream version:
