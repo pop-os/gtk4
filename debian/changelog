@@ -1,3 +1,36 @@
+gtk+2.0 (2.8.17-1) unstable; urgency=low
+
+  * New upstream version:
+    Bugs fixed:
+    - Expander disclosure button is too small
+    - gtk_image_clear doesn't cause redraw
+    - typo in configure.in yields suspicious warning
+    - gtk_icon_view_set_cursor causes Segmentation fault
+    - garbage output of --help in non UTF-8 locale
+    - GtkNotebook does not destroy its children on destroy()
+    - TreeView DnD between-row highlight colo
+    - Gtk-Criticals occur when scrolling a text_view that is not realized
+    - Hidden menubar still activates submenus with kbd
+    - GtkTreeItem broken 
+    -  Clean up button press handling (use one-grab-op-at-a-time pattern)   
+    - broken scrolling when selecting
+    - GTK+ File-chooser dialog crashes
+    - Nautilus crashes when dragging icons to another screen
+    - mixed line separators confuse gtk_text_iter_ends_line
+    - Textview child is covered by window border
+    - gdk_pixbuf_loader_new_with_type(): What image types are allowed? 
+    - Missing progress bar label
+    - Fix a problem which caused grab-notify signal to be missed in some cases
+  * debian/control.in:
+    - clear the Build-Depends on xlibs-static-pic | xlibs-pic, not required
+    - updated the Build-Depends on libpango1.0-dev so it build with 
+      the xorg transitioned version
+  * * debian/patches/001_default_fallback_icon_theme.patch:
+    - set the default fallback icon theme to "gnome", fixes the issues with
+      the moves of icons from hicolor to gnome
+
+ -- Sebastien Bacher <seb128@debian.org>  Sun,  9 Apr 2006 21:54:11 +0200
+
 gtk+2.0 (2.8.16-1) unstable; urgency=low
 
   * New upstream version
