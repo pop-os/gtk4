@@ -1,3 +1,31 @@
+gtk+2.0 (2.8.18-1) unstable; urgency=low
+
+  * New upstream version:
+    Bugs fixed:
+    - search box positioning has some bugs
+    - Gdk does not translate VK_NUMPADx to GDK_KP_x  
+    - sanely handle late (re)setting of dnd image   
+    - Text is shifted off-by-one in Add to panel 
+    - gtk_widget_create_pango_layout docs typo
+    - GtkLayout In GtkScrolledWindow does not receive the scroll_event
+    - gtktreeview has RTL problems with toggle buttons if using gtktreestore 
+      as a model    
+    - Wrong drop location in GtkEntry     
+    - GtkImage animation CRITICALS on switching themes 
+    - DnD: Conditional jump or move depends on uninitialised value
+    - cursor blocked to dnd mode after using shift and dnd on a GtkCalendar
+    - Crashes while creating source code w/GtkFontSelection
+    - the right edge tab does not appear when switching tab
+    - Warning in gtk_paned_compute_position 
+    - gdk should set resolution on PangoCairoFontmap, not PangoCairoContext
+    - GtkTreeView does not resize correctly
+    - gtk_tree_view_get_cell_area() forgets depth-one expander
+    - expander animation not working in RTL mode
+    - Multiple issues discovered by Coverity  
+    - Make gtk_file_chooser_button_new() friendlier for language bindings
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 30 May 2006 17:02:26 +0200
+
 gtk+2.0 (2.8.17-1) unstable; urgency=low
 
   * New upstream version:
