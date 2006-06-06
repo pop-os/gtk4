@@ -1,10 +1,11 @@
 gtk+2.0 (2.8.18-2) UNRELEASED; urgency=low
 
-  * Bump libgtk2.0-dev dependency on libx11-dev to >= 2:1.0.0-6 as it ships
-    x11.pc which is Required by gdk-x11-2.0.pc. (Closes: #326199, #370693)
+  * Bump libgtk2.0-dev dependency and build-dep on libx11-dev to >= 2:1.0.0-6
+    as it ships x11.pc which ends up in the Requires of gdk-x11-2.0.pc.
+    (Closes: #326199, #370693)
     [debian/control, debian/control.in]
 
- -- Loic Minier <lool@dooz.org>  Tue,  6 Jun 2006 15:05:14 +0200
+ -- Loic Minier <lool@dooz.org>  Tue,  6 Jun 2006 15:18:28 +0200
 
 gtk+2.0 (2.8.18-1) unstable; urgency=low
 
