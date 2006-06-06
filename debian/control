@@ -2,7 +2,7 @@ Source: gtk+2.0
 Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Akira TAGOH <tagoh@debian.org>, Andreas Rottmann <rotty@debian.org>, Andrew Lau <netsnipe@users.sourceforge.net>, Carlos Perelló Marín <carlos@pemas.net>, Clément Stenac <zorglub@debian.org>, Ed Boraas <ed@debian.org>, Edd Dumbill <ejad@debian.org>, Emil Soleyman-Zomalan <emil@nishra.com>, Guilherme de S. Pastore <guilherme.pastore@terra.com.br>, Gustavo Noronha Silva <kov@debian.org>, J.H.M. Dassen (Ray) <jdassen@debian.org>, Joe Drew <drew@debian.org>, Johannes Rohr <jr.debian@rohr.org>, Jordi Mallach <jordi@debian.org>, Jose Carlos Garcia Sogo <jsogo@debian.org>, Josselin Mouette <joss@debian.org>, Loic Minier <lool@dooz.org>, Marc HE Brockschmidt <he@debian.org>, Ondřej Surý <ondrej@debian.org>, Rob Bradford <rob@debianplanet.org>, Robert McQueen <robot101@debian.org>, Ross Burton <ross@debian.org>, Sjoerd Simons <sjoerd@debian.org>, Takuo KITAME <kitame@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Akira TAGOH <tagoh@debian.org>, Andreas Rottmann <rotty@debian.org>, Andrew Lau <netsnipe@users.sourceforge.net>, Clément Stenac <zorglub@debian.org>, Dafydd Harries <daf@debian.org>, Guilherme de S. Pastore <gpastore@debian.org>, Gustavo Franco <stratus@debian.org>, Gustavo Noronha Silva <kov@debian.org>, J.H.M. Dassen (Ray) <jdassen@debian.org>, Jordi Mallach <jordi@debian.org>, Jose Carlos Garcia Sogo <jsogo@debian.org>, Josselin Mouette <joss@debian.org>, Loic Minier <lool@dooz.org>, Marc HE Brockschmidt <he@debian.org>, Marco Cabizza <marco87@gmail.com>, Ondřej Surý <ondrej@debian.org>, Ross Burton <ross@debian.org>, Sjoerd Simons <sjoerd@debian.org>, Takuo KITAME <kitame@debian.org>
 Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.12.1-2), libatk1.0-dev (>= 1.6.1-2), libx11-dev, libxext-dev, libxi-dev, libxrandr-dev, libxt-dev, libxrender-dev, libxft-dev, libxcursor-dev, libxkbfile-dev, libxinerama-dev, libxfixes-dev, libcairo2-dev, libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
 Build-Depends-Indep: gtk-doc-tools, docbook-xml
 Standards-Version: 3.6.1.0
@@ -54,7 +54,7 @@ Description: The programs for the GTK+ graphical user interface library
 Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk2.0-0 (= ${Source-Version}), libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.10.0-2), libatk1.0-dev (>= 1.6.1-2), libcairo2-dev, libx11-dev, libxext-dev, libxinerama-dev, libxi-dev, libxrandr-dev, libxcursor-dev, libxfixes-dev, pkg-config
+Depends: libgtk2.0-0 (= ${Source-Version}), libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.10.0-2), libatk1.0-dev (>= 1.6.1-2), libcairo2-dev, libx11-dev (>= 2:1.0.0-6), libxext-dev, libxinerama-dev, libxi-dev, libxrandr-dev, libxcursor-dev, libxfixes-dev, pkg-config
 Suggests: libgtk2.0-doc
 Replaces: libgtk1.3-dev
 Conflicts: libgtk1.3-dev
