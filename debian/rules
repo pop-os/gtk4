@@ -225,7 +225,7 @@ install-static: build-static install-test
 
 install-dfb: build-shared install-test
 	# Add here commands to install the package into debian/tmp
-	$(MAKE) -C $(BUILD_SHARED_DIR) install \
+	$(MAKE) -C $(BUILD_DFB_DIR) install \
 		DESTDIR=$(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix)
 	find $(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix) -name \*.la -exec rm -f \{\} \;
 	mkdir -p debian/libgtk+$(apiver)-directfb$(soname)$(suffix)-udeb/etc/gtk-2.0
@@ -249,7 +249,7 @@ install: install-static install-shared install-dfb
 
 	# remove files that are already here in the other build
 	cd debian/libgtk$(apiver)-$(soname)$(suffix) && \
-		find -type f -exec \
+		find -L -type f -exec \
 		rm -f ../libgtk+$(apiver)-directfb$(soname)$(suffix)/\{\} \;
 
 	# for -doc
