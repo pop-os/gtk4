@@ -41,6 +41,8 @@ glibver=2.0
 atkver=1.0
 pangover=1.0
 shver=2.8.0
+libpath=$(CURDIR)/$(BUILD_SHARED_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gtk/.libs
+libpath_dfb=$(CURDIR)/$(BUILD_DFB_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_DFB_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_DFB_DIR)/gtk/.libs
 
 
 debian/control:
@@ -156,7 +158,8 @@ $(STAMP_DIR)/build-shared-stamp:
 	-rm -f $(STAMP_DIR)/install-test-stamp
 
 	# Add here commands to compile the package.
-	$(MAKE) -C $(BUILD_SHARED_DIR)
+	$(MAKE) -C $(BUILD_SHARED_DIR) \
+		LD_LIBRARY_PATH=$(libpath):$(LD_LIBRARY_PATH)
 
 	touch $@
 
@@ -179,7 +182,8 @@ $(STAMP_DIR)/build-dfb-stamp:
 	-rm -f $(STAMP_DIR)/install-test-stamp
 
 	# Add here commands to compile the package.
-	$(MAKE) -C $(BUILD_DFB_DIR)
+	$(MAKE) -C $(BUILD_DFB_DIR) \
+		LD_LIBRARY_PATH=$(libpath_dfb):$(LD_LIBRARY_PATH)
 
 	touch $@
 
