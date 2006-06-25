@@ -1,3 +1,161 @@
+gtk+2.0 (2.8.18-3) experimental; urgency=low
+
+  * 003_gtk+-2.8.17-directfb.patch: new patch, bringing a new directfb
+    backend.
+  * 004_reautoconf.patch: new patch, result of "libtoolize --force
+    --copy; autoheader; automake -acf; autoconf; rm -rf autom4te.cache"
+    with the previous patches applied.
+  * Make 3 new packages: libgtk+2.0-directfb0-udeb,
+    libgtk+2.0-directfb-dev and  libgtk+2.0-directfb0.
+  * Add a new build flavour for directfb (only the shared version).
+  * Switch to debhelper compatibility mode 5 and require 5.0.22.
+  * Standards-version is 3.7.2.
+
+ -- Josselin Mouette <joss@debian.org>  Sun, 25 Jun 2006 21:34:50 +0200
+
+gtk+2.0 (2.8.18-2) UNRELEASED; urgency=low
+
+  * Bump libgtk2.0-dev dependency and build-dep on libx11-dev to >= 2:1.0.0-6
+    as it ships x11.pc which ends up in the Requires of gdk-x11-2.0.pc.
+    (Closes: #326199, #370693)
+    [debian/control, debian/control.in]
+
+ -- Loic Minier <lool@dooz.org>  Tue,  6 Jun 2006 15:18:28 +0200
+
+gtk+2.0 (2.8.18-1) unstable; urgency=low
+
+  * New upstream version:
+    Bugs fixed:
+    - search box positioning has some bugs
+    - Gdk does not translate VK_NUMPADx to GDK_KP_x  
+    - sanely handle late (re)setting of dnd image   
+    - Text is shifted off-by-one in Add to panel 
+    - gtk_widget_create_pango_layout docs typo
+    - GtkLayout In GtkScrolledWindow does not receive the scroll_event
+    - gtktreeview has RTL problems with toggle buttons if using gtktreestore 
+      as a model    
+    - Wrong drop location in GtkEntry     
+    - GtkImage animation CRITICALS on switching themes 
+    - DnD: Conditional jump or move depends on uninitialised value
+    - cursor blocked to dnd mode after using shift and dnd on a GtkCalendar
+    - Crashes while creating source code w/GtkFontSelection
+    - the right edge tab does not appear when switching tab
+    - Warning in gtk_paned_compute_position 
+    - gdk should set resolution on PangoCairoFontmap, not PangoCairoContext
+    - GtkTreeView does not resize correctly
+    - gtk_tree_view_get_cell_area() forgets depth-one expander
+    - expander animation not working in RTL mode
+    - Multiple issues discovered by Coverity  
+    - Make gtk_file_chooser_button_new() friendlier for language bindings
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 30 May 2006 17:02:26 +0200
+
+gtk+2.0 (2.8.17-1) unstable; urgency=low
+
+  * New upstream version:
+    Bugs fixed:
+    - Expander disclosure button is too small
+    - gtk_image_clear doesn't cause redraw
+    - typo in configure.in yields suspicious warning
+    - gtk_icon_view_set_cursor causes Segmentation fault
+    - garbage output of --help in non UTF-8 locale
+    - GtkNotebook does not destroy its children on destroy()
+    - TreeView DnD between-row highlight colo
+    - Gtk-Criticals occur when scrolling a text_view that is not realized
+    - Hidden menubar still activates submenus with kbd
+    - GtkTreeItem broken 
+    -  Clean up button press handling (use one-grab-op-at-a-time pattern)   
+    - broken scrolling when selecting
+    - GTK+ File-chooser dialog crashes
+    - Nautilus crashes when dragging icons to another screen
+    - mixed line separators confuse gtk_text_iter_ends_line
+    - Textview child is covered by window border
+    - gdk_pixbuf_loader_new_with_type(): What image types are allowed? 
+    - Missing progress bar label
+    - Fix a problem which caused grab-notify signal to be missed in some cases
+  * debian/control.in:
+    - clear the Build-Depends on xlibs-static-pic | xlibs-pic, not required
+    - updated the Build-Depends on libpango1.0-dev so it build with 
+      the xorg transitioned version
+  * * debian/patches/001_default_fallback_icon_theme.patch:
+    - set the default fallback icon theme to "gnome", fixes the issues with
+      the moves of icons from hicolor to gnome
+
+ -- Sebastien Bacher <seb128@debian.org>  Sun,  9 Apr 2006 21:54:11 +0200
+
+gtk+2.0 (2.8.16-1) unstable; urgency=low
+
+  * New upstream version
+
+ -- Sebastien Bacher <seb128@debian.org>  Wed, 15 Mar 2006 19:26:46 +0100
+
+gtk+2.0 (2.8.15-1) unstable; urgency=low
+
+  * New upstream version:
+    * Bugs fixed:
+      - Keys P and N in "open file" dialog have special meaning
+      - MS-Windows theme (GTK-Wimp) shows all funky characters
+      - Optimize gdk on win32 
+      - Hollow polygons have wrong linecaps 
+      - panel crash with a11y enabled
+    * Updated translations (bg,bn,cs,eu,ro)
+
+ -- Sebastien Bacher <seb128@debian.org>  Tue, 14 Mar 2006 15:41:56 +0100
+
+gtk+2.0 (2.8.13-1) unstable; urgency=low
+
+  * New upstream version:
+    * Bugs fixed:
+    - Can't select some items in GtkIconView 
+    - gtk_icon_theme_list_icons: example contexts don't work
+    - gnopernicus crashes on changing display screen source for magnifier
+    - evince crashes in gdk_region_union_with_rect 
+    - Small error in _gdk_gc_update_context 
+    - gtk.Notebook.get_current_page() returns incorrect page number 
+      when pages hidden
+    - GtkAboutDialog not responsive to Escape key
+    - GtkNotebook popup menu not keynavigatable
+    - GtkRadioButton does not issue notify::active
+    - Make more use of G_DISABLE_ASSERT in TextView code  
+    * Updated translations 
+
+ -- Sebastien Bacher <seb128@debian.org>  Sat, 25 Feb 2006 23:56:58 +0100
+
+gtk+2.0 (2.8.12-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+  * [debian/copyright] Updated FSF's address.
+
+ -- J.H.M. Dassen (Ray) <jdassen@debian.org>  Sun, 12 Feb 2006 14:11:11 +0100
+
+gtk+2.0 (2.8.11-1) unstable; urgency=low
+
+  * New upstream version
+    * Avoid memory overruns in the pixbuf theme engine with nonsensical 
+      gradient specifications.  [Matthias]
+    * Bugs fixed:
+    - Cursor doesn't move as expected
+    - Segfault from combination of gtk_container_set_resize_mode() 
+      and GtkComboBox
+    - segfault in update_cursor on amd64
+    - eog crashes at launch under AIX 
+    - "~" should bring up the location dialog
+    - gtk_text_layout_get_cursor_locations() chokes on layout=0x0
+    * Documentation improvements [Federico Mena Quintero]
+    * Translation updates (es,pt_BR,zh_HK,zh_TW)
+
+ -- Sebastien Bacher <seb128@debian.org>  Fri, 27 Jan 2006 22:28:05 +0100
+
+gtk+2.0 (2.8.10-1) unstable; urgency=low
+
+  * New upstream version
+  * debian/control.in:
+    - updated the glib requirement
+  * debian/patches/001_fs_documents.patch:
+    - dropped, stick with upstream behaviour rather
+
+ -- Sebastien Bacher <seb128@debian.org>  Thu, 12 Jan 2006 13:34:37 +0100
+
 gtk+2.0 (2.8.9-2) unstable; urgency=low
 
   * Upload to unstable

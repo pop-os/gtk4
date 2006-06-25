@@ -7,6 +7,7 @@ include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 BUILD_DIR=$(SOURCE_DIR)/$(TAR_DIR)
 BUILD_SHARED_DIR=$(SOURCE_DIR)/$(TAR_DIR)-shared
 BUILD_STATIC_DIR=$(SOURCE_DIR)/$(TAR_DIR)-static
+BUILD_DFB_DIR=$(SOURCE_DIR)/$(TAR_DIR)-dfb
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
@@ -40,7 +41,6 @@ glibver=2.0
 atkver=1.0
 pangover=1.0
 shver=2.8.0
-libpath=$(CURDIR)/$(BUILD_SHARED_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gtk/.libs
 
 
 debian/control:
@@ -118,7 +118,36 @@ $(STAMP_DIR)/configure-static-stamp:
 
 	touch $@
 
-configure: configure-static configure-shared
+configure-dfb: extract $(STAMP_DIR)/configure-dfb-stamp
+$(STAMP_DIR)/configure-dfb-stamp:
+	dh_testdir
+
+	cp -ar $(BUILD_DIR) $(BUILD_DFB_DIR)
+
+	# Add here commands to configure the package.
+	cd $(BUILD_DFB_DIR) && \
+	./configure	--host=$(DEB_HOST_GNU_TYPE) \
+			--build=$(DEB_BUILD_GNU_TYPE) \
+			--prefix=/usr \
+			--mandir=\$${prefix}/share/man \
+			--infodir=\$${prefix}/share/info \
+			--sysconfdir=/etc \
+			--with-html-dir=\$${prefix}/share/doc/libgtk$(apiver)-doc \
+			--with-xinput=no \
+			--enable-shared \
+			--disable-static \
+			--with-gdktarget=directfb \
+			--enable-explicit-deps=yes
+
+	cd $(BUILD_DFB_DIR) && \
+	sed < libtool > libtool-2 \
+	 -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
+	 -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
+	mv libtool-2 libtool
+
+	touch $@
+
+configure: configure-static configure-shared configure-dfb
 
 build-shared: debian/control configure-shared $(STAMP_DIR)/build-shared-stamp
 $(STAMP_DIR)/build-shared-stamp:
@@ -127,8 +156,7 @@ $(STAMP_DIR)/build-shared-stamp:
 	-rm -f $(STAMP_DIR)/install-test-stamp
 
 	# Add here commands to compile the package.
-	$(MAKE) -C $(BUILD_SHARED_DIR) \
-		LD_LIBRARY_PATH=$(libpath):$(LD_LIBRARY_PATH)
+	$(MAKE) -C $(BUILD_SHARED_DIR)
 
 	touch $@
 
@@ -144,7 +172,18 @@ $(STAMP_DIR)/build-static-stamp:
 
 	touch $@
 
-build: build-static build-shared
+build-dfb: debian/control configure-dfb $(STAMP_DIR)/build-dfb-stamp
+$(STAMP_DIR)/build-dfb-stamp:
+	dh_testdir
+
+	-rm -f $(STAMP_DIR)/install-test-stamp
+
+	# Add here commands to compile the package.
+	$(MAKE) -C $(BUILD_DFB_DIR)
+
+	touch $@
+
+build: build-static build-shared build-dfb
 
 clean:: debian/control
 	dh_testdir
@@ -154,6 +193,7 @@ clean:: debian/control
 	$(MAKE) -f debian/sys-build.mk source.clean
 	-rm -rf $(BUILD_SHARED_DIR)
 	-rm -rf $(BUILD_STATIC_DIR)
+	-rm -rf $(BUILD_DFB_DIR)
 	-rm -rf $(STAMP_DIR)
 
 	dh_clean
@@ -179,11 +219,34 @@ install-static: build-static install-test
 		RUN_QUERY_IMMODULES_TEST=false \
 		RUN_QUERY_LOADER_TEST=false
 
-install: install-static install-shared
+install-dfb: build-shared install-test
+	# Add here commands to install the package into debian/tmp
+	dest=$(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix)
+	$(MAKE) -C $(BUILD_SHARED_DIR) install DESTDIR=$(dest)
+	find $(dest) -name \*.la -exec rm -f \{\} \;
+	mkdir -p $(dest)-udeb/etc/gtk-2.0
+	$(BUILD_SHARED_DIR)/gdk-pixbuf/gdk-pixbuf-query-loaders \
+		$(dest)/usr/lib/gtk-2.0/*/loaders | \
+		sed s,$(dest),, > $(dest)-udeb/etc/gtk-2.0/gdk-pixbuf.loaders
+
+install: install-static install-shared install-dfb
 	# generating debian files from .in
 	for f in `find debian/ -name "[^c]*.in"`; do \
 		sed -e "s/@VERSION@/${version}/g" -e "s/@MODVER@/${modver}/g" -e "s/@APIVER@/${apiver}/g" $$f > `echo $$f | sed -e "s/\.in//"`; \
 	done
+
+	# start with the udeb
+	mkdir -p debian/libgtk+$(apiver)-directfb$(soname)$(suffix)-udeb/usr/lib/gtk-2.0
+	cp debian/libgtk+$(apiver)-directfb$(soname)$(suffix)/usr/lib/*.so.? \
+		debian/libgtk+$(apiver)-directfb$(soname)$(suffix)-udeb/usr/lib/
+	cp -r debian/libgtk+$(apiver)-directfb$(soname)$(suffix)/usr/lib/gtk-2.0/[0-9]* \
+		debian/libgtk+$(apiver)-directfb$(soname)$(suffix)-udeb/usr/lib/gtk-2.0/
+	rm -rf debian/libgtk+$(apiver)-directfb$(soname)$(suffix)-udeb/usr/lib/gtk-2.0/*/{engines,immodules}
+
+	# remove files that are already here in the other build
+	cd debian/libgtk$(apiver)-$(soname)$(suffix) && \
+		find -type f -exec \
+		rm -f ../libgtk+$(apiver)-directfb$(soname)$(suffix)/\{\} \;
 
 	# for -doc
 	cp -a $(BUILD_SHARED_DIR)/docs/faq/html debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-faq
@@ -209,7 +272,9 @@ install: install-static install-shared
 	# clean the unnecessary files up
 	rm -rf debian/libgtk$(apiver)-$(soname)$(suffix)/usr/share/gtk-doc
 
-	dh_movefiles --sourcedir=debian/libgtk$(apiver)-$(soname)$(suffix)
+	dh_movefiles -Nlibgtk+$(apiver)-directfb-dev --sourcedir=debian/libgtk$(apiver)-$(soname)$(suffix)
+	dh_movefiles -plibgtk+$(apiver)-directfb-dev --sourcedir=debian/libgtk+$(apiver)-directfb$(soname)$(suffix)
+
 	-find $(CURDIR)/debian/ -type d -empty | xargs rmdir -p > /dev/null 2>&1
 
 	# don't delete /etc/gtk-2.0
@@ -267,6 +332,8 @@ binary-arch: build install
 
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-$(soname)-dbg/usr/share/doc/libgtk$(apiver)-$(soname)-dbg
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dev/usr/share/doc/libgtk$(apiver)-dev
+	rm -rf $(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)/usr/share/doc/libgtk+$(apiver)-directfb$(soname)
+	rm -rf $(CURDIR)/debian/libgtk+$(apiver)-directfb-dev/usr/share/doc/libgtk+$(apiver)-directfb-dev
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-bin/usr/share/doc/libgtk$(apiver)-bin
 
 	dh_link -plibgtk$(apiver)-$(soname)-dbg \
@@ -275,6 +342,12 @@ binary-arch: build install
 	dh_link -plibgtk$(apiver)-dev \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-dev
+	dh_link -plibgtk+$(apiver)-directfb$(soname) \
+		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
+		usr/share/doc/libgtk+$(apiver)-directfb$(soname)
+	dh_link -plibgtk+$(apiver)-directfb-dev \
+		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
+		usr/share/doc/libgtk+$(apiver)-directfb-dev
 	dh_link -plibgtk$(apiver)-bin \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-bin
@@ -286,17 +359,15 @@ binary-arch: build install
 	dh_installman -a
 	dh_installinfo -a
 	dh_installchangelogs -a $(BUILD_DIR)/ChangeLog
-	dh_strip -a --dbg-package=libgtk$(apiver)-$(soname)
+	dh_strip -a --dbg-package=libgtk$(apiver)-$(soname)-dbg
 	dh_compress -a
 	dh_fixperms -a
-	dh_makeshlibs -a -Nlibgtk$(apiver)-$(soname)-dbg
-	dh_makeshlibs -n -X usr/lib/gtk-$(apiver) -plibgtk$(apiver)-$(soname)$(suffix) -V "libgtk${apiver}-${soname}${suffix} (>= ${shver})"
+	dh_makeshlibs -a -X usr/lib/gtk-$(apiver) -plibgtk$(apiver)-$(soname)$(suffix) -V "libgtk${apiver}-${soname}${suffix} (>= ${shver})" --add-udeb=libgtk+$(apiver)-directfb$(soname)-dbg
 	dh_installdeb -a
-	dh_shlibdeps -l$(libpath) -a
-	cat debian/*/DEBIAN/shlibs > debian/shlibs.local
+	dh_shlibdeps -a
 	dh_gencontrol -a
 	dh_md5sums -a
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: build build-shared build-static clean binary-indep binary-arch binary install install-shared install-static configure configure-shared configure-static debian/control
+.PHONY: build build-shared build-static build-dfb clean binary-indep binary-arch binary install install-shared install-static install-dfb configure configure-shared configure-static configure-dfb debian/control

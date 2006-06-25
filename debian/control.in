@@ -3,9 +3,9 @@ Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
 Uploaders: @GNOME_TEAM@
-Build-Depends: debhelper (>> 4.0.0), gettext, pkg-config, libglib2.0-dev (>= 2.7.1), libpango1.0-dev (>= 1.10.0-2), libatk1.0-dev (>= 1.6.1-2), xlibs-static-pic | xlibs-pic (>= 4.2.1-6), libx11-dev, libxext-dev, libxi-dev, libxrandr-dev, libxt-dev, libxrender-dev, libxft-dev, libxcursor-dev, libxkbfile-dev, libxinerama-dev, libxfixes-dev, libcairo2-dev, libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
+Build-Depends: debhelper (>= 5.0.22), gettext, pkg-config, libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.12.1-2), libatk1.0-dev (>= 1.6.1-2), libx11-dev (>= 2:1.0.0-6), libxext-dev, libxi-dev, libxrandr-dev, libxt-dev, libxrender-dev, libxft-dev, libxcursor-dev, libxkbfile-dev, libxinerama-dev, libxfixes-dev, libcairo2-dev, libcairo-directfb2-dev, libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools
 Build-Depends-Indep: gtk-doc-tools, docbook-xml
-Standards-Version: 3.6.1.0
+Standards-Version: 3.7.2
 
 Package: libgtk2.0-@SONAME@
 Section: libs
@@ -21,6 +21,34 @@ Description: The GTK+ graphical user interface library
  suites.
  .
  This package contains the shared libraries.
+
+Package: libgtk+2.0-directfb@SONAME@
+Section: libs
+Architecture: any
+Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), ${shlibs:Depends}
+Description: The GTK+ graphical user interface library - DirectFB runtime
+ The GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, the GTK+ is suitable
+ for projects ranging from small one-off tools to complete application
+ suites.
+ .
+ This version uses DirectFB, a thin library providing an integrated 
+ windowing system and hardware acceleration on top of the Linux 
+ framebuffer.
+
+Package: libgtk+2.0-directfb@SONAME@-udeb
+XC-Package-Type: udeb
+Section: debian-installer
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: The GTK+ graphical user interface library - minimal runtime
+ The GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, the GTK+ is suitable
+ for projects ranging from small one-off tools to complete application
+ suites.
+ .
+ This package contains the minimal runtime library using DirectFB needed
+ by the Debian installer.
 
 Package: libgtk2.0-common
 Section: misc
@@ -54,7 +82,7 @@ Description: The programs for the GTK+ graphical user interface library
 Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), libglib2.0-dev (>= 2.7.1), libpango1.0-dev (>= 1.10.0-2), libatk1.0-dev (>= 1.6.1-2), libcairo2-dev, libx11-dev, libxext-dev, libxinerama-dev, libxi-dev, libxrandr-dev, libxcursor-dev, libxfixes-dev, pkg-config
+Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.10.0-2), libatk1.0-dev (>= 1.6.1-2), libcairo2-dev, libx11-dev (>= 2:1.0.0-6), libxext-dev, libxinerama-dev, libxi-dev, libxrandr-dev, libxcursor-dev, libxfixes-dev, pkg-config
 Suggests: libgtk2.0-doc
 Replaces: libgtk1.3-dev
 Conflicts: libgtk1.3-dev
@@ -66,6 +94,20 @@ Description: Development files for the GTK+ library
  .
  This package contains the header files and static libraries which is
  needed for developing the GTK+ applications.
+
+Package: libgtk+2.0-directfb-dev
+Section: libdevel
+Architecture: any
+Depends: libgtk+2.0-directfb@SONAME@ (= ${Source-Version}), libgtk2.0-dev (= ${Source-Version}), libcairo-directfb2-dev
+Description: Development files for the GTK+ library - DirectFB version
+ The GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, the GTK+ is suitable
+ for projects ranging from small one-off tools to complete application
+ suites.
+ .
+ This package contains the header files and static libraries which is
+ needed for developing the GTK+ applications on top of the DirectFB
+ library.
 
 Package: libgtk2.0-@SONAME@-dbg
 Section: libdevel
