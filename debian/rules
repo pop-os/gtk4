@@ -225,13 +225,13 @@ install-static: build-static install-test
 
 install-dfb: build-shared install-test
 	# Add here commands to install the package into debian/tmp
-	dest=$(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix)
-	$(MAKE) -C $(BUILD_SHARED_DIR) install DESTDIR=$(dest)
+	$(MAKE) -C $(BUILD_SHARED_DIR) install \
+		DESTDIR=$(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix)
 	find $(dest) -name \*.la -exec rm -f \{\} \;
-	mkdir -p $(dest)-udeb/etc/gtk-2.0
+	mkdir -p debian/libgtk+$(apiver)-directfb$(soname)$(suffix)-udeb/etc/gtk-2.0
 	$(BUILD_SHARED_DIR)/gdk-pixbuf/gdk-pixbuf-query-loaders \
 		$(dest)/usr/lib/gtk-2.0/*/loaders | \
-		sed s,$(dest),, > $(dest)-udeb/etc/gtk-2.0/gdk-pixbuf.loaders
+		sed s,$(dest),, > debian/libgtk+$(apiver)-directfb$(soname)$(suffix)-udeb/etc/gtk-2.0/gdk-pixbuf.loaders
 
 install: install-static install-shared install-dfb
 	# generating debian files from .in

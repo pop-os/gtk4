@@ -3,8 +3,8 @@ gtk+2.0 (2.8.18-3) experimental; urgency=low
   * 003_gtk+-2.8.17-directfb.patch: new patch, bringing a new directfb
     backend.
   * 004_reautoconf.patch: new patch, result of "libtoolize --force
-    --copy; autoheader; automake -acf; autoconf; rm -rf autom4te.cache"
-    with the previous patches applied.
+    --copy; aclocal; autoheader; automake -acf; autoconf; rm -rf
+    autom4te.cache" with the previous patches applied.
   * Make 3 new packages: libgtk+2.0-directfb0-udeb,
     libgtk+2.0-directfb-dev and  libgtk+2.0-directfb0.
   * Add a new build flavour for directfb (only the shared version).
