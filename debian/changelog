@@ -1,3 +1,11 @@
+gtk+2.0 (2.8.18-4) experimental; urgency=low
+
+  * Bump libcairo build dependencies.
+  * Only install the PNG loader in the udeb.
+  * Rebuild against a fixed glib.
+
+ -- Josselin Mouette <joss@debian.org>  Mon, 26 Jun 2006 22:34:27 +0200
+
 gtk+2.0 (2.8.18-3) experimental; urgency=low
 
   * 003_gtk+-2.8.17-directfb.patch: new patch, bringing a new directfb
@@ -11,8 +19,6 @@ gtk+2.0 (2.8.18-3) experimental; urgency=low
   * Use chrpath to remove the rpath in the udeb.
   * Generate a fake shlibs.local to handle all intra-gtk dependencies by
     hand.
-  * Bump libcairo build dependencies.
-  * Only install the PNG loader in the udeb.
   * Switch to debhelper compatibility mode 5 and require 5.0.22.
   * Standards-version is 3.7.2.
   * Break the circular dependency between libgtk2.0-0, libgtk2.0-bin and
