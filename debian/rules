@@ -306,6 +306,8 @@ binary-indep: build install
 
 	dh_installdocs -i
 
+	rm -rf $(CURDIR)/debian/libgtk$(apiver)-bin/usr/share/doc/libgtk$(apiver)-bin
+
 	dh_link -plibgtk$(apiver)-doc				\
 		usr/share/doc/libglib$(glibver)-doc/glib	\
 		usr/share/doc/libgtk$(apiver)-doc/glib
@@ -321,6 +323,9 @@ binary-indep: build install
 	dh_link -plibgtk$(apiver)-common			\
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-common
+	dh_link -plibgtk$(apiver)-bin \
+		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
+		usr/share/doc/libgtk$(apiver)-bin
 
 # create symlinks in /usr/share/gtk-doc/html
 	for i in gdk gdk-pixbuf gtk gtk-faq gtk-tutorial; do	\
@@ -352,7 +357,6 @@ binary-arch: build install
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dev/usr/share/doc/libgtk$(apiver)-dev
 	rm -rf $(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)/usr/share/doc/libgtk+$(apiver)-directfb$(soname)
 	rm -rf $(CURDIR)/debian/libgtk+$(apiver)-directfb-dev/usr/share/doc/libgtk+$(apiver)-directfb-dev
-	rm -rf $(CURDIR)/debian/libgtk$(apiver)-bin/usr/share/doc/libgtk$(apiver)-bin
 
 	dh_link -plibgtk$(apiver)-$(soname) \
 		usr/share/doc/libgtk$(apiver)-common \
@@ -369,9 +373,6 @@ binary-arch: build install
 	dh_link -plibgtk+$(apiver)-directfb-dev \
 		usr/share/doc/libgtk+$(apiver)-directfb$(soname)$(suffix) \
 		usr/share/doc/libgtk+$(apiver)-directfb-dev
-	dh_link -plibgtk$(apiver)-bin \
-		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
-		usr/share/doc/libgtk$(apiver)-bin
 
 	dh_installexamples -a
 
