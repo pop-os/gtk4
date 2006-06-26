@@ -320,9 +320,6 @@ binary-indep: build install
 	dh_link -plibgtk$(apiver)-doc				\
 		usr/share/doc/libpango$(pangover)-doc/pango	\
 		usr/share/doc/libgtk$(apiver)-doc/pango
-	dh_link -plibgtk$(apiver)-common			\
-		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
-		usr/share/doc/libgtk$(apiver)-common
 	dh_link -plibgtk$(apiver)-bin \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-bin
