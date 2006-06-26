@@ -8,10 +8,13 @@ gtk+2.0 (2.8.18-3) experimental; urgency=low
   * Make 3 new packages: libgtk+2.0-directfb0-udeb,
     libgtk+2.0-directfb-dev and  libgtk+2.0-directfb0.
   * Add a new build flavour for directfb (only the shared version).
+  * Use chrpath to remove the rpath in the udeb.
+  * Generate a fake shlibs.local to handle all intra-gtk dependencies by 
+    hand.
   * Switch to debhelper compatibility mode 5 and require 5.0.22.
   * Standards-version is 3.7.2.
 
- -- Josselin Mouette <joss@debian.org>  Sun, 25 Jun 2006 21:34:50 +0200
+ -- Josselin Mouette <joss@debian.org>  Mon, 26 Jun 2006 08:20:44 +0200
 
 gtk+2.0 (2.8.18-2) UNRELEASED; urgency=low
 
