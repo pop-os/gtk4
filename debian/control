@@ -99,7 +99,7 @@ Description: Development files for the GTK+ library
 Package: libgtk+2.0-directfb-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk+2.0-directfb0 (= ${binary:Version}), libgtk2.0-dev (= ${binary:Version}), libcairo-directfb2-dev, libcairo-dev (>= 1.1.10-2)
+Depends: libgtk+2.0-directfb0 (= ${binary:Version}), libgtk2.0-dev (= ${binary:Version}), libcairo-directfb2-dev, libcairo2-dev (>= 1.1.10-2)
 Description: Development files for the GTK+ library - DirectFB version
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
