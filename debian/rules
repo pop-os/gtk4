@@ -228,6 +228,7 @@ install-dfb: build-shared install-test
 	$(MAKE) -C $(BUILD_DFB_DIR) install \
 		DESTDIR=$(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix)
 	find $(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix) -name \*.la -exec rm -f \{\} \;
+	find $(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix) -name libpixbufloader\* \! -name \*png\* -exec rm -f \{\} \;
 	mkdir -p debian/libgtk+$(apiver)-directfb$(soname)$(suffix)-udeb/etc/gtk-2.0
 	$(BUILD_SHARED_DIR)/gdk-pixbuf/gdk-pixbuf-query-loaders \
 		$(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)$(suffix)/usr/lib/gtk-2.0/*/loaders/*.so | \

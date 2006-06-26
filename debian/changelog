@@ -11,6 +11,8 @@ gtk+2.0 (2.8.18-3) experimental; urgency=low
   * Use chrpath to remove the rpath in the udeb.
   * Generate a fake shlibs.local to handle all intra-gtk dependencies by
     hand.
+  * Bump libcairo build dependencies.
+  * Only install the PNG loader in the udeb.
   * Switch to debhelper compatibility mode 5 and require 5.0.22.
   * Standards-version is 3.7.2.
   * Break the circular dependency between libgtk2.0-0, libgtk2.0-bin and
@@ -28,7 +30,7 @@ gtk+2.0 (2.8.18-3) experimental; urgency=low
     + Move /usr/sbin/update-* calls to libgtk2.0-0.
     + update-*: call binaries at their new location.
 
- -- Josselin Mouette <joss@debian.org>  Mon, 26 Jun 2006 18:09:33 +0200
+ -- Josselin Mouette <joss@debian.org>  Mon, 26 Jun 2006 22:31:14 +0200
 
 gtk+2.0 (2.8.18-2) UNRELEASED; urgency=low
 
