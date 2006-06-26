@@ -264,11 +264,19 @@ install: install-static install-shared install-dfb
 	cp -ar $(BUILD_SHARED_DIR)/docs/tutorial/images debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
 	cp $(BUILD_SHARED_DIR)/docs/*.txt debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc
 
-	# debian files
-	install -m 755 $(CURDIR)/debian/update-gtk-immodules \
-		       $(CURDIR)/debian/libgtk$(apiver)-bin/usr/sbin/
-	install -m 755 $(CURDIR)/debian/update-gdkpixbuf-loaders \
-		       $(CURDIR)/debian/libgtk$(apiver)-bin/usr/sbin/
+	# scripts and support binaries
+	for file in `ls debian/libgtk$(apiver)-$(soname)$(suffix)/usr/bin`; do \
+		ln -sf ../lib/libgtk$(apiver)-$(soname)/$$file \
+			debian/libgtk$(apiver)-bin/usr/bin/$$file ; \
+	done
+	mv debian/libgtk$(apiver)-$(soname)$(suffix)/usr/bin \
+		debian/libgtk$(apiver)-$(soname)$(suffix)/usr/lib/libgtk$(apiver)-$(soname)
+	for file in update-gtk-immodules update-gdkpixbuf-loaders; do \
+		install -m 755 $(CURDIR)/debian/$$file \
+		       $(CURDIR)/debian/libgtk$(apiver)-$(soname)/usr/lib/libgtk$(apiver)-$(soname) ; \
+		ln -sf ../lib/libgtk$(apiver)-$(soname)/$$file \
+			debian/libgtk$(apiver)-bin/usr/sbin/$$file ; \
+	done
 
 	# don't need executable attribute
 	for f in `find $(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/share/themes -type f`; do \
@@ -297,8 +305,6 @@ binary-indep: build install
 	dh_testroot -i
 
 	dh_installdocs -i
-
-	rm -rf $(CURDIR)/debian/libgtk$(apiver)-common/usr/share/doc/libgtk$(apiver)-common
 
 	dh_link -plibgtk$(apiver)-doc				\
 		usr/share/doc/libglib$(glibver)-doc/glib	\
@@ -341,12 +347,16 @@ binary-arch: build install
 #	dh_installdebconf	
 	dh_installdocs -a
 
+	rm -rf $(CURDIR)/debian/libgtk$(apiver)-$(soname)/usr/share/doc/libgtk$(apiver)-$(soname)
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-$(soname)-dbg/usr/share/doc/libgtk$(apiver)-$(soname)-dbg
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-dev/usr/share/doc/libgtk$(apiver)-dev
 	rm -rf $(CURDIR)/debian/libgtk+$(apiver)-directfb$(soname)/usr/share/doc/libgtk+$(apiver)-directfb$(soname)
 	rm -rf $(CURDIR)/debian/libgtk+$(apiver)-directfb-dev/usr/share/doc/libgtk+$(apiver)-directfb-dev
 	rm -rf $(CURDIR)/debian/libgtk$(apiver)-bin/usr/share/doc/libgtk$(apiver)-bin
 
+	dh_link -plibgtk$(apiver)-$(soname) \
+		usr/share/doc/libgtk$(apiver)-common \
+		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix)
 	dh_link -plibgtk$(apiver)-$(soname)-dbg \
 		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
 		usr/share/doc/libgtk$(apiver)-$(soname)-dbg

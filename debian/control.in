@@ -3,17 +3,17 @@ Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
 Uploaders: @GNOME_TEAM@
-Build-Depends: debhelper (>= 5.0.22), gettext, pkg-config, libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.12.1-2), libatk1.0-dev (>= 1.6.1-2), libx11-dev (>= 2:1.0.0-6), libxext-dev, libxi-dev, libxrandr-dev, libxt-dev, libxrender-dev, libxft-dev, libxcursor-dev, libxkbfile-dev, libxinerama-dev, libxfixes-dev, libcairo2-dev, libcairo-directfb2-dev, libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools, chrpath
+Build-Depends: debhelper (>= 5.0.22), gettext, pkg-config, libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.12.1-2), libatk1.0-dev (>= 1.6.1-2), libx11-dev (>= 2:1.0.0-6), libxext-dev, libxi-dev, libxrandr-dev, libxt-dev, libxrender-dev, libxft-dev, libxcursor-dev, libxkbfile-dev, libxinerama-dev, libxfixes-dev, libcairo2-dev, libcairo-directfb2-dev, libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools, chrpath, dpkg-dev (>= 1.13.19)
 Build-Depends-Indep: gtk-doc-tools, docbook-xml
 Standards-Version: 3.7.2
 
 Package: libgtk2.0-@SONAME@
 Section: libs
 Architecture: any
-Depends: libgtk2.0-common (>= ${Source-Version}), libgtk2.0-bin (>= ${Source-Version}), ${shlibs:Depends}
+Depends: libgtk2.0-common (= ${source:Version}), ${shlibs:Depends}
 Conflicts: libgtk2.0-0png3, eog2 (<< 1.0.1-4), gnome-panel2 (<< 2.0.4-1), celestia (<< 1.2.4-4), gimp1.3 (<< 1.3.7-1.1), metatheme (<< 0.9.7-3), libgnomeui-0 (<< 2.0.6-2), gtk2.0-examples (<< 2.2.0), libgdkxft0, gtk2-engines-wonderland (<= 1.0-2), gtk2-engines-cleanice (<= 1.2.8-1), gtk2-engines-thinice (<< 2.6), gtk2-engines-crux (<< 2.6), gtk2-engines-mist (<< 2.6), gtk2-engines-highcontrast (<< 2.6), gtk2-engines-lighthouseblue (<< 2.6), gnome-themes (<< 2.6), gtk2-engines-industrial (<< 0.2.32-5), gtk2-engines-pixbuf (<< 2.2.0-2.1), gtk2-engines-redmond95 (<< 2.2.0-2.1), gtk2-engines-metal (<< 2.2.0-2.1), gtk2-engines-magicchicken (<= 1.1.1-4), gtk2-engines-qtpixmap (<= 0.28-1), gtk2-engines-smooth (<< 0.5.6-3), gtk2-engines-xfce (<= 2.1.8-1), tamil-gtk2im (<= 2.2-4), imhangul (<< 0.9.9-3), librsvg2-common (<< 2.6.3-1)
 Replaces: libgtk2.0-0png3
-Recommends: hicolor-icon-theme
+Recommends: hicolor-icon-theme, libgtk2.0-bin
 Description: The GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -25,7 +25,7 @@ Description: The GTK+ graphical user interface library
 Package: libgtk+2.0-directfb@SONAME@
 Section: libs
 Architecture: any
-Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), ${shlibs:Depends}
+Depends: libgtk2.0-@SONAME@ (= ${binary:Version}), ${shlibs:Depends}
 Description: The GTK+ graphical user interface library - DirectFB runtime
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -53,7 +53,8 @@ Description: The GTK+ graphical user interface library - minimal runtime
 Package: libgtk2.0-common
 Section: misc
 Architecture: all
-Depends: libgtk2.0-@SONAME@, ${misc:Depends}
+Depends: ${misc:Depends}
+Recommends: libgtk2.0-@SONAME@
 Replaces: libgtk1.3-common, libgtk2.0-data
 Conflicts: libgtk1.3-common, libgtk2.0-data
 Description: Common files for the GTK+ graphical user interface library
@@ -66,8 +67,8 @@ Description: Common files for the GTK+ graphical user interface library
 
 Package: libgtk2.0-bin
 Section: misc
-Architecture: any
-Depends: ${shlibs:Depends}
+Architecture: all
+Depends: ${misc:Depends}, libgtk2.0-@SONAME@ (>= ${source:Version})
 Replaces: libgtk2.0-common (<= 2.4.0-3), libgtk2.0-dev (<= 2.4.3-1)
 Conflicts: libgtk2.0-dev (<= 2.4.3-1)
 Description: The programs for the GTK+ graphical user interface library
@@ -82,7 +83,7 @@ Description: The programs for the GTK+ graphical user interface library
 Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk2.0-@SONAME@ (= ${Source-Version}), libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.10.0-2), libatk1.0-dev (>= 1.6.1-2), libcairo2-dev, libx11-dev (>= 2:1.0.0-6), libxext-dev, libxinerama-dev, libxi-dev, libxrandr-dev, libxcursor-dev, libxfixes-dev, pkg-config
+Depends: libgtk2.0-@SONAME@ (= ${binary:Version}), libglib2.0-dev (>= 2.8.5), libpango1.0-dev (>= 1.10.0-2), libatk1.0-dev (>= 1.6.1-2), libcairo2-dev, libx11-dev (>= 2:1.0.0-6), libxext-dev, libxinerama-dev, libxi-dev, libxrandr-dev, libxcursor-dev, libxfixes-dev, pkg-config
 Suggests: libgtk2.0-doc
 Replaces: libgtk1.3-dev
 Conflicts: libgtk1.3-dev
@@ -98,7 +99,7 @@ Description: Development files for the GTK+ library
 Package: libgtk+2.0-directfb-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk+2.0-directfb@SONAME@ (= ${Source-Version}), libgtk2.0-dev (= ${Source-Version}), libcairo-directfb2-dev
+Depends: libgtk+2.0-directfb@SONAME@ (= ${binary:Version}), libgtk2.0-dev (= ${binary:Version}), libcairo-directfb2-dev
 Description: Development files for the GTK+ library - DirectFB version
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -113,7 +114,7 @@ Package: libgtk2.0-@SONAME@-dbg
 Section: libdevel
 Priority: extra
 Architecture: any
-Depends: libgtk2.0-@SONAME@ (= ${Source-Version})
+Depends: libgtk2.0-@SONAME@ (= ${binary:Version})
 Conflicts: libgtk2.0-dbg
 Replaces: libgtk2.0-dbg
 Description: The GTK+ libraries and debugging symbols
@@ -149,7 +150,7 @@ Package: gtk2.0-examples
 Section: x11
 Priority: extra
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, libgtk2.0-@SONAME@ (= ${binary:Version})
 Replaces: libgtk1.3-dev
 Description: Examples files for the GTK+ 2.0
  The GTK+ is a multi-platform toolkit for creating graphical user
@@ -164,7 +165,7 @@ Package: gtk2-engines-pixbuf
 Section: graphics
 Priority: optional
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends}, libgtk2.0-@SONAME@ (= ${binary:Version})
 Suggests: gtk-engines-pixmap
 Conflicts: gtk2.0-engines-pixbuf
 Replaces: gtk2.0-engines-pixbuf

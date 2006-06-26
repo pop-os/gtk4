@@ -1,0 +1,19 @@
+#! /bin/sh
+set -e
+
+if [ -d /usr/share/doc/libgtk2.0-0 -a ! -L /usr/share/doc/libgtk2.0-0 ]; then
+  if rmdir /usr/share/doc/libgtk2.0-0; then
+    ln -sf libgtk2.0-common /usr/share/doc/libgtk2.0-0
+  else
+    echo "Warning: could not remove /usr/share/doc/libgtk2.0-0."
+  fi
+fi
+
+case "$1" in
+    configure)
+        /usr/lib/libgtk2.0-0/update-gtk-immodules
+        /usr/lib/libgtk2.0-0/update-gdkpixbuf-loaders
+    ;;
+esac
+
+#DEBHELPER#
