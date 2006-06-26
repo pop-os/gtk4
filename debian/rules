@@ -264,6 +264,16 @@ install: install-static install-shared install-dfb
 	cp -ar $(BUILD_SHARED_DIR)/docs/tutorial/images debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc/gtk-tutorial/
 	cp $(BUILD_SHARED_DIR)/docs/*.txt debian/libgtk$(apiver)-doc/usr/share/doc/libgtk$(apiver)-doc
 
+	# don't need executable attribute
+	for f in `find $(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/share/themes -type f`; do \
+		chmod a-x $$f; \
+	done
+
+	# clean the unnecessary files up
+	rm -rf debian/libgtk$(apiver)-$(soname)$(suffix)/usr/share/gtk-doc
+
+	dh_movefiles --sourcedir=debian/libgtk$(apiver)-$(soname)$(suffix)
+
 	# scripts and support binaries
 	for file in `ls debian/libgtk$(apiver)-$(soname)$(suffix)/usr/bin`; do \
 		ln -sf ../lib/libgtk$(apiver)-$(soname)/$$file \
@@ -277,16 +287,6 @@ install: install-static install-shared install-dfb
 		ln -sf ../lib/libgtk$(apiver)-$(soname)/$$file \
 			debian/libgtk$(apiver)-bin/usr/sbin/$$file ; \
 	done
-
-	# don't need executable attribute
-	for f in `find $(CURDIR)/debian/libgtk$(apiver)-$(soname)$(suffix)/usr/share/themes -type f`; do \
-		chmod a-x $$f; \
-	done
-
-	# clean the unnecessary files up
-	rm -rf debian/libgtk$(apiver)-$(soname)$(suffix)/usr/share/gtk-doc
-
-	dh_movefiles --sourcedir=debian/libgtk$(apiver)-$(soname)$(suffix)
 
 	mkdir -p debian/libgtk+$(apiver)-directfb-dev/usr/lib
 	mv debian/libgtk+$(apiver)-directfb$(soname)$(suffix)/usr/lib/{pkgconfig,*.so} \
