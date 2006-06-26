@@ -376,7 +376,7 @@ binary-arch: build install
 	dh_makeshlibs -X usr/lib/gtk-$(apiver) -plibgtk$(apiver)-$(soname)$(suffix) -V "libgtk${apiver}-${soname}${suffix} (>= ${shver})" --add-udeb=libgtk+$(apiver)-directfb$(soname)-udeb
 	dh_makeshlibs -X usr/lib/gtk-$(apiver) -plibgtk+$(apiver)-directfb$(soname)$(suffix) -V "libgtk+${apiver}-directfb${soname}${suffix} (>= ${shver})" --add-udeb=libgtk+$(apiver)-directfb$(soname)-udeb
 	dh_installdeb -a
-	cat debian/*/DEBIAN/shlibs | awk "{ print $$1,$$2 }" > debian/shlibs.local
+	cat debian/*/DEBIAN/shlibs | awk '{ print $$1,$$2 }' > debian/shlibs.local
 	dh_shlibdeps -a
 	rm -f debian/shlibs.local
 	dh_gencontrol -a
