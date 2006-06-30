@@ -24,6 +24,7 @@ Description: The GTK+ graphical user interface library
 
 Package: libgtk+2.0-directfb0
 Section: libs
+Priority: extra
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}), ${shlibs:Depends}
 Description: The GTK+ graphical user interface library - DirectFB runtime
