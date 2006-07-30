@@ -19,7 +19,7 @@ if ! test -d /usr/lib/gtk-$apiver/$VERSION/immodules; then
 fi
 
 echo -n "Updating the IM modules list for GTK+-$VERSION..."
-/usr/bin/gtk-query-immodules-$apiver `find /usr/lib/gtk-$apiver/2.4.0/immodules -name '*.so'` > $TMPFILE
+/usr/lib/libgtk2.0-0/gtk-query-immodules-$apiver `find /usr/lib/gtk-$apiver/2.4.0/immodules -name '*.so'` > $TMPFILE
 if [ "x`cat $TMPFILE | grep -v '^#'`" = "x" ]; then
 	echo "the GTK+ IM modules was not found."
 else

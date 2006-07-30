@@ -22,7 +22,7 @@ if ! test -d /usr/lib/gtk-$apiver/$VERSION/loaders; then
 fi
 
 echo -n "Updating the gdk-pixbuf loaders list for GTK+-$VERSION..."
-/usr/bin/gdk-pixbuf-query-loaders > $TMPFILE
+/usr/lib/libgtk2.0-0/gdk-pixbuf-query-loaders > $TMPFILE
 if [ "x`cat $TMPFILE | grep -v '^#'`" = "x" ]; then
 	echo "the gdk-pixbuf loaders was not found."
 else
