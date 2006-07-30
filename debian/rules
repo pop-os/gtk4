@@ -283,8 +283,6 @@ install: install-static install-shared install-dfb
 
 	# clean the unnecessary files up
 	rm -rf $(SHARED_PKGDIR)/usr/share/gtk-doc
-	find $(SHARED_PKGDIR)/usr/lib/gtk-2.0/ -type f -name \*a \
-		-exec rm -f \{\} \;
 
 	dh_movefiles --sourcedir=debian/$(SHARED_PKG)
 
