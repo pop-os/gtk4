@@ -363,7 +363,7 @@ binary-arch: build install
 	rm -rf $(DEBUG_PKGDIR)/usr/share/doc/$(DEBUG_PKG)
 	rm -rf $(DEV_PKGDIR)/usr/share/doc/$(DEV_PKG)
 	rm -rf $(DFB_PKGDIR)/usr/share/doc/$(DFB_PKG)
-	rm -rf $(DFBDEV_PKGDIR)/usr/share/doc/$(DFBDEV_PKGDIR)
+	rm -rf $(DFBDEV_PKGDIR)/usr/share/doc/$(DFBDEV_PKG)
 
 	dh_link -p$(SHARED_PKG) \
 		usr/share/doc/libgtk$(apiver)-common \
