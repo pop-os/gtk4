@@ -322,16 +322,16 @@ binary-indep: build install
 
 	dh_link -p$(DOC_PKG)					\
 		usr/share/doc/libglib$(glibver)-doc/glib	\
-		usr/share/doc/libgtk$(apiver)-doc/glib
+		usr/share/doc/libgtk$(apiver)-doc/glib		\
 		usr/share/doc/libglib$(glibver)-doc/gobject	\
-		usr/share/doc/libgtk$(apiver)-doc/gobject
+		usr/share/doc/libgtk$(apiver)-doc/gobject	\
 		usr/share/doc/libatk$(atkver)-doc/atk		\
-		usr/share/doc/libgtk$(apiver)-doc/atk
+		usr/share/doc/libgtk$(apiver)-doc/atk		\
 		usr/share/doc/libpango$(pangover)-doc/pango	\
 		usr/share/doc/libgtk$(apiver)-doc/pango
-	dh_link -plibgtk$(apiver)-bin \
-		usr/share/doc/libgtk$(apiver)-$(soname)$(suffix) \
-		usr/share/doc/libgtk$(apiver)-bin
+	dh_link -p$(BIN_PKG) \
+		usr/share/doc/$(SHARED_PKG) \
+		usr/share/doc/$(BIN_PKG)
 
 # create symlinks in /usr/share/gtk-doc/html
 	for i in gdk gdk-pixbuf gtk gtk-faq gtk-tutorial; do	\
