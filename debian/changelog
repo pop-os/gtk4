@@ -8,10 +8,11 @@ gtk+2.0 (2.8.18-5) unstable; urgency=low
   * Bump build dependencies for libcairo to the stable version.
   * Lots of cleanup in debian/rules.
   * Rename directfb packages to libgtk-directfb-2.0-*.
-  * Move .a and .la files from the engine package to the development 
+  * Move .a and .la files from the engine package to the development
     package.
+    + Add appropriate Replaces: field.
 
- -- Josselin Mouette <joss@debian.org>  Sun, 30 Jul 2006 14:04:49 +0200
+ -- Josselin Mouette <joss@debian.org>  Sun, 30 Jul 2006 18:21:37 +0200
 
 gtk+2.0 (2.8.18-4) experimental; urgency=low
 
