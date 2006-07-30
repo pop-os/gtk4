@@ -53,7 +53,7 @@ DFB_PKGDIR=$(CURDIR)/debian/$(DFB_PKG)
 DFBDEV_PKG=libgtk-directfb-$(apiver)-dev
 DFBDEV_PKGDIR=$(CURDIR)/debian/$(DFBDEV_PKG)
 UDEB_PKG=$(DFB_PKG)-udeb
-UDEB_PKG=DIR=$(CURDIR)/debian/$(UDEB_PKG)
+UDEB_PKGDIR=$(CURDIR)/debian/$(UDEB_PKG)
 DOC_PKG=libgtk$(apiver)-doc
 DOC_PKGDIR=$(CURDIR)/debian/$(DOC_PKG)
 BIN_PKG=libgtk$(apiver)-bin
