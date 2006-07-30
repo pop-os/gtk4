@@ -22,10 +22,11 @@ Description: The GTK+ graphical user interface library
  .
  This package contains the shared libraries.
 
-Package: libgtk+2.0-directfb@SONAME@
+Package: libgtk-directfb-2.0-@SONAME@
 Section: libs
 Architecture: any
 Depends: libgtk2.0-@SONAME@ (= ${binary:Version}), ${shlibs:Depends}
+Conflicts: libgtk+2.0-directfb0
 Description: The GTK+ graphical user interface library - DirectFB runtime
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -36,7 +37,7 @@ Description: The GTK+ graphical user interface library - DirectFB runtime
  windowing system and hardware acceleration on top of the Linux 
  framebuffer.
 
-Package: libgtk+2.0-directfb@SONAME@-udeb
+Package: libgtk-directfb-2.0-@SONAME@-udeb
 XC-Package-Type: udeb
 Section: debian-installer
 Priority: extra
@@ -97,10 +98,11 @@ Description: Development files for the GTK+ library
  This package contains the header files and static libraries which is
  needed for developing the GTK+ applications.
 
-Package: libgtk+2.0-directfb-dev
+Package: libgtk-directfb-2.0-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk+2.0-directfb@SONAME@ (= ${binary:Version}), libgtk2.0-dev (= ${binary:Version}), libcairo-directfb2-dev, libcairo2-dev (>= 1.2.0)
+Depends: libgtk-directfb-2.0-@SONAME@ (= ${binary:Version}), libgtk2.0-dev (= ${binary:Version}), libcairo-directfb2-dev, libcairo2-dev (>= 1.2.0)
+Conflicts: libgtk+2.0-directfb-dev
 Description: Development files for the GTK+ library - DirectFB version
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable

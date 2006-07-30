@@ -1,4 +1,4 @@
-gtk+2.0 (2.8.18-5) UNRELEASED; urgency=low
+gtk+2.0 (2.8.18-5) unstable; urgency=low
 
   [ Loic Minier ]
   * Set Priority to extra to sync with overrides.
@@ -6,8 +6,11 @@ gtk+2.0 (2.8.18-5) UNRELEASED; urgency=low
   [ Josselin Mouette ]
   * Set priority to extra for the udeb.
   * Bump build dependencies for libcairo to the stable version.
+  * Lots of cleanup in debian/rules.
+  * Rename directfb packages to libgtk-directfb-2.0-*.
+  * Remove unuseful .a and .la files.
 
- -- Josselin Mouette <joss@debian.org>  Sun,  2 Jul 2006 23:13:29 +0200
+ -- Josselin Mouette <joss@debian.org>  Sun, 30 Jul 2006 12:13:09 +0200
 
 gtk+2.0 (2.8.18-4) experimental; urgency=low
 
