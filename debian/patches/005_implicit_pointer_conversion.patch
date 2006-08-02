@@ -1,0 +1,20 @@
+--- gtk+-2.8.18-dfb/gdk/directfb/Makefile.in~	2006-07-31 13:28:11.000000000 -0600
++++ gtk+-2.8.18-dfb/gdk/directfb/Makefile.in	2006-08-01 19:53:19.000000000 -0600
+@@ -344,7 +344,6 @@
+ 	-I$(top_builddir)/gdk		\
+ 	-DG_DISABLE_DEPRECATED		\
+ 	-DGDK_PIXBUF_DISABLE_DEPRECATED	\
+-	-DGDK_DISABLE_DEPRECATED	\
+ 	@GTK_DEBUG_FLAGS@		\
+ 	@GDK_DEP_CFLAGS@		
+ 
+--- gtk+-2.8.18-dfb/gdk/directfb/gdkdrawable-directfb.c~	2006-07-31 13:28:10.000000000 -0600
++++ gtk+-2.8.18-dfb/gdk/directfb/gdkdrawable-directfb.c	2006-08-01 19:42:27.000000000 -0600
+@@ -44,6 +44,7 @@
+ #include "gdkregion-generic.h"
+ #include "gdkalias.h"
+ 
++#define CAIRO_HAS_DIRECTFB_SURFACE
+ #include "cairo-directfb.h"
+ 
+ #define WARN_UNIMPLEMENTED(func)\
