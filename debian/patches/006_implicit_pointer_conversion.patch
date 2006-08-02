@@ -1,0 +1,10 @@
+--- gdk/directfb/gdkgc-directfb.c.orig	2006-08-02 15:13:01.000000000 +0200
++++ gdk/directfb/gdkgc-directfb.c	2006-08-02 15:13:05.000000000 +0200
+@@ -39,6 +39,7 @@
+ #include "gdkprivate-directfb.h"
+ 
+ #include "gdkgc.h"
++#undef GDK_DISABLE_DEPRECATED
+ #include "gdkfont.h"
+ #include "gdkpixmap.h"
+ #include "gdkregion-generic.h"

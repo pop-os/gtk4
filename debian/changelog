@@ -1,7 +1,11 @@
 gtk+2.0 (2.8.18-6) unstable; urgency=low
 
   * 005_implicit_pointer_conversion.patch: patch from Dann Frazier to 
-    fix implicit pointer conversion errors on 64-bit architectures.
+    fix an implicit pointer conversion error on 64-bit architectures
+    (closes: #381081).
+  * 006_implicit_pointer_conversion.patch: fix another implicit 
+    conversion by allowing deprecated functions in the necessary header 
+    file (closes: #381082).
 
  -- Josselin Mouette <joss@debian.org>  Wed,  2 Aug 2006 14:48:54 +0200
 
