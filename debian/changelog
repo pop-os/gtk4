@@ -1,3 +1,9 @@
+gtk+2.0 (2.8.20-1) unstable; urgency=low
+
+  * New upstream releases; no API changes.
+
+ -- Loic Minier <lool@dooz.org>  Mon, 14 Aug 2006 16:52:04 +0200
+
 gtk+2.0 (2.8.18-7) unstable; urgency=medium
 
   * Rename patches to reflect the order in which they are applied:
