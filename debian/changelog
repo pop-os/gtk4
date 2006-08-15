@@ -38,8 +38,10 @@ gtk+2.0 (2.10.1-1) experimental-WIP; urgency=low
     - Configure with --with-cairo-backend=directfb for the dfb build.
     - New patch, 010_gdk-require-cairo-module, to require the Cflags and Libs
       from the cairo-directfb module (as $cairo_module); see GNOME #351519.
+    - Bump up libdirectfb-dev build-dep to >= 0.9.26~cvs20060815 for CVS only
+      API additions.
 
- -- Loic Minier <lool@dooz.org>  Tue, 15 Aug 2006 21:14:04 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 15 Aug 2006 23:10:54 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
