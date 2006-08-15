@@ -1,0 +1,10 @@
+--- gtk+-2.8.18-dfb/gdk/directfb/gdkgc-directfb.c.orig	2006-08-02 15:57:02.000000000 +0200
++++ gtk+-2.8.18-dfb/gdk/directfb/gdkgc-directfb.c	2006-08-02 15:56:28.000000000 +0200
+@@ -31,6 +31,7 @@
+  */
+ 
+ #include <config.h>
++#undef GDK_DISABLE_DEPRECATED
+ #include "gdk.h"
+ 
+ #include <string.h>

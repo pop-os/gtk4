@@ -5,12 +5,7 @@ set -e
 TMPFILE=`mktemp /tmp/gtk+-@VERSION@.XXXXXXXXXX`
 defaultver=@MODVER@
 
-if [ "x$1" != "x" ]; then
-	VERSION=`echo $1 | sed -e 's/-[A-Za-z0-9\.]*$//' -e 's/+[A-Za-z0-9\.]*$//'`
-else
-	VERSION=$defaultver
-fi
-VERSION=2.4.0
+VERSION=@GTK_BINARY_VERSION@
 apiver=2.0
 shortver=`echo $VERSION | sed -e 's/\.[0-9]*$//'`
 

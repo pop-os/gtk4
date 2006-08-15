@@ -1,0 +1,11 @@
+diff -urN gtk+-2.10.1.orig/gdk/directfb/gdkdrawable-directfb.c gtk+-2.10.1/gdk/directfb/gdkdrawable-directfb.c
+--- gtk+-2.10.1.orig/gdk/directfb/gdkdrawable-directfb.c	2006-07-14 02:17:52.000000000 +0200
++++ gtk+-2.10.1/gdk/directfb/gdkdrawable-directfb.c	2006-08-15 00:09:16.000000000 +0200
+@@ -45,6 +45,7 @@
+ #include "gdkregion-generic.h"
+ #include "gdkalias.h"
+ 
++#define CAIRO_HAS_DIRECTFB_SURFACE
+ #include "cairo-directfb.h"
+ 
+ #define WARN_UNIMPLEMENTED(func)\

@@ -1,5 +1,12 @@
 build-tree/gtk+-@VERSION@/NEWS
+build-tree/gtk+-@VERSION@/NEWS.pre-1-0
 build-tree/gtk+-@VERSION@/README
+build-tree/gtk+-@VERSION@/ChangeLog.gtk-async-file-chooser
+build-tree/gtk+-@VERSION@/ChangeLog.gtk-printing
 build-tree/gtk+-@VERSION@/ChangeLog.pre-1-0
 build-tree/gtk+-@VERSION@/ChangeLog.pre-1-2
 build-tree/gtk+-@VERSION@/ChangeLog.pre-2-0
+build-tree/gtk+-@VERSION@/ChangeLog.pre-2-2
+build-tree/gtk+-@VERSION@/ChangeLog.pre-2-4
+build-tree/gtk+-@VERSION@/ChangeLog.pre-2-6
+build-tree/gtk+-@VERSION@/ChangeLog.pre-2-8
