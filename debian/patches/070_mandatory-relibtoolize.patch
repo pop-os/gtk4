@@ -1,6 +1,6 @@
-diff -urN gtk+-2.10.1.orig/Makefile.in gtk+-2.10.1/Makefile.in
---- gtk+-2.10.1.orig/Makefile.in	2006-07-24 00:20:52.000000000 +0200
-+++ gtk+-2.10.1/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/Makefile.in gtk+-2.10.1-dfb/Makefile.in
+--- gtk+-2.10.1-dfb.orig/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/Makefile.in	2006-08-15 21:17:07.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -48,9 +48,9 @@ diff -urN gtk+-2.10.1.orig/Makefile.in gtk+-2.10.1/Makefile.in
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
-diff -urN gtk+-2.10.1.orig/aclocal.m4 gtk+-2.10.1/aclocal.m4
---- gtk+-2.10.1.orig/aclocal.m4	2006-07-24 00:20:33.000000000 +0200
-+++ gtk+-2.10.1/aclocal.m4	2006-08-15 12:00:29.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/aclocal.m4 gtk+-2.10.1-dfb/aclocal.m4
+--- gtk+-2.10.1-dfb.orig/aclocal.m4	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/aclocal.m4	2006-08-15 21:16:50.000000000 +0200
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -2216,9 +2216,9 @@ diff -urN gtk+-2.10.1.orig/aclocal.m4 gtk+-2.10.1/aclocal.m4
  
  To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.])],
  		[$4])
-diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
---- gtk+-2.10.1.orig/configure	2006-07-24 00:21:02.000000000 +0200
-+++ gtk+-2.10.1/configure	2006-08-15 12:00:55.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/configure gtk+-2.10.1-dfb/configure
+--- gtk+-2.10.1-dfb.orig/configure	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/configure	2006-08-15 21:16:56.000000000 +0200
 @@ -287,8 +287,8 @@
  # find a string as large as possible, as long as the shell can cope with it
    for cmd in 'sed 50q "$0"' 'sed 20q "$0"' 'sed 10q "$0"' 'sed 2q "$0"' 'echo test'; do
@@ -2239,7 +2239,16 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  ac_subst_files=''
  
  # Initialize some variables set by options.
-@@ -1206,7 +1206,7 @@
+@@ -1084,6 +1084,8 @@
+   --with-wintab=DIRECTORY use Wintab API with win32 backend
+   --with-ie55=DIRECTORY   IE5.5 libs and headers (for Active IMM)
+   --with-gdktarget=[x11/linux-fb/win32/quartz/directfb] select non-default GDK target
++  --with-cairo-backend=BACKEND
++                          Select a non-default Cairo backend to use
+   --without-libpng        disable PNG loader for gdk-pixbuf
+   --without-libjpeg       disable JPEG loader for gdk-pixbuf
+   --without-libtiff       disable TIFF loader for gdk-pixbuf
+@@ -1206,7 +1208,7 @@
      else
        echo "$as_me: WARNING: no configuration information is in $ac_dir" >&2
      fi
@@ -2248,7 +2257,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    done
  fi
  
-@@ -2672,8 +2672,7 @@
+@@ -2672,8 +2674,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2258,7 +2267,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -2731,8 +2730,7 @@
+@@ -2731,8 +2732,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2268,7 +2277,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -2848,8 +2846,7 @@
+@@ -2848,8 +2848,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2278,7 +2287,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -2903,8 +2900,7 @@
+@@ -2903,8 +2902,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2288,7 +2297,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -2949,8 +2945,7 @@
+@@ -2949,8 +2947,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2298,7 +2307,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -2994,8 +2989,7 @@
+@@ -2994,8 +2991,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2308,7 +2317,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -3227,6 +3221,16 @@
+@@ -3227,6 +3223,16 @@
  
  
  
@@ -2325,7 +2334,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  if test "$os_win32" = "yes"; then
    if test x$enable_static = xyes -o x$enable_static = x; then
      { echo "$as_me:$LINENO: WARNING: Disabling static library build, must build as DLL on Windows." >&5
-@@ -3420,7 +3424,7 @@
+@@ -3420,7 +3426,7 @@
      if test -f "$ac_dir/$ac_prog" || test -f "$ac_dir/$ac_prog$ac_exeext"; then
        lt_cv_path_LD="$ac_dir/$ac_prog"
        # Check to see if the program is GNU ld.  I'd rather use --version,
@@ -2334,7 +2343,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        # Break only if it was the GNU/non-GNU ld that we prefer.
        case `"$lt_cv_path_LD" -v 2>&1 </dev/null` in
        *GNU* | *'with BFD'*)
-@@ -3454,7 +3458,7 @@
+@@ -3454,7 +3460,7 @@
  if test "${lt_cv_prog_gnu_ld+set}" = set; then
    echo $ECHO_N "(cached) $ECHO_C" >&6
  else
@@ -2343,7 +2352,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  case `$LD -v 2>&1 </dev/null` in
  *GNU* | *'with BFD'*)
    lt_cv_prog_gnu_ld=yes
-@@ -3487,7 +3491,7 @@
+@@ -3487,7 +3493,7 @@
  case $host_os in
    darwin*)
      if test "$GCC" = yes; then
@@ -2352,7 +2361,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      else
        reload_cmds='$LD$reload_flag -o $output$reload_objs'
      fi
-@@ -3503,36 +3507,43 @@
+@@ -3503,36 +3509,43 @@
    # Let the user override the test.
    lt_cv_path_NM="$NM"
  else
@@ -2420,7 +2429,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    test -z "$lt_cv_path_NM" && lt_cv_path_NM=nm
  fi
  fi
-@@ -3602,7 +3613,7 @@
+@@ -3602,7 +3615,7 @@
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -2429,7 +2438,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      case $host_cpu in
      i*86 )
-@@ -3624,7 +3635,7 @@
+@@ -3624,7 +3637,7 @@
  
  hpux10.20* | hpux11*)
    lt_cv_file_magic_cmd=/usr/bin/file
@@ -2438,7 +2447,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ia64*)
      lt_cv_deplibs_check_method='file_magic (s[0-9][0-9][0-9]|ELF-[0-9][0-9]) shared object file - IA64'
      lt_cv_file_magic_test_file=/usr/lib/hpux32/libc.so
-@@ -3640,6 +3651,11 @@
+@@ -3640,6 +3653,11 @@
    esac
    ;;
  
@@ -2450,7 +2459,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  irix5* | irix6* | nonstopux*)
    case $LD in
    *-32|*"-32 ") libmagic=32-bit;;
-@@ -3651,11 +3667,11 @@
+@@ -3651,11 +3669,11 @@
    ;;
  
  # This must be Linux ELF.
@@ -2464,7 +2473,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -3685,15 +3701,11 @@
+@@ -3685,15 +3703,11 @@
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -2481,7 +2490,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    case $host_vendor in
    motorola)
      lt_cv_deplibs_check_method='file_magic ELF [0-9][0-9]*-bit [ML]SB (shared object|dynamic lib) M[0-9][0-9]* Version [0-9]'
-@@ -3714,10 +3726,13 @@
+@@ -3714,10 +3728,13 @@
    siemens)
      lt_cv_deplibs_check_method=pass_all
      ;;
@@ -2496,7 +2505,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    lt_cv_deplibs_check_method=pass_all
    ;;
  esac
-@@ -3735,6 +3750,9 @@
+@@ -3735,6 +3752,9 @@
  # If no C compiler was specified, use CC.
  LTCC=${LTCC-"$CC"}
  
@@ -2506,16 +2515,16 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # Allow CC to be a program name with arguments.
  compiler=$CC
  
-@@ -3770,7 +3788,7 @@
+@@ -3770,7 +3790,7 @@
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
 -  echo '#line 3773 "configure"' > conftest.$ac_ext
-+  echo '#line 3791 "configure"' > conftest.$ac_ext
++  echo '#line 3793 "configure"' > conftest.$ac_ext
    if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
-@@ -3813,7 +3831,7 @@
+@@ -3813,7 +3833,7 @@
    ac_status=$?
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); }; then
@@ -2524,7 +2533,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      *32-bit*)
        case $host in
          x86_64-*linux*)
-@@ -3890,8 +3908,7 @@
+@@ -3890,8 +3910,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2534,7 +2543,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -3926,6 +3943,26 @@
+@@ -3926,6 +3945,26 @@
      CFLAGS="$SAVE_CFLAGS"
    fi
    ;;
@@ -2561,7 +2570,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  *-*-cygwin* | *-*-mingw* | *-*-pw32*)
    if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}dlltool", so it can be a program name with args.
-@@ -4442,8 +4479,7 @@
+@@ -4442,8 +4481,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2571,7 +2580,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -4613,8 +4649,7 @@
+@@ -4613,8 +4651,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2581,7 +2590,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -4681,8 +4716,7 @@
+@@ -4681,8 +4718,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2591,7 +2600,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -4942,8 +4976,7 @@
+@@ -4942,8 +4978,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2601,7 +2610,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -5001,8 +5034,7 @@
+@@ -5001,8 +5036,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2611,7 +2620,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -5073,8 +5105,7 @@
+@@ -5073,8 +5107,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2621,7 +2630,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -5118,8 +5149,7 @@
+@@ -5118,8 +5151,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2631,16 +2640,16 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -5584,7 +5614,7 @@
+@@ -5584,7 +5616,7 @@
  
  
  # Provide some information about the compiler.
 -echo "$as_me:5587:" \
-+echo "$as_me:5617:" \
++echo "$as_me:5619:" \
       "checking for Fortran 77 compiler version" >&5
  ac_compiler=`set X $ac_compile; echo $2`
  { (eval echo "$as_me:$LINENO: \"$ac_compiler --version </dev/null >&5\"") >&5
-@@ -5630,8 +5660,7 @@
+@@ -5630,8 +5662,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2650,7 +2659,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -5680,8 +5709,7 @@
+@@ -5680,8 +5711,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -2660,7 +2669,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -5781,12 +5809,18 @@
+@@ -5781,12 +5811,18 @@
      elif test -x /usr/sbin/sysctl; then
        lt_cv_sys_max_cmd_len=`/usr/sbin/sysctl -n kern.argmax`
      else
@@ -2680,7 +2689,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    osf*)
      # Dr. Hans Ekkehard Plesser reports seeing a kernel panic running configure
      # due to this test when exec_disable_arg_limit is 1 on Tru64. It is not
-@@ -5800,6 +5834,17 @@
+@@ -5800,6 +5836,17 @@
        esac
      fi
      ;;
@@ -2698,7 +2707,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    *)
      # If test is not a shell built-in, we'll probably end up computing a
      # maximum length that is only half of the actual maximum length, but
-@@ -5872,7 +5917,7 @@
+@@ -5872,7 +5919,7 @@
    lt_cv_sys_global_symbol_to_cdecl="sed -n -e 's/^T .* \(.*\)$/extern int \1();/p' -e 's/^$symcode* .* \(.*\)$/extern char \1;/p'"
    lt_cv_sys_global_symbol_to_c_name_address="sed -n -e 's/^: \([^ ]*\) $/  {\\\"\1\\\", (lt_ptr) 0},/p' -e 's/^$symcode* \([^ ]*\) \([^ ]*\)$/  {\"\2\", (lt_ptr) \&\2},/p'"
    ;;
@@ -2707,7 +2716,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    if test "$host_cpu" = ia64; then
      symcode='[ABCDGIRSTW]'
      lt_cv_sys_global_symbol_to_cdecl="sed -n -e 's/^T .* \(.*\)$/extern int \1();/p' -e 's/^$symcode* .* \(.*\)$/extern char \1;/p'"
-@@ -5885,9 +5930,18 @@
+@@ -5885,9 +5932,18 @@
  osf*)
    symcode='[BCDEGQRST]'
    ;;
@@ -2727,7 +2736,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  sysv4)
    symcode='[DFNSTU]'
    ;;
-@@ -6096,7 +6150,7 @@
+@@ -6096,7 +6152,7 @@
  default_ofile=libtool
  can_build_shared=yes
  
@@ -2736,7 +2745,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # which needs '.lib').
  libext=a
  ltmain="$ac_aux_dir/ltmain.sh"
-@@ -6353,6 +6407,7 @@
+@@ -6353,6 +6409,7 @@
  test -z "$AS" && AS=as
  test -z "$CC" && CC=cc
  test -z "$LTCC" && LTCC=$CC
@@ -2744,7 +2753,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  test -z "$DLLTOOL" && DLLTOOL=dlltool
  test -z "$LD" && LD=ld
  test -z "$LN_S" && LN_S="ln -s"
-@@ -6372,10 +6427,10 @@
+@@ -6372,10 +6429,10 @@
  if test -n "$RANLIB"; then
    case $host_os in
    openbsd*)
@@ -2757,7 +2766,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      ;;
    esac
    old_archive_cmds="$old_archive_cmds~\$RANLIB \$oldlib"
-@@ -6417,7 +6472,7 @@
+@@ -6417,7 +6474,7 @@
        if test -n "$file_magic_test_file"; then
  	case $deplibs_check_method in
  	"file_magic "*)
@@ -2766,7 +2775,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	  MAGIC_CMD="$lt_cv_path_MAGIC_CMD"
  	  if eval $file_magic_cmd \$file_magic_test_file 2> /dev/null |
  	    $EGREP "$file_magic_regex" > /dev/null; then
-@@ -6479,7 +6534,7 @@
+@@ -6479,7 +6536,7 @@
        if test -n "$file_magic_test_file"; then
  	case $deplibs_check_method in
  	"file_magic "*)
@@ -2775,7 +2784,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	  MAGIC_CMD="$lt_cv_path_MAGIC_CMD"
  	  if eval $file_magic_cmd \$file_magic_test_file 2> /dev/null |
  	    $EGREP "$file_magic_regex" > /dev/null; then
-@@ -6574,6 +6629,9 @@
+@@ -6574,6 +6631,9 @@
  # If no C compiler was specified, use CC.
  LTCC=${LTCC-"$CC"}
  
@@ -2785,7 +2794,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # Allow CC to be a program name with arguments.
  compiler=$CC
  
-@@ -6581,82 +6639,17 @@
+@@ -6581,82 +6641,17 @@
  # save warnings/boilerplate of simple test code
  ac_outfile=conftest.$ac_objext
  printf "$lt_simple_compile_test_code" >conftest.$ac_ext
@@ -2870,7 +2879,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  lt_prog_compiler_no_builtin_flag=
  
-@@ -6679,20 +6672,20 @@
+@@ -6679,20 +6674,20 @@
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     # The option is referenced via a variable to avoid confusing sed.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -2879,12 +2888,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:6685: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:6678: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:6680: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:6689: \$? = $ac_status" >&5
-+   echo "$as_me:6682: \$? = $ac_status" >&5
++   echo "$as_me:6684: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -2897,7 +2906,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
         lt_cv_prog_compiler_rtti_exceptions=yes
       fi
     fi
-@@ -6753,6 +6746,11 @@
+@@ -6753,6 +6748,11 @@
        lt_prog_compiler_pic='-fno-common'
        ;;
  
@@ -2909,7 +2918,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      msdosdjgpp*)
        # Just because we use GCC doesn't mean we suddenly get shared libraries
        # on systems that don't support them.
-@@ -6769,7 +6767,7 @@
+@@ -6769,7 +6769,7 @@
      hpux*)
        # PIC is the default for IA64 HP-UX and 64-bit HP-UX, but
        # not for PA HP-UX.
@@ -2918,7 +2927,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        hppa*64*|ia64*)
  	# +Z the default
  	;;
-@@ -6816,7 +6814,7 @@
+@@ -6816,7 +6816,7 @@
        lt_prog_compiler_wl='-Wl,'
        # PIC is the default for IA64 HP-UX and 64-bit HP-UX, but
        # not for PA HP-UX.
@@ -2927,7 +2936,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        hppa*64*|ia64*)
  	# +Z the default
  	;;
-@@ -6839,19 +6837,19 @@
+@@ -6839,19 +6839,19 @@
        lt_prog_compiler_static='-Bstatic'
        ;;
  
@@ -2950,7 +2959,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          ;;
        ccc*)
          lt_prog_compiler_wl='-Wl,'
-@@ -6867,11 +6865,6 @@
+@@ -6867,11 +6867,6 @@
        lt_prog_compiler_static='-non_shared'
        ;;
  
@@ -2962,7 +2971,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      solaris*)
        lt_prog_compiler_pic='-KPIC'
        lt_prog_compiler_static='-Bstatic'
-@@ -6889,7 +6882,7 @@
+@@ -6889,7 +6884,7 @@
        lt_prog_compiler_static='-Bstatic'
        ;;
  
@@ -2971,7 +2980,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        lt_prog_compiler_wl='-Wl,'
        lt_prog_compiler_pic='-KPIC'
        lt_prog_compiler_static='-Bstatic'
-@@ -6902,6 +6895,12 @@
+@@ -6902,6 +6897,12 @@
        fi
        ;;
  
@@ -2984,7 +2993,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      unicos*)
        lt_prog_compiler_wl='-Wl,'
        lt_prog_compiler_can_build_shared=no
-@@ -6941,20 +6940,20 @@
+@@ -6941,20 +6942,20 @@
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     # The option is referenced via a variable to avoid confusing sed.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -2993,12 +3002,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:6947: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:6946: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:6948: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:6951: \$? = $ac_status" >&5
-+   echo "$as_me:6950: \$? = $ac_status" >&5
++   echo "$as_me:6952: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -3011,7 +3020,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
         lt_prog_compiler_pic_works=yes
       fi
     fi
-@@ -6975,7 +6974,7 @@
+@@ -6975,7 +6976,7 @@
  fi
  
  fi
@@ -3020,7 +3029,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # For platforms which do not support PIC, -DPIC is meaningless:
    *djgpp*)
      lt_prog_compiler_pic=
-@@ -6985,6 +6984,48 @@
+@@ -6985,6 +6986,48 @@
      ;;
  esac
  
@@ -3069,7 +3078,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  echo "$as_me:$LINENO: checking if $compiler supports -c -o file.$ac_objext" >&5
  echo $ECHO_N "checking if $compiler supports -c -o file.$ac_objext... $ECHO_C" >&6
  if test "${lt_cv_prog_compiler_c_o+set}" = set; then
-@@ -7003,25 +7044,25 @@
+@@ -7003,25 +7046,25 @@
     # Note that $ac_compile itself does not contain backslashes and begins
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -3078,12 +3087,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:7009: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:7050: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:7052: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:7013: \$? = $ac_status" >&5
-+   echo "$as_me:7054: \$? = $ac_status" >&5
++   echo "$as_me:7056: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
@@ -3102,7 +3111,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     $rm conftest*
     # SGI C++ compiler will create directory out/ii_files/ for
     # template instantiation
-@@ -7117,6 +7158,10 @@
+@@ -7117,6 +7160,10 @@
        with_gnu_ld=no
      fi
      ;;
@@ -3113,7 +3122,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    openbsd*)
      with_gnu_ld=no
      ;;
-@@ -7201,7 +7246,7 @@
+@@ -7201,7 +7248,7 @@
        export_symbols_cmds='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS] /s/.* \([^ ]*\)/\1 DATA/'\'' | $SED -e '\''/^[AITW] /s/.* //'\'' | sort | uniq > $export_symbols'
  
        if $LD --help 2>&1 | grep 'auto-import' > /dev/null; then
@@ -3122,7 +3131,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	# If the export-symbols file already is a .def file (1st line
  	# is EXPORTS), use it as is; otherwise, prepend...
  	archive_expsym_cmds='if test "x`$SED 1q $export_symbols`" = xEXPORTS; then
-@@ -7210,22 +7255,37 @@
+@@ -7210,22 +7257,37 @@
  	  echo EXPORTS > $output_objdir/$soname.def;
  	  cat $export_symbols >> $output_objdir/$soname.def;
  	fi~
@@ -3165,7 +3174,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	  tmp_addflag=' $pic_flag -Mnomain' ;;
  	ecc*,ia64* | icc*,ia64*)		# Intel C compiler on ia64
  	  tmp_addflag=' -i_dynamic' ;;
-@@ -7242,12 +7302,13 @@
+@@ -7242,12 +7304,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC -shared'"$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -3180,7 +3189,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -7257,7 +7318,7 @@
+@@ -7257,7 +7320,7 @@
        fi
        ;;
  
@@ -3189,7 +3198,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if $LD -v 2>&1 | grep 'BFD 2\.8' > /dev/null; then
  	ld_shlibs=no
  	cat <<EOF 1>&2
-@@ -7278,6 +7339,33 @@
+@@ -7278,6 +7341,33 @@
        fi
        ;;
  
@@ -3223,7 +3232,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      sunos4*)
        archive_cmds='$LD -assert pure-text -Bshareable -o $lib $libobjs $deplibs $linker_flags'
        wlarc=
-@@ -7311,7 +7399,7 @@
+@@ -7311,7 +7401,7 @@
        # Note: this linker hardcodes the directories in LIBPATH if there
        # are no directories specified by -L.
        hardcode_minus_L=yes
@@ -3232,7 +3241,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	# Neither direct hardcoding nor static linking is supported with a
  	# broken collect2.
  	hardcode_direct=unsupported
-@@ -7345,6 +7433,7 @@
+@@ -7345,6 +7435,7 @@
    	    break
    	  fi
  	  done
@@ -3240,7 +3249,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	esac
  
  	exp_sym_flag='-bexport'
-@@ -7382,6 +7471,7 @@
+@@ -7382,6 +7473,7 @@
    	  hardcode_libdir_flag_spec='-L$libdir'
    	  hardcode_libdir_separator=
  	  fi
@@ -3248,7 +3257,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	esac
  	shared_flag='-shared'
  	if test "$aix_use_runtimelinking" = yes; then
-@@ -7394,11 +7484,11 @@
+@@ -7394,11 +7486,11 @@
    	# chokes on -Wl,-G. The following line is correct:
  	  shared_flag='-G'
  	else
@@ -3262,7 +3271,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	fi
        fi
  
-@@ -7434,8 +7524,7 @@
+@@ -7434,8 +7526,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3272,7 +3281,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -7463,12 +7552,12 @@
+@@ -7463,12 +7554,12 @@
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
         hardcode_libdir_flag_spec='${wl}-blibpath:$libdir:'"$aix_libpath"
@@ -3287,7 +3296,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	else
  	 # Determine the default libpath from the value encoded in an empty executable.
  	 cat >conftest.$ac_ext <<_ACEOF
-@@ -7495,8 +7584,7 @@
+@@ -7495,8 +7586,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3297,7 +3306,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -7528,13 +7616,11 @@
+@@ -7528,13 +7618,11 @@
  	  # -berok will link without error, but may produce a broken library.
  	  no_undefined_flag=' ${wl}-bernotok'
  	  allow_undefined_flag=' ${wl}-berok'
@@ -3314,7 +3323,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	fi
        fi
        ;;
-@@ -7573,7 +7659,7 @@
+@@ -7573,7 +7661,7 @@
        ;;
  
      darwin* | rhapsody*)
@@ -3323,7 +3332,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          rhapsody* | darwin1.[012])
           allow_undefined_flag='${wl}-undefined ${wl}suppress'
           ;;
-@@ -7602,7 +7688,7 @@
+@@ -7602,7 +7690,7 @@
      	output_verbose_link_cmd='echo'
          archive_cmds='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
        module_cmds='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
@@ -3332,7 +3341,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        archive_expsym_cmds='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
        module_expsym_cmds='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
      else
-@@ -7611,7 +7697,7 @@
+@@ -7611,7 +7699,7 @@
           output_verbose_link_cmd='echo'
           archive_cmds='$CC -qmkshrobj $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags ${wl}-install_name ${wl}`echo $rpath/$soname` $verstring'
           module_cmds='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
@@ -3341,7 +3350,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
           archive_expsym_cmds='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -qmkshrobj $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags ${wl}-install_name ${wl}$rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            module_expsym_cmds='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            ;;
-@@ -7652,7 +7738,7 @@
+@@ -7652,7 +7740,7 @@
        ;;
  
      # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
@@ -3350,7 +3359,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        archive_cmds='$CC -shared -o $lib $libobjs $deplibs $compiler_flags'
        hardcode_libdir_flag_spec='-R$libdir'
        hardcode_direct=yes
-@@ -7675,47 +7761,62 @@
+@@ -7675,47 +7763,62 @@
        export_dynamic_flag_spec='${wl}-E'
        ;;
  
@@ -3435,7 +3444,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	  hardcode_direct=yes
  	  export_dynamic_flag_spec='${wl}-E'
  
-@@ -7739,7 +7840,7 @@
+@@ -7739,7 +7842,7 @@
        link_all_deplibs=yes
        ;;
  
@@ -3444,7 +3453,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -7817,14 +7918,6 @@
+@@ -7817,14 +7920,6 @@
        hardcode_libdir_separator=:
        ;;
  
@@ -3459,7 +3468,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      solaris*)
        no_undefined_flag=' -z text'
        if test "$GCC" = yes; then
-@@ -7910,36 +8003,45 @@
+@@ -7910,36 +8005,45 @@
        fi
        ;;
  
@@ -3526,7 +3535,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        ;;
  
      uts4*)
-@@ -7958,11 +8060,6 @@
+@@ -7958,11 +8062,6 @@
  echo "${ECHO_T}$ld_shlibs" >&6
  test "$ld_shlibs" = no && can_build_shared=no
  
@@ -3538,7 +3547,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  #
  # Do we need to explicitly link libc?
  #
-@@ -7995,6 +8092,7 @@
+@@ -7995,6 +8094,7 @@
          libobjs=conftest.$ac_objext
          deplibs=
          wl=$lt_prog_compiler_wl
@@ -3546,7 +3555,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          compiler_flags=-v
          linker_flags=-v
          verstring=
-@@ -8155,7 +8253,8 @@
+@@ -8155,7 +8255,8 @@
        dlpath=`$SHELL 2>&1 -c '\''. $dir/'\''\${base_file}'\''i;echo \$dlname'\''`~
        dldir=$destdir/`dirname \$dlpath`~
        test -d \$dldir || mkdir -p \$dldir~
@@ -3556,7 +3565,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\''. $file; echo \$dlname'\''`~
        dlpath=$dir/\$dldll~
         $rm \$dlpath'
-@@ -8208,7 +8307,7 @@
+@@ -8208,7 +8309,7 @@
    soname_spec='${libname}${release}${major}$shared_ext'
    shlibpath_overrides_runpath=yes
    shlibpath_var=DYLD_LIBRARY_PATH
@@ -3565,7 +3574,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # Apple's gcc prints 'gcc -print-search-dirs' doesn't operate the same.
    if test "$GCC" = yes; then
      sys_lib_search_path_spec=`$CC -print-search-dirs | tr "\n" "$PATH_SEPARATOR" | sed -e 's/libraries:/@libraries:/' | tr "@" "\n" | grep "^libraries:" | sed -e "s/^libraries://" -e "s,=/,/,g" -e "s,$PATH_SEPARATOR, ,g" -e "s,.*,& /lib /usr/lib /usr/local/lib,g"`
-@@ -8231,22 +8330,17 @@
+@@ -8231,22 +8332,17 @@
    dynamic_linker=no
    ;;
  
@@ -3596,7 +3605,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=freebsd-$objformat
    case $version_type in
      freebsd-elf*)
-@@ -8268,10 +8362,15 @@
+@@ -8268,10 +8364,15 @@
      shlibpath_overrides_runpath=yes
      hardcode_into_libs=yes
      ;;
@@ -3613,7 +3622,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    esac
    ;;
  
-@@ -8291,7 +8390,7 @@
+@@ -8291,7 +8392,7 @@
    version_type=sunos
    need_lib_prefix=no
    need_version=no
@@ -3622,7 +3631,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ia64*)
      shrext_cmds='.so'
      hardcode_into_libs=yes
-@@ -8331,6 +8430,18 @@
+@@ -8331,6 +8432,18 @@
    postinstall_cmds='chmod 555 $lib'
    ;;
  
@@ -3641,7 +3650,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  irix5* | irix6* | nonstopux*)
    case $host_os in
      nonstopux*) version_type=nonstopux ;;
-@@ -8374,7 +8485,7 @@
+@@ -8374,7 +8487,7 @@
    ;;
  
  # This must be Linux ELF.
@@ -3650,7 +3659,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -8388,31 +8499,10 @@
+@@ -8388,31 +8501,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -3683,7 +3692,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -8424,7 +8514,7 @@
+@@ -8424,7 +8516,7 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -3692,7 +3701,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -8433,7 +8523,7 @@
+@@ -8433,7 +8525,7 @@
    shlibpath_var=LD_LIBRARY_PATH
    shlibpath_overrides_runpath=no
    hardcode_into_libs=yes
@@ -3701,7 +3710,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ;;
  
  netbsd*)
-@@ -8473,6 +8563,7 @@
+@@ -8473,6 +8565,7 @@
  
  openbsd*)
    version_type=sunos
@@ -3709,7 +3718,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    need_lib_prefix=no
    # Some older versions of OpenBSD (3.3 at least) *do* need versioned libs.
    case $host_os in
-@@ -8516,13 +8607,6 @@
+@@ -8516,13 +8609,6 @@
    sys_lib_dlsearch_path_spec="$sys_lib_search_path_spec"
    ;;
  
@@ -3723,7 +3732,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  solaris*)
    version_type=linux
    need_lib_prefix=no
-@@ -8548,7 +8632,7 @@
+@@ -8548,7 +8634,7 @@
    need_version=yes
    ;;
  
@@ -3732,7 +3741,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
    soname_spec='${libname}${release}${shared_ext}$major'
-@@ -8581,6 +8665,29 @@
+@@ -8581,6 +8667,29 @@
    fi
    ;;
  
@@ -3762,7 +3771,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  uts4*)
    version_type=linux
    library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
-@@ -8596,6 +8703,11 @@
+@@ -8596,6 +8705,11 @@
  echo "${ECHO_T}$dynamic_linker" >&6
  test "$dynamic_linker" = no && can_build_shared=no
  
@@ -3774,7 +3783,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  echo "$as_me:$LINENO: checking how to hardcode library paths into programs" >&5
  echo $ECHO_N "checking how to hardcode library paths into programs... $ECHO_C" >&6
  hardcode_action=
-@@ -8727,8 +8839,7 @@
+@@ -8727,8 +8841,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3784,7 +3793,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -8831,8 +8942,7 @@
+@@ -8831,8 +8944,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3794,7 +3803,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -8897,8 +9007,7 @@
+@@ -8897,8 +9009,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3804,7 +3813,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -8991,8 +9100,7 @@
+@@ -8991,8 +9102,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3814,7 +3823,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -9057,8 +9165,7 @@
+@@ -9057,8 +9167,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3824,7 +3833,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -9124,8 +9231,7 @@
+@@ -9124,8 +9233,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3834,7 +3843,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -9191,8 +9297,7 @@
+@@ -9191,8 +9299,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -3844,7 +3853,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -9251,7 +9356,7 @@
+@@ -9251,7 +9358,7 @@
      test "x$ac_cv_header_dlfcn_h" = xyes && CPPFLAGS="$CPPFLAGS -DHAVE_DLFCN_H"
  
      save_LDFLAGS="$LDFLAGS"
@@ -3853,16 +3862,16 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
      save_LIBS="$LIBS"
      LIBS="$lt_cv_dlopen_libs $LIBS"
-@@ -9267,7 +9372,7 @@
+@@ -9267,7 +9374,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
 -#line 9270 "configure"
-+#line 9375 "configure"
++#line 9377 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -9324,6 +9429,8 @@
+@@ -9324,6 +9431,8 @@
        else if (dlsym( self,"_fnord")) status = $lt_dlneed_uscore;
        /* dlclose (self); */
      }
@@ -3871,7 +3880,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
      exit (status);
  }
-@@ -9333,12 +9440,12 @@
+@@ -9333,12 +9442,12 @@
    ac_status=$?
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } && test -s conftest${ac_exeext} 2>/dev/null; then
@@ -3886,7 +3895,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      esac
    else :
      # compilation failed
-@@ -9353,7 +9460,7 @@
+@@ -9353,7 +9462,7 @@
  echo "${ECHO_T}$lt_cv_dlopen_self" >&6
  
      if test "x$lt_cv_dlopen_self" = xyes; then
@@ -3895,16 +3904,16 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        echo "$as_me:$LINENO: checking whether a statically linked program can dlopen itself" >&5
  echo $ECHO_N "checking whether a statically linked program can dlopen itself... $ECHO_C" >&6
  if test "${lt_cv_dlopen_self_static+set}" = set; then
-@@ -9365,7 +9472,7 @@
+@@ -9365,7 +9474,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
 -#line 9368 "configure"
-+#line 9475 "configure"
++#line 9477 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -9422,6 +9529,8 @@
+@@ -9422,6 +9531,8 @@
        else if (dlsym( self,"_fnord")) status = $lt_dlneed_uscore;
        /* dlclose (self); */
      }
@@ -3913,7 +3922,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
      exit (status);
  }
-@@ -9431,12 +9540,12 @@
+@@ -9431,12 +9542,12 @@
    ac_status=$?
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } && test -s conftest${ac_exeext} 2>/dev/null; then
@@ -3928,7 +3937,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      esac
    else :
      # compilation failed
-@@ -9469,7 +9578,7 @@
+@@ -9469,7 +9580,7 @@
  fi
  
  
@@ -3937,7 +3946,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  echo "$as_me:$LINENO: checking if libtool supports shared libraries" >&5
  echo $ECHO_N "checking if libtool supports shared libraries... $ECHO_C" >&6
  echo "$as_me:$LINENO: result: $can_build_shared" >&5
-@@ -9481,7 +9590,7 @@
+@@ -9481,7 +9592,7 @@
  
  # On AIX, shared libraries and static libraries use the same namespace, and
  # are all built from PIC.
@@ -3946,7 +3955,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  aix3*)
    test "$enable_shared" = yes && enable_static=no
    if test -n "$RANLIB"; then
-@@ -9519,7 +9628,7 @@
+@@ -9519,7 +9630,7 @@
    # Now quote all the things that may contain metacharacters while being
    # careful not to overquote the AC_SUBSTed values.  We take copies of the
    # variables and quote the copies for generation of the libtool script.
@@ -3955,7 +3964,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      SED SHELL STRIP \
      libname_spec library_names_spec soname_spec extract_expsyms_cmds \
      old_striplib striplib file_magic_cmd finish_cmds finish_eval \
-@@ -9685,6 +9794,9 @@
+@@ -9685,6 +9796,9 @@
  # A C compiler.
  LTCC=$lt_LTCC
  
@@ -3965,7 +3974,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # A language-specific compiler.
  CC=$lt_compiler
  
-@@ -10015,6 +10127,9 @@
+@@ -10015,6 +10129,9 @@
  echo "$as_me: WARNING: using \`LTCC=$LTCC', extracted from \`$ofile'" >&2;}
      fi
    fi
@@ -3975,7 +3984,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
    # Extract list of available tagged configurations in $ofile.
    # Note that this assumes the entire list is on one line.
-@@ -10067,6 +10182,7 @@
+@@ -10067,6 +10184,7 @@
  hardcode_libdir_flag_spec_ld_CXX=
  hardcode_libdir_separator_CXX=
  hardcode_minus_L_CXX=no
@@ -3983,7 +3992,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  hardcode_automatic_CXX=no
  module_cmds_CXX=
  module_expsym_cmds_CXX=
-@@ -10084,7 +10200,7 @@
+@@ -10084,7 +10202,7 @@
  compiler_lib_search_path_CXX=
  
  # Source file extension for C++ test sources.
@@ -3992,7 +4001,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  # Object file extension for compiled C++ test sources.
  objext=o
-@@ -10094,13 +10210,16 @@
+@@ -10094,13 +10212,16 @@
  lt_simple_compile_test_code="int some_variable = 0;\n"
  
  # Code to be used in simple link tests
@@ -4010,7 +4019,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # Allow CC to be a program name with arguments.
  compiler=$CC
  
-@@ -10108,13 +10227,13 @@
+@@ -10108,13 +10229,13 @@
  # save warnings/boilerplate of simple test code
  ac_outfile=conftest.$ac_objext
  printf "$lt_simple_compile_test_code" >conftest.$ac_ext
@@ -4026,7 +4035,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  _lt_linker_boilerplate=`cat conftest.err`
  $rm conftest*
  
-@@ -10129,12 +10248,12 @@
+@@ -10129,12 +10250,12 @@
  if test -n "${lt_cv_prog_gnu_ldcxx+set}"; then
    lt_cv_prog_gnu_ld=$lt_cv_prog_gnu_ldcxx
  else
@@ -4041,7 +4050,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  fi
  test -z "${LDCXX+set}" || LD=$LDCXX
  CC=${CXX-"c++"}
-@@ -10220,7 +10339,7 @@
+@@ -10220,7 +10341,7 @@
      if test -f "$ac_dir/$ac_prog" || test -f "$ac_dir/$ac_prog$ac_exeext"; then
        lt_cv_path_LD="$ac_dir/$ac_prog"
        # Check to see if the program is GNU ld.  I'd rather use --version,
@@ -4050,7 +4059,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        # Break only if it was the GNU/non-GNU ld that we prefer.
        case `"$lt_cv_path_LD" -v 2>&1 </dev/null` in
        *GNU* | *'with BFD'*)
-@@ -10254,7 +10373,7 @@
+@@ -10254,7 +10375,7 @@
  if test "${lt_cv_prog_gnu_ld+set}" = set; then
    echo $ECHO_N "(cached) $ECHO_C" >&6
  else
@@ -4059,7 +4068,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  case `$LD -v 2>&1 </dev/null` in
  *GNU* | *'with BFD'*)
    lt_cv_prog_gnu_ld=yes
-@@ -10345,6 +10464,7 @@
+@@ -10345,6 +10466,7 @@
  	    ;;
  	  esac
  	done
@@ -4067,7 +4076,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        esac
  
        exp_sym_flag='-bexport'
-@@ -10382,6 +10502,7 @@
+@@ -10382,6 +10504,7 @@
  	  hardcode_libdir_flag_spec_CXX='-L$libdir'
  	  hardcode_libdir_separator_CXX=
  	fi
@@ -4075,7 +4084,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        esac
        shared_flag='-shared'
        if test "$aix_use_runtimelinking" = yes; then
-@@ -10434,8 +10555,7 @@
+@@ -10434,8 +10557,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -4085,7 +4094,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -10464,12 +10584,12 @@
+@@ -10464,12 +10586,12 @@
  
        hardcode_libdir_flag_spec_CXX='${wl}-blibpath:$libdir:'"$aix_libpath"
  
@@ -4100,7 +4109,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        else
  	# Determine the default libpath from the value encoded in an empty executable.
  	cat >conftest.$ac_ext <<_ACEOF
-@@ -10496,8 +10616,7 @@
+@@ -10496,8 +10618,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -4110,7 +4119,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -10529,16 +10648,26 @@
+@@ -10529,16 +10650,26 @@
  	# -berok will link without error, but may produce a broken library.
  	no_undefined_flag_CXX=' ${wl}-bernotok'
  	allow_undefined_flag_CXX=' ${wl}-berok'
@@ -4142,7 +4151,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    chorus*)
      case $cc_basename in
        *)
-@@ -10548,7 +10677,6 @@
+@@ -10548,7 +10679,6 @@
      esac
      ;;
  
@@ -4150,7 +4159,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    cygwin* | mingw* | pw32*)
      # _LT_AC_TAGVAR(hardcode_libdir_flag_spec, CXX) is actually meaningless,
      # as there is no search path for DLLs.
-@@ -10558,7 +10686,7 @@
+@@ -10558,7 +10688,7 @@
      enable_shared_with_static_runtimes_CXX=yes
  
      if $LD --help 2>&1 | grep 'auto-import' > /dev/null; then
@@ -4159,7 +4168,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        # If the export-symbols file already is a .def file (1st line
        # is EXPORTS), use it as is; otherwise, prepend...
        archive_expsym_cmds_CXX='if test "x`$SED 1q $export_symbols`" = xEXPORTS; then
-@@ -10567,13 +10695,13 @@
+@@ -10567,13 +10697,13 @@
  	echo EXPORTS > $output_objdir/$soname.def;
  	cat $export_symbols >> $output_objdir/$soname.def;
        fi~
@@ -4175,7 +4184,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          rhapsody* | darwin1.[012])
           allow_undefined_flag_CXX='${wl}-undefined ${wl}suppress'
           ;;
-@@ -10611,7 +10739,7 @@
+@@ -10611,7 +10741,7 @@
            archive_cmds_CXX='$CC -r -keep_private_externs -nostdlib -o ${lib}-master.o $libobjs~$CC -dynamiclib $allow_undefined_flag -o $lib ${lib}-master.o $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
          fi
          module_cmds_CXX='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
@@ -4184,7 +4193,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
            if test "X$lt_int_apple_cc_single_mod" = Xyes ; then
              archive_expsym_cmds_CXX='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib -single_module $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            else
-@@ -10624,7 +10752,7 @@
+@@ -10624,7 +10754,7 @@
           output_verbose_link_cmd='echo'
            archive_cmds_CXX='$CC -qmkshrobj ${wl}-single_module $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags ${wl}-install_name ${wl}`echo $rpath/$soname` $verstring'
            module_cmds_CXX='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
@@ -4193,7 +4202,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
            archive_expsym_cmds_CXX='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -qmkshrobj ${wl}-single_module $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags ${wl}-install_name ${wl}$rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            module_expsym_cmds_CXX='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            ;;
-@@ -10659,7 +10787,7 @@
+@@ -10659,7 +10789,7 @@
    freebsd-elf*)
      archive_cmds_need_lc_CXX=no
      ;;
@@ -4202,7 +4211,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      # FreeBSD 3 and later use GNU C++ and GNU ld with standard ELF
      # conventions
      ld_shlibs_CXX=yes
-@@ -10704,33 +10832,22 @@
+@@ -10704,33 +10834,22 @@
      ;;
    hpux10*|hpux11*)
      if test $with_gnu_ld = no; then
@@ -4243,7 +4252,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        ;;
      *)
        hardcode_direct_CXX=yes
-@@ -10746,9 +10863,12 @@
+@@ -10746,9 +10865,12 @@
  	ld_shlibs_CXX=no
  	;;
        aCC*)
@@ -4259,7 +4268,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	  ;;
  	*)
  	  archive_cmds_CXX='$CC -b ${wl}+h ${wl}$soname ${wl}+b ${wl}$install_libdir -o $lib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags'
-@@ -10767,9 +10887,12 @@
+@@ -10767,9 +10889,12 @@
        *)
  	if test "$GXX" = yes; then
  	  if test $with_gnu_ld = no; then
@@ -4275,7 +4284,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	      ;;
  	    *)
  	      archive_cmds_CXX='$CC -shared -nostdlib -fPIC ${wl}+h ${wl}$soname ${wl}+b ${wl}$install_libdir -o $lib $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags'
-@@ -10783,6 +10906,20 @@
+@@ -10783,6 +10908,20 @@
  	;;
      esac
      ;;
@@ -4296,7 +4305,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    irix5* | irix6*)
      case $cc_basename in
        CC*)
-@@ -10809,7 +10946,7 @@
+@@ -10809,7 +10948,7 @@
      hardcode_libdir_flag_spec_CXX='${wl}-rpath ${wl}$libdir'
      hardcode_libdir_separator_CXX=:
      ;;
@@ -4305,7 +4314,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      case $cc_basename in
        KCC*)
  	# Kuck and Associates, Inc. (KAI) C++ Compiler
-@@ -10868,7 +11005,7 @@
+@@ -10868,7 +11007,7 @@
  
  	hardcode_libdir_flag_spec_CXX='${wl}--rpath ${wl}$libdir'
  	export_dynamic_flag_spec_CXX='${wl}--export-dynamic'
@@ -4314,7 +4323,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          ;;
        cxx*)
  	# Compaq C++
-@@ -10911,7 +11048,7 @@
+@@ -10911,7 +11050,7 @@
  	;;
      esac
      ;;
@@ -4323,7 +4332,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
        archive_cmds_CXX='$LD -Bshareable  -o $lib $predep_objects $libobjs $deplibs $postdep_objects $linker_flags'
        wlarc=
-@@ -11065,19 +11202,6 @@
+@@ -11065,19 +11204,6 @@
      # FIXME: insert proper C++ library support
      ld_shlibs_CXX=no
      ;;
@@ -4343,7 +4352,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    sunos4*)
      case $cc_basename in
        CC*)
-@@ -11100,10 +11224,11 @@
+@@ -11100,10 +11226,11 @@
      case $cc_basename in
        CC*)
  	# Sun C++ 4.2, 5.x and Centerline C++
@@ -4357,7 +4366,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  	hardcode_libdir_flag_spec_CXX='-R$libdir'
  	hardcode_shlibpath_var_CXX=no
-@@ -11123,15 +11248,7 @@
+@@ -11123,15 +11250,7 @@
  	esac
  	link_all_deplibs_CXX=yes
  
@@ -4374,7 +4383,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  	# Archives containing C++ object files must be created using
  	# "CC -xar", where "CC" is the Sun C++ compiler.  This is
-@@ -11177,8 +11294,59 @@
+@@ -11177,8 +11296,59 @@
  	;;
      esac
      ;;
@@ -4435,7 +4444,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      ;;
    tandem*)
      case $cc_basename in
-@@ -11235,7 +11403,7 @@
+@@ -11235,7 +11405,7 @@
    # The `*' in the case matches for architectures that use `case' in
    # $output_verbose_cmd can trigger glob expansion during the loop
    # eval without this substitution.
@@ -4444,7 +4453,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
    for p in `eval $output_verbose_link_cmd`; do
      case $p in
-@@ -11311,6 +11479,29 @@
+@@ -11311,6 +11481,29 @@
  
  $rm -f confest.$objext
  
@@ -4474,7 +4483,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  case " $postdeps_CXX " in
  *" -lc "*) archive_cmds_need_lc_CXX=no ;;
  esac
-@@ -11358,6 +11549,10 @@
+@@ -11358,6 +11551,10 @@
        # DJGPP does not support shared libraries at all
        lt_prog_compiler_pic_CXX=
        ;;
@@ -4485,7 +4494,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      sysv4*MP*)
        if test -d /usr/nec; then
  	lt_prog_compiler_pic_CXX=-Kconform_pic
-@@ -11366,7 +11561,7 @@
+@@ -11366,7 +11563,7 @@
      hpux*)
        # PIC is the default for IA64 HP-UX and 64-bit HP-UX, but
        # not for PA HP-UX.
@@ -4494,7 +4503,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        hppa*64*|ia64*)
  	;;
        *)
-@@ -11420,22 +11615,22 @@
+@@ -11420,22 +11617,22 @@
  	    ;;
  	esac
  	;;
@@ -4521,7 +4530,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	    hppa*64*|ia64*)
  	      # +Z the default
  	      ;;
-@@ -11448,6 +11643,10 @@
+@@ -11448,6 +11645,10 @@
  	    ;;
  	esac
  	;;
@@ -4532,7 +4541,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        irix5* | irix6* | nonstopux*)
  	case $cc_basename in
  	  CC*)
-@@ -11459,7 +11658,7 @@
+@@ -11459,7 +11660,7 @@
  	    ;;
  	esac
  	;;
@@ -4541,7 +4550,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	case $cc_basename in
  	  KCC*)
  	    # KAI C++ Compiler
-@@ -11476,7 +11675,7 @@
+@@ -11476,7 +11677,7 @@
  	    # Portland Group C++ compiler.
  	    lt_prog_compiler_wl_CXX='-Wl,'
  	    lt_prog_compiler_pic_CXX='-fpic'
@@ -4550,7 +4559,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	    ;;
  	  cxx*)
  	    # Compaq C++
-@@ -11502,7 +11701,7 @@
+@@ -11502,7 +11703,7 @@
  	    ;;
  	esac
  	;;
@@ -4559,7 +4568,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	;;
        osf3* | osf4* | osf5*)
  	case $cc_basename in
-@@ -11527,15 +11726,6 @@
+@@ -11527,15 +11728,6 @@
  	;;
        psos*)
  	;;
@@ -4575,7 +4584,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        solaris*)
  	case $cc_basename in
  	  CC*)
-@@ -11577,7 +11767,14 @@
+@@ -11577,7 +11769,14 @@
  	    ;;
  	esac
  	;;
@@ -4591,7 +4600,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	;;
        vxworks*)
  	;;
-@@ -11610,20 +11807,20 @@
+@@ -11610,20 +11809,20 @@
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     # The option is referenced via a variable to avoid confusing sed.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -4600,12 +4609,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:11616: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:11813: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:11815: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:11620: \$? = $ac_status" >&5
-+   echo "$as_me:11817: \$? = $ac_status" >&5
++   echo "$as_me:11819: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -4618,7 +4627,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
         lt_prog_compiler_pic_works_CXX=yes
       fi
     fi
-@@ -11644,7 +11841,7 @@
+@@ -11644,7 +11843,7 @@
  fi
  
  fi
@@ -4627,7 +4636,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # For platforms which do not support PIC, -DPIC is meaningless:
    *djgpp*)
      lt_prog_compiler_pic_CXX=
-@@ -11654,6 +11851,48 @@
+@@ -11654,6 +11853,48 @@
      ;;
  esac
  
@@ -4676,7 +4685,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  echo "$as_me:$LINENO: checking if $compiler supports -c -o file.$ac_objext" >&5
  echo $ECHO_N "checking if $compiler supports -c -o file.$ac_objext... $ECHO_C" >&6
  if test "${lt_cv_prog_compiler_c_o_CXX+set}" = set; then
-@@ -11672,25 +11911,25 @@
+@@ -11672,25 +11913,25 @@
     # Note that $ac_compile itself does not contain backslashes and begins
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -4685,12 +4694,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:11678: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:11917: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:11919: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:11682: \$? = $ac_status" >&5
-+   echo "$as_me:11921: \$? = $ac_status" >&5
++   echo "$as_me:11923: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
@@ -4709,7 +4718,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     $rm conftest*
     # SGI C++ compiler will create directory out/ii_files/ for
     # template instantiation
-@@ -11747,6 +11986,9 @@
+@@ -11747,6 +11988,9 @@
    cygwin* | mingw*)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS] /s/.* \([^ ]*\)/\1 DATA/;/^.* __nm__/s/^.* __nm__\([^ ]*\) [^ ]*/\1 DATA/;/^I /d;/^[AITW] /s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
@@ -4719,7 +4728,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    *)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-@@ -11756,11 +11998,6 @@
+@@ -11756,11 +12000,6 @@
  echo "${ECHO_T}$ld_shlibs_CXX" >&6
  test "$ld_shlibs_CXX" = no && can_build_shared=no
  
@@ -4731,7 +4740,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  #
  # Do we need to explicitly link libc?
  #
-@@ -11793,6 +12030,7 @@
+@@ -11793,6 +12032,7 @@
          libobjs=conftest.$ac_objext
          deplibs=
          wl=$lt_prog_compiler_wl_CXX
@@ -4739,7 +4748,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          compiler_flags=-v
          linker_flags=-v
          verstring=
-@@ -11953,7 +12191,8 @@
+@@ -11953,7 +12193,8 @@
        dlpath=`$SHELL 2>&1 -c '\''. $dir/'\''\${base_file}'\''i;echo \$dlname'\''`~
        dldir=$destdir/`dirname \$dlpath`~
        test -d \$dldir || mkdir -p \$dldir~
@@ -4749,7 +4758,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\''. $file; echo \$dlname'\''`~
        dlpath=$dir/\$dldll~
         $rm \$dlpath'
-@@ -12006,7 +12245,7 @@
+@@ -12006,7 +12247,7 @@
    soname_spec='${libname}${release}${major}$shared_ext'
    shlibpath_overrides_runpath=yes
    shlibpath_var=DYLD_LIBRARY_PATH
@@ -4758,7 +4767,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # Apple's gcc prints 'gcc -print-search-dirs' doesn't operate the same.
    if test "$GCC" = yes; then
      sys_lib_search_path_spec=`$CC -print-search-dirs | tr "\n" "$PATH_SEPARATOR" | sed -e 's/libraries:/@libraries:/' | tr "@" "\n" | grep "^libraries:" | sed -e "s/^libraries://" -e "s,=/,/,g" -e "s,$PATH_SEPARATOR, ,g" -e "s,.*,& /lib /usr/lib /usr/local/lib,g"`
-@@ -12029,22 +12268,17 @@
+@@ -12029,22 +12270,17 @@
    dynamic_linker=no
    ;;
  
@@ -4789,7 +4798,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=freebsd-$objformat
    case $version_type in
      freebsd-elf*)
-@@ -12066,10 +12300,15 @@
+@@ -12066,10 +12302,15 @@
      shlibpath_overrides_runpath=yes
      hardcode_into_libs=yes
      ;;
@@ -4806,7 +4815,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    esac
    ;;
  
-@@ -12089,7 +12328,7 @@
+@@ -12089,7 +12330,7 @@
    version_type=sunos
    need_lib_prefix=no
    need_version=no
@@ -4815,7 +4824,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ia64*)
      shrext_cmds='.so'
      hardcode_into_libs=yes
-@@ -12129,6 +12368,18 @@
+@@ -12129,6 +12370,18 @@
    postinstall_cmds='chmod 555 $lib'
    ;;
  
@@ -4834,7 +4843,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  irix5* | irix6* | nonstopux*)
    case $host_os in
      nonstopux*) version_type=nonstopux ;;
-@@ -12172,7 +12423,7 @@
+@@ -12172,7 +12425,7 @@
    ;;
  
  # This must be Linux ELF.
@@ -4843,7 +4852,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -12186,31 +12437,10 @@
+@@ -12186,31 +12439,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -4876,7 +4885,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -12222,7 +12452,7 @@
+@@ -12222,7 +12454,7 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -4885,7 +4894,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -12231,7 +12461,7 @@
+@@ -12231,7 +12463,7 @@
    shlibpath_var=LD_LIBRARY_PATH
    shlibpath_overrides_runpath=no
    hardcode_into_libs=yes
@@ -4894,7 +4903,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ;;
  
  netbsd*)
-@@ -12271,6 +12501,7 @@
+@@ -12271,6 +12503,7 @@
  
  openbsd*)
    version_type=sunos
@@ -4902,7 +4911,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    need_lib_prefix=no
    # Some older versions of OpenBSD (3.3 at least) *do* need versioned libs.
    case $host_os in
-@@ -12314,13 +12545,6 @@
+@@ -12314,13 +12547,6 @@
    sys_lib_dlsearch_path_spec="$sys_lib_search_path_spec"
    ;;
  
@@ -4916,7 +4925,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  solaris*)
    version_type=linux
    need_lib_prefix=no
-@@ -12346,7 +12570,7 @@
+@@ -12346,7 +12572,7 @@
    need_version=yes
    ;;
  
@@ -4925,7 +4934,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
    soname_spec='${libname}${release}${shared_ext}$major'
-@@ -12379,6 +12603,29 @@
+@@ -12379,6 +12605,29 @@
    fi
    ;;
  
@@ -4955,7 +4964,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  uts4*)
    version_type=linux
    library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
-@@ -12394,8 +12641,13 @@
+@@ -12394,8 +12643,13 @@
  echo "${ECHO_T}$dynamic_linker" >&6
  test "$dynamic_linker" = no && can_build_shared=no
  
@@ -4971,7 +4980,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  hardcode_action_CXX=
  if test -n "$hardcode_libdir_flag_spec_CXX" || \
     test -n "$runpath_var_CXX" || \
-@@ -12431,1159 +12683,327 @@
+@@ -12431,1159 +12685,327 @@
    enable_fast_install=needless
  fi
  
@@ -6378,7 +6387,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  # This is the shared library path variable.
  shlibpath_var=$shlibpath_var
-@@ -13740,6 +13160,9 @@
+@@ -13740,6 +13162,9 @@
  # If no C compiler was specified, use CC.
  LTCC=${LTCC-"$CC"}
  
@@ -6388,7 +6397,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # Allow CC to be a program name with arguments.
  compiler=$CC
  
-@@ -13747,13 +13170,13 @@
+@@ -13747,13 +13172,13 @@
  # save warnings/boilerplate of simple test code
  ac_outfile=conftest.$ac_objext
  printf "$lt_simple_compile_test_code" >conftest.$ac_ext
@@ -6404,7 +6413,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  _lt_linker_boilerplate=`cat conftest.err`
  $rm conftest*
  
-@@ -13785,7 +13208,7 @@
+@@ -13785,7 +13210,7 @@
  
  # On AIX, shared libraries and static libraries use the same namespace, and
  # are all built from PIC.
@@ -6413,7 +6422,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  aix3*)
    test "$enable_shared" = yes && enable_static=no
    if test -n "$RANLIB"; then
-@@ -13809,8 +13232,6 @@
+@@ -13809,8 +13234,6 @@
  echo "$as_me:$LINENO: result: $enable_static" >&5
  echo "${ECHO_T}$enable_static" >&6
  
@@ -6422,7 +6431,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  GCC_F77="$G77"
  LD_F77="$LD"
  
-@@ -13857,6 +13278,11 @@
+@@ -13857,6 +13280,11 @@
        lt_prog_compiler_pic_F77='-fno-common'
        ;;
  
@@ -6434,7 +6443,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      msdosdjgpp*)
        # Just because we use GCC doesn't mean we suddenly get shared libraries
        # on systems that don't support them.
-@@ -13873,7 +13299,7 @@
+@@ -13873,7 +13301,7 @@
      hpux*)
        # PIC is the default for IA64 HP-UX and 64-bit HP-UX, but
        # not for PA HP-UX.
@@ -6443,7 +6452,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        hppa*64*|ia64*)
  	# +Z the default
  	;;
-@@ -13920,7 +13346,7 @@
+@@ -13920,7 +13348,7 @@
        lt_prog_compiler_wl_F77='-Wl,'
        # PIC is the default for IA64 HP-UX and 64-bit HP-UX, but
        # not for PA HP-UX.
@@ -6452,7 +6461,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        hppa*64*|ia64*)
  	# +Z the default
  	;;
-@@ -13943,19 +13369,19 @@
+@@ -13943,19 +13371,19 @@
        lt_prog_compiler_static_F77='-Bstatic'
        ;;
  
@@ -6475,7 +6484,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          ;;
        ccc*)
          lt_prog_compiler_wl_F77='-Wl,'
-@@ -13971,11 +13397,6 @@
+@@ -13971,11 +13399,6 @@
        lt_prog_compiler_static_F77='-non_shared'
        ;;
  
@@ -6487,7 +6496,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      solaris*)
        lt_prog_compiler_pic_F77='-KPIC'
        lt_prog_compiler_static_F77='-Bstatic'
-@@ -13993,7 +13414,7 @@
+@@ -13993,7 +13416,7 @@
        lt_prog_compiler_static_F77='-Bstatic'
        ;;
  
@@ -6496,7 +6505,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        lt_prog_compiler_wl_F77='-Wl,'
        lt_prog_compiler_pic_F77='-KPIC'
        lt_prog_compiler_static_F77='-Bstatic'
-@@ -14006,6 +13427,12 @@
+@@ -14006,6 +13429,12 @@
        fi
        ;;
  
@@ -6509,7 +6518,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      unicos*)
        lt_prog_compiler_wl_F77='-Wl,'
        lt_prog_compiler_can_build_shared_F77=no
-@@ -14045,20 +13472,20 @@
+@@ -14045,20 +13474,20 @@
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     # The option is referenced via a variable to avoid confusing sed.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -6518,12 +6527,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:14051: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:13478: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:13480: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:14055: \$? = $ac_status" >&5
-+   echo "$as_me:13482: \$? = $ac_status" >&5
++   echo "$as_me:13484: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -6536,7 +6545,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
         lt_prog_compiler_pic_works_F77=yes
       fi
     fi
-@@ -14079,7 +13506,7 @@
+@@ -14079,7 +13508,7 @@
  fi
  
  fi
@@ -6545,7 +6554,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # For platforms which do not support PIC, -DPIC is meaningless:
    *djgpp*)
      lt_prog_compiler_pic_F77=
-@@ -14089,6 +13516,48 @@
+@@ -14089,6 +13518,48 @@
      ;;
  esac
  
@@ -6594,7 +6603,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  echo "$as_me:$LINENO: checking if $compiler supports -c -o file.$ac_objext" >&5
  echo $ECHO_N "checking if $compiler supports -c -o file.$ac_objext... $ECHO_C" >&6
  if test "${lt_cv_prog_compiler_c_o_F77+set}" = set; then
-@@ -14107,25 +13576,25 @@
+@@ -14107,25 +13578,25 @@
     # Note that $ac_compile itself does not contain backslashes and begins
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -6603,12 +6612,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:14113: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:13582: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:13584: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:14117: \$? = $ac_status" >&5
-+   echo "$as_me:13586: \$? = $ac_status" >&5
++   echo "$as_me:13588: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
@@ -6627,7 +6636,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     $rm conftest*
     # SGI C++ compiler will create directory out/ii_files/ for
     # template instantiation
-@@ -14221,6 +13690,10 @@
+@@ -14221,6 +13692,10 @@
        with_gnu_ld=no
      fi
      ;;
@@ -6638,7 +6647,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    openbsd*)
      with_gnu_ld=no
      ;;
-@@ -14305,7 +13778,7 @@
+@@ -14305,7 +13780,7 @@
        export_symbols_cmds_F77='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS] /s/.* \([^ ]*\)/\1 DATA/'\'' | $SED -e '\''/^[AITW] /s/.* //'\'' | sort | uniq > $export_symbols'
  
        if $LD --help 2>&1 | grep 'auto-import' > /dev/null; then
@@ -6647,7 +6656,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	# If the export-symbols file already is a .def file (1st line
  	# is EXPORTS), use it as is; otherwise, prepend...
  	archive_expsym_cmds_F77='if test "x`$SED 1q $export_symbols`" = xEXPORTS; then
-@@ -14314,22 +13787,37 @@
+@@ -14314,22 +13789,37 @@
  	  echo EXPORTS > $output_objdir/$soname.def;
  	  cat $export_symbols >> $output_objdir/$soname.def;
  	fi~
@@ -6690,7 +6699,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	  tmp_addflag=' $pic_flag -Mnomain' ;;
  	ecc*,ia64* | icc*,ia64*)		# Intel C compiler on ia64
  	  tmp_addflag=' -i_dynamic' ;;
-@@ -14346,12 +13834,13 @@
+@@ -14346,12 +13836,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC -shared'"$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -6705,7 +6714,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -14361,7 +13850,7 @@
+@@ -14361,7 +13852,7 @@
        fi
        ;;
  
@@ -6714,7 +6723,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if $LD -v 2>&1 | grep 'BFD 2\.8' > /dev/null; then
  	ld_shlibs_F77=no
  	cat <<EOF 1>&2
-@@ -14382,6 +13871,33 @@
+@@ -14382,6 +13873,33 @@
        fi
        ;;
  
@@ -6748,7 +6757,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      sunos4*)
        archive_cmds_F77='$LD -assert pure-text -Bshareable -o $lib $libobjs $deplibs $linker_flags'
        wlarc=
-@@ -14415,7 +13931,7 @@
+@@ -14415,7 +13933,7 @@
        # Note: this linker hardcodes the directories in LIBPATH if there
        # are no directories specified by -L.
        hardcode_minus_L_F77=yes
@@ -6757,7 +6766,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	# Neither direct hardcoding nor static linking is supported with a
  	# broken collect2.
  	hardcode_direct_F77=unsupported
-@@ -14449,6 +13965,7 @@
+@@ -14449,6 +13967,7 @@
    	    break
    	  fi
  	  done
@@ -6765,7 +6774,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	esac
  
  	exp_sym_flag='-bexport'
-@@ -14486,6 +14003,7 @@
+@@ -14486,6 +14005,7 @@
    	  hardcode_libdir_flag_spec_F77='-L$libdir'
    	  hardcode_libdir_separator_F77=
  	  fi
@@ -6773,7 +6782,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	esac
  	shared_flag='-shared'
  	if test "$aix_use_runtimelinking" = yes; then
-@@ -14498,11 +14016,11 @@
+@@ -14498,11 +14018,11 @@
    	# chokes on -Wl,-G. The following line is correct:
  	  shared_flag='-G'
  	else
@@ -6787,7 +6796,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	fi
        fi
  
-@@ -14528,8 +14046,7 @@
+@@ -14528,8 +14048,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -6797,7 +6806,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -14557,12 +14074,12 @@
+@@ -14557,12 +14076,12 @@
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
         hardcode_libdir_flag_spec_F77='${wl}-blibpath:$libdir:'"$aix_libpath"
@@ -6812,7 +6821,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	else
  	 # Determine the default libpath from the value encoded in an empty executable.
  	 cat >conftest.$ac_ext <<_ACEOF
-@@ -14579,8 +14096,7 @@
+@@ -14579,8 +14098,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -6822,7 +6831,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -14612,13 +14128,11 @@
+@@ -14612,13 +14130,11 @@
  	  # -berok will link without error, but may produce a broken library.
  	  no_undefined_flag_F77=' ${wl}-bernotok'
  	  allow_undefined_flag_F77=' ${wl}-berok'
@@ -6839,7 +6848,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	fi
        fi
        ;;
-@@ -14657,7 +14171,7 @@
+@@ -14657,7 +14173,7 @@
        ;;
  
      darwin* | rhapsody*)
@@ -6848,7 +6857,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          rhapsody* | darwin1.[012])
           allow_undefined_flag_F77='${wl}-undefined ${wl}suppress'
           ;;
-@@ -14686,7 +14200,7 @@
+@@ -14686,7 +14202,7 @@
      	output_verbose_link_cmd='echo'
          archive_cmds_F77='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
        module_cmds_F77='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
@@ -6857,7 +6866,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        archive_expsym_cmds_F77='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
        module_expsym_cmds_F77='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
      else
-@@ -14695,7 +14209,7 @@
+@@ -14695,7 +14211,7 @@
           output_verbose_link_cmd='echo'
           archive_cmds_F77='$CC -qmkshrobj $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags ${wl}-install_name ${wl}`echo $rpath/$soname` $verstring'
           module_cmds_F77='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
@@ -6866,7 +6875,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
           archive_expsym_cmds_F77='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -qmkshrobj $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags ${wl}-install_name ${wl}$rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            module_expsym_cmds_F77='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            ;;
-@@ -14736,7 +14250,7 @@
+@@ -14736,7 +14252,7 @@
        ;;
  
      # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
@@ -6875,7 +6884,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        archive_cmds_F77='$CC -shared -o $lib $libobjs $deplibs $compiler_flags'
        hardcode_libdir_flag_spec_F77='-R$libdir'
        hardcode_direct_F77=yes
-@@ -14759,47 +14273,62 @@
+@@ -14759,47 +14275,62 @@
        export_dynamic_flag_spec_F77='${wl}-E'
        ;;
  
@@ -6960,7 +6969,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	  hardcode_direct_F77=yes
  	  export_dynamic_flag_spec_F77='${wl}-E'
  
-@@ -14823,7 +14352,7 @@
+@@ -14823,7 +14354,7 @@
        link_all_deplibs_F77=yes
        ;;
  
@@ -6969,7 +6978,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -14901,14 +14430,6 @@
+@@ -14901,14 +14432,6 @@
        hardcode_libdir_separator_F77=:
        ;;
  
@@ -6984,7 +6993,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      solaris*)
        no_undefined_flag_F77=' -z text'
        if test "$GCC" = yes; then
-@@ -14994,36 +14515,45 @@
+@@ -14994,36 +14517,45 @@
        fi
        ;;
  
@@ -7051,7 +7060,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        ;;
  
      uts4*)
-@@ -15042,11 +14572,6 @@
+@@ -15042,11 +14574,6 @@
  echo "${ECHO_T}$ld_shlibs_F77" >&6
  test "$ld_shlibs_F77" = no && can_build_shared=no
  
@@ -7063,7 +7072,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  #
  # Do we need to explicitly link libc?
  #
-@@ -15079,6 +14604,7 @@
+@@ -15079,6 +14606,7 @@
          libobjs=conftest.$ac_objext
          deplibs=
          wl=$lt_prog_compiler_wl_F77
@@ -7071,7 +7080,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          compiler_flags=-v
          linker_flags=-v
          verstring=
-@@ -15239,7 +14765,8 @@
+@@ -15239,7 +14767,8 @@
        dlpath=`$SHELL 2>&1 -c '\''. $dir/'\''\${base_file}'\''i;echo \$dlname'\''`~
        dldir=$destdir/`dirname \$dlpath`~
        test -d \$dldir || mkdir -p \$dldir~
@@ -7081,7 +7090,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\''. $file; echo \$dlname'\''`~
        dlpath=$dir/\$dldll~
         $rm \$dlpath'
-@@ -15292,7 +14819,7 @@
+@@ -15292,7 +14821,7 @@
    soname_spec='${libname}${release}${major}$shared_ext'
    shlibpath_overrides_runpath=yes
    shlibpath_var=DYLD_LIBRARY_PATH
@@ -7090,7 +7099,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # Apple's gcc prints 'gcc -print-search-dirs' doesn't operate the same.
    if test "$GCC" = yes; then
      sys_lib_search_path_spec=`$CC -print-search-dirs | tr "\n" "$PATH_SEPARATOR" | sed -e 's/libraries:/@libraries:/' | tr "@" "\n" | grep "^libraries:" | sed -e "s/^libraries://" -e "s,=/,/,g" -e "s,$PATH_SEPARATOR, ,g" -e "s,.*,& /lib /usr/lib /usr/local/lib,g"`
-@@ -15315,22 +14842,17 @@
+@@ -15315,22 +14844,17 @@
    dynamic_linker=no
    ;;
  
@@ -7121,7 +7130,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=freebsd-$objformat
    case $version_type in
      freebsd-elf*)
-@@ -15352,10 +14874,15 @@
+@@ -15352,10 +14876,15 @@
      shlibpath_overrides_runpath=yes
      hardcode_into_libs=yes
      ;;
@@ -7138,7 +7147,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    esac
    ;;
  
-@@ -15375,7 +14902,7 @@
+@@ -15375,7 +14904,7 @@
    version_type=sunos
    need_lib_prefix=no
    need_version=no
@@ -7147,7 +7156,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ia64*)
      shrext_cmds='.so'
      hardcode_into_libs=yes
-@@ -15415,6 +14942,18 @@
+@@ -15415,6 +14944,18 @@
    postinstall_cmds='chmod 555 $lib'
    ;;
  
@@ -7166,7 +7175,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  irix5* | irix6* | nonstopux*)
    case $host_os in
      nonstopux*) version_type=nonstopux ;;
-@@ -15458,7 +14997,7 @@
+@@ -15458,7 +14999,7 @@
    ;;
  
  # This must be Linux ELF.
@@ -7175,7 +7184,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -15472,31 +15011,10 @@
+@@ -15472,31 +15013,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -7208,7 +7217,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -15508,7 +15026,7 @@
+@@ -15508,7 +15028,7 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -7217,7 +7226,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -15517,7 +15035,7 @@
+@@ -15517,7 +15037,7 @@
    shlibpath_var=LD_LIBRARY_PATH
    shlibpath_overrides_runpath=no
    hardcode_into_libs=yes
@@ -7226,7 +7235,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ;;
  
  netbsd*)
-@@ -15557,6 +15075,7 @@
+@@ -15557,6 +15077,7 @@
  
  openbsd*)
    version_type=sunos
@@ -7234,7 +7243,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    need_lib_prefix=no
    # Some older versions of OpenBSD (3.3 at least) *do* need versioned libs.
    case $host_os in
-@@ -15600,13 +15119,6 @@
+@@ -15600,13 +15121,6 @@
    sys_lib_dlsearch_path_spec="$sys_lib_search_path_spec"
    ;;
  
@@ -7248,7 +7257,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  solaris*)
    version_type=linux
    need_lib_prefix=no
-@@ -15632,7 +15144,7 @@
+@@ -15632,7 +15146,7 @@
    need_version=yes
    ;;
  
@@ -7257,7 +7266,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=linux
    library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
    soname_spec='${libname}${release}${shared_ext}$major'
-@@ -15665,6 +15177,29 @@
+@@ -15665,6 +15179,29 @@
    fi
    ;;
  
@@ -7287,7 +7296,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  uts4*)
    version_type=linux
    library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
-@@ -15680,6 +15215,11 @@
+@@ -15680,6 +15217,11 @@
  echo "${ECHO_T}$dynamic_linker" >&6
  test "$dynamic_linker" = no && can_build_shared=no
  
@@ -7299,7 +7308,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  echo "$as_me:$LINENO: checking how to hardcode library paths into programs" >&5
  echo $ECHO_N "checking how to hardcode library paths into programs... $ECHO_C" >&6
  hardcode_action_F77=
-@@ -15717,36 +15257,6 @@
+@@ -15717,36 +15259,6 @@
    enable_fast_install=needless
  fi
  
@@ -7336,7 +7345,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  # The else clause should only fire when bootstrapping the
  # libtool distribution, otherwise you forgot to ship ltmain.sh
-@@ -15761,7 +15271,7 @@
+@@ -15761,7 +15273,7 @@
    # Now quote all the things that may contain metacharacters while being
    # careful not to overquote the AC_SUBSTed values.  We take copies of the
    # variables and quote the copies for generation of the libtool script.
@@ -7345,7 +7354,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      SED SHELL STRIP \
      libname_spec library_names_spec soname_spec extract_expsyms_cmds \
      old_striplib striplib file_magic_cmd finish_cmds finish_eval \
-@@ -15879,6 +15389,9 @@
+@@ -15879,6 +15391,9 @@
  # A C compiler.
  LTCC=$lt_LTCC
  
@@ -7355,7 +7364,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # A language-specific compiler.
  CC=$lt_compiler_F77
  
-@@ -16189,6 +15702,9 @@
+@@ -16189,6 +15704,9 @@
  # If no C compiler was specified, use CC.
  LTCC=${LTCC-"$CC"}
  
@@ -7365,7 +7374,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # Allow CC to be a program name with arguments.
  compiler=$CC
  
-@@ -16196,13 +15712,13 @@
+@@ -16196,13 +15714,13 @@
  # save warnings/boilerplate of simple test code
  ac_outfile=conftest.$ac_objext
  printf "$lt_simple_compile_test_code" >conftest.$ac_ext
@@ -7381,7 +7390,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  _lt_linker_boilerplate=`cat conftest.err`
  $rm conftest*
  
-@@ -16250,20 +15766,20 @@
+@@ -16250,20 +15768,20 @@
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     # The option is referenced via a variable to avoid confusing sed.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -7390,12 +7399,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:16256: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:15772: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:15774: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:16260: \$? = $ac_status" >&5
-+   echo "$as_me:15776: \$? = $ac_status" >&5
++   echo "$as_me:15778: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -7408,7 +7417,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
         lt_cv_prog_compiler_rtti_exceptions=yes
       fi
     fi
-@@ -16324,6 +15840,11 @@
+@@ -16324,6 +15842,11 @@
        lt_prog_compiler_pic_GCJ='-fno-common'
        ;;
  
@@ -7420,7 +7429,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      msdosdjgpp*)
        # Just because we use GCC doesn't mean we suddenly get shared libraries
        # on systems that don't support them.
-@@ -16340,7 +15861,7 @@
+@@ -16340,7 +15863,7 @@
      hpux*)
        # PIC is the default for IA64 HP-UX and 64-bit HP-UX, but
        # not for PA HP-UX.
@@ -7429,7 +7438,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        hppa*64*|ia64*)
  	# +Z the default
  	;;
-@@ -16387,7 +15908,7 @@
+@@ -16387,7 +15910,7 @@
        lt_prog_compiler_wl_GCJ='-Wl,'
        # PIC is the default for IA64 HP-UX and 64-bit HP-UX, but
        # not for PA HP-UX.
@@ -7438,7 +7447,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        hppa*64*|ia64*)
  	# +Z the default
  	;;
-@@ -16410,19 +15931,19 @@
+@@ -16410,19 +15933,19 @@
        lt_prog_compiler_static_GCJ='-Bstatic'
        ;;
  
@@ -7461,7 +7470,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          ;;
        ccc*)
          lt_prog_compiler_wl_GCJ='-Wl,'
-@@ -16438,11 +15959,6 @@
+@@ -16438,11 +15961,6 @@
        lt_prog_compiler_static_GCJ='-non_shared'
        ;;
  
@@ -7473,7 +7482,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      solaris*)
        lt_prog_compiler_pic_GCJ='-KPIC'
        lt_prog_compiler_static_GCJ='-Bstatic'
-@@ -16460,7 +15976,7 @@
+@@ -16460,7 +15978,7 @@
        lt_prog_compiler_static_GCJ='-Bstatic'
        ;;
  
@@ -7482,7 +7491,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        lt_prog_compiler_wl_GCJ='-Wl,'
        lt_prog_compiler_pic_GCJ='-KPIC'
        lt_prog_compiler_static_GCJ='-Bstatic'
-@@ -16473,6 +15989,12 @@
+@@ -16473,6 +15991,12 @@
        fi
        ;;
  
@@ -7495,7 +7504,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      unicos*)
        lt_prog_compiler_wl_GCJ='-Wl,'
        lt_prog_compiler_can_build_shared_GCJ=no
-@@ -16512,20 +16034,20 @@
+@@ -16512,20 +16036,20 @@
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     # The option is referenced via a variable to avoid confusing sed.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -7504,12 +7513,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:16518: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:16040: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:16042: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:16522: \$? = $ac_status" >&5
-+   echo "$as_me:16044: \$? = $ac_status" >&5
++   echo "$as_me:16046: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -7522,7 +7531,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
         lt_prog_compiler_pic_works_GCJ=yes
       fi
     fi
-@@ -16546,7 +16068,7 @@
+@@ -16546,7 +16070,7 @@
  fi
  
  fi
@@ -7531,7 +7540,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # For platforms which do not support PIC, -DPIC is meaningless:
    *djgpp*)
      lt_prog_compiler_pic_GCJ=
-@@ -16556,6 +16078,48 @@
+@@ -16556,6 +16080,48 @@
      ;;
  esac
  
@@ -7580,7 +7589,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  echo "$as_me:$LINENO: checking if $compiler supports -c -o file.$ac_objext" >&5
  echo $ECHO_N "checking if $compiler supports -c -o file.$ac_objext... $ECHO_C" >&6
  if test "${lt_cv_prog_compiler_c_o_GCJ+set}" = set; then
-@@ -16574,25 +16138,25 @@
+@@ -16574,25 +16140,25 @@
     # Note that $ac_compile itself does not contain backslashes and begins
     # with a dollar sign (not a hyphen), so the echo should work correctly.
     lt_compile=`echo "$ac_compile" | $SED \
@@ -7589,12 +7598,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:16580: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:16144: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:16146: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:16584: \$? = $ac_status" >&5
-+   echo "$as_me:16148: \$? = $ac_status" >&5
++   echo "$as_me:16150: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
@@ -7613,7 +7622,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
     $rm conftest*
     # SGI C++ compiler will create directory out/ii_files/ for
     # template instantiation
-@@ -16688,6 +16252,10 @@
+@@ -16688,6 +16254,10 @@
        with_gnu_ld=no
      fi
      ;;
@@ -7624,7 +7633,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    openbsd*)
      with_gnu_ld=no
      ;;
-@@ -16772,7 +16340,7 @@
+@@ -16772,7 +16342,7 @@
        export_symbols_cmds_GCJ='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS] /s/.* \([^ ]*\)/\1 DATA/'\'' | $SED -e '\''/^[AITW] /s/.* //'\'' | sort | uniq > $export_symbols'
  
        if $LD --help 2>&1 | grep 'auto-import' > /dev/null; then
@@ -7633,7 +7642,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	# If the export-symbols file already is a .def file (1st line
  	# is EXPORTS), use it as is; otherwise, prepend...
  	archive_expsym_cmds_GCJ='if test "x`$SED 1q $export_symbols`" = xEXPORTS; then
-@@ -16781,22 +16349,37 @@
+@@ -16781,22 +16351,37 @@
  	  echo EXPORTS > $output_objdir/$soname.def;
  	  cat $export_symbols >> $output_objdir/$soname.def;
  	fi~
@@ -7676,7 +7685,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	  tmp_addflag=' $pic_flag -Mnomain' ;;
  	ecc*,ia64* | icc*,ia64*)		# Intel C compiler on ia64
  	  tmp_addflag=' -i_dynamic' ;;
-@@ -16813,12 +16396,13 @@
+@@ -16813,12 +16398,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC -shared'"$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -7691,7 +7700,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -16828,7 +16412,7 @@
+@@ -16828,7 +16414,7 @@
        fi
        ;;
  
@@ -7700,7 +7709,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if $LD -v 2>&1 | grep 'BFD 2\.8' > /dev/null; then
  	ld_shlibs_GCJ=no
  	cat <<EOF 1>&2
-@@ -16849,6 +16433,33 @@
+@@ -16849,6 +16435,33 @@
        fi
        ;;
  
@@ -7734,7 +7743,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      sunos4*)
        archive_cmds_GCJ='$LD -assert pure-text -Bshareable -o $lib $libobjs $deplibs $linker_flags'
        wlarc=
-@@ -16882,7 +16493,7 @@
+@@ -16882,7 +16495,7 @@
        # Note: this linker hardcodes the directories in LIBPATH if there
        # are no directories specified by -L.
        hardcode_minus_L_GCJ=yes
@@ -7743,7 +7752,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	# Neither direct hardcoding nor static linking is supported with a
  	# broken collect2.
  	hardcode_direct_GCJ=unsupported
-@@ -16916,6 +16527,7 @@
+@@ -16916,6 +16529,7 @@
    	    break
    	  fi
  	  done
@@ -7751,7 +7760,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	esac
  
  	exp_sym_flag='-bexport'
-@@ -16953,6 +16565,7 @@
+@@ -16953,6 +16567,7 @@
    	  hardcode_libdir_flag_spec_GCJ='-L$libdir'
    	  hardcode_libdir_separator_GCJ=
  	  fi
@@ -7759,7 +7768,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	esac
  	shared_flag='-shared'
  	if test "$aix_use_runtimelinking" = yes; then
-@@ -16965,11 +16578,11 @@
+@@ -16965,11 +16580,11 @@
    	# chokes on -Wl,-G. The following line is correct:
  	  shared_flag='-G'
  	else
@@ -7773,7 +7782,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	fi
        fi
  
-@@ -17005,8 +16618,7 @@
+@@ -17005,8 +16620,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -7783,7 +7792,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -17034,12 +16646,12 @@
+@@ -17034,12 +16648,12 @@
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
         hardcode_libdir_flag_spec_GCJ='${wl}-blibpath:$libdir:'"$aix_libpath"
@@ -7798,7 +7807,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	else
  	 # Determine the default libpath from the value encoded in an empty executable.
  	 cat >conftest.$ac_ext <<_ACEOF
-@@ -17066,8 +16678,7 @@
+@@ -17066,8 +16680,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -7808,7 +7817,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -17099,13 +16710,11 @@
+@@ -17099,13 +16712,11 @@
  	  # -berok will link without error, but may produce a broken library.
  	  no_undefined_flag_GCJ=' ${wl}-bernotok'
  	  allow_undefined_flag_GCJ=' ${wl}-berok'
@@ -7825,7 +7834,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  	fi
        fi
        ;;
-@@ -17144,7 +16753,7 @@
+@@ -17144,7 +16755,7 @@
        ;;
  
      darwin* | rhapsody*)
@@ -7834,7 +7843,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          rhapsody* | darwin1.[012])
           allow_undefined_flag_GCJ='${wl}-undefined ${wl}suppress'
           ;;
-@@ -17173,7 +16782,7 @@
+@@ -17173,7 +16784,7 @@
      	output_verbose_link_cmd='echo'
          archive_cmds_GCJ='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
        module_cmds_GCJ='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
@@ -7843,7 +7852,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        archive_expsym_cmds_GCJ='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
        module_expsym_cmds_GCJ='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
      else
-@@ -17182,7 +16791,7 @@
+@@ -17182,7 +16793,7 @@
           output_verbose_link_cmd='echo'
           archive_cmds_GCJ='$CC -qmkshrobj $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags ${wl}-install_name ${wl}`echo $rpath/$soname` $verstring'
           module_cmds_GCJ='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
@@ -7852,7 +7861,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
           archive_expsym_cmds_GCJ='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -qmkshrobj $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags ${wl}-install_name ${wl}$rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            module_expsym_cmds_GCJ='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
            ;;
-@@ -17223,7 +16832,7 @@
+@@ -17223,7 +16834,7 @@
        ;;
  
      # FreeBSD 3 and greater uses gcc -shared to do shared libraries.
@@ -7861,7 +7870,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        archive_cmds_GCJ='$CC -shared -o $lib $libobjs $deplibs $compiler_flags'
        hardcode_libdir_flag_spec_GCJ='-R$libdir'
        hardcode_direct_GCJ=yes
-@@ -17246,47 +16855,62 @@
+@@ -17246,47 +16857,62 @@
        export_dynamic_flag_spec_GCJ='${wl}-E'
        ;;
  
@@ -7928,25 +7937,25 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 +	hppa*64*|ia64*)
  	  hardcode_libdir_flag_spec_ld_GCJ='+b $libdir'
 -	  hardcode_libdir_separator_GCJ=:
--	  hardcode_direct_GCJ=no
--	  hardcode_shlibpath_var_GCJ=no
--	  ;;
--	ia64*)
--	  hardcode_libdir_flag_spec_GCJ='-L$libdir'
  	  hardcode_direct_GCJ=no
  	  hardcode_shlibpath_var_GCJ=no
+ 	  ;;
+-	ia64*)
+-	  hardcode_libdir_flag_spec_GCJ='-L$libdir'
+-	  hardcode_direct_GCJ=no
+-	  hardcode_shlibpath_var_GCJ=no
 -
 -	  # hardcode_minus_L: Not really in the search PATH,
 -	  # but as the default location of the library.
 -	  hardcode_minus_L_GCJ=yes
- 	  ;;
+-	  ;;
  	*)
 -	  hardcode_libdir_flag_spec_GCJ='${wl}+b ${wl}$libdir'
 -	  hardcode_libdir_separator_GCJ=:
  	  hardcode_direct_GCJ=yes
  	  export_dynamic_flag_spec_GCJ='${wl}-E'
  
-@@ -17310,7 +16934,7 @@
+@@ -17310,7 +16936,7 @@
        link_all_deplibs_GCJ=yes
        ;;
  
@@ -7955,7 +7964,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -17388,14 +17012,6 @@
+@@ -17388,14 +17014,6 @@
        hardcode_libdir_separator_GCJ=:
        ;;
  
@@ -7970,7 +7979,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      solaris*)
        no_undefined_flag_GCJ=' -z text'
        if test "$GCC" = yes; then
-@@ -17481,36 +17097,45 @@
+@@ -17481,36 +17099,45 @@
        fi
        ;;
  
@@ -8037,7 +8046,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        ;;
  
      uts4*)
-@@ -17529,11 +17154,6 @@
+@@ -17529,11 +17156,6 @@
  echo "${ECHO_T}$ld_shlibs_GCJ" >&6
  test "$ld_shlibs_GCJ" = no && can_build_shared=no
  
@@ -8049,7 +8058,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  #
  # Do we need to explicitly link libc?
  #
-@@ -17566,6 +17186,7 @@
+@@ -17566,6 +17188,7 @@
          libobjs=conftest.$ac_objext
          deplibs=
          wl=$lt_prog_compiler_wl_GCJ
@@ -8057,7 +8066,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
          compiler_flags=-v
          linker_flags=-v
          verstring=
-@@ -17726,7 +17347,8 @@
+@@ -17726,7 +17349,8 @@
        dlpath=`$SHELL 2>&1 -c '\''. $dir/'\''\${base_file}'\''i;echo \$dlname'\''`~
        dldir=$destdir/`dirname \$dlpath`~
        test -d \$dldir || mkdir -p \$dldir~
@@ -8067,7 +8076,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      postuninstall_cmds='dldll=`$SHELL 2>&1 -c '\''. $file; echo \$dlname'\''`~
        dlpath=$dir/\$dldll~
         $rm \$dlpath'
-@@ -17779,7 +17401,7 @@
+@@ -17779,7 +17403,7 @@
    soname_spec='${libname}${release}${major}$shared_ext'
    shlibpath_overrides_runpath=yes
    shlibpath_var=DYLD_LIBRARY_PATH
@@ -8076,7 +8085,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # Apple's gcc prints 'gcc -print-search-dirs' doesn't operate the same.
    if test "$GCC" = yes; then
      sys_lib_search_path_spec=`$CC -print-search-dirs | tr "\n" "$PATH_SEPARATOR" | sed -e 's/libraries:/@libraries:/' | tr "@" "\n" | grep "^libraries:" | sed -e "s/^libraries://" -e "s,=/,/,g" -e "s,$PATH_SEPARATOR, ,g" -e "s,.*,& /lib /usr/lib /usr/local/lib,g"`
-@@ -17802,22 +17424,17 @@
+@@ -17802,22 +17426,17 @@
    dynamic_linker=no
    ;;
  
@@ -8107,7 +8116,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    version_type=freebsd-$objformat
    case $version_type in
      freebsd-elf*)
-@@ -17839,10 +17456,15 @@
+@@ -17839,10 +17458,15 @@
      shlibpath_overrides_runpath=yes
      hardcode_into_libs=yes
      ;;
@@ -8124,7 +8133,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    esac
    ;;
  
-@@ -17862,7 +17484,7 @@
+@@ -17862,7 +17486,7 @@
    version_type=sunos
    need_lib_prefix=no
    need_version=no
@@ -8133,13 +8142,10 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ia64*)
      shrext_cmds='.so'
      hardcode_into_libs=yes
-@@ -17899,1144 +17521,322 @@
-     ;;
-   esac
-   # HP-UX runs *really* slowly unless shared libraries are mode 555.
--  postinstall_cmds='chmod 555 $lib'
--  ;;
--
+@@ -17902,1141 +17526,319 @@
+   postinstall_cmds='chmod 555 $lib'
+   ;;
+ 
 -irix5* | irix6* | nonstopux*)
 -  case $host_os in
 -    nonstopux*) version_type=nonstopux ;;
@@ -8234,11 +8240,12 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 -  ;;
 -
 -knetbsd*-gnu)
--  version_type=linux
--  need_lib_prefix=no
--  need_version=no
--  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
--  soname_spec='${libname}${release}${shared_ext}$major'
++interix3*)
+   version_type=linux
+   need_lib_prefix=no
+   need_version=no
+   library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
+   soname_spec='${libname}${release}${shared_ext}$major'
 -  shlibpath_var=LD_LIBRARY_PATH
 -  shlibpath_overrides_runpath=no
 -  hardcode_into_libs=yes
@@ -9030,20 +9037,6 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 -  lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"
 -fi
 -
--
--fi
--
--
--fi
-+  postinstall_cmds='chmod 555 $lib'
-+  ;;
- 
-+interix3*)
-+  version_type=linux
-+  need_lib_prefix=no
-+  need_version=no
-+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
-+  soname_spec='${libname}${release}${shared_ext}$major'
 +  dynamic_linker='Interix 3.x ld.so.1 (PE, like ELF)'
 +  shlibpath_var=LD_LIBRARY_PATH
 +  shlibpath_overrides_runpath=no
@@ -9125,8 +9118,6 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 +  dynamic_linker='GNU/Linux ld.so'
 +  ;;
  
--    ;;
--  esac
 +netbsdelf*-gnu)
 +  version_type=linux
 +  need_lib_prefix=no
@@ -9139,8 +9130,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 +  dynamic_linker='NetBSD ld.elf_so'
 +  ;;
  
--  if test "x$lt_cv_dlopen" != xno; then
--    enable_dlopen=yes
+-fi
 +netbsd*)
 +  version_type=sunos
 +  need_lib_prefix=no
@@ -9149,15 +9139,63 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 +    library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${shared_ext}$versuffix'
 +    finish_cmds='PATH="\$PATH:/sbin" ldconfig -m $libdir'
 +    dynamic_linker='NetBSD (a.out) ld.so'
-   else
--    enable_dlopen=no
++  else
 +    library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
 +    soname_spec='${libname}${release}${shared_ext}$major'
 +    dynamic_linker='NetBSD ld.elf_so'
-   fi
++  fi
 +  shlibpath_var=LD_LIBRARY_PATH
 +  shlibpath_overrides_runpath=yes
 +  hardcode_into_libs=yes
++  ;;
+ 
++newsos6)
++  version_type=linux
++  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
++  shlibpath_var=LD_LIBRARY_PATH
++  shlibpath_overrides_runpath=yes
++  ;;
+ 
+-fi
++nto-qnx*)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
++  soname_spec='${libname}${release}${shared_ext}$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  shlibpath_overrides_runpath=yes
++  ;;
+ 
+-    ;;
++openbsd*)
++  version_type=sunos
++  sys_lib_dlsearch_path_spec="/usr/lib"
++  need_lib_prefix=no
++  # Some older versions of OpenBSD (3.3 at least) *do* need versioned libs.
++  case $host_os in
++    openbsd3.3 | openbsd3.3.*) need_version=yes ;;
++    *)                         need_version=no  ;;
+   esac
+-
+-  if test "x$lt_cv_dlopen" != xno; then
+-    enable_dlopen=yes
++  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${shared_ext}$versuffix'
++  finish_cmds='PATH="\$PATH:/sbin" ldconfig -m $libdir'
++  shlibpath_var=LD_LIBRARY_PATH
++  if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`" || test "$host_os-$host_cpu" = "openbsd2.8-powerpc"; then
++    case $host_os in
++      openbsd2.[89] | openbsd2.[89].*)
++	shlibpath_overrides_runpath=no
++	;;
++      *)
++	shlibpath_overrides_runpath=yes
++	;;
++      esac
+   else
+-    enable_dlopen=no
++    shlibpath_overrides_runpath=yes
+   fi
 +  ;;
  
 -  case $lt_cv_dlopen in
@@ -9170,13 +9208,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 -
 -    save_LIBS="$LIBS"
 -    LIBS="$lt_cv_dlopen_libs $LIBS"
-+newsos6)
-+  version_type=linux
-+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
-+  shlibpath_var=LD_LIBRARY_PATH
-+  shlibpath_overrides_runpath=yes
-+  ;;
- 
+-
 -    echo "$as_me:$LINENO: checking whether a program can dlopen itself" >&5
 -echo $ECHO_N "checking whether a program can dlopen itself... $ECHO_C" >&6
 -if test "${lt_cv_dlopen_self+set}" = set; then
@@ -9190,45 +9222,11 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 -  cat > conftest.$ac_ext <<EOF
 -#line 18841 "configure"
 -#include "confdefs.h"
-+nto-qnx*)
-+  version_type=linux
-+  need_lib_prefix=no
-+  need_version=no
-+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major $libname${shared_ext}'
-+  soname_spec='${libname}${release}${shared_ext}$major'
-+  shlibpath_var=LD_LIBRARY_PATH
-+  shlibpath_overrides_runpath=yes
-+  ;;
- 
+-
 -#if HAVE_DLFCN_H
 -#include <dlfcn.h>
 -#endif
-+openbsd*)
-+  version_type=sunos
-+  sys_lib_dlsearch_path_spec="/usr/lib"
-+  need_lib_prefix=no
-+  # Some older versions of OpenBSD (3.3 at least) *do* need versioned libs.
-+  case $host_os in
-+    openbsd3.3 | openbsd3.3.*) need_version=yes ;;
-+    *)                         need_version=no  ;;
-+  esac
-+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${shared_ext}$versuffix'
-+  finish_cmds='PATH="\$PATH:/sbin" ldconfig -m $libdir'
-+  shlibpath_var=LD_LIBRARY_PATH
-+  if test -z "`echo __ELF__ | $CC -E - | grep __ELF__`" || test "$host_os-$host_cpu" = "openbsd2.8-powerpc"; then
-+    case $host_os in
-+      openbsd2.[89] | openbsd2.[89].*)
-+	shlibpath_overrides_runpath=no
-+	;;
-+      *)
-+	shlibpath_overrides_runpath=yes
-+	;;
-+      esac
-+  else
-+    shlibpath_overrides_runpath=yes
-+  fi
-+  ;;
- 
+-
 -#include <stdio.h>
 +os2*)
 +  libname_spec='$name'
@@ -9564,7 +9562,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  fi
  
  
-@@ -19053,7 +17853,7 @@
+@@ -19053,7 +17855,7 @@
    # Now quote all the things that may contain metacharacters while being
    # careful not to overquote the AC_SUBSTed values.  We take copies of the
    # variables and quote the copies for generation of the libtool script.
@@ -9573,7 +9571,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      SED SHELL STRIP \
      libname_spec library_names_spec soname_spec extract_expsyms_cmds \
      old_striplib striplib file_magic_cmd finish_cmds finish_eval \
-@@ -19171,6 +17971,9 @@
+@@ -19171,6 +17973,9 @@
  # A C compiler.
  LTCC=$lt_LTCC
  
@@ -9583,7 +9581,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # A language-specific compiler.
  CC=$lt_compiler_GCJ
  
-@@ -19480,6 +18283,9 @@
+@@ -19480,6 +18285,9 @@
  # If no C compiler was specified, use CC.
  LTCC=${LTCC-"$CC"}
  
@@ -9593,7 +9591,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # Allow CC to be a program name with arguments.
  compiler=$CC
  
-@@ -19487,13 +18293,13 @@
+@@ -19487,13 +18295,13 @@
  # save warnings/boilerplate of simple test code
  ac_outfile=conftest.$ac_objext
  printf "$lt_simple_compile_test_code" >conftest.$ac_ext
@@ -9609,7 +9607,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  _lt_linker_boilerplate=`cat conftest.err`
  $rm conftest*
  
-@@ -19528,7 +18334,7 @@
+@@ -19528,7 +18336,7 @@
    # Now quote all the things that may contain metacharacters while being
    # careful not to overquote the AC_SUBSTed values.  We take copies of the
    # variables and quote the copies for generation of the libtool script.
@@ -9618,7 +9616,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      SED SHELL STRIP \
      libname_spec library_names_spec soname_spec extract_expsyms_cmds \
      old_striplib striplib file_magic_cmd finish_cmds finish_eval \
-@@ -19646,6 +18452,9 @@
+@@ -19646,6 +18454,9 @@
  # A C compiler.
  LTCC=$lt_LTCC
  
@@ -9628,7 +9626,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  # A language-specific compiler.
  CC=$lt_compiler_RC
  
-@@ -20038,8 +18847,7 @@
+@@ -20038,8 +18849,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9638,7 +9636,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -20068,8 +18876,7 @@
+@@ -20068,8 +18878,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9648,7 +9646,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -20139,8 +18946,7 @@
+@@ -20139,8 +18948,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9658,7 +9656,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -20192,8 +18998,7 @@
+@@ -20192,8 +19000,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9668,7 +9666,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -20264,8 +19069,7 @@
+@@ -20264,8 +19071,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9678,7 +9676,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -20317,8 +19121,7 @@
+@@ -20317,8 +19123,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9688,7 +9686,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -20824,8 +19627,7 @@
+@@ -20824,8 +19629,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9698,7 +9696,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -20930,8 +19732,7 @@
+@@ -20930,8 +19734,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9708,7 +9706,26 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -21254,6 +20055,9 @@
+@@ -21137,6 +19940,18 @@
+ # Honor aclocal flags
+ ACLOCAL="$ACLOCAL $ACLOCAL_FLAGS"
+ 
++# Let the user override the name of the cairo module if he uses another
++# backend; defaults to "cairo" which uses the default cairo backend;
++# cairo-$backend modules Require the cairo module
++
++# Check whether --with-cairo-backend or --without-cairo-backend was given.
++if test "${with_cairo_backend+set}" = set; then
++  withval="$with_cairo_backend"
++  cairo_module="cairo-$withval"
++else
++  cairo_module="cairo"
++fi;
++
+ ## Initial sanity check, done here so that users get told they
+ ## have the wrong dependencies as early in the process as possible.
+ ## Later on we actually use the cflags/libs from separate pkg-config
+@@ -21254,62 +20069,90 @@
  echo $ECHO_N "checking for BASE_DEPENDENCIES... $ECHO_C" >&6
  
  if test -n "$PKG_CONFIG"; then
@@ -9716,9 +9733,15 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 +        pkg_cv_BASE_DEPENDENCIES_CFLAGS="$BASE_DEPENDENCIES_CFLAGS"
 +    else
          if test -n "$PKG_CONFIG" && \
-     { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0\"") >&5
-   ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0") 2>&5
-@@ -21264,10 +20068,14 @@
+-    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0\"") >&5
+-  ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0") 2>&5
++    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    \$cairo_module >= 1.2.0\"") >&5
++  ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    $cairo_module >= 1.2.0") 2>&5
+   ac_status=$?
+   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+   (exit $ac_status); }; then
+-  pkg_cv_BASE_DEPENDENCIES_CFLAGS=`$PKG_CONFIG --cflags "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0" 2>/dev/null`
++  pkg_cv_BASE_DEPENDENCIES_CFLAGS=`$PKG_CONFIG --cflags "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    $cairo_module >= 1.2.0" 2>/dev/null`
  else
    pkg_failed=yes
  fi
@@ -9731,9 +9754,15 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 +        pkg_cv_BASE_DEPENDENCIES_LIBS="$BASE_DEPENDENCIES_LIBS"
 +    else
          if test -n "$PKG_CONFIG" && \
-     { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0\"") >&5
-   ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0") 2>&5
-@@ -21278,38 +20086,59 @@
+-    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0\"") >&5
+-  ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0") 2>&5
++    { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    \$cairo_module >= 1.2.0\"") >&5
++  ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    $cairo_module >= 1.2.0") 2>&5
+   ac_status=$?
+   echo "$as_me:$LINENO: \$? = $ac_status" >&5
+   (exit $ac_status); }; then
+-  pkg_cv_BASE_DEPENDENCIES_LIBS=`$PKG_CONFIG --libs "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0" 2>/dev/null`
++  pkg_cv_BASE_DEPENDENCIES_LIBS=`$PKG_CONFIG --libs "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    $cairo_module >= 1.2.0" 2>/dev/null`
  else
    pkg_failed=yes
  fi
@@ -9753,15 +9782,15 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 +        _pkg_short_errors_supported=no
 +fi
 +        if test $_pkg_short_errors_supported = yes; then
-+	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0"`
++	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    $cairo_module >= 1.2.0"`
 +        else
-+	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0"`
++	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    $cairo_module >= 1.2.0"`
 +        fi
  	# Put the nasty error message in config.log where it belongs
 -	echo "$BASE_DEPENDENCIES_PKG_ERRORS" 1>&5
 +	echo "$BASE_DEPENDENCIES_PKG_ERRORS" >&5
 +
-+	{ { echo "$as_me:$LINENO: error: Package requirements (glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0) were not met:
++	{ { echo "$as_me:$LINENO: error: Package requirements (glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    $cairo_module >= 1.2.0) were not met:
 +
 +$BASE_DEPENDENCIES_PKG_ERRORS
  
@@ -9777,7 +9806,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 +and BASE_DEPENDENCIES_LIBS to avoid the need to call pkg-config.
 +See the pkg-config man page for more details.
 +" >&5
-+echo "$as_me: error: Package requirements (glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    cairo >= 1.2.0) were not met:
++echo "$as_me: error: Package requirements (glib-2.0 >= 2.12.0    atk >= 1.9.0    pango >= 1.12.0    $cairo_module >= 1.2.0) were not met:
 +
 +$BASE_DEPENDENCIES_PKG_ERRORS
 +
@@ -9806,7 +9835,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
  See \`config.log' for more details." >&5
-@@ -21317,9 +20146,9 @@
+@@ -21317,9 +20160,9 @@
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
@@ -9819,7 +9848,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.
  See \`config.log' for more details." >&2;}
-@@ -21335,7 +20164,8 @@
+@@ -21335,7 +20178,8 @@
  if test "$os_win32" != yes; then
      # libtool option to control which symbols are exported
      # right now, symbols starting with _ are not exported
@@ -9829,7 +9858,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  else
      # We currently use .def files on Windows (for gdk-pixbuf, gdk and gtk)
      LIBTOOL_EXPORT_OPTIONS=
-@@ -21547,8 +20377,7 @@
+@@ -21547,8 +20391,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9839,7 +9868,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -21611,8 +20440,7 @@
+@@ -21611,8 +20454,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9849,7 +9878,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -21673,8 +20501,7 @@
+@@ -21673,8 +20515,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9859,7 +9888,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -21735,8 +20562,7 @@
+@@ -21735,8 +20576,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9869,7 +9898,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -21797,8 +20623,7 @@
+@@ -21797,8 +20637,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9879,7 +9908,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -21859,8 +20684,7 @@
+@@ -21859,8 +20698,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9889,7 +9918,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -21932,8 +20756,7 @@
+@@ -21932,8 +20770,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9899,7 +9928,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22078,8 +20901,7 @@
+@@ -22078,8 +20915,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9909,7 +9938,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22150,8 +20972,7 @@
+@@ -22150,8 +20986,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9919,7 +9948,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22295,8 +21116,7 @@
+@@ -22295,8 +21130,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9929,7 +9958,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22354,8 +21174,7 @@
+@@ -22354,8 +21188,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9939,7 +9968,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22452,8 +21271,7 @@
+@@ -22452,8 +21285,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9949,7 +9978,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22532,8 +21350,7 @@
+@@ -22532,8 +21364,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9959,7 +9988,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22597,8 +21414,7 @@
+@@ -22597,8 +21428,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9969,7 +9998,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22662,8 +21478,7 @@
+@@ -22662,8 +21492,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9979,7 +10008,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22740,8 +21555,7 @@
+@@ -22740,8 +21569,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9989,7 +10018,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22805,8 +21619,7 @@
+@@ -22805,8 +21633,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -9999,7 +10028,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -22922,8 +21735,7 @@
+@@ -22922,8 +21749,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10009,7 +10038,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -23090,8 +21902,7 @@
+@@ -23090,8 +21916,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10019,7 +10048,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -23224,8 +22035,7 @@
+@@ -23224,8 +22049,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10029,7 +10058,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -23310,8 +22120,7 @@
+@@ -23310,8 +22134,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10039,7 +10068,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -23629,8 +22438,7 @@
+@@ -23629,8 +22452,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10049,7 +10078,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -23674,8 +22482,7 @@
+@@ -23674,8 +22496,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10059,7 +10088,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -23982,8 +22789,7 @@
+@@ -23982,8 +22803,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10069,7 +10098,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -24117,8 +22923,7 @@
+@@ -24117,8 +22937,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10079,7 +10108,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -24186,8 +22991,7 @@
+@@ -24186,8 +23005,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10089,7 +10118,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -24339,8 +23143,7 @@
+@@ -24339,8 +23157,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10099,7 +10128,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -24492,8 +23295,7 @@
+@@ -24492,8 +23309,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10109,7 +10138,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -24654,8 +23456,7 @@
+@@ -24654,8 +23470,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10119,7 +10148,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -24740,8 +23541,7 @@
+@@ -24740,8 +23555,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10129,7 +10158,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -24834,8 +23634,7 @@
+@@ -24834,8 +23648,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10139,7 +10168,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -25044,8 +23843,7 @@
+@@ -25044,8 +23857,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10149,7 +10178,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -25117,8 +23915,7 @@
+@@ -25117,8 +23929,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10159,7 +10188,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -25182,8 +23979,7 @@
+@@ -25182,8 +23993,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10169,7 +10198,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -25367,8 +24163,7 @@
+@@ -25367,8 +24177,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10179,7 +10208,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -25645,8 +24440,7 @@
+@@ -25645,8 +24454,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10189,7 +10218,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -25747,8 +24541,7 @@
+@@ -25747,8 +24555,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10199,7 +10228,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -25846,8 +24639,7 @@
+@@ -25846,8 +24653,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10209,7 +10238,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26064,8 +24856,7 @@
+@@ -26064,8 +24870,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10219,7 +10248,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26130,8 +24921,7 @@
+@@ -26130,8 +24935,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10229,7 +10258,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26205,8 +24995,7 @@
+@@ -26205,8 +25009,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10239,7 +10268,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26417,8 +25206,7 @@
+@@ -26417,8 +25220,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10249,7 +10278,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26474,8 +25262,7 @@
+@@ -26474,8 +25276,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10259,7 +10288,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26628,8 +25415,7 @@
+@@ -26628,8 +25429,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10269,7 +10298,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26685,8 +25471,7 @@
+@@ -26685,8 +25485,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10279,7 +10308,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26839,8 +25624,7 @@
+@@ -26839,8 +25638,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10289,7 +10318,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -26896,8 +25680,7 @@
+@@ -26896,8 +25694,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10299,7 +10328,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -27073,8 +25856,7 @@
+@@ -27073,8 +25870,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10309,7 +10338,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -27190,8 +25972,7 @@
+@@ -27190,8 +25986,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10319,7 +10348,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -27295,8 +26076,7 @@
+@@ -27295,8 +26090,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10329,7 +10358,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -27352,8 +26132,7 @@
+@@ -27352,8 +26146,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10339,7 +10368,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -27498,8 +26277,7 @@
+@@ -27498,8 +26291,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10349,7 +10378,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -27656,8 +26434,7 @@
+@@ -27656,8 +26448,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10359,7 +10388,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -27728,8 +26505,7 @@
+@@ -27728,8 +26519,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10369,7 +10398,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28009,9 +26785,12 @@
+@@ -28009,9 +26799,12 @@
      GTK_PACKAGES_FOR_X="x11"
    else
      have_base_x_pc=false
@@ -10383,7 +10412,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  
  # Check whether --with-x or --without-x was given.
  if test "${with_x+set}" = set; then
-@@ -28104,7 +26883,7 @@
+@@ -28104,7 +26897,7 @@
  /usr/openwin/share/include'
  
  if test "$ac_x_includes" = no; then
@@ -10392,7 +10421,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # First, try using that file with no special directory specified.
    cat >conftest.$ac_ext <<_ACEOF
  /* confdefs.h.  */
-@@ -28112,7 +26891,7 @@
+@@ -28112,7 +26905,7 @@
  cat confdefs.h >>conftest.$ac_ext
  cat >>conftest.$ac_ext <<_ACEOF
  /* end confdefs.h.  */
@@ -10401,7 +10430,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  _ACEOF
  if { (eval echo "$as_me:$LINENO: \"$ac_cpp conftest.$ac_ext\"") >&5
    (eval $ac_cpp conftest.$ac_ext) 2>conftest.er1
-@@ -28139,7 +26918,7 @@
+@@ -28139,7 +26932,7 @@
  sed 's/^/| /' conftest.$ac_ext >&5
  
    for ac_dir in $ac_x_header_dirs; do
@@ -10410,7 +10439,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
      ac_x_includes=$ac_dir
      break
    fi
-@@ -28153,18 +26932,18 @@
+@@ -28153,18 +26946,18 @@
    # See if we find them without any special options.
    # Don't add to $LIBS permanently.
    ac_save_LIBS=$LIBS
@@ -10432,7 +10461,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    ;
    return 0;
  }
-@@ -28178,8 +26957,7 @@
+@@ -28178,8 +26971,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10442,7 +10471,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28203,7 +26981,7 @@
+@@ -28203,7 +26995,7 @@
  do
    # Don't even attempt the hair of trying to link an X program!
    for ac_extension in a so sl; do
@@ -10451,7 +10480,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
        ac_x_libraries=$ac_dir
        break 2
      fi
-@@ -28239,10 +27017,15 @@
+@@ -28239,10 +27031,15 @@
    # Update the cache value to reflect the command line values.
    ac_cv_have_x="have_x=yes \
  		ac_x_includes=$x_includes ac_x_libraries=$x_libraries"
@@ -10469,7 +10498,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  if test "$no_x" = yes; then
    # Not all programs may use this symbol, but it does not hurt to define it.
  
-@@ -28290,8 +27073,7 @@
+@@ -28290,8 +27087,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10479,7 +10508,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28342,8 +27124,7 @@
+@@ -28342,8 +27138,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10489,7 +10518,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28419,8 +27200,7 @@
+@@ -28419,8 +27214,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10499,7 +10528,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28475,8 +27255,7 @@
+@@ -28475,8 +27269,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10509,7 +10538,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28544,8 +27323,7 @@
+@@ -28544,8 +27337,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10519,7 +10548,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28653,8 +27431,7 @@
+@@ -28653,8 +27445,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10529,7 +10558,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28718,8 +27495,7 @@
+@@ -28718,8 +27509,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10539,7 +10568,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28787,8 +27563,7 @@
+@@ -28787,8 +27577,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10549,7 +10578,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28892,8 +27667,7 @@
+@@ -28892,8 +27681,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10559,7 +10588,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -28957,8 +27731,7 @@
+@@ -28957,8 +27745,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10569,7 +10598,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29055,8 +27828,7 @@
+@@ -29055,8 +27842,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10579,7 +10608,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29120,8 +27892,7 @@
+@@ -29120,8 +27906,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10589,7 +10618,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29218,8 +27989,7 @@
+@@ -29218,8 +28003,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10599,7 +10628,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29283,8 +28053,7 @@
+@@ -29283,8 +28067,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10609,7 +10638,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29363,8 +28132,7 @@
+@@ -29363,8 +28146,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10619,7 +10648,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29488,8 +28256,7 @@
+@@ -29488,8 +28270,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10629,7 +10658,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29586,8 +28353,7 @@
+@@ -29586,8 +28367,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10639,7 +10668,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29684,8 +28450,7 @@
+@@ -29684,8 +28464,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10649,7 +10678,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29746,8 +28511,7 @@
+@@ -29746,8 +28525,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10659,7 +10688,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29790,8 +28554,7 @@
+@@ -29790,8 +28568,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10669,7 +10698,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -29896,8 +28659,7 @@
+@@ -29896,8 +28673,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10679,7 +10708,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30001,8 +28763,7 @@
+@@ -30001,8 +28777,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10689,7 +10718,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30124,8 +28885,7 @@
+@@ -30124,8 +28899,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10699,7 +10728,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30228,8 +28988,7 @@
+@@ -30228,8 +29002,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10709,7 +10738,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30330,8 +29089,7 @@
+@@ -30330,8 +29103,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10719,7 +10748,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30380,8 +29138,7 @@
+@@ -30380,8 +29152,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10729,7 +10758,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30489,8 +29246,7 @@
+@@ -30489,8 +29260,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10739,7 +10768,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30556,8 +29312,7 @@
+@@ -30556,8 +29326,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10749,7 +10778,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30626,8 +29381,7 @@
+@@ -30626,8 +29395,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10759,7 +10788,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30773,8 +29527,7 @@
+@@ -30773,8 +29541,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10769,7 +10798,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -30932,8 +29685,7 @@
+@@ -30932,8 +29699,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10779,7 +10808,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -31041,8 +29793,7 @@
+@@ -31041,8 +29807,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10789,7 +10818,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -31091,8 +29842,7 @@
+@@ -31091,8 +29856,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10799,7 +10828,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -31189,8 +29939,7 @@
+@@ -31189,8 +29953,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10809,7 +10838,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -31240,8 +29989,7 @@
+@@ -31240,8 +30003,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10819,7 +10848,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -31378,8 +30126,7 @@
+@@ -31378,8 +30140,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10829,7 +10858,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -31429,8 +30176,7 @@
+@@ -31429,8 +30190,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10839,7 +10868,18 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -31806,8 +30552,7 @@
+@@ -31702,8 +30462,8 @@
+   if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb ; then
+       echo "$as_me:$LINENO: result: found" >&5
+ echo "${ECHO_T}found" >&6
+-      GDK_EXTRA_CFLAGS="`$PKG_CONFIG --cflags directfb` $GDK_EXTRA_CFLAGS"
+-      GDK_EXTRA_LIBS="`$PKG_CONFIG --libs directfb` $GDK_EXTRA_LIBS"
++      GDK_EXTRA_CFLAGS="`$PKG_CONFIG --cflags directfb $cairo_module` $GDK_EXTRA_CFLAGS"
++      GDK_EXTRA_LIBS="`$PKG_CONFIG --libs directfb $cairo_module` $GDK_EXTRA_LIBS"
+   else
+       { { echo "$as_me:$LINENO: error:
+ *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer is required. The latest
+@@ -31806,8 +30566,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10849,7 +10889,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -31924,8 +30669,7 @@
+@@ -31924,8 +30683,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10859,7 +10899,16 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -32084,8 +30828,7 @@
+@@ -31955,7 +30713,7 @@
+         LIBS="$gtk_save_LIBS"
+ fi
+ 
+-GTK_PACKAGES="atk cairo"
++GTK_PACKAGES="atk $cairo_module"
+ GTK_EXTRA_LIBS=
+ GTK_EXTRA_CFLAGS=
+ GTK_DEP_LIBS="$GDK_EXTRA_LIBS $GTK_DEP_LIBS_FOR_X `$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES $PANGO_PACKAGES $GTK_PACKAGES_FOR_X $GTK_PACKAGES` $GTK_EXTRA_LIBS $GDK_PIXBUF_EXTRA_LIBS"
+@@ -32084,8 +30842,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10869,7 +10918,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -32236,8 +30979,7 @@
+@@ -32236,8 +30993,7 @@
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
    (exit $ac_status); } &&
@@ -10879,7 +10928,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    { (eval echo "$as_me:$LINENO: \"$ac_try\"") >&5
    (eval $ac_try) 2>&5
    ac_status=$?
-@@ -32833,6 +31575,13 @@
+@@ -32833,6 +31589,13 @@
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
@@ -10893,7 +10942,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -33788,6 +32537,8 @@
+@@ -33788,6 +32551,8 @@
  s,@CCDEPMODE@,$CCDEPMODE,;t t
  s,@am__fastdepCC_TRUE@,$am__fastdepCC_TRUE,;t t
  s,@am__fastdepCC_FALSE@,$am__fastdepCC_FALSE,;t t
@@ -10902,7 +10951,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  s,@EGREP@,$EGREP,;t t
  s,@LN_S@,$LN_S,;t t
  s,@ECHO@,$ECHO,;t t
-@@ -34122,11 +32873,6 @@
+@@ -34122,11 +32887,6 @@
    *) ac_INSTALL=$ac_top_builddir$INSTALL ;;
    esac
  
@@ -10914,7 +10963,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    # Let's still pretend it is `configure' which instantiates (i.e., don't
    # use $as_me), people would be surprised to read:
    #    /* config.h.  Generated by config.status.  */
-@@ -34165,6 +32911,12 @@
+@@ -34165,6 +32925,12 @@
  	 fi;;
        esac
      done` || { (exit 1); exit 1; }
@@ -10927,9 +10976,9 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
  _ACEOF
  cat >>$CONFIG_STATUS <<_ACEOF
    sed "$ac_vpsub
-diff -urN gtk+-2.10.1.orig/contrib/Makefile.in gtk+-2.10.1/contrib/Makefile.in
---- gtk+-2.10.1.orig/contrib/Makefile.in	2006-07-24 00:20:52.000000000 +0200
-+++ gtk+-2.10.1/contrib/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/contrib/Makefile.in gtk+-2.10.1-dfb/contrib/Makefile.in
+--- gtk+-2.10.1-dfb.orig/contrib/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/contrib/Makefile.in	2006-08-15 21:17:07.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -10939,9 +10988,9 @@ diff -urN gtk+-2.10.1.orig/contrib/Makefile.in gtk+-2.10.1/contrib/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+-2.10.1/contrib/gdk-pixbuf-xlib/Makefile.in
---- gtk+-2.10.1.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2006-07-24 00:20:52.000000000 +0200
-+++ gtk+-2.10.1/contrib/gdk-pixbuf-xlib/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+-2.10.1-dfb/contrib/gdk-pixbuf-xlib/Makefile.in
+--- gtk+-2.10.1-dfb.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/contrib/gdk-pixbuf-xlib/Makefile.in	2006-08-15 21:17:07.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -10951,9 +11000,9 @@ diff -urN gtk+-2.10.1.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+-2.10.1/contr
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/demos/Makefile.in gtk+-2.10.1/demos/Makefile.in
---- gtk+-2.10.1.orig/demos/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/demos/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/demos/Makefile.in gtk+-2.10.1-dfb/demos/Makefile.in
+--- gtk+-2.10.1-dfb.orig/demos/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/demos/Makefile.in	2006-08-15 21:17:07.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -10963,9 +11012,9 @@ diff -urN gtk+-2.10.1.orig/demos/Makefile.in gtk+-2.10.1/demos/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/demos/gtk-demo/Makefile.in gtk+-2.10.1/demos/gtk-demo/Makefile.in
---- gtk+-2.10.1.orig/demos/gtk-demo/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/demos/gtk-demo/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/demos/gtk-demo/Makefile.in gtk+-2.10.1-dfb/demos/gtk-demo/Makefile.in
+--- gtk+-2.10.1-dfb.orig/demos/gtk-demo/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/demos/gtk-demo/Makefile.in	2006-08-15 21:17:07.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -10975,9 +11024,9 @@ diff -urN gtk+-2.10.1.orig/demos/gtk-demo/Makefile.in gtk+-2.10.1/demos/gtk-demo
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/docs/Makefile.in gtk+-2.10.1/docs/Makefile.in
---- gtk+-2.10.1.orig/docs/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/docs/Makefile.in gtk+-2.10.1-dfb/docs/Makefile.in
+--- gtk+-2.10.1-dfb.orig/docs/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/docs/Makefile.in	2006-08-15 21:17:07.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -10987,9 +11036,9 @@ diff -urN gtk+-2.10.1.orig/docs/Makefile.in gtk+-2.10.1/docs/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/docs/faq/Makefile.in gtk+-2.10.1/docs/faq/Makefile.in
---- gtk+-2.10.1.orig/docs/faq/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/faq/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/docs/faq/Makefile.in gtk+-2.10.1-dfb/docs/faq/Makefile.in
+--- gtk+-2.10.1-dfb.orig/docs/faq/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/docs/faq/Makefile.in	2006-08-15 21:17:08.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -10999,9 +11048,9 @@ diff -urN gtk+-2.10.1.orig/docs/faq/Makefile.in gtk+-2.10.1/docs/faq/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/docs/reference/Makefile.in gtk+-2.10.1/docs/reference/Makefile.in
---- gtk+-2.10.1.orig/docs/reference/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/reference/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/docs/reference/Makefile.in gtk+-2.10.1-dfb/docs/reference/Makefile.in
+--- gtk+-2.10.1-dfb.orig/docs/reference/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/docs/reference/Makefile.in	2006-08-15 21:17:08.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11011,9 +11060,9 @@ diff -urN gtk+-2.10.1.orig/docs/reference/Makefile.in gtk+-2.10.1/docs/reference
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/docs/reference/gdk/Makefile.in gtk+-2.10.1/docs/reference/gdk/Makefile.in
---- gtk+-2.10.1.orig/docs/reference/gdk/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/reference/gdk/Makefile.in	2006-08-15 12:00:50.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/docs/reference/gdk/Makefile.in gtk+-2.10.1-dfb/docs/reference/gdk/Makefile.in
+--- gtk+-2.10.1-dfb.orig/docs/reference/gdk/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/docs/reference/gdk/Makefile.in	2006-08-15 21:17:08.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11023,9 +11072,9 @@ diff -urN gtk+-2.10.1.orig/docs/reference/gdk/Makefile.in gtk+-2.10.1/docs/refer
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+-2.10.1/docs/reference/gdk-pixbuf/Makefile.in
---- gtk+-2.10.1.orig/docs/reference/gdk-pixbuf/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/reference/gdk-pixbuf/Makefile.in	2006-08-15 12:00:49.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+-2.10.1-dfb/docs/reference/gdk-pixbuf/Makefile.in
+--- gtk+-2.10.1-dfb.orig/docs/reference/gdk-pixbuf/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/docs/reference/gdk-pixbuf/Makefile.in	2006-08-15 21:17:08.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11035,9 +11084,9 @@ diff -urN gtk+-2.10.1.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+-2.10.1/doc
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/docs/reference/gtk/Makefile.in gtk+-2.10.1/docs/reference/gtk/Makefile.in
---- gtk+-2.10.1.orig/docs/reference/gtk/Makefile.in	2006-07-24 00:20:54.000000000 +0200
-+++ gtk+-2.10.1/docs/reference/gtk/Makefile.in	2006-08-15 12:00:50.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/docs/reference/gtk/Makefile.in gtk+-2.10.1-dfb/docs/reference/gtk/Makefile.in
+--- gtk+-2.10.1-dfb.orig/docs/reference/gtk/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/docs/reference/gtk/Makefile.in	2006-08-15 21:17:08.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11047,9 +11096,9 @@ diff -urN gtk+-2.10.1.orig/docs/reference/gtk/Makefile.in gtk+-2.10.1/docs/refer
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/docs/tools/Makefile.in gtk+-2.10.1/docs/tools/Makefile.in
---- gtk+-2.10.1.orig/docs/tools/Makefile.in	2006-07-24 00:20:54.000000000 +0200
-+++ gtk+-2.10.1/docs/tools/Makefile.in	2006-08-15 12:00:50.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/docs/tools/Makefile.in gtk+-2.10.1-dfb/docs/tools/Makefile.in
+--- gtk+-2.10.1-dfb.orig/docs/tools/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/docs/tools/Makefile.in	2006-08-15 21:17:08.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11059,9 +11108,9 @@ diff -urN gtk+-2.10.1.orig/docs/tools/Makefile.in gtk+-2.10.1/docs/tools/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/docs/tutorial/Makefile.in gtk+-2.10.1/docs/tutorial/Makefile.in
---- gtk+-2.10.1.orig/docs/tutorial/Makefile.in	2006-07-24 00:20:54.000000000 +0200
-+++ gtk+-2.10.1/docs/tutorial/Makefile.in	2006-08-15 12:00:50.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/docs/tutorial/Makefile.in gtk+-2.10.1-dfb/docs/tutorial/Makefile.in
+--- gtk+-2.10.1-dfb.orig/docs/tutorial/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/docs/tutorial/Makefile.in	2006-08-15 21:17:08.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11071,9 +11120,9 @@ diff -urN gtk+-2.10.1.orig/docs/tutorial/Makefile.in gtk+-2.10.1/docs/tutorial/M
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk/Makefile.in gtk+-2.10.1/gdk/Makefile.in
---- gtk+-2.10.1.orig/gdk/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk/Makefile.in	2006-08-15 12:00:51.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk/Makefile.in gtk+-2.10.1-dfb/gdk/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk/Makefile.in	2006-08-15 21:17:09.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11083,9 +11132,9 @@ diff -urN gtk+-2.10.1.orig/gdk/Makefile.in gtk+-2.10.1/gdk/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk/directfb/Makefile.in gtk+-2.10.1/gdk/directfb/Makefile.in
---- gtk+-2.10.1.orig/gdk/directfb/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk/directfb/Makefile.in	2006-08-15 12:00:51.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk/directfb/Makefile.in gtk+-2.10.1-dfb/gdk/directfb/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk/directfb/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk/directfb/Makefile.in	2006-08-15 21:17:09.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11095,9 +11144,9 @@ diff -urN gtk+-2.10.1.orig/gdk/directfb/Makefile.in gtk+-2.10.1/gdk/directfb/Mak
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk/linux-fb/Makefile.in gtk+-2.10.1/gdk/linux-fb/Makefile.in
---- gtk+-2.10.1.orig/gdk/linux-fb/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk/linux-fb/Makefile.in	2006-08-15 12:00:51.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk/linux-fb/Makefile.in gtk+-2.10.1-dfb/gdk/linux-fb/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk/linux-fb/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk/linux-fb/Makefile.in	2006-08-15 21:17:09.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11107,9 +11156,9 @@ diff -urN gtk+-2.10.1.orig/gdk/linux-fb/Makefile.in gtk+-2.10.1/gdk/linux-fb/Mak
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk/quartz/Makefile.in gtk+-2.10.1/gdk/quartz/Makefile.in
---- gtk+-2.10.1.orig/gdk/quartz/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk/quartz/Makefile.in	2006-08-15 12:00:51.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk/quartz/Makefile.in gtk+-2.10.1-dfb/gdk/quartz/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk/quartz/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk/quartz/Makefile.in	2006-08-15 21:17:09.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11119,9 +11168,9 @@ diff -urN gtk+-2.10.1.orig/gdk/quartz/Makefile.in gtk+-2.10.1/gdk/quartz/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk/win32/Makefile.in gtk+-2.10.1/gdk/win32/Makefile.in
---- gtk+-2.10.1.orig/gdk/win32/Makefile.in	2006-07-24 00:20:56.000000000 +0200
-+++ gtk+-2.10.1/gdk/win32/Makefile.in	2006-08-15 12:00:51.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk/win32/Makefile.in gtk+-2.10.1-dfb/gdk/win32/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk/win32/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk/win32/Makefile.in	2006-08-15 21:17:09.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11131,9 +11180,9 @@ diff -urN gtk+-2.10.1.orig/gdk/win32/Makefile.in gtk+-2.10.1/gdk/win32/Makefile.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk/win32/rc/Makefile.in gtk+-2.10.1/gdk/win32/rc/Makefile.in
---- gtk+-2.10.1.orig/gdk/win32/rc/Makefile.in	2006-07-24 00:20:56.000000000 +0200
-+++ gtk+-2.10.1/gdk/win32/rc/Makefile.in	2006-08-15 12:00:51.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk/win32/rc/Makefile.in gtk+-2.10.1-dfb/gdk/win32/rc/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk/win32/rc/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk/win32/rc/Makefile.in	2006-08-15 21:17:09.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11143,9 +11192,9 @@ diff -urN gtk+-2.10.1.orig/gdk/win32/rc/Makefile.in gtk+-2.10.1/gdk/win32/rc/Mak
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk/x11/Makefile.in gtk+-2.10.1/gdk/x11/Makefile.in
---- gtk+-2.10.1.orig/gdk/x11/Makefile.in	2006-07-24 00:20:56.000000000 +0200
-+++ gtk+-2.10.1/gdk/x11/Makefile.in	2006-08-15 12:00:51.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk/x11/Makefile.in gtk+-2.10.1-dfb/gdk/x11/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk/x11/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk/x11/Makefile.in	2006-08-15 21:17:10.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11155,9 +11204,9 @@ diff -urN gtk+-2.10.1.orig/gdk/x11/Makefile.in gtk+-2.10.1/gdk/x11/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk-pixbuf/Makefile.in gtk+-2.10.1/gdk-pixbuf/Makefile.in
---- gtk+-2.10.1.orig/gdk-pixbuf/Makefile.in	2006-07-24 00:20:54.000000000 +0200
-+++ gtk+-2.10.1/gdk-pixbuf/Makefile.in	2006-08-15 12:00:50.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk-pixbuf/Makefile.in gtk+-2.10.1-dfb/gdk-pixbuf/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk-pixbuf/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk-pixbuf/Makefile.in	2006-08-15 21:17:08.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11167,9 +11216,9 @@ diff -urN gtk+-2.10.1.orig/gdk-pixbuf/Makefile.in gtk+-2.10.1/gdk-pixbuf/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gdk-pixbuf/pixops/Makefile.in gtk+-2.10.1/gdk-pixbuf/pixops/Makefile.in
---- gtk+-2.10.1.orig/gdk-pixbuf/pixops/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk-pixbuf/pixops/Makefile.in	2006-08-15 12:00:50.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gdk-pixbuf/pixops/Makefile.in gtk+-2.10.1-dfb/gdk-pixbuf/pixops/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gdk-pixbuf/pixops/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gdk-pixbuf/pixops/Makefile.in	2006-08-15 21:17:09.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11179,9 +11228,9 @@ diff -urN gtk+-2.10.1.orig/gdk-pixbuf/pixops/Makefile.in gtk+-2.10.1/gdk-pixbuf/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gtk/Makefile.in gtk+-2.10.1/gtk/Makefile.in
---- gtk+-2.10.1.orig/gtk/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/gtk/Makefile.in	2006-08-15 12:00:52.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gtk/Makefile.in gtk+-2.10.1-dfb/gtk/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gtk/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gtk/Makefile.in	2006-08-15 21:17:10.000000000 +0200
 @@ -129,6 +129,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11191,9 +11240,9 @@ diff -urN gtk+-2.10.1.orig/gtk/Makefile.in gtk+-2.10.1/gtk/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gtk/theme-bits/Makefile.in gtk+-2.10.1/gtk/theme-bits/Makefile.in
---- gtk+-2.10.1.orig/gtk/theme-bits/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/gtk/theme-bits/Makefile.in	2006-08-15 12:00:52.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gtk/theme-bits/Makefile.in gtk+-2.10.1-dfb/gtk/theme-bits/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gtk/theme-bits/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gtk/theme-bits/Makefile.in	2006-08-15 21:17:10.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11203,9 +11252,9 @@ diff -urN gtk+-2.10.1.orig/gtk/theme-bits/Makefile.in gtk+-2.10.1/gtk/theme-bits
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/gtk/xdgmime/Makefile.in gtk+-2.10.1/gtk/xdgmime/Makefile.in
---- gtk+-2.10.1.orig/gtk/xdgmime/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/gtk/xdgmime/Makefile.in	2006-08-15 12:00:52.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/gtk/xdgmime/Makefile.in gtk+-2.10.1-dfb/gtk/xdgmime/Makefile.in
+--- gtk+-2.10.1-dfb.orig/gtk/xdgmime/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/gtk/xdgmime/Makefile.in	2006-08-15 21:17:10.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11215,9 +11264,9 @@ diff -urN gtk+-2.10.1.orig/gtk/xdgmime/Makefile.in gtk+-2.10.1/gtk/xdgmime/Makef
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/ltmain.sh gtk+-2.10.1/ltmain.sh
---- gtk+-2.10.1.orig/ltmain.sh	2006-03-21 19:11:53.000000000 +0100
-+++ gtk+-2.10.1/ltmain.sh	2006-03-11 19:49:04.000000000 +0100
+diff -urN gtk+-2.10.1-dfb.orig/ltmain.sh gtk+-2.10.1-dfb/ltmain.sh
+--- gtk+-2.10.1-dfb.orig/ltmain.sh	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/ltmain.sh	2006-03-11 19:49:04.000000000 +0100
 @@ -43,8 +43,8 @@
  
  PROGRAM=ltmain.sh
@@ -12761,9 +12810,9 @@ diff -urN gtk+-2.10.1.orig/ltmain.sh gtk+-2.10.1/ltmain.sh
  # ### END LIBTOOL TAG CONFIG: disable-static
  
  # Local Variables:
-diff -urN gtk+-2.10.1.orig/m4macros/Makefile.in gtk+-2.10.1/m4macros/Makefile.in
---- gtk+-2.10.1.orig/m4macros/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/m4macros/Makefile.in	2006-08-15 12:00:52.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/m4macros/Makefile.in gtk+-2.10.1-dfb/m4macros/Makefile.in
+--- gtk+-2.10.1-dfb.orig/m4macros/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/m4macros/Makefile.in	2006-08-15 21:17:10.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12773,9 +12822,9 @@ diff -urN gtk+-2.10.1.orig/m4macros/Makefile.in gtk+-2.10.1/m4macros/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/Makefile.in gtk+-2.10.1/modules/Makefile.in
---- gtk+-2.10.1.orig/modules/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/modules/Makefile.in	2006-08-15 12:00:52.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/Makefile.in gtk+-2.10.1-dfb/modules/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/Makefile.in	2006-08-15 21:17:10.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12785,9 +12834,9 @@ diff -urN gtk+-2.10.1.orig/modules/Makefile.in gtk+-2.10.1/modules/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/engines/Makefile.in gtk+-2.10.1/modules/engines/Makefile.in
---- gtk+-2.10.1.orig/modules/engines/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/Makefile.in	2006-08-15 12:00:52.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/engines/Makefile.in gtk+-2.10.1-dfb/modules/engines/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/engines/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/engines/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12797,9 +12846,9 @@ diff -urN gtk+-2.10.1.orig/modules/engines/Makefile.in gtk+-2.10.1/modules/engin
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Makefile.in gtk+-2.10.1/modules/engines/ms-windows/Makefile.in
---- gtk+-2.10.1.orig/modules/engines/ms-windows/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/ms-windows/Makefile.in	2006-08-15 12:00:53.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/engines/ms-windows/Makefile.in gtk+-2.10.1-dfb/modules/engines/ms-windows/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/engines/ms-windows/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/engines/ms-windows/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12809,9 +12858,9 @@ diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Makefile.in gtk+-2.10.1/mo
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+-2.10.1/modules/engines/ms-windows/Theme/Makefile.in
---- gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/ms-windows/Theme/Makefile.in	2006-08-15 12:00:53.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+-2.10.1-dfb/modules/engines/ms-windows/Theme/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/engines/ms-windows/Theme/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/engines/ms-windows/Theme/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12821,9 +12870,9 @@ diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+-2.1
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+-2.10.1/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
---- gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-08-15 12:00:53.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+-2.10.1-dfb/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-08-15 21:16:11.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12833,9 +12882,9 @@ diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in 
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/engines/pixbuf/Makefile.in gtk+-2.10.1/modules/engines/pixbuf/Makefile.in
---- gtk+-2.10.1.orig/modules/engines/pixbuf/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/pixbuf/Makefile.in	2006-08-15 12:00:53.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/engines/pixbuf/Makefile.in gtk+-2.10.1-dfb/modules/engines/pixbuf/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/engines/pixbuf/Makefile.in	2006-08-15 21:16:12.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/engines/pixbuf/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12845,9 +12894,9 @@ diff -urN gtk+-2.10.1.orig/modules/engines/pixbuf/Makefile.in gtk+-2.10.1/module
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/input/Makefile.in gtk+-2.10.1/modules/input/Makefile.in
---- gtk+-2.10.1.orig/modules/input/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/input/Makefile.in	2006-08-15 12:00:53.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/input/Makefile.in gtk+-2.10.1-dfb/modules/input/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/input/Makefile.in	2006-08-15 21:16:12.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/input/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12889,9 +12938,9 @@ diff -urN gtk+-2.10.1.orig/modules/input/Makefile.in gtk+-2.10.1/modules/input/M
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
-diff -urN gtk+-2.10.1.orig/modules/printbackends/Makefile.in gtk+-2.10.1/modules/printbackends/Makefile.in
---- gtk+-2.10.1.orig/modules/printbackends/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/printbackends/Makefile.in	2006-08-15 12:00:53.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/printbackends/Makefile.in gtk+-2.10.1-dfb/modules/printbackends/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/printbackends/Makefile.in	2006-08-15 21:16:12.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/printbackends/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12901,9 +12950,9 @@ diff -urN gtk+-2.10.1.orig/modules/printbackends/Makefile.in gtk+-2.10.1/modules
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/printbackends/cups/Makefile.in gtk+-2.10.1/modules/printbackends/cups/Makefile.in
---- gtk+-2.10.1.orig/modules/printbackends/cups/Makefile.in	2006-07-24 00:20:59.000000000 +0200
-+++ gtk+-2.10.1/modules/printbackends/cups/Makefile.in	2006-08-15 12:00:53.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/printbackends/cups/Makefile.in gtk+-2.10.1-dfb/modules/printbackends/cups/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/printbackends/cups/Makefile.in	2006-08-15 21:16:12.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/printbackends/cups/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12913,9 +12962,9 @@ diff -urN gtk+-2.10.1.orig/modules/printbackends/cups/Makefile.in gtk+-2.10.1/mo
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/printbackends/file/Makefile.in gtk+-2.10.1/modules/printbackends/file/Makefile.in
---- gtk+-2.10.1.orig/modules/printbackends/file/Makefile.in	2006-07-24 00:20:59.000000000 +0200
-+++ gtk+-2.10.1/modules/printbackends/file/Makefile.in	2006-08-15 12:00:53.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/printbackends/file/Makefile.in gtk+-2.10.1-dfb/modules/printbackends/file/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/printbackends/file/Makefile.in	2006-08-15 21:16:12.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/printbackends/file/Makefile.in	2006-08-15 21:17:11.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12925,9 +12974,9 @@ diff -urN gtk+-2.10.1.orig/modules/printbackends/file/Makefile.in gtk+-2.10.1/mo
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/modules/printbackends/lpr/Makefile.in gtk+-2.10.1/modules/printbackends/lpr/Makefile.in
---- gtk+-2.10.1.orig/modules/printbackends/lpr/Makefile.in	2006-07-24 00:20:59.000000000 +0200
-+++ gtk+-2.10.1/modules/printbackends/lpr/Makefile.in	2006-08-15 12:00:54.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/modules/printbackends/lpr/Makefile.in gtk+-2.10.1-dfb/modules/printbackends/lpr/Makefile.in
+--- gtk+-2.10.1-dfb.orig/modules/printbackends/lpr/Makefile.in	2006-08-15 21:16:12.000000000 +0200
++++ gtk+-2.10.1-dfb/modules/printbackends/lpr/Makefile.in	2006-08-15 21:17:12.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12937,9 +12986,9 @@ diff -urN gtk+-2.10.1.orig/modules/printbackends/lpr/Makefile.in gtk+-2.10.1/mod
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/perf/Makefile.in gtk+-2.10.1/perf/Makefile.in
---- gtk+-2.10.1.orig/perf/Makefile.in	2006-07-24 00:20:59.000000000 +0200
-+++ gtk+-2.10.1/perf/Makefile.in	2006-08-15 12:00:54.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/perf/Makefile.in gtk+-2.10.1-dfb/perf/Makefile.in
+--- gtk+-2.10.1-dfb.orig/perf/Makefile.in	2006-08-15 21:16:12.000000000 +0200
++++ gtk+-2.10.1-dfb/perf/Makefile.in	2006-08-15 21:17:12.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -12949,9 +12998,9 @@ diff -urN gtk+-2.10.1.orig/perf/Makefile.in gtk+-2.10.1/perf/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN gtk+-2.10.1.orig/tests/Makefile.in gtk+-2.10.1/tests/Makefile.in
---- gtk+-2.10.1.orig/tests/Makefile.in	2006-07-24 00:21:00.000000000 +0200
-+++ gtk+-2.10.1/tests/Makefile.in	2006-08-15 12:00:54.000000000 +0200
+diff -urN gtk+-2.10.1-dfb.orig/tests/Makefile.in gtk+-2.10.1-dfb/tests/Makefile.in
+--- gtk+-2.10.1-dfb.orig/tests/Makefile.in	2006-08-15 21:16:12.000000000 +0200
++++ gtk+-2.10.1-dfb/tests/Makefile.in	2006-08-15 21:17:12.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@

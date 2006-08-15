@@ -155,6 +155,7 @@ $(STAMP_DIR)/configure-dfb-stamp:
 			--enable-shared \
 			--disable-static \
 			--with-gdktarget=directfb \
+			--with-cairo-backend=directfb \
 			--enable-explicit-deps=yes
 
 	cd $(BUILD_DFB_DIR) && \

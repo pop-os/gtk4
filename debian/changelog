@@ -32,8 +32,14 @@ gtk+2.0 (2.10.1-1) experimental-WIP; urgency=low
     - New patch, 002_static-linking-dont-build-perf, to avoid building the
       perf measurement tools in static builds; see GNOME #346559; needs
       the 001_gtk+-2.2.0-buildfix-immodule patch.
+    - New patch, 009_configurable-cairo-backend-module, to add a new
+      --with-cairo-backend flag which will select a cairo-$backend.pc
+      pkg-config module instead of the default of cairo.pc; see GNOME #351509.
+    - Configure with --with-cairo-backend=directfb for the dfb build.
+    - New patch, 010_gdk-require-cairo-module, to require the Cflags and Libs
+      from the cairo-directfb module (as $cairo_module); see GNOME #351519.
 
- -- Loic Minier <lool@dooz.org>  Tue, 15 Aug 2006 11:58:26 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 15 Aug 2006 21:14:04 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
