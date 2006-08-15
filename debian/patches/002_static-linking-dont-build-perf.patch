@@ -1,0 +1,16 @@
+diff -urN gtk+-2.10.1.orig/Makefile.am gtk+-2.10.1/Makefile.am
+--- gtk+-2.10.1.orig/Makefile.am	2006-05-05 18:07:44.000000000 +0200
++++ gtk+-2.10.1/Makefile.am	2006-08-15 11:57:07.000000000 +0200
+@@ -1,6 +1,11 @@
+ ## Makefile.am for GTK+
+ 
+-SRC_SUBDIRS = gdk-pixbuf gdk gtk modules demos tests perf contrib
++# don't build perf measurement tools in static builds
++if !ENABLE_STATIC
++MAYBE_PERF = perf
++endif
++
++SRC_SUBDIRS = gdk-pixbuf gdk gtk modules demos tests $(MAYBE_PERF) contrib
+ SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros
+ 
+ # require automake 1.4

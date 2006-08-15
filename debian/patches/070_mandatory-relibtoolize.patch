@@ -1,6 +1,6 @@
 diff -urN gtk+-2.10.1.orig/Makefile.in gtk+-2.10.1/Makefile.in
 --- gtk+-2.10.1.orig/Makefile.in	2006-07-24 00:20:52.000000000 +0200
-+++ gtk+-2.10.1/Makefile.in	2006-08-15 10:21:00.000000000 +0200
++++ gtk+-2.10.1/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -10,7 +10,19 @@ diff -urN gtk+-2.10.1.orig/Makefile.in gtk+-2.10.1/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -443,7 +445,7 @@
+@@ -292,7 +294,10 @@
+ sysconfdir = @sysconfdir@
+ target_alias = @target_alias@
+ 
+-SRC_SUBDIRS = gdk-pixbuf gdk gtk modules demos tests perf contrib
++# don't build perf measurement tools in static builds
++@ENABLE_STATIC_FALSE@MAYBE_PERF = perf
++
++SRC_SUBDIRS = gdk-pixbuf gdk gtk modules demos tests $(MAYBE_PERF) contrib
+ SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros
+ 
+ # require automake 1.4
+@@ -443,13 +448,14 @@
  DIST_COMMON = README $(srcdir)/Makefile.in $(srcdir)/configure AUTHORS \
  	COPYING ChangeLog INSTALL Makefile.am NEWS acconfig.h \
  	acinclude.m4 aclocal.m4 compile config.guess config.h.in \
@@ -19,9 +31,26 @@ diff -urN gtk+-2.10.1.orig/Makefile.in gtk+-2.10.1/Makefile.in
  	gdk-2.0-uninstalled.pc.in gdk-2.0.pc.in \
  	gdk-pixbuf-2.0-uninstalled.pc.in gdk-pixbuf-2.0.pc.in \
  	gtk+-2.0-uninstalled.pc.in gtk+-2.0.pc.in \
+ 	gtk+-unix-print-2.0.pc.in gtk-zip.sh.in install-sh ltmain.sh \
+ 	missing mkinstalldirs
+-DIST_SUBDIRS = $(SUBDIRS)
++DIST_SUBDIRS = po po-properties gdk-pixbuf gdk gtk modules demos tests \
++	perf contrib docs m4macros
+ all: config.h
+ 	$(MAKE) $(AM_MAKEFLAGS) all-recursive
+ 
+@@ -701,7 +707,7 @@
+ 	    || exit 1; \
+ 	  fi; \
+ 	done
+-	list='$(SUBDIRS)'; for subdir in $$list; do \
++	list='$(DIST_SUBDIRS)'; for subdir in $$list; do \
+ 	  if test "$$subdir" = .; then :; else \
+ 	    test -d $(distdir)/$$subdir \
+ 	    || mkdir $(distdir)/$$subdir \
 diff -urN gtk+-2.10.1.orig/aclocal.m4 gtk+-2.10.1/aclocal.m4
 --- gtk+-2.10.1.orig/aclocal.m4	2006-07-24 00:20:33.000000000 +0200
-+++ gtk+-2.10.1/aclocal.m4	2006-08-15 10:20:50.000000000 +0200
++++ gtk+-2.10.1/aclocal.m4	2006-08-15 12:00:29.000000000 +0200
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -2187,540 +2216,9 @@ diff -urN gtk+-2.10.1.orig/aclocal.m4 gtk+-2.10.1/aclocal.m4
  
  To get pkg-config, see <http://www.freedesktop.org/software/pkgconfig>.])],
  		[$4])
-diff -urN gtk+-2.10.1.orig/config.guess gtk+-2.10.1/config.guess
---- gtk+-2.10.1.orig/config.guess	2006-03-21 19:11:53.000000000 +0100
-+++ gtk+-2.10.1/config.guess	2006-08-10 17:17:12.000000000 +0200
-@@ -1,9 +1,10 @@
- #! /bin/sh
- # Attempt to guess a canonical system name.
- #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
--#   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
-+#   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation,
-+#   Inc.
- 
--timestamp='2005-05-15'
-+timestamp='2006-07-02'
- 
- # This file is free software; you can redistribute it and/or modify it
- # under the terms of the GNU General Public License as published by
-@@ -106,7 +107,7 @@
- trap "exitcode=\$?; (rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null) && exit \$exitcode" 0 ;
- trap "rm -f \$tmpfiles 2>/dev/null; rmdir \$tmp 2>/dev/null; exit 1" 1 2 13 15 ;
- : ${TMPDIR=/tmp} ;
-- { tmp=`(umask 077 && mktemp -d -q "$TMPDIR/cgXXXXXX") 2>/dev/null` && test -n "$tmp" && test -d "$tmp" ; } ||
-+ { tmp=`(umask 077 && mktemp -d "$TMPDIR/cgXXXXXX") 2>/dev/null` && test -n "$tmp" && test -d "$tmp" ; } ||
-  { test -n "$RANDOM" && tmp=$TMPDIR/cg$$-$RANDOM && (umask 077 && mkdir $tmp) ; } ||
-  { tmp=$TMPDIR/cg-$$ && (umask 077 && mkdir $tmp) && echo "Warning: creating insecure temp directory" >&2 ; } ||
-  { echo "$me: cannot create a temporary directory in $TMPDIR" >&2 ; exit 1 ; } ;
-@@ -125,7 +126,7 @@
- 	;;
-  ,,*)   CC_FOR_BUILD=$CC ;;
-  ,*,*)  CC_FOR_BUILD=$HOST_CC ;;
--esac ;'
-+esac ; set_cc_for_build= ;'
- 
- # This is needed to find uname on a Pyramid OSx when run in the BSD universe.
- # (ghazi@noc.rutgers.edu 1994-08-24)
-@@ -199,50 +200,18 @@
- 	# CPU_TYPE-MANUFACTURER-OPERATING_SYSTEM is used.
- 	echo "${machine}-${os}${release}"
- 	exit ;;
--    amd64:OpenBSD:*:*)
--	echo x86_64-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    amiga:OpenBSD:*:*)
--	echo m68k-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    cats:OpenBSD:*:*)
--	echo arm-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    hp300:OpenBSD:*:*)
--	echo m68k-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    luna88k:OpenBSD:*:*)
--    	echo m88k-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    mac68k:OpenBSD:*:*)
--	echo m68k-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    macppc:OpenBSD:*:*)
--	echo powerpc-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    mvme68k:OpenBSD:*:*)
--	echo m68k-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    mvme88k:OpenBSD:*:*)
--	echo m88k-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    mvmeppc:OpenBSD:*:*)
--	echo powerpc-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    sgi:OpenBSD:*:*)
--	echo mips64-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
--    sun3:OpenBSD:*:*)
--	echo m68k-unknown-openbsd${UNAME_RELEASE}
--	exit ;;
-     *:OpenBSD:*:*)
--	echo ${UNAME_MACHINE}-unknown-openbsd${UNAME_RELEASE}
-+	UNAME_MACHINE_ARCH=`arch | sed 's/OpenBSD.//'`
-+	echo ${UNAME_MACHINE_ARCH}-unknown-openbsd${UNAME_RELEASE}
- 	exit ;;
-     *:ekkoBSD:*:*)
- 	echo ${UNAME_MACHINE}-unknown-ekkobsd${UNAME_RELEASE}
- 	exit ;;
-+    *:SolidBSD:*:*)
-+	echo ${UNAME_MACHINE}-unknown-solidbsd${UNAME_RELEASE}
-+	exit ;;
-     macppc:MirBSD:*:*)
--	echo powerppc-unknown-mirbsd${UNAME_RELEASE}
-+	echo powerpc-unknown-mirbsd${UNAME_RELEASE}
- 	exit ;;
-     *:MirBSD:*:*)
- 	echo ${UNAME_MACHINE}-unknown-mirbsd${UNAME_RELEASE}
-@@ -658,8 +627,7 @@
- 	esac
- 	if [ ${HP_ARCH} = "hppa2.0w" ]
- 	then
--	    # avoid double evaluation of $set_cc_for_build
--	    test -n "$CC_FOR_BUILD" || eval $set_cc_for_build
-+	    eval $set_cc_for_build
- 
- 	    # hppa2.0w-hp-hpux* has a 64-bit kernel and a compiler generating
- 	    # 32-bit code.  hppa64-hp-hpux* has the same kernel and a compiler
-@@ -800,19 +768,33 @@
- 	echo ${UNAME_MACHINE}-unknown-bsdi${UNAME_RELEASE}
- 	exit ;;
-     *:FreeBSD:*:*)
--	echo ${UNAME_MACHINE}-unknown-freebsd`echo ${UNAME_RELEASE}|sed -e 's/[-(].*//'`
-+	case ${UNAME_MACHINE} in
-+	    pc98)
-+		echo i386-unknown-freebsd`echo ${UNAME_RELEASE}|sed -e 's/[-(].*//'` ;;
-+	    amd64)
-+		echo x86_64-unknown-freebsd`echo ${UNAME_RELEASE}|sed -e 's/[-(].*//'` ;;
-+	    *)
-+		echo ${UNAME_MACHINE}-unknown-freebsd`echo ${UNAME_RELEASE}|sed -e 's/[-(].*//'` ;;
-+	esac
- 	exit ;;
-     i*:CYGWIN*:*)
- 	echo ${UNAME_MACHINE}-pc-cygwin
- 	exit ;;
--    i*:MINGW*:* | i*:windows32*:*)
-+    i*:MINGW*:*)
- 	echo ${UNAME_MACHINE}-pc-mingw32
- 	exit ;;
-+    i*:windows32*:*)
-+    	# uname -m includes "-pc" on this system.
-+    	echo ${UNAME_MACHINE}-mingw32
-+	exit ;;
-     i*:PW*:*)
- 	echo ${UNAME_MACHINE}-pc-pw32
- 	exit ;;
--    x86:Interix*:[34]*)
--	echo i586-pc-interix${UNAME_RELEASE}|sed -e 's/\..*//'
-+    x86:Interix*:[3456]*)
-+	echo i586-pc-interix${UNAME_RELEASE}
-+	exit ;;
-+    EM64T:Interix*:[3456]*)
-+	echo x86_64-unknown-interix${UNAME_RELEASE}
- 	exit ;;
-     [345]86:Windows_95:* | [345]86:Windows_98:* | [345]86:Windows_NT:*)
- 	echo i${UNAME_MACHINE}-pc-mks
-@@ -826,7 +808,7 @@
-     i*:UWIN*:*)
- 	echo ${UNAME_MACHINE}-pc-uwin
- 	exit ;;
--    amd64:CYGWIN*:*:*)
-+    amd64:CYGWIN*:*:* | x86_64:CYGWIN*:*:*)
- 	echo x86_64-unknown-cygwin
- 	exit ;;
-     p*:CYGWIN*:*)
-@@ -849,6 +831,9 @@
-     arm*:Linux:*:*)
- 	echo ${UNAME_MACHINE}-unknown-linux-gnu
- 	exit ;;
-+    avr32*:Linux:*:*)
-+	echo ${UNAME_MACHINE}-unknown-linux-gnu
-+	exit ;;
-     cris:Linux:*:*)
- 	echo cris-axis-linux-gnu
- 	exit ;;
-@@ -883,7 +868,11 @@
- 	#endif
- 	#endif
- EOF
--	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep ^CPU=`
-+	eval "`$CC_FOR_BUILD -E $dummy.c 2>/dev/null | sed -n '
-+	    /^CPU/{
-+		s: ::g
-+		p
-+	    }'`"
- 	test x"${CPU}" != x && { echo "${CPU}-unknown-linux-gnu"; exit; }
- 	;;
-     mips64:Linux:*:*)
-@@ -902,9 +891,16 @@
- 	#endif
- 	#endif
- EOF
--	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep ^CPU=`
-+	eval "`$CC_FOR_BUILD -E $dummy.c 2>/dev/null | sed -n '
-+	    /^CPU/{
-+		s: ::g
-+		p
-+	    }'`"
- 	test x"${CPU}" != x && { echo "${CPU}-unknown-linux-gnu"; exit; }
- 	;;
-+    or32:Linux:*:*)
-+	echo or32-unknown-linux-gnu
-+	exit ;;
-     ppc:Linux:*:*)
- 	echo powerpc-unknown-linux-gnu
- 	exit ;;
-@@ -948,6 +944,9 @@
-     sparc:Linux:*:* | sparc64:Linux:*:*)
- 	echo ${UNAME_MACHINE}-unknown-linux-gnu
- 	exit ;;
-+    vax:Linux:*:*)
-+	echo ${UNAME_MACHINE}-dec-linux-gnu
-+	exit ;;
-     x86_64:Linux:*:*)
- 	echo x86_64-unknown-linux-gnu
- 	exit ;;
-@@ -993,7 +992,7 @@
- 	LIBC=gnulibc1
- 	# endif
- 	#else
--	#ifdef __INTEL_COMPILER
-+	#if defined(__INTEL_COMPILER) || defined(__PGI) || defined(__SUNPRO_C) || defined(__SUNPRO_CC)
- 	LIBC=gnu
- 	#else
- 	LIBC=gnuaout
-@@ -1003,7 +1002,11 @@
- 	LIBC=dietlibc
- 	#endif
- EOF
--	eval `$CC_FOR_BUILD -E $dummy.c 2>/dev/null | grep ^LIBC=`
-+	eval "`$CC_FOR_BUILD -E $dummy.c 2>/dev/null | sed -n '
-+	    /^LIBC/{
-+		s: ::g
-+		p
-+	    }'`"
- 	test x"${LIBC}" != x && {
- 		echo "${UNAME_MACHINE}-pc-linux-${LIBC}"
- 		exit
-@@ -1214,7 +1217,6 @@
-     *:Darwin:*:*)
- 	UNAME_PROCESSOR=`uname -p` || UNAME_PROCESSOR=unknown
- 	case $UNAME_PROCESSOR in
--	    *86) UNAME_PROCESSOR=i686 ;;
- 	    unknown) UNAME_PROCESSOR=powerpc ;;
- 	esac
- 	echo ${UNAME_PROCESSOR}-apple-darwin${UNAME_RELEASE}
-@@ -1293,6 +1295,9 @@
-     i*86:skyos:*:*)
- 	echo ${UNAME_MACHINE}-pc-skyos`echo ${UNAME_RELEASE}` | sed -e 's/ .*$//'
- 	exit ;;
-+    i*86:rdos:*:*)
-+	echo ${UNAME_MACHINE}-pc-rdos
-+	exit ;;
- esac
- 
- #echo '(No uname command or uname output not recognized.)' 1>&2
-diff -urN gtk+-2.10.1.orig/config.sub gtk+-2.10.1/config.sub
---- gtk+-2.10.1.orig/config.sub	2006-03-21 19:11:53.000000000 +0100
-+++ gtk+-2.10.1/config.sub	2006-08-10 17:17:12.000000000 +0200
-@@ -1,9 +1,10 @@
- #! /bin/sh
- # Configuration validation subroutine script.
- #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
--#   2000, 2001, 2002, 2003, 2004, 2005 Free Software Foundation, Inc.
-+#   2000, 2001, 2002, 2003, 2004, 2005, 2006 Free Software Foundation,
-+#   Inc.
- 
--timestamp='2005-05-12'
-+timestamp='2006-07-02'
- 
- # This file is (in principle) common to ALL GNU software.
- # The presence of a machine in this file suggests that SOME GNU software
-@@ -119,8 +120,9 @@
- # Here we must recognize all the valid KERNEL-OS combinations.
- maybe_os=`echo $1 | sed 's/^\(.*\)-\([^-]*-[^-]*\)$/\2/'`
- case $maybe_os in
--  nto-qnx* | linux-gnu* | linux-dietlibc | linux-uclibc* | uclinux-uclibc* | uclinux-gnu* | \
--  kfreebsd*-gnu* | knetbsd*-gnu* | netbsd*-gnu* | storm-chaos* | os2-emx* | rtmk-nova*)
-+  nto-qnx* | linux-gnu* | linux-dietlibc | linux-newlib* | linux-uclibc* | \
-+  uclinux-uclibc* | uclinux-gnu* | kfreebsd*-gnu* | knetbsd*-gnu* | netbsd*-gnu* | \
-+  storm-chaos* | os2-emx* | rtmk-nova*)
-     os=-$maybe_os
-     basic_machine=`echo $1 | sed 's/^\(.*\)-\([^-]*-[^-]*\)$/\1/'`
-     ;;
-@@ -171,6 +173,10 @@
- 	-hiux*)
- 		os=-hiuxwe2
- 		;;
-+	-sco6)
-+		os=-sco5v6
-+		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
-+		;;
- 	-sco5)
- 		os=-sco3.2v5
- 		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
-@@ -187,6 +193,10 @@
- 		# Don't forget version if it is 3.2v4 or newer.
- 		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
- 		;;
-+	-sco5v6*)
-+		# Don't forget version if it is 3.2v4 or newer.
-+		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
-+		;;
- 	-sco*)
- 		os=-sco3.2v2
- 		basic_machine=`echo $1 | sed -e 's/86-.*/86-pc/'`
-@@ -231,7 +241,7 @@
- 	| alpha | alphaev[4-8] | alphaev56 | alphaev6[78] | alphapca5[67] \
- 	| alpha64 | alpha64ev[4-8] | alpha64ev56 | alpha64ev6[78] | alpha64pca5[67] \
- 	| am33_2.0 \
--	| arc | arm | arm[bl]e | arme[lb] | armv[2345] | armv[345][lb] | avr \
-+	| arc | arm | arm[bl]e | arme[lb] | armv[2345] | armv[345][lb] | avr | avr32 \
- 	| bfin \
- 	| c4x | clipper \
- 	| d10v | d30v | dlx | dsp16xx \
-@@ -239,7 +249,8 @@
- 	| h8300 | h8500 | hppa | hppa1.[01] | hppa2.0 | hppa2.0[nw] | hppa64 \
- 	| i370 | i860 | i960 | ia64 \
- 	| ip2k | iq2000 \
--	| m32r | m32rle | m68000 | m68k | m88k | maxq | mcore \
-+	| m32c | m32r | m32rle | m68000 | m68k | m88k \
-+	| maxq | mb | microblaze | mcore \
- 	| mips | mipsbe | mipseb | mipsel | mipsle \
- 	| mips16 \
- 	| mips64 | mips64el \
-@@ -248,6 +259,7 @@
- 	| mips64vr4100 | mips64vr4100el \
- 	| mips64vr4300 | mips64vr4300el \
- 	| mips64vr5000 | mips64vr5000el \
-+	| mips64vr5900 | mips64vr5900el \
- 	| mipsisa32 | mipsisa32el \
- 	| mipsisa32r2 | mipsisa32r2el \
- 	| mipsisa64 | mipsisa64el \
-@@ -256,17 +268,19 @@
- 	| mipsisa64sr71k | mipsisa64sr71kel \
- 	| mipstx39 | mipstx39el \
- 	| mn10200 | mn10300 \
-+	| mt \
- 	| msp430 \
-+	| nios | nios2 \
- 	| ns16k | ns32k \
--	| openrisc | or32 \
-+	| or32 \
- 	| pdp10 | pdp11 | pj | pjl \
- 	| powerpc | powerpc64 | powerpc64le | powerpcle | ppcbe \
- 	| pyramid \
--	| sh | sh[1234] | sh[23]e | sh[34]eb | shbe | shle | sh[1234]le | sh3ele \
-+	| sh | sh[1234] | sh[24]a | sh[23]e | sh[34]eb | sheb | shbe | shle | sh[1234]le | sh3ele \
- 	| sh64 | sh64le \
--	| sparc | sparc64 | sparc64b | sparc86x | sparclet | sparclite \
--	| sparcv8 | sparcv9 | sparcv9b \
--	| strongarm \
-+	| sparc | sparc64 | sparc64b | sparc64v | sparc86x | sparclet | sparclite \
-+	| sparcv8 | sparcv9 | sparcv9b | sparcv9v \
-+	| spu | strongarm \
- 	| tahoe | thumb | tic4x | tic80 | tron \
- 	| v850 | v850e \
- 	| we32k \
-@@ -281,6 +295,9 @@
- 		;;
- 	m88110 | m680[12346]0 | m683?2 | m68360 | m5200 | v70 | w65 | z8k)
- 		;;
-+	ms1)
-+		basic_machine=mt-unknown
-+		;;
- 
- 	# We use `pc' rather than `unknown'
- 	# because (1) that's what they normally are, and
-@@ -300,7 +317,7 @@
- 	| alpha64-* | alpha64ev[4-8]-* | alpha64ev56-* | alpha64ev6[78]-* \
- 	| alphapca5[67]-* | alpha64pca5[67]-* | arc-* \
- 	| arm-*  | armbe-* | armle-* | armeb-* | armv*-* \
--	| avr-* \
-+	| avr-* | avr32-* \
- 	| bfin-* | bs2000-* \
- 	| c[123]* | c30-* | [cjt]90-* | c4x-* | c54x-* | c55x-* | c6x-* \
- 	| clipper-* | craynv-* | cydra-* \
-@@ -311,7 +328,7 @@
- 	| hppa-* | hppa1.[01]-* | hppa2.0-* | hppa2.0[nw]-* | hppa64-* \
- 	| i*86-* | i860-* | i960-* | ia64-* \
- 	| ip2k-* | iq2000-* \
--	| m32r-* | m32rle-* \
-+	| m32c-* | m32r-* | m32rle-* \
- 	| m68000-* | m680[012346]0-* | m68360-* | m683?2-* | m68k-* \
- 	| m88110-* | m88k-* | maxq-* | mcore-* \
- 	| mips-* | mipsbe-* | mipseb-* | mipsel-* | mipsle-* \
-@@ -322,6 +339,7 @@
- 	| mips64vr4100-* | mips64vr4100el-* \
- 	| mips64vr4300-* | mips64vr4300el-* \
- 	| mips64vr5000-* | mips64vr5000el-* \
-+	| mips64vr5900-* | mips64vr5900el-* \
- 	| mipsisa32-* | mipsisa32el-* \
- 	| mipsisa32r2-* | mipsisa32r2el-* \
- 	| mipsisa64-* | mipsisa64el-* \
-@@ -330,18 +348,20 @@
- 	| mipsisa64sr71k-* | mipsisa64sr71kel-* \
- 	| mipstx39-* | mipstx39el-* \
- 	| mmix-* \
-+	| mt-* \
- 	| msp430-* \
-+	| nios-* | nios2-* \
- 	| none-* | np1-* | ns16k-* | ns32k-* \
- 	| orion-* \
- 	| pdp10-* | pdp11-* | pj-* | pjl-* | pn-* | power-* \
- 	| powerpc-* | powerpc64-* | powerpc64le-* | powerpcle-* | ppcbe-* \
- 	| pyramid-* \
- 	| romp-* | rs6000-* \
--	| sh-* | sh[1234]-* | sh[23]e-* | sh[34]eb-* | shbe-* \
-+	| sh-* | sh[1234]-* | sh[24]a-* | sh[23]e-* | sh[34]eb-* | sheb-* | shbe-* \
- 	| shle-* | sh[1234]le-* | sh3ele-* | sh64-* | sh64le-* \
--	| sparc-* | sparc64-* | sparc64b-* | sparc86x-* | sparclet-* \
-+	| sparc-* | sparc64-* | sparc64b-* | sparc64v-* | sparc86x-* | sparclet-* \
- 	| sparclite-* \
--	| sparcv8-* | sparcv9-* | sparcv9b-* | strongarm-* | sv1-* | sx?-* \
-+	| sparcv8-* | sparcv9-* | sparcv9b-* | sparcv9v-* | strongarm-* | sv1-* | sx?-* \
- 	| tahoe-* | thumb-* \
- 	| tic30-* | tic4x-* | tic54x-* | tic55x-* | tic6x-* | tic80-* \
- 	| tron-* \
-@@ -687,6 +707,9 @@
- 		basic_machine=i386-pc
- 		os=-msdos
- 		;;
-+	ms1-*)
-+		basic_machine=`echo $basic_machine | sed -e 's/ms1-/mt-/'`
-+		;;
- 	mvs)
- 		basic_machine=i370-ibm
- 		os=-mvs
-@@ -762,9 +785,8 @@
- 		basic_machine=hppa1.1-oki
- 		os=-proelf
- 		;;
--	or32 | or32-*)
-+	openrisc | openrisc-*)
- 		basic_machine=or32-unknown
--		os=-coff
- 		;;
- 	os400)
- 		basic_machine=powerpc-ibm
-@@ -795,6 +817,12 @@
- 	pc532 | pc532-*)
- 		basic_machine=ns32k-pc532
- 		;;
-+	pc98)
-+		basic_machine=i386-pc
-+		;;
-+	pc98-*)
-+		basic_machine=i386-`echo $basic_machine | sed 's/^[^-]*-//'`
-+		;;
- 	pentium | p5 | k5 | k6 | nexgen | viac3)
- 		basic_machine=i586-pc
- 		;;
-@@ -851,6 +879,10 @@
- 		basic_machine=i586-unknown
- 		os=-pw32
- 		;;
-+	rdos)
-+		basic_machine=i386-pc
-+		os=-rdos
-+		;;
- 	rom68k)
- 		basic_machine=m68k-rom68k
- 		os=-coff
-@@ -1090,13 +1122,10 @@
- 	we32k)
- 		basic_machine=we32k-att
- 		;;
--	sh3 | sh4 | sh[34]eb | sh[1234]le | sh[23]ele)
-+	sh[1234] | sh[24]a | sh[34]eb | sh[1234]le | sh[23]ele)
- 		basic_machine=sh-unknown
- 		;;
--	sh64)
--		basic_machine=sh64-unknown
--		;;
--	sparc | sparcv8 | sparcv9 | sparcv9b)
-+	sparc | sparcv8 | sparcv9 | sparcv9b | sparcv9v)
- 		basic_machine=sparc-sun
- 		;;
- 	cydra)
-@@ -1169,20 +1198,23 @@
- 	      | -aos* \
- 	      | -nindy* | -vxsim* | -vxworks* | -ebmon* | -hms* | -mvs* \
- 	      | -clix* | -riscos* | -uniplus* | -iris* | -rtu* | -xenix* \
--	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* | -openbsd* \
-+	      | -hiux* | -386bsd* | -knetbsd* | -mirbsd* | -netbsd* \
-+	      | -openbsd* | -solidbsd* \
- 	      | -ekkobsd* | -kfreebsd* | -freebsd* | -riscix* | -lynxos* \
- 	      | -bosx* | -nextstep* | -cxux* | -aout* | -elf* | -oabi* \
- 	      | -ptx* | -coff* | -ecoff* | -winnt* | -domain* | -vsta* \
- 	      | -udi* | -eabi* | -lites* | -ieee* | -go32* | -aux* \
- 	      | -chorusos* | -chorusrdb* \
- 	      | -cygwin* | -pe* | -psos* | -moss* | -proelf* | -rtems* \
--	      | -mingw32* | -linux-gnu* | -linux-uclibc* | -uxpv* | -beos* | -mpeix* | -udk* \
-+	      | -mingw32* | -linux-gnu* | -linux-newlib* | -linux-uclibc* \
-+	      | -uxpv* | -beos* | -mpeix* | -udk* \
- 	      | -interix* | -uwin* | -mks* | -rhapsody* | -darwin* | -opened* \
- 	      | -openstep* | -oskit* | -conix* | -pw32* | -nonstopux* \
- 	      | -storm-chaos* | -tops10* | -tenex* | -tops20* | -its* \
- 	      | -os2* | -vos* | -palmos* | -uclinux* | -nucleus* \
- 	      | -morphos* | -superux* | -rtmk* | -rtmk-nova* | -windiss* \
--	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* | -skyos*)
-+	      | -powermax* | -dnix* | -nx6 | -nx7 | -sei* | -dragonfly* \
-+	      | -skyos* | -haiku* | -rdos* | -toppers*)
- 	# Remember, each alternative MUST END IN *, to match a version number.
- 		;;
- 	-qnx*)
-@@ -1200,7 +1232,7 @@
- 		os=`echo $os | sed -e 's|nto|nto-qnx|'`
- 		;;
- 	-sim | -es1800* | -hms* | -xray | -os68k* | -none* | -v88r* \
--	      | -windows* | -osx | -abug | -netware* | -os9* | -beos* \
-+	      | -windows* | -osx | -abug | -netware* | -os9* | -beos* | -haiku* \
- 	      | -macos* | -mpw* | -magic* | -mmixware* | -mon960* | -lnews*)
- 		;;
- 	-mac*)
-@@ -1334,6 +1366,9 @@
- # system, and we'll never get to this point.
- 
- case $basic_machine in
-+        spu-*)
-+		os=-elf
-+		;;
- 	*-acorn)
- 		os=-riscix1.2
- 		;;
-@@ -1343,9 +1378,9 @@
- 	arm*-semi)
- 		os=-aout
- 		;;
--    c4x-* | tic4x-*)
--        os=-coff
--        ;;
-+        c4x-* | tic4x-*)
-+        	os=-coff
-+		;;
- 	# This must come before the *-dec entry.
- 	pdp10-*)
- 		os=-tops20
-@@ -1389,6 +1424,9 @@
- 	*-be)
- 		os=-beos
- 		;;
-+	*-haiku)
-+		os=-haiku
-+		;;
- 	*-ibm)
- 		os=-aix
- 		;;
 diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
 --- gtk+-2.10.1.orig/configure	2006-07-24 00:21:02.000000000 +0200
-+++ gtk+-2.10.1/configure	2006-08-15 10:20:56.000000000 +0200
++++ gtk+-2.10.1/configure	2006-08-15 12:00:55.000000000 +0200
 @@ -287,8 +287,8 @@
  # find a string as large as possible, as long as the shell can cope with it
    for cmd in 'sed 50q "$0"' 'sed 20q "$0"' 'sed 10q "$0"' 'sed 2q "$0"' 'echo test'; do
@@ -11431,7 +10929,7 @@ diff -urN gtk+-2.10.1.orig/configure gtk+-2.10.1/configure
    sed "$ac_vpsub
 diff -urN gtk+-2.10.1.orig/contrib/Makefile.in gtk+-2.10.1/contrib/Makefile.in
 --- gtk+-2.10.1.orig/contrib/Makefile.in	2006-07-24 00:20:52.000000000 +0200
-+++ gtk+-2.10.1/contrib/Makefile.in	2006-08-15 10:21:00.000000000 +0200
++++ gtk+-2.10.1/contrib/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11443,7 +10941,7 @@ diff -urN gtk+-2.10.1.orig/contrib/Makefile.in gtk+-2.10.1/contrib/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+-2.10.1/contrib/gdk-pixbuf-xlib/Makefile.in
 --- gtk+-2.10.1.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2006-07-24 00:20:52.000000000 +0200
-+++ gtk+-2.10.1/contrib/gdk-pixbuf-xlib/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/contrib/gdk-pixbuf-xlib/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11455,7 +10953,7 @@ diff -urN gtk+-2.10.1.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+-2.10.1/contr
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/demos/Makefile.in gtk+-2.10.1/demos/Makefile.in
 --- gtk+-2.10.1.orig/demos/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/demos/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/demos/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11467,7 +10965,7 @@ diff -urN gtk+-2.10.1.orig/demos/Makefile.in gtk+-2.10.1/demos/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/demos/gtk-demo/Makefile.in gtk+-2.10.1/demos/gtk-demo/Makefile.in
 --- gtk+-2.10.1.orig/demos/gtk-demo/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/demos/gtk-demo/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/demos/gtk-demo/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11479,7 +10977,7 @@ diff -urN gtk+-2.10.1.orig/demos/gtk-demo/Makefile.in gtk+-2.10.1/demos/gtk-demo
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/docs/Makefile.in gtk+-2.10.1/docs/Makefile.in
 --- gtk+-2.10.1.orig/docs/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/docs/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11491,7 +10989,7 @@ diff -urN gtk+-2.10.1.orig/docs/Makefile.in gtk+-2.10.1/docs/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/docs/faq/Makefile.in gtk+-2.10.1/docs/faq/Makefile.in
 --- gtk+-2.10.1.orig/docs/faq/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/faq/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/docs/faq/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11503,7 +11001,7 @@ diff -urN gtk+-2.10.1.orig/docs/faq/Makefile.in gtk+-2.10.1/docs/faq/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/docs/reference/Makefile.in gtk+-2.10.1/docs/reference/Makefile.in
 --- gtk+-2.10.1.orig/docs/reference/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/reference/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/docs/reference/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11515,7 +11013,7 @@ diff -urN gtk+-2.10.1.orig/docs/reference/Makefile.in gtk+-2.10.1/docs/reference
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/docs/reference/gdk/Makefile.in gtk+-2.10.1/docs/reference/gdk/Makefile.in
 --- gtk+-2.10.1.orig/docs/reference/gdk/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/reference/gdk/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/docs/reference/gdk/Makefile.in	2006-08-15 12:00:50.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11527,7 +11025,7 @@ diff -urN gtk+-2.10.1.orig/docs/reference/gdk/Makefile.in gtk+-2.10.1/docs/refer
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+-2.10.1/docs/reference/gdk-pixbuf/Makefile.in
 --- gtk+-2.10.1.orig/docs/reference/gdk-pixbuf/Makefile.in	2006-07-24 00:20:53.000000000 +0200
-+++ gtk+-2.10.1/docs/reference/gdk-pixbuf/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/docs/reference/gdk-pixbuf/Makefile.in	2006-08-15 12:00:49.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11539,7 +11037,7 @@ diff -urN gtk+-2.10.1.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+-2.10.1/doc
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/docs/reference/gtk/Makefile.in gtk+-2.10.1/docs/reference/gtk/Makefile.in
 --- gtk+-2.10.1.orig/docs/reference/gtk/Makefile.in	2006-07-24 00:20:54.000000000 +0200
-+++ gtk+-2.10.1/docs/reference/gtk/Makefile.in	2006-08-15 10:21:01.000000000 +0200
++++ gtk+-2.10.1/docs/reference/gtk/Makefile.in	2006-08-15 12:00:50.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11551,7 +11049,7 @@ diff -urN gtk+-2.10.1.orig/docs/reference/gtk/Makefile.in gtk+-2.10.1/docs/refer
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/docs/tools/Makefile.in gtk+-2.10.1/docs/tools/Makefile.in
 --- gtk+-2.10.1.orig/docs/tools/Makefile.in	2006-07-24 00:20:54.000000000 +0200
-+++ gtk+-2.10.1/docs/tools/Makefile.in	2006-08-15 10:21:02.000000000 +0200
++++ gtk+-2.10.1/docs/tools/Makefile.in	2006-08-15 12:00:50.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11563,7 +11061,7 @@ diff -urN gtk+-2.10.1.orig/docs/tools/Makefile.in gtk+-2.10.1/docs/tools/Makefil
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/docs/tutorial/Makefile.in gtk+-2.10.1/docs/tutorial/Makefile.in
 --- gtk+-2.10.1.orig/docs/tutorial/Makefile.in	2006-07-24 00:20:54.000000000 +0200
-+++ gtk+-2.10.1/docs/tutorial/Makefile.in	2006-08-15 10:21:02.000000000 +0200
++++ gtk+-2.10.1/docs/tutorial/Makefile.in	2006-08-15 12:00:50.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11575,7 +11073,7 @@ diff -urN gtk+-2.10.1.orig/docs/tutorial/Makefile.in gtk+-2.10.1/docs/tutorial/M
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk/Makefile.in gtk+-2.10.1/gdk/Makefile.in
 --- gtk+-2.10.1.orig/gdk/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk/Makefile.in	2006-08-15 10:21:02.000000000 +0200
++++ gtk+-2.10.1/gdk/Makefile.in	2006-08-15 12:00:51.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11587,7 +11085,7 @@ diff -urN gtk+-2.10.1.orig/gdk/Makefile.in gtk+-2.10.1/gdk/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk/directfb/Makefile.in gtk+-2.10.1/gdk/directfb/Makefile.in
 --- gtk+-2.10.1.orig/gdk/directfb/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk/directfb/Makefile.in	2006-08-15 10:21:02.000000000 +0200
++++ gtk+-2.10.1/gdk/directfb/Makefile.in	2006-08-15 12:00:51.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11599,7 +11097,7 @@ diff -urN gtk+-2.10.1.orig/gdk/directfb/Makefile.in gtk+-2.10.1/gdk/directfb/Mak
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk/linux-fb/Makefile.in gtk+-2.10.1/gdk/linux-fb/Makefile.in
 --- gtk+-2.10.1.orig/gdk/linux-fb/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk/linux-fb/Makefile.in	2006-08-15 10:21:03.000000000 +0200
++++ gtk+-2.10.1/gdk/linux-fb/Makefile.in	2006-08-15 12:00:51.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11611,7 +11109,7 @@ diff -urN gtk+-2.10.1.orig/gdk/linux-fb/Makefile.in gtk+-2.10.1/gdk/linux-fb/Mak
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk/quartz/Makefile.in gtk+-2.10.1/gdk/quartz/Makefile.in
 --- gtk+-2.10.1.orig/gdk/quartz/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk/quartz/Makefile.in	2006-08-15 10:21:03.000000000 +0200
++++ gtk+-2.10.1/gdk/quartz/Makefile.in	2006-08-15 12:00:51.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11623,7 +11121,7 @@ diff -urN gtk+-2.10.1.orig/gdk/quartz/Makefile.in gtk+-2.10.1/gdk/quartz/Makefil
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk/win32/Makefile.in gtk+-2.10.1/gdk/win32/Makefile.in
 --- gtk+-2.10.1.orig/gdk/win32/Makefile.in	2006-07-24 00:20:56.000000000 +0200
-+++ gtk+-2.10.1/gdk/win32/Makefile.in	2006-08-15 10:21:03.000000000 +0200
++++ gtk+-2.10.1/gdk/win32/Makefile.in	2006-08-15 12:00:51.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11635,7 +11133,7 @@ diff -urN gtk+-2.10.1.orig/gdk/win32/Makefile.in gtk+-2.10.1/gdk/win32/Makefile.
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk/win32/rc/Makefile.in gtk+-2.10.1/gdk/win32/rc/Makefile.in
 --- gtk+-2.10.1.orig/gdk/win32/rc/Makefile.in	2006-07-24 00:20:56.000000000 +0200
-+++ gtk+-2.10.1/gdk/win32/rc/Makefile.in	2006-08-15 10:21:03.000000000 +0200
++++ gtk+-2.10.1/gdk/win32/rc/Makefile.in	2006-08-15 12:00:51.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11647,7 +11145,7 @@ diff -urN gtk+-2.10.1.orig/gdk/win32/rc/Makefile.in gtk+-2.10.1/gdk/win32/rc/Mak
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk/x11/Makefile.in gtk+-2.10.1/gdk/x11/Makefile.in
 --- gtk+-2.10.1.orig/gdk/x11/Makefile.in	2006-07-24 00:20:56.000000000 +0200
-+++ gtk+-2.10.1/gdk/x11/Makefile.in	2006-08-15 10:21:03.000000000 +0200
++++ gtk+-2.10.1/gdk/x11/Makefile.in	2006-08-15 12:00:51.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11659,7 +11157,7 @@ diff -urN gtk+-2.10.1.orig/gdk/x11/Makefile.in gtk+-2.10.1/gdk/x11/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk-pixbuf/Makefile.in gtk+-2.10.1/gdk-pixbuf/Makefile.in
 --- gtk+-2.10.1.orig/gdk-pixbuf/Makefile.in	2006-07-24 00:20:54.000000000 +0200
-+++ gtk+-2.10.1/gdk-pixbuf/Makefile.in	2006-08-15 10:21:02.000000000 +0200
++++ gtk+-2.10.1/gdk-pixbuf/Makefile.in	2006-08-15 12:00:50.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11671,7 +11169,7 @@ diff -urN gtk+-2.10.1.orig/gdk-pixbuf/Makefile.in gtk+-2.10.1/gdk-pixbuf/Makefil
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gdk-pixbuf/pixops/Makefile.in gtk+-2.10.1/gdk-pixbuf/pixops/Makefile.in
 --- gtk+-2.10.1.orig/gdk-pixbuf/pixops/Makefile.in	2006-07-24 00:20:55.000000000 +0200
-+++ gtk+-2.10.1/gdk-pixbuf/pixops/Makefile.in	2006-08-15 10:21:02.000000000 +0200
++++ gtk+-2.10.1/gdk-pixbuf/pixops/Makefile.in	2006-08-15 12:00:50.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11683,7 +11181,7 @@ diff -urN gtk+-2.10.1.orig/gdk-pixbuf/pixops/Makefile.in gtk+-2.10.1/gdk-pixbuf/
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gtk/Makefile.in gtk+-2.10.1/gtk/Makefile.in
 --- gtk+-2.10.1.orig/gtk/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/gtk/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/gtk/Makefile.in	2006-08-15 12:00:52.000000000 +0200
 @@ -129,6 +129,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11695,7 +11193,7 @@ diff -urN gtk+-2.10.1.orig/gtk/Makefile.in gtk+-2.10.1/gtk/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gtk/theme-bits/Makefile.in gtk+-2.10.1/gtk/theme-bits/Makefile.in
 --- gtk+-2.10.1.orig/gtk/theme-bits/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/gtk/theme-bits/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/gtk/theme-bits/Makefile.in	2006-08-15 12:00:52.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -11707,7 +11205,7 @@ diff -urN gtk+-2.10.1.orig/gtk/theme-bits/Makefile.in gtk+-2.10.1/gtk/theme-bits
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/gtk/xdgmime/Makefile.in gtk+-2.10.1/gtk/xdgmime/Makefile.in
 --- gtk+-2.10.1.orig/gtk/xdgmime/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/gtk/xdgmime/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/gtk/xdgmime/Makefile.in	2006-08-15 12:00:52.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13265,7 +12763,7 @@ diff -urN gtk+-2.10.1.orig/ltmain.sh gtk+-2.10.1/ltmain.sh
  # Local Variables:
 diff -urN gtk+-2.10.1.orig/m4macros/Makefile.in gtk+-2.10.1/m4macros/Makefile.in
 --- gtk+-2.10.1.orig/m4macros/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/m4macros/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/m4macros/Makefile.in	2006-08-15 12:00:52.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13277,7 +12775,7 @@ diff -urN gtk+-2.10.1.orig/m4macros/Makefile.in gtk+-2.10.1/m4macros/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/Makefile.in gtk+-2.10.1/modules/Makefile.in
 --- gtk+-2.10.1.orig/modules/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/modules/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/modules/Makefile.in	2006-08-15 12:00:52.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13289,7 +12787,7 @@ diff -urN gtk+-2.10.1.orig/modules/Makefile.in gtk+-2.10.1/modules/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/engines/Makefile.in gtk+-2.10.1/modules/engines/Makefile.in
 --- gtk+-2.10.1.orig/modules/engines/Makefile.in	2006-07-24 00:20:57.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/modules/engines/Makefile.in	2006-08-15 12:00:52.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13301,7 +12799,7 @@ diff -urN gtk+-2.10.1.orig/modules/engines/Makefile.in gtk+-2.10.1/modules/engin
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Makefile.in gtk+-2.10.1/modules/engines/ms-windows/Makefile.in
 --- gtk+-2.10.1.orig/modules/engines/ms-windows/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/ms-windows/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/modules/engines/ms-windows/Makefile.in	2006-08-15 12:00:53.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13313,7 +12811,7 @@ diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Makefile.in gtk+-2.10.1/mo
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+-2.10.1/modules/engines/ms-windows/Theme/Makefile.in
 --- gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/ms-windows/Theme/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/modules/engines/ms-windows/Theme/Makefile.in	2006-08-15 12:00:53.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13325,7 +12823,7 @@ diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+-2.1
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+-2.10.1/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
 --- gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-08-15 12:00:53.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13337,7 +12835,7 @@ diff -urN gtk+-2.10.1.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in 
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/engines/pixbuf/Makefile.in gtk+-2.10.1/modules/engines/pixbuf/Makefile.in
 --- gtk+-2.10.1.orig/modules/engines/pixbuf/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/engines/pixbuf/Makefile.in	2006-08-15 10:21:04.000000000 +0200
++++ gtk+-2.10.1/modules/engines/pixbuf/Makefile.in	2006-08-15 12:00:53.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13349,7 +12847,7 @@ diff -urN gtk+-2.10.1.orig/modules/engines/pixbuf/Makefile.in gtk+-2.10.1/module
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/input/Makefile.in gtk+-2.10.1/modules/input/Makefile.in
 --- gtk+-2.10.1.orig/modules/input/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/input/Makefile.in	2006-08-15 10:21:05.000000000 +0200
++++ gtk+-2.10.1/modules/input/Makefile.in	2006-08-15 12:00:53.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13393,7 +12891,7 @@ diff -urN gtk+-2.10.1.orig/modules/input/Makefile.in gtk+-2.10.1/modules/input/M
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
 diff -urN gtk+-2.10.1.orig/modules/printbackends/Makefile.in gtk+-2.10.1/modules/printbackends/Makefile.in
 --- gtk+-2.10.1.orig/modules/printbackends/Makefile.in	2006-07-24 00:20:58.000000000 +0200
-+++ gtk+-2.10.1/modules/printbackends/Makefile.in	2006-08-15 10:21:05.000000000 +0200
++++ gtk+-2.10.1/modules/printbackends/Makefile.in	2006-08-15 12:00:53.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13405,7 +12903,7 @@ diff -urN gtk+-2.10.1.orig/modules/printbackends/Makefile.in gtk+-2.10.1/modules
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/printbackends/cups/Makefile.in gtk+-2.10.1/modules/printbackends/cups/Makefile.in
 --- gtk+-2.10.1.orig/modules/printbackends/cups/Makefile.in	2006-07-24 00:20:59.000000000 +0200
-+++ gtk+-2.10.1/modules/printbackends/cups/Makefile.in	2006-08-15 10:21:05.000000000 +0200
++++ gtk+-2.10.1/modules/printbackends/cups/Makefile.in	2006-08-15 12:00:53.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13417,7 +12915,7 @@ diff -urN gtk+-2.10.1.orig/modules/printbackends/cups/Makefile.in gtk+-2.10.1/mo
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/printbackends/file/Makefile.in gtk+-2.10.1/modules/printbackends/file/Makefile.in
 --- gtk+-2.10.1.orig/modules/printbackends/file/Makefile.in	2006-07-24 00:20:59.000000000 +0200
-+++ gtk+-2.10.1/modules/printbackends/file/Makefile.in	2006-08-15 10:21:05.000000000 +0200
++++ gtk+-2.10.1/modules/printbackends/file/Makefile.in	2006-08-15 12:00:53.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13429,7 +12927,7 @@ diff -urN gtk+-2.10.1.orig/modules/printbackends/file/Makefile.in gtk+-2.10.1/mo
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/modules/printbackends/lpr/Makefile.in gtk+-2.10.1/modules/printbackends/lpr/Makefile.in
 --- gtk+-2.10.1.orig/modules/printbackends/lpr/Makefile.in	2006-07-24 00:20:59.000000000 +0200
-+++ gtk+-2.10.1/modules/printbackends/lpr/Makefile.in	2006-08-15 10:21:05.000000000 +0200
++++ gtk+-2.10.1/modules/printbackends/lpr/Makefile.in	2006-08-15 12:00:54.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13441,7 +12939,7 @@ diff -urN gtk+-2.10.1.orig/modules/printbackends/lpr/Makefile.in gtk+-2.10.1/mod
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/perf/Makefile.in gtk+-2.10.1/perf/Makefile.in
 --- gtk+-2.10.1.orig/perf/Makefile.in	2006-07-24 00:20:59.000000000 +0200
-+++ gtk+-2.10.1/perf/Makefile.in	2006-08-15 10:21:05.000000000 +0200
++++ gtk+-2.10.1/perf/Makefile.in	2006-08-15 12:00:54.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -13453,7 +12951,7 @@ diff -urN gtk+-2.10.1.orig/perf/Makefile.in gtk+-2.10.1/perf/Makefile.in
  FFLAGS = @FFLAGS@
 diff -urN gtk+-2.10.1.orig/tests/Makefile.in gtk+-2.10.1/tests/Makefile.in
 --- gtk+-2.10.1.orig/tests/Makefile.in	2006-07-24 00:21:00.000000000 +0200
-+++ gtk+-2.10.1/tests/Makefile.in	2006-08-15 10:21:06.000000000 +0200
++++ gtk+-2.10.1/tests/Makefile.in	2006-08-15 12:00:54.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@

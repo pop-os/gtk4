@@ -21,7 +21,7 @@ gtk+2.0 (2.10.1-1) experimental-WIP; urgency=low
     - Set GTK_BINARY_VERSION to 2.10.0.
     - Replace 001_gtk+-2.2.0-buildfix-immodule patch with
       001_static-linking-dont-query-immodules which has more chances to be
-      merged upstream.
+      merged upstream; see GNOME #346531.
     - Drop 006_gtk+-2.8.17-directfb patch, merged upstream.
     - Refresh patches: 000_gtk+-2.0.6-exportsymbols,
       003_default_fallback_icon_theme,
@@ -29,8 +29,11 @@ gtk+2.0 (2.10.1-1) experimental-WIP; urgency=low
       007_implicit_pointer_conversion_gdkdrawable_directfb.
     - Update 070_mandatory-relibtoolize with libtoolize --force --copy &&
       aclocal-1.7 -I m4macros && autoconf && automake-1.7.
+    - New patch, 002_static-linking-dont-build-perf, to avoid building the
+      perf measurement tools in static builds; see GNOME #346559; needs
+      the 001_gtk+-2.2.0-buildfix-immodule patch.
 
- -- Loic Minier <lool@dooz.org>  Tue, 15 Aug 2006 10:11:58 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 15 Aug 2006 11:58:26 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
