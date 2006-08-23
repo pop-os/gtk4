@@ -265,7 +265,8 @@ install: install-static install-shared install-dfb
 	chrpath -d $(UDEB_PKGDIR)/usr/lib/*.so.?
 	cp -r $(DFB_PKGDIR)/usr/lib/gtk-2.0/[0-9]* \
 		$(UDEB_PKGDIR)/usr/lib/gtk-2.0/
-	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/{engines,immodules}
+	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/engines
+	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/immodules
 
 	# remove files that are already here in the other build
 	cd $(SHARED_PKGDIR) && \
@@ -306,7 +307,8 @@ install: install-static install-shared install-dfb
 	done
 
 	mkdir -p $(DFBDEV_PKGDIR)/usr/lib
-	mv $(DFB_PKGDIR)/usr/lib/{pkgconfig,*.so} $(DFBDEV_PKGDIR)/usr/lib/
+	mv $(DFB_PKGDIR)/usr/lib/pkgconfig $(DFBDEV_PKGDIR)/usr/lib/
+	mv $(DFB_PKGDIR)/usr/lib/*.so $(DFBDEV_PKGDIR)/usr/lib/
 	mv $(DFB_PKGDIR)/usr/include $(DFBDEV_PKGDIR)/usr/
 
 	-find $(CURDIR)/debian/ -type d -empty | xargs rmdir -p > /dev/null 2>&1
