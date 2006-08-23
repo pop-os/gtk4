@@ -16,7 +16,7 @@ gtk+2.0 (2.10.1-1) experimental-WIP; urgency=low
     - Add a libdirectfb-dev (>= 0.9.24) build-dep for DirectFB.
     - Add a libcupsys2-dev (>= 1.2) build-dep for CUPS printing backend.
     - Bump shlibs to >= 2.10.0.
-    - Update list of docs to ship.
+    - Update list of docs to ship; now includes NEWS. (Closes: #384225)
     - Update watch file to track stable releases and use HTTP.
     - Set GTK_BINARY_VERSION to 2.10.0.
     - Replace 001_gtk+-2.2.0-buildfix-immodule patch with
