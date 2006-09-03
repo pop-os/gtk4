@@ -40,7 +40,7 @@ gtk+2.0 (2.10.1-1) experimental-WIP; urgency=low
       from the cairo-directfb module (as $cairo_module); see GNOME #351519.
     - New patch, 011_gdk-directfb-cvs-changes, backport of CVS only build
       fixes to permit compilation against directfb 0.9.25.1.
-  * Fix bashishms in debian/rules.
+  * Fix bashishms in debian/rules. (Closes: #385473)
 
  -- Loic Minier <lool@dooz.org>  Wed, 23 Aug 2006 19:14:31 +0200
 
