@@ -1,5 +1,7 @@
-gtk+2.0 (2.10.1-1) experimental-WIP; urgency=low
+gtk+2.0 (2.10.1-0beta1) experimental; urgency=low
 
+  * THIS IS NOT THE FINAL 2.10 RELEASE; THIS IS NOT SUITED FOR PACKAGE
+    MAINTAINERS TO PREPARE FOR TRANSITIONS.
   * Add a missing x11proto-xext-dev build-dep for X SYNC checks.
   * Add a missing libatk1.0-dev (>= 1.9.0) build-dep for ATK.
   * Replace GTK_BINARY_VERSION in debian/*.in to set the binary version of
