@@ -61,10 +61,13 @@ BIN_PKGDIR=$(CURDIR)/debian/$(BIN_PKG)
 DEBUG_PKG=$(SHARED_PKG)-dbg
 DEBUG_PKGDIR=$(CURDIR)/debian/$(DEBUG_PKG)
 
-debian/control:
+debian/control: force
 	dh_testdir
-
-	sed -e 's/@SONAME@/${soname}${suffix}/g' -e 's/@VERSION@/${version}/g' -e 's/@GNOME_TEAM@/${uploaders}/' $@.in > $@
+	sed -e 's/@SONAME@/${soname}${suffix}/g' \
+		-e 's/@VERSION@/${version}/g' \
+		-e 's/@GNOME_TEAM@/${uploaders}/' \
+		-e 's/@BINVER@/$(GTK_BINARY_VERSION)/' \
+		$@.in > $@
 
 extract: $(STAMP_DIR)/extract-stamp
 $(STAMP_DIR)/extract-stamp:
@@ -406,5 +409,7 @@ binary-arch: build install
 	dh_md5sums -a
 	dh_builddeb -a
 
+force:
+
 binary: binary-indep binary-arch
-.PHONY: build build-shared build-static build-dfb clean binary-indep binary-arch binary install install-shared install-static install-dfb configure configure-shared configure-static configure-dfb debian/control
+.PHONY: build build-shared build-static build-dfb clean binary-indep binary-arch binary install install-shared install-static install-dfb configure configure-shared configure-static configure-dfb force
