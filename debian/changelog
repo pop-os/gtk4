@@ -51,8 +51,9 @@ gtk+2.0 (2.10.1-0beta2) experimental-WIP; urgency=low
     differ.
   * Stop shipping *.la and *.a files of modules (all module types).
   * Move GTK_BINARY_VERSION back to rules.
+  * Use GTK_BINVER_DEP instead of BINVER.
 
- -- Loic Minier <lool@dooz.org>  Sun, 10 Sep 2006 22:53:51 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 10 Sep 2006 23:02:36 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 

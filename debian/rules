@@ -46,6 +46,9 @@ GTK_BINARY_VERSION=2.10.0
 libpath=$(CURDIR)/$(BUILD_SHARED_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gtk/.libs
 libpath_dfb=$(CURDIR)/$(BUILD_DFB_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_DFB_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_DFB_DIR)/gtk/.libs
 
+# Gtk binary version virtual Provide
+GTK_BINVER_DEP = gtk2.0-binver-$(GTK_BINARY_VERSION)
+
 # configure flags
 common_configure_flags = \
 			--host=$(DEB_HOST_GNU_TYPE) \
@@ -100,7 +103,7 @@ debian/control: force
 	sed -e 's/@SONAME@/${soname}${suffix}/g' \
 		-e 's/@VERSION@/${version}/g' \
 		-e 's/@GNOME_TEAM@/${uploaders}/' \
-		-e 's/@BINVER@/$(GTK_BINARY_VERSION)/' \
+		-e 's/@GTK_BINVER_DEP@/$(GTK_BINVER_DEP)/' \
 		$@.in > $@
 
 extract: $(STAMP_DIR)/extract-stamp
