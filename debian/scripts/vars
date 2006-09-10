@@ -29,5 +29,3 @@ DIFF_EXCLUDE="Makefile.in configure"
 PATCH_DIR=debian/patches
 SRC_PATCH_DIR=upstream/patches
 SRC_TAR_DIR=upstream/tarballs
-# earliest version that this release has backwards binary compatibility for
-GTK_BINARY_VERSION=2.10.0

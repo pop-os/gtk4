@@ -49,8 +49,10 @@ gtk+2.0 (2.10.1-0beta2) experimental-WIP; urgency=low
     vars and share the common flags.
   * Only pass --host to configure if DEB_HOST_GNU_TYPE and DEB_BUILD_GNU_TYPE
     differ.
+  * Stop shipping *.la and *.a files of modules (all module types).
+  * Move GTK_BINARY_VERSION back to rules.
 
- -- Loic Minier <lool@dooz.org>  Sun, 10 Sep 2006 21:09:16 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 10 Sep 2006 22:53:51 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
