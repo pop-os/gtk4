@@ -45,8 +45,12 @@ gtk+2.0 (2.10.1-0beta2) experimental-WIP; urgency=low
   * Fix bashishms in debian/rules. (Closes: #385473)
   * Generate a Provides: gtk2.0-binver-@BINVER@ in libgtk2.0-@SONAME@ to track
     the binary version of Gtk and to permit Gtk modules to depend on it.
+  * Define the flags for each flavor (shared, static, and udeb) in Makefile
+    vars and share the common flags.
+  * Only pass --host to configure if DEB_HOST_GNU_TYPE and DEB_BUILD_GNU_TYPE
+    differ.
 
- -- Loic Minier <lool@dooz.org>  Fri,  8 Sep 2006 22:00:44 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 10 Sep 2006 21:09:16 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
