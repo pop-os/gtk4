@@ -1,10 +1,15 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 
 include debian/scripts/vars
-include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
-BUILD_DIR=$(SOURCE_DIR)/$(TAR_DIR)
+
+# Members list of Debian GNOME Maintainers
+TEAM_LIST ?= /usr/share/gnome-pkg-tools/pkg-gnome.team
+
+# Remove maintainer from uploaders list
+maintainer := $(shell sed -n 's/^Maintainer: //p' debian/control.in)
+uploaders := $(shell grep -vF '$(maintainer)' $(TEAM_LIST))
+
+BUILD_DIR=$(CURDIR)/$(SOURCE_DIR)/$(TAR_DIR)
 BUILD_SHARED_DIR=$(SOURCE_DIR)/$(TAR_DIR)-shared
 BUILD_STATIC_DIR=$(SOURCE_DIR)/$(TAR_DIR)-static
 BUILD_DFB_DIR=$(SOURCE_DIR)/$(TAR_DIR)-dfb
@@ -14,8 +19,8 @@ BUILD_DFB_DIR=$(SOURCE_DIR)/$(TAR_DIR)-dfb
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
-DEB_HOST_GNU_TYPE	?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE	?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
@@ -27,7 +32,6 @@ ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
 	INSTALL_PROGRAM += -s
 endif
 
-##
 version=$(shell dpkg-parsechangelog | grep '^Version: ' | sed -e 's/^Version: //' -e 's/-[A-Za-z0-9\.\+]*$$//g' -e 's/+[A-Za-z0-9\.]*$$//g')
 major=$(shell echo ${version} | sed -e 's/\(^[0-9]*\)\.[0-9]*\.[0-9]*$$/\1/')
 minor=$(shell echo ${version} | sed -e 's/^[0-9]*\.\([0-9]*\)\.[0-9]*$$/\1/')
@@ -67,13 +71,13 @@ endif
 shared_configure_flags = $(common_configure_flags) \
 			--with-xinput=yes \
 			--enable-shared \
-			--disable-static \
+			--disable-static
 static_configure_flags = $(common_configure_flags) \
 			--with-xinput=yes \
 			--with-included-loaders=yes \
 			--disable-modules \
 			--disable-shared \
-			--enable-static \
+			--enable-static
 dfb_configure_flags = $(common_configure_flags) \
 			--with-xinput=no \
 			--enable-shared \
@@ -98,7 +102,7 @@ BIN_PKGDIR=$(CURDIR)/debian/$(BIN_PKG)
 DEBUG_PKG=$(SHARED_PKG)-dbg
 DEBUG_PKGDIR=$(CURDIR)/debian/$(DEBUG_PKG)
 
-debian/control: force
+debian/control: debian/control.in force
 	dh_testdir
 	sed -e 's/@SONAME@/${soname}${suffix}/g' \
 		-e 's/@VERSION@/${version}/g' \
@@ -109,68 +113,53 @@ debian/control: force
 extract: $(STAMP_DIR)/extract-stamp
 $(STAMP_DIR)/extract-stamp:
 	dh_testdir
-
 	$(MAKE) -f debian/sys-build.mk source.make
-
 	-test -r /usr/share/misc/config.sub && \
 	   cp -f /usr/share/misc/config.sub $(BUILD_DIR)/config.sub
 	-test -r /usr/share/misc/config.guess && \
 	   cp -f /usr/share/misc/config.guess $(BUILD_DIR)/config.guess
-
 	touch $@
 
 configure-shared: extract $(STAMP_DIR)/configure-shared-stamp
 $(STAMP_DIR)/configure-shared-stamp:
 	dh_testdir
-
-	cp -ar $(BUILD_DIR) $(BUILD_SHARED_DIR)
-
+	mkdir -p $(BUILD_SHARED_DIR)
 	# Add here commands to configure the package.
 	cd $(BUILD_SHARED_DIR) && \
-		./configure $(shared_configure_flags)
-
+		$(BUILD_DIR)/configure $(shared_configure_flags)
 	cd $(BUILD_SHARED_DIR) && \
-	sed < libtool > libtool-2 \
-	 -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	 -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
+	    sed < libtool > libtool-2 \
+	        -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
+	        -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
 	mv libtool-2 libtool
-
 	touch $@
 
 configure-static: extract $(STAMP_DIR)/configure-static-stamp
 $(STAMP_DIR)/configure-static-stamp:
 	dh_testdir
-
-	cp -ar $(BUILD_DIR) $(BUILD_STATIC_DIR)
-
+	mkdir -p $(BUILD_STATIC_DIR)
 	# Add here commands to configure the package.
 	cd $(BUILD_STATIC_DIR) && \
-		./configure $(static_configure_flags)
-
+		$(BUILD_DIR)/configure $(static_configure_flags)
 	cd $(BUILD_STATIC_DIR) && \
-	sed < libtool > libtool-2 \
-	 -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	 -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
+	    sed < libtool > libtool-2 \
+	        -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
+	        -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
 	mv libtool-2 libtool
-
 	touch $@
 
 configure-dfb: extract $(STAMP_DIR)/configure-dfb-stamp
 $(STAMP_DIR)/configure-dfb-stamp:
 	dh_testdir
-
-	cp -ar $(BUILD_DIR) $(BUILD_DFB_DIR)
-
+	mkdir -p $(BUILD_DFB_DIR)
 	# Add here commands to configure the package.
 	cd $(BUILD_DFB_DIR) && \
-		./configure $(dfb_configure_flags)
-
+		$(BUILD_DIR)/configure $(dfb_configure_flags)
 	cd $(BUILD_DFB_DIR) && \
-	sed < libtool > libtool-2 \
-	 -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	 -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
+	    sed < libtool > libtool-2 \
+	        -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
+	        -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
 	mv libtool-2 libtool
-
 	touch $@
 
 configure: configure-static configure-shared configure-dfb
@@ -178,52 +167,41 @@ configure: configure-static configure-shared configure-dfb
 build-shared: debian/control configure-shared $(STAMP_DIR)/build-shared-stamp
 $(STAMP_DIR)/build-shared-stamp:
 	dh_testdir
-
 	-rm -f $(STAMP_DIR)/install-test-stamp
-
 	# Add here commands to compile the package.
 	$(MAKE) -C $(BUILD_SHARED_DIR) \
 		LD_LIBRARY_PATH=$(libpath):$(LD_LIBRARY_PATH)
-
 	touch $@
 
 build-static: debian/control configure-static $(STAMP_DIR)/build-static-stamp
 $(STAMP_DIR)/build-static-stamp:
 	dh_testdir
-
 	-rm -f $(STAMP_DIR)/install-test-stamp
-
 	# Add here commands to compile the package.
 	$(MAKE) -C $(BUILD_STATIC_DIR) \
 		RUN_QUERY_IMMODULES_TEST=false
-
 	touch $@
 
 build-dfb: debian/control configure-dfb $(STAMP_DIR)/build-dfb-stamp
 $(STAMP_DIR)/build-dfb-stamp:
 	dh_testdir
-
 	-rm -f $(STAMP_DIR)/install-test-stamp
-
 	# Add here commands to compile the package.
 	$(MAKE) -C $(BUILD_DFB_DIR) \
 		LD_LIBRARY_PATH=$(libpath_dfb):$(LD_LIBRARY_PATH)
-
 	touch $@
 
 build: build-static build-shared build-dfb
 
-clean:: debian/control
+clean: debian/control
 	dh_testdir
 	dh_testroot
-
 	# Add here commands to clean up after the build process.
 	$(MAKE) -f debian/sys-build.mk source.clean
 	-rm -rf $(BUILD_SHARED_DIR)
 	-rm -rf $(BUILD_STATIC_DIR)
 	-rm -rf $(BUILD_DFB_DIR)
 	-rm -rf $(STAMP_DIR)
-
 	dh_clean
 
 install-test: $(STAMP_DIR)/install-test-stamp
@@ -232,15 +210,14 @@ $(STAMP_DIR)/install-test-stamp:
 	dh_testroot
 	dh_clean -k
 	dh_installdirs
-
 	touch $@
 
 install-shared: build-shared install-test
 	# Add here commands to install the package into debian/tmp
 	$(MAKE) -C $(BUILD_SHARED_DIR) install DESTDIR=$(SHARED_PKGDIR)
 	for d in engines loaders immodules printbackends; do \
-	    rm $(SHARED_PKGDIR)/usr/lib/gtk-$(apiver)/$(GTK_BINARY_VERSION)/$$d/*.a \
-	    rm $(SHARED_PKGDIR)/usr/lib/gtk-$(apiver)/$(GTK_BINARY_VERSION)/$$d/*.la \
+	    rm -f $(SHARED_PKGDIR)/usr/lib/gtk-$(apiver)/$(GTK_BINARY_VERSION)/$$d/*.a; \
+	    rm -f $(SHARED_PKGDIR)/usr/lib/gtk-$(apiver)/$(GTK_BINARY_VERSION)/$$d/*.la; \
 	done
 
 install-static: build-static install-test
@@ -249,7 +226,7 @@ install-static: build-static install-test
 		RUN_QUERY_IMMODULES_TEST=false \
 		RUN_QUERY_LOADER_TEST=false
 
-install-dfb: build-shared install-test
+install-dfb: build-dfb install-test
 	# Add here commands to install the package into debian/tmp
 	$(MAKE) -C $(BUILD_DFB_DIR) install DESTDIR=$(DFB_PKGDIR)
 	find $(DFB_PKGDIR) -name \*.la -exec rm -f \{\} \;
@@ -268,7 +245,6 @@ install: install-static install-shared install-dfb
 		    -e "s/@APIVER@/${apiver}/g" \
 		    $$f > `echo $$f | sed -e "s/\.in//"`; \
 	done
-
 	# start with the udeb
 	mkdir -p $(UDEB_PKGDIR)/usr/lib/gtk-2.0
 	cp $(DFB_PKGDIR)/usr/lib/*.so.? $(UDEB_PKGDIR)/usr/lib/
@@ -278,31 +254,23 @@ install: install-static install-shared install-dfb
 		$(UDEB_PKGDIR)/usr/lib/gtk-2.0/
 	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/engines
 	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/immodules
-
 	# remove files that are already here in the other build
 	cd $(SHARED_PKGDIR) && \
 		find -L -type f -exec rm -f $(DFB_PKGDIR)/\{\} \;
-
 	# for -doc
-	cp -a $(BUILD_SHARED_DIR)/docs/faq/html $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-faq
+	cp -a $(BUILD_DIR)/docs/faq/html $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-faq
 	cp -a $(CURDIR)/debian/gtk-faq.devhelp $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-faq/
-
-	cp -a $(BUILD_SHARED_DIR)/docs/tutorial/html $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-tutorial
+	cp -a $(BUILD_DIR)/docs/tutorial/html $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-tutorial
 	cp $(CURDIR)/debian/gtk-tutorial.devhelp $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-tutorial/
-
-	cp -ar $(BUILD_SHARED_DIR)/docs/tutorial/images $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-tutorial/
-	cp $(BUILD_SHARED_DIR)/docs/*.txt $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)
-
+	cp -ar $(BUILD_DIR)/docs/tutorial/images $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-tutorial/
+	cp $(BUILD_DIR)/docs/*.txt $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)
 	# don't need executable attribute
 	for f in `find $(SHARED_PKGDIR)/usr/share/themes -type f`; do \
 		chmod a-x $$f; \
 	done
-
 	# clean the unnecessary files up
 	rm -rf $(SHARED_PKGDIR)/usr/share/gtk-doc
-
 	dh_movefiles --sourcedir=debian/$(SHARED_PKG)
-
 	# scripts and support binaries
 	for file in `ls $(SHARED_PKGDIR)/usr/bin`; do \
 		ln -sf ../lib/$(SHARED_PKG)/$$file \
@@ -316,14 +284,11 @@ install: install-static install-shared install-dfb
 		ln -sf ../lib/$(SHARED_PKG)/$$file \
 			$(BIN_PKGDIR)/usr/sbin/$$file ; \
 	done
-
 	mkdir -p $(DFBDEV_PKGDIR)/usr/lib
 	mv $(DFB_PKGDIR)/usr/lib/pkgconfig $(DFBDEV_PKGDIR)/usr/lib/
 	mv $(DFB_PKGDIR)/usr/lib/*.so $(DFBDEV_PKGDIR)/usr/lib/
 	mv $(DFB_PKGDIR)/usr/include $(DFBDEV_PKGDIR)/usr/
-
 	-find $(CURDIR)/debian/ -type d -empty | xargs rmdir -p > /dev/null 2>&1
-
 	# don't delete /etc/gtk-2.0
 	install -d $(BIN_PKGDIR)/etc/gtk-$(apiver)
 
@@ -331,11 +296,8 @@ install: install-static install-shared install-dfb
 binary-indep: build install
 	dh_testdir -i
 	dh_testroot -i
-
 	dh_installdocs -i
-
 	rm -rf $(BIN_PKGDIR)/usr/share/doc/$(BIN_PKG)
-
 	dh_link -p$(DOC_PKG)					\
 		usr/share/doc/libglib$(glibver)-doc/glib	\
 		usr/share/doc/libgtk$(apiver)-doc/glib		\
@@ -348,14 +310,12 @@ binary-indep: build install
 	dh_link -p$(BIN_PKG) \
 		usr/share/doc/$(SHARED_PKG) \
 		usr/share/doc/$(BIN_PKG)
-
-# create symlinks in /usr/share/gtk-doc/html
+	# create symlinks in /usr/share/gtk-doc/html
 	for i in gdk gdk-pixbuf gtk gtk-faq gtk-tutorial; do	\
 		dh_link -p$(DOC_PKG)				\
 			usr/share/doc/libgtk$(apiver)-doc/$$i	\
 			usr/share/gtk-doc/html/$$i;		\
 	done
-
 	dh_installexamples -i
 	dh_installman -i
 	dh_installinfo -i
@@ -371,16 +331,13 @@ binary-indep: build install
 binary-arch: build install
 	dh_testdir -a
 	dh_testroot -a
-
 #	dh_installdebconf	
 	dh_installdocs -a
-
 	rm -rf $(SHARED_PKGDIR)/usr/share/doc/$(SHARED_PKG)
 	rm -rf $(DEBUG_PKGDIR)/usr/share/doc/$(DEBUG_PKG)
 	rm -rf $(DEV_PKGDIR)/usr/share/doc/$(DEV_PKG)
 	rm -rf $(DFB_PKGDIR)/usr/share/doc/$(DFB_PKG)
 	rm -rf $(DFBDEV_PKGDIR)/usr/share/doc/$(DFBDEV_PKG)
-
 	dh_link -p$(SHARED_PKG) \
 		usr/share/doc/libgtk$(apiver)-common \
 		usr/share/doc/$(SHARED_PKG)
@@ -396,11 +353,8 @@ binary-arch: build install
 	dh_link -p$(DFBDEV_PKG) \
 		usr/share/doc/$(DFB_PKG) \
 		usr/share/doc/$(DFBDEV_PKG)
-
 	dh_installexamples -a
-
 	rm $(CURDIR)/debian/gtk$(apiver)-examples/usr/share/doc/gtk$(apiver)-examples/examples/find-examples.sh
-
 	dh_installman -a
 	dh_installinfo -a
 	dh_installchangelogs -a $(BUILD_DIR)/ChangeLog

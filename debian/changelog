@@ -52,8 +52,11 @@ gtk+2.0 (2.10.1-0beta2) experimental-WIP; urgency=low
   * Stop shipping *.la and *.a files of modules (all module types).
   * Move GTK_BINARY_VERSION back to rules.
   * Use GTK_BINVER_DEP instead of BINVER.
+  * Build flavors out-of-tree; saves 25% of required build space (315 MB) and
+    some build time / IO load; this clutters the headers a little (full build
+    path is mentionned instead of ".") though.
 
- -- Loic Minier <lool@dooz.org>  Sun, 10 Sep 2006 23:02:36 +0200
+ -- Loic Minier <lool@dooz.org>  Mon, 11 Sep 2006 13:30:08 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
