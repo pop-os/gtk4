@@ -237,7 +237,7 @@ install-static: build-static install-test
 		RUN_QUERY_IMMODULES_TEST=false \
 		RUN_QUERY_LOADER_TEST=false
 
-install-dfb: build-shared install-test
+install-dfb: build-dfb install-test
 	# Add here commands to install the package into debian/tmp
 	$(MAKE) -C $(BUILD_DFB_DIR) install DESTDIR=$(DFB_PKGDIR)
 	find $(DFB_PKGDIR) -name \*.la -exec rm -f \{\} \;
