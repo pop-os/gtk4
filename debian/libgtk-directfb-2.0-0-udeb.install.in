@@ -1,0 +1,3 @@
+# from the directfb flavor
+debian/tmp/install/directfb/@MODULES_BASE_PATH@/loaders/libpixbufloader-png.so @MODULES_BASE_PATH@/loaders
+debian/tmp/install/directfb/usr/lib/*.so.* usr/lib

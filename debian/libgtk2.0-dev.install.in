@@ -1,0 +1,11 @@
+# from the shared flavor
+debian/tmp/install/shared/usr/bin/gdk-pixbuf-csource usr/bin
+debian/tmp/install/shared/usr/include usr
+debian/tmp/install/shared/usr/lib/*.la usr/lib
+debian/tmp/install/shared/usr/lib/*.so usr/lib
+debian/tmp/install/shared/usr/lib/pkgconfig usr/lib
+debian/tmp/install/shared/usr/lib/gtk-@APIVER@/include usr/lib/gtk-@APIVER@
+debian/tmp/install/shared/usr/share/aclocal usr/share
+debian/tmp/install/shared/usr/share/man/man1/gdk-pixbuf-csource.1 usr/share/man/man1/
+# from the static flavor
+debian/tmp/install/static/usr/lib/*.a usr/lib

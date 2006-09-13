@@ -1,1 +1,2 @@
-build-tree/gtk+-@VERSION@/examples/*
+# from the source
+@TOP_SRC_DIR@/examples/*

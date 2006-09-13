@@ -1,32 +1,28 @@
-#! /bin/sh
+#!/bin/sh
 
 set -e
 
-TMPFILE=`mktemp /tmp/gtk+-@VERSION@.XXXXXXXXXX`
-apiver=@APIVER@
-defaultver=@MODVER@
+VERSION="@VERSION@"
+GTK_BINARY_VERSION="@GTK_BINARY_VERSION@"
+APIVER="@APIVER@"
+SHARED_PKG="@SHARED_PKG@"
+TMPFILE=$(mktemp -t "gtk+$APIVER-$VERSION.XXXXXXXXXX")
 
-VERSION=@GTK_BINARY_VERSION@
-if ! test -d /usr/lib/gtk-$apiver/$VERSION/immodules; then
-	echo "You don't have immodules directory for version $VERSION."
-	echo "Use default version instead."
-	VERSION=$defaultver
-fi
-
-echo -n "Updating the IM modules list for GTK+-$VERSION..."
-/usr/lib/libgtk2.0-0/gtk-query-immodules-$apiver `find /usr/lib/gtk-$apiver/$VERSION/immodules -name '*.so'` > $TMPFILE
-if [ "x`cat $TMPFILE | grep -v '^#'`" = "x" ]; then
-	echo "the GTK+ IM modules was not found."
+echo -n "Updating the IM modules list for Gtk+ $VERSION..."
+"/usr/lib/$SHARED_PKG/gtk-query-immodules-$APIVER" \
+    $(find "/usr/lib/gtk-$APIVER/$GTK_BINARY_VERSION/immodules" -name '*.so') \
+    > "$TMPFILE"
+if [ "x`cat "$TMPFILE" | grep -v '^#'`" = "x" ]; then
+    echo "no Gtk+ IM modules found."
 else
-	echo "done."
+    echo "done."
 fi
-if ! test -d /etc/gtk-$apiver; then
-	echo -n "Creating /etc/gtk-$apiver..."
-	mkdir /etc/gtk-$apiver
-	echo "done."
+if ! test -d "/etc/gtk-$APIVER"; then
+    echo -n "Creating /etc/gtk-$APIVER..."
+    mkdir "/etc/gtk-$APIVER"
+    echo "done."
 fi
-cp $TMPFILE /etc/gtk-$apiver/gtk.immodules
-chmod 644 /etc/gtk-$apiver/gtk.immodules
+cp "$TMPFILE" "/etc/gtk-$APIVER/gtk.immodules"
+chmod 644 "/etc/gtk-$APIVER/gtk.immodules"
 
-rm -f $TMPFILE
-
+rm -f "$TMPFILE"
