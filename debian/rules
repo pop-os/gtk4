@@ -189,6 +189,8 @@ binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS)) debian/d
 	dh_testdir
 	dh_testroot
 	dh_install -i
+	# empty the dependency_libs in the *.la files
+	sed -i "/dependency_libs/ s/'.*'/''/" debian/$(DEV_PKG)/usr/lib/*.la
 	dh_installchangelogs -i -N$(BIN_PKG) $(TOP_SRC_DIR)/ChangeLog $(TOP_SRC_DIR)/ChangeLog.*
 	dh_installdocs -i -N$(BIN_PKG)
 	dh_installman -i
