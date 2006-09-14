@@ -179,11 +179,8 @@ clean: debian/control
 	-rm -v -rf $(STAMP_DIR)
 	-rm -v -f $(call dh_subst_files,$(ALL_PKGS))
 	-rm -v -f debian/docs debian/update-gdkpixbuf-loaders debian/update-gtk-immodules
-	ls debian/control*
 	$(MAKE) -f debian/sys-build.mk source.clean
-	ls debian/control*
 	dh_clean
-	ls debian/control*
 
 binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS)) debian/docs
 	dh_testdir
