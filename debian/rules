@@ -76,6 +76,9 @@ installbasedir = $(CURDIR)/debian/tmp/install
 # relative base directory for all types of modules
 MODULES_BASE_PATH := usr/lib/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
 
+# relative directory to store the generated IM modules file
+IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
+
 # configure flags
 common_configure_flags := \
 			--prefix=/usr \
@@ -211,6 +214,13 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 	done
 	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) $(TOP_SRC_DIR)/ChangeLog $(TOP_SRC_DIR)/ChangeLog.*
 	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG)
+	# generate an IM module file for the shared library
+	install -d debian/$(SHARED_PKG)/$(IMMODULE_FILES_D)
+	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
+		debian/tmp/install/shared/usr/bin/gtk-query-immodules-2.0 \
+			debian/$(SHARED_PKG)/$(MODULES_BASE_PATH)/immodules/*.so | \
+			sed 's#$(CURDIR)/debian/$(SHARED_PKG)##' \
+				> debian/$(SHARED_PKG)/$(IMMODULE_FILES_D)/$(SHARED_PKG).immodules
 	# generate a GdkPixbuf loader config file for the udeb
 	install -d debian/$(UDEB_PKG)/etc/gtk-$(APIVER)
 	LD_LIBRARY_PATH=debian/$(UDEB_PKG)/usr/lib:$(LD_LIBRARY_PATH) \

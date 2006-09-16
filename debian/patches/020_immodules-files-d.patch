@@ -1,0 +1,125 @@
+diff -urN gtk+-2.10.1.orig/gtk/gtkimmodule.c gtk+-2.10.1/gtk/gtkimmodule.c
+--- gtk+-2.10.1.orig/gtk/gtkimmodule.c	2006-05-14 06:25:29.000000000 +0200
++++ gtk+-2.10.1/gtk/gtkimmodule.c	2006-09-16 19:01:29.000000000 +0200
+@@ -59,6 +59,9 @@
+ #define GTK_IM_MODULE(im_module)    (G_TYPE_CHECK_INSTANCE_CAST ((im_module), GTK_TYPE_IM_MODULE, GtkIMModule))
+ #define GTK_IS_IM_MODULE(im_module) (G_TYPE_CHECK_INSTANCE_TYPE ((im_module), GTK_TYPE_IM_MODULE))
+ 
++#define IMMODULEFILEEXT ".immodules"
++#define IMMODULEFILEEXT_LEN ((int) strlen (IMMODULEFILEEXT))
++
+ struct _GtkIMModule
+ {
+   GTypeModule parent_instance;
+@@ -251,31 +254,15 @@
+ 
+ 
+ static void
+-gtk_im_module_initialize (void)
++process_module_file (const gchar *filename, FILE *file)
+ {
+   GString *line_buf = g_string_new (NULL);
+   GString *tmp_buf = g_string_new (NULL);
+-  gchar *filename = gtk_rc_get_im_module_file();
+-  FILE *file;
+   gboolean have_error = FALSE;
+ 
+   GtkIMModule *module = NULL;
+   GSList *infos = NULL;
+ 
+-  contexts_hash = g_hash_table_new (g_str_hash, g_str_equal);
+-
+-  file = g_fopen (filename, "r");
+-  if (!file)
+-    {
+-      /* In case someone wants only the default input method,
+-       * we allow no file at all.
+-       */
+-      g_string_free (line_buf, TRUE);
+-      g_string_free (tmp_buf, TRUE);
+-      g_free (filename);
+-      return;
+-    }
+-
+   while (!have_error && pango_read_line (file, line_buf))
+     {
+       const char *p;
+@@ -373,10 +360,76 @@
+   else if (module)
+     add_module (module, infos);
+ 
+-  fclose (file);
+   g_string_free (line_buf, TRUE);
+   g_string_free (tmp_buf, TRUE);
+-  g_free (filename);
++}
++
++static void
++gtk_im_module_initialize (void)
++{
++  gchar *im_module_file_str = gtk_rc_get_im_module_file();
++  gchar *im_module_files_d_str = g_build_filename (GTK_LIBDIR,
++						   "gtk-2.0",
++						   GTK_BINARY_VERSION,
++						   "immodule-files.d",
++						   NULL);
++  FILE *file;
++  gchar *list_str;
++  char **files;
++  int n;
++
++  list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
++			im_module_file_str,
++			im_module_files_d_str,
++			NULL);
++
++  files = pango_split_file_list (list_str);
++
++  contexts_hash = g_hash_table_new (g_str_hash, g_str_equal);
++
++  n = 0;
++  while (files[n])
++    n++;
++
++  while (n-- > 0)
++    {
++      GDir *dir = g_dir_open (files[n], 0, NULL);
++      if (dir)
++	{
++	  const char *dent;
++
++	  while ((dent = g_dir_read_name (dir)))
++	    {
++	      int len = strlen (dent);
++	      if (len > IMMODULEFILEEXT_LEN && strcmp (dent + len - IMMODULEFILEEXT_LEN, IMMODULEFILEEXT) == 0)
++		{
++		  gchar *pathname = g_build_filename (files[n], dent, NULL);
++		  file = g_fopen (pathname, "r");
++		  if (file)
++		    {
++		      process_module_file(pathname, file);
++		      fclose(file);
++		    }
++		  g_free (pathname);
++		}
++	    }
++	  g_dir_close (dir);
++	}
++      else
++	{
++	  file = g_fopen (files[n], "r");
++	  if (file)
++	    {
++	      process_module_file(files[n], file);
++	      fclose (file);
++	    }
++	}
++    }
++
++  g_strfreev (files);
++  g_free (list_str);
++  g_free (im_module_files_d_str);
++  g_free (im_module_file_str);
+ }
+ 
+ static gint

@@ -72,8 +72,20 @@ gtk+2.0 (2.10.1-0beta3) experimental-WIP; urgency=low
   * Rewrite update-gdkpixbuf-loaders and update-gtk-immodules.
   * Drop double libatk1.0-dev build-dep.
   * Empty the dependency_libs in the *.la files of libgtk2.0-dev.
+  * New immodule files handling with *.immodules files below
+    /usr/lib/gtk-2.0/<BINARY_VERSION>/immodule-files.d.
+    - New patch, 020_immodules-files-d, to split the module search path on
+      ":", as is done in Pango, prepend
+      /usr/lib/gtk-2.0/<BINARY_VERSION>/immodule-files.d to the search path,
+      and to read all *.immodules files when a directory is encountered in the
+      search path.
+    - Pre-generate
+      /usr/lib/gtk-2.0/<BINARY_VERSION>/immodule-files.d/libgtk2.0-0.immodules
+      for the shared library.
+    - Continue generating /etc/gtk-2.0/gtk.immodules until packages are
+      updated.
 
- -- Loic Minier <lool@dooz.org>  Thu, 14 Sep 2006 13:04:26 +0200
+ -- Loic Minier <lool@dooz.org>  Sat, 16 Sep 2006 19:04:48 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
