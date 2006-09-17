@@ -85,8 +85,23 @@ gtk+2.0 (2.10.1-0beta3) experimental-WIP; urgency=low
     - Continue generating /etc/gtk-2.0/gtk.immodules until packages are
       updated.
   * Add the libpixmap engine to the udeb for the new Bladr GTK theme for g-i.
+  * New loader files handling with *.loaders files below
+    /usr/lib/gtk-2.0/<BINARY_VERSION>/loaders-files.d.
+    - New patch, 021_loader-files-d, to split the module search path on
+      ":", as is done in Pango, prepend
+      /usr/lib/gtk-2.0/<BINARY_VERSION>/loader-files.d to the search path,
+      and to read all *.loaders files when a directory is encountered in the
+      search path.
+    - Pre-generate
+      /usr/lib/gtk-2.0/<BINARY_VERSION>/loader-files.d/libgtk2.0-0.loaders
+      for the shared library and libgtk-directfb-2.0-0-udeb.loaders for the
+      udeb.
+    - Continue generating /etc/gtk-2.0/gdk-pixbuf.loaders until packages are
+      updated.
+    - This particular patch uses two ugly workarounds and needs work before
+      being sent upstream.
 
- -- Loic Minier <lool@dooz.org>  Sat, 16 Sep 2006 23:11:42 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 17 Sep 2006 00:25:35 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 

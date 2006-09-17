@@ -76,8 +76,11 @@ installbasedir = $(CURDIR)/debian/tmp/install
 # relative base directory for all types of modules
 MODULES_BASE_PATH := usr/lib/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
 
-# relative directory to store the generated IM modules file
+# relative directory to store the generated IM module files
 IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
+
+# relative directory to store the generated GdkPixbuf loader files
+LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
 
 # configure flags
 common_configure_flags := \
@@ -112,6 +115,8 @@ directfb_configure_flags := $(common_configure_flags) \
 # macro computing the list of 'debian/<pkg>.*" files which have a corresponding
 # ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
+
+extract: $(STAMP_DIR)/extract-stamp
 
 $(STAMP_DIR)/extract-stamp:
 	dh_testdir
@@ -221,13 +226,20 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 			debian/$(SHARED_PKG)/$(MODULES_BASE_PATH)/immodules/*.so | \
 			sed 's#$(CURDIR)/debian/$(SHARED_PKG)##' \
 				> debian/$(SHARED_PKG)/$(IMMODULE_FILES_D)/$(SHARED_PKG).immodules
+	# generate a GdkPixbuf loader file for the shared library
+	install -d debian/$(SHARED_PKG)/$(LOADER_FILES_D)
+	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
+		debian/tmp/install/shared/usr/bin/gdk-pixbuf-query-loaders \
+			debian/$(SHARED_PKG)/$(MODULES_BASE_PATH)/loaders/*.so | \
+			sed 's#$(CURDIR)/debian/$(SHARED_PKG)##' \
+				> debian/$(SHARED_PKG)/$(LOADER_FILES_D)/$(SHARED_PKG).loaders
 	# generate a GdkPixbuf loader config file for the udeb
-	install -d debian/$(UDEB_PKG)/etc/gtk-$(APIVER)
+	install -d debian/$(UDEB_PKG)/$(LOADER_FILES_D)
 	LD_LIBRARY_PATH=debian/$(UDEB_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
 		debian/tmp/install/directfb/usr/bin/gdk-pixbuf-query-loaders \
 			debian/$(UDEB_PKG)/$(MODULES_BASE_PATH)/loaders/*.so | \
 			sed 's#$(CURDIR)/debian/$(UDEB_PKG)##' \
-				> debian/$(UDEB_PKG)/etc/gtk-$(APIVER)/gdk-pixbuf.loaders
+				> debian/$(UDEB_PKG)/$(LOADER_FILES_D)/$(UDEB_PKG).loaders
 	dh_installexamples -a
 	dh_link -a
 	dh_strip -a --dbg-package=$(DEBUG_PKG)
@@ -258,4 +270,4 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 force:
 
 binary: binary-indep binary-arch
-.PHONY: configure build install clean binary-indep binary-arch force binary
+.PHONY: extract configure build install clean binary-indep binary-arch force binary
