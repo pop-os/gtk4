@@ -143,7 +143,7 @@ sub query_modules {
         chomp;
         # strip build-time prefix from output
         if (m#^\Q"$absolute_basedir/\E#) {
-            s#^\Q"$absolute_basedir/\E#/#;
+            s#^\Q"$absolute_basedir/\E#"/#;
         }
         complex_doit("echo '$_' >>$module_file");
     }
