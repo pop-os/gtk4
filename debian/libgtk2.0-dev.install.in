@@ -1,3 +1,5 @@
+# from Debian
+debian/dh_gtkmodules usr/bin
 # from the shared flavor
 debian/tmp/install/shared/usr/bin/gdk-pixbuf-csource usr/bin
 debian/tmp/install/shared/usr/include usr

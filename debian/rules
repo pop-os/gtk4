@@ -116,6 +116,9 @@ directfb_configure_flags := $(common_configure_flags) \
 # ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
 
+debian/dh_gtkmodules.1: debian/dh_gtkmodules
+	cd debian && pod2man -c "Gtk" -r "$(DEBVERSION)" dh_gtkmodules dh_gtkmodules.1
+
 extract: $(STAMP_DIR)/extract-stamp
 
 $(STAMP_DIR)/extract-stamp:
@@ -184,9 +187,9 @@ debian/%: debian/%.in force
 clean: debian/control
 	dh_testdir
 	dh_testroot
-	-rm -v -rf $(STAMP_DIR)
-	-rm -v -f $(call dh_subst_files,$(ALL_PKGS))
-	-rm -v -f debian/docs debian/update-gdkpixbuf-loaders debian/update-gtk-immodules
+	-rm -rf $(STAMP_DIR)
+	-rm -f $(call dh_subst_files,$(ALL_PKGS))
+	-rm -f debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/docs debian/dh_gtkmodules.1
 	$(MAKE) -f debian/sys-build.mk source.clean
 	dh_clean
 
@@ -205,7 +208,7 @@ binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS)) debian/d
 	dh_md5sums -i
 	dh_builddeb -i
 
-binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/docs
+binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/docs debian/dh_gtkmodules.1
 	dh_testdir -a
 	dh_testroot -a
 	dh_install -a

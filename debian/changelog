@@ -100,8 +100,11 @@ gtk+2.0 (2.10.1-0beta3) experimental-WIP; urgency=low
       updated.
     - This particular patch uses two ugly workarounds and needs work before
       being sent upstream.
+  * New Debhelper-based command, dh_gtkmodules, to create module files for IM
+    modules and GdkPixbuf loaders; it will still add a dependency on the
+    binary version of Gtk for other modules.
 
- -- Loic Minier <lool@dooz.org>  Sun, 17 Sep 2006 00:25:35 +0200
+ -- Loic Minier <lool@dooz.org>  Mon, 18 Sep 2006 22:01:31 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
