@@ -222,27 +222,23 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 	done
 	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) $(TOP_SRC_DIR)/ChangeLog $(TOP_SRC_DIR)/ChangeLog.*
 	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG)
-	# generate an IM module file for the shared library
-	install -d debian/$(SHARED_PKG)/$(IMMODULE_FILES_D)
+	# fix the permissions of the development package because it ships
+	# dh_gtkmodules which we need to invoke in this build
+	dh_fixperms -p$(DEV_PKG)
+	# generate a dependency on the Gtk binary version
+	debian/$(DEV_PKG)/usr/bin/dh_gtkmodules -p$(PIXBUF_PKG)
+	# generate an IM module file and a GdkPixbuf loader file for the shared
+	# library
 	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
-		debian/tmp/install/shared/usr/bin/gtk-query-immodules-2.0 \
-			debian/$(SHARED_PKG)/$(MODULES_BASE_PATH)/immodules/*.so | \
-			sed 's#$(CURDIR)/debian/$(SHARED_PKG)##' \
-				> debian/$(SHARED_PKG)/$(IMMODULE_FILES_D)/$(SHARED_PKG).immodules
-	# generate a GdkPixbuf loader file for the shared library
-	install -d debian/$(SHARED_PKG)/$(LOADER_FILES_D)
-	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
-		debian/tmp/install/shared/usr/bin/gdk-pixbuf-query-loaders \
-			debian/$(SHARED_PKG)/$(MODULES_BASE_PATH)/loaders/*.so | \
-			sed 's#$(CURDIR)/debian/$(SHARED_PKG)##' \
-				> debian/$(SHARED_PKG)/$(LOADER_FILES_D)/$(SHARED_PKG).loaders
+	GTK_QUERYLOADERS=$(installbasedir)/shared/usr/bin/gdk-pixbuf-query-loaders \
+	GTK_QUERYIMMODULES=$(installbasedir)/shared/usr/bin/gtk-query-immodules-2.0 \
+		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
+			-p$(SHARED_PKG)
 	# generate a GdkPixbuf loader config file for the udeb
-	install -d debian/$(UDEB_PKG)/$(LOADER_FILES_D)
 	LD_LIBRARY_PATH=debian/$(UDEB_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
-		debian/tmp/install/directfb/usr/bin/gdk-pixbuf-query-loaders \
-			debian/$(UDEB_PKG)/$(MODULES_BASE_PATH)/loaders/*.so | \
-			sed 's#$(CURDIR)/debian/$(UDEB_PKG)##' \
-				> debian/$(UDEB_PKG)/$(LOADER_FILES_D)/$(UDEB_PKG).loaders
+	GTK_QUERYLOADERS=$(installbasedir)/directfb/usr/bin/gdk-pixbuf-query-loaders \
+		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
+			-p$(UDEB_PKG)
 	dh_installexamples -a
 	dh_link -a
 	dh_strip -a --dbg-package=$(DEBUG_PKG)
