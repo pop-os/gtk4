@@ -1,8 +1,10 @@
 gtk+2.0 (2.10.1-2) UNRELEASED; urgency=low
 
   * Drop obsolete scary warning in 2.10.1-1.
+  * Drop update-gtk-immodules and update-gdkpixbuf-loaders calls from
+    libgtk2.0-0's postinst, this isn't needed for backwards compatibility.
 
- -- Loic Minier <lool@dooz.org>  Tue, 19 Sep 2006 16:28:45 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 19 Sep 2006 16:40:22 +0200
 
 gtk+2.0 (2.10.1-1) experimental; urgency=low
 

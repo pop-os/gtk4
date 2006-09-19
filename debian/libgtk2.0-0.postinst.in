@@ -10,11 +10,4 @@ if [ -d /usr/share/doc/@SHARED_PKG@ -a ! -L /usr/share/doc/@SHARED_PKG@ ]; then
     fi
 fi
 
-case "$1" in
-  configure)
-    /usr/lib/@SHARED_PKG@/update-gtk-immodules
-    /usr/lib/@SHARED_PKG@/update-gdkpixbuf-loaders
-  ;;
-esac
-
 #DEBHELPER#
