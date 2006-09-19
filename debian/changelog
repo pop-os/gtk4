@@ -1,3 +1,19 @@
+gtk+2.0 (2.10.3-1) experimental; urgency=low
+
+  * New upstream releases; with API additions in the filesystem modules API,
+    probably only used by gtk-demo, and in the quartz gdk backend, not used in
+    Debian.
+    - Bump shlibs to >= 2.10.3.
+    - Drop patch 009_configurable-cairo-backend-module, it was not really
+      required to select a cairo backend dynamically as the backend is always
+      cairo-directfb for a directfb gdk.
+    - Drop patch 010_gdk-require-cairo-module, merged upstream.
+    - Drop patch 011_gdk-directfb-cvs-changes, this release includes the
+      changes that were pulled back then.
+    - Relibtoolize: update path 070_mandatory-relibtoolize.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 19 Sep 2006 20:42:38 +0200
+
 gtk+2.0 (2.10.1-2) experimental; urgency=low
 
   * Drop obsolete scary warning in 2.10.1-1.
