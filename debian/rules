@@ -243,9 +243,10 @@ install-dfb: build-dfb install-test
 	find $(DFB_PKGDIR) -name \*.la -exec rm -f \{\} \;
 	find $(DFB_PKGDIR) -name libpixbufloader\* \! -name \*png\* -exec rm -f \{\} \;
 	mkdir -p $(UDEB_PKGDIR)/etc/gtk-2.0
-	$(BUILD_SHARED_DIR)/gdk-pixbuf/gdk-pixbuf-query-loaders \
-		$(DFB_PKGFIR)/usr/lib/gtk-2.0/*/loaders/*.so | \
-		sed s,$(DFB_PKGDIR),, > $(UDEB_PKGDIR)/etc/gtk-2.0/gdk-pixbuf.loaders
+	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
+		$(BUILD_DFB_DIR)/gdk-pixbuf/gdk-pixbuf-query-loaders \
+			$(DFB_PKGDIR)/usr/lib/gtk-2.0/*/loaders/*.so | \
+			sed s,$(DFB_PKGDIR),, > $(UDEB_PKGDIR)/etc/gtk-2.0/gdk-pixbuf.loaders
 
 install: install-static install-shared install-dfb
 	# generating debian files from .in
