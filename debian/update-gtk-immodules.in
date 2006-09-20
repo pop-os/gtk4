@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# this script is a no-op since 2.10.3-2
+exit 0
+
 set -e
 
 VERSION="@VERSION@"

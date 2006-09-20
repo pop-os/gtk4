@@ -1,8 +1,13 @@
-gtk+2.0 (2.10.3-2) UNRELEASED; urgency=low
+gtk+2.0 (2.10.3-2) experimental; urgency=low
 
   * Drop obsolete --with-cairo-backend configure flag.
+  * Make update-gtk-immodules and update-gtk-immodules no-ops, to avoid
+    modules to recreate the /etc modules files on upgrades or by mistake;
+    remove the generated module files in /etc on upgrades. closes: #388450
+  * Merge 2.8.20-2; drop patch 009_revert-gdkdrawable-directfb, merged
+    upstream.
 
- -- Loic Minier <lool@dooz.org>  Wed, 20 Sep 2006 10:27:55 +0200
+ -- Loic Minier <lool@dooz.org>  Wed, 20 Sep 2006 22:17:30 +0200
 
 gtk+2.0 (2.10.3-1) experimental; urgency=low
 
@@ -150,6 +155,20 @@ gtk+2.0 (2.10.1-1) experimental; urgency=low
   * Add ${misc:Depends} to gtk2-engines-pixbuf.
 
  -- Loic Minier <lool@dooz.org>  Tue, 19 Sep 2006 15:13:38 +0200
+
+gtk+2.0 (2.8.20-2) unstable; urgency=low
+
+  * New patch, 009_revert-gdkdrawable-directfb, to revert a fix for Italic
+    letters which caused ugly unneeded horizontal/vertical lines; thanks
+    Davide Viti. (Closes: #386860)
+  * Fix typo, install-dfb depends on build-dfb, not build-shared.
+  * Fix typo (DFB_PKGFIR versus DFB_PKGDIR), use the BUILD_DFB_DIR version of
+    gdk-pixbuf-query-loaders, and set LD_LIBRARY_PATH to the udeb's /usr/lib;
+    should fix the empty /etc/gtk-2.0/gdk-pixbuf.loaders. (Closes: #382435)
+  * Ship all engines of the DirectFB build in the udeb, that is
+    engines/libpixmap.so.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 20 Sep 2006 21:36:04 +0200
 
 gtk+2.0 (2.8.20-1) unstable; urgency=low
 
