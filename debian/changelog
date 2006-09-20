@@ -1,3 +1,9 @@
+gtk+2.0 (2.10.3-2) UNRELEASED; urgency=low
+
+  * Drop obsolete --with-cairo-backend configure flag.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 20 Sep 2006 10:27:55 +0200
+
 gtk+2.0 (2.10.3-1) experimental; urgency=low
 
   * New upstream releases; with API additions in the filesystem modules API,

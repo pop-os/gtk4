@@ -109,8 +109,7 @@ directfb_configure_flags := $(common_configure_flags) \
 			--with-xinput=no \
 			--enable-shared \
 			--disable-static \
-			--with-gdktarget=directfb \
-			--with-cairo-backend=directfb \
+			--with-gdktarget=directfb
 
 # macro computing the list of 'debian/<pkg>.*" files which have a corresponding
 # ".in" file; pass the list of packages in $(1)
