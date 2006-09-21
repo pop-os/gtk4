@@ -1,10 +1,12 @@
-gtk+2.0 (2.10.3-3) experimental; urgency=low
+gtk+2.0 (2.10.3-3) experimental; urgency=medium
 
   * Update patch 021_loader-files-d to not warn about missing module files or
     unreadable files as is already the case for immodules; see #388450 for
     more background.
+  * Fix awful typo which broke generation of the udeb shlibs and which I
+    didn't notice with debdiff; thanks Frans Pop.
 
- -- Loic Minier <lool@dooz.org>  Thu, 21 Sep 2006 11:22:37 +0200
+ -- Loic Minier <lool@dooz.org>  Thu, 21 Sep 2006 17:33:02 +0200
 
 gtk+2.0 (2.10.3-2) experimental; urgency=low
 

@@ -248,7 +248,7 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 		-V"$(SHARED_PKG) (>= $(SHVER))" \
 		--add-udeb=$(UDEB_PKG)
 	dh_makeshlibs -p$(DIRECTFB_PKG) \
-		-X$(MODULES_BASE_PATH)
+		-X$(MODULES_BASE_PATH) \
 		-V"$(DIRECTFB_PKG) (>= $(SHVER))" \
 		--add-udeb=$(UDEB_PKG)
 	dh_installdeb -a
