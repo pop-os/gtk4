@@ -5,8 +5,10 @@ gtk+2.0 (2.10.3-3) experimental; urgency=medium
     more background.
   * Fix awful typo which broke generation of the udeb shlibs and which I
     didn't notice with debdiff; thanks Frans Pop.
+  * Drop debian/docs.in and pass the list of files to dh_installdocs instead;
+    should fix the missing README and NEWS files.
 
- -- Loic Minier <lool@dooz.org>  Thu, 21 Sep 2006 17:33:02 +0200
+ -- Loic Minier <lool@dooz.org>  Thu, 21 Sep 2006 17:35:16 +0200
 
 gtk+2.0 (2.10.3-2) experimental; urgency=low
 

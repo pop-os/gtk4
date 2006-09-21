@@ -188,16 +188,16 @@ clean: debian/control
 	dh_testroot
 	-rm -rf $(STAMP_DIR)
 	-rm -f $(call dh_subst_files,$(ALL_PKGS))
-	-rm -f debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/docs debian/dh_gtkmodules.1
+	-rm -f debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
 	$(MAKE) -f debian/sys-build.mk source.clean
 	dh_clean
 
-binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS)) debian/docs
+binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
 	dh_testdir
 	dh_testroot
 	dh_install -i
 	dh_installchangelogs -i -N$(BIN_PKG) $(TOP_SRC_DIR)/ChangeLog $(TOP_SRC_DIR)/ChangeLog.*
-	dh_installdocs -i -N$(BIN_PKG)
+	dh_installdocs -i -N$(BIN_PKG) $(TOP_SRC_DIR)/NEWS $(TOP_SRC_DIR)/NEWS.pre-1-0 $(TOP_SRC_DIR)/README
 	dh_installman -i
 	dh_link -i
 	dh_compress -i
@@ -207,7 +207,7 @@ binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS)) debian/d
 	dh_md5sums -i
 	dh_builddeb -i
 
-binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/docs debian/dh_gtkmodules.1
+binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
 	dh_testdir -a
 	dh_testroot -a
 	dh_install -a
@@ -220,7 +220,7 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 	    chmod 755 debian/$(SHARED_PKG)/usr/lib/$(SHARED_PKG)/$$f; \
 	done
 	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) $(TOP_SRC_DIR)/ChangeLog $(TOP_SRC_DIR)/ChangeLog.*
-	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG)
+	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) $(TOP_SRC_DIR)/NEWS $(TOP_SRC_DIR)/NEWS.pre-1-0 $(TOP_SRC_DIR)/README
 	# fix the permissions of the development package because it ships
 	# dh_gtkmodules which we need to invoke in this build
 	dh_fixperms -p$(DEV_PKG)
