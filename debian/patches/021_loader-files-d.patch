@@ -1,6 +1,6 @@
-diff -urN -p gtk+-2.10.1.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.10.1/gdk-pixbuf/gdk-pixbuf-io.c
---- gtk+-2.10.1.orig/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-17 22:06:18.000000000 +0200
-+++ gtk+-2.10.1/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-17 22:10:28.000000000 +0200
+diff -urN -p gtk+-2.10.3.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.10.3/gdk-pixbuf/gdk-pixbuf-io.c
+--- gtk+-2.10.3.orig/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-21 11:16:58.000000000 +0200
++++ gtk+-2.10.3/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-21 11:18:35.000000000 +0200
 @@ -45,6 +45,9 @@
  #undef STRICT
  #endif
@@ -116,7 +116,7 @@ diff -urN -p gtk+-2.10.1.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.10.1/gdk-pixbuf/
  	while (!have_error && g_io_channel_read_line (channel, &line_buf, NULL, &term, NULL) == G_IO_STATUS_NORMAL) {
  		const char *p;
  		
-@@ -436,8 +504,77 @@ gdk_pixbuf_io_init (void)
+@@ -436,8 +504,81 @@ gdk_pixbuf_io_init (void)
  		g_free (line_buf);
  	}
  	g_string_free (tmp_buf, TRUE);
@@ -161,9 +161,11 @@ diff -urN -p gtk+-2.10.1.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.10.1/gdk-pixbuf/
 +					gchar *pathname = g_build_filename (files[n], dent, NULL);
 +					channel = g_io_channel_new_file (pathname, "r",  &error);
 +					if (!channel) {
-+						g_warning ("Cannot open pixbuf loader module file '%s': %s",
-+							   pathname,
-+							   error->message);
++						/* we don't care about issuing a warning
++						 * g_warning ("Cannot open pixbuf loader module file '%s': %s",
++						 *	   pathname,
++						 *	   error->message);
++						 */
 +						g_error_free (error);
 +						error = NULL;
 +					} else {
@@ -177,9 +179,11 @@ diff -urN -p gtk+-2.10.1.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.10.1/gdk-pixbuf/
 +		} else {
 +			channel = g_io_channel_new_file (files[n], "r", &error);
 +			if (!channel) {
-+				g_warning ("Cannot open pixbuf loader module file '%s': %s",
-+					   files[n],
-+					   error->message);
++				/* we don't care about issuing a warning
++				 * g_warning ("Cannot open pixbuf loader module file '%s': %s",
++				 *	   files[n],
++				 *	   error->message);
++				 */
 +				g_error_free (error);
 +				error = NULL;
 +			} else {
