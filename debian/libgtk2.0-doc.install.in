@@ -8,6 +8,6 @@ debian/tmp/install/shared/usr/share/doc/@DOC_PKG@ usr/share/doc
 # from the source
 # XXX FAQ and Tutorial disabled for now, upstream seems to not
 # have docbook
-#@TOP_SRC_DIR@/docs/faq/html usr/share/doc/@DOC_PKG@/gtk-faq
-#@TOP_SRC_DIR@/docs/gtk-tutorial/html usr/share/doc/@DOC_PKG@/gtk-tutorial
-@TOP_SRC_DIR@/docs/*.txt usr/share/doc/@DOC_PKG@
+#docs/faq/html usr/share/doc/@DOC_PKG@/gtk-faq
+#docs/gtk-tutorial/html usr/share/doc/@DOC_PKG@/gtk-tutorial
+docs/*.txt usr/share/doc/@DOC_PKG@

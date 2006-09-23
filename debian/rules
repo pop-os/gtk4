@@ -1,7 +1,5 @@
 #!/usr/bin/make -f
 
-include debian/scripts/vars
-
 # Members list of Debian GNOME Maintainers
 TEAM_LIST ?= /usr/share/gnome-pkg-tools/pkg-gnome.team
 
@@ -9,11 +7,12 @@ TEAM_LIST ?= /usr/share/gnome-pkg-tools/pkg-gnome.team
 maintainer := $(shell sed -n 's/^Maintainer: //p' debian/control.in)
 uploaders := $(shell grep -vF '$(maintainer)' $(TEAM_LIST))
 
-# relative path to the top directory of the unpacked tarball
-TOP_SRC_DIR := $(SOURCE_DIR)/$(TAR_DIR)
-
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
+
+STAMP_DIR := debian/stampdir
+
+PATCH_DIR=debian/patches
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
@@ -118,22 +117,27 @@ dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *
 debian/dh_gtkmodules.1: debian/dh_gtkmodules
 	cd debian && pod2man -c "Gtk" -r "$(DEBVERSION)" dh_gtkmodules dh_gtkmodules.1
 
-extract: $(STAMP_DIR)/extract-stamp
+patch: $(STAMP_DIR)/patch-stamp
 
-$(STAMP_DIR)/extract-stamp:
+$(STAMP_DIR)/patch-stamp:
 	dh_testdir
-	$(MAKE) -f debian/sys-build.mk source.make
+	mkdir $(STAMP_DIR)
+	# apply patches
+	QUILT_PATCHES=$(PATCH_DIR) quilt --quiltrc /dev/null push -a || test $$? = 2
+	# backup the original files to restore them in the clean target
+	-test -r config.sub && cp config.sub config.sub.orig
+	-test -r config.guess && cp config.guess config.guess.orig
 	-test -r /usr/share/misc/config.sub && \
-		cp -f /usr/share/misc/config.sub $(TOP_SRC_DIR)/config.sub
+		cp -f /usr/share/misc/config.sub config.sub
 	-test -r /usr/share/misc/config.guess && \
-		cp -f /usr/share/misc/config.guess $(TOP_SRC_DIR)/config.guess
+		cp -f /usr/share/misc/config.guess config.guess
 	touch $@
 
-$(STAMP_DIR)/configure-stamp-%: $(STAMP_DIR)/extract-stamp
+$(STAMP_DIR)/configure-stamp-%: $(STAMP_DIR)/patch-stamp
 	dh_testdir
 	mkdir -p $(builddir)
 	cd $(builddir) && \
-		$(CURDIR)/$(TOP_SRC_DIR)/configure $($*_configure_flags)
+		$(CURDIR)/configure $($*_configure_flags)
 	cd $(builddir) && \
 		sed < libtool > libtool-2 \
 			-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
@@ -165,7 +169,6 @@ debian/%: debian/%.in force
 		-e "s#@SONAME@#$(SONAME)#g" \
 		-e "s#@APIVER@#$(APIVER)#g" \
 		-e "s#@VERSION@#$(VERSION)#g" \
-		-e "s#@TOP_SRC_DIR@#$(TOP_SRC_DIR)#g" \
 		-e "s#@GTK_BINVER_DEP@#$(GTK_BINVER_DEP)#g" \
 		-e "s#@SHARED_PKG@#$(SHARED_PKG)#g" \
 		-e "s#@COMMON_PKG@#$(COMMON_PKG)#g" \
@@ -186,18 +189,23 @@ debian/%: debian/%.in force
 clean: debian/control
 	dh_testdir
 	dh_testroot
+	# restore files from backup (before unpatching)
+	-test -r config.sub.orig && mv -f config.sub.orig config.sub
+	-test -r config.guess.orig && mv -f config.guess.orig config.guess
+	# unapply patches, if any
+	QUILT_PATCHES=$(PATCH_DIR) quilt --quiltrc /dev/null pop -a -R || test $$? = 2
+	-rm -rf .pc
 	-rm -rf $(STAMP_DIR)
 	-rm -f $(call dh_subst_files,$(ALL_PKGS))
 	-rm -f debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
-	$(MAKE) -f debian/sys-build.mk source.clean
 	dh_clean
 
 binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
 	dh_testdir
 	dh_testroot
 	dh_install -i
-	dh_installchangelogs -i -N$(BIN_PKG) $(TOP_SRC_DIR)/ChangeLog $(TOP_SRC_DIR)/ChangeLog.*
-	dh_installdocs -i -N$(BIN_PKG) $(TOP_SRC_DIR)/NEWS $(TOP_SRC_DIR)/NEWS.pre-1-0 $(TOP_SRC_DIR)/README
+	dh_installchangelogs -i -N$(BIN_PKG) ChangeLog ChangeLog.*
+	dh_installdocs -i -N$(BIN_PKG) NEWS NEWS.pre-1-0 README
 	dh_installman -i
 	dh_link -i
 	dh_compress -i
@@ -219,8 +227,8 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 	for f in update-gdkpixbuf-loaders update-gtk-immodules; do \
 	    chmod 755 debian/$(SHARED_PKG)/usr/lib/$(SHARED_PKG)/$$f; \
 	done
-	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) $(TOP_SRC_DIR)/ChangeLog $(TOP_SRC_DIR)/ChangeLog.*
-	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) $(TOP_SRC_DIR)/NEWS $(TOP_SRC_DIR)/NEWS.pre-1-0 $(TOP_SRC_DIR)/README
+	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) ChangeLog ChangeLog.*
+	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) NEWS NEWS.pre-1-0 README
 	# fix the permissions of the development package because it ships
 	# dh_gtkmodules which we need to invoke in this build
 	dh_fixperms -p$(DEV_PKG)
@@ -268,4 +276,4 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 force:
 
 binary: binary-indep binary-arch
-.PHONY: extract configure build install clean binary-indep binary-arch force binary
+.PHONY: patch configure build install clean binary-indep binary-arch force binary

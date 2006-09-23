@@ -1,6 +1,7 @@
-diff -urN -p gtk+-2.10.3.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.10.3/gdk-pixbuf/gdk-pixbuf-io.c
---- gtk+-2.10.3.orig/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-21 11:16:58.000000000 +0200
-+++ gtk+-2.10.3/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-21 11:18:35.000000000 +0200
+Index: gtk+2.0-2.10.4/gdk-pixbuf/gdk-pixbuf-io.c
+===================================================================
+--- gtk+2.0-2.10.4.orig/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-10 08:33:10.000000000 +0200
++++ gtk+2.0-2.10.4/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-23 10:17:46.000000000 +0200
 @@ -45,6 +45,9 @@
  #undef STRICT
  #endif
@@ -11,7 +12,7 @@ diff -urN -p gtk+-2.10.3.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.10.3/gdk-pixbuf/
  static gint 
  format_check (GdkPixbufModule *module, guchar *buffer, int size)
  {
-@@ -282,28 +285,93 @@ gdk_pixbuf_get_module_file (void)
+@@ -282,28 +285,93 @@
    return result;
  }
  
@@ -116,7 +117,7 @@ diff -urN -p gtk+-2.10.3.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.10.3/gdk-pixbuf/
  	while (!have_error && g_io_channel_read_line (channel, &line_buf, NULL, &term, NULL) == G_IO_STATUS_NORMAL) {
  		const char *p;
  		
-@@ -436,8 +504,81 @@ gdk_pixbuf_io_init (void)
+@@ -436,8 +504,81 @@
  		g_free (line_buf);
  	}
  	g_string_free (tmp_buf, TRUE);

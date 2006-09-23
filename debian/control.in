@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
 Uploaders: @GNOME_TEAM@
-Build-Depends: debhelper (>= 5.0.22), gettext, pkg-config, libglib2.0-dev (>= 2.12.0), libpango1.0-dev (>= 1.12.1-2), libatk1.0-dev (>= 1.9.0), libx11-dev (>= 2:1.0.0-6), libxext-dev, libxi-dev, libxrandr-dev, libxt-dev, libxrender-dev, libxft-dev, libxcursor-dev, libxkbfile-dev, libxinerama-dev, libxfixes-dev, libcairo2-dev (>= 1.2.0), libcairo-directfb2-dev (>= 1.2.4-2), libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools, chrpath, dpkg-dev (>= 1.13.19), x11proto-xext-dev, libdirectfb-dev (>= 0.9.24), libcupsys2-dev (>= 1.2)
+Build-Depends: debhelper (>= 5.0.22), gettext, pkg-config, libglib2.0-dev (>= 2.12.0), libpango1.0-dev (>= 1.12.1-2), libatk1.0-dev (>= 1.9.0), libx11-dev (>= 2:1.0.0-6), libxext-dev, libxi-dev, libxrandr-dev, libxt-dev, libxrender-dev, libxft-dev, libxcursor-dev, libxkbfile-dev, libxinerama-dev, libxfixes-dev, libcairo2-dev (>= 1.2.0), libcairo-directfb2-dev (>= 1.2.4-2), libtiff4-dev, libjpeg62-dev, libpng12-dev, docbook-utils, linuxdoc-tools-text, gnome-pkg-tools, chrpath, dpkg-dev (>= 1.13.19), x11proto-xext-dev, libdirectfb-dev (>= 0.9.24), libcupsys2-dev (>= 1.2), quilt
 Build-Depends-Indep: gtk-doc-tools, docbook-xml
 Standards-Version: 3.7.2
 
