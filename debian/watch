@@ -1,4 +1,4 @@
 version=2
-http://ftp.gnome.org/pub/GNOME/sources/gtk+/([\d\.]+)[02468]/ \
+http://download.gnome.org/sources/gtk+/([\d\.]+)[02468]/ \
 	gtk\+-(.*)\.tar\.gz \
 	debian uupdate
