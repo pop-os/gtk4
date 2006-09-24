@@ -8,6 +8,7 @@
 008_implicit_pointer_conversion_gdkgc_directfb.patch
 010_fix-stuc-vs-stub-typo.patch
 011_directfb-build-fixes-from-head.patch
+012_missing-stub-files.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
 070_mandatory-relibtoolize.patch
