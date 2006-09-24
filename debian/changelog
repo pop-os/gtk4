@@ -5,9 +5,14 @@ gtk+2.0 (2.10.4-1) experimental; urgency=low
       patching; build-depend on quilt; remove occurrences of $(TOP_SRC_DIR)
       and @TOP_SRC_DIR@ which isn't needed anymore.
     - Refresh patch 021_loader-files-d.
+    - New patch, 010_fix-stuc-vs-stub-typo, to replace "stuc" with "stub" in
+      gtk/Makefile.am; from HEAD, not commited in the gtk-2-10 branch.
+    - New patch, 011_directfb-build-fixes-from-head, to backport directfb
+      build fixes; from HEAD not commited in the gtk-2-10 branch.  Thanks
+      Attilio Fiandrotti for pointing me at the actual log entry.
     - Relibtoolize: update path 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Sat, 23 Sep 2006 10:41:17 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 24 Sep 2006 11:52:59 +0200
 
 gtk+2.0 (2.10.3-3) experimental; urgency=medium
 
