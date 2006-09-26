@@ -128,7 +128,7 @@ sub query_modules {
     my @modules = @_;
 
     my $do_query = join ' ', $querymodules, @modules;
-    open(QUERY, "$do_query |")
+    open(QUERY, "$do_query 2>&1 |")
         or die "Can't query modules with $querymodules: $!";
 
     doit("rm", "-f", "$module_file");
@@ -142,6 +142,10 @@ sub query_modules {
     while (<QUERY>) {
         next if m/^#/;
         chomp;
+        # if some module couldn't be loaded by the query helper, bail out
+        if (m#^g_module_open\(\) failed for #) {
+            error("$querymodules could not load a module:\n$_\nYou should probably make the libraries built by your package available via LD_LIBRARY_PATH.");
+        }
         # strip build-time prefix from output
         if (m#^\Q"$absolute_basedir/\E#) {
             s#^\Q"$absolute_basedir/\E#"/#;
@@ -152,7 +156,7 @@ sub query_modules {
     # nothing written to the module file, fail miserably
     if (0 == $n_lines) {
         doit("rm", "-f", "$module_file");
-        error("Could not find any module in the output of $querymodules.");
+        error("Internal error: could not find any module in the output of $querymodules.");
     }
 
     doit("chmod", 644, "$module_file");
