@@ -1,3 +1,9 @@
+gtk+2.0 (2.10.4-3) UNRELEASED; urgency=low
+
+  * Fix some probably harmless typos.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 27 Sep 2006 21:21:05 +0200
+
 gtk+2.0 (2.10.4-2) experimental; urgency=low
 
   * Fail if dh_gtkmodules called query helpers on module files, but no module

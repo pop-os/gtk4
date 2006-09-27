@@ -12,7 +12,7 @@ uploaders := $(shell grep -vF '$(maintainer)' $(TEAM_LIST))
 
 STAMP_DIR := debian/stampdir
 
-PATCH_DIR=debian/patches
+PATCH_DIR := debian/patches
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
@@ -92,7 +92,7 @@ common_configure_flags := \
 ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE)
 else
-	common_configure_flags += --build $(DEB_BUILD_GNU_TYPE) --host $(DEB_HOST_GNU_TYPE)
+	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
 endif
 shared_configure_flags := $(common_configure_flags) \
 			--with-xinput=yes \
