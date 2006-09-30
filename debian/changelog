@@ -1,12 +1,15 @@
-gtk+2.0 (2.10.4-2) experimental-WIP; urgency=low
+gtk+2.0 (2.10.4-2) experimental; urgency=low
 
   * Fail if dh_gtkmodules called query helpers on module files, but no module
     could be written to the module file.
   * Parse stderr as well as the stdout of query helpers and bail out if
     g_module_open(); suggest adjusting LD_LIBRARY_PATH.
   * Fix some probably harmless typos.
+  * New patch, 030_gtkfilechooserbutton-update-combo-box-null-base-path, to
+    avoid a segfault when opening some filechoosers; thanks Sam Morris for
+    reporting and testing; from CVS HEAD; GNOME #358405; closes: #390231.
 
- -- Loic Minier <lool@dooz.org>  Tue, 26 Sep 2006 21:31:34 +0200
+ -- Loic Minier <lool@dooz.org>  Sat, 30 Sep 2006 19:57:57 +0200
 
 gtk+2.0 (2.10.4-1) experimental; urgency=low
 
