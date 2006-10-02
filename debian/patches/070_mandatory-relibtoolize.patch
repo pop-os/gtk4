@@ -1,6 +1,6 @@
 diff -urN gtk+2.0-2.10.5.orig/Makefile.in gtk+2.0-2.10.5/Makefile.in
---- gtk+2.0-2.10.5.orig/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/Makefile.in	2006-10-02 15:27:13.000000000 +0200
+--- gtk+2.0-2.10.5.orig/Makefile.in	2006-10-02 16:57:39.000000000 +0200
++++ gtk+2.0-2.10.5/Makefile.in	2006-10-02 17:01:59.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -113,8 +113,8 @@ diff -urN gtk+2.0-2.10.5.orig/Makefile.in gtk+2.0-2.10.5/Makefile.in
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
 diff -urN gtk+2.0-2.10.5.orig/aclocal.m4 gtk+2.0-2.10.5/aclocal.m4
---- gtk+2.0-2.10.5.orig/aclocal.m4	2006-10-02 07:49:20.000000000 +0200
-+++ gtk+2.0-2.10.5/aclocal.m4	2006-10-02 15:26:55.000000000 +0200
+--- gtk+2.0-2.10.5.orig/aclocal.m4	2006-10-02 16:57:39.000000000 +0200
++++ gtk+2.0-2.10.5/aclocal.m4	2006-10-02 17:01:48.000000000 +0200
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -389,8 +389,8 @@ diff -urN gtk+2.0-2.10.5.orig/aclocal.m4 gtk+2.0-2.10.5/aclocal.m4
  	ifelse([$4], , [AC_MSG_FAILURE(dnl
  [The pkg-config script could not be found or is too old.  Make sure it
 diff -urN gtk+2.0-2.10.5.orig/configure gtk+2.0-2.10.5/configure
---- gtk+2.0-2.10.5.orig/configure	2006-10-02 07:49:38.000000000 +0200
-+++ gtk+2.0-2.10.5/configure	2006-10-02 15:27:01.000000000 +0200
+--- gtk+2.0-2.10.5.orig/configure	2006-10-02 16:57:39.000000000 +0200
++++ gtk+2.0-2.10.5/configure	2006-10-02 17:01:54.000000000 +0200
 @@ -1,10 +1,11 @@
  #! /bin/sh
  # Guess values for system-dependent variables and create Makefiles.
@@ -25216,8 +25216,8 @@ diff -urN gtk+2.0-2.10.5.orig/configure gtk+2.0-2.10.5/configure
  { (exit 0); exit 0; }
  _ACEOF
 diff -urN gtk+2.0-2.10.5.orig/contrib/Makefile.in gtk+2.0-2.10.5/contrib/Makefile.in
---- gtk+2.0-2.10.5.orig/contrib/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/contrib/Makefile.in	2006-10-02 15:27:13.000000000 +0200
+--- gtk+2.0-2.10.5.orig/contrib/Makefile.in	2006-10-02 16:57:39.000000000 +0200
++++ gtk+2.0-2.10.5/contrib/Makefile.in	2006-10-02 17:01:59.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25294,8 +25294,8 @@ diff -urN gtk+2.0-2.10.5.orig/contrib/Makefile.in gtk+2.0-2.10.5/contrib/Makefil
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.10.5/contrib/gdk-pixbuf-xlib/Makefile.in
---- gtk+2.0-2.10.5.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/contrib/gdk-pixbuf-xlib/Makefile.in	2006-10-02 15:27:13.000000000 +0200
+--- gtk+2.0-2.10.5.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2006-10-02 16:57:39.000000000 +0200
++++ gtk+2.0-2.10.5/contrib/gdk-pixbuf-xlib/Makefile.in	2006-10-02 17:01:59.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25372,8 +25372,8 @@ diff -urN gtk+2.0-2.10.5.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.10.5
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/demos/Makefile.in gtk+2.0-2.10.5/demos/Makefile.in
---- gtk+2.0-2.10.5.orig/demos/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/demos/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/demos/Makefile.in	2006-10-02 16:57:39.000000000 +0200
++++ gtk+2.0-2.10.5/demos/Makefile.in	2006-10-02 17:01:59.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25450,8 +25450,8 @@ diff -urN gtk+2.0-2.10.5.orig/demos/Makefile.in gtk+2.0-2.10.5/demos/Makefile.in
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/demos/gtk-demo/Makefile.in gtk+2.0-2.10.5/demos/gtk-demo/Makefile.in
---- gtk+2.0-2.10.5.orig/demos/gtk-demo/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/demos/gtk-demo/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/demos/gtk-demo/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/demos/gtk-demo/Makefile.in	2006-10-02 17:01:59.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25528,8 +25528,8 @@ diff -urN gtk+2.0-2.10.5.orig/demos/gtk-demo/Makefile.in gtk+2.0-2.10.5/demos/gt
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/docs/Makefile.in gtk+2.0-2.10.5/docs/Makefile.in
---- gtk+2.0-2.10.5.orig/docs/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/docs/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/docs/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/docs/Makefile.in	2006-10-02 17:01:59.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25606,8 +25606,8 @@ diff -urN gtk+2.0-2.10.5.orig/docs/Makefile.in gtk+2.0-2.10.5/docs/Makefile.in
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/docs/faq/Makefile.in gtk+2.0-2.10.5/docs/faq/Makefile.in
---- gtk+2.0-2.10.5.orig/docs/faq/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/docs/faq/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/docs/faq/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/docs/faq/Makefile.in	2006-10-02 17:01:59.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25684,8 +25684,8 @@ diff -urN gtk+2.0-2.10.5.orig/docs/faq/Makefile.in gtk+2.0-2.10.5/docs/faq/Makef
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/docs/reference/Makefile.in gtk+2.0-2.10.5/docs/reference/Makefile.in
---- gtk+2.0-2.10.5.orig/docs/reference/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/docs/reference/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/docs/reference/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/docs/reference/Makefile.in	2006-10-02 17:02:00.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25762,8 +25762,8 @@ diff -urN gtk+2.0-2.10.5.orig/docs/reference/Makefile.in gtk+2.0-2.10.5/docs/ref
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/docs/reference/gdk/Makefile.in gtk+2.0-2.10.5/docs/reference/gdk/Makefile.in
---- gtk+2.0-2.10.5.orig/docs/reference/gdk/Makefile.in	2006-10-02 07:49:33.000000000 +0200
-+++ gtk+2.0-2.10.5/docs/reference/gdk/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/docs/reference/gdk/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/docs/reference/gdk/Makefile.in	2006-10-02 17:02:00.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25840,8 +25840,8 @@ diff -urN gtk+2.0-2.10.5.orig/docs/reference/gdk/Makefile.in gtk+2.0-2.10.5/docs
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.10.5/docs/reference/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.10.5.orig/docs/reference/gdk-pixbuf/Makefile.in	2006-10-02 07:49:32.000000000 +0200
-+++ gtk+2.0-2.10.5/docs/reference/gdk-pixbuf/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/docs/reference/gdk-pixbuf/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/docs/reference/gdk-pixbuf/Makefile.in	2006-10-02 17:02:00.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25918,8 +25918,8 @@ diff -urN gtk+2.0-2.10.5.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.10
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/docs/reference/gtk/Makefile.in gtk+2.0-2.10.5/docs/reference/gtk/Makefile.in
---- gtk+2.0-2.10.5.orig/docs/reference/gtk/Makefile.in	2006-10-02 07:49:33.000000000 +0200
-+++ gtk+2.0-2.10.5/docs/reference/gtk/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/docs/reference/gtk/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/docs/reference/gtk/Makefile.in	2006-10-02 17:02:00.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -25996,8 +25996,8 @@ diff -urN gtk+2.0-2.10.5.orig/docs/reference/gtk/Makefile.in gtk+2.0-2.10.5/docs
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/docs/tools/Makefile.in gtk+2.0-2.10.5/docs/tools/Makefile.in
---- gtk+2.0-2.10.5.orig/docs/tools/Makefile.in	2006-10-02 07:49:33.000000000 +0200
-+++ gtk+2.0-2.10.5/docs/tools/Makefile.in	2006-10-02 15:27:14.000000000 +0200
+--- gtk+2.0-2.10.5.orig/docs/tools/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/docs/tools/Makefile.in	2006-10-02 17:02:00.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26074,8 +26074,8 @@ diff -urN gtk+2.0-2.10.5.orig/docs/tools/Makefile.in gtk+2.0-2.10.5/docs/tools/M
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/docs/tutorial/Makefile.in gtk+2.0-2.10.5/docs/tutorial/Makefile.in
---- gtk+2.0-2.10.5.orig/docs/tutorial/Makefile.in	2006-10-02 07:49:33.000000000 +0200
-+++ gtk+2.0-2.10.5/docs/tutorial/Makefile.in	2006-10-02 15:27:15.000000000 +0200
+--- gtk+2.0-2.10.5.orig/docs/tutorial/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/docs/tutorial/Makefile.in	2006-10-02 17:02:00.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26152,8 +26152,8 @@ diff -urN gtk+2.0-2.10.5.orig/docs/tutorial/Makefile.in gtk+2.0-2.10.5/docs/tuto
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gdk/Makefile.in gtk+2.0-2.10.5/gdk/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk/Makefile.in	2006-10-02 07:49:33.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk/Makefile.in	2006-10-02 15:27:15.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk/Makefile.in	2006-10-02 17:02:01.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26230,8 +26230,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk/Makefile.in gtk+2.0-2.10.5/gdk/Makefile.in
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gdk/directfb/Makefile.in gtk+2.0-2.10.5/gdk/directfb/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk/directfb/Makefile.in	2006-10-02 07:49:34.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk/directfb/Makefile.in	2006-10-02 15:27:15.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk/directfb/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk/directfb/Makefile.in	2006-10-02 17:02:01.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26322,8 +26322,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk/directfb/Makefile.in gtk+2.0-2.10.5/gdk/direct
  	@GDK_DEP_CFLAGS@		
  
 diff -urN gtk+2.0-2.10.5.orig/gdk/linux-fb/Makefile.in gtk+2.0-2.10.5/gdk/linux-fb/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk/linux-fb/Makefile.in	2006-10-02 07:49:34.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk/linux-fb/Makefile.in	2006-10-02 15:27:15.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk/linux-fb/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk/linux-fb/Makefile.in	2006-10-02 17:02:01.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26400,8 +26400,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk/linux-fb/Makefile.in gtk+2.0-2.10.5/gdk/linux-
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gdk/quartz/Makefile.in gtk+2.0-2.10.5/gdk/quartz/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk/quartz/Makefile.in	2006-10-02 07:49:34.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk/quartz/Makefile.in	2006-10-02 15:27:16.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk/quartz/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk/quartz/Makefile.in	2006-10-02 17:02:01.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26478,8 +26478,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk/quartz/Makefile.in gtk+2.0-2.10.5/gdk/quartz/M
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gdk/win32/Makefile.in gtk+2.0-2.10.5/gdk/win32/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk/win32/Makefile.in	2006-10-02 07:49:34.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk/win32/Makefile.in	2006-10-02 15:27:16.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk/win32/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk/win32/Makefile.in	2006-10-02 17:02:01.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26556,8 +26556,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk/win32/Makefile.in gtk+2.0-2.10.5/gdk/win32/Mak
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gdk/win32/rc/Makefile.in gtk+2.0-2.10.5/gdk/win32/rc/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk/win32/rc/Makefile.in	2006-10-02 07:49:34.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk/win32/rc/Makefile.in	2006-10-02 15:27:16.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk/win32/rc/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk/win32/rc/Makefile.in	2006-10-02 17:02:01.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26634,8 +26634,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk/win32/rc/Makefile.in gtk+2.0-2.10.5/gdk/win32/
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gdk/x11/Makefile.in gtk+2.0-2.10.5/gdk/x11/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk/x11/Makefile.in	2006-10-02 07:49:34.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk/x11/Makefile.in	2006-10-02 15:27:16.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk/x11/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk/x11/Makefile.in	2006-10-02 17:02:02.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26712,8 +26712,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk/x11/Makefile.in gtk+2.0-2.10.5/gdk/x11/Makefil
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gdk-pixbuf/Makefile.in gtk+2.0-2.10.5/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk-pixbuf/Makefile.in	2006-10-02 07:49:33.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk-pixbuf/Makefile.in	2006-10-02 15:27:15.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk-pixbuf/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk-pixbuf/Makefile.in	2006-10-02 17:02:00.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26790,8 +26790,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk-pixbuf/Makefile.in gtk+2.0-2.10.5/gdk-pixbuf/M
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.10.5/gdk-pixbuf/pixops/Makefile.in
---- gtk+2.0-2.10.5.orig/gdk-pixbuf/pixops/Makefile.in	2006-10-02 07:49:33.000000000 +0200
-+++ gtk+2.0-2.10.5/gdk-pixbuf/pixops/Makefile.in	2006-10-02 15:27:15.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gdk-pixbuf/pixops/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gdk-pixbuf/pixops/Makefile.in	2006-10-02 17:02:01.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -26868,8 +26868,8 @@ diff -urN gtk+2.0-2.10.5.orig/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.10.5/gdk-p
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gtk/Makefile.in gtk+2.0-2.10.5/gtk/Makefile.in
---- gtk+2.0-2.10.5.orig/gtk/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/gtk/Makefile.in	2006-10-02 15:27:16.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gtk/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gtk/Makefile.in	2006-10-02 17:02:02.000000000 +0200
 @@ -110,6 +110,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27053,9 +27053,18 @@ diff -urN gtk+2.0-2.10.5.orig/gtk/Makefile.in gtk+2.0-2.10.5/gtk/Makefile.in
  @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtksocket-win32.Plo@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtksocket-x11.Plo@am__quote@
  @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/gtksocket.Plo@am__quote@
+@@ -2935,7 +2948,7 @@
+ 	   && $(LN_S) gtk-goto-first-ltr.png gtk-goto-last-rtl.png		\
+ 	   && $(RM) gtk-media-forward-rtl.png 					\
+ 	   && $(LN_S) gtk-media-rewind-ltr.png gtk-media-forward-rtl.png	\
+-	   && $(RM) gtk-mdedia-next-rtl.png					\
++	   && $(RM) gtk-media-next-rtl.png					\
+ 	   && $(LN_S) gtk-media-previous-ltr.png gtk-media-next-rtl.png		\
+ 	   && $(RM) gtk-media-previous-rtl.png 					\
+ 	   && $(LN_S) gtk-media-next-ltr.png gtk-media-previous-rtl.png		\
 diff -urN gtk+2.0-2.10.5.orig/gtk/theme-bits/Makefile.in gtk+2.0-2.10.5/gtk/theme-bits/Makefile.in
---- gtk+2.0-2.10.5.orig/gtk/theme-bits/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/gtk/theme-bits/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gtk/theme-bits/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gtk/theme-bits/Makefile.in	2006-10-02 17:02:02.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27132,8 +27141,8 @@ diff -urN gtk+2.0-2.10.5.orig/gtk/theme-bits/Makefile.in gtk+2.0-2.10.5/gtk/them
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/gtk/xdgmime/Makefile.in gtk+2.0-2.10.5/gtk/xdgmime/Makefile.in
---- gtk+2.0-2.10.5.orig/gtk/xdgmime/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/gtk/xdgmime/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/gtk/xdgmime/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/gtk/xdgmime/Makefile.in	2006-10-02 17:02:02.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27210,7 +27219,7 @@ diff -urN gtk+2.0-2.10.5.orig/gtk/xdgmime/Makefile.in gtk+2.0-2.10.5/gtk/xdgmime
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/ltmain.sh gtk+2.0-2.10.5/ltmain.sh
---- gtk+2.0-2.10.5.orig/ltmain.sh	2006-08-20 07:14:56.000000000 +0200
+--- gtk+2.0-2.10.5.orig/ltmain.sh	2006-10-02 16:57:40.000000000 +0200
 +++ gtk+2.0-2.10.5/ltmain.sh	2006-03-11 19:49:04.000000000 +0100
 @@ -43,7 +43,7 @@
  
@@ -27246,8 +27255,8 @@ diff -urN gtk+2.0-2.10.5.orig/ltmain.sh gtk+2.0-2.10.5/ltmain.sh
  	  ;;
  	no)
 diff -urN gtk+2.0-2.10.5.orig/m4macros/Makefile.in gtk+2.0-2.10.5/m4macros/Makefile.in
---- gtk+2.0-2.10.5.orig/m4macros/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/m4macros/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/m4macros/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/m4macros/Makefile.in	2006-10-02 17:02:02.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27324,8 +27333,8 @@ diff -urN gtk+2.0-2.10.5.orig/m4macros/Makefile.in gtk+2.0-2.10.5/m4macros/Makef
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/Makefile.in gtk+2.0-2.10.5/modules/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27402,8 +27411,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/Makefile.in gtk+2.0-2.10.5/modules/Makefil
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/engines/Makefile.in gtk+2.0-2.10.5/modules/engines/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/engines/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/engines/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/engines/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/engines/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27480,8 +27489,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/engines/Makefile.in gtk+2.0-2.10.5/modules
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Makefile.in gtk+2.0-2.10.5/modules/engines/ms-windows/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/engines/ms-windows/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/engines/ms-windows/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27558,8 +27567,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Makefile.in gtk+2.0-2.1
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.10.5/modules/engines/ms-windows/Theme/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Theme/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/engines/ms-windows/Theme/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Theme/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/engines/ms-windows/Theme/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27636,8 +27645,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+2
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.10.5/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27714,8 +27723,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/engines/pixbuf/Makefile.in gtk+2.0-2.10.5/modules/engines/pixbuf/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/engines/pixbuf/Makefile.in	2006-10-02 07:49:35.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/engines/pixbuf/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/engines/pixbuf/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/engines/pixbuf/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27792,8 +27801,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/engines/pixbuf/Makefile.in gtk+2.0-2.10.5/
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/input/Makefile.in gtk+2.0-2.10.5/modules/input/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/input/Makefile.in	2006-10-02 07:49:36.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/input/Makefile.in	2006-10-02 15:27:17.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/input/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/input/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27902,8 +27911,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/input/Makefile.in gtk+2.0-2.10.5/modules/i
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
 diff -urN gtk+2.0-2.10.5.orig/modules/printbackends/Makefile.in gtk+2.0-2.10.5/modules/printbackends/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/printbackends/Makefile.in	2006-10-02 07:49:36.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/printbackends/Makefile.in	2006-10-02 15:27:18.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/printbackends/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/printbackends/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -27980,8 +27989,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/printbackends/Makefile.in gtk+2.0-2.10.5/m
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/printbackends/cups/Makefile.in gtk+2.0-2.10.5/modules/printbackends/cups/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/printbackends/cups/Makefile.in	2006-10-02 07:49:36.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/printbackends/cups/Makefile.in	2006-10-02 15:27:18.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/printbackends/cups/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/printbackends/cups/Makefile.in	2006-10-02 17:02:03.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -28058,8 +28067,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/printbackends/cups/Makefile.in gtk+2.0-2.1
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/printbackends/file/Makefile.in gtk+2.0-2.10.5/modules/printbackends/file/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/printbackends/file/Makefile.in	2006-10-02 07:49:36.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/printbackends/file/Makefile.in	2006-10-02 15:27:18.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/printbackends/file/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/printbackends/file/Makefile.in	2006-10-02 17:02:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -28136,8 +28145,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/printbackends/file/Makefile.in gtk+2.0-2.1
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/modules/printbackends/lpr/Makefile.in gtk+2.0-2.10.5/modules/printbackends/lpr/Makefile.in
---- gtk+2.0-2.10.5.orig/modules/printbackends/lpr/Makefile.in	2006-10-02 07:49:36.000000000 +0200
-+++ gtk+2.0-2.10.5/modules/printbackends/lpr/Makefile.in	2006-10-02 15:27:18.000000000 +0200
+--- gtk+2.0-2.10.5.orig/modules/printbackends/lpr/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/modules/printbackends/lpr/Makefile.in	2006-10-02 17:02:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -28214,8 +28223,8 @@ diff -urN gtk+2.0-2.10.5.orig/modules/printbackends/lpr/Makefile.in gtk+2.0-2.10
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/perf/Makefile.in gtk+2.0-2.10.5/perf/Makefile.in
---- gtk+2.0-2.10.5.orig/perf/Makefile.in	2006-10-02 07:49:36.000000000 +0200
-+++ gtk+2.0-2.10.5/perf/Makefile.in	2006-10-02 15:27:18.000000000 +0200
+--- gtk+2.0-2.10.5.orig/perf/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/perf/Makefile.in	2006-10-02 17:02:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -28292,8 +28301,8 @@ diff -urN gtk+2.0-2.10.5.orig/perf/Makefile.in gtk+2.0-2.10.5/perf/Makefile.in
  sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
 diff -urN gtk+2.0-2.10.5.orig/tests/Makefile.in gtk+2.0-2.10.5/tests/Makefile.in
---- gtk+2.0-2.10.5.orig/tests/Makefile.in	2006-10-02 07:49:36.000000000 +0200
-+++ gtk+2.0-2.10.5/tests/Makefile.in	2006-10-02 15:27:18.000000000 +0200
+--- gtk+2.0-2.10.5.orig/tests/Makefile.in	2006-10-02 16:57:40.000000000 +0200
++++ gtk+2.0-2.10.5/tests/Makefile.in	2006-10-02 17:02:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@

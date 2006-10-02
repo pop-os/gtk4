@@ -11,9 +11,11 @@ gtk+2.0 (2.10.5-1) experimental; urgency=low
   * New upstream release; no API change.
     - Drop patch 030_gtkfilechooserbutton-update-combo-box-null-base-path,
       merged upstream.
+    - New patch, 013_stock-icons-typo-in-rm, to fix a typo in gtk/Makefile.am;
+      GNOME #358931.
     - Relibtoolize: update patch 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Mon,  2 Oct 2006 15:30:36 +0200
+ -- Loic Minier <lool@dooz.org>  Mon,  2 Oct 2006 16:59:18 +0200
 
 gtk+2.0 (2.10.4-1) experimental; urgency=low
 
