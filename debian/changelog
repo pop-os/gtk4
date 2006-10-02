@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.4-2) experimental; urgency=low
+gtk+2.0 (2.10.5-1) experimental; urgency=low
 
   * Fail if dh_gtkmodules called query helpers on module files, but no module
     could be written to the module file.
@@ -8,8 +8,12 @@ gtk+2.0 (2.10.4-2) experimental; urgency=low
   * New patch, 030_gtkfilechooserbutton-update-combo-box-null-base-path, to
     avoid a segfault when opening some filechoosers; thanks Sam Morris for
     reporting and testing; from CVS HEAD; GNOME #358405; closes: #390231.
+  * New upstream release; no API change.
+    - Drop patch 030_gtkfilechooserbutton-update-combo-box-null-base-path,
+      merged upstream.
+    - Relibtoolize: update patch 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Sat, 30 Sep 2006 19:57:57 +0200
+ -- Loic Minier <lool@dooz.org>  Mon,  2 Oct 2006 15:30:36 +0200
 
 gtk+2.0 (2.10.4-1) experimental; urgency=low
 
@@ -25,7 +29,7 @@ gtk+2.0 (2.10.4-1) experimental; urgency=low
       Attilio Fiandrotti for pointing me at the actual log entry.
     - New patch, 012_missing-stub-files, to add gtk/gtkplug-stub.c and
       gtksocket-stub.c missing from the tarball; from the gtk-2-10 branch.
-    - Relibtoolize: update path 070_mandatory-relibtoolize.
+    - Relibtoolize: update patch 070_mandatory-relibtoolize.
 
  -- Loic Minier <lool@dooz.org>  Sun, 24 Sep 2006 12:24:31 +0200
 
@@ -64,7 +68,7 @@ gtk+2.0 (2.10.3-1) experimental; urgency=low
     - Drop patch 010_gdk-require-cairo-module, merged upstream.
     - Drop patch 011_gdk-directfb-cvs-changes, this release includes the
       changes that were pulled back then.
-    - Relibtoolize: update path 070_mandatory-relibtoolize.
+    - Relibtoolize: update patch 070_mandatory-relibtoolize.
 
  -- Loic Minier <lool@dooz.org>  Tue, 19 Sep 2006 20:42:38 +0200
 

@@ -11,5 +11,4 @@
 012_missing-stub-files.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
-030_gtkfilechooserbutton-update-combo-box-null-base-path.patch
 070_mandatory-relibtoolize.patch
