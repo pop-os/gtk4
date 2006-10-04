@@ -1,3 +1,11 @@
+gtk+2.0 (2.10.6-1) experimental; urgency=low
+
+  * New upstream release.
+    - Drop patch 013_stock-icons-typo-in-rm, merged upstream.
+    - Relibtoolize: update patch 070_mandatory-relibtoolize.
+
+ -- Loic Minier <lool@dooz.org>  Wed,  4 Oct 2006 11:41:37 +0200
+
 gtk+2.0 (2.10.5-1) experimental; urgency=low
 
   * Fail if dh_gtkmodules called query helpers on module files, but no module
