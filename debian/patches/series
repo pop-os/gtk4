@@ -9,6 +9,7 @@
 010_fix-stuc-vs-stub-typo.patch
 011_directfb-build-fixes-from-head.patch
 012_missing-stub-files.patch
+013_gdkproperty-directfb-strdup.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
 070_mandatory-relibtoolize.patch

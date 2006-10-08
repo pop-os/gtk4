@@ -1,3 +1,10 @@
+gtk+2.0 (2.10.6-2) experimental; urgency=medium
+
+  * New patch, 013_gdkproperty-directfb-strdup, to g_strdup() strings returned
+    by gdk_atom_name(); GNOME #357611; thanks Attilio Fiandrotti.
+
+ -- Loic Minier <lool@dooz.org>  Sun,  8 Oct 2006 16:03:08 +0200
+
 gtk+2.0 (2.10.6-1) experimental; urgency=low
 
   * New upstream release.
