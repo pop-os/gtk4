@@ -1,11 +1,12 @@
-gtk+2.0 (2.8.20-3) UNRELEASED; urgency=low
+gtk+2.0 (2.8.20-3) unstable; urgency=low
 
   * New patch, 013_gdkproperty-directfb-strdup, backported from 2.10.6-2, to
     g_strdup() strings returned by gdk_atom_name(); GNOME #357611; thanks
     Attilio Fiandrotti.
   * Remove duplicate find invocation.
+  * Stop shipping engines in the udeb again.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Oct 2006 22:21:40 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Oct 2006 22:33:03 +0200
 
 gtk+2.0 (2.8.20-2) unstable; urgency=low
 

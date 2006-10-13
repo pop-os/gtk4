@@ -261,6 +261,7 @@ install: install-static install-shared install-dfb
 	chrpath -d $(UDEB_PKGDIR)/usr/lib/*.so.?
 	cp -r $(DFB_PKGDIR)/usr/lib/gtk-2.0/[0-9]* \
 		$(UDEB_PKGDIR)/usr/lib/gtk-2.0/
+	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/engines
 	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/immodules
 
 	# remove files that are already here in the other build
