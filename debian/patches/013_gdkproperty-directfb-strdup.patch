@@ -1,0 +1,13 @@
+Index: gtk+2.0-2.10.6/gdk/directfb/gdkproperty-directfb.c
+===================================================================
+--- gtk+2.0-2.10.6.orig/gdk/directfb/gdkproperty-directfb.c	2006-10-08 16:07:31.000000000 +0200
++++ gtk+2.0-2.10.6/gdk/directfb/gdkproperty-directfb.c	2006-10-08 16:07:53.000000000 +0200
+@@ -192,7 +192,7 @@
+   if (GPOINTER_TO_INT (atom) >= atoms_to_names->len)
+     return NULL;
+     
+-  return g_ptr_array_index (atoms_to_names, GPOINTER_TO_INT (atom));
++  return g_strdup ( g_ptr_array_index (atoms_to_names, GPOINTER_TO_INT (atom)));
+ }
+ 
+ 
