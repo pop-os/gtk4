@@ -242,7 +242,6 @@ install-dfb: build-dfb install-test
 	$(MAKE) -C $(BUILD_DFB_DIR) install DESTDIR=$(DFB_PKGDIR)
 	find $(DFB_PKGDIR) -name \*.la -exec rm -f \{\} \;
 	find $(DFB_PKGDIR) -name libpixbufloader\* \! -name \*png\* -exec rm -f \{\} \;
-	find $(DFB_PKGDIR) -name libpixbufloader\* \! -name \*png\* -exec rm -f \{\} \;
 	mkdir -p $(UDEB_PKGDIR)/etc/gtk-2.0
 	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
 		$(BUILD_DFB_DIR)/gdk-pixbuf/gdk-pixbuf-query-loaders \
