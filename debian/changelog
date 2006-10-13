@@ -1,3 +1,9 @@
+gtk+2.0 (2.10.6-3) UNRELEASED; urgency=low
+
+  * Update gtk2-engines conflict to <= 2.8.1-4.
+
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Oct 2006 22:15:50 +0200
+
 gtk+2.0 (2.10.6-2) experimental; urgency=medium
 
   * New patch, 013_gdkproperty-directfb-strdup, to g_strdup() strings returned
