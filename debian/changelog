@@ -9,6 +9,7 @@ gtk+2.0 (2.10.6-3) experimental; urgency=low
   * 070_mandatory-relibtoolize.patch: recreate with autoconf 2.59, to 
     avoid the AM_GLIB_DEFINE_LOCALEDIR bug (making GTK+ applications 
     untranslated).
+  * Make gtk2-engines conflict less strict.
 
  -- Josselin Mouette <joss@debian.org>  Sat, 11 Nov 2006 00:04:46 +0100
 
