@@ -4,10 +4,10 @@ gtk+2.0 (2.10.6-4) experimental; urgency=low
   * Update gtk2-engines conflict to << 2.8.2-2.
 
   [ Josselin Mouette ]
-  * 014_gtktreeview_missing-icons.patch, stolen from bugzilla: fix 
+  * 014_gtktreeview_missing-icons.patch, stolen from bugzilla: fix
     missing icon in "save as" filechooser dialogs.
 
- -- Josselin Mouette <joss@debian.org>  Thu, 30 Nov 2006 19:17:45 +0100
+ -- Josselin Mouette <joss@debian.org>  Thu, 30 Nov 2006 20:42:44 +0100
 
 gtk+2.0 (2.10.6-3) experimental; urgency=low
 
