@@ -1,0 +1,24 @@
+Index: gtktreeview.c
+===================================================================
+RCS file: /cvs/gnome/gtk+/gtk/gtktreeview.c,v
+retrieving revision 1.580
+diff -u -p -r1.580 gtktreeview.c
+--- gtktreeview.c	24 Nov 2006 13:18:55 -0000	1.580
++++ gtktreeview.c	29 Nov 2006 10:58:26 -0000
+@@ -1,3 +1,4 @@
++/* -*- Mode: C; c-file-style: "gnu"; tab-width: 8 -*- */
+ /* gtktreeview.c
+  * Copyright (C) 2000  Red Hat, Inc.,  Jonathan Blandford <jrb@redhat.com>
+  *
+@@ -8088,11 +8089,6 @@ gtk_tree_view_row_changed (GtkTreeModel 
+   GtkTreePath *cursor_path;
+ 
+   g_return_if_fail (path != NULL || iter != NULL);
+-
+-  if (!GTK_WIDGET_REALIZED (tree_view))
+-    /* We can just ignore ::changed signals if we aren't realized, as we don't care about sizes
+-     */
+-    return;
+ 
+   if (tree_view->priv->cursor != NULL)
+     cursor_path = gtk_tree_row_reference_get_path (tree_view->priv->cursor);
