@@ -1,3 +1,9 @@
+gtk+2.0 (2.10.6-5) UNRELEASED; urgency=low
+
+  * Really update gtk2-engines conflict to << 2.8.2-2.
+
+ -- Loic Minier <lool@dooz.org>  Fri,  1 Dec 2006 09:06:09 +0100
+
 gtk+2.0 (2.10.6-4) experimental; urgency=low
 
   [ Loic Minier ]
