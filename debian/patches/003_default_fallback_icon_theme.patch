@@ -1,7 +1,8 @@
-diff -urN gtk+-2.10.1.orig/gtk/gtkicontheme.c gtk+-2.10.1/gtk/gtkicontheme.c
---- gtk+-2.10.1.orig/gtk/gtkicontheme.c	2006-07-20 20:07:21.000000000 +0200
-+++ gtk+-2.10.1/gtk/gtkicontheme.c	2006-08-15 00:06:20.000000000 +0200
-@@ -392,6 +392,8 @@
+Index: gtk+2.0-2.10.6/gtk/gtkicontheme.c
+===================================================================
+--- gtk+2.0-2.10.6.orig/gtk/gtkicontheme.c	2006-08-15 20:25:35.000000000 +0200
++++ gtk+2.0-2.10.6/gtk/gtkicontheme.c	2006-12-28 23:41:22.000000000 +0100
+@@ -393,6 +393,8 @@
  			"gtk-fallback-icon-theme", &fallback_theme, NULL);
  	}
  
