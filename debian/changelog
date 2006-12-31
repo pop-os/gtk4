@@ -6,9 +6,9 @@ gtk+2.0 (2.10.6-5) UNRELEASED; urgency=low
   [ Josselin Mouette ]
   * 022_gtkcupsutils_multipage.patch: new patch, stolen upstream.
     Properly pass multi-value options to cups (closes: #404867).
-  * 023_gtkentry_password-char-circle.patch: patch from Sven Arvidsson 
-    to replace stars by black circles in password fields
-    (closes: #401568).
+  * 023_gtkentry_password-char-circle.patch: new patch to replace stars by
+    black circles in password fields; thanks Sven Arvidsson; found in Fedora
+    and OpenSuse (closes: #401568).
 
  -- Josselin Mouette <joss@debian.org>  Fri, 29 Dec 2006 02:11:13 +0100
 
