@@ -1,0 +1,48 @@
+Index: gtk+2.0-2.10.6/gtk/gtkfilechooserdefault.c
+===================================================================
+--- gtk+2.0-2.10.6.orig/gtk/gtkfilechooserdefault.c	2007-01-03 00:07:41.000000000 +0100
++++ gtk+2.0-2.10.6/gtk/gtkfilechooserdefault.c	2007-01-03 00:12:50.000000000 +0100
+@@ -330,10 +330,8 @@
+ 
+ static void filter_combo_changed       (GtkComboBox           *combo_box,
+ 					GtkFileChooserDefault *impl);
+-static void     shortcuts_row_activated_cb (GtkTreeView           *tree_view,
+-					    GtkTreePath           *path,
+-					    GtkTreeViewColumn     *column,
+-					    GtkFileChooserDefault *impl);
++static void shortcuts_cursor_changed_cb (GtkTreeView           *tree_view,
++					 GtkFileChooserDefault *impl);
+ 
+ static gboolean shortcuts_key_press_event_cb (GtkWidget             *widget,
+ 					      GdkEventKey           *event,
+@@ -3511,8 +3509,8 @@
+   g_signal_connect (selection, "changed",
+ 		    G_CALLBACK (shortcuts_selection_changed_cb), impl);
+ 
+-  g_signal_connect (impl->browse_shortcuts_tree_view, "row_activated",
+-		    G_CALLBACK (shortcuts_row_activated_cb), impl);
++  g_signal_connect (impl->browse_shortcuts_tree_view, "cursor_changed",
++		    G_CALLBACK (shortcuts_cursor_changed_cb), impl);
+ 
+   g_signal_connect (impl->browse_shortcuts_tree_view, "key_press_event",
+ 		    G_CALLBACK (shortcuts_key_press_event_cb), impl);
+@@ -8167,16 +8165,13 @@
+ 
+ /* Callback used when a row in the shortcuts list is activated */
+ static void
+-shortcuts_row_activated_cb (GtkTreeView           *tree_view,
+-			    GtkTreePath           *path,
+-			    GtkTreeViewColumn     *column,
+-			    GtkFileChooserDefault *impl)
++shortcuts_cursor_changed_cb (GtkTreeView           *tree_view,
++			     GtkFileChooserDefault *impl)
+ {
+   GtkTreeIter iter;
+   GtkTreeIter child_iter;
+ 
+-  if (!gtk_tree_model_get_iter (impl->shortcuts_filter_model, &iter, path))
+-    return;
++  gtk_tree_selection_get_selected(gtk_tree_view_get_selection(tree_view), NULL, &iter);
+ 
+   gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (impl->shortcuts_filter_model),
+ 						    &child_iter,

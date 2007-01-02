@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.6-5) UNRELEASED; urgency=low
+gtk+2.0 (2.10.6-5) experimental; urgency=low
 
   [ Loic Minier ]
   * Really update gtk2-engines conflict to << 2.8.2-2.
@@ -9,8 +9,11 @@ gtk+2.0 (2.10.6-5) UNRELEASED; urgency=low
   * 023_gtkentry_password-char-circle.patch: new patch to replace stars by
     black circles in password fields; thanks Sven Arvidsson; found in Fedora
     and OpenSuse (closes: #401568).
+  * 024_filechooser_single-click.patch: patch from UHU-Linux to make the 
+    side pane in the filechooser usable with a single click
+    (closes: #405296).
 
- -- Josselin Mouette <joss@debian.org>  Fri, 29 Dec 2006 02:11:13 +0100
+ -- Josselin Mouette <joss@debian.org>  Wed,  3 Jan 2007 00:14:28 +0100
 
 gtk+2.0 (2.10.6-4) experimental; urgency=low
 
