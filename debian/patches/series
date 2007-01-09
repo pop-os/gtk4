@@ -13,7 +13,6 @@
 014_gtktreeview_missing-icons.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
-022_gtkcupsutils_multipage.patch
 023_gtkentry_password-char-circle.patch
 024_filechooser_single-click.patch
 070_mandatory-relibtoolize.patch

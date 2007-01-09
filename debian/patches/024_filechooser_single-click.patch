@@ -1,7 +1,7 @@
-Index: gtk+2.0-2.10.6/gtk/gtkfilechooserdefault.c
+Index: gtk+-2.10.7/gtk/gtkfilechooserdefault.c
 ===================================================================
---- gtk+2.0-2.10.6.orig/gtk/gtkfilechooserdefault.c	2007-01-03 00:07:41.000000000 +0100
-+++ gtk+2.0-2.10.6/gtk/gtkfilechooserdefault.c	2007-01-03 00:12:50.000000000 +0100
+--- gtk+-2.10.7.orig/gtk/gtkfilechooserdefault.c	2007-01-05 19:32:45.000000000 +0100
++++ gtk+-2.10.7/gtk/gtkfilechooserdefault.c	2007-01-09 23:21:52.205839500 +0100
 @@ -330,10 +330,8 @@
  
  static void filter_combo_changed       (GtkComboBox           *combo_box,
@@ -26,7 +26,7 @@ Index: gtk+2.0-2.10.6/gtk/gtkfilechooserdefault.c
  
    g_signal_connect (impl->browse_shortcuts_tree_view, "key_press_event",
  		    G_CALLBACK (shortcuts_key_press_event_cb), impl);
-@@ -8167,16 +8165,13 @@
+@@ -8173,16 +8171,13 @@
  
  /* Callback used when a row in the shortcuts list is activated */
  static void
