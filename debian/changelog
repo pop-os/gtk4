@@ -4,10 +4,12 @@ gtk+2.0 (2.10.7-1) experimental; urgency=low
   * Refresh patches.
   * 022_gtkcupsutils_multipage.patch: removed, integrated upstream.
   * Regenerate 070_mandatory-relibtoolize.patch.
-  * 014_gtktreeview_missing-icons.patch: update patch with the upstream 
+  * 014_gtktreeview_missing-icons.patch: update patch with the upstream
     fix that was committed.
+  * 009_directfb_build.patch: new patch, fix typo in configure.in for 
+    the directfb build.
 
- -- Josselin Mouette <joss@debian.org>  Tue,  9 Jan 2007 23:51:51 +0100
+ -- Josselin Mouette <joss@debian.org>  Wed, 10 Jan 2007 00:03:03 +0100
 
 gtk+2.0 (2.10.6-5) experimental; urgency=low
 

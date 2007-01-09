@@ -1,0 +1,13 @@
+Index: gtk+-2.10.7/configure.in
+===================================================================
+--- gtk+-2.10.7.orig/configure.in	2007-01-10 00:01:48.691610500 +0100
++++ gtk+-2.10.7/configure.in	2007-01-10 00:02:28.002067250 +0100
+@@ -1421,7 +1421,7 @@
+   DIRECTFB_REQUIRED_VERSION=0.9.24
+   AC_MSG_CHECKING(for DirectFB)
+ 
+-  if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb -a $PKG_CONFIG --exists cairo-directfb ; then
++  if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
+       AC_MSG_RESULT(found)
+       GDK_EXTRA_CFLAGS="`$PKG_CONFIG --cflags cairo-directfb` $GDK_EXTRA_CFLAGS"
+       GDK_EXTRA_LIBS="`$PKG_CONFIG --libs cairo-directfb` $GDK_EXTRA_LIBS"
