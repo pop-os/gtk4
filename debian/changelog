@@ -1,3 +1,12 @@
+gtk+2.0 (2.8.20-4) unstable; urgency=medium
+
+  * New patch, 020_dfb-window-destroy-leak, fixes a memory leak when
+    destroying gdk windows with the DirectFB backend, causes crashes in the
+    installer, hence RC and urgency medium; derived from upstream SVN r17014;
+    closes: #403639.
+
+ -- Loic Minier <lool@dooz.org>  Tue,  9 Jan 2007 19:39:57 +0100
+
 gtk+2.0 (2.8.20-3) unstable; urgency=low
 
   * New patch, 013_gdkproperty-directfb-strdup, backported from 2.10.6-2, to
