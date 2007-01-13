@@ -5,7 +5,7 @@ TEAM_LIST ?= /usr/share/gnome-pkg-tools/pkg-gnome.team
 # get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
-GNOME_MODULE = gtk+
+GNOME_MODULE := gtk+
 
 # Remove maintainer from uploaders list
 maintainer := $(shell sed -n 's/^Maintainer: //p' debian/control.in)
