@@ -4,6 +4,11 @@
 
 include debian/scripts/vars
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
+-include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
+
+GNOME_MODULE = gtk+
+DEB_USE_DBS_TARBALL_LAYOUT = 1
+
 BUILD_DIR=$(SOURCE_DIR)/$(TAR_DIR)
 BUILD_SHARED_DIR=$(SOURCE_DIR)/$(TAR_DIR)-shared
 BUILD_STATIC_DIR=$(SOURCE_DIR)/$(TAR_DIR)-static
