@@ -6,8 +6,11 @@ gtk+2.0 (2.10.7-2) UNRELEASED; urgency=low
 
   [ Loic Minier ]
   * Add a get-orig-source target to retrieve the upstream tarball.
+  * Rename patch 023_gtkentry_password-char-circle to
+    030_gtkentry_password-char-circle.
+  * Rename patch 024_filechooser_single-click to 040_filechooser_single-click.
 
- -- Loic Minier <lool@dooz.org>  Sat, 13 Jan 2007 22:36:05 +0100
+ -- Loic Minier <lool@dooz.org>  Mon, 15 Jan 2007 17:40:56 +0100
 
 gtk+2.0 (2.10.7-1) experimental; urgency=low
 
