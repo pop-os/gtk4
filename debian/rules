@@ -4,6 +4,8 @@
 TEAM_LIST ?= /usr/share/gnome-pkg-tools/pkg-gnome.team
 # get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
+# Prevent accidental uploads to unstable
+include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 
 GNOME_MODULE := gtk+
 

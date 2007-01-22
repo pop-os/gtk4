@@ -13,8 +13,10 @@ gtk+2.0 (2.10.7-2) UNRELEASED; urgency=low
     after a configurable timeout; helps saving energy by not waking up all Gtk
     processes with a cursor continuously; from upstream SVN r16366 (trunk);
     GNOME #353670, #352442.
+  * Include the new check-dist Makefile to prevent accidental uploads to
+    unstable; bump build-dep on gnome-pkg-tools to >= 0.10.
 
- -- Loic Minier <lool@dooz.org>  Fri, 19 Jan 2007 11:52:26 +0100
+ -- Loic Minier <lool@dooz.org>  Mon, 22 Jan 2007 11:34:05 +0100
 
 gtk+2.0 (2.10.7-1) experimental; urgency=low
 
