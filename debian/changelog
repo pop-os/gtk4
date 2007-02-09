@@ -15,8 +15,10 @@ gtk+2.0 (2.10.7-2) UNRELEASED; urgency=low
     GNOME #353670, #352442.
   * Include the new check-dist Makefile to prevent accidental uploads to
     unstable; bump build-dep on gnome-pkg-tools to >= 0.10.
+  * Bump up libglib2.0-dev of libgtk2.0-dev dep to >= 2.12.0 as well; thanks
+    Marc Brockschmidt.
 
- -- Loic Minier <lool@dooz.org>  Mon, 22 Jan 2007 11:34:05 +0100
+ -- Loic Minier <lool@dooz.org>  Fri,  9 Feb 2007 16:45:08 +0100
 
 gtk+2.0 (2.10.7-1) experimental; urgency=low
 
