@@ -12,6 +12,7 @@
 012_missing-stub-files.patch
 013_gdkproperty-directfb-strdup.patch
 014_gtktreeview_missing-icons.patch
+015_gdkmain-x11_button-mask.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
 030_gtkentry_password-char-circle.patch
