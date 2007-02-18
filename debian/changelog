@@ -1,9 +1,10 @@
 gtk+2.0 (2.10.7-2) UNRELEASED; urgency=low
 
   [ Josselin Mouette ]
-  * 024_filechooser_single-click.patch: monitor selection changes
-    instead of monitoring the cursor.
-  * 015_gdkmain-x11_button-mask.patch, stolen from upstream SVN: fix the 
+  * 024_filechooser_single-click.patch:
+    + Monitor selection changes instead of monitoring the cursor.
+    + Miscellaneous fixes.
+  * 015_gdkmain-x11_button-mask.patch, stolen from upstream SVN: fix the
     issue of resizing columns needing two tries in some cases
     (closes: #406906).
 
@@ -21,10 +22,7 @@ gtk+2.0 (2.10.7-2) UNRELEASED; urgency=low
   * Bump up libglib2.0-dev of libgtk2.0-dev dep to >= 2.12.0 as well; thanks
     Marc Brockschmidt.
 
-  [ Josselin Mouette ]
-  * 
-
- -- Josselin Mouette <joss@debian.org>  Sat, 17 Feb 2007 23:40:08 +0100
+ -- Josselin Mouette <joss@debian.org>  Sun, 18 Feb 2007 01:45:03 +0100
 
 gtk+2.0 (2.10.7-1) experimental; urgency=low
 

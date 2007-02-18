@@ -1,19 +1,8 @@
 Index: gtk+-2.10.7/gtk/gtkfilechooserdefault.c
 ===================================================================
---- gtk+-2.10.7.orig/gtk/gtkfilechooserdefault.c	2007-01-05 19:32:45.000000000 +0100
-+++ gtk+-2.10.7/gtk/gtkfilechooserdefault.c	2007-01-10 21:06:19.896579500 +0100
-@@ -330,10 +330,6 @@
- 
- static void filter_combo_changed       (GtkComboBox           *combo_box,
- 					GtkFileChooserDefault *impl);
--static void     shortcuts_row_activated_cb (GtkTreeView           *tree_view,
--					    GtkTreePath           *path,
--					    GtkTreeViewColumn     *column,
--					    GtkFileChooserDefault *impl);
- 
- static gboolean shortcuts_key_press_event_cb (GtkWidget             *widget,
- 					      GdkEventKey           *event,
-@@ -3224,8 +3220,21 @@
+--- gtk+-2.10.7.orig/gtk/gtkfilechooserdefault.c	2007-02-17 23:40:07.000000000 +0100
++++ gtk+-2.10.7/gtk/gtkfilechooserdefault.c	2007-02-18 01:50:57.000000000 +0100
+@@ -3224,8 +3224,22 @@
  shortcuts_selection_changed_cb (GtkTreeSelection      *selection,
  				GtkFileChooserDefault *impl)
  {
@@ -23,39 +12,38 @@ Index: gtk+-2.10.7/gtk/gtkfilechooserdefault.c
    bookmarks_check_remove_sensitivity (impl);
    shortcuts_check_popup_sensitivity (impl);
 +
++  if (impl->changing_folder)
++    return;
++
 +  if (gtk_tree_selection_get_selected(selection, NULL, &iter))
 +    {
 +      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (impl->shortcuts_filter_model),
 +							&child_iter,
 +							&iter);
 +      shortcuts_activate_iter (impl, &child_iter);
-+
-+      gtk_widget_grab_focus (impl->browse_files_tree_view);
 +    }
  }
  
  static gboolean
-@@ -3511,9 +3520,6 @@
-   g_signal_connect (selection, "changed",
- 		    G_CALLBACK (shortcuts_selection_changed_cb), impl);
+@@ -7836,10 +7850,13 @@
+       /* The focus is on a dialog's action area button, *and* the widget that
+        * was focused immediately before it is the shortcuts list.  Switch to the
+        * selected shortcut and tell the caller not to respond.
++       * Exception: in the specific SELECT_FOLDER case, we want to return the
++       * currently selected shortcut.
+        */
+       GtkTreeIter iter;
  
--  g_signal_connect (impl->browse_shortcuts_tree_view, "row_activated",
--		    G_CALLBACK (shortcuts_row_activated_cb), impl);
--
-   g_signal_connect (impl->browse_shortcuts_tree_view, "key_press_event",
- 		    G_CALLBACK (shortcuts_key_press_event_cb), impl);
- 
-@@ -8171,27 +8177,6 @@
-     }
- }
- 
--/* Callback used when a row in the shortcuts list is activated */
--static void
--shortcuts_row_activated_cb (GtkTreeView           *tree_view,
--			    GtkTreePath           *path,
--			    GtkTreeViewColumn     *column,
--			    GtkFileChooserDefault *impl)
--{
+-      if (shortcuts_get_selected (impl, &iter))
++      if (impl->action != GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER
++          && shortcuts_get_selected (impl, &iter))
+ 	{
+ 	  shortcuts_activate_iter (impl, &iter);
+ 	  
+@@ -8178,17 +8195,6 @@
+ 			    GtkTreeViewColumn     *column,
+ 			    GtkFileChooserDefault *impl)
+ {
 -  GtkTreeIter iter;
 -  GtkTreeIter child_iter;
 -
@@ -67,9 +55,6 @@ Index: gtk+-2.10.7/gtk/gtkfilechooserdefault.c
 -						    &iter);
 -  shortcuts_activate_iter (impl, &child_iter);
 -
--  gtk_widget_grab_focus (impl->browse_files_tree_view);
--}
--
- /* Handler for GtkWidget::key-press-event on the shortcuts list */
- static gboolean
- shortcuts_key_press_event_cb (GtkWidget             *widget,
+   gtk_widget_grab_focus (impl->browse_files_tree_view);
+ }
+ 
