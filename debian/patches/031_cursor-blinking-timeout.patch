@@ -23,10 +23,10 @@ seconds.
 (gtk_text_view_button_press_event, gtk_text_view_focus_in_event): 
 Reset the blink timer.
 
-Index: gtk/gtkentry.c
+Index: gtk+-2.10.9/gtk/gtkentry.c
 ===================================================================
---- gtk+-2.10.7/gtk/gtkentry.c.orig	2007-01-19 12:20:16.000000000 +0100
-+++ gtk+-2.10.7/gtk/gtkentry.c	2007-01-19 12:23:12.000000000 +0100
+--- gtk+-2.10.9.orig/gtk/gtkentry.c	2007-03-01 21:45:42.000000000 +0100
++++ gtk+-2.10.9/gtk/gtkentry.c	2007-03-01 21:45:43.000000000 +0100
 @@ -82,6 +82,7 @@
  {
    gfloat xalign;
@@ -53,7 +53,7 @@ Index: gtk/gtkentry.c
    
    if (!GTK_WIDGET_HAS_FOCUS (widget))
 @@ -1744,7 +1748,7 @@
- 	      entry->drag_start_y = event->y + entry->scroll_offset;
+ 	      entry->drag_start_y = event->y;
  	    }
  	  else
 -	    gtk_editable_set_position (editable, tmp_pos);
@@ -204,10 +204,10 @@ Index: gtk/gtkentry.c
  /* completion */
  static gint
  gtk_entry_completion_timeout (gpointer data)
-Index: gtk/gtksettings.c
+Index: gtk+-2.10.9/gtk/gtksettings.c
 ===================================================================
---- gtk+-2.10.7/gtk/gtksettings.c.orig	2007-01-05 19:32:46.000000000 +0100
-+++ gtk+-2.10.7/gtk/gtksettings.c	2007-01-19 12:22:42.000000000 +0100
+--- gtk+-2.10.9.orig/gtk/gtksettings.c	2007-01-22 16:48:04.000000000 +0100
++++ gtk+-2.10.9/gtk/gtksettings.c	2007-03-01 21:45:43.000000000 +0100
 @@ -64,6 +64,7 @@
    PROP_DOUBLE_CLICK_DISTANCE,
    PROP_CURSOR_BLINK,
@@ -265,10 +265,10 @@ Index: gtk/gtksettings.c
    result = settings_install_property_parser (class,
                                               g_param_spec_boolean ("gtk-split-cursor",
  								   P_("Split Cursor"),
-Index: gtk/gtktextview.c
+Index: gtk+-2.10.9/gtk/gtktextview.c
 ===================================================================
---- gtk+-2.10.7/gtk/gtktextview.c.orig	2007-01-05 19:32:45.000000000 +0100
-+++ gtk+-2.10.7/gtk/gtktextview.c	2007-01-19 12:22:42.000000000 +0100
+--- gtk+-2.10.9.orig/gtk/gtktextview.c	2007-01-22 16:48:03.000000000 +0100
++++ gtk+-2.10.9/gtk/gtktextview.c	2007-03-01 21:45:44.000000000 +0100
 @@ -99,6 +99,16 @@
  
  #define SPACE_FOR_CURSOR 1

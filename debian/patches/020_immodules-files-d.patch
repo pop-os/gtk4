@@ -1,6 +1,7 @@
-diff -urN gtk+-2.10.1.orig/gtk/gtkimmodule.c gtk+-2.10.1/gtk/gtkimmodule.c
---- gtk+-2.10.1.orig/gtk/gtkimmodule.c	2006-05-14 06:25:29.000000000 +0200
-+++ gtk+-2.10.1/gtk/gtkimmodule.c	2006-09-16 19:01:29.000000000 +0200
+Index: gtk+-2.10.9/gtk/gtkimmodule.c
+===================================================================
+--- gtk+-2.10.9.orig/gtk/gtkimmodule.c	2007-03-01 21:45:33.000000000 +0100
++++ gtk+-2.10.9/gtk/gtkimmodule.c	2007-03-01 21:45:35.000000000 +0100
 @@ -59,6 +59,9 @@
  #define GTK_IM_MODULE(im_module)    (G_TYPE_CHECK_INSTANCE_CAST ((im_module), GTK_TYPE_IM_MODULE, GtkIMModule))
  #define GTK_IS_IM_MODULE(im_module) (G_TYPE_CHECK_INSTANCE_TYPE ((im_module), GTK_TYPE_IM_MODULE))
@@ -11,7 +12,7 @@ diff -urN gtk+-2.10.1.orig/gtk/gtkimmodule.c gtk+-2.10.1/gtk/gtkimmodule.c
  struct _GtkIMModule
  {
    GTypeModule parent_instance;
-@@ -251,31 +254,15 @@
+@@ -261,31 +264,15 @@
  
  
  static void
@@ -44,7 +45,7 @@ diff -urN gtk+-2.10.1.orig/gtk/gtkimmodule.c gtk+-2.10.1/gtk/gtkimmodule.c
    while (!have_error && pango_read_line (file, line_buf))
      {
        const char *p;
-@@ -373,10 +360,76 @@
+@@ -383,10 +370,76 @@
    else if (module)
      add_module (module, infos);
  

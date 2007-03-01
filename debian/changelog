@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.7-2) UNRELEASED; urgency=low
+gtk+2.0 (2.10.9-1) experimental; urgency=low
 
   [ Josselin Mouette ]
   * 024_filechooser_single-click.patch:
@@ -22,7 +22,20 @@ gtk+2.0 (2.10.7-2) UNRELEASED; urgency=low
   * Bump up libglib2.0-dev of libgtk2.0-dev dep to >= 2.12.0 as well; thanks
     Marc Brockschmidt.
 
- -- Josselin Mouette <joss@debian.org>  Sun, 18 Feb 2007 01:45:03 +0100
+  [ Josselin Mouette ]
+  * New upstream release.
+  * Remove patches integrated upstream:
+    + 009_directfb_build.patch
+    + 010_fix-stuc-vs-stub-typo.patch
+    + 012_missing-stub-files.patch
+    + 014_gtktreeview_missing-icons.patch
+  * Refresh patches:
+    + 020_immodules-files-d.patch
+    + 031_cursor-blinking-timeout.patch
+    + 040_filechooser_single-click.patch
+    + 070_mandatory-relibtoolize.patch
+
+ -- Josselin Mouette <joss@debian.org>  Thu,  1 Mar 2007 21:50:34 +0100
 
 gtk+2.0 (2.10.7-1) experimental; urgency=low
 
