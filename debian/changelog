@@ -1,3 +1,10 @@
+gtk+2.0 (2.8.20-7) unstable; urgency=high
+
+  * Update patch 040_ia32-libs to fix incorrect overriding of gtkrc files;
+    thanks Marc Brockschmidt.
+
+ -- Loic Minier <lool@dooz.org>  Sun,  4 Mar 2007 22:02:55 +0100
+
 gtk+2.0 (2.8.20-6) unstable; urgency=high
 
   * "The perfect is the enemy of the good" upload; sorry for the laz^Hteness.

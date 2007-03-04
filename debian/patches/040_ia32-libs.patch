@@ -1,6 +1,6 @@
 diff -urN gtk+-2.8.20.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.8.20/gdk-pixbuf/gdk-pixbuf-io.c
---- gtk+-2.8.20.orig/gdk-pixbuf/gdk-pixbuf-io.c	2005-10-03 17:11:49.000000000 +0200
-+++ gtk+-2.8.20/gdk-pixbuf/gdk-pixbuf-io.c	2007-03-04 11:52:11.000000000 +0100
+--- gtk+-2.8.20.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-03-04 21:57:07.000000000 +0100
++++ gtk+-2.8.20/gdk-pixbuf/gdk-pixbuf-io.c	2007-03-04 21:56:18.000000000 +0100
 @@ -276,8 +276,20 @@
    gchar *result = g_strdup (g_getenv ("GDK_PIXBUF_MODULE_FILE"));
  
@@ -25,8 +25,8 @@ diff -urN gtk+-2.8.20.orig/gdk-pixbuf/gdk-pixbuf-io.c gtk+-2.8.20/gdk-pixbuf/gdk
  }
  
 diff -urN gtk+-2.8.20.orig/gtk/gtkrc.c gtk+-2.8.20/gtk/gtkrc.c
---- gtk+-2.8.20.orig/gtk/gtkrc.c	2005-11-23 15:24:51.000000000 +0100
-+++ gtk+-2.8.20/gtk/gtkrc.c	2007-03-04 11:55:19.000000000 +0100
+--- gtk+-2.8.20.orig/gtk/gtkrc.c	2007-03-04 21:57:07.000000000 +0100
++++ gtk+-2.8.20/gtk/gtkrc.c	2007-03-04 22:01:15.000000000 +0100
 @@ -364,7 +364,20 @@
        if (im_module_file)
  	result = g_strdup (im_module_file);
@@ -49,7 +49,7 @@ diff -urN gtk+-2.8.20.orig/gtk/gtkrc.c gtk+-2.8.20/gtk/gtkrc.c
      }
  
    return result;
-@@ -433,7 +446,17 @@
+@@ -433,7 +446,21 @@
    else
      {
        const gchar *home;
@@ -61,14 +61,18 @@ diff -urN gtk+-2.8.20.orig/gtk/gtkrc.c gtk+-2.8.20/gtk/gtkrc.c
 +      str = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gtkrc.64", NULL);
 +# endif
 +      /* Prefer compat gtkrc if it's usable. */
-+      if (g_file_test(str, G_FILE_TEST_EXISTS))
-+        g_free (str), /* continue in next line */
++      if (!g_file_test(str, G_FILE_TEST_EXISTS))
++        {
++          g_free (str), /* continue in next line */
 +#endif
-+        str = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gtkrc", NULL);
++          str = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gtkrc", NULL);
++#if defined(__linux__) && ( defined(__i386__) || defined (__x86_64__) || defined(__ia64__) )
++        }
++#endif
  
        gtk_rc_add_default_file (str);
        g_free (str);
-@@ -441,7 +464,17 @@
+@@ -441,7 +468,21 @@
        home = g_get_home_dir ();
        if (home)
  	{
@@ -80,10 +84,14 @@ diff -urN gtk+-2.8.20.orig/gtk/gtkrc.c gtk+-2.8.20/gtk/gtkrc.c
 +          str = g_build_filename (home, ".gtkrc-2.0.64", NULL);
 +# endif
 +          /* Prefer compat .gtkrc-2.0 if it's usable. */
-+          if (g_file_test(str, G_FILE_TEST_EXISTS))
-+            g_free (str), /* continue in next line */
++          if (!g_file_test(str, G_FILE_TEST_EXISTS))
++            {
++              g_free (str), /* continue in next line */
 +#endif
-+           str = g_build_filename (home, ".gtkrc-2.0", NULL);
++              str = g_build_filename (home, ".gtkrc-2.0", NULL);
++#if defined(__linux__) && ( defined(__i386__) || defined (__x86_64__) || defined(__ia64__) )
++            }
++#endif
  	  gtk_rc_add_default_file (str);
  	  g_free (str);
  	}
