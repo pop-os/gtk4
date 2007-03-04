@@ -1,3 +1,14 @@
+gtk+2.0 (2.8.20-6) unstable; urgency=high
+
+  * "The perfect is the enemy of the good" upload; sorry for the laz^Hteness.
+  * New patch, 040_ia32-libs.patch, for ia32-libs support via ia32-libs-gtk;
+    based on a patch by Goswin von Brederlow with the following changes: a)
+    use .32 and .64 suffixes in all cases (compatible with Ubuntu), b) fix
+    typo, c) use g_file_test() instead of g_access(); does not cover module
+    loading via env vars; closes: #406453.
+
+ -- Loic Minier <lool@dooz.org>  Sun,  4 Mar 2007 11:56:40 +0100
+
 gtk+2.0 (2.8.20-5) unstable; urgency=high
 
   * Add a get-orig-source target to retrieve the upstream tarball.
