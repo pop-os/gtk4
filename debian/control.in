@@ -148,7 +148,7 @@ Description: Documentation for the GTK+ graphical user interface library
  suites.
  .
  This package contains the HTML documentation for the GTK+ library
- in /usr/share/doc/libgtk2.0-doc/ .
+ in /usr/share/doc/@DOC_PKG@/ .
 
 Package: @EXAMPLES_PKG@
 Section: x11
