@@ -3,8 +3,9 @@ gtk+2.0 (2.10.9-2) UNRELEASED; urgency=low
   * Move build and install base dirs to debian/build and debian/install
     instead of debian/tmp/build and debian/tmp/install.
   * Cleanup rules.
+  * Make debian/control PHONY.
 
- -- Loic Minier <lool@dooz.org>  Thu,  8 Mar 2007 15:59:55 +0100
+ -- Loic Minier <lool@dooz.org>  Thu,  8 Mar 2007 16:15:04 +0100
 
 gtk+2.0 (2.10.9-1) experimental; urgency=low
 

@@ -283,4 +283,4 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 force:
 
 binary: binary-indep binary-arch
-.PHONY: patch configure build install clean binary-indep binary-arch force binary
+.PHONY: patch configure build install clean binary-indep binary-arch force binary debian/control
