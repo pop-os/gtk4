@@ -1,2 +1,2 @@
 # from the shared flavor
-debian/tmp/install/shared/@MODULES_BASE_PATH@/engines/*.so @MODULES_BASE_PATH@/engines
+debian/install/shared/@MODULES_BASE_PATH@/engines/*.so @MODULES_BASE_PATH@/engines

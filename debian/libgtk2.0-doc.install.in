@@ -4,7 +4,7 @@
 #debian/gtk-faq.devhelp usr/share/doc/@DOC_PKG@/gtk-faq
 #debian/gtk-tutorial.devhelp usr/share/doc/@DOC_PKG@/gtk-tutorial
 # from the shared flavor
-debian/tmp/install/shared/usr/share/doc/@DOC_PKG@ usr/share/doc
+debian/install/shared/usr/share/doc/@DOC_PKG@ usr/share/doc
 # from the source
 # XXX FAQ and Tutorial disabled for now, upstream seems to not
 # have docbook

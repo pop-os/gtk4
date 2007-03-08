@@ -68,15 +68,13 @@ FLAVORS := directfb shared static
 
 # build dir for the current flavor; this is only expanded in flavor specific
 # targets
-# Note: dh_clean will rm -rf debian/tmp, hence all builds
 builddir = $(buildbasedir)/$*
-buildbasedir = $(CURDIR)/debian/tmp/build
+buildbasedir = $(CURDIR)/debian/build
 
 # install dir for the current flavor; this is only expanded in flavor specific
 # targets
-# Note: dh_clean will rm -rf debian/tmp, hence all installs
 installdir = $(installbasedir)/$*
-installbasedir = $(CURDIR)/debian/tmp/install
+installbasedir = $(CURDIR)/debian/install
 
 # relative base directory for all types of modules
 MODULES_BASE_PATH := usr/lib/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
@@ -195,6 +193,9 @@ debian/%: debian/%.in force
 clean: debian/control
 	dh_testdir
 	dh_testroot
+	# remove install and build dirs
+	rm -rf $(installbasedir)
+	rm -rf $(buildbasedir)
 	# restore files from backup (before unpatching)
 	-test -r config.sub.orig && mv -f config.sub.orig config.sub
 	-test -r config.guess.orig && mv -f config.guess.orig config.guess
