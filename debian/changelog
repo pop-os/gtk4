@@ -5,8 +5,9 @@ gtk+2.0 (2.10.9-2) UNRELEASED; urgency=low
   * Cleanup rules.
   * Make debian/control PHONY.
   * Use @DOC_PKG@ to point at the HTML doc as well.
+  * Tune udeb description.
 
- -- Loic Minier <lool@dooz.org>  Thu,  8 Mar 2007 17:48:24 +0100
+ -- Loic Minier <lool@dooz.org>  Thu,  8 Mar 2007 17:59:09 +0100
 
 gtk+2.0 (2.10.9-1) experimental; urgency=low
 
