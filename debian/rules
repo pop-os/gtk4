@@ -223,8 +223,8 @@ binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
 	dh_builddeb -i
 
 binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
-	dh_testdir -a
-	dh_testroot -a
+	dh_testdir
+	dh_testroot
 	dh_install -a
 	# empty the dependency_libs in the *.la files
 	sed -i "/dependency_libs/ s/'.*'/''/" debian/$(DEV_PKG)/usr/lib/*.la
