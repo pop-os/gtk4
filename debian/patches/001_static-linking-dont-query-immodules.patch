@@ -1,7 +1,7 @@
-Index: gtk+-2.10.7/configure.in
+Index: gtk+2.0-2.10.10/configure.in
 ===================================================================
---- gtk+-2.10.7.orig/configure.in	2007-01-09 23:18:48.410353000 +0100
-+++ gtk+-2.10.7/configure.in	2007-01-09 23:18:59.591051750 +0100
+--- gtk+2.0-2.10.10.orig/configure.in	2007-03-13 14:10:00.000000000 +0100
++++ gtk+2.0-2.10.10/configure.in	2007-03-13 14:10:04.000000000 +0100
 @@ -134,6 +134,7 @@
  dnl Initialize libtool
  AC_PROG_CC
@@ -10,10 +10,10 @@ Index: gtk+-2.10.7/configure.in
  
  if test "$os_win32" = "yes"; then
    if test x$enable_static = xyes -o x$enable_static = x; then
-Index: gtk+-2.10.7/modules/input/Makefile.am
+Index: gtk+2.0-2.10.10/modules/input/Makefile.am
 ===================================================================
---- gtk+-2.10.7.orig/modules/input/Makefile.am	2007-01-05 19:36:21.000000000 +0100
-+++ gtk+-2.10.7/modules/input/Makefile.am	2007-01-09 23:18:59.591051750 +0100
+--- gtk+2.0-2.10.10.orig/modules/input/Makefile.am	2007-03-12 14:58:52.000000000 +0100
++++ gtk+2.0-2.10.10/modules/input/Makefile.am	2007-03-13 14:10:04.000000000 +0100
 @@ -94,8 +94,12 @@
  if CROSS_COMPILING
  RUN_QUERY_IMMODULES_TEST=false

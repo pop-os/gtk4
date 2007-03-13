@@ -1,7 +1,7 @@
-Index: gtk+2.0-2.10.4/gdk-pixbuf/gdk-pixbuf-io.c
+Index: gtk+2.0-2.10.10/gdk-pixbuf/gdk-pixbuf-io.c
 ===================================================================
---- gtk+2.0-2.10.4.orig/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-10 08:33:10.000000000 +0200
-+++ gtk+2.0-2.10.4/gdk-pixbuf/gdk-pixbuf-io.c	2006-09-23 10:17:46.000000000 +0200
+--- gtk+2.0-2.10.10.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-03-12 14:57:01.000000000 +0100
++++ gtk+2.0-2.10.10/gdk-pixbuf/gdk-pixbuf-io.c	2007-03-13 14:10:35.000000000 +0100
 @@ -45,6 +45,9 @@
  #undef STRICT
  #endif

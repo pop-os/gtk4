@@ -1,8 +1,8 @@
-Index: gtk+-2.10.7/gtk/gtkfilechooserdefault.c
+Index: gtk+2.0-2.10.10/gtk/gtkfilechooserdefault.c
 ===================================================================
---- gtk+-2.10.7.orig/gtk/gtkfilechooserdefault.c	2007-02-17 23:40:07.000000000 +0100
-+++ gtk+-2.10.7/gtk/gtkfilechooserdefault.c	2007-02-18 01:50:57.000000000 +0100
-@@ -3224,8 +3224,22 @@
+--- gtk+2.0-2.10.10.orig/gtk/gtkfilechooserdefault.c	2007-03-12 14:50:39.000000000 +0100
++++ gtk+2.0-2.10.10/gtk/gtkfilechooserdefault.c	2007-03-13 14:10:47.000000000 +0100
+@@ -3225,8 +3225,22 @@
  shortcuts_selection_changed_cb (GtkTreeSelection      *selection,
  				GtkFileChooserDefault *impl)
  {
@@ -25,7 +25,7 @@ Index: gtk+-2.10.7/gtk/gtkfilechooserdefault.c
  }
  
  static gboolean
-@@ -7836,10 +7850,13 @@
+@@ -7849,10 +7863,13 @@
        /* The focus is on a dialog's action area button, *and* the widget that
         * was focused immediately before it is the shortcuts list.  Switch to the
         * selected shortcut and tell the caller not to respond.
@@ -40,7 +40,7 @@ Index: gtk+-2.10.7/gtk/gtkfilechooserdefault.c
  	{
  	  shortcuts_activate_iter (impl, &iter);
  	  
-@@ -8178,17 +8195,6 @@
+@@ -8191,17 +8208,6 @@
  			    GtkTreeViewColumn     *column,
  			    GtkFileChooserDefault *impl)
  {
