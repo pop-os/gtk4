@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.10-1) UNRELEASED; urgency=low
+gtk+2.0 (2.10.11-1) experimental; urgency=low
 
   * Move build and install base dirs to debian/build and debian/install
     instead of debian/tmp/build and debian/tmp/install.
@@ -6,14 +6,16 @@ gtk+2.0 (2.10.10-1) UNRELEASED; urgency=low
   * Make debian/control PHONY.
   * Use @DOC_PKG@ to point at the HTML doc as well.
   * Tune udeb description.
-  * New upstream release.
+  * New upstream releases.
     - Drop patch 003_default_fallback_icon_theme, upstream added a fallback on
       hicolor.
     - Drop patch 015_gdkmain-x11_button-mask.patch, merged upstream.
     - Refresh patches.
     - Relibtoolize.
+  * Remove 031_cursor-blinking-timeout from patch series as it causes a
+    regression in the Thai IM; closes: #414698.
 
- -- Loic Minier <lool@dooz.org>  Tue, 13 Mar 2007 14:29:12 +0100
+ -- Loic Minier <lool@dooz.org>  Wed, 14 Mar 2007 14:11:58 +0100
 
 gtk+2.0 (2.10.9-1) experimental; urgency=low
 
