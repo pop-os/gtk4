@@ -1,17 +1,14 @@
 #!/usr/bin/make -f
 
-# Members list of Debian GNOME Maintainers
-TEAM_LIST ?= /usr/share/gnome-pkg-tools/pkg-gnome.team
+# Debian GNOME Maintainers
+DISABLE_UPDATE_UPLOADERS := 1
+include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 # get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 # Prevent accidental uploads to unstable
 include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 
 GNOME_MODULE := gtk+
-
-# Remove maintainer from uploaders list
-maintainer := $(shell sed -n 's/^Maintainer: //p' debian/control.in)
-uploaders := $(shell grep -vF '$(maintainer)' $(TEAM_LIST))
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
@@ -167,7 +164,11 @@ $(STAMP_DIR)/install-stamp-%: $(STAMP_DIR)/build-stamp-%
 
 install: $(addprefix $(STAMP_DIR)/install-stamp-, $(FLAVORS))
 
-debian/%: debian/%.in force
+# gross kludge to force control generation with the %.in target
+clean::
+	touch debian/control.in
+
+debian/%: debian/%.in
 	dh_testdir
 	sed \
 		-e "s#@SONAME@#$(SONAME)#g" \
@@ -185,12 +186,12 @@ debian/%: debian/%.in force
 		-e "s#@DEBUG_PKG@#$(DEBUG_PKG)#g" \
 		-e "s#@EXAMPLES_PKG@#$(EXAMPLES_PKG)#g" \
 		-e "s#@PIXBUF_PKG@#$(PIXBUF_PKG)#g" \
-		-e "s#@GNOME_TEAM@#$(uploaders)#g" \
+		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
 		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
 		$@.in > $@
 
-clean: debian/control
+clean:: debian/control
 	dh_testdir
 	dh_testroot
 	# remove install and build dirs
@@ -280,7 +281,5 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 	dh_md5sums -a
 	dh_builddeb -a
 
-force:
-
 binary: binary-indep binary-arch
-.PHONY: patch configure build install clean binary-indep binary-arch force binary debian/control
+.PHONY: patch configure build install clean binary-indep binary-arch binary
