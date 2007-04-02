@@ -63,6 +63,9 @@ ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 # Note: the shared flavor is required
 FLAVORS := directfb shared static
 
+# list of flavors to run the test suite on
+CHECK_FLAVORS := $(filter directfb shared static, $(FLAVORS))
+
 # build dir for the current flavor; this is only expanded in flavor specific
 # targets
 builddir = $(buildbasedir)/$*
@@ -156,6 +159,17 @@ $(STAMP_DIR)/build-stamp-%: $(STAMP_DIR)/configure-stamp-%
 
 build: $(addprefix $(STAMP_DIR)/build-stamp-, $(FLAVORS))
 
+$(STAMP_DIR)/check-stamp-%: $(STAMP_DIR)/build-stamp-%
+	dh_testdir
+	# setting LD_LIBRARY_PATH for "make check" might be needed in the
+	# future, but doesn't seem necessary right now
+	#LD_LIBRARY_PATH=$(builddir)/gdk-pixbuf/.libs:$(builddir)/gtk/.libs:$(builddir)/gdk/.libs:$(LD_LIBRARY_PATH)
+	# testsuite failures are ignored
+	-$(MAKE) -C $(builddir) check
+	touch $@
+
+check: $(addprefix $(STAMP_DIR)/check-stamp-, $(CHECK_FLAVORS))
+
 $(STAMP_DIR)/install-stamp-%: $(STAMP_DIR)/build-stamp-%
 	mkdir -p $(installdir)
 	$(MAKE) -C $(builddir) install \
@@ -208,7 +222,9 @@ clean:: debian/control
 	-rm -f debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
 	dh_clean
 
-binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
+maybe_check = $(if $(findstring nocheck,$(DEB_BUILD_OPTIONS)),,check)
+
+binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
 	dh_testdir
 	dh_testroot
 	dh_install -i
@@ -223,7 +239,7 @@ binary-indep: build install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
 	dh_md5sums -i
 	dh_builddeb -i
 
-binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
+binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
 	dh_testdir
 	dh_testroot
 	dh_install -a
@@ -282,4 +298,4 @@ binary-arch: build install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/upd
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: patch configure build install clean binary-indep binary-arch binary
+.PHONY: patch configure build check install clean binary-indep binary-arch binary

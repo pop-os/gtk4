@@ -4,8 +4,10 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
   * Fix control generation.
   * Include the new uploaders.mk from gnome-pkg-tools instead of duplicating
     its logic; build-dep on gnome-pkg-tools >= 0.11.
+  * Run "make check" test suite for the deb flavor except if DEB_BUILD_OPTIONS
+    contains the "nocheck" keyword; ignore failures.
 
- -- Loic Minier <lool@dooz.org>  Mon, 26 Mar 2007 16:44:32 +0200
+ -- Loic Minier <lool@dooz.org>  Mon, 02 Apr 2007 18:10:18 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 
