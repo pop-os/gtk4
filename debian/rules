@@ -17,6 +17,13 @@ STAMP_DIR := debian/stampdir
 
 PATCH_DIR := debian/patches
 
+# rules in this debian/rules Makefile can be built concurrently as well as
+# upstream rules in Makefile; all $(MAKE) invocations will inherit this flag,
+# if you recurse into debian/rules ($(MAKE)
+# -f debian/rules in rules), you need to pass a flag to avoid adding "-j2" when
+# the childs encounters this line
+MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j2 $(DEB_BUILD_OPTIONS_PARALLEL))
+
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
 DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
