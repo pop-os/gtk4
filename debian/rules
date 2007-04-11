@@ -260,6 +260,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	done
 	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) ChangeLog ChangeLog.*
 	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) NEWS NEWS.pre-1-0 README
+	dh_installman -a
 	# fix the permissions of the development package because it ships
 	# dh_gtkmodules which we need to invoke in this build
 	dh_fixperms -p$(DEV_PKG)
