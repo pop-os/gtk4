@@ -29,6 +29,8 @@ MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j2 $(DEB_BUILD_OPTIONS_PARALLEL
 DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
+CFLAGS += -Wall -g
+
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O0
 else
@@ -148,7 +150,8 @@ $(STAMP_DIR)/configure-stamp-%: $(STAMP_DIR)/patch-stamp
 	dh_testdir
 	mkdir -p $(builddir)
 	cd $(builddir) && \
-		$(CURDIR)/configure $($*_configure_flags)
+		CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+			$(CURDIR)/configure $($*_configure_flags)
 	cd $(builddir) && \
 		sed < libtool > libtool-2 \
 			-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
