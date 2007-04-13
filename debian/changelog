@@ -39,8 +39,9 @@ gtk+2.0 (2.10.11-2) unstable; urgency=low
   * Bump Conflicts to gtk2-engines-gtk-qt << 1:0.7-2, imhangul <=
     0.9.13-3.1, libgnomeui-0 <= 2.14.1-3, swf-player <= 0.3.6-2.2,
     tamil-gtk2im <= 2.2-4.3, uim-gtk2.0 <= 1:1.2.1-9.
+  * Drop docbook-utils and linuxdoc-tools-text from the build-deps.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 21:29:48 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 22:25:49 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 
