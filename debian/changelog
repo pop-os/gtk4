@@ -27,10 +27,6 @@ gtk+2.0 (2.10.11-2) unstable; urgency=low
     use .32 and .64 suffixes in all cases (compatible with Ubuntu), b) fix
     typo, c) use g_file_test() instead of g_access(); does not cover module
     loading via env vars; closes: #406453.
-  * New patch, 025_dfb-window-destroy-leak, fixes a memory leak when
-    destroying gdk windows with the DirectFB backend, causes crashes in the
-    installer, hence RC and urgency medium; derived from upstream SVN r17014;
-    closes: #403639.
   * Upload to unstable; drop check-dist include.
   * Wrap build-deps and deps.
   * Add Conflicts on gcin (<= 1.3.4-1), gtk-qt-engine (<= 1:0.8~svn-rev31-3),
