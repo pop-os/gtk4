@@ -32,8 +32,9 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
     installer, hence RC and urgency medium; derived from upstream SVN r17014;
     closes: #403639.
   * Upload to unstable; drop check-dist include.
+  * Wrap build-deps and deps.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:59:22 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 11:04:12 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 
