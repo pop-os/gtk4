@@ -31,8 +31,9 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
     destroying gdk windows with the DirectFB backend, causes crashes in the
     installer, hence RC and urgency medium; derived from upstream SVN r17014;
     closes: #403639.
+  * Upload to unstable; drop check-dist include.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:55:06 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:59:22 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 
