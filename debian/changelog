@@ -21,8 +21,9 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
   * Initialize CFLAGS to -Wall -g; pass debian/rules' CFLAGS and LDFLAGS to
     configure, doh!
   * Document that 2.10.8 (and 2.10.9) fixed CVE-2007-0010.
+  * Stop shipping engines in the udeb again.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:30:53 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:35:52 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 
