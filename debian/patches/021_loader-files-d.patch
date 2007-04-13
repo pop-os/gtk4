@@ -1,0 +1,203 @@
+Index: gtk+2.0-2.10.10/gdk-pixbuf/gdk-pixbuf-io.c
+===================================================================
+--- gtk+2.0-2.10.10.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-03-12 14:57:01.000000000 +0100
++++ gtk+2.0-2.10.10/gdk-pixbuf/gdk-pixbuf-io.c	2007-03-13 14:10:35.000000000 +0100
+@@ -45,6 +45,9 @@
+ #undef STRICT
+ #endif
+ 
++#define LOADERFILEEXT ".loaders"
++#define LOADERFILEEXT_LEN ((int) strlen (LOADERFILEEXT))
++
+ static gint 
+ format_check (GdkPixbufModule *module, guchar *buffer, int size)
+ {
+@@ -282,28 +285,93 @@
+   return result;
+ }
+ 
++/* FIXME this is a static copy of a public pango function which should really
++ * livein glib */
++static char *
++_ugly_copy_of_pango_trim_string (const char *str)
++{
++  int len;
++
++  g_return_val_if_fail (str != NULL, NULL);
++  
++  while (*str && g_ascii_isspace (*str))
++    str++;
++
++  len = strlen (str);
++  while (len > 0 && g_ascii_isspace (str[len-1]))
++    len--;
++
++  return g_strndup (str, len);
++}
++
++/* FIXME this is a static copy of a public pango function which should really
++ * livein glib */
++char **
++_ugly_copy_of_pango_split_file_list (const char *str)
++{
++  int i = 0;
++  int j;
++  char **files;
++
++  files = g_strsplit (str, G_SEARCHPATH_SEPARATOR_S, -1);
++
++  while (files[i])
++    {
++      char *file = _ugly_copy_of_pango_trim_string (files[i]);
++
++      /* If the resulting file is empty, skip it */
++      if (file[0] == '\0')
++	{
++	  g_free(file);
++	  g_free (files[i]);
++	  
++	  for (j = i + 1; files[j]; j++)
++	    files[j - 1] = files[j];
++	  
++	  files[j - 1] = NULL;
++
++	  continue;
++	}
++#ifndef G_OS_WIN32
++      /* '~' is a quite normal and common character in file names on
++       * Windows, especially in the 8.3 versions of long file names, which
++       * still occur now and then. Also, few Windows user are aware of the
++       * Unix shell convention that '~' stands for the home directory,
++       * even if they happen to have a home directory.
++       */
++      if (file[0] == '~' && file[1] == G_DIR_SEPARATOR)
++	{
++	  char *tmp = g_strconcat (g_get_home_dir(), file + 1, NULL);
++	  g_free (file);
++	  file = tmp;
++	}
++      else if (file[0] == '~' && file[1] == '\0')
++	{
++	  g_free (file);
++	  file = g_strdup (g_get_home_dir());
++	}
++#endif
++      g_free (files[i]);
++      files[i] = file;
++	
++      i++;
++    }
++
++  return files;
++}
++
+ static void 
+-gdk_pixbuf_io_init (void)
++process_module_file (const gchar *filename, GIOChannel *channel)
+ {
+-	GIOChannel *channel;
+ 	gchar *line_buf;
+ 	gsize term;
+ 	GString *tmp_buf = g_string_new (NULL);
+ 	gboolean have_error = FALSE;
+ 	GdkPixbufModule *module = NULL;
+-	gchar *filename = gdk_pixbuf_get_module_file ();
+ 	int flags;
+ 	int n_patterns = 0;
+ 	GdkPixbufModulePattern *pattern;
+-	GError *error = NULL;
+ 
+-	channel = g_io_channel_new_file (filename, "r",  &error);
+-	if (!channel) {
+-		g_warning ("Cannot open pixbuf loader module file '%s': %s",
+-			   filename, error->message);
+-		return;
+-	}
+-	
+ 	while (!have_error && g_io_channel_read_line (channel, &line_buf, NULL, &term, NULL) == G_IO_STATUS_NORMAL) {
+ 		const char *p;
+ 		
+@@ -436,8 +504,81 @@
+ 		g_free (line_buf);
+ 	}
+ 	g_string_free (tmp_buf, TRUE);
+-	g_io_channel_unref (channel);
+-	g_free (filename);
++}
++
++static void 
++gdk_pixbuf_io_init (void)
++{
++	GIOChannel *channel;
++	gchar *gdkpixbuf_module_file_str = gdk_pixbuf_get_module_file ();
++	/* FIXME: using an absolute path requires patching Makefile.am */
++	gchar *gdkpixbuf_module_files_d_str = g_build_filename (PIXBUF_LIBDIR,
++							 "..",
++							 "loader-files.d",
++							 NULL);
++	gchar *list_str;
++	char **files;
++	GError *error = NULL;
++	int n;
++
++	list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
++			      gdkpixbuf_module_file_str,
++			      gdkpixbuf_module_files_d_str,
++			      NULL);
++
++	files = _ugly_copy_of_pango_split_file_list (list_str);
++
++	n = 0;
++	while (files[n])
++		n++;
++
++	while (n-- > 0) {
++		GDir *dir = g_dir_open (files[n], 0, NULL);
++		if (dir) {
++			const char *dent;
++
++			while ((dent = g_dir_read_name (dir))) {
++				int len = strlen (dent);
++				if (len > LOADERFILEEXT_LEN && strcmp (dent + len - LOADERFILEEXT_LEN, LOADERFILEEXT) == 0) {
++					gchar *pathname = g_build_filename (files[n], dent, NULL);
++					channel = g_io_channel_new_file (pathname, "r",  &error);
++					if (!channel) {
++						/* we don't care about issuing a warning
++						 * g_warning ("Cannot open pixbuf loader module file '%s': %s",
++						 *	   pathname,
++						 *	   error->message);
++						 */
++						g_error_free (error);
++						error = NULL;
++					} else {
++						process_module_file (pathname, channel);
++						g_io_channel_unref (channel);
++					}
++					g_free (pathname);
++				}
++			}
++			g_dir_close (dir);
++		} else {
++			channel = g_io_channel_new_file (files[n], "r", &error);
++			if (!channel) {
++				/* we don't care about issuing a warning
++				 * g_warning ("Cannot open pixbuf loader module file '%s': %s",
++				 *	   files[n],
++				 *	   error->message);
++				 */
++				g_error_free (error);
++				error = NULL;
++			} else {
++				process_module_file (files[n], channel);
++				g_io_channel_unref (channel);
++			}
++		}
++	}
++
++	g_strfreev (files);
++	g_free (list_str);
++	g_free (gdkpixbuf_module_files_d_str);
++	g_free (gdkpixbuf_module_file_str);
+ }
+ 
+ /* actually load the image handler - gdk_pixbuf_get_module only get a */

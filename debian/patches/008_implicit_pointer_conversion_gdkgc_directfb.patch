@@ -1,5 +1,7 @@
---- gtk+-2.8.18-dfb/gdk/directfb/gdkgc-directfb.c.orig	2006-08-02 15:57:02.000000000 +0200
-+++ gtk+-2.8.18-dfb/gdk/directfb/gdkgc-directfb.c	2006-08-02 15:56:28.000000000 +0200
+Index: gtk+2.0-2.10.10/gdk/directfb/gdkgc-directfb.c
+===================================================================
+--- gtk+2.0-2.10.10.orig/gdk/directfb/gdkgc-directfb.c	2007-03-12 15:06:51.000000000 +0100
++++ gtk+2.0-2.10.10/gdk/directfb/gdkgc-directfb.c	2007-03-13 14:10:26.000000000 +0100
 @@ -31,6 +31,7 @@
   */
  

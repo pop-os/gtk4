@@ -1,0 +1,2 @@
+# from the directfb flavor
+debian/install/directfb/usr/lib/*directfb*.so.* usr/lib

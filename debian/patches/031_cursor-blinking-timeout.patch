@@ -1,0 +1,448 @@
+From upstream SVN r16366 (trunk)
+===================================================================
+
+Stop cursor blinking after a configurable timeout.
+(#353670, #352442, Arjan van de Ven, Manu Cornet)
+
+* gtk/gtksettings.c (gtk_settings_class_init): Add a 
+gtk-cursor-blink-timeout setting, which specifies the number
+of seconds that the cursor should blink after a user interaction.
+The default value is G_MAXINT to preserve the current behaviour.
+
+* gtk/gtkentry.c (blink_cb): Stop blinking after blink-timeout
+seconds.
+
+* gtk/gtkentry.c (gtk_entry_completion_key_press) 
+(gtk_entry_button_press, gtk_entry_focus_in): Reset the
+blink timer.
+
+* gtk/gtktextview.c (blink_cb): Stop blinking after blink-timeout
+seconds. 
+
+* gtk/gtktextview.c (gtk_text_view_key_press_event) 
+(gtk_text_view_button_press_event, gtk_text_view_focus_in_event): 
+Reset the blink timer.
+
+Index: gtk+2.0-2.10.10/gtk/gtkentry.c
+===================================================================
+--- gtk+2.0-2.10.10.orig/gtk/gtkentry.c	2007-03-13 14:10:39.000000000 +0100
++++ gtk+2.0-2.10.10/gtk/gtkentry.c	2007-03-13 14:10:42.000000000 +0100
+@@ -82,6 +82,7 @@
+ {
+   gfloat xalign;
+   gint insert_pos;
++  guint blink_time;  /* time in msec the cursor has blinked since last user event */
+   guint real_changed : 1;
+   guint change_count : 8;
+ };
+@@ -334,6 +335,7 @@
+ 							GtkStateType    previous_state);
+ static void         gtk_entry_check_cursor_blink       (GtkEntry       *entry);
+ static void         gtk_entry_pend_cursor_blink        (GtkEntry       *entry);
++static void         gtk_entry_reset_blink_time         (GtkEntry       *entry);
+ static void         get_text_area_size                 (GtkEntry       *entry,
+ 							gint           *x,
+ 							gint           *y,
+@@ -1654,6 +1656,8 @@
+       (entry->button && event->button != entry->button))
+     return FALSE;
+ 
++  gtk_entry_reset_blink_time (entry);
++
+   entry->button = event->button;
+   
+   if (!GTK_WIDGET_HAS_FOCUS (widget))
+@@ -1744,7 +1748,7 @@
+ 	      entry->drag_start_y = event->y;
+ 	    }
+ 	  else
+-	    gtk_editable_set_position (editable, tmp_pos);
++            gtk_editable_set_position (editable, tmp_pos);
+ 	  break;
+  
+ 	case GDK_2BUTTON_PRESS:
+@@ -2006,6 +2010,7 @@
+ {
+   GtkEntry *entry = GTK_ENTRY (widget);
+ 
++  gtk_entry_reset_blink_time (entry);
+   gtk_entry_pend_cursor_blink (entry);
+ 
+   if (entry->editable)
+@@ -2078,6 +2083,7 @@
+ 		    "direction_changed",
+ 		    G_CALLBACK (gtk_entry_keymap_direction_changed), entry);
+ 
++  gtk_entry_reset_blink_time (entry);
+   gtk_entry_check_cursor_blink (entry);
+ 
+   return FALSE;
+@@ -5281,9 +5287,10 @@
+  *  - the widget has focus
+  */
+ 
+-#define CURSOR_ON_MULTIPLIER 0.66
+-#define CURSOR_OFF_MULTIPLIER 0.34
+-#define CURSOR_PEND_MULTIPLIER 1.0
++#define CURSOR_ON_MULTIPLIER 2
++#define CURSOR_OFF_MULTIPLIER 1
++#define CURSOR_PEND_MULTIPLIER 3
++#define CURSOR_DIVIDER 3
+ 
+ static gboolean
+ cursor_blinks (GtkEntry *entry)
+@@ -5315,6 +5322,17 @@
+   return time;
+ }
+ 
++static gint
++get_cursor_blink_timeout (GtkEntry *entry)
++{
++  GtkSettings *settings = gtk_widget_get_settings (GTK_WIDGET (entry));
++  gint timeout;
++
++  g_object_get (settings, "gtk-cursor-blink-timeout", &timeout, NULL);
++
++  return timeout;
++}
++
+ static void
+ show_cursor (GtkEntry *entry)
+ {
+@@ -5346,11 +5364,14 @@
+ blink_cb (gpointer data)
+ {
+   GtkEntry *entry;
++  GtkEntryPrivate *priv; 
++  gint blink_timeout;
+ 
+   GDK_THREADS_ENTER ();
+ 
+   entry = GTK_ENTRY (data);
+-
++  priv = GTK_ENTRY_GET_PRIVATE (entry);
++ 
+   if (!GTK_WIDGET_HAS_FOCUS (entry))
+     {
+       g_warning ("GtkEntry - did not receive focus-out-event. If you\n"
+@@ -5363,18 +5384,27 @@
+     }
+   
+   g_assert (entry->selection_bound == entry->current_pos);
+-
+-  if (entry->cursor_visible)
++  
++  blink_timeout = get_cursor_blink_timeout (entry);
++  if (priv->blink_time > 1000 * blink_timeout && 
++      blink_timeout < G_MAXINT/1000) 
++    {
++      /* we've blinked enough without the user doing anything, stop blinking */
++      show_cursor (entry);
++      entry->blink_timeout = 0;
++    } 
++  else if (entry->cursor_visible)
+     {
+       hide_cursor (entry);
+-      entry->blink_timeout = g_timeout_add (get_cursor_time (entry) * CURSOR_OFF_MULTIPLIER,
++      entry->blink_timeout = g_timeout_add (get_cursor_time (entry) * CURSOR_OFF_MULTIPLIER / CURSOR_DIVIDER,
+ 					    blink_cb,
+ 					    entry);
+     }
+   else
+     {
+       show_cursor (entry);
+-      entry->blink_timeout = g_timeout_add (get_cursor_time (entry) * CURSOR_ON_MULTIPLIER,
++      priv->blink_time += get_cursor_time (entry);
++      entry->blink_timeout = g_timeout_add (get_cursor_time (entry) * CURSOR_ON_MULTIPLIER / CURSOR_DIVIDER,
+ 					    blink_cb,
+ 					    entry);
+     }
+@@ -5388,14 +5418,18 @@
+ static void
+ gtk_entry_check_cursor_blink (GtkEntry *entry)
+ {
++  GtkEntryPrivate *priv; 
++  
++  priv = GTK_ENTRY_GET_PRIVATE (entry);
++
+   if (cursor_blinks (entry))
+     {
+       if (!entry->blink_timeout)
+ 	{
+-	  entry->blink_timeout = g_timeout_add (get_cursor_time (entry) * CURSOR_ON_MULTIPLIER,
++	  show_cursor (entry);
++	  entry->blink_timeout = g_timeout_add (get_cursor_time (entry) * CURSOR_ON_MULTIPLIER / CURSOR_DIVIDER,
+ 						blink_cb,
+ 						entry);
+-	  show_cursor (entry);
+ 	}
+     }
+   else
+@@ -5419,13 +5453,24 @@
+       if (entry->blink_timeout != 0)
+ 	g_source_remove (entry->blink_timeout);
+       
+-      entry->blink_timeout = g_timeout_add (get_cursor_time (entry) * CURSOR_PEND_MULTIPLIER,
++      entry->blink_timeout = g_timeout_add (get_cursor_time (entry) * CURSOR_PEND_MULTIPLIER / CURSOR_DIVIDER,
+ 					    blink_cb,
+ 					    entry);
+       show_cursor (entry);
+     }
+ }
+ 
++static void
++gtk_entry_reset_blink_time (GtkEntry *entry)
++{
++  GtkEntryPrivate *priv; 
++  
++  priv = GTK_ENTRY_GET_PRIVATE (entry);
++  
++  priv->blink_time = 0;
++}
++
++
+ /* completion */
+ static gint
+ gtk_entry_completion_timeout (gpointer data)
+Index: gtk+2.0-2.10.10/gtk/gtksettings.c
+===================================================================
+--- gtk+2.0-2.10.10.orig/gtk/gtksettings.c	2007-03-12 14:50:58.000000000 +0100
++++ gtk+2.0-2.10.10/gtk/gtksettings.c	2007-03-13 14:10:42.000000000 +0100
+@@ -64,6 +64,7 @@
+   PROP_DOUBLE_CLICK_DISTANCE,
+   PROP_CURSOR_BLINK,
+   PROP_CURSOR_BLINK_TIME,
++  PROP_CURSOR_BLINK_TIMEOUT,
+   PROP_SPLIT_CURSOR,
+   PROP_THEME_NAME,
+   PROP_ICON_THEME_NAME,
+@@ -201,6 +202,15 @@
+                                                                GTK_PARAM_READWRITE),
+                                              NULL);
+   g_assert (result == PROP_DOUBLE_CLICK_DISTANCE);
++
++  /**
++   * GtkSettings:gtk-cursor-blink:
++   *
++   * Whether the cursor should blink. 
++   *
++   * Also see the gtk-cursor-blink-timeout setting, which allows 
++   * more flexible control over cursor blinking.
++   */
+   result = settings_install_property_parser (class,
+                                              g_param_spec_boolean ("gtk-cursor-blink",
+ 								   P_("Cursor Blink"),
+@@ -212,11 +222,31 @@
+   result = settings_install_property_parser (class,
+                                              g_param_spec_int ("gtk-cursor-blink-time",
+                                                                P_("Cursor Blink Time"),
+-                                                               P_("Length of the cursor blink cycle, in milleseconds"),
++                                                               P_("Length of the cursor blink cycle, in milliseconds"),
+                                                                100, G_MAXINT, 1200,
+                                                                GTK_PARAM_READWRITE),
+                                              NULL);
+   g_assert (result == PROP_CURSOR_BLINK_TIME);
++ 
++  /**
++   * GtkSettings:gtk-cursor-blink-timeout:
++   *
++   * Time after which the cursor stops blinking, in seconds.
++   * The timer is reset after each user interaction.
++   *
++   * Setting this to zero has the same effect as setting
++   * gtk-cursor-blinks to %FALSE. 
++   *
++   * Since: 2.12
++   */
++  result = settings_install_property_parser (class,
++                                             g_param_spec_int ("gtk-cursor-blink-timeout",
++                                                               P_("Cursor Blink Timeout"),
++                                                               P_("Time after which the cursor stops blinking, in seconds"),
++                                                               1, G_MAXINT, G_MAXINT,
++                                                               GTK_PARAM_READWRITE),
++                                             NULL);
++  g_assert (result == PROP_CURSOR_BLINK_TIMEOUT);
+   result = settings_install_property_parser (class,
+                                              g_param_spec_boolean ("gtk-split-cursor",
+ 								   P_("Split Cursor"),
+Index: gtk+2.0-2.10.10/gtk/gtktextview.c
+===================================================================
+--- gtk+2.0-2.10.10.orig/gtk/gtktextview.c	2007-03-12 14:50:26.000000000 +0100
++++ gtk+2.0-2.10.10/gtk/gtktextview.c	2007-03-13 14:10:42.000000000 +0100
+@@ -99,6 +99,16 @@
+ 
+ #define SPACE_FOR_CURSOR 1
+ 
++typedef struct _GtkTextViewPrivate GtkTextViewPrivate;
++
++#define GTK_TEXT_VIEW_GET_PRIVATE(obj) (G_TYPE_INSTANCE_GET_PRIVATE ((obj), GTK_TYPE_TEXT_VIEW, GtkTextViewPrivate))
++
++struct _GtkTextViewPrivate 
++{
++  guint blink_time;  /* time in msec the cursor has blinked since last user event */
++};
++
++
+ struct _GtkTextPendingScroll
+ {
+   GtkTextMark   *mark;
+@@ -290,6 +300,7 @@
+ static void     gtk_text_view_check_cursor_blink     (GtkTextView        *text_view);
+ static void     gtk_text_view_pend_cursor_blink      (GtkTextView        *text_view);
+ static void     gtk_text_view_stop_cursor_blink      (GtkTextView        *text_view);
++static void     gtk_text_view_reset_blink_time       (GtkTextView        *text_view);
+ 
+ static void     gtk_text_view_value_changed                (GtkAdjustment *adj,
+ 							    GtkTextView   *view);
+@@ -1007,6 +1018,8 @@
+   gtk_binding_entry_add_signal (binding_set, GDK_KP_Tab, GDK_SHIFT_MASK | GDK_CONTROL_MASK,
+ 				"move_focus", 1,
+ 				GTK_TYPE_DIRECTION_TYPE, GTK_DIR_TAB_BACKWARD);
++
++  g_type_class_add_private (gobject_class, sizeof (GtkTextViewPrivate));
+ }
+ 
+ static void
+@@ -3920,6 +3933,7 @@
+   if (obscure)
+     gtk_text_view_obscure_mouse_cursor (text_view);
+   
++  gtk_text_view_reset_blink_time (text_view);
+   gtk_text_view_pend_cursor_blink (text_view);
+ 
+   return retval;
+@@ -3963,6 +3977,8 @@
+       return FALSE;
+     }
+ 
++  gtk_text_view_reset_blink_time (text_view);
++
+ #if 0
+   /* debug hack */
+   if (event->button == 3 && (event->state & GDK_CONTROL_MASK) != 0)
+@@ -4104,7 +4120,9 @@
+   gtk_widget_queue_draw (widget);
+ 
+   DV(g_print (G_STRLOC": focus_in_event\n"));
+-  
++
++  gtk_text_view_reset_blink_time (text_view);
++
+   if (text_view->cursor_visible && text_view->layout)
+     {
+       gtk_text_layout_set_cursor_visible (text_view->layout, TRUE);
+@@ -4437,9 +4455,10 @@
+   g_slist_free (copy);
+ }
+ 
+-#define CURSOR_ON_MULTIPLIER 0.66
+-#define CURSOR_OFF_MULTIPLIER 0.34
+-#define CURSOR_PEND_MULTIPLIER 1.0
++#define CURSOR_ON_MULTIPLIER 2
++#define CURSOR_OFF_MULTIPLIER 1
++#define CURSOR_PEND_MULTIPLIER 3
++#define CURSOR_DIVIDER 3
+ 
+ static gboolean
+ cursor_blinks (GtkTextView *text_view)
+@@ -4484,6 +4503,18 @@
+   return time;
+ }
+ 
++static gint
++get_cursor_blink_timeout (GtkTextView *text_view)
++{
++  GtkSettings *settings = gtk_widget_get_settings (GTK_WIDGET (text_view));
++  gint time;
++
++  g_object_get (settings, "gtk-cursor-blink-timeout", &time, NULL);
++
++  return time;
++}
++
++
+ /*
+  * Blink!
+  */
+@@ -4492,12 +4523,15 @@
+ blink_cb (gpointer data)
+ {
+   GtkTextView *text_view;
++  GtkTextViewPrivate *priv;
+   gboolean visible;
++  gint blink_timeout;
+ 
+   GDK_THREADS_ENTER ();
+ 
+   text_view = GTK_TEXT_VIEW (data);
+-  
++  priv = GTK_TEXT_VIEW_GET_PRIVATE (text_view);
++
+   if (!GTK_WIDGET_HAS_FOCUS (text_view))
+     {
+       g_warning ("GtkTextView - did not receive focus-out-event. If you\n"
+@@ -4514,14 +4548,25 @@
+ 
+   visible = gtk_text_layout_get_cursor_visible (text_view->layout);
+ 
+-  if (visible)
+-    text_view->blink_timeout = g_timeout_add (get_cursor_time (text_view) * CURSOR_OFF_MULTIPLIER,
+-					      blink_cb,
+-					      text_view);
+-  else
+-    text_view->blink_timeout = g_timeout_add (get_cursor_time (text_view) * CURSOR_ON_MULTIPLIER,
++  blink_timeout = get_cursor_blink_timeout (text_view);
++  if (priv->blink_time > 1000 * blink_timeout &&
++      blink_timeout < G_MAXINT/1000) 
++    {
++      /* we've blinked enough without the user doing anything, stop blinking */
++      visible = 0;
++      text_view->blink_timeout = 0;
++    } 
++  else if (visible)
++    text_view->blink_timeout = g_timeout_add (get_cursor_time (text_view) * CURSOR_OFF_MULTIPLIER / CURSOR_DIVIDER,
+ 					      blink_cb,
+ 					      text_view);
++  else 
++    {
++      text_view->blink_timeout = g_timeout_add (get_cursor_time (text_view) * CURSOR_ON_MULTIPLIER / CURSOR_DIVIDER,
++						blink_cb,
++						text_view);
++      priv->blink_time += get_cursor_time (text_view);
++    }
+ 
+   /* Block changed_handler while changing the layout's cursor visibility
+    * because it would expose the whole paragraph. Instead, we expose
+@@ -4567,7 +4612,7 @@
+ 	    {
+ 	      gtk_text_layout_set_cursor_visible (text_view->layout, TRUE);
+ 	      
+-	      text_view->blink_timeout = g_timeout_add (get_cursor_time (text_view) * CURSOR_OFF_MULTIPLIER,
++	      text_view->blink_timeout = g_timeout_add (get_cursor_time (text_view) * CURSOR_OFF_MULTIPLIER / CURSOR_DIVIDER,
+ 							blink_cb,
+ 							text_view);
+ 	    }
+@@ -4596,12 +4641,22 @@
+       gtk_text_view_stop_cursor_blink (text_view);
+       gtk_text_layout_set_cursor_visible (text_view->layout, TRUE);
+       
+-      text_view->blink_timeout = g_timeout_add (get_cursor_time (text_view) * CURSOR_PEND_MULTIPLIER,
++      text_view->blink_timeout = g_timeout_add (get_cursor_time (text_view) * CURSOR_PEND_MULTIPLIER / CURSOR_DIVIDER,
+ 						blink_cb,
+ 						text_view);
+     }
+ }
+ 
++static void
++gtk_text_view_reset_blink_time (GtkTextView *text_view)
++{
++  GtkTextViewPrivate *priv;
++
++  priv = GTK_TEXT_VIEW_GET_PRIVATE (text_view);
++
++  priv->blink_time = 0;
++}
++
+ 
+ /*
+  * Key binding handlers

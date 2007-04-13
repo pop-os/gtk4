@@ -1,18 +1,18 @@
 This package was debianized by Akira TAGOH <tagoh@debian.org> on
 Wed, 13 Mar 2002 00:07:25 +0900.
 
-It was downloaded from ftp://ftp.gtk.org/ .
+It was downloaded from <http://ftp.gnome.org/pub/gnome/sources/gtk+/>.
 
-Copyright Holder:
+Copyright Holders:
+
+Please do not mail any of the authors listed here 
+asking questions about this version of GTK+. 
 
 Original Authors
 ----------------
 Peter Mattis      <petm@xcf.berkeley.edu>
 Spencer Kimball   <spencer@xcf.berkeley.edu>
 Josh MacDonald    <jmacd@xcf.berkeley.edu>
-
-Please do not mail the original authors asking questions about this 
-version of GTK+.
 
 The GTK+ Team (in alphabetical order)
 -------------------------------------
@@ -35,6 +35,41 @@ Jay Painter       <jpaint@gtk.org>
 Manish Singh      <manish@gtk.org>
 Owen Taylor       <otaylor@gtk.org>
 
+There are many others who have contributed patches; we thank them,
+GTK+ is much better because of them.
+
+
+Over time, GTK+ has incorporated some pieces of software which 
+started as independent projects. We list the original authors here:
+
+
+MS-Windows theme engine
+-----------------------
+Raymond Penners
+Dom Lachowicz
+
+
+Pixbuf theme engine
+-------------------
+Owen Taylor
+
+
+IME input method
+----------------
+Takuro Ashie
+Kazuki IWAMOTO
+
+
+Mac OS X backend
+----------------
+Anders Carlsson
+
+
+DirectFB backend
+----------------
+Denis Oliver Kropp
+Sven Neumann
+Mike Emmel
 
 License:
 

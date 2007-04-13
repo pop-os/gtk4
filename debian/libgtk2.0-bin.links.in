@@ -1,0 +1,6 @@
+usr/lib/@SHARED_PKG@/gdk-pixbuf-query-loaders usr/bin/gdk-pixbuf-query-loaders
+usr/lib/@SHARED_PKG@/gtk-query-immodules-@APIVER@ usr/bin/gtk-query-immodules-@APIVER@
+usr/lib/@SHARED_PKG@/gtk-update-icon-cache usr/bin/gtk-update-icon-cache
+usr/lib/@SHARED_PKG@/update-gtk-immodules usr/sbin/update-gtk-immodules
+usr/lib/@SHARED_PKG@/update-gdkpixbuf-loaders usr/sbin/update-gdkpixbuf-loaders
+usr/share/doc/@SHARED_PKG@ usr/share/doc/@BIN_PKG@

@@ -1,40 +1,28 @@
-#! /bin/sh
+#!/bin/sh
+
+# this script is a no-op since 2.10.3-2
+exit 0
 
 set -e
 
-TMPFILE=`mktemp /tmp/gtk+-@VERSION@.XXXXXXXXXX`
-defaultver=@MODVER@
+VERSION="@VERSION@"
+APIVER="@APIVER@"
+SHARED_PKG="@SHARED_PKG@"
+TMPFILE=$(mktemp -t "gtk+$APIVER-$VERSION.XXXXXXXXXX")
 
-if [ "x$1" != "x" ]; then
-	VERSION=`echo $1 | sed -e 's/-[A-Za-z0-9\.]*$//' -e 's/+[A-Za-z0-9\.]*$//'`
+echo -n "Updating the gdk-pixbuf loaders list for Gtk+ $VERSION..."
+"/usr/lib/$SHARED_PKG/gdk-pixbuf-query-loaders" > $TMPFILE
+if [ "x`cat "$TMPFILE" | grep -v '^#'`" = "x" ]; then
+    echo "no gdk-pixbuf loader found."
 else
-	VERSION=$defaultver
+    echo "done."
 fi
-VERSION=2.4.0
-apiver=2.0
-shortver=`echo $VERSION | sed -e 's/\.[0-9]*$//'`
-
-if ! test -d /usr/lib/gtk-$apiver/$VERSION/loaders; then
-	echo "You don't have gdk-pixbuf loaders directory for version $VERSION."
-	echo "Use default version instead."
-	VERSION=$defaultver
-	shortver=`echo $VERSION | sed -e 's/\.[0-9]*$//'`
+if ! test -d "/etc/gtk-$APIVER"; then
+    echo -n "Creating /etc/gtk-$APIVER..."
+    mkdir "/etc/gtk-$APIVER"
+    echo "done."
 fi
+cp "$TMPFILE" "/etc/gtk-$APIVER/gdk-pixbuf.loaders"
+chmod 644 "/etc/gtk-$APIVER/gdk-pixbuf.loaders"
 
-echo -n "Updating the gdk-pixbuf loaders list for GTK+-$VERSION..."
-/usr/lib/libgtk2.0-0/gdk-pixbuf-query-loaders > $TMPFILE
-if [ "x`cat $TMPFILE | grep -v '^#'`" = "x" ]; then
-	echo "the gdk-pixbuf loaders was not found."
-else
-	echo "done."
-fi
-if ! test -d /etc/gtk-$apiver; then
-	echo -n "Creating /etc/gtk-$apiver..."
-	mkdir /etc/gtk-$apiver
-	echo "done."
-fi
-cp $TMPFILE /etc/gtk-$apiver/gdk-pixbuf.loaders
-chmod 644 /etc/gtk-$apiver/gdk-pixbuf.loaders
-
-rm -f $TMPFILE
-
+rm -f "$TMPFILE"

@@ -8,5 +8,5 @@ Abstract: This document is intended to answer questions that are
 Section: Apps/Programming
 
 Format: HTML
-Index: /usr/share/doc/libgtk2.0-doc/gtk-faq/book1.html
-Files: /usr/share/doc/libgtk2.0-doc/gtk-faq/*.html
+Index: /usr/share/doc/libgtk2.0-doc/faq/html/book1.html
+Files: /usr/share/doc/libgtk2.0-doc/faq/html/*.html

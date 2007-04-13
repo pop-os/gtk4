@@ -1,0 +1,9 @@
+# from Debian
+debian/gtk-faq.devhelp usr/share/doc/@DOC_PKG@/gtk-faq
+debian/gtk-tutorial.devhelp usr/share/doc/@DOC_PKG@/gtk-tutorial
+# from the shared flavor
+debian/install/shared/usr/share/doc/@DOC_PKG@ usr/share/doc
+# from the source
+docs/faq/html usr/share/doc/@DOC_PKG@/faq
+docs/tutorial/html usr/share/doc/@DOC_PKG@/tutorial
+docs/*.txt usr/share/doc/@DOC_PKG@

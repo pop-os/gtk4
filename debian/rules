@@ -1,354 +1,247 @@
 #!/usr/bin/make -f
-# Sample debian/rules that uses debhelper.
-# GNU copyright 1997 to 1999 by Joey Hess.
 
-include debian/scripts/vars
+# Debian GNOME Maintainers
+DISABLE_UPDATE_UPLOADERS := 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
+# get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
+# Prevent accidental uploads to unstable
+include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 
 GNOME_MODULE := gtk+
-DEB_USE_DBS_TARBALL_LAYOUT := 1
-
-BUILD_DIR=$(SOURCE_DIR)/$(TAR_DIR)
-BUILD_SHARED_DIR=$(SOURCE_DIR)/$(TAR_DIR)-shared
-BUILD_STATIC_DIR=$(SOURCE_DIR)/$(TAR_DIR)-static
-BUILD_DFB_DIR=$(SOURCE_DIR)/$(TAR_DIR)-dfb
 
 # Uncomment this to turn on verbose mode.
 #export DH_VERBOSE=1
 
+STAMP_DIR := debian/stampdir
+
+PATCH_DIR := debian/patches
+
+# rules in this debian/rules Makefile can be built concurrently as well as
+# upstream rules in Makefile; all $(MAKE) invocations will inherit this flag,
+# if you recurse into debian/rules ($(MAKE)
+# -f debian/rules in rules), you need to pass a flag to avoid adding "-j2" when
+# the childs encounters this line
+MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j2 $(DEB_BUILD_OPTIONS_PARALLEL))
+
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
-DEB_HOST_GNU_TYPE	?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE	?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
+DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
+CFLAGS += -Wall -g
 
 ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -O0
 else
 	CFLAGS += -O2
 endif
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-	INSTALL_PROGRAM += -s
-endif
 
-##
-version=$(shell dpkg-parsechangelog | grep '^Version: ' | sed -e 's/^Version: //' -e 's/-[A-Za-z0-9\.\+]*$$//g' -e 's/+[A-Za-z0-9\.]*$$//g')
-major=$(shell echo ${version} | sed -e 's/\(^[0-9]*\)\.[0-9]*\.[0-9]*$$/\1/')
-minor=$(shell echo ${version} | sed -e 's/^[0-9]*\.\([0-9]*\)\.[0-9]*$$/\1/')
-rel=$(shell echo ${version} | sed -e 's/^[0-9]*\.[0-9]*\.\([0-9]*\)$$/\1/')
-shortver=$(major).$(minor)
-apiver=2.0
-soname=0
-suffix=
-modver=$(major).$(minor).0
-glibver=2.0
-atkver=1.0
-pangover=1.0
-shver=2.8.0
-libpath=$(CURDIR)/$(BUILD_SHARED_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_SHARED_DIR)/gtk/.libs
-libpath_dfb=$(CURDIR)/$(BUILD_DFB_DIR)/gdk-pixbuf/.libs:$(CURDIR)/$(BUILD_DFB_DIR)/gdk/.libs:$(CURDIR)/$(BUILD_DFB_DIR)/gtk/.libs
+DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
+VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
+APIVER := 2.0
+SONAME := 0
+SHVER := 2.10.3
 
-SHARED_PKG=libgtk$(apiver)-$(soname)$(suffix)
-SHARED_PKGDIR=$(CURDIR)/debian/$(SHARED_PKG)
-DEV_PKG=libgtk$(apiver)-dev
-DEV_PKGDIR=$(CURDIR)/debian/$(DEV_PKG)
-DFB_PKG=libgtk-directfb-$(apiver)-$(soname)$(suffix)
-DFB_PKGDIR=$(CURDIR)/debian/$(DFB_PKG)
-DFBDEV_PKG=libgtk-directfb-$(apiver)-dev
-DFBDEV_PKGDIR=$(CURDIR)/debian/$(DFBDEV_PKG)
-UDEB_PKG=$(DFB_PKG)-udeb
-UDEB_PKGDIR=$(CURDIR)/debian/$(UDEB_PKG)
-DOC_PKG=libgtk$(apiver)-doc
-DOC_PKGDIR=$(CURDIR)/debian/$(DOC_PKG)
-BIN_PKG=libgtk$(apiver)-bin
-BIN_PKGDIR=$(CURDIR)/debian/$(BIN_PKG)
-DEBUG_PKG=$(SHARED_PKG)-dbg
-DEBUG_PKGDIR=$(CURDIR)/debian/$(DEBUG_PKG)
+# earliest version that this release has backwards binary compatibility for
+GTK_BINARY_VERSION := 2.10.0
 
-debian/control:
-	dh_testdir
+# Gtk binary version virtual Provide
+GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION)
 
-	sed -e 's/@SONAME@/${soname}${suffix}/g' -e 's/@VERSION@/${version}/g' -e 's/@GNOME_TEAM@/${uploaders}/' $@.in > $@
+# package names
+SHARED_PKG := libgtk$(APIVER)-$(SONAME)
+COMMON_PKG := libgtk$(APIVER)-common
+DEV_PKG := libgtk$(APIVER)-dev
+DIRECTFB_PKG := libgtk-directfb-$(APIVER)-$(SONAME)
+DIRECTFB_DEV_PKG := libgtk-directfb-$(APIVER)-dev
+UDEB_PKG := $(DIRECTFB_PKG)-udeb
+DOC_PKG := libgtk$(APIVER)-doc
+BIN_PKG := libgtk$(APIVER)-bin
+DEBUG_PKG := $(SHARED_PKG)-dbg
+EXAMPLES_PKG := gtk$(APIVER)-examples
+PIXBUF_PKG := gtk2-engines-pixbuf
 
-extract: $(STAMP_DIR)/extract-stamp
-$(STAMP_DIR)/extract-stamp:
-	dh_testdir
+# package groups, used in rule dependencies and in cleanup
+BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG)
+BINARY_ARCH_PKGS := $(SHARED_PKG) $(DIRECTFB_PKG) $(UDEB_PKG) $(DEV_PKG) $(DIRECTFB_DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG)
+ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 
-	$(MAKE) -f debian/sys-build.mk source.make
+# list of flavors we build; each gets a builddir, a configure pass (configure
+# args are defined below), a build pass, and an install pass (in two steps)
+# Note: the shared flavor is required
+FLAVORS := directfb shared static
 
-	-test -r /usr/share/misc/config.sub && \
-	   cp -f /usr/share/misc/config.sub $(BUILD_DIR)/config.sub
-	-test -r /usr/share/misc/config.guess && \
-	   cp -f /usr/share/misc/config.guess $(BUILD_DIR)/config.guess
+# list of flavors to run the test suite on
+CHECK_FLAVORS := $(filter directfb shared static, $(FLAVORS))
 
-	touch $@
+# build dir for the current flavor; this is only expanded in flavor specific
+# targets
+builddir = $(buildbasedir)/$*
+buildbasedir = $(CURDIR)/debian/build
 
-configure-shared: extract $(STAMP_DIR)/configure-shared-stamp
-$(STAMP_DIR)/configure-shared-stamp:
-	dh_testdir
+# install dir for the current flavor; this is only expanded in flavor specific
+# targets
+installdir = $(installbasedir)/$*
+installbasedir = $(CURDIR)/debian/install
 
-	cp -ar $(BUILD_DIR) $(BUILD_SHARED_DIR)
+# relative base directory for all types of modules
+MODULES_BASE_PATH := usr/lib/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
 
-	# Add here commands to configure the package.
-	cd $(BUILD_SHARED_DIR) && \
-	./configure	--host=$(DEB_HOST_GNU_TYPE) \
-			--build=$(DEB_BUILD_GNU_TYPE) \
+# relative directory to store the generated IM module files
+IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
+
+# relative directory to store the generated GdkPixbuf loader files
+LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
+
+# configure flags
+common_configure_flags := \
 			--prefix=/usr \
 			--mandir=\$${prefix}/share/man \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
 			--with-html-dir=\$${prefix}/share/doc/$(DOC_PKG) \
+			--enable-explicit-deps=yes
+ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE)
+else
+	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+endif
+shared_configure_flags := $(common_configure_flags) \
 			--with-xinput=yes \
 			--enable-shared \
-			--disable-static \
-			--enable-explicit-deps=yes
-
-	cd $(BUILD_SHARED_DIR) && \
-	sed < libtool > libtool-2 \
-	 -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	 -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
-	mv libtool-2 libtool
-
-	touch $@
-
-configure-static: extract $(STAMP_DIR)/configure-static-stamp
-$(STAMP_DIR)/configure-static-stamp:
-	dh_testdir
-
-	cp -ar $(BUILD_DIR) $(BUILD_STATIC_DIR)
-
-	# Add here commands to configure the package.
-	cd $(BUILD_STATIC_DIR) && \
-	./configure	--host=$(DEB_HOST_GNU_TYPE) \
-			--build=$(DEB_BUILD_GNU_TYPE) \
-			--prefix=/usr \
-			--mandir=\$${prefix}/share/man \
-			--infodir=\$${prefix}/share/info \
-			--sysconfdir=/etc \
+			--disable-static
+static_configure_flags := $(common_configure_flags) \
 			--with-xinput=yes \
 			--with-included-loaders=yes \
 			--disable-modules \
 			--disable-shared \
-			--enable-static \
-			--enable-explicit-deps=yes
-
-	cd $(BUILD_STATIC_DIR) && \
-	sed < libtool > libtool-2 \
-	 -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	 -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
-	mv libtool-2 libtool
-
-	touch $@
-
-configure-dfb: extract $(STAMP_DIR)/configure-dfb-stamp
-$(STAMP_DIR)/configure-dfb-stamp:
-	dh_testdir
-
-	cp -ar $(BUILD_DIR) $(BUILD_DFB_DIR)
-
-	# Add here commands to configure the package.
-	cd $(BUILD_DFB_DIR) && \
-	./configure	--host=$(DEB_HOST_GNU_TYPE) \
-			--build=$(DEB_BUILD_GNU_TYPE) \
-			--prefix=/usr \
-			--mandir=\$${prefix}/share/man \
-			--infodir=\$${prefix}/share/info \
-			--sysconfdir=/etc \
-			--with-html-dir=\$${prefix}/share/doc/$(DOC_PKG) \
+			--enable-static
+directfb_configure_flags := $(common_configure_flags) \
 			--with-xinput=no \
 			--enable-shared \
 			--disable-static \
-			--with-gdktarget=directfb \
-			--enable-explicit-deps=yes
+			--with-gdktarget=directfb
 
-	cd $(BUILD_DFB_DIR) && \
-	sed < libtool > libtool-2 \
-	 -e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-	 -e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
-	mv libtool-2 libtool
+# macro computing the list of 'debian/<pkg>.*" files which have a corresponding
+# ".in" file; pass the list of packages in $(1)
+dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
 
-	touch $@
+debian/dh_gtkmodules.1: debian/dh_gtkmodules
+	cd debian && pod2man -c "Gtk" -r "$(DEBVERSION)" dh_gtkmodules dh_gtkmodules.1
 
-configure: configure-static configure-shared configure-dfb
+patch: $(STAMP_DIR)/patch-stamp
 
-build-shared: debian/control configure-shared $(STAMP_DIR)/build-shared-stamp
-$(STAMP_DIR)/build-shared-stamp:
+$(STAMP_DIR)/patch-stamp:
 	dh_testdir
-
-	-rm -f $(STAMP_DIR)/install-test-stamp
-
-	# Add here commands to compile the package.
-	$(MAKE) -C $(BUILD_SHARED_DIR) \
-		LD_LIBRARY_PATH=$(libpath):$(LD_LIBRARY_PATH)
-
+	mkdir $(STAMP_DIR)
+	# apply patches
+	QUILT_PATCHES=$(PATCH_DIR) quilt --quiltrc /dev/null push -a || test $$? = 2
+	# backup the original files to restore them in the clean target
+	-test -r config.sub && cp config.sub config.sub.orig
+	-test -r config.guess && cp config.guess config.guess.orig
+	-test -r /usr/share/misc/config.sub && \
+		cp -f /usr/share/misc/config.sub config.sub
+	-test -r /usr/share/misc/config.guess && \
+		cp -f /usr/share/misc/config.guess config.guess
 	touch $@
 
-build-static: debian/control configure-static $(STAMP_DIR)/build-static-stamp
-$(STAMP_DIR)/build-static-stamp:
+$(STAMP_DIR)/configure-stamp-%: $(STAMP_DIR)/patch-stamp
 	dh_testdir
-
-	-rm -f $(STAMP_DIR)/install-test-stamp
-
-	# Add here commands to compile the package.
-	$(MAKE) -C $(BUILD_STATIC_DIR) \
-		RUN_QUERY_IMMODULES_TEST=false
-
+	mkdir -p $(builddir)
+	cd $(builddir) && \
+		CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
+			$(CURDIR)/configure $($*_configure_flags)
+	cd $(builddir) && \
+		sed < libtool > libtool-2 \
+			-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
+			-e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
+		mv libtool-2 libtool
 	touch $@
 
-build-dfb: debian/control configure-dfb $(STAMP_DIR)/build-dfb-stamp
-$(STAMP_DIR)/build-dfb-stamp:
+configure: $(addprefix $(STAMP_DIR)/configure-stamp-, $(FLAVORS))
+
+$(STAMP_DIR)/build-stamp-%: $(STAMP_DIR)/configure-stamp-%
 	dh_testdir
-
-	-rm -f $(STAMP_DIR)/install-test-stamp
-
-	# Add here commands to compile the package.
-	$(MAKE) -C $(BUILD_DFB_DIR) \
-		LD_LIBRARY_PATH=$(libpath_dfb):$(LD_LIBRARY_PATH)
-
+	LD_LIBRARY_PATH=$(builddir)/gdk-pixbuf/.libs:$(builddir)/gtk/.libs:$(builddir)/gdk/.libs:$(LD_LIBRARY_PATH) \
+		$(MAKE) -C $(builddir)
 	touch $@
 
-build: build-static build-shared build-dfb
+build: $(addprefix $(STAMP_DIR)/build-stamp-, $(FLAVORS))
+
+$(STAMP_DIR)/check-stamp-%: $(STAMP_DIR)/build-stamp-%
+	dh_testdir
+	# setting LD_LIBRARY_PATH for "make check" might be needed in the
+	# future, but doesn't seem necessary right now
+	#LD_LIBRARY_PATH=$(builddir)/gdk-pixbuf/.libs:$(builddir)/gtk/.libs:$(builddir)/gdk/.libs:$(LD_LIBRARY_PATH)
+	# testsuite failures are ignored
+	-$(MAKE) -C $(builddir) check
+	touch $@
+
+check: $(addprefix $(STAMP_DIR)/check-stamp-, $(CHECK_FLAVORS))
+
+$(STAMP_DIR)/install-stamp-%: $(STAMP_DIR)/build-stamp-%
+	mkdir -p $(installdir)
+	$(MAKE) -C $(builddir) install \
+		DESTDIR=$(installdir)
+	touch $@
+
+install: $(addprefix $(STAMP_DIR)/install-stamp-, $(FLAVORS))
+
+# gross kludge to force control generation with the %.in target
+clean::
+	touch debian/control.in
+
+debian/%: debian/%.in
+	dh_testdir
+	sed \
+		-e "s#@SONAME@#$(SONAME)#g" \
+		-e "s#@APIVER@#$(APIVER)#g" \
+		-e "s#@VERSION@#$(VERSION)#g" \
+		-e "s#@GTK_BINVER_DEP@#$(GTK_BINVER_DEP)#g" \
+		-e "s#@SHARED_PKG@#$(SHARED_PKG)#g" \
+		-e "s#@COMMON_PKG@#$(COMMON_PKG)#g" \
+		-e "s#@DEV_PKG@#$(DEV_PKG)#g" \
+		-e "s#@DIRECTFB_PKG@#$(DIRECTFB_PKG)#g" \
+		-e "s#@DIRECTFB_DEV_PKG@#$(DIRECTFB_DEV_PKG)#g" \
+		-e "s#@UDEB_PKG@#$(UDEB_PKG)#g" \
+		-e "s#@DOC_PKG@#$(DOC_PKG)#g" \
+		-e "s#@BIN_PKG@#$(BIN_PKG)#g" \
+		-e "s#@DEBUG_PKG@#$(DEBUG_PKG)#g" \
+		-e "s#@EXAMPLES_PKG@#$(EXAMPLES_PKG)#g" \
+		-e "s#@PIXBUF_PKG@#$(PIXBUF_PKG)#g" \
+		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
+		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
+		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
+		$@.in > $@
 
 clean:: debian/control
 	dh_testdir
 	dh_testroot
-
-	# Add here commands to clean up after the build process.
-	$(MAKE) -f debian/sys-build.mk source.clean
-	-rm -rf $(BUILD_SHARED_DIR)
-	-rm -rf $(BUILD_STATIC_DIR)
-	-rm -rf $(BUILD_DFB_DIR)
+	# remove install and build dirs
+	rm -rf $(installbasedir)
+	rm -rf $(buildbasedir)
+	# restore files from backup (before unpatching)
+	-test -r config.sub.orig && mv -f config.sub.orig config.sub
+	-test -r config.guess.orig && mv -f config.guess.orig config.guess
+	# unapply patches, if any
+	QUILT_PATCHES=$(PATCH_DIR) quilt --quiltrc /dev/null pop -a -R || test $$? = 2
+	-rm -rf .pc
 	-rm -rf $(STAMP_DIR)
-
+	-rm -f $(call dh_subst_files,$(ALL_PKGS))
+	-rm -f debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
 	dh_clean
 
-install-test: $(STAMP_DIR)/install-test-stamp
-$(STAMP_DIR)/install-test-stamp:
+maybe_check = $(if $(findstring nocheck,$(DEB_BUILD_OPTIONS)),,check)
+
+binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
 	dh_testdir
 	dh_testroot
-	dh_clean -k
-	dh_installdirs
-
-	touch $@
-
-install-shared: build-shared install-test
-	# Add here commands to install the package into debian/tmp
-	$(MAKE) -C $(BUILD_SHARED_DIR) install DESTDIR=$(SHARED_PKGDIR)
-
-install-static: build-static install-test
-	# Add here commands to install the package into debian/tmp
-	$(MAKE) -C $(BUILD_STATIC_DIR) install DESTDIR=$(SHARED_PKGDIR) \
-		RUN_QUERY_IMMODULES_TEST=false \
-		RUN_QUERY_LOADER_TEST=false
-
-install-dfb: build-dfb install-test
-	# Add here commands to install the package into debian/tmp
-	$(MAKE) -C $(BUILD_DFB_DIR) install DESTDIR=$(DFB_PKGDIR)
-	find $(DFB_PKGDIR) -name \*.la -exec rm -f \{\} \;
-	find $(DFB_PKGDIR) -name libpixbufloader\* \! -name \*png\* -exec rm -f \{\} \;
-	mkdir -p $(UDEB_PKGDIR)/etc/gtk-2.0
-	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
-		$(BUILD_DFB_DIR)/gdk-pixbuf/gdk-pixbuf-query-loaders \
-			$(DFB_PKGDIR)/usr/lib/gtk-2.0/*/loaders/*.so | \
-			sed s,$(DFB_PKGDIR),, > $(UDEB_PKGDIR)/etc/gtk-2.0/gdk-pixbuf.loaders
-
-install: install-static install-shared install-dfb
-	# generating debian files from .in
-	for f in `find debian/ -maxdepth 1 -name "[^c]*.in"`; do \
-		sed -e "s/@VERSION@/${version}/g" -e "s/@MODVER@/${modver}/g" -e "s/@APIVER@/${apiver}/g" $$f > `echo $$f | sed -e "s/\.in//"`; \
-	done
-
-	# start with the udeb
-	mkdir -p $(UDEB_PKGDIR)/usr/lib/gtk-2.0
-	cp $(DFB_PKGDIR)/usr/lib/*.so.? $(UDEB_PKGDIR)/usr/lib/
-	# We don't need the rpath in the udeb
-	chrpath -d $(UDEB_PKGDIR)/usr/lib/*.so.?
-	cp -r $(DFB_PKGDIR)/usr/lib/gtk-2.0/[0-9]* \
-		$(UDEB_PKGDIR)/usr/lib/gtk-2.0/
-	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/engines
-	rm -rf $(UDEB_PKGDIR)/usr/lib/gtk-2.0/*/immodules
-
-	# remove files that are already here in the other build
-	cd $(SHARED_PKGDIR) && \
-		find -L -type f -exec rm -f $(DFB_PKGDIR)/\{\} \;
-
-	# for -doc
-	cp -a $(BUILD_SHARED_DIR)/docs/faq/html $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-faq
-	cp -a $(CURDIR)/debian/gtk-faq.devhelp $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-faq/
-
-	cp -a $(BUILD_SHARED_DIR)/docs/tutorial/html $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-tutorial
-	cp $(CURDIR)/debian/gtk-tutorial.devhelp $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-tutorial/
-
-	cp -ar $(BUILD_SHARED_DIR)/docs/tutorial/images $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)/gtk-tutorial/
-	cp $(BUILD_SHARED_DIR)/docs/*.txt $(DOC_PKGDIR)/usr/share/doc/$(DOC_PKG)
-
-	# don't need executable attribute
-	for f in `find $(SHARED_PKGDIR)/usr/share/themes -type f`; do \
-		chmod a-x $$f; \
-	done
-
-	# clean the unnecessary files up
-	rm -rf $(SHARED_PKGDIR)/usr/share/gtk-doc
-
-	dh_movefiles --sourcedir=debian/$(SHARED_PKG)
-
-	# scripts and support binaries
-	for file in `ls $(SHARED_PKGDIR)/usr/bin`; do \
-		ln -sf ../lib/$(SHARED_PKG)/$$file \
-			$(BIN_PKGDIR)/usr/bin/$$file ; \
-	done
-	mv $(SHARED_PKGDIR)/usr/bin \
-		$(SHARED_PKGDIR)/usr/lib/$(SHARED_PKG)
-	for file in update-gtk-immodules update-gdkpixbuf-loaders; do \
-		install -m 755 $(CURDIR)/debian/$$file \
-			$(SHARED_PKGDIR)/usr/lib/$(SHARED_PKG) ; \
-		ln -sf ../lib/$(SHARED_PKG)/$$file \
-			$(BIN_PKGDIR)/usr/sbin/$$file ; \
-	done
-
-	mkdir -p $(DFBDEV_PKGDIR)/usr/lib
-	mv $(DFB_PKGDIR)/usr/lib/{pkgconfig,*.so} $(DFBDEV_PKGDIR)/usr/lib/
-	mv $(DFB_PKGDIR)/usr/include $(DFBDEV_PKGDIR)/usr/
-
-	-find $(CURDIR)/debian/ -type d -empty | xargs rmdir -p > /dev/null 2>&1
-
-	# don't delete /etc/gtk-2.0
-	install -d $(BIN_PKGDIR)/etc/gtk-$(apiver)
-
-# Build architecture-independent files here.
-binary-indep: build install
-	dh_testdir -i
-	dh_testroot -i
-
-	dh_installdocs -i
-
-	rm -rf $(BIN_PKGDIR)/usr/share/doc/$(BIN_PKG)
-
-	dh_link -p$(DOC_PKG)					\
-		usr/share/doc/libglib$(glibver)-doc/glib	\
-		usr/share/doc/libgtk$(apiver)-doc/glib		\
-		usr/share/doc/libglib$(glibver)-doc/gobject	\
-		usr/share/doc/libgtk$(apiver)-doc/gobject	\
-		usr/share/doc/libatk$(atkver)-doc/atk		\
-		usr/share/doc/libgtk$(apiver)-doc/atk		\
-		usr/share/doc/libpango$(pangover)-doc/pango	\
-		usr/share/doc/libgtk$(apiver)-doc/pango
-	dh_link -p$(BIN_PKG) \
-		usr/share/doc/$(SHARED_PKG) \
-		usr/share/doc/$(BIN_PKG)
-
-# create symlinks in /usr/share/gtk-doc/html
-	for i in gdk gdk-pixbuf gtk gtk-faq gtk-tutorial; do	\
-		dh_link -p$(DOC_PKG)				\
-			usr/share/doc/libgtk$(apiver)-doc/$$i	\
-			usr/share/gtk-doc/html/$$i;		\
-	done
-
-	dh_installexamples -i
+	dh_install -i
+	dh_installchangelogs -i -N$(BIN_PKG) ChangeLog ChangeLog.*
+	dh_installdocs -i -N$(BIN_PKG) NEWS NEWS.pre-1-0 README
 	dh_installman -i
-	dh_installinfo -i
-	dh_installchangelogs -i $(BUILD_DIR)/ChangeLog
+	dh_link -i
 	dh_compress -i
 	dh_fixperms -i
 	dh_installdeb -i
@@ -356,55 +249,64 @@ binary-indep: build install
 	dh_md5sums -i
 	dh_builddeb -i
 
-# Build architecture-dependent files here.
-binary-arch: build install
-	dh_testdir -a
-	dh_testroot -a
-
-#	dh_installdebconf	
-	dh_installdocs -a
-
-	rm -rf $(SHARED_PKGDIR)/usr/share/doc/$(SHARED_PKG)
-	rm -rf $(DEBUG_PKGDIR)/usr/share/doc/$(DEBUG_PKG)
-	rm -rf $(DEV_PKGDIR)/usr/share/doc/$(DEV_PKG)
-	rm -rf $(DFB_PKGDIR)/usr/share/doc/$(DFB_PKG)
-	rm -rf $(DFBDEV_PKGDIR)/usr/share/doc/$(DFBDEV_PKG)
-
-	dh_link -p$(SHARED_PKG) \
-		usr/share/doc/libgtk$(apiver)-common \
-		usr/share/doc/$(SHARED_PKG)
-	dh_link -p$(DEBUG_PKG) \
-		usr/share/doc/$(SHARED_PKG) \
-		usr/share/doc/$(DEBUG_PKG)
-	dh_link -p$(DEV_PKG) \
-		usr/share/doc/$(SHARED_PKG) \
-		usr/share/doc/$(DEV_PKG)
-	dh_link -p$(DFB_PKG) \
-		usr/share/doc/$(SHARED_PKG) \
-		usr/share/doc/$(DFB_PKG)
-	dh_link -p$(DFBDEV_PKG) \
-		usr/share/doc/$(DFB_PKG) \
-		usr/share/doc/$(DFBDEV_PKG)
-
-	dh_installexamples -a
-
-	rm $(CURDIR)/debian/gtk$(apiver)-examples/usr/share/doc/gtk$(apiver)-examples/examples/find-examples.sh
-
+binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
+	dh_testdir
+	dh_testroot
+	dh_install -a
+	# empty the dependency_libs in the *.la files
+	sed -i "/dependency_libs/ s/'.*'/''/" debian/$(DEV_PKG)/usr/lib/*.la
+	# we don't need the rpath in the udeb
+	chrpath -d debian/$(UDEB_PKG)/usr/lib/*directfb*.so.*
+	# fix permissions of binaries below /usr/lib/$(SHARED_PKG)
+	for f in update-gdkpixbuf-loaders update-gtk-immodules; do \
+	    chmod 755 debian/$(SHARED_PKG)/usr/lib/$(SHARED_PKG)/$$f; \
+	done
+	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) ChangeLog ChangeLog.*
+	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) NEWS NEWS.pre-1-0 README
 	dh_installman -a
-	dh_installinfo -a
-	dh_installchangelogs -a $(BUILD_DIR)/ChangeLog
+	# fix the permissions of the development package because it ships
+	# dh_gtkmodules which we need to invoke in this build
+	dh_fixperms -p$(DEV_PKG)
+	# generate a dependency on the Gtk binary version
+	debian/$(DEV_PKG)/usr/bin/dh_gtkmodules -p$(PIXBUF_PKG)
+	# generate an IM module file and a GdkPixbuf loader file for the shared
+	# library
+	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
+	GTK_QUERYLOADERS=$(installbasedir)/shared/usr/bin/gdk-pixbuf-query-loaders \
+	GTK_QUERYIMMODULES=$(installbasedir)/shared/usr/bin/gtk-query-immodules-2.0 \
+		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
+			-p$(SHARED_PKG)
+	# generate a GdkPixbuf loader config file for the udeb
+	LD_LIBRARY_PATH=debian/$(UDEB_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
+	GTK_QUERYLOADERS=$(installbasedir)/directfb/usr/bin/gdk-pixbuf-query-loaders \
+		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
+			-p$(UDEB_PKG)
+	dh_installexamples -a
+	dh_link -a
 	dh_strip -a --dbg-package=$(DEBUG_PKG)
 	dh_compress -a
-	dh_fixperms -a
-	dh_makeshlibs -X usr/lib/gtk-$(apiver) -p$(SHARED_PKG) -V "${SHARED_PKG} (>= ${shver})" --add-udeb=$(UDEB_PKG)
-	dh_makeshlibs -X usr/lib/gtk-$(apiver) -p$(DFB_PKG)    -V    "${DFB_PKG} (>= ${shver})" --add-udeb=$(UDEB_PKG)
+	dh_fixperms -a -Xusr/lib/$(SHARED_PKG)
+	dh_makeshlibs -p$(SHARED_PKG)\
+		-X$(MODULES_BASE_PATH) \
+		-V"$(SHARED_PKG) (>= $(SHVER))" \
+		--add-udeb=$(UDEB_PKG)
+	dh_makeshlibs -p$(DIRECTFB_PKG) \
+		-X$(MODULES_BASE_PATH) \
+		-V"$(DIRECTFB_PKG) (>= $(SHVER))" \
+		--add-udeb=$(UDEB_PKG)
 	dh_installdeb -a
-	cat debian/*/DEBIAN/shlibs | awk '{ print $$1,$$2 }' > debian/shlibs.local
+	# override shlibs for libraries from this source before computing
+	# dependencies of packages generated from this source; we already have
+	# inter-dependencies expressed manually in the control file, we do not
+	# need the shlibs to add duplicates
+	cat debian/*/DEBIAN/shlibs | \
+		sed -n -r -e 's/(([^ ]+: )?([^ ]+) ([^ ]+)) .*/\1/p' \
+			> debian/shlibs.local
 	dh_shlibdeps -a
-	rm -f debian/shlibs.local
+	-rm -f debian/shlibs.local
 	dh_gencontrol -a
 	dh_md5sums -a
 	dh_builddeb -a
 
 binary: binary-indep binary-arch
-.PHONY: build build-shared build-static build-dfb clean binary-indep binary-arch binary install install-shared install-static install-dfb configure configure-shared configure-static configure-dfb debian/control
+.PHONY: patch configure build check install clean binary-indep binary-arch binary

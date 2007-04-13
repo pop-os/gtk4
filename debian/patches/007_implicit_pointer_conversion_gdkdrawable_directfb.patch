@@ -1,6 +1,8 @@
---- gtk+-2.8.18-dfb/gdk/directfb/gdkdrawable-directfb.c~	2006-07-31 13:28:10.000000000 -0600
-+++ gtk+-2.8.18-dfb/gdk/directfb/gdkdrawable-directfb.c	2006-08-01 19:42:27.000000000 -0600
-@@ -44,6 +44,7 @@
+Index: gtk+2.0-2.10.10/gdk/directfb/gdkdrawable-directfb.c
+===================================================================
+--- gtk+2.0-2.10.10.orig/gdk/directfb/gdkdrawable-directfb.c	2007-03-12 15:06:54.000000000 +0100
++++ gtk+2.0-2.10.10/gdk/directfb/gdkdrawable-directfb.c	2007-03-13 14:10:23.000000000 +0100
+@@ -45,6 +45,7 @@
  #include "gdkregion-generic.h"
  #include "gdkalias.h"
  
