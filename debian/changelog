@@ -27,8 +27,12 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
     use .32 and .64 suffixes in all cases (compatible with Ubuntu), b) fix
     typo, c) use g_file_test() instead of g_access(); does not cover module
     loading via env vars; closes: #406453.
+  * New patch, 025_dfb-window-destroy-leak, fixes a memory leak when
+    destroying gdk windows with the DirectFB backend, causes crashes in the
+    installer, hence RC and urgency medium; derived from upstream SVN r17014;
+    closes: #403639.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:39:48 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:55:06 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 

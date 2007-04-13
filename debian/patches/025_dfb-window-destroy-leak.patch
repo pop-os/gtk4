@@ -1,0 +1,39 @@
+Index: gtk+2.0-2.10.11/gdk/directfb/gdkwindow-directfb.c
+===================================================================
+--- gtk+2.0-2.10.11.orig/gdk/directfb/gdkwindow-directfb.c	2007-04-13 10:46:56.000000000 +0200
++++ gtk+2.0-2.10.11/gdk/directfb/gdkwindow-directfb.c	2007-04-13 10:46:59.000000000 +0200
+@@ -23,6 +23,16 @@
+  * file for a list of people on the GTK+ Team.
+  */
+ 
++  if (impl->drawable.surface) {
++    GdkDrawableImplDirectFB *dimpl = GDK_DRAWABLE_IMPL_DIRECTFB (private->impl);
++    if(dimpl->cairo_surface) {
++      cairo_surface_destroy(dimpl->cairo_surface);
++      dimpl->cairo_surface= NULL;
++    }
++    impl->drawable.surface->Release (impl->drawable.surface);
++    impl->drawable.surface = NULL;
++  }
++
+ /*
+  * GTK+ DirectFB backend
+  * Copyright (C) 2001-2002  convergence integrated media GmbH
+@@ -612,16 +622,8 @@
+     	impl->window->SetOpacity (impl->window,0);
+    		impl->window->Close(impl->window);
+       	impl->window->Release(impl->window);
++        impl->window = NULL;
+   }
+-
+-#if 0 /* let the finalizer kill it */
+-  if (!recursing && !foreign_destroy)
+-    {
+-  		if (impl->window)
+-    		impl->window->Destroy (impl->window);
+-  		impl->window = NULL;
+-	}
+-#endif
+ }
+ 
+ /* This function is called when the window is really gone.
