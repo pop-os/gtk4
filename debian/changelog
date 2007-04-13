@@ -22,8 +22,13 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
     configure, doh!
   * Document that 2.10.8 (and 2.10.9) fixed CVE-2007-0010.
   * Stop shipping engines in the udeb again.
+  * New patch, 040_ia32-libs.patch, for ia32-libs support via ia32-libs-gtk;
+    based on a patch by Goswin von Brederlow with the following changes: a)
+    use .32 and .64 suffixes in all cases (compatible with Ubuntu), b) fix
+    typo, c) use g_file_test() instead of g_access(); does not cover module
+    loading via env vars; closes: #406453.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:35:52 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:39:48 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 
