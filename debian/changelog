@@ -20,8 +20,9 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
   [ Loic Minier ]
   * Initialize CFLAGS to -Wall -g; pass debian/rules' CFLAGS and LDFLAGS to
     configure, doh!
+  * Document that 2.10.8 (and 2.10.9) fixed CVE-2007-0010.
 
- -- Loic Minier <lool@dooz.org>  Thu, 12 Apr 2007 14:11:40 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:30:53 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 
@@ -68,6 +69,7 @@ gtk+2.0 (2.10.9-1) experimental; urgency=low
 
   [ Josselin Mouette ]
   * New upstream release.
+    - Fixes CVE-2007-0010; RedHat #218755, #218932.
   * Remove patches integrated upstream:
     + 009_directfb_build.patch
     + 010_fix-stuc-vs-stub-typo.patch
