@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
+gtk+2.0 (2.10.11-2) unstable; urgency=low
 
   [ Loic Minier ]
   * Bump libwmf conflicts to << 0.2.8.4-5.
@@ -33,8 +33,14 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
     closes: #403639.
   * Upload to unstable; drop check-dist include.
   * Wrap build-deps and deps.
+  * Add Conflicts on gcin (<= 1.3.4-1), gtk-qt-engine (<= 1:0.8~svn-rev31-3),
+    iiimf-client-gtk (<= 12.3.91-3), libginspx0 (<= 20050529-1),
+    scim-bridge-client-gtk (<= 0.4.10-1), iiimgcf (<= 11.4.1870-7).
+  * Bump Conflicts to gtk2-engines-gtk-qt << 1:0.7-2, imhangul <=
+    0.9.13-3.1, libgnomeui-0 <= 2.14.1-3, swf-player <= 0.3.6-2.2,
+    tamil-gtk2im <= 2.2-4.3, uim-gtk2.0 <= 1:1.2.1-9.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 11:04:12 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 21:29:48 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 
