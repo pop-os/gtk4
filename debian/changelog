@@ -1,3 +1,9 @@
+gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
+
+  * Bump Conflicts to gtk-im-libthai <= 0.1.4-2.
+
+ -- Loic Minier <lool@dooz.org>  Sat, 14 Apr 2007 23:28:32 +0200
+
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 
   [ Loic Minier ]
