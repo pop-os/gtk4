@@ -1,6 +1,8 @@
 gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
 
   * Bump Conflicts to gtk-im-libthai <= 0.1.4-2.
+  * Document that 2.10.11-2 bumped the conflict on scim-gtk2-immodule to <=
+    1.4.4-7.
 
  -- Loic Minier <lool@dooz.org>  Sat, 14 Apr 2007 23:28:32 +0200
 
@@ -40,7 +42,8 @@ gtk+2.0 (2.10.11-2) unstable; urgency=low
     scim-bridge-client-gtk (<= 0.4.10-1), iiimgcf (<= 11.4.1870-7).
   * Bump Conflicts to gtk2-engines-gtk-qt << 1:0.7-2, imhangul <=
     0.9.13-3.1, libgnomeui-0 <= 2.14.1-3, swf-player <= 0.3.6-2.2,
-    tamil-gtk2im <= 2.2-4.3, uim-gtk2.0 <= 1:1.2.1-9.
+    tamil-gtk2im <= 2.2-4.3, uim-gtk2.0 <= 1:1.2.1-9, scim-gtk2-immodule (<=
+    1.4.4-7).
   * Drop docbook-utils and linuxdoc-tools-text from the build-deps.
 
  -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 22:25:49 +0200
