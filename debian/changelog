@@ -3,9 +3,10 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
   * Bump Conflicts to gtk-im-libthai <= 0.1.4-2.
   * Document that 2.10.11-2 bumped the conflict on scim-gtk2-immodule to <=
     1.4.4-7.
-  * Post-transition bump of conflicts to gtk2-engines-wonderland << 1.0-4.
+  * Post-transition bump of conflicts to gtk2-engines-wonderland << 1.0-4,
+    imhangul (<< 0.9.13-5).
 
- -- Loic Minier <lool@dooz.org>  Sun, 15 Apr 2007 09:47:47 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 15 Apr 2007 12:16:17 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 
