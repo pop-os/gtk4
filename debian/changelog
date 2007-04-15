@@ -4,9 +4,9 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
   * Document that 2.10.11-2 bumped the conflict on scim-gtk2-immodule to <=
     1.4.4-7.
   * Post-transition bump of conflicts to gtk2-engines-wonderland << 1.0-4,
-    imhangul (<< 0.9.13-5).
+    imhangul (<< 0.9.13-5), gcin (<< 1.3.4-2).
 
- -- Loic Minier <lool@dooz.org>  Sun, 15 Apr 2007 12:16:17 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 15 Apr 2007 12:22:46 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 
