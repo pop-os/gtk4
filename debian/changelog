@@ -9,8 +9,10 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
   * Add a -k flag to dh_gtkmodules, matching the change in dh_pangomodules.
   * Use this new flag for the udeb and the shared library packages.
   * Add ${misc:Depends}.
+  * Drop "libtool_is_fool" snippet patching hardcode_libdir_flag_spec and
+    archive_cmds which is probably dangerous with newer libtools.
 
- -- Loic Minier <lool@dooz.org>  Sat, 21 Apr 2007 08:28:14 +0200
+ -- Loic Minier <lool@dooz.org>  Sat, 21 Apr 2007 08:31:13 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 

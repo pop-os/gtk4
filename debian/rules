@@ -150,11 +150,6 @@ $(STAMP_DIR)/configure-stamp-%: $(STAMP_DIR)/patch-stamp
 	cd $(builddir) && \
 		CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
 			$(CURDIR)/configure $($*_configure_flags)
-	cd $(builddir) && \
-		sed < libtool > libtool-2 \
-			-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-			-e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
-		mv libtool-2 libtool
 	touch $@
 
 configure: $(addprefix $(STAMP_DIR)/configure-stamp-, $(FLAVORS))
