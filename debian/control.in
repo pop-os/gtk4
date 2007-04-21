@@ -119,6 +119,7 @@ Section: debian-installer
 Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends}
+Provides: @GTK_BINVER_DEP@
 Description: The GTK+ graphical user interface library - minimal runtime
  This is a udeb, or a microdeb, for the debian-installer.
  .
