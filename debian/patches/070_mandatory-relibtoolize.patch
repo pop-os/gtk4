@@ -6,9 +6,10 @@ automake-1.7
 rm -rf autom4te.cache
 exclude config.guess and sub with diff -urN -x config.guess -x config.sub
 
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/Makefile.in gtk+2.0-2.10.11/Makefile.in
+Index: gtk+2.0-2.10.11/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/Makefile.in	2007-03-14 05:12:36.000000000 +0100
-+++ gtk+2.0-2.10.11/Makefile.in	2007-03-14 14:02:45.000000000 +0100
++++ gtk+2.0-2.10.11/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -64,9 +65,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/Makefile.in gtk+2.0
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/aclocal.m4 gtk+2.0-2.10.11/aclocal.m4
+Index: gtk+2.0-2.10.11/aclocal.m4
+===================================================================
 --- gtk+2.0-2.10.11.orig/aclocal.m4	2007-03-14 05:12:13.000000000 +0100
-+++ gtk+2.0-2.10.11/aclocal.m4	2007-03-14 14:02:35.000000000 +0100
++++ gtk+2.0-2.10.11/aclocal.m4	2007-04-21 08:49:04.000000000 +0200
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -353,9 +355,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/aclocal.m4 gtk+2.0-
  # Configure paths for GLIB
  # Owen Taylor     1997-2001
  
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2.10.11/configure
+Index: gtk+2.0-2.10.11/configure
+===================================================================
 --- gtk+2.0-2.10.11.orig/configure	2007-03-14 05:12:42.000000000 +0100
-+++ gtk+2.0-2.10.11/configure	2007-03-14 14:02:44.000000000 +0100
++++ gtk+2.0-2.10.11/configure	2007-04-21 08:49:14.000000000 +0200
 @@ -1,6 +1,6 @@
  #! /bin/sh
  # Guess values for system-dependent variables and create Makefiles.
@@ -3407,17 +3410,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -21842,7 +21062,8 @@
- if test "$os_win32" != yes; then
-     # libtool option to control which symbols are exported
-     # right now, symbols starting with _ are not exported
--    LIBTOOL_EXPORT_OPTIONS='-export-symbols-regex "^[^_].*"'
-+    # Disabled until -export-symbols-regex works (RH patch)
-+    LIBTOOL_EXPORT_OPTIONS=
- else
-     # We currently use .def files on Windows (for gdk-pixbuf, gdk and gtk)
-     LIBTOOL_EXPORT_OPTIONS=
-@@ -21914,7 +21135,7 @@
+@@ -21914,7 +21134,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -3426,7 +3419,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_PERL="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -21957,7 +21178,7 @@
+@@ -21957,7 +21177,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -3435,7 +3428,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_prog_INDENT="indent"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -22057,27 +21278,11 @@
+@@ -22057,27 +21277,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3468,7 +3461,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -22086,7 +21291,7 @@
+@@ -22086,7 +21290,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -3477,7 +3470,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -22135,27 +21340,11 @@
+@@ -22135,27 +21339,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3510,7 +3503,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gtk_ok=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22164,7 +21353,7 @@
+@@ -22164,7 +21352,7 @@
  	gtk_ok=no
  fi
  
@@ -3519,7 +3512,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  { echo "$as_me:$LINENO: result: $gtk_ok" >&5
  echo "${ECHO_T}$gtk_ok" >&6; }
-@@ -22210,27 +21399,11 @@
+@@ -22210,27 +21398,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3552,7 +3545,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gtk_ok=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22239,7 +21412,7 @@
+@@ -22239,7 +21411,7 @@
  	gtk_ok=no
  fi
  
@@ -3561,7 +3554,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  { echo "$as_me:$LINENO: result: $gtk_ok" >&5
  echo "${ECHO_T}$gtk_ok" >&6; }
-@@ -22285,27 +21458,11 @@
+@@ -22285,27 +21457,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3594,7 +3587,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gtk_ok=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22314,7 +21471,7 @@
+@@ -22314,7 +21470,7 @@
  	gtk_ok=no
  fi
  
@@ -3603,7 +3596,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  { echo "$as_me:$LINENO: result: $gtk_ok" >&5
  echo "${ECHO_T}$gtk_ok" >&6; }
-@@ -22360,27 +21517,11 @@
+@@ -22360,27 +21516,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3636,7 +3629,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gtk_ok=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22389,7 +21530,7 @@
+@@ -22389,7 +21529,7 @@
  	gtk_ok=no
  fi
  
@@ -3645,7 +3638,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  { echo "$as_me:$LINENO: result: $gtk_ok" >&5
  echo "${ECHO_T}$gtk_ok" >&6; }
-@@ -22435,27 +21576,11 @@
+@@ -22435,27 +21575,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3678,7 +3671,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gtk_ok=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22464,7 +21589,7 @@
+@@ -22464,7 +21588,7 @@
  	gtk_ok=no
  fi
  
@@ -3687,7 +3680,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  { echo "$as_me:$LINENO: result: $gtk_ok" >&5
  echo "${ECHO_T}$gtk_ok" >&6; }
-@@ -22522,27 +21647,10 @@
+@@ -22522,27 +21646,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3719,7 +3712,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22578,17 +21686,10 @@
+@@ -22578,17 +21685,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3741,7 +3734,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22686,27 +21787,11 @@
+@@ -22686,27 +21786,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3774,7 +3767,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    am_cv_val_LC_MESSAGES=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22715,7 +21800,7 @@
+@@ -22715,7 +21799,7 @@
  	am_cv_val_LC_MESSAGES=no
  fi
  
@@ -3783,7 +3776,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $am_cv_val_LC_MESSAGES" >&5
-@@ -22771,27 +21856,10 @@
+@@ -22771,27 +21855,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3815,7 +3808,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22827,17 +21895,10 @@
+@@ -22827,17 +21894,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3837,7 +3830,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22933,27 +21994,11 @@
+@@ -22933,27 +21993,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3870,7 +3863,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gt_cv_func_ngettext_libc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -22962,7 +22007,7 @@
+@@ -22962,7 +22006,7 @@
  	gt_cv_func_ngettext_libc=no
  fi
  
@@ -3879,7 +3872,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  
  fi
-@@ -23005,27 +22050,11 @@
+@@ -23005,27 +22049,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3912,7 +3905,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gt_cv_func_dgettext_libc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -23034,7 +22063,7 @@
+@@ -23034,7 +22062,7 @@
  	gt_cv_func_dgettext_libc=no
  fi
  
@@ -3921,7 +3914,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  
  fi
-@@ -23110,27 +22139,11 @@
+@@ -23110,27 +22138,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3954,7 +3947,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -23139,7 +22152,7 @@
+@@ -23139,7 +22151,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -3963,7 +3956,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -23204,27 +22217,11 @@
+@@ -23204,27 +22216,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -3996,7 +3989,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_intl_bindtextdomain=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -23233,7 +22230,7 @@
+@@ -23233,7 +22229,7 @@
  	ac_cv_lib_intl_bindtextdomain=no
  fi
  
@@ -4005,7 +3998,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -23282,27 +22279,11 @@
+@@ -23282,27 +22278,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4038,7 +4031,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_intl_ngettext=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -23311,7 +22292,7 @@
+@@ -23311,7 +22291,7 @@
  	ac_cv_lib_intl_ngettext=no
  fi
  
@@ -4047,7 +4040,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -23360,27 +22341,11 @@
+@@ -23360,27 +22340,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4080,7 +4073,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_intl_dgettext=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -23389,7 +22354,7 @@
+@@ -23389,7 +22353,7 @@
  	ac_cv_lib_intl_dgettext=no
  fi
  
@@ -4089,7 +4082,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -23451,27 +22416,11 @@
+@@ -23451,27 +22415,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4122,7 +4115,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_intl_ngettext=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -23480,7 +22429,7 @@
+@@ -23480,7 +22428,7 @@
  	ac_cv_lib_intl_ngettext=no
  fi
  
@@ -4131,7 +4124,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -23529,27 +22478,11 @@
+@@ -23529,27 +22477,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4164,7 +4157,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_intl_dcgettext=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -23558,7 +22491,7 @@
+@@ -23558,7 +22490,7 @@
  	ac_cv_lib_intl_dcgettext=no
  fi
  
@@ -4173,7 +4166,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -23653,27 +22586,11 @@
+@@ -23653,27 +22585,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4206,7 +4199,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -23682,7 +22599,7 @@
+@@ -23682,7 +22598,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -4215,7 +4208,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -23829,27 +22746,11 @@
+@@ -23829,27 +22745,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4248,7 +4241,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -23858,7 +22759,7 @@
+@@ -23858,7 +22758,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -4257,7 +4250,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -23872,6 +22773,35 @@
+@@ -23872,6 +22772,35 @@
  fi
  done
  
@@ -4293,7 +4286,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  	  # Extract the first word of "gmsgfmt", so it can be a program name with args.
  set dummy gmsgfmt; ac_word=$2
  { echo "$as_me:$LINENO: checking for $ac_word" >&5
-@@ -23890,7 +22820,7 @@
+@@ -23890,7 +22819,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -4302,7 +4295,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_GMSGFMT="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -23978,27 +22908,11 @@
+@@ -23978,27 +22907,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4335,7 +4328,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    CATOBJEXT=.gmo
               DATADIRNAME=share
  else
-@@ -24070,27 +22984,11 @@
+@@ -24070,27 +22983,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4368,7 +4361,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_bind_textdomain_codeset=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -24099,7 +22997,7 @@
+@@ -24099,7 +22996,7 @@
  	ac_cv_func_bind_textdomain_codeset=no
  fi
  
@@ -4377,7 +4370,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_bind_textdomain_codeset" >&5
-@@ -24120,7 +23018,7 @@
+@@ -24120,7 +23017,7 @@
  	    esac
  fi
  
@@ -4386,7 +4379,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
            LIBS="$glib_save_LIBS"
  	  INSTOBJEXT=.mo
-@@ -24428,27 +23326,10 @@
+@@ -24428,27 +23325,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4418,7 +4411,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    { echo "$as_me:$LINENO: result: none needed" >&5
  echo "${ECHO_T}none needed" >&6; }
  else
-@@ -24485,27 +23366,10 @@
+@@ -24485,27 +23365,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4450,7 +4443,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    { echo "$as_me:$LINENO: result: -posix" >&5
  echo "${ECHO_T}-posix" >&6; }
  else
-@@ -24579,7 +23443,7 @@
+@@ -24579,7 +23442,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -4459,7 +4452,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -24622,7 +23486,7 @@
+@@ -24622,7 +23485,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -4468,7 +4461,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_ac_pt_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -24891,27 +23755,11 @@
+@@ -24891,27 +23754,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4501,7 +4494,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
     echo "*** The test program compiled, but did not run. This usually means"
            echo "*** that the run-time linker is not finding GLIB or finding the wrong"
            echo "*** version of GLIB. If it is not finding GLIB, you'll need to set your"
-@@ -24929,7 +23777,7 @@
+@@ -24929,7 +23776,7 @@
            echo "*** exact error that occured. This usually means GLIB is incorrectly installed."
  fi
  
@@ -4510,7 +4503,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
            CFLAGS="$ac_save_CFLAGS"
            LIBS="$ac_save_LIBS"
-@@ -25033,27 +23881,11 @@
+@@ -25033,27 +23880,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4543,7 +4536,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -25062,7 +23894,7 @@
+@@ -25062,7 +23893,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -4552,7 +4545,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -25117,27 +23949,10 @@
+@@ -25117,27 +23948,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4584,7 +4577,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -25173,17 +23988,10 @@
+@@ -25173,17 +23987,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4606,7 +4599,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -25289,27 +24097,10 @@
+@@ -25289,27 +24096,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4638,7 +4631,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -25345,17 +24136,10 @@
+@@ -25345,17 +24135,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4660,7 +4653,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -25461,27 +24245,10 @@
+@@ -25461,27 +24244,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4692,7 +4685,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -25517,17 +24284,10 @@
+@@ -25517,17 +24283,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4714,7 +4707,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -25641,27 +24401,10 @@
+@@ -25641,27 +24400,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4746,7 +4739,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    { echo "$as_me:$LINENO: result: yes" >&5
  echo "${ECHO_T}yes" >&6; }
      { echo "$as_me:$LINENO: checking for IE55 uuid.lib" >&5
-@@ -25740,27 +24483,10 @@
+@@ -25740,27 +24482,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4778,7 +4771,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    { echo "$as_me:$LINENO: result: yes" >&5
  echo "${ECHO_T}yes" >&6; }
      { echo "$as_me:$LINENO: checking for wntab32x.lib" >&5
-@@ -25847,27 +24573,10 @@
+@@ -25847,27 +24572,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4810,7 +4803,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_header_stdc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -26022,10 +24731,10 @@
+@@ -26022,10 +24730,10 @@
  #ifndef __cplusplus
    /* Ultrix mips cc rejects this.  */
    typedef int charset[2];
@@ -4824,7 +4817,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    /* NEC SVR4.0.2 mips cc rejects this.  */
    struct point {int x, y;};
    static struct point const zero = {0,0};
-@@ -26034,11 +24743,11 @@
+@@ -26034,11 +24742,11 @@
       an arm of an if-expression whose if-part is not a constant
       expression */
    const char *g = "string";
@@ -4840,7 +4833,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    { /* SCO 3.2v4 cc rejects this.  */
      char *t;
      char const *s = 0 ? (char *) 0 : (char const *) 0;
-@@ -26065,7 +24774,7 @@
+@@ -26065,7 +24773,7 @@
      const int foo = 10;
      if (!foo) return 0;
    }
@@ -4849,7 +4842,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  #endif
  
    ;
-@@ -26085,27 +24794,10 @@
+@@ -26085,27 +24793,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4881,7 +4874,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_c_const=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -26163,27 +24855,10 @@
+@@ -26163,27 +24854,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4913,7 +4906,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_type_signal=int
  else
    echo "$as_me: failed program was:" >&5
-@@ -26242,27 +24917,10 @@
+@@ -26242,27 +24916,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4945,7 +4938,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -26298,17 +24956,10 @@
+@@ -26298,17 +24955,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -4967,7 +4960,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -26439,27 +25090,11 @@
+@@ -26439,27 +25089,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5000,7 +4993,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -26468,7 +25103,7 @@
+@@ -26468,7 +25102,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -5009,7 +5002,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -26525,21 +25160,21 @@
+@@ -26525,21 +25159,21 @@
  #include <fcntl.h>
  #include <sys/mman.h>
  
@@ -5035,7 +5028,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  #   include <sys/param.h>
  #   ifdef EXEC_PAGESIZE
  #    define getpagesize() EXEC_PAGESIZE
-@@ -26736,27 +25371,11 @@
+@@ -26736,27 +25370,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5068,7 +5061,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -26765,7 +25384,7 @@
+@@ -26765,7 +25383,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -5077,7 +5070,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -26846,27 +25465,11 @@
+@@ -26846,27 +25464,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5110,7 +5103,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -26875,7 +25478,7 @@
+@@ -26875,7 +25477,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -5119,7 +5112,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -26959,27 +25562,10 @@
+@@ -26959,27 +25561,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5151,7 +5144,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gtk_ok=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27048,17 +25634,10 @@
+@@ -27048,17 +25633,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5173,7 +5166,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gdk_wchar_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27101,17 +25680,10 @@
+@@ -27101,17 +25679,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5195,7 +5188,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gdk_wctype_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27196,27 +25768,11 @@
+@@ -27196,27 +25767,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5228,7 +5221,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_iswalnum=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27225,7 +25781,7 @@
+@@ -27225,7 +25780,7 @@
  	ac_cv_func_iswalnum=no
  fi
  
@@ -5237,7 +5230,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_iswalnum" >&5
-@@ -27275,27 +25831,11 @@
+@@ -27275,27 +25830,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5270,7 +5263,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_w_iswalnum=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27304,7 +25844,7 @@
+@@ -27304,7 +25843,7 @@
  	ac_cv_lib_w_iswalnum=no
  fi
  
@@ -5279,7 +5272,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -27363,27 +25903,11 @@
+@@ -27363,27 +25902,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5312,7 +5305,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gdk_working_wctype=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27392,7 +25916,7 @@
+@@ -27392,7 +25915,7 @@
  	gdk_working_wctype=no
  fi
  
@@ -5321,7 +5314,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS="$oLIBS"
  
-@@ -27431,17 +25955,10 @@
+@@ -27431,17 +25954,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5343,7 +5336,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    gtk_uxtheme_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27502,27 +26019,10 @@
+@@ -27502,27 +26018,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5375,7 +5368,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27558,17 +26058,10 @@
+@@ -27558,17 +26057,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5397,7 +5390,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27699,27 +26192,11 @@
+@@ -27699,27 +26191,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5430,7 +5423,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -27728,7 +26205,7 @@
+@@ -27728,7 +26204,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -5439,7 +5432,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -27875,27 +26352,11 @@
+@@ -27875,27 +26351,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5472,7 +5465,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_tiff_TIFFReadScanline=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -27904,7 +26365,7 @@
+@@ -27904,7 +26364,7 @@
  	ac_cv_lib_tiff_TIFFReadScanline=no
  fi
  
@@ -5481,7 +5474,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -27945,27 +26406,10 @@
+@@ -27945,27 +26405,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5513,7 +5506,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28001,17 +26445,10 @@
+@@ -28001,17 +26444,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5535,7 +5528,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28116,27 +26553,11 @@
+@@ -28116,27 +26552,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5568,7 +5561,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_tiff_TIFFWriteScanline=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28145,7 +26566,7 @@
+@@ -28145,7 +26565,7 @@
  	ac_cv_lib_tiff_TIFFWriteScanline=no
  fi
  
@@ -5577,7 +5570,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -28186,27 +26607,10 @@
+@@ -28186,27 +26606,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5609,7 +5602,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28242,17 +26646,10 @@
+@@ -28242,17 +26645,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5631,7 +5624,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28357,27 +26754,11 @@
+@@ -28357,27 +26753,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5664,7 +5657,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_tiff34_TIFFFlushData=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28386,7 +26767,7 @@
+@@ -28386,7 +26766,7 @@
  	ac_cv_lib_tiff34_TIFFFlushData=no
  fi
  
@@ -5673,7 +5666,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -28427,27 +26808,10 @@
+@@ -28427,27 +26807,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5705,7 +5698,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28483,17 +26847,10 @@
+@@ -28483,17 +26846,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5727,7 +5720,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28621,27 +26978,11 @@
+@@ -28621,27 +26977,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5760,7 +5753,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_jpeg_jpeg_destroy_decompress=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28650,7 +26991,7 @@
+@@ -28650,7 +26990,7 @@
  	ac_cv_lib_jpeg_jpeg_destroy_decompress=no
  fi
  
@@ -5769,7 +5762,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -28691,17 +27032,10 @@
+@@ -28691,17 +27031,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5791,7 +5784,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    jpeg_ok=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28757,27 +27091,11 @@
+@@ -28757,27 +27090,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5824,7 +5817,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_jpeg_jpeg_simple_progression=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28786,7 +27104,7 @@
+@@ -28786,7 +27103,7 @@
  	ac_cv_lib_jpeg_jpeg_simple_progression=no
  fi
  
@@ -5833,7 +5826,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -28875,27 +27193,11 @@
+@@ -28875,27 +27192,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5866,7 +5859,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_png_png_read_info=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -28904,7 +27206,7 @@
+@@ -28904,7 +27205,7 @@
  	ac_cv_lib_png_png_read_info=no
  fi
  
@@ -5875,7 +5868,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -28945,27 +27247,10 @@
+@@ -28945,27 +27246,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5907,7 +5900,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -29001,17 +27286,10 @@
+@@ -29001,17 +27285,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5929,7 +5922,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -29108,27 +27386,10 @@
+@@ -29108,27 +27385,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5961,7 +5954,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    png_ok=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -29279,27 +27540,10 @@
+@@ -29279,27 +27539,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -5993,7 +5986,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_header_sys_wait_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -29356,27 +27600,10 @@
+@@ -29356,27 +27599,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6025,7 +6018,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_type_signal=int
  else
    echo "$as_me: failed program was:" >&5
-@@ -29539,7 +27766,7 @@
+@@ -29539,7 +27765,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -6034,7 +6027,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_GDK_PIXBUF_CSOURCE="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -29580,7 +27807,7 @@
+@@ -29580,7 +27806,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -6043,7 +6036,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_GTK_UPDATE_ICON_CACHE="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -29810,17 +28037,10 @@
+@@ -29810,17 +28036,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6065,7 +6058,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    # We can compile using X headers with no special include directory.
  ac_x_includes=
  else
-@@ -29843,7 +28063,7 @@
+@@ -29843,7 +28062,7 @@
    # See if we find them without any special options.
    # Don't add to $LIBS permanently.
    ac_save_LIBS=$LIBS
@@ -6074,7 +6067,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    cat >conftest.$ac_ext <<_ACEOF
  /* confdefs.h.  */
  _ACEOF
-@@ -29872,27 +28092,11 @@
+@@ -29872,27 +28091,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6107,7 +6100,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    LIBS=$ac_save_LIBS
  # We can link X programs with no special library path.
  ac_x_libraries=
-@@ -29905,7 +28109,7 @@
+@@ -29905,7 +28108,7 @@
  do
    # Don't even attempt the hair of trying to link an X program!
    for ac_extension in a so sl; do
@@ -6116,7 +6109,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        ac_x_libraries=$ac_dir
        break 2
      fi
-@@ -29913,7 +28117,7 @@
+@@ -29913,7 +28116,7 @@
  done
  fi
  
@@ -6125,7 +6118,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi # $ac_x_libraries = no
  
-@@ -29968,12 +28172,12 @@
+@@ -29968,12 +28171,12 @@
      X_LIBS="$X_LIBS -L$x_libraries"
      # For Solaris; some versions of Sun CC require a space after -R and
      # others require no space.  Words are not sufficient . . . .
@@ -6143,7 +6136,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  /* confdefs.h.  */
  _ACEOF
  cat confdefs.h >>conftest.$ac_ext
-@@ -30001,44 +28205,20 @@
+@@ -30001,44 +28204,20 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6197,7 +6190,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  /* confdefs.h.  */
  _ACEOF
  cat confdefs.h >>conftest.$ac_ext
-@@ -30066,48 +28246,30 @@
+@@ -30066,48 +28245,30 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6263,7 +6256,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    fi
  
    # Check for system-dependent libraries X programs must link with.
-@@ -30156,27 +28318,11 @@
+@@ -30156,27 +28317,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6296,7 +6289,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    :
  else
    echo "$as_me: failed program was:" >&5
-@@ -30224,27 +28370,11 @@
+@@ -30224,27 +28369,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6329,7 +6322,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_dnet_dnet_ntoa=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30253,7 +28383,7 @@
+@@ -30253,7 +28382,7 @@
  	ac_cv_lib_dnet_dnet_ntoa=no
  fi
  
@@ -6338,7 +6331,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -30306,27 +28436,11 @@
+@@ -30306,27 +28435,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6371,7 +6364,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_dnet_stub_dnet_ntoa=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30335,7 +28449,7 @@
+@@ -30335,7 +28448,7 @@
  	ac_cv_lib_dnet_stub_dnet_ntoa=no
  fi
  
@@ -6380,7 +6373,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -30348,7 +28462,7 @@
+@@ -30348,7 +28461,7 @@
      fi
  fi
  
@@ -6389,7 +6382,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
      LIBS="$ac_xsave_LIBS"
  
-@@ -30423,27 +28537,11 @@
+@@ -30423,27 +28536,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6422,7 +6415,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_gethostbyname=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30452,7 +28550,7 @@
+@@ -30452,7 +28549,7 @@
  	ac_cv_func_gethostbyname=no
  fi
  
@@ -6431,7 +6424,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_gethostbyname" >&5
-@@ -30501,27 +28599,11 @@
+@@ -30501,27 +28598,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6464,7 +6457,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_nsl_gethostbyname=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30530,7 +28612,7 @@
+@@ -30530,7 +28611,7 @@
  	ac_cv_lib_nsl_gethostbyname=no
  fi
  
@@ -6473,7 +6466,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -30583,27 +28665,11 @@
+@@ -30583,27 +28664,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6506,7 +6499,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_bsd_gethostbyname=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30612,7 +28678,7 @@
+@@ -30612,7 +28677,7 @@
  	ac_cv_lib_bsd_gethostbyname=no
  fi
  
@@ -6515,7 +6508,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -30695,27 +28761,11 @@
+@@ -30695,27 +28760,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6548,7 +6541,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_connect=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30724,7 +28774,7 @@
+@@ -30724,7 +28773,7 @@
  	ac_cv_func_connect=no
  fi
  
@@ -6557,7 +6550,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_connect" >&5
-@@ -30773,27 +28823,11 @@
+@@ -30773,27 +28822,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6590,7 +6583,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_socket_connect=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30802,7 +28836,7 @@
+@@ -30802,7 +28835,7 @@
  	ac_cv_lib_socket_connect=no
  fi
  
@@ -6599,7 +6592,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -30878,27 +28912,11 @@
+@@ -30878,27 +28911,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6632,7 +6625,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_remove=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30907,7 +28925,7 @@
+@@ -30907,7 +28924,7 @@
  	ac_cv_func_remove=no
  fi
  
@@ -6641,7 +6634,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_remove" >&5
-@@ -30956,27 +28974,11 @@
+@@ -30956,27 +28973,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6674,7 +6667,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_posix_remove=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -30985,7 +28987,7 @@
+@@ -30985,7 +28986,7 @@
  	ac_cv_lib_posix_remove=no
  fi
  
@@ -6683,7 +6676,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -31061,27 +29063,11 @@
+@@ -31061,27 +29062,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6716,7 +6709,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_shmat=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -31090,7 +29076,7 @@
+@@ -31090,7 +29075,7 @@
  	ac_cv_func_shmat=no
  fi
  
@@ -6725,7 +6718,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_shmat" >&5
-@@ -31122,44 +29108,28 @@
+@@ -31122,44 +29107,28 @@
  main ()
  {
  return shmat ();
@@ -6786,7 +6779,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_ipc_shmat=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -31168,7 +29138,7 @@
+@@ -31168,7 +29137,7 @@
  	ac_cv_lib_ipc_shmat=no
  fi
  
@@ -6795,7 +6788,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -31232,27 +29202,11 @@
+@@ -31232,27 +29201,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6828,7 +6821,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_ICE_IceConnectionNumber=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -31261,7 +29215,7 @@
+@@ -31261,7 +29214,7 @@
  	ac_cv_lib_ICE_IceConnectionNumber=no
  fi
  
@@ -6837,7 +6830,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -31364,27 +29318,11 @@
+@@ -31364,27 +29317,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6870,7 +6863,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XOpenDisplay=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -31393,7 +29331,7 @@
+@@ -31393,7 +29330,7 @@
  	ac_cv_func_XOpenDisplay=no
  fi
  
@@ -6879,7 +6872,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XOpenDisplay" >&5
-@@ -31469,27 +29407,11 @@
+@@ -31469,27 +29406,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6912,7 +6905,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XextFindDisplay=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -31498,7 +29420,7 @@
+@@ -31498,7 +29419,7 @@
  	ac_cv_func_XextFindDisplay=no
  fi
  
@@ -6921,7 +6914,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XextFindDisplay" >&5
-@@ -31574,27 +29496,11 @@
+@@ -31574,27 +29495,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6954,7 +6947,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XRenderQueryExtension=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -31603,7 +29509,7 @@
+@@ -31603,7 +29508,7 @@
  	ac_cv_func_XRenderQueryExtension=no
  fi
  
@@ -6963,7 +6956,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XRenderQueryExtension" >&5
-@@ -31649,27 +29555,10 @@
+@@ -31649,27 +29554,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -6995,7 +6988,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    { echo "$as_me:$LINENO: result: no" >&5
  echo "${ECHO_T}no" >&6; }
  else
-@@ -31705,27 +29594,10 @@
+@@ -31705,27 +29593,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7027,7 +7020,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    { echo "$as_me:$LINENO: result: yes" >&5
  echo "${ECHO_T}yes" >&6; }
  
-@@ -31819,27 +29691,11 @@
+@@ -31819,27 +29690,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7060,7 +7053,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    eval "$as_ac_var=yes"
  else
    echo "$as_me: failed program was:" >&5
-@@ -31848,7 +29704,7 @@
+@@ -31848,7 +29703,7 @@
  	eval "$as_ac_var=no"
  fi
  
@@ -7069,7 +7062,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  ac_res=`eval echo '${'$as_ac_var'}'`
-@@ -31932,27 +29788,11 @@
+@@ -31932,27 +29787,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7102,7 +7095,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XAddConnectionWatch=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -31961,7 +29801,7 @@
+@@ -31961,7 +29800,7 @@
  	ac_cv_func_XAddConnectionWatch=no
  fi
  
@@ -7111,7 +7104,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XAddConnectionWatch" >&5
-@@ -32062,27 +29902,11 @@
+@@ -32062,27 +29901,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7144,7 +7137,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XkbQueryExtension=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32091,7 +29915,7 @@
+@@ -32091,7 +29914,7 @@
  	ac_cv_func_XkbQueryExtension=no
  fi
  
@@ -7153,7 +7146,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XkbQueryExtension" >&5
-@@ -32173,27 +29997,11 @@
+@@ -32173,27 +29996,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7186,7 +7179,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XShapeCombineMask=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32202,7 +30010,7 @@
+@@ -32202,7 +30009,7 @@
  	ac_cv_func_XShapeCombineMask=no
  fi
  
@@ -7195,7 +7188,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XShapeCombineMask" >&5
-@@ -32282,27 +30090,11 @@
+@@ -32282,27 +30089,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7228,7 +7221,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XSyncQueryExtension=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32311,7 +30103,7 @@
+@@ -32311,7 +30102,7 @@
  	ac_cv_func_XSyncQueryExtension=no
  fi
  
@@ -7237,7 +7230,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XSyncQueryExtension" >&5
-@@ -32345,27 +30137,10 @@
+@@ -32345,27 +30136,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7269,7 +7262,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_header_X11_extensions_sync_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32461,27 +30236,11 @@
+@@ -32461,27 +30235,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7302,7 +7295,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XShmAttach=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32490,7 +30249,7 @@
+@@ -32490,7 +30248,7 @@
  	ac_cv_func_XShmAttach=no
  fi
  
@@ -7311,7 +7304,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XShmAttach" >&5
-@@ -32541,27 +30300,11 @@
+@@ -32541,27 +30299,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7344,7 +7337,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_XextSam_XShmAttach=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32570,7 +30313,7 @@
+@@ -32570,7 +30312,7 @@
  	ac_cv_lib_XextSam_XShmAttach=no
  fi
  
@@ -7353,7 +7346,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -32624,27 +30367,10 @@
+@@ -32624,27 +30366,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7385,7 +7378,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32680,17 +30406,10 @@
+@@ -32680,17 +30405,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7407,7 +7400,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32788,27 +30507,10 @@
+@@ -32788,27 +30506,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7439,7 +7432,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32844,17 +30546,10 @@
+@@ -32844,17 +30545,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7461,7 +7454,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -32964,27 +30659,10 @@
+@@ -32964,27 +30658,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7493,7 +7486,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    have_xshm=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -33081,27 +30759,11 @@
+@@ -33081,27 +30758,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7526,7 +7519,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_func_XineramaGetInfo=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -33110,7 +30772,7 @@
+@@ -33110,7 +30771,7 @@
  	ac_cv_func_XineramaGetInfo=no
  fi
  
@@ -7535,7 +7528,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  fi
  { echo "$as_me:$LINENO: result: $ac_cv_func_XineramaGetInfo" >&5
-@@ -33144,27 +30806,10 @@
+@@ -33144,27 +30805,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7567,7 +7560,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_header_X11_extensions_xinerama_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -33255,27 +30900,11 @@
+@@ -33255,27 +30899,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7600,7 +7593,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_Xinerama_XineramaQueryExtension=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -33284,7 +30913,7 @@
+@@ -33284,7 +30912,7 @@
  	ac_cv_lib_Xinerama_XineramaQueryExtension=no
  fi
  
@@ -7609,7 +7602,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -33319,27 +30948,10 @@
+@@ -33319,27 +30947,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7641,7 +7634,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_header_X11_extensions_Xinerama_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -33470,27 +31082,11 @@
+@@ -33470,27 +31081,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7674,7 +7667,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_lib_Xrandr_XRRUpdateConfiguration=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -33499,7 +31095,7 @@
+@@ -33499,7 +31094,7 @@
  	ac_cv_lib_Xrandr_XRRUpdateConfiguration=no
  fi
  
@@ -7683,7 +7676,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
  LIBS=$ac_check_lib_save_LIBS
  fi
-@@ -33534,27 +31130,10 @@
+@@ -33534,27 +31129,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7715,7 +7708,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_cv_header_X11_extensions_Xrandr_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -33927,27 +31506,11 @@
+@@ -33927,27 +31505,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7748,7 +7741,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    :
  else
    echo "$as_me: failed program was:" >&5
-@@ -33962,7 +31525,7 @@
+@@ -33962,7 +31524,7 @@
     { (exit 1); exit 1; }; }
  fi
  
@@ -7757,7 +7750,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
          LIBS="$gtk_save_LIBS"
  fi
-@@ -34058,27 +31621,11 @@
+@@ -34058,27 +31620,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7790,7 +7783,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    :
  else
    echo "$as_me: failed program was:" >&5
-@@ -34093,7 +31640,7 @@
+@@ -34093,7 +31639,7 @@
     { (exit 1); exit 1; }; }
  fi
  
@@ -7799,7 +7792,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
        conftest$ac_exeext conftest.$ac_ext
          LIBS="$gtk_save_LIBS"
  fi
-@@ -34140,7 +31687,7 @@
+@@ -34140,7 +31686,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -7808,7 +7801,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_CUPS_CONFIG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -34232,27 +31779,10 @@
+@@ -34232,27 +31778,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7840,7 +7833,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -34288,17 +31818,10 @@
+@@ -34288,17 +31817,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7862,7 +7855,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -34401,27 +31924,10 @@
+@@ -34401,27 +31923,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7894,7 +7887,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -34457,17 +31963,10 @@
+@@ -34457,17 +31962,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7916,7 +7909,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -34607,7 +32106,7 @@
+@@ -34607,7 +32105,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -7925,7 +7918,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -34692,7 +32191,7 @@
+@@ -34692,7 +32190,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -7934,7 +7927,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_prog_DB2HTML="true"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -34752,7 +32251,7 @@
+@@ -34752,7 +32250,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -7943,7 +7936,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_XSLTPROC="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -34821,7 +32320,7 @@
+@@ -34821,7 +32319,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -7952,7 +7945,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      ac_cv_path_XMLCATALOG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -35022,6 +32521,13 @@
+@@ -35022,6 +32520,13 @@
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
@@ -7966,7 +7959,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -35312,7 +32818,8 @@
+@@ -35312,7 +32817,8 @@
  ## M4sh Initialization.  ##
  ## --------------------- ##
  
@@ -7976,7 +7969,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
    emulate sh
    NULLCMD=:
-@@ -35321,10 +32828,13 @@
+@@ -35321,10 +32827,13 @@
    alias -g '${1+"$@"}'='"$@"'
    setopt NO_GLOB_SUBST
  else
@@ -7993,7 +7986,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  
  
  # PATH needs CR
-@@ -35548,19 +33058,28 @@
+@@ -35548,19 +33057,28 @@
    as_mkdir_p=false
  fi
  
@@ -8033,7 +8026,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  
  # Sed expression to map a string onto a valid CPP name.
  as_tr_cpp="eval sed 'y%*$as_cr_letters%P$as_cr_LETTERS%;s%[^_$as_cr_alnum]%_%g'"
-@@ -35576,7 +33095,7 @@
+@@ -35576,7 +33094,7 @@
  # values after options handling.
  ac_log="
  This file was extended by gtk+ $as_me 2.10.11, which was
@@ -8042,7 +8035,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  
    CONFIG_FILES    = $CONFIG_FILES
    CONFIG_HEADERS  = $CONFIG_HEADERS
-@@ -35605,7 +33124,7 @@
+@@ -35605,7 +33123,7 @@
  Usage: $0 [OPTIONS] [FILE]...
  
    -h, --help       print this help, then exit
@@ -8051,7 +8044,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    -q, --quiet      do not print progress messages
    -d, --debug      don't remove temporary files
        --recheck    update $as_me by reconfiguring in the same conditions
-@@ -35629,7 +33148,7 @@
+@@ -35629,7 +33147,7 @@
  cat >>$CONFIG_STATUS <<_ACEOF
  ac_cs_version="\\
  gtk+ config.status 2.10.11
@@ -8060,7 +8053,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
    with options \\"`echo "$ac_configure_args" | sed 's/^ //; s/[\\""\`\$]/\\\\&/g'`\\"
  
  Copyright (C) 2006 Free Software Foundation, Inc.
-@@ -35999,9 +33518,9 @@
+@@ -35999,9 +33517,9 @@
  CCDEPMODE!$CCDEPMODE$ac_delim
  am__fastdepCC_TRUE!$am__fastdepCC_TRUE$ac_delim
  am__fastdepCC_FALSE!$am__fastdepCC_FALSE$ac_delim
@@ -8072,7 +8065,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -36043,6 +33562,8 @@
+@@ -36043,6 +33561,8 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -8081,7 +8074,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  ECHO!$ECHO$ac_delim
  AR!$AR$ac_delim
  RANLIB!$RANLIB$ac_delim
-@@ -36093,6 +33614,7 @@
+@@ -36093,6 +33613,7 @@
  REBUILD!$REBUILD$ac_delim
  USE_NLS!$USE_NLS$ac_delim
  MSGFMT!$MSGFMT$ac_delim
@@ -8089,7 +8082,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  GMSGFMT!$GMSGFMT$ac_delim
  XGETTEXT!$XGETTEXT$ac_delim
  CATALOGS!$CATALOGS$ac_delim
-@@ -36137,9 +33659,6 @@
+@@ -36137,9 +33658,6 @@
  CROSS_COMPILING_FALSE!$CROSS_COMPILING_FALSE$ac_delim
  GDK_PIXBUF_CSOURCE!$GDK_PIXBUF_CSOURCE$ac_delim
  GTK_UPDATE_ICON_CACHE!$GTK_UPDATE_ICON_CACHE$ac_delim
@@ -8099,7 +8092,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -36181,6 +33700,9 @@
+@@ -36181,6 +33699,9 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -8109,7 +8102,7 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
  GDK_PIXBUF_EXTRA_CFLAGS!$GDK_PIXBUF_EXTRA_CFLAGS$ac_delim
  GDK_PIXBUF_DEP_LIBS!$GDK_PIXBUF_DEP_LIBS$ac_delim
  GDK_PIXBUF_DEP_CFLAGS!$GDK_PIXBUF_DEP_CFLAGS$ac_delim
-@@ -36247,7 +33769,7 @@
+@@ -36247,7 +33768,7 @@
  LTLIBOBJS!$LTLIBOBJS$ac_delim
  _ACEOF
  
@@ -8118,9 +8111,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/configure gtk+2.0-2
      break
    elif $ac_last_try; then
      { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/contrib/Makefile.in gtk+2.0-2.10.11/contrib/Makefile.in
+Index: gtk+2.0-2.10.11/contrib/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/contrib/Makefile.in	2007-03-14 05:12:36.000000000 +0100
-+++ gtk+2.0-2.10.11/contrib/Makefile.in	2007-03-14 14:02:45.000000000 +0100
++++ gtk+2.0-2.10.11/contrib/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8138,9 +8132,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/contrib/Makefile.in
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.10.11/contrib/gdk-pixbuf-xlib/Makefile.in
+Index: gtk+2.0-2.10.11/contrib/gdk-pixbuf-xlib/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/contrib/gdk-pixbuf-xlib/Makefile.in	2007-03-14 14:02:45.000000000 +0100
++++ gtk+2.0-2.10.11/contrib/gdk-pixbuf-xlib/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8158,9 +8153,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/contrib/gdk-pixbuf-
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/demos/Makefile.in gtk+2.0-2.10.11/demos/Makefile.in
+Index: gtk+2.0-2.10.11/demos/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/demos/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/demos/Makefile.in	2007-03-14 14:02:45.000000000 +0100
++++ gtk+2.0-2.10.11/demos/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8178,9 +8174,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/demos/Makefile.in g
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/demos/gtk-demo/Makefile.in gtk+2.0-2.10.11/demos/gtk-demo/Makefile.in
+Index: gtk+2.0-2.10.11/demos/gtk-demo/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/demos/gtk-demo/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/demos/gtk-demo/Makefile.in	2007-03-14 14:02:46.000000000 +0100
++++ gtk+2.0-2.10.11/demos/gtk-demo/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8198,9 +8195,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/demos/gtk-demo/Make
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/Makefile.in gtk+2.0-2.10.11/docs/Makefile.in
+Index: gtk+2.0-2.10.11/docs/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/docs/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/docs/Makefile.in	2007-03-14 14:02:46.000000000 +0100
++++ gtk+2.0-2.10.11/docs/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8218,9 +8216,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/Makefile.in gt
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/faq/Makefile.in gtk+2.0-2.10.11/docs/faq/Makefile.in
+Index: gtk+2.0-2.10.11/docs/faq/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/docs/faq/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/docs/faq/Makefile.in	2007-03-14 14:02:46.000000000 +0100
++++ gtk+2.0-2.10.11/docs/faq/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8238,9 +8237,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/faq/Makefile.i
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/reference/Makefile.in gtk+2.0-2.10.11/docs/reference/Makefile.in
+Index: gtk+2.0-2.10.11/docs/reference/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/docs/reference/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/docs/reference/Makefile.in	2007-03-14 14:02:46.000000000 +0100
++++ gtk+2.0-2.10.11/docs/reference/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8258,9 +8258,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/reference/Make
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/reference/gdk/Makefile.in gtk+2.0-2.10.11/docs/reference/gdk/Makefile.in
+Index: gtk+2.0-2.10.11/docs/reference/gdk/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/docs/reference/gdk/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/docs/reference/gdk/Makefile.in	2007-03-14 14:02:46.000000000 +0100
++++ gtk+2.0-2.10.11/docs/reference/gdk/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8278,9 +8279,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/reference/gdk/
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.10.11/docs/reference/gdk-pixbuf/Makefile.in
+Index: gtk+2.0-2.10.11/docs/reference/gdk-pixbuf/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/docs/reference/gdk-pixbuf/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/docs/reference/gdk-pixbuf/Makefile.in	2007-03-14 14:02:46.000000000 +0100
++++ gtk+2.0-2.10.11/docs/reference/gdk-pixbuf/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8298,9 +8300,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/reference/gdk-
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/reference/gtk/Makefile.in gtk+2.0-2.10.11/docs/reference/gtk/Makefile.in
+Index: gtk+2.0-2.10.11/docs/reference/gtk/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/docs/reference/gtk/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/docs/reference/gtk/Makefile.in	2007-03-14 14:02:46.000000000 +0100
++++ gtk+2.0-2.10.11/docs/reference/gtk/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8318,9 +8321,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/reference/gtk/
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/tools/Makefile.in gtk+2.0-2.10.11/docs/tools/Makefile.in
+Index: gtk+2.0-2.10.11/docs/tools/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/docs/tools/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/docs/tools/Makefile.in	2007-03-14 14:02:47.000000000 +0100
++++ gtk+2.0-2.10.11/docs/tools/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8338,9 +8342,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/tools/Makefile
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/tutorial/Makefile.in gtk+2.0-2.10.11/docs/tutorial/Makefile.in
+Index: gtk+2.0-2.10.11/docs/tutorial/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/docs/tutorial/Makefile.in	2007-03-14 05:12:37.000000000 +0100
-+++ gtk+2.0-2.10.11/docs/tutorial/Makefile.in	2007-03-14 14:02:47.000000000 +0100
++++ gtk+2.0-2.10.11/docs/tutorial/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8358,9 +8363,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/docs/tutorial/Makef
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/Makefile.in gtk+2.0-2.10.11/gdk/Makefile.in
+Index: gtk+2.0-2.10.11/gdk/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk/Makefile.in	2007-03-14 05:12:38.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk/Makefile.in	2007-03-14 14:02:48.000000000 +0100
++++ gtk+2.0-2.10.11/gdk/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8378,9 +8384,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/Makefile.in gtk
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/directfb/Makefile.in gtk+2.0-2.10.11/gdk/directfb/Makefile.in
+Index: gtk+2.0-2.10.11/gdk/directfb/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk/directfb/Makefile.in	2007-03-14 05:12:38.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk/directfb/Makefile.in	2007-03-14 14:02:48.000000000 +0100
++++ gtk+2.0-2.10.11/gdk/directfb/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8412,9 +8419,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/directfb/Makefi
  	@GTK_DEBUG_FLAGS@		\
  	@GDK_DEP_CFLAGS@		
  
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/linux-fb/Makefile.in gtk+2.0-2.10.11/gdk/linux-fb/Makefile.in
+Index: gtk+2.0-2.10.11/gdk/linux-fb/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk/linux-fb/Makefile.in	2007-03-14 05:12:38.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk/linux-fb/Makefile.in	2007-03-14 14:02:48.000000000 +0100
++++ gtk+2.0-2.10.11/gdk/linux-fb/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8432,9 +8440,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/linux-fb/Makefi
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/quartz/Makefile.in gtk+2.0-2.10.11/gdk/quartz/Makefile.in
+Index: gtk+2.0-2.10.11/gdk/quartz/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk/quartz/Makefile.in	2007-03-14 05:12:38.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk/quartz/Makefile.in	2007-03-14 14:02:48.000000000 +0100
++++ gtk+2.0-2.10.11/gdk/quartz/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8452,9 +8461,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/quartz/Makefile
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/win32/Makefile.in gtk+2.0-2.10.11/gdk/win32/Makefile.in
+Index: gtk+2.0-2.10.11/gdk/win32/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk/win32/Makefile.in	2007-03-14 05:12:38.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk/win32/Makefile.in	2007-03-14 14:02:49.000000000 +0100
++++ gtk+2.0-2.10.11/gdk/win32/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8472,9 +8482,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/win32/Makefile.
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/win32/rc/Makefile.in gtk+2.0-2.10.11/gdk/win32/rc/Makefile.in
+Index: gtk+2.0-2.10.11/gdk/win32/rc/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk/win32/rc/Makefile.in	2007-03-14 05:12:38.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk/win32/rc/Makefile.in	2007-03-14 14:02:49.000000000 +0100
++++ gtk+2.0-2.10.11/gdk/win32/rc/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8492,9 +8503,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/win32/rc/Makefi
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/x11/Makefile.in gtk+2.0-2.10.11/gdk/x11/Makefile.in
+Index: gtk+2.0-2.10.11/gdk/x11/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk/x11/Makefile.in	2007-03-14 05:12:39.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk/x11/Makefile.in	2007-03-14 14:02:49.000000000 +0100
++++ gtk+2.0-2.10.11/gdk/x11/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8512,9 +8524,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk/x11/Makefile.in
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk-pixbuf/Makefile.in gtk+2.0-2.10.11/gdk-pixbuf/Makefile.in
+Index: gtk+2.0-2.10.11/gdk-pixbuf/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk-pixbuf/Makefile.in	2007-03-14 05:12:38.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk-pixbuf/Makefile.in	2007-03-14 14:02:47.000000000 +0100
++++ gtk+2.0-2.10.11/gdk-pixbuf/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8532,9 +8545,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk-pixbuf/Makefile
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.10.11/gdk-pixbuf/pixops/Makefile.in
+Index: gtk+2.0-2.10.11/gdk-pixbuf/pixops/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gdk-pixbuf/pixops/Makefile.in	2007-03-14 05:12:38.000000000 +0100
-+++ gtk+2.0-2.10.11/gdk-pixbuf/pixops/Makefile.in	2007-03-14 14:02:48.000000000 +0100
++++ gtk+2.0-2.10.11/gdk-pixbuf/pixops/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8552,9 +8566,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gdk-pixbuf/pixops/M
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gtk/Makefile.in gtk+2.0-2.10.11/gtk/Makefile.in
+Index: gtk+2.0-2.10.11/gtk/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gtk/Makefile.in	2007-03-14 05:12:39.000000000 +0100
-+++ gtk+2.0-2.10.11/gtk/Makefile.in	2007-03-14 14:02:50.000000000 +0100
++++ gtk+2.0-2.10.11/gtk/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -110,6 +110,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8572,9 +8587,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gtk/Makefile.in gtk
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gtk/theme-bits/Makefile.in gtk+2.0-2.10.11/gtk/theme-bits/Makefile.in
+Index: gtk+2.0-2.10.11/gtk/theme-bits/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gtk/theme-bits/Makefile.in	2007-03-14 05:12:39.000000000 +0100
-+++ gtk+2.0-2.10.11/gtk/theme-bits/Makefile.in	2007-03-14 14:02:50.000000000 +0100
++++ gtk+2.0-2.10.11/gtk/theme-bits/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8592,9 +8608,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gtk/theme-bits/Make
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gtk/xdgmime/Makefile.in gtk+2.0-2.10.11/gtk/xdgmime/Makefile.in
+Index: gtk+2.0-2.10.11/gtk/xdgmime/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/gtk/xdgmime/Makefile.in	2007-03-14 05:12:39.000000000 +0100
-+++ gtk+2.0-2.10.11/gtk/xdgmime/Makefile.in	2007-03-14 14:02:50.000000000 +0100
++++ gtk+2.0-2.10.11/gtk/xdgmime/Makefile.in	2007-04-21 08:49:04.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8612,9 +8629,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/gtk/xdgmime/Makefil
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/ltmain.sh gtk+2.0-2.10.11/ltmain.sh
+Index: gtk+2.0-2.10.11/ltmain.sh
+===================================================================
 --- gtk+2.0-2.10.11.orig/ltmain.sh	2007-01-14 05:15:09.000000000 +0100
-+++ gtk+2.0-2.10.11/ltmain.sh	2006-03-11 19:49:04.000000000 +0100
++++ gtk+2.0-2.10.11/ltmain.sh	2007-04-21 08:49:05.000000000 +0200
 @@ -43,7 +43,7 @@
  
  PROGRAM=ltmain.sh
@@ -8648,9 +8666,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/ltmain.sh gtk+2.0-2
  	  esac
  	  ;;
  	no)
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/m4macros/Makefile.in gtk+2.0-2.10.11/m4macros/Makefile.in
+Index: gtk+2.0-2.10.11/m4macros/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/m4macros/Makefile.in	2007-03-14 05:12:39.000000000 +0100
-+++ gtk+2.0-2.10.11/m4macros/Makefile.in	2007-03-14 14:02:50.000000000 +0100
++++ gtk+2.0-2.10.11/m4macros/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8668,9 +8687,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/m4macros/Makefile.i
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/Makefile.in gtk+2.0-2.10.11/modules/Makefile.in
+Index: gtk+2.0-2.10.11/modules/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/Makefile.in	2007-03-14 05:12:39.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/Makefile.in	2007-03-14 14:02:50.000000000 +0100
++++ gtk+2.0-2.10.11/modules/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8688,9 +8708,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/Makefile.in
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/Makefile.in gtk+2.0-2.10.11/modules/engines/Makefile.in
+Index: gtk+2.0-2.10.11/modules/engines/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/engines/Makefile.in	2007-03-14 05:12:39.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/engines/Makefile.in	2007-03-14 14:02:51.000000000 +0100
++++ gtk+2.0-2.10.11/modules/engines/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8708,9 +8729,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/Mak
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/ms-windows/Makefile.in gtk+2.0-2.10.11/modules/engines/ms-windows/Makefile.in
+Index: gtk+2.0-2.10.11/modules/engines/ms-windows/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/engines/ms-windows/Makefile.in	2007-03-14 05:12:39.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/engines/ms-windows/Makefile.in	2007-03-14 14:02:51.000000000 +0100
++++ gtk+2.0-2.10.11/modules/engines/ms-windows/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8728,9 +8750,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/ms-
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.10.11/modules/engines/ms-windows/Theme/Makefile.in
+Index: gtk+2.0-2.10.11/modules/engines/ms-windows/Theme/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/engines/ms-windows/Theme/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/engines/ms-windows/Theme/Makefile.in	2007-03-14 14:02:51.000000000 +0100
++++ gtk+2.0-2.10.11/modules/engines/ms-windows/Theme/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8748,9 +8771,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/ms-
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.10.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+Index: gtk+2.0-2.10.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-03-14 14:02:51.000000000 +0100
++++ gtk+2.0-2.10.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8768,9 +8792,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/ms-
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/pixbuf/Makefile.in gtk+2.0-2.10.11/modules/engines/pixbuf/Makefile.in
+Index: gtk+2.0-2.10.11/modules/engines/pixbuf/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/engines/pixbuf/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/engines/pixbuf/Makefile.in	2007-03-14 14:02:51.000000000 +0100
++++ gtk+2.0-2.10.11/modules/engines/pixbuf/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8788,9 +8813,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/engines/pix
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/input/Makefile.in gtk+2.0-2.10.11/modules/input/Makefile.in
+Index: gtk+2.0-2.10.11/modules/input/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/input/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/input/Makefile.in	2007-03-14 14:02:52.000000000 +0100
++++ gtk+2.0-2.10.11/modules/input/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8840,9 +8866,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/input/Makef
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/printbackends/Makefile.in gtk+2.0-2.10.11/modules/printbackends/Makefile.in
+Index: gtk+2.0-2.10.11/modules/printbackends/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/printbackends/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/printbackends/Makefile.in	2007-03-14 14:02:52.000000000 +0100
++++ gtk+2.0-2.10.11/modules/printbackends/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8860,9 +8887,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/printbacken
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/printbackends/cups/Makefile.in gtk+2.0-2.10.11/modules/printbackends/cups/Makefile.in
+Index: gtk+2.0-2.10.11/modules/printbackends/cups/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/printbackends/cups/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/printbackends/cups/Makefile.in	2007-03-14 14:02:52.000000000 +0100
++++ gtk+2.0-2.10.11/modules/printbackends/cups/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8880,9 +8908,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/printbacken
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/printbackends/file/Makefile.in gtk+2.0-2.10.11/modules/printbackends/file/Makefile.in
+Index: gtk+2.0-2.10.11/modules/printbackends/file/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/printbackends/file/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/printbackends/file/Makefile.in	2007-03-14 14:02:52.000000000 +0100
++++ gtk+2.0-2.10.11/modules/printbackends/file/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8900,9 +8929,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/printbacken
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/printbackends/lpr/Makefile.in gtk+2.0-2.10.11/modules/printbackends/lpr/Makefile.in
+Index: gtk+2.0-2.10.11/modules/printbackends/lpr/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/modules/printbackends/lpr/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/modules/printbackends/lpr/Makefile.in	2007-03-14 14:02:52.000000000 +0100
++++ gtk+2.0-2.10.11/modules/printbackends/lpr/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8920,9 +8950,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/modules/printbacken
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/perf/Makefile.in gtk+2.0-2.10.11/perf/Makefile.in
+Index: gtk+2.0-2.10.11/perf/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/perf/Makefile.in	2007-03-14 05:12:40.000000000 +0100
-+++ gtk+2.0-2.10.11/perf/Makefile.in	2007-03-14 14:02:53.000000000 +0100
++++ gtk+2.0-2.10.11/perf/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8940,9 +8971,10 @@ diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/perf/Makefile.in gt
  MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
  MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
  NM = @NM@
-diff -urN -x config.guess -x config.sub gtk+2.0-2.10.11.orig/tests/Makefile.in gtk+2.0-2.10.11/tests/Makefile.in
+Index: gtk+2.0-2.10.11/tests/Makefile.in
+===================================================================
 --- gtk+2.0-2.10.11.orig/tests/Makefile.in	2007-03-14 05:12:41.000000000 +0100
-+++ gtk+2.0-2.10.11/tests/Makefile.in	2007-03-14 14:02:53.000000000 +0100
++++ gtk+2.0-2.10.11/tests/Makefile.in	2007-04-21 08:49:05.000000000 +0200
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@

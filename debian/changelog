@@ -11,8 +11,11 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
   * Add ${misc:Depends}.
   * Drop "libtool_is_fool" snippet patching hardcode_libdir_flag_spec and
     archive_cmds which is probably dangerous with newer libtools.
+  * Drop patch 000_gtk+-2.0.6-exportsymbols which made all libs export way too
+    many symbols and hence was dangerous; closes: #327652.
+    - Update patch 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Sat, 21 Apr 2007 08:31:13 +0200
+ -- Loic Minier <lool@dooz.org>  Sat, 21 Apr 2007 08:49:25 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 
