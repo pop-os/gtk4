@@ -6,8 +6,11 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
   * Post-transition bump of conflicts to gtk2-engines-wonderland << 1.0-4,
     imhangul (<< 0.9.13-5), gcin (<< 1.3.4-2), gtk-im-libthai (<< 0.1.4-3.
   * Let the udeb provide the Gtk+ module ABI (binver); closes: #419592.
+  * Add a -k flag to dh_gtkmodules, matching the change in dh_pangomodules.
+  * Use this new flag for the udeb and the shared library packages.
+  * Add ${misc:Depends}.
 
- -- Loic Minier <lool@dooz.org>  Sat, 21 Apr 2007 07:55:27 +0200
+ -- Loic Minier <lool@dooz.org>  Sat, 21 Apr 2007 08:28:14 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 

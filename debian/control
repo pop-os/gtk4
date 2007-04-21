@@ -40,6 +40,7 @@ Package: libgtk2.0-0
 Section: libs
 Architecture: any
 Depends: libgtk2.0-common (= ${source:Version}),
+         ${misc:Depends},
          ${shlibs:Depends}
 Provides: gtk2.0-binver-2.10.0
 Conflicts: libgtk2.0-0png3,
@@ -88,6 +89,7 @@ Conflicts: libgtk2.0-0png3,
            iiimgcf (<= 11.4.1870-7)
 Replaces: libgtk2.0-0png3
 Recommends: hicolor-icon-theme,
+            ${misc:Depends},
             libgtk2.0-bin
 Description: The GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
@@ -101,6 +103,7 @@ Package: libgtk-directfb-2.0-0
 Section: libs
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
+         ${misc:Depends},
          ${shlibs:Depends}
 Conflicts: libgtk+2.0-directfb0
 Description: The GTK+ graphical user interface library - DirectFB runtime
@@ -118,7 +121,8 @@ XC-Package-Type: udeb
 Section: debian-installer
 Priority: extra
 Architecture: any
-Depends: ${shlibs:Depends}
+Depends: ${shlibs:Depends},
+         ${misc:Depends}
 Provides: gtk2.0-binver-2.10.0
 Description: The GTK+ graphical user interface library - minimal runtime
  This is a udeb, or a microdeb, for the debian-installer.
@@ -169,6 +173,7 @@ Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
+         ${misc:Depends},
          libglib2.0-dev (>= 2.12.0),
          libpango1.0-dev (>= 1.10.0-2),
          libatk1.0-dev (>= 1.6.1-2),
@@ -198,6 +203,7 @@ Package: libgtk-directfb-2.0-dev
 Section: libdevel
 Architecture: any
 Depends: libgtk-directfb-2.0-0 (= ${binary:Version}),
+         ${misc:Depends},
          libgtk2.0-dev (= ${binary:Version}),
          libcairo-directfb2-dev,
          libcairo2-dev (>= 1.2.0)
@@ -216,7 +222,8 @@ Package: libgtk2.0-0-dbg
 Section: libdevel
 Priority: extra
 Architecture: any
-Depends: libgtk2.0-0 (= ${binary:Version})
+Depends: libgtk2.0-0 (= ${binary:Version}),
+         ${misc:Depends}
 Conflicts: libgtk2.0-dbg
 Replaces: libgtk2.0-dbg
 Description: The GTK+ libraries and debugging symbols
@@ -235,7 +242,8 @@ Description: The GTK+ libraries and debugging symbols
 Package: libgtk2.0-doc
 Section: doc
 Architecture: all
-Depends: lynx | www-browser
+Depends: lynx | www-browser,
+         ${misc:Depends}
 Replaces: libgtk1.3-doc
 Conflicts: libgtk1.3-doc
 Recommends: libglib2.0-doc,
@@ -255,6 +263,7 @@ Section: x11
 Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends},
+         ${misc:Depends},
          libgtk2.0-0 (= ${binary:Version})
 Replaces: libgtk1.3-dev
 Description: Examples files for the GTK+ 2.0

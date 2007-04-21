@@ -29,6 +29,14 @@ current package, it will generate a dependency on the earliest Gtk
 version that Gtk currently has compatibility for in ${misc:Depends}
 ("binary version").
 
+=head1 OPTIONS
+
+=over 4
+
+=item B<-k>
+
+Do not generate any dependencies in ${misc:Depends}.
+
 =cut
 
 init();
@@ -177,7 +185,9 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
 
     # since the versionned module directory exists, generate a dependency
     # on the Gtk binary version
-    addsubstvar($package, "misc:Depends", $gtk_binver_dep);
+    if (! $dh{K_FLAG}) {
+        addsubstvar($package, "misc:Depends", $gtk_binver_dep);
+    }
 
     # search for specific module types
     find_modules(\@loaders_modules, $tmp, $loaders_modules_path);

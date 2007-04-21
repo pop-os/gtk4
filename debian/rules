@@ -273,11 +273,13 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	GTK_QUERYLOADERS=$(installbasedir)/shared/usr/bin/gdk-pixbuf-query-loaders \
 	GTK_QUERYIMMODULES=$(installbasedir)/shared/usr/bin/gtk-query-immodules-2.0 \
 		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
+			-k \
 			-p$(SHARED_PKG)
 	# generate a GdkPixbuf loader config file for the udeb
 	LD_LIBRARY_PATH=debian/$(UDEB_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
 	GTK_QUERYLOADERS=$(installbasedir)/directfb/usr/bin/gdk-pixbuf-query-loaders \
 		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
+			-k \
 			-p$(UDEB_PKG)
 	dh_installexamples -a
 	dh_link -a
