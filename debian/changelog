@@ -5,7 +5,7 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
     1.4.4-7.
   * Post-transition bump of conflicts to gtk2-engines-wonderland << 1.0-4,
     imhangul (<< 0.9.13-5), gcin (<< 1.3.4-2), gtk-im-libthai (<< 0.1.4-3),
-    scim-gtk2-immodule (<< 1.4.4-8).
+    scim-gtk2-immodule (<< 1.4.4-8), uim-gtk2.0 (<< 1:1.4.1-3).
   * Let the udeb provide the Gtk+ module ABI (binver); closes: #419592.
   * Add a -k flag to dh_gtkmodules, matching the change in dh_pangomodules.
   * Use this new flag for the udeb and the shared library packages.
@@ -16,7 +16,7 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
     many symbols and hence was dangerous; closes: #327652.
     - Update patch 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Sat, 28 Apr 2007 08:59:52 +0200
+ -- Loic Minier <lool@dooz.org>  Sat, 28 Apr 2007 09:01:32 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 
