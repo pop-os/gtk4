@@ -8,7 +8,9 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
     scim-gtk2-immodule (<< 1.4.4-8), uim-gtk2.0 (<< 1:1.4.1-3),
     gtk2-engines-cleanice (<< 2.4.0-1.1), gtk2-engines-magicchicken
     (<< 1.1.1-7.1), gtk2-engines-qtpixmap (<< 0.28-1.2), libginspx0
-    (<< 20050529-1.1).
+    (<< 20050529-1.1), tamil-gtk2im (<< 2.2-4.4), gtk2-engines-xfce
+    (<< 2.4.0-1), scim-bridge-client-gtk (<< 0.4.10-1.1), swf-player
+    (<< 0.3.6-2.3), gtk-qt-engine (<< 1:0.8~svn-rev36-1).
   * Let the udeb provide the Gtk+ module ABI (binver); closes: #419592.
   * Add a -k flag to dh_gtkmodules, matching the change in dh_pangomodules.
   * Use this new flag for the udeb and the shared library packages.
@@ -19,7 +21,7 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
     many symbols and hence was dangerous; closes: #327652.
     - Update patch 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Sat, 28 Apr 2007 09:04:46 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 29 Apr 2007 21:42:22 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 
