@@ -20,8 +20,9 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
   * Drop patch 000_gtk+-2.0.6-exportsymbols which made all libs export way too
     many symbols and hence was dangerous; closes: #327652.
     - Update patch 070_mandatory-relibtoolize.
+  * Fix description of the -dbg package.
 
- -- Loic Minier <lool@dooz.org>  Sun, 29 Apr 2007 21:42:22 +0200
+ -- Loic Minier <lool@dooz.org>  Mon, 30 Apr 2007 12:18:58 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 

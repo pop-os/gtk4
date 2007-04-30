@@ -232,11 +232,8 @@ Description: The GTK+ libraries and debugging symbols
  for projects ranging from small one-off tools to complete application
  suites.
  .
- This package contains unstripped shared libraries. it is provided
- primarily to provide a backtrace with names in a debugger, this makes
- it somewhat easier to interpret core dumps. The libraries are installed
- in /usr/lib/debug and can be used by placing that directory in
- LD_LIBRARY_PATH.
+ This package contains detached debugging symbols.
+ .
  Most people will not need this package.
 
 Package: @DOC_PKG@
