@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
+gtk+2.0 (2.10.12-1) unstable; urgency=low
 
   * Bump Conflicts to gtk-im-libthai <= 0.1.4-2.
   * Document that 2.10.11-2 bumped the conflict on scim-gtk2-immodule to <=
@@ -21,8 +21,12 @@ gtk+2.0 (2.10.11-3) UNRELEASED; urgency=low
     many symbols and hence was dangerous; closes: #327652.
     - Update patch 070_mandatory-relibtoolize.
   * Fix description of the -dbg package.
+  * New upstream release; no ABI change.
+    - Refresh patches 011_directfb-build-fixes-from-head and
+      040_filechooser_single-click.
+    - Update relibtoolizing patch.
 
- -- Loic Minier <lool@dooz.org>  Mon, 30 Apr 2007 12:18:58 +0200
+ -- Loic Minier <lool@dooz.org>  Thu, 03 May 2007 15:13:54 +0200
 
 gtk+2.0 (2.10.11-2) unstable; urgency=low
 
