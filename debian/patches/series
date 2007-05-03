@@ -6,6 +6,7 @@
 008_implicit_pointer_conversion_gdkgc_directfb.patch
 011_directfb-build-fixes-from-head.patch
 013_gdkproperty-directfb-strdup.patch
+15_default-fallback-icon-theme.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
 #025_dfb-window-destroy-leak.patch

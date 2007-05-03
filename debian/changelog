@@ -1,3 +1,10 @@
+gtk+2.0 (2.10.12-2) UNRELEASED; urgency=low
+
+  * New patch, 15_default-fallback-icon-theme, sets the default
+    gtk-fallback-icon-theme to "gnome".
+
+ -- Loic Minier <lool@dooz.org>  Thu, 03 May 2007 21:26:54 +0200
+
 gtk+2.0 (2.10.12-1) unstable; urgency=low
 
   * Bump Conflicts to gtk-im-libthai <= 0.1.4-2.
