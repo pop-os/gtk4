@@ -1,10 +1,16 @@
 gtk+2.0 (2.10.12-2) UNRELEASED; urgency=low
 
+  [ Loic Minier ]
   * New patch, 15_default-fallback-icon-theme, sets the default
     gtk-fallback-icon-theme to "gnome"; closes: #421353.
   * Also honor parallel=n in DEB_BUILD_OPTIONS.
 
- -- Loic Minier <lool@dooz.org>  Tue, 08 May 2007 11:10:05 +0200
+  [ Josselin Mouette ]
+  * 032_filechooser-sizing.patch: patch from Carlos Garnacho in bugzilla 
+    #420285. Fixes (among many other things) infinite flickering with 
+    some window managers (closes: #420021).
+
+ -- Josselin Mouette <joss@debian.org>  Tue, 15 May 2007 22:47:50 +0200
 
 gtk+2.0 (2.10.12-1) unstable; urgency=low
 

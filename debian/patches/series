@@ -11,6 +11,7 @@
 021_loader-files-d.patch
 #025_dfb-window-destroy-leak.patch
 030_gtkentry_password-char-circle.patch
+032_filechooser-sizing.patch
 040_filechooser_single-click.patch
 041_ia32-libs.patch
 070_mandatory-relibtoolize.patch
