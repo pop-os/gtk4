@@ -16,4 +16,4 @@
 040_filechooser_single-click.patch
 041_ia32-libs.patch
 070_mandatory-relibtoolize.patch
-090_capslock-numlock-im-thai.patch
+090_capslock-numlock-im-thai.patch -p0
