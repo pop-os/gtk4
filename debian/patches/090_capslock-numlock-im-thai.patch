@@ -1,3 +1,6 @@
+GNOME #438261; Debian #414698; fixes Thai input method when NumLock/CapsLock is
+on
+
 Index: modules/input/gtkimcontextthai.c
 ===================================================================
 --- modules/input/gtkimcontextthai.c	(revision 17839)
