@@ -1,8 +1,8 @@
 Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserdefault.c	2007-05-15 22:47:24.308558500 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserdefault.c	2007-05-15 22:51:38.228427500 +0200
-@@ -3251,8 +3251,22 @@
+--- gtk+-2.10.12.orig/gtk/gtkfilechooserdefault.c	2007-05-18 18:33:08.711978750 +0200
++++ gtk+-2.10.12/gtk/gtkfilechooserdefault.c	2007-05-18 18:33:18.636599000 +0200
+@@ -3250,8 +3250,22 @@
  shortcuts_selection_changed_cb (GtkTreeSelection      *selection,
  				GtkFileChooserDefault *impl)
  {
@@ -25,7 +25,7 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
  }
  
  static gboolean
-@@ -7921,25 +7935,6 @@
+@@ -7920,25 +7934,6 @@
        gtk_file_path_free (path);
        return retval;
      }
@@ -51,7 +51,7 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
    else if (impl->toplevel_last_focus_widget == impl->browse_files_tree_view)
      {
        /* The focus is on a dialog's action area button, *and* the widget that
-@@ -8268,17 +8263,6 @@
+@@ -8267,17 +8262,6 @@
  			    GtkTreeViewColumn     *column,
  			    GtkFileChooserDefault *impl)
  {

@@ -1,7 +1,7 @@
 Index: gtk+-2.10.12/gtk/gtkfilechooserembed.c
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserembed.c	2007-05-15 22:51:55.297494250 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserembed.c	2007-05-15 22:55:13.461878750 +0200
+--- gtk+-2.10.12.orig/gtk/gtkfilechooserembed.c	2007-05-18 18:32:18.820860750 +0200
++++ gtk+-2.10.12/gtk/gtkfilechooserembed.c	2007-05-18 18:33:08.707978500 +0200
 @@ -28,9 +28,7 @@
  static void delegate_get_default_size         (GtkFileChooserEmbed *chooser_embed,
  					       gint                *default_width,
@@ -61,8 +61,8 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserembed.c
  }
 Index: gtk+-2.10.12/gtk/gtkfilechooserembed.h
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserembed.h	2007-05-15 22:51:55.285493500 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserembed.h	2007-05-15 22:55:13.461878750 +0200
+--- gtk+-2.10.12.orig/gtk/gtkfilechooserembed.h	2007-05-18 18:32:18.800859500 +0200
++++ gtk+-2.10.12/gtk/gtkfilechooserembed.h	2007-05-18 18:33:08.707978500 +0200
 @@ -43,9 +43,7 @@
    void (*get_default_size)        (GtkFileChooserEmbed *chooser_embed,
  				   gint                *default_width,
@@ -88,8 +88,8 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserembed.h
  void _gtk_file_chooser_embed_initial_focus (GtkFileChooserEmbed *chooser_embed);
 Index: gtk+-2.10.12/gtk/gtkfilechooserdialog.c
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserdialog.c	2007-05-15 22:51:55.273492750 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserdialog.c	2007-05-15 22:55:13.461878750 +0200
+--- gtk+-2.10.12.orig/gtk/gtkfilechooserdialog.c	2007-05-18 18:32:18.740855750 +0200
++++ gtk+-2.10.12/gtk/gtkfilechooserdialog.c	2007-05-18 18:33:08.707978500 +0200
 @@ -87,10 +87,6 @@
  								   GTK_TYPE_FILE_CHOOSER_DIALOG,
  								   GtkFileChooserDialogPrivate);
@@ -291,10 +291,18 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdialog.c
  }
  
  static void
+@@ -487,6 +390,7 @@
+   if (!GTK_WIDGET_MAPPED (priv->widget))
+     gtk_widget_map (priv->widget);
+ 
++  file_chooser_widget_default_size_changed (priv->widget, dialog);
+   _gtk_file_chooser_embed_initial_focus (GTK_FILE_CHOOSER_EMBED (priv->widget));
+ 
+   GTK_WIDGET_CLASS (gtk_file_chooser_dialog_parent_class)->map (widget);
 Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserdefault.c	2007-05-15 22:51:55.265492250 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserdefault.c	2007-05-15 23:24:40.624319500 +0200
+--- gtk+-2.10.12.orig/gtk/gtkfilechooserdefault.c	2007-05-18 18:32:18.724854750 +0200
++++ gtk+-2.10.12/gtk/gtkfilechooserdefault.c	2007-05-18 18:33:08.711978750 +0200
 @@ -272,6 +272,8 @@
  							 GtkStyle              *previous_style);
  static void     gtk_file_chooser_default_screen_changed (GtkWidget             *widget,
@@ -315,19 +323,16 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
  static gboolean       gtk_file_chooser_default_should_respond         (GtkFileChooserEmbed *chooser_embed);
  static void           gtk_file_chooser_default_initial_focus          (GtkFileChooserEmbed *chooser_embed);
  
-@@ -423,7 +423,10 @@
+@@ -423,7 +423,7 @@
  static void location_button_toggled_cb (GtkToggleButton *toggle,
  					GtkFileChooserDefault *impl);
  static void location_switch_to_path_bar (GtkFileChooserDefault *impl);
 -
 +static void settings_load               (GtkFileChooserDefault *impl);
-+static void find_good_size_from_style   (GtkWidget *widget,
-+                                         gint      *width,
-+                                         gint      *height);
  
  
  
-@@ -485,6 +488,7 @@
+@@ -485,6 +485,7 @@
    widget_class->hierarchy_changed = gtk_file_chooser_default_hierarchy_changed;
    widget_class->style_set = gtk_file_chooser_default_style_set;
    widget_class->screen_changed = gtk_file_chooser_default_screen_changed;
@@ -335,7 +340,7 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
  
    signals[LOCATION_POPUP] =
      _gtk_binding_signal_new (I_("location-popup"),
-@@ -665,7 +669,7 @@
+@@ -665,7 +666,7 @@
  gtk_file_chooser_embed_default_iface_init (GtkFileChooserEmbedIface *iface)
  {
    iface->get_default_size = gtk_file_chooser_default_get_default_size;
@@ -344,7 +349,7 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
    iface->should_respond = gtk_file_chooser_default_should_respond;
    iface->initial_focus = gtk_file_chooser_default_initial_focus;
  }
-@@ -4998,6 +5002,7 @@
+@@ -4998,6 +4999,7 @@
  	      }
  	    impl->action = action;
  	    update_appearance (impl);
@@ -352,7 +357,7 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
  	  }
        }
        break;
-@@ -5419,6 +5424,41 @@
+@@ -5419,6 +5421,37 @@
    profile_end ("end", NULL);
  }
  
@@ -361,8 +366,6 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
 +					GtkAllocation *allocation)
 +{
 +  GtkFileChooserDefault *impl;
-+  int width, height;
-+  GdkScreen *screen = gtk_widget_get_screen (widget);
 +
 +  impl = GTK_FILE_CHOOSER_DEFAULT (widget);
 +
@@ -376,10 +379,8 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
 +      return;
 +    }
 +
-+  impl->default_width = impl->default_height = 0;
-+  find_good_size_from_style (widget, &width, &height);
-+  impl->default_width = MAX (width, gdk_screen_get_width (screen) * 0.75);
-+  impl->default_height = MAX (height, gdk_screen_get_height (screen) * 0.75);
++  impl->default_width = allocation->width;
++  impl->default_height = allocation->height;
 +
 +  if (impl->preview_widget_active &&
 +      impl->preview_widget &&
@@ -394,7 +395,7 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
  static gboolean
  get_is_file_filtered (GtkFileChooserDefault *impl,
  		      const GtkFilePath     *path,
-@@ -7186,49 +7226,35 @@
+@@ -7186,49 +7219,35 @@
  			   gint      *height)
  {
    GtkFileChooserDefault *impl;
@@ -461,7 +462,7 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
  }
  
  static void
-@@ -7237,35 +7263,37 @@
+@@ -7237,35 +7256,37 @@
  					   gint                *default_height)
  {
    GtkFileChooserDefault *impl;
@@ -520,8 +521,8 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
  struct switch_folder_closure {
 Index: gtk+-2.10.12/gtk/gtkfilechooserprivate.h
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserprivate.h	2007-05-15 22:51:55.253491500 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserprivate.h	2007-05-15 22:55:13.469879250 +0200
+--- gtk+-2.10.12.orig/gtk/gtkfilechooserprivate.h	2007-05-18 18:32:18.664851000 +0200
++++ gtk+-2.10.12/gtk/gtkfilechooserprivate.h	2007-05-18 18:33:08.715979000 +0200
 @@ -109,10 +109,6 @@
    char *file_system;
  
