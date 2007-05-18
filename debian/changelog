@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.12-2) UNRELEASED; urgency=low
+gtk+2.0 (2.10.12-2) unstable; urgency=low
 
   [ Loic Minier ]
   * New patch, 15_default-fallback-icon-theme, sets the default
