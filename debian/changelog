@@ -17,7 +17,11 @@ gtk+2.0 (2.10.12-2) UNRELEASED; urgency=low
     closes: #414698.
   * Re-add patch 031_cursor-blinking-timeout to patch series.
 
- -- Josselin Mouette <joss@debian.org>  Fri, 18 May 2007 18:37:49 +0200
+  [ Josselin Mouette ]
+  * 033_treeview_resizing.patch: fix column resizing in GtkTreeView when 
+    there is an expander column. See bugzilla #316087.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 18 May 2007 19:02:20 +0200
 
 gtk+2.0 (2.10.12-1) unstable; urgency=low
 
