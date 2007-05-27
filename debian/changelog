@@ -1,3 +1,11 @@
+gtk+2.0 (2.10.12-3) UNRELEASED; urgency=low
+
+  * Use printf instead of echo in dh_gtkmodules to write to write data to
+    files in complex_doit() calls as dash's echo will always honor escape
+    sequences.
+
+ -- Loic Minier <lool@dooz.org>  Sun, 27 May 2007 19:11:30 +0200
+
 gtk+2.0 (2.10.12-2) unstable; urgency=low
 
   [ Loic Minier ]
