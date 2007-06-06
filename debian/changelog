@@ -3,8 +3,9 @@ gtk+2.0 (2.10.12-3) UNRELEASED; urgency=low
   * Use printf instead of echo in dh_gtkmodules to write to write data to
     files in complex_doit() calls as dash's echo will always honor escape
     sequences.
+  * Conflict with gtk2-engines-ubuntulooks (<= 0.9.11-1).
 
- -- Loic Minier <lool@dooz.org>  Sun, 27 May 2007 19:11:30 +0200
+ -- Loic Minier <lool@dooz.org>  Wed, 06 Jun 2007 23:32:19 +0200
 
 gtk+2.0 (2.10.12-2) unstable; urgency=low
 
