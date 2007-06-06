@@ -1,4 +1,67 @@
-gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
+gtk+2.0 (2.10.12-3) UNRELEASED; urgency=low
+
+  * Use printf instead of echo in dh_gtkmodules to write to write data to
+    files in complex_doit() calls as dash's echo will always honor escape
+    sequences.
+
+ -- Loic Minier <lool@dooz.org>  Sun, 27 May 2007 19:11:30 +0200
+
+gtk+2.0 (2.10.12-2) unstable; urgency=low
+
+  [ Loic Minier ]
+  * New patch, 15_default-fallback-icon-theme, sets the default
+    gtk-fallback-icon-theme to "gnome"; closes: #421353.
+  * Also honor parallel=n in DEB_BUILD_OPTIONS.
+
+  [ Josselin Mouette ]
+  * 032_filechooser-sizing.patch: patch from Carlos Garnacho in bugzilla
+    #420285, committed in trunk. Fixes (among many other things) infinite
+    flickering with some window managers (closes: #420021).
+  * Refresh other patches.
+
+  [ Loic Minier ]
+  * New patch 090_capslock-numlock-im-thai, fixes Thai input method when
+    NumLock/CapsLock is on; thanks Theppitak Karoonboonyanan; GNOME #438261;
+    closes: #414698.
+  * Re-add patch 031_cursor-blinking-timeout to patch series.
+
+  [ Josselin Mouette ]
+  * 033_treeview_resizing.patch: fix column resizing in GtkTreeView when 
+    there is an expander column. See bugzilla #316087.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 18 May 2007 19:02:20 +0200
+
+gtk+2.0 (2.10.12-1) unstable; urgency=low
+
+  * Bump Conflicts to gtk-im-libthai <= 0.1.4-2.
+  * Document that 2.10.11-2 bumped the conflict on scim-gtk2-immodule to <=
+    1.4.4-7.
+  * Post-transition bump of conflicts to gtk2-engines-wonderland << 1.0-4,
+    imhangul (<< 0.9.13-5), gcin (<< 1.3.4-2), gtk-im-libthai (<< 0.1.4-3),
+    scim-gtk2-immodule (<< 1.4.4-8), uim-gtk2.0 (<< 1:1.4.1-3),
+    gtk2-engines-cleanice (<< 2.4.0-1.1), gtk2-engines-magicchicken
+    (<< 1.1.1-7.1), gtk2-engines-qtpixmap (<< 0.28-1.2), libginspx0
+    (<< 20050529-1.1), tamil-gtk2im (<< 2.2-4.4), gtk2-engines-xfce
+    (<< 2.4.0-1), scim-bridge-client-gtk (<< 0.4.10-1.1), swf-player
+    (<< 0.3.6-2.3), gtk-qt-engine (<< 1:0.8~svn-rev36-1).
+  * Let the udeb provide the Gtk+ module ABI (binver); closes: #419592.
+  * Add a -k flag to dh_gtkmodules, matching the change in dh_pangomodules.
+  * Use this new flag for the udeb and the shared library packages.
+  * Add ${misc:Depends}.
+  * Drop "libtool_is_fool" snippet patching hardcode_libdir_flag_spec and
+    archive_cmds which is probably dangerous with newer libtools.
+  * Drop patch 000_gtk+-2.0.6-exportsymbols which made all libs export way too
+    many symbols and hence was dangerous; closes: #327652.
+    - Update patch 070_mandatory-relibtoolize.
+  * Fix description of the -dbg package.
+  * New upstream release; no ABI change.
+    - Refresh patches 011_directfb-build-fixes-from-head and
+      040_filechooser_single-click.
+    - Update relibtoolizing patch.
+
+ -- Loic Minier <lool@dooz.org>  Thu, 03 May 2007 15:13:54 +0200
+
+gtk+2.0 (2.10.11-2) unstable; urgency=low
 
   [ Loic Minier ]
   * Bump libwmf conflicts to << 0.2.8.4-5.
@@ -27,12 +90,18 @@ gtk+2.0 (2.10.11-2) UNRELEASED; urgency=low
     use .32 and .64 suffixes in all cases (compatible with Ubuntu), b) fix
     typo, c) use g_file_test() instead of g_access(); does not cover module
     loading via env vars; closes: #406453.
-  * New patch, 025_dfb-window-destroy-leak, fixes a memory leak when
-    destroying gdk windows with the DirectFB backend, causes crashes in the
-    installer, hence RC and urgency medium; derived from upstream SVN r17014;
-    closes: #403639.
+  * Upload to unstable; drop check-dist include.
+  * Wrap build-deps and deps.
+  * Add Conflicts on gcin (<= 1.3.4-1), gtk-qt-engine (<= 1:0.8~svn-rev31-3),
+    iiimf-client-gtk (<= 12.3.91-3), libginspx0 (<= 20050529-1),
+    scim-bridge-client-gtk (<= 0.4.10-1), iiimgcf (<= 11.4.1870-7).
+  * Bump Conflicts to gtk2-engines-gtk-qt << 1:0.7-2, imhangul <=
+    0.9.13-3.1, libgnomeui-0 <= 2.14.1-3, swf-player <= 0.3.6-2.2,
+    tamil-gtk2im <= 2.2-4.3, uim-gtk2.0 <= 1:1.2.1-9, scim-gtk2-immodule (<=
+    1.4.4-7).
+  * Drop docbook-utils and linuxdoc-tools-text from the build-deps.
 
- -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 10:55:06 +0200
+ -- Loic Minier <lool@dooz.org>  Fri, 13 Apr 2007 22:25:49 +0200
 
 gtk+2.0 (2.10.11-1) experimental; urgency=low
 

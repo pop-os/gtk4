@@ -1,7 +1,7 @@
-Index: gtk+2.0-2.10.10/gdk/directfb/gdkcolor-directfb.c
+Index: gtk+2.0-2.10.12/gdk/directfb/gdkcolor-directfb.c
 ===================================================================
---- gtk+2.0-2.10.10.orig/gdk/directfb/gdkcolor-directfb.c	2007-03-12 15:06:53.000000000 +0100
-+++ gtk+2.0-2.10.10/gdk/directfb/gdkcolor-directfb.c	2007-03-13 14:10:27.000000000 +0100
+--- gtk+2.0-2.10.12.orig/gdk/directfb/gdkcolor-directfb.c	2007-05-02 18:27:33.000000000 +0200
++++ gtk+2.0-2.10.12/gdk/directfb/gdkcolor-directfb.c	2007-05-03 15:09:55.000000000 +0200
 @@ -38,12 +38,10 @@
  #include <stdlib.h>
  #include <string.h>
@@ -24,11 +24,11 @@ Index: gtk+2.0-2.10.10/gdk/directfb/gdkcolor-directfb.c
 -
  #define __GDK_COLOR_X11_C__
  #include "gdkaliasdef.c"
-Index: gtk+2.0-2.10.10/gdk/directfb/gdkwindow-directfb.c
+Index: gtk+2.0-2.10.12/gdk/directfb/gdkwindow-directfb.c
 ===================================================================
---- gtk+2.0-2.10.10.orig/gdk/directfb/gdkwindow-directfb.c	2007-03-12 15:06:56.000000000 +0100
-+++ gtk+2.0-2.10.10/gdk/directfb/gdkwindow-directfb.c	2007-03-13 14:10:27.000000000 +0100
-@@ -2990,6 +2990,12 @@
+--- gtk+2.0-2.10.12.orig/gdk/directfb/gdkwindow-directfb.c	2007-05-02 18:27:33.000000000 +0200
++++ gtk+2.0-2.10.12/gdk/directfb/gdkwindow-directfb.c	2007-05-03 15:09:55.000000000 +0200
+@@ -2993,6 +2993,12 @@
    iface->process_updates = gdk_window_impl_directfb_process_updates;
  }
  
@@ -41,10 +41,10 @@ Index: gtk+2.0-2.10.10/gdk/directfb/gdkwindow-directfb.c
  #define __GDK_WINDOW_X11_C__
  #include "gdkaliasdef.c"
  
-Index: gtk+2.0-2.10.10/gdk/directfb/Makefile.am
+Index: gtk+2.0-2.10.12/gdk/directfb/Makefile.am
 ===================================================================
---- gtk+2.0-2.10.10.orig/gdk/directfb/Makefile.am	2007-03-12 15:08:50.000000000 +0100
-+++ gtk+2.0-2.10.10/gdk/directfb/Makefile.am	2007-03-13 14:10:27.000000000 +0100
+--- gtk+2.0-2.10.12.orig/gdk/directfb/Makefile.am	2007-05-02 18:27:33.000000000 +0200
++++ gtk+2.0-2.10.12/gdk/directfb/Makefile.am	2007-05-03 15:09:55.000000000 +0200
 @@ -4,12 +4,11 @@
  
  INCLUDES = 		\

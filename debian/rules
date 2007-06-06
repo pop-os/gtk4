@@ -5,8 +5,6 @@ DISABLE_UPDATE_UPLOADERS := 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 # get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
-# Prevent accidental uploads to unstable
-include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 
 GNOME_MODULE := gtk+
 
@@ -20,9 +18,10 @@ PATCH_DIR := debian/patches
 # rules in this debian/rules Makefile can be built concurrently as well as
 # upstream rules in Makefile; all $(MAKE) invocations will inherit this flag,
 # if you recurse into debian/rules ($(MAKE)
-# -f debian/rules in rules), you need to pass a flag to avoid adding "-j2" when
+# -f debian/rules in rules), you need to pass a flag to avoid adding "-jX" when
 # the childs encounters this line
-MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j2 $(DEB_BUILD_OPTIONS_PARALLEL))
+DEB_BUILD_OPTIONS_PARALLEL ?= $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j$(DEB_BUILD_OPTIONS_PARALLEL))
 
 # These are used for cross-compiling and for saving the configure script
 # from having to guess our platform (since we know it already)
@@ -152,11 +151,6 @@ $(STAMP_DIR)/configure-stamp-%: $(STAMP_DIR)/patch-stamp
 	cd $(builddir) && \
 		CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
 			$(CURDIR)/configure $($*_configure_flags)
-	cd $(builddir) && \
-		sed < libtool > libtool-2 \
-			-e 's/^hardcode_libdir_flag_spec.*$$/hardcode_libdir_flag_spec=" -D__LIBTOOL_IS_A_FOOL__ "/' \
-			-e '/^archive_cmds="/s/"$$/ \\$$deplibs"/' && \
-		mv libtool-2 libtool
 	touch $@
 
 configure: $(addprefix $(STAMP_DIR)/configure-stamp-, $(FLAVORS))
@@ -275,11 +269,13 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	GTK_QUERYLOADERS=$(installbasedir)/shared/usr/bin/gdk-pixbuf-query-loaders \
 	GTK_QUERYIMMODULES=$(installbasedir)/shared/usr/bin/gtk-query-immodules-2.0 \
 		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
+			-k \
 			-p$(SHARED_PKG)
 	# generate a GdkPixbuf loader config file for the udeb
 	LD_LIBRARY_PATH=debian/$(UDEB_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
 	GTK_QUERYLOADERS=$(installbasedir)/directfb/usr/bin/gdk-pixbuf-query-loaders \
 		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
+			-k \
 			-p$(UDEB_PKG)
 	dh_installexamples -a
 	dh_link -a
