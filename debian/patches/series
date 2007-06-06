@@ -10,7 +10,6 @@
 015_default-fallback-icon-theme.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
-#025_dfb-window-destroy-leak.patch
 030_gtkentry_password-char-circle.patch
 031_cursor-blinking-timeout.patch
 032_filechooser-sizing.patch
