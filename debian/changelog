@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.12-3) UNRELEASED; urgency=low
+gtk+2.0 (2.10.12-3) experimental; urgency=low
 
   * Use printf instead of echo in dh_gtkmodules to write to write data to
     files in complex_doit() calls as dash's echo will always honor escape
@@ -8,8 +8,9 @@ gtk+2.0 (2.10.12-3) UNRELEASED; urgency=low
     use in maemo / Hildon; from Nokia, taken from the Ubuntu package; update
     patch 032_filechooser-sizing to apply cleanly; bump shlibs to 2.10.12-3.
   * Kill patch 025_dfb-window-destroy-leak from source tree as well now.
+  * Include check-dist to prevent accidental uploads to unstable.
 
- -- Loic Minier <lool@dooz.org>  Wed, 06 Jun 2007 23:48:14 +0200
+ -- Loic Minier <lool@dooz.org>  Wed, 06 Jun 2007 23:48:42 +0200
 
 gtk+2.0 (2.10.12-2) unstable; urgency=low
 
