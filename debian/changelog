@@ -6,11 +6,12 @@ gtk+2.0 (2.10.12-3) experimental; urgency=low
   * Conflict with gtk2-engines-ubuntulooks (<= 0.9.11-1).
   * New patch, 009_gtk-export-filechooser, exports some filechooser API for
     use in maemo / Hildon; from Nokia, taken from the Ubuntu package; update
-    patch 032_filechooser-sizing to apply cleanly; bump shlibs to 2.10.12-3.
+    patch 032_filechooser-sizing to apply cleanly; bump shlibs to 2.10.12-3;
+    update patch 070_mandatory-relibtoolize.
   * Kill patch 025_dfb-window-destroy-leak from source tree as well now.
   * Include check-dist to prevent accidental uploads to unstable.
 
- -- Loic Minier <lool@dooz.org>  Wed, 06 Jun 2007 23:48:42 +0200
+ -- Loic Minier <lool@dooz.org>  Thu, 07 Jun 2007 00:13:00 +0200
 
 gtk+2.0 (2.10.12-2) unstable; urgency=low
 
