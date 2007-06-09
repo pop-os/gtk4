@@ -84,7 +84,7 @@ Conflicts: libgtk2.0-0png3,
            swf-player (<< 0.3.6-2.3),
            gcin (<< 1.3.4-2),
            gtk-qt-engine (<< 1:0.8~svn-rev36-1),
-           iiimf-client-gtk (<= 12.3.91-3),
+           iiimf-client-gtk (<< 12.3.91-4),
            libginspx0 (<< 20050529-1.1),
            scim-bridge-client-gtk (<< 0.4.10-1.1),
            iiimgcf (<= 11.4.1870-7)

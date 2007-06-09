@@ -1,3 +1,9 @@
+gtk+2.0 (2.10.12-4) UNRELEASED; urgency=low
+
+  * Bump Conflicts to iiimf-client-gtk << 12.3.91-4.
+
+ -- Loic Minier <lool@dooz.org>  Sat, 09 Jun 2007 15:14:39 +0200
+
 gtk+2.0 (2.10.12-3) experimental; urgency=low
 
   * Use printf instead of echo in dh_gtkmodules to write to write data to
