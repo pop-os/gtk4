@@ -1,3 +1,5 @@
+GNOME #447163; Debian 381082
+
 Index: gtk+2.0-2.10.10/gdk/directfb/gdkgc-directfb.c
 ===================================================================
 --- gtk+2.0-2.10.10.orig/gdk/directfb/gdkgc-directfb.c	2007-03-12 15:06:51.000000000 +0100
