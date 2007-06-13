@@ -6,9 +6,10 @@ automake-1.7
 rm -rf autom4te.cache
 exclude config.guess and sub with diff -urN -x config.guess -x config.sub
 
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/Makefile.in gtk+2.0-2.11.2/Makefile.in
+Index: gtk+2.0-2.11.2/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/Makefile.in	2007-06-06 15:03:36.000000000 +0200
-+++ gtk+2.0-2.11.2/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -49,9 +50,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/Makefile.in gtk
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/aclocal.m4 gtk+2.0-2.11.2/aclocal.m4
+Index: gtk+2.0-2.11.2/aclocal.m4
+===================================================================
 --- gtk+2.0-2.11.2.orig/aclocal.m4	2007-06-06 15:03:33.000000000 +0200
-+++ gtk+2.0-2.11.2/aclocal.m4	2007-06-13 11:49:05.000000000 +0200
++++ gtk+2.0-2.11.2/aclocal.m4	2007-06-13 16:33:27.000000000 +0200
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -346,9 +348,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/aclocal.m4 gtk+
 +  AM_CONDITIONAL([GTK_DOC_USE_LIBTOOL], [test -n "$LIBTOOL"])
  ])
  
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2.0-2.11.2/configure
+Index: gtk+2.0-2.11.2/configure
+===================================================================
 --- gtk+2.0-2.11.2.orig/configure	2007-06-06 15:03:38.000000000 +0200
-+++ gtk+2.0-2.11.2/configure	2007-06-13 11:49:10.000000000 +0200
++++ gtk+2.0-2.11.2/configure	2007-06-13 16:35:00.000000000 +0200
 @@ -1,6 +1,6 @@
  #! /bin/sh
  # Guess values for system-dependent variables and create Makefiles.
@@ -7867,7 +7870,28 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    ac_cv_header_X11_extensions_Xrandr_h=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -34721,27 +32182,11 @@
+@@ -34611,8 +32072,18 @@
+   if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
+       { echo "$as_me:$LINENO: result: found" >&5
+ echo "${ECHO_T}found" >&6; }
+-      GDK_EXTRA_CFLAGS="`$PKG_CONFIG --cflags cairo-directfb` $GDK_EXTRA_CFLAGS"
+-      GDK_EXTRA_LIBS="`$PKG_CONFIG --libs cairo-directfb` $GDK_EXTRA_LIBS"
++      # prepend cairo-directfb so that cairo-directfb's CFLAGS appear before
++      # cairo's if both are available (cairo is required by pango); this is
++      # enough to build gdk/
++      GDK_PACKAGES="cairo-directfb directfb $GDK_PACKAGES"
++      # you'd think this isn't needed, but as soon as cairo-directfb or
++      # directfb requires a "rpath" and you want to build binaries (for
++      # example gtk-query-immodules), you need the CFLAGS and LDFLAGS
++      # everywhere; this trick abuses the fact that GTK_DEP_LIBS and
++      # GTK_DEP_CFLAGS include the GDK_EXTRA_LIBS and _FLAGS to pull the
++      # necessary rpath flags
++      GDK_EXTRA_CFLAGS="`$PKG_CONFIG --cflags cairo-directfb directfb`"
++      GDK_EXTRA_LIBS="`$PKG_CONFIG --libs cairo-directfb directfb` $GDK_EXTRA_LIBS"
+   else
+       { { echo "$as_me:$LINENO: error:
+ *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer and the cairo backend
+@@ -34721,27 +32192,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7900,7 +7924,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    :
  else
    echo "$as_me: failed program was:" >&5
-@@ -34756,7 +32201,7 @@
+@@ -34756,7 +32211,7 @@
     { (exit 1); exit 1; }; }
  fi
  
@@ -7909,7 +7933,16 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
        conftest$ac_exeext conftest.$ac_ext
          LIBS="$gtk_save_LIBS"
  fi
-@@ -34852,27 +32297,11 @@
+@@ -34764,7 +32219,7 @@
+ CFLAGS="$saved_cflags"
+ LDFLAGS="$saved_ldflags"
+ 
+-GDK_PACKAGES="$PANGO_PACKAGES"
++GDK_PACKAGES="$GDK_PACKAGES $PANGO_PACKAGES"
+ if test "x$gdktarget" = "xx11"; then
+   GDK_PACKAGES="$GDK_PACKAGES $X_PACKAGES"
+ fi
+@@ -34852,27 +32307,11 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7942,7 +7975,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    :
  else
    echo "$as_me: failed program was:" >&5
-@@ -34887,7 +32316,7 @@
+@@ -34887,7 +32326,7 @@
     { (exit 1); exit 1; }; }
  fi
  
@@ -7951,7 +7984,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
        conftest$ac_exeext conftest.$ac_ext
          LIBS="$gtk_save_LIBS"
  fi
-@@ -34943,7 +32372,7 @@
+@@ -34943,7 +32382,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -7960,7 +7993,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
      ac_cv_path_CUPS_CONFIG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -35035,27 +32464,10 @@
+@@ -35035,27 +32474,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -7992,7 +8025,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -35091,17 +32503,10 @@
+@@ -35091,17 +32513,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -8014,7 +8047,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -35204,27 +32609,10 @@
+@@ -35204,27 +32619,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -8046,7 +8079,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    ac_header_compiler=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -35260,17 +32648,10 @@
+@@ -35260,17 +32658,10 @@
    rm -f conftest.er1
    cat conftest.err >&5
    echo "$as_me:$LINENO: \$? = $ac_status" >&5
@@ -8068,7 +8101,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    ac_header_preproc=yes
  else
    echo "$as_me: failed program was:" >&5
-@@ -35429,7 +32810,7 @@
+@@ -35429,7 +32820,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -8077,7 +8110,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
      ac_cv_path_PKG_CONFIG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -35514,7 +32895,7 @@
+@@ -35514,7 +32905,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -8086,7 +8119,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
      ac_cv_prog_DB2HTML="true"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -35574,7 +32955,7 @@
+@@ -35574,7 +32965,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -8095,7 +8128,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
      ac_cv_path_XSLTPROC="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -35643,7 +33024,7 @@
+@@ -35643,7 +33034,7 @@
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
@@ -8104,7 +8137,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
      ac_cv_path_XMLCATALOG="$as_dir/$ac_word$ac_exec_ext"
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
-@@ -35844,6 +33225,13 @@
+@@ -35844,6 +33235,13 @@
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
@@ -8118,7 +8151,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -36239,7 +33627,8 @@
+@@ -36239,7 +33637,8 @@
  ## M4sh Initialization.  ##
  ## --------------------- ##
  
@@ -8128,7 +8161,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
    emulate sh
    NULLCMD=:
-@@ -36248,10 +33637,13 @@
+@@ -36248,10 +33647,13 @@
    alias -g '${1+"$@"}'='"$@"'
    setopt NO_GLOB_SUBST
  else
@@ -8145,7 +8178,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  
  
  # PATH needs CR
-@@ -36475,19 +33867,28 @@
+@@ -36475,19 +33877,28 @@
    as_mkdir_p=false
  fi
  
@@ -8185,7 +8218,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  
  # Sed expression to map a string onto a valid CPP name.
  as_tr_cpp="eval sed 'y%*$as_cr_letters%P$as_cr_LETTERS%;s%[^_$as_cr_alnum]%_%g'"
-@@ -36503,7 +33904,7 @@
+@@ -36503,7 +33914,7 @@
  # values after options handling.
  ac_log="
  This file was extended by gtk+ $as_me 2.11.2, which was
@@ -8194,7 +8227,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  
    CONFIG_FILES    = $CONFIG_FILES
    CONFIG_HEADERS  = $CONFIG_HEADERS
-@@ -36532,7 +33933,7 @@
+@@ -36532,7 +33943,7 @@
  Usage: $0 [OPTIONS] [FILE]...
  
    -h, --help       print this help, then exit
@@ -8203,7 +8236,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    -q, --quiet      do not print progress messages
    -d, --debug      don't remove temporary files
        --recheck    update $as_me by reconfiguring in the same conditions
-@@ -36556,7 +33957,7 @@
+@@ -36556,7 +33967,7 @@
  cat >>$CONFIG_STATUS <<_ACEOF
  ac_cs_version="\\
  gtk+ config.status 2.11.2
@@ -8212,7 +8245,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
    with options \\"`echo "$ac_configure_args" | sed 's/^ //; s/[\\""\`\$]/\\\\&/g'`\\"
  
  Copyright (C) 2006 Free Software Foundation, Inc.
-@@ -36927,9 +34328,9 @@
+@@ -36927,9 +34338,9 @@
  CCDEPMODE!$CCDEPMODE$ac_delim
  am__fastdepCC_TRUE!$am__fastdepCC_TRUE$ac_delim
  am__fastdepCC_FALSE!$am__fastdepCC_FALSE$ac_delim
@@ -8224,7 +8257,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -36971,6 +34372,8 @@
+@@ -36971,6 +34382,8 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -8233,7 +8266,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  ECHO!$ECHO$ac_delim
  AR!$AR$ac_delim
  RANLIB!$RANLIB$ac_delim
-@@ -37066,8 +34469,6 @@
+@@ -37066,8 +34479,6 @@
  INCLUDE_PNM_FALSE!$INCLUDE_PNM_FALSE$ac_delim
  INCLUDE_RAS_TRUE!$INCLUDE_RAS_TRUE$ac_delim
  INCLUDE_RAS_FALSE!$INCLUDE_RAS_FALSE$ac_delim
@@ -8242,7 +8275,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -37109,6 +34510,8 @@
+@@ -37109,6 +34520,8 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -8251,7 +8284,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  INCLUDE_XPM_TRUE!$INCLUDE_XPM_TRUE$ac_delim
  INCLUDE_XPM_FALSE!$INCLUDE_XPM_FALSE$ac_delim
  INCLUDE_XBM_TRUE!$INCLUDE_XBM_TRUE$ac_delim
-@@ -37204,10 +34607,9 @@
+@@ -37204,10 +34617,9 @@
  ENABLE_MAN_TRUE!$ENABLE_MAN_TRUE$ac_delim
  ENABLE_MAN_FALSE!$ENABLE_MAN_FALSE$ac_delim
  LIBOBJS!$LIBOBJS$ac_delim
@@ -8263,7 +8296,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
      break
    elif $ac_last_try; then
      { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
-@@ -37243,6 +34645,50 @@
+@@ -37243,6 +34655,50 @@
  _ACEOF
  
  
@@ -8314,7 +8347,7 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  # VPATH may cause trouble with some makes, so we remove $(srcdir),
  # ${srcdir} and @srcdir@ from VPATH if srcdir is ".", strip leading and
  # trailing colons and then remove the whole line if VPATH becomes empty
-@@ -37486,7 +34932,7 @@
+@@ -37486,7 +34942,7 @@
  s&@abs_top_builddir@&$ac_abs_top_builddir&;t t
  s&@INSTALL@&$ac_INSTALL&;t t
  $ac_datarootdir_hack
@@ -8323,9 +8356,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/configure gtk+2
  
  test -z "$ac_datarootdir_hack$ac_datarootdir_seen" &&
    { ac_out=`sed -n '/\${datarootdir}/p' "$tmp/out"`; test -n "$ac_out"; } &&
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/contrib/Makefile.in gtk+2.0-2.11.2/contrib/Makefile.in
+Index: gtk+2.0-2.11.2/contrib/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/contrib/Makefile.in	2007-06-06 15:05:36.000000000 +0200
-+++ gtk+2.0-2.11.2/contrib/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/contrib/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8335,9 +8369,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/contrib/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.11.2/contrib/gdk-pixbuf-xlib/Makefile.in
+Index: gtk+2.0-2.11.2/contrib/gdk-pixbuf-xlib/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2007-06-06 15:05:37.000000000 +0200
-+++ gtk+2.0-2.11.2/contrib/gdk-pixbuf-xlib/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/contrib/gdk-pixbuf-xlib/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8347,9 +8382,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/contrib/gdk-pix
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/demos/Makefile.in gtk+2.0-2.11.2/demos/Makefile.in
+Index: gtk+2.0-2.11.2/demos/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/demos/Makefile.in	2007-06-06 15:05:28.000000000 +0200
-+++ gtk+2.0-2.11.2/demos/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/demos/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8359,9 +8395,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/demos/Makefile.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/demos/gtk-demo/Makefile.in gtk+2.0-2.11.2/demos/gtk-demo/Makefile.in
+Index: gtk+2.0-2.11.2/demos/gtk-demo/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/demos/gtk-demo/Makefile.in	2007-06-06 15:05:30.000000000 +0200
-+++ gtk+2.0-2.11.2/demos/gtk-demo/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/demos/gtk-demo/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8371,9 +8408,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/demos/gtk-demo/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/Makefile.in gtk+2.0-2.11.2/docs/Makefile.in
+Index: gtk+2.0-2.11.2/docs/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/docs/Makefile.in	2007-06-06 15:05:38.000000000 +0200
-+++ gtk+2.0-2.11.2/docs/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/docs/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8383,9 +8421,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/Makefile.i
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/faq/Makefile.in gtk+2.0-2.11.2/docs/faq/Makefile.in
+Index: gtk+2.0-2.11.2/docs/faq/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/docs/faq/Makefile.in	2007-06-06 15:05:48.000000000 +0200
-+++ gtk+2.0-2.11.2/docs/faq/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/docs/faq/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8395,9 +8434,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/faq/Makefi
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/reference/Makefile.in gtk+2.0-2.11.2/docs/reference/Makefile.in
+Index: gtk+2.0-2.11.2/docs/reference/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/docs/reference/Makefile.in	2007-06-06 15:05:52.000000000 +0200
-+++ gtk+2.0-2.11.2/docs/reference/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/docs/reference/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8407,9 +8447,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/reference/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/reference/gdk/Makefile.in gtk+2.0-2.11.2/docs/reference/gdk/Makefile.in
+Index: gtk+2.0-2.11.2/docs/reference/gdk/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/docs/reference/gdk/Makefile.in	2007-06-06 15:05:54.000000000 +0200
-+++ gtk+2.0-2.11.2/docs/reference/gdk/Makefile.in	2007-06-13 11:49:12.000000000 +0200
++++ gtk+2.0-2.11.2/docs/reference/gdk/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -97,6 +97,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8419,9 +8460,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/reference/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.11.2/docs/reference/gdk-pixbuf/Makefile.in
+Index: gtk+2.0-2.11.2/docs/reference/gdk-pixbuf/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/docs/reference/gdk-pixbuf/Makefile.in	2007-06-06 15:05:53.000000000 +0200
-+++ gtk+2.0-2.11.2/docs/reference/gdk-pixbuf/Makefile.in	2007-06-13 11:49:11.000000000 +0200
++++ gtk+2.0-2.11.2/docs/reference/gdk-pixbuf/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -97,6 +97,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8431,9 +8473,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/reference/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/reference/gtk/Makefile.in gtk+2.0-2.11.2/docs/reference/gtk/Makefile.in
+Index: gtk+2.0-2.11.2/docs/reference/gtk/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/docs/reference/gtk/Makefile.in	2007-06-06 15:05:57.000000000 +0200
-+++ gtk+2.0-2.11.2/docs/reference/gtk/Makefile.in	2007-06-13 11:49:12.000000000 +0200
++++ gtk+2.0-2.11.2/docs/reference/gtk/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -97,6 +97,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8443,9 +8486,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/reference/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/tools/Makefile.in gtk+2.0-2.11.2/docs/tools/Makefile.in
+Index: gtk+2.0-2.11.2/docs/tools/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/docs/tools/Makefile.in	2007-06-06 15:06:03.000000000 +0200
-+++ gtk+2.0-2.11.2/docs/tools/Makefile.in	2007-06-13 11:49:12.000000000 +0200
++++ gtk+2.0-2.11.2/docs/tools/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8455,9 +8499,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/tools/Make
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/tutorial/Makefile.in gtk+2.0-2.11.2/docs/tutorial/Makefile.in
+Index: gtk+2.0-2.11.2/docs/tutorial/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/docs/tutorial/Makefile.in	2007-06-06 15:05:40.000000000 +0200
-+++ gtk+2.0-2.11.2/docs/tutorial/Makefile.in	2007-06-13 11:49:12.000000000 +0200
++++ gtk+2.0-2.11.2/docs/tutorial/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8467,9 +8512,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/docs/tutorial/M
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/Makefile.in gtk+2.0-2.11.2/gdk/Makefile.in
+Index: gtk+2.0-2.11.2/gdk/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk/Makefile.in	2007-06-06 15:04:35.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk/Makefile.in	2007-06-13 11:49:12.000000000 +0200
++++ gtk+2.0-2.11.2/gdk/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8479,9 +8525,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/directfb/Makefile.in gtk+2.0-2.11.2/gdk/directfb/Makefile.in
+Index: gtk+2.0-2.11.2/gdk/directfb/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk/directfb/Makefile.in	2007-06-06 15:04:47.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk/directfb/Makefile.in	2007-06-13 11:49:13.000000000 +0200
++++ gtk+2.0-2.11.2/gdk/directfb/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8491,9 +8538,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/directfb/Ma
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/linux-fb/Makefile.in gtk+2.0-2.11.2/gdk/linux-fb/Makefile.in
+Index: gtk+2.0-2.11.2/gdk/linux-fb/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk/linux-fb/Makefile.in	2007-06-06 15:04:39.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk/linux-fb/Makefile.in	2007-06-13 11:49:13.000000000 +0200
++++ gtk+2.0-2.11.2/gdk/linux-fb/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8503,9 +8551,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/linux-fb/Ma
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/quartz/Makefile.in gtk+2.0-2.11.2/gdk/quartz/Makefile.in
+Index: gtk+2.0-2.11.2/gdk/quartz/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk/quartz/Makefile.in	2007-06-06 15:04:45.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk/quartz/Makefile.in	2007-06-13 11:49:13.000000000 +0200
++++ gtk+2.0-2.11.2/gdk/quartz/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8515,9 +8564,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/quartz/Make
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/win32/Makefile.in gtk+2.0-2.11.2/gdk/win32/Makefile.in
+Index: gtk+2.0-2.11.2/gdk/win32/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk/win32/Makefile.in	2007-06-06 15:04:40.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk/win32/Makefile.in	2007-06-13 11:49:13.000000000 +0200
++++ gtk+2.0-2.11.2/gdk/win32/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8527,9 +8577,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/win32/Makef
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/win32/rc/Makefile.in gtk+2.0-2.11.2/gdk/win32/rc/Makefile.in
+Index: gtk+2.0-2.11.2/gdk/win32/rc/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk/win32/rc/Makefile.in	2007-06-06 15:04:42.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk/win32/rc/Makefile.in	2007-06-13 11:49:13.000000000 +0200
++++ gtk+2.0-2.11.2/gdk/win32/rc/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8539,9 +8590,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/win32/rc/Ma
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/x11/Makefile.in gtk+2.0-2.11.2/gdk/x11/Makefile.in
+Index: gtk+2.0-2.11.2/gdk/x11/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk/x11/Makefile.in	2007-06-06 15:04:43.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk/x11/Makefile.in	2007-06-13 11:49:13.000000000 +0200
++++ gtk+2.0-2.11.2/gdk/x11/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -93,6 +93,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8551,9 +8603,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk/x11/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk-pixbuf/Makefile.in gtk+2.0-2.11.2/gdk-pixbuf/Makefile.in
+Index: gtk+2.0-2.11.2/gdk-pixbuf/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk-pixbuf/Makefile.in	2007-06-06 15:04:31.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk-pixbuf/Makefile.in	2007-06-13 11:49:12.000000000 +0200
++++ gtk+2.0-2.11.2/gdk-pixbuf/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8563,9 +8616,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk-pixbuf/Make
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.11.2/gdk-pixbuf/pixops/Makefile.in
+Index: gtk+2.0-2.11.2/gdk-pixbuf/pixops/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gdk-pixbuf/pixops/Makefile.in	2007-06-06 15:04:34.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk-pixbuf/pixops/Makefile.in	2007-06-13 11:49:12.000000000 +0200
++++ gtk+2.0-2.11.2/gdk-pixbuf/pixops/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8575,9 +8629,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gdk-pixbuf/pixo
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gtk/Makefile.in gtk+2.0-2.11.2/gtk/Makefile.in
+Index: gtk+2.0-2.11.2/gtk/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gtk/Makefile.in	2007-06-06 15:04:49.000000000 +0200
-+++ gtk+2.0-2.11.2/gtk/Makefile.in	2007-06-13 11:49:13.000000000 +0200
++++ gtk+2.0-2.11.2/gtk/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -113,6 +113,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8619,9 +8674,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gtk/Makefile.in
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gtk/theme-bits/Makefile.in gtk+2.0-2.11.2/gtk/theme-bits/Makefile.in
+Index: gtk+2.0-2.11.2/gtk/theme-bits/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gtk/theme-bits/Makefile.in	2007-06-06 15:05:11.000000000 +0200
-+++ gtk+2.0-2.11.2/gtk/theme-bits/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/gtk/theme-bits/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8631,9 +8687,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gtk/theme-bits/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gtk/xdgmime/Makefile.in gtk+2.0-2.11.2/gtk/xdgmime/Makefile.in
+Index: gtk+2.0-2.11.2/gtk/xdgmime/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/gtk/xdgmime/Makefile.in	2007-06-06 15:05:12.000000000 +0200
-+++ gtk+2.0-2.11.2/gtk/xdgmime/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/gtk/xdgmime/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8643,9 +8700,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/gtk/xdgmime/Mak
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/ltmain.sh gtk+2.0-2.11.2/ltmain.sh
+Index: gtk+2.0-2.11.2/ltmain.sh
+===================================================================
 --- gtk+2.0-2.11.2.orig/ltmain.sh	2007-01-14 05:15:09.000000000 +0100
-+++ gtk+2.0-2.11.2/ltmain.sh	2006-03-11 19:49:04.000000000 +0100
++++ gtk+2.0-2.11.2/ltmain.sh	2007-06-13 16:33:27.000000000 +0200
 @@ -43,7 +43,7 @@
  
  PROGRAM=ltmain.sh
@@ -8679,9 +8737,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/ltmain.sh gtk+2
  	  esac
  	  ;;
  	no)
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/m4macros/Makefile.in gtk+2.0-2.11.2/m4macros/Makefile.in
+Index: gtk+2.0-2.11.2/m4macros/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/m4macros/Makefile.in	2007-06-06 15:06:04.000000000 +0200
-+++ gtk+2.0-2.11.2/m4macros/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/m4macros/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8691,9 +8750,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/m4macros/Makefi
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/Makefile.in gtk+2.0-2.11.2/modules/Makefile.in
+Index: gtk+2.0-2.11.2/modules/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/Makefile.in	2007-06-06 15:05:13.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/modules/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8703,9 +8763,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines/Makefile.in gtk+2.0-2.11.2/modules/engines/Makefile.in
+Index: gtk+2.0-2.11.2/modules/engines/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/engines/Makefile.in	2007-06-06 15:05:16.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/engines/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/modules/engines/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8715,9 +8776,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines/ms-windows/Makefile.in gtk+2.0-2.11.2/modules/engines/ms-windows/Makefile.in
+Index: gtk+2.0-2.11.2/modules/engines/ms-windows/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/engines/ms-windows/Makefile.in	2007-06-06 15:05:17.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/engines/ms-windows/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/modules/engines/ms-windows/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8727,9 +8789,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.11.2/modules/engines/ms-windows/Theme/Makefile.in
+Index: gtk+2.0-2.11.2/modules/engines/ms-windows/Theme/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/engines/ms-windows/Theme/Makefile.in	2007-06-06 15:05:18.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/engines/ms-windows/Theme/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/modules/engines/ms-windows/Theme/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8739,9 +8802,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.11.2/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+Index: gtk+2.0-2.11.2/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-06-06 15:05:20.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8751,9 +8815,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines/pixbuf/Makefile.in gtk+2.0-2.11.2/modules/engines/pixbuf/Makefile.in
+Index: gtk+2.0-2.11.2/modules/engines/pixbuf/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/engines/pixbuf/Makefile.in	2007-06-06 15:05:21.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/engines/pixbuf/Makefile.in	2007-06-13 11:49:14.000000000 +0200
++++ gtk+2.0-2.11.2/modules/engines/pixbuf/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8763,9 +8828,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/input/Makefile.in gtk+2.0-2.11.2/modules/input/Makefile.in
+Index: gtk+2.0-2.11.2/modules/input/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/input/Makefile.in	2007-06-06 15:05:15.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/input/Makefile.in	2007-06-13 11:49:15.000000000 +0200
++++ gtk+2.0-2.11.2/modules/input/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8807,9 +8873,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/input/M
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printbackends/Makefile.in gtk+2.0-2.11.2/modules/printbackends/Makefile.in
+Index: gtk+2.0-2.11.2/modules/printbackends/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/printbackends/Makefile.in	2007-06-06 15:05:22.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/printbackends/Makefile.in	2007-06-13 11:49:15.000000000 +0200
++++ gtk+2.0-2.11.2/modules/printbackends/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -93,6 +93,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8819,9 +8886,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printbackends/cups/Makefile.in gtk+2.0-2.11.2/modules/printbackends/cups/Makefile.in
+Index: gtk+2.0-2.11.2/modules/printbackends/cups/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/printbackends/cups/Makefile.in	2007-06-06 15:05:23.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/printbackends/cups/Makefile.in	2007-06-13 11:49:15.000000000 +0200
++++ gtk+2.0-2.11.2/modules/printbackends/cups/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8831,9 +8899,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printbackends/file/Makefile.in gtk+2.0-2.11.2/modules/printbackends/file/Makefile.in
+Index: gtk+2.0-2.11.2/modules/printbackends/file/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/printbackends/file/Makefile.in	2007-06-06 15:05:24.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/printbackends/file/Makefile.in	2007-06-13 11:49:15.000000000 +0200
++++ gtk+2.0-2.11.2/modules/printbackends/file/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8843,9 +8912,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printbackends/lpr/Makefile.in gtk+2.0-2.11.2/modules/printbackends/lpr/Makefile.in
+Index: gtk+2.0-2.11.2/modules/printbackends/lpr/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/printbackends/lpr/Makefile.in	2007-06-06 15:05:26.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/printbackends/lpr/Makefile.in	2007-06-13 11:49:15.000000000 +0200
++++ gtk+2.0-2.11.2/modules/printbackends/lpr/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8855,9 +8925,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printbackends/test/Makefile.in gtk+2.0-2.11.2/modules/printbackends/test/Makefile.in
+Index: gtk+2.0-2.11.2/modules/printbackends/test/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/modules/printbackends/test/Makefile.in	2007-06-06 15:05:27.000000000 +0200
-+++ gtk+2.0-2.11.2/modules/printbackends/test/Makefile.in	2007-06-13 11:49:15.000000000 +0200
++++ gtk+2.0-2.11.2/modules/printbackends/test/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8867,9 +8938,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/perf/Makefile.in gtk+2.0-2.11.2/perf/Makefile.in
+Index: gtk+2.0-2.11.2/perf/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/perf/Makefile.in	2007-06-06 15:05:34.000000000 +0200
-+++ gtk+2.0-2.11.2/perf/Makefile.in	2007-06-13 11:49:15.000000000 +0200
++++ gtk+2.0-2.11.2/perf/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -8879,9 +8951,10 @@ diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/perf/Makefile.i
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-diff -urN -urN -x config.guess -x config.sub gtk+2.0-2.11.2.orig/tests/Makefile.in gtk+2.0-2.11.2/tests/Makefile.in
+Index: gtk+2.0-2.11.2/tests/Makefile.in
+===================================================================
 --- gtk+2.0-2.11.2.orig/tests/Makefile.in	2007-06-06 15:05:32.000000000 +0200
-+++ gtk+2.0-2.11.2/tests/Makefile.in	2007-06-13 11:49:16.000000000 +0200
++++ gtk+2.0-2.11.2/tests/Makefile.in	2007-06-13 16:33:27.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@

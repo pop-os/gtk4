@@ -1,3 +1,5 @@
+Debian #381081; GNOME #447118
+
 Index: gtk+2.0-2.10.10/gdk/directfb/gdkdrawable-directfb.c
 ===================================================================
 --- gtk+2.0-2.10.10.orig/gdk/directfb/gdkdrawable-directfb.c	2007-03-12 15:06:54.000000000 +0100
@@ -6,7 +8,7 @@ Index: gtk+2.0-2.10.10/gdk/directfb/gdkdrawable-directfb.c
  #include "gdkregion-generic.h"
  #include "gdkalias.h"
  
-+#define CAIRO_HAS_DIRECTFB_SURFACE
++#include <cairo.h>
  #include "cairo-directfb.h"
  
  #define WARN_UNIMPLEMENTED(func)\
