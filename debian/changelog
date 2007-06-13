@@ -27,8 +27,10 @@ gtk+2.0 (2.11.2-1) experimental; urgency=low
     007_implicit_pointer_conversion_gdkdrawable_directfb; refresh
     relibtoolizing patch.
   * Add cross-refs to patch headers.
+  * Clean up CFLAGS.
+  * Prepare passing -z defs via LDFLAGS in the future.
 
- -- Loic Minier <lool@dooz.org>  Wed, 13 Jun 2007 16:35:43 +0200
+ -- Loic Minier <lool@dooz.org>  Wed, 13 Jun 2007 16:57:47 +0200
 
 gtk+2.0 (2.10.13-1) unstable; urgency=low
 
