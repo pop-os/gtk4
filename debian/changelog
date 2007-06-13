@@ -1,8 +1,14 @@
-gtk+2.0 (2.10.12-4) UNRELEASED; urgency=low
+gtk+2.0 (2.10.13-1) unstable; urgency=low
 
   * Bump Conflicts to iiimf-client-gtk << 12.3.91-4.
+  * Upload to unstable; drop check-dist include.
+  * New upstream release; no API change.
+    - Drop patches 011_directfb-build-fixes-from-head,
+      013_gdkproperty-directfb-strdup, 032_filechooser-sizing,
+      090_capslock-numlock-im-thai merged upstream.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Sat, 09 Jun 2007 15:14:39 +0200
+ -- Loic Minier <lool@dooz.org>  Wed, 13 Jun 2007 10:06:49 +0200
 
 gtk+2.0 (2.10.12-3) experimental; urgency=low
 

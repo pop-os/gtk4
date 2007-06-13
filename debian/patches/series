@@ -5,16 +5,12 @@
 007_implicit_pointer_conversion_gdkdrawable_directfb.patch
 008_implicit_pointer_conversion_gdkgc_directfb.patch
 009_gtk-export-filechooser.patch
-011_directfb-build-fixes-from-head.patch
-013_gdkproperty-directfb-strdup.patch
 015_default-fallback-icon-theme.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
 030_gtkentry_password-char-circle.patch
 031_cursor-blinking-timeout.patch
-032_filechooser-sizing.patch
 033_treeview_resizing.patch
 040_filechooser_single-click.patch
 041_ia32-libs.patch
 070_mandatory-relibtoolize.patch
-090_capslock-numlock-im-thai.patch -p0
