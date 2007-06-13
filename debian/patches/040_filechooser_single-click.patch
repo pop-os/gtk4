@@ -1,3 +1,6 @@
+Debian #405296; GNOME #148828; permit single click in filechooser instead of
+requiring double-click.
+
 Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
 ===================================================================
 --- gtk+-2.10.12.orig/gtk/gtkfilechooserdefault.c	2007-05-18 18:33:08.711978750 +0200

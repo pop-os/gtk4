@@ -1,3 +1,24 @@
+gtk+2.0 (2.11.2-1) UNRELEASED; urgency=low
+
+  * New upstream release series; these are development releases, the new API
+    may still change incompatibly.
+    - Target at experimental; include check-dist.
+    - Bump shlibs to >= 2.11.2.
+    - Refresh patches 001_static-linking-dont-query-immodules, 005_xpmico,
+      009_gtk-export-filechooser, 015_default-fallback-icon-theme,
+      033_treeview_resizing, 041_ia32-libs to apply cleanly.
+    - Update patch 021_loader-files-d to apply with the upstream G_MODULE
+      changes and the support for included modules.
+    - Update patch 030_gtkentry_password-char-circle to apply.
+    - Drop patch 031_cursor-blinking-timeout, merged upstream.
+    - Disable 040_filechooser_single-click for now as it doesn't apply cleanly
+      and doesn't seem critical; add a description and cross-refs.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
+    - Bump up libglib2.0-dev build-dep to >= 2.13.1.
+  * XXX WIP XXX
+
+ -- Loic Minier <lool@dooz.org>  Wed, 13 Jun 2007 12:09:29 +0200
+
 gtk+2.0 (2.10.13-1) unstable; urgency=low
 
   * Bump Conflicts to iiimf-client-gtk << 12.3.91-4.
