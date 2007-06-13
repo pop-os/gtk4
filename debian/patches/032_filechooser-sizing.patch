@@ -1,7 +1,7 @@
-Index: gtk+-2.10.12/gtk/gtkfilechooserembed.c
+Index: gtk+2.0-2.10.12/gtk/gtkfilechooserembed.c
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserembed.c	2007-05-18 18:32:18.820860750 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserembed.c	2007-05-18 18:33:08.707978500 +0200
+--- gtk+2.0-2.10.12.orig/gtk/gtkfilechooserembed.c	2007-05-02 18:26:58.000000000 +0200
++++ gtk+2.0-2.10.12/gtk/gtkfilechooserembed.c	2007-06-06 23:41:40.000000000 +0200
 @@ -28,9 +28,7 @@
  static void delegate_get_default_size         (GtkFileChooserEmbed *chooser_embed,
  					       gint                *default_width,
@@ -59,10 +59,10 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserembed.c
 -  GTK_FILE_CHOOSER_EMBED_GET_IFACE (chooser_embed)->get_resizable_hints (chooser_embed, resize_horizontally, resize_vertically);
 +  return GTK_FILE_CHOOSER_EMBED_GET_IFACE (chooser_embed)->get_resizable (chooser_embed);
  }
-Index: gtk+-2.10.12/gtk/gtkfilechooserembed.h
+Index: gtk+2.0-2.10.12/gtk/gtkfilechooserembed.h
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserembed.h	2007-05-18 18:32:18.800859500 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserembed.h	2007-05-18 18:33:08.707978500 +0200
+--- gtk+2.0-2.10.12.orig/gtk/gtkfilechooserembed.h	2007-05-02 18:26:58.000000000 +0200
++++ gtk+2.0-2.10.12/gtk/gtkfilechooserembed.h	2007-06-06 23:41:40.000000000 +0200
 @@ -43,9 +43,7 @@
    void (*get_default_size)        (GtkFileChooserEmbed *chooser_embed,
  				   gint                *default_width,
@@ -86,10 +86,10 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserembed.h
  gboolean _gtk_file_chooser_embed_should_respond (GtkFileChooserEmbed *chooser_embed);
  
  void _gtk_file_chooser_embed_initial_focus (GtkFileChooserEmbed *chooser_embed);
-Index: gtk+-2.10.12/gtk/gtkfilechooserdialog.c
+Index: gtk+2.0-2.10.12/gtk/gtkfilechooserdialog.c
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserdialog.c	2007-05-18 18:32:18.740855750 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserdialog.c	2007-05-18 18:33:08.707978500 +0200
+--- gtk+2.0-2.10.12.orig/gtk/gtkfilechooserdialog.c	2007-05-02 18:26:58.000000000 +0200
++++ gtk+2.0-2.10.12/gtk/gtkfilechooserdialog.c	2007-06-06 23:41:40.000000000 +0200
 @@ -87,10 +87,6 @@
  								   GTK_TYPE_FILE_CHOOSER_DIALOG,
  								   GtkFileChooserDialogPrivate);
@@ -299,10 +299,10 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdialog.c
    _gtk_file_chooser_embed_initial_focus (GTK_FILE_CHOOSER_EMBED (priv->widget));
  
    GTK_WIDGET_CLASS (gtk_file_chooser_dialog_parent_class)->map (widget);
-Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
+Index: gtk+2.0-2.10.12/gtk/gtkfilechooserdefault.c
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserdefault.c	2007-05-18 18:32:18.724854750 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserdefault.c	2007-05-18 18:33:08.711978750 +0200
+--- gtk+2.0-2.10.12.orig/gtk/gtkfilechooserdefault.c	2007-05-02 18:26:59.000000000 +0200
++++ gtk+2.0-2.10.12/gtk/gtkfilechooserdefault.c	2007-06-06 23:42:03.000000000 +0200
 @@ -272,6 +272,8 @@
  							 GtkStyle              *previous_style);
  static void     gtk_file_chooser_default_screen_changed (GtkWidget             *widget,
@@ -519,11 +519,11 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserdefault.c
  }
  
  struct switch_folder_closure {
-Index: gtk+-2.10.12/gtk/gtkfilechooserprivate.h
+Index: gtk+2.0-2.10.12/gtk/gtkfilechooserprivate.h
 ===================================================================
---- gtk+-2.10.12.orig/gtk/gtkfilechooserprivate.h	2007-05-18 18:32:18.664851000 +0200
-+++ gtk+-2.10.12/gtk/gtkfilechooserprivate.h	2007-05-18 18:33:08.715979000 +0200
-@@ -109,10 +109,6 @@
+--- gtk+2.0-2.10.12.orig/gtk/gtkfilechooserprivate.h	2007-06-06 23:41:40.000000000 +0200
++++ gtk+2.0-2.10.12/gtk/gtkfilechooserprivate.h	2007-06-06 23:41:40.000000000 +0200
+@@ -117,10 +117,6 @@
    char *file_system;
  
    /* for use with GtkFileChooserEmbed */
@@ -534,7 +534,7 @@ Index: gtk+-2.10.12/gtk/gtkfilechooserprivate.h
    gboolean response_requested;
  };
  
-@@ -254,6 +250,9 @@
+@@ -262,6 +258,9 @@
    GSource *shortcuts_drag_outside_idle;
  #endif
  
