@@ -4,7 +4,7 @@ requiring double-click.
 Index: gtk+-2.11.2/gtk/gtkfilechooserdefault.c
 ===================================================================
 --- gtk+-2.11.2.orig/gtk/gtkfilechooserdefault.c	2007-06-06 13:43:08.000000000 +0200
-+++ gtk+-2.11.2/gtk/gtkfilechooserdefault.c	2007-06-13 20:35:28.276504667 +0200
++++ gtk+-2.11.2/gtk/gtkfilechooserdefault.c	2007-06-14 02:10:53.595381229 +0200
 @@ -389,10 +389,6 @@
  
  static void filter_combo_changed       (GtkComboBox           *combo_box,
@@ -31,7 +31,7 @@ Index: gtk+-2.11.2/gtk/gtkfilechooserdefault.c
 +
 +  if (gtk_tree_selection_get_selected(selection, NULL, &iter))
 +    {
-+      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (impl->shortcuts_filter_model),
++      gtk_tree_model_filter_convert_iter_to_child_iter (GTK_TREE_MODEL_FILTER (impl->shortcuts_pane_filter_model),
 +							&child_iter,
 +							&iter);
 +      shortcuts_activate_iter (impl, &child_iter);
