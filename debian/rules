@@ -313,5 +313,9 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_md5sums -a
 	dh_builddeb -a
 
+list-missing:
+	perl -w debian/dh_listmissing.pl $(foreach f,$(FLAVORS),$(subst $(CURDIR)/,,$(installbasedir))/$(f)) 2>&1 | \
+	    egrep -v '(\.la|usr/lib/gtk-2.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
+
 binary: binary-indep binary-arch
-.PHONY: patch configure build check install clean binary-indep binary-arch binary
+.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary

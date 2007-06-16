@@ -1,4 +1,4 @@
-gtk+2.0 (2.11.3-1) UNRELEASED; urgency=low
+gtk+2.0 (2.11.3-1) experimental; urgency=low
 
   [ Josselin Mouette ]
   * 040_filechooser_single-click.patch: fix the patch to apply cleanly
@@ -16,8 +16,13 @@ gtk+2.0 (2.11.3-1) UNRELEASED; urgency=low
       033_treeview_resizing, 040_filechooser_single-click, and 041_ia32-libs
       to apply cleanly.
     - Update relibtoolizing patch, 070_mandatory-relibtoolize.
+  * Add a debian/dh_listmissing.pl script based on dh_install snippets but
+    customized to handle multiple source installation dirs which can report
+    files which were not installed to a package.
+  * New list-missing rule to list files which were not installed to a package
+    calling debian/dh_listmissing.pl.
 
- -- Loic Minier <lool@dooz.org>  Sat, 16 Jun 2007 14:31:53 +0200
+ -- Loic Minier <lool@dooz.org>  Sat, 16 Jun 2007 16:54:27 +0200
 
 gtk+2.0 (2.11.2-1) experimental; urgency=low
 
