@@ -1,7 +1,7 @@
-Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
+Index: gtk+2.0-2.11.3/gdk-pixbuf/gdk-pixbuf-io.c
 ===================================================================
---- gtk+2.0-2.11.2.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-06-13 11:44:25.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c	2007-06-13 11:44:41.000000000 +0200
+--- gtk+2.0-2.11.3.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-06-16 14:25:47.000000000 +0200
++++ gtk+2.0-2.11.3/gdk-pixbuf/gdk-pixbuf-io.c	2007-06-16 14:26:24.000000000 +0200
 @@ -280,8 +280,20 @@
    gchar *result = g_strdup (g_getenv ("GDK_PIXBUF_MODULE_FILE"));
  
@@ -25,11 +25,11 @@ Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
    return result;
  }
  
-Index: gtk+2.0-2.11.2/gtk/gtkrc.c
+Index: gtk+2.0-2.11.3/gtk/gtkrc.c
 ===================================================================
---- gtk+2.0-2.11.2.orig/gtk/gtkrc.c	2007-06-06 13:43:09.000000000 +0200
-+++ gtk+2.0-2.11.2/gtk/gtkrc.c	2007-06-13 11:44:41.000000000 +0200
-@@ -449,7 +449,20 @@
+--- gtk+2.0-2.11.3.orig/gtk/gtkrc.c	2007-06-15 20:07:37.000000000 +0200
++++ gtk+2.0-2.11.3/gtk/gtkrc.c	2007-06-16 14:26:24.000000000 +0200
+@@ -450,7 +450,20 @@
        if (im_module_file)
  	result = g_strdup (im_module_file);
        else
@@ -51,7 +51,7 @@ Index: gtk+2.0-2.11.2/gtk/gtkrc.c
      }
  
    return result;
-@@ -521,7 +534,21 @@
+@@ -522,7 +535,21 @@
    else
      {
        const gchar *home;
@@ -74,7 +74,7 @@ Index: gtk+2.0-2.11.2/gtk/gtkrc.c
  
        gtk_rc_add_default_file (str);
        g_free (str);
-@@ -529,7 +556,21 @@
+@@ -530,7 +557,21 @@
        home = g_get_home_dir ();
        if (home)
  	{

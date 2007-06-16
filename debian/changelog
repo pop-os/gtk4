@@ -1,4 +1,4 @@
-gtk+2.0 (2.11.2-2) UNRELEASED; urgency=low
+gtk+2.0 (2.11.3-1) UNRELEASED; urgency=low
 
   [ Josselin Mouette ]
   * 040_filechooser_single-click.patch: fix the patch to apply cleanly
@@ -7,8 +7,17 @@ gtk+2.0 (2.11.2-2) UNRELEASED; urgency=low
   [ Loic Minier ]
   * Pass -mminimal-toc in CFLAGS for ppc64 support; thanks Andreas Jochens;
     closes: #386815.
+  * New upstream development release, with API additions; the new API may
+    still change incompatibly.
+    - Bump shlibs to >= 2.11.3.
+    - Refresh patches 006_proper-directfb-modules,
+      008_implicit_pointer_conversion_gdkgc_directfb,
+      009_gtk-export-filechooser, 030_gtkentry_password-char-circle,
+      033_treeview_resizing, 040_filechooser_single-click, and 041_ia32-libs
+      to apply cleanly.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Thu, 14 Jun 2007 22:42:06 +0200
+ -- Loic Minier <lool@dooz.org>  Sat, 16 Jun 2007 14:31:53 +0200
 
 gtk+2.0 (2.11.2-1) experimental; urgency=low
 
