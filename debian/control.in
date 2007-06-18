@@ -188,6 +188,8 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          libxrandr-dev,
          libxcursor-dev,
          libxfixes-dev,
+         libxcomposite-dev,
+         libxdamage-dev,
          pkg-config
 Suggests: @DOC_PKG@
 Replaces: libgtk1.3-dev,

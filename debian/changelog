@@ -21,8 +21,9 @@ gtk+2.0 (2.11.3-1) experimental; urgency=low
     files which were not installed to a package.
   * New list-missing rule to list files which were not installed to a package
     calling debian/dh_listmissing.pl.
+  * Also depend on libxcomposite-dev, libxdamage-dev; thanks Sébastien Bacher.
 
- -- Loic Minier <lool@dooz.org>  Sat, 16 Jun 2007 16:54:27 +0200
+ -- Loic Minier <lool@dooz.org>  Mon, 18 Jun 2007 14:36:51 +0200
 
 gtk+2.0 (2.11.2-1) experimental; urgency=low
 

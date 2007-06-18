@@ -188,6 +188,8 @@ Depends: libgtk2.0-0 (= ${binary:Version}),
          libxrandr-dev,
          libxcursor-dev,
          libxfixes-dev,
+         libxcomposite-dev,
+         libxdamage-dev,
          pkg-config
 Suggests: libgtk2.0-doc
 Replaces: libgtk1.3-dev,
