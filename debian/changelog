@@ -1,4 +1,4 @@
-gtk+2.0 (2.11.3-1) experimental; urgency=low
+gtk+2.0 (2.11.3-1) UNRELEASED; urgency=low
 
   [ Josselin Mouette ]
   * 040_filechooser_single-click.patch: fix the patch to apply cleanly
@@ -22,8 +22,9 @@ gtk+2.0 (2.11.3-1) experimental; urgency=low
   * New list-missing rule to list files which were not installed to a package
     calling debian/dh_listmissing.pl.
   * Also depend on libxcomposite-dev, libxdamage-dev; thanks Sébastien Bacher.
+  * Ship etc/gtk-2.0/im-multipress.conf in the shared library.
 
- -- Loic Minier <lool@dooz.org>  Mon, 18 Jun 2007 14:36:51 +0200
+ -- Loic Minier <lool@dooz.org>  Mon, 18 Jun 2007 14:40:08 +0200
 
 gtk+2.0 (2.11.2-1) experimental; urgency=low
 
