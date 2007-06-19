@@ -1,4 +1,4 @@
-gtk+2.0 (2.11.3-1) UNRELEASED; urgency=low
+gtk+2.0 (2.11.4-1) UNRELEASED; urgency=low
 
   [ Josselin Mouette ]
   * 040_filechooser_single-click.patch: fix the patch to apply cleanly
@@ -23,8 +23,11 @@ gtk+2.0 (2.11.3-1) UNRELEASED; urgency=low
     calling debian/dh_listmissing.pl.
   * Also depend on libxcomposite-dev, libxdamage-dev; thanks Sébastien Bacher.
   * Ship etc/gtk-2.0/im-multipress.conf in the shared library.
+  * New upstream development release, with incompatible API changes; the new
+    API may still change incompatibly.
+    - Bump shlibs to >= 2.11.4.
 
- -- Loic Minier <lool@dooz.org>  Mon, 18 Jun 2007 14:40:08 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 19 Jun 2007 21:18:17 +0200
 
 gtk+2.0 (2.11.2-1) experimental; urgency=low
 
