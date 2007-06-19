@@ -26,6 +26,7 @@ gtk+2.0 (2.11.4-1) UNRELEASED; urgency=low
   * New upstream development release, with incompatible API changes; the new
     API may still change incompatibly.
     - Bump shlibs to >= 2.11.4.
+    - Refresh relibtoolizing patch, 070_mandatory-relibtoolize.
 
  -- Loic Minier <lool@dooz.org>  Tue, 19 Jun 2007 21:18:17 +0200
 
