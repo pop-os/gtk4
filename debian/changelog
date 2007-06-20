@@ -1,4 +1,4 @@
-gtk+2.0 (2.11.4-1) UNRELEASED; urgency=low
+gtk+2.0 (2.11.4-1) experimental; urgency=low
 
   [ Josselin Mouette ]
   * 040_filechooser_single-click.patch: fix the patch to apply cleanly
