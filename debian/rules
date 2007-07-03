@@ -48,7 +48,7 @@ DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
 APIVER := 2.0
 SONAME := 0
-SHVER := 2.11.4
+SHVER := 2.11.5
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 2.10.0
@@ -291,7 +291,8 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_strip -a --dbg-package=$(DEBUG_PKG)
 	dh_compress -a
 	dh_fixperms -a -Xusr/lib/$(SHARED_PKG)
-	dh_makeshlibs -p$(SHARED_PKG)\
+	dh_python -a
+	dh_makeshlibs -p$(SHARED_PKG) \
 		-X$(MODULES_BASE_PATH) \
 		-V"$(SHARED_PKG) (>= $(SHVER))" \
 		--add-udeb=$(UDEB_PKG)
