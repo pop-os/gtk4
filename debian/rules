@@ -23,8 +23,7 @@ PATCH_DIR := debian/patches
 DEB_BUILD_OPTIONS_PARALLEL ?= $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j$(DEB_BUILD_OPTIONS_PARALLEL))
 
-# These are used for cross-compiling and for saving the configure script
-# from having to guess our platform (since we know it already)
+DEB_HOST_ARCH_OS   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 
@@ -72,7 +71,12 @@ ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 FLAVORS := directfb shared static
 
 # list of flavors to run the test suite on
+# don't run the directfb testsuite on kfreebsd as it hangs; see #431477
+ifeq ($(DEB_HOST_ARCH_OS), kfreebsd)
+CHECK_FLAVORS := $(filter shared static, $(FLAVORS))
+else
 CHECK_FLAVORS := $(filter directfb shared static, $(FLAVORS))
+endif
 
 # build dir for the current flavor; this is only expanded in flavor specific
 # targets

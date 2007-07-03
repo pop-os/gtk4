@@ -1,3 +1,10 @@
+gtk+2.0 (2.10.13-2) UNRELEASED; urgency=low
+
+  * Don't run the directfb testsuite on kfreebsd as it hangs; proposed patch
+    by Petr Salinger; see #431477.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 03 Jul 2007 08:59:53 +0200
+
 gtk+2.0 (2.10.13-1) unstable; urgency=low
 
   * Bump Conflicts to iiimf-client-gtk << 12.3.91-4.
