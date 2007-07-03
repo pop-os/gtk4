@@ -255,7 +255,7 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
 	dh_testdir
 	dh_testroot
-	dh_install -a
+	dh_install -s
 	# empty the dependency_libs in the *.la files
 	sed -i "/dependency_libs/ s/'.*'/''/" debian/$(DEV_PKG)/usr/lib/*.la
 	# we don't need the rpath in the udeb
@@ -266,7 +266,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	done
 	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) ChangeLog ChangeLog.*
 	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) NEWS NEWS.pre-1-0 README
-	dh_installman -a
+	dh_installman -s
 	# fix the permissions of the development package because it ships
 	# dh_gtkmodules which we need to invoke in this build
 	dh_fixperms -p$(DEV_PKG)
@@ -286,12 +286,12 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
 			-k \
 			-p$(UDEB_PKG)
-	dh_installexamples -a
-	dh_link -a
-	dh_strip -a --dbg-package=$(DEBUG_PKG)
-	dh_compress -a
-	dh_fixperms -a -Xusr/lib/$(SHARED_PKG)
-	dh_python -a
+	dh_installexamples -s
+	dh_link -s
+	dh_strip -s --dbg-package=$(DEBUG_PKG)
+	dh_compress -s
+	dh_fixperms -s -Xusr/lib/$(SHARED_PKG)
+	dh_python -s
 	dh_makeshlibs -p$(SHARED_PKG) \
 		-X$(MODULES_BASE_PATH) \
 		-V"$(SHARED_PKG) (>= $(SHVER))" \
@@ -300,7 +300,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		-X$(MODULES_BASE_PATH) \
 		-V"$(DIRECTFB_PKG) (>= $(SHVER))" \
 		--add-udeb=$(UDEB_PKG)
-	dh_installdeb -a
+	dh_installdeb -s
 	# override shlibs for libraries from this source before computing
 	# dependencies of packages generated from this source; we already have
 	# inter-dependencies expressed manually in the control file, we do not
@@ -308,11 +308,11 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	cat debian/*/DEBIAN/shlibs | \
 		sed -n -r -e 's/(([^ ]+: )?([^ ]+) ([^ ]+)) .*/\1/p' \
 			> debian/shlibs.local
-	dh_shlibdeps -a
+	dh_shlibdeps -s
 	-rm -f debian/shlibs.local
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_gencontrol -s
+	dh_md5sums -s
+	dh_builddeb -s
 
 list-missing:
 	perl -w debian/dh_listmissing.pl $(foreach f,$(FLAVORS),$(subst $(CURDIR)/,,$(installbasedir))/$(f)) 2>&1 | \

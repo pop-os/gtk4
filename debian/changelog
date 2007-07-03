@@ -13,8 +13,9 @@ gtk+2.0 (2.11.5-1) experimental; urgency=low
       006_proper-directfb-modules, 040_filechooser_single-click to apply
       cleanly.
     - Update relibtoolizing patch, 070_mandatory-relibtoolize.
+  * Use -s instead of -a in arch-specific dh_* calls.
 
- -- Loic Minier <lool@dooz.org>  Tue, 03 Jul 2007 12:49:05 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 03 Jul 2007 13:01:25 +0200
 
 gtk+2.0 (2.11.4-1) experimental; urgency=low
 
