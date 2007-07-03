@@ -7,7 +7,7 @@ Build-Depends: debhelper (>= 5.0.22),
                gettext,
                pkg-config,
                libglib2.0-dev (>= 2.13.5),
-               libpango1.0-dev (>= 1.15.3),
+               libpango1.0-dev (>= 1.17.3),
                libatk1.0-dev (>= 1.9.0),
                libx11-dev (>= 2:1.0.0-6),
                libxext-dev,
@@ -191,6 +191,7 @@ Depends: libgtk2.0-0 (= ${binary:Version}),
          libxcomposite-dev,
          libxdamage-dev,
          pkg-config
+Recommends: python (>= 2.4)
 Suggests: libgtk2.0-doc
 Replaces: libgtk1.3-dev,
           gtk2-engines-pixbuf (<< 2.8.18-5)
