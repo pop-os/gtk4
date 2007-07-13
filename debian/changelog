@@ -1,9 +1,19 @@
 gtk+2.0 (2.11.5-2) UNRELEASED; urgency=low
 
+  [ Loic Minier ]
   * Don't run the directfb testsuite on kfreebsd as it hangs; proposed patch
     by Petr Salinger; closes: #431477.
 
- -- Loic Minier <lool@dooz.org>  Tue, 03 Jul 2007 18:59:23 +0200
+  [ Josselin Mouette ]
+  * Move manual pages of binaries in /usr/sbin to section 8.
+  * update-icon-caches: new script, updates the icon caches in a given
+    list of directories. It is meant to be used by packages shipping
+    icons, in the postinst/postrm.
+    For transition purposes, icon caches are currently updated but not
+    created if they don't already exist.
+  * Install this script and its manual page in libgtk2.0-bin.
+
+ -- Josselin Mouette <joss@debian.org>  Sat, 14 Jul 2007 01:31:16 +0200
 
 gtk+2.0 (2.11.5-1) experimental; urgency=low
 
