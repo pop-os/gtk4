@@ -3,6 +3,7 @@ gtk+2.0 (2.10.14-1) unstable; urgency=low
   [ Alan Baghumian ]
   * New upstream release
   * Merged with previous changelog entry
+  * Regenerated 070_mandatory-relibtoolize.patch
 
   [ Loic Minier ]
   * Don't run the directfb testsuite on kfreebsd as it hangs; proposed patch
