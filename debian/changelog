@@ -1,10 +1,5 @@
 gtk+2.0 (2.10.14-1) UNRELEASED; urgency=low
 
-  [ Alan Baghumian ]
-  * New upstream release
-  * Merged with previous changelog entry
-  * Regenerated 070_mandatory-relibtoolize.patch
-
   [ Loic Minier ]
   * Don't run the directfb testsuite on kfreebsd as it hangs; proposed patch
     by Petr Salinger; closes: #431477.
@@ -17,6 +12,11 @@ gtk+2.0 (2.10.14-1) UNRELEASED; urgency=low
     For transition purposes, icon caches are currently updated but not
     created if they don't already exist.
   * Install this script and its manual page in libgtk2.0-bin.
+
+  [ Alan Baghumian ]
+  * New upstream release
+  * Merged with previous changelog entry
+  * Regenerated 070_mandatory-relibtoolize.patch
 
  -- Alan Baghumian <alan@technotux.org>  Tue, 17 Jul 2007 09:06:48 +0330
 
