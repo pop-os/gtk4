@@ -1,3 +1,11 @@
+Classical relibtoolizing patch generated with:
+libtoolize --force --copy
+aclocal-1.7 -I m4macros
+autoconf
+automake-1.7
+rm -rf autom4te.cache
+exclude config.guess and sub with diff -urN -x config.guess -x config.sub
+
 diff -urN -x config.guess -x config.sub gtk+-2.10.14.orig/aclocal.m4 gtk+-2.10.14/aclocal.m4
 --- gtk+-2.10.14.orig/aclocal.m4	2007-07-17 12:49:43.000000000 +0330
 +++ gtk+-2.10.14/aclocal.m4	2007-07-17 12:50:00.000000000 +0330
