@@ -13,7 +13,12 @@ gtk+2.0 (2.11.5-2) UNRELEASED; urgency=low
     created if they don't already exist.
   * Install this script and its manual page in libgtk2.0-bin.
 
- -- Josselin Mouette <joss@debian.org>  Sat, 14 Jul 2007 01:31:16 +0200
+  [ Loic Minier ]
+  * Call dh_shlibdeps separately for the udeb and add a
+    -l/usr/lib/libcairo-directfb/lib/ flag to ensure libcairo-directfb2 is
+    found.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 18 Jul 2007 11:00:05 +0100
 
 gtk+2.0 (2.11.5-1) experimental; urgency=low
 
