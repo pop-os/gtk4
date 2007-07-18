@@ -302,7 +302,8 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	cat debian/*/DEBIAN/shlibs | \
 		sed -n -r -e 's/(([^ ]+: )?([^ ]+) ([^ ]+)) .*/\1/p' \
 			> debian/shlibs.local
-	dh_shlibdeps -a
+	dh_shlibdeps -a -N$(UDEB_PKG)
+	dh_shlibdeps -p$(UDEB_PKG) -l/usr/lib/libcairo-directfb/lib/
 	-rm -f debian/shlibs.local
 	dh_gencontrol -a
 	dh_md5sums -a

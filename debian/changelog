@@ -17,7 +17,12 @@ gtk+2.0 (2.10.14-1) UNRELEASED; urgency=low
   * New upstream release
     - Regenerated 070_mandatory-relibtoolize.patch
 
- -- Alan Baghumian <alan@technotux.org>  Tue, 17 Jul 2007 09:06:48 +0330
+  [ Loic Minier ]
+  * Call dh_shlibdeps separately for the udeb and add a
+    -l/usr/lib/libcairo-directfb/lib/ flag to ensure libcairo-directfb2 is
+    found.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 18 Jul 2007 11:06:57 +0100
 
 gtk+2.0 (2.10.13-1) unstable; urgency=low
 
