@@ -15,8 +15,7 @@ gtk+2.0 (2.10.14-1) UNRELEASED; urgency=low
 
   [ Alan Baghumian ]
   * New upstream release
-  * Merged with previous changelog entry
-  * Regenerated 070_mandatory-relibtoolize.patch
+    - Regenerated 070_mandatory-relibtoolize.patch
 
  -- Alan Baghumian <alan@technotux.org>  Tue, 17 Jul 2007 09:06:48 +0330
 
