@@ -1,11 +1,9 @@
 Debian #405296; GNOME #148828; permit single click in filechooser instead of
 requiring double-click.
 
-Index: gtk+2.0-2.11.5/gtk/gtkfilechooserdefault.c
-===================================================================
---- gtk+2.0-2.11.5.orig/gtk/gtkfilechooserdefault.c	2007-07-02 17:04:00.000000000 +0200
-+++ gtk+2.0-2.11.5/gtk/gtkfilechooserdefault.c	2007-07-03 11:34:58.000000000 +0200
-@@ -389,10 +389,6 @@
+--- gtk+2.0-2.11.6.orig/gtk/gtkfilechooserdefault.c	2007-07-20 22:12:28.000000000 +0200
++++ gtk+2.0-2.11.6/gtk/gtkfilechooserdefault.c	2007-07-23 22:01:15.000000000 +0200
+@@ -390,10 +390,6 @@
  
  static void filter_combo_changed       (GtkComboBox           *combo_box,
  					GtkFileChooserDefault *impl);
@@ -16,7 +14,7 @@ Index: gtk+2.0-2.11.5/gtk/gtkfilechooserdefault.c
  
  static gboolean shortcuts_key_press_event_cb (GtkWidget             *widget,
  					      GdkEventKey           *event,
-@@ -3638,8 +3634,22 @@
+@@ -3639,8 +3635,22 @@
  shortcuts_selection_changed_cb (GtkTreeSelection      *selection,
  				GtkFileChooserDefault *impl)
  {
@@ -39,7 +37,7 @@ Index: gtk+2.0-2.11.5/gtk/gtkfilechooserdefault.c
  }
  
  static gboolean
-@@ -3919,9 +3929,6 @@
+@@ -3920,9 +3930,6 @@
    g_signal_connect (selection, "changed",
  		    G_CALLBACK (shortcuts_selection_changed_cb), impl);
  
@@ -49,7 +47,7 @@ Index: gtk+2.0-2.11.5/gtk/gtkfilechooserdefault.c
    g_signal_connect (impl->browse_shortcuts_tree_view, "key_press_event",
  		    G_CALLBACK (shortcuts_key_press_event_cb), impl);
  
-@@ -8520,25 +8527,6 @@
+@@ -8601,25 +8608,6 @@
        gtk_file_path_free (path);
        return retval;
      }
@@ -75,7 +73,7 @@ Index: gtk+2.0-2.11.5/gtk/gtkfilechooserdefault.c
    else if (impl->toplevel_last_focus_widget == impl->browse_files_tree_view)
      {
        /* The focus is on a dialog's action area button, *and* the widget that
-@@ -10329,25 +10317,6 @@
+@@ -10471,25 +10459,6 @@
      }
  }
  

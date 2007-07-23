@@ -1,10 +1,8 @@
 GNOME #447118; related to Debian #381081
 
-Index: gtk+2.0-2.11.5/configure.in
-===================================================================
---- gtk+2.0-2.11.5.orig/configure.in	2007-07-03 11:34:03.000000000 +0200
-+++ gtk+2.0-2.11.5/configure.in	2007-07-03 11:34:32.000000000 +0200
-@@ -1411,8 +1411,18 @@
+--- gtk+2.0-2.11.6.orig/configure.in	2007-07-23 21:59:10.000000000 +0200
++++ gtk+2.0-2.11.6/configure.in	2007-07-23 21:59:13.000000000 +0200
+@@ -1404,8 +1404,18 @@
  
    if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
        AC_MSG_RESULT(found)
@@ -25,7 +23,7 @@ Index: gtk+2.0-2.11.5/configure.in
    else
        AC_MSG_ERROR([
  *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer and the cairo backend 
-@@ -1464,7 +1474,7 @@
+@@ -1457,7 +1467,7 @@
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  

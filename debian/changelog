@@ -1,4 +1,4 @@
-gtk+2.0 (2.11.5-2) UNRELEASED; urgency=low
+gtk+2.0 (2.11.6-1) experimental; urgency=low
 
   [ Loic Minier ]
   * Don't run the directfb testsuite on kfreebsd as it hangs; proposed patch
@@ -17,8 +17,14 @@ gtk+2.0 (2.11.5-2) UNRELEASED; urgency=low
   * Call dh_shlibdeps separately for the udeb and add a
     -l/usr/lib/libcairo-directfb/lib/ flag to ensure libcairo-directfb2 is
     found.
+  * New upstream development release, with API additions.
+    - Bump up shlibs to >= 2.11.6.
+    - Refresh patches 006_proper-directfb-modules,
+      015_default-fallback-icon-theme, 040_filechooser_single-click.
+    - Update patches 009_gtk-export-filechooser, 033_treeview_resizing,
+      070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Wed, 18 Jul 2007 11:00:05 +0100
+ -- Loic Minier <lool@dooz.org>  Mon, 23 Jul 2007 22:05:34 +0200
 
 gtk+2.0 (2.11.5-1) experimental; urgency=low
 
