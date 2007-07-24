@@ -24,8 +24,14 @@ gtk+2.0 (2.11.6-1) experimental; urgency=low
       cleanly.
     - Update patches 009_gtk-export-filechooser, 033_treeview_resizing to
       apply; update relibtoolizing patch, 070_mandatory-relibtoolize.
+  * Update patch 009_gtk-export-filechooser:
+    - gtk/Makefile.am (gtk_private_h_sources, gtk_semi_private_h_sources):
+      export gtkquery.h and gtksearchengine.h as semi-private.
+    - gtk/gtkquery.h: add GTK_FILE_CHOOSER_ENABLE_UNSUPPORTED #ifdef guard.
+    - gtk/gtksearchengine.h: add GTK_FILE_CHOOSER_ENABLE_UNSUPPORTED #ifdef
+      guard.
 
- -- Loic Minier <lool@dooz.org>  Tue, 24 Jul 2007 10:42:20 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 24 Jul 2007 10:43:23 +0200
 
 gtk+2.0 (2.11.5-1) experimental; urgency=low
 
