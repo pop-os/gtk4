@@ -20,11 +20,12 @@ gtk+2.0 (2.11.6-1) experimental; urgency=low
   * New upstream development release, with API additions.
     - Bump up shlibs to >= 2.11.6.
     - Refresh patches 006_proper-directfb-modules,
-      015_default-fallback-icon-theme, 040_filechooser_single-click.
-    - Update patches 009_gtk-export-filechooser, 033_treeview_resizing,
-      070_mandatory-relibtoolize.
+      015_default-fallback-icon-theme, 040_filechooser_single-click to apply
+      cleanly.
+    - Update patches 009_gtk-export-filechooser, 033_treeview_resizing to
+      apply; update relibtoolizing patch, 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Mon, 23 Jul 2007 22:05:34 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 24 Jul 2007 10:42:20 +0200
 
 gtk+2.0 (2.11.5-1) experimental; urgency=low
 
