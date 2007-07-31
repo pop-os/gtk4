@@ -1,4 +1,4 @@
-gtk+2.0 (2.10.14-1) UNRELEASED; urgency=low
+gtk+2.0 (2.10.14-1) unstable; urgency=low
 
   [ Loic Minier ]
   * Don't run the directfb testsuite on kfreebsd as it hangs; proposed patch
@@ -22,7 +22,7 @@ gtk+2.0 (2.10.14-1) UNRELEASED; urgency=low
     -l/usr/lib/libcairo-directfb/lib/ flag to ensure libcairo-directfb2 is
     found.
 
- -- Loic Minier <lool@dooz.org>  Wed, 18 Jul 2007 11:06:57 +0100
+ -- Loic Minier <lool@dooz.org>  Tue, 31 Jul 2007 13:20:59 +0200
 
 gtk+2.0 (2.10.13-1) unstable; urgency=low
 
