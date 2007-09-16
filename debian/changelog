@@ -1,10 +1,9 @@
-gtk+2.0 (2.11.6-2) UNRELEASED; urgency=low
+gtk+2.0 (2.12.0-1) experimental; urgency=low
 
-  * New patch, 080_from_svn_fix_dangling_tooltip, fixes tooltips not
-    disappearing in the systray; from SVN; found in Ubuntu package;
-    Ubuntu #128781.
+  * New upstream stable release
+    - Regenerated 070_mandatory-relibtoolize.patch
 
- -- Loic Minier <lool@dooz.org>  Tue, 07 Aug 2007 16:28:19 +0200
+ -- Alan Baghumian <alan@technotux.org>  Sun, 16 Sep 2007 18:49:52 +0330
 
 gtk+2.0 (2.11.6-1) experimental; urgency=low
 
