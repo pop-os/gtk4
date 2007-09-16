@@ -1,9 +1,15 @@
-gtk+2.0 (2.12.0-1) experimental; urgency=low
+gtk+2.0 (2.12.0-1) UNRELEASED; urgency=low
 
+  [ Alan Baghumian ]
   * New upstream stable release
     - Regenerated 070_mandatory-relibtoolize.patch
 
- -- Alan Baghumian <alan@technotux.org>  Sun, 16 Sep 2007 18:49:52 +0330
+  [ Loic Minier ]
+  * Refresh patches 033_treeview_resizing and 040_filechooser_single-click to
+    apply cleanly.
+  * Drop patch 080_from_svn_fix_dangling_tooltip, merged upstream.
+
+ -- Loic Minier <lool@dooz.org>  Sun, 16 Sep 2007 18:27:11 +0200
 
 gtk+2.0 (2.11.6-1) experimental; urgency=low
 

@@ -14,4 +14,3 @@
 040_filechooser_single-click.patch
 041_ia32-libs.patch
 070_mandatory-relibtoolize.patch
-080_from_svn_fix_dangling_tooltip.patch
