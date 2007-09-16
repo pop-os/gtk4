@@ -14,3 +14,4 @@
 040_filechooser_single-click.patch
 041_ia32-libs.patch
 070_mandatory-relibtoolize.patch
+081_icon-cache-validate.patch
