@@ -3,14 +3,17 @@ gtk+2.0 (2.12.0-1) UNRELEASED; urgency=low
   [ Alan Baghumian ]
   * New upstream stable release
     - Regenerated 070_mandatory-relibtoolize.patch
-  * Added 081_icon-cache-validate.patch, GNOME #476342  
+  * Added 081_icon-cache-validate.patch, GNOME #476342
 
   [ Loic Minier ]
   * Refresh patches 033_treeview_resizing and 040_filechooser_single-click to
     apply cleanly.
   * Drop patch 080_from_svn_fix_dangling_tooltip, merged upstream.
+  * Bump shlibs to 2.12.0 in the new upstream release for the addition of
+    gdk_window_thaw_toplevel_updates_libgtk_only() and
+    gdk_window_freeze_toplevel_updates_libgtk_only() to the ABI.
 
- -- Loic Minier <lool@dooz.org>  Sun, 16 Sep 2007 18:27:11 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 18 Sep 2007 22:26:11 +0200
 
 gtk+2.0 (2.11.6-1) experimental; urgency=low
 
