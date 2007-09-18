@@ -1,4 +1,4 @@
-gtk+2.0 (2.12.0-1) UNRELEASED; urgency=low
+gtk+2.0 (2.12.0-1) unstable; urgency=low
 
   [ Alan Baghumian ]
   * New upstream stable release
@@ -12,8 +12,12 @@ gtk+2.0 (2.12.0-1) UNRELEASED; urgency=low
   * Bump shlibs to 2.12.0 in the new upstream release for the addition of
     gdk_window_thaw_toplevel_updates_libgtk_only() and
     gdk_window_freeze_toplevel_updates_libgtk_only() to the ABI.
+  * Add disabled patch 091_workaround_no_gtk_init_incorrect_display, taken
+    from the Ubuntu package; it works around broken applications missing a
+    call to gtk_init() but the breakage should better be exposed now so that
+    applications can be fixed in time for release.
 
- -- Loic Minier <lool@dooz.org>  Tue, 18 Sep 2007 22:26:11 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 18 Sep 2007 22:30:39 +0200
 
 gtk+2.0 (2.11.6-1) experimental; urgency=low
 
