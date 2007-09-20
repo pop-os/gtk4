@@ -3,6 +3,8 @@
 # Debian GNOME Maintainers
 DISABLE_UPDATE_UPLOADERS := 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
+# prevent accidental uploads to unstable
+include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 # get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
@@ -26,20 +28,27 @@ MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j$(DEB_BUILD_OPTIONS_PARALLEL))
 DEB_HOST_ARCH_OS   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
+DEB_BUILD_GNU_CPU  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_CPU)
 
-CFLAGS += -Wall -g
-
-ifneq (,$(findstring noopt,$(DEB_BUILD_OPTIONS)))
-	CFLAGS += -O0
-else
-	CFLAGS += -O2
+# ppc64 support; see #386815
+# XXX Should probably be fixed in binutils
+# XXX Use LDFLAGS instead of CFLAGS?
+# XXX shouldn't we check the arch instead of the CPU?
+ifeq ($(DEB_BUILD_GNU_CPU),powerpc64)
+	CFLAGS += -mminimal-toc
 endif
+
+CFLAGS += -Wall -g -O$(if $(findstring noopt,$(DEB_BUILD_OPTIONS)),0,2)
+
+# used to fail in directfb code -- but this might be fixed -- currently fails
+# in the cups gtkprint backend
+#LDFLAGS += -Wl,-z,defs
 
 DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
 APIVER := 2.0
 SONAME := 0
-SHVER := 2.10.12-3
+SHVER := 2.12.0
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 2.10.0
@@ -104,7 +113,8 @@ common_configure_flags := \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
 			--with-html-dir=\$${prefix}/share/doc/$(DOC_PKG) \
-			--enable-explicit-deps=yes
+			--enable-explicit-deps=yes \
+			--enable-test-print-backend
 ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE)
 else
@@ -250,7 +260,7 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
 	dh_testdir
 	dh_testroot
-	dh_install -a
+	dh_install -s
 	# empty the dependency_libs in the *.la files
 	sed -i "/dependency_libs/ s/'.*'/''/" debian/$(DEV_PKG)/usr/lib/*.la
 	# we don't need the rpath in the udeb
@@ -261,7 +271,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	done
 	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) ChangeLog ChangeLog.*
 	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) NEWS NEWS.pre-1-0 README
-	dh_installman -a
+	dh_installman -s
 	# fix the permissions of the development package because it ships
 	# dh_gtkmodules which we need to invoke in this build
 	dh_fixperms -p$(DEV_PKG)
@@ -281,12 +291,12 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
 			-k \
 			-p$(UDEB_PKG)
-	dh_installexamples -a
-	dh_link -a
-	dh_strip -a --dbg-package=$(DEBUG_PKG)
-	dh_compress -a
-	dh_fixperms -a -Xusr/lib/$(SHARED_PKG)
-	dh_makeshlibs -p$(SHARED_PKG)\
+	dh_installexamples -s
+	dh_link -s
+	dh_strip -s --dbg-package=$(DEBUG_PKG)
+	dh_compress -s
+	dh_fixperms -s -Xusr/lib/$(SHARED_PKG)
+	dh_makeshlibs -p$(SHARED_PKG) \
 		-X$(MODULES_BASE_PATH) \
 		-V"$(SHARED_PKG) (>= $(SHVER))" \
 		--add-udeb=$(UDEB_PKG)
@@ -294,7 +304,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		-X$(MODULES_BASE_PATH) \
 		-V"$(DIRECTFB_PKG) (>= $(SHVER))" \
 		--add-udeb=$(UDEB_PKG)
-	dh_installdeb -a
+	dh_installdeb -s
 	# override shlibs for libraries from this source before computing
 	# dependencies of packages generated from this source; we already have
 	# inter-dependencies expressed manually in the control file, we do not
@@ -302,12 +312,16 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	cat debian/*/DEBIAN/shlibs | \
 		sed -n -r -e 's/(([^ ]+: )?([^ ]+) ([^ ]+)) .*/\1/p' \
 			> debian/shlibs.local
-	dh_shlibdeps -a -N$(UDEB_PKG)
+	dh_shlibdeps -s -N$(UDEB_PKG)
 	dh_shlibdeps -p$(UDEB_PKG) -l/usr/lib/libcairo-directfb/lib/
 	-rm -f debian/shlibs.local
-	dh_gencontrol -a
-	dh_md5sums -a
-	dh_builddeb -a
+	dh_gencontrol -s
+	dh_md5sums -s
+	dh_builddeb -s
+
+list-missing:
+	perl -w debian/dh_listmissing.pl $(foreach f,$(FLAVORS),$(subst $(CURDIR)/,,$(installbasedir))/$(f)) 2>&1 | \
+	    egrep -v '(\.la|usr/lib/gtk-2.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
 
 binary: binary-indep binary-arch
-.PHONY: patch configure build check install clean binary-indep binary-arch binary
+.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary

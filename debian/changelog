@@ -1,4 +1,32 @@
-gtk+2.0 (2.10.14-1) unstable; urgency=low
+gtk+2.0 (2.12.0-2) UNRELEASED; urgency=low
+
+  * Add a conflict against openoffice.org-core (<< 2.2.1-8).
+    Closes: #439256.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 19 Sep 2007 13:23:14 +0200
+
+gtk+2.0 (2.12.0-1) experimental; urgency=low
+
+  [ Alan Baghumian ]
+  * New upstream stable release
+    - Regenerated 070_mandatory-relibtoolize.patch
+  * Added 081_icon-cache-validate.patch, GNOME #476342
+
+  [ Loic Minier ]
+  * Refresh patches 033_treeview_resizing and 040_filechooser_single-click to
+    apply cleanly.
+  * Drop patch 080_from_svn_fix_dangling_tooltip, merged upstream.
+  * Bump shlibs to 2.12.0 in the new upstream release for the addition of
+    gdk_window_thaw_toplevel_updates_libgtk_only() and
+    gdk_window_freeze_toplevel_updates_libgtk_only() to the ABI.
+  * Add disabled patch 091_workaround_no_gtk_init_incorrect_display, taken
+    from the Ubuntu package; it works around broken applications missing a
+    call to gtk_init() but the breakage should better be exposed now so that
+    applications can be fixed in time for release.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 18 Sep 2007 22:30:39 +0200
+
+gtk+2.0 (2.11.6-1) experimental; urgency=low
 
   [ Loic Minier ]
   * Don't run the directfb testsuite on kfreebsd as it hangs; proposed patch
@@ -13,16 +41,111 @@ gtk+2.0 (2.10.14-1) unstable; urgency=low
     created if they don't already exist.
   * Install this script and its manual page in libgtk2.0-bin.
 
-  [ Alan Baghumian ]
-  * New upstream release
-    - Regenerated 070_mandatory-relibtoolize.patch
-
   [ Loic Minier ]
   * Call dh_shlibdeps separately for the udeb and add a
     -l/usr/lib/libcairo-directfb/lib/ flag to ensure libcairo-directfb2 is
     found.
+  * New upstream development release, with API additions.
+    - Bump up shlibs to >= 2.11.6.
+    - Refresh patches 006_proper-directfb-modules,
+      015_default-fallback-icon-theme, 040_filechooser_single-click to apply
+      cleanly.
+    - Update patches 009_gtk-export-filechooser, 033_treeview_resizing to
+      apply; update relibtoolizing patch, 070_mandatory-relibtoolize.
+  * Update patch 009_gtk-export-filechooser:
+    - gtk/Makefile.am (gtk_private_h_sources, gtk_semi_private_h_sources):
+      export gtkquery.h and gtksearchengine.h as semi-private.
+    - gtk/gtkquery.h: add GTK_FILE_CHOOSER_ENABLE_UNSUPPORTED #ifdef guard.
+    - gtk/gtksearchengine.h: add GTK_FILE_CHOOSER_ENABLE_UNSUPPORTED #ifdef
+      guard.
 
- -- Loic Minier <lool@dooz.org>  Tue, 31 Jul 2007 13:20:59 +0200
+ -- Loic Minier <lool@dooz.org>  Tue, 24 Jul 2007 10:43:23 +0200
+
+gtk+2.0 (2.11.5-1) experimental; urgency=low
+
+  * New upstream development release, with API additions; the new API may
+    still change incompatibly, especially the tooltips API.
+    - Bump shlibs to >= 2.11.5.
+    - Bump up libpango1.0-dev build-dep to >= 1.17.3.
+    - Ship the new gtk-builder-convert Python script to convert Glade files to
+      GtkBuilder syntax in libgtk2.0-dev; don't call dh_py* to generate a
+      ${python:Depends} but Recommend python (>= 2.4) to avoid pulling python
+      on buildds; the script requires python >= 2.4, but this is not enforced
+      in the dependencies.
+    - Refresh patches 001_static-linking-dont-query-immodules,
+      006_proper-directfb-modules, 040_filechooser_single-click to apply
+      cleanly.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
+  * Use -s instead of -a in arch-specific dh_* calls.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 03 Jul 2007 13:01:25 +0200
+
+gtk+2.0 (2.11.4-1) experimental; urgency=low
+
+  [ Josselin Mouette ]
+  * 040_filechooser_single-click.patch: fix the patch to apply cleanly
+    again, and enable it.
+
+  [ Loic Minier ]
+  * Pass -mminimal-toc in CFLAGS for ppc64 support; thanks Andreas Jochens;
+    closes: #386815.
+  * New upstream development release, with API additions; the new API may
+    still change incompatibly.
+    - Bump shlibs to >= 2.11.3.
+    - Refresh patches 006_proper-directfb-modules,
+      008_implicit_pointer_conversion_gdkgc_directfb,
+      009_gtk-export-filechooser, 030_gtkentry_password-char-circle,
+      033_treeview_resizing, 040_filechooser_single-click, and 041_ia32-libs
+      to apply cleanly.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
+  * Add a debian/dh_listmissing.pl script based on dh_install snippets but
+    customized to handle multiple source installation dirs which can report
+    files which were not installed to a package.
+  * New list-missing rule to list files which were not installed to a package
+    calling debian/dh_listmissing.pl.
+  * Also depend on libxcomposite-dev, libxdamage-dev; thanks Sébastien Bacher.
+  * Ship etc/gtk-2.0/im-multipress.conf in the shared library.
+  * New upstream development release, with incompatible API changes; the new
+    API may still change incompatibly.
+    - Bump shlibs to >= 2.11.4.
+    - Refresh relibtoolizing patch, 070_mandatory-relibtoolize.
+    - Bump up libglib2.0-dev build-dep to >= 2.11.5.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 20 Jun 2007 10:47:42 +0200
+
+gtk+2.0 (2.11.2-1) experimental; urgency=low
+
+  * New upstream release series; these are development releases, the new API
+    may still change incompatibly.
+    - Target at experimental; include check-dist.
+    - Bump shlibs to >= 2.11.2.
+    - Refresh patches 001_static-linking-dont-query-immodules, 005_xpmico,
+      009_gtk-export-filechooser, 015_default-fallback-icon-theme,
+      033_treeview_resizing, 041_ia32-libs to apply cleanly.
+    - Update patch 021_loader-files-d to apply with the upstream G_MODULE
+      changes and the support for included modules.
+    - Update patch 030_gtkentry_password-char-circle to apply.
+    - Drop patch 031_cursor-blinking-timeout, merged upstream.
+    - Disable 040_filechooser_single-click for now as it doesn't apply cleanly
+      and doesn't seem critical; add a description and cross-refs.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
+    - Bump up build-deps to libglib2.0-dev >= 2.13.1, libpango1.0-dev >=
+      1.15.3, gtk-doc-tools >= 1.6.
+    - Build-dep on libxcomposite-dev for composite support.
+    - Build-dep on libxdamage-dev for damage support.
+    - Enable test print backend by passing --enable-test-print-backend to
+      configure.
+  * Update 007_implicit_pointer_conversion_gdkdrawable_directfb to include
+    cairo.h instead of defining the directfb feature manually.
+  * New patch, 006_proper-directfb-modules, fixes pkg-config modules included
+    to build directfb stuff, uncovered by the change in
+    007_implicit_pointer_conversion_gdkdrawable_directfb; refresh
+    relibtoolizing patch.
+  * Add cross-refs to patch headers.
+  * Clean up CFLAGS.
+  * Prepare passing -z defs via LDFLAGS in the future.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 13 Jun 2007 16:57:47 +0200
 
 gtk+2.0 (2.10.13-1) unstable; urgency=low
 

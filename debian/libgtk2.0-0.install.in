@@ -2,6 +2,7 @@
 debian/update-gdkpixbuf-loaders usr/lib/@SHARED_PKG@
 debian/update-gtk-immodules usr/lib/@SHARED_PKG@
 # from the shared flavor
+debian/install/shared/etc/gtk-@APIVER@/im-multipress.conf etc/gtk-@APIVER@
 debian/install/shared/usr/bin/gdk-pixbuf-query-loaders usr/lib/@SHARED_PKG@
 debian/install/shared/usr/bin/gtk-query-immodules-2.0 usr/lib/@SHARED_PKG@
 debian/install/shared/usr/bin/gtk-update-icon-cache usr/lib/@SHARED_PKG@
