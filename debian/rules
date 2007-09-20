@@ -3,8 +3,6 @@
 # Debian GNOME Maintainers
 DISABLE_UPDATE_UPLOADERS := 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
-# prevent accidental uploads to unstable
-include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 # get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
