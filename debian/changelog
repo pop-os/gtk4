@@ -1,3 +1,11 @@
+gtk+2.0 (2.12.0-3) UNRELEASED; urgency=low
+
+  * 031_gtksearchenginetracker_fixes.patch: new patch.
+    + Use libtrackerclient.so.0 (closes: #443403).
+    + Check that tracker actually works before using it.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 21 Sep 2007 12:47:46 +0200
+
 gtk+2.0 (2.12.0-2) unstable; urgency=low
 
   [ Josselin Mouette ]
