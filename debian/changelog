@@ -1,10 +1,16 @@
 gtk+2.0 (2.12.0-3) UNRELEASED; urgency=low
 
+  [ Josselin Mouette ]
   * 031_gtksearchenginetracker_fixes.patch: new patch.
     + Use libtrackerclient.so.0 (closes: #443403).
     + Check that tracker actually works before using it.
 
- -- Josselin Mouette <joss@debian.org>  Fri, 21 Sep 2007 12:47:46 +0200
+  [ Loic Minier ]
+  * Conflict with libwxgtk2.6-0 << 2.6.3.2.2-1 to prevent the migration of gtk
+    to testing until the wxwidgets2.6 fix is there too; see #441766 and
+    friends.
+
+ -- Loic Minier <lool@dooz.org>  Sun, 30 Sep 2007 03:31:22 +0200
 
 gtk+2.0 (2.12.0-2) unstable; urgency=low
 
