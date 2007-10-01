@@ -10,7 +10,11 @@ gtk+2.0 (2.12.0-3) UNRELEASED; urgency=low
     to testing until the wxwidgets2.6 fix is there too; see #441766 and
     friends.
 
- -- Loic Minier <lool@dooz.org>  Sun, 30 Sep 2007 03:31:22 +0200
+  [ Josselin Mouette ]
+  * Conflict with glabels << 2.1.3-3 to prevent a segmentation fault 
+    from showing up.
+
+ -- Josselin Mouette <joss@debian.org>  Mon, 01 Oct 2007 12:56:09 +0200
 
 gtk+2.0 (2.12.0-2) unstable; urgency=low
 
