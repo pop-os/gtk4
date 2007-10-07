@@ -11,10 +11,13 @@ gtk+2.0 (2.12.0-3) UNRELEASED; urgency=low
     friends.
 
   [ Josselin Mouette ]
-  * Conflict with glabels << 2.1.3-3 to prevent a segmentation fault 
+  * Conflict with glabels << 2.1.3-3 to prevent a segmentation fault
     from showing up.
 
- -- Josselin Mouette <joss@debian.org>  Mon, 01 Oct 2007 12:56:09 +0200
+  [ Loic Minier ]
+  * Cleanup whitespace.
+
+ -- Loic Minier <lool@dooz.org>  Sun, 07 Oct 2007 17:03:45 +0200
 
 gtk+2.0 (2.12.0-2) unstable; urgency=low
 
@@ -216,7 +219,7 @@ gtk+2.0 (2.10.12-2) unstable; urgency=low
   * Re-add patch 031_cursor-blinking-timeout to patch series.
 
   [ Josselin Mouette ]
-  * 033_treeview_resizing.patch: fix column resizing in GtkTreeView when 
+  * 033_treeview_resizing.patch: fix column resizing in GtkTreeView when
     there is an expander column. See bugzilla #316087.
 
  -- Josselin Mouette <joss@debian.org>  Fri, 18 May 2007 19:02:20 +0200
@@ -360,7 +363,7 @@ gtk+2.0 (2.10.7-1) experimental; urgency=low
   * Regenerate 070_mandatory-relibtoolize.patch.
   * 014_gtktreeview_missing-icons.patch: update patch with the upstream
     fix that was committed.
-  * 009_directfb_build.patch: new patch, fix typo in configure.in for 
+  * 009_directfb_build.patch: new patch, fix typo in configure.in for
     the directfb build.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 10 Jan 2007 00:03:03 +0100
@@ -376,7 +379,7 @@ gtk+2.0 (2.10.6-5) experimental; urgency=low
   * 023_gtkentry_password-char-circle.patch: new patch to replace stars by
     black circles in password fields; thanks Sven Arvidsson; found in Fedora
     and OpenSuse (closes: #401568).
-  * 024_filechooser_single-click.patch: patch from UHU-Linux to make the 
+  * 024_filechooser_single-click.patch: patch from UHU-Linux to make the
     side pane in the filechooser usable with a single click
     (closes: #405296).
 
@@ -401,8 +404,8 @@ gtk+2.0 (2.10.6-3) experimental; urgency=low
   * Bump up libcairo-directfb2-dev build-dep to 1.2.4-4.
 
   [ Josselin Mouette ]
-  * 070_mandatory-relibtoolize.patch: recreate with autoconf 2.59, to 
-    avoid the AM_GLIB_DEFINE_LOCALEDIR bug (making GTK+ applications 
+  * 070_mandatory-relibtoolize.patch: recreate with autoconf 2.59, to
+    avoid the AM_GLIB_DEFINE_LOCALEDIR bug (making GTK+ applications
     untranslated).
   * Make gtk2-engines conflict less strict.
 
@@ -675,11 +678,11 @@ gtk+2.0 (2.8.18-7) unstable; urgency=medium
 
 gtk+2.0 (2.8.18-6) unstable; urgency=low
 
-  * 005_implicit_pointer_conversion.patch: patch from Dann Frazier to 
+  * 005_implicit_pointer_conversion.patch: patch from Dann Frazier to
     fix an implicit pointer conversion error on 64-bit architectures
     (closes: #381081).
-  * 006_implicit_pointer_conversion.patch: fix another implicit 
-    conversion by allowing deprecated functions in the necessary header 
+  * 006_implicit_pointer_conversion.patch: fix another implicit
+    conversion by allowing deprecated functions in the necessary header
     file (closes: #381082).
 
  -- Josselin Mouette <joss@debian.org>  Wed,  2 Aug 2006 14:48:54 +0200
@@ -754,25 +757,25 @@ gtk+2.0 (2.8.18-1) unstable; urgency=low
   * New upstream version:
     Bugs fixed:
     - search box positioning has some bugs
-    - Gdk does not translate VK_NUMPADx to GDK_KP_x  
-    - sanely handle late (re)setting of dnd image   
-    - Text is shifted off-by-one in Add to panel 
+    - Gdk does not translate VK_NUMPADx to GDK_KP_x
+    - sanely handle late (re)setting of dnd image
+    - Text is shifted off-by-one in Add to panel
     - gtk_widget_create_pango_layout docs typo
     - GtkLayout In GtkScrolledWindow does not receive the scroll_event
-    - gtktreeview has RTL problems with toggle buttons if using gtktreestore 
-      as a model    
-    - Wrong drop location in GtkEntry     
-    - GtkImage animation CRITICALS on switching themes 
+    - gtktreeview has RTL problems with toggle buttons if using gtktreestore
+      as a model
+    - Wrong drop location in GtkEntry
+    - GtkImage animation CRITICALS on switching themes
     - DnD: Conditional jump or move depends on uninitialised value
     - cursor blocked to dnd mode after using shift and dnd on a GtkCalendar
     - Crashes while creating source code w/GtkFontSelection
     - the right edge tab does not appear when switching tab
-    - Warning in gtk_paned_compute_position 
+    - Warning in gtk_paned_compute_position
     - gdk should set resolution on PangoCairoFontmap, not PangoCairoContext
     - GtkTreeView does not resize correctly
     - gtk_tree_view_get_cell_area() forgets depth-one expander
     - expander animation not working in RTL mode
-    - Multiple issues discovered by Coverity  
+    - Multiple issues discovered by Coverity
     - Make gtk_file_chooser_button_new() friendlier for language bindings
 
  -- Sebastien Bacher <seb128@debian.org>  Tue, 30 May 2006 17:02:26 +0200
@@ -790,19 +793,19 @@ gtk+2.0 (2.8.17-1) unstable; urgency=low
     - TreeView DnD between-row highlight colo
     - Gtk-Criticals occur when scrolling a text_view that is not realized
     - Hidden menubar still activates submenus with kbd
-    - GtkTreeItem broken 
-    -  Clean up button press handling (use one-grab-op-at-a-time pattern)   
+    - GtkTreeItem broken
+    -  Clean up button press handling (use one-grab-op-at-a-time pattern)
     - broken scrolling when selecting
     - GTK+ File-chooser dialog crashes
     - Nautilus crashes when dragging icons to another screen
     - mixed line separators confuse gtk_text_iter_ends_line
     - Textview child is covered by window border
-    - gdk_pixbuf_loader_new_with_type(): What image types are allowed? 
+    - gdk_pixbuf_loader_new_with_type(): What image types are allowed?
     - Missing progress bar label
     - Fix a problem which caused grab-notify signal to be missed in some cases
   * debian/control.in:
     - clear the Build-Depends on xlibs-static-pic | xlibs-pic, not required
-    - updated the Build-Depends on libpango1.0-dev so it build with 
+    - updated the Build-Depends on libpango1.0-dev so it build with
       the xorg transitioned version
   * * debian/patches/001_default_fallback_icon_theme.patch:
     - set the default fallback icon theme to "gnome", fixes the issues with
@@ -822,8 +825,8 @@ gtk+2.0 (2.8.15-1) unstable; urgency=low
     * Bugs fixed:
       - Keys P and N in "open file" dialog have special meaning
       - MS-Windows theme (GTK-Wimp) shows all funky characters
-      - Optimize gdk on win32 
-      - Hollow polygons have wrong linecaps 
+      - Optimize gdk on win32
+      - Hollow polygons have wrong linecaps
       - panel crash with a11y enabled
     * Updated translations (bg,bn,cs,eu,ro)
 
@@ -833,18 +836,18 @@ gtk+2.0 (2.8.13-1) unstable; urgency=low
 
   * New upstream version:
     * Bugs fixed:
-    - Can't select some items in GtkIconView 
+    - Can't select some items in GtkIconView
     - gtk_icon_theme_list_icons: example contexts don't work
     - gnopernicus crashes on changing display screen source for magnifier
-    - evince crashes in gdk_region_union_with_rect 
-    - Small error in _gdk_gc_update_context 
-    - gtk.Notebook.get_current_page() returns incorrect page number 
+    - evince crashes in gdk_region_union_with_rect
+    - Small error in _gdk_gc_update_context
+    - gtk.Notebook.get_current_page() returns incorrect page number
       when pages hidden
     - GtkAboutDialog not responsive to Escape key
     - GtkNotebook popup menu not keynavigatable
     - GtkRadioButton does not issue notify::active
-    - Make more use of G_DISABLE_ASSERT in TextView code  
-    * Updated translations 
+    - Make more use of G_DISABLE_ASSERT in TextView code
+    * Updated translations
 
  -- Sebastien Bacher <seb128@debian.org>  Sat, 25 Feb 2006 23:56:58 +0100
 
@@ -858,14 +861,14 @@ gtk+2.0 (2.8.12-1) unstable; urgency=low
 gtk+2.0 (2.8.11-1) unstable; urgency=low
 
   * New upstream version
-    * Avoid memory overruns in the pixbuf theme engine with nonsensical 
+    * Avoid memory overruns in the pixbuf theme engine with nonsensical
       gradient specifications.  [Matthias]
     * Bugs fixed:
     - Cursor doesn't move as expected
-    - Segfault from combination of gtk_container_set_resize_mode() 
+    - Segfault from combination of gtk_container_set_resize_mode()
       and GtkComboBox
     - segfault in update_cursor on amd64
-    - eog crashes at launch under AIX 
+    - eog crashes at launch under AIX
     - "~" should bring up the location dialog
     - gtk_text_layout_get_cursor_locations() chokes on layout=0x0
     * Documentation improvements [Federico Mena Quintero]
@@ -893,31 +896,31 @@ gtk+2.0 (2.8.9-1) experimental; urgency=low
 
   * New upstream version:
     Bugs fixed:
-    - File chooser filter behaves weird 
+    - File chooser filter behaves weird
     - 2.8.4 to 2.8.6: sound-juicer crash, fileselector assertions
-    - On unsetting the Model, GtkTreeView does not clear 
+    - On unsetting the Model, GtkTreeView does not clear
       it's associated TreeSelection
-    - Crash on selecting a file of null mime-type 
+    - Crash on selecting a file of null mime-type
     - gtktoolbutton leaks a pixbuf
-    - GdkEvent leaked in gtktreeview.c / gtk_tree_view_key_press 
-    - Typo in trap_activate_cb() 
-    - gtkcalendar.c: The identifier is already declared. 
-    - gtk_menu_attach_to_widget() does not take NULL detacher 
-    - Unhinted fonts are measured incorrectly and drawing 
+    - GdkEvent leaked in gtktreeview.c / gtk_tree_view_key_press
+    - Typo in trap_activate_cb()
+    - gtkcalendar.c: The identifier is already declared.
+    - gtk_menu_attach_to_widget() does not take NULL detacher
+    - Unhinted fonts are measured incorrectly and drawing
       problems occur as a result
-    - unwanted scrolling in recent gtk 
-    - Toolbars without icons are invisible in icon-only mode 
-    - Search-entry in the TreeView not working properly 
-    - gtktoolbutton.c:562: warning: 'image' is used 
-      uninitialized in this function 
-    - reference count of textbuffer increases with each paste 
+    - unwanted scrolling in recent gtk
+    - Toolbars without icons are invisible in icon-only mode
+    - Search-entry in the TreeView not working properly
+    - gtktoolbutton.c:562: warning: 'image' is used
+      uninitialized in this function
+    - reference count of textbuffer increases with each paste
     - gtk_selection_data_get_uris leaks memory
     Other changes:
-    - Remove GMemChunk from public header files to 
-      support building against GLib 2.10 
-    - Report errors in option parsing 
-    - Merge upstream xdgmime changes to handle duplicate glob patterns 
-  
+    - Remove GMemChunk from public header files to
+      support building against GLib 2.10
+    - Report errors in option parsing
+    - Merge upstream xdgmime changes to handle duplicate glob patterns
+
  -- Sebastien Bacher <seb128@debian.org>  Sat, 10 Dec 2005 18:22:50 +0100
 
 gtk+2.0 (2.8.8-1) experimental; urgency=low
@@ -943,7 +946,7 @@ gtk+2.0 (2.8.7-1) experimental; urgency=low
     - updated.
   * debian/rules:
     - fix confusing cp usage.
-  
+
   [ Loic Minier ]
   * Drop xlibs-dev deps and build-deps.
     [debian/control, debian/control.in]
@@ -962,10 +965,10 @@ gtk+2.0 (2.8.3-1) experimental; urgency=low
 gtk+2.0 (2.8.2-1) experimental; urgency=low
 
   * New upstream version:
-    - Fix a crash with custom icon themes, which affected 
+    - Fix a crash with custom icon themes, which affected
       the gnome-theme-manager.
     - Make sure font and cursor settings are propaged down
-      to the screen initially. 
+      to the screen initially.
   * debian/control.in:
     - require the current pango.
 
@@ -1058,7 +1061,7 @@ gtk+2.0 (2.6.7-1) experimental; urgency=low
     - the new version fixes that.
   * debian/patches/004_fs_newdir.patch:
     - the new version fixes that.
-  
+
  -- Sebastien Bacher <seb128@debian.org>  Thu, 14 Apr 2005 22:06:53 +0200
 
 gtk+2.0 (2.6.4-1) unstable; urgency=medium
@@ -1072,7 +1075,7 @@ gtk+2.0 (2.6.4-1) unstable; urgency=medium
     - dropped, this change is not required.
   * debian/patches/002_bmp.patch:
      - fix CAN-2005-0891: BMP double free Dos (Closes: #303141).
-  
+
  -- Sebastien Bacher <seb128@debian.org>  Tue,  5 Apr 2005 21:09:01 +0200
 
 gtk+2.0 (2.6.2-4) unstable; urgency=high
@@ -1104,10 +1107,10 @@ gtk+2.0 (2.6.2-3) unstable; urgency=low
 gtk+2.0 (2.6.2-2) unstable; urgency=low
 
   * debian/libgtk2.0-bin.postinst:
-    - don't run gtk-update-icon-cache, the themes should do that 
+    - don't run gtk-update-icon-cache, the themes should do that
       (Closes: #293568).
   * debian/patches/003_iconcache.patch:
-    - should fix the gtk-update-icon-cache issue on sparc. 
+    - should fix the gtk-update-icon-cache issue on sparc.
 
  -- Sebastien Bacher <seb128@debian.org>  Sun,  6 Feb 2005 19:57:57 +0100
 
@@ -1156,7 +1159,7 @@ gtk+2.0 (2.6.0-1) experimental; urgency=low
     - removed, these changes are in the new version.
   * debian/rules:
     - updated the shlibs.
-    - use dh_strip to make the debug package.  
+    - use dh_strip to make the debug package.
   * update-gtk-immodules.in:
   * update-gdkpixbuf-loaders.in:
     - module version is 2.4.0.
@@ -1182,7 +1185,7 @@ gtk+2.0 (2.4.14-1) unstable; urgency=low
   * debian/control.in:
     - set myself as maintainer.
   * debian/patches/003_treeview-typeahead.patch:
-    - backport of the typeahead feature for the treeviews.  
+    - backport of the typeahead feature for the treeviews.
 
  -- Sebastien Bacher <seb128@debian.org>  Sun, 19 Dec 2004 14:55:07 +0100
 
@@ -1268,14 +1271,14 @@ gtk+2.0 (2.4.3-2) unstable; urgency=low
   * debian/libgtk2.0-doc.doc-base.gtk-faq,
     debian/libgtk2.0-doc.doc-base.gtk-tutorial:
     - changed index.html with book1.html.
-  * Included devehelp files from Richard Cohen <richard@daijobu.co.uk> 
+  * Included devehelp files from Richard Cohen <richard@daijobu.co.uk>
     for the faq and the tutorial (Closes: #256844).
 
  -- Sebastien Bacher <seb128@debian.org>  Sat,  3 Jul 2004 12:14:38 +0200
 
 gtk+2.0 (2.4.3-1) unstable; urgency=medium
 
-  * New upstream release 
+  * New upstream release
     - fix the button size allocation logic (Closes: #253971, #253974).
   * debian/rules
     - updated the shlibs.
@@ -1296,27 +1299,27 @@ gtk+2.0 (2.4.1-4) unstable; urgency=low
 
 gtk+2.0 (2.4.1-3) unstable; urgency=low
 
-  * GNOME Team Upload. 
+  * GNOME Team Upload.
   * Upload to unstable
-    + close bug fixed in experimental uploads 
+    + close bug fixed in experimental uploads
       (Closes: #161244, #201429, #201507, #203677, #208744, #223316, #228603)
-      (Closes: #232081, #234902, #238479, #241860) 
+      (Closes: #232081, #234902, #238479, #241860)
   * Marc Brockschmidt <he@debian.org>
    + debian/rules: Really, *really* surpress warnings when removing directories
      (using >/dev/null 2>&1 instead of 2>&1 >/dev/null)
-  
+
  -- Sebastien Bacher <seb128@debian.org>  Sat, 22 May 2004 15:23:21 +0200
 
 gtk+2.0 (2.4.1-2) experimental; urgency=low
 
-  * debian/control.in: 
-    + Conflict with old versions of packages that need a rebuild to work with 
+  * debian/control.in:
+    + Conflict with old versions of packages that need a rebuild to work with
       gtk+2.4 to force the updates.
 
  -- Sebastien Bacher <seb128@debian.org>  Sat, 15 May 2004 23:24:07 +0200
 
 gtk+2.0 (2.4.1-1) experimental; urgency=low
-  
+
   * New upstream release.
   * Akira TAGOH <tagoh@debian.org>
   + debian/control:
@@ -1325,7 +1328,7 @@ gtk+2.0 (2.4.1-1) experimental; urgency=low
   * Sebastien Bacher <seb128@debian.org>
   + debian/rules:
     - updated shlib to 2.4.1.
-  
+
  -- Sebastien Bacher <seb128@debian.org>  Wed,  5 May 2004 23:32:54 +0200
 
 gtk+2.0 (2.4.0-4) experimental; urgency=low
@@ -1370,9 +1373,9 @@ gtk+2.0 (2.4.0-1) experimental; urgency=low
     + back out locale-dependent interpretation of KP_Decimal (Closes: #234902).
     + change scrolling method (Closes: #161244).
     + first day of the week depends of the locale (Closes: #228603).
-    + fix fileselector multiple selection handling after keyboard validation 
-      (Closes: #208744).  
-    + fix gtktreeview crash when expanding nodes (Closes: #232081).  
+    + fix fileselector multiple selection handling after keyboard validation
+      (Closes: #208744).
+    + fix gtktreeview crash when expanding nodes (Closes: #232081).
     + fix quotes missing in gtk-2.0.m4 (Closes: #223316).
     + use the new file selector (Closes: #203677, #201429, #201507).
     + and probably a lot of other bug fixes and improvements ...
@@ -1393,9 +1396,9 @@ gtk+2.0 (2.4.0-1) experimental; urgency=low
         + removed, fixed in upstream source.
       - 001_gtk+-debian-aclocal-pass_all.patch :
         + updated.
-      - 000_gtk+-2.2.0-buildfix-immodule.patch 
+      - 000_gtk+-2.2.0-buildfix-immodule.patch
         + updated.
-      - 000_gtk+-debian-xinerama-pic.patch 
+      - 000_gtk+-debian-xinerama-pic.patch
         + updated.
 
  -- Sebastien Bacher <seb128@debian.org>  Mon, 22 Mar 2004 22:00:09 +0100
@@ -1436,7 +1439,7 @@ gtk+2.0 (2.2.4-4) unstable; urgency=low
 gtk+2.0 (2.2.4-3) unstable; urgency=low
 
   * debian/patches/:
-    - 002_gtk+-debian-freetype.patch: patch from Daniel Schepler to fix the 
+    - 002_gtk+-debian-freetype.patch: patch from Daniel Schepler to fix the
       build failure due to freetype (Closes: #225129).
 
  -- Sebastien Bacher <seb128@debian.org>  Sat, 27 Dec 2003 13:00:17 +0100
@@ -1453,13 +1456,13 @@ gtk+2.0 (2.2.4-2) unstable; urgency=low
     - replaced book1.html by index.html (closes: Bug#215382).
   * debian/patches/:
     - 000_gtk+-2.2.4-socketfocus.patch: new patch to fix a GtkSocket focus
-      problem that hang the system tray applet. 
+      problem that hang the system tray applet.
       (closes: Bug#210813, Bug#212772).
-    - 001_gtk+-ximian-gtk2-filesel-navbutton-5.patch: updated 
-      (closes: Bug#216660). 
+    - 001_gtk+-ximian-gtk2-filesel-navbutton-5.patch: updated
+      (closes: Bug#216660).
   * debian/rules:
     - modified to generate debian/control using gnome-pkg-tools.
-  
+
  -- Sebastien Bacher <seb128@debian.org>  Fri, 31 Oct 2003 21:32:29 +0100
 
 gtk+2.0 (2.2.4-1) unstable; urgency=low
