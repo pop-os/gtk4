@@ -16,8 +16,11 @@ gtk+2.0 (2.12.0-3) UNRELEASED; urgency=low
 
   [ Loic Minier ]
   * Cleanup whitespace.
+  * Add comments to relibtoolizing patch, 070_mandatody-relibtoolize, to
+    mention the age of the upstream libtool in released tarballs which make
+    relibtoolizing important for hurd-i386; GNOME #484426; Debian #445001.
 
- -- Loic Minier <lool@dooz.org>  Sun, 07 Oct 2007 17:03:45 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 07 Oct 2007 17:59:39 +0200
 
 gtk+2.0 (2.12.0-2) unstable; urgency=low
 

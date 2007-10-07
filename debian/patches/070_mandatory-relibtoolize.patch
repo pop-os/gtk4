@@ -6,6 +6,9 @@ automake-1.7
 rm -rf autom4te.cache
 exclude config.guess and sub with diff -urN -x config.guess -x config.sub
 
+This is required because of patches touching autotools files, but also because
+of upstream using an older libtool; see GNOME #484426; Debian #445001.
+
 diff -urN -x config.guess -x config.sub gtk+-2.12.0.orig/aclocal.m4 gtk+-2.12.0/aclocal.m4
 --- gtk+-2.12.0.orig/aclocal.m4	2007-09-14 00:17:30.000000000 +0330
 +++ gtk+-2.12.0/aclocal.m4	2007-09-16 18:42:52.000000000 +0330
