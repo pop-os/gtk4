@@ -1,0 +1,68 @@
+--- gdk/gdkwindow.c.orig	2007-10-02 11:22:11.000000000 +0200
++++ gtk+2.0-2.12.0/gdk/gdkwindow.c	2007-10-02 11:22:20.000000000 +0200
+@@ -609,18 +609,21 @@ gdk_window_get_parent (GdkWindow *window
+ GdkWindow*
+ gdk_window_get_toplevel (GdkWindow *window)
+ {
+   GdkWindowObject *obj;
+   
+   g_return_val_if_fail (GDK_IS_WINDOW (window), NULL);
+ 
+   obj = (GdkWindowObject *)window;
+-  while (GDK_WINDOW_TYPE (obj) == GDK_WINDOW_CHILD)
++  while (obj && GDK_WINDOW_TYPE (obj) == GDK_WINDOW_CHILD) {
+     obj = (GdkWindowObject *)obj->parent;
++  }
++
++  g_return_val_if_fail (obj != NULL, NULL);
+   
+   return GDK_WINDOW (obj);
+ }
+ 
+ /**
+  * gdk_window_get_children:
+  * @window: a #GdkWindow
+  * 
+@@ -2290,19 +2293,21 @@ gdk_window_update_idle (gpointer data)
+   return FALSE;
+ }
+ 
+ static gboolean
+ gdk_window_is_toplevel_frozen (GdkWindow *window)
+ {
+   GdkWindowObject *toplevel;
+ 
++  g_return_val_if_fail (window != NULL, FALSE);
++
+   toplevel = (GdkWindowObject *)gdk_window_get_toplevel (window);
+ 
+-  return toplevel->update_and_descendants_freeze_count > 0;
++  return toplevel ? toplevel->update_and_descendants_freeze_count > 0 : FALSE;
+ }
+ 
+ static void
+ gdk_window_schedule_update (GdkWindow *window)
+ {
+   if (window &&
+       (GDK_WINDOW_OBJECT (window)->update_freeze_count ||
+        gdk_window_is_toplevel_frozen (window)))
+@@ -2428,16 +2433,19 @@ gdk_window_process_all_updates (void)
+   
+   update_windows = NULL;
+   update_idle = 0;
+ 
+   g_slist_foreach (old_update_windows, (GFunc)g_object_ref, NULL);
+   
+   while (tmp_list)
+     {
++      if(!tmp_list->data)
++        continue;
++
+       GdkWindowObject *private = (GdkWindowObject *)tmp_list->data;
+       
+       if (private->update_freeze_count ||
+ 	  gdk_window_is_toplevel_frozen (tmp_list->data))
+ 	update_windows = g_slist_prepend (update_windows, private);
+       else
+ 	gdk_window_process_updates_internal (tmp_list->data);
+       

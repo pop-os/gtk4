@@ -1,4 +1,4 @@
-gtk+2.0 (2.12.0-3) UNRELEASED; urgency=low
+gtk+2.0 (2.12.0-3) unstable; urgency=low
 
   [ Josselin Mouette ]
   * 031_gtksearchenginetracker_fixes.patch: new patch.
@@ -36,8 +36,14 @@ gtk+2.0 (2.12.0-3) UNRELEASED; urgency=low
   * New patch, 065_gtk-filechooser-locale-time, fixes conversion of localized
     week days in non-UTF-8 locales in the file chooser; GNOME #482504;
     closes: #444927.
+  * Enable 091_workaround_no_gtk_init_incorrect_display to allow the non-free
+    Flash plugin to work for users of non-Gtk browsers; please do bug Adobe
+    about this; closes: #443661, #440165.
+  * New patch, 071_fix_gdk_window_null_crasher, fixes potential crashes in
+    IceWeasel's print preview dialog; GNOME #482531; LP #144326; found in the
+    Ubuntu package.
 
- -- Loic Minier <lool@dooz.org>  Sun, 14 Oct 2007 20:38:18 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 14 Oct 2007 20:46:29 +0200
 
 gtk+2.0 (2.12.0-2) unstable; urgency=low
 
