@@ -33,8 +33,11 @@ gtk+2.0 (2.12.0-3) UNRELEASED; urgency=low
   * New patch, 060_opening-display-by-env-error-message, fixes error message
     on opening of display to include the display when it was set via the
     DISPLAY env var; GNOME #486636; closes: #283076.
+  * New patch, 065_gtk-filechooser-locale-time, fixes conversion of localized
+    week days in non-UTF-8 locales in the file chooser; GNOME #482504;
+    closes: #444927.
 
- -- Loic Minier <lool@dooz.org>  Sun, 14 Oct 2007 19:59:24 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 14 Oct 2007 20:38:18 +0200
 
 gtk+2.0 (2.12.0-2) unstable; urgency=low
 

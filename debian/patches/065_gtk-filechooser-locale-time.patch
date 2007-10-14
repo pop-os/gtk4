@@ -1,0 +1,14 @@
+GNOME #482504; Debian #444927; Fix warnings and display of modified date / time
+in filechooser for some locales as it was missing a locale to UTF-8 conversion
+
+--- gtk/gtkfilechooserdefault.c.orig	2007-10-14 20:36:47.000000000 +0200
++++ gtk/gtkfilechooserdefault.c	2007-10-14 20:38:04.000000000 +0200
+@@ -11100,7 +11100,7 @@
+ 	}
+ 
+       if (strftime (buf, sizeof (buf), format, &tm_mtime) != 0)
+-        date_str = g_strdup (buf);
++        date_str = g_locale_to_utf8 (buf, -1, NULL, NULL, NULL);
+       else
+ 	date_str = g_strdup (_("Unknown"));
+     }
