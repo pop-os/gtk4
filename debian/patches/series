@@ -17,7 +17,7 @@
 060_opening-display-by-env-error-message.patch
 065_gtk-filechooser-locale-time.patch -p0
 070_mandatory-relibtoolize.patch
-071_fix_gdk_window_null_crasher
+071_fix_gdk_window_null_crasher.patch
 080_from_bugzilla_workaround_eclipse_crash.patch
 081_icon-cache-validate.patch
 091_workaround_no_gtk_init_incorrect_display
