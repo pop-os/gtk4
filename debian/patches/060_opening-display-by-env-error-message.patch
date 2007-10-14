@@ -1,0 +1,14 @@
+GNOME #486636; Debian #283076; fixes error message on opening of display to
+include the display when it was set via the DISPLAY env var
+
+--- gtk+2.0-2.12.0.orig/gtk/gtkmain.c	2007-09-13 22:35:41.000000000 +0200
++++ gtk+2.0-2.12.0/gtk/gtkmain.c	2007-10-14 19:55:34.000000000 +0200
+@@ -933,6 +933,8 @@
+   if (!gtk_init_check (argc, argv))
+     {
+       const char *display_name_arg = gdk_get_display_arg_name ();
++      if (display_name_arg == NULL)
++        display_name_arg = getenv("DISPLAY");
+       g_warning ("cannot open display: %s", display_name_arg ? display_name_arg : " ");
+       exit (1);
+     }

@@ -14,6 +14,7 @@
 033_treeview_resizing.patch
 040_filechooser_single-click.patch
 041_ia32-libs.patch
+60_opening-display-by-env-error-message.patch
 070_mandatory-relibtoolize.patch
 080_from_bugzilla_workaround_eclipse_crash.patch
 081_icon-cache-validate.patch
