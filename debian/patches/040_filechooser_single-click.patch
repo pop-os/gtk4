@@ -1,8 +1,8 @@
 Debian #405296; GNOME #148828; permit single click in filechooser instead of
 requiring double-click.
 
---- gtk+2.0-2.12.0.orig/gtk/gtkfilechooserdefault.c	2007-09-13 22:35:40.000000000 +0200
-+++ gtk+2.0-2.12.0/gtk/gtkfilechooserdefault.c	2007-09-16 18:24:40.000000000 +0200
+--- gtk+2.0-2.12.1.orig/gtk/gtkfilechooserdefault.c	2007-10-16 15:20:39.000000000 +0200
++++ gtk+2.0-2.12.1/gtk/gtkfilechooserdefault.c	2007-10-18 16:30:37.000000000 +0200
 @@ -390,10 +390,6 @@
  
  static void filter_combo_changed       (GtkComboBox           *combo_box,
@@ -47,7 +47,7 @@ requiring double-click.
    g_signal_connect (impl->browse_shortcuts_tree_view, "key_press_event",
  		    G_CALLBACK (shortcuts_key_press_event_cb), impl);
  
-@@ -8593,25 +8600,6 @@
+@@ -8604,25 +8611,6 @@
        gtk_file_path_free (path);
        return retval;
      }
@@ -73,7 +73,7 @@ requiring double-click.
    else if (impl->toplevel_last_focus_widget == impl->browse_files_tree_view)
      {
        /* The focus is on a dialog's action area button, *and* the widget that
-@@ -10469,25 +10457,6 @@
+@@ -10482,25 +10470,6 @@
      }
  }
  

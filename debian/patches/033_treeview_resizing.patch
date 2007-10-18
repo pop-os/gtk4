@@ -1,5 +1,5 @@
---- gtk+2.0-2.12.0.orig/gtk/gtktreeviewcolumn.c	2007-09-13 22:35:40.000000000 +0200
-+++ gtk+2.0-2.12.0/gtk/gtktreeviewcolumn.c	2007-09-16 18:24:32.000000000 +0200
+--- gtk+2.0-2.12.1.orig/gtk/gtktreeviewcolumn.c	2007-10-16 15:20:39.000000000 +0200
++++ gtk+2.0-2.12.1/gtk/gtktreeviewcolumn.c	2007-10-18 16:30:17.000000000 +0200
 @@ -2142,6 +2142,7 @@
        tree_column->tree_view != NULL &&
        GTK_WIDGET_REALIZED (tree_column->tree_view))
@@ -8,8 +8,8 @@
        gtk_widget_queue_resize (tree_column->tree_view);
      }
  
---- gtk+2.0-2.12.0.orig/gtk/gtktreeview.c	2007-09-14 00:43:35.000000000 +0200
-+++ gtk+2.0-2.12.0/gtk/gtktreeview.c	2007-09-16 18:24:32.000000000 +0200
+--- gtk+2.0-2.12.1.orig/gtk/gtktreeview.c	2007-10-16 15:20:39.000000000 +0200
++++ gtk+2.0-2.12.1/gtk/gtktreeview.c	2007-10-18 16:30:17.000000000 +0200
 @@ -2159,18 +2159,20 @@
  
  /* GtkWidget::size_allocate helper */
@@ -128,7 +128,7 @@
        gtk_widget_queue_resize (widget);
      }
  
-@@ -11472,7 +11506,7 @@
+@@ -11479,7 +11513,7 @@
    if (GTK_WIDGET_REALIZED (tree_view))
      {
        gtk_widget_queue_resize (GTK_WIDGET (tree_view));
@@ -137,8 +137,8 @@
      }
  
    g_signal_emit (tree_view, tree_view_signals[COLUMNS_CHANGED], 0);
---- gtk+2.0-2.12.0.orig/gtk/gtktreeprivate.h	2007-09-13 22:35:41.000000000 +0200
-+++ gtk+2.0-2.12.0/gtk/gtktreeprivate.h	2007-09-16 18:24:32.000000000 +0200
+--- gtk+2.0-2.12.1.orig/gtk/gtktreeprivate.h	2007-10-16 15:20:39.000000000 +0200
++++ gtk+2.0-2.12.1/gtk/gtktreeprivate.h	2007-10-18 16:30:17.000000000 +0200
 @@ -265,6 +265,10 @@
    gboolean tree_lines_enabled;
    GdkGC *tree_line_gc;

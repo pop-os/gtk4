@@ -10,14 +10,9 @@
 020_immodules-files-d.patch
 021_loader-files-d.patch
 030_gtkentry_password-char-circle.patch
-031_gtksearchenginetracker_fixes.patch
 033_treeview_resizing.patch
 040_filechooser_single-click.patch
 041_ia32-libs.patch
-060_opening-display-by-env-error-message.patch
-065_gtk-filechooser-locale-time.patch -p0
 070_mandatory-relibtoolize.patch
 071_fix_gdk_window_null_crasher.patch
-080_from_bugzilla_workaround_eclipse_crash.patch
-081_icon-cache-validate.patch
 091_workaround_no_gtk_init_incorrect_display.patch

@@ -1,3 +1,18 @@
+gtk+2.0 (2.12.1-1) UNRELEASED; urgency=low
+
+  * New upstream stable release; no API change; bug fixes and translation
+    updates.
+    - Drop patches 031_gtksearchenginetracker_fixes,
+      080_from_bugzilla_workaround_eclipse_crash, 081_icon-cache-validate
+      fixed upstream.
+    - Refresh patches 033_treeview_resizing, 040_filechooser_single-click to
+      apply cleanly.
+    - Drop patches 060_opening-display-by-env-error-message,
+      065_gtk-filechooser-locale-time merged upstream.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
+
+ -- Loic Minier <lool@dooz.org>  Thu, 18 Oct 2007 16:40:27 +0200
+
 gtk+2.0 (2.12.0-3) unstable; urgency=low
 
   [ Josselin Mouette ]
