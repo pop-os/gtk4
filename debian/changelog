@@ -1,4 +1,4 @@
-gtk+2.0 (2.12.1-1) UNRELEASED; urgency=low
+gtk+2.0 (2.12.1-1) unstable; urgency=low
 
   * New upstream stable release; no API change; bug fixes and translation
     updates.
@@ -11,8 +11,10 @@ gtk+2.0 (2.12.1-1) UNRELEASED; urgency=low
       065_gtk-filechooser-locale-time merged upstream.
     - Update relibtoolizing patch, 070_mandatory-relibtoolize.
   * Chech the exit status of close() in dh_gtkmodules; closes: #427654.
+  * New patch, 060_ignore-random-icons, don't list images from unknown
+    directories in icon cache; closes: #443571, #443574, #444285, #446188.
 
- -- Loic Minier <lool@dooz.org>  Sun, 21 Oct 2007 18:40:48 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 21 Oct 2007 22:05:42 +0200
 
 gtk+2.0 (2.12.0-3) unstable; urgency=low
 

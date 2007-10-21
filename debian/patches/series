@@ -13,6 +13,7 @@
 033_treeview_resizing.patch
 040_filechooser_single-click.patch
 041_ia32-libs.patch
+060_ignore-random-icons.patch
 070_mandatory-relibtoolize.patch
 071_fix_gdk_window_null_crasher.patch
 091_workaround_no_gtk_init_incorrect_display.patch
