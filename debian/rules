@@ -111,7 +111,6 @@ common_configure_flags := \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
 			--with-html-dir=\$${prefix}/share/doc/$(DOC_PKG) \
-			--enable-explicit-deps=yes \
 			--enable-test-print-backend
 ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE)
