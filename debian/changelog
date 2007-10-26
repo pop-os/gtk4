@@ -1,3 +1,9 @@
+gtk+2.0 (2.12.1-2) UNRELEASED; urgency=low
+
+  * Stop suggesting gtk-engines-pixmap.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 26 Oct 2007 11:03:24 +0200
+
 gtk+2.0 (2.12.1-1) unstable; urgency=low
 
   * New upstream stable release; no API change; bug fixes and translation

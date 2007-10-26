@@ -288,7 +288,6 @@ Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          @SHARED_PKG@ (= ${binary:Version})
-Suggests: gtk-engines-pixmap
 Conflicts: gtk2.0-engines-pixbuf
 Replaces: gtk2.0-engines-pixbuf
 Description: Pixbuf-based theme for GTK+ 2.x
