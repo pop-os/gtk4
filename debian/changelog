@@ -4,11 +4,16 @@ gtk+2.0 (2.12.1-2) UNRELEASED; urgency=low
   * Remove the --enable-explicit-deps flag. Closes: #343711, thanks Tom
     Parker. If some other packages still rely on having explicit X11
     dependencies, they are buggy and need to be fixed anyway.
+  * Keep --enable-explicit-deps in the directfb build; otherwise this 
+    breaks any binary linking against it because the rpath isn't passed.
   * 033_treeview_resizing.patch: updated patch from Kristian Rietveld.
-  * 031_gtksearchenginetracker_fixes.patch: added back, only the name 
+  * 031_gtksearchenginetracker_fixes.patch: added back, only the name
     change was fixed upstream.
+  * 040_filechooser_single-click.patch: allow a situation where no
+    shortcut is selected, to avoid issues for keyboard users.
+    Closes: #448674.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 31 Oct 2007 19:39:47 +0100
+ -- Josselin Mouette <joss@debian.org>  Wed, 31 Oct 2007 21:56:52 +0100
 
 gtk+2.0 (2.12.1-1) unstable; urgency=low
 
