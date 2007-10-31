@@ -12,6 +12,7 @@
 030_gtkentry_password-char-circle.patch
 031_gtksearchenginetracker_fixes.patch
 033_treeview_resizing.patch
+034_gtkcupsutils_type_fix.patch
 040_filechooser_single-click.patch
 041_ia32-libs.patch
 060_ignore-random-icons.patch
