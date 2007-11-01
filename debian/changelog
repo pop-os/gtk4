@@ -7,12 +7,19 @@ gtk+2.0 (2.12.1-2) UNRELEASED; urgency=low
   * Keep --enable-explicit-deps in the directfb build; otherwise this
     breaks any binary linking against it because the rpath isn't passed.
   * 033_treeview_resizing.patch: updated patch from Kristian Rietveld.
+    + Add a new sizing fix for the case where there is a scrollbar.
   * 031_gtksearchenginetracker_fixes.patch: added back, only the name
     change was fixed upstream.
-  * 034_gtkcupsutils_type_fix.patch: type-casting fix from Herbert 
+  * 034_gtkcupsutils_type_fix.patch: type-casting fix from Herbert
     Valerio Riedel that allows remote printing. Closes: #448071.
+  * 040_filechooser_single-click.patch: allow a situation where no
+    shortcut is selected, to avoid issues for keyboard users.
+    Closes: #448674.
+  * 042_treeview_single_focus.patch: don't select the focused item for
+    GTK_SELECTION_SINGLE type treeviews. Allows the fix in
+    040_filechooser_single-click.patch to work.
 
- -- Josselin Mouette <joss@debian.org>  Thu, 01 Nov 2007 00:57:30 +0100
+ -- Josselin Mouette <joss@debian.org>  Thu, 01 Nov 2007 12:11:38 +0100
 
 gtk+2.0 (2.12.1-1) unstable; urgency=low
 

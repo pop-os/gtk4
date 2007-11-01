@@ -3,8 +3,8 @@ requiring double-click.
 
 Index: gtk+-2.12.1/gtk/gtkfilechooserdefault.c
 ===================================================================
---- gtk+-2.12.1.orig/gtk/gtkfilechooserdefault.c	2007-10-31 19:42:02.854882096 +0100
-+++ gtk+-2.12.1/gtk/gtkfilechooserdefault.c	2007-10-31 23:05:03.757032150 +0100
+--- gtk+-2.12.1.orig/gtk/gtkfilechooserdefault.c	2007-10-16 15:20:39.000000000 +0200
++++ gtk+-2.12.1/gtk/gtkfilechooserdefault.c	2007-11-01 11:36:04.162043185 +0100
 @@ -390,10 +390,6 @@
  
  static void filter_combo_changed       (GtkComboBox           *combo_box,
@@ -39,6 +39,15 @@ Index: gtk+-2.12.1/gtk/gtkfilechooserdefault.c
  }
  
  static gboolean
+@@ -3930,7 +3940,7 @@
+ 		     GDK_ACTION_COPY | GDK_ACTION_MOVE);
+ 
+   selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (impl->browse_shortcuts_tree_view));
+-  gtk_tree_selection_set_mode (selection, GTK_SELECTION_BROWSE);
++  gtk_tree_selection_set_mode (selection, GTK_SELECTION_SINGLE);
+   gtk_tree_selection_set_select_function (selection,
+ 					  shortcuts_select_func,
+ 					  impl, NULL);
 @@ -3938,9 +3948,6 @@
    g_signal_connect (selection, "changed",
  		    G_CALLBACK (shortcuts_selection_changed_cb), impl);

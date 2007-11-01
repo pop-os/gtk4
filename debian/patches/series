@@ -15,6 +15,7 @@
 034_gtkcupsutils_type_fix.patch
 040_filechooser_single-click.patch
 041_ia32-libs.patch
+042_treeview_single-focus.patch
 060_ignore-random-icons.patch
 070_mandatory-relibtoolize.patch
 071_fix_gdk_window_null_crasher.patch
