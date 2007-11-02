@@ -92,7 +92,8 @@ Conflicts: libgtk2.0-0png3,
            scim-bridge-client-gtk (<< 0.4.10-1.1),
            iiimgcf (<= 11.4.1870-7),
            libwxgtk2.6-0 (<< 2.6.3.2.2-1),
-           glabels (<< 2.1.3-3)
+           glabels (<< 2.1.3-3),
+           libeel2-2.18
 Replaces: libgtk2.0-0png3
 Recommends: hicolor-icon-theme,
             ${misc:Depends},

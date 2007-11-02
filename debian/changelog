@@ -18,8 +18,9 @@ gtk+2.0 (2.12.1-2) UNRELEASED; urgency=low
   * 042_treeview_single_focus.patch: don't select the focused item for
     GTK_SELECTION_SINGLE type treeviews. Allows the fix in
     040_filechooser_single-click.patch to work.
+  * Conflict against libeel2-2.18. Closes: #443701, #499070.
 
- -- Josselin Mouette <joss@debian.org>  Thu, 01 Nov 2007 12:11:38 +0100
+ -- Josselin Mouette <joss@debian.org>  Sat, 03 Nov 2007 00:55:03 +0100
 
 gtk+2.0 (2.12.1-1) unstable; urgency=low
 
