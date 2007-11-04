@@ -1,4 +1,4 @@
-gtk+2.0 (2.12.1-2) UNRELEASED; urgency=low
+gtk+2.0 (2.12.1-2) unstable; urgency=low
 
   * Stop suggesting gtk-engines-pixmap.
   * Remove the --enable-explicit-deps flag. Closes: #343711, thanks Tom
@@ -23,12 +23,12 @@ gtk+2.0 (2.12.1-2) UNRELEASED; urgency=low
     startup).
   * 021_loader-files-d.patch: enclose process_module_file in correct
     #ifdef's.
-  * 040_filechooser_single-click.patch: filter out duplicate entries in 
-    bookmarks. This avoids a situation where the selection is changed to 
+  * 040_filechooser_single-click.patch: filter out duplicate entries in
+    bookmarks. This avoids a situation where the selection is changed to
     the duplicate during DnD, causing an assertion error.
     Closes: #447279.
 
- -- Josselin Mouette <joss@debian.org>  Sun, 04 Nov 2007 15:51:43 +0100
+ -- Josselin Mouette <joss@debian.org>  Sun, 04 Nov 2007 16:22:31 +0100
 
 gtk+2.0 (2.12.1-1) unstable; urgency=low
 
