@@ -3,9 +3,9 @@ requiring double-click.
 
 Index: gtk+-2.12.1/gtk/gtkfilechooserdefault.c
 ===================================================================
---- gtk+-2.12.1.orig/gtk/gtkfilechooserdefault.c	2007-10-16 15:20:39.000000000 +0200
-+++ gtk+-2.12.1/gtk/gtkfilechooserdefault.c	2007-11-01 11:36:04.162043185 +0100
-@@ -390,10 +390,6 @@
+--- gtk+-2.12.1.orig/gtk/gtkfilechooserdefault.c	2007-11-04 15:14:51.503352071 +0100
++++ gtk+-2.12.1/gtk/gtkfilechooserdefault.c	2007-11-04 15:47:23.358581961 +0100
+@@ -390,10 +390,6 @@ static void check_preview_change (GtkFil
  
  static void filter_combo_changed       (GtkComboBox           *combo_box,
  					GtkFileChooserDefault *impl);
@@ -16,7 +16,42 @@ Index: gtk+-2.12.1/gtk/gtkfilechooserdefault.c
  
  static gboolean shortcuts_key_press_event_cb (GtkWidget             *widget,
  					      GdkEventKey           *event,
-@@ -3657,8 +3653,22 @@
+@@ -2004,7 +2000,7 @@ shortcuts_append_paths (GtkFileChooserDe
+ 
+   /* As there is no separator now, we want to start there.
+    */
+-  start_row = shortcuts_get_index (impl, SHORTCUTS_BOOKMARKS_SEPARATOR);
++  start_row = shortcuts_get_index (impl, SHORTCUTS_BOOKMARKS_SEPARATOR) + 1;
+   num_inserted = 0;
+ 
+   for (; paths; paths = paths->next)
+@@ -2016,6 +2012,8 @@ shortcuts_append_paths (GtkFileChooserDe
+       if (impl->local_only &&
+ 	  !gtk_file_system_path_is_local (impl->file_system, path))
+ 	continue;
++      if (shortcut_find_position (impl, path) != -1)
++        continue;
+ 
+       label = gtk_file_system_get_bookmark_label (impl->file_system, path);
+ 
+@@ -2245,13 +2243,14 @@ shortcuts_add_bookmarks (GtkFileChooserD
+ 			   impl->num_bookmarks + 1);
+ 
+   impl->num_bookmarks = 0;
++  shortcuts_insert_separator (impl, SHORTCUTS_BOOKMARKS_SEPARATOR);
+ 
+   bookmarks = gtk_file_system_list_bookmarks (impl->file_system);
+   shortcuts_append_paths (impl, bookmarks);
+   gtk_file_paths_free (bookmarks);
+ 
+-  if (impl->num_bookmarks > 0)
+-    shortcuts_insert_separator (impl, SHORTCUTS_BOOKMARKS_SEPARATOR);
++  if (impl->num_bookmarks == 0)
++    shortcuts_remove_rows (impl, shortcuts_get_index (impl, SHORTCUTS_BOOKMARKS_SEPARATOR), 1);
+ 
+   if (impl->shortcuts_pane_filter_model)
+     gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (impl->shortcuts_pane_filter_model));
+@@ -3657,8 +3656,22 @@ static void
  shortcuts_selection_changed_cb (GtkTreeSelection      *selection,
  				GtkFileChooserDefault *impl)
  {
@@ -39,7 +74,7 @@ Index: gtk+-2.12.1/gtk/gtkfilechooserdefault.c
  }
  
  static gboolean
-@@ -3930,7 +3940,7 @@
+@@ -3930,7 +3943,7 @@ shortcuts_list_create (GtkFileChooserDef
  		     GDK_ACTION_COPY | GDK_ACTION_MOVE);
  
    selection = gtk_tree_view_get_selection (GTK_TREE_VIEW (impl->browse_shortcuts_tree_view));
@@ -48,7 +83,7 @@ Index: gtk+-2.12.1/gtk/gtkfilechooserdefault.c
    gtk_tree_selection_set_select_function (selection,
  					  shortcuts_select_func,
  					  impl, NULL);
-@@ -3938,9 +3948,6 @@
+@@ -3938,9 +3951,6 @@ shortcuts_list_create (GtkFileChooserDef
    g_signal_connect (selection, "changed",
  		    G_CALLBACK (shortcuts_selection_changed_cb), impl);
  
@@ -58,7 +93,7 @@ Index: gtk+-2.12.1/gtk/gtkfilechooserdefault.c
    g_signal_connect (impl->browse_shortcuts_tree_view, "key_press_event",
  		    G_CALLBACK (shortcuts_key_press_event_cb), impl);
  
-@@ -8604,25 +8611,6 @@
+@@ -8604,25 +8614,6 @@ gtk_file_chooser_default_should_respond 
        gtk_file_path_free (path);
        return retval;
      }
@@ -84,7 +119,7 @@ Index: gtk+-2.12.1/gtk/gtkfilechooserdefault.c
    else if (impl->toplevel_last_focus_widget == impl->browse_files_tree_view)
      {
        /* The focus is on a dialog's action area button, *and* the widget that
-@@ -10482,25 +10470,6 @@
+@@ -10482,25 +10473,6 @@ shortcuts_activate_iter (GtkFileChooserD
      }
  }
  

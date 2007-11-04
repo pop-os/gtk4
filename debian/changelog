@@ -19,12 +19,16 @@ gtk+2.0 (2.12.1-2) UNRELEASED; urgency=low
     GTK_SELECTION_SINGLE type treeviews. Allows the fix in
     040_filechooser_single-click.patch to work.
   * Conflict against libeel2-2.18. Closes: #443701, #499070.
-  * Conflict against xfwm4 < 4.4.1-3 (previous versions freeze on 
+  * Conflict against xfwm4 < 4.4.1-3 (previous versions freeze on
     startup).
-  * 021_loader-files-d.patch: enclose process_module_file in correct 
+  * 021_loader-files-d.patch: enclose process_module_file in correct
     #ifdef's.
+  * 040_filechooser_single-click.patch: filter out duplicate entries in 
+    bookmarks. This avoids a situation where the selection is changed to 
+    the duplicate during DnD, causing an assertion error.
+    Closes: #447279.
 
- -- Josselin Mouette <joss@debian.org>  Sun, 04 Nov 2007 12:38:27 +0100
+ -- Josselin Mouette <joss@debian.org>  Sun, 04 Nov 2007 15:51:43 +0100
 
 gtk+2.0 (2.12.1-1) unstable; urgency=low
 
