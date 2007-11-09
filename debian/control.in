@@ -100,6 +100,7 @@ Replaces: libgtk2.0-0png3
 Recommends: hicolor-icon-theme,
             ${misc:Depends},
             @BIN_PKG@
+Suggests: librsvg2-common
 Description: The GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
