@@ -1,14 +1,16 @@
 Index: gtk+-2.12.1/gtk/gtktreeview.c
 ===================================================================
---- gtk+-2.12.1.orig/gtk/gtktreeview.c	2007-11-01 12:04:42.371958388 +0100
-+++ gtk+-2.12.1/gtk/gtktreeview.c	2007-11-01 13:42:24.766037188 +0100
-@@ -2159,18 +2159,20 @@ gtk_tree_view_get_real_requested_width_f
+--- gtk+-2.12.1.orig/gtk/gtktreeview.c	2007-10-16 15:20:39.000000000 +0200
++++ gtk+-2.12.1/gtk/gtktreeview.c	2007-11-15 20:06:34.282370218 +0100
+@@ -2158,19 +2158,21 @@ gtk_tree_view_get_real_requested_width_f
+ }
  
  /* GtkWidget::size_allocate helper */
- static void
+-static void
 -gtk_tree_view_size_allocate_columns (GtkWidget *widget)
++static gboolean
 +gtk_tree_view_size_allocate_columns (GtkWidget *widget,
-+				     gboolean  *width_changed)
++				     gboolean width_changed)
  {
    GtkTreeView *tree_view;
    GList *list, *first_column, *last_column;
@@ -25,6 +27,15 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
    
    tree_view = GTK_TREE_VIEW (widget);
  
+@@ -2179,7 +2181,7 @@ gtk_tree_view_size_allocate_columns (Gtk
+        last_column = last_column->prev)
+     ;
+   if (last_column == NULL)
+-    return;
++    return width_changed;
+ 
+   for (first_column = g_list_first (tree_view->priv->columns);
+        first_column && !(GTK_TREE_VIEW_COLUMN (first_column->data)->visible);
 @@ -2205,12 +2207,38 @@ gtk_tree_view_size_allocate_columns (Gtk
  	number_of_expand_columns++;
      }
@@ -34,7 +45,7 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
 +   * the number of expand columns are if there are no expand
 +   * columns.
 +   */
-+  update_expand = *width_changed ||
++  update_expand = width_changed ||
 +                  number_of_expand_columns != tree_view->priv->last_number_of_expand_columns ||
 +		  number_of_expand_columns == 0;
 +
@@ -78,7 +89,7 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
        g_object_notify (G_OBJECT (column), "width");
  
        allocation.width = column->width;
-@@ -2283,6 +2317,14 @@ gtk_tree_view_size_allocate_columns (Gtk
+@@ -2283,8 +2317,17 @@ gtk_tree_view_size_allocate_columns (Gtk
                                  TREE_VIEW_DRAG_WIDTH, allocation.height);
      }
  
@@ -88,12 +99,15 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
 +   * doesn't have one, the tree view can't fit.
 +   */
 +  tree_view->priv->width = width;
-+  *width_changed = TRUE;
 +
    if (column_changed)
      gtk_widget_queue_draw (GTK_WIDGET (tree_view));
++
++  return TRUE;
  }
-@@ -2299,13 +2341,13 @@ gtk_tree_view_size_allocate (GtkWidget  
+ 
+ 
+@@ -2299,13 +2342,13 @@ gtk_tree_view_size_allocate (GtkWidget  
  
    g_return_if_fail (GTK_IS_TREE_VIEW (widget));
  
@@ -110,15 +124,15 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
    tmp_list = tree_view->priv->children;
  
    while (tmp_list)
-@@ -2323,6 +2365,7 @@ gtk_tree_view_size_allocate (GtkWidget  
+@@ -2323,6 +2366,7 @@ gtk_tree_view_size_allocate (GtkWidget  
        gtk_widget_size_allocate (child->widget, &allocation);
      }
  
-+  gtk_tree_view_size_allocate_columns (widget, &width_changed);
++  width_changed = gtk_tree_view_size_allocate_columns (widget, width_changed);
  
    tree_view->priv->hadjustment->page_size = allocation->width;
    tree_view->priv->hadjustment->page_increment = allocation->width * 0.9;
-@@ -2331,28 +2374,30 @@ gtk_tree_view_size_allocate (GtkWidget  
+@@ -2331,28 +2375,30 @@ gtk_tree_view_size_allocate (GtkWidget  
    tree_view->priv->hadjustment->upper = MAX (tree_view->priv->hadjustment->page_size, tree_view->priv->width);
  
    if (gtk_widget_get_direction(widget) == GTK_TEXT_DIR_RTL)   
@@ -169,7 +183,7 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
  
    gtk_adjustment_changed (tree_view->priv->hadjustment);
  
-@@ -2392,8 +2437,6 @@ gtk_tree_view_size_allocate (GtkWidget  
+@@ -2392,8 +2438,6 @@ gtk_tree_view_size_allocate (GtkWidget  
  			      allocation->height - TREE_VIEW_HEADER_HEIGHT (tree_view));
      }
  
@@ -178,7 +192,7 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
    if (tree_view->priv->tree == NULL)
      invalidate_empty_focus (tree_view);
  
-@@ -2837,7 +2880,7 @@ gtk_tree_view_button_press (GtkWidget   
+@@ -2837,7 +2881,7 @@ gtk_tree_view_button_press (GtkWidget   
  
  	  gtk_grab_add (widget);
  	  GTK_TREE_VIEW_SET_FLAG (tree_view, GTK_TREE_VIEW_IN_COLUMN_RESIZE);
@@ -187,7 +201,7 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
  
  	  /* block attached dnd signal handler */
  	  drag_data = g_object_get_data (G_OBJECT (widget), "gtk-site-data");
-@@ -3546,6 +3589,8 @@ gtk_tree_view_motion_resize_column (GtkW
+@@ -3546,6 +3590,8 @@ gtk_tree_view_motion_resize_column (GtkW
      {
        column->use_resized_width = TRUE;
        column->resized_width = new_width;
@@ -196,7 +210,7 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
        gtk_widget_queue_resize (widget);
      }
  
-@@ -11479,7 +11524,7 @@ gtk_tree_view_move_column_after (GtkTree
+@@ -11479,7 +11525,7 @@ gtk_tree_view_move_column_after (GtkTree
    if (GTK_WIDGET_REALIZED (tree_view))
      {
        gtk_widget_queue_resize (GTK_WIDGET (tree_view));
@@ -207,8 +221,8 @@ Index: gtk+-2.12.1/gtk/gtktreeview.c
    g_signal_emit (tree_view, tree_view_signals[COLUMNS_CHANGED], 0);
 Index: gtk+-2.12.1/gtk/gtktreeviewcolumn.c
 ===================================================================
---- gtk+-2.12.1.orig/gtk/gtktreeviewcolumn.c	2007-11-01 12:04:42.319955425 +0100
-+++ gtk+-2.12.1/gtk/gtktreeviewcolumn.c	2007-11-01 12:04:45.400130954 +0100
+--- gtk+-2.12.1.orig/gtk/gtktreeviewcolumn.c	2007-10-16 15:20:39.000000000 +0200
++++ gtk+-2.12.1/gtk/gtktreeviewcolumn.c	2007-11-15 19:58:41.667437428 +0100
 @@ -2142,6 +2142,7 @@ gtk_tree_view_column_set_expand (GtkTree
        tree_column->tree_view != NULL &&
        GTK_WIDGET_REALIZED (tree_column->tree_view))
@@ -219,8 +233,8 @@ Index: gtk+-2.12.1/gtk/gtktreeviewcolumn.c
  
 Index: gtk+-2.12.1/gtk/gtktreeprivate.h
 ===================================================================
---- gtk+-2.12.1.orig/gtk/gtktreeprivate.h	2007-11-01 12:04:42.303954513 +0100
-+++ gtk+-2.12.1/gtk/gtktreeprivate.h	2007-11-01 13:41:34.211156229 +0100
+--- gtk+-2.12.1.orig/gtk/gtktreeprivate.h	2007-10-16 15:20:39.000000000 +0200
++++ gtk+-2.12.1/gtk/gtktreeprivate.h	2007-11-15 19:58:41.667437428 +0100
 @@ -266,6 +266,10 @@ struct _GtkTreeViewPrivate
    GdkGC *tree_line_gc;
  
