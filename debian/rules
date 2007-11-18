@@ -193,6 +193,11 @@ $(STAMP_DIR)/install-stamp-%: $(STAMP_DIR)/build-stamp-%
 	touch $@
 
 install: $(addprefix $(STAMP_DIR)/install-stamp-, $(FLAVORS))
+	# Add necessary dependencies for the static build to Libs.private
+	a=$$(grep ^Libs: $(installbasedir)/shared/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc) ; \
+	b=$$(grep ^Libs: $(installbasedir)/static/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc) ; \
+	c=$$(for i in $$b; do echo $$a| grep -q -e $$i || echo $$i; done) ; \
+	echo Libs.private: $$c >> $(installbasedir)/shared/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc
 
 # gross kludge to force control generation with the %.in target
 clean::

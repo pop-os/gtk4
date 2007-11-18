@@ -9,9 +9,11 @@ exclude config.guess and sub with diff -urN -x config.guess -x config.sub
 This is required because of patches touching autotools files, but also because
 of upstream using an older libtool; see GNOME #484426; Debian #445001.
 
---- gtk+2.0-2.12.1.orig/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.1/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/Makefile.in	2007-11-18 01:23:38.211819079 +0100
++++ gtk+-2.12.1/Makefile.in	2007-11-18 01:23:43.132099470 +0100
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -20,7 +22,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -124,6 +126,7 @@
+@@ -124,6 +126,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -28,7 +30,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
-@@ -329,7 +332,10 @@
+@@ -329,7 +332,10 @@ sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
  target_alias = @target_alias@
  
@@ -40,7 +42,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros
  
  # require automake 1.4
-@@ -487,7 +493,8 @@
+@@ -487,7 +493,8 @@ DIST_COMMON = README $(srcdir)/Makefile.
  	gtk+-2.0-uninstalled.pc.in gtk+-2.0.pc.in \
  	gtk+-unix-print-2.0.pc.in gtk-zip.sh.in install-sh ltmain.sh \
  	missing mkinstalldirs
@@ -50,7 +52,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  all: config.h
  	$(MAKE) $(AM_MAKEFLAGS) all-recursive
  
-@@ -739,7 +746,7 @@
+@@ -739,7 +746,7 @@ distdir: $(DISTFILES)
  	    || exit 1; \
  	  fi; \
  	done
@@ -59,9 +61,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
---- gtk+2.0-2.12.1.orig/aclocal.m4	2007-10-17 06:00:05.000000000 +0200
-+++ gtk+2.0-2.12.1/aclocal.m4	2007-10-18 16:36:53.000000000 +0200
-@@ -941,7 +941,7 @@
+Index: gtk+-2.12.1/aclocal.m4
+===================================================================
+--- gtk+-2.12.1.orig/aclocal.m4	2007-11-18 01:23:38.203818623 +0100
++++ gtk+-2.12.1/aclocal.m4	2007-11-18 01:23:43.140099925 +0100
+@@ -941,7 +941,7 @@ AU_DEFUN([AM_CONFIG_HEADER], [AC_CONFIG_
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
  
@@ -70,7 +74,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
  
  # AC_PROVIDE_IFELSE(MACRO-NAME, IF-PROVIDED, IF-NOT-PROVIDED)
-@@ -1493,7 +1493,6 @@
+@@ -1493,7 +1493,6 @@ s390*-*linux*|sparc*-*linux*)
        esac
        ;;
      *64-bit*)
@@ -78,7 +82,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        case $host in
          x86_64-*kfreebsd*-gnu)
            LD="${LD-ld} -m elf_x86_64_fbsd"
-@@ -2552,13 +2551,11 @@
+@@ -2552,13 +2551,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -93,7 +97,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -2570,6 +2567,18 @@
+@@ -2570,6 +2567,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -112,7 +116,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -3344,7 +3353,7 @@
+@@ -3344,7 +3353,7 @@ linux* | k*bsd*-gnu)
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -121,7 +125,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|_pic\.a)$'
    else
-@@ -4378,7 +4387,7 @@
+@@ -4378,7 +4387,7 @@ case $host_os in
  	;;
      esac
      ;;
@@ -130,7 +134,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
      if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
        _LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable  -o $lib $predep_objects $libobjs $deplibs $postdep_objects $linker_flags'
        wlarc=
-@@ -6059,7 +6068,7 @@
+@@ -6059,7 +6068,7 @@ AC_MSG_CHECKING([for $compiler option to
  	    ;;
  	esac
  	;;
@@ -139,7 +143,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	;;
        osf3* | osf4* | osf5*)
  	case $cc_basename in
-@@ -6434,6 +6443,9 @@
+@@ -6434,6 +6443,9 @@ ifelse([$1],[CXX],[
    cygwin* | mingw*)
      _LT_AC_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[[BCDGRS]][[ ]]/s/.*[[ ]]\([[^ ]]*\)/\1 DATA/;/^.*[[ ]]__nm__/s/^.*[[ ]]__nm__\([[^ ]]*\)[[ ]][[^ ]]*/\1 DATA/;/^I[[ ]]/d;/^[[AITW]][[ ]]/s/.*[[ ]]//'\'' | sort | uniq > $export_symbols'
    ;;
@@ -149,7 +153,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    *)
      _LT_AC_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-@@ -6639,12 +6651,13 @@
+@@ -6639,12 +6651,13 @@ EOF
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -164,7 +168,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	_LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -7076,7 +7089,7 @@
+@@ -7076,7 +7089,7 @@ _LT_EOF
        _LT_AC_TAGVAR(link_all_deplibs, $1)=yes
        ;;
  
@@ -173,7 +177,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	_LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -8498,46 +8511,32 @@
+@@ -8498,46 +8511,32 @@ AC_DEFUN([GTK_DOC_CHECK],
    AC_BEFORE([AC_PROG_LIBTOOL],[$0])dnl setup libtool first
    AC_BEFORE([AM_PROG_LIBTOOL],[$0])dnl setup libtool first
    dnl for overriding the documentation installation directory
@@ -239,9 +243,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
 +  AM_CONDITIONAL([GTK_DOC_USE_LIBTOOL], [test -n "$LIBTOOL"])
  ])
  
---- gtk+2.0-2.12.1.orig/configure	2007-10-17 06:00:15.000000000 +0200
-+++ gtk+2.0-2.12.1/configure	2007-10-18 16:36:53.000000000 +0200
-@@ -863,6 +863,8 @@
+Index: gtk+-2.12.1/configure
+===================================================================
+--- gtk+-2.12.1.orig/configure	2007-11-18 01:23:38.171816799 +0100
++++ gtk+-2.12.1/configure	2007-11-18 01:23:52.640641330 +0100
+@@ -863,6 +863,8 @@ AMDEPBACKSLASH
  CCDEPMODE
  am__fastdepCC_TRUE
  am__fastdepCC_FALSE
@@ -250,7 +256,15 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  CXX
  CXXFLAGS
  ac_ct_CXX
-@@ -1047,6 +1049,7 @@
+@@ -1016,6 +1018,7 @@ GDK_PIXBUF_XLIB_DEP_CFLAGS
+ USE_DIRECTFB_TRUE
+ USE_DIRECTFB_FALSE
+ GDK_PACKAGES
++GDK_PRIVATE_PACKAGES
+ GDK_EXTRA_LIBS
+ GDK_EXTRA_CFLAGS
+ GDK_DEP_LIBS
+@@ -1047,6 +1050,7 @@ HAVE_HTTP_AUTHSTRING
  TEST_PRINT_BACKEND_TRUE
  TEST_PRINT_BACKEND_FALSE
  HTML_DIR
@@ -258,7 +272,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  ENABLE_GTK_DOC_TRUE
  ENABLE_GTK_DOC_FALSE
  GTK_DOC_USE_LIBTOOL_TRUE
-@@ -1689,7 +1692,7 @@
+@@ -1689,7 +1693,7 @@ Optional Features:
    --disable-modules       disable dynamic module loading
    --enable-test-print-backend
                            build test print backend
@@ -267,7 +281,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    --enable-man            regenerate man pages from Docbook [default=no]
  
  Optional Packages:
-@@ -3871,6 +3874,16 @@
+@@ -3871,6 +3875,16 @@ fi
  
  
  
@@ -284,7 +298,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  for ac_prog in $CCC c++ g++ gcc CC cxx cc++ cl
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
-@@ -5097,7 +5110,7 @@
+@@ -5097,7 +5111,7 @@ linux* | k*bsd*-gnu)
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -293,16 +307,16 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -5218,7 +5231,7 @@
+@@ -5218,7 +5232,7 @@ ia64-*-hpux*)
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
 -  echo '#line 5221 "configure"' > conftest.$ac_ext
-+  echo '#line 5234 "configure"' > conftest.$ac_ext
++  echo '#line 5235 "configure"' > conftest.$ac_ext
    if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
-@@ -5283,7 +5296,6 @@
+@@ -5283,7 +5297,6 @@ s390*-*linux*|sparc*-*linux*)
        esac
        ;;
      *64-bit*)
@@ -310,49 +324,49 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        case $host in
          x86_64-*kfreebsd*-gnu)
            LD="${LD-ld} -m elf_x86_64_fbsd"
-@@ -7778,11 +7790,11 @@
+@@ -7778,11 +7791,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:7781: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:7793: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:7794: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:7785: \$? = $ac_status" >&5
-+   echo "$as_me:7797: \$? = $ac_status" >&5
++   echo "$as_me:7798: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -8068,11 +8080,11 @@
+@@ -8068,11 +8081,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:8071: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8083: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8084: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:8075: \$? = $ac_status" >&5
-+   echo "$as_me:8087: \$? = $ac_status" >&5
++   echo "$as_me:8088: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -8172,11 +8184,11 @@
+@@ -8172,11 +8185,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:8175: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8187: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8188: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:8179: \$? = $ac_status" >&5
-+   echo "$as_me:8191: \$? = $ac_status" >&5
++   echo "$as_me:8192: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -8436,12 +8448,13 @@
+@@ -8436,12 +8449,13 @@ EOF
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -367,7 +381,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -8985,7 +8998,7 @@
+@@ -8985,7 +8999,7 @@ if test -z "$aix_libpath"; then aix_libp
        link_all_deplibs=yes
        ;;
  
@@ -376,7 +390,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -9680,13 +9693,11 @@
+@@ -9680,13 +9694,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -391,7 +405,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -9698,6 +9709,18 @@
+@@ -9698,6 +9710,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -410,25 +424,25 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -10523,7 +10546,7 @@
+@@ -10523,7 +10547,7 @@ else
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
 -#line 10526 "configure"
-+#line 10549 "configure"
++#line 10550 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -10623,7 +10646,7 @@
+@@ -10623,7 +10647,7 @@ else
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
 -#line 10626 "configure"
-+#line 10649 "configure"
++#line 10650 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -12233,7 +12256,7 @@
+@@ -12233,7 +12257,7 @@ if test -z "$aix_libpath"; then aix_libp
  	;;
      esac
      ;;
@@ -437,7 +451,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
      if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
        archive_cmds_CXX='$LD -Bshareable  -o $lib $predep_objects $libobjs $deplibs $postdep_objects $linker_flags'
        wlarc=
-@@ -12934,7 +12957,7 @@
+@@ -12934,7 +12958,7 @@ echo $ECHO_N "checking for $compiler opt
  	    ;;
  	esac
  	;;
@@ -446,35 +460,35 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	;;
        osf3* | osf4* | osf5*)
  	case $cc_basename in
-@@ -13043,11 +13066,11 @@
+@@ -13043,11 +13067,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:13046: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:13069: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:13070: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:13050: \$? = $ac_status" >&5
-+   echo "$as_me:13073: \$? = $ac_status" >&5
++   echo "$as_me:13074: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -13147,11 +13170,11 @@
+@@ -13147,11 +13171,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:13150: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:13173: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:13174: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:13154: \$? = $ac_status" >&5
-+   echo "$as_me:13177: \$? = $ac_status" >&5
++   echo "$as_me:13178: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -13219,6 +13242,9 @@
+@@ -13219,6 +13243,9 @@ echo $ECHO_N "checking whether the $comp
    cygwin* | mingw*)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS][ ]/s/.*[ ]\([^ ]*\)/\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\([^ ]*\)[ ][^ ]*/\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.*[ ]//'\'' | sort | uniq > $export_symbols'
    ;;
@@ -484,7 +498,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    *)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-@@ -13648,13 +13674,11 @@
+@@ -13648,13 +13675,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -499,7 +513,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -13666,6 +13690,18 @@
+@@ -13666,6 +13691,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -518,35 +532,35 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -14711,11 +14747,11 @@
+@@ -14711,11 +14748,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:14714: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14750: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14751: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:14718: \$? = $ac_status" >&5
-+   echo "$as_me:14754: \$? = $ac_status" >&5
++   echo "$as_me:14755: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -14815,11 +14851,11 @@
+@@ -14815,11 +14852,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:14818: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14854: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14855: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:14822: \$? = $ac_status" >&5
-+   echo "$as_me:14858: \$? = $ac_status" >&5
++   echo "$as_me:14859: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -15079,12 +15115,13 @@
+@@ -15079,12 +15116,13 @@ EOF
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -561,7 +575,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -15608,7 +15645,7 @@
+@@ -15608,7 +15646,7 @@ if test -z "$aix_libpath"; then aix_libp
        link_all_deplibs_F77=yes
        ;;
  
@@ -570,7 +584,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -16251,13 +16288,11 @@
+@@ -16251,13 +16289,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -585,7 +599,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -16269,6 +16304,18 @@
+@@ -16269,6 +16305,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -604,49 +618,49 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -17004,11 +17051,11 @@
+@@ -17004,11 +17052,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:17007: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17054: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:17055: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:17011: \$? = $ac_status" >&5
-+   echo "$as_me:17058: \$? = $ac_status" >&5
++   echo "$as_me:17059: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -17294,11 +17341,11 @@
+@@ -17294,11 +17342,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:17297: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17344: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:17345: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:17301: \$? = $ac_status" >&5
-+   echo "$as_me:17348: \$? = $ac_status" >&5
++   echo "$as_me:17349: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -17398,11 +17445,11 @@
+@@ -17398,11 +17446,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:17401: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17448: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:17449: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:17405: \$? = $ac_status" >&5
-+   echo "$as_me:17452: \$? = $ac_status" >&5
++   echo "$as_me:17453: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -17662,12 +17709,13 @@
+@@ -17662,12 +17710,13 @@ EOF
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -661,7 +675,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -18211,7 +18259,7 @@
+@@ -18211,7 +18260,7 @@ if test -z "$aix_libpath"; then aix_libp
        link_all_deplibs_GCJ=yes
        ;;
  
@@ -670,7 +684,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -18854,13 +18902,11 @@
+@@ -18854,13 +18903,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -685,7 +699,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -18872,6 +18918,18 @@
+@@ -18872,6 +18919,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -704,7 +718,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -32440,8 +32498,18 @@
+@@ -32440,8 +32499,18 @@ echo $ECHO_N "checking for DirectFB... $
    if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
        { echo "$as_me:$LINENO: result: found" >&5
  echo "${ECHO_T}found" >&6; }
@@ -725,16 +739,51 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    else
        { { echo "$as_me:$LINENO: error:
  *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer and the cairo backend
-@@ -32577,7 +32645,7 @@
+@@ -32577,20 +32646,21 @@ fi
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
 -GDK_PACKAGES="$PANGO_PACKAGES"
 +GDK_PACKAGES="$GDK_PACKAGES $PANGO_PACKAGES"
  if test "x$gdktarget" = "xx11"; then
-   GDK_PACKAGES="$GDK_PACKAGES $X_PACKAGES"
+-  GDK_PACKAGES="$GDK_PACKAGES $X_PACKAGES"
++  GDK_PRIVATE_PACKAGES="$X_PACKAGES"
  fi
-@@ -33456,19 +33524,38 @@
+-GDK_DEP_LIBS="$GDK_EXTRA_LIBS `$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES $GDK_PACKAGES` $GDK_PIXBUF_EXTRA_LIBS"
+-GDK_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PIXBUF_PACKAGES $GDK_PACKAGES` $GDK_PIXBUF_EXTRA_CFLAGS $GDK_EXTRA_CFLAGS"
++GDK_DEP_LIBS="$GDK_EXTRA_LIBS `$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES $GDK_PACKAGES $GDK_PRIVATE_PACKAGES` $GDK_PIXBUF_EXTRA_LIBS"
++GDK_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PIXBUF_PACKAGES $GDK_PACKAGES $GDK_PRIVATE_PACKAGES` $GDK_PIXBUF_EXTRA_CFLAGS $GDK_EXTRA_CFLAGS"
+ 
+ #
+ # If we aren't writing explicit dependencies, then don't put the extra libraries we need
+ # into the pkg-config files
+ #
+ if test $enable_explicit_deps != yes ; then
+-  GDK_PACKAGES="$PANGO_PACKAGES"
+   GDK_EXTRA_LIBS=
++else
++  GDK_PACKAGES="$GDK_PACKAGES $GDK_PRIVATE_PACKAGES"
+ fi
+ 
+ 
+@@ -32600,6 +32670,7 @@ fi
+ 
+ 
+ 
++
+ ########################################
+ # Check for Accessibility Toolkit flags
+ ########################################
+@@ -32705,7 +32776,7 @@ PANGO_PREFIX="`$PKG_CONFIG --variable=pr
+ CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
+ 
+ if test $enable_explicit_deps != yes ; then
+-  GDK_PIXBUF_EXTRA_LIBS=
++  GDK_PIXBUF_EXTRA_LIBS="$MATH_LIB"
+ fi
+ 
+ 
+@@ -33456,19 +33527,38 @@ else
  fi
  
  
@@ -780,7 +829,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    ;;
    *)
    as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-@@ -33478,7 +33565,7 @@
+@@ -33478,7 +33568,7 @@ do
    test -z "$as_dir" && as_dir=.
    for ac_exec_ext in '' $ac_executable_extensions; do
    if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
@@ -789,7 +838,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
      echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
      break 2
    fi
-@@ -33486,43 +33573,22 @@
+@@ -33486,43 +33576,22 @@ done
  done
  IFS=$as_save_IFS
  
@@ -839,7 +888,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
  
  
-@@ -33892,6 +33958,13 @@
+@@ -33892,6 +33961,13 @@ echo "$as_me: error: conditional \"am__f
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
@@ -853,7 +902,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -34962,9 +35035,9 @@
+@@ -34962,9 +35038,9 @@ AMDEPBACKSLASH!$AMDEPBACKSLASH$ac_delim
  CCDEPMODE!$CCDEPMODE$ac_delim
  am__fastdepCC_TRUE!$am__fastdepCC_TRUE$ac_delim
  am__fastdepCC_FALSE!$am__fastdepCC_FALSE$ac_delim
@@ -865,7 +914,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35006,6 +35079,8 @@
+@@ -35006,6 +35082,8 @@ _ACEOF
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -874,7 +923,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  CXXDEPMODE!$CXXDEPMODE$ac_delim
  am__fastdepCXX_TRUE!$am__fastdepCXX_TRUE$ac_delim
  am__fastdepCXX_FALSE!$am__fastdepCXX_FALSE$ac_delim
-@@ -35101,8 +35176,6 @@
+@@ -35101,8 +35179,6 @@ INCLUDE_ICO_FALSE!$INCLUDE_ICO_FALSE$ac_
  INCLUDE_ANI_TRUE!$INCLUDE_ANI_TRUE$ac_delim
  INCLUDE_ANI_FALSE!$INCLUDE_ANI_FALSE$ac_delim
  INCLUDE_JPEG_TRUE!$INCLUDE_JPEG_TRUE$ac_delim
@@ -883,7 +932,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35144,6 +35217,8 @@
+@@ -35144,6 +35220,8 @@ _ACEOF
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -892,7 +941,15 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  INCLUDE_PNM_FALSE!$INCLUDE_PNM_FALSE$ac_delim
  INCLUDE_RAS_TRUE!$INCLUDE_RAS_TRUE$ac_delim
  INCLUDE_RAS_FALSE!$INCLUDE_RAS_FALSE$ac_delim
-@@ -35228,6 +35303,7 @@
+@@ -35197,6 +35275,7 @@ GDK_PIXBUF_XLIB_DEP_CFLAGS!$GDK_PIXBUF_X
+ USE_DIRECTFB_TRUE!$USE_DIRECTFB_TRUE$ac_delim
+ USE_DIRECTFB_FALSE!$USE_DIRECTFB_FALSE$ac_delim
+ GDK_PACKAGES!$GDK_PACKAGES$ac_delim
++GDK_PRIVATE_PACKAGES!$GDK_PRIVATE_PACKAGES$ac_delim
+ GDK_EXTRA_LIBS!$GDK_EXTRA_LIBS$ac_delim
+ GDK_EXTRA_CFLAGS!$GDK_EXTRA_CFLAGS$ac_delim
+ GDK_DEP_LIBS!$GDK_DEP_LIBS$ac_delim
+@@ -35228,6 +35307,7 @@ HAVE_HTTP_AUTHSTRING!$HAVE_HTTP_AUTHSTRI
  TEST_PRINT_BACKEND_TRUE!$TEST_PRINT_BACKEND_TRUE$ac_delim
  TEST_PRINT_BACKEND_FALSE!$TEST_PRINT_BACKEND_FALSE$ac_delim
  HTML_DIR!$HTML_DIR$ac_delim
@@ -900,20 +957,22 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  ENABLE_GTK_DOC_TRUE!$ENABLE_GTK_DOC_TRUE$ac_delim
  ENABLE_GTK_DOC_FALSE!$ENABLE_GTK_DOC_FALSE$ac_delim
  GTK_DOC_USE_LIBTOOL_TRUE!$GTK_DOC_USE_LIBTOOL_TRUE$ac_delim
-@@ -35238,9 +35314,6 @@
+@@ -35237,10 +35317,6 @@ HAVE_DOCBOOK_TRUE!$HAVE_DOCBOOK_TRUE$ac_
+ HAVE_DOCBOOK_FALSE!$HAVE_DOCBOOK_FALSE$ac_delim
  XSLTPROC!$XSLTPROC$ac_delim
  XML_CATALOG_FILE!$XML_CATALOG_FILE$ac_delim
- XMLCATALOG!$XMLCATALOG$ac_delim
+-XMLCATALOG!$XMLCATALOG$ac_delim
 -ENABLE_MAN_TRUE!$ENABLE_MAN_TRUE$ac_delim
 -ENABLE_MAN_FALSE!$ENABLE_MAN_FALSE$ac_delim
 -LIBOBJS!$LIBOBJS$ac_delim
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35282,10 +35355,13 @@
+@@ -35282,10 +35358,14 @@ _ACEOF
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
++XMLCATALOG!$XMLCATALOG$ac_delim
 +ENABLE_MAN_TRUE!$ENABLE_MAN_TRUE$ac_delim
 +ENABLE_MAN_FALSE!$ENABLE_MAN_FALSE$ac_delim
 +LIBOBJS!$LIBOBJS$ac_delim
@@ -921,13 +980,15 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  _ACEOF
  
 -  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 1; then
-+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 4; then
++  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 5; then
      break
    elif $ac_last_try; then
      { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
---- gtk+2.0-2.12.1.orig/contrib/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/contrib/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.1/contrib/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/contrib/Makefile.in	2007-11-18 01:23:38.163816343 +0100
++++ gtk+-2.12.1/contrib/Makefile.in	2007-11-18 01:23:43.184102433 +0100
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -936,7 +997,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -124,6 +126,7 @@
+@@ -124,6 +126,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -944,9 +1005,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/contrib/gdk-pixbuf-xlib/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/contrib/gdk-pixbuf-xlib/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2007-11-18 01:23:38.155815887 +0100
++++ gtk+-2.12.1/contrib/gdk-pixbuf-xlib/Makefile.in	2007-11-18 01:23:43.184102433 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -955,7 +1018,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -963,9 +1026,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/demos/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/demos/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.1/demos/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/demos/Makefile.in	2007-11-18 01:23:38.143815203 +0100
++++ gtk+-2.12.1/demos/Makefile.in	2007-11-18 01:23:43.184102433 +0100
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -974,7 +1039,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -124,6 +126,7 @@
+@@ -124,6 +126,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -982,9 +1047,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/demos/gtk-demo/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/demos/gtk-demo/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/demos/gtk-demo/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/demos/gtk-demo/Makefile.in	2007-11-18 01:23:38.135814747 +0100
++++ gtk+-2.12.1/demos/gtk-demo/Makefile.in	2007-11-18 01:23:43.184102433 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -993,7 +1060,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1001,9 +1068,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/docs/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/docs/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/docs/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/docs/Makefile.in	2007-11-18 01:23:38.103812924 +0100
++++ gtk+-2.12.1/docs/Makefile.in	2007-11-18 01:23:43.184102433 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1012,7 +1081,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1020,9 +1089,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/docs/faq/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/docs/faq/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/docs/faq/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/docs/faq/Makefile.in	2007-11-18 01:23:38.071811100 +0100
++++ gtk+-2.12.1/docs/faq/Makefile.in	2007-11-18 01:23:43.184102433 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1031,7 +1102,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1039,9 +1110,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/docs/reference/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/docs/reference/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/docs/reference/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/docs/reference/Makefile.in	2007-11-18 01:23:38.035809048 +0100
++++ gtk+-2.12.1/docs/reference/Makefile.in	2007-11-18 01:23:43.188102661 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1050,7 +1123,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1058,9 +1131,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/docs/reference/gdk/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/docs/reference/gdk/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -95,6 +95,8 @@
+Index: gtk+-2.12.1/docs/reference/gdk/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/docs/reference/gdk/Makefile.in	2007-11-18 01:23:37.979805857 +0100
++++ gtk+-2.12.1/docs/reference/gdk/Makefile.in	2007-11-18 01:23:43.188102661 +0100
+@@ -95,6 +95,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1069,7 +1144,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -129,6 +131,7 @@
+@@ -129,6 +131,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1077,9 +1152,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/docs/reference/gdk-pixbuf/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/docs/reference/gdk-pixbuf/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -95,6 +95,8 @@
+Index: gtk+-2.12.1/docs/reference/gdk-pixbuf/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/docs/reference/gdk-pixbuf/Makefile.in	2007-11-18 01:23:37.971805401 +0100
++++ gtk+-2.12.1/docs/reference/gdk-pixbuf/Makefile.in	2007-11-18 01:23:43.188102661 +0100
+@@ -95,6 +95,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1088,7 +1165,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -129,6 +131,7 @@
+@@ -129,6 +131,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1096,9 +1173,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/docs/reference/gtk/Makefile.in	2007-10-17 06:00:10.000000000 +0200
-+++ gtk+2.0-2.12.1/docs/reference/gtk/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -95,6 +95,8 @@
+Index: gtk+-2.12.1/docs/reference/gtk/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/docs/reference/gtk/Makefile.in	2007-11-18 01:23:37.939803577 +0100
++++ gtk+-2.12.1/docs/reference/gtk/Makefile.in	2007-11-18 01:23:43.188102661 +0100
+@@ -95,6 +95,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1107,7 +1186,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -129,6 +131,7 @@
+@@ -129,6 +131,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1115,9 +1194,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/docs/tools/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/docs/tools/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/docs/tools/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/docs/tools/Makefile.in	2007-11-18 01:23:37.927802894 +0100
++++ gtk+-2.12.1/docs/tools/Makefile.in	2007-11-18 01:23:43.188102661 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1126,7 +1207,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1134,9 +1215,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/docs/tutorial/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/docs/tutorial/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/docs/tutorial/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/docs/tutorial/Makefile.in	2007-11-18 01:23:37.919802438 +0100
++++ gtk+-2.12.1/docs/tutorial/Makefile.in	2007-11-18 01:23:43.188102661 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1145,7 +1228,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1153,9 +1236,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gdk/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/gdk/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gdk/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gdk/Makefile.in	2007-11-18 01:23:37.883800386 +0100
++++ gtk+-2.12.1/gdk/Makefile.in	2007-11-18 01:23:43.188102661 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1164,7 +1249,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1172,9 +1257,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gdk/directfb/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/gdk/directfb/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gdk/directfb/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gdk/directfb/Makefile.in	2007-11-18 01:23:37.875799930 +0100
++++ gtk+-2.12.1/gdk/directfb/Makefile.in	2007-11-18 01:23:43.192102889 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1183,7 +1270,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1191,9 +1278,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gdk/quartz/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/gdk/quartz/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gdk/quartz/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gdk/quartz/Makefile.in	2007-11-18 01:23:37.867799474 +0100
++++ gtk+-2.12.1/gdk/quartz/Makefile.in	2007-11-18 01:23:43.192102889 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1202,7 +1291,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1210,9 +1299,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gdk/win32/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/gdk/win32/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gdk/win32/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gdk/win32/Makefile.in	2007-11-18 01:23:37.815796511 +0100
++++ gtk+-2.12.1/gdk/win32/Makefile.in	2007-11-18 01:23:43.192102889 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1221,7 +1312,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1229,9 +1320,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gdk/win32/rc/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/gdk/win32/rc/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gdk/win32/rc/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gdk/win32/rc/Makefile.in	2007-11-18 01:23:37.799795599 +0100
++++ gtk+-2.12.1/gdk/win32/rc/Makefile.in	2007-11-18 01:23:43.192102889 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1240,7 +1333,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1248,9 +1341,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gdk/x11/Makefile.in	2007-10-17 06:00:12.000000000 +0200
-+++ gtk+2.0-2.12.1/gdk/x11/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -91,6 +91,8 @@
+Index: gtk+-2.12.1/gdk/x11/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gdk/x11/Makefile.in	2007-11-18 01:23:37.783794687 +0100
++++ gtk+-2.12.1/gdk/x11/Makefile.in	2007-11-18 01:23:43.192102889 +0100
+@@ -91,6 +91,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1259,7 +1354,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -125,6 +127,7 @@
+@@ -125,6 +127,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1267,9 +1362,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gdk-pixbuf/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/gdk-pixbuf/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gdk-pixbuf/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gdk-pixbuf/Makefile.in	2007-11-18 01:23:37.731791724 +0100
++++ gtk+-2.12.1/gdk-pixbuf/Makefile.in	2007-11-18 01:23:43.192102889 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1278,7 +1375,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1286,9 +1383,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gdk-pixbuf/pixops/Makefile.in	2007-10-17 06:00:11.000000000 +0200
-+++ gtk+2.0-2.12.1/gdk-pixbuf/pixops/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gdk-pixbuf/pixops/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gdk-pixbuf/pixops/Makefile.in	2007-11-18 01:23:37.683788988 +0100
++++ gtk+-2.12.1/gdk-pixbuf/pixops/Makefile.in	2007-11-18 01:23:43.192102889 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1297,7 +1396,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1305,9 +1404,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gtk/Makefile.in	2007-10-17 06:00:12.000000000 +0200
-+++ gtk+2.0-2.12.1/gtk/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -113,6 +113,8 @@
+Index: gtk+-2.12.1/gtk/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gtk/Makefile.in	2007-11-18 01:23:37.663787848 +0100
++++ gtk+-2.12.1/gtk/Makefile.in	2007-11-18 01:23:43.196103117 +0100
+@@ -113,6 +113,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1316,7 +1417,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -147,6 +149,7 @@
+@@ -147,6 +149,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1324,7 +1425,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
-@@ -378,6 +381,8 @@
+@@ -378,6 +381,8 @@ INCLUDES = \
  	-I$(top_srcdir)/gdk-pixbuf -I../gdk-pixbuf	\
  	-DGDK_PIXBUF_DISABLE_DEPRECATED			\
  	-DGDK_DISABLE_DEPRECATED			\
@@ -1333,7 +1434,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	-DGTK_FILE_SYSTEM_ENABLE_UNSUPPORTED		\
  	-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED		\
  	$(GTK_DEBUG_FLAGS)				\
-@@ -633,13 +638,16 @@
+@@ -633,13 +638,16 @@ gtk_public_h_sources = \
  # that are not included in gtk/gtk.h
  gtk_semi_private_h_sources = \
  	gtktextlayout.h		\
@@ -1353,7 +1454,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	gtksearchenginebeagle.h	\
  	gtksearchenginetracker.h\
  	gtksearchenginesimple.h	\
-@@ -649,10 +657,7 @@
+@@ -649,10 +657,7 @@ gtk_private_h_sources = \
  	gtkfilechooserdefault.h	\
  	gtkfilechooserembed.h	\
  	gtkfilechooserentry.h	\
@@ -1364,9 +1465,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
---- gtk+2.0-2.12.1.orig/gtk/theme-bits/Makefile.in	2007-10-17 06:00:12.000000000 +0200
-+++ gtk+2.0-2.12.1/gtk/theme-bits/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gtk/theme-bits/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gtk/theme-bits/Makefile.in	2007-11-18 01:23:37.647786936 +0100
++++ gtk+-2.12.1/gtk/theme-bits/Makefile.in	2007-11-18 01:23:43.196103117 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1375,7 +1478,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1383,9 +1486,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/gtk/xdgmime/Makefile.in	2007-10-17 06:00:12.000000000 +0200
-+++ gtk+2.0-2.12.1/gtk/xdgmime/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/gtk/xdgmime/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/gtk/xdgmime/Makefile.in	2007-11-18 01:23:37.599784201 +0100
++++ gtk+-2.12.1/gtk/xdgmime/Makefile.in	2007-11-18 01:23:43.196103117 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1394,7 +1499,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1402,9 +1507,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/ltmain.sh	2007-08-29 13:52:51.000000000 +0200
-+++ gtk+2.0-2.12.1/ltmain.sh	2007-10-18 16:36:53.000000000 +0200
-@@ -43,7 +43,7 @@
+Index: gtk+-2.12.1/ltmain.sh
+===================================================================
+--- gtk+-2.12.1.orig/ltmain.sh	2007-11-18 01:23:37.583783289 +0100
++++ gtk+-2.12.1/ltmain.sh	2007-11-18 01:23:43.200103345 +0100
+@@ -43,7 +43,7 @@ EXIT_FAILURE=1
  
  PROGRAM=ltmain.sh
  PACKAGE=libtool
@@ -1413,7 +1520,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  TIMESTAMP=" (1.1220.2.456 2007/06/24 02:25:32)"
  
  # Be Bourne compatible (taken from Autoconf:_AS_BOURNE_COMPATIBLE).
-@@ -2122,7 +2122,10 @@
+@@ -2122,7 +2122,10 @@ EOF
  	case $pass in
  	dlopen) libs="$dlfiles" ;;
  	dlpreopen) libs="$dlprefiles" ;;
@@ -1425,7 +1532,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	esac
        fi
        if test "$pass" = dlopen; then
-@@ -3244,6 +3247,11 @@
+@@ -3244,6 +3247,11 @@ EOF
  	    revision="$number_minor"
  	    lt_irix_increment=no
  	    ;;
@@ -1437,9 +1544,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	  esac
  	  ;;
  	no)
---- gtk+2.0-2.12.1.orig/m4macros/Makefile.in	2007-10-17 06:00:12.000000000 +0200
-+++ gtk+2.0-2.12.1/m4macros/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/m4macros/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/m4macros/Makefile.in	2007-11-18 01:23:37.567782377 +0100
++++ gtk+-2.12.1/m4macros/Makefile.in	2007-11-18 01:23:43.200103345 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1448,7 +1557,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1456,9 +1565,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/Makefile.in	2007-10-17 06:00:12.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/Makefile.in	2007-11-18 01:23:37.507778958 +0100
++++ gtk+-2.12.1/modules/Makefile.in	2007-11-18 01:23:43.200103345 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1467,7 +1578,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1475,9 +1586,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/engines/Makefile.in	2007-10-17 06:00:12.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/engines/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/engines/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/engines/Makefile.in	2007-11-18 01:23:37.495778274 +0100
++++ gtk+-2.12.1/modules/engines/Makefile.in	2007-11-18 01:23:43.200103345 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1486,7 +1599,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1494,9 +1607,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/engines/ms-windows/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/engines/ms-windows/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/engines/ms-windows/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/engines/ms-windows/Makefile.in	2007-11-18 01:23:37.439775082 +0100
++++ gtk+-2.12.1/modules/engines/ms-windows/Makefile.in	2007-11-18 01:23:43.204103573 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1505,7 +1620,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1513,9 +1628,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/engines/ms-windows/Theme/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/engines/ms-windows/Theme/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/engines/ms-windows/Theme/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/engines/ms-windows/Theme/Makefile.in	2007-11-18 01:23:37.423774171 +0100
++++ gtk+-2.12.1/modules/engines/ms-windows/Theme/Makefile.in	2007-11-18 01:23:43.204103573 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1524,7 +1641,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1532,9 +1649,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-11-18 01:23:37.367770979 +0100
++++ gtk+-2.12.1/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2007-11-18 01:23:43.204103573 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1543,7 +1662,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1551,9 +1670,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/engines/pixbuf/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/engines/pixbuf/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/engines/pixbuf/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/engines/pixbuf/Makefile.in	2007-11-18 01:23:37.351770067 +0100
++++ gtk+-2.12.1/modules/engines/pixbuf/Makefile.in	2007-11-18 01:23:43.204103573 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1562,7 +1683,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1570,9 +1691,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/input/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/input/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/input/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/input/Makefile.in	2007-11-18 01:23:37.299767104 +0100
++++ gtk+-2.12.1/modules/input/Makefile.in	2007-11-18 01:23:43.204103573 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1581,7 +1704,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1589,7 +1712,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
-@@ -430,9 +433,10 @@
+@@ -430,9 +433,10 @@ im_multipress_la_LIBADD = $(LDADDS)
  
  imconffiledir = $(sysconfdir)/gtk-2.0
  dist_imconffile_DATA = im-multipress.conf
@@ -1601,7 +1724,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
  module_LTLIBRARIES = \
  	$(IM_XIM_MODULE)			\
-@@ -985,7 +989,18 @@
+@@ -985,7 +989,18 @@ uninstall-local:
  	rm -f $(DESTDIR)$(sysconfdir)/gtk-2.0/gtk.immodules
  
  gtk.immodules: Makefile.am $(module_LTLIBRARIES)
@@ -1621,9 +1744,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
---- gtk+2.0-2.12.1.orig/modules/printbackends/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/printbackends/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -91,6 +91,8 @@
+Index: gtk+-2.12.1/modules/printbackends/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/printbackends/Makefile.in	2007-11-18 01:23:37.283766192 +0100
++++ gtk+-2.12.1/modules/printbackends/Makefile.in	2007-11-18 01:23:43.204103573 +0100
+@@ -91,6 +91,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1632,7 +1757,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -125,6 +127,7 @@
+@@ -125,6 +127,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1640,9 +1765,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/printbackends/cups/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/printbackends/cups/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/printbackends/cups/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/printbackends/cups/Makefile.in	2007-11-18 01:23:37.223762773 +0100
++++ gtk+-2.12.1/modules/printbackends/cups/Makefile.in	2007-11-18 01:23:43.204103573 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1651,7 +1778,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1659,9 +1786,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/printbackends/file/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/printbackends/file/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/printbackends/file/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/printbackends/file/Makefile.in	2007-11-18 01:23:37.207761861 +0100
++++ gtk+-2.12.1/modules/printbackends/file/Makefile.in	2007-11-18 01:23:43.208103801 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1670,7 +1799,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1678,9 +1807,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/printbackends/lpr/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/printbackends/lpr/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/printbackends/lpr/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/printbackends/lpr/Makefile.in	2007-11-18 01:23:37.151758669 +0100
++++ gtk+-2.12.1/modules/printbackends/lpr/Makefile.in	2007-11-18 01:23:43.208103801 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1689,7 +1820,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1697,9 +1828,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/modules/printbackends/test/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/modules/printbackends/test/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/modules/printbackends/test/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/modules/printbackends/test/Makefile.in	2007-11-18 01:23:37.135757757 +0100
++++ gtk+-2.12.1/modules/printbackends/test/Makefile.in	2007-11-18 01:23:43.208103801 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1708,7 +1841,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1716,9 +1849,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/perf/Makefile.in	2007-10-17 06:00:13.000000000 +0200
-+++ gtk+2.0-2.12.1/perf/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -89,6 +89,8 @@
+Index: gtk+-2.12.1/perf/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/perf/Makefile.in	2007-11-18 01:23:37.079754566 +0100
++++ gtk+-2.12.1/perf/Makefile.in	2007-11-18 01:23:43.208103801 +0100
+@@ -89,6 +89,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1727,7 +1862,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -123,6 +125,7 @@
+@@ -123,6 +125,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@
@@ -1735,9 +1870,11 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GTK_API_VERSION = @GTK_API_VERSION@
  GTK_BINARY_AGE = @GTK_BINARY_AGE@
  GTK_BINARY_VERSION = @GTK_BINARY_VERSION@
---- gtk+2.0-2.12.1.orig/tests/Makefile.in	2007-10-17 06:00:14.000000000 +0200
-+++ gtk+2.0-2.12.1/tests/Makefile.in	2007-10-18 16:36:53.000000000 +0200
-@@ -92,6 +92,8 @@
+Index: gtk+-2.12.1/tests/Makefile.in
+===================================================================
+--- gtk+-2.12.1.orig/tests/Makefile.in	2007-11-18 01:23:37.067753882 +0100
++++ gtk+-2.12.1/tests/Makefile.in	2007-11-18 01:23:43.208103801 +0100
+@@ -92,6 +92,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1746,7 +1883,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -126,6 +128,7 @@
+@@ -126,6 +128,7 @@ GMOFILES = @GMOFILES@
  GMSGFMT = @GMSGFMT@
  GOBJECT_QUERY = @GOBJECT_QUERY@
  GREP = @GREP@

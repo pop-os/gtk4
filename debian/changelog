@@ -1,11 +1,19 @@
-gtk+2.0 (2.12.1-3) UNRELEASED; urgency=low
+gtk+2.0 (2.12.1-3) unstable; urgency=low
 
   * Conflict against metacity < 1:2.20.0-1. Closes: #450693.
   * Suggest librsvg2-common for SVG pixbuf support.
-  * 033_treeview_resizing.patch: fix segmentation fault introduced by 
+  * 033_treeview_resizing.patch: fix segmentation fault introduced by
     an API inconsistency.
+  * 003_gdk.pc_privates.patch: generate correct Requires.private for
+    gdk-2.0.pc containing all necessary dependencies for static linking.
+  * 006_proper-directfb-modules.patch: refreshed.
+  * 010_gdkpixbuf_-lm.patch: fix gdk-pixbuf-2.0.pc by adding back -lm,
+    which is required by some macros. Closes: #451512.
+  * 070_mandatory-relibtoolize.patch: regenerated.
+  * rules: copy the extraneous libraries generated in the static build 
+    to the Libs.private of the shared build.
 
- -- Josselin Mouette <joss@debian.org>  Thu, 15 Nov 2007 20:09:09 +0100
+ -- Josselin Mouette <joss@debian.org>  Sun, 18 Nov 2007 01:30:52 +0100
 
 gtk+2.0 (2.12.1-2) unstable; urgency=low
 
