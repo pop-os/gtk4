@@ -2,9 +2,9 @@ gtk+2.0 (2.12.2-1) UNRELEASED; urgency=low
 
   * New upstream stable release; no API change; bug fixes and translation
     updated.
-    - Drop patch 034_gtkcupsutils_type_fix fixed upstream.
+    - Drop patches 034_gtkcupsutils_type_fix, 071_fix_gdk_window_null_crasher
+      fixed upstream.
     - Update relibtoolizing patch, 070_mandatory-relibtoolize.
-    - Update patch 071_fix_gdk_window_null_crasher to apply cleanly.
 
  -- Sebastian Dröge <slomo@debian.org>  Tue, 27 Nov 2007 05:15:01 +0100
 
