@@ -1,17 +1,10 @@
 gtk+2.0 (2.12.2-1) UNRELEASED; urgency=low
 
-  [ Sebastian Dröge ]
   * New upstream stable release; no API change; bug fixes and translation
     updated.
     - Drop patches 034_gtkcupsutils_type_fix, 071_fix_gdk_window_null_crasher
       fixed upstream.
     - Update relibtoolizing patch, 070_mandatory-relibtoolize.
-
-  [ Josselin Mouette ]
-  * 003_gdk.pc_privates.patch: consider x11 as a public dependency and
-    not a private one, because gdkx.h #include's some of its headers and
-    packages can therefore use X11 functions. Closes: #453178.
-  * Refresh other patches; regenerate 070_mandatory-relibtoolize.
 
  -- Sebastian Dröge <slomo@debian.org>  Tue, 27 Nov 2007 05:15:01 +0100
 

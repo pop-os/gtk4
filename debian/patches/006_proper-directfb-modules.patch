@@ -1,10 +1,10 @@
 GNOME #447118; related to Debian #381081
 
-Index: gtk+-2.12.2/configure.in
+Index: gtk+-2.12.1/configure.in
 ===================================================================
---- gtk+-2.12.2.orig/configure.in	2007-11-27 23:06:22.533217754 +0100
-+++ gtk+-2.12.2/configure.in	2007-11-27 23:06:23.961299135 +0100
-@@ -1405,8 +1405,18 @@ if test "x$gdktarget" = "xdirectfb"; the
+--- gtk+-2.12.1.orig/configure.in	2007-11-18 00:52:41.125989789 +0100
++++ gtk+-2.12.1/configure.in	2007-11-18 00:53:48.389822936 +0100
+@@ -1404,8 +1404,18 @@ if test "x$gdktarget" = "xdirectfb"; the
  
    if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
        AC_MSG_RESULT(found)
@@ -25,12 +25,12 @@ Index: gtk+-2.12.2/configure.in
    else
        AC_MSG_ERROR([
  *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer and the cairo backend 
-@@ -1458,7 +1468,7 @@ fi
+@@ -1457,7 +1467,7 @@ fi
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
 -GDK_PACKAGES="$PANGO_PACKAGES"
 +GDK_PACKAGES="$GDK_PACKAGES $PANGO_PACKAGES"
  if test "x$gdktarget" = "xx11"; then
-   GDK_PACKAGES="$GDK_PACKAGES $X_BASE_PACKAGES"
    GDK_PRIVATE_PACKAGES="$X_PACKAGES"
+ fi

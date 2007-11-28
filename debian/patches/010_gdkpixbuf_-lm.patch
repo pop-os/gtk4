@@ -1,8 +1,8 @@
-Index: gtk+-2.12.2/configure.in
+Index: gtk+-2.12.1/configure.in
 ===================================================================
---- gtk+-2.12.2.orig/configure.in	2007-11-27 23:06:23.961299135 +0100
-+++ gtk+-2.12.2/configure.in	2007-11-27 23:06:56.411148347 +0100
-@@ -1540,7 +1540,7 @@ PANGO_PREFIX="`$PKG_CONFIG --variable=pr
+--- gtk+-2.12.1.orig/configure.in	2007-11-18 01:23:24.599043331 +0100
++++ gtk+-2.12.1/configure.in	2007-11-18 01:23:24.695048802 +0100
+@@ -1537,7 +1537,7 @@ PANGO_PREFIX="`$PKG_CONFIG --variable=pr
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then
