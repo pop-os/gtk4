@@ -1,4 +1,4 @@
-gtk+2.0 (2.12.2-1) UNRELEASED; urgency=low
+gtk+2.0 (2.12.2-1) unstable; urgency=low
 
   * New upstream stable release; no API change; bug fixes and translation
     updated.
