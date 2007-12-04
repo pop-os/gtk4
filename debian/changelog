@@ -1,9 +1,13 @@
-gtk+2.0 (2.12.2-2) UNRELEASED; urgency=low
+gtk+2.0 (2.12.3-1) unstable; urgency=low
 
   * Let update-icon-caches skip args which are not dirs or don't exist; fixes
     postrm behavior of packages with an icon cache.
+  * New upstream stable release; no API change; bug fixes and translation
+    updates.
+    - Refresh patch 042_treeview_single-focus to apply cleanly.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
 
- -- Loic Minier <lool@dooz.org>  Tue, 04 Dec 2007 16:27:01 +0100
+ -- Loic Minier <lool@dooz.org>  Tue, 04 Dec 2007 22:39:07 +0100
 
 gtk+2.0 (2.12.2-1) unstable; urgency=low
 
