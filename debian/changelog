@@ -1,4 +1,4 @@
-gtk+2.0 (2.12.2-1ubuntu1) UNRELEASED; urgency=low
+gtk+2.0 (2.12.2-2) UNRELEASED; urgency=low
 
   * Let update-icon-caches skip args which are not dirs or don't exist; fixes
     postrm behavior of packages with an icon cache.
