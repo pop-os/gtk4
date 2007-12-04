@@ -11,8 +11,7 @@ esac
 
 for dir in "$@"; do
     if [ ! -d "$dir" ]; then
-        echo "$dir is not a directory"
-        exit 2
+        continue
     fi
     if [ -f "$dir"/index.theme ]; then
         if [ -f "$dir"/icon-theme.cache ]; then
