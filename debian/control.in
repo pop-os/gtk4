@@ -41,7 +41,7 @@ Standards-Version: 3.7.2
 Package: @SHARED_PKG@
 Section: libs
 Architecture: any
-Depends: @COMMON_PKG@ (= ${source:Version}),
+Depends: @COMMON_PKG@,
          ${misc:Depends},
          ${shlibs:Depends}
 Provides: @GTK_BINVER_DEP@
