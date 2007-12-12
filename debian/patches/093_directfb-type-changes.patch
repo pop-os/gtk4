@@ -1,0 +1,24 @@
+Index: gtk+/gdk/directfb/gdkcursor-directfb.c
+===================================================================
+--- gtk+/gdk/directfb/gdkcursor-directfb.c	(Revision 19163)
++++ gtk+/gdk/directfb/gdkcursor-directfb.c	(Arbeitskopie)
+@@ -39,6 +39,19 @@
+ 
+ #include "x-cursors.xbm"
+ 
++
++/* Workaround for DirectFB >= 1.0.0-rc2 not
++ * defining __u32 anymore when DIRECTFB_NO_CRUFT
++ * is set, which is the default on Debian systems.
++ */
++#ifndef __u32
++#define __u32 u32
++#endif
++
++#ifndef __u8
++#define __u8 u8
++#endif
++
+ static struct {
+   const guchar *bits;
+   int width, height, hotx, hoty;

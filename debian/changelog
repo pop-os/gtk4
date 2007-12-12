@@ -1,3 +1,13 @@
+gtk+2.0 (2.12.3-2) unstable; urgency=low
+
+  * 092_notebook-critical-warnings.patch: Fix removal of tab labels to not
+    ref and unref a NULL pointer. Patch from upstream SVN, see BGO #388321.
+  * 093_directfb-type-changes.patch: Define __u32 and __u8 to fix compilation
+    with latest directfb from unstable while still supporting older versions.
+    Patch from BGO #503190.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 12 Dec 2007 05:36:40 +0100
+
 gtk+2.0 (2.12.3-1) unstable; urgency=low
 
   * Let update-icon-caches skip args which are not dirs or don't exist; fixes
