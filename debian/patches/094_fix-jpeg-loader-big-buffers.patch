@@ -1,0 +1,42 @@
+From SVN r19135
+
+2007-12-09  Matthias Clasen  <mclasen@redhat.com>
+
+	* io-jpeg.c: Fix the spinguard logic for big buffers.
+	(#494667, Ed Catmur)
+
+--- gdk-pixbuf/io-jpeg.c.orig	2007-12-04 17:52:17.000000000 +0100
++++ gdk-pixbuf/io-jpeg.c	2007-12-30 23:06:07.000000000 +0100
+@@ -812,7 +812,7 @@
+ 	struct           jpeg_decompress_struct *cinfo;
+ 	my_src_ptr       src;
+ 	guint            num_left, num_copy;
+-	guint            last_bytes_left;
++	guint            last_num_left, last_bytes_left;
+ 	guint            spinguard;
+ 	gboolean         first;
+ 	const guchar    *bufhd;
+@@ -853,6 +853,7 @@
+ 	if (num_left == 0)
+ 		return TRUE;
+ 
++	last_num_left = num_left;
+ 	last_bytes_left = 0;
+ 	spinguard = 0;
+ 	first = TRUE;
+@@ -880,10 +881,13 @@
+                 if (first) {
+                         last_bytes_left = src->pub.bytes_in_buffer;
+                         first = FALSE;
+-                } else if (src->pub.bytes_in_buffer == last_bytes_left)
++                } else if (src->pub.bytes_in_buffer == last_bytes_left
++			   && num_left == last_num_left) {
+                         spinguard++;
+-                else
++		} else {
+                         last_bytes_left = src->pub.bytes_in_buffer;
++			last_num_left = num_left;
++		}
+ 
+ 		/* should not go through twice and not pull bytes out of buf */
+ 		if (spinguard > 2)

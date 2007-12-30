@@ -3,6 +3,8 @@ gtk+2.0 (2.12.3-3) UNRELEASED; urgency=low
   * Drop the version in the libgtk2.0-0 -> libgtk2.0-common dependency; the
     translations and gtkrc files aren't critical to libgtk's working and have
     been compatible with other libgtk versions since years.
+  * New patch, 094_fix-jpeg-loader-big-buffers, fixes spinguard logic for big
+    buffers in the JPEG pixbuf loader; GNOME #494667; from SVN r19135.
 
  -- Loic Minier <lool@dooz.org>  Wed, 12 Dec 2007 14:39:26 +0100
 
