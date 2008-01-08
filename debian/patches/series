@@ -20,6 +20,4 @@
 060_ignore-random-icons.patch
 070_mandatory-relibtoolize.patch
 091_workaround_no_gtk_init_incorrect_display.patch
-092_notebook-critical-warnings.patch
 093_directfb-type-changes.patch
-094_fix-jpeg-loader-big-buffers.patch -p0

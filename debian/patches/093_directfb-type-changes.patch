@@ -1,10 +1,8 @@
-Index: gtk+/gdk/directfb/gdkcursor-directfb.c
-===================================================================
---- gtk+/gdk/directfb/gdkcursor-directfb.c	(Revision 19163)
-+++ gtk+/gdk/directfb/gdkcursor-directfb.c	(Arbeitskopie)
-@@ -39,6 +39,19 @@
- 
- #include "x-cursors.xbm"
+--- gtk+2.0-2.12.4.orig/gdk/directfb/gdkcursor-directfb.c	2008-01-08 05:20:48.000000000 +0100
++++ gtk+2.0-2.12.4/gdk/directfb/gdkcursor-directfb.c	2008-01-08 17:58:13.000000000 +0100
+@@ -46,6 +46,19 @@
+ #define u8 __u8
+ #endif
  
 +
 +/* Workaround for DirectFB >= 1.0.0-rc2 not
