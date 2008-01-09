@@ -11,6 +11,7 @@ gtk+2.0 (2.12.5-1) UNRELEASED; urgency=low
       094_fix-jpeg-loader-big-buffers, merged upstream.
     - Refresh patches 040_filechooser_single-click, 093_directfb-type-changes
       to apply cleanly.
+    - Update relibtoolizing patch, 070_mandatory-relibtoolize.
 
  -- Loic Minier <lool@dooz.org>  Wed, 12 Dec 2007 14:39:26 +0100
 
