@@ -98,7 +98,6 @@ Conflicts: libgtk2.0-0png3,
            metacity (<< 1:2.20.0-1)
 Replaces: libgtk2.0-0png3
 Recommends: hicolor-icon-theme,
-            ${misc:Depends},
             libgtk2.0-bin
 Suggests: librsvg2-common
 Description: The GTK+ graphical user interface library

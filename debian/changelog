@@ -22,6 +22,7 @@ gtk+2.0 (2.12.5-1) unstable; urgency=low
   * 092_recentfiles-recursion-fix.patch: Guard against recursion in
     gtk_recent_files_menu_populate(). Patch from upstream SVN by
     William Pitcock (Closes: #459393).
+  * Drop duplicated ${misc:Depends} from Recommends.
 
  -- Sebastian Dröge <slomo@debian.org>  Thu, 17 Jan 2008 10:49:09 +0100
 
