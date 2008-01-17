@@ -21,3 +21,4 @@
 070_mandatory-relibtoolize.patch
 091_workaround_no_gtk_init_incorrect_display.patch
 093_directfb-type-changes.patch
+092_recentfiles-recursion-fix.patch
