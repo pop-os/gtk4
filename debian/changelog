@@ -1,3 +1,9 @@
+gtk+2.0 (2.12.5-2) UNRELEASED; urgency=low
+
+  * Add ${shlibs:Depends} to libgtk2.0-dev.
+
+ -- Loic Minier <lool@dooz.org>  Fri, 18 Jan 2008 10:38:43 +0100
+
 gtk+2.0 (2.12.5-1) unstable; urgency=low
 
   [ Loic Minier ]
