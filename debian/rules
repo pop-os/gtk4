@@ -134,6 +134,8 @@ directfb_configure_flags := $(common_configure_flags) \
 			--enable-explicit-deps=yes \
 			--with-gdktarget=directfb
 
+DH_INSTALLDOCS_FILES := NEWS NEWS.pre-1-0 README ChangeLog.* ChangeLog
+
 # macro computing the list of 'debian/<pkg>.*" files which have a corresponding
 # ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
@@ -249,8 +251,15 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 	dh_testdir
 	dh_testroot
 	dh_install -i
-	dh_installchangelogs -i -N$(BIN_PKG) ChangeLog ChangeLog.*
-	dh_installdocs -i -N$(BIN_PKG) NEWS NEWS.pre-1-0 README
+	# changelog.gz symlinks will be overwritten by dh_link
+	dh_installchangelogs -i ChangeLog
+	# do not merge the calls: dh_installdocs will only install some files
+	# in the first package
+	dh_installdocs -p$(COMMON_PKG) $(DH_INSTALLDOCS_FILES)
+	dh_installdocs -p$(DOC_PKG) $(DH_INSTALLDOCS_FILES)
+	# install copyright in all packages; the -p is for the special behavior
+	# of dh_installdocs (ship README.Debian etc. in the first package)
+	dh_installdocs -p$(COMMON_PKG) -i
 	dh_installman -i
 	dh_link -i
 	dh_compress -i
@@ -272,8 +281,14 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	for f in update-gdkpixbuf-loaders update-gtk-immodules; do \
 	    chmod 755 debian/$(SHARED_PKG)/usr/lib/$(SHARED_PKG)/$$f; \
 	done
-	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) ChangeLog ChangeLog.*
-	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) NEWS NEWS.pre-1-0 README
+	# changelog.gz symlinks will be overwritten by dh_link
+	dh_installchangelogs -s ChangeLog
+	# do not merge the calls: dh_installdocs only installs in the first pkg
+	dh_installdocs -p$(EXAMPLES_PKG) $(DH_INSTALLDOCS_FILES)
+	dh_installdocs -p$(PIXBUF_PKG) $(DH_INSTALLDOCS_FILES)
+	# install copyright in all packages; the -p is for the special behavior
+	# of dh_installdocs (ship README.Debian etc. in the first package)
+	dh_installdocs -p$(PIXBUF_PKG) -s
 	dh_installman -s
 	# fix the permissions of the development package because it ships
 	# dh_gtkmodules which we need to invoke in this build

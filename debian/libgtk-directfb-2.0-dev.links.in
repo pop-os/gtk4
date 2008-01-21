@@ -1,1 +1,4 @@
-usr/share/doc/@DIRECTFB_PKG@ usr/share/doc/@DIRECTFB_DEV_PKG@
+usr/share/doc/@COMMON_PKG@/changelog.gz usr/share/doc/@DIRECTFB_DEV_PKG@/changelog.gz
+usr/share/doc/@COMMON_PKG@/NEWS.gz usr/share/doc/@DIRECTFB_DEV_PKG@/NEWS.gz
+usr/share/doc/@COMMON_PKG@/NEWS.pre-1-0.gz usr/share/doc/@DIRECTFB_DEV_PKG@/NEWS.pre-1-0.gz
+usr/share/doc/@COMMON_PKG@/README.gz usr/share/doc/@DIRECTFB_DEV_PKG@/README.gz

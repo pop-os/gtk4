@@ -112,6 +112,7 @@ Package: libgtk-directfb-2.0-0
 Section: libs
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
+         libgtk2.0-common,
          ${misc:Depends},
          ${shlibs:Depends}
 Conflicts: libgtk+2.0-directfb0
@@ -165,7 +166,8 @@ Package: libgtk2.0-bin
 Section: misc
 Architecture: all
 Depends: ${misc:Depends},
-         libgtk2.0-0 (>= ${source:Version})
+         libgtk2.0-0 (>= ${source:Version}),
+         libgtk2.0-common
 Replaces: libgtk2.0-common (<= 2.4.0-3),
           libgtk2.0-dev (<= 2.4.3-1)
 Conflicts: libgtk2.0-dev (<= 2.4.3-1)
@@ -182,6 +184,7 @@ Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
+         libgtk2.0-common,
          ${misc:Depends},
          ${shlibs:Depends},
          libglib2.0-dev (>= 2.12.0),
@@ -218,6 +221,7 @@ Architecture: any
 Depends: libgtk-directfb-2.0-0 (= ${binary:Version}),
          ${misc:Depends},
          libgtk2.0-dev (= ${binary:Version}),
+         libgtk2.0-common,
          libcairo-directfb2-dev,
          libcairo2-dev (>= 1.2.0)
 Conflicts: libgtk+2.0-directfb-dev
@@ -236,6 +240,7 @@ Section: libdevel
 Priority: extra
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
+         libgtk2.0-common,
          ${misc:Depends}
 Conflicts: libgtk2.0-dbg
 Replaces: libgtk2.0-dbg
@@ -291,7 +296,8 @@ Priority: optional
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         libgtk2.0-0 (= ${binary:Version})
+         libgtk2.0-0 (= ${binary:Version}),
+         libgtk2.0-common
 Conflicts: gtk2.0-engines-pixbuf
 Replaces: gtk2.0-engines-pixbuf
 Description: Pixbuf-based theme for GTK+ 2.x
