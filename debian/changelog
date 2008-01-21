@@ -871,6 +871,13 @@ gtk+2.0 (2.8.18-4) experimental; urgency=low
 
 gtk+2.0 (2.8.18-3) experimental; urgency=low
 
+  [ Loïc Minier ]
+  * Bump libgtk2.0-dev dependency and build-dep on libx11-dev to >= 2:1.0.0-6
+    as it ships x11.pc which ends up in the Requires of gdk-x11-2.0.pc.
+    (Closes: #326199, #370693)
+    [debian/control, debian/control.in]
+
+  [ Josselin Mouette ]
   * 003_gtk+-2.8.17-directfb.patch: new patch, bringing a new directfb
     backend.
   * 004_reautoconf.patch: new patch, result of "libtoolize --force
@@ -900,15 +907,6 @@ gtk+2.0 (2.8.18-3) experimental; urgency=low
     + update-*: call binaries at their new location.
 
  -- Josselin Mouette <joss@debian.org>  Mon, 26 Jun 2006 22:31:14 +0200
-
-gtk+2.0 (2.8.18-2) UNRELEASED; urgency=low
-
-  * Bump libgtk2.0-dev dependency and build-dep on libx11-dev to >= 2:1.0.0-6
-    as it ships x11.pc which ends up in the Requires of gdk-x11-2.0.pc.
-    (Closes: #326199, #370693)
-    [debian/control, debian/control.in]
-
- -- Loic Minier <lool@dooz.org>  Tue,  6 Jun 2006 15:18:28 +0200
 
 gtk+2.0 (2.8.18-1) unstable; urgency=low
 
