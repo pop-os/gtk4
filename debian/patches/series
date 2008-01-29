@@ -22,3 +22,4 @@
 091_workaround_no_gtk_init_incorrect_display.patch
 092_recentfiles-recursion-fix.patch
 093_directfb-type-changes.patch
+094_directfb-deprecation-fixes.patch
