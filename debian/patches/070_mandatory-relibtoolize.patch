@@ -9,8 +9,8 @@ exclude config.guess and sub with diff -urN -x config.guess -x config.sub
 This is required because of patches touching autotools files, but also because
 of upstream using an older libtool; see GNOME #484426; Debian #445001.
 
---- gtk+2.0-2.12.4.orig/aclocal.m4	2008-01-08 05:46:51.000000000 +0100
-+++ gtk+2.0-2.12.4/aclocal.m4	2008-01-08 17:57:41.000000000 +0100
+--- a/aclocal.m4	2008-01-29 10:05:20.000000000 +0100
++++ b/aclocal.m4	2008-01-29 10:05:43.000000000 +0100
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -123,7 +123,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	_LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -8311,7 +8324,7 @@
+@@ -8313,7 +8326,7 @@
        esac
    done
  
@@ -132,8 +132,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
    no_glib=""
  
---- gtk+2.0-2.12.4.orig/configure	2008-01-08 05:47:00.000000000 +0100
-+++ gtk+2.0-2.12.4/configure	2008-01-08 17:57:41.000000000 +0100
+--- a/configure	2008-01-29 10:05:20.000000000 +0100
++++ b/configure	2008-01-29 10:05:43.000000000 +0100
 @@ -863,6 +863,8 @@
  CCDEPMODE
  am__fastdepCC_TRUE
@@ -588,7 +588,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -23999,7 +24057,7 @@
+@@ -24002,7 +24060,7 @@
  
  fi
  if test -n "$PKG_CONFIG"; then
@@ -597,7 +597,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	{ echo "$as_me:$LINENO: checking pkg-config is at least version $_pkg_min_version" >&5
  echo $ECHO_N "checking pkg-config is at least version $_pkg_min_version... $ECHO_C" >&6; }
  	if $PKG_CONFIG --atleast-pkgconfig-version $_pkg_min_version; then
-@@ -32441,8 +32499,18 @@
+@@ -32444,8 +32502,18 @@
    if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
        { echo "$as_me:$LINENO: result: found" >&5
  echo "${ECHO_T}found" >&6; }
@@ -618,7 +618,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    else
        { { echo "$as_me:$LINENO: error:
  *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer and the cairo backend
-@@ -32578,20 +32646,21 @@
+@@ -32581,20 +32649,21 @@
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
@@ -645,7 +645,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  fi
  
  
-@@ -32601,6 +32670,7 @@
+@@ -32604,6 +32673,7 @@
  
  
  
@@ -653,7 +653,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  ########################################
  # Check for Accessibility Toolkit flags
  ########################################
-@@ -32706,7 +32776,7 @@
+@@ -32709,7 +32779,7 @@
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then
@@ -662,7 +662,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  fi
  
  
-@@ -33891,6 +33961,13 @@
+@@ -33894,6 +33964,13 @@
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
@@ -676,7 +676,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -34961,9 +35038,9 @@
+@@ -34964,9 +35041,9 @@
  CCDEPMODE!$CCDEPMODE$ac_delim
  am__fastdepCC_TRUE!$am__fastdepCC_TRUE$ac_delim
  am__fastdepCC_FALSE!$am__fastdepCC_FALSE$ac_delim
@@ -688,7 +688,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35005,6 +35082,8 @@
+@@ -35008,6 +35085,8 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -697,7 +697,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  CXXDEPMODE!$CXXDEPMODE$ac_delim
  am__fastdepCXX_TRUE!$am__fastdepCXX_TRUE$ac_delim
  am__fastdepCXX_FALSE!$am__fastdepCXX_FALSE$ac_delim
-@@ -35100,8 +35179,6 @@
+@@ -35103,8 +35182,6 @@
  INCLUDE_ANI_TRUE!$INCLUDE_ANI_TRUE$ac_delim
  INCLUDE_ANI_FALSE!$INCLUDE_ANI_FALSE$ac_delim
  INCLUDE_JPEG_TRUE!$INCLUDE_JPEG_TRUE$ac_delim
@@ -706,7 +706,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35143,6 +35220,8 @@
+@@ -35146,6 +35223,8 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -715,7 +715,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  INCLUDE_PNM_FALSE!$INCLUDE_PNM_FALSE$ac_delim
  INCLUDE_RAS_TRUE!$INCLUDE_RAS_TRUE$ac_delim
  INCLUDE_RAS_FALSE!$INCLUDE_RAS_FALSE$ac_delim
-@@ -35196,6 +35275,7 @@
+@@ -35199,6 +35278,7 @@
  USE_DIRECTFB_TRUE!$USE_DIRECTFB_TRUE$ac_delim
  USE_DIRECTFB_FALSE!$USE_DIRECTFB_FALSE$ac_delim
  GDK_PACKAGES!$GDK_PACKAGES$ac_delim
@@ -723,7 +723,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_EXTRA_LIBS!$GDK_EXTRA_LIBS$ac_delim
  GDK_EXTRA_CFLAGS!$GDK_EXTRA_CFLAGS$ac_delim
  GDK_DEP_LIBS!$GDK_DEP_LIBS$ac_delim
-@@ -35237,9 +35317,6 @@
+@@ -35240,9 +35320,6 @@
  HAVE_DOCBOOK_FALSE!$HAVE_DOCBOOK_FALSE$ac_delim
  XSLTPROC!$XSLTPROC$ac_delim
  XML_CATALOG_FILE!$XML_CATALOG_FILE$ac_delim
@@ -733,7 +733,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35281,11 +35358,14 @@
+@@ -35284,11 +35361,14 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -749,8 +749,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
      break
    elif $ac_last_try; then
      { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
---- gtk+2.0-2.12.4.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2008-01-08 05:46:55.000000000 +0100
-+++ gtk+2.0-2.12.4/contrib/gdk-pixbuf-xlib/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/contrib/gdk-pixbuf-xlib/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/contrib/gdk-pixbuf-xlib/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -768,8 +768,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/contrib/Makefile.in	2008-01-08 05:46:55.000000000 +0100
-+++ gtk+2.0-2.12.4/contrib/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/contrib/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/contrib/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -787,8 +787,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/demos/gtk-demo/Makefile.in	2008-01-08 05:46:56.000000000 +0100
-+++ gtk+2.0-2.12.4/demos/gtk-demo/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/demos/gtk-demo/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/demos/gtk-demo/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -806,8 +806,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/demos/Makefile.in	2008-01-08 05:46:55.000000000 +0100
-+++ gtk+2.0-2.12.4/demos/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/demos/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/demos/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -825,8 +825,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/docs/faq/Makefile.in	2008-01-08 05:46:56.000000000 +0100
-+++ gtk+2.0-2.12.4/docs/faq/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/docs/faq/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/docs/faq/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -844,8 +844,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/docs/Makefile.in	2008-01-08 05:46:56.000000000 +0100
-+++ gtk+2.0-2.12.4/docs/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/docs/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/docs/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -863,8 +863,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/docs/reference/gdk/Makefile.in	2008-01-08 15:12:39.000000000 +0100
-+++ gtk+2.0-2.12.4/docs/reference/gdk/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/docs/reference/gdk/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/docs/reference/gdk/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -882,8 +882,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/docs/reference/gdk-pixbuf/Makefile.in	2008-01-08 15:12:38.000000000 +0100
-+++ gtk+2.0-2.12.4/docs/reference/gdk-pixbuf/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/docs/reference/gdk-pixbuf/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/docs/reference/gdk-pixbuf/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -901,8 +901,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/docs/reference/gtk/Makefile.in	2008-01-08 15:12:42.000000000 +0100
-+++ gtk+2.0-2.12.4/docs/reference/gtk/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/docs/reference/gtk/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/docs/reference/gtk/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -95,6 +95,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -920,8 +920,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/docs/reference/Makefile.in	2008-01-08 05:46:56.000000000 +0100
-+++ gtk+2.0-2.12.4/docs/reference/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/docs/reference/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/docs/reference/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -939,8 +939,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/docs/tools/Makefile.in	2008-01-08 05:46:56.000000000 +0100
-+++ gtk+2.0-2.12.4/docs/tools/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/docs/tools/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/docs/tools/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -958,8 +958,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/docs/tutorial/Makefile.in	2008-01-08 05:46:56.000000000 +0100
-+++ gtk+2.0-2.12.4/docs/tutorial/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/docs/tutorial/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/docs/tutorial/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -977,8 +977,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gdk/directfb/Makefile.in	2008-01-08 05:46:57.000000000 +0100
-+++ gtk+2.0-2.12.4/gdk/directfb/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gdk/directfb/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gdk/directfb/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -996,8 +996,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gdk/Makefile.in	2008-01-08 05:46:57.000000000 +0100
-+++ gtk+2.0-2.12.4/gdk/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gdk/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gdk/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1015,8 +1015,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gdk/quartz/Makefile.in	2008-01-08 05:46:57.000000000 +0100
-+++ gtk+2.0-2.12.4/gdk/quartz/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gdk/quartz/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gdk/quartz/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1034,8 +1034,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gdk/win32/Makefile.in	2008-01-08 05:46:57.000000000 +0100
-+++ gtk+2.0-2.12.4/gdk/win32/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gdk/win32/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gdk/win32/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1053,8 +1053,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gdk/win32/rc/Makefile.in	2008-01-08 05:46:57.000000000 +0100
-+++ gtk+2.0-2.12.4/gdk/win32/rc/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gdk/win32/rc/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gdk/win32/rc/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1072,8 +1072,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gdk/x11/Makefile.in	2008-01-08 05:46:57.000000000 +0100
-+++ gtk+2.0-2.12.4/gdk/x11/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gdk/x11/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gdk/x11/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1091,8 +1091,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gdk-pixbuf/Makefile.in	2008-01-08 05:46:56.000000000 +0100
-+++ gtk+2.0-2.12.4/gdk-pixbuf/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gdk-pixbuf/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gdk-pixbuf/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1110,8 +1110,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gdk-pixbuf/pixops/Makefile.in	2008-01-08 05:46:56.000000000 +0100
-+++ gtk+2.0-2.12.4/gdk-pixbuf/pixops/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gdk-pixbuf/pixops/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gdk-pixbuf/pixops/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1129,8 +1129,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gtk/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/gtk/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gtk/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gtk/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -113,6 +113,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1188,8 +1188,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
---- gtk+2.0-2.12.4.orig/gtk/theme-bits/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/gtk/theme-bits/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gtk/theme-bits/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gtk/theme-bits/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1207,8 +1207,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/gtk/xdgmime/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/gtk/xdgmime/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/gtk/xdgmime/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/gtk/xdgmime/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1226,8 +1226,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/ltmain.sh	2007-08-29 13:52:51.000000000 +0200
-+++ gtk+2.0-2.12.4/ltmain.sh	2008-01-08 17:57:41.000000000 +0100
+--- a/ltmain.sh	2008-01-29 10:05:20.000000000 +0100
++++ b/ltmain.sh	2008-01-29 10:05:43.000000000 +0100
 @@ -43,7 +43,7 @@
  
  PROGRAM=ltmain.sh
@@ -1261,8 +1261,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	  esac
  	  ;;
  	no)
---- gtk+2.0-2.12.4.orig/m4macros/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/m4macros/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/m4macros/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/m4macros/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1280,8 +1280,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/Makefile.in	2008-01-08 05:46:55.000000000 +0100
-+++ gtk+2.0-2.12.4/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1330,8 +1330,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
---- gtk+2.0-2.12.4.orig/modules/engines/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/engines/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/engines/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/engines/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1349,8 +1349,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/engines/ms-windows/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/engines/ms-windows/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/engines/ms-windows/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/engines/ms-windows/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1368,8 +1368,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1387,8 +1387,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/engines/ms-windows/Theme/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/engines/ms-windows/Theme/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/engines/ms-windows/Theme/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/engines/ms-windows/Theme/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1406,8 +1406,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/engines/pixbuf/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/engines/pixbuf/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/engines/pixbuf/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/engines/pixbuf/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1425,8 +1425,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/input/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/input/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/input/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/input/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1476,8 +1476,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
---- gtk+2.0-2.12.4.orig/modules/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1495,8 +1495,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/printbackends/cups/Makefile.in	2008-01-08 05:46:59.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/printbackends/cups/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/printbackends/cups/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/printbackends/cups/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1514,8 +1514,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/printbackends/file/Makefile.in	2008-01-08 05:46:59.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/printbackends/file/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/printbackends/file/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/printbackends/file/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1533,8 +1533,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/printbackends/lpr/Makefile.in	2008-01-08 05:46:59.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/printbackends/lpr/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/printbackends/lpr/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/printbackends/lpr/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1552,8 +1552,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/printbackends/Makefile.in	2008-01-08 05:46:58.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/printbackends/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/printbackends/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/printbackends/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1571,8 +1571,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/modules/printbackends/test/Makefile.in	2008-01-08 05:46:59.000000000 +0100
-+++ gtk+2.0-2.12.4/modules/printbackends/test/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/modules/printbackends/test/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/modules/printbackends/test/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1590,8 +1590,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/perf/Makefile.in	2008-01-08 05:46:59.000000000 +0100
-+++ gtk+2.0-2.12.4/perf/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/perf/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/perf/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -89,6 +89,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1609,8 +1609,8 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- gtk+2.0-2.12.4.orig/tests/Makefile.in	2008-01-08 05:46:59.000000000 +0100
-+++ gtk+2.0-2.12.4/tests/Makefile.in	2008-01-08 17:57:41.000000000 +0100
+--- a/tests/Makefile.in	2008-01-29 10:05:20.000000000 +0100
++++ b/tests/Makefile.in	2008-01-29 10:05:43.000000000 +0100
 @@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
