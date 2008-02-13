@@ -1,3 +1,15 @@
+gtk+2.0 (2.12.8-1) UNRELEASED; urgency=low
+
+  * New upstream bugfix release:
+    + debian/patches/040_filechooser_single-click.patch,
+      debian/patches/093_directfb-type-changes.patch,
+      debian/patches/094_directfb-deprecation-fixes.patch:
+      - Dropped, merged upstream.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 13 Feb 2008 09:11:50 +0100
+
 gtk+2.0 (2.12.7-1) unstable; urgency=low
 
   * Fix GNOME casing in gtk-faq and gtk doc base descriptions.
