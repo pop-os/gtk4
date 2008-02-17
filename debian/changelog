@@ -1,3 +1,11 @@
+gtk+2.0 (2.12.8-2) UNRELEASED; urgency=low
+
+  * update-icon-caches: always exit with a 0 code to avoid breaking 
+    upgrades when a cache is corrupt. Display a big fat warning instead.
+    Closes: #466083.
+
+ -- Josselin Mouette <joss@debian.org>  Sun, 17 Feb 2008 13:38:47 +0100
+
 gtk+2.0 (2.12.8-1) unstable; urgency=low
 
   * New upstream bugfix release:
