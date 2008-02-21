@@ -1,0 +1,11 @@
+--- gtk+2.0-2.12.1.orig/gtk/updateiconcache.c	2007-10-21 22:04:11.000000000 +0200
++++ gtk+2.0-2.12.1/gtk/updateiconcache.c	2007-10-21 22:04:23.000000000 +0200
+@@ -654,7 +654,7 @@
+ 		      directories = g_list_append (directories, g_strdup (subdir));
+ 		    }
+ 		  else
+-		    dir_index = 0xffff;
++		    continue;
+ 		}
+ 		
+ 	      image = g_new0 (Image, 1);

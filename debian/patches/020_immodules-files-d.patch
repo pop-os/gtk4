@@ -70,8 +70,8 @@ Index: gtk+2.0-2.10.10/gtk/gtkimmodule.c
 +  int n;
 +
 +  list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
-+			im_module_file_str,
 +			im_module_files_d_str,
++			im_module_file_str,
 +			NULL);
 +
 +  files = pango_split_file_list (list_str);

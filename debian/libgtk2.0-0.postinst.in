@@ -2,14 +2,6 @@
 
 set -e
 
-if [ -d /usr/share/doc/@SHARED_PKG@ -a ! -L /usr/share/doc/@SHARED_PKG@ ]; then
-    if rmdir /usr/share/doc/@SHARED_PKG@; then
-        ln -sf @COMMON_PKG@ /usr/share/doc/@SHARED_PKG@
-    else
-        echo "Warning: could not remove /usr/share/doc/@SHARED_PKG@." >&2
-    fi
-fi
-
 # versions prior to 2.10.1-1 used the 2.4.0 binary version and generated module
 # files below /etc/gtk-2.0 which will we can not leave behind (since they
 # reference modules not on the system anymore)
@@ -20,3 +12,4 @@ if [ "$1" = "configure" ] && dpkg --compare-versions "$2" lt "2.10.3-2"; then
 fi
 
 #DEBHELPER#
+

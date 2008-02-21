@@ -2,7 +2,7 @@ Source: gtk+2.0
 Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Josselin Mouette <joss@debian.org>, Loic Minier <lool@dooz.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Josselin Mouette <joss@debian.org>, Loic Minier <lool@dooz.org>, Sebastian Dröge <slomo@debian.org>
 Build-Depends: debhelper (>= 5.0.22),
                gettext,
                pkg-config,
@@ -36,12 +36,12 @@ Build-Depends: debhelper (>= 5.0.22),
                quilt
 Build-Depends-Indep: gtk-doc-tools (>= 1.6),
                      docbook-xml
-Standards-Version: 3.7.2
+Standards-Version: 3.7.3
 
 Package: libgtk2.0-0
 Section: libs
 Architecture: any
-Depends: libgtk2.0-common (= ${source:Version}),
+Depends: libgtk2.0-common,
          ${misc:Depends},
          ${shlibs:Depends}
 Provides: gtk2.0-binver-2.10.0
@@ -90,11 +90,16 @@ Conflicts: libgtk2.0-0png3,
            iiimf-client-gtk (<< 12.3.91-4),
            libginspx0 (<< 20050529-1.1),
            scim-bridge-client-gtk (<< 0.4.10-1.1),
-           iiimgcf (<= 11.4.1870-7)
+           iiimgcf (<= 11.4.1870-7),
+           libwxgtk2.6-0 (<< 2.6.3.2.2-1),
+           glabels (<< 2.1.3-3),
+           libeel2-2.18,
+           xfwm4 (<< 4.4.1-3),
+           metacity (<< 1:2.20.0-1)
 Replaces: libgtk2.0-0png3
 Recommends: hicolor-icon-theme,
-            ${misc:Depends},
             libgtk2.0-bin
+Suggests: librsvg2-common
 Description: The GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -107,6 +112,7 @@ Package: libgtk-directfb-2.0-0
 Section: libs
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
+         libgtk2.0-common,
          ${misc:Depends},
          ${shlibs:Depends}
 Conflicts: libgtk+2.0-directfb0
@@ -160,7 +166,8 @@ Package: libgtk2.0-bin
 Section: misc
 Architecture: all
 Depends: ${misc:Depends},
-         libgtk2.0-0 (>= ${source:Version})
+         libgtk2.0-0 (>= ${source:Version}),
+         libgtk2.0-common
 Replaces: libgtk2.0-common (<= 2.4.0-3),
           libgtk2.0-dev (<= 2.4.3-1)
 Conflicts: libgtk2.0-dev (<= 2.4.3-1)
@@ -177,7 +184,9 @@ Package: libgtk2.0-dev
 Section: libdevel
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
+         libgtk2.0-common,
          ${misc:Depends},
+         ${shlibs:Depends},
          libglib2.0-dev (>= 2.12.0),
          libpango1.0-dev (>= 1.10.0-2),
          libatk1.0-dev (>= 1.6.1-2),
@@ -212,6 +221,7 @@ Architecture: any
 Depends: libgtk-directfb-2.0-0 (= ${binary:Version}),
          ${misc:Depends},
          libgtk2.0-dev (= ${binary:Version}),
+         libgtk2.0-common,
          libcairo-directfb2-dev,
          libcairo2-dev (>= 1.2.0)
 Conflicts: libgtk+2.0-directfb-dev
@@ -230,6 +240,7 @@ Section: libdevel
 Priority: extra
 Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
+         libgtk2.0-common,
          ${misc:Depends}
 Conflicts: libgtk2.0-dbg
 Replaces: libgtk2.0-dbg
@@ -285,8 +296,8 @@ Priority: optional
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         libgtk2.0-0 (= ${binary:Version})
-Suggests: gtk-engines-pixmap
+         libgtk2.0-0 (= ${binary:Version}),
+         libgtk2.0-common
 Conflicts: gtk2.0-engines-pixbuf
 Replaces: gtk2.0-engines-pixbuf
 Description: Pixbuf-based theme for GTK+ 2.x

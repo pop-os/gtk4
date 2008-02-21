@@ -1,7 +1,5 @@
 #!/bin/sh
 
-set -e
-
 case "$1" in
     ""|-h|--help)
         echo "Usage: $0 directory [ ... ]"
@@ -11,13 +9,14 @@ esac
 
 for dir in "$@"; do
     if [ ! -d "$dir" ]; then
-        echo "$dir is not a directory"
-        exit 2
+        continue
     fi
     if [ -f "$dir"/index.theme ]; then
         if [ -f "$dir"/icon-theme.cache ]; then
             # The cache already exists, regenerate it
-            gtk-update-icon-cache --force --quiet "$dir"
+            if ! gtk-update-icon-cache --force --quiet "$dir"; then
+                echo "WARNING: icon cache generation failed for $dir"
+            fi
         fi
     else
         # No more index.theme, remove the cache if it exists
@@ -26,3 +25,4 @@ for dir in "$@"; do
     fi
 done
 
+exit 0

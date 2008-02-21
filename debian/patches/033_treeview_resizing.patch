@@ -1,22 +1,14 @@
---- gtk+2.0-2.12.0.orig/gtk/gtktreeviewcolumn.c	2007-09-13 22:35:40.000000000 +0200
-+++ gtk+2.0-2.12.0/gtk/gtktreeviewcolumn.c	2007-09-16 18:24:32.000000000 +0200
-@@ -2142,6 +2142,7 @@
-       tree_column->tree_view != NULL &&
-       GTK_WIDGET_REALIZED (tree_column->tree_view))
-     {
-+      tree_column->use_resized_width = FALSE;
-       gtk_widget_queue_resize (tree_column->tree_view);
-     }
- 
---- gtk+2.0-2.12.0.orig/gtk/gtktreeview.c	2007-09-14 00:43:35.000000000 +0200
-+++ gtk+2.0-2.12.0/gtk/gtktreeview.c	2007-09-16 18:24:32.000000000 +0200
-@@ -2159,18 +2159,20 @@
+--- a/gtk/gtktreeview.c	2008-01-29 04:35:46.000000000 +0100
++++ b/gtk/gtktreeview.c	2008-01-29 09:57:35.000000000 +0100
+@@ -2158,19 +2158,21 @@
+ }
  
  /* GtkWidget::size_allocate helper */
- static void
+-static void
 -gtk_tree_view_size_allocate_columns (GtkWidget *widget)
++static gboolean
 +gtk_tree_view_size_allocate_columns (GtkWidget *widget,
-+				     gboolean   width_changed)
++				     gboolean width_changed)
  {
    GtkTreeView *tree_view;
    GList *list, *first_column, *last_column;
@@ -33,6 +25,15 @@
    
    tree_view = GTK_TREE_VIEW (widget);
  
+@@ -2179,7 +2181,7 @@
+        last_column = last_column->prev)
+     ;
+   if (last_column == NULL)
+-    return;
++    return width_changed;
+ 
+   for (first_column = g_list_first (tree_view->priv->columns);
+        first_column && !(GTK_TREE_VIEW_COLUMN (first_column->data)->visible);
 @@ -2205,12 +2207,38 @@
  	number_of_expand_columns++;
      }
@@ -73,18 +74,38 @@
    for (list = (rtl ? last_column : first_column); 
         list != (rtl ? first_column->prev : last_column->next);
         list = (rtl ? list->prev : list->next)) 
-@@ -2265,6 +2293,10 @@
- 	{
+@@ -2266,6 +2294,12 @@
  	  column->width += extra;
  	}
-+      else if (extra_for_last > 0 && list == last_column)
-+        {
-+	  column->width += extra_for_last;
-+	}
  
++      /* In addition to expand, the last column can get even more
++       * extra space so all available space is filled up.
++       */
++      if (extra_for_last > 0 && list == last_column)
++	column->width += extra_for_last;
++
        g_object_notify (G_OBJECT (column), "width");
  
-@@ -2299,13 +2331,13 @@
+       allocation.width = column->width;
+@@ -2283,8 +2317,17 @@
+                                 TREE_VIEW_DRAG_WIDTH, allocation.height);
+     }
+ 
++  /* We change the width here.  The user has been dragging columns,
++   * and we do need more width than allocated to properly display.
++   * The scrolled window should handle this, if the application
++   * doesn't have one, the tree view can't fit.
++   */
++  tree_view->priv->width = width;
++
+   if (column_changed)
+     gtk_widget_queue_draw (GTK_WIDGET (tree_view));
++
++  return TRUE;
+ }
+ 
+ 
+@@ -2299,13 +2342,13 @@
  
    g_return_if_fail (GTK_IS_TREE_VIEW (widget));
  
@@ -95,22 +116,81 @@
  
    tree_view = GTK_TREE_VIEW (widget);
  
-+  if (tree_view->priv->prev_width != widget->allocation.width)
++  if (allocation->width != old_width || tree_view->priv->width != tree_view->priv->prev_width)
 +    width_changed = TRUE;
 +
    tmp_list = tree_view->priv->children;
  
    while (tmp_list)
-@@ -2392,7 +2424,7 @@
+@@ -2323,6 +2366,7 @@
+       gtk_widget_size_allocate (child->widget, &allocation);
+     }
+ 
++  width_changed = gtk_tree_view_size_allocate_columns (widget, width_changed);
+ 
+   tree_view->priv->hadjustment->page_size = allocation->width;
+   tree_view->priv->hadjustment->page_increment = allocation->width * 0.9;
+@@ -2331,28 +2375,30 @@
+   tree_view->priv->hadjustment->upper = MAX (tree_view->priv->hadjustment->page_size, tree_view->priv->width);
+ 
+   if (gtk_widget_get_direction(widget) == GTK_TEXT_DIR_RTL)   
+-     {
++    {
+       if (allocation->width < tree_view->priv->width)
+-         {
+-         if (tree_view->priv->init_hadjust_value)
+-           {
+-           tree_view->priv->hadjustment->value = MAX (tree_view->priv->width - allocation->width, 0);
+-           tree_view->priv->init_hadjust_value = FALSE;
+-           }
+-         else if(allocation->width != old_width)
+-           tree_view->priv->hadjustment->value = CLAMP(tree_view->priv->hadjustment->value - allocation->width + old_width, 0, tree_view->priv->width - allocation->width);
+-         else
+-           tree_view->priv->hadjustment->value = CLAMP(tree_view->priv->width - (tree_view->priv->prev_width - tree_view->priv->hadjustment->value), 0, tree_view->priv->width - allocation->width);
+-         }
+-      else
+-         {
+-         tree_view->priv->hadjustment->value = 0;
+-         tree_view->priv->init_hadjust_value = TRUE;
+-         }
+-     }
++        {
++	  if (tree_view->priv->init_hadjust_value)
++	    {
++	      tree_view->priv->hadjustment->value = MAX (tree_view->priv->width - allocation->width, 0);
++	      tree_view->priv->init_hadjust_value = FALSE;
++	    }
++	  else if (allocation->width != old_width)
++	    {
++	      tree_view->priv->hadjustment->value = CLAMP (tree_view->priv->hadjustment->value - allocation->width + old_width, 0, tree_view->priv->width - allocation->width);
++	    }
++	  else
++	    tree_view->priv->hadjustment->value = CLAMP (tree_view->priv->width - (tree_view->priv->prev_width - tree_view->priv->hadjustment->value), 0, tree_view->priv->width - allocation->width);
++	}
++      else
++        {
++	  tree_view->priv->hadjustment->value = 0;
++	  tree_view->priv->init_hadjust_value = TRUE;
++	}
++    }
+   else
+-     if (tree_view->priv->hadjustment->value + allocation->width > tree_view->priv->width)
+-        tree_view->priv->hadjustment->value = MAX (tree_view->priv->width - allocation->width, 0);
++    if (tree_view->priv->hadjustment->value + allocation->width > tree_view->priv->width)
++      tree_view->priv->hadjustment->value = MAX (tree_view->priv->width - allocation->width, 0);
+ 
+   gtk_adjustment_changed (tree_view->priv->hadjustment);
+ 
+@@ -2392,8 +2438,6 @@
  			      allocation->height - TREE_VIEW_HEADER_HEIGHT (tree_view));
      }
  
 -  gtk_tree_view_size_allocate_columns (widget);
-+  gtk_tree_view_size_allocate_columns (widget, width_changed);
- 
+-
    if (tree_view->priv->tree == NULL)
      invalidate_empty_focus (tree_view);
-@@ -2837,7 +2869,7 @@
+ 
+@@ -2837,7 +2881,7 @@
  
  	  gtk_grab_add (widget);
  	  GTK_TREE_VIEW_SET_FLAG (tree_view, GTK_TREE_VIEW_IN_COLUMN_RESIZE);
@@ -119,7 +199,7 @@
  
  	  /* block attached dnd signal handler */
  	  drag_data = g_object_get_data (G_OBJECT (widget), "gtk-site-data");
-@@ -3546,6 +3578,8 @@
+@@ -3549,6 +3593,8 @@
      {
        column->use_resized_width = TRUE;
        column->resized_width = new_width;
@@ -128,7 +208,7 @@
        gtk_widget_queue_resize (widget);
      }
  
-@@ -11472,7 +11506,7 @@
+@@ -11484,7 +11530,7 @@
    if (GTK_WIDGET_REALIZED (tree_view))
      {
        gtk_widget_queue_resize (GTK_WIDGET (tree_view));
@@ -137,16 +217,26 @@
      }
  
    g_signal_emit (tree_view, tree_view_signals[COLUMNS_CHANGED], 0);
---- gtk+2.0-2.12.0.orig/gtk/gtktreeprivate.h	2007-09-13 22:35:41.000000000 +0200
-+++ gtk+2.0-2.12.0/gtk/gtktreeprivate.h	2007-09-16 18:24:32.000000000 +0200
-@@ -265,6 +265,10 @@
-   gboolean tree_lines_enabled;
+--- a/gtk/gtktreeviewcolumn.c	2008-01-29 04:35:46.000000000 +0100
++++ b/gtk/gtktreeviewcolumn.c	2008-01-29 09:57:35.000000000 +0100
+@@ -2142,6 +2142,7 @@
+       tree_column->tree_view != NULL &&
+       GTK_WIDGET_REALIZED (tree_column->tree_view))
+     {
++      tree_column->use_resized_width = FALSE;
+       gtk_widget_queue_resize (tree_column->tree_view);
+     }
+ 
+--- a/gtk/gtktreeprivate.h	2008-01-29 04:35:47.000000000 +0100
++++ b/gtk/gtktreeprivate.h	2008-01-29 09:57:35.000000000 +0100
+@@ -268,6 +268,10 @@
    GdkGC *tree_line_gc;
  
+   gint tooltip_column;
++
 +  gint last_extra_space;
 +  gint last_extra_space_per_column;
 +  gint last_number_of_expand_columns;
-+
-   gint tooltip_column;
  };
  
+ #ifdef __GNUC__

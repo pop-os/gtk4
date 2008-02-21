@@ -3,8 +3,6 @@
 # Debian GNOME Maintainers
 DISABLE_UPDATE_UPLOADERS := 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
-# prevent accidental uploads to unstable
-include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 # get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
@@ -113,7 +111,6 @@ common_configure_flags := \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
 			--with-html-dir=\$${prefix}/share/doc/$(DOC_PKG) \
-			--enable-explicit-deps=yes \
 			--enable-test-print-backend
 ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE)
@@ -134,7 +131,10 @@ directfb_configure_flags := $(common_configure_flags) \
 			--with-xinput=no \
 			--enable-shared \
 			--disable-static \
+			--enable-explicit-deps=yes \
 			--with-gdktarget=directfb
+
+DH_INSTALLDOCS_FILES := NEWS NEWS.pre-1-0 README ChangeLog.* ChangeLog
 
 # macro computing the list of 'debian/<pkg>.*" files which have a corresponding
 # ".in" file; pass the list of packages in $(1)
@@ -195,6 +195,11 @@ $(STAMP_DIR)/install-stamp-%: $(STAMP_DIR)/build-stamp-%
 	touch $@
 
 install: $(addprefix $(STAMP_DIR)/install-stamp-, $(FLAVORS))
+	# Add necessary dependencies for the static build to Libs.private
+	a=$$(grep ^Libs: $(installbasedir)/shared/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc) ; \
+	b=$$(grep ^Libs: $(installbasedir)/static/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc) ; \
+	c=$$(for i in $$b; do echo $$a| grep -q -e $$i || echo $$i; done) ; \
+	echo Libs.private: $$c >> $(installbasedir)/shared/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc
 
 # gross kludge to force control generation with the %.in target
 clean::
@@ -246,8 +251,15 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 	dh_testdir
 	dh_testroot
 	dh_install -i
-	dh_installchangelogs -i -N$(BIN_PKG) ChangeLog ChangeLog.*
-	dh_installdocs -i -N$(BIN_PKG) NEWS NEWS.pre-1-0 README
+	# changelog.gz symlinks will be overwritten by dh_link
+	dh_installchangelogs -i ChangeLog
+	# do not merge the calls: dh_installdocs will only install some files
+	# in the first package
+	dh_installdocs -p$(COMMON_PKG) $(DH_INSTALLDOCS_FILES)
+	dh_installdocs -p$(DOC_PKG) $(DH_INSTALLDOCS_FILES)
+	# install copyright in all packages; the -p is for the special behavior
+	# of dh_installdocs (ship README.Debian etc. in the first package)
+	dh_installdocs -p$(COMMON_PKG) -i
 	dh_installman -i
 	dh_link -i
 	dh_compress -i
@@ -269,8 +281,14 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	for f in update-gdkpixbuf-loaders update-gtk-immodules; do \
 	    chmod 755 debian/$(SHARED_PKG)/usr/lib/$(SHARED_PKG)/$$f; \
 	done
-	dh_installchangelogs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) ChangeLog ChangeLog.*
-	dh_installdocs -p$(EXAMPLES_PKG) -p$(PIXBUF_PKG) NEWS NEWS.pre-1-0 README
+	# changelog.gz symlinks will be overwritten by dh_link
+	dh_installchangelogs -s ChangeLog
+	# do not merge the calls: dh_installdocs only installs in the first pkg
+	dh_installdocs -p$(EXAMPLES_PKG) $(DH_INSTALLDOCS_FILES)
+	dh_installdocs -p$(PIXBUF_PKG) $(DH_INSTALLDOCS_FILES)
+	# install copyright in all packages; the -p is for the special behavior
+	# of dh_installdocs (ship README.Debian etc. in the first package)
+	dh_installdocs -p$(PIXBUF_PKG) -s
 	dh_installman -s
 	# fix the permissions of the development package because it ships
 	# dh_gtkmodules which we need to invoke in this build

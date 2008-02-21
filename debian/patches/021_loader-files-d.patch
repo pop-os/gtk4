@@ -1,7 +1,7 @@
-Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
+Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 ===================================================================
---- gtk+2.0-2.11.2.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-06-06 13:43:15.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c	2007-06-13 11:57:45.000000000 +0200
+--- gtk+-2.12.1.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-11-04 12:35:24.378152677 +0100
++++ gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c	2007-11-04 12:38:15.659913468 +0100
 @@ -45,6 +45,9 @@
  #undef STRICT
  #endif
@@ -12,10 +12,12 @@ Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
  static gint 
  format_check (GdkPixbufModule *module, guchar *buffer, int size)
  {
-@@ -284,87 +287,93 @@
+@@ -284,87 +287,95 @@ gdk_pixbuf_get_module_file (void)
  
  #endif	/* USE_GMODULE */
  
+-static void 
+-gdk_pixbuf_io_init (void)
 +/* FIXME this is a static copy of a public pango function which should really
 + * livein glib */
 +static char *
@@ -39,7 +41,7 @@ Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
 + * livein glib */
 +char **
 +_ugly_copy_of_pango_split_file_list (const char *str)
-+{
+ {
 +  int i = 0;
 +  int j;
 +  char **files;
@@ -91,12 +93,12 @@ Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
 +  return files;
 +}
 +
- static void 
--gdk_pixbuf_io_init (void)
-+process_module_file (const gchar *filename, GIOChannel *channel)
- {
--#ifdef USE_GMODULE
+ #ifdef USE_GMODULE
 -	GIOChannel *channel;
++
++static void 
++process_module_file (const gchar *filename, GIOChannel *channel)
++{
  	gchar *line_buf;
  	gsize term;
  	GString *tmp_buf = g_string_new (NULL);
@@ -117,7 +119,7 @@ Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
 -		file_formats = g_slist_prepend (file_formats, builtin_module);\
 -	else								\
 -		g_free (builtin_module)
--
+ 
 -#ifdef INCLUDE_ani
 -	load_one_builtin_module (ani);
 -#endif
@@ -162,7 +164,7 @@ Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
 -#endif
 -
 -#undef load_one_builtin_module
- 
+-
 -#ifdef USE_GMODULE
 -	channel = g_io_channel_new_file (filename, "r",  &error);
 -	if (!channel) {
@@ -176,13 +178,15 @@ Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
  	while (!have_error && g_io_channel_read_line (channel, &line_buf, NULL, &term, NULL) == G_IO_STATUS_NORMAL) {
  		const char *p;
  		
-@@ -497,8 +506,138 @@
+@@ -497,8 +508,140 @@ gdk_pixbuf_io_init (void)
  		g_free (line_buf);
  	}
  	g_string_free (tmp_buf, TRUE);
 -	g_io_channel_unref (channel);
 -	g_free (filename);
 +}
++
++#endif /* USE_GMODULE */
 +
 +static void 
 +gdk_pixbuf_io_init (void)
@@ -257,8 +261,8 @@ Index: gtk+2.0-2.11.2/gdk-pixbuf/gdk-pixbuf-io.c
 +
 +#ifdef USE_GMODULE
 +	list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
-+			      gdkpixbuf_module_file_str,
 +			      gdkpixbuf_module_files_d_str,
++			      gdkpixbuf_module_file_str,
 +			      NULL);
 +
 +	files = _ugly_copy_of_pango_split_file_list (list_str);

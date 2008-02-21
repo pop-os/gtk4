@@ -112,7 +112,7 @@ sub find_modules {
                 chomp;
                 push @$modules_ref, $_;
             }
-            close FIND;
+            close FIND or die "Error while running find: $!";
         } elsif (-f $path or -l $path) {
             # if path is a file or symlink, simply add it to the list
             push @$modules_ref, $path;
@@ -170,7 +170,7 @@ sub query_modules {
     doit("chmod", 644, "$module_file");
     doit("chown", "0:0", "$module_file");
 
-    close QUERY;
+    close QUERY or die "Error while querying modules with $querymodules: $!";
 }
 
 foreach my $package (@{$dh{DOPACKAGES}}) {
