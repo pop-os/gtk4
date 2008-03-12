@@ -134,7 +134,7 @@ directfb_configure_flags := $(common_configure_flags) \
 			--enable-explicit-deps=yes \
 			--with-gdktarget=directfb
 
-DH_INSTALLDOCS_FILES := NEWS NEWS.pre-1-0 README ChangeLog.* ChangeLog
+DH_INSTALLDOCS_FILES := NEWS README ChangeLog
 
 # macro computing the list of 'debian/<pkg>.*" files which have a corresponding
 # ".in" file; pass the list of packages in $(1)
