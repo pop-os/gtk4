@@ -1,0 +1,13 @@
+Index: modules/printbackends/cups/gtkprintbackendcups.c
+===================================================================
+--- gtk+/modules/printbackends/cups/gtkprintbackendcups.c	(Revision 19784)
++++ gtk+/modules/printbackends/cups/gtkprintbackendcups.c	(Arbeitskopie)
+@@ -36,6 +36,7 @@
+ #include <cairo-ps.h>
+ 
+ #include <glib/gi18n-lib.h>
++#include <glib/gstdio.h>
+ #include <gmodule.h>
+ 
+ #include <gtk/gtkprintoperation.h>
+

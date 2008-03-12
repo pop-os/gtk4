@@ -20,3 +20,4 @@
 070_mandatory-relibtoolize.patch
 091_workaround_no_gtk_init_incorrect_display.patch
 095_gtk-im-module-setting.patch
+092_implicit-g-fopen.patch

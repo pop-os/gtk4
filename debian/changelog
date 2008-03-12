@@ -1,3 +1,11 @@
+gtk+2.0 (2.12.9-2) unstable; urgency=low
+
+  * debian/patches/092_implicit-g-fopen.patch:
+    + Include glib/gstdio.h for g_fopen to prevent crashes on 64 bit
+      architectures. Thanks to Dann Frazier for the patch (Closes: #470665).
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 12 Mar 2008 18:52:53 +0100
+
 gtk+2.0 (2.12.9-1) unstable; urgency=low
 
   [ Josselin Mouette ]
