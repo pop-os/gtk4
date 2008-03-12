@@ -19,5 +19,4 @@
 060_ignore-random-icons.patch
 070_mandatory-relibtoolize.patch
 091_workaround_no_gtk_init_incorrect_display.patch
-092_recentfiles-recursion-fix.patch
 095_gtk-im-module-setting.patch

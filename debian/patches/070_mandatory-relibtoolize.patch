@@ -9,9 +9,9 @@ exclude config.guess and sub with diff -urN -x config.guess -x config.sub
 This is required because of patches touching autotools files, but also because
 of upstream using an older libtool; see GNOME #484426; Debian #445001.
 
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/aclocal.m4 gtk+2.0-2.12.8/aclocal.m4
---- gtk+2.0-2.12.8.old/aclocal.m4	2008-02-12 18:58:22.000000000 +0100
-+++ gtk+2.0-2.12.8/aclocal.m4	2008-02-13 09:22:36.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/aclocal.m4 gtk+2.0-2.12.9/aclocal.m4
+--- gtk+2.0-2.12.9.old/aclocal.m4	2008-03-12 05:17:55.000000000 +0100
++++ gtk+2.0-2.12.9/aclocal.m4	2008-03-12 09:50:51.000000000 +0100
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -652,9 +652,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/acloc
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/configure gtk+2.0-2.12.8/configure
---- gtk+2.0-2.12.8.old/configure	2008-02-12 18:58:36.000000000 +0100
-+++ gtk+2.0-2.12.8/configure	2008-02-13 09:22:41.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/configure gtk+2.0-2.12.9/configure
+--- gtk+2.0-2.12.9.old/configure	2008-03-12 05:18:17.000000000 +0100
++++ gtk+2.0-2.12.9/configure	2008-03-12 09:50:58.000000000 +0100
 @@ -863,6 +863,8 @@
  CCDEPMODE
  am__fastdepCC_TRUE
@@ -681,7 +681,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  GDK_EXTRA_LIBS
  GDK_EXTRA_CFLAGS
  GDK_DEP_LIBS
-@@ -3872,6 +3877,16 @@
+@@ -3875,6 +3880,16 @@
  
  
  
@@ -698,7 +698,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  for ac_prog in $CCC c++ g++ gcc CC cxx cc++ cl
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
-@@ -5003,7 +5018,7 @@
+@@ -5006,7 +5021,7 @@
  # whether `pass_all' will *always* work, you probably want this one.
  
  case $host_os in
@@ -707,7 +707,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    lt_cv_deplibs_check_method=pass_all
    ;;
  
-@@ -5098,7 +5113,7 @@
+@@ -5101,7 +5116,7 @@
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -716,16 +716,16 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -5219,7 +5234,7 @@
+@@ -5222,7 +5237,7 @@
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
--  echo '#line 5222 "configure"' > conftest.$ac_ext
-+  echo '#line 5237 "configure"' > conftest.$ac_ext
+-  echo '#line 5225 "configure"' > conftest.$ac_ext
++  echo '#line 5240 "configure"' > conftest.$ac_ext
    if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
-@@ -5284,7 +5299,6 @@
+@@ -5287,7 +5302,6 @@
        esac
        ;;
      *64-bit*)
@@ -733,7 +733,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        case $host in
          x86_64-*kfreebsd*-gnu)
            LD="${LD-ld} -m elf_x86_64_fbsd"
-@@ -5392,7 +5406,11 @@
+@@ -5395,7 +5409,11 @@
      *64-bit*)
        case $lt_cv_prog_gnu_ld in
        yes*) LD="${LD-ld} -m elf64_sparc" ;;
@@ -746,7 +746,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        esac
        ;;
      esac
-@@ -6811,7 +6829,6 @@
+@@ -6814,7 +6832,6 @@
  
  
  # Autoconf 2.13's AC_OBJEXT and AC_EXEEXT macros only works for C compilers!
@@ -754,7 +754,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  # find the maximum length of command line arguments
  { echo "$as_me:$LINENO: checking the maximum length of command line arguments" >&5
  echo $ECHO_N "checking the maximum length of command line arguments... $ECHO_C" >&6; }
-@@ -7126,7 +7143,7 @@
+@@ -7129,7 +7146,7 @@
      echo "$progname: failed program was:" >&5
      cat conftest.$ac_ext >&5
    fi
@@ -763,7 +763,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  
    # Do not use the global_symbol_pipe unless it works.
    if test "$pipe_works" = yes; then
-@@ -7686,6 +7703,318 @@
+@@ -7689,6 +7706,318 @@
    ;;
  esac
  
@@ -1082,7 +1082,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  enable_dlopen=no
  enable_win32_dll=yes
  
-@@ -7751,7 +8080,7 @@
+@@ -7754,7 +8083,7 @@
  echo "$lt_simple_link_test_code" >conftest.$ac_ext
  eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
  _lt_linker_boilerplate=`cat conftest.err`
@@ -1091,21 +1091,21 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  
  
  
-@@ -7779,11 +8108,11 @@
+@@ -7782,11 +8111,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:7782: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8111: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:7785: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8114: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:7786: \$? = $ac_status" >&5
-+   echo "$as_me:8115: \$? = $ac_status" >&5
+-   echo "$as_me:7789: \$? = $ac_status" >&5
++   echo "$as_me:8118: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -8053,10 +8382,10 @@
+@@ -8056,10 +8385,10 @@
  
  { echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic works" >&5
  echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic works... $ECHO_C" >&6; }
@@ -1118,17 +1118,17 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    ac_outfile=conftest.$ac_objext
     echo "$lt_simple_compile_test_code" > conftest.$ac_ext
     lt_compiler_flag="$lt_prog_compiler_pic -DPIC"
-@@ -8069,27 +8398,27 @@
+@@ -8072,27 +8401,27 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:8072: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8401: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:8075: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8404: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:8076: \$? = $ac_status" >&5
-+   echo "$as_me:8405: \$? = $ac_status" >&5
+-   echo "$as_me:8079: \$? = $ac_status" >&5
++   echo "$as_me:8408: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -1152,7 +1152,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      case $lt_prog_compiler_pic in
       "" | " "*) ;;
       *) lt_prog_compiler_pic=" $lt_prog_compiler_pic" ;;
-@@ -8116,10 +8445,10 @@
+@@ -8119,10 +8448,10 @@
  wl=$lt_prog_compiler_wl eval lt_tmp_static_flag=\"$lt_prog_compiler_static\"
  { echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
  echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6; }
@@ -1165,7 +1165,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
     echo "$lt_simple_link_test_code" > conftest.$ac_ext
-@@ -8132,20 +8461,20 @@
+@@ -8135,20 +8464,20 @@
         $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
         $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
         if diff conftest.exp conftest.er2 >/dev/null; then
@@ -1192,21 +1192,21 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      :
  else
      lt_prog_compiler_static=
-@@ -8173,11 +8502,11 @@
+@@ -8176,11 +8505,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:8176: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8505: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:8179: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8508: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:8180: \$? = $ac_status" >&5
-+   echo "$as_me:8509: \$? = $ac_status" >&5
+-   echo "$as_me:8183: \$? = $ac_status" >&5
++   echo "$as_me:8512: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -8257,12 +8586,13 @@
+@@ -8260,12 +8589,13 @@
    # it will be wrapped by ` (' and `)$', so one must not match beginning or
    # end of line.  Example: `a|bc|.*d.*' will exclude the symbols `a' and `bc',
    # as well as any symbol that contains `d'.
@@ -1221,7 +1221,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    extract_expsyms_cmds=
    # Just being paranoid about ensuring that cc_basename is set.
    for cc_temp in $compiler""; do
-@@ -8321,7 +8651,7 @@
+@@ -8324,7 +8654,7 @@
  
      # See if GNU ld supports shared libraries.
      case $host_os in
@@ -1230,7 +1230,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        # On AIX/PPC, the GNU linker is very broken
        if test "$host_cpu" != ia64; then
  	ld_shlibs=no
-@@ -8437,12 +8767,13 @@
+@@ -8440,12 +8770,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -1245,7 +1245,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -8540,7 +8871,7 @@
+@@ -8543,7 +8874,7 @@
        fi
        ;;
  
@@ -1254,7 +1254,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if test "$host_cpu" = ia64; then
  	# On IA64, the linker does run time linking by default, so we don't
  	# have to do anything special.
-@@ -8560,7 +8891,7 @@
+@@ -8563,7 +8894,7 @@
  	# Test if we are trying to use run time linking or normal
  	# AIX style linking. If -brtl is somewhere in LDFLAGS, we
  	# need to do runtime linking.
@@ -1263,7 +1263,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  	  for ld_flag in $LDFLAGS; do
    	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
    	    aix_use_runtimelinking=yes
-@@ -8832,11 +9163,10 @@
+@@ -8835,11 +9166,10 @@
        link_all_deplibs=yes
      if test "$GCC" = yes ; then
      	output_verbose_link_cmd='echo'
@@ -1279,7 +1279,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      else
        case $cc_basename in
          xlc*)
-@@ -8986,7 +9316,7 @@
+@@ -8989,7 +9319,7 @@
        link_all_deplibs=yes
        ;;
  
@@ -1288,7 +1288,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -9356,7 +9686,7 @@
+@@ -9359,7 +9689,7 @@
    soname_spec='${libname}${release}${shared_ext}$major'
    ;;
  
@@ -1297,7 +1297,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -9681,13 +10011,11 @@
+@@ -9684,13 +10014,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -1312,7 +1312,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -9699,6 +10027,18 @@
+@@ -9702,6 +10030,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -1331,7 +1331,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -9880,6 +10220,21 @@
+@@ -9883,6 +10223,21 @@
  echo "${ECHO_T}$dynamic_linker" >&6; }
  test "$dynamic_linker" = no && can_build_shared=no
  
@@ -1353,7 +1353,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
  if test "$GCC" = yes; then
    variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -10199,7 +10554,7 @@
+@@ -10202,7 +10557,7 @@
  { echo "$as_me:$LINENO: result: $ac_cv_lib_dld_shl_load" >&5
  echo "${ECHO_T}$ac_cv_lib_dld_shl_load" >&6; }
  if test $ac_cv_lib_dld_shl_load = yes; then
@@ -1362,7 +1362,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  else
    { echo "$as_me:$LINENO: checking for dlopen" >&5
  echo $ECHO_N "checking for dlopen... $ECHO_C" >&6; }
-@@ -10475,7 +10830,7 @@
+@@ -10478,7 +10833,7 @@
  { echo "$as_me:$LINENO: result: $ac_cv_lib_dld_dld_link" >&5
  echo "${ECHO_T}$ac_cv_lib_dld_dld_link" >&6; }
  if test $ac_cv_lib_dld_dld_link = yes; then
@@ -1371,25 +1371,25 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  fi
  
  
-@@ -10524,7 +10879,7 @@
+@@ -10527,7 +10882,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 10527 "configure"
-+#line 10882 "configure"
+-#line 10530 "configure"
++#line 10885 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -10624,7 +10979,7 @@
+@@ -10627,7 +10982,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 10627 "configure"
-+#line 10982 "configure"
+-#line 10630 "configure"
++#line 10985 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -10751,7 +11106,7 @@
+@@ -10754,7 +11109,7 @@
    fi
    ;;
  
@@ -1398,7 +1398,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    if test "$host_cpu" != ia64 && test "$aix_use_runtimelinking" = no ; then
      test "$enable_shared" = yes && enable_static=no
    fi
-@@ -10807,6 +11162,7 @@
+@@ -10810,6 +11165,7 @@
      predeps \
      postdeps \
      compiler_lib_search_path \
@@ -1406,7 +1406,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      archive_cmds \
      archive_expsym_cmds \
      postinstall_cmds \
-@@ -10867,7 +11223,7 @@
+@@ -10870,7 +11226,7 @@
  # Generated automatically by $PROGRAM (GNU $PACKAGE $VERSION$TIMESTAMP)
  # NOTE: Changes made to this file will be lost: look at ltmain.sh.
  #
@@ -1415,7 +1415,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  # Free Software Foundation, Inc.
  #
  # This file is part of GNU Libtool:
-@@ -11103,6 +11459,10 @@
+@@ -11106,6 +11462,10 @@
  # shared library.
  postdeps=$lt_postdeps
  
@@ -1426,7 +1426,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  # The library search path used internally by the compiler when linking
  # a shared library.
  compiler_lib_search_path=$lt_compiler_lib_search_path
-@@ -11351,6 +11711,7 @@
+@@ -11354,6 +11714,7 @@
  predeps_CXX=
  postdeps_CXX=
  compiler_lib_search_path_CXX=
@@ -1434,7 +1434,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  
  # Source file extension for C++ test sources.
  ac_ext=cpp
-@@ -11388,7 +11749,7 @@
+@@ -11391,7 +11752,7 @@
  echo "$lt_simple_link_test_code" >conftest.$ac_ext
  eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
  _lt_linker_boilerplate=`cat conftest.err`
@@ -1443,7 +1443,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  
  
  # Allow CC to be a program name with arguments.
-@@ -11595,7 +11956,7 @@
+@@ -11598,7 +11959,7 @@
      # FIXME: insert proper C++ library support
      ld_shlibs_CXX=no
      ;;
@@ -1452,7 +1452,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      if test "$host_cpu" = ia64; then
        # On IA64, the linker does run time linking by default, so we don't
        # have to do anything special.
-@@ -11608,7 +11969,7 @@
+@@ -11611,7 +11972,7 @@
        # Test if we are trying to use run time linking or normal
        # AIX style linking. If -brtl is somewhere in LDFLAGS, we
        # need to do runtime linking.
@@ -1461,7 +1461,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  	for ld_flag in $LDFLAGS; do
  	  case $ld_flag in
  	  *-brtl*)
-@@ -11866,51 +12227,23 @@
+@@ -11869,51 +12230,23 @@
      fi
    ;;
        darwin* | rhapsody*)
@@ -1522,7 +1522,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        else
        case $cc_basename in
          xlc*)
-@@ -12161,7 +12494,7 @@
+@@ -12164,7 +12497,7 @@
  	export_dynamic_flag_spec_CXX='${wl}--export-dynamic'
  	whole_archive_flag_spec_CXX='${wl}--whole-archive$convenience ${wl}--no-whole-archive'
  	;;
@@ -1531,7 +1531,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
          # Portland Group C++ compiler
  	archive_cmds_CXX='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags ${wl}-soname ${wl}$soname -o $lib'
    	archive_expsym_cmds_CXX='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags ${wl}-soname ${wl}$soname ${wl}-retain-symbols-file ${wl}$export_symbols -o $lib'
-@@ -12234,7 +12567,7 @@
+@@ -12237,7 +12570,7 @@
  	;;
      esac
      ;;
@@ -1540,7 +1540,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
        archive_cmds_CXX='$LD -Bshareable  -o $lib $predep_objects $libobjs $deplibs $postdep_objects $linker_flags'
        wlarc=
-@@ -12568,7 +12901,6 @@
+@@ -12571,7 +12904,6 @@
  GCC_CXX="$GXX"
  LD_CXX="$LD"
  
@@ -1548,7 +1548,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  cat > conftest.$ac_ext <<EOF
  class Foo
  {
-@@ -12670,6 +13002,11 @@
+@@ -12673,6 +13005,11 @@
  
  $rm -f confest.$objext
  
@@ -1560,7 +1560,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  # PORTME: override above test on systems where it is broken
  case $host_os in
  interix[3-9]*)
-@@ -12725,7 +13062,6 @@
+@@ -12728,7 +13065,6 @@
    ;;
  esac
  
@@ -1568,7 +1568,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  case " $postdeps_CXX " in
  *" -lc "*) archive_cmds_need_lc_CXX=no ;;
  esac
-@@ -12801,7 +13137,7 @@
+@@ -12804,7 +13140,7 @@
      esac
    else
      case $host_os in
@@ -1577,7 +1577,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  	# All AIX code is PIC.
  	if test "$host_cpu" = ia64; then
  	  # AIX 5 now supports IA64 processor
-@@ -12897,7 +13233,7 @@
+@@ -12900,7 +13236,7 @@
  	    lt_prog_compiler_pic_CXX='-KPIC'
  	    lt_prog_compiler_static_CXX='-static'
  	    ;;
@@ -1586,7 +1586,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  	    # Portland Group C++ compiler.
  	    lt_prog_compiler_wl_CXX='-Wl,'
  	    lt_prog_compiler_pic_CXX='-fpic'
-@@ -12935,7 +13271,7 @@
+@@ -12938,7 +13274,7 @@
  	    ;;
  	esac
  	;;
@@ -1595,7 +1595,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  	;;
        osf3* | osf4* | osf5*)
  	case $cc_basename in
-@@ -13028,10 +13364,10 @@
+@@ -13031,10 +13367,10 @@
  
  { echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_CXX works" >&5
  echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_CXX works... $ECHO_C" >&6; }
@@ -1608,17 +1608,17 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    ac_outfile=conftest.$ac_objext
     echo "$lt_simple_compile_test_code" > conftest.$ac_ext
     lt_compiler_flag="$lt_prog_compiler_pic_CXX -DPIC"
-@@ -13044,27 +13380,27 @@
+@@ -13047,27 +13383,27 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:13047: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:13383: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:13050: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:13386: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:13051: \$? = $ac_status" >&5
-+   echo "$as_me:13387: \$? = $ac_status" >&5
+-   echo "$as_me:13054: \$? = $ac_status" >&5
++   echo "$as_me:13390: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -1642,7 +1642,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      case $lt_prog_compiler_pic_CXX in
       "" | " "*) ;;
       *) lt_prog_compiler_pic_CXX=" $lt_prog_compiler_pic_CXX" ;;
-@@ -13091,10 +13427,10 @@
+@@ -13094,10 +13430,10 @@
  wl=$lt_prog_compiler_wl_CXX eval lt_tmp_static_flag=\"$lt_prog_compiler_static_CXX\"
  { echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
  echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6; }
@@ -1655,7 +1655,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
     echo "$lt_simple_link_test_code" > conftest.$ac_ext
-@@ -13107,20 +13443,20 @@
+@@ -13110,20 +13446,20 @@
         $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
         $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
         if diff conftest.exp conftest.er2 >/dev/null; then
@@ -1682,21 +1682,21 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      :
  else
      lt_prog_compiler_static_CXX=
-@@ -13148,11 +13484,11 @@
+@@ -13151,11 +13487,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:13151: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:13487: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:13154: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:13490: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:13155: \$? = $ac_status" >&5
-+   echo "$as_me:13491: \$? = $ac_status" >&5
+-   echo "$as_me:13158: \$? = $ac_status" >&5
++   echo "$as_me:13494: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -13205,7 +13541,7 @@
+@@ -13208,7 +13544,7 @@
  
    export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    case $host_os in
@@ -1705,7 +1705,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      # If we're using GNU nm, then we don't want the "-C" option.
      # -C means demangle to AIX nm, but means don't demangle with GNU nm
      if $NM -V 2>&1 | grep 'GNU' > /dev/null; then
-@@ -13220,10 +13556,14 @@
+@@ -13223,10 +13559,14 @@
    cygwin* | mingw*)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS][ ]/s/.*[ ]\([^ ]*\)/\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\([^ ]*\)[ ][^ ]*/\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.*[ ]//'\'' | sort | uniq > $export_symbols'
    ;;
@@ -1720,7 +1720,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  
  { echo "$as_me:$LINENO: result: $ld_shlibs_CXX" >&5
  echo "${ECHO_T}$ld_shlibs_CXX" >&6; }
-@@ -13325,7 +13665,7 @@
+@@ -13328,7 +13668,7 @@
    soname_spec='${libname}${release}${shared_ext}$major'
    ;;
  
@@ -1729,7 +1729,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -13649,13 +13989,11 @@
+@@ -13652,13 +13992,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -1744,7 +1744,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -13667,6 +14005,18 @@
+@@ -13670,6 +14008,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -1763,7 +1763,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -13848,6 +14198,21 @@
+@@ -13851,6 +14201,21 @@
  echo "${ECHO_T}$dynamic_linker" >&6; }
  test "$dynamic_linker" = no && can_build_shared=no
  
@@ -1785,7 +1785,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
  if test "$GCC" = yes; then
    variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -13931,6 +14296,7 @@
+@@ -13934,6 +14299,7 @@
      predeps_CXX \
      postdeps_CXX \
      compiler_lib_search_path_CXX \
@@ -1793,7 +1793,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      archive_cmds_CXX \
      archive_expsym_cmds_CXX \
      postinstall_cmds_CXX \
-@@ -14179,6 +14545,10 @@
+@@ -14182,6 +14548,10 @@
  # shared library.
  postdeps=$lt_postdeps_CXX
  
@@ -1804,7 +1804,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  # The library search path used internally by the compiler when linking
  # a shared library.
  compiler_lib_search_path=$lt_compiler_lib_search_path_CXX
-@@ -14393,7 +14763,7 @@
+@@ -14396,7 +14766,7 @@
  echo "$lt_simple_link_test_code" >conftest.$ac_ext
  eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
  _lt_linker_boilerplate=`cat conftest.err`
@@ -1813,7 +1813,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  
  
  # Allow CC to be a program name with arguments.
-@@ -14431,7 +14801,7 @@
+@@ -14434,7 +14804,7 @@
      postinstall_cmds='$RANLIB $lib'
    fi
    ;;
@@ -1822,7 +1822,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    if test "$host_cpu" != ia64 && test "$aix_use_runtimelinking" = no ; then
      test "$enable_shared" = yes && enable_static=no
    fi
-@@ -14696,10 +15066,10 @@
+@@ -14699,10 +15069,10 @@
  
  { echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_F77 works" >&5
  echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_F77 works... $ECHO_C" >&6; }
@@ -1835,17 +1835,17 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    ac_outfile=conftest.$ac_objext
     echo "$lt_simple_compile_test_code" > conftest.$ac_ext
     lt_compiler_flag="$lt_prog_compiler_pic_F77"
-@@ -14712,27 +15082,27 @@
+@@ -14715,27 +15085,27 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14715: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:15085: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:14718: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:15088: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:14719: \$? = $ac_status" >&5
-+   echo "$as_me:15089: \$? = $ac_status" >&5
+-   echo "$as_me:14722: \$? = $ac_status" >&5
++   echo "$as_me:15092: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -1869,7 +1869,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      case $lt_prog_compiler_pic_F77 in
       "" | " "*) ;;
       *) lt_prog_compiler_pic_F77=" $lt_prog_compiler_pic_F77" ;;
-@@ -14759,10 +15129,10 @@
+@@ -14762,10 +15132,10 @@
  wl=$lt_prog_compiler_wl_F77 eval lt_tmp_static_flag=\"$lt_prog_compiler_static_F77\"
  { echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
  echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6; }
@@ -1882,7 +1882,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
     echo "$lt_simple_link_test_code" > conftest.$ac_ext
-@@ -14775,20 +15145,20 @@
+@@ -14778,20 +15148,20 @@
         $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
         $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
         if diff conftest.exp conftest.er2 >/dev/null; then
@@ -1909,21 +1909,21 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      :
  else
      lt_prog_compiler_static_F77=
-@@ -14816,11 +15186,11 @@
+@@ -14819,11 +15189,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14819: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:15189: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:14822: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:15192: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:14823: \$? = $ac_status" >&5
-+   echo "$as_me:15193: \$? = $ac_status" >&5
+-   echo "$as_me:14826: \$? = $ac_status" >&5
++   echo "$as_me:15196: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -14900,12 +15270,13 @@
+@@ -14903,12 +15273,13 @@
    # it will be wrapped by ` (' and `)$', so one must not match beginning or
    # end of line.  Example: `a|bc|.*d.*' will exclude the symbols `a' and `bc',
    # as well as any symbol that contains `d'.
@@ -1938,7 +1938,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    extract_expsyms_cmds=
    # Just being paranoid about ensuring that cc_basename is set.
    for cc_temp in $compiler""; do
-@@ -14964,7 +15335,7 @@
+@@ -14967,7 +15338,7 @@
  
      # See if GNU ld supports shared libraries.
      case $host_os in
@@ -1947,7 +1947,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        # On AIX/PPC, the GNU linker is very broken
        if test "$host_cpu" != ia64; then
  	ld_shlibs_F77=no
-@@ -15080,12 +15451,13 @@
+@@ -15083,12 +15454,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -1962,7 +1962,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -15183,7 +15555,7 @@
+@@ -15186,7 +15558,7 @@
        fi
        ;;
  
@@ -1971,7 +1971,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if test "$host_cpu" = ia64; then
  	# On IA64, the linker does run time linking by default, so we don't
  	# have to do anything special.
-@@ -15203,7 +15575,7 @@
+@@ -15206,7 +15578,7 @@
  	# Test if we are trying to use run time linking or normal
  	# AIX style linking. If -brtl is somewhere in LDFLAGS, we
  	# need to do runtime linking.
@@ -1980,7 +1980,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  	  for ld_flag in $LDFLAGS; do
    	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
    	    aix_use_runtimelinking=yes
-@@ -15455,11 +15827,10 @@
+@@ -15458,11 +15830,10 @@
        link_all_deplibs_F77=yes
      if test "$GCC" = yes ; then
      	output_verbose_link_cmd='echo'
@@ -1996,7 +1996,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      else
        case $cc_basename in
          xlc*)
-@@ -15609,7 +15980,7 @@
+@@ -15612,7 +15983,7 @@
        link_all_deplibs_F77=yes
        ;;
  
@@ -2005,7 +2005,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -15928,7 +16299,7 @@
+@@ -15931,7 +16302,7 @@
    soname_spec='${libname}${release}${shared_ext}$major'
    ;;
  
@@ -2014,7 +2014,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -16252,13 +16623,11 @@
+@@ -16255,13 +16626,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -2029,7 +2029,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -16270,6 +16639,18 @@
+@@ -16273,6 +16642,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -2048,7 +2048,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -16451,6 +16832,21 @@
+@@ -16454,6 +16835,21 @@
  echo "${ECHO_T}$dynamic_linker" >&6; }
  test "$dynamic_linker" = no && can_build_shared=no
  
@@ -2070,7 +2070,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
  if test "$GCC" = yes; then
    variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -16534,6 +16930,7 @@
+@@ -16537,6 +16933,7 @@
      predeps_F77 \
      postdeps_F77 \
      compiler_lib_search_path_F77 \
@@ -2078,7 +2078,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      archive_cmds_F77 \
      archive_expsym_cmds_F77 \
      postinstall_cmds_F77 \
-@@ -16782,6 +17179,10 @@
+@@ -16785,6 +17182,10 @@
  # shared library.
  postdeps=$lt_postdeps_F77
  
@@ -2089,7 +2089,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  # The library search path used internally by the compiler when linking
  # a shared library.
  compiler_lib_search_path=$lt_compiler_lib_search_path_F77
-@@ -16956,7 +17357,7 @@
+@@ -16959,7 +17360,7 @@
  echo "$lt_simple_link_test_code" >conftest.$ac_ext
  eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
  _lt_linker_boilerplate=`cat conftest.err`
@@ -2098,21 +2098,21 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  
  
  # Allow CC to be a program name with arguments.
-@@ -17005,11 +17406,11 @@
+@@ -17008,11 +17409,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:17008: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17409: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:17011: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:17412: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:17012: \$? = $ac_status" >&5
-+   echo "$as_me:17413: \$? = $ac_status" >&5
+-   echo "$as_me:17015: \$? = $ac_status" >&5
++   echo "$as_me:17416: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -17069,7 +17470,7 @@
+@@ -17072,7 +17473,7 @@
        # built for inclusion in a dll (and should export symbols for example).
        # Although the cygwin gcc ignores -fPIC, still need this for old-style
        # (--disable-auto-import) libraries
@@ -2121,7 +2121,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        ;;
  
      darwin* | rhapsody*)
-@@ -17139,7 +17540,7 @@
+@@ -17142,7 +17543,7 @@
      mingw* | cygwin* | pw32* | os2*)
        # This hack is so that the source file can tell whether it is being
        # built for inclusion in a dll (and should export symbols for example).
@@ -2130,7 +2130,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        ;;
  
      hpux9* | hpux10* | hpux11*)
-@@ -17279,10 +17680,10 @@
+@@ -17282,10 +17683,10 @@
  
  { echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_GCJ works" >&5
  echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_GCJ works... $ECHO_C" >&6; }
@@ -2143,17 +2143,17 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    ac_outfile=conftest.$ac_objext
     echo "$lt_simple_compile_test_code" > conftest.$ac_ext
     lt_compiler_flag="$lt_prog_compiler_pic_GCJ"
-@@ -17295,27 +17696,27 @@
+@@ -17298,27 +17699,27 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:17298: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17699: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:17301: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:17702: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:17302: \$? = $ac_status" >&5
-+   echo "$as_me:17703: \$? = $ac_status" >&5
+-   echo "$as_me:17305: \$? = $ac_status" >&5
++   echo "$as_me:17706: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
@@ -2177,7 +2177,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      case $lt_prog_compiler_pic_GCJ in
       "" | " "*) ;;
       *) lt_prog_compiler_pic_GCJ=" $lt_prog_compiler_pic_GCJ" ;;
-@@ -17342,10 +17743,10 @@
+@@ -17345,10 +17746,10 @@
  wl=$lt_prog_compiler_wl_GCJ eval lt_tmp_static_flag=\"$lt_prog_compiler_static_GCJ\"
  { echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
  echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6; }
@@ -2190,7 +2190,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
     save_LDFLAGS="$LDFLAGS"
     LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
     echo "$lt_simple_link_test_code" > conftest.$ac_ext
-@@ -17358,20 +17759,20 @@
+@@ -17361,20 +17762,20 @@
         $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
         $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
         if diff conftest.exp conftest.er2 >/dev/null; then
@@ -2217,21 +2217,21 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      :
  else
      lt_prog_compiler_static_GCJ=
-@@ -17399,11 +17800,11 @@
+@@ -17402,11 +17803,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:17402: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17803: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:17405: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:17806: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:17406: \$? = $ac_status" >&5
-+   echo "$as_me:17807: \$? = $ac_status" >&5
+-   echo "$as_me:17409: \$? = $ac_status" >&5
++   echo "$as_me:17810: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -17483,12 +17884,13 @@
+@@ -17486,12 +17887,13 @@
    # it will be wrapped by ` (' and `)$', so one must not match beginning or
    # end of line.  Example: `a|bc|.*d.*' will exclude the symbols `a' and `bc',
    # as well as any symbol that contains `d'.
@@ -2246,7 +2246,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    extract_expsyms_cmds=
    # Just being paranoid about ensuring that cc_basename is set.
    for cc_temp in $compiler""; do
-@@ -17547,7 +17949,7 @@
+@@ -17550,7 +17952,7 @@
  
      # See if GNU ld supports shared libraries.
      case $host_os in
@@ -2255,7 +2255,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        # On AIX/PPC, the GNU linker is very broken
        if test "$host_cpu" != ia64; then
  	ld_shlibs_GCJ=no
-@@ -17663,12 +18065,13 @@
+@@ -17666,12 +18068,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -2270,7 +2270,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -17766,7 +18169,7 @@
+@@ -17769,7 +18172,7 @@
        fi
        ;;
  
@@ -2279,7 +2279,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if test "$host_cpu" = ia64; then
  	# On IA64, the linker does run time linking by default, so we don't
  	# have to do anything special.
-@@ -17786,7 +18189,7 @@
+@@ -17789,7 +18192,7 @@
  	# Test if we are trying to use run time linking or normal
  	# AIX style linking. If -brtl is somewhere in LDFLAGS, we
  	# need to do runtime linking.
@@ -2288,7 +2288,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  	  for ld_flag in $LDFLAGS; do
    	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
    	    aix_use_runtimelinking=yes
-@@ -18058,11 +18461,10 @@
+@@ -18061,11 +18464,10 @@
        link_all_deplibs_GCJ=yes
      if test "$GCC" = yes ; then
      	output_verbose_link_cmd='echo'
@@ -2304,7 +2304,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      else
        case $cc_basename in
          xlc*)
-@@ -18212,7 +18614,7 @@
+@@ -18215,7 +18617,7 @@
        link_all_deplibs_GCJ=yes
        ;;
  
@@ -2313,7 +2313,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -18531,7 +18933,7 @@
+@@ -18534,7 +18936,7 @@
    soname_spec='${libname}${release}${shared_ext}$major'
    ;;
  
@@ -2322,7 +2322,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -18855,13 +19257,11 @@
+@@ -18858,13 +19260,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -2337,7 +2337,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -18873,6 +19273,18 @@
+@@ -18876,6 +19276,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -2356,7 +2356,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -19054,6 +19466,21 @@
+@@ -19057,6 +19469,21 @@
  echo "${ECHO_T}$dynamic_linker" >&6; }
  test "$dynamic_linker" = no && can_build_shared=no
  
@@ -2378,7 +2378,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
  if test "$GCC" = yes; then
    variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -19137,6 +19564,7 @@
+@@ -19140,6 +19567,7 @@
      predeps_GCJ \
      postdeps_GCJ \
      compiler_lib_search_path_GCJ \
@@ -2386,7 +2386,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      archive_cmds_GCJ \
      archive_expsym_cmds_GCJ \
      postinstall_cmds_GCJ \
-@@ -19385,6 +19813,10 @@
+@@ -19388,6 +19816,10 @@
  # shared library.
  postdeps=$lt_postdeps_GCJ
  
@@ -2397,7 +2397,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  # The library search path used internally by the compiler when linking
  # a shared library.
  compiler_lib_search_path=$lt_compiler_lib_search_path_GCJ
-@@ -19558,7 +19990,7 @@
+@@ -19561,7 +19993,7 @@
  echo "$lt_simple_link_test_code" >conftest.$ac_ext
  eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
  _lt_linker_boilerplate=`cat conftest.err`
@@ -2406,7 +2406,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  
  
  # Allow CC to be a program name with arguments.
-@@ -19618,6 +20050,7 @@
+@@ -19621,6 +20053,7 @@
      predeps_RC \
      postdeps_RC \
      compiler_lib_search_path_RC \
@@ -2414,7 +2414,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      archive_cmds_RC \
      archive_expsym_cmds_RC \
      postinstall_cmds_RC \
-@@ -19866,6 +20299,10 @@
+@@ -19869,6 +20302,10 @@
  # shared library.
  postdeps=$lt_postdeps_RC
  
@@ -2425,7 +2425,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  # The library search path used internally by the compiler when linking
  # a shared library.
  compiler_lib_search_path=$lt_compiler_lib_search_path_RC
-@@ -21330,10 +21767,11 @@
+@@ -21333,10 +21770,11 @@
  { echo "$as_me:$LINENO: checking for BASE_DEPENDENCIES" >&5
  echo $ECHO_N "checking for BASE_DEPENDENCIES... $ECHO_C" >&6; }
  
@@ -2441,7 +2441,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0\"") >&5
    ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0") 2>&5
    ac_status=$?
-@@ -21343,13 +21781,15 @@
+@@ -21346,13 +21784,15 @@
  else
    pkg_failed=yes
  fi
@@ -2463,7 +2463,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0\"") >&5
    ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0") 2>&5
    ac_status=$?
-@@ -21359,8 +21799,9 @@
+@@ -21362,8 +21802,9 @@
  else
    pkg_failed=yes
  fi
@@ -2475,7 +2475,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  fi
  
  
-@@ -21373,9 +21814,9 @@
+@@ -21376,9 +21817,9 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -2487,7 +2487,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$BASE_DEPENDENCIES_PKG_ERRORS" >&5
-@@ -32440,8 +32881,18 @@
+@@ -32443,8 +32884,18 @@
    if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
        { echo "$as_me:$LINENO: result: found" >&5
  echo "${ECHO_T}found" >&6; }
@@ -2508,7 +2508,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
    else
        { { echo "$as_me:$LINENO: error:
  *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer and the cairo backend
-@@ -32577,20 +33028,21 @@
+@@ -32580,20 +33031,21 @@
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
@@ -2535,7 +2535,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  fi
  
  
-@@ -32600,6 +33052,7 @@
+@@ -32603,6 +33055,7 @@
  
  
  
@@ -2543,7 +2543,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  ########################################
  # Check for Accessibility Toolkit flags
  ########################################
-@@ -32705,7 +33158,7 @@
+@@ -32708,7 +33161,7 @@
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then
@@ -2552,7 +2552,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  fi
  
  
-@@ -33890,6 +34343,13 @@
+@@ -33916,6 +34369,13 @@
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
@@ -2566,7 +2566,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -34960,9 +35420,9 @@
+@@ -34993,9 +35453,9 @@
  CCDEPMODE!$CCDEPMODE$ac_delim
  am__fastdepCC_TRUE!$am__fastdepCC_TRUE$ac_delim
  am__fastdepCC_FALSE!$am__fastdepCC_FALSE$ac_delim
@@ -2578,7 +2578,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35004,6 +35464,8 @@
+@@ -35037,6 +35497,8 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -2587,7 +2587,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  CXXDEPMODE!$CXXDEPMODE$ac_delim
  am__fastdepCXX_TRUE!$am__fastdepCXX_TRUE$ac_delim
  am__fastdepCXX_FALSE!$am__fastdepCXX_FALSE$ac_delim
-@@ -35018,6 +35480,8 @@
+@@ -35051,6 +35513,8 @@
  ECHO!$ECHO$ac_delim
  AR!$AR$ac_delim
  RANLIB!$RANLIB$ac_delim
@@ -2596,7 +2596,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  DLLTOOL!$DLLTOOL$ac_delim
  AS!$AS$ac_delim
  OBJDUMP!$OBJDUMP$ac_delim
-@@ -35097,10 +35561,6 @@
+@@ -35130,10 +35594,6 @@
  INCLUDE_ICO_TRUE!$INCLUDE_ICO_TRUE$ac_delim
  INCLUDE_ICO_FALSE!$INCLUDE_ICO_FALSE$ac_delim
  INCLUDE_ANI_TRUE!$INCLUDE_ANI_TRUE$ac_delim
@@ -2607,7 +2607,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35142,6 +35602,10 @@
+@@ -35175,6 +35635,10 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -2618,7 +2618,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  INCLUDE_PNM_FALSE!$INCLUDE_PNM_FALSE$ac_delim
  INCLUDE_RAS_TRUE!$INCLUDE_RAS_TRUE$ac_delim
  INCLUDE_RAS_FALSE!$INCLUDE_RAS_FALSE$ac_delim
-@@ -35195,6 +35659,7 @@
+@@ -35228,6 +35692,7 @@
  USE_DIRECTFB_TRUE!$USE_DIRECTFB_TRUE$ac_delim
  USE_DIRECTFB_FALSE!$USE_DIRECTFB_FALSE$ac_delim
  GDK_PACKAGES!$GDK_PACKAGES$ac_delim
@@ -2626,7 +2626,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  GDK_EXTRA_LIBS!$GDK_EXTRA_LIBS$ac_delim
  GDK_EXTRA_CFLAGS!$GDK_EXTRA_CFLAGS$ac_delim
  GDK_DEP_LIBS!$GDK_DEP_LIBS$ac_delim
-@@ -35234,11 +35699,6 @@
+@@ -35267,11 +35732,6 @@
  DB2HTML!$DB2HTML$ac_delim
  HAVE_DOCBOOK_TRUE!$HAVE_DOCBOOK_TRUE$ac_delim
  HAVE_DOCBOOK_FALSE!$HAVE_DOCBOOK_FALSE$ac_delim
@@ -2638,7 +2638,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
  _ACEOF
  
    if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35280,11 +35740,16 @@
+@@ -35313,11 +35773,16 @@
  ac_delim='%!_!# '
  for ac_last_try in false false false false false :; do
    cat >conf$$subs.sed <<_ACEOF
@@ -2656,9 +2656,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/confi
      break
    elif $ac_last_try; then
      { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.12.8/contrib/gdk-pixbuf-xlib/Makefile.in
---- gtk+2.0-2.12.8.old/contrib/gdk-pixbuf-xlib/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/contrib/gdk-pixbuf-xlib/Makefile.in	2008-02-13 09:22:42.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.12.9/contrib/gdk-pixbuf-xlib/Makefile.in
+--- gtk+2.0-2.12.9.old/contrib/gdk-pixbuf-xlib/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ gtk+2.0-2.12.9/contrib/gdk-pixbuf-xlib/Makefile.in	2008-03-12 09:50:59.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2692,9 +2692,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/contr
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/contrib/Makefile.in gtk+2.0-2.12.8/contrib/Makefile.in
---- gtk+2.0-2.12.8.old/contrib/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/contrib/Makefile.in	2008-02-13 09:22:42.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/contrib/Makefile.in gtk+2.0-2.12.9/contrib/Makefile.in
+--- gtk+2.0-2.12.9.old/contrib/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ gtk+2.0-2.12.9/contrib/Makefile.in	2008-03-12 09:50:59.000000000 +0100
 @@ -81,6 +81,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2728,9 +2728,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/contr
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/demos/gtk-demo/Makefile.in gtk+2.0-2.12.8/demos/gtk-demo/Makefile.in
---- gtk+2.0-2.12.8.old/demos/gtk-demo/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/demos/gtk-demo/Makefile.in	2008-02-13 09:22:42.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/demos/gtk-demo/Makefile.in gtk+2.0-2.12.9/demos/gtk-demo/Makefile.in
+--- gtk+2.0-2.12.9.old/demos/gtk-demo/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ gtk+2.0-2.12.9/demos/gtk-demo/Makefile.in	2008-03-12 09:50:59.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2764,9 +2764,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/demos
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/demos/Makefile.in gtk+2.0-2.12.8/demos/Makefile.in
---- gtk+2.0-2.12.8.old/demos/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/demos/Makefile.in	2008-02-13 09:22:42.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/demos/Makefile.in gtk+2.0-2.12.9/demos/Makefile.in
+--- gtk+2.0-2.12.9.old/demos/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ gtk+2.0-2.12.9/demos/Makefile.in	2008-03-12 09:50:59.000000000 +0100
 @@ -81,6 +81,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2800,9 +2800,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/demos
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/faq/Makefile.in gtk+2.0-2.12.8/docs/faq/Makefile.in
---- gtk+2.0-2.12.8.old/docs/faq/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/docs/faq/Makefile.in	2008-02-13 09:22:43.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/faq/Makefile.in gtk+2.0-2.12.9/docs/faq/Makefile.in
+--- gtk+2.0-2.12.9.old/docs/faq/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ gtk+2.0-2.12.9/docs/faq/Makefile.in	2008-03-12 09:50:59.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2836,9 +2836,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/Makefile.in gtk+2.0-2.12.8/docs/Makefile.in
---- gtk+2.0-2.12.8.old/docs/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/docs/Makefile.in	2008-02-13 09:22:43.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/Makefile.in gtk+2.0-2.12.9/docs/Makefile.in
+--- gtk+2.0-2.12.9.old/docs/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ gtk+2.0-2.12.9/docs/Makefile.in	2008-03-12 09:50:59.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2872,9 +2872,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/reference/gdk/Makefile.in gtk+2.0-2.12.8/docs/reference/gdk/Makefile.in
---- gtk+2.0-2.12.8.old/docs/reference/gdk/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/docs/reference/gdk/Makefile.in	2008-02-13 09:22:43.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/gdk/Makefile.in gtk+2.0-2.12.9/docs/reference/gdk/Makefile.in
+--- gtk+2.0-2.12.9.old/docs/reference/gdk/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ gtk+2.0-2.12.9/docs/reference/gdk/Makefile.in	2008-03-12 09:51:00.000000000 +0100
 @@ -86,6 +86,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2908,9 +2908,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.12.8/docs/reference/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.12.8.old/docs/reference/gdk-pixbuf/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/docs/reference/gdk-pixbuf/Makefile.in	2008-02-13 09:22:43.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.12.9/docs/reference/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.12.9.old/docs/reference/gdk-pixbuf/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ gtk+2.0-2.12.9/docs/reference/gdk-pixbuf/Makefile.in	2008-03-12 09:51:00.000000000 +0100
 @@ -86,6 +86,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2944,9 +2944,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/reference/gtk/Makefile.in gtk+2.0-2.12.8/docs/reference/gtk/Makefile.in
---- gtk+2.0-2.12.8.old/docs/reference/gtk/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/docs/reference/gtk/Makefile.in	2008-02-13 09:22:43.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/gtk/Makefile.in gtk+2.0-2.12.9/docs/reference/gtk/Makefile.in
+--- gtk+2.0-2.12.9.old/docs/reference/gtk/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ gtk+2.0-2.12.9/docs/reference/gtk/Makefile.in	2008-03-12 09:51:00.000000000 +0100
 @@ -86,6 +86,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2980,9 +2980,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/reference/Makefile.in gtk+2.0-2.12.8/docs/reference/Makefile.in
---- gtk+2.0-2.12.8.old/docs/reference/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/docs/reference/Makefile.in	2008-02-13 09:22:43.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/Makefile.in gtk+2.0-2.12.9/docs/reference/Makefile.in
+--- gtk+2.0-2.12.9.old/docs/reference/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ gtk+2.0-2.12.9/docs/reference/Makefile.in	2008-03-12 09:51:00.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3016,9 +3016,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/tools/Makefile.in gtk+2.0-2.12.8/docs/tools/Makefile.in
---- gtk+2.0-2.12.8.old/docs/tools/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/docs/tools/Makefile.in	2008-02-13 09:22:43.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/tools/Makefile.in gtk+2.0-2.12.9/docs/tools/Makefile.in
+--- gtk+2.0-2.12.9.old/docs/tools/Makefile.in	2008-03-12 05:18:10.000000000 +0100
++++ gtk+2.0-2.12.9/docs/tools/Makefile.in	2008-03-12 09:51:00.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3052,9 +3052,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/tutorial/Makefile.in gtk+2.0-2.12.8/docs/tutorial/Makefile.in
---- gtk+2.0-2.12.8.old/docs/tutorial/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/docs/tutorial/Makefile.in	2008-02-13 09:22:43.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/tutorial/Makefile.in gtk+2.0-2.12.9/docs/tutorial/Makefile.in
+--- gtk+2.0-2.12.9.old/docs/tutorial/Makefile.in	2008-03-12 05:18:10.000000000 +0100
++++ gtk+2.0-2.12.9/docs/tutorial/Makefile.in	2008-03-12 09:51:01.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3088,9 +3088,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/docs/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/directfb/Makefile.in gtk+2.0-2.12.8/gdk/directfb/Makefile.in
---- gtk+2.0-2.12.8.old/gdk/directfb/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/gdk/directfb/Makefile.in	2008-02-13 09:22:44.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/directfb/Makefile.in gtk+2.0-2.12.9/gdk/directfb/Makefile.in
+--- gtk+2.0-2.12.9.old/gdk/directfb/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ gtk+2.0-2.12.9/gdk/directfb/Makefile.in	2008-03-12 09:51:02.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3124,9 +3124,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/d
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/Makefile.in gtk+2.0-2.12.8/gdk/Makefile.in
---- gtk+2.0-2.12.8.old/gdk/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/gdk/Makefile.in	2008-02-13 09:22:44.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/Makefile.in gtk+2.0-2.12.9/gdk/Makefile.in
+--- gtk+2.0-2.12.9.old/gdk/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ gtk+2.0-2.12.9/gdk/Makefile.in	2008-03-12 09:51:02.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3160,9 +3160,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/M
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/quartz/Makefile.in gtk+2.0-2.12.8/gdk/quartz/Makefile.in
---- gtk+2.0-2.12.8.old/gdk/quartz/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/gdk/quartz/Makefile.in	2008-02-13 09:22:45.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/quartz/Makefile.in gtk+2.0-2.12.9/gdk/quartz/Makefile.in
+--- gtk+2.0-2.12.9.old/gdk/quartz/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ gtk+2.0-2.12.9/gdk/quartz/Makefile.in	2008-03-12 09:51:02.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3196,9 +3196,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/q
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/win32/Makefile.in gtk+2.0-2.12.8/gdk/win32/Makefile.in
---- gtk+2.0-2.12.8.old/gdk/win32/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/gdk/win32/Makefile.in	2008-02-13 09:22:45.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/win32/Makefile.in gtk+2.0-2.12.9/gdk/win32/Makefile.in
+--- gtk+2.0-2.12.9.old/gdk/win32/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ gtk+2.0-2.12.9/gdk/win32/Makefile.in	2008-03-12 09:51:02.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3232,9 +3232,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/w
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/win32/rc/Makefile.in gtk+2.0-2.12.8/gdk/win32/rc/Makefile.in
---- gtk+2.0-2.12.8.old/gdk/win32/rc/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/gdk/win32/rc/Makefile.in	2008-02-13 09:22:45.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/win32/rc/Makefile.in gtk+2.0-2.12.9/gdk/win32/rc/Makefile.in
+--- gtk+2.0-2.12.9.old/gdk/win32/rc/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ gtk+2.0-2.12.9/gdk/win32/rc/Makefile.in	2008-03-12 09:51:02.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3268,9 +3268,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/w
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/x11/Makefile.in gtk+2.0-2.12.8/gdk/x11/Makefile.in
---- gtk+2.0-2.12.8.old/gdk/x11/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/gdk/x11/Makefile.in	2008-02-13 09:22:45.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/x11/Makefile.in gtk+2.0-2.12.9/gdk/x11/Makefile.in
+--- gtk+2.0-2.12.9.old/gdk/x11/Makefile.in	2008-03-12 05:18:12.000000000 +0100
++++ gtk+2.0-2.12.9/gdk/x11/Makefile.in	2008-03-12 09:51:02.000000000 +0100
 @@ -82,6 +82,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3304,9 +3304,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk/x
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk-pixbuf/Makefile.in gtk+2.0-2.12.8/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.12.8.old/gdk-pixbuf/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/gdk-pixbuf/Makefile.in	2008-02-13 09:22:44.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk-pixbuf/Makefile.in gtk+2.0-2.12.9/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.12.9.old/gdk-pixbuf/Makefile.in	2008-03-12 05:18:10.000000000 +0100
++++ gtk+2.0-2.12.9/gdk-pixbuf/Makefile.in	2008-03-12 09:51:01.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3340,9 +3340,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk-p
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.12.8/gdk-pixbuf/pixops/Makefile.in
---- gtk+2.0-2.12.8.old/gdk-pixbuf/pixops/Makefile.in	2008-02-12 18:58:32.000000000 +0100
-+++ gtk+2.0-2.12.8/gdk-pixbuf/pixops/Makefile.in	2008-02-13 09:22:44.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.12.9/gdk-pixbuf/pixops/Makefile.in
+--- gtk+2.0-2.12.9.old/gdk-pixbuf/pixops/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ gtk+2.0-2.12.9/gdk-pixbuf/pixops/Makefile.in	2008-03-12 09:51:01.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3376,9 +3376,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gdk-p
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/Makefile.in gtk+2.0-2.12.8/gtk/Makefile.in
---- gtk+2.0-2.12.8.old/gtk/Makefile.in	2008-02-12 18:58:33.000000000 +0100
-+++ gtk+2.0-2.12.8/gtk/Makefile.in	2008-02-13 09:22:46.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/Makefile.in gtk+2.0-2.12.9/gtk/Makefile.in
+--- gtk+2.0-2.12.9.old/gtk/Makefile.in	2008-03-12 05:18:12.000000000 +0100
++++ gtk+2.0-2.12.9/gtk/Makefile.in	2008-03-12 09:51:03.000000000 +0100
 @@ -104,6 +104,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3412,7 +3412,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/M
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-@@ -379,6 +384,8 @@
+@@ -380,6 +385,8 @@
  	-I$(top_srcdir)/gdk-pixbuf -I../gdk-pixbuf	\
  	-DGDK_PIXBUF_DISABLE_DEPRECATED			\
  	-DGDK_DISABLE_DEPRECATED			\
@@ -3421,7 +3421,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/M
  	-DGTK_FILE_SYSTEM_ENABLE_UNSUPPORTED		\
  	-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED		\
  	$(GTK_DEBUG_FLAGS)				\
-@@ -634,13 +641,16 @@
+@@ -635,13 +642,16 @@
  # that are not included in gtk/gtk.h
  gtk_semi_private_h_sources = \
  	gtktextlayout.h		\
@@ -3441,7 +3441,7 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/M
  	gtksearchenginebeagle.h	\
  	gtksearchenginetracker.h\
  	gtksearchenginesimple.h	\
-@@ -650,10 +660,7 @@
+@@ -651,10 +661,7 @@
  	gtkfilechooserdefault.h	\
  	gtkfilechooserembed.h	\
  	gtkfilechooserentry.h	\
@@ -3452,9 +3452,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/M
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/theme-bits/Makefile.in gtk+2.0-2.12.8/gtk/theme-bits/Makefile.in
---- gtk+2.0-2.12.8.old/gtk/theme-bits/Makefile.in	2008-02-12 18:58:33.000000000 +0100
-+++ gtk+2.0-2.12.8/gtk/theme-bits/Makefile.in	2008-02-13 09:22:46.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/theme-bits/Makefile.in gtk+2.0-2.12.9/gtk/theme-bits/Makefile.in
+--- gtk+2.0-2.12.9.old/gtk/theme-bits/Makefile.in	2008-03-12 05:18:12.000000000 +0100
++++ gtk+2.0-2.12.9/gtk/theme-bits/Makefile.in	2008-03-12 09:51:04.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3488,9 +3488,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/t
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/xdgmime/Makefile.in gtk+2.0-2.12.8/gtk/xdgmime/Makefile.in
---- gtk+2.0-2.12.8.old/gtk/xdgmime/Makefile.in	2008-02-12 18:58:33.000000000 +0100
-+++ gtk+2.0-2.12.8/gtk/xdgmime/Makefile.in	2008-02-13 09:22:46.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/xdgmime/Makefile.in gtk+2.0-2.12.9/gtk/xdgmime/Makefile.in
+--- gtk+2.0-2.12.9.old/gtk/xdgmime/Makefile.in	2008-03-12 05:18:12.000000000 +0100
++++ gtk+2.0-2.12.9/gtk/xdgmime/Makefile.in	2008-03-12 09:51:04.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3524,9 +3524,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/gtk/x
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/ltmain.sh gtk+2.0-2.12.8/ltmain.sh
---- gtk+2.0-2.12.8.old/ltmain.sh	2008-01-30 21:26:55.000000000 +0100
-+++ gtk+2.0-2.12.8/ltmain.sh	2008-02-02 14:28:24.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/ltmain.sh gtk+2.0-2.12.9/ltmain.sh
+--- gtk+2.0-2.12.9.old/ltmain.sh	2008-01-30 21:26:55.000000000 +0100
++++ gtk+2.0-2.12.9/ltmain.sh	2008-02-02 14:28:24.000000000 +0100
 @@ -2,7 +2,7 @@
  # NOTE: Changing this file will not affect anything until you rerun configure.
  #
@@ -3720,9 +3720,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/ltmai
        do
  	eval "if test \"\${save_$lt_var+set}\" = set; then
  		$lt_var=\$save_$lt_var; export $lt_var
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/m4macros/Makefile.in gtk+2.0-2.12.8/m4macros/Makefile.in
---- gtk+2.0-2.12.8.old/m4macros/Makefile.in	2008-02-12 18:58:33.000000000 +0100
-+++ gtk+2.0-2.12.8/m4macros/Makefile.in	2008-02-13 09:22:46.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/m4macros/Makefile.in gtk+2.0-2.12.9/m4macros/Makefile.in
+--- gtk+2.0-2.12.9.old/m4macros/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ gtk+2.0-2.12.9/m4macros/Makefile.in	2008-03-12 09:51:04.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3756,9 +3756,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/m4mac
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/Makefile.in gtk+2.0-2.12.8/Makefile.in
---- gtk+2.0-2.12.8.old/Makefile.in	2008-02-12 18:58:31.000000000 +0100
-+++ gtk+2.0-2.12.8/Makefile.in	2008-02-13 09:22:42.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/Makefile.in gtk+2.0-2.12.9/Makefile.in
+--- gtk+2.0-2.12.9.old/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ gtk+2.0-2.12.9/Makefile.in	2008-03-12 09:50:59.000000000 +0100
 @@ -81,6 +81,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3830,9 +3830,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/Makef
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/engines/Makefile.in gtk+2.0-2.12.8/modules/engines/Makefile.in
---- gtk+2.0-2.12.8.old/modules/engines/Makefile.in	2008-02-12 18:58:33.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/engines/Makefile.in	2008-02-13 09:22:46.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/Makefile.in gtk+2.0-2.12.9/modules/engines/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/engines/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ gtk+2.0-2.12.9/modules/engines/Makefile.in	2008-03-12 09:51:04.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3866,9 +3866,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.12.8/modules/engines/ms-windows/Makefile.in
---- gtk+2.0-2.12.8.old/modules/engines/ms-windows/Makefile.in	2008-02-12 18:58:33.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/engines/ms-windows/Makefile.in	2008-02-13 09:22:46.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.12.9/modules/engines/ms-windows/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/engines/ms-windows/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ gtk+2.0-2.12.9/modules/engines/ms-windows/Makefile.in	2008-03-12 09:51:05.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3902,9 +3902,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.12.8/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
---- gtk+2.0-2.12.8.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-02-13 09:22:47.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.12.9/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ gtk+2.0-2.12.9/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-03-12 09:51:05.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3938,9 +3938,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.12.8/modules/engines/ms-windows/Theme/Makefile.in
---- gtk+2.0-2.12.8.old/modules/engines/ms-windows/Theme/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/engines/ms-windows/Theme/Makefile.in	2008-02-13 09:22:47.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.12.9/modules/engines/ms-windows/Theme/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/engines/ms-windows/Theme/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ gtk+2.0-2.12.9/modules/engines/ms-windows/Theme/Makefile.in	2008-03-12 09:51:05.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3974,9 +3974,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.12.8/modules/engines/pixbuf/Makefile.in
---- gtk+2.0-2.12.8.old/modules/engines/pixbuf/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/engines/pixbuf/Makefile.in	2008-02-13 09:22:47.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.12.9/modules/engines/pixbuf/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/engines/pixbuf/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ gtk+2.0-2.12.9/modules/engines/pixbuf/Makefile.in	2008-03-12 09:51:05.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4010,9 +4010,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/input/Makefile.in gtk+2.0-2.12.8/modules/input/Makefile.in
---- gtk+2.0-2.12.8.old/modules/input/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/input/Makefile.in	2008-02-13 09:22:47.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/input/Makefile.in gtk+2.0-2.12.9/modules/input/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/input/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ gtk+2.0-2.12.9/modules/input/Makefile.in	2008-03-12 09:51:05.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4078,9 +4078,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/Makefile.in gtk+2.0-2.12.8/modules/Makefile.in
---- gtk+2.0-2.12.8.old/modules/Makefile.in	2008-02-12 18:58:33.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/Makefile.in	2008-02-13 09:22:46.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/Makefile.in gtk+2.0-2.12.9/modules/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ gtk+2.0-2.12.9/modules/Makefile.in	2008-03-12 09:51:04.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4114,9 +4114,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.12.8/modules/printbackends/cups/Makefile.in
---- gtk+2.0-2.12.8.old/modules/printbackends/cups/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/printbackends/cups/Makefile.in	2008-02-13 09:22:47.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.12.9/modules/printbackends/cups/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/printbackends/cups/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ gtk+2.0-2.12.9/modules/printbackends/cups/Makefile.in	2008-03-12 09:51:06.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4150,9 +4150,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/printbackends/file/Makefile.in gtk+2.0-2.12.8/modules/printbackends/file/Makefile.in
---- gtk+2.0-2.12.8.old/modules/printbackends/file/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/printbackends/file/Makefile.in	2008-02-13 09:22:47.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/file/Makefile.in gtk+2.0-2.12.9/modules/printbackends/file/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/printbackends/file/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ gtk+2.0-2.12.9/modules/printbackends/file/Makefile.in	2008-03-12 09:51:06.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4186,9 +4186,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.12.8/modules/printbackends/lpr/Makefile.in
---- gtk+2.0-2.12.8.old/modules/printbackends/lpr/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/printbackends/lpr/Makefile.in	2008-02-13 09:22:48.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.12.9/modules/printbackends/lpr/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/printbackends/lpr/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ gtk+2.0-2.12.9/modules/printbackends/lpr/Makefile.in	2008-03-12 09:51:06.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4222,9 +4222,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/printbackends/Makefile.in gtk+2.0-2.12.8/modules/printbackends/Makefile.in
---- gtk+2.0-2.12.8.old/modules/printbackends/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/printbackends/Makefile.in	2008-02-13 09:22:47.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/Makefile.in gtk+2.0-2.12.9/modules/printbackends/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/printbackends/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ gtk+2.0-2.12.9/modules/printbackends/Makefile.in	2008-03-12 09:51:05.000000000 +0100
 @@ -82,6 +82,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4258,9 +4258,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modules/printbackends/test/Makefile.in gtk+2.0-2.12.8/modules/printbackends/test/Makefile.in
---- gtk+2.0-2.12.8.old/modules/printbackends/test/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/modules/printbackends/test/Makefile.in	2008-02-13 09:22:48.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/test/Makefile.in gtk+2.0-2.12.9/modules/printbackends/test/Makefile.in
+--- gtk+2.0-2.12.9.old/modules/printbackends/test/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ gtk+2.0-2.12.9/modules/printbackends/test/Makefile.in	2008-03-12 09:51:06.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4294,9 +4294,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/modul
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/perf/Makefile.in gtk+2.0-2.12.8/perf/Makefile.in
---- gtk+2.0-2.12.8.old/perf/Makefile.in	2008-02-12 18:58:34.000000000 +0100
-+++ gtk+2.0-2.12.8/perf/Makefile.in	2008-02-13 09:22:48.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/perf/Makefile.in gtk+2.0-2.12.9/perf/Makefile.in
+--- gtk+2.0-2.12.9.old/perf/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ gtk+2.0-2.12.9/perf/Makefile.in	2008-03-12 09:51:06.000000000 +0100
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4330,9 +4330,9 @@ diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/perf/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -Naur -x'*.orig' -x'*config.sub' -x'*config.guess' gtk+2.0-2.12.8.old/tests/Makefile.in gtk+2.0-2.12.8/tests/Makefile.in
---- gtk+2.0-2.12.8.old/tests/Makefile.in	2008-02-12 18:58:35.000000000 +0100
-+++ gtk+2.0-2.12.8/tests/Makefile.in	2008-02-13 09:22:48.000000000 +0100
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/tests/Makefile.in gtk+2.0-2.12.9/tests/Makefile.in
+--- gtk+2.0-2.12.9.old/tests/Makefile.in	2008-03-12 05:18:15.000000000 +0100
++++ gtk+2.0-2.12.9/tests/Makefile.in	2008-03-12 09:51:07.000000000 +0100
 @@ -83,6 +83,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
