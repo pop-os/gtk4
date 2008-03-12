@@ -9,7 +9,8 @@ gtk+2.0 (2.12.9-1) unstable; urgency=low
   * New upstream bugfix release:
     + 092_recentfiles-recursion-fix, dropped merged upstream.
     + 070_mandatory-relibtoolize.patch, regenerated for the new version.
-  * debian/rules:
+  * debian/rules,
+    debian/*.links.in:
     + Don't ship very old upstream changelogs and news as they're quite large.
 
  -- Sebastian Dröge <slomo@debian.org>  Wed, 12 Mar 2008 09:41:23 +0100
