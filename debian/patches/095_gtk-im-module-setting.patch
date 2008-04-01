@@ -1,7 +1,7 @@
 GNOME 502446; Adds XSETTINGS support for immodule
 
---- a/gdk/x11/gdksettings.c	2008-01-29 04:36:31.000000000 +0100
-+++ b/gdk/x11/gdksettings.c	2008-01-29 21:14:07.000000000 +0100
+--- a/gdk/x11/gdksettings.c	2008-04-01 11:12:11.000000000 +0200
++++ b/gdk/x11/gdksettings.c	2008-04-01 11:41:10.000000000 +0200
 @@ -65,7 +65,8 @@
    "Xft/RGBA\0"                "gtk-xft-rgba\0"
    "Xft/DPI\0"                 "gtk-xft-dpi\0"
@@ -18,10 +18,10 @@ GNOME 502446; Adds XSETTINGS support for immodule
    { 1239, 1261 },
 -  { 1285, 1305 }
 +  { 1285, 1305 },
-+  { 1460, 1473 }
++  { 1326, 1339 }
  };
---- a/gtk/gtkimmulticontext.c	2008-01-29 04:35:46.000000000 +0100
-+++ b/gtk/gtkimmulticontext.c	2008-01-29 21:13:12.000000000 +0100
+--- a/gtk/gtkimmulticontext.c	2008-04-01 11:12:11.000000000 +0200
++++ b/gtk/gtkimmulticontext.c	2008-04-01 11:12:18.000000000 +0200
 @@ -85,6 +85,7 @@
  							     gint               n_chars,
  							     GtkIMMulticontext *multicontext);
@@ -178,8 +178,8 @@ GNOME 502446; Adds XSETTINGS support for immodule
        
        group = gtk_radio_menu_item_get_group (GTK_RADIO_MENU_ITEM (menuitem));
        
---- a/gtk/gtkimmulticontext.h	2008-01-29 04:35:46.000000000 +0100
-+++ b/gtk/gtkimmulticontext.h	2008-01-29 21:13:12.000000000 +0100
+--- a/gtk/gtkimmulticontext.h	2008-04-01 11:12:11.000000000 +0200
++++ b/gtk/gtkimmulticontext.h	2008-04-01 11:12:18.000000000 +0200
 @@ -45,7 +45,7 @@
  
    GtkIMMulticontextPrivate *priv;
@@ -189,8 +189,8 @@ GNOME 502446; Adds XSETTINGS support for immodule
  };
  
  struct _GtkIMMulticontextClass
---- a/gtk/gtksettings.c	2008-01-29 21:11:57.000000000 +0100
-+++ b/gtk/gtksettings.c	2008-01-29 21:13:12.000000000 +0100
+--- a/gtk/gtksettings.c	2008-04-01 11:12:11.000000000 +0200
++++ b/gtk/gtksettings.c	2008-04-01 11:12:18.000000000 +0200
 @@ -106,7 +106,8 @@
    PROP_PRINT_PREVIEW_COMMAND,
    PROP_ENABLE_MNEMONICS,
@@ -222,8 +222,8 @@ GNOME 502446; Adds XSETTINGS support for immodule
  }
  
  static void
---- a/gtk/gtkimmodule.c	2008-01-29 21:11:57.000000000 +0100
-+++ b/gtk/gtkimmodule.c	2008-01-29 21:13:12.000000000 +0100
+--- a/gtk/gtkimmodule.c	2008-04-01 11:12:11.000000000 +0200
++++ b/gtk/gtkimmodule.c	2008-04-01 11:12:18.000000000 +0200
 @@ -37,6 +37,8 @@
  #include <pango/pango-utils.h>
  #include "gtkimmodule.h"
@@ -334,8 +334,8 @@ GNOME 502446; Adds XSETTINGS support for immodule
 -  return g_strdup (context_id ? context_id : SIMPLE_ID);
 +  return context_id ? context_id : SIMPLE_ID;
  }
---- a/gtk/gtkimmodule.h	2008-01-29 04:35:47.000000000 +0100
-+++ b/gtk/gtkimmodule.h	2008-01-29 21:13:12.000000000 +0100
+--- a/gtk/gtkimmodule.h	2008-04-01 11:12:11.000000000 +0200
++++ b/gtk/gtkimmodule.h	2008-04-01 11:12:18.000000000 +0200
 @@ -38,10 +38,10 @@
  
  /* Functions for use within GTK+

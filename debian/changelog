@@ -1,3 +1,13 @@
+gtk+2.0 (2.12.9-3) UNRELEASED; urgency=low
+
+  * Refresh patches 009_gtk-export-filechooser,
+    030_gtkentry_password-char-circle, 033_treeview_resizing,
+    042_treeview_single-focus, 060_ignore-random-icons
+  * Fix offsets in patch 095_gtk-im-module-setting; thanks Akira TAGOH;
+    closes: #473699.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 01 Apr 2008 11:10:59 +0200
+
 gtk+2.0 (2.12.9-2) unstable; urgency=low
 
   * debian/patches/092_implicit-g-fopen.patch:

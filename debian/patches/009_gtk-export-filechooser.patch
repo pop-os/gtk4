@@ -34,9 +34,9 @@
     
     	* tests/autotestfilechooser.c: build with
     	GTK_FILE_CHOOSER_ENABLE_UNSUPPORTED
---- gtk+2.0-2.11.6.orig/gtk/Makefile.am	2007-07-20 22:12:29.000000000 +0200
-+++ gtk+2.0-2.11.6/gtk/Makefile.am	2007-07-24 10:31:52.000000000 +0200
-@@ -33,6 +33,8 @@
+--- a/gtk/Makefile.am	2008-04-01 11:10:41.000000000 +0200
++++ b/gtk/Makefile.am	2008-04-01 11:10:48.000000000 +0200
+@@ -37,6 +37,8 @@
  	-I$(top_srcdir)/gdk-pixbuf -I../gdk-pixbuf	\
  	-DGDK_PIXBUF_DISABLE_DEPRECATED			\
  	-DGDK_DISABLE_DEPRECATED			\
@@ -45,7 +45,7 @@
  	-DGTK_FILE_SYSTEM_ENABLE_UNSUPPORTED		\
  	-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED		\
  	$(GTK_DEBUG_FLAGS)				\
-@@ -335,12 +337,15 @@
+@@ -339,12 +341,15 @@
  # that are not included in gtk/gtk.h
  gtk_semi_private_h_sources =    \
  	gtktextlayout.h		\
@@ -64,7 +64,7 @@
  	gtksearchenginebeagle.h	\
  	gtksearchenginetracker.h\
  	gtksearchenginesimple.h	\
-@@ -350,10 +355,7 @@
+@@ -354,10 +359,7 @@
  	gtkfilechooserdefault.h	\
  	gtkfilechooserembed.h	\
  	gtkfilechooserentry.h	\
@@ -75,8 +75,8 @@
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
---- gtk+2.0-2.11.6.orig/gtk/gtk.symbols	2007-07-20 22:12:29.000000000 +0200
-+++ gtk+2.0-2.11.6/gtk/gtk.symbols	2007-07-24 09:09:13.000000000 +0200
+--- a/gtk/gtk.symbols	2008-04-01 11:10:41.000000000 +0200
++++ b/gtk/gtk.symbols	2008-04-01 11:10:48.000000000 +0200
 @@ -1416,6 +1416,12 @@
  #endif
  #endif
@@ -90,8 +90,8 @@
  #if IN_HEADER(__GTK_FILE_CHOOSER_WIDGET_H__)
  #if IN_FILE(__GTK_FILE_CHOOSER_WIDGET_C__)
  gtk_file_chooser_widget_get_type G_GNUC_CONST
---- gtk+2.0-2.11.6.orig/gtk/gtkfilechooserprivate.h	2007-07-20 22:12:28.000000000 +0200
-+++ gtk+2.0-2.11.6/gtk/gtkfilechooserprivate.h	2007-07-24 09:09:14.000000000 +0200
+--- a/gtk/gtkfilechooserprivate.h	2008-04-01 11:10:41.000000000 +0200
++++ b/gtk/gtkfilechooserprivate.h	2008-04-01 11:10:48.000000000 +0200
 @@ -21,6 +21,14 @@
  #ifndef __GTK_FILE_CHOOSER_PRIVATE_H__
  #define __GTK_FILE_CHOOSER_PRIVATE_H__
@@ -107,8 +107,8 @@
  #include "gtkfilechooser.h"
  #include "gtkfilesystem.h"
  #include "gtkfilesystemmodel.h"
---- gtk+2.0-2.11.6.orig/gtk/gtkfilechooserutils.c	2007-07-20 22:12:29.000000000 +0200
-+++ gtk+2.0-2.11.6/gtk/gtkfilechooserutils.c	2007-07-24 09:09:14.000000000 +0200
+--- a/gtk/gtkfilechooserutils.c	2008-04-01 11:10:41.000000000 +0200
++++ b/gtk/gtkfilechooserutils.c	2008-04-01 11:10:48.000000000 +0200
 @@ -119,6 +119,22 @@
  				    "do-overwrite-confirmation");
  }
@@ -139,8 +139,8 @@
 +
 +#define __GTK_FILE_CHOOSER_UTILS_C__
 +#include "gtkaliasdef.c"
---- gtk+2.0-2.11.6.orig/gtk/gtkfilechooserutils.h	2007-07-20 22:12:29.000000000 +0200
-+++ gtk+2.0-2.11.6/gtk/gtkfilechooserutils.h	2007-07-24 09:09:14.000000000 +0200
+--- a/gtk/gtkfilechooserutils.h	2008-04-01 11:10:41.000000000 +0200
++++ b/gtk/gtkfilechooserutils.h	2008-04-01 11:10:48.000000000 +0200
 @@ -22,6 +22,14 @@
  #ifndef __GTK_FILE_CHOOSER_UTILS_H__
  #define __GTK_FILE_CHOOSER_UTILS_H__
@@ -166,8 +166,8 @@
  
  void _gtk_file_chooser_delegate_iface_init (GtkFileChooserIface *iface);
  void _gtk_file_chooser_set_delegate        (GtkFileChooser *receiver,
---- gtk+2.0-2.11.6.orig/gtk/gtkfilesystemmodel.h	2007-07-20 22:12:28.000000000 +0200
-+++ gtk+2.0-2.11.6/gtk/gtkfilesystemmodel.h	2007-07-24 09:09:14.000000000 +0200
+--- a/gtk/gtkfilesystemmodel.h	2008-04-01 11:10:41.000000000 +0200
++++ b/gtk/gtkfilesystemmodel.h	2008-04-01 11:10:48.000000000 +0200
 @@ -21,6 +21,10 @@
  #ifndef __GTK_FILE_SYSTEM_MODEL_H__
  #define __GTK_FILE_SYSTEM_MODEL_H__
@@ -179,8 +179,8 @@
  #include <glib-object.h>
  #include "gtkfilesystem.h"
  #include <gtk/gtktreemodel.h>
---- gtk+2.0-2.11.6.orig/tests/autotestfilechooser.c	2007-07-20 22:13:57.000000000 +0200
-+++ gtk+2.0-2.11.6/tests/autotestfilechooser.c	2007-07-24 09:09:14.000000000 +0200
+--- a/tests/autotestfilechooser.c	2008-04-01 11:10:41.000000000 +0200
++++ b/tests/autotestfilechooser.c	2008-04-01 11:10:48.000000000 +0200
 @@ -30,6 +30,7 @@
   */
  
@@ -189,8 +189,8 @@
  #undef GTK_DISABLE_DEPRECATED
  
  #include <config.h>
---- gtk+2.0-2.11.6.orig/gtk/gtkquery.h	2007-07-24 10:31:23.000000000 +0200
-+++ gtk+2.0-2.11.6/gtk/gtkquery.h	2007-07-24 10:31:26.000000000 +0200
+--- a/gtk/gtkquery.h	2008-04-01 11:10:41.000000000 +0200
++++ b/gtk/gtkquery.h	2008-04-01 11:10:48.000000000 +0200
 @@ -23,6 +23,14 @@
  #ifndef __GTK_QUERY_H__
  #define __GTK_QUERY_H__
@@ -206,8 +206,8 @@
  #include <glib-object.h>
  
  G_BEGIN_DECLS
---- gtk+2.0-2.11.6.orig/gtk/gtksearchengine.h	2007-07-24 10:30:25.000000000 +0200
-+++ gtk+2.0-2.11.6/gtk/gtksearchengine.h	2007-07-24 10:30:55.000000000 +0200
+--- a/gtk/gtksearchengine.h	2008-04-01 11:10:41.000000000 +0200
++++ b/gtk/gtksearchengine.h	2008-04-01 11:10:48.000000000 +0200
 @@ -23,6 +23,14 @@
  #ifndef __GTK_SEARCH_ENGINE_H__
  #define __GTK_SEARCH_ENGINE_H__
