@@ -1,12 +1,18 @@
-gtk+2.0 (2.12.9-3) UNRELEASED; urgency=low
+gtk+2.0 (2.12.9-3) unstable; urgency=low
 
+  [ Loic Minier ]
   * Refresh patches 009_gtk-export-filechooser,
     030_gtkentry_password-char-circle, 033_treeview_resizing,
     042_treeview_single-focus, 060_ignore-random-icons
   * Fix offsets in patch 095_gtk-im-module-setting; thanks Akira TAGOH;
     closes: #473699.
 
- -- Loic Minier <lool@dooz.org>  Tue, 01 Apr 2008 11:10:59 +0200
+  [ Sebastian Dröge ]
+  * debian/rules:
+    + Don't include the udeb in the debug package to get a working debug
+      package in case the udeb libraries differ from the real ones.
+
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 12 Apr 2008 14:00:22 +0200
 
 gtk+2.0 (2.12.9-2) unstable; urgency=low
 

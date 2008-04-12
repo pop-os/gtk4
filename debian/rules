@@ -311,7 +311,8 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 			-p$(UDEB_PKG)
 	dh_installexamples -s
 	dh_link -s
-	dh_strip -s --dbg-package=$(DEBUG_PKG)
+	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG)
+	dh_strip -s -p$(UDEB_PKG)
 	dh_compress -s
 	dh_fixperms -s -Xusr/lib/$(SHARED_PKG)
 	dh_makeshlibs -p$(SHARED_PKG) \
