@@ -1,3 +1,21 @@
+gtk+2.0 (2.12.9-4) UNRELEASED; urgency=low
+
+  * Flip back gdkpixbuf_module_files_d_str after gdkpixbuf_module_file_str in
+    patch 021_loader-files-d; this fixes config of gdk loaders and hence the
+    current ia32-libs implementation; the change in 2.12.0-3 was incorrect in
+    that it flipped the order for im modules and pixbuf loaders, but only im
+    modules had to be flipped; the reason im modules had to be flipped is that
+    the first list of modules wins for im modules as there is some duplicate
+    checking, while in the case of gdk pixbufs, the last file wins.  What
+    remains to be done here is:
+    - biarch support, similar to pango, by loading /usr/lib32 and /usr/lib64
+      stuff before /usr/lib; allows dropping the config file hack in
+      ia32-libs.
+    - loading of modules from multiarch locations (not multiarch); allows
+      dropping the config file hack in ia32-libs.
+
+ -- Loic Minier <lool@dooz.org>  Thu, 17 Apr 2008 12:34:24 +0200
+
 gtk+2.0 (2.12.9-3) unstable; urgency=low
 
   [ Loic Minier ]

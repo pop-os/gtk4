@@ -261,8 +261,8 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +
 +#ifdef USE_GMODULE
 +	list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
-+			      gdkpixbuf_module_files_d_str,
 +			      gdkpixbuf_module_file_str,
++			      gdkpixbuf_module_files_d_str,
 +			      NULL);
 +
 +	files = _ugly_copy_of_pango_split_file_list (list_str);
