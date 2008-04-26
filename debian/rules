@@ -95,8 +95,15 @@ buildbasedir = $(CURDIR)/debian/build
 installdir = $(installbasedir)/$*
 installbasedir = $(CURDIR)/debian/install
 
+# relative libdir
+ifneq (,$(findstring multiarch,$(DEB_BUILD_OPTIONS)))
+LIBDIR := usr/lib/$(DEB_HOST_GNU_TYPE)
+else
+LIBDIR := usr/lib
+endif
+
 # relative base directory for all types of modules
-MODULES_BASE_PATH := usr/lib/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
+MODULES_BASE_PATH := $(LIBDIR)/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
 
 # relative directory to store the generated IM module files
 IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
@@ -107,6 +114,7 @@ LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
 # configure flags
 common_configure_flags := \
 			--prefix=/usr \
+			--libdir=/$(LIBDIR) \
 			--mandir=\$${prefix}/share/man \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
@@ -196,10 +204,10 @@ $(STAMP_DIR)/install-stamp-%: $(STAMP_DIR)/build-stamp-%
 
 install: $(addprefix $(STAMP_DIR)/install-stamp-, $(FLAVORS))
 	# Add necessary dependencies for the static build to Libs.private
-	a=$$(grep ^Libs: $(installbasedir)/shared/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc) ; \
-	b=$$(grep ^Libs: $(installbasedir)/static/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc) ; \
+	a=$$(grep ^Libs: $(installbasedir)/shared/$(LIBDIR)/pkgconfig/gdk-pixbuf-2.0.pc) ; \
+	b=$$(grep ^Libs: $(installbasedir)/static/$(LIBDIR)/pkgconfig/gdk-pixbuf-2.0.pc) ; \
 	c=$$(for i in $$b; do echo $$a| grep -q -e $$i || echo $$i; done) ; \
-	echo Libs.private: $$c >> $(installbasedir)/shared/usr/lib/pkgconfig/gdk-pixbuf-2.0.pc
+	echo Libs.private: $$c >> $(installbasedir)/shared/$(LIBDIR)/pkgconfig/gdk-pixbuf-2.0.pc
 
 # gross kludge to force control generation with the %.in target
 clean::
@@ -225,6 +233,7 @@ debian/%: debian/%.in
 		-e "s#@PIXBUF_PKG@#$(PIXBUF_PKG)#g" \
 		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
 		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
+		-e "s#@LIBDIR@#$(LIBDIR)#g" \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
 		$@.in > $@
 
@@ -262,7 +271,7 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 	dh_installdocs -p$(COMMON_PKG) -i
 	dh_installman -i
 	dh_link -i
-	dh_compress -i
+	dh_compress -i -X.sgml -X.devhelp
 	dh_fixperms -i
 	dh_installdeb -i
 	dh_gencontrol -i
@@ -274,12 +283,12 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_testroot
 	dh_install -s
 	# empty the dependency_libs in the *.la files
-	sed -i "/dependency_libs/ s/'.*'/''/" debian/$(DEV_PKG)/usr/lib/*.la
+	sed -i "/dependency_libs/ s/'.*'/''/" debian/$(DEV_PKG)/$(LIBDIR)/*.la
 	# we don't need the rpath in the udeb
-	chrpath -d debian/$(UDEB_PKG)/usr/lib/*directfb*.so.*
-	# fix permissions of binaries below /usr/lib/$(SHARED_PKG)
+	chrpath -d debian/$(UDEB_PKG)/$(LIBDIR)/*directfb*.so.*
+	# fix permissions of binaries below /$(LIBDIR)/$(SHARED_PKG)
 	for f in update-gdkpixbuf-loaders update-gtk-immodules; do \
-	    chmod 755 debian/$(SHARED_PKG)/usr/lib/$(SHARED_PKG)/$$f; \
+	    chmod 755 debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/$$f; \
 	done
 	# changelog.gz symlinks will be overwritten by dh_link
 	dh_installchangelogs -s ChangeLog
@@ -297,14 +306,14 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	debian/$(DEV_PKG)/usr/bin/dh_gtkmodules -p$(PIXBUF_PKG)
 	# generate an IM module file and a GdkPixbuf loader file for the shared
 	# library
-	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
+	LD_LIBRARY_PATH=debian/$(SHARED_PKG)/$(LIBDIR):$(LD_LIBRARY_PATH) \
 	GTK_QUERYLOADERS=$(installbasedir)/shared/usr/bin/gdk-pixbuf-query-loaders \
 	GTK_QUERYIMMODULES=$(installbasedir)/shared/usr/bin/gtk-query-immodules-2.0 \
 		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
 			-k \
 			-p$(SHARED_PKG)
 	# generate a GdkPixbuf loader config file for the udeb
-	LD_LIBRARY_PATH=debian/$(UDEB_PKG)/usr/lib:$(LD_LIBRARY_PATH) \
+	LD_LIBRARY_PATH=debian/$(UDEB_PKG)/$(LIBDIR):$(LD_LIBRARY_PATH) \
 	GTK_QUERYLOADERS=$(installbasedir)/directfb/usr/bin/gdk-pixbuf-query-loaders \
 		debian/$(DEV_PKG)/usr/bin/dh_gtkmodules \
 			-k \
@@ -313,8 +322,8 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_link -s
 	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG)
 	dh_strip -s -p$(UDEB_PKG)
-	dh_compress -s
-	dh_fixperms -s -Xusr/lib/$(SHARED_PKG)
+	dh_compress -s -X.sgml -X.devhelp
+	dh_fixperms -s -X$(LIBDIR)/$(SHARED_PKG)
 	dh_makeshlibs -p$(SHARED_PKG) \
 		-X$(MODULES_BASE_PATH) \
 		-V"$(SHARED_PKG) (>= $(SHVER))" \
@@ -332,7 +341,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		sed -n -r -e 's/(([^ ]+: )?([^ ]+) ([^ ]+)) .*/\1/p' \
 			> debian/shlibs.local
 	dh_shlibdeps -s -N$(UDEB_PKG)
-	dh_shlibdeps -p$(UDEB_PKG) -l/usr/lib/libcairo-directfb/lib/
+	dh_shlibdeps -p$(UDEB_PKG) -l/$(LIBDIR)/libcairo-directfb/lib/
 	-rm -f debian/shlibs.local
 	dh_gencontrol -s
 	dh_md5sums -s
@@ -340,7 +349,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 
 list-missing:
 	perl -w debian/dh_listmissing.pl $(foreach f,$(FLAVORS),$(subst $(CURDIR)/,,$(installbasedir))/$(f)) 2>&1 | \
-	    egrep -v '(\.la|usr/lib/gtk-2.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
+	    egrep -v '(\.la|$(LIBDIR)/gtk-2.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
 
 binary: binary-indep binary-arch
 .PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary

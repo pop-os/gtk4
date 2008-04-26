@@ -25,6 +25,9 @@ gtk+2.0 (2.12.9-4) UNRELEASED; urgency=low
   * 061_foreign_colormaps.patch: stolen from upstream SVN. Don't call 
     XFreeColormap on foreign colormaps, this causes crashes in e.g. 
     vinagre. Closes: #477199.
+  * Apply multiarch patch by Javier Serrano Polo, replacing all 
+    occurrences of usr/lib by $(LIBDIR). Closes: #468100.
+  * rules: don't compress .sgml and .devhelp files.
 
  -- Loic Minier <lool@dooz.org>  Thu, 17 Apr 2008 12:34:24 +0200
 

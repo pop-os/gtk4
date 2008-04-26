@@ -58,7 +58,7 @@ my $queryloaders;
 if ($ENV{GTK_QUERYLOADERS}) {
     $queryloaders = $ENV{GTK_QUERYLOADERS};
 } else {
-    $queryloaders = '/usr/lib/libgtk2.0-0/gdk-pixbuf-query-loaders';
+    $queryloaders = '/@LIBDIR@/libgtk2.0-0/gdk-pixbuf-query-loaders';
 }
 
 # gtk-query-immodules-2.0 helper (generates an IM module file on its
@@ -67,7 +67,7 @@ my $queryimmodules;
 if ($ENV{GTK_QUERYIMMODULES}) {
     $queryimmodules = $ENV{GTK_QUERYIMMODULES};
 } else {
-    $queryimmodules = '/usr/lib/libgtk2.0-0/gtk-query-immodules-2.0';
+    $queryimmodules = '/@LIBDIR@/libgtk2.0-0/gtk-query-immodules-2.0';
 }
 
 # relative Gtk base module path
