@@ -9,9 +9,8 @@ exclude config.guess and sub with diff -urN -x config.guess -x config.sub
 This is required because of patches touching autotools files, but also because
 of upstream using an older libtool; see GNOME #484426; Debian #445001.
 
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/aclocal.m4 gtk+2.0-2.12.9/aclocal.m4
---- gtk+2.0-2.12.9.old/aclocal.m4	2008-03-12 05:17:55.000000000 +0100
-+++ gtk+2.0-2.12.9/aclocal.m4	2008-03-12 09:50:51.000000000 +0100
+--- a/aclocal.m4	2008-03-12 05:17:55.000000000 +0100
++++ b/aclocal.m4	2008-05-10 23:21:25.000000000 +0200
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -652,9 +651,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/aclocal.m4 gtk+2
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/configure gtk+2.0-2.12.9/configure
---- gtk+2.0-2.12.9.old/configure	2008-03-12 05:18:17.000000000 +0100
-+++ gtk+2.0-2.12.9/configure	2008-03-12 09:50:58.000000000 +0100
+--- a/configure	2008-03-12 05:18:17.000000000 +0100
++++ b/configure	2008-05-10 23:21:25.000000000 +0200
 @@ -863,6 +863,8 @@
  CCDEPMODE
  am__fastdepCC_TRUE
@@ -2656,9 +2654,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/configure gtk+2.
      break
    elif $ac_last_try; then
      { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.12.9/contrib/gdk-pixbuf-xlib/Makefile.in
---- gtk+2.0-2.12.9.old/contrib/gdk-pixbuf-xlib/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ gtk+2.0-2.12.9/contrib/gdk-pixbuf-xlib/Makefile.in	2008-03-12 09:50:59.000000000 +0100
+--- a/contrib/gdk-pixbuf-xlib/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ b/contrib/gdk-pixbuf-xlib/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2692,9 +2689,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/contrib/gdk-pixb
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/contrib/Makefile.in gtk+2.0-2.12.9/contrib/Makefile.in
---- gtk+2.0-2.12.9.old/contrib/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ gtk+2.0-2.12.9/contrib/Makefile.in	2008-03-12 09:50:59.000000000 +0100
+--- a/contrib/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ b/contrib/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -81,6 +81,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2728,9 +2724,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/contrib/Makefile
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/demos/gtk-demo/Makefile.in gtk+2.0-2.12.9/demos/gtk-demo/Makefile.in
---- gtk+2.0-2.12.9.old/demos/gtk-demo/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ gtk+2.0-2.12.9/demos/gtk-demo/Makefile.in	2008-03-12 09:50:59.000000000 +0100
+--- a/demos/gtk-demo/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ b/demos/gtk-demo/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2764,9 +2759,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/demos/gtk-demo/M
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/demos/Makefile.in gtk+2.0-2.12.9/demos/Makefile.in
---- gtk+2.0-2.12.9.old/demos/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ gtk+2.0-2.12.9/demos/Makefile.in	2008-03-12 09:50:59.000000000 +0100
+--- a/demos/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ b/demos/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -81,6 +81,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2800,9 +2794,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/demos/Makefile.i
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/faq/Makefile.in gtk+2.0-2.12.9/docs/faq/Makefile.in
---- gtk+2.0-2.12.9.old/docs/faq/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ gtk+2.0-2.12.9/docs/faq/Makefile.in	2008-03-12 09:50:59.000000000 +0100
+--- a/docs/faq/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ b/docs/faq/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2836,9 +2829,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/faq/Makefil
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/Makefile.in gtk+2.0-2.12.9/docs/Makefile.in
---- gtk+2.0-2.12.9.old/docs/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ gtk+2.0-2.12.9/docs/Makefile.in	2008-03-12 09:50:59.000000000 +0100
+--- a/docs/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ b/docs/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2872,9 +2864,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/Makefile.in
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/gdk/Makefile.in gtk+2.0-2.12.9/docs/reference/gdk/Makefile.in
---- gtk+2.0-2.12.9.old/docs/reference/gdk/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ gtk+2.0-2.12.9/docs/reference/gdk/Makefile.in	2008-03-12 09:51:00.000000000 +0100
+--- a/docs/reference/gdk/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ b/docs/reference/gdk/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -86,6 +86,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2908,9 +2899,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/g
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.12.9/docs/reference/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.12.9.old/docs/reference/gdk-pixbuf/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ gtk+2.0-2.12.9/docs/reference/gdk-pixbuf/Makefile.in	2008-03-12 09:51:00.000000000 +0100
+--- a/docs/reference/gdk-pixbuf/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ b/docs/reference/gdk-pixbuf/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -86,6 +86,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2944,9 +2934,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/g
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/gtk/Makefile.in gtk+2.0-2.12.9/docs/reference/gtk/Makefile.in
---- gtk+2.0-2.12.9.old/docs/reference/gtk/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ gtk+2.0-2.12.9/docs/reference/gtk/Makefile.in	2008-03-12 09:51:00.000000000 +0100
+--- a/docs/reference/gtk/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ b/docs/reference/gtk/Makefile.in	2008-05-10 23:21:40.000000000 +0200
 @@ -86,6 +86,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -2980,9 +2969,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/g
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/Makefile.in gtk+2.0-2.12.9/docs/reference/Makefile.in
---- gtk+2.0-2.12.9.old/docs/reference/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ gtk+2.0-2.12.9/docs/reference/Makefile.in	2008-03-12 09:51:00.000000000 +0100
+--- a/docs/reference/Makefile.in	2008-03-12 05:18:09.000000000 +0100
++++ b/docs/reference/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3016,9 +3004,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/reference/M
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/tools/Makefile.in gtk+2.0-2.12.9/docs/tools/Makefile.in
---- gtk+2.0-2.12.9.old/docs/tools/Makefile.in	2008-03-12 05:18:10.000000000 +0100
-+++ gtk+2.0-2.12.9/docs/tools/Makefile.in	2008-03-12 09:51:00.000000000 +0100
+--- a/docs/tools/Makefile.in	2008-03-12 05:18:10.000000000 +0100
++++ b/docs/tools/Makefile.in	2008-05-10 23:21:40.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3052,9 +3039,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/tools/Makef
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/tutorial/Makefile.in gtk+2.0-2.12.9/docs/tutorial/Makefile.in
---- gtk+2.0-2.12.9.old/docs/tutorial/Makefile.in	2008-03-12 05:18:10.000000000 +0100
-+++ gtk+2.0-2.12.9/docs/tutorial/Makefile.in	2008-03-12 09:51:01.000000000 +0100
+--- a/docs/tutorial/Makefile.in	2008-03-12 05:18:10.000000000 +0100
++++ b/docs/tutorial/Makefile.in	2008-05-10 23:21:40.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3088,9 +3074,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/docs/tutorial/Ma
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/directfb/Makefile.in gtk+2.0-2.12.9/gdk/directfb/Makefile.in
---- gtk+2.0-2.12.9.old/gdk/directfb/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ gtk+2.0-2.12.9/gdk/directfb/Makefile.in	2008-03-12 09:51:02.000000000 +0100
+--- a/gdk/directfb/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ b/gdk/directfb/Makefile.in	2008-05-10 23:21:41.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3124,9 +3109,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/directfb/Mak
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/Makefile.in gtk+2.0-2.12.9/gdk/Makefile.in
---- gtk+2.0-2.12.9.old/gdk/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ gtk+2.0-2.12.9/gdk/Makefile.in	2008-03-12 09:51:02.000000000 +0100
+--- a/gdk/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ b/gdk/Makefile.in	2008-05-10 23:21:40.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3160,9 +3144,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/Makefile.in 
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/quartz/Makefile.in gtk+2.0-2.12.9/gdk/quartz/Makefile.in
---- gtk+2.0-2.12.9.old/gdk/quartz/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ gtk+2.0-2.12.9/gdk/quartz/Makefile.in	2008-03-12 09:51:02.000000000 +0100
+--- a/gdk/quartz/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ b/gdk/quartz/Makefile.in	2008-05-10 23:21:41.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3196,9 +3179,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/quartz/Makef
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/win32/Makefile.in gtk+2.0-2.12.9/gdk/win32/Makefile.in
---- gtk+2.0-2.12.9.old/gdk/win32/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ gtk+2.0-2.12.9/gdk/win32/Makefile.in	2008-03-12 09:51:02.000000000 +0100
+--- a/gdk/win32/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ b/gdk/win32/Makefile.in	2008-05-10 23:21:41.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3232,9 +3214,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/win32/Makefi
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/win32/rc/Makefile.in gtk+2.0-2.12.9/gdk/win32/rc/Makefile.in
---- gtk+2.0-2.12.9.old/gdk/win32/rc/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ gtk+2.0-2.12.9/gdk/win32/rc/Makefile.in	2008-03-12 09:51:02.000000000 +0100
+--- a/gdk/win32/rc/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ b/gdk/win32/rc/Makefile.in	2008-05-10 23:21:41.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3268,9 +3249,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/win32/rc/Mak
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/x11/Makefile.in gtk+2.0-2.12.9/gdk/x11/Makefile.in
---- gtk+2.0-2.12.9.old/gdk/x11/Makefile.in	2008-03-12 05:18:12.000000000 +0100
-+++ gtk+2.0-2.12.9/gdk/x11/Makefile.in	2008-03-12 09:51:02.000000000 +0100
+--- a/gdk/x11/Makefile.in	2008-03-12 05:18:12.000000000 +0100
++++ b/gdk/x11/Makefile.in	2008-05-10 23:21:41.000000000 +0200
 @@ -82,6 +82,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3304,9 +3284,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk/x11/Makefile
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk-pixbuf/Makefile.in gtk+2.0-2.12.9/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.12.9.old/gdk-pixbuf/Makefile.in	2008-03-12 05:18:10.000000000 +0100
-+++ gtk+2.0-2.12.9/gdk-pixbuf/Makefile.in	2008-03-12 09:51:01.000000000 +0100
+--- a/gdk-pixbuf/Makefile.in	2008-03-12 05:18:10.000000000 +0100
++++ b/gdk-pixbuf/Makefile.in	2008-05-10 23:21:40.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3340,9 +3319,25 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk-pixbuf/Makef
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.12.9/gdk-pixbuf/pixops/Makefile.in
---- gtk+2.0-2.12.9.old/gdk-pixbuf/pixops/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ gtk+2.0-2.12.9/gdk-pixbuf/pixops/Makefile.in	2008-03-12 09:51:01.000000000 +0100
+@@ -348,6 +353,7 @@
+ 
+ 
+ loaderdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loaders
++loaderfilesdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loader-files.d
+ 
+ module_libs = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
+ 
+@@ -557,7 +563,7 @@
+ 	-DGDK_PIXBUF_ENABLE_BACKEND
+ 
+ 
+-AM_CPPFLAGS = "-DPIXBUF_LIBDIR=\"$(loaderdir)\"" "-DBUILT_MODULES_DIR=\"$(srcdir)/.libs\""
++AM_CPPFLAGS = "-DPIXBUF_LIBDIR=\"$(loaderdir)\"" "-DPIXBUF_FILES_LIBDIR=\"$(loaderfilesdir)\"" "-DBUILT_MODULES_DIR=\"$(srcdir)/.libs\""
+ LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GLIB_LIBS)
+ 
+ noinst_PROGRAMS = test-gdk-pixbuf
+--- a/gdk-pixbuf/pixops/Makefile.in	2008-03-12 05:18:11.000000000 +0100
++++ b/gdk-pixbuf/pixops/Makefile.in	2008-05-10 23:21:40.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3376,9 +3371,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gdk-pixbuf/pixop
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/Makefile.in gtk+2.0-2.12.9/gtk/Makefile.in
---- gtk+2.0-2.12.9.old/gtk/Makefile.in	2008-03-12 05:18:12.000000000 +0100
-+++ gtk+2.0-2.12.9/gtk/Makefile.in	2008-03-12 09:51:03.000000000 +0100
+--- a/gtk/Makefile.in	2008-03-12 05:18:12.000000000 +0100
++++ b/gtk/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -104,6 +104,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3452,9 +3446,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/Makefile.in 
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/theme-bits/Makefile.in gtk+2.0-2.12.9/gtk/theme-bits/Makefile.in
---- gtk+2.0-2.12.9.old/gtk/theme-bits/Makefile.in	2008-03-12 05:18:12.000000000 +0100
-+++ gtk+2.0-2.12.9/gtk/theme-bits/Makefile.in	2008-03-12 09:51:04.000000000 +0100
+--- a/gtk/theme-bits/Makefile.in	2008-03-12 05:18:12.000000000 +0100
++++ b/gtk/theme-bits/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3488,9 +3481,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/theme-bits/M
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/xdgmime/Makefile.in gtk+2.0-2.12.9/gtk/xdgmime/Makefile.in
---- gtk+2.0-2.12.9.old/gtk/xdgmime/Makefile.in	2008-03-12 05:18:12.000000000 +0100
-+++ gtk+2.0-2.12.9/gtk/xdgmime/Makefile.in	2008-03-12 09:51:04.000000000 +0100
+--- a/gtk/xdgmime/Makefile.in	2008-03-12 05:18:12.000000000 +0100
++++ b/gtk/xdgmime/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3524,9 +3516,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/gtk/xdgmime/Make
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/ltmain.sh gtk+2.0-2.12.9/ltmain.sh
---- gtk+2.0-2.12.9.old/ltmain.sh	2008-01-30 21:26:55.000000000 +0100
-+++ gtk+2.0-2.12.9/ltmain.sh	2008-02-02 14:28:24.000000000 +0100
+--- a/ltmain.sh	2008-01-30 21:26:55.000000000 +0100
++++ b/ltmain.sh	2008-05-10 23:21:26.000000000 +0200
 @@ -2,7 +2,7 @@
  # NOTE: Changing this file will not affect anything until you rerun configure.
  #
@@ -3720,9 +3711,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/ltmain.sh gtk+2.
        do
  	eval "if test \"\${save_$lt_var+set}\" = set; then
  		$lt_var=\$save_$lt_var; export $lt_var
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/m4macros/Makefile.in gtk+2.0-2.12.9/m4macros/Makefile.in
---- gtk+2.0-2.12.9.old/m4macros/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ gtk+2.0-2.12.9/m4macros/Makefile.in	2008-03-12 09:51:04.000000000 +0100
+--- a/m4macros/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ b/m4macros/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3756,9 +3746,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/m4macros/Makefil
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/Makefile.in gtk+2.0-2.12.9/Makefile.in
---- gtk+2.0-2.12.9.old/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ gtk+2.0-2.12.9/Makefile.in	2008-03-12 09:50:59.000000000 +0100
+--- a/Makefile.in	2008-03-12 05:18:08.000000000 +0100
++++ b/Makefile.in	2008-05-10 23:21:39.000000000 +0200
 @@ -81,6 +81,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3830,9 +3819,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/Makefile.in gtk+
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/Makefile.in gtk+2.0-2.12.9/modules/engines/Makefile.in
---- gtk+2.0-2.12.9.old/modules/engines/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/engines/Makefile.in	2008-03-12 09:51:04.000000000 +0100
+--- a/modules/engines/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ b/modules/engines/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3866,9 +3854,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.12.9/modules/engines/ms-windows/Makefile.in
---- gtk+2.0-2.12.9.old/modules/engines/ms-windows/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/engines/ms-windows/Makefile.in	2008-03-12 09:51:05.000000000 +0100
+--- a/modules/engines/ms-windows/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ b/modules/engines/ms-windows/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3902,9 +3889,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.12.9/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
---- gtk+2.0-2.12.9.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-03-12 09:51:05.000000000 +0100
+--- a/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ b/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3938,9 +3924,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.12.9/modules/engines/ms-windows/Theme/Makefile.in
---- gtk+2.0-2.12.9.old/modules/engines/ms-windows/Theme/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/engines/ms-windows/Theme/Makefile.in	2008-03-12 09:51:05.000000000 +0100
+--- a/modules/engines/ms-windows/Theme/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ b/modules/engines/ms-windows/Theme/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -3974,9 +3959,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.12.9/modules/engines/pixbuf/Makefile.in
---- gtk+2.0-2.12.9.old/modules/engines/pixbuf/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/engines/pixbuf/Makefile.in	2008-03-12 09:51:05.000000000 +0100
+--- a/modules/engines/pixbuf/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ b/modules/engines/pixbuf/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4010,9 +3994,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/engines/
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/input/Makefile.in gtk+2.0-2.12.9/modules/input/Makefile.in
---- gtk+2.0-2.12.9.old/modules/input/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/input/Makefile.in	2008-03-12 09:51:05.000000000 +0100
+--- a/modules/input/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ b/modules/input/Makefile.in	2008-05-10 23:21:43.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4078,9 +4061,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/input/Ma
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/Makefile.in gtk+2.0-2.12.9/modules/Makefile.in
---- gtk+2.0-2.12.9.old/modules/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/Makefile.in	2008-03-12 09:51:04.000000000 +0100
+--- a/modules/Makefile.in	2008-03-12 05:18:13.000000000 +0100
++++ b/modules/Makefile.in	2008-05-10 23:21:42.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4114,9 +4096,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/Makefile
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.12.9/modules/printbackends/cups/Makefile.in
---- gtk+2.0-2.12.9.old/modules/printbackends/cups/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/printbackends/cups/Makefile.in	2008-03-12 09:51:06.000000000 +0100
+--- a/modules/printbackends/cups/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ b/modules/printbackends/cups/Makefile.in	2008-05-10 23:21:43.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4150,9 +4131,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbac
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/file/Makefile.in gtk+2.0-2.12.9/modules/printbackends/file/Makefile.in
---- gtk+2.0-2.12.9.old/modules/printbackends/file/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/printbackends/file/Makefile.in	2008-03-12 09:51:06.000000000 +0100
+--- a/modules/printbackends/file/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ b/modules/printbackends/file/Makefile.in	2008-05-10 23:21:43.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4186,9 +4166,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbac
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.12.9/modules/printbackends/lpr/Makefile.in
---- gtk+2.0-2.12.9.old/modules/printbackends/lpr/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/printbackends/lpr/Makefile.in	2008-03-12 09:51:06.000000000 +0100
+--- a/modules/printbackends/lpr/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ b/modules/printbackends/lpr/Makefile.in	2008-05-10 23:21:43.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4222,9 +4201,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbac
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/Makefile.in gtk+2.0-2.12.9/modules/printbackends/Makefile.in
---- gtk+2.0-2.12.9.old/modules/printbackends/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/printbackends/Makefile.in	2008-03-12 09:51:05.000000000 +0100
+--- a/modules/printbackends/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ b/modules/printbackends/Makefile.in	2008-05-10 23:21:43.000000000 +0200
 @@ -82,6 +82,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4258,9 +4236,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbac
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbackends/test/Makefile.in gtk+2.0-2.12.9/modules/printbackends/test/Makefile.in
---- gtk+2.0-2.12.9.old/modules/printbackends/test/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ gtk+2.0-2.12.9/modules/printbackends/test/Makefile.in	2008-03-12 09:51:06.000000000 +0100
+--- a/modules/printbackends/test/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ b/modules/printbackends/test/Makefile.in	2008-05-10 23:21:43.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4294,9 +4271,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/modules/printbac
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/perf/Makefile.in gtk+2.0-2.12.9/perf/Makefile.in
---- gtk+2.0-2.12.9.old/perf/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ gtk+2.0-2.12.9/perf/Makefile.in	2008-03-12 09:51:06.000000000 +0100
+--- a/perf/Makefile.in	2008-03-12 05:18:14.000000000 +0100
++++ b/perf/Makefile.in	2008-05-10 23:21:43.000000000 +0200
 @@ -80,6 +80,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
@@ -4330,9 +4306,8 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/perf/Makefile.in
  OBJDUMP = @OBJDUMP@
  OBJEXT = @OBJEXT@
  OS_LINUX_FALSE = @OS_LINUX_FALSE@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.9.old/tests/Makefile.in gtk+2.0-2.12.9/tests/Makefile.in
---- gtk+2.0-2.12.9.old/tests/Makefile.in	2008-03-12 05:18:15.000000000 +0100
-+++ gtk+2.0-2.12.9/tests/Makefile.in	2008-03-12 09:51:07.000000000 +0100
+--- a/tests/Makefile.in	2008-03-12 05:18:15.000000000 +0100
++++ b/tests/Makefile.in	2008-05-10 23:21:44.000000000 +0200
 @@ -83,6 +83,7 @@
  DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
  DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@

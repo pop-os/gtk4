@@ -1,4 +1,4 @@
-gtk+2.0 (2.12.9-4) UNRELEASED; urgency=low
+gtk+2.0 (2.12.9-4) unstable; urgency=low
 
   [ Loic Minier ]
   * Flip back gdkpixbuf_module_files_d_str after gdkpixbuf_module_file_str in
@@ -32,6 +32,10 @@ gtk+2.0 (2.12.9-4) UNRELEASED; urgency=low
   [ Loic Minier ]
   * Fix broken second dh_strip invocation which was not only acting on the
     udeb but also on binary packages (-s -pUDEB should have been -pUDEB).
+  * Update patch 021_loader-files-d to use PIXBUF_FILES_LIBDIR which is
+    defined in gdk-pixbuf/Makefile.am, similarly to PIXBUF_LIBDIR, and based
+    on the newly defined loaderfilesdir, similar to loaderdir; update
+    070_mandatory-relibtoolize.
 
  -- Loic Minier <lool@dooz.org>  Thu, 17 Apr 2008 12:34:24 +0200
 

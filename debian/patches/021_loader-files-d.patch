@@ -1,7 +1,5 @@
-Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
-===================================================================
---- gtk+-2.12.1.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-11-04 12:35:24.378152677 +0100
-+++ gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c	2007-11-04 12:38:15.659913468 +0100
+--- a/gdk-pixbuf/gdk-pixbuf-io.c	2008-03-12 05:17:00.000000000 +0100
++++ b/gdk-pixbuf/gdk-pixbuf-io.c	2008-05-10 23:14:29.000000000 +0200
 @@ -45,6 +45,9 @@
  #undef STRICT
  #endif
@@ -12,7 +10,7 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
  static gint 
  format_check (GdkPixbufModule *module, guchar *buffer, int size)
  {
-@@ -284,87 +287,95 @@ gdk_pixbuf_get_module_file (void)
+@@ -284,87 +287,95 @@
  
  #endif	/* USE_GMODULE */
  
@@ -178,7 +176,7 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
  	while (!have_error && g_io_channel_read_line (channel, &line_buf, NULL, &term, NULL) == G_IO_STATUS_NORMAL) {
  		const char *p;
  		
-@@ -497,8 +508,140 @@ gdk_pixbuf_io_init (void)
+@@ -497,8 +508,134 @@
  		g_free (line_buf);
  	}
  	g_string_free (tmp_buf, TRUE);
@@ -194,11 +192,6 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +#ifdef USE_GMODULE
 +	GIOChannel *channel;
 +	gchar *gdkpixbuf_module_file_str = gdk_pixbuf_get_module_file ();
-+	/* FIXME: using an absolute path requires patching Makefile.am */
-+	gchar *gdkpixbuf_module_files_d_str = g_build_filename (PIXBUF_LIBDIR,
-+							 "..",
-+							 "loader-files.d",
-+							 NULL);
 +	gchar *list_str;
 +	char **files;
 +	GError *error = NULL;
@@ -262,7 +255,7 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +#ifdef USE_GMODULE
 +	list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
 +			      gdkpixbuf_module_file_str,
-+			      gdkpixbuf_module_files_d_str,
++			      PIXBUF_FILES_LIBDIR,
 +			      NULL);
 +
 +	files = _ugly_copy_of_pango_split_file_list (list_str);
@@ -316,8 +309,26 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +
 +	g_strfreev (files);
 +	g_free (list_str);
-+	g_free (gdkpixbuf_module_files_d_str);
 +	g_free (gdkpixbuf_module_file_str);
  #endif
  }
  
+--- a/gdk-pixbuf/Makefile.am	2008-03-12 05:17:00.000000000 +0100
++++ b/gdk-pixbuf/Makefile.am	2008-05-10 23:14:06.000000000 +0200
+@@ -57,6 +57,7 @@
+ 	libgdk_pixbuf-2.0.la
+ 
+ loaderdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loaders
++loaderfilesdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loader-files.d
+ 
+ module_libs = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
+ 
+@@ -317,7 +318,7 @@
+ 	$(GDK_PIXBUF_DEP_CFLAGS)		\
+ 	-DGDK_PIXBUF_ENABLE_BACKEND
+ 
+-AM_CPPFLAGS = "-DPIXBUF_LIBDIR=\"$(loaderdir)\"" "-DBUILT_MODULES_DIR=\"$(srcdir)/.libs\""
++AM_CPPFLAGS = "-DPIXBUF_LIBDIR=\"$(loaderdir)\"" "-DPIXBUF_FILES_LIBDIR=\"$(loaderfilesdir)\"" "-DBUILT_MODULES_DIR=\"$(srcdir)/.libs\""
+ LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GLIB_LIBS)
+ 
+ noinst_PROGRAMS = test-gdk-pixbuf
