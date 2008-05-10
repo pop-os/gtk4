@@ -36,8 +36,17 @@ gtk+2.0 (2.12.9-4) unstable; urgency=low
     defined in gdk-pixbuf/Makefile.am, similarly to PIXBUF_LIBDIR, and based
     on the newly defined loaderfilesdir, similar to loaderdir; update
     070_mandatory-relibtoolize.
+  * New patch, 022_module-files-append-compat-module-files-d, prefer
+    /usr/lib32/gtk-2.0/<gtk-binary-version>/loader-files.d and
+    /immodule-files.d over the /usr/lib/.../*.d pathnames added in
+    020_immodules-files-d and 021_loader-files-d when available; this is
+    useful for ia32-libs support; other modules might need additional support
+    depending on how they are loaded, for example GTK_MODULES will probably
+    still be looked up below libdir, as well as engines, printbackends,
+    filesystems, and generic modules.  See also Ubuntu #205223 and #190227 for
+    examples.
 
- -- Loic Minier <lool@dooz.org>  Thu, 17 Apr 2008 12:34:24 +0200
+ -- Loic Minier <lool@dooz.org>  Sun, 11 May 2008 00:47:26 +0200
 
 gtk+2.0 (2.12.9-3) unstable; urgency=low
 
