@@ -9,117 +9,19 @@ exclude config.guess and sub with diff -urN -x config.guess -x config.sub
 This is required because of patches touching autotools files, but also because
 of upstream using an older libtool; see GNOME #484426; Debian #445001.
 
---- a/aclocal.m4	2008-03-12 05:17:55.000000000 +0100
-+++ b/aclocal.m4	2008-05-10 23:21:25.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/aclocal.m4 gtk+2.0-2.12.10/aclocal.m4
+--- gtk+2.0-2.12.10.old/aclocal.m4	2008-06-03 23:20:21.000000000 +0200
++++ gtk+2.0-2.12.10/aclocal.m4	2008-06-04 08:55:43.000000000 +0200
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
  
--# serial 51 AC_PROG_LIBTOOL
-+# serial 52 Debian 1.5.26-1 AC_PROG_LIBTOOL
+-# serial 52 AC_PROG_LIBTOOL
++# serial 52 Debian 1.5.26-4 AC_PROG_LIBTOOL
  
  
  # AC_PROVIDE_IFELSE(MACRO-NAME, IF-PROVIDED, IF-NOT-PROVIDED)
-@@ -1029,7 +1029,6 @@
- AC_REQUIRE([AC_OBJEXT])dnl
- AC_REQUIRE([AC_EXEEXT])dnl
- dnl
--
- AC_LIBTOOL_SYS_MAX_CMD_LEN
- AC_LIBTOOL_SYS_GLOBAL_SYMBOL_PIPE
- AC_LIBTOOL_OBJDIR
-@@ -1131,6 +1130,8 @@
-   ;;
- esac
- 
-+_LT_REQUIRED_DARWIN_CHECKS
-+
- AC_PROVIDE_IFELSE([AC_LIBTOOL_DLOPEN], enable_dlopen=yes, enable_dlopen=no)
- AC_PROVIDE_IFELSE([AC_LIBTOOL_WIN32_DLL],
- enable_win32_dll=yes, enable_win32_dll=no)
-@@ -1210,9 +1211,80 @@
- echo "$lt_simple_link_test_code" >conftest.$ac_ext
- eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
- _lt_linker_boilerplate=`cat conftest.err`
--$rm conftest*
-+$rm -r conftest*
- ])# _LT_LINKER_BOILERPLATE
- 
-+# _LT_REQUIRED_DARWIN_CHECKS
-+# --------------------------
-+# Check for some things on darwin
-+AC_DEFUN([_LT_REQUIRED_DARWIN_CHECKS],[
-+  case $host_os in
-+    rhapsody* | darwin*)
-+    AC_CHECK_TOOL([DSYMUTIL], [dsymutil], [:])
-+    AC_CHECK_TOOL([NMEDIT], [nmedit], [:])
-+
-+    AC_CACHE_CHECK([for -single_module linker flag],[lt_cv_apple_cc_single_mod],
-+      [lt_cv_apple_cc_single_mod=no
-+      if test -z "${LT_MULTI_MODULE}"; then
-+   # By default we will add the -single_module flag. You can override
-+   # by either setting the environment variable LT_MULTI_MODULE
-+   # non-empty at configure time, or by adding -multi_module to the
-+   # link flags.
-+   echo "int foo(void){return 1;}" > conftest.c
-+   $LTCC $LTCFLAGS $LDFLAGS -o libconftest.dylib \
-+     -dynamiclib ${wl}-single_module conftest.c
-+   if test -f libconftest.dylib; then
-+     lt_cv_apple_cc_single_mod=yes
-+     rm -rf libconftest.dylib*
-+   fi
-+   rm conftest.c
-+      fi])
-+    AC_CACHE_CHECK([for -exported_symbols_list linker flag],
-+      [lt_cv_ld_exported_symbols_list],
-+      [lt_cv_ld_exported_symbols_list=no
-+      save_LDFLAGS=$LDFLAGS
-+      echo "_main" > conftest.sym
-+      LDFLAGS="$LDFLAGS -Wl,-exported_symbols_list,conftest.sym"
-+      AC_LINK_IFELSE([AC_LANG_PROGRAM([],[])],
-+   [lt_cv_ld_exported_symbols_list=yes],
-+   [lt_cv_ld_exported_symbols_list=no])
-+   LDFLAGS="$save_LDFLAGS"
-+    ])
-+    case $host_os in
-+    rhapsody* | darwin1.[[0123]])
-+      _lt_dar_allow_undefined='${wl}-undefined ${wl}suppress' ;;
-+    darwin1.*)
-+     _lt_dar_allow_undefined='${wl}-flat_namespace ${wl}-undefined ${wl}suppress' ;;
-+    darwin*)
-+      # if running on 10.5 or later, the deployment target defaults
-+      # to the OS version, if on x86, and 10.4, the deployment
-+      # target defaults to 10.4. Don't you love it?
-+      case ${MACOSX_DEPLOYMENT_TARGET-10.0},$host in
-+   10.0,*86*-darwin8*|10.0,*-darwin[[91]]*)
-+     _lt_dar_allow_undefined='${wl}-undefined ${wl}dynamic_lookup' ;;
-+   10.[[012]]*)
-+     _lt_dar_allow_undefined='${wl}-flat_namespace ${wl}-undefined ${wl}suppress' ;;
-+   10.*)
-+     _lt_dar_allow_undefined='${wl}-undefined ${wl}dynamic_lookup' ;;
-+      esac
-+    ;;
-+  esac
-+    if test "$lt_cv_apple_cc_single_mod" = "yes"; then
-+      _lt_dar_single_mod='$single_module'
-+    fi
-+    if test "$lt_cv_ld_exported_symbols_list" = "yes"; then
-+      _lt_dar_export_syms=' ${wl}-exported_symbols_list,$output_objdir/${libname}-symbols.expsym'
-+    else
-+      _lt_dar_export_syms="~$NMEDIT -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
-+    fi
-+    if test "$DSYMUTIL" != ":"; then
-+      _lt_dsymutil="~$DSYMUTIL \$lib || :"
-+    else
-+      _lt_dsymutil=
-+    fi
-+    ;;
-+  esac
-+])
- 
- # _LT_AC_SYS_LIBPATH_AIX
- # ----------------------
-@@ -1493,7 +1565,6 @@
+@@ -1565,7 +1565,6 @@
        esac
        ;;
      *64-bit*)
@@ -127,56 +29,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        case $host in
          x86_64-*kfreebsd*-gnu)
            LD="${LD-ld} -m elf_x86_64_fbsd"
-@@ -1538,7 +1609,11 @@
-     *64-bit*)
-       case $lt_cv_prog_gnu_ld in
-       yes*) LD="${LD-ld} -m elf64_sparc" ;;
--      *)    LD="${LD-ld} -64" ;;
-+      *)
-+        if ${LD-ld} -64 -r -o conftest2.o conftest.o >/dev/null 2>&1; then
-+	  LD="${LD-ld} -64"
-+	fi
-+	;;
-       esac
-       ;;
-     esac
-@@ -1631,7 +1706,7 @@
-        $2=yes
-      fi
-    fi
--   $rm conftest*
-+   $rm -r conftest*
-    LDFLAGS="$save_LDFLAGS"
- ])
- 
-@@ -1902,7 +1977,7 @@
-     AC_CHECK_FUNC([shl_load],
- 	  [lt_cv_dlopen="shl_load"],
-       [AC_CHECK_LIB([dld], [shl_load],
--	    [lt_cv_dlopen="shl_load" lt_cv_dlopen_libs="-dld"],
-+	    [lt_cv_dlopen="shl_load" lt_cv_dlopen_libs="-ldld"],
- 	[AC_CHECK_FUNC([dlopen],
- 	      [lt_cv_dlopen="dlopen"],
- 	  [AC_CHECK_LIB([dl], [dlopen],
-@@ -1910,7 +1985,7 @@
- 	    [AC_CHECK_LIB([svld], [dlopen],
- 		  [lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-lsvld"],
- 	      [AC_CHECK_LIB([dld], [dld_link],
--		    [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"])
-+		    [lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-ldld"])
- 	      ])
- 	    ])
- 	  ])
-@@ -2227,7 +2302,7 @@
-   soname_spec='${libname}${release}${shared_ext}$major'
-   ;;
- 
--aix4* | aix5*)
-+aix[[4-9]]*)
-   version_type=linux
-   need_lib_prefix=no
-   need_version=no
-@@ -2552,13 +2627,11 @@
+@@ -2628,13 +2627,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -191,7 +44,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -2570,6 +2643,18 @@
+@@ -2646,6 +2643,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -210,30 +63,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -2750,6 +2835,13 @@
- AC_MSG_RESULT([$dynamic_linker])
- test "$dynamic_linker" = no && can_build_shared=no
- 
-+AC_CACHE_VAL([lt_cv_sys_lib_search_path_spec],
-+[lt_cv_sys_lib_search_path_spec="$sys_lib_search_path_spec"])
-+sys_lib_search_path_spec="$lt_cv_sys_lib_search_path_spec"
-+AC_CACHE_VAL([lt_cv_sys_lib_dlsearch_path_spec],
-+[lt_cv_sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec"])
-+sys_lib_dlsearch_path_spec="$lt_cv_sys_lib_dlsearch_path_spec"
-+
- variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
- if test "$GCC" = yes; then
-   variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -3249,7 +3341,7 @@
- # whether `pass_all' will *always* work, you probably want this one.
- 
- case $host_os in
--aix4* | aix5*)
-+aix[[4-9]]*)
-   lt_cv_deplibs_check_method=pass_all
-   ;;
- 
-@@ -3344,7 +3436,7 @@
+@@ -3427,7 +3436,7 @@
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -242,112 +72,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|_pic\.a)$'
    else
-@@ -3685,7 +3777,7 @@
-   fi
-   ;;
- 
--aix4* | aix5*)
-+aix[[4-9]]*)
-   if test "$host_cpu" != ia64 && test "$aix_use_runtimelinking" = no ; then
-     test "$enable_shared" = yes && enable_static=no
-   fi
-@@ -3742,6 +3834,7 @@
- _LT_AC_TAGVAR(predeps, $1)=
- _LT_AC_TAGVAR(postdeps, $1)=
- _LT_AC_TAGVAR(compiler_lib_search_path, $1)=
-+_LT_AC_TAGVAR(compiler_lib_search_dirs, $1)=
- 
- # Source file extension for C++ test sources.
- ac_ext=cpp
-@@ -3851,7 +3944,7 @@
-     # FIXME: insert proper C++ library support
-     _LT_AC_TAGVAR(ld_shlibs, $1)=no
-     ;;
--  aix4* | aix5*)
-+  aix[[4-9]]*)
-     if test "$host_cpu" = ia64; then
-       # On IA64, the linker does run time linking by default, so we don't
-       # have to do anything special.
-@@ -3864,7 +3957,7 @@
-       # Test if we are trying to use run time linking or normal
-       # AIX style linking. If -brtl is somewhere in LDFLAGS, we
-       # need to do runtime linking.
--      case $host_os in aix4.[[23]]|aix4.[[23]].*|aix5*)
-+      case $host_os in aix4.[[23]]|aix4.[[23]].*|aix[[5-9]]*)
- 	for ld_flag in $LDFLAGS; do
- 	  case $ld_flag in
- 	  *-brtl*)
-@@ -4010,51 +4103,23 @@
-     fi
-   ;;
-       darwin* | rhapsody*)
--        case $host_os in
--        rhapsody* | darwin1.[[012]])
--         _LT_AC_TAGVAR(allow_undefined_flag, $1)='${wl}-undefined ${wl}suppress'
--         ;;
--       *) # Darwin 1.3 on
--         if test -z ${MACOSX_DEPLOYMENT_TARGET} ; then
--           _LT_AC_TAGVAR(allow_undefined_flag, $1)='${wl}-flat_namespace ${wl}-undefined ${wl}suppress'
--         else
--           case ${MACOSX_DEPLOYMENT_TARGET} in
--             10.[[012]])
--               _LT_AC_TAGVAR(allow_undefined_flag, $1)='${wl}-flat_namespace ${wl}-undefined ${wl}suppress'
--               ;;
--             10.*)
--               _LT_AC_TAGVAR(allow_undefined_flag, $1)='${wl}-undefined ${wl}dynamic_lookup'
--               ;;
--           esac
--         fi
--         ;;
--        esac
-       _LT_AC_TAGVAR(archive_cmds_need_lc, $1)=no
-       _LT_AC_TAGVAR(hardcode_direct, $1)=no
-       _LT_AC_TAGVAR(hardcode_automatic, $1)=yes
-       _LT_AC_TAGVAR(hardcode_shlibpath_var, $1)=unsupported
-       _LT_AC_TAGVAR(whole_archive_flag_spec, $1)=''
-       _LT_AC_TAGVAR(link_all_deplibs, $1)=yes
--
--    if test "$GXX" = yes ; then
--      lt_int_apple_cc_single_mod=no
-+      _LT_AC_TAGVAR(allow_undefined_flag, $1)="$_lt_dar_allow_undefined"
-+      if test "$GXX" = yes ; then
-       output_verbose_link_cmd='echo'
--      if $CC -dumpspecs 2>&1 | $EGREP 'single_module' >/dev/null ; then
--       lt_int_apple_cc_single_mod=yes
-+      _LT_AC_TAGVAR(archive_cmds, $1)="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring $_lt_dar_single_mod${_lt_dsymutil}"
-+      _LT_AC_TAGVAR(module_cmds, $1)="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
-+      _LT_AC_TAGVAR(archive_expsym_cmds, $1)="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring ${_lt_dar_single_mod}${_lt_dar_export_syms}${_lt_dsymutil}"
-+      _LT_AC_TAGVAR(module_expsym_cmds, $1)="sed -e 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dar_export_syms}${_lt_dsymutil}"
-+      if test "$lt_cv_apple_cc_single_mod" != "yes"; then
-+        _LT_AC_TAGVAR(archive_cmds, $1)="\$CC -r -keep_private_externs -nostdlib -o \${lib}-master.o \$libobjs~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \${lib}-master.o \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring${_lt_dsymutil}"
-+        _LT_AC_TAGVAR(archive_expsym_cmds, $1)="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -r -keep_private_externs -nostdlib -o \${lib}-master.o \$libobjs~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \${lib}-master.o \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring${_lt_dar_export_syms}${_lt_dsymutil}"
-       fi
--      if test "X$lt_int_apple_cc_single_mod" = Xyes ; then
--       _LT_AC_TAGVAR(archive_cmds, $1)='$CC -dynamiclib -single_module $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
--      else
--          _LT_AC_TAGVAR(archive_cmds, $1)='$CC -r -keep_private_externs -nostdlib -o ${lib}-master.o $libobjs~$CC -dynamiclib $allow_undefined_flag -o $lib ${lib}-master.o $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
--        fi
--        _LT_AC_TAGVAR(module_cmds, $1)='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
--        # Don't fix this by using the ld -exported_symbols_list flag, it doesn't exist in older darwin lds
--          if test "X$lt_int_apple_cc_single_mod" = Xyes ; then
--            _LT_AC_TAGVAR(archive_expsym_cmds, $1)='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib -single_module $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
--          else
--            _LT_AC_TAGVAR(archive_expsym_cmds, $1)='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -r -keep_private_externs -nostdlib -o ${lib}-master.o $libobjs~$CC -dynamiclib $allow_undefined_flag -o $lib ${lib}-master.o $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
--          fi
--            _LT_AC_TAGVAR(module_expsym_cmds, $1)='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
-       else
-       case $cc_basename in
-         xlc*)
-@@ -4305,7 +4370,7 @@
- 	_LT_AC_TAGVAR(export_dynamic_flag_spec, $1)='${wl}--export-dynamic'
- 	_LT_AC_TAGVAR(whole_archive_flag_spec, $1)='${wl}--whole-archive$convenience ${wl}--no-whole-archive'
- 	;;
--      pgCC*)
-+      pgCC* | pgcpp*)
-         # Portland Group C++ compiler
- 	_LT_AC_TAGVAR(archive_cmds, $1)='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags ${wl}-soname ${wl}$soname -o $lib'
-   	_LT_AC_TAGVAR(archive_expsym_cmds, $1)='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags ${wl}-soname ${wl}$soname ${wl}-retain-symbols-file ${wl}$export_symbols -o $lib'
-@@ -4378,7 +4443,7 @@
+@@ -4434,7 +4443,7 @@
  	;;
      esac
      ;;
@@ -356,111 +81,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
      if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
        _LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable  -o $lib $predep_objects $libobjs $deplibs $postdep_objects $linker_flags'
        wlarc=
-@@ -4740,7 +4805,8 @@
- # compiler output when linking a shared library.
- # Parse the compiler output and extract the necessary
- # objects, libraries and library flags.
--AC_DEFUN([AC_LIBTOOL_POSTDEP_PREDEP],[
-+AC_DEFUN([AC_LIBTOOL_POSTDEP_PREDEP],
-+[AC_REQUIRE([LT_AC_PROG_SED])dnl
- dnl we can't use the lt_simple_compile_test_code here,
- dnl because it contains code intended for an executable,
- dnl not a library.  It's possible we should let each
-@@ -4865,6 +4931,11 @@
- 
- $rm -f confest.$objext
- 
-+_LT_AC_TAGVAR(compiler_lib_search_dirs, $1)=
-+if test -n "$_LT_AC_TAGVAR(compiler_lib_search_path, $1)"; then
-+  _LT_AC_TAGVAR(compiler_lib_search_dirs, $1)=`echo " ${_LT_AC_TAGVAR(compiler_lib_search_path, $1)}" | ${SED} -e 's! -L! !g' -e 's!^ !!'`
-+fi
-+
- # PORTME: override above test on systems where it is broken
- ifelse([$1],[CXX],
- [case $host_os in
-@@ -4921,7 +4992,6 @@
-   ;;
- esac
- ])
--
- case " $_LT_AC_TAGVAR(postdeps, $1) " in
- *" -lc "*) _LT_AC_TAGVAR(archive_cmds_need_lc, $1)=no ;;
- esac
-@@ -5006,7 +5076,7 @@
-     postinstall_cmds='$RANLIB $lib'
-   fi
-   ;;
--aix4* | aix5*)
-+aix[[4-9]]*)
-   if test "$host_cpu" != ia64 && test "$aix_use_runtimelinking" = no ; then
-     test "$enable_shared" = yes && enable_static=no
-   fi
-@@ -5183,6 +5253,7 @@
-     _LT_AC_TAGVAR(predeps, $1) \
-     _LT_AC_TAGVAR(postdeps, $1) \
-     _LT_AC_TAGVAR(compiler_lib_search_path, $1) \
-+    _LT_AC_TAGVAR(compiler_lib_search_dirs, $1) \
-     _LT_AC_TAGVAR(archive_cmds, $1) \
-     _LT_AC_TAGVAR(archive_expsym_cmds, $1) \
-     _LT_AC_TAGVAR(postinstall_cmds, $1) \
-@@ -5245,7 +5316,7 @@
- # Generated automatically by $PROGRAM (GNU $PACKAGE $VERSION$TIMESTAMP)
- # NOTE: Changes made to this file will be lost: look at ltmain.sh.
- #
--# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-+# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- # Free Software Foundation, Inc.
- #
- # This file is part of GNU Libtool:
-@@ -5482,6 +5553,10 @@
- # shared library.
- postdeps=$lt_[]_LT_AC_TAGVAR(postdeps, $1)
- 
-+# The directories searched by this compiler when creating a shared
-+# library
-+compiler_lib_search_dirs=$lt_[]_LT_AC_TAGVAR(compiler_lib_search_dirs, $1)
-+
- # The library search path used internally by the compiler when linking
- # a shared library.
- compiler_lib_search_path=$lt_[]_LT_AC_TAGVAR(compiler_lib_search_path, $1)
-@@ -5831,7 +5906,7 @@
-     echo "$progname: failed program was:" >&AS_MESSAGE_LOG_FD
-     cat conftest.$ac_ext >&5
-   fi
--  rm -f conftest* conftst*
-+  rm -rf conftest* conftst*
- 
-   # Do not use the global_symbol_pipe unless it works.
-   if test "$pipe_works" = yes; then
-@@ -5888,7 +5963,8 @@
-       # built for inclusion in a dll (and should export symbols for example).
-       # Although the cygwin gcc ignores -fPIC, still need this for old-style
-       # (--disable-auto-import) libraries
--      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-DDLL_EXPORT'
-+      m4_if([$1], [GCJ], [],
-+	[_LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-DDLL_EXPORT'])
-       ;;
-     darwin* | rhapsody*)
-       # PIC is the default on this platform
-@@ -5925,7 +6001,7 @@
-     esac
-   else
-     case $host_os in
--      aix4* | aix5*)
-+      aix[[4-9]]*)
- 	# All AIX code is PIC.
- 	if test "$host_cpu" = ia64; then
- 	  # AIX 5 now supports IA64 processor
-@@ -6021,7 +6097,7 @@
- 	    _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-KPIC'
- 	    _LT_AC_TAGVAR(lt_prog_compiler_static, $1)='-static'
- 	    ;;
--	  pgCC*)
-+	  pgCC* | pgcpp*)
- 	    # Portland Group C++ compiler.
- 	    _LT_AC_TAGVAR(lt_prog_compiler_wl, $1)='-Wl,'
- 	    _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-fpic'
-@@ -6059,7 +6135,7 @@
+@@ -6126,7 +6135,7 @@
  	    ;;
  	esac
  	;;
@@ -469,54 +90,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	;;
        osf3* | osf4* | osf5*)
  	case $cc_basename in
-@@ -6172,7 +6248,8 @@
-       # built for inclusion in a dll (and should export symbols for example).
-       # Although the cygwin gcc ignores -fPIC, still need this for old-style
-       # (--disable-auto-import) libraries
--      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-DDLL_EXPORT'
-+      m4_if([$1], [GCJ], [],
-+	[_LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-DDLL_EXPORT'])
-       ;;
- 
-     darwin* | rhapsody*)
-@@ -6242,7 +6319,8 @@
-     mingw* | cygwin* | pw32* | os2*)
-       # This hack is so that the source file can tell whether it is being
-       # built for inclusion in a dll (and should export symbols for example).
--      _LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-DDLL_EXPORT'
-+      m4_if([$1], [GCJ], [],
-+	[_LT_AC_TAGVAR(lt_prog_compiler_pic, $1)='-DDLL_EXPORT'])
-       ;;
- 
-     hpux9* | hpux10* | hpux11*)
-@@ -6379,7 +6457,7 @@
- #
- if test -n "$_LT_AC_TAGVAR(lt_prog_compiler_pic, $1)"; then
-   AC_LIBTOOL_COMPILER_OPTION([if $compiler PIC flag $_LT_AC_TAGVAR(lt_prog_compiler_pic, $1) works],
--    _LT_AC_TAGVAR(lt_prog_compiler_pic_works, $1),
-+    _LT_AC_TAGVAR(lt_cv_prog_compiler_pic_works, $1),
-     [$_LT_AC_TAGVAR(lt_prog_compiler_pic, $1)ifelse([$1],[],[ -DPIC],[ifelse([$1],[CXX],[ -DPIC],[])])], [],
-     [case $_LT_AC_TAGVAR(lt_prog_compiler_pic, $1) in
-      "" | " "*) ;;
-@@ -6403,7 +6481,7 @@
- #
- wl=$_LT_AC_TAGVAR(lt_prog_compiler_wl, $1) eval lt_tmp_static_flag=\"$_LT_AC_TAGVAR(lt_prog_compiler_static, $1)\"
- AC_LIBTOOL_LINKER_OPTION([if $compiler static flag $lt_tmp_static_flag works],
--  _LT_AC_TAGVAR(lt_prog_compiler_static_works, $1),
-+  _LT_AC_TAGVAR(lt_cv_prog_compiler_static_works, $1),
-   $lt_tmp_static_flag,
-   [],
-   [_LT_AC_TAGVAR(lt_prog_compiler_static, $1)=])
-@@ -6419,7 +6497,7 @@
- ifelse([$1],[CXX],[
-   _LT_AC_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
-   case $host_os in
--  aix4* | aix5*)
-+  aix[[4-9]]*)
-     # If we're using GNU nm, then we don't want the "-C" option.
-     # -C means demangle to AIX nm, but means don't demangle with GNU nm
-     if $NM -V 2>&1 | grep 'GNU' > /dev/null; then
-@@ -6434,10 +6512,14 @@
+@@ -6503,6 +6512,9 @@
    cygwin* | mingw*)
      _LT_AC_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[[BCDGRS]][[ ]]/s/.*[[ ]]\([[^ ]]*\)/\1 DATA/;/^.*[[ ]]__nm__/s/^.*[[ ]]__nm__\([[^ ]]*\)[[ ]][[^ ]]*/\1 DATA/;/^I[[ ]]/d;/^[[AITW]][[ ]]/s/.*[[ ]]//'\'' | sort | uniq > $export_symbols'
    ;;
@@ -526,37 +100,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    *)
      _LT_AC_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-   esac
-+  _LT_AC_TAGVAR(exclude_expsyms, $1)=['_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*']
- ],[
-   runpath_var=
-   _LT_AC_TAGVAR(allow_undefined_flag, $1)=
-@@ -6468,12 +6550,14 @@
-   # it will be wrapped by ` (' and `)$', so one must not match beginning or
-   # end of line.  Example: `a|bc|.*d.*' will exclude the symbols `a' and `bc',
-   # as well as any symbol that contains `d'.
--  _LT_AC_TAGVAR(exclude_expsyms, $1)="_GLOBAL_OFFSET_TABLE_"
-+  _LT_AC_TAGVAR(exclude_expsyms, $1)=['_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*']
-   # Although _GLOBAL_OFFSET_TABLE_ is a valid symbol C name, most a.out
-   # platforms (ab)use it in PIC code, but their linkers get confused if
-   # the symbol is explicitly referenced.  Since portable code cannot
-   # rely on this symbol name, it's probably fine to never include it in
-   # preloaded symbol tables.
-+  # Exclude shared library initialization/finalization symbols.
-+dnl Note also adjust exclude_expsyms for C++ above.
-   extract_expsyms_cmds=
-   # Just being paranoid about ensuring that cc_basename is set.
-   _LT_CC_BASENAME([$compiler])
-@@ -6523,7 +6607,7 @@
- 
-     # See if GNU ld supports shared libraries.
-     case $host_os in
--    aix3* | aix4* | aix5*)
-+    aix[[3-9]]*)
-       # On AIX/PPC, the GNU linker is very broken
-       if test "$host_cpu" != ia64; then
- 	_LT_AC_TAGVAR(ld_shlibs, $1)=no
-@@ -6639,12 +6723,13 @@
+@@ -6711,12 +6723,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -571,41 +115,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	_LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -6742,7 +6827,7 @@
-       fi
-       ;;
- 
--    aix4* | aix5*)
-+    aix[[4-9]]*)
-       if test "$host_cpu" = ia64; then
- 	# On IA64, the linker does run time linking by default, so we don't
- 	# have to do anything special.
-@@ -6762,7 +6847,7 @@
- 	# Test if we are trying to use run time linking or normal
- 	# AIX style linking. If -brtl is somewhere in LDFLAGS, we
- 	# need to do runtime linking.
--	case $host_os in aix4.[[23]]|aix4.[[23]].*|aix5*)
-+	case $host_os in aix4.[[23]]|aix4.[[23]].*|aix[[5-9]]*)
- 	  for ld_flag in $LDFLAGS; do
-   	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
-   	    aix_use_runtimelinking=yes
-@@ -6922,11 +7007,10 @@
-       _LT_AC_TAGVAR(link_all_deplibs, $1)=yes
-     if test "$GCC" = yes ; then
-     	output_verbose_link_cmd='echo'
--        _LT_AC_TAGVAR(archive_cmds, $1)='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
--      _LT_AC_TAGVAR(module_cmds, $1)='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
--      # Don't fix this by using the ld -exported_symbols_list flag, it doesn't exist in older darwin lds
--      _LT_AC_TAGVAR(archive_expsym_cmds, $1)='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
--      _LT_AC_TAGVAR(module_expsym_cmds, $1)='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
-+        _LT_AC_TAGVAR(archive_cmds, $1)="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring $_lt_dar_single_mod${_lt_dsymutil}"
-+        _LT_AC_TAGVAR(module_cmds, $1)="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
-+        _LT_AC_TAGVAR(archive_expsym_cmds, $1)="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring ${_lt_dar_single_mod}${_lt_dar_export_syms}${_lt_dsymutil}"
-+        _LT_AC_TAGVAR(module_expsym_cmds, $1)="sed -e 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dar_export_syms}${_lt_dsymutil}"
-     else
-       case $cc_basename in
-         xlc*)
-@@ -7076,7 +7160,7 @@
+@@ -7147,7 +7160,7 @@
        _LT_AC_TAGVAR(link_all_deplibs, $1)=yes
        ;;
  
@@ -614,7 +124,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	_LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -7754,14 +7838,16 @@
+@@ -7825,14 +7838,16 @@
  # _PKG_CONFIG([VARIABLE], [COMMAND], [MODULES])
  # ---------------------------------------------
  m4_define([_PKG_CONFIG],
@@ -639,7 +149,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  fi[]dnl
  ])# _PKG_CONFIG
  
-@@ -7805,9 +7891,9 @@
+@@ -7876,9 +7891,9 @@
  if test $pkg_failed = yes; then
          _PKG_SHORT_ERRORS_SUPPORTED
          if test $_pkg_short_errors_supported = yes; then
@@ -651,9 +161,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
---- a/configure	2008-03-12 05:18:17.000000000 +0100
-+++ b/configure	2008-05-10 23:21:25.000000000 +0200
-@@ -863,6 +863,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/configure gtk+2.0-2.12.10/configure
+--- gtk+2.0-2.12.10.old/configure	2008-06-03 23:20:39.000000000 +0200
++++ gtk+2.0-2.12.10/configure	2008-06-04 08:55:50.000000000 +0200
+@@ -885,6 +885,8 @@
  CCDEPMODE
  am__fastdepCC_TRUE
  am__fastdepCC_FALSE
@@ -662,16 +173,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  CXX
  CXXFLAGS
  ac_ct_CXX
-@@ -880,6 +882,8 @@
- ECHO
- AR
- RANLIB
-+DSYMUTIL
-+NMEDIT
- DLLTOOL
- AS
- OBJDUMP
-@@ -1016,6 +1020,7 @@
+@@ -1040,6 +1042,7 @@
  USE_DIRECTFB_TRUE
  USE_DIRECTFB_FALSE
  GDK_PACKAGES
@@ -679,7 +181,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_EXTRA_LIBS
  GDK_EXTRA_CFLAGS
  GDK_DEP_LIBS
-@@ -3875,6 +3880,16 @@
+@@ -4023,6 +4026,16 @@
  
  
  
@@ -696,16 +198,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  for ac_prog in $CCC c++ g++ gcc CC cxx cc++ cl
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
-@@ -5006,7 +5021,7 @@
- # whether `pass_all' will *always* work, you probably want this one.
- 
- case $host_os in
--aix4* | aix5*)
-+aix[4-9]*)
-   lt_cv_deplibs_check_method=pass_all
-   ;;
- 
-@@ -5101,7 +5116,7 @@
+@@ -5235,7 +5248,7 @@
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -714,16 +207,16 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -5222,7 +5237,7 @@
+@@ -5356,7 +5369,7 @@
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
--  echo '#line 5225 "configure"' > conftest.$ac_ext
-+  echo '#line 5240 "configure"' > conftest.$ac_ext
+-  echo '#line 5359 "configure"' > conftest.$ac_ext
++  echo '#line 5372 "configure"' > conftest.$ac_ext
    if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
-@@ -5287,7 +5302,6 @@
+@@ -5421,7 +5434,6 @@
        esac
        ;;
      *64-bit*)
@@ -731,504 +224,49 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        case $host in
          x86_64-*kfreebsd*-gnu)
            LD="${LD-ld} -m elf_x86_64_fbsd"
-@@ -5395,7 +5409,11 @@
-     *64-bit*)
-       case $lt_cv_prog_gnu_ld in
-       yes*) LD="${LD-ld} -m elf64_sparc" ;;
--      *)    LD="${LD-ld} -64" ;;
-+      *)
-+        if ${LD-ld} -64 -r -o conftest2.o conftest.o >/dev/null 2>&1; then
-+	  LD="${LD-ld} -64"
-+	fi
-+	;;
-       esac
-       ;;
-     esac
-@@ -6814,7 +6832,6 @@
- 
- 
- # Autoconf 2.13's AC_OBJEXT and AC_EXEEXT macros only works for C compilers!
--
- # find the maximum length of command line arguments
- { echo "$as_me:$LINENO: checking the maximum length of command line arguments" >&5
- echo $ECHO_N "checking the maximum length of command line arguments... $ECHO_C" >&6; }
-@@ -7129,7 +7146,7 @@
-     echo "$progname: failed program was:" >&5
-     cat conftest.$ac_ext >&5
-   fi
--  rm -f conftest* conftst*
-+  rm -rf conftest* conftst*
- 
-   # Do not use the global_symbol_pipe unless it works.
-   if test "$pipe_works" = yes; then
-@@ -7689,6 +7706,318 @@
-   ;;
- esac
- 
-+
-+  case $host_os in
-+    rhapsody* | darwin*)
-+    if test -n "$ac_tool_prefix"; then
-+  # Extract the first word of "${ac_tool_prefix}dsymutil", so it can be a program name with args.
-+set dummy ${ac_tool_prefix}dsymutil; ac_word=$2
-+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-+if test "${ac_cv_prog_DSYMUTIL+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  if test -n "$DSYMUTIL"; then
-+  ac_cv_prog_DSYMUTIL="$DSYMUTIL" # Let the user override the test.
-+else
-+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-+for as_dir in $PATH
-+do
-+  IFS=$as_save_IFS
-+  test -z "$as_dir" && as_dir=.
-+  for ac_exec_ext in '' $ac_executable_extensions; do
-+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-+    ac_cv_prog_DSYMUTIL="${ac_tool_prefix}dsymutil"
-+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-+    break 2
-+  fi
-+done
-+done
-+IFS=$as_save_IFS
-+
-+fi
-+fi
-+DSYMUTIL=$ac_cv_prog_DSYMUTIL
-+if test -n "$DSYMUTIL"; then
-+  { echo "$as_me:$LINENO: result: $DSYMUTIL" >&5
-+echo "${ECHO_T}$DSYMUTIL" >&6; }
-+else
-+  { echo "$as_me:$LINENO: result: no" >&5
-+echo "${ECHO_T}no" >&6; }
-+fi
-+
-+
-+fi
-+if test -z "$ac_cv_prog_DSYMUTIL"; then
-+  ac_ct_DSYMUTIL=$DSYMUTIL
-+  # Extract the first word of "dsymutil", so it can be a program name with args.
-+set dummy dsymutil; ac_word=$2
-+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-+if test "${ac_cv_prog_ac_ct_DSYMUTIL+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  if test -n "$ac_ct_DSYMUTIL"; then
-+  ac_cv_prog_ac_ct_DSYMUTIL="$ac_ct_DSYMUTIL" # Let the user override the test.
-+else
-+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-+for as_dir in $PATH
-+do
-+  IFS=$as_save_IFS
-+  test -z "$as_dir" && as_dir=.
-+  for ac_exec_ext in '' $ac_executable_extensions; do
-+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-+    ac_cv_prog_ac_ct_DSYMUTIL="dsymutil"
-+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-+    break 2
-+  fi
-+done
-+done
-+IFS=$as_save_IFS
-+
-+fi
-+fi
-+ac_ct_DSYMUTIL=$ac_cv_prog_ac_ct_DSYMUTIL
-+if test -n "$ac_ct_DSYMUTIL"; then
-+  { echo "$as_me:$LINENO: result: $ac_ct_DSYMUTIL" >&5
-+echo "${ECHO_T}$ac_ct_DSYMUTIL" >&6; }
-+else
-+  { echo "$as_me:$LINENO: result: no" >&5
-+echo "${ECHO_T}no" >&6; }
-+fi
-+
-+  if test "x$ac_ct_DSYMUTIL" = x; then
-+    DSYMUTIL=":"
-+  else
-+    case $cross_compiling:$ac_tool_warned in
-+yes:)
-+{ echo "$as_me:$LINENO: WARNING: In the future, Autoconf will not detect cross-tools
-+whose name does not start with the host triplet.  If you think this
-+configuration is useful to you, please write to autoconf@gnu.org." >&5
-+echo "$as_me: WARNING: In the future, Autoconf will not detect cross-tools
-+whose name does not start with the host triplet.  If you think this
-+configuration is useful to you, please write to autoconf@gnu.org." >&2;}
-+ac_tool_warned=yes ;;
-+esac
-+    DSYMUTIL=$ac_ct_DSYMUTIL
-+  fi
-+else
-+  DSYMUTIL="$ac_cv_prog_DSYMUTIL"
-+fi
-+
-+    if test -n "$ac_tool_prefix"; then
-+  # Extract the first word of "${ac_tool_prefix}nmedit", so it can be a program name with args.
-+set dummy ${ac_tool_prefix}nmedit; ac_word=$2
-+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-+if test "${ac_cv_prog_NMEDIT+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  if test -n "$NMEDIT"; then
-+  ac_cv_prog_NMEDIT="$NMEDIT" # Let the user override the test.
-+else
-+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-+for as_dir in $PATH
-+do
-+  IFS=$as_save_IFS
-+  test -z "$as_dir" && as_dir=.
-+  for ac_exec_ext in '' $ac_executable_extensions; do
-+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-+    ac_cv_prog_NMEDIT="${ac_tool_prefix}nmedit"
-+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-+    break 2
-+  fi
-+done
-+done
-+IFS=$as_save_IFS
-+
-+fi
-+fi
-+NMEDIT=$ac_cv_prog_NMEDIT
-+if test -n "$NMEDIT"; then
-+  { echo "$as_me:$LINENO: result: $NMEDIT" >&5
-+echo "${ECHO_T}$NMEDIT" >&6; }
-+else
-+  { echo "$as_me:$LINENO: result: no" >&5
-+echo "${ECHO_T}no" >&6; }
-+fi
-+
-+
-+fi
-+if test -z "$ac_cv_prog_NMEDIT"; then
-+  ac_ct_NMEDIT=$NMEDIT
-+  # Extract the first word of "nmedit", so it can be a program name with args.
-+set dummy nmedit; ac_word=$2
-+{ echo "$as_me:$LINENO: checking for $ac_word" >&5
-+echo $ECHO_N "checking for $ac_word... $ECHO_C" >&6; }
-+if test "${ac_cv_prog_ac_ct_NMEDIT+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  if test -n "$ac_ct_NMEDIT"; then
-+  ac_cv_prog_ac_ct_NMEDIT="$ac_ct_NMEDIT" # Let the user override the test.
-+else
-+as_save_IFS=$IFS; IFS=$PATH_SEPARATOR
-+for as_dir in $PATH
-+do
-+  IFS=$as_save_IFS
-+  test -z "$as_dir" && as_dir=.
-+  for ac_exec_ext in '' $ac_executable_extensions; do
-+  if { test -f "$as_dir/$ac_word$ac_exec_ext" && $as_test_x "$as_dir/$ac_word$ac_exec_ext"; }; then
-+    ac_cv_prog_ac_ct_NMEDIT="nmedit"
-+    echo "$as_me:$LINENO: found $as_dir/$ac_word$ac_exec_ext" >&5
-+    break 2
-+  fi
-+done
-+done
-+IFS=$as_save_IFS
-+
-+fi
-+fi
-+ac_ct_NMEDIT=$ac_cv_prog_ac_ct_NMEDIT
-+if test -n "$ac_ct_NMEDIT"; then
-+  { echo "$as_me:$LINENO: result: $ac_ct_NMEDIT" >&5
-+echo "${ECHO_T}$ac_ct_NMEDIT" >&6; }
-+else
-+  { echo "$as_me:$LINENO: result: no" >&5
-+echo "${ECHO_T}no" >&6; }
-+fi
-+
-+  if test "x$ac_ct_NMEDIT" = x; then
-+    NMEDIT=":"
-+  else
-+    case $cross_compiling:$ac_tool_warned in
-+yes:)
-+{ echo "$as_me:$LINENO: WARNING: In the future, Autoconf will not detect cross-tools
-+whose name does not start with the host triplet.  If you think this
-+configuration is useful to you, please write to autoconf@gnu.org." >&5
-+echo "$as_me: WARNING: In the future, Autoconf will not detect cross-tools
-+whose name does not start with the host triplet.  If you think this
-+configuration is useful to you, please write to autoconf@gnu.org." >&2;}
-+ac_tool_warned=yes ;;
-+esac
-+    NMEDIT=$ac_ct_NMEDIT
-+  fi
-+else
-+  NMEDIT="$ac_cv_prog_NMEDIT"
-+fi
-+
-+
-+    { echo "$as_me:$LINENO: checking for -single_module linker flag" >&5
-+echo $ECHO_N "checking for -single_module linker flag... $ECHO_C" >&6; }
-+if test "${lt_cv_apple_cc_single_mod+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_apple_cc_single_mod=no
-+      if test -z "${LT_MULTI_MODULE}"; then
-+   # By default we will add the -single_module flag. You can override
-+   # by either setting the environment variable LT_MULTI_MODULE
-+   # non-empty at configure time, or by adding -multi_module to the
-+   # link flags.
-+   echo "int foo(void){return 1;}" > conftest.c
-+   $LTCC $LTCFLAGS $LDFLAGS -o libconftest.dylib \
-+     -dynamiclib ${wl}-single_module conftest.c
-+   if test -f libconftest.dylib; then
-+     lt_cv_apple_cc_single_mod=yes
-+     rm -rf libconftest.dylib*
-+   fi
-+   rm conftest.c
-+      fi
-+fi
-+{ echo "$as_me:$LINENO: result: $lt_cv_apple_cc_single_mod" >&5
-+echo "${ECHO_T}$lt_cv_apple_cc_single_mod" >&6; }
-+    { echo "$as_me:$LINENO: checking for -exported_symbols_list linker flag" >&5
-+echo $ECHO_N "checking for -exported_symbols_list linker flag... $ECHO_C" >&6; }
-+if test "${lt_cv_ld_exported_symbols_list+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_ld_exported_symbols_list=no
-+      save_LDFLAGS=$LDFLAGS
-+      echo "_main" > conftest.sym
-+      LDFLAGS="$LDFLAGS -Wl,-exported_symbols_list,conftest.sym"
-+      cat >conftest.$ac_ext <<_ACEOF
-+/* confdefs.h.  */
-+_ACEOF
-+cat confdefs.h >>conftest.$ac_ext
-+cat >>conftest.$ac_ext <<_ACEOF
-+/* end confdefs.h.  */
-+
-+int
-+main ()
-+{
-+
-+  ;
-+  return 0;
-+}
-+_ACEOF
-+rm -f conftest.$ac_objext conftest$ac_exeext
-+if { (ac_try="$ac_link"
-+case "(($ac_try" in
-+  *\"* | *\`* | *\\*) ac_try_echo=\$ac_try;;
-+  *) ac_try_echo=$ac_try;;
-+esac
-+eval "echo \"\$as_me:$LINENO: $ac_try_echo\"") >&5
-+  (eval "$ac_link") 2>conftest.er1
-+  ac_status=$?
-+  grep -v '^ *+' conftest.er1 >conftest.err
-+  rm -f conftest.er1
-+  cat conftest.err >&5
-+  echo "$as_me:$LINENO: \$? = $ac_status" >&5
-+  (exit $ac_status); } && {
-+	 test -z "$ac_c_werror_flag" ||
-+	 test ! -s conftest.err
-+       } && test -s conftest$ac_exeext &&
-+       $as_test_x conftest$ac_exeext; then
-+  lt_cv_ld_exported_symbols_list=yes
-+else
-+  echo "$as_me: failed program was:" >&5
-+sed 's/^/| /' conftest.$ac_ext >&5
-+
-+	lt_cv_ld_exported_symbols_list=no
-+fi
-+
-+rm -f core conftest.err conftest.$ac_objext conftest_ipa8_conftest.oo \
-+      conftest$ac_exeext conftest.$ac_ext
-+   LDFLAGS="$save_LDFLAGS"
-+
-+fi
-+{ echo "$as_me:$LINENO: result: $lt_cv_ld_exported_symbols_list" >&5
-+echo "${ECHO_T}$lt_cv_ld_exported_symbols_list" >&6; }
-+    case $host_os in
-+    rhapsody* | darwin1.[0123])
-+      _lt_dar_allow_undefined='${wl}-undefined ${wl}suppress' ;;
-+    darwin1.*)
-+     _lt_dar_allow_undefined='${wl}-flat_namespace ${wl}-undefined ${wl}suppress' ;;
-+    darwin*)
-+      # if running on 10.5 or later, the deployment target defaults
-+      # to the OS version, if on x86, and 10.4, the deployment
-+      # target defaults to 10.4. Don't you love it?
-+      case ${MACOSX_DEPLOYMENT_TARGET-10.0},$host in
-+   10.0,*86*-darwin8*|10.0,*-darwin[91]*)
-+     _lt_dar_allow_undefined='${wl}-undefined ${wl}dynamic_lookup' ;;
-+   10.[012]*)
-+     _lt_dar_allow_undefined='${wl}-flat_namespace ${wl}-undefined ${wl}suppress' ;;
-+   10.*)
-+     _lt_dar_allow_undefined='${wl}-undefined ${wl}dynamic_lookup' ;;
-+      esac
-+    ;;
-+  esac
-+    if test "$lt_cv_apple_cc_single_mod" = "yes"; then
-+      _lt_dar_single_mod='$single_module'
-+    fi
-+    if test "$lt_cv_ld_exported_symbols_list" = "yes"; then
-+      _lt_dar_export_syms=' ${wl}-exported_symbols_list,$output_objdir/${libname}-symbols.expsym'
-+    else
-+      _lt_dar_export_syms="~$NMEDIT -s \$output_objdir/\${libname}-symbols.expsym \${lib}"
-+    fi
-+    if test "$DSYMUTIL" != ":"; then
-+      _lt_dsymutil="~$DSYMUTIL \$lib || :"
-+    else
-+      _lt_dsymutil=
-+    fi
-+    ;;
-+  esac
-+
-+
- enable_dlopen=no
- enable_win32_dll=yes
- 
-@@ -7754,7 +8083,7 @@
- echo "$lt_simple_link_test_code" >conftest.$ac_ext
- eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
- _lt_linker_boilerplate=`cat conftest.err`
--$rm conftest*
-+$rm -r conftest*
- 
- 
- 
-@@ -7782,11 +8111,11 @@
+@@ -8269,11 +8281,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:7785: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8114: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:8272: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8284: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:7789: \$? = $ac_status" >&5
-+   echo "$as_me:8118: \$? = $ac_status" >&5
+-   echo "$as_me:8276: \$? = $ac_status" >&5
++   echo "$as_me:8288: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -8056,10 +8385,10 @@
- 
- { echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic works" >&5
- echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic works... $ECHO_C" >&6; }
--if test "${lt_prog_compiler_pic_works+set}" = set; then
-+if test "${lt_cv_prog_compiler_pic_works+set}" = set; then
-   echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  lt_prog_compiler_pic_works=no
-+  lt_cv_prog_compiler_pic_works=no
-   ac_outfile=conftest.$ac_objext
-    echo "$lt_simple_compile_test_code" > conftest.$ac_ext
-    lt_compiler_flag="$lt_prog_compiler_pic -DPIC"
-@@ -8072,27 +8401,27 @@
+@@ -8559,11 +8571,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:8075: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8404: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:8562: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8574: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:8079: \$? = $ac_status" >&5
-+   echo "$as_me:8408: \$? = $ac_status" >&5
+-   echo "$as_me:8566: \$? = $ac_status" >&5
++   echo "$as_me:8578: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-      $echo "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
-      $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
-      if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
--       lt_prog_compiler_pic_works=yes
-+       lt_cv_prog_compiler_pic_works=yes
-      fi
-    fi
-    $rm conftest*
- 
- fi
--{ echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works" >&5
--echo "${ECHO_T}$lt_prog_compiler_pic_works" >&6; }
-+{ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_pic_works" >&5
-+echo "${ECHO_T}$lt_cv_prog_compiler_pic_works" >&6; }
- 
--if test x"$lt_prog_compiler_pic_works" = xyes; then
-+if test x"$lt_cv_prog_compiler_pic_works" = xyes; then
-     case $lt_prog_compiler_pic in
-      "" | " "*) ;;
-      *) lt_prog_compiler_pic=" $lt_prog_compiler_pic" ;;
-@@ -8119,10 +8448,10 @@
- wl=$lt_prog_compiler_wl eval lt_tmp_static_flag=\"$lt_prog_compiler_static\"
- { echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
- echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6; }
--if test "${lt_prog_compiler_static_works+set}" = set; then
-+if test "${lt_cv_prog_compiler_static_works+set}" = set; then
-   echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  lt_prog_compiler_static_works=no
-+  lt_cv_prog_compiler_static_works=no
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
-    echo "$lt_simple_link_test_code" > conftest.$ac_ext
-@@ -8135,20 +8464,20 @@
-        $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
-        $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
-        if diff conftest.exp conftest.er2 >/dev/null; then
--         lt_prog_compiler_static_works=yes
-+         lt_cv_prog_compiler_static_works=yes
-        fi
-      else
--       lt_prog_compiler_static_works=yes
-+       lt_cv_prog_compiler_static_works=yes
-      fi
-    fi
--   $rm conftest*
-+   $rm -r conftest*
-    LDFLAGS="$save_LDFLAGS"
- 
- fi
--{ echo "$as_me:$LINENO: result: $lt_prog_compiler_static_works" >&5
--echo "${ECHO_T}$lt_prog_compiler_static_works" >&6; }
-+{ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_static_works" >&5
-+echo "${ECHO_T}$lt_cv_prog_compiler_static_works" >&6; }
- 
--if test x"$lt_prog_compiler_static_works" = xyes; then
-+if test x"$lt_cv_prog_compiler_static_works" = xyes; then
-     :
- else
-     lt_prog_compiler_static=
-@@ -8176,11 +8505,11 @@
+@@ -8663,11 +8675,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:8179: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:8508: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:8666: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:8678: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:8183: \$? = $ac_status" >&5
-+   echo "$as_me:8512: \$? = $ac_status" >&5
+-   echo "$as_me:8670: \$? = $ac_status" >&5
++   echo "$as_me:8682: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -8260,12 +8589,13 @@
-   # it will be wrapped by ` (' and `)$', so one must not match beginning or
-   # end of line.  Example: `a|bc|.*d.*' will exclude the symbols `a' and `bc',
-   # as well as any symbol that contains `d'.
--  exclude_expsyms="_GLOBAL_OFFSET_TABLE_"
-+  exclude_expsyms='_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*'
-   # Although _GLOBAL_OFFSET_TABLE_ is a valid symbol C name, most a.out
-   # platforms (ab)use it in PIC code, but their linkers get confused if
-   # the symbol is explicitly referenced.  Since portable code cannot
-   # rely on this symbol name, it's probably fine to never include it in
-   # preloaded symbol tables.
-+  # Exclude shared library initialization/finalization symbols.
-   extract_expsyms_cmds=
-   # Just being paranoid about ensuring that cc_basename is set.
-   for cc_temp in $compiler""; do
-@@ -8324,7 +8654,7 @@
- 
-     # See if GNU ld supports shared libraries.
-     case $host_os in
--    aix3* | aix4* | aix5*)
-+    aix[3-9]*)
-       # On AIX/PPC, the GNU linker is very broken
-       if test "$host_cpu" != ia64; then
- 	ld_shlibs=no
-@@ -8440,12 +8770,13 @@
+@@ -8928,12 +8940,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -1243,41 +281,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -8543,7 +8874,7 @@
-       fi
-       ;;
- 
--    aix4* | aix5*)
-+    aix[4-9]*)
-       if test "$host_cpu" = ia64; then
- 	# On IA64, the linker does run time linking by default, so we don't
- 	# have to do anything special.
-@@ -8563,7 +8894,7 @@
- 	# Test if we are trying to use run time linking or normal
- 	# AIX style linking. If -brtl is somewhere in LDFLAGS, we
- 	# need to do runtime linking.
--	case $host_os in aix4.[23]|aix4.[23].*|aix5*)
-+	case $host_os in aix4.[23]|aix4.[23].*|aix[5-9]*)
- 	  for ld_flag in $LDFLAGS; do
-   	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
-   	    aix_use_runtimelinking=yes
-@@ -8835,11 +9166,10 @@
-       link_all_deplibs=yes
-     if test "$GCC" = yes ; then
-     	output_verbose_link_cmd='echo'
--        archive_cmds='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
--      module_cmds='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
--      # Don't fix this by using the ld -exported_symbols_list flag, it doesn't exist in older darwin lds
--      archive_expsym_cmds='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
--      module_expsym_cmds='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
-+        archive_cmds="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring $_lt_dar_single_mod${_lt_dsymutil}"
-+        module_cmds="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
-+        archive_expsym_cmds="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring ${_lt_dar_single_mod}${_lt_dar_export_syms}${_lt_dsymutil}"
-+        module_expsym_cmds="sed -e 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dar_export_syms}${_lt_dsymutil}"
-     else
-       case $cc_basename in
-         xlc*)
-@@ -8989,7 +9319,7 @@
+@@ -9484,7 +9497,7 @@
        link_all_deplibs=yes
        ;;
  
@@ -1286,16 +290,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -9359,7 +9689,7 @@
-   soname_spec='${libname}${release}${shared_ext}$major'
-   ;;
- 
--aix4* | aix5*)
-+aix[4-9]*)
-   version_type=linux
-   need_lib_prefix=no
-   need_version=no
-@@ -9684,13 +10014,11 @@
+@@ -10179,13 +10192,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -1310,7 +305,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -9702,6 +10030,18 @@
+@@ -10197,6 +10208,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -1329,207 +324,25 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -9883,6 +10223,21 @@
- echo "${ECHO_T}$dynamic_linker" >&6; }
- test "$dynamic_linker" = no && can_build_shared=no
- 
-+if test "${lt_cv_sys_lib_search_path_spec+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_sys_lib_search_path_spec="$sys_lib_search_path_spec"
-+fi
-+
-+sys_lib_search_path_spec="$lt_cv_sys_lib_search_path_spec"
-+if test "${lt_cv_sys_lib_dlsearch_path_spec+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec"
-+fi
-+
-+sys_lib_dlsearch_path_spec="$lt_cv_sys_lib_dlsearch_path_spec"
-+
- variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
- if test "$GCC" = yes; then
-   variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -10202,7 +10557,7 @@
- { echo "$as_me:$LINENO: result: $ac_cv_lib_dld_shl_load" >&5
- echo "${ECHO_T}$ac_cv_lib_dld_shl_load" >&6; }
- if test $ac_cv_lib_dld_shl_load = yes; then
--  lt_cv_dlopen="shl_load" lt_cv_dlopen_libs="-dld"
-+  lt_cv_dlopen="shl_load" lt_cv_dlopen_libs="-ldld"
- else
-   { echo "$as_me:$LINENO: checking for dlopen" >&5
- echo $ECHO_N "checking for dlopen... $ECHO_C" >&6; }
-@@ -10478,7 +10833,7 @@
- { echo "$as_me:$LINENO: result: $ac_cv_lib_dld_dld_link" >&5
- echo "${ECHO_T}$ac_cv_lib_dld_dld_link" >&6; }
- if test $ac_cv_lib_dld_dld_link = yes; then
--  lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-dld"
-+  lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-ldld"
- fi
- 
- 
-@@ -10527,7 +10882,7 @@
+@@ -11065,7 +11088,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 10530 "configure"
-+#line 10885 "configure"
+-#line 11068 "configure"
++#line 11091 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -10627,7 +10982,7 @@
+@@ -11165,7 +11188,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
--#line 10630 "configure"
-+#line 10985 "configure"
+-#line 11168 "configure"
++#line 11191 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -10754,7 +11109,7 @@
-   fi
-   ;;
- 
--aix4* | aix5*)
-+aix[4-9]*)
-   if test "$host_cpu" != ia64 && test "$aix_use_runtimelinking" = no ; then
-     test "$enable_shared" = yes && enable_static=no
-   fi
-@@ -10810,6 +11165,7 @@
-     predeps \
-     postdeps \
-     compiler_lib_search_path \
-+    compiler_lib_search_dirs \
-     archive_cmds \
-     archive_expsym_cmds \
-     postinstall_cmds \
-@@ -10870,7 +11226,7 @@
- # Generated automatically by $PROGRAM (GNU $PACKAGE $VERSION$TIMESTAMP)
- # NOTE: Changes made to this file will be lost: look at ltmain.sh.
- #
--# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007
-+# Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
- # Free Software Foundation, Inc.
- #
- # This file is part of GNU Libtool:
-@@ -11106,6 +11462,10 @@
- # shared library.
- postdeps=$lt_postdeps
- 
-+# The directories searched by this compiler when creating a shared
-+# library
-+compiler_lib_search_dirs=$lt_compiler_lib_search_dirs
-+
- # The library search path used internally by the compiler when linking
- # a shared library.
- compiler_lib_search_path=$lt_compiler_lib_search_path
-@@ -11354,6 +11714,7 @@
- predeps_CXX=
- postdeps_CXX=
- compiler_lib_search_path_CXX=
-+compiler_lib_search_dirs_CXX=
- 
- # Source file extension for C++ test sources.
- ac_ext=cpp
-@@ -11391,7 +11752,7 @@
- echo "$lt_simple_link_test_code" >conftest.$ac_ext
- eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
- _lt_linker_boilerplate=`cat conftest.err`
--$rm conftest*
-+$rm -r conftest*
- 
- 
- # Allow CC to be a program name with arguments.
-@@ -11598,7 +11959,7 @@
-     # FIXME: insert proper C++ library support
-     ld_shlibs_CXX=no
-     ;;
--  aix4* | aix5*)
-+  aix[4-9]*)
-     if test "$host_cpu" = ia64; then
-       # On IA64, the linker does run time linking by default, so we don't
-       # have to do anything special.
-@@ -11611,7 +11972,7 @@
-       # Test if we are trying to use run time linking or normal
-       # AIX style linking. If -brtl is somewhere in LDFLAGS, we
-       # need to do runtime linking.
--      case $host_os in aix4.[23]|aix4.[23].*|aix5*)
-+      case $host_os in aix4.[23]|aix4.[23].*|aix[5-9]*)
- 	for ld_flag in $LDFLAGS; do
- 	  case $ld_flag in
- 	  *-brtl*)
-@@ -11869,51 +12230,23 @@
-     fi
-   ;;
-       darwin* | rhapsody*)
--        case $host_os in
--        rhapsody* | darwin1.[012])
--         allow_undefined_flag_CXX='${wl}-undefined ${wl}suppress'
--         ;;
--       *) # Darwin 1.3 on
--         if test -z ${MACOSX_DEPLOYMENT_TARGET} ; then
--           allow_undefined_flag_CXX='${wl}-flat_namespace ${wl}-undefined ${wl}suppress'
--         else
--           case ${MACOSX_DEPLOYMENT_TARGET} in
--             10.[012])
--               allow_undefined_flag_CXX='${wl}-flat_namespace ${wl}-undefined ${wl}suppress'
--               ;;
--             10.*)
--               allow_undefined_flag_CXX='${wl}-undefined ${wl}dynamic_lookup'
--               ;;
--           esac
--         fi
--         ;;
--        esac
-       archive_cmds_need_lc_CXX=no
-       hardcode_direct_CXX=no
-       hardcode_automatic_CXX=yes
-       hardcode_shlibpath_var_CXX=unsupported
-       whole_archive_flag_spec_CXX=''
-       link_all_deplibs_CXX=yes
--
--    if test "$GXX" = yes ; then
--      lt_int_apple_cc_single_mod=no
-+      allow_undefined_flag_CXX="$_lt_dar_allow_undefined"
-+      if test "$GXX" = yes ; then
-       output_verbose_link_cmd='echo'
--      if $CC -dumpspecs 2>&1 | $EGREP 'single_module' >/dev/null ; then
--       lt_int_apple_cc_single_mod=yes
-+      archive_cmds_CXX="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring $_lt_dar_single_mod${_lt_dsymutil}"
-+      module_cmds_CXX="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
-+      archive_expsym_cmds_CXX="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring ${_lt_dar_single_mod}${_lt_dar_export_syms}${_lt_dsymutil}"
-+      module_expsym_cmds_CXX="sed -e 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dar_export_syms}${_lt_dsymutil}"
-+      if test "$lt_cv_apple_cc_single_mod" != "yes"; then
-+        archive_cmds_CXX="\$CC -r -keep_private_externs -nostdlib -o \${lib}-master.o \$libobjs~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \${lib}-master.o \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring${_lt_dsymutil}"
-+        archive_expsym_cmds_CXX="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -r -keep_private_externs -nostdlib -o \${lib}-master.o \$libobjs~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \${lib}-master.o \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring${_lt_dar_export_syms}${_lt_dsymutil}"
-       fi
--      if test "X$lt_int_apple_cc_single_mod" = Xyes ; then
--       archive_cmds_CXX='$CC -dynamiclib -single_module $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
--      else
--          archive_cmds_CXX='$CC -r -keep_private_externs -nostdlib -o ${lib}-master.o $libobjs~$CC -dynamiclib $allow_undefined_flag -o $lib ${lib}-master.o $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
--        fi
--        module_cmds_CXX='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
--        # Don't fix this by using the ld -exported_symbols_list flag, it doesn't exist in older darwin lds
--          if test "X$lt_int_apple_cc_single_mod" = Xyes ; then
--            archive_expsym_cmds_CXX='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib -single_module $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
--          else
--            archive_expsym_cmds_CXX='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -r -keep_private_externs -nostdlib -o ${lib}-master.o $libobjs~$CC -dynamiclib $allow_undefined_flag -o $lib ${lib}-master.o $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
--          fi
--            module_expsym_cmds_CXX='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
-       else
-       case $cc_basename in
-         xlc*)
-@@ -12164,7 +12497,7 @@
- 	export_dynamic_flag_spec_CXX='${wl}--export-dynamic'
- 	whole_archive_flag_spec_CXX='${wl}--whole-archive$convenience ${wl}--no-whole-archive'
- 	;;
--      pgCC*)
-+      pgCC* | pgcpp*)
-         # Portland Group C++ compiler
- 	archive_cmds_CXX='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags ${wl}-soname ${wl}$soname -o $lib'
-   	archive_expsym_cmds_CXX='$CC -shared $pic_flag $predep_objects $libobjs $deplibs $postdep_objects $compiler_flags ${wl}-soname ${wl}$soname ${wl}-retain-symbols-file ${wl}$export_symbols -o $lib'
-@@ -12237,7 +12570,7 @@
+@@ -12761,7 +12784,7 @@
  	;;
      esac
      ;;
@@ -1538,53 +351,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
      if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
        archive_cmds_CXX='$LD -Bshareable  -o $lib $predep_objects $libobjs $deplibs $postdep_objects $linker_flags'
        wlarc=
-@@ -12571,7 +12904,6 @@
- GCC_CXX="$GXX"
- LD_CXX="$LD"
- 
--
- cat > conftest.$ac_ext <<EOF
- class Foo
- {
-@@ -12673,6 +13005,11 @@
- 
- $rm -f confest.$objext
- 
-+compiler_lib_search_dirs_CXX=
-+if test -n "$compiler_lib_search_path_CXX"; then
-+  compiler_lib_search_dirs_CXX=`echo " ${compiler_lib_search_path_CXX}" | ${SED} -e 's! -L! !g' -e 's!^ !!'`
-+fi
-+
- # PORTME: override above test on systems where it is broken
- case $host_os in
- interix[3-9]*)
-@@ -12728,7 +13065,6 @@
-   ;;
- esac
- 
--
- case " $postdeps_CXX " in
- *" -lc "*) archive_cmds_need_lc_CXX=no ;;
- esac
-@@ -12804,7 +13140,7 @@
-     esac
-   else
-     case $host_os in
--      aix4* | aix5*)
-+      aix[4-9]*)
- 	# All AIX code is PIC.
- 	if test "$host_cpu" = ia64; then
- 	  # AIX 5 now supports IA64 processor
-@@ -12900,7 +13236,7 @@
- 	    lt_prog_compiler_pic_CXX='-KPIC'
- 	    lt_prog_compiler_static_CXX='-static'
- 	    ;;
--	  pgCC*)
-+	  pgCC* | pgcpp*)
- 	    # Portland Group C++ compiler.
- 	    lt_prog_compiler_wl_CXX='-Wl,'
- 	    lt_prog_compiler_pic_CXX='-fpic'
-@@ -12938,7 +13274,7 @@
+@@ -13465,7 +13488,7 @@
  	    ;;
  	esac
  	;;
@@ -1593,117 +360,35 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	;;
        osf3* | osf4* | osf5*)
  	case $cc_basename in
-@@ -13031,10 +13367,10 @@
- 
- { echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_CXX works" >&5
- echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_CXX works... $ECHO_C" >&6; }
--if test "${lt_prog_compiler_pic_works_CXX+set}" = set; then
-+if test "${lt_cv_prog_compiler_pic_works_CXX+set}" = set; then
-   echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  lt_prog_compiler_pic_works_CXX=no
-+  lt_cv_prog_compiler_pic_works_CXX=no
-   ac_outfile=conftest.$ac_objext
-    echo "$lt_simple_compile_test_code" > conftest.$ac_ext
-    lt_compiler_flag="$lt_prog_compiler_pic_CXX -DPIC"
-@@ -13047,27 +13383,27 @@
+@@ -13574,11 +13597,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:13050: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:13386: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:13577: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:13600: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:13054: \$? = $ac_status" >&5
-+   echo "$as_me:13390: \$? = $ac_status" >&5
+-   echo "$as_me:13581: \$? = $ac_status" >&5
++   echo "$as_me:13604: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-      $echo "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
-      $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
-      if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
--       lt_prog_compiler_pic_works_CXX=yes
-+       lt_cv_prog_compiler_pic_works_CXX=yes
-      fi
-    fi
-    $rm conftest*
- 
- fi
--{ echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_CXX" >&5
--echo "${ECHO_T}$lt_prog_compiler_pic_works_CXX" >&6; }
-+{ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_pic_works_CXX" >&5
-+echo "${ECHO_T}$lt_cv_prog_compiler_pic_works_CXX" >&6; }
- 
--if test x"$lt_prog_compiler_pic_works_CXX" = xyes; then
-+if test x"$lt_cv_prog_compiler_pic_works_CXX" = xyes; then
-     case $lt_prog_compiler_pic_CXX in
-      "" | " "*) ;;
-      *) lt_prog_compiler_pic_CXX=" $lt_prog_compiler_pic_CXX" ;;
-@@ -13094,10 +13430,10 @@
- wl=$lt_prog_compiler_wl_CXX eval lt_tmp_static_flag=\"$lt_prog_compiler_static_CXX\"
- { echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
- echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6; }
--if test "${lt_prog_compiler_static_works_CXX+set}" = set; then
-+if test "${lt_cv_prog_compiler_static_works_CXX+set}" = set; then
-   echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  lt_prog_compiler_static_works_CXX=no
-+  lt_cv_prog_compiler_static_works_CXX=no
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
-    echo "$lt_simple_link_test_code" > conftest.$ac_ext
-@@ -13110,20 +13446,20 @@
-        $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
-        $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
-        if diff conftest.exp conftest.er2 >/dev/null; then
--         lt_prog_compiler_static_works_CXX=yes
-+         lt_cv_prog_compiler_static_works_CXX=yes
-        fi
-      else
--       lt_prog_compiler_static_works_CXX=yes
-+       lt_cv_prog_compiler_static_works_CXX=yes
-      fi
-    fi
--   $rm conftest*
-+   $rm -r conftest*
-    LDFLAGS="$save_LDFLAGS"
- 
- fi
--{ echo "$as_me:$LINENO: result: $lt_prog_compiler_static_works_CXX" >&5
--echo "${ECHO_T}$lt_prog_compiler_static_works_CXX" >&6; }
-+{ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_static_works_CXX" >&5
-+echo "${ECHO_T}$lt_cv_prog_compiler_static_works_CXX" >&6; }
- 
--if test x"$lt_prog_compiler_static_works_CXX" = xyes; then
-+if test x"$lt_cv_prog_compiler_static_works_CXX" = xyes; then
-     :
- else
-     lt_prog_compiler_static_CXX=
-@@ -13151,11 +13487,11 @@
+@@ -13678,11 +13701,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:13154: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:13490: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:13681: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:13704: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:13158: \$? = $ac_status" >&5
-+   echo "$as_me:13494: \$? = $ac_status" >&5
+-   echo "$as_me:13685: \$? = $ac_status" >&5
++   echo "$as_me:13708: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -13208,7 +13544,7 @@
- 
-   export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
-   case $host_os in
--  aix4* | aix5*)
-+  aix[4-9]*)
-     # If we're using GNU nm, then we don't want the "-C" option.
-     # -C means demangle to AIX nm, but means don't demangle with GNU nm
-     if $NM -V 2>&1 | grep 'GNU' > /dev/null; then
-@@ -13223,10 +13559,14 @@
+@@ -13750,6 +13773,9 @@
    cygwin* | mingw*)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS][ ]/s/.*[ ]\([^ ]*\)/\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\([^ ]*\)[ ][^ ]*/\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.*[ ]//'\'' | sort | uniq > $export_symbols'
    ;;
@@ -1713,21 +398,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    *)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-   esac
-+  exclude_expsyms_CXX='_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*'
- 
- { echo "$as_me:$LINENO: result: $ld_shlibs_CXX" >&5
- echo "${ECHO_T}$ld_shlibs_CXX" >&6; }
-@@ -13328,7 +13668,7 @@
-   soname_spec='${libname}${release}${shared_ext}$major'
-   ;;
- 
--aix4* | aix5*)
-+aix[4-9]*)
-   version_type=linux
-   need_lib_prefix=no
-   need_version=no
-@@ -13652,13 +13992,11 @@
+@@ -14180,13 +14206,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -1742,7 +413,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -13670,6 +14008,18 @@
+@@ -14198,6 +14222,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -1761,191 +432,35 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -13851,6 +14201,21 @@
- echo "${ECHO_T}$dynamic_linker" >&6; }
- test "$dynamic_linker" = no && can_build_shared=no
- 
-+if test "${lt_cv_sys_lib_search_path_spec+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_sys_lib_search_path_spec="$sys_lib_search_path_spec"
-+fi
-+
-+sys_lib_search_path_spec="$lt_cv_sys_lib_search_path_spec"
-+if test "${lt_cv_sys_lib_dlsearch_path_spec+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec"
-+fi
-+
-+sys_lib_dlsearch_path_spec="$lt_cv_sys_lib_dlsearch_path_spec"
-+
- variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
- if test "$GCC" = yes; then
-   variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -13934,6 +14299,7 @@
-     predeps_CXX \
-     postdeps_CXX \
-     compiler_lib_search_path_CXX \
-+    compiler_lib_search_dirs_CXX \
-     archive_cmds_CXX \
-     archive_expsym_cmds_CXX \
-     postinstall_cmds_CXX \
-@@ -14182,6 +14548,10 @@
- # shared library.
- postdeps=$lt_postdeps_CXX
- 
-+# The directories searched by this compiler when creating a shared
-+# library
-+compiler_lib_search_dirs=$lt_compiler_lib_search_dirs_CXX
-+
- # The library search path used internally by the compiler when linking
- # a shared library.
- compiler_lib_search_path=$lt_compiler_lib_search_path_CXX
-@@ -14396,7 +14766,7 @@
- echo "$lt_simple_link_test_code" >conftest.$ac_ext
- eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
- _lt_linker_boilerplate=`cat conftest.err`
--$rm conftest*
-+$rm -r conftest*
- 
- 
- # Allow CC to be a program name with arguments.
-@@ -14434,7 +14804,7 @@
-     postinstall_cmds='$RANLIB $lib'
-   fi
-   ;;
--aix4* | aix5*)
-+aix[4-9]*)
-   if test "$host_cpu" != ia64 && test "$aix_use_runtimelinking" = no ; then
-     test "$enable_shared" = yes && enable_static=no
-   fi
-@@ -14699,10 +15069,10 @@
- 
- { echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_F77 works" >&5
- echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_F77 works... $ECHO_C" >&6; }
--if test "${lt_prog_compiler_pic_works_F77+set}" = set; then
-+if test "${lt_cv_prog_compiler_pic_works_F77+set}" = set; then
-   echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  lt_prog_compiler_pic_works_F77=no
-+  lt_cv_prog_compiler_pic_works_F77=no
-   ac_outfile=conftest.$ac_objext
-    echo "$lt_simple_compile_test_code" > conftest.$ac_ext
-    lt_compiler_flag="$lt_prog_compiler_pic_F77"
-@@ -14715,27 +15085,27 @@
+@@ -15263,11 +15299,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14718: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:15088: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:15266: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:15302: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:14722: \$? = $ac_status" >&5
-+   echo "$as_me:15092: \$? = $ac_status" >&5
+-   echo "$as_me:15270: \$? = $ac_status" >&5
++   echo "$as_me:15306: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-      $echo "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
-      $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
-      if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
--       lt_prog_compiler_pic_works_F77=yes
-+       lt_cv_prog_compiler_pic_works_F77=yes
-      fi
-    fi
-    $rm conftest*
- 
- fi
--{ echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_F77" >&5
--echo "${ECHO_T}$lt_prog_compiler_pic_works_F77" >&6; }
-+{ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_pic_works_F77" >&5
-+echo "${ECHO_T}$lt_cv_prog_compiler_pic_works_F77" >&6; }
- 
--if test x"$lt_prog_compiler_pic_works_F77" = xyes; then
-+if test x"$lt_cv_prog_compiler_pic_works_F77" = xyes; then
-     case $lt_prog_compiler_pic_F77 in
-      "" | " "*) ;;
-      *) lt_prog_compiler_pic_F77=" $lt_prog_compiler_pic_F77" ;;
-@@ -14762,10 +15132,10 @@
- wl=$lt_prog_compiler_wl_F77 eval lt_tmp_static_flag=\"$lt_prog_compiler_static_F77\"
- { echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
- echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6; }
--if test "${lt_prog_compiler_static_works_F77+set}" = set; then
-+if test "${lt_cv_prog_compiler_static_works_F77+set}" = set; then
-   echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  lt_prog_compiler_static_works_F77=no
-+  lt_cv_prog_compiler_static_works_F77=no
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
-    echo "$lt_simple_link_test_code" > conftest.$ac_ext
-@@ -14778,20 +15148,20 @@
-        $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
-        $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
-        if diff conftest.exp conftest.er2 >/dev/null; then
--         lt_prog_compiler_static_works_F77=yes
-+         lt_cv_prog_compiler_static_works_F77=yes
-        fi
-      else
--       lt_prog_compiler_static_works_F77=yes
-+       lt_cv_prog_compiler_static_works_F77=yes
-      fi
-    fi
--   $rm conftest*
-+   $rm -r conftest*
-    LDFLAGS="$save_LDFLAGS"
- 
- fi
--{ echo "$as_me:$LINENO: result: $lt_prog_compiler_static_works_F77" >&5
--echo "${ECHO_T}$lt_prog_compiler_static_works_F77" >&6; }
-+{ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_static_works_F77" >&5
-+echo "${ECHO_T}$lt_cv_prog_compiler_static_works_F77" >&6; }
- 
--if test x"$lt_prog_compiler_static_works_F77" = xyes; then
-+if test x"$lt_cv_prog_compiler_static_works_F77" = xyes; then
-     :
- else
-     lt_prog_compiler_static_F77=
-@@ -14819,11 +15189,11 @@
+@@ -15367,11 +15403,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14822: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:15192: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:15370: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:15406: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:14826: \$? = $ac_status" >&5
-+   echo "$as_me:15196: \$? = $ac_status" >&5
+-   echo "$as_me:15374: \$? = $ac_status" >&5
++   echo "$as_me:15410: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -14903,12 +15273,13 @@
-   # it will be wrapped by ` (' and `)$', so one must not match beginning or
-   # end of line.  Example: `a|bc|.*d.*' will exclude the symbols `a' and `bc',
-   # as well as any symbol that contains `d'.
--  exclude_expsyms_F77="_GLOBAL_OFFSET_TABLE_"
-+  exclude_expsyms_F77='_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*'
-   # Although _GLOBAL_OFFSET_TABLE_ is a valid symbol C name, most a.out
-   # platforms (ab)use it in PIC code, but their linkers get confused if
-   # the symbol is explicitly referenced.  Since portable code cannot
-   # rely on this symbol name, it's probably fine to never include it in
-   # preloaded symbol tables.
-+  # Exclude shared library initialization/finalization symbols.
-   extract_expsyms_cmds=
-   # Just being paranoid about ensuring that cc_basename is set.
-   for cc_temp in $compiler""; do
-@@ -14967,7 +15338,7 @@
- 
-     # See if GNU ld supports shared libraries.
-     case $host_os in
--    aix3* | aix4* | aix5*)
-+    aix[3-9]*)
-       # On AIX/PPC, the GNU linker is very broken
-       if test "$host_cpu" != ia64; then
- 	ld_shlibs_F77=no
-@@ -15083,12 +15454,13 @@
+@@ -15632,12 +15668,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -1960,41 +475,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -15186,7 +15558,7 @@
-       fi
-       ;;
- 
--    aix4* | aix5*)
-+    aix[4-9]*)
-       if test "$host_cpu" = ia64; then
- 	# On IA64, the linker does run time linking by default, so we don't
- 	# have to do anything special.
-@@ -15206,7 +15578,7 @@
- 	# Test if we are trying to use run time linking or normal
- 	# AIX style linking. If -brtl is somewhere in LDFLAGS, we
- 	# need to do runtime linking.
--	case $host_os in aix4.[23]|aix4.[23].*|aix5*)
-+	case $host_os in aix4.[23]|aix4.[23].*|aix[5-9]*)
- 	  for ld_flag in $LDFLAGS; do
-   	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
-   	    aix_use_runtimelinking=yes
-@@ -15458,11 +15830,10 @@
-       link_all_deplibs_F77=yes
-     if test "$GCC" = yes ; then
-     	output_verbose_link_cmd='echo'
--        archive_cmds_F77='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
--      module_cmds_F77='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
--      # Don't fix this by using the ld -exported_symbols_list flag, it doesn't exist in older darwin lds
--      archive_expsym_cmds_F77='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
--      module_expsym_cmds_F77='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
-+        archive_cmds_F77="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring $_lt_dar_single_mod${_lt_dsymutil}"
-+        module_cmds_F77="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
-+        archive_expsym_cmds_F77="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring ${_lt_dar_single_mod}${_lt_dar_export_syms}${_lt_dsymutil}"
-+        module_expsym_cmds_F77="sed -e 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dar_export_syms}${_lt_dsymutil}"
-     else
-       case $cc_basename in
-         xlc*)
-@@ -15612,7 +15983,7 @@
+@@ -16168,7 +16205,7 @@
        link_all_deplibs_F77=yes
        ;;
  
@@ -2003,16 +484,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -15931,7 +16302,7 @@
-   soname_spec='${libname}${release}${shared_ext}$major'
-   ;;
- 
--aix4* | aix5*)
-+aix[4-9]*)
-   version_type=linux
-   need_lib_prefix=no
-   need_version=no
-@@ -16255,13 +16626,11 @@
+@@ -16811,13 +16848,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -2027,7 +499,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -16273,6 +16642,18 @@
+@@ -16829,6 +16864,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -2046,214 +518,49 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -16454,6 +16835,21 @@
- echo "${ECHO_T}$dynamic_linker" >&6; }
- test "$dynamic_linker" = no && can_build_shared=no
- 
-+if test "${lt_cv_sys_lib_search_path_spec+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_sys_lib_search_path_spec="$sys_lib_search_path_spec"
-+fi
-+
-+sys_lib_search_path_spec="$lt_cv_sys_lib_search_path_spec"
-+if test "${lt_cv_sys_lib_dlsearch_path_spec+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec"
-+fi
-+
-+sys_lib_dlsearch_path_spec="$lt_cv_sys_lib_dlsearch_path_spec"
-+
- variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
- if test "$GCC" = yes; then
-   variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -16537,6 +16933,7 @@
-     predeps_F77 \
-     postdeps_F77 \
-     compiler_lib_search_path_F77 \
-+    compiler_lib_search_dirs_F77 \
-     archive_cmds_F77 \
-     archive_expsym_cmds_F77 \
-     postinstall_cmds_F77 \
-@@ -16785,6 +17182,10 @@
- # shared library.
- postdeps=$lt_postdeps_F77
- 
-+# The directories searched by this compiler when creating a shared
-+# library
-+compiler_lib_search_dirs=$lt_compiler_lib_search_dirs_F77
-+
- # The library search path used internally by the compiler when linking
- # a shared library.
- compiler_lib_search_path=$lt_compiler_lib_search_path_F77
-@@ -16959,7 +17360,7 @@
- echo "$lt_simple_link_test_code" >conftest.$ac_ext
- eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
- _lt_linker_boilerplate=`cat conftest.err`
--$rm conftest*
-+$rm -r conftest*
- 
- 
- # Allow CC to be a program name with arguments.
-@@ -17008,11 +17409,11 @@
+@@ -17584,11 +17631,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:17011: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17412: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:17587: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:17634: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:17015: \$? = $ac_status" >&5
-+   echo "$as_me:17416: \$? = $ac_status" >&5
+-   echo "$as_me:17591: \$? = $ac_status" >&5
++   echo "$as_me:17638: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -17072,7 +17473,7 @@
-       # built for inclusion in a dll (and should export symbols for example).
-       # Although the cygwin gcc ignores -fPIC, still need this for old-style
-       # (--disable-auto-import) libraries
--      lt_prog_compiler_pic_GCJ='-DDLL_EXPORT'
-+
-       ;;
- 
-     darwin* | rhapsody*)
-@@ -17142,7 +17543,7 @@
-     mingw* | cygwin* | pw32* | os2*)
-       # This hack is so that the source file can tell whether it is being
-       # built for inclusion in a dll (and should export symbols for example).
--      lt_prog_compiler_pic_GCJ='-DDLL_EXPORT'
-+
-       ;;
- 
-     hpux9* | hpux10* | hpux11*)
-@@ -17282,10 +17683,10 @@
- 
- { echo "$as_me:$LINENO: checking if $compiler PIC flag $lt_prog_compiler_pic_GCJ works" >&5
- echo $ECHO_N "checking if $compiler PIC flag $lt_prog_compiler_pic_GCJ works... $ECHO_C" >&6; }
--if test "${lt_prog_compiler_pic_works_GCJ+set}" = set; then
-+if test "${lt_cv_prog_compiler_pic_works_GCJ+set}" = set; then
-   echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  lt_prog_compiler_pic_works_GCJ=no
-+  lt_cv_prog_compiler_pic_works_GCJ=no
-   ac_outfile=conftest.$ac_objext
-    echo "$lt_simple_compile_test_code" > conftest.$ac_ext
-    lt_compiler_flag="$lt_prog_compiler_pic_GCJ"
-@@ -17298,27 +17699,27 @@
+@@ -17874,11 +17921,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:17301: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17702: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:17877: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:17924: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:17305: \$? = $ac_status" >&5
-+   echo "$as_me:17706: \$? = $ac_status" >&5
+-   echo "$as_me:17881: \$? = $ac_status" >&5
++   echo "$as_me:17928: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-      $echo "X$_lt_compiler_boilerplate" | $Xsed -e '/^$/d' >conftest.exp
-      $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
-      if test ! -s conftest.er2 || diff conftest.exp conftest.er2 >/dev/null; then
--       lt_prog_compiler_pic_works_GCJ=yes
-+       lt_cv_prog_compiler_pic_works_GCJ=yes
-      fi
-    fi
-    $rm conftest*
- 
- fi
--{ echo "$as_me:$LINENO: result: $lt_prog_compiler_pic_works_GCJ" >&5
--echo "${ECHO_T}$lt_prog_compiler_pic_works_GCJ" >&6; }
-+{ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_pic_works_GCJ" >&5
-+echo "${ECHO_T}$lt_cv_prog_compiler_pic_works_GCJ" >&6; }
- 
--if test x"$lt_prog_compiler_pic_works_GCJ" = xyes; then
-+if test x"$lt_cv_prog_compiler_pic_works_GCJ" = xyes; then
-     case $lt_prog_compiler_pic_GCJ in
-      "" | " "*) ;;
-      *) lt_prog_compiler_pic_GCJ=" $lt_prog_compiler_pic_GCJ" ;;
-@@ -17345,10 +17746,10 @@
- wl=$lt_prog_compiler_wl_GCJ eval lt_tmp_static_flag=\"$lt_prog_compiler_static_GCJ\"
- { echo "$as_me:$LINENO: checking if $compiler static flag $lt_tmp_static_flag works" >&5
- echo $ECHO_N "checking if $compiler static flag $lt_tmp_static_flag works... $ECHO_C" >&6; }
--if test "${lt_prog_compiler_static_works_GCJ+set}" = set; then
-+if test "${lt_cv_prog_compiler_static_works_GCJ+set}" = set; then
-   echo $ECHO_N "(cached) $ECHO_C" >&6
- else
--  lt_prog_compiler_static_works_GCJ=no
-+  lt_cv_prog_compiler_static_works_GCJ=no
-    save_LDFLAGS="$LDFLAGS"
-    LDFLAGS="$LDFLAGS $lt_tmp_static_flag"
-    echo "$lt_simple_link_test_code" > conftest.$ac_ext
-@@ -17361,20 +17762,20 @@
-        $echo "X$_lt_linker_boilerplate" | $Xsed -e '/^$/d' > conftest.exp
-        $SED '/^$/d; /^ *+/d' conftest.err >conftest.er2
-        if diff conftest.exp conftest.er2 >/dev/null; then
--         lt_prog_compiler_static_works_GCJ=yes
-+         lt_cv_prog_compiler_static_works_GCJ=yes
-        fi
-      else
--       lt_prog_compiler_static_works_GCJ=yes
-+       lt_cv_prog_compiler_static_works_GCJ=yes
-      fi
-    fi
--   $rm conftest*
-+   $rm -r conftest*
-    LDFLAGS="$save_LDFLAGS"
- 
- fi
--{ echo "$as_me:$LINENO: result: $lt_prog_compiler_static_works_GCJ" >&5
--echo "${ECHO_T}$lt_prog_compiler_static_works_GCJ" >&6; }
-+{ echo "$as_me:$LINENO: result: $lt_cv_prog_compiler_static_works_GCJ" >&5
-+echo "${ECHO_T}$lt_cv_prog_compiler_static_works_GCJ" >&6; }
- 
--if test x"$lt_prog_compiler_static_works_GCJ" = xyes; then
-+if test x"$lt_cv_prog_compiler_static_works_GCJ" = xyes; then
-     :
- else
-     lt_prog_compiler_static_GCJ=
-@@ -17402,11 +17803,11 @@
+@@ -17978,11 +18025,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:17405: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:17806: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:17981: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:18028: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:17409: \$? = $ac_status" >&5
-+   echo "$as_me:17810: \$? = $ac_status" >&5
+-   echo "$as_me:17985: \$? = $ac_status" >&5
++   echo "$as_me:18032: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -17486,12 +17887,13 @@
-   # it will be wrapped by ` (' and `)$', so one must not match beginning or
-   # end of line.  Example: `a|bc|.*d.*' will exclude the symbols `a' and `bc',
-   # as well as any symbol that contains `d'.
--  exclude_expsyms_GCJ="_GLOBAL_OFFSET_TABLE_"
-+  exclude_expsyms_GCJ='_GLOBAL_OFFSET_TABLE_|_GLOBAL__F[ID]_.*'
-   # Although _GLOBAL_OFFSET_TABLE_ is a valid symbol C name, most a.out
-   # platforms (ab)use it in PIC code, but their linkers get confused if
-   # the symbol is explicitly referenced.  Since portable code cannot
-   # rely on this symbol name, it's probably fine to never include it in
-   # preloaded symbol tables.
-+  # Exclude shared library initialization/finalization symbols.
-   extract_expsyms_cmds=
-   # Just being paranoid about ensuring that cc_basename is set.
-   for cc_temp in $compiler""; do
-@@ -17550,7 +17952,7 @@
- 
-     # See if GNU ld supports shared libraries.
-     case $host_os in
--    aix3* | aix4* | aix5*)
-+    aix[3-9]*)
-       # On AIX/PPC, the GNU linker is very broken
-       if test "$host_cpu" != ia64; then
- 	ld_shlibs_GCJ=no
-@@ -17666,12 +18068,13 @@
+@@ -18243,12 +18290,13 @@
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -2268,41 +575,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -17769,7 +18172,7 @@
-       fi
-       ;;
- 
--    aix4* | aix5*)
-+    aix[4-9]*)
-       if test "$host_cpu" = ia64; then
- 	# On IA64, the linker does run time linking by default, so we don't
- 	# have to do anything special.
-@@ -17789,7 +18192,7 @@
- 	# Test if we are trying to use run time linking or normal
- 	# AIX style linking. If -brtl is somewhere in LDFLAGS, we
- 	# need to do runtime linking.
--	case $host_os in aix4.[23]|aix4.[23].*|aix5*)
-+	case $host_os in aix4.[23]|aix4.[23].*|aix[5-9]*)
- 	  for ld_flag in $LDFLAGS; do
-   	  if (test $ld_flag = "-brtl" || test $ld_flag = "-Wl,-brtl"); then
-   	    aix_use_runtimelinking=yes
-@@ -18061,11 +18464,10 @@
-       link_all_deplibs_GCJ=yes
-     if test "$GCC" = yes ; then
-     	output_verbose_link_cmd='echo'
--        archive_cmds_GCJ='$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring'
--      module_cmds_GCJ='$CC $allow_undefined_flag -o $lib -bundle $libobjs $deplibs$compiler_flags'
--      # Don't fix this by using the ld -exported_symbols_list flag, it doesn't exist in older darwin lds
--      archive_expsym_cmds_GCJ='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC -dynamiclib $allow_undefined_flag -o $lib $libobjs $deplibs $compiler_flags -install_name $rpath/$soname $verstring~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
--      module_expsym_cmds_GCJ='sed -e "s,#.*,," -e "s,^[    ]*,," -e "s,^\(..*\),_&," < $export_symbols > $output_objdir/${libname}-symbols.expsym~$CC $allow_undefined_flag  -o $lib -bundle $libobjs $deplibs$compiler_flags~nmedit -s $output_objdir/${libname}-symbols.expsym ${lib}'
-+        archive_cmds_GCJ="\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring $_lt_dar_single_mod${_lt_dsymutil}"
-+        module_cmds_GCJ="\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dsymutil}"
-+        archive_expsym_cmds_GCJ="sed 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC -dynamiclib \$allow_undefined_flag -o \$lib \$libobjs \$deplibs \$compiler_flags -install_name \$rpath/\$soname \$verstring ${_lt_dar_single_mod}${_lt_dar_export_syms}${_lt_dsymutil}"
-+        module_expsym_cmds_GCJ="sed -e 's,^,_,' < \$export_symbols > \$output_objdir/\${libname}-symbols.expsym~\$CC \$allow_undefined_flag -o \$lib -bundle \$libobjs \$deplibs \$compiler_flags${_lt_dar_export_syms}${_lt_dsymutil}"
-     else
-       case $cc_basename in
-         xlc*)
-@@ -18215,7 +18617,7 @@
+@@ -18799,7 +18847,7 @@
        link_all_deplibs_GCJ=yes
        ;;
  
@@ -2311,16 +584,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -18534,7 +18936,7 @@
-   soname_spec='${libname}${release}${shared_ext}$major'
-   ;;
- 
--aix4* | aix5*)
-+aix[4-9]*)
-   version_type=linux
-   need_lib_prefix=no
-   need_version=no
-@@ -18858,13 +19260,11 @@
+@@ -19442,13 +19490,11 @@
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -2335,7 +599,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -18876,6 +19276,18 @@
+@@ -19460,6 +19506,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -2354,78 +618,9 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -19057,6 +19469,21 @@
- echo "${ECHO_T}$dynamic_linker" >&6; }
- test "$dynamic_linker" = no && can_build_shared=no
- 
-+if test "${lt_cv_sys_lib_search_path_spec+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_sys_lib_search_path_spec="$sys_lib_search_path_spec"
-+fi
-+
-+sys_lib_search_path_spec="$lt_cv_sys_lib_search_path_spec"
-+if test "${lt_cv_sys_lib_dlsearch_path_spec+set}" = set; then
-+  echo $ECHO_N "(cached) $ECHO_C" >&6
-+else
-+  lt_cv_sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec"
-+fi
-+
-+sys_lib_dlsearch_path_spec="$lt_cv_sys_lib_dlsearch_path_spec"
-+
- variables_saved_for_relink="PATH $shlibpath_var $runpath_var"
- if test "$GCC" = yes; then
-   variables_saved_for_relink="$variables_saved_for_relink GCC_EXEC_PREFIX COMPILER_PATH LIBRARY_PATH"
-@@ -19140,6 +19567,7 @@
-     predeps_GCJ \
-     postdeps_GCJ \
-     compiler_lib_search_path_GCJ \
-+    compiler_lib_search_dirs_GCJ \
-     archive_cmds_GCJ \
-     archive_expsym_cmds_GCJ \
-     postinstall_cmds_GCJ \
-@@ -19388,6 +19816,10 @@
- # shared library.
- postdeps=$lt_postdeps_GCJ
- 
-+# The directories searched by this compiler when creating a shared
-+# library
-+compiler_lib_search_dirs=$lt_compiler_lib_search_dirs_GCJ
-+
- # The library search path used internally by the compiler when linking
- # a shared library.
- compiler_lib_search_path=$lt_compiler_lib_search_path_GCJ
-@@ -19561,7 +19993,7 @@
- echo "$lt_simple_link_test_code" >conftest.$ac_ext
- eval "$ac_link" 2>&1 >/dev/null | $SED '/^$/d; /^ *+/d' >conftest.err
- _lt_linker_boilerplate=`cat conftest.err`
--$rm conftest*
-+$rm -r conftest*
- 
- 
- # Allow CC to be a program name with arguments.
-@@ -19621,6 +20053,7 @@
-     predeps_RC \
-     postdeps_RC \
-     compiler_lib_search_path_RC \
-+    compiler_lib_search_dirs_RC \
-     archive_cmds_RC \
-     archive_expsym_cmds_RC \
-     postinstall_cmds_RC \
-@@ -19869,6 +20302,10 @@
- # shared library.
- postdeps=$lt_postdeps_RC
- 
-+# The directories searched by this compiler when creating a shared
-+# library
-+compiler_lib_search_dirs=$lt_compiler_lib_search_dirs_RC
-+
- # The library search path used internally by the compiler when linking
- # a shared library.
- compiler_lib_search_path=$lt_compiler_lib_search_path_RC
-@@ -21333,10 +21770,11 @@
- { echo "$as_me:$LINENO: checking for BASE_DEPENDENCIES" >&5
- echo $ECHO_N "checking for BASE_DEPENDENCIES... $ECHO_C" >&6; }
+@@ -21967,10 +22025,11 @@
+ { $as_echo "$as_me:$LINENO: checking for BASE_DEPENDENCIES" >&5
+ $as_echo_n "checking for BASE_DEPENDENCIES... " >&6; }
  
 -if test -n "$BASE_DEPENDENCIES_CFLAGS"; then
 -    pkg_cv_BASE_DEPENDENCIES_CFLAGS="$BASE_DEPENDENCIES_CFLAGS"
@@ -2436,10 +631,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
 +        pkg_cv_BASE_DEPENDENCIES_CFLAGS="$BASE_DEPENDENCIES_CFLAGS"
 +    else
 +        if test -n "$PKG_CONFIG" && \
-     { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0\"") >&5
+     { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0\"") >&5
    ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0") 2>&5
    ac_status=$?
-@@ -21346,13 +21784,15 @@
+@@ -21980,13 +22039,15 @@
  else
    pkg_failed=yes
  fi
@@ -2458,10 +653,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
 +        pkg_cv_BASE_DEPENDENCIES_LIBS="$BASE_DEPENDENCIES_LIBS"
 +    else
 +        if test -n "$PKG_CONFIG" && \
-     { (echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0\"") >&5
+     { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0\"") >&5
    ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0") 2>&5
    ac_status=$?
-@@ -21362,8 +21802,9 @@
+@@ -21996,8 +22057,9 @@
  else
    pkg_failed=yes
  fi
@@ -2473,7 +668,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  fi
  
  
-@@ -21376,9 +21817,9 @@
+@@ -22010,9 +22072,9 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -2485,10 +680,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$BASE_DEPENDENCIES_PKG_ERRORS" >&5
-@@ -32443,8 +32884,18 @@
+@@ -33453,8 +33515,18 @@
    if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
-       { echo "$as_me:$LINENO: result: found" >&5
- echo "${ECHO_T}found" >&6; }
+       { $as_echo "$as_me:$LINENO: result: found" >&5
+ $as_echo "found" >&6; }
 -      GDK_EXTRA_CFLAGS="`$PKG_CONFIG --cflags cairo-directfb` $GDK_EXTRA_CFLAGS"
 -      GDK_EXTRA_LIBS="`$PKG_CONFIG --libs cairo-directfb` $GDK_EXTRA_LIBS"
 +      # prepend cairo-directfb so that cairo-directfb's CFLAGS appear before
@@ -2504,9 +699,9 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
 +      GDK_EXTRA_CFLAGS="`$PKG_CONFIG --cflags cairo-directfb directfb`"
 +      GDK_EXTRA_LIBS="`$PKG_CONFIG --libs cairo-directfb directfb` $GDK_EXTRA_LIBS"
    else
-       { { echo "$as_me:$LINENO: error:
+       { { $as_echo "$as_me:$LINENO: error:
  *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer and the cairo backend
-@@ -32580,20 +33031,21 @@
+@@ -33594,20 +33666,21 @@
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
@@ -2533,7 +728,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  fi
  
  
-@@ -32603,6 +33055,7 @@
+@@ -33617,6 +33690,7 @@
  
  
  
@@ -2541,7 +736,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  ########################################
  # Check for Accessibility Toolkit flags
  ########################################
-@@ -32708,7 +33161,7 @@
+@@ -33726,7 +33800,7 @@
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then
@@ -2550,121 +745,24 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  fi
  
  
-@@ -33916,6 +34369,13 @@
+@@ -34948,6 +35022,13 @@
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
 +if test -z "${ENABLE_STATIC_TRUE}" && test -z "${ENABLE_STATIC_FALSE}"; then
-+  { { echo "$as_me:$LINENO: error: conditional \"ENABLE_STATIC\" was never defined.
++  { { $as_echo "$as_me:$LINENO: error: conditional \"ENABLE_STATIC\" was never defined.
 +Usually this means the macro was only invoked conditionally." >&5
-+echo "$as_me: error: conditional \"ENABLE_STATIC\" was never defined.
++$as_echo "$as_me: error: conditional \"ENABLE_STATIC\" was never defined.
 +Usually this means the macro was only invoked conditionally." >&2;}
 +   { (exit 1); exit 1; }; }
 +fi
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
-   { { echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
+   { { $as_echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -34993,9 +35453,9 @@
- CCDEPMODE!$CCDEPMODE$ac_delim
- am__fastdepCC_TRUE!$am__fastdepCC_TRUE$ac_delim
- am__fastdepCC_FALSE!$am__fastdepCC_FALSE$ac_delim
-+ENABLE_STATIC_TRUE!$ENABLE_STATIC_TRUE$ac_delim
-+ENABLE_STATIC_FALSE!$ENABLE_STATIC_FALSE$ac_delim
- CXX!$CXX$ac_delim
--CXXFLAGS!$CXXFLAGS$ac_delim
--ac_ct_CXX!$ac_ct_CXX$ac_delim
- _ACEOF
- 
-   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35037,6 +35497,8 @@
- ac_delim='%!_!# '
- for ac_last_try in false false false false false :; do
-   cat >conf$$subs.sed <<_ACEOF
-+CXXFLAGS!$CXXFLAGS$ac_delim
-+ac_ct_CXX!$ac_ct_CXX$ac_delim
- CXXDEPMODE!$CXXDEPMODE$ac_delim
- am__fastdepCXX_TRUE!$am__fastdepCXX_TRUE$ac_delim
- am__fastdepCXX_FALSE!$am__fastdepCXX_FALSE$ac_delim
-@@ -35051,6 +35513,8 @@
- ECHO!$ECHO$ac_delim
- AR!$AR$ac_delim
- RANLIB!$RANLIB$ac_delim
-+DSYMUTIL!$DSYMUTIL$ac_delim
-+NMEDIT!$NMEDIT$ac_delim
- DLLTOOL!$DLLTOOL$ac_delim
- AS!$AS$ac_delim
- OBJDUMP!$OBJDUMP$ac_delim
-@@ -35130,10 +35594,6 @@
- INCLUDE_ICO_TRUE!$INCLUDE_ICO_TRUE$ac_delim
- INCLUDE_ICO_FALSE!$INCLUDE_ICO_FALSE$ac_delim
- INCLUDE_ANI_TRUE!$INCLUDE_ANI_TRUE$ac_delim
--INCLUDE_ANI_FALSE!$INCLUDE_ANI_FALSE$ac_delim
--INCLUDE_JPEG_TRUE!$INCLUDE_JPEG_TRUE$ac_delim
--INCLUDE_JPEG_FALSE!$INCLUDE_JPEG_FALSE$ac_delim
--INCLUDE_PNM_TRUE!$INCLUDE_PNM_TRUE$ac_delim
- _ACEOF
- 
-   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35175,6 +35635,10 @@
- ac_delim='%!_!# '
- for ac_last_try in false false false false false :; do
-   cat >conf$$subs.sed <<_ACEOF
-+INCLUDE_ANI_FALSE!$INCLUDE_ANI_FALSE$ac_delim
-+INCLUDE_JPEG_TRUE!$INCLUDE_JPEG_TRUE$ac_delim
-+INCLUDE_JPEG_FALSE!$INCLUDE_JPEG_FALSE$ac_delim
-+INCLUDE_PNM_TRUE!$INCLUDE_PNM_TRUE$ac_delim
- INCLUDE_PNM_FALSE!$INCLUDE_PNM_FALSE$ac_delim
- INCLUDE_RAS_TRUE!$INCLUDE_RAS_TRUE$ac_delim
- INCLUDE_RAS_FALSE!$INCLUDE_RAS_FALSE$ac_delim
-@@ -35228,6 +35692,7 @@
- USE_DIRECTFB_TRUE!$USE_DIRECTFB_TRUE$ac_delim
- USE_DIRECTFB_FALSE!$USE_DIRECTFB_FALSE$ac_delim
- GDK_PACKAGES!$GDK_PACKAGES$ac_delim
-+GDK_PRIVATE_PACKAGES!$GDK_PRIVATE_PACKAGES$ac_delim
- GDK_EXTRA_LIBS!$GDK_EXTRA_LIBS$ac_delim
- GDK_EXTRA_CFLAGS!$GDK_EXTRA_CFLAGS$ac_delim
- GDK_DEP_LIBS!$GDK_DEP_LIBS$ac_delim
-@@ -35267,11 +35732,6 @@
- DB2HTML!$DB2HTML$ac_delim
- HAVE_DOCBOOK_TRUE!$HAVE_DOCBOOK_TRUE$ac_delim
- HAVE_DOCBOOK_FALSE!$HAVE_DOCBOOK_FALSE$ac_delim
--XSLTPROC!$XSLTPROC$ac_delim
--XML_CATALOG_FILE!$XML_CATALOG_FILE$ac_delim
--XMLCATALOG!$XMLCATALOG$ac_delim
--ENABLE_MAN_TRUE!$ENABLE_MAN_TRUE$ac_delim
--ENABLE_MAN_FALSE!$ENABLE_MAN_FALSE$ac_delim
- _ACEOF
- 
-   if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 97; then
-@@ -35313,11 +35773,16 @@
- ac_delim='%!_!# '
- for ac_last_try in false false false false false :; do
-   cat >conf$$subs.sed <<_ACEOF
-+XSLTPROC!$XSLTPROC$ac_delim
-+XML_CATALOG_FILE!$XML_CATALOG_FILE$ac_delim
-+XMLCATALOG!$XMLCATALOG$ac_delim
-+ENABLE_MAN_TRUE!$ENABLE_MAN_TRUE$ac_delim
-+ENABLE_MAN_FALSE!$ENABLE_MAN_FALSE$ac_delim
- LIBOBJS!$LIBOBJS$ac_delim
- LTLIBOBJS!$LTLIBOBJS$ac_delim
- _ACEOF
- 
--  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 2; then
-+  if test `sed -n "s/.*$ac_delim\$/X/p" conf$$subs.sed | grep -c X` = 7; then
-     break
-   elif $ac_last_try; then
-     { { echo "$as_me:$LINENO: error: could not make $CONFIG_STATUS" >&5
---- a/contrib/gdk-pixbuf-xlib/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ b/contrib/gdk-pixbuf-xlib/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.12.10/contrib/gdk-pixbuf-xlib/Makefile.in
+--- gtk+2.0-2.12.10.old/contrib/gdk-pixbuf-xlib/Makefile.in	2008-06-03 23:20:31.000000000 +0200
++++ gtk+2.0-2.12.10/contrib/gdk-pixbuf-xlib/Makefile.in	2008-06-04 08:55:52.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2673,7 +771,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2681,25 +779,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/contrib/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ b/contrib/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -81,6 +81,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -90,6 +91,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/contrib/Makefile.in gtk+2.0-2.12.10/contrib/Makefile.in
+--- gtk+2.0-2.12.10.old/contrib/Makefile.in	2008-06-03 23:20:31.000000000 +0200
++++ gtk+2.0-2.12.10/contrib/Makefile.in	2008-06-04 08:55:52.000000000 +0200
+@@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2708,7 +791,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +116,7 @@
+@@ -114,6 +116,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2716,25 +799,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -220,6 +224,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/demos/gtk-demo/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ b/demos/gtk-demo/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/demos/gtk-demo/Makefile.in gtk+2.0-2.12.10/demos/gtk-demo/Makefile.in
+--- gtk+2.0-2.12.10.old/demos/gtk-demo/Makefile.in	2008-06-03 23:20:31.000000000 +0200
++++ gtk+2.0-2.12.10/demos/gtk-demo/Makefile.in	2008-06-04 08:55:54.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2743,7 +811,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2751,25 +819,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/demos/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ b/demos/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -81,6 +81,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -90,6 +91,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/demos/Makefile.in gtk+2.0-2.12.10/demos/Makefile.in
+--- gtk+2.0-2.12.10.old/demos/Makefile.in	2008-06-03 23:20:31.000000000 +0200
++++ gtk+2.0-2.12.10/demos/Makefile.in	2008-06-04 08:55:53.000000000 +0200
+@@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2778,7 +831,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +116,7 @@
+@@ -114,6 +116,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2786,25 +839,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -220,6 +224,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/docs/faq/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ b/docs/faq/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/faq/Makefile.in gtk+2.0-2.12.10/docs/faq/Makefile.in
+--- gtk+2.0-2.12.10.old/docs/faq/Makefile.in	2008-06-03 23:20:31.000000000 +0200
++++ gtk+2.0-2.12.10/docs/faq/Makefile.in	2008-06-04 08:55:54.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2813,7 +851,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2821,25 +859,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/docs/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ b/docs/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/Makefile.in gtk+2.0-2.12.10/docs/Makefile.in
+--- gtk+2.0-2.12.10.old/docs/Makefile.in	2008-06-03 23:20:31.000000000 +0200
++++ gtk+2.0-2.12.10/docs/Makefile.in	2008-06-04 08:55:54.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2848,7 +871,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2856,25 +879,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/docs/reference/gdk/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ b/docs/reference/gdk/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -86,6 +86,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -95,6 +96,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/gdk/Makefile.in gtk+2.0-2.12.10/docs/reference/gdk/Makefile.in
+--- gtk+2.0-2.12.10.old/docs/reference/gdk/Makefile.in	2008-06-03 23:20:32.000000000 +0200
++++ gtk+2.0-2.12.10/docs/reference/gdk/Makefile.in	2008-06-04 08:55:55.000000000 +0200
+@@ -96,6 +96,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2883,7 +891,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -118,6 +121,7 @@
+@@ -119,6 +121,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2891,25 +899,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -225,6 +229,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/docs/reference/gdk-pixbuf/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ b/docs/reference/gdk-pixbuf/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -86,6 +86,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -95,6 +96,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.12.10/docs/reference/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.12.10.old/docs/reference/gdk-pixbuf/Makefile.in	2008-06-03 23:20:32.000000000 +0200
++++ gtk+2.0-2.12.10/docs/reference/gdk-pixbuf/Makefile.in	2008-06-04 08:55:55.000000000 +0200
+@@ -96,6 +96,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2918,7 +911,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -118,6 +121,7 @@
+@@ -119,6 +121,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2926,25 +919,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -225,6 +229,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/docs/reference/gtk/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ b/docs/reference/gtk/Makefile.in	2008-05-10 23:21:40.000000000 +0200
-@@ -86,6 +86,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -95,6 +96,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/gtk/Makefile.in gtk+2.0-2.12.10/docs/reference/gtk/Makefile.in
+--- gtk+2.0-2.12.10.old/docs/reference/gtk/Makefile.in	2008-06-03 23:20:32.000000000 +0200
++++ gtk+2.0-2.12.10/docs/reference/gtk/Makefile.in	2008-06-04 08:55:55.000000000 +0200
+@@ -96,6 +96,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2953,7 +931,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -118,6 +121,7 @@
+@@ -119,6 +121,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2961,25 +939,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -225,6 +229,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/docs/reference/Makefile.in	2008-03-12 05:18:09.000000000 +0100
-+++ b/docs/reference/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/Makefile.in gtk+2.0-2.12.10/docs/reference/Makefile.in
+--- gtk+2.0-2.12.10.old/docs/reference/Makefile.in	2008-06-03 23:20:31.000000000 +0200
++++ gtk+2.0-2.12.10/docs/reference/Makefile.in	2008-06-04 08:55:54.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -2988,7 +951,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2996,25 +959,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/docs/tools/Makefile.in	2008-03-12 05:18:10.000000000 +0100
-+++ b/docs/tools/Makefile.in	2008-05-10 23:21:40.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/tools/Makefile.in gtk+2.0-2.12.10/docs/tools/Makefile.in
+--- gtk+2.0-2.12.10.old/docs/tools/Makefile.in	2008-06-03 23:20:32.000000000 +0200
++++ gtk+2.0-2.12.10/docs/tools/Makefile.in	2008-06-04 08:55:56.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3023,7 +971,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3031,25 +979,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/docs/tutorial/Makefile.in	2008-03-12 05:18:10.000000000 +0100
-+++ b/docs/tutorial/Makefile.in	2008-05-10 23:21:40.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/tutorial/Makefile.in gtk+2.0-2.12.10/docs/tutorial/Makefile.in
+--- gtk+2.0-2.12.10.old/docs/tutorial/Makefile.in	2008-06-03 23:20:32.000000000 +0200
++++ gtk+2.0-2.12.10/docs/tutorial/Makefile.in	2008-06-04 08:55:56.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3058,7 +991,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3066,25 +999,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gdk/directfb/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ b/gdk/directfb/Makefile.in	2008-05-10 23:21:41.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/directfb/Makefile.in gtk+2.0-2.12.10/gdk/directfb/Makefile.in
+--- gtk+2.0-2.12.10.old/gdk/directfb/Makefile.in	2008-06-03 23:20:33.000000000 +0200
++++ gtk+2.0-2.12.10/gdk/directfb/Makefile.in	2008-06-04 08:55:59.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3093,7 +1011,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3101,25 +1019,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gdk/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ b/gdk/Makefile.in	2008-05-10 23:21:40.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/Makefile.in gtk+2.0-2.12.10/gdk/Makefile.in
+--- gtk+2.0-2.12.10.old/gdk/Makefile.in	2008-06-03 23:20:33.000000000 +0200
++++ gtk+2.0-2.12.10/gdk/Makefile.in	2008-06-04 08:55:58.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3128,7 +1031,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3136,25 +1039,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gdk/quartz/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ b/gdk/quartz/Makefile.in	2008-05-10 23:21:41.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/quartz/Makefile.in gtk+2.0-2.12.10/gdk/quartz/Makefile.in
+--- gtk+2.0-2.12.10.old/gdk/quartz/Makefile.in	2008-06-03 23:20:33.000000000 +0200
++++ gtk+2.0-2.12.10/gdk/quartz/Makefile.in	2008-06-04 08:55:59.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3163,7 +1051,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3171,25 +1059,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gdk/win32/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ b/gdk/win32/Makefile.in	2008-05-10 23:21:41.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/win32/Makefile.in gtk+2.0-2.12.10/gdk/win32/Makefile.in
+--- gtk+2.0-2.12.10.old/gdk/win32/Makefile.in	2008-06-03 23:20:33.000000000 +0200
++++ gtk+2.0-2.12.10/gdk/win32/Makefile.in	2008-06-04 08:56:00.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3198,7 +1071,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3206,25 +1079,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gdk/win32/rc/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ b/gdk/win32/rc/Makefile.in	2008-05-10 23:21:41.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/win32/rc/Makefile.in gtk+2.0-2.12.10/gdk/win32/rc/Makefile.in
+--- gtk+2.0-2.12.10.old/gdk/win32/rc/Makefile.in	2008-06-03 23:20:33.000000000 +0200
++++ gtk+2.0-2.12.10/gdk/win32/rc/Makefile.in	2008-06-04 08:56:00.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3233,7 +1091,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3241,25 +1099,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gdk/x11/Makefile.in	2008-03-12 05:18:12.000000000 +0100
-+++ b/gdk/x11/Makefile.in	2008-05-10 23:21:41.000000000 +0200
-@@ -82,6 +82,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -91,6 +92,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/x11/Makefile.in gtk+2.0-2.12.10/gdk/x11/Makefile.in
+--- gtk+2.0-2.12.10.old/gdk/x11/Makefile.in	2008-06-03 23:20:34.000000000 +0200
++++ gtk+2.0-2.12.10/gdk/x11/Makefile.in	2008-06-04 08:56:00.000000000 +0200
+@@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3268,7 +1111,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -114,6 +117,7 @@
+@@ -115,6 +117,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3276,25 +1119,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -221,6 +225,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gdk-pixbuf/Makefile.in	2008-03-12 05:18:10.000000000 +0100
-+++ b/gdk-pixbuf/Makefile.in	2008-05-10 23:21:40.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk-pixbuf/Makefile.in gtk+2.0-2.12.10/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.12.10.old/gdk-pixbuf/Makefile.in	2008-06-03 23:20:32.000000000 +0200
++++ gtk+2.0-2.12.10/gdk-pixbuf/Makefile.in	2008-06-04 08:55:57.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3303,7 +1131,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3311,15 +1139,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
-@@ -348,6 +353,7 @@
+@@ -350,6 +353,7 @@
  
  
  loaderdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loaders
@@ -3327,7 +1147,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
  module_libs = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
  
-@@ -557,7 +563,7 @@
+@@ -559,7 +563,7 @@
  	-DGDK_PIXBUF_ENABLE_BACKEND
  
  
@@ -3336,17 +1156,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GLIB_LIBS)
  
  noinst_PROGRAMS = test-gdk-pixbuf
---- a/gdk-pixbuf/pixops/Makefile.in	2008-03-12 05:18:11.000000000 +0100
-+++ b/gdk-pixbuf/pixops/Makefile.in	2008-05-10 23:21:40.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.12.10/gdk-pixbuf/pixops/Makefile.in
+--- gtk+2.0-2.12.10.old/gdk-pixbuf/pixops/Makefile.in	2008-06-03 23:20:33.000000000 +0200
++++ gtk+2.0-2.12.10/gdk-pixbuf/pixops/Makefile.in	2008-06-04 08:55:57.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3355,7 +1168,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3363,25 +1176,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gtk/Makefile.in	2008-03-12 05:18:12.000000000 +0100
-+++ b/gtk/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -104,6 +104,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -113,6 +114,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/Makefile.in gtk+2.0-2.12.10/gtk/Makefile.in
+--- gtk+2.0-2.12.10.old/gtk/Makefile.in	2008-06-03 23:20:34.000000000 +0200
++++ gtk+2.0-2.12.10/gtk/Makefile.in	2008-06-04 08:56:02.000000000 +0200
+@@ -116,6 +116,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3390,7 +1188,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -136,6 +139,7 @@
+@@ -139,6 +141,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3398,15 +1196,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -243,6 +247,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
-@@ -380,6 +385,8 @@
+@@ -384,6 +387,8 @@
  	-I$(top_srcdir)/gdk-pixbuf -I../gdk-pixbuf	\
  	-DGDK_PIXBUF_DISABLE_DEPRECATED			\
  	-DGDK_DISABLE_DEPRECATED			\
@@ -3415,7 +1205,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	-DGTK_FILE_SYSTEM_ENABLE_UNSUPPORTED		\
  	-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED		\
  	$(GTK_DEBUG_FLAGS)				\
-@@ -635,13 +642,16 @@
+@@ -639,13 +644,16 @@
  # that are not included in gtk/gtk.h
  gtk_semi_private_h_sources = \
  	gtktextlayout.h		\
@@ -3432,10 +1222,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  gtk_private_h_sources = \
 -	gtkquery.h		\
 -	gtksearchengine.h	\
- 	gtksearchenginebeagle.h	\
- 	gtksearchenginetracker.h\
  	gtksearchenginesimple.h	\
-@@ -651,10 +661,7 @@
+ 	gtkdndcursors.h		\
+ 	gtkentryprivate.h	\
+@@ -653,10 +661,7 @@
  	gtkfilechooserdefault.h	\
  	gtkfilechooserembed.h	\
  	gtkfilechooserentry.h	\
@@ -3446,17 +1236,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
---- a/gtk/theme-bits/Makefile.in	2008-03-12 05:18:12.000000000 +0100
-+++ b/gtk/theme-bits/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/theme-bits/Makefile.in gtk+2.0-2.12.10/gtk/theme-bits/Makefile.in
+--- gtk+2.0-2.12.10.old/gtk/theme-bits/Makefile.in	2008-06-03 23:20:34.000000000 +0200
++++ gtk+2.0-2.12.10/gtk/theme-bits/Makefile.in	2008-06-04 08:56:03.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3465,7 +1248,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3473,25 +1256,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/gtk/xdgmime/Makefile.in	2008-03-12 05:18:12.000000000 +0100
-+++ b/gtk/xdgmime/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/xdgmime/Makefile.in gtk+2.0-2.12.10/gtk/xdgmime/Makefile.in
+--- gtk+2.0-2.12.10.old/gtk/xdgmime/Makefile.in	2008-06-03 23:20:34.000000000 +0200
++++ gtk+2.0-2.12.10/gtk/xdgmime/Makefile.in	2008-06-04 08:56:05.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3500,7 +1268,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3508,115 +1276,19 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/ltmain.sh	2008-01-30 21:26:55.000000000 +0100
-+++ b/ltmain.sh	2008-05-10 23:21:26.000000000 +0200
-@@ -2,7 +2,7 @@
- # NOTE: Changing this file will not affect anything until you rerun configure.
- #
- # Copyright (C) 1996, 1997, 1998, 1999, 2000, 2001, 2003, 2004, 2005, 2006,
--# 2007  Free Software Foundation, Inc.
-+# 2007, 2008  Free Software Foundation, Inc.
- # Originally by Gordon Matzigkeit <gord@gnu.ai.mit.edu>, 1996
- #
- # This program is free software; you can redistribute it and/or modify
-@@ -43,8 +43,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/ltmain.sh gtk+2.0-2.12.10/ltmain.sh
+--- gtk+2.0-2.12.10.old/ltmain.sh	2008-05-20 18:32:30.000000000 +0200
++++ gtk+2.0-2.12.10/ltmain.sh	2008-04-29 23:33:55.000000000 +0200
+@@ -43,7 +43,7 @@
  
  PROGRAM=ltmain.sh
  PACKAGE=libtool
--VERSION=1.5.24
--TIMESTAMP=" (1.1220.2.456 2007/06/24 02:25:32)"
-+VERSION="1.5.26 Debian 1.5.26-1"
-+TIMESTAMP=" (1.1220.2.493 2008/02/01 16:58:18)"
+-VERSION=1.5.26
++VERSION="1.5.26 Debian 1.5.26-4"
+ TIMESTAMP=" (1.1220.2.493 2008/02/01 16:58:18)"
  
  # Be Bourne compatible (taken from Autoconf:_AS_BOURNE_COMPATIBLE).
- if test -n "${ZSH_VERSION+set}" && (emulate sh) >/dev/null 2>&1; then
-@@ -113,15 +113,21 @@
- # These must not be set unconditionally because not all systems understand
- # e.g. LANG=C (notably SCO).
- # We save the old values to restore during execute mode.
--for lt_var in LANG LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES
-+lt_env=
-+for lt_var in LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES
- do
-   eval "if test \"\${$lt_var+set}\" = set; then
- 	  save_$lt_var=\$$lt_var
-+	  lt_env=\"$lt_var=\$$lt_var \$lt_env\"
- 	  $lt_var=C
- 	  export $lt_var
- 	fi"
- done
- 
-+if test -n "$lt_env"; then
-+  lt_env="env $lt_env"
-+fi
-+
- # Make sure IFS has a sensible default
- lt_nl='
- '
-@@ -485,7 +491,7 @@
-     echo "\
- $PROGRAM (GNU $PACKAGE) $VERSION$TIMESTAMP
- 
--Copyright (C) 2007  Free Software Foundation, Inc.
-+Copyright (C) 2008  Free Software Foundation, Inc.
- This is free software; see the source for copying conditions.  There is NO
- warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
-     exit $?
-@@ -788,6 +794,7 @@
-     *.for) xform=for ;;
-     *.java) xform=java ;;
-     *.obj) xform=obj ;;
-+    *.sx) xform=sx ;;
-     esac
- 
-     libobj=`$echo "X$libobj" | $Xsed -e "s/\.$xform$/.lo/"`
-@@ -956,7 +963,7 @@
-       $run $rm "$lobj" "$output_obj"
- 
-       $show "$command"
--      if $run eval "$command"; then :
-+      if $run eval $lt_env "$command"; then :
-       else
- 	test -n "$output_obj" && $run $rm $removelist
- 	exit $EXIT_FAILURE
-@@ -1028,7 +1035,7 @@
-       command="$command$suppress_output"
-       $run $rm "$obj" "$output_obj"
-       $show "$command"
--      if $run eval "$command"; then :
-+      if $run eval $lt_env "$command"; then :
-       else
- 	$run $rm $removelist
- 	exit $EXIT_FAILURE
-@@ -1161,6 +1168,7 @@
-     thread_safe=no
-     vinfo=
-     vinfo_number=no
-+    single_module="${wl}-single_module"
- 
-     func_infer_tag $base_compile
- 
-@@ -1646,6 +1654,11 @@
- 	continue
- 	;;
- 
-+      -multi_module)
-+	single_module="${wl}-multi_module"
-+	continue
-+	;;
-+
-       -module)
- 	module=yes
- 	continue
-@@ -2122,7 +2135,10 @@
+@@ -2135,7 +2135,10 @@
  	case $pass in
  	dlopen) libs="$dlfiles" ;;
  	dlpreopen) libs="$dlprefiles" ;;
@@ -3628,55 +1300,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	esac
        fi
        if test "$pass" = dlopen; then
-@@ -2149,7 +2165,12 @@
- 	    continue
- 	  fi
- 	  name=`$echo "X$deplib" | $Xsed -e 's/^-l//'`
--	  for searchdir in $newlib_search_path $lib_search_path $sys_lib_search_path $shlib_search_path; do
-+	  if test "$linkmode" = lib; then
-+	    searchdirs="$newlib_search_path $lib_search_path $compiler_lib_search_dirs $sys_lib_search_path $shlib_search_path"
-+	  else
-+	    searchdirs="$newlib_search_path $lib_search_path $sys_lib_search_path $shlib_search_path"
-+	  fi
-+	  for searchdir in $searchdirs; do
- 	    for search_ext in .la $std_shrext .so .a; do
- 	      # Search the libtool library
- 	      lib="$searchdir/lib${name}${search_ext}"
-@@ -2945,12 +2966,18 @@
- 		  # we do not want to link against static libs,
- 		  # but need to link against shared
- 		  eval deplibrary_names=`${SED} -n -e 's/^library_names=\(.*\)$/\1/p' $deplib`
-+		  eval deplibdir=`${SED} -n -e 's/^libdir=\(.*\)$/\1/p' $deplib`
- 		  if test -n "$deplibrary_names" ; then
- 		    for tmp in $deplibrary_names ; do
- 		      depdepl=$tmp
- 		    done
--		    if test -f "$path/$depdepl" ; then
-+		    if test -f "$deplibdir/$depdepl" ; then
-+		      depdepl="$deplibdir/$depdepl"
-+	      	    elif test -f "$path/$depdepl" ; then
- 		      depdepl="$path/$depdepl"
-+		    else
-+		      # Can't find it, oh well...
-+		      depdepl=
- 		    fi
- 		    # do not add paths which are already there
- 		    case " $newlib_search_path " in
-@@ -3098,9 +3125,10 @@
- 
-     case $linkmode in
-     oldlib)
--      if test -n "$deplibs"; then
--	$echo "$modename: warning: \`-l' and \`-L' are ignored for archives" 1>&2
--      fi
-+      case " $deplibs" in
-+      *\ -l* | *\ -L*)
-+	$echo "$modename: warning: \`-l' and \`-L' are ignored for archives" 1>&2 ;;
-+      esac
- 
-       if test -n "$dlfiles$dlprefiles" || test "$dlself" != no; then
- 	$echo "$modename: warning: \`-dlopen' is ignored for archives" 1>&2
-@@ -3244,6 +3272,11 @@
+@@ -3269,6 +3272,11 @@
  	    revision="$number_minor"
  	    lt_irix_increment=no
  	    ;;
@@ -3688,40 +1312,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	  esac
  	  ;;
  	no)
-@@ -4237,9 +4270,10 @@
-       ;;
- 
-     obj)
--      if test -n "$deplibs"; then
--	$echo "$modename: warning: \`-l' and \`-L' are ignored for objects" 1>&2
--      fi
-+      case " $deplibs" in
-+      *\ -l* | *\ -L*)
-+	$echo "$modename: warning: \`-l' and \`-L' are ignored for objects" 1>&2 ;;
-+      esac
- 
-       if test -n "$dlfiles$dlprefiles" || test "$dlself" != no; then
- 	$echo "$modename: warning: \`-dlopen' is ignored for objects" 1>&2
-@@ -6478,7 +6512,7 @@
-       fi
- 
-       # Restore saved environment variables
--      for lt_var in LANG LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES
-+      for lt_var in LANG LANGUAGE LC_ALL LC_CTYPE LC_COLLATE LC_MESSAGES
-       do
- 	eval "if test \"\${save_$lt_var+set}\" = set; then
- 		$lt_var=\$save_$lt_var; export $lt_var
---- a/m4macros/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ b/m4macros/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/m4macros/Makefile.in gtk+2.0-2.12.10/m4macros/Makefile.in
+--- gtk+2.0-2.12.10.old/m4macros/Makefile.in	2008-06-03 23:20:35.000000000 +0200
++++ gtk+2.0-2.12.10/m4macros/Makefile.in	2008-06-04 08:56:06.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3730,7 +1324,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3738,25 +1332,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/Makefile.in	2008-03-12 05:18:08.000000000 +0100
-+++ b/Makefile.in	2008-05-10 23:21:39.000000000 +0200
-@@ -81,6 +81,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -90,6 +91,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/Makefile.in gtk+2.0-2.12.10/Makefile.in
+--- gtk+2.0-2.12.10.old/Makefile.in	2008-06-03 23:20:30.000000000 +0200
++++ gtk+2.0-2.12.10/Makefile.in	2008-06-04 08:55:52.000000000 +0200
+@@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3765,7 +1344,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +116,7 @@
+@@ -114,6 +116,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3773,15 +1352,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -220,6 +224,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
-@@ -330,7 +335,10 @@
+@@ -332,7 +335,10 @@
  sysconfdir = @sysconfdir@
  target_alias = @target_alias@
  
@@ -3793,7 +1364,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros
  
  # require automake 1.4
-@@ -482,13 +490,14 @@
+@@ -484,13 +490,14 @@
  DIST_COMMON = README $(srcdir)/Makefile.in $(srcdir)/configure AUTHORS \
  	COPYING ChangeLog INSTALL Makefile.am NEWS acconfig.h \
  	acinclude.m4 aclocal.m4 compile config.guess config.h.in \
@@ -3810,7 +1381,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  all: config.h
  	$(MAKE) $(AM_MAKEFLAGS) all-recursive
  
-@@ -740,7 +749,7 @@
+@@ -742,7 +749,7 @@
  	    || exit 1; \
  	  fi; \
  	done
@@ -3819,17 +1390,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
---- a/modules/engines/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ b/modules/engines/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/Makefile.in gtk+2.0-2.12.10/modules/engines/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/engines/Makefile.in	2008-06-03 23:20:35.000000000 +0200
++++ gtk+2.0-2.12.10/modules/engines/Makefile.in	2008-06-04 08:56:06.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3838,7 +1402,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3846,25 +1410,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/engines/ms-windows/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ b/modules/engines/ms-windows/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.12.10/modules/engines/ms-windows/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/engines/ms-windows/Makefile.in	2008-06-03 23:20:35.000000000 +0200
++++ gtk+2.0-2.12.10/modules/engines/ms-windows/Makefile.in	2008-06-04 08:56:07.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3873,7 +1422,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3881,25 +1430,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ b/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.12.10/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-06-03 23:20:35.000000000 +0200
++++ gtk+2.0-2.12.10/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-06-04 08:56:08.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3908,7 +1442,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3916,25 +1450,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/engines/ms-windows/Theme/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ b/modules/engines/ms-windows/Theme/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.12.10/modules/engines/ms-windows/Theme/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/engines/ms-windows/Theme/Makefile.in	2008-06-03 23:20:35.000000000 +0200
++++ gtk+2.0-2.12.10/modules/engines/ms-windows/Theme/Makefile.in	2008-06-04 08:56:07.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3943,7 +1462,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3951,25 +1470,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/engines/pixbuf/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ b/modules/engines/pixbuf/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.12.10/modules/engines/pixbuf/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/engines/pixbuf/Makefile.in	2008-06-03 23:20:36.000000000 +0200
++++ gtk+2.0-2.12.10/modules/engines/pixbuf/Makefile.in	2008-06-04 08:56:08.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -3978,7 +1482,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -3986,25 +1490,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/input/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ b/modules/input/Makefile.in	2008-05-10 23:21:43.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/input/Makefile.in gtk+2.0-2.12.10/modules/input/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/input/Makefile.in	2008-06-03 23:20:36.000000000 +0200
++++ gtk+2.0-2.12.10/modules/input/Makefile.in	2008-06-04 08:56:08.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4013,7 +1502,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4021,15 +1510,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
-@@ -431,9 +436,10 @@
+@@ -433,9 +436,10 @@
  
  imconffiledir = $(sysconfdir)/gtk-2.0
  dist_imconffile_DATA = im-multipress.conf
@@ -4041,7 +1522,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
  module_LTLIBRARIES = \
  	$(IM_XIM_MODULE)			\
-@@ -986,7 +992,18 @@
+@@ -988,7 +992,18 @@
  	rm -f $(DESTDIR)$(sysconfdir)/gtk-2.0/gtk.immodules
  
  gtk.immodules: Makefile.am $(module_LTLIBRARIES)
@@ -4061,17 +1542,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
---- a/modules/Makefile.in	2008-03-12 05:18:13.000000000 +0100
-+++ b/modules/Makefile.in	2008-05-10 23:21:42.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/Makefile.in gtk+2.0-2.12.10/modules/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/Makefile.in	2008-06-03 23:20:35.000000000 +0200
++++ gtk+2.0-2.12.10/modules/Makefile.in	2008-06-04 08:56:06.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4080,7 +1554,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4088,25 +1562,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/printbackends/cups/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ b/modules/printbackends/cups/Makefile.in	2008-05-10 23:21:43.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.12.10/modules/printbackends/cups/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/printbackends/cups/Makefile.in	2008-06-03 23:20:36.000000000 +0200
++++ gtk+2.0-2.12.10/modules/printbackends/cups/Makefile.in	2008-06-04 08:56:09.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4115,7 +1574,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4123,25 +1582,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/printbackends/file/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ b/modules/printbackends/file/Makefile.in	2008-05-10 23:21:43.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/file/Makefile.in gtk+2.0-2.12.10/modules/printbackends/file/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/printbackends/file/Makefile.in	2008-06-03 23:20:36.000000000 +0200
++++ gtk+2.0-2.12.10/modules/printbackends/file/Makefile.in	2008-06-04 08:56:09.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4150,7 +1594,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4158,25 +1602,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/printbackends/lpr/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ b/modules/printbackends/lpr/Makefile.in	2008-05-10 23:21:43.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.12.10/modules/printbackends/lpr/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/printbackends/lpr/Makefile.in	2008-06-03 23:20:36.000000000 +0200
++++ gtk+2.0-2.12.10/modules/printbackends/lpr/Makefile.in	2008-06-04 08:56:09.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4185,7 +1614,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4193,25 +1622,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/printbackends/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ b/modules/printbackends/Makefile.in	2008-05-10 23:21:43.000000000 +0200
-@@ -82,6 +82,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -91,6 +92,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/Makefile.in gtk+2.0-2.12.10/modules/printbackends/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/printbackends/Makefile.in	2008-06-03 23:20:36.000000000 +0200
++++ gtk+2.0-2.12.10/modules/printbackends/Makefile.in	2008-06-04 08:56:09.000000000 +0200
+@@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4220,7 +1634,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -114,6 +117,7 @@
+@@ -115,6 +117,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4228,25 +1642,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -221,6 +225,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/modules/printbackends/test/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ b/modules/printbackends/test/Makefile.in	2008-05-10 23:21:43.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/test/Makefile.in gtk+2.0-2.12.10/modules/printbackends/test/Makefile.in
+--- gtk+2.0-2.12.10.old/modules/printbackends/test/Makefile.in	2008-06-03 23:20:37.000000000 +0200
++++ gtk+2.0-2.12.10/modules/printbackends/test/Makefile.in	2008-06-04 08:56:10.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4255,7 +1654,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4263,25 +1662,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/perf/Makefile.in	2008-03-12 05:18:14.000000000 +0100
-+++ b/perf/Makefile.in	2008-05-10 23:21:43.000000000 +0200
-@@ -80,6 +80,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -89,6 +90,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/perf/Makefile.in gtk+2.0-2.12.10/perf/Makefile.in
+--- gtk+2.0-2.12.10.old/perf/Makefile.in	2008-06-03 23:20:37.000000000 +0200
++++ gtk+2.0-2.12.10/perf/Makefile.in	2008-06-04 08:56:10.000000000 +0200
+@@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4290,7 +1674,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -112,6 +115,7 @@
+@@ -113,6 +115,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4298,25 +1682,10 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -219,6 +223,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@
---- a/tests/Makefile.in	2008-03-12 05:18:15.000000000 +0100
-+++ b/tests/Makefile.in	2008-05-10 23:21:44.000000000 +0200
-@@ -83,6 +83,7 @@
- DISABLE_EXPLICIT_DEPS_FALSE = @DISABLE_EXPLICIT_DEPS_FALSE@
- DISABLE_EXPLICIT_DEPS_TRUE = @DISABLE_EXPLICIT_DEPS_TRUE@
- DLLTOOL = @DLLTOOL@
-+DSYMUTIL = @DSYMUTIL@
- ECHO = @ECHO@
- ECHO_C = @ECHO_C@
- ECHO_N = @ECHO_N@
-@@ -92,6 +93,8 @@
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/tests/Makefile.in gtk+2.0-2.12.10/tests/Makefile.in
+--- gtk+2.0-2.12.10.old/tests/Makefile.in	2008-06-03 23:20:37.000000000 +0200
++++ gtk+2.0-2.12.10/tests/Makefile.in	2008-06-04 08:56:11.000000000 +0200
+@@ -93,6 +93,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -4325,7 +1694,7 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -115,6 +118,7 @@
+@@ -116,6 +118,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -4333,11 +1702,3 @@ of upstream using an older libtool; see GNOME #484426; Debian #445001.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -222,6 +226,7 @@
- MS_LIB_AVAILABLE_FALSE = @MS_LIB_AVAILABLE_FALSE@
- MS_LIB_AVAILABLE_TRUE = @MS_LIB_AVAILABLE_TRUE@
- NM = @NM@
-+NMEDIT = @NMEDIT@
- OBJDUMP = @OBJDUMP@
- OBJEXT = @OBJEXT@
- OS_LINUX_FALSE = @OS_LINUX_FALSE@

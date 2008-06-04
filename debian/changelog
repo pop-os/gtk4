@@ -1,3 +1,17 @@
+gtk+2.0 (2.12.10-1) unstable; urgency=low
+
+  * New upstream bugfix release:
+    + debian/patches/009_gtk-export-filechooser.patch:
+      - Updated to apply cleanly again.
+    + debian/patches/031_gtksearchenginetracker_fixes.patch,
+      debian/patches/061_foreign_colormaps.patch,
+      debian/patches/092_implicit-g-fopen.patch:
+      - Dropped, merged upstream.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 04 Jun 2008 08:14:08 +0200
+
 gtk+2.0 (2.12.9-4) unstable; urgency=low
 
   [ Loic Minier ]
