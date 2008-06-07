@@ -1,3 +1,11 @@
+gtk+2.0 (2.12.10-2) unstable; urgency=low
+
+  * debian/patches/092_openoffice-menus.patch:
+    + Patch from upstream SVN to fix regression in menu placement
+      in openoffice.org (Closes: #484580).
+
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 07 Jun 2008 10:27:50 +0200
+
 gtk+2.0 (2.12.10-1) unstable; urgency=low
 
   * New upstream bugfix release:
