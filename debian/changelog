@@ -1,3 +1,10 @@
+gtk+2.0 (2.12.10-3) UNRELEASED; urgency=low
+
+  * Build-depend on libcups2-dev instead of libcupsys2-dev, as cups
+    is transitioning to that new name.
+
+ -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Fri, 13 Jun 2008 15:53:49 +0200
+
 gtk+2.0 (2.12.10-2) unstable; urgency=low
 
   * debian/patches/092_openoffice-menus.patch:
