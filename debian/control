@@ -32,7 +32,7 @@ Build-Depends: debhelper (>= 5.0.22),
                dpkg-dev (>= 1.13.19),
                x11proto-xext-dev,
                libdirectfb-dev (>= 0.9.24),
-               cupsys2-dev (>= 1.2),
+               libcups2-dev (>= 1.2),
                quilt
 Build-Depends-Indep: gtk-doc-tools (>= 1.6),
                      docbook-xml
