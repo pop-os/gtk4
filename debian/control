@@ -36,7 +36,7 @@ Build-Depends: debhelper (>= 5.0.22),
                quilt
 Build-Depends-Indep: gtk-doc-tools (>= 1.6),
                      docbook-xml
-Standards-Version: 3.7.3
+Standards-Version: 3.8.0
 
 Package: libgtk2.0-0
 Section: libs

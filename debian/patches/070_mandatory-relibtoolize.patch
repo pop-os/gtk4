@@ -1,17 +1,6 @@
-Classical relibtoolizing patch generated with:
-    libtoolize --force --copy &&
-    aclocal-1.7 -I m4macros &&
-    autoconf &&
-    automake-1.7 &&
-    rm -rf autom4te.cache &&
-exclude config.guess and sub with diff -urN -x config.guess -x config.sub
-
-This is required because of patches touching autotools files, but also because
-of upstream using an older libtool; see GNOME #484426; Debian #445001.
-
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/aclocal.m4 gtk+2.0-2.12.10/aclocal.m4
---- gtk+2.0-2.12.10.old/aclocal.m4	2008-06-03 23:20:21.000000000 +0200
-+++ gtk+2.0-2.12.10/aclocal.m4	2008-06-04 08:55:43.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+2.0-2.12.11/aclocal.m4
+--- gtk+2.0-2.12.11.old/aclocal.m4	2008-07-01 15:43:50.000000000 +0200
++++ gtk+2.0-2.12.11/aclocal.m4	2008-07-02 07:22:23.000000000 +0200
 @@ -941,7 +941,7 @@
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
@@ -161,9 +150,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/aclocal.m4 gtk+
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/configure gtk+2.0-2.12.10/configure
---- gtk+2.0-2.12.10.old/configure	2008-06-03 23:20:39.000000000 +0200
-+++ gtk+2.0-2.12.10/configure	2008-06-04 08:55:50.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2.0-2.12.11/configure
+--- gtk+2.0-2.12.11.old/configure	2008-07-01 15:44:08.000000000 +0200
++++ gtk+2.0-2.12.11/configure	2008-07-02 07:22:28.000000000 +0200
 @@ -885,6 +885,8 @@
  CCDEPMODE
  am__fastdepCC_TRUE
@@ -759,9 +748,29 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/configure gtk+2
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    { { $as_echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.12.10/contrib/gdk-pixbuf-xlib/Makefile.in
---- gtk+2.0-2.12.10.old/contrib/gdk-pixbuf-xlib/Makefile.in	2008-06-03 23:20:31.000000000 +0200
-+++ gtk+2.0-2.12.10/contrib/gdk-pixbuf-xlib/Makefile.in	2008-06-04 08:55:52.000000000 +0200
+@@ -36186,9 +36267,9 @@
+   }
+   split(mac1, mac2, "(") #)
+   macro = mac2[1]
+-  prefix = substr(line, 1, index(line, defundef) - 1)
+   if (D_is_set[macro]) {
+     # Preserve the white space surrounding the "#".
++    prefix = substr(line, 1, index(line, defundef) - 1)
+     print prefix "define", macro P[macro] D[macro]
+     next
+   } else {
+@@ -36196,7 +36277,7 @@
+     # in the case of _POSIX_SOURCE, which is predefined and required
+     # on some systems where configure will not decide to define it.
+     if (defundef == "undef") {
+-      print "/*", prefix defundef, macro, "*/"
++      print "/*", line, "*/"
+       next
+     }
+   }
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.12.11/contrib/gdk-pixbuf-xlib/Makefile.in
+--- gtk+2.0-2.12.11.old/contrib/gdk-pixbuf-xlib/Makefile.in	2008-07-01 15:44:00.000000000 +0200
++++ gtk+2.0-2.12.11/contrib/gdk-pixbuf-xlib/Makefile.in	2008-07-02 07:22:29.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -779,9 +788,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/contrib/gdk-pix
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/contrib/Makefile.in gtk+2.0-2.12.10/contrib/Makefile.in
---- gtk+2.0-2.12.10.old/contrib/Makefile.in	2008-06-03 23:20:31.000000000 +0200
-+++ gtk+2.0-2.12.10/contrib/Makefile.in	2008-06-04 08:55:52.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/contrib/Makefile.in gtk+2.0-2.12.11/contrib/Makefile.in
+--- gtk+2.0-2.12.11.old/contrib/Makefile.in	2008-07-01 15:44:00.000000000 +0200
++++ gtk+2.0-2.12.11/contrib/Makefile.in	2008-07-02 07:22:29.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -799,9 +808,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/contrib/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/demos/gtk-demo/Makefile.in gtk+2.0-2.12.10/demos/gtk-demo/Makefile.in
---- gtk+2.0-2.12.10.old/demos/gtk-demo/Makefile.in	2008-06-03 23:20:31.000000000 +0200
-+++ gtk+2.0-2.12.10/demos/gtk-demo/Makefile.in	2008-06-04 08:55:54.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/demos/gtk-demo/Makefile.in gtk+2.0-2.12.11/demos/gtk-demo/Makefile.in
+--- gtk+2.0-2.12.11.old/demos/gtk-demo/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/demos/gtk-demo/Makefile.in	2008-07-02 07:22:29.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -819,9 +828,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/demos/gtk-demo/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/demos/Makefile.in gtk+2.0-2.12.10/demos/Makefile.in
---- gtk+2.0-2.12.10.old/demos/Makefile.in	2008-06-03 23:20:31.000000000 +0200
-+++ gtk+2.0-2.12.10/demos/Makefile.in	2008-06-04 08:55:53.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/demos/Makefile.in gtk+2.0-2.12.11/demos/Makefile.in
+--- gtk+2.0-2.12.11.old/demos/Makefile.in	2008-07-01 15:44:00.000000000 +0200
++++ gtk+2.0-2.12.11/demos/Makefile.in	2008-07-02 07:22:29.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -839,9 +848,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/demos/Makefile.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/faq/Makefile.in gtk+2.0-2.12.10/docs/faq/Makefile.in
---- gtk+2.0-2.12.10.old/docs/faq/Makefile.in	2008-06-03 23:20:31.000000000 +0200
-+++ gtk+2.0-2.12.10/docs/faq/Makefile.in	2008-06-04 08:55:54.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/faq/Makefile.in gtk+2.0-2.12.11/docs/faq/Makefile.in
+--- gtk+2.0-2.12.11.old/docs/faq/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/docs/faq/Makefile.in	2008-07-02 07:22:29.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -859,9 +868,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/faq/Makefi
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/Makefile.in gtk+2.0-2.12.10/docs/Makefile.in
---- gtk+2.0-2.12.10.old/docs/Makefile.in	2008-06-03 23:20:31.000000000 +0200
-+++ gtk+2.0-2.12.10/docs/Makefile.in	2008-06-04 08:55:54.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/Makefile.in gtk+2.0-2.12.11/docs/Makefile.in
+--- gtk+2.0-2.12.11.old/docs/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/docs/Makefile.in	2008-07-02 07:22:29.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -879,9 +888,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/Makefile.i
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/gdk/Makefile.in gtk+2.0-2.12.10/docs/reference/gdk/Makefile.in
---- gtk+2.0-2.12.10.old/docs/reference/gdk/Makefile.in	2008-06-03 23:20:32.000000000 +0200
-+++ gtk+2.0-2.12.10/docs/reference/gdk/Makefile.in	2008-06-04 08:55:55.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/gdk/Makefile.in gtk+2.0-2.12.11/docs/reference/gdk/Makefile.in
+--- gtk+2.0-2.12.11.old/docs/reference/gdk/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/docs/reference/gdk/Makefile.in	2008-07-02 07:22:30.000000000 +0200
 @@ -96,6 +96,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -899,9 +908,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.12.10/docs/reference/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.12.10.old/docs/reference/gdk-pixbuf/Makefile.in	2008-06-03 23:20:32.000000000 +0200
-+++ gtk+2.0-2.12.10/docs/reference/gdk-pixbuf/Makefile.in	2008-06-04 08:55:55.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.12.11/docs/reference/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.12.11.old/docs/reference/gdk-pixbuf/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/docs/reference/gdk-pixbuf/Makefile.in	2008-07-02 07:22:30.000000000 +0200
 @@ -96,6 +96,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -919,9 +928,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/gtk/Makefile.in gtk+2.0-2.12.10/docs/reference/gtk/Makefile.in
---- gtk+2.0-2.12.10.old/docs/reference/gtk/Makefile.in	2008-06-03 23:20:32.000000000 +0200
-+++ gtk+2.0-2.12.10/docs/reference/gtk/Makefile.in	2008-06-04 08:55:55.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/gtk/Makefile.in gtk+2.0-2.12.11/docs/reference/gtk/Makefile.in
+--- gtk+2.0-2.12.11.old/docs/reference/gtk/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/docs/reference/gtk/Makefile.in	2008-07-02 07:22:30.000000000 +0200
 @@ -96,6 +96,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -939,9 +948,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/Makefile.in gtk+2.0-2.12.10/docs/reference/Makefile.in
---- gtk+2.0-2.12.10.old/docs/reference/Makefile.in	2008-06-03 23:20:31.000000000 +0200
-+++ gtk+2.0-2.12.10/docs/reference/Makefile.in	2008-06-04 08:55:54.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/Makefile.in gtk+2.0-2.12.11/docs/reference/Makefile.in
+--- gtk+2.0-2.12.11.old/docs/reference/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/docs/reference/Makefile.in	2008-07-02 07:22:30.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -959,9 +968,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/reference/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/tools/Makefile.in gtk+2.0-2.12.10/docs/tools/Makefile.in
---- gtk+2.0-2.12.10.old/docs/tools/Makefile.in	2008-06-03 23:20:32.000000000 +0200
-+++ gtk+2.0-2.12.10/docs/tools/Makefile.in	2008-06-04 08:55:56.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/tools/Makefile.in gtk+2.0-2.12.11/docs/tools/Makefile.in
+--- gtk+2.0-2.12.11.old/docs/tools/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/docs/tools/Makefile.in	2008-07-02 07:22:30.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -979,9 +988,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/tools/Make
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/tutorial/Makefile.in gtk+2.0-2.12.10/docs/tutorial/Makefile.in
---- gtk+2.0-2.12.10.old/docs/tutorial/Makefile.in	2008-06-03 23:20:32.000000000 +0200
-+++ gtk+2.0-2.12.10/docs/tutorial/Makefile.in	2008-06-04 08:55:56.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/tutorial/Makefile.in gtk+2.0-2.12.11/docs/tutorial/Makefile.in
+--- gtk+2.0-2.12.11.old/docs/tutorial/Makefile.in	2008-07-01 15:44:01.000000000 +0200
++++ gtk+2.0-2.12.11/docs/tutorial/Makefile.in	2008-07-02 07:22:30.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -999,9 +1008,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/docs/tutorial/M
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/directfb/Makefile.in gtk+2.0-2.12.10/gdk/directfb/Makefile.in
---- gtk+2.0-2.12.10.old/gdk/directfb/Makefile.in	2008-06-03 23:20:33.000000000 +0200
-+++ gtk+2.0-2.12.10/gdk/directfb/Makefile.in	2008-06-04 08:55:59.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/directfb/Makefile.in gtk+2.0-2.12.11/gdk/directfb/Makefile.in
+--- gtk+2.0-2.12.11.old/gdk/directfb/Makefile.in	2008-07-01 15:44:02.000000000 +0200
++++ gtk+2.0-2.12.11/gdk/directfb/Makefile.in	2008-07-02 07:22:31.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1019,9 +1028,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/directfb/Ma
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/Makefile.in gtk+2.0-2.12.10/gdk/Makefile.in
---- gtk+2.0-2.12.10.old/gdk/Makefile.in	2008-06-03 23:20:33.000000000 +0200
-+++ gtk+2.0-2.12.10/gdk/Makefile.in	2008-06-04 08:55:58.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/Makefile.in gtk+2.0-2.12.11/gdk/Makefile.in
+--- gtk+2.0-2.12.11.old/gdk/Makefile.in	2008-07-01 15:44:02.000000000 +0200
++++ gtk+2.0-2.12.11/gdk/Makefile.in	2008-07-02 07:22:31.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1039,9 +1048,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/Makefile.in
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/quartz/Makefile.in gtk+2.0-2.12.10/gdk/quartz/Makefile.in
---- gtk+2.0-2.12.10.old/gdk/quartz/Makefile.in	2008-06-03 23:20:33.000000000 +0200
-+++ gtk+2.0-2.12.10/gdk/quartz/Makefile.in	2008-06-04 08:55:59.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/quartz/Makefile.in gtk+2.0-2.12.11/gdk/quartz/Makefile.in
+--- gtk+2.0-2.12.11.old/gdk/quartz/Makefile.in	2008-07-01 15:44:02.000000000 +0200
++++ gtk+2.0-2.12.11/gdk/quartz/Makefile.in	2008-07-02 07:22:32.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1059,9 +1068,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/quartz/Make
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/win32/Makefile.in gtk+2.0-2.12.10/gdk/win32/Makefile.in
---- gtk+2.0-2.12.10.old/gdk/win32/Makefile.in	2008-06-03 23:20:33.000000000 +0200
-+++ gtk+2.0-2.12.10/gdk/win32/Makefile.in	2008-06-04 08:56:00.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/win32/Makefile.in gtk+2.0-2.12.11/gdk/win32/Makefile.in
+--- gtk+2.0-2.12.11.old/gdk/win32/Makefile.in	2008-07-01 15:44:03.000000000 +0200
++++ gtk+2.0-2.12.11/gdk/win32/Makefile.in	2008-07-02 07:22:32.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1079,9 +1088,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/win32/Makef
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/win32/rc/Makefile.in gtk+2.0-2.12.10/gdk/win32/rc/Makefile.in
---- gtk+2.0-2.12.10.old/gdk/win32/rc/Makefile.in	2008-06-03 23:20:33.000000000 +0200
-+++ gtk+2.0-2.12.10/gdk/win32/rc/Makefile.in	2008-06-04 08:56:00.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/win32/rc/Makefile.in gtk+2.0-2.12.11/gdk/win32/rc/Makefile.in
+--- gtk+2.0-2.12.11.old/gdk/win32/rc/Makefile.in	2008-07-01 15:44:03.000000000 +0200
++++ gtk+2.0-2.12.11/gdk/win32/rc/Makefile.in	2008-07-02 07:22:32.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1099,9 +1108,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/win32/rc/Ma
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/x11/Makefile.in gtk+2.0-2.12.10/gdk/x11/Makefile.in
---- gtk+2.0-2.12.10.old/gdk/x11/Makefile.in	2008-06-03 23:20:34.000000000 +0200
-+++ gtk+2.0-2.12.10/gdk/x11/Makefile.in	2008-06-04 08:56:00.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/x11/Makefile.in gtk+2.0-2.12.11/gdk/x11/Makefile.in
+--- gtk+2.0-2.12.11.old/gdk/x11/Makefile.in	2008-07-01 15:44:03.000000000 +0200
++++ gtk+2.0-2.12.11/gdk/x11/Makefile.in	2008-07-02 07:22:32.000000000 +0200
 @@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1119,9 +1128,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk/x11/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk-pixbuf/Makefile.in gtk+2.0-2.12.10/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.12.10.old/gdk-pixbuf/Makefile.in	2008-06-03 23:20:32.000000000 +0200
-+++ gtk+2.0-2.12.10/gdk-pixbuf/Makefile.in	2008-06-04 08:55:57.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/Makefile.in gtk+2.0-2.12.11/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.12.11.old/gdk-pixbuf/Makefile.in	2008-07-01 15:44:02.000000000 +0200
++++ gtk+2.0-2.12.11/gdk-pixbuf/Makefile.in	2008-07-02 07:22:31.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1156,9 +1165,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk-pixbuf/Make
  LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GLIB_LIBS)
  
  noinst_PROGRAMS = test-gdk-pixbuf
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.12.10/gdk-pixbuf/pixops/Makefile.in
---- gtk+2.0-2.12.10.old/gdk-pixbuf/pixops/Makefile.in	2008-06-03 23:20:33.000000000 +0200
-+++ gtk+2.0-2.12.10/gdk-pixbuf/pixops/Makefile.in	2008-06-04 08:55:57.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.12.11/gdk-pixbuf/pixops/Makefile.in
+--- gtk+2.0-2.12.11.old/gdk-pixbuf/pixops/Makefile.in	2008-07-01 15:44:02.000000000 +0200
++++ gtk+2.0-2.12.11/gdk-pixbuf/pixops/Makefile.in	2008-07-02 07:22:31.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1176,9 +1185,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gdk-pixbuf/pixo
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/Makefile.in gtk+2.0-2.12.10/gtk/Makefile.in
---- gtk+2.0-2.12.10.old/gtk/Makefile.in	2008-06-03 23:20:34.000000000 +0200
-+++ gtk+2.0-2.12.10/gtk/Makefile.in	2008-06-04 08:56:02.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/Makefile.in gtk+2.0-2.12.11/gtk/Makefile.in
+--- gtk+2.0-2.12.11.old/gtk/Makefile.in	2008-07-01 15:44:03.000000000 +0200
++++ gtk+2.0-2.12.11/gtk/Makefile.in	2008-07-02 07:22:33.000000000 +0200
 @@ -116,6 +116,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1236,9 +1245,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/Makefile.in
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/theme-bits/Makefile.in gtk+2.0-2.12.10/gtk/theme-bits/Makefile.in
---- gtk+2.0-2.12.10.old/gtk/theme-bits/Makefile.in	2008-06-03 23:20:34.000000000 +0200
-+++ gtk+2.0-2.12.10/gtk/theme-bits/Makefile.in	2008-06-04 08:56:03.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/theme-bits/Makefile.in gtk+2.0-2.12.11/gtk/theme-bits/Makefile.in
+--- gtk+2.0-2.12.11.old/gtk/theme-bits/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/gtk/theme-bits/Makefile.in	2008-07-02 07:22:33.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1256,9 +1265,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/theme-bits/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/xdgmime/Makefile.in gtk+2.0-2.12.10/gtk/xdgmime/Makefile.in
---- gtk+2.0-2.12.10.old/gtk/xdgmime/Makefile.in	2008-06-03 23:20:34.000000000 +0200
-+++ gtk+2.0-2.12.10/gtk/xdgmime/Makefile.in	2008-06-04 08:56:05.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/xdgmime/Makefile.in gtk+2.0-2.12.11/gtk/xdgmime/Makefile.in
+--- gtk+2.0-2.12.11.old/gtk/xdgmime/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/gtk/xdgmime/Makefile.in	2008-07-02 07:22:33.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1276,9 +1285,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/gtk/xdgmime/Mak
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/ltmain.sh gtk+2.0-2.12.10/ltmain.sh
---- gtk+2.0-2.12.10.old/ltmain.sh	2008-05-20 18:32:30.000000000 +0200
-+++ gtk+2.0-2.12.10/ltmain.sh	2008-04-29 23:33:55.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/ltmain.sh gtk+2.0-2.12.11/ltmain.sh
+--- gtk+2.0-2.12.11.old/ltmain.sh	2008-06-09 21:51:13.000000000 +0200
++++ gtk+2.0-2.12.11/ltmain.sh	2008-04-29 23:33:55.000000000 +0200
 @@ -43,7 +43,7 @@
  
  PROGRAM=ltmain.sh
@@ -1312,9 +1321,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/ltmain.sh gtk+2
  	  esac
  	  ;;
  	no)
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/m4macros/Makefile.in gtk+2.0-2.12.10/m4macros/Makefile.in
---- gtk+2.0-2.12.10.old/m4macros/Makefile.in	2008-06-03 23:20:35.000000000 +0200
-+++ gtk+2.0-2.12.10/m4macros/Makefile.in	2008-06-04 08:56:06.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/m4macros/Makefile.in gtk+2.0-2.12.11/m4macros/Makefile.in
+--- gtk+2.0-2.12.11.old/m4macros/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/m4macros/Makefile.in	2008-07-02 07:22:33.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1332,9 +1341,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/m4macros/Makefi
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/Makefile.in gtk+2.0-2.12.10/Makefile.in
---- gtk+2.0-2.12.10.old/Makefile.in	2008-06-03 23:20:30.000000000 +0200
-+++ gtk+2.0-2.12.10/Makefile.in	2008-06-04 08:55:52.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/Makefile.in gtk+2.0-2.12.11/Makefile.in
+--- gtk+2.0-2.12.11.old/Makefile.in	2008-07-01 15:44:00.000000000 +0200
++++ gtk+2.0-2.12.11/Makefile.in	2008-07-02 07:22:29.000000000 +0200
 @@ -91,6 +91,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1390,9 +1399,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/Makefile.in gtk
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/Makefile.in gtk+2.0-2.12.10/modules/engines/Makefile.in
---- gtk+2.0-2.12.10.old/modules/engines/Makefile.in	2008-06-03 23:20:35.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/engines/Makefile.in	2008-06-04 08:56:06.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/Makefile.in gtk+2.0-2.12.11/modules/engines/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/engines/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/modules/engines/Makefile.in	2008-07-02 07:22:34.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1410,9 +1419,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.12.10/modules/engines/ms-windows/Makefile.in
---- gtk+2.0-2.12.10.old/modules/engines/ms-windows/Makefile.in	2008-06-03 23:20:35.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/engines/ms-windows/Makefile.in	2008-06-04 08:56:07.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.12.11/modules/engines/ms-windows/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/engines/ms-windows/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/modules/engines/ms-windows/Makefile.in	2008-07-02 07:22:34.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1430,9 +1439,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.12.10/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
---- gtk+2.0-2.12.10.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-06-03 23:20:35.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-06-04 08:56:08.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.12.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-07-02 07:22:34.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1450,9 +1459,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.12.10/modules/engines/ms-windows/Theme/Makefile.in
---- gtk+2.0-2.12.10.old/modules/engines/ms-windows/Theme/Makefile.in	2008-06-03 23:20:35.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/engines/ms-windows/Theme/Makefile.in	2008-06-04 08:56:07.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.12.11/modules/engines/ms-windows/Theme/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/engines/ms-windows/Theme/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/modules/engines/ms-windows/Theme/Makefile.in	2008-07-02 07:22:34.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1470,9 +1479,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.12.10/modules/engines/pixbuf/Makefile.in
---- gtk+2.0-2.12.10.old/modules/engines/pixbuf/Makefile.in	2008-06-03 23:20:36.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/engines/pixbuf/Makefile.in	2008-06-04 08:56:08.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.12.11/modules/engines/pixbuf/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/engines/pixbuf/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/modules/engines/pixbuf/Makefile.in	2008-07-02 07:22:34.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1490,9 +1499,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/input/Makefile.in gtk+2.0-2.12.10/modules/input/Makefile.in
---- gtk+2.0-2.12.10.old/modules/input/Makefile.in	2008-06-03 23:20:36.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/input/Makefile.in	2008-06-04 08:56:08.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/input/Makefile.in gtk+2.0-2.12.11/modules/input/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/input/Makefile.in	2008-07-01 15:44:05.000000000 +0200
++++ gtk+2.0-2.12.11/modules/input/Makefile.in	2008-07-02 07:22:35.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1542,9 +1551,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/input/M
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/Makefile.in gtk+2.0-2.12.10/modules/Makefile.in
---- gtk+2.0-2.12.10.old/modules/Makefile.in	2008-06-03 23:20:35.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/Makefile.in	2008-06-04 08:56:06.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/Makefile.in gtk+2.0-2.12.11/modules/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/Makefile.in	2008-07-01 15:44:04.000000000 +0200
++++ gtk+2.0-2.12.11/modules/Makefile.in	2008-07-02 07:22:34.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1562,9 +1571,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.12.10/modules/printbackends/cups/Makefile.in
---- gtk+2.0-2.12.10.old/modules/printbackends/cups/Makefile.in	2008-06-03 23:20:36.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/printbackends/cups/Makefile.in	2008-06-04 08:56:09.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.12.11/modules/printbackends/cups/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/printbackends/cups/Makefile.in	2008-07-01 15:44:05.000000000 +0200
++++ gtk+2.0-2.12.11/modules/printbackends/cups/Makefile.in	2008-07-02 07:22:35.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1582,9 +1591,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/file/Makefile.in gtk+2.0-2.12.10/modules/printbackends/file/Makefile.in
---- gtk+2.0-2.12.10.old/modules/printbackends/file/Makefile.in	2008-06-03 23:20:36.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/printbackends/file/Makefile.in	2008-06-04 08:56:09.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/file/Makefile.in gtk+2.0-2.12.11/modules/printbackends/file/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/printbackends/file/Makefile.in	2008-07-01 15:44:05.000000000 +0200
++++ gtk+2.0-2.12.11/modules/printbackends/file/Makefile.in	2008-07-02 07:22:35.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1602,9 +1611,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.12.10/modules/printbackends/lpr/Makefile.in
---- gtk+2.0-2.12.10.old/modules/printbackends/lpr/Makefile.in	2008-06-03 23:20:36.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/printbackends/lpr/Makefile.in	2008-06-04 08:56:09.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.12.11/modules/printbackends/lpr/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/printbackends/lpr/Makefile.in	2008-07-01 15:44:05.000000000 +0200
++++ gtk+2.0-2.12.11/modules/printbackends/lpr/Makefile.in	2008-07-02 07:22:35.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1622,9 +1631,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/Makefile.in gtk+2.0-2.12.10/modules/printbackends/Makefile.in
---- gtk+2.0-2.12.10.old/modules/printbackends/Makefile.in	2008-06-03 23:20:36.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/printbackends/Makefile.in	2008-06-04 08:56:09.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/Makefile.in gtk+2.0-2.12.11/modules/printbackends/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/printbackends/Makefile.in	2008-07-01 15:44:05.000000000 +0200
++++ gtk+2.0-2.12.11/modules/printbackends/Makefile.in	2008-07-02 07:22:35.000000000 +0200
 @@ -92,6 +92,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1642,9 +1651,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printbackends/test/Makefile.in gtk+2.0-2.12.10/modules/printbackends/test/Makefile.in
---- gtk+2.0-2.12.10.old/modules/printbackends/test/Makefile.in	2008-06-03 23:20:37.000000000 +0200
-+++ gtk+2.0-2.12.10/modules/printbackends/test/Makefile.in	2008-06-04 08:56:10.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/test/Makefile.in gtk+2.0-2.12.11/modules/printbackends/test/Makefile.in
+--- gtk+2.0-2.12.11.old/modules/printbackends/test/Makefile.in	2008-07-01 15:44:05.000000000 +0200
++++ gtk+2.0-2.12.11/modules/printbackends/test/Makefile.in	2008-07-02 07:22:35.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1662,9 +1671,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/perf/Makefile.in gtk+2.0-2.12.10/perf/Makefile.in
---- gtk+2.0-2.12.10.old/perf/Makefile.in	2008-06-03 23:20:37.000000000 +0200
-+++ gtk+2.0-2.12.10/perf/Makefile.in	2008-06-04 08:56:10.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/perf/Makefile.in gtk+2.0-2.12.11/perf/Makefile.in
+--- gtk+2.0-2.12.11.old/perf/Makefile.in	2008-07-01 15:44:05.000000000 +0200
++++ gtk+2.0-2.12.11/perf/Makefile.in	2008-07-02 07:22:36.000000000 +0200
 @@ -90,6 +90,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
@@ -1682,9 +1691,9 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/perf/Makefile.i
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.10.old/tests/Makefile.in gtk+2.0-2.12.10/tests/Makefile.in
---- gtk+2.0-2.12.10.old/tests/Makefile.in	2008-06-03 23:20:37.000000000 +0200
-+++ gtk+2.0-2.12.10/tests/Makefile.in	2008-06-04 08:56:11.000000000 +0200
+diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/tests/Makefile.in gtk+2.0-2.12.11/tests/Makefile.in
+--- gtk+2.0-2.12.11.old/tests/Makefile.in	2008-07-01 15:44:06.000000000 +0200
++++ gtk+2.0-2.12.11/tests/Makefile.in	2008-07-02 07:22:36.000000000 +0200
 @@ -93,6 +93,8 @@
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
