@@ -1,6 +1,8 @@
---- a/gtk/gtktreeview.c	2008-04-01 11:11:21.000000000 +0200
-+++ b/gtk/gtktreeview.c	2008-04-01 11:11:32.000000000 +0200
-@@ -9669,7 +9669,8 @@
+Index: gtk+-2.12.11/gtk/gtktreeview.c
+===================================================================
+--- gtk+-2.12.11.orig/gtk/gtktreeview.c	2008-07-10 19:00:15.873743659 +0200
++++ gtk+-2.12.11/gtk/gtktreeview.c	2008-07-10 19:00:29.729244218 +0200
+@@ -9679,7 +9679,8 @@ gtk_tree_view_focus_to_cursor (GtkTreeVi
  
        if (cursor_path)
  	{
