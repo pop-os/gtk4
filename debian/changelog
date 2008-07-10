@@ -4,6 +4,8 @@ gtk+2.0 (2.12.11-2) UNRELEASED; urgency=low
     + Enable again, it was disabled by mistake.
     + Update to new version provided by Kristian Rietveld.
       Closes: #471073.
+  * libgtk2.0-doc.doc-base.gtk2-tutorial: fix spelling of GTK+.
+  * *.doc-base.*: fix doc-base sections.
 
  -- Josselin Mouette <joss@debian.org>  Thu, 10 Jul 2008 19:01:29 +0200
 
