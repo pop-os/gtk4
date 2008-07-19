@@ -13,6 +13,7 @@
 021_loader-files-d.patch
 022_module-files-append-compat-module-files-d.patch
 030_gtkentry_password-char-circle.patch
+031_directfb_dead-keys.patch
 033_treeview_resizing.patch
 041_ia32-libs.patch
 042_treeview_single-focus.patch

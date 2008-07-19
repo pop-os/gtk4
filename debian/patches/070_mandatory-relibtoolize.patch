@@ -1,7 +1,8 @@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+2.0-2.12.11/aclocal.m4
---- gtk+2.0-2.12.11.old/aclocal.m4	2008-07-01 15:43:50.000000000 +0200
-+++ gtk+2.0-2.12.11/aclocal.m4	2008-07-02 07:22:23.000000000 +0200
-@@ -941,7 +941,7 @@
+Index: gtk+-2.12.11/aclocal.m4
+===================================================================
+--- gtk+-2.12.11.orig/aclocal.m4	2008-07-19 12:11:05.833816867 +0200
++++ gtk+-2.12.11/aclocal.m4	2008-07-19 12:23:59.661824198 +0200
+@@ -941,7 +941,7 @@ AU_DEFUN([AM_CONFIG_HEADER], [AC_CONFIG_
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
  
@@ -10,7 +11,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
  
  
  # AC_PROVIDE_IFELSE(MACRO-NAME, IF-PROVIDED, IF-NOT-PROVIDED)
-@@ -1565,7 +1565,6 @@
+@@ -1565,7 +1565,6 @@ s390*-*linux*|sparc*-*linux*)
        esac
        ;;
      *64-bit*)
@@ -18,7 +19,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
        case $host in
          x86_64-*kfreebsd*-gnu)
            LD="${LD-ld} -m elf_x86_64_fbsd"
-@@ -2628,13 +2627,11 @@
+@@ -2628,13 +2627,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -33,7 +34,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -2646,6 +2643,18 @@
+@@ -2646,6 +2643,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -52,7 +53,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -3427,7 +3436,7 @@
+@@ -3427,7 +3436,7 @@ linux* | k*bsd*-gnu)
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -61,7 +62,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|_pic\.a)$'
    else
-@@ -4434,7 +4443,7 @@
+@@ -4434,7 +4443,7 @@ case $host_os in
  	;;
      esac
      ;;
@@ -70,7 +71,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
      if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
        _LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable  -o $lib $predep_objects $libobjs $deplibs $postdep_objects $linker_flags'
        wlarc=
-@@ -6126,7 +6135,7 @@
+@@ -6126,7 +6135,7 @@ AC_MSG_CHECKING([for $compiler option to
  	    ;;
  	esac
  	;;
@@ -79,7 +80,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
  	;;
        osf3* | osf4* | osf5*)
  	case $cc_basename in
-@@ -6503,6 +6512,9 @@
+@@ -6503,6 +6512,9 @@ ifelse([$1],[CXX],[
    cygwin* | mingw*)
      _LT_AC_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[[BCDGRS]][[ ]]/s/.*[[ ]]\([[^ ]]*\)/\1 DATA/;/^.*[[ ]]__nm__/s/^.*[[ ]]__nm__\([[^ ]]*\)[[ ]][[^ ]]*/\1 DATA/;/^I[[ ]]/d;/^[[AITW]][[ ]]/s/.*[[ ]]//'\'' | sort | uniq > $export_symbols'
    ;;
@@ -89,7 +90,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
    *)
      _LT_AC_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-@@ -6711,12 +6723,13 @@
+@@ -6711,12 +6723,13 @@ EOF
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -104,7 +105,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	_LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -7147,7 +7160,7 @@
+@@ -7147,7 +7160,7 @@ _LT_EOF
        _LT_AC_TAGVAR(link_all_deplibs, $1)=yes
        ;;
  
@@ -113,7 +114,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	_LT_AC_TAGVAR(archive_cmds, $1)='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -7825,14 +7838,16 @@
+@@ -7825,14 +7838,16 @@ fi])
  # _PKG_CONFIG([VARIABLE], [COMMAND], [MODULES])
  # ---------------------------------------------
  m4_define([_PKG_CONFIG],
@@ -138,7 +139,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
  fi[]dnl
  ])# _PKG_CONFIG
  
-@@ -7876,9 +7891,9 @@
+@@ -7876,9 +7891,9 @@ See the pkg-config man page for more det
  if test $pkg_failed = yes; then
          _PKG_SHORT_ERRORS_SUPPORTED
          if test $_pkg_short_errors_supported = yes; then
@@ -150,10 +151,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/aclocal.m4 gtk+
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2.0-2.12.11/configure
---- gtk+2.0-2.12.11.old/configure	2008-07-01 15:44:08.000000000 +0200
-+++ gtk+2.0-2.12.11/configure	2008-07-02 07:22:28.000000000 +0200
-@@ -885,6 +885,8 @@
+Index: gtk+-2.12.11/configure
+===================================================================
+--- gtk+-2.12.11.orig/configure	2008-07-19 12:11:05.805819664 +0200
++++ gtk+-2.12.11/configure	2008-07-19 12:24:28.501819016 +0200
+@@ -885,6 +885,8 @@ AMDEPBACKSLASH
  CCDEPMODE
  am__fastdepCC_TRUE
  am__fastdepCC_FALSE
@@ -162,7 +164,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  CXX
  CXXFLAGS
  ac_ct_CXX
-@@ -1040,6 +1042,7 @@
+@@ -1040,6 +1042,7 @@ GDK_PIXBUF_XLIB_DEP_CFLAGS
  USE_DIRECTFB_TRUE
  USE_DIRECTFB_FALSE
  GDK_PACKAGES
@@ -170,7 +172,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  GDK_EXTRA_LIBS
  GDK_EXTRA_CFLAGS
  GDK_DEP_LIBS
-@@ -4023,6 +4026,16 @@
+@@ -4023,6 +4026,16 @@ fi
  
  
  
@@ -187,7 +189,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  for ac_prog in $CCC c++ g++ gcc CC cxx cc++ cl
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
-@@ -5235,7 +5248,7 @@
+@@ -5235,7 +5248,7 @@ linux* | k*bsd*-gnu)
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -196,7 +198,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
    if echo __ELF__ | $CC -E - | grep __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -5356,7 +5369,7 @@
+@@ -5356,7 +5369,7 @@ ia64-*-hpux*)
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
@@ -205,7 +207,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
    if { (eval echo "$as_me:$LINENO: \"$ac_compile\"") >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
-@@ -5421,7 +5434,6 @@
+@@ -5421,7 +5434,6 @@ s390*-*linux*|sparc*-*linux*)
        esac
        ;;
      *64-bit*)
@@ -213,7 +215,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
        case $host in
          x86_64-*kfreebsd*-gnu)
            LD="${LD-ld} -m elf_x86_64_fbsd"
-@@ -8269,11 +8281,11 @@
+@@ -8269,11 +8281,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -227,7 +229,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -8559,11 +8571,11 @@
+@@ -8559,11 +8571,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -241,7 +243,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -8663,11 +8675,11 @@
+@@ -8663,11 +8675,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -255,7 +257,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -8928,12 +8940,13 @@
+@@ -8928,12 +8940,13 @@ EOF
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -270,7 +272,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -9484,7 +9497,7 @@
+@@ -9484,7 +9497,7 @@ if test -z "$aix_libpath"; then aix_libp
        link_all_deplibs=yes
        ;;
  
@@ -279,7 +281,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -10179,13 +10192,11 @@
+@@ -10179,13 +10192,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -294,7 +296,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -10197,6 +10208,18 @@
+@@ -10197,6 +10208,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -313,7 +315,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -11065,7 +11088,7 @@
+@@ -11065,7 +11088,7 @@ else
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
@@ -322,7 +324,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -11165,7 +11188,7 @@
+@@ -11165,7 +11188,7 @@ else
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<EOF
@@ -331,7 +333,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -12761,7 +12784,7 @@
+@@ -12761,7 +12784,7 @@ if test -z "$aix_libpath"; then aix_libp
  	;;
      esac
      ;;
@@ -340,7 +342,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
      if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
        archive_cmds_CXX='$LD -Bshareable  -o $lib $predep_objects $libobjs $deplibs $postdep_objects $linker_flags'
        wlarc=
-@@ -13465,7 +13488,7 @@
+@@ -13465,7 +13488,7 @@ $as_echo_n "checking for $compiler optio
  	    ;;
  	esac
  	;;
@@ -349,7 +351,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  	;;
        osf3* | osf4* | osf5*)
  	case $cc_basename in
-@@ -13574,11 +13597,11 @@
+@@ -13574,11 +13597,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -363,7 +365,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -13678,11 +13701,11 @@
+@@ -13678,11 +13701,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -377,7 +379,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -13750,6 +13773,9 @@
+@@ -13750,6 +13773,9 @@ $as_echo_n "checking whether the $compil
    cygwin* | mingw*)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS][ ]/s/.*[ ]\([^ ]*\)/\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\([^ ]*\)[ ][^ ]*/\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.*[ ]//'\'' | sort | uniq > $export_symbols'
    ;;
@@ -387,7 +389,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
    *)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-@@ -14180,13 +14206,11 @@
+@@ -14180,13 +14206,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -402,7 +404,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -14198,6 +14222,18 @@
+@@ -14198,6 +14222,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -421,7 +423,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -15263,11 +15299,11 @@
+@@ -15263,11 +15299,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -435,7 +437,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -15367,11 +15403,11 @@
+@@ -15367,11 +15403,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -449,7 +451,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -15632,12 +15668,13 @@
+@@ -15632,12 +15668,13 @@ EOF
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -464,7 +466,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -16168,7 +16205,7 @@
+@@ -16168,7 +16205,7 @@ if test -z "$aix_libpath"; then aix_libp
        link_all_deplibs_F77=yes
        ;;
  
@@ -473,7 +475,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_F77='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -16811,13 +16848,11 @@
+@@ -16811,13 +16848,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -488,7 +490,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -16829,6 +16864,18 @@
+@@ -16829,6 +16864,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -507,7 +509,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -17584,11 +17631,11 @@
+@@ -17584,11 +17631,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -521,7 +523,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -17874,11 +17921,11 @@
+@@ -17874,11 +17921,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -535,7 +537,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -17978,11 +18025,11 @@
+@@ -17978,11 +18025,11 @@ else
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
@@ -549,7 +551,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -18243,12 +18290,13 @@
+@@ -18243,12 +18290,13 @@ EOF
    $echo "local: *; };" >> $output_objdir/$libname.ver~
  	  $CC '"$tmp_sharedflag""$tmp_addflag"' $libobjs $deplibs $compiler_flags ${wl}-soname $wl$soname ${wl}-version-script ${wl}$output_objdir/$libname.ver -o $lib'
  	fi
@@ -564,7 +566,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -18799,7 +18847,7 @@
+@@ -18799,7 +18847,7 @@ if test -z "$aix_libpath"; then aix_libp
        link_all_deplibs_GCJ=yes
        ;;
  
@@ -573,7 +575,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
        if echo __ELF__ | $CC -E - | grep __ELF__ >/dev/null; then
  	archive_cmds_GCJ='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -19442,13 +19490,11 @@
+@@ -19442,13 +19490,11 @@ linux* | k*bsd*-gnu)
    # Some rework will be needed to allow for fast_install
    # before this can be enabled.
    hardcode_into_libs=yes
@@ -588,7 +590,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -19460,6 +19506,18 @@
+@@ -19460,6 +19506,18 @@ linux* | k*bsd*-gnu)
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -607,7 +609,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -21967,10 +22025,11 @@
+@@ -21967,10 +22025,11 @@ pkg_failed=no
  { $as_echo "$as_me:$LINENO: checking for BASE_DEPENDENCIES" >&5
  $as_echo_n "checking for BASE_DEPENDENCIES... " >&6; }
  
@@ -623,7 +625,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
      { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0\"") >&5
    ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0") 2>&5
    ac_status=$?
-@@ -21980,13 +22039,15 @@
+@@ -21980,13 +22039,15 @@ if test -n "$BASE_DEPENDENCIES_CFLAGS"; 
  else
    pkg_failed=yes
  fi
@@ -645,7 +647,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
      { ($as_echo "$as_me:$LINENO: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0\"") >&5
    ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.13.5    atk >= 1.9.0    pango >= 1.17.3    cairo >= 1.2.0") 2>&5
    ac_status=$?
-@@ -21996,8 +22057,9 @@
+@@ -21996,8 +22057,9 @@ if test -n "$BASE_DEPENDENCIES_LIBS"; th
  else
    pkg_failed=yes
  fi
@@ -657,7 +659,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  fi
  
  
-@@ -22010,9 +22072,9 @@
+@@ -22010,9 +22072,9 @@ else
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -669,7 +671,15 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$BASE_DEPENDENCIES_PKG_ERRORS" >&5
-@@ -33453,8 +33515,18 @@
+@@ -33446,15 +33508,25 @@ GDK_PIXBUF_XLIB_DEP_CFLAGS="`$PKG_CONFIG
+ 
+ 
+ if test "x$gdktarget" = "xdirectfb"; then
+-  DIRECTFB_REQUIRED_VERSION=0.9.24
++  DIRECTFB_REQUIRED_VERSION=0.9.26
+   { $as_echo "$as_me:$LINENO: checking for DirectFB" >&5
+ $as_echo_n "checking for DirectFB... " >&6; }
+ 
    if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
        { $as_echo "$as_me:$LINENO: result: found" >&5
  $as_echo "found" >&6; }
@@ -690,7 +700,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
    else
        { { $as_echo "$as_me:$LINENO: error:
  *** DirectFB $DIRECTFB_REQUIRED_VERSION or newer and the cairo backend
-@@ -33594,20 +33666,21 @@
+@@ -33594,20 +33666,21 @@ fi
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
@@ -717,7 +727,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  fi
  
  
-@@ -33617,6 +33690,7 @@
+@@ -33617,6 +33690,7 @@ fi
  
  
  
@@ -725,7 +735,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  ########################################
  # Check for Accessibility Toolkit flags
  ########################################
-@@ -33726,7 +33800,7 @@
+@@ -33726,7 +33800,7 @@ PANGO_PREFIX="`$PKG_CONFIG --variable=pr
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then
@@ -734,7 +744,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  fi
  
  
-@@ -34948,6 +35022,13 @@
+@@ -34948,6 +35022,13 @@ $as_echo "$as_me: error: conditional \"a
  Usually this means the macro was only invoked conditionally." >&2;}
     { (exit 1); exit 1; }; }
  fi
@@ -748,7 +758,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    { { $as_echo "$as_me:$LINENO: error: conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." >&5
-@@ -36186,9 +36267,9 @@
+@@ -36186,9 +36267,9 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_writ
    }
    split(mac1, mac2, "(") #)
    macro = mac2[1]
@@ -759,7 +769,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
      print prefix "define", macro P[macro] D[macro]
      next
    } else {
-@@ -36196,7 +36277,7 @@
+@@ -36196,7 +36277,7 @@ cat >>$CONFIG_STATUS <<_ACEOF || ac_writ
      # in the case of _POSIX_SOURCE, which is predefined and required
      # on some systems where configure will not decide to define it.
      if (defundef == "undef") {
@@ -768,10 +778,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/configure gtk+2
        next
      }
    }
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.12.11/contrib/gdk-pixbuf-xlib/Makefile.in
---- gtk+2.0-2.12.11.old/contrib/gdk-pixbuf-xlib/Makefile.in	2008-07-01 15:44:00.000000000 +0200
-+++ gtk+2.0-2.12.11/contrib/gdk-pixbuf-xlib/Makefile.in	2008-07-02 07:22:29.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/contrib/gdk-pixbuf-xlib/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/contrib/gdk-pixbuf-xlib/Makefile.in	2008-07-19 12:11:05.797820463 +0200
++++ gtk+-2.12.11/contrib/gdk-pixbuf-xlib/Makefile.in	2008-07-19 12:23:59.689820423 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -780,7 +791,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/contrib/gdk-pix
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -788,10 +799,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/contrib/gdk-pix
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/contrib/Makefile.in gtk+2.0-2.12.11/contrib/Makefile.in
---- gtk+2.0-2.12.11.old/contrib/Makefile.in	2008-07-01 15:44:00.000000000 +0200
-+++ gtk+2.0-2.12.11/contrib/Makefile.in	2008-07-02 07:22:29.000000000 +0200
-@@ -91,6 +91,8 @@
+Index: gtk+-2.12.11/contrib/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/contrib/Makefile.in	2008-07-19 12:11:05.781819127 +0200
++++ gtk+-2.12.11/contrib/Makefile.in	2008-07-19 12:23:59.689820423 +0200
+@@ -91,6 +91,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -800,7 +812,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/contrib/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -114,6 +116,7 @@
+@@ -114,6 +116,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -808,10 +820,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/contrib/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/demos/gtk-demo/Makefile.in gtk+2.0-2.12.11/demos/gtk-demo/Makefile.in
---- gtk+2.0-2.12.11.old/demos/gtk-demo/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/demos/gtk-demo/Makefile.in	2008-07-02 07:22:29.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/demos/gtk-demo/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/demos/gtk-demo/Makefile.in	2008-07-19 12:11:05.773818460 +0200
++++ gtk+-2.12.11/demos/gtk-demo/Makefile.in	2008-07-19 12:23:59.689820423 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -820,7 +833,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/demos/gtk-demo/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -828,10 +841,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/demos/gtk-demo/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/demos/Makefile.in gtk+2.0-2.12.11/demos/Makefile.in
---- gtk+2.0-2.12.11.old/demos/Makefile.in	2008-07-01 15:44:00.000000000 +0200
-+++ gtk+2.0-2.12.11/demos/Makefile.in	2008-07-02 07:22:29.000000000 +0200
-@@ -91,6 +91,8 @@
+Index: gtk+-2.12.11/demos/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/demos/Makefile.in	2008-07-19 12:11:05.757822013 +0200
++++ gtk+-2.12.11/demos/Makefile.in	2008-07-19 12:23:59.689820423 +0200
+@@ -91,6 +91,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -840,7 +854,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/demos/Makefile.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -114,6 +116,7 @@
+@@ -114,6 +116,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -848,10 +862,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/demos/Makefile.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/faq/Makefile.in gtk+2.0-2.12.11/docs/faq/Makefile.in
---- gtk+2.0-2.12.11.old/docs/faq/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/docs/faq/Makefile.in	2008-07-02 07:22:29.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/docs/faq/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/docs/faq/Makefile.in	2008-07-19 12:11:05.745818812 +0200
++++ gtk+-2.12.11/docs/faq/Makefile.in	2008-07-19 12:23:59.689820423 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -860,7 +875,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/faq/Makefi
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -868,10 +883,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/faq/Makefi
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/Makefile.in gtk+2.0-2.12.11/docs/Makefile.in
---- gtk+2.0-2.12.11.old/docs/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/docs/Makefile.in	2008-07-02 07:22:29.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/docs/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/docs/Makefile.in	2008-07-19 12:11:05.717819164 +0200
++++ gtk+-2.12.11/docs/Makefile.in	2008-07-19 12:23:59.693821002 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -880,7 +896,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/Makefile.i
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -888,10 +904,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/Makefile.i
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/gdk/Makefile.in gtk+2.0-2.12.11/docs/reference/gdk/Makefile.in
---- gtk+2.0-2.12.11.old/docs/reference/gdk/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/docs/reference/gdk/Makefile.in	2008-07-02 07:22:30.000000000 +0200
-@@ -96,6 +96,8 @@
+Index: gtk+-2.12.11/docs/reference/gdk/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/docs/reference/gdk/Makefile.in	2008-07-19 12:11:05.709818496 +0200
++++ gtk+-2.12.11/docs/reference/gdk/Makefile.in	2008-07-19 12:23:59.693821002 +0200
+@@ -96,6 +96,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -900,7 +917,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -119,6 +121,7 @@
+@@ -119,6 +121,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -908,10 +925,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.12.11/docs/reference/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.12.11.old/docs/reference/gdk-pixbuf/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/docs/reference/gdk-pixbuf/Makefile.in	2008-07-02 07:22:30.000000000 +0200
-@@ -96,6 +96,8 @@
+Index: gtk+-2.12.11/docs/reference/gdk-pixbuf/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/docs/reference/gdk-pixbuf/Makefile.in	2008-07-19 12:11:05.693824983 +0200
++++ gtk+-2.12.11/docs/reference/gdk-pixbuf/Makefile.in	2008-07-19 12:23:59.693821002 +0200
+@@ -96,6 +96,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -920,7 +938,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -119,6 +121,7 @@
+@@ -119,6 +121,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -928,10 +946,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/gtk/Makefile.in gtk+2.0-2.12.11/docs/reference/gtk/Makefile.in
---- gtk+2.0-2.12.11.old/docs/reference/gtk/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/docs/reference/gtk/Makefile.in	2008-07-02 07:22:30.000000000 +0200
-@@ -96,6 +96,8 @@
+Index: gtk+-2.12.11/docs/reference/gtk/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/docs/reference/gtk/Makefile.in	2008-07-19 12:11:05.681819337 +0200
++++ gtk+-2.12.11/docs/reference/gtk/Makefile.in	2008-07-19 12:23:59.693821002 +0200
+@@ -96,6 +96,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -940,7 +959,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -119,6 +121,7 @@
+@@ -119,6 +121,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -948,10 +967,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/Makefile.in gtk+2.0-2.12.11/docs/reference/Makefile.in
---- gtk+2.0-2.12.11.old/docs/reference/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/docs/reference/Makefile.in	2008-07-02 07:22:30.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/docs/reference/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/docs/reference/Makefile.in	2008-07-19 12:11:05.653818711 +0200
++++ gtk+-2.12.11/docs/reference/Makefile.in	2008-07-19 12:23:59.693821002 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -960,7 +980,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -968,10 +988,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/reference/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/tools/Makefile.in gtk+2.0-2.12.11/docs/tools/Makefile.in
---- gtk+2.0-2.12.11.old/docs/tools/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/docs/tools/Makefile.in	2008-07-02 07:22:30.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/docs/tools/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/docs/tools/Makefile.in	2008-07-19 12:11:05.645818532 +0200
++++ gtk+-2.12.11/docs/tools/Makefile.in	2008-07-19 12:23:59.693821002 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -980,7 +1001,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/tools/Make
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -988,10 +1009,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/tools/Make
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/tutorial/Makefile.in gtk+2.0-2.12.11/docs/tutorial/Makefile.in
---- gtk+2.0-2.12.11.old/docs/tutorial/Makefile.in	2008-07-01 15:44:01.000000000 +0200
-+++ gtk+2.0-2.12.11/docs/tutorial/Makefile.in	2008-07-02 07:22:30.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/docs/tutorial/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/docs/tutorial/Makefile.in	2008-07-19 12:11:05.633819731 +0200
++++ gtk+-2.12.11/docs/tutorial/Makefile.in	2008-07-19 12:23:59.697819136 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1000,7 +1022,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/tutorial/M
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1008,10 +1030,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/docs/tutorial/M
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/directfb/Makefile.in gtk+2.0-2.12.11/gdk/directfb/Makefile.in
---- gtk+2.0-2.12.11.old/gdk/directfb/Makefile.in	2008-07-01 15:44:02.000000000 +0200
-+++ gtk+2.0-2.12.11/gdk/directfb/Makefile.in	2008-07-02 07:22:31.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gdk/directfb/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gdk/directfb/Makefile.in	2008-07-19 12:11:05.621820440 +0200
++++ gtk+-2.12.11/gdk/directfb/Makefile.in	2008-07-19 12:23:59.697819136 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1020,7 +1043,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/directfb/Ma
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1028,10 +1051,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/directfb/Ma
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/Makefile.in gtk+2.0-2.12.11/gdk/Makefile.in
---- gtk+2.0-2.12.11.old/gdk/Makefile.in	2008-07-01 15:44:02.000000000 +0200
-+++ gtk+2.0-2.12.11/gdk/Makefile.in	2008-07-02 07:22:31.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gdk/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gdk/Makefile.in	2008-07-19 12:11:05.605819105 +0200
++++ gtk+-2.12.11/gdk/Makefile.in	2008-07-19 12:23:59.697819136 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1040,7 +1064,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1048,10 +1072,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/Makefile.in
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/quartz/Makefile.in gtk+2.0-2.12.11/gdk/quartz/Makefile.in
---- gtk+2.0-2.12.11.old/gdk/quartz/Makefile.in	2008-07-01 15:44:02.000000000 +0200
-+++ gtk+2.0-2.12.11/gdk/quartz/Makefile.in	2008-07-02 07:22:32.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gdk/quartz/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gdk/quartz/Makefile.in	2008-07-19 12:11:05.597818437 +0200
++++ gtk+-2.12.11/gdk/quartz/Makefile.in	2008-07-19 12:23:59.697819136 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1060,7 +1085,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/quartz/Make
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1068,10 +1093,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/quartz/Make
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/win32/Makefile.in gtk+2.0-2.12.11/gdk/win32/Makefile.in
---- gtk+2.0-2.12.11.old/gdk/win32/Makefile.in	2008-07-01 15:44:03.000000000 +0200
-+++ gtk+2.0-2.12.11/gdk/win32/Makefile.in	2008-07-02 07:22:32.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gdk/win32/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gdk/win32/Makefile.in	2008-07-19 12:11:05.585818658 +0200
++++ gtk+-2.12.11/gdk/win32/Makefile.in	2008-07-19 12:23:59.697819136 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1080,7 +1106,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/win32/Makef
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1088,10 +1114,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/win32/Makef
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/win32/rc/Makefile.in gtk+2.0-2.12.11/gdk/win32/rc/Makefile.in
---- gtk+2.0-2.12.11.old/gdk/win32/rc/Makefile.in	2008-07-01 15:44:03.000000000 +0200
-+++ gtk+2.0-2.12.11/gdk/win32/rc/Makefile.in	2008-07-02 07:22:32.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gdk/win32/rc/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gdk/win32/rc/Makefile.in	2008-07-19 12:11:05.573821323 +0200
++++ gtk+-2.12.11/gdk/win32/rc/Makefile.in	2008-07-19 12:23:59.701820692 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1100,7 +1127,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/win32/rc/Ma
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1108,10 +1135,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/win32/rc/Ma
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/x11/Makefile.in gtk+2.0-2.12.11/gdk/x11/Makefile.in
---- gtk+2.0-2.12.11.old/gdk/x11/Makefile.in	2008-07-01 15:44:03.000000000 +0200
-+++ gtk+2.0-2.12.11/gdk/x11/Makefile.in	2008-07-02 07:22:32.000000000 +0200
-@@ -92,6 +92,8 @@
+Index: gtk+-2.12.11/gdk/x11/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gdk/x11/Makefile.in	2008-07-19 12:11:05.561821055 +0200
++++ gtk+-2.12.11/gdk/x11/Makefile.in	2008-07-19 12:23:59.701820692 +0200
+@@ -92,6 +92,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1120,7 +1148,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/x11/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -115,6 +117,7 @@
+@@ -115,6 +117,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1128,10 +1156,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk/x11/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/Makefile.in gtk+2.0-2.12.11/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.12.11.old/gdk-pixbuf/Makefile.in	2008-07-01 15:44:02.000000000 +0200
-+++ gtk+2.0-2.12.11/gdk-pixbuf/Makefile.in	2008-07-02 07:22:31.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gdk-pixbuf/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gdk-pixbuf/Makefile.in	2008-07-19 12:11:05.549818342 +0200
++++ gtk+-2.12.11/gdk-pixbuf/Makefile.in	2008-07-19 12:23:59.701820692 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1140,7 +1169,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/Make
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1148,7 +1177,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/Make
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -350,6 +353,7 @@
+@@ -350,6 +353,7 @@ lib_LTLIBRARIES = \
  
  
  loaderdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loaders
@@ -1156,7 +1185,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/Make
  
  module_libs = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
  
-@@ -559,7 +563,7 @@
+@@ -559,7 +563,7 @@ INCLUDES = \
  	-DGDK_PIXBUF_ENABLE_BACKEND
  
  
@@ -1165,10 +1194,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/Make
  LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GLIB_LIBS)
  
  noinst_PROGRAMS = test-gdk-pixbuf
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.12.11/gdk-pixbuf/pixops/Makefile.in
---- gtk+2.0-2.12.11.old/gdk-pixbuf/pixops/Makefile.in	2008-07-01 15:44:02.000000000 +0200
-+++ gtk+2.0-2.12.11/gdk-pixbuf/pixops/Makefile.in	2008-07-02 07:22:31.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gdk-pixbuf/pixops/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gdk-pixbuf/pixops/Makefile.in	2008-07-19 12:11:05.537821985 +0200
++++ gtk+-2.12.11/gdk-pixbuf/pixops/Makefile.in	2008-07-19 12:23:59.701820692 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1177,7 +1207,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/pixo
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1185,10 +1215,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gdk-pixbuf/pixo
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/Makefile.in gtk+2.0-2.12.11/gtk/Makefile.in
---- gtk+2.0-2.12.11.old/gtk/Makefile.in	2008-07-01 15:44:03.000000000 +0200
-+++ gtk+2.0-2.12.11/gtk/Makefile.in	2008-07-02 07:22:33.000000000 +0200
-@@ -116,6 +116,8 @@
+Index: gtk+-2.12.11/gtk/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gtk/Makefile.in	2008-07-19 12:11:05.525819273 +0200
++++ gtk+-2.12.11/gtk/Makefile.in	2008-07-19 12:23:59.705823714 +0200
+@@ -116,6 +116,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1197,7 +1228,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/Makefile.in
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -139,6 +141,7 @@
+@@ -139,6 +141,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1205,7 +1236,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/Makefile.in
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -384,6 +387,8 @@
+@@ -384,6 +387,8 @@ INCLUDES = \
  	-I$(top_srcdir)/gdk-pixbuf -I../gdk-pixbuf	\
  	-DGDK_PIXBUF_DISABLE_DEPRECATED			\
  	-DGDK_DISABLE_DEPRECATED			\
@@ -1214,7 +1245,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/Makefile.in
  	-DGTK_FILE_SYSTEM_ENABLE_UNSUPPORTED		\
  	-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED		\
  	$(GTK_DEBUG_FLAGS)				\
-@@ -639,13 +644,16 @@
+@@ -639,13 +644,16 @@ gtk_public_h_sources = \
  # that are not included in gtk/gtk.h
  gtk_semi_private_h_sources = \
  	gtktextlayout.h		\
@@ -1234,7 +1265,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/Makefile.in
  	gtksearchenginesimple.h	\
  	gtkdndcursors.h		\
  	gtkentryprivate.h	\
-@@ -653,10 +661,7 @@
+@@ -653,10 +661,7 @@ gtk_private_h_sources = \
  	gtkfilechooserdefault.h	\
  	gtkfilechooserembed.h	\
  	gtkfilechooserentry.h	\
@@ -1245,10 +1276,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/Makefile.in
  	gtkfilesystemunix.h	\
  	gtkhsv.h		\
  	gtkiconcache.h		\
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/theme-bits/Makefile.in gtk+2.0-2.12.11/gtk/theme-bits/Makefile.in
---- gtk+2.0-2.12.11.old/gtk/theme-bits/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/gtk/theme-bits/Makefile.in	2008-07-02 07:22:33.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gtk/theme-bits/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gtk/theme-bits/Makefile.in	2008-07-19 12:11:05.505823714 +0200
++++ gtk+-2.12.11/gtk/theme-bits/Makefile.in	2008-07-19 12:23:59.705823714 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1257,7 +1289,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/theme-bits/
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1265,10 +1297,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/theme-bits/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/xdgmime/Makefile.in gtk+2.0-2.12.11/gtk/xdgmime/Makefile.in
---- gtk+2.0-2.12.11.old/gtk/xdgmime/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/gtk/xdgmime/Makefile.in	2008-07-02 07:22:33.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/gtk/xdgmime/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/gtk/xdgmime/Makefile.in	2008-07-19 12:11:05.477823089 +0200
++++ gtk+-2.12.11/gtk/xdgmime/Makefile.in	2008-07-19 12:23:59.705823714 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1277,7 +1310,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/xdgmime/Mak
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1285,10 +1318,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/gtk/xdgmime/Mak
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/ltmain.sh gtk+2.0-2.12.11/ltmain.sh
---- gtk+2.0-2.12.11.old/ltmain.sh	2008-06-09 21:51:13.000000000 +0200
-+++ gtk+2.0-2.12.11/ltmain.sh	2008-04-29 23:33:55.000000000 +0200
-@@ -43,7 +43,7 @@
+Index: gtk+-2.12.11/ltmain.sh
+===================================================================
+--- gtk+-2.12.11.orig/ltmain.sh	2008-07-19 12:11:05.453865086 +0200
++++ gtk+-2.12.11/ltmain.sh	2008-07-19 12:23:59.709823315 +0200
+@@ -43,7 +43,7 @@ EXIT_FAILURE=1
  
  PROGRAM=ltmain.sh
  PACKAGE=libtool
@@ -1297,7 +1331,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/ltmain.sh gtk+2
  TIMESTAMP=" (1.1220.2.493 2008/02/01 16:58:18)"
  
  # Be Bourne compatible (taken from Autoconf:_AS_BOURNE_COMPATIBLE).
-@@ -2135,7 +2135,10 @@
+@@ -2135,7 +2135,10 @@ EOF
  	case $pass in
  	dlopen) libs="$dlfiles" ;;
  	dlpreopen) libs="$dlprefiles" ;;
@@ -1309,7 +1343,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/ltmain.sh gtk+2
  	esac
        fi
        if test "$pass" = dlopen; then
-@@ -3269,6 +3272,11 @@
+@@ -3269,6 +3272,11 @@ EOF
  	    revision="$number_minor"
  	    lt_irix_increment=no
  	    ;;
@@ -1321,10 +1355,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/ltmain.sh gtk+2
  	  esac
  	  ;;
  	no)
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/m4macros/Makefile.in gtk+2.0-2.12.11/m4macros/Makefile.in
---- gtk+2.0-2.12.11.old/m4macros/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/m4macros/Makefile.in	2008-07-02 07:22:33.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/m4macros/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/m4macros/Makefile.in	2008-07-19 12:11:05.429825438 +0200
++++ gtk+-2.12.11/m4macros/Makefile.in	2008-07-19 12:23:59.709823315 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1333,7 +1368,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/m4macros/Makefi
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1341,10 +1376,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/m4macros/Makefi
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/Makefile.in gtk+2.0-2.12.11/Makefile.in
---- gtk+2.0-2.12.11.old/Makefile.in	2008-07-01 15:44:00.000000000 +0200
-+++ gtk+2.0-2.12.11/Makefile.in	2008-07-02 07:22:29.000000000 +0200
-@@ -91,6 +91,8 @@
+Index: gtk+-2.12.11/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/Makefile.in	2008-07-19 12:11:05.405820502 +0200
++++ gtk+-2.12.11/Makefile.in	2008-07-19 12:23:59.713820471 +0200
+@@ -91,6 +91,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1353,7 +1389,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/Makefile.in gtk
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -114,6 +116,7 @@
+@@ -114,6 +116,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1361,7 +1397,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/Makefile.in gtk
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -332,7 +335,10 @@
+@@ -332,7 +335,10 @@ sharedstatedir = @sharedstatedir@
  sysconfdir = @sysconfdir@
  target_alias = @target_alias@
  
@@ -1373,7 +1409,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/Makefile.in gtk
  SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros
  
  # require automake 1.4
-@@ -484,13 +490,14 @@
+@@ -484,13 +490,14 @@ RECURSIVE_TARGETS = info-recursive dvi-r
  DIST_COMMON = README $(srcdir)/Makefile.in $(srcdir)/configure AUTHORS \
  	COPYING ChangeLog INSTALL Makefile.am NEWS acconfig.h \
  	acinclude.m4 aclocal.m4 compile config.guess config.h.in \
@@ -1390,7 +1426,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/Makefile.in gtk
  all: config.h
  	$(MAKE) $(AM_MAKEFLAGS) all-recursive
  
-@@ -742,7 +749,7 @@
+@@ -742,7 +749,7 @@ distdir: $(DISTFILES)
  	    || exit 1; \
  	  fi; \
  	done
@@ -1399,10 +1435,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/Makefile.in gtk
  	  if test "$$subdir" = .; then :; else \
  	    test -d $(distdir)/$$subdir \
  	    || mkdir $(distdir)/$$subdir \
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/Makefile.in gtk+2.0-2.12.11/modules/engines/Makefile.in
---- gtk+2.0-2.12.11.old/modules/engines/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/engines/Makefile.in	2008-07-02 07:22:34.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/engines/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/engines/Makefile.in	2008-07-19 12:11:05.381821432 +0200
++++ gtk+-2.12.11/modules/engines/Makefile.in	2008-07-19 12:23:59.713820471 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1411,7 +1448,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1419,10 +1456,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.12.11/modules/engines/ms-windows/Makefile.in
---- gtk+2.0-2.12.11.old/modules/engines/ms-windows/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/engines/ms-windows/Makefile.in	2008-07-02 07:22:34.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/engines/ms-windows/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/engines/ms-windows/Makefile.in	2008-07-19 12:11:05.353828140 +0200
++++ gtk+-2.12.11/modules/engines/ms-windows/Makefile.in	2008-07-19 12:23:59.713820471 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1431,7 +1469,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1439,10 +1477,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.12.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
---- gtk+2.0-2.12.11.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-07-02 07:22:34.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-07-19 12:11:05.325817736 +0200
++++ gtk+-2.12.11/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2008-07-19 12:23:59.713820471 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1451,7 +1490,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1459,10 +1498,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.12.11/modules/engines/ms-windows/Theme/Makefile.in
---- gtk+2.0-2.12.11.old/modules/engines/ms-windows/Theme/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/engines/ms-windows/Theme/Makefile.in	2008-07-02 07:22:34.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/engines/ms-windows/Theme/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/engines/ms-windows/Theme/Makefile.in	2008-07-19 12:11:05.285826131 +0200
++++ gtk+-2.12.11/modules/engines/ms-windows/Theme/Makefile.in	2008-07-19 12:23:59.713820471 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1471,7 +1511,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1479,10 +1519,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.12.11/modules/engines/pixbuf/Makefile.in
---- gtk+2.0-2.12.11.old/modules/engines/pixbuf/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/engines/pixbuf/Makefile.in	2008-07-02 07:22:34.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/engines/pixbuf/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/engines/pixbuf/Makefile.in	2008-07-19 12:11:05.257822572 +0200
++++ gtk+-2.12.11/modules/engines/pixbuf/Makefile.in	2008-07-19 12:23:59.713820471 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1491,7 +1532,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1499,10 +1540,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/engines
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/input/Makefile.in gtk+2.0-2.12.11/modules/input/Makefile.in
---- gtk+2.0-2.12.11.old/modules/input/Makefile.in	2008-07-01 15:44:05.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/input/Makefile.in	2008-07-02 07:22:35.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/input/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/input/Makefile.in	2008-07-19 12:11:05.233822525 +0200
++++ gtk+-2.12.11/modules/input/Makefile.in	2008-07-19 12:23:59.717823983 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1511,7 +1553,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/input/M
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1519,7 +1561,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/input/M
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -433,9 +436,10 @@
+@@ -433,9 +436,10 @@ im_multipress_la_LIBADD = $(LDADDS)
  
  imconffiledir = $(sysconfdir)/gtk-2.0
  dist_imconffile_DATA = im-multipress.conf
@@ -1531,7 +1573,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/input/M
  
  module_LTLIBRARIES = \
  	$(IM_XIM_MODULE)			\
-@@ -988,7 +992,18 @@
+@@ -988,7 +992,18 @@ uninstall-local:
  	rm -f $(DESTDIR)$(sysconfdir)/gtk-2.0/gtk.immodules
  
  gtk.immodules: Makefile.am $(module_LTLIBRARIES)
@@ -1551,10 +1593,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/input/M
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  # Tell versions [3.59,3.63) of GNU make to not export all variables.
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/Makefile.in gtk+2.0-2.12.11/modules/Makefile.in
---- gtk+2.0-2.12.11.old/modules/Makefile.in	2008-07-01 15:44:04.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/Makefile.in	2008-07-02 07:22:34.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/Makefile.in	2008-07-19 12:11:05.205821410 +0200
++++ gtk+-2.12.11/modules/Makefile.in	2008-07-19 12:23:59.717823983 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1563,7 +1606,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/Makefil
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1571,10 +1614,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.12.11/modules/printbackends/cups/Makefile.in
---- gtk+2.0-2.12.11.old/modules/printbackends/cups/Makefile.in	2008-07-01 15:44:05.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/printbackends/cups/Makefile.in	2008-07-02 07:22:35.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/printbackends/cups/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/printbackends/cups/Makefile.in	2008-07-19 12:11:05.177826162 +0200
++++ gtk+-2.12.11/modules/printbackends/cups/Makefile.in	2008-07-19 12:23:59.717823983 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1583,7 +1627,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1591,10 +1635,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/file/Makefile.in gtk+2.0-2.12.11/modules/printbackends/file/Makefile.in
---- gtk+2.0-2.12.11.old/modules/printbackends/file/Makefile.in	2008-07-01 15:44:05.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/printbackends/file/Makefile.in	2008-07-02 07:22:35.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/printbackends/file/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/printbackends/file/Makefile.in	2008-07-19 12:11:05.121819044 +0200
++++ gtk+-2.12.11/modules/printbackends/file/Makefile.in	2008-07-19 12:23:59.717823983 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1603,7 +1648,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1611,10 +1656,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.12.11/modules/printbackends/lpr/Makefile.in
---- gtk+2.0-2.12.11.old/modules/printbackends/lpr/Makefile.in	2008-07-01 15:44:05.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/printbackends/lpr/Makefile.in	2008-07-02 07:22:35.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/printbackends/lpr/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/printbackends/lpr/Makefile.in	2008-07-19 12:11:05.081824017 +0200
++++ gtk+-2.12.11/modules/printbackends/lpr/Makefile.in	2008-07-19 12:23:59.717823983 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1623,7 +1669,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1631,10 +1677,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/Makefile.in gtk+2.0-2.12.11/modules/printbackends/Makefile.in
---- gtk+2.0-2.12.11.old/modules/printbackends/Makefile.in	2008-07-01 15:44:05.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/printbackends/Makefile.in	2008-07-02 07:22:35.000000000 +0200
-@@ -92,6 +92,8 @@
+Index: gtk+-2.12.11/modules/printbackends/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/printbackends/Makefile.in	2008-07-19 12:11:05.053828280 +0200
++++ gtk+-2.12.11/modules/printbackends/Makefile.in	2008-07-19 12:23:59.721820161 +0200
+@@ -92,6 +92,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1643,7 +1690,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -115,6 +117,7 @@
+@@ -115,6 +117,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1651,10 +1698,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printbackends/test/Makefile.in gtk+2.0-2.12.11/modules/printbackends/test/Makefile.in
---- gtk+2.0-2.12.11.old/modules/printbackends/test/Makefile.in	2008-07-01 15:44:05.000000000 +0200
-+++ gtk+2.0-2.12.11/modules/printbackends/test/Makefile.in	2008-07-02 07:22:35.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/modules/printbackends/test/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/modules/printbackends/test/Makefile.in	2008-07-19 12:11:05.033823433 +0200
++++ gtk+-2.12.11/modules/printbackends/test/Makefile.in	2008-07-19 12:23:59.721820161 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1663,7 +1711,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1671,10 +1719,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/modules/printba
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/perf/Makefile.in gtk+2.0-2.12.11/perf/Makefile.in
---- gtk+2.0-2.12.11.old/perf/Makefile.in	2008-07-01 15:44:05.000000000 +0200
-+++ gtk+2.0-2.12.11/perf/Makefile.in	2008-07-02 07:22:36.000000000 +0200
-@@ -90,6 +90,8 @@
+Index: gtk+-2.12.11/perf/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/perf/Makefile.in	2008-07-19 12:11:05.001825651 +0200
++++ gtk+-2.12.11/perf/Makefile.in	2008-07-19 12:23:59.721820161 +0200
+@@ -90,6 +90,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1683,7 +1732,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/perf/Makefile.i
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -113,6 +115,7 @@
+@@ -113,6 +115,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1691,10 +1740,11 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/perf/Makefile.i
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/tests/Makefile.in gtk+2.0-2.12.11/tests/Makefile.in
---- gtk+2.0-2.12.11.old/tests/Makefile.in	2008-07-01 15:44:06.000000000 +0200
-+++ gtk+2.0-2.12.11/tests/Makefile.in	2008-07-02 07:22:36.000000000 +0200
-@@ -93,6 +93,8 @@
+Index: gtk+-2.12.11/tests/Makefile.in
+===================================================================
+--- gtk+-2.12.11.orig/tests/Makefile.in	2008-07-19 12:11:04.977822181 +0200
++++ gtk+-2.12.11/tests/Makefile.in	2008-07-19 12:23:59.721820161 +0200
+@@ -93,6 +93,8 @@ ENABLE_GTK_DOC_FALSE = @ENABLE_GTK_DOC_F
  ENABLE_GTK_DOC_TRUE = @ENABLE_GTK_DOC_TRUE@
  ENABLE_MAN_FALSE = @ENABLE_MAN_FALSE@
  ENABLE_MAN_TRUE = @ENABLE_MAN_TRUE@
@@ -1703,7 +1753,7 @@ diff -x'*config.sub' -x'*config.guess' -Naur gtk+2.0-2.12.11.old/tests/Makefile.
  EXEEXT = @EXEEXT@
  F77 = @F77@
  FFLAGS = @FFLAGS@
-@@ -116,6 +118,7 @@
+@@ -116,6 +118,7 @@ GDK_PIXBUF_XLIB_DEP_LIBS = @GDK_PIXBUF_X
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
