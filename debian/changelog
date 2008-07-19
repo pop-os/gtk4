@@ -1,7 +1,7 @@
 gtk+2.0 (2.12.11-3) UNRELEASED; urgency=low
 
   * 031_directfb_dead-keys.patch: patch from Jérémy Bobbio to fix dead 
-    keys in the DirectFB backend.
+    keys in the DirectFB backend. Closes: #394871.
   * Now require DirectFB 0.9.26.
   * 070_mandatory_relibtoolize: updated to match the dependency bump.
 
