@@ -1,11 +1,14 @@
-gtk+2.0 (2.12.11-3) UNRELEASED; urgency=low
+gtk+2.0 (2.12.11-3) unstable; urgency=low
 
   * 031_directfb_dead-keys.patch: patch from Jérémy Bobbio to fix dead 
     keys in the DirectFB backend. Closes: #394871.
   * Now require DirectFB 0.9.26.
   * 070_mandatory_relibtoolize: updated to match the dependency bump.
+  * 033_treeview_resizing.patch:
+    + Fix crasher introduced by the patch. Closes: #491611.
+    + Add references.
 
- -- Josselin Mouette <joss@debian.org>  Sat, 19 Jul 2008 12:11:13 +0200
+ -- Josselin Mouette <joss@debian.org>  Mon, 21 Jul 2008 15:22:38 +0200
 
 gtk+2.0 (2.12.11-2) unstable; urgency=low
 
