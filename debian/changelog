@@ -1,3 +1,9 @@
+gtk+2.0 (2.12.11-4) UNRELEASED; urgency=low
+
+  * Let libgtk2.0-dev recommend debhelper for dh_gtkmodules.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 13 Aug 2008 22:49:48 +0200
+
 gtk+2.0 (2.12.11-3) unstable; urgency=low
 
   * 031_directfb_dead-keys.patch: patch from Jérémy Bobbio to fix dead 
