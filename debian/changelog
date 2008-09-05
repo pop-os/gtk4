@@ -9,7 +9,7 @@ gtk+2.0 (2.12.11-4) UNRELEASED; urgency=low
 
 gtk+2.0 (2.12.11-3) unstable; urgency=low
 
-  * 031_directfb_dead-keys.patch: patch from Jérémy Bobbio to fix dead 
+  * 031_directfb_dead-keys.patch: patch from Jérémy Bobbio to fix dead
     keys in the DirectFB backend. Closes: #394871.
   * Now require DirectFB 0.9.26.
   * 070_mandatory_relibtoolize: updated to match the dependency bump.
@@ -21,7 +21,7 @@ gtk+2.0 (2.12.11-3) unstable; urgency=low
 
 gtk+2.0 (2.12.11-2) unstable; urgency=low
 
-  * 033_treeview_resizing.patch: 
+  * 033_treeview_resizing.patch:
     + Enable again, it was disabled by mistake.
     + Update to new version provided by Kristian Rietveld.
       Closes: #471073.
@@ -146,7 +146,7 @@ gtk+2.0 (2.12.9-2) unstable; urgency=low
 gtk+2.0 (2.12.9-1) unstable; urgency=low
 
   [ Josselin Mouette ]
-  * update-icon-caches: always exit with a 0 code to avoid breaking 
+  * update-icon-caches: always exit with a 0 code to avoid breaking
     upgrades when a cache is corrupt. Display a big fat warning instead.
     Closes: #466083.
 
@@ -286,7 +286,7 @@ gtk+2.0 (2.12.1-3) unstable; urgency=low
   * 010_gdkpixbuf_-lm.patch: fix gdk-pixbuf-2.0.pc by adding back -lm,
     which is required by some macros. Closes: #451512.
   * 070_mandatory-relibtoolize.patch: regenerated.
-  * rules: copy the extraneous libraries generated in the static build 
+  * rules: copy the extraneous libraries generated in the static build
     to the Libs.private of the shared build.
 
  -- Josselin Mouette <joss@debian.org>  Sun, 18 Nov 2007 01:30:52 +0100
