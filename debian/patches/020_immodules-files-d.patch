@@ -1,8 +1,8 @@
-Index: gtk+2.0-2.10.10/gtk/gtkimmodule.c
+Index: gtk+2.0-2.14.0/gtk/gtkimmodule.c
 ===================================================================
---- gtk+2.0-2.10.10.orig/gtk/gtkimmodule.c	2007-03-12 14:51:28.000000000 +0100
-+++ gtk+2.0-2.10.10/gtk/gtkimmodule.c	2007-03-13 14:10:33.000000000 +0100
-@@ -59,6 +59,9 @@
+--- gtk+2.0-2.14.0.orig/gtk/gtkimmodule.c	2008-09-04 06:35:28.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/gtkimmodule.c	2008-09-05 00:36:29.000000000 +0200
+@@ -58,6 +58,9 @@
  #define GTK_IM_MODULE(im_module)    (G_TYPE_CHECK_INSTANCE_CAST ((im_module), GTK_TYPE_IM_MODULE, GtkIMModule))
  #define GTK_IS_IM_MODULE(im_module) (G_TYPE_CHECK_INSTANCE_TYPE ((im_module), GTK_TYPE_IM_MODULE))
  
@@ -12,8 +12,8 @@ Index: gtk+2.0-2.10.10/gtk/gtkimmodule.c
  struct _GtkIMModule
  {
    GTypeModule parent_instance;
-@@ -261,31 +264,15 @@
- 
+@@ -298,19 +301,15 @@
+ }
  
  static void
 -gtk_im_module_initialize (void)
@@ -30,6 +30,13 @@ Index: gtk+2.0-2.10.10/gtk/gtkimmodule.c
  
 -  contexts_hash = g_hash_table_new (g_str_hash, g_str_equal);
 -
+ #define do_builtin(m)							\
+   {									\
+     const GtkIMContextInfo **contexts;					\
+@@ -368,18 +367,6 @@
+ 
+ #undef do_builtin
+ 
 -  file = g_fopen (filename, "r");
 -  if (!file)
 -    {
@@ -45,7 +52,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkimmodule.c
    while (!have_error && pango_read_line (file, line_buf))
      {
        const char *p;
-@@ -383,10 +370,76 @@
+@@ -477,10 +464,76 @@
    else if (module)
      add_module (module, infos);
  

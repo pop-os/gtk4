@@ -11,13 +11,11 @@
 015_default-fallback-icon-theme.patch
 020_immodules-files-d.patch
 021_loader-files-d.patch
+022_module-files-append-compat-module-files-d.patch
 030_gtkentry_password-char-circle.patch
-031_gtksearchenginetracker_fixes.patch
-033_treeview_resizing.patch
+031_directfb_dead-keys.patch
 041_ia32-libs.patch
 042_treeview_single-focus.patch
 060_ignore-random-icons.patch
 070_mandatory-relibtoolize.patch
 091_workaround_no_gtk_init_incorrect_display.patch
-092_recentfiles-recursion-fix.patch
-095_gtk-im-module-setting.patch

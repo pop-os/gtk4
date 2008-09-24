@@ -1,23 +1,42 @@
-Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
+Index: gtk+2.0-2.14.2/gdk-pixbuf/Makefile.am
 ===================================================================
---- gtk+-2.12.1.orig/gdk-pixbuf/gdk-pixbuf-io.c	2007-11-04 12:35:24.378152677 +0100
-+++ gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c	2007-11-04 12:38:15.659913468 +0100
-@@ -45,6 +45,9 @@
- #undef STRICT
- #endif
+--- gtk+2.0-2.14.2.orig/gdk-pixbuf/Makefile.am	2008-09-18 03:49:27.000000000 +0200
++++ gtk+2.0-2.14.2/gdk-pixbuf/Makefile.am	2008-09-18 11:14:51.000000000 +0200
+@@ -62,6 +62,7 @@
+ 	libgdk_pixbuf-2.0.la
+ 
+ loaderdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loaders
++loaderfilesdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loader-files.d
+ 
+ module_libs = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
+ 
+@@ -513,7 +514,7 @@
+ 	$(GDK_PIXBUF_DEP_CFLAGS)		\
+ 	-DGDK_PIXBUF_ENABLE_BACKEND
+ 
+-AM_CPPFLAGS = "-DPIXBUF_LIBDIR=\"$(loaderdir)\"" "-DBUILT_MODULES_DIR=\"$(srcdir)/.libs\""
++AM_CPPFLAGS = "-DPIXBUF_LIBDIR=\"$(loaderdir)\"" "-DPIXBUF_FILES_LIBDIR=\"$(loaderfilesdir)\"" "-DBUILT_MODULES_DIR=\"$(srcdir)/.libs\""
+ LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
+ 
+ noinst_PROGRAMS = test-gdk-pixbuf
+Index: gtk+2.0-2.14.2/gdk-pixbuf/gdk-pixbuf-io.c
+===================================================================
+--- gtk+2.0-2.14.2.orig/gdk-pixbuf/gdk-pixbuf-io.c	2008-09-18 11:14:59.000000000 +0200
++++ gtk+2.0-2.14.2/gdk-pixbuf/gdk-pixbuf-io.c	2008-09-18 11:15:06.000000000 +0200
+@@ -51,6 +51,9 @@
+ #define SNIFF_BUFFER_SIZE 4096
+ #define LOAD_BUFFER_SIZE 65536
  
 +#define LOADERFILEEXT ".loaders"
 +#define LOADERFILEEXT_LEN ((int) strlen (LOADERFILEEXT))
 +
+ #ifndef GDK_PIXBUF_USE_GIO_MIME 
  static gint 
  format_check (GdkPixbufModule *module, guchar *buffer, int size)
- {
-@@ -284,87 +287,95 @@ gdk_pixbuf_get_module_file (void)
+@@ -310,115 +313,93 @@
+ gdk_pixbuf_load_module_unlocked (GdkPixbufModule *image_module,
+ 				 GError         **error);
  
- #endif	/* USE_GMODULE */
- 
--static void 
--gdk_pixbuf_io_init (void)
 +/* FIXME this is a static copy of a public pango function which should really
 + * livein glib */
 +static char *
@@ -41,7 +60,7 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 + * livein glib */
 +char **
 +_ugly_copy_of_pango_split_file_list (const char *str)
- {
++{
 +  int i = 0;
 +  int j;
 +  char **files;
@@ -93,12 +112,12 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +  return files;
 +}
 +
+ static void 
+-gdk_pixbuf_io_init (void)
++process_module_file (const gchar *filename, GIOChannel *channel)
+ {
  #ifdef USE_GMODULE
 -	GIOChannel *channel;
-+
-+static void 
-+process_module_file (const gchar *filename, GIOChannel *channel)
-+{
  	gchar *line_buf;
  	gsize term;
  	GString *tmp_buf = g_string_new (NULL);
@@ -110,16 +129,21 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
  	GdkPixbufModulePattern *pattern;
 -	GError *error = NULL;
 -#endif
--	GdkPixbufModule *builtin_module = NULL;
+-	GdkPixbufModule *builtin_module ;
+-
+-        /*  initialize on separate line to avoid compiler warnings in the
+-         *  common case of no compiled-in modules.
+-         */
+-	builtin_module = NULL;
 -
 -#define load_one_builtin_module(format)					\
 -	builtin_module = g_new0 (GdkPixbufModule, 1);			\
 -	builtin_module->module_name = #format;				\
--	if (_gdk_pixbuf_load_module (builtin_module, NULL))		\
+-	if (gdk_pixbuf_load_module_unlocked (builtin_module, NULL))		\
 -		file_formats = g_slist_prepend (file_formats, builtin_module);\
 -	else								\
 -		g_free (builtin_module)
- 
+-
 -#ifdef INCLUDE_ani
 -	load_one_builtin_module (ani);
 -#endif
@@ -162,6 +186,28 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 -#ifdef INCLUDE_pcx
 -	load_one_builtin_module (pcx);
 -#endif
+-#ifdef INCLUDE_icns
+-	load_one_builtin_module (icns);
+-#endif
+-#ifdef INCLUDE_jasper
+-	load_one_builtin_module (jasper);
+-#endif
+-#ifdef INCLUDE_gdiplus
+-	/* We don't bother having the GDI+ loaders individually selectable
+-	 * for building in or not.
+-	 */
+-	load_one_builtin_module (ico);
+-	load_one_builtin_module (wmf);
+-	load_one_builtin_module (emf);
+-	load_one_builtin_module (bmp);
+-	load_one_builtin_module (gif);
+-	load_one_builtin_module (jpeg);
+-	load_one_builtin_module (tiff);
+-#endif
+-#ifdef INCLUDE_gdip_png
+-	/* Except the gdip-png loader which normally isn't built at all even */
+-	load_one_builtin_module (png);
+-#endif
 -
 -#undef load_one_builtin_module
 -
@@ -172,21 +218,22 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 -		if (file_formats == NULL)
 -			g_warning ("Cannot open pixbuf loader module file '%s': %s",
 -				   filename, error->message);
+-		g_string_free (tmp_buf, TRUE);
+-		g_free (filename);
 -		return;
 -	}
--	
+ 	
  	while (!have_error && g_io_channel_read_line (channel, &line_buf, NULL, &term, NULL) == G_IO_STATUS_NORMAL) {
  		const char *p;
- 		
-@@ -497,8 +508,140 @@ gdk_pixbuf_io_init (void)
+@@ -556,8 +537,156 @@
  		g_free (line_buf);
  	}
  	g_string_free (tmp_buf, TRUE);
 -	g_io_channel_unref (channel);
 -	g_free (filename);
++#endif /* USE_GMODULE */
 +}
 +
-+#endif /* USE_GMODULE */
 +
 +static void 
 +gdk_pixbuf_io_init (void)
@@ -194,11 +241,6 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +#ifdef USE_GMODULE
 +	GIOChannel *channel;
 +	gchar *gdkpixbuf_module_file_str = gdk_pixbuf_get_module_file ();
-+	/* FIXME: using an absolute path requires patching Makefile.am */
-+	gchar *gdkpixbuf_module_files_d_str = g_build_filename (PIXBUF_LIBDIR,
-+							 "..",
-+							 "loader-files.d",
-+							 NULL);
 +	gchar *list_str;
 +	char **files;
 +	GError *error = NULL;
@@ -209,7 +251,7 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +#define load_one_builtin_module(format)					\
 +	builtin_module = g_new0 (GdkPixbufModule, 1);			\
 +	builtin_module->module_name = #format;				\
-+	if (_gdk_pixbuf_load_module (builtin_module, NULL))		\
++	if (gdk_pixbuf_load_module_unlocked (builtin_module, NULL))		\
 +		file_formats = g_slist_prepend (file_formats, builtin_module);\
 +	else								\
 +		g_free (builtin_module)
@@ -256,13 +298,35 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +#ifdef INCLUDE_pcx
 +	load_one_builtin_module (pcx);
 +#endif
++#ifdef INCLUDE_icns
++	load_one_builtin_module (icns);
++#endif
++#ifdef INCLUDE_jasper
++	load_one_builtin_module (jasper);
++#endif
++#ifdef INCLUDE_gdiplus
++	/* We don't bother having the GDI+ loaders individually selectable
++	 * for building in or not.
++	 */
++	load_one_builtin_module (ico);
++	load_one_builtin_module (wmf);
++	load_one_builtin_module (emf);
++	load_one_builtin_module (bmp);
++	load_one_builtin_module (gif);
++	load_one_builtin_module (jpeg);
++	load_one_builtin_module (tiff);
++#endif
++#ifdef INCLUDE_gdip_png
++	/* Except the gdip-png loader which normally isn't built at all even */
++	load_one_builtin_module (png);
++#endif
 +
 +#undef load_one_builtin_module
 +
 +#ifdef USE_GMODULE
 +	list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
-+			      gdkpixbuf_module_files_d_str,
 +			      gdkpixbuf_module_file_str,
++			      PIXBUF_FILES_LIBDIR,
 +			      NULL);
 +
 +	files = _ugly_copy_of_pango_split_file_list (list_str);
@@ -316,7 +380,6 @@ Index: gtk+-2.12.1/gdk-pixbuf/gdk-pixbuf-io.c
 +
 +	g_strfreev (files);
 +	g_free (list_str);
-+	g_free (gdkpixbuf_module_files_d_str);
 +	g_free (gdkpixbuf_module_file_str);
  #endif
  }

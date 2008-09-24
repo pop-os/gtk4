@@ -5,7 +5,7 @@ Abstract: The GDK-pixbuf library is used to manipulate images and
  other image-like objects, similar to the imlib library.  GDK and
  GTK+ use it for image storage and manipulation.  This document
  covers programming using this library.
-Section: Apps/Programming
+Section: Programming/C
 
 Format: HTML
 Index: /usr/share/doc/libgtk2.0-doc/gdk-pixbuf/index.html

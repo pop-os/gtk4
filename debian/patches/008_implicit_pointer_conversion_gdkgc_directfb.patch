@@ -1,13 +1,13 @@
 GNOME #447163; Debian 381082
 
-Index: gtk+2.0-2.11.3/gdk/directfb/gdkgc-directfb.c
+Index: gtk+2.0-2.14.0/gdk/directfb/gdkgc-directfb.c
 ===================================================================
---- gtk+2.0-2.11.3.orig/gdk/directfb/gdkgc-directfb.c	2007-06-15 20:08:17.000000000 +0200
-+++ gtk+2.0-2.11.3/gdk/directfb/gdkgc-directfb.c	2007-06-16 14:25:00.000000000 +0200
+--- gtk+2.0-2.14.0.orig/gdk/directfb/gdkgc-directfb.c	2008-09-04 06:36:10.000000000 +0200
++++ gtk+2.0-2.14.0/gdk/directfb/gdkgc-directfb.c	2008-09-05 00:36:25.000000000 +0200
 @@ -33,6 +33,7 @@
  #undef GDK_DISABLE_DEPRECATED
  
- #include <config.h>
+ #include "config.h"
 +#undef GDK_DISABLE_DEPRECATED
  #include "gdk.h"
  

@@ -1,10 +1,182 @@
-gtk+2.0 (2.12.8-2) UNRELEASED; urgency=low
+gtk+2.0 (2.14.3-1) UNRELEASED; urgency=low
 
-  * update-icon-caches: always exit with a 0 code to avoid breaking 
+  * New upstream release
+  * debian/patches/006_proper-directfb-modules.patch:
+  - refreshed
+  * debian/patches/008_implicit_pointer_conversion_gdkgc_directfb.patch,
+    debian/patches/009_gtk-export-filechooser.patch,
+    debian/patches/020_immodules-files-d.patch,
+    debian/patches/021_loader-files-d.patch,
+  - update borrowed from Ubuntu's package
+  * debian/patches/033_treeview_resizing.patch,
+    debian/patches/095_gtk-im-module-setting.patch:
+  - removed; fixed upstream
+  * debian/patches/070_mandatory-relibtoolize.patch:
+  - refreshed
+
+ -- Gustavo Noronha Silva <kov@debian.org>  Wed, 24 Sep 2008 19:53:45 -0300
+
+gtk+2.0 (2.12.11-4) UNRELEASED; urgency=low
+
+  * Let libgtk2.0-dev recommend debhelper for dh_gtkmodules.
+  * Let libgtk2.0-dev depend on libxml2-utils as it's required for
+    gtk-builder-convert to work and might be relied upon by packages bdeping
+    on libgtk2.0-dev.
+
+ -- Loic Minier <lool@dooz.org>  Wed, 13 Aug 2008 22:49:48 +0200
+
+gtk+2.0 (2.12.11-3) unstable; urgency=low
+
+  * 031_directfb_dead-keys.patch: patch from Jérémy Bobbio to fix dead
+    keys in the DirectFB backend. Closes: #394871.
+  * Now require DirectFB 0.9.26.
+  * 070_mandatory_relibtoolize: updated to match the dependency bump.
+  * 033_treeview_resizing.patch:
+    + Fix crasher introduced by the patch. Closes: #491611.
+    + Add references.
+
+ -- Josselin Mouette <joss@debian.org>  Mon, 21 Jul 2008 15:22:38 +0200
+
+gtk+2.0 (2.12.11-2) unstable; urgency=low
+
+  * 033_treeview_resizing.patch:
+    + Enable again, it was disabled by mistake.
+    + Update to new version provided by Kristian Rietveld.
+      Closes: #471073.
+  * libgtk2.0-doc.doc-base.gtk2-tutorial: fix spelling of GTK+.
+  * *.doc-base.*: fix doc-base sections.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 18 Jul 2008 14:53:17 +0200
+
+gtk+2.0 (2.12.11-1) unstable; urgency=low
+
+  [ Emilio Pozuelo Monfort ]
+  * Build-depend on libcups2-dev instead of libcupsys2-dev, as cups
+    is transitioning to that new name.
+
+  [ Sebastian Dröge ]
+  * New upstream bugfix release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+    + debian/patches/092_openoffice-menus.patch:
+      - Dropped, merged upstream.
+  * debian/control.in:
+    + Updated Standards-Version to 3.8.0, no additional changes needed.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 02 Jul 2008 06:37:51 +0200
+
+gtk+2.0 (2.12.10-2) unstable; urgency=low
+
+  * debian/patches/092_openoffice-menus.patch:
+    + Patch from upstream SVN to fix regression in menu placement
+      in openoffice.org (Closes: #484580).
+
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 07 Jun 2008 10:27:50 +0200
+
+gtk+2.0 (2.12.10-1) unstable; urgency=low
+
+  * New upstream bugfix release:
+    + debian/patches/009_gtk-export-filechooser.patch:
+      - Updated to apply cleanly again.
+    + debian/patches/031_gtksearchenginetracker_fixes.patch,
+      debian/patches/061_foreign_colormaps.patch,
+      debian/patches/092_implicit-g-fopen.patch:
+      - Dropped, merged upstream.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 04 Jun 2008 08:14:08 +0200
+
+gtk+2.0 (2.12.9-4) unstable; urgency=low
+
+  [ Loic Minier ]
+  * Flip back gdkpixbuf_module_files_d_str after gdkpixbuf_module_file_str in
+    patch 021_loader-files-d; this fixes config of gdk loaders and hence the
+    current ia32-libs implementation; the change in 2.12.0-3 was incorrect in
+    that it flipped the order for im modules and pixbuf loaders, but only im
+    modules had to be flipped; the reason im modules had to be flipped is that
+    the first list of modules wins for im modules as there is some duplicate
+    checking, while in the case of gdk pixbufs, the last file wins.  What
+    remains to be done here is:
+    - biarch support, similar to pango, by loading /usr/lib32 and /usr/lib64
+      stuff before /usr/lib; allows dropping the config file hack in
+      ia32-libs.
+    - loading of modules from multiarch locations (not multiarch); allows
+      dropping the config file hack in ia32-libs.
+  * Bump build-deps and libgtk2.0-dev's deps to ensure we get Xorg dev
+    packages with .pc files, see list below; thanks Anon Sricharoenchai;
+    closes: #370693.
+        libxext-dev >= 1:1.0.1-2, libxinerama-dev >= 1:1.0.1-4.1, libxi-dev >=
+        1:1.0.1-4, libxrandr-dev >= 1:1.0.2-2, libxfixes-dev >= 1:3.0.0-3,
+        libxcomposite-dev >= 1:0.2.0-3, libxdamage-dev >= 1:1.0.1-3.
+
+  [ Josselin Mouette ]
+  * 061_foreign_colormaps.patch: stolen from upstream SVN. Don't call
+    XFreeColormap on foreign colormaps, this causes crashes in e.g.
+    vinagre. Closes: #477199.
+  * Apply multiarch patch by Javier Serrano Polo, replacing all
+    occurrences of usr/lib by $(LIBDIR). Closes: #468100.
+  * rules: don't compress .sgml and .devhelp files.
+
+  [ Loic Minier ]
+  * Fix broken second dh_strip invocation which was not only acting on the
+    udeb but also on binary packages (-s -pUDEB should have been -pUDEB).
+  * Update patch 021_loader-files-d to use PIXBUF_FILES_LIBDIR which is
+    defined in gdk-pixbuf/Makefile.am, similarly to PIXBUF_LIBDIR, and based
+    on the newly defined loaderfilesdir, similar to loaderdir; update
+    070_mandatory-relibtoolize.
+  * New patch, 022_module-files-append-compat-module-files-d, prefer
+    /usr/lib32/gtk-2.0/<gtk-binary-version>/loader-files.d and
+    /immodule-files.d over the /usr/lib/.../*.d pathnames added in
+    020_immodules-files-d and 021_loader-files-d when available; this is
+    useful for ia32-libs support; other modules might need additional support
+    depending on how they are loaded, for example GTK_MODULES will probably
+    still be looked up below libdir, as well as engines, printbackends,
+    filesystems, and generic modules.  See also Ubuntu #205223 and #190227 for
+    examples.
+
+ -- Loic Minier <lool@dooz.org>  Sun, 11 May 2008 00:47:26 +0200
+
+gtk+2.0 (2.12.9-3) unstable; urgency=low
+
+  [ Loic Minier ]
+  * Refresh patches 009_gtk-export-filechooser,
+    030_gtkentry_password-char-circle, 033_treeview_resizing,
+    042_treeview_single-focus, 060_ignore-random-icons
+  * Fix offsets in patch 095_gtk-im-module-setting; thanks Akira TAGOH;
+    closes: #473699.
+
+  [ Sebastian Dröge ]
+  * debian/rules:
+    + Don't include the udeb in the debug package to get a working debug
+      package in case the udeb libraries differ from the real ones.
+
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 12 Apr 2008 14:00:22 +0200
+
+gtk+2.0 (2.12.9-2) unstable; urgency=low
+
+  * debian/patches/092_implicit-g-fopen.patch:
+    + Include glib/gstdio.h for g_fopen to prevent crashes on 64 bit
+      architectures. Thanks to Dann Frazier for the patch (Closes: #470665).
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 12 Mar 2008 18:52:53 +0100
+
+gtk+2.0 (2.12.9-1) unstable; urgency=low
+
+  [ Josselin Mouette ]
+  * update-icon-caches: always exit with a 0 code to avoid breaking
     upgrades when a cache is corrupt. Display a big fat warning instead.
     Closes: #466083.
 
- -- Josselin Mouette <joss@debian.org>  Sun, 17 Feb 2008 13:38:47 +0100
+  [ Sebastian Dröge ]
+  * New upstream bugfix release:
+    + 092_recentfiles-recursion-fix, dropped merged upstream.
+    + 070_mandatory-relibtoolize.patch, regenerated for the new version.
+  * debian/rules,
+    debian/*.links.in:
+    + Don't ship very old upstream changelogs and news as they're quite large.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 12 Mar 2008 09:41:23 +0100
 
 gtk+2.0 (2.12.8-1) unstable; urgency=low
 
@@ -132,7 +304,7 @@ gtk+2.0 (2.12.1-3) unstable; urgency=low
   * 010_gdkpixbuf_-lm.patch: fix gdk-pixbuf-2.0.pc by adding back -lm,
     which is required by some macros. Closes: #451512.
   * 070_mandatory-relibtoolize.patch: regenerated.
-  * rules: copy the extraneous libraries generated in the static build 
+  * rules: copy the extraneous libraries generated in the static build
     to the Libs.private of the shared build.
 
  -- Josselin Mouette <joss@debian.org>  Sun, 18 Nov 2007 01:30:52 +0100
