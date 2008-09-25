@@ -75,7 +75,9 @@ ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 # list of flavors we build; each gets a builddir, a configure pass (configure
 # args are defined below), a build pass, and an install pass (in two steps)
 # Note: the shared flavor is required
-FLAVORS := directfb shared static
+# FIXME: readd directfb as soon as libdirectfb-dev is updated to the 1.2.x
+# series
+FLAVORS := shared static
 
 # list of flavors to run the test suite on
 # don't run the directfb testsuite on kfreebsd as it hangs; see #431477

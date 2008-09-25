@@ -18,8 +18,10 @@ gtk+2.0 (2.14.3-1) UNRELEASED; urgency=low
     JPEG2000
   * debian/patches/092_fix_printtest_include.patch:
   - new patch, to fix build problem in print test
+  * debian/rules:
+  - FIXME: do not build directfb for now; we need a newer libdirectfb-dev
 
- -- Gustavo Noronha Silva <kov@debian.org>  Wed, 24 Sep 2008 21:12:33 -0300
+ -- Gustavo Noronha Silva <kov@debian.org>  Wed, 24 Sep 2008 21:38:58 -0300
 
 gtk+2.0 (2.12.11-4) UNRELEASED; urgency=low
 
