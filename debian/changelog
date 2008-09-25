@@ -1,5 +1,6 @@
 gtk+2.0 (2.14.3-1) UNRELEASED; urgency=low
 
+  [ Gustavo Noronha Silva ]
   * New upstream release
   * debian/patches/006_proper-directfb-modules.patch:
   - refreshed
@@ -21,16 +22,13 @@ gtk+2.0 (2.14.3-1) UNRELEASED; urgency=low
   * debian/rules:
   - FIXME: do not build directfb for now; we need a newer libdirectfb-dev
 
- -- Gustavo Noronha Silva <kov@debian.org>  Wed, 24 Sep 2008 21:38:58 -0300
-
-gtk+2.0 (2.12.11-4) UNRELEASED; urgency=low
-
+  [ Loic Minier ]
   * Let libgtk2.0-dev recommend debhelper for dh_gtkmodules.
   * Let libgtk2.0-dev depend on libxml2-utils as it's required for
     gtk-builder-convert to work and might be relied upon by packages bdeping
     on libgtk2.0-dev.
 
- -- Loic Minier <lool@dooz.org>  Wed, 13 Aug 2008 22:49:48 +0200
+ -- Gustavo Noronha Silva <kov@debian.org>  Wed, 24 Sep 2008 21:38:58 -0300
 
 gtk+2.0 (2.12.11-3) unstable; urgency=low
 
