@@ -3,7 +3,7 @@
 003_gdk.pc_privates.patch
 004_gtk+-ximian-gtk2-filesel-navbutton-5.patch
 005_xpmico.patch
-006_proper-directfb-modules.patch
+#006_proper-directfb-modules.patch
 007_implicit_pointer_conversion_gdkdrawable_directfb.patch
 008_implicit_pointer_conversion_gdkgc_directfb.patch
 009_gtk-export-filechooser.patch
