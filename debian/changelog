@@ -1,3 +1,9 @@
+gtk+2.0 (2.12.11-5) UNRELEASED; urgency=low
+
+  * dh_gtkmodules.in: fix a pod2man error.
+
+ -- Josselin Mouette <joss@debian.org>  Mon, 13 Oct 2008 12:03:48 +0200
+
 gtk+2.0 (2.12.11-4) unstable; urgency=low
 
   [ Loic Minier ]
