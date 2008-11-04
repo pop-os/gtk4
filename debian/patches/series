@@ -18,5 +18,6 @@
 042_treeview_single-focus.patch
 060_ignore-random-icons.patch
 070_mandatory-relibtoolize.patch
+071_jasper_link_fix.patch
 091_workaround_no_gtk_init_incorrect_display.patch
 092_fix_printtest_include.patch

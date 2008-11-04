@@ -19,6 +19,8 @@ gtk+2.0 (2.14.4-1) UNRELEASED; urgency=low
     JPEG2000
   * debian/patches/092_fix_printtest_include.patch:
   - new patch, to fix build problem in print test
+  * debian/patches/071_jasper_link_fix.patch:
+  - make gdk-pixbuf-csource link correctly with libjasper
   * debian/rules:
   - FIXME: do not build directfb for now; we need a newer libdirectfb-dev
 
