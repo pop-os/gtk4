@@ -30,6 +30,13 @@ gtk+2.0 (2.14.4-1) UNRELEASED; urgency=low
     gtk-builder-convert to work and might be relied upon by packages bdeping
     on libgtk2.0-dev.
 
+  [ Emilio Pozuelo Monfort ]
+  * Update build-dependencies for the new version:
+    - libglib2.0-dev >= 2.17.6
+    - libpango1.0-dev >= 1.20
+    - libatk1.0-dev >= 1.13.0
+    - libcairo2-dev >= 1.6.0
+
  -- Gustavo Noronha Silva <kov@debian.org>  Wed, 24 Sep 2008 21:38:58 -0300
 
 gtk+2.0 (2.12.11-3) unstable; urgency=low
