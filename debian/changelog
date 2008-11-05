@@ -20,6 +20,8 @@ gtk+2.0 (2.14.4-1) UNRELEASED; urgency=low
   * debian/control.in:
   - added libjasper-dev to the Build-Depends, as GTK+ now supports
     JPEG2000
+  - make GTK+ packages conflict/replace with gail ones, since they are now
+    included in GTK+
   * debian/patches/092_fix_printtest_include.patch:
   - new patch, to fix build problem in print test
   * debian/patches/071_jasper_link_fix.patch:
