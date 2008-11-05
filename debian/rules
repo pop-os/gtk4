@@ -75,9 +75,7 @@ ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 # list of flavors we build; each gets a builddir, a configure pass (configure
 # args are defined below), a build pass, and an install pass (in two steps)
 # Note: the shared flavor is required
-# FIXME: readd directfb as soon as libdirectfb-dev is updated to the 1.2.x
-# series
-FLAVORS := shared static
+FLAVORS := directfb shared static
 
 # list of flavors to run the test suite on
 # don't run the directfb testsuite on kfreebsd as it hangs; see #431477
@@ -342,8 +340,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	cat debian/*/DEBIAN/shlibs | \
 		sed -n -r -e 's/(([^ ]+: )?([^ ]+) ([^ ]+)) .*/\1/p' \
 			> debian/shlibs.local
-	dh_shlibdeps -s -N$(UDEB_PKG)
-	dh_shlibdeps -p$(UDEB_PKG) -l/$(LIBDIR)/libcairo-directfb/lib/
+	dh_shlibdeps
 	-rm -f debian/shlibs.local
 	dh_gencontrol -s
 	dh_md5sums -s

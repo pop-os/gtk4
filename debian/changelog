@@ -9,6 +9,9 @@ gtk+2.0 (2.14.4-1) UNRELEASED; urgency=low
     debian/patches/020_immodules-files-d.patch,
     debian/patches/021_loader-files-d.patch,
   - update borrowed from Ubuntu's package
+  * debian/patches/071_correct_directfb_declarations.patch,
+    debian/patches/072_workaround_directfb_build.patch:
+  - borrowed from ubuntu
   * debian/patches/033_treeview_resizing.patch,
     debian/patches/095_gtk-im-module-setting.patch:
   - removed; fixed upstream
@@ -21,8 +24,10 @@ gtk+2.0 (2.14.4-1) UNRELEASED; urgency=low
   - new patch, to fix build problem in print test
   * debian/patches/071_jasper_link_fix.patch:
   - make gdk-pixbuf-csource link correctly with libjasper
-  * debian/rules:
-  - FIXME: do not build directfb for now; we need a newer libdirectfb-dev
+  * debian/rules, debian/control:
+  - newer libcairo2-dev contains everything needed to build the directfb
+    target, so disable building with the dummy libcairo-directfb2-dev
+  - this makes us have to build depend on libcairo2-dev >= 1.6.4-6.1
 
   [ Loic Minier ]
   * Let libgtk2.0-dev recommend debhelper for dh_gtkmodules.
