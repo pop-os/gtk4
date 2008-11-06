@@ -1,3 +1,10 @@
+gtk+2.0 (2.14.4-2) UNRELEASED; urgency=low
+
+  * debian/control, debian/rules, debian/libgail*:
+  - split libgail packages
+
+ -- Gustavo Noronha Silva <kov@debian.org>  Wed, 05 Nov 2008 14:54:08 -0200
+
 gtk+2.0 (2.14.4-1) experimental; urgency=low
 
   [ Gustavo Noronha Silva ]

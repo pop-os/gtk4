@@ -269,6 +269,8 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 	# install copyright in all packages; the -p is for the special behavior
 	# of dh_installdocs (ship README.Debian etc. in the first package)
 	dh_installdocs -p$(COMMON_PKG) -i
+	# we will install the gail docs to libgail-doc
+	rm -rf debian/$(DOC_PKG)/usr/share/doc/$(DOC_PKG)/gail-libgail-util
 	dh_installman -i
 	dh_link -i
 	dh_compress -i -X.sgml -X.devhelp
@@ -320,7 +322,8 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 			-p$(UDEB_PKG)
 	dh_installexamples -s
 	dh_link -s
-	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG)
+	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG) -Nlibgail18
+	dh_strip -plibgail18 --dbg-package=libgail-dbg
 	dh_strip -p$(UDEB_PKG)
 	dh_compress -s -X.sgml -X.devhelp
 	dh_fixperms -s -X$(LIBDIR)/$(SHARED_PKG)

@@ -1,0 +1,4 @@
+debian/install/shared/usr/include/*
+debian/install/shared/usr/lib/lib*.{so,la,a}
+debian/install/shared/usr/lib/gtk-2.0/modules/lib*.la
+debian/install/shared/usr/lib/pkgconfig/*.pc
