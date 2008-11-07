@@ -1,4 +1,4 @@
-gtk+2.0 (2.14.4-2) UNRELEASED; urgency=low
+gtk+2.0 (2.14.4-2) experimental; urgency=low
 
   * debian/control, debian/rules, debian/libgail*:
   - split libgail packages
