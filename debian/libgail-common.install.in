@@ -1,0 +1,1 @@
+debian/install/shared/@MODULES_BASE_PATH@/modules/*.so @MODULES_BASE_PATH@/modules
