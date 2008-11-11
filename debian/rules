@@ -319,8 +319,8 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 			-p$(UDEB_PKG)
 	dh_installexamples -s
 	dh_link -s
-	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG) -Nlibgail18
-	dh_strip -plibgail18 --dbg-package=libgail-dbg
+	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG) -Nlibgail18 -Nlibgail-common
+	dh_strip -plibgail18 -plibgail-common --dbg-package=libgail-dbg
 	dh_strip -p$(UDEB_PKG)
 	dh_compress -s -X.sgml -X.devhelp
 	dh_fixperms -s -X$(LIBDIR)/$(SHARED_PKG)

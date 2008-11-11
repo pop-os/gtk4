@@ -16,6 +16,10 @@ gtk+2.0 (2.14.4-3) experimental; urgency=low
     it.
   * Remove versioned conflicts with libgail packages.
   * Remove libgail18.shlibs.
+  * Put debugging symbols of libgail modules in libgail-dbg.
+  * dh_gtkmodules.in: fix a pod2man error.
+  * Disable 006_proper-directfb-modules.patch.
+  * Update 070_mandatory_relibtoolize.patch accordingly.
 
  -- Josselin Mouette <joss@debian.org>  Tue, 11 Nov 2008 14:44:21 +0100
 

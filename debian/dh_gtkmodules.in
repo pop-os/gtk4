@@ -215,6 +215,8 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
     }
 }
 
+=back
+
 =head1 SEE ALSO
 
 L<debhelper>
