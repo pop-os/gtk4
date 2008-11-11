@@ -1,6 +1,5 @@
 # from the directfb flavor
 debian/install/directfb/usr/include/gtk-@APIVER@/gdk/*directfb* usr/include/gtk-@APIVER@/gdk
 debian/install/directfb/@LIBDIR@/*directfb*.so @LIBDIR@
-debian/install/directfb/@LIBDIR@/pkgconfig/* @LIBDIR@/pkgconfig/@DIRECTFB_PKG@
 debian/install/directfb/@LIBDIR@/pkgconfig/*directfb* @LIBDIR@/pkgconfig
 debian/install/directfb/@LIBDIR@/gtk-@APIVER@/include/gdkconfig.h @LIBDIR@/gtk-@APIVER@/include/directfb

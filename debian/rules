@@ -118,7 +118,6 @@ common_configure_flags := \
 			--mandir=\$${prefix}/share/man \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
-			--with-html-dir=\$${prefix}/share/doc/$(DOC_PKG) \
 			--enable-test-print-backend
 ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE)
@@ -269,8 +268,6 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 	# install copyright in all packages; the -p is for the special behavior
 	# of dh_installdocs (ship README.Debian etc. in the first package)
 	dh_installdocs -p$(COMMON_PKG) -i
-	# we will install the gail docs to libgail-doc
-	rm -rf debian/$(DOC_PKG)/usr/share/doc/$(DOC_PKG)/gail-libgail-util
 	dh_installman -i
 	dh_link -i
 	dh_compress -i -X.sgml -X.devhelp
@@ -337,8 +334,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		--add-udeb=$(UDEB_PKG)
 	dh_makeshlibs -plibgail18 \
 		-X$(MODULES_BASE_PATH) \
-		-V"libgail18 (>= $(SHVER))" \
-		--add-udeb=$(UDEB_PKG)
+		-V"libgail18 (>= $(SHVER))"
 	dh_installdeb -s
 	# override shlibs for libraries from this source before computing
 	# dependencies of packages generated from this source; we already have

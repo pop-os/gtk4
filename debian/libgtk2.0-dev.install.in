@@ -3,12 +3,12 @@ debian/dh_gtkmodules usr/bin
 # from the shared flavor
 debian/install/shared/usr/bin/gdk-pixbuf-csource  usr/bin
 debian/install/shared/usr/bin/gtk-builder-convert usr/bin
-debian/install/shared/usr/include usr
-debian/install/shared/@LIBDIR@/*.la @LIBDIR@
-debian/install/shared/@LIBDIR@/*.so @LIBDIR@
-debian/install/shared/@LIBDIR@/pkgconfig @LIBDIR@
+debian/install/shared/usr/include/gtk* usr/include
+debian/install/shared/@LIBDIR@/g?k*.la @LIBDIR@
+debian/install/shared/@LIBDIR@/g?k*.so @LIBDIR@
+debian/install/shared/@LIBDIR@/pkgconfig/g?k* @LIBDIR@/pkgconfig
 debian/install/shared/@LIBDIR@/gtk-@APIVER@/include @LIBDIR@/gtk-@APIVER@
 debian/install/shared/usr/share/aclocal usr/share
 debian/install/shared/usr/share/man/man1/gdk-pixbuf-csource.1 usr/share/man/man1/
 # from the static flavor
-debian/install/static/@LIBDIR@/*.a @LIBDIR@
+debian/install/static/@LIBDIR@/g?k*.a @LIBDIR@

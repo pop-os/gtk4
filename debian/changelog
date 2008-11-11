@@ -4,6 +4,16 @@ gtk+2.0 (2.14.4-3) experimental; urgency=low
   * Do not ship .la files for gail modules.
   * Generate shlibs for libgail.
   * Bump shlibs version to 2.14.0.
+  * Do not install libgailutil in libgtk2.0-0.
+  * Do not install gtk libs in libgail-dev.
+  * Rework docs installation.
+  * Add doc links where needed.
+  * Install .devhelp files at the correct places. Closes: #504807.
+  * Bump dependencies for the development package.
+  * Fix dependencies of gail packages.
+  * Don’t install libgail in the udeb.
+  * Stop shipping /usr/lib/pkgconfig/libgtk-directfb-2.0-0/, nobody uses 
+    it.
 
  -- Josselin Mouette <joss@debian.org>  Tue, 11 Nov 2008 14:44:21 +0100
 

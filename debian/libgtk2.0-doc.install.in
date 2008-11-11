@@ -1,8 +1,9 @@
 # from Debian
-debian/gtk-faq.devhelp usr/share/doc/@DOC_PKG@/gtk-faq
-debian/gtk-tutorial.devhelp usr/share/doc/@DOC_PKG@/gtk-tutorial
+debian/gtk-faq.devhelp usr/share/doc/@DOC_PKG@/faq/html
+debian/gtk-tutorial.devhelp usr/share/doc/@DOC_PKG@/tutorial/html
 # from the shared flavor
-debian/install/shared/usr/share/doc/@DOC_PKG@ usr/share/doc
+debian/install/shared/usr/share/gtk-doc/html/gtk* usr/share/doc/@DOC_PKG@
+debian/install/shared/usr/share/gtk-doc/html/gdk* usr/share/doc/@DOC_PKG@
 # from the source
 docs/faq/html usr/share/doc/@DOC_PKG@/faq
 docs/tutorial/html usr/share/doc/@DOC_PKG@/tutorial

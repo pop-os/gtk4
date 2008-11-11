@@ -188,9 +188,9 @@ Depends: libgtk2.0-0 (= ${binary:Version}),
          libgtk2.0-common,
          ${misc:Depends},
          ${shlibs:Depends},
-         libglib2.0-dev (>= 2.12.0),
-         libpango1.0-dev (>= 1.10.0-2),
-         libatk1.0-dev (>= 1.6.1-2),
+         libglib2.0-dev (>= 2.17.6),
+         libpango1.0-dev (>= 1.20),
+         libatk1.0-dev (>= 1.13.0),
          libcairo2-dev (>= 1.6.4-6.1),
          libx11-dev (>= 2:1.0.0-6),
          libxext-dev (>= 1:1.0.1-2),
@@ -315,7 +315,9 @@ Description: Pixbuf-based theme for GTK+ 2.x
 
 Package: libgail18
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         libgtk2.0-0 (= ${binary:Version})
 Replaces: libgail17
 Description: GNOME Accessibility Implementation Library -- shared libraries
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
@@ -327,7 +329,9 @@ Description: GNOME Accessibility Implementation Library -- shared libraries
 
 Package: libgail-common
 Architecture: any
-Depends: ${misc:Depends}, ${shlibs:Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         libgail18 (= ${binary:Version})
 Description: GNOME Accessibility Implementation Library -- common modules
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -339,7 +343,12 @@ Description: GNOME Accessibility Implementation Library -- common modules
 Package: libgail-dev
 Architecture: any
 Section: libdevel
-Depends: ${misc:Depends}, libgail18 (= ${binary:Version}), libgail-common (= ${binary:Version}), libgtk2.0-dev (>= 2.9.4), pkg-config, libatk1.0-dev (>= 1.13.0)
+Depends: ${misc:Depends},
+         libgail18 (= ${binary:Version}),
+         libgail-common (= ${binary:Version}), 
+         libgtk2.0-dev (= ${binary:Version}),
+         pkg-config,
+         libatk1.0-dev (>= 1.13.0)
 Suggests: libgail-doc
 Description: GNOME Accessibility Implementation Library -- development files
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
@@ -354,6 +363,7 @@ Architecture: any
 Section: libdevel
 Priority: extra
 Depends: ${misc:Depends}, libgail18 (= ${binary:Version})
+Recommends: libgtk2.0-0-dbg
 Description: Gail libraries and debugging symbols
  Gail is the "GNOME Accessibility Implementation Library".
  .

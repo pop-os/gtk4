@@ -1,3 +1,5 @@
-debian/install/shared/usr/include/* /usr/include
-debian/install/shared/usr/lib/lib*.{so,la,a} /usr/lib
-debian/install/shared/usr/lib/pkgconfig/*.pc /usr/lib/pkgconfig
+debian/install/shared/usr/include/gail* /usr/include
+debian/install/shared/usr/lib/libgail*.so /usr/lib
+debian/install/shared/usr/lib/libgail*.la /usr/lib
+debian/install/static/usr/lib/libgail*.a @LIBDIR@
+debian/install/shared/usr/lib/pkgconfig/gail*.pc /usr/lib/pkgconfig
