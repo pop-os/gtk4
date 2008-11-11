@@ -68,8 +68,8 @@ EXAMPLES_PKG := gtk$(APIVER)-examples
 PIXBUF_PKG := gtk2-engines-pixbuf
 
 # package groups, used in rule dependencies and in cleanup
-BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG)
-BINARY_ARCH_PKGS := $(SHARED_PKG) $(DIRECTFB_PKG) $(UDEB_PKG) $(DEV_PKG) $(DIRECTFB_DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG)
+BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG) libgail-doc
+BINARY_ARCH_PKGS := $(SHARED_PKG) $(DIRECTFB_PKG) $(UDEB_PKG) $(DEV_PKG) $(DIRECTFB_DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG) libgail18 libgail-dbg libgail-dev libgail-common
 ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 
 # list of flavors we build; each gets a builddir, a configure pass (configure
