@@ -14,6 +14,8 @@ gtk+2.0 (2.14.4-3) experimental; urgency=low
   * Don’t install libgail in the udeb.
   * Stop shipping /usr/lib/pkgconfig/libgtk-directfb-2.0-0/, nobody uses 
     it.
+  * Remove versioned conflicts with libgail packages.
+  * Remove libgail18.shlibs.
 
  -- Josselin Mouette <joss@debian.org>  Tue, 11 Nov 2008 14:44:21 +0100
 

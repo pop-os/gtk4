@@ -334,7 +334,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		--add-udeb=$(UDEB_PKG)
 	dh_makeshlibs -plibgail18 \
 		-X$(MODULES_BASE_PATH) \
-		-V"libgail18 (>= $(SHVER))"
+		-V"libgail18 (>= $(SHVER)), libgail-common (>= $(SHVER))"
 	dh_installdeb -s
 	# override shlibs for libraries from this source before computing
 	# dependencies of packages generated from this source; we already have
