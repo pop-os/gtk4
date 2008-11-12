@@ -1,8 +1,11 @@
 gtk+2.0 (2.14.4-4) UNRELEASED; urgency=low
 
   * Really install the faq and tutorial files correctly so that the 
-    devhelp file is read. (The devhelp files need updating but I have no 
-    idea how to do.)
+    devhelp file is read.
+  * Update doc-base files accordingly.
+  * gruik2devhelp.awk: new script to generate the devhelp files 
+    automatically for the FAQ and tutorial, based on the HTML doc.
+  * Build-depend on gawk, run the script appropriately.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 12 Nov 2008 01:01:29 +0100
 

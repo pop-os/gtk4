@@ -147,6 +147,11 @@ DH_INSTALLDOCS_FILES := NEWS README ChangeLog
 # ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
 
+# Gruik gruik generation of .devhelp files for the FAQ and tutorial
+debian/gtk-%.devhelp: docs/%/html/book1.html
+	gawk -f debian/gruik2devhelp.awk -v name=gtk-$* $< > $@
+devhelpfiles: debian/gtk-faq.devhelp debian/gtk-tutorial.devhelp
+
 debian/dh_gtkmodules.1: debian/dh_gtkmodules
 	cd debian && pod2man -c "Gtk" -r "$(DEBVERSION)" dh_gtkmodules dh_gtkmodules.1
 
@@ -248,6 +253,7 @@ clean:: debian/control
 	# unapply patches, if any
 	QUILT_PATCHES=$(PATCH_DIR) quilt --quiltrc /dev/null pop -a -R || test $$? = 2
 	-rm -rf .pc
+	rm -f debian/*.devhelp
 	-rm -rf $(STAMP_DIR)
 	-rm -f $(call dh_subst_files,$(ALL_PKGS))
 	-rm -f debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
@@ -255,7 +261,7 @@ clean:: debian/control
 
 maybe_check = $(if $(findstring nocheck,$(DEB_BUILD_OPTIONS)),,check)
 
-binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
+binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS)) devhelpfiles
 	dh_testdir
 	dh_testroot
 	dh_install -i
@@ -354,4 +360,4 @@ list-missing:
 	    egrep -v '(\.la|$(LIBDIR)/gtk-2.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
 
 binary: binary-indep binary-arch
-.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary
+.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary devhelpfiles
