@@ -1,5 +1,6 @@
-gtk+2.0 (2.14.4-4) UNRELEASED; urgency=low
+gtk+2.0 (2.14.5-1) experimental; urgency=low
 
+  [ Josselin Mouette ]
   * Really install the faq and tutorial files correctly so that the 
     devhelp file is read.
   * Update doc-base files accordingly.
@@ -7,7 +8,12 @@ gtk+2.0 (2.14.4-4) UNRELEASED; urgency=low
     automatically for the FAQ and tutorial, based on the HTML doc.
   * Build-depend on gawk, run the script appropriately.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 12 Nov 2008 01:01:29 +0100
+  [ Sebastian Dröge ]
+  * New upstream bugfix release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 25 Nov 2008 11:00:35 +0100
 
 gtk+2.0 (2.14.4-3) experimental; urgency=low
 
