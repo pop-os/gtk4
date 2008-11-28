@@ -1,3 +1,10 @@
+gtk+2.0 (2.14.5-2) UNRELEASED; urgency=low
+
+  * Don't purge /etc/gtk-2.0/gdk-pixbuf.loaders and /etc/gtk-2.0/gtk.immodules
+    during first configuration.
+
+ -- Loic Minier <lool@dooz.org>  Fri, 28 Nov 2008 19:04:18 +0100
+
 gtk+2.0 (2.14.5-1) experimental; urgency=low
 
   [ Josselin Mouette ]
