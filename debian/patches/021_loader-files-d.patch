@@ -1,5 +1,7 @@
---- a/gdk-pixbuf/gdk-pixbuf-io.c	2008-03-12 05:17:00.000000000 +0100
-+++ b/gdk-pixbuf/gdk-pixbuf-io.c	2008-05-10 23:14:29.000000000 +0200
+Index: gtk+-2.12.12/gdk-pixbuf/gdk-pixbuf-io.c
+===================================================================
+--- gtk+-2.12.12.orig/gdk-pixbuf/gdk-pixbuf-io.c	2008-09-13 02:00:46.000000000 +0200
++++ gtk+-2.12.12/gdk-pixbuf/gdk-pixbuf-io.c	2008-12-09 21:01:23.065715544 +0100
 @@ -45,6 +45,9 @@
  #undef STRICT
  #endif
@@ -10,9 +12,9 @@
  static gint 
  format_check (GdkPixbufModule *module, guchar *buffer, int size)
  {
-@@ -284,87 +287,95 @@
- 
- #endif	/* USE_GMODULE */
+@@ -289,89 +292,94 @@ static gboolean
+ gdk_pixbuf_load_module_unlocked (GdkPixbufModule *image_module,
+ 				 GError         **error);
  
 -static void 
 -gdk_pixbuf_io_init (void)
@@ -90,7 +92,6 @@
 +
 +  return files;
 +}
-+
  #ifdef USE_GMODULE
 -	GIOChannel *channel;
 +
@@ -113,7 +114,7 @@
 -#define load_one_builtin_module(format)					\
 -	builtin_module = g_new0 (GdkPixbufModule, 1);			\
 -	builtin_module->module_name = #format;				\
--	if (_gdk_pixbuf_load_module (builtin_module, NULL))		\
+-	if (gdk_pixbuf_load_module_unlocked (builtin_module, NULL))		\
 -		file_formats = g_slist_prepend (file_formats, builtin_module);\
 -	else								\
 -		g_free (builtin_module)
@@ -170,13 +171,15 @@
 -		if (file_formats == NULL)
 -			g_warning ("Cannot open pixbuf loader module file '%s': %s",
 -				   filename, error->message);
+-		g_string_free (tmp_buf, TRUE);
+-		g_free (filename);
 -		return;
 -	}
 -	
  	while (!have_error && g_io_channel_read_line (channel, &line_buf, NULL, &term, NULL) == G_IO_STATUS_NORMAL) {
  		const char *p;
  		
-@@ -497,8 +508,134 @@
+@@ -508,8 +516,134 @@ gdk_pixbuf_io_init (void)
  		g_free (line_buf);
  	}
  	g_string_free (tmp_buf, TRUE);
@@ -313,9 +316,11 @@
  #endif
  }
  
---- a/gdk-pixbuf/Makefile.am	2008-03-12 05:17:00.000000000 +0100
-+++ b/gdk-pixbuf/Makefile.am	2008-05-10 23:14:06.000000000 +0200
-@@ -57,6 +57,7 @@
+Index: gtk+-2.12.12/gdk-pixbuf/Makefile.am
+===================================================================
+--- gtk+-2.12.12.orig/gdk-pixbuf/Makefile.am	2008-09-13 02:00:46.000000000 +0200
++++ gtk+-2.12.12/gdk-pixbuf/Makefile.am	2008-12-09 20:54:01.889718455 +0100
+@@ -59,6 +59,7 @@ lib_LTLIBRARIES = 		\
  	libgdk_pixbuf-2.0.la
  
  loaderdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loaders
@@ -323,7 +328,7 @@
  
  module_libs = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
  
-@@ -317,7 +318,7 @@
+@@ -319,7 +320,7 @@ INCLUDES = \
  	$(GDK_PIXBUF_DEP_CFLAGS)		\
  	-DGDK_PIXBUF_ENABLE_BACKEND
  
