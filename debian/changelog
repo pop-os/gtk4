@@ -3,6 +3,8 @@ gtk+2.0 (2.12.12-1) UNRELEASED; urgency=low
   [ Josselin Mouette ]
   * dh_gtkmodules.in: fix a pod2man error.
   * New upstream release.
+    + Fixes infinite loop caused by setting color scheme.
+      Closes: #492590.
   * 021_loader-files-d.patch: updated to apply cleanly.
   * 070_mandatory-relibtoolize.patch: regenerated for the new version.
 
