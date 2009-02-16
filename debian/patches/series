@@ -5,7 +5,6 @@
 005_xpmico.patch
 #006_proper-directfb-modules.patch
 007_implicit_pointer_conversion_gdkdrawable_directfb.patch
-008_implicit_pointer_conversion_gdkgc_directfb.patch
 009_gtk-export-filechooser.patch
 010_gdkpixbuf_-lm.patch
 015_default-fallback-icon-theme.patch
