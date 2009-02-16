@@ -2,6 +2,8 @@ gtk+2.0 (2.14.7-2) UNRELEASED; urgency=low
 
   * 008_implicit_pointer_conversion_gdkgc_directfb.patch: removed, it’s 
     obsolete and just defines the same macro a second time.
+  * 007_implicit_pointer_conversion_gdkdrawable_directfb.patch: removed, 
+    it’s not needed anymore with the latest directfb.
 
  -- Josselin Mouette <joss@debian.org>  Mon, 16 Feb 2009 19:44:27 +0100
 
