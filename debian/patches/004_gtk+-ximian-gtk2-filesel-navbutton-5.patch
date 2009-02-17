@@ -1,9 +1,9 @@
-Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
+Index: gtk+-2.14.7/gtk/gtkfilesel.c
 ===================================================================
---- gtk+2.0-2.10.10.orig/gtk/gtkfilesel.c	2007-03-12 14:51:01.000000000 +0100
-+++ gtk+2.0-2.10.10/gtk/gtkfilesel.c	2007-03-13 14:10:10.000000000 +0100
-@@ -79,9 +79,13 @@
- #undef GTK_DISABLE_DEPRECATED
+--- gtk+-2.14.7.orig/gtk/gtkfilesel.c	2009-01-07 17:32:57.000000000 +0100
++++ gtk+-2.14.7/gtk/gtkfilesel.c	2009-02-17 23:07:34.883084908 +0100
+@@ -80,9 +80,13 @@
+ #include "gtkeventbox.h"
  #include "gtkoptionmenu.h"
  
 +#include "gtkimage.h"
@@ -16,7 +16,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
  #include "gtkalias.h"
  
  #ifdef G_OS_WIN32
-@@ -317,6 +321,9 @@
+@@ -318,6 +322,9 @@ static gint                cmpl_last_val
   */
  static gchar*              cmpl_completion_fullname (const gchar*, CompletionState* cmpl_state);
  
@@ -26,7 +26,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
  
  /* Directory operations. */
  static CompletionDir* open_ref_dir         (gchar* text_to_complete,
-@@ -626,6 +633,10 @@
+@@ -627,6 +634,10 @@ gtk_file_selection_init (GtkFileSelectio
    GtkWidget *spacer;
    GtkDialog *dialog;
  
@@ -37,7 +37,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
    GtkListStore *model;
    GtkTreeViewColumn *column;
    
-@@ -639,18 +650,9 @@
+@@ -640,18 +651,9 @@ gtk_file_selection_init (GtkFileSelectio
    filesel->main_vbox = dialog->vbox;
    gtk_container_set_border_width (GTK_CONTAINER (filesel), 10);
  
@@ -57,7 +57,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
    gtk_box_pack_start (GTK_BOX (filesel->main_vbox), pulldown_hbox, FALSE, FALSE, 0);
    gtk_widget_show (pulldown_hbox);
    
-@@ -662,14 +664,27 @@
+@@ -663,14 +665,27 @@ gtk_file_selection_init (GtkFileSelectio
      
    /*  The horizontal box containing the directory and file listboxes  */
  
@@ -87,7 +87,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
    if (WANT_HPANED)
      list_container = g_object_new (GTK_TYPE_HPANED,
  				   "visible", TRUE,
-@@ -681,9 +696,78 @@
+@@ -682,9 +697,78 @@ gtk_file_selection_init (GtkFileSelectio
  
    spacer = gtk_hbox_new (FALSE, 0);
    gtk_widget_set_size_request (spacer, -1, 5);
@@ -167,7 +167,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
    /* The directories list */
  
    model = gtk_list_store_new (1, G_TYPE_STRING);
-@@ -756,6 +840,15 @@
+@@ -757,6 +841,15 @@ gtk_file_selection_init (GtkFileSelectio
    gtk_widget_show (filesel->file_list);
    gtk_widget_show (scrolled_win);
  
@@ -183,7 +183,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
    /* action area for packing buttons into. */
    filesel->action_area = gtk_hbox_new (TRUE, 0);
    gtk_box_pack_start (GTK_BOX (filesel->main_vbox), filesel->action_area, 
-@@ -1071,39 +1164,94 @@
+@@ -1012,39 +1105,94 @@ gtk_file_selection_new (const gchar *tit
  void
  gtk_file_selection_show_fileop_buttons (GtkFileSelection *filesel)
  {
@@ -292,7 +292,7 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
        gtk_widget_show (filesel->fileop_ren_file);
      }
    
-@@ -1805,6 +1953,95 @@
+@@ -1746,6 +1894,95 @@ gtk_file_selection_update_fileops (GtkFi
      gtk_widget_set_sensitive (fs->fileop_ren_file, sensitive);
  }
  
@@ -388,10 +388,10 @@ Index: gtk+2.0-2.10.10/gtk/gtkfilesel.c
  static gint
  gtk_file_selection_key_press (GtkWidget   *widget,
  			      GdkEventKey *event,
-Index: gtk+2.0-2.10.10/gtk/stock-icons/ximian-icons.h
+Index: gtk+-2.14.7/gtk/stock-icons/ximian-icons.h
 ===================================================================
 --- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gtk+2.0-2.10.10/gtk/stock-icons/ximian-icons.h	2007-03-13 14:10:10.000000000 +0100
++++ gtk+-2.14.7/gtk/stock-icons/ximian-icons.h	2009-02-17 23:07:34.887082553 +0100
 @@ -0,0 +1,825 @@
 +/* GdkPixbuf RGBA C-Source image dump 1-byte-run-length-encoded */
 +

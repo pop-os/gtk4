@@ -1,11 +1,20 @@
-gtk+2.0 (2.14.7-2) UNRELEASED; urgency=low
+gtk+2.0 (2.14.7-2) experimental; urgency=low
 
   * 008_implicit_pointer_conversion_gdkgc_directfb.patch: removed, it’s 
     obsolete and just defines the same macro a second time.
   * 007_implicit_pointer_conversion_gdkdrawable_directfb.patch: removed, 
     it’s not needed anymore with the latest directfb.
+  * 006_proper-directfb-modules.patch: removed from the package, it 
+    won’t be necessary anymore.
+  * 001_static-linking-dont-query-immodules.patch,
+    002_static-linking-dont-build-perf.patch,
+    003_gdk.pc_privates.patch,
+    004_gtk+-ximian-gtk2-filesel-navbutton-5.patch: refreshed.
+  * Remove 071_correct_directfb_declarations.patch, and replace it by 
+    032_gdkwindowimpl_directfb.patch, a patch from Sven Neumann to 
+    (hopefully) fix DirectFB support for GTK+ 2.14.
 
- -- Josselin Mouette <joss@debian.org>  Mon, 16 Feb 2009 19:44:27 +0100
+ -- Josselin Mouette <joss@debian.org>  Tue, 17 Feb 2009 23:17:56 +0100
 
 gtk+2.0 (2.14.7-1) experimental; urgency=low
 

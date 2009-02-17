@@ -1,10 +1,10 @@
-Index: gtk+-2.12.1/configure.in
+Index: gtk+-2.14.7/configure.in
 ===================================================================
---- gtk+-2.12.1.orig/configure.in	2007-11-18 00:51:06.548600130 +0100
-+++ gtk+-2.12.1/configure.in	2007-11-18 01:06:06.279872893 +0100
-@@ -1459,21 +1459,23 @@ LDFLAGS="$saved_ldflags"
+--- gtk+-2.14.7.orig/configure.in	2009-02-17 23:06:24.718714576 +0100
++++ gtk+-2.14.7/configure.in	2009-02-17 23:07:30.398582828 +0100
+@@ -1680,21 +1680,23 @@ LDFLAGS="$saved_ldflags"
  
- GDK_PACKAGES="$PANGO_PACKAGES"
+ GDK_PACKAGES="$PANGO_PACKAGES gio-2.0"
  if test "x$gdktarget" = "xx11"; then
 -  GDK_PACKAGES="$GDK_PACKAGES $X_PACKAGES"
 +  GDK_PRIVATE_PACKAGES="$X_PACKAGES"
@@ -30,12 +30,12 @@ Index: gtk+-2.12.1/configure.in
  AC_SUBST(GDK_EXTRA_LIBS)
  AC_SUBST(GDK_EXTRA_CFLAGS)
  AC_SUBST(GDK_DEP_LIBS)
-Index: gtk+-2.12.1/gdk-2.0.pc.in
+Index: gtk+-2.14.7/gdk-2.0.pc.in
 ===================================================================
---- gtk+-2.12.1.orig/gdk-2.0.pc.in	2007-11-17 23:53:16.038827049 +0100
-+++ gtk+-2.12.1/gdk-2.0.pc.in	2007-11-18 01:06:30.821271428 +0100
+--- gtk+-2.14.7.orig/gdk-2.0.pc.in	2009-01-07 17:33:57.000000000 +0100
++++ gtk+-2.14.7/gdk-2.0.pc.in	2009-02-17 23:07:30.402582917 +0100
 @@ -8,5 +8,6 @@ Name: GDK
- Description: GIMP Drawing Kit (${target} target)
+ Description: GTK+ Drawing Kit (${target} target)
  Version: @VERSION@
  Requires: gdk-pixbuf-2.0 @GDK_PACKAGES@
 +Requires.private: @GDK_PRIVATE_PACKAGES@
