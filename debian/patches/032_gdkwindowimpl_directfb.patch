@@ -3,8 +3,8 @@ Based on the original Ubuntu patch for 2.12.
 
 Index: gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c
 ===================================================================
---- gtk+-2.14.7.orig/gdk/directfb/gdkgeometry-directfb.c	2009-01-07 17:33:47.000000000 +0100
-+++ gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c	2009-02-17 23:13:41.682584286 +0100
+--- gtk+-2.14.7.orig/gdk/directfb/gdkgeometry-directfb.c	2009-02-17 23:15:22.211082251 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c	2009-02-18 13:47:09.751083146 +0100
 @@ -41,9 +41,9 @@
  
  
@@ -48,8 +48,8 @@ Index: gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c
    GdkDrawableImplDirectFB *impl;
 Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
 ===================================================================
---- gtk+-2.14.7.orig/gdk/directfb/gdkwindow-directfb.c	2009-01-07 17:33:47.000000000 +0100
-+++ gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c	2009-02-17 23:13:41.698583177 +0100
+--- gtk+-2.14.7.orig/gdk/directfb/gdkwindow-directfb.c	2009-02-17 23:15:22.195084338 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c	2009-02-18 13:47:16.162587960 +0100
 @@ -33,6 +33,7 @@
  
  #include "config.h"
@@ -276,7 +276,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  _gdk_directfb_move_resize_child (GdkWindow *window,
                                   gint       x,
                                   gint       y,
-@@ -1439,12 +1370,13 @@ _gdk_directfb_move_resize_child (GdkWind
+@@ -1439,12 +1370,58 @@ _gdk_directfb_move_resize_child (GdkWind
      }
  }
  
@@ -286,6 +286,51 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
 -                        gint       y,
 -                        gint       width,
 -                        gint       height)
++static  void
++gdk_directfb_window_move (GdkWindow *window,
++                          gint       x,
++                          gint       y)
++{
++  GdkWindowObject       *private;
++  GdkWindowImplDirectFB *impl;
++
++  g_return_if_fail (GDK_IS_WINDOW (window));
++
++  private = GDK_WINDOW_OBJECT (window);
++  impl    = GDK_WINDOW_IMPL_DIRECTFB (private->impl);
++
++  if (impl->window)
++    {
++      private->x = x;
++      private->y = y;
++      impl->window->MoveTo (impl->window, x, y);
++    }
++  else
++    {
++         gint width=impl->drawable.width;
++         gint height=impl->drawable.height;
++      GdkRectangle  old =
++      { private->x, private->y,width,height };
++
++      _gdk_directfb_move_resize_child (window, x, y, width, height);
++      _gdk_directfb_calc_abs (window);
++
++      if (GDK_WINDOW_IS_MAPPED (private))
++        {
++          GdkWindow    *mousewin;
++          GdkRectangle  new = { x, y, width, height };
++
++          gdk_rectangle_union (&new, &old, &new);
++          gdk_window_invalidate_rect (GDK_WINDOW (private->parent), &new,TRUE);
++
++          /* The window the pointer is in might have changed */
++          mousewin = gdk_window_at_pointer (NULL, NULL);
++          gdk_directfb_window_send_crossing_events (NULL, mousewin,
++                                                    GDK_CROSSING_NORMAL);
++        }
++    }
++}
++
 +static void
 +gdk_directfb_window_move_resize (GdkWindow *window,
 +                                 gboolean   with_move,
@@ -296,7 +341,55 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject       *private;
    GdkWindowImplDirectFB *impl;
-@@ -1510,11 +1442,11 @@ gdk_window_move_resize (GdkWindow *windo
+@@ -1478,26 +1455,38 @@ gdk_window_move_resize (GdkWindow *windo
+ 
+   if (impl->drawable.width == width  &&  impl->drawable.height == height)
+     {
+-      gdk_window_move (window, x, y);
++      if (with_move)
++        gdk_directfb_window_move (window, x, y);
+     }
+   else if (impl->window)
+     {
+-  	  private->x = x;
+-  	  private->y = y;
+-      impl->window->MoveTo (impl->window, x, y);
++      private->x = x;
++      private->y = y;
++      impl->drawable.width = width;
++      impl->drawable.height = height;
++
++      if (with_move)
++        impl->window->MoveTo (impl->window, x, y);
+       impl->window->Resize (impl->window, width, height);
+     }
+   else
+     {
+-      GdkRectangle  old =
+-      { private->x, private->y, impl->drawable.width, impl->drawable.height };
+-      _gdk_directfb_move_resize_child (window, x, y, width, height);
++      GdkRectangle old = { private->x, private->y, impl->drawable.width, impl->drawable.height };
++      GdkRectangle new = { x, y, width, height };
++
++      if (! with_move)
++        {
++          new.x = private->x;
++          new.y = private->y;
++        }
++
++      _gdk_directfb_move_resize_child (window,
++                                       new.x, new.y, new.width, new.height);
+       _gdk_directfb_calc_abs (window);
+ 
+       if (GDK_WINDOW_IS_MAPPED (private))
+         {
+-          GdkWindow    *mousewin;
+-          GdkRectangle  new = { x, y, width, height };
++          GdkWindow *mousewin;
+ 
+           gdk_rectangle_union (&new, &old, &new);
+           gdk_window_invalidate_rect (GDK_WINDOW (private->parent), &new,TRUE);
+@@ -1510,11 +1499,11 @@ gdk_window_move_resize (GdkWindow *windo
      }
  }
  
@@ -313,7 +406,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject *window_private;
    GdkWindowObject *parent_private;
-@@ -1523,10 +1455,10 @@ _gdk_window_reparent (GdkWindow *window,
+@@ -1523,10 +1512,10 @@ _gdk_window_reparent (GdkWindow *window,
    GdkWindowImplDirectFB *parent_impl;
    GdkVisual             *visual;
  
@@ -326,7 +419,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  
    if (!new_parent)
      new_parent = _gdk_parent_root;
-@@ -1539,7 +1471,7 @@ _gdk_window_reparent (GdkWindow *window,
+@@ -1539,7 +1528,7 @@ _gdk_window_reparent (GdkWindow *window,
  
    /* already parented */
    if( window_private->parent == (GdkWindowObject *)new_parent )
@@ -335,7 +428,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  
    window_private->parent = (GdkWindowObject *) new_parent;
  
-@@ -1593,7 +1525,7 @@ _gdk_window_reparent (GdkWindow *window,
+@@ -1593,7 +1582,7 @@ _gdk_window_reparent (GdkWindow *window,
          {
  		  g_assert(0);
            _gdk_window_destroy (window, FALSE);
@@ -344,7 +437,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
          }
          /* we hold a reference count on ourselves */
          g_object_ref (window);
-@@ -1609,14 +1541,17 @@ _gdk_window_reparent (GdkWindow *window,
+@@ -1609,14 +1598,17 @@ _gdk_window_reparent (GdkWindow *window,
                            &rect,
                            &impl->drawable.surface);
     }
@@ -368,7 +461,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject         *private;
    GdkDrawableImplDirectFB *impl;
-@@ -1700,51 +1635,8 @@ _gdk_windowing_window_clear_area (GdkWin
+@@ -1700,51 +1692,8 @@ _gdk_windowing_window_clear_area (GdkWin
      g_object_unref (gc);
  }
  
@@ -422,7 +515,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowImplDirectFB *impl;
  
-@@ -1774,8 +1666,8 @@ gdk_window_raise (GdkWindow *window)
+@@ -1774,8 +1723,8 @@ gdk_window_raise (GdkWindow *window)
      }
  }
  
@@ -433,7 +526,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowImplDirectFB *impl;
  
-@@ -1875,9 +1767,9 @@ gdk_window_set_role (GdkWindow   *window
+@@ -1875,9 +1824,9 @@ gdk_window_set_role (GdkWindow   *window
   * Since: 2.12
   *
   **/
@@ -445,7 +538,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
  }
  
-@@ -1907,9 +1799,9 @@ gdk_window_set_transient_for (GdkWindow 
+@@ -1907,9 +1856,9 @@ gdk_window_set_transient_for (GdkWindow 
      root->children = g_list_insert (root->children, window, i);
  }
  
@@ -458,7 +551,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject *private;
  
-@@ -1930,10 +1822,10 @@ gdk_window_set_background (GdkWindow *wi
+@@ -1930,10 +1879,10 @@ gdk_window_set_background (GdkWindow *wi
    private->bg_pixmap = NULL;
  }
  
@@ -473,7 +566,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject *private;
    GdkPixmap       *old_pixmap;
-@@ -1972,9 +1864,9 @@ gdk_window_set_back_pixmap (GdkWindow *w
+@@ -1972,9 +1921,9 @@ gdk_window_set_back_pixmap (GdkWindow *w
      }
  }
  
@@ -486,7 +579,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowImplDirectFB *impl;
    GdkCursor             *old_cursor;
-@@ -2011,13 +1903,13 @@ gdk_window_set_cursor (GdkWindow *window
+@@ -2011,13 +1960,13 @@ gdk_window_set_cursor (GdkWindow *window
      gdk_cursor_unref (old_cursor);
  }
  
@@ -507,7 +600,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject         *private;
    GdkDrawableImplDirectFB *impl;
-@@ -2078,10 +1970,10 @@ _gdk_directfb_calc_abs (GdkWindow *windo
+@@ -2078,10 +2027,10 @@ _gdk_directfb_calc_abs (GdkWindow *windo
      }
  }
  
@@ -522,7 +615,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_val_if_fail (GDK_IS_WINDOW (window), FALSE);
  
-@@ -2215,8 +2107,8 @@ _gdk_windowing_window_get_pointer (displ
+@@ -2215,8 +2164,8 @@ _gdk_windowing_window_get_pointer (displ
  
  }
  
@@ -533,7 +626,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_val_if_fail (GDK_IS_WINDOW (window), 0);
  
-@@ -2226,9 +2118,9 @@ gdk_window_get_events (GdkWindow *window
+@@ -2226,9 +2175,9 @@ gdk_window_get_events (GdkWindow *window
      return GDK_WINDOW_OBJECT (window)->event_mask;
  }
  
@@ -546,7 +639,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_if_fail (GDK_IS_WINDOW (window));
  
-@@ -2240,27 +2132,27 @@ gdk_window_set_events (GdkWindow    *win
+@@ -2240,27 +2189,27 @@ gdk_window_set_events (GdkWindow    *win
    GDK_WINDOW_OBJECT (window)->event_mask = event_mask;
  }
  
@@ -587,7 +680,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
  }
  
-@@ -2584,13 +2476,13 @@ gdk_window_set_functions (GdkWindow     
+@@ -2584,13 +2533,13 @@ gdk_window_set_functions (GdkWindow     
    g_message("unimplemented %s", __FUNCTION__);
  }
  
@@ -605,7 +698,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
  }
  
-@@ -2604,9 +2496,9 @@ gdk_window_merge_child_input_shapes (Gdk
+@@ -2604,9 +2553,9 @@ gdk_window_merge_child_input_shapes (Gdk
  {
  }
  
@@ -618,7 +711,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_val_if_fail (GDK_IS_WINDOW (window), FALSE);
  
-@@ -3153,11 +3045,11 @@ gdk_window_impl_directfb_begin_paint_reg
+@@ -3153,11 +3102,11 @@ gdk_window_impl_directfb_begin_paint_reg
  
        D_DEBUG_AT( GDKDFB_Window, "  -> [%2d] %4d,%4d-%4dx%4d\n", i, GDKDFB_RECTANGLE_VALS_FROM_BOX( box ) );
  
@@ -635,7 +728,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
      }
  }
  
-@@ -3281,6 +3173,33 @@ _gdk_windowing_window_set_composited (Gd
+@@ -3281,6 +3230,33 @@ _gdk_windowing_window_set_composited (Gd
  {
  }
  
@@ -671,8 +764,8 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  #include "gdkaliasdef.c"
 Index: gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h
 ===================================================================
---- gtk+-2.14.7.orig/gdk/directfb/gdkprivate-directfb.h	2009-01-07 17:33:47.000000000 +0100
-+++ gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h	2009-02-17 23:13:41.698583177 +0100
+--- gtk+-2.14.7.orig/gdk/directfb/gdkprivate-directfb.h	2009-02-17 23:15:22.187084160 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h	2009-02-18 13:47:09.820439866 +0100
 @@ -172,6 +172,17 @@ void        gdk_directfb_window_id_table
  void        gdk_directfb_window_id_table_remove (DFBWindowID  dfb_id);
  GdkWindow * gdk_directfb_window_id_table_lookup (DFBWindowID  dfb_id);

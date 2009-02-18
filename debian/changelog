@@ -1,3 +1,11 @@
+gtk+2.0 (2.14.7-3) UNRELEASED; urgency=low
+
+  * 032_gdkwindowimpl_directfb.patch: new version of the patch. This 
+    should restore the basic functionality of the backend, but there is 
+    still work underway.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 18 Feb 2009 13:47:56 +0100
+
 gtk+2.0 (2.14.7-2) experimental; urgency=low
 
   * 008_implicit_pointer_conversion_gdkgc_directfb.patch: removed, it’s 
