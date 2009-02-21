@@ -1,10 +1,16 @@
-gtk+2.0 (2.14.7-3) UNRELEASED; urgency=low
+gtk+2.0 (2.14.7-3) experimental; urgency=low
 
   * 032_gdkwindowimpl_directfb.patch: new version of the patch. This 
     should restore the basic functionality of the backend, but there is 
     still work underway.
+  * 033_directfb_client-message.patch: stolen from the upstream SVN. Fix 
+    the DirectFB client_message API.
+  * 034_directfb_memleak.patch: stolen from the upstream SVN. Fix memory 
+    leak in the DirectFB code.
+  * Require DirectFB 1.0.0 for the 034 patch.
+  * 070_mandatory-relibtoolize.patch: updated accordingly.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 18 Feb 2009 13:47:56 +0100
+ -- Josselin Mouette <joss@debian.org>  Sat, 21 Feb 2009 14:59:45 +0100
 
 gtk+2.0 (2.14.7-2) experimental; urgency=low
 
