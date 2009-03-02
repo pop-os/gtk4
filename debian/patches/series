@@ -3,9 +3,6 @@
 003_gdk.pc_privates.patch
 004_gtk+-ximian-gtk2-filesel-navbutton-5.patch
 005_xpmico.patch
-#006_proper-directfb-modules.patch
-007_implicit_pointer_conversion_gdkdrawable_directfb.patch
-008_implicit_pointer_conversion_gdkgc_directfb.patch
 009_gtk-export-filechooser.patch
 010_gdkpixbuf_-lm.patch
 015_default-fallback-icon-theme.patch
@@ -14,10 +11,14 @@
 022_module-files-append-compat-module-files-d.patch
 030_gtkentry_password-char-circle.patch
 031_directfb_dead-keys.patch
-033_treeview_resizing.patch
+032_gdkwindowimpl_directfb.patch
+033_directfb_client-message.patch
+034_directfb_memleak.patch
 041_ia32-libs.patch
 042_treeview_single-focus.patch
 060_ignore-random-icons.patch
 070_mandatory-relibtoolize.patch
+071_jasper_link_fix.patch
+072_workaround_directfb_build.patch
 091_workaround_no_gtk_init_incorrect_display.patch
-095_gtk-im-module-setting.patch
+092_fix_printtest_include.patch

@@ -1,20 +1,129 @@
-gtk+2.0 (2.12.12-1) unstable; urgency=low
+gtk+2.0 (2.14.7-3) experimental; urgency=low
 
-  [ Josselin Mouette ]
-  * dh_gtkmodules.in: fix a pod2man error.
-  * New upstream release.
-    + Fixes infinite loop caused by setting color scheme.
-      Closes: #492590.
-  * 021_loader-files-d.patch: updated to apply cleanly.
-  * 070_mandatory-relibtoolize.patch: regenerated for the new version.
+  * 032_gdkwindowimpl_directfb.patch: new version of the patch. This 
+    should restore the basic functionality of the backend, but there is 
+    still work underway.
+  * 033_directfb_client-message.patch: stolen from the upstream SVN. Fix 
+    the DirectFB client_message API.
+  * 034_directfb_memleak.patch: stolen from the upstream SVN. Fix memory 
+    leak in the DirectFB code.
+  * Require DirectFB 1.0.0 for the 034 patch.
+  * 070_mandatory-relibtoolize.patch: updated accordingly.
+
+ -- Josselin Mouette <joss@debian.org>  Sat, 21 Feb 2009 14:59:45 +0100
+
+gtk+2.0 (2.14.7-2) experimental; urgency=low
+
+  * 008_implicit_pointer_conversion_gdkgc_directfb.patch: removed, it’s 
+    obsolete and just defines the same macro a second time.
+  * 007_implicit_pointer_conversion_gdkdrawable_directfb.patch: removed, 
+    it’s not needed anymore with the latest directfb.
+  * 006_proper-directfb-modules.patch: removed from the package, it 
+    won’t be necessary anymore.
+  * 001_static-linking-dont-query-immodules.patch,
+    002_static-linking-dont-build-perf.patch,
+    003_gdk.pc_privates.patch,
+    004_gtk+-ximian-gtk2-filesel-navbutton-5.patch: refreshed.
+  * Remove 071_correct_directfb_declarations.patch, and replace it by 
+    032_gdkwindowimpl_directfb.patch, a patch from Sven Neumann to 
+    (hopefully) fix DirectFB support for GTK+ 2.14.
+
+ -- Josselin Mouette <joss@debian.org>  Tue, 17 Feb 2009 23:17:56 +0100
+
+gtk+2.0 (2.14.7-1) experimental; urgency=low
 
   [ Loic Minier ]
   * Don't purge /etc/gtk-2.0/gdk-pixbuf.loaders and /etc/gtk-2.0/gtk.immodules
     during first configuration.
 
- -- Josselin Mouette <joss@debian.org>  Mon, 16 Feb 2009 13:47:06 +0100
+  [ Sebastian Dröge ]
+  * New upstream bugfix release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
 
-gtk+2.0 (2.12.11-4) unstable; urgency=low
+ -- Sebastian Dröge <slomo@debian.org>  Thu, 08 Jan 2009 08:06:02 +0100
+
+gtk+2.0 (2.14.5-1) experimental; urgency=low
+
+  [ Josselin Mouette ]
+  * Really install the faq and tutorial files correctly so that the 
+    devhelp file is read.
+  * Update doc-base files accordingly.
+  * gruik2devhelp.awk: new script to generate the devhelp files 
+    automatically for the FAQ and tutorial, based on the HTML doc.
+  * Build-depend on gawk, run the script appropriately.
+
+  [ Sebastian Dröge ]
+  * New upstream bugfix release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 25 Nov 2008 11:00:35 +0100
+
+gtk+2.0 (2.14.4-3) experimental; urgency=low
+
+  * libgail*.install: fix installation paths. Closes: #505105.
+  * Do not ship .la files for gail modules.
+  * Generate shlibs for libgail.
+  * Bump shlibs version to 2.14.0.
+  * Do not install libgailutil in libgtk2.0-0.
+  * Do not install gtk libs in libgail-dev.
+  * Rework docs installation.
+  * Add doc links where needed.
+  * Install .devhelp files at the correct places. Closes: #504807.
+  * Bump dependencies for the development package.
+  * Fix dependencies of gail packages.
+  * Don’t install libgail in the udeb.
+  * Stop shipping /usr/lib/pkgconfig/libgtk-directfb-2.0-0/, nobody uses 
+    it.
+  * Remove versioned conflicts with libgail packages.
+  * Remove libgail18.shlibs.
+  * Put debugging symbols of libgail modules in libgail-dbg.
+  * dh_gtkmodules.in: fix a pod2man error.
+  * Disable 006_proper-directfb-modules.patch.
+  * Update 070_mandatory_relibtoolize.patch accordingly.
+
+ -- Josselin Mouette <joss@debian.org>  Tue, 11 Nov 2008 14:44:21 +0100
+
+gtk+2.0 (2.14.4-2) experimental; urgency=low
+
+  * debian/control, debian/rules, debian/libgail*:
+  - split libgail packages
+
+ -- Gustavo Noronha Silva <kov@debian.org>  Wed, 05 Nov 2008 14:54:08 -0200
+
+gtk+2.0 (2.14.4-1) experimental; urgency=low
+
+  [ Gustavo Noronha Silva ]
+  * New upstream release
+  * debian/patches/006_proper-directfb-modules.patch:
+  - refreshed
+  * debian/patches/008_implicit_pointer_conversion_gdkgc_directfb.patch,
+    debian/patches/009_gtk-export-filechooser.patch,
+    debian/patches/020_immodules-files-d.patch,
+    debian/patches/021_loader-files-d.patch,
+  - update borrowed from Ubuntu's package
+  * debian/patches/071_correct_directfb_declarations.patch,
+    debian/patches/072_workaround_directfb_build.patch:
+  - borrowed from ubuntu
+  * debian/patches/033_treeview_resizing.patch,
+    debian/patches/095_gtk-im-module-setting.patch:
+  - removed; fixed upstream
+  * debian/patches/070_mandatory-relibtoolize.patch:
+  - refreshed
+  * debian/control.in:
+  - added libjasper-dev to the Build-Depends, as GTK+ now supports
+    JPEG2000
+  - make GTK+ packages conflict/replace with gail ones, since they are now
+    included in GTK+
+  * debian/patches/092_fix_printtest_include.patch:
+  - new patch, to fix build problem in print test
+  * debian/patches/071_jasper_link_fix.patch:
+  - make gdk-pixbuf-csource link correctly with libjasper
+  * debian/rules, debian/control:
+  - newer libcairo2-dev contains everything needed to build the directfb
+    target, so disable building with the dummy libcairo-directfb2-dev
+  - this makes us have to build depend on libcairo2-dev >= 1.6.4-6.1
 
   [ Loic Minier ]
   * Let libgtk2.0-dev recommend debhelper for dh_gtkmodules.
@@ -22,15 +131,14 @@ gtk+2.0 (2.12.11-4) unstable; urgency=low
     gtk-builder-convert to work and might be relied upon by packages bdeping
     on libgtk2.0-dev.
 
-  [ Josselin Mouette ]
-  * Build-depend on libcairo2-dev 1.6.4-6.1, remove references to 
-    libcairo-directfb2-dev.
-  * Disable 006_proper-directfb-modules.patch, it is made unnecessary by 
-    these changes.
-  * 070_mandatory-relibtoolize.patch: updated accordingly.
-  * rules: remove -l flag to dh_shlibdeps.
+  [ Emilio Pozuelo Monfort ]
+  * Update build-dependencies for the new version:
+    - libglib2.0-dev >= 2.17.6
+    - libpango1.0-dev >= 1.20
+    - libatk1.0-dev >= 1.13.0
+    - libcairo2-dev >= 1.6.0
 
- -- Josselin Mouette <joss@debian.org>  Mon, 13 Oct 2008 11:14:40 +0200
+ -- Gustavo Noronha Silva <kov@debian.org>  Wed, 24 Sep 2008 21:38:58 -0300
 
 gtk+2.0 (2.12.11-3) unstable; urgency=low
 

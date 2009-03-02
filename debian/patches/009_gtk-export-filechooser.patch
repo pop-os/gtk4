@@ -34,22 +34,25 @@
     
     	* tests/autotestfilechooser.c: build with
     	GTK_FILE_CHOOSER_ENABLE_UNSUPPORTED
---- a/gtk/Makefile.am	2008-04-01 11:10:41.000000000 +0200
-+++ b/gtk/Makefile.am	2008-04-01 11:10:48.000000000 +0200
-@@ -37,6 +37,8 @@
+Index: gtk+2.0-2.14.0/gtk/Makefile.am
+===================================================================
+--- gtk+2.0-2.14.0.orig/gtk/Makefile.am	2008-09-04 06:35:27.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/Makefile.am	2008-09-05 00:36:25.000000000 +0200
+@@ -34,6 +34,8 @@
+ 	-I$(top_srcdir)/gdk				\
  	-I$(top_srcdir)/gdk-pixbuf -I../gdk-pixbuf	\
- 	-DGDK_PIXBUF_DISABLE_DEPRECATED			\
  	-DGDK_DISABLE_DEPRECATED			\
 +	-DMAEMO_CHANGES					\
 +	-DGTK_FILE_CHOOSER_ENABLE_UNSUPPORTED		\
+ 	-DGTK_DISABLE_DEPRECATED			\
  	-DGTK_FILE_SYSTEM_ENABLE_UNSUPPORTED		\
  	-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED		\
- 	$(GTK_DEBUG_FLAGS)				\
-@@ -341,12 +343,15 @@
+@@ -336,12 +338,16 @@
+ # Installed header files without compatibility guarantees
  # that are not included in gtk/gtk.h
  gtk_semi_private_h_sources =    \
- 	gtktextlayout.h		\
--	gtkfilesystem.h
+-	gtktextlayout.h
++	gtktextlayout.h         \
 +	gtkfilesystem.h		\
 +	gtkfilesystemmodel.h	\
 +	gtkfilechooserprivate.h	\
@@ -64,21 +67,23 @@
  	gtksearchenginesimple.h	\
  	gtkdndcursors.h		\
  	gtkentryprivate.h	\
-@@ -354,10 +359,7 @@
+@@ -349,11 +355,7 @@
  	gtkfilechooserdefault.h	\
  	gtkfilechooserembed.h	\
  	gtkfilechooserentry.h	\
 -	gtkfilechooserprivate.h	\
  	gtkfilechoosersettings.h \
 -	gtkfilechooserutils.h	\
+-	gtkfilesystem.h		\
 -	gtkfilesystemmodel.h	\
- 	gtkfilesystemunix.h	\
- 	gtkhsv.h		\
  	gtkiconcache.h		\
-
---- a/gtk/gtk.symbols	2008-04-01 11:10:41.000000000 +0200
-+++ b/gtk/gtk.symbols	2008-04-01 11:10:48.000000000 +0200
-@@ -1416,6 +1416,12 @@
+ 	gtkintl.h		\
+ 	gtkkeyhash.h		\
+Index: gtk+2.0-2.14.0/gtk/gtk.symbols
+===================================================================
+--- gtk+2.0-2.14.0.orig/gtk/gtk.symbols	2008-09-04 06:35:27.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/gtk.symbols	2008-09-05 00:36:25.000000000 +0200
+@@ -1492,6 +1492,12 @@
  #endif
  #endif
  
@@ -91,8 +96,10 @@
  #if IN_HEADER(__GTK_FILE_CHOOSER_WIDGET_H__)
  #if IN_FILE(__GTK_FILE_CHOOSER_WIDGET_C__)
  gtk_file_chooser_widget_get_type G_GNUC_CONST
---- a/gtk/gtkfilechooserprivate.h	2008-04-01 11:10:41.000000000 +0200
-+++ b/gtk/gtkfilechooserprivate.h	2008-04-01 11:10:48.000000000 +0200
+Index: gtk+2.0-2.14.0/gtk/gtkfilechooserprivate.h
+===================================================================
+--- gtk+2.0-2.14.0.orig/gtk/gtkfilechooserprivate.h	2008-09-04 06:35:27.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/gtkfilechooserprivate.h	2008-09-05 00:36:25.000000000 +0200
 @@ -21,6 +21,14 @@
  #ifndef __GTK_FILE_CHOOSER_PRIVATE_H__
  #define __GTK_FILE_CHOOSER_PRIVATE_H__
@@ -108,8 +115,10 @@
  #include "gtkfilechooser.h"
  #include "gtkfilesystem.h"
  #include "gtkfilesystemmodel.h"
---- a/gtk/gtkfilechooserutils.c	2008-04-01 11:10:41.000000000 +0200
-+++ b/gtk/gtkfilechooserutils.c	2008-04-01 11:10:48.000000000 +0200
+Index: gtk+2.0-2.14.0/gtk/gtkfilechooserutils.c
+===================================================================
+--- gtk+2.0-2.14.0.orig/gtk/gtkfilechooserutils.c	2008-09-04 06:35:27.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/gtkfilechooserutils.c	2008-09-05 00:36:25.000000000 +0200
 @@ -119,6 +119,22 @@
  				    "do-overwrite-confirmation");
  }
@@ -140,8 +149,10 @@
 +
 +#define __GTK_FILE_CHOOSER_UTILS_C__
 +#include "gtkaliasdef.c"
---- a/gtk/gtkfilechooserutils.h	2008-04-01 11:10:41.000000000 +0200
-+++ b/gtk/gtkfilechooserutils.h	2008-04-01 11:10:48.000000000 +0200
+Index: gtk+2.0-2.14.0/gtk/gtkfilechooserutils.h
+===================================================================
+--- gtk+2.0-2.14.0.orig/gtk/gtkfilechooserutils.h	2008-09-04 06:35:27.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/gtkfilechooserutils.h	2008-09-05 00:36:25.000000000 +0200
 @@ -22,6 +22,14 @@
  #ifndef __GTK_FILE_CHOOSER_UTILS_H__
  #define __GTK_FILE_CHOOSER_UTILS_H__
@@ -167,8 +178,10 @@
  
  void _gtk_file_chooser_delegate_iface_init (GtkFileChooserIface *iface);
  void _gtk_file_chooser_set_delegate        (GtkFileChooser *receiver,
---- a/gtk/gtkfilesystemmodel.h	2008-04-01 11:10:41.000000000 +0200
-+++ b/gtk/gtkfilesystemmodel.h	2008-04-01 11:10:48.000000000 +0200
+Index: gtk+2.0-2.14.0/gtk/gtkfilesystemmodel.h
+===================================================================
+--- gtk+2.0-2.14.0.orig/gtk/gtkfilesystemmodel.h	2008-09-04 06:35:27.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/gtkfilesystemmodel.h	2008-09-05 00:36:25.000000000 +0200
 @@ -21,6 +21,10 @@
  #ifndef __GTK_FILE_SYSTEM_MODEL_H__
  #define __GTK_FILE_SYSTEM_MODEL_H__
@@ -177,21 +190,13 @@
 +#error "GtkFileSystemModel is not supported API for general use"
 +#endif
 +
- #include <glib-object.h>
  #include "gtkfilesystem.h"
  #include <gtk/gtktreemodel.h>
---- a/tests/autotestfilechooser.c	2008-04-01 11:10:41.000000000 +0200
-+++ b/tests/autotestfilechooser.c	2008-04-01 11:10:48.000000000 +0200
-@@ -30,6 +30,7 @@
-  */
  
- #define GTK_FILE_SYSTEM_ENABLE_UNSUPPORTED
-+#define GTK_FILE_CHOOSER_ENABLE_UNSUPPORTED
- #undef GTK_DISABLE_DEPRECATED
- 
- #include <config.h>
---- a/gtk/gtkquery.h	2008-04-01 11:10:41.000000000 +0200
-+++ b/gtk/gtkquery.h	2008-04-01 11:10:48.000000000 +0200
+Index: gtk+2.0-2.14.0/gtk/gtkquery.h
+===================================================================
+--- gtk+2.0-2.14.0.orig/gtk/gtkquery.h	2008-09-04 06:35:27.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/gtkquery.h	2008-09-05 00:36:25.000000000 +0200
 @@ -23,6 +23,14 @@
  #ifndef __GTK_QUERY_H__
  #define __GTK_QUERY_H__
@@ -207,8 +212,10 @@
  #include <glib-object.h>
  
  G_BEGIN_DECLS
---- a/gtk/gtksearchengine.h	2008-04-01 11:10:41.000000000 +0200
-+++ b/gtk/gtksearchengine.h	2008-04-01 11:10:48.000000000 +0200
+Index: gtk+2.0-2.14.0/gtk/gtksearchengine.h
+===================================================================
+--- gtk+2.0-2.14.0.orig/gtk/gtksearchengine.h	2008-09-04 06:35:28.000000000 +0200
++++ gtk+2.0-2.14.0/gtk/gtksearchengine.h	2008-09-05 00:36:25.000000000 +0200
 @@ -23,6 +23,14 @@
  #ifndef __GTK_SEARCH_ENGINE_H__
  #define __GTK_SEARCH_ENGINE_H__
@@ -221,6 +228,6 @@
 +#error "gtkfilechooserprivate.h is not supported API for general use"
 +#endif
 +
- #include <glib-object.h>
  #include "gtkquery.h"
  
+ G_BEGIN_DECLS

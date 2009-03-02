@@ -1,9 +1,10 @@
-Index: gtk+2.0-2.10.10/Makefile.am
+Index: gtk+-2.14.7/Makefile.am
 ===================================================================
---- gtk+2.0-2.10.10.orig/Makefile.am	2007-03-12 15:12:11.000000000 +0100
-+++ gtk+2.0-2.10.10/Makefile.am	2007-03-13 14:10:07.000000000 +0100
-@@ -1,6 +1,11 @@
+--- gtk+-2.14.7.orig/Makefile.am	2009-01-07 17:33:57.000000000 +0100
++++ gtk+-2.14.7/Makefile.am	2009-02-17 23:07:14.895082593 +0100
+@@ -1,7 +1,12 @@
  ## Makefile.am for GTK+
+ include $(top_srcdir)/Makefile.decl
  
 -SRC_SUBDIRS = gdk-pixbuf gdk gtk modules demos tests perf contrib
 +# don't build perf measurement tools in static builds

@@ -1,0 +1,117 @@
+GNOME #533456
+Upstream svn r22369
+
+Index: gtk+-2.14.7/configure.in
+===================================================================
+--- gtk+-2.14.7.orig/configure.in	2009-02-21 14:48:32.835086281 +0100
++++ gtk+-2.14.7/configure.in	2009-02-21 14:54:42.690587468 +0100
+@@ -1620,7 +1620,7 @@ AC_SUBST(GDK_PIXBUF_XLIB_DEP_LIBS)
+ AC_SUBST(GDK_PIXBUF_XLIB_DEP_CFLAGS)
+ 
+ if test "x$gdktarget" = "xdirectfb"; then
+-  DIRECTFB_REQUIRED_VERSION=0.9.26
++  DIRECTFB_REQUIRED_VERSION=1.0.0
+   AC_MSG_CHECKING(for DirectFB)
+ 
+   if $PKG_CONFIG --atleast-version $DIRECTFB_REQUIRED_VERSION directfb && $PKG_CONFIG --exists cairo-directfb ; then
+Index: gtk+-2.14.7/gdk/directfb/gdkcursor-directfb.c
+===================================================================
+--- gtk+-2.14.7.orig/gdk/directfb/gdkcursor-directfb.c	2009-02-21 14:48:30.306588314 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkcursor-directfb.c	2009-02-21 14:54:42.690587468 +0100
+@@ -41,10 +41,6 @@
+ 
+ #include <directfb_version.h>
+ 
+-#if DIRECTFB_MAJOR_VERSION < 1
+-#define u32 __u32
+-#define u8 __u8
+-#endif
+ 
+ static struct {
+   const guchar *bits;
+Index: gtk+-2.14.7/gdk/directfb/gdkdirectfb.h
+===================================================================
+--- gtk+-2.14.7.orig/gdk/directfb/gdkdirectfb.h	2009-02-21 14:48:30.374585434 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkdirectfb.h	2009-02-21 14:54:42.690587468 +0100
+@@ -80,10 +80,8 @@ GdkVisual * gdk_directfb_visual_by_forma
+ IDirectFBWindow *gdk_directfb_window_lookup(GdkWindow *window);
+ IDirectFBSurface *gdk_directfb_surface_lookup(GdkWindow *window);
+ 
+-#if (DIRECTFB_MAJOR_VERSION >= 1)
+ GdkWindow *gdk_directfb_create_child_window(GdkWindow *parent,
+-                IDirectFBSurface *subsurface);
+-#endif
++                                            IDirectFBSurface *subsurface);
+ 
+ 
+ G_END_DECLS
+Index: gtk+-2.14.7/gdk/directfb/gdkevents-directfb.c
+===================================================================
+--- gtk+-2.14.7.orig/gdk/directfb/gdkevents-directfb.c	2009-02-21 14:54:41.887087234 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkevents-directfb.c	2009-02-21 14:54:42.690587468 +0100
+@@ -419,7 +419,6 @@ gdk_directfb_event_windows_add (GdkWindo
+     impl->window->CreateEventBuffer (impl->window, &EventBuffer);
+ }
+ 
+-#if (DIRECTFB_MAJOR_VERSION >= 1)
+ void
+ gdk_directfb_event_windows_remove (GdkWindow *window)
+ {
+@@ -436,7 +435,6 @@ gdk_directfb_event_windows_remove (GdkWi
+     impl->window->DetachEventBuffer (impl->window, EventBuffer);
+ /* FIXME: should we warn if (! EventBuffer) ? */
+ }
+-#endif
+ 
+ GdkWindow *
+ gdk_directfb_child_at (GdkWindow *window,
+Index: gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h
+===================================================================
+--- gtk+-2.14.7.orig/gdk/directfb/gdkprivate-directfb.h	2009-02-21 14:48:30.330588850 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h	2009-02-21 14:54:42.690587468 +0100
+@@ -239,10 +239,8 @@ GdkImage* _gdk_directfb_copy_to_image (G
+                                        gint          width,
+                                        gint          height);
+ 
+-void       gdk_directfb_event_windows_add (GdkWindow *window);
+-#if (DIRECTFB_MAJOR_VERSION >= 1)
++void       gdk_directfb_event_windows_add    (GdkWindow *window);
+ void       gdk_directfb_event_windows_remove (GdkWindow *window);
+-#endif
+ 
+ GdkGrabStatus gdk_directfb_keyboard_grab  (GdkDisplay          *display,
+                                            GdkWindow           *window,
+Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
+===================================================================
+--- gtk+-2.14.7.orig/gdk/directfb/gdkwindow-directfb.c	2009-02-21 14:54:17.138584001 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c	2009-02-21 14:54:42.694585602 +0100
+@@ -698,9 +698,8 @@ _gdk_windowing_window_destroy (GdkWindow
+   impl = GDK_WINDOW_IMPL_DIRECTFB (private->impl);
+ 
+   _gdk_selection_window_destroyed (window);
+-#if (DIRECTFB_MAJOR_VERSION >= 1)
+   gdk_directfb_event_windows_remove (window);
+-#endif
++
+   if (window == _gdk_directfb_pointer_grab_window)
+     gdk_pointer_ungrab (GDK_CURRENT_TIME);
+   if (window == _gdk_directfb_keyboard_grab_window)
+@@ -2651,9 +2650,8 @@ gdk_window_get_frame_extents (GdkWindow 
+  * Given a directfb window and a subsurface of that window
+  * create a gdkwindow child wrapper
+  */
+-#if (DIRECTFB_MAJOR_VERSION >= 1)
+ GdkWindow *gdk_directfb_create_child_window(GdkWindow *parent,
+-                                IDirectFBSurface *subsurface)
++                                            IDirectFBSurface *subsurface)
+ {
+   GdkWindow             *window;
+   GdkWindowObject       *private;
+@@ -2698,7 +2696,6 @@ GdkWindow *gdk_directfb_create_child_win
+   return window;
+ 
+ }
+-#endif
+ 
+ /*
+  * The wrapping is not perfect since directfb does not give full access

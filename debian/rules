@@ -46,7 +46,7 @@ DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
 APIVER := 2.0
 SONAME := 0
-SHVER := 2.12.0
+SHVER := 2.14.0
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 2.10.0
@@ -68,8 +68,8 @@ EXAMPLES_PKG := gtk$(APIVER)-examples
 PIXBUF_PKG := gtk2-engines-pixbuf
 
 # package groups, used in rule dependencies and in cleanup
-BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG)
-BINARY_ARCH_PKGS := $(SHARED_PKG) $(DIRECTFB_PKG) $(UDEB_PKG) $(DEV_PKG) $(DIRECTFB_DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG)
+BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG) libgail-doc
+BINARY_ARCH_PKGS := $(SHARED_PKG) $(DIRECTFB_PKG) $(UDEB_PKG) $(DEV_PKG) $(DIRECTFB_DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG) libgail18 libgail-dbg libgail-dev libgail-common
 ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 
 # list of flavors we build; each gets a builddir, a configure pass (configure
@@ -118,7 +118,6 @@ common_configure_flags := \
 			--mandir=\$${prefix}/share/man \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
-			--with-html-dir=\$${prefix}/share/doc/$(DOC_PKG) \
 			--enable-test-print-backend
 ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE)
@@ -147,6 +146,11 @@ DH_INSTALLDOCS_FILES := NEWS README ChangeLog
 # macro computing the list of 'debian/<pkg>.*" files which have a corresponding
 # ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
+
+# Gruik gruik generation of .devhelp files for the FAQ and tutorial
+debian/gtk-%.devhelp: docs/%/html/book1.html
+	gawk -f debian/gruik2devhelp.awk -v name=gtk-$* $< > $@
+devhelpfiles: debian/gtk-faq.devhelp debian/gtk-tutorial.devhelp
 
 debian/dh_gtkmodules.1: debian/dh_gtkmodules
 	cd debian && pod2man -c "Gtk" -r "$(DEBVERSION)" dh_gtkmodules dh_gtkmodules.1
@@ -249,6 +253,7 @@ clean:: debian/control
 	# unapply patches, if any
 	QUILT_PATCHES=$(PATCH_DIR) quilt --quiltrc /dev/null pop -a -R || test $$? = 2
 	-rm -rf .pc
+	rm -f debian/*.devhelp
 	-rm -rf $(STAMP_DIR)
 	-rm -f $(call dh_subst_files,$(ALL_PKGS))
 	-rm -f debian/update-gdkpixbuf-loaders debian/update-gtk-immodules debian/dh_gtkmodules debian/dh_gtkmodules.1
@@ -256,7 +261,7 @@ clean:: debian/control
 
 maybe_check = $(if $(findstring nocheck,$(DEB_BUILD_OPTIONS)),,check)
 
-binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
+binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS)) devhelpfiles
 	dh_testdir
 	dh_testroot
 	dh_install -i
@@ -320,7 +325,8 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 			-p$(UDEB_PKG)
 	dh_installexamples -s
 	dh_link -s
-	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG)
+	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG) -Nlibgail18 -Nlibgail-common
+	dh_strip -plibgail18 -plibgail-common --dbg-package=libgail-dbg
 	dh_strip -p$(UDEB_PKG)
 	dh_compress -s -X.sgml -X.devhelp
 	dh_fixperms -s -X$(LIBDIR)/$(SHARED_PKG)
@@ -332,6 +338,9 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		-X$(MODULES_BASE_PATH) \
 		-V"$(DIRECTFB_PKG) (>= $(SHVER))" \
 		--add-udeb=$(UDEB_PKG)
+	dh_makeshlibs -plibgail18 \
+		-X$(MODULES_BASE_PATH) \
+		-V"libgail18 (>= $(SHVER)), libgail-common (>= $(SHVER))"
 	dh_installdeb -s
 	# override shlibs for libraries from this source before computing
 	# dependencies of packages generated from this source; we already have
@@ -340,7 +349,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	cat debian/*/DEBIAN/shlibs | \
 		sed -n -r -e 's/(([^ ]+: )?([^ ]+) ([^ ]+)) .*/\1/p' \
 			> debian/shlibs.local
-	dh_shlibdeps -s
+	dh_shlibdeps
 	-rm -f debian/shlibs.local
 	dh_gencontrol -s
 	dh_md5sums -s
@@ -351,4 +360,4 @@ list-missing:
 	    egrep -v '(\.la|$(LIBDIR)/gtk-2.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
 
 binary: binary-indep binary-arch
-.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary
+.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary devhelpfiles

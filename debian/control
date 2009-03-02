@@ -2,13 +2,13 @@ Source: gtk+2.0
 Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Josselin Mouette <joss@debian.org>, Loic Minier <lool@dooz.org>, Sebastian Dröge <slomo@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Gustavo Noronha Silva <kov@debian.org>, Josselin Mouette <joss@debian.org>, Sebastian Dröge <slomo@debian.org>
 Build-Depends: debhelper (>= 5.0.22),
                gettext,
                pkg-config,
-               libglib2.0-dev (>= 2.13.5),
-               libpango1.0-dev (>= 1.17.3),
-               libatk1.0-dev (>= 1.9.0),
+               libglib2.0-dev (>= 2.17.6),
+               libpango1.0-dev (>= 1.20),
+               libatk1.0-dev (>= 1.13.0),
                libx11-dev (>= 2:1.0.0-6),
                libxext-dev (>= 1:1.0.1-2),
                libxi-dev (>= 1:1.0.1-4),
@@ -25,15 +25,17 @@ Build-Depends: debhelper (>= 5.0.22),
                libcairo2-dev (>= 1.6.4-6.1),
                libtiff4-dev,
                libjpeg62-dev,
+               libjasper-dev,
                libpng12-dev,
                gnome-pkg-tools (>= 0.11),
                chrpath,
                dpkg-dev (>= 1.13.19),
                x11proto-xext-dev,
-               libdirectfb-dev (>= 0.9.26),
+               libdirectfb-dev (>= 1.0.0),
                libcups2-dev (>= 1.2),
-               quilt
-Build-Depends-Indep: gtk-doc-tools (>= 1.6),
+               quilt,
+               gawk
+Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      docbook-xml
 Standards-Version: 3.8.0
 
@@ -186,10 +188,10 @@ Depends: libgtk2.0-0 (= ${binary:Version}),
          libgtk2.0-common,
          ${misc:Depends},
          ${shlibs:Depends},
-         libglib2.0-dev (>= 2.12.0),
-         libpango1.0-dev (>= 1.10.0-2),
-         libatk1.0-dev (>= 1.6.1-2),
-         libcairo2-dev,
+         libglib2.0-dev (>= 2.17.6),
+         libpango1.0-dev (>= 1.20),
+         libatk1.0-dev (>= 1.13.0),
+         libcairo2-dev (>= 1.6.4-6.1),
          libx11-dev (>= 2:1.0.0-6),
          libxext-dev (>= 1:1.0.1-2),
          libxinerama-dev (>= 1:1.0.1-4.1),
@@ -307,3 +309,73 @@ Description: Pixbuf-based theme for GTK+ 2.x
  suites.
  .
  This package contains the pixbuf theme engine.
+
+Package: libgail18
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         libgtk2.0-0 (= ${binary:Version})
+Replaces: libgail17
+Description: GNOME Accessibility Implementation Library -- shared libraries
+ Gail implements ATK interfaces for GTK+ widgets which are dynamically
+ loadable at runtime by a GTK+ application. Once loaded, those parts of
+ an application that use standard GTK+ widgets will have a basic level
+ of accessibility, without the need to modify the application at all.
+ .
+ This package contains the shared library.
+
+Package: libgail-common
+Architecture: any
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+         libgail18 (= ${binary:Version})
+Description: GNOME Accessibility Implementation Library -- common modules
+ Gail implements ATK interfaces for GTK+ widgets which are dynamically
+ loadable at runtime by a GTK+ application. Once loaded, those parts of
+ an application that use standard GTK+ widgets will have a basic level
+ of accessibility, without the need to modify the application at all.
+ .
+ This package contains core shared libraries.
+
+Package: libgail-dev
+Architecture: any
+Section: libdevel
+Depends: ${misc:Depends},
+         libgail18 (= ${binary:Version}),
+         libgail-common (= ${binary:Version}), 
+         libgtk2.0-dev (= ${binary:Version}),
+         pkg-config,
+         libatk1.0-dev (>= 1.13.0)
+Suggests: libgail-doc
+Description: GNOME Accessibility Implementation Library -- development files
+ Gail implements ATK interfaces for GTK+ widgets which are dynamically
+ loadable at runtime by a GTK+ application. Once loaded, those parts of
+ an application that use standard GTK+ widgets will have a basic level
+ of accessibility, without the need to modify the application at all.
+ .
+ This package contains the development files for Gail.
+
+Package: libgail-dbg
+Architecture: any
+Section: libdevel
+Priority: extra
+Depends: ${misc:Depends}, libgail18 (= ${binary:Version})
+Recommends: libgtk2.0-0-dbg
+Description: Gail libraries and debugging symbols
+ Gail is the "GNOME Accessibility Implementation Library".
+ .
+ This package contains detached debugging symbols.
+ .
+ Most people will not need this package.
+
+Package: libgail-doc
+Architecture: all
+Section: doc
+Depends: ${misc:Depends}, lynx | www-browser
+Description: documentation files of the Gail library
+ Gail implements ATK interfaces for GTK+ widgets which are dynamically
+ loadable at runtime by a GTK+ application. Once loaded, those parts of
+ an application that use standard GTK+ widgets will have a basic level
+ of accessibility, without the need to modify the application at all.
+ .
+ This package contains the documentation files for Gail.
