@@ -1,3 +1,11 @@
+gtk+2.0 (2.14.7-4) UNRELEASED; urgency=low
+
+  * 032_gdkwindowimpl_directfb.patch: re-generate the patch from the 
+    corresponding SVN commits. One line went missing, causing a crash. 
+    Thanks Jérémy Bobbio for reporting it.
+
+ -- Josselin Mouette <joss@debian.org>  Mon, 02 Mar 2009 13:03:43 +0100
+
 gtk+2.0 (2.14.7-3) experimental; urgency=low
 
   * 032_gdkwindowimpl_directfb.patch: new version of the patch. This 

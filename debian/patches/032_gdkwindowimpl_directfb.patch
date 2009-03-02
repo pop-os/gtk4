@@ -4,10 +4,50 @@ Based on the original Ubuntu patch for 2.12.
 GNOME #554407
 Upstream svn r22358,r22381,r22383,r22385
 
+Index: gtk+-2.14.7/gdk/directfb/gdkdisplay-directfb.c
+===================================================================
+--- gtk+-2.14.7.orig/gdk/directfb/gdkdisplay-directfb.c	2009-03-02 13:00:06.844957878 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkdisplay-directfb.c	2009-03-02 13:00:20.703932134 +0100
+@@ -36,14 +36,13 @@
+ #include "gdkalias.h"
+ 
+ 
+-
+-extern void _gdk_visual_init (void);
+-extern void _gdk_events_init (void);
+-extern void _gdk_input_init (void);
+-extern void _gdk_dnd_init (void);
+-extern void _gdk_windowing_window_init (void);
+-extern void _gdk_windowing_image_init (void);
+-extern void _gdk_directfb_keyboard_init      (void);
++extern void _gdk_visual_init            (void);
++extern void _gdk_events_init            (void);
++extern void _gdk_input_init             (void);
++extern void _gdk_dnd_init               (void);
++extern void _gdk_windowing_window_init  (void);
++extern void _gdk_windowing_image_init   (void);
++extern void _gdk_directfb_keyboard_init (void);
+ 
+ static gboolean   gdk_directfb_argb_font           = FALSE;
+ static gint       gdk_directfb_glyph_surface_cache = 8;
+@@ -130,11 +129,10 @@
+   _gdk_screen = g_object_new (GDK_TYPE_SCREEN, NULL);
+ 
+   _gdk_visual_init ();
++  _gdk_windowing_window_init ();
+ 
+   gdk_screen_set_default_colormap (_gdk_screen,
+-                                   gdk_screen_get_system_colormap (_gdk_screen));
+-  _gdk_windowing_window_init ();
+-  _gdk_windowing_image_init ();
++                                   gdk_screen_get_system_colormap (_gdk_screen));  _gdk_windowing_image_init ();
+ 
+   _gdk_input_init ();
+   _gdk_dnd_init ();
 Index: gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c
 ===================================================================
---- gtk+-2.14.7.orig/gdk/directfb/gdkgeometry-directfb.c	2009-02-21 14:15:18.127086939 +0100
-+++ gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c	2009-02-21 14:15:20.018583625 +0100
+--- gtk+-2.14.7.orig/gdk/directfb/gdkgeometry-directfb.c	2009-03-02 12:58:18.511935665 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c	2009-03-02 12:59:12.960971087 +0100
 @@ -41,9 +41,9 @@
  
  
@@ -21,7 +61,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c
  {
    if (x_offset)
      *x_offset = 0;
-@@ -69,9 +69,9 @@ _gdk_windowing_window_queue_antiexpose (
+@@ -69,9 +69,9 @@
   * brings in from offscreen areas are invalidated.
   **/
  void
@@ -34,7 +74,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c
  {
    GdkWindowObject         *private;
    GdkDrawableImplDirectFB *impl;
-@@ -161,10 +161,10 @@ gdk_window_scroll (GdkWindow *window,
+@@ -161,10 +161,10 @@
   * Since: 2.8
   **/
  void
@@ -49,10 +89,32 @@ Index: gtk+-2.14.7/gdk/directfb/gdkgeometry-directfb.c
  {
    GdkWindowObject         *private;
    GdkDrawableImplDirectFB *impl;
+Index: gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h
+===================================================================
+--- gtk+-2.14.7.orig/gdk/directfb/gdkprivate-directfb.h	2009-03-02 12:58:31.315949652 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h	2009-03-02 12:59:12.964957976 +0100
+@@ -172,6 +172,17 @@
+ void        gdk_directfb_window_id_table_remove (DFBWindowID  dfb_id);
+ GdkWindow * gdk_directfb_window_id_table_lookup (DFBWindowID  dfb_id);
+ 
++void        _gdk_directfb_window_get_offsets    (GdkWindow       *window,
++                                                 gint            *x_offset,
++                                                 gint            *y_offset);
++void        _gdk_directfb_window_scroll         (GdkWindow       *window,
++                                                 gint             dx,
++                                                 gint             dy);
++void        _gdk_directfb_window_move_region    (GdkWindow       *window,
++                                                 const GdkRegion *region,
++                                                 gint             dx,
++                                                 gint             dy);
++
+ 
+ typedef struct
+ {
 Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
 ===================================================================
---- gtk+-2.14.7.orig/gdk/directfb/gdkwindow-directfb.c	2009-02-21 14:15:18.091090046 +0100
-+++ gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c	2009-02-21 14:54:17.138584001 +0100
+--- gtk+-2.14.7.orig/gdk/directfb/gdkwindow-directfb.c	2009-03-02 12:58:31.287942741 +0100
++++ gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c	2009-03-02 13:00:47.307933131 +0100
 @@ -33,6 +33,7 @@
  
  #include "config.h"
@@ -61,7 +123,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  #include "gdkwindow.h"
  
  #include "gdkdirectfb.h"
-@@ -67,6 +68,9 @@ static void gdk_window_impl_directfb_ini
+@@ -67,6 +68,9 @@
  static void gdk_window_impl_directfb_class_init (GdkWindowImplDirectFBClass *klass);
  static void gdk_window_impl_directfb_finalize   (GObject                    *object);
  
@@ -71,7 +133,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  typedef struct
  {
    GdkWindowChildChanged  changed;
-@@ -98,9 +102,8 @@ gdk_window_directfb_process_all_updates 
+@@ -98,9 +102,8 @@
    tmp_list = old_update_windows;
    while (tmp_list)
      {
@@ -83,7 +145,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
        if (private->update_freeze_count)
          {
            D_DEBUG_AT( GDKDFB_Updates, "  -> %p frozen [%4d,%4d-%4dx%4d] (%d boxes)\n",
-@@ -115,7 +118,7 @@ gdk_window_directfb_process_all_updates 
+@@ -115,7 +118,7 @@
                        wimpl->flips.num_regions );
            gdk_window_process_updates(tmp_list->data,TRUE);
          }
@@ -92,31 +154,61 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
        g_object_unref (tmp_list->data);
        tmp_list = tmp_list->next;
      }
-@@ -220,6 +223,13 @@ gdk_window_impl_directfb_get_type (void)
-     NULL
-       };
+@@ -186,11 +189,8 @@
+ static GdkWindow *gdk_directfb_focused_window            = NULL;
+ static gpointer   parent_class                           = NULL;
+ GdkWindow * _gdk_parent_root = NULL;
+-static void
+-gdk_window_impl_directfb_paintable_init (GdkPaintableIface *iface);
+-
+-
  
-+       const GInterfaceInfo window_impl_info =
-+       {
-+         (GInterfaceInitFunc) gdk_window_impl_iface_init,
-+         NULL,
-+         NULL
-+       };
++static void gdk_window_impl_directfb_paintable_init (GdkPaintableIface *iface);
+ 
+ 
+ GType
+@@ -213,20 +213,30 @@
+           (GInstanceInitFunc) gdk_window_impl_directfb_init,
+         };
+ 
+-    static const GInterfaceInfo paintable_info =
+-      {
+-    (GInterfaceInitFunc) gdk_window_impl_directfb_paintable_init,
+-    NULL,
+-    NULL
+-      };
++      static const GInterfaceInfo paintable_info =
++        {
++          (GInterfaceInitFunc) gdk_window_impl_directfb_paintable_init,
++          NULL,
++          NULL
++        };
 +
++      static const GInterfaceInfo window_impl_info =
++        {
++          (GInterfaceInitFunc) gdk_window_impl_iface_init,
++          NULL,
++          NULL
++        };
+ 
        object_type = g_type_register_static (GDK_TYPE_DRAWABLE_IMPL_DIRECTFB,
                                              "GdkWindowImplDirectFB",
                                              &object_info, 0);
-@@ -227,6 +237,9 @@ gdk_window_impl_directfb_get_type (void)
-                    GDK_TYPE_PAINTABLE,
-                    &paintable_info);
- 
-+       g_type_add_interface_static (object_type,
-+				    GDK_TYPE_WINDOW_IMPL,
-+				    &window_impl_info);
+-       g_type_add_interface_static (object_type,
+-                   GDK_TYPE_PAINTABLE,
+-                   &paintable_info);
+-
++      g_type_add_interface_static (object_type,
++                                   GDK_TYPE_PAINTABLE,
++                                   &paintable_info);
++
++      g_type_add_interface_static (object_type,
++                                   GDK_TYPE_WINDOW_IMPL,
++                                   &window_impl_info);
      }
  
    return object_type;
-@@ -401,11 +414,11 @@ _gdk_windowing_window_init (void)
+@@ -401,11 +411,11 @@
  
    g_assert (_gdk_parent_root == NULL);
  
@@ -130,7 +222,15 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
    impl = GDK_WINDOW_IMPL_DIRECTFB (private->impl);
  
    private->window_type = GDK_WINDOW_ROOT;
-@@ -647,8 +660,8 @@ gdk_directfb_window_new (GdkWindow      
+@@ -475,6 +485,7 @@
+ 
+   window = g_object_new (GDK_TYPE_WINDOW, NULL);
+   private = GDK_WINDOW_OBJECT (window);
++  private->impl = g_object_new (_gdk_window_impl_get_type (), NULL);
+ 
+   parent_private = GDK_WINDOW_OBJECT (parent);
+   parent_impl = GDK_WINDOW_IMPL_DIRECTFB (parent_private->impl);
+@@ -647,8 +658,8 @@
  
  GdkWindow *
  _gdk_window_new (GdkWindow     *parent,
@@ -141,7 +241,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_val_if_fail (attributes != NULL, NULL);
  
-@@ -1230,28 +1243,19 @@ show_window_internal (GdkWindow *window,
+@@ -1230,28 +1241,19 @@
      }
  }
  
@@ -176,7 +276,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject       *private;
    GdkWindowImplDirectFB *impl;
-@@ -1276,11 +1280,11 @@ gdk_window_hide (GdkWindow *window)
+@@ -1276,11 +1278,11 @@
  
        if (!private->input_only && private->parent)
          {
@@ -193,7 +293,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
          }
  
        event_win = gdk_directfb_other_event_window (window, GDK_UNMAP);
-@@ -1299,8 +1303,8 @@ gdk_window_hide (GdkWindow *window)
+@@ -1299,8 +1301,8 @@
      }
  }
  
@@ -204,7 +304,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_if_fail (GDK_IS_WINDOW (window));
  
-@@ -1309,80 +1313,6 @@ gdk_window_withdraw (GdkWindow *window)
+@@ -1309,80 +1311,6 @@
  }
  
  void
@@ -285,7 +385,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  _gdk_directfb_move_resize_child (GdkWindow *window,
                                   gint       x,
                                   gint       y,
-@@ -1407,15 +1337,17 @@ _gdk_directfb_move_resize_child (GdkWind
+@@ -1407,15 +1335,17 @@
  
    if (!private->input_only)
      {
@@ -312,7 +412,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  
        parent_impl = GDK_WINDOW_IMPL_DIRECTFB (GDK_WINDOW_OBJECT (private->parent)->impl);
  
-@@ -1432,19 +1364,66 @@ _gdk_directfb_move_resize_child (GdkWind
+@@ -1432,19 +1362,66 @@
    for (list = private->children; list; list = list->next)
      {
        private = GDK_WINDOW_OBJECT (list->data);
@@ -386,7 +486,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject       *private;
    GdkWindowImplDirectFB *impl;
-@@ -1454,8 +1433,14 @@ gdk_window_move_resize (GdkWindow *windo
+@@ -1454,8 +1431,14 @@
    private = GDK_WINDOW_OBJECT (window);
    impl = GDK_WINDOW_IMPL_DIRECTFB (private->impl);
  
@@ -402,7 +502,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
    if (height < 1)
      height = 1;
  
-@@ -1478,26 +1463,39 @@ gdk_window_move_resize (GdkWindow *windo
+@@ -1478,26 +1461,39 @@
  
    if (impl->drawable.width == width  &&  impl->drawable.height == height)
      {
@@ -451,7 +551,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  
            gdk_rectangle_union (&new, &old, &new);
            gdk_window_invalidate_rect (GDK_WINDOW (private->parent), &new,TRUE);
-@@ -1510,11 +1508,11 @@ gdk_window_move_resize (GdkWindow *windo
+@@ -1510,11 +1506,11 @@
      }
  }
  
@@ -468,7 +568,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject *window_private;
    GdkWindowObject *parent_private;
-@@ -1523,10 +1521,10 @@ _gdk_window_reparent (GdkWindow *window,
+@@ -1523,10 +1519,10 @@
    GdkWindowImplDirectFB *parent_impl;
    GdkVisual             *visual;
  
@@ -481,7 +581,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  
    if (!new_parent)
      new_parent = _gdk_parent_root;
-@@ -1539,7 +1537,7 @@ _gdk_window_reparent (GdkWindow *window,
+@@ -1539,7 +1535,7 @@
  
    /* already parented */
    if( window_private->parent == (GdkWindowObject *)new_parent )
@@ -490,7 +590,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  
    window_private->parent = (GdkWindowObject *) new_parent;
  
-@@ -1593,7 +1591,7 @@ _gdk_window_reparent (GdkWindow *window,
+@@ -1593,7 +1589,7 @@
          {
  		  g_assert(0);
            _gdk_window_destroy (window, FALSE);
@@ -499,7 +599,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
          }
          /* we hold a reference count on ourselves */
          g_object_ref (window);
-@@ -1609,14 +1607,17 @@ _gdk_window_reparent (GdkWindow *window,
+@@ -1609,14 +1605,17 @@
                            &rect,
                            &impl->drawable.surface);
     }
@@ -523,7 +623,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject         *private;
    GdkDrawableImplDirectFB *impl;
-@@ -1700,51 +1701,8 @@ _gdk_windowing_window_clear_area (GdkWin
+@@ -1700,51 +1699,8 @@
      g_object_unref (gc);
  }
  
@@ -577,7 +677,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowImplDirectFB *impl;
  
-@@ -1774,8 +1732,8 @@ gdk_window_raise (GdkWindow *window)
+@@ -1774,8 +1730,8 @@
      }
  }
  
@@ -588,7 +688,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowImplDirectFB *impl;
  
-@@ -1875,9 +1833,9 @@ gdk_window_set_role (GdkWindow   *window
+@@ -1875,9 +1831,9 @@
   * Since: 2.12
   *
   **/
@@ -600,7 +700,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
  }
  
-@@ -1907,9 +1865,9 @@ gdk_window_set_transient_for (GdkWindow 
+@@ -1907,9 +1863,9 @@
      root->children = g_list_insert (root->children, window, i);
  }
  
@@ -613,7 +713,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject *private;
  
-@@ -1930,10 +1888,10 @@ gdk_window_set_background (GdkWindow *wi
+@@ -1930,10 +1886,10 @@
    private->bg_pixmap = NULL;
  }
  
@@ -628,7 +728,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject *private;
    GdkPixmap       *old_pixmap;
-@@ -1972,9 +1930,9 @@ gdk_window_set_back_pixmap (GdkWindow *w
+@@ -1972,9 +1928,9 @@
      }
  }
  
@@ -641,7 +741,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowImplDirectFB *impl;
    GdkCursor             *old_cursor;
-@@ -2011,13 +1969,13 @@ gdk_window_set_cursor (GdkWindow *window
+@@ -2011,13 +1967,13 @@
      gdk_cursor_unref (old_cursor);
  }
  
@@ -662,7 +762,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    GdkWindowObject         *private;
    GdkDrawableImplDirectFB *impl;
-@@ -2078,10 +2036,10 @@ _gdk_directfb_calc_abs (GdkWindow *windo
+@@ -2078,10 +2034,10 @@
      }
  }
  
@@ -677,7 +777,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_val_if_fail (GDK_IS_WINDOW (window), FALSE);
  
-@@ -2215,8 +2173,8 @@ _gdk_windowing_window_get_pointer (displ
+@@ -2215,8 +2171,8 @@
  
  }
  
@@ -688,7 +788,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_val_if_fail (GDK_IS_WINDOW (window), 0);
  
-@@ -2226,9 +2184,9 @@ gdk_window_get_events (GdkWindow *window
+@@ -2226,9 +2182,9 @@
      return GDK_WINDOW_OBJECT (window)->event_mask;
  }
  
@@ -701,7 +801,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_if_fail (GDK_IS_WINDOW (window));
  
-@@ -2240,27 +2198,27 @@ gdk_window_set_events (GdkWindow    *win
+@@ -2240,27 +2196,27 @@
    GDK_WINDOW_OBJECT (window)->event_mask = event_mask;
  }
  
@@ -742,7 +842,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
  }
  
-@@ -2584,13 +2542,13 @@ gdk_window_set_functions (GdkWindow     
+@@ -2584,13 +2540,13 @@
    g_message("unimplemented %s", __FUNCTION__);
  }
  
@@ -760,7 +860,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
  }
  
-@@ -2604,9 +2562,9 @@ gdk_window_merge_child_input_shapes (Gdk
+@@ -2604,9 +2560,9 @@
  {
  }
  
@@ -773,7 +873,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  {
    g_return_val_if_fail (GDK_IS_WINDOW (window), FALSE);
  
-@@ -2708,6 +2666,7 @@ GdkWindow *gdk_directfb_create_child_win
+@@ -2708,6 +2664,7 @@
  
    window = g_object_new (GDK_TYPE_WINDOW, NULL);
    private = GDK_WINDOW_OBJECT (window);
@@ -781,7 +881,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
    parent_private = GDK_WINDOW_OBJECT (parent);
    parent_impl = GDK_WINDOW_IMPL_DIRECTFB (parent_private->impl);
    private->parent = parent_private;
-@@ -2787,6 +2746,7 @@ gdk_window_foreign_new_for_display (GdkD
+@@ -2787,6 +2744,7 @@
      /* we hold a reference count on ourselves */
      g_object_ref (window);
      private = GDK_WINDOW_OBJECT (window);
@@ -789,7 +889,7 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
      private->parent = parent_private;
      private->window_type = GDK_WINDOW_TOPLEVEL;
      impl = GDK_WINDOW_IMPL_DIRECTFB (private->impl);
-@@ -3153,11 +3113,11 @@ gdk_window_impl_directfb_begin_paint_reg
+@@ -3153,11 +3111,11 @@
  
        D_DEBUG_AT( GDKDFB_Window, "  -> [%2d] %4d,%4d-%4dx%4d\n", i, GDKDFB_RECTANGLE_VALS_FROM_BOX( box ) );
  
@@ -806,7 +906,16 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
      }
  }
  
-@@ -3281,6 +3241,33 @@ _gdk_windowing_window_set_composited (Gd
+@@ -3259,7 +3217,7 @@
+ {
+   GdkDisplay *display;
+   guint8 cardinal;
+-  
++
+   g_return_if_fail (GDK_IS_WINDOW (window));
+ 
+   if (GDK_WINDOW_DESTROYED (window))
+@@ -3281,6 +3239,33 @@
  {
  }
  
@@ -840,65 +949,3 @@ Index: gtk+-2.14.7/gdk/directfb/gdkwindow-directfb.c
  
  #define __GDK_WINDOW_X11_C__
  #include "gdkaliasdef.c"
-Index: gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h
-===================================================================
---- gtk+-2.14.7.orig/gdk/directfb/gdkprivate-directfb.h	2009-02-21 14:15:18.071083243 +0100
-+++ gtk+-2.14.7/gdk/directfb/gdkprivate-directfb.h	2009-02-21 14:48:30.330588850 +0100
-@@ -172,6 +172,17 @@ void        gdk_directfb_window_id_table
- void        gdk_directfb_window_id_table_remove (DFBWindowID  dfb_id);
- GdkWindow * gdk_directfb_window_id_table_lookup (DFBWindowID  dfb_id);
- 
-+void        _gdk_directfb_window_get_offsets    (GdkWindow       *window,
-+                                                 gint            *x_offset,
-+                                                 gint            *y_offset);
-+void        _gdk_directfb_window_scroll         (GdkWindow       *window,
-+                                                 gint             dx,
-+                                                 gint             dy);
-+void        _gdk_directfb_window_move_region    (GdkWindow       *window,
-+                                                 const GdkRegion *region,
-+                                                 gint             dx,
-+                                                 gint             dy);
-+
- 
- typedef struct
- {
-Index: gtk+-2.14.7/gdk/directfb/gdkdisplay-directfb.c
-===================================================================
---- gtk+-2.14.7.orig/gdk/directfb/gdkdisplay-directfb.c	2009-02-21 14:50:43.626587155 +0100
-+++ gtk+-2.14.7/gdk/directfb/gdkdisplay-directfb.c	2009-02-21 14:51:12.202624962 +0100
-@@ -36,14 +36,13 @@
- #include "gdkalias.h"
- 
- 
--
--extern void _gdk_visual_init (void);
--extern void _gdk_events_init (void);
--extern void _gdk_input_init (void);
--extern void _gdk_dnd_init (void);
--extern void _gdk_windowing_window_init (void);
--extern void _gdk_windowing_image_init (void);
--extern void _gdk_directfb_keyboard_init      (void);
-+extern void _gdk_visual_init            (void);
-+extern void _gdk_events_init            (void);
-+extern void _gdk_input_init             (void);
-+extern void _gdk_dnd_init               (void);
-+extern void _gdk_windowing_window_init  (void);
-+extern void _gdk_windowing_image_init   (void);
-+extern void _gdk_directfb_keyboard_init (void);
- 
- static gboolean   gdk_directfb_argb_font           = FALSE;
- static gint       gdk_directfb_glyph_surface_cache = 8;
-@@ -130,11 +129,10 @@ GdkDisplay * gdk_display_open (const gch
-   _gdk_screen = g_object_new (GDK_TYPE_SCREEN, NULL);
- 
-   _gdk_visual_init ();
-+  _gdk_windowing_window_init ();
- 
-   gdk_screen_set_default_colormap (_gdk_screen,
--                                   gdk_screen_get_system_colormap (_gdk_screen));
--  _gdk_windowing_window_init ();
--  _gdk_windowing_image_init ();
-+                                   gdk_screen_get_system_colormap (_gdk_screen));  _gdk_windowing_image_init ();
- 
-   _gdk_input_init ();
-   _gdk_dnd_init ();
