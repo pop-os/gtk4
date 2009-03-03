@@ -15,4 +15,3 @@
 070_mandatory-relibtoolize.patch
 072_workaround_directfb_build.patch
 091_workaround_no_gtk_init_incorrect_display.patch
-#092_fix_printtest_include.patch
