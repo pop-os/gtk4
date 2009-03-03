@@ -6,6 +6,9 @@ gtk+2.0 (2.15.5-1) experimental; urgency=low
     033_directfb_client-message.patch, 034_directfb_memleak.patch,
     071_jasper_link_fix.patch:
   - dropped; already featured in this release
+  * 030_gtkentry_password-char-circle.patch:
+  - dropped; upstream provides a different solution to setting the default
+    invisible char now, that takes the font being used into consideration
   * debian/patches/series:
   - some patches still disabled, work in progress checking the freshness
     and applicability
