@@ -9,9 +9,6 @@ gtk+2.0 (2.15.5-1) experimental; urgency=low
   * 030_gtkentry_password-char-circle.patch:
   - dropped; upstream provides a different solution to setting the default
     invisible char now, that takes the font being used into consideration
-  * debian/patches/series:
-  - some patches still disabled, work in progress checking the freshness
-    and applicability
 
  -- Gustavo Noronha Silva <kov@debian.org>  Mon, 02 Mar 2009 22:01:03 -0300
 
