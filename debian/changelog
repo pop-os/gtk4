@@ -1,3 +1,10 @@
+gtk+2.0 (2.15.5-1) experimental; urgency=low
+
+  * New upstream development release
+  * 070_mandatory-relibtoolize.patch: refreshed.
+
+ -- Gustavo Noronha Silva <kov@debian.org>  Mon, 02 Mar 2009 19:38:15 -0300
+
 gtk+2.0 (2.14.7-3) experimental; urgency=low
 
   * 032_gdkwindowimpl_directfb.patch: new version of the patch. This 
