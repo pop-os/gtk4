@@ -2,8 +2,15 @@ gtk+2.0 (2.15.5-1) experimental; urgency=low
 
   * New upstream development release
   * 070_mandatory-relibtoolize.patch: refreshed.
+  * 031_directfb_dead-keys.patch, 032_gdkwindowimpl_directfb.patch,
+    033_directfb_client-message.patch, 034_directfb_memleak.patch,
+    071_jasper_link_fix.patch:
+  - dropped; already featured in this release
+  * debian/patches/series:
+  - some patches still disabled, work in progress checking the freshness
+    and applicability
 
- -- Gustavo Noronha Silva <kov@debian.org>  Mon, 02 Mar 2009 19:38:15 -0300
+ -- Gustavo Noronha Silva <kov@debian.org>  Mon, 02 Mar 2009 22:01:03 -0300
 
 gtk+2.0 (2.14.7-3) experimental; urgency=low
 
