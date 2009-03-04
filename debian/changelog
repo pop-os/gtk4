@@ -14,7 +14,13 @@ gtk+2.0 (2.15.5-2) UNRELEASED; urgency=low
   * debian/rules:
   - bumped SHVER to 2.15.5
 
- -- Gustavo Noronha Silva <kov@debian.org>  Tue, 03 Mar 2009 21:43:35 -0300
+  [ Imported from Ubuntu ]
+  * 022_disable-viqr-im-for-vi-locale.patch,
+    061_use_pdf_as_default_printing_standard.patch:
+  - for the rationale for the PDF for printing one see:
+    https://wiki.ubuntu.com/PDFasStandardPrintJobFormat
+
+ -- Gustavo Noronha Silva <kov@debian.org>  Tue, 03 Mar 2009 21:58:20 -0300
 
 gtk+2.0 (2.15.5-1) experimental; urgency=low
 
