@@ -1,3 +1,10 @@
+gtk+2.0 (2.15.5-3) UNRELEASED; urgency=low
+
+  * Let libgtk2.0-0 suggest gvfs, as it's needed for some APIs like
+    gtk_show_uri.
+
+ -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Wed, 04 Mar 2009 11:56:57 +0100
+
 gtk+2.0 (2.15.5-2) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]
