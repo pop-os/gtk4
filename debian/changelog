@@ -3,8 +3,10 @@ gtk+2.0 (2.15.5-2) UNRELEASED; urgency=low
   * 042_treeview_single-focus.patch:
   - removed FIXME note, since it was explained to me that the patch is
     still necessary
+  * debian/control.in:
+  - bump libglib2.0-dev build-dep requirement to >= 2.19.7
 
- -- Gustavo Noronha Silva <kov@debian.org>  Tue, 03 Mar 2009 09:17:59 -0300
+ -- Gustavo Noronha Silva <kov@debian.org>  Tue, 03 Mar 2009 21:19:51 -0300
 
 gtk+2.0 (2.15.5-1) experimental; urgency=low
 
