@@ -1,3 +1,10 @@
+gtk+2.0 (2.14.7-5) UNRELEASED; urgency=low
+
+  * Let libgtk2.0-0 suggest gvfs, as it's needed for some APIs like
+    gtk_show_uri.
+
+ -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Wed, 04 Mar 2009 11:52:24 +0100
+
 gtk+2.0 (2.14.7-4) unstable; urgency=low
 
   * 032_gdkwindowimpl_directfb.patch: re-generate the patch from the 
