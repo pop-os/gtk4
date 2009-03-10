@@ -36,7 +36,11 @@ Build-Depends: debhelper (>= 5.0.22),
                quilt,
                gawk
 Build-Depends-Indep: gtk-doc-tools (>= 1.8),
-                     docbook-xml
+                     docbook-xml,
+                     libglib2.0-doc,
+                     libatk1.0-doc,
+                     libpango1.0-doc,
+                     libcairo2-doc
 Standards-Version: 3.8.0
 
 Package: @SHARED_PKG@
