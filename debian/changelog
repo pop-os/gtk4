@@ -6,6 +6,7 @@ gtk+2.0 (2.14.7-5) UNRELEASED; urgency=low
 
   [ Josselin Mouette ]
   * libgtk2.0-0 depends on shared-mime-info. Closes: #518090.
+  * Add dependent doc packages to b-d-i to ensure proper xrefs.
 
  -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Wed, 04 Mar 2009 11:52:24 +0100
 
