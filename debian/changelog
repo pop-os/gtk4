@@ -8,6 +8,13 @@ gtk+2.0 (2.14.7-5) UNRELEASED; urgency=low
   * libgtk2.0-0 depends on shared-mime-info. Closes: #518090.
   * Add dependent doc packages to b-d-i to ensure proper xrefs.
 
+  [ Loic Minier ]
+  * Clean up dh_gtkmodules output:
+    - Demote warnings when skipping non-existent GtkPixbuf loaders and Gtk IM
+      modules dirs to verbose_print(); use -v to see them.
+    - Always print the number of GdkPixbuf loaders and Gtk IM modules found in
+      each package.
+
  -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Wed, 04 Mar 2009 11:52:24 +0100
 
 gtk+2.0 (2.14.7-4) unstable; urgency=low
