@@ -1,4 +1,4 @@
-gtk+2.0 (2.15.5-3) UNRELEASED; urgency=low
+gtk+2.0 (2.16.0-1) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]
   * Let libgtk2.0-0 suggest gvfs, as it's needed for some APIs like
@@ -15,7 +15,13 @@ gtk+2.0 (2.15.5-3) UNRELEASED; urgency=low
     - Always print the number of GdkPixbuf loaders and Gtk IM modules found in
       each package.
 
- -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Wed, 04 Mar 2009 11:56:57 +0100
+  [ Emilio Pozuelo Monfort ]
+  * New upstream stable release.
+    - Bump shlibs.
+    - debian/patches/070_mandatory-relibtoolize.patch: regenerated.
+  * Ship the gtk-builder-convert manpage in libgtk2.0-dev.
+
+ -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Sun, 15 Mar 2009 20:10:34 +0100
 
 gtk+2.0 (2.15.5-2) experimental; urgency=low
 
