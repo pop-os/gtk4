@@ -244,7 +244,7 @@ Description: Development files for the GTK+ library - DirectFB version
  library.
 
 Package: @DEBUG_PKG@
-Section: libdevel
+Section: debug
 Priority: extra
 Architecture: any
 Depends: @SHARED_PKG@ (= ${binary:Version}),
@@ -363,7 +363,7 @@ Description: GNOME Accessibility Implementation Library -- development files
 
 Package: libgail-dbg
 Architecture: any
-Section: libdevel
+Section: debug
 Priority: extra
 Depends: ${misc:Depends}, libgail18 (= ${binary:Version})
 Recommends: @DEBUG_PKG@

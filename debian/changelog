@@ -20,6 +20,7 @@ gtk+2.0 (2.16.0-1) experimental; urgency=low
     - Bump shlibs.
     - debian/patches/070_mandatory-relibtoolize.patch: regenerated.
   * Ship the gtk-builder-convert manpage in libgtk2.0-dev.
+  * Section of dbg packages is debug.
 
  -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Sun, 15 Mar 2009 20:10:34 +0100
 
