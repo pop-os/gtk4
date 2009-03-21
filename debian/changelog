@@ -5,7 +5,7 @@ gtk+2.0 (2.14.7-5) UNRELEASED; urgency=low
     gtk_show_uri.
 
   [ Josselin Mouette ]
-  * libgtk2.0-0 depends on shared-mime-info. Closes: #518090.
+  * libgtk2.0-0 depends on shared-mime-info. Closes: #518090, #520657.
   * Add dependent doc packages to b-d-i to ensure proper xrefs.
   * Require libxrandr 2:1.2 to match the configure requirements.
 
