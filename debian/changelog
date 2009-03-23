@@ -8,8 +8,11 @@ gtk+2.0 (2.16.0-2) UNRELEASED; urgency=low
   - forgot to add 022_disable-viqr-im-for-vi-locale.patch and
     061_use_pdf_as_default_printing_standard.patch to the series file
     (thanks to seb128 for noticing)
+  * debian/control.in:
+  - sync Replaces with ubuntu's package for easier migration from Ubuntu
+    to Debian ;)
 
- -- Gustavo Noronha Silva <kov@debian.org>  Mon, 23 Mar 2009 13:55:39 -0300
+ -- Gustavo Noronha Silva <kov@debian.org>  Mon, 23 Mar 2009 14:00:50 -0300
 
 gtk+2.0 (2.16.0-1) experimental; urgency=low
 

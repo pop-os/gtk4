@@ -321,7 +321,7 @@ Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          libgtk2.0-0 (= ${binary:Version})
-Replaces: libgail17
+Replaces: libgail17, libgtk2.0-0 (<< 2.14.5)
 Description: GNOME Accessibility Implementation Library -- shared libraries
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -353,6 +353,7 @@ Depends: ${misc:Depends},
          pkg-config,
          libatk1.0-dev (>= 1.13.0)
 Suggests: libgail-doc
+Replaces: libgtk2.0-dev (<< 2.14.5)
 Description: GNOME Accessibility Implementation Library -- development files
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -367,6 +368,7 @@ Section: debug
 Priority: extra
 Depends: ${misc:Depends}, libgail18 (= ${binary:Version})
 Recommends: libgtk2.0-0-dbg
+Replaces: libgtk2.0-0-dbg (<< 2.14.5)
 Description: Gail libraries and debugging symbols
  Gail is the "GNOME Accessibility Implementation Library".
  .
@@ -378,6 +380,7 @@ Package: libgail-doc
 Architecture: all
 Section: doc
 Depends: ${misc:Depends}, lynx | www-browser
+Replaces: libgtk2.0-doc (<< 2.14.5)
 Description: documentation files of the Gail library
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
