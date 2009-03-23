@@ -1,8 +1,15 @@
 gtk+2.0 (2.16.0-2) UNRELEASED; urgency=low
 
+  [ Loic Minier ]
   * Clarify dh_gtkmodules doc slightly.
 
- -- Loic Minier <lool@dooz.org>  Thu, 19 Mar 2009 10:57:42 +0100
+  [ Gustavo Noronha Silva ]
+  * debian/series:
+  - forgot to add 022_disable-viqr-im-for-vi-locale.patch and
+    061_use_pdf_as_default_printing_standard.patch to the series file
+    (thanks to seb128 for noticing)
+
+ -- Gustavo Noronha Silva <kov@debian.org>  Mon, 23 Mar 2009 13:55:39 -0300
 
 gtk+2.0 (2.16.0-1) experimental; urgency=low
 
