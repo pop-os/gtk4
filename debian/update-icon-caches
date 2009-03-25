@@ -12,11 +12,9 @@ for dir in "$@"; do
         continue
     fi
     if [ -f "$dir"/index.theme ]; then
-        if [ -f "$dir"/icon-theme.cache ]; then
-            # The cache already exists, regenerate it
-            if ! gtk-update-icon-cache --force --quiet "$dir"; then
-                echo "WARNING: icon cache generation failed for $dir"
-            fi
+        # Generate or regenerate the cache    
+        if ! gtk-update-icon-cache --force --quiet "$dir"; then
+            echo "WARNING: icon cache generation failed for $dir"
         fi
     else
         # No more index.theme, remove the cache if it exists

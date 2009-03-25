@@ -16,6 +16,10 @@ gtk+2.0 (2.14.7-5) UNRELEASED; urgency=low
     - Always print the number of GdkPixbuf loaders and Gtk IM modules found in
       each package.
 
+  [ Josselin Mouette ]
+  * Make update-icon-caches always generate the cache, now that dh_icons 
+    is widespread.
+
  -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Wed, 04 Mar 2009 11:52:24 +0100
 
 gtk+2.0 (2.14.7-4) unstable; urgency=low
