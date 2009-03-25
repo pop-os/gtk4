@@ -12,6 +12,10 @@ gtk+2.0 (2.16.0-2) UNRELEASED; urgency=low
   - sync Replaces with ubuntu's package for easier migration from Ubuntu
     to Debian ;)
 
+  [ Josselin Mouette ]
+  * Make update-icon-caches always generate the cache, now that dh_icons
+    is widespread.
+
  -- Gustavo Noronha Silva <kov@debian.org>  Mon, 23 Mar 2009 14:00:50 -0300
 
 gtk+2.0 (2.16.0-1) experimental; urgency=low
