@@ -1,4 +1,4 @@
-gtk+2.0 (2.14.7-5) UNRELEASED; urgency=low
+gtk+2.0 (2.14.7-5) unstable; urgency=low
 
   [ Emilio Pozuelo Monfort ]
   * Let libgtk2.0-0 suggest gvfs, as it's needed for some APIs like
@@ -20,7 +20,7 @@ gtk+2.0 (2.14.7-5) UNRELEASED; urgency=low
   * Make update-icon-caches always generate the cache, now that dh_icons 
     is widespread.
 
- -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Wed, 04 Mar 2009 11:52:24 +0100
+ -- Josselin Mouette <joss@debian.org>  Wed, 25 Mar 2009 14:58:40 +0100
 
 gtk+2.0 (2.14.7-4) unstable; urgency=low
 
