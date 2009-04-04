@@ -16,7 +16,14 @@ gtk+2.0 (2.16.0-2) UNRELEASED; urgency=low
   * Make update-icon-caches always generate the cache, now that dh_icons
     is widespread.
 
- -- Gustavo Noronha Silva <kov@debian.org>  Mon, 23 Mar 2009 14:00:50 -0300
+  [ Sebastian Dröge ]
+  * debian/libgtk-directfb-2.0-0.symbols,
+    debian/libgtk2.0-0.symbols,
+    debian/libgail18.symbols,
+    debian/rules:
+    + Add symbol files for GTK.
+
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 04 Apr 2009 07:30:56 +0200
 
 gtk+2.0 (2.16.0-1) experimental; urgency=low
 

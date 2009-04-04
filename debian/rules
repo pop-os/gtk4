@@ -333,14 +333,17 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_makeshlibs -p$(SHARED_PKG) \
 		-X$(MODULES_BASE_PATH) \
 		-V"$(SHARED_PKG) (>= $(SHVER))" \
-		--add-udeb=$(UDEB_PKG)
+		--add-udeb=$(UDEB_PKG) \
+		-- -c4
 	dh_makeshlibs -p$(DIRECTFB_PKG) \
 		-X$(MODULES_BASE_PATH) \
 		-V"$(DIRECTFB_PKG) (>= $(SHVER))" \
-		--add-udeb=$(UDEB_PKG)
+		--add-udeb=$(UDEB_PKG) \\
+		-- -c4
 	dh_makeshlibs -plibgail18 \
 		-X$(MODULES_BASE_PATH) \
-		-V"libgail18 (>= $(SHVER)), libgail-common (>= $(SHVER))"
+		-V"libgail18 (>= $(SHVER)), libgail-common (>= $(SHVER))" \
+		-- -c4
 	dh_installdeb -s
 	# override shlibs for libraries from this source before computing
 	# dependencies of packages generated from this source; we already have
