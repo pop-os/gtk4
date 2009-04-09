@@ -6,6 +6,7 @@ Uploaders: @GNOME_TEAM@
 Build-Depends: debhelper (>= 5.0.22),
                gettext,
                pkg-config,
+               autotools-dev,
                libglib2.0-dev (>= 2.19.7),
                libpango1.0-dev (>= 1.20),
                libatk1.0-dev (>= 1.13.0),
