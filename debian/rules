@@ -261,6 +261,7 @@ debian/%: debian/%.in
 		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
 		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
 		-e "s#@LIBDIR@#$(LIBDIR)#g" \
+		-e 's#@OPTLIBDIR@#$(OPTLIBDIR)#g' \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
 		$@.in \
 		$(wildcard $(if $(filter opt,$(FLAVORS)),$@.opt)) \
