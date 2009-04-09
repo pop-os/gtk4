@@ -45,7 +45,6 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.8),
 Standards-Version: 3.8.0
 
 Package: @SHARED_PKG@
-Section: libs
 Architecture: any
 Depends: @COMMON_PKG@,
          ${misc:Depends},
@@ -117,7 +116,6 @@ Description: The GTK+ graphical user interface library
  This package contains the shared libraries.
 
 Package: @DIRECTFB_PKG@
-Section: libs
 Architecture: any
 Depends: @SHARED_PKG@ (= ${binary:Version}),
          @COMMON_PKG@,
@@ -301,7 +299,6 @@ Description: Examples files for the GTK+ 2.0
 
 Package: @PIXBUF_PKG@
 Section: graphics
-Priority: optional
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
