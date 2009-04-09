@@ -129,8 +129,8 @@ Description: The GTK+ graphical user interface library - DirectFB runtime
  for projects ranging from small one-off tools to complete application
  suites.
  .
- This version uses DirectFB, a thin library providing an integrated 
- windowing system and hardware acceleration on top of the Linux 
+ This version uses DirectFB, a thin library providing an integrated
+ windowing system and hardware acceleration on top of the Linux
  framebuffer.
 
 Package: @UDEB_PKG@
@@ -348,7 +348,7 @@ Architecture: any
 Section: libdevel
 Depends: ${misc:Depends},
          libgail18 (= ${binary:Version}),
-         libgail-common (= ${binary:Version}), 
+         libgail-common (= ${binary:Version}),
          @DEV_PKG@ (= ${binary:Version}),
          pkg-config,
          libatk1.0-dev (>= 1.13.0)
