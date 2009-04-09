@@ -1,17 +1,31 @@
-From 5e0bd0c9bed0398f12a311ecd57a4bb36a1bbbf6 Mon Sep 17 00:00:00 2001
-From: Alexander Larsson <alexl@redhat.com>
-Date: Tue, 07 Apr 2009 13:39:00 +0000
-Subject: Set user_time from startup_id if window realized
-
-For non-realized windows we set the user_time from the startup id on
-realization. However, if the window is already realized when the
-startup_id is not set we currently don't, but we should. (#573922)
----
-diff --git a/gtk/gtkwindow.c b/gtk/gtkwindow.c
-index 4bbd53e..1238c22 100644
---- a/gtk/gtkwindow.c
-+++ b/gtk/gtkwindow.c
-@@ -1500,18 +1500,21 @@ gtk_window_set_startup_id (GtkWindow   *window,
+diff -Nur gtk+2.0-2.16.0.ubuntu/gdk/x11/gdkwindow-x11.c gtk+2.0-2.16.0/gdk/x11/gdkwindow-x11.c
+--- gtk+2.0-2.16.0.ubuntu/gdk/x11/gdkwindow-x11.c	2009-04-09 10:44:34.000000000 +0200
++++ gtk+2.0-2.16.0/gdk/x11/gdkwindow-x11.c	2009-04-09 10:51:23.000000000 +0200
+@@ -3995,7 +3995,9 @@
+                    XA_CARDINAL, 32, PropModeReplace,
+                    (guchar *)&timestamp_long, 1);
+ 
+-  if (timestamp_long != GDK_CURRENT_TIME)
++  if (timestamp_long != GDK_CURRENT_TIME &&
++      (display_x11->user_time == GDK_CURRENT_TIME ||
++       XSERVER_TIME_IS_LATER (timestamp_long, display_x11->user_time)))
+     display_x11->user_time = timestamp_long;
+ 
+   if (toplevel)
+diff -Nur gtk+2.0-2.16.0.ubuntu/gtk/gtkwindow.c gtk+2.0-2.16.0/gtk/gtkwindow.c
+--- gtk+2.0-2.16.0.ubuntu/gtk/gtkwindow.c	2009-04-09 10:44:34.000000000 +0200
++++ gtk+2.0-2.16.0/gtk/gtkwindow.c	2009-04-09 10:51:30.000000000 +0200
+@@ -395,7 +395,8 @@
+     
+       /* Skip past the "_TIME" part */
+       timestr += 5;
+-    
++
++      errno = 0;
+       timestamp = strtoul (timestr, &end, 0);
+       if (end != timestr && errno == 0)
+         retval = timestamp;
+@@ -1499,18 +1500,21 @@
    
    g_free (priv->startup_id);
    priv->startup_id = g_strdup (startup_id);
@@ -40,6 +54,3 @@ index 4bbd53e..1238c22 100644
        else 
          {
            gdk_window_set_startup_id (GTK_WIDGET (window)->window,
---
-cgit v0.8.2
-
