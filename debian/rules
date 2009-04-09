@@ -23,6 +23,7 @@ PATCH_DIR := debian/patches
 DEB_BUILD_OPTIONS_PARALLEL ?= $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
 MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j$(DEB_BUILD_OPTIONS_PARALLEL))
 
+DEB_HOST_ARCH      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 DEB_HOST_ARCH_OS   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
 DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
@@ -36,8 +37,10 @@ ifeq ($(DEB_BUILD_GNU_CPU),powerpc64)
 	CFLAGS += -mminimal-toc
 endif
 
+# default CFLAGS; these can be expanded with $(call flavor_get, )
 CFLAGS += -Wall -g -O$(if $(findstring noopt,$(DEB_BUILD_OPTIONS)),0,2)
 
+# default LDFLAGS; these can be expanded with $(call flavor_get, )
 # used to fail in directfb code -- but this might be fixed -- currently fails
 # in the cups gtkprint backend
 #LDFLAGS += -Wl,-z,defs
@@ -77,22 +80,41 @@ ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 # Note: the shared flavor is required
 FLAVORS := directfb shared static
 
+# optional optimized flavor for some arches
+OPTLIBDIR :=
+# sample code
+#ifneq ($(filter $(DEB_HOST_ARCH), armel),)
+#FLAVORS += opt
+#OPTLIBDIR := $(LIBDIR)/vfp
+#opt_CFLAGS += $(CFLAGS) -mfpu=vfp -mfloat-abi=softfp
+#endif
+
 # list of flavors to run the test suite on
+CHECK_FLAVORS := $(filter directfb opt shared static, $(FLAVORS))
 # don't run the directfb testsuite on kfreebsd as it hangs; see #431477
 ifeq ($(DEB_HOST_ARCH_OS), kfreebsd)
-CHECK_FLAVORS := $(filter shared static, $(FLAVORS))
-else
-CHECK_FLAVORS := $(filter directfb shared static, $(FLAVORS))
+CHECK_FLAVORS := $(filter-out directfb, $(CHECK_FLAVORS))
 endif
+
+# current flavor we're building; this is only expanded in flavor specific
+# targets
+current_flavor = $*
+
+# macro to get a value for the current flavor we're building; for example
+# when building the shared flavor, $(call flavor_get,GFLAGS) will expand to
+# shared_CFLAGS if it's set or to CFLAGS otherwise; pay attention to not adding
+# superflous spaces when for the arguments of $(call ); only some vars can
+# be expanded in this way though
+flavor_get = $(or $($(current_flavor)_$(1)),$($(1)))
 
 # build dir for the current flavor; this is only expanded in flavor specific
 # targets
-builddir = $(buildbasedir)/$*
+builddir = $(buildbasedir)/$(current_flavor)
 buildbasedir = $(CURDIR)/debian/build
 
 # install dir for the current flavor; this is only expanded in flavor specific
 # targets
-installdir = $(installbasedir)/$*
+installdir = $(installbasedir)/$(current_flavor)
 installbasedir = $(CURDIR)/debian/install
 
 # relative libdir
@@ -112,29 +134,29 @@ IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
 LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
 
 # configure flags
-common_configure_flags := \
+configure_flags := \
 			--prefix=/usr \
 			--libdir=/$(LIBDIR) \
 			--mandir=\$${prefix}/share/man \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
 			--enable-test-print-backend
-ifeq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
-	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE)
-else
-	common_configure_flags += --build=$(DEB_BUILD_GNU_TYPE) --host=$(DEB_HOST_GNU_TYPE)
+			--build=$(DEB_BUILD_GNU_TYPE)
+ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
+	configure_flags += --host=$(DEB_HOST_GNU_TYPE)
 endif
-shared_configure_flags := $(common_configure_flags) \
+
+shared_configure_flags := $(configure_flags) \
 			--with-xinput=yes \
 			--enable-shared \
 			--disable-static
-static_configure_flags := $(common_configure_flags) \
+static_configure_flags := $(configure_flags) \
 			--with-xinput=yes \
 			--with-included-loaders=yes \
 			--disable-modules \
 			--disable-shared \
 			--enable-static
-directfb_configure_flags := $(common_configure_flags) \
+directfb_configure_flags := $(configure_flags) \
 			--with-xinput=no \
 			--enable-shared \
 			--disable-static \
@@ -175,8 +197,9 @@ $(STAMP_DIR)/configure-stamp-%: $(STAMP_DIR)/patch-stamp
 	dh_testdir
 	mkdir -p $(builddir)
 	cd $(builddir) && \
-		CFLAGS="$(CFLAGS)" LDFLAGS="$(LDFLAGS)" \
-			$(CURDIR)/configure $($*_configure_flags)
+		CFLAGS="$(call flavor_get,CFLAGS)" \
+		LDFLAGS="$(call flavor_get,LDFLAGS)" \
+			$(CURDIR)/configure $(call flavor_get,configure_flags)
 	touch $@
 
 configure: $(addprefix $(STAMP_DIR)/configure-stamp-, $(FLAVORS))
@@ -239,7 +262,9 @@ debian/%: debian/%.in
 		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
 		-e "s#@LIBDIR@#$(LIBDIR)#g" \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
-		$@.in > $@
+		$@.in \
+		$(wildcard $(if $(filter opt,$(FLAVORS)),$@.opt)) \
+		> $@
 
 clean:: debian/control
 	dh_testdir

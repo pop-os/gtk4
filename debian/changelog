@@ -23,6 +23,34 @@ gtk+2.0 (2.16.0-2) UNRELEASED; urgency=low
     debian/rules:
     + Add symbol files for GTK.
 
+  [ Loic Minier ]
+  * Merge the following changes by Emmet Hikory:
+
+  [ Emmet Hikory ]
+  * Port optimised flavor work by Loic Minier from pango1.0:
+    - Rework flavor-specific vars.
+      + Introduce $(flavor) which is set to $* to clarify implicit rules
+      + Rename common_configure_flags to configure_flags
+      + Introduce the flavor_get macro to use a flavor specific override or
+        fallback to the common defaults for make vars.
+      + Use $(call flavor_get, ) to retrieve configure_flags, CFLAGS, and
+        LDFLAGS allowing to override these per flavor.
+    - Add support for an optimised pass, implemented as a flavor
+      + Define a default OPTLIBDIR and replace it in the sed foo for %.in
+        files; this is like LIBDIR, but with some hwcaps extension, e.g.
+        usr/lib/vfp.
+      + Add vars to build an optimised vfp flavour for armel with
+        additional CFLAGS
+      + Add the "opt" special flavor to flavors to run the testuites on,
+        CHECK_FLAVORS
+      + Also sed and append %.opt after %.in when generating $ files from
+        %.in; the %.opt file is optional and only included if the opt flavor
+        is included.
+      + Add a debian/libgtk2.0-0.install.opt which lists files from the
+        optimised flavor to install in libgtk2.0-0.
+      + Add a debian/libgail18.install.opt which lists files from the
+        optimised flavor to install in libgail18.
+
  -- Sebastian Dröge <slomo@debian.org>  Sat, 04 Apr 2009 07:30:56 +0200
 
 gtk+2.0 (2.16.0-1) experimental; urgency=low
