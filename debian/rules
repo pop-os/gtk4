@@ -21,7 +21,7 @@ PATCH_DIR := debian/patches
 # -f debian/rules in rules), you need to pass a flag to avoid adding "-jX" when
 # the childs encounters this line
 DEB_BUILD_OPTIONS_PARALLEL ?= $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-MAKEFLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j$(DEB_BUILD_OPTIONS_PARALLEL))
+PARALLEL_FLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j$(DEB_BUILD_OPTIONS_PARALLEL))
 
 DEB_HOST_ARCH      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
 DEB_HOST_ARCH_OS   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
@@ -207,7 +207,7 @@ configure: $(addprefix $(STAMP_DIR)/configure-stamp-, $(FLAVORS))
 $(STAMP_DIR)/build-stamp-%: $(STAMP_DIR)/configure-stamp-%
 	dh_testdir
 	LD_LIBRARY_PATH=$(builddir)/gdk-pixbuf/.libs:$(builddir)/gtk/.libs:$(builddir)/gdk/.libs:$(LD_LIBRARY_PATH) \
-		$(MAKE) -C $(builddir)
+		$(MAKE) $(PARALLEL_FLAGS) -C $(builddir)
 	touch $@
 
 build: $(addprefix $(STAMP_DIR)/build-stamp-, $(FLAVORS))

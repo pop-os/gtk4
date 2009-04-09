@@ -51,6 +51,11 @@ gtk+2.0 (2.16.0-2) UNRELEASED; urgency=low
       + Add a debian/libgail18.install.opt which lists files from the
         optimised flavor to install in libgail18.
 
+  [ Loic Minier ]
+  * Only pass -j to the main make call, do not parallelize the debian/rules
+    themselves as it seems to be racy for an unidentified reason which is hard
+    to reproduce.
+
  -- Sebastian Dröge <slomo@debian.org>  Sat, 04 Apr 2009 07:30:56 +0200
 
 gtk+2.0 (2.16.0-1) experimental; urgency=low
