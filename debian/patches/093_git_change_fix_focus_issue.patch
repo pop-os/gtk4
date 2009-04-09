@@ -1,0 +1,45 @@
+From 5e0bd0c9bed0398f12a311ecd57a4bb36a1bbbf6 Mon Sep 17 00:00:00 2001
+From: Alexander Larsson <alexl@redhat.com>
+Date: Tue, 07 Apr 2009 13:39:00 +0000
+Subject: Set user_time from startup_id if window realized
+
+For non-realized windows we set the user_time from the startup id on
+realization. However, if the window is already realized when the
+startup_id is not set we currently don't, but we should. (#573922)
+---
+diff --git a/gtk/gtkwindow.c b/gtk/gtkwindow.c
+index 4bbd53e..1238c22 100644
+--- a/gtk/gtkwindow.c
++++ b/gtk/gtkwindow.c
+@@ -1500,18 +1500,21 @@ gtk_window_set_startup_id (GtkWindow   *window,
+   
+   g_free (priv->startup_id);
+   priv->startup_id = g_strdup (startup_id);
+-  
++
+   if (GTK_WIDGET_REALIZED (window))
+     {
++      guint32 timestamp = extract_time_from_startup_id (priv->startup_id);
++
++#ifdef GDK_WINDOWING_X11
++      if (timestamp != GDK_CURRENT_TIME)
++	gdk_x11_window_set_user_time (GTK_WIDGET (window)->window, timestamp);
++#endif
++
+       /* Here we differentiate real and "fake" startup notification IDs,
+        * constructed on purpose just to pass interaction timestamp
+-       */  
++       */
+       if (startup_id_is_fake (priv->startup_id))
+-        {
+-          guint32 timestamp = extract_time_from_startup_id (priv->startup_id);
+-
+-          gtk_window_present_with_time (window, timestamp);
+-        }
++	gtk_window_present_with_time (window, timestamp);
+       else 
+         {
+           gdk_window_set_startup_id (GTK_WIDGET (window)->window,
+--
+cgit v0.8.2
+
