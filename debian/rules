@@ -29,6 +29,22 @@ DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
 DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
 DEB_BUILD_GNU_CPU  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_CPU)
 
+# relative libdir
+ifneq (,$(findstring multiarch,$(DEB_BUILD_OPTIONS)))
+LIBDIR := usr/lib/$(DEB_HOST_GNU_TYPE)
+else
+LIBDIR := usr/lib
+endif
+
+# relative base directory for all types of modules
+MODULES_BASE_PATH := $(LIBDIR)/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
+
+# relative directory to store the generated IM module files
+IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
+
+# relative directory to store the generated GdkPixbuf loader files
+LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
+
 # ppc64 support; see #386815
 # XXX Should probably be fixed in binutils
 # XXX Use LDFLAGS instead of CFLAGS?
@@ -116,22 +132,6 @@ buildbasedir = $(CURDIR)/debian/build
 # targets
 installdir = $(installbasedir)/$(current_flavor)
 installbasedir = $(CURDIR)/debian/install
-
-# relative libdir
-ifneq (,$(findstring multiarch,$(DEB_BUILD_OPTIONS)))
-LIBDIR := usr/lib/$(DEB_HOST_GNU_TYPE)
-else
-LIBDIR := usr/lib
-endif
-
-# relative base directory for all types of modules
-MODULES_BASE_PATH := $(LIBDIR)/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
-
-# relative directory to store the generated IM module files
-IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
-
-# relative directory to store the generated GdkPixbuf loader files
-LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
 
 # configure flags
 configure_flags := \
