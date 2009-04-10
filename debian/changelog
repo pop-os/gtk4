@@ -65,6 +65,8 @@ gtk+2.0 (2.16.0-2) UNRELEASED; urgency=low
   [ Loic Minier ]
   * Build-dep on autotools-dev for the config.guess / .sub updates to work.
   * Drop duplicate Section/Priority fields.
+  * ppc64: use DEB_HOST_GNU_CPU instead of BUILD; drop TODOs, the current
+    implementation is correct.
 
  -- Sebastian Dröge <slomo@debian.org>  Sat, 04 Apr 2009 07:30:56 +0200
 

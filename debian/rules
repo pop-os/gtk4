@@ -46,10 +46,7 @@ IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
 LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
 
 # ppc64 support; see #386815
-# XXX Should probably be fixed in binutils
-# XXX Use LDFLAGS instead of CFLAGS?
-# XXX shouldn't we check the arch instead of the CPU?
-ifeq ($(DEB_BUILD_GNU_CPU),powerpc64)
+ifeq ($(DEB_HOST_GNU_CPU),powerpc64)
 	CFLAGS += -mminimal-toc
 endif
 
