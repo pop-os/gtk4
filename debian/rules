@@ -36,15 +36,6 @@ else
 LIBDIR := usr/lib
 endif
 
-# relative base directory for all types of modules
-MODULES_BASE_PATH := $(LIBDIR)/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
-
-# relative directory to store the generated IM module files
-IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
-
-# relative directory to store the generated GdkPixbuf loader files
-LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
-
 # ppc64 support; see #386815
 ifeq ($(DEB_HOST_GNU_CPU),powerpc64)
 	CFLAGS += -mminimal-toc
@@ -69,6 +60,15 @@ GTK_BINARY_VERSION := 2.10.0
 
 # Gtk binary version virtual Provide
 GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION)
+
+# relative base directory for all types of modules
+MODULES_BASE_PATH := $(LIBDIR)/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
+
+# relative directory to store the generated IM module files
+IMMODULE_FILES_D := $(MODULES_BASE_PATH)/immodule-files.d
+
+# relative directory to store the generated GdkPixbuf loader files
+LOADER_FILES_D := $(MODULES_BASE_PATH)/loader-files.d
 
 # package names
 SHARED_PKG := libgtk$(APIVER)-$(SONAME)
