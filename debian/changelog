@@ -69,9 +69,14 @@ gtk+2.0 (2.16.1-1) experimental; urgency=low
     implementation is correct.
 
   [ Sebastian Dröge ]
-  * New upstream bugfix release.
+  * New upstream bugfix release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+    + debian/patches/092_fix_printtest_include.patch,
+      debian/patches/093_git_change_fix_focus_issue.patch:
+      - Dropped, merged upstream.
 
- -- Sebastian Dröge <slomo@debian.org>  Sun, 12 Apr 2009 10:31:35 +0200
+ -- Sebastian Dröge <slomo@debian.org>  Sun, 12 Apr 2009 11:21:58 +0200
 
 gtk+2.0 (2.16.0-1) experimental; urgency=low
 
