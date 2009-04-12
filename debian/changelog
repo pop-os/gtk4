@@ -72,7 +72,8 @@ gtk+2.0 (2.16.1-1) experimental; urgency=low
   * New upstream bugfix release:
     + debian/patches/070_mandatory-relibtoolize.patch:
       - Regenerated for the new version.
-    + debian/patches/092_fix_printtest_include.patch,
+    + debian/patches/072_workaround_directfb_build.patch,
+      debian/patches/092_fix_printtest_include.patch,
       debian/patches/093_git_change_fix_focus_issue.patch:
       - Dropped, merged upstream.
 
