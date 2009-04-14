@@ -114,7 +114,7 @@ endif
 current_flavor = $*
 
 # macro to get a value for the current flavor we're building; for example
-# when building the shared flavor, $(call flavor_get,GFLAGS) will expand to
+# when building the shared flavor, $(call flavor_get,CFLAGS) will expand to
 # shared_CFLAGS if it's set or to CFLAGS otherwise; pay attention to not adding
 # superflous spaces when for the arguments of $(call ); only some vars can
 # be expanded in this way though
