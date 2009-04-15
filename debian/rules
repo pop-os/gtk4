@@ -93,22 +93,6 @@ ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 # Note: the shared flavor is required
 FLAVORS := directfb shared static
 
-# optional optimized flavor for some arches
-OPTLIBDIR :=
-# sample code
-#ifneq ($(filter $(DEB_HOST_ARCH), armel),)
-#FLAVORS += opt
-#OPTLIBDIR := $(LIBDIR)/vfp
-#opt_CFLAGS += $(CFLAGS) -mfpu=vfp -mfloat-abi=softfp
-#endif
-
-# list of flavors to run the test suite on
-CHECK_FLAVORS := $(filter directfb opt shared static, $(FLAVORS))
-# don't run the directfb testsuite on kfreebsd as it hangs; see #431477
-ifeq ($(DEB_HOST_ARCH_OS), kfreebsd)
-CHECK_FLAVORS := $(filter-out directfb, $(CHECK_FLAVORS))
-endif
-
 # current flavor we're building; this is only expanded in flavor specific
 # targets
 current_flavor = $*
@@ -159,6 +143,23 @@ directfb_configure_flags := $(configure_flags) \
 			--disable-static \
 			--enable-explicit-deps=yes \
 			--with-gdktarget=directfb
+
+# optional optimized flavor for some arches
+OPTLIBDIR :=
+# sample code
+#ifneq ($(filter $(DEB_HOST_ARCH), armel),)
+#FLAVORS += opt
+#OPTLIBDIR := $(LIBDIR)/vfp
+#opt_CFLAGS += $(CFLAGS) -mfpu=vfp -mfloat-abi=softfp
+#opt_configure_flags := $(shared_configure_flags)
+#endif
+
+# list of flavors to run the test suite on
+CHECK_FLAVORS := $(filter directfb opt shared static, $(FLAVORS))
+# don't run the directfb testsuite on kfreebsd as it hangs; see #431477
+ifeq ($(DEB_HOST_ARCH_OS), kfreebsd)
+CHECK_FLAVORS := $(filter-out directfb, $(CHECK_FLAVORS))
+endif
 
 DH_INSTALLDOCS_FILES := NEWS README ChangeLog
 

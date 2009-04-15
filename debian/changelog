@@ -1,6 +1,9 @@
 gtk+2.0 (2.16.1-2) UNRELEASED; urgency=low
 
   * Fix test-print-backend configure flag addition.
+  * Set opt_configure_flags to $(shared_configure_flags) in the sample opt
+    flavor for armel and move the opt flavor and check flavors below the
+    definition of other flags.
 
  -- Loic Minier <lool@dooz.org>  Tue, 14 Apr 2009 23:20:54 +0200
 
