@@ -1,13 +1,102 @@
-gtk+2.0 (2.14.7-5) unstable; urgency=low
+gtk+2.0 (2.16.1-2) UNRELEASED; urgency=low
+
+  * Fix test-print-backend configure flag addition.
+  * Set opt_configure_flags to $(shared_configure_flags) in the sample opt
+    flavor for armel and move the opt flavor and check flavors below the
+    definition of other flags.
+
+ -- Loic Minier <lool@dooz.org>  Tue, 14 Apr 2009 23:20:54 +0200
+
+gtk+2.0 (2.16.1-1) experimental; urgency=low
+
+  [ Loic Minier ]
+  * Clarify dh_gtkmodules doc slightly.
+
+  [ Gustavo Noronha Silva ]
+  * debian/series:
+  - forgot to add 022_disable-viqr-im-for-vi-locale.patch and
+    061_use_pdf_as_default_printing_standard.patch to the series file
+    (thanks to seb128 for noticing)
+  * debian/control.in:
+  - sync Replaces with ubuntu's package for easier migration from Ubuntu
+    to Debian ;)
+
+  [ Josselin Mouette ]
+  * Make update-icon-caches always generate the cache, now that dh_icons
+    is widespread.
+
+  [ Sebastian Dröge ]
+  * debian/libgtk-directfb-2.0-0.symbols,
+    debian/libgtk2.0-0.symbols,
+    debian/libgail18.symbols,
+    debian/rules:
+    + Add symbol files for GTK.
+
+  [ Loic Minier ]
+  * Merge the following changes by Emmet Hikory:
+
+  [ Emmet Hikory ]
+  * Port optimised flavor work by Loic Minier from pango1.0:
+    - Rework flavor-specific vars.
+      + Introduce $(flavor) which is set to $* to clarify implicit rules
+      + Rename common_configure_flags to configure_flags
+      + Introduce the flavor_get macro to use a flavor specific override or
+        fallback to the common defaults for make vars.
+      + Use $(call flavor_get, ) to retrieve configure_flags, CFLAGS, and
+        LDFLAGS allowing to override these per flavor.
+    - Add support for an optimised pass, implemented as a flavor
+      + Define a default OPTLIBDIR and replace it in the sed foo for %.in
+        files; this is like LIBDIR, but with some hwcaps extension, e.g.
+        usr/lib/vfp.
+      + Add vars to build an optimised vfp flavour for armel with
+        additional CFLAGS
+      + Add the "opt" special flavor to flavors to run the testuites on,
+        CHECK_FLAVORS
+      + Also sed and append %.opt after %.in when generating $ files from
+        %.in; the %.opt file is optional and only included if the opt flavor
+        is included.
+      + Add a debian/libgtk2.0-0.install.opt which lists files from the
+        optimised flavor to install in libgtk2.0-0.
+      + Add a debian/libgail18.install.opt which lists files from the
+        optimised flavor to install in libgail18.
+
+  [ Loic Minier ]
+  * Only pass -j to the main make call, do not parallelize the debian/rules
+    themselves as it seems to be racy for an unidentified reason which is hard
+    to reproduce.
+  * Merge patch below from Ubuntu.
+
+  [ Sebastien Bacher ]
+  * debian/patches/093_git_change_fix_focus_issue.patch:
+    - upstream git change to fix a timestamp issue leading to get nautilus.
+      dialog opening sometime unfocussed for example (lp: #333366)
+
+  [ Loic Minier ]
+  * Build-dep on autotools-dev for the config.guess / .sub updates to work.
+  * Drop duplicate Section/Priority fields.
+  * ppc64: use DEB_HOST_GNU_CPU instead of BUILD; drop TODOs, the current
+    implementation is correct.
+
+  [ Sebastian Dröge ]
+  * New upstream bugfix release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+    + debian/patches/072_workaround_directfb_build.patch,
+      debian/patches/092_fix_printtest_include.patch,
+      debian/patches/093_git_change_fix_focus_issue.patch:
+      - Dropped, merged upstream.
+
+ -- Sebastian Dröge <slomo@debian.org>  Sun, 12 Apr 2009 11:21:58 +0200
+
+gtk+2.0 (2.16.0-1) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]
   * Let libgtk2.0-0 suggest gvfs, as it's needed for some APIs like
     gtk_show_uri.
 
   [ Josselin Mouette ]
-  * libgtk2.0-0 depends on shared-mime-info. Closes: #518090, #520657.
+  * libgtk2.0-0 depends on shared-mime-info. Closes: #518090.
   * Add dependent doc packages to b-d-i to ensure proper xrefs.
-  * Require libxrandr 2:1.2 to match the configure requirements.
 
   [ Loic Minier ]
   * Clean up dh_gtkmodules output:
@@ -16,20 +105,54 @@ gtk+2.0 (2.14.7-5) unstable; urgency=low
     - Always print the number of GdkPixbuf loaders and Gtk IM modules found in
       each package.
 
-  [ Josselin Mouette ]
-  * Make update-icon-caches always generate the cache, now that dh_icons 
-    is widespread.
+  [ Emilio Pozuelo Monfort ]
+  * New upstream stable release.
+    - Bump shlibs.
+    - debian/patches/070_mandatory-relibtoolize.patch: regenerated.
+  * Ship the gtk-builder-convert manpage in libgtk2.0-dev.
+  * Section of dbg packages is debug.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 25 Mar 2009 14:58:40 +0100
+ -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Sun, 15 Mar 2009 20:10:34 +0100
 
-gtk+2.0 (2.14.7-4) unstable; urgency=low
+gtk+2.0 (2.15.5-2) experimental; urgency=low
 
-  * 032_gdkwindowimpl_directfb.patch: re-generate the patch from the 
-    corresponding SVN commits. One line went missing, causing a crash. 
-    Thanks Jérémy Bobbio for reporting it.
-  * Upload to unstable, let’s get rolling.
+  [ Emilio Pozuelo Monfort ]
+  * debian/control.in:
+  - bump libglib2.0-dev build-dep requirement to >= 2.19.7
+  - bump libxrandr-dev build-dep requirement to >= 1:1.2.99
+  - also bump libgtk2.0-dev dependecies accordingly
+    (Closes: #518078)
 
- -- Josselin Mouette <joss@debian.org>  Mon, 02 Mar 2009 13:33:17 +0100
+  [ Gustavo Noronha Silva ]
+  * 042_treeview_single-focus.patch:
+  - removed FIXME note, since it was explained to me that the patch is
+    still necessary
+  * debian/rules:
+  - bumped SHVER to 2.15.5
+
+  [ Imported from Ubuntu ]
+  * 022_disable-viqr-im-for-vi-locale.patch,
+    061_use_pdf_as_default_printing_standard.patch:
+  - for the rationale for the PDF for printing one see:
+    https://wiki.ubuntu.com/PDFasStandardPrintJobFormat
+
+ -- Gustavo Noronha Silva <kov@debian.org>  Tue, 03 Mar 2009 21:58:20 -0300
+
+gtk+2.0 (2.15.5-1) experimental; urgency=low
+
+  * New upstream development release
+  * 070_mandatory-relibtoolize.patch: refreshed.
+  * 031_directfb_dead-keys.patch, 032_gdkwindowimpl_directfb.patch,
+    033_directfb_client-message.patch, 034_directfb_memleak.patch,
+    071_jasper_link_fix.patch, 092_fix_printtest_include.patch:
+  - dropped; already featured in this release
+  * 030_gtkentry_password-char-circle.patch:
+  - dropped; upstream provides a different solution to setting the default
+    invisible char now, that takes the font being used into consideration
+  * 003_gdk.pc_privates.patch:
+  - refreshed
+
+ -- Gustavo Noronha Silva <kov@debian.org>  Mon, 02 Mar 2009 22:01:03 -0300
 
 gtk+2.0 (2.14.7-3) experimental; urgency=low
 

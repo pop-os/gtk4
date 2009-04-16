@@ -6,13 +6,14 @@ Uploaders: @GNOME_TEAM@
 Build-Depends: debhelper (>= 5.0.22),
                gettext,
                pkg-config,
-               libglib2.0-dev (>= 2.17.6),
+               autotools-dev,
+               libglib2.0-dev (>= 2.19.7),
                libpango1.0-dev (>= 1.20),
                libatk1.0-dev (>= 1.13.0),
                libx11-dev (>= 2:1.0.0-6),
                libxext-dev (>= 1:1.0.1-2),
                libxi-dev (>= 1:1.0.1-4),
-               libxrandr-dev (>= 2:1.2),
+               libxrandr-dev (>= 1:1.2.99),
                libxt-dev,
                libxrender-dev,
                libxft-dev,
@@ -44,7 +45,6 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.8),
 Standards-Version: 3.8.0
 
 Package: @SHARED_PKG@
-Section: libs
 Architecture: any
 Depends: @COMMON_PKG@,
          ${misc:Depends},
@@ -116,7 +116,6 @@ Description: The GTK+ graphical user interface library
  This package contains the shared libraries.
 
 Package: @DIRECTFB_PKG@
-Section: libs
 Architecture: any
 Depends: @SHARED_PKG@ (= ${binary:Version}),
          @COMMON_PKG@,
@@ -129,8 +128,8 @@ Description: The GTK+ graphical user interface library - DirectFB runtime
  for projects ranging from small one-off tools to complete application
  suites.
  .
- This version uses DirectFB, a thin library providing an integrated 
- windowing system and hardware acceleration on top of the Linux 
+ This version uses DirectFB, a thin library providing an integrated
+ windowing system and hardware acceleration on top of the Linux
  framebuffer.
 
 Package: @UDEB_PKG@
@@ -194,7 +193,7 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          @COMMON_PKG@,
          ${misc:Depends},
          ${shlibs:Depends},
-         libglib2.0-dev (>= 2.17.6),
+         libglib2.0-dev (>= 2.19.7),
          libpango1.0-dev (>= 1.20),
          libatk1.0-dev (>= 1.13.0),
          libcairo2-dev (>= 1.6.4-6.1),
@@ -202,7 +201,7 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          libxext-dev (>= 1:1.0.1-2),
          libxinerama-dev (>= 1:1.0.1-4.1),
          libxi-dev (>= 1:1.0.1-4),
-         libxrandr-dev (>= 1:1.0.2-2),
+         libxrandr-dev (>= 1:1.2.99),
          libxcursor-dev,
          libxfixes-dev (>= 1:3.0.0-3),
          libxcomposite-dev (>= 1:0.2.0-3),
@@ -244,7 +243,7 @@ Description: Development files for the GTK+ library - DirectFB version
  library.
 
 Package: @DEBUG_PKG@
-Section: libdevel
+Section: debug
 Priority: extra
 Architecture: any
 Depends: @SHARED_PKG@ (= ${binary:Version}),
@@ -300,7 +299,6 @@ Description: Examples files for the GTK+ 2.0
 
 Package: @PIXBUF_PKG@
 Section: graphics
-Priority: optional
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
@@ -321,7 +319,7 @@ Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          @SHARED_PKG@ (= ${binary:Version})
-Replaces: libgail17
+Replaces: libgail17, libgtk2.0-0 (<< 2.14.5)
 Description: GNOME Accessibility Implementation Library -- shared libraries
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -348,11 +346,12 @@ Architecture: any
 Section: libdevel
 Depends: ${misc:Depends},
          libgail18 (= ${binary:Version}),
-         libgail-common (= ${binary:Version}), 
+         libgail-common (= ${binary:Version}),
          @DEV_PKG@ (= ${binary:Version}),
          pkg-config,
          libatk1.0-dev (>= 1.13.0)
 Suggests: libgail-doc
+Replaces: libgtk2.0-dev (<< 2.14.5)
 Description: GNOME Accessibility Implementation Library -- development files
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -363,10 +362,11 @@ Description: GNOME Accessibility Implementation Library -- development files
 
 Package: libgail-dbg
 Architecture: any
-Section: libdevel
+Section: debug
 Priority: extra
 Depends: ${misc:Depends}, libgail18 (= ${binary:Version})
 Recommends: @DEBUG_PKG@
+Replaces: libgtk2.0-0-dbg (<< 2.14.5)
 Description: Gail libraries and debugging symbols
  Gail is the "GNOME Accessibility Implementation Library".
  .
@@ -378,6 +378,7 @@ Package: libgail-doc
 Architecture: all
 Section: doc
 Depends: ${misc:Depends}, lynx | www-browser
+Replaces: libgtk2.0-doc (<< 2.14.5)
 Description: documentation files of the Gail library
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
