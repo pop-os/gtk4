@@ -1,5 +1,5 @@
 # from the shared flavor
-debian/install/shared/usr/share/man/man1/gtk-update-icon-cache.1 usr/share/man/man1
-debian/install/shared/usr/share/man/man1/gtk-query-immodules-@APIVER@.1 usr/share/man/man1
-debian/install/shared/usr/share/man/man1/gdk-pixbuf-query-loaders.1 usr/share/man/man1
+docs/reference/gtk/gtk-update-icon-cache.1 usr/share/man/man1
+docs/reference/gtk/gtk-query-immodules-@APIVER@.1 usr/share/man/man1
+docs/reference/gdk-pixbuf/gdk-pixbuf-query-loaders.1 usr/share/man/man1
 debian/update-icon-caches usr/sbin

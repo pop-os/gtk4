@@ -9,6 +9,9 @@ gtk+2.0 (2.16.2-1) unstable; urgency=low
       - Dropped, merged upstream.
     + debian/patches/070_mandatory-relibtoolize.patch:
       - Regenerated for the new version.
+    + debian/*.install:
+      - Install the manpages from their source locations as
+        they're not installed anymore for some reason.
   * debian/control.in:
     + Updated Standards-Version to 3.8.1, no additional changes needed.
 

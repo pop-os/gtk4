@@ -1,2 +1,2 @@
 debian/dh_gtkmodules.1
-debian/install/shared/usr/share/man/man1/gtk-builder-convert.1
+docs/reference/gtk/gtk-builder-convert.1
