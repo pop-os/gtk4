@@ -1,3 +1,16 @@
+gtk+2.0 (2.17.8-1) UNRELEASED; urgency=low
+
+  * New upstream development release.
+    - Update libglib2.0-dev requirement.
+  * debian/watch:
+    - Don't uupdate.
+  * debian/rules:
+    - Configure with --with-libjasper, it's disabled by default now.
+  * debian/control.in:
+    - Remove conflicts and replaces no longer needed for packages in stable.
+
+ -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Tue, 18 Aug 2009 20:41:54 +0200
+
 gtk+2.0 (2.16.5-1) unstable; urgency=low
 
   * New upstream bugfix release:

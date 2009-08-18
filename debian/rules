@@ -129,16 +129,19 @@ endif
 
 shared_configure_flags := $(configure_flags) \
 			--with-xinput=yes \
+			--with-libjasper \
 			--enable-shared \
 			--disable-static
 static_configure_flags := $(configure_flags) \
 			--with-xinput=yes \
 			--with-included-loaders=yes \
+			--with-libjasper \
 			--disable-modules \
 			--disable-shared \
 			--enable-static
 directfb_configure_flags := $(configure_flags) \
 			--with-xinput=no \
+			--with-libjasper \
 			--enable-shared \
 			--disable-static \
 			--enable-explicit-deps=yes \
