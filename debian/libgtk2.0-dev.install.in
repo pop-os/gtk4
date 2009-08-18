@@ -9,6 +9,6 @@ debian/install/shared/@LIBDIR@/libg?k*.so @LIBDIR@
 debian/install/shared/@LIBDIR@/pkgconfig/g?k* @LIBDIR@/pkgconfig
 debian/install/shared/@LIBDIR@/gtk-@APIVER@/include @LIBDIR@/gtk-@APIVER@
 debian/install/shared/usr/share/aclocal usr/share
-debian/install/shared/usr/share/man/man1/gdk-pixbuf-csource.1 usr/share/man/man1/
+docs/reference/gdk-pixbuf/gdk-pixbuf-csource.1 usr/share/man/man1/
 # from the static flavor
 debian/install/static/@LIBDIR@/libg?k*.a @LIBDIR@

@@ -194,7 +194,7 @@ foreach my $package (@{$dh{DOPACKAGES}}) {
     find_modules(\@loaders_modules, $tmp, $loaders_modules_path);
     find_modules(\@im_modules, $tmp, $im_modules_path);
 
-    warning("Package $package has " + @loaders_modules + " GdkPixbuf loaders and " + @im_modules + " Gtk IM modules.");
+    warning("Package $package has " . @loaders_modules . " GdkPixbuf loaders and " . @im_modules . " Gtk IM modules.");
 
     # if no modules of these types were found, we're done
     if (0 == @loaders_modules + @im_modules) {
