@@ -1,8 +1,6 @@
-Index: gtk+2.0-2.11.2/gdk-pixbuf/io-ico.c
-===================================================================
---- gtk+2.0-2.11.2.orig/gdk-pixbuf/io-ico.c	2007-06-06 13:43:15.000000000 +0200
-+++ gtk+2.0-2.11.2/gdk-pixbuf/io-ico.c	2007-06-13 11:07:11.000000000 +0200
-@@ -208,6 +208,14 @@
+--- a/gdk-pixbuf/io-ico.c
++++ b/gdk-pixbuf/io-ico.c
+@@ -231,6 +231,14 @@
  	
   	State->HeaderSize = 6 + IconCount*16;
  

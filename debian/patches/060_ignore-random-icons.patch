@@ -1,6 +1,6 @@
---- a/gtk/updateiconcache.c	2008-04-01 11:10:40.000000000 +0200
-+++ b/gtk/updateiconcache.c	2008-04-01 11:11:54.000000000 +0200
-@@ -658,7 +658,7 @@
+--- a/gtk/updateiconcache.c
++++ b/gtk/updateiconcache.c
+@@ -660,7 +660,7 @@
  		      directories = g_list_append (directories, g_strdup (subdir));
  		    }
  		  else

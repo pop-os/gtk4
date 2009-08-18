@@ -8,6 +8,10 @@ gtk+2.0 (2.17.8-1) UNRELEASED; urgency=low
     - Configure with --with-libjasper, it's disabled by default now.
   * debian/control.in:
     - Remove conflicts and replaces no longer needed for packages in stable.
+  * debian/patches/004_gtk+-ximian-gtk2-filesel-navbutton-5.patch:
+    - Removed, GtkFileSelection is deprecated.
+  * debian/patches/*
+    - Refreshed.
 
  -- Emilio Pozuelo Monfort <pochu@ubuntu.com>  Tue, 18 Aug 2009 20:41:54 +0200
 

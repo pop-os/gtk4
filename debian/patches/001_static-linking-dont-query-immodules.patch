@@ -1,8 +1,6 @@
-Index: gtk+-2.14.7/configure.in
-===================================================================
---- gtk+-2.14.7.orig/configure.in	2009-01-07 17:33:57.000000000 +0100
-+++ gtk+-2.14.7/configure.in	2009-02-17 23:06:24.718714576 +0100
-@@ -152,6 +152,7 @@ esac
+--- a/configure.in
++++ b/configure.in
+@@ -157,6 +157,7 @@
  dnl Initialize libtool
  AC_PROG_CC
  AM_DISABLE_STATIC
@@ -10,11 +8,9 @@ Index: gtk+-2.14.7/configure.in
  
  dnl 
  dnl Check for a working C++ compiler, but do not bail out, if none is found.
-Index: gtk+-2.14.7/modules/input/Makefile.am
-===================================================================
---- gtk+-2.14.7.orig/modules/input/Makefile.am	2009-01-07 17:33:31.000000000 +0100
-+++ gtk+-2.14.7/modules/input/Makefile.am	2009-02-17 23:06:24.731083956 +0100
-@@ -178,8 +178,12 @@ dist_imconffile_DATA = im-multipress.con
+--- a/modules/input/Makefile.am
++++ b/modules/input/Makefile.am
+@@ -178,8 +178,12 @@
  if CROSS_COMPILING
  RUN_QUERY_IMMODULES_TEST=false
  else
@@ -27,7 +23,7 @@ Index: gtk+-2.14.7/modules/input/Makefile.am
  
  # Running this if cross compiling or if DESTDIR is set is going to
  # not work at all, so skip it.
-@@ -240,7 +244,18 @@ noinst_LTLIBRARIES =				\
+@@ -240,7 +244,18 @@
  included-modules: $(noinst_LTLIBRARIES)
  
  gtk.immodules: Makefile.am $(module_LTLIBRARIES)
