@@ -1,6 +1,7 @@
 gtk+2.0 (2.17.8-1) UNRELEASED; urgency=low
 
   * New upstream development release.
+    - Handle printers needing authentication. Closes: #499759.
     - Update libglib2.0-dev requirement.
   * debian/watch:
     - Don't uupdate.
