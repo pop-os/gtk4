@@ -365,7 +365,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_makeshlibs -p$(DIRECTFB_PKG) \
 		-X$(MODULES_BASE_PATH) \
 		-V"$(DIRECTFB_PKG) (>= $(SHVER))" \
-		--add-udeb=$(UDEB_PKG) \\
+		--add-udeb=$(UDEB_PKG) \
 		-- -c4
 	dh_makeshlibs -plibgail18 \
 		-X$(MODULES_BASE_PATH) \

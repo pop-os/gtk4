@@ -42,7 +42,7 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      libatk1.0-doc,
                      libpango1.0-doc,
                      libcairo2-doc
-Standards-Version: 3.8.2
+Standards-Version: 3.8.3
 
 Package: @SHARED_PKG@
 Architecture: any

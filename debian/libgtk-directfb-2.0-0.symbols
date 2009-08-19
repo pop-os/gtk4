@@ -111,6 +111,7 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_directfb_window_id_table_remove@Base 2.8.0
  gdk_directfb_window_input_shape_combine_region@Base 2.17.8
  gdk_directfb_window_lookup@Base 2.10.0
+ gdk_directfb_window_new@Base 2.17.8
  gdk_directfb_window_send_crossing_events@Base 2.8.0
  gdk_directfb_window_set_opacity@Base 2.8.0
  gdk_display_add_client_message_filter@Base 2.8.0
