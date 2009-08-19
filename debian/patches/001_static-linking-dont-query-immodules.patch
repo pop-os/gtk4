@@ -1,3 +1,7 @@
+Description: Don't query immodules for the local tree when cross-compiling or
+             when --disable-shared was given
+Bug: http://bugzilla.gnome.org/show_bug.cgi?id=346531
+
 --- a/configure.in
 +++ b/configure.in
 @@ -157,6 +157,7 @@

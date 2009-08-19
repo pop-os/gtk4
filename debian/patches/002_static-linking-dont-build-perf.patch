@@ -1,3 +1,6 @@
+Description: don't build perf measurement tools in static builds
+Bug: http://bugzilla.gnome.org/show_bug.cgi?id=346559
+
 Index: gtk+-2.14.7/Makefile.am
 ===================================================================
 --- gtk+-2.14.7.orig/Makefile.am	2009-01-07 17:33:57.000000000 +0100
