@@ -1,6 +1,7 @@
 001_static-linking-dont-query-immodules.patch
 002_static-linking-dont-build-perf.patch
 003_gdk.pc_privates.patch
+004_gtk+-ximian-gtk2-filesel-navbutton-5.patch
 009_gtk-export-filechooser.patch
 010_gdkpixbuf_-lm.patch
 015_default-fallback-icon-theme.patch

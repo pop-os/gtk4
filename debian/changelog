@@ -8,8 +8,6 @@ gtk+2.0 (2.17.8-1) UNRELEASED; urgency=low
     - Configure with --with-libjasper, it's disabled by default now.
   * debian/control.in:
     - Remove conflicts and replaces no longer needed for packages in stable.
-  * debian/patches/004_gtk+-ximian-gtk2-filesel-navbutton-5.patch:
-    - Removed, GtkFileSelection is deprecated.
   * debian/patches/005_xpmico.patch:
     - Removed, this check is not needed as HeaderSize can't overflow because
       IconCount will be at most 16 bits, and that multiplied by 16 is not
