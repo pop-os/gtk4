@@ -2794,10 +2794,12 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_printer_option_allocate_choices@Base 2.10.0
  gtk_printer_option_choices_from_array@Base 2.10.0
  gtk_printer_option_clear_has_conflict@Base 2.10.0
+ gtk_printer_option_get_activates_default@Base 2.16.6
  gtk_printer_option_get_type@Base 2.10.0
  gtk_printer_option_has_choice@Base 2.10.0
  gtk_printer_option_new@Base 2.10.0
  gtk_printer_option_set@Base 2.10.0
+ gtk_printer_option_set_activates_default@Base 2.16.6
  gtk_printer_option_set_add@Base 2.10.0
  gtk_printer_option_set_boolean@Base 2.10.0
  gtk_printer_option_set_clear_conflicts@Base 2.10.0

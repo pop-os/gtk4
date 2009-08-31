@@ -3,6 +3,9 @@ gtk+2.0 (2.16.6-1) unstable; urgency=low
   * New upstream bugfix release:
     + debian/patches/070_mandatory-relibtoolize.patch:
       - Regenerated for the new version.
+    + debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Updated symbols for the new version.
   * debian/control.in:
     + Update Standards-Version to 3.8.3.
 
