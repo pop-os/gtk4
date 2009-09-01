@@ -2918,6 +2918,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_radio_tool_button_set_group@Base 2.8.0
  gtk_range_get_adjustment@Base 2.8.0
  gtk_range_get_fill_level@Base 2.12.0
+ gtk_range_get_flippable@Base 2.17.10
  gtk_range_get_inverted@Base 2.8.0
  gtk_range_get_lower_stepper_sensitivity@Base 2.10.0
  gtk_range_get_restrict_to_fill_level@Base 2.12.0
@@ -2928,6 +2929,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_range_get_value@Base 2.8.0
  gtk_range_set_adjustment@Base 2.8.0
  gtk_range_set_fill_level@Base 2.12.0
+ gtk_range_set_flippable@Base 2.17.10
  gtk_range_set_increments@Base 2.8.0
  gtk_range_set_inverted@Base 2.8.0
  gtk_range_set_lower_stepper_sensitivity@Base 2.10.0
@@ -4305,8 +4307,10 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_intersect@Base 2.8.0
  gtk_widget_is_ancestor@Base 2.8.0
  gtk_widget_is_composited@Base 2.10.0
+ gtk_widget_is_drawable@Base 2.17.10
  gtk_widget_is_focus@Base 2.8.0
  gtk_widget_is_sensitive@Base 2.17.10
+ gtk_widget_is_toplevel@Base 2.17.10
  gtk_widget_keynav_failed@Base 2.12.0
  gtk_widget_list_accel_closures@Base 2.8.0
  gtk_widget_list_mnemonic_labels@Base 2.8.0
@@ -4374,6 +4378,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_set_uposition@Base 2.8.0
  gtk_widget_set_usize@Base 2.8.0
  gtk_widget_set_visible@Base 2.17.10
+ gtk_widget_set_window@Base 2.17.10
  gtk_widget_shape_combine_mask@Base 2.8.0
  gtk_widget_show@Base 2.8.0
  gtk_widget_show_all@Base 2.8.0
