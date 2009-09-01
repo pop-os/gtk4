@@ -105,13 +105,13 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_directfb_visual_by_format@Base 2.8.0
  gdk_directfb_window_find_focus@Base 2.8.0
  gdk_directfb_window_find_toplevel@Base 2.8.0
- gdk_directfb_window_get_pointer_helper@Base 2.17.9
+ gdk_directfb_window_get_pointer_helper@Base 2.17.10
  gdk_directfb_window_id_table_insert@Base 2.8.0
  gdk_directfb_window_id_table_lookup@Base 2.8.0
  gdk_directfb_window_id_table_remove@Base 2.8.0
- gdk_directfb_window_input_shape_combine_region@Base 2.17.9
+ gdk_directfb_window_input_shape_combine_region@Base 2.17.10
  gdk_directfb_window_lookup@Base 2.10.0
- gdk_directfb_window_new@Base 2.17.9
+ gdk_directfb_window_new@Base 2.17.10
  gdk_directfb_window_send_crossing_events@Base 2.8.0
  gdk_directfb_window_set_opacity@Base 2.8.0
  gdk_display_add_client_message_filter@Base 2.8.0
@@ -363,10 +363,10 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_notify_startup_complete@Base 2.8.0
  gdk_notify_startup_complete_with_id@Base 2.12.0
  gdk_notify_type_get_type@Base 2.8.0
- gdk_offscreen_window_get_embedder@Base 2.17.9
- gdk_offscreen_window_get_pixmap@Base 2.17.9
- gdk_offscreen_window_get_type@Base 2.17.9
- gdk_offscreen_window_set_embedder@Base 2.17.9
+ gdk_offscreen_window_get_embedder@Base 2.17.10
+ gdk_offscreen_window_get_pixmap@Base 2.17.10
+ gdk_offscreen_window_get_type@Base 2.17.10
+ gdk_offscreen_window_set_embedder@Base 2.17.10
  gdk_overlap_type_get_type@Base 2.8.0
  gdk_owner_change_get_type@Base 2.8.0
  gdk_pango_attr_emboss_color_new@Base 2.12.0
@@ -431,7 +431,7 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_region_offset@Base 2.8.0
  gdk_region_point_in@Base 2.8.0
  gdk_region_polygon@Base 2.8.0
- gdk_region_rect_equal@Base 2.17.9
+ gdk_region_rect_equal@Base 2.17.10
  gdk_region_rect_in@Base 2.8.0
  gdk_region_rectangle@Base 2.8.0
  gdk_region_shrink@Base 2.8.0
@@ -587,16 +587,16 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_window_edge_get_type@Base 2.8.0
  gdk_window_enable_synchronized_configure@Base 2.8.0
  gdk_window_end_paint@Base 2.8.0
- gdk_window_ensure_native@Base 2.17.9
+ gdk_window_ensure_native@Base 2.17.10
  gdk_window_focus@Base 2.8.0
  gdk_window_foreign_new@Base 2.8.0
  gdk_window_foreign_new_for_display@Base 2.8.0
  gdk_window_freeze_toplevel_updates_libgtk_only@Base 2.12.0
  gdk_window_freeze_updates@Base 2.8.0
  gdk_window_fullscreen@Base 2.8.0
- gdk_window_geometry_changed@Base 2.17.9
+ gdk_window_geometry_changed@Base 2.17.10
  gdk_window_get_children@Base 2.8.0
- gdk_window_get_cursor@Base 2.17.9
+ gdk_window_get_cursor@Base 2.17.10
  gdk_window_get_decorations@Base 2.8.0
  gdk_window_get_deskrelative_origin@Base 2.8.0
  gdk_window_get_events@Base 2.8.0
@@ -608,7 +608,7 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_window_get_parent@Base 2.8.0
  gdk_window_get_pointer@Base 2.8.0
  gdk_window_get_position@Base 2.8.0
- gdk_window_get_root_coords@Base 2.17.9
+ gdk_window_get_root_coords@Base 2.17.10
  gdk_window_get_root_origin@Base 2.8.0
  gdk_window_get_state@Base 2.8.0
  gdk_window_get_toplevel@Base 2.8.0
@@ -1055,24 +1055,24 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_cell_renderer_combo_get_type@Base 2.8.0
  gtk_cell_renderer_combo_new@Base 2.8.0
  gtk_cell_renderer_editing_canceled@Base 2.8.0
- gtk_cell_renderer_get_alignment@Base 2.17.9
+ gtk_cell_renderer_get_alignment@Base 2.17.10
  gtk_cell_renderer_get_fixed_size@Base 2.8.0
- gtk_cell_renderer_get_padding@Base 2.17.9
- gtk_cell_renderer_get_sensitive@Base 2.17.9
+ gtk_cell_renderer_get_padding@Base 2.17.10
+ gtk_cell_renderer_get_sensitive@Base 2.17.10
  gtk_cell_renderer_get_size@Base 2.8.0
  gtk_cell_renderer_get_type@Base 2.8.0
- gtk_cell_renderer_get_visible@Base 2.17.9
+ gtk_cell_renderer_get_visible@Base 2.17.10
  gtk_cell_renderer_mode_get_type@Base 2.8.0
  gtk_cell_renderer_pixbuf_get_type@Base 2.8.0
  gtk_cell_renderer_pixbuf_new@Base 2.8.0
  gtk_cell_renderer_progress_get_type@Base 2.8.0
  gtk_cell_renderer_progress_new@Base 2.8.0
  gtk_cell_renderer_render@Base 2.8.0
- gtk_cell_renderer_set_alignment@Base 2.17.9
+ gtk_cell_renderer_set_alignment@Base 2.17.10
  gtk_cell_renderer_set_fixed_size@Base 2.8.0
- gtk_cell_renderer_set_padding@Base 2.17.9
- gtk_cell_renderer_set_sensitive@Base 2.17.9
- gtk_cell_renderer_set_visible@Base 2.17.9
+ gtk_cell_renderer_set_padding@Base 2.17.10
+ gtk_cell_renderer_set_sensitive@Base 2.17.10
+ gtk_cell_renderer_set_visible@Base 2.17.10
  gtk_cell_renderer_spin_get_type@Base 2.10.0
  gtk_cell_renderer_spin_new@Base 2.10.0
  gtk_cell_renderer_start_editing@Base 2.8.0
@@ -1081,12 +1081,12 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_cell_renderer_text_get_type@Base 2.8.0
  gtk_cell_renderer_text_new@Base 2.8.0
  gtk_cell_renderer_text_set_fixed_height_from_font@Base 2.8.0
- gtk_cell_renderer_toggle_get_activatable@Base 2.17.9
+ gtk_cell_renderer_toggle_get_activatable@Base 2.17.10
  gtk_cell_renderer_toggle_get_active@Base 2.8.0
  gtk_cell_renderer_toggle_get_radio@Base 2.8.0
  gtk_cell_renderer_toggle_get_type@Base 2.8.0
  gtk_cell_renderer_toggle_new@Base 2.8.0
- gtk_cell_renderer_toggle_set_activatable@Base 2.17.9
+ gtk_cell_renderer_toggle_set_activatable@Base 2.17.10
  gtk_cell_renderer_toggle_set_active@Base 2.8.0
  gtk_cell_renderer_toggle_set_radio@Base 2.8.0
  gtk_cell_type_get_type@Base 2.8.0
@@ -1425,7 +1425,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_curve_set_range@Base 2.8.0
  gtk_curve_set_vector@Base 2.8.0
  gtk_curve_type_get_type@Base 2.8.0
- gtk_custom_paper_unix_dialog_get_type@Base 2.17.9
+ gtk_custom_paper_unix_dialog_get_type@Base 2.17.10
  gtk_debug_flag_get_type@Base 2.8.0
  gtk_debug_flags@Base 2.8.0
  gtk_decorated_window_calculate_frame_size@Base 2.8.0
@@ -1531,18 +1531,18 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_editable_set_editable@Base 2.8.0
  gtk_editable_set_position@Base 2.8.0
  gtk_entry_append_text@Base 2.8.0
- gtk_entry_buffer_delete_text@Base 2.17.9
- gtk_entry_buffer_emit_deleted_text@Base 2.17.9
- gtk_entry_buffer_emit_inserted_text@Base 2.17.9
- gtk_entry_buffer_get_bytes@Base 2.17.9
- gtk_entry_buffer_get_length@Base 2.17.9
- gtk_entry_buffer_get_max_length@Base 2.17.9
- gtk_entry_buffer_get_text@Base 2.17.9
- gtk_entry_buffer_get_type@Base 2.17.9
- gtk_entry_buffer_insert_text@Base 2.17.9
- gtk_entry_buffer_new@Base 2.17.9
- gtk_entry_buffer_set_max_length@Base 2.17.9
- gtk_entry_buffer_set_text@Base 2.17.9
+ gtk_entry_buffer_delete_text@Base 2.17.10
+ gtk_entry_buffer_emit_deleted_text@Base 2.17.10
+ gtk_entry_buffer_emit_inserted_text@Base 2.17.10
+ gtk_entry_buffer_get_bytes@Base 2.17.10
+ gtk_entry_buffer_get_length@Base 2.17.10
+ gtk_entry_buffer_get_max_length@Base 2.17.10
+ gtk_entry_buffer_get_text@Base 2.17.10
+ gtk_entry_buffer_get_type@Base 2.17.10
+ gtk_entry_buffer_insert_text@Base 2.17.10
+ gtk_entry_buffer_new@Base 2.17.10
+ gtk_entry_buffer_set_max_length@Base 2.17.10
+ gtk_entry_buffer_set_text@Base 2.17.10
  gtk_entry_completion_complete@Base 2.8.0
  gtk_entry_completion_delete_action@Base 2.8.0
  gtk_entry_completion_get_completion_prefix@Base 2.12.0
@@ -1571,7 +1571,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_entry_completion_set_text_column@Base 2.8.0
  gtk_entry_get_activates_default@Base 2.8.0
  gtk_entry_get_alignment@Base 2.8.0
- gtk_entry_get_buffer@Base 2.17.9
+ gtk_entry_get_buffer@Base 2.17.10
  gtk_entry_get_completion@Base 2.8.0
  gtk_entry_get_current_icon_drag_source@Base 2.16.0
  gtk_entry_get_cursor_hadjustment@Base 2.12.0
@@ -1602,14 +1602,14 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_entry_icon_position_get_type@Base 2.16.0
  gtk_entry_layout_index_to_text_index@Base 2.8.0
  gtk_entry_new@Base 2.8.0
- gtk_entry_new_with_buffer@Base 2.17.9
+ gtk_entry_new_with_buffer@Base 2.17.10
  gtk_entry_new_with_max_length@Base 2.8.0
  gtk_entry_prepend_text@Base 2.8.0
  gtk_entry_progress_pulse@Base 2.16.0
  gtk_entry_select_region@Base 2.8.0
  gtk_entry_set_activates_default@Base 2.8.0
  gtk_entry_set_alignment@Base 2.8.0
- gtk_entry_set_buffer@Base 2.17.9
+ gtk_entry_set_buffer@Base 2.17.10
  gtk_entry_set_completion@Base 2.8.0
  gtk_entry_set_cursor_hadjustment@Base 2.12.0
  gtk_entry_set_editable@Base 2.8.0
@@ -1682,7 +1682,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_file_chooser_error_get_type@Base 2.8.0
  gtk_file_chooser_error_quark@Base 2.8.0
  gtk_file_chooser_get_action@Base 2.8.0
- gtk_file_chooser_get_create_folders@Base 2.17.9
+ gtk_file_chooser_get_create_folders@Base 2.17.10
  gtk_file_chooser_get_current_folder@Base 2.8.0
  gtk_file_chooser_get_current_folder_file@Base 2.14.0
  gtk_file_chooser_get_current_folder_uri@Base 2.8.0
@@ -1716,7 +1716,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_file_chooser_select_filename@Base 2.8.0
  gtk_file_chooser_select_uri@Base 2.8.0
  gtk_file_chooser_set_action@Base 2.8.0
- gtk_file_chooser_set_create_folders@Base 2.17.9
+ gtk_file_chooser_set_create_folders@Base 2.17.10
  gtk_file_chooser_set_current_folder@Base 2.8.0
  gtk_file_chooser_set_current_folder_file@Base 2.14.0
  gtk_file_chooser_set_current_folder_uri@Base 2.8.0
@@ -1958,7 +1958,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_icon_view_get_dest_item_at_pos@Base 2.8.0
  gtk_icon_view_get_drag_dest_item@Base 2.8.0
  gtk_icon_view_get_item_at_pos@Base 2.8.0
- gtk_icon_view_get_item_padding@Base 2.17.9
+ gtk_icon_view_get_item_padding@Base 2.17.10
  gtk_icon_view_get_item_width@Base 2.8.0
  gtk_icon_view_get_margin@Base 2.8.0
  gtk_icon_view_get_markup_column@Base 2.8.0
@@ -1988,7 +1988,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_icon_view_set_columns@Base 2.8.0
  gtk_icon_view_set_cursor@Base 2.8.0
  gtk_icon_view_set_drag_dest_item@Base 2.8.0
- gtk_icon_view_set_item_padding@Base 2.17.9
+ gtk_icon_view_set_item_padding@Base 2.17.10
  gtk_icon_view_set_item_width@Base 2.8.0
  gtk_icon_view_set_margin@Base 2.8.0
  gtk_icon_view_set_markup_column@Base 2.8.0
@@ -2082,19 +2082,19 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_image_set_from_stock@Base 2.8.0
  gtk_image_set_pixel_size@Base 2.8.0
  gtk_image_type_get_type@Base 2.8.0
- gtk_info_bar_add_action_widget@Base 2.17.9
- gtk_info_bar_add_button@Base 2.17.9
- gtk_info_bar_add_buttons@Base 2.17.9
- gtk_info_bar_get_action_area@Base 2.17.9
- gtk_info_bar_get_content_area@Base 2.17.9
- gtk_info_bar_get_message_type@Base 2.17.9
- gtk_info_bar_get_type@Base 2.17.9
- gtk_info_bar_new@Base 2.17.9
- gtk_info_bar_new_with_buttons@Base 2.17.9
- gtk_info_bar_response@Base 2.17.9
- gtk_info_bar_set_default_response@Base 2.17.9
- gtk_info_bar_set_message_type@Base 2.17.9
- gtk_info_bar_set_response_sensitive@Base 2.17.9
+ gtk_info_bar_add_action_widget@Base 2.17.10
+ gtk_info_bar_add_button@Base 2.17.10
+ gtk_info_bar_add_buttons@Base 2.17.10
+ gtk_info_bar_get_action_area@Base 2.17.10
+ gtk_info_bar_get_content_area@Base 2.17.10
+ gtk_info_bar_get_message_type@Base 2.17.10
+ gtk_info_bar_get_type@Base 2.17.10
+ gtk_info_bar_new@Base 2.17.10
+ gtk_info_bar_new_with_buttons@Base 2.17.10
+ gtk_info_bar_response@Base 2.17.10
+ gtk_info_bar_set_default_response@Base 2.17.10
+ gtk_info_bar_set_message_type@Base 2.17.10
+ gtk_info_bar_set_response_sensitive@Base 2.17.10
  gtk_init@Base 2.8.0
  gtk_init_add@Base 2.8.0
  gtk_init_check@Base 2.8.0
@@ -2143,7 +2143,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_label_get@Base 2.8.0
  gtk_label_get_angle@Base 2.8.0
  gtk_label_get_attributes@Base 2.8.0
- gtk_label_get_current_uri@Base 2.17.9
+ gtk_label_get_current_uri@Base 2.17.10
  gtk_label_get_ellipsize@Base 2.8.0
  gtk_label_get_justify@Base 2.8.0
  gtk_label_get_label@Base 2.8.0
@@ -2158,7 +2158,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_label_get_selection_bounds@Base 2.8.0
  gtk_label_get_single_line_mode@Base 2.8.0
  gtk_label_get_text@Base 2.8.0
- gtk_label_get_track_visited_links@Base 2.17.9
+ gtk_label_get_track_visited_links@Base 2.17.10
  gtk_label_get_type@Base 2.8.0
  gtk_label_get_use_markup@Base 2.8.0
  gtk_label_get_use_underline@Base 2.8.0
@@ -2183,7 +2183,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_label_set_single_line_mode@Base 2.8.0
  gtk_label_set_text@Base 2.8.0
  gtk_label_set_text_with_mnemonic@Base 2.8.0
- gtk_label_set_track_visited_links@Base 2.17.9
+ gtk_label_set_track_visited_links@Base 2.17.10
  gtk_label_set_use_markup@Base 2.8.0
  gtk_label_set_use_underline@Base 2.8.0
  gtk_label_set_width_chars@Base 2.8.0
@@ -2311,7 +2311,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_menu_get_attach_widget@Base 2.8.0
  gtk_menu_get_for_attach_widget@Base 2.8.0
  gtk_menu_get_monitor@Base 2.14.0
- gtk_menu_get_reserve_toggle_size@Base 2.17.9
+ gtk_menu_get_reserve_toggle_size@Base 2.17.10
  gtk_menu_get_tearoff_state@Base 2.8.0
  gtk_menu_get_title@Base 2.8.0
  gtk_menu_get_type@Base 2.8.0
@@ -2344,7 +2344,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_menu_set_accel_path@Base 2.8.0
  gtk_menu_set_active@Base 2.8.0
  gtk_menu_set_monitor@Base 2.8.0
- gtk_menu_set_reserve_toggle_size@Base 2.17.9
+ gtk_menu_set_reserve_toggle_size@Base 2.17.10
  gtk_menu_set_screen@Base 2.8.0
  gtk_menu_set_tearoff_state@Base 2.8.0
  gtk_menu_set_title@Base 2.8.0
@@ -2619,7 +2619,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_print_backend_printer_list_is_done@Base 2.10.0
  gtk_print_backend_remove_printer@Base 2.10.0
  gtk_print_backend_set_list_done@Base 2.10.0
- gtk_print_backend_set_password@Base 2.17.9
+ gtk_print_backend_set_password@Base 2.17.10
  gtk_print_capabilities_get_type@Base 2.10.0
  gtk_print_context_create_pango_context@Base 2.10.0
  gtk_print_context_create_pango_layout@Base 2.10.0
@@ -2651,14 +2651,14 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_print_operation_cancel@Base 2.10.0
  gtk_print_operation_draw_page_finish@Base 2.16.0
  gtk_print_operation_get_default_page_setup@Base 2.10.0
- gtk_print_operation_get_embed_page_setup@Base 2.17.9
+ gtk_print_operation_get_embed_page_setup@Base 2.17.10
  gtk_print_operation_get_error@Base 2.10.0
- gtk_print_operation_get_has_selection@Base 2.17.9
- gtk_print_operation_get_n_pages_to_print@Base 2.17.9
+ gtk_print_operation_get_has_selection@Base 2.17.10
+ gtk_print_operation_get_n_pages_to_print@Base 2.17.10
  gtk_print_operation_get_print_settings@Base 2.10.0
  gtk_print_operation_get_status@Base 2.10.0
  gtk_print_operation_get_status_string@Base 2.10.0
- gtk_print_operation_get_support_selection@Base 2.17.9
+ gtk_print_operation_get_support_selection@Base 2.17.10
  gtk_print_operation_get_type@Base 2.10.0
  gtk_print_operation_is_finished@Base 2.10.0
  gtk_print_operation_new@Base 2.10.0
@@ -2673,14 +2673,14 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_print_operation_set_custom_tab_label@Base 2.10.0
  gtk_print_operation_set_default_page_setup@Base 2.10.0
  gtk_print_operation_set_defer_drawing@Base 2.16.0
- gtk_print_operation_set_embed_page_setup@Base 2.17.9
+ gtk_print_operation_set_embed_page_setup@Base 2.17.10
  gtk_print_operation_set_export_filename@Base 2.10.0
- gtk_print_operation_set_has_selection@Base 2.17.9
+ gtk_print_operation_set_has_selection@Base 2.17.10
  gtk_print_operation_set_job_name@Base 2.10.0
  gtk_print_operation_set_n_pages@Base 2.10.0
  gtk_print_operation_set_print_settings@Base 2.10.0
  gtk_print_operation_set_show_progress@Base 2.10.0
- gtk_print_operation_set_support_selection@Base 2.17.9
+ gtk_print_operation_set_support_selection@Base 2.17.10
  gtk_print_operation_set_track_print_status@Base 2.10.0
  gtk_print_operation_set_unit@Base 2.10.0
  gtk_print_operation_set_use_full_page@Base 2.10.0
@@ -2766,23 +2766,23 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_print_status_get_type@Base 2.10.0
  gtk_print_unix_dialog_add_custom_tab@Base 2.10.0
  gtk_print_unix_dialog_get_current_page@Base 2.10.0
- gtk_print_unix_dialog_get_embed_page_setup@Base 2.17.9
- gtk_print_unix_dialog_get_has_selection@Base 2.17.9
- gtk_print_unix_dialog_get_manual_capabilities@Base 2.17.9
+ gtk_print_unix_dialog_get_embed_page_setup@Base 2.17.10
+ gtk_print_unix_dialog_get_has_selection@Base 2.17.10
+ gtk_print_unix_dialog_get_manual_capabilities@Base 2.17.10
  gtk_print_unix_dialog_get_page_setup@Base 2.10.0
- gtk_print_unix_dialog_get_page_setup_set@Base 2.17.9
+ gtk_print_unix_dialog_get_page_setup_set@Base 2.17.10
  gtk_print_unix_dialog_get_selected_printer@Base 2.10.0
  gtk_print_unix_dialog_get_settings@Base 2.10.0
- gtk_print_unix_dialog_get_support_selection@Base 2.17.9
+ gtk_print_unix_dialog_get_support_selection@Base 2.17.10
  gtk_print_unix_dialog_get_type@Base 2.10.0
  gtk_print_unix_dialog_new@Base 2.10.0
  gtk_print_unix_dialog_set_current_page@Base 2.10.0
- gtk_print_unix_dialog_set_embed_page_setup@Base 2.17.9
- gtk_print_unix_dialog_set_has_selection@Base 2.17.9
+ gtk_print_unix_dialog_set_embed_page_setup@Base 2.17.10
+ gtk_print_unix_dialog_set_has_selection@Base 2.17.10
  gtk_print_unix_dialog_set_manual_capabilities@Base 2.10.0
  gtk_print_unix_dialog_set_page_setup@Base 2.10.0
  gtk_print_unix_dialog_set_settings@Base 2.10.0
- gtk_print_unix_dialog_set_support_selection@Base 2.17.9
+ gtk_print_unix_dialog_set_support_selection@Base 2.17.10
  gtk_printer_accepts_pdf@Base 2.10.0
  gtk_printer_accepts_ps@Base 2.10.0
  gtk_printer_compare@Base 2.10.0
@@ -2808,12 +2808,12 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_printer_option_allocate_choices@Base 2.10.0
  gtk_printer_option_choices_from_array@Base 2.10.0
  gtk_printer_option_clear_has_conflict@Base 2.10.0
- gtk_printer_option_get_activates_default@Base 2.17.9
+ gtk_printer_option_get_activates_default@Base 2.17.10
  gtk_printer_option_get_type@Base 2.10.0
  gtk_printer_option_has_choice@Base 2.10.0
  gtk_printer_option_new@Base 2.10.0
  gtk_printer_option_set@Base 2.10.0
- gtk_printer_option_set_activates_default@Base 2.17.9
+ gtk_printer_option_set_activates_default@Base 2.17.10
  gtk_printer_option_set_add@Base 2.10.0
  gtk_printer_option_set_boolean@Base 2.10.0
  gtk_printer_option_set_clear_conflicts@Base 2.10.0
@@ -3257,7 +3257,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_status_icon_get_size@Base 2.10.0
  gtk_status_icon_get_stock@Base 2.10.0
  gtk_status_icon_get_storage_type@Base 2.10.0
- gtk_status_icon_get_title@Base 2.17.9
+ gtk_status_icon_get_title@Base 2.17.10
  gtk_status_icon_get_tooltip_markup@Base 2.16.0
  gtk_status_icon_get_tooltip_text@Base 2.16.0
  gtk_status_icon_get_type@Base 2.10.0
@@ -3279,7 +3279,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_status_icon_set_from_stock@Base 2.10.0
  gtk_status_icon_set_has_tooltip@Base 2.16.0
  gtk_status_icon_set_screen@Base 2.12.0
- gtk_status_icon_set_title@Base 2.17.9
+ gtk_status_icon_set_title@Base 2.17.10
  gtk_status_icon_set_tooltip@Base 2.10.0
  gtk_status_icon_set_tooltip_markup@Base 2.16.0
  gtk_status_icon_set_tooltip_text@Base 2.16.0
@@ -4247,11 +4247,11 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_freeze_child_notify@Base 2.8.0
  gtk_widget_get_accessible@Base 2.8.0
  gtk_widget_get_action@Base 2.10.0
- gtk_widget_get_allocation@Base 2.17.9
+ gtk_widget_get_allocation@Base 2.17.10
  gtk_widget_get_ancestor@Base 2.8.0
- gtk_widget_get_app_paintable@Base 2.17.9
- gtk_widget_get_can_default@Base 2.17.9
- gtk_widget_get_can_focus@Base 2.17.9
+ gtk_widget_get_app_paintable@Base 2.17.10
+ gtk_widget_get_can_default@Base 2.17.10
+ gtk_widget_get_can_focus@Base 2.17.10
  gtk_widget_get_child_requisition@Base 2.8.0
  gtk_widget_get_child_visible@Base 2.8.0
  gtk_widget_get_clipboard@Base 2.8.0
@@ -4263,11 +4263,11 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_get_default_visual@Base 2.8.0
  gtk_widget_get_direction@Base 2.8.0
  gtk_widget_get_display@Base 2.8.0
- gtk_widget_get_double_buffered@Base 2.17.9
+ gtk_widget_get_double_buffered@Base 2.17.10
  gtk_widget_get_events@Base 2.8.0
  gtk_widget_get_extension_events@Base 2.8.0
  gtk_widget_get_has_tooltip@Base 2.12.0
- gtk_widget_get_has_window@Base 2.17.9
+ gtk_widget_get_has_window@Base 2.17.10
  gtk_widget_get_modifier_style@Base 2.8.0
  gtk_widget_get_name@Base 2.8.0
  gtk_widget_get_no_show_all@Base 2.8.0
@@ -4277,25 +4277,25 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_get_pointer@Base 2.8.0
  gtk_widget_get_root_window@Base 2.8.0
  gtk_widget_get_screen@Base 2.8.0
- gtk_widget_get_sensitive@Base 2.17.9
+ gtk_widget_get_sensitive@Base 2.17.10
  gtk_widget_get_settings@Base 2.8.0
  gtk_widget_get_size_request@Base 2.8.0
  gtk_widget_get_snapshot@Base 2.14.0
- gtk_widget_get_state@Base 2.17.9
+ gtk_widget_get_state@Base 2.17.10
  gtk_widget_get_style@Base 2.8.0
  gtk_widget_get_tooltip_markup@Base 2.12.0
  gtk_widget_get_tooltip_text@Base 2.12.0
  gtk_widget_get_tooltip_window@Base 2.12.0
  gtk_widget_get_toplevel@Base 2.8.0
  gtk_widget_get_type@Base 2.8.0
- gtk_widget_get_visible@Base 2.17.9
+ gtk_widget_get_visible@Base 2.17.10
  gtk_widget_get_visual@Base 2.8.0
  gtk_widget_get_window@Base 2.14.0
  gtk_widget_grab_default@Base 2.8.0
  gtk_widget_grab_focus@Base 2.8.0
- gtk_widget_has_default@Base 2.17.9
- gtk_widget_has_focus@Base 2.17.9
- gtk_widget_has_grab@Base 2.17.9
+ gtk_widget_has_default@Base 2.17.10
+ gtk_widget_has_focus@Base 2.17.10
+ gtk_widget_has_grab@Base 2.17.10
  gtk_widget_has_screen@Base 2.8.0
  gtk_widget_help_type_get_type@Base 2.8.0
  gtk_widget_hide@Base 2.8.0
@@ -4306,7 +4306,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_is_ancestor@Base 2.8.0
  gtk_widget_is_composited@Base 2.10.0
  gtk_widget_is_focus@Base 2.8.0
- gtk_widget_is_sensitive@Base 2.17.9
+ gtk_widget_is_sensitive@Base 2.17.10
  gtk_widget_keynav_failed@Base 2.12.0
  gtk_widget_list_accel_closures@Base 2.8.0
  gtk_widget_list_mnemonic_labels@Base 2.8.0
@@ -4343,10 +4343,10 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_send_expose@Base 2.8.0
  gtk_widget_set@Base 2.8.0
  gtk_widget_set_accel_path@Base 2.8.0
- gtk_widget_set_allocation@Base 2.17.9
+ gtk_widget_set_allocation@Base 2.17.10
  gtk_widget_set_app_paintable@Base 2.8.0
- gtk_widget_set_can_default@Base 2.17.9
- gtk_widget_set_can_focus@Base 2.17.9
+ gtk_widget_set_can_default@Base 2.17.10
+ gtk_widget_set_can_focus@Base 2.17.10
  gtk_widget_set_child_visible@Base 2.8.0
  gtk_widget_set_colormap@Base 2.8.0
  gtk_widget_set_composite_name@Base 2.8.0
@@ -4357,7 +4357,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_set_events@Base 2.8.0
  gtk_widget_set_extension_events@Base 2.8.0
  gtk_widget_set_has_tooltip@Base 2.12.0
- gtk_widget_set_has_window@Base 2.17.9
+ gtk_widget_set_has_window@Base 2.17.10
  gtk_widget_set_name@Base 2.8.0
  gtk_widget_set_no_show_all@Base 2.8.0
  gtk_widget_set_parent@Base 2.8.0
@@ -4373,7 +4373,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_set_tooltip_window@Base 2.12.0
  gtk_widget_set_uposition@Base 2.8.0
  gtk_widget_set_usize@Base 2.8.0
- gtk_widget_set_visible@Base 2.17.9
+ gtk_widget_set_visible@Base 2.17.10
  gtk_widget_shape_combine_mask@Base 2.8.0
  gtk_widget_show@Base 2.8.0
  gtk_widget_show_all@Base 2.8.0
