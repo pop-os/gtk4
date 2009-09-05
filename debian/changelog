@@ -1,4 +1,4 @@
-gtk+2.0 (2.17.10-1) experimental; urgency=low
+gtk+2.0 (2.17.11-1) experimental; urgency=low
 
   * New upstream development release:
     + debian/patches/070_mandatory-relibtoolize.patch:
@@ -7,7 +7,19 @@ gtk+2.0 (2.17.10-1) experimental; urgency=low
       debian/*.symbols:
       - Updated for the new version. 
 
- -- Sebastian Dröge <slomo@debian.org>  Tue, 01 Sep 2009 16:08:43 +0200
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 05 Sep 2009 07:16:24 +0200
+
+gtk+2.0 (2.17.10-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Updated for the new version.
+    + debian/rules,
+      debian/*.symbols:
+      - Updated for the new version. 
+  * -
+
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 05 Sep 2009 07:16:21 +0200
 
 gtk+2.0 (2.17.9-1) experimental; urgency=low
 
