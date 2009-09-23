@@ -53,7 +53,7 @@ DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
 APIVER := 2.0
 SONAME := 0
-SHVER := 2.16.0
+SHVER := 2.17.11
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 2.10.0
@@ -129,16 +129,19 @@ endif
 
 shared_configure_flags := $(configure_flags) \
 			--with-xinput=yes \
+			--with-libjasper \
 			--enable-shared \
 			--disable-static
 static_configure_flags := $(configure_flags) \
 			--with-xinput=yes \
 			--with-included-loaders=yes \
+			--with-libjasper \
 			--disable-modules \
 			--disable-shared \
 			--enable-static
 directfb_configure_flags := $(configure_flags) \
 			--with-xinput=no \
+			--with-libjasper \
 			--enable-shared \
 			--disable-static \
 			--enable-explicit-deps=yes \
@@ -312,7 +315,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_testroot
 	dh_install -s
 	# empty the dependency_libs in the *.la files
-	sed -i "/dependency_libs/ s/'.*'/''/" debian/$(DEV_PKG)/$(LIBDIR)/*.la
+	sed -i "/dependency_libs/ s/'.*'/''/" debian/*/$(LIBDIR)/*.la
 	# we don't need the rpath in the udeb
 	chrpath -d debian/$(UDEB_PKG)/$(LIBDIR)/*directfb*.so.*
 	# fix permissions of binaries below /$(LIBDIR)/$(SHARED_PKG)
@@ -362,7 +365,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_makeshlibs -p$(DIRECTFB_PKG) \
 		-X$(MODULES_BASE_PATH) \
 		-V"$(DIRECTFB_PKG) (>= $(SHVER))" \
-		--add-udeb=$(UDEB_PKG) \\
+		--add-udeb=$(UDEB_PKG) \
 		-- -c4
 	dh_makeshlibs -plibgail18 \
 		-X$(MODULES_BASE_PATH) \

@@ -1,8 +1,6 @@
-Index: gtk+2.0-2.14.0/gtk/gtkimmodule.c
-===================================================================
---- gtk+2.0-2.14.0.orig/gtk/gtkimmodule.c	2008-09-04 06:35:28.000000000 +0200
-+++ gtk+2.0-2.14.0/gtk/gtkimmodule.c	2008-09-05 00:36:29.000000000 +0200
-@@ -58,6 +58,9 @@
+--- a/gtk/gtkimmodule.c
++++ b/gtk/gtkimmodule.c
+@@ -70,6 +70,9 @@
  #define GTK_IM_MODULE(im_module)    (G_TYPE_CHECK_INSTANCE_CAST ((im_module), GTK_TYPE_IM_MODULE, GtkIMModule))
  #define GTK_IS_IM_MODULE(im_module) (G_TYPE_CHECK_INSTANCE_TYPE ((im_module), GTK_TYPE_IM_MODULE))
  
@@ -12,7 +10,7 @@ Index: gtk+2.0-2.14.0/gtk/gtkimmodule.c
  struct _GtkIMModule
  {
    GTypeModule parent_instance;
-@@ -298,19 +301,15 @@
+@@ -310,19 +313,15 @@
  }
  
  static void
@@ -33,7 +31,7 @@ Index: gtk+2.0-2.14.0/gtk/gtkimmodule.c
  #define do_builtin(m)							\
    {									\
      const GtkIMContextInfo **contexts;					\
-@@ -368,18 +367,6 @@
+@@ -380,18 +379,6 @@
  
  #undef do_builtin
  
@@ -52,7 +50,7 @@ Index: gtk+2.0-2.14.0/gtk/gtkimmodule.c
    while (!have_error && pango_read_line (file, line_buf))
      {
        const char *p;
-@@ -477,10 +464,76 @@
+@@ -489,10 +476,76 @@
    else if (module)
      add_module (module, infos);
  

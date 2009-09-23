@@ -2,12 +2,12 @@ Source: gtk+2.0
 Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Gustavo Noronha Silva <kov@debian.org>, Josselin Mouette <joss@debian.org>, Sebastian Dröge <slomo@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Josselin Mouette <joss@debian.org>, Sebastian Dröge <slomo@debian.org>
 Build-Depends: debhelper (>= 5.0.22),
                gettext,
                pkg-config,
                autotools-dev,
-               libglib2.0-dev (>= 2.19.7),
+               libglib2.0-dev (>= 2.21.3),
                libpango1.0-dev (>= 1.20),
                libatk1.0-dev (>= 1.13.0),
                libx11-dev (>= 2:1.0.0-6),
@@ -51,58 +51,6 @@ Depends: libgtk2.0-common,
          ${shlibs:Depends},
          shared-mime-info
 Provides: gtk2.0-binver-2.10.0
-Conflicts: libgtk2.0-0png3,
-           eog2 (<< 1.0.1-4),
-           gnome-panel2 (<< 2.0.4-1),
-           celestia (<< 1.2.4-4),
-           gimp1.3 (<< 1.3.7-1.1),
-           metatheme (<< 0.9.7-3),
-           libgnomeui-0 (<= 2.14.1-3),
-           gtk2.0-examples (<< 2.2.0),
-           libgdkxft0,
-           openoffice.org-core (<< 2.2.1-8),
-           gtk2-engines-wonderland (<< 1.0-4),
-           gtk2-engines-cleanice (<< 2.4.0-1.1),
-           gtk2-engines-thinice (<< 2.6),
-           gtk2-engines-crux (<< 2.6),
-           gtk2-engines-mist (<< 2.6),
-           gtk2-engines-highcontrast (<< 2.6),
-           gtk2-engines-lighthouseblue (<< 2.6),
-           gnome-themes (<< 2.6),
-           gtk2-engines-industrial (<< 0.2.32-5),
-           gtk2-engines-pixbuf (<= 2.10),
-           gtk2-engines-redmond95 (<< 2.2.0-2.1),
-           gtk2-engines-metal (<< 2.2.0-2.1),
-           gtk2-engines-magicchicken (<< 1.1.1-7.1),
-           gtk2-engines-qtpixmap (<< 0.28-1.2),
-           gtk2-engines-smooth (<< 0.5.6-3),
-           gtk2-engines-ubuntulooks (<= 0.9.11-1),
-           gtk2-engines-xfce (<< 2.4.0-1),
-           tamil-gtk2im (<< 2.2-4.4),
-           imhangul (<< 0.9.13-5),
-           librsvg2-common (<= 2.14.4-2),
-           gtk2-engines (<< 1:2.8.2-2),
-           gtk2-engines-gtk-qt (<< 1:0.7-2),
-           iiimgcf (<= 11.4.1870-7.3),
-           scim-bridge (<= 0.2.4-1),
-           scim-gtk2-immodule (<< 1.4.4-8),
-           gtk-im-libthai (<< 0.1.4-3),
-           uim-gtk2.0 (<< 1:1.4.1-3),
-           libwmf-dev (<< 0.2.8.4-5),
-           libwmf0.2-7 (<< 0.2.8.4-5),
-           swf-player (<< 0.3.6-2.3),
-           gcin (<< 1.3.4-2),
-           gtk-qt-engine (<< 1:0.8~svn-rev36-1),
-           iiimf-client-gtk (<< 12.3.91-4),
-           libginspx0 (<< 20050529-1.1),
-           scim-bridge-client-gtk (<< 0.4.10-1.1),
-           iiimgcf (<= 11.4.1870-7),
-           libwxgtk2.6-0 (<< 2.6.3.2.2-1),
-           glabels (<< 2.1.3-3),
-           libeel2-2.18,
-           xfwm4 (<< 4.4.1-3),
-           metacity (<< 1:2.20.0-1)
-Replaces: libgtk2.0-0png3
 Recommends: hicolor-icon-theme,
             libgtk2.0-bin
 Suggests: librsvg2-common,
@@ -121,7 +69,6 @@ Depends: libgtk2.0-0 (= ${binary:Version}),
          libgtk2.0-common,
          ${misc:Depends},
          ${shlibs:Depends}
-Conflicts: libgtk+2.0-directfb0
 Description: The GTK+ graphical user interface library - DirectFB runtime
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -156,10 +103,6 @@ Section: misc
 Architecture: all
 Depends: ${misc:Depends}
 Recommends: libgtk2.0-0
-Replaces: libgtk1.3-common,
-          libgtk2.0-data
-Conflicts: libgtk1.3-common,
-           libgtk2.0-data
 Description: Common files for the GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -174,9 +117,6 @@ Architecture: all
 Depends: ${misc:Depends},
          libgtk2.0-0 (>= ${source:Version}),
          libgtk2.0-common
-Replaces: libgtk2.0-common (<= 2.4.0-3),
-          libgtk2.0-dev (<= 2.4.3-1)
-Conflicts: libgtk2.0-dev (<= 2.4.3-1)
 Description: The programs for the GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -193,7 +133,7 @@ Depends: libgtk2.0-0 (= ${binary:Version}),
          libgtk2.0-common,
          ${misc:Depends},
          ${shlibs:Depends},
-         libglib2.0-dev (>= 2.19.7),
+         libglib2.0-dev (>= 2.21.3),
          libpango1.0-dev (>= 1.20),
          libatk1.0-dev (>= 1.13.0),
          libcairo2-dev (>= 1.6.4-6.1),
@@ -211,9 +151,6 @@ Depends: libgtk2.0-0 (= ${binary:Version}),
 Recommends: python (>= 2.4),
             debhelper
 Suggests: libgtk2.0-doc
-Replaces: libgtk1.3-dev,
-          gtk2-engines-pixbuf (<< 2.8.18-5)
-Conflicts: libgtk1.3-dev
 Description: Development files for the GTK+ library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -249,8 +186,6 @@ Architecture: any
 Depends: libgtk2.0-0 (= ${binary:Version}),
          libgtk2.0-common,
          ${misc:Depends}
-Conflicts: libgtk2.0-dbg
-Replaces: libgtk2.0-dbg
 Description: The GTK+ libraries and debugging symbols
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -266,8 +201,6 @@ Section: doc
 Architecture: all
 Depends: lynx | www-browser,
          ${misc:Depends}
-Replaces: libgtk1.3-doc
-Conflicts: libgtk1.3-doc
 Recommends: libglib2.0-doc,
             libatk1.0-doc,
             libpango1.0-doc
@@ -287,7 +220,6 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
          libgtk2.0-0 (= ${binary:Version})
-Replaces: libgtk1.3-dev
 Description: Examples files for the GTK+ 2.0
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -304,8 +236,6 @@ Depends: ${misc:Depends},
          ${shlibs:Depends},
          libgtk2.0-0 (= ${binary:Version}),
          libgtk2.0-common
-Conflicts: gtk2.0-engines-pixbuf
-Replaces: gtk2.0-engines-pixbuf
 Description: Pixbuf-based theme for GTK+ 2.x
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable

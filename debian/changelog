@@ -1,15 +1,78 @@
-gtk+2.0 (2.16.6-1) unstable; urgency=low
+gtk+2.0 (2.17.11-1) experimental; urgency=low
 
-  * New upstream bugfix release:
+  * New upstream development release:
     + debian/patches/070_mandatory-relibtoolize.patch:
-      - Regenerated for the new version.
-    + debian/libgtk-directfb-2.0-0.symbols,
-      debian/libgtk2.0-0.symbols:
-      - Updated symbols for the new version.
-  * debian/control.in:
-    + Update Standards-Version to 3.8.3.
+      - Updated for the new version.
+    + debian/rules,
+      debian/*.symbols:
+      - Updated for the new version. 
 
- -- Sebastian Dröge <slomo@debian.org>  Mon, 31 Aug 2009 09:23:57 +0200
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 05 Sep 2009 07:16:24 +0200
+
+gtk+2.0 (2.17.10-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Updated for the new version.
+    + debian/rules,
+      debian/*.symbols:
+      - Updated for the new version. 
+  * -
+
+ -- Sebastian Dröge <slomo@debian.org>  Sat, 05 Sep 2009 07:16:21 +0200
+
+gtk+2.0 (2.17.9-1) experimental; urgency=low
+
+  [ Josselin Mouette ]
+  * Clean up the .la files in all -dev packages, not only in the main 
+    one.
+
+  [ Sebastian Dröge ]
+  * New upstream development release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Updated for the new version.
+    + debian/rules,
+      debian/*.symbols:
+      - Updated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 25 Aug 2009 18:37:11 +0200
+
+gtk+2.0 (2.17.8-1) experimental; urgency=low
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream development release.
+    - Handle printers needing authentication. Closes: #499759.
+    - Update libglib2.0-dev requirement.
+  * debian/watch:
+    - Don't uupdate.
+  * debian/rules:
+    - Configure with --with-libjasper, it's disabled by default now.
+  * debian/control.in:
+    - Remove conflicts and replaces no longer needed for packages in stable.
+    - Standards-Version is 3.8.3, no changes needed.
+  * debian/patches/005_xpmico.patch:
+    - Removed, this check is not needed as HeaderSize can't overflow because
+      IconCount will be at most 16 bits, and that multiplied by 16 is not
+      enough to overflow an integer. (Checked with upstream)
+  * debian/patches/001_static-linking-dont-query-immodules.patch,
+    debian/patches/002_static-linking-dont-build-perf.patch:
+    - Add headers.
+  * debian/patches/005_gdk_directfb_window_new.patch:
+    - New patch. Readd gdk_directfb_window_new(), which is exported in the
+      public API and was removed by mistake.
+  * debian/patches/*
+    - Refreshed.
+  * debian/libgtk-directfb-2.0-0.symbols,
+    debian/libgtk2.0-0.symbols:
+    - Updated for the new symbols. There's one symbol removed from the
+      directfb backend, gdk_display_pointer_grab(). It wasn't exported in
+      the headers, nor was supposed to be public, so if something out there
+      is using it, they are doing it wrong.
+  * debian/rules:
+    - Remove a trailing backslash that prevented -c4 to be passed to
+      dh_makeshlibs.
+
+ -- Josselin Mouette <joss@debian.org>  Thu, 20 Aug 2009 18:29:04 +0200
 
 gtk+2.0 (2.16.5-1) unstable; urgency=low
 

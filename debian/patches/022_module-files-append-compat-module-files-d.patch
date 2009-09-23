@@ -1,6 +1,6 @@
---- a/gtk/gtkimmodule.c	2008-05-11 00:40:56.000000000 +0200
-+++ b/gtk/gtkimmodule.c	2008-05-11 00:41:25.000000000 +0200
-@@ -31,6 +31,7 @@
+--- a/gtk/gtkimmodule.c
++++ b/gtk/gtkimmodule.c
+@@ -29,6 +29,7 @@
  #include <stdio.h>
  #include <stdlib.h>
  #include <string.h>
@@ -8,7 +8,7 @@
  
  #include <glib/gstdio.h>
  #include <gmodule.h>
-@@ -383,10 +384,32 @@
+@@ -489,10 +490,32 @@
  						   GTK_BINARY_VERSION,
  						   "immodule-files.d",
  						   NULL);
@@ -41,7 +41,7 @@
  
    list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
  			im_module_files_d_str,
-@@ -438,6 +461,9 @@
+@@ -544,6 +567,9 @@
  
    g_strfreev (files);
    g_free (list_str);
@@ -51,9 +51,9 @@
    g_free (im_module_files_d_str);
    g_free (im_module_file_str);
  }
---- a/gdk-pixbuf/gdk-pixbuf-io.c	2008-05-11 00:40:56.000000000 +0200
-+++ b/gdk-pixbuf/gdk-pixbuf-io.c	2008-05-11 00:40:56.000000000 +0200
-@@ -518,6 +518,18 @@
+--- a/gdk-pixbuf/gdk-pixbuf-io.c
++++ b/gdk-pixbuf/gdk-pixbuf-io.c
+@@ -553,6 +553,18 @@
  #ifdef USE_GMODULE
  	GIOChannel *channel;
  	gchar *gdkpixbuf_module_file_str = gdk_pixbuf_get_module_file ();
@@ -72,7 +72,7 @@
  	gchar *list_str;
  	char **files;
  	GError *error = NULL;
-@@ -579,6 +591,18 @@
+@@ -636,6 +648,18 @@
  #undef load_one_builtin_module
  
  #ifdef USE_GMODULE
@@ -91,7 +91,7 @@
  	list_str = g_strjoin (G_SEARCHPATH_SEPARATOR_S,
  			      gdkpixbuf_module_file_str,
  			      PIXBUF_FILES_LIBDIR,
-@@ -634,6 +658,10 @@
+@@ -691,6 +715,10 @@
  	}
  
  	g_strfreev (files);
