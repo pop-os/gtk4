@@ -1,3 +1,16 @@
+gtk+2.0 (2.18.0-1) unstable; urgency=low
+
+  * New upstream stable release:
+    + debian/rules,
+      debian/*.symbols:
+      - Updated for the new version. 
+    + debian/patches/005_gdk_directfb_window_new.patch:
+      - Dropped, merged upstream.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Updated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 23 Sep 2009 06:36:41 +0200
+
 gtk+2.0 (2.17.11-1) experimental; urgency=low
 
   * New upstream development release:
