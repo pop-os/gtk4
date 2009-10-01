@@ -1,0 +1,24 @@
+See GNOME bug #596959
+
+--- a/gdk/directfb/gdkwindow-directfb.c	2009-10-01 09:40:52.000000000 +0200
++++ b/gdk/directfb/gdkwindow-directfb.c	2009-10-01 09:40:56.000000000 +0200
+@@ -2077,7 +2077,8 @@
+ _gdk_windowing_window_at_pointer (GdkDisplay *display,
+                                   gint       *win_x,
+ 				  gint       *win_y,
+-                                  GdkModifierType *mask)
++                                  GdkModifierType *mask,
++                                  gboolean get_toplevel)
+ {
+   GdkWindow *retval;
+   gint       wx, wy;
+@@ -2137,7 +2138,8 @@
+   gdk_directfb_window_get_pointer (_gdk_windowing_window_at_pointer (display,
+                                                                      NULL,
+                                                                      NULL,
+-                                                                     NULL),
++                                                                     NULL,
++                                                                     FALSE),
+                                    x, y, mask);
+ }
+ 

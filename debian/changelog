@@ -3,6 +3,9 @@ gtk+2.0 (2.18.1-1) unstable; urgency=low
   * New upstream bugfix release:
     + debian/patches/070_mandatory-relibtoolize.patch:
       - Updated for the new version.
+    + 090_directfb-backend-compilation-fix.patch:
+      - Fix compilation of the DirectFB backend, see
+        https://bugzilla.gnome.org/show_bug.cgi?id=596959
 
  -- Sebastian Dröge <slomo@debian.org>  Thu, 01 Oct 2009 07:20:43 +0200
 
