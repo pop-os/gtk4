@@ -1,3 +1,13 @@
+gtk+2.0 (2.18.2-1) unstable; urgency=low
+
+  * New upstream bugfix release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Updated for the new version.
+    + 090_directfb-backend-compilation-fix.patch:
+      - Dropped, merged upstream.
+
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 06 Oct 2009 07:41:45 +0200
+
 gtk+2.0 (2.18.1-1) unstable; urgency=low
 
   * New upstream bugfix release:
