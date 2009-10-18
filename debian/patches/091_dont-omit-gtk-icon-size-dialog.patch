@@ -1,0 +1,21 @@
+From ff765f478d151403c9265e0db13bc0ff18a2c50d Mon Sep 17 00:00:00 2001
+From: Matthias Clasen <mclasen@redhat.com>
+Date: Sun, 18 Oct 2009 06:07:58 +0000
+Subject: Don't omit GTK_ICON_SIZE_DIALOG
+
+---
+diff --git a/gtk/gtkstatusicon.c b/gtk/gtkstatusicon.c
+index 1cdb0c1..74c52ae 100644
+--- a/gtk/gtkstatusicon.c
++++ b/gtk/gtkstatusicon.c
+@@ -1352,7 +1352,7 @@ find_icon_size (GtkWidget *widget,
+   dist = G_MAXINT;
+   size = GTK_ICON_SIZE_MENU;
+ 
+-  for (s = GTK_ICON_SIZE_MENU; s < GTK_ICON_SIZE_DIALOG; s++)
++  for (s = GTK_ICON_SIZE_MENU; s <= GTK_ICON_SIZE_DIALOG; s++)
+     {
+       if (gtk_icon_size_lookup_for_settings (settings, s, &w, &h) &&
+ 	  w <= pixel_size && h <= pixel_size)
+--
+cgit v0.8.2

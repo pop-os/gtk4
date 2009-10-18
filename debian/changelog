@@ -3,8 +3,13 @@ gtk+2.0 (2.18.3-1) unstable; urgency=low
   * New upstream bugfix release:
     + debian/patches/070_mandatory-relibtoolize.patch:
       - Updated for the new version.
+  * debian/patches/091_dont-omit-gtk-icon-size-dialog.patch:
+    + Patch from upstream GIT to not omit GTk_ICON_SIZE_DIALOG
+      when searching for an appropiate icon size.
+  * debian/patches/092_gtk-image-size-allocation.patch:
+    + Patch from upstream GIT to fix size allocation of GtkImage.
 
- -- Sebastian Dröge <slomo@debian.org>  Sun, 18 Oct 2009 10:19:57 +0200
+ -- Sebastian Dröge <slomo@debian.org>  Sun, 18 Oct 2009 13:23:44 +0200
 
 gtk+2.0 (2.18.2-1) unstable; urgency=low
 
