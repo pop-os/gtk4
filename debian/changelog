@@ -1,3 +1,11 @@
+gtk+2.0 (2.18.3-1) unstable; urgency=low
+
+  * New upstream bugfix release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Updated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Sun, 18 Oct 2009 10:19:57 +0200
+
 gtk+2.0 (2.18.2-1) unstable; urgency=low
 
   * New upstream bugfix release:
