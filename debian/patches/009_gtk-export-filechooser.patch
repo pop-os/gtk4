@@ -178,8 +178,8 @@
 +#error "GtkFileSystemModel is not supported API for general use"
 +#endif
 +
- #include "gtkfilesystem.h"
- #include <gtk/gtktreemodel.h>
+ #include <gio/gio.h>
+ #include <gtk/gtkfilefilter.h>
  
 --- a/gtk/gtkquery.h
 +++ b/gtk/gtkquery.h

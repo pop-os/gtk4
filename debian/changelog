@@ -1,3 +1,22 @@
+gtk+2.0 (2.19.1-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/rules:
+      - Include check-dist.mk to prevent accidental uploads to unstable.
+    + debian/control.in:
+      - Update ATK build dependency.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.1 for the new API and add new symbols.
+    + debian/patches/009_gtk-export-filechooser.patch,
+      debian/patches/021_loader-files-d.patch:
+      - Updated to apply cleanly again.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 01 Dec 2009 15:28:10 +0100
+
 gtk+2.0 (2.18.4-1) unstable; urgency=low
 
   * New upstream bugfix release:

@@ -802,6 +802,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_action_disconnect_proxy@Base 2.8.0
  gtk_action_get_accel_closure@Base 2.8.0
  gtk_action_get_accel_path@Base 2.8.0
+ gtk_action_get_always_show_image@Base 2.19.1
  gtk_action_get_gicon@Base 2.16.0
  gtk_action_get_icon_name@Base 2.16.0
  gtk_action_get_is_important@Base 2.16.0
@@ -842,6 +843,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_action_new@Base 2.8.0
  gtk_action_set_accel_group@Base 2.8.0
  gtk_action_set_accel_path@Base 2.8.0
+ gtk_action_set_always_show_image@Base 2.19.1
  gtk_action_set_gicon@Base 2.16.0
  gtk_action_set_icon_name@Base 2.16.0
  gtk_action_set_is_important@Base 2.16.0
@@ -1079,6 +1081,8 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_cell_renderer_set_visible@Base 2.18.0
  gtk_cell_renderer_spin_get_type@Base 2.10.0
  gtk_cell_renderer_spin_new@Base 2.10.0
+ gtk_cell_renderer_spinner_get_type@Base 2.19.1
+ gtk_cell_renderer_spinner_new@Base 2.19.1
  gtk_cell_renderer_start_editing@Base 2.8.0
  gtk_cell_renderer_state_get_type@Base 2.8.0
  gtk_cell_renderer_stop_editing@Base 2.8.0
@@ -1447,6 +1451,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_dialog_get_has_separator@Base 2.8.0
  gtk_dialog_get_response_for_widget@Base 2.8.0
  gtk_dialog_get_type@Base 2.8.0
+ gtk_dialog_get_widget_for_response@Base 2.19.1
  gtk_dialog_new@Base 2.8.0
  gtk_dialog_new_with_buttons@Base 2.8.0
  gtk_dialog_response@Base 2.8.0
@@ -2399,6 +2404,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_movement_step_get_type@Base 2.8.0
  gtk_notebook_append_page@Base 2.8.0
  gtk_notebook_append_page_menu@Base 2.8.0
+ gtk_notebook_get_action_widget@Base 2.19.1
  gtk_notebook_get_current_page@Base 2.8.0
  gtk_notebook_get_group@Base 2.12.0
  gtk_notebook_get_group_id@Base 2.10.0
@@ -2428,6 +2434,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_notebook_query_tab_label_packing@Base 2.8.0
  gtk_notebook_remove_page@Base 2.8.0
  gtk_notebook_reorder_child@Base 2.8.0
+ gtk_notebook_set_action_widget@Base 2.19.1
  gtk_notebook_set_current_page@Base 2.8.0
  gtk_notebook_set_group@Base 2.12.0
  gtk_notebook_set_group_id@Base 2.10.0
@@ -2541,6 +2548,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_paint_shadow@Base 2.8.0
  gtk_paint_shadow_gap@Base 2.8.0
  gtk_paint_slider@Base 2.8.0
+ gtk_paint_spinner@Base 2.19.1
  gtk_paint_string@Base 2.8.0
  gtk_paint_tab@Base 2.8.0
  gtk_paint_vline@Base 2.8.0
@@ -3252,6 +3260,10 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_spin_button_update@Base 2.8.0
  gtk_spin_button_update_policy_get_type@Base 2.8.0
  gtk_spin_type_get_type@Base 2.8.0
+ gtk_spinner_get_type@Base 2.19.1
+ gtk_spinner_new@Base 2.19.1
+ gtk_spinner_start@Base 2.19.1
+ gtk_spinner_stop@Base 2.19.1
  gtk_state_type_get_type@Base 2.8.0
  gtk_status_icon_get_blinking@Base 2.10.0
  gtk_status_icon_get_geometry@Base 2.10.0
@@ -3292,6 +3304,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_status_icon_set_visible@Base 2.10.0
  gtk_statusbar_get_context_id@Base 2.8.0
  gtk_statusbar_get_has_resize_grip@Base 2.8.0
+ gtk_statusbar_get_message_area@Base 2.19.1
  gtk_statusbar_get_type@Base 2.8.0
  gtk_statusbar_new@Base 2.8.0
  gtk_statusbar_pop@Base 2.8.0
@@ -3757,6 +3770,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_tool_button_set_label_widget@Base 2.8.0
  gtk_tool_button_set_stock_id@Base 2.8.0
  gtk_tool_button_set_use_underline@Base 2.8.0
+ gtk_tool_item_get_ellipsize_mode@Base 2.19.1
  gtk_tool_item_get_expand@Base 2.8.0
  gtk_tool_item_get_homogeneous@Base 2.8.0
  gtk_tool_item_get_icon_size@Base 2.8.0
@@ -3764,11 +3778,32 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_tool_item_get_orientation@Base 2.8.0
  gtk_tool_item_get_proxy_menu_item@Base 2.8.0
  gtk_tool_item_get_relief_style@Base 2.8.0
+ gtk_tool_item_get_text_alignment@Base 2.19.1
+ gtk_tool_item_get_text_orientation@Base 2.19.1
+ gtk_tool_item_get_text_size_group@Base 2.19.1
  gtk_tool_item_get_toolbar_style@Base 2.8.0
  gtk_tool_item_get_type@Base 2.8.0
  gtk_tool_item_get_use_drag_window@Base 2.8.0
  gtk_tool_item_get_visible_horizontal@Base 2.8.0
  gtk_tool_item_get_visible_vertical@Base 2.8.0
+ gtk_tool_item_group_get_collapsed@Base 2.19.1
+ gtk_tool_item_group_get_drop_item@Base 2.19.1
+ gtk_tool_item_group_get_ellipsize@Base 2.19.1
+ gtk_tool_item_group_get_header_relief@Base 2.19.1
+ gtk_tool_item_group_get_item_position@Base 2.19.1
+ gtk_tool_item_group_get_label@Base 2.19.1
+ gtk_tool_item_group_get_label_widget@Base 2.19.1
+ gtk_tool_item_group_get_n_items@Base 2.19.1
+ gtk_tool_item_group_get_nth_item@Base 2.19.1
+ gtk_tool_item_group_get_type@Base 2.19.1
+ gtk_tool_item_group_insert@Base 2.19.1
+ gtk_tool_item_group_new@Base 2.19.1
+ gtk_tool_item_group_set_collapsed@Base 2.19.1
+ gtk_tool_item_group_set_ellipsize@Base 2.19.1
+ gtk_tool_item_group_set_header_relief@Base 2.19.1
+ gtk_tool_item_group_set_item_position@Base 2.19.1
+ gtk_tool_item_group_set_label@Base 2.19.1
+ gtk_tool_item_group_set_label_widget@Base 2.19.1
  gtk_tool_item_new@Base 2.8.0
  gtk_tool_item_rebuild_menu@Base 2.8.0
  gtk_tool_item_retrieve_proxy_menu_item@Base 2.8.0
@@ -3783,10 +3818,38 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_tool_item_set_visible_horizontal@Base 2.8.0
  gtk_tool_item_set_visible_vertical@Base 2.8.0
  gtk_tool_item_toolbar_reconfigured@Base 2.14.0
+ gtk_tool_palette_add_drag_dest@Base 2.19.1
+ gtk_tool_palette_drag_targets_get_type@Base 2.19.1
+ gtk_tool_palette_get_drag_item@Base 2.19.1
+ gtk_tool_palette_get_drag_target_group@Base 2.19.1
+ gtk_tool_palette_get_drag_target_item@Base 2.19.1
+ gtk_tool_palette_get_drop_group@Base 2.19.1
+ gtk_tool_palette_get_drop_item@Base 2.19.1
+ gtk_tool_palette_get_exclusive@Base 2.19.1
+ gtk_tool_palette_get_expand@Base 2.19.1
+ gtk_tool_palette_get_group_position@Base 2.19.1
+ gtk_tool_palette_get_hadjustment@Base 2.19.1
+ gtk_tool_palette_get_icon_size@Base 2.19.1
+ gtk_tool_palette_get_style@Base 2.19.1
+ gtk_tool_palette_get_type@Base 2.19.1
+ gtk_tool_palette_get_vadjustment@Base 2.19.1
+ gtk_tool_palette_new@Base 2.19.1
+ gtk_tool_palette_set_drag_source@Base 2.19.1
+ gtk_tool_palette_set_exclusive@Base 2.19.1
+ gtk_tool_palette_set_expand@Base 2.19.1
+ gtk_tool_palette_set_group_position@Base 2.19.1
+ gtk_tool_palette_set_icon_size@Base 2.19.1
+ gtk_tool_palette_set_style@Base 2.19.1
+ gtk_tool_palette_unset_icon_size@Base 2.19.1
+ gtk_tool_palette_unset_style@Base 2.19.1
+ gtk_tool_shell_get_ellipsize_mode@Base 2.19.1
  gtk_tool_shell_get_icon_size@Base 2.14.0
  gtk_tool_shell_get_orientation@Base 2.14.0
  gtk_tool_shell_get_relief_style@Base 2.14.0
  gtk_tool_shell_get_style@Base 2.14.0
+ gtk_tool_shell_get_text_alignment@Base 2.19.1
+ gtk_tool_shell_get_text_orientation@Base 2.19.1
+ gtk_tool_shell_get_text_size_group@Base 2.19.1
  gtk_tool_shell_get_type@Base 2.14.0
  gtk_tool_shell_rebuild_menu@Base 2.14.0
  gtk_toolbar_append_element@Base 2.8.0
@@ -3830,6 +3893,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_tooltip_get_type@Base 2.12.0
  gtk_tooltip_set_custom@Base 2.12.0
  gtk_tooltip_set_icon@Base 2.12.0
+ gtk_tooltip_set_icon_from_gicon@Base 2.19.1
  gtk_tooltip_set_icon_from_icon_name@Base 2.14.0
  gtk_tooltip_set_icon_from_stock@Base 2.12.0
  gtk_tooltip_set_markup@Base 2.12.0
@@ -4207,6 +4271,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_vbutton_box_new@Base 2.8.0
  gtk_vbutton_box_set_layout_default@Base 2.8.0
  gtk_vbutton_box_set_spacing_default@Base 2.8.0
+ gtk_viewport_get_bin_window@Base 2.19.1
  gtk_viewport_get_hadjustment@Base 2.8.0
  gtk_viewport_get_shadow_type@Base 2.8.0
  gtk_viewport_get_type@Base 2.8.0
@@ -4443,6 +4508,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_window_get_type@Base 2.8.0
  gtk_window_get_type_hint@Base 2.8.0
  gtk_window_get_urgency_hint@Base 2.8.0
+ gtk_window_get_window_type@Base 2.19.1
  gtk_window_group_add_window@Base 2.8.0
  gtk_window_group_get_type@Base 2.8.0
  gtk_window_group_list_windows@Base 2.14.0
