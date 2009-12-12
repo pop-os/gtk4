@@ -1,6 +1,5 @@
-diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
---- gtk+2.0-2.18.4.old/aclocal.m4	2009-12-01 05:08:37.000000000 +0100
-+++ gtk+2.0-2.18.4/aclocal.m4	2009-12-01 13:03:27.352291520 +0100
+--- a/aclocal.m4
++++ b/aclocal.m4
 @@ -13,8 +13,8 @@
  
  m4_ifndef([AC_AUTOCONF_VERSION],
@@ -12,18 +11,7 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
  You have another version of autoconf.  It may work, but is not guaranteed to.
  If you have problems, you may need to regenerate the build system entirely.
  To do so, use the procedure documented by the package, typically `autoreconf'.])])
-@@ -114,9 +114,8 @@
- {
-   int major, minor, micro;
-   char *tmp_version;
--  int ignored;
- 
--  ignored = system ("touch conf.glibtest");
-+  fclose (fopen ("conf.glibtest", "w"));
- 
-   /* HP/UX 9 (%@#!) writes to sscanf strings */
-   tmp_version = g_strdup("$min_glib_version");
-@@ -675,12 +674,6 @@
+@@ -675,12 +675,6 @@
  [
    AC_BEFORE([AC_PROG_LIBTOOL],[$0])dnl setup libtool first
    AC_BEFORE([AM_PROG_LIBTOOL],[$0])dnl setup libtool first
@@ -36,7 +24,7 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
    dnl for overriding the documentation installation directory
    AC_ARG_WITH([html-dir],
      AS_HELP_STRING([--with-html-dir=PATH], [path to installed docs]),,
-@@ -699,32 +692,16 @@
+@@ -699,32 +693,16 @@
        [PKG_CHECK_EXISTS([gtk-doc],,
                          AC_MSG_ERROR([gtk-doc not installed and --enable-gtk-doc requested]))],
        [PKG_CHECK_EXISTS([gtk-doc >= $1],,
@@ -71,7 +59,16 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
  ])
  
  # libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
-@@ -3193,13 +3170,10 @@
+@@ -3168,7 +3146,7 @@
+   ;;
+ 
+ # This must be Linux ELF.
+-linux* | k*bsd*-gnu)
++linux* | k*bsd*-gnu | kopensolaris*-gnu)
+   version_type=linux
+   need_lib_prefix=no
+   need_version=no
+@@ -3193,13 +3171,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -86,7 +83,7 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -3211,6 +3185,18 @@
+@@ -3211,6 +3186,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -105,7 +102,12 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -3802,7 +3788,7 @@
+@@ -3798,11 +3785,11 @@
+   ;;
+ 
+ # This must be Linux ELF.
+-linux* | k*bsd*-gnu)
++linux* | k*bsd*-gnu | kopensolaris*-gnu)
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -114,7 +116,16 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
    if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|_pic\.a)$'
    else
-@@ -4483,7 +4469,7 @@
+@@ -4419,7 +4406,7 @@
+ 	    ;;
+ 	esac
+ 	;;
+-      linux* | k*bsd*-gnu)
++      linux* | k*bsd*-gnu | kopensolaris*-gnu)
+ 	case $cc_basename in
+ 	  KCC*)
+ 	    # KAI C++ Compiler
+@@ -4483,7 +4470,7 @@
  	    ;;
  	esac
  	;;
@@ -123,7 +134,16 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
  	;;
        *qnx* | *nto*)
          # QNX uses GNU C++, but need to define -shared option too, otherwise
-@@ -4908,6 +4894,9 @@
+@@ -4703,7 +4690,7 @@
+       _LT_TAGVAR(lt_prog_compiler_static, $1)='-non_shared'
+       ;;
+ 
+-    linux* | k*bsd*-gnu)
++    linux* | k*bsd*-gnu | kopensolaris*-gnu)
+       case $cc_basename in
+       # old Intel for x86_64 which still supported -KPIC.
+       ecc*)
+@@ -4908,6 +4895,9 @@
    cygwin* | mingw* | cegcc*)
      _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[[BCDGRS]][[ ]]/s/.*[[ ]]\([[^ ]]*\)/\1 DATA/;/^.*[[ ]]__nm__/s/^.*[[ ]]__nm__\([[^ ]]*\)[[ ]][[^ ]]*/\1 DATA/;/^I[[ ]]/d;/^[[AITW]][[ ]]/s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
@@ -133,7 +153,7 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
    *)
      _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-@@ -4972,6 +4961,9 @@
+@@ -4972,6 +4962,9 @@
    openbsd*)
      with_gnu_ld=no
      ;;
@@ -143,7 +163,24 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
    esac
  
    _LT_TAGVAR(ld_shlibs, $1)=yes
-@@ -5154,7 +5146,7 @@
+@@ -4993,6 +4986,7 @@
+     fi
+     supports_anon_versioning=no
+     case `$LD -v 2>&1` in
++      *GNU\ gold*) supports_anon_versioning=yes ;;
+       *\ [[01]].* | *\ 2.[[0-9]].* | *\ 2.10.*) ;; # catch versions < 2.11
+       *\ 2.11.93.0.2\ *) supports_anon_versioning=yes ;; # RH7.3 ...
+       *\ 2.11.92.0.12\ *) supports_anon_versioning=yes ;; # Mandrake 8.2 ...
+@@ -5084,7 +5078,7 @@
+       _LT_TAGVAR(archive_expsym_cmds, $1)='sed "s,^,_," $export_symbols >$output_objdir/$soname.expsym~$CC -shared $pic_flag $libobjs $deplibs $compiler_flags ${wl}-h,$soname ${wl}--retain-symbols-file,$output_objdir/$soname.expsym ${wl}--image-base,`expr ${RANDOM-$$} % 4096 / 2 \* 262144 + 1342177280` -o $lib'
+       ;;
+ 
+-    gnu* | linux* | tpf* | k*bsd*-gnu)
++    gnu* | linux* | tpf* | k*bsd*-gnu | kopensolaris*-gnu)
+       tmp_diet=no
+       if test "$host_os" = linux-dietlibc; then
+ 	case $cc_basename in
+@@ -5154,7 +5148,7 @@
        fi
        ;;
  
@@ -152,7 +189,7 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	_LT_TAGVAR(archive_cmds, $1)='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -5329,6 +5321,7 @@
+@@ -5329,6 +5323,7 @@
  	if test "$aix_use_runtimelinking" = yes; then
  	  shared_flag="$shared_flag "'${wl}-G'
  	fi
@@ -160,7 +197,7 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
        else
  	# not using gcc
  	if test "$host_cpu" = ia64; then
-@@ -5567,7 +5560,7 @@
+@@ -5567,7 +5562,7 @@
        _LT_TAGVAR(link_all_deplibs, $1)=yes
        ;;
  
@@ -169,7 +206,16 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	_LT_TAGVAR(archive_cmds, $1)='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -8744,14 +8737,16 @@
+@@ -6563,7 +6558,7 @@
+         _LT_TAGVAR(inherit_rpath, $1)=yes
+         ;;
+ 
+-      linux* | k*bsd*-gnu)
++      linux* | k*bsd*-gnu | kopensolaris*-gnu)
+         case $cc_basename in
+           KCC*)
+ 	    # Kuck and Associates, Inc. (KAI) C++ Compiler
+@@ -8744,14 +8739,16 @@
  # _PKG_CONFIG([VARIABLE], [COMMAND], [MODULES])
  # ---------------------------------------------
  m4_define([_PKG_CONFIG],
@@ -194,7 +240,7 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
  fi[]dnl
  ])# _PKG_CONFIG
  
-@@ -8795,9 +8790,9 @@
+@@ -8795,9 +8792,9 @@
  if test $pkg_failed = yes; then
          _PKG_SHORT_ERRORS_SUPPORTED
          if test $_pkg_short_errors_supported = yes; then
@@ -206,9 +252,8 @@ diff -Naur gtk+2.0-2.18.4.old/aclocal.m4 gtk+2.0-2.18.4/aclocal.m4
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
-diff -Naur gtk+2.0-2.18.4.old/config.h.in gtk+2.0-2.18.4/config.h.in
---- gtk+2.0-2.18.4.old/config.h.in	2009-12-01 05:08:40.000000000 +0100
-+++ gtk+2.0-2.18.4/config.h.in	2009-12-01 13:03:29.352294428 +0100
+--- a/config.h.in
++++ b/config.h.in
 @@ -126,6 +126,9 @@
  /* Define to 1 if you have the <string.h> header file. */
  #undef HAVE_STRING_H
@@ -229,14 +274,13 @@ diff -Naur gtk+2.0-2.18.4.old/config.h.in gtk+2.0-2.18.4/config.h.in
  /* Define to the version of this package. */
  #undef PACKAGE_VERSION
  
-diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
---- gtk+2.0-2.18.4.old/configure	2009-12-01 05:08:51.000000000 +0100
-+++ gtk+2.0-2.18.4/configure	2009-12-01 13:03:29.003290708 +0100
+--- a/configure
++++ b/configure
 @@ -1,20 +1,24 @@
  #! /bin/sh
  # Guess values for system-dependent variables and create Makefiles.
--# Generated by GNU Autoconf 2.63 for gtk+ 2.18.4.
-+# Generated by GNU Autoconf 2.65 for gtk+ 2.18.4.
+-# Generated by GNU Autoconf 2.63 for gtk+ 2.18.5.
++# Generated by GNU Autoconf 2.65 for gtk+ 2.18.5.
  #
  # Report bugs to <http://bugzilla.gnome.org/enter_bug.cgi?product=gtk%2B>.
  #
@@ -1042,8 +1086,8 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  # Identity of this package.
  PACKAGE_NAME='gtk+'
 @@ -748,6 +705,7 @@
- PACKAGE_VERSION='2.18.4'
- PACKAGE_STRING='gtk+ 2.18.4'
+ PACKAGE_VERSION='2.18.5'
+ PACKAGE_STRING='gtk+ 2.18.5'
  PACKAGE_BUGREPORT='http://bugzilla.gnome.org/enter_bug.cgi?product=gtk%2B'
 +PACKAGE_URL=''
  
@@ -1258,7 +1302,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
 @@ -2012,464 +1952,973 @@
  if $ac_init_version; then
    cat <<\_ACEOF
- gtk+ configure 2.18.4
+ gtk+ configure 2.18.5
 -generated by GNU Autoconf 2.63
 +generated by GNU Autoconf 2.65
  
@@ -1274,7 +1318,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
 -This file contains any messages produced by compilers while
 -running configure, to aid debugging if configure makes a mistake.
  
--It was created by gtk+ $as_me 2.18.4, which was
+-It was created by gtk+ $as_me 2.18.5, which was
 -generated by GNU Autoconf 2.63.  Invocation command line was
 +## ------------------------ ##
 +## Autoconf initialization. ##
@@ -2110,7 +2154,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
 +This file contains any messages produced by compilers while
 +running configure, to aid debugging if configure makes a mistake.
  
-+It was created by gtk+ $as_me 2.18.4, which was
++It was created by gtk+ $as_me 2.18.5, which was
 +generated by GNU Autoconf 2.65.  Invocation command line was
  
 +  $ $0 $@
@@ -5511,7 +5555,12 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_file_magic_cmd='$MAGIC_CMD'
-@@ -6400,7 +6516,7 @@
+@@ -6396,11 +6512,11 @@
+   ;;
+ 
+ # This must be Linux ELF.
+-linux* | k*bsd*-gnu)
++linux* | k*bsd*-gnu | kopensolaris*-gnu)
    lt_cv_deplibs_check_method=pass_all
    ;;
  
@@ -7859,6 +7908,15 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking for $compiler option to produce PIC... " >&6; }
  
    if test "$GCC" = yes; then
+@@ -9863,7 +9441,7 @@
+       lt_prog_compiler_static='-non_shared'
+       ;;
+ 
+-    linux* | k*bsd*-gnu)
++    linux* | k*bsd*-gnu | kopensolaris*-gnu)
+       case $cc_basename in
+       # old Intel for x86_64 which still supported -KPIC.
+       ecc*)
 @@ -10003,7 +9581,7 @@
      lt_prog_compiler_pic="$lt_prog_compiler_pic -DPIC"
      ;;
@@ -8035,7 +8093,24 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    esac
  
    ld_shlibs=yes
-@@ -10494,7 +10075,7 @@
+@@ -10333,6 +9914,7 @@
+     fi
+     supports_anon_versioning=no
+     case `$LD -v 2>&1` in
++      *GNU\ gold*) supports_anon_versioning=yes ;;
+       *\ [01].* | *\ 2.[0-9].* | *\ 2.10.*) ;; # catch versions < 2.11
+       *\ 2.11.93.0.2\ *) supports_anon_versioning=yes ;; # RH7.3 ...
+       *\ 2.11.92.0.12\ *) supports_anon_versioning=yes ;; # Mandrake 8.2 ...
+@@ -10424,7 +10006,7 @@
+       archive_expsym_cmds='sed "s,^,_," $export_symbols >$output_objdir/$soname.expsym~$CC -shared $pic_flag $libobjs $deplibs $compiler_flags ${wl}-h,$soname ${wl}--retain-symbols-file,$output_objdir/$soname.expsym ${wl}--image-base,`expr ${RANDOM-$$} % 4096 / 2 \* 262144 + 1342177280` -o $lib'
+       ;;
+ 
+-    gnu* | linux* | tpf* | k*bsd*-gnu)
++    gnu* | linux* | tpf* | k*bsd*-gnu | kopensolaris*-gnu)
+       tmp_diet=no
+       if test "$host_os" = linux-dietlibc; then
+ 	case $cc_basename in
+@@ -10494,7 +10076,7 @@
        fi
        ;;
  
@@ -8044,7 +8119,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -10669,6 +10250,7 @@
+@@ -10669,6 +10251,7 @@
  	if test "$aix_use_runtimelinking" = yes; then
  	  shared_flag="$shared_flag "'${wl}-G'
  	fi
@@ -8052,7 +8127,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        else
  	# not using gcc
  	if test "$host_cpu" = ia64; then
-@@ -10694,11 +10276,7 @@
+@@ -10694,11 +10277,7 @@
  	allow_undefined_flag='-berok'
          # Determine the default libpath from the value encoded in an
          # empty executable.
@@ -8065,7 +8140,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -10709,27 +10287,7 @@
+@@ -10709,27 +10288,7 @@
    return 0;
  }
  _ACEOF
@@ -8094,7 +8169,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  lt_aix_libpath_sed='
      /Import File Strings/,/^$/ {
-@@ -10743,16 +10301,9 @@
+@@ -10743,16 +10302,9 @@
  if test -z "$aix_libpath"; then
    aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
  fi
@@ -8113,7 +8188,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
          hardcode_libdir_flag_spec='${wl}-blibpath:$libdir:'"$aix_libpath"
-@@ -10765,11 +10316,7 @@
+@@ -10765,11 +10317,7 @@
  	else
  	 # Determine the default libpath from the value encoded in an
  	 # empty executable.
@@ -8126,7 +8201,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -10780,27 +10327,7 @@
+@@ -10780,27 +10328,7 @@
    return 0;
  }
  _ACEOF
@@ -8155,7 +8230,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  lt_aix_libpath_sed='
      /Import File Strings/,/^$/ {
-@@ -10814,16 +10341,9 @@
+@@ -10814,16 +10342,9 @@
  if test -z "$aix_libpath"; then
    aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
  fi
@@ -8174,7 +8249,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
  	 hardcode_libdir_flag_spec='${wl}-blibpath:$libdir:'"$aix_libpath"
-@@ -11035,42 +10555,16 @@
+@@ -11035,42 +10556,16 @@
  	# implicitly export all symbols.
          save_LDFLAGS="$LDFLAGS"
          LDFLAGS="$LDFLAGS -shared ${wl}-exported_symbol ${wl}foo ${wl}-update_registry ${wl}/dev/null"
@@ -8222,7 +8297,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
          LDFLAGS="$save_LDFLAGS"
        else
  	archive_cmds='$CC -shared $libobjs $deplibs $compiler_flags -soname $soname `test -n "$verstring" && $ECHO "X-set_version $verstring" | $Xsed` -update_registry ${output_objdir}/so_locations -o $lib'
-@@ -11083,7 +10577,7 @@
+@@ -11083,7 +10578,7 @@
        link_all_deplibs=yes
        ;;
  
@@ -8231,7 +8306,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -11326,7 +10820,7 @@
+@@ -11326,7 +10821,7 @@
      fi
    fi
  
@@ -8240,7 +8315,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$ld_shlibs" >&6; }
  test "$ld_shlibs" = no && can_build_shared=no
  
-@@ -11363,16 +10857,16 @@
+@@ -11363,16 +10858,16 @@
        # Test whether the compiler implicitly links with -lc since on some
        # systems, -lgcc has to come before -lc. If gcc already passes -lc
        # to ld, don't add -lc before -lgcc.
@@ -8261,7 +8336,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
          soname=conftest
          lib=conftest
          libobjs=conftest.$ac_objext
-@@ -11386,11 +10880,11 @@
+@@ -11386,11 +10881,11 @@
          libname=conftest
          lt_save_allow_undefined_flag=$allow_undefined_flag
          allow_undefined_flag=
@@ -8276,7 +8351,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
          then
  	  archive_cmds_need_lc=no
          else
-@@ -11401,7 +10895,7 @@
+@@ -11401,7 +10896,7 @@
          cat conftest.err 1>&5
        fi
        $RM conftest*
@@ -8285,7 +8360,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$archive_cmds_need_lc" >&6; }
        ;;
      esac
-@@ -11565,7 +11059,7 @@
+@@ -11565,7 +11060,7 @@
  
  
  
@@ -8294,7 +8369,16 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking dynamic linker characteristics... " >&6; }
  
  if test "$GCC" = yes; then
-@@ -11987,11 +11481,7 @@
+@@ -11973,7 +11468,7 @@
+   ;;
+ 
+ # This must be Linux ELF.
+-linux* | k*bsd*-gnu)
++linux* | k*bsd*-gnu | kopensolaris*-gnu)
+   version_type=linux
+   need_lib_prefix=no
+   need_version=no
+@@ -11987,11 +11482,7 @@
    save_libdir=$libdir
    eval "libdir=/foo; wl=\"$lt_prog_compiler_wl\"; \
         LDFLAGS=\"\$LDFLAGS $hardcode_libdir_flag_spec\""
@@ -8307,7 +8391,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -12002,41 +11492,13 @@
+@@ -12002,41 +11493,13 @@
    return 0;
  }
  _ACEOF
@@ -8353,7 +8437,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    LDFLAGS=$save_LDFLAGS
    libdir=$save_libdir
  
-@@ -12045,13 +11507,10 @@
+@@ -12045,13 +11508,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -8368,7 +8452,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -12063,6 +11522,18 @@
+@@ -12063,6 +11523,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -8387,7 +8471,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -12251,7 +11722,7 @@
+@@ -12251,7 +11723,7 @@
    dynamic_linker=no
    ;;
  esac
@@ -8396,7 +8480,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$dynamic_linker" >&6; }
  test "$dynamic_linker" = no && can_build_shared=no
  
-@@ -12353,7 +11824,7 @@
+@@ -12353,7 +11825,7 @@
  
  
  
@@ -8405,7 +8489,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking how to hardcode library paths into programs... " >&6; }
  hardcode_action=
  if test -n "$hardcode_libdir_flag_spec" ||
-@@ -12378,7 +11849,7 @@
+@@ -12378,7 +11850,7 @@
    # directories.
    hardcode_action=unsupported
  fi
@@ -8414,7 +8498,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$hardcode_action" >&6; }
  
  if test "$hardcode_action" = relink ||
-@@ -12423,18 +11894,14 @@
+@@ -12423,18 +11895,14 @@
  
    darwin*)
    # if libdl is installed we need to link against it
@@ -8436,7 +8520,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12452,43 +11919,18 @@
+@@ -12452,43 +11920,18 @@
    return 0;
  }
  _ACEOF
@@ -8486,7 +8570,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    lt_cv_dlopen="dlopen" lt_cv_dlopen_libs="-ldl"
  else
  
-@@ -12501,33 +11943,19 @@
+@@ -12501,33 +11944,19 @@
      ;;
  
    *)
@@ -8530,7 +8614,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -12536,13 +11964,6 @@
+@@ -12536,13 +11965,6 @@
  extern "C"
  #endif
  char shl_load ();
@@ -8544,7 +8628,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  int
  main ()
  {
-@@ -12551,56 +11972,32 @@
+@@ -12551,56 +11973,32 @@
    return 0;
  }
  _ACEOF
@@ -8620,7 +8704,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12609,222 +12006,37 @@
+@@ -12609,222 +12007,37 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -8855,7 +8939,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12842,57 +12054,28 @@
+@@ -12842,57 +12055,28 @@
    return 0;
  }
  _ACEOF
@@ -8922,7 +9006,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -12910,43 +12093,18 @@
+@@ -12910,43 +12094,18 @@
    return 0;
  }
  _ACEOF
@@ -8972,7 +9056,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    lt_cv_dlopen="dld_link" lt_cv_dlopen_libs="-ldld"
  fi
  
-@@ -12985,9 +12143,9 @@
+@@ -12985,9 +12144,9 @@
      save_LIBS="$LIBS"
      LIBS="$lt_cv_dlopen_libs $LIBS"
  
@@ -8984,16 +9068,16 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    	  if test "$cross_compiling" = yes; then :
-@@ -12996,7 +12154,7 @@
+@@ -12996,7 +12155,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
 -#line 12999 "configure"
-+#line 12157 "configure"
++#line 12158 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -13055,11 +12213,11 @@
+@@ -13055,11 +12214,11 @@
    return status;
  }
  _LT_EOF
@@ -9008,7 +9092,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
      (./conftest; exit; ) >&5 2>/dev/null
      lt_status=$?
      case x$lt_status in
-@@ -13076,14 +12234,14 @@
+@@ -13076,14 +12235,14 @@
  
  
  fi
@@ -9026,16 +9110,16 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    	  if test "$cross_compiling" = yes; then :
-@@ -13092,7 +12250,7 @@
+@@ -13092,7 +12251,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
 -#line 13095 "configure"
-+#line 12253 "configure"
++#line 12254 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -13151,11 +12309,11 @@
+@@ -13151,11 +12310,11 @@
    return status;
  }
  _LT_EOF
@@ -9050,7 +9134,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
      (./conftest; exit; ) >&5 2>/dev/null
      lt_status=$?
      case x$lt_status in
-@@ -13172,7 +12330,7 @@
+@@ -13172,7 +12331,7 @@
  
  
  fi
@@ -9059,7 +9143,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$lt_cv_dlopen_self_static" >&6; }
      fi
  
-@@ -13211,12 +12369,12 @@
+@@ -13211,12 +12370,12 @@
  
  striplib=
  old_striplib=
@@ -9074,7 +9158,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "yes" >&6; }
  else
  # FIXME - insert some real tests, host_os isn't really good enough
-@@ -13225,15 +12383,15 @@
+@@ -13225,15 +12384,15 @@
      if test -n "$STRIP" ; then
        striplib="$STRIP -x"
        old_striplib="$STRIP -S"
@@ -9093,7 +9177,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
      ;;
    esac
-@@ -13251,12 +12409,12 @@
+@@ -13251,12 +12410,12 @@
  
  
    # Report which library types will actually be built
@@ -9109,7 +9193,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking whether to build shared libraries... " >&6; }
    test "$can_build_shared" = "no" && enable_shared=no
  
-@@ -13277,14 +12435,14 @@
+@@ -13277,14 +12436,14 @@
      fi
      ;;
    esac
@@ -9127,7 +9211,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$enable_static" >&6; }
  
  
-@@ -13425,7 +12583,7 @@
+@@ -13425,7 +12584,7 @@
  
  
  # Check whether --with-gnu-ld was given.
@@ -9136,7 +9220,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    withval=$with_gnu_ld; test "$withval" = no || with_gnu_ld=yes
  else
    with_gnu_ld=no
-@@ -13434,7 +12592,7 @@
+@@ -13434,7 +12593,7 @@
  ac_prog=ld
  if test "$GCC" = yes; then
    # Check if gcc -print-prog-name=ld gives a path.
@@ -9145,7 +9229,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking for ld used by $CC... " >&6; }
    case $host in
    *-*-mingw*)
-@@ -13464,13 +12622,13 @@
+@@ -13464,13 +12623,13 @@
      ;;
    esac
  elif test "$with_gnu_ld" = yes; then
@@ -9162,7 +9246,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -z "$LD"; then
-@@ -13501,18 +12659,16 @@
+@@ -13501,18 +12660,16 @@
  
  LD="$lt_cv_path_LD"
  if test -n "$LD"; then
@@ -9186,7 +9270,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    # I'd rather use --version here, but apparently some GNU lds only accept -v.
-@@ -13525,7 +12681,7 @@
+@@ -13525,7 +12682,7 @@
    ;;
  esac
  fi
@@ -9195,7 +9279,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$lt_cv_prog_gnu_ld" >&6; }
  with_gnu_ld=$lt_cv_prog_gnu_ld
  
-@@ -13580,7 +12736,7 @@
+@@ -13580,7 +12737,7 @@
      fi
  
      # PORTME: fill in a description of your system's C++ link characteristics
@@ -9204,7 +9288,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking whether the $compiler linker ($LD) supports shared libraries... " >&6; }
      ld_shlibs_CXX=yes
      case $host_os in
-@@ -13681,11 +12837,7 @@
+@@ -13681,11 +12838,7 @@
            allow_undefined_flag_CXX='-berok'
            # Determine the default libpath from the value encoded in an empty
            # executable.
@@ -9217,7 +9301,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -13696,27 +12848,7 @@
+@@ -13696,27 +12849,7 @@
    return 0;
  }
  _ACEOF
@@ -9246,7 +9330,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  lt_aix_libpath_sed='
      /Import File Strings/,/^$/ {
-@@ -13730,16 +12862,9 @@
+@@ -13730,16 +12863,9 @@
  if test -z "$aix_libpath"; then
    aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
  fi
@@ -9265,7 +9349,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
            hardcode_libdir_flag_spec_CXX='${wl}-blibpath:$libdir:'"$aix_libpath"
-@@ -13753,11 +12878,7 @@
+@@ -13753,11 +12879,7 @@
            else
  	    # Determine the default libpath from the value encoded in an
  	    # empty executable.
@@ -9278,7 +9362,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -13768,27 +12889,7 @@
+@@ -13768,27 +12890,7 @@
    return 0;
  }
  _ACEOF
@@ -9307,7 +9391,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  lt_aix_libpath_sed='
      /Import File Strings/,/^$/ {
-@@ -13802,16 +12903,9 @@
+@@ -13802,16 +12904,9 @@
  if test -z "$aix_libpath"; then
    aix_libpath=`dump -HX64 conftest$ac_exeext 2>/dev/null | $SED -n -e "$lt_aix_libpath_sed"`
  fi
@@ -9326,7 +9410,16 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  if test -z "$aix_libpath"; then aix_libpath="/usr/lib:/lib"; fi
  
  	    hardcode_libdir_flag_spec_CXX='${wl}-blibpath:$libdir:'"$aix_libpath"
-@@ -14555,7 +13649,7 @@
+@@ -14096,7 +13191,7 @@
+         inherit_rpath_CXX=yes
+         ;;
+ 
+-      linux* | k*bsd*-gnu)
++      linux* | k*bsd*-gnu | kopensolaris*-gnu)
+         case $cc_basename in
+           KCC*)
+ 	    # Kuck and Associates, Inc. (KAI) C++ Compiler
+@@ -14555,7 +13650,7 @@
          ;;
      esac
  
@@ -9335,7 +9428,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$ld_shlibs_CXX" >&6; }
      test "$ld_shlibs_CXX" = no && can_build_shared=no
  
-@@ -14583,11 +13677,11 @@
+@@ -14583,11 +13678,11 @@
  };
  _LT_EOF
  
@@ -9350,7 +9443,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    # Parse the compiler output and extract the necessary
    # objects, libraries and library flags.
  
-@@ -14768,7 +13862,7 @@
+@@ -14768,7 +13863,7 @@
  lt_prog_compiler_pic_CXX=
  lt_prog_compiler_static_CXX=
  
@@ -9359,7 +9452,16 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking for $compiler option to produce PIC... " >&6; }
  
    # C++ specific cases for pic, static, wl, etc.
-@@ -14988,7 +14082,7 @@
+@@ -14924,7 +14019,7 @@
+ 	    ;;
+ 	esac
+ 	;;
+-      linux* | k*bsd*-gnu)
++      linux* | k*bsd*-gnu | kopensolaris*-gnu)
+ 	case $cc_basename in
+ 	  KCC*)
+ 	    # KAI C++ Compiler
+@@ -14988,7 +14083,7 @@
  	    ;;
  	esac
  	;;
@@ -9368,7 +9470,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  	;;
        *qnx* | *nto*)
          # QNX uses GNU C++, but need to define -shared option too, otherwise
-@@ -15085,7 +14179,7 @@
+@@ -15085,7 +14180,7 @@
      lt_prog_compiler_pic_CXX="$lt_prog_compiler_pic_CXX -DPIC"
      ;;
  esac
@@ -9377,7 +9479,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$lt_prog_compiler_pic_CXX" >&6; }
  
  
-@@ -15094,9 +14188,9 @@
+@@ -15094,9 +14189,9 @@
  # Check to make sure the PIC flag actually works.
  #
  if test -n "$lt_prog_compiler_pic_CXX"; then
@@ -9389,21 +9491,21 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_pic_works_CXX=no
-@@ -15112,11 +14206,11 @@
+@@ -15112,11 +14207,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:15115: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14209: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14210: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:15119: \$? = $ac_status" >&5
-+   echo "$as_me:14213: \$? = $ac_status" >&5
++   echo "$as_me:14214: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -15129,7 +14223,7 @@
+@@ -15129,7 +14224,7 @@
     $RM conftest*
  
  fi
@@ -9412,7 +9514,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$lt_cv_prog_compiler_pic_works_CXX" >&6; }
  
  if test x"$lt_cv_prog_compiler_pic_works_CXX" = xyes; then
-@@ -15150,9 +14244,9 @@
+@@ -15150,9 +14245,9 @@
  # Check to make sure the static flag actually works.
  #
  wl=$lt_prog_compiler_wl_CXX eval lt_tmp_static_flag=\"$lt_prog_compiler_static_CXX\"
@@ -9424,7 +9526,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_static_works_CXX=no
-@@ -15178,7 +14272,7 @@
+@@ -15178,7 +14273,7 @@
     LDFLAGS="$save_LDFLAGS"
  
  fi
@@ -9433,7 +9535,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$lt_cv_prog_compiler_static_works_CXX" >&6; }
  
  if test x"$lt_cv_prog_compiler_static_works_CXX" = xyes; then
-@@ -15190,9 +14284,9 @@
+@@ -15190,9 +14285,9 @@
  
  
  
@@ -9445,21 +9547,21 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_c_o_CXX=no
-@@ -15211,11 +14305,11 @@
+@@ -15211,11 +14306,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:15214: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14308: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14309: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:15218: \$? = $ac_status" >&5
-+   echo "$as_me:14312: \$? = $ac_status" >&5
++   echo "$as_me:14313: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -15237,14 +14331,14 @@
+@@ -15237,14 +14332,14 @@
     $RM conftest*
  
  fi
@@ -9477,21 +9579,21 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    lt_cv_prog_compiler_c_o_CXX=no
-@@ -15263,11 +14357,11 @@
+@@ -15263,11 +14358,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:15266: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14360: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14361: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:15270: \$? = $ac_status" >&5
-+   echo "$as_me:14364: \$? = $ac_status" >&5
++   echo "$as_me:14365: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -15289,7 +14383,7 @@
+@@ -15289,7 +14384,7 @@
     $RM conftest*
  
  fi
@@ -9500,7 +9602,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$lt_cv_prog_compiler_c_o_CXX" >&6; }
  
  
-@@ -15298,7 +14392,7 @@
+@@ -15298,7 +14393,7 @@
  hard_links="nottested"
  if test "$lt_cv_prog_compiler_c_o_CXX" = no && test "$need_locks" != no; then
    # do not overwrite the value of need_locks provided by the user
@@ -9509,7 +9611,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking if we can lock with hard links... " >&6; }
    hard_links=yes
    $RM conftest*
-@@ -15306,10 +14400,10 @@
+@@ -15306,10 +14401,10 @@
    touch conftest.a
    ln conftest.a conftest.b 2>&5 || hard_links=no
    ln conftest.a conftest.b 2>/dev/null && hard_links=no
@@ -9522,7 +9624,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: WARNING: \`$CC' does not support \`-c -o', so \`make -j' may be unsafe" >&2;}
      need_locks=warn
    fi
-@@ -15319,7 +14413,7 @@
+@@ -15319,7 +14414,7 @@
  
  
  
@@ -9531,7 +9633,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking whether the $compiler linker ($LD) supports shared libraries... " >&6; }
  
    export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
-@@ -15339,13 +14433,16 @@
+@@ -15339,13 +14434,16 @@
    cygwin* | mingw* | cegcc*)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS][ ]/s/.*[ ]\([^ ]*\)/\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\([^ ]*\)[ ][^ ]*/\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
@@ -9549,7 +9651,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$ld_shlibs_CXX" >&6; }
  test "$ld_shlibs_CXX" = no && can_build_shared=no
  
-@@ -15373,16 +14470,16 @@
+@@ -15373,16 +14471,16 @@
        # Test whether the compiler implicitly links with -lc since on some
        # systems, -lgcc has to come before -lc. If gcc already passes -lc
        # to ld, don't add -lc before -lgcc.
@@ -9570,7 +9672,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
          soname=conftest
          lib=conftest
          libobjs=conftest.$ac_objext
-@@ -15396,11 +14493,11 @@
+@@ -15396,11 +14494,11 @@
          libname=conftest
          lt_save_allow_undefined_flag=$allow_undefined_flag_CXX
          allow_undefined_flag_CXX=
@@ -9585,7 +9687,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
          then
  	  archive_cmds_need_lc_CXX=no
          else
-@@ -15411,7 +14508,7 @@
+@@ -15411,7 +14509,7 @@
          cat conftest.err 1>&5
        fi
        $RM conftest*
@@ -9594,7 +9696,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$archive_cmds_need_lc_CXX" >&6; }
        ;;
      esac
-@@ -15482,7 +14579,7 @@
+@@ -15482,7 +14580,7 @@
  
  
  
@@ -9603,7 +9705,16 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking dynamic linker characteristics... " >&6; }
  
  library_names_spec=
-@@ -15852,11 +14949,7 @@
+@@ -15838,7 +14936,7 @@
+   ;;
+ 
+ # This must be Linux ELF.
+-linux* | k*bsd*-gnu)
++linux* | k*bsd*-gnu | kopensolaris*-gnu)
+   version_type=linux
+   need_lib_prefix=no
+   need_version=no
+@@ -15852,11 +14950,7 @@
    save_libdir=$libdir
    eval "libdir=/foo; wl=\"$lt_prog_compiler_wl_CXX\"; \
         LDFLAGS=\"\$LDFLAGS $hardcode_libdir_flag_spec_CXX\""
@@ -9616,7 +9727,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -15867,41 +14960,13 @@
+@@ -15867,41 +14961,13 @@
    return 0;
  }
  _ACEOF
@@ -9662,7 +9773,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    LDFLAGS=$save_LDFLAGS
    libdir=$save_libdir
  
-@@ -15910,13 +14975,10 @@
+@@ -15910,13 +14976,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -9677,7 +9788,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -15928,6 +14990,18 @@
+@@ -15928,6 +14991,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -9696,7 +9807,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -16116,7 +15190,7 @@
+@@ -16116,7 +15191,7 @@
    dynamic_linker=no
    ;;
  esac
@@ -9705,7 +9816,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$dynamic_linker" >&6; }
  test "$dynamic_linker" = no && can_build_shared=no
  
-@@ -16167,7 +15241,7 @@
+@@ -16167,7 +15242,7 @@
  
  
  
@@ -9714,7 +9825,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking how to hardcode library paths into programs... " >&6; }
  hardcode_action_CXX=
  if test -n "$hardcode_libdir_flag_spec_CXX" ||
-@@ -16192,7 +15266,7 @@
+@@ -16192,7 +15267,7 @@
    # directories.
    hardcode_action_CXX=unsupported
  fi
@@ -9723,7 +9834,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$hardcode_action_CXX" >&6; }
  
  if test "$hardcode_action_CXX" = relink ||
-@@ -16251,7 +15325,7 @@
+@@ -16251,7 +15326,7 @@
  
  
  : ${CONFIG_LT=./config.lt}
@@ -9732,7 +9843,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: creating $CONFIG_LT" >&6;}
  cat >"$CONFIG_LT" <<_LTEOF
  #! $SHELL
-@@ -16263,13 +15337,13 @@
+@@ -16263,13 +15338,13 @@
  _LTEOF
  
  cat >>"$CONFIG_LT" <<\_LTEOF
@@ -9750,7 +9861,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    emulate sh
    NULLCMD=:
    # Pre-4.2 versions of Zsh do word splitting on ${1+"$@"}, which
-@@ -16277,23 +15351,15 @@
+@@ -16277,23 +15352,15 @@
    alias -g '${1+"$@"}'='"$@"'
    setopt NO_GLOB_SUBST
  else
@@ -9779,7 +9890,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  as_nl='
  '
  export as_nl
-@@ -16301,7 +15367,13 @@
+@@ -16301,7 +15368,13 @@
  as_echo='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
  as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo
  as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo$as_echo
@@ -9794,7 +9905,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    as_echo='printf %s\n'
    as_echo_n='printf %s'
  else
-@@ -16312,7 +15384,7 @@
+@@ -16312,7 +15385,7 @@
      as_echo_body='eval expr "X$1" : "X\\(.*\\)"'
      as_echo_n_body='eval
        arg=$1;
@@ -9803,7 +9914,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        *"$as_nl"*)
  	expr "X$arg" : "X\\(.*\\)$as_nl";
  	arg=`expr "X$arg" : ".*$as_nl\\(.*\\)"`;;
-@@ -16335,13 +15407,6 @@
+@@ -16335,13 +15408,6 @@
    }
  fi
  
@@ -9817,7 +9928,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  # IFS
  # We need space, tab and new line, in precisely that order.  Quoting is
-@@ -16351,15 +15416,15 @@
+@@ -16351,15 +15417,15 @@
  IFS=" ""	$as_nl"
  
  # Find who we are.  Look in the path if we contain no directory separator.
@@ -9836,7 +9947,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
       ;;
-@@ -16371,12 +15436,16 @@
+@@ -16371,12 +15437,16 @@
  fi
  if test ! -f "$as_myself"; then
    $as_echo "$as_myself: error: cannot find myself; rerun with an absolute file name" >&2
@@ -9857,7 +9968,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  done
  PS1='$ '
  PS2='> '
-@@ -16388,7 +15457,90 @@
+@@ -16388,7 +15458,90 @@
  LANGUAGE=C
  export LANGUAGE
  
@@ -9949,7 +10060,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  if expr a : '\(a\)' >/dev/null 2>&1 &&
     test "X`expr 00001 : '.*\(...\)'`" = X001; then
    as_expr=expr
-@@ -16402,8 +15554,12 @@
+@@ -16402,8 +15555,12 @@
    as_basename=false
  fi
  
@@ -9963,7 +10074,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  as_me=`$as_basename -- "$0" ||
  $as_expr X/"$0" : '.*/\([^/][^/]*\)/*$' \| \
  	 X"$0" : 'X\(//\)$' \| \
-@@ -16423,77 +15579,25 @@
+@@ -16423,77 +15580,25 @@
  	  }
  	  s/.*/./; q'`
  
@@ -10052,7 +10163,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  rm -f conf$$ conf$$.exe conf$$.file
  if test -d conf$$.dir; then
-@@ -16522,8 +15626,56 @@
+@@ -16522,8 +15627,56 @@
  rm -f conf$$ conf$$.exe conf$$.dir/conf$$.file conf$$.file
  rmdir conf$$.dir 2>/dev/null
  
@@ -10110,7 +10221,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  else
    test -d ./-p && rmdir ./-p
    as_mkdir_p=false
-@@ -16542,10 +15694,10 @@
+@@ -16542,10 +15695,10 @@
        if test -d "$1"; then
  	test -d "$1/.";
        else
@@ -10123,16 +10234,16 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  	???[sx]*):;;*)false;;esac;fi
      '\'' sh
    '
-@@ -16585,7 +15737,7 @@
+@@ -16585,7 +15738,7 @@
  
  lt_cl_version="\
- gtk+ config.lt 2.18.4
+ gtk+ config.lt 2.18.5
 -configured by $0, generated by GNU Autoconf 2.63.
 +configured by $0, generated by GNU Autoconf 2.65.
  
  Copyright (C) 2008 Free Software Foundation, Inc.
  This config.lt script is free software; the Free Software Foundation
-@@ -16603,17 +15755,11 @@
+@@ -16603,17 +15756,11 @@
      --quiet | --q* | --silent | --s* | -q )
        lt_cl_silent=: ;;
  
@@ -10155,7 +10266,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    esac
    shift
  done
-@@ -16979,7 +16125,7 @@
+@@ -16979,7 +16126,7 @@
  _LTEOF
  
  cat >>"$CONFIG_LT" <<\_LTEOF
@@ -10164,7 +10275,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: creating $ofile" >&6;}
  
  
-@@ -17789,7 +16935,7 @@
+@@ -17789,7 +16936,7 @@
  _LT_EOF
  
  
@@ -10173,7 +10284,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  _LTEOF
  chmod +x "$CONFIG_LT"
  
-@@ -17804,22 +16950,22 @@
+@@ -17804,22 +16951,22 @@
    exec 5>/dev/null
    $SHELL "$CONFIG_LT" $lt_config_lt_args || lt_cl_success=false
    exec 5>>config.log
@@ -10200,7 +10311,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    ac_cv_sys_largefile_CC=no
-@@ -17828,11 +16974,7 @@
+@@ -17828,11 +16975,7 @@
         while :; do
  	 # IRIX 6.2 and later do not support large files by default,
  	 # so use the C compiler's -n32 option if that helps.
@@ -10213,7 +10324,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <sys/types.h>
   /* Check that off_t can represent 2**63 - 1 correctly.
-@@ -17851,60 +16993,14 @@
+@@ -17851,60 +16994,14 @@
    return 0;
  }
  _ACEOF
@@ -10276,7 +10387,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  rm -f core conftest.err conftest.$ac_objext
  	 break
         done
-@@ -17912,23 +17008,19 @@
+@@ -17912,23 +17009,19 @@
         rm -f conftest.$ac_ext
      fi
  fi
@@ -10304,7 +10415,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <sys/types.h>
   /* Check that off_t can represent 2**63 - 1 correctly.
-@@ -17947,38 +17039,11 @@
+@@ -17947,38 +17040,11 @@
    return 0;
  }
  _ACEOF
@@ -10345,7 +10456,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #define _FILE_OFFSET_BITS 64
  #include <sys/types.h>
-@@ -17998,38 +17063,15 @@
+@@ -17998,38 +17064,15 @@
    return 0;
  }
  _ACEOF
@@ -10386,7 +10497,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$ac_cv_sys_file_offset_bits" >&6; }
  case $ac_cv_sys_file_offset_bits in #(
    no | unknown) ;;
-@@ -18041,17 +17083,13 @@
+@@ -18041,17 +17084,13 @@
  esac
  rm -rf conftest*
    if test $ac_cv_sys_file_offset_bits = unknown; then
@@ -10407,7 +10518,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <sys/types.h>
   /* Check that off_t can represent 2**63 - 1 correctly.
-@@ -18070,38 +17108,11 @@
+@@ -18070,38 +17109,11 @@
    return 0;
  }
  _ACEOF
@@ -10448,7 +10559,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #define _LARGE_FILES 1
  #include <sys/types.h>
-@@ -18121,38 +17132,15 @@
+@@ -18121,38 +17133,15 @@
    return 0;
  }
  _ACEOF
@@ -10489,7 +10600,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$ac_cv_sys_large_files" >&6; }
  case $ac_cv_sys_large_files in #(
    no | unknown) ;;
-@@ -18176,9 +17164,9 @@
+@@ -18176,9 +17165,9 @@
  
  depcc="$CCAS"   am_compiler_list=
  
@@ -10501,7 +10612,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -z "$AMDEP_TRUE" && test -f "$am_depcomp"; then
-@@ -18284,7 +17272,7 @@
+@@ -18284,7 +17273,7 @@
  fi
  
  fi
@@ -10510,7 +10621,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$am_cv_CCAS_dependencies_compiler_type" >&6; }
  CCASDEPMODE=depmode=$am_cv_CCAS_dependencies_compiler_type
  
-@@ -18301,9 +17289,9 @@
+@@ -18301,9 +17290,9 @@
  
  # Extract the first word of "nm", so it can be a program name with args.
  set dummy nm; ac_word=$2
@@ -10522,7 +10633,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $NM in
-@@ -18316,14 +17304,14 @@
+@@ -18316,14 +17305,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -10540,7 +10651,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    test -z "$ac_cv_path_NM" && ac_cv_path_NM="nm"
-@@ -18332,26 +17320,26 @@
+@@ -18332,26 +17321,26 @@
  fi
  NM=$ac_cv_path_NM
  if test -n "$NM"; then
@@ -10572,7 +10683,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$USE_MAINTAINER_MODE" >&6; }
     if test $USE_MAINTAINER_MODE = yes; then
    MAINTAINER_MODE_TRUE=
-@@ -18365,7 +17353,7 @@
+@@ -18365,7 +17354,7 @@
  
  
  
@@ -10581,7 +10692,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking for some Win32 platform... " >&6; }
  case "$host" in
    *-*-mingw*|*-*-cygwin*)
-@@ -18375,7 +17363,7 @@
+@@ -18375,7 +17364,7 @@
      platform_win32=no
      ;;
  esac
@@ -10590,7 +10701,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$platform_win32" >&6; }
   if test "$platform_win32" = "yes"; then
    PLATFORM_WIN32_TRUE=
-@@ -18415,9 +17403,9 @@
+@@ -18415,9 +17404,9 @@
    if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}windres", so it can be a program name with args.
  set dummy ${ac_tool_prefix}windres; ac_word=$2
@@ -10602,7 +10713,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$WINDRES"; then
-@@ -18428,24 +17416,24 @@
+@@ -18428,24 +17417,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -10632,7 +10743,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -18455,9 +17443,9 @@
+@@ -18455,9 +17444,9 @@
    ac_ct_WINDRES=$WINDRES
    # Extract the first word of "windres", so it can be a program name with args.
  set dummy windres; ac_word=$2
@@ -10644,7 +10755,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_WINDRES"; then
-@@ -18468,24 +17456,24 @@
+@@ -18468,24 +17457,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -10674,7 +10785,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -18494,7 +17482,7 @@
+@@ -18494,7 +17483,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -10683,7 +10794,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -18505,15 +17493,13 @@
+@@ -18505,15 +17494,13 @@
  fi
  
    if test "$WINDRES" = no; then
@@ -10702,7 +10813,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ms_librarian"; then
-@@ -18524,14 +17510,14 @@
+@@ -18524,14 +17511,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -10720,7 +10831,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    test -z "$ac_cv_prog_ms_librarian" && ac_cv_prog_ms_librarian="no"
-@@ -18539,10 +17525,10 @@
+@@ -18539,10 +17526,10 @@
  fi
  ms_librarian=$ac_cv_prog_ms_librarian
  if test -n "$ms_librarian"; then
@@ -10733,7 +10844,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -18560,42 +17546,42 @@
+@@ -18560,42 +17547,42 @@
  
  
  # Check whether --enable-debug was given.
@@ -10782,7 +10893,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    enableval=$enable_visibility;
  else
    enable_visibility=yes
-@@ -18604,7 +17590,7 @@
+@@ -18604,7 +17591,7 @@
  
  
  # Check whether --with-xinput was given.
@@ -10791,7 +10902,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    withval=$with_xinput;
  fi
  
-@@ -18617,7 +17603,7 @@
+@@ -18617,7 +17604,7 @@
  
  
  # Check whether --with-gdktarget was given.
@@ -10800,7 +10911,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    withval=$with_gdktarget; gdktarget=$with_gdktarget
  fi
  
-@@ -18625,9 +17611,7 @@
+@@ -18625,9 +17612,7 @@
  
  case $gdktarget in
    x11|win32|quartz|directfb) ;;
@@ -10811,7 +10922,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  esac
  
  gdktargetlib=libgdk-$gdktarget-$GTK_API_VERSION.la
-@@ -18661,7 +17645,7 @@
+@@ -18661,7 +17646,7 @@
  
  
  # Build time sanity check...
@@ -10820,7 +10931,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking whether build environment is sane... " >&6; }
  # Just in case
  sleep 1
-@@ -18672,15 +17656,11 @@
+@@ -18672,15 +17657,11 @@
  '
  case `pwd` in
    *[\\\"\#\$\&\'\`$am_lf]*)
@@ -10838,7 +10949,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  esac
  
  # Do `set' in a subshell so we don't clobber the current shell's
-@@ -18702,11 +17682,8 @@
+@@ -18702,11 +17683,8 @@
        # if, for instance, CONFIG_SHELL is bash and it inherits a
        # broken ls alias from the environment.  This has actually
        # happened.  Such a system could not be considered "sane".
@@ -10852,7 +10963,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
     fi
  
     test "$2" = conftest.file
-@@ -18715,27 +17692,20 @@
+@@ -18715,27 +17693,20 @@
     # Ok.
     :
  else
@@ -10886,7 +10997,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -18760,54 +17730,27 @@
+@@ -18760,54 +17731,27 @@
      ac_res=-l$ac_lib
      LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
    fi
@@ -10949,7 +11060,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    test "$ac_res" = "none required" || LIBS="$ac_res $LIBS"
  
  fi
-@@ -18820,9 +17763,9 @@
+@@ -18820,9 +17764,9 @@
  if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}gcc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}gcc; ac_word=$2
@@ -10961,7 +11072,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -18833,24 +17776,24 @@
+@@ -18833,24 +17777,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -10991,7 +11102,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -18860,9 +17803,9 @@
+@@ -18860,9 +17804,9 @@
    ac_ct_CC=$CC
    # Extract the first word of "gcc", so it can be a program name with args.
  set dummy gcc; ac_word=$2
@@ -11003,7 +11114,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -18873,24 +17816,24 @@
+@@ -18873,24 +17817,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -11033,7 +11144,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -18899,7 +17842,7 @@
+@@ -18899,7 +17843,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -11042,7 +11153,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -18913,9 +17856,9 @@
+@@ -18913,9 +17857,9 @@
            if test -n "$ac_tool_prefix"; then
      # Extract the first word of "${ac_tool_prefix}cc", so it can be a program name with args.
  set dummy ${ac_tool_prefix}cc; ac_word=$2
@@ -11054,7 +11165,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -18926,24 +17869,24 @@
+@@ -18926,24 +17870,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -11084,7 +11195,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -18953,9 +17896,9 @@
+@@ -18953,9 +17897,9 @@
  if test -z "$CC"; then
    # Extract the first word of "cc", so it can be a program name with args.
  set dummy cc; ac_word=$2
@@ -11096,7 +11207,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -18967,18 +17910,18 @@
+@@ -18967,18 +17911,18 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -11118,7 +11229,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
  if test $ac_prog_rejected = yes; then
-@@ -18997,10 +17940,10 @@
+@@ -18997,10 +17941,10 @@
  fi
  CC=$ac_cv_prog_CC
  if test -n "$CC"; then
@@ -11131,7 +11242,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -19012,9 +17955,9 @@
+@@ -19012,9 +17956,9 @@
    do
      # Extract the first word of "$ac_tool_prefix$ac_prog", so it can be a program name with args.
  set dummy $ac_tool_prefix$ac_prog; ac_word=$2
@@ -11143,7 +11254,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$CC"; then
-@@ -19025,24 +17968,24 @@
+@@ -19025,24 +17969,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -11173,7 +11284,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -19056,9 +17999,9 @@
+@@ -19056,9 +18000,9 @@
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
  set dummy $ac_prog; ac_word=$2
@@ -11185,7 +11296,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$ac_ct_CC"; then
-@@ -19069,24 +18012,24 @@
+@@ -19069,24 +18013,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -11215,7 +11326,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -19099,7 +18042,7 @@
+@@ -19099,7 +18043,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -11224,7 +11335,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -19110,62 +18053,42 @@
+@@ -19110,62 +18054,42 @@
  fi
  
  
@@ -11309,7 +11420,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -19179,37 +18102,16 @@
+@@ -19179,37 +18103,16 @@
    return 0;
  }
  _ACEOF
@@ -11350,7 +11461,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$ac_cv_c_compiler_gnu" >&6; }
  if test $ac_compiler_gnu = yes; then
    GCC=yes
-@@ -19218,20 +18120,16 @@
+@@ -19218,20 +18121,16 @@
  fi
  ac_test_CFLAGS=${CFLAGS+set}
  ac_save_CFLAGS=$CFLAGS
@@ -11374,7 +11485,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -19242,35 +18140,11 @@
+@@ -19242,35 +18141,11 @@
    return 0;
  }
  _ACEOF
@@ -11413,7 +11524,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -19281,36 +18155,12 @@
+@@ -19281,36 +18156,12 @@
    return 0;
  }
  _ACEOF
@@ -11454,7 +11565,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -19321,42 +18171,17 @@
+@@ -19321,42 +18172,17 @@
    return 0;
  }
  _ACEOF
@@ -11499,7 +11610,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$ac_cv_prog_cc_g" >&6; }
  if test "$ac_test_CFLAGS" = set; then
    CFLAGS=$ac_save_CFLAGS
-@@ -19373,18 +18198,14 @@
+@@ -19373,18 +18199,14 @@
      CFLAGS=
    fi
  fi
@@ -11521,7 +11632,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <stdarg.h>
  #include <stdio.h>
-@@ -19441,32 +18262,9 @@
+@@ -19441,32 +18263,9 @@
  	-Ae "-Aa -D_HPUX_SOURCE" "-Xc -D__EXTENSIONS__"
  do
    CC="$ac_save_CC $ac_arg"
@@ -11555,7 +11666,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  rm -f core conftest.err conftest.$ac_objext
    test "x$ac_cv_prog_cc_c89" != "xno" && break
  done
-@@ -19477,17 +18275,19 @@
+@@ -19477,17 +18276,19 @@
  # AC_CACHE_VAL
  case "x$ac_cv_prog_cc_c89" in
    x)
@@ -11578,7 +11689,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  ac_ext=c
  ac_cpp='$CPP $CPPFLAGS'
-@@ -19497,9 +18297,9 @@
+@@ -19497,9 +18298,9 @@
  
  depcc="$CC"   am_compiler_list=
  
@@ -11590,7 +11701,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -z "$AMDEP_TRUE" && test -f "$am_depcomp"; then
-@@ -19607,7 +18407,7 @@
+@@ -19607,7 +18408,7 @@
  fi
  
  fi
@@ -11599,7 +11710,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$am_cv_CC_dependencies_compiler_type" >&6; }
  CCDEPMODE=depmode=$am_cv_CC_dependencies_compiler_type
  
-@@ -19626,22 +18426,18 @@
+@@ -19626,22 +18427,18 @@
  am_cv_prog_cc_stdc=$ac_cv_prog_cc_stdc
  
  if test "x$CC" != xcc; then
@@ -11626,7 +11737,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -19657,63 +18453,63 @@
+@@ -19657,63 +18454,63 @@
  # existing .o file with -o, though they will create one.
  ac_try='$CC -c conftest.$ac_ext -o conftest2.$ac_objext >&5'
  rm -f conftest2.*
@@ -11715,7 +11826,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        then
  	# cc works too.
  	:
-@@ -19730,15 +18526,13 @@
+@@ -19730,15 +18527,13 @@
  
  fi
  if eval test \$ac_cv_prog_cc_${ac_cc}_c_o = yes; then
@@ -11734,7 +11845,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  fi
  
-@@ -19757,104 +18551,12 @@
+@@ -19757,104 +18552,12 @@
  fi
  
  
@@ -11841,7 +11952,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    cat >conftest.make <<\_ACEOF
-@@ -19872,11 +18574,11 @@
+@@ -19872,11 +18575,11 @@
  rm -f conftest.make
  fi
  if eval test \$ac_cv_prog_make_${ac_make}_set = yes; then
@@ -11855,7 +11966,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
    SET_MAKE="MAKE=${MAKE-make}"
  fi
-@@ -19910,7 +18612,7 @@
+@@ -19910,7 +18613,7 @@
  if test x"$os_win32" = xyes; then
    if test x"$GCC" = xyes; then
      msnative_struct=''
@@ -11864,7 +11975,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking how to get MSVC-compatible struct packing... " >&6; }
      if test -z "$ac_cv_prog_CC"; then
        our_gcc="$CC"
-@@ -19930,13 +18632,13 @@
+@@ -19930,13 +18633,13 @@
  	;;
      esac
      if test x"$msnative_struct" = x ; then
@@ -11881,7 +11992,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "${msnative_struct}" >&6; }
      fi
    fi
-@@ -19957,9 +18659,9 @@
+@@ -19957,9 +18660,9 @@
  	if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
  set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
@@ -11893,7 +12004,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $PKG_CONFIG in
-@@ -19972,14 +18674,14 @@
+@@ -19972,14 +18675,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -11911,7 +12022,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    ;;
-@@ -19987,10 +18689,10 @@
+@@ -19987,10 +18690,10 @@
  fi
  PKG_CONFIG=$ac_cv_path_PKG_CONFIG
  if test -n "$PKG_CONFIG"; then
@@ -11924,7 +12035,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -20000,9 +18702,9 @@
+@@ -20000,9 +18703,9 @@
    ac_pt_PKG_CONFIG=$PKG_CONFIG
    # Extract the first word of "pkg-config", so it can be a program name with args.
  set dummy pkg-config; ac_word=$2
@@ -11936,7 +12047,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $ac_pt_PKG_CONFIG in
-@@ -20015,14 +18717,14 @@
+@@ -20015,14 +18718,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -11954,7 +12065,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    ;;
-@@ -20030,10 +18732,10 @@
+@@ -20030,10 +18733,10 @@
  fi
  ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
  if test -n "$ac_pt_PKG_CONFIG"; then
@@ -11967,7 +12078,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -20042,7 +18744,7 @@
+@@ -20042,7 +18745,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -11976,7 +12087,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -20055,13 +18757,13 @@
+@@ -20055,13 +18758,13 @@
  fi
  if test -n "$PKG_CONFIG"; then
  	_pkg_min_version=0.9.0
@@ -11993,7 +12104,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  		PKG_CONFIG=""
  	fi
-@@ -20069,40 +18771,44 @@
+@@ -20069,40 +18772,44 @@
  fi
  
  pkg_failed=no
@@ -12057,7 +12168,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  
-@@ -20115,25 +18821,14 @@
+@@ -20115,25 +18822,14 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -12086,7 +12197,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  $BASE_DEPENDENCIES_PKG_ERRORS
  
-@@ -20143,22 +18838,11 @@
+@@ -20143,22 +18839,11 @@
  Alternatively, you may set the environment variables BASE_DEPENDENCIES_CFLAGS
  and BASE_DEPENDENCIES_LIBS to avoid the need to call pkg-config.
  See the pkg-config man page for more details.
@@ -12112,7 +12223,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -20167,12 +18851,11 @@
+@@ -20167,12 +18852,11 @@
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -12127,7 +12238,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "yes" >&6; }
  	:
  fi
-@@ -20189,40 +18872,44 @@
+@@ -20189,40 +18873,44 @@
  fi
  
  pkg_failed=no
@@ -12191,7 +12302,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  
-@@ -20235,25 +18922,14 @@
+@@ -20235,25 +18923,14 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -12220,7 +12331,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  $CAIRO_BACKEND_PKG_ERRORS
  
-@@ -20263,22 +18939,11 @@
+@@ -20263,22 +18940,11 @@
  Alternatively, you may set the environment variables CAIRO_BACKEND_CFLAGS
  and CAIRO_BACKEND_LIBS to avoid the need to call pkg-config.
  See the pkg-config man page for more details.
@@ -12246,7 +12357,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -20287,12 +18952,11 @@
+@@ -20287,12 +18953,11 @@
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -12261,7 +12372,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "yes" >&6; }
  	:
  fi
-@@ -20309,14 +18973,14 @@
+@@ -20309,14 +18974,14 @@
  
  
  # Check whether --enable-explicit-deps was given.
@@ -12278,7 +12389,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking Whether to write dependencies into .pc files... " >&6; }
  case $enable_explicit_deps in
    auto)
-@@ -20330,12 +18994,10 @@
+@@ -20330,12 +18995,10 @@
    ;;
    yes|no)
    ;;
@@ -12293,7 +12404,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$enable_explicit_deps" >&6; }
  
   if test $enable_explicit_deps = no; then
-@@ -20354,9 +19016,9 @@
+@@ -20354,9 +19017,9 @@
  do
    # Extract the first word of "$ac_prog", so it can be a program name with args.
  set dummy $ac_prog; ac_word=$2
@@ -12305,7 +12416,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $PERL in
-@@ -20369,14 +19031,14 @@
+@@ -20369,14 +19032,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -12323,7 +12434,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    ;;
-@@ -20384,10 +19046,10 @@
+@@ -20384,10 +19047,10 @@
  fi
  PERL=$ac_cv_path_PERL
  if test -n "$PERL"; then
@@ -12336,7 +12447,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -20399,9 +19061,9 @@
+@@ -20399,9 +19062,9 @@
  # We would like indent, but don't require it.
  # Extract the first word of "indent", so it can be a program name with args.
  set dummy indent; ac_word=$2
@@ -12348,7 +12459,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$INDENT"; then
-@@ -20412,24 +19074,24 @@
+@@ -20412,24 +19075,24 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -12378,7 +12489,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -20443,283 +19105,67 @@
+@@ -20443,283 +19106,67 @@
  fi
  
  
@@ -12698,7 +12809,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <langinfo.h>
  int
-@@ -20733,56 +19179,25 @@
+@@ -20733,56 +19180,25 @@
    return 0;
  }
  _ACEOF
@@ -12763,7 +12874,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <langinfo.h>
  int
-@@ -20796,56 +19211,25 @@
+@@ -20796,56 +19212,25 @@
    return 0;
  }
  _ACEOF
@@ -12828,7 +12939,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <langinfo.h>
  int
-@@ -20859,56 +19243,25 @@
+@@ -20859,56 +19244,25 @@
    return 0;
  }
  _ACEOF
@@ -12893,7 +13004,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <setjmp.h>
  int
-@@ -20922,424 +19275,92 @@
+@@ -20922,424 +19276,92 @@
    return 0;
  }
  _ACEOF
@@ -13367,7 +13478,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  #include <libintl.h>
-@@ -21352,54 +19373,25 @@
+@@ -21352,54 +19374,25 @@
    return 0;
  }
  _ACEOF
@@ -13430,7 +13541,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  #include <libintl.h>
-@@ -21412,141 +19404,26 @@
+@@ -21412,141 +19405,26 @@
    return 0;
  }
  _ACEOF
@@ -13582,7 +13693,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  _ACEOF
  
  fi
-@@ -21561,18 +19438,14 @@
+@@ -21561,18 +19439,14 @@
  	 || test "$gt_cv_func_ngettext_libc" != "yes" \
           || test "$ac_cv_func_bind_textdomain_codeset" != "yes" ; then
  
@@ -13604,7 +13715,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -21590,55 +19463,26 @@
+@@ -21590,55 +19464,26 @@
    return 0;
  }
  _ACEOF
@@ -13669,7 +13780,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -21656,55 +19500,26 @@
+@@ -21656,55 +19501,26 @@
    return 0;
  }
  _ACEOF
@@ -13734,7 +13845,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -21722,43 +19537,18 @@
+@@ -21722,43 +19538,18 @@
    return 0;
  }
  _ACEOF
@@ -13784,7 +13895,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    gt_cv_func_dgettext_libintl=yes
  fi
  
-@@ -21768,22 +19558,18 @@
+@@ -21768,22 +19559,18 @@
  
  
  	if test "$gt_cv_func_dgettext_libintl" != "yes" ; then
@@ -13812,7 +13923,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -21801,55 +19587,26 @@
+@@ -21801,55 +19588,26 @@
    return 0;
  }
  _ACEOF
@@ -13877,7 +13988,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -21867,43 +19624,18 @@
+@@ -21867,43 +19625,18 @@
    return 0;
  }
  _ACEOF
@@ -13927,7 +14038,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    gt_cv_func_dgettext_libintl=yes
  			libintl_extra_libs=-liconv
  else
-@@ -21925,102 +19657,12 @@
+@@ -21925,102 +19658,12 @@
            glib_save_LIBS="$LIBS"
            LIBS="$LIBS -lintl $libintl_extra_libs"
            unset ac_cv_func_bind_textdomain_codeset
@@ -14035,7 +14146,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  _ACEOF
  
  fi
-@@ -22050,15 +19692,13 @@
+@@ -22050,15 +19693,13 @@
  
        if test "$gt_cv_have_gettext" = "yes"; then
  
@@ -14054,7 +14165,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case "$MSGFMT" in
-@@ -22083,118 +19723,28 @@
+@@ -22083,118 +19724,28 @@
  fi
  MSGFMT="$ac_cv_path_MSGFMT"
  if test "$MSGFMT" != "no"; then
@@ -14181,7 +14292,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking if msgfmt accepts -c... " >&6; }
  	  cat >conftest.foo <<_ACEOF
  
-@@ -22209,14 +19759,14 @@
+@@ -22209,14 +19760,14 @@
  "Content-Transfer-Encoding: 8bit\n"
  
  _ACEOF
@@ -14201,7 +14312,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  echo "$as_me: failed input was:" >&5
  sed 's/^/| /' conftest.foo >&5
-@@ -22224,9 +19774,9 @@
+@@ -22224,9 +19775,9 @@
  
  	  # Extract the first word of "gmsgfmt", so it can be a program name with args.
  set dummy gmsgfmt; ac_word=$2
@@ -14213,7 +14324,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $GMSGFMT in
-@@ -22239,14 +19789,14 @@
+@@ -22239,14 +19790,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -14231,7 +14342,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    test -z "$ac_cv_path_GMSGFMT" && ac_cv_path_GMSGFMT="$MSGFMT"
-@@ -22255,19 +19805,19 @@
+@@ -22255,19 +19806,19 @@
  fi
  GMSGFMT=$ac_cv_path_GMSGFMT
  if test -n "$GMSGFMT"; then
@@ -14255,7 +14366,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case "$XGETTEXT" in
-@@ -22292,18 +19842,14 @@
+@@ -22292,18 +19843,14 @@
  fi
  XGETTEXT="$ac_cv_path_XGETTEXT"
  if test "$XGETTEXT" != ":"; then
@@ -14277,7 +14388,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  int
-@@ -22315,121 +19861,14 @@
+@@ -22315,121 +19862,14 @@
    return 0;
  }
  _ACEOF
@@ -14403,7 +14514,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    CATOBJEXT=.gmo
                 DATADIRNAME=share
  else
-@@ -22444,10 +19883,8 @@
+@@ -22444,10 +19884,8 @@
  	    ;;
  	    esac
  fi
@@ -14416,7 +14527,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
            LIBS="$glib_save_LIBS"
  	  INSTOBJEXT=.mo
  	else
-@@ -22461,9 +19898,7 @@
+@@ -22461,9 +19899,7 @@
  
      if test "$gt_cv_have_gettext" = "yes" ; then
  
@@ -14427,7 +14538,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
      fi
  
-@@ -22471,7 +19906,7 @@
+@@ -22471,7 +19907,7 @@
                    if $XGETTEXT --omit-header /dev/null 2> /dev/null; then
          : ;
        else
@@ -14436,7 +14547,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "found xgettext program is not GNU xgettext; ignore it" >&6; }
          XGETTEXT=":"
        fi
-@@ -22504,7 +19939,7 @@
+@@ -22504,7 +19940,7 @@
       if test "x$ALL_LINGUAS" = "x"; then
         LINGUAS=
       else
@@ -14445,7 +14556,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking for catalogs to be installed... " >&6; }
         NEW_LINGUAS=
         for presentlang in $ALL_LINGUAS; do
-@@ -22529,7 +19964,7 @@
+@@ -22529,7 +19965,7 @@
           fi
         done
         LINGUAS=$NEW_LINGUAS
@@ -14454,7 +14565,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$LINGUAS" >&6; }
       fi
  
-@@ -22600,129 +20035,67 @@
+@@ -22600,129 +20036,67 @@
  
  
  
@@ -14604,7 +14715,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
    ;;
  esac
-@@ -22730,27 +20103,23 @@
+@@ -22730,27 +20104,23 @@
  #
  # see bug 162979
  #
@@ -14637,7 +14748,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <dirent.h>
  int
-@@ -22761,37 +20130,13 @@
+@@ -22761,37 +20131,13 @@
    return 0;
  }
  _ACEOF
@@ -14679,7 +14790,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <dirent.h>
  int
-@@ -22802,40 +20147,18 @@
+@@ -22802,40 +20148,18 @@
    return 0;
  }
  _ACEOF
@@ -14724,7 +14835,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
  
  #
-@@ -22845,7 +20168,7 @@
+@@ -22845,7 +20169,7 @@
  GLIB_PACKAGES="gobject-2.0 gmodule-no-export-2.0"
  
  # Check whether --enable-glibtest was given.
@@ -14733,7 +14844,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    enableval=$enable_glibtest;
  else
    enable_glibtest=yes
-@@ -22880,9 +20203,9 @@
+@@ -22880,9 +20204,9 @@
  	if test -n "$ac_tool_prefix"; then
    # Extract the first word of "${ac_tool_prefix}pkg-config", so it can be a program name with args.
  set dummy ${ac_tool_prefix}pkg-config; ac_word=$2
@@ -14745,7 +14856,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $PKG_CONFIG in
-@@ -22895,14 +20218,14 @@
+@@ -22895,14 +20219,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -14763,7 +14874,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    ;;
-@@ -22910,10 +20233,10 @@
+@@ -22910,10 +20234,10 @@
  fi
  PKG_CONFIG=$ac_cv_path_PKG_CONFIG
  if test -n "$PKG_CONFIG"; then
@@ -14776,7 +14887,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -22923,9 +20246,9 @@
+@@ -22923,9 +20247,9 @@
    ac_pt_PKG_CONFIG=$PKG_CONFIG
    # Extract the first word of "pkg-config", so it can be a program name with args.
  set dummy pkg-config; ac_word=$2
@@ -14788,7 +14899,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $ac_pt_PKG_CONFIG in
-@@ -22938,14 +20261,14 @@
+@@ -22938,14 +20262,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -14806,7 +14917,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    ;;
-@@ -22953,10 +20276,10 @@
+@@ -22953,10 +20277,10 @@
  fi
  ac_pt_PKG_CONFIG=$ac_cv_path_ac_pt_PKG_CONFIG
  if test -n "$ac_pt_PKG_CONFIG"; then
@@ -14819,7 +14930,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -22965,7 +20288,7 @@
+@@ -22965,7 +20289,7 @@
    else
      case $cross_compiling:$ac_tool_warned in
  yes:)
@@ -14828,7 +14939,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: WARNING: using cross tools not prefixed with host triplet" >&2;}
  ac_tool_warned=yes ;;
  esac
-@@ -22978,13 +20301,13 @@
+@@ -22978,13 +20302,13 @@
  fi
  if test -n "$PKG_CONFIG"; then
  	_pkg_min_version=0.16
@@ -14845,7 +14956,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  		PKG_CONFIG=""
  	fi
-@@ -22999,7 +20322,7 @@
+@@ -22999,7 +20323,7 @@
    fi
  
    min_glib_version=2.21.3
@@ -14854,7 +14965,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking for GLIB - version >= $min_glib_version... " >&6; }
  
    if test x$PKG_CONFIG != xno ; then
-@@ -23035,14 +20358,10 @@
+@@ -23035,14 +20359,10 @@
        CFLAGS="$CFLAGS $GLIB_CFLAGS"
        LIBS="$GLIB_LIBS $LIBS"
        rm -f conf.glibtest
@@ -14871,18 +14982,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  #include <glib.h>
-@@ -23054,9 +20373,8 @@
- {
-   int major, minor, micro;
-   char *tmp_version;
--  int ignored;
- 
--  ignored = system ("touch conf.glibtest");
-+  fclose (fopen ("conf.glibtest", "w"));
- 
-   /* HP/UX 9 (%@#!) writes to sscanf strings */
-   tmp_version = g_strdup("$min_glib_version");
-@@ -23118,52 +20436,25 @@
+@@ -23118,52 +20438,25 @@
  }
  
  _ACEOF
@@ -14942,7 +15042,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
       if test "$PKG_CONFIG" = "no" ; then
         echo "*** A new enough version of pkg-config was not found."
-@@ -23177,11 +20468,7 @@
+@@ -23177,11 +20470,7 @@
            ac_save_LIBS="$LIBS"
            CFLAGS="$CFLAGS $GLIB_CFLAGS"
            LIBS="$LIBS $GLIB_LIBS"
@@ -14955,7 +15055,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  #include <glib.h>
-@@ -23195,27 +20482,7 @@
+@@ -23195,27 +20484,7 @@
    return 0;
  }
  _ACEOF
@@ -14984,7 +15084,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
     echo "*** The test program compiled, but did not run. This usually means"
            echo "*** that the run-time linker is not finding GLIB or finding the wrong"
            echo "*** version of GLIB. If it is not finding GLIB, you'll need to set your"
-@@ -23226,16 +20493,11 @@
+@@ -23226,16 +20495,11 @@
            echo "*** If you have an old version installed, it is best to remove it, although"
            echo "*** you may also be able to get things to work by modifying LD_LIBRARY_PATH"
  else
@@ -15004,7 +15104,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
            CFLAGS="$ac_save_CFLAGS"
            LIBS="$ac_save_LIBS"
         fi
-@@ -23245,13 +20507,9 @@
+@@ -23245,13 +20509,9 @@
       GLIB_GENMARSHAL=""
       GOBJECT_QUERY=""
       GLIB_MKENUMS=""
@@ -15020,7 +15120,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    fi
  
  
-@@ -23273,413 +20531,354 @@
+@@ -23273,413 +20533,354 @@
  
  gtk_save_LIBS=$LIBS
  LIBS="$LIBS $GLIB_LIBS"
@@ -15716,7 +15816,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  _ACEOF
  
  fi
-@@ -23687,910 +20886,599 @@
+@@ -23687,910 +20888,599 @@
  done
  
  
@@ -17078,7 +17178,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -24598,290 +21486,93 @@
+@@ -24598,290 +21488,93 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -17424,7 +17524,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -24889,100 +21580,66 @@
+@@ -24889,100 +21582,66 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -17566,7 +17666,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -24990,314 +21647,136 @@
+@@ -24990,314 +21649,136 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -17973,7 +18073,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -25305,72 +21784,92 @@
+@@ -25305,72 +21786,92 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -18117,7 +18217,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -25379,1212 +21878,663 @@
+@@ -25379,1212 +21880,663 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -19814,7 +19914,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -26593,116 +22543,50 @@
+@@ -26593,116 +22545,50 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -19957,7 +20057,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -26711,3376 +22595,554 @@
+@@ -26711,3376 +22597,554 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -23764,7 +23864,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -30088,92 +23150,27 @@
+@@ -30088,92 +23152,27 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -23869,7 +23969,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -30181,200 +23178,100 @@
+@@ -30181,200 +23180,100 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -24133,7 +24233,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -30382,103 +23279,40 @@
+@@ -30382,103 +23281,40 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -24256,7 +24356,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -30486,116 +23320,104 @@
+@@ -30486,116 +23322,104 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -24447,7 +24547,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -30603,99 +23425,48 @@
+@@ -30603,99 +23427,48 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -24572,7 +24672,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -30703,97 +23474,51 @@
+@@ -30703,97 +23476,51 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -24699,7 +24799,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  /* Override any GCC internal prototype to avoid an error.
     Use char because int might match the return type of a GCC
-@@ -30801,224 +23526,238 @@
+@@ -30801,224 +23528,238 @@
  #ifdef __cplusplus
  extern "C"
  #endif
@@ -25106,7 +25206,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -31036,336 +23775,45 @@
+@@ -31036,336 +23777,45 @@
    return 0;
  }
  _ACEOF
@@ -25466,7 +25566,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  else
    no_sys_shm=yes
-@@ -31375,18 +23823,14 @@
+@@ -31375,18 +23825,14 @@
  
      # Check for the X shared memory extension header file
      have_xshm=no
@@ -25487,7 +25587,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  #include <stdlib.h>
-@@ -31405,42 +23849,17 @@
+@@ -31405,42 +23851,17 @@
    return 0;
  }
  _ACEOF
@@ -25533,7 +25633,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
      fi
    fi
-@@ -31451,7 +23870,7 @@
+@@ -31451,7 +23872,7 @@
      CPPFLAGS="$CPPFLAGS $x_cflags"
  
      # Check for XFree
@@ -25542,7 +25642,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo_n "checking for Xinerama support on XFree86... " >&6; }
  
      have_xfree_xinerama=false
-@@ -31459,18 +23878,14 @@
+@@ -31459,18 +23880,14 @@
         have_xfree_xinerama=true
         X_PACKAGES="$X_PACKAGES xinerama"
      else
@@ -25564,7 +25664,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -31488,89 +23903,21 @@
+@@ -31488,89 +23905,21 @@
    return 0;
  }
  _ACEOF
@@ -25663,7 +25763,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
     case "$x_extra_libs " in
      *-lXinerama[\ \	]*)               ;;
      *)               x_extra_libs="-lXinerama $x_extra_libs" ;;
-@@ -31588,160 +23935,29 @@
+@@ -31588,160 +23937,29 @@
  
      if $have_xfree_xinerama ; then
  
@@ -25834,7 +25934,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    have_solaris_xinerama=true
  else
    :
-@@ -31753,19 +23969,15 @@
+@@ -31753,19 +23971,15 @@
  
              if $have_solaris_xinerama ; then
  
@@ -25858,7 +25958,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
              fi
              ;;
-@@ -31779,9 +23991,7 @@
+@@ -31779,9 +23993,7 @@
  
    if test "x$with_xinput" = "xxfree" || test "x$with_xinput" = "xyes"; then
  
@@ -25869,7 +25969,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  
      if $PKG_CONFIG --exists xi ; then
-@@ -31795,9 +24005,7 @@
+@@ -31795,9 +24007,7 @@
      fi
    else
  
@@ -25880,7 +25980,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
    fi
  
-@@ -31813,9 +24021,7 @@
+@@ -31813,9 +24023,7 @@
    # Check for the RANDR extension
    if $PKG_CONFIG --exists "xrandr >= 1.2.99" ; then
  
@@ -25891,7 +25991,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  
       X_PACKAGES="$X_PACKAGES xrandr"
-@@ -31825,9 +24031,7 @@
+@@ -31825,9 +24033,7 @@
  
    if $PKG_CONFIG --exists xcursor ; then
  
@@ -25902,7 +26002,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  
      X_PACKAGES="$X_PACKAGES xcursor"
-@@ -31837,9 +24041,7 @@
+@@ -31837,9 +24043,7 @@
  
    if $PKG_CONFIG --exists xfixes ; then
  
@@ -25913,7 +26013,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  
      X_PACKAGES="$X_PACKAGES xfixes"
-@@ -31850,9 +24052,7 @@
+@@ -31850,9 +24054,7 @@
  
    if $PKG_CONFIG --exists xcomposite ; then
  
@@ -25924,7 +26024,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  
      X_PACKAGES="$X_PACKAGES xcomposite"
-@@ -31863,9 +24063,7 @@
+@@ -31863,9 +24065,7 @@
  
    if $PKG_CONFIG --exists xdamage ; then
  
@@ -25935,7 +26035,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  
      X_PACKAGES="$X_PACKAGES xdamage"
-@@ -31971,45 +24169,49 @@
+@@ -31971,45 +24171,49 @@
  
  if test "x$gdktarget" = "xdirectfb"; then
    DIRECTFB_REQUIRED_VERSION=1.0.0
@@ -26005,7 +26105,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  
-@@ -32022,25 +24224,14 @@
+@@ -32022,25 +24226,14 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -26034,7 +26134,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  $DIRECTFB_PKG_ERRORS
  
-@@ -32050,22 +24241,11 @@
+@@ -32050,22 +24243,11 @@
  Alternatively, you may set the environment variables DIRECTFB_CFLAGS
  and DIRECTFB_LIBS to avoid the need to call pkg-config.
  See the pkg-config man page for more details.
@@ -26060,7 +26160,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  is in your PATH or set the PKG_CONFIG environment variable to the full
  path to pkg-config.
  
-@@ -32074,12 +24254,11 @@
+@@ -32074,12 +24256,11 @@
  See the pkg-config man page for more details.
  
  To get pkg-config, see <http://pkg-config.freedesktop.org/>.
@@ -26075,7 +26175,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "yes" >&6; }
  	:
  fi
-@@ -32111,24 +24290,19 @@
+@@ -32111,24 +24292,19 @@
  	PANGO_PACKAGES="pango pangocairo"
  fi
  
@@ -26104,7 +26204,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  CFLAGS="$CFLAGS $PANGO_CFLAGS"
-@@ -32138,11 +24312,7 @@
+@@ -32138,11 +24314,7 @@
  else
  	gtk_save_LIBS="$LIBS"
          LIBS="$PANGO_LIBS $LIBS"
@@ -26117,7 +26217,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -32160,60 +24330,33 @@
+@@ -32160,60 +24332,33 @@
    return 0;
  }
  _ACEOF
@@ -26189,7 +26289,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  
-@@ -32223,29 +24366,25 @@
+@@ -32223,29 +24368,25 @@
  
  
  
@@ -26224,7 +26324,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  if $PKG_CONFIG --uninstalled $ATK_PACKAGES; then
-@@ -32253,11 +24392,7 @@
+@@ -32253,11 +24394,7 @@
  else
  	gtk_save_LIBS="$LIBS"
          LIBS="$ATK_LIBS $LIBS"
@@ -26237,7 +26337,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -32275,44 +24410,15 @@
+@@ -32275,44 +24412,15 @@
    return 0;
  }
  _ACEOF
@@ -26287,7 +26387,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
          LIBS="$gtk_save_LIBS"
  fi
  
-@@ -32335,7 +24441,7 @@
+@@ -32335,7 +24443,7 @@
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then
@@ -26296,7 +26396,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  
-@@ -32363,17 +24469,13 @@
+@@ -32363,17 +24471,13 @@
  ########################
  
  old_LIBS="$LIBS"
@@ -26317,7 +26417,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -32397,70 +24499,39 @@
+@@ -32397,70 +24501,39 @@
    else
      ac_res=-l$ac_lib
      LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
@@ -26400,7 +26500,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -32485,69 +24556,38 @@
+@@ -32485,69 +24558,38 @@
      ac_res=-l$ac_lib
      LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
    fi
@@ -26481,7 +26581,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -32572,161 +24612,37 @@
+@@ -32572,161 +24614,37 @@
      ac_res=-l$ac_lib
      LIBS="-l$ac_lib  $ac_func_search_save_LIBS"
    fi
@@ -26654,7 +26754,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    struct_sockaddr_un_sun_len=true
  else
    struct_sockaddr_un_suin_len=false
-@@ -32754,7 +24670,7 @@
+@@ -32754,7 +24672,7 @@
  ################################################################
  
  # Check whether --enable-cups was given.
@@ -26663,7 +26763,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    enableval=$enable_cups;
  else
    enable_cups=auto
-@@ -32773,9 +24689,9 @@
+@@ -32773,9 +24691,9 @@
  else
    # Extract the first word of "cups-config", so it can be a program name with args.
  set dummy cups-config; ac_word=$2
@@ -26675,7 +26775,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $CUPS_CONFIG in
-@@ -32788,14 +24704,14 @@
+@@ -32788,14 +24706,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -26693,7 +26793,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    test -z "$ac_cv_path_CUPS_CONFIG" && ac_cv_path_CUPS_CONFIG="no"
-@@ -32804,10 +24720,10 @@
+@@ -32804,10 +24722,10 @@
  fi
  CUPS_CONFIG=$ac_cv_path_CUPS_CONFIG
  if test -n "$CUPS_CONFIG"; then
@@ -26706,7 +26806,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -32823,13 +24739,9 @@
+@@ -32823,13 +24741,9 @@
  fi
  
      else
@@ -26722,7 +26822,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
      fi
    else
      CUPS_CFLAGS=`$CUPS_CONFIG --cflags | sed 's/-O0-9*//' | sed 's/-m^\t*//g'`
-@@ -32842,9 +24754,7 @@
+@@ -32842,9 +24756,7 @@
      if test $CUPS_API_MAJOR -gt 1 -o \
              $CUPS_API_MAJOR -eq 1 -a $CUPS_API_MINOR -ge 2; then
  
@@ -26733,7 +26833,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
      fi
  
-@@ -32853,144 +24763,11 @@
+@@ -32853,144 +24765,11 @@
  
  
  
@@ -26881,7 +26981,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  
-@@ -33006,11 +24783,7 @@
+@@ -33006,11 +24785,7 @@
  
      gtk_save_cflags="$CFLAGS"
      CFLAGS="$CUPS_CFLAGS"
@@ -26894,7 +26994,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  #include <cups/http.h>
  int
-@@ -33021,36 +24794,11 @@
+@@ -33021,36 +24796,11 @@
    return 0;
  }
  _ACEOF
@@ -26933,7 +27033,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
      CFLAGS="$gtk_save_cflags"
  
-@@ -33058,102 +24806,12 @@
+@@ -33058,102 +24808,12 @@
  
      gtk_save_libs="$LIBS"
      LIBS="$CUPS_LIBS"
@@ -27041,7 +27141,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  _ACEOF
  
  fi
-@@ -33167,7 +24825,7 @@
+@@ -33167,7 +24827,7 @@
  #
  
  # Check whether --enable-papi was given.
@@ -27050,7 +27150,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    enableval=$enable_papi;
  else
    enable_papi=auto
-@@ -33184,20 +24842,16 @@
+@@ -33184,20 +24844,16 @@
  fi
  
  else
@@ -27075,7 +27175,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  /* end confdefs.h.  */
  
  /* Override any GCC internal prototype to avoid an error.
-@@ -33215,43 +24869,18 @@
+@@ -33215,43 +24871,18 @@
    return 0;
  }
  _ACEOF
@@ -27125,7 +27225,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    have_papi=yes
  else
    have_papi=no
-@@ -33259,9 +24888,7 @@
+@@ -33259,9 +24890,7 @@
  
    if test $have_papi = yes; then
  
@@ -27136,7 +27236,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
    fi
     if test $have_papi = yes; then
-@@ -33273,13 +24900,9 @@
+@@ -33273,13 +24902,9 @@
  fi
  
    if test "x$enable_papi" = "xyes" -a "x$have_papi" = "xno"; then
@@ -27152,7 +27252,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    fi
  fi
  
-@@ -33295,295 +24918,25 @@
+@@ -33295,295 +24920,25 @@
  gtk_save_cppflags="$CPPFLAGS"
  CPPFLAGS="$CPPFLAGS $GTK_DEP_CFLAGS $GDK_DEP_CFLAGS"
  
@@ -27456,7 +27556,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi
  
  
-@@ -33593,7 +24946,7 @@
+@@ -33593,7 +24948,7 @@
  
  
  # Check whether --enable-test-print-backend was given.
@@ -27465,7 +27565,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    enableval=$enable_test_print_backend;
  else
    enable_test_print_backend=no
-@@ -33638,136 +24991,8 @@
+@@ -33638,136 +24993,8 @@
  
  
  
@@ -27603,7 +27703,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    withval=$with_html_dir;
  else
    with_html_dir='${datadir}/gtk-doc/html'
-@@ -33777,7 +25002,7 @@
+@@ -33777,7 +25004,7 @@
  
  
      # Check whether --enable-gtk-doc was given.
@@ -27612,7 +27712,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    enableval=$enable_gtk_doc;
  else
    enable_gtk_doc=no
-@@ -33786,42 +25011,66 @@
+@@ -33786,42 +25013,66 @@
  
    if test x$enable_gtk_doc = xyes; then
      if test -n "$PKG_CONFIG" && \
@@ -27703,7 +27803,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  
     if test x$enable_gtk_doc = xyes; then
-@@ -33832,22 +25081,6 @@
+@@ -33832,22 +25083,6 @@
    ENABLE_GTK_DOC_FALSE=
  fi
  
@@ -27726,7 +27826,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
     if test -n "$LIBTOOL"; then
    GTK_DOC_USE_LIBTOOL_TRUE=
    GTK_DOC_USE_LIBTOOL_FALSE='#'
-@@ -33856,21 +25089,13 @@
+@@ -33856,21 +25091,13 @@
    GTK_DOC_USE_LIBTOOL_FALSE=
  fi
  
@@ -27750,7 +27850,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    if test -n "$DB2HTML"; then
-@@ -33881,14 +25106,14 @@
+@@ -33881,14 +25108,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -27768,7 +27868,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    test -z "$ac_cv_prog_DB2HTML" && ac_cv_prog_DB2HTML="false"
-@@ -33896,10 +25121,10 @@
+@@ -33896,10 +25123,10 @@
  fi
  DB2HTML=$ac_cv_prog_DB2HTML
  if test -n "$DB2HTML"; then
@@ -27781,7 +27881,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -33914,7 +25139,7 @@
+@@ -33914,7 +25141,7 @@
  
  
  # Check whether --enable-man was given.
@@ -27790,7 +27890,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    enableval=$enable_man; enable_man=yes
  else
    enable_man=no
-@@ -33924,9 +25149,9 @@
+@@ -33924,9 +25151,9 @@
  if test "${enable_man}" != no; then
          # Extract the first word of "xsltproc", so it can be a program name with args.
  set dummy xsltproc; ac_word=$2
@@ -27802,7 +27902,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $XSLTPROC in
-@@ -33939,14 +25164,14 @@
+@@ -33939,14 +25166,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -27820,7 +27920,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    ;;
-@@ -33954,10 +25179,10 @@
+@@ -33954,10 +25181,10 @@
  fi
  XSLTPROC=$ac_cv_path_XSLTPROC
  if test -n "$XSLTPROC"; then
@@ -27833,7 +27933,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -33970,7 +25195,7 @@
+@@ -33970,7 +25197,7 @@
    # check for the presence of the XML catalog
  
  # Check whether --with-xml-catalog was given.
@@ -27842,7 +27942,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    withval=$with_xml_catalog;
  else
    with_xml_catalog=/etc/xml/catalog
-@@ -33979,23 +25204,23 @@
+@@ -33979,23 +25206,23 @@
    jh_found_xmlcatalog=true
    XML_CATALOG_FILE="$with_xml_catalog"
  
@@ -27871,7 +27971,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    $as_echo_n "(cached) " >&6
  else
    case $XMLCATALOG in
-@@ -34008,14 +25233,14 @@
+@@ -34008,14 +25235,14 @@
  do
    IFS=$as_save_IFS
    test -z "$as_dir" && as_dir=.
@@ -27889,7 +27989,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
    test -z "$ac_cv_path_XMLCATALOG" && ac_cv_path_XMLCATALOG="no"
-@@ -34024,10 +25249,10 @@
+@@ -34024,10 +25251,10 @@
  fi
  XMLCATALOG=$ac_cv_path_XMLCATALOG
  if test -n "$XMLCATALOG"; then
@@ -27902,7 +28002,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "no" >&6; }
  fi
  
-@@ -34043,35 +25268,35 @@
+@@ -34043,35 +25270,35 @@
    fi
  
  
@@ -27950,7 +28050,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "not found" >&6; }
      enable_man=no
    fi
-@@ -34125,13 +25350,13 @@
+@@ -34125,13 +25352,13 @@
      case $ac_val in #(
      *${as_nl}*)
        case $ac_var in #(
@@ -27966,7 +28066,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        esac ;;
      esac
    done
-@@ -34139,8 +25364,8 @@
+@@ -34139,8 +25366,8 @@
    (set) 2>&1 |
      case $as_nl`(ac_space=' '; set) 2>&1` in #(
      *${as_nl}ac_space=\ *)
@@ -27977,7 +28077,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        sed -n \
  	"s/'/'\\\\''/g;
  	  s/^\\([_$as_cr_alnum]*_cv_[_$as_cr_alnum]*\\)=\\(.*\\)/\\1='\\2'/p"
-@@ -34163,11 +25388,11 @@
+@@ -34163,11 +25390,11 @@
  if diff "$cache_file" confcache >/dev/null 2>&1; then :; else
    if test -w "$cache_file"; then
      test "x$cache_file" != "x/dev/null" &&
@@ -27991,7 +28091,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: not updating unwritable cache $cache_file" >&6;}
    fi
  fi
-@@ -34187,8 +25412,8 @@
+@@ -34187,8 +25414,8 @@
    ac_i=`$as_echo "$ac_i" | sed "$ac_script"`
    # 2. Prepend LIBOBJDIR.  When used with automake>=1.10 LIBOBJDIR
    #    will be set to the directory where LIBOBJS objects are built.
@@ -28002,7 +28102,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  done
  LIBOBJS=$ac_libobjs
  
-@@ -34204,580 +25429,330 @@
+@@ -34204,580 +25431,330 @@
  fi
  
  if test -z "${AMDEP_TRUE}" && test -z "${AMDEP_FALSE}"; then
@@ -28746,7 +28846,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  #! $SHELL
  # Generated by $as_me.
  # Run this file to recreate the current configuration.
-@@ -34787,17 +25762,18 @@
+@@ -34787,17 +25764,18 @@
  debug=false
  ac_cs_recheck=false
  ac_cs_silent=false
@@ -28772,7 +28872,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    emulate sh
    NULLCMD=:
    # Pre-4.2 versions of Zsh do word splitting on ${1+"$@"}, which
-@@ -34805,23 +25781,15 @@
+@@ -34805,23 +25783,15 @@
    alias -g '${1+"$@"}'='"$@"'
    setopt NO_GLOB_SUBST
  else
@@ -28801,7 +28901,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  as_nl='
  '
  export as_nl
-@@ -34829,7 +25797,13 @@
+@@ -34829,7 +25799,13 @@
  as_echo='\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\\'
  as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo
  as_echo=$as_echo$as_echo$as_echo$as_echo$as_echo$as_echo
@@ -28816,7 +28916,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    as_echo='printf %s\n'
    as_echo_n='printf %s'
  else
-@@ -34840,7 +25814,7 @@
+@@ -34840,7 +25816,7 @@
      as_echo_body='eval expr "X$1" : "X\\(.*\\)"'
      as_echo_n_body='eval
        arg=$1;
@@ -28825,7 +28925,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        *"$as_nl"*)
  	expr "X$arg" : "X\\(.*\\)$as_nl";
  	arg=`expr "X$arg" : ".*$as_nl\\(.*\\)"`;;
-@@ -34863,13 +25837,6 @@
+@@ -34863,13 +25839,6 @@
    }
  fi
  
@@ -28839,7 +28939,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  # IFS
  # We need space, tab and new line, in precisely that order.  Quoting is
-@@ -34879,15 +25846,15 @@
+@@ -34879,15 +25848,15 @@
  IFS=" ""	$as_nl"
  
  # Find who we are.  Look in the path if we contain no directory separator.
@@ -28858,7 +28958,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  IFS=$as_save_IFS
  
       ;;
-@@ -34899,12 +25866,16 @@
+@@ -34899,12 +25868,16 @@
  fi
  if test ! -f "$as_myself"; then
    $as_echo "$as_myself: error: cannot find myself; rerun with an absolute file name" >&2
@@ -28879,7 +28979,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  done
  PS1='$ '
  PS2='> '
-@@ -34916,7 +25887,89 @@
+@@ -34916,7 +25889,89 @@
  LANGUAGE=C
  export LANGUAGE
  
@@ -28970,7 +29070,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  if expr a : '\(a\)' >/dev/null 2>&1 &&
     test "X`expr 00001 : '.*\(...\)'`" = X001; then
    as_expr=expr
-@@ -34930,8 +25983,12 @@
+@@ -34930,8 +25985,12 @@
    as_basename=false
  fi
  
@@ -28984,7 +29084,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  as_me=`$as_basename -- "$0" ||
  $as_expr X/"$0" : '.*/\([^/][^/]*\)/*$' \| \
  	 X"$0" : 'X\(//\)$' \| \
-@@ -34951,76 +26008,25 @@
+@@ -34951,76 +26010,25 @@
  	  }
  	  s/.*/./; q'`
  
@@ -29072,7 +29172,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  rm -f conf$$ conf$$.exe conf$$.file
  if test -d conf$$.dir; then
-@@ -35049,8 +26055,56 @@
+@@ -35049,8 +26057,56 @@
  rm -f conf$$ conf$$.exe conf$$.dir/conf$$.file conf$$.file
  rmdir conf$$.dir 2>/dev/null
  
@@ -29130,7 +29230,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  else
    test -d ./-p && rmdir ./-p
    as_mkdir_p=false
-@@ -35069,10 +26123,10 @@
+@@ -35069,10 +26125,10 @@
        if test -d "$1"; then
  	test -d "$1/.";
        else
@@ -29143,7 +29243,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  	???[sx]*):;;*)false;;esac;fi
      '\'' sh
    '
-@@ -35087,13 +26141,19 @@
+@@ -35087,13 +26143,19 @@
  
  
  exec 6>&1
@@ -29159,13 +29259,13 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  # report actual input values of CONFIG_FILES etc. instead of their
  # values after options handling.
  ac_log="
- This file was extended by gtk+ $as_me 2.18.4, which was
+ This file was extended by gtk+ $as_me 2.18.5, which was
 -generated by GNU Autoconf 2.63.  Invocation command line was
 +generated by GNU Autoconf 2.65.  Invocation command line was
  
    CONFIG_FILES    = $CONFIG_FILES
    CONFIG_HEADERS  = $CONFIG_HEADERS
-@@ -35125,13 +26185,15 @@
+@@ -35125,13 +26187,15 @@
  
  cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
  ac_cs_usage="\
@@ -29184,7 +29284,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    -q, --quiet, --silent
                     do not print progress messages
    -d, --debug      don't remove temporary files
-@@ -35150,16 +26212,17 @@
+@@ -35150,16 +26214,17 @@
  Configuration commands:
  $config_commands
  
@@ -29195,7 +29295,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
 +ac_cs_config="`$as_echo "$ac_configure_args" | sed 's/^ //; s/[\\""\`\$]/\\\\&/g'`"
  ac_cs_version="\\
- gtk+ config.status 2.18.4
+ gtk+ config.status 2.18.5
 -configured by $0, generated by GNU Autoconf 2.63,
 -  with options \\"`$as_echo "$ac_configure_args" | sed 's/^ //; s/[\\""\`\$]/\\\\&/g'`\\"
 +configured by $0, generated by GNU Autoconf 2.65,
@@ -29206,7 +29306,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  This config.status script is free software; the Free Software Foundation
  gives unlimited permission to copy, distribute and modify it."
  
-@@ -35195,6 +26258,8 @@
+@@ -35195,6 +26260,8 @@
      ac_cs_recheck=: ;;
    --version | --versio | --versi | --vers | --ver | --ve | --v | -V )
      $as_echo "$ac_cs_version"; exit ;;
@@ -29215,7 +29315,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    --debug | --debu | --deb | --de | --d | -d )
      debug=: ;;
    --file | --fil | --fi | --f )
-@@ -35202,20 +26267,19 @@
+@@ -35202,20 +26269,19 @@
      case $ac_optarg in
      *\'*) ac_optarg=`$as_echo "$ac_optarg" | sed "s/'/'\\\\\\\\''/g"` ;;
      esac
@@ -29240,7 +29340,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    --help | --hel | -h )
      $as_echo "$ac_cs_usage"; exit ;;
    -q | -quiet | --quiet | --quie | --qui | --qu | --q \
-@@ -35223,11 +26287,10 @@
+@@ -35223,11 +26289,10 @@
      ac_cs_silent=: ;;
  
    # This is an error.
@@ -29255,7 +29355,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
       ac_need_defaults=false ;;
  
    esac
-@@ -35742,9 +26805,7 @@
+@@ -35742,9 +26807,7 @@
      "contrib/gdk-pixbuf-xlib/Makefile") CONFIG_FILES="$CONFIG_FILES contrib/gdk-pixbuf-xlib/Makefile" ;;
      "contrib/gdk-pixbuf-xlib/gdk-pixbuf-xlib-2.0.pc") CONFIG_FILES="$CONFIG_FILES contrib/gdk-pixbuf-xlib/gdk-pixbuf-xlib-2.0.pc" ;;
  
@@ -29266,7 +29366,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    esac
  done
  
-@@ -35771,7 +26832,7 @@
+@@ -35771,7 +26834,7 @@
    trap 'exit_status=$?
    { test -z "$tmp" || test ! -d "$tmp" || rm -fr "$tmp"; } && exit $exit_status
  ' 0
@@ -29275,7 +29375,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  }
  # Create a (secure) tmp directory for tmp files.
  
-@@ -35782,11 +26843,7 @@
+@@ -35782,11 +26845,7 @@
  {
    tmp=./conf$$-$RANDOM
    (umask 077 && mkdir "$tmp")
@@ -29288,7 +29388,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  # Set up the scripts for CONFIG_FILES section.
  # No need to generate them if there are no CONFIG_FILES.
-@@ -35794,10 +26851,16 @@
+@@ -35794,10 +26853,16 @@
  if test -n "$CONFIG_FILES"; then
  
  
@@ -29307,7 +29407,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  else
    ac_cs_awk_cr=$ac_cr
  fi
-@@ -35811,24 +26874,18 @@
+@@ -35811,24 +26876,18 @@
    echo "$ac_subst_vars" | sed 's/.*/&!$&$ac_delim/' &&
    echo "_ACEOF"
  } >conf$$subs.sh ||
@@ -29335,7 +29435,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    else
      ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
    fi
-@@ -35850,7 +26907,7 @@
+@@ -35850,7 +26909,7 @@
  t delim
  :nl
  h
@@ -29344,7 +29444,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  t more1
  s/["\\]/\\&/g; s/^/"/; s/$/\\n"\\/
  p
-@@ -35864,7 +26921,7 @@
+@@ -35864,7 +26923,7 @@
  t nl
  :delim
  h
@@ -29353,7 +29453,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  t more2
  s/["\\]/\\&/g; s/^/"/; s/$/"/
  p
-@@ -35917,9 +26974,7 @@
+@@ -35917,9 +26976,7 @@
  else
    cat
  fi < "$tmp/subs1.awk" > "$tmp/subs.awk" \
@@ -29364,7 +29464,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  _ACEOF
  
  # VPATH may cause trouble with some makes, so we remove $(srcdir),
-@@ -35960,9 +27015,7 @@
+@@ -35960,9 +27017,7 @@
    if test -z "$ac_t"; then
      break
    elif $ac_last_try; then
@@ -29375,7 +29475,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    else
      ac_delim="$ac_delim!$ac_delim _$ac_delim!! "
    fi
-@@ -36047,9 +27100,7 @@
+@@ -36047,9 +27102,7 @@
  _ACAWK
  _ACEOF
  cat >>$CONFIG_STATUS <<\_ACEOF || ac_write_fail=1
@@ -29386,7 +29486,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  fi # test -n "$CONFIG_HEADERS"
  
  
-@@ -36062,9 +27113,7 @@
+@@ -36062,9 +27115,7 @@
    esac
    case $ac_mode$ac_tag in
    :[FHL]*:*);;
@@ -29397,7 +29497,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    :[FH]-) ac_tag=-:-;;
    :[FH]*) ac_tag=$ac_tag:$ac_tag.in;;
    esac
-@@ -36092,12 +27141,10 @@
+@@ -36092,12 +27143,10 @@
  	   [\\/$]*) false;;
  	   *) test -f "$srcdir/$ac_f" && ac_f="$srcdir/$ac_f";;
  	   esac ||
@@ -29412,7 +29512,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
      done
  
      # Let's still pretend it is `configure' which instantiates (i.e., don't
-@@ -36108,7 +27155,7 @@
+@@ -36108,7 +27157,7 @@
  	`' by configure.'
      if test x"$ac_file" != x-; then
        configure_input="$ac_file.  $configure_input"
@@ -29421,7 +29521,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: creating $ac_file" >&6;}
      fi
      # Neutralize special characters interpreted by sed in replacement strings.
-@@ -36121,9 +27168,7 @@
+@@ -36121,9 +27170,7 @@
  
      case $ac_tag in
      *:-:* | *:-) cat >"$tmp/stdin" \
@@ -29432,7 +29532,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
      esac
      ;;
    esac
-@@ -36151,47 +27196,7 @@
+@@ -36151,47 +27198,7 @@
  	    q
  	  }
  	  s/.*/./; q'`
@@ -29481,7 +29581,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    ac_builddir=.
  
  case "$ac_dir" in
-@@ -36248,7 +27253,6 @@
+@@ -36248,7 +27255,6 @@
  # If the template does not know about datarootdir, expand it.
  # FIXME: This hack should be removed a few years after 2.60.
  ac_datarootdir_hack=; ac_datarootdir_seen=
@@ -29489,7 +29589,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  ac_sed_dataroot='
  /datarootdir/ {
    p
-@@ -36258,12 +27262,11 @@
+@@ -36258,12 +27264,11 @@
  /@docdir@/p
  /@infodir@/p
  /@localedir@/p
@@ -29504,7 +29604,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: WARNING: $ac_file_inputs seems to ignore the --datarootdir setting" >&2;}
  _ACEOF
  cat >>$CONFIG_STATUS <<_ACEOF || ac_write_fail=1
-@@ -36273,7 +27276,7 @@
+@@ -36273,7 +27278,7 @@
    s&@infodir@&$infodir&g
    s&@localedir@&$localedir&g
    s&@mandir@&$mandir&g
@@ -29513,7 +29613,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  esac
  _ACEOF
  
-@@ -36302,14 +27305,12 @@
+@@ -36302,14 +27307,12 @@
  $ac_datarootdir_hack
  "
  eval sed \"\$ac_sed_extra\" "$ac_file_inputs" | $AWK -f "$tmp/subs.awk" >$tmp/out \
@@ -29530,7 +29630,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  which seems to be undefined.  Please make sure it is defined." >&5
  $as_echo "$as_me: WARNING: $ac_file contains a reference to the variable \`datarootdir'
  which seems to be undefined.  Please make sure it is defined." >&2;}
-@@ -36319,9 +27320,7 @@
+@@ -36319,9 +27322,7 @@
    -) cat "$tmp/out" && rm -f "$tmp/out";;
    *) rm -f "$ac_file" && mv "$tmp/out" "$ac_file";;
    esac \
@@ -29541,7 +29641,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
   ;;
    :H)
    #
-@@ -36332,25 +27331,19 @@
+@@ -36332,25 +27333,19 @@
        $as_echo "/* $configure_input  */" \
        && eval '$AWK -f "$tmp/defines.awk"' "$ac_file_inputs"
      } >"$tmp/config.h" \
@@ -29571,7 +29671,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
    fi
  # Compute "$ac_file"'s index in $config_headers.
  _am_arg="$ac_file"
-@@ -36388,7 +27381,7 @@
+@@ -36388,7 +27383,7 @@
  	  s/.*/./; q'`/stamp-h$_am_stamp_count
   ;;
  
@@ -29580,7 +29680,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: executing $ac_file commands" >&6;}
   ;;
    esac
-@@ -36483,47 +27476,7 @@
+@@ -36483,47 +27478,7 @@
  	    q
  	  }
  	  s/.*/./; q'`
@@ -29629,7 +29729,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
        # echo "creating $dirpart/$file"
        echo '# dummy' > "$dirpart/$file"
      done
-@@ -37386,7 +28339,7 @@
+@@ -37386,7 +28341,7 @@
  
  
  	if cmp -s $outfile gdk/gdkconfig.h; then
@@ -29638,7 +29738,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: gdk/gdkconfig.h is unchanged" >&6;}
  	  rm -f $outfile
  	else
-@@ -37398,15 +28351,12 @@
+@@ -37398,15 +28353,12 @@
  done # for ac_tag
  
  
@@ -29656,7 +29756,7 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  
  
  # configure is writing to config.log, and then calls config.status.
-@@ -37427,10 +28377,10 @@
+@@ -37427,10 +28379,10 @@
    exec 5>>config.log
    # Use ||, not &&, to avoid exiting from the if with $? = 1, which
    # would make configure fail if this is the last instruction.
@@ -29669,9 +29769,8 @@ diff -Naur gtk+2.0-2.18.4.old/configure gtk+2.0-2.18.4/configure
  $as_echo "$as_me: WARNING: unrecognized options: $ac_unrecognized_opts" >&2;}
  fi
  
-diff -Naur gtk+2.0-2.18.4.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.18.4/contrib/gdk-pixbuf-xlib/Makefile.in
---- gtk+2.0-2.18.4.old/contrib/gdk-pixbuf-xlib/Makefile.in	2009-12-01 05:08:43.000000000 +0100
-+++ gtk+2.0-2.18.4/contrib/gdk-pixbuf-xlib/Makefile.in	2009-12-01 13:03:30.324290233 +0100
+--- a/contrib/gdk-pixbuf-xlib/Makefile.in
++++ b/contrib/gdk-pixbuf-xlib/Makefile.in
 @@ -48,7 +48,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -29706,9 +29805,8 @@ diff -Naur gtk+2.0-2.18.4.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.18.4
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/contrib/Makefile.in gtk+2.0-2.18.4/contrib/Makefile.in
---- gtk+2.0-2.18.4.old/contrib/Makefile.in	2009-12-01 05:08:42.000000000 +0100
-+++ gtk+2.0-2.18.4/contrib/Makefile.in	2009-12-01 13:03:30.220289792 +0100
+--- a/contrib/Makefile.in
++++ b/contrib/Makefile.in
 @@ -44,7 +44,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -29743,9 +29841,8 @@ diff -Naur gtk+2.0-2.18.4.old/contrib/Makefile.in gtk+2.0-2.18.4/contrib/Makefil
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/demos/gtk-demo/Makefile.in gtk+2.0-2.18.4/demos/gtk-demo/Makefile.in
---- gtk+2.0-2.18.4.old/demos/gtk-demo/Makefile.in	2009-12-01 05:08:43.000000000 +0100
-+++ gtk+2.0-2.18.4/demos/gtk-demo/Makefile.in	2009-12-01 13:03:30.536290618 +0100
+--- a/demos/gtk-demo/Makefile.in
++++ b/demos/gtk-demo/Makefile.in
 @@ -46,7 +46,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -29780,9 +29877,8 @@ diff -Naur gtk+2.0-2.18.4.old/demos/gtk-demo/Makefile.in gtk+2.0-2.18.4/demos/gt
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/demos/Makefile.in gtk+2.0-2.18.4/demos/Makefile.in
---- gtk+2.0-2.18.4.old/demos/Makefile.in	2009-12-01 05:08:43.000000000 +0100
-+++ gtk+2.0-2.18.4/demos/Makefile.in	2009-12-01 13:03:30.428291169 +0100
+--- a/demos/Makefile.in
++++ b/demos/Makefile.in
 @@ -50,7 +50,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -29817,9 +29913,8 @@ diff -Naur gtk+2.0-2.18.4.old/demos/Makefile.in gtk+2.0-2.18.4/demos/Makefile.in
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/docs/faq/Makefile.in gtk+2.0-2.18.4/docs/faq/Makefile.in
---- gtk+2.0-2.18.4.old/docs/faq/Makefile.in	2009-12-01 05:08:43.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/faq/Makefile.in	2009-12-01 13:03:30.688289560 +0100
+--- a/docs/faq/Makefile.in
++++ b/docs/faq/Makefile.in
 @@ -43,7 +43,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -29854,9 +29949,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/faq/Makefile.in gtk+2.0-2.18.4/docs/faq/Makef
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/docs/Makefile.in gtk+2.0-2.18.4/docs/Makefile.in
---- gtk+2.0-2.18.4.old/docs/Makefile.in	2009-12-01 05:08:43.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/Makefile.in	2009-12-01 13:03:30.612289429 +0100
+--- a/docs/Makefile.in
++++ b/docs/Makefile.in
 @@ -43,7 +43,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -29891,9 +29985,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/Makefile.in gtk+2.0-2.18.4/docs/Makefile.in
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/docs/reference/gdk/Makefile.in gtk+2.0-2.18.4/docs/reference/gdk/Makefile.in
---- gtk+2.0-2.18.4.old/docs/reference/gdk/Makefile.in	2009-12-01 05:08:44.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/reference/gdk/Makefile.in	2009-12-01 13:03:30.960289614 +0100
+--- a/docs/reference/gdk/Makefile.in
++++ b/docs/reference/gdk/Makefile.in
 @@ -50,7 +50,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -30125,9 +30218,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/reference/gdk/Makefile.in gtk+2.0-2.18.4/docs
  
  .PHONY : dist-hook-local docs
  
-diff -Naur gtk+2.0-2.18.4.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.18.4/docs/reference/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.18.4.old/docs/reference/gdk-pixbuf/Makefile.in	2009-12-01 05:08:43.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/reference/gdk-pixbuf/Makefile.in	2009-12-01 13:03:30.864289185 +0100
+--- a/docs/reference/gdk-pixbuf/Makefile.in
++++ b/docs/reference/gdk-pixbuf/Makefile.in
 @@ -50,7 +50,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -30359,9 +30451,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.18
  
  .PHONY : dist-hook-local docs
  
-diff -Naur gtk+2.0-2.18.4.old/docs/reference/gtk/Makefile.in gtk+2.0-2.18.4/docs/reference/gtk/Makefile.in
---- gtk+2.0-2.18.4.old/docs/reference/gtk/Makefile.in	2009-12-01 05:08:44.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/reference/gtk/Makefile.in	2009-12-01 13:03:31.084290006 +0100
+--- a/docs/reference/gtk/Makefile.in
++++ b/docs/reference/gtk/Makefile.in
 @@ -50,7 +50,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -30593,9 +30684,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/reference/gtk/Makefile.in gtk+2.0-2.18.4/docs
  
  .PHONY : dist-hook-local docs
  
-diff -Naur gtk+2.0-2.18.4.old/docs/reference/libgail-util/Makefile.in gtk+2.0-2.18.4/docs/reference/libgail-util/Makefile.in
---- gtk+2.0-2.18.4.old/docs/reference/libgail-util/Makefile.in	2009-12-01 05:08:44.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/reference/libgail-util/Makefile.in	2009-12-01 13:03:31.176289476 +0100
+--- a/docs/reference/libgail-util/Makefile.in
++++ b/docs/reference/libgail-util/Makefile.in
 @@ -49,7 +49,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -30827,9 +30917,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/reference/libgail-util/Makefile.in gtk+2.0-2.
  
  .PHONY : dist-hook-local docs
  
-diff -Naur gtk+2.0-2.18.4.old/docs/reference/Makefile.in gtk+2.0-2.18.4/docs/reference/Makefile.in
---- gtk+2.0-2.18.4.old/docs/reference/Makefile.in	2009-12-01 05:08:43.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/reference/Makefile.in	2009-12-01 13:03:30.768289524 +0100
+--- a/docs/reference/Makefile.in
++++ b/docs/reference/Makefile.in
 @@ -43,7 +43,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -30864,9 +30953,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/reference/Makefile.in gtk+2.0-2.18.4/docs/ref
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/docs/tools/Makefile.in gtk+2.0-2.18.4/docs/tools/Makefile.in
---- gtk+2.0-2.18.4.old/docs/tools/Makefile.in	2009-12-01 05:08:44.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/tools/Makefile.in	2009-12-01 13:03:31.272289335 +0100
+--- a/docs/tools/Makefile.in
++++ b/docs/tools/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -30901,9 +30989,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/tools/Makefile.in gtk+2.0-2.18.4/docs/tools/M
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/docs/tutorial/Makefile.in gtk+2.0-2.18.4/docs/tutorial/Makefile.in
---- gtk+2.0-2.18.4.old/docs/tutorial/Makefile.in	2009-12-01 05:08:44.000000000 +0100
-+++ gtk+2.0-2.18.4/docs/tutorial/Makefile.in	2009-12-01 13:03:31.360290164 +0100
+--- a/docs/tutorial/Makefile.in
++++ b/docs/tutorial/Makefile.in
 @@ -43,7 +43,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -30938,9 +31025,8 @@ diff -Naur gtk+2.0-2.18.4.old/docs/tutorial/Makefile.in gtk+2.0-2.18.4/docs/tuto
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gdk/directfb/Makefile.in gtk+2.0-2.18.4/gdk/directfb/Makefile.in
---- gtk+2.0-2.18.4.old/gdk/directfb/Makefile.in	2009-12-01 05:08:45.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk/directfb/Makefile.in	2009-12-01 13:03:32.032291621 +0100
+--- a/gdk/directfb/Makefile.in
++++ b/gdk/directfb/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -30975,9 +31061,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk/directfb/Makefile.in gtk+2.0-2.18.4/gdk/direct
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gdk/Makefile.in gtk+2.0-2.18.4/gdk/Makefile.in
---- gtk+2.0-2.18.4.old/gdk/Makefile.in	2009-12-01 05:08:45.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk/Makefile.in	2009-12-01 13:03:31.928289354 +0100
+--- a/gdk/Makefile.in
++++ b/gdk/Makefile.in
 @@ -46,7 +46,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31012,9 +31097,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk/Makefile.in gtk+2.0-2.18.4/gdk/Makefile.in
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gdk/quartz/Makefile.in gtk+2.0-2.18.4/gdk/quartz/Makefile.in
---- gtk+2.0-2.18.4.old/gdk/quartz/Makefile.in	2009-12-01 05:08:45.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk/quartz/Makefile.in	2009-12-01 13:03:32.136289691 +0100
+--- a/gdk/quartz/Makefile.in
++++ b/gdk/quartz/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31049,9 +31133,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk/quartz/Makefile.in gtk+2.0-2.18.4/gdk/quartz/M
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gdk/tests/Makefile.in gtk+2.0-2.18.4/gdk/tests/Makefile.in
---- gtk+2.0-2.18.4.old/gdk/tests/Makefile.in	2009-12-01 05:08:45.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk/tests/Makefile.in	2009-12-01 13:03:32.216291330 +0100
+--- a/gdk/tests/Makefile.in
++++ b/gdk/tests/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31086,9 +31169,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk/tests/Makefile.in gtk+2.0-2.18.4/gdk/tests/Mak
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gdk/win32/Makefile.in gtk+2.0-2.18.4/gdk/win32/Makefile.in
---- gtk+2.0-2.18.4.old/gdk/win32/Makefile.in	2009-12-01 05:08:45.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk/win32/Makefile.in	2009-12-01 13:03:32.332289460 +0100
+--- a/gdk/win32/Makefile.in
++++ b/gdk/win32/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31123,9 +31205,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk/win32/Makefile.in gtk+2.0-2.18.4/gdk/win32/Mak
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gdk/win32/rc/Makefile.in gtk+2.0-2.18.4/gdk/win32/rc/Makefile.in
---- gtk+2.0-2.18.4.old/gdk/win32/rc/Makefile.in	2009-12-01 05:08:45.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk/win32/rc/Makefile.in	2009-12-01 13:03:32.408290995 +0100
+--- a/gdk/win32/rc/Makefile.in
++++ b/gdk/win32/rc/Makefile.in
 @@ -44,7 +44,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31160,9 +31241,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk/win32/rc/Makefile.in gtk+2.0-2.18.4/gdk/win32/
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gdk/x11/Makefile.in gtk+2.0-2.18.4/gdk/x11/Makefile.in
---- gtk+2.0-2.18.4.old/gdk/x11/Makefile.in	2009-12-01 05:08:45.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk/x11/Makefile.in	2009-12-01 13:03:32.520291185 +0100
+--- a/gdk/x11/Makefile.in
++++ b/gdk/x11/Makefile.in
 @@ -50,7 +50,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31197,9 +31277,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk/x11/Makefile.in gtk+2.0-2.18.4/gdk/x11/Makefil
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gdk-pixbuf/Makefile.in gtk+2.0-2.18.4/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.18.4.old/gdk-pixbuf/Makefile.in	2009-12-01 05:08:44.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk-pixbuf/Makefile.in	2009-12-01 13:03:31.648289566 +0100
+--- a/gdk-pixbuf/Makefile.in
++++ b/gdk-pixbuf/Makefile.in
 @@ -52,7 +52,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31251,9 +31330,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk-pixbuf/Makefile.in gtk+2.0-2.18.4/gdk-pixbuf/M
  LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
  test_gdk_pixbuf_LDADD = $(LDADDS)
  gdk_pixbuf_csource_SOURCES = gdk-pixbuf-csource.c
-diff -Naur gtk+2.0-2.18.4.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.18.4/gdk-pixbuf/pixops/Makefile.in
---- gtk+2.0-2.18.4.old/gdk-pixbuf/pixops/Makefile.in	2009-12-01 05:08:44.000000000 +0100
-+++ gtk+2.0-2.18.4/gdk-pixbuf/pixops/Makefile.in	2009-12-01 13:03:31.776289285 +0100
+--- a/gdk-pixbuf/pixops/Makefile.in
++++ b/gdk-pixbuf/pixops/Makefile.in
 @@ -46,7 +46,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31288,9 +31366,8 @@ diff -Naur gtk+2.0-2.18.4.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.18.4/gdk-p
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gtk/Makefile.in gtk+2.0-2.18.4/gtk/Makefile.in
---- gtk+2.0-2.18.4.old/gtk/Makefile.in	2009-12-01 05:08:46.000000000 +0100
-+++ gtk+2.0-2.18.4/gtk/Makefile.in	2009-12-01 13:03:32.860289675 +0100
+--- a/gtk/Makefile.in
++++ b/gtk/Makefile.in
 @@ -79,7 +79,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31364,9 +31441,8 @@ diff -Naur gtk+2.0-2.18.4.old/gtk/Makefile.in gtk+2.0-2.18.4/gtk/Makefile.in
  	gtkmnemonichash.h gtkmountoperationprivate.h gtkpathbar.h \
  	gtkplugprivate.h gtkprintoperation-private.h gtkprintutils.h \
  	gtkrbtree.h gtkrecentchooserdefault.h \
-diff -Naur gtk+2.0-2.18.4.old/gtk/tests/Makefile.in gtk+2.0-2.18.4/gtk/tests/Makefile.in
---- gtk+2.0-2.18.4.old/gtk/tests/Makefile.in	2009-12-01 05:08:46.000000000 +0100
-+++ gtk+2.0-2.18.4/gtk/tests/Makefile.in	2009-12-01 13:03:32.984291392 +0100
+--- a/gtk/tests/Makefile.in
++++ b/gtk/tests/Makefile.in
 @@ -46,7 +46,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31401,9 +31477,8 @@ diff -Naur gtk+2.0-2.18.4.old/gtk/tests/Makefile.in gtk+2.0-2.18.4/gtk/tests/Mak
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gtk/theme-bits/Makefile.in gtk+2.0-2.18.4/gtk/theme-bits/Makefile.in
---- gtk+2.0-2.18.4.old/gtk/theme-bits/Makefile.in	2009-12-01 05:08:46.000000000 +0100
-+++ gtk+2.0-2.18.4/gtk/theme-bits/Makefile.in	2009-12-01 13:03:33.096288997 +0100
+--- a/gtk/theme-bits/Makefile.in
++++ b/gtk/theme-bits/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31438,9 +31513,8 @@ diff -Naur gtk+2.0-2.18.4.old/gtk/theme-bits/Makefile.in gtk+2.0-2.18.4/gtk/them
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/gtk-doc.make gtk+2.0-2.18.4/gtk-doc.make
---- gtk+2.0-2.18.4.old/gtk-doc.make	2009-11-30 05:33:42.000000000 +0100
-+++ gtk+2.0-2.18.4/gtk-doc.make	2009-12-01 13:03:24.383319469 +0100
+--- a/gtk-doc.make
++++ b/gtk-doc.make
 @@ -5,13 +5,13 @@
  ####################################
  
@@ -31643,15 +31717,14 @@ diff -Naur gtk+2.0-2.18.4.old/gtk-doc.make gtk+2.0-2.18.4/gtk-doc.make
 +	  gtkdoc-rebase --online --relative --html-dir=$(distdir)/html
  
  .PHONY : dist-hook-local docs
-diff -Naur gtk+2.0-2.18.4.old/ltmain.sh gtk+2.0-2.18.4/ltmain.sh
---- gtk+2.0-2.18.4.old/ltmain.sh	2009-10-19 14:18:27.000000000 +0200
-+++ gtk+2.0-2.18.4/ltmain.sh	2009-12-01 13:03:23.884291336 +0100
+--- a/ltmain.sh
++++ b/ltmain.sh
 @@ -65,7 +65,7 @@
  #       compiler:		$LTCC
  #       compiler flags:		$LTCFLAGS
  #       linker:		$LD (gnu? $with_gnu_ld)
--#       $progname:		(GNU libtool) 2.2.6
-+#       $progname:		(GNU libtool) 2.2.6 Debian-2.2.6a-4
+-#       $progname:		(GNU libtool) 2.2.6b
++#       $progname:		(GNU libtool) 2.2.6b Debian-2.2.6b-2
  #       automake:		$automake_version
  #       autoconf:		$autoconf_version
  #
@@ -31659,10 +31732,10 @@ diff -Naur gtk+2.0-2.18.4.old/ltmain.sh gtk+2.0-2.18.4/ltmain.sh
  
  PROGRAM=ltmain.sh
  PACKAGE=libtool
--VERSION=2.2.6
-+VERSION="2.2.6 Debian-2.2.6a-4"
+-VERSION=2.2.6b
++VERSION="2.2.6b Debian-2.2.6b-2"
  TIMESTAMP=""
- package_revision=1.3012
+ package_revision=1.3017
  
 @@ -5033,7 +5033,10 @@
  	case $pass in
@@ -31724,9 +31797,8 @@ diff -Naur gtk+2.0-2.18.4.old/ltmain.sh gtk+2.0-2.18.4/ltmain.sh
  	  esac
  	  ;;
  	no)
-diff -Naur gtk+2.0-2.18.4.old/m4macros/Makefile.in gtk+2.0-2.18.4/m4macros/Makefile.in
---- gtk+2.0-2.18.4.old/m4macros/Makefile.in	2009-12-01 05:08:46.000000000 +0100
-+++ gtk+2.0-2.18.4/m4macros/Makefile.in	2009-12-01 13:03:33.176291197 +0100
+--- a/m4macros/Makefile.in
++++ b/m4macros/Makefile.in
 @@ -44,7 +44,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -31761,9 +31833,8 @@ diff -Naur gtk+2.0-2.18.4.old/m4macros/Makefile.in gtk+2.0-2.18.4/m4macros/Makef
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/Makefile.in gtk+2.0-2.18.4/Makefile.in
---- gtk+2.0-2.18.4.old/Makefile.in	2009-12-01 05:08:49.000000000 +0100
-+++ gtk+2.0-2.18.4/Makefile.in	2009-12-01 13:03:35.660290348 +0100
+--- a/Makefile.in
++++ b/Makefile.in
 @@ -47,7 +47,7 @@
  	$(srcdir)/gtk+-unix-print-2.0.pc.in $(srcdir)/gtk-zip.sh.in \
  	$(top_srcdir)/Makefile.decl $(top_srcdir)/configure AUTHORS \
@@ -31829,9 +31900,8 @@ diff -Naur gtk+2.0-2.18.4.old/Makefile.in gtk+2.0-2.18.4/Makefile.in
  SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros
  
  # require automake 1.4
-diff -Naur gtk+2.0-2.18.4.old/mkinstalldirs gtk+2.0-2.18.4/mkinstalldirs
---- gtk+2.0-2.18.4.old/mkinstalldirs	1970-01-01 01:00:00.000000000 +0100
-+++ gtk+2.0-2.18.4/mkinstalldirs	2009-12-01 13:03:35.596318408 +0100
+--- /dev/null
++++ b/mkinstalldirs
 @@ -0,0 +1,162 @@
 +#! /bin/sh
 +# mkinstalldirs --- make directory hierarchy
@@ -31995,9 +32065,8 @@ diff -Naur gtk+2.0-2.18.4.old/mkinstalldirs gtk+2.0-2.18.4/mkinstalldirs
 +# time-stamp-time-zone: "UTC"
 +# time-stamp-end: "; # UTC"
 +# End:
-diff -Naur gtk+2.0-2.18.4.old/modules/engines/Makefile.in gtk+2.0-2.18.4/modules/engines/Makefile.in
---- gtk+2.0-2.18.4.old/modules/engines/Makefile.in	2009-12-01 05:08:46.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/engines/Makefile.in	2009-12-01 13:03:33.336291133 +0100
+--- a/modules/engines/Makefile.in
++++ b/modules/engines/Makefile.in
 @@ -43,7 +43,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32032,9 +32101,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/engines/Makefile.in gtk+2.0-2.18.4/modules
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.18.4/modules/engines/ms-windows/Makefile.in
---- gtk+2.0-2.18.4.old/modules/engines/ms-windows/Makefile.in	2009-12-01 05:08:46.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/engines/ms-windows/Makefile.in	2009-12-01 13:03:33.436289511 +0100
+--- a/modules/engines/ms-windows/Makefile.in
++++ b/modules/engines/ms-windows/Makefile.in
 @@ -44,7 +44,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32069,9 +32137,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.1
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.18.4/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
---- gtk+2.0-2.18.4.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2009-12-01 05:08:47.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2009-12-01 13:03:33.596289671 +0100
+--- a/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
++++ b/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
 @@ -44,7 +44,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32106,9 +32173,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.18.4/modules/engines/ms-windows/Theme/Makefile.in
---- gtk+2.0-2.18.4.old/modules/engines/ms-windows/Theme/Makefile.in	2009-12-01 05:08:47.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/engines/ms-windows/Theme/Makefile.in	2009-12-01 13:03:33.516289559 +0100
+--- a/modules/engines/ms-windows/Theme/Makefile.in
++++ b/modules/engines/ms-windows/Theme/Makefile.in
 @@ -43,7 +43,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32143,9 +32209,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.18.4/modules/engines/pixbuf/Makefile.in
---- gtk+2.0-2.18.4.old/modules/engines/pixbuf/Makefile.in	2009-12-01 05:08:47.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/engines/pixbuf/Makefile.in	2009-12-01 13:03:33.696289576 +0100
+--- a/modules/engines/pixbuf/Makefile.in
++++ b/modules/engines/pixbuf/Makefile.in
 @@ -44,7 +44,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32180,9 +32245,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.18.4/
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/input/Makefile.in gtk+2.0-2.18.4/modules/input/Makefile.in
---- gtk+2.0-2.18.4.old/modules/input/Makefile.in	2009-12-01 05:08:47.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/input/Makefile.in	2009-12-01 13:03:33.900291674 +0100
+--- a/modules/input/Makefile.in
++++ b/modules/input/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32247,9 +32311,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/input/Makefile.in gtk+2.0-2.18.4/modules/i
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  
-diff -Naur gtk+2.0-2.18.4.old/modules/Makefile.in gtk+2.0-2.18.4/modules/Makefile.in
---- gtk+2.0-2.18.4.old/modules/Makefile.in	2009-12-01 05:08:46.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/Makefile.in	2009-12-01 13:03:33.256291440 +0100
+--- a/modules/Makefile.in
++++ b/modules/Makefile.in
 @@ -44,7 +44,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32284,9 +32347,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/Makefile.in gtk+2.0-2.18.4/modules/Makefil
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/other/gail/libgail-util/Makefile.in gtk+2.0-2.18.4/modules/other/gail/libgail-util/Makefile.in
---- gtk+2.0-2.18.4.old/modules/other/gail/libgail-util/Makefile.in	2009-12-01 05:08:48.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/other/gail/libgail-util/Makefile.in	2009-12-01 13:03:34.416289315 +0100
+--- a/modules/other/gail/libgail-util/Makefile.in
++++ b/modules/other/gail/libgail-util/Makefile.in
 @@ -46,7 +46,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32321,9 +32383,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/other/gail/libgail-util/Makefile.in gtk+2.
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/other/gail/Makefile.in gtk+2.0-2.18.4/modules/other/gail/Makefile.in
---- gtk+2.0-2.18.4.old/modules/other/gail/Makefile.in	2009-12-01 05:08:47.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/other/gail/Makefile.in	2009-12-01 13:03:34.304289617 +0100
+--- a/modules/other/gail/Makefile.in
++++ b/modules/other/gail/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32358,9 +32419,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/other/gail/Makefile.in gtk+2.0-2.18.4/modu
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/other/gail/tests/Makefile.in gtk+2.0-2.18.4/modules/other/gail/tests/Makefile.in
---- gtk+2.0-2.18.4.old/modules/other/gail/tests/Makefile.in	2009-12-01 05:08:48.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/other/gail/tests/Makefile.in	2009-12-01 13:03:34.580289520 +0100
+--- a/modules/other/gail/tests/Makefile.in
++++ b/modules/other/gail/tests/Makefile.in
 @@ -44,7 +44,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32395,9 +32455,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/other/gail/tests/Makefile.in gtk+2.0-2.18.
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/other/Makefile.in gtk+2.0-2.18.4/modules/other/Makefile.in
---- gtk+2.0-2.18.4.old/modules/other/Makefile.in	2009-12-01 05:08:47.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/other/Makefile.in	2009-12-01 13:03:33.992289409 +0100
+--- a/modules/other/Makefile.in
++++ b/modules/other/Makefile.in
 @@ -43,7 +43,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32432,9 +32491,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/other/Makefile.in gtk+2.0-2.18.4/modules/o
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.18.4/modules/printbackends/cups/Makefile.in
---- gtk+2.0-2.18.4.old/modules/printbackends/cups/Makefile.in	2009-12-01 05:08:48.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/printbackends/cups/Makefile.in	2009-12-01 13:03:34.768292129 +0100
+--- a/modules/printbackends/cups/Makefile.in
++++ b/modules/printbackends/cups/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32469,9 +32527,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.1
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/file/Makefile.in gtk+2.0-2.18.4/modules/printbackends/file/Makefile.in
---- gtk+2.0-2.18.4.old/modules/printbackends/file/Makefile.in	2009-12-01 05:08:48.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/printbackends/file/Makefile.in	2009-12-01 13:03:34.872290552 +0100
+--- a/modules/printbackends/file/Makefile.in
++++ b/modules/printbackends/file/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32506,9 +32563,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/file/Makefile.in gtk+2.0-2.1
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.18.4/modules/printbackends/lpr/Makefile.in
---- gtk+2.0-2.18.4.old/modules/printbackends/lpr/Makefile.in	2009-12-01 05:08:48.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/printbackends/lpr/Makefile.in	2009-12-01 13:03:34.976289326 +0100
+--- a/modules/printbackends/lpr/Makefile.in
++++ b/modules/printbackends/lpr/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32543,9 +32599,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.18
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/Makefile.in gtk+2.0-2.18.4/modules/printbackends/Makefile.in
---- gtk+2.0-2.18.4.old/modules/printbackends/Makefile.in	2009-12-01 05:08:48.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/printbackends/Makefile.in	2009-12-01 13:03:34.664291346 +0100
+--- a/modules/printbackends/Makefile.in
++++ b/modules/printbackends/Makefile.in
 @@ -46,7 +46,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32580,9 +32635,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/Makefile.in gtk+2.0-2.18.4/m
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/papi/Makefile.in gtk+2.0-2.18.4/modules/printbackends/papi/Makefile.in
---- gtk+2.0-2.18.4.old/modules/printbackends/papi/Makefile.in	2009-12-01 05:08:48.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/printbackends/papi/Makefile.in	2009-12-01 13:03:35.072291363 +0100
+--- a/modules/printbackends/papi/Makefile.in
++++ b/modules/printbackends/papi/Makefile.in
 @@ -43,7 +43,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32617,9 +32671,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/papi/Makefile.in gtk+2.0-2.1
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/test/Makefile.in gtk+2.0-2.18.4/modules/printbackends/test/Makefile.in
---- gtk+2.0-2.18.4.old/modules/printbackends/test/Makefile.in	2009-12-01 05:08:49.000000000 +0100
-+++ gtk+2.0-2.18.4/modules/printbackends/test/Makefile.in	2009-12-01 13:03:35.176289847 +0100
+--- a/modules/printbackends/test/Makefile.in
++++ b/modules/printbackends/test/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32654,9 +32707,8 @@ diff -Naur gtk+2.0-2.18.4.old/modules/printbackends/test/Makefile.in gtk+2.0-2.1
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/perf/Makefile.in gtk+2.0-2.18.4/perf/Makefile.in
---- gtk+2.0-2.18.4.old/perf/Makefile.in	2009-12-01 05:08:49.000000000 +0100
-+++ gtk+2.0-2.18.4/perf/Makefile.in	2009-12-01 13:03:35.276289470 +0100
+--- a/perf/Makefile.in
++++ b/perf/Makefile.in
 @@ -45,7 +45,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32691,9 +32743,8 @@ diff -Naur gtk+2.0-2.18.4.old/perf/Makefile.in gtk+2.0-2.18.4/perf/Makefile.in
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
-diff -Naur gtk+2.0-2.18.4.old/po/Makefile.in.in gtk+2.0-2.18.4/po/Makefile.in.in
---- gtk+2.0-2.18.4.old/po/Makefile.in.in	2009-10-09 07:00:46.000000000 +0200
-+++ gtk+2.0-2.18.4/po/Makefile.in.in	2009-12-01 13:03:24.331293835 +0100
+--- a/po/Makefile.in.in
++++ b/po/Makefile.in.in
 @@ -25,22 +25,23 @@
  
  prefix = @prefix@
@@ -32805,9 +32856,8 @@ diff -Naur gtk+2.0-2.18.4.old/po/Makefile.in.in gtk+2.0-2.18.4/po/Makefile.in.in
  	  $(INSTALL_DATA) $(srcdir)/Makefile.in.in \
  			  $(DESTDIR)$(gettextsrcdir)/Makefile.in.in; \
  	else \
-diff -Naur gtk+2.0-2.18.4.old/tests/Makefile.in gtk+2.0-2.18.4/tests/Makefile.in
---- gtk+2.0-2.18.4.old/tests/Makefile.in	2009-12-01 05:08:49.000000000 +0100
-+++ gtk+2.0-2.18.4/tests/Makefile.in	2009-12-01 13:03:35.532290410 +0100
+--- a/tests/Makefile.in
++++ b/tests/Makefile.in
 @@ -79,7 +79,7 @@
  	$(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
@@ -32842,3 +32892,529 @@ diff -Naur gtk+2.0-2.18.4.old/tests/Makefile.in gtk+2.0-2.18.4/tests/Makefile.in
  PACKAGE_VERSION = @PACKAGE_VERSION@
  PANGO_PREFIX = @PANGO_PREFIX@
  PATH_SEPARATOR = @PATH_SEPARATOR@
+--- a/INSTALL
++++ b/INSTALL
+@@ -1,41 +1,302 @@
+-Prerequisites
+-=============
++Installation Instructions
++*************************
+ 
+-GTK+ requires the following packages:
++Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005,
++2006, 2007, 2008, 2009 Free Software Foundation, Inc.
+ 
+- - The GLib, Pango, ATK and cairo libraries, available at the same 
+-   location as GTK+. GTK+ 2.18.5 requires at least GLib 2.17.6,
+-   Pango 1.20, ATK 1.13.0 and cairo 1.6.0.
++   This file is free documentation; the Free Software Foundation gives
++unlimited permission to copy, distribute and modify it.
+ 
+- - The TIFF, PNG, and JPEG image loading libraries. You most
+-   likely have these installed on your system already. If not
+-   these libraries are available from:
++Basic Installation
++==================
++
++   Briefly, the shell commands `./configure; make; make install' should
++configure, build, and install this package.  The following
++more-detailed instructions are generic; see the `README' file for
++instructions specific to this package.
++
++   The `configure' shell script attempts to guess correct values for
++various system-dependent variables used during compilation.  It uses
++those values to create a `Makefile' in each directory of the package.
++It may also create one or more `.h' files containing system-dependent
++definitions.  Finally, it creates a shell script `config.status' that
++you can run in the future to recreate the current configuration, and a
++file `config.log' containing compiler output (useful mainly for
++debugging `configure').
++
++   It can also use an optional file (typically called `config.cache'
++and enabled with `--cache-file=config.cache' or simply `-C') that saves
++the results of its tests to speed up reconfiguring.  Caching is
++disabled by default to prevent problems with accidental use of stale
++cache files.
++
++   If you need to do unusual things to compile the package, please try
++to figure out how `configure' could check whether to do them, and mail
++diffs or instructions to the address given in the `README' so they can
++be considered for the next release.  If you are using the cache, and at
++some point `config.cache' contains results you don't want to keep, you
++may remove or edit it.
++
++   The file `configure.ac' (or `configure.in') is used to create
++`configure' by a program called `autoconf'.  You need `configure.ac' if
++you want to change it or regenerate `configure' using a newer version
++of `autoconf'.
++
++The simplest way to compile this package is:
++
++  1. `cd' to the directory containing the package's source code and type
++     `./configure' to configure the package for your system.
++
++     Running `configure' might take a while.  While running, it prints
++     some messages telling which features it is checking for.
++
++  2. Type `make' to compile the package.
++
++  3. Optionally, type `make check' to run any self-tests that come with
++     the package.
++
++  4. Type `make install' to install the programs and any data files and
++     documentation.
++
++  5. You can remove the program binaries and object files from the
++     source code directory by typing `make clean'.  To also remove the
++     files that `configure' created (so you can compile the package for
++     a different kind of computer), type `make distclean'.  There is
++     also a `make maintainer-clean' target, but that is intended mainly
++     for the package's developers.  If you use it, you may have to get
++     all sorts of other programs in order to regenerate files that came
++     with the distribution.
++
++  6. Often, you can also type `make uninstall' to remove the installed
++     files again.
++
++Compilers and Options
++=====================
++
++   Some systems require unusual options for compilation or linking that
++the `configure' script does not know about.  Run `./configure --help'
++for details on some of the pertinent environment variables.
++
++   You can give `configure' initial values for configuration parameters
++by setting variables in the command line or in the environment.  Here
++is an example:
++
++     ./configure CC=c99 CFLAGS=-g LIBS=-lposix
++
++   *Note Defining Variables::, for more details.
++
++Compiling For Multiple Architectures
++====================================
++
++   You can compile the package for more than one kind of computer at the
++same time, by placing the object files for each architecture in their
++own directory.  To do this, you can use GNU `make'.  `cd' to the
++directory where you want the object files and executables to go and run
++the `configure' script.  `configure' automatically checks for the
++source code in the directory that `configure' is in and in `..'.
++
++   With a non-GNU `make', it is safer to compile the package for one
++architecture at a time in the source code directory.  After you have
++installed the package for one architecture, use `make distclean' before
++reconfiguring for another architecture.
++
++   On MacOS X 10.5 and later systems, you can create libraries and
++executables that work on multiple system types--known as "fat" or
++"universal" binaries--by specifying multiple `-arch' options to the
++compiler but only a single `-arch' option to the preprocessor.  Like
++this:
++
++     ./configure CC="gcc -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
++                 CXX="g++ -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
++                 CPP="gcc -E" CXXCPP="g++ -E"
++
++   This is not guaranteed to produce working output in all cases, you
++may have to build one architecture at a time and combine the results
++using the `lipo' tool if you have problems.
++
++Installation Names
++==================
++
++   By default, `make install' installs the package's commands under
++`/usr/local/bin', include files under `/usr/local/include', etc.  You
++can specify an installation prefix other than `/usr/local' by giving
++`configure' the option `--prefix=PREFIX'.
++
++   You can specify separate installation prefixes for
++architecture-specific files and architecture-independent files.  If you
++pass the option `--exec-prefix=PREFIX' to `configure', the package uses
++PREFIX as the prefix for installing programs and libraries.
++Documentation and other data files still use the regular prefix.
++
++   In addition, if you use an unusual directory layout you can give
++options like `--bindir=DIR' to specify different values for particular
++kinds of files.  Run `configure --help' for a list of the directories
++you can set and what kinds of files go in them.
++
++   If the package supports it, you can cause programs to be installed
++with an extra prefix or suffix on their names by giving `configure' the
++option `--program-prefix=PREFIX' or `--program-suffix=SUFFIX'.
++
++Optional Features
++=================
++
++   Some packages pay attention to `--enable-FEATURE' options to
++`configure', where FEATURE indicates an optional part of the package.
++They may also pay attention to `--with-PACKAGE' options, where PACKAGE
++is something like `gnu-as' or `x' (for the X Window System).  The
++`README' should mention any `--enable-' and `--with-' options that the
++package recognizes.
++
++   For packages that use the X Window System, `configure' can usually
++find the X include and library files automatically, but if it doesn't,
++you can use the `configure' options `--x-includes=DIR' and
++`--x-libraries=DIR' to specify their locations.
++
++Particular systems
++==================
++
++   On HP-UX, the default C compiler is not ANSI C compatible.  If GNU
++CC is not installed, it is recommended to use the following options in
++order to use an ANSI C compiler:
++
++     ./configure CC="cc -Ae -D_XOPEN_SOURCE=500"
++
++and if that doesn't work, install pre-built binaries of GCC for HP-UX.
++
++   On OSF/1 a.k.a. Tru64, some versions of the default C compiler cannot
++parse its `<wchar.h>' header file.  The option `-nodtk' can be used as
++a workaround.  If GNU CC is not installed, it is therefore recommended
++to try
++
++     ./configure CC="cc"
++
++and if that doesn't work, try
++
++     ./configure CC="cc -nodtk"
++
++   On Solaris, don't put `/usr/ucb' early in your `PATH'.  This
++directory contains several dysfunctional programs; working variants of
++these programs are available in `/usr/bin'.  So, if you need `/usr/ucb'
++in your `PATH', put it _after_ `/usr/bin'.
++
++   On Haiku, software installed for all users goes in `/boot/common',
++not `/usr/local'.  It is recommended to use the following options:
++
++     ./configure --prefix=/boot/common
++
++Specifying the System Type
++==========================
++
++   There may be some features `configure' cannot figure out
++automatically, but needs to determine by the type of machine the package
++will run on.  Usually, assuming the package is built to be run on the
++_same_ architectures, `configure' can figure that out, but if it prints
++a message saying it cannot guess the machine type, give it the
++`--build=TYPE' option.  TYPE can either be a short name for the system
++type, such as `sun4', or a canonical name which has the form:
++
++     CPU-COMPANY-SYSTEM
++
++where SYSTEM can have one of these forms:
++
++     OS
++     KERNEL-OS
++
++   See the file `config.sub' for the possible values of each field.  If
++`config.sub' isn't included in this package, then this package doesn't
++need to know the machine type.
++
++   If you are _building_ compiler tools for cross-compiling, you should
++use the option `--target=TYPE' to select the type of system they will
++produce code for.
++
++   If you want to _use_ a cross compiler, that generates code for a
++platform different from the build platform, you should specify the
++"host" platform (i.e., that on which the generated programs will
++eventually be run) with `--host=TYPE'.
++
++Sharing Defaults
++================
++
++   If you want to set default values for `configure' scripts to share,
++you can create a site shell script called `config.site' that gives
++default values for variables like `CC', `cache_file', and `prefix'.
++`configure' looks for `PREFIX/share/config.site' if it exists, then
++`PREFIX/etc/config.site' if it exists.  Or, you can set the
++`CONFIG_SITE' environment variable to the location of the site script.
++A warning: not all `configure' scripts look for a site script.
++
++Defining Variables
++==================
++
++   Variables not defined in a site shell script can be set in the
++environment passed to `configure'.  However, some packages may run
++configure again during the build, and the customized values of these
++variables may be lost.  In order to avoid this problem, you should set
++them in the `configure' command line, using `VAR=value'.  For example:
++
++     ./configure CC=/usr/local2/bin/gcc
++
++causes the specified `gcc' to be used as the C compiler (unless it is
++overridden in the site shell script).
++
++Unfortunately, this technique does not work for `CONFIG_SHELL' due to
++an Autoconf bug.  Until the bug is fixed you can use this workaround:
++
++     CONFIG_SHELL=/bin/bash /bin/bash ./configure CONFIG_SHELL=/bin/bash
++
++`configure' Invocation
++======================
++
++   `configure' recognizes the following options to control how it
++operates.
++
++`--help'
++`-h'
++     Print a summary of all of the options to `configure', and exit.
++
++`--help=short'
++`--help=recursive'
++     Print a summary of the options unique to this package's
++     `configure', and exit.  The `short' variant lists options used
++     only in the top level, while the `recursive' variant lists options
++     also present in any nested packages.
++
++`--version'
++`-V'
++     Print the version of Autoconf used to generate the `configure'
++     script, and exit.
++
++`--cache-file=FILE'
++     Enable the cache: use and save the results of the tests in FILE,
++     traditionally `config.cache'.  FILE defaults to `/dev/null' to
++     disable caching.
++
++`--config-cache'
++`-C'
++     Alias for `--cache-file=config.cache'.
++
++`--quiet'
++`--silent'
++`-q'
++     Do not print messages saying which checks are being made.  To
++     suppress all normal output, redirect it to `/dev/null' (any error
++     messages will still be shown).
++
++`--srcdir=DIR'
++     Look for the package's source code in directory DIR.  Usually
++     `configure' can determine that directory automatically.
++
++`--prefix=DIR'
++     Use DIR as the installation prefix.  *Note Installation Names::
++     for more details, including other options available for fine-tuning
++     the installation locations.
++
++`--no-create'
++`-n'
++     Run the configure checks, but stop before creating any output
++     files.
+ 
+-    http://www.libtiff.org/
+-    http://www.libpng.org/
+-    http://www.ijg.org/
+-
+-    libtiff must be version 3.6.0 or higher.
+-
+-Simple install procedure
+-========================
+-
+-  % gzip -cd gtk+-2.18.5.tar.gz | tar xvf - # unpack the sources
+-  % cd gtk+-2.18.5			   # change to the toplevel directory
+-  % ./configure				   # run the `configure' script
+-  % make				   # build GTK+
+-  [ Become root if necessary ]
+-  % make install			   # install GTK+
+-
+-The Details
+-===========
+-
+-Complete information about installing GTK+ and related libraries can be found 
+-in the file:
+-
+- docs/reference/gtk/html/gtk-building.html
+-
+-Or online at:
+-
+- http://developer.gnome.org/doc/API/2.0/gtk/gtk-building.html
++`configure' also accepts some other, not widely useful, options.  Run
++`configure --help' for more details.
+ 
+--- a/config.guess
++++ b/config.guess
+@@ -1,10 +1,10 @@
+ #! /bin/sh
+ # Attempt to guess a canonical system name.
+ #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+-#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
++#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ #   Free Software Foundation, Inc.
+ 
+-timestamp='2009-04-27'
++timestamp='2009-06-10'
+ 
+ # This file is free software; you can redistribute it and/or modify it
+ # under the terms of the GNU General Public License as published by
+@@ -170,7 +170,7 @@
+ 	    arm*|i386|m68k|ns32k|sh3*|sparc|vax)
+ 		eval $set_cc_for_build
+ 		if echo __ELF__ | $CC_FOR_BUILD -E - 2>/dev/null \
+-			| grep __ELF__ >/dev/null
++			| grep -q __ELF__
+ 		then
+ 		    # Once all utilities can be ECOFF (netbsdecoff) or a.out (netbsdaout).
+ 		    # Return netbsd for either.  FIX?
+@@ -656,7 +656,7 @@
+ 	    # => hppa64-hp-hpux11.23
+ 
+ 	    if echo __LP64__ | (CCOPTS= $CC_FOR_BUILD -E - 2>/dev/null) |
+-		grep __LP64__ >/dev/null
++		grep -q __LP64__
+ 	    then
+ 		HP_ARCH="hppa2.0w"
+ 	    else
+@@ -822,6 +822,9 @@
+     [345]86:Windows_95:* | [345]86:Windows_98:* | [345]86:Windows_NT:*)
+ 	echo i${UNAME_MACHINE}-pc-mks
+ 	exit ;;
++    8664:Windows_NT:*)
++	echo x86_64-pc-mks
++	exit ;;
+     i*:Windows_NT*:* | Pentium*:Windows_NT*:*)
+ 	# How do we know it's Interix rather than the generic POSIX subsystem?
+ 	# It also conflicts with pre-2.0 versions of AT&T UWIN. Should we
+@@ -882,40 +885,17 @@
+     m68*:Linux:*:*)
+ 	echo ${UNAME_MACHINE}-unknown-linux-gnu
+ 	exit ;;
+-    mips:Linux:*:*)
++    mips:Linux:*:* | mips64:Linux:*:*)
+ 	eval $set_cc_for_build
+ 	sed 's/^	//' << EOF >$dummy.c
+ 	#undef CPU
+-	#undef mips
+-	#undef mipsel
++	#undef ${UNAME_MACHINE}
++	#undef ${UNAME_MACHINE}el
+ 	#if defined(__MIPSEL__) || defined(__MIPSEL) || defined(_MIPSEL) || defined(MIPSEL)
+-	CPU=mipsel
++	CPU=${UNAME_MACHINE}el
+ 	#else
+ 	#if defined(__MIPSEB__) || defined(__MIPSEB) || defined(_MIPSEB) || defined(MIPSEB)
+-	CPU=mips
+-	#else
+-	CPU=
+-	#endif
+-	#endif
+-EOF
+-	eval "`$CC_FOR_BUILD -E $dummy.c 2>/dev/null | sed -n '
+-	    /^CPU/{
+-		s: ::g
+-		p
+-	    }'`"
+-	test x"${CPU}" != x && { echo "${CPU}-unknown-linux-gnu"; exit; }
+-	;;
+-    mips64:Linux:*:*)
+-	eval $set_cc_for_build
+-	sed 's/^	//' << EOF >$dummy.c
+-	#undef CPU
+-	#undef mips64
+-	#undef mips64el
+-	#if defined(__MIPSEL__) || defined(__MIPSEL) || defined(_MIPSEL) || defined(MIPSEL)
+-	CPU=mips64el
+-	#else
+-	#if defined(__MIPSEB__) || defined(__MIPSEB) || defined(_MIPSEB) || defined(MIPSEB)
+-	CPU=mips64
++	CPU=${UNAME_MACHINE}
+ 	#else
+ 	CPU=
+ 	#endif
+@@ -947,7 +927,7 @@
+ 	  EV67)  UNAME_MACHINE=alphaev67 ;;
+ 	  EV68*) UNAME_MACHINE=alphaev68 ;;
+         esac
+-	objdump --private-headers /bin/sh | grep ld.so.1 >/dev/null
++	objdump --private-headers /bin/sh | grep -q ld.so.1
+ 	if test "$?" = 0 ; then LIBC="libc1" ; else LIBC="" ; fi
+ 	echo ${UNAME_MACHINE}-unknown-linux-gnu${LIBC}
+ 	exit ;;
+@@ -1001,14 +981,6 @@
+ 	  elf32-i386)
+ 		TENTATIVE="${UNAME_MACHINE}-pc-linux-gnu"
+ 		;;
+-	  a.out-i386-linux)
+-		echo "${UNAME_MACHINE}-pc-linux-gnuaout"
+-		exit ;;
+-	  "")
+-		# Either a pre-BFD a.out linker (linux-gnuoldld) or
+-		# one that does not give us useful --help.
+-		echo "${UNAME_MACHINE}-pc-linux-gnuoldld"
+-		exit ;;
+ 	esac
+ 	# Determine whether the default compiler is a.out or elf
+ 	eval $set_cc_for_build
+@@ -1074,7 +1046,7 @@
+     i*86:syllable:*:*)
+ 	echo ${UNAME_MACHINE}-pc-syllable
+ 	exit ;;
+-    i*86:LynxOS:2.*:* | i*86:LynxOS:3.[01]*:* | i*86:LynxOS:4.0*:*)
++    i*86:LynxOS:2.*:* | i*86:LynxOS:3.[01]*:* | i*86:LynxOS:4.[02]*:*)
+ 	echo i386-unknown-lynxos${UNAME_RELEASE}
+ 	exit ;;
+     i*86:*DOS:*:*)
+@@ -1182,7 +1154,7 @@
+     rs6000:LynxOS:2.*:*)
+ 	echo rs6000-unknown-lynxos${UNAME_RELEASE}
+ 	exit ;;
+-    PowerPC:LynxOS:2.*:* | PowerPC:LynxOS:3.[01]*:* | PowerPC:LynxOS:4.0*:*)
++    PowerPC:LynxOS:2.*:* | PowerPC:LynxOS:3.[01]*:* | PowerPC:LynxOS:4.[02]*:*)
+ 	echo powerpc-unknown-lynxos${UNAME_RELEASE}
+ 	exit ;;
+     SM[BE]S:UNIX_SV:*:*)
+--- a/config.sub
++++ b/config.sub
+@@ -1,10 +1,10 @@
+ #! /bin/sh
+ # Configuration validation subroutine script.
+ #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
+-#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008
++#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
+ #   Free Software Foundation, Inc.
+ 
+-timestamp='2009-04-17'
++timestamp='2009-06-11'
+ 
+ # This file is (in principle) common to ALL GNU software.
+ # The presence of a machine in this file suggests that SOME GNU software
+@@ -153,6 +153,9 @@
+ 		os=
+ 		basic_machine=$1
+ 		;;
++        -bluegene*)
++	        os=-cnk
++		;;
+ 	-sim | -cisco | -oki | -wec | -winbond)
+ 		os=
+ 		basic_machine=$1
+@@ -467,6 +470,10 @@
+ 		basic_machine=bfin-`echo $basic_machine | sed 's/^[^-]*-//'`
+ 		os=-linux
+ 		;;
++	bluegene*)
++		basic_machine=powerpc-ibm
++		os=-cnk
++		;;
+ 	c90)
+ 		basic_machine=c90-cray
+ 		os=-unicos
+@@ -1260,7 +1267,7 @@
+ 	# Each alternative MUST END IN A *, to match a version number.
+ 	# -sysv* is not here because it comes later, after sysvr4.
+ 	-gnu* | -bsd* | -mach* | -minix* | -genix* | -ultrix* | -irix* \
+-	      | -*vms* | -sco* | -esix* | -isc* | -aix* | -sunos | -sunos[34]*\
++	      | -*vms* | -sco* | -esix* | -isc* | -aix* | -cnk* | -sunos | -sunos[34]*\
+ 	      | -hpux* | -unos* | -osf* | -luna* | -dgux* | -solaris* | -sym* \
+ 	      | -kopensolaris* \
+ 	      | -amigaos* | -amigados* | -msdos* | -newsos* | -unicos* | -aof* \
+@@ -1613,7 +1620,7 @@
+ 			-sunos*)
+ 				vendor=sun
+ 				;;
+-			-aix*)
++			-cnk*|-aix*)
+ 				vendor=ibm
+ 				;;
+ 			-beos*)

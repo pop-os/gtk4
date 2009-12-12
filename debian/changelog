@@ -1,3 +1,14 @@
+gtk+2.0 (2.18.5-1) unstable; urgency=low
+
+  * New upstream bugfix release.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Updated for the new version.
+  * debian/patches/000_gtk+-2.0.6-exportsymbols.patch:
+    + Removed, it wasn't being applied and hasn't been relevant for a
+      long time.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 12 Dec 2009 18:42:36 +0100
+
 gtk+2.0 (2.18.4-1) unstable; urgency=low
 
   * New upstream bugfix release:
