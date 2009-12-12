@@ -1,3 +1,11 @@
+gtk+2.0 (2.19.1-1.1) UNRELEASED; urgency=low
+
+  * debian/patches/000_gtk+-2.0.6-exportsymbols.patch:
+    + Removed, it wasn't being applied and hasn't been relevant for a
+      long time.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 13 Dec 2009 00:30:18 +0100
+
 gtk+2.0 (2.19.1-1) experimental; urgency=low
 
   * New upstream development release:
