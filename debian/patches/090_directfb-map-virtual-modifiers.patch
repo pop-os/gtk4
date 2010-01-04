@@ -14,3 +14,15 @@
 +
  #define __GDK_KEYS_DIRECTFB_C__
  #include "gdkaliasdef.c"
+--- a/gdk/gdkaliasdef.c.old	2010-01-04 12:33:17.664522053 +0100
++++ b/gdk/gdkaliasdef.c	2010-01-04 12:34:37.804526027 +0100
+@@ -1842,6 +1842,9 @@
+ #undef gdk_keymap_lookup_key 
+ extern __typeof (gdk_keymap_lookup_key) gdk_keymap_lookup_key __attribute((alias("IA__gdk_keymap_lookup_key"), visibility("default")));
+ 
++#undef gdk_keymap_map_virtual_modifiers 
++extern __typeof (gdk_keymap_map_virtual_modifiers) gdk_keymap_map_virtual_modifiers __attribute((alias("IA__gdk_keymap_map_virtual_modifiers"), visibility("default")));
++
+ #undef gdk_keymap_translate_keyboard_state 
+ extern __typeof (gdk_keymap_translate_keyboard_state) gdk_keymap_translate_keyboard_state __attribute((alias("IA__gdk_keymap_translate_keyboard_state"), visibility("default")));
+ 
