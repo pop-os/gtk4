@@ -1,0 +1,16 @@
+--- a/gdk/directfb/gdkkeys-directfb.c.old	2010-01-04 11:25:17.400521020 +0100
++++ b/gdk/directfb/gdkkeys-directfb.c	2010-01-04 11:25:24.572521710 +0100
+@@ -1999,5 +1999,13 @@
+ }
+ 
+ 
++gboolean
++gdk_keymap_map_virtual_modifiers (GdkKeymap       *keymap,
++                                  GdkModifierType *state)
++{
++  /* FIXME: For now, we've mimiced the Windows backend. */
++  return TRUE;
++}
++
+ #define __GDK_KEYS_DIRECTFB_C__
+ #include "gdkaliasdef.c"

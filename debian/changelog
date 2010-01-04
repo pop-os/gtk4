@@ -13,6 +13,9 @@ gtk+2.0 (2.19.2-1) experimental; urgency=low
       debian/libgtk-directfb-2.0-0.symbols,
       debian/libgtk2.0-0.symbols:
       - Update SHVER to 2.19.2 for the new API and add new symbols.
+  * debian/patches/090_directfb-map-virtual-modifiers.patch:
+    + Fix compilation of the DirectFB backend, patch adapted from
+      upstream commit to fix the Quartz backend.
 
  -- Sebastian Dröge <slomo@debian.org>  Mon, 04 Jan 2010 10:43:48 +0100
 
