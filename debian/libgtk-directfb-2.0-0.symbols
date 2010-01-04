@@ -346,6 +346,7 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_keymap_get_for_display@Base 2.8.0
  gdk_keymap_get_type@Base 2.8.0
  gdk_keymap_lookup_key@Base 2.8.0
+ gdk_keymap_map_virtual_modifiers@Base 2.19.2
  gdk_keymap_translate_keyboard_state@Base 2.8.0
  gdk_keyval_from_name@Base 2.8.0
  gdk_keyval_is_lower@Base 2.8.0
@@ -472,6 +473,7 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_screen_get_monitor_width_mm@Base 2.14.0
  gdk_screen_get_n_monitors@Base 2.8.0
  gdk_screen_get_number@Base 2.8.0
+ gdk_screen_get_primary_monitor@Base 2.19.2
  gdk_screen_get_resolution@Base 2.10.0
  gdk_screen_get_rgb_colormap@Base 2.8.0
  gdk_screen_get_rgb_visual@Base 2.8.0
@@ -2638,6 +2640,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_print_context_get_cairo_context@Base 2.10.0
  gtk_print_context_get_dpi_x@Base 2.10.0
  gtk_print_context_get_dpi_y@Base 2.10.0
+ gtk_print_context_get_hard_margins@Base 2.19.2
  gtk_print_context_get_height@Base 2.10.0
  gtk_print_context_get_page_setup@Base 2.10.0
  gtk_print_context_get_pango_fontmap@Base 2.10.0
@@ -2802,6 +2805,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_printer_get_capabilities@Base 2.12.0
  gtk_printer_get_default_page_size@Base 2.14.0
  gtk_printer_get_description@Base 2.10.0
+ gtk_printer_get_hard_margins@Base 2.19.2
  gtk_printer_get_icon_name@Base 2.10.0
  gtk_printer_get_job_count@Base 2.10.0
  gtk_printer_get_location@Base 2.10.0
@@ -4494,6 +4498,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_window_get_icon_list@Base 2.8.0
  gtk_window_get_icon_name@Base 2.8.0
  gtk_window_get_mnemonic_modifier@Base 2.8.0
+ gtk_window_get_mnemonics_visible@Base 2.19.2
  gtk_window_get_modal@Base 2.8.0
  gtk_window_get_opacity@Base 2.12.0
  gtk_window_get_position@Base 2.8.0
@@ -4556,6 +4561,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_window_set_keep_above@Base 2.8.0
  gtk_window_set_keep_below@Base 2.8.0
  gtk_window_set_mnemonic_modifier@Base 2.8.0
+ gtk_window_set_mnemonics_visible@Base 2.19.2
  gtk_window_set_modal@Base 2.8.0
  gtk_window_set_opacity@Base 2.12.0
  gtk_window_set_policy@Base 2.8.0

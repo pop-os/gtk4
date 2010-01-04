@@ -1,10 +1,20 @@
-gtk+2.0 (2.19.1-1.1) UNRELEASED; urgency=low
+gtk+2.0 (2.19.2-1) experimental; urgency=low
 
+  [ Emilio Pozuelo Monfort ]
   * debian/patches/000_gtk+-2.0.6-exportsymbols.patch:
     + Removed, it wasn't being applied and hasn't been relevant for a
       long time.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 13 Dec 2009 00:30:18 +0100
+  [ Sebastian Dröge ]
+  * New upstream development release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.2 for the new API and add new symbols.
+
+ -- Sebastian Dröge <slomo@debian.org>  Mon, 04 Jan 2010 10:43:48 +0100
 
 gtk+2.0 (2.19.1-1) experimental; urgency=low
 
