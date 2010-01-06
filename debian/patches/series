@@ -15,3 +15,4 @@
 061_use_pdf_as_default_printing_standard.patch
 070_mandatory-relibtoolize.patch
 090_directfb-map-virtual-modifiers.patch
+091_size_allocate_crash.patch

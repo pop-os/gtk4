@@ -1,0 +1,25 @@
+From acb6f4ff33bb9eebd8c2b8ba4404d282426e1eeb Mon Sep 17 00:00:00 2001
+From: Kristian Rietveld <kris@gtk.org>
+Date: Wed, 23 Dec 2009 07:31:21 +0000
+Subject: Fix call to update_prelight()
+
+Seems like some minus signs sneaked in while diffing and reapplying...
+Fixes regression noted in 480065.
+---
+diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
+index 1a60677..949250f 100644
+--- a/gtk/gtktreeview.c
++++ b/gtk/gtktreeview.c
+@@ -2475,8 +2475,8 @@ gtk_tree_view_size_allocate (GtkWidget     *widget,
+           if (tree_view->priv->prev_width_before_expander
+               != width_before_expander)
+               update_prelight (tree_view,
+-                               -tree_view->priv->event_last_x,
+-                               -tree_view->priv->event_last_y);
++                               tree_view->priv->event_last_x,
++                               tree_view->priv->event_last_y);
+ 
+           tree_view->priv->prev_width_before_expander = width_before_expander;
+         }
+--
+cgit v0.8.3.1
