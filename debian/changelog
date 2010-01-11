@@ -1,3 +1,17 @@
+gtk+2.0 (2.19.3-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.3 for the new API and add new symbols.
+    + debian/patches/091_size_allocate_crash.patch:
+      - Dropped, merged upstream.
+
+ -- Sebastian Dröge <slomo@debian.org>  Mon, 11 Jan 2010 20:36:25 +0100
+
 gtk+2.0 (2.19.2-2) experimental; urgency=low
 
   * debian/patches/091_size_allocate_crash.patch:

@@ -2629,6 +2629,10 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_object_unref@Base 2.8.0
  gtk_object_weakref@Base 2.8.0
  gtk_object_weakunref@Base 2.8.0
+ gtk_offscreen_window_get_pixbuf@Base 2.19.3
+ gtk_offscreen_window_get_pixmap@Base 2.19.3
+ gtk_offscreen_window_get_type@Base 2.19.3
+ gtk_offscreen_window_new@Base 2.19.3
  gtk_old_editable_changed@Base 2.8.0
  gtk_old_editable_claim_selection@Base 2.8.0
  gtk_old_editable_get_type@Base 2.8.0
