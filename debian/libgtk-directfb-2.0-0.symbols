@@ -1597,6 +1597,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_entry_get_icon_storage_type@Base 2.16.0
  gtk_entry_get_icon_tooltip_markup@Base 2.16.0
  gtk_entry_get_icon_tooltip_text@Base 2.16.0
+ gtk_entry_get_icon_window@Base 2.19.4
  gtk_entry_get_inner_border@Base 2.10.0
  gtk_entry_get_invisible_char@Base 2.8.0
  gtk_entry_get_layout@Base 2.8.0
@@ -1607,6 +1608,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_entry_get_progress_pulse_step@Base 2.16.0
  gtk_entry_get_text@Base 2.8.0
  gtk_entry_get_text_length@Base 2.14.0
+ gtk_entry_get_text_window@Base 2.19.4
  gtk_entry_get_type@Base 2.8.0
  gtk_entry_get_visibility@Base 2.8.0
  gtk_entry_get_width_chars@Base 2.8.0
@@ -2941,8 +2943,12 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_range_get_flippable@Base 2.18.0
  gtk_range_get_inverted@Base 2.8.0
  gtk_range_get_lower_stepper_sensitivity@Base 2.10.0
+ gtk_range_get_min_slider_size@Base 2.19.4
+ gtk_range_get_range_rect@Base 2.19.4
  gtk_range_get_restrict_to_fill_level@Base 2.12.0
  gtk_range_get_show_fill_level@Base 2.12.0
+ gtk_range_get_slider_range@Base 2.19.4
+ gtk_range_get_slider_size_fixed@Base 2.19.4
  gtk_range_get_type@Base 2.8.0
  gtk_range_get_update_policy@Base 2.8.0
  gtk_range_get_upper_stepper_sensitivity@Base 2.10.0
@@ -2953,9 +2959,11 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_range_set_increments@Base 2.8.0
  gtk_range_set_inverted@Base 2.8.0
  gtk_range_set_lower_stepper_sensitivity@Base 2.10.0
+ gtk_range_set_min_slider_size@Base 2.19.4
  gtk_range_set_range@Base 2.8.0
  gtk_range_set_restrict_to_fill_level@Base 2.12.0
  gtk_range_set_show_fill_level@Base 2.12.0
+ gtk_range_set_slider_size_fixed@Base 2.19.4
  gtk_range_set_update_policy@Base 2.8.0
  gtk_range_set_upper_stepper_sensitivity@Base 2.10.0
  gtk_range_set_value@Base 2.8.0
@@ -3304,6 +3312,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_status_icon_set_from_pixbuf@Base 2.10.0
  gtk_status_icon_set_from_stock@Base 2.10.0
  gtk_status_icon_set_has_tooltip@Base 2.16.0
+ gtk_status_icon_set_name@Base 2.19.4
  gtk_status_icon_set_screen@Base 2.12.0
  gtk_status_icon_set_title@Base 2.18.0
  gtk_status_icon_set_tooltip@Base 2.10.0
@@ -4376,6 +4385,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_has_default@Base 2.18.0
  gtk_widget_has_focus@Base 2.18.0
  gtk_widget_has_grab@Base 2.18.0
+ gtk_widget_has_rc_style@Base 2.19.4
  gtk_widget_has_screen@Base 2.8.0
  gtk_widget_help_type_get_type@Base 2.8.0
  gtk_widget_hide@Base 2.8.0
