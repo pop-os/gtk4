@@ -1,3 +1,11 @@
+gtk+2.0 (2.19.4-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 26 Jan 2010 08:25:41 +0100
+
 gtk+2.0 (2.19.3-1) experimental; urgency=low
 
   * New upstream development release:
