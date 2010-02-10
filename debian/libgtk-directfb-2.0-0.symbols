@@ -4478,6 +4478,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_show_now@Base 2.8.0
  gtk_widget_size_allocate@Base 2.8.0
  gtk_widget_size_request@Base 2.8.0
+ gtk_widget_style_attach@Base 2.19.5
  gtk_widget_style_get@Base 2.8.0
  gtk_widget_style_get_property@Base 2.8.0
  gtk_widget_style_get_valist@Base 2.8.0
