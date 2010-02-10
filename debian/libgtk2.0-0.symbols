@@ -2712,6 +2712,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_paned_compute_position@Base 2.8.0
  gtk_paned_get_child1@Base 2.8.0
  gtk_paned_get_child2@Base 2.8.0
+ gtk_paned_get_handle_window@Base 2.19.5
  gtk_paned_get_position@Base 2.8.0
  gtk_paned_get_type@Base 2.8.0
  gtk_paned_pack1@Base 2.8.0
@@ -4505,12 +4506,14 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_widget_get_has_tooltip@Base 2.12.0
  gtk_widget_get_has_window@Base 2.18.0
  gtk_widget_get_modifier_style@Base 2.8.0
+ gtk_widget_get_mapped@Base 2.19.5
  gtk_widget_get_name@Base 2.8.0
  gtk_widget_get_no_show_all@Base 2.8.0
  gtk_widget_get_pango_context@Base 2.8.0
  gtk_widget_get_parent@Base 2.8.0
  gtk_widget_get_parent_window@Base 2.8.0
  gtk_widget_get_pointer@Base 2.8.0
+ gtk_widget_get_realized@Base 2.19.5
  gtk_widget_get_receives_default@Base 2.18.0
  gtk_widget_get_root_window@Base 2.8.0
  gtk_widget_get_screen@Base 2.8.0
@@ -4598,10 +4601,12 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_widget_set_extension_events@Base 2.8.0
  gtk_widget_set_has_tooltip@Base 2.12.0
  gtk_widget_set_has_window@Base 2.18.0
+ gtk_widget_set_mapped@Base 2.19.5
  gtk_widget_set_name@Base 2.8.0
  gtk_widget_set_no_show_all@Base 2.8.0
  gtk_widget_set_parent@Base 2.8.0
  gtk_widget_set_parent_window@Base 2.8.0
+ gtk_widget_set_realized@Base 2.19.5
  gtk_widget_set_receives_default@Base 2.18.0
  gtk_widget_set_redraw_on_allocate@Base 2.8.0
  gtk_widget_set_scroll_adjustments@Base 2.8.0
