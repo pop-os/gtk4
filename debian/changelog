@@ -1,3 +1,13 @@
+gtk+2.0 (2.18.7-1) UNRELEASED; urgency=low
+
+  * New upstream bugfix release.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Updated for the new version.
+  * debian/control.in:
+    + Standards-Version is 3.8.4, no changes needed.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 18 Feb 2010 12:57:29 +0100
+
 gtk+2.0 (2.18.6-1) unstable; urgency=low
 
   * New upstream bugfix release:
