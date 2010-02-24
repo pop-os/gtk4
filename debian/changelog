@@ -3,6 +3,8 @@ gtk+2.0 (2.19.6-1) experimental; urgency=low
   * New upstream development release:
     + debian/patches/070_mandatory-relibtoolize.patch:
       - Regenerated for the new version.
+  * debian/patches/090_directfb-map-virtual-modifiers.patch:
+    + Update to add just another stub to fix the build.
 
  -- Sebastian Dröge <slomo@debian.org>  Wed, 24 Feb 2010 10:01:31 +0100
 
