@@ -337,6 +337,7 @@ libgdk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gdk_keyboard_grab@Base 2.8.0
  gdk_keyboard_grab_info_libgtk_only@Base 2.8.0
  gdk_keyboard_ungrab@Base 2.8.0
+ gdk_keymap_add_virtual_modifiers@Base 2.19.6
  gdk_keymap_get_caps_lock_state@Base 2.16.0
  gdk_keymap_get_default@Base 2.8.0
  gdk_keymap_get_direction@Base 2.8.0
@@ -4366,6 +4367,7 @@ libgtk-directfb-2.0.so.0 libgtk-directfb-2.0-0 #MINVER#
  gtk_widget_get_pointer@Base 2.8.0
  gtk_widget_get_realized@Base 2.19.5
  gtk_widget_get_receives_default@Base 2.18.0
+ gtk_widget_get_requisition@Base 2.19.6
  gtk_widget_get_root_window@Base 2.8.0
  gtk_widget_get_screen@Base 2.8.0
  gtk_widget_get_sensitive@Base 2.18.0

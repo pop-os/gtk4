@@ -3,6 +3,10 @@ gtk+2.0 (2.19.6-1) experimental; urgency=low
   * New upstream development release:
     + debian/patches/070_mandatory-relibtoolize.patch:
       - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.6 for the new API and add new symbols.
   * debian/patches/090_directfb-map-virtual-modifiers.patch:
     + Update to add just another stub to fix the build.
 
