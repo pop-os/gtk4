@@ -1,6 +1,6 @@
-diff -Naur gtk+2.0-2.19.6.old/aclocal.m4 gtk+2.0-2.19.6/aclocal.m4
---- gtk+2.0-2.19.6.old/aclocal.m4	2010-02-23 19:23:01.000000000 +0100
-+++ gtk+2.0-2.19.6/aclocal.m4	2010-02-24 10:13:18.016985930 +0100
+diff -Naur gtk+2.0-2.19.7.old/aclocal.m4 gtk+2.0-2.19.7/aclocal.m4
+--- gtk+2.0-2.19.7.old/aclocal.m4	2010-03-09 16:22:42.000000000 +0100
++++ gtk+2.0-2.19.7/aclocal.m4	2010-03-12 16:04:05.907769813 +0100
 @@ -664,8017 +664,6 @@
  fi])
  
@@ -8068,9 +8068,9 @@ diff -Naur gtk+2.0-2.19.6.old/aclocal.m4 gtk+2.0-2.19.6/aclocal.m4
 +m4_include([m4/ltversion.m4])
 +m4_include([m4/lt~obsolete.m4])
  m4_include([acinclude.m4])
-diff -Naur gtk+2.0-2.19.6.old/configure gtk+2.0-2.19.6/configure
---- gtk+2.0-2.19.6.old/configure	2010-02-23 19:23:12.000000000 +0100
-+++ gtk+2.0-2.19.6/configure	2010-02-24 10:13:19.585951822 +0100
+diff -Naur gtk+2.0-2.19.7.old/configure gtk+2.0-2.19.7/configure
+--- gtk+2.0-2.19.7.old/configure	2010-03-09 16:23:02.000000000 +0100
++++ gtk+2.0-2.19.7/configure	2010-03-12 16:04:07.459758827 +0100
 @@ -816,6 +816,7 @@
  GDK_DEP_LIBS
  GDK_EXTRA_CFLAGS
@@ -8692,9 +8692,9 @@ diff -Naur gtk+2.0-2.19.6.old/configure gtk+2.0-2.19.6/configure
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    as_fn_error "conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." "$LINENO" 5
-diff -Naur gtk+2.0-2.19.6.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.19.6/contrib/gdk-pixbuf-xlib/Makefile.in
---- gtk+2.0-2.19.6.old/contrib/gdk-pixbuf-xlib/Makefile.in	2010-02-23 19:23:05.000000000 +0100
-+++ gtk+2.0-2.19.6/contrib/gdk-pixbuf-xlib/Makefile.in	2010-02-24 10:13:20.956953854 +0100
+diff -Naur gtk+2.0-2.19.7.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.19.7/contrib/gdk-pixbuf-xlib/Makefile.in
+--- gtk+2.0-2.19.7.old/contrib/gdk-pixbuf-xlib/Makefile.in	2010-03-09 16:22:52.000000000 +0100
++++ gtk+2.0-2.19.7/contrib/gdk-pixbuf-xlib/Makefile.in	2010-03-12 16:04:08.772758934 +0100
 @@ -44,11 +44,14 @@
  	$(top_srcdir)/Makefile.decl ChangeLog
  subdir = contrib/gdk-pixbuf-xlib
@@ -8720,9 +8720,9 @@ diff -Naur gtk+2.0-2.19.6.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.19.6
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/contrib/Makefile.in gtk+2.0-2.19.6/contrib/Makefile.in
---- gtk+2.0-2.19.6.old/contrib/Makefile.in	2010-02-23 19:23:05.000000000 +0100
-+++ gtk+2.0-2.19.6/contrib/Makefile.in	2010-02-24 10:13:20.816954142 +0100
+diff -Naur gtk+2.0-2.19.7.old/contrib/Makefile.in gtk+2.0-2.19.7/contrib/Makefile.in
+--- gtk+2.0-2.19.7.old/contrib/Makefile.in	2010-03-09 16:22:51.000000000 +0100
++++ gtk+2.0-2.19.7/contrib/Makefile.in	2010-03-12 16:04:08.672758802 +0100
 @@ -40,11 +40,14 @@
  @USE_X11_TRUE@am__append_1 = gdk-pixbuf-xlib
  subdir = contrib
@@ -8748,9 +8748,9 @@ diff -Naur gtk+2.0-2.19.6.old/contrib/Makefile.in gtk+2.0-2.19.6/contrib/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/demos/gtk-demo/Makefile.in gtk+2.0-2.19.6/demos/gtk-demo/Makefile.in
---- gtk+2.0-2.19.6.old/demos/gtk-demo/Makefile.in	2010-02-23 19:23:05.000000000 +0100
-+++ gtk+2.0-2.19.6/demos/gtk-demo/Makefile.in	2010-02-24 10:13:21.184954068 +0100
+diff -Naur gtk+2.0-2.19.7.old/demos/gtk-demo/Makefile.in gtk+2.0-2.19.7/demos/gtk-demo/Makefile.in
+--- gtk+2.0-2.19.7.old/demos/gtk-demo/Makefile.in	2010-03-09 16:22:52.000000000 +0100
++++ gtk+2.0-2.19.7/demos/gtk-demo/Makefile.in	2010-03-12 16:04:09.008761078 +0100
 @@ -42,11 +42,14 @@
  bin_PROGRAMS = gtk-demo$(EXEEXT)
  subdir = demos/gtk-demo
@@ -8776,9 +8776,9 @@ diff -Naur gtk+2.0-2.19.6.old/demos/gtk-demo/Makefile.in gtk+2.0-2.19.6/demos/gt
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/demos/Makefile.in gtk+2.0-2.19.6/demos/Makefile.in
---- gtk+2.0-2.19.6.old/demos/Makefile.in	2010-02-23 19:23:05.000000000 +0100
-+++ gtk+2.0-2.19.6/demos/Makefile.in	2010-02-24 10:13:21.072953033 +0100
+diff -Naur gtk+2.0-2.19.7.old/demos/Makefile.in gtk+2.0-2.19.7/demos/Makefile.in
+--- gtk+2.0-2.19.7.old/demos/Makefile.in	2010-03-09 16:22:52.000000000 +0100
++++ gtk+2.0-2.19.7/demos/Makefile.in	2010-03-12 16:04:08.904758955 +0100
 @@ -46,11 +46,14 @@
  @HAVE_PNG_TRUE@am__append_1 = testpixbuf
  subdir = demos
@@ -8804,9 +8804,9 @@ diff -Naur gtk+2.0-2.19.6.old/demos/Makefile.in gtk+2.0-2.19.6/demos/Makefile.in
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/faq/Makefile.in gtk+2.0-2.19.6/docs/faq/Makefile.in
---- gtk+2.0-2.19.6.old/docs/faq/Makefile.in	2010-02-23 19:23:05.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/faq/Makefile.in	2010-02-24 10:13:21.344952744 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/faq/Makefile.in gtk+2.0-2.19.7/docs/faq/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/faq/Makefile.in	2010-03-09 16:22:52.000000000 +0100
++++ gtk+2.0-2.19.7/docs/faq/Makefile.in	2010-03-12 16:04:09.156758935 +0100
 @@ -39,11 +39,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = docs/faq
@@ -8832,9 +8832,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/faq/Makefile.in gtk+2.0-2.19.6/docs/faq/Makef
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/Makefile.in gtk+2.0-2.19.6/docs/Makefile.in
---- gtk+2.0-2.19.6.old/docs/Makefile.in	2010-02-23 19:23:05.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/Makefile.in	2010-02-24 10:13:21.264953821 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/Makefile.in gtk+2.0-2.19.7/docs/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/Makefile.in	2010-03-09 16:22:52.000000000 +0100
++++ gtk+2.0-2.19.7/docs/Makefile.in	2010-03-12 16:04:09.084758937 +0100
 @@ -39,11 +39,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = docs
@@ -8860,9 +8860,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/Makefile.in gtk+2.0-2.19.6/docs/Makefile.in
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/reference/gdk/Makefile.in gtk+2.0-2.19.6/docs/reference/gdk/Makefile.in
---- gtk+2.0-2.19.6.old/docs/reference/gdk/Makefile.in	2010-02-23 19:23:06.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/reference/gdk/Makefile.in	2010-02-24 10:13:21.616952271 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/reference/gdk/Makefile.in gtk+2.0-2.19.7/docs/reference/gdk/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/reference/gdk/Makefile.in	2010-03-09 16:22:53.000000000 +0100
++++ gtk+2.0-2.19.7/docs/reference/gdk/Makefile.in	2010-03-12 16:04:09.412759345 +0100
 @@ -46,11 +46,14 @@
  	$(top_srcdir)/gtk-doc.make
  subdir = docs/reference/gdk
@@ -8888,9 +8888,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/reference/gdk/Makefile.in gtk+2.0-2.19.6/docs
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.19.6/docs/reference/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.19.6.old/docs/reference/gdk-pixbuf/Makefile.in	2010-02-23 19:23:06.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/reference/gdk-pixbuf/Makefile.in	2010-02-24 10:13:21.524952935 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.19.7/docs/reference/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/reference/gdk-pixbuf/Makefile.in	2010-03-09 16:22:53.000000000 +0100
++++ gtk+2.0-2.19.7/docs/reference/gdk-pixbuf/Makefile.in	2010-03-12 16:04:09.324758843 +0100
 @@ -46,11 +46,14 @@
  	$(top_srcdir)/gtk-doc.make
  subdir = docs/reference/gdk-pixbuf
@@ -8916,9 +8916,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.19
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/reference/gtk/Makefile.in gtk+2.0-2.19.6/docs/reference/gtk/Makefile.in
---- gtk+2.0-2.19.6.old/docs/reference/gtk/Makefile.in	2010-02-23 19:23:06.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/reference/gtk/Makefile.in	2010-02-24 10:13:21.720961433 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/reference/gtk/Makefile.in gtk+2.0-2.19.7/docs/reference/gtk/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/reference/gtk/Makefile.in	2010-03-09 16:22:53.000000000 +0100
++++ gtk+2.0-2.19.7/docs/reference/gtk/Makefile.in	2010-03-12 16:04:09.512759423 +0100
 @@ -46,11 +46,14 @@
  	$(top_srcdir)/gtk-doc.make
  subdir = docs/reference/gtk
@@ -8944,9 +8944,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/reference/gtk/Makefile.in gtk+2.0-2.19.6/docs
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/reference/libgail-util/Makefile.in gtk+2.0-2.19.6/docs/reference/libgail-util/Makefile.in
---- gtk+2.0-2.19.6.old/docs/reference/libgail-util/Makefile.in	2010-02-23 19:23:06.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/reference/libgail-util/Makefile.in	2010-02-24 10:13:21.820951997 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/reference/libgail-util/Makefile.in gtk+2.0-2.19.7/docs/reference/libgail-util/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/reference/libgail-util/Makefile.in	2010-03-09 16:22:53.000000000 +0100
++++ gtk+2.0-2.19.7/docs/reference/libgail-util/Makefile.in	2010-03-12 16:04:09.596758786 +0100
 @@ -45,11 +45,14 @@
  	$(top_srcdir)/Makefile.decl $(top_srcdir)/gtk-doc.make
  subdir = docs/reference/libgail-util
@@ -8972,9 +8972,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/reference/libgail-util/Makefile.in gtk+2.0-2.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/reference/Makefile.in gtk+2.0-2.19.6/docs/reference/Makefile.in
---- gtk+2.0-2.19.6.old/docs/reference/Makefile.in	2010-02-23 19:23:06.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/reference/Makefile.in	2010-02-24 10:13:21.424952929 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/reference/Makefile.in gtk+2.0-2.19.7/docs/reference/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/reference/Makefile.in	2010-03-09 16:22:52.000000000 +0100
++++ gtk+2.0-2.19.7/docs/reference/Makefile.in	2010-03-12 16:04:09.232758950 +0100
 @@ -39,11 +39,14 @@
  	$(top_srcdir)/Makefile.decl AUTHORS COPYING ChangeLog
  subdir = docs/reference
@@ -9000,9 +9000,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/reference/Makefile.in gtk+2.0-2.19.6/docs/ref
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/tools/Makefile.in gtk+2.0-2.19.6/docs/tools/Makefile.in
---- gtk+2.0-2.19.6.old/docs/tools/Makefile.in	2010-02-23 19:23:06.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/tools/Makefile.in	2010-02-24 10:13:21.920951861 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/tools/Makefile.in gtk+2.0-2.19.7/docs/tools/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/tools/Makefile.in	2010-03-09 16:22:53.000000000 +0100
++++ gtk+2.0-2.19.7/docs/tools/Makefile.in	2010-03-12 16:04:09.688759577 +0100
 @@ -41,11 +41,14 @@
  @USE_X11_TRUE@noinst_PROGRAMS = doc-shooter$(EXEEXT)
  subdir = docs/tools
@@ -9028,9 +9028,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/tools/Makefile.in gtk+2.0-2.19.6/docs/tools/M
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/docs/tutorial/Makefile.in gtk+2.0-2.19.6/docs/tutorial/Makefile.in
---- gtk+2.0-2.19.6.old/docs/tutorial/Makefile.in	2010-02-23 19:23:06.000000000 +0100
-+++ gtk+2.0-2.19.6/docs/tutorial/Makefile.in	2010-02-24 10:13:22.000953374 +0100
+diff -Naur gtk+2.0-2.19.7.old/docs/tutorial/Makefile.in gtk+2.0-2.19.7/docs/tutorial/Makefile.in
+--- gtk+2.0-2.19.7.old/docs/tutorial/Makefile.in	2010-03-09 16:22:54.000000000 +0100
++++ gtk+2.0-2.19.7/docs/tutorial/Makefile.in	2010-03-12 16:04:09.768762826 +0100
 @@ -39,11 +39,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = docs/tutorial
@@ -9056,9 +9056,9 @@ diff -Naur gtk+2.0-2.19.6.old/docs/tutorial/Makefile.in gtk+2.0-2.19.6/docs/tuto
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gdk/directfb/Makefile.in gtk+2.0-2.19.6/gdk/directfb/Makefile.in
---- gtk+2.0-2.19.6.old/gdk/directfb/Makefile.in	2010-02-23 19:23:07.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk/directfb/Makefile.in	2010-02-24 10:13:22.676952213 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk/directfb/Makefile.in gtk+2.0-2.19.7/gdk/directfb/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk/directfb/Makefile.in	2010-03-09 16:22:54.000000000 +0100
++++ gtk+2.0-2.19.7/gdk/directfb/Makefile.in	2010-03-12 16:04:10.416760831 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl AUTHORS TODO
  subdir = gdk/directfb
@@ -9084,9 +9084,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk/directfb/Makefile.in gtk+2.0-2.19.6/gdk/direct
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gdk/Makefile.in gtk+2.0-2.19.6/gdk/Makefile.in
---- gtk+2.0-2.19.6.old/gdk/Makefile.in	2010-02-23 19:23:07.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk/Makefile.in	2010-02-24 10:13:22.572953033 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk/Makefile.in gtk+2.0-2.19.7/gdk/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk/Makefile.in	2010-03-09 16:22:54.000000000 +0100
++++ gtk+2.0-2.19.7/gdk/Makefile.in	2010-03-12 16:04:10.312760739 +0100
 @@ -45,11 +45,14 @@
  @HAVE_INTROSPECTION_TRUE@am__append_2 = $(dist_gir_DATA) $(typelibs_DATA)
  subdir = gdk
@@ -9112,9 +9112,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk/Makefile.in gtk+2.0-2.19.6/gdk/Makefile.in
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gdk/quartz/Makefile.in gtk+2.0-2.19.6/gdk/quartz/Makefile.in
---- gtk+2.0-2.19.6.old/gdk/quartz/Makefile.in	2010-02-23 19:23:07.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk/quartz/Makefile.in	2010-02-24 10:13:22.780952572 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk/quartz/Makefile.in gtk+2.0-2.19.7/gdk/quartz/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk/quartz/Makefile.in	2010-03-09 16:22:55.000000000 +0100
++++ gtk+2.0-2.19.7/gdk/quartz/Makefile.in	2010-03-12 16:04:10.516759373 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl
  subdir = gdk/quartz
@@ -9140,9 +9140,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk/quartz/Makefile.in gtk+2.0-2.19.6/gdk/quartz/M
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gdk/tests/Makefile.in gtk+2.0-2.19.6/gdk/tests/Makefile.in
---- gtk+2.0-2.19.6.old/gdk/tests/Makefile.in	2010-02-23 19:23:07.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk/tests/Makefile.in	2010-02-24 10:13:22.864953681 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk/tests/Makefile.in gtk+2.0-2.19.7/gdk/tests/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk/tests/Makefile.in	2010-03-09 16:22:55.000000000 +0100
++++ gtk+2.0-2.19.7/gdk/tests/Makefile.in	2010-03-12 16:04:10.596759694 +0100
 @@ -41,11 +41,14 @@
  TESTS = $(am__EXEEXT_1)
  subdir = gdk/tests
@@ -9168,9 +9168,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk/tests/Makefile.in gtk+2.0-2.19.6/gdk/tests/Mak
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gdk/win32/Makefile.in gtk+2.0-2.19.6/gdk/win32/Makefile.in
---- gtk+2.0-2.19.6.old/gdk/win32/Makefile.in	2010-02-23 19:23:07.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk/win32/Makefile.in	2010-02-24 10:13:22.972952326 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk/win32/Makefile.in gtk+2.0-2.19.7/gdk/win32/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk/win32/Makefile.in	2010-03-09 16:22:55.000000000 +0100
++++ gtk+2.0-2.19.7/gdk/win32/Makefile.in	2010-03-12 16:04:10.696759266 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl
  subdir = gdk/win32
@@ -9196,9 +9196,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk/win32/Makefile.in gtk+2.0-2.19.6/gdk/win32/Mak
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gdk/win32/rc/Makefile.in gtk+2.0-2.19.6/gdk/win32/rc/Makefile.in
---- gtk+2.0-2.19.6.old/gdk/win32/rc/Makefile.in	2010-02-23 19:23:08.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk/win32/rc/Makefile.in	2010-02-24 10:13:23.052952655 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk/win32/rc/Makefile.in gtk+2.0-2.19.7/gdk/win32/rc/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk/win32/rc/Makefile.in	2010-03-09 16:22:56.000000000 +0100
++++ gtk+2.0-2.19.7/gdk/win32/rc/Makefile.in	2010-03-12 16:04:10.772758865 +0100
 @@ -40,11 +40,14 @@
  	$(srcdir)/gdk.rc.in $(top_srcdir)/Makefile.decl
  subdir = gdk/win32/rc
@@ -9224,9 +9224,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk/win32/rc/Makefile.in gtk+2.0-2.19.6/gdk/win32/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gdk/x11/Makefile.in gtk+2.0-2.19.6/gdk/x11/Makefile.in
---- gtk+2.0-2.19.6.old/gdk/x11/Makefile.in	2010-02-23 19:23:08.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk/x11/Makefile.in	2010-02-24 10:13:23.176954169 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk/x11/Makefile.in gtk+2.0-2.19.7/gdk/x11/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk/x11/Makefile.in	2010-03-09 16:22:56.000000000 +0100
++++ gtk+2.0-2.19.7/gdk/x11/Makefile.in	2010-03-12 16:04:10.884759068 +0100
 @@ -46,11 +46,14 @@
  TESTS = checksettings$(EXEEXT)
  subdir = gdk/x11
@@ -9252,9 +9252,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk/x11/Makefile.in gtk+2.0-2.19.6/gdk/x11/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gdk-pixbuf/Makefile.in gtk+2.0-2.19.6/gdk-pixbuf/Makefile.in
---- gtk+2.0-2.19.6.old/gdk-pixbuf/Makefile.in	2010-02-23 19:23:07.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk-pixbuf/Makefile.in	2010-02-24 10:13:22.296952859 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk-pixbuf/Makefile.in gtk+2.0-2.19.7/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk-pixbuf/Makefile.in	2010-03-09 16:22:54.000000000 +0100
++++ gtk+2.0-2.19.7/gdk-pixbuf/Makefile.in	2010-03-12 16:04:10.048759530 +0100
 @@ -51,11 +51,14 @@
  @HAVE_INTROSPECTION_TRUE@am__append_2 = $(dist_gir_DATA) $(typelibs_DATA)
  subdir = gdk-pixbuf
@@ -9297,9 +9297,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk-pixbuf/Makefile.in gtk+2.0-2.19.6/gdk-pixbuf/M
  LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
  test_gdk_pixbuf_LDADD = $(LDADDS)
  gdk_pixbuf_csource_SOURCES = gdk-pixbuf-csource.c
-diff -Naur gtk+2.0-2.19.6.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.19.6/gdk-pixbuf/pixops/Makefile.in
---- gtk+2.0-2.19.6.old/gdk-pixbuf/pixops/Makefile.in	2010-02-23 19:23:07.000000000 +0100
-+++ gtk+2.0-2.19.6/gdk-pixbuf/pixops/Makefile.in	2010-02-24 10:13:22.408953758 +0100
+diff -Naur gtk+2.0-2.19.7.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.19.7/gdk-pixbuf/pixops/Makefile.in
+--- gtk+2.0-2.19.7.old/gdk-pixbuf/pixops/Makefile.in	2010-03-09 16:22:54.000000000 +0100
++++ gtk+2.0-2.19.7/gdk-pixbuf/pixops/Makefile.in	2010-03-12 16:04:10.156759984 +0100
 @@ -42,11 +42,14 @@
  noinst_PROGRAMS = timescale$(EXEEXT)
  subdir = gdk-pixbuf/pixops
@@ -9325,9 +9325,9 @@ diff -Naur gtk+2.0-2.19.6.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.19.6/gdk-p
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gtk/Makefile.in gtk+2.0-2.19.6/gtk/Makefile.in
---- gtk+2.0-2.19.6.old/gtk/Makefile.in	2010-02-23 19:23:08.000000000 +0100
-+++ gtk+2.0-2.19.6/gtk/Makefile.in	2010-02-24 10:13:23.536954880 +0100
+diff -Naur gtk+2.0-2.19.7.old/gtk/Makefile.in gtk+2.0-2.19.7/gtk/Makefile.in
+--- gtk+2.0-2.19.7.old/gtk/Makefile.in	2010-03-09 16:22:56.000000000 +0100
++++ gtk+2.0-2.19.7/gtk/Makefile.in	2010-03-12 16:04:11.224759400 +0100
 @@ -77,11 +77,14 @@
  
  subdir = gtk
@@ -9392,9 +9392,9 @@ diff -Naur gtk+2.0-2.19.6.old/gtk/Makefile.in gtk+2.0-2.19.6/gtk/Makefile.in
  	gtkmnemonichash.h gtkmountoperationprivate.h gtkpathbar.h \
  	gtkplugprivate.h gtkprintoperation-private.h gtkprintutils.h \
  	gtkrbtree.h gtkrecentchooserdefault.h \
-diff -Naur gtk+2.0-2.19.6.old/gtk/tests/Makefile.in gtk+2.0-2.19.6/gtk/tests/Makefile.in
---- gtk+2.0-2.19.6.old/gtk/tests/Makefile.in	2010-02-23 19:23:08.000000000 +0100
-+++ gtk+2.0-2.19.6/gtk/tests/Makefile.in	2010-02-24 10:13:23.668954060 +0100
+diff -Naur gtk+2.0-2.19.7.old/gtk/tests/Makefile.in gtk+2.0-2.19.7/gtk/tests/Makefile.in
+--- gtk+2.0-2.19.7.old/gtk/tests/Makefile.in	2010-03-09 16:22:56.000000000 +0100
++++ gtk+2.0-2.19.7/gtk/tests/Makefile.in	2010-03-12 16:04:11.352759679 +0100
 @@ -42,11 +42,14 @@
  @OS_UNIX_TRUE@am__append_1 = defaultvalue
  subdir = gtk/tests
@@ -9420,9 +9420,9 @@ diff -Naur gtk+2.0-2.19.6.old/gtk/tests/Makefile.in gtk+2.0-2.19.6/gtk/tests/Mak
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/gtk/theme-bits/Makefile.in gtk+2.0-2.19.6/gtk/theme-bits/Makefile.in
---- gtk+2.0-2.19.6.old/gtk/theme-bits/Makefile.in	2010-02-23 19:23:08.000000000 +0100
-+++ gtk+2.0-2.19.6/gtk/theme-bits/Makefile.in	2010-02-24 10:13:23.768952094 +0100
+diff -Naur gtk+2.0-2.19.7.old/gtk/theme-bits/Makefile.in gtk+2.0-2.19.7/gtk/theme-bits/Makefile.in
+--- gtk+2.0-2.19.7.old/gtk/theme-bits/Makefile.in	2010-03-09 16:22:57.000000000 +0100
++++ gtk+2.0-2.19.7/gtk/theme-bits/Makefile.in	2010-03-12 16:04:11.444759015 +0100
 @@ -41,11 +41,14 @@
  noinst_PROGRAMS = decompose-bits$(EXEEXT)
  subdir = gtk/theme-bits
@@ -9448,9 +9448,9 @@ diff -Naur gtk+2.0-2.19.6.old/gtk/theme-bits/Makefile.in gtk+2.0-2.19.6/gtk/them
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/ltmain.sh gtk+2.0-2.19.6/ltmain.sh
---- gtk+2.0-2.19.6.old/ltmain.sh	2010-01-21 22:11:50.000000000 +0100
-+++ gtk+2.0-2.19.6/ltmain.sh	2010-02-24 10:13:13.037955285 +0100
+diff -Naur gtk+2.0-2.19.7.old/ltmain.sh gtk+2.0-2.19.7/ltmain.sh
+--- gtk+2.0-2.19.7.old/ltmain.sh	2010-01-21 22:11:50.000000000 +0100
++++ gtk+2.0-2.19.7/ltmain.sh	2010-03-12 16:04:02.155762229 +0100
 @@ -65,7 +65,7 @@
  #       compiler:		$LTCC
  #       compiler flags:		$LTCFLAGS
@@ -9529,9 +9529,9 @@ diff -Naur gtk+2.0-2.19.6.old/ltmain.sh gtk+2.0-2.19.6/ltmain.sh
  	  esac
  	  ;;
  	no)
-diff -Naur gtk+2.0-2.19.6.old/m4/gtk-doc.m4 gtk+2.0-2.19.6/m4/gtk-doc.m4
---- gtk+2.0-2.19.6.old/m4/gtk-doc.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gtk+2.0-2.19.6/m4/gtk-doc.m4	2010-02-24 10:13:13.521952971 +0100
+diff -Naur gtk+2.0-2.19.7.old/m4/gtk-doc.m4 gtk+2.0-2.19.7/m4/gtk-doc.m4
+--- gtk+2.0-2.19.7.old/m4/gtk-doc.m4	1970-01-01 01:00:00.000000000 +0100
++++ gtk+2.0-2.19.7/m4/gtk-doc.m4	2010-03-12 16:04:02.715772223 +0100
 @@ -0,0 +1,61 @@
 +dnl -*- mode: autoconf -*-
 +
@@ -9594,9 +9594,9 @@ diff -Naur gtk+2.0-2.19.6.old/m4/gtk-doc.m4 gtk+2.0-2.19.6/m4/gtk-doc.m4
 +  AM_CONDITIONAL([GTK_DOC_USE_LIBTOOL], [test -n "$LIBTOOL"])
 +  AM_CONDITIONAL([GTK_DOC_USE_REBASE], [test -n "$GTKDOC_REBASE"])
 +])
-diff -Naur gtk+2.0-2.19.6.old/m4/libtool.m4 gtk+2.0-2.19.6/m4/libtool.m4
---- gtk+2.0-2.19.6.old/m4/libtool.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gtk+2.0-2.19.6/m4/libtool.m4	2010-02-24 10:13:13.085980176 +0100
+diff -Naur gtk+2.0-2.19.7.old/m4/libtool.m4 gtk+2.0-2.19.7/m4/libtool.m4
+--- gtk+2.0-2.19.7.old/m4/libtool.m4	1970-01-01 01:00:00.000000000 +0100
++++ gtk+2.0-2.19.7/m4/libtool.m4	2010-03-12 16:04:02.199760833 +0100
 @@ -0,0 +1,7377 @@
 +# libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
 +#
@@ -16975,9 +16975,9 @@ diff -Naur gtk+2.0-2.19.6.old/m4/libtool.m4 gtk+2.0-2.19.6/m4/libtool.m4
 +    ;;
 +  esac
 +])
-diff -Naur gtk+2.0-2.19.6.old/m4/lt~obsolete.m4 gtk+2.0-2.19.6/m4/lt~obsolete.m4
---- gtk+2.0-2.19.6.old/m4/lt~obsolete.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gtk+2.0-2.19.6/m4/lt~obsolete.m4	2010-02-24 10:13:13.404953038 +0100
+diff -Naur gtk+2.0-2.19.7.old/m4/lt~obsolete.m4 gtk+2.0-2.19.7/m4/lt~obsolete.m4
+--- gtk+2.0-2.19.7.old/m4/lt~obsolete.m4	1970-01-01 01:00:00.000000000 +0100
++++ gtk+2.0-2.19.7/m4/lt~obsolete.m4	2010-03-12 16:04:02.531773639 +0100
 @@ -0,0 +1,92 @@
 +# lt~obsolete.m4 -- aclocal satisfying obsolete definitions.    -*-Autoconf-*-
 +#
@@ -17071,9 +17071,9 @@ diff -Naur gtk+2.0-2.19.6.old/m4/lt~obsolete.m4 gtk+2.0-2.19.6/m4/lt~obsolete.m4
 +m4_ifndef([_LT_AC_LANG_RC_CONFIG],	[AC_DEFUN([_LT_AC_LANG_RC_CONFIG])])
 +m4_ifndef([AC_LIBTOOL_CONFIG],		[AC_DEFUN([AC_LIBTOOL_CONFIG])])
 +m4_ifndef([_LT_AC_FILE_LTDLL_C],	[AC_DEFUN([_LT_AC_FILE_LTDLL_C])])
-diff -Naur gtk+2.0-2.19.6.old/m4/ltoptions.m4 gtk+2.0-2.19.6/m4/ltoptions.m4
---- gtk+2.0-2.19.6.old/m4/ltoptions.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gtk+2.0-2.19.6/m4/ltoptions.m4	2010-02-24 10:13:13.161980128 +0100
+diff -Naur gtk+2.0-2.19.7.old/m4/ltoptions.m4 gtk+2.0-2.19.7/m4/ltoptions.m4
+--- gtk+2.0-2.19.7.old/m4/ltoptions.m4	1970-01-01 01:00:00.000000000 +0100
++++ gtk+2.0-2.19.7/m4/ltoptions.m4	2010-03-12 16:04:02.275760780 +0100
 @@ -0,0 +1,368 @@
 +# Helper functions for option handling.                    -*- Autoconf -*-
 +#
@@ -17443,9 +17443,9 @@ diff -Naur gtk+2.0-2.19.6.old/m4/ltoptions.m4 gtk+2.0-2.19.6/m4/ltoptions.m4
 +		 [m4_define([_LTDL_TYPE], [installable])])
 +LT_OPTION_DEFINE([LTDL_INIT], [convenience],
 +		 [m4_define([_LTDL_TYPE], [convenience])])
-diff -Naur gtk+2.0-2.19.6.old/m4/ltsugar.m4 gtk+2.0-2.19.6/m4/ltsugar.m4
---- gtk+2.0-2.19.6.old/m4/ltsugar.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gtk+2.0-2.19.6/m4/ltsugar.m4	2010-02-24 10:13:13.264954099 +0100
+diff -Naur gtk+2.0-2.19.7.old/m4/ltsugar.m4 gtk+2.0-2.19.7/m4/ltsugar.m4
+--- gtk+2.0-2.19.7.old/m4/ltsugar.m4	1970-01-01 01:00:00.000000000 +0100
++++ gtk+2.0-2.19.7/m4/ltsugar.m4	2010-03-12 16:04:02.347760716 +0100
 @@ -0,0 +1,123 @@
 +# ltsugar.m4 -- libtool m4 base layer.                         -*-Autoconf-*-
 +#
@@ -17570,9 +17570,9 @@ diff -Naur gtk+2.0-2.19.6.old/m4/ltsugar.m4 gtk+2.0-2.19.6/m4/ltsugar.m4
 +           lt_unquote(m4_split(m4_normalize(m4_foreach(_Lt_key, lt_car([m4_shiftn(4, $@)]),
 +		      [lt_if_dict_fetch([$1], _Lt_key, [$2], [$3], [_Lt_key ])])))))])[]dnl
 +])
-diff -Naur gtk+2.0-2.19.6.old/m4/ltversion.m4 gtk+2.0-2.19.6/m4/ltversion.m4
---- gtk+2.0-2.19.6.old/m4/ltversion.m4	1970-01-01 01:00:00.000000000 +0100
-+++ gtk+2.0-2.19.6/m4/ltversion.m4	2010-02-24 10:13:13.332953312 +0100
+diff -Naur gtk+2.0-2.19.7.old/m4/ltversion.m4 gtk+2.0-2.19.7/m4/ltversion.m4
+--- gtk+2.0-2.19.7.old/m4/ltversion.m4	1970-01-01 01:00:00.000000000 +0100
++++ gtk+2.0-2.19.7/m4/ltversion.m4	2010-03-12 16:04:02.427760271 +0100
 @@ -0,0 +1,23 @@
 +# ltversion.m4 -- version numbers			-*- Autoconf -*-
 +#
@@ -17597,9 +17597,9 @@ diff -Naur gtk+2.0-2.19.6.old/m4/ltversion.m4 gtk+2.0-2.19.6/m4/ltversion.m4
 +_LT_DECL(, macro_version, 0, [Which release of libtool.m4 was used?])
 +_LT_DECL(, macro_revision, 0)
 +])
-diff -Naur gtk+2.0-2.19.6.old/m4macros/Makefile.in gtk+2.0-2.19.6/m4macros/Makefile.in
---- gtk+2.0-2.19.6.old/m4macros/Makefile.in	2010-02-23 19:23:08.000000000 +0100
-+++ gtk+2.0-2.19.6/m4macros/Makefile.in	2010-02-24 10:13:23.852953692 +0100
+diff -Naur gtk+2.0-2.19.7.old/m4macros/Makefile.in gtk+2.0-2.19.7/m4macros/Makefile.in
+--- gtk+2.0-2.19.7.old/m4macros/Makefile.in	2010-03-09 16:22:57.000000000 +0100
++++ gtk+2.0-2.19.7/m4macros/Makefile.in	2010-03-12 16:04:11.524759482 +0100
 @@ -40,11 +40,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = m4macros
@@ -17625,9 +17625,9 @@ diff -Naur gtk+2.0-2.19.6.old/m4macros/Makefile.in gtk+2.0-2.19.6/m4macros/Makef
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/Makefile.in gtk+2.0-2.19.6/Makefile.in
---- gtk+2.0-2.19.6.old/Makefile.in	2010-02-23 19:23:11.000000000 +0100
-+++ gtk+2.0-2.19.6/Makefile.in	2010-02-24 10:13:26.460952616 +0100
+diff -Naur gtk+2.0-2.19.7.old/Makefile.in gtk+2.0-2.19.7/Makefile.in
+--- gtk+2.0-2.19.7.old/Makefile.in	2010-03-09 16:23:01.000000000 +0100
++++ gtk+2.0-2.19.7/Makefile.in	2010-03-12 16:04:13.944758805 +0100
 @@ -47,17 +47,20 @@
  	$(srcdir)/gtk+-unix-print-2.0.pc.in $(srcdir)/gtk-zip.sh.in \
  	$(top_srcdir)/Makefile.decl $(top_srcdir)/configure AUTHORS \
@@ -17682,9 +17682,9 @@ diff -Naur gtk+2.0-2.19.6.old/Makefile.in gtk+2.0-2.19.6/Makefile.in
  SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros
  
  # require automake 1.4
-diff -Naur gtk+2.0-2.19.6.old/mkinstalldirs gtk+2.0-2.19.6/mkinstalldirs
---- gtk+2.0-2.19.6.old/mkinstalldirs	1970-01-01 01:00:00.000000000 +0100
-+++ gtk+2.0-2.19.6/mkinstalldirs	2010-02-24 10:13:26.400955744 +0100
+diff -Naur gtk+2.0-2.19.7.old/mkinstalldirs gtk+2.0-2.19.7/mkinstalldirs
+--- gtk+2.0-2.19.7.old/mkinstalldirs	1970-01-01 01:00:00.000000000 +0100
++++ gtk+2.0-2.19.7/mkinstalldirs	2010-03-12 16:04:13.888761881 +0100
 @@ -0,0 +1,162 @@
 +#! /bin/sh
 +# mkinstalldirs --- make directory hierarchy
@@ -17848,9 +17848,9 @@ diff -Naur gtk+2.0-2.19.6.old/mkinstalldirs gtk+2.0-2.19.6/mkinstalldirs
 +# time-stamp-time-zone: "UTC"
 +# time-stamp-end: "; # UTC"
 +# End:
-diff -Naur gtk+2.0-2.19.6.old/modules/engines/Makefile.in gtk+2.0-2.19.6/modules/engines/Makefile.in
---- gtk+2.0-2.19.6.old/modules/engines/Makefile.in	2010-02-23 19:23:09.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/engines/Makefile.in	2010-02-24 10:13:24.016952546 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/engines/Makefile.in gtk+2.0-2.19.7/modules/engines/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/engines/Makefile.in	2010-03-09 16:22:58.000000000 +0100
++++ gtk+2.0-2.19.7/modules/engines/Makefile.in	2010-03-12 16:04:11.680758771 +0100
 @@ -39,11 +39,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = modules/engines
@@ -17876,9 +17876,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/engines/Makefile.in gtk+2.0-2.19.6/modules
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.19.6/modules/engines/ms-windows/Makefile.in
---- gtk+2.0-2.19.6.old/modules/engines/ms-windows/Makefile.in	2010-02-23 19:23:09.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/engines/ms-windows/Makefile.in	2010-02-24 10:13:24.120952640 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.19.7/modules/engines/ms-windows/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/engines/ms-windows/Makefile.in	2010-03-09 16:22:58.000000000 +0100
++++ gtk+2.0-2.19.7/modules/engines/ms-windows/Makefile.in	2010-03-12 16:04:11.780759184 +0100
 @@ -40,11 +40,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = modules/engines/ms-windows
@@ -17904,9 +17904,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.1
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.19.6/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
---- gtk+2.0-2.19.6.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2010-02-23 19:23:09.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2010-02-24 10:13:24.280952572 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.19.7/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2010-03-09 16:22:58.000000000 +0100
++++ gtk+2.0-2.19.7/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2010-03-12 16:04:11.936758765 +0100
 @@ -40,11 +40,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = modules/engines/ms-windows/Theme/gtk-2.0
@@ -17932,9 +17932,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.19.6/modules/engines/ms-windows/Theme/Makefile.in
---- gtk+2.0-2.19.6.old/modules/engines/ms-windows/Theme/Makefile.in	2010-02-23 19:23:09.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/engines/ms-windows/Theme/Makefile.in	2010-02-24 10:13:24.200952747 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.19.7/modules/engines/ms-windows/Theme/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/engines/ms-windows/Theme/Makefile.in	2010-03-09 16:22:58.000000000 +0100
++++ gtk+2.0-2.19.7/modules/engines/ms-windows/Theme/Makefile.in	2010-03-12 16:04:11.860759159 +0100
 @@ -39,11 +39,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = modules/engines/ms-windows/Theme
@@ -17960,9 +17960,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.19.6/modules/engines/pixbuf/Makefile.in
---- gtk+2.0-2.19.6.old/modules/engines/pixbuf/Makefile.in	2010-02-23 19:23:09.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/engines/pixbuf/Makefile.in	2010-02-24 10:13:24.384953081 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.19.7/modules/engines/pixbuf/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/engines/pixbuf/Makefile.in	2010-03-09 16:22:58.000000000 +0100
++++ gtk+2.0-2.19.7/modules/engines/pixbuf/Makefile.in	2010-03-12 16:04:12.036760030 +0100
 @@ -40,11 +40,14 @@
  	$(top_srcdir)/Makefile.decl ChangeLog
  subdir = modules/engines/pixbuf
@@ -17988,9 +17988,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.19.6/
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/input/Makefile.in gtk+2.0-2.19.6/modules/input/Makefile.in
---- gtk+2.0-2.19.6.old/modules/input/Makefile.in	2010-02-23 19:23:09.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/input/Makefile.in	2010-02-24 10:13:24.584952533 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/input/Makefile.in gtk+2.0-2.19.7/modules/input/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/input/Makefile.in	2010-03-09 16:22:58.000000000 +0100
++++ gtk+2.0-2.19.7/modules/input/Makefile.in	2010-03-12 16:04:12.224759051 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl
  subdir = modules/input
@@ -18046,9 +18046,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/input/Makefile.in gtk+2.0-2.19.6/modules/i
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  
-diff -Naur gtk+2.0-2.19.6.old/modules/Makefile.in gtk+2.0-2.19.6/modules/Makefile.in
---- gtk+2.0-2.19.6.old/modules/Makefile.in	2010-02-23 19:23:09.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/Makefile.in	2010-02-24 10:13:23.932952828 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/Makefile.in gtk+2.0-2.19.7/modules/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/Makefile.in	2010-03-09 16:22:57.000000000 +0100
++++ gtk+2.0-2.19.7/modules/Makefile.in	2010-03-12 16:04:11.604759174 +0100
 @@ -40,11 +40,14 @@
  @OS_UNIX_TRUE@am__append_1 = printbackends
  subdir = modules
@@ -18074,9 +18074,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/Makefile.in gtk+2.0-2.19.6/modules/Makefil
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/other/gail/libgail-util/Makefile.in gtk+2.0-2.19.6/modules/other/gail/libgail-util/Makefile.in
---- gtk+2.0-2.19.6.old/modules/other/gail/libgail-util/Makefile.in	2010-02-23 19:23:10.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/other/gail/libgail-util/Makefile.in	2010-02-24 10:13:25.101952180 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/other/gail/libgail-util/Makefile.in gtk+2.0-2.19.7/modules/other/gail/libgail-util/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/other/gail/libgail-util/Makefile.in	2010-03-09 16:22:59.000000000 +0100
++++ gtk+2.0-2.19.7/modules/other/gail/libgail-util/Makefile.in	2010-03-12 16:04:12.716759082 +0100
 @@ -42,11 +42,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl
  subdir = modules/other/gail/libgail-util
@@ -18102,9 +18102,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/other/gail/libgail-util/Makefile.in gtk+2.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/other/gail/Makefile.in gtk+2.0-2.19.6/modules/other/gail/Makefile.in
---- gtk+2.0-2.19.6.old/modules/other/gail/Makefile.in	2010-02-23 19:23:10.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/other/gail/Makefile.in	2010-02-24 10:13:24.976952625 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/other/gail/Makefile.in gtk+2.0-2.19.7/modules/other/gail/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/other/gail/Makefile.in	2010-03-09 16:22:59.000000000 +0100
++++ gtk+2.0-2.19.7/modules/other/gail/Makefile.in	2010-03-12 16:04:12.604759454 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl ChangeLog
  subdir = modules/other/gail
@@ -18130,9 +18130,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/other/gail/Makefile.in gtk+2.0-2.19.6/modu
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/other/gail/tests/Makefile.in gtk+2.0-2.19.6/modules/other/gail/tests/Makefile.in
---- gtk+2.0-2.19.6.old/modules/other/gail/tests/Makefile.in	2010-02-23 19:23:10.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/other/gail/tests/Makefile.in	2010-02-24 10:13:25.265953179 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/other/gail/tests/Makefile.in gtk+2.0-2.19.7/modules/other/gail/tests/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/other/gail/tests/Makefile.in	2010-03-09 16:22:59.000000000 +0100
++++ gtk+2.0-2.19.7/modules/other/gail/tests/Makefile.in	2010-03-12 16:04:12.864758970 +0100
 @@ -40,11 +40,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = modules/other/gail/tests
@@ -18158,9 +18158,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/other/gail/tests/Makefile.in gtk+2.0-2.19.
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/other/Makefile.in gtk+2.0-2.19.6/modules/other/Makefile.in
---- gtk+2.0-2.19.6.old/modules/other/Makefile.in	2010-02-23 19:23:09.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/other/Makefile.in	2010-02-24 10:13:24.664952085 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/other/Makefile.in gtk+2.0-2.19.7/modules/other/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/other/Makefile.in	2010-03-09 16:22:58.000000000 +0100
++++ gtk+2.0-2.19.7/modules/other/Makefile.in	2010-03-12 16:04:12.304758814 +0100
 @@ -39,11 +39,14 @@
  	$(top_srcdir)/Makefile.decl
  subdir = modules/other
@@ -18186,9 +18186,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/other/Makefile.in gtk+2.0-2.19.6/modules/o
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.19.6/modules/printbackends/cups/Makefile.in
---- gtk+2.0-2.19.6.old/modules/printbackends/cups/Makefile.in	2010-02-23 19:23:10.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/printbackends/cups/Makefile.in	2010-02-24 10:13:25.457952444 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.19.7/modules/printbackends/cups/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/printbackends/cups/Makefile.in	2010-03-09 16:22:59.000000000 +0100
++++ gtk+2.0-2.19.7/modules/printbackends/cups/Makefile.in	2010-03-12 16:04:13.044758812 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl
  subdir = modules/printbackends/cups
@@ -18214,9 +18214,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.1
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/file/Makefile.in gtk+2.0-2.19.6/modules/printbackends/file/Makefile.in
---- gtk+2.0-2.19.6.old/modules/printbackends/file/Makefile.in	2010-02-23 19:23:10.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/printbackends/file/Makefile.in	2010-02-24 10:13:25.569951534 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/printbackends/file/Makefile.in gtk+2.0-2.19.7/modules/printbackends/file/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/printbackends/file/Makefile.in	2010-03-09 16:23:00.000000000 +0100
++++ gtk+2.0-2.19.7/modules/printbackends/file/Makefile.in	2010-03-12 16:04:13.148760364 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl
  subdir = modules/printbackends/file
@@ -18242,9 +18242,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/file/Makefile.in gtk+2.0-2.1
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.19.6/modules/printbackends/lpr/Makefile.in
---- gtk+2.0-2.19.6.old/modules/printbackends/lpr/Makefile.in	2010-02-23 19:23:11.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/printbackends/lpr/Makefile.in	2010-02-24 10:13:25.677953877 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.19.7/modules/printbackends/lpr/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/printbackends/lpr/Makefile.in	2010-03-09 16:23:00.000000000 +0100
++++ gtk+2.0-2.19.7/modules/printbackends/lpr/Makefile.in	2010-03-12 16:04:13.248758957 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl
  subdir = modules/printbackends/lpr
@@ -18270,9 +18270,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.19
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/Makefile.in gtk+2.0-2.19.6/modules/printbackends/Makefile.in
---- gtk+2.0-2.19.6.old/modules/printbackends/Makefile.in	2010-02-23 19:23:10.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/printbackends/Makefile.in	2010-02-24 10:13:25.353952561 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/printbackends/Makefile.in gtk+2.0-2.19.7/modules/printbackends/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/printbackends/Makefile.in	2010-03-09 16:22:59.000000000 +0100
++++ gtk+2.0-2.19.7/modules/printbackends/Makefile.in	2010-03-12 16:04:12.944758875 +0100
 @@ -42,11 +42,14 @@
  @HAVE_PAPI_TRUE@am__append_3 = papi
  subdir = modules/printbackends
@@ -18298,9 +18298,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/Makefile.in gtk+2.0-2.19.6/m
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/papi/Makefile.in gtk+2.0-2.19.6/modules/printbackends/papi/Makefile.in
---- gtk+2.0-2.19.6.old/modules/printbackends/papi/Makefile.in	2010-02-23 19:23:11.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/printbackends/papi/Makefile.in	2010-02-24 10:13:25.777952330 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/printbackends/papi/Makefile.in gtk+2.0-2.19.7/modules/printbackends/papi/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/printbackends/papi/Makefile.in	2010-03-09 16:23:00.000000000 +0100
++++ gtk+2.0-2.19.7/modules/printbackends/papi/Makefile.in	2010-03-12 16:04:13.344758871 +0100
 @@ -39,11 +39,14 @@
  DIST_COMMON = $(noinst_HEADERS) $(srcdir)/Makefile.am \
  	$(srcdir)/Makefile.in
@@ -18326,9 +18326,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/papi/Makefile.in gtk+2.0-2.1
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/test/Makefile.in gtk+2.0-2.19.6/modules/printbackends/test/Makefile.in
---- gtk+2.0-2.19.6.old/modules/printbackends/test/Makefile.in	2010-02-23 19:23:11.000000000 +0100
-+++ gtk+2.0-2.19.6/modules/printbackends/test/Makefile.in	2010-02-24 10:13:25.892952143 +0100
+diff -Naur gtk+2.0-2.19.7.old/modules/printbackends/test/Makefile.in gtk+2.0-2.19.7/modules/printbackends/test/Makefile.in
+--- gtk+2.0-2.19.7.old/modules/printbackends/test/Makefile.in	2010-03-09 16:23:00.000000000 +0100
++++ gtk+2.0-2.19.7/modules/printbackends/test/Makefile.in	2010-03-12 16:04:13.444759085 +0100
 @@ -41,11 +41,14 @@
  	$(srcdir)/Makefile.in $(top_srcdir)/Makefile.decl
  subdir = modules/printbackends/test
@@ -18354,9 +18354,9 @@ diff -Naur gtk+2.0-2.19.6.old/modules/printbackends/test/Makefile.in gtk+2.0-2.1
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/perf/Makefile.in gtk+2.0-2.19.6/perf/Makefile.in
---- gtk+2.0-2.19.6.old/perf/Makefile.in	2010-02-23 19:23:11.000000000 +0100
-+++ gtk+2.0-2.19.6/perf/Makefile.in	2010-02-24 10:13:25.996953145 +0100
+diff -Naur gtk+2.0-2.19.7.old/perf/Makefile.in gtk+2.0-2.19.7/perf/Makefile.in
+--- gtk+2.0-2.19.7.old/perf/Makefile.in	2010-03-09 16:23:00.000000000 +0100
++++ gtk+2.0-2.19.7/perf/Makefile.in	2010-03-12 16:04:13.544758882 +0100
 @@ -41,11 +41,14 @@
  noinst_PROGRAMS = testperf$(EXEEXT)
  subdir = perf
@@ -18382,9 +18382,9 @@ diff -Naur gtk+2.0-2.19.6.old/perf/Makefile.in gtk+2.0-2.19.6/perf/Makefile.in
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-diff -Naur gtk+2.0-2.19.6.old/po/Makefile.in.in gtk+2.0-2.19.6/po/Makefile.in.in
---- gtk+2.0-2.19.6.old/po/Makefile.in.in	2009-12-19 03:54:51.000000000 +0100
-+++ gtk+2.0-2.19.6/po/Makefile.in.in	2010-02-24 10:13:13.505962669 +0100
+diff -Naur gtk+2.0-2.19.7.old/po/Makefile.in.in gtk+2.0-2.19.7/po/Makefile.in.in
+--- gtk+2.0-2.19.7.old/po/Makefile.in.in	2009-12-19 03:54:51.000000000 +0100
++++ gtk+2.0-2.19.7/po/Makefile.in.in	2010-03-12 16:04:02.675781252 +0100
 @@ -25,22 +25,23 @@
  
  prefix = @prefix@
@@ -18496,9 +18496,9 @@ diff -Naur gtk+2.0-2.19.6.old/po/Makefile.in.in gtk+2.0-2.19.6/po/Makefile.in.in
  	  $(INSTALL_DATA) $(srcdir)/Makefile.in.in \
  			  $(DESTDIR)$(gettextsrcdir)/Makefile.in.in; \
  	else \
-diff -Naur gtk+2.0-2.19.6.old/tests/Makefile.in gtk+2.0-2.19.6/tests/Makefile.in
---- gtk+2.0-2.19.6.old/tests/Makefile.in	2010-02-23 19:23:11.000000000 +0100
-+++ gtk+2.0-2.19.6/tests/Makefile.in	2010-02-24 10:13:26.260952893 +0100
+diff -Naur gtk+2.0-2.19.7.old/tests/Makefile.in gtk+2.0-2.19.7/tests/Makefile.in
+--- gtk+2.0-2.19.7.old/tests/Makefile.in	2010-03-09 16:23:00.000000000 +0100
++++ gtk+2.0-2.19.7/tests/Makefile.in	2010-03-12 16:04:13.792759034 +0100
 @@ -75,11 +75,14 @@
  @HAVE_CXX_TRUE@@HAVE_OBJC_TRUE@am__append_2 = -DHAVE_OBJC=1 -x objective-c++
  subdir = tests
