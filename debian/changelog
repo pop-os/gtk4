@@ -2,7 +2,7 @@ gtk+2.0 (2.19.7-2) UNRELEASED; urgency=low
 
   [ Cyril Brulebois ]
   * Switch udeb from DirectFB to Xlib to prepare the move to an X11-based
-    graphical installer:
+    graphical installer. Closes: #573872.
      - Replace libgtk-directfb-2.0-0-udeb with libgtk-x11-udeb in control
        file.
      - Update description accordingly.
