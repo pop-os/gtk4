@@ -1,3 +1,40 @@
+gtk+2.0 (2.19.7-2) UNRELEASED; urgency=low
+
+  * Switch udeb from DirectFB to Xlib to prepare the move to an X11-based
+    graphical installer:
+     - Replace libgtk-directfb-2.0-0-udeb with libgtk-x11-udeb in control
+       file.
+     - Update description accordingly.
+     - Update .install.in accordingly, using the “shared_udeb” flavour,
+       based on the “shared” one, but with a few X11 extensions disabled.
+     - Update package name and file paths accordingly in rules file.
+  * Version/Bump some B-D to make sure the udeb gets proper dependencies
+    on the recently reworked/added udebs:
+     - libx11-dev
+     - libxcursor-dev
+     - libxext-dev
+     - libxi-dev
+     - libxinerama-dev
+     - libxrender-dev
+  * Add one patch to make it possible to disable X11 extensions, and
+    refresh the other one accordingly:
+     - 005_support_disabling_x11_extensions.patch
+     - 070_mandatory-relibtoolize.patch
+  * Ship a minimal MIME database in the udeb, since the loaders mechanism
+    isn’t sufficient to get proper PNG support:
+     - Add shared-mime-info to Build-Depends to ensure that the
+       update-mime-database tool is available at build-time, as well as
+       the source freedesktop.org.xml file.
+     - Add debian/keep-png-only.xsl to only keep the mime-type matching
+       type="image/png". Matching with namespaces is tricky, see the
+       comments in the XSL file for the details.
+     - Build a MIME cache, and only ship the resulting mime.cache file
+       under /usr/share/mime in the udeb.
+     - While this is dirty, that should do the trick until it is needed
+       for shared-mime-info to ship its own udeb.
+
+ -- Cyril Brulebois <kibi@debian.org>  Fri, 26 Feb 2010 01:08:15 +0000
+
 gtk+2.0 (2.19.7-1) experimental; urgency=low
 
   * New upstream development release:
