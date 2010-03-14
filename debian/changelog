@@ -1,5 +1,6 @@
 gtk+2.0 (2.19.7-2) UNRELEASED; urgency=low
 
+  [ Cyril Brulebois ]
   * Switch udeb from DirectFB to Xlib to prepare the move to an X11-based
     graphical installer:
      - Replace libgtk-directfb-2.0-0-udeb with libgtk-x11-udeb in control
@@ -33,7 +34,11 @@ gtk+2.0 (2.19.7-2) UNRELEASED; urgency=low
      - While this is dirty, that should do the trick until it is needed
        for shared-mime-info to ship its own udeb.
 
- -- Cyril Brulebois <kibi@debian.org>  Fri, 26 Feb 2010 01:08:15 +0000
+  [ Emilio Pozuelo Monfort ]
+  * Rename the udeb to libgtk2.0-0-udeb.
+  * Standards-Version is 3.8.4, no changes needed.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 14 Mar 2010 22:37:19 +0100
 
 gtk+2.0 (2.19.7-1) experimental; urgency=low
 
