@@ -1,4 +1,4 @@
-gtk+2.0 (2.19.7-2) UNRELEASED; urgency=low
+gtk+2.0 (2.19.7-2) experimental; urgency=low
 
   [ Cyril Brulebois ]
   * Switch udeb from DirectFB to Xlib to prepare the move to an X11-based
@@ -38,7 +38,7 @@ gtk+2.0 (2.19.7-2) UNRELEASED; urgency=low
   * Rename the udeb to libgtk2.0-0-udeb.
   * Standards-Version is 3.8.4, no changes needed.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 14 Mar 2010 22:37:19 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 16 Mar 2010 01:01:48 +0100
 
 gtk+2.0 (2.19.7-1) experimental; urgency=low
 
