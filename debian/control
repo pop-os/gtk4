@@ -36,6 +36,7 @@ Build-Depends: debhelper (>= 5.0.22),
                libcups2-dev (>= 1.2),
                quilt,
                gawk,
+               xsltproc,
                shared-mime-info
 Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      docbook-xml,
