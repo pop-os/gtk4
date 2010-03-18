@@ -1,3 +1,17 @@
+gtk+2.0 (2.19.7-4) UNRELEASED; urgency=low
+
+  * debian/rules,
+    debian/control.in,
+    debian/libgtk-directfb-2.0-0.*,
+    debian/libgtk-directfb-2.0-dev.*,
+    debian/patches/090_directfb-map-virtual-modifiers.patch,
+    debian/patches/series:
+    - Drop the DirectFB enabled GTK+ packages. They were needed for the
+      graphical installer but it's now switching to X11 so we don't need
+      them anymore.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 18 Mar 2010 17:01:44 +0100
+
 gtk+2.0 (2.19.7-3) experimental; urgency=low
 
   * debian/control.in:

@@ -1,2 +1,0 @@
-# from the directfb flavor
-debian/install/directfb/@LIBDIR@/*directfb*.so.* @LIBDIR@
