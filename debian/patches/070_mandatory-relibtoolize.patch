@@ -223,7 +223,31 @@
  am__fastdepCC_FALSE
  am__fastdepCC_TRUE
  CCDEPMODE
-@@ -4569,6 +4572,14 @@
+@@ -1135,6 +1138,10 @@
+ enable_shm
+ enable_xkb
+ enable_xinerama
++enable_xrandr
++enable_xfixes
++enable_xcomposite
++enable_xdamage
+ enable_rebuilds
+ enable_visibility
+ with_xinput
+@@ -1824,6 +1831,12 @@
+   --enable-xkb            support XKB [default=maybe]
+   --enable-xinerama       support xinerama extension if available
+                           [default=yes]
++  --enable-xrandr         support XRandR extension if available [default=yes]
++  --enable-xfixes         support XFixes extension if available [default=yes]
++  --enable-xcomposite     support X Composite extension if available
++                          [default=yes]
++  --enable-xdamage        support X Damage extension if available
++                          [default=yes]
+   --disable-rebuilds      disable all source autogeneration rules
+   --disable-visibility    don't use ELF visibility attributes
+   --enable-explicit-deps=[yes/no/auto]
+@@ -4569,6 +4582,14 @@
  
  
  
@@ -238,24 +262,24 @@
  
  if test -n "$ac_tool_prefix"; then
    for ac_prog in $CCC c++ g++ gcc CC cxx cc++ cl
-@@ -6049,13 +6060,13 @@
+@@ -6049,13 +6070,13 @@
  else
    lt_cv_nm_interface="BSD nm"
    echo "int some_variable = 0;" > conftest.$ac_ext
 -  (eval echo "\"\$as_me:6052: $ac_compile\"" >&5)
-+  (eval echo "\"\$as_me:6063: $ac_compile\"" >&5)
++  (eval echo "\"\$as_me:6073: $ac_compile\"" >&5)
    (eval "$ac_compile" 2>conftest.err)
    cat conftest.err >&5
 -  (eval echo "\"\$as_me:6055: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
-+  (eval echo "\"\$as_me:6066: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
++  (eval echo "\"\$as_me:6076: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
    (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
    cat conftest.err >&5
 -  (eval echo "\"\$as_me:6058: output\"" >&5)
-+  (eval echo "\"\$as_me:6069: output\"" >&5)
++  (eval echo "\"\$as_me:6079: output\"" >&5)
    cat conftest.out >&5
    if $GREP 'External.*some_variable' conftest.out > /dev/null; then
      lt_cv_nm_interface="MS dumpbin"
-@@ -6518,11 +6529,11 @@
+@@ -6518,11 +6539,11 @@
    ;;
  
  # This must be Linux ELF.
@@ -269,30 +293,30 @@
    if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -7258,7 +7269,7 @@
+@@ -7258,7 +7279,7 @@
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
 -  echo '#line 7261 "configure"' > conftest.$ac_ext
-+  echo '#line 7272 "configure"' > conftest.$ac_ext
++  echo '#line 7282 "configure"' > conftest.$ac_ext
    if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
-@@ -9278,11 +9289,11 @@
+@@ -9278,11 +9299,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9281: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9292: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9302: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:9285: \$? = $ac_status" >&5
-+   echo "$as_me:9296: \$? = $ac_status" >&5
++   echo "$as_me:9306: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -9447,7 +9458,7 @@
+@@ -9447,7 +9468,7 @@
        lt_prog_compiler_static='-non_shared'
        ;;
  
@@ -301,49 +325,49 @@
        case $cc_basename in
        # old Intel for x86_64 which still supported -KPIC.
        ecc*)
-@@ -9617,11 +9628,11 @@
+@@ -9617,11 +9638,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9620: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9631: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9641: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:9624: \$? = $ac_status" >&5
-+   echo "$as_me:9635: \$? = $ac_status" >&5
++   echo "$as_me:9645: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -9722,11 +9733,11 @@
+@@ -9722,11 +9743,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9725: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9736: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9746: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:9729: \$? = $ac_status" >&5
-+   echo "$as_me:9740: \$? = $ac_status" >&5
++   echo "$as_me:9750: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9777,11 +9788,11 @@
+@@ -9777,11 +9798,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:9780: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9791: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9801: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:9784: \$? = $ac_status" >&5
-+   echo "$as_me:9795: \$? = $ac_status" >&5
++   echo "$as_me:9805: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9896,6 +9907,9 @@
+@@ -9896,6 +9917,9 @@
    openbsd*)
      with_gnu_ld=no
      ;;
@@ -353,7 +377,7 @@
    esac
  
    ld_shlibs=yes
-@@ -9917,6 +9931,7 @@
+@@ -9917,6 +9941,7 @@
      fi
      supports_anon_versioning=no
      case `$LD -v 2>&1` in
@@ -361,7 +385,7 @@
        *\ [01].* | *\ 2.[0-9].* | *\ 2.10.*) ;; # catch versions < 2.11
        *\ 2.11.93.0.2\ *) supports_anon_versioning=yes ;; # RH7.3 ...
        *\ 2.11.92.0.12\ *) supports_anon_versioning=yes ;; # Mandrake 8.2 ...
-@@ -10008,7 +10023,7 @@
+@@ -10008,7 +10033,7 @@
        archive_expsym_cmds='sed "s,^,_," $export_symbols >$output_objdir/$soname.expsym~$CC -shared $pic_flag $libobjs $deplibs $compiler_flags ${wl}-h,$soname ${wl}--retain-symbols-file,$output_objdir/$soname.expsym ${wl}--image-base,`expr ${RANDOM-$$} % 4096 / 2 \* 262144 + 1342177280` -o $lib'
        ;;
  
@@ -370,7 +394,7 @@
        tmp_diet=no
        if test "$host_os" = linux-dietlibc; then
  	case $cc_basename in
-@@ -10078,7 +10093,7 @@
+@@ -10078,7 +10103,7 @@
        fi
        ;;
  
@@ -379,7 +403,7 @@
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -10253,6 +10268,7 @@
+@@ -10253,6 +10278,7 @@
  	if test "$aix_use_runtimelinking" = yes; then
  	  shared_flag="$shared_flag "'${wl}-G'
  	fi
@@ -387,7 +411,7 @@
        else
  	# not using gcc
  	if test "$host_cpu" = ia64; then
-@@ -10579,7 +10595,7 @@
+@@ -10579,7 +10605,7 @@
        link_all_deplibs=yes
        ;;
  
@@ -396,7 +420,7 @@
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -11469,7 +11485,7 @@
+@@ -11469,7 +11495,7 @@
    ;;
  
  # This must be Linux ELF.
@@ -405,7 +429,7 @@
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -11509,13 +11525,10 @@
+@@ -11509,13 +11535,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -420,7 +444,7 @@
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -11527,6 +11540,18 @@
+@@ -11527,6 +11550,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -439,25 +463,25 @@
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -12147,7 +12172,7 @@
+@@ -12147,7 +12182,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
 -#line 12150 "configure"
-+#line 12175 "configure"
++#line 12185 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -12243,7 +12268,7 @@
+@@ -12243,7 +12278,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
 -#line 12246 "configure"
-+#line 12271 "configure"
++#line 12281 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -13183,7 +13208,7 @@
+@@ -13183,7 +13218,7 @@
          inherit_rpath_CXX=yes
          ;;
  
@@ -466,7 +490,7 @@
          case $cc_basename in
            KCC*)
  	    # Kuck and Associates, Inc. (KAI) C++ Compiler
-@@ -14011,7 +14036,7 @@
+@@ -14011,7 +14046,7 @@
  	    ;;
  	esac
  	;;
@@ -475,7 +499,7 @@
  	case $cc_basename in
  	  KCC*)
  	    # KAI C++ Compiler
-@@ -14075,7 +14100,7 @@
+@@ -14075,7 +14110,7 @@
  	    ;;
  	esac
  	;;
@@ -484,49 +508,49 @@
  	;;
        *qnx* | *nto*)
          # QNX uses GNU C++, but need to define -shared option too, otherwise
-@@ -14199,11 +14224,11 @@
+@@ -14199,11 +14234,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:14202: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14227: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14237: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
 -   echo "$as_me:14206: \$? = $ac_status" >&5
-+   echo "$as_me:14231: \$? = $ac_status" >&5
++   echo "$as_me:14241: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -14298,11 +14323,11 @@
+@@ -14298,11 +14333,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:14301: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14326: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14336: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:14305: \$? = $ac_status" >&5
-+   echo "$as_me:14330: \$? = $ac_status" >&5
++   echo "$as_me:14340: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -14350,11 +14375,11 @@
+@@ -14350,11 +14385,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
 -   (eval echo "\"\$as_me:14353: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14378: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14388: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
 -   echo "$as_me:14357: \$? = $ac_status" >&5
-+   echo "$as_me:14382: \$? = $ac_status" >&5
++   echo "$as_me:14392: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -14426,6 +14451,9 @@
+@@ -14426,6 +14461,9 @@
    cygwin* | mingw* | cegcc*)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS][ ]/s/.*[ ]\([^ ]*\)/\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\([^ ]*\)[ ][^ ]*/\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
@@ -536,7 +560,7 @@
    *)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-@@ -14925,7 +14953,7 @@
+@@ -14925,7 +14963,7 @@
    ;;
  
  # This must be Linux ELF.
@@ -545,7 +569,7 @@
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -14965,13 +14993,10 @@
+@@ -14965,13 +15003,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -560,7 +584,7 @@
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -14983,6 +15008,18 @@
+@@ -14983,6 +15018,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -579,7 +603,34 @@
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -18755,10 +18792,11 @@
+@@ -17554,6 +17601,26 @@
+   enable_xinerama="yes"
+ fi
+ 
++# Check whether --enable-xrandr was given.
++if test "${enable_xrandr+set}" = set; then :
++  enableval=$enable_xrandr;
++fi
++
++# Check whether --enable-xfixes was given.
++if test "${enable_xfixes+set}" = set; then :
++  enableval=$enable_xfixes;
++fi
++
++# Check whether --enable-xcomposite was given.
++if test "${enable_xcomposite+set}" = set; then :
++  enableval=$enable_xcomposite;
++fi
++
++# Check whether --enable-xdamage was given.
++if test "${enable_xdamage+set}" = set; then :
++  enableval=$enable_xdamage;
++fi
++
+ # Check whether --enable-rebuilds was given.
+ if test "${enable_rebuilds+set}" = set; then :
+   enableval=$enable_rebuilds;
+@@ -18755,10 +18822,11 @@
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for BASE_DEPENDENCIES" >&5
  $as_echo_n "checking for BASE_DEPENDENCIES... " >&6; }
  
@@ -595,7 +646,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6\""; } >&5
    ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6") 2>&5
    ac_status=$?
-@@ -18768,13 +18806,15 @@
+@@ -18768,13 +18836,15 @@
  else
    pkg_failed=yes
  fi
@@ -617,7 +668,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6\""; } >&5
    ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6") 2>&5
    ac_status=$?
-@@ -18784,8 +18824,9 @@
+@@ -18784,8 +18854,9 @@
  else
    pkg_failed=yes
  fi
@@ -629,7 +680,7 @@
  fi
  
  
-@@ -18798,9 +18839,9 @@
+@@ -18798,9 +18869,9 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -641,7 +692,7 @@
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$BASE_DEPENDENCIES_PKG_ERRORS" >&5
-@@ -18852,10 +18893,11 @@
+@@ -18852,10 +18923,11 @@
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for CAIRO_BACKEND" >&5
  $as_echo_n "checking for CAIRO_BACKEND... " >&6; }
  
@@ -657,7 +708,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cairo-\$cairo_backend >= 1.6\""; } >&5
    ($PKG_CONFIG --exists --print-errors "cairo-$cairo_backend >= 1.6") 2>&5
    ac_status=$?
-@@ -18865,13 +18907,15 @@
+@@ -18865,13 +18937,15 @@
  else
    pkg_failed=yes
  fi
@@ -679,7 +730,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cairo-\$cairo_backend >= 1.6\""; } >&5
    ($PKG_CONFIG --exists --print-errors "cairo-$cairo_backend >= 1.6") 2>&5
    ac_status=$?
-@@ -18881,8 +18925,9 @@
+@@ -18881,8 +18955,9 @@
  else
    pkg_failed=yes
  fi
@@ -691,7 +742,7 @@
  fi
  
  
-@@ -18895,9 +18940,9 @@
+@@ -18895,9 +18970,9 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -703,7 +754,7 @@
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$CAIRO_BACKEND_PKG_ERRORS" >&5
-@@ -20347,8 +20392,9 @@
+@@ -20347,8 +20422,9 @@
  {
    int major, minor, micro;
    char *tmp_version;
@@ -714,7 +765,46 @@
  
    /* HP/UX 9 (%@#!) writes to sscanf strings */
    tmp_version = g_strdup("$min_glib_version");
-@@ -24151,10 +24197,11 @@
+@@ -23993,7 +24069,8 @@
+ 
+ 
+   # Check for the RANDR extension
+-  if $PKG_CONFIG --exists "xrandr >= 1.2.99" ; then
++  if test x"$enable_xrandr" != xno && \
++     $PKG_CONFIG --exists "xrandr >= 1.2.99" ; then
+ 
+ $as_echo "#define HAVE_RANDR 1" >>confdefs.h
+ 
+@@ -24013,7 +24090,8 @@
+ 
+   # Checks for XFixes extension
+ 
+-  if $PKG_CONFIG --exists xfixes ; then
++  if test x"$enable_xfixes" != xno && \
++     $PKG_CONFIG --exists xfixes ; then
+ 
+ $as_echo "#define HAVE_XFIXES 1" >>confdefs.h
+ 
+@@ -24024,7 +24102,8 @@
+ 
+   # Checks for Xcomposite extension
+ 
+-  if $PKG_CONFIG --exists xcomposite ; then
++  if test x"$enable_xcomposite" != xno && \
++     $PKG_CONFIG --exists xcomposite ; then
+ 
+ $as_echo "#define HAVE_XCOMPOSITE 1" >>confdefs.h
+ 
+@@ -24035,7 +24114,7 @@
+ 
+   # Checks for Xdamage extension
+ 
+-  if $PKG_CONFIG --exists xdamage ; then
++  if test x"$enable_xdamage" != xno && $PKG_CONFIG --exists xdamage ; then
+ 
+ $as_echo "#define HAVE_XDAMAGE 1" >>confdefs.h
+ 
+@@ -24151,10 +24230,11 @@
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for DIRECTFB" >&5
  $as_echo_n "checking for DIRECTFB... " >&6; }
  
@@ -730,7 +820,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"directfb >= \$DIRECTFB_REQUIRED_VERSION\""; } >&5
    ($PKG_CONFIG --exists --print-errors "directfb >= $DIRECTFB_REQUIRED_VERSION") 2>&5
    ac_status=$?
-@@ -24164,13 +24211,15 @@
+@@ -24164,13 +24244,15 @@
  else
    pkg_failed=yes
  fi
@@ -752,7 +842,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"directfb >= \$DIRECTFB_REQUIRED_VERSION\""; } >&5
    ($PKG_CONFIG --exists --print-errors "directfb >= $DIRECTFB_REQUIRED_VERSION") 2>&5
    ac_status=$?
-@@ -24180,8 +24229,9 @@
+@@ -24180,8 +24262,9 @@
  else
    pkg_failed=yes
  fi
@@ -764,7 +854,7 @@
  fi
  
  
-@@ -24194,9 +24244,9 @@
+@@ -24194,9 +24277,9 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -776,7 +866,7 @@
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$DIRECTFB_PKG_ERRORS" >&5
-@@ -24315,16 +24365,18 @@
+@@ -24315,16 +24398,18 @@
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
@@ -799,7 +889,7 @@
  fi
  
  
-@@ -24334,6 +24386,7 @@
+@@ -24334,6 +24419,7 @@
  
  
  
@@ -807,7 +897,7 @@
  ########################################
  # Check for Accessibility Toolkit flags
  ########################################
-@@ -24408,7 +24461,7 @@
+@@ -24408,7 +24494,7 @@
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then
@@ -816,7 +906,7 @@
  fi
  
  
-@@ -25529,6 +25582,10 @@
+@@ -25529,6 +25615,10 @@
    as_fn_error "conditional \"am__fastdepCC\" was never defined.
  Usually this means the macro was only invoked conditionally." "$LINENO" 5
  fi
