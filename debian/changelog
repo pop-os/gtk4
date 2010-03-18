@@ -1,4 +1,4 @@
-gtk+2.0 (2.18.9-1) UNRELEASED; urgency=low
+gtk+2.0 (2.18.9-1) unstable; urgency=low
 
   [ Cyril Brulebois ]
   * Switch udeb from DirectFB to Xlib to prepare the move to an X11-based
@@ -52,7 +52,7 @@ gtk+2.0 (2.18.9-1) UNRELEASED; urgency=low
       graphical installer but it's now switching to X11 so we don't need
       it anymore.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 17 Mar 2010 23:56:38 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 18 Mar 2010 16:54:25 +0100
 
 gtk+2.0 (2.18.7-1) unstable; urgency=low
 
