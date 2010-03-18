@@ -9,6 +9,9 @@ gtk+2.0 (2.19.7-4) UNRELEASED; urgency=low
     - Drop the DirectFB enabled GTK+ packages. They were needed for the
       graphical installer but it's now switching to X11 so we don't need
       them anymore.
+  * debian/rules:
+    - Move --with-xinput=yes and --with-libjasper to configure_flags
+      since they are common to all of our flavours.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 18 Mar 2010 17:01:44 +0100
 
