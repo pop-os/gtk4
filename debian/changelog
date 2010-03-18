@@ -40,8 +40,17 @@ gtk+2.0 (2.18.9-1) UNRELEASED; urgency=low
       - Updated for the new version.
   * debian/control.in:
     - Build depend on xsltproc, needed to generate the mime cache.
-  * debian/rules:
+  * debian/rules,
+    debian/libgtk2.0-0-udeb.install.in,
+    debian/libgtk-x11-udeb.install.in:
     - Rename the udeb to libgtk2.0-0-udeb.
+  * debian/rules,
+    debian/control.in,
+    debian/libgtk-directfb-2.0-0.*,
+    debian/libgtk-directfb-2.0-dev.*,
+    - Drop the DirectFB enabled GTK+ packages. It was needed for the
+      graphical installer but it's now switching to X11 so we don't need
+      it anymore.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 17 Mar 2010 23:56:38 +0100
 
