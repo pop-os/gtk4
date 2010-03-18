@@ -38,6 +38,10 @@ gtk+2.0 (2.18.9-1) UNRELEASED; urgency=low
   * New upstream bugfix release.
     + debian/patches/070_mandatory-relibtoolize.patch:
       - Updated for the new version.
+  * debian/control.in:
+    - Build depend on xsltproc, needed to generate the mime cache.
+  * debian/rules:
+    - Rename the udeb to libgtk2.0-0-udeb.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 17 Mar 2010 23:56:38 +0100
 

@@ -36,7 +36,8 @@ Build-Depends: debhelper (>= 5.0.22),
                libcups2-dev (>= 1.2),
                quilt,
                gawk,
-               shared-mime-info
+               shared-mime-info,
+               xsltproc
 Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      docbook-xml,
                      libglib2.0-doc,
@@ -80,7 +81,7 @@ Description: The GTK+ graphical user interface library - DirectFB runtime
  windowing system and hardware acceleration on top of the Linux
  framebuffer.
 
-Package: libgtk-x11-udeb
+Package: libgtk2.0-0-udeb
 XC-Package-Type: udeb
 Section: debian-installer
 Priority: extra
