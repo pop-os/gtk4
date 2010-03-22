@@ -1,3 +1,11 @@
+gtk+2.0 (2.18.9-2) unstable; urgency=low
+
+  * debian/patches/006_gtkentry_avoid_spurious_notifications.patch:
+    - Backport patch from upstream git, don't set the buffer to null
+      to avoid extra notifications. Closes: #574896.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 22 Mar 2010 17:04:30 +0100
+
 gtk+2.0 (2.18.9-1) unstable; urgency=low
 
   [ Cyril Brulebois ]
