@@ -22,6 +22,10 @@ gtk+2.0 (2.20.0-1) experimental; urgency=low
       debian/libgtk2.0-0.symbols:
       - Update SHVER to 2.20.0 for the new API to force dependencies
         on the stable version.
+    + debian/control.in:
+      - Update GLib build dependency and tighten some -dev package dependencies.
+    + debian/patches/003_gdk.pc_privates.patch:
+      - Updated to apply cleanly again.
 
  -- Sebastian Dröge <slomo@debian.org>  Tue, 23 Mar 2010 15:55:56 +0100
 
