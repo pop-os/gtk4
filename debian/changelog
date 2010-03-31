@@ -1,3 +1,9 @@
+gtk+2.0 (2.20.0-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 31 Mar 2010 09:16:00 +0200
+
 gtk+2.0 (2.20.0-1) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]
