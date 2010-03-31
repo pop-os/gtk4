@@ -1,16 +1,48 @@
-gtk+2.0 (2.18.9-2) unstable; urgency=low
+gtk+2.0 (2.20.0-1) experimental; urgency=low
 
-  * debian/patches/006_gtkentry_avoid_spurious_notifications.patch:
-    - Backport patch from upstream git, don't set the buffer to null
-      to avoid extra notifications. Closes: #574896.
+  [ Emilio Pozuelo Monfort ]
+  * debian/rules,
+    debian/control.in,
+    debian/libgtk-directfb-2.0-0.*,
+    debian/libgtk-directfb-2.0-dev.*,
+    debian/patches/090_directfb-map-virtual-modifiers.patch,
+    debian/patches/series:
+    - Drop the DirectFB enabled GTK+ packages. They were needed for the
+      graphical installer but it's now switching to X11 so we don't need
+      them anymore.
+  * debian/rules:
+    - Move --with-xinput=yes and --with-libjasper to configure_flags
+      since they are common to all of our flavours.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 22 Mar 2010 17:04:30 +0100
+  [ Sebastian Dröge ]
+  * New upstream stable release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.20.0 for the new API to force dependencies
+        on the stable version.
+    + debian/control.in:
+      - Update GLib build dependency and tighten some -dev package dependencies.
+    + debian/patches/003_gdk.pc_privates.patch:
+      - Updated to apply cleanly again.
 
-gtk+2.0 (2.18.9-1) unstable; urgency=low
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 23 Mar 2010 15:55:56 +0100
+
+gtk+2.0 (2.19.7-3) experimental; urgency=low
+
+  * debian/control.in:
+    - Build depend on xsltproc, needed to generate the mime cache.
+      It was brought indirectly by gtk-doc-tools, but that's on
+      Build-Depends-Indep which isn't enough.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 16 Mar 2010 15:30:32 +0100
+
+gtk+2.0 (2.19.7-2) experimental; urgency=low
 
   [ Cyril Brulebois ]
   * Switch udeb from DirectFB to Xlib to prepare the move to an X11-based
-    graphical installer:
+    graphical installer. Closes: #573872.
      - Replace libgtk-directfb-2.0-0-udeb with libgtk-x11-udeb in control
        file.
      - Update description accordingly.
@@ -28,7 +60,7 @@ gtk+2.0 (2.18.9-1) unstable; urgency=low
   * Add one patch to make it possible to disable X11 extensions, and
     refresh the other one accordingly:
      - 005_support_disabling_x11_extensions.patch
-     - 070_mandatory-relibtoolize.patch [STRIPPED FROM THIS DIFF]
+     - 070_mandatory-relibtoolize.patch
   * Ship a minimal MIME database in the udeb, since the loaders mechanism
     isn’t sufficient to get proper PNG support:
      - Add shared-mime-info to Build-Depends to ensure that the
@@ -43,53 +75,118 @@ gtk+2.0 (2.18.9-1) unstable; urgency=low
        for shared-mime-info to ship its own udeb.
 
   [ Emilio Pozuelo Monfort ]
-  * New upstream bugfix release.
+  * Rename the udeb to libgtk2.0-0-udeb.
+  * Standards-Version is 3.8.4, no changes needed.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 16 Mar 2010 01:01:48 +0100
+
+gtk+2.0 (2.19.7-1) experimental; urgency=low
+
+  * New upstream development release:
     + debian/patches/070_mandatory-relibtoolize.patch:
-      - Updated for the new version.
-  * debian/control.in:
-    - Build depend on xsltproc, needed to generate the mime cache.
-  * debian/rules,
-    debian/libgtk2.0-0-udeb.install.in,
-    debian/libgtk-x11-udeb.install.in:
-    - Rename the udeb to libgtk2.0-0-udeb.
-  * debian/rules,
-    debian/control.in,
-    debian/libgtk-directfb-2.0-0.*,
-    debian/libgtk-directfb-2.0-dev.*,
-    - Drop the DirectFB enabled GTK+ packages. It was needed for the
-      graphical installer but it's now switching to X11 so we don't need
-      it anymore.
+      - Regenerated for the new version.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 18 Mar 2010 16:54:25 +0100
+ -- Sebastian Dröge <slomo@debian.org>  Fri, 12 Mar 2010 15:59:27 +0100
 
-gtk+2.0 (2.18.7-1) unstable; urgency=low
+gtk+2.0 (2.19.6-1) experimental; urgency=low
 
-  * New upstream bugfix release.
+  * New upstream development release:
     + debian/patches/070_mandatory-relibtoolize.patch:
-      - Updated for the new version.
-  * debian/control.in:
-    + Standards-Version is 3.8.4, no changes needed.
+      - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.6 for the new API and add new symbols.
+  * debian/patches/090_directfb-map-virtual-modifiers.patch:
+    + Update to add just another stub to fix the build.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 18 Feb 2010 18:34:57 +0100
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 24 Feb 2010 10:01:31 +0100
 
-gtk+2.0 (2.18.6-1) unstable; urgency=low
+gtk+2.0 (2.19.5-1) experimental; urgency=low
 
-  * New upstream bugfix release:
+  * New upstream development release:
     + debian/patches/070_mandatory-relibtoolize.patch:
-      - Updated for the new version.
+      - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.5 for the new API and add new symbols.
 
- -- Sebastian Dröge <slomo@debian.org>  Fri, 15 Jan 2010 10:38:58 +0100
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 10 Feb 2010 09:38:52 +0100
 
-gtk+2.0 (2.18.5-1) unstable; urgency=low
+gtk+2.0 (2.19.4-1) experimental; urgency=low
 
-  * New upstream bugfix release.
+  * New upstream development release:
     + debian/patches/070_mandatory-relibtoolize.patch:
-      - Updated for the new version.
+      - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.4 for the new API and add new symbols.
+
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 26 Jan 2010 08:25:41 +0100
+
+gtk+2.0 (2.19.3-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.3 for the new API and add new symbols.
+    + debian/patches/091_size_allocate_crash.patch:
+      - Dropped, merged upstream.
+
+ -- Sebastian Dröge <slomo@debian.org>  Mon, 11 Jan 2010 20:36:25 +0100
+
+gtk+2.0 (2.19.2-2) experimental; urgency=low
+
+  * debian/patches/091_size_allocate_crash.patch:
+    + Patch from upstream GIT to fix a crash on size allocations.
+      Thanks to Sebastien Bacher.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 06 Jan 2010 11:42:07 +0100
+
+gtk+2.0 (2.19.2-1) experimental; urgency=low
+
+  [ Emilio Pozuelo Monfort ]
   * debian/patches/000_gtk+-2.0.6-exportsymbols.patch:
     + Removed, it wasn't being applied and hasn't been relevant for a
       long time.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 12 Dec 2009 18:42:36 +0100
+  [ Sebastian Dröge ]
+  * New upstream development release:
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.2 for the new API and add new symbols.
+  * debian/patches/090_directfb-map-virtual-modifiers.patch:
+    + Fix compilation of the DirectFB backend, patch adapted from
+      upstream commit to fix the Quartz backend.
+
+ -- Sebastian Dröge <slomo@debian.org>  Mon, 04 Jan 2010 10:43:48 +0100
+
+gtk+2.0 (2.19.1-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/rules:
+      - Include check-dist.mk to prevent accidental uploads to unstable.
+    + debian/control.in:
+      - Update ATK build dependency.
+    + debian/rules,
+      debian/libgtk-directfb-2.0-0.symbols,
+      debian/libgtk2.0-0.symbols:
+      - Update SHVER to 2.19.1 for the new API and add new symbols.
+    + debian/patches/009_gtk-export-filechooser.patch,
+      debian/patches/021_loader-files-d.patch:
+      - Updated to apply cleanly again.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Tue, 01 Dec 2009 15:28:10 +0100
 
 gtk+2.0 (2.18.4-1) unstable; urgency=low
 

@@ -3,6 +3,7 @@
 # Debian GNOME Maintainers
 DISABLE_UPDATE_UPLOADERS := 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
+include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 # get-orig-source target
 -include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
@@ -52,7 +53,7 @@ DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
 APIVER := 2.0
 SONAME := 0
-SHVER := 2.18.0
+SHVER := 2.20.0
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 2.10.0
@@ -123,14 +124,15 @@ configure_flags := \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
 			--enable-test-print-backend \
+			--enable-introspection=no \
+			--with-xinput=yes \
+			--with-libjasper \
 			--build=$(DEB_BUILD_GNU_TYPE)
 ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	configure_flags += --host=$(DEB_HOST_GNU_TYPE)
 endif
 
 shared_configure_flags := $(configure_flags) \
-			--with-xinput=yes \
-			--with-libjasper \
 			--enable-shared \
 			--disable-static
 shared_udeb_configure_flags := $(shared_configure_flags) \
@@ -139,9 +141,7 @@ shared_udeb_configure_flags := $(shared_configure_flags) \
 			--disable-xfixes \
 			--disable-xrandr
 static_configure_flags := $(configure_flags) \
-			--with-xinput=yes \
 			--with-included-loaders=yes \
-			--with-libjasper \
 			--disable-modules \
 			--disable-shared \
 			--enable-static

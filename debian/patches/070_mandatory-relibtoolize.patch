@@ -1,173 +1,7 @@
---- a/aclocal.m4
-+++ b/aclocal.m4
-@@ -114,8 +114,9 @@
- {
-   int major, minor, micro;
-   char *tmp_version;
-+  int ignored;
- 
--  fclose (fopen ("conf.glibtest", "w"));
-+  ignored = system ("touch conf.glibtest");
- 
-   /* HP/UX 9 (%@#!) writes to sscanf strings */
-   tmp_version = g_strdup("$min_glib_version");
-@@ -3167,7 +3168,7 @@
-   ;;
- 
- # This must be Linux ELF.
--linux* | k*bsd*-gnu)
-+linux* | k*bsd*-gnu | kopensolaris*-gnu)
-   version_type=linux
-   need_lib_prefix=no
-   need_version=no
-@@ -3192,13 +3193,10 @@
-   # before this can be enabled.
-   hardcode_into_libs=yes
- 
--  # Add ABI-specific directories to the system library path.
--  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
--
-   # Append ld.so.conf contents to the search path
-   if test -f /etc/ld.so.conf; then
-     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \[$]2)); skip = 1; } { if (!skip) print \[$]0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;/^$/d' | tr '\n' ' '`
--    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
-+    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
-   fi
- 
-   # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -3210,6 +3208,18 @@
-   dynamic_linker='GNU/Linux ld.so'
-   ;;
- 
-+netbsdelf*-gnu)
-+  version_type=linux
-+  need_lib_prefix=no
-+  need_version=no
-+  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
-+  soname_spec='${libname}${release}${shared_ext}$major'
-+  shlibpath_var=LD_LIBRARY_PATH
-+  shlibpath_overrides_runpath=no
-+  hardcode_into_libs=yes
-+  dynamic_linker='NetBSD ld.elf_so'
-+  ;;
-+
- netbsd*)
-   version_type=sunos
-   need_lib_prefix=no
-@@ -3797,11 +3807,11 @@
-   ;;
- 
- # This must be Linux ELF.
--linux* | k*bsd*-gnu)
-+linux* | k*bsd*-gnu | kopensolaris*-gnu)
-   lt_cv_deplibs_check_method=pass_all
-   ;;
- 
--netbsd*)
-+netbsd* | netbsdelf*-gnu)
-   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
-     lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|_pic\.a)$'
-   else
-@@ -4418,7 +4428,7 @@
- 	    ;;
- 	esac
- 	;;
--      linux* | k*bsd*-gnu)
-+      linux* | k*bsd*-gnu | kopensolaris*-gnu)
- 	case $cc_basename in
- 	  KCC*)
- 	    # KAI C++ Compiler
-@@ -4482,7 +4492,7 @@
- 	    ;;
- 	esac
- 	;;
--      netbsd*)
-+      netbsd* | netbsdelf*-gnu)
- 	;;
-       *qnx* | *nto*)
-         # QNX uses GNU C++, but need to define -shared option too, otherwise
-@@ -4702,7 +4712,7 @@
-       _LT_TAGVAR(lt_prog_compiler_static, $1)='-non_shared'
-       ;;
- 
--    linux* | k*bsd*-gnu)
-+    linux* | k*bsd*-gnu | kopensolaris*-gnu)
-       case $cc_basename in
-       # old Intel for x86_64 which still supported -KPIC.
-       ecc*)
-@@ -4907,6 +4917,9 @@
-   cygwin* | mingw* | cegcc*)
-     _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[[BCDGRS]][[ ]]/s/.*[[ ]]\([[^ ]]*\)/\1 DATA/;/^.*[[ ]]__nm__/s/^.*[[ ]]__nm__\([[^ ]]*\)[[ ]][[^ ]]*/\1 DATA/;/^I[[ ]]/d;/^[[AITW]][[ ]]/s/.* //'\'' | sort | uniq > $export_symbols'
-   ;;
-+  linux* | k*bsd*-gnu)
-+    _LT_TAGVAR(link_all_deplibs, $1)=no
-+  ;;
-   *)
-     _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
-   ;;
-@@ -4971,6 +4984,9 @@
-   openbsd*)
-     with_gnu_ld=no
-     ;;
-+  linux* | k*bsd*-gnu)
-+    _LT_TAGVAR(link_all_deplibs, $1)=no
-+    ;;
-   esac
- 
-   _LT_TAGVAR(ld_shlibs, $1)=yes
-@@ -4992,6 +5008,7 @@
-     fi
-     supports_anon_versioning=no
-     case `$LD -v 2>&1` in
-+      *GNU\ gold*) supports_anon_versioning=yes ;;
-       *\ [[01]].* | *\ 2.[[0-9]].* | *\ 2.10.*) ;; # catch versions < 2.11
-       *\ 2.11.93.0.2\ *) supports_anon_versioning=yes ;; # RH7.3 ...
-       *\ 2.11.92.0.12\ *) supports_anon_versioning=yes ;; # Mandrake 8.2 ...
-@@ -5083,7 +5100,7 @@
-       _LT_TAGVAR(archive_expsym_cmds, $1)='sed "s,^,_," $export_symbols >$output_objdir/$soname.expsym~$CC -shared $pic_flag $libobjs $deplibs $compiler_flags ${wl}-h,$soname ${wl}--retain-symbols-file,$output_objdir/$soname.expsym ${wl}--image-base,`expr ${RANDOM-$$} % 4096 / 2 \* 262144 + 1342177280` -o $lib'
-       ;;
- 
--    gnu* | linux* | tpf* | k*bsd*-gnu)
-+    gnu* | linux* | tpf* | k*bsd*-gnu | kopensolaris*-gnu)
-       tmp_diet=no
-       if test "$host_os" = linux-dietlibc; then
- 	case $cc_basename in
-@@ -5153,7 +5170,7 @@
-       fi
-       ;;
- 
--    netbsd*)
-+    netbsd* | netbsdelf*-gnu)
-       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
- 	_LT_TAGVAR(archive_cmds, $1)='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
- 	wlarc=
-@@ -5328,6 +5345,7 @@
- 	if test "$aix_use_runtimelinking" = yes; then
- 	  shared_flag="$shared_flag "'${wl}-G'
- 	fi
-+	_LT_TAGVAR(link_all_deplibs, $1)=no
-       else
- 	# not using gcc
- 	if test "$host_cpu" = ia64; then
-@@ -5566,7 +5584,7 @@
-       _LT_TAGVAR(link_all_deplibs, $1)=yes
-       ;;
- 
--    netbsd*)
-+    netbsd* | netbsdelf*-gnu)
-       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
- 	_LT_TAGVAR(archive_cmds, $1)='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
-       else
-@@ -6562,7 +6580,7 @@
-         _LT_TAGVAR(inherit_rpath, $1)=yes
-         ;;
- 
--      linux* | k*bsd*-gnu)
-+      linux* | k*bsd*-gnu | kopensolaris*-gnu)
-         case $cc_basename in
-           KCC*)
- 	    # Kuck and Associates, Inc. (KAI) C++ Compiler
-@@ -8743,14 +8761,16 @@
+diff -Naur gtk+2.0-2.20.0.old/aclocal.m4 gtk+2.0-2.20.0/aclocal.m4
+--- gtk+2.0-2.20.0.old/aclocal.m4	2010-03-23 04:32:53.000000000 +0100
++++ gtk+2.0-2.20.0/aclocal.m4	2010-03-23 16:10:17.568931245 +0100
+@@ -732,14 +732,16 @@
  # _PKG_CONFIG([VARIABLE], [COMMAND], [MODULES])
  # ---------------------------------------------
  m4_define([_PKG_CONFIG],
@@ -192,7 +26,7 @@
  fi[]dnl
  ])# _PKG_CONFIG
  
-@@ -8794,9 +8814,9 @@
+@@ -783,9 +785,9 @@
  if test $pkg_failed = yes; then
          _PKG_SHORT_ERRORS_SUPPORTED
          if test $_pkg_short_errors_supported = yes; then
@@ -204,9 +38,10 @@
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$$1[]_PKG_ERRORS" >&AS_MESSAGE_LOG_FD
---- a/configure
-+++ b/configure
-@@ -806,6 +806,7 @@
+diff -Naur gtk+2.0-2.20.0.old/configure gtk+2.0-2.20.0/configure
+--- gtk+2.0-2.20.0.old/configure	2010-03-23 04:33:03.000000000 +0100
++++ gtk+2.0-2.20.0/configure	2010-03-23 16:10:19.056953886 +0100
+@@ -816,6 +816,7 @@
  GDK_DEP_LIBS
  GDK_EXTRA_CFLAGS
  GDK_EXTRA_LIBS
@@ -214,7 +49,7 @@
  GDK_PACKAGES
  USE_DIRECTFB_FALSE
  USE_DIRECTFB_TRUE
-@@ -1012,6 +1013,8 @@
+@@ -1024,6 +1025,8 @@
  CXXFLAGS
  ac_ct_CXX
  CXX
@@ -223,7 +58,7 @@
  am__fastdepCC_FALSE
  am__fastdepCC_TRUE
  CCDEPMODE
-@@ -1135,6 +1138,10 @@
+@@ -1147,6 +1150,10 @@
  enable_shm
  enable_xkb
  enable_xinerama
@@ -234,7 +69,7 @@
  enable_rebuilds
  enable_visibility
  with_xinput
-@@ -1824,6 +1831,12 @@
+@@ -1837,6 +1844,12 @@
    --enable-xkb            support XKB [default=maybe]
    --enable-xinerama       support xinerama extension if available
                            [default=yes]
@@ -247,7 +82,7 @@
    --disable-rebuilds      disable all source autogeneration rules
    --disable-visibility    don't use ELF visibility attributes
    --enable-explicit-deps=[yes/no/auto]
-@@ -4569,6 +4582,14 @@
+@@ -4586,6 +4599,14 @@
  
  
  
@@ -262,24 +97,24 @@
  
  if test -n "$ac_tool_prefix"; then
    for ac_prog in $CCC c++ g++ gcc CC cxx cc++ cl
-@@ -6049,13 +6070,13 @@
+@@ -6066,13 +6087,13 @@
  else
    lt_cv_nm_interface="BSD nm"
    echo "int some_variable = 0;" > conftest.$ac_ext
--  (eval echo "\"\$as_me:6052: $ac_compile\"" >&5)
-+  (eval echo "\"\$as_me:6073: $ac_compile\"" >&5)
+-  (eval echo "\"\$as_me:6069: $ac_compile\"" >&5)
++  (eval echo "\"\$as_me:6090: $ac_compile\"" >&5)
    (eval "$ac_compile" 2>conftest.err)
    cat conftest.err >&5
--  (eval echo "\"\$as_me:6055: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
-+  (eval echo "\"\$as_me:6076: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
+-  (eval echo "\"\$as_me:6072: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
++  (eval echo "\"\$as_me:6093: $NM \\\"conftest.$ac_objext\\\"\"" >&5)
    (eval "$NM \"conftest.$ac_objext\"" 2>conftest.err > conftest.out)
    cat conftest.err >&5
--  (eval echo "\"\$as_me:6058: output\"" >&5)
-+  (eval echo "\"\$as_me:6079: output\"" >&5)
+-  (eval echo "\"\$as_me:6075: output\"" >&5)
++  (eval echo "\"\$as_me:6096: output\"" >&5)
    cat conftest.out >&5
    if $GREP 'External.*some_variable' conftest.out > /dev/null; then
      lt_cv_nm_interface="MS dumpbin"
-@@ -6518,11 +6539,11 @@
+@@ -6535,11 +6556,11 @@
    ;;
  
  # This must be Linux ELF.
@@ -293,30 +128,30 @@
    if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
      lt_cv_deplibs_check_method='match_pattern /lib[^/]+(\.so\.[0-9]+\.[0-9]+|_pic\.a)$'
    else
-@@ -7258,7 +7279,7 @@
+@@ -7275,7 +7296,7 @@
    ;;
  *-*-irix6*)
    # Find out which ABI we are using.
--  echo '#line 7261 "configure"' > conftest.$ac_ext
-+  echo '#line 7282 "configure"' > conftest.$ac_ext
+-  echo '#line 7278 "configure"' > conftest.$ac_ext
++  echo '#line 7299 "configure"' > conftest.$ac_ext
    if { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_compile\""; } >&5
    (eval $ac_compile) 2>&5
    ac_status=$?
-@@ -9278,11 +9299,11 @@
+@@ -9299,11 +9320,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:9281: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9302: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:9302: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9323: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:9285: \$? = $ac_status" >&5
-+   echo "$as_me:9306: \$? = $ac_status" >&5
+-   echo "$as_me:9306: \$? = $ac_status" >&5
++   echo "$as_me:9327: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -9447,7 +9468,7 @@
+@@ -9468,7 +9489,7 @@
        lt_prog_compiler_static='-non_shared'
        ;;
  
@@ -325,49 +160,49 @@
        case $cc_basename in
        # old Intel for x86_64 which still supported -KPIC.
        ecc*)
-@@ -9617,11 +9638,11 @@
+@@ -9638,11 +9659,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:9620: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9641: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:9641: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9662: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:9624: \$? = $ac_status" >&5
-+   echo "$as_me:9645: \$? = $ac_status" >&5
+-   echo "$as_me:9645: \$? = $ac_status" >&5
++   echo "$as_me:9666: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -9722,11 +9743,11 @@
+@@ -9743,11 +9764,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:9725: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9746: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:9746: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9767: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:9729: \$? = $ac_status" >&5
-+   echo "$as_me:9750: \$? = $ac_status" >&5
+-   echo "$as_me:9750: \$? = $ac_status" >&5
++   echo "$as_me:9771: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9777,11 +9798,11 @@
+@@ -9798,11 +9819,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:9780: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:9801: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:9801: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:9822: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:9784: \$? = $ac_status" >&5
-+   echo "$as_me:9805: \$? = $ac_status" >&5
+-   echo "$as_me:9805: \$? = $ac_status" >&5
++   echo "$as_me:9826: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -9896,6 +9917,9 @@
+@@ -9917,6 +9938,9 @@
    openbsd*)
      with_gnu_ld=no
      ;;
@@ -377,7 +212,7 @@
    esac
  
    ld_shlibs=yes
-@@ -9917,6 +9941,7 @@
+@@ -9938,6 +9962,7 @@
      fi
      supports_anon_versioning=no
      case `$LD -v 2>&1` in
@@ -385,7 +220,7 @@
        *\ [01].* | *\ 2.[0-9].* | *\ 2.10.*) ;; # catch versions < 2.11
        *\ 2.11.93.0.2\ *) supports_anon_versioning=yes ;; # RH7.3 ...
        *\ 2.11.92.0.12\ *) supports_anon_versioning=yes ;; # Mandrake 8.2 ...
-@@ -10008,7 +10033,7 @@
+@@ -10029,7 +10054,7 @@
        archive_expsym_cmds='sed "s,^,_," $export_symbols >$output_objdir/$soname.expsym~$CC -shared $pic_flag $libobjs $deplibs $compiler_flags ${wl}-h,$soname ${wl}--retain-symbols-file,$output_objdir/$soname.expsym ${wl}--image-base,`expr ${RANDOM-$$} % 4096 / 2 \* 262144 + 1342177280` -o $lib'
        ;;
  
@@ -394,7 +229,7 @@
        tmp_diet=no
        if test "$host_os" = linux-dietlibc; then
  	case $cc_basename in
-@@ -10078,7 +10103,7 @@
+@@ -10099,7 +10124,7 @@
        fi
        ;;
  
@@ -403,7 +238,7 @@
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
  	wlarc=
-@@ -10253,6 +10278,7 @@
+@@ -10274,6 +10299,7 @@
  	if test "$aix_use_runtimelinking" = yes; then
  	  shared_flag="$shared_flag "'${wl}-G'
  	fi
@@ -411,7 +246,7 @@
        else
  	# not using gcc
  	if test "$host_cpu" = ia64; then
-@@ -10579,7 +10605,7 @@
+@@ -10600,7 +10626,7 @@
        link_all_deplibs=yes
        ;;
  
@@ -420,7 +255,7 @@
        if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
  	archive_cmds='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
        else
-@@ -11469,7 +11495,7 @@
+@@ -11490,7 +11516,7 @@
    ;;
  
  # This must be Linux ELF.
@@ -429,7 +264,7 @@
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -11509,13 +11535,10 @@
+@@ -11530,13 +11556,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -444,7 +279,7 @@
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -11527,6 +11550,18 @@
+@@ -11548,6 +11571,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -463,25 +298,25 @@
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -12147,7 +12182,7 @@
+@@ -12168,7 +12203,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
--#line 12150 "configure"
-+#line 12185 "configure"
+-#line 12171 "configure"
++#line 12206 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -12243,7 +12278,7 @@
+@@ -12264,7 +12299,7 @@
    lt_dlunknown=0; lt_dlno_uscore=1; lt_dlneed_uscore=2
    lt_status=$lt_dlunknown
    cat > conftest.$ac_ext <<_LT_EOF
--#line 12246 "configure"
-+#line 12281 "configure"
+-#line 12267 "configure"
++#line 12302 "configure"
  #include "confdefs.h"
  
  #if HAVE_DLFCN_H
-@@ -13183,7 +13218,7 @@
+@@ -13204,7 +13239,7 @@
          inherit_rpath_CXX=yes
          ;;
  
@@ -490,7 +325,7 @@
          case $cc_basename in
            KCC*)
  	    # Kuck and Associates, Inc. (KAI) C++ Compiler
-@@ -14011,7 +14046,7 @@
+@@ -14032,7 +14067,7 @@
  	    ;;
  	esac
  	;;
@@ -499,7 +334,7 @@
  	case $cc_basename in
  	  KCC*)
  	    # KAI C++ Compiler
-@@ -14075,7 +14110,7 @@
+@@ -14096,7 +14131,7 @@
  	    ;;
  	esac
  	;;
@@ -508,49 +343,49 @@
  	;;
        *qnx* | *nto*)
          # QNX uses GNU C++, but need to define -shared option too, otherwise
-@@ -14199,11 +14234,11 @@
+@@ -14220,11 +14255,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14202: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14237: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:14223: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14258: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>conftest.err)
     ac_status=$?
     cat conftest.err >&5
--   echo "$as_me:14206: \$? = $ac_status" >&5
-+   echo "$as_me:14241: \$? = $ac_status" >&5
+-   echo "$as_me:14227: \$? = $ac_status" >&5
++   echo "$as_me:14262: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s "$ac_outfile"; then
       # The compiler can only warn and ignore the option if not recognized
       # So say no if there are warnings other than the usual output.
-@@ -14298,11 +14333,11 @@
+@@ -14319,11 +14354,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14301: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14336: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:14322: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14357: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:14305: \$? = $ac_status" >&5
-+   echo "$as_me:14340: \$? = $ac_status" >&5
+-   echo "$as_me:14326: \$? = $ac_status" >&5
++   echo "$as_me:14361: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -14350,11 +14385,11 @@
+@@ -14371,11 +14406,11 @@
     -e 's:.*FLAGS}\{0,1\} :&$lt_compiler_flag :; t' \
     -e 's: [^ ]*conftest\.: $lt_compiler_flag&:; t' \
     -e 's:$: $lt_compiler_flag:'`
--   (eval echo "\"\$as_me:14353: $lt_compile\"" >&5)
-+   (eval echo "\"\$as_me:14388: $lt_compile\"" >&5)
+-   (eval echo "\"\$as_me:14374: $lt_compile\"" >&5)
++   (eval echo "\"\$as_me:14409: $lt_compile\"" >&5)
     (eval "$lt_compile" 2>out/conftest.err)
     ac_status=$?
     cat out/conftest.err >&5
--   echo "$as_me:14357: \$? = $ac_status" >&5
-+   echo "$as_me:14392: \$? = $ac_status" >&5
+-   echo "$as_me:14378: \$? = $ac_status" >&5
++   echo "$as_me:14413: \$? = $ac_status" >&5
     if (exit $ac_status) && test -s out/conftest2.$ac_objext
     then
       # The compiler can only warn and ignore the option if not recognized
-@@ -14426,6 +14461,9 @@
+@@ -14447,6 +14482,9 @@
    cygwin* | mingw* | cegcc*)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[BCDGRS][ ]/s/.*[ ]\([^ ]*\)/\1 DATA/;/^.*[ ]__nm__/s/^.*[ ]__nm__\([^ ]*\)[ ][^ ]*/\1 DATA/;/^I[ ]/d;/^[AITW][ ]/s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
@@ -560,7 +395,7 @@
    *)
      export_symbols_cmds_CXX='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
    ;;
-@@ -14925,7 +14963,7 @@
+@@ -14946,7 +14984,7 @@
    ;;
  
  # This must be Linux ELF.
@@ -569,7 +404,7 @@
    version_type=linux
    need_lib_prefix=no
    need_version=no
-@@ -14965,13 +15003,10 @@
+@@ -14986,13 +15024,10 @@
    # before this can be enabled.
    hardcode_into_libs=yes
  
@@ -584,7 +419,7 @@
    fi
  
    # We used to test for /lib/ld.so.1 and disable shared libraries on
-@@ -14983,6 +15018,18 @@
+@@ -15004,6 +15039,18 @@
    dynamic_linker='GNU/Linux ld.so'
    ;;
  
@@ -603,7 +438,7 @@
  netbsd*)
    version_type=sunos
    need_lib_prefix=no
-@@ -17554,6 +17601,26 @@
+@@ -17575,6 +17622,26 @@
    enable_xinerama="yes"
  fi
  
@@ -630,7 +465,7 @@
  # Check whether --enable-rebuilds was given.
  if test "${enable_rebuilds+set}" = set; then :
    enableval=$enable_rebuilds;
-@@ -18755,10 +18822,11 @@
+@@ -18776,10 +18843,11 @@
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for BASE_DEPENDENCIES" >&5
  $as_echo_n "checking for BASE_DEPENDENCIES... " >&6; }
  
@@ -643,10 +478,10 @@
 +        pkg_cv_BASE_DEPENDENCIES_CFLAGS="$BASE_DEPENDENCIES_CFLAGS"
 +    else
 +        if test -n "$PKG_CONFIG" && \
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6\""; } >&5
-   ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6") 2>&5
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.23.6    atk >= 1.29.2    pango >= 1.20    cairo >= 1.6\""; } >&5
+   ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.23.6    atk >= 1.29.2    pango >= 1.20    cairo >= 1.6") 2>&5
    ac_status=$?
-@@ -18768,13 +18836,15 @@
+@@ -18789,13 +18857,15 @@
  else
    pkg_failed=yes
  fi
@@ -665,10 +500,10 @@
 +        pkg_cv_BASE_DEPENDENCIES_LIBS="$BASE_DEPENDENCIES_LIBS"
 +    else
 +        if test -n "$PKG_CONFIG" && \
-     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6\""; } >&5
-   ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6") 2>&5
+     { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"glib-2.0 >= 2.23.6    atk >= 1.29.2    pango >= 1.20    cairo >= 1.6\""; } >&5
+   ($PKG_CONFIG --exists --print-errors "glib-2.0 >= 2.23.6    atk >= 1.29.2    pango >= 1.20    cairo >= 1.6") 2>&5
    ac_status=$?
-@@ -18784,8 +18854,9 @@
+@@ -18805,8 +18875,9 @@
  else
    pkg_failed=yes
  fi
@@ -680,19 +515,19 @@
  fi
  
  
-@@ -18798,9 +18869,9 @@
+@@ -18819,9 +18890,9 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
--	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6" 2>&1`
-+	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6"`
+-	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --short-errors --print-errors "glib-2.0 >= 2.23.6    atk >= 1.29.2    pango >= 1.20    cairo >= 1.6" 2>&1`
++	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --short-errors --errors-to-stdout --print-errors "glib-2.0 >= 2.23.6    atk >= 1.29.2    pango >= 1.20    cairo >= 1.6"`
          else
--	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --print-errors "glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6" 2>&1`
-+	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "glib-2.0 >= 2.21.3    atk >= 1.13.0    pango >= 1.20    cairo >= 1.6"`
+-	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --print-errors "glib-2.0 >= 2.23.6    atk >= 1.29.2    pango >= 1.20    cairo >= 1.6" 2>&1`
++	        BASE_DEPENDENCIES_PKG_ERRORS=`$PKG_CONFIG --errors-to-stdout --print-errors "glib-2.0 >= 2.23.6    atk >= 1.29.2    pango >= 1.20    cairo >= 1.6"`
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$BASE_DEPENDENCIES_PKG_ERRORS" >&5
-@@ -18852,10 +18923,11 @@
+@@ -18873,10 +18944,11 @@
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for CAIRO_BACKEND" >&5
  $as_echo_n "checking for CAIRO_BACKEND... " >&6; }
  
@@ -708,7 +543,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cairo-\$cairo_backend >= 1.6\""; } >&5
    ($PKG_CONFIG --exists --print-errors "cairo-$cairo_backend >= 1.6") 2>&5
    ac_status=$?
-@@ -18865,13 +18937,15 @@
+@@ -18886,13 +18958,15 @@
  else
    pkg_failed=yes
  fi
@@ -730,7 +565,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"cairo-\$cairo_backend >= 1.6\""; } >&5
    ($PKG_CONFIG --exists --print-errors "cairo-$cairo_backend >= 1.6") 2>&5
    ac_status=$?
-@@ -18881,8 +18955,9 @@
+@@ -18902,8 +18976,9 @@
  else
    pkg_failed=yes
  fi
@@ -742,7 +577,7 @@
  fi
  
  
-@@ -18895,9 +18970,9 @@
+@@ -18916,9 +18991,9 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -754,18 +589,7 @@
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$CAIRO_BACKEND_PKG_ERRORS" >&5
-@@ -20347,8 +20422,9 @@
- {
-   int major, minor, micro;
-   char *tmp_version;
-+  int ignored;
- 
--  fclose (fopen ("conf.glibtest", "w"));
-+  ignored = system ("touch conf.glibtest");
- 
-   /* HP/UX 9 (%@#!) writes to sscanf strings */
-   tmp_version = g_strdup("$min_glib_version");
-@@ -23993,7 +24069,8 @@
+@@ -24022,7 +24097,8 @@
  
  
    # Check for the RANDR extension
@@ -775,7 +599,7 @@
  
  $as_echo "#define HAVE_RANDR 1" >>confdefs.h
  
-@@ -24013,7 +24090,8 @@
+@@ -24042,7 +24118,8 @@
  
    # Checks for XFixes extension
  
@@ -785,7 +609,7 @@
  
  $as_echo "#define HAVE_XFIXES 1" >>confdefs.h
  
-@@ -24024,7 +24102,8 @@
+@@ -24053,7 +24130,8 @@
  
    # Checks for Xcomposite extension
  
@@ -795,7 +619,7 @@
  
  $as_echo "#define HAVE_XCOMPOSITE 1" >>confdefs.h
  
-@@ -24035,7 +24114,7 @@
+@@ -24064,7 +24142,7 @@
  
    # Checks for Xdamage extension
  
@@ -804,7 +628,7 @@
  
  $as_echo "#define HAVE_XDAMAGE 1" >>confdefs.h
  
-@@ -24151,10 +24230,11 @@
+@@ -24180,10 +24258,11 @@
  { $as_echo "$as_me:${as_lineno-$LINENO}: checking for DIRECTFB" >&5
  $as_echo_n "checking for DIRECTFB... " >&6; }
  
@@ -820,7 +644,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"directfb >= \$DIRECTFB_REQUIRED_VERSION\""; } >&5
    ($PKG_CONFIG --exists --print-errors "directfb >= $DIRECTFB_REQUIRED_VERSION") 2>&5
    ac_status=$?
-@@ -24164,13 +24244,15 @@
+@@ -24193,13 +24272,15 @@
  else
    pkg_failed=yes
  fi
@@ -842,7 +666,7 @@
      { { $as_echo "$as_me:${as_lineno-$LINENO}: \$PKG_CONFIG --exists --print-errors \"directfb >= \$DIRECTFB_REQUIRED_VERSION\""; } >&5
    ($PKG_CONFIG --exists --print-errors "directfb >= $DIRECTFB_REQUIRED_VERSION") 2>&5
    ac_status=$?
-@@ -24180,8 +24262,9 @@
+@@ -24209,8 +24290,9 @@
  else
    pkg_failed=yes
  fi
@@ -854,7 +678,7 @@
  fi
  
  
-@@ -24194,9 +24277,9 @@
+@@ -24223,9 +24305,9 @@
          _pkg_short_errors_supported=no
  fi
          if test $_pkg_short_errors_supported = yes; then
@@ -866,14 +690,14 @@
          fi
  	# Put the nasty error message in config.log where it belongs
  	echo "$DIRECTFB_PKG_ERRORS" >&5
-@@ -24315,16 +24398,18 @@
- CFLAGS="$saved_cflags"
+@@ -24345,16 +24427,18 @@
  LDFLAGS="$saved_ldflags"
  
--GDK_PACKAGES="$PANGO_PACKAGES gio-2.0 $X_PACKAGES cairo-$cairo_backend"
+ # Pull in gio-unix for GDesktopAppInfo usage, see at least gdkapplaunchcontext-x11.c
+-GDK_PACKAGES="$PANGO_PACKAGES gio-unix-2.0 $X_PACKAGES cairo-$cairo_backend"
 -GDK_DEP_LIBS="$GDK_EXTRA_LIBS `$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES $GDK_PACKAGES` $GDK_PIXBUF_EXTRA_LIBS"
 -GDK_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PIXBUF_PACKAGES $GDK_PACKAGES` $GDK_PIXBUF_EXTRA_CFLAGS $GDK_EXTRA_CFLAGS"
-+GDK_PACKAGES="$PANGO_PACKAGES gio-2.0"
++GDK_PACKAGES="$PANGO_PACKAGES gio-unix-2.0"
 +GDK_PRIVATE_PACKAGES="$X_PACKAGES cairo-$cairo_backend"
 +GDK_DEP_LIBS="$GDK_EXTRA_LIBS `$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES $GDK_PACKAGES $GDK_PRIVATE_PACKAGES` $GDK_PIXBUF_EXTRA_LIBS"
 +GDK_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PIXBUF_PACKAGES $GDK_PACKAGES $GDK_PRIVATE_PACKAGES` $GDK_PIXBUF_EXTRA_CFLAGS $GDK_EXTRA_CFLAGS"
@@ -889,7 +713,7 @@
  fi
  
  
-@@ -24334,6 +24419,7 @@
+@@ -24364,6 +24448,7 @@
  
  
  
@@ -897,7 +721,7 @@
  ########################################
  # Check for Accessibility Toolkit flags
  ########################################
-@@ -24408,7 +24494,7 @@
+@@ -24438,7 +24523,7 @@
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then
@@ -906,7 +730,7 @@
  fi
  
  
-@@ -25529,6 +25615,10 @@
+@@ -25669,6 +25754,10 @@
    as_fn_error "conditional \"am__fastdepCC\" was never defined.
  Usually this means the macro was only invoked conditionally." "$LINENO" 5
  fi
@@ -917,10 +741,11 @@
  if test -z "${am__fastdepCXX_TRUE}" && test -z "${am__fastdepCXX_FALSE}"; then
    as_fn_error "conditional \"am__fastdepCXX\" was never defined.
  Usually this means the macro was only invoked conditionally." "$LINENO" 5
---- a/contrib/gdk-pixbuf-xlib/Makefile.in
-+++ b/contrib/gdk-pixbuf-xlib/Makefile.in
-@@ -48,7 +48,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/contrib/gdk-pixbuf-xlib/Makefile.in gtk+2.0-2.20.0/contrib/gdk-pixbuf-xlib/Makefile.in
+--- gtk+2.0-2.20.0.old/contrib/gdk-pixbuf-xlib/Makefile.in	2010-03-23 04:32:56.000000000 +0100
++++ gtk+2.0-2.20.0/contrib/gdk-pixbuf-xlib/Makefile.in	2010-03-23 16:10:20.284927621 +0100
+@@ -51,7 +51,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -928,7 +753,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES = gdk-pixbuf-xlib-2.0.pc
  CONFIG_CLEAN_VPATH_FILES =
-@@ -198,6 +198,7 @@
+@@ -201,6 +201,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -936,10 +761,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/contrib/Makefile.in
-+++ b/contrib/Makefile.in
-@@ -44,7 +44,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/contrib/Makefile.in gtk+2.0-2.20.0/contrib/Makefile.in
+--- gtk+2.0-2.20.0.old/contrib/Makefile.in	2010-03-23 04:32:56.000000000 +0100
++++ gtk+2.0-2.20.0/contrib/Makefile.in	2010-03-23 16:10:20.164928008 +0100
+@@ -47,7 +47,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -947,7 +773,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -171,6 +171,7 @@
+@@ -174,6 +174,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -955,10 +781,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/demos/gtk-demo/Makefile.in
-+++ b/demos/gtk-demo/Makefile.in
-@@ -46,7 +46,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/demos/gtk-demo/Makefile.in gtk+2.0-2.20.0/demos/gtk-demo/Makefile.in
+--- gtk+2.0-2.20.0.old/demos/gtk-demo/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/demos/gtk-demo/Makefile.in	2010-03-23 16:10:20.496928036 +0100
+@@ -49,7 +49,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -966,7 +793,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES = geninclude.pl
  CONFIG_CLEAN_VPATH_FILES =
-@@ -206,6 +206,7 @@
+@@ -210,6 +210,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -974,10 +801,331 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/demos/Makefile.in
-+++ b/demos/Makefile.in
-@@ -50,7 +50,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/demos/Makefile.in gtk+2.0-2.20.0/demos/Makefile.in
+--- gtk+2.0-2.20.0.old/demos/Makefile.in	2010-03-23 04:32:56.000000000 +0100
++++ gtk+2.0-2.20.0/demos/Makefile.in	2010-03-23 16:10:20.396927968 +0100
+@@ -53,7 +53,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -233,6 +233,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/faq/Makefile.in gtk+2.0-2.20.0/docs/faq/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/faq/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/faq/Makefile.in	2010-03-23 16:10:20.644927633 +0100
+@@ -46,7 +46,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -133,6 +133,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/Makefile.in gtk+2.0-2.20.0/docs/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/Makefile.in	2010-03-23 16:10:20.572927701 +0100
+@@ -46,7 +46,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -173,6 +173,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/reference/gdk/Makefile.in gtk+2.0-2.20.0/docs/reference/gdk/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/reference/gdk/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/reference/gdk/Makefile.in	2010-03-23 16:10:20.896927691 +0100
+@@ -53,7 +53,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES = version.xml
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -140,6 +140,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/reference/gdk-pixbuf/Makefile.in gtk+2.0-2.20.0/docs/reference/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/reference/gdk-pixbuf/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/reference/gdk-pixbuf/Makefile.in	2010-03-23 16:10:20.812927904 +0100
+@@ -53,7 +53,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES = version.xml
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -165,6 +165,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/reference/gtk/Makefile.in gtk+2.0-2.20.0/docs/reference/gtk/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/reference/gtk/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/reference/gtk/Makefile.in	2010-03-23 16:10:20.992928088 +0100
+@@ -53,7 +53,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES = version.xml
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -165,6 +165,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/reference/libgail-util/Makefile.in gtk+2.0-2.20.0/docs/reference/libgail-util/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/reference/libgail-util/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/reference/libgail-util/Makefile.in	2010-03-23 16:10:21.080928160 +0100
+@@ -52,7 +52,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -139,6 +139,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/reference/Makefile.in gtk+2.0-2.20.0/docs/reference/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/reference/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/reference/Makefile.in	2010-03-23 16:10:20.720928078 +0100
+@@ -46,7 +46,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -173,6 +173,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/tools/Makefile.in gtk+2.0-2.20.0/docs/tools/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/tools/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/tools/Makefile.in	2010-03-23 16:10:21.172927840 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -169,6 +169,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/docs/tutorial/Makefile.in gtk+2.0-2.20.0/docs/tutorial/Makefile.in
+--- gtk+2.0-2.20.0.old/docs/tutorial/Makefile.in	2010-03-23 04:32:57.000000000 +0100
++++ gtk+2.0-2.20.0/docs/tutorial/Makefile.in	2010-03-23 16:10:21.248928284 +0100
+@@ -46,7 +46,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -133,6 +133,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/gdk/directfb/Makefile.in gtk+2.0-2.20.0/gdk/directfb/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk/directfb/Makefile.in	2010-03-23 04:32:58.000000000 +0100
++++ gtk+2.0-2.20.0/gdk/directfb/Makefile.in	2010-03-23 16:10:21.884927771 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -197,6 +197,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/gdk/Makefile.in gtk+2.0-2.20.0/gdk/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk/Makefile.in	2010-03-23 04:32:58.000000000 +0100
++++ gtk+2.0-2.20.0/gdk/Makefile.in	2010-03-23 16:10:21.784927902 +0100
+@@ -52,7 +52,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -324,6 +324,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/gdk/quartz/Makefile.in gtk+2.0-2.20.0/gdk/quartz/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk/quartz/Makefile.in	2010-03-23 04:32:58.000000000 +0100
++++ gtk+2.0-2.20.0/gdk/quartz/Makefile.in	2010-03-23 16:10:21.984927840 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -196,6 +196,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/gdk/tests/Makefile.in gtk+2.0-2.20.0/gdk/tests/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk/tests/Makefile.in	2010-03-23 04:32:58.000000000 +0100
++++ gtk+2.0-2.20.0/gdk/tests/Makefile.in	2010-03-23 16:10:22.064928013 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -138,6 +138,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/gdk/win32/Makefile.in gtk+2.0-2.20.0/gdk/win32/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk/win32/Makefile.in	2010-03-23 04:32:59.000000000 +0100
++++ gtk+2.0-2.20.0/gdk/win32/Makefile.in	2010-03-23 16:10:22.168927890 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -234,6 +234,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/gdk/win32/rc/Makefile.in gtk+2.0-2.20.0/gdk/win32/rc/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk/win32/rc/Makefile.in	2010-03-23 04:32:59.000000000 +0100
++++ gtk+2.0-2.20.0/gdk/win32/rc/Makefile.in	2010-03-23 16:10:22.244954176 +0100
+@@ -47,7 +47,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES = gdk.rc
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -135,6 +135,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/gdk/x11/Makefile.in gtk+2.0-2.20.0/gdk/x11/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk/x11/Makefile.in	2010-03-23 04:32:59.000000000 +0100
++++ gtk+2.0-2.20.0/gdk/x11/Makefile.in	2010-03-23 16:10:22.357928458 +0100
+@@ -53,7 +53,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -993,314 +1141,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/faq/Makefile.in
-+++ b/docs/faq/Makefile.in
-@@ -43,7 +43,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -130,6 +130,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/Makefile.in
-+++ b/docs/Makefile.in
-@@ -43,7 +43,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -170,6 +170,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/reference/gdk/Makefile.in
-+++ b/docs/reference/gdk/Makefile.in
-@@ -50,7 +50,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES = version.xml
- CONFIG_CLEAN_VPATH_FILES =
-@@ -137,6 +137,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/reference/gdk-pixbuf/Makefile.in
-+++ b/docs/reference/gdk-pixbuf/Makefile.in
-@@ -50,7 +50,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES = version.xml
- CONFIG_CLEAN_VPATH_FILES =
-@@ -162,6 +162,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/reference/gtk/Makefile.in
-+++ b/docs/reference/gtk/Makefile.in
-@@ -50,7 +50,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES = version.xml
- CONFIG_CLEAN_VPATH_FILES =
-@@ -162,6 +162,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/reference/libgail-util/Makefile.in
-+++ b/docs/reference/libgail-util/Makefile.in
-@@ -49,7 +49,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -136,6 +136,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/reference/Makefile.in
-+++ b/docs/reference/Makefile.in
-@@ -43,7 +43,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -170,6 +170,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/tools/Makefile.in
-+++ b/docs/tools/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -166,6 +166,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/docs/tutorial/Makefile.in
-+++ b/docs/tutorial/Makefile.in
-@@ -43,7 +43,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -130,6 +130,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gdk/directfb/Makefile.in
-+++ b/gdk/directfb/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -194,6 +194,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gdk/Makefile.in
-+++ b/gdk/Makefile.in
-@@ -46,7 +46,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -316,6 +316,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gdk/quartz/Makefile.in
-+++ b/gdk/quartz/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -193,6 +193,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gdk/tests/Makefile.in
-+++ b/gdk/tests/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -135,6 +135,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gdk/win32/Makefile.in
-+++ b/gdk/win32/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -231,6 +231,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gdk/win32/rc/Makefile.in
-+++ b/gdk/win32/rc/Makefile.in
-@@ -44,7 +44,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES = gdk.rc
- CONFIG_CLEAN_VPATH_FILES =
-@@ -132,6 +132,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gdk/x11/Makefile.in
-+++ b/gdk/x11/Makefile.in
-@@ -50,7 +50,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -223,6 +223,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gdk-pixbuf/Makefile.in
-+++ b/gdk-pixbuf/Makefile.in
-@@ -52,7 +52,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/gdk-pixbuf/Makefile.in gtk+2.0-2.20.0/gdk-pixbuf/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk-pixbuf/Makefile.in	2010-03-23 04:32:58.000000000 +0100
++++ gtk+2.0-2.20.0/gdk-pixbuf/Makefile.in	2010-03-23 16:10:21.524928241 +0100
+@@ -58,7 +58,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1308,7 +1153,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES = gdk_pixbuf.rc gdk-pixbuf-features.h
  CONFIG_CLEAN_VPATH_FILES =
-@@ -753,6 +753,7 @@
+@@ -782,6 +782,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1316,7 +1161,7 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -964,6 +965,7 @@
+@@ -1002,6 +1003,7 @@
  	libgdk_pixbuf-2.0.la
  
  loaderdir = $(libdir)/gtk-2.0/$(GTK_BINARY_VERSION)/loaders
@@ -1324,7 +1169,7 @@
  module_libs = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
  
  #
-@@ -1323,7 +1325,7 @@
+@@ -1373,7 +1375,7 @@
  	$(GDK_PIXBUF_DEP_CFLAGS)		\
  	-DGDK_PIXBUF_ENABLE_BACKEND
  
@@ -1333,10 +1178,11 @@
  LDADDS = libgdk_pixbuf-$(GTK_API_VERSION).la $(GDK_PIXBUF_DEP_LIBS)
  test_gdk_pixbuf_LDADD = $(LDADDS)
  gdk_pixbuf_csource_SOURCES = gdk-pixbuf-csource.c
---- a/gdk-pixbuf/pixops/Makefile.in
-+++ b/gdk-pixbuf/pixops/Makefile.in
-@@ -46,7 +46,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/gdk-pixbuf/pixops/Makefile.in gtk+2.0-2.20.0/gdk-pixbuf/pixops/Makefile.in
+--- gtk+2.0-2.20.0.old/gdk-pixbuf/pixops/Makefile.in	2010-03-23 04:32:58.000000000 +0100
++++ gtk+2.0-2.20.0/gdk-pixbuf/pixops/Makefile.in	2010-03-23 16:10:21.632928620 +0100
+@@ -49,7 +49,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1344,7 +1190,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -183,6 +183,7 @@
+@@ -186,6 +186,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1352,10 +1198,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gtk/Makefile.in
-+++ b/gtk/Makefile.in
-@@ -79,7 +79,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/gtk/Makefile.in gtk+2.0-2.20.0/gtk/Makefile.in
+--- gtk+2.0-2.20.0.old/gtk/Makefile.in	2010-03-23 04:32:59.000000000 +0100
++++ gtk+2.0-2.20.0/gtk/Makefile.in	2010-03-23 16:10:22.693928066 +0100
+@@ -84,7 +84,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1363,7 +1210,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES = makefile.msc gtkversion.h gtk-win32.rc
  CONFIG_CLEAN_VPATH_FILES =
-@@ -729,6 +729,7 @@
+@@ -742,6 +742,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1371,7 +1218,7 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -961,6 +962,8 @@
+@@ -991,6 +992,8 @@
  	-I$(top_srcdir)/gdk				\
  	-I$(top_srcdir)/gdk-pixbuf -I../gdk-pixbuf	\
  	-DGDK_DISABLE_DEPRECATED			\
@@ -1380,7 +1227,7 @@
  	-DGTK_DISABLE_DEPRECATED			\
  	-DGTK_FILE_SYSTEM_ENABLE_UNSUPPORTED		\
  	-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED		\
-@@ -1072,17 +1075,21 @@
+@@ -1104,17 +1107,21 @@
  # Installed header files without compatibility guarantees
  # that are not included in gtk/gtk.h
  gtk_semi_private_h_sources = \
@@ -1410,10 +1257,11 @@
  	gtkmnemonichash.h gtkmountoperationprivate.h gtkpathbar.h \
  	gtkplugprivate.h gtkprintoperation-private.h gtkprintutils.h \
  	gtkrbtree.h gtkrecentchooserdefault.h \
---- a/gtk/tests/Makefile.in
-+++ b/gtk/tests/Makefile.in
-@@ -46,7 +46,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/gtk/tests/Makefile.in gtk+2.0-2.20.0/gtk/tests/Makefile.in
+--- gtk+2.0-2.20.0.old/gtk/tests/Makefile.in	2010-03-23 04:32:59.000000000 +0100
++++ gtk+2.0-2.20.0/gtk/tests/Makefile.in	2010-03-23 16:10:22.817927910 +0100
+@@ -49,7 +49,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1421,7 +1269,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -221,6 +221,7 @@
+@@ -228,6 +228,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1429,10 +1277,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/gtk/theme-bits/Makefile.in
-+++ b/gtk/theme-bits/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/gtk/theme-bits/Makefile.in gtk+2.0-2.20.0/gtk/theme-bits/Makefile.in
+--- gtk+2.0-2.20.0.old/gtk/theme-bits/Makefile.in	2010-03-23 04:32:59.000000000 +0100
++++ gtk+2.0-2.20.0/gtk/theme-bits/Makefile.in	2010-03-23 16:10:22.913927896 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1440,7 +1289,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -163,6 +163,7 @@
+@@ -166,6 +166,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1448,8 +1297,9 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/ltmain.sh
-+++ b/ltmain.sh
+diff -Naur gtk+2.0-2.20.0.old/ltmain.sh gtk+2.0-2.20.0/ltmain.sh
+--- gtk+2.0-2.20.0.old/ltmain.sh	2010-01-21 22:11:50.000000000 +0100
++++ gtk+2.0-2.20.0/ltmain.sh	2010-03-23 16:10:14.001945713 +0100
 @@ -65,7 +65,7 @@
  #       compiler:		$LTCC
  #       compiler flags:		$LTCFLAGS
@@ -1528,10 +1378,170 @@
  	  esac
  	  ;;
  	no)
---- a/m4macros/Makefile.in
-+++ b/m4macros/Makefile.in
-@@ -44,7 +44,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/m4/libtool.m4 gtk+2.0-2.20.0/m4/libtool.m4
+--- gtk+2.0-2.20.0.old/m4/libtool.m4	2010-01-21 22:11:50.000000000 +0100
++++ gtk+2.0-2.20.0/m4/libtool.m4	2010-03-23 16:10:14.108935558 +0100
+@@ -2445,7 +2445,7 @@
+   ;;
+ 
+ # This must be Linux ELF.
+-linux* | k*bsd*-gnu)
++linux* | k*bsd*-gnu | kopensolaris*-gnu)
+   version_type=linux
+   need_lib_prefix=no
+   need_version=no
+@@ -2470,13 +2470,10 @@
+   # before this can be enabled.
+   hardcode_into_libs=yes
+ 
+-  # Add ABI-specific directories to the system library path.
+-  sys_lib_dlsearch_path_spec="/lib64 /usr/lib64 /lib /usr/lib"
+-
+   # Append ld.so.conf contents to the search path
+   if test -f /etc/ld.so.conf; then
+     lt_ld_extra=`awk '/^include / { system(sprintf("cd /etc; cat %s 2>/dev/null", \[$]2)); skip = 1; } { if (!skip) print \[$]0; skip = 0; }' < /etc/ld.so.conf | $SED -e 's/#.*//;/^[	 ]*hwcap[	 ]/d;s/[:,	]/ /g;s/=[^=]*$//;s/=[^= ]* / /g;/^$/d' | tr '\n' ' '`
+-    sys_lib_dlsearch_path_spec="$sys_lib_dlsearch_path_spec $lt_ld_extra"
++    sys_lib_dlsearch_path_spec="/lib /usr/lib $lt_ld_extra"
+   fi
+ 
+   # We used to test for /lib/ld.so.1 and disable shared libraries on
+@@ -2488,6 +2485,18 @@
+   dynamic_linker='GNU/Linux ld.so'
+   ;;
+ 
++netbsdelf*-gnu)
++  version_type=linux
++  need_lib_prefix=no
++  need_version=no
++  library_names_spec='${libname}${release}${shared_ext}$versuffix ${libname}${release}${shared_ext}$major ${libname}${shared_ext}'
++  soname_spec='${libname}${release}${shared_ext}$major'
++  shlibpath_var=LD_LIBRARY_PATH
++  shlibpath_overrides_runpath=no
++  hardcode_into_libs=yes
++  dynamic_linker='NetBSD ld.elf_so'
++  ;;
++
+ netbsd*)
+   version_type=sunos
+   need_lib_prefix=no
+@@ -3075,11 +3084,11 @@
+   ;;
+ 
+ # This must be Linux ELF.
+-linux* | k*bsd*-gnu)
++linux* | k*bsd*-gnu | kopensolaris*-gnu)
+   lt_cv_deplibs_check_method=pass_all
+   ;;
+ 
+-netbsd*)
++netbsd* | netbsdelf*-gnu)
+   if echo __ELF__ | $CC -E - | $GREP __ELF__ > /dev/null; then
+     lt_cv_deplibs_check_method='match_pattern /lib[[^/]]+(\.so\.[[0-9]]+\.[[0-9]]+|_pic\.a)$'
+   else
+@@ -3696,7 +3705,7 @@
+ 	    ;;
+ 	esac
+ 	;;
+-      linux* | k*bsd*-gnu)
++      linux* | k*bsd*-gnu | kopensolaris*-gnu)
+ 	case $cc_basename in
+ 	  KCC*)
+ 	    # KAI C++ Compiler
+@@ -3760,7 +3769,7 @@
+ 	    ;;
+ 	esac
+ 	;;
+-      netbsd*)
++      netbsd* | netbsdelf*-gnu)
+ 	;;
+       *qnx* | *nto*)
+         # QNX uses GNU C++, but need to define -shared option too, otherwise
+@@ -3980,7 +3989,7 @@
+       _LT_TAGVAR(lt_prog_compiler_static, $1)='-non_shared'
+       ;;
+ 
+-    linux* | k*bsd*-gnu)
++    linux* | k*bsd*-gnu | kopensolaris*-gnu)
+       case $cc_basename in
+       # old Intel for x86_64 which still supported -KPIC.
+       ecc*)
+@@ -4185,6 +4194,9 @@
+   cygwin* | mingw* | cegcc*)
+     _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED -e '\''/^[[BCDGRS]][[ ]]/s/.*[[ ]]\([[^ ]]*\)/\1 DATA/;/^.*[[ ]]__nm__/s/^.*[[ ]]__nm__\([[^ ]]*\)[[ ]][[^ ]]*/\1 DATA/;/^I[[ ]]/d;/^[[AITW]][[ ]]/s/.* //'\'' | sort | uniq > $export_symbols'
+   ;;
++  linux* | k*bsd*-gnu)
++    _LT_TAGVAR(link_all_deplibs, $1)=no
++  ;;
+   *)
+     _LT_TAGVAR(export_symbols_cmds, $1)='$NM $libobjs $convenience | $global_symbol_pipe | $SED '\''s/.* //'\'' | sort | uniq > $export_symbols'
+   ;;
+@@ -4249,6 +4261,9 @@
+   openbsd*)
+     with_gnu_ld=no
+     ;;
++  linux* | k*bsd*-gnu)
++    _LT_TAGVAR(link_all_deplibs, $1)=no
++    ;;
+   esac
+ 
+   _LT_TAGVAR(ld_shlibs, $1)=yes
+@@ -4270,6 +4285,7 @@
+     fi
+     supports_anon_versioning=no
+     case `$LD -v 2>&1` in
++      *GNU\ gold*) supports_anon_versioning=yes ;;
+       *\ [[01]].* | *\ 2.[[0-9]].* | *\ 2.10.*) ;; # catch versions < 2.11
+       *\ 2.11.93.0.2\ *) supports_anon_versioning=yes ;; # RH7.3 ...
+       *\ 2.11.92.0.12\ *) supports_anon_versioning=yes ;; # Mandrake 8.2 ...
+@@ -4361,7 +4377,7 @@
+       _LT_TAGVAR(archive_expsym_cmds, $1)='sed "s,^,_," $export_symbols >$output_objdir/$soname.expsym~$CC -shared $pic_flag $libobjs $deplibs $compiler_flags ${wl}-h,$soname ${wl}--retain-symbols-file,$output_objdir/$soname.expsym ${wl}--image-base,`expr ${RANDOM-$$} % 4096 / 2 \* 262144 + 1342177280` -o $lib'
+       ;;
+ 
+-    gnu* | linux* | tpf* | k*bsd*-gnu)
++    gnu* | linux* | tpf* | k*bsd*-gnu | kopensolaris*-gnu)
+       tmp_diet=no
+       if test "$host_os" = linux-dietlibc; then
+ 	case $cc_basename in
+@@ -4431,7 +4447,7 @@
+       fi
+       ;;
+ 
+-    netbsd*)
++    netbsd* | netbsdelf*-gnu)
+       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
+ 	_LT_TAGVAR(archive_cmds, $1)='$LD -Bshareable $libobjs $deplibs $linker_flags -o $lib'
+ 	wlarc=
+@@ -4606,6 +4622,7 @@
+ 	if test "$aix_use_runtimelinking" = yes; then
+ 	  shared_flag="$shared_flag "'${wl}-G'
+ 	fi
++	_LT_TAGVAR(link_all_deplibs, $1)=no
+       else
+ 	# not using gcc
+ 	if test "$host_cpu" = ia64; then
+@@ -4844,7 +4861,7 @@
+       _LT_TAGVAR(link_all_deplibs, $1)=yes
+       ;;
+ 
+-    netbsd*)
++    netbsd* | netbsdelf*-gnu)
+       if echo __ELF__ | $CC -E - | $GREP __ELF__ >/dev/null; then
+ 	_LT_TAGVAR(archive_cmds, $1)='$LD -Bshareable -o $lib $libobjs $deplibs $linker_flags'  # a.out
+       else
+@@ -5844,7 +5861,7 @@
+         _LT_TAGVAR(inherit_rpath, $1)=yes
+         ;;
+ 
+-      linux* | k*bsd*-gnu)
++      linux* | k*bsd*-gnu | kopensolaris*-gnu)
+         case $cc_basename in
+           KCC*)
+ 	    # Kuck and Associates, Inc. (KAI) C++ Compiler
+diff -Naur gtk+2.0-2.20.0.old/m4macros/Makefile.in gtk+2.0-2.20.0/m4macros/Makefile.in
+--- gtk+2.0-2.20.0.old/m4macros/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/m4macros/Makefile.in	2010-03-23 16:10:22.989927986 +0100
+@@ -47,7 +47,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1539,7 +1549,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -154,6 +154,7 @@
+@@ -157,6 +157,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1547,8 +1557,9 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/Makefile.in
-+++ b/Makefile.in
+diff -Naur gtk+2.0-2.20.0.old/Makefile.in gtk+2.0-2.20.0/Makefile.in
+--- gtk+2.0-2.20.0.old/Makefile.in	2010-03-23 04:33:02.000000000 +0100
++++ gtk+2.0-2.20.0/Makefile.in	2010-03-23 16:10:25.389927848 +0100
 @@ -47,7 +47,7 @@
  	$(srcdir)/gtk+-unix-print-2.0.pc.in $(srcdir)/gtk-zip.sh.in \
  	$(top_srcdir)/Makefile.decl $(top_srcdir)/configure AUTHORS \
@@ -1558,7 +1569,7 @@
  @OS_UNIX_TRUE@am__append_1 = gtk+-unix-print-2.0.pc
  subdir = .
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
-@@ -57,7 +57,7 @@
+@@ -60,7 +60,7 @@
  	$(ACLOCAL_M4)
  am__CONFIG_DISTCLEAN_FILES = config.status config.cache config.log \
   configure.lineno config.status.lineno
@@ -1567,7 +1578,7 @@
  CONFIG_HEADER = config.h
  CONFIG_CLEAN_FILES = config.h.win32 gtk-zip.sh gdk-pixbuf-2.0.pc \
  	gdk-2.0.pc gtk+-2.0.pc gtk+-unix-print-2.0.pc gail.pc \
-@@ -109,7 +109,8 @@
+@@ -112,7 +112,8 @@
  	distdir dist dist-all distcheck
  ETAGS = etags
  CTAGS = ctags
@@ -1577,7 +1588,7 @@
  DISTFILES = $(DIST_COMMON) $(DIST_SOURCES) $(TEXINFOS) $(EXTRA_DIST)
  distdir = $(PACKAGE)-$(VERSION)
  top_distdir = $(distdir)
-@@ -220,6 +221,7 @@
+@@ -223,6 +224,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1585,7 +1596,7 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -469,7 +471,10 @@
+@@ -480,7 +482,10 @@
  	|| { echo "Gtk+Tests:ERROR: Failed to start Xvfb environment for X11 target tests."; exit 1; } \
  	&& DISPLAY=:$$XID && export DISPLAY
  
@@ -1597,8 +1608,9 @@
  SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros
  
  # require automake 1.4
---- /dev/null
-+++ b/mkinstalldirs
+diff -Naur gtk+2.0-2.20.0.old/mkinstalldirs gtk+2.0-2.20.0/mkinstalldirs
+--- gtk+2.0-2.20.0.old/mkinstalldirs	1970-01-01 01:00:00.000000000 +0100
++++ gtk+2.0-2.20.0/mkinstalldirs	2010-03-23 16:10:25.336954632 +0100
 @@ -0,0 +1,162 @@
 +#! /bin/sh
 +# mkinstalldirs --- make directory hierarchy
@@ -1762,10 +1774,11 @@
 +# time-stamp-time-zone: "UTC"
 +# time-stamp-end: "; # UTC"
 +# End:
---- a/modules/engines/Makefile.in
-+++ b/modules/engines/Makefile.in
-@@ -43,7 +43,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/engines/Makefile.in gtk+2.0-2.20.0/modules/engines/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/engines/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/modules/engines/Makefile.in	2010-03-23 16:10:23.149927918 +0100
+@@ -46,7 +46,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1773,7 +1786,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -170,6 +170,7 @@
+@@ -173,6 +173,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1781,10 +1794,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/engines/ms-windows/Makefile.in
-+++ b/modules/engines/ms-windows/Makefile.in
-@@ -44,7 +44,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/engines/ms-windows/Makefile.in gtk+2.0-2.20.0/modules/engines/ms-windows/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/engines/ms-windows/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/modules/engines/ms-windows/Makefile.in	2010-03-23 16:10:23.249927713 +0100
+@@ -47,7 +47,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1792,7 +1806,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -228,6 +228,7 @@
+@@ -231,6 +231,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1800,10 +1814,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
-+++ b/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
-@@ -44,7 +44,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in gtk+2.0-2.20.0/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/modules/engines/ms-windows/Theme/gtk-2.0/Makefile.in	2010-03-23 16:10:23.405928416 +0100
+@@ -47,7 +47,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1811,7 +1826,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -154,6 +154,7 @@
+@@ -157,6 +157,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1819,10 +1834,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/engines/ms-windows/Theme/Makefile.in
-+++ b/modules/engines/ms-windows/Theme/Makefile.in
-@@ -43,7 +43,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/engines/ms-windows/Theme/Makefile.in gtk+2.0-2.20.0/modules/engines/ms-windows/Theme/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/engines/ms-windows/Theme/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/modules/engines/ms-windows/Theme/Makefile.in	2010-03-23 16:10:23.325928020 +0100
+@@ -46,7 +46,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1830,7 +1846,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -170,6 +170,7 @@
+@@ -173,6 +173,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1838,10 +1854,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/engines/pixbuf/Makefile.in
-+++ b/modules/engines/pixbuf/Makefile.in
-@@ -44,7 +44,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/engines/pixbuf/Makefile.in gtk+2.0-2.20.0/modules/engines/pixbuf/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/engines/pixbuf/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/modules/engines/pixbuf/Makefile.in	2010-03-23 16:10:23.501927974 +0100
+@@ -47,7 +47,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1849,7 +1866,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -191,6 +191,7 @@
+@@ -194,6 +194,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1857,10 +1874,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/input/Makefile.in
-+++ b/modules/input/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/input/Makefile.in gtk+2.0-2.20.0/modules/input/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/input/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/modules/input/Makefile.in	2010-03-23 16:10:23.689928326 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1868,7 +1886,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -392,6 +392,7 @@
+@@ -395,6 +395,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1876,7 +1894,7 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -707,7 +708,8 @@
+@@ -718,7 +719,8 @@
  @INCLUDE_IM_MULTIPRESS_FALSE@MULTIPRESS_MODULE = im-multipress.la
  imconffiledir = $(sysconfdir)/gtk-2.0
  dist_imconffile_DATA = im-multipress.conf
@@ -1886,7 +1904,7 @@
  @CROSS_COMPILING_TRUE@RUN_QUERY_IMMODULES_TEST = false
  @BUILD_DYNAMIC_MODULES_TRUE@module_LTLIBRARIES = \
  @BUILD_DYNAMIC_MODULES_TRUE@	$(AM_ET_MODULE)			\
-@@ -1259,7 +1261,18 @@
+@@ -1270,7 +1272,18 @@
  included-modules: $(noinst_LTLIBRARIES)
  
  gtk.immodules: Makefile.am $(module_LTLIBRARIES)
@@ -1906,10 +1924,11 @@
  
  @CROSS_COMPILING_FALSE@all-local: gtk.immodules
  
---- a/modules/Makefile.in
-+++ b/modules/Makefile.in
-@@ -44,7 +44,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/Makefile.in gtk+2.0-2.20.0/modules/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/modules/Makefile.in	2010-03-23 16:10:23.073929156 +0100
+@@ -47,7 +47,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1917,7 +1936,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -171,6 +171,7 @@
+@@ -174,6 +174,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1925,10 +1944,71 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/other/gail/libgail-util/Makefile.in
-+++ b/modules/other/gail/libgail-util/Makefile.in
+diff -Naur gtk+2.0-2.20.0.old/modules/other/gail/libgail-util/Makefile.in gtk+2.0-2.20.0/modules/other/gail/libgail-util/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/other/gail/libgail-util/Makefile.in	2010-03-23 04:33:01.000000000 +0100
++++ gtk+2.0-2.20.0/modules/other/gail/libgail-util/Makefile.in	2010-03-23 16:10:24.177927917 +0100
+@@ -49,7 +49,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -198,6 +198,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/modules/other/gail/Makefile.in gtk+2.0-2.20.0/modules/other/gail/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/other/gail/Makefile.in	2010-03-23 04:33:01.000000000 +0100
++++ gtk+2.0-2.20.0/modules/other/gail/Makefile.in	2010-03-23 16:10:24.065928000 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -265,6 +265,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/modules/other/gail/tests/Makefile.in gtk+2.0-2.20.0/modules/other/gail/tests/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/other/gail/tests/Makefile.in	2010-03-23 04:33:01.000000000 +0100
++++ gtk+2.0-2.20.0/modules/other/gail/tests/Makefile.in	2010-03-23 16:10:24.325927950 +0100
+@@ -47,7 +47,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
+ am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
+ 	$(ACLOCAL_M4)
+-mkinstalldirs = $(install_sh) -d
++mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
+ CONFIG_HEADER = $(top_builddir)/config.h
+ CONFIG_CLEAN_FILES =
+ CONFIG_CLEAN_VPATH_FILES =
+@@ -337,6 +337,7 @@
+ GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
+ GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
+ GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
++GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
+ GDK_WLIBS = @GDK_WLIBS@
+ GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
+ GLIB_CFLAGS = @GLIB_CFLAGS@
+diff -Naur gtk+2.0-2.20.0.old/modules/other/Makefile.in gtk+2.0-2.20.0/modules/other/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/other/Makefile.in	2010-03-23 04:33:00.000000000 +0100
++++ gtk+2.0-2.20.0/modules/other/Makefile.in	2010-03-23 16:10:23.769929417 +0100
 @@ -46,7 +46,7 @@
- 	$(top_srcdir)/configure.in
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1936,7 +2016,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -195,6 +195,7 @@
+@@ -173,6 +173,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1944,10 +2024,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/other/gail/Makefile.in
-+++ b/modules/other/gail/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/printbackends/cups/Makefile.in gtk+2.0-2.20.0/modules/printbackends/cups/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/printbackends/cups/Makefile.in	2010-03-23 04:33:01.000000000 +0100
++++ gtk+2.0-2.20.0/modules/printbackends/cups/Makefile.in	2010-03-23 16:10:24.501928323 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1955,7 +2036,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -262,6 +262,7 @@
+@@ -197,6 +197,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1963,10 +2044,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/other/gail/tests/Makefile.in
-+++ b/modules/other/gail/tests/Makefile.in
-@@ -44,7 +44,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/printbackends/file/Makefile.in gtk+2.0-2.20.0/modules/printbackends/file/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/printbackends/file/Makefile.in	2010-03-23 04:33:01.000000000 +0100
++++ gtk+2.0-2.20.0/modules/printbackends/file/Makefile.in	2010-03-23 16:10:24.601927825 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -1974,7 +2056,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -334,6 +334,7 @@
+@@ -196,6 +196,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -1982,29 +2064,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/other/Makefile.in
-+++ b/modules/other/Makefile.in
-@@ -43,7 +43,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -170,6 +170,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/printbackends/cups/Makefile.in
-+++ b/modules/printbackends/cups/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/printbackends/lpr/Makefile.in gtk+2.0-2.20.0/modules/printbackends/lpr/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/printbackends/lpr/Makefile.in	2010-03-23 04:33:01.000000000 +0100
++++ gtk+2.0-2.20.0/modules/printbackends/lpr/Makefile.in	2010-03-23 16:10:24.701928035 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -2020,10 +2084,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/printbackends/file/Makefile.in
-+++ b/modules/printbackends/file/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/printbackends/Makefile.in gtk+2.0-2.20.0/modules/printbackends/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/printbackends/Makefile.in	2010-03-23 04:33:01.000000000 +0100
++++ gtk+2.0-2.20.0/modules/printbackends/Makefile.in	2010-03-23 16:10:24.405927927 +0100
+@@ -49,7 +49,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -2031,7 +2096,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -193,6 +193,7 @@
+@@ -175,6 +175,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2039,29 +2104,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/printbackends/lpr/Makefile.in
-+++ b/modules/printbackends/lpr/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -191,6 +191,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/printbackends/Makefile.in
-+++ b/modules/printbackends/Makefile.in
+diff -Naur gtk+2.0-2.20.0.old/modules/printbackends/papi/Makefile.in gtk+2.0-2.20.0/modules/printbackends/papi/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/printbackends/papi/Makefile.in	2010-03-23 04:33:02.000000000 +0100
++++ gtk+2.0-2.20.0/modules/printbackends/papi/Makefile.in	2010-03-23 16:10:24.797927670 +0100
 @@ -46,7 +46,7 @@
- 	$(top_srcdir)/configure.in
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -2069,7 +2116,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -172,6 +172,7 @@
+@@ -194,6 +194,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2077,10 +2124,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/printbackends/papi/Makefile.in
-+++ b/modules/printbackends/papi/Makefile.in
-@@ -43,7 +43,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/modules/printbackends/test/Makefile.in gtk+2.0-2.20.0/modules/printbackends/test/Makefile.in
+--- gtk+2.0-2.20.0.old/modules/printbackends/test/Makefile.in	2010-03-23 04:33:02.000000000 +0100
++++ gtk+2.0-2.20.0/modules/printbackends/test/Makefile.in	2010-03-23 16:10:24.897927957 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -2088,7 +2136,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -191,6 +191,7 @@
+@@ -195,6 +195,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2096,10 +2144,11 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/modules/printbackends/test/Makefile.in
-+++ b/modules/printbackends/test/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/perf/Makefile.in gtk+2.0-2.20.0/perf/Makefile.in
+--- gtk+2.0-2.20.0.old/perf/Makefile.in	2010-03-23 04:33:02.000000000 +0100
++++ gtk+2.0-2.20.0/perf/Makefile.in	2010-03-23 16:10:24.993927866 +0100
+@@ -48,7 +48,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -2107,7 +2156,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -192,6 +192,7 @@
+@@ -169,6 +169,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2115,27 +2164,9 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/perf/Makefile.in
-+++ b/perf/Makefile.in
-@@ -45,7 +45,7 @@
- 	$(top_srcdir)/configure.in
- am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
- 	$(ACLOCAL_M4)
--mkinstalldirs = $(install_sh) -d
-+mkinstalldirs = $(SHELL) $(top_srcdir)/mkinstalldirs
- CONFIG_HEADER = $(top_builddir)/config.h
- CONFIG_CLEAN_FILES =
- CONFIG_CLEAN_VPATH_FILES =
-@@ -166,6 +166,7 @@
- GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
- GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
- GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
-+GDK_PRIVATE_PACKAGES = @GDK_PRIVATE_PACKAGES@
- GDK_WLIBS = @GDK_WLIBS@
- GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
- GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/po/Makefile.in.in
-+++ b/po/Makefile.in.in
+diff -Naur gtk+2.0-2.20.0.old/po/Makefile.in.in gtk+2.0-2.20.0/po/Makefile.in.in
+--- gtk+2.0-2.20.0.old/po/Makefile.in.in	2009-12-19 03:54:51.000000000 +0100
++++ gtk+2.0-2.20.0/po/Makefile.in.in	2010-03-23 16:10:14.465929058 +0100
 @@ -25,22 +25,23 @@
  
  prefix = @prefix@
@@ -2247,10 +2278,11 @@
  	  $(INSTALL_DATA) $(srcdir)/Makefile.in.in \
  			  $(DESTDIR)$(gettextsrcdir)/Makefile.in.in; \
  	else \
---- a/tests/Makefile.in
-+++ b/tests/Makefile.in
-@@ -79,7 +79,7 @@
- 	$(top_srcdir)/configure.in
+diff -Naur gtk+2.0-2.20.0.old/tests/Makefile.in gtk+2.0-2.20.0/tests/Makefile.in
+--- gtk+2.0-2.20.0.old/tests/Makefile.in	2010-03-23 04:33:02.000000000 +0100
++++ gtk+2.0-2.20.0/tests/Makefile.in	2010-03-23 16:10:25.245928182 +0100
+@@ -82,7 +82,7 @@
+ 	$(top_srcdir)/acinclude.m4 $(top_srcdir)/configure.in
  am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
  	$(ACLOCAL_M4)
 -mkinstalldirs = $(install_sh) -d
@@ -2258,7 +2290,7 @@
  CONFIG_HEADER = $(top_builddir)/config.h
  CONFIG_CLEAN_FILES =
  CONFIG_CLEAN_VPATH_FILES =
-@@ -428,6 +428,7 @@
+@@ -435,6 +435,7 @@
  GDK_PIXBUF_XLIB_EXTRA_CFLAGS = @GDK_PIXBUF_XLIB_EXTRA_CFLAGS@
  GDK_PIXBUF_XLIB_EXTRA_LIBS = @GDK_PIXBUF_XLIB_EXTRA_LIBS@
  GDK_PIXBUF_XLIB_PACKAGES = @GDK_PIXBUF_XLIB_PACKAGES@
@@ -2266,493 +2298,3 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
---- a/INSTALL
-+++ b/INSTALL
-@@ -1,41 +1,365 @@
--Prerequisites
--=============
-+Installation Instructions
-+*************************
- 
--GTK+ requires the following packages:
-+Copyright (C) 1994, 1995, 1996, 1999, 2000, 2001, 2002, 2004, 2005,
-+2006, 2007, 2008, 2009 Free Software Foundation, Inc.
- 
-- - The GLib, Pango, ATK and cairo libraries, available at the same 
--   location as GTK+. GTK+ 2.18.9 requires at least GLib 2.17.6,
--   Pango 1.20, ATK 1.13.0 and cairo 1.6.0.
-+   Copying and distribution of this file, with or without modification,
-+are permitted in any medium without royalty provided the copyright
-+notice and this notice are preserved.  This file is offered as-is,
-+without warranty of any kind.
-+
-+Basic Installation
-+==================
-+
-+   Briefly, the shell commands `./configure; make; make install' should
-+configure, build, and install this package.  The following
-+more-detailed instructions are generic; see the `README' file for
-+instructions specific to this package.  Some packages provide this
-+`INSTALL' file but do not implement all of the features documented
-+below.  The lack of an optional feature in a given package is not
-+necessarily a bug.  More recommendations for GNU packages can be found
-+in *note Makefile Conventions: (standards)Makefile Conventions.
-+
-+   The `configure' shell script attempts to guess correct values for
-+various system-dependent variables used during compilation.  It uses
-+those values to create a `Makefile' in each directory of the package.
-+It may also create one or more `.h' files containing system-dependent
-+definitions.  Finally, it creates a shell script `config.status' that
-+you can run in the future to recreate the current configuration, and a
-+file `config.log' containing compiler output (useful mainly for
-+debugging `configure').
-+
-+   It can also use an optional file (typically called `config.cache'
-+and enabled with `--cache-file=config.cache' or simply `-C') that saves
-+the results of its tests to speed up reconfiguring.  Caching is
-+disabled by default to prevent problems with accidental use of stale
-+cache files.
-+
-+   If you need to do unusual things to compile the package, please try
-+to figure out how `configure' could check whether to do them, and mail
-+diffs or instructions to the address given in the `README' so they can
-+be considered for the next release.  If you are using the cache, and at
-+some point `config.cache' contains results you don't want to keep, you
-+may remove or edit it.
-+
-+   The file `configure.ac' (or `configure.in') is used to create
-+`configure' by a program called `autoconf'.  You need `configure.ac' if
-+you want to change it or regenerate `configure' using a newer version
-+of `autoconf'.
-+
-+   The simplest way to compile this package is:
-+
-+  1. `cd' to the directory containing the package's source code and type
-+     `./configure' to configure the package for your system.
-+
-+     Running `configure' might take a while.  While running, it prints
-+     some messages telling which features it is checking for.
-+
-+  2. Type `make' to compile the package.
-+
-+  3. Optionally, type `make check' to run any self-tests that come with
-+     the package, generally using the just-built uninstalled binaries.
-+
-+  4. Type `make install' to install the programs and any data files and
-+     documentation.  When installing into a prefix owned by root, it is
-+     recommended that the package be configured and built as a regular
-+     user, and only the `make install' phase executed with root
-+     privileges.
-+
-+  5. Optionally, type `make installcheck' to repeat any self-tests, but
-+     this time using the binaries in their final installed location.
-+     This target does not install anything.  Running this target as a
-+     regular user, particularly if the prior `make install' required
-+     root privileges, verifies that the installation completed
-+     correctly.
-+
-+  6. You can remove the program binaries and object files from the
-+     source code directory by typing `make clean'.  To also remove the
-+     files that `configure' created (so you can compile the package for
-+     a different kind of computer), type `make distclean'.  There is
-+     also a `make maintainer-clean' target, but that is intended mainly
-+     for the package's developers.  If you use it, you may have to get
-+     all sorts of other programs in order to regenerate files that came
-+     with the distribution.
-+
-+  7. Often, you can also type `make uninstall' to remove the installed
-+     files again.  In practice, not all packages have tested that
-+     uninstallation works correctly, even though it is required by the
-+     GNU Coding Standards.
-+
-+  8. Some packages, particularly those that use Automake, provide `make
-+     distcheck', which can by used by developers to test that all other
-+     targets like `make install' and `make uninstall' work correctly.
-+     This target is generally not run by end users.
-+
-+Compilers and Options
-+=====================
-+
-+   Some systems require unusual options for compilation or linking that
-+the `configure' script does not know about.  Run `./configure --help'
-+for details on some of the pertinent environment variables.
-+
-+   You can give `configure' initial values for configuration parameters
-+by setting variables in the command line or in the environment.  Here
-+is an example:
-+
-+     ./configure CC=c99 CFLAGS=-g LIBS=-lposix
-+
-+   *Note Defining Variables::, for more details.
-+
-+Compiling For Multiple Architectures
-+====================================
-+
-+   You can compile the package for more than one kind of computer at the
-+same time, by placing the object files for each architecture in their
-+own directory.  To do this, you can use GNU `make'.  `cd' to the
-+directory where you want the object files and executables to go and run
-+the `configure' script.  `configure' automatically checks for the
-+source code in the directory that `configure' is in and in `..'.  This
-+is known as a "VPATH" build.
-+
-+   With a non-GNU `make', it is safer to compile the package for one
-+architecture at a time in the source code directory.  After you have
-+installed the package for one architecture, use `make distclean' before
-+reconfiguring for another architecture.
-+
-+   On MacOS X 10.5 and later systems, you can create libraries and
-+executables that work on multiple system types--known as "fat" or
-+"universal" binaries--by specifying multiple `-arch' options to the
-+compiler but only a single `-arch' option to the preprocessor.  Like
-+this:
-+
-+     ./configure CC="gcc -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
-+                 CXX="g++ -arch i386 -arch x86_64 -arch ppc -arch ppc64" \
-+                 CPP="gcc -E" CXXCPP="g++ -E"
-+
-+   This is not guaranteed to produce working output in all cases, you
-+may have to build one architecture at a time and combine the results
-+using the `lipo' tool if you have problems.
-+
-+Installation Names
-+==================
-+
-+   By default, `make install' installs the package's commands under
-+`/usr/local/bin', include files under `/usr/local/include', etc.  You
-+can specify an installation prefix other than `/usr/local' by giving
-+`configure' the option `--prefix=PREFIX', where PREFIX must be an
-+absolute file name.
-+
-+   You can specify separate installation prefixes for
-+architecture-specific files and architecture-independent files.  If you
-+pass the option `--exec-prefix=PREFIX' to `configure', the package uses
-+PREFIX as the prefix for installing programs and libraries.
-+Documentation and other data files still use the regular prefix.
-+
-+   In addition, if you use an unusual directory layout you can give
-+options like `--bindir=DIR' to specify different values for particular
-+kinds of files.  Run `configure --help' for a list of the directories
-+you can set and what kinds of files go in them.  In general, the
-+default for these options is expressed in terms of `${prefix}', so that
-+specifying just `--prefix' will affect all of the other directory
-+specifications that were not explicitly provided.
-+
-+   The most portable way to affect installation locations is to pass the
-+correct locations to `configure'; however, many packages provide one or
-+both of the following shortcuts of passing variable assignments to the
-+`make install' command line to change installation locations without
-+having to reconfigure or recompile.
-+
-+   The first method involves providing an override variable for each
-+affected directory.  For example, `make install
-+prefix=/alternate/directory' will choose an alternate location for all
-+directory configuration variables that were expressed in terms of
-+`${prefix}'.  Any directories that were specified during `configure',
-+but not in terms of `${prefix}', must each be overridden at install
-+time for the entire installation to be relocated.  The approach of
-+makefile variable overrides for each directory variable is required by
-+the GNU Coding Standards, and ideally causes no recompilation.
-+However, some platforms have known limitations with the semantics of
-+shared libraries that end up requiring recompilation when using this
-+method, particularly noticeable in packages that use GNU Libtool.
-+
-+   The second method involves providing the `DESTDIR' variable.  For
-+example, `make install DESTDIR=/alternate/directory' will prepend
-+`/alternate/directory' before all installation names.  The approach of
-+`DESTDIR' overrides is not required by the GNU Coding Standards, and
-+does not work on platforms that have drive letters.  On the other hand,
-+it does better at avoiding recompilation issues, and works well even
-+when some directory options were not specified in terms of `${prefix}'
-+at `configure' time.
-+
-+Optional Features
-+=================
-+
-+   If the package supports it, you can cause programs to be installed
-+with an extra prefix or suffix on their names by giving `configure' the
-+option `--program-prefix=PREFIX' or `--program-suffix=SUFFIX'.
-+
-+   Some packages pay attention to `--enable-FEATURE' options to
-+`configure', where FEATURE indicates an optional part of the package.
-+They may also pay attention to `--with-PACKAGE' options, where PACKAGE
-+is something like `gnu-as' or `x' (for the X Window System).  The
-+`README' should mention any `--enable-' and `--with-' options that the
-+package recognizes.
-+
-+   For packages that use the X Window System, `configure' can usually
-+find the X include and library files automatically, but if it doesn't,
-+you can use the `configure' options `--x-includes=DIR' and
-+`--x-libraries=DIR' to specify their locations.
-+
-+   Some packages offer the ability to configure how verbose the
-+execution of `make' will be.  For these packages, running `./configure
-+--enable-silent-rules' sets the default to minimal output, which can be
-+overridden with `make V=1'; while running `./configure
-+--disable-silent-rules' sets the default to verbose, which can be
-+overridden with `make V=0'.
-+
-+Particular systems
-+==================
-+
-+   On HP-UX, the default C compiler is not ANSI C compatible.  If GNU
-+CC is not installed, it is recommended to use the following options in
-+order to use an ANSI C compiler:
-+
-+     ./configure CC="cc -Ae -D_XOPEN_SOURCE=500"
-+
-+and if that doesn't work, install pre-built binaries of GCC for HP-UX.
-+
-+   On OSF/1 a.k.a. Tru64, some versions of the default C compiler cannot
-+parse its `<wchar.h>' header file.  The option `-nodtk' can be used as
-+a workaround.  If GNU CC is not installed, it is therefore recommended
-+to try
-+
-+     ./configure CC="cc"
-+
-+and if that doesn't work, try
-+
-+     ./configure CC="cc -nodtk"
-+
-+   On Solaris, don't put `/usr/ucb' early in your `PATH'.  This
-+directory contains several dysfunctional programs; working variants of
-+these programs are available in `/usr/bin'.  So, if you need `/usr/ucb'
-+in your `PATH', put it _after_ `/usr/bin'.
-+
-+   On Haiku, software installed for all users goes in `/boot/common',
-+not `/usr/local'.  It is recommended to use the following options:
-+
-+     ./configure --prefix=/boot/common
-+
-+Specifying the System Type
-+==========================
-+
-+   There may be some features `configure' cannot figure out
-+automatically, but needs to determine by the type of machine the package
-+will run on.  Usually, assuming the package is built to be run on the
-+_same_ architectures, `configure' can figure that out, but if it prints
-+a message saying it cannot guess the machine type, give it the
-+`--build=TYPE' option.  TYPE can either be a short name for the system
-+type, such as `sun4', or a canonical name which has the form:
-+
-+     CPU-COMPANY-SYSTEM
-+
-+where SYSTEM can have one of these forms:
-+
-+     OS
-+     KERNEL-OS
-+
-+   See the file `config.sub' for the possible values of each field.  If
-+`config.sub' isn't included in this package, then this package doesn't
-+need to know the machine type.
-+
-+   If you are _building_ compiler tools for cross-compiling, you should
-+use the option `--target=TYPE' to select the type of system they will
-+produce code for.
-+
-+   If you want to _use_ a cross compiler, that generates code for a
-+platform different from the build platform, you should specify the
-+"host" platform (i.e., that on which the generated programs will
-+eventually be run) with `--host=TYPE'.
-+
-+Sharing Defaults
-+================
-+
-+   If you want to set default values for `configure' scripts to share,
-+you can create a site shell script called `config.site' that gives
-+default values for variables like `CC', `cache_file', and `prefix'.
-+`configure' looks for `PREFIX/share/config.site' if it exists, then
-+`PREFIX/etc/config.site' if it exists.  Or, you can set the
-+`CONFIG_SITE' environment variable to the location of the site script.
-+A warning: not all `configure' scripts look for a site script.
-+
-+Defining Variables
-+==================
-+
-+   Variables not defined in a site shell script can be set in the
-+environment passed to `configure'.  However, some packages may run
-+configure again during the build, and the customized values of these
-+variables may be lost.  In order to avoid this problem, you should set
-+them in the `configure' command line, using `VAR=value'.  For example:
-+
-+     ./configure CC=/usr/local2/bin/gcc
-+
-+causes the specified `gcc' to be used as the C compiler (unless it is
-+overridden in the site shell script).
-+
-+Unfortunately, this technique does not work for `CONFIG_SHELL' due to
-+an Autoconf bug.  Until the bug is fixed you can use this workaround:
-+
-+     CONFIG_SHELL=/bin/bash /bin/bash ./configure CONFIG_SHELL=/bin/bash
-+
-+`configure' Invocation
-+======================
-+
-+   `configure' recognizes the following options to control how it
-+operates.
-+
-+`--help'
-+`-h'
-+     Print a summary of all of the options to `configure', and exit.
-+
-+`--help=short'
-+`--help=recursive'
-+     Print a summary of the options unique to this package's
-+     `configure', and exit.  The `short' variant lists options used
-+     only in the top level, while the `recursive' variant lists options
-+     also present in any nested packages.
-+
-+`--version'
-+`-V'
-+     Print the version of Autoconf used to generate the `configure'
-+     script, and exit.
-+
-+`--cache-file=FILE'
-+     Enable the cache: use and save the results of the tests in FILE,
-+     traditionally `config.cache'.  FILE defaults to `/dev/null' to
-+     disable caching.
-+
-+`--config-cache'
-+`-C'
-+     Alias for `--cache-file=config.cache'.
-+
-+`--quiet'
-+`--silent'
-+`-q'
-+     Do not print messages saying which checks are being made.  To
-+     suppress all normal output, redirect it to `/dev/null' (any error
-+     messages will still be shown).
-+
-+`--srcdir=DIR'
-+     Look for the package's source code in directory DIR.  Usually
-+     `configure' can determine that directory automatically.
-+
-+`--prefix=DIR'
-+     Use DIR as the installation prefix.  *note Installation Names::
-+     for more details, including other options available for fine-tuning
-+     the installation locations.
-+
-+`--no-create'
-+`-n'
-+     Run the configure checks, but stop before creating any output
-+     files.
- 
-- - The TIFF, PNG, and JPEG image loading libraries. You most
--   likely have these installed on your system already. If not
--   these libraries are available from:
--
--    http://www.libtiff.org/
--    http://www.libpng.org/
--    http://www.ijg.org/
--
--    libtiff must be version 3.6.0 or higher.
--
--Simple install procedure
--========================
--
--  % gzip -cd gtk+-2.18.9.tar.gz | tar xvf - # unpack the sources
--  % cd gtk+-2.18.9			   # change to the toplevel directory
--  % ./configure				   # run the `configure' script
--  % make				   # build GTK+
--  [ Become root if necessary ]
--  % make install			   # install GTK+
--
--The Details
--===========
--
--Complete information about installing GTK+ and related libraries can be found 
--in the file:
--
-- docs/reference/gtk/html/gtk-building.html
--
--Or online at:
--
-- http://developer.gnome.org/doc/API/2.0/gtk/gtk-building.html
-+`configure' also accepts some other, not widely useful, options.  Run
-+`configure --help' for more details.
- 
---- a/config.guess
-+++ b/config.guess
-@@ -1,10 +1,10 @@
- #! /bin/sh
- # Attempt to guess a canonical system name.
- #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
--#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-+#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
- #   Free Software Foundation, Inc.
- 
--timestamp='2009-11-20'
-+timestamp='2009-12-30'
- 
- # This file is free software; you can redistribute it and/or modify it
- # under the terms of the GNU General Public License as published by
-@@ -56,8 +56,9 @@
- GNU config.guess ($timestamp)
- 
- Originally written by Per Bothner.
--Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
--2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
-+Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free
-+Software Foundation, Inc.
- 
- This is free software; see the source for copying conditions.  There is NO
- warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
---- a/config.sub
-+++ b/config.sub
-@@ -1,10 +1,10 @@
- #! /bin/sh
- # Configuration validation subroutine script.
- #   Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999,
--#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009
-+#   2000, 2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010
- #   Free Software Foundation, Inc.
- 
--timestamp='2009-11-20'
-+timestamp='2010-01-22'
- 
- # This file is (in principle) common to ALL GNU software.
- # The presence of a machine in this file suggests that SOME GNU software
-@@ -75,8 +75,9 @@
- version="\
- GNU config.sub ($timestamp)
- 
--Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000, 2001,
--2002, 2003, 2004, 2005, 2006, 2007, 2008 Free Software Foundation, Inc.
-+Copyright (C) 1992, 1993, 1994, 1995, 1996, 1997, 1998, 1999, 2000,
-+2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2009, 2010 Free
-+Software Foundation, Inc.
- 
- This is free software; see the source for copying conditions.  There is NO
- warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
-@@ -380,7 +381,8 @@
- 	| sparclite-* \
- 	| sparcv8-* | sparcv9-* | sparcv9b-* | sparcv9v-* | strongarm-* | sv1-* | sx?-* \
- 	| tahoe-* | thumb-* \
--	| tic30-* | tic4x-* | tic54x-* | tic55x-* | tic6x-* | tic80-* | tile-* \
-+	| tic30-* | tic4x-* | tic54x-* | tic55x-* | tic6x-* | tic80-* \
-+	| tile-* | tilegx-* \
- 	| tron-* \
- 	| ubicom32-* \
- 	| v850-* | v850e-* | vax-* \
-@@ -1085,6 +1087,11 @@
- 		basic_machine=tic6x-unknown
- 		os=-coff
- 		;;
-+        # This must be matched before tile*.
-+        tilegx*)
-+		basic_machine=tilegx-unknown
-+		os=-linux-gnu
-+		;;
- 	tile*)
- 		basic_machine=tile-unknown
- 		os=-linux-gnu
-@@ -1435,6 +1442,8 @@
- 	-dicos*)
- 		os=-dicos
- 		;;
-+        -nacl*)
-+	        ;;
- 	-none)
- 		;;
- 	*)

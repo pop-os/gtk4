@@ -29,7 +29,7 @@
  #ifndef GDK_PIXBUF_USE_GIO_MIME 
  static gint 
  format_check (GdkPixbufModule *module, guchar *buffer, int size)
-@@ -316,115 +319,93 @@
+@@ -316,118 +319,93 @@
  gdk_pixbuf_load_module_unlocked (GdkPixbufModule *image_module,
  				 GError         **error);
  
@@ -188,6 +188,9 @@
 -#ifdef INCLUDE_jasper
 -	load_one_builtin_module (jasper);
 -#endif
+-#ifdef INCLUDE_qtif
+-	load_one_builtin_module (qtif);
+-#endif
 -#ifdef INCLUDE_gdiplus
 -	/* We don't bother having the GDI+ loaders individually selectable
 -	 * for building in or not.
@@ -221,7 +224,7 @@
  	
  	while (!have_error && g_io_channel_read_line (channel, &line_buf, NULL, &term, NULL) == G_IO_STATUS_NORMAL) {
  		const char *p;
-@@ -562,8 +543,156 @@
+@@ -562,8 +543,159 @@
  		g_free (line_buf);
  	}
  	g_string_free (tmp_buf, TRUE);
@@ -299,6 +302,9 @@
 +#endif
 +#ifdef INCLUDE_jasper
 +	load_one_builtin_module (jasper);
++#endif
++#ifdef INCLUDE_qtif
++	load_one_builtin_module (qtif);
 +#endif
 +#ifdef INCLUDE_gdiplus
 +	/* We don't bother having the GDI+ loaders individually selectable

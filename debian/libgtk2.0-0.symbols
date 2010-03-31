@@ -296,6 +296,7 @@ libgdk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gdk_keyboard_grab@Base 2.8.0
  gdk_keyboard_grab_info_libgtk_only@Base 2.8.0
  gdk_keyboard_ungrab@Base 2.8.0
+ gdk_keymap_add_virtual_modifiers@Base 2.20.0
  gdk_keymap_get_caps_lock_state@Base 2.16.0
  gdk_keymap_get_default@Base 2.8.0
  gdk_keymap_get_direction@Base 2.8.0
@@ -305,6 +306,7 @@ libgdk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gdk_keymap_get_type@Base 2.8.0
  gdk_keymap_have_bidi_layouts@Base 2.12.0
  gdk_keymap_lookup_key@Base 2.8.0
+ gdk_keymap_map_virtual_modifiers@Base 2.20.0
  gdk_keymap_translate_keyboard_state@Base 2.8.0
  gdk_keyval_convert_case@Base 2.8.0
  gdk_keyval_from_name@Base 2.8.0
@@ -430,6 +432,7 @@ libgdk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gdk_screen_get_monitor_width_mm@Base 2.14.0
  gdk_screen_get_n_monitors@Base 2.8.0
  gdk_screen_get_number@Base 2.8.0
+ gdk_screen_get_primary_monitor@Base 2.20.0
  gdk_screen_get_resolution@Base 2.10.0
  gdk_screen_get_rgb_colormap@Base 2.8.0
  gdk_screen_get_rgb_visual@Base 2.8.0
@@ -949,6 +952,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_action_disconnect_proxy@Base 2.8.0
  gtk_action_get_accel_closure@Base 2.8.0
  gtk_action_get_accel_path@Base 2.8.0
+ gtk_action_get_always_show_image@Base 2.20.0
  gtk_action_get_gicon@Base 2.16.0
  gtk_action_get_icon_name@Base 2.16.0
  gtk_action_get_is_important@Base 2.16.0
@@ -989,6 +993,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_action_new@Base 2.8.0
  gtk_action_set_accel_group@Base 2.8.0
  gtk_action_set_accel_path@Base 2.8.0
+ gtk_action_set_always_show_image@Base 2.20.0
  gtk_action_set_gicon@Base 2.16.0
  gtk_action_set_icon_name@Base 2.16.0
  gtk_action_set_is_important@Base 2.16.0
@@ -1226,6 +1231,8 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_cell_renderer_set_visible@Base 2.18.0
  gtk_cell_renderer_spin_get_type@Base 2.10.0
  gtk_cell_renderer_spin_new@Base 2.10.0
+ gtk_cell_renderer_spinner_get_type@Base 2.20.0
+ gtk_cell_renderer_spinner_new@Base 2.20.0
  gtk_cell_renderer_start_editing@Base 2.8.0
  gtk_cell_renderer_state_get_type@Base 2.8.0
  gtk_cell_renderer_stop_editing@Base 2.8.0
@@ -1594,6 +1601,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_dialog_get_has_separator@Base 2.8.0
  gtk_dialog_get_response_for_widget@Base 2.8.0
  gtk_dialog_get_type@Base 2.8.0
+ gtk_dialog_get_widget_for_response@Base 2.20.0
  gtk_dialog_new@Base 2.8.0
  gtk_dialog_new_with_buttons@Base 2.8.0
  gtk_dialog_response@Base 2.8.0
@@ -1737,6 +1745,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_entry_get_icon_storage_type@Base 2.16.0
  gtk_entry_get_icon_tooltip_markup@Base 2.16.0
  gtk_entry_get_icon_tooltip_text@Base 2.16.0
+ gtk_entry_get_icon_window@Base 2.20.0
  gtk_entry_get_inner_border@Base 2.10.0
  gtk_entry_get_invisible_char@Base 2.8.0
  gtk_entry_get_layout@Base 2.8.0
@@ -1747,6 +1756,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_entry_get_progress_pulse_step@Base 2.16.0
  gtk_entry_get_text@Base 2.8.0
  gtk_entry_get_text_length@Base 2.14.0
+ gtk_entry_get_text_window@Base 2.20.0
  gtk_entry_get_type@Base 2.8.0
  gtk_entry_get_visibility@Base 2.8.0
  gtk_entry_get_width_chars@Base 2.8.0
@@ -2546,6 +2556,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_movement_step_get_type@Base 2.8.0
  gtk_notebook_append_page@Base 2.8.0
  gtk_notebook_append_page_menu@Base 2.8.0
+ gtk_notebook_get_action_widget@Base 2.20.0
  gtk_notebook_get_current_page@Base 2.8.0
  gtk_notebook_get_group@Base 2.12.0
  gtk_notebook_get_group_id@Base 2.10.0
@@ -2575,6 +2586,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_notebook_query_tab_label_packing@Base 2.8.0
  gtk_notebook_remove_page@Base 2.8.0
  gtk_notebook_reorder_child@Base 2.8.0
+ gtk_notebook_set_action_widget@Base 2.20.0
  gtk_notebook_set_current_page@Base 2.8.0
  gtk_notebook_set_group@Base 2.12.0
  gtk_notebook_set_group_id@Base 2.10.0
@@ -2620,6 +2632,10 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_object_unref@Base 2.8.0
  gtk_object_weakref@Base 2.8.0
  gtk_object_weakunref@Base 2.8.0
+ gtk_offscreen_window_get_pixbuf@Base 2.20.0
+ gtk_offscreen_window_get_pixmap@Base 2.20.0
+ gtk_offscreen_window_get_type@Base 2.20.0
+ gtk_offscreen_window_new@Base 2.20.0
  gtk_old_editable_changed@Base 2.8.0
  gtk_old_editable_claim_selection@Base 2.8.0
  gtk_old_editable_get_type@Base 2.8.0
@@ -2688,6 +2704,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_paint_shadow@Base 2.8.0
  gtk_paint_shadow_gap@Base 2.8.0
  gtk_paint_slider@Base 2.8.0
+ gtk_paint_spinner@Base 2.20.0
  gtk_paint_string@Base 2.8.0
  gtk_paint_tab@Base 2.8.0
  gtk_paint_vline@Base 2.8.0
@@ -2696,6 +2713,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_paned_compute_position@Base 2.8.0
  gtk_paned_get_child1@Base 2.8.0
  gtk_paned_get_child2@Base 2.8.0
+ gtk_paned_get_handle_window@Base 2.20.0
  gtk_paned_get_position@Base 2.8.0
  gtk_paned_get_type@Base 2.8.0
  gtk_paned_pack1@Base 2.8.0
@@ -2777,6 +2795,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_print_context_get_cairo_context@Base 2.10.0
  gtk_print_context_get_dpi_x@Base 2.10.0
  gtk_print_context_get_dpi_y@Base 2.10.0
+ gtk_print_context_get_hard_margins@Base 2.20.0
  gtk_print_context_get_height@Base 2.10.0
  gtk_print_context_get_page_setup@Base 2.10.0
  gtk_print_context_get_pango_fontmap@Base 2.10.0
@@ -2941,6 +2960,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_printer_get_capabilities@Base 2.12.0
  gtk_printer_get_default_page_size@Base 2.14.0
  gtk_printer_get_description@Base 2.10.0
+ gtk_printer_get_hard_margins@Base 2.20.0
  gtk_printer_get_icon_name@Base 2.10.0
  gtk_printer_get_job_count@Base 2.10.0
  gtk_printer_get_location@Base 2.10.0
@@ -3072,8 +3092,12 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_range_get_flippable@Base 2.18.0
  gtk_range_get_inverted@Base 2.8.0
  gtk_range_get_lower_stepper_sensitivity@Base 2.10.0
+ gtk_range_get_min_slider_size@Base 2.20.0
+ gtk_range_get_range_rect@Base 2.20.0
  gtk_range_get_restrict_to_fill_level@Base 2.12.0
  gtk_range_get_show_fill_level@Base 2.12.0
+ gtk_range_get_slider_range@Base 2.20.0
+ gtk_range_get_slider_size_fixed@Base 2.20.0
  gtk_range_get_type@Base 2.8.0
  gtk_range_get_update_policy@Base 2.8.0
  gtk_range_get_upper_stepper_sensitivity@Base 2.10.0
@@ -3084,9 +3108,11 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_range_set_increments@Base 2.8.0
  gtk_range_set_inverted@Base 2.8.0
  gtk_range_set_lower_stepper_sensitivity@Base 2.10.0
+ gtk_range_set_min_slider_size@Base 2.20.0
  gtk_range_set_range@Base 2.8.0
  gtk_range_set_restrict_to_fill_level@Base 2.12.0
  gtk_range_set_show_fill_level@Base 2.12.0
+ gtk_range_set_slider_size_fixed@Base 2.20.0
  gtk_range_set_update_policy@Base 2.8.0
  gtk_range_set_upper_stepper_sensitivity@Base 2.10.0
  gtk_range_set_value@Base 2.8.0
@@ -3399,6 +3425,10 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_spin_button_update@Base 2.8.0
  gtk_spin_button_update_policy_get_type@Base 2.8.0
  gtk_spin_type_get_type@Base 2.8.0
+ gtk_spinner_get_type@Base 2.20.0
+ gtk_spinner_new@Base 2.20.0
+ gtk_spinner_start@Base 2.20.0
+ gtk_spinner_stop@Base 2.20.0
  gtk_state_type_get_type@Base 2.8.0
  gtk_status_icon_get_blinking@Base 2.10.0
  gtk_status_icon_get_geometry@Base 2.10.0
@@ -3431,6 +3461,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_status_icon_set_from_pixbuf@Base 2.10.0
  gtk_status_icon_set_from_stock@Base 2.10.0
  gtk_status_icon_set_has_tooltip@Base 2.16.0
+ gtk_status_icon_set_name@Base 2.20.0
  gtk_status_icon_set_screen@Base 2.12.0
  gtk_status_icon_set_title@Base 2.18.0
  gtk_status_icon_set_tooltip@Base 2.10.0
@@ -3439,6 +3470,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_status_icon_set_visible@Base 2.10.0
  gtk_statusbar_get_context_id@Base 2.8.0
  gtk_statusbar_get_has_resize_grip@Base 2.8.0
+ gtk_statusbar_get_message_area@Base 2.20.0
  gtk_statusbar_get_type@Base 2.8.0
  gtk_statusbar_new@Base 2.8.0
  gtk_statusbar_pop@Base 2.8.0
@@ -3904,6 +3936,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_tool_button_set_label_widget@Base 2.8.0
  gtk_tool_button_set_stock_id@Base 2.8.0
  gtk_tool_button_set_use_underline@Base 2.8.0
+ gtk_tool_item_get_ellipsize_mode@Base 2.20.0
  gtk_tool_item_get_expand@Base 2.8.0
  gtk_tool_item_get_homogeneous@Base 2.8.0
  gtk_tool_item_get_icon_size@Base 2.8.0
@@ -3911,11 +3944,32 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_tool_item_get_orientation@Base 2.8.0
  gtk_tool_item_get_proxy_menu_item@Base 2.8.0
  gtk_tool_item_get_relief_style@Base 2.8.0
+ gtk_tool_item_get_text_alignment@Base 2.20.0
+ gtk_tool_item_get_text_orientation@Base 2.20.0
+ gtk_tool_item_get_text_size_group@Base 2.20.0
  gtk_tool_item_get_toolbar_style@Base 2.8.0
  gtk_tool_item_get_type@Base 2.8.0
  gtk_tool_item_get_use_drag_window@Base 2.8.0
  gtk_tool_item_get_visible_horizontal@Base 2.8.0
  gtk_tool_item_get_visible_vertical@Base 2.8.0
+ gtk_tool_item_group_get_collapsed@Base 2.20.0
+ gtk_tool_item_group_get_drop_item@Base 2.20.0
+ gtk_tool_item_group_get_ellipsize@Base 2.20.0
+ gtk_tool_item_group_get_header_relief@Base 2.20.0
+ gtk_tool_item_group_get_item_position@Base 2.20.0
+ gtk_tool_item_group_get_label@Base 2.20.0
+ gtk_tool_item_group_get_label_widget@Base 2.20.0
+ gtk_tool_item_group_get_n_items@Base 2.20.0
+ gtk_tool_item_group_get_nth_item@Base 2.20.0
+ gtk_tool_item_group_get_type@Base 2.20.0
+ gtk_tool_item_group_insert@Base 2.20.0
+ gtk_tool_item_group_new@Base 2.20.0
+ gtk_tool_item_group_set_collapsed@Base 2.20.0
+ gtk_tool_item_group_set_ellipsize@Base 2.20.0
+ gtk_tool_item_group_set_header_relief@Base 2.20.0
+ gtk_tool_item_group_set_item_position@Base 2.20.0
+ gtk_tool_item_group_set_label@Base 2.20.0
+ gtk_tool_item_group_set_label_widget@Base 2.20.0
  gtk_tool_item_new@Base 2.8.0
  gtk_tool_item_rebuild_menu@Base 2.8.0
  gtk_tool_item_retrieve_proxy_menu_item@Base 2.8.0
@@ -3930,10 +3984,38 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_tool_item_set_visible_horizontal@Base 2.8.0
  gtk_tool_item_set_visible_vertical@Base 2.8.0
  gtk_tool_item_toolbar_reconfigured@Base 2.14.0
+ gtk_tool_palette_add_drag_dest@Base 2.20.0
+ gtk_tool_palette_drag_targets_get_type@Base 2.20.0
+ gtk_tool_palette_get_drag_item@Base 2.20.0
+ gtk_tool_palette_get_drag_target_group@Base 2.20.0
+ gtk_tool_palette_get_drag_target_item@Base 2.20.0
+ gtk_tool_palette_get_drop_group@Base 2.20.0
+ gtk_tool_palette_get_drop_item@Base 2.20.0
+ gtk_tool_palette_get_exclusive@Base 2.20.0
+ gtk_tool_palette_get_expand@Base 2.20.0
+ gtk_tool_palette_get_group_position@Base 2.20.0
+ gtk_tool_palette_get_hadjustment@Base 2.20.0
+ gtk_tool_palette_get_icon_size@Base 2.20.0
+ gtk_tool_palette_get_style@Base 2.20.0
+ gtk_tool_palette_get_type@Base 2.20.0
+ gtk_tool_palette_get_vadjustment@Base 2.20.0
+ gtk_tool_palette_new@Base 2.20.0
+ gtk_tool_palette_set_drag_source@Base 2.20.0
+ gtk_tool_palette_set_exclusive@Base 2.20.0
+ gtk_tool_palette_set_expand@Base 2.20.0
+ gtk_tool_palette_set_group_position@Base 2.20.0
+ gtk_tool_palette_set_icon_size@Base 2.20.0
+ gtk_tool_palette_set_style@Base 2.20.0
+ gtk_tool_palette_unset_icon_size@Base 2.20.0
+ gtk_tool_palette_unset_style@Base 2.20.0
+ gtk_tool_shell_get_ellipsize_mode@Base 2.20.0
  gtk_tool_shell_get_icon_size@Base 2.14.0
  gtk_tool_shell_get_orientation@Base 2.14.0
  gtk_tool_shell_get_relief_style@Base 2.14.0
  gtk_tool_shell_get_style@Base 2.14.0
+ gtk_tool_shell_get_text_alignment@Base 2.20.0
+ gtk_tool_shell_get_text_orientation@Base 2.20.0
+ gtk_tool_shell_get_text_size_group@Base 2.20.0
  gtk_tool_shell_get_type@Base 2.14.0
  gtk_tool_shell_rebuild_menu@Base 2.14.0
  gtk_toolbar_append_element@Base 2.8.0
@@ -3977,6 +4059,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_tooltip_get_type@Base 2.12.0
  gtk_tooltip_set_custom@Base 2.12.0
  gtk_tooltip_set_icon@Base 2.12.0
+ gtk_tooltip_set_icon_from_gicon@Base 2.20.0
  gtk_tooltip_set_icon_from_icon_name@Base 2.14.0
  gtk_tooltip_set_icon_from_stock@Base 2.12.0
  gtk_tooltip_set_markup@Base 2.12.0
@@ -4355,6 +4438,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_vbutton_box_new@Base 2.8.0
  gtk_vbutton_box_set_layout_default@Base 2.8.0
  gtk_vbutton_box_set_spacing_default@Base 2.8.0
+ gtk_viewport_get_bin_window@Base 2.20.0
  gtk_viewport_get_hadjustment@Base 2.8.0
  gtk_viewport_get_shadow_type@Base 2.8.0
  gtk_viewport_get_type@Base 2.8.0
@@ -4423,13 +4507,16 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_widget_get_has_tooltip@Base 2.12.0
  gtk_widget_get_has_window@Base 2.18.0
  gtk_widget_get_modifier_style@Base 2.8.0
+ gtk_widget_get_mapped@Base 2.20.0
  gtk_widget_get_name@Base 2.8.0
  gtk_widget_get_no_show_all@Base 2.8.0
  gtk_widget_get_pango_context@Base 2.8.0
  gtk_widget_get_parent@Base 2.8.0
  gtk_widget_get_parent_window@Base 2.8.0
  gtk_widget_get_pointer@Base 2.8.0
+ gtk_widget_get_realized@Base 2.20.0
  gtk_widget_get_receives_default@Base 2.18.0
+ gtk_widget_get_requisition@Base 2.20.0
  gtk_widget_get_root_window@Base 2.8.0
  gtk_widget_get_screen@Base 2.8.0
  gtk_widget_get_sensitive@Base 2.18.0
@@ -4451,6 +4538,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_widget_has_default@Base 2.18.0
  gtk_widget_has_focus@Base 2.18.0
  gtk_widget_has_grab@Base 2.18.0
+ gtk_widget_has_rc_style@Base 2.20.0
  gtk_widget_has_screen@Base 2.8.0
  gtk_widget_help_type_get_type@Base 2.8.0
  gtk_widget_hide@Base 2.8.0
@@ -4515,10 +4603,12 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_widget_set_extension_events@Base 2.8.0
  gtk_widget_set_has_tooltip@Base 2.12.0
  gtk_widget_set_has_window@Base 2.18.0
+ gtk_widget_set_mapped@Base 2.20.0
  gtk_widget_set_name@Base 2.8.0
  gtk_widget_set_no_show_all@Base 2.8.0
  gtk_widget_set_parent@Base 2.8.0
  gtk_widget_set_parent_window@Base 2.8.0
+ gtk_widget_set_realized@Base 2.20.0
  gtk_widget_set_receives_default@Base 2.18.0
  gtk_widget_set_redraw_on_allocate@Base 2.8.0
  gtk_widget_set_scroll_adjustments@Base 2.8.0
@@ -4539,6 +4629,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_widget_show_now@Base 2.8.0
  gtk_widget_size_allocate@Base 2.8.0
  gtk_widget_size_request@Base 2.8.0
+ gtk_widget_style_attach@Base 2.20.0
  gtk_widget_style_get@Base 2.8.0
  gtk_widget_style_get_property@Base 2.8.0
  gtk_widget_style_get_valist@Base 2.8.0
@@ -4577,6 +4668,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_window_get_icon_list@Base 2.8.0
  gtk_window_get_icon_name@Base 2.8.0
  gtk_window_get_mnemonic_modifier@Base 2.8.0
+ gtk_window_get_mnemonics_visible@Base 2.20.0
  gtk_window_get_modal@Base 2.8.0
  gtk_window_get_opacity@Base 2.12.0
  gtk_window_get_position@Base 2.8.0
@@ -4591,6 +4683,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_window_get_type@Base 2.8.0
  gtk_window_get_type_hint@Base 2.8.0
  gtk_window_get_urgency_hint@Base 2.8.0
+ gtk_window_get_window_type@Base 2.20.0
  gtk_window_group_add_window@Base 2.8.0
  gtk_window_group_get_type@Base 2.8.0
  gtk_window_group_list_windows@Base 2.14.0
@@ -4638,6 +4731,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_window_set_keep_above@Base 2.8.0
  gtk_window_set_keep_below@Base 2.8.0
  gtk_window_set_mnemonic_modifier@Base 2.8.0
+ gtk_window_set_mnemonics_visible@Base 2.20.0
  gtk_window_set_modal@Base 2.8.0
  gtk_window_set_opacity@Base 2.12.0
  gtk_window_set_policy@Base 2.8.0
