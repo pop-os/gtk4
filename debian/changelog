@@ -1,6 +1,6 @@
 gtk+2.0 (2.20.0-3) UNRELEASED; urgency=low
 
-  * deban/control.in
+  * debian/control.in
     - Add Vcs-* fields.
     - Add Homepage field.
   * debian/patches/006_support-for-tracker-0.8-stable-releases.patch
