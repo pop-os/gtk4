@@ -3,6 +3,10 @@ gtk+2.0 (2.20.0-3) UNRELEASED; urgency=low
   * deban/control.in
     - Add Vcs-* fields.
     - Add Homepage field.
+  * debian/patches/006_support-for-tracker-0.8-stable-releases.patch
+    - Add support for tracker 0.8 stable and future 0.9 releases. Also add
+      support for loading the search engines on demand until they are actually
+      needed. Patch is backported from upstream Git branch "tracker-0.8".
 
  -- Michael Biebl <biebl@debian.org>  Sat, 10 Apr 2010 14:43:05 +0200
 

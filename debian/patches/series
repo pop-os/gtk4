@@ -3,6 +3,7 @@
 003_gdk.pc_privates.patch
 004_gtk+-ximian-gtk2-filesel-navbutton-5.patch
 005_support_disabling_x11_extensions.patch
+006_support-for-tracker-0.8-stable-releases.patch
 009_gtk-export-filechooser.patch
 010_gdkpixbuf_-lm.patch
 015_default-fallback-icon-theme.patch
