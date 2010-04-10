@@ -1,6 +1,8 @@
---- a/configure.in
-+++ b/configure.in
-@@ -1720,19 +1720,22 @@
+Index: b/configure.in
+===================================================================
+--- a/configure.in	2010-04-10 14:52:06.769944806 +0200
++++ b/configure.in	2010-04-10 14:52:07.373945222 +0200
+@@ -1721,19 +1721,22 @@
  LDFLAGS="$saved_ldflags"
  
  # Pull in gio-unix for GDesktopAppInfo usage, see at least gdkapplaunchcontext-x11.c
@@ -27,8 +29,10 @@
  AC_SUBST(GDK_EXTRA_LIBS)
  AC_SUBST(GDK_EXTRA_CFLAGS)
  AC_SUBST(GDK_DEP_LIBS)
---- a/gdk-2.0.pc.in
-+++ b/gdk-2.0.pc.in
+Index: b/gdk-2.0.pc.in
+===================================================================
+--- a/gdk-2.0.pc.in	2010-04-10 14:52:04.881945980 +0200
++++ b/gdk-2.0.pc.in	2010-04-10 14:52:07.373945222 +0200
 @@ -8,5 +8,6 @@
  Description: GTK+ Drawing Kit (${target} target)
  Version: @VERSION@

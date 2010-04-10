@@ -1,6 +1,8 @@
---- a/configure.in
-+++ b/configure.in
-@@ -1782,7 +1782,7 @@
+Index: b/configure.in
+===================================================================
+--- a/configure.in	2010-04-10 14:52:08.109945409 +0200
++++ b/configure.in	2010-04-10 14:52:09.177943468 +0200
+@@ -1806,7 +1806,7 @@
  CAIRO_PREFIX="`pkg-config --variable=prefix cairo`"
  
  if test $enable_explicit_deps != yes ; then

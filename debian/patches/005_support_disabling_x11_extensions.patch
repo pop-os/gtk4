@@ -3,8 +3,10 @@ Author: Cyril Brulebois <kibi@debian.org>
 
 Support disabling X11 extensions
 
---- a/configure.in
-+++ b/configure.in
+Index: b/configure.in
+===================================================================
+--- a/configure.in	2010-04-10 14:52:07.373945222 +0200
++++ b/configure.in	2010-04-10 14:52:08.109945409 +0200
 @@ -253,6 +253,18 @@
                [AC_HELP_STRING([--enable-xinerama],
  	                      [support xinerama extension if available [default=yes]])],,
