@@ -46,6 +46,7 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.8),
 Standards-Version: 3.8.4
 Vcs-Svn: svn://svn.debian.org/pkg-gnome/desktop/unstable/gtk+2.0/
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-gnome/desktop/unstable/gtk+2.0/
+Homepage: http://www.gtk.org/
 
 Package: libgtk2.0-0
 Architecture: any
