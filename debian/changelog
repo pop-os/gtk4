@@ -1,4 +1,4 @@
-gtk+2.0 (2.20.0-3) UNRELEASED; urgency=low
+gtk+2.0 (2.20.0-3) unstable; urgency=low
 
   * debian/control.in
     - Add Vcs-* fields.
@@ -9,7 +9,7 @@ gtk+2.0 (2.20.0-3) UNRELEASED; urgency=low
       needed. Patch is backported from upstream Git branch "tracker-0.8".
   * Refresh patches to apply cleanly.
 
- -- Michael Biebl <biebl@debian.org>  Sat, 10 Apr 2010 14:43:05 +0200
+ -- Michael Biebl <biebl@debian.org>  Wed, 14 Apr 2010 20:39:28 +0200
 
 gtk+2.0 (2.20.0-2) unstable; urgency=low
 
