@@ -543,6 +543,8 @@ libgdk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gdk_window_clear_area_e@Base 2.8.0
  gdk_window_configure_finished@Base 2.8.0
  gdk_window_constrain_size@Base 2.8.0
+ gdk_window_coords_from_parent@Base 2.21.0
+ gdk_window_coords_to_parent@Base 2.21.0
  gdk_window_deiconify@Base 2.8.0
  gdk_window_destroy@Base 2.8.0
  gdk_window_destroy_notify@Base 2.8.0
@@ -562,6 +564,8 @@ libgdk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gdk_window_get_cursor@Base 2.18.0
  gdk_window_get_decorations@Base 2.8.0
  gdk_window_get_deskrelative_origin@Base 2.8.0
+ gdk_window_get_effective_parent@Base 2.21.0
+ gdk_window_get_effective_toplevel@Base 2.21.0
  gdk_window_get_events@Base 2.8.0
  gdk_window_get_frame_extents@Base 2.8.0
  gdk_window_get_geometry@Base 2.8.0
@@ -939,6 +943,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_accelerator_valid@Base 2.8.0
  gtk_accessible_connect_widget_destroyed@Base 2.8.0
  gtk_accessible_get_type@Base 2.8.0
+ gtk_accessible_get_widget@Base 2.21.0
  gtk_action_activate@Base 2.8.0
  gtk_action_block_activate@Base 2.16.0
  gtk_action_block_activate_from@Base 2.8.0
@@ -1761,12 +1766,14 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_entry_get_visibility@Base 2.8.0
  gtk_entry_get_width_chars@Base 2.8.0
  gtk_entry_icon_position_get_type@Base 2.16.0
+ gtk_entry_im_context_filter_keypress@Base 2.21.0
  gtk_entry_layout_index_to_text_index@Base 2.8.0
  gtk_entry_new@Base 2.8.0
  gtk_entry_new_with_buffer@Base 2.18.0
  gtk_entry_new_with_max_length@Base 2.8.0
  gtk_entry_prepend_text@Base 2.8.0
  gtk_entry_progress_pulse@Base 2.16.0
+ gtk_entry_reset_im_context@Base 2.21.0
  gtk_entry_select_region@Base 2.8.0
  gtk_entry_set_activates_default@Base 2.8.0
  gtk_entry_set_alignment@Base 2.8.0
@@ -3840,6 +3847,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_text_view_get_cursor_visible@Base 2.8.0
  gtk_text_view_get_default_attributes@Base 2.8.0
  gtk_text_view_get_editable@Base 2.8.0
+ gtk_text_view_get_hadjustment@Base 2.21.0
  gtk_text_view_get_indent@Base 2.8.0
  gtk_text_view_get_iter_at_location@Base 2.8.0
  gtk_text_view_get_iter_at_position@Base 2.8.0
@@ -3855,15 +3863,18 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_text_view_get_right_margin@Base 2.8.0
  gtk_text_view_get_tabs@Base 2.8.0
  gtk_text_view_get_type@Base 2.8.0
+ gtk_text_view_get_vadjustment@Base 2.21.0
  gtk_text_view_get_visible_rect@Base 2.8.0
  gtk_text_view_get_window@Base 2.8.0
  gtk_text_view_get_window_type@Base 2.8.0
  gtk_text_view_get_wrap_mode@Base 2.8.0
+ gtk_text_view_im_context_filter_keypress@Base 2.21.0
  gtk_text_view_move_child@Base 2.8.0
  gtk_text_view_move_mark_onscreen@Base 2.8.0
  gtk_text_view_move_visually@Base 2.8.0
  gtk_text_view_new@Base 2.8.0
  gtk_text_view_new_with_buffer@Base 2.8.0
+ gtk_text_view_reset_im_context@Base 2.21.0
  gtk_text_view_place_cursor_onscreen@Base 2.8.0
  gtk_text_view_scroll_mark_onscreen@Base 2.8.0
  gtk_text_view_scroll_to_iter@Base 2.8.0
@@ -4586,6 +4597,7 @@ libgtk-x11-2.0.so.0 libgtk2.0-0 #MINVER#
  gtk_widget_reset_rc_styles@Base 2.8.0
  gtk_widget_reset_shapes@Base 2.8.0
  gtk_widget_send_expose@Base 2.8.0
+ gtk_widget_send_focus_change@Base 2.21.0
  gtk_widget_set@Base 2.8.0
  gtk_widget_set_accel_path@Base 2.8.0
  gtk_widget_set_allocation@Base 2.18.0
