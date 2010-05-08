@@ -44,6 +44,9 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      libpango1.0-doc,
                      libcairo2-doc
 Standards-Version: 3.8.4
+Vcs-Svn: svn://svn.debian.org/pkg-gnome/desktop/unstable/gtk+2.0/
+Vcs-Browser: http://svn.debian.org/wsvn/pkg-gnome/desktop/unstable/gtk+2.0/
+Homepage: http://www.gtk.org/
 
 Package: @SHARED_PKG@
 Architecture: any

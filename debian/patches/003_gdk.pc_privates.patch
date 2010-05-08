@@ -1,14 +1,22 @@
---- a/configure.in
-+++ b/configure.in
-@@ -1720,19 +1720,22 @@
- LDFLAGS="$saved_ldflags"
+Index: b/configure.in
+===================================================================
+--- a/configure.in	2010-04-10 14:52:06.769944806 +0200
++++ b/configure.in	2010-04-10 14:52:07.373945222 +0200
+@@ -1722,23 +1722,27 @@
  
  # Pull in gio-unix for GDesktopAppInfo usage, see at least gdkapplaunchcontext-x11.c
--GDK_PACKAGES="$PANGO_PACKAGES gio-unix-2.0 $X_PACKAGES cairo-$cairo_backend"
+ if test "x$gdktarget" = "xx11"; then
+-  GDK_PACKAGES="$PANGO_PACKAGES gio-unix-2.0 $X_PACKAGES cairo-$cairo_backend"
++  GDK_PACKAGES="$PANGO_PACKAGES"
++  GDK_PRIVATE_PACKAGES="gio-unix-2.0 $X_PACKAGES cairo-$cairo_backend"
+ else
+-  GDK_PACKAGES="$PANGO_PACKAGES $X_PACKAGES cairo-$cairo_backend"
++  GDK_PACKAGES="$PANGO_PACKAGES"
++  GDK_PRIVATE_PACKAGES="$X_PACKAGES cairo-$cairo_backend"
+ fi
+ 
 -GDK_DEP_LIBS="$GDK_EXTRA_LIBS `$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES $GDK_PACKAGES` $GDK_PIXBUF_EXTRA_LIBS"
 -GDK_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PIXBUF_PACKAGES $GDK_PACKAGES` $GDK_PIXBUF_EXTRA_CFLAGS $GDK_EXTRA_CFLAGS"
-+GDK_PACKAGES="$PANGO_PACKAGES gio-unix-2.0"
-+GDK_PRIVATE_PACKAGES="$X_PACKAGES cairo-$cairo_backend"
 +GDK_DEP_LIBS="$GDK_EXTRA_LIBS `$PKG_CONFIG --libs $GDK_PIXBUF_PACKAGES $GDK_PACKAGES $GDK_PRIVATE_PACKAGES` $GDK_PIXBUF_EXTRA_LIBS"
 +GDK_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PIXBUF_PACKAGES $GDK_PACKAGES $GDK_PRIVATE_PACKAGES` $GDK_PIXBUF_EXTRA_CFLAGS $GDK_EXTRA_CFLAGS"
  #
@@ -27,8 +35,10 @@
  AC_SUBST(GDK_EXTRA_LIBS)
  AC_SUBST(GDK_EXTRA_CFLAGS)
  AC_SUBST(GDK_DEP_LIBS)
---- a/gdk-2.0.pc.in
-+++ b/gdk-2.0.pc.in
+Index: b/gdk-2.0.pc.in
+===================================================================
+--- a/gdk-2.0.pc.in	2010-04-10 14:52:04.881945980 +0200
++++ b/gdk-2.0.pc.in	2010-04-10 14:52:07.373945222 +0200
 @@ -8,5 +8,6 @@
  Description: GTK+ Drawing Kit (${target} target)
  Version: @VERSION@

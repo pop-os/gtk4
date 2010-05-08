@@ -1,5 +1,7 @@
---- a/gtk/updateiconcache.c
-+++ b/gtk/updateiconcache.c
+Index: b/gtk/updateiconcache.c
+===================================================================
+--- a/gtk/updateiconcache.c	2010-04-10 14:52:03.669943004 +0200
++++ b/gtk/updateiconcache.c	2010-04-10 14:52:11.645942185 +0200
 @@ -660,7 +660,7 @@
  		      directories = g_list_append (directories, g_strdup (subdir));
  		    }

@@ -1,6 +1,8 @@
---- a/gdk-pixbuf/gdk-pixbuf-io.c
-+++ b/gdk-pixbuf/gdk-pixbuf-io.c
-@@ -307,8 +307,20 @@
+Index: b/gdk-pixbuf/gdk-pixbuf-io.c
+===================================================================
+--- a/gdk-pixbuf/gdk-pixbuf-io.c	2010-04-10 14:52:10.685945884 +0200
++++ b/gdk-pixbuf/gdk-pixbuf-io.c	2010-04-10 14:52:10.997945392 +0200
+@@ -308,8 +308,20 @@
    gchar *result = g_strdup (g_getenv ("GDK_PIXBUF_MODULE_FILE"));
  
    if (!result)
@@ -23,8 +25,10 @@
    return result;
  }
  
---- a/gtk/gtkrc.c
-+++ b/gtk/gtkrc.c
+Index: b/gtk/gtkrc.c
+===================================================================
+--- a/gtk/gtkrc.c	2010-04-10 14:52:03.789945438 +0200
++++ b/gtk/gtkrc.c	2010-04-10 14:52:11.025941140 +0200
 @@ -450,7 +450,20 @@
        if (im_module_file)
  	result = g_strdup (im_module_file);

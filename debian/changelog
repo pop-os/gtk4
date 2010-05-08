@@ -1,3 +1,34 @@
+gtk+2.0 (2.20.1-1) unstable; urgency=low
+
+  * New upstream bugfix release:
+    + debian/patches/006_support-for-tracker-0.8-stable-releases.patch:
+      - Dropped, merged upstream.
+    + debian/patches/003_gdk.pc_privates.patch:
+      - Updated to apply cleanly again.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Mon, 03 May 2010 07:26:14 +0200
+
+gtk+2.0 (2.20.0-3) unstable; urgency=low
+
+  * debian/control.in
+    - Add Vcs-* fields.
+    - Add Homepage field.
+  * debian/patches/006_support-for-tracker-0.8-stable-releases.patch
+    - Add support for tracker 0.8 stable and future 0.9 releases. Also add
+      support for loading the search engines on demand until they are actually
+      needed. Patch is backported from upstream Git branch "tracker-0.8".
+  * Refresh patches to apply cleanly.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 14 Apr 2010 20:39:28 +0200
+
+gtk+2.0 (2.20.0-2) unstable; urgency=low
+
+  * Upload to unstable.
+
+ -- Sebastian Dröge <slomo@debian.org>  Wed, 31 Mar 2010 09:16:00 +0200
+
 gtk+2.0 (2.20.0-1) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]

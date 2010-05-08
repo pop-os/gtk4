@@ -1,6 +1,8 @@
---- a/modules/printbackends/cups/gtkprintbackendcups.c
-+++ b/modules/printbackends/cups/gtkprintbackendcups.c
-@@ -340,8 +340,9 @@
+Index: b/modules/printbackends/cups/gtkprintbackendcups.c
+===================================================================
+--- a/modules/printbackends/cups/gtkprintbackendcups.c	2010-04-10 14:52:03.613942573 +0200
++++ b/modules/printbackends/cups/gtkprintbackendcups.c	2010-04-10 14:52:11.941944957 +0200
+@@ -343,8 +343,9 @@
   
    /* TODO: check if it is a ps or pdf printer */
    
@@ -11,7 +13,7 @@
    ppd_file = gtk_printer_cups_get_ppd (GTK_PRINTER_CUPS (printer));
  
    if (ppd_file != NULL)
-@@ -408,6 +409,7 @@
+@@ -402,6 +403,7 @@
  
    if (level == 3)
      cairo_ps_surface_restrict_to_level (surface, CAIRO_PS_LEVEL_3);
@@ -19,8 +21,10 @@
  
    cairo_surface_set_fallback_resolution (surface,
                                           2.0 * gtk_print_settings_get_printer_lpi (settings),
---- a/modules/printbackends/lpr/gtkprintbackendlpr.c
-+++ b/modules/printbackends/lpr/gtkprintbackendlpr.c
+Index: b/modules/printbackends/lpr/gtkprintbackendlpr.c
+===================================================================
+--- a/modules/printbackends/lpr/gtkprintbackendlpr.c	2010-04-10 14:52:03.585944592 +0200
++++ b/modules/printbackends/lpr/gtkprintbackendlpr.c	2010-04-10 14:52:11.941944957 +0200
 @@ -31,6 +31,8 @@
  #include <cairo.h>
  #include <cairo-ps.h>
@@ -37,5 +41,5 @@
 -  surface = cairo_ps_surface_create_for_stream (_cairo_write, cache_io, width, height);
 +  surface = cairo_pdf_surface_create_for_stream (_cairo_write, cache_io, width, height);
  
-   if (gtk_print_settings_get_printer_lpi (settings) == 0.0)
-     gtk_print_settings_set_printer_lpi (settings, 150.0);
+   cairo_surface_set_fallback_resolution (surface,
+                                          2.0 * gtk_print_settings_get_printer_lpi (settings),
