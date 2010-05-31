@@ -1,3 +1,14 @@
+gtk+2.0 (2.21.1-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/rules,
+      debian/libgtk2.0-0.symbols:
+      - Update for new API symbols.
+    + debian/patches/070_mandatory-relibtoolize.patch:
+      - Regenerated for the new version.
+
+ -- Sebastian Dröge <slomo@debian.org>  Mon, 31 May 2010 09:45:32 +0200
+
 gtk+2.0 (2.21.0-1) experimental; urgency=low
 
   * New upstream development release:
