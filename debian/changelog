@@ -1,3 +1,27 @@
+gtk+2.0 (2.21.5-1) experimental; urgency=low
+
+  * New upstream development release:
+    + debian/control.in,
+      debian/rules,
+      debian/*:
+      - Remove all mentions of gdk-pixbuf and (build-) depend on it.
+    + debian/libgtk2.0-0.postinst.in,
+      debian/libgtk2.0-0.postrm.in,
+      debian/libgtk2.0-0.triggers.in,
+      debian/dh_gtkmodules.in:
+      - Handle immodules by triggers and deprecate dh_gtkmodules.
+    + debian/patches/*:
+      - Refreshed.
+      - Remove gdk-pixbuf and immodule patches.
+    + debian/rules,
+      debian/libgtk2.0-0.symbols:
+      - Update for new API symbols.
+    + debian/update-gdkpixbuf-loaders*,
+      debian/update-gtk-immodules*:
+      - Drop module update scripts which are no-ops since 2.10.1.
+
+ -- Sebastian Dröge <slomo@debian.org>  Thu, 22 Jul 2010 21:01:09 +0200
+
 gtk+2.0 (2.21.2-1) experimental; urgency=low
 
   * New upstream development release:

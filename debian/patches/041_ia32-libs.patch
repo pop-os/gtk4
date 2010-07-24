@@ -1,52 +1,25 @@
-Index: b/gdk-pixbuf/gdk-pixbuf-io.c
+Index: gtk+2.0-2.21.5/gtk/gtkrc.c
 ===================================================================
---- a/gdk-pixbuf/gdk-pixbuf-io.c	2010-04-10 14:52:10.685945884 +0200
-+++ b/gdk-pixbuf/gdk-pixbuf-io.c	2010-04-10 14:52:10.997945392 +0200
-@@ -308,8 +308,20 @@
-   gchar *result = g_strdup (g_getenv ("GDK_PIXBUF_MODULE_FILE"));
- 
-   if (!result)
--	  result = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gdk-pixbuf.loaders", NULL);
--
-+    {
-+#if defined(__linux__) && ( defined(__i386__) || defined (__x86_64__) || defined(__ia64__) )
-+# if defined (__i386__)
-+      result = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gdk-pixbuf.loaders.32", NULL);
-+# else
-+      result = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gdk-pixbuf.loaders.64", NULL);
-+#endif
-+      /* Prefer compat gdk-pixbuf.loaders file if it's usable. */
-+      if (g_file_test(result, G_FILE_TEST_EXISTS))
-+        return result;
-+      g_free (result);
-+#endif
-+      result = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gdk-pixbuf.loaders", NULL);
-+    }
-   return result;
- }
- 
-Index: b/gtk/gtkrc.c
-===================================================================
---- a/gtk/gtkrc.c	2010-04-10 14:52:03.789945438 +0200
-+++ b/gtk/gtkrc.c	2010-04-10 14:52:11.025941140 +0200
+--- gtk+2.0-2.21.5.orig/gtk/gtkrc.c	2010-07-22 17:55:14.000000000 +0200
++++ gtk+2.0-2.21.5/gtk/gtkrc.c	2010-07-22 17:57:19.657052790 +0200
 @@ -450,7 +450,20 @@
        if (im_module_file)
  	result = g_strdup (im_module_file);
        else
--	result = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gtk.immodules", NULL);
+-	result = g_build_filename (GTK_LIBDIR, "gtk-2.0", GTK_BINARY_VERSION, "gtk.immodules", NULL);
 +        {
 +#if defined(__linux__) && ( defined(__i386__) || defined (__x86_64__) || defined(__ia64__) )
 +# if defined (__i386__)
-+         result = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gtk.immodules.32", NULL);
++         result = g_build_filename (GTK_LIBDIR, "gtk-2.0", GTK_BINARY_VERSION, "gtk.immodules.32", NULL);
 +# else
-+         result = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gtk.immodules.64", NULL);
++         result = g_build_filename (GTK_LIBDIR, "gtk-2.0", GTK_BINARY_VERSION, "gtk.immodules.64", NULL);
 +# endif
 +          /* Prefer compat gtk.immodules file if it's usable. */
 +          if (g_file_test(result, G_FILE_TEST_EXISTS))
 +            return result;
 +          g_free (result);
 +#endif
-+          result = g_build_filename (GTK_SYSCONFDIR, "gtk-2.0", "gtk.immodules", NULL);
++          result = g_build_filename (GTK_LIBDIR, "gtk-2.0", GTK_BINARY_VERSION, "gtk.immodules", NULL);
 +        }
      }
  

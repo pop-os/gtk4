@@ -42,6 +42,9 @@ Do not generate any dependencies in ${misc:Depends}.
 
 init();
 
+warning("This program is deprecated, everything is handled by triggers now.");
+exit 0;
+
 # 'abs_path' from Cwd resolves symlinks, and we don't want that to happen
 # (otherwise it's harder to remove the prefix of the generated output)
 sub make_absolute_path {

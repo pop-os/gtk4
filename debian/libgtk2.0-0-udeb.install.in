@@ -1,3 +1,2 @@
 # from the shared flavor
-debian/install/shared_udeb/@MODULES_BASE_PATH@/loaders/libpixbufloader-png.so @MODULES_BASE_PATH@/loaders
 debian/install/shared_udeb/@LIBDIR@/libg?k*.so.* @LIBDIR@

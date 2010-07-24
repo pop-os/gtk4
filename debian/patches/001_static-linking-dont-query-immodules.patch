@@ -2,11 +2,11 @@ Description: Don't query immodules for the local tree when cross-compiling or
              when --disable-shared was given
 Bug: http://bugzilla.gnome.org/show_bug.cgi?id=346531
 
-Index: b/configure.in
+Index: gtk+2.0-2.21.5/configure.in
 ===================================================================
---- a/configure.in	2010-04-10 14:52:05.069943955 +0200
-+++ b/configure.in	2010-04-10 14:52:06.769944806 +0200
-@@ -162,6 +162,7 @@
+--- gtk+2.0-2.21.5.orig/configure.in	2010-07-12 18:23:54.000000000 +0200
++++ gtk+2.0-2.21.5/configure.in	2010-07-22 17:53:08.402066616 +0200
+@@ -150,6 +150,7 @@
  dnl Initialize libtool
  AC_PROG_CC
  AM_DISABLE_STATIC
@@ -14,11 +14,11 @@ Index: b/configure.in
  
  dnl 
  dnl Check for a working C++ compiler, but do not bail out, if none is found.
-Index: b/modules/input/Makefile.am
+Index: gtk+2.0-2.21.5/modules/input/Makefile.am
 ===================================================================
---- a/modules/input/Makefile.am	2010-04-10 14:52:05.089945386 +0200
-+++ b/modules/input/Makefile.am	2010-04-10 14:52:06.769944806 +0200
-@@ -178,8 +178,12 @@
+--- gtk+2.0-2.21.5.orig/modules/input/Makefile.am	2010-07-12 18:23:45.000000000 +0200
++++ gtk+2.0-2.21.5/modules/input/Makefile.am	2010-07-22 17:53:08.406083537 +0200
+@@ -176,8 +176,12 @@
  if CROSS_COMPILING
  RUN_QUERY_IMMODULES_TEST=false
  else
@@ -31,7 +31,7 @@ Index: b/modules/input/Makefile.am
  
  # Running this if cross compiling or if DESTDIR is set is going to
  # not work at all, so skip it.
-@@ -240,7 +244,18 @@
+@@ -238,7 +242,18 @@
  included-modules: $(noinst_LTLIBRARIES)
  
  gtk.immodules: Makefile.am $(module_LTLIBRARIES)
