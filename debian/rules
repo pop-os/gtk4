@@ -51,12 +51,12 @@ CFLAGS += -Wall -g -O$(if $(findstring noopt,$(DEB_BUILD_OPTIONS)),0,2)
 
 DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
-APIVER := 2.0
+APIVER := 3.0
 SONAME := 0
-SHVER := 2.21.5
+SHVER := 2.90.5
 
 # earliest version that this release has backwards binary compatibility for
-GTK_BINARY_VERSION := 2.10.0
+GTK_BINARY_VERSION := 3.0.0
 
 # Gtk binary version virtual Provide
 GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION)
@@ -164,9 +164,6 @@ debian/gtk-%.devhelp: docs/%/html/book1.html
 	gawk -f debian/gruik2devhelp.awk -v name=gtk-$* $< > $@
 devhelpfiles: debian/gtk-faq.devhelp debian/gtk-tutorial.devhelp
 
-debian/dh_gtkmodules.1: debian/dh_gtkmodules
-	cd debian && pod2man -c "Gtk" -r "$(DEBVERSION)" dh_gtkmodules dh_gtkmodules.1
-
 patch: $(STAMP_DIR)/patch-stamp
 
 $(STAMP_DIR)/patch-stamp:
@@ -266,7 +263,6 @@ clean:: debian/control
 	rm -f debian/*.devhelp
 	-rm -rf $(STAMP_DIR)
 	-rm -f $(call dh_subst_files,$(ALL_PKGS))
-	-rm -f debian/dh_gtkmodules debian/dh_gtkmodules.1
 	dh_clean
 
 maybe_check = $(if $(findstring nocheck,$(DEB_BUILD_OPTIONS)),,check)
@@ -293,7 +289,7 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 	dh_md5sums -i
 	dh_builddeb -i
 
-binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PKGS)) debian/dh_gtkmodules debian/dh_gtkmodules.1
+binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PKGS))
 	dh_testdir
 	dh_testroot
 	dh_install -s
@@ -349,7 +345,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 
 list-missing:
 	perl -w debian/dh_listmissing.pl $(foreach f,$(FLAVORS),$(subst $(CURDIR)/,,$(installbasedir))/$(f)) 2>&1 | \
-	    egrep -v '(\.la|$(LIBDIR)/gtk-2.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
+	    egrep -v '(\.la|$(LIBDIR)/gtk-3.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
 
 binary: binary-indep binary-arch
 .PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary devhelpfiles
