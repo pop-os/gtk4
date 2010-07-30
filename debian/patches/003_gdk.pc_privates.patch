@@ -1,8 +1,8 @@
-Index: gtk+2.0-2.21.5/configure.in
+Index: gtk+3.0-2.90.5/configure.ac
 ===================================================================
---- gtk+2.0-2.21.5.orig/configure.in	2010-07-22 17:53:08.402066616 +0200
-+++ gtk+2.0-2.21.5/configure.in	2010-07-22 17:54:32.685052226 +0200
-@@ -1310,23 +1310,27 @@
+--- gtk+3.0-2.90.5.orig/configure.ac	2010-07-30 12:46:09.000000000 +0200
++++ gtk+3.0-2.90.5/configure.ac	2010-07-30 18:58:23.812082593 +0200
+@@ -1302,23 +1302,27 @@
  
  # Pull in gio-unix for GDesktopAppInfo usage, see at least gdkapplaunchcontext-x11.c
  if test "x$gdktarget" = "xx11"; then
@@ -35,14 +35,14 @@ Index: gtk+2.0-2.21.5/configure.in
  AC_SUBST(GDK_EXTRA_LIBS)
  AC_SUBST(GDK_EXTRA_CFLAGS)
  AC_SUBST(GDK_DEP_LIBS)
-Index: gtk+2.0-2.21.5/gdk-2.0.pc.in
+Index: gtk+3.0-2.90.5/gdk-3.0.pc.in
 ===================================================================
---- gtk+2.0-2.21.5.orig/gdk-2.0.pc.in	2010-07-12 18:23:43.000000000 +0200
-+++ gtk+2.0-2.21.5/gdk-2.0.pc.in	2010-07-22 17:54:32.685052226 +0200
+--- gtk+3.0-2.90.5.orig/gdk-3.0.pc.in	2010-07-30 18:58:42.904083678 +0200
++++ gtk+3.0-2.90.5/gdk-3.0.pc.in	2010-07-30 18:59:03.548085289 +0200
 @@ -8,5 +8,6 @@
  Description: GTK+ Drawing Kit (${target} target)
  Version: @VERSION@
  Requires: @GDK_PACKAGES@
 +Requires.private: @GDK_PRIVATE_PACKAGES@
  Libs: -L${libdir} -lgdk-${target}-@GTK_API_VERSION@ @GDK_EXTRA_LIBS@
- Cflags: -I${includedir}/gtk-2.0 -I${libdir}/gtk-2.0/include @GDK_EXTRA_CFLAGS@
+ Cflags: -I${includedir}/gtk-@GTK_API_VERSION@ -I${libdir}/gtk-@GTK_API_VERSION@/include @GDK_EXTRA_CFLAGS@ -DGSEAL_ENABLE

@@ -1,7 +1,7 @@
-Index: gtk+2.0-2.21.5/modules/printbackends/cups/gtkprintbackendcups.c
+Index: gtk+3.0-2.90.5/modules/printbackends/cups/gtkprintbackendcups.c
 ===================================================================
---- gtk+2.0-2.21.5.orig/modules/printbackends/cups/gtkprintbackendcups.c	2010-06-28 01:19:39.000000000 +0200
-+++ gtk+2.0-2.21.5/modules/printbackends/cups/gtkprintbackendcups.c	2010-07-22 17:57:22.973051749 +0200
+--- gtk+3.0-2.90.5.orig/modules/printbackends/cups/gtkprintbackendcups.c	2010-06-28 01:19:39.000000000 +0200
++++ gtk+3.0-2.90.5/modules/printbackends/cups/gtkprintbackendcups.c	2010-07-30 19:12:53.163085281 +0200
 @@ -344,8 +344,9 @@
   
    /* TODO: check if it is a ps or pdf printer */
@@ -21,10 +21,10 @@ Index: gtk+2.0-2.21.5/modules/printbackends/cups/gtkprintbackendcups.c
  
    cairo_surface_set_fallback_resolution (surface,
                                           2.0 * gtk_print_settings_get_printer_lpi (settings),
-Index: gtk+2.0-2.21.5/modules/printbackends/lpr/gtkprintbackendlpr.c
+Index: gtk+3.0-2.90.5/modules/printbackends/lpr/gtkprintbackendlpr.c
 ===================================================================
---- gtk+2.0-2.21.5.orig/modules/printbackends/lpr/gtkprintbackendlpr.c	2010-06-16 17:27:06.000000000 +0200
-+++ gtk+2.0-2.21.5/modules/printbackends/lpr/gtkprintbackendlpr.c	2010-07-22 17:57:23.001065368 +0200
+--- gtk+3.0-2.90.5.orig/modules/printbackends/lpr/gtkprintbackendlpr.c	2010-06-16 17:27:06.000000000 +0200
++++ gtk+3.0-2.90.5/modules/printbackends/lpr/gtkprintbackendlpr.c	2010-07-30 19:12:53.171184913 +0200
 @@ -31,6 +31,8 @@
  #include <cairo.h>
  #include <cairo-ps.h>
