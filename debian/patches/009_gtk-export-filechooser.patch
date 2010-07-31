@@ -37,7 +37,7 @@
 Index: gtk+3.0-2.90.5/gtk/Makefile.am
 ===================================================================
 --- gtk+3.0-2.90.5.orig/gtk/Makefile.am	2010-07-10 03:01:27.000000000 +0200
-+++ gtk+3.0-2.90.5/gtk/Makefile.am	2010-07-30 19:02:24.463083637 +0200
++++ gtk+3.0-2.90.5/gtk/Makefile.am	2010-07-31 11:53:13.006586772 +0200
 @@ -49,6 +49,8 @@
  	-I$(top_srcdir) -I../gdk			\
  	-I$(top_srcdir)/gdk				\
@@ -82,7 +82,7 @@ Index: gtk+3.0-2.90.5/gtk/Makefile.am
 Index: gtk+3.0-2.90.5/gtk/gtk.symbols
 ===================================================================
 --- gtk+3.0-2.90.5.orig/gtk/gtk.symbols	2010-07-12 16:05:33.000000000 +0200
-+++ gtk+3.0-2.90.5/gtk/gtk.symbols	2010-07-30 19:02:24.479083436 +0200
++++ gtk+3.0-2.90.5/gtk/gtk.symbols	2010-07-31 11:53:13.010585420 +0200
 @@ -1348,6 +1348,12 @@
  #endif
  #endif
@@ -99,7 +99,7 @@ Index: gtk+3.0-2.90.5/gtk/gtk.symbols
 Index: gtk+3.0-2.90.5/gtk/gtkfilechooserprivate.h
 ===================================================================
 --- gtk+3.0-2.90.5.orig/gtk/gtkfilechooserprivate.h	2010-06-16 17:27:01.000000000 +0200
-+++ gtk+3.0-2.90.5/gtk/gtkfilechooserprivate.h	2010-07-30 19:02:24.499082975 +0200
++++ gtk+3.0-2.90.5/gtk/gtkfilechooserprivate.h	2010-07-31 11:53:13.010585420 +0200
 @@ -21,6 +21,14 @@
  #ifndef __GTK_FILE_CHOOSER_PRIVATE_H__
  #define __GTK_FILE_CHOOSER_PRIVATE_H__
@@ -118,7 +118,7 @@ Index: gtk+3.0-2.90.5/gtk/gtkfilechooserprivate.h
 Index: gtk+3.0-2.90.5/gtk/gtkfilechooserutils.c
 ===================================================================
 --- gtk+3.0-2.90.5.orig/gtk/gtkfilechooserutils.c	2010-07-10 03:00:19.000000000 +0200
-+++ gtk+3.0-2.90.5/gtk/gtkfilechooserutils.c	2010-07-30 19:02:24.507083642 +0200
++++ gtk+3.0-2.90.5/gtk/gtkfilechooserutils.c	2010-07-31 11:53:58.666954267 +0200
 @@ -119,6 +119,22 @@
  				    "create-folders");
  }
@@ -142,17 +142,15 @@ Index: gtk+3.0-2.90.5/gtk/gtkfilechooserutils.c
  /**
   * _gtk_file_chooser_delegate_iface_init:
   * @iface: a #GtkFileChoserIface structure
-@@ -360,3 +376,6 @@
+@@ -360,3 +376,4 @@
    g_signal_emit_by_name (data, "confirm-overwrite", &conf);
    return conf;
  }
 +
-+#define __GTK_FILE_CHOOSER_UTILS_C__
-+#include "gtkaliasdef.c"
 Index: gtk+3.0-2.90.5/gtk/gtkfilechooserutils.h
 ===================================================================
 --- gtk+3.0-2.90.5.orig/gtk/gtkfilechooserutils.h	2010-06-30 13:37:19.000000000 +0200
-+++ gtk+3.0-2.90.5/gtk/gtkfilechooserutils.h	2010-07-30 19:02:24.515083192 +0200
++++ gtk+3.0-2.90.5/gtk/gtkfilechooserutils.h	2010-07-31 11:53:13.014586512 +0200
 @@ -22,6 +22,14 @@
  #ifndef __GTK_FILE_CHOOSER_UTILS_H__
  #define __GTK_FILE_CHOOSER_UTILS_H__
@@ -181,7 +179,7 @@ Index: gtk+3.0-2.90.5/gtk/gtkfilechooserutils.h
 Index: gtk+3.0-2.90.5/gtk/gtkfilesystemmodel.h
 ===================================================================
 --- gtk+3.0-2.90.5.orig/gtk/gtkfilesystemmodel.h	2010-06-16 17:27:02.000000000 +0200
-+++ gtk+3.0-2.90.5/gtk/gtkfilesystemmodel.h	2010-07-30 19:02:24.527082900 +0200
++++ gtk+3.0-2.90.5/gtk/gtkfilesystemmodel.h	2010-07-31 11:53:13.014586512 +0200
 @@ -21,6 +21,10 @@
  #ifndef __GTK_FILE_SYSTEM_MODEL_H__
  #define __GTK_FILE_SYSTEM_MODEL_H__
@@ -196,7 +194,7 @@ Index: gtk+3.0-2.90.5/gtk/gtkfilesystemmodel.h
 Index: gtk+3.0-2.90.5/gtk/gtkquery.h
 ===================================================================
 --- gtk+3.0-2.90.5.orig/gtk/gtkquery.h	2009-04-02 15:54:56.000000000 +0200
-+++ gtk+3.0-2.90.5/gtk/gtkquery.h	2010-07-30 19:02:24.543084235 +0200
++++ gtk+3.0-2.90.5/gtk/gtkquery.h	2010-07-31 11:53:13.014586512 +0200
 @@ -23,6 +23,14 @@
  #ifndef __GTK_QUERY_H__
  #define __GTK_QUERY_H__
@@ -215,7 +213,7 @@ Index: gtk+3.0-2.90.5/gtk/gtkquery.h
 Index: gtk+3.0-2.90.5/gtk/gtksearchengine.h
 ===================================================================
 --- gtk+3.0-2.90.5.orig/gtk/gtksearchengine.h	2010-04-09 04:29:58.000000000 +0200
-+++ gtk+3.0-2.90.5/gtk/gtksearchengine.h	2010-07-30 19:02:24.555085689 +0200
++++ gtk+3.0-2.90.5/gtk/gtksearchengine.h	2010-07-31 11:53:13.014586512 +0200
 @@ -23,6 +23,14 @@
  #ifndef __GTK_SEARCH_ENGINE_H__
  #define __GTK_SEARCH_ENGINE_H__

@@ -120,7 +120,6 @@ configure_flags := \
 			--enable-test-print-backend \
 			--enable-introspection=no \
 			--with-xinput=yes \
-			--with-libjasper \
 			--build=$(DEB_BUILD_GNU_TYPE)
 ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
 	configure_flags += --host=$(DEB_HOST_GNU_TYPE)
