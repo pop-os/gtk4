@@ -3,7 +3,7 @@ Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
 Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Michael Biebl <biebl@debian.org>, Sebastian Dröge <slomo@debian.org>
-Build-Depends: debhelper (>= 5.0.22),
+Build-Depends: debhelper (>= 7.0.50~),
                gettext,
                pkg-config,
                autotools-dev,
@@ -40,7 +40,7 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      libatk1.0-doc,
                      libpango1.0-doc,
                      libcairo2-doc
-Standards-Version: 3.8.4
+Standards-Version: 3.9.1
 Vcs-Svn: svn://svn.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-gnome/desktop/unstable/gtk+3.0/
 Homepage: http://www.gtk.org/
@@ -196,14 +196,14 @@ Description: Examples files for the GTK+ 3.0
  This package contains the examples files and a demonstration program
  for the GTK+-3.0.
 
-Package: gtk2-engines-pixbuf
+Package: gtk3-engines-pixbuf
 Section: graphics
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
          libgtk3.0-0 (= ${binary:Version}),
          libgtk3.0-common
-Description: Pixbuf-based theme for GTK+ 2.x
+Description: Pixbuf-based theme for GTK+ 3.x
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
  for projects ranging from small one-off tools to complete application
@@ -224,7 +224,7 @@ Description: GNOME Accessibility Implementation Library -- shared libraries
  .
  This package contains the shared library.
 
-Package: libgail-common
+Package: libgail3.0-common
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
@@ -237,16 +237,16 @@ Description: GNOME Accessibility Implementation Library -- common modules
  .
  This package contains core shared libraries.
 
-Package: libgail-dev
+Package: libgail3.0-dev
 Architecture: any
 Section: libdevel
 Depends: ${misc:Depends},
          libgail3.0-0 (= ${binary:Version}),
-         libgail-common (= ${binary:Version}),
+         libgail3.0-common (= ${binary:Version}),
          libgtk3.0-dev (= ${binary:Version}),
          pkg-config,
          libatk1.0-dev (>= 1.13.0)
-Suggests: libgail-doc
+Suggests: libgail3.0-doc
 Description: GNOME Accessibility Implementation Library -- development files
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -255,7 +255,7 @@ Description: GNOME Accessibility Implementation Library -- development files
  .
  This package contains the development files for Gail.
 
-Package: libgail-dbg
+Package: libgail3.0-0-dbg
 Architecture: any
 Section: debug
 Priority: extra
@@ -268,7 +268,7 @@ Description: Gail libraries and debugging symbols
  .
  Most people will not need this package.
 
-Package: libgail-doc
+Package: libgail3.0-doc
 Architecture: all
 Section: doc
 Depends: ${misc:Depends}, lynx | www-browser

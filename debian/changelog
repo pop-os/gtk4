@@ -1,8 +1,13 @@
-gtk+3.0 (2.90.5-1) experimental; urgency=low
+gtk+3.0 (2.90.6-1) experimental; urgency=low
 
+  [ Sebastian Dröge ]
   * Initial GTK+ 3 packaging.
 
- -- Sebastian Dröge <slomo@debian.org>  Thu, 29 Jul 2010 15:40:47 +0200
+  [ Rico Tzschichholz ]
+  * New upstream development release
+  * some fixes and changes
+
+ -- Sebastian Dröge <slomo@debian.org>  Thu, 19 Aug 2010 13:59:08 +0200
 
 gtk+2.0 (2.21.5-1) experimental; urgency=low
 

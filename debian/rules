@@ -53,7 +53,7 @@ DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
 APIVER := 3.0
 SONAME := 0
-SHVER := 2.90.5
+SHVER := 2.90.6
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 3.0.0
@@ -73,11 +73,11 @@ DOC_PKG := libgtk$(APIVER)-doc
 BIN_PKG := libgtk$(APIVER)-bin
 DEBUG_PKG := $(SHARED_PKG)-dbg
 EXAMPLES_PKG := gtk$(APIVER)-examples
-PIXBUF_PKG := gtk2-engines-pixbuf
+PIXBUF_PKG := gtk3-engines-pixbuf
 
 # package groups, used in rule dependencies and in cleanup
-BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG) libgail-doc
-BINARY_ARCH_PKGS := $(SHARED_PKG) $(UDEB_PKG) $(DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG) libgail18 libgail-dbg libgail-dev libgail-common
+BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG) libgail3.0-doc
+BINARY_ARCH_PKGS := $(SHARED_PKG) $(UDEB_PKG) $(DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG) libgail3.0-0 libgail3.0-0-dbg libgail3.0-dev libgail3.0-common
 ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 
 # list of flavors we build; each gets a builddir, a configure pass (configure
@@ -127,6 +127,7 @@ endif
 
 shared_configure_flags := $(configure_flags) \
 			--enable-shared \
+			--enable-introspection=no \
 			--disable-static
 shared_udeb_configure_flags := $(shared_configure_flags) \
 			--disable-xcomposite \
@@ -314,8 +315,8 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_install -p$(UDEB_PKG) $(mimedir)/mime.cache usr/share/mime
 	dh_installexamples -s
 	dh_link -s
-	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG) -Nlibgail18 -Nlibgail-common
-	dh_strip -plibgail18 -plibgail-common --dbg-package=libgail-dbg
+	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG) -Nlibgail3.0-0 -Nlibgail3.0-common
+	dh_strip -plibgail3.0-0 -plibgail3.0-common --dbg-package=libgail3.0-0-dbg
 	dh_strip -p$(UDEB_PKG)
 	dh_compress -s -X.sgml -X.devhelp
 	dh_fixperms -s -X$(LIBDIR)/$(SHARED_PKG)
@@ -324,9 +325,9 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		-V"$(SHARED_PKG) (>= $(SHVER))" \
 		--add-udeb=$(UDEB_PKG) \
 		-- -c4
-	dh_makeshlibs -plibgail18 \
+	dh_makeshlibs -plibgail3.0-0 \
 		-X$(MODULES_BASE_PATH) \
-		-V"libgail18 (>= $(SHVER)), libgail-common (>= $(SHVER))" \
+		-V"libgail3.0-0 (>= $(SHVER)), libgail3.0-common (>= $(SHVER))" \
 		-- -c4
 	dh_installdeb -s
 	# override shlibs for libraries from this source before computing
