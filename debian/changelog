@@ -14,8 +14,12 @@ gtk+3.0 (2.91.0-1) experimental; urgency=low
   * Update build-depends to cairo >= 1.10.0 and glib-2.0 >= 2.27.0
   * debian/patches/070_mandatory-relibtoolize.patch
     + Updated
+  * Update the faq/tutorial index files names
+  * debian/control.in:
+    + Add dependency on docbook-utils for db2html to generate the documentation
+      html during build
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sat, 09 Oct 2010 20:35:55 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Sat, 09 Oct 2010 22:04:32 +0100
 
 gtk+2.0 (2.21.5-1) experimental; urgency=low
 

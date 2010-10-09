@@ -36,6 +36,7 @@ Build-Depends: debhelper (>= 7.0.50~),
                shared-mime-info
 Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      docbook-xml,
+                     docbook-utils,
                      libglib2.0-doc,
                      libatk1.0-doc,
                      libpango1.0-doc,

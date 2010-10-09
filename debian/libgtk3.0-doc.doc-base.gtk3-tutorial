@@ -14,5 +14,5 @@ Abstract: GTK+ (GIMP Toolkit) is a library for creating graphical user
 Section: Programming/C
 
 Format: HTML
-Index: /usr/share/doc/libgtk3.0-doc/tutorial/book1.html
+Index: /usr/share/doc/libgtk3.0-doc/tutorial/index.html
 Files: /usr/share/doc/libgtk3.0-doc/tutorial/*.html

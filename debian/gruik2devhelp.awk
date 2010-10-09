@@ -3,7 +3,7 @@
 BEGIN { print "<?xml version=\"1.0\"?>";
         level=1 }
 
-title == 1 { print "<book title=\"" gensub("^>(.*)</TITLE$","\\1",1) "\" name =\"" name "\" link=\"book1.html\">";
+title == 1 { print "<book title=\"" gensub("^>(.*)</TITLE$","\\1",1) "\" name =\"" name "\" link=\"index.html\">";
              print "<chapters>";
              title=0 }
 /^><TITLE/ { title=1 }
