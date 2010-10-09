@@ -3937,6 +3937,25 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_window_unfullscreen@Base 2.90.5
  gtk_window_unmaximize@Base 2.90.5
  gtk_window_unstick@Base 2.90.5
+ gtk_wrap_allocation_mode_get_type@Base 2.91.0
+ gtk_wrap_box_get_allocation_mode@Base 2.91.0
+ gtk_wrap_box_get_horizontal_spacing@Base 2.91.0
+ gtk_wrap_box_get_horizontal_spreading@Base 2.91.0
+ gtk_wrap_box_get_minimum_line_children@Base 2.91.0
+ gtk_wrap_box_get_natural_line_children@Base 2.91.0
+ gtk_wrap_box_get_type@Base 2.91.0
+ gtk_wrap_box_get_vertical_spacing@Base 2.91.0
+ gtk_wrap_box_get_vertical_spreading@Base 2.91.0
+ gtk_wrap_box_insert_child@Base 2.91.0
+ gtk_wrap_box_new@Base 2.91.0
+ gtk_wrap_box_packing_get_type@Base 2.91.0
+ gtk_wrap_box_reorder_child@Base 2.91.0
+ gtk_wrap_box_set_allocation_mode@Base 2.91.0
+ gtk_wrap_box_set_horizontal_spacing@Base 2.91.0
+ gtk_wrap_box_set_horizontal_spreading@Base 2.91.0
+ gtk_wrap_box_set_minimum_line_children@Base 2.91.0
+ gtk_wrap_box_set_natural_line_children@Base 2.91.0
+ gtk_wrap_box_set_vertical_spacing@Base 2.91.0
+ gtk_wrap_box_set_vertical_spreading@Base 2.91.0
+ gtk_wrap_box_spreading_get_type@Base 2.91.0
  gtk_wrap_mode_get_type@Base 2.90.5
- hildon_gtk_file_chooser_install_properties@Base 2.90.5
-
