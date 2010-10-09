@@ -9,8 +9,10 @@ gtk+3.0 (2.91.0-1) experimental; urgency=low
 
   [ Sjoerd Simons ]
   * New upstream release (2.91.0)
+  * debian/patches/009_gtk-export-filechooser.patch:
+    + Removed. Doesn't apply anymore and was only needed for hildon
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sat, 09 Oct 2010 19:29:49 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Sat, 09 Oct 2010 19:34:37 +0100
 
 gtk+2.0 (2.21.5-1) experimental; urgency=low
 
