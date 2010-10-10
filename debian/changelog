@@ -18,9 +18,11 @@ gtk+3.0 (2.91.0-1) experimental; urgency=low
   * debian/control.in:
     + Add dependency on docbook-utils for db2html to generate the documentation
       html during build
-  *  Update the symbols file
+  * Update the symbols file
+  * Version various document index files so they don't conflict with their
+    gtk2 flavour
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sat, 09 Oct 2010 23:15:55 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 10 Oct 2010 13:51:17 +0100
 
 gtk+2.0 (2.21.5-1) experimental; urgency=low
 

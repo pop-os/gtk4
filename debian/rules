@@ -160,9 +160,9 @@ DH_INSTALLDOCS_FILES := NEWS README ChangeLog
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
 
 # Gruik gruik generation of .devhelp files for the FAQ and tutorial
-debian/gtk-%.devhelp: docs/%/html/index.html
-	gawk -f debian/gruik2devhelp.awk -v name=gtk-$* $< > $@
-devhelpfiles: debian/gtk-faq.devhelp debian/gtk-tutorial.devhelp
+debian/gtk3-%.devhelp: docs/%/html/index.html
+	gawk -f debian/gruik2devhelp.awk -v name=gtk3-$* $< > $@
+devhelpfiles: debian/gtk3-faq.devhelp debian/gtk3-tutorial.devhelp
 
 patch: $(STAMP_DIR)/patch-stamp
 

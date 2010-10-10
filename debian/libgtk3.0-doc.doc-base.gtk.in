@@ -1,4 +1,4 @@
-Document: gtk
+Document: gtk3
 Title: GTK+ Reference Manual
 Author: Damon Chaplin et al.
 Abstract: The GTK+ library provides a graphical user interface for
@@ -7,5 +7,5 @@ Abstract: The GTK+ library provides a graphical user interface for
 Section: Programming/C
 
 Format: HTML
-Index: /usr/share/doc/@DOC_PKG@/gtk/index.html
-Files: /usr/share/doc/@DOC_PKG@/gtk/*.html
+Index: /usr/share/doc/@DOC_PKG@/gtk3/index.html
+Files: /usr/share/doc/@DOC_PKG@/gtk3/*.html
