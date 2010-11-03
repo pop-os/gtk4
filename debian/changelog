@@ -1,4 +1,4 @@
-gtk+3.0 (2.91.0-1) experimental; urgency=low
+gtk+3.0 (2.91.3-1) UNRELEASED; urgency=low
 
   [ Sebastian Dröge ]
   * Initial GTK+ 3 packaging.
@@ -8,7 +8,7 @@ gtk+3.0 (2.91.0-1) experimental; urgency=low
   * some fixes and changes
 
   [ Sjoerd Simons ]
-  * New upstream release (2.91.0)
+  * New upstream release (2.91.3)
   * debian/patches/009_gtk-export-filechooser.patch:
     + Removed. Doesn't apply anymore and was only needed for hildon
   * Update build-depends to cairo >= 1.10.0 and glib-2.0 >= 2.27.0
