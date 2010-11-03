@@ -9,13 +9,13 @@ Index: gtk+3.0-2.90.5/Makefile.am
  ## Makefile.am for GTK+
  include $(top_srcdir)/Makefile.decl
  
--SRC_SUBDIRS = gdk gtk modules demos tests perf
+-SRC_SUBDIRS = gdk gtk modules demos tests perf examples
 +# don't build perf measurement tools in static builds
 +if !ENABLE_STATIC
 +MAYBE_PERF = perf
 +endif
 +
-+SRC_SUBDIRS = gdk gtk modules demos tests $(MAYBE_PERF)
++SRC_SUBDIRS = gdk gtk modules demos tests $(MAYBE_PERF) examples
  SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros build
  
  ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
