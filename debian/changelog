@@ -24,8 +24,10 @@ gtk+3.0 (2.91.3-1) UNRELEASED; urgency=low
   * debian/libgtk3-bin.preinst, debian/libgtk3-bin.postrm:
     + Divert gtk+2.0's update-icon-caches. The format remained the same so this
       is safe to do
+  * debian/ruels, libtk3.0-doc.*: Tutorial and FAQ have been removed from the
+    gtk source as they were updated, stop trying to install them
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sun, 10 Oct 2010 14:06:26 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Thu, 04 Nov 2010 23:32:13 +0000
 
 gtk+2.0 (2.21.5-1) experimental; urgency=low
 

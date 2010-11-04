@@ -159,11 +159,6 @@ DH_INSTALLDOCS_FILES := NEWS README ChangeLog
 # ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
 
-# Gruik gruik generation of .devhelp files for the FAQ and tutorial
-debian/gtk3-%.devhelp: docs/%/html/index.html
-	gawk -f debian/gruik2devhelp.awk -v name=gtk3-$* $< > $@
-devhelpfiles: debian/gtk3-faq.devhelp debian/gtk3-tutorial.devhelp
-
 patch: $(STAMP_DIR)/patch-stamp
 
 $(STAMP_DIR)/patch-stamp:
@@ -267,7 +262,7 @@ clean:: debian/control
 
 maybe_check = $(if $(findstring nocheck,$(DEB_BUILD_OPTIONS)),,check)
 
-binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS)) devhelpfiles
+binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
 	dh_testdir
 	dh_testroot
 	dh_install -i
@@ -348,4 +343,4 @@ list-missing:
 	    egrep -v '(\.la|$(LIBDIR)/gtk-3.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
 
 binary: binary-indep binary-arch
-.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary devhelpfiles
+.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary
