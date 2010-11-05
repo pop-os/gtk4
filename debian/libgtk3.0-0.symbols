@@ -23,6 +23,7 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_cairo_reset_clip@Base 2.90.5
  gdk_cairo_set_source_color@Base 2.90.5
  gdk_cairo_set_source_pixbuf@Base 2.90.5
+ gdk_cairo_set_source_rgba@Base 2.91.3
  gdk_cairo_set_source_window@Base 2.91.0
  gdk_color_copy@Base 2.90.5
  gdk_color_equal@Base 2.90.5
@@ -263,6 +264,13 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_rectangle_get_type@Base 2.90.5
  gdk_rectangle_intersect@Base 2.90.5
  gdk_rectangle_union@Base 2.90.5
+ gdk_rgba_copy@Base 2.91.3
+ gdk_rgba_equal@Base 2.91.3
+ gdk_rgba_free@Base 2.91.3
+ gdk_rgba_get_type@Base 2.91.3
+ gdk_rgba_hash@Base 2.91.3
+ gdk_rgba_parse@Base 2.91.3
+ gdk_rgba_to_string@Base 2.91.3
  gdk_screen_broadcast_client_message@Base 2.90.5
  gdk_screen_get_active_window@Base 2.90.5
  gdk_screen_get_default@Base 2.90.5
@@ -465,6 +473,7 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_window_set_accept_focus@Base 2.90.5
  gdk_window_set_background@Base 2.90.5
  gdk_window_set_background_pattern@Base 2.91.0
+ gdk_window_set_background_rgba@Base 2.91.3
  gdk_window_set_child_input_shapes@Base 2.90.5
  gdk_window_set_child_shapes@Base 2.90.5
  gdk_window_set_composited@Base 2.90.5
@@ -524,6 +533,7 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_x11_display_get_xdisplay@Base 2.90.5
  gdk_x11_display_grab@Base 2.90.5
  gdk_x11_display_set_cursor_theme@Base 2.90.5
+ gdk_x11_display_set_startup_notification_id@Base 2.91.3
  gdk_x11_display_ungrab@Base 2.90.5
  gdk_x11_drawable_get_xdisplay@Base 2.90.5
  gdk_x11_drawable_get_xid@Base 2.90.5
@@ -733,14 +743,10 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_alignment_set_padding@Base 2.90.5
  gtk_alternative_dialog_button_order@Base 2.90.5
  gtk_application_add_window@Base 2.90.5
- gtk_application_create_window@Base 2.90.5
  gtk_application_get_type@Base 2.90.5
- gtk_application_get_window@Base 2.90.5
  gtk_application_get_windows@Base 2.90.6
  gtk_application_new@Base 2.90.5
- gtk_application_quit@Base 2.90.5
- gtk_application_run@Base 2.90.5
- gtk_application_set_action_group@Base 2.90.5
+ gtk_application_remove_window@Base 2.91.3
  gtk_arrow_get_type@Base 2.90.5
  gtk_arrow_new@Base 2.90.5
  gtk_arrow_placement_get_type@Base 2.90.5
@@ -763,8 +769,10 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_assistant_get_type@Base 2.90.5
  gtk_assistant_insert_page@Base 2.90.5
  gtk_assistant_new@Base 2.90.5
+ gtk_assistant_next_page@Base 2.91.3
  gtk_assistant_page_type_get_type@Base 2.90.5
  gtk_assistant_prepend_page@Base 2.90.5
+ gtk_assistant_previous_page@Base 2.91.3
  gtk_assistant_remove_action_widget@Base 2.90.5
  gtk_assistant_set_current_page@Base 2.90.5
  gtk_assistant_set_forward_page_func@Base 2.90.5
@@ -958,6 +966,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_cell_view_new_with_pixbuf@Base 2.90.5
  gtk_cell_view_new_with_text@Base 2.90.5
  gtk_cell_view_set_background_color@Base 2.90.5
+ gtk_cell_view_set_background_rgba@Base 2.91.3
  gtk_cell_view_set_displayed_row@Base 2.90.5
  gtk_cell_view_set_model@Base 2.90.5
  gtk_check_button_get_type@Base 2.90.5
@@ -1007,13 +1016,16 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_clipboard_wait_is_uris_available@Base 2.90.5
  gtk_color_button_get_alpha@Base 2.90.5
  gtk_color_button_get_color@Base 2.90.5
+ gtk_color_button_get_rgba@Base 2.91.3
  gtk_color_button_get_title@Base 2.90.5
  gtk_color_button_get_type@Base 2.90.5
  gtk_color_button_get_use_alpha@Base 2.90.5
  gtk_color_button_new@Base 2.90.5
  gtk_color_button_new_with_color@Base 2.90.5
+ gtk_color_button_new_with_rgba@Base 2.91.3
  gtk_color_button_set_alpha@Base 2.90.5
  gtk_color_button_set_color@Base 2.90.5
+ gtk_color_button_set_rgba@Base 2.91.3
  gtk_color_button_set_title@Base 2.90.5
  gtk_color_button_set_use_alpha@Base 2.90.5
  gtk_color_selection_dialog_get_color_selection@Base 2.90.5
@@ -1021,10 +1033,12 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_color_selection_dialog_new@Base 2.90.5
  gtk_color_selection_get_current_alpha@Base 2.90.5
  gtk_color_selection_get_current_color@Base 2.90.5
+ gtk_color_selection_get_current_rgba@Base 2.91.3
  gtk_color_selection_get_has_opacity_control@Base 2.90.5
  gtk_color_selection_get_has_palette@Base 2.90.5
  gtk_color_selection_get_previous_alpha@Base 2.90.5
  gtk_color_selection_get_previous_color@Base 2.90.5
+ gtk_color_selection_get_previous_rgba@Base 2.91.3
  gtk_color_selection_get_type@Base 2.90.5
  gtk_color_selection_is_adjusting@Base 2.90.5
  gtk_color_selection_new@Base 2.90.5
@@ -1033,51 +1047,57 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_color_selection_set_change_palette_with_screen_hook@Base 2.90.5
  gtk_color_selection_set_current_alpha@Base 2.90.5
  gtk_color_selection_set_current_color@Base 2.90.5
+ gtk_color_selection_set_current_rgba@Base 2.91.3
  gtk_color_selection_set_has_opacity_control@Base 2.90.5
  gtk_color_selection_set_has_palette@Base 2.90.5
  gtk_color_selection_set_previous_alpha@Base 2.90.5
  gtk_color_selection_set_previous_color@Base 2.90.5
- gtk_combo_box_append_text@Base 2.90.5
- gtk_combo_box_entry_get_text_column@Base 2.90.5
- gtk_combo_box_entry_get_type@Base 2.90.5
- gtk_combo_box_entry_new@Base 2.90.5
- gtk_combo_box_entry_new_text@Base 2.90.5
- gtk_combo_box_entry_new_with_model@Base 2.90.5
- gtk_combo_box_entry_set_text_column@Base 2.90.5
+ gtk_color_selection_set_previous_rgba@Base 2.91.3
  gtk_combo_box_get_active@Base 2.90.5
  gtk_combo_box_get_active_iter@Base 2.90.5
- gtk_combo_box_get_active_text@Base 2.90.5
  gtk_combo_box_get_add_tearoffs@Base 2.90.5
  gtk_combo_box_get_button_sensitivity@Base 2.90.5
  gtk_combo_box_get_column_span_column@Base 2.90.5
+ gtk_combo_box_get_entry_text_column@Base 2.91.3
  gtk_combo_box_get_focus_on_click@Base 2.90.5
+ gtk_combo_box_get_has_entry@Base 2.91.3
  gtk_combo_box_get_model@Base 2.90.5
  gtk_combo_box_get_popup_accessible@Base 2.90.5
+ gtk_combo_box_get_popup_fixed_width@Base 2.91.3
  gtk_combo_box_get_row_separator_func@Base 2.90.5
  gtk_combo_box_get_row_span_column@Base 2.90.5
  gtk_combo_box_get_title@Base 2.90.5
  gtk_combo_box_get_type@Base 2.90.5
  gtk_combo_box_get_wrap_width@Base 2.90.5
- gtk_combo_box_insert_text@Base 2.90.5
  gtk_combo_box_new@Base 2.90.5
- gtk_combo_box_new_text@Base 2.90.5
+ gtk_combo_box_new_with_entry@Base 2.91.3
  gtk_combo_box_new_with_model@Base 2.90.5
+ gtk_combo_box_new_with_model_and_entry@Base 2.91.3
  gtk_combo_box_popdown@Base 2.90.5
  gtk_combo_box_popup@Base 2.90.5
  gtk_combo_box_popup_for_device@Base 2.90.5
- gtk_combo_box_prepend_text@Base 2.90.5
- gtk_combo_box_remove_text@Base 2.90.5
  gtk_combo_box_set_active@Base 2.90.5
  gtk_combo_box_set_active_iter@Base 2.90.5
  gtk_combo_box_set_add_tearoffs@Base 2.90.5
  gtk_combo_box_set_button_sensitivity@Base 2.90.5
  gtk_combo_box_set_column_span_column@Base 2.90.5
+ gtk_combo_box_set_entry_text_column@Base 2.91.3
  gtk_combo_box_set_focus_on_click@Base 2.90.5
  gtk_combo_box_set_model@Base 2.90.5
+ gtk_combo_box_set_popup_fixed_width@Base 2.91.3
  gtk_combo_box_set_row_separator_func@Base 2.90.5
  gtk_combo_box_set_row_span_column@Base 2.90.5
  gtk_combo_box_set_title@Base 2.90.5
  gtk_combo_box_set_wrap_width@Base 2.90.5
+ gtk_combo_box_text_append_text@Base 2.91.3
+ gtk_combo_box_text_get_active_text@Base 2.91.3
+ gtk_combo_box_text_get_type@Base 2.91.3
+ gtk_combo_box_text_insert_text@Base 2.91.3
+ gtk_combo_box_text_new@Base 2.91.3
+ gtk_combo_box_text_new_with_entry@Base 2.91.3
+ gtk_combo_box_text_prepend_text@Base 2.91.3
+ gtk_combo_box_text_remove@Base 2.91.3
+ gtk_combo_box_text_remove_all@Base 2.91.3
  gtk_container_add@Base 2.90.5
  gtk_container_add_with_properties@Base 2.90.5
  gtk_container_check_resize@Base 2.90.5
@@ -1242,6 +1262,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_entry_get_cursor_hadjustment@Base 2.90.5
  gtk_entry_get_has_frame@Base 2.90.5
  gtk_entry_get_icon_activatable@Base 2.90.5
+ gtk_entry_get_icon_area@Base 2.91.3
  gtk_entry_get_icon_at_pos@Base 2.90.5
  gtk_entry_get_icon_gicon@Base 2.90.5
  gtk_entry_get_icon_name@Base 2.90.5
@@ -1251,7 +1272,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_entry_get_icon_storage_type@Base 2.90.5
  gtk_entry_get_icon_tooltip_markup@Base 2.90.5
  gtk_entry_get_icon_tooltip_text@Base 2.90.5
- gtk_entry_get_icon_window@Base 2.90.5
  gtk_entry_get_inner_border@Base 2.90.5
  gtk_entry_get_invisible_char@Base 2.90.5
  gtk_entry_get_layout@Base 2.90.5
@@ -1261,8 +1281,8 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_entry_get_progress_fraction@Base 2.90.5
  gtk_entry_get_progress_pulse_step@Base 2.90.5
  gtk_entry_get_text@Base 2.90.5
+ gtk_entry_get_text_area@Base 2.91.3
  gtk_entry_get_text_length@Base 2.90.5
- gtk_entry_get_text_window@Base 2.90.5
  gtk_entry_get_type@Base 2.90.5
  gtk_entry_get_visibility@Base 2.90.5
  gtk_entry_get_width_chars@Base 2.90.5
@@ -1481,6 +1501,18 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_grab_add@Base 2.90.5
  gtk_grab_get_current@Base 2.90.5
  gtk_grab_remove@Base 2.90.5
+ gtk_grid_attach@Base 2.91.3
+ gtk_grid_attach_next_to@Base 2.91.3
+ gtk_grid_get_column_homogeneous@Base 2.91.3
+ gtk_grid_get_column_spacing@Base 2.91.3
+ gtk_grid_get_row_homogeneous@Base 2.91.3
+ gtk_grid_get_row_spacing@Base 2.91.3
+ gtk_grid_get_type@Base 2.91.3
+ gtk_grid_new@Base 2.91.3
+ gtk_grid_set_column_homogeneous@Base 2.91.3
+ gtk_grid_set_column_spacing@Base 2.91.3
+ gtk_grid_set_row_homogeneous@Base 2.91.3
+ gtk_grid_set_row_spacing@Base 2.91.3
  gtk_handle_box_get_child_detached@Base 2.90.5
  gtk_handle_box_get_handle_position@Base 2.90.5
  gtk_handle_box_get_shadow_type@Base 2.90.5
@@ -2506,6 +2538,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_recent_filter_get_type@Base 2.90.5
  gtk_recent_filter_new@Base 2.90.5
  gtk_recent_filter_set_name@Base 2.90.5
+ gtk_recent_info_create_app_info@Base 2.91.3
  gtk_recent_info_exists@Base 2.90.5
  gtk_recent_info_get_added@Base 2.90.5
  gtk_recent_info_get_age@Base 2.90.5
@@ -2513,6 +2546,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_recent_info_get_applications@Base 2.90.5
  gtk_recent_info_get_description@Base 2.90.5
  gtk_recent_info_get_display_name@Base 2.90.5
+ gtk_recent_info_get_gicon@Base 2.91.3
  gtk_recent_info_get_groups@Base 2.90.5
  gtk_recent_info_get_icon@Base 2.90.5
  gtk_recent_info_get_mime_type@Base 2.90.5
@@ -2583,11 +2617,23 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_scale_set_value_pos@Base 2.90.5
  gtk_scroll_step_get_type@Base 2.90.5
  gtk_scroll_type_get_type@Base 2.90.5
+ gtk_scrollable_get_hadjustment@Base 2.91.3
+ gtk_scrollable_get_hscroll_policy@Base 2.91.3
+ gtk_scrollable_get_type@Base 2.91.3
+ gtk_scrollable_get_vadjustment@Base 2.91.3
+ gtk_scrollable_get_vscroll_policy@Base 2.91.3
+ gtk_scrollable_policy_get_type@Base 2.91.3
+ gtk_scrollable_set_hadjustment@Base 2.91.3
+ gtk_scrollable_set_hscroll_policy@Base 2.91.3
+ gtk_scrollable_set_vadjustment@Base 2.91.3
+ gtk_scrollable_set_vscroll_policy@Base 2.91.3
  gtk_scrollbar_get_type@Base 2.90.5
  gtk_scrollbar_new@Base 2.90.5
  gtk_scrolled_window_add_with_viewport@Base 2.90.5
  gtk_scrolled_window_get_hadjustment@Base 2.90.5
  gtk_scrolled_window_get_hscrollbar@Base 2.90.5
+ gtk_scrolled_window_get_min_content_height@Base 2.91.3
+ gtk_scrolled_window_get_min_content_width@Base 2.91.3
  gtk_scrolled_window_get_placement@Base 2.90.5
  gtk_scrolled_window_get_policy@Base 2.90.5
  gtk_scrolled_window_get_shadow_type@Base 2.90.5
@@ -2596,6 +2642,8 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_scrolled_window_get_vscrollbar@Base 2.90.5
  gtk_scrolled_window_new@Base 2.90.5
  gtk_scrolled_window_set_hadjustment@Base 2.90.5
+ gtk_scrolled_window_set_min_content_height@Base 2.91.3
+ gtk_scrolled_window_set_min_content_width@Base 2.91.3
  gtk_scrolled_window_set_placement@Base 2.90.5
  gtk_scrolled_window_set_policy@Base 2.90.5
  gtk_scrolled_window_set_shadow_type@Base 2.90.5
@@ -2739,7 +2787,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_status_icon_set_tooltip_text@Base 2.90.5
  gtk_status_icon_set_visible@Base 2.90.5
  gtk_statusbar_get_context_id@Base 2.90.5
- gtk_statusbar_get_has_resize_grip@Base 2.90.5
  gtk_statusbar_get_message_area@Base 2.90.5
  gtk_statusbar_get_type@Base 2.90.5
  gtk_statusbar_new@Base 2.90.5
@@ -2747,7 +2794,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_statusbar_push@Base 2.90.5
  gtk_statusbar_remove@Base 2.90.5
  gtk_statusbar_remove_all@Base 2.90.5
- gtk_statusbar_set_has_resize_grip@Base 2.90.5
  gtk_stock_add@Base 2.90.5
  gtk_stock_add_static@Base 2.90.5
  gtk_stock_item_copy@Base 2.90.5
@@ -2784,6 +2830,10 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_table_set_homogeneous@Base 2.90.5
  gtk_table_set_row_spacing@Base 2.90.5
  gtk_table_set_row_spacings@Base 2.90.5
+ gtk_target_entry_copy@Base 2.91.3
+ gtk_target_entry_free@Base 2.91.3
+ gtk_target_entry_get_type@Base 2.91.3
+ gtk_target_entry_new@Base 2.91.3
  gtk_target_flags_get_type@Base 2.90.5
  gtk_target_list_add@Base 2.90.5
  gtk_target_list_add_image_targets@Base 2.90.5
@@ -3560,7 +3610,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_tree_view_set_expander_column@Base 2.90.5
  gtk_tree_view_set_fixed_height_mode@Base 2.90.5
  gtk_tree_view_set_grid_lines@Base 2.90.5
- gtk_tree_view_set_hadjustment@Base 2.90.5
  gtk_tree_view_set_headers_clickable@Base 2.90.5
  gtk_tree_view_set_headers_visible@Base 2.90.5
  gtk_tree_view_set_hover_expand@Base 2.90.5
@@ -3579,7 +3628,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_tree_view_set_tooltip_cell@Base 2.90.5
  gtk_tree_view_set_tooltip_column@Base 2.90.5
  gtk_tree_view_set_tooltip_row@Base 2.90.5
- gtk_tree_view_set_vadjustment@Base 2.90.5
  gtk_tree_view_unset_rows_drag_dest@Base 2.90.5
  gtk_tree_view_unset_rows_drag_source@Base 2.90.5
  gtk_true@Base 2.90.5
@@ -3644,6 +3692,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_class_install_style_property_parser@Base 2.90.5
  gtk_widget_class_list_style_properties@Base 2.90.5
  gtk_widget_class_path@Base 2.90.5
+ gtk_widget_compute_expand@Base 2.91.3
  gtk_widget_create_pango_context@Base 2.90.5
  gtk_widget_create_pango_layout@Base 2.90.5
  gtk_widget_destroy@Base 2.90.5
@@ -3677,6 +3726,8 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_get_halign@Base 2.91.0
  gtk_widget_get_has_tooltip@Base 2.90.5
  gtk_widget_get_has_window@Base 2.90.5
+ gtk_widget_get_hexpand@Base 2.91.3
+ gtk_widget_get_hexpand_set@Base 2.91.3
  gtk_widget_get_mapped@Base 2.90.5
  gtk_widget_get_margin_bottom@Base 2.91.0
  gtk_widget_get_margin_left@Base 2.91.0
@@ -3712,6 +3763,8 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_get_toplevel@Base 2.90.5
  gtk_widget_get_type@Base 2.90.5
  gtk_widget_get_valign@Base 2.91.0
+ gtk_widget_get_vexpand@Base 2.91.3
+ gtk_widget_get_vexpand_set@Base 2.91.3
  gtk_widget_get_visible@Base 2.90.5
  gtk_widget_get_visual@Base 2.90.5
  gtk_widget_get_window@Base 2.90.5
@@ -3724,7 +3777,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_has_screen@Base 2.90.5
  gtk_widget_help_type_get_type@Base 2.90.5
  gtk_widget_hide@Base 2.90.5
- gtk_widget_hide_all@Base 2.90.5
  gtk_widget_hide_on_delete@Base 2.90.5
  gtk_widget_in_destruction@Base 2.91.0
  gtk_widget_input_shape_combine_region@Base 2.91.0
@@ -3752,8 +3804,10 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_path@Base 2.90.5
  gtk_widget_pop_composite_child@Base 2.90.5
  gtk_widget_push_composite_child@Base 2.90.5
+ gtk_widget_queue_compute_expand@Base 2.91.3
  gtk_widget_queue_draw@Base 2.90.5
  gtk_widget_queue_draw_area@Base 2.90.5
+ gtk_widget_queue_draw_region@Base 2.91.3
  gtk_widget_queue_resize@Base 2.90.5
  gtk_widget_queue_resize_no_redraw@Base 2.90.5
  gtk_widget_realize@Base 2.90.5
@@ -3782,6 +3836,8 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_set_halign@Base 2.91.0
  gtk_widget_set_has_tooltip@Base 2.90.5
  gtk_widget_set_has_window@Base 2.90.5
+ gtk_widget_set_hexpand@Base 2.91.3
+ gtk_widget_set_hexpand_set@Base 2.91.3
  gtk_widget_set_mapped@Base 2.90.5
  gtk_widget_set_margin_bottom@Base 2.91.0
  gtk_widget_set_margin_left@Base 2.91.0
@@ -3794,7 +3850,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_set_realized@Base 2.90.5
  gtk_widget_set_receives_default@Base 2.90.5
  gtk_widget_set_redraw_on_allocate@Base 2.90.5
- gtk_widget_set_scroll_adjustments@Base 2.90.5
  gtk_widget_set_sensitive@Base 2.90.5
  gtk_widget_set_size_request@Base 2.90.5
  gtk_widget_set_state@Base 2.90.5
@@ -3804,6 +3859,8 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_set_tooltip_text@Base 2.90.5
  gtk_widget_set_tooltip_window@Base 2.90.5
  gtk_widget_set_valign@Base 2.91.0
+ gtk_widget_set_vexpand@Base 2.91.3
+ gtk_widget_set_vexpand_set@Base 2.91.3
  gtk_widget_set_visible@Base 2.90.5
  gtk_widget_set_visual@Base 2.91.0
  gtk_widget_set_window@Base 2.90.5
@@ -3834,6 +3891,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_window_deiconify@Base 2.90.5
  gtk_window_fullscreen@Base 2.90.5
  gtk_window_get_accept_focus@Base 2.90.5
+ gtk_window_get_application@Base 2.91.3
  gtk_window_get_decorated@Base 2.90.5
  gtk_window_get_default_icon_list@Base 2.90.5
  gtk_window_get_default_icon_name@Base 2.90.5
@@ -3847,6 +3905,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_window_get_gravity@Base 2.90.5
  gtk_window_get_group@Base 2.90.5
  gtk_window_get_has_frame@Base 2.90.5
+ gtk_window_get_has_resize_grip@Base 2.91.3
  gtk_window_get_icon@Base 2.90.5
  gtk_window_get_icon_list@Base 2.90.5
  gtk_window_get_icon_name@Base 2.90.5
@@ -3856,6 +3915,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_window_get_opacity@Base 2.90.5
  gtk_window_get_position@Base 2.90.5
  gtk_window_get_resizable@Base 2.90.5
+ gtk_window_get_resize_grip_area@Base 2.91.3
  gtk_window_get_role@Base 2.90.5
  gtk_window_get_screen@Base 2.90.5
  gtk_window_get_size@Base 2.90.5
@@ -3893,10 +3953,14 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_window_remove_mnemonic@Base 2.90.5
  gtk_window_reshow_with_initial_size@Base 2.90.5
  gtk_window_resize@Base 2.90.5
+ gtk_window_resize_grip_is_visible@Base 2.91.3
+ gtk_window_resize_to_geometry@Base 2.91.3
  gtk_window_set_accept_focus@Base 2.90.5
+ gtk_window_set_application@Base 2.91.3
  gtk_window_set_auto_startup_notification@Base 2.90.5
  gtk_window_set_decorated@Base 2.90.5
  gtk_window_set_default@Base 2.90.5
+ gtk_window_set_default_geometry@Base 2.91.3
  gtk_window_set_default_icon@Base 2.90.5
  gtk_window_set_default_icon_from_file@Base 2.90.5
  gtk_window_set_default_icon_list@Base 2.90.5
@@ -3910,6 +3974,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_window_set_geometry_hints@Base 2.90.5
  gtk_window_set_gravity@Base 2.90.5
  gtk_window_set_has_frame@Base 2.90.5
+ gtk_window_set_has_resize_grip@Base 2.91.3
  gtk_window_set_icon@Base 2.90.5
  gtk_window_set_icon_from_file@Base 2.90.5
  gtk_window_set_icon_list@Base 2.90.5
@@ -3937,25 +4002,4 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_window_unfullscreen@Base 2.90.5
  gtk_window_unmaximize@Base 2.90.5
  gtk_window_unstick@Base 2.90.5
- gtk_wrap_allocation_mode_get_type@Base 2.91.0
- gtk_wrap_box_get_allocation_mode@Base 2.91.0
- gtk_wrap_box_get_horizontal_spacing@Base 2.91.0
- gtk_wrap_box_get_horizontal_spreading@Base 2.91.0
- gtk_wrap_box_get_minimum_line_children@Base 2.91.0
- gtk_wrap_box_get_natural_line_children@Base 2.91.0
- gtk_wrap_box_get_type@Base 2.91.0
- gtk_wrap_box_get_vertical_spacing@Base 2.91.0
- gtk_wrap_box_get_vertical_spreading@Base 2.91.0
- gtk_wrap_box_insert_child@Base 2.91.0
- gtk_wrap_box_new@Base 2.91.0
- gtk_wrap_box_packing_get_type@Base 2.91.0
- gtk_wrap_box_reorder_child@Base 2.91.0
- gtk_wrap_box_set_allocation_mode@Base 2.91.0
- gtk_wrap_box_set_horizontal_spacing@Base 2.91.0
- gtk_wrap_box_set_horizontal_spreading@Base 2.91.0
- gtk_wrap_box_set_minimum_line_children@Base 2.91.0
- gtk_wrap_box_set_natural_line_children@Base 2.91.0
- gtk_wrap_box_set_vertical_spacing@Base 2.91.0
- gtk_wrap_box_set_vertical_spreading@Base 2.91.0
- gtk_wrap_box_spreading_get_type@Base 2.91.0
  gtk_wrap_mode_get_type@Base 2.90.5
