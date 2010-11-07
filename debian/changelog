@@ -29,8 +29,9 @@ gtk+3.0 (2.91.3-1) UNRELEASED; urgency=low
   * debian/libgail3.0-doc.doc-base.gail-reference
     + Rename the doc-base to gail-reference-3.0 to not conflict with
       libgail3.0-doc
+  * debian/copyright updated/rewritten
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sat, 06 Nov 2010 15:55:00 +0000
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 07 Nov 2010 20:45:46 +0000
 
 gtk+2.0 (2.21.5-1) experimental; urgency=low
 
