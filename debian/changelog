@@ -1,4 +1,4 @@
-gtk+3.0 (2.91.3-1) UNRELEASED; urgency=low
+gtk+3.0 (2.91.3-1) experimental; urgency=low
 
   [ Sebastian Dröge ]
   * Initial GTK+ 3 packaging.
