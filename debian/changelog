@@ -1,9 +1,14 @@
-gtk+3.0 (2.91.3-2) UNRELEASED; urgency=low
+gtk+3.0 (2.91.4-1) experimental; urgency=low
 
   * debian/libgtk3.0-common.install:
     + Ship the GSettings schemas.
+  * New upstream release.
+    + debian/control.in:
+      - Bump glib2.0 build requirement.
+    + debian/patches/*:
+      - Refreshed.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 15 Nov 2010 16:04:01 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 15 Nov 2010 23:45:43 +0100
 
 gtk+3.0 (2.91.3-1) experimental; urgency=low
 
