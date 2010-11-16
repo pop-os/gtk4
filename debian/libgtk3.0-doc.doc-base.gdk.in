@@ -9,5 +9,5 @@ Abstract: The GDK library provides an OS-independant wrapper around the
 Section: Programming/C
 
 Format: HTML
-Index: /usr/share/doc/libgtk3.0-doc/gdk3/index.html
-Files: /usr/share/doc/libgtk3.0-doc/gdk3/*.html
+Index: /usr/share/doc/@DOC_PKG@/gdk3/index.html
+Files: /usr/share/doc/@DOC_PKG@/gdk3/*.html

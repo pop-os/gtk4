@@ -7,8 +7,17 @@ gtk+3.0 (2.91.4-1) experimental; urgency=low
       - Bump glib2.0 build requirement.
     + debian/patches/*:
       - Refreshed.
+  * debian/libgtk3.0-bin.{preinst,postrm}:
+    + Add #DEBHELPER# token. Make errors fatal with set -e.
+  * debian/rules:
+    + Exclude .in files from the dh_installdocs call, so that
+      it picks the real .doc-base files and not the .in ones.
+  * debian/libgtk3.0-doc.doc-base.gdk{,.in}:
+    + Don't hardcode the package name, generate it at build time.
+  * debian/libgail3.0-doc.doc-base.gail-reference:
+    + Fix paths to the manual.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 15 Nov 2010 23:45:43 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 16 Nov 2010 06:30:33 +0100
 
 gtk+3.0 (2.91.3-1) experimental; urgency=low
 

@@ -1,4 +1,5 @@
 #!/bin/sh -e
+set -e
 
 if [ "$1" = remove ] ; then
     dpkg-divert --remove --package libgtk3.0-bin --rename \
@@ -8,5 +9,7 @@ if [ "$1" = remove ] ; then
         --divert /usr/share/man/man8/update-icon-caches.gtk2.8.gz \
         /usr/share/man/man8/update-icon-caches.8.gz
 fi
+
+#DEBHELPER#
 
 exit 0
