@@ -271,10 +271,10 @@ binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_
 	# do not merge the calls: dh_installdocs will only install some files
 	# in the first package
 	dh_installdocs -p$(COMMON_PKG) $(DH_INSTALLDOCS_FILES)
-	dh_installdocs -p$(DOC_PKG) -X.in $(DH_INSTALLDOCS_FILES)
+	dh_installdocs -p$(DOC_PKG) $(DH_INSTALLDOCS_FILES)
 	# install copyright in all packages; the -p is for the special behavior
 	# of dh_installdocs (ship README.Debian etc. in the first package)
-	dh_installdocs -p$(COMMON_PKG) -i
+	dh_installdocs -p$(COMMON_PKG) -i -X.in
 	dh_installman -i
 	dh_link -i
 	dh_compress -i -X.sgml -X.devhelp
