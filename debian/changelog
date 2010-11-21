@@ -1,3 +1,9 @@
+gtk+3.0 (2.91.4-2) UNRELEASED; urgency=low
+
+  * debian/watch: Bump version to 3
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 21 Nov 2010 22:14:03 +0100
+
 gtk+3.0 (2.91.4-1) experimental; urgency=low
 
   * debian/libgtk3.0-common.install:
