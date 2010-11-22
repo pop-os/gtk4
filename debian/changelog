@@ -1,6 +1,14 @@
 gtk+3.0 (2.91.4-2) UNRELEASED; urgency=low
 
+  [ Laurent Bigonville ]
   * debian/watch: Bump version to 3
+
+  [ Emilio Pozuelo Monfort ]
+  * Add gir1.0-gtk-3.0, based on the gir1.0-gtk-2.0 Ubuntu patch.
+  * debian/patches/004_gtk_gir_build.patch:
+    + Fix the introspection build.
+  * debian/patches/070_mandatory-relibtoolize.patch:
+    + Updated.
 
  -- Laurent Bigonville <bigon@debian.org>  Sun, 21 Nov 2010 22:14:03 +0100
 
