@@ -1,4 +1,4 @@
-gtk+3.0 (2.91.4-2) UNRELEASED; urgency=low
+gtk+3.0 (2.91.4-2) experimental; urgency=low
 
   [ Laurent Bigonville ]
   * debian/watch: Bump version to 3
@@ -10,7 +10,11 @@ gtk+3.0 (2.91.4-2) UNRELEASED; urgency=low
   * debian/patches/070_mandatory-relibtoolize.patch:
     + Updated.
 
- -- Laurent Bigonville <bigon@debian.org>  Sun, 21 Nov 2010 22:14:03 +0100
+  [ Sjoerd Simons ]
+  * Update build-depends to properly depend on -dev packages with .gir
+  * Target experimental
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sat, 27 Nov 2010 17:01:51 +0000
 
 gtk+3.0 (2.91.4-1) experimental; urgency=low
 
