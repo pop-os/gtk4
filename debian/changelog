@@ -13,6 +13,9 @@ gtk+3.0 (2.91.6-1) UNRELEASED; urgency=low
     + debian/rules:
       - Bumped the shver.
       - Disable silent builds.
+  * debian/control.in,
+    debian/rules:
+    + Remove the chrpath hack, it's been fixed in libtool.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 08 Dec 2010 23:58:24 +0100
 

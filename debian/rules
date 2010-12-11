@@ -291,8 +291,6 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 	dh_install -s
 	# empty the dependency_libs in the *.la files
 	sed -i "/dependency_libs/ s/'.*'/''/" debian/*/$(LIBDIR)/*.la
-	# we don't need the rpath in the udeb
-	chrpath -d debian/$(UDEB_PKG)/$(LIBDIR)/*x11*.so.*
 	# changelog.gz symlinks will be overwritten by dh_link
 	dh_installchangelogs -s ChangeLog
 	# do not merge the calls: dh_installdocs only installs in the first pkg
