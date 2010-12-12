@@ -77,7 +77,7 @@ PIXBUF_PKG := gtk3-engines-pixbuf
 
 # package groups, used in rule dependencies and in cleanup
 BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG) libgail3.0-doc
-BINARY_ARCH_PKGS := $(SHARED_PKG) $(UDEB_PKG) $(DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG) gir1.0-gtk-3.0 libgail3.0-0 libgail3.0-0-dbg libgail3.0-dev libgail3.0-common
+BINARY_ARCH_PKGS := $(SHARED_PKG) $(UDEB_PKG) $(DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG) gir1.2-gtk-3.0 libgail3.0-0 libgail3.0-0-dbg libgail3.0-dev libgail3.0-common
 ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
 
 # list of flavors we build; each gets a builddir, a configure pass (configure
@@ -322,7 +322,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		-X$(MODULES_BASE_PATH) \
 		-V"libgail3.0-0 (>= $(SHVER)), libgail3.0-common (>= $(SHVER))" \
 		-- -c4
-	dh_girepository -pgir1.0-gtk-3.0
+	dh_girepository -pgir1.2-gtk-3.0
 	dh_installdeb -s
 	# override shlibs for libraries from this source before computing
 	# dependencies of packages generated from this source; we already have

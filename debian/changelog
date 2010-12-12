@@ -1,10 +1,14 @@
-gtk+3.0 (2.91.6-1) UNRELEASED; urgency=low
+gtk+3.0 (2.91.5-2) experimental; urgency=low
 
   * debian/control.in,
     debian/rules:
     + Remove the chrpath hack, it's been fixed in libtool.
+  * Update to the new gir policy:
+    - Rename gir1.0-gtk-3.0 to gir1.2-gtk-3.0.
+    - Bump the gobject-introspection build dependency.
+    - Build depend on gir1.2 packages.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 08 Dec 2010 23:58:24 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 12 Dec 2010 16:03:02 +0100
 
 gtk+3.0 (2.91.5-1) experimental; urgency=low
 
