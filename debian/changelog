@@ -13,14 +13,9 @@ gtk+3.0 (2.91.6-1) UNRELEASED; urgency=low
     + debian/rules:
       - Bumped the shver.
       - Disable silent builds.
-
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 08 Dec 2010 23:58:24 +0100
-
-gtk+3.0 (2.91.5-3) UNRELEASED; urgency=low
-
   * Let gir1.2-gtk-3.0 replace gir1.0-gtk-3.0.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 12 Dec 2010 16:52:57 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 08 Dec 2010 23:58:24 +0100
 
 gtk+3.0 (2.91.5-2) experimental; urgency=low
 
