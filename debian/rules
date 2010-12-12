@@ -53,7 +53,7 @@ DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
 APIVER := 3.0
 SONAME := 0
-SHVER := 2.91.6
+SHVER := 2.90.6
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 3.0.0
@@ -117,7 +117,6 @@ configure_flags := \
 			--mandir=\$${prefix}/share/man \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
-			--disable-silent-rules \
 			--enable-test-print-backend \
 			--enable-introspection=no \
 			--with-xinput=yes \

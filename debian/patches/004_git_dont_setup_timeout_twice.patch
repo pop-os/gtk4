@@ -1,0 +1,33 @@
+From 8076dbfb5c9b358642b43a82bda36e649b0fe038 Mon Sep 17 00:00:00 2001
+From: Guillaume Desmottes <guillaume.desmottes@collabora.co.uk>
+Date: Tue, 30 Nov 2010 15:59:49 +0100
+Subject: [PATCH] gtkspinner: don't setup the timeout twice (#636129)
+
+---
+ gtk/gtkspinner.c |    3 ++-
+ 1 files changed, 2 insertions(+), 1 deletions(-)
+
+diff --git a/gtk/gtkspinner.c b/gtk/gtkspinner.c
+index 802689d..2af87b0 100644
+--- a/gtk/gtkspinner.c
++++ b/gtk/gtkspinner.c
+@@ -293,6 +293,7 @@ gtk_spinner_add_timeout (GtkSpinner *spinner)
+ 
+   priv = spinner->priv;
+ 
++  g_assert (priv->timeout == 0);
+   priv->timeout = gdk_threads_add_timeout ((guint) priv->cycle_duration / priv->num_steps, gtk_spinner_timeout, spinner);
+ }
+ 
+@@ -315,7 +316,7 @@ gtk_spinner_map (GtkWidget *widget)
+ 
+   GTK_WIDGET_CLASS (gtk_spinner_parent_class)->map (widget);
+ 
+-  if (priv->active)
++  if (priv->active && priv->timeout == 0)
+     gtk_spinner_add_timeout (spinner);
+ }
+ 
+-- 
+1.7.1
+
