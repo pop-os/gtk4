@@ -2,11 +2,9 @@ Description: Don't query immodules for the local tree when cross-compiling or
              when --disable-shared was given
 Bug: http://bugzilla.gnome.org/show_bug.cgi?id=346531
 
-Index: gtk+3.0-2.90.5/configure.ac
-===================================================================
---- gtk+3.0-2.90.5.orig/configure.ac	2010-07-10 03:00:32.000000000 +0200
-+++ gtk+3.0-2.90.5/configure.ac	2010-07-30 12:46:09.735086524 +0200
-@@ -188,6 +188,8 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -197,6 +197,8 @@
  # Create libtool early, because it's used in configure
  LT_OUTPUT
  
@@ -15,10 +13,8 @@ Index: gtk+3.0-2.90.5/configure.ac
  # Make sure we use 64-bit versions of various file stuff.
  AC_SYS_LARGEFILE
  
-Index: gtk+3.0-2.90.5/modules/input/Makefile.am
-===================================================================
---- gtk+3.0-2.90.5.orig/modules/input/Makefile.am	2010-06-30 13:37:21.000000000 +0200
-+++ gtk+3.0-2.90.5/modules/input/Makefile.am	2010-07-30 12:45:30.532083145 +0200
+--- a/modules/input/Makefile.am
++++ b/modules/input/Makefile.am
 @@ -176,8 +176,12 @@
  if CROSS_COMPILING
  RUN_QUERY_IMMODULES_TEST=false

@@ -1,3 +1,21 @@
+gtk+3.0 (2.91.6-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    + debian/patches/004_git_dont_setup_timeout_twice.patch:
+      - Removed, included upstream.
+    + debian/patches/004_git_add_missing_include.patch:
+      - New patch from upstream git, add a missing include that
+        otherwise caused the build to fail when disabling X extensions.
+    + debian/patches/*:
+      - Refreshed.
+    + debian/libgtk3.0-0.symbols:
+      - Updated.
+    + debian/rules:
+      - Bumped the shver.
+      - Disable silent builds.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 08 Dec 2010 23:58:24 +0100
+
 gtk+3.0 (2.91.5-3) UNRELEASED; urgency=low
 
   * Let gir1.2-gtk-3.0 replace gir1.0-gtk-3.0.
