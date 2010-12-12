@@ -225,6 +225,7 @@ Depends: @COMMON_PKG@,
          ${shlibs:Depends},
          ${gir:Depends}
 Conflicts: gir1.0-gtk-3.0
+Replaces: gir1.0-gtk-3.0
 Description: The GTK+ graphical user interface library -- gir bindings
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
