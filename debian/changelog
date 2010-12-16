@@ -13,6 +13,7 @@ gtk+3.0 (2.91.6-1) UNRELEASED; urgency=low
       - Refreshed.
     + debian/libgtk3.0-0.symbols:
       - Updated.
+      - Add Build-Depends-Package.
     + debian/rules:
       - Bumped the shver.
       - Disable silent builds.
