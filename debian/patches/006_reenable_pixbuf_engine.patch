@@ -1,0 +1,11 @@
+--- a/modules/engines/Makefile.am
++++ b/modules/engines/Makefile.am
+@@ -5,7 +5,7 @@
+ endif
+ 
+ # the theme engines need to be ported to GtkThemingEngine
+-# SUBDIRS = $(wimp) pixbuf
++SUBDIRS = $(wimp) pixbuf
+ 
+ DIST_SUBDIRS = ms-windows pixbuf
+ 

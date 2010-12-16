@@ -3,6 +3,7 @@
 003_gdk.pc_privates.patch
 004_git_add_missing_include.patch
 005_support_disabling_x11_extensions.patch
+006_reenable_pixbuf_engine.patch
 015_default-fallback-icon-theme.patch
 022_disable-viqr-im-for-vi-locale.patch
 041_ia32-libs.patch

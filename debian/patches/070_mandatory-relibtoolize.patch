@@ -8687,7 +8687,15 @@
  ms_librarian = @ms_librarian@
 --- a/modules/engines/Makefile.in
 +++ b/modules/engines/Makefile.in
-@@ -162,6 +162,7 @@
+@@ -38,7 +38,6 @@
+ DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
+ 	$(top_srcdir)/Makefile.decl
+ subdir = modules/engines
+-SUBDIRS =
+ ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
+ am__aclocal_m4_deps = $(top_srcdir)/m4/gtk-doc.m4 \
+ 	$(top_srcdir)/m4/introspection.m4 $(top_srcdir)/m4/libtool.m4 \
+@@ -162,6 +161,7 @@
  GDK_PIXBUF_CSOURCE = @GDK_PIXBUF_CSOURCE@
  GDK_PIXBUF_LIBS = @GDK_PIXBUF_LIBS@
  GDK_PIXBUF_REQUIRED_VERSION = @GDK_PIXBUF_REQUIRED_VERSION@
@@ -8695,7 +8703,7 @@
  GDK_WLIBS = @GDK_WLIBS@
  GETTEXT_PACKAGE = @GETTEXT_PACKAGE@
  GLIB_CFLAGS = @GLIB_CFLAGS@
-@@ -318,6 +319,7 @@
+@@ -318,6 +318,7 @@
  libexecdir = @libexecdir@
  localedir = @localedir@
  localstatedir = @localstatedir@
@@ -8703,6 +8711,15 @@
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
+@@ -367,7 +368,7 @@
+ @USE_WIN32_TRUE@wimp = ms-windows
+ 
+ # the theme engines need to be ported to GtkThemingEngine
+-# SUBDIRS = $(wimp) pixbuf
++SUBDIRS = $(wimp) pixbuf
+ DIST_SUBDIRS = ms-windows pixbuf
+ all: all-recursive
+ 
 --- a/modules/engines/ms-windows/Makefile.in
 +++ b/modules/engines/ms-windows/Makefile.in
 @@ -219,6 +219,7 @@
