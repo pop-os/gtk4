@@ -1,4 +1,4 @@
-gtk+3.0 (2.91.6-1) UNRELEASED; urgency=low
+gtk+3.0 (2.91.6-1) experimental; urgency=low
 
   * New upstream release.
     + debian/patches/004_git_dont_setup_timeout_twice.patch:
@@ -19,7 +19,7 @@ gtk+3.0 (2.91.6-1) UNRELEASED; urgency=low
       - Disable silent builds.
   * Let gir1.2-gtk-3.0 replace gir1.0-gtk-3.0.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 08 Dec 2010 23:58:24 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 18 Dec 2010 16:00:23 +0000
 
 gtk+3.0 (2.91.5-2) experimental; urgency=low
 
