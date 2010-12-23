@@ -2,6 +2,8 @@ gtk+3.0 (2.91.7-1) UNRELEASED; urgency=low
 
   * debian/control.in:
     - Bump build-depends on libglib2.0-dev
+  * debian/libgtk3.0-0.symbols:
+    - Updated.
   * debian/libgtk3.0-dev.install.in
     - gdkconfig.h no longer distributed
   * debian/rules:

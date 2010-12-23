@@ -1,4 +1,4 @@
-libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
+libgdk-3.0.so.0 libgtk3.0-0 #MINVER#
 * Build-Depends-Package: libgtk3.0-dev
  gdk_add_client_message_filter@Base 2.91.6
  gdk_add_option_entries_libgtk_only@Base 2.91.6
@@ -49,7 +49,6 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_device_get_axis@Base 2.91.6
  gdk_device_get_axis_use@Base 2.91.6
  gdk_device_get_axis_value@Base 2.91.6
- gdk_device_get_core_pointer@Base 2.91.6
  gdk_device_get_device_type@Base 2.91.6
  gdk_device_get_display@Base 2.91.6
  gdk_device_get_has_cursor@Base 2.91.6
@@ -65,26 +64,25 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_device_grab@Base 2.91.6
  gdk_device_grab_info_libgtk_only@Base 2.91.6
  gdk_device_list_axes@Base 2.91.6
- gdk_device_manager_core_get_type@Base 2.91.6
+ gdk_device_list_slave_devices@Base 2.91.7
  gdk_device_manager_get_client_pointer@Base 2.91.6
  gdk_device_manager_get_display@Base 2.91.6
  gdk_device_manager_get_type@Base 2.91.6
  gdk_device_manager_list_devices@Base 2.91.6
- gdk_device_manager_xi2_get_type@Base 2.91.6
- gdk_device_manager_xi_get_type@Base 2.91.6
  gdk_device_set_axis_use@Base 2.91.6
  gdk_device_set_key@Base 2.91.6
  gdk_device_set_mode@Base 2.91.6
  gdk_device_set_source@Base 2.91.6
  gdk_device_type_get_type@Base 2.91.6
  gdk_device_ungrab@Base 2.91.6
- gdk_devices_list@Base 2.91.6
+ gdk_device_warp@Base 2.91.7
+ gdk_disable_multidevice@Base 2.91.7
  gdk_display_add_client_message_filter@Base 2.91.6
  gdk_display_beep@Base 2.91.6
  gdk_display_close@Base 2.91.6
  gdk_display_device_is_grabbed@Base 2.91.6
  gdk_display_flush@Base 2.91.6
- gdk_display_get_core_pointer@Base 2.91.6
+ gdk_display_get_app_launch_context@Base 2.91.7
  gdk_display_get_default@Base 2.91.6
  gdk_display_get_default_cursor_size@Base 2.91.6
  gdk_display_get_default_group@Base 2.91.6
@@ -100,6 +98,7 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_display_get_type@Base 2.91.6
  gdk_display_get_window_at_device_position@Base 2.91.6
  gdk_display_get_window_at_pointer@Base 2.91.6
+ gdk_display_has_pending@Base 2.91.7
  gdk_display_is_closed@Base 2.91.6
  gdk_display_keyboard_ungrab@Base 2.91.6
  gdk_display_list_devices@Base 2.91.6
@@ -107,7 +106,9 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_display_manager_get_default_display@Base 2.91.6
  gdk_display_manager_get_type@Base 2.91.6
  gdk_display_manager_list_displays@Base 2.91.6
+ gdk_display_manager_open_display@Base 2.91.7
  gdk_display_manager_set_default_display@Base 2.91.6
+ gdk_display_notify_startup_complete@Base 2.91.7
  gdk_display_open@Base 2.91.6
  gdk_display_open_default_libgtk_only@Base 2.91.6
  gdk_display_peek_event@Base 2.91.6
@@ -128,25 +129,24 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_display_supports_selection_notification@Base 2.91.6
  gdk_display_supports_shapes@Base 2.91.6
  gdk_display_sync@Base 2.91.6
- gdk_display_warp_device@Base 2.91.6
  gdk_display_warp_pointer@Base 2.91.6
  gdk_drag_abort@Base 2.91.6
  gdk_drag_action_get_type@Base 2.91.6
  gdk_drag_begin@Base 2.91.6
+ gdk_drag_begin_for_device@Base 2.91.7
  gdk_drag_context_get_actions@Base 2.91.6
+ gdk_drag_context_get_dest_window@Base 2.91.7
  gdk_drag_context_get_device@Base 2.91.6
+ gdk_drag_context_get_protocol@Base 2.91.7
  gdk_drag_context_get_selected_action@Base 2.91.6
  gdk_drag_context_get_source_window@Base 2.91.6
  gdk_drag_context_get_suggested_action@Base 2.91.6
  gdk_drag_context_get_type@Base 2.91.6
  gdk_drag_context_list_targets@Base 2.91.6
- gdk_drag_context_new@Base 2.91.6
  gdk_drag_context_set_device@Base 2.91.6
  gdk_drag_drop@Base 2.91.6
  gdk_drag_drop_succeeded@Base 2.91.6
- gdk_drag_find_window@Base 2.91.6
  gdk_drag_find_window_for_screen@Base 2.91.6
- gdk_drag_get_protocol@Base 2.91.6
  gdk_drag_get_protocol_for_display@Base 2.91.6
  gdk_drag_get_selection@Base 2.91.6
  gdk_drag_motion@Base 2.91.6
@@ -154,7 +154,6 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_drag_status@Base 2.91.6
  gdk_drop_finish@Base 2.91.6
  gdk_drop_reply@Base 2.91.6
- gdk_enable_multidevice@Base 2.91.6
  gdk_error_trap_pop@Base 2.91.6
  gdk_error_trap_pop_ignored@Base 2.91.6
  gdk_error_trap_push@Base 2.91.6
@@ -166,6 +165,7 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_event_get_device@Base 2.91.6
  gdk_event_get_root_coords@Base 2.91.6
  gdk_event_get_screen@Base 2.91.6
+ gdk_event_get_source_device@Base 2.91.7
  gdk_event_get_state@Base 2.91.6
  gdk_event_get_time@Base 2.91.6
  gdk_event_get_type@Base 2.91.6
@@ -180,10 +180,7 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_event_send_clientmessage_toall@Base 2.91.6
  gdk_event_set_device@Base 2.91.6
  gdk_event_set_screen@Base 2.91.6
- gdk_event_translator_get_handled_events@Base 2.91.6
- gdk_event_translator_get_type@Base 2.91.6
- gdk_event_translator_select_window_events@Base 2.91.6
- gdk_event_translator_translate@Base 2.91.6
+ gdk_event_set_source_device@Base 2.91.7
  gdk_event_type_get_type@Base 2.91.6
  gdk_events_get_angle@Base 2.91.6
  gdk_events_get_center@Base 2.91.6
@@ -192,8 +189,6 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_extension_mode_get_type@Base 2.91.6
  gdk_filter_return_get_type@Base 2.91.6
  gdk_flush@Base 2.91.6
- gdk_free_compound_text@Base 2.91.6
- gdk_free_text_list@Base 2.91.6
  gdk_get_default_root_window@Base 2.91.6
  gdk_get_display@Base 2.91.6
  gdk_get_display_arg_name@Base 2.91.6
@@ -205,7 +200,6 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_init@Base 2.91.6
  gdk_init_check@Base 2.91.6
  gdk_input_mode_get_type@Base 2.91.6
- gdk_input_set_extension_events@Base 2.91.6
  gdk_input_source_get_type@Base 2.91.6
  gdk_keyboard_grab@Base 2.91.6
  gdk_keyboard_ungrab@Base 2.91.6
@@ -232,7 +226,6 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_keyval_to_upper@Base 2.91.6
  gdk_list_visuals@Base 2.91.6
  gdk_modifier_type_get_type@Base 2.91.6
- gdk_net_wm_supports@Base 2.91.6
  gdk_notify_startup_complete@Base 2.91.6
  gdk_notify_startup_complete_with_id@Base 2.91.6
  gdk_notify_type_get_type@Base 2.91.6
@@ -314,26 +307,16 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_selection_send_notify@Base 2.91.6
  gdk_selection_send_notify_for_display@Base 2.91.6
  gdk_set_double_click_time@Base 2.91.6
- gdk_set_locale@Base 2.91.6
  gdk_set_pointer_hooks@Base 2.91.6
  gdk_set_program_class@Base 2.91.6
  gdk_set_show_events@Base 2.91.6
- gdk_set_sm_client_id@Base 2.91.6
  gdk_setting_action_get_type@Base 2.91.6
  gdk_setting_get@Base 2.91.6
- gdk_spawn_command_line_on_screen@Base 2.91.6
- gdk_spawn_on_screen@Base 2.91.6
- gdk_spawn_on_screen_with_pipes@Base 2.91.6
  gdk_status_get_type@Base 2.91.6
- gdk_string_to_compound_text@Base 2.91.6
- gdk_string_to_compound_text_for_display@Base 2.91.6
  gdk_synthesize_window_state@Base 2.91.6
  gdk_test_render_sync@Base 2.91.6
  gdk_test_simulate_button@Base 2.91.6
  gdk_test_simulate_key@Base 2.91.6
- gdk_text_property_to_text_list@Base 2.91.6
- gdk_text_property_to_text_list_for_display@Base 2.91.6
- gdk_text_property_to_utf8_list@Base 2.91.6
  gdk_text_property_to_utf8_list_for_display@Base 2.91.6
  gdk_threads_add_idle@Base 2.91.6
  gdk_threads_add_idle_full@Base 2.91.6
@@ -346,8 +329,6 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_threads_leave@Base 2.91.6
  gdk_threads_set_lock_functions@Base 2.91.6
  gdk_unicode_to_keyval@Base 2.91.6
- gdk_utf8_to_compound_text@Base 2.91.6
- gdk_utf8_to_compound_text_for_display@Base 2.91.6
  gdk_utf8_to_string_target@Base 2.91.6
  gdk_visibility_state_get_type@Base 2.91.6
  gdk_visual_get_best@Base 2.91.6
@@ -390,8 +371,6 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_window_ensure_native@Base 2.91.6
  gdk_window_flush@Base 2.91.6
  gdk_window_focus@Base 2.91.6
- gdk_window_foreign_new@Base 2.91.6
- gdk_window_foreign_new_for_display@Base 2.91.6
  gdk_window_freeze_toplevel_updates_libgtk_only@Base 2.91.6
  gdk_window_freeze_updates@Base 2.91.6
  gdk_window_fullscreen@Base 2.91.6
@@ -423,6 +402,7 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_window_get_root_coords@Base 2.91.6
  gdk_window_get_root_origin@Base 2.91.6
  gdk_window_get_screen@Base 2.91.6
+ gdk_window_get_source_events@Base 2.91.7
  gdk_window_get_state@Base 2.91.6
  gdk_window_get_support_multidevice@Base 2.91.6
  gdk_window_get_toplevel@Base 2.91.6
@@ -449,8 +429,6 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_window_is_shaped@Base 2.91.6
  gdk_window_is_viewable@Base 2.91.6
  gdk_window_is_visible@Base 2.91.6
- gdk_window_lookup@Base 2.91.6
- gdk_window_lookup_for_display@Base 2.91.6
  gdk_window_lower@Base 2.91.6
  gdk_window_maximize@Base 2.91.6
  gdk_window_merge_child_input_shapes@Base 2.91.6
@@ -496,6 +474,7 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_window_set_role@Base 2.91.6
  gdk_window_set_skip_pager_hint@Base 2.91.6
  gdk_window_set_skip_taskbar_hint@Base 2.91.6
+ gdk_window_set_source_events@Base 2.91.7
  gdk_window_set_startup_id@Base 2.91.6
  gdk_window_set_static_gravities@Base 2.91.6
  gdk_window_set_support_multidevice@Base 2.91.6
@@ -520,21 +499,37 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_window_withdraw@Base 2.91.6
  gdk_wm_decoration_get_type@Base 2.91.6
  gdk_wm_function_get_type@Base 2.91.6
+ gdk_x11_app_launch_context_get_type@Base 2.91.7
  gdk_x11_atom_to_xatom@Base 2.91.6
  gdk_x11_atom_to_xatom_for_display@Base 2.91.6
+ gdk_x11_cursor_get_type@Base 2.91.7
  gdk_x11_cursor_get_xcursor@Base 2.91.6
  gdk_x11_cursor_get_xdisplay@Base 2.91.6
+ gdk_x11_device_core_get_type@Base 2.91.7
+ gdk_x11_device_manager_core_get_type@Base 2.91.7
+ gdk_x11_device_manager_xi2_get_type@Base 2.91.7
+ gdk_x11_device_manager_xi_get_type@Base 2.91.7
+ gdk_x11_device_xi2_get_type@Base 2.91.7
+ gdk_x11_device_xi_get_type@Base 2.91.7
  gdk_x11_display_broadcast_startup_message@Base 2.91.6
  gdk_x11_display_error_trap_pop@Base 2.91.6
  gdk_x11_display_error_trap_pop_ignored@Base 2.91.6
  gdk_x11_display_error_trap_push@Base 2.91.6
  gdk_x11_display_get_startup_notification_id@Base 2.91.6
+ gdk_x11_display_get_type@Base 2.91.7
  gdk_x11_display_get_user_time@Base 2.91.6
  gdk_x11_display_get_xdisplay@Base 2.91.6
  gdk_x11_display_grab@Base 2.91.6
+ gdk_x11_display_manager_get_type@Base 2.91.7
  gdk_x11_display_set_cursor_theme@Base 2.91.6
  gdk_x11_display_set_startup_notification_id@Base 2.91.6
+ gdk_x11_display_string_to_compound_text@Base 2.91.7
+ gdk_x11_display_text_property_to_text_list@Base 2.91.7
  gdk_x11_display_ungrab@Base 2.91.6
+ gdk_x11_display_utf8_to_compound_text@Base 2.91.7
+ gdk_x11_drag_context_get_type@Base 2.91.7
+ gdk_x11_free_compound_text@Base 2.91.7
+ gdk_x11_free_text_list@Base 2.91.7
  gdk_x11_get_default_root_xwindow@Base 2.91.6
  gdk_x11_get_default_screen@Base 2.91.6
  gdk_x11_get_default_xdisplay@Base 2.91.6
@@ -544,25 +539,29 @@ libgdk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gdk_x11_get_xatom_name@Base 2.91.6
  gdk_x11_get_xatom_name_for_display@Base 2.91.6
  gdk_x11_grab_server@Base 2.91.6
+ gdk_x11_keymap_get_type@Base 2.91.7
  gdk_x11_lookup_xdisplay@Base 2.91.6
  gdk_x11_register_standard_event_type@Base 2.91.6
  gdk_x11_screen_get_monitor_output@Base 2.91.6
  gdk_x11_screen_get_screen_number@Base 2.91.6
+ gdk_x11_screen_get_type@Base 2.91.7
  gdk_x11_screen_get_window_manager_name@Base 2.91.6
  gdk_x11_screen_get_xscreen@Base 2.91.6
  gdk_x11_screen_lookup_visual@Base 2.91.6
  gdk_x11_screen_supports_net_wm_hint@Base 2.91.6
+ gdk_x11_set_sm_client_id@Base 2.91.7
  gdk_x11_ungrab_server@Base 2.91.6
+ gdk_x11_visual_get_type@Base 2.91.7
  gdk_x11_visual_get_xvisual@Base 2.91.6
+ gdk_x11_window_foreign_new_for_display@Base 2.91.7
+ gdk_x11_window_get_type@Base 2.91.7
  gdk_x11_window_get_xid@Base 2.91.6
+ gdk_x11_window_lookup_for_display@Base 2.91.7
  gdk_x11_window_move_to_current_desktop@Base 2.91.6
  gdk_x11_window_set_user_time@Base 2.91.6
  gdk_x11_xatom_to_atom@Base 2.91.6
  gdk_x11_xatom_to_atom_for_display@Base 2.91.6
- gdk_xid_table_lookup@Base 2.91.6
- gdk_xid_table_lookup_for_display@Base 2.91.6
- gdkx_visual_get@Base 2.91.6
-libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
+libgtk-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_about_dialog_get_artists@Base 2.91.6
  gtk_about_dialog_get_authors@Base 2.91.6
  gtk_about_dialog_get_comments@Base 2.91.6
@@ -921,6 +920,86 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_calendar_set_detail_width_chars@Base 2.91.6
  gtk_calendar_set_display_options@Base 2.91.6
  gtk_calendar_unmark_day@Base 2.91.6
+ gtk_cell_area_activate@Base 2.91.7
+ gtk_cell_area_activate_cell@Base 2.91.7
+ gtk_cell_area_add@Base 2.91.7
+ gtk_cell_area_add_focus_sibling@Base 2.91.7
+ gtk_cell_area_add_with_properties@Base 2.91.7
+ gtk_cell_area_apply_attributes@Base 2.91.7
+ gtk_cell_area_attribute_connect@Base 2.91.7
+ gtk_cell_area_attribute_disconnect@Base 2.91.7
+ gtk_cell_area_box_context_copy@Base 2.91.7
+ gtk_cell_area_box_context_get_group_height@Base 2.91.7
+ gtk_cell_area_box_context_get_group_height_for_width@Base 2.91.7
+ gtk_cell_area_box_context_get_group_width@Base 2.91.7
+ gtk_cell_area_box_context_get_group_width_for_height@Base 2.91.7
+ gtk_cell_area_box_context_get_heights@Base 2.91.7
+ gtk_cell_area_box_context_get_orientation_allocs@Base 2.91.7
+ gtk_cell_area_box_context_get_type@Base 2.91.7
+ gtk_cell_area_box_context_get_widths@Base 2.91.7
+ gtk_cell_area_box_context_push_group_height@Base 2.91.7
+ gtk_cell_area_box_context_push_group_height_for_width@Base 2.91.7
+ gtk_cell_area_box_context_push_group_width@Base 2.91.7
+ gtk_cell_area_box_context_push_group_width_for_height@Base 2.91.7
+ gtk_cell_area_box_get_spacing@Base 2.91.7
+ gtk_cell_area_box_get_type@Base 2.91.7
+ gtk_cell_area_box_init_groups@Base 2.91.7
+ gtk_cell_area_box_new@Base 2.91.7
+ gtk_cell_area_box_pack_end@Base 2.91.7
+ gtk_cell_area_box_pack_start@Base 2.91.7
+ gtk_cell_area_box_set_spacing@Base 2.91.7
+ gtk_cell_area_cell_get@Base 2.91.7
+ gtk_cell_area_cell_get_property@Base 2.91.7
+ gtk_cell_area_cell_get_valist@Base 2.91.7
+ gtk_cell_area_cell_set@Base 2.91.7
+ gtk_cell_area_cell_set_property@Base 2.91.7
+ gtk_cell_area_cell_set_valist@Base 2.91.7
+ gtk_cell_area_class_find_cell_property@Base 2.91.7
+ gtk_cell_area_class_install_cell_property@Base 2.91.7
+ gtk_cell_area_class_list_cell_properties@Base 2.91.7
+ gtk_cell_area_context_allocate@Base 2.91.7
+ gtk_cell_area_context_get_allocation@Base 2.91.7
+ gtk_cell_area_context_get_area@Base 2.91.7
+ gtk_cell_area_context_get_preferred_height@Base 2.91.7
+ gtk_cell_area_context_get_preferred_height_for_width@Base 2.91.7
+ gtk_cell_area_context_get_preferred_width@Base 2.91.7
+ gtk_cell_area_context_get_preferred_width_for_height@Base 2.91.7
+ gtk_cell_area_context_get_type@Base 2.91.7
+ gtk_cell_area_context_push_preferred_height@Base 2.91.7
+ gtk_cell_area_context_push_preferred_width@Base 2.91.7
+ gtk_cell_area_context_reset@Base 2.91.7
+ gtk_cell_area_copy_context@Base 2.91.7
+ gtk_cell_area_create_context@Base 2.91.7
+ gtk_cell_area_event@Base 2.91.7
+ gtk_cell_area_focus@Base 2.91.7
+ gtk_cell_area_foreach@Base 2.91.7
+ gtk_cell_area_foreach_alloc@Base 2.91.7
+ gtk_cell_area_get_cell_allocation@Base 2.91.7
+ gtk_cell_area_get_cell_at_position@Base 2.91.7
+ gtk_cell_area_get_current_path_string@Base 2.91.7
+ gtk_cell_area_get_edit_widget@Base 2.91.7
+ gtk_cell_area_get_edited_cell@Base 2.91.7
+ gtk_cell_area_get_focus_cell@Base 2.91.7
+ gtk_cell_area_get_focus_from_sibling@Base 2.91.7
+ gtk_cell_area_get_focus_siblings@Base 2.91.7
+ gtk_cell_area_get_preferred_height@Base 2.91.7
+ gtk_cell_area_get_preferred_height_for_width@Base 2.91.7
+ gtk_cell_area_get_preferred_width@Base 2.91.7
+ gtk_cell_area_get_preferred_width_for_height@Base 2.91.7
+ gtk_cell_area_get_request_mode@Base 2.91.7
+ gtk_cell_area_get_style_detail@Base 2.91.7
+ gtk_cell_area_get_type@Base 2.91.7
+ gtk_cell_area_has_renderer@Base 2.91.7
+ gtk_cell_area_inner_cell_area@Base 2.91.7
+ gtk_cell_area_is_activatable@Base 2.91.7
+ gtk_cell_area_is_focus_sibling@Base 2.91.7
+ gtk_cell_area_remove@Base 2.91.7
+ gtk_cell_area_remove_focus_sibling@Base 2.91.7
+ gtk_cell_area_render@Base 2.91.7
+ gtk_cell_area_request_renderer@Base 2.91.7
+ gtk_cell_area_set_focus_cell@Base 2.91.7
+ gtk_cell_area_set_style_detail@Base 2.91.7
+ gtk_cell_area_stop_editing@Base 2.91.7
  gtk_cell_editable_editing_done@Base 2.91.6
  gtk_cell_editable_get_type@Base 2.91.6
  gtk_cell_editable_remove_widget@Base 2.91.6
@@ -928,6 +1007,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_cell_layout_add_attribute@Base 2.91.6
  gtk_cell_layout_clear@Base 2.91.6
  gtk_cell_layout_clear_attributes@Base 2.91.6
+ gtk_cell_layout_get_area@Base 2.91.7
  gtk_cell_layout_get_cells@Base 2.91.6
  gtk_cell_layout_get_type@Base 2.91.6
  gtk_cell_layout_pack_end@Base 2.91.6
@@ -941,6 +1021,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_cell_renderer_activate@Base 2.91.6
  gtk_cell_renderer_combo_get_type@Base 2.91.6
  gtk_cell_renderer_combo_new@Base 2.91.6
+ gtk_cell_renderer_get_aligned_area@Base 2.91.7
  gtk_cell_renderer_get_alignment@Base 2.91.6
  gtk_cell_renderer_get_fixed_size@Base 2.91.6
  gtk_cell_renderer_get_padding@Base 2.91.6
@@ -954,6 +1035,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_cell_renderer_get_size@Base 2.91.6
  gtk_cell_renderer_get_type@Base 2.91.6
  gtk_cell_renderer_get_visible@Base 2.91.6
+ gtk_cell_renderer_is_activatable@Base 2.91.7
  gtk_cell_renderer_mode_get_type@Base 2.91.6
  gtk_cell_renderer_pixbuf_get_type@Base 2.91.6
  gtk_cell_renderer_pixbuf_new@Base 2.91.6
@@ -1286,6 +1368,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_entry_completion_insert_action_text@Base 2.91.6
  gtk_entry_completion_insert_prefix@Base 2.91.6
  gtk_entry_completion_new@Base 2.91.6
+ gtk_entry_completion_new_with_area@Base 2.91.7
  gtk_entry_completion_set_inline_completion@Base 2.91.6
  gtk_entry_completion_set_inline_selection@Base 2.91.6
  gtk_entry_completion_set_match_func@Base 2.91.6
@@ -2205,7 +2288,17 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_print_duplex_get_type@Base 2.91.6
  gtk_print_error_get_type@Base 2.91.6
  gtk_print_error_quark@Base 2.91.6
+ gtk_print_job_get_collate@Base 2.91.7
+ gtk_print_job_get_n_up@Base 2.91.7
+ gtk_print_job_get_n_up_layout@Base 2.91.7
+ gtk_print_job_get_num_copies@Base 2.91.7
+ gtk_print_job_get_page_ranges@Base 2.91.7
+ gtk_print_job_get_page_set@Base 2.91.7
+ gtk_print_job_get_pages@Base 2.91.7
  gtk_print_job_get_printer@Base 2.91.6
+ gtk_print_job_get_reverse@Base 2.91.7
+ gtk_print_job_get_rotate@Base 2.91.7
+ gtk_print_job_get_scale@Base 2.91.7
  gtk_print_job_get_settings@Base 2.91.6
  gtk_print_job_get_status@Base 2.91.6
  gtk_print_job_get_surface@Base 2.91.6
@@ -2214,6 +2307,16 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_print_job_get_type@Base 2.91.6
  gtk_print_job_new@Base 2.91.6
  gtk_print_job_send@Base 2.91.6
+ gtk_print_job_set_collate@Base 2.91.7
+ gtk_print_job_set_n_up@Base 2.91.7
+ gtk_print_job_set_n_up_layout@Base 2.91.7
+ gtk_print_job_set_num_copies@Base 2.91.7
+ gtk_print_job_set_page_ranges@Base 2.91.7
+ gtk_print_job_set_page_set@Base 2.91.7
+ gtk_print_job_set_pages@Base 2.91.7
+ gtk_print_job_set_reverse@Base 2.91.7
+ gtk_print_job_set_rotate@Base 2.91.7
+ gtk_print_job_set_scale@Base 2.91.7
  gtk_print_job_set_source_file@Base 2.91.6
  gtk_print_job_set_status@Base 2.91.6
  gtk_print_job_set_track_print_status@Base 2.91.6
@@ -2753,7 +2856,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_separator_tool_item_new@Base 2.91.6
  gtk_separator_tool_item_set_draw@Base 2.91.6
  gtk_set_debug_flags@Base 2.91.6
- gtk_set_locale@Base 2.91.6
  gtk_settings_get_default@Base 2.91.6
  gtk_settings_get_for_screen@Base 2.91.6
  gtk_settings_get_type@Base 2.91.6
@@ -2878,6 +2980,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_style_context_get_border_color@Base 2.91.6
  gtk_style_context_get_color@Base 2.91.6
  gtk_style_context_get_direction@Base 2.91.6
+ gtk_style_context_get_font@Base 2.91.7
  gtk_style_context_get_junction_sides@Base 2.91.6
  gtk_style_context_get_margin@Base 2.91.6
  gtk_style_context_get_padding@Base 2.91.6
@@ -3339,6 +3442,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_theming_engine_get_border_color@Base 2.91.6
  gtk_theming_engine_get_color@Base 2.91.6
  gtk_theming_engine_get_direction@Base 2.91.6
+ gtk_theming_engine_get_font@Base 2.91.7
  gtk_theming_engine_get_junction_sides@Base 2.91.6
  gtk_theming_engine_get_margin@Base 2.91.6
  gtk_theming_engine_get_padding@Base 2.91.6
@@ -3664,6 +3768,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_tree_view_column_clicked@Base 2.91.6
  gtk_tree_view_column_focus_cell@Base 2.91.6
  gtk_tree_view_column_get_alignment@Base 2.91.6
+ gtk_tree_view_column_get_button@Base 2.91.7
  gtk_tree_view_column_get_clickable@Base 2.91.6
  gtk_tree_view_column_get_expand@Base 2.91.6
  gtk_tree_view_column_get_fixed_width@Base 2.91.6
@@ -3683,6 +3788,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_tree_view_column_get_widget@Base 2.91.6
  gtk_tree_view_column_get_width@Base 2.91.6
  gtk_tree_view_column_new@Base 2.91.6
+ gtk_tree_view_column_new_with_area@Base 2.91.7
  gtk_tree_view_column_new_with_attributes@Base 2.91.6
  gtk_tree_view_column_pack_end@Base 2.91.6
  gtk_tree_view_column_pack_start@Base 2.91.6
@@ -3891,7 +3997,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_get_display@Base 2.91.6
  gtk_widget_get_double_buffered@Base 2.91.6
  gtk_widget_get_events@Base 2.91.6
- gtk_widget_get_extension_events@Base 2.91.6
  gtk_widget_get_halign@Base 2.91.6
  gtk_widget_get_has_tooltip@Base 2.91.6
  gtk_widget_get_has_window@Base 2.91.6
@@ -3981,8 +4086,8 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_path_append_type@Base 2.91.6
  gtk_widget_path_copy@Base 2.91.6
  gtk_widget_path_free@Base 2.91.6
+ gtk_widget_path_get_object_type@Base 2.91.7
  gtk_widget_path_get_type@Base 2.91.6
- gtk_widget_path_get_widget_type@Base 2.91.6
  gtk_widget_path_has_parent@Base 2.91.6
  gtk_widget_path_is_type@Base 2.91.6
  gtk_widget_path_iter_add_class@Base 2.91.6
@@ -3990,7 +4095,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_path_iter_clear_classes@Base 2.91.6
  gtk_widget_path_iter_clear_regions@Base 2.91.6
  gtk_widget_path_iter_get_name@Base 2.91.6
- gtk_widget_path_iter_get_widget_type@Base 2.91.6
+ gtk_widget_path_iter_get_object_type@Base 2.91.7
  gtk_widget_path_iter_has_class@Base 2.91.6
  gtk_widget_path_iter_has_name@Base 2.91.6
  gtk_widget_path_iter_has_qclass@Base 2.91.6
@@ -4002,7 +4107,7 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_path_iter_remove_class@Base 2.91.6
  gtk_widget_path_iter_remove_region@Base 2.91.6
  gtk_widget_path_iter_set_name@Base 2.91.6
- gtk_widget_path_iter_set_widget_type@Base 2.91.6
+ gtk_widget_path_iter_set_object_type@Base 2.91.7
  gtk_widget_path_length@Base 2.91.6
  gtk_widget_path_new@Base 2.91.6
  gtk_widget_path_prepend_type@Base 2.91.6
@@ -4022,7 +4127,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_render_icon_pixbuf@Base 2.91.6
  gtk_widget_reparent@Base 2.91.6
  gtk_widget_reset_rc_styles@Base 2.91.6
- gtk_widget_reset_shapes@Base 2.91.6
  gtk_widget_reset_style@Base 2.91.6
  gtk_widget_send_expose@Base 2.91.6
  gtk_widget_send_focus_change@Base 2.91.6
@@ -4038,7 +4142,6 @@ libgtk-x11-3.0.so.0 libgtk3.0-0 #MINVER#
  gtk_widget_set_direction@Base 2.91.6
  gtk_widget_set_double_buffered@Base 2.91.6
  gtk_widget_set_events@Base 2.91.6
- gtk_widget_set_extension_events@Base 2.91.6
  gtk_widget_set_halign@Base 2.91.6
  gtk_widget_set_has_tooltip@Base 2.91.6
  gtk_widget_set_has_window@Base 2.91.6
