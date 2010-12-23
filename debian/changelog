@@ -1,3 +1,23 @@
+gtk+3.0 (2.91.7-1) UNRELEASED; urgency=low
+
+  * debian/control.in:
+    - Bump build-depends on libglib2.0-dev
+  * debian/libgtk3.0-dev.install.in
+    - gdkconfig.h no longer distributed
+  * debian/rules:
+    - Bumped the shver.
+  * debian/patches/001_static-linking-dont-query-immodules.patch:
+  * debian/patches/005_support_disabling_x11_extensions.patch:
+  * debian/patches/003_gdk.pc_privates.patch:
+  * debian/patches/070_mandatory-relibtoolize.patch:
+  * debian/patches/041_ia32-libs.patch:
+  * debian/patches/002_static-linking-dont-build-perf.patch:
+  * debian/patches/004_git_add_missing_include.patch:
+  * debian/patches/042_treeview_single-focus.patch:
+    - Refreshed  
+
+ -- Robert Ancell <robert.ancell@canonical.com>  Thu, 23 Dec 2010 14:09:17 +1100
+
 gtk+3.0 (2.91.6-1) experimental; urgency=low
 
   * New upstream release.

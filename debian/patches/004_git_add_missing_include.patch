@@ -5,18 +5,16 @@ Subject: Add missing include
 
 See bug 636732
 ---
-diff --git a/gdk/x11/gdkwindow-x11.h b/gdk/x11/gdkwindow-x11.h
-index 0c02b67..85d892b 100644
---- a/gdk/x11/gdkwindow-x11.h
-+++ b/gdk/x11/gdkwindow-x11.h
-@@ -30,6 +30,8 @@
- #include "gdk/x11/gdkprivate-x11.h"
- #include "gdk/gdkwindowimpl.h"
+Index: gtk+-2.91.7/gdk/x11/gdkwindow-x11.h
+===================================================================
+--- gtk+-2.91.7.orig/gdk/x11/gdkwindow-x11.h	2010-12-22 04:06:59.000000000 +1100
++++ gtk+-2.91.7/gdk/x11/gdkwindow-x11.h	2010-12-23 14:07:22.646944000 +1100
+@@ -32,6 +32,8 @@
+ 
+ #include <X11/Xlib.h>
  
 +#include <X11/Xlib.h>
 +
  #ifdef HAVE_XDAMAGE
  #include <X11/extensions/Xdamage.h>
  #endif
---
-cgit v0.8.3.1
