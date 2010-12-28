@@ -118,7 +118,6 @@ configure_flags := \
 			--infodir=\$${prefix}/share/info \
 			--sysconfdir=/etc \
 			--disable-silent-rules \
-			--enable-test-print-backend \
 			--enable-introspection=no \
 			--with-xinput=yes \
 			--build=$(DEB_BUILD_GNU_TYPE)
