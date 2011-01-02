@@ -1,7 +1,5 @@
-Index: gtk+-2.91.7/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/Makefile.in	2010-12-22 11:37:43.000000000 +1100
-+++ gtk+-2.91.7/Makefile.in	2010-12-23 14:08:07.496944000 +1100
+--- a/Makefile.in
++++ b/Makefile.in
 @@ -49,8 +49,10 @@
  subdir = .
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -69,10 +67,18 @@ Index: gtk+-2.91.7/Makefile.in
  SUBDIRS = po po-properties $(SRC_SUBDIRS) docs m4macros build
  ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
  MAINTAINERCLEANFILES = \
-Index: gtk+-2.91.7/aclocal.m4
-===================================================================
---- gtk+-2.91.7.orig/aclocal.m4	2010-12-22 08:39:15.000000000 +1100
-+++ gtk+-2.91.7/aclocal.m4	2010-12-23 14:08:00.556944000 +1100
+@@ -441,7 +447,8 @@
+ 
+ pkgconfigdir = $(libdir)/pkgconfig
+ pkgconfig_DATA = gdk-3.0.pc gtk+-3.0.pc gail-3.0.pc $(patsubst \
+-	%,gtk+-%-3.0.pc,@gdktarget@) $(am__append_1)
++	%,gtk+-%-3.0.pc,@gdktarget@) $(patsubst \
++	%,gdk-%-3.0.pc,@gdktarget@) $(am__append_1)
+ DISTCLEANFILES = \
+ 	gtk+-unix-print-3.0.pc		\
+ 	gtk+-3.0.pc			\
+--- a/aclocal.m4
++++ b/aclocal.m4
 @@ -13,8 +13,8 @@
  
  m4_ifndef([AC_AUTOCONF_VERSION],
@@ -8550,10 +8556,8 @@ Index: gtk+-2.91.7/aclocal.m4
 +m4_include([m4/ltversion.m4])
 +m4_include([m4/lt~obsolete.m4])
  m4_include([acinclude.m4])
-Index: gtk+-2.91.7/build/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/build/Makefile.in	2010-12-22 08:39:18.000000000 +1100
-+++ gtk+-2.91.7/build/Makefile.in	2010-12-23 14:08:03.526944000 +1100
+--- a/build/Makefile.in
++++ b/build/Makefile.in
 @@ -40,8 +40,10 @@
  subdir = build
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -8599,10 +8603,8 @@ Index: gtk+-2.91.7/build/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/build/win32/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/build/win32/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/build/win32/Makefile.in	2010-12-23 14:08:03.596944000 +1100
+--- a/build/win32/Makefile.in
++++ b/build/win32/Makefile.in
 @@ -40,8 +40,10 @@
  subdir = build/win32
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -8648,10 +8650,8 @@ Index: gtk+-2.91.7/build/win32/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/build/win32/vs9/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/build/win32/vs9/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/build/win32/vs9/Makefile.in	2010-12-23 14:08:03.656944000 +1100
+--- a/build/win32/vs9/Makefile.in
++++ b/build/win32/vs9/Makefile.in
 @@ -40,8 +40,10 @@
  subdir = build/win32/vs9
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -8697,10 +8697,8 @@ Index: gtk+-2.91.7/build/win32/vs9/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/config.guess
-===================================================================
---- gtk+-2.91.7.orig/config.guess	2010-03-29 22:21:24.000000000 +1100
-+++ gtk+-2.91.7/config.guess	2010-12-23 14:08:03.456944000 +1100
+--- a/config.guess
++++ b/config.guess
 @@ -1,10 +1,10 @@
  #! /bin/sh
  # Attempt to guess a canonical system name.
@@ -8726,10 +8724,8 @@ Index: gtk+-2.91.7/config.guess
  
  This is free software; see the source for copying conditions.  There is NO
  warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE."
-Index: gtk+-2.91.7/config.sub
-===================================================================
---- gtk+-2.91.7.orig/config.sub	2010-03-29 22:21:24.000000000 +1100
-+++ gtk+-2.91.7/config.sub	2010-12-23 14:08:03.456944000 +1100
+--- a/config.sub
++++ b/config.sub
 @@ -1,10 +1,10 @@
  #! /bin/sh
  # Configuration validation subroutine script.
@@ -8786,10 +8782,8 @@ Index: gtk+-2.91.7/config.sub
  	-none)
  		;;
  	*)
-Index: gtk+-2.91.7/configure
-===================================================================
---- gtk+-2.91.7.orig/configure	2010-12-22 08:39:24.000000000 +1100
-+++ gtk+-2.91.7/configure	2010-12-23 14:08:01.966944000 +1100
+--- a/configure
++++ b/configure
 @@ -1,6 +1,6 @@
  #! /bin/sh
  # Guess values for system-dependent variables and create Makefiles.
@@ -18449,10 +18443,8 @@ Index: gtk+-2.91.7/configure
  # Specify filename containing input files.
  file_list_spec=$lt_file_list_spec_CXX
  
-Index: gtk+-2.91.7/demos/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/demos/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/demos/Makefile.in	2010-12-23 14:08:03.746944000 +1100
+--- a/demos/Makefile.in
++++ b/demos/Makefile.in
 @@ -44,8 +44,10 @@
  subdir = demos
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18498,10 +18490,8 @@ Index: gtk+-2.91.7/demos/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/demos/gtk-demo/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/demos/gtk-demo/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/demos/gtk-demo/Makefile.in	2010-12-23 14:08:03.836944000 +1100
+--- a/demos/gtk-demo/Makefile.in
++++ b/demos/gtk-demo/Makefile.in
 @@ -43,8 +43,10 @@
  subdir = demos/gtk-demo
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18547,10 +18537,8 @@ Index: gtk+-2.91.7/demos/gtk-demo/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/docs/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/docs/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/docs/Makefile.in	2010-12-23 14:08:03.906944000 +1100
+--- a/docs/Makefile.in
++++ b/docs/Makefile.in
 @@ -40,8 +40,10 @@
  subdir = docs
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18596,10 +18584,8 @@ Index: gtk+-2.91.7/docs/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/docs/reference/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/docs/reference/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/docs/reference/Makefile.in	2010-12-23 14:08:03.966944000 +1100
+--- a/docs/reference/Makefile.in
++++ b/docs/reference/Makefile.in
 @@ -40,8 +40,10 @@
  subdir = docs/reference
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18645,10 +18631,8 @@ Index: gtk+-2.91.7/docs/reference/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/docs/reference/gdk/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/docs/reference/gdk/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/docs/reference/gdk/Makefile.in	2010-12-23 14:08:04.046944000 +1100
+--- a/docs/reference/gdk/Makefile.in
++++ b/docs/reference/gdk/Makefile.in
 @@ -47,8 +47,10 @@
  subdir = docs/reference/gdk
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18694,10 +18678,8 @@ Index: gtk+-2.91.7/docs/reference/gdk/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/docs/reference/gtk/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/docs/reference/gtk/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/docs/reference/gtk/Makefile.in	2010-12-23 14:08:04.136944000 +1100
+--- a/docs/reference/gtk/Makefile.in
++++ b/docs/reference/gtk/Makefile.in
 @@ -47,8 +47,10 @@
  subdir = docs/reference/gtk
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18743,10 +18725,8 @@ Index: gtk+-2.91.7/docs/reference/gtk/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/docs/reference/libgail-util/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/docs/reference/libgail-util/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/docs/reference/libgail-util/Makefile.in	2010-12-23 14:08:04.216944000 +1100
+--- a/docs/reference/libgail-util/Makefile.in
++++ b/docs/reference/libgail-util/Makefile.in
 @@ -46,8 +46,10 @@
  subdir = docs/reference/libgail-util
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18792,10 +18772,8 @@ Index: gtk+-2.91.7/docs/reference/libgail-util/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/docs/tools/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/docs/tools/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/docs/tools/Makefile.in	2010-12-23 14:08:04.296944000 +1100
+--- a/docs/tools/Makefile.in
++++ b/docs/tools/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = docs/tools
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18841,10 +18819,8 @@ Index: gtk+-2.91.7/docs/tools/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/examples/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/examples/Makefile.in	2010-12-22 08:39:19.000000000 +1100
-+++ gtk+-2.91.7/examples/Makefile.in	2010-12-23 14:08:04.376944000 +1100
+--- a/examples/Makefile.in
++++ b/examples/Makefile.in
 @@ -39,8 +39,10 @@
  DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18890,10 +18866,8 @@ Index: gtk+-2.91.7/examples/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gdk/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gdk/Makefile.in	2010-12-22 09:37:59.000000000 +1100
-+++ gtk+-2.91.7/gdk/Makefile.in	2010-12-23 14:08:04.506944000 +1100
+--- a/gdk/Makefile.in
++++ b/gdk/Makefile.in
 @@ -47,8 +47,10 @@
  subdir = gdk
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18939,10 +18913,8 @@ Index: gtk+-2.91.7/gdk/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gdk/quartz/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gdk/quartz/Makefile.in	2010-12-22 08:39:20.000000000 +1100
-+++ gtk+-2.91.7/gdk/quartz/Makefile.in	2010-12-23 14:08:04.596944000 +1100
+--- a/gdk/quartz/Makefile.in
++++ b/gdk/quartz/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = gdk/quartz
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -18988,10 +18960,8 @@ Index: gtk+-2.91.7/gdk/quartz/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gdk/tests/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gdk/tests/Makefile.in	2010-12-22 08:39:20.000000000 +1100
-+++ gtk+-2.91.7/gdk/tests/Makefile.in	2010-12-23 14:08:04.686944000 +1100
+--- a/gdk/tests/Makefile.in
++++ b/gdk/tests/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = gdk/tests
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -19037,10 +19007,8 @@ Index: gtk+-2.91.7/gdk/tests/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gdk/win32/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gdk/win32/Makefile.in	2010-12-22 08:39:20.000000000 +1100
-+++ gtk+-2.91.7/gdk/win32/Makefile.in	2010-12-23 14:08:04.776944000 +1100
+--- a/gdk/win32/Makefile.in
++++ b/gdk/win32/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = gdk/win32
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -19086,10 +19054,8 @@ Index: gtk+-2.91.7/gdk/win32/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gdk/win32/rc/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gdk/win32/rc/Makefile.in	2010-12-22 08:39:20.000000000 +1100
-+++ gtk+-2.91.7/gdk/win32/rc/Makefile.in	2010-12-23 14:08:04.836944000 +1100
+--- a/gdk/win32/rc/Makefile.in
++++ b/gdk/win32/rc/Makefile.in
 @@ -41,8 +41,10 @@
  subdir = gdk/win32/rc
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -19135,10 +19101,8 @@ Index: gtk+-2.91.7/gdk/win32/rc/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gdk/x11/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gdk/x11/Makefile.in	2010-12-22 08:39:20.000000000 +1100
-+++ gtk+-2.91.7/gdk/x11/Makefile.in	2010-12-23 14:08:04.936944000 +1100
+--- a/gdk/x11/Makefile.in
++++ b/gdk/x11/Makefile.in
 @@ -62,8 +62,10 @@
  subdir = gdk/x11
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -19184,10 +19148,8 @@ Index: gtk+-2.91.7/gdk/x11/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gtk/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gtk/Makefile.in	2010-12-22 09:58:30.000000000 +1100
-+++ gtk+-2.91.7/gtk/Makefile.in	2010-12-23 14:08:05.146944000 +1100
+--- a/gtk/Makefile.in
++++ b/gtk/Makefile.in
 @@ -78,8 +78,10 @@
  subdir = gtk
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -19233,10 +19195,8 @@ Index: gtk+-2.91.7/gtk/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gtk/tests/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gtk/tests/Makefile.in	2010-12-22 08:39:20.000000000 +1100
-+++ gtk+-2.91.7/gtk/tests/Makefile.in	2010-12-23 14:08:05.256944000 +1100
+--- a/gtk/tests/Makefile.in
++++ b/gtk/tests/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = gtk/tests
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -19282,10 +19242,8 @@ Index: gtk+-2.91.7/gtk/tests/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/gtk/theme-bits/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/gtk/theme-bits/Makefile.in	2010-12-22 08:39:20.000000000 +1100
-+++ gtk+-2.91.7/gtk/theme-bits/Makefile.in	2010-12-23 14:08:05.346944000 +1100
+--- a/gtk/theme-bits/Makefile.in
++++ b/gtk/theme-bits/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = gtk/theme-bits
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -19331,10 +19289,8 @@ Index: gtk+-2.91.7/gtk/theme-bits/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/ltmain.sh
-===================================================================
---- gtk+-2.91.7.orig/ltmain.sh	2010-12-07 01:06:25.000000000 +1100
-+++ gtk+-2.91.7/ltmain.sh	2010-12-23 14:07:57.496944000 +1100
+--- a/ltmain.sh
++++ b/ltmain.sh
 @@ -1,9 +1,9 @@
 +# Generated from ltmain.m4sh.
  
@@ -19416,7 +19372,7 @@ Index: gtk+-2.91.7/ltmain.sh
 +#       compiler:		$LTCC
 +#       compiler flags:		$LTCFLAGS
 +#       linker:		$LD (gnu? $with_gnu_ld)
-+#       $progname:		(GNU libtool) 2.2.6b Debian-2.2.6b-2ubuntu1
++#       $progname:		(GNU libtool) 2.2.6b Debian-2.2.6b-2
 +#       automake:		$automake_version
 +#       autoconf:		$autoconf_version
  #
@@ -19428,7 +19384,7 @@ Index: gtk+-2.91.7/ltmain.sh
 +PROGRAM=ltmain.sh
  PACKAGE=libtool
 -VERSION=2.4
-+VERSION="2.2.6b Debian-2.2.6b-2ubuntu1"
++VERSION="2.2.6b Debian-2.2.6b-2"
  TIMESTAMP=""
 -package_revision=1.3293
 +package_revision=1.3017
@@ -25961,10 +25917,8 @@ Index: gtk+-2.91.7/ltmain.sh
  
  if test -n "$exec_cmd"; then
    eval exec "$exec_cmd"
-Index: gtk+-2.91.7/m4macros/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/m4macros/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/m4macros/Makefile.in	2010-12-23 14:08:05.406944000 +1100
+--- a/m4macros/Makefile.in
++++ b/m4macros/Makefile.in
 @@ -41,8 +41,10 @@
  subdir = m4macros
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26010,10 +25964,8 @@ Index: gtk+-2.91.7/m4macros/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/modules/Makefile.in	2010-12-23 14:08:05.476944000 +1100
+--- a/modules/Makefile.in
++++ b/modules/Makefile.in
 @@ -41,8 +41,10 @@
  subdir = modules
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26059,10 +26011,8 @@ Index: gtk+-2.91.7/modules/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/engines/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/engines/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/modules/engines/Makefile.in	2010-12-23 14:08:05.536944000 +1100
+--- a/modules/engines/Makefile.in
++++ b/modules/engines/Makefile.in
 @@ -38,11 +38,12 @@
  DIST_COMMON = $(srcdir)/Makefile.am $(srcdir)/Makefile.in \
  	$(top_srcdir)/Makefile.decl
@@ -26120,10 +26070,8 @@ Index: gtk+-2.91.7/modules/engines/Makefile.in
  DIST_SUBDIRS = ms-windows pixbuf
  all: all-recursive
  
-Index: gtk+-2.91.7/modules/engines/ms-windows/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/engines/ms-windows/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/modules/engines/ms-windows/Makefile.in	2010-12-23 14:08:05.626944000 +1100
+--- a/modules/engines/ms-windows/Makefile.in
++++ b/modules/engines/ms-windows/Makefile.in
 @@ -41,8 +41,10 @@
  subdir = modules/engines/ms-windows
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26169,10 +26117,8 @@ Index: gtk+-2.91.7/modules/engines/ms-windows/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/engines/ms-windows/Theme/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/engines/ms-windows/Theme/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/modules/engines/ms-windows/Theme/Makefile.in	2010-12-23 14:08:05.696944000 +1100
+--- a/modules/engines/ms-windows/Theme/Makefile.in
++++ b/modules/engines/ms-windows/Theme/Makefile.in
 @@ -40,8 +40,10 @@
  subdir = modules/engines/ms-windows/Theme
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26218,10 +26164,8 @@ Index: gtk+-2.91.7/modules/engines/ms-windows/Theme/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/engines/ms-windows/Theme/gtk-3.0/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/engines/ms-windows/Theme/gtk-3.0/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/modules/engines/ms-windows/Theme/gtk-3.0/Makefile.in	2010-12-23 14:08:05.756944000 +1100
+--- a/modules/engines/ms-windows/Theme/gtk-3.0/Makefile.in
++++ b/modules/engines/ms-windows/Theme/gtk-3.0/Makefile.in
 @@ -41,8 +41,10 @@
  subdir = modules/engines/ms-windows/Theme/gtk-3.0
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26267,10 +26211,8 @@ Index: gtk+-2.91.7/modules/engines/ms-windows/Theme/gtk-3.0/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/engines/pixbuf/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/engines/pixbuf/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/modules/engines/pixbuf/Makefile.in	2010-12-23 14:08:05.836944000 +1100
+--- a/modules/engines/pixbuf/Makefile.in
++++ b/modules/engines/pixbuf/Makefile.in
 @@ -41,8 +41,10 @@
  subdir = modules/engines/pixbuf
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26316,10 +26258,8 @@ Index: gtk+-2.91.7/modules/engines/pixbuf/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/input/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/input/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/modules/input/Makefile.in	2010-12-23 14:08:06.016944000 +1100
+--- a/modules/input/Makefile.in
++++ b/modules/input/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = modules/input
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26375,10 +26315,8 @@ Index: gtk+-2.91.7/modules/input/Makefile.in
  @CROSS_COMPILING_TRUE@RUN_QUERY_IMMODULES_TEST = false
  @BUILD_DYNAMIC_MODULES_TRUE@module_LTLIBRARIES = \
  @BUILD_DYNAMIC_MODULES_TRUE@	$(AM_ET_MODULE)			\
-Index: gtk+-2.91.7/modules/other/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/other/Makefile.in	2010-12-22 08:39:21.000000000 +1100
-+++ gtk+-2.91.7/modules/other/Makefile.in	2010-12-23 14:08:06.076944000 +1100
+--- a/modules/other/Makefile.in
++++ b/modules/other/Makefile.in
 @@ -40,8 +40,10 @@
  subdir = modules/other
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26424,10 +26362,8 @@ Index: gtk+-2.91.7/modules/other/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/other/gail/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/other/gail/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/other/gail/Makefile.in	2010-12-23 14:08:06.336944000 +1100
+--- a/modules/other/gail/Makefile.in
++++ b/modules/other/gail/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = modules/other/gail
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26473,10 +26409,8 @@ Index: gtk+-2.91.7/modules/other/gail/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/other/gail/libgail-util/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/other/gail/libgail-util/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/other/gail/libgail-util/Makefile.in	2010-12-23 14:08:06.436944000 +1100
+--- a/modules/other/gail/libgail-util/Makefile.in
++++ b/modules/other/gail/libgail-util/Makefile.in
 @@ -43,8 +43,10 @@
  subdir = modules/other/gail/libgail-util
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26522,10 +26456,8 @@ Index: gtk+-2.91.7/modules/other/gail/libgail-util/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/other/gail/tests/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/other/gail/tests/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/other/gail/tests/Makefile.in	2010-12-23 14:08:06.566944000 +1100
+--- a/modules/other/gail/tests/Makefile.in
++++ b/modules/other/gail/tests/Makefile.in
 @@ -41,8 +41,10 @@
  subdir = modules/other/gail/tests
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26571,10 +26503,8 @@ Index: gtk+-2.91.7/modules/other/gail/tests/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/printbackends/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/printbackends/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/printbackends/Makefile.in	2010-12-23 14:08:06.636944000 +1100
+--- a/modules/printbackends/Makefile.in
++++ b/modules/printbackends/Makefile.in
 @@ -43,8 +43,10 @@
  subdir = modules/printbackends
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26620,10 +26550,8 @@ Index: gtk+-2.91.7/modules/printbackends/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/printbackends/cups/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/printbackends/cups/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/printbackends/cups/Makefile.in	2010-12-23 14:08:06.716944000 +1100
+--- a/modules/printbackends/cups/Makefile.in
++++ b/modules/printbackends/cups/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = modules/printbackends/cups
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26669,10 +26597,8 @@ Index: gtk+-2.91.7/modules/printbackends/cups/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/printbackends/file/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/printbackends/file/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/printbackends/file/Makefile.in	2010-12-23 14:08:06.806944000 +1100
+--- a/modules/printbackends/file/Makefile.in
++++ b/modules/printbackends/file/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = modules/printbackends/file
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26718,10 +26644,8 @@ Index: gtk+-2.91.7/modules/printbackends/file/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/printbackends/lpr/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/printbackends/lpr/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/printbackends/lpr/Makefile.in	2010-12-23 14:08:06.896944000 +1100
+--- a/modules/printbackends/lpr/Makefile.in
++++ b/modules/printbackends/lpr/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = modules/printbackends/lpr
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26767,10 +26691,8 @@ Index: gtk+-2.91.7/modules/printbackends/lpr/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/printbackends/papi/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/printbackends/papi/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/printbackends/papi/Makefile.in	2010-12-23 14:08:06.976944000 +1100
+--- a/modules/printbackends/papi/Makefile.in
++++ b/modules/printbackends/papi/Makefile.in
 @@ -40,8 +40,10 @@
  	$(srcdir)/Makefile.in
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26816,10 +26738,8 @@ Index: gtk+-2.91.7/modules/printbackends/papi/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/modules/printbackends/test/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/modules/printbackends/test/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/modules/printbackends/test/Makefile.in	2010-12-23 14:08:07.066944000 +1100
+--- a/modules/printbackends/test/Makefile.in
++++ b/modules/printbackends/test/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = modules/printbackends/test
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26865,10 +26785,8 @@ Index: gtk+-2.91.7/modules/printbackends/test/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/perf/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/perf/Makefile.in	2010-12-22 08:39:22.000000000 +1100
-+++ gtk+-2.91.7/perf/Makefile.in	2010-12-23 14:08:07.156944000 +1100
+--- a/perf/Makefile.in
++++ b/perf/Makefile.in
 @@ -42,8 +42,10 @@
  subdir = perf
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26914,10 +26832,8 @@ Index: gtk+-2.91.7/perf/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/tests/Makefile.in
-===================================================================
---- gtk+-2.91.7.orig/tests/Makefile.in	2010-12-22 08:39:23.000000000 +1100
-+++ gtk+-2.91.7/tests/Makefile.in	2010-12-23 14:08:07.406944000 +1100
+--- a/tests/Makefile.in
++++ b/tests/Makefile.in
 @@ -81,8 +81,10 @@
  subdir = tests
  ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
@@ -26963,10 +26879,8 @@ Index: gtk+-2.91.7/tests/Makefile.in
  mandir = @mandir@
  mkdir_p = @mkdir_p@
  ms_librarian = @ms_librarian@
-Index: gtk+-2.91.7/INSTALL
-===================================================================
---- gtk+-2.91.7.orig/INSTALL	2010-12-22 11:45:59.000000000 +1100
-+++ gtk+-2.91.7/INSTALL	2010-12-23 14:08:07.446944000 +1100
+--- a/INSTALL
++++ b/INSTALL
 @@ -1,34 +1,365 @@
 -Prerequisites
 -=============
@@ -27357,10 +27271,8 @@ Index: gtk+-2.91.7/INSTALL
 +`configure --help' for more details.
  
 - http://library.gnome.org/devel/gtk/stable/gtk-building.html
-Index: gtk+-2.91.7/m4/libtool.m4
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gtk+-2.91.7/m4/libtool.m4	2010-12-23 14:07:57.526944000 +1100
+--- /dev/null
++++ b/m4/libtool.m4
 @@ -0,0 +1,7377 @@
 +# libtool.m4 - Configure libtool for the host system. -*-Autoconf-*-
 +#
@@ -34739,10 +34651,8 @@ Index: gtk+-2.91.7/m4/libtool.m4
 +    ;;
 +  esac
 +])
-Index: gtk+-2.91.7/m4/ltoptions.m4
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gtk+-2.91.7/m4/ltoptions.m4	2010-12-23 14:07:57.576944000 +1100
+--- /dev/null
++++ b/m4/ltoptions.m4
 @@ -0,0 +1,368 @@
 +# Helper functions for option handling.                    -*- Autoconf -*-
 +#
@@ -35112,10 +35022,8 @@ Index: gtk+-2.91.7/m4/ltoptions.m4
 +		 [m4_define([_LTDL_TYPE], [installable])])
 +LT_OPTION_DEFINE([LTDL_INIT], [convenience],
 +		 [m4_define([_LTDL_TYPE], [convenience])])
-Index: gtk+-2.91.7/m4/ltversion.m4
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gtk+-2.91.7/m4/ltversion.m4	2010-12-23 14:07:57.666944000 +1100
+--- /dev/null
++++ b/m4/ltversion.m4
 @@ -0,0 +1,23 @@
 +# ltversion.m4 -- version numbers			-*- Autoconf -*-
 +#
@@ -35140,10 +35048,8 @@ Index: gtk+-2.91.7/m4/ltversion.m4
 +_LT_DECL(, macro_version, 0, [Which release of libtool.m4 was used?])
 +_LT_DECL(, macro_revision, 0)
 +])
-Index: gtk+-2.91.7/m4/lt~obsolete.m4
-===================================================================
---- /dev/null	1970-01-01 00:00:00.000000000 +0000
-+++ gtk+-2.91.7/m4/lt~obsolete.m4	2010-12-23 14:07:57.716944000 +1100
+--- /dev/null
++++ b/m4/lt~obsolete.m4
 @@ -0,0 +1,92 @@
 +# lt~obsolete.m4 -- aclocal satisfying obsolete definitions.    -*-Autoconf-*-
 +#
@@ -35237,3 +35143,129 @@ Index: gtk+-2.91.7/m4/lt~obsolete.m4
 +m4_ifndef([_LT_AC_LANG_RC_CONFIG],	[AC_DEFUN([_LT_AC_LANG_RC_CONFIG])])
 +m4_ifndef([AC_LIBTOOL_CONFIG],		[AC_DEFUN([AC_LIBTOOL_CONFIG])])
 +m4_ifndef([_LT_AC_FILE_LTDLL_C],	[AC_DEFUN([_LT_AC_FILE_LTDLL_C])])
+--- /dev/null
++++ b/m4/ltsugar.m4
+@@ -0,0 +1,123 @@
++# ltsugar.m4 -- libtool m4 base layer.                         -*-Autoconf-*-
++#
++# Copyright (C) 2004, 2005, 2007, 2008 Free Software Foundation, Inc.
++# Written by Gary V. Vaughan, 2004
++#
++# This file is free software; the Free Software Foundation gives
++# unlimited permission to copy and/or distribute it, with or without
++# modifications, as long as this notice is preserved.
++
++# serial 6 ltsugar.m4
++
++# This is to help aclocal find these macros, as it can't see m4_define.
++AC_DEFUN([LTSUGAR_VERSION], [m4_if([0.1])])
++
++
++# lt_join(SEP, ARG1, [ARG2...])
++# -----------------------------
++# Produce ARG1SEPARG2...SEPARGn, omitting [] arguments and their
++# associated separator.
++# Needed until we can rely on m4_join from Autoconf 2.62, since all earlier
++# versions in m4sugar had bugs.
++m4_define([lt_join],
++[m4_if([$#], [1], [],
++       [$#], [2], [[$2]],
++       [m4_if([$2], [], [], [[$2]_])$0([$1], m4_shift(m4_shift($@)))])])
++m4_define([_lt_join],
++[m4_if([$#$2], [2], [],
++       [m4_if([$2], [], [], [[$1$2]])$0([$1], m4_shift(m4_shift($@)))])])
++
++
++# lt_car(LIST)
++# lt_cdr(LIST)
++# ------------
++# Manipulate m4 lists.
++# These macros are necessary as long as will still need to support
++# Autoconf-2.59 which quotes differently.
++m4_define([lt_car], [[$1]])
++m4_define([lt_cdr],
++[m4_if([$#], 0, [m4_fatal([$0: cannot be called without arguments])],
++       [$#], 1, [],
++       [m4_dquote(m4_shift($@))])])
++m4_define([lt_unquote], $1)
++
++
++# lt_append(MACRO-NAME, STRING, [SEPARATOR])
++# ------------------------------------------
++# Redefine MACRO-NAME to hold its former content plus `SEPARATOR'`STRING'.
++# Note that neither SEPARATOR nor STRING are expanded; they are appended
++# to MACRO-NAME as is (leaving the expansion for when MACRO-NAME is invoked).
++# No SEPARATOR is output if MACRO-NAME was previously undefined (different
++# than defined and empty).
++#
++# This macro is needed until we can rely on Autoconf 2.62, since earlier
++# versions of m4sugar mistakenly expanded SEPARATOR but not STRING.
++m4_define([lt_append],
++[m4_define([$1],
++	   m4_ifdef([$1], [m4_defn([$1])[$3]])[$2])])
++
++
++
++# lt_combine(SEP, PREFIX-LIST, INFIX, SUFFIX1, [SUFFIX2...])
++# ----------------------------------------------------------
++# Produce a SEP delimited list of all paired combinations of elements of
++# PREFIX-LIST with SUFFIX1 through SUFFIXn.  Each element of the list
++# has the form PREFIXmINFIXSUFFIXn.
++# Needed until we can rely on m4_combine added in Autoconf 2.62.
++m4_define([lt_combine],
++[m4_if(m4_eval([$# > 3]), [1],
++       [m4_pushdef([_Lt_sep], [m4_define([_Lt_sep], m4_defn([lt_car]))])]]dnl
++[[m4_foreach([_Lt_prefix], [$2],
++	     [m4_foreach([_Lt_suffix],
++		]m4_dquote(m4_dquote(m4_shift(m4_shift(m4_shift($@)))))[,
++	[_Lt_sep([$1])[]m4_defn([_Lt_prefix])[$3]m4_defn([_Lt_suffix])])])])])
++
++
++# lt_if_append_uniq(MACRO-NAME, VARNAME, [SEPARATOR], [UNIQ], [NOT-UNIQ])
++# -----------------------------------------------------------------------
++# Iff MACRO-NAME does not yet contain VARNAME, then append it (delimited
++# by SEPARATOR if supplied) and expand UNIQ, else NOT-UNIQ.
++m4_define([lt_if_append_uniq],
++[m4_ifdef([$1],
++	  [m4_if(m4_index([$3]m4_defn([$1])[$3], [$3$2$3]), [-1],
++		 [lt_append([$1], [$2], [$3])$4],
++		 [$5])],
++	  [lt_append([$1], [$2], [$3])$4])])
++
++
++# lt_dict_add(DICT, KEY, VALUE)
++# -----------------------------
++m4_define([lt_dict_add],
++[m4_define([$1($2)], [$3])])
++
++
++# lt_dict_add_subkey(DICT, KEY, SUBKEY, VALUE)
++# --------------------------------------------
++m4_define([lt_dict_add_subkey],
++[m4_define([$1($2:$3)], [$4])])
++
++
++# lt_dict_fetch(DICT, KEY, [SUBKEY])
++# ----------------------------------
++m4_define([lt_dict_fetch],
++[m4_ifval([$3],
++	m4_ifdef([$1($2:$3)], [m4_defn([$1($2:$3)])]),
++    m4_ifdef([$1($2)], [m4_defn([$1($2)])]))])
++
++
++# lt_if_dict_fetch(DICT, KEY, [SUBKEY], VALUE, IF-TRUE, [IF-FALSE])
++# -----------------------------------------------------------------
++m4_define([lt_if_dict_fetch],
++[m4_if(lt_dict_fetch([$1], [$2], [$3]), [$4],
++	[$5],
++    [$6])])
++
++
++# lt_dict_filter(DICT, [SUBKEY], VALUE, [SEPARATOR], KEY, [...])
++# --------------------------------------------------------------
++m4_define([lt_dict_filter],
++[m4_if([$5], [], [],
++  [lt_join(m4_quote(m4_default([$4], [[, ]])),
++           lt_unquote(m4_split(m4_normalize(m4_foreach(_Lt_key, lt_car([m4_shiftn(4, $@)]),
++		      [lt_if_dict_fetch([$1], _Lt_key, [$2], [$3], [_Lt_key ])])))))])[]dnl
++])

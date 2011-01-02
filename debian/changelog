@@ -24,8 +24,10 @@ gtk+3.0 (2.91.7-1) UNRELEASED; urgency=low
     + Update all symbols to 2.91.7.
   * debian/rules:
     + Don't build the test print backend.
+  * debian/patches/007-continue-to-install-gdk-TARGET-3.0.pc.patch:
+    + Patch from upstream git, keep installing gdk-x11-3.0.pc.
 
- -- Robert Ancell <robert.ancell@canonical.com>  Thu, 23 Dec 2010 14:09:17 +1100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 02 Jan 2011 20:08:53 +0000
 
 gtk+3.0 (2.91.6-1) experimental; urgency=low
 
