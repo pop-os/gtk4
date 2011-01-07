@@ -1,49 +1,24 @@
 #!/usr/bin/make -f
 
-# Debian GNOME Maintainers
-DISABLE_UPDATE_UPLOADERS := 1
+DEB_BUILDDIR = debian/build
+DEB_MAKE_DESTDIRSKEL = $(CURDIR)/debian/install/@FLAVOR@
+DEB_MAKE_FLAVORS = shared shared_udeb static
+DISABLE_UPDATE_UPLOADERS = 1
+
+include /usr/share/cdbs/1/rules/debhelper.mk
+include /usr/share/cdbs/1/rules/utils.mk
+include /usr/share/cdbs/1/class/gnome.mk
+include /usr/share/gnome-pkg-tools/1/rules/clean-la.mk
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
-# get-orig-source target
--include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
+include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
-GNOME_MODULE := gtk+
-
-# Uncomment this to turn on verbose mode.
-#export DH_VERBOSE=1
-
-STAMP_DIR := debian/stampdir
-
-PATCH_DIR := debian/patches
-
-# rules in this debian/rules Makefile can be built concurrently as well as
-# upstream rules in Makefile; all $(MAKE) invocations will inherit this flag,
-# if you recurse into debian/rules ($(MAKE)
-# -f debian/rules in rules), you need to pass a flag to avoid adding "-jX" when
-# the childs encounters this line
-DEB_BUILD_OPTIONS_PARALLEL ?= $(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
-PARALLEL_FLAGS += $(if $(DEB_BUILD_OPTIONS_PARALLEL),-j$(DEB_BUILD_OPTIONS_PARALLEL))
-
-DEB_HOST_ARCH      ?= $(shell dpkg-architecture -qDEB_HOST_ARCH)
-DEB_HOST_ARCH_OS   ?= $(shell dpkg-architecture -qDEB_HOST_ARCH_OS)
-DEB_HOST_GNU_TYPE  ?= $(shell dpkg-architecture -qDEB_HOST_GNU_TYPE)
-DEB_BUILD_GNU_TYPE ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_TYPE)
-DEB_BUILD_GNU_CPU  ?= $(shell dpkg-architecture -qDEB_BUILD_GNU_CPU)
-
-# relative libdir
-ifneq (,$(findstring multiarch,$(DEB_BUILD_OPTIONS)))
-LIBDIR := usr/lib/$(DEB_HOST_GNU_TYPE)
-else
-LIBDIR := usr/lib
-endif
+GNOME_MODULE = gtk+
 
 # ppc64 support; see #386815
 ifeq ($(DEB_HOST_GNU_CPU),powerpc64)
 	CFLAGS += -mminimal-toc
 endif
-
-# default CFLAGS; these can be expanded with $(call flavor_get, )
-CFLAGS += -Wall -g -O$(if $(findstring noopt,$(DEB_BUILD_OPTIONS)),0,2)
 
 # default LDFLAGS; these can be expanded with $(call flavor_get, )
 # currently fails in the cups gtkprint backend
@@ -54,6 +29,12 @@ VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
 APIVER := 3.0
 SONAME := 0
 SHVER := 2.99.0
+
+ifneq (,$(findstring multiarch,$(DEB_BUILD_OPTIONS)))
+LIBDIR := usr/lib/$(DEB_HOST_GNU_TYPE)
+else
+LIBDIR := usr/lib
+endif
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 3.0.0
@@ -75,148 +56,46 @@ DEBUG_PKG := $(SHARED_PKG)-dbg
 EXAMPLES_PKG := gtk$(APIVER)-examples
 PIXBUF_PKG := gtk3-engines-pixbuf
 
-# package groups, used in rule dependencies and in cleanup
-BINARY_INDEP_PKGS := $(COMMON_PKG) $(BIN_PKG) $(DOC_PKG) libgail3.0-doc
-BINARY_ARCH_PKGS := $(SHARED_PKG) $(UDEB_PKG) $(DEV_PKG) $(DEBUG_PKG) $(EXAMPLES_PKG) $(PIXBUF_PKG) gir1.2-gtk-3.0 libgail3.0-0 libgail3.0-0-dbg libgail3.0-dev libgail3.0-common
-ALL_PKGS := $(BINARY_INDEP_PKGS) $(BINARY_ARCH_PKGS)
-
-# list of flavors we build; each gets a builddir, a configure pass (configure
-# args are defined below), a build pass, and an install pass (in two steps)
-# Note: the shared flavor is required
-FLAVORS := shared shared_udeb static
-
-# current flavor we're building; this is only expanded in flavor specific
-# targets
-current_flavor = $*
-
-# macro to get a value for the current flavor we're building; for example
-# when building the shared flavor, $(call flavor_get,CFLAGS) will expand to
-# shared_CFLAGS if it's set or to CFLAGS otherwise; pay attention to not adding
-# superflous spaces when for the arguments of $(call ); only some vars can
-# be expanded in this way though
-flavor_get = $(or $($(current_flavor)_$(1)),$($(1)))
-
-# build dir for the current flavor; this is only expanded in flavor specific
-# targets
-builddir = $(buildbasedir)/$(current_flavor)
-buildbasedir = $(CURDIR)/debian/build
-
-# install dir for the current flavor; this is only expanded in flavor specific
-# targets
-installdir = $(installbasedir)/$(current_flavor)
-installbasedir = $(CURDIR)/debian/install
 
 # temporary directory for the minimal MIME cache generation
 mimedir = debian/build-mime
 mimexml = /usr/share/mime/packages/freedesktop.org.xml
 
-# configure flags
-configure_flags := \
-			--prefix=/usr \
-			--libdir=/$(LIBDIR) \
-			--mandir=\$${prefix}/share/man \
-			--infodir=\$${prefix}/share/info \
-			--sysconfdir=/etc \
-			--disable-silent-rules \
+DEB_CONFIGURE_EXTRA_FLAGS = \
 			--enable-test-print-backend \
 			--enable-introspection=no \
-			--enable-xinput \
-			--build=$(DEB_BUILD_GNU_TYPE)
-ifneq ($(DEB_BUILD_GNU_TYPE),$(DEB_HOST_GNU_TYPE))
-	configure_flags += --host=$(DEB_HOST_GNU_TYPE)
-endif
+			--enable-xinput
 
-shared_configure_flags := $(configure_flags) \
+DEB_CONFIGURE_FLAGS_shared = \
 			--enable-shared \
 			--enable-introspection=yes \
 			--disable-static
-shared_udeb_configure_flags := $(shared_configure_flags) \
+
+DEB_CONFIGURE_FLAGS_shared_udeb = \
 			--disable-xcomposite \
 			--disable-xdamage \
 			--disable-xfixes \
 			--disable-xrandr
-static_configure_flags := $(configure_flags) \
+
+DEB_CONFIGURE_FLAGS_static = \
 			--with-included-loaders=yes \
 			--disable-modules \
 			--disable-shared \
 			--enable-static
 
-# optional optimized flavor for some arches
-OPTLIBDIR :=
-# sample code
-#ifneq ($(filter $(DEB_HOST_ARCH), armel),)
-#FLAVORS += opt
-#OPTLIBDIR := $(LIBDIR)/vfp
-#opt_CFLAGS += $(CFLAGS) -mfpu=vfp -mfloat-abi=softfp
-#opt_configure_flags := $(or $(shared_configure_flags),$(configure_flags))
-#endif
+DEB_MAKE_CHECK_TARGET = -k check || true
+DEB_COMPRESS_EXCLUDE += .sgml .devhelp
+DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
+DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
+DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
+DEB_DH_MAKESHLIBS_ARGS_libgail3.0-0 += -V"libgail3.0-0 (>= $(SHVER)), libgail3.0-common (>= $(SHVER))" -- -c4
+DEB_DH_FIXPERMS_ARGS_ALL += -X$(LIBDIR)/$(SHARED_PKG)
+DEB_DH_STRIP_ARGS_$(UDEB_PKG) = --dbg-package=
 
-# list of flavors to run the test suite on
-CHECK_FLAVORS := $(filter opt shared static, $(FLAVORS))
 
-DH_INSTALLDOCS_FILES := NEWS README ChangeLog
-
-# macro computing the list of 'debian/<pkg>.*" files which have a corresponding
-# ".in" file; pass the list of packages in $(1)
+# macro computing the list of 'debian/<pkg>.*" files which have a
+# corresponding ".in" file; pass the list of packages in $(1)
 dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
-
-patch: $(STAMP_DIR)/patch-stamp
-
-$(STAMP_DIR)/patch-stamp:
-	dh_testdir
-	mkdir $(STAMP_DIR)
-	# apply patches
-	QUILT_PATCHES=$(PATCH_DIR) quilt --quiltrc /dev/null push -a || test $$? = 2
-	# backup the original files to restore them in the clean target
-	-test -r config.sub && cp config.sub config.sub.orig
-	-test -r config.guess && cp config.guess config.guess.orig
-	-test -r /usr/share/misc/config.sub && \
-		cp -f /usr/share/misc/config.sub config.sub
-	-test -r /usr/share/misc/config.guess && \
-		cp -f /usr/share/misc/config.guess config.guess
-	touch $@
-
-$(STAMP_DIR)/configure-stamp-%: $(STAMP_DIR)/patch-stamp
-	dh_testdir
-	mkdir -p $(builddir)
-	cd $(builddir) && \
-		CFLAGS="$(call flavor_get,CFLAGS)" \
-		LDFLAGS="$(call flavor_get,LDFLAGS)" \
-			$(CURDIR)/configure $(call flavor_get,configure_flags)
-	touch $@
-
-configure: $(addprefix $(STAMP_DIR)/configure-stamp-, $(FLAVORS))
-
-$(STAMP_DIR)/build-stamp-%: $(STAMP_DIR)/configure-stamp-%
-	dh_testdir
-	LD_LIBRARY_PATH=$(builddir)/gtk/.libs:$(builddir)/gdk/.libs:$(LD_LIBRARY_PATH) \
-		$(MAKE) $(PARALLEL_FLAGS) -C $(builddir)
-	touch $@
-
-build: $(addprefix $(STAMP_DIR)/build-stamp-, $(FLAVORS))
-
-$(STAMP_DIR)/check-stamp-%: $(STAMP_DIR)/build-stamp-%
-	dh_testdir
-	# setting LD_LIBRARY_PATH for "make check" might be needed in the
-	# future, but doesn't seem necessary right now
-	#LD_LIBRARY_PATH=$(builddir)/gtk/.libs:$(builddir)/gdk/.libs:$(LD_LIBRARY_PATH)
-	# testsuite failures are ignored
-	-$(MAKE) -C $(builddir) check
-	touch $@
-
-check: $(addprefix $(STAMP_DIR)/check-stamp-, $(CHECK_FLAVORS))
-
-$(STAMP_DIR)/install-stamp-%: $(STAMP_DIR)/build-stamp-%
-	mkdir -p $(installdir)
-	$(MAKE) -C $(builddir) install \
-		DESTDIR=$(installdir)
-	touch $@
-
-install: $(addprefix $(STAMP_DIR)/install-stamp-, $(FLAVORS))
-
-# gross kludge to force control generation with the %.in target
-clean::
-	touch debian/control.in
 
 debian/%: debian/%.in
 	dh_testdir
@@ -239,67 +118,18 @@ debian/%: debian/%.in
 		-e "s#@LIBDIR@#$(LIBDIR)#g" \
 		-e 's#@OPTLIBDIR@#$(OPTLIBDIR)#g' \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
-		$@.in \
-		$(wildcard $(if $(filter opt,$(FLAVORS)),$@.opt)) \
-		> $@
+		$@.in > $@
 
 clean:: debian/control
-	dh_testdir
-	dh_testroot
-	# remove install and build dirs
-	rm -rf $(installbasedir)
-	rm -rf $(buildbasedir)
+	# gross kludge to force control generation with the %.in target
+	touch debian/control.in
 	rm -rf $(mimedir)
-	# restore files from backup (before unpatching)
-	-test -r config.sub.orig && mv -f config.sub.orig config.sub
-	-test -r config.guess.orig && mv -f config.guess.orig config.guess
-	# unapply patches, if any
-	QUILT_PATCHES=$(PATCH_DIR) quilt --quiltrc /dev/null pop -a -R || test $$? = 2
-	-rm -rf .pc
-	rm -f debian/*.devhelp
-	-rm -rf $(STAMP_DIR)
-	-rm -f $(call dh_subst_files,$(ALL_PKGS))
-	dh_clean
+	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
 
-maybe_check = $(if $(findstring nocheck,$(DEB_BUILD_OPTIONS)),,check)
+# Each binary/pkg target depends on its debian/%.in files
+$(patsubst %,binary/%,$(DEB_ALL_PACKAGES)) :: binary/%: $(call dh_subst_files,%)
 
-binary-indep: build $(maybe_check) install $(call dh_subst_files,$(BINARY_INDEP_PKGS))
-	dh_testdir
-	dh_testroot
-	dh_install -i
-	# changelog.gz symlinks will be overwritten by dh_link
-	dh_installchangelogs -i ChangeLog
-	# do not merge the calls: dh_installdocs will only install some files
-	# in the first package
-	dh_installdocs -p$(COMMON_PKG) $(DH_INSTALLDOCS_FILES)
-	dh_installdocs -p$(DOC_PKG) $(DH_INSTALLDOCS_FILES)
-	# install copyright in all packages; the -p is for the special behavior
-	# of dh_installdocs (ship README.Debian etc. in the first package)
-	dh_installdocs -p$(COMMON_PKG) -i -X.in
-	dh_installman -i
-	dh_link -i
-	dh_compress -i -X.sgml -X.devhelp
-	dh_fixperms -i
-	dh_installdeb -i
-	dh_gencontrol -i
-	dh_md5sums -i
-	dh_builddeb -i
-
-binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PKGS))
-	dh_testdir
-	dh_testroot
-	dh_install -s
-	# empty the dependency_libs in the *.la files
-	sed -i "/dependency_libs/ s/'.*'/''/" debian/*/$(LIBDIR)/*.la
-	# changelog.gz symlinks will be overwritten by dh_link
-	dh_installchangelogs -s ChangeLog
-	# do not merge the calls: dh_installdocs only installs in the first pkg
-	dh_installdocs -p$(EXAMPLES_PKG) $(DH_INSTALLDOCS_FILES)
-	dh_installdocs -p$(PIXBUF_PKG) $(DH_INSTALLDOCS_FILES)
-	# install copyright in all packages; the -p is for the special behavior
-	# of dh_installdocs (ship README.Debian etc. in the first package)
-	dh_installdocs -p$(PIXBUF_PKG) -s
-	dh_installman -s
+binary/$(UDEB_PKG)::
 	# generate a minimal MIME cache for the udeb
 	mkdir -p $(mimedir)/packages
 	[ -f $(mimexml) ]
@@ -307,40 +137,7 @@ binary-arch: build $(maybe_check) install $(call dh_subst_files,$(BINARY_ARCH_PK
 		> $(mimedir)/packages/png.freedesktop.org.xml
 	update-mime-database $(mimedir)
 	dh_install -p$(UDEB_PKG) $(mimedir)/mime.cache usr/share/mime
-	dh_installexamples -s
-	dh_link -s
-	dh_strip -s --dbg-package=$(DEBUG_PKG) -N$(UDEB_PKG) -Nlibgail3.0-0 -Nlibgail3.0-common
-	dh_strip -plibgail3.0-0 -plibgail3.0-common --dbg-package=libgail3.0-0-dbg
-	dh_strip -p$(UDEB_PKG)
-	dh_compress -s -X.sgml -X.devhelp
-	dh_fixperms -s -X$(LIBDIR)/$(SHARED_PKG)
-	dh_makeshlibs -p$(SHARED_PKG) \
-		-X$(MODULES_BASE_PATH) \
-		-V"$(SHARED_PKG) (>= $(SHVER))" \
-		--add-udeb=$(UDEB_PKG) \
-		-- -c4
-	dh_makeshlibs -plibgail3.0-0 \
-		-X$(MODULES_BASE_PATH) \
-		-V"libgail3.0-0 (>= $(SHVER)), libgail3.0-common (>= $(SHVER))" \
-		-- -c4
-	dh_girepository -pgir1.2-gtk-3.0
-	dh_installdeb -s
-	# override shlibs for libraries from this source before computing
-	# dependencies of packages generated from this source; we already have
-	# inter-dependencies expressed manually in the control file, we do not
-	# need the shlibs to add duplicates
-	cat debian/*/DEBIAN/shlibs | \
-		sed -n -r -e 's/(([^ ]+: )?([^ ]+) ([^ ]+)) .*/\1/p' \
-			> debian/shlibs.local
-	dh_shlibdeps
-	-rm -f debian/shlibs.local
-	dh_gencontrol -s
-	dh_md5sums -s
-	dh_builddeb -s
 
 list-missing:
 	perl -w debian/dh_listmissing.pl $(foreach f,$(FLAVORS),$(subst $(CURDIR)/,,$(installbasedir))/$(f)) 2>&1 | \
 	    egrep -v '(\.la|$(LIBDIR)/gtk-3.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
-
-binary: binary-indep binary-arch
-.PHONY: patch configure build check install clean binary-indep binary-arch list-missing binary

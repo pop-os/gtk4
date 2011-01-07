@@ -35,6 +35,7 @@ gtk+3.0 (2.99.0-1) UNRELEASED; urgency=low
       - Refreshed.
     + debian/libgtk3.0-0.symbols:
       - Updated.
+  * Switch to CDBS' flavours system.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 02 Jan 2011 20:08:53 +0000
 
