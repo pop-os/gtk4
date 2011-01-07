@@ -1,19 +1,12 @@
-Index: gtk+-2.91.7/configure.ac
-===================================================================
---- gtk+-2.91.7.orig/configure.ac	2010-12-22 13:16:50.000000000 +1100
-+++ gtk+-2.91.7/configure.ac	2010-12-22 13:17:41.573372000 +1100
-@@ -1151,23 +1151,27 @@
+--- a/configure.ac
++++ b/configure.ac
+@@ -1206,20 +1206,23 @@
+ CFLAGS="$saved_cflags"
+ LDFLAGS="$saved_ldflags"
  
- # Pull in gio-unix for GDesktopAppInfo usage, see at least gdkapplaunchcontext-x11.c
- if test "x$gdktarget" = "xx11"; then
--  GDK_PACKAGES="$PANGO_PACKAGES gio-unix-2.0 $X_PACKAGES gdk-pixbuf-2.0 cairo-$cairo_backend cairo-gobject"
-+  GDK_PACKAGES="$PANGO_PACKAGES gdk-pixbuf-2.0"
-+  GDK_PRIVATE_PACKAGES="gio-unix-2.0 $X_PACKAGES cairo-$cairo_backend cairo-gobject"
- else
--  GDK_PACKAGES="$PANGO_PACKAGES gio-2.0 gdk-pixbuf-2.0 cairo-$cairo_backend cairo-gobject"
-+  GDK_PACKAGES="$PANGO_PACKAGES gdk-pixbuf-2.0"
-+  GDK_PRIVATE_PACKAGES="gio-2.0 cairo-$cairo_backend cairo-gobject"
- fi
+-GDK_PACKAGES="$PANGO_PACKAGES $GIO_PACKAGE $X_PACKAGES gdk-pixbuf-2.0 $cairo_backends cairo-gobject"
++GDK_PACKAGES="$PANGO_PACKAGES gdk-pixbuf-2.0"
++GDK_PRIVATE_PACKAGES="$GIO_PACKAGE $X_PACKAGES $cairo_backends cairo-gobject"
  
 -GDK_DEP_LIBS="$GDK_EXTRA_LIBS `$PKG_CONFIG --libs $GDK_PACKAGES`"
 -GDK_DEP_CFLAGS="`$PKG_CONFIG --cflags  gthread-2.0 $GDK_PACKAGES` $GDK_EXTRA_CFLAGS"
@@ -24,7 +17,7 @@ Index: gtk+-2.91.7/configure.ac
  # into the pkg-config files
  #
  if test $enable_explicit_deps != yes ; then
--  GDK_PACKAGES="$PANGO_PACKAGES gdk-pixbuf-2.0"
+-  GDK_PACKAGES="$PANGO_PACKAGES gdk-pixbuf-2.0 cairo-gobject"
    GDK_EXTRA_LIBS=
 +else
 +  GDK_PACKAGES="$GDK_PACKAGES $GDK_PRIVATE_PACKAGES"
@@ -35,10 +28,8 @@ Index: gtk+-2.91.7/configure.ac
  AC_SUBST(GDK_EXTRA_LIBS)
  AC_SUBST(GDK_EXTRA_CFLAGS)
  AC_SUBST(GDK_DEP_LIBS)
-Index: gtk+-2.91.7/gdk-3.0.pc.in
-===================================================================
---- gtk+-2.91.7.orig/gdk-3.0.pc.in	2010-12-22 13:17:31.783372002 +1100
-+++ gtk+-2.91.7/gdk-3.0.pc.in	2010-12-22 13:17:41.573372000 +1100
+--- a/gdk-3.0.pc.in
++++ b/gdk-3.0.pc.in
 @@ -8,5 +8,6 @@
  Description: GTK+ Drawing Kit
  Version: @VERSION@

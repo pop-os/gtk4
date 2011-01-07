@@ -1,4 +1,4 @@
-gtk+3.0 (2.91.7-1) UNRELEASED; urgency=low
+gtk+3.0 (2.99.0-1) UNRELEASED; urgency=low
 
   [ Robert Ancell ]
   * debian/control.in:
@@ -17,15 +17,24 @@ gtk+3.0 (2.91.7-1) UNRELEASED; urgency=low
   * debian/patches/002_static-linking-dont-build-perf.patch:
   * debian/patches/004_git_add_missing_include.patch:
   * debian/patches/042_treeview_single-focus.patch:
-    - Refreshed  
+    - Refreshed.
 
   [ Emilio Pozuelo Monfort ]
-  * debian/libgtk3.0-0.symbols:
-    + Update all symbols to 2.91.7.
-  * debian/rules:
-    + Don't build the test print backend.
-  * debian/patches/007-continue-to-install-gdk-TARGET-3.0.pc.patch:
-    + Patch from upstream git, keep installing gdk-x11-3.0.pc.
+  * New upstream release.
+    + debian/rules:
+      - Pass --enable-xinput instead of --with-xinput=yes.
+      - Bump the shver.
+    + debian/patches/004_git_add_missing_include.patch,
+      debian/patches/007-continue-to-install-gdk-TARGET-3.0.pc.patch:
+      - Removed, included upstream.
+    + debian/patches/061_use_pdf_as_default_printing_standard.patch:
+      - Removed. The cups backend part has been fixed upstream in a (better)
+        different way, and the lpr part doesn't make sense as we don't know
+        if the job will be sent to CUPS or not.
+    + debian/patches/*:
+      - Refreshed.
+    + debian/libgtk3.0-0.symbols:
+      - Updated.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 02 Jan 2011 20:08:53 +0000
 
