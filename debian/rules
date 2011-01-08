@@ -62,6 +62,7 @@ mimedir = debian/build-mime
 mimexml = /usr/share/mime/packages/freedesktop.org.xml
 
 DEB_CONFIGURE_EXTRA_FLAGS = \
+			--libdir=/$(LIBDIR) \
 			--enable-test-print-backend \
 			--enable-xinput
 
@@ -91,8 +92,8 @@ DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
 DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
 DEB_DH_MAKESHLIBS_ARGS_libgail3.0-0 += -V"libgail3.0-0 (>= $(SHVER)), libgail3.0-common (>= $(SHVER))" -- -c4
 DEB_DH_FIXPERMS_ARGS_ALL += -X$(LIBDIR)/$(SHARED_PKG)
-DEB_DH_STRIP_ARGS_$(UDEB_PKG) = --dbg-package=
-
+DEB_DH_STRIP_ARGS = --dbg-package=$(if $(findstring libgail,$(cdbs_curpkg)),libgail3.0-0-dbg,$(DEBUG_PKG))
+DEB_DH_STRIP_ARGS_$(UDEB_PKG) =
 
 # macro computing the list of 'debian/<pkg>.*" files which have a
 # corresponding ".in" file; pass the list of packages in $(1)
@@ -131,7 +132,6 @@ clean:: debian/control
 build-indep: $(call dh_subst_files,$(DEB_INDEP_PACKAGES))
 build-arch: $(call dh_subst_files,$(DEB_ARCH_PACKAGES))
 
-
 binary-install/$(DEV_PKG)::
 	# Install the binaries with a -3.0 suffix
 	mv debian/$(DEV_PKG)/usr/bin/gtk-builder-convert \
@@ -149,7 +149,7 @@ binary-install/$(BIN_PKG)::
 	mv debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache.1 \
 	   debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-$(APIVER).1
 
-binary/$(UDEB_PKG)::
+binary-install/$(UDEB_PKG)::
 	# generate a minimal MIME cache for the udeb
 	mkdir -p $(mimedir)/packages
 	[ -f $(mimexml) ]
