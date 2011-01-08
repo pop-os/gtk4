@@ -63,7 +63,6 @@ mimexml = /usr/share/mime/packages/freedesktop.org.xml
 
 DEB_CONFIGURE_EXTRA_FLAGS = \
 			--enable-test-print-backend \
-			--enable-introspection=no \
 			--enable-xinput
 
 DEB_CONFIGURE_FLAGS_shared = \
@@ -72,6 +71,7 @@ DEB_CONFIGURE_FLAGS_shared = \
 			--disable-static
 
 DEB_CONFIGURE_FLAGS_shared_udeb = \
+			--enable-introspection=no \
 			--disable-xcomposite \
 			--disable-xdamage \
 			--disable-xfixes \
@@ -79,12 +79,13 @@ DEB_CONFIGURE_FLAGS_shared_udeb = \
 
 DEB_CONFIGURE_FLAGS_static = \
 			--with-included-loaders=yes \
+			--enable-introspection=no \
 			--disable-modules \
 			--disable-shared \
 			--enable-static
 
 DEB_MAKE_CHECK_TARGET = -k check || true
-DEB_COMPRESS_EXCLUDE += .sgml .devhelp
+DEB_COMPRESS_EXCLUDE += .devhelp
 DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
 DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
 DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
@@ -126,8 +127,27 @@ clean:: debian/control
 	rm -rf $(mimedir)
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
 
-# Each binary/pkg target depends on its debian/%.in files
-$(patsubst %,binary/%,$(DEB_ALL_PACKAGES)) :: binary/%: $(call dh_subst_files,%)
+# Add dependencies to generate files from the debian/*.in ones
+build-indep: $(call dh_subst_files,$(DEB_INDEP_PACKAGES))
+build-arch: $(call dh_subst_files,$(DEB_ARCH_PACKAGES))
+
+
+binary-install/$(DEV_PKG)::
+	# Install the binaries with a -3.0 suffix
+	mv debian/$(DEV_PKG)/usr/bin/gtk-builder-convert \
+	   debian/$(DEV_PKG)/usr/bin/gtk-builder-convert-$(APIVER)
+	mv debian/$(DEV_PKG)/usr/share/man/man1/gtk-builder-convert.1 \
+	   debian/$(DEV_PKG)/usr/share/man/man1/gtk-builder-convert-$(APIVER).1
+
+binary-install/$(SHARED_PKG)::
+	# Install the binaries with a -3.0 suffix
+	mv debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache \
+	   debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache-$(APIVER)
+
+binary-install/$(BIN_PKG)::
+	# Install the binaries with a -3.0 suffix
+	mv debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache.1 \
+	   debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-$(APIVER).1
 
 binary/$(UDEB_PKG)::
 	# generate a minimal MIME cache for the udeb
