@@ -15,8 +15,12 @@ include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
 GNOME_MODULE = gtk+
 
-# currently fails in the cups gtkprint backend
+# Ensure the build aborts when there are still references to undefined symbols
+# currently fails at least in the im-multipress im module
 #LDFLAGS += -Wl,-z,defs
+
+# Make the linker work a bit harder so dynamic loading can be done faster
+LDFLAGS += -Wl,-O1
 
 DEBVERSION := $(shell dpkg-parsechangelog | sed -n -e 's/^Version: //p')
 VERSION := $(shell echo $(DEBVERSION) | sed -e 's/-[^-]*$$//')
@@ -153,5 +157,6 @@ binary-install/$(UDEB_PKG)::
 	dh_install -p$(UDEB_PKG) $(mimedir)/mime.cache usr/share/mime
 
 list-missing:
-	perl -w debian/dh_listmissing.pl $(foreach f,$(FLAVORS),$(subst $(CURDIR)/,,$(installbasedir))/$(f)) 2>&1 | \
+	# FIXME: remove this when CDBS' list-missing works with multiple flavors
+	perl -w debian/dh_listmissing.pl $(foreach f,$(DEB_MAKE_FLAVORS),debian/install/$(f)) 2>&1 | \
 	    egrep -v '(\.la|$(LIBDIR)/gtk-3.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2
