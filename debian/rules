@@ -15,7 +15,6 @@ include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
 GNOME_MODULE = gtk+
 
-# default LDFLAGS; these can be expanded with $(call flavor_get, )
 # currently fails in the cups gtkprint backend
 #LDFLAGS += -Wl,-z,defs
 
