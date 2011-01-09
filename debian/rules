@@ -15,11 +15,6 @@ include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
 GNOME_MODULE = gtk+
 
-# ppc64 support; see #386815
-ifeq ($(DEB_HOST_GNU_CPU),powerpc64)
-	CFLAGS += -mminimal-toc
-endif
-
 # default LDFLAGS; these can be expanded with $(call flavor_get, )
 # currently fails in the cups gtkprint backend
 #LDFLAGS += -Wl,-z,defs
