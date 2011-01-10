@@ -84,7 +84,6 @@ DEB_CONFIGURE_FLAGS_static = \
 			--enable-static
 
 DEB_MAKE_CHECK_TARGET = -k check || true
-DEB_COMPRESS_EXCLUDE += .devhelp
 DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
 DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
 DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
