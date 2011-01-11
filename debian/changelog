@@ -1,4 +1,4 @@
-gtk+3.0 (2.99.0-1) UNRELEASED; urgency=low
+gtk+3.0 (2.99.1-1) UNRELEASED; urgency=low
 
   [ Robert Ancell ]
   * debian/control.in:
@@ -25,15 +25,20 @@ gtk+3.0 (2.99.0-1) UNRELEASED; urgency=low
       - Pass --enable-xinput instead of --with-xinput=yes.
       - Bump the shver.
     + debian/patches/004_git_add_missing_include.patch,
+      debian/patches/005_support_disabling_x11_extensions.patch,
       debian/patches/007-continue-to-install-gdk-TARGET-3.0.pc.patch:
       - Removed, included upstream.
     + debian/patches/061_use_pdf_as_default_printing_standard.patch:
       - Removed. The cups backend part has been fixed upstream in a (better)
         different way, and the lpr part doesn't make sense as we don't know
         if the job will be sent to CUPS or not.
+    + debian/patches/070_mandatory-relibtoolize.patch,
+      debian/rules:
+      - Switch to dh-autoreconf.
     + debian/patches/*:
       - Refreshed.
-    + debian/libgtk3.0-0.symbols:
+    + debian/libgtk3.0-0.symbols,
+      debian/libgail3.0-0.symbols:
       - Updated.
     + debian/libgtk3.0-*.{install.in,manpages},
       debian/rules:
@@ -41,7 +46,7 @@ gtk+3.0 (2.99.0-1) UNRELEASED; urgency=low
         stopped doing so.
   * Switch to CDBS' flavours system.
   * debian/rules:
-    - Remove hack to build on PowerPC64. That port is death, and if it's
+    - Remove hack to build on PowerPC64. That port is dead, and if it's
       ever back, hopefully we won't need to workaround toolchain issues.
     - Pass -O1 to the linker so dynamic loading is faster.
 

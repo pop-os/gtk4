@@ -1,6 +1,6 @@
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1206,20 +1206,23 @@
+@@ -1238,20 +1238,23 @@
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  

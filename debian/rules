@@ -5,6 +5,7 @@ DEB_MAKE_DESTDIRSKEL = $(CURDIR)/debian/install/@FLAVOR@
 DEB_MAKE_FLAVORS = shared shared_udeb static
 DISABLE_UPDATE_UPLOADERS = 1
 
+include /usr/share/cdbs/1/rules/autoreconf.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/rules/utils.mk
 include /usr/share/cdbs/1/class/gnome.mk
@@ -24,7 +25,7 @@ LDFLAGS += -Wl,-O1
 
 APIVER := 3.0
 SONAME := 0
-SHVER := 2.99.0
+SHVER := 2.99.1
 
 ifneq (,$(findstring multiarch,$(DEB_BUILD_OPTIONS)))
 LIBDIR := usr/lib/$(DEB_HOST_GNU_TYPE)
