@@ -1,4 +1,4 @@
-gtk+3.0 (2.99.1-1) UNRELEASED; urgency=low
+gtk+3.0 (2.99.1-1) experimental; urgency=low
 
   [ Robert Ancell ]
   * debian/control.in:
@@ -55,7 +55,7 @@ gtk+3.0 (2.99.1-1) UNRELEASED; urgency=low
     + Backport patches from upstream git. They fix rendering issues and
       assertion failures.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 02 Jan 2011 20:08:53 +0000
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 12 Jan 2011 22:06:17 +0000
 
 gtk+3.0 (2.91.6-1) experimental; urgency=low
 
