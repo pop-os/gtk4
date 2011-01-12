@@ -1,0 +1,24 @@
+From aa1f58b731bfc38992eca2a07368b9907b4995ec Mon Sep 17 00:00:00 2001
+From: Guillaume Desmottes <guillaume.desmottes@collabora.co.uk>
+Date: Wed, 12 Jan 2011 14:33:27 +0100
+Subject: [PATCH 2/3] _gtk_cell_area_set_cell_data_func_with_proxy: set the proxy when creating a new CellInfo (#637965)
+
+---
+ gtk/gtkcellarea.c |    1 +
+ 1 files changed, 1 insertions(+), 0 deletions(-)
+
+diff --git a/gtk/gtkcellarea.c b/gtk/gtkcellarea.c
+index 0a94ca5..b9e74ff 100644
+--- a/gtk/gtkcellarea.c
++++ b/gtk/gtkcellarea.c
+@@ -3660,6 +3660,7 @@ _gtk_cell_area_set_cell_data_func_with_proxy (GtkCellArea           *area,
+   else
+     {
+       info = cell_info_new ((GtkCellLayoutDataFunc)func, func_data, destroy);
++      info->proxy = proxy;
+ 
+       g_hash_table_insert (priv->cell_info, cell, info);
+     }
+-- 
+1.7.2.3
+

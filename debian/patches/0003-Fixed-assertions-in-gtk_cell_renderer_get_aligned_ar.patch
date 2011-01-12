@@ -1,0 +1,30 @@
+From 3492b1567de8d042d0a75b1caba01cf1e5b70f63 Mon Sep 17 00:00:00 2001
+From: Tristan Van Berkom <tristan.van.berkom@gmail.com>
+Date: Thu, 13 Jan 2011 01:12:33 +0900
+Subject: [PATCH 3/3] Fixed assertions in gtk_cell_renderer_get_aligned_area().
+
+The assertions here were not accounting for the possiblility of
+zero width visible renderers that are aligned completely to the
+right (i.e. renderers with no content set for a said row).
+---
+ gtk/gtkcellrenderer.c |    4 ++--
+ 1 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/gtk/gtkcellrenderer.c b/gtk/gtkcellrenderer.c
+index b2ef07b..b5e738a 100644
+--- a/gtk/gtkcellrenderer.c
++++ b/gtk/gtkcellrenderer.c
+@@ -1658,8 +1658,8 @@ gtk_cell_renderer_get_aligned_area (GtkCellRenderer      *cell,
+   klass = GTK_CELL_RENDERER_GET_CLASS (cell);
+   klass->get_aligned_area (cell, widget, flags, cell_area, aligned_area);
+ 
+-  g_assert (aligned_area->x >= cell_area->x && aligned_area->x < cell_area->x + cell_area->width);
+-  g_assert (aligned_area->y >= cell_area->y && aligned_area->y < cell_area->y + cell_area->height);
++  g_assert (aligned_area->x >= cell_area->x && aligned_area->x <= cell_area->x + cell_area->width);
++  g_assert (aligned_area->y >= cell_area->y && aligned_area->y <= cell_area->y + cell_area->height);
+   g_assert ((aligned_area->x - cell_area->x) + aligned_area->width <= cell_area->width);
+   g_assert ((aligned_area->y - cell_area->y) + aligned_area->height <= cell_area->height);
+ }
+-- 
+1.7.2.3
+
