@@ -1,3 +1,17 @@
+gtk+3.0 (2.99.2-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+    + d/p/0001-stylecontext-Protect-the-cairo-contexts-with-cairo_s.patch
+      d/p/0003-Fixed-assertions-in-gtk_cell_renderer_get_aligned_ar.patch
+      d/p/0002-_gtk_cell_area_set_cell_data_func_with_proxy-set-the.patch
+      - Removed, included upstream.
+    + debian/libgtk3.0-0.symbols:
+      - Updated.
+    + debian/rules:
+      - Bumped the shver.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 13 Jan 2011 16:51:07 +0000
+
 gtk+3.0 (2.99.1-1) experimental; urgency=low
 
   [ Robert Ancell ]

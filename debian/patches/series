@@ -1,6 +1,3 @@
-0001-stylecontext-Protect-the-cairo-contexts-with-cairo_s.patch
-0002-_gtk_cell_area_set_cell_data_func_with_proxy-set-the.patch
-0003-Fixed-assertions-in-gtk_cell_renderer_get_aligned_ar.patch
 001_static-linking-dont-query-immodules.patch
 002_static-linking-dont-build-perf.patch
 003_gdk.pc_privates.patch
