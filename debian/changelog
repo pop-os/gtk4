@@ -1,4 +1,4 @@
-gtk+3.0 (2.99.2-1) UNRELEASED; urgency=low
+gtk+3.0 (2.99.2-1) experimental; urgency=low
 
   * New upstream release.
     + d/p/0001-stylecontext-Protect-the-cairo-contexts-with-cairo_s.patch
@@ -10,7 +10,7 @@ gtk+3.0 (2.99.2-1) UNRELEASED; urgency=low
     + debian/rules:
       - Bumped the shver.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 13 Jan 2011 16:51:07 +0000
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 13 Jan 2011 18:36:27 +0000
 
 gtk+3.0 (2.99.1-1) experimental; urgency=low
 
