@@ -1,7 +1,6 @@
 001_static-linking-dont-query-immodules.patch
 002_static-linking-dont-build-perf.patch
 003_gdk.pc_privates.patch
-006_reenable_pixbuf_engine.patch
 015_default-fallback-icon-theme.patch
 022_disable-viqr-im-for-vi-locale.patch
 041_ia32-libs.patch

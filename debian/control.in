@@ -31,8 +31,8 @@ Build-Depends: debhelper (>= 7.0.50~),
                libcairo2-dev (>= 1.10.0),
                x11proto-xext-dev,
                libcups2-dev (>= 1.2),
-               gobject-introspection (>= 0.9.12-4~),
-               libgirepository1.0-dev (>= 0.9.3),
+               gobject-introspection (>= 0.10.1),
+               libgirepository1.0-dev (>= 0.10.1),
                gir1.2-glib-2.0,
                gir1.2-freedesktop,
                gir1.2-atk-1.0,
@@ -204,20 +204,20 @@ Description: Examples files for the GTK+ 3.0
  This package contains the examples files and a demonstration program
  for the GTK+-3.0.
 
-Package: @PIXBUF_PKG@
-Section: graphics
-Architecture: any
-Depends: ${misc:Depends},
-         ${shlibs:Depends},
-         @SHARED_PKG@ (= ${binary:Version}),
-         @COMMON_PKG@
-Description: Pixbuf-based theme for GTK+ 3.x
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
- for projects ranging from small one-off tools to complete application
- suites.
- .
- This package contains the pixbuf theme engine.
+#Package: @PIXBUF_PKG@
+#Section: graphics
+#Architecture: any
+#Depends: ${misc:Depends},
+#         ${shlibs:Depends},
+#         @SHARED_PKG@ (= ${binary:Version}),
+#         @COMMON_PKG@
+#Description: Pixbuf-based theme for GTK+ 3.x
+# The GTK+ is a multi-platform toolkit for creating graphical user
+# interfaces. Offering a complete set of widgets, the GTK+ is suitable
+# for projects ranging from small one-off tools to complete application
+# suites.
+# .
+# This package contains the pixbuf theme engine.
 
 Package: gir1.2-gtk-3.0
 Architecture: any

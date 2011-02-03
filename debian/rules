@@ -128,13 +128,6 @@ clean:: debian/control
 build-indep: $(call dh_subst_files,$(DEB_INDEP_PACKAGES))
 build-arch: $(call dh_subst_files,$(DEB_ARCH_PACKAGES))
 
-binary-install/$(DEV_PKG)::
-	# Install the binaries with a -3.0 suffix
-	mv debian/$(DEV_PKG)/usr/bin/gtk-builder-convert \
-	   debian/$(DEV_PKG)/usr/bin/gtk-builder-convert-$(APIVER)
-	mv debian/$(DEV_PKG)/usr/share/man/man1/gtk-builder-convert.1 \
-	   debian/$(DEV_PKG)/usr/share/man/man1/gtk-builder-convert-$(APIVER).1
-
 binary-install/$(SHARED_PKG)::
 	# Install the binaries with a -3.0 suffix
 	mv debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache \
