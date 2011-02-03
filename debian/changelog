@@ -1,6 +1,17 @@
 gtk+3.0 (2.99.3-1) UNRELEASED; urgency=low
 
   * New upstream release.
+    + debian/control.in:
+      - Stop building the pixbuf package, it hasn't been ported to the
+        new style API so is useless.
+    + debian/patches/006_reenable_pixbuf_engine.patch:
+      - Removed, no longer necessary.
+    + debian/libgtk3.0-0.symbols:
+      - Updated.
+    + debian/libgtk3.0-dev.install.in,
+      debian/libgtk3.0-dev.manpages,
+      debian/rules:
+      - gtk-builder-convert is gone, stop shipping it.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 02 Feb 2011 22:00:08 +0000
 
