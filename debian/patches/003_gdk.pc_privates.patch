@@ -1,6 +1,8 @@
---- a/configure.ac
-+++ b/configure.ac
-@@ -1238,20 +1238,23 @@
+Index: gtk+-3.0.0/configure.ac
+===================================================================
+--- gtk+-3.0.0.orig/configure.ac	2011-02-14 11:28:49.000000000 +1100
++++ gtk+-3.0.0/configure.ac	2011-02-14 11:29:26.737459339 +1100
+@@ -1229,20 +1229,23 @@
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
@@ -28,12 +30,14 @@
  AC_SUBST(GDK_EXTRA_LIBS)
  AC_SUBST(GDK_EXTRA_CFLAGS)
  AC_SUBST(GDK_DEP_LIBS)
---- a/gdk-3.0.pc.in
-+++ b/gdk-3.0.pc.in
+Index: gtk+-3.0.0/gdk-3.0.pc.in
+===================================================================
+--- gtk+-3.0.0.orig/gdk-3.0.pc.in	2011-02-11 06:25:43.000000000 +1100
++++ gtk+-3.0.0/gdk-3.0.pc.in	2011-02-14 11:29:26.737459339 +1100
 @@ -8,5 +8,6 @@
  Description: GTK+ Drawing Kit
  Version: @VERSION@
  Requires: @GDK_PACKAGES@
 +Requires.private: @GDK_PRIVATE_PACKAGES@
- Libs: -L${libdir} -lgdk-@GTK_API_VERSION@ @GDK_EXTRA_LIBS@
+ Libs: -L${libdir} -lgdk-3 @GDK_EXTRA_LIBS@
  Cflags: -I${includedir}/gtk-@GTK_API_VERSION@ @GDK_EXTRA_CFLAGS@

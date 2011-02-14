@@ -1,6 +1,8 @@
---- a/gtk/gtktreeview.c
-+++ b/gtk/gtktreeview.c
-@@ -10096,7 +10096,8 @@
+Index: gtk+-3.0.0/gtk/gtktreeview.c
+===================================================================
+--- gtk+-3.0.0.orig/gtk/gtktreeview.c	2011-02-10 23:27:24.000000000 +1100
++++ gtk+-3.0.0/gtk/gtktreeview.c	2011-02-14 11:29:32.687354277 +1100
+@@ -10120,7 +10120,8 @@
  
        if (cursor_path)
  	{

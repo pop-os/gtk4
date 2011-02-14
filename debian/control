@@ -2,7 +2,7 @@ Source: gtk+3.0
 Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Sebastian Dröge <slomo@debian.org>, Sjoerd Simons <sjoerd@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Sjoerd Simons <sjoerd@debian.org>
 Build-Depends: debhelper (>= 7.0.50~),
                cdbs (>= 0.4.90~),
                gnome-pkg-tools (>= 0.11),
@@ -11,7 +11,7 @@ Build-Depends: debhelper (>= 7.0.50~),
                gettext,
                pkg-config,
                autotools-dev,
-               libglib2.0-dev (>= 2.27.5),
+               libglib2.0-dev (>= 2.28.0),
                libgdk-pixbuf2.0-dev (>= 2.22.1),
                libpango1.0-dev (>= 1.28.3-2),
                libatk1.0-dev (>= 1.32.0),
@@ -31,8 +31,8 @@ Build-Depends: debhelper (>= 7.0.50~),
                libcairo2-dev (>= 1.10.0),
                x11proto-xext-dev,
                libcups2-dev (>= 1.2),
-               gobject-introspection (>= 0.9.12-4~),
-               libgirepository1.0-dev (>= 0.9.3),
+               gobject-introspection (>= 0.10.1),
+               libgirepository1.0-dev (>= 0.10.1),
                gir1.2-glib-2.0,
                gir1.2-freedesktop,
                gir1.2-atk-1.0,
@@ -126,10 +126,10 @@ Depends: libgtk3.0-0 (= ${binary:Version}),
          libgtk3.0-common,
          ${misc:Depends},
          ${shlibs:Depends},
-         libglib2.0-dev (>= 2.27.5),
-         libgdk-pixbuf2.0-dev (>= 2.21.0),
+         libglib2.0-dev (>= 2.28.0),
+         libgdk-pixbuf2.0-dev (>= 2.22.1),
          libpango1.0-dev (>= 1.20),
-         libatk1.0-dev (>= 1.29.2),
+         libatk1.0-dev (>= 1.32.0),
          libcairo2-dev (>= 1.9.10),
          libx11-dev (>= 2:1.0.0-6),
          libxext-dev (>= 1:1.0.1-2),
@@ -204,20 +204,20 @@ Description: Examples files for the GTK+ 3.0
  This package contains the examples files and a demonstration program
  for the GTK+-3.0.
 
-Package: gtk3-engines-pixbuf
-Section: graphics
-Architecture: any
-Depends: ${misc:Depends},
-         ${shlibs:Depends},
-         libgtk3.0-0 (= ${binary:Version}),
-         libgtk3.0-common
-Description: Pixbuf-based theme for GTK+ 3.x
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
- for projects ranging from small one-off tools to complete application
- suites.
- .
- This package contains the pixbuf theme engine.
+#Package: gtk3-engines-pixbuf
+#Section: graphics
+#Architecture: any
+#Depends: ${misc:Depends},
+#         ${shlibs:Depends},
+#         libgtk3.0-0 (= ${binary:Version}),
+#         libgtk3.0-common
+#Description: Pixbuf-based theme for GTK+ 3.x
+# The GTK+ is a multi-platform toolkit for creating graphical user
+# interfaces. Offering a complete set of widgets, the GTK+ is suitable
+# for projects ranging from small one-off tools to complete application
+# suites.
+# .
+# This package contains the pixbuf theme engine.
 
 Package: gir1.2-gtk-3.0
 Architecture: any
