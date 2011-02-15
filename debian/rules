@@ -23,7 +23,7 @@ GNOME_MODULE = gtk+
 # Make the linker work a bit harder so dynamic loading can be done faster
 LDFLAGS += -Wl,-O1
 
-APIVER := 3.0
+APIVER := 3
 SONAME := 0
 SHVER := 3.0.0
 
@@ -39,18 +39,21 @@ GTK_BINARY_VERSION := 3.0.0
 # Gtk binary version virtual Provide
 GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION)
 
+# relative base directory for configuration
+CONFDIR := etc/gtk-3.0
+
 # relative base directory for all types of modules
-MODULES_BASE_PATH := $(LIBDIR)/gtk-$(APIVER)/$(GTK_BINARY_VERSION)
+MODULES_BASE_PATH := $(LIBDIR)/gtk-3.0/$(GTK_BINARY_VERSION)
 
 # package names
-SHARED_PKG := libgtk$(APIVER)-$(SONAME)
-COMMON_PKG := libgtk$(APIVER)-common
-DEV_PKG := libgtk$(APIVER)-dev
+SHARED_PKG := libgtk-$(APIVER)-$(SONAME)
+COMMON_PKG := libgtk-$(APIVER)-common
+DEV_PKG := libgtk-$(APIVER)-dev
 UDEB_PKG := $(SHARED_PKG)-udeb
-DOC_PKG := libgtk$(APIVER)-doc
-BIN_PKG := libgtk$(APIVER)-bin
+DOC_PKG := libgtk-$(APIVER)-doc
+BIN_PKG := libgtk-$(APIVER)-bin
 DEBUG_PKG := $(SHARED_PKG)-dbg
-EXAMPLES_PKG := gtk$(APIVER)-examples
+EXAMPLES_PKG := gtk-$(APIVER)-examples
 PIXBUF_PKG := gtk3-engines-pixbuf
 
 
@@ -86,9 +89,9 @@ DEB_MAKE_CHECK_TARGET = -k check || true
 DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
 DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
 DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
-DEB_DH_MAKESHLIBS_ARGS_libgail3.0-0 += -V"libgail3.0-0 (>= $(SHVER)), libgail3.0-common (>= $(SHVER))" -- -c4
+DEB_DH_MAKESHLIBS_ARGS_libgail-3-0 += -V"libgail-3-0 (>= $(SHVER)), libgail-3-common (>= $(SHVER))" -- -c4
 DEB_DH_FIXPERMS_ARGS_ALL += -X$(LIBDIR)/$(SHARED_PKG)
-DEB_DH_STRIP_ARGS = --dbg-package=$(if $(findstring libgail,$(cdbs_curpkg)),libgail3.0-0-dbg,$(DEBUG_PKG))
+DEB_DH_STRIP_ARGS = --dbg-package=$(if $(findstring libgail,$(cdbs_curpkg)),libgail-3-0-dbg,$(DEBUG_PKG))
 DEB_DH_STRIP_ARGS_$(UDEB_PKG) = --dbg-package=
 
 # macro computing the list of 'debian/<pkg>.*" files which have a
@@ -131,12 +134,12 @@ build-arch: $(call dh_subst_files,$(DEB_ARCH_PACKAGES))
 binary-install/$(SHARED_PKG)::
 	# Install the binaries with a -3.0 suffix
 	mv debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache \
-	   debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache-$(APIVER)
+	   debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache-3.0
 
 binary-install/$(BIN_PKG)::
 	# Install the binaries with a -3.0 suffix
 	mv debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache.1 \
-	   debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-$(APIVER).1
+	   debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-3.0.1
 
 binary-install/$(UDEB_PKG)::
 	# generate a minimal MIME cache for the udeb

@@ -53,17 +53,19 @@ Vcs-Svn: svn://svn.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-gnome/desktop/unstable/gtk+3.0/
 Homepage: http://www.gtk.org/
 
-Package: libgtk3.0-0
+Package: libgtk-3-0
 Architecture: any
-Depends: libgtk3.0-common,
+Depends: libgtk-3-common,
          ${misc:Depends},
          ${shlibs:Depends},
          shared-mime-info
 Provides: gtk3.0-binver-3.0.0
 Recommends: hicolor-icon-theme,
-            libgtk3.0-bin
+            libgtk-3-bin
 Suggests: librsvg2-common,
           gvfs
+Conflicts: libgtk3.0-0
+Replaces: libgtk3.0-0
 Description: The GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -72,7 +74,7 @@ Description: The GTK+ graphical user interface library
  .
  This package contains the shared libraries.
 
-Package: libgtk3.0-0-udeb
+Package: libgtk-3-0-udeb
 XC-Package-Type: udeb
 Section: debian-installer
 Priority: extra
@@ -80,6 +82,8 @@ Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
 Provides: gtk3.0-binver-3.0.0
+Conflicts: libgtk3.0-0-udeb
+Replaces: libgtk3.0-0-udeb
 Description: The GTK+ graphical user interface library - minimal runtime
  This is a udeb, or a microdeb, for the debian-installer.
  .
@@ -91,11 +95,13 @@ Description: The GTK+ graphical user interface library - minimal runtime
  This package contains the minimal runtime library using X11 needed
  by the Debian installer.
 
-Package: libgtk3.0-common
+Package: libgtk-3-common
 Section: misc
 Architecture: all
 Depends: ${misc:Depends}
-Recommends: libgtk3.0-0
+Recommends: libgtk-3-0
+Conflicts: libgtk3.0-common
+Replaces: libgtk3.0-common
 Description: Common files for the GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -104,12 +110,14 @@ Description: Common files for the GTK+ graphical user interface library
  .
  This package contains the common files which the libraries need.
 
-Package: libgtk3.0-bin
+Package: libgtk-3-bin
 Section: misc
 Architecture: all
 Depends: ${misc:Depends},
-         libgtk3.0-0 (>= ${source:Version}),
-         libgtk3.0-common
+         libgtk-3-0 (>= ${source:Version}),
+         libgtk-3-common
+Conflicts: libgtk3.0-bin
+Replaces: libgtk3.0-bin
 Description: The programs for the GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -119,11 +127,11 @@ Description: The programs for the GTK+ graphical user interface library
  This package contains the program files which is used for the libraries
  and others.
 
-Package: libgtk3.0-dev
+Package: libgtk-3-dev
 Section: libdevel
 Architecture: any
-Depends: libgtk3.0-0 (= ${binary:Version}),
-         libgtk3.0-common,
+Depends: libgtk-3-0 (= ${binary:Version}),
+         libgtk-3-common,
          ${misc:Depends},
          ${shlibs:Depends},
          libglib2.0-dev (>= 2.28.0),
@@ -144,7 +152,9 @@ Depends: libgtk3.0-0 (= ${binary:Version}),
          libxml2-utils
 Recommends: python (>= 2.4),
             debhelper
-Suggests: libgtk3.0-doc
+Suggests: libgtk-3-doc
+Conflicts: libgtk3.0-dev
+Replaces: libgtk3.0-dev
 Description: Development files for the GTK+ library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -154,13 +164,15 @@ Description: Development files for the GTK+ library
  This package contains the header files and static libraries which is
  needed for developing the GTK+ applications.
 
-Package: libgtk3.0-0-dbg
+Package: libgtk-3-0-dbg
 Section: debug
 Priority: extra
 Architecture: any
-Depends: libgtk3.0-0 (= ${binary:Version}),
-         libgtk3.0-common,
+Depends: libgtk-3-0 (= ${binary:Version}),
+         libgtk-3-common,
          ${misc:Depends}
+Conflicts: libgtk3.0-0-dbg
+Replaces: libgtk3.0-0-dbg
 Description: The GTK+ libraries and debugging symbols
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -171,7 +183,7 @@ Description: The GTK+ libraries and debugging symbols
  .
  Most people will not need this package.
 
-Package: libgtk3.0-doc
+Package: libgtk-3-doc
 Section: doc
 Architecture: all
 Depends: lynx | www-browser,
@@ -179,6 +191,8 @@ Depends: lynx | www-browser,
 Recommends: libglib2.0-doc,
             libatk1.0-doc,
             libpango1.0-doc
+Conflicts: libgtk3.0-doc
+Replaces: libgtk3.0-doc
 Description: Documentation for the GTK+ graphical user interface library
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -186,31 +200,33 @@ Description: Documentation for the GTK+ graphical user interface library
  suites.
  .
  This package contains the HTML documentation for the GTK+ library
- in /usr/share/doc/libgtk3.0-doc/ .
+ in /usr/share/doc/libgtk-3-doc/ .
 
-Package: gtk3.0-examples
+Package: gtk-3-examples
 Section: x11
 Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         libgtk3.0-0 (= ${binary:Version})
-Description: Examples files for the GTK+ 3.0
+         libgtk-3-0 (= ${binary:Version})
+Conflicts: gtk-3.0-examples
+Replaces: gtk-3.0-examples
+Description: Examples files for GTK+ 3
  The GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, the GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
  This package contains the examples files and a demonstration program
- for the GTK+-3.0.
+ for GTK+3.
 
 #Package: gtk3-engines-pixbuf
 #Section: graphics
 #Architecture: any
 #Depends: ${misc:Depends},
 #         ${shlibs:Depends},
-#         libgtk3.0-0 (= ${binary:Version}),
-#         libgtk3.0-common
+#         libgtk-3-0 (= ${binary:Version}),
+#         libgtk-3-common
 #Description: Pixbuf-based theme for GTK+ 3.x
 # The GTK+ is a multi-platform toolkit for creating graphical user
 # interfaces. Offering a complete set of widgets, the GTK+ is suitable
@@ -221,7 +237,7 @@ Description: Examples files for the GTK+ 3.0
 
 Package: gir1.2-gtk-3.0
 Architecture: any
-Depends: libgtk3.0-common,
+Depends: libgtk-3-common,
          ${misc:Depends},
          ${shlibs:Depends},
          ${gir:Depends}
@@ -236,11 +252,13 @@ Description: The GTK+ graphical user interface library -- gir bindings
  This package can be used by other packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: libgail3.0-0
+Package: libgail-3-0
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         libgtk3.0-0 (= ${binary:Version})
+         libgtk-3-0 (= ${binary:Version})
+Conflicts: libgail3.0-0
+Replaces: libgail3.0-0
 Description: GNOME Accessibility Implementation Library -- shared libraries
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -249,11 +267,13 @@ Description: GNOME Accessibility Implementation Library -- shared libraries
  .
  This package contains the shared library.
 
-Package: libgail3.0-common
+Package: libgail-3-common
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         libgail3.0-0 (= ${binary:Version})
+         libgail-3-0 (= ${binary:Version})
+Conflicts: libgail3.0-common
+Replaces: libgail3.0-common
 Description: GNOME Accessibility Implementation Library -- common modules
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -262,16 +282,18 @@ Description: GNOME Accessibility Implementation Library -- common modules
  .
  This package contains core shared libraries.
 
-Package: libgail3.0-dev
+Package: libgail-3-dev
 Architecture: any
 Section: libdevel
 Depends: ${misc:Depends},
-         libgail3.0-0 (= ${binary:Version}),
-         libgail3.0-common (= ${binary:Version}),
-         libgtk3.0-dev (= ${binary:Version}),
+         libgail-3-0 (= ${binary:Version}),
+         libgail-3-common (= ${binary:Version}),
+         libgtk-3-dev (= ${binary:Version}),
          pkg-config,
          libatk1.0-dev (>= 1.13.0)
-Suggests: libgail3.0-doc
+Suggests: libgail-3-doc
+Conflicts: libgail3.0-dev
+Replaces: libgail3.0-dev
 Description: GNOME Accessibility Implementation Library -- development files
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -280,12 +302,14 @@ Description: GNOME Accessibility Implementation Library -- development files
  .
  This package contains the development files for Gail.
 
-Package: libgail3.0-0-dbg
+Package: libgail-3-0-dbg
 Architecture: any
 Section: debug
 Priority: extra
-Depends: ${misc:Depends}, libgail3.0-0 (= ${binary:Version})
-Recommends: libgtk3.0-0-dbg
+Depends: ${misc:Depends}, libgail-3-0 (= ${binary:Version})
+Recommends: libgtk-3-0-dbg
+Conflicts: libgail3.0-0-dbg
+Replaces: libgail3.0-0-dbg
 Description: Gail libraries and debugging symbols
  Gail is the "GNOME Accessibility Implementation Library".
  .
@@ -293,10 +317,12 @@ Description: Gail libraries and debugging symbols
  .
  Most people will not need this package.
 
-Package: libgail3.0-doc
+Package: libgail-3-doc
 Architecture: all
 Section: doc
 Depends: ${misc:Depends}, lynx | www-browser
+Conflicts: libgail3.0-doc
+Replaces: libgail3.0-doc
 Description: documentation files of the Gail library
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
