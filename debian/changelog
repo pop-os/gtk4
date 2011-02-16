@@ -1,5 +1,6 @@
 gtk+3.0 (3.0.0-1) UNRELEASED; urgency=low
 
+  [ Robert Ancell ]
   * New upstream release
   * Rename binary packages to new so naming
   * debian/control:
@@ -11,6 +12,9 @@ gtk+3.0 (3.0.0-1) UNRELEASED; urgency=low
     - Mark symbols with stable version number
   * debian/rules:
     - Bump SHVER
+
+  [ Emilio Pozuelo Monfort ]
+  * Fix some leftovers after the renaming.
 
  -- Robert Ancell <robert.ancell@canonical.com>  Tue, 15 Feb 2011 12:28:34 +1100
 

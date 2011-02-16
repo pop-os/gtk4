@@ -1,1 +1,1 @@
-debian/install/shared/@LIBDIR@/gtk-@APIVER@/modules/*.so @LIBDIR@/gtk-@APIVER@/modules
+debian/install/shared/@LIBDIR@/gtk-3.0/modules/*.so @LIBDIR@/gtk-3.0/modules
