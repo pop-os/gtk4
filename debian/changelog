@@ -1,4 +1,4 @@
-gtk+3.0 (3.0.0-1) UNRELEASED; urgency=low
+gtk+3.0 (3.0.0-1) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release.
@@ -30,7 +30,7 @@ gtk+3.0 (3.0.0-1) UNRELEASED; urgency=low
   [ Emilio Pozuelo Monfort ]
   * Fix some leftovers after the renaming.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 02 Feb 2011 22:00:08 +0000
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 19 Feb 2011 11:40:36 +0000
 
 gtk+3.0 (2.99.2-1) experimental; urgency=low
 
