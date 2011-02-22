@@ -1,3 +1,11 @@
+gtk+3.0 (3.0.0-2) UNRELEASED; urgency=low
+
+  * debian/libgtk-3-bin.postrm:
+  * debian/libgtk-3-bin.preinst:
+    - Fix package name used in diversion
+
+ -- Robert Ancell <robert.ancell@canonical.com>  Tue, 22 Feb 2011 14:31:52 +1100
+
 gtk+3.0 (3.0.0-1) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]
