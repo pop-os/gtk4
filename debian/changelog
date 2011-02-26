@@ -1,10 +1,10 @@
-gtk+3.0 (3.0.1-2) UNRELEASED; urgency=low
+gtk+3.0 (3.0.1-2) experimental; urgency=low
 
   * debian/patches/080_prevent_invalid_free.patch
     - Added. Prevent invalid free on double/tripple click events (from upstream
       git)
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sat, 26 Feb 2011 11:26:22 +0000
+ -- Sjoerd Simons <sjoerd@debian.org>  Sat, 26 Feb 2011 16:02:13 +0000
 
 gtk+3.0 (3.0.1-1) experimental; urgency=low
 
