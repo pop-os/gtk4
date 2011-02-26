@@ -6,3 +6,4 @@
 041_ia32-libs.patch
 042_treeview_single-focus.patch
 060_ignore-random-icons.patch
+080_prevent_invalid_free.patch
