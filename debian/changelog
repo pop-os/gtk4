@@ -1,3 +1,11 @@
+gtk+3.0 (3.0.2-1) UNRELEASED; urgency=low
+
+  * New upstream release
+  * debian/patches/080_prevent_invalid_free.patch
+    - Removed. fixed upstream
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Wed, 09 Mar 2011 23:03:11 +0000
+
 gtk+3.0 (3.0.1-2) experimental; urgency=low
 
   * debian/patches/080_prevent_invalid_free.patch
