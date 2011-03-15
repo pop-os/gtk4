@@ -1,3 +1,11 @@
+gtk+3.0 (3.0.3-1) experimental; urgency=low
+
+  * New upstream release.
+    + debian/control.in:
+      - Bump minimum libpango1.0-dev dependency.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 14 Mar 2011 23:34:09 +0000
+
 gtk+3.0 (3.0.2-1) experimental; urgency=low
 
   * New upstream release
