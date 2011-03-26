@@ -1,3 +1,13 @@
+gtk+3.0 (3.0.6-1) experimental; urgency=low
+
+  * New upstream release.
+    + debian/libgtk-3-0.symbols:
+      - Updated.
+  * debian/control.in:
+    + Tighten libatk1.0-dev b-d to make sure we get an Atk-1.0.gir file.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 26 Mar 2011 00:00:41 +0000
+
 gtk+3.0 (3.0.3-1) experimental; urgency=low
 
   * New upstream release.

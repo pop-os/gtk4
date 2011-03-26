@@ -548,6 +548,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_window_get_xid@Base 3.0.0
  gdk_x11_window_lookup_for_display@Base 3.0.0
  gdk_x11_window_move_to_current_desktop@Base 3.0.0
+ gdk_x11_window_set_theme_variant_gtk_only@Base 3.0.6
  gdk_x11_window_set_user_time@Base 3.0.0
  gdk_x11_xatom_to_atom@Base 3.0.0
  gdk_x11_xatom_to_atom_for_display@Base 3.0.0
