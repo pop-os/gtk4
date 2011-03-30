@@ -1,3 +1,9 @@
+gtk+3.0 (3.0.6-2) UNRELEASED; urgency=low
+
+  * Make the -dev package depend on the gir package.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 30 Mar 2011 18:21:19 +0200
+
 gtk+3.0 (3.0.6-1) experimental; urgency=low
 
   * New upstream release.

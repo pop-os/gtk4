@@ -131,6 +131,7 @@ Package: @DEV_PKG@
 Section: libdevel
 Architecture: any
 Depends: @SHARED_PKG@ (= ${binary:Version}),
+         gir1.2-gtk-3.0 (= ${binary:Version}),
          @COMMON_PKG@,
          ${misc:Depends},
          ${shlibs:Depends},
