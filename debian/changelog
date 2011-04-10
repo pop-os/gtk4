@@ -4,6 +4,7 @@ gtk+3.0 (3.0.8-1) unstable; urgency=low
   * New upstream release.
   * Drop the mimeinfo.cache from the udeb, it’s been moved to
     gdk-pixbuf.
+  * Upload to unstable; drop check-dist include.
 
  -- Josselin Mouette <joss@debian.org>  Sun, 10 Apr 2011 18:29:44 +0200
 
