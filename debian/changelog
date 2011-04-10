@@ -1,8 +1,11 @@
-gtk+3.0 (3.0.6-2) UNRELEASED; urgency=low
+gtk+3.0 (3.0.8-1) unstable; urgency=low
 
   * Make the -dev package depend on the gir package.
+  * New upstream release.
+  * Drop the mimeinfo.cache from the udeb, it’s been moved to
+    gdk-pixbuf.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 30 Mar 2011 18:21:19 +0200
+ -- Josselin Mouette <joss@debian.org>  Sun, 10 Apr 2011 18:29:44 +0200
 
 gtk+3.0 (3.0.6-1) experimental; urgency=low
 

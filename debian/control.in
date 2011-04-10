@@ -38,9 +38,7 @@ Build-Depends: debhelper (>= 7.0.50~),
                gir1.2-atk-1.0,
                gir1.2-pango-1.0,
                gir1.2-gdkpixbuf-2.0,
-               gawk,
-               xsltproc,
-               shared-mime-info
+               gawk
 Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      docbook-xml,
                      docbook-utils,

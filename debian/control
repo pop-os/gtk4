@@ -2,7 +2,7 @@ Source: gtk+3.0
 Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
-Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Sjoerd Simons <sjoerd@debian.org>
+Uploaders: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Josselin Mouette <joss@debian.org>, Sjoerd Simons <sjoerd@debian.org>
 Build-Depends: debhelper (>= 7.0.50~),
                cdbs (>= 0.4.90~),
                gnome-pkg-tools (>= 0.11),
@@ -38,9 +38,7 @@ Build-Depends: debhelper (>= 7.0.50~),
                gir1.2-atk-1.0,
                gir1.2-pango-1.0,
                gir1.2-gdkpixbuf-2.0,
-               gawk,
-               xsltproc,
-               shared-mime-info
+               gawk
 Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      docbook-xml,
                      docbook-utils,
