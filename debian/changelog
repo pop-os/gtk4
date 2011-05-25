@@ -1,6 +1,11 @@
 gtk+3.0 (3.0.8-2) UNRELEASED; urgency=low
 
+  [ Josselin Mouette ]
   * libgtk-3-0.postrm.in: fix badly written test.
+
+  [ Fabian Greffrath ]
+  * Remove leftover diversions from the libgtk3.0-bin package
+    that got replaced by libgtk-3-bin (Closes: #617662 ).
 
  -- Josselin Mouette <joss@debian.org>  Sun, 10 Apr 2011 22:27:08 +0200
 
