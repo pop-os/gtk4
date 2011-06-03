@@ -46,7 +46,7 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      libatk1.0-doc,
                      libpango1.0-doc,
                      libcairo2-doc
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Vcs-Svn: svn://svn.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-gnome/desktop/unstable/gtk+3.0/
 Homepage: http://www.gtk.org/
