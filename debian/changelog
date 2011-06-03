@@ -13,6 +13,8 @@ gtk+3.0 (3.0.10-1) UNRELEASED; urgency=low
   * Refresh patches.
   * Bump Standards-Version to 3.9.2. No further changes.
   * Bump debhelper compatibility level to 8. Update Build-Depends accordingly.
+  * Drop Build-Depends on dpkg-dev (>= 1.13.19). Even lenny has a more recent
+    version.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 03 Jun 2011 22:49:08 +0200
 
