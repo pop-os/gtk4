@@ -74,3 +74,18 @@ Index: gtk+-3.0.10/gtk/gtknotebook.c
  static GList*
  get_tab_at_pos (GtkNotebook *notebook, gint x, gint y)
  {
+Index: gtk+-3.0.10/gtk/gtkscrolledwindow.c
+===================================================================
+--- gtk+-3.0.10.orig/gtk/gtkscrolledwindow.c	2011-06-05 00:19:33.742377450 +0200
++++ gtk+-3.0.10/gtk/gtkscrolledwindow.c	2011-06-05 00:21:13.962867404 +0200
+@@ -1850,6 +1850,10 @@ gtk_scrolled_window_scroll_event (GtkWid
+   scrolled_window = GTK_SCROLLED_WINDOW (widget);
+   priv = scrolled_window->priv;
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   if (event->direction == GDK_SCROLL_UP || event->direction == GDK_SCROLL_DOWN)
+     range = priv->vscrollbar;
+   else
