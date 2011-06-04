@@ -5,4 +5,5 @@
 022_disable-viqr-im-for-vi-locale.patch
 041_ia32-libs.patch
 042_treeview_single-focus.patch
+043_notebook_scroll.patch
 060_ignore-random-icons.patch

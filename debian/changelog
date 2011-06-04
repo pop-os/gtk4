@@ -1,4 +1,4 @@
-gtk+3.0 (3.0.10-1) UNRELEASED; urgency=low
+gtk+3.0 (3.0.10-1) unstable; urgency=low
 
   [ Josselin Mouette ]
   * libgtk-3-0.postrm.in: fix badly written test.
@@ -18,7 +18,15 @@ gtk+3.0 (3.0.10-1) UNRELEASED; urgency=low
   * Update package descriptions.
   * Drop debian/gruik2devhelp.awk and Build-Depends on gawk, obsolete.
 
- -- Michael Biebl <biebl@debian.org>  Sat, 04 Jun 2011 01:44:27 +0200
+  [ Josselin Mouette ]
+  * 043_notebook_scroll.patch: new patch. Reintroduce tab scrolling in 
+    GtkNotebook, but this time only when Alt is pressed, as recommended 
+    by upstream.
+  * Drop debhelper 8 requirement so that it can build.
+  * libgtk-3-bin.preinst: only remove libgtk3.0-bin diversions if they 
+    already exist.
+
+ -- Josselin Mouette <joss@debian.org>  Sat, 04 Jun 2011 22:51:06 +0200
 
 gtk+3.0 (3.0.8-1) unstable; urgency=low
 
