@@ -12,7 +12,6 @@ gtk+3.0 (3.0.10-1) unstable; urgency=low
   * New upstream release.
   * Refresh patches.
   * Bump Standards-Version to 3.9.2. No further changes.
-  * Bump debhelper compatibility level to 8. Update Build-Depends accordingly.
   * Drop Build-Depends on dpkg-dev (>= 1.13.19). Even lenny has a more recent
     version.
   * Update package descriptions.
@@ -21,7 +20,7 @@ gtk+3.0 (3.0.10-1) unstable; urgency=low
   [ Josselin Mouette ]
   * 043_notebook_scroll.patch: new patch. Reintroduce tab scrolling in 
     GtkNotebook, but this time only when Alt is pressed, as recommended 
-    by upstream.
+    by upstream, and from the whole notebook area.
   * Drop debhelper 8 requirement so that it can build.
   * libgtk-3-bin.preinst: only remove libgtk3.0-bin diversions if they 
     already exist.
