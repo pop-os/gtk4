@@ -210,7 +210,7 @@ Conflicts: gtk-3.0-examples
 Replaces: gtk-3.0-examples
 Description: example files for GTK+ 3
  GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
