@@ -1,6 +1,7 @@
 gtk+3.0 (3.0.11-1) UNRELEASED; urgency=low
 
   * New upstream release.
+  * debian/patches/044_tracker_fts.patch: Enable Tracker full text search.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 01 Jul 2011 07:28:35 +0200
 

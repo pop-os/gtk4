@@ -6,4 +6,5 @@
 041_ia32-libs.patch
 042_treeview_single-focus.patch
 043_notebook_scroll.patch
+044_tracker_fts.patch
 060_ignore-random-icons.patch
