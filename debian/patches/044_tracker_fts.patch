@@ -1,0 +1,17 @@
+Description: Enable tracker full text search
+ Tracker in Debian is compiled with FTS support, so we make use of that in
+ GTK3's file selector dialog.
+ This way files can be found by their content and not only their file name.
+Index: gtk+-3.0.11/gtk/gtksearchenginetracker.c
+===================================================================
+--- gtk+-3.0.11.orig/gtk/gtksearchenginetracker.c	2011-07-01 07:24:25.774613240 +0200
++++ gtk+-3.0.11/gtk/gtksearchenginetracker.c	2011-07-01 07:24:46.346354619 +0200
+@@ -34,7 +34,7 @@
+  * use filename matching instead. This doesn't use the content of the
+  * file however.
+  */
+-#undef FTS_MATCHING
++#define FTS_MATCHING
+ 
+ #define MODULE_FILENAME "libtracker-sparql-0.10.so.0"
+ 
