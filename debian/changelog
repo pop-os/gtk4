@@ -1,11 +1,11 @@
-gtk+3.0 (3.0.11-1) UNRELEASED; urgency=low
+gtk+3.0 (3.0.11-1) unstable; urgency=low
 
   * New upstream release.
     - Fixes infinite-loop in GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER.
-      (Closes: 628457)
+      (Closes: #628457)
   * debian/patches/044_tracker_fts.patch: Enable Tracker full text search.
 
- -- Michael Biebl <biebl@debian.org>  Fri, 01 Jul 2011 07:28:35 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 14 Jul 2011 14:45:24 +0200
 
 gtk+3.0 (3.0.10-1) unstable; urgency=low
 
