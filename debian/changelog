@@ -1,11 +1,11 @@
-gtk+3.0 (3.0.12-1) UNRELEASED; urgency=low
+gtk+3.0 (3.0.12-1) unstable; urgency=low
 
   * New upstream release.
     - GdkKeymap: Prevent an infinite loop in the non-XKB case.
       (Closes: #633917)
   * Stop installing libtool .la files.
 
- -- Michael Biebl <biebl@debian.org>  Fri, 22 Jul 2011 23:03:25 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 28 Jul 2011 12:45:04 +0200
 
 gtk+3.0 (3.0.11-1) unstable; urgency=low
 
