@@ -51,7 +51,7 @@ Homepage: http://www.gtk.org/
 
 Package: @SHARED_PKG@
 Architecture: any
-Depends: @COMMON_PKG@,
+Depends: @COMMON_PKG@ (= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          shared-mime-info
@@ -111,7 +111,7 @@ Section: misc
 Architecture: all
 Depends: ${misc:Depends},
          @SHARED_PKG@ (>= ${source:Version}),
-         @COMMON_PKG@
+         @COMMON_PKG@ (= ${source:Version})
 Conflicts: libgtk3.0-bin
 Replaces: libgtk3.0-bin
 Description: programs for the GTK+ graphical user interface library
