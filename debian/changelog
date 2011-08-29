@@ -1,4 +1,4 @@
-gtk+3.0 (3.0.12-2) unstable; urgency=low
+gtk+3.0 (3.0.12-2) UNRELEASED; urgency=low
 
   [ Josselin Mouette ]
   * Tighten dependencies on libgtk-3-common. Closes: #636766.
