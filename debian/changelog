@@ -1,8 +1,14 @@
 gtk+3.0 (3.0.12-2) UNRELEASED; urgency=low
 
+  [ Josselin Mouette ]
   * Tighten dependencies on libgtk-3-common. Closes: #636766.
 
- -- Josselin Mouette <joss@debian.org>  Fri, 19 Aug 2011 09:30:24 +0200
+  [ Michael Biebl ]
+  * debian/patches/045_trayicon-visual.patch: Fix assertion in trayicon-x11
+    when visual is not available. Thanks to Vincent Bernat for the patch.
+    Closes: #637067
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 30 Aug 2011 00:12:20 +0200
 
 gtk+3.0 (3.0.12-1) unstable; urgency=low
 

@@ -7,4 +7,5 @@
 042_treeview_single-focus.patch
 043_notebook_scroll.patch
 044_tracker_fts.patch
+045_trayicon-visual.patch
 060_ignore-random-icons.patch
