@@ -9,6 +9,7 @@ gtk+3.0 (3.0.12-2) UNRELEASED; urgency=low
     Closes: #637067
   * debian/libgail-3-0.symbols: Remove trailing empty line which confuses
     dpkg-gensymbols.
+  * Bump debhelper compatibility level to 8.
 
  -- Michael Biebl <biebl@debian.org>  Tue, 30 Aug 2011 00:16:16 +0200
 

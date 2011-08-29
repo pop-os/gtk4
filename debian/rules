@@ -86,7 +86,7 @@ DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
 DEB_DH_MAKESHLIBS_ARGS_libgail-3-0 += -V"libgail-3-0 (>= $(SHVER)), libgail-3-common (>= $(SHVER))" -- -c4
 DEB_DH_FIXPERMS_ARGS_ALL += -X$(LIBDIR)/$(SHARED_PKG)
 DEB_DH_STRIP_ARGS = --dbg-package=$(if $(findstring libgail,$(cdbs_curpkg)),libgail-3-0-dbg,$(DEBUG_PKG))
-DEB_DH_STRIP_ARGS_$(UDEB_PKG) = --dbg-package=
+DEB_DH_STRIP_ARGS_$(UDEB_PKG) =
 
 # macro computing the list of 'debian/<pkg>.*" files which have a
 # corresponding ".in" file; pass the list of packages in $(1)
