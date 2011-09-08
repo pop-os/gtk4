@@ -1,9 +1,11 @@
-gtk+3.0 (3.0.12-3) UNRELEASED; urgency=low
+gtk+3.0 (3.0.12-3) unstable; urgency=low
 
   * 030_xim-modules.patch: stolen from upstream git. Fix the behavior of 
     XIM modules. Closes: #633720.
+  * 043_notebook_scroll.patch: handle a few more widgets to avoid 
+    alt+scroll being intercepted by ranges, spin buttons, combo boxes…
 
- -- Josselin Mouette <joss@debian.org>  Sun, 04 Sep 2011 15:36:14 +0200
+ -- Josselin Mouette <joss@debian.org>  Thu, 08 Sep 2011 13:01:03 +0200
 
 gtk+3.0 (3.0.12-2) unstable; urgency=low
 
