@@ -1,6 +1,5 @@
 # from the shared flavor
 debian/install/shared/usr/include/gtk* usr/include
-debian/install/shared/@LIBDIR@/libg?k*.la @LIBDIR@
 debian/install/shared/@LIBDIR@/libg?k*.so @LIBDIR@
 debian/install/shared/@LIBDIR@/pkgconfig/g?k* @LIBDIR@/pkgconfig
 debian/install/shared/usr/share/aclocal usr/share

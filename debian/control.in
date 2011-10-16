@@ -3,10 +3,9 @@ Section: libs
 Priority: optional
 Maintainer: Sebastien Bacher <seb128@debian.org>
 Uploaders: @GNOME_TEAM@
-Build-Depends: debhelper (>= 7.0.50~),
+Build-Depends: debhelper (>= 8),
                cdbs (>= 0.4.90~),
                gnome-pkg-tools (>= 0.11),
-               dpkg-dev (>= 1.13.19),
                dh-autoreconf,
                gettext,
                pkg-config,
@@ -37,10 +36,7 @@ Build-Depends: debhelper (>= 7.0.50~),
                gir1.2-freedesktop,
                gir1.2-atk-1.0,
                gir1.2-pango-1.0,
-               gir1.2-gdkpixbuf-2.0,
-               gawk,
-               xsltproc,
-               shared-mime-info
+               gir1.2-gdkpixbuf-2.0
 Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      docbook-xml,
                      docbook-utils,
@@ -48,14 +44,14 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.8),
                      libatk1.0-doc,
                      libpango1.0-doc,
                      libcairo2-doc
-Standards-Version: 3.9.1
+Standards-Version: 3.9.2
 Vcs-Svn: svn://svn.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
 Vcs-Browser: http://svn.debian.org/wsvn/pkg-gnome/desktop/unstable/gtk+3.0/
 Homepage: http://www.gtk.org/
 
 Package: @SHARED_PKG@
 Architecture: any
-Depends: @COMMON_PKG@,
+Depends: @COMMON_PKG@ (= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          shared-mime-info
@@ -66,9 +62,9 @@ Suggests: librsvg2-common,
           gvfs
 Conflicts: libgtk3.0-0
 Replaces: libgtk3.0-0
-Description: The GTK+ graphical user interface library
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+Description: GTK+ graphical user interface library
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -84,11 +80,11 @@ Depends: ${shlibs:Depends},
 Provides: @GTK_BINVER_DEP@
 Conflicts: libgtk3.0-0-udeb
 Replaces: libgtk3.0-0-udeb
-Description: The GTK+ graphical user interface library - minimal runtime
+Description: GTK+ graphical user interface library - minimal runtime
  This is a udeb, or a microdeb, for the debian-installer.
  .
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -102,9 +98,9 @@ Depends: ${misc:Depends}
 Recommends: @SHARED_PKG@
 Conflicts: libgtk3.0-common
 Replaces: libgtk3.0-common
-Description: Common files for the GTK+ graphical user interface library
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+Description: common files for the GTK+ graphical user interface library
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -115,17 +111,17 @@ Section: misc
 Architecture: all
 Depends: ${misc:Depends},
          @SHARED_PKG@ (>= ${source:Version}),
-         @COMMON_PKG@
+         @COMMON_PKG@ (= ${source:Version})
 Conflicts: libgtk3.0-bin
 Replaces: libgtk3.0-bin
-Description: The programs for the GTK+ graphical user interface library
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+Description: programs for the GTK+ graphical user interface library
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
- This package contains the program files which is used for the libraries
- and others.
+ This package contains the utilities which are used by the libraries
+ and other packages.
 
 Package: @DEV_PKG@
 Section: libdevel
@@ -156,14 +152,14 @@ Recommends: python (>= 2.4),
 Suggests: @DOC_PKG@
 Conflicts: libgtk3.0-dev
 Replaces: libgtk3.0-dev
-Description: Development files for the GTK+ library
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+Description: development files for the GTK+ library
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
- This package contains the header files and static libraries which is
- needed for developing the GTK+ applications.
+ This package contains the header files and static libraries which are
+ needed for developing GTK+ applications.
 
 Package: @DEBUG_PKG@
 Section: debug
@@ -174,9 +170,9 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          ${misc:Depends}
 Conflicts: libgtk3.0-0-dbg
 Replaces: libgtk3.0-0-dbg
-Description: The GTK+ libraries and debugging symbols
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+Description: GTK+ libraries and debugging symbols
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -194,9 +190,9 @@ Recommends: libglib2.0-doc,
             libpango1.0-doc
 Conflicts: libgtk3.0-doc
 Replaces: libgtk3.0-doc
-Description: Documentation for the GTK+ graphical user interface library
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+Description: documentation for the GTK+ graphical user interface library
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -212,13 +208,13 @@ Depends: ${shlibs:Depends},
          @SHARED_PKG@ (= ${binary:Version})
 Conflicts: gtk-3.0-examples
 Replaces: gtk-3.0-examples
-Description: Examples files for GTK+ 3
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+Description: example files for GTK+ 3
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
- This package contains the examples files and a demonstration program
+ This package contains the example files and a demonstration program
  for GTK+3.
 
 #Package: @PIXBUF_PKG@
@@ -228,9 +224,9 @@ Description: Examples files for GTK+ 3
 #         ${shlibs:Depends},
 #         @SHARED_PKG@ (= ${binary:Version}),
 #         @COMMON_PKG@
-#Description: Pixbuf-based theme for GTK+ 3.x
-# The GTK+ is a multi-platform toolkit for creating graphical user
-# interfaces. Offering a complete set of widgets, the GTK+ is suitable
+#Description: pixbuf-based theme for GTK+ 3.x
+# GTK+ is a multi-platform toolkit for creating graphical user
+# interfaces. Offering a complete set of widgets, GTK+ is suitable
 # for projects ranging from small one-off tools to complete application
 # suites.
 # .
@@ -244,9 +240,9 @@ Depends: @COMMON_PKG@,
          ${gir:Depends}
 Conflicts: gir1.0-gtk-3.0
 Replaces: gir1.0-gtk-3.0
-Description: The GTK+ graphical user interface library -- gir bindings
- The GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, the GTK+ is suitable
+Description: GTK+ graphical user interface library -- gir bindings
+ GTK+ is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .

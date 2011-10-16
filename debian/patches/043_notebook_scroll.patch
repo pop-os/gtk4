@@ -1,0 +1,211 @@
+Reverts ad48f4d52bbac6139dd829fcc421ad16441f34d2
+Add back the feature but in a different way:
+* requires the Alt modifier
+* works from the whole area
+See GNOME #630226 and #145244
+
+Index: gtk+-3.0.12/gtk/gtknotebook.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtknotebook.c	2011-07-28 03:34:32.000000000 +0200
++++ gtk+-3.0.12/gtk/gtknotebook.c	2011-09-08 12:38:18.401719595 +0200
+@@ -338,6 +338,8 @@ static void gtk_notebook_size_allocate
+                                               GtkAllocation    *allocation);
+ static gint gtk_notebook_draw                (GtkWidget        *widget,
+                                               cairo_t          *cr);
++static gboolean gtk_notebook_scroll          (GtkWidget        *widget,
++                                              GdkEventScroll   *event);
+ static gint gtk_notebook_button_press        (GtkWidget        *widget,
+                                               GdkEventButton   *event);
+ static gint gtk_notebook_button_release      (GtkWidget        *widget,
+@@ -639,6 +641,7 @@ gtk_notebook_class_init (GtkNotebookClas
+   widget_class->get_preferred_height = gtk_notebook_get_preferred_height;
+   widget_class->size_allocate = gtk_notebook_size_allocate;
+   widget_class->draw = gtk_notebook_draw;
++  widget_class->scroll_event = gtk_notebook_scroll;
+   widget_class->button_press_event = gtk_notebook_button_press;
+   widget_class->button_release_event = gtk_notebook_button_release;
+   widget_class->popup_menu = gtk_notebook_popup_menu;
+@@ -1857,7 +1860,8 @@ gtk_notebook_realize (GtkWidget *widget)
+   attributes.event_mask = gtk_widget_get_events (widget);
+   attributes.event_mask |= (GDK_BUTTON_PRESS_MASK |
+                             GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK |
+-                            GDK_POINTER_MOTION_MASK | GDK_LEAVE_NOTIFY_MASK);
++                            GDK_POINTER_MOTION_MASK | GDK_LEAVE_NOTIFY_MASK |
++                            GDK_SCROLL_MASK);
+   attributes_mask = GDK_WA_X | GDK_WA_Y;
+ 
+   priv->event_window = gdk_window_new (gtk_widget_get_parent_window (widget),
+@@ -2712,6 +2716,38 @@ get_widget_coordinates (GtkWidget *widge
+     return FALSE;
+ }
+ 
++static gboolean
++gtk_notebook_scroll (GtkWidget      *widget,
++                     GdkEventScroll *event)
++{
++  GtkNotebook *notebook = GTK_NOTEBOOK (widget);
++  GtkNotebookPrivate *priv = notebook->priv;
++  gint i;
++
++  if (!priv->cur_page)
++    return FALSE;
++
++  /* Only actually scroll when Mod1 is pressed.
++     This allows us to scroll from the page contents
++     or the action area too */
++  if (!(event->state & GDK_MOD1_MASK))
++    return FALSE;
++
++  switch (event->direction)
++    {
++    case GDK_SCROLL_RIGHT:
++    case GDK_SCROLL_DOWN:
++      gtk_notebook_next_page (notebook);
++      break;
++    case GDK_SCROLL_LEFT:
++    case GDK_SCROLL_UP:
++      gtk_notebook_prev_page (notebook);
++      break;
++    }
++
++  return TRUE;
++}
++
+ static GList*
+ get_tab_at_pos (GtkNotebook *notebook, gint x, gint y)
+ {
+Index: gtk+-3.0.12/gtk/gtkscrolledwindow.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtkscrolledwindow.c	2011-07-28 03:34:32.000000000 +0200
++++ gtk+-3.0.12/gtk/gtkscrolledwindow.c	2011-09-08 12:38:18.401719595 +0200
+@@ -1850,6 +1850,10 @@ gtk_scrolled_window_scroll_event (GtkWid
+   scrolled_window = GTK_SCROLLED_WINDOW (widget);
+   priv = scrolled_window->priv;
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   if (event->direction == GDK_SCROLL_UP || event->direction == GDK_SCROLL_DOWN)
+     range = priv->vscrollbar;
+   else
+Index: gtk+-3.0.12/gtk/gtkcalendar.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtkcalendar.c	2011-09-08 12:39:50.070167726 +0200
++++ gtk+-3.0.12/gtk/gtkcalendar.c	2011-09-08 12:49:25.132979061 +0200
+@@ -3159,6 +3159,10 @@ gtk_calendar_scroll (GtkWidget      *wid
+ {
+   GtkCalendar *calendar = GTK_CALENDAR (widget);
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   if (event->direction == GDK_SCROLL_UP)
+     {
+       if (!gtk_widget_has_focus (widget))
+Index: gtk+-3.0.12/gtk/gtkcombobox.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtkcombobox.c	2011-09-08 12:49:55.565127840 +0200
++++ gtk+-3.0.12/gtk/gtkcombobox.c	2011-09-08 12:50:41.137350626 +0200
+@@ -2919,6 +2919,10 @@ gtk_combo_box_scroll_event (GtkWidget
+   GtkTreeIter iter;
+   GtkTreeIter new_iter;
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   if (!gtk_combo_box_get_active_iter (combo_box, &iter))
+     return TRUE;
+ 
+Index: gtk+-3.0.12/gtk/gtkmenu.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtkmenu.c	2011-09-08 12:49:55.613128071 +0200
++++ gtk+-3.0.12/gtk/gtkmenu.c	2011-09-08 12:51:49.877686681 +0200
+@@ -3967,6 +3967,10 @@ gtk_menu_scroll (GtkWidget      *widget,
+ {
+   GtkMenu *menu = GTK_MENU (widget);
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   switch (event->direction)
+     {
+     case GDK_SCROLL_RIGHT:
+Index: gtk+-3.0.12/gtk/gtkpathbar.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtkpathbar.c	2011-09-08 12:52:56.090010373 +0200
++++ gtk+-3.0.12/gtk/gtkpathbar.c	2011-09-08 12:53:30.554178865 +0200
+@@ -735,6 +735,10 @@ static gboolean
+ gtk_path_bar_scroll (GtkWidget      *widget,
+ 		     GdkEventScroll *event)
+ {
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   switch (event->direction)
+     {
+     case GDK_SCROLL_RIGHT:
+Index: gtk+-3.0.12/gtk/gtkrange.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtkrange.c	2011-09-08 12:52:56.142010629 +0200
++++ gtk+-3.0.12/gtk/gtkrange.c	2011-09-08 12:54:02.798336499 +0200
+@@ -2744,6 +2744,10 @@ gtk_range_scroll_event (GtkWidget      *
+   GtkRange *range = GTK_RANGE (widget);
+   GtkRangePrivate *priv = range->priv;
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   if (gtk_widget_get_realized (widget))
+     {
+       gdouble delta;
+Index: gtk+-3.0.12/gtk/gtkscalebutton.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtkscalebutton.c	2011-09-08 12:52:56.198010906 +0200
++++ gtk+-3.0.12/gtk/gtkscalebutton.c	2011-09-08 12:54:44.350539638 +0200
+@@ -845,6 +845,10 @@ gtk_scale_button_scroll (GtkWidget
+   if (event->type != GDK_SCROLL)
+     return FALSE;
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   d = gtk_scale_button_get_value (button);
+   if (event->direction == GDK_SCROLL_UP)
+     {
+Index: gtk+-3.0.12/gtk/gtkspinbutton.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtkspinbutton.c	2011-09-08 12:52:56.246011152 +0200
++++ gtk+-3.0.12/gtk/gtkspinbutton.c	2011-09-08 12:55:05.302642068 +0200
+@@ -1176,6 +1176,10 @@ gtk_spin_button_scroll (GtkWidget      *
+   GtkSpinButton *spin = GTK_SPIN_BUTTON (widget);
+   GtkSpinButtonPrivate *priv = spin->priv;
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   if (event->direction == GDK_SCROLL_UP)
+     {
+       if (!gtk_widget_has_focus (widget))
+Index: gtk+-3.0.12/gtk/gtktreeview.c
+===================================================================
+--- gtk+-3.0.12.orig/gtk/gtktreeview.c	2011-09-08 12:52:56.354011665 +0200
++++ gtk+-3.0.12/gtk/gtktreeview.c	2011-09-08 12:57:15.331277744 +0200
+@@ -15153,6 +15153,10 @@ gtk_tree_view_search_scroll_event (GtkWi
+ {
+   gboolean retval = FALSE;
+ 
++  /* Ignore Alt-scroll to allow it to be taken by GtkNotebook */
++  if (event->state & GDK_MOD1_MASK)
++    return FALSE;
++
+   if (event->direction == GDK_SCROLL_UP)
+     {
+       gtk_tree_view_search_move (widget, tree_view, TRUE);

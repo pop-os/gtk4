@@ -9,9 +9,7 @@ include /usr/share/cdbs/1/rules/autoreconf.mk
 include /usr/share/cdbs/1/rules/debhelper.mk
 include /usr/share/cdbs/1/rules/utils.mk
 include /usr/share/cdbs/1/class/gnome.mk
-include /usr/share/gnome-pkg-tools/1/rules/clean-la.mk
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
-include /usr/share/gnome-pkg-tools/1/rules/check-dist.mk
 include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
 GNOME_MODULE = gtk+
@@ -57,10 +55,6 @@ EXAMPLES_PKG := gtk-$(APIVER)-examples
 PIXBUF_PKG := gtk3-engines-pixbuf
 
 
-# temporary directory for the minimal MIME cache generation
-mimedir = debian/build-mime
-mimexml = /usr/share/mime/packages/freedesktop.org.xml
-
 DEB_CONFIGURE_EXTRA_FLAGS = \
 			--libdir=/$(LIBDIR) \
 			--enable-test-print-backend \
@@ -92,7 +86,7 @@ DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
 DEB_DH_MAKESHLIBS_ARGS_libgail-3-0 += -V"libgail-3-0 (>= $(SHVER)), libgail-3-common (>= $(SHVER))" -- -c4
 DEB_DH_FIXPERMS_ARGS_ALL += -X$(LIBDIR)/$(SHARED_PKG)
 DEB_DH_STRIP_ARGS = --dbg-package=$(if $(findstring libgail,$(cdbs_curpkg)),libgail-3-0-dbg,$(DEBUG_PKG))
-DEB_DH_STRIP_ARGS_$(UDEB_PKG) = --dbg-package=
+DEB_DH_STRIP_ARGS_$(UDEB_PKG) =
 
 # macro computing the list of 'debian/<pkg>.*" files which have a
 # corresponding ".in" file; pass the list of packages in $(1)
@@ -125,7 +119,6 @@ debian/%: debian/%.in
 clean:: debian/control
 	# gross kludge to force control generation with the %.in target
 	touch debian/control.in
-	rm -rf $(mimedir)
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
 
 # Add dependencies to generate files from the debian/*.in ones
@@ -141,15 +134,6 @@ binary-install/$(BIN_PKG)::
 	# Install the binaries with a -3.0 suffix
 	mv debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache.1 \
 	   debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-3.0.1
-
-binary-install/$(UDEB_PKG)::
-	# generate a minimal MIME cache for the udeb
-	mkdir -p $(mimedir)/packages
-	[ -f $(mimexml) ]
-	xsltproc -nonet debian/keep-png-only.xsl $(mimexml) \
-		> $(mimedir)/packages/png.freedesktop.org.xml
-	update-mime-database $(mimedir)
-	dh_install -p$(UDEB_PKG) $(mimedir)/mime.cache usr/share/mime
 
 list-missing:
 	# FIXME: remove this when CDBS' list-missing works with multiple flavors

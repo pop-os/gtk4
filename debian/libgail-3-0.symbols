@@ -12,4 +12,3 @@ libgailutil-3.so.0 libgail-3-0 #MINVER#
  gail_text_util_get_type@Base 3.0.0
  gail_text_util_new@Base 3.0.0
  gail_text_util_text_setup@Base 3.0.0
-
