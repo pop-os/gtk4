@@ -183,11 +183,11 @@ Description: GTK+ libraries and debugging symbols
 Package: libgtk-3-doc
 Section: doc
 Architecture: all
-Depends: lynx | www-browser,
-         ${misc:Depends}
+Depends: ${misc:Depends}
 Recommends: libglib2.0-doc,
             libatk1.0-doc,
             libpango1.0-doc
+Suggests: devhelp
 Conflicts: libgtk3.0-doc
 Replaces: libgtk3.0-doc
 Description: documentation for the GTK+ graphical user interface library
@@ -317,7 +317,8 @@ Description: Gail libraries and debugging symbols
 Package: libgail-3-doc
 Architecture: all
 Section: doc
-Depends: ${misc:Depends}, lynx | www-browser
+Depends: ${misc:Depends}
+Suggests: devhelp
 Conflicts: libgail3.0-doc
 Replaces: libgail3.0-doc
 Description: documentation files of the Gail library

@@ -16,6 +16,8 @@ gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
     - Track .xz tarballs.
   * debian/control.in:
     - Set pkg-gnome-maintainers@lists.alioth.debian.org as Maintainer.
+    - Instead of depending on lynx | www-browser, make the -doc packages
+      suggest devhelp.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 16 Oct 2011 19:00:05 +0200
 
