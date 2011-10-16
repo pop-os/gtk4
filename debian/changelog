@@ -1,5 +1,6 @@
 gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
 
+  [ Sjoerd Simons ]
   * New upstream release
   * debian/control.in: Update build-depends
   * debian/rules: Bump libgail SHVER depends
@@ -10,7 +11,11 @@ gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
   * d/p/043_notebook_scroll.patch: Refreshed
   * d/p/044_tracker_fts.patch: Refreshed
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sun, 16 Oct 2011 08:29:49 +0100
+  [ Michael Biebl ]
+  * debian/watch:
+    - Track .xz tarballs.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 16 Oct 2011 19:00:05 +0200
 
 gtk+3.0 (3.0.12-3) unstable; urgency=low
 
