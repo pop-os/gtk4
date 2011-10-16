@@ -14,6 +14,8 @@ gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
   [ Michael Biebl ]
   * debian/watch:
     - Track .xz tarballs.
+  * debian/control.in:
+    - Set pkg-gnome-maintainers@lists.alioth.debian.org as Maintainer.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 16 Oct 2011 19:00:05 +0200
 

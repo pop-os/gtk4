@@ -1,7 +1,7 @@
 Source: gtk+3.0
 Section: libs
 Priority: optional
-Maintainer: Sebastien Bacher <seb128@debian.org>
+Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Uploaders: @GNOME_TEAM@
 Build-Depends: debhelper (>= 8),
                cdbs (>= 0.4.90~),
