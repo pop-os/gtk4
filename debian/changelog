@@ -1,3 +1,9 @@
+gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
+
+  * New upstream release
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 16 Oct 2011 07:49:46 +0100
+
 gtk+3.0 (3.0.12-3) unstable; urgency=low
 
   * 030_xim-modules.patch: stolen from upstream git. Fix the behavior of 
