@@ -1,8 +1,16 @@
 gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
 
   * New upstream release
+  * debian/control.in: Update build-depends
+  * debian/rules: Bump libgail SHVER depends
+  * d/p/002_static-linking-dont-build-perf.patch: Removed, fixed upstream
+  * d/p/030_xim-modules.patch: Removed, fixed upstream
+  * d/p/045_trayicon-visual.patch: Removed, fixed upstream
+  * d/p/003_gdk.pc_privates.patch: Refreshed
+  * d/p/043_notebook_scroll.patch: Refreshed
+  * d/p/044_tracker_fts.patch: Refreshed
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sun, 16 Oct 2011 07:49:46 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 16 Oct 2011 08:29:49 +0100
 
 gtk+3.0 (3.0.12-3) unstable; urgency=low
 

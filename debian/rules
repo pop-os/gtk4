@@ -23,7 +23,7 @@ LDFLAGS += -Wl,-O1
 
 APIVER := 3
 SONAME := 0
-SHVER := 3.0.0
+SHVER := 3.1.6
 
 ifneq (,$(findstring multiarch,$(DEB_BUILD_OPTIONS)))
 LIBDIR := usr/lib/$(DEB_HOST_GNU_TYPE)
