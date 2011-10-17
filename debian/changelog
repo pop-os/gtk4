@@ -20,7 +20,10 @@ gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
     - Instead of depending on lynx | www-browser, make the -doc packages
       suggest devhelp.
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 17 Oct 2011 16:36:59 +0100
+  [ Sjoerd Simons ]
+  * debian/libgtk-3-0.symbols: Update symbols
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 17 Oct 2011 17:35:02 +0100
 
 gtk+3.0 (3.0.12-3) unstable; urgency=low
 
