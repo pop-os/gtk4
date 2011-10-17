@@ -22,8 +22,10 @@ gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
 
   [ Sjoerd Simons ]
   * debian/libgtk-3-0.symbols: Update symbols
+  * Remove libgail-3-common package. Modules have been integrated directly into
+    Gtk
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 17 Oct 2011 17:35:02 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 17 Oct 2011 17:37:58 +0100
 
 gtk+3.0 (3.0.12-3) unstable; urgency=low
 

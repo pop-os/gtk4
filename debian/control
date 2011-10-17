@@ -264,27 +264,11 @@ Description: GNOME Accessibility Implementation Library -- shared libraries
  .
  This package contains the shared library.
 
-Package: libgail-3-common
-Architecture: any
-Depends: ${misc:Depends},
-         ${shlibs:Depends},
-         libgail-3-0 (= ${binary:Version})
-Conflicts: libgail3.0-common
-Replaces: libgail3.0-common
-Description: GNOME Accessibility Implementation Library -- common modules
- Gail implements ATK interfaces for GTK+ widgets which are dynamically
- loadable at runtime by a GTK+ application. Once loaded, those parts of
- an application that use standard GTK+ widgets will have a basic level
- of accessibility, without the need to modify the application at all.
- .
- This package contains core shared libraries.
-
 Package: libgail-3-dev
 Architecture: any
 Section: libdevel
 Depends: ${misc:Depends},
          libgail-3-0 (= ${binary:Version}),
-         libgail-3-common (= ${binary:Version}),
          libgtk-3-dev (= ${binary:Version}),
          pkg-config,
          libatk1.0-dev (>= 1.13.0)
