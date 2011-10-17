@@ -61,6 +61,7 @@ DEB_CONFIGURE_EXTRA_FLAGS = \
 			--enable-xinput
 
 DEB_CONFIGURE_FLAGS_shared = \
+			--enable-gtk-doc \
 			--enable-shared \
 			--enable-introspection=yes \
 			--disable-static
