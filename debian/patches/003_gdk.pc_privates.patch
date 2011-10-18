@@ -1,8 +1,8 @@
 diff --git a/configure.ac b/configure.ac
-index 8944f6e..4ab86e4 100644
+index e837cf0..2436e2c 100644
 --- a/configure.ac
 +++ b/configure.ac
-@@ -1260,10 +1260,11 @@ fi
+@@ -1270,10 +1270,11 @@ fi
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
@@ -17,6 +17,14 @@ index 8944f6e..4ab86e4 100644
  #
  # If we aren't writing explicit dependencies, then don't put the extra libraries we need
  # into the pkg-config files
+@@ -1284,6 +1285,7 @@ if test $enable_explicit_deps != yes ; then
+ fi
+ 
+ AC_SUBST(GDK_PACKAGES)
++AC_SUBST(GDK_PRIVATE_PACKAGES)
+ AC_SUBST(GDK_EXTRA_LIBS)
+ AC_SUBST(GDK_EXTRA_CFLAGS)
+ AC_SUBST(GDK_DEP_LIBS)
 diff --git a/gdk-3.0.pc.in b/gdk-3.0.pc.in
 index 20c54fe..97b0537 100644
 --- a/gdk-3.0.pc.in
