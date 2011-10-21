@@ -805,7 +805,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_assistant_prepend_page@Base 3.0.0
  gtk_assistant_previous_page@Base 3.0.0
  gtk_assistant_remove_action_widget@Base 3.0.0
- gtk_assistant_remove_page@Base 3.1.8-0ubuntu2
+ gtk_assistant_remove_page@Base 3.2.0
  gtk_assistant_set_current_page@Base 3.0.0
  gtk_assistant_set_forward_page_func@Base 3.0.0
  gtk_assistant_set_page_complete@Base 3.0.0
