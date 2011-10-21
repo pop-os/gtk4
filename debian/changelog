@@ -1,3 +1,11 @@
+gtk+3.0 (3.2.1-2) UNRELEASED; urgency=low
+
+  * debian/control.in:
+    - Move gtk-doc-tools from Build-Depends-Indep to Build-Depends as it is
+      required by autoreconf. Also bump it to (>= 1.11).
+
+ -- Michael Biebl <biebl@debian.org>  Fri, 21 Oct 2011 21:45:08 +0200
+
 gtk+3.0 (3.2.1-1) experimental; urgency=low
 
   [ Sjoerd Simons ]
