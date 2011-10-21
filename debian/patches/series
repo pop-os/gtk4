@@ -7,3 +7,4 @@
 043_notebook_scroll.patch
 044_tracker_fts.patch
 060_ignore-random-icons.patch
+70-Fix-document-generation-in-out-of-tree-builds.patch

@@ -24,8 +24,10 @@ gtk+3.0 (3.2.1-1) UNRELEASED; urgency=low
   * debian/libgtk-3-0.symbols: Update symbols
   * Remove libgail-3-common package. Modules have been integrated directly into
     Gtk
+  * debian/patches/70-Fix-document-generation-in-out-of-tree-builds.patch:
+    + Added, fix documentation when build out of tree
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 17 Oct 2011 17:37:58 +0100
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 21 Oct 2011 16:55:47 +0200
 
 gtk+3.0 (3.0.12-3) unstable; urgency=low
 
