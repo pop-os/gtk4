@@ -1,8 +1,8 @@
-diff --git a/configure.ac b/configure.ac
-index e837cf0..2436e2c 100644
---- a/configure.ac
-+++ b/configure.ac
-@@ -1270,10 +1270,11 @@ fi
+Index: gtk+-3.2.2/configure.ac
+===================================================================
+--- gtk+-3.2.2.orig/configure.ac	2011-11-13 02:59:17.002906448 +0100
++++ gtk+-3.2.2/configure.ac	2011-11-13 02:59:21.554906287 +0100
+@@ -1272,10 +1272,11 @@
  CFLAGS="$saved_cflags"
  LDFLAGS="$saved_ldflags"
  
@@ -17,7 +17,7 @@ index e837cf0..2436e2c 100644
  #
  # If we aren't writing explicit dependencies, then don't put the extra libraries we need
  # into the pkg-config files
-@@ -1284,6 +1285,7 @@ if test $enable_explicit_deps != yes ; then
+@@ -1286,6 +1287,7 @@
  fi
  
  AC_SUBST(GDK_PACKAGES)
@@ -25,11 +25,11 @@ index e837cf0..2436e2c 100644
  AC_SUBST(GDK_EXTRA_LIBS)
  AC_SUBST(GDK_EXTRA_CFLAGS)
  AC_SUBST(GDK_DEP_LIBS)
-diff --git a/gdk-3.0.pc.in b/gdk-3.0.pc.in
-index 20c54fe..97b0537 100644
---- a/gdk-3.0.pc.in
-+++ b/gdk-3.0.pc.in
-@@ -8,5 +8,6 @@ Name: GDK
+Index: gtk+-3.2.2/gdk-3.0.pc.in
+===================================================================
+--- gtk+-3.2.2.orig/gdk-3.0.pc.in	2011-08-16 04:04:34.000000000 +0200
++++ gtk+-3.2.2/gdk-3.0.pc.in	2011-11-13 02:59:21.554906287 +0100
+@@ -8,5 +8,6 @@
  Description: GTK+ Drawing Kit
  Version: @VERSION@
  Requires: @GDK_PACKAGES@

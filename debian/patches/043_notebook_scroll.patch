@@ -4,11 +4,11 @@ Add back the feature but in a different way:
 * works from the whole area
 See GNOME #630226 and #145244
 
-diff --git a/gtk/gtkcalendar.c b/gtk/gtkcalendar.c
-index cff79bf..1174692 100644
---- a/gtk/gtkcalendar.c
-+++ b/gtk/gtkcalendar.c
-@@ -3161,6 +3161,10 @@ gtk_calendar_scroll (GtkWidget      *widget,
+Index: gtk+-3.2.2/gtk/gtkcalendar.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtkcalendar.c	2011-11-07 19:47:34.000000000 +0100
++++ gtk+-3.2.2/gtk/gtkcalendar.c	2011-11-13 02:59:34.922905814 +0100
+@@ -3161,6 +3161,10 @@
  {
    GtkCalendar *calendar = GTK_CALENDAR (widget);
  
@@ -19,11 +19,11 @@ index cff79bf..1174692 100644
    if (event->direction == GDK_SCROLL_UP)
      {
        if (!gtk_widget_has_focus (widget))
-diff --git a/gtk/gtkcombobox.c b/gtk/gtkcombobox.c
-index c0bf2c8..e4149a7 100644
---- a/gtk/gtkcombobox.c
-+++ b/gtk/gtkcombobox.c
-@@ -3058,6 +3058,10 @@ gtk_combo_box_scroll_event (GtkWidget          *widget,
+Index: gtk+-3.2.2/gtk/gtkcombobox.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtkcombobox.c	2011-11-11 23:39:31.000000000 +0100
++++ gtk+-3.2.2/gtk/gtkcombobox.c	2011-11-13 02:59:34.926905815 +0100
+@@ -3002,6 +3002,10 @@
    GtkTreeIter iter;
    GtkTreeIter new_iter;
  
@@ -34,11 +34,11 @@ index c0bf2c8..e4149a7 100644
    if (!gtk_combo_box_get_active_iter (combo_box, &iter))
      return TRUE;
  
-diff --git a/gtk/gtkmenu.c b/gtk/gtkmenu.c
-index bb327b5..7b26987 100644
---- a/gtk/gtkmenu.c
-+++ b/gtk/gtkmenu.c
-@@ -3958,6 +3958,10 @@ gtk_menu_scroll (GtkWidget      *widget,
+Index: gtk+-3.2.2/gtk/gtkmenu.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtkmenu.c	2011-11-11 23:39:31.000000000 +0100
++++ gtk+-3.2.2/gtk/gtkmenu.c	2011-11-13 02:59:34.930905815 +0100
+@@ -3954,6 +3954,10 @@
  {
    GtkMenu *menu = GTK_MENU (widget);
  
@@ -49,11 +49,11 @@ index bb327b5..7b26987 100644
    switch (event->direction)
      {
      case GDK_SCROLL_RIGHT:
-diff --git a/gtk/gtknotebook.c b/gtk/gtknotebook.c
-index a6bf731..9e028d0 100644
---- a/gtk/gtknotebook.c
-+++ b/gtk/gtknotebook.c
-@@ -342,6 +342,8 @@ static void gtk_notebook_size_allocate       (GtkWidget        *widget,
+Index: gtk+-3.2.2/gtk/gtknotebook.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtknotebook.c	2011-11-12 03:52:24.000000000 +0100
++++ gtk+-3.2.2/gtk/gtknotebook.c	2011-11-13 02:59:34.934905815 +0100
+@@ -345,6 +345,8 @@
                                                GtkAllocation    *allocation);
  static gint gtk_notebook_draw                (GtkWidget        *widget,
                                                cairo_t          *cr);
@@ -62,7 +62,7 @@ index a6bf731..9e028d0 100644
  static gint gtk_notebook_button_press        (GtkWidget        *widget,
                                                GdkEventButton   *event);
  static gint gtk_notebook_button_release      (GtkWidget        *widget,
-@@ -645,6 +647,7 @@ gtk_notebook_class_init (GtkNotebookClass *class)
+@@ -648,6 +650,7 @@
    widget_class->get_preferred_height_for_width = gtk_notebook_get_preferred_height_for_width;
    widget_class->size_allocate = gtk_notebook_size_allocate;
    widget_class->draw = gtk_notebook_draw;
@@ -70,7 +70,7 @@ index a6bf731..9e028d0 100644
    widget_class->button_press_event = gtk_notebook_button_press;
    widget_class->button_release_event = gtk_notebook_button_release;
    widget_class->popup_menu = gtk_notebook_popup_menu;
-@@ -1881,7 +1884,8 @@ gtk_notebook_realize (GtkWidget *widget)
+@@ -1887,7 +1890,8 @@
    attributes.event_mask = gtk_widget_get_events (widget);
    attributes.event_mask |= (GDK_BUTTON_PRESS_MASK |
                              GDK_BUTTON_RELEASE_MASK | GDK_KEY_PRESS_MASK |
@@ -80,7 +80,7 @@ index a6bf731..9e028d0 100644
    attributes_mask = GDK_WA_X | GDK_WA_Y;
  
    priv->event_window = gdk_window_new (gtk_widget_get_parent_window (widget),
-@@ -2844,6 +2848,38 @@ get_widget_coordinates (GtkWidget *widget,
+@@ -2810,6 +2814,38 @@
      return FALSE;
  }
  
@@ -119,11 +119,11 @@ index a6bf731..9e028d0 100644
  static GList*
  get_tab_at_pos (GtkNotebook *notebook, gint x, gint y)
  {
-diff --git a/gtk/gtkpathbar.c b/gtk/gtkpathbar.c
-index 14e6ebe..3bc9e65 100644
---- a/gtk/gtkpathbar.c
-+++ b/gtk/gtkpathbar.c
-@@ -757,6 +757,10 @@ static gboolean
+Index: gtk+-3.2.2/gtk/gtkpathbar.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtkpathbar.c	2011-11-07 19:47:35.000000000 +0100
++++ gtk+-3.2.2/gtk/gtkpathbar.c	2011-11-13 02:59:34.938905813 +0100
+@@ -757,6 +757,10 @@
  gtk_path_bar_scroll (GtkWidget      *widget,
  		     GdkEventScroll *event)
  {
@@ -134,11 +134,11 @@ index 14e6ebe..3bc9e65 100644
    switch (event->direction)
      {
      case GDK_SCROLL_RIGHT:
-diff --git a/gtk/gtkrange.c b/gtk/gtkrange.c
-index 96e54c6..593fe84 100644
---- a/gtk/gtkrange.c
-+++ b/gtk/gtkrange.c
-@@ -2748,6 +2748,10 @@ gtk_range_scroll_event (GtkWidget      *widget,
+Index: gtk+-3.2.2/gtk/gtkrange.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtkrange.c	2011-11-11 23:39:31.000000000 +0100
++++ gtk+-3.2.2/gtk/gtkrange.c	2011-11-13 02:59:34.938905813 +0100
+@@ -2748,6 +2748,10 @@
    GtkRange *range = GTK_RANGE (widget);
    GtkRangePrivate *priv = range->priv;
  
@@ -149,11 +149,11 @@ index 96e54c6..593fe84 100644
    if (gtk_widget_get_realized (widget))
      {
        gdouble delta;
-diff --git a/gtk/gtkscalebutton.c b/gtk/gtkscalebutton.c
-index b6c10f4..1190c4b 100644
---- a/gtk/gtkscalebutton.c
-+++ b/gtk/gtkscalebutton.c
-@@ -848,6 +848,10 @@ gtk_scale_button_scroll (GtkWidget      *widget,
+Index: gtk+-3.2.2/gtk/gtkscalebutton.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtkscalebutton.c	2011-11-11 23:39:31.000000000 +0100
++++ gtk+-3.2.2/gtk/gtkscalebutton.c	2011-11-13 02:59:34.942905810 +0100
+@@ -848,6 +848,10 @@
    if (event->type != GDK_SCROLL)
      return FALSE;
  
@@ -164,11 +164,11 @@ index b6c10f4..1190c4b 100644
    d = gtk_scale_button_get_value (button);
    if (event->direction == GDK_SCROLL_UP)
      {
-diff --git a/gtk/gtkscrolledwindow.c b/gtk/gtkscrolledwindow.c
-index 3bd5f3b..9ffe354 100644
---- a/gtk/gtkscrolledwindow.c
-+++ b/gtk/gtkscrolledwindow.c
-@@ -1852,6 +1852,10 @@ gtk_scrolled_window_scroll_event (GtkWidget      *widget,
+Index: gtk+-3.2.2/gtk/gtkscrolledwindow.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtkscrolledwindow.c	2011-11-11 23:39:31.000000000 +0100
++++ gtk+-3.2.2/gtk/gtkscrolledwindow.c	2011-11-13 02:59:34.942905810 +0100
+@@ -1852,6 +1852,10 @@
    scrolled_window = GTK_SCROLLED_WINDOW (widget);
    priv = scrolled_window->priv;
  
@@ -179,11 +179,11 @@ index 3bd5f3b..9ffe354 100644
    if (event->direction == GDK_SCROLL_UP || event->direction == GDK_SCROLL_DOWN)
      range = priv->vscrollbar;
    else
-diff --git a/gtk/gtkspinbutton.c b/gtk/gtkspinbutton.c
-index 9a6b3ea..ac40967 100644
---- a/gtk/gtkspinbutton.c
-+++ b/gtk/gtkspinbutton.c
-@@ -1181,6 +1181,10 @@ gtk_spin_button_scroll (GtkWidget      *widget,
+Index: gtk+-3.2.2/gtk/gtkspinbutton.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtkspinbutton.c	2011-11-11 23:39:31.000000000 +0100
++++ gtk+-3.2.2/gtk/gtkspinbutton.c	2011-11-13 02:59:34.946905809 +0100
+@@ -1181,6 +1181,10 @@
    GtkSpinButton *spin = GTK_SPIN_BUTTON (widget);
    GtkSpinButtonPrivate *priv = spin->priv;
  
@@ -194,11 +194,11 @@ index 9a6b3ea..ac40967 100644
    if (event->direction == GDK_SCROLL_UP)
      {
        if (!gtk_widget_has_focus (widget))
-diff --git a/gtk/gtktreeview.c b/gtk/gtktreeview.c
-index f7c5444..d33f001 100644
---- a/gtk/gtktreeview.c
-+++ b/gtk/gtktreeview.c
-@@ -15127,6 +15127,10 @@ gtk_tree_view_search_scroll_event (GtkWidget *widget,
+Index: gtk+-3.2.2/gtk/gtktreeview.c
+===================================================================
+--- gtk+-3.2.2.orig/gtk/gtktreeview.c	2011-11-13 02:59:31.902905921 +0100
++++ gtk+-3.2.2/gtk/gtktreeview.c	2011-11-13 02:59:34.950905810 +0100
+@@ -15106,6 +15106,10 @@
  {
    gboolean retval = FALSE;
  
