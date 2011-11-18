@@ -1,0 +1,53 @@
+From 34053dc5def2f393a92eb17814682b2e9b73ef27 Mon Sep 17 00:00:00 2001
+From: Sjoerd Simons <sjoerd@luon.net>
+Date: Fri, 21 Oct 2011 15:55:50 +0200
+Subject: [PATCH] Fix document generation in out of tree builds
+
+---
+ docs/reference/gdk/Makefile.am          |    2 +-
+ docs/reference/gtk/Makefile.am          |    2 +-
+ docs/reference/libgail-util/Makefile.am |    2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/docs/reference/gdk/Makefile.am b/docs/reference/gdk/Makefile.am
+index aab34e3..e73c955 100644
+--- a/docs/reference/gdk/Makefile.am
++++ b/docs/reference/gdk/Makefile.am
+@@ -12,7 +12,7 @@ DOC_MAIN_SGML_FILE=gdk-docs.sgml
+ SCAN_OPTIONS=--deprecated-guards="GDK_ENABLE_BROKEN|GDK_DISABLE_DEPRECATED"
+ 
+ # The directory containing the source code. Relative to $(srcdir)
+-DOC_SOURCE_DIR=../../../gdk ../../../gdk/x11
++DOC_SOURCE_DIR=$(top_srcdir)/gdk $(top_srcdir)/gdk/x11
+ 
+ # Used for dependencies
+ HFILE_GLOB=$(top_srcdir)/gdk/*.h $(top_srcdir)/gdk/x11/gdkx.h
+diff --git a/docs/reference/gtk/Makefile.am b/docs/reference/gtk/Makefile.am
+index 153ecfc..4e64367 100644
+--- a/docs/reference/gtk/Makefile.am
++++ b/docs/reference/gtk/Makefile.am
+@@ -12,7 +12,7 @@ DOC_MAIN_SGML_FILE=gtk-docs.sgml
+ SCAN_OPTIONS=--deprecated-guards="GTK_ENABLE_BROKEN|GTK_DISABLE_DEPRECATED"
+ 
+ # The directory containing the source code. Relative to $(srcdir)
+-DOC_SOURCE_DIR=../../../gtk
++DOC_SOURCE_DIR=$(top_srcdir)/gtk
+ 
+ # Used for dependencies
+ HFILE_GLOB=$(top_srcdir)/gtk/*.h
+diff --git a/docs/reference/libgail-util/Makefile.am b/docs/reference/libgail-util/Makefile.am
+index 3b52a0f..79bb551 100644
+--- a/docs/reference/libgail-util/Makefile.am
++++ b/docs/reference/libgail-util/Makefile.am
+@@ -9,7 +9,7 @@ DOC_MODULE=gail-libgail-util3
+ DOC_MAIN_SGML_FILE=gail-libgail-util-docs.sgml
+ 
+ # The directory containing the source code (if it contains documentation).
+-DOC_SOURCE_DIR=../../../libgail-util
++DOC_SOURCE_DIR=$(top_srcdir)/libgail-util
+ 
+ # Used for dependencies
+ HFILE_GLOB = $(top_srcdir)/libgail-util/*.h
+-- 
+1.7.7
+

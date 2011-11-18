@@ -1,3 +1,49 @@
+gtk+3.0 (3.2.2-1) experimental; urgency=low
+
+  * New upstream release.
+  * Refresh patches.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 14 Nov 2011 00:07:56 +0100
+
+gtk+3.0 (3.2.1-2) experimental; urgency=low
+
+  * debian/control.in:
+    - Move gtk-doc-tools from Build-Depends-Indep to Build-Depends as it is
+      required by autoreconf. Also bump it to (>= 1.11).
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 22 Oct 2011 00:30:44 +0200
+
+gtk+3.0 (3.2.1-1) experimental; urgency=low
+
+  [ Sjoerd Simons ]
+  * New upstream release
+  * debian/control.in: Update build-depends
+  * debian/rules: Bump libgail SHVER depends
+  * d/p/002_static-linking-dont-build-perf.patch: Removed, fixed upstream
+  * d/p/030_xim-modules.patch: Removed, fixed upstream
+  * d/p/045_trayicon-visual.patch: Removed, fixed upstream
+  * d/p/003_gdk.pc_privates.patch: Refreshed
+  * d/p/043_notebook_scroll.patch: Refreshed
+  * d/p/044_tracker_fts.patch: Refreshed
+  * debian/rules: Enable gtk-doc build with the shared build
+
+  [ Michael Biebl ]
+  * debian/watch:
+    - Track .xz tarballs.
+  * debian/control.in:
+    - Set pkg-gnome-maintainers@lists.alioth.debian.org as Maintainer.
+    - Instead of depending on lynx | www-browser, make the -doc packages
+      suggest devhelp.
+
+  [ Sjoerd Simons ]
+  * debian/libgtk-3-0.symbols: Update symbols
+  * Remove libgail-3-common package. Modules have been integrated directly into
+    Gtk
+  * debian/patches/70-Fix-document-generation-in-out-of-tree-builds.patch:
+    + Added, fix documentation when build out of tree
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 21 Oct 2011 19:36:06 +0200
+
 gtk+3.0 (3.0.12-3) unstable; urgency=low
 
   * 030_xim-modules.patch: stolen from upstream git. Fix the behavior of 
