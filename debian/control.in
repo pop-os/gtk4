@@ -62,6 +62,7 @@ Suggests: librsvg2-common,
           gvfs
 Conflicts: libgtk3.0-0
 Replaces: libgtk3.0-0
+Breaks: gnome-themes-standard (<< 3.2)
 Description: GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
