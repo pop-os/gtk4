@@ -14,6 +14,7 @@ gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
     gdkenumtypes.c is correctly included with separate build trees, too.  This
     fixes missing GTypes in the .gir when using a separate build tree.
     (LP: #769256, GNOME #647729)
+  * debian/rules: Bump SHVER to 3.1.90.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 22 Nov 2011 09:34:45 +0100
 
