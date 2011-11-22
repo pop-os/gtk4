@@ -1,3 +1,11 @@
+gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
+
+  * Add 000git_gtk_tree_view_get_tooltip_context_annotation.patch: Fix
+    gtk_tree_view_get_tooltip_context() transfer annotation, causing crashes
+    when using this method from Python.
+
+ -- Martin Pitt <mpitt@debian.org>  Tue, 22 Nov 2011 09:34:45 +0100
+
 gtk+3.0 (3.2.2-2) unstable; urgency=low
 
   * Upload to unstable.
