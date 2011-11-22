@@ -9,6 +9,11 @@ gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
     (LP: #512427, GNOME #607668)
   * Add 017_no_offscreen_device_grabbing.patch: Do not allow devices in an
     offscreen hierarchy to take grabs. (LP: #804009, GNOME #658563)
+  * Add 018_gdkenumtypes.c_location.patch: Always generate gdk/gdkenumtypes.c
+    in the source tree, and fix path in the introspection sources. With this,
+    gdkenumtypes.c is correctly included with separate build trees, too.  This
+    fixes missing GTypes in the .gir when using a separate build tree.
+    (LP: #769256, GNOME #647729)
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 22 Nov 2011 09:34:45 +0100
 
