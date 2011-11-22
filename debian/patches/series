@@ -2,6 +2,7 @@
 001_static-linking-dont-query-immodules.patch
 003_gdk.pc_privates.patch
 015_default-fallback-icon-theme.patch
+016_no_offscreen_widgets_grabbing.patch
 022_disable-viqr-im-for-vi-locale.patch
 041_ia32-libs.patch
 042_treeview_single-focus.patch
