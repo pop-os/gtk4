@@ -7,10 +7,10 @@ if [ "$1" = triggered ]; then
             continue
         fi
         case $trigger in
-          /@MODULES_BASE_PATH@/immodules)
+          /@MODULES_BASE_PATH@/immodules|/@OLD_MODULES_BASE_PATH@/immodules)
             # This is triggered everytime an application installs a
             # GTK immodule loader
-            /@LIBDIR@/@SHARED_PKG@/gtk-query-immodules-3.0 /@MODULES_BASE_PATH@/immodules/*.so > /@MODULES_BASE_PATH@/immodules.cache || true
+            /@LIBDIR@/@SHARED_PKG@/gtk-query-immodules-3.0 /@MODULES_BASE_PATH@/immodules/*.so /@OLD_MODULES_BASE_PATH@/immodules/*.so > /@MODULES_BASE_PATH@/immodules.cache || true
             ;;
         esac
     done
@@ -21,6 +21,6 @@ fi
 
 # Also handle the initial installation
 if [ -d /@MODULES_BASE_PATH@/immodules ]; then
-     /@LIBDIR@/@SHARED_PKG@/gtk-query-immodules-3.0 /@MODULES_BASE_PATH@/immodules/*.so > /@MODULES_BASE_PATH@/immodules.cache || true
+     /@LIBDIR@/@SHARED_PKG@/gtk-query-immodules-3.0 /@MODULES_BASE_PATH@/immodules/*.so /@OLD_MODULES_BASE_PATH@/immodules/*.so > /@MODULES_BASE_PATH@/immodules.cache || true
 fi
 

@@ -15,6 +15,22 @@ gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
     fixes missing GTypes in the .gir when using a separate build tree.
     (LP: #769256, GNOME #647729)
   * debian/rules: Bump SHVER to 3.1.90.
+  * Build for multiarch. Adapted Steve Langasek's changes to Ubuntu's gtk+2.0
+    package:
+    - debian/control.in: Bump build dependencies to multiarch aware versions.
+    - debian/control.in: Add Multi-Arch: and necessary Pre-Depends: fields.
+      (libraries/-dbg are "same", -doc/-bin are "foreign").
+    - debian/rules: Use multiarch LIBDIR.
+    - debian/libgail-3-dev.install, debian/libgail-3-0.install: Rename to
+      *.in, and use @LIBDIR@ instead of hardcoded usr/lib.
+    - debian/gir1.2-gtk-3.0.install.in: Use @LIBDIR@.
+    - debian/libgtk-3-0.triggers.in, debian/libgtk-3-0.postinst.in,
+      debian/rules: Also trigger on changes to the fallback non-multiarch
+      module directory, which is now called @OLD_MODULES_BASE_PATH@.
+    - Add 061_multiarch_module_fallback.patch: Fall back to the hard-coded
+      pre-multiarch module directory when searching for modules. This
+      maintains compatibility with packages installing modules to
+      the old directories.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 22 Nov 2011 09:34:45 +0100
 
