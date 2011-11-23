@@ -63,7 +63,8 @@ Suggests: librsvg2-common,
           gvfs
 Conflicts: libgtk3.0-0
 Replaces: libgtk3.0-0
-Breaks: gnome-themes-standard (<< 3.2)
+Breaks: gnome-themes-standard (<< 3.2),
+        murrine-themes (<= 0.98.2)
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}
 Description: GTK+ graphical user interface library
@@ -101,7 +102,9 @@ Architecture: all
 Depends: ${misc:Depends}
 Recommends: @SHARED_PKG@
 Conflicts: libgtk3.0-common
-Replaces: libgtk3.0-common
+Breaks: @SHARED_PKG@ (<< 3.2.2-3)
+Replaces: libgtk3.0-common,
+          @SHARED_PKG@ (<< 3.2.2-3)
 Multi-Arch: foreign
 Description: common files for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
@@ -176,7 +179,6 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          ${misc:Depends}
 Conflicts: libgtk3.0-0-dbg
 Replaces: libgtk3.0-0-dbg
-Multi-Arch: same
 Description: GTK+ libraries and debugging symbols
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable

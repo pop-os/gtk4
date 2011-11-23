@@ -1,4 +1,5 @@
 # from the shared flavor
+debian/install/shared/@CONFDIR@/im-multipress.conf @CONFDIR@
 debian/install/shared/usr/share/locale usr/share
 debian/install/shared/usr/share/themes usr/share
 debian/install/shared/usr/share/glib-2.0 usr/share

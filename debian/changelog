@@ -1,5 +1,6 @@
 gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
 
+  [ Martin Pitt ]
   * Add 000git_gtk_tree_view_get_tooltip_context_annotation.patch: Fix
     gtk_tree_view_get_tooltip_context() transfer annotation, causing crashes
     when using this method from Python.
@@ -31,6 +32,15 @@ gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
       pre-multiarch module directory when searching for modules. This
       maintains compatibility with packages installing modules to
       the old directories.
+
+  [ Josselin Mouette ]
+  * Break murrine-themes (same reason as gnome-themes-standard).
+  * Move /etc/gtk-3.0 to libgtk-3-common.
+  * Add appropriate Breaks/Replaces to handle it.
+  * Remove gtk-query-immodules-3.0 from libgtk-3-bin since it is 
+    clearly not Multi-Arch compatible. It should not be needed anyway, 
+    everything is handled by triggers from the private directory.
+  * Remove incorrect M-A: same statement for the debug package.
 
  -- Martin Pitt <mpitt@debian.org>  Tue, 22 Nov 2011 09:34:45 +0100
 
