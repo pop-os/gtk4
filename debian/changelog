@@ -1,4 +1,4 @@
-gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
+gtk+3.0 (3.2.2-3) unstable; urgency=low
 
   [ Martin Pitt ]
   * Add 000git_gtk_tree_view_get_tooltip_context_annotation.patch: Fix
@@ -51,7 +51,7 @@ gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
     incorrect ref counting which could lead to a crash in the filechooser.
     Closes: #650223
 
- -- Michael Biebl <biebl@debian.org>  Tue, 29 Nov 2011 21:39:20 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 30 Nov 2011 00:25:29 +0100
 
 gtk+3.0 (3.2.2-2) unstable; urgency=low
 
