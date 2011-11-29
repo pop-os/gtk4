@@ -43,7 +43,12 @@ gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
   * Remove incorrect M-A: same statement for the debug package.
   * Make libgtk-3-bin arch-any, thanks Rico for noticing.
 
- -- Martin Pitt <mpitt@debian.org>  Tue, 22 Nov 2011 09:34:45 +0100
+  [ Michael Biebl ]
+  * debian/libgtk-3-0.postinst.in: If the non-multiarch immodules directory
+    does not exist or is empty handle this case more gracefully and don't
+    print an error message.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 29 Nov 2011 21:39:20 +0100
 
 gtk+3.0 (3.2.2-2) unstable; urgency=low
 
