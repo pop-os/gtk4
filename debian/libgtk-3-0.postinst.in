@@ -15,7 +15,7 @@ if [ "$1" = triggered ]; then
             # GTK immodule loader
             /@LIBDIR@/@SHARED_PKG@/gtk-query-immodules-3.0 \
                 $(find $IMMODULES_DIR $IMMODULES_DIR_OLD -name *.so 2> /dev/null) \
-            > /@MODULES_BASE_PATH@/gtk.immodules || true
+            > /@MODULES_BASE_PATH@/immodules.cache || true
             ;;
         esac
     done
@@ -28,6 +28,6 @@ fi
 if [ -d $IMMODULES_DIR ] || [ -d $IMMODULES_DIR_OLD ]; then
      /@LIBDIR@/@SHARED_PKG@/gtk-query-immodules-3.0 \
          $(find $IMMODULES_DIR $IMMODULES_DIR_OLD -name *.so 2> /dev/null) \
-     > /@MODULES_BASE_PATH@/gtk.immodules || true
+     > /@MODULES_BASE_PATH@/immodules.cache || true
 fi
 
