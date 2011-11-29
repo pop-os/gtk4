@@ -47,6 +47,9 @@ gtk+3.0 (3.2.2-3) UNRELEASED; urgency=low
   * debian/libgtk-3-0.postinst.in: If the non-multiarch immodules directory
     does not exist or is empty handle this case more gracefully and don't
     print an error message.
+  * debian/patches/080_filechooserdefault-Don-t-unref-value-twice.patch: Fix
+    incorrect ref counting which could lead to a crash in the filechooser.
+    Closes: #650223
 
  -- Michael Biebl <biebl@debian.org>  Tue, 29 Nov 2011 21:39:20 +0100
 
