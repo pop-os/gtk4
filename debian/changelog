@@ -1,3 +1,9 @@
+gtk+3.0 (3.2.2-5) UNRELEASED; urgency=low
+
+  * Change section of gir1.2-gtk-3.0 to introspection.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 11 Dec 2011 12:42:28 +0100
+
 gtk+3.0 (3.2.2-3) unstable; urgency=low
 
   [ Martin Pitt ]

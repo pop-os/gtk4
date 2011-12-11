@@ -243,6 +243,7 @@ Description: example files for GTK+ 3
 # This package contains the pixbuf theme engine.
 
 Package: gir1.2-gtk-3.0
+Section: introspection
 Architecture: any
 Depends: @COMMON_PKG@,
          ${misc:Depends},
