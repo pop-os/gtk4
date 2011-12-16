@@ -1,4 +1,4 @@
-gtk+3.0 (3.2.2-5) UNRELEASED; urgency=low
+gtk+3.0 (3.2.2-4) UNRELEASED; urgency=low
 
   * Change section of gir1.2-gtk-3.0 to introspection.
 
