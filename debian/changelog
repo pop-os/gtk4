@@ -1,8 +1,12 @@
-gtk+3.0 (3.2.2-4) UNRELEASED; urgency=low
+gtk+3.0 (3.2.3-1) UNRELEASED; urgency=low
 
+  * New upstream release.
+    - Fixes segfault on arrow keypress in empty GtkIconView. Closes: #638704
+    - Fixes a11y related crash in treeview. Closes: #652073
+    - Fixes mouse grabbing when clicking resize grip. Closes: #630972
   * Change section of gir1.2-gtk-3.0 to introspection.
 
- -- Michael Biebl <biebl@debian.org>  Sun, 11 Dec 2011 12:42:28 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 20 Dec 2011 18:12:19 +0100
 
 gtk+3.0 (3.2.2-3) unstable; urgency=low
 
