@@ -1,4 +1,4 @@
-gtk+3.0 (3.2.3-1) UNRELEASED; urgency=low
+gtk+3.0 (3.2.3-1) unstable; urgency=low
 
   * New upstream release.
     - Fixes segfault on arrow keypress in empty GtkIconView. Closes: #638704
@@ -13,7 +13,7 @@ gtk+3.0 (3.2.3-1) UNRELEASED; urgency=low
       042_treeview_single-focus.patch and 043_notebook_scroll.patch.
   * Change section of gir1.2-gtk-3.0 to introspection.
 
- -- Michael Biebl <biebl@debian.org>  Tue, 20 Dec 2011 18:38:25 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 20 Dec 2011 18:42:32 +0100
 
 gtk+3.0 (3.2.2-3) unstable; urgency=low
 
