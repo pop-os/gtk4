@@ -3,11 +3,11 @@ Author: Robert Carr <racarr@canonical.com>
 Bug: https://bugzilla.gnome.org/show_bug.cgi?id=658563
 Bug-Ubuntu: https://launchpad.net/bugs/804009
 
-Index: gtk+3.0-3.1.12/gtk/gtkmain.c
+Index: gtk+-3.2.3/gtk/gtkmain.c
 ===================================================================
---- gtk+3.0-3.1.12.orig/gtk/gtkmain.c	2011-09-02 14:39:44.225887145 -0400
-+++ gtk+3.0-3.1.12/gtk/gtkmain.c	2011-09-02 14:39:36.415886932 -0400
-@@ -2303,9 +2303,14 @@
+--- gtk+-3.2.3.orig/gtk/gtkmain.c	2011-12-20 18:37:42.094995730 +0100
++++ gtk+-3.2.3/gtk/gtkmain.c	2011-12-20 18:37:43.046995696 +0100
+@@ -2298,9 +2298,14 @@
  {
    GtkWindowGroup *group;
    GtkWidget *old_grab_widget;
