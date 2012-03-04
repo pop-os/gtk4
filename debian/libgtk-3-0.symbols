@@ -177,6 +177,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_event_set_device@Base 3.0.0
  gdk_event_set_screen@Base 3.0.0
  gdk_event_set_source_device@Base 3.0.0
+ gdk_event_triggers_context_menu@Base 3.3.16
  gdk_event_type_get_type@Base 3.0.0
  gdk_events_get_angle@Base 3.0.0
  gdk_events_get_center@Base 3.0.0
@@ -206,6 +207,8 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_keymap_get_entries_for_keycode@Base 3.0.0
  gdk_keymap_get_entries_for_keyval@Base 3.0.0
  gdk_keymap_get_for_display@Base 3.0.0
+ gdk_keymap_get_modifier_mask@Base 3.3.16
+ gdk_keymap_get_modifier_state@Base 3.3.16
  gdk_keymap_get_num_lock_state@Base 3.0.0
  gdk_keymap_get_type@Base 3.0.0
  gdk_keymap_have_bidi_layouts@Base 3.0.0
@@ -221,6 +224,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_keyval_to_unicode@Base 3.0.0
  gdk_keyval_to_upper@Base 3.0.0
  gdk_list_visuals@Base 3.0.0
+ gdk_modifier_intent_get_type@Base 3.3.16
  gdk_modifier_type_get_type@Base 3.0.0
  gdk_notify_startup_complete@Base 3.0.0
  gdk_notify_startup_complete_with_id@Base 3.0.0
@@ -270,6 +274,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_screen_get_monitor_height_mm@Base 3.0.0
  gdk_screen_get_monitor_plug_name@Base 3.0.0
  gdk_screen_get_monitor_width_mm@Base 3.0.0
+ gdk_screen_get_monitor_workarea@Base 3.3.16
  gdk_screen_get_n_monitors@Base 3.0.0
  gdk_screen_get_number@Base 3.0.0
  gdk_screen_get_primary_monitor@Base 3.0.0
@@ -348,9 +353,11 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_window_attributes_type_get_type@Base 3.0.0
  gdk_window_beep@Base 3.0.0
  gdk_window_begin_move_drag@Base 3.0.0
+ gdk_window_begin_move_drag_for_device@Base 3.3.16
  gdk_window_begin_paint_rect@Base 3.0.0
  gdk_window_begin_paint_region@Base 3.0.0
  gdk_window_begin_resize_drag@Base 3.0.0
+ gdk_window_begin_resize_drag_for_device@Base 3.3.16
  gdk_window_configure_finished@Base 3.0.0
  gdk_window_constrain_size@Base 3.0.0
  gdk_window_coords_from_parent@Base 3.0.0
@@ -555,11 +562,14 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_window_get_xid@Base 3.0.0
  gdk_x11_window_lookup_for_display@Base 3.0.0
  gdk_x11_window_move_to_current_desktop@Base 3.0.0
+ gdk_x11_window_set_hide_titlebar_when_maximized@Base 3.3.16
  gdk_x11_window_set_theme_variant@Base 3.1.4
  gdk_x11_window_set_user_time@Base 3.0.0
+ gdk_x11_window_set_utf8_property@Base 3.3.16
  gdk_x11_xatom_to_atom@Base 3.0.0
  gdk_x11_xatom_to_atom_for_display@Base 3.0.0
 libgtk-3.so.0 libgtk-3-0 #MINVER#
+ gtk_about_dialog_add_credit_section@Base 3.3.16
  gtk_about_dialog_get_artists@Base 3.0.0
  gtk_about_dialog_get_authors@Base 3.0.0
  gtk_about_dialog_get_comments@Base 3.0.0
@@ -633,8 +643,11 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_accel_map_unlock_path@Base 3.0.0
  gtk_accelerator_get_default_mod_mask@Base 3.0.0
  gtk_accelerator_get_label@Base 3.0.0
+ gtk_accelerator_get_label_with_keycode@Base 3.3.16
  gtk_accelerator_name@Base 3.0.0
+ gtk_accelerator_name_with_keycode@Base 3.3.16
  gtk_accelerator_parse@Base 3.0.0
+ gtk_accelerator_parse_with_keycode@Base 3.3.16
  gtk_accelerator_set_default_mod_mask@Base 3.0.0
  gtk_accelerator_valid@Base 3.0.0
  gtk_accessible_connect_widget_destroyed@Base 3.0.0
@@ -705,6 +718,13 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_action_set_visible_horizontal@Base 3.0.0
  gtk_action_set_visible_vertical@Base 3.0.0
  gtk_action_unblock_activate@Base 3.0.0
+ gtk_actionable_get_action_name@Base 3.3.16
+ gtk_actionable_get_action_target_value@Base 3.3.16
+ gtk_actionable_get_type@Base 3.3.16
+ gtk_actionable_set_action_name@Base 3.3.16
+ gtk_actionable_set_action_target@Base 3.3.16
+ gtk_actionable_set_action_target_value@Base 3.3.16
+ gtk_actionable_set_detailed_action_name@Base 3.3.16
  gtk_activatable_do_set_related_action@Base 3.0.0
  gtk_activatable_get_related_action@Base 3.0.0
  gtk_activatable_get_type@Base 3.0.0
@@ -773,11 +793,25 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_app_chooser_widget_set_show_fallback@Base 3.0.0
  gtk_app_chooser_widget_set_show_other@Base 3.0.0
  gtk_app_chooser_widget_set_show_recommended@Base 3.0.0
+ gtk_application_add_accelerator@Base 3.3.16
  gtk_application_add_window@Base 3.0.0
+ gtk_application_get_app_menu@Base 3.3.16
+ gtk_application_get_menubar@Base 3.3.16
  gtk_application_get_type@Base 3.0.0
  gtk_application_get_windows@Base 3.0.0
+ gtk_application_inhibit@Base 3.3.16
+ gtk_application_inhibit_flags_get_type@Base 3.3.16
+ gtk_application_is_inhibited@Base 3.3.16
  gtk_application_new@Base 3.0.0
+ gtk_application_remove_accelerator@Base 3.3.16
  gtk_application_remove_window@Base 3.0.0
+ gtk_application_set_app_menu@Base 3.3.16
+ gtk_application_set_menubar@Base 3.3.16
+ gtk_application_uninhibit@Base 3.3.16
+ gtk_application_window_get_show_menubar@Base 3.3.16
+ gtk_application_window_get_type@Base 3.3.16
+ gtk_application_window_new@Base 3.3.16
+ gtk_application_window_set_show_menubar@Base 3.3.16
  gtk_arrow_get_type@Base 3.0.0
  gtk_arrow_new@Base 3.0.0
  gtk_arrow_placement_get_type@Base 3.0.0
@@ -857,8 +891,10 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_buildable_set_buildable_property@Base 3.0.0
  gtk_buildable_set_name@Base 3.0.0
  gtk_builder_add_from_file@Base 3.0.0
+ gtk_builder_add_from_resource@Base 3.3.16
  gtk_builder_add_from_string@Base 3.0.0
  gtk_builder_add_objects_from_file@Base 3.0.0
+ gtk_builder_add_objects_from_resource@Base 3.3.16
  gtk_builder_add_objects_from_string@Base 3.0.0
  gtk_builder_connect_signals@Base 3.0.0
  gtk_builder_connect_signals_full@Base 3.0.0
@@ -1135,6 +1171,16 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_color_button_set_rgba@Base 3.0.0
  gtk_color_button_set_title@Base 3.0.0
  gtk_color_button_set_use_alpha@Base 3.0.0
+ gtk_color_chooser_add_palette@Base 3.3.16
+ gtk_color_chooser_dialog_get_type@Base 3.3.16
+ gtk_color_chooser_dialog_new@Base 3.3.16
+ gtk_color_chooser_get_rgba@Base 3.3.16
+ gtk_color_chooser_get_type@Base 3.3.16
+ gtk_color_chooser_get_use_alpha@Base 3.3.16
+ gtk_color_chooser_set_rgba@Base 3.3.16
+ gtk_color_chooser_set_use_alpha@Base 3.3.16
+ gtk_color_chooser_widget_get_type@Base 3.3.16
+ gtk_color_chooser_widget_new@Base 3.3.16
  gtk_color_selection_dialog_get_color_selection@Base 3.0.0
  gtk_color_selection_dialog_get_type@Base 3.0.0
  gtk_color_selection_dialog_new@Base 3.0.0
@@ -1252,6 +1298,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_container_set_resize_mode@Base 3.0.0
  gtk_container_unset_focus_chain@Base 3.0.0
  gtk_corner_type_get_type@Base 3.0.0
+ gtk_css_image_get_parser_type@Base 3.3.16
  gtk_css_provider_error_get_type@Base 3.0.0
  gtk_css_provider_error_quark@Base 3.0.0
  gtk_css_provider_get_default@Base 3.0.0
@@ -1366,6 +1413,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_entry_buffer_set_max_length@Base 3.0.0
  gtk_entry_buffer_set_text@Base 3.0.0
  gtk_entry_completion_complete@Base 3.0.0
+ gtk_entry_completion_compute_prefix@Base 3.3.16
  gtk_entry_completion_delete_action@Base 3.0.0
  gtk_entry_completion_get_completion_prefix@Base 3.0.0
  gtk_entry_completion_get_entry@Base 3.0.0
@@ -1666,6 +1714,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_gradient_new_radial@Base 3.0.0
  gtk_gradient_ref@Base 3.0.0
  gtk_gradient_resolve@Base 3.0.0
+ gtk_gradient_resolve_for_context@Base 3.3.16
  gtk_gradient_to_string@Base 3.1.6
  gtk_gradient_unref@Base 3.0.0
  gtk_grid_attach@Base 3.0.0
@@ -1914,6 +1963,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_image_new_from_icon_name@Base 3.0.0
  gtk_image_new_from_icon_set@Base 3.0.0
  gtk_image_new_from_pixbuf@Base 3.0.0
+ gtk_image_new_from_resource@Base 3.3.16
  gtk_image_new_from_stock@Base 3.0.0
  gtk_image_set_from_animation@Base 3.0.0
  gtk_image_set_from_file@Base 3.0.0
@@ -1921,6 +1971,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_image_set_from_icon_name@Base 3.0.0
  gtk_image_set_from_icon_set@Base 3.0.0
  gtk_image_set_from_pixbuf@Base 3.0.0
+ gtk_image_set_from_resource@Base 3.3.16
  gtk_image_set_from_stock@Base 3.0.0
  gtk_image_set_pixel_size@Base 3.0.0
  gtk_image_type_get_type@Base 3.0.0
@@ -2051,6 +2102,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_menu_bar_get_pack_direction@Base 3.0.0
  gtk_menu_bar_get_type@Base 3.0.0
  gtk_menu_bar_new@Base 3.0.0
+ gtk_menu_bar_new_from_model@Base 3.3.16
  gtk_menu_bar_set_child_pack_direction@Base 3.0.0
  gtk_menu_bar_set_pack_direction@Base 3.0.0
  gtk_menu_detach@Base 3.0.0
@@ -2087,6 +2139,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_menu_item_toggle_size_allocate@Base 3.0.0
  gtk_menu_item_toggle_size_request@Base 3.0.0
  gtk_menu_new@Base 3.0.0
+ gtk_menu_new_from_model@Base 3.3.16
  gtk_menu_popdown@Base 3.0.0
  gtk_menu_popup@Base 3.0.0
  gtk_menu_popup_for_device@Base 3.0.0
@@ -2804,6 +2857,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_render_handle@Base 3.0.0
  gtk_render_icon@Base 3.1.6
  gtk_render_icon_pixbuf@Base 3.0.0
+ gtk_render_insertion_cursor@Base 3.3.16
  gtk_render_layout@Base 3.0.0
  gtk_render_line@Base 3.0.0
  gtk_render_option@Base 3.0.0
@@ -2829,6 +2883,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_scale_clear_marks@Base 3.0.0
  gtk_scale_get_digits@Base 3.0.0
  gtk_scale_get_draw_value@Base 3.0.0
+ gtk_scale_get_has_origin@Base 3.3.16
  gtk_scale_get_layout@Base 3.0.0
  gtk_scale_get_layout_offsets@Base 3.0.0
  gtk_scale_get_type@Base 3.0.0
@@ -2837,6 +2892,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_scale_new_with_range@Base 3.0.0
  gtk_scale_set_digits@Base 3.0.0
  gtk_scale_set_draw_value@Base 3.0.0
+ gtk_scale_set_has_origin@Base 3.3.16
  gtk_scale_set_value_pos@Base 3.0.0
  gtk_scroll_step_get_type@Base 3.0.0
  gtk_scroll_type_get_type@Base 3.0.0
@@ -3042,9 +3098,11 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_style_context_get_junction_sides@Base 3.0.0
  gtk_style_context_get_margin@Base 3.0.0
  gtk_style_context_get_padding@Base 3.0.0
+ gtk_style_context_get_parent@Base 3.3.16
  gtk_style_context_get_path@Base 3.0.0
  gtk_style_context_get_property@Base 3.0.0
  gtk_style_context_get_screen@Base 3.0.0
+ gtk_style_context_get_section@Base 3.3.16
  gtk_style_context_get_state@Base 3.0.0
  gtk_style_context_get_style@Base 3.0.0
  gtk_style_context_get_style_property@Base 3.0.0
@@ -3073,6 +3131,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_style_context_set_background@Base 3.0.0
  gtk_style_context_set_direction@Base 3.0.0
  gtk_style_context_set_junction_sides@Base 3.0.0
+ gtk_style_context_set_parent@Base 3.3.16
  gtk_style_context_set_path@Base 3.0.0
  gtk_style_context_set_screen@Base 3.0.0
  gtk_style_context_set_state@Base 3.0.0
@@ -3119,6 +3178,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_symbolic_color_new_mix@Base 3.0.0
  gtk_symbolic_color_new_name@Base 3.0.0
  gtk_symbolic_color_new_shade@Base 3.0.0
+ gtk_symbolic_color_new_win32@Base 3.3.16
  gtk_symbolic_color_ref@Base 3.0.0
  gtk_symbolic_color_resolve@Base 3.0.0
  gtk_symbolic_color_to_string@Base 3.1.6
@@ -3907,6 +3967,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_tree_view_get_hover_selection@Base 3.0.0
  gtk_tree_view_get_level_indentation@Base 3.0.0
  gtk_tree_view_get_model@Base 3.0.0
+ gtk_tree_view_get_n_columns@Base 3.3.16
  gtk_tree_view_get_path_at_pos@Base 3.0.0
  gtk_tree_view_get_reorderable@Base 3.0.0
  gtk_tree_view_get_row_separator_func@Base 3.0.0
@@ -3949,6 +4010,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_tree_view_set_expander_column@Base 3.0.0
  gtk_tree_view_set_fixed_height_mode@Base 3.0.0
  gtk_tree_view_set_grid_lines@Base 3.0.0
+ gtk_tree_view_set_hadjustment@Base 3.3.16
  gtk_tree_view_set_headers_clickable@Base 3.0.0
  gtk_tree_view_set_headers_visible@Base 3.0.0
  gtk_tree_view_set_hover_expand@Base 3.0.0
@@ -3967,11 +4029,13 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_tree_view_set_tooltip_cell@Base 3.0.0
  gtk_tree_view_set_tooltip_column@Base 3.0.0
  gtk_tree_view_set_tooltip_row@Base 3.0.0
+ gtk_tree_view_set_vadjustment@Base 3.3.16
  gtk_tree_view_unset_rows_drag_dest@Base 3.0.0
  gtk_tree_view_unset_rows_drag_source@Base 3.0.0
  gtk_true@Base 3.0.0
  gtk_ui_manager_add_ui@Base 3.0.0
  gtk_ui_manager_add_ui_from_file@Base 3.0.0
+ gtk_ui_manager_add_ui_from_resource@Base 3.3.16
  gtk_ui_manager_add_ui_from_string@Base 3.0.0
  gtk_ui_manager_ensure_update@Base 3.0.0
  gtk_ui_manager_get_accel_group@Base 3.0.0
@@ -4071,6 +4135,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_widget_get_margin_left@Base 3.0.0
  gtk_widget_get_margin_right@Base 3.0.0
  gtk_widget_get_margin_top@Base 3.0.0
+ gtk_widget_get_modifier_mask@Base 3.3.16
  gtk_widget_get_modifier_style@Base 3.0.0
  gtk_widget_get_name@Base 3.0.0
  gtk_widget_get_no_show_all@Base 3.0.0
@@ -4275,6 +4340,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_window_fullscreen@Base 3.0.0
  gtk_window_get_accept_focus@Base 3.0.0
  gtk_window_get_application@Base 3.0.0
+ gtk_window_get_attached_to@Base 3.3.16
  gtk_window_get_decorated@Base 3.0.0
  gtk_window_get_default_icon_list@Base 3.0.0
  gtk_window_get_default_icon_name@Base 3.0.0
@@ -4288,6 +4354,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_window_get_gravity@Base 3.0.0
  gtk_window_get_group@Base 3.0.0
  gtk_window_get_has_resize_grip@Base 3.0.0
+ gtk_window_get_hide_titlebar_when_maximized@Base 3.3.16
  gtk_window_get_icon@Base 3.0.0
  gtk_window_get_icon_list@Base 3.0.0
  gtk_window_get_icon_name@Base 3.0.0
@@ -4338,6 +4405,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_window_resize_to_geometry@Base 3.0.0
  gtk_window_set_accept_focus@Base 3.0.0
  gtk_window_set_application@Base 3.0.0
+ gtk_window_set_attached_to@Base 3.3.16
  gtk_window_set_auto_startup_notification@Base 3.0.0
  gtk_window_set_decorated@Base 3.0.0
  gtk_window_set_default@Base 3.0.0
@@ -4356,6 +4424,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_window_set_gravity@Base 3.0.0
  gtk_window_set_has_resize_grip@Base 3.0.0
  gtk_window_set_has_user_ref_count@Base 3.0.0
+ gtk_window_set_hide_titlebar_when_maximized@Base 3.3.16
  gtk_window_set_icon@Base 3.0.0
  gtk_window_set_icon_from_file@Base 3.0.0
  gtk_window_set_icon_list@Base 3.0.0
