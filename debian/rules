@@ -23,13 +23,9 @@ LDFLAGS += -Wl,-O1
 
 APIVER := 3
 SONAME := 0
-SHVER := 3.1.6
+SHVER := 3.1.90
 
-ifneq (,$(findstring multiarch,$(DEB_BUILD_OPTIONS)))
-LIBDIR := usr/lib/$(DEB_HOST_GNU_TYPE)
-else
-LIBDIR := usr/lib
-endif
+LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 
 # earliest version that this release has backwards binary compatibility for
 GTK_BINARY_VERSION := 3.0.0
@@ -42,6 +38,7 @@ CONFDIR := etc/gtk-3.0
 
 # relative base directory for all types of modules
 MODULES_BASE_PATH := $(LIBDIR)/gtk-3.0/$(GTK_BINARY_VERSION)
+OLD_MODULES_BASE_PATH := usr/lib/gtk-3.0/$(GTK_BINARY_VERSION)
 
 # package names
 SHARED_PKG := libgtk-$(APIVER)-$(SONAME)
@@ -81,6 +78,8 @@ DEB_CONFIGURE_FLAGS_static = \
 			--enable-static
 
 DEB_MAKE_CHECK_TARGET = -k check || true
+DEB_INSTALL_DOCS_ALL = AUTHORS
+DEB_INSTALL_DOCS_$(COMMON_PKG) = README NEWS
 DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
 DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
 DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
@@ -115,6 +114,7 @@ debian/%: debian/%.in
 		-e 's#@OPTLIBDIR@#$(OPTLIBDIR)#g' \
 		-e 's#@CONFDIR@#$(CONFDIR)#g' \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
+		-e "s#@OLD_MODULES_BASE_PATH@#$(OLD_MODULES_BASE_PATH)#g" \
 		$@.in > $@
 
 clean:: debian/control

@@ -1,10 +1,14 @@
 001_static-linking-dont-query-immodules.patch
 003_gdk.pc_privates.patch
 015_default-fallback-icon-theme.patch
+016_no_offscreen_widgets_grabbing.patch
+017_no_offscreen_device_grabbing.patch
+018_gdkenumtypes.c_location.patch
 022_disable-viqr-im-for-vi-locale.patch
 041_ia32-libs.patch
 042_treeview_single-focus.patch
 043_notebook_scroll.patch
 044_tracker_fts.patch
 060_ignore-random-icons.patch
+061_multiarch_module_fallback.patch
 70-Fix-document-generation-in-out-of-tree-builds.patch

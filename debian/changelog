@@ -1,3 +1,85 @@
+gtk+3.0 (3.2.3-1) unstable; urgency=low
+
+  * New upstream release.
+    - Fixes segfault on arrow keypress in empty GtkIconView. Closes: #638704
+    - Fixes a11y related crash in treeview. Closes: #652073
+    - Fixes mouse grabbing when clicking resize grip. Closes: #630972
+  * Update patches:
+    - Drop 000git_gtk_tree_view_get_tooltip_context_annotation.patch, applied
+      upstream.
+    - Drop 080_filechooserdefault-Don-t-unref-value-twice.patch, applied
+      upstream.
+    - Refresh 017_no_offscreen_device_grabbing.patch,
+      042_treeview_single-focus.patch and 043_notebook_scroll.patch.
+  * Change section of gir1.2-gtk-3.0 to introspection.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 20 Dec 2011 18:42:32 +0100
+
+gtk+3.0 (3.2.2-3) unstable; urgency=low
+
+  [ Martin Pitt ]
+  * Add 000git_gtk_tree_view_get_tooltip_context_annotation.patch: Fix
+    gtk_tree_view_get_tooltip_context() transfer annotation, causing crashes
+    when using this method from Python.
+  * Add 016_no_offscreen_widgets_grabbing.patch: Widgets inside
+    GtkOffscreenWindow seem like they should not be allowed to do
+    grab the mouse or whatever, as this can deactivate open menus.
+    (LP: #512427, GNOME #607668)
+  * Add 017_no_offscreen_device_grabbing.patch: Do not allow devices in an
+    offscreen hierarchy to take grabs. (LP: #804009, GNOME #658563)
+  * Add 018_gdkenumtypes.c_location.patch: Always generate gdk/gdkenumtypes.c
+    in the source tree, and fix path in the introspection sources. With this,
+    gdkenumtypes.c is correctly included with separate build trees, too.  This
+    fixes missing GTypes in the .gir when using a separate build tree.
+    (LP: #769256, GNOME #647729)
+  * debian/rules: Bump SHVER to 3.1.90.
+  * Build for multiarch. Adapted Steve Langasek's changes to Ubuntu's gtk+2.0
+    package:
+    - debian/control.in: Bump build dependencies to multiarch aware versions.
+    - debian/control.in: Add Multi-Arch: and necessary Pre-Depends: fields.
+      (libraries/-dbg are "same", -doc/-bin are "foreign").
+    - debian/rules: Use multiarch LIBDIR.
+    - debian/libgail-3-dev.install, debian/libgail-3-0.install: Rename to
+      *.in, and use @LIBDIR@ instead of hardcoded usr/lib.
+    - debian/gir1.2-gtk-3.0.install.in: Use @LIBDIR@.
+    - debian/libgtk-3-0.triggers.in, debian/libgtk-3-0.postinst.in,
+      debian/rules: Also trigger on changes to the fallback non-multiarch
+      module directory, which is now called @OLD_MODULES_BASE_PATH@.
+    - Add 061_multiarch_module_fallback.patch: Fall back to the hard-coded
+      pre-multiarch module directory when searching for modules. This
+      maintains compatibility with packages installing modules to
+      the old directories.
+
+  [ Josselin Mouette ]
+  * Break murrine-themes (same reason as gnome-themes-standard).
+  * Move /etc/gtk-3.0 to libgtk-3-common.
+  * Add appropriate Breaks/Replaces to handle it.
+  * Remove gtk-query-immodules-3.0 from libgtk-3-bin since it is 
+    clearly not Multi-Arch compatible. It should not be needed anyway, 
+    everything is handled by triggers from the private directory.
+  * Remove incorrect M-A: same statement for the debug package.
+  * Make libgtk-3-bin arch-any, thanks Rico for noticing.
+
+  [ Michael Biebl ]
+  * debian/libgtk-3-0.postinst.in: If the non-multiarch immodules directory
+    does not exist or is empty handle this case more gracefully and don't
+    print an error message.
+  * debian/patches/080_filechooserdefault-Don-t-unref-value-twice.patch: Fix
+    incorrect ref counting which could lead to a crash in the filechooser.
+    Closes: #650223
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 30 Nov 2011 00:25:29 +0100
+
+gtk+3.0 (3.2.2-2) unstable; urgency=low
+
+  * Upload to unstable.
+  * debian/control.in:
+    - Add Breaks against gnome-themes-standard (<< 3.2) due to the CSS theming
+      related changes. Closes: #649203
+  * Fix broken symlinks in /usr/share/doc. Closes: #647466
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 19 Nov 2011 00:01:03 +0100
+
 gtk+3.0 (3.2.2-1) experimental; urgency=low
 
   * New upstream release.
