@@ -1,3 +1,9 @@
+gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
+
+  * New upstream development release.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 04 Mar 2012 06:46:31 +0100
+
 gtk+3.0 (3.2.3-1) unstable; urgency=low
 
   * New upstream release.
