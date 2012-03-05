@@ -49,7 +49,6 @@ DOC_PKG := libgtk-$(APIVER)-doc
 BIN_PKG := libgtk-$(APIVER)-bin
 DEBUG_PKG := $(SHARED_PKG)-dbg
 EXAMPLES_PKG := gtk-$(APIVER)-examples
-PIXBUF_PKG := gtk3-engines-pixbuf
 
 
 DEB_CONFIGURE_EXTRA_FLAGS = \
@@ -107,7 +106,6 @@ debian/%: debian/%.in
 		-e "s#@BIN_PKG@#$(BIN_PKG)#g" \
 		-e "s#@DEBUG_PKG@#$(DEBUG_PKG)#g" \
 		-e "s#@EXAMPLES_PKG@#$(EXAMPLES_PKG)#g" \
-		-e "s#@PIXBUF_PKG@#$(PIXBUF_PKG)#g" \
 		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
 		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
 		-e "s#@LIBDIR@#$(LIBDIR)#g" \

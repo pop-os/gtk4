@@ -227,21 +227,6 @@ Description: example files for GTK+ 3
  This package contains the example files and a demonstration program
  for GTK+3.
 
-#Package: @PIXBUF_PKG@
-#Section: graphics
-#Architecture: any
-#Depends: ${misc:Depends},
-#         ${shlibs:Depends},
-#         @SHARED_PKG@ (= ${binary:Version}),
-#         @COMMON_PKG@
-#Description: pixbuf-based theme for GTK+ 3.x
-# GTK+ is a multi-platform toolkit for creating graphical user
-# interfaces. Offering a complete set of widgets, GTK+ is suitable
-# for projects ranging from small one-off tools to complete application
-# suites.
-# .
-# This package contains the pixbuf theme engine.
-
 Package: gir1.2-gtk-3.0
 Section: introspection
 Architecture: any
