@@ -11,8 +11,13 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
     - Drop Recommends on python and debhelper from libgtk-3-dev since it no
       longer includes a dh_gtkmodules debhelper addon.
   * Remove leftovers from the gtk3-engines-pixbuf package.
+  * Update patches:
+    - Drop 003_gdk.pc_privates.patch, fixed upstream.
+    - Drop 70-Fix-document-generation-in-out-of-tree-builds.patch, applied
+      upstream.
+    - Drop 041_ia32-libs.patch, no longer required with multiarch.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 05 Mar 2012 01:03:21 +0100
+ -- Michael Biebl <biebl@debian.org>  Mon, 05 Mar 2012 01:21:38 +0100
 
 gtk+3.0 (3.2.3-1) unstable; urgency=low
 
