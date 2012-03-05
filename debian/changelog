@@ -12,12 +12,15 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
       longer includes a dh_gtkmodules debhelper addon.
   * Remove leftovers from the gtk3-engines-pixbuf package.
   * Update patches:
-    - Drop 003_gdk.pc_privates.patch, fixed upstream.
+    - Drop 003_gdk.pc_privates.patch, fixed upstream in a similar way.
     - Drop 70-Fix-document-generation-in-out-of-tree-builds.patch, applied
       upstream.
     - Drop 041_ia32-libs.patch, no longer required with multiarch.
+    - Disable 042_treeview_single-focus.patch for now since it has no
+      description why this patch is needed and it needs to be updated.
+    - Refresh remaining patches.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 05 Mar 2012 01:21:38 +0100
+ -- Michael Biebl <biebl@debian.org>  Mon, 05 Mar 2012 01:29:22 +0100
 
 gtk+3.0 (3.2.3-1) unstable; urgency=low
 
