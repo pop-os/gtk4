@@ -6,6 +6,10 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
   * debian/control.in:
     - Bump (Build-)Depends on libglib2.0-dev to (>= 2.31.18).
     - Bump (Build-)Depends on libgdk-pixbuf2.0-dev to (>= 2.25.2).
+    - Drop Depends on libxml2-utils from libgtk-3-dev as gtk-builder-convert
+      has been removed.
+    - Drop Recommends on python and debhelper from libgtk-3-dev since it no
+      longer includes a dh_gtkmodules debhelper addon.
   * Remove leftovers from the gtk3-engines-pixbuf package.
 
  -- Michael Biebl <biebl@debian.org>  Mon, 05 Mar 2012 01:03:21 +0100
