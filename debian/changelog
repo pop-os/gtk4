@@ -1,4 +1,4 @@
-gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
+gtk+3.0 (3.3.16-1) experimental; urgency=low
 
   * New upstream development release.
   * debian/libgtk-3-0.symbols: Add new symbols.
@@ -22,7 +22,7 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
       description why this patch is needed and it needs to be updated.
     - Refresh remaining patches.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 05 Mar 2012 01:29:22 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 06 Mar 2012 09:02:27 +0100
 
 gtk+3.0 (3.2.3-1) unstable; urgency=low
 
