@@ -21,6 +21,8 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
     - Disable 042_treeview_single-focus.patch for now since it has no
       description why this patch is needed and it needs to be updated.
     - Refresh remaining patches.
+  * debian/gtk-3-examples.install.in: Install gtk3-widget-factory demo
+    application.
 
  -- Michael Biebl <biebl@debian.org>  Tue, 06 Mar 2012 09:02:27 +0100
 
