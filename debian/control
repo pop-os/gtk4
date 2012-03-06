@@ -63,7 +63,7 @@ Suggests: librsvg2-common,
           gvfs
 Conflicts: libgtk3.0-0
 Replaces: libgtk3.0-0
-Breaks: gnome-themes-standard (<< 3.2),
+Breaks: gnome-themes-standard (<< 3.3),
         murrine-themes (<= 0.98.2)
 Multi-Arch: same
 Pre-Depends: ${misc:Pre-Depends}

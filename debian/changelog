@@ -10,6 +10,8 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
       has been removed.
     - Drop Recommends on python and debhelper from libgtk-3-dev since it no
       longer includes a dh_gtkmodules debhelper addon.
+    - Bump Breaks against gnome-themes-standard due to theming related
+      changes.
   * Remove leftovers from the gtk3-engines-pixbuf package.
   * Update patches:
     - Drop 003_gdk.pc_privates.patch, fixed upstream in a similar way.
