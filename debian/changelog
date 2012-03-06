@@ -1,4 +1,4 @@
-gtk+3.0 (3.3.16-1) experimental; urgency=low
+gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
 
   * New upstream development release.
   * debian/libgtk-3-0.symbols: Add new symbols.
