@@ -2,7 +2,7 @@
 
 DEB_BUILDDIR = debian/build
 DEB_MAKE_DESTDIRSKEL = $(CURDIR)/debian/install/@FLAVOR@
-DEB_MAKE_FLAVORS = shared shared_udeb static
+DEB_MAKE_FLAVORS = shared shared_udeb
 DISABLE_UPDATE_UPLOADERS = 1
 
 include /usr/share/cdbs/1/rules/autoreconf.mk
@@ -68,13 +68,6 @@ DEB_CONFIGURE_FLAGS_shared_udeb = \
 			--disable-xdamage \
 			--disable-xfixes \
 			--disable-xrandr
-
-DEB_CONFIGURE_FLAGS_static = \
-			--with-included-loaders=yes \
-			--enable-introspection=no \
-			--disable-modules \
-			--disable-shared \
-			--enable-static
 
 DEB_MAKE_CHECK_TARGET = -k check || true
 DEB_INSTALL_DOCS_ALL = AUTHORS

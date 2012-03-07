@@ -23,8 +23,10 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
     - Refresh remaining patches.
   * debian/gtk-3-examples.install.in: Install gtk3-widget-factory demo
     application.
+  * Stop building static libraries which require a full separate build and
+    appear to be unused.
 
- -- Michael Biebl <biebl@debian.org>  Tue, 06 Mar 2012 09:02:27 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 07 Mar 2012 00:59:24 +0100
 
 gtk+3.0 (3.2.3-1) unstable; urgency=low
 

@@ -1,2 +1,1 @@
-# from the shared flavor
 debian/install/shared_udeb/@LIBDIR@/libg?k*.so.* @LIBDIR@

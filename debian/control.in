@@ -164,8 +164,8 @@ Description: development files for the GTK+ library
  for projects ranging from small one-off tools to complete application
  suites.
  .
- This package contains the header files and static libraries which are
- needed for developing GTK+ applications.
+ This package contains the header and development files which are
+ needed for building GTK+ applications.
 
 Package: @DEBUG_PKG@
 Section: debug
