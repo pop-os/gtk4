@@ -59,11 +59,13 @@ DEB_CONFIGURE_EXTRA_FLAGS = \
 DEB_CONFIGURE_FLAGS_shared = \
 			--enable-gtk-doc \
 			--enable-shared \
-			--enable-introspection=yes \
+			--enable-introspection \
+			--enable-colord \
 			--disable-static
 
 DEB_CONFIGURE_FLAGS_shared_udeb = \
-			--enable-introspection=no \
+			--disable-introspection \
+			--disable-colord \
 			--disable-xcomposite \
 			--disable-xdamage \
 			--disable-xfixes \

@@ -25,6 +25,8 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
     application.
   * Stop building static libraries which require a full separate build and
     appear to be unused.
+  * Enable colord support for color-managed printing. Keep it disabled for the
+    udeb build.
 
  -- Michael Biebl <biebl@debian.org>  Wed, 07 Mar 2012 00:59:24 +0100
 
