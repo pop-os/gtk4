@@ -1,6 +1,5 @@
 001_static-linking-dont-query-immodules.patch
 003_gdk.pc_privates.patch
-015_default-fallback-icon-theme.patch
 016_no_offscreen_widgets_grabbing.patch
 017_no_offscreen_device_grabbing.patch
 018_gdkenumtypes.c_location.patch
