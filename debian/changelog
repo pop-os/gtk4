@@ -1,4 +1,4 @@
-gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
+gtk+3.0 (3.3.16-1) experimental; urgency=low
 
   * New upstream development release.
   * debian/libgtk-3-0.symbols: Add new symbols.
@@ -28,7 +28,7 @@ gtk+3.0 (3.3.16-1) UNRELEASED; urgency=low
   * Enable colord support for color-managed printing. Keep it disabled for the
     udeb build.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 07 Mar 2012 00:59:24 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 07 Mar 2012 01:16:05 +0100
 
 gtk+3.0 (3.2.3-1) unstable; urgency=low
 
