@@ -1,3 +1,9 @@
+gtk+3.0 (3.3.16-2) UNRELEASED; urgency=low
+
+  * Bump Build-Depends on cdbs for multiarch support.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 18 Mar 2012 15:35:07 +0100
+
 gtk+3.0 (3.3.16-1) experimental; urgency=low
 
   * New upstream development release.

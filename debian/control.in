@@ -4,7 +4,7 @@ Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Uploaders: @GNOME_TEAM@
 Build-Depends: debhelper (>= 8.1.3),
-               cdbs (>= 0.4.90~),
+               cdbs (>= 0.4.93),
                gnome-pkg-tools (>= 0.11),
                dpkg-dev (>= 1.16.0),
                gtk-doc-tools (>= 1.11),
