@@ -2,8 +2,10 @@ gtk+3.0 (3.3.20-1) UNRELEASED; urgency=low
 
   * New upstream development release.
   * Bump Build-Depends on cdbs for multiarch support.
+  * debian/libgtk-3-0.symbols: Updated.
+  * debian/rules: Bump SHVER to 3.3.18.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 21 Mar 2012 02:22:42 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 21 Mar 2012 02:23:54 +0100
 
 gtk+3.0 (3.3.16-1) experimental; urgency=low
 

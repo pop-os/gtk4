@@ -159,10 +159,12 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_event_get_click_count@Base 3.2.1
  gdk_event_get_coords@Base 3.0.0
  gdk_event_get_device@Base 3.0.0
+ gdk_event_get_event_sequence@Base 3.3.18
  gdk_event_get_keycode@Base 3.2.1
  gdk_event_get_keyval@Base 3.2.1
  gdk_event_get_root_coords@Base 3.0.0
  gdk_event_get_screen@Base 3.0.0
+ gdk_event_get_scroll_deltas@Base 3.3.18
  gdk_event_get_scroll_direction@Base 3.2.1
  gdk_event_get_source_device@Base 3.0.0
  gdk_event_get_state@Base 3.0.0
@@ -183,7 +185,6 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_events_get_center@Base 3.0.0
  gdk_events_get_distance@Base 3.0.0
  gdk_events_pending@Base 3.0.0
- gdk_extension_mode_get_type@Base 3.0.0
  gdk_filter_return_get_type@Base 3.0.0
  gdk_flush@Base 3.0.0
  gdk_get_default_root_window@Base 3.0.0
@@ -512,9 +513,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_device_manager_core_get_type@Base 3.0.0
  gdk_x11_device_manager_lookup@Base 3.2.1
  gdk_x11_device_manager_xi2_get_type@Base 3.0.0
- gdk_x11_device_manager_xi_get_type@Base 3.0.0
  gdk_x11_device_xi2_get_type@Base 3.0.0
- gdk_x11_device_xi_get_type@Base 3.0.0
  gdk_x11_display_broadcast_startup_message@Base 3.0.0
  gdk_x11_display_error_trap_pop@Base 3.0.0
  gdk_x11_display_error_trap_pop_ignored@Base 3.0.0
@@ -2909,8 +2908,10 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_scrollbar_get_type@Base 3.0.0
  gtk_scrollbar_new@Base 3.0.0
  gtk_scrolled_window_add_with_viewport@Base 3.0.0
+ gtk_scrolled_window_get_capture_button_press@Base 3.3.18
  gtk_scrolled_window_get_hadjustment@Base 3.0.0
  gtk_scrolled_window_get_hscrollbar@Base 3.0.0
+ gtk_scrolled_window_get_kinetic_scrolling@Base 3.3.18
  gtk_scrolled_window_get_min_content_height@Base 3.0.0
  gtk_scrolled_window_get_min_content_width@Base 3.0.0
  gtk_scrolled_window_get_placement@Base 3.0.0
@@ -2920,7 +2921,9 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_scrolled_window_get_vadjustment@Base 3.0.0
  gtk_scrolled_window_get_vscrollbar@Base 3.0.0
  gtk_scrolled_window_new@Base 3.0.0
+ gtk_scrolled_window_set_capture_button_press@Base 3.3.18
  gtk_scrolled_window_set_hadjustment@Base 3.0.0
+ gtk_scrolled_window_set_kinetic_scrolling@Base 3.3.18
  gtk_scrolled_window_set_min_content_height@Base 3.0.0
  gtk_scrolled_window_set_min_content_width@Base 3.0.0
  gtk_scrolled_window_set_placement@Base 3.0.0
