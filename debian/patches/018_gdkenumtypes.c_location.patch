@@ -18,11 +18,11 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  gdk/Makefile.am |   17 +++++++----------
  1 files changed, 7 insertions(+), 10 deletions(-)
 
-Index: gtk+-3.3.16/gdk/Makefile.am
+Index: gtk+-3.3.20/gdk/Makefile.am
 ===================================================================
---- gtk+-3.3.16.orig/gdk/Makefile.am	2012-03-05 00:06:46.324212766 +0100
-+++ gtk+-3.3.16/gdk/Makefile.am	2012-03-05 01:25:14.252166756 +0100
-@@ -187,8 +187,8 @@
+--- gtk+-3.3.20.orig/gdk/Makefile.am	2012-03-21 00:38:00.762485573 +0100
++++ gtk+-3.3.20/gdk/Makefile.am	2012-03-21 00:38:17.102484995 +0100
+@@ -189,8 +189,8 @@
  introspection_files = 		\
  	$(filter-out gdkkeysyms-compat.h, $(gdk_public_h_sources))	\
  	$(gdk_c_sources)	\

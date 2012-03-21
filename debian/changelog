@@ -11,8 +11,10 @@ gtk+3.0 (3.3.20-1) UNRELEASED; urgency=low
       package.
     - Update dependencies of libgtk-3-dev. Strip the minimum version from
       libx*-dev, since those versions were older then lenny anyway.
+  * Refresh patches.
+  * Disable 043_notebook_scroll.patch, it needs to be updated.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 21 Mar 2012 02:36:21 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 21 Mar 2012 02:41:41 +0100
 
 gtk+3.0 (3.3.16-1) experimental; urgency=low
 
