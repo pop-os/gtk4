@@ -1,4 +1,4 @@
-gtk+3.0 (3.3.20-1) UNRELEASED; urgency=low
+gtk+3.0 (3.3.20-1) experimental; urgency=low
 
   * New upstream development release.
   * Bump Build-Depends on cdbs for multiarch support.
@@ -17,7 +17,7 @@ gtk+3.0 (3.3.20-1) UNRELEASED; urgency=low
   * Move org.gtk.Demo.gschema.xml gsettings schema from libgtk-3-common to
     gtk-3-examples. Add the necessary Breaks/Replaces.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 21 Mar 2012 03:06:51 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 21 Mar 2012 03:07:36 +0100
 
 gtk+3.0 (3.3.16-1) experimental; urgency=low
 
