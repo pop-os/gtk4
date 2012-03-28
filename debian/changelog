@@ -1,4 +1,4 @@
-gtk+3.0 (3.4.0-1) UNRELEASED; urgency=low
+gtk+3.0 (3.4.0-1) experimental; urgency=low
 
   * New upstream release.
   * Bump Build-Depends on cdbs for multiarch support.
@@ -22,7 +22,7 @@ gtk+3.0 (3.4.0-1) UNRELEASED; urgency=low
     Revert upstream commit which breaks the window decorations in
     gnome-shell resp. mutter 3.2.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 28 Mar 2012 15:20:34 +0200
+ -- Michael Biebl <biebl@debian.org>  Wed, 28 Mar 2012 15:27:05 +0200
 
 gtk+3.0 (3.3.16-1) experimental; urgency=low
 
