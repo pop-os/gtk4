@@ -16,8 +16,10 @@ gtk+3.0 (3.4.0-1) UNRELEASED; urgency=low
   * Disable 043_notebook_scroll.patch, it needs to be updated.
   * Move org.gtk.Demo.gschema.xml gsettings schema from libgtk-3-common to
     gtk-3-examples. Add the necessary Breaks/Replaces.
+  * debian/libgtk-3-bin.install.in: Install the man pages from the install
+    directory, not the source directory.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 21 Mar 2012 03:07:36 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 28 Mar 2012 15:19:03 +0200
 
 gtk+3.0 (3.3.16-1) experimental; urgency=low
 
