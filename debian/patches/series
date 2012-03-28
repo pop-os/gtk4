@@ -8,3 +8,4 @@
 044_tracker_fts.patch
 060_ignore-random-icons.patch
 061_multiarch_module_fallback.patch
+070_revert-widget-set-up-signals-after-initializing.patch

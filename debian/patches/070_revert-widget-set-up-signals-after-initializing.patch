@@ -1,0 +1,41 @@
+From 502d6cb9bc75370ed0692849c65c89d52e818a96 Mon Sep 17 00:00:00 2001
+From: Michael Biebl <biebl@debian.org>
+Date: Wed, 28 Mar 2012 06:10:17 +0200
+Subject: [PATCH] Revert "widget: Set up signals after initializing style
+ context"
+
+This reverts commit 5d579811843f81db9866ac81afc5297f776cfb3b.
+
+This change breaks the window decorations in gnome-shell resp. mutter 3.2.
+It can be dropped again, once GNOME 3.4 is in unstable.
+---
+ gtk/gtkwidget.c |    6 +++---
+ 1 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/gtk/gtkwidget.c b/gtk/gtkwidget.c
+index a82f050..c4c85c9 100644
+--- a/gtk/gtkwidget.c
++++ b/gtk/gtkwidget.c
+@@ -14119,6 +14119,9 @@ gtk_widget_get_style_context (GtkWidget *widget)
+                                     "direction", gtk_widget_get_direction (widget),
+                                     NULL);
+ 
++      g_signal_connect (widget->priv->context, "changed",
++                        G_CALLBACK (style_context_changed), widget);
++
+       screen = gtk_widget_get_screen (widget);
+ 
+       if (screen)
+@@ -14128,9 +14131,6 @@ gtk_widget_get_style_context (GtkWidget *widget)
+       if (priv->parent)
+         gtk_style_context_set_parent (priv->context,
+                                       gtk_widget_get_style_context (priv->parent));
+-
+-      g_signal_connect (widget->priv->context, "changed",
+-                        G_CALLBACK (style_context_changed), widget);
+     }
+ 
+   return widget->priv->context;
+-- 
+1.7.9.1
+
