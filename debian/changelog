@@ -1,8 +1,12 @@
-gtk+3.0 (3.4.0-2) UNRELEASED; urgency=low
+gtk+3.0 (3.4.1-1) UNRELEASED; urgency=low
 
+  [ Josselin Mouette ]
   * Break libvte-2.90-9 < 0.32. Closes: #666921.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 04 Apr 2012 15:35:45 +0200
+  [ Michael Biebl ]
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 00:34:03 +0200
 
 gtk+3.0 (3.4.0-1) experimental; urgency=low
 
