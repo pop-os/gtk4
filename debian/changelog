@@ -13,8 +13,9 @@ gtk+3.0 (3.4.1-1) UNRELEASED; urgency=low
     way the .install files can be simplified a lot which makes them much more
     readable.
   * Bump Standards-Version to 3.9.3.
+  * Update Vcs-* URLs.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 00:50:40 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 00:51:45 +0200
 
 gtk+3.0 (3.4.0-1) experimental; urgency=low
 
