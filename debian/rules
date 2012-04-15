@@ -50,6 +50,8 @@ BIN_PKG := libgtk-$(APIVER)-bin
 DEBUG_PKG := $(SHARED_PKG)-dbg
 EXAMPLES_PKG := gtk-$(APIVER)-examples
 
+DEB_DH_INSTALL_ARGS += --sourcedir=debian/install/shared
+DEB_DH_INSTALL_ARGS_$(UDEB_PKG) += --sourcedir=debian/install/shared_udeb
 
 DEB_CONFIGURE_EXTRA_FLAGS = \
 			--libdir=/$(LIBDIR) \
@@ -121,12 +123,14 @@ build-arch: $(call dh_subst_files,$(DEB_ARCH_PACKAGES))
 binary-install/$(SHARED_PKG)::
 	# Install the binaries with a -3.0 suffix
 	mv debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache \
-	   debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache-3.0
+	    debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache-3.0
 
 binary-install/$(BIN_PKG)::
 	# Install the binaries with a -3.0 suffix
 	mv debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache.1 \
-	   debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-3.0.1
+	    debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-3.0.1
+	install -m 0755 -D debian/update-icon-caches \
+	    debian/$(BIN_PKG)/usr/sbin/update-icon-caches
 
 list-missing:
 	# FIXME: remove this when CDBS' list-missing works with multiple flavors

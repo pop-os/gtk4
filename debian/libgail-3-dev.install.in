@@ -1,3 +1,0 @@
-debian/install/shared/usr/include/gail* /usr/include
-debian/install/shared/@LIBDIR@/libgail*.so @LIBDIR@
-debian/install/shared/@LIBDIR@/pkgconfig/gail*.pc @LIBDIR@/pkgconfig

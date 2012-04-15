@@ -9,6 +9,9 @@ gtk+3.0 (3.4.1-1) UNRELEASED; urgency=low
   * Drop explicit Build-Depends on gir1.2-glib-2.0 and gir1.2-freedesktop.
   * Refresh patches.
   * Remove leftovers from the opt flavor.
+  * Set --sourcedir for the different flavors when running dh_install. This
+    way the .install files can be simplified a lot which makes them much more
+    readable.
 
  -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 00:39:13 +0200
 
