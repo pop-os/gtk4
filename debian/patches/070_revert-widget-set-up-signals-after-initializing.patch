@@ -12,21 +12,21 @@ It can be dropped again, once GNOME 3.4 is in unstable.
  gtk/gtkwidget.c |    6 +++---
  1 files changed, 3 insertions(+), 3 deletions(-)
 
-diff --git a/gtk/gtkwidget.c b/gtk/gtkwidget.c
-index a82f050..c4c85c9 100644
---- a/gtk/gtkwidget.c
-+++ b/gtk/gtkwidget.c
-@@ -14119,6 +14119,9 @@ gtk_widget_get_style_context (GtkWidget *widget)
-                                     "direction", gtk_widget_get_direction (widget),
-                                     NULL);
+Index: gtk+-3.4.1/gtk/gtkwidget.c
+===================================================================
+--- gtk+-3.4.1.orig/gtk/gtkwidget.c	2012-04-13 02:31:42.000000000 +0200
++++ gtk+-3.4.1/gtk/gtkwidget.c	2012-04-15 20:55:33.278308259 +0200
+@@ -14119,6 +14119,9 @@
+ 
+       gtk_style_context_set_direction (priv->context, gtk_widget_get_direction (widget));
  
 +      g_signal_connect (widget->priv->context, "changed",
 +                        G_CALLBACK (style_context_changed), widget);
 +
        screen = gtk_widget_get_screen (widget);
- 
        if (screen)
-@@ -14128,9 +14131,6 @@ gtk_widget_get_style_context (GtkWidget *widget)
+         gtk_style_context_set_screen (priv->context, screen);
+@@ -14127,9 +14130,6 @@
        if (priv->parent)
          gtk_style_context_set_parent (priv->context,
                                        gtk_widget_get_style_context (priv->parent));
@@ -36,6 +36,3 @@ index a82f050..c4c85c9 100644
      }
  
    return widget->priv->context;
--- 
-1.7.9.1
-

@@ -7,8 +7,9 @@ gtk+3.0 (3.4.1-1) UNRELEASED; urgency=low
   * New upstream release.
   * Update dependencies according to configure.ac.
   * Drop explicit Build-Depends on gir1.2-glib-2.0 and gir1.2-freedesktop.
+  * Refresh patches.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 00:35:51 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 00:36:57 +0200
 
 gtk+3.0 (3.4.0-1) experimental; urgency=low
 
