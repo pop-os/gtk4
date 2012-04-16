@@ -55,8 +55,7 @@ DEB_DH_INSTALL_ARGS_$(UDEB_PKG) += --sourcedir=debian/install/shared_udeb
 
 DEB_CONFIGURE_EXTRA_FLAGS = \
 			--libdir=/$(LIBDIR) \
-			--enable-test-print-backend \
-			--enable-xinput
+			--enable-test-print-backend
 
 DEB_CONFIGURE_FLAGS_shared = \
 			--enable-gtk-doc \

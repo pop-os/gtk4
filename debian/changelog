@@ -15,8 +15,10 @@ gtk+3.0 (3.4.1-1) UNRELEASED; urgency=low
     readable.
   * Bump Standards-Version to 3.9.3.
   * Update Vcs-* URLs.
+  * Remove --enable-xinput configure flag as xinput support is no longer
+    optional and this flag has thus been removed upstream.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 00:51:45 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 15:19:01 +0200
 
 gtk+3.0 (3.4.0-1) experimental; urgency=low
 
