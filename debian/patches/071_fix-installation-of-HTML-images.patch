@@ -5,16 +5,17 @@ Subject: [PATCH] Fix installation of HTML images for absolute paths
 
 when using out-of-tree builds.
 
-https://bugzilla.gnome.org/show_bug.cgi?id=674163
+Bug: https://bugzilla.gnome.org/show_bug.cgi?id=674163
+Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=656803
 ---
  gtk-doc.make |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-diff --git a/gtk-doc.make b/gtk-doc.make
-index 6664c16..e401468 100644
---- a/gtk-doc.make
-+++ b/gtk-doc.make
-@@ -176,8 +176,8 @@ html-build.stamp: sgml.stamp $(DOC_MAIN_SGML_FILE) $(content_files)
+Index: gtk+-3.4.1/gtk-doc.make
+===================================================================
+--- gtk+-3.4.1.orig/gtk-doc.make	2012-04-10 00:52:46.000000000 +0200
++++ gtk+-3.4.1/gtk-doc.make	2012-04-17 19:22:04.294590580 +0200
+@@ -155,8 +155,8 @@
  	  if test -f $(abs_srcdir)/$$file ; then \
  	    cp $(abs_srcdir)/$$file $(abs_builddir)/html; \
  	  fi; \
@@ -25,6 +26,3 @@ index 6664c16..e401468 100644
  	  fi; \
  	done;
  	@echo '  DOC   Fixing cross-references'
--- 
-1.7.10
-
