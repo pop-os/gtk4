@@ -17,8 +17,11 @@ gtk+3.0 (3.4.1-1) UNRELEASED; urgency=low
   * Update Vcs-* URLs.
   * Remove --enable-xinput configure flag as xinput support is no longer
     optional and this flag has thus been removed upstream.
+  * debian/patches/071_fix-installation-of-HTML-images.patch: Fix installation
+    of HTML images for out-of-tree builds when using absolute paths.
+    Closes: #656803
 
- -- Michael Biebl <biebl@debian.org>  Mon, 16 Apr 2012 15:19:01 +0200
+ -- Michael Biebl <biebl@debian.org>  Tue, 17 Apr 2012 19:13:46 +0200
 
 gtk+3.0 (3.4.0-1) experimental; urgency=low
 
