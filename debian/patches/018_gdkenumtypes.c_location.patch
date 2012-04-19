@@ -18,11 +18,11 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  gdk/Makefile.am |   17 +++++++----------
  1 files changed, 7 insertions(+), 10 deletions(-)
 
-diff --git a/gdk/Makefile.am b/gdk/Makefile.am
-index c7f24af..d918db0 100644
---- a/gdk/Makefile.am
-+++ b/gdk/Makefile.am
-@@ -185,8 +185,8 @@ if HAVE_INTROSPECTION
+Index: gtk+-3.3.20/gdk/Makefile.am
+===================================================================
+--- gtk+-3.3.20.orig/gdk/Makefile.am	2012-03-21 00:38:00.762485573 +0100
++++ gtk+-3.3.20/gdk/Makefile.am	2012-03-21 00:38:17.102484995 +0100
+@@ -189,8 +189,8 @@
  introspection_files = 		\
  	$(filter-out gdkkeysyms-compat.h, $(gdk_public_h_sources))	\
  	$(gdk_c_sources)	\
@@ -33,7 +33,7 @@ index c7f24af..d918db0 100644
  
  Gdk-3.0.gir: libgdk-3.la Makefile
  Gdk_3_0_gir_SCANNERFLAGS = 	\
-@@ -303,7 +303,7 @@ endif
+@@ -305,7 +305,7 @@
  
  lib_LTLIBRARIES = libgdk-3.la
  
@@ -42,7 +42,7 @@ index c7f24af..d918db0 100644
  EXTRA_DIST += $(gdk_built_sources)
  
  install-exec-hook:
-@@ -315,18 +315,15 @@ BUILT_SOURCES = \
+@@ -317,18 +317,15 @@
  	$(gdk_built_sources)			\
  	gdkconfig.h
  
@@ -65,6 +65,3 @@ index c7f24af..d918db0 100644
  	&& rm -f xgen-getc
  
  #
--- 
-1.7.5.4
-

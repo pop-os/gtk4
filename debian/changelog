@@ -1,13 +1,86 @@
-gtk+3.0 (3.2.3-2) UNRELEASED; urgency=low
+gtk+3.0 (3.4.1-1) experimental; urgency=low
 
-  * debian/libgtk-3-0.install.in:
-    - install the settings.ini
-  * debian/patches/015_default-fallback-icon-theme.patch:
-    - dropped in favor of the settings.in configuration
-  * debian/settings.in:
-    - define default themes there, it's better than hardcoding
+  [ Josselin Mouette ]
+  * Break libvte-2.90-9 < 0.32 and libwebkitgtk-3.0-0 < 1.8.0 for the
+    scrolling related changes. Closes: #666921.
 
- -- Sebastien Bacher <seb128@debian.org>  Wed, 07 Mar 2012 19:48:38 +0100
+  [ Michael Biebl ]
+  * New upstream release.
+    - Fixes GtkPaned's handling of preferred size. Closes: #666718
+  * Update dependencies according to configure.ac.
+  * Drop explicit Build-Depends on gir1.2-glib-2.0 and gir1.2-freedesktop.
+  * Refresh patches.
+  * Remove leftovers from the opt flavor.
+  * Set --sourcedir for the different flavors when running dh_install. This
+    way the .install files can be simplified a lot which makes them much more
+    readable.
+  * Bump Standards-Version to 3.9.3.
+  * Update Vcs-* URLs.
+  * Remove --enable-xinput configure flag as xinput support is no longer
+    optional and this flag has thus been removed upstream.
+  * debian/patches/071_fix-installation-of-HTML-images.patch: Fix installation
+    of HTML images for out-of-tree builds when using absolute paths.
+    Closes: #656803
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 17 Apr 2012 20:59:19 +0200
+
+gtk+3.0 (3.4.0-1) experimental; urgency=low
+
+  * New upstream release.
+  * Bump Build-Depends on cdbs for multiarch support.
+  * debian/libgtk-3-0.symbols: Updated.
+  * debian/rules: Bump SHVER to 3.3.18.
+  * debian/control.in:
+    - Bump (Build-)Depends on libglib2.0-dev to (>= 2.31.20).
+    - Drop explicit Build-Depends on gir1.2-atk-1.0, gir1.2-pango-1.0 and
+      gir1.2-gdkpixbuf-2.0, those are pulled via the corresponding -dev
+      package.
+    - Update dependencies of libgtk-3-dev. Strip the minimum version from
+      libx*-dev, since those versions were older then lenny anyway.
+    - Remove a few obsolete Conflicts/Replaces.
+  * Refresh patches.
+  * Disable 043_notebook_scroll.patch, it needs to be updated.
+  * Move org.gtk.Demo.gschema.xml gsettings schema from libgtk-3-common to
+    gtk-3-examples. Add the necessary Breaks/Replaces.
+  * debian/libgtk-3-bin.install.in: Install the man pages from the install
+    directory, not the source directory.
+  * debian/patches/070_revert-widget-set-up-signals-after-initializing.patch:
+    Revert upstream commit which breaks the window decorations in
+    gnome-shell resp. mutter 3.2.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 28 Mar 2012 15:27:05 +0200
+
+gtk+3.0 (3.3.16-1) experimental; urgency=low
+
+  * New upstream development release.
+  * debian/libgtk-3-0.symbols: Add new symbols.
+  * debian/rules: Bump SHVER to 3.3.16.
+  * debian/control.in:
+    - Bump (Build-)Depends on libglib2.0-dev to (>= 2.31.18).
+    - Bump (Build-)Depends on libgdk-pixbuf2.0-dev to (>= 2.25.2).
+    - Drop Depends on libxml2-utils from libgtk-3-dev as gtk-builder-convert
+      has been removed.
+    - Drop Recommends on python and debhelper from libgtk-3-dev since it no
+      longer includes a dh_gtkmodules debhelper addon.
+    - Bump Breaks against gnome-themes-standard due to theming related
+      changes.
+  * Remove leftovers from the gtk3-engines-pixbuf package.
+  * Update patches:
+    - Drop 003_gdk.pc_privates.patch, fixed upstream in a similar way.
+    - Drop 70-Fix-document-generation-in-out-of-tree-builds.patch, applied
+      upstream.
+    - Drop 041_ia32-libs.patch, no longer required with multiarch.
+    - Disable 042_treeview_single-focus.patch for now since it has no
+      description why this patch is needed and it needs to be updated.
+    - Refresh remaining patches.
+  * debian/gtk-3-examples.install.in: Install gtk3-widget-factory demo
+    application.
+  * Stop building static libraries which require a full separate build and
+    appear to be unused.
+  * Enable colord support for color-managed printing. Keep it disabled for the
+    udeb build.
+
+ -- Michael Biebl <biebl@debian.org>  Wed, 07 Mar 2012 01:16:05 +0100
 
 gtk+3.0 (3.2.3-1) unstable; urgency=low
 
