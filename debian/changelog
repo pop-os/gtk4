@@ -1,8 +1,8 @@
-gtk+3.0 (3.4.1-2) UNRELEASED; urgency=low
+gtk+3.0 (3.4.1-2) unstable; urgency=low
 
   * Upload to unstable.
 
- -- Michael Biebl <biebl@debian.org>  Thu, 19 Apr 2012 02:46:04 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 19 Apr 2012 02:46:25 +0200
 
 gtk+3.0 (3.4.1-1) experimental; urgency=low
 
