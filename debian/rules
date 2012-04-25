@@ -23,7 +23,6 @@ LDFLAGS += -Wl,-O1
 
 APIVER := 3
 SONAME := 0
-SHVER := 3.3.18
 
 LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 
@@ -78,7 +77,7 @@ DEB_INSTALL_DOCS_$(COMMON_PKG) = README NEWS
 DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
 DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
 DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
-DEB_DH_MAKESHLIBS_ARGS_libgail-3-0 += -V"libgail-3-0 (>= $(SHVER)), libgail-3-common (>= $(SHVER))" -- -c4
+DEB_DH_MAKESHLIBS_ARGS_libgail-3-0 += -V -- -c4
 DEB_DH_FIXPERMS_ARGS_ALL += -X$(LIBDIR)/$(SHARED_PKG)
 DEB_DH_STRIP_ARGS = --dbg-package=$(if $(findstring libgail,$(cdbs_curpkg)),libgail-3-0-dbg,$(DEBUG_PKG))
 DEB_DH_STRIP_ARGS_$(UDEB_PKG) =
