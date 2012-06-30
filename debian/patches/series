@@ -10,3 +10,4 @@
 061_multiarch_module_fallback.patch
 070_revert-widget-set-up-signals-after-initializing.patch
 071_fix-installation-of-HTML-images.patch
+072_statusicon_icon_size.patch

@@ -1,3 +1,13 @@
+gtk+3.0 (3.4.2-2) UNRELEASED; urgency=low
+
+  * debian/patches/072_statusicon_icon_size.patch: Fix how we determine the
+    icon size for the statusicon. This could lead to a crash in
+    notification-daemon caused by an assertion failure. Closes: #669883
+    Thanks to Fernando Lemos for the patch and Brad Jorsch for the excellent
+    debugging.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 30 Jun 2012 16:48:53 +0200
+
 gtk+3.0 (3.4.2-1) unstable; urgency=low
 
   * New upstream release.
