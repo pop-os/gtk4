@@ -1,3 +1,9 @@
+gtk+3.0 (3.4.2-3) UNRELEASED; urgency=low
+
+  * Update xrandr epoch.
+
+ -- Josselin Mouette <joss@debian.org>  Fri, 06 Jul 2012 10:45:56 +0200
+
 gtk+3.0 (3.4.2-2) unstable; urgency=low
 
   * debian/patches/072_statusicon_icon_size.patch: Fix how we determine the
