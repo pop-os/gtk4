@@ -1,8 +1,15 @@
-gtk+3.0 (3.4.2-3) UNRELEASED; urgency=low
+gtk+3.0 (3.4.2-4) UNRELEASED; urgency=low
 
+  [ Josselin Mouette ]
   * Update xrandr epoch.
 
- -- Josselin Mouette <joss@debian.org>  Fri, 06 Jul 2012 10:45:56 +0200
+  [ Michael Biebl ]
+  * debian/libgtk-3-0.postrm.in: Drop "rm -rf /etc/gtk-3.0/" on purge since
+    this removes files owned by libgtk-3-common. Those bits were copied over
+    from the gtk+2.0 package but they are actually obsolete and no longer
+    required. Closes: #681198
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 06 Aug 2012 18:00:10 +0200
 
 gtk+3.0 (3.4.2-2) unstable; urgency=low
 

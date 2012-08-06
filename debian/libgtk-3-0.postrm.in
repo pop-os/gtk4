@@ -2,12 +2,6 @@
 
 set -e
 
-case "$1" in
-  purge)
-    rm -rf /@CONFDIR@
-  ;;
-esac
-
 #DEBHELPER#
 
 if [ -d /@MODULES_BASE_PATH@ ]; then
