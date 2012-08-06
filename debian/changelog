@@ -1,4 +1,4 @@
-gtk+3.0 (3.4.2-4) UNRELEASED; urgency=low
+gtk+3.0 (3.4.2-4) unstable; urgency=low
 
   [ Josselin Mouette ]
   * Update xrandr epoch.
@@ -19,7 +19,7 @@ gtk+3.0 (3.4.2-4) UNRELEASED; urgency=low
     as dh_compress will compress those files. This avoids dangling symlinks.
     Closes: #679754
 
- -- Michael Biebl <biebl@debian.org>  Mon, 06 Aug 2012 18:00:10 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 06 Aug 2012 21:40:53 +0200
 
 gtk+3.0 (3.4.2-2) unstable; urgency=low
 
