@@ -15,6 +15,9 @@ gtk+3.0 (3.4.2-4) UNRELEASED; urgency=low
     This patch was a temporary workaround for a bug in mutter which has been
     fixed in version 3.4. It was not supposed to be shipped as part of wheezy,
     so drop it again.
+  * If the NEWS or README file is larger than 4k in size append a .gz suffix
+    as dh_compress will compress those files. This avoids dangling symlinks.
+    Closes: #679754
 
  -- Michael Biebl <biebl@debian.org>  Mon, 06 Aug 2012 18:00:10 +0200
 
