@@ -8,6 +8,9 @@ gtk+3.0 (3.4.2-4) UNRELEASED; urgency=low
     this removes files owned by libgtk-3-common. Those bits were copied over
     from the gtk+2.0 package but they are actually obsolete and no longer
     required. Closes: #681198
+  * debian/patches/073_transparent_colors.patch: Handle transparent colors
+    better in GtkStyle emulation. Patch cherry-picked from upstream Git.
+    Closes: #669694
 
  -- Michael Biebl <biebl@debian.org>  Mon, 06 Aug 2012 18:00:10 +0200
 
