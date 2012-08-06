@@ -11,6 +11,10 @@ gtk+3.0 (3.4.2-4) UNRELEASED; urgency=low
   * debian/patches/073_transparent_colors.patch: Handle transparent colors
     better in GtkStyle emulation. Patch cherry-picked from upstream Git.
     Closes: #669694
+  * debian/patches/070_revert-widget-set-up-signals-after-initializing.patch:
+    This patch was a temporary workaround for a bug in mutter which has been
+    fixed in version 3.4. It was not supposed to be shipped as part of wheezy,
+    so drop it again.
 
  -- Michael Biebl <biebl@debian.org>  Mon, 06 Aug 2012 18:00:10 +0200
 
