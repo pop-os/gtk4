@@ -23,7 +23,6 @@ LDFLAGS += -Wl,-O1
 
 APIVER := 3
 SONAME := 0
-SHVER := 3.3.18
 
 LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 
@@ -49,6 +48,11 @@ DOC_PKG := libgtk-$(APIVER)-doc
 BIN_PKG := libgtk-$(APIVER)-bin
 DEBUG_PKG := $(SHARED_PKG)-dbg
 EXAMPLES_PKG := gtk-$(APIVER)-examples
+
+# files larger than 4k in size will be compressed by dh_compress
+# so append a .gz suffix to avoid dangling symlinks
+NEWS := NEWS$(shell find -maxdepth 1 -size +4k -name NEWS -exec echo ".gz" \;)
+README := README$(shell find -maxdepth 1 -size +4k -name README -exec echo ".gz" \;)
 
 DEB_DH_INSTALL_ARGS += --sourcedir=debian/install/shared
 DEB_DH_INSTALL_ARGS_$(UDEB_PKG) += --sourcedir=debian/install/shared_udeb
@@ -78,7 +82,7 @@ DEB_INSTALL_DOCS_$(COMMON_PKG) = README NEWS
 DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
 DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
 DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
-DEB_DH_MAKESHLIBS_ARGS_libgail-3-0 += -V"libgail-3-0 (>= $(SHVER)), libgail-3-common (>= $(SHVER))" -- -c4
+DEB_DH_MAKESHLIBS_ARGS_libgail-3-0 += -V -- -c4
 DEB_DH_FIXPERMS_ARGS_ALL += -X$(LIBDIR)/$(SHARED_PKG)
 DEB_DH_STRIP_ARGS = --dbg-package=$(if $(findstring libgail,$(cdbs_curpkg)),libgail-3-0-dbg,$(DEBUG_PKG))
 DEB_DH_STRIP_ARGS_$(UDEB_PKG) =
@@ -108,6 +112,8 @@ debian/%: debian/%.in
 		-e 's#@CONFDIR@#$(CONFDIR)#g' \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
 		-e "s#@OLD_MODULES_BASE_PATH@#$(OLD_MODULES_BASE_PATH)#g" \
+		-e "s#@NEWS@#$(NEWS)#g" \
+		-e "s#@README@#$(README)#g" \
 		$@.in > $@
 
 clean:: debian/control

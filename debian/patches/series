@@ -8,5 +8,7 @@
 044_tracker_fts.patch
 060_ignore-random-icons.patch
 061_multiarch_module_fallback.patch
-070_revert-widget-set-up-signals-after-initializing.patch
 071_fix-installation-of-HTML-images.patch
+072_statusicon_icon_size.patch
+073_transparent_colors.patch
+074_try-harder-to-discriminate-Shift-F10-and-F10.patch
