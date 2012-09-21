@@ -11,3 +11,4 @@
 071_fix-installation-of-HTML-images.patch
 072_statusicon_icon_size.patch
 073_transparent_colors.patch
+074_try-harder-to-discriminate-Shift-F10-and-F10.patch
