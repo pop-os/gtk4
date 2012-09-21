@@ -1,10 +1,10 @@
-gtk+3.0 (3.4.2-4) UNRELEASED; urgency=low
+gtk+3.0 (3.4.2-4) unstable; urgency=low
 
   * debian/patches/074_try-harder-to-discriminate-Shift-F10-and-F10.patch:
     With xkb-data 2.5.1-2.1 preserving the Shift modifier, GTK+ can properly
     map F10 and Shift-F10 to different key bindings. Closes: #658392
 
- -- Michael Biebl <biebl@debian.org>  Fri, 21 Sep 2012 18:20:47 +0200
+ -- Michael Biebl <biebl@debian.org>  Fri, 21 Sep 2012 18:30:41 +0200
 
 gtk+3.0 (3.4.2-3) unstable; urgency=low
 
