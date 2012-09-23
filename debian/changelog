@@ -1,3 +1,24 @@
+gtk+3.0 (3.5.18-1) UNRELEASED; urgency=low
+
+  * New upstream release
+  * Sync with ubuntu:
+    * debian/rules: Make test failures fatal again
+    * debian/libgtk-3-0.symbols: Updated
+    * debian/rules: Update build-depends
+    * debian/libgtk-3-bin.install: Add gtk-launch: A new commandline utility
+      to launch an application from its desktop file
+    * Add autopkgtest support
+  * debian/patches/072_statusicon_icon_size.patch:
+    * Removed merged upstream
+  * debian/patches/074_try-harder-to-discriminate-Shift-F10-and-F10.patch:
+    * Removed, fixed upstream
+  * debian/patches/073_transparent_colors.patch
+    * Removed, fixed upstream
+  * debian/control.in: bump glib2.0 build-dep to >= 2.33.14 to trump the dodgy
+    version in unstable
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sun, 23 Sep 2012 21:46:55 +0200
+
 gtk+3.0 (3.4.2-4) unstable; urgency=low
 
   * debian/patches/074_try-harder-to-discriminate-Shift-F10-and-F10.patch:

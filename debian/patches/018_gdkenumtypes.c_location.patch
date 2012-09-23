@@ -18,10 +18,10 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  gdk/Makefile.am |   17 +++++++----------
  1 files changed, 7 insertions(+), 10 deletions(-)
 
-Index: gtk+-3.3.20/gdk/Makefile.am
+Index: gtk+-3.5.4/gdk/Makefile.am
 ===================================================================
---- gtk+-3.3.20.orig/gdk/Makefile.am	2012-03-21 00:38:00.762485573 +0100
-+++ gtk+-3.3.20/gdk/Makefile.am	2012-03-21 00:38:17.102484995 +0100
+--- gtk+-3.5.4.orig/gdk/Makefile.am	2012-06-05 16:59:15.892579046 +1200
++++ gtk+-3.5.4/gdk/Makefile.am	2012-06-05 16:59:22.904578803 +1200
 @@ -189,8 +189,8 @@
  introspection_files = 		\
  	$(filter-out gdkkeysyms-compat.h, $(gdk_public_h_sources))	\
@@ -39,10 +39,10 @@ Index: gtk+-3.3.20/gdk/Makefile.am
  
 -MAINTAINERCLEANFILES = $(gdk_built_sources) stamp-gdkenumtypes.h
 +MAINTAINERCLEANFILES = $(gdk_built_sources)
- EXTRA_DIST += $(gdk_built_sources)
- 
- install-exec-hook:
-@@ -317,18 +317,15 @@
+ EXTRA_DIST += \
+ 	$(gdk_built_sources)	\
+ 	fallback-c89.c
+@@ -319,18 +319,15 @@
  	$(gdk_built_sources)			\
  	gdkconfig.h
  
