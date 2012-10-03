@@ -2140,14 +2140,12 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_menu_bar_set_pack_direction@Base 3.0.0
  gtk_menu_button_get_align_widget@Base 3.5.6
  gtk_menu_button_get_direction@Base 3.5.6
- gtk_menu_button_get_menu@Base 3.5.6
  gtk_menu_button_get_menu_model@Base 3.5.6
  gtk_menu_button_get_popup@Base 3.5.12
  gtk_menu_button_get_type@Base 3.5.6
  gtk_menu_button_new@Base 3.5.6
  gtk_menu_button_set_align_widget@Base 3.5.6
  gtk_menu_button_set_direction@Base 3.5.6
- gtk_menu_button_set_menu@Base 3.5.6
  gtk_menu_button_set_menu_model@Base 3.5.6
  gtk_menu_button_set_popup@Base 3.5.12
  gtk_menu_detach@Base 3.0.0

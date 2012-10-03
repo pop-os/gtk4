@@ -1,6 +1,6 @@
-gtk+3.0 (3.5.18-1) UNRELEASED; urgency=low
+gtk+3.0 (3.6.0-1) experimental; urgency=low
 
-  * New upstream release
+  * New upstream release (3.6.0)
   * Sync with ubuntu:
     * debian/rules: Make test failures fatal again
     * debian/libgtk-3-0.symbols: Updated
@@ -16,8 +16,10 @@ gtk+3.0 (3.5.18-1) UNRELEASED; urgency=low
     * Removed, fixed upstream
   * debian/control.in: bump glib2.0 build-dep to >= 2.33.14 to trump the dodgy
     version in unstable
+  * debian/control.in: Bump gnome-themes-standard break due to theme related
+    changes
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sun, 23 Sep 2012 21:46:55 +0200
+ -- Sjoerd Simons <sjoerd@debian.org>  Wed, 03 Oct 2012 09:07:16 +0200
 
 gtk+3.0 (3.4.2-4) unstable; urgency=low
 
