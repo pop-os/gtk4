@@ -112,7 +112,7 @@ Description: common files for the GTK+ graphical user interface library
 Package: libgtk-3-bin
 Section: misc
 Architecture: any
-Depends: ${misc:Depends},
+Depends: ${misc:Depends}, ${shlibs:Depends},
          libgtk-3-0 (>= ${source:Version}),
          libgtk-3-common (= ${source:Version})
 Multi-Arch: foreign

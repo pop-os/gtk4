@@ -112,7 +112,7 @@ Description: common files for the GTK+ graphical user interface library
 Package: @BIN_PKG@
 Section: misc
 Architecture: any
-Depends: ${misc:Depends},
+Depends: ${misc:Depends}, ${shlibs:Depends},
          @SHARED_PKG@ (>= ${source:Version}),
          @COMMON_PKG@ (= ${source:Version})
 Multi-Arch: foreign

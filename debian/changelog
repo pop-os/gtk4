@@ -1,3 +1,9 @@
+gtk+3.0 (3.6.0-2) UNRELEASED; urgency=low
+
+  * debian/control.in: Add ${shlibs:Depends} Depends to libgtk-3-bin
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Wed, 03 Oct 2012 18:43:06 +0200
+
 gtk+3.0 (3.6.0-1) experimental; urgency=low
 
   * New upstream release (3.6.0)
