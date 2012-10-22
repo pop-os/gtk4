@@ -1,6 +1,9 @@
 gtk+3.0 (3.6.1-1) UNRELEASED; urgency=low
 
   * New upstream release 3.6.1
+    - drop private symbols gtk_css_image_get_parser_type and
+      gtk_style_properties_get_style from symbols file (made static upstream;
+      verified not to be present in any header file)
 
  -- Simon McVittie <smcv@debian.org>  Mon, 22 Oct 2012 12:18:21 +0100
 
