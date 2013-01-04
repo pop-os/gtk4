@@ -2,6 +2,7 @@ gtk+3.0 (3.6.3-1) UNRELEASED; urgency=low
 
   * New upstream release.
   * Refresh patches.
+  * debian/libgtk-3-bin.install: Install gtk-launch man page.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 04 Jan 2013 21:42:17 +0100
 
