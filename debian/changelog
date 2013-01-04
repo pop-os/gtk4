@@ -3,6 +3,8 @@ gtk+3.0 (3.6.3-1) UNRELEASED; urgency=low
   * New upstream release.
   * Refresh patches.
   * debian/libgtk-3-bin.install: Install gtk-launch man page.
+  * debian/libgtk-3-dev.install: Install gtkbuilder.rng RELAX NG schema file
+    which can be used to validate GtkBuilder ui files.
 
  -- Michael Biebl <biebl@debian.org>  Fri, 04 Jan 2013 21:42:17 +0100
 
