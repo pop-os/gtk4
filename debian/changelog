@@ -1,3 +1,9 @@
+gtk+3.0 (3.6.4-1) experimental; urgency=low
+
+  * New upstream release
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Tue, 08 Jan 2013 13:54:26 +0100
+
 gtk+3.0 (3.6.3-1) experimental; urgency=low
 
   * New upstream release.
