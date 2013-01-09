@@ -542,7 +542,9 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_get_xatom_name@Base 3.0.0
  gdk_x11_get_xatom_name_for_display@Base 3.0.0
  gdk_x11_grab_server@Base 3.0.0
+ gdk_x11_keymap_get_group_for_state@Base 3.4.2-5~
  gdk_x11_keymap_get_type@Base 3.0.0
+ gdk_x11_keymap_key_is_modifier@Base 3.4.2-5~
  gdk_x11_lookup_xdisplay@Base 3.0.0
  gdk_x11_register_standard_event_type@Base 3.0.0
  gdk_x11_screen_get_monitor_output@Base 3.0.0
