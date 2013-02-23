@@ -7,6 +7,8 @@ gtk+3.0 (3.7.10-1) UNRELEASED; urgency=low
       - Refreshed.
     + debian/libgtk-3-0.symbols:
       - Updated for the new symbols.
+    + debian/gtk-3-examples.install:
+      - Stop installing gtk3-demo files, no longer needed.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 22 Feb 2013 18:43:04 +0100
 
