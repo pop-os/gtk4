@@ -9,6 +9,9 @@ gtk+3.0 (3.7.10-1) UNRELEASED; urgency=low
       - Updated for the new symbols.
     + debian/gtk-3-examples.install:
       - Stop installing gtk3-demo files, no longer needed.
+    + debian/patches/030_tests_skip_filechooser.patch:
+      - New patch: skip filechooser tests as they are not designed to
+        be run without gtk+ installed.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 22 Feb 2013 18:43:04 +0100
 
