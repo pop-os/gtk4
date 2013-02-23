@@ -1,4 +1,4 @@
-gtk+3.0 (3.7.10-1) UNRELEASED; urgency=low
+gtk+3.0 (3.7.10-1) experimental; urgency=low
 
   * New upstream release.
     + debian/control.in:
@@ -13,7 +13,7 @@ gtk+3.0 (3.7.10-1) UNRELEASED; urgency=low
       - New patch: skip filechooser tests as they are not designed to
         be run without gtk+ installed.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 22 Feb 2013 18:43:04 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 23 Feb 2013 20:37:27 +0100
 
 gtk+3.0 (3.6.4-1) experimental; urgency=low
 
