@@ -3,6 +3,8 @@ gtk+3.0 (3.7.10-1) UNRELEASED; urgency=low
   * New upstream release.
     + debian/control.in:
       - Update build dependencies.
+    + debian/patches:
+      - Refreshed.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 22 Feb 2013 18:43:04 +0100
 

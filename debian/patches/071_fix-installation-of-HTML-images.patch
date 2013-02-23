@@ -11,11 +11,9 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=656803
  gtk-doc.make |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
-Index: gtk+-3.6.3/gtk-doc.make
-===================================================================
---- gtk+-3.6.3.orig/gtk-doc.make	2013-01-04 21:43:41.152541801 +0100
-+++ gtk+-3.6.3/gtk-doc.make	2013-01-04 21:43:41.148541763 +0100
-@@ -173,8 +173,8 @@
+--- a/gtk-doc.make
++++ b/gtk-doc.make
+@@ -155,8 +155,8 @@
  	  if test -f $(abs_srcdir)/$$file ; then \
  	    cp $(abs_srcdir)/$$file $(abs_builddir)/html; \
  	  fi; \
@@ -25,4 +23,4 @@ Index: gtk+-3.6.3/gtk-doc.make
 +	    cp $$file $(abs_builddir)/html; \
  	  fi; \
  	done;
- 	$(GTK_DOC_V_XREF)gtkdoc-fixxref --module=$(DOC_MODULE) --module-dir=html --html-dir=$(HTML_DIR) $(FIXXREF_OPTIONS)
+ 	@echo '  DOC   Fixing cross-references'
