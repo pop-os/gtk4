@@ -1,3 +1,11 @@
+gtk+3.0 (3.7.10-2) UNRELEASED; urgency=low
+
+  * debian/patches/80_Fix-DND-with-frame-sync.patch:
+    + Added. Temporary fix for DND when using mutter with the frame sync
+    protocol (from upstream git, bgo#694217).
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 04 Mar 2013 22:07:12 +0100
+
 gtk+3.0 (3.7.10-1) experimental; urgency=low
 
   * New upstream release.
