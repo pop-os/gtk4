@@ -9,6 +9,8 @@ gtk+3.0 (3.7.12-1) UNRELEASED; urgency=low
   * New upstream release.
     + debian/patches/*:
       - Refreshed.
+    + debian/patches/80_Fix-DND-with-frame-sync.patch:
+      - Removed, included upstream.
     + debian/libgtk-3-0.symbols:
       - Updated for new symbols.
 
