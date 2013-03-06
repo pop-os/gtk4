@@ -31,7 +31,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  
  Gdk-3.0.gir: libgdk-3.la Makefile
  Gdk_3_0_gir_SCANNERFLAGS = 	\
-@@ -311,7 +311,7 @@
+@@ -310,7 +310,7 @@
  
  lib_LTLIBRARIES = libgdk-3.la
  
@@ -40,7 +40,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  EXTRA_DIST += \
  	$(gdk_built_sources)	\
  	fallback-c89.c
-@@ -325,18 +325,15 @@
+@@ -324,18 +324,15 @@
  	$(gdk_built_sources)			\
  	gdkconfig.h
  
