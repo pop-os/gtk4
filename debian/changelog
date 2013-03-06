@@ -1,4 +1,4 @@
-gtk+3.0 (3.7.12-1) UNRELEASED; urgency=low
+gtk+3.0 (3.7.12-1) experimental; urgency=low
 
   [ Sjoerd Simons ]
   * debian/patches/80_Fix-DND-with-frame-sync.patch:
@@ -14,7 +14,7 @@ gtk+3.0 (3.7.12-1) UNRELEASED; urgency=low
     + debian/libgtk-3-0.symbols:
       - Updated for new symbols.
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 04 Mar 2013 22:07:12 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 06 Mar 2013 13:43:48 +0100
 
 gtk+3.0 (3.7.10-1) experimental; urgency=low
 
