@@ -10,3 +10,4 @@
 060_ignore-random-icons.patch
 061_multiarch_module_fallback.patch
 071_fix-installation-of-HTML-images.patch
+090-GtkTextView-don-t-popdown-a-bubble-if-we-don-t-have-.patch
