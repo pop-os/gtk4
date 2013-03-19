@@ -77,7 +77,7 @@ DEB_CONFIGURE_FLAGS_shared_udeb = \
 			--disable-xrandr
 
 # Avoid test failures on buildd environments
-export G_HOME=$(CURDIR)/debian/build
+export HOME=$(CURDIR)/debian/build
 
 DEB_MAKE_CHECK_TARGET = -k check
 DEB_INSTALL_DOCS_ALL = AUTHORS
