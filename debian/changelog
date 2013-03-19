@@ -1,6 +1,8 @@
 gtk+3.0 (3.7.14-1) UNRELEASED; urgency=low
 
   * New upstream release.
+    + d/p/090-GtkTextView-don-t-popdown-a-bubble-if-we-don-t-have-.patch:
+      - Removed, included upstream.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 19 Mar 2013 11:34:28 +0100
 
