@@ -1,4 +1,4 @@
-gtk+3.0 (3.7.14-1) UNRELEASED; urgency=low
+gtk+3.0 (3.7.14-1) experimental; urgency=low
 
   * New upstream release.
     + d/p/090-GtkTextView-don-t-popdown-a-bubble-if-we-don-t-have-.patch:
@@ -7,7 +7,7 @@ gtk+3.0 (3.7.14-1) UNRELEASED; urgency=low
     + Set HOME rather than G_HOME, as GLib now honors the former and
       G_HOME is a Debian-specific thing.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 19 Mar 2013 11:34:28 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 19 Mar 2013 12:06:40 +0100
 
 gtk+3.0 (3.7.12-2) experimental; urgency=low
 
