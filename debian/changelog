@@ -1,7 +1,11 @@
-gtk+3.0 (3.7.14-2) UNRELEASED; urgency=low
+gtk+3.0 (3.8.0-1) UNRELEASED; urgency=low
 
+  [ Rico Tzschichholz ]
   * debian/gtk-3-examples.install:
     - Install usr/bin/gtk3-demo-application
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream release.
 
  -- Rico Tzschichholz <ricotz@ubuntu.com>  Sun, 24 Mar 2013 09:31:41 +0100
 
