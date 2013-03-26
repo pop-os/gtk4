@@ -1,4 +1,4 @@
-gtk+3.0 (3.8.0-1) UNRELEASED; urgency=low
+gtk+3.0 (3.8.0-1) experimental; urgency=low
 
   [ Rico Tzschichholz ]
   * debian/gtk-3-examples.install:
@@ -9,7 +9,7 @@ gtk+3.0 (3.8.0-1) UNRELEASED; urgency=low
     + debian/patches/071_fix-installation-of-HTML-images.patch:
       - Refreshed.
 
- -- Rico Tzschichholz <ricotz@ubuntu.com>  Sun, 24 Mar 2013 09:31:41 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 26 Mar 2013 11:21:30 +0100
 
 gtk+3.0 (3.7.14-1) experimental; urgency=low
 
