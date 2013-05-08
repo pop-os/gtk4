@@ -1,3 +1,10 @@
+gtk+3.0 (3.8.0-2) UNRELEASED; urgency=low
+
+  * Switch to interest-noawait for triggers. They only affect IM 
+    modules, so this is not likely to cause upgrade problems.
+
+ -- Josselin Mouette <joss@debian.org>  Wed, 08 May 2013 10:52:16 +0200
+
 gtk+3.0 (3.8.0-1) experimental; urgency=low
 
   [ Rico Tzschichholz ]
