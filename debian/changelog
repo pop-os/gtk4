@@ -127,6 +127,29 @@ gtk+3.0 (3.6.0-1) experimental; urgency=low
 
  -- Sjoerd Simons <sjoerd@debian.org>  Wed, 03 Oct 2012 09:07:16 +0200
 
+gtk+3.0 (3.4.2-6) unstable; urgency=low
+
+  * Team upload.
+  * debian/patches/076_check_wm_supports_hint.patch: This patch fixes the
+    size and placement of popup menus with some window managers, such as
+    Awesome and XMonad. Closes: #681974
+
+ -- Sébastien Villemot <sebastien@debian.org>  Thu, 31 Jan 2013 18:09:43 +0100
+
+gtk+3.0 (3.4.2-5) unstable; urgency=low
+
+  * debian/patches/075_gtkplug-fix-handling-of-key-events-for-layouts.patch:
+    This patch fixes handling of key events for different layouts in
+    GtkPlug. In particular, it fixes the keyboard layout switching from
+    gnome-screensaver when the screen is locked. Closes: #692235
+  * debian/libgtk-3-0.symbols: add gdk_x11_keymap_get_group_for_state and
+    gdk_x11_keymap_key_is_modifier which are introduced by the above patch
+    (actually backported from the 3.5.2 API).
+  * debian/rules: call dh_makeshlibs with -V 'libgtk-3-0 (>= 3.4.2-5~)',
+    since we introduced new public symbols in this Debian revision.
+
+ -- Sébastien Villemot <sebastien@debian.org>  Wed, 09 Jan 2013 11:00:22 +0100
+
 gtk+3.0 (3.4.2-4) unstable; urgency=low
 
   * debian/patches/074_try-harder-to-discriminate-Shift-F10-and-F10.patch:
