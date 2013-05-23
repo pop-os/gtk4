@@ -1,4 +1,4 @@
-gtk+3.0 (3.8.2-1) UNRELEASED; urgency=low
+gtk+3.0 (3.8.2-1) unstable; urgency=low
 
   [ Josselin Mouette ]
   * Switch to interest-noawait for triggers. They only affect IM 
@@ -10,7 +10,7 @@ gtk+3.0 (3.8.2-1) UNRELEASED; urgency=low
   * Update debian/copyright following the latest copyright-format spec.
   * Bump Standards-Version to 3.9.4. No further changes.
 
- -- Josselin Mouette <joss@debian.org>  Wed, 08 May 2013 10:52:16 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 23 May 2013 16:23:37 +0200
 
 gtk+3.0 (3.8.0-1) experimental; urgency=low
 
