@@ -8,6 +8,7 @@ gtk+3.0 (3.8.2-1) UNRELEASED; urgency=low
   * Upload to unstable.
   * New upstream release.
   * Update debian/copyright following the latest copyright-format spec.
+  * Bump Standards-Version to 3.9.4. No further changes.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 08 May 2013 10:52:16 +0200
 
