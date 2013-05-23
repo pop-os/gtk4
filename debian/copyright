@@ -1,6 +1,5 @@
-Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
-Name: gtk+3.0
-Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
+Format-Specification: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: gtk+
 Source: http://ftp.gnome.org/pub/GNOME/sources/gtk+/
 
 Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
