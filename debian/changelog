@@ -1,7 +1,11 @@
 gtk+3.0 (3.8.0-2) UNRELEASED; urgency=low
 
+  [ Josselin Mouette ]
   * Switch to interest-noawait for triggers. They only affect IM 
     modules, so this is not likely to cause upgrade problems.
+
+  [ Michael Biebl ]
+  * Upload to unstable.
 
  -- Josselin Mouette <joss@debian.org>  Wed, 08 May 2013 10:52:16 +0200
 
