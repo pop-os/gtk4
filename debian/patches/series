@@ -7,6 +7,7 @@
 031_ia64_children_test.patch
 #042_treeview_single-focus.patch
 #043_notebook_scroll.patch
+032_mips_treeview_row_separator_height.patch
 044_tracker_fts.patch
 060_ignore-random-icons.patch
 061_multiarch_module_fallback.patch
