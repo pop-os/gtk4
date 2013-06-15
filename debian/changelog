@@ -1,3 +1,11 @@
+gtk+3.0 (3.8.2-2) UNRELEASED; urgency=low
+
+  * debian/patches/031_ia64_children_test.patch:
+    + Patch from Stephan Schreiber, fix an invalid read on a test case
+      that caused it to fail on ia64, making the build fail.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 16 Jun 2013 00:43:19 +0200
+
 gtk+3.0 (3.8.2-1) unstable; urgency=low
 
   [ Josselin Mouette ]
