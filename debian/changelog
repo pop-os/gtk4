@@ -6,6 +6,7 @@ gtk+3.0 (3.8.2-2) UNRELEASED; urgency=low
   * debian/patches/032_mips_treeview_row_separator_height.patch:
     + Disable another test that currently fails on mips but that also
       fails at least on amd64 when run under valgrind.
+  * All the above closes: #711107.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 16 Jun 2013 00:43:19 +0200
 
