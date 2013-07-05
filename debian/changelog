@@ -1,4 +1,4 @@
-gtk+3.0 (3.8.2-3) UNRELEASED; urgency=low
+gtk+3.0 (3.8.2-3) unstable; urgency=low
 
   * Simplify our trigger for gtk-query-immodules-3.0, use the --update-cache
     option instead of redirecting stdout.
@@ -6,7 +6,7 @@ gtk+3.0 (3.8.2-3) UNRELEASED; urgency=low
     into account to position submenu arrow. Patch cherry-picked from upstream
     Git.
 
- -- Michael Biebl <biebl@debian.org>  Sat, 06 Jul 2013 00:46:34 +0200
+ -- Michael Biebl <biebl@debian.org>  Sat, 06 Jul 2013 00:51:39 +0200
 
 gtk+3.0 (3.8.2-2) unstable; urgency=low
 
