@@ -5,6 +5,7 @@ gtk+3.0 (3.8.2-3) unstable; urgency=low
   * debian/patches/080_correct_padding_of_submenu_arrows.patch: Take padding
     into account to position submenu arrow. Patch cherry-picked from upstream
     Git.
+  * Update debian/copyright to comply with the final 1.0 spec.
 
  -- Michael Biebl <biebl@debian.org>  Sat, 06 Jul 2013 00:51:39 +0200
 
