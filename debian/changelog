@@ -2,6 +2,9 @@ gtk+3.0 (3.8.2-3) UNRELEASED; urgency=low
 
   * Simplify our trigger for gtk-query-immodules-3.0, use the --update-cache
     option instead of redirecting stdout.
+  * debian/patches/080_correct_padding_of_submenu_arrows.patch: Take padding
+    into account to position submenu arrow. Patch cherry-picked from upstream
+    Git.
 
  -- Michael Biebl <biebl@debian.org>  Sat, 06 Jul 2013 00:46:34 +0200
 
