@@ -107,7 +107,7 @@ License: LGPL-2+
 Files: gtk/gtkcomboboxtext.h
        gtk/gtktoolpaletteprivate.h
        gtk/gtktoolitemgroup.*
-       gtk/gtktoolpalette.c,
+       gtk/gtktoolpalette.c
        gtk/gtkaboutdialog.h
        gtk/gtktoolpaletteprivate.c
        gtk/org.gtk.Settings.FileChooser.gschema.xml
