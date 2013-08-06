@@ -1,3 +1,29 @@
+gtk+3.0 (3.9.10-1) UNRELEASED; urgency=low
+
+  * New upstream development release
+  * Bump glib (build-)dependency to >= 2.37.3 as per configure.ac
+  * Trivial update in 015_default-fallback-icon-theme.patch to apply.
+  * Update debian/patches/018_gdkenumtypes.c_location.patch to apply
+    after upstream dropped --disable-rebuilds.
+  * Disable 030_tests_skip_filechooser.patch
+    - testsuite moved and restructured....
+  * Updated to apply patches against new testsuite file location:
+    - 032_mips_treeview_row_separator_height.patch
+    - 031_ia64_children_test.patch
+  * Drop 080_correct_padding_of_submenu_arrows.patch
+    - previously cherry-picked, now included in upstream release.
+  * Refresh all patches to apply without offset.
+  * Ignore testsuite failures for now...
+  * Update debian/libgtk-3-0.symbols
+    - many added symbols, and four missing:
+      gdk_frame_clock_idle_get_type,
+      gdk_offscreen_window_get_type,
+      gdk_window_impl_get_type,
+      gdk_window_impl_x11_get_type.
+
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 06 Aug 2013 12:59:11 +0200
+
 gtk+3.0 (3.8.2-3) unstable; urgency=low
 
   * Simplify our trigger for gtk-query-immodules-3.0, use the --update-cache
