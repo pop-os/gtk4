@@ -1,8 +1,8 @@
-Format-Specification: http://svn.debian.org/wsvn/dep/web/deps/dep5.mdwn?op=file&rev=135
-Name: gtk+3.0
-Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: gtk+
 Source: http://ftp.gnome.org/pub/GNOME/sources/gtk+/
 
+Files: *
 Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 1993 Robert Nation
            Copyright (C) 1997-2010 The GTK+ Team
@@ -104,8 +104,13 @@ License: LGPL-2+
  See /usr/share/common-licenses/LGPL-2 on your debian system.
 
 
-Files: gtk/gtkcomboboxtext.h, gtk/gtktoolpaletteprivate.h, gtk/gtktoolitemgroup.*, gtk/gtktoolpalette.c,
-       gtk/gtkaboutdialog.h, gtk/gtktoolpaletteprivate.c, gtk/org.gtk.Settings.FileChooser.gschema.xml
+Files: gtk/gtkcomboboxtext.h
+       gtk/gtktoolpaletteprivate.h
+       gtk/gtktoolitemgroup.*
+       gtk/gtktoolpalette.c
+       gtk/gtkaboutdialog.h
+       gtk/gtktoolpaletteprivate.c
+       gtk/org.gtk.Settings.FileChooser.gschema.xml
 Copyright: Copyright (C) 2010 Christian Dywan
            Copyright (C) 2008 Openismus GmbH
            Copyright (C) 2001 CodeFactory AB
@@ -132,7 +137,8 @@ License: LGPL-2.1+
 
 
 
-Files: po/*, po-properties/*
+Files: po/*
+       po-properties/*
 Copyright: Copyright (C) 1998-2010 The Free Software Foundation, Inc.
            Copyright (C) 1999, 2003-2010 The GTK+ Team
            Copyright (C) 2004 Zuza Software Foundation <info@translate.org.za>
@@ -478,13 +484,19 @@ License: LGPL-2+
  .
  See /usr/share/common-licenses/LGPL-2 on your debian system.
 
-Files: gdk/win32/wintab.h, gdk/win32/pktdef.h, gtk/gtktextmark.*
+Files: gdk/win32/wintab.h
+       gdk/win32/pktdef.h
+       gtk/gtktextmark.*
 Copyright: Copyright (C) 1991-1998 LCS/Telegraphics
 License: other
  The text and information contained in this file may be freely used,
  copied, or distributed without compensation or licensing restrictions.
 
-Files: gtk/gtktexttag.*, gtk/gtktextsegment.c, gtk/gtktextchild.c, gtk/gtktextchildprivate.h, gtk/gtktextbtree.c
+Files: gtk/gtktexttag.*
+       gtk/gtktextsegment.c
+       gtk/gtktextchild.c
+       gtk/gtktextchildprivate.h
+       gtk/gtktextbtree.c
 Copyright: Copyright (C) 1992-1994 The Regents of the University of California.
            Copyright (C) 1994-1997 Sun Microsystems, Inc.
            Copyright (C) 2000      Red Hat, Inc.
@@ -529,7 +541,8 @@ License: other
  in its behalf permission to use and distribute the software in
  accordance with the terms specified in this license.
 
-Files: gtk/gtktextdisplay.*, gtk/gtktextlayout.*
+Files: gtk/gtktextdisplay.*
+       gtk/gtktextlayout.*
 Copyright: Copyright (C) 1992-1994 The Regents of the University of California.
            Copyright (C) 1994-1997 Sun Microsystems, Inc.
            Copyright (C) 2000      Red Hat, Inc.

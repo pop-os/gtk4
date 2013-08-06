@@ -4,9 +4,12 @@
 018_gdkenumtypes.c_location.patch
 022_disable-viqr-im-for-vi-locale.patch
 030_tests_skip_filechooser.patch
+031_ia64_children_test.patch
 #042_treeview_single-focus.patch
 #043_notebook_scroll.patch
+032_mips_treeview_row_separator_height.patch
 044_tracker_fts.patch
 060_ignore-random-icons.patch
 061_multiarch_module_fallback.patch
 071_fix-installation-of-HTML-images.patch
+080_correct_padding_of_submenu_arrows.patch
