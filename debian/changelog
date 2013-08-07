@@ -20,7 +20,12 @@ gtk+3.0 (3.9.10-1) UNRELEASED; urgency=low
       gdk_offscreen_window_get_type,
       gdk_window_impl_get_type,
       gdk_window_impl_x11_get_type.
-
+  * Explicitly set which GDK backends to build:
+    - enable x11,wayland,broadway in regular build
+    - disable wayland,broadway and enable x11 in udeb build
+  * Add build-dependencies needed by wayland backend:
+    - libwayland-dev (>= 1.1.90), libxkbcommon-dev (>= 0.2.0)
+  * Update debian/libgtk-3-0.symbols with added broadway & wayland symbols.
 
  -- Andreas Henriksson <andreas@fatal.se>  Tue, 06 Aug 2013 12:59:11 +0200
 

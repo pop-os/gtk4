@@ -62,6 +62,9 @@ DEB_CONFIGURE_EXTRA_FLAGS = \
 			--enable-test-print-backend
 
 DEB_CONFIGURE_FLAGS_shared = \
+			--enable-broadway-backend \
+			--enable-wayland-backend \
+			--enable-x11-backend \
 			--enable-gtk-doc \
 			--enable-shared \
 			--enable-introspection \
@@ -69,6 +72,9 @@ DEB_CONFIGURE_FLAGS_shared = \
 			--disable-static
 
 DEB_CONFIGURE_FLAGS_shared_udeb = \
+			--disable-broadway-backend \
+			--disable-wayland-backend \
+			--enable-x11-backend \
 			--disable-introspection \
 			--disable-colord \
 			--disable-xcomposite \
