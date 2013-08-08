@@ -7,9 +7,10 @@ gtk+3.0 (3.9.10-1) UNRELEASED; urgency=low
     after upstream dropped --disable-rebuilds.
   * Disable 030_tests_skip_filechooser.patch
     - testsuite moved and restructured....
-  * Updated to apply patches against new testsuite file location:
+  * Updated to apply patch against new testsuite file location:
     - 032_mips_treeview_row_separator_height.patch
-    - 031_ia64_children_test.patch
+  * Drop 031_ia64_children_test.patch
+    - fixed differently upstream (see GBZ #702370)
   * Drop 080_correct_padding_of_submenu_arrows.patch
     - previously cherry-picked, now included in upstream release.
   * Refresh all patches to apply without offset.
