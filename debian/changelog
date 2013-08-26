@@ -1,6 +1,6 @@
-gtk+3.0 (3.9.10-1) UNRELEASED; urgency=low
+gtk+3.0 (3.9.12-1) UNRELEASED; urgency=low
 
-  * New upstream development release
+  * New upstream development release (3.9.10)
   * Bump glib (build-)dependency to >= 2.37.3 as per configure.ac
   * Trivial update in 015_default-fallback-icon-theme.patch to apply.
   * Update debian/patches/018_gdkenumtypes.c_location.patch to apply
@@ -27,8 +27,10 @@ gtk+3.0 (3.9.10-1) UNRELEASED; urgency=low
   * Add build-dependencies needed by wayland backend:
     - libwayland-dev (>= 1.1.90), libxkbcommon-dev (>= 0.2.0)
   * Update debian/libgtk-3-0.symbols with added broadway & wayland symbols.
+  * New upstream release (3.9.12)
+    - bump cairo build-dependency to >= 1.12
 
- -- Andreas Henriksson <andreas@fatal.se>  Tue, 06 Aug 2013 12:59:11 +0200
+ -- Andreas Henriksson <andreas@fatal.se>  Mon, 26 Aug 2013 11:47:50 +0200
 
 gtk+3.0 (3.8.2-3) unstable; urgency=low
 
