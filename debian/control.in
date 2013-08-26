@@ -150,7 +150,8 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          libxfixes-dev,
          libxcomposite-dev,
          libxdamage-dev,
-         pkg-config (>= 0.26-1)
+         pkg-config (>= 0.26-1),
+         libwayland-dev
 Suggests: @DOC_PKG@
 Description: development files for the GTK+ library
  GTK+ is a multi-platform toolkit for creating graphical user

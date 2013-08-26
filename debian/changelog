@@ -1,5 +1,6 @@
 gtk+3.0 (3.9.12-1) UNRELEASED; urgency=low
 
+  [ Andreas Henriksson ]
   * New upstream development release (3.9.10)
   * Bump glib (build-)dependency to >= 2.37.3 as per configure.ac
   * Trivial update in 015_default-fallback-icon-theme.patch to apply.
@@ -30,7 +31,11 @@ gtk+3.0 (3.9.12-1) UNRELEASED; urgency=low
   * New upstream release (3.9.12)
     - bump cairo build-dependency to >= 1.12
 
- -- Andreas Henriksson <andreas@fatal.se>  Mon, 26 Aug 2013 11:47:50 +0200
+  [ Sjoerd Simons ]
+  * Add libwayland-dev depend in libgtk-3-dev since we're building the wayland
+    backend now
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 14:30:40 +0200
 
 gtk+3.0 (3.8.2-3) unstable; urgency=low
 
