@@ -40,11 +40,13 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_cursor_get_cursor_type@Base 3.0.0
  gdk_cursor_get_display@Base 3.0.0
  gdk_cursor_get_image@Base 3.0.0
+ gdk_cursor_get_surface@Base 3.9.12
  gdk_cursor_get_type@Base 3.0.0
  gdk_cursor_new@Base 3.0.0
  gdk_cursor_new_for_display@Base 3.0.0
  gdk_cursor_new_from_name@Base 3.0.0
  gdk_cursor_new_from_pixbuf@Base 3.0.0
+ gdk_cursor_new_from_surface@Base 3.9.12
  gdk_cursor_ref@Base 3.0.0
  gdk_cursor_type_get_type@Base 3.0.0
  gdk_cursor_unref@Base 3.0.0
@@ -167,6 +169,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_event_get_coords@Base 3.0.0
  gdk_event_get_device@Base 3.0.0
  gdk_event_get_event_sequence@Base 3.3.18
+ gdk_event_get_event_type@Base 3.9.12
  gdk_event_get_keycode@Base 3.2.1
  gdk_event_get_keyval@Base 3.2.1
  gdk_event_get_root_coords@Base 3.0.0
@@ -582,6 +585,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_display_manager_get_type@Base 3.0.0
  gdk_x11_display_set_cursor_theme@Base 3.0.0
  gdk_x11_display_set_startup_notification_id@Base 3.0.0
+ gdk_x11_display_set_window_scale@Base 3.9.12
  gdk_x11_display_string_to_compound_text@Base 3.0.0
  gdk_x11_display_text_property_to_text_list@Base 3.0.0
  gdk_x11_display_ungrab@Base 3.0.0
@@ -619,6 +623,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_window_get_xid@Base 3.0.0
  gdk_x11_window_lookup_for_display@Base 3.0.0
  gdk_x11_window_move_to_current_desktop@Base 3.0.0
+ gdk_x11_window_set_frame_extents@Base 3.9.12
  gdk_x11_window_set_frame_sync_enabled@Base 3.9.10
  gdk_x11_window_set_hide_titlebar_when_maximized@Base 3.3.16
  gdk_x11_window_set_theme_variant@Base 3.1.4
@@ -1010,6 +1015,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_button_get_use_underline@Base 3.0.0
  gtk_button_leave@Base 3.0.0
  gtk_button_new@Base 3.0.0
+ gtk_button_new_from_icon_name@Base 3.9.12
  gtk_button_new_from_stock@Base 3.0.0
  gtk_button_new_with_label@Base 3.0.0
  gtk_button_new_with_mnemonic@Base 3.0.0
@@ -1444,6 +1450,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_disable_setlocale@Base 3.0.0
  gtk_distribute_natural_allocation@Base 3.0.0
  gtk_drag_begin@Base 3.0.0
+ gtk_drag_begin_with_coordinates@Base 3.9.12
  gtk_drag_check_threshold@Base 3.0.0
  gtk_drag_dest_add_image_targets@Base 3.0.0
  gtk_drag_dest_add_text_targets@Base 3.0.0
@@ -1568,6 +1575,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_entry_get_placeholder_text@Base 3.1.4
  gtk_entry_get_progress_fraction@Base 3.0.0
  gtk_entry_get_progress_pulse_step@Base 3.0.0
+ gtk_entry_get_tabs@Base 3.9.12
  gtk_entry_get_text@Base 3.0.0
  gtk_entry_get_text_area@Base 3.0.0
  gtk_entry_get_text_length@Base 3.0.0
@@ -1607,6 +1615,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_entry_set_placeholder_text@Base 3.1.4
  gtk_entry_set_progress_fraction@Base 3.0.0
  gtk_entry_set_progress_pulse_step@Base 3.0.0
+ gtk_entry_set_tabs@Base 3.9.12
  gtk_entry_set_text@Base 3.0.0
  gtk_entry_set_visibility@Base 3.0.0
  gtk_entry_set_width_chars@Base 3.0.0
@@ -1862,6 +1871,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_hbutton_box_get_type@Base 3.0.0
  gtk_hbutton_box_new@Base 3.0.0
  gtk_header_bar_get_custom_title@Base 3.9.10
+ gtk_header_bar_get_show_close_button@Base 3.9.12
  gtk_header_bar_get_subtitle@Base 3.9.10
  gtk_header_bar_get_title@Base 3.9.10
  gtk_header_bar_get_type@Base 3.9.10
@@ -1869,6 +1879,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_header_bar_pack_end@Base 3.9.10
  gtk_header_bar_pack_start@Base 3.9.10
  gtk_header_bar_set_custom_title@Base 3.9.10
+ gtk_header_bar_set_show_close_button@Base 3.9.12
  gtk_header_bar_set_subtitle@Base 3.9.10
  gtk_header_bar_set_title@Base 3.9.10
  gtk_hpaned_get_type@Base 3.0.0
@@ -2245,10 +2256,12 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_list_box_get_selected_row@Base 3.9.10
  gtk_list_box_get_selection_mode@Base 3.9.10
  gtk_list_box_get_type@Base 3.9.10
+ gtk_list_box_insert@Base 3.9.12
  gtk_list_box_invalidate_filter@Base 3.9.10
  gtk_list_box_invalidate_headers@Base 3.9.10
  gtk_list_box_invalidate_sort@Base 3.9.10
  gtk_list_box_new@Base 3.9.10
+ gtk_list_box_prepend@Base 3.9.12
  gtk_list_box_row_changed@Base 3.9.10
  gtk_list_box_row_get_header@Base 3.9.10
  gtk_list_box_row_get_index@Base 3.9.10

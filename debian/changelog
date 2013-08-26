@@ -36,8 +36,9 @@ gtk+3.0 (3.9.12-1) UNRELEASED; urgency=low
     backend now
   * Also needs libxkbcommon-dev now due to the wayland backend (Found by Andrew
     Lee)
+  * debian/libgtk-3-0.symbols: Update for new symbols (Patch by Andrew Lee)
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 14:33:58 +0200
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 17:39:02 +0200
 
 gtk+3.0 (3.8.2-3) unstable; urgency=low
 
