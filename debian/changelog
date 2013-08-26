@@ -34,8 +34,10 @@ gtk+3.0 (3.9.12-1) UNRELEASED; urgency=low
   [ Sjoerd Simons ]
   * Add libwayland-dev depend in libgtk-3-dev since we're building the wayland
     backend now
+  * Also needs libxkbcommon-dev now due to the wayland backend (Found by Andrew
+    Lee)
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 14:30:40 +0200
+ -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 14:33:58 +0200
 
 gtk+3.0 (3.8.2-3) unstable; urgency=low
 

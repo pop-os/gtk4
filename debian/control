@@ -151,7 +151,8 @@ Depends: libgtk-3-0 (= ${binary:Version}),
          libxcomposite-dev,
          libxdamage-dev,
          pkg-config (>= 0.26-1),
-         libwayland-dev
+         libwayland-dev,
+         libxkbcommon-dev
 Suggests: libgtk-3-doc
 Description: development files for the GTK+ library
  GTK+ is a multi-platform toolkit for creating graphical user
