@@ -1,3 +1,9 @@
+gtk+3.0 (3.8.4-1) UNRELEASED; urgency=low
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 31 Aug 2013 15:05:22 +0200
+
 gtk+3.0 (3.8.2-3) unstable; urgency=low
 
   * Simplify our trigger for gtk-query-immodules-3.0, use the --update-cache
