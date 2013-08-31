@@ -2,6 +2,8 @@ gtk+3.0 (3.8.4-1) unstable; urgency=low
 
   * New upstream release.
   * Remove 080_correct_padding_of_submenu_arrows.patch, merged upstream.
+  * Update symbols file for the new gdk_x11_window_set_frame_sync_enabled()
+    API.
 
  -- Michael Biebl <biebl@debian.org>  Sat, 31 Aug 2013 15:08:57 +0200
 
