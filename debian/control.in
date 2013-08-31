@@ -62,7 +62,6 @@ Suggests: librsvg2-common,
           gvfs
 Breaks: gnome-themes-standard (<< 3.6),
         murrine-themes (<= 0.98.2),
-        gtk3-engines-unico,
         libvte-2.90-9 (<< 1:0.32),
         libwebkitgtk-3.0-0 (<< 1.8.0)
 Multi-Arch: same
