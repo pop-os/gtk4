@@ -532,6 +532,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_window_set_keep_below@Base 3.0.0
  gdk_window_set_modal_hint@Base 3.0.0
  gdk_window_set_opacity@Base 3.0.0
+ gdk_window_set_opaque_region@Base 3.9.14
  gdk_window_set_override_redirect@Base 3.0.0
  gdk_window_set_role@Base 3.0.0
  gdk_window_set_skip_pager_hint@Base 3.0.0
@@ -607,7 +608,9 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_keymap_key_is_modifier@Base 3.5.2
  gdk_x11_lookup_xdisplay@Base 3.0.0
  gdk_x11_register_standard_event_type@Base 3.0.0
+ gdk_x11_screen_get_current_desktop@Base 3.9.14
  gdk_x11_screen_get_monitor_output@Base 3.0.0
+ gdk_x11_screen_get_number_of_desktops@Base 3.9.14
  gdk_x11_screen_get_screen_number@Base 3.0.0
  gdk_x11_screen_get_type@Base 3.0.0
  gdk_x11_screen_get_window_manager_name@Base 3.0.0
@@ -619,10 +622,12 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_visual_get_type@Base 3.0.0
  gdk_x11_visual_get_xvisual@Base 3.0.0
  gdk_x11_window_foreign_new_for_display@Base 3.0.0
+ gdk_x11_window_get_desktop@Base 3.9.14
  gdk_x11_window_get_type@Base 3.0.0
  gdk_x11_window_get_xid@Base 3.0.0
  gdk_x11_window_lookup_for_display@Base 3.0.0
  gdk_x11_window_move_to_current_desktop@Base 3.0.0
+ gdk_x11_window_move_to_desktop@Base 3.9.14
  gdk_x11_window_set_frame_extents@Base 3.9.12
  gdk_x11_window_set_frame_sync_enabled@Base 3.9.10
  gdk_x11_window_set_hide_titlebar_when_maximized@Base 3.3.16
@@ -2173,6 +2178,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_label_get_layout_offsets@Base 3.0.0
  gtk_label_get_line_wrap@Base 3.0.0
  gtk_label_get_line_wrap_mode@Base 3.0.0
+ gtk_label_get_lines@Base 3.9.14
  gtk_label_get_max_width_chars@Base 3.0.0
  gtk_label_get_mnemonic_keyval@Base 3.0.0
  gtk_label_get_mnemonic_widget@Base 3.0.0
@@ -2195,6 +2201,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_label_set_label@Base 3.0.0
  gtk_label_set_line_wrap@Base 3.0.0
  gtk_label_set_line_wrap_mode@Base 3.0.0
+ gtk_label_set_lines@Base 3.9.14
  gtk_label_set_markup@Base 3.0.0
  gtk_label_set_markup_with_mnemonic@Base 3.0.0
  gtk_label_set_max_width_chars@Base 3.0.0
