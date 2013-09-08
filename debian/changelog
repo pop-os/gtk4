@@ -1,4 +1,4 @@
-gtk+3.0 (3.9.12-1) UNRELEASED; urgency=low
+gtk+3.0 (3.9.14-1) UNRELEASED; urgency=low
 
   [ Andreas Henriksson ]
   * New upstream development release (3.9.10)
@@ -37,6 +37,9 @@ gtk+3.0 (3.9.12-1) UNRELEASED; urgency=low
   * Also needs libxkbcommon-dev now due to the wayland backend (Found by Andrew
     Lee)
   * debian/libgtk-3-0.symbols: Update for new symbols (Patch by Andrew Lee)
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream development release (3.9.14).
 
  -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 17:39:02 +0200
 
