@@ -45,6 +45,7 @@ gtk+3.0 (3.9.14-1) UNRELEASED; urgency=low
   * debian/control.in:
     + Bump minimum libglib2.0-dev build dependency.
     + Build depend on gsettings-desktop-schemas for the testsuite.
+    + Build depend on dbus-x11 for the testsuite.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 17:39:02 +0200
 
