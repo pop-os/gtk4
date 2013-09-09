@@ -51,6 +51,7 @@ gtk+3.0 (3.9.14-1) UNRELEASED; urgency=low
   * debian/rules:
     + Set XDG_DATA_DIRS and copy and copile the gsettings schemas so that
       gsettings can find them. Makes the test suite happy.
+    + Set XDG_RUNTIME_DIR, makes the test suite even happier.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 17:39:02 +0200
 

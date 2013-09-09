@@ -84,6 +84,7 @@ DEB_CONFIGURE_FLAGS_shared_udeb = \
 
 # Avoid test failures on buildd environments
 export HOME=$(CURDIR)/debian/build
+export XDG_RUNTIME_DIR=$(HOME)
 # So that gsettings can find the (uninstalled) gtk schemas
 export XDG_DATA_DIRS=/usr/share:$(CURDIR)/debian/build
 
