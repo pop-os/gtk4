@@ -48,6 +48,9 @@ gtk+3.0 (3.9.14-1) UNRELEASED; urgency=low
     + Build depend on dbus-x11 for the testsuite.
     + Build depend on at-spi2-core as libatspi2.0-0 seems to require it,
       tests that use dbus fail otherwise.
+  * debian/rules:
+    + Set XDG_DATA_DIRS and copy and copile the gsettings schemas so that
+      gsettings can find them. Makes the test suite happy.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 17:39:02 +0200
 
