@@ -1,4 +1,4 @@
-gtk+3.0 (3.9.14-1) UNRELEASED; urgency=low
+gtk+3.0 (3.9.14-1) experimental; urgency=low
 
   [ Andreas Henriksson ]
   * New upstream development release (3.9.10)
@@ -54,7 +54,7 @@ gtk+3.0 (3.9.14-1) UNRELEASED; urgency=low
     + Set XDG_RUNTIME_DIR, makes the test suite even happier.
     + Make the test suite fatal again.
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 26 Aug 2013 17:39:02 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 10 Sep 2013 01:23:06 +0200
 
 gtk+3.0 (3.8.2-3) unstable; urgency=low
 
