@@ -63,13 +63,18 @@ DEB_CONFIGURE_EXTRA_FLAGS = \
 
 DEB_CONFIGURE_FLAGS_shared = \
 			--enable-broadway-backend \
-			--enable-wayland-backend \
 			--enable-x11-backend \
 			--enable-gtk-doc \
 			--enable-shared \
 			--enable-introspection \
 			--enable-colord \
 			--disable-static
+
+ifeq (linux,$(DEB_HOST_ARCH_OS))
+DEB_CONFIGURE_FLAGS_shared += --enable-wayland-backend
+else
+DEB_CONFIGURE_FLAGS_shared += --disable-wayland-backend
+endif
 
 DEB_CONFIGURE_FLAGS_shared_udeb = \
 			--disable-broadway-backend \
