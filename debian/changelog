@@ -1,5 +1,6 @@
-gtk+3.0 (3.8.4-2) UNRELEASED; urgency=low
+gtk+3.0 (3.8.5-1) UNRELEASED; urgency=low
 
+  * New upstream release.
   * Use the official field for udebs: Package-Type.
 
  -- Michael Biebl <biebl@debian.org>  Tue, 17 Sep 2013 18:15:07 +0200
