@@ -638,8 +638,8 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_window_set_utf8_property@Base 3.3.16
  gdk_x11_xatom_to_atom@Base 3.0.0
  gdk_x11_xatom_to_atom_for_display@Base 3.0.0
- gtk_shell_interface@Base 3.10.0
- gtk_surface_interface@Base 3.10.0
+ (arch=linux-any)gtk_shell_interface@Base 3.10.0
+ (arch=linux-any)gtk_surface_interface@Base 3.10.0
 libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_about_dialog_add_credit_section@Base 3.3.16
  gtk_about_dialog_get_artists@Base 3.0.0
