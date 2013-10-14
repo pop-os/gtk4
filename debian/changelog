@@ -1,3 +1,10 @@
+gtk+3.0 (3.10.1-2) UNRELEASED; urgency=low
+
+  * debian/libgtk-3-0.symbols:
+    + Mark wayland symbols as linux-any.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 14 Oct 2013 16:56:20 +0200
+
 gtk+3.0 (3.10.1-1) experimental; urgency=low
 
   [ Emilio Pozuelo Monfort ]
