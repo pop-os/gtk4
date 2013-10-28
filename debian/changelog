@@ -3,6 +3,9 @@ gtk+3.0 (3.10.2-1) UNRELEASED; urgency=low
   * debian/libgtk-3-0.symbols:
     + Mark wayland symbols as linux-any.
   * New upstream release.
+    + debian/libgtk-3-0.symbols:
+      - Removed a couple of private structs that shouldn't have been
+        exported.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 14 Oct 2013 16:56:20 +0200
 
