@@ -1,4 +1,4 @@
-gtk+3.0 (3.10.2-1) UNRELEASED; urgency=low
+gtk+3.0 (3.10.2-1) experimental; urgency=low
 
   * debian/libgtk-3-0.symbols:
     + Mark wayland symbols as linux-any.
@@ -9,7 +9,7 @@ gtk+3.0 (3.10.2-1) UNRELEASED; urgency=low
   * debian/rules:
     + Set VERBOSE so we get more information about test failures.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 14 Oct 2013 16:56:20 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 28 Oct 2013 02:08:26 +0100
 
 gtk+3.0 (3.10.1-1) experimental; urgency=low
 
