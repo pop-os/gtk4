@@ -1,3 +1,10 @@
+gtk+3.0 (3.10.2-2) UNRELEASED; urgency=low
+
+  * debian/libgtk-3-bin.install:
+    + Ship broadwayd.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 30 Oct 2013 11:42:00 +0100
+
 gtk+3.0 (3.10.2-1) experimental; urgency=low
 
   * debian/libgtk-3-0.symbols:
