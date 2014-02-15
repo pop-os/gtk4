@@ -1,7 +1,7 @@
 Bug: https://bugzilla.gnome.org/show_bug.cgi?id=702371
 
---- a/gtk/tests/treeview.c
-+++ b/gtk/tests/treeview.c
+--- a/testsuite/gtk/treeview.c
++++ b/testsuite/gtk/treeview.c
 @@ -236,8 +236,10 @@
    g_test_add_func ("/TreeView/cursor/bug-539377", test_bug_539377);
    g_test_add_func ("/TreeView/cursor/select-collapsed_row",

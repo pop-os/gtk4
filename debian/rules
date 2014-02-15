@@ -14,6 +14,9 @@ include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
 GNOME_MODULE = gtk+
 
+# Enable parallel build support
+DEB_BUILD_PARALLEL = 1
+
 # Ensure the build aborts when there are still references to undefined symbols
 # currently fails at least in the im-multipress im module
 #LDFLAGS += -Wl,-z,defs
@@ -62,13 +65,24 @@ DEB_CONFIGURE_EXTRA_FLAGS = \
 			--enable-test-print-backend
 
 DEB_CONFIGURE_FLAGS_shared = \
+			--enable-broadway-backend \
+			--enable-x11-backend \
 			--enable-gtk-doc \
 			--enable-shared \
 			--enable-introspection \
 			--enable-colord \
 			--disable-static
 
+ifeq (linux,$(DEB_HOST_ARCH_OS))
+DEB_CONFIGURE_FLAGS_shared += --enable-wayland-backend
+else
+DEB_CONFIGURE_FLAGS_shared += --disable-wayland-backend
+endif
+
 DEB_CONFIGURE_FLAGS_shared_udeb = \
+			--disable-broadway-backend \
+			--disable-wayland-backend \
+			--enable-x11-backend \
 			--disable-introspection \
 			--disable-colord \
 			--disable-xcomposite \
@@ -78,6 +92,11 @@ DEB_CONFIGURE_FLAGS_shared_udeb = \
 
 # Avoid test failures on buildd environments
 export HOME=$(CURDIR)/debian/build
+export XDG_RUNTIME_DIR=$(HOME)
+# So that gsettings can find the (uninstalled) gtk schemas
+export XDG_DATA_DIRS=/usr/share:$(CURDIR)/debian/build
+# Get failing tests' stdout/err so we have some information when a build fails
+export VERBOSE=1
 
 DEB_MAKE_CHECK_TARGET = -k check
 DEB_INSTALL_DOCS_ALL = AUTHORS
@@ -123,6 +142,12 @@ clean:: debian/control
 	# gross kludge to force control generation with the %.in target
 	touch debian/control.in
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
+
+# So that gsettings can find the (uninstalled) gtk schemas
+pre-build::
+	mkdir -p debian/build/glib-2.0/schemas/
+	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/
+	glib-compile-schemas debian/build/glib-2.0/schemas/
 
 # Add dependencies to generate files from the debian/*.in ones
 build-indep: $(call dh_subst_files,$(DEB_INDEP_PACKAGES))

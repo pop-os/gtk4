@@ -20,7 +20,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
 
 --- a/gdk/Makefile.am
 +++ b/gdk/Makefile.am
-@@ -196,8 +196,8 @@
+@@ -195,8 +195,8 @@
  introspection_files = 		\
  	$(filter-out gdkkeysyms-compat.h, $(gdk_public_h_sources))	\
  	$(gdk_c_sources)	\
@@ -31,7 +31,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  
  Gdk-3.0.gir: libgdk-3.la Makefile
  Gdk_3_0_gir_SCANNERFLAGS = 	\
-@@ -310,7 +310,7 @@
+@@ -299,7 +299,7 @@
  
  lib_LTLIBRARIES = libgdk-3.la
  
@@ -40,14 +40,14 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  EXTRA_DIST += \
  	$(gdk_built_sources)	\
  	fallback-c89.c
-@@ -324,18 +324,15 @@
+@@ -313,18 +313,15 @@
  	$(gdk_built_sources)			\
  	gdkconfig.h
  
 -gdkenumtypes.h: stamp-gdkenumtypes.h
 -	@true
--stamp-gdkenumtypes.h: @REBUILD@ $(gdk_public_h_sources) gdkenumtypes.h.template
-+gdkenumtypes.h: @REBUILD@ $(gdk_public_h_sources) $(srcdir)/gdkenumtypes.h.template
+-stamp-gdkenumtypes.h: $(gdk_public_h_sources) gdkenumtypes.h.template
++gdkenumtypes.h: $(gdk_public_h_sources) $(srcdir)/gdkenumtypes.h.template
  	$(AM_V_GEN) ( cd $(srcdir) && $(GLIB_MKENUMS) --template gdkenumtypes.h.template \
  		$(gdk_public_h_sources) ) >> xgen-geth \
 -	&& (cmp -s xgen-geth gdkenumtypes.h || cp xgen-geth gdkenumtypes.h ) \
@@ -55,7 +55,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
 -	&& echo timestamp > $(@F)
 +	&& (cmp -s xgen-geth gdkenumtypes.h || cp xgen-geth $(srcdir)/gdkenumtypes.h ) \
 +	&& rm -f xgen-geth 
- gdkenumtypes.c: @REBUILD@ $(gdk_public_h_sources) gdkenumtypes.c.template
+ gdkenumtypes.c: $(gdk_public_h_sources) gdkenumtypes.c.template
  	$(AM_V_GEN) ( cd $(srcdir) && $(GLIB_MKENUMS) --template gdkenumtypes.c.template \
  		$(gdk_public_h_sources) ) > xgen-getc \
 -	&& cp xgen-getc gdkenumtypes.c  \
