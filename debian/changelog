@@ -3,6 +3,12 @@ gtk+3.0 (3.11.5-1) UNRELEASED; urgency=medium
   * New upstream development release.
   * debian/control.in:
     + Update build dependencies.
+  * debian/libgtk-3-0.symbols:
+    + Add new symbols. A couple of wayland-related symbols,
+      gdk_wayland_display_get_wl_shell{,_surface} are gone in favor of
+      gdk_wayland_display_get_xdg_shell. The wayland backend is not fully
+      stable yet and nothing in the archive should be depending on them,
+      so this should be fine.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 16 Feb 2014 19:00:43 +0100
 
