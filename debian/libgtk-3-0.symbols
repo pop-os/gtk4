@@ -210,7 +210,6 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_frame_clock_get_refresh_info@Base 3.7.10
  gdk_frame_clock_get_timings@Base 3.7.10
  gdk_frame_clock_get_type@Base 3.7.10
-#MISSING: 3.9.10# gdk_frame_clock_idle_get_type@Base 3.7.10
  gdk_frame_clock_phase_get_type@Base 3.7.10
  gdk_frame_clock_request_phase@Base 3.7.10
  gdk_frame_timings_get_complete@Base 3.7.10
@@ -268,7 +267,6 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_notify_type_get_type@Base 3.0.0
  gdk_offscreen_window_get_embedder@Base 3.0.0
  gdk_offscreen_window_get_surface@Base 3.0.0
-#MISSING: 3.9.10# gdk_offscreen_window_get_type@Base 3.0.0
  gdk_offscreen_window_set_embedder@Base 3.0.0
  gdk_owner_change_get_type@Base 3.0.0
  gdk_pango_context_get@Base 3.0.0
@@ -484,8 +482,6 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_window_hide@Base 3.0.0
  gdk_window_hints_get_type@Base 3.0.0
  gdk_window_iconify@Base 3.0.0
-#MISSING: 3.9.10# gdk_window_impl_get_type@Base 3.0.0
-#MISSING: 3.9.10# gdk_window_impl_x11_get_type@Base 3.0.0
  gdk_window_input_shape_combine_region@Base 3.0.0
  gdk_window_invalidate_maybe_recurse@Base 3.0.0
  gdk_window_invalidate_rect@Base 3.0.0

@@ -9,6 +9,10 @@ gtk+3.0 (3.11.5-1) UNRELEASED; urgency=medium
       gdk_wayland_display_get_xdg_shell. The wayland backend is not fully
       stable yet and nothing in the archive should be depending on them,
       so this should be fine.
+    + Drop four commented-out symbols that weren't exported after 3.9.10,
+      as mentioned below in the 3.9.14 changelog entry. Those for symbols
+      were not exported in the headers and were only used internally by
+      gdk.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 16 Feb 2014 19:00:43 +0100
 
