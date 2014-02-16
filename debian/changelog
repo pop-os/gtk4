@@ -1,11 +1,16 @@
-gtk+3.0 (3.10.2-2) UNRELEASED; urgency=low
+gtk+3.0 (3.10.7-1) unstable; urgency=low
 
   * debian/libgtk-3-bin.install:
     + Ship broadwayd.
   * debian/rules:
     + Enable parallel builds.
+  * New upstream release.
+  * debian/patches/080_disable-parallel-docs-build.patch:
+    + Disable parallel support for the docs as that has races, see
+      the similar glib2.0 patch for a longer explanation.
+  * Upload to unstable.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 30 Oct 2013 11:42:00 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 15 Feb 2014 14:15:56 +0100
 
 gtk+3.0 (3.10.2-1) experimental; urgency=low
 
