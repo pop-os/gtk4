@@ -16,6 +16,9 @@ gtk+3.0 (3.11.5-1) UNRELEASED; urgency=medium
       gdk.
   * debian/patches/080_disable-parallel-docs-build.patch:
      + Dropped, gtk-doc 1.20 works fine with parallel builds.
+  * debian/rules:
+     + Break colord<->gtk+ loop when bootstrapping. Thanks Daniel Schepler.
+       Closes: #738603.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 16 Feb 2014 19:00:43 +0100
 
