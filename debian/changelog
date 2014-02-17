@@ -4,6 +4,7 @@ gtk+3.0 (3.11.5-1) UNRELEASED; urgency=medium
   * debian/control.in:
     + Update build dependencies.
     + Build depend on gnome-icon-theme-symbolic, needed for some tests.
+    + Standards-Version is 3.9.5, no changes needed.
   * debian/libgtk-3-0.symbols:
     + Add new symbols. A couple of wayland-related symbols,
       gdk_wayland_display_get_wl_shell{,_surface} are gone in favor of
