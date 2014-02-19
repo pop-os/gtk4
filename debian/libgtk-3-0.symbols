@@ -313,7 +313,6 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_screen_get_monitor_workarea@Base 3.3.16
  gdk_screen_get_n_monitors@Base 3.0.0
  gdk_screen_get_number@Base 3.0.0
- gdk_screen_get_preferred_visual@Base 3.11.5
  gdk_screen_get_primary_monitor@Base 3.0.0
  gdk_screen_get_resolution@Base 3.0.0
  gdk_screen_get_rgba_visual@Base 3.0.0
@@ -960,6 +959,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_border_new@Base 3.0.0
  gtk_border_style_get_type@Base 3.0.0
  gtk_box_get_baseline_position@Base 3.9.10
+ gtk_box_get_center_widget@Base 3.11.7
  gtk_box_get_homogeneous@Base 3.0.0
  gtk_box_get_spacing@Base 3.0.0
  gtk_box_get_type@Base 3.0.0
@@ -969,6 +969,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_box_query_child_packing@Base 3.0.0
  gtk_box_reorder_child@Base 3.0.0
  gtk_box_set_baseline_position@Base 3.9.10
+ gtk_box_set_center_widget@Base 3.11.7
  gtk_box_set_child_packing@Base 3.0.0
  gtk_box_set_homogeneous@Base 3.0.0
  gtk_box_set_spacing@Base 3.0.0
@@ -1593,6 +1594,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_entry_get_layout@Base 3.0.0
  gtk_entry_get_layout_offsets@Base 3.0.0
  gtk_entry_get_max_length@Base 3.0.0
+ gtk_entry_get_max_width_chars@Base 3.11.7
  gtk_entry_get_overwrite_mode@Base 3.0.0
  gtk_entry_get_placeholder_text@Base 3.1.4
  gtk_entry_get_progress_fraction@Base 3.0.0
@@ -1633,6 +1635,7 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_entry_set_input_purpose@Base 3.5.12
  gtk_entry_set_invisible_char@Base 3.0.0
  gtk_entry_set_max_length@Base 3.0.0
+ gtk_entry_set_max_width_chars@Base 3.11.7
  gtk_entry_set_overwrite_mode@Base 3.0.0
  gtk_entry_set_placeholder_text@Base 3.1.4
  gtk_entry_set_progress_fraction@Base 3.0.0
@@ -2391,13 +2394,17 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_menu_button_get_align_widget@Base 3.5.6
  gtk_menu_button_get_direction@Base 3.5.6
  gtk_menu_button_get_menu_model@Base 3.5.6
+ gtk_menu_button_get_popover@Base 3.11.7
  gtk_menu_button_get_popup@Base 3.5.12
  gtk_menu_button_get_type@Base 3.5.6
+ gtk_menu_button_get_use_popover@Base 3.11.7
  gtk_menu_button_new@Base 3.5.6
  gtk_menu_button_set_align_widget@Base 3.5.6
  gtk_menu_button_set_direction@Base 3.5.6
  gtk_menu_button_set_menu_model@Base 3.5.6
+ gtk_menu_button_set_popover@Base 3.11.7
  gtk_menu_button_set_popup@Base 3.5.12
+ gtk_menu_button_set_use_popover@Base 3.11.7
  gtk_menu_detach@Base 3.0.0
  gtk_menu_direction_type_get_type@Base 3.0.0
  gtk_menu_get_accel_group@Base 3.0.0
@@ -2688,12 +2695,14 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_plug_new@Base 3.0.0
  gtk_plug_new_for_display@Base 3.0.0
  gtk_policy_type_get_type@Base 3.0.0
+ gtk_popover_bind_model@Base 3.11.7
  gtk_popover_get_modal@Base 3.11.5
  gtk_popover_get_pointing_to@Base 3.11.5
  gtk_popover_get_position@Base 3.11.5
  gtk_popover_get_relative_to@Base 3.11.5
  gtk_popover_get_type@Base 3.11.5
  gtk_popover_new@Base 3.11.5
+ gtk_popover_new_from_model@Base 3.11.7
  gtk_popover_set_modal@Base 3.11.5
  gtk_popover_set_pointing_to@Base 3.11.5
  gtk_popover_set_position@Base 3.11.5
