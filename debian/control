@@ -40,6 +40,8 @@ Build-Depends: debhelper (>= 8.1.3),
                x11proto-xext-dev,
                libcups2-dev (>= 1.2),
                libcolord-dev (>= 0.1.9),
+               librest-dev,
+               libjson-glib-dev,
                gobject-introspection (>= 1.39.0),
                libgirepository1.0-dev (>= 1.39.0),
                xvfb

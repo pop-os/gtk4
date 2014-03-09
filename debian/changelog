@@ -1,11 +1,11 @@
-gtk+3.0 (3.11.8-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.11.8-1) experimental; urgency=medium
 
   * New upstream release.
   * debian/control.in,
     debian/rules:
     + Enable Google cloud print support on the normal build.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 09 Mar 2014 14:11:00 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 09 Mar 2014 15:07:56 +0100
 
 gtk+3.0 (3.11.7-1) experimental; urgency=medium
 
