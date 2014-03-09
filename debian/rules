@@ -70,6 +70,7 @@ DEB_CONFIGURE_FLAGS_shared = \
 			--enable-gtk-doc \
 			--enable-shared \
 			--enable-introspection \
+			--enable-cloudprint \
 			--disable-static
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
@@ -89,6 +90,7 @@ DEB_CONFIGURE_FLAGS_shared_udeb = \
 			--disable-wayland-backend \
 			--enable-x11-backend \
 			--disable-introspection \
+			--disable-cloudprint \
 			--disable-colord \
 			--disable-xcomposite \
 			--disable-xdamage \
