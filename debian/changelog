@@ -1,3 +1,9 @@
+gtk+3.0 (3.11.8-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 09 Mar 2014 14:11:00 +0100
+
 gtk+3.0 (3.11.7-1) experimental; urgency=medium
 
   * New upstream release.
