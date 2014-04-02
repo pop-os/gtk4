@@ -1,4 +1,4 @@
-gtk+3.0 (3.12.0-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.12.0-3) unstable; urgency=medium
 
   * debian/control.in:
     + Loosen the dependencies on libgtk-3-common from = ${source:Version}
@@ -11,7 +11,7 @@ gtk+3.0 (3.12.0-3) UNRELEASED; urgency=medium
     + Temporarily make the test suite non-fatal as gnome-icon-theme-symbolic
       is needed for some tests.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 02 Apr 2014 19:05:20 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 02 Apr 2014 19:11:32 +0200
 
 gtk+3.0 (3.12.0-2) unstable; urgency=medium
 
