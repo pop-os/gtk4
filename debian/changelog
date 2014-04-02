@@ -1,3 +1,54 @@
+gtk+3.0 (3.12.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Update debian/libgtk-3-0.symbols with added symbols.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 25 Mar 2014 10:17:09 +0100
+
+gtk+3.0 (3.11.8-1) experimental; urgency=medium
+
+  * New upstream release.
+  * debian/control.in,
+    debian/rules:
+    + Enable Google cloud print support on the normal build.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 09 Mar 2014 15:07:56 +0100
+
+gtk+3.0 (3.11.7-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Bump build-dependencies according to configure.ac:
+    - glib 2.39.5 and gtk-doc 1.20
+  * Use quilt to refresh all patches.
+  * Update debian/libgtk-3-0.symbols
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 18 Feb 2014 20:22:50 +0100
+
+gtk+3.0 (3.11.5-1) experimental; urgency=medium
+
+  * New upstream development release.
+  * debian/control.in:
+    + Update build dependencies.
+    + Build depend on gnome-icon-theme-symbolic, needed for some tests.
+    + Standards-Version is 3.9.5, no changes needed.
+  * debian/libgtk-3-0.symbols:
+    + Add new symbols. A couple of wayland-related symbols,
+      gdk_wayland_display_get_wl_shell{,_surface} are gone in favor of
+      gdk_wayland_display_get_xdg_shell. The wayland backend is not fully
+      stable yet and nothing in the archive should be depending on them,
+      so this should be fine.
+    + Drop four commented-out symbols that weren't exported after 3.9.10,
+      as mentioned below in the 3.9.14 changelog entry. Those for symbols
+      were not exported in the headers and were only used internally by
+      gdk.
+  * debian/patches/080_disable-parallel-docs-build.patch:
+     + Dropped, gtk-doc 1.20 works fine with parallel builds.
+  * debian/rules:
+     + Break colord<->gtk+ loop when bootstrapping. Thanks Daniel Schepler.
+       Closes: #738603.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 17 Feb 2014 18:57:53 +0100
+
 gtk+3.0 (3.10.7-1) unstable; urgency=low
 
   * debian/libgtk-3-bin.install:

@@ -20,7 +20,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
 
 --- a/gdk/Makefile.am
 +++ b/gdk/Makefile.am
-@@ -195,8 +195,8 @@
+@@ -196,8 +196,8 @@
  introspection_files = 		\
  	$(filter-out gdkkeysyms-compat.h, $(gdk_public_h_sources))	\
  	$(gdk_c_sources)	\
@@ -31,7 +31,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  
  Gdk-3.0.gir: libgdk-3.la Makefile
  Gdk_3_0_gir_SCANNERFLAGS = 	\
-@@ -299,7 +299,7 @@
+@@ -311,7 +311,7 @@
  
  lib_LTLIBRARIES = libgdk-3.la
  
@@ -40,7 +40,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  EXTRA_DIST += \
  	$(gdk_built_sources)	\
  	fallback-c89.c
-@@ -313,18 +313,15 @@
+@@ -325,18 +325,15 @@
  	$(gdk_built_sources)			\
  	gdkconfig.h
  

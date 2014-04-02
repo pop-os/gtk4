@@ -11,4 +11,3 @@
 060_ignore-random-icons.patch
 061_multiarch_module_fallback.patch
 071_fix-installation-of-HTML-images.patch
-080_disable-parallel-docs-build.patch

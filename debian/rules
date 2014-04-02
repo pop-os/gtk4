@@ -70,8 +70,14 @@ DEB_CONFIGURE_FLAGS_shared = \
 			--enable-gtk-doc \
 			--enable-shared \
 			--enable-introspection \
-			--enable-colord \
+			--enable-cloudprint \
 			--disable-static
+
+ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
+DEB_CONFIGURE_FLAGS_shared += --enable-colord
+else
+DEB_CONFIGURE_FLAGS_shared += --disable-colord
+endif
 
 ifeq (linux,$(DEB_HOST_ARCH_OS))
 DEB_CONFIGURE_FLAGS_shared += --enable-wayland-backend
@@ -84,6 +90,7 @@ DEB_CONFIGURE_FLAGS_shared_udeb = \
 			--disable-wayland-backend \
 			--enable-x11-backend \
 			--disable-introspection \
+			--disable-cloudprint \
 			--disable-colord \
 			--disable-xcomposite \
 			--disable-xdamage \

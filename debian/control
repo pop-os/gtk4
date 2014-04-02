@@ -2,25 +2,26 @@ Source: gtk+3.0
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Andreas Henriksson <andreas@fatal.se>, Emilio Pozuelo Monfort <pochu@debian.org>, Michael Biebl <biebl@debian.org>, Sjoerd Simons <sjoerd@debian.org>
+Uploaders: Andreas Henriksson <andreas@fatal.se>, Emilio Pozuelo Monfort <pochu@debian.org>, Michael Biebl <biebl@debian.org>
 Build-Depends: debhelper (>= 8.1.3),
                cdbs (>= 0.4.93),
                gnome-pkg-tools (>= 0.11),
                dpkg-dev (>= 1.16.0),
-               gtk-doc-tools (>= 1.11),
+               gtk-doc-tools (>= 1.20),
                dh-autoreconf,
                gettext,
                pkg-config,
                autotools-dev,
                dbus-x11,
                gsettings-desktop-schemas,
+               gnome-icon-theme-symbolic,
                at-spi2-core,
-               libglib2.0-dev (>= 2.37.5),
+               libglib2.0-dev (>= 2.39.5),
                libgdk-pixbuf2.0-dev (>= 2.27.1),
                libpango1.0-dev (>= 1.32.4),
                libatk1.0-dev (>= 2.7.5),
                libatk-bridge2.0-dev,
-               libwayland-dev (>= 1.2.0) [linux-any],
+               libwayland-dev (>= 1.4.0) [linux-any],
                libxkbcommon-dev (>= 0.2.0),
                libx11-dev (>= 2:1.3.3-2),
                libxext-dev (>= 2:1.1.1-3),
@@ -39,8 +40,10 @@ Build-Depends: debhelper (>= 8.1.3),
                x11proto-xext-dev,
                libcups2-dev (>= 1.2),
                libcolord-dev (>= 0.1.9),
-               gobject-introspection (>= 1.32.0),
-               libgirepository1.0-dev (>= 1.32.0),
+               librest-dev,
+               libjson-glib-dev,
+               gobject-introspection (>= 1.39.0),
+               libgirepository1.0-dev (>= 1.39.0),
                xvfb
 Build-Depends-Indep: docbook-xml,
                      docbook-utils,
@@ -48,7 +51,7 @@ Build-Depends-Indep: docbook-xml,
                      libatk1.0-doc,
                      libpango1.0-doc,
                      libcairo2-doc
-Standards-Version: 3.9.4
+Standards-Version: 3.9.5
 Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/gtk+3.0/
 Homepage: http://www.gtk.org/
@@ -138,7 +141,7 @@ Depends: libgtk-3-0 (= ${binary:Version}),
          libgtk-3-common,
          ${misc:Depends},
          ${shlibs:Depends},
-         libglib2.0-dev (>= 2.37.3),
+         libglib2.0-dev (>= 2.39.0),
          libgdk-pixbuf2.0-dev (>= 2.27.1),
          libpango1.0-dev (>= 1.32.4),
          libatk1.0-dev (>= 2.7.5),
@@ -154,7 +157,7 @@ Depends: libgtk-3-0 (= ${binary:Version}),
          libxcomposite-dev,
          libxdamage-dev,
          pkg-config (>= 0.26-1),
-         libwayland-dev (>= 1.2.0) [linux-any],
+         libwayland-dev (>= 1.4.0) [linux-any],
          libxkbcommon-dev
 Suggests: libgtk-3-doc
 Description: development files for the GTK+ library
