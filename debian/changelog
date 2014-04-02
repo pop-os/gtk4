@@ -4,6 +4,12 @@ gtk+3.0 (3.12.0-3) UNRELEASED; urgency=medium
     + Loosen the dependencies on libgtk-3-common from = ${source:Version}
       to >= ${source:Version} to make libgtk-3-bin and libgtk-3-0 installable
       when a new source version is uploaded.
+    + Don't build depend on gnome-icon-theme-symbolic as that pulls
+      gnome-icon-theme which in turns pulls libgtk-3-bin, which isn't
+      installable at the moment.
+  * debian/rules:
+    + Temporarily make the test suite non-fatal as gnome-icon-theme-symbolic
+      is needed for some tests.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 02 Apr 2014 19:05:20 +0200
 
