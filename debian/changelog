@@ -1,8 +1,8 @@
-gtk+3.0 (3.12.1-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.12.1-1) unstable; urgency=medium
 
   * New upstream release
 
- -- Sjoerd Simons <sjoerd@debian.org>  Sat, 26 Apr 2014 16:43:42 +0200
+ -- Sjoerd Simons <sjoerd@debian.org>  Sat, 26 Apr 2014 16:44:41 +0200
 
 gtk+3.0 (3.12.0-4) unstable; urgency=medium
 
