@@ -26,7 +26,7 @@ int main(int argc, char **argv)
     gtk_init (&argc, &argv);
     dialog = gtk_dialog_new_with_buttons ("Test dialog", NULL,
                                           GTK_DIALOG_MODAL, 
-                                          GTK_STOCK_OK, GTK_RESPONSE_ACCEPT, 
+                                          "OK", GTK_RESPONSE_ACCEPT, 
                                           NULL);
     gtk_widget_show_all (dialog);
     g_timeout_add_seconds (1, do_quit, NULL);
