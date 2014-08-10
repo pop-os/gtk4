@@ -1,4 +1,6 @@
-gtk+3.0 (3.12.2-2) UNRELEASED; urgency=medium
+gtk+3.0 (3.12.2-2) unstable; urgency=medium
+
+  * Team upload
 
   [ Dmitry Shachnev ]
   * Autopkgtests fixes: add missing xauth dependency, and stop using
@@ -9,7 +11,7 @@ gtk+3.0 (3.12.2-2) UNRELEASED; urgency=medium
     stop AM_PATH_GTK_3_0([3], [], [], [gthread]) trying to require
     gthread-2.0 >= 3, which doesn't exist (Closes: #756476)
 
- -- Dmitry Shachnev <mitya57@gmail.com>  Mon, 16 Jun 2014 17:59:05 +0400
+ -- Simon McVittie <smcv@debian.org>  Sun, 10 Aug 2014 17:26:57 +0100
 
 gtk+3.0 (3.12.2-1) unstable; urgency=medium
 
