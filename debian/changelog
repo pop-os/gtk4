@@ -1,3 +1,13 @@
+gtk+3.0 (3.12.2-3) UNRELEASED; urgency=medium
+
+  * debian/missing-sources/zlib.js-0.1.6: add missing source code for
+    gdk/broadway/rawinflate.min.js (Closes: #753968)
+    - some files in zlib.js upstream had missing source code themselves
+      (closure-compiler.jar) or are not needed here, and have been removed
+      to save space; see debian/missing-sources/README for details
+
+ -- Simon McVittie <smcv@debian.org>  Mon, 11 Aug 2014 10:41:21 +0100
+
 gtk+3.0 (3.12.2-2) unstable; urgency=medium
 
   * Team upload
