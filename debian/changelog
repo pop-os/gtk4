@@ -5,6 +5,8 @@ gtk+3.0 (3.12.2-3) UNRELEASED; urgency=medium
     - some files in zlib.js upstream had missing source code themselves
       (closure-compiler.jar) or are not needed here, and have been removed
       to save space; see debian/missing-sources/README for details
+    - make debian/missing-sources/rawinflate.js a symlink into zlib.js-0.1.6
+      to reassure lintian that source is present
 
  -- Simon McVittie <smcv@debian.org>  Mon, 11 Aug 2014 10:41:21 +0100
 
