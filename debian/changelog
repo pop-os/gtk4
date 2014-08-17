@@ -1,5 +1,6 @@
-gtk+3.0 (3.12.2-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.12.2-3) unstable; urgency=medium
 
+  * Team upload
   * debian/missing-sources/zlib.js-0.1.6: add missing source code for
     gdk/broadway/rawinflate.min.js (Closes: #753968)
     - some files in zlib.js upstream had missing source code themselves
@@ -11,7 +12,7 @@ gtk+3.0 (3.12.2-3) UNRELEASED; urgency=medium
     define _GNU_SOURCE on non-Linux to fix "assignment makes pointer from
     integer without a cast" found by build-log scanning on kFreeBSD
 
- -- Simon McVittie <smcv@debian.org>  Mon, 11 Aug 2014 10:41:21 +0100
+ -- Simon McVittie <smcv@debian.org>  Sun, 17 Aug 2014 15:26:50 +0100
 
 gtk+3.0 (3.12.2-2) unstable; urgency=medium
 
