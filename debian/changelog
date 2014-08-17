@@ -7,6 +7,9 @@ gtk+3.0 (3.12.2-3) UNRELEASED; urgency=medium
       to save space; see debian/missing-sources/README for details
     - make debian/missing-sources/rawinflate.js a symlink into zlib.js-0.1.6
       to reassure lintian that source is present
+  * d/p/073-Use-AC_USE_SYSTEM_EXTENSIONS-to-get-_GNU_SOURCE-_XOP.patch:
+    define _GNU_SOURCE on non-Linux to fix "assignment makes pointer from
+    integer without a cast" found by build-log scanning on kFreeBSD
 
  -- Simon McVittie <smcv@debian.org>  Mon, 11 Aug 2014 10:41:21 +0100
 
