@@ -68,6 +68,7 @@ DEB_CONFIGURE_FLAGS_shared = \
 			--enable-broadway-backend \
 			--enable-x11-backend \
 			--enable-gtk-doc \
+ 			--enable-installed-tests \
 			--enable-shared \
 			--enable-introspection \
 			--enable-cloudprint \
@@ -86,6 +87,7 @@ DEB_CONFIGURE_FLAGS_shared += --disable-wayland-backend
 endif
 
 DEB_CONFIGURE_FLAGS_shared_udeb = \
+ 			--enable-installed-tests \
 			--disable-broadway-backend \
 			--disable-wayland-backend \
 			--enable-x11-backend \

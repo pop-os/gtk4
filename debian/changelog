@@ -1,3 +1,24 @@
+gtk+3.0 (3.13.7-1) UNRELEASED; urgency=medium
+
+  * New upstream development release.
+  * Update build-dependencies according to configure.ac
+    - bump libglib2.0-dev to (>= 2.41.2)
+  * Update libgtk-3.0-dev dependency on libglib2.0-dev to (>= 2.41.2)
+  * Massage debian/patches/018_gdkenumtypes.c_location.patch to apply again
+  * Drop backported/merged patches now in released version:
+    - debian/patches/072_Avoid-pkg-config-atleast-version.patch
+  * Have quilt refresh remaining patches.
+  * Bump gobject-introspection build-dependency to (>= 1.41.3)
+    - this one supports new "nullable" annotation.
+  * Build-depend on adwaita-icon-theme instead of gnome-icon-theme-symbolic
+  * Update debian/libgtk-3-0.symbols with many additions
+  * Add --enable-installed-tests configure flag for both deb and udeb
+    - this works around a problem with libreftest.la not being built
+      otherwise leading to "make check" failing.
+    - Note: atleast the udeb part should be disabled once upstream is fixed!
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sun, 24 Aug 2014 21:25:22 -0700
+
 gtk+3.0 (3.12.2-3) unstable; urgency=medium
 
   * Team upload
