@@ -16,6 +16,7 @@ gtk+3.0 (3.13.7-1) UNRELEASED; urgency=medium
     - this works around a problem with libreftest.la not being built
       otherwise leading to "make check" failing.
     - Note: atleast the udeb part should be disabled once upstream is fixed!
+      see https://bugzilla.gnome.org/show_bug.cgi?id=735401
 
  -- Andreas Henriksson <andreas@fatal.se>  Sun, 24 Aug 2014 21:25:22 -0700
 
