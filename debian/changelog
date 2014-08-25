@@ -1,3 +1,74 @@
+gtk+3.0 (3.12.2-3) unstable; urgency=medium
+
+  * Team upload
+  * debian/missing-sources/zlib.js-0.1.6: add missing source code for
+    gdk/broadway/rawinflate.min.js (Closes: #753968)
+    - some files in zlib.js upstream had missing source code themselves
+      (closure-compiler.jar) or are not needed here, and have been removed
+      to save space; see debian/missing-sources/README for details
+    - make debian/missing-sources/rawinflate.js a symlink into zlib.js-0.1.6
+      to reassure lintian that source is present
+  * d/p/073-Use-AC_USE_SYSTEM_EXTENSIONS-to-get-_GNU_SOURCE-_XOP.patch:
+    define _GNU_SOURCE on non-Linux to fix "assignment makes pointer from
+    integer without a cast" found by build-log scanning on kFreeBSD
+
+ -- Simon McVittie <smcv@debian.org>  Sun, 17 Aug 2014 15:26:50 +0100
+
+gtk+3.0 (3.12.2-2) unstable; urgency=medium
+
+  * Team upload
+
+  [ Dmitry Shachnev ]
+  * Autopkgtests fixes: add missing xauth dependency, and stop using
+    deprecated GtkStock item.
+
+  [ Simon McVittie ]
+  * debian/patches/072_Avoid-pkg-config-atleast-version.patch:
+    stop AM_PATH_GTK_3_0([3], [], [], [gthread]) trying to require
+    gthread-2.0 >= 3, which doesn't exist (Closes: #756476)
+
+ -- Simon McVittie <smcv@debian.org>  Sun, 10 Aug 2014 17:26:57 +0100
+
+gtk+3.0 (3.12.2-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Fri, 16 May 2014 12:12:48 +0200
+
+gtk+3.0 (3.12.1-1) unstable; urgency=medium
+
+  * New upstream release
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Sat, 26 Apr 2014 16:44:41 +0200
+
+gtk+3.0 (3.12.0-4) unstable; urgency=medium
+
+  * Build-depend on gnome-icon-theme-symbolic and make test suite errors
+    fatal again.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 03 Apr 2014 19:45:56 +0200
+
+gtk+3.0 (3.12.0-3) unstable; urgency=medium
+
+  * debian/control.in:
+    + Loosen the dependencies on libgtk-3-common from = ${source:Version}
+      to >= ${source:Version} to make libgtk-3-bin and libgtk-3-0 installable
+      when a new source version is uploaded.
+    + Don't build depend on gnome-icon-theme-symbolic as that pulls
+      gnome-icon-theme which in turns pulls libgtk-3-bin, which isn't
+      installable at the moment.
+  * debian/rules:
+    + Temporarily make the test suite non-fatal as gnome-icon-theme-symbolic
+      is needed for some tests.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 02 Apr 2014 19:11:32 +0200
+
+gtk+3.0 (3.12.0-2) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 02 Apr 2014 16:10:12 +0200
+
 gtk+3.0 (3.12.0-1) experimental; urgency=medium
 
   * New upstream release.

@@ -59,7 +59,7 @@ XS-Testsuite: autopkgtest
 
 Package: @SHARED_PKG@
 Architecture: any
-Depends: @COMMON_PKG@ (= ${source:Version}),
+Depends: @COMMON_PKG@ (>= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          shared-mime-info
@@ -122,7 +122,7 @@ Section: misc
 Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends},
          @SHARED_PKG@ (>= ${source:Version}),
-         @COMMON_PKG@ (= ${source:Version})
+         @COMMON_PKG@ (>= ${source:Version})
 Multi-Arch: foreign
 Description: programs for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
