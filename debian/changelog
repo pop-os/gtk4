@@ -12,9 +12,6 @@ gtk+3.0 (3.13.8-1) UNRELEASED; urgency=medium
     - this one supports new "nullable" annotation.
   * Build-depend on adwaita-icon-theme instead of gnome-icon-theme-symbolic
   * Update debian/libgtk-3-0.symbols with many additions
-  * Add debian/patches/make-reftests-work-without-installed-tests.patch
-    and debian/patches/make-reftests-rpath-fix.patch
-    - https://bugzilla.gnome.org/show_bug.cgi?id=735401
   * New upstream development release (3.13.8)
   * Update build-dependencies according to configure.ac changes:
     - Bump libgdk-pixbuf2.0-dev to (>= 2.30.0)
