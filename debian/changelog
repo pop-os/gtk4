@@ -1,6 +1,6 @@
-gtk+3.0 (3.13.7-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.13.8-1) UNRELEASED; urgency=medium
 
-  * New upstream development release.
+  * New upstream development release (3.13.7)
   * Update build-dependencies according to configure.ac
     - bump libglib2.0-dev to (>= 2.41.2)
   * Update libgtk-3.0-dev dependency on libglib2.0-dev to (>= 2.41.2)
@@ -12,11 +12,18 @@ gtk+3.0 (3.13.7-1) UNRELEASED; urgency=medium
     - this one supports new "nullable" annotation.
   * Build-depend on adwaita-icon-theme instead of gnome-icon-theme-symbolic
   * Update debian/libgtk-3-0.symbols with many additions
-  * Add --enable-installed-tests configure flag for both deb and udeb
-    - this works around a problem with libreftest.la not being built
-      otherwise leading to "make check" failing.
-    - Note: atleast the udeb part should be disabled once upstream is fixed!
-      see https://bugzilla.gnome.org/show_bug.cgi?id=735401
+  * Add debian/patches/make-reftests-work-without-installed-tests.patch
+    and debian/patches/make-reftests-rpath-fix.patch
+    - https://bugzilla.gnome.org/show_bug.cgi?id=735401
+  * New upstream development release (3.13.8)
+  * Update build-dependencies according to configure.ac changes:
+    - Bump libgdk-pixbuf2.0-dev to (>= 2.30.0)
+    - Bump libwayland-dev to (>= 1.5.91)
+  * debian/patches/032_mips_treeview_row_separator_height.patch:
+    - massage the patch into applying again.
+  * Update debian/libgtk-3-0.symbols
+    - 4 dropped gdk_wayland_*_libgtk_only symbols, should be unused.
+    - 3 new wayland related symbols
 
  -- Andreas Henriksson <andreas@fatal.se>  Sun, 24 Aug 2014 21:25:22 -0700
 
