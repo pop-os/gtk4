@@ -1,5 +1,6 @@
-gtk+3.0 (3.13.8-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.13.8-1) experimental; urgency=medium
 
+  [ Andreas Henriksson ]
   * New upstream development release (3.13.7)
   * Update build-dependencies according to configure.ac
     - bump libglib2.0-dev to (>= 2.41.2)
@@ -22,7 +23,7 @@ gtk+3.0 (3.13.8-1) UNRELEASED; urgency=medium
     - 4 dropped gdk_wayland_*_libgtk_only symbols, should be unused.
     - 3 new wayland related symbols
 
- -- Andreas Henriksson <andreas@fatal.se>  Sun, 24 Aug 2014 21:25:22 -0700
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 05 Sep 2014 22:50:11 +0200
 
 gtk+3.0 (3.12.2-3) unstable; urgency=medium
 
