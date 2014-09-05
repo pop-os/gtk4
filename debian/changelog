@@ -1,6 +1,6 @@
 gtk+3.0 (3.13.8-2) UNRELEASED; urgency=medium
 
-  * libgtk-3-common: Depend on adwaita-icon-theme
+  * libgtk-3-common: Depend on adwaita-icon-theme (>= ${gnome:Version})
     - gtk+ should guarantee we have atleast one sane icon theme available.
 
  -- Andreas Henriksson <andreas@fatal.se>  Fri, 05 Sep 2014 14:20:28 -0700

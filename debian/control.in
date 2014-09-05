@@ -62,7 +62,6 @@ Architecture: any
 Depends: @COMMON_PKG@ (>= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
-         adwaita-icon-theme,
          shared-mime-info
 Provides: @GTK_BINVER_DEP@
 Recommends: hicolor-icon-theme,
@@ -105,7 +104,7 @@ Description: GTK+ graphical user interface library - minimal runtime
 Package: @COMMON_PKG@
 Section: misc
 Architecture: all
-Depends: ${misc:Depends}
+Depends: ${misc:Depends}, adwaita-icon-theme (>= ${gnome:Version})
 Recommends: @SHARED_PKG@
 Breaks: @SHARED_PKG@ (<< 3.5.4)
 Replaces: @SHARED_PKG@ (<< 3.5.4)
