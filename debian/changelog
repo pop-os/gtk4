@@ -1,3 +1,9 @@
+gtk+3.0 (3.13.9-2) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Fri, 19 Sep 2014 22:25:39 +0200
+
 gtk+3.0 (3.13.9-1) experimental; urgency=medium
 
   [ Andreas Henriksson ]
