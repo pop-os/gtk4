@@ -1,4 +1,4 @@
-gtk+3.0 (3.13.9-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.13.9-1) experimental; urgency=medium
 
   [ Andreas Henriksson ]
   * libgtk-3-common: Depend on adwaita-icon-theme (>= ${gnome:Version})
@@ -10,7 +10,7 @@ gtk+3.0 (3.13.9-1) UNRELEASED; urgency=medium
   * debian/control.in:
     + Bump libpango1.0-dev minimum (build-)dependency.
 
- -- Andreas Henriksson <andreas@fatal.se>  Fri, 05 Sep 2014 14:20:28 -0700
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 19 Sep 2014 17:37:42 +0200
 
 gtk+3.0 (3.13.8-1) experimental; urgency=medium
 
