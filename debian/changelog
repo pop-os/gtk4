@@ -1,3 +1,50 @@
+gtk+3.0 (3.13.9-2) unstable; urgency=medium
+
+  * Upload to unstable.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Fri, 19 Sep 2014 22:25:39 +0200
+
+gtk+3.0 (3.13.9-1) experimental; urgency=medium
+
+  [ Andreas Henriksson ]
+  * libgtk-3-common: Depend on adwaita-icon-theme (>= ${gnome:Version})
+    - gtk+ should guarantee we have atleast one sane icon theme available.
+  * debian/rules: Include gnome-version.mk to generate ${gnome:Version}
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream development release.
+  * debian/control.in:
+    + Bump libpango1.0-dev minimum (build-)dependency.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 19 Sep 2014 17:37:42 +0200
+
+gtk+3.0 (3.13.8-1) experimental; urgency=medium
+
+  [ Andreas Henriksson ]
+  * New upstream development release (3.13.7)
+  * Update build-dependencies according to configure.ac
+    - bump libglib2.0-dev to (>= 2.41.2)
+  * Update libgtk-3.0-dev dependency on libglib2.0-dev to (>= 2.41.2)
+  * Massage debian/patches/018_gdkenumtypes.c_location.patch to apply again
+  * Drop backported/merged patches now in released version:
+    - debian/patches/072_Avoid-pkg-config-atleast-version.patch
+  * Have quilt refresh remaining patches.
+  * Bump gobject-introspection build-dependency to (>= 1.41.3)
+    - this one supports new "nullable" annotation.
+  * Build-depend on adwaita-icon-theme instead of gnome-icon-theme-symbolic
+  * Update debian/libgtk-3-0.symbols with many additions
+  * New upstream development release (3.13.8)
+  * Update build-dependencies according to configure.ac changes:
+    - Bump libgdk-pixbuf2.0-dev to (>= 2.30.0)
+    - Bump libwayland-dev to (>= 1.5.91)
+  * debian/patches/032_mips_treeview_row_separator_height.patch:
+    - massage the patch into applying again.
+  * Update debian/libgtk-3-0.symbols
+    - 4 dropped gdk_wayland_*_libgtk_only symbols, should be unused.
+    - 3 new wayland related symbols
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Fri, 05 Sep 2014 22:50:11 +0200
+
 gtk+3.0 (3.12.2-3) unstable; urgency=medium
 
   * Team upload

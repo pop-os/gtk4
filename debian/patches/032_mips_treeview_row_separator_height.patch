@@ -11,6 +11,6 @@ Bug: https://bugzilla.gnome.org/show_bug.cgi?id=702371
    g_test_add_func ("/TreeView/sizing/row-separator-height",
 -                   test_row_separator_height);
 +                   test_row_separator_height);*/
+   g_test_add_func ("/TreeView/selection/count", test_selection_count);
  
    return g_test_run ();
- }
