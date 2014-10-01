@@ -1,4 +1,4 @@
-gtk+3.0 (3.14.1-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.14.1-1) unstable; urgency=medium
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release.
@@ -12,7 +12,7 @@ gtk+3.0 (3.14.1-1) UNRELEASED; urgency=medium
       difference on some architectures. No big deal.
       Noone is willing to investigate and consensus is it's ok to disable.
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 29 Sep 2014 23:17:18 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 02 Oct 2014 01:49:16 +0200
 
 gtk+3.0 (3.14.0-1) unstable; urgency=medium
 
