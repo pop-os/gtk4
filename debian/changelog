@@ -1,17 +1,7 @@
 gtk+3.0 (3.14.1-1) UNRELEASED; urgency=medium
 
-  [ Sjoerd Simons ]
-  * debian/patches/080-reftest-Add-missing-include-of-reftest-snapshot.h.patch
-    + Added. Adds missing #include in the reftest test. While seemingly
-      harmless on s390 due to the missing include the return type of a function
-      the snapshot function is assumed to be int, while it should have been a
-      pointer. This causes incorrect casting in the resulting code leading to
-      crashes.. (From upstream git)
-
   [ Emilio Pozuelo Monfort ]
   * New upstream release.
-  * debian/patches/080-reftest-Add-missing-include-of-reftest-snapshot.h.patch:
-    + Dropped, merged upstream.
 
   [ Andreas Henriksson ]
   * Add debian/patches/reftest-known-fail.patch
