@@ -13,6 +13,15 @@ gtk+3.0 (3.14.1-1) UNRELEASED; urgency=medium
   * debian/patches/080-reftest-Add-missing-include-of-reftest-snapshot.h.patch:
     + Dropped, merged upstream.
 
+  [ Andreas Henriksson ]
+  * Add debian/patches/reftest-known-fail.patch
+    - make it possible to tag individual reftests as ok to fail.
+  * debian/rules:
+    touch testsuite/reftests/style-properties-nth-child.ui.known_fail
+    - reftest shows this intermittently has a couple of pixels
+      difference on some architectures. No big deal.
+      Noone is willing to investigate and consensus is it's ok to disable.
+
  -- Sjoerd Simons <sjoerd@debian.org>  Mon, 29 Sep 2014 23:17:18 +0200
 
 gtk+3.0 (3.14.0-1) unstable; urgency=medium
