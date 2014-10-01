@@ -10,6 +10,8 @@ gtk+3.0 (3.14.1-1) UNRELEASED; urgency=medium
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release.
+  * debian/patches/080-reftest-Add-missing-include-of-reftest-snapshot.h.patch:
+    + Dropped, merged upstream.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Mon, 29 Sep 2014 23:17:18 +0200
 
