@@ -1,10 +1,10 @@
-gtk+3.0 (3.14.1-2) UNRELEASED; urgency=medium
+gtk+3.0 (3.14.2-1) unstable; urgency=medium
 
-  * Add debian/patches/gtkbuilder-undo-the-type-name-heuristic-changes.patch
-    - Fixes breakage for libgweather users. (Closes: #764681)
-      (Thanks ricotz for pointing out the upstream git commit.)
+  * New upstream release.
+    - includes fix gtkbuilder fix for problems affecting libgweather
+      users (like gnome-clocks, Closes: #764681)
 
- -- Andreas Henriksson <andreas@fatal.se>  Sat, 11 Oct 2014 14:41:50 +0200
+ -- Andreas Henriksson <andreas@fatal.se>  Sat, 11 Oct 2014 15:12:08 +0200
 
 gtk+3.0 (3.14.1-1) unstable; urgency=medium
 
