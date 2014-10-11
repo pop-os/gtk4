@@ -12,3 +12,4 @@
 061_multiarch_module_fallback.patch
 071_fix-installation-of-HTML-images.patch
 reftest-known-fail.patch
+gtkbuilder-undo-the-type-name-heuristic-changes.patch
