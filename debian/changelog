@@ -1,6 +1,7 @@
 gtk+3.0 (3.14.3-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Install typelib files into multiarch paths.
 
  -- Michael Biebl <biebl@debian.org>  Mon, 13 Oct 2014 22:57:02 +0200
 
