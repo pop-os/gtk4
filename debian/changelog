@@ -1,11 +1,11 @@
-gtk+3.0 (3.14.3-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.14.3-1) unstable; urgency=medium
 
   * New upstream release.
   * Install typelib files into multiarch paths.
   * Mark gir and dev package as Multi-Arch: same.
   * Bump Standards-Version to 3.9.6. No further changes.
 
- -- Michael Biebl <biebl@debian.org>  Mon, 13 Oct 2014 22:57:02 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 13 Oct 2014 23:35:40 +0200
 
 gtk+3.0 (3.14.2-1) unstable; urgency=medium
 
