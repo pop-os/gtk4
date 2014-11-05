@@ -1,4 +1,4 @@
-gtk+3.0 (3.14.4-2) UNRELEASED; urgency=medium
+gtk+3.0 (3.14.4-2) unstable; urgency=medium
 
   [ Rico Tzschichholz ]
   * Install org.gtk.Settings.Debug.gschema.xml
@@ -7,7 +7,7 @@ gtk+3.0 (3.14.4-2) UNRELEASED; urgency=medium
   * debian/patches/077_fix_menu_height_calculating.patch: backport upstream
     commit to fix calculation of menu height (closes: #767906).
 
- -- Rico Tzschichholz <ricotz@ubuntu.com>  Sun, 26 Oct 2014 18:37:46 +0100
+ -- Dmitry Shachnev <mitya57@debian.org>  Tue, 04 Nov 2014 17:19:48 +0300
 
 gtk+3.0 (3.14.4-1) unstable; urgency=medium
 
