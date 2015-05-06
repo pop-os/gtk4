@@ -1,3 +1,81 @@
+gtk+3.0 (3.16.2-1) UNRELEASED; urgency=medium
+
+  * New upstream release
+  * debian/patches/044_tracker_fts.patch:
+    + Dropped, upstream also defaults to FTS tracker queries now
+  * debian/control: Update build-dependency versions
+  * debian/control: Add libexpoxy and libegl1-mesa-dev to build-depencies
+  * debian/libgtk-3-0.symbols: Updated
+  * d/p/notify-test-Don-t-test-object-relying-on-dbus-connec.patch:
+    + Added. Fix test failure when no session bus is running (bgo#749009)
+
+ -- Sjoerd Simons <sjoerd@debian.org>  Wed, 06 May 2015 13:01:22 +0200
+
+gtk+3.0 (3.14.5-1) unstable; urgency=medium
+
+  * New upstream bugfix release.
+  * debian/patches/077_fix_menu_height_calculating.patch:
+    + Dropped, merged upstream.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 11 Nov 2014 18:55:46 +0100
+
+gtk+3.0 (3.14.4-2) unstable; urgency=medium
+
+  [ Rico Tzschichholz ]
+  * Install org.gtk.Settings.Debug.gschema.xml
+
+  [ Dmitry Shachnev ]
+  * debian/patches/077_fix_menu_height_calculating.patch: backport upstream
+    commit to fix calculation of menu height (closes: #767906).
+
+ -- Dmitry Shachnev <mitya57@debian.org>  Tue, 04 Nov 2014 17:19:48 +0300
+
+gtk+3.0 (3.14.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 23 Oct 2014 15:43:31 +0200
+
+gtk+3.0 (3.14.3-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Install typelib files into multiarch paths.
+  * Mark gir and dev package as Multi-Arch: same.
+  * Bump Standards-Version to 3.9.6. No further changes.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 13 Oct 2014 23:35:40 +0200
+
+gtk+3.0 (3.14.2-1) unstable; urgency=medium
+
+  * New upstream release.
+    - includes fix gtkbuilder fix for problems affecting libgweather
+      users (like gnome-clocks, Closes: #764681)
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sat, 11 Oct 2014 15:12:08 +0200
+
+gtk+3.0 (3.14.1-1) unstable; urgency=medium
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream release.
+
+  [ Andreas Henriksson ]
+  * Add debian/patches/reftest-known-fail.patch
+    - make it possible to tag individual reftests as ok to fail.
+  * debian/rules:
+    touch testsuite/reftests/style-properties-nth-child.ui.known_fail
+    - reftest shows this intermittently has a couple of pixels
+      difference on some architectures. No big deal.
+      Noone is willing to investigate and consensus is it's ok to disable.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 02 Oct 2014 01:49:16 +0200
+
+gtk+3.0 (3.14.0-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Refresh patches.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 23 Sep 2014 22:25:42 +0200
+
 gtk+3.0 (3.13.9-2) unstable; urgency=medium
 
   * Upload to unstable.

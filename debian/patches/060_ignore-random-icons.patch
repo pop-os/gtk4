@@ -7,5 +7,5 @@
 -		    dir_index = 0xffff;
 +		    continue;
  		}
- 		
+ 
  	      image = g_new0 (Image, 1);
