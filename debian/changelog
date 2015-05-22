@@ -1,4 +1,4 @@
-gtk+3.0 (3.16.3-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.16.3-1) experimental; urgency=medium
 
   [ Sjoerd Simons ]
   * New upstream release 3.16.2.
@@ -19,7 +19,7 @@ gtk+3.0 (3.16.3-1) UNRELEASED; urgency=medium
   * debian/patches/notify-test-Don-t-test-object-relying-on-dbus-connec.patch:
     + Dropped, included upstream.
 
- -- Sjoerd Simons <sjoerd@debian.org>  Mon, 11 May 2015 16:45:40 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 22 May 2015 18:23:50 +0200
 
 gtk+3.0 (3.14.5-1) unstable; urgency=medium
 
