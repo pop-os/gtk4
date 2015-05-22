@@ -11,4 +11,3 @@
 061_multiarch_module_fallback.patch
 071_fix-installation-of-HTML-images.patch
 reftest-known-fail.patch
-notify-test-Don-t-test-object-relying-on-dbus-connec.patch

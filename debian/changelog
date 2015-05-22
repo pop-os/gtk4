@@ -14,6 +14,10 @@ gtk+3.0 (3.16.3-1) UNRELEASED; urgency=medium
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release 3.16.3.
+  * debian/patches:
+    + Refreshed.
+  * debian/patches/notify-test-Don-t-test-object-relying-on-dbus-connec.patch:
+    + Dropped, included upstream.
 
  -- Sjoerd Simons <sjoerd@debian.org>  Mon, 11 May 2015 16:45:40 +0200
 
