@@ -5,7 +5,7 @@
                                                                    P_("Fallback Icon Theme Name"),
                                                                    P_("Name of a icon theme to fall back to"),
 -                                                                  NULL,
-+                                                                  "gnome",
++                                                                  "Adwaita",
                                                                    GTK_PARAM_READWRITE | G_PARAM_DEPRECATED),
                                               NULL);
    g_assert (result == PROP_FALLBACK_ICON_THEME);

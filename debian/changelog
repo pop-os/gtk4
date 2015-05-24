@@ -1,3 +1,9 @@
+gtk+3.0 (3.16.3-2) UNRELEASED; urgency=medium
+
+  * d/p/015_default-fallback-icon-theme.patch: Replace gnome with Adwaita.
+
+ -- Dmitry Shachnev <mitya57@debian.org>  Sun, 24 May 2015 19:26:07 +0300
+
 gtk+3.0 (3.16.3-1) experimental; urgency=medium
 
   [ Sjoerd Simons ]
