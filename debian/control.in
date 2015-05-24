@@ -161,6 +161,7 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          libxcomposite-dev,
          libxdamage-dev,
          pkg-config (>= 0.26-1),
+         libegl1-mesa-dev [linux-any],
          libwayland-dev (>= 1.5.91) [linux-any],
          libxkbcommon-dev
 Suggests: @DOC_PKG@
