@@ -155,6 +155,7 @@ clean:: debian/control
 	# gross kludge to force control generation with the %.in target
 	touch debian/control.in
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
+	rm -f testsuite/reftests/*.ui.known_fail
 
 pre-build::
 	# Mark reftests with known failures as non-fatal
