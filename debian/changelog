@@ -1,4 +1,4 @@
-gtk+3.0 (3.16.4-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.16.4-1) experimental; urgency=medium
 
   [ Iain Lane ]
   * build with --fail-missing when doing an indep build
@@ -10,7 +10,7 @@ gtk+3.0 (3.16.4-1) UNRELEASED; urgency=medium
   [ Emilio Pozuelo Monfort ]
   * New upstream release.
 
- -- Iain Lane <laney@debian.org>  Mon, 01 Jun 2015 17:53:26 +0100
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Fri, 12 Jun 2015 00:06:44 +0200
 
 gtk+3.0 (3.16.3-2) experimental; urgency=medium
 
