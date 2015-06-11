@@ -1,10 +1,14 @@
-gtk+3.0 (3.16.3-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.16.4-1) UNRELEASED; urgency=medium
 
+  [ Iain Lane ]
   * build with --fail-missing when doing an indep build
   * Install some utilities and missing icons, desktop files and manpages into
     gtk-3-examples (for want of a better package).
   * clean up reftest known_fail files in clean target which we create in
     pre-build
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream release.
 
  -- Iain Lane <laney@debian.org>  Mon, 01 Jun 2015 17:53:26 +0100
 
