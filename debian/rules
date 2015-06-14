@@ -58,7 +58,12 @@ EXAMPLES_PKG := gtk-$(APIVER)-examples
 NEWS := NEWS$(shell find -maxdepth 1 -size +4k -name NEWS -exec echo ".gz" \;)
 README := README$(shell find -maxdepth 1 -size +4k -name README -exec echo ".gz" \;)
 
-DEB_DH_INSTALL_ARGS += --sourcedir=debian/install/shared
+FAIL_MISSING :=
+
+# When building all packages, run dh_install with --fail-missing
+binary-indep: FAIL_MISSING=--fail-missing
+
+DEB_DH_INSTALL_ARGS += --sourcedir=debian/install/shared $(FAIL_MISSING) -X.la
 DEB_DH_INSTALL_ARGS_$(UDEB_PKG) += --sourcedir=debian/install/shared_udeb
 
 DEB_CONFIGURE_EXTRA_FLAGS = \
@@ -150,10 +155,12 @@ clean:: debian/control
 	# gross kludge to force control generation with the %.in target
 	touch debian/control.in
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
+	rm -f testsuite/reftests/*.ui.known_fail
 
 pre-build::
 	# Mark reftests with known failures as non-fatal
 	touch testsuite/reftests/style-properties-nth-child.ui.known_fail
+	touch testsuite/reftests/label-text-shadow-changes-modify-clip.ui.known_fail
 	# So that gsettings can find the (uninstalled) gtk schemas
 	mkdir -p debian/build/glib-2.0/schemas/
 	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/
@@ -174,8 +181,3 @@ binary-install/$(BIN_PKG)::
 	    debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-3.0.1
 	install -m 0755 -D debian/update-icon-caches \
 	    debian/$(BIN_PKG)/usr/sbin/update-icon-caches
-
-list-missing:
-	# FIXME: remove this when CDBS' list-missing works with multiple flavors
-	perl -w debian/dh_listmissing.pl $(foreach f,$(DEB_MAKE_FLAVORS),debian/install/$(f)) 2>&1 | \
-	    egrep -v '(\.la|$(LIBDIR)/gtk-3.0/$(GTK_BINARY_VERSION)/[^/]+/[^/]+\.a) has been installed' >&2

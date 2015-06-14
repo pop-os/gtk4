@@ -13,7 +13,7 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=656803
 
 --- a/gtk-doc.make
 +++ b/gtk-doc.make
-@@ -181,8 +181,8 @@
+@@ -182,8 +182,8 @@
  	  if test -f $(abs_srcdir)/$$file ; then \
  	    cp $(abs_srcdir)/$$file $(abs_builddir)/html; \
  	  fi; \
