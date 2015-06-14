@@ -160,7 +160,7 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          libxfixes-dev,
          libxcomposite-dev,
          libxdamage-dev,
-         pkg-config (>= 0.26-1),
+         pkg-config,
          libegl1-mesa-dev [linux-any],
          libwayland-dev (>= 1.5.91) [linux-any],
          libxkbcommon-dev
@@ -267,7 +267,7 @@ Section: libdevel
 Depends: ${misc:Depends},
          libgail-3-0 (= ${binary:Version}),
          @DEV_PKG@ (= ${binary:Version}),
-         pkg-config (>= 0.26-1),
+         pkg-config,
          libatk1.0-dev (>= 2.2.0)
 Suggests: libgail-3-doc
 Description: GNOME Accessibility Implementation Library -- development files

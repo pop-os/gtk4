@@ -3,6 +3,10 @@ gtk+3.0 (3.16.4-2) UNRELEASED; urgency=medium
   * Merge changes from 3.14.13-1.
   * debian/README.Debian:
     + Removed, that's for gtk+2.0. Closes: #622913.
+  * debian/control.in:
+    + Drop versioned dependency on pkg-config. The version is satisfied
+      in oldstable and that helps other packages that provide pkg-config.
+      Closes: #734481.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sun, 14 Jun 2015 13:09:33 +0200
 
