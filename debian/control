@@ -2,7 +2,7 @@ Source: gtk+3.0
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Andreas Henriksson <andreas@fatal.se>, Dmitry Shachnev <mitya57@debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Michael Biebl <biebl@debian.org>
+Uploaders: Andreas Henriksson <andreas@fatal.se>, Dmitry Shachnev <mitya57@debian.org>, Emilio Pozuelo Monfort <pochu@debian.org>, Iain Lane <laney@debian.org>, Michael Biebl <biebl@debian.org>
 Build-Depends: debhelper (>= 8.1.3),
                cdbs (>= 0.4.93),
                gnome-pkg-tools (>= 0.11),
@@ -71,10 +71,7 @@ Recommends: hicolor-icon-theme,
             libgtk-3-bin
 Suggests: librsvg2-common,
           gvfs
-Breaks: gnome-themes-standard (<< 3.6),
-        murrine-themes (<= 0.98.2),
-        libvte-2.90-9 (<< 1:0.32),
-        libwebkitgtk-3.0-0 (<< 1.8.0)
+Breaks: gnome-themes-standard (<< 3.6)
 Pre-Depends: ${misc:Pre-Depends}
 Description: GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
