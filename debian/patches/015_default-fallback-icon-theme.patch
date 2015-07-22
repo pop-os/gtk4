@@ -1,6 +1,8 @@
---- a/gtk/gtksettings.c
-+++ b/gtk/gtksettings.c
-@@ -460,7 +460,7 @@
+Index: gtk+-3.16.6/gtk/gtksettings.c
+===================================================================
+--- gtk+-3.16.6.orig/gtk/gtksettings.c	2015-07-22 21:04:31.312918612 +0200
++++ gtk+-3.16.6/gtk/gtksettings.c	2015-07-22 21:04:31.308918550 +0200
+@@ -461,7 +461,7 @@
                                               g_param_spec_string ("gtk-fallback-icon-theme",
                                                                    P_("Fallback Icon Theme Name"),
                                                                    P_("Name of a icon theme to fall back to"),

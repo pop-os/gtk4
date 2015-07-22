@@ -1,8 +1,10 @@
 Bug: https://bugzilla.gnome.org/show_bug.cgi?id=702371
 
---- a/testsuite/gtk/treeview.c
-+++ b/testsuite/gtk/treeview.c
-@@ -354,8 +354,10 @@
+Index: gtk+-3.16.6/testsuite/gtk/treeview.c
+===================================================================
+--- gtk+-3.16.6.orig/testsuite/gtk/treeview.c	2015-07-22 21:04:41.737081695 +0200
++++ gtk+-3.16.6/testsuite/gtk/treeview.c	2015-07-22 21:04:41.737081695 +0200
+@@ -355,8 +355,10 @@
    g_test_add_func ("/TreeView/cursor/bug-539377", test_bug_539377);
    g_test_add_func ("/TreeView/cursor/select-collapsed_row",
                     test_select_collapsed_row);

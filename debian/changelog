@@ -1,6 +1,7 @@
 gtk+3.0 (3.16.6-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Refresh patches.
 
  -- Michael Biebl <biebl@debian.org>  Wed, 22 Jul 2015 20:45:40 +0200
 
