@@ -1,7 +1,11 @@
 gtk+3.0 (3.16.6-2) UNRELEASED; urgency=medium
 
+  [ Simon McVittie ]
   * d/p/073-Use-AC_USE_SYSTEM_EXTENSIONS-to-get-_GNU_SOURCE-_XOP.patch:
     remove, applied upstream in 3.13 and no longer listed in series
+
+  [ Andreas Henriksson ]
+  * Add Breaks against gtk3-engines-oxygen << 1.4.1-3 (Closes: #797797)
 
  -- Simon McVittie <smcv@debian.org>  Wed, 05 Aug 2015 12:07:50 +0100
 

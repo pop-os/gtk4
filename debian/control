@@ -71,7 +71,7 @@ Recommends: hicolor-icon-theme,
             libgtk-3-bin
 Suggests: librsvg2-common,
           gvfs
-Breaks: gnome-themes-standard (<< 3.6)
+Breaks: gnome-themes-standard (<< 3.6), gtk3-engines-oxygen (<< 1.4.1-3)
 Pre-Depends: ${misc:Pre-Depends}
 Description: GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
