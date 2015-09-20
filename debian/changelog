@@ -1,3 +1,9 @@
+gtk+3.0 (3.17.9-2) experimental; urgency=medium
+
+  * Add debian/patches/git_test-simplify-use-bash.patch from upstream
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sun, 20 Sep 2015 19:46:36 +0200
+
 gtk+3.0 (3.17.9-1) experimental; urgency=medium
 
   [ Simon McVittie ]
