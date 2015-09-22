@@ -1,3 +1,11 @@
+gtk+3.0 (3.17.9-3) UNRELEASED; urgency=medium
+
+  * Drop debian/patches/061_multiarch_module_fallback.patch
+    - now obsolete since all packages has been fixed to install
+      in multiarch directories.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 22 Sep 2015 16:42:28 +0200
+
 gtk+3.0 (3.17.9-2) experimental; urgency=medium
 
   * Add debian/patches/git_test-simplify-use-bash.patch from upstream
