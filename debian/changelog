@@ -3,6 +3,10 @@ gtk+3.0 (3.17.9-3) UNRELEASED; urgency=medium
   * Drop debian/patches/061_multiarch_module_fallback.patch
     - now obsolete since all packages has been fixed to install
       in multiarch directories.
+  * Drop patches which are unused and has been for a very long time:
+    - debian/patches/030_tests_skip_filechooser.patch
+    - debian/patches/042_treeview_single-focus.patch
+    - debian/patches/043_notebook_scroll.patch
 
  -- Andreas Henriksson <andreas@fatal.se>  Tue, 22 Sep 2015 16:42:28 +0200
 
