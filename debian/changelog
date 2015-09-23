@@ -1,4 +1,4 @@
-gtk+3.0 (3.17.9-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.18.0-1) experimental; urgency=medium
 
   * Drop debian/patches/061_multiarch_module_fallback.patch
     - now obsolete since all packages has been fixed to install
@@ -7,8 +7,11 @@ gtk+3.0 (3.17.9-3) UNRELEASED; urgency=medium
     - debian/patches/030_tests_skip_filechooser.patch
     - debian/patches/042_treeview_single-focus.patch
     - debian/patches/043_notebook_scroll.patch
+  * New upstream release.
+  * Drop debian/patches/git_test-simplify-use-bash.patch
+    - now included in upstream release.
 
- -- Andreas Henriksson <andreas@fatal.se>  Tue, 22 Sep 2015 16:42:28 +0200
+ -- Andreas Henriksson <andreas@fatal.se>  Wed, 23 Sep 2015 17:07:59 +0200
 
 gtk+3.0 (3.17.9-2) experimental; urgency=medium
 
