@@ -1,3 +1,14 @@
+gtk+3.0 (3.18.0-2) experimental; urgency=medium
+
+  * Add debian/patches/git_bitmask-dont-hardcode-64bit-size.patch
+    - from upstream git. should fix test failure on i386, mips, mipsel.
+  * debian/rules: move --fail-missing to binary target instead of
+    binary-indep to use it on full builds only. This should avoid
+    breaking source-only uploads as the binary-indep (only) builds
+    more then it needs to do (which is not installed anywhere).
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sun, 27 Sep 2015 15:29:19 +0200
+
 gtk+3.0 (3.18.0-1) experimental; urgency=medium
 
   * Drop debian/patches/061_multiarch_module_fallback.patch
