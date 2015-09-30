@@ -57,7 +57,6 @@ Standards-Version: 3.9.6
 Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
 Vcs-Browser: http://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/gtk+3.0/
 Homepage: http://www.gtk.org/
-XS-Testsuite: autopkgtest
 
 Package: @SHARED_PKG@
 Architecture: any
