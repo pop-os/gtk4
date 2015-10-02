@@ -1,4 +1,48 @@
-gtk+3.0 (3.16.6-2) UNRELEASED; urgency=medium
+gtk+3.0 (3.18.0-3) unstable; urgency=medium
+
+  [ Michael Biebl ]
+  * Drop the XS-Testsuite: autopkgtest field
+    - it is no longer required, as dpkg 1.17.11 will add it
+      automatically if there is a debian/tests/control file.
+
+  [ Andreas Henriksson ]
+  * Upload to unstable.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Fri, 02 Oct 2015 17:04:02 +0200
+
+gtk+3.0 (3.18.0-2) experimental; urgency=medium
+
+  * Add debian/patches/git_bitmask-dont-hardcode-64bit-size.patch
+    - from upstream git. should fix test failure on i386, mips, mipsel.
+  * debian/rules: move --fail-missing to binary target instead of
+    binary-indep to use it on full builds only. This should avoid
+    breaking source-only uploads as the binary-indep (only) builds
+    more then it needs to do (which is not installed anywhere).
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sun, 27 Sep 2015 15:29:19 +0200
+
+gtk+3.0 (3.18.0-1) experimental; urgency=medium
+
+  * Drop debian/patches/061_multiarch_module_fallback.patch
+    - now obsolete since all packages has been fixed to install
+      in multiarch directories.
+  * Drop patches which are unused and has been for a very long time:
+    - debian/patches/030_tests_skip_filechooser.patch
+    - debian/patches/042_treeview_single-focus.patch
+    - debian/patches/043_notebook_scroll.patch
+  * New upstream release.
+  * Drop debian/patches/git_test-simplify-use-bash.patch
+    - now included in upstream release.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Wed, 23 Sep 2015 17:07:59 +0200
+
+gtk+3.0 (3.17.9-2) experimental; urgency=medium
+
+  * Add debian/patches/git_test-simplify-use-bash.patch from upstream
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sun, 20 Sep 2015 19:46:36 +0200
+
+gtk+3.0 (3.17.9-1) experimental; urgency=medium
 
   [ Simon McVittie ]
   * d/p/073-Use-AC_USE_SYSTEM_EXTENSIONS-to-get-_GNU_SOURCE-_XOP.patch:
@@ -6,8 +50,15 @@ gtk+3.0 (3.16.6-2) UNRELEASED; urgency=medium
 
   [ Andreas Henriksson ]
   * Add Breaks against gtk3-engines-oxygen << 1.4.1-3 (Closes: #797797)
+  * New upstream development release.
+  * Update (build-)dependencies according to configure.ac changes:
+    - bump pango to >= 1.37.3
+  * Bump glib build-dep to >= 2.45.8
+    - g_param_spec_get_name_quark is needed.
+  * Ship new gtk-builder-tool in libgtk-3-bin package.
+  * Update debian/libgtk-3-0.symbols with many new additions.
 
- -- Simon McVittie <smcv@debian.org>  Wed, 05 Aug 2015 12:07:50 +0100
+ -- Andreas Henriksson <andreas@fatal.se>  Thu, 17 Sep 2015 13:12:35 +0200
 
 gtk+3.0 (3.16.6-1) unstable; urgency=medium
 
