@@ -1,3 +1,10 @@
+gtk+3.0 (3.18.0-4) unstable; urgency=medium
+
+  * Team upload.
+  * gir1.2-gtk-3.0 Breaks pre-3.18 versions of pygobject (Closes: #800798)
+
+ -- Simon McVittie <smcv@debian.org>  Sun, 04 Oct 2015 15:46:54 +0100
+
 gtk+3.0 (3.18.0-3) unstable; urgency=medium
 
   [ Michael Biebl ]
