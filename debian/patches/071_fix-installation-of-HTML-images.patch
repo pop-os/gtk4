@@ -11,9 +11,11 @@ Bug-Debian: http://bugs.debian.org/cgi-bin/bugreport.cgi?bug=656803
  gtk-doc.make |    4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
 
---- a/gtk-doc.make
-+++ b/gtk-doc.make
-@@ -182,8 +182,8 @@
+Index: gtk+-3.18.1/gtk-doc.make
+===================================================================
+--- gtk+-3.18.1.orig/gtk-doc.make	2015-10-08 00:19:40.398171340 +0200
++++ gtk+-3.18.1/gtk-doc.make	2015-10-08 00:19:40.394171284 +0200
+@@ -193,8 +193,8 @@
  	  if test -f $(abs_srcdir)/$$file ; then \
  	    cp $(abs_srcdir)/$$file $(abs_builddir)/html; \
  	  fi; \

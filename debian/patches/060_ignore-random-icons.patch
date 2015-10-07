@@ -1,6 +1,8 @@
---- a/gtk/updateiconcache.c
-+++ b/gtk/updateiconcache.c
-@@ -676,7 +676,7 @@
+Index: gtk+-3.18.1/gtk/updateiconcache.c
+===================================================================
+--- gtk+-3.18.1.orig/gtk/updateiconcache.c	2015-10-08 00:19:36.650119362 +0200
++++ gtk+-3.18.1/gtk/updateiconcache.c	2015-10-08 00:19:36.646119308 +0200
+@@ -678,7 +678,7 @@
  		      directories = g_list_append (directories, g_strdup (subdir));
  		    }
  		  else
