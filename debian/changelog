@@ -1,11 +1,11 @@
-gtk+3.0 (3.18.1-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.18.1-1) unstable; urgency=medium
 
   * New upstream release.
   * Refresh patches.
   * Drop debian/patches/git_bitmask-dont-hardcode-64bit-size.patch, merged
     upstream.
 
- -- Michael Biebl <biebl@debian.org>  Thu, 08 Oct 2015 00:18:33 +0200
+ -- Michael Biebl <biebl@debian.org>  Thu, 08 Oct 2015 00:41:06 +0200
 
 gtk+3.0 (3.18.0-4) unstable; urgency=medium
 
