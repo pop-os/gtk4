@@ -7,4 +7,4 @@
 060_ignore-random-icons.patch
 071_fix-installation-of-HTML-images.patch
 reftest-known-fail.patch
-0001-Revert-stylecontext-Clear-style-property-more-freque.patch
+git_stylecontext-make-sure-valid.patch
