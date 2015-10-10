@@ -1,3 +1,11 @@
+gtk+3.0 (3.18.1-2) UNRELEASED; urgency=medium
+
+  * Add d/p/0001-Revert-stylecontext-Clear-style-property-more-freque.patch
+    - temporarily revert commit causing regression while waiting for
+      upstream to comment on proper solution. (Closes: #800911)
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sat, 10 Oct 2015 18:10:30 +0200
+
 gtk+3.0 (3.18.1-1) unstable; urgency=medium
 
   * New upstream release.
