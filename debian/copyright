@@ -103,7 +103,6 @@ License: LGPL-2+
  .
  See /usr/share/common-licenses/LGPL-2 on your debian system.
 
-
 Files: gtk/gtkcomboboxtext.h
        gtk/gtktoolpaletteprivate.h
        gtk/gtktoolitemgroup.*
@@ -134,8 +133,6 @@ License: LGPL-2.1+
  02110-1301  USA.
  .
  See /usr/share/common-licenses/LGPL-2.1 on your debian system.
-
-
 
 Files: po/*
        po-properties/*
@@ -486,13 +483,13 @@ License: LGPL-2+
 
 Files: gdk/win32/wintab.h
        gdk/win32/pktdef.h
-       gtk/gtktextmark.*
 Copyright: Copyright (C) 1991-1998 LCS/Telegraphics
 License: other
  The text and information contained in this file may be freely used,
  copied, or distributed without compensation or licensing restrictions.
 
 Files: gtk/gtktexttag.*
+       gtk/gtktextmark.*
        gtk/gtktextsegment.c
        gtk/gtktextchild.c
        gtk/gtktextchildprivate.h
@@ -605,13 +602,6 @@ License: LGPL-2+ or other
  02110-1301  USA.
  .
  See /usr/share/common-licenses/LGPL-2 on your debian system.
-
-Files: m4/introspection.m4
-Copyright: Copyright (C) Johan Dahlin
-License: other
- This file is free software; the author(s) gives unlimited
- permission to copy and/or distribute it, with or without
- modifications, as long as this notice is preserved.
 
 Files:
  gdk/broadway/rawinflate.min.js
