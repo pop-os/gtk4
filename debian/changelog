@@ -1,9 +1,9 @@
-gtk+3.0 (3.18.2-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.18.2-1) unstable; urgency=medium
 
   * New upstream release.
   * Refresh patches.
 
- -- Michael Biebl <biebl@debian.org>  Tue, 13 Oct 2015 21:39:35 +0200
+ -- Michael Biebl <biebl@debian.org>  Tue, 13 Oct 2015 23:07:49 +0200
 
 gtk+3.0 (3.18.1-2) unstable; urgency=medium
 
