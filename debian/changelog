@@ -1,3 +1,9 @@
+gtk+3.0 (3.18.2-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 13 Oct 2015 21:39:35 +0200
+
 gtk+3.0 (3.18.1-2) unstable; urgency=medium
 
   * Add debian/patches/git_stylecontext-make-sure-valid.patch
