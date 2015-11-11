@@ -66,8 +66,7 @@ Depends: @COMMON_PKG@ (>= ${source:Version}),
          ${shlibs:Depends},
          shared-mime-info
 Provides: @GTK_BINVER_DEP@
-Recommends: hicolor-icon-theme,
-            @BIN_PKG@
+Recommends: @BIN_PKG@
 Suggests: librsvg2-common,
           gvfs
 Breaks: gnome-themes-standard (<< 3.6),
