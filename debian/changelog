@@ -1,9 +1,9 @@
-gtk+3.0 (3.18.3-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.18.3-3) unstable; urgency=medium
 
   * Revert "textbuffer: nicer get_iter functions" and related commits since
     this broke the bindings API. (Closes: #804798)
 
- -- Michael Biebl <biebl@debian.org>  Thu, 12 Nov 2015 18:48:41 +0100
+ -- Michael Biebl <biebl@debian.org>  Thu, 12 Nov 2015 18:50:55 +0100
 
 gtk+3.0 (3.18.3-2) unstable; urgency=medium
 
