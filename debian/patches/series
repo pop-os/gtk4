@@ -1,3 +1,5 @@
+001-Revert-textbuffer-nicer-get_iter-functions.patch
+002-Revert-inspector-remove-gtk_text_buffer_get_iter_at_.patch
 015_default-fallback-icon-theme.patch
 016_no_offscreen_widgets_grabbing.patch
 017_no_offscreen_device_grabbing.patch
