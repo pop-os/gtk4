@@ -1,3 +1,12 @@
+gtk+3.0 (3.18.4-1) UNRELEASED; urgency=medium
+
+  * New upstream stable release 3.18.4
+    + Revert a GtkTextBuffer change that broke binding API
+      - Remove downstream cherry-picks for this change.
+    + Properly refresh styles when widget names change
+
+ -- Iain Lane <laney@debian.org>  Fri, 13 Nov 2015 12:46:02 +0000
+
 gtk+3.0 (3.18.3-3) unstable; urgency=medium
 
   * Revert "textbuffer: nicer get_iter functions" and related commits since
