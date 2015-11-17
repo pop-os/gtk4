@@ -1,3 +1,14 @@
+gtk+3.0 (3.18.5-1) UNRELEASED; urgency=medium
+
+  * New upstream stable release 3.18.5
+    + GtkFileChooser:
+      - Make sure external drives show up either in the sidebar or the places
+        view
+      - Ignore double-click events
+    + Avoid some crashes in CSS parsing error handling
+
+ -- Iain Lane <laney@debian.org>  Tue, 17 Nov 2015 13:16:37 +0000
+
 gtk+3.0 (3.18.4-1) unstable; urgency=medium
 
   * New upstream stable release 3.18.4
