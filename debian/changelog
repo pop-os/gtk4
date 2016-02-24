@@ -1,3 +1,9 @@
+gtk+3.0 (3.18.8-1) UNRELEASED; urgency=medium
+
+  * New upstream stable release 3.18.8
+
+ -- Iain Lane <laney@debian.org>  Wed, 24 Feb 2016 16:10:00 +0000
+
 gtk+3.0 (3.18.7-1) unstable; urgency=medium
 
   * New upstream release.
