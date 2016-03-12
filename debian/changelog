@@ -1,6 +1,10 @@
 gtk+3.0 (3.18.9-1) UNRELEASED; urgency=medium
 
+  [ Michael Biebl ]
   * New upstream release.
+
+  [ Uwe Kleine-König ]
+  * Remove debian/{build,install} in clean target. (Closes: #792736)
 
  -- Michael Biebl <biebl@debian.org>  Sat, 12 Mar 2016 20:52:39 +0100
 
