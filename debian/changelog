@@ -2,6 +2,7 @@ gtk+3.0 (3.18.9-1) UNRELEASED; urgency=medium
 
   [ Michael Biebl ]
   * New upstream release.
+  * Bump Standards-Version to 3.9.7.
 
   [ Uwe Kleine-König ]
   * Remove debian/{build,install} in clean target. (Closes: #792736)
