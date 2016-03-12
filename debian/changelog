@@ -1,4 +1,4 @@
-gtk+3.0 (3.18.9-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.18.9-1) unstable; urgency=medium
 
   [ Michael Biebl ]
   * New upstream release.
@@ -7,7 +7,7 @@ gtk+3.0 (3.18.9-1) UNRELEASED; urgency=medium
   [ Uwe Kleine-König ]
   * Remove debian/{build,install} in clean target. (Closes: #792736)
 
- -- Michael Biebl <biebl@debian.org>  Sat, 12 Mar 2016 20:52:39 +0100
+ -- Michael Biebl <biebl@debian.org>  Sat, 12 Mar 2016 21:29:26 +0100
 
 gtk+3.0 (3.18.8-1) unstable; urgency=medium
 
