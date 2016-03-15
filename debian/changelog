@@ -1,3 +1,20 @@
+gtk+3.0 (3.19.12-1) experimental; urgency=medium
+
+  * New upstream development release+snapshot.
+  * Update (build-)dependencies according to configure.ac changes:
+    - add wayland-protocols (>= 1.1)
+    - bump libwayland-dev to 1.9.91
+    - add libharfbuzz-dev (>= 0.9), libpango1.0-dev
+  * Temporarily make testsuite non-fatal while investigating.
+  * libgtk-3-bin.install:
+    - ship new gtk-query-settings tool.
+    - ship gtk-builder gettext (its) files.
+    - run wrap-and-sort on this file while at it.
+  * Update debian/libgtk-3-0.symbols with new additions.
+    - also drops an internal unused wayland-related drag and drop symbol.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 15 Mar 2016 11:34:25 +0100
+
 gtk+3.0 (3.18.9-1) unstable; urgency=medium
 
   [ Michael Biebl ]
