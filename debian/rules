@@ -156,6 +156,7 @@ clean:: debian/control
 	touch debian/control.in
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
 	rm -f testsuite/reftests/*.ui.known_fail
+	rm -rf debian/build debian/install
 
 pre-build::
 	# Mark reftests with known failures as non-fatal

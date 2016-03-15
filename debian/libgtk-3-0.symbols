@@ -2852,15 +2852,6 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_places_sidebar_set_show_other_locations@Base 3.17.9
  gtk_places_sidebar_set_show_recent@Base 3.17.9
  gtk_places_sidebar_set_show_trash@Base 3.17.9
- gtk_places_view_get_loading@Base 3.17.9
- gtk_places_view_get_local_only@Base 3.17.9
- gtk_places_view_get_open_flags@Base 3.17.9
- gtk_places_view_get_search_query@Base 3.17.9
- gtk_places_view_get_type@Base 3.17.9
- gtk_places_view_new@Base 3.17.9
- gtk_places_view_set_local_only@Base 3.17.9
- gtk_places_view_set_open_flags@Base 3.17.9
- gtk_places_view_set_search_query@Base 3.17.9
  gtk_plug_construct@Base 3.0.0
  gtk_plug_construct_for_display@Base 3.0.0
  gtk_plug_get_embedded@Base 3.0.0

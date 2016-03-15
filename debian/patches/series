@@ -7,4 +7,3 @@
 060_ignore-random-icons.patch
 071_fix-installation-of-HTML-images.patch
 reftest-known-fail.patch
-git_bitmask-dont-hardcode-64bit-size.patch
