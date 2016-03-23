@@ -6,4 +6,5 @@
 032_mips_treeview_row_separator_height.patch
 060_ignore-random-icons.patch
 071_fix-installation-of-HTML-images.patch
-reftest-known-fail.patch
+git_a11y_GTK_CSD_distcheck.patch
+no-accessibility-dump.patch

@@ -111,7 +111,7 @@ export XDG_DATA_DIRS=/usr/share:$(CURDIR)/debian/build
 # Get failing tests' stdout/err so we have some information when a build fails
 export VERBOSE=1
 
-DEB_MAKE_CHECK_TARGET = -k check || true
+DEB_MAKE_CHECK_TARGET = -k check
 DEB_INSTALL_DOCS_ALL = AUTHORS
 DEB_INSTALL_DOCS_$(COMMON_PKG) = README NEWS
 DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
@@ -155,13 +155,9 @@ clean:: debian/control
 	# gross kludge to force control generation with the %.in target
 	touch debian/control.in
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
-	rm -f testsuite/reftests/*.ui.known_fail
 	rm -rf debian/build debian/install
 
 pre-build::
-	# Mark reftests with known failures as non-fatal
-	touch testsuite/reftests/style-properties-nth-child.ui.known_fail
-	touch testsuite/reftests/label-text-shadow-changes-modify-clip.ui.known_fail
 	# So that gsettings can find the (uninstalled) gtk schemas
 	mkdir -p debian/build/glib-2.0/schemas/
 	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/

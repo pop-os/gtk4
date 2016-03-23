@@ -1,0 +1,26 @@
+From d6ca66b712bcd2810498aec560cd01e42880f647 Mon Sep 17 00:00:00 2001
+From: Matthias Clasen <mclasen@redhat.com>
+Date: Tue, 22 Mar 2016 14:55:55 -0400
+Subject: Run a11y tests with csd for make check
+
+I've made this change for installed tests a while ago. It doesn't
+make sense for distcheck to do it differently.
+---
+ testsuite/a11y/Makefile.am | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/testsuite/a11y/Makefile.am b/testsuite/a11y/Makefile.am
+index 1d9fc05..9fd1fc0 100644
+--- a/testsuite/a11y/Makefile.am
++++ b/testsuite/a11y/Makefile.am
+@@ -25,6 +25,7 @@ LDADD = \
+ TESTS_ENVIRONMENT = 			\
+ 	GIO_USE_VOLUME_MONITOR=unix 	\
+ 	GSETTINGS_BACKEND=memory	\
++	GTK_CSD=1			\
+ 	G_ENABLE_DIAGNOSTIC=0
+ 
+ TEST_PROGS += accessibility-dump
+-- 
+cgit v0.12
+

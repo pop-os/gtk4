@@ -1,3 +1,20 @@
+gtk+3.0 (3.20.0-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Make testsuite fatal again.
+  * Add debian/patches/git_a11y_GTK_CSD_distcheck.patch
+    - cherry-pick commit from upstream to use client-side decorations
+      for a11y tests when running under distcheck.
+  * Drop debian/patches/reftest-known-fail.patch
+  * Stop tagging reftests as known fail since they should be fixed now:
+    - style-properties-nth-child.ui
+    - label-text-shadow-changes-modify-clip.ui
+  * Add debian/patches/no-accessibility-dump.patch
+    - skip this test until someone figures out how to reliably run it
+      always with CSD enabled, to match testsuite expected data.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Wed, 23 Mar 2016 14:10:27 +0100
+
 gtk+3.0 (3.19.12-1) experimental; urgency=medium
 
   * New upstream development release+snapshot.
