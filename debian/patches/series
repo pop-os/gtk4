@@ -8,3 +8,4 @@
 071_fix-installation-of-HTML-images.patch
 no-accessibility-dump.patch
 git_fix_emacs.patch
+disable-flaky-textview-margins-reftest.patch
