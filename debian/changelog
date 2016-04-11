@@ -1,3 +1,13 @@
+gtk+3.0 (3.20.2-1) experimental; urgency=medium
+
+  * New upstream release.
+  * Drop debian/patches/git_fix_emacs.patch, included in release.
+  * Add debian/patches/git_window-Remove-suspicious-branch.patch
+    - from upstream git, reverts a revert in 3.20.2 that causes the
+      testsuite to fail. Emacs users watch out!
+
+ -- Andreas Henriksson <andreas@fatal.se>  Mon, 11 Apr 2016 12:53:17 +0200
+
 gtk+3.0 (3.20.1-2) experimental; urgency=medium
 
   * Add debian/patches/disable-flaky-textview-margins-reftest.patch
