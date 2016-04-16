@@ -1,0 +1,105 @@
+From 6144b2276c7298040c080f85ffa83afbe1257c54 Mon Sep 17 00:00:00 2001
+From: Benjamin Otte <otte@redhat.com>
+Date: Tue, 1 Dec 2015 17:25:54 +0100
+Subject: [PATCH 01/14] window: Remove suspicious branch
+
+This commit was found to make emacs windows shrink, but the reversal
+caused more widespread damage than initially expected. I've send
+suggested fixes to the emacs team, to avoid the shrinking window,
+regardless of this commit.
+
+Original commit message:
+
+It seems this branch is not needed anymore. It was originally added in
+1999 to support gtk_widget_realize(), but all those reasons seem
+obsolete today.
+Instead just call gtk_widget_realize().
+
+If you end up at this commit when bisecting:
+There is no bug that made me remove this code, it was purely meant to be
+cleanup / dead code removal. I seem to have introduced a new bug or
+bisecting wouldn't have let you here. So it seems we should just revert
+this commit.
+---
+ gtk/gtkwindow.c | 55 +------------------------------------------------------
+ 1 file changed, 1 insertion(+), 54 deletions(-)
+
+diff --git a/gtk/gtkwindow.c b/gtk/gtkwindow.c
+index 5922415..f1d736c 100644
+--- a/gtk/gtkwindow.c
++++ b/gtk/gtkwindow.c
+@@ -6092,7 +6092,6 @@ gtk_window_show (GtkWidget *widget)
+   GtkWindow *window = GTK_WINDOW (widget);
+   GtkWindowPrivate *priv = window->priv;
+   GtkContainer *container = GTK_CONTAINER (window);
+-  gboolean need_resize;
+   gboolean is_plug;
+ 
+   if (!_gtk_widget_is_toplevel (GTK_WIDGET (widget)))
+@@ -6103,62 +6102,10 @@ gtk_window_show (GtkWidget *widget)
+ 
+   _gtk_widget_set_visible_flag (widget, TRUE);
+ 
+-  need_resize = _gtk_widget_get_alloc_needed (widget) || !_gtk_widget_get_realized (widget);
+-
+   gtk_css_node_validate (gtk_widget_get_css_node (widget));
+ 
+-  if (need_resize)
+-    {
+-      GtkWindowGeometryInfo *info = gtk_window_get_geometry_info (window, TRUE);
+-      GtkAllocation allocation = { 0, 0 };
+-      GdkRectangle configure_request;
+-      GdkGeometry new_geometry;
+-      guint new_flags;
+-      gboolean was_realized;
+-
+-      /* We are going to go ahead and perform this configure request
+-       * and then emulate a configure notify by going ahead and
+-       * doing a size allocate. Sort of a synchronous
+-       * mini-copy of gtk_window_move_resize() here.
+-       */
+-      gtk_window_compute_configure_request (window,
+-                                            &configure_request,
+-                                            &new_geometry,
+-                                            &new_flags);
+-      
+-      /* We update this because we are going to go ahead
+-       * and gdk_window_resize() below, rather than
+-       * queuing it.
+-       */
+-      info->last.configure_request = configure_request;
+-      
+-      /* and allocate the window - this is normally done
+-       * in move_resize in response to configure notify
+-       */
+-      allocation.width  = configure_request.width;
+-      allocation.height = configure_request.height;
+-      gtk_widget_size_allocate (widget, &allocation);
++  gtk_widget_realize (widget);
+ 
+-      /* Then we guarantee we have a realize */
+-      was_realized = FALSE;
+-      if (!_gtk_widget_get_realized (widget))
+-	{
+-	  gtk_widget_realize (widget);
+-	  was_realized = TRUE;
+-	}
+-
+-      /* We only send configure request if we didn't just finish
+-       * creating the window; if we just created the window
+-       * then we created it with widget->allocation anyhow.
+-       */
+-      if (!was_realized)
+-        gdk_window_move_resize (_gtk_widget_get_window (widget),
+-				configure_request.x,
+-				configure_request.y,
+-				configure_request.width,
+-				configure_request.height);
+-    }
+-  
+   gtk_container_check_resize (container);
+ 
+   gtk_widget_map (widget);
+-- 
+2.8.0.rc3
+

@@ -6,4 +6,6 @@
 032_mips_treeview_row_separator_height.patch
 060_ignore-random-icons.patch
 071_fix-installation-of-HTML-images.patch
-reftest-known-fail.patch
+no-accessibility-dump.patch
+disable-flaky-textview-margins-reftest.patch
+git_window-Remove-suspicious-branch.patch
