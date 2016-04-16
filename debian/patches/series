@@ -8,4 +8,3 @@
 071_fix-installation-of-HTML-images.patch
 no-accessibility-dump.patch
 disable-flaky-textview-margins-reftest.patch
-git_window-Remove-suspicious-branch.patch
