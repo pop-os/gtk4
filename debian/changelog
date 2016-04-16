@@ -1,3 +1,9 @@
+gtk+3.0 (3.20.3-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 16 Apr 2016 20:09:59 +0200
+
 gtk+3.0 (3.20.2-1) experimental; urgency=medium
 
   * New upstream release.
