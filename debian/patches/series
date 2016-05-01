@@ -7,4 +7,4 @@
 060_ignore-random-icons.patch
 071_fix-installation-of-HTML-images.patch
 no-accessibility-dump.patch
-disable-flaky-textview-margins-reftest.patch
+reftest-known-fail.patch

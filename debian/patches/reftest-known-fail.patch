@@ -28,7 +28,7 @@
 -      g_test_fail ();
 +      if (known_fail(ui_file))
 +        {
-+          printf("KNOWN FAILURE - %s\n", ui_file);
++          printf("KNOWN FAIL: ");
 +          g_test_message ("KNOWN FAIL: %s", ui_file);
 +        }
 +      else

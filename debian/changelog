@@ -1,3 +1,12 @@
+gtk+3.0 (3.20.3-2) UNRELEASED; urgency=medium
+
+  * Restore debian/patches/reftest-known-fail.patch so we can mark known
+    failing tests as non-fatal.
+  * Drop debian/patches/disable-flaky-textview-margins-reftest.patch and tag
+    textview-margins.ui as known-fail.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 02 May 2016 01:10:17 +0200
+
 gtk+3.0 (3.20.3-1) unstable; urgency=medium
 
   * New upstream release.
