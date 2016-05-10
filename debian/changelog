@@ -1,3 +1,9 @@
+gtk+3.0 (3.20.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 10 May 2016 14:29:37 +0200
+
 gtk+3.0 (3.20.3-2) unstable; urgency=medium
 
   * Restore debian/patches/reftest-known-fail.patch so we can mark known
