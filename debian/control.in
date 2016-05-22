@@ -249,10 +249,9 @@ Description: GTK+ graphical user interface library -- gir bindings
  generate dynamic bindings.
 
 Package: gtk-update-icon-cache
+Section: misc
 Architecture: any
 Multi-Arch: foreign
-Section: misc
-Priority: optional
 Depends: ${misc:Depends},
          ${shlibs:Depends}
 Breaks: libgtk2.0-bin (<< 2.24.30-2),
