@@ -1,7 +1,8 @@
-#!/bin/sh -e
+#!/bin/sh
 set -e
 
-if [ "$1" = remove ] ; then
+# Clean up existing diversions from libgtk-3-bin
+if dpkg --compare-versions "$2" lt "3.20.5-2" ; then
     dpkg-divert --remove --package libgtk-3-bin --rename \
         --divert /usr/sbin/update-icon-caches.gtk2 \
         /usr/sbin/update-icon-caches
@@ -11,5 +12,3 @@ if [ "$1" = remove ] ; then
 fi
 
 #DEBHELPER#
-
-exit 0

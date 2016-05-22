@@ -124,7 +124,8 @@ Architecture: any
 Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends},
          @SHARED_PKG@ (>= ${source:Version}),
-         @COMMON_PKG@ (>= ${source:Version})
+         @COMMON_PKG@ (>= ${source:Version}),
+         gtk-update-icon-cache
 Description: programs for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -246,6 +247,25 @@ Description: GTK+ graphical user interface library -- gir bindings
  .
  This package can be used by other packages using the GIRepository format to
  generate dynamic bindings.
+
+Package: gtk-update-icon-cache
+Architecture: any
+Multi-Arch: foreign
+Section: misc
+Priority: optional
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Breaks: libgtk2.0-bin (<< 2.24.30-2),
+        libgtk-3-bin (<< 3.20.5-2)
+Replaces: libgtk2.0-bin (<< 2.24.30-2),
+          libgtk-3-bin (<< 3.20.5-2)
+Description: icon theme caching utility
+ gtk-update-icon-cache creates mmap()able cache files for icon themes.
+ .
+ GTK+ can use the cache files created by gtk-update-icon-cache to avoid a lot
+ of system call and disk seek overhead when the application starts. Since the
+ format of the cache files allows them to be mmap()ed shared between multiple
+ applications, the overall memory consumption is reduced as well.
 
 Package: libgail-3-0
 Architecture: any

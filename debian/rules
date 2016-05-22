@@ -170,15 +170,3 @@ pre-build::
 # Add dependencies to generate files from the debian/*.in ones
 build-indep: $(call dh_subst_files,$(DEB_INDEP_PACKAGES))
 build-arch: $(call dh_subst_files,$(DEB_ARCH_PACKAGES))
-
-binary-install/$(SHARED_PKG)::
-	# Install the binaries with a -3.0 suffix
-	mv debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache \
-	    debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache-3.0
-
-binary-install/$(BIN_PKG)::
-	# Install the binaries with a -3.0 suffix
-	mv debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache.1 \
-	    debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-3.0.1
-	install -m 0755 -D debian/update-icon-caches \
-	    debian/$(BIN_PKG)/usr/sbin/update-icon-caches
