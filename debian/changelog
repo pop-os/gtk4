@@ -1,4 +1,4 @@
-gtk+3.0 (3.20.5-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.20.5-3) unstable; urgency=medium
 
   * Make it simpler to bootstrap the package by marking the build dependencies
     which are required to run the test-suite with <!nocheck>.
@@ -9,7 +9,7 @@ gtk+3.0 (3.20.5-3) UNRELEASED; urgency=medium
     building the new gtk-update-icon-cache package. Our buildds don't support
     build profiles yet, so we'll have to bootstrap manually for now.
 
- -- Michael Biebl <biebl@debian.org>  Sun, 22 May 2016 10:11:46 +0200
+ -- Michael Biebl <biebl@debian.org>  Mon, 23 May 2016 01:01:27 +0200
 
 gtk+3.0 (3.20.5-2) unstable; urgency=medium
 
