@@ -3,10 +3,10 @@ Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Uploaders: Andreas Henriksson <andreas@fatal.se>, Michael Biebl <biebl@debian.org>
-Build-Depends: debhelper (>= 8.1.3),
+Build-Depends: debhelper (>= 9.20141010),
                cdbs (>= 0.4.93),
                gnome-pkg-tools (>= 0.11),
-               dpkg-dev (>= 1.16.0),
+               dpkg-dev (>= 1.17.14),
                gtk-doc-tools (>= 1.20),
                dh-autoreconf,
                gettext,

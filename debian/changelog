@@ -3,6 +3,8 @@ gtk+3.0 (3.20.5-3) UNRELEASED; urgency=medium
   * Make it simpler to bootstrap the package by marking the build dependencies
     which are required to run the test-suite with <!nocheck>.
     (Closes: #747392)
+  * Bump Build-Depends on debhelper to (>= 9.20141010) and dpkg-dev to
+    (>= 1.17.14) for build dependency restrictions support.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 22 May 2016 10:11:46 +0200
 
