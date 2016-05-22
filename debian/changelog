@@ -10,7 +10,7 @@ gtk+3.0 (3.20.5-2) unstable; urgency=medium
 
   * Split gtk-update-icon-cache utility out of libgtk-3-bin into a separate
     package called gtk-update-icon-cache to break a dependency cycle with
-    adwaita-icon-theme when building the package. (Closes: #747392)
+    adwaita-icon-theme when building the package. (Closes: #824999)
     As the gtk-update-icon-cache binary doesn't actually have any libgtk-3-0
     dependency, there is no longer a reason to ship a gtk2 and gtk3 variant.
     So from now on we will only ship one implementation built from src:gtk+3.0
