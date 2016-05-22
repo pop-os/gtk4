@@ -9,6 +9,8 @@ gtk+3.0 (3.20.5-2) unstable; urgency=medium
     and drop the Debian specific -3.0 suffix. To simplify the transition make
     libgtk-3-bin depend on gtk-update-icon-cache. Once all theme packages have
     been updated, this dependency can be dropped.
+  * Cherry-pick patch from upstream Git which reverts a commit that was
+    causing crashes in the filechooser in some applications.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 22 May 2016 08:52:19 +0200
 
