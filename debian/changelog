@@ -5,6 +5,9 @@ gtk+3.0 (3.20.5-3) UNRELEASED; urgency=medium
     (Closes: #747392)
   * Bump Build-Depends on debhelper to (>= 9.20141010) and dpkg-dev to
     (>= 1.17.14) for build dependency restrictions support.
+  * Temporarily disable the test suite (and its build-dependencies) to allow
+    building the new gtk-update-icon-cache package. Our buildds don't support
+    build profiles yet, so we'll have to bootstrap manually for now.
 
  -- Michael Biebl <biebl@debian.org>  Sun, 22 May 2016 10:11:46 +0200
 
