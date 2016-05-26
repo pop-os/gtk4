@@ -166,6 +166,8 @@ pre-build::
 	mkdir -p debian/build/glib-2.0/schemas/
 	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/
 	glib-compile-schemas debian/build/glib-2.0/schemas/
+	# Work around a bug in cdbs, can be dropped once #825135 is fixed
+	mkdir -p debian/stamp-makefile-check/
 
 # Add dependencies to generate files from the debian/*.in ones
 build-indep: $(call dh_subst_files,$(DEB_INDEP_PACKAGES))
