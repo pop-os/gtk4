@@ -1,11 +1,11 @@
-gtk+3.0 (3.20.6-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.20.6-1) unstable; urgency=medium
 
   * New upstream release.
   * Drop revert-scrolledwindow-Remove-child-before-destroying.patch, merged
     upstream.
   * Re-enable test-suite.
 
- -- Michael Biebl <biebl@debian.org>  Tue, 31 May 2016 20:48:14 +0200
+ -- Michael Biebl <biebl@debian.org>  Tue, 31 May 2016 21:33:34 +0200
 
 gtk+3.0 (3.20.5-4) unstable; urgency=medium
 
