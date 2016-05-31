@@ -1,3 +1,9 @@
+gtk+3.0 (3.20.6-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 31 May 2016 20:48:14 +0200
+
 gtk+3.0 (3.20.5-4) unstable; urgency=medium
 
   * Work around a bug in cdbs which causes the package to FTBFS; see #825135
