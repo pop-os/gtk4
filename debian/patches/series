@@ -8,4 +8,3 @@
 071_fix-installation-of-HTML-images.patch
 no-accessibility-dump.patch
 reftest-known-fail.patch
-revert-scrolledwindow-Remove-child-before-destroying.patch
