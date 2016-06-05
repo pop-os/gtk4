@@ -1,3 +1,10 @@
+gtk+3.0 (3.20.6-2) UNRELEASED; urgency=medium
+
+  * Drop patches/015_default-fallback-icon-theme.patch: The default icon theme
+    is already defined as Adwaita, not need to also define the fallback theme.
+
+ -- Laurent Bigonville <bigon@debian.org>  Sun, 05 Jun 2016 02:29:49 +0200
+
 gtk+3.0 (3.20.6-1) unstable; urgency=medium
 
   * New upstream release.
