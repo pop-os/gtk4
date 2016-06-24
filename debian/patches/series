@@ -7,3 +7,4 @@
 071_fix-installation-of-HTML-images.patch
 no-accessibility-dump.patch
 reftest-known-fail.patch
+wayland-add-extended-state-for-tiled.patch
