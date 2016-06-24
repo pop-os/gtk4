@@ -108,6 +108,12 @@ export HOME=$(CURDIR)/debian/build
 export XDG_RUNTIME_DIR=$(HOME)
 # So that gsettings can find the (uninstalled) gtk schemas
 export XDG_DATA_DIRS=/usr/share:$(CURDIR)/debian/build
+# Put these back to their defaults if we are not running with a clean
+# environment, so that they are based on the temporary $HOME above
+unexport XDG_CACHE_HOME
+unexport XDG_CONFIG_DIRS
+unexport XDG_CONFIG_HOME
+unexport XDG_DATA_HOME
 # Get failing tests' stdout/err so we have some information when a build fails
 export VERBOSE=1
 
