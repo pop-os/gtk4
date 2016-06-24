@@ -9,6 +9,9 @@ gtk+3.0 (3.20.6-2) UNRELEASED; urgency=medium
     they are based on the temporary HOME
   * Backport patch from upstream to mark tiled Mutter/Shell windows
     as GDK_WINDOW_STATE_TILED under Wayland (with mutter >= 3.20.2-2)
+  * Add my patch from upstream bug 755947 to disable character-cell-based
+    size contraints for TILED windows, so that gnome-terminal can snap to
+    half the screen under Wayland
 
  -- Laurent Bigonville <bigon@debian.org>  Sun, 05 Jun 2016 02:29:49 +0200
 

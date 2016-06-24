@@ -8,3 +8,4 @@
 no-accessibility-dump.patch
 reftest-known-fail.patch
 wayland-add-extended-state-for-tiled.patch
+Don-t-apply-GDK_HINT_RESIZE_INC-to-GDK_WINDOW_STATE_.patch
