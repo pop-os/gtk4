@@ -66,6 +66,7 @@ Multi-Arch: same
 Depends: @COMMON_PKG@ (>= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
+         hicolor-icon-theme,
          shared-mime-info
 Provides: @GTK_BINVER_DEP@
 Recommends: @BIN_PKG@
