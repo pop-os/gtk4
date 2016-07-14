@@ -67,10 +67,10 @@ Depends: @COMMON_PKG@ (>= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          hicolor-icon-theme,
+         adwaita-icon-theme (>= ${gnome:Version})
          shared-mime-info
 Provides: @GTK_BINVER_DEP@
-Recommends: @BIN_PKG@,
-            adwaita-icon-theme (>= ${gnome:Version})
+Recommends: @BIN_PKG@
 Suggests: librsvg2-common,
           gvfs
 Breaks: gnome-themes-standard (<< 3.6),
