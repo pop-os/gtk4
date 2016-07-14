@@ -69,7 +69,8 @@ Depends: libgtk-3-common (>= ${source:Version}),
          hicolor-icon-theme,
          shared-mime-info
 Provides: gtk3-binver-3.0.0
-Recommends: libgtk-3-bin
+Recommends: libgtk-3-bin,
+            adwaita-icon-theme (>= ${gnome:Version})
 Suggests: librsvg2-common,
           gvfs
 Breaks: gnome-themes-standard (<< 3.6),
@@ -106,8 +107,7 @@ Package: libgtk-3-common
 Section: misc
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends},
-         adwaita-icon-theme (>= ${gnome:Version})
+Depends: ${misc:Depends}
 Recommends: libgtk-3-0
 Breaks: libgtk-3-0 (<< 3.5.4)
 Replaces: libgtk-3-0 (<< 3.5.4)
