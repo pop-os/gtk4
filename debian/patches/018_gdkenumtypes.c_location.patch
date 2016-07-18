@@ -18,9 +18,11 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  gdk/Makefile.am |   17 +++++++----------
  1 files changed, 7 insertions(+), 10 deletions(-)
 
---- a/gdk/Makefile.am
-+++ b/gdk/Makefile.am
-@@ -217,8 +217,8 @@
+Index: gtk+-3.20.3/gdk/Makefile.am
+===================================================================
+--- gtk+-3.20.3.orig/gdk/Makefile.am	2016-04-16 20:12:22.574432906 +0200
++++ gtk+-3.20.3/gdk/Makefile.am	2016-04-16 20:12:22.570432846 +0200
+@@ -222,8 +222,8 @@
  introspection_files = 		\
  	$(filter-out gdkkeysyms-compat.h, $(gdk_h_sources))	\
  	$(gdk_c_sources)	\
@@ -31,7 +33,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  
  Gdk-3.0.gir: libgdk-3.la Makefile
  Gdk_3_0_gir_SCANNERFLAGS = 	\
-@@ -385,7 +385,7 @@
+@@ -388,7 +388,7 @@
  
  lib_LTLIBRARIES = libgdk-3.la
  
@@ -40,7 +42,7 @@ Bug-Ubuntu: https://launchpad.net/bugs/769256
  EXTRA_DIST += \
  	$(gdk_built_sources)	\
  	fallback-c89.c
-@@ -399,18 +399,15 @@
+@@ -402,18 +402,15 @@
  	$(gdk_built_sources)			\
  	gdkconfig.h
  

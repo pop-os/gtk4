@@ -1,3 +1,102 @@
+gtk+3.0 (3.20.6-2) unstable; urgency=medium
+
+  * Team upload
+
+  [ Laurent Bigonville ]
+  * Drop patches/015_default-fallback-icon-theme.patch: The default icon theme
+    is already defined as Adwaita, not need to also define the fallback theme.
+
+  [ Simon McVittie ]
+  * d/rules: reset XDG_CONFIG_HOME, XDG_CACHE_HOME, XDG_DATA_HOME so that
+    they are based on the temporary HOME
+  * Backport patch from upstream to mark tiled Mutter/Shell windows
+    as GDK_WINDOW_STATE_TILED under Wayland (with mutter >= 3.20.2-2)
+  * Add my patch from upstream bug 755947 to disable character-cell-based
+    size contraints for TILED windows, so that gnome-terminal can snap to
+    half the screen under Wayland
+
+ -- Simon McVittie <smcv@debian.org>  Sat, 25 Jun 2016 00:19:51 +0100
+
+gtk+3.0 (3.20.6-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Drop revert-scrolledwindow-Remove-child-before-destroying.patch, merged
+    upstream.
+  * Re-enable test-suite.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 31 May 2016 21:33:34 +0200
+
+gtk+3.0 (3.20.5-4) unstable; urgency=medium
+
+  * Work around a bug in cdbs which causes the package to FTBFS; see #825135
+    for further details.
+
+ -- Michael Biebl <biebl@debian.org>  Thu, 26 May 2016 08:08:16 +0200
+
+gtk+3.0 (3.20.5-3) unstable; urgency=medium
+
+  * Make it simpler to bootstrap the package by marking the build dependencies
+    which are required to run the test-suite with <!nocheck>.
+    (Closes: #747392)
+  * Bump Build-Depends on debhelper to (>= 9.20141010) and dpkg-dev to
+    (>= 1.17.14) for build dependency restrictions support.
+  * Temporarily disable the test suite (and its build-dependencies) to allow
+    building the new gtk-update-icon-cache package. Our buildds don't support
+    build profiles yet, so we'll have to bootstrap manually for now.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 23 May 2016 01:01:27 +0200
+
+gtk+3.0 (3.20.5-2) unstable; urgency=medium
+
+  * Split gtk-update-icon-cache utility out of libgtk-3-bin into a separate
+    package called gtk-update-icon-cache to break a dependency cycle with
+    adwaita-icon-theme when building the package. (Closes: #824999)
+    As the gtk-update-icon-cache binary doesn't actually have any libgtk-3-0
+    dependency, there is no longer a reason to ship a gtk2 and gtk3 variant.
+    So from now on we will only ship one implementation built from src:gtk+3.0
+    and drop the Debian specific -3.0 suffix. To simplify the transition make
+    libgtk-3-bin depend on gtk-update-icon-cache. Once all theme packages have
+    been updated, this dependency can be dropped.
+  * Cherry-pick patch from upstream Git which reverts a commit that was
+    causing crashes in the filechooser in some applications.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 22 May 2016 08:52:19 +0200
+
+gtk+3.0 (3.20.5-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Refresh patches.
+  * Bump Standards-Version to 3.9.8.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 21 May 2016 00:11:13 +0200
+
+gtk+3.0 (3.20.4-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 10 May 2016 14:29:37 +0200
+
+gtk+3.0 (3.20.3-2) unstable; urgency=medium
+
+  * Restore debian/patches/reftest-known-fail.patch so we can mark known
+    failing tests as non-fatal.
+  * Drop debian/patches/disable-flaky-textview-margins-reftest.patch and tag
+    textview-margins.ui as known-fail.
+  * Mark button-wrapping.ui reftest as known-fail, it currently fails on
+    mips(64)el and prevents testing migration and important fixes in other
+    packages reaching testing.
+
+ -- Michael Biebl <biebl@debian.org>  Mon, 02 May 2016 01:18:04 +0200
+
+gtk+3.0 (3.20.3-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Drop debian/patches/git_window-Remove-suspicious-branch.patch, merged
+    upstream and refresh the remaining patches.
+  * Upload to unstable.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 16 Apr 2016 21:13:07 +0200
+
 gtk+3.0 (3.20.2-1) experimental; urgency=medium
 
   * New upstream release.

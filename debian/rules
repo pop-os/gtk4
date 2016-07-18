@@ -108,6 +108,12 @@ export HOME=$(CURDIR)/debian/build
 export XDG_RUNTIME_DIR=$(HOME)
 # So that gsettings can find the (uninstalled) gtk schemas
 export XDG_DATA_DIRS=/usr/share:$(CURDIR)/debian/build
+# Put these back to their defaults if we are not running with a clean
+# environment, so that they are based on the temporary $HOME above
+unexport XDG_CACHE_HOME
+unexport XDG_CONFIG_DIRS
+unexport XDG_CONFIG_HOME
+unexport XDG_DATA_HOME
 # Get failing tests' stdout/err so we have some information when a build fails
 export VERBOSE=1
 
@@ -155,26 +161,20 @@ clean:: debian/control
 	# gross kludge to force control generation with the %.in target
 	touch debian/control.in
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
+	rm -f testsuite/reftests/*.ui.known_fail
 	rm -rf debian/build debian/install
 
 pre-build::
+	# Mark reftests with known failures as non-fatal
+	touch testsuite/reftests/textview-margins.ui.known_fail
+	touch testsuite/reftests/button-wrapping.ui.known_fail
 	# So that gsettings can find the (uninstalled) gtk schemas
 	mkdir -p debian/build/glib-2.0/schemas/
 	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/
 	glib-compile-schemas debian/build/glib-2.0/schemas/
+	# Work around a bug in cdbs, can be dropped once #825135 is fixed
+	mkdir -p debian/stamp-makefile-check/
 
 # Add dependencies to generate files from the debian/*.in ones
 build-indep: $(call dh_subst_files,$(DEB_INDEP_PACKAGES))
 build-arch: $(call dh_subst_files,$(DEB_ARCH_PACKAGES))
-
-binary-install/$(SHARED_PKG)::
-	# Install the binaries with a -3.0 suffix
-	mv debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache \
-	    debian/$(SHARED_PKG)/$(LIBDIR)/$(SHARED_PKG)/gtk-update-icon-cache-3.0
-
-binary-install/$(BIN_PKG)::
-	# Install the binaries with a -3.0 suffix
-	mv debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache.1 \
-	    debian/$(BIN_PKG)/usr/share/man/man1/gtk-update-icon-cache-3.0.1
-	install -m 0755 -D debian/update-icon-caches \
-	    debian/$(BIN_PKG)/usr/sbin/update-icon-caches

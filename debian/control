@@ -2,20 +2,20 @@ Source: gtk+3.0
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Andreas Henriksson <andreas@fatal.se>, Iain Lane <laney@debian.org>, Michael Biebl <biebl@debian.org>
-Build-Depends: debhelper (>= 8.1.3),
+Uploaders: Andreas Henriksson <andreas@fatal.se>, Michael Biebl <biebl@debian.org>
+Build-Depends: debhelper (>= 9.20141010),
                cdbs (>= 0.4.93),
                gnome-pkg-tools (>= 0.11),
-               dpkg-dev (>= 1.16.0),
+               dpkg-dev (>= 1.17.14),
                gtk-doc-tools (>= 1.20),
                dh-autoreconf,
                gettext,
                pkg-config,
                autotools-dev,
-               dbus-x11,
-               gsettings-desktop-schemas,
-               adwaita-icon-theme,
-               at-spi2-core,
+               dbus-x11 <!nocheck>,
+               gsettings-desktop-schemas <!nocheck>,
+               adwaita-icon-theme <!nocheck>,
+               at-spi2-core <!nocheck>,
                libglib2.0-dev (>= 2.45.8),
                libgdk-pixbuf2.0-dev (>= 2.30.0),
                libpango1.0-dev (>= 1.37.3),
@@ -24,7 +24,6 @@ Build-Depends: debhelper (>= 8.1.3),
                libegl1-mesa-dev [linux-any],
                libepoxy-dev,
                libharfbuzz-dev (>= 0.9),
-               libpango1.0-dev,
                libwayland-dev (>= 1.9.91) [linux-any],
                wayland-protocols (>= 1.1) [linux-any],
                libxkbcommon-dev (>= 0.2.0),
@@ -49,14 +48,14 @@ Build-Depends: debhelper (>= 8.1.3),
                libjson-glib-dev,
                gobject-introspection (>= 1.41.3),
                libgirepository1.0-dev (>= 1.39.0),
-               xvfb
+               xvfb <!nocheck>
 Build-Depends-Indep: docbook-xml,
                      docbook-utils,
                      libglib2.0-doc,
                      libatk1.0-doc,
                      libpango1.0-doc,
                      libcairo2-doc
-Standards-Version: 3.9.7
+Standards-Version: 3.9.8
 Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
 Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/gtk+3.0/
 Homepage: http://www.gtk.org/
@@ -125,7 +124,8 @@ Architecture: any
 Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends},
          libgtk-3-0 (>= ${source:Version}),
-         libgtk-3-common (>= ${source:Version})
+         libgtk-3-common (>= ${source:Version}),
+         gtk-update-icon-cache
 Description: programs for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -152,7 +152,6 @@ Depends: libgtk-3-0 (= ${binary:Version}),
          libcairo2-dev (>= 1.14.0),
          libepoxy-dev (>= 1.0),
          libharfbuzz-dev (>= 0.9),
-         libpango1.0-dev,
          libx11-dev,
          libxext-dev,
          libxinerama-dev,
@@ -248,6 +247,24 @@ Description: GTK+ graphical user interface library -- gir bindings
  .
  This package can be used by other packages using the GIRepository format to
  generate dynamic bindings.
+
+Package: gtk-update-icon-cache
+Section: misc
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
+Breaks: libgtk2.0-bin (<< 2.24.30-2),
+        libgtk-3-bin (<< 3.20.5-2)
+Replaces: libgtk2.0-bin (<< 2.24.30-2),
+          libgtk-3-bin (<< 3.20.5-2)
+Description: icon theme caching utility
+ gtk-update-icon-cache creates mmap()able cache files for icon themes.
+ .
+ GTK+ can use the cache files created by gtk-update-icon-cache to avoid a lot
+ of system call and disk seek overhead when the application starts. Since the
+ format of the cache files allows them to be mmap()ed shared between multiple
+ applications, the overall memory consumption is reduced as well.
 
 Package: libgail-3-0
 Architecture: any
