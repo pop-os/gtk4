@@ -5,6 +5,8 @@ gtk+3.0 (3.21.4-1) UNRELEASED; urgency=medium
     + Build depend on xauth, needed for xvfb-run.
     + Drop build-dependency on gettext and update the version requirements
       for wayland-protocols and glib.
+  * debian/patches/wayland-add-extended-state-for-tiled.patch:
+    + Dropped, included upstream.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 18 Jul 2016 19:11:22 +0200
 
