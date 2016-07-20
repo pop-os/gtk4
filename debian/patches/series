@@ -8,3 +8,4 @@
 no-accessibility-dump.patch
 reftest-known-fail.patch
 Don-t-apply-GDK_HINT_RESIZE_INC-to-GDK_WINDOW_STATE_.patch
+0001-Fix-division-by-zero-when-calculating-the-refresh-ra.patch
