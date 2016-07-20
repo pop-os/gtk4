@@ -1,4 +1,4 @@
-gtk+3.0 (3.21.4-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.21.4-1) experimental; urgency=medium
 
   * New upstream release.
   * debian/control.in:
@@ -16,7 +16,7 @@ gtk+3.0 (3.21.4-1) UNRELEASED; urgency=medium
       to deprecation warnings.
   * Upload to experimental.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 18 Jul 2016 19:11:22 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 20 Jul 2016 23:33:22 +0200
 
 gtk+3.0 (3.20.6-2) unstable; urgency=medium
 
