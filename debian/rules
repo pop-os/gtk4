@@ -117,7 +117,7 @@ unexport XDG_DATA_HOME
 # Get failing tests' stdout/err so we have some information when a build fails
 export VERBOSE=1
 
-DEB_MAKE_CHECK_TARGET = -k check
+DEB_MAKE_CHECK_TARGET = -k check || true
 DEB_INSTALL_DOCS_ALL = AUTHORS
 DEB_INSTALL_DOCS_$(COMMON_PKG) = README NEWS
 DEB_INSTALL_DOCS_$(DOC_PKG) += -X.in
