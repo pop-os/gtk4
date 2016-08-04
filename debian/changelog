@@ -7,6 +7,8 @@ gtk+3.0 (3.20.7-1) UNRELEASED; urgency=medium
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release.
+  * debian/patches/0001-Revert-Improve-external-drives-detection.patch:
+    + Revert upstream change that requires unstable glib 2.49.1.
 
  -- Laurent Bigonville <bigon@debian.org>  Thu, 14 Jul 2016 02:11:43 +0200
 

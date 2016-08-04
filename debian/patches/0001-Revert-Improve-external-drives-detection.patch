@@ -1,0 +1,60 @@
+From 73502146a193c8423148ac2ba21312e7cf7b08b3 Mon Sep 17 00:00:00 2001
+From: Emilio Pozuelo Monfort <pochu27@gmail.com>
+Date: Thu, 4 Aug 2016 18:06:02 +0200
+Subject: [PATCH] Revert "Improve external drives detection"
+
+This reverts commit a01ee5a7b0a9a7170d4be3c64314ee51dd502cab.
+---
+ configure.ac           | 4 ++--
+ gtk/gtkplacessidebar.c | 4 +++-
+ gtk/gtkplacesview.c    | 4 +++-
+ 3 files changed, 8 insertions(+), 4 deletions(-)
+
+diff --git a/configure.ac b/configure.ac
+index 94e7db9..10739f6 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -42,8 +42,8 @@ m4_define([gtk_binary_version], [3.0.0])
+ 
+ # required versions of other packages
+ m4_define([glib_required_major], [2])
+-m4_define([glib_required_minor], [49])
+-m4_define([glib_required_micro], [1])
++m4_define([glib_required_minor], [45])
++m4_define([glib_required_micro], [8])
+ m4_define([glib_required_version],
+           [glib_required_major.glib_required_minor.glib_required_micro])
+ m4_define([glib_min_required_minor],
+diff --git a/gtk/gtkplacessidebar.c b/gtk/gtkplacessidebar.c
+index 016d85d..309cc58 100644
+--- a/gtk/gtkplacessidebar.c
++++ b/gtk/gtkplacessidebar.c
+@@ -876,7 +876,9 @@ is_external_volume (GVolume *volume)
+   is_external |= !id;
+ 
+   if (drive)
+-    is_external |= g_drive_is_removable (drive);
++    is_external |= g_drive_can_eject (drive) ||
++                   g_drive_is_media_removable (drive) ||
++                   g_drive_can_stop (drive);
+ 
+   g_clear_object (&drive);
+   g_free (id);
+diff --git a/gtk/gtkplacesview.c b/gtk/gtkplacesview.c
+index 809688c..fffca33 100644
+--- a/gtk/gtkplacesview.c
++++ b/gtk/gtkplacesview.c
+@@ -474,7 +474,9 @@ is_external_volume (GVolume *volume)
+   is_external |= !id;
+ 
+   if (drive)
+-    is_external |= g_drive_is_removable (drive);
++    is_external |= g_drive_can_eject (drive) ||
++                   g_drive_is_media_removable (drive) ||
++                   g_drive_can_stop (drive);
+ 
+   g_clear_object (&drive);
+   g_free (id);
+-- 
+2.8.1
+
