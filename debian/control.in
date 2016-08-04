@@ -67,7 +67,7 @@ Depends: @COMMON_PKG@ (>= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          hicolor-icon-theme,
-         adwaita-icon-theme (>= ${gnome:Version})
+         adwaita-icon-theme (>= ${gnome:Version}),
          shared-mime-info
 Provides: @GTK_BINVER_DEP@
 Recommends: @BIN_PKG@

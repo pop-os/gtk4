@@ -67,7 +67,7 @@ Depends: libgtk-3-common (>= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          hicolor-icon-theme,
-         adwaita-icon-theme (>= ${gnome:Version})
+         adwaita-icon-theme (>= ${gnome:Version}),
          shared-mime-info
 Provides: gtk3-binver-3.0.0
 Recommends: libgtk-3-bin
