@@ -106,7 +106,7 @@ Section: misc
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends},
-         adwaita-icon-theme (>= ${gnome:Version})
+         adwaita-icon-theme
 Recommends: @SHARED_PKG@
 Breaks: @SHARED_PKG@ (<< 3.5.4)
 Replaces: @SHARED_PKG@ (<< 3.5.4)

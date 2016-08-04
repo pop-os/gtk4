@@ -106,7 +106,7 @@ Section: misc
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends},
-         adwaita-icon-theme (>= ${gnome:Version})
+         adwaita-icon-theme
 Recommends: libgtk-3-0
 Breaks: libgtk-3-0 (<< 3.5.4)
 Replaces: libgtk-3-0 (<< 3.5.4)
