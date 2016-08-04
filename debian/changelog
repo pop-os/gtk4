@@ -1,7 +1,11 @@
-gtk+3.0 (3.20.7-2) UNRELEASED; urgency=medium
+gtk+3.0 (3.20.8-1) UNRELEASED; urgency=medium
 
+  * Team upload
+  * New upstream release
   * debian/control.in:
     - Drop unnecessary version number from dependency on adwaita-icon-theme
+  * debian/patches/0001-Revert-Improve-external-drives-detection.patch:
+    - Dropped, applied in new version
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 04 Aug 2016 13:14:40 -0400
 
