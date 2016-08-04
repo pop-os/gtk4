@@ -1,8 +1,12 @@
-gtk+3.0 (3.20.6-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.20.7-1) UNRELEASED; urgency=medium
 
+  [ Laurent Bigonville ]
   * debian/control.in: Add hicolor-icon-theme as a hard dependency, the
     package is small and only provides the directory structure of the theme.
   * debian/control.in: Move adwaita-icon-theme dependency to the main package.
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream release.
 
  -- Laurent Bigonville <bigon@debian.org>  Thu, 14 Jul 2016 02:11:43 +0200
 
