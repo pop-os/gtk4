@@ -1,4 +1,4 @@
-gtk+3.0 (3.20.9-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.20.9-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
   * Team upload
@@ -17,7 +17,7 @@ gtk+3.0 (3.20.9-1) UNRELEASED; urgency=medium
     which is currently uninstallable (#834616) and does not appear to be
     needed for anything
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 04 Aug 2016 13:14:40 -0400
+ -- Simon McVittie <smcv@debian.org>  Thu, 18 Aug 2016 10:47:10 +0100
 
 gtk+3.0 (3.20.7-1) unstable; urgency=medium
 
