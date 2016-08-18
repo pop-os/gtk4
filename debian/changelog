@@ -1,9 +1,44 @@
 gtk+3.0 (3.21.4-2) UNRELEASED; urgency=medium
 
-  * debian/control.in:
-    - Drop unnecessary version number from dependency on adwaita-icon-theme
+  [ Simon McVittie ]
+  * Merge packaging changes from 3.20.9-1 in unstable
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 04 Aug 2016 13:16:39 -0400
+
+gtk+3.0 (3.20.9-1) unstable; urgency=medium
+
+  [ Jeremy Bicha ]
+  * Team upload
+  * New upstream release
+  * debian/control.in:
+    - Drop unnecessary version number from dependency on adwaita-icon-theme
+  * debian/patches/0001-Revert-Improve-external-drives-detection.patch:
+    - Dropped, applied in new version
+
+  [ Simon McVittie ]
+  * Another new upstream release
+  * Explicitly build-depend on docbook-xsl, libxml2-utils and xsltproc
+    to be able to generate man pages from their source code. Move docbook-xml
+    to Build-Depends since the man pages are in an Architecture: any package.
+  * Drop Build-Depends-Indep on docbook-utils, the old SGML toolchain,
+    which is currently uninstallable (#834616) and does not appear to be
+    needed for anything
+
+ -- Simon McVittie <smcv@debian.org>  Thu, 18 Aug 2016 10:47:10 +0100
+
+gtk+3.0 (3.20.7-1) unstable; urgency=medium
+
+  [ Laurent Bigonville ]
+  * debian/control.in: Add hicolor-icon-theme as a hard dependency, the
+    package is small and only provides the directory structure of the theme.
+  * debian/control.in: Move adwaita-icon-theme dependency to the main package.
+
+  [ Emilio Pozuelo Monfort ]
+  * New upstream release.
+  * debian/patches/0001-Revert-Improve-external-drives-detection.patch:
+    + Revert upstream change that requires unstable glib 2.49.1.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 04 Aug 2016 19:07:21 +0200
 
 gtk+3.0 (3.21.4-1) experimental; urgency=medium
 
