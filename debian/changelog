@@ -1,4 +1,4 @@
-gtk+3.0 (3.20.8-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.20.9-1) UNRELEASED; urgency=medium
 
   [ Jeremy Bicha ]
   * Team upload
@@ -9,6 +9,7 @@ gtk+3.0 (3.20.8-1) UNRELEASED; urgency=medium
     - Dropped, applied in new version
 
   [ Simon McVittie ]
+  * Another new upstream release
   * Explicitly build-depend on docbook-xsl, libxml2-utils and xsltproc
     to be able to generate man pages from their source code. Move docbook-xml
     to Build-Depends since the man pages are in an Architecture: any package.
