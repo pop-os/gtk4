@@ -1,3 +1,21 @@
+gtk+3.0 (3.21.5-1) unstable; urgency=low
+
+  [ Simon McVittie ]
+  * Merge packaging changes from 3.20.9-1 in unstable
+
+  [ Andreas Henriksson ]
+  * New upstream release.
+  * Update build-dependencies according to configure.ac changes:
+    - bump libglib2.0-dev to >= 2.49.4
+    - bump wayland-protocols to >= 1.6
+  * Fix debian/patches/no-accessibility-dump.patch to apply again.
+  * Drop d/p/Don-t-apply-GDK_HINT_RESIZE_INC-to-GDK_WINDOW_STATE_.patch
+    - now included in upstream release.
+  * Update debian/libgtk-3-0.symbols with several additions and one missing:
+    - gdk_wayland_display_get_xdg_shell unused outside of gtk+.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 30 Aug 2016 18:13:45 +0200
+
 gtk+3.0 (3.20.9-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
@@ -32,6 +50,26 @@ gtk+3.0 (3.20.7-1) unstable; urgency=medium
     + Revert upstream change that requires unstable glib 2.49.1.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Thu, 04 Aug 2016 19:07:21 +0200
+
+gtk+3.0 (3.21.4-1) experimental; urgency=medium
+
+  * New upstream release.
+  * debian/control.in:
+    + Build depend on xauth, needed for xvfb-run.
+    + Drop build-dependency on gettext and update the version requirements
+      for wayland-protocols and glib.
+  * debian/patches/wayland-add-extended-state-for-tiled.patch:
+    + Dropped, included upstream.
+  * d/p/0001-Fix-division-by-zero-when-calculating-the-refresh-ra.patch:
+    + New patch. Fix division by zero when running under Xvfb.
+  * debian/libgtk-3-0.symbols:
+    + Add new symbols.
+  * debian/rules:
+    + Don't abort on test suite failures for now. Too many new failures due
+      to deprecation warnings.
+  * Upload to experimental.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Wed, 20 Jul 2016 23:33:22 +0200
 
 gtk+3.0 (3.20.6-2) unstable; urgency=medium
 

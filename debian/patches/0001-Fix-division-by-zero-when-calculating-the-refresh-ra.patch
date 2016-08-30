@@ -1,0 +1,26 @@
+From 791a6a1835485a621d54f59f33f7bb9d56874200 Mon Sep 17 00:00:00 2001
+From: Emilio Pozuelo Monfort <pochu27@gmail.com>
+Date: Wed, 20 Jul 2016 17:09:15 +0200
+Subject: [PATCH] Fix division by zero when calculating the refresh rate
+
+---
+ gdk/x11/gdkscreen-x11.c | 3 ++-
+ 1 file changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/gdk/x11/gdkscreen-x11.c b/gdk/x11/gdkscreen-x11.c
+index 34dfccc..1916bb6 100644
+--- a/gdk/x11/gdkscreen-x11.c
++++ b/gdk/x11/gdkscreen-x11.c
+@@ -474,7 +474,8 @@ init_randr15 (GdkScreen *screen, gboolean *changed)
+               XRRModeInfo *xmode = &resources->modes[j];
+               if (xmode->id == crtc->mode)
+                 {
+-                  refresh_rate = (1000 * xmode->dotClock) / (xmode->hTotal *xmode->vTotal);
++                  if (xmode->hTotal && xmode->vTotal)
++                    refresh_rate = (1000 * xmode->dotClock) / (xmode->hTotal *xmode->vTotal);
+                   break;
+                 }
+             }
+-- 
+2.8.1
+
