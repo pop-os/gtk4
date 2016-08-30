@@ -1,9 +1,20 @@
-gtk+3.0 (3.21.4-2) UNRELEASED; urgency=medium
+gtk+3.0 (3.21.5-1) unstable; urgency=low
 
   [ Simon McVittie ]
   * Merge packaging changes from 3.20.9-1 in unstable
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Thu, 04 Aug 2016 13:16:39 -0400
+  [ Andreas Henriksson ]
+  * New upstream release.
+  * Update build-dependencies according to configure.ac changes:
+    - bump libglib2.0-dev to >= 2.49.4
+    - bump wayland-protocols to >= 1.6
+  * Fix debian/patches/no-accessibility-dump.patch to apply again.
+  * Drop d/p/Don-t-apply-GDK_HINT_RESIZE_INC-to-GDK_WINDOW_STATE_.patch
+    - now included in upstream release.
+  * Update debian/libgtk-3-0.symbols with several additions and one missing:
+    - gdk_wayland_display_get_xdg_shell unused outside of gtk+.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 30 Aug 2016 18:13:45 +0200
 
 gtk+3.0 (3.20.9-1) unstable; urgency=medium
 

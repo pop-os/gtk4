@@ -2,6 +2,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
 * Build-Depends-Package: libgtk-3-dev
  gdk__private__@Base 3.16.2
  gdk_add_option_entries_libgtk_only@Base 3.0.0
+ gdk_anchor_hints_get_type@Base 3.21.5
  gdk_app_launch_context_get_type@Base 3.0.0
  gdk_app_launch_context_new@Base 3.0.0
  gdk_app_launch_context_set_desktop@Base 3.0.0
@@ -92,9 +93,16 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_device_manager_get_display@Base 3.0.0
  gdk_device_manager_get_type@Base 3.0.0
  gdk_device_manager_list_devices@Base 3.0.0
+ gdk_device_pad_feature_get_type@Base 3.21.5
+ gdk_device_pad_get_feature_group@Base 3.21.5
+ gdk_device_pad_get_group_n_modes@Base 3.21.5
+ gdk_device_pad_get_n_features@Base 3.21.5
+ gdk_device_pad_get_n_groups@Base 3.21.5
+ gdk_device_pad_get_type@Base 3.21.5
  gdk_device_set_axis_use@Base 3.0.0
  gdk_device_set_key@Base 3.0.0
  gdk_device_set_mode@Base 3.0.0
+ gdk_device_tool_get_hardware_id@Base 3.21.5
  gdk_device_tool_get_serial@Base 3.21.4
  gdk_device_tool_get_tool_type@Base 3.21.4
  gdk_device_tool_get_type@Base 3.21.4
@@ -470,14 +478,16 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_visual_get_type@Base 3.0.0
  gdk_visual_get_visual_type@Base 3.0.0
  gdk_visual_type_get_type@Base 3.0.0
+ gdk_wayland_device_get_node_path@Base 3.21.5
  (arch=linux-any)gdk_wayland_device_get_type@Base 3.9.10
  (arch=linux-any)gdk_wayland_device_get_wl_keyboard@Base 3.9.10
  (arch=linux-any)gdk_wayland_device_get_wl_pointer@Base 3.9.10
  (arch=linux-any)gdk_wayland_device_get_wl_seat@Base 3.9.10
+ gdk_wayland_device_pad_set_feedback@Base 3.21.5
  (arch=linux-any)gdk_wayland_display_get_type@Base 3.9.10
  (arch=linux-any)gdk_wayland_display_get_wl_compositor@Base 3.9.10
  (arch=linux-any)gdk_wayland_display_get_wl_display@Base 3.9.10
- (arch=linux-any)gdk_wayland_display_get_xdg_shell@Base 3.11.5
+#MISSING: 3.21.5-1# (arch=linux-any)gdk_wayland_display_get_xdg_shell@Base 3.11.5
  (arch=linux-any)gdk_wayland_display_set_cursor_theme@Base 3.9.10
  (arch=linux-any)gdk_wayland_gl_context_get_type@Base 3.16.2
  (arch=linux-any)gdk_wayland_monitor_get_type@Base 3.21.4
@@ -485,10 +495,13 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  (arch=linux-any)gdk_wayland_seat_get_wl_seat@Base 3.19.12
  (arch=linux-any)gdk_wayland_selection_add_targets_libgtk_only@Base 3.13.8
  (arch=linux-any)gdk_wayland_selection_clear_targets_libgtk_only@Base 3.13.8
+ gdk_wayland_window_export_handle@Base 3.21.5
  (arch=linux-any)gdk_wayland_window_get_type@Base 3.9.10
  (arch=linux-any)gdk_wayland_window_get_wl_surface@Base 3.9.10
  (arch=linux-any)gdk_wayland_window_set_dbus_properties_libgtk_only@Base 3.10.0
+ gdk_wayland_window_set_transient_for_exported@Base 3.21.5
  (arch=linux-any)gdk_wayland_window_set_use_custom_surface@Base 3.9.10
+ gdk_wayland_window_unexport_handle@Base 3.21.5
  gdk_window_add_filter@Base 3.0.0
  gdk_window_at_pointer@Base 3.0.0
  gdk_window_attributes_type_get_type@Base 3.0.0
@@ -2674,6 +2687,9 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_menu_place_on_monitor@Base 3.21.4
  gtk_menu_popdown@Base 3.0.0
  gtk_menu_popup@Base 3.0.0
+ gtk_menu_popup_at_pointer@Base 3.21.5
+ gtk_menu_popup_at_rect@Base 3.21.5
+ gtk_menu_popup_at_widget@Base 3.21.5
  gtk_menu_popup_for_device@Base 3.0.0
  gtk_menu_reorder_child@Base 3.0.0
  gtk_menu_reposition@Base 3.0.0
@@ -2826,6 +2842,11 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_overlay_set_overlay_pass_through@Base 3.17.9
  gtk_pack_direction_get_type@Base 3.0.0
  gtk_pack_type_get_type@Base 3.0.0
+ gtk_pad_action_type_get_type@Base 3.21.5
+ gtk_pad_controller_get_type@Base 3.21.5
+ gtk_pad_controller_new@Base 3.21.5
+ gtk_pad_controller_set_action@Base 3.21.5
+ gtk_pad_controller_set_action_entries@Base 3.21.5
  gtk_page_orientation_get_type@Base 3.0.0
  gtk_page_set_get_type@Base 3.0.0
  gtk_page_setup_copy@Base 3.0.0
@@ -2978,6 +2999,8 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_popover_menu_open_submenu@Base 3.16.2
  gtk_popover_new@Base 3.11.5
  gtk_popover_new_from_model@Base 3.11.7
+ gtk_popover_popdown@Base 3.21.5
+ gtk_popover_popup@Base 3.21.5
  gtk_popover_set_constrain_to@Base 3.19.12
  gtk_popover_set_default_widget@Base 3.17.9
  gtk_popover_set_modal@Base 3.11.5
@@ -3643,6 +3666,12 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_settings_set_property_value@Base 3.0.0
  gtk_settings_set_string_property@Base 3.0.0
  gtk_shadow_type_get_type@Base 3.0.0
+ gtk_shortcut_label_get_accelerator@Base 3.21.5
+ gtk_shortcut_label_get_disabled_text@Base 3.21.5
+ gtk_shortcut_label_get_type@Base 3.21.5
+ gtk_shortcut_label_new@Base 3.21.5
+ gtk_shortcut_label_set_accelerator@Base 3.21.5
+ gtk_shortcut_label_set_disabled_text@Base 3.21.5
  gtk_shortcut_type_get_type@Base 3.19.12
  gtk_shortcuts_group_get_type@Base 3.19.12
  gtk_shortcuts_section_get_type@Base 3.19.12
