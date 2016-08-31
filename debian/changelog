@@ -1,6 +1,7 @@
 gtk+3.0 (3.21.5-2) UNRELEASED; urgency=medium
 
   * Mark the gdk_wayland_* symbols as linux-any.
+  * Drop workaround for cdbs bug which has been fixed in the mean time.
 
  -- Michael Biebl <biebl@debian.org>  Wed, 31 Aug 2016 01:05:43 +0200
 
