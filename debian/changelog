@@ -1,9 +1,9 @@
-gtk+3.0 (3.21.5-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.21.5-3) unstable; urgency=medium
 
   * Mark two more reftests as known_fail and make test-suite failures fatal
     again.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 31 Aug 2016 23:40:10 +0200
+ -- Michael Biebl <biebl@debian.org>  Wed, 31 Aug 2016 23:41:32 +0200
 
 gtk+3.0 (3.21.5-2) unstable; urgency=medium
 
