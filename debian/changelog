@@ -5,6 +5,8 @@ gtk+3.0 (3.21.5-2) UNRELEASED; urgency=medium
   * Change Build-Depends on dbus-x11 to dbus. The use of dbus-launch has been
     removed upstream so having only dbus installed is sufficient to run the
     test-suite. (Closes: #835891)
+  * Add dbus to autopkgtest dependencies to ensure machine-id is properly
+    setup.
 
  -- Michael Biebl <biebl@debian.org>  Wed, 31 Aug 2016 01:05:43 +0200
 
