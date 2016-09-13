@@ -9,7 +9,7 @@ for installed-tests.
 --- a/testsuite/a11y/Makefile.am
 +++ b/testsuite/a11y/Makefile.am
 @@ -29,7 +29,7 @@
- 	GDK_BACKEND=x11 \
+ 	GTK_CSD=1			\
  	G_ENABLE_DIAGNOSTIC=0
  
 -TEST_PROGS += accessibility-dump

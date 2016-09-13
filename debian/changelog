@@ -1,3 +1,11 @@
+gtk+3.0 (3.21.6-1) UNRELEASED; urgency=medium
+
+  * New upstream development release.
+  * Update (build-)dependencies according to configure.ac changes:
+    - bump wayland-protocols to >= 1.7
+
+ -- Andreas Henriksson <andreas@fatal.se>  Tue, 13 Sep 2016 15:00:53 +0200
+
 gtk+3.0 (3.21.5-3) unstable; urgency=medium
 
   * Mark two more reftests as known_fail and make test-suite failures fatal
