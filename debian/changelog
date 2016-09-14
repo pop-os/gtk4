@@ -1,8 +1,13 @@
 gtk+3.0 (3.21.6-1) UNRELEASED; urgency=medium
 
+  [ Andreas Henriksson ]
   * New upstream development release.
   * Update (build-)dependencies according to configure.ac changes:
     - bump wayland-protocols to >= 1.7
+
+  [ Jeremy Bicha ]
+  * Drop linux-any tag from libegl1-mesa-dev dependency since it's available
+    on non-linux too
 
  -- Andreas Henriksson <andreas@fatal.se>  Tue, 13 Sep 2016 15:00:53 +0200
 
