@@ -1,14 +1,15 @@
-gtk+3.0 (3.21.6-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.21.6-1) unstable; urgency=medium
 
   [ Andreas Henriksson ]
   * New upstream development release.
   * Update (build-)dependencies according to configure.ac changes:
     - bump wayland-protocols to >= 1.7
+  * Update debian/libgtk-3-0.symbols with a few scrolled_window additions.
 
   [ Michael Biebl ]
   * Refresh patches.
 
- -- Andreas Henriksson <andreas@fatal.se>  Tue, 13 Sep 2016 15:00:53 +0200
+ -- Andreas Henriksson <andreas@fatal.se>  Wed, 14 Sep 2016 10:35:59 +0200
 
 gtk+3.0 (3.21.5-3) unstable; urgency=medium
 

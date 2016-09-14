@@ -3584,6 +3584,8 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_scrolled_window_get_overlay_scrolling@Base 3.16.2
  gtk_scrolled_window_get_placement@Base 3.0.0
  gtk_scrolled_window_get_policy@Base 3.0.0
+ gtk_scrolled_window_get_propagate_natural_height@Base 3.21.6
+ gtk_scrolled_window_get_propagate_natural_width@Base 3.21.6
  gtk_scrolled_window_get_shadow_type@Base 3.0.0
  gtk_scrolled_window_get_type@Base 3.0.0
  gtk_scrolled_window_get_vadjustment@Base 3.0.0
@@ -3599,6 +3601,8 @@ libgtk-3.so.0 libgtk-3-0 #MINVER#
  gtk_scrolled_window_set_overlay_scrolling@Base 3.16.2
  gtk_scrolled_window_set_placement@Base 3.0.0
  gtk_scrolled_window_set_policy@Base 3.0.0
+ gtk_scrolled_window_set_propagate_natural_height@Base 3.21.6
+ gtk_scrolled_window_set_propagate_natural_width@Base 3.21.6
  gtk_scrolled_window_set_shadow_type@Base 3.0.0
  gtk_scrolled_window_set_vadjustment@Base 3.0.0
  gtk_scrolled_window_unset_placement@Base 3.0.0
