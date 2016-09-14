@@ -5,10 +5,6 @@ gtk+3.0 (3.21.6-1) UNRELEASED; urgency=medium
   * Update (build-)dependencies according to configure.ac changes:
     - bump wayland-protocols to >= 1.7
 
-  [ Jeremy Bicha ]
-  * Drop linux-any tag from libegl1-mesa-dev dependency since it's available
-    on non-linux too
-
   [ Michael Biebl ]
   * Refresh patches.
 
