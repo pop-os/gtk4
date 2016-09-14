@@ -9,6 +9,9 @@ gtk+3.0 (3.21.6-1) UNRELEASED; urgency=medium
   * Drop linux-any tag from libegl1-mesa-dev dependency since it's available
     on non-linux too
 
+  [ Michael Biebl ]
+  * Refresh patches.
+
  -- Andreas Henriksson <andreas@fatal.se>  Tue, 13 Sep 2016 15:00:53 +0200
 
 gtk+3.0 (3.21.5-3) unstable; urgency=medium

@@ -1,6 +1,8 @@
---- a/testsuite/reftests/gtk-reftest.c
-+++ b/testsuite/reftests/gtk-reftest.c
-@@ -247,6 +247,20 @@
+Index: gtk+-3.21.6/testsuite/reftests/gtk-reftest.c
+===================================================================
+--- gtk+-3.21.6.orig/testsuite/reftests/gtk-reftest.c	2016-09-14 04:19:58.524616584 +0200
++++ gtk+-3.21.6/testsuite/reftests/gtk-reftest.c	2016-09-14 04:19:58.524616584 +0200
+@@ -253,6 +253,20 @@
    g_free (filename);
  }
  
@@ -21,7 +23,7 @@
  static void
  test_ui_file (GFile *file)
  {
-@@ -279,7 +293,13 @@
+@@ -285,7 +299,13 @@
    if (diff_image)
      {
        save_image (diff_image, ui_file, ".diff.png");
