@@ -179,23 +179,6 @@ Description: development files for the GTK+ library
  This package contains the header and development files which are
  needed for building GTK+ applications.
 
-Package: libgtk-3-0-dbg
-Section: debug
-Priority: extra
-Architecture: any
-Depends: libgtk-3-0 (= ${binary:Version}),
-         libgtk-3-common,
-         ${misc:Depends}
-Description: GTK+ libraries and debugging symbols
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
- for projects ranging from small one-off tools to complete application
- suites.
- .
- This package contains detached debugging symbols.
- .
- Most people will not need this package.
-
 Package: libgtk-3-doc
 Section: doc
 Architecture: all
@@ -302,21 +285,6 @@ Description: GNOME Accessibility Implementation Library -- development files
  of accessibility, without the need to modify the application at all.
  .
  This package contains the development files for Gail.
-
-Package: libgail-3-0-dbg
-Architecture: any
-Multi-Arch: same
-Section: debug
-Priority: extra
-Depends: ${misc:Depends},
-         libgail-3-0 (= ${binary:Version})
-Recommends: libgtk-3-0-dbg
-Description: Gail libraries and debugging symbols
- Gail is the "GNOME Accessibility Implementation Library".
- .
- This package contains detached debugging symbols.
- .
- Most people will not need this package.
 
 Package: libgail-3-doc
 Architecture: all
