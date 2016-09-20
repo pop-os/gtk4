@@ -2,6 +2,7 @@ gtk+3.0 (3.22.0-1) UNRELEASED; urgency=medium
 
   * New upstream release.
   * Drop dbg packages now that we have automatic dbgsym packages.
+  * Bump debhelper compat level to 9.
 
  -- Michael Biebl <biebl@debian.org>  Tue, 20 Sep 2016 18:48:15 +0200
 
