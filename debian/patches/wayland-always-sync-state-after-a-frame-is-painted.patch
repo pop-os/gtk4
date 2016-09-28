@@ -1,0 +1,43 @@
+From 7292b035593008e79cf4aae1b8dcf0f7a83bc55f Mon Sep 17 00:00:00 2001
+From: Gustavo Noronha Silva <gustavo.noronha@collabora.co.uk>
+Date: Mon, 26 Sep 2016 10:56:42 +0200
+Subject: [PATCH] wayland: always sync state after a frame is painted
+
+Opaque region, margin and input region were only being synced when a cairo
+paint happened. That caused GL paints to sometimes end up with bad state.
+Move calls to sync state to gdk_window_impl_wayland_end_paint.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=771553
+---
+ gdk/wayland/gdkwindow-wayland.c | 8 ++++----
+ 1 file changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/gdk/wayland/gdkwindow-wayland.c b/gdk/wayland/gdkwindow-wayland.c
+index f35c4c8..7dbb979 100644
+--- a/gdk/wayland/gdkwindow-wayland.c
++++ b/gdk/wayland/gdkwindow-wayland.c
+@@ -597,10 +597,6 @@ on_frame_clock_after_paint (GdkFrameClock *clock,
+   if (impl->pending_buffer_attached)
+     read_back_cairo_surface (window);
+ 
+-  gdk_wayland_window_sync_margin (window);
+-  gdk_wayland_window_sync_opaque_region (window);
+-  gdk_wayland_window_sync_input_region (window);
+-
+   /* From this commit forward, we can't write to the buffer,
+    * it's "live".  In the future, if we need to stage more changes
+    * we have to allocate a new staging buffer and draw to it instead.
+@@ -936,6 +932,10 @@ gdk_window_impl_wayland_end_paint (GdkWindow *window)
+ 
+       impl->pending_commit = TRUE;
+     }
++
++  gdk_wayland_window_sync_margin (window);
++  gdk_wayland_window_sync_opaque_region (window);
++  gdk_wayland_window_sync_input_region (window);
+ }
+ 
+ static gboolean
+-- 
+2.9.3
+

@@ -1,0 +1,93 @@
+From dbd0923b5f7b4a7cdea182c8d20085c013c4571c Mon Sep 17 00:00:00 2001
+From: Olivier Fourdan <ofourdan@redhat.com>
+Date: Tue, 27 Sep 2016 16:48:57 +0200
+Subject: [PATCH] wayland: Avoid negative size constraints
+
+Setting the shadow width earlier as done with commit 4cb1b96 to address
+bug 771561 proved to cause unexpected side effects on size_allocate
+signal propagation.
+
+As the window is sized correctly earlier, the size_allocate signal is
+not emitted again in gtk_widget_size_allocate_with_baseline() which
+prevents clutter-gtk from relocating its child widget correctly.
+
+To avoid this issue, revert commit 4cb1b96 but make sure the values
+passed as min and max size is never negative in Wayland as this is a
+protocol error.
+
+With this, the min/max size will be wrong for a short amount of time,
+during the state transition, until the shadow width is updated from
+gdk_window_set_shadow_width().
+
+This approach is much safer and less intrusive than changing the
+size_allocate logic in gtk.
+
+This reverts commit 4cb1b9645e84054c059f174240e8e288c4befe05.
+
+Bugzilla: https://bugzilla.gnome.org/show_bug.cgi?id=771915
+---
+ gdk/wayland/gdkwindow-wayland.c |  8 ++++----
+ gtk/gtkwindow.c                 | 14 --------------
+ 2 files changed, 4 insertions(+), 18 deletions(-)
+
+diff --git a/gdk/wayland/gdkwindow-wayland.c b/gdk/wayland/gdkwindow-wayland.c
+index fa8dbe0..f35c4c8 100644
+--- a/gdk/wayland/gdkwindow-wayland.c
++++ b/gdk/wayland/gdkwindow-wayland.c
+@@ -2992,8 +2992,8 @@ gdk_wayland_window_set_geometry_hints (GdkWindow         *window,
+ 
+   if (geom_mask & GDK_HINT_MIN_SIZE)
+     {
+-      width = geometry->min_width - (impl->margin_left + impl->margin_right);
+-      height = geometry->min_height - (impl->margin_top + impl->margin_bottom);
++      width = MAX (0, geometry->min_width - (impl->margin_left + impl->margin_right));
++      height = MAX (0, geometry->min_height - (impl->margin_top + impl->margin_bottom));
+     }
+   else
+     {
+@@ -3005,8 +3005,8 @@ gdk_wayland_window_set_geometry_hints (GdkWindow         *window,
+ 
+   if (geom_mask & GDK_HINT_MAX_SIZE)
+     {
+-      width = geometry->max_width - (impl->margin_left + impl->margin_right);
+-      height = geometry->max_height - (impl->margin_top + impl->margin_bottom);
++      width = MAX (0, geometry->max_width - (impl->margin_left + impl->margin_right));
++      height = MAX (0, geometry->max_height - (impl->margin_top + impl->margin_bottom));
+     }
+   else
+     {
+diff --git a/gtk/gtkwindow.c b/gtk/gtkwindow.c
+index 14a11c3..1a4b14b 100644
+--- a/gtk/gtkwindow.c
++++ b/gtk/gtkwindow.c
+@@ -7529,19 +7529,6 @@ update_window_style_classes (GtkWindow *window)
+ }
+ 
+ static void
+-update_window_borders (GtkWindow *window)
+-{
+-  GtkWindowPrivate *priv = window->priv;
+-  GtkBorder window_border = { 0 };
+-
+-  if (priv->client_decorated && priv->use_client_shadow)
+-    {
+-      get_shadow_width (window, &window_border);
+-      update_shadow_width (window, &window_border);
+-    }
+-}
+-
+-static void
+ popover_size_allocate (GtkWidget        *widget,
+                        GtkWindowPopover *popover,
+                        GtkWindow        *window)
+@@ -7811,7 +7798,6 @@ gtk_window_state_event (GtkWidget           *widget,
+     {
+       update_window_style_classes (window);
+       update_window_buttons (window);
+-      update_window_borders (window);
+       gtk_widget_queue_resize (widget);
+     }
+ 
+-- 
+2.9.3
+
