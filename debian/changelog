@@ -1,3 +1,9 @@
+gtk+3.0 (3.22.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Michael Biebl <biebl@debian.org>  Sat, 01 Oct 2016 14:34:59 +0200
+
 gtk+3.0 (3.22.0-2) unstable; urgency=medium
 
   * d/p/wayland-Avoid-negative-size-constraints.patch
