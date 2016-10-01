@@ -1,4 +1,4 @@
-gtk+3.0 (3.22.1-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.1-1) unstable; urgency=medium
 
   * New upstream release.
   * Drop d/p/wayland-Avoid-negative-size-constraints.patch and
@@ -17,7 +17,7 @@ gtk+3.0 (3.22.1-1) UNRELEASED; urgency=medium
   * Update Depends of libgtk-3-dev to match the dependencies declared in the
     pkg-config .pc files.
 
- -- Michael Biebl <biebl@debian.org>  Sat, 01 Oct 2016 14:34:59 +0200
+ -- Michael Biebl <biebl@debian.org>  Sat, 01 Oct 2016 15:36:03 +0200
 
 gtk+3.0 (3.22.0-2) unstable; urgency=medium
 
