@@ -8,6 +8,3 @@
 no-accessibility-dump.patch
 reftest-known-fail.patch
 0001-Fix-division-by-zero-when-calculating-the-refresh-ra.patch
-
-wayland-always-sync-state-after-a-frame-is-painted.patch
-wayland-Avoid-negative-size-constraints.patch
