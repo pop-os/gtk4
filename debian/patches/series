@@ -7,3 +7,4 @@
 071_fix-installation-of-HTML-images.patch
 no-accessibility-dump.patch
 reftest-known-fail.patch
+cssshadowvalue-scale-the-blur-surface-by-the-same-fa.patch
