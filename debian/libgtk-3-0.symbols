@@ -488,6 +488,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  (arch=linux-any)gdk_wayland_display_get_wl_compositor@Base 3.9.10
  (arch=linux-any)gdk_wayland_display_get_wl_display@Base 3.9.10
  (arch=linux-any)gdk_wayland_display_set_cursor_theme@Base 3.9.10
+ (arch=linux-any)gdk_wayland_display_set_startup_notification_id@Base 3.22.4
  (arch=linux-any)gdk_wayland_gl_context_get_type@Base 3.16.2
  (arch=linux-any)gdk_wayland_monitor_get_type@Base 3.21.4
  (arch=linux-any)gdk_wayland_monitor_get_wl_output@Base 3.21.4

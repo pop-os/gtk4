@@ -1,3 +1,12 @@
+gtk+3.0 (3.22.4-1) unstable; urgency=medium
+
+  * New upstream release.
+  * Drop d/p/cssshadowvalue-scale-the-blur-surface-by-the-same-fa.patch
+    - now included in upstream release.
+  * Update debian/libgtk-3-0.symbols with one addition.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Sun, 20 Nov 2016 19:22:12 +0100
+
 gtk+3.0 (3.22.3-2) unstable; urgency=medium
 
   * d/p/cssshadowvalue-scale-the-blur-surface-by-the-same-fa.patch
