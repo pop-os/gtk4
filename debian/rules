@@ -125,6 +125,7 @@ DEB_DH_MAKESHLIBS_ARGS_ALL += -X$(MODULES_BASE_PATH)
 DEB_DH_MAKESHLIBS_ARGS_$(SHARED_PKG) += -V --add-udeb=$(UDEB_PKG) -- -c4
 DEB_DH_MAKESHLIBS_ARGS_libgail-3-0 += -V -- -c4
 DEB_DH_FIXPERMS_ARGS_ALL += -X$(LIBDIR)/$(SHARED_PKG)
+DEB_DH_STRIP_ARGS += --dbgsym-migration='libgail-3-0-dbg (<< 3.22.0-1~), libgtk-3-0-dbg (<< 3.22.0-1~)'
 
 # macro computing the list of 'debian/<pkg>.*" files which have a
 # corresponding ".in" file; pass the list of packages in $(1)
