@@ -5,6 +5,7 @@ gtk+3.0 (3.22.6-1) UNRELEASED; urgency=medium
 
   [ Emilio Pozuelo Monfort ]
   * New upstream release.
+  * debian/libgtk-3-0.symbols: add new symbol.
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Wed, 21 Dec 2016 17:30:57 -0500
 
