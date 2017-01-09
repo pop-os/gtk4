@@ -1,4 +1,4 @@
-gtk+3.0 (3.22.6-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.6-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
   * Update debian/watch to only look for GTK+ 3.22 releases
@@ -7,7 +7,7 @@ gtk+3.0 (3.22.6-1) UNRELEASED; urgency=medium
   * New upstream release.
   * debian/libgtk-3-0.symbols: add new symbol.
 
- -- Jeremy Bicha <jbicha@ubuntu.com>  Wed, 21 Dec 2016 17:30:57 -0500
+ -- Michael Biebl <biebl@debian.org>  Mon, 09 Jan 2017 15:55:17 +0100
 
 gtk+3.0 (3.22.5-1) unstable; urgency=medium
 
