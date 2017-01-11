@@ -7,3 +7,5 @@
 071_fix-installation-of-HTML-images.patch
 no-accessibility-dump.patch
 reftest-known-fail.patch
+wayland-Handle-subsurface-as-popup-parent.patch
+wayland-Disable-EGL-swap-interval.patch
