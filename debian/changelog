@@ -1,14 +1,8 @@
-gtk+3.0 (3.22.6-2) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.7-1) UNRELEASED; urgency=medium
 
-  * d/p/wayland-Handle-subsurface-as-popup-parent.patch
-    - Added. Fix location of popup menus if the parent window is a subsurface
-      (From upstream git, bgo#776225)
-  * d/p/wayland-Disable-EGL-swap-interval.patch
-    - Added. Rely purely on the Gdk frame clock and disable EGL swap interval.
-      Fixes the mainloop blocking when the compositor is throttling refreshes
-      (From upstream git, bgo#769835)
+  * New upstream release.
 
- -- Sjoerd Simons <sjoerd@debian.org>  Wed, 11 Jan 2017 22:22:09 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 17 Jan 2017 00:20:27 +0100
 
 gtk+3.0 (3.22.6-1) unstable; urgency=medium
 
