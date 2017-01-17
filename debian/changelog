@@ -1,8 +1,8 @@
-gtk+3.0 (3.22.7-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.7-1) unstable; urgency=medium
 
   * New upstream release.
 
- -- Michael Biebl <biebl@debian.org>  Tue, 17 Jan 2017 00:20:27 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 17 Jan 2017 19:09:05 +0100
 
 gtk+3.0 (3.22.6-1) unstable; urgency=medium
 
