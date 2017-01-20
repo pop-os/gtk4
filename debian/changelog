@@ -1,3 +1,12 @@
+gtk+3.0 (3.22.7-2) UNRELEASED; urgency=medium
+
+  * d/p/gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch:
+    add proposed patch from upstream Bugzilla to let GDK X11
+    initialization complete successfully when libGL.so.1 is not
+    available (Closes: #847366)
+
+ -- Simon McVittie <smcv@debian.org>  Fri, 20 Jan 2017 21:38:48 +0000
+
 gtk+3.0 (3.22.7-1) unstable; urgency=medium
 
   * New upstream release.
