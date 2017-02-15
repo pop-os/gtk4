@@ -1,4 +1,4 @@
-gtk+3.0 (3.22.8-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.8-1) unstable; urgency=medium
 
   * New upstream release.
   * Stop patching gtk-doc.make and instead run gtkdocize via the upstream
@@ -6,7 +6,7 @@ gtk+3.0 (3.22.8-1) UNRELEASED; urgency=medium
     been fixed to properly handle the installation of HTML images for
     out-of-tree builds.
 
- -- Michael Biebl <biebl@debian.org>  Wed, 15 Feb 2017 07:38:54 +0100
+ -- Michael Biebl <biebl@debian.org>  Wed, 15 Feb 2017 12:17:29 +0100
 
 gtk+3.0 (3.22.7-2) unstable; urgency=medium
 
