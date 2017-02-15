@@ -65,6 +65,8 @@ binary: FAIL_MISSING=--fail-missing
 DEB_DH_INSTALL_ARGS += --sourcedir=debian/install/shared $(FAIL_MISSING) -X.la
 DEB_DH_INSTALL_ARGS_$(UDEB_PKG) += --sourcedir=debian/install/shared_udeb
 
+DEB_DH_AUTORECONF_ARGS = "NOCONFIGURE=true ./autogen.sh"
+
 DEB_CONFIGURE_EXTRA_FLAGS = \
 			--libdir=/$(LIBDIR) \
 			--enable-test-print-backend
