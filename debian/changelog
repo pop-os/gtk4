@@ -1,5 +1,6 @@
-gtk+3.0 (3.22.7-3) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.8-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
   * Stop patching gtk-doc.make and instead run gtkdocize via the upstream
     provided autogen.sh on autoreconf. The gtk-doc-tools version in Debian has
     been fixed to properly handle the installation of HTML images for
