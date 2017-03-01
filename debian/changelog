@@ -1,3 +1,12 @@
+gtk+3.0 (3.22.9-2) unstable; urgency=medium
+
+  * Team upload
+  * d/p/wayland-make-sure-to-clear-up-the-number-of-keys.patch:
+    Add patch from upstream fixing unintended key repeats on Wayland
+    (Closes: #856478)
+
+ -- Simon McVittie <smcv@debian.org>  Wed, 01 Mar 2017 15:50:14 +0000
+
 gtk+3.0 (3.22.9-1) unstable; urgency=medium
 
   * New upstream release.

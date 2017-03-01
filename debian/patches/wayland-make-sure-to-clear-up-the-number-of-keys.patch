@@ -1,0 +1,37 @@
+From aebe3a74ec9c2da5fe6eb0826274d4b971068b8f Mon Sep 17 00:00:00 2001
+From: Olivier Fourdan <ofourdan@redhat.com>
+Date: Tue, 28 Feb 2017 18:17:39 +0100
+Subject: [PATCH] wayland: make sure to clear up the number of keys
+
+Make sure to clear up the number of keys being pressed on enter/leave so
+that we don't end up with leftovers if a new window is mapped by a
+keyboard shortcut.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=779374
+---
+ gdk/wayland/gdkdevice-wayland.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/gdk/wayland/gdkdevice-wayland.c b/gdk/wayland/gdkdevice-wayland.c
+index 815fa9a3db..947ef44530 100644
+--- a/gdk/wayland/gdkdevice-wayland.c
++++ b/gdk/wayland/gdkdevice-wayland.c
+@@ -1869,6 +1869,7 @@ keyboard_handle_enter (void               *data,
+ 
+   seat->keyboard_focus = wl_surface_get_user_data (surface);
+   g_object_ref (seat->keyboard_focus);
++  seat->nkeys = 0;
+ 
+   event = gdk_event_new (GDK_FOCUS_CHANGE);
+   event->focus_change.window = g_object_ref (seat->keyboard_focus);
+@@ -1925,6 +1926,7 @@ keyboard_handle_leave (void               *data,
+ 
+   g_object_unref (seat->keyboard_focus);
+   seat->keyboard_focus = NULL;
++  seat->nkeys = 0;
+ 
+   GDK_NOTE (EVENTS,
+             g_message ("focus out, seat %p surface %p",
+-- 
+2.11.0
+
