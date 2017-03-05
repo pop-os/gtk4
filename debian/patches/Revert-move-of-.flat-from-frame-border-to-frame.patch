@@ -1,0 +1,113 @@
+From e1b1939bfd95a086383b4e934d0738945d7dff98 Mon Sep 17 00:00:00 2001
+From: Daniel Boles <dboles@src.gnome.org>
+Date: Sun, 5 Mar 2017 20:19:04 +0000
+Subject: [PATCH] Revert move of .flat from frame > border to frame
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+Content-Transfer-Encoding: 8bit
+
+Changing code to agree with docs, which said frame.flat, was backwards.
+Mea culpa. Theme authors ran with the actual behaviour, not the docs. As
+stability is more important, let’s go back to frame > border.flat, and
+fix the docs to reflect what the code does and how to set .flat in code.
+
+N.B. This drops the > from the frame border selector in the CSS files,
+because in the patches being reverted here, that was only changed in the
+generated CSS files, not the source SCSS. It is more correct not to
+include that change in the CSS files until it reaches their source SCSS.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=778905
+---
+ gtk/gtkframe.c                                   | 12 +++++++-----
+ gtk/theme/Adwaita/gtk-contained-dark.css         |  2 +-
+ gtk/theme/Adwaita/gtk-contained.css              |  2 +-
+ gtk/theme/HighContrast/gtk-contained-inverse.css |  2 +-
+ gtk/theme/HighContrast/gtk-contained.css         |  2 +-
+ 5 files changed, 11 insertions(+), 9 deletions(-)
+
+diff --git a/gtk/gtkframe.c b/gtk/gtkframe.c
+index c6e38f980c..f5d92de774 100644
+--- a/gtk/gtkframe.c
++++ b/gtk/gtkframe.c
+@@ -81,9 +81,11 @@
+  *
+  * GtkFrame has a main CSS node with name frame and a subnode with
+  * name border. The border node is used to render the visible border.
+- * The main frame node can be given the style class .flat, which disables
+- * drawing of the border, equivalent to calling gtk_frame_set_shadow_type() with
+- * GTK_SHADOW_NONE.
++ *
++ * The border node can be given the style class .flat, which is used by themes
++ * to disable drawing of the border. To do this from code, call
++ * gtk_frame_set_shadow_type() with GTK_SHADOW_NONE to add the .flat class or
++ * any other shadow type to remove it.
+  */
+ 
+ 
+@@ -684,9 +686,9 @@ gtk_frame_set_shadow_type (GtkFrame      *frame,
+       priv->shadow_type = type;
+ 
+       if (type == GTK_SHADOW_NONE)
+-        gtk_css_gadget_add_class (priv->gadget, GTK_STYLE_CLASS_FLAT);
++        gtk_css_gadget_add_class (priv->border_gadget, GTK_STYLE_CLASS_FLAT);
+       else
+-        gtk_css_gadget_remove_class (priv->gadget, GTK_STYLE_CLASS_FLAT);
++        gtk_css_gadget_remove_class (priv->border_gadget, GTK_STYLE_CLASS_FLAT);
+ 
+       g_object_notify_by_pspec (G_OBJECT (frame), frame_props[PROP_SHADOW_TYPE]);
+     }
+diff --git a/gtk/theme/Adwaita/gtk-contained-dark.css b/gtk/theme/Adwaita/gtk-contained-dark.css
+index 5f68aec247..da5c453d40 100644
+--- a/gtk/theme/Adwaita/gtk-contained-dark.css
++++ b/gtk/theme/Adwaita/gtk-contained-dark.css
+@@ -3789,7 +3789,7 @@ frame > border,
+   padding: 0;
+   border-radius: 0;
+   border: 1px solid #1b1f20; }
+-  frame.flat > border,
++  frame > border.flat,
+   .frame.flat {
+     border-style: none; }
+   frame > border:backdrop,
+diff --git a/gtk/theme/Adwaita/gtk-contained.css b/gtk/theme/Adwaita/gtk-contained.css
+index 7830a16779..c0f43698d0 100644
+--- a/gtk/theme/Adwaita/gtk-contained.css
++++ b/gtk/theme/Adwaita/gtk-contained.css
+@@ -3820,7 +3820,7 @@ frame > border,
+   padding: 0;
+   border-radius: 0;
+   border: 1px solid #b6b6b3; }
+-  frame.flat > border,
++  frame > border.flat,
+   .frame.flat {
+     border-style: none; }
+   frame > border:backdrop,
+diff --git a/gtk/theme/HighContrast/gtk-contained-inverse.css b/gtk/theme/HighContrast/gtk-contained-inverse.css
+index 0a6dea1564..da9ab5bc24 100644
+--- a/gtk/theme/HighContrast/gtk-contained-inverse.css
++++ b/gtk/theme/HighContrast/gtk-contained-inverse.css
+@@ -2616,7 +2616,7 @@ frame border,
+ .frame {
+   border: 1px solid gray;
+   padding: 0; }
+-  frame.flat > border,
++  frame border.flat,
+   .frame.flat {
+     border-style: none; }
+   frame border:backdrop,
+diff --git a/gtk/theme/HighContrast/gtk-contained.css b/gtk/theme/HighContrast/gtk-contained.css
+index 8adbd5a957..045cc08885 100644
+--- a/gtk/theme/HighContrast/gtk-contained.css
++++ b/gtk/theme/HighContrast/gtk-contained.css
+@@ -2623,7 +2623,7 @@ frame border,
+ .frame {
+   border: 1px solid gray;
+   padding: 0; }
+-  frame.flat > border,
++  frame border.flat,
+   .frame.flat {
+     border-style: none; }
+   frame border:backdrop,
+-- 
+2.11.0
+

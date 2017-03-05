@@ -1,3 +1,10 @@
+gtk+3.0 (3.22.9-3) UNRELEASED; urgency=medium
+
+  * Revert move of .flat from frame > border to frame as it broke existing
+    themes which relied on that behaviour.
+
+ -- Michael Biebl <biebl@debian.org>  Sun, 05 Mar 2017 20:18:37 +0100
+
 gtk+3.0 (3.22.9-2) unstable; urgency=medium
 
   * Team upload
