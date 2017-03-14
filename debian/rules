@@ -162,6 +162,10 @@ clean:: debian/control
 	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
 	rm -f testsuite/reftests/*.ui.known_fail
 	rm -rf debian/build debian/install
+	# The build system does not automatically update the GResource files
+	# when resources change. Force an update since we modify CSS files in
+	# Revert-move-of-.flat-from-frame-border-to-frame.patch.
+	rm -f gtk/gtkresources.c gtk/gtkresources.h
 
 pre-build::
 	# Mark reftests with known failures as non-fatal

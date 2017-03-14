@@ -1,3 +1,10 @@
+gtk+3.0 (3.22.9-4) UNRELEASED; urgency=medium
+
+  * Force update of GResource files so the changes to the CSS files are
+    actually applied.
+
+ -- Michael Biebl <biebl@debian.org>  Tue, 14 Mar 2017 01:35:03 +0100
+
 gtk+3.0 (3.22.9-3) unstable; urgency=medium
 
   * Revert move of .flat from frame > border to frame as it broke existing
