@@ -1,9 +1,9 @@
-gtk+3.0 (3.22.9-4) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.9-4) unstable; urgency=medium
 
   * Force update of GResource files so the changes to the CSS files are
     actually applied.
 
- -- Michael Biebl <biebl@debian.org>  Tue, 14 Mar 2017 01:35:03 +0100
+ -- Michael Biebl <biebl@debian.org>  Tue, 14 Mar 2017 01:38:30 +0100
 
 gtk+3.0 (3.22.9-3) unstable; urgency=medium
 
