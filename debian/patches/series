@@ -6,5 +6,3 @@
 no-accessibility-dump.patch
 reftest-known-fail.patch
 gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch
-wayland-make-sure-to-clear-up-the-number-of-keys.patch
-Revert-move-of-.flat-from-frame-border-to-frame.patch
