@@ -1,3 +1,9 @@
+gtk+3.0 (3.22.12-1) unstable; urgency=medium
+
+  * New upstream release.
+
+ -- Andreas Henriksson <andreas@fatal.se>  Thu, 13 Apr 2017 06:41:09 +0200
+
 gtk+3.0 (3.22.11-1) unstable; urgency=medium
 
   * New upstream release.
