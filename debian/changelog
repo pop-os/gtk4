@@ -1,3 +1,15 @@
+gtk+3.0 (3.22.18-1) UNRELEASED; urgency=medium
+
+  * Hi from Debconf
+  * New upstream release!
+    + Support entering emoji by name, using Ctrl-Shift-E (note there is a
+      whitelist for this currently - see GtkImContext docs)
+    + Wayland:
+     - Add support for the shortcut inhibitor protocol
+     - Support Wacome tablet wheel scrolling
+
+ -- Iain Lane <laney@debian.org>  Tue, 08 Aug 2017 21:38:45 +0100
+
 gtk+3.0 (3.22.17-1) unstable; urgency=medium
 
   * New upstream release.
