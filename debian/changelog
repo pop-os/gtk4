@@ -1,4 +1,4 @@
-gtk+3.0 (3.22.18-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.18-1) unstable; urgency=medium
 
   * Hi from Debconf
   * New upstream release!
@@ -9,7 +9,7 @@ gtk+3.0 (3.22.18-1) UNRELEASED; urgency=medium
      - Support Wacome tablet wheel scrolling
   * debian/control{,.in}: Bump wayland-protocols to 1.9, per upstream.
 
- -- Iain Lane <laney@debian.org>  Tue, 08 Aug 2017 21:38:45 +0100
+ -- Iain Lane <laney@debian.org>  Thu, 10 Aug 2017 16:34:47 +0100
 
 gtk+3.0 (3.22.17-1) unstable; urgency=medium
 
