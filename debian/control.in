@@ -27,7 +27,7 @@ Build-Depends: debhelper (>= 9.20141010),
                libfontconfig1-dev,
                libharfbuzz-dev (>= 0.9),
                libwayland-dev (>= 1.9.91) [linux-any],
-               wayland-protocols (>= 1.7) [linux-any],
+               wayland-protocols (>= 1.9) [linux-any],
                libxkbcommon-dev (>= 0.2.0),
                libx11-dev,
                libxext-dev,
@@ -164,7 +164,7 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          pkg-config,
          libegl1-mesa-dev [linux-any],
          libwayland-dev (>= 1.9.91) [linux-any],
-         wayland-protocols (>= 1.7) [linux-any],
+         wayland-protocols (>= 1.9) [linux-any],
          libxkbcommon-dev
 Suggests: @DOC_PKG@
 Description: development files for the GTK+ library
