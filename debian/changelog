@@ -1,14 +1,16 @@
 gtk+3.0 (3.22.19-1) UNRELEASED; urgency=medium
 
-  [ Ken VanDine ]
-  * debian/control.in:
-    - Bump libpango1.0-dev Build-Depends to >= 1.40.5 for colornames test
-
   [ Jeremy Bicha ]
   * New upstream release
+  * debian/libgtk-3-common.install.in:
+    Install EmojiChooser gsettings schemas
   * Add fix-gtk-menu-sliders.patch:
     - Add Bugzilla patch to fix regression with clicking on sliders in menus,
       such as with Unity's sound indicator (LP: #1712701) (Closes: #872687)
+
+  [ Ken VanDine ]
+  * debian/control.in:
+    - Bump libpango1.0-dev Build-Depends to >= 1.40.5 for colornames test
 
  -- Jeremy Bicha <jbicha@ubuntu.com>  Wed, 23 Aug 2017 20:54:47 -0400
 
