@@ -6,4 +6,3 @@
 no-accessibility-dump.patch
 reftest-known-fail.patch
 gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch
-fix-gtk-menu-sliders.patch
