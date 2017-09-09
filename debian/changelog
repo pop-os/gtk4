@@ -3,6 +3,7 @@ gtk+3.0 (3.22.20-1) UNRELEASED; urgency=medium
   * New upstream release.
   * debian/patches/fix-gtk-menu-sliders.patch:
     + Removed, applied upstream.
+  * Bump Standards-Version to 4.1.0; no changes needed.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 09 Sep 2017 12:36:19 +0200
 
