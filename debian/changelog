@@ -1,3 +1,9 @@
+gtk+3.0 (3.22.20-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 09 Sep 2017 12:36:19 +0200
+
 gtk+3.0 (3.22.19-1) unstable; urgency=medium
 
   [ Jeremy Bicha ]
