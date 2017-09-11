@@ -45,18 +45,18 @@ NEWS := NEWS$(shell find -maxdepth 1 -size +4k -name NEWS -exec echo ".gz" \;)
 README := README$(shell find -maxdepth 1 -size +4k -name README -exec echo ".gz" \;)
 
 configure_flags_common = \
-			--libdir=/$(LIBDIR) \
-			--enable-test-print-backend
+	--libdir=/$(LIBDIR) \
+	--enable-test-print-backend
 
 configure_flags_deb = \
-			--enable-broadway-backend \
-			--enable-x11-backend \
-			--enable-gtk-doc \
-			--enable-man \
-			--enable-shared \
-			--enable-introspection \
-			--enable-cloudprint \
-			--disable-static
+	--enable-broadway-backend \
+	--enable-x11-backend \
+	--enable-gtk-doc \
+	--enable-man \
+	--enable-shared \
+	--enable-introspection \
+	--enable-cloudprint \
+	--disable-static
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
 configure_flags_deb += --enable-colord
@@ -71,16 +71,16 @@ configure_flags_deb += --disable-wayland-backend
 endif
 
 configure_flags_udeb = \
-			--disable-broadway-backend \
-			--disable-wayland-backend \
-			--enable-x11-backend \
-			--disable-introspection \
-			--disable-cloudprint \
-			--disable-colord \
-			--disable-xcomposite \
-			--disable-xdamage \
-			--disable-xfixes \
-			--disable-xrandr
+	--disable-broadway-backend \
+	--disable-wayland-backend \
+	--enable-x11-backend \
+	--disable-introspection \
+	--disable-cloudprint \
+	--disable-colord \
+	--disable-xcomposite \
+	--disable-xdamage \
+	--disable-xfixes \
+	--disable-xrandr
 
 %:
 	dh $@ --with gir
