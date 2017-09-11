@@ -5,6 +5,8 @@ DISABLE_UPDATE_UPLOADERS = 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 
+binaries := $(shell dh_listpackages)
+
 # Ensure the build aborts when there are still references to undefined symbols
 # currently fails at least in the im-multipress im module
 #LDFLAGS += -Wl,-z,defs
@@ -68,6 +70,10 @@ ifeq (linux,$(DEB_HOST_ARCH_OS))
 configure_flags_deb += --enable-wayland-backend
 else
 configure_flags_deb += --disable-wayland-backend
+endif
+
+ifeq ($(filter %-doc,$(binaries)),)
+configure_flags_deb += --disable-gtk-doc --disable-man
 endif
 
 configure_flags_udeb = \
