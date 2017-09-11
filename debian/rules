@@ -192,15 +192,10 @@ debian/%: debian/%.in
 override_dh_clean: debian/control
 	# gross kludge to force control generation with the %.in target
 	touch debian/control.in
-	rm -f $(call dh_subst_files,$(DEB_ALL_PACKAGES))
+	rm -f $(call dh_subst_files,$(binaries))
 	rm -f testsuite/reftests/*.ui.known_fail
 	rm -rf debian/build debian/install
 	dh_clean
 
-DEB_INDEP_PACKAGES = $(shell dh_listpackages -i)
-DEB_ARCH_PACKAGES = $(shell dh_listpackages -a)
-DEB_ALL_PACKAGES = $(shell dh_listpackages)
 # Add dependencies to generate files from the debian/*.in ones
-override_dh_auto_build-indep: $(call dh_subst_files,$(DEB_INDEP_PACKAGES))
-override_dh_auto_build-arch: $(call dh_subst_files,$(DEB_ARCH_PACKAGES))
-override_dh_auto_build: $(call dh_subst_files,$(DEB_ALL_PACKAGES))
+override_dh_auto_build: $(call dh_subst_files,$(binaries))
