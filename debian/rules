@@ -44,11 +44,11 @@ EXAMPLES_PKG := gtk-$(APIVER)-examples
 NEWS := NEWS$(shell find -maxdepth 1 -size +4k -name NEWS -exec echo ".gz" \;)
 README := README$(shell find -maxdepth 1 -size +4k -name README -exec echo ".gz" \;)
 
-DEB_CONFIGURE_EXTRA_FLAGS = \
+configure_flags_common = \
 			--libdir=/$(LIBDIR) \
 			--enable-test-print-backend
 
-DEB_CONFIGURE_FLAGS_shared = \
+configure_flags_deb = \
 			--enable-broadway-backend \
 			--enable-x11-backend \
 			--enable-gtk-doc \
@@ -59,18 +59,18 @@ DEB_CONFIGURE_FLAGS_shared = \
 			--disable-static
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
-DEB_CONFIGURE_FLAGS_shared += --enable-colord
+configure_flags_deb += --enable-colord
 else
-DEB_CONFIGURE_FLAGS_shared += --disable-colord
+configure_flags_deb += --disable-colord
 endif
 
 ifeq (linux,$(DEB_HOST_ARCH_OS))
-DEB_CONFIGURE_FLAGS_shared += --enable-wayland-backend
+configure_flags_deb += --enable-wayland-backend
 else
-DEB_CONFIGURE_FLAGS_shared += --disable-wayland-backend
+configure_flags_deb += --disable-wayland-backend
 endif
 
-DEB_CONFIGURE_FLAGS_shared_udeb = \
+configure_flags_udeb = \
 			--disable-broadway-backend \
 			--disable-wayland-backend \
 			--enable-x11-backend \
@@ -92,14 +92,14 @@ override_dh_auto_configure: debian/control
 	dh_auto_configure \
 		--builddirectory=debian/build/deb \
 		-- \
-		$(DEB_CONFIGURE_EXTRA_FLAGS) \
-		$(DEB_CONFIGURE_FLAGS_shared) \
+		$(configure_flags_common) \
+		$(configure_flags_deb) \
 		$(NULL)
 	dh_auto_configure \
 		--builddirectory=debian/build/udeb \
 		-- \
-		$(DEB_CONFIGURE_EXTRA_FLAGS) \
-		$(DEB_CONFIGURE_FLAGS_shared_udeb) \
+		$(configure_flags_common) \
+		$(configure_flags_udeb) \
 		$(NULL)
 
 override_dh_auto_build:
