@@ -4,6 +4,7 @@ GNOME_MODULE = gtk+
 DISABLE_UPDATE_UPLOADERS = 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
+include /usr/share/dpkg/default.mk
 
 binaries := $(shell dh_listpackages)
 
