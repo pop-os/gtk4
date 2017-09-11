@@ -101,12 +101,14 @@ override_dh_auto_configure: debian/control
 		$(configure_flags_common) \
 		$(configure_flags_deb) \
 		$(NULL)
+ifneq ($(filter %-udeb,$(binaries)),)
 	dh_auto_configure \
 		--builddirectory=debian/build/udeb \
 		-- \
 		$(configure_flags_common) \
 		$(configure_flags_udeb) \
 		$(NULL)
+endif
 
 override_dh_auto_build:
 	# Mark reftests with known failures as non-fatal
@@ -119,15 +121,19 @@ override_dh_auto_build:
 	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/
 	glib-compile-schemas debian/build/glib-2.0/schemas/
 	dh_auto_build --builddirectory=debian/build/deb
+ifneq ($(filter %-udeb,$(binaries)),)
 	dh_auto_build --builddirectory=debian/build/udeb
+endif
 
 override_dh_auto_test:
 	# Remove LD_PRELOAD so we don't run with fakeroot, which makes dbus-related tests fail
 	env -u LD_PRELOAD dh_auto_test --builddirectory=debian/build/deb -- -k check -j1
 
 override_dh_auto_install:
-	dh_auto_install --builddirectory=debian/build/udeb --destdir=debian/install/udeb
 	dh_auto_install --builddirectory=debian/build/deb --destdir=debian/install/deb
+ifneq ($(filter %-udeb,$(binaries)),)
+	dh_auto_install --builddirectory=debian/build/udeb --destdir=debian/install/udeb
+endif
 
 override_dh_install:
 	dh_install -p$(UDEB_PKG) --sourcedir=debian/install/udeb
