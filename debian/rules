@@ -111,6 +111,12 @@ ifneq ($(filter %-udeb,$(binaries)),)
 endif
 
 override_dh_auto_build:
+	dh_auto_build --builddirectory=debian/build/deb
+ifneq ($(filter %-udeb,$(binaries)),)
+	dh_auto_build --builddirectory=debian/build/udeb
+endif
+
+override_dh_auto_test:
 	# Mark reftests with known failures as non-fatal
 	touch testsuite/reftests/nonresizable-size.ui.known_fail
 	touch testsuite/reftests/window-show-contents-on-map.ui.known_fail
@@ -120,12 +126,6 @@ override_dh_auto_build:
 	mkdir -p debian/build/glib-2.0/schemas/
 	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/
 	glib-compile-schemas debian/build/glib-2.0/schemas/
-	dh_auto_build --builddirectory=debian/build/deb
-ifneq ($(filter %-udeb,$(binaries)),)
-	dh_auto_build --builddirectory=debian/build/udeb
-endif
-
-override_dh_auto_test:
 	# Remove LD_PRELOAD so we don't run with fakeroot, which makes dbus-related tests fail
 	env -u LD_PRELOAD dh_auto_test --builddirectory=debian/build/deb -- -k check -j1
 
