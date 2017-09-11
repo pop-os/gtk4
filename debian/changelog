@@ -1,4 +1,4 @@
-gtk+3.0 (3.22.21-1) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.21-1) unstable; urgency=medium
 
   * New upstream release.
   * Bump to debhelper compat 10.
@@ -11,7 +11,7 @@ gtk+3.0 (3.22.21-1) UNRELEASED; urgency=medium
   * Skip the udeb build when not building the -udeb package. Saves a lot
     of time on the arch:all builds.
 
- -- Emilio Pozuelo Monfort <pochu@debian.org>  Sat, 09 Sep 2017 15:13:57 +0200
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Tue, 12 Sep 2017 00:38:15 +0200
 
 gtk+3.0 (3.22.20-1) unstable; urgency=medium
 
