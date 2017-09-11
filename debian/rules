@@ -46,6 +46,48 @@ EXAMPLES_PKG := gtk-$(APIVER)-examples
 NEWS := NEWS$(shell find -maxdepth 1 -size +4k -name NEWS -exec echo ".gz" \;)
 README := README$(shell find -maxdepth 1 -size +4k -name README -exec echo ".gz" \;)
 
+# Avoid test failures on buildd environments
+export HOME=$(CURDIR)/debian/build
+export XDG_RUNTIME_DIR=$(HOME)
+# So that gsettings can find the (uninstalled) gtk schemas
+export XDG_DATA_DIRS=/usr/share:$(CURDIR)/debian/build
+# Put these back to their defaults if we are not running with a clean
+# environment, so that they are based on the temporary $HOME above
+unexport XDG_CACHE_HOME
+unexport XDG_CONFIG_DIRS
+unexport XDG_CONFIG_HOME
+unexport XDG_DATA_HOME
+# Get failing tests' stdout/err so we have some information when a build fails
+export VERBOSE=1
+
+# macro computing the list of 'debian/<pkg>.*" files which have a
+# corresponding ".in" file; pass the list of packages in $(1)
+dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
+
+debian/%: debian/%.in
+	dh_testdir
+	sed \
+		-e "s#@SONAME@#$(SONAME)#g" \
+		-e "s#@APIVER@#$(APIVER)#g" \
+		-e "s#@VERSION@#$(DEB_UPSTREAM_VERSION)#g" \
+		-e "s#@GTK_BINVER_DEP@#$(GTK_BINVER_DEP)#g" \
+		-e "s#@SHARED_PKG@#$(SHARED_PKG)#g" \
+		-e "s#@COMMON_PKG@#$(COMMON_PKG)#g" \
+		-e "s#@DEV_PKG@#$(DEV_PKG)#g" \
+		-e "s#@UDEB_PKG@#$(UDEB_PKG)#g" \
+		-e "s#@DOC_PKG@#$(DOC_PKG)#g" \
+		-e "s#@BIN_PKG@#$(BIN_PKG)#g" \
+		-e "s#@EXAMPLES_PKG@#$(EXAMPLES_PKG)#g" \
+		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
+		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
+		-e "s#@LIBDIR@#$(LIBDIR)#g" \
+		-e 's#@CONFDIR@#$(CONFDIR)#g' \
+		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
+		-e "s#@OLD_MODULES_BASE_PATH@#$(OLD_MODULES_BASE_PATH)#g" \
+		-e "s#@NEWS@#$(NEWS)#g" \
+		-e "s#@README@#$(README)#g" \
+		$@.in > $@
+
 configure_flags_common = \
 	--libdir=/$(LIBDIR) \
 	--enable-test-print-backend
@@ -90,6 +132,17 @@ configure_flags_udeb = \
 
 %:
 	dh $@ --with gir
+
+override_dh_clean: debian/control
+	# gross kludge to force control generation with the %.in target
+	touch debian/control.in
+	rm -f $(call dh_subst_files,$(binaries))
+	rm -f testsuite/reftests/*.ui.known_fail
+	rm -rf debian/build debian/install
+	dh_clean
+
+# Add dependencies to generate files from the debian/*.in ones
+override_dh_auto_build: $(call dh_subst_files,$(binaries))
 
 override_dh_autoreconf:
 	dh_autoreconf "NOCONFIGURE=true ./autogen.sh"
@@ -152,56 +205,3 @@ override_dh_makeshlibs:
 	dh_makeshlibs -p$(SHARED_PKG) -V --add-udeb=$(UDEB_PKG) -X$(MODULES_BASE_PATH) -- -c4
 	dh_makeshlibs -plibgail-3-0 -V -- -c4
 	dh_makeshlibs --remaining-packages -X$(MODULES_BASE_PATH)
-
-# Avoid test failures on buildd environments
-export HOME=$(CURDIR)/debian/build
-export XDG_RUNTIME_DIR=$(HOME)
-# So that gsettings can find the (uninstalled) gtk schemas
-export XDG_DATA_DIRS=/usr/share:$(CURDIR)/debian/build
-# Put these back to their defaults if we are not running with a clean
-# environment, so that they are based on the temporary $HOME above
-unexport XDG_CACHE_HOME
-unexport XDG_CONFIG_DIRS
-unexport XDG_CONFIG_HOME
-unexport XDG_DATA_HOME
-# Get failing tests' stdout/err so we have some information when a build fails
-export VERBOSE=1
-
-# macro computing the list of 'debian/<pkg>.*" files which have a
-# corresponding ".in" file; pass the list of packages in $(1)
-dh_subst_files = $(patsubst %.in,%,$(wildcard $(addprefix debian/, $(addsuffix *.in, $(1)))))
-
-debian/%: debian/%.in
-	dh_testdir
-	sed \
-		-e "s#@SONAME@#$(SONAME)#g" \
-		-e "s#@APIVER@#$(APIVER)#g" \
-		-e "s#@VERSION@#$(DEB_UPSTREAM_VERSION)#g" \
-		-e "s#@GTK_BINVER_DEP@#$(GTK_BINVER_DEP)#g" \
-		-e "s#@SHARED_PKG@#$(SHARED_PKG)#g" \
-		-e "s#@COMMON_PKG@#$(COMMON_PKG)#g" \
-		-e "s#@DEV_PKG@#$(DEV_PKG)#g" \
-		-e "s#@UDEB_PKG@#$(UDEB_PKG)#g" \
-		-e "s#@DOC_PKG@#$(DOC_PKG)#g" \
-		-e "s#@BIN_PKG@#$(BIN_PKG)#g" \
-		-e "s#@EXAMPLES_PKG@#$(EXAMPLES_PKG)#g" \
-		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
-		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
-		-e "s#@LIBDIR@#$(LIBDIR)#g" \
-		-e 's#@CONFDIR@#$(CONFDIR)#g' \
-		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
-		-e "s#@OLD_MODULES_BASE_PATH@#$(OLD_MODULES_BASE_PATH)#g" \
-		-e "s#@NEWS@#$(NEWS)#g" \
-		-e "s#@README@#$(README)#g" \
-		$@.in > $@
-
-override_dh_clean: debian/control
-	# gross kludge to force control generation with the %.in target
-	touch debian/control.in
-	rm -f $(call dh_subst_files,$(binaries))
-	rm -f testsuite/reftests/*.ui.known_fail
-	rm -rf debian/build debian/install
-	dh_clean
-
-# Add dependencies to generate files from the debian/*.in ones
-override_dh_auto_build: $(call dh_subst_files,$(binaries))
