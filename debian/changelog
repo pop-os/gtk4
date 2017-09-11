@@ -1,5 +1,6 @@
-gtk+3.0 (3.22.20-2) UNRELEASED; urgency=medium
+gtk+3.0 (3.22.21-1) UNRELEASED; urgency=medium
 
+  * New upstream release.
   * Bump to debhelper compat 10.
     + Drop dh-autoreconf and autotools-dev build-deps, no longer needed as
       debhelper guarantees them now.
