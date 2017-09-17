@@ -3,6 +3,7 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
   * New major release, GTK+ 4 (beta version).
     Rename everything as appropriate for GTK+ 4.
   * Don't abort on test suite failures.
+  * Update symbols.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 11 Sep 2017 23:33:08 +0200
 
