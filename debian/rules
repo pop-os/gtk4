@@ -15,23 +15,23 @@ binaries := $(shell dh_listpackages)
 # Make the linker work a bit harder so dynamic loading can be done faster
 LDFLAGS += -Wl,-O1
 
-APIVER := 3
+APIVER := 4
 SONAME := 0
 
 LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 
 # earliest version that this release has backwards binary compatibility for
-GTK_BINARY_VERSION := 3.0.0
+GTK_BINARY_VERSION := 4.0.0
 
 # Gtk binary version virtual Provide
 GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION)
 
 # relative base directory for configuration
-CONFDIR := etc/gtk-3.0
+CONFDIR := etc/gtk-4.0
 
 # relative base directory for all types of modules
-MODULES_BASE_PATH := $(LIBDIR)/gtk-3.0/$(GTK_BINARY_VERSION)
-OLD_MODULES_BASE_PATH := usr/lib/gtk-3.0/$(GTK_BINARY_VERSION)
+MODULES_BASE_PATH := $(LIBDIR)/gtk-4.0/$(GTK_BINARY_VERSION)
+OLD_MODULES_BASE_PATH := usr/lib/gtk-4.0/$(GTK_BINARY_VERSION)
 
 # package names
 SHARED_PKG := libgtk-$(APIVER)-$(SONAME)
@@ -204,5 +204,5 @@ override_dh_installdocs:
 
 override_dh_makeshlibs:
 	dh_makeshlibs -p$(SHARED_PKG) -V --add-udeb=$(UDEB_PKG) -X$(MODULES_BASE_PATH) -- -c4
-	dh_makeshlibs -plibgail-3-0 -V -- -c4
+	dh_makeshlibs -plibgail-4-0 -V -- -c4
 	dh_makeshlibs --remaining-packages -X$(MODULES_BASE_PATH)

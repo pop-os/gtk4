@@ -1,3 +1,10 @@
+gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
+
+  * New major release, GTK+ 4 (beta version).
+    Rename everything as appropriate for GTK+ 4.
+
+ -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 11 Sep 2017 23:33:08 +0200
+
 gtk+3.0 (3.22.21-1) unstable; urgency=medium
 
   * New upstream release.

@@ -1,4 +1,4 @@
-Source: gtk+3.0
+Source: gtk+4.0
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
@@ -52,8 +52,8 @@ Build-Depends-Indep: libglib2.0-doc,
                      docbook-xsl,
                      xsltproc,
 Standards-Version: 4.1.0
-Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
-Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/gtk+3.0/
+Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/gtk+4.0/
+Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/gtk+4.0/
 Homepage: http://www.gtk.org/
 
 Package: @SHARED_PKG@
@@ -137,7 +137,7 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Depends: @SHARED_PKG@ (= ${binary:Version}),
-         gir1.2-gtk-3.0 (= ${binary:Version}),
+         gir1.2-gtk-4.0 (= ${binary:Version}),
          @COMMON_PKG@,
          ${misc:Depends},
          ${shlibs:Depends},
@@ -200,16 +200,16 @@ Depends: ${shlibs:Depends},
          @SHARED_PKG@ (= ${binary:Version})
 Breaks: @COMMON_PKG@ (<< 3.5.4)
 Replaces: @COMMON_PKG@ (<< 3.5.4)
-Description: example files for GTK+ 3
+Description: example files for GTK+ 4
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
  This package contains the example files and a demonstration program
- for GTK+3.
+ for GTK+4.
 
-Package: gir1.2-gtk-3.0
+Package: gir1.2-gtk-4.0
 Section: introspection
 Architecture: any
 Multi-Arch: same
@@ -246,7 +246,7 @@ Description: icon theme caching utility
  format of the cache files allows them to be mmap()ed shared between multiple
  applications, the overall memory consumption is reduced as well.
 
-Package: libgail-3-0
+Package: libgail-4-0
 Architecture: any
 Multi-Arch: same
 Depends: ${misc:Depends},
@@ -262,16 +262,16 @@ Description: GNOME Accessibility Implementation Library -- shared libraries
  .
  This package contains the shared library.
 
-Package: libgail-3-dev
+Package: libgail-4-dev
 Architecture: any
 Multi-Arch: same
 Section: libdevel
 Depends: ${misc:Depends},
-         libgail-3-0 (= ${binary:Version}),
+         libgail-4-0 (= ${binary:Version}),
          @DEV_PKG@ (= ${binary:Version}),
          pkg-config,
          libatk1.0-dev
-Suggests: libgail-3-doc
+Suggests: libgail-4-doc
 Description: GNOME Accessibility Implementation Library -- development files
  Gail implements ATK interfaces for GTK+ widgets which are dynamically
  loadable at runtime by a GTK+ application. Once loaded, those parts of
@@ -280,7 +280,7 @@ Description: GNOME Accessibility Implementation Library -- development files
  .
  This package contains the development files for Gail.
 
-Package: libgail-3-doc
+Package: libgail-4-doc
 Architecture: all
 Multi-Arch: foreign
 Section: doc

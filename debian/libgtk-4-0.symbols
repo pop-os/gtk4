@@ -1,5 +1,5 @@
-libgdk-3.so.0 libgtk-3-0 #MINVER#
-* Build-Depends-Package: libgtk-3-dev
+libgdk-4.so.0 libgtk-4-0 #MINVER#
+* Build-Depends-Package: libgtk-4-dev
  gdk__private__@Base 3.16.2
  gdk_add_option_entries_libgtk_only@Base 3.0.0
  gdk_anchor_hints_get_type@Base 3.21.5
@@ -751,7 +751,7 @@ libgdk-3.so.0 libgtk-3-0 #MINVER#
  gdk_x11_window_set_utf8_property@Base 3.3.16
  gdk_x11_xatom_to_atom@Base 3.0.0
  gdk_x11_xatom_to_atom_for_display@Base 3.0.0
-libgtk-3.so.0 libgtk-3-0 #MINVER#
+libgtk-4.so.0 libgtk-4-0 #MINVER#
  gtk_about_dialog_add_credit_section@Base 3.3.16
  gtk_about_dialog_get_artists@Base 3.0.0
  gtk_about_dialog_get_authors@Base 3.0.0
