@@ -110,8 +110,6 @@ Multi-Arch: foreign
 Depends: ${misc:Depends},
          libgtk-3-common
 Recommends: @SHARED_PKG@
-Breaks: @SHARED_PKG@ (<< 3.5.4)
-Replaces: @SHARED_PKG@ (<< 3.5.4)
 Description: common files for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -205,8 +203,6 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          @SHARED_PKG@ (= ${binary:Version}),
          gtk-3-examples
-Breaks: @COMMON_PKG@ (<< 3.5.4)
-Replaces: @COMMON_PKG@ (<< 3.5.4)
 Description: example files for GTK+ 4
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable

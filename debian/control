@@ -110,8 +110,6 @@ Multi-Arch: foreign
 Depends: ${misc:Depends},
          libgtk-3-common
 Recommends: libgtk-4-0
-Breaks: libgtk-4-0 (<< 3.5.4)
-Replaces: libgtk-4-0 (<< 3.5.4)
 Description: common files for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -205,8 +203,6 @@ Depends: ${shlibs:Depends},
          ${misc:Depends},
          libgtk-4-0 (= ${binary:Version}),
          gtk-3-examples
-Breaks: libgtk-4-common (<< 3.5.4)
-Replaces: libgtk-4-common (<< 3.5.4)
 Description: example files for GTK+ 4
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable

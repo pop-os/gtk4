@@ -27,6 +27,7 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
   [ Jeremy Bicha ]
   * debian/control.in:
     - Build-Depend on libvulkan-dev and sassc
+    - Drop Breaks/Replaces not needed after jessie
     - Have libgtk-4-bin and libgtk-4-common and gtk-4-examples depend on
       their gtk3 counterparts until we figure out how to handle the file
       conflicts there. The conflicted files have not changed in gtk4.
