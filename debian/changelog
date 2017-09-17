@@ -1,7 +1,7 @@
 gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
 
   [ Emilio Pozuelo Monfort ]
-  * New major release, GTK+ 4 (beta version).
+  * New major release, GTK+ 4 (beta version). (Closes: #876011)
     Rename everything as appropriate for GTK+ 4.
   * Don't abort on test suite failures.
   * Update symbols. Set all symbols' minimum version to 3.91.2.
