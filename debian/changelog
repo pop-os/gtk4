@@ -6,6 +6,7 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
   * Update symbols. Set all symbols' minimum version to 3.91.2.
   * Update build-dependencies: bump gtk-doc-tools and libglib2.0-dev
     minimum requirement, add libgraphene-1.0-dev.
+  * Drop libgail packages, they are no longer built from GTK+ 4.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 11 Sep 2017 23:33:08 +0200
 

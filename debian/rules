@@ -204,5 +204,4 @@ override_dh_installdocs:
 
 override_dh_makeshlibs:
 	dh_makeshlibs -p$(SHARED_PKG) -V --add-udeb=$(UDEB_PKG) -X$(MODULES_BASE_PATH) -- -c4
-	dh_makeshlibs -plibgail-4-0 -V -- -c4
 	dh_makeshlibs --remaining-packages -X$(MODULES_BASE_PATH)
