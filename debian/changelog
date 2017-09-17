@@ -15,6 +15,8 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
     + Removed, imported in 2009 with no explanation whatsoever.
   * debian/patches/060_ignore-random-icons.patch:
     + Removed, upstream fixed this differently eons ago (see bgo#451634).
+  * debian/patches/018_gdkenumtypes.c_location.patch:
+    + Refreshed.
   * debian/libgtk-4-dev.install: don't install aclocal files.
   * debian/libgtk-4-common.install.in: comment out EmojiChooser schema, it's
     not present in 3.91.2 but will be in the next release.
