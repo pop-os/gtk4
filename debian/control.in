@@ -56,17 +56,17 @@ Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/gtk+3.0/
 Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/gtk+3.0/
 Homepage: http://www.gtk.org/
 
-Package: @SHARED_PKG@
+Package: libgtk-3-0
 Architecture: any
 Multi-Arch: same
-Depends: @COMMON_PKG@ (>= ${source:Version}),
+Depends: libgtk-3-common (>= ${source:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          hicolor-icon-theme,
          adwaita-icon-theme,
          shared-mime-info
-Provides: @GTK_BINVER_DEP@
-Recommends: @BIN_PKG@
+Provides: gtk3-binver-3.0.0
+Recommends: libgtk-3-bin
 Suggests: librsvg2-common,
           gvfs
 Breaks: gnome-themes-standard (<< 3.6),
@@ -80,14 +80,14 @@ Description: GTK+ graphical user interface library
  .
  This package contains the shared libraries.
 
-Package: @UDEB_PKG@
+Package: libgtk-3-0-udeb
 XC-Package-Type: udeb
 Section: debian-installer
 Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends}
-Provides: @GTK_BINVER_DEP@
+Provides: gtk3-binver-3.0.0
 Description: GTK+ graphical user interface library - minimal runtime
  This is a udeb, or a microdeb, for the debian-installer.
  .
@@ -99,14 +99,14 @@ Description: GTK+ graphical user interface library - minimal runtime
  This package contains the minimal runtime library using X11 needed
  by the Debian installer.
 
-Package: @COMMON_PKG@
+Package: libgtk-3-common
 Section: misc
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}
-Recommends: @SHARED_PKG@
-Breaks: @SHARED_PKG@ (<< 3.5.4)
-Replaces: @SHARED_PKG@ (<< 3.5.4)
+Recommends: libgtk-3-0
+Breaks: libgtk-3-0 (<< 3.5.4)
+Replaces: libgtk-3-0 (<< 3.5.4)
 Description: common files for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -115,13 +115,13 @@ Description: common files for the GTK+ graphical user interface library
  .
  This package contains the common files which the libraries need.
 
-Package: @BIN_PKG@
+Package: libgtk-3-bin
 Section: misc
 Architecture: any
 Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends},
-         @SHARED_PKG@ (>= ${source:Version}),
-         @COMMON_PKG@ (>= ${source:Version}),
+         libgtk-3-0 (>= ${source:Version}),
+         libgtk-3-common (>= ${source:Version}),
          gtk-update-icon-cache
 Description: programs for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
@@ -132,13 +132,13 @@ Description: programs for the GTK+ graphical user interface library
  This package contains the utilities which are used by the libraries
  and other packages.
 
-Package: @DEV_PKG@
+Package: libgtk-3-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: @SHARED_PKG@ (= ${binary:Version}),
+Depends: libgtk-3-0 (= ${binary:Version}),
          gir1.2-gtk-3.0 (= ${binary:Version}),
-         @COMMON_PKG@,
+         libgtk-3-common,
          ${misc:Depends},
          ${shlibs:Depends},
          libglib2.0-dev (>= 2.49.4),
@@ -163,7 +163,7 @@ Depends: @SHARED_PKG@ (= ${binary:Version}),
          libwayland-dev (>= 1.9.91) [linux-any],
          wayland-protocols (>= 1.9) [linux-any],
          libxkbcommon-dev
-Suggests: @DOC_PKG@
+Suggests: libgtk-3-doc
 Description: development files for the GTK+ library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -173,7 +173,7 @@ Description: development files for the GTK+ library
  This package contains the header and development files which are
  needed for building GTK+ applications.
 
-Package: @DOC_PKG@
+Package: libgtk-3-doc
 Section: doc
 Architecture: all
 Multi-Arch: foreign
@@ -189,17 +189,17 @@ Description: documentation for the GTK+ graphical user interface library
  suites.
  .
  This package contains the HTML documentation for the GTK+ library
- in /usr/share/doc/@DOC_PKG@/ .
+ in /usr/share/doc/libgtk-3-doc/ .
 
-Package: @EXAMPLES_PKG@
+Package: gtk-3-examples
 Section: x11
 Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         @SHARED_PKG@ (= ${binary:Version})
-Breaks: @COMMON_PKG@ (<< 3.5.4)
-Replaces: @COMMON_PKG@ (<< 3.5.4)
+         libgtk-3-0 (= ${binary:Version})
+Breaks: libgtk-3-common (<< 3.5.4)
+Replaces: libgtk-3-common (<< 3.5.4)
 Description: example files for GTK+ 3
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -213,7 +213,7 @@ Package: gir1.2-gtk-3.0
 Section: introspection
 Architecture: any
 Multi-Arch: same
-Depends: @COMMON_PKG@,
+Depends: libgtk-3-common,
          ${misc:Depends},
          ${shlibs:Depends},
          ${gir:Depends}
@@ -251,7 +251,7 @@ Architecture: any
 Multi-Arch: same
 Depends: ${misc:Depends},
          ${shlibs:Depends},
-         @SHARED_PKG@ (= ${binary:Version}),
+         libgtk-3-0 (= ${binary:Version}),
          at-spi2-core
 Pre-Depends: ${misc:Pre-Depends}
 Description: GNOME Accessibility Implementation Library -- shared libraries
@@ -268,7 +268,7 @@ Multi-Arch: same
 Section: libdevel
 Depends: ${misc:Depends},
          libgail-3-0 (= ${binary:Version}),
-         @DEV_PKG@ (= ${binary:Version}),
+         libgtk-3-dev (= ${binary:Version}),
          pkg-config,
          libatk1.0-dev
 Suggests: libgail-3-doc

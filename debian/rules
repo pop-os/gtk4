@@ -132,11 +132,9 @@ configure_flags_udeb = \
 	--disable-xrandr
 
 %:
-	dh $@ --with gir
+	dh $@ --with gir,gnome
 
-override_dh_clean: debian/control
-	# gross kludge to force control generation with the %.in target
-	touch debian/control.in
+override_dh_clean:
 	rm -f $(call dh_subst_files,$(binaries))
 	rm -f testsuite/reftests/*.ui.known_fail
 	rm -rf debian/build debian/install
