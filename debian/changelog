@@ -5,7 +5,7 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
   * Don't abort on test suite failures.
   * Update symbols. Set all symbols' minimum version to 3.91.2.
   * Update build-dependencies: bump gtk-doc-tools and libglib2.0-dev
-    minimum requirement, add libgraphene-1.0-dev.
+    minimum requirement, add libgraphene-1.0-dev and autoreconf-archive.
   * Drop libgail packages, they are no longer built from GTK+ 4.
   * Don't install libgdk-4.so, it has been merged into libgtk-4.so.
   * debian/patches/016_no_offscreen_widgets_grabbing.patch,
