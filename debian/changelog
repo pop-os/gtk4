@@ -11,6 +11,7 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
   * debian/patches/016_no_offscreen_widgets_grabbing.patch,
     debian/patches/017_no_offscreen_device_grabbing.patch:
     + Removed, obsolete as offscreen widgets are gone in GTK+ 4.
+  * debian/libgtk-4-dev.install: don't install aclocal files.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 11 Sep 2017 23:33:08 +0200
 
