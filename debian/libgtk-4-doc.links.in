@@ -1,4 +1,5 @@
 usr/share/doc/@DOC_PKG@/gdk4 usr/share/gtk-doc/html/gdk4
+usr/share/doc/@DOC_PKG@/gsk4 usr/share/gtk-doc/html/gsk4
 usr/share/doc/@DOC_PKG@/gtk4 usr/share/gtk-doc/html/gtk4
 usr/share/doc/libatk1.0-doc/atk usr/share/doc/@DOC_PKG@/atk
 usr/share/doc/libglib2.0-doc/glib usr/share/doc/@DOC_PKG@/glib
