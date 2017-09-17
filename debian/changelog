@@ -25,10 +25,12 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
   * Point Vcs-* to experimental.
 
   [ Jeremy Bicha ]
-  * Have libgtk-4-bin and libgtk-4-common and gtk-4-examples depend on
-    their gtk3 counterparts until we figure out how to handle the file
-    conflicts there. The conflicted files have not changed in gtk4.
-    See GNOME bug 774912.
+  * debian/control.in:
+    - Build-Depend on libvulkan-dev and sassc
+    - Have libgtk-4-bin and libgtk-4-common and gtk-4-examples depend on
+      their gtk3 counterparts until we figure out how to handle the file
+      conflicts there. The conflicted files have not changed in gtk4.
+      See GNOME bug 774912.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 11 Sep 2017 23:33:08 +0200
 

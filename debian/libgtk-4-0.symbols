@@ -401,34 +401,46 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gdk_visual_get_type@Base 3.91.2
  gdk_visual_get_visual_type@Base 3.91.2
  gdk_visual_type_get_type@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_device@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_draw_index@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_draw_semaphore@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_image@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_image_format@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_instance@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_n_images@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_physical_device@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_queue@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_context_get_queue_family_index@Base 3.91.2
  gdk_vulkan_context_get_type@Base 3.91.2
  gdk_vulkan_error_get_type@Base 3.91.2
  gdk_vulkan_error_quark@Base 3.91.2
- gdk_wayland_device_get_node_path@Base 3.91.2
- gdk_wayland_device_get_type@Base 3.91.2
- gdk_wayland_device_get_wl_keyboard@Base 3.91.2
- gdk_wayland_device_get_wl_pointer@Base 3.91.2
- gdk_wayland_device_get_wl_seat@Base 3.91.2
- gdk_wayland_device_pad_set_feedback@Base 3.91.2
- gdk_wayland_display_get_type@Base 3.91.2
- gdk_wayland_display_get_wl_compositor@Base 3.91.2
- gdk_wayland_display_get_wl_display@Base 3.91.2
- gdk_wayland_display_set_cursor_theme@Base 3.91.2
- gdk_wayland_display_set_startup_notification_id@Base 3.91.2
- gdk_wayland_gl_context_get_type@Base 3.91.2
- gdk_wayland_monitor_get_type@Base 3.91.2
- gdk_wayland_monitor_get_wl_output@Base 3.91.2
- gdk_wayland_seat_get_wl_seat@Base 3.91.2
- gdk_wayland_selection_add_targets_libgtk_only@Base 3.91.2
- gdk_wayland_selection_clear_targets_libgtk_only@Base 3.91.2
- gdk_wayland_window_export_handle@Base 3.91.2
- gdk_wayland_window_get_type@Base 3.91.2
- gdk_wayland_window_get_wl_surface@Base 3.91.2
- gdk_wayland_window_new_subsurface@Base 3.91.2
- gdk_wayland_window_set_dbus_properties_libgtk_only@Base 3.91.2
- gdk_wayland_window_set_transient_for_exported@Base 3.91.2
- gdk_wayland_window_set_use_custom_surface@Base 3.91.2
- gdk_wayland_window_unexport_handle@Base 3.91.2
+ (arch=linux-any)gdk_vulkan_strerror@Base 3.91.2
+ (arch=linux-any)gdk_wayland_device_get_node_path@Base 3.91.2
+ (arch=linux-any)gdk_wayland_device_get_type@Base 3.91.2
+ (arch=linux-any)gdk_wayland_device_get_wl_keyboard@Base 3.91.2
+ (arch=linux-any)gdk_wayland_device_get_wl_pointer@Base 3.91.2
+ (arch=linux-any)gdk_wayland_device_get_wl_seat@Base 3.91.2
+ (arch=linux-any)gdk_wayland_device_pad_set_feedback@Base 3.91.2
+ (arch=linux-any)gdk_wayland_display_get_type@Base 3.91.2
+ (arch=linux-any)gdk_wayland_display_get_wl_compositor@Base 3.91.2
+ (arch=linux-any)gdk_wayland_display_get_wl_display@Base 3.91.2
+ (arch=linux-any)gdk_wayland_display_set_cursor_theme@Base 3.91.2
+ (arch=linux-any)gdk_wayland_display_set_startup_notification_id@Base 3.91.2
+ (arch=linux-any)gdk_wayland_gl_context_get_type@Base 3.91.2
+ (arch=linux-any)gdk_wayland_monitor_get_type@Base 3.91.2
+ (arch=linux-any)gdk_wayland_monitor_get_wl_output@Base 3.91.2
+ (arch=linux-any)gdk_wayland_seat_get_wl_seat@Base 3.91.2
+ (arch=linux-any)gdk_wayland_selection_add_targets_libgtk_only@Base 3.91.2
+ (arch=linux-any)gdk_wayland_selection_clear_targets_libgtk_only@Base 3.91.2
+ (arch=linux-any)gdk_wayland_vulkan_context_get_type@Base 3.91.2
+ (arch=linux-any)gdk_wayland_window_export_handle@Base 3.91.2
+ (arch=linux-any)gdk_wayland_window_get_type@Base 3.91.2
+ (arch=linux-any)gdk_wayland_window_get_wl_surface@Base 3.91.2
+ (arch=linux-any)gdk_wayland_window_new_subsurface@Base 3.91.2
+ (arch=linux-any)gdk_wayland_window_set_dbus_properties_libgtk_only@Base 3.91.2
+ (arch=linux-any)gdk_wayland_window_set_transient_for_exported@Base 3.91.2
+ (arch=linux-any)gdk_wayland_window_set_use_custom_surface@Base 3.91.2
+ (arch=linux-any)gdk_wayland_window_unexport_handle@Base 3.91.2
  gdk_window_add_filter@Base 3.91.2
  gdk_window_beep@Base 3.91.2
  gdk_window_begin_draw_frame@Base 3.91.2
@@ -636,6 +648,7 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gdk_x11_ungrab_server@Base 3.91.2
  gdk_x11_visual_get_type@Base 3.91.2
  gdk_x11_visual_get_xvisual@Base 3.91.2
+ (arch=linux-any)gdk_x11_vulkan_context_get_type@Base 3.91.2
  gdk_x11_window_foreign_new_for_display@Base 3.91.2
  gdk_x11_window_get_desktop@Base 3.91.2
  gdk_x11_window_get_type@Base 3.91.2
