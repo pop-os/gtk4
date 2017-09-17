@@ -1,6 +1,7 @@
 @CONFDIR@/im-multipress.conf
 usr/share/locale
 usr/share/themes
+# Currently shipped by libgtk-3-common
 #usr/share/glib-2.0/schemas/org.gtk.Settings.EmojiChooser.gschema.xml
-usr/share/glib-2.0/schemas/org.gtk.Settings.FileChooser.gschema.xml
-usr/share/glib-2.0/schemas/org.gtk.Settings.ColorChooser.gschema.xml
+#usr/share/glib-2.0/schemas/org.gtk.Settings.FileChooser.gschema.xml
+#usr/share/glib-2.0/schemas/org.gtk.Settings.ColorChooser.gschema.xml

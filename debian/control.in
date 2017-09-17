@@ -105,7 +105,8 @@ Package: @COMMON_PKG@
 Section: misc
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends}
+Depends: ${misc:Depends},
+         libgtk-3-common
 Recommends: @SHARED_PKG@
 Breaks: @SHARED_PKG@ (<< 3.5.4)
 Replaces: @SHARED_PKG@ (<< 3.5.4)
@@ -124,7 +125,8 @@ Multi-Arch: foreign
 Depends: ${misc:Depends}, ${shlibs:Depends},
          @SHARED_PKG@ (>= ${source:Version}),
          @COMMON_PKG@ (>= ${source:Version}),
-         gtk-update-icon-cache
+         gtk-update-icon-cache,
+         libgtk-3-bin
 Description: programs for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -199,7 +201,8 @@ Priority: extra
 Architecture: any
 Depends: ${shlibs:Depends},
          ${misc:Depends},
-         @SHARED_PKG@ (= ${binary:Version})
+         @SHARED_PKG@ (= ${binary:Version}),
+         gtk-3-examples
 Breaks: @COMMON_PKG@ (<< 3.5.4)
 Replaces: @COMMON_PKG@ (<< 3.5.4)
 Description: example files for GTK+ 4

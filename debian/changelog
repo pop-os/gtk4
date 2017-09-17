@@ -1,5 +1,6 @@
 gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
 
+  [ Emilio Pozuelo Monfort ]
   * New major release, GTK+ 4 (beta version).
     Rename everything as appropriate for GTK+ 4.
   * Don't abort on test suite failures.
@@ -22,6 +23,12 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
     not present in 3.91.2 but will be in the next release.
   * Update watch file.
   * Point Vcs-* to experimental.
+
+  [ Jeremy Bicha ]
+  * Have libgtk-4-bin and libgtk-4-common and gtk-4-examples depend on
+    their gtk3 counterparts until we figure out how to handle the file
+    conflicts there. The conflicted files have not changed in gtk4.
+    See GNOME bug 774912.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 11 Sep 2017 23:33:08 +0200
 

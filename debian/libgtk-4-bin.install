@@ -2,8 +2,9 @@ usr/bin/gtk4-broadwayd
 usr/bin/gtk4-builder-tool
 usr/bin/gtk4-launch
 usr/bin/gtk4-query-settings
-usr/share/gettext/its/gtkbuilder.its
-usr/share/gettext/its/gtkbuilder.loc
+# Currently shipped by libgtk-3-bin
+#usr/share/gettext/its/gtkbuilder.its
+#usr/share/gettext/its/gtkbuilder.loc
 usr/share/man/man1/gtk4-broadwayd.1
 usr/share/man/man1/gtk4-builder-tool.1
 usr/share/man/man1/gtk4-launch.1

@@ -8,8 +8,9 @@ usr/share/applications/gtk4-icon-browser.desktop
 usr/share/applications/gtk4-widget-factory.desktop
 usr/share/icons/hicolor/*/*/gtk4-widget-factory*
 usr/share/icons/hicolor/*/*/gtk4-demo*
-usr/share/glib-2.0/schemas/org.gtk.Demo.gschema.xml
-usr/share/glib-2.0/schemas/org.gtk.exampleapp.gschema.xml
+# Currently shipped by gtk-3-examples
+#usr/share/glib-2.0/schemas/org.gtk.Demo.gschema.xml
+#usr/share/glib-2.0/schemas/org.gtk.exampleapp.gschema.xml
 usr/share/man/*/gtk4-encode-symbolic-svg.*
 usr/share/man/*/gtk4-demo.*
 usr/share/man/*/gtk4-demo-application.*
