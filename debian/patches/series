@@ -1,5 +1,3 @@
-016_no_offscreen_widgets_grabbing.patch
-017_no_offscreen_device_grabbing.patch
 018_gdkenumtypes.c_location.patch
 022_disable-viqr-im-for-vi-locale.patch
 060_ignore-random-icons.patch
