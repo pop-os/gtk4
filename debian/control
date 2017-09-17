@@ -54,8 +54,8 @@ Build-Depends-Indep: libglib2.0-doc,
                      docbook-xsl,
                      xsltproc,
 Standards-Version: 4.1.0
-Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/unstable/gtk+4.0/
-Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-gnome/desktop/unstable/gtk+4.0/
+Vcs-Svn: svn://anonscm.debian.org/pkg-gnome/desktop/experimental/gtk+4.0/
+Vcs-Browser: https://anonscm.debian.org/viewvc/pkg-gnome/desktop/experimental/gtk+4.0/
 Homepage: http://www.gtk.org/
 
 Package: libgtk-4-0

@@ -15,6 +15,7 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
   * debian/libgtk-4-common.install.in: comment out EmojiChooser schema, it's
     not present in 3.91.2 but will be in the next release.
   * Update watch file.
+  * Point Vcs-* to experimental.
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 11 Sep 2017 23:33:08 +0200
 
