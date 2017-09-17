@@ -11,6 +11,8 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
   * debian/patches/016_no_offscreen_widgets_grabbing.patch,
     debian/patches/017_no_offscreen_device_grabbing.patch:
     + Removed, obsolete as offscreen widgets are gone in GTK+ 4.
+  * debian/patches/022_disable-viqr-im-for-vi-locale.patch:
+    + Removed, imported in 2009 with no explanation whatsoever.
   * debian/libgtk-4-dev.install: don't install aclocal files.
   * debian/libgtk-4-common.install.in: comment out EmojiChooser schema, it's
     not present in 3.91.2 but will be in the next release.
