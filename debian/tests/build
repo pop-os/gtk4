@@ -15,7 +15,7 @@ cat <<EOF > gtktest.c
 
 static gboolean
 do_quit (gpointer user_data)
-{   
+{
     gtk_main_quit ();
 }
 
@@ -35,7 +35,7 @@ int main(int argc, char **argv)
 }
 EOF
 
-gcc -o gtktest gtktest.c `pkg-config --cflags --libs gtk+-3.0`
+gcc -o gtktest gtktest.c `pkg-config --cflags --libs gtk+-4.0`
 echo "build: OK"
 [ -x gtktest ]
 xvfb-run ./gtktest
