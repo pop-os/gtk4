@@ -31,6 +31,7 @@ gtk+4.0 (3.91.2-1) UNRELEASED; urgency=medium
       their gtk3 counterparts until we figure out how to handle the file
       conflicts there. The conflicted files have not changed in gtk4.
       See GNOME bug 774912.
+  * Don't build gtk-update-icon-cache; we'll let gtk3 handle that for now
 
  -- Emilio Pozuelo Monfort <pochu@debian.org>  Mon, 11 Sep 2017 23:33:08 +0200
 

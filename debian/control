@@ -235,20 +235,20 @@ Description: GTK+ graphical user interface library -- gir bindings
  This package can be used by other packages using the GIRepository format to
  generate dynamic bindings.
 
-Package: gtk-update-icon-cache
-Section: misc
-Architecture: any
-Multi-Arch: foreign
-Depends: ${misc:Depends},
-         ${shlibs:Depends}
-Breaks: libgtk2.0-bin (<< 2.24.30-2),
-        libgtk-3-bin (<< 3.20.6-1)
-Replaces: libgtk2.0-bin (<< 2.24.30-2),
-          libgtk-3-bin (<< 3.20.6-1)
-Description: icon theme caching utility
- gtk-update-icon-cache creates mmap()able cache files for icon themes.
- .
- GTK+ can use the cache files created by gtk-update-icon-cache to avoid a lot
- of system call and disk seek overhead when the application starts. Since the
- format of the cache files allows them to be mmap()ed shared between multiple
- applications, the overall memory consumption is reduced as well.
+#Package: gtk-update-icon-cache
+#Section: misc
+#Architecture: any
+#Multi-Arch: foreign
+#Depends: ${misc:Depends},
+#         ${shlibs:Depends}
+#Breaks: libgtk2.0-bin (<< 2.24.30-2),
+#        libgtk-3-bin (<< 3.20.6-1)
+#Replaces: libgtk2.0-bin (<< 2.24.30-2),
+#          libgtk-3-bin (<< 3.20.6-1)
+#Description: icon theme caching utility
+# gtk-update-icon-cache creates mmap()able cache files for icon themes.
+# .
+# GTK+ can use the cache files created by gtk-update-icon-cache to avoid a lot
+# of system call and disk seek overhead when the application starts. Since the
+# format of the cache files allows them to be mmap()ed shared between multiple
+# applications, the overall memory consumption is reduced as well.
