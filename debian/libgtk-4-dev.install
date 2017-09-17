@@ -2,5 +2,8 @@ usr/include/gtk*
 usr/lib/*/libgtk*.so
 usr/lib/*/pkgconfig/g?k*
 usr/share/gir-1.0
-usr/share/glib-2.0/schemas/org.gtk.Settings.Debug.gschema.xml
+# Currently shipped by libgtk-3-dev
+# Since it's only used for the Inspector, there's no need
+# to have libgtk-4-dev depend on libgtk-3-dev now
+#usr/share/glib-2.0/schemas/org.gtk.Settings.Debug.gschema.xml
 usr/share/gtk-4.0/gtkbuilder.rng
