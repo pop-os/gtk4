@@ -1,4 +1,4 @@
-libgtk-4.so.0 libgtk-4-0 #MINVER#
+libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_anchor_hints_get_type@Base 3.91.2
  gdk_app_launch_context_get_type@Base 3.91.2
  gdk_app_launch_context_set_desktop@Base 3.91.2
@@ -181,41 +181,65 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gdk_event_copy@Base 3.91.2
  gdk_event_free@Base 3.91.2
  gdk_event_get@Base 3.91.2
+ gdk_event_get_axes@Base 3.92.1
  gdk_event_get_axis@Base 3.91.2
  gdk_event_get_button@Base 3.91.2
  gdk_event_get_click_count@Base 3.91.2
  gdk_event_get_coords@Base 3.91.2
+ gdk_event_get_crossing_detail@Base 3.92.1
+ gdk_event_get_crossing_mode@Base 3.92.1
  gdk_event_get_device@Base 3.91.2
  gdk_event_get_device_tool@Base 3.91.2
+ gdk_event_get_drag_context@Base 3.92.1
  gdk_event_get_event_sequence@Base 3.91.2
  gdk_event_get_event_type@Base 3.91.2
+ gdk_event_get_focus_in@Base 3.92.1
+ gdk_event_get_grab_window@Base 3.92.1
+ gdk_event_get_key_group@Base 3.92.1
+ gdk_event_get_key_is_modifier@Base 3.92.1
  gdk_event_get_keycode@Base 3.91.2
  gdk_event_get_keyval@Base 3.91.2
+ gdk_event_get_pad_axis_value@Base 3.92.1
+ gdk_event_get_pad_button@Base 3.92.1
+ gdk_event_get_pad_group_mode@Base 3.92.1
  gdk_event_get_pointer_emulated@Base 3.91.2
+ gdk_event_get_property@Base 3.92.1
  gdk_event_get_root_coords@Base 3.91.2
  gdk_event_get_scancode@Base 3.91.2
  gdk_event_get_screen@Base 3.91.2
  gdk_event_get_scroll_deltas@Base 3.91.2
  gdk_event_get_scroll_direction@Base 3.91.2
  gdk_event_get_seat@Base 3.91.2
+ gdk_event_get_selection@Base 3.92.1
+ gdk_event_get_selection_property@Base 3.92.1
+ gdk_event_get_setting@Base 3.92.1
  gdk_event_get_source_device@Base 3.91.2
  gdk_event_get_state@Base 3.91.2
+ gdk_event_get_string@Base 3.92.1
  gdk_event_get_time@Base 3.91.2
+ gdk_event_get_touch_emulating_pointer@Base 3.92.1
+ gdk_event_get_touchpad_angle_delta@Base 3.92.1
+ gdk_event_get_touchpad_deltas@Base 3.92.1
+ gdk_event_get_touchpad_gesture_n_fingers@Base 3.92.1
+ gdk_event_get_touchpad_gesture_phase@Base 3.92.1
+ gdk_event_get_touchpad_scale@Base 3.92.1
  gdk_event_get_type@Base 3.91.2
- gdk_event_get_user_data@Base 3.91.2
  gdk_event_get_window@Base 3.91.2
+ gdk_event_get_window_state@Base 3.92.1
  gdk_event_handler_set@Base 3.91.2
  gdk_event_is_scroll_stop_event@Base 3.91.2
+ gdk_event_is_sent@Base 3.92.1
  gdk_event_mask_get_type@Base 3.91.2
  gdk_event_new@Base 3.91.2
  gdk_event_peek@Base 3.91.2
  gdk_event_put@Base 3.91.2
- gdk_event_request_motions@Base 3.91.2
  gdk_event_sequence_get_type@Base 3.91.2
  gdk_event_set_coords@Base 3.91.2
  gdk_event_set_device@Base 3.91.2
  gdk_event_set_device_tool@Base 3.91.2
+ gdk_event_set_keyval@Base 3.92.1
  gdk_event_set_screen@Base 3.91.2
+ gdk_event_set_selection@Base 3.92.1
  gdk_event_set_source_device@Base 3.91.2
  gdk_event_set_user_data@Base 3.91.2
  gdk_event_triggers_context_menu@Base 3.91.2
@@ -247,7 +271,6 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gdk_frame_timings_ref@Base 3.91.2
  gdk_frame_timings_unref@Base 3.91.2
  gdk_fullscreen_mode_get_type@Base 3.91.2
- gdk_get_default_root_window@Base 3.91.2
  gdk_get_display_arg_name@Base 3.91.2
  gdk_get_program_class@Base 3.91.2
  gdk_get_show_events@Base 3.91.2
@@ -347,7 +370,6 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gdk_screen_get_default@Base 3.91.2
  gdk_screen_get_display@Base 3.91.2
  gdk_screen_get_resolution@Base 3.91.2
- gdk_screen_get_root_window@Base 3.91.2
  gdk_screen_get_setting@Base 3.91.2
  gdk_screen_get_toplevel_windows@Base 3.91.2
  gdk_screen_get_type@Base 3.91.2
@@ -526,7 +548,6 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gdk_window_move_region@Base 3.91.2
  gdk_window_move_resize@Base 3.91.2
  gdk_window_new_child@Base 3.91.2
- gdk_window_new_input@Base 3.91.2
  gdk_window_new_popup@Base 3.91.2
  gdk_window_new_temp@Base 3.91.2
  gdk_window_new_toplevel@Base 3.91.2
@@ -664,11 +685,12 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gdk_x11_xatom_to_atom@Base 3.91.2
  gdk_x11_xatom_to_atom_for_display@Base 3.91.2
  gsk_blend_mode_get_type@Base 3.91.2
- gsk_blend_node_get_blend_mode@Base 3.91.2
  gsk_blend_node_new@Base 3.91.2
+ gsk_blur_node_new@Base 3.92.1
  gsk_border_node_new@Base 3.91.2
  gsk_cairo_node_get_draw_context@Base 3.91.2
  gsk_cairo_node_new@Base 3.91.2
+ gsk_cairo_node_new_for_surface@Base 3.92.1
  gsk_clip_node_get_child@Base 3.91.2
  gsk_clip_node_new@Base 3.91.2
  gsk_color_matrix_node_new@Base 3.91.2
@@ -683,6 +705,8 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gsk_opacity_node_get_child@Base 3.91.2
  gsk_opacity_node_new@Base 3.91.2
  gsk_outset_shadow_node_new@Base 3.91.2
+ gsk_pango_renderer_get_type@Base 3.92.1
+ gsk_pango_show_layout@Base 3.92.1
  gsk_render_node_deserialize@Base 3.91.2
  gsk_render_node_draw@Base 3.91.2
  gsk_render_node_get_bounds@Base 3.91.2
@@ -728,6 +752,7 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gsk_serialization_error_get_type@Base 3.91.2
  gsk_serialization_error_quark@Base 3.91.2
  gsk_shadow_node_new@Base 3.91.2
+ gsk_text_node_new@Base 3.92.1
  gsk_texture_download@Base 3.91.2
  gsk_texture_get_height@Base 3.91.2
  gsk_texture_get_type@Base 3.91.2
@@ -1385,7 +1410,6 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gtk_container_get_focus_vadjustment@Base 3.91.2
  gtk_container_get_path_for_child@Base 3.91.2
  gtk_container_get_type@Base 3.91.2
- gtk_container_propagate_draw@Base 3.91.2
  gtk_container_remove@Base 3.91.2
  gtk_container_set_focus_chain@Base 3.91.2
  gtk_container_set_focus_hadjustment@Base 3.91.2
@@ -1615,6 +1639,11 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gtk_event_controller_get_widget@Base 3.91.2
  gtk_event_controller_handle_event@Base 3.91.2
  gtk_event_controller_reset@Base 3.91.2
+ gtk_event_controller_scroll_flags_get_type@Base 3.92.1
+ gtk_event_controller_scroll_get_flags@Base 3.92.1
+ gtk_event_controller_scroll_get_type@Base 3.92.1
+ gtk_event_controller_scroll_new@Base 3.92.1
+ gtk_event_controller_scroll_set_flags@Base 3.92.1
  gtk_event_controller_set_propagation_phase@Base 3.91.2
  gtk_event_sequence_state_get_type@Base 3.91.2
  gtk_events_pending@Base 3.91.2
@@ -3234,7 +3263,6 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gtk_shortcuts_shortcut_get_type@Base 3.91.2
  gtk_shortcuts_window_get_type@Base 3.91.2
  gtk_show_about_dialog@Base 3.91.2
- gtk_show_uri@Base 3.91.2
  gtk_show_uri_on_window@Base 3.91.2
  gtk_size_group_add_widget@Base 3.91.2
  gtk_size_group_get_mode@Base 3.91.2
@@ -3255,6 +3283,7 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gtk_snapshot_pop@Base 3.91.2
  gtk_snapshot_push@Base 3.91.2
  gtk_snapshot_push_blend@Base 3.91.2
+ gtk_snapshot_push_blur@Base 3.92.1
  gtk_snapshot_push_clip@Base 3.91.2
  gtk_snapshot_push_color_matrix@Base 3.91.2
  gtk_snapshot_push_cross_fade@Base 3.91.2
@@ -4382,7 +4411,6 @@ libgtk-4.so.0 libgtk-4-0 #MINVER#
  gtk_widget_set_parent_window@Base 3.91.2
  gtk_widget_set_realized@Base 3.91.2
  gtk_widget_set_receives_default@Base 3.91.2
- gtk_widget_set_redraw_on_allocate@Base 3.91.2
  gtk_widget_set_sensitive@Base 3.91.2
  gtk_widget_set_size_request@Base 3.91.2
  gtk_widget_set_state_flags@Base 3.91.2
