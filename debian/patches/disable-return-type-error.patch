@@ -1,0 +1,18 @@
+Author: Jeremy Bicha
+Description: Work around for build failure
+
+https://bugzilla.gnome.org/789180
+---
+ meson.build |    1 -
+ 1 file changed, 1 deletion(-)
+
+--- a/meson.build
++++ b/meson.build
+@@ -256,7 +256,6 @@ elif cc.get_id() == 'gcc' or cc.get_id()
+     '-Werror=main',
+     '-Werror=missing-braces',
+     '-Werror=sequence-point',
+-    '-Werror=return-type',
+     '-Werror=trigraphs',
+     '-Werror=array-bounds',
+     '-Werror=write-strings',
