@@ -3,6 +3,7 @@ gtk+4.0 (3.92.1-1) UNRELEASED; urgency=medium
   * New upstream release
   * Switch to meson
   * debian/libgtk-4-0.symbols: Update
+  * Refresh no-accessibility-dump.patch
 
  -- Jeremy Bicha <jbicha@debian.org>  Wed, 18 Oct 2017 18:07:11 -0400
 
