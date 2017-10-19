@@ -2,6 +2,7 @@ gtk+4.0 (3.92.1-1) UNRELEASED; urgency=medium
 
   * New upstream release
   * Switch to meson
+  * README has been renamed to README.md
   * debian/libgtk-4-0.symbols: Update
   * Refresh no-accessibility-dump.patch
   * Disable 018_gdkenumtypes.c_location.patch: might not be needed any more

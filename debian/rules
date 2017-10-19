@@ -45,7 +45,7 @@ EXAMPLES_PKG := gtk-$(APIVER)-examples
 # files larger than 4k in size will be compressed by dh_compress
 # so append a .gz suffix to avoid dangling symlinks
 NEWS := NEWS$(shell find -maxdepth 1 -size +4k -name NEWS -exec echo ".gz" \;)
-README := README$(shell find -maxdepth 1 -size +4k -name README -exec echo ".gz" \;)
+README.md := README.md$(shell find -maxdepth 1 -size +4k -name README.md -exec echo ".gz" \;)
 
 # Avoid test failures on buildd environments
 export HOME=$(CURDIR)/debian/build
@@ -86,7 +86,7 @@ debian/%: debian/%.in
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
 		-e "s#@OLD_MODULES_BASE_PATH@#$(OLD_MODULES_BASE_PATH)#g" \
 		-e "s#@NEWS@#$(NEWS)#g" \
-		-e "s#@README@#$(README)#g" \
+		-e "s#@README.md@#$(README.md)#g" \
 		$@.in > $@
 
 configure_flags_common = \
@@ -189,7 +189,7 @@ override_dh_missing:
 	dh_missing --sourcedir=debian/install/deb --list-missing -X.la
 
 override_dh_installdocs:
-	dh_installdocs -p$(COMMON_PKG) AUTHORS README NEWS
+	dh_installdocs -p$(COMMON_PKG) AUTHORS README.md NEWS
 	dh_installdocs -p$(DOC_PKG) AUTHORS -X.in
 	dh_installdocs --remaining-packages -A AUTHORS
 
