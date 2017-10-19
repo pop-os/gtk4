@@ -2,12 +2,13 @@ Source: gtk+4.0
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Emilio Pozuelo Monfort <pochu@debian.org>, Iain Lane <laney@debian.org>, Michael Biebl <biebl@debian.org>
+Uploaders: Emilio Pozuelo Monfort <pochu@debian.org>, Iain Lane <laney@debian.org>, Jeremy Bicha <jbicha@debian.org>, Michael Biebl <biebl@debian.org>
 Build-Depends: debhelper (>= 10.3~),
                gnome-pkg-tools (>= 0.11),
                dpkg-dev (>= 1.17.14),
                autoconf-archive,
                gtk-doc-tools (>= 1.26),
+               meson (>= 0.42.1),
                pkg-config,
                dbus <!nocheck>,
                gsettings-desktop-schemas <!nocheck>,
