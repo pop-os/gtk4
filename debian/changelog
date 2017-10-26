@@ -1,4 +1,4 @@
-gtk+4.0 (3.92.1-1) experimental; urgency=medium
+gtk+4.0 (3.92.1-1) UNRELEASED; urgency=medium
 
   * New upstream release
   * Switch to meson
