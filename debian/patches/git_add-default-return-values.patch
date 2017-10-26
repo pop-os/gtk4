@@ -1,0 +1,80 @@
+From 8549e62d8595bb6f94b51f2051f8542e357f236b Mon Sep 17 00:00:00 2001
+From: Benjamin Otte <otte@redhat.com>
+Date: Tue, 24 Oct 2017 18:13:45 +0200
+Subject: Add default return values to switch statements
+
+We are using g_assert_not_reached() without doing anything, assuming it
+aborts the program. In release builds however, it is ignored.
+---
+ gdk/x11/gdkdevicemanager-core-x11.c | 2 ++
+ gdk/x11/gdkdevicemanager-xi2.c      | 2 ++
+ gtk/gtkcssselector.c                | 1 +
+ gtk/inspector/general.c             | 2 +-
+ 4 files changed, 6 insertions(+), 1 deletion(-)
+
+diff --git a/gdk/x11/gdkdevicemanager-core-x11.c b/gdk/x11/gdkdevicemanager-core-x11.c
+index 350a79b..dd8613e 100644
+--- a/gdk/x11/gdkdevicemanager-core-x11.c
++++ b/gdk/x11/gdkdevicemanager-core-x11.c
+@@ -265,6 +265,7 @@ translate_crossing_mode (int mode)
+       return GDK_CROSSING_UNGRAB;
+     default:
+       g_assert_not_reached ();
++      return GDK_CROSSING_NORMAL;
+     }
+ }
+ 
+@@ -285,6 +286,7 @@ translate_notify_type (int detail)
+       return GDK_NOTIFY_NONLINEAR_VIRTUAL;
+     default:
+       g_assert_not_reached ();
++      return GDK_NOTIFY_UNKONWN;
+     }
+ }
+ 
+diff --git a/gdk/x11/gdkdevicemanager-xi2.c b/gdk/x11/gdkdevicemanager-xi2.c
+index 8779c65..758513e 100644
+--- a/gdk/x11/gdkdevicemanager-xi2.c
++++ b/gdk/x11/gdkdevicemanager-xi2.c
+@@ -1068,6 +1068,7 @@ translate_crossing_mode (gint mode)
+       /* Fall through, unexpected in pointer crossing events */
+     default:
+       g_assert_not_reached ();
++      return GDK_CROSSING_NORMAL;
+     }
+ }
+ 
+@@ -1088,6 +1089,7 @@ translate_notify_type (gint detail)
+       return GDK_NOTIFY_NONLINEAR_VIRTUAL;
+     default:
+       g_assert_not_reached ();
++      return GDK_NOTIFY_UNKONWN;
+     }
+ }
+ 
+diff --git a/gtk/gtkcssselector.c b/gtk/gtkcssselector.c
+index 241a690..961e78e 100644
+--- a/gtk/gtkcssselector.c
++++ b/gtk/gtkcssselector.c
+@@ -876,6 +876,7 @@ change_pseudoclass_position (const GtkCssSelector *selector)
+       return GTK_CSS_CHANGE_FIRST_CHILD | GTK_CSS_CHANGE_LAST_CHILD;
+     default:
+       g_assert_not_reached ();
++      return 0;
+     }
+ }
+ 
+diff --git a/gtk/inspector/general.c b/gtk/inspector/general.c
+index 2e7e212..62404a0 100644
+--- a/gtk/inspector/general.c
++++ b/gtk/inspector/general.c
+@@ -501,7 +501,7 @@ translate_subpixel_layout (GdkSubpixelLayout subpixel)
+     case GDK_SUBPIXEL_LAYOUT_HORIZONTAL_BGR: return "horizontal bgr";
+     case GDK_SUBPIXEL_LAYOUT_VERTICAL_RGB: return "vertical rgb";
+     case GDK_SUBPIXEL_LAYOUT_VERTICAL_BGR: return "vertical bgr";
+-    default: g_assert_not_reached ();
++    default: g_assert_not_reached (); return "none;
+     }
+ }
+ 
+

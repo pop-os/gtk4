@@ -1,0 +1,52 @@
+From 373b407bd26a940072173e0a509038185b63e936 Mon Sep 17 00:00:00 2001
+From: Benjamin Otte <otte@redhat.com>
+Date: Tue, 24 Oct 2017 18:26:08 +0200
+Subject: Fix build
+
+Don't do two things at once and forget to run ninja before pushing.
+---
+ gdk/x11/gdkdevicemanager-core-x11.c | 2 +-
+ gdk/x11/gdkdevicemanager-xi2.c      | 2 +-
+ gtk/inspector/general.c             | 2 +-
+ 3 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/gdk/x11/gdkdevicemanager-core-x11.c b/gdk/x11/gdkdevicemanager-core-x11.c
+index dd8613e..c662d21 100644
+--- a/gdk/x11/gdkdevicemanager-core-x11.c
++++ b/gdk/x11/gdkdevicemanager-core-x11.c
+@@ -286,7 +286,7 @@ translate_notify_type (int detail)
+       return GDK_NOTIFY_NONLINEAR_VIRTUAL;
+     default:
+       g_assert_not_reached ();
+-      return GDK_NOTIFY_UNKONWN;
++      return GDK_NOTIFY_UNKNOWN;
+     }
+ }
+ 
+diff --git a/gdk/x11/gdkdevicemanager-xi2.c b/gdk/x11/gdkdevicemanager-xi2.c
+index 758513e..56fb2c8 100644
+--- a/gdk/x11/gdkdevicemanager-xi2.c
++++ b/gdk/x11/gdkdevicemanager-xi2.c
+@@ -1089,7 +1089,7 @@ translate_notify_type (gint detail)
+       return GDK_NOTIFY_NONLINEAR_VIRTUAL;
+     default:
+       g_assert_not_reached ();
+-      return GDK_NOTIFY_UNKONWN;
++      return GDK_NOTIFY_UNKNOWN;
+     }
+ }
+ 
+diff --git a/gtk/inspector/general.c b/gtk/inspector/general.c
+index 62404a0..45a386e 100644
+--- a/gtk/inspector/general.c
++++ b/gtk/inspector/general.c
+@@ -501,7 +501,7 @@ translate_subpixel_layout (GdkSubpixelLayout subpixel)
+     case GDK_SUBPIXEL_LAYOUT_HORIZONTAL_BGR: return "horizontal bgr";
+     case GDK_SUBPIXEL_LAYOUT_VERTICAL_RGB: return "vertical rgb";
+     case GDK_SUBPIXEL_LAYOUT_VERTICAL_BGR: return "vertical bgr";
+-    default: g_assert_not_reached (); return "none;
++    default: g_assert_not_reached (); return "none";
+     }
+ }
+ 
+

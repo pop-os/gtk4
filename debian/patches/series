@@ -2,5 +2,7 @@
 no-accessibility-dump.patch
 reftest-known-fail.patch
 gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch
-disable-return-type-error.patch
+git_add-a-return-value.patch
+git_add-default-return-values.patch
+git_fix-build.patch
 git_install-printbackends.patch
