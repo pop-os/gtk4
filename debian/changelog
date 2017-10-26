@@ -1,4 +1,4 @@
-gtk+4.0 (3.92.1-0~1) UNRELEASED; urgency=medium
+gtk+4.0 (3.92.1-1) experimental; urgency=medium
 
   * New upstream release
   * Switch to meson
@@ -13,7 +13,7 @@ gtk+4.0 (3.92.1-0~1) UNRELEASED; urgency=medium
     - git_fix-build.patch
     - git_install-printbackends.patch
 
- -- Jeremy Bicha <jbicha@debian.org>  Wed, 18 Oct 2017 18:07:11 -0400
+ -- Jeremy Bicha <jbicha@debian.org>  Thu, 26 Oct 2017 18:03:13 -0400
 
 gtk+4.0 (3.91.2-1) experimental; urgency=medium
 
