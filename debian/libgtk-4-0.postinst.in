@@ -7,7 +7,7 @@ IMMODULES_DIR_OLD=/@OLD_MODULES_BASE_PATH@/immodules
 if [ "$1" = triggered ]; then
     # This is triggered everytime an application installs a
     # GTK immodule loader
-    /@LIBDIR@/@SHARED_PKG@/gtk-query-immodules-4.0 --update-cache || true
+    /@LIBDIR@/@SHARED_PKG@/gtk4-query-immodules --update-cache || true
     exit 0
 fi
 
@@ -15,6 +15,6 @@ fi
 
 # Also handle the initial installation
 if [ -d $IMMODULES_DIR ] || [ -d $IMMODULES_DIR_OLD ]; then
-     /@LIBDIR@/@SHARED_PKG@/gtk-query-immodules-4.0 --update-cache || true
+     /@LIBDIR@/@SHARED_PKG@/gtk4-query-immodules --update-cache || true
 fi
 
