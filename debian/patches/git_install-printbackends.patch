@@ -1,0 +1,85 @@
+From fda120ceece7b15daee81430a45ca795719eecca Mon Sep 17 00:00:00 2001
+From: Marek Kasik <mkasik@redhat.com>
+Date: Thu, 19 Oct 2017 13:59:58 +0200
+Subject: printing: Install printbackends
+
+Add "install : true" for each printbackend so that they are installed.
+
+https://bugzilla.gnome.org/show_bug.cgi?id=789185
+---
+ modules/printbackends/cloudprint/meson.build | 3 ++-
+ modules/printbackends/cups/meson.build       | 3 ++-
+ modules/printbackends/file/meson.build       | 3 ++-
+ modules/printbackends/lpr/meson.build        | 3 ++-
+ modules/printbackends/papi/meson.build       | 3 ++-
+ modules/printbackends/test/meson.build       | 3 ++-
+ 6 files changed, 12 insertions(+), 6 deletions(-)
+
+diff --git a/modules/printbackends/cloudprint/meson.build b/modules/printbackends/cloudprint/meson.build
+index c6193f4..f5217cb 100644
+--- a/modules/printbackends/cloudprint/meson.build
++++ b/modules/printbackends/cloudprint/meson.build
+@@ -7,4 +7,5 @@ shared_module('printbackend-cloudprint',
+                 '-DGTK_DISABLE_DEPRECATION_WARNINGS',
+               ],
+               dependencies: [ libgtk_dep, rest_dep, json_glib_dep ],
+-              install_dir: printbackends_install_dir)
++              install_dir: printbackends_install_dir,
++              install : true)
+diff --git a/modules/printbackends/cups/meson.build b/modules/printbackends/cups/meson.build
+index e69788d..a6f83d5 100644
+--- a/modules/printbackends/cups/meson.build
++++ b/modules/printbackends/cups/meson.build
+@@ -18,4 +18,5 @@ shared_module('printbackend-cups',
+                 '-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED',
+               ],
+               dependencies: [libgtk_dep, libcups, colord_dep],
+-              install_dir: printbackends_install_dir)
++              install_dir: printbackends_install_dir,
++              install : true)
+diff --git a/modules/printbackends/file/meson.build b/modules/printbackends/file/meson.build
+index 52ab3a3..b1604be 100644
+--- a/modules/printbackends/file/meson.build
++++ b/modules/printbackends/file/meson.build
+@@ -6,4 +6,5 @@ shared_module('printbackend-file',
+                 '-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED',
+               ],
+               dependencies: libgtk_dep,
+-              install_dir: printbackends_install_dir)
++              install_dir: printbackends_install_dir,
++              install : true)
+diff --git a/modules/printbackends/lpr/meson.build b/modules/printbackends/lpr/meson.build
+index 95a982d..581ca77 100644
+--- a/modules/printbackends/lpr/meson.build
++++ b/modules/printbackends/lpr/meson.build
+@@ -6,4 +6,5 @@ shared_module('printbackend-lpr',
+                 '-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED',
+               ],
+               dependencies: libgtk_dep,
+-              install_dir: printbackends_install_dir)
++              install_dir: printbackends_install_dir,
++              install : true)
+diff --git a/modules/printbackends/papi/meson.build b/modules/printbackends/papi/meson.build
+index feef640..647234e 100644
+--- a/modules/printbackends/papi/meson.build
++++ b/modules/printbackends/papi/meson.build
+@@ -6,4 +6,5 @@ shared_module('printbackend-papi',
+                 '-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED',
+               ],
+               dependencies: [libgtk_dep, libpapi],
+-              install_dir: printbackends_install_dir)
++              install_dir: printbackends_install_dir,
++              install : true)
+diff --git a/modules/printbackends/test/meson.build b/modules/printbackends/test/meson.build
+index a8df4fe..29cf00b 100644
+--- a/modules/printbackends/test/meson.build
++++ b/modules/printbackends/test/meson.build
+@@ -6,4 +6,5 @@ shared_module('printbackend-test',
+                 '-DGTK_PRINT_BACKEND_ENABLE_UNSUPPORTED',
+               ],
+               dependencies: libgtk_dep,
+-              install_dir: printbackends_install_dir)
++              install_dir: printbackends_install_dir,
++              install : true)
+
+
