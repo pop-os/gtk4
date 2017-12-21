@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <!-- interface-requires gtk+ 3.10 -->
+  <template class="GtkStatusbar" parent="GtkWidget">
+    <property name="hexpand">0</property>
+    <child>
+      <object class="GtkFrame" id="frame">
+        <property name="shadow-type">none</property>
+        <property name="hexpand">1</property>
+        <child>
+          <object class="GtkBox" id="message_area">
+            <property name="spacing">4</property>
+            <child>
+              <object class="GtkLabel" id="label">
+                <property name="halign">start</property>
+                <property name="valign">center</property>
+                <property name="ellipsize">end</property>
+                <property name="single-line-mode">1</property>
+              </object>
+            </child>
+          </object>
+        </child>
+        <child type="label_item"/>
+      </object>
+    </child>
+  </template>
+</interface>

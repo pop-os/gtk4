@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<interface domain="gtk40">
+  <!-- interface-requires gtk+ 3.10 -->
+  <template class="GtkComboBox" parent="GtkBin">
+    <property name="expand">0</property>
+    <child>
+      <object class="GtkBox" id="box">
+        <style>
+          <class name="linked"/>
+        </style>
+        <child>
+          <object class="GtkToggleButton" id="button">
+            <signal name="toggled" handler="gtk_combo_box_button_toggled" swapped="no"/>
+            <child>
+              <object class="GtkBox">
+                <child>
+                  <object class="GtkIcon" id="arrow">
+                    <property name="css-name">arrow</property>
+                  </object>
+                  <packing>
+                    <property name="pack-type">end</property>
+                  </packing>
+                </child>
+              </object>
+            </child>
+          </object>
+          <packing>
+            <property name="pack-type">end</property>
+          </packing>
+        </child>
+      </object>
+    </child>
+  </template>
+  <object class="GtkCellAreaBox" id="area" />
+  <object class="GtkTreeMenu" id="popup_widget">
+    <property name="cell-area">area</property>
+    <signal name="menu-activate" handler="gtk_combo_box_menu_activate" swapped="no" />
+    <signal name="key-press-event" handler="gtk_combo_box_menu_key_press" swapped="no" />
+    <signal name="show" handler="gtk_combo_box_menu_show" swapped="no" />
+    <signal name="hide" handler="gtk_combo_box_menu_hide" swapped="no" />
+  </object>
+</interface>

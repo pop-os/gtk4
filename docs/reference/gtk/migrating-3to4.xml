@@ -1,0 +1,301 @@
+<?xml version="1.0"?>
+<!DOCTYPE chapter PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+<!ENTITY % local.common.attrib "xmlns:xi  CDATA  #FIXED 'http://www.w3.org/2003/XInclude'">
+]>
+<chapter id="gtk-migrating-3-to-4">
+  <title>Migrating from GTK+ 3.x to GTK+ 4</title>
+
+  <para>
+    GTK+ 4 is a major new version of GTK+ that breaks both API and ABI
+    compared to GTK+ 3.x. Thankfully, most of the changes are not hard
+    to adapt to and there are a number of steps that you can take to
+    prepare your GTK+ 3.x application for the switch to GTK+ 4. After
+    that, there's a small number of adjustments that you may have to do
+    when you actually switch your application to build against GTK+ 4.
+  </para>
+
+  <section>
+    <title>Preparation in GTK+ 3.x</title>
+
+    <para>
+      The steps outlined in the following sections assume that your
+      application is working with GTK+ 3.22, which is the final stable
+      release of GTK+ 3.x. It includes all the necessary APIs and tools
+      to help you port your application to GTK+ 4. If you are still using
+      an older version of GTK+ 3.x, you should first get your application
+      to build and work with 3.22.
+    </para>
+
+    <section>
+      <title>Do not use deprecated symbols</title>
+      <para>
+        Over the years, a number of functions, and in some cases, entire
+        widgets have been deprecated. These deprecations are clearly spelled
+        out in the API reference, with hints about the recommended replacements.
+        The API reference for GTK+ 3 also includes an
+        <ulink url="https://developer.gnome.org/gtk3/3.22/api-index-deprecated.html">index</ulink> of all deprecated symbols.
+      </para>
+      <para>
+        To verify that your program does not use any deprecated symbols,
+        you can use defines to remove deprecated symbols from the header files,
+        as follows:
+        <programlisting>
+        make CFLAGS+="-DGDK_DISABLE_DEPRECATED -DGTK_DISABLE_DEPRECATED"
+        </programlisting>
+      </para>
+      <para>
+        Note that some parts of our API, such as enumeration values, are
+        not well covered by the deprecation warnings. In most cases, using
+        them will require you to also use deprecated functions, which will
+        trigger warnings.
+      </para>
+    </section>
+
+    <section>
+      <title>Do not use widget style properties</title>
+      <para>
+        Style properties do not exist in GTK+ 4. You should stop using them in
+        your custom CSS.
+      </para>
+    </section>
+
+    <section>
+      <title>Review your window creation flags</title>
+      <para>
+        GTK+ 4 removes the GDK_WA_CURSOR flag. Instead, just use
+        gdk_window_set_cursor() to set a cursor on the window after
+        creating it.
+      </para>
+      <para>
+        GTK+ 4 also removes the GDK_WA_VISUAL flag, and always uses
+        an RGBA visual for windows. To prepare your code for this,
+        use gdk_window_set_visual (gdk_screen_get_rgba_visual ()) after
+        creating your window.
+      </para>
+      <para>
+        GTK+ 4 also removes the GDK_WA_WMCLASS flag. If you need this
+        X11-specific functionality, use XSetClassHint() directly.
+      </para>
+    </section>
+
+    <section>
+      <title>Stop using non-RGBA visuals</title>
+      <para>
+        GTK+ 4 always uses RGBA visuals for its windows; you should make
+        sure that your code works with that.
+      </para>
+    </section>
+
+    <section>
+      <title>Stop using GtkBox:padding, GtkBox:fill and GtkBox:expand</title>
+      <para>
+        GTK+4 removes these #GtkBox child properties, so you should not use them.
+        You can replace GtkBox:padding using the #GtkWidget:margin properties
+        on your #GtkBox child widgets.
+      </para>
+     <para>
+        The fill child property can be replaced by setting appropriate values
+        for the #GtkWidget:halign and #GtkWidget:valign properties of the child
+        widgets. If you previously set the fill child property to %TRUE, you can
+        achieve the same effect by setting the halign or valign properties to
+        %GTK_ALIGN_FILL, depending on the parent box -- halign for a horizontal
+        box, valign for a vertial one.
+      </para>
+      <para>
+        #GtkBox also uses the expand child property. It can be replaced by setting
+        #GtkWidget:hexpand or #GtkWidget:vexpand on the child widgets. To match the
+        old behavior of the #GtkBox's expand child property, you need to set
+        #GtkWidget:hexpand on the child widgets of a horizontal #GtkBox and
+        #GtkWidget:vexpand on the child widgets of a vertical #GtkBox.
+
+        Note that there's a subtle but important difference between #GtkBox's
+        expand and fill child properties and the ones in #GtkWidget: setting
+        #GtkWidget:hexpand or #GtkWidget:vexpand to %TRUE will propagate up
+        the widget hierarchy, so a pixel-perfect port migth require a reset
+        of the expansion flags to %FALSE in a parent widget higher up the hierarchy.
+      </para>
+    </section>
+
+    <section>
+      <title>Stop using the state argument of GtkStyleContext getters</title>
+      <para>
+        The getters in the GtkStyleContext API, such as
+        gtk_style_context_get_property(), gtk_style_context_get(),
+        or gtk_style_context_get_color() only accept the context's current
+        state for their state argument. Update all callers to pass the current
+        state.
+      </para>
+    </section>
+
+    <section>
+      <title>Stop using gdk_pixbuf_get_from_window() and gdk_cairo_set_source_window()</title>
+      <para>
+        These functions are not supported in GTK+ 4. Instead, either use backend-specific
+        APIs, or render your widgets using gtk_widget_render().
+      </para>
+    </section>
+
+  </section>
+
+  <section>
+    <title>Changes that need to be done at the time of the switch</title>
+
+    <para>
+      This section outlines porting tasks that you need to tackle when
+      you get to the point that you actually build your application against
+      GTK+ 4. Making it possible to prepare for these in GTK+ 3 would
+      have been either impossible or impractical.
+    </para>
+
+    <section>
+      <title>Adapt to GdkWindow API changes</title>
+      <para>
+        The gdk_window_new() function has been replaced by a number of more
+        specialized constructors: gdk_window_new_toplevel(), gdk_window_new_popup(),
+        gdk_window_new_temp(), gdk_window_new_child(), gdk_window_new_input(),
+        gdk_wayland_window_new_subsurface(). Use the appropriate ones to create
+        your windows.
+      </para>
+      <para>
+        Native and foreign subwindows are no longer supported. These concepts were
+        complicating the code and could not be supported across backends.
+      </para>
+      <para>
+        gdk_window_reparent() is no longer available.
+      </para>
+    </section>
+
+    <section>
+      <title>Adapt to GtkStyleContext API changes</title>
+      <para>
+        The getters in the GtkStyleContext API, such as
+        gtk_style_context_get_property(), gtk_style_context_get(),
+        or gtk_style_context_get_color() have lost their state argument,
+        and always use the context's current state. Update all callers
+        to omit the state argument.
+      </para>
+    </section>
+
+    <section>
+      <title>Adapt to GtkCssProvider API changes</title>
+      <para>
+        In GTK+ 4, the various #GtkCssProvider load functions have lost
+        their #GError argument. If you want to handle CSS loading errors,
+        use the #GtkCssProvider::parsing-error signal instead.
+      </para>
+    </section>
+
+    <section>
+      <title>Stop using GtkContainer::border-width</title>
+      <para>
+        GTK+ 4 has removed the #GtkContainer::border-width property.
+        Use other means to influence the spacing of your containers,
+        such as the CSS margin and padding properties on child widgets.
+      </para>
+    </section>
+
+    <section>
+      <title>Adapt to GtkWidget's size request changes</title>
+      <para>
+        GTK+ 3 used five different virtual functions in GtkWidget to
+        implement size requisition, namely the gtk_widget_get_preferred_width()
+        family of functions. To simplify widget implementations, GTK+4 uses
+        only one virtual function, GtkWidgetClass::measure() that widgets
+        have to implement.
+      </para>
+    </section>
+
+    <section>
+      <title>Switch to GtkWidget's children APIs</title>
+      <para>
+        Instead of the GtkContainer subclass, in GTK+ 4, any widget can
+        have children, and there is new API to navigate the widget tree:
+        gtk_widget_get_first_child(), gtk_widget_get_last_child(),
+        gtk_widget_get_next_sibling(), gtk_widget_get_prev_sibling().
+        The GtkContainer API still works, but if you are implementing
+        your own widgets, you should consider using the new APIs.
+      </para>
+    </section>
+
+    <section>
+      <title>Don't use -gtk-gradient in your CSS</title>
+      <para>
+        GTK+ now supports standard CSS syntax for both linear and radial
+        gradients, just use those.
+      </para>
+    </section>
+
+    <section>
+      <title>Don't use -gtk-icon-effect in your CSS</title>
+      <para>
+        GTK+ now supports a more versatile -gtk-icon-filter instead. Replace
+        -gtk-icon-effect: dim; with -gtk-icon-filter: opacity(0.5); and
+        -gtk-icon-effect: hilight; with -gtk-icon-filter: brightness(1.2);.
+      </para>
+    </section>
+
+    <section>
+      <title>Use gtk_widget_measure</title>
+      <para>
+        gtk_widget_measure replaces the various gtk_widget_get_preferred_ functions
+        for querying sizes.
+      </para>
+    </section>
+
+    <section>
+      <title>Adapt to drawing model changes</title>
+      <para>
+        This area has seen the most radical changes in the transition from GTK+ 3
+        to GTK+ 4. Widgets no longer use a draw() function to render their contents
+        to a cairo surface. Instead, they have a snapshot() function that creates
+        one or more GskRenderNodes to represent their content. Third-party widgets
+        that use a draw() function or a #GtkWidget::draw signal handler for custom
+        drawing will need to be converted to use gtk_snapshot_append_cairo().
+      </para>
+      <para>
+        The auxiliary #GtkSnapshot object has APIs to help with creating render
+        nodes.
+      </para>
+      <para>
+        If you are using a #GtkDrawingArea for custom drawing, you need to switch
+        to using gtk_drawing_area_set_draw_func() to set a draw function. This is
+        pretty much a direct replacement for a #GtkWidget::draw signal handler.
+      </para>
+    </section>
+
+    <section>
+      <title>Stop using APIs to query GdkWindows</title>
+      <para>
+        A number of APIs for querying special-purpose windows have been removed,
+        since these windows are no longer publically available:
+        gtk_tree_view_get_pin_window(), gtk_viewport_get_bin_window(),
+        gtk_viewport_get_view_window().
+      </para>
+    </section>
+
+    <section>
+      <title>Adapt to changes in animated hiding and showing of widgets</title>
+      <para>
+        Widgets that appear and disappear with an animation, such as GtkPopover,
+        GtkInfoBar, GtkRevealer no longer use gtk_widget_show() and gtk_widget_hide()
+        for this, but have gained dedicated APIs for this purpose that you should
+        use.
+      </para>
+    </section>
+
+    <section>
+      <title>Stop passing commandline arguments to gtk_init()</title>
+      <para>
+        The gtk_init() and gtk_init_check() functions no longer accept commandline
+        arguments. Just call them without arguments. Other initialization functions
+        that were purely related to commandline argument handling, such as
+        gtk_parse_args() and gtk_get_option_group(), are gone. The APIs to
+        initialize GDK separately are also gone, but it is very unlikely
+        that you are affected by that.
+      </para>
+    </section>
+  </section>
+
+</chapter>
+

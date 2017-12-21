@@ -1,0 +1,59 @@
+window1
+  "window"
+  index: 0
+  state: enabled resizable sensitive showing visible
+  toolkit: gtk
+  window-type: normal
+  <AtkComponent>
+  layer: window
+  alpha: 1
+  grid1
+    "panel"
+    parent: window1
+    index: 0
+    state: enabled horizontal sensitive showing visible
+    toolkit: gtk
+    <AtkComponent>
+    layer: widget
+    alpha: 1
+    button3
+      "unknown"
+      parent: grid1
+      index: 0
+      state: enabled sensitive showing visible
+      toolkit: gtk
+      <AtkComponent>
+      layer: widget
+      alpha: 1
+    button2
+      "unknown"
+      parent: grid1
+      index: 1
+      state: enabled sensitive showing visible
+      toolkit: gtk
+      <AtkComponent>
+      layer: widget
+      alpha: 1
+    button1
+      "combo box"
+      parent: grid1
+      index: 2
+      state: enabled sensitive showing visible
+      toolkit: gtk
+      <AtkComponent>
+      layer: widget
+      alpha: 1
+      <AtkAction>
+      action 0 name: press
+      action 0 description: Presses the combobox
+      <AtkSelection>
+      popup_widget
+        "menu"
+        parent: button1
+        index: 0
+        state: enabled sensitive visible
+        toolkit: gtk
+        <AtkComponent>
+        layer: popup
+        alpha: 1
+        <AtkSelection>
