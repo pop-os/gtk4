@@ -1,0 +1,516 @@
+<?xml version="1.0"?>
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook XML V4.3//EN"
+               "http://www.oasis-open.org/docbook/xml/4.3/docbookx.dtd" [
+]>
+<refentry id="gtk-building">
+<refmeta>
+<refentrytitle>Compiling the GTK+ libraries</refentrytitle>
+<manvolnum>3</manvolnum>
+<refmiscinfo>GTK Library</refmiscinfo>
+</refmeta>
+
+<refnamediv>
+<refname>Compiling the GTK+ Libraries</refname>
+<refpurpose>
+How to compile GTK+ itself
+</refpurpose>
+</refnamediv>
+  <refsect1 id="overview">
+    <title>Building GTK+</title>
+    <para>
+      Before we get into the details of how to compile GTK+, we should
+      mention that in many cases, binary packages of GTK+ prebuilt for
+      your operating system will be available, either from your
+      operating system vendor or from independent sources. If such a
+      set of packages is available, installing it will get you
+      programming with GTK+ much faster than building it yourself. In
+      fact, you may well already have GTK+ installed on your system
+      already.
+    </para>
+    <para>
+      In order to build GTK+, you will need <application>meson</application>
+      installed on your system. On Linux, and other UNIX-like operating
+      systems, you will also need <application>ninja</application>. This
+      guide does not cover how to install these two requirements, but you
+      can refer to the <ulink url="http://mesonbuild.com">Meson website</ulink>
+      for more information. The <ulink url="https://ninja-build.org">Ninja</ulink>
+      build tool is also usable on various operating systems, so we will
+      refer to it in the examples.
+    </para>
+    <para>
+      If you are building GTK+ from a source distribution or from a Git
+      clone, you will need to use <application>meson</application> to
+      configure the project. The most commonly useful argument is the
+      <systemitem>--prefix</systemitem> one, which determines where the
+      files will go once installed. To install GTK+ under a prefix
+      like <filename>/opt/gtk</filename> you would run Meson as:
+    </para>
+    <informalexample>
+      <programlisting>
+        meson --prefix /opt/gtk builddir
+      </programlisting>
+    </informalexample>
+    <para>
+      Meson will create the <filename>builddir</filename> directory and
+      place all the build artefacts there.
+    </para>
+    <para>
+      You can get a list of all available options for the build by
+      running <application>meson configure</application>.
+    </para>
+    <para>
+      After Meson successfully configured the build directory, you then
+      can run the build, using Ninja:
+    </para>
+    <informalexample>
+      <programlisting>
+        cd builddir
+        ninja
+        ninja install
+      </programlisting>
+    </informalexample>
+    <para>
+      If you don't have permission to write to the directory you are
+      installing in, you may have to change to root temporarily before
+      running <literal>ninja install</literal>.
+    </para>
+    <para>
+      Several environment variables are useful to pass to set before
+      running configure. <envar>CPPFLAGS</envar> contains options to
+      pass to the C compiler, and is used to tell the compiler where
+      to look for include files. The <envar>LDFLAGS</envar> variable
+      is used in a similar fashion for the linker. Finally the
+      <envar>PKG_CONFIG_PATH</envar> environment variable contains
+      a search path that <command>pkg-config</command> (see below)
+      uses when looking for files describing how to compile
+      programs using different libraries. If you were installing GTK+
+      and it's dependencies into <filename>/opt/gtk</filename>, you
+      might want to set these variables as:
+    </para>
+    <programlisting>
+      CPPFLAGS="-I/opt/gtk/include"
+      LDFLAGS="-L/opt/gtk/lib"
+      PKG_CONFIG_PATH="/opt/gtk/lib/pkgconfig"
+      export CPPFLAGS LDFLAGS PKG_CONFIG_PATH
+    </programlisting>
+    <para>
+      You may also need to set the <envar>LD_LIBRARY_PATH</envar>
+      environment variable so the systems dynamic linker can find
+      the newly installed libraries, and the <envar>PATH</envar>
+      environment program so that utility binaries installed by
+      the various libraries will be found.
+    </para>
+    <programlisting>
+      LD_LIBRARY_PATH="/opt/gtk/lib"
+      PATH="/opt/gtk/bin:$PATH"
+      export LD_LIBRARY_PATH PATH
+    </programlisting>
+  </refsect1>
+  <refsect1 id="dependencies">
+    <title>Dependencies</title>
+    <para>
+      Before you can compile the GTK+ widget toolkit, you need to have
+      various other tools and libraries installed on your
+      system. Dependencies of GTK+ have their own build systems, so
+      you will need to refer to their own installation instructions.
+    </para>
+    <para>
+      A particular important tool used by GTK+ to find its dependencies
+      is <application>pkg-config</application>.
+    </para>
+    <para>
+      <ulink url="https://www.freedesktop.org/wiki/Software/pkg-config/">pkg-config</ulink>
+      is a tool for tracking the compilation flags needed for
+      libraries that are used by the GTK+ libraries. (For each
+      library, a small <literal>.pc</literal> text file is installed
+      in a standard location that contains the compilation flags
+      needed for that library along with version number information.)
+    </para>
+    <para>
+      Some of the libraries that GTK+ depends on are maintained by
+      by the GTK+ team: GLib, GdkPixbuf, Pango, ATK and GObject Introspection.
+      Other libraries are maintained separately.
+    </para>
+    <itemizedlist>
+      <listitem>
+        <para>
+          The GLib library provides core non-graphical functionality
+          such as high level data types, Unicode manipulation, and
+          an object and type system to C programs. It is available
+          from  <ulink url="https://download.gnome.org/sources/glib/">here</ulink>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The <ulink url="https://git.gnome.org/browse/gdk-pixbuf/">GdkPixbuf library</ulink>
+          provides facilities for loading images in a variety of file formats.
+          It is available <ulink url="https://download.gnome.org/sources/gdk-pixbuf/">here</ulink>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <ulink url="http://www.pango.org">Pango</ulink> is a library
+          for internationalized text handling. It is available
+          <ulink url="https://download.gnome.org/sources/pango/">here</ulink>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          ATK is the Accessibility Toolkit. It provides a set of generic
+          interfaces allowing accessibility technologies such as
+          screen readers to interact with a graphical user interface.
+          It is available
+          <ulink url="https://download.gnome.org/sources/atk/">here</ulink>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <ulink url="https://wiki.gnome.org/Projects/GObjectIntrospection">Gobject Introspection</ulink>
+          is a framework for making introspection data available to
+          language bindings. It is available
+          <ulink url="https://download.gnome.org/sources/gobject-introspection/">here</ulink>.
+        </para>
+      </listitem>
+    </itemizedlist>
+    <itemizedlist>
+      <title>External dependencies</title>
+      <listitem>
+        <para>
+          The <ulink url="https://www.gnu.org/software/libiconv/">GNU
+          libiconv library</ulink> is needed to build GLib if your
+          system doesn't have the <function>iconv()</function>
+          function for doing conversion between character
+          encodings. Most modern systems should have
+          <function>iconv()</function>.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The libintl library from the <ulink
+          url="https://www.gnu.org/software/gettext/">GNU gettext
+          package</ulink> is needed if your system doesn't have the
+          <function>gettext()</function> functionality for handling
+          message translation databases.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The libraries from the X window system are needed to build
+          Pango and GTK+. You should already have these installed on
+          your system, but it's possible that you'll need to install
+          the development environment for these libraries that your
+          operating system vendor provides.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The <ulink url="https://www.freedesktop.org/wiki/Software/fontconfig/">fontconfig</ulink>
+          library provides Pango with a standard way of locating
+          fonts and matching them against font names.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <ulink url="https://www.cairographics.org">Cairo</ulink>
+          is a graphics library that supports vector graphics and image
+          compositing. Both Pango and GTK+ use Cairo for drawing.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <ulink url="https://github.com/anholt/libepoxy">libepoxy</ulink>
+          is a library that abstracts the differences between different
+          OpenGL libraries. GTK+ uses it for cross-platform GL support
+          and for its own drawing.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          <ulink url="https://github.com/anholt/libepoxy">Graphene</ulink>
+          is a library that provides vector and matrix types for 2D and
+          3D transformations. GTK+ uses it internally for drawing.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The <ulink url="https://wayland.freedesktop.org">Wayland</ulink> libraries
+          are needed to build GTK+ with the Wayland backend.
+        </para>
+      </listitem>
+      <listitem>
+        <para>
+          The <ulink url="https://www.freedesktop.org/wiki/Software/shared-mime-info">shared-mime-info</ulink>
+          package is not a hard dependency of GTK+, but it contains definitions
+          for mime types that are used by GIO and, indirectly, by GTK+.
+          gdk-pixbuf will use GIO for mime type detection if possible. For this
+          to work, shared-mime-info needs to be installed and
+          <envar>XDG_DATA_DIRS</envar> set accordingly at configure time.
+          Otherwise, gdk-pixbuf falls back to its built-in mime type detection.
+        </para>
+      </listitem>
+    </itemizedlist>
+  </refsect1>
+  <refsect1 id="building">
+    <title>Building and testing GTK+</title>
+    <para>
+      First make sure that you have the necessary external
+      dependencies installed: <command>pkg-config</command>, Meson, Ninja,
+      the JPEG, PNG, and TIFF libraries, FreeType, and, if necessary,
+      libiconv and libintl. To get detailed information about building
+      these packages, see the documentation provided with the
+      individual packages. On any average Linux system, it's quite likely
+      you'll have all of these installed already, or they will be easily
+      accessible through your operating system package repositories.
+    </para>
+    <para>
+      Then build and install the GTK+ libraries in the order:
+      GLib, Cairo, Pango, ATK, then GTK+. For each library, follow the
+      instructions they provide, and make sure to share common settings
+      between them and the GTK+ build; if you are using a separate prefix
+      for GTK+, for instance, you will need to use the same prefix for all
+      its dependencies you build. If you're lucky, this will all go smoothly,
+      and you'll be ready to <link linkend="gtk-compiling">start compiling
+      your own GTK+ applications</link>. You can test your GTK+ installation
+      by running the <command>gtk4-demo</command> program that
+      GTK+ installs.
+    </para>
+    <para>
+      If one of the projects you're configuring or building fails, look
+      closely at the error messages printed; these will often provide useful
+      information as to what went wrong. Every build system has its own
+      log that can help you understand the issue you're encountering. If all
+      else fails, you can ask for help on the gtk-list mailing list.
+      See <xref linkend="gtk-resources"/> for more information.
+    </para>
+  </refsect1>
+      <refsect1 id="extra-configuration-options">
+      <title>Extra Configuration Options</title>
+
+      <para>
+        In addition to the normal options provided by Meson, GTK+ defines
+        various arguments that modify what should be built.
+
+        <cmdsynopsis>
+          <command>meson</command>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Ddisable-modules=true</arg>
+            <arg choice="plain">-Ddisable-modules=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Dwith-included-immodules=MODULE1,MODULE2,...</arg>
+            <arg choice="plain">-Dwith-included-immodules=all</arg>
+            <arg choice="plain">-Dwith-included-immodules=none</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Ddocumentation=true</arg>
+            <arg choice="plain">-Ddocumentation=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Dman-pages=true</arg>
+            <arg choice="plain">-Dman-pages=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-cups-print-backend=yes</arg>
+            <arg choice="plain">-Denable-cups-print-backend=no</arg>
+            <arg choice="plain">-Denable-cups-print-backend=auto</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-papi-print-backend=yes</arg>
+            <arg choice="plain">-Denable-papi-print-backend=no</arg>
+            <arg choice="plain">-Denable-papi-print-backend=auto</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-cloudprint-print-backend=yes</arg>
+            <arg choice="plain">-Denable-cloudprint-print-backend=no</arg>
+            <arg choice="plain">-Denable-cloudprint-print-backend=auto</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-test-print-backend=yes</arg>
+            <arg choice="plain">-Denable-test-print-backend=no</arg>
+            <arg choice="plain">-Denable-test-print-backend=auto</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-colord=yes</arg>
+            <arg choice="plain">-Denable-colord=no</arg>
+            <arg choice="plain">-Denable-colord=auto</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-vulkan=yes</arg>
+            <arg choice="plain">-Denable-vulkan=no</arg>
+            <arg choice="plain">-Denable-vulkan=auto</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-x11-backend=true</arg>
+            <arg choice="plain">-Denable-x11-backend=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-xinerama=true</arg>
+            <arg choice="plain">-Denable-xinerama=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-win32-backend=true</arg>
+            <arg choice="plain">-Denable-win32-backend=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-quartz-backend=true</arg>
+            <arg choice="plain">-Denable-quartz-backend=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-broadway-backend=true</arg>
+            <arg choice="plain">-Denable-broadway-backend=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-wayland-backend=true</arg>
+            <arg choice="plain">-Denable-wayland-backend=false</arg>
+          </group>
+          <sbr/>
+          <group>
+            <arg choice="plain">-Denable-mir-backend=true</arg>
+            <arg choice="plain">-Denable-mir-backend=false</arg>
+          </group>
+          <group>
+            <arg choice="plain">-Dintrospection=true</arg>
+            <arg choice="plain">-Dintrospection=false</arg>
+          </group>
+        </cmdsynopsis>
+      </para>
+
+      <formalpara>
+        <title><systemitem>disable-modules</systemitem></title>
+
+        <para>
+          Normally GTK+ will try to build the input method modules
+          as little shared libraries that are loaded on demand.
+          The <systemitem>disable-modules</systemitem> option
+          indicates that they should all be built statically
+          into the GTK+ library instead. This is useful for
+          people who need to produce statically-linked binaries.
+          If <systemitem>disable-modules</systemitem> is not specified,
+          then the <command>configure</command> script will try to
+          auto-detect whether shared modules work on your system.
+        </para>
+      </formalpara>
+
+      <formalpara>
+        <title><systemitem>with-included-immodules</systemitem></title>
+
+        <para>
+         This option allows you to specify which input method modules you
+         want to include directly into the GTK+ shared library, as opposed
+         to building them as loadable modules.
+        </para>
+      </formalpara>
+
+      <formalpara>
+        <title><systemitem>enable-xinerama</systemitem></title>
+
+        <para>
+          By default GTK+ will try to link against the Xinerama libraries
+          if they are found. This options can be used to explicitly control
+          whether Xinerama should be used.
+        </para>
+      </formalpara>
+
+      <formalpara>
+        <title><systemitem>enable-documentation</systemitem> and
+          <systemitem>enable-man-pages</systemitem></title>
+
+        <para>
+          The <application>gtk-doc</application> package is
+          used to generate the reference documentation included
+          with GTK+. By default support for <application>gtk-doc</application>
+          is disabled because it requires various extra dependencies
+          to be installed. If you have
+          <application>gtk-doc</application> installed and
+          are modifying GTK+, you may want to enable
+          <application>gtk-doc</application> support by passing
+          in <systemitem>enable-documentation</systemitem>.
+        </para>
+        <para>
+          Additionally, some tools provided by GTK+ have their own
+          manual pages generated using a similar set of dependencies;
+          if you have <application>xsltproc</application> then you
+          can generate manual pages by passing <systemitem>enable-man-pages</systemitem>
+          when configuring the build.
+        </para>
+      </formalpara>
+
+      <formalpara>
+        <title><systemitem>enable-cups-print-backend</systemitem>,
+          <systemitem>enable-papi-print-backend</systemitem>,
+          <systemitem>enable-cloudprint-print-backend</systemitem>, and
+          <systemitem>enable-test-print-backend</systemitem></title>
+
+        <para>
+          By default, GTK+ will try to build various print backends if
+          their dependencies are found. These options can be used to
+          explicitly control whether each print backend should be built
+          or not.
+        </para>
+      </formalpara>
+
+      <formalpara>
+        <title><systemitem>enable-x11-backend</systemitem>,
+          <systemitem>enable-win32-backend</systemitem>,
+          <systemitem>enable-quartz-backend</systemitem>,
+          <systemitem>enable-broadway-backend</systemitem>,
+          <systemitem>enable-wayland-backend</systemitem>, and
+          <systemitem>enable-mir-backend</systemitem></title>
+
+        <para>
+          Enable specific backends for GDK.  If none of these options
+          are given, the Wayland backend will be enabled by default,
+          if the platform is Linux; the X11 backend will also be enabled
+          by default, unless the platform is Windows, in which case the
+          default is win32, or the platform is macOS, in which case the
+          default is quartz. If any backend is explicitly enabled or disabled,
+          no other platform will be enabled automatically.
+        </para>
+      </formalpara>
+
+      <formalpara>
+        <title><systemitem>introspection</systemitem></title>
+
+        <para>
+          Allows to disable building introspection support. This is option
+          is mainly useful for shortening turnaround times on developer
+          systems. Installed builds of GTK+ should always have introspection
+          support.
+        </para>
+      </formalpara>
+
+      <formalpara>
+        <title><systemitem>build-tests</systemitem>
+          <systemitem>demos</systemitem></title>
+
+        <para>
+          By default, GTK+ will build quite a few tests and demos.
+          While these are useful on a developer system, they are not
+          needed when GTK+ is built e.g. for a flatpak runtime. These
+          options allow to disable building tests and demos.
+        </para>
+      </formalpara>
+
+    </refsect1>
+
+</refentry>
+
+<!-- Local Variables: -->
+<!-- sgml-parent-document: ("gtk-docs.sgml" "chapter" "refentry")  -->
+<!-- End: -->
