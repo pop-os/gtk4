@@ -1,4 +1,3 @@
-From fda120ceece7b15daee81430a45ca795719eecca Mon Sep 17 00:00:00 2001
 From: Marek Kasik <mkasik@redhat.com>
 Date: Thu, 19 Oct 2017 13:59:58 +0200
 Subject: printing: Install printbackends
@@ -81,5 +80,3 @@ index a8df4fe..29cf00b 100644
 -              install_dir: printbackends_install_dir)
 +              install_dir: printbackends_install_dir,
 +              install : true)
-
-

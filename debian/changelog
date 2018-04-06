@@ -17,6 +17,8 @@ gtk+4.0 (3.92.1-2) UNRELEASED; urgency=medium
 
   [ Simon McVittie ]
   * d/patches: Delete patches that aren't applied
+  * d/patches: Refresh remaining patches through gbp pq
+    - Get date/author information from d/changelog where needed
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
