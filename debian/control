@@ -57,8 +57,8 @@ Build-Depends-Indep: libglib2.0-doc,
                      docbook-xsl,
                      xsltproc,
 Standards-Version: 4.1.0
-Vcs-Git: https://anonscm.debian.org/git/pkg-gnome/gtk+4.0.git
-Vcs-Browser: https://anonscm.debian.org/git/pkg-gnome/gtk+4.0.git
+Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
+Vcs-Git: https://salsa.debian.org/gnome-team/gtk4.git
 Homepage: http://www.gtk.org/
 
 Package: libgtk-4-0
@@ -224,6 +224,9 @@ Depends: libgtk-4-common,
          ${gir:Depends}
 Breaks: python-gi (<< 3.18),
         python3-gi (<< 3.18),
+Provides: gir1.2-gdk-4.0 (= ${binary:Version}),
+          gir1.2-gdkx11-4.0 (= ${binary:Version}),
+          gir1.2-gsk-4.0 (= ${binary:Version}),
 Description: GTK+ graphical user interface library -- gir bindings
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
