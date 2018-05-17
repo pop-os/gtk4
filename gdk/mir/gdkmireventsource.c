@@ -54,12 +54,13 @@ send_event (GdkWindow *window, GdkDevice *device, GdkEvent *event)
   GdkDisplay *display;
   GList *node;
 
+  display = gdk_window_get_display (window);
+
   gdk_event_set_device (event, device);
   gdk_event_set_source_device (event, device);
-  gdk_event_set_screen (event, gdk_display_get_default_screen (gdk_window_get_display (window)));
+  gdk_event_set_display (event, display);
   event->any.window = g_object_ref (window);
 
-  display = gdk_window_get_display (window);
   node = _gdk_event_queue_append (display, event);
   _gdk_windowing_got_event (display, node, event, _gdk_display_get_next_serial (display));
 }
@@ -300,7 +301,7 @@ handle_key_event (GdkWindow *window, const MirInputEvent *event)
 
   _gdk_mir_window_impl_get_cursor_state (impl, NULL, NULL, NULL, &button_state);
   modifier_state = get_modifier_state (mir_keyboard_event_modifiers (keyboard_event), button_state);
-  keymap = gdk_keymap_get_for_display (gdk_window_get_display (window));
+  keymap = gdk_display_get_keymap (gdk_window_get_display (window));
 
   generate_key_event (window,
                       mir_keyboard_event_action (keyboard_event) == mir_keyboard_action_up ? GDK_KEY_RELEASE : GDK_KEY_PRESS,

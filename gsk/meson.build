@@ -4,7 +4,15 @@ gsk_private_source_shaders = [
   'resources/glsl/blit.fs.glsl',
   'resources/glsl/blit.vs.glsl',
   'resources/glsl/color.fs.glsl',
-  'resources/glsl/color.vs.glsl',
+  'resources/glsl/coloring.fs.glsl',
+  'resources/glsl/color_matrix.fs.glsl',
+  'resources/glsl/linear_gradient.fs.glsl',
+  'resources/glsl/blur.fs.glsl',
+  'resources/glsl/inset_shadow.fs.glsl',
+  'resources/glsl/outset_shadow.fs.glsl',
+  'resources/glsl/shadow.fs.glsl',
+  'resources/glsl/border.fs.glsl',
+  'resources/glsl/cross_fade.fs.glsl',
   'resources/glsl/es2_common.fs.glsl',
   'resources/glsl/es2_common.vs.glsl',
   'resources/glsl/gl3_common.fs.glsl',
@@ -17,20 +25,22 @@ gsk_public_sources = files([
   'gskrenderer.c',
   'gskrendernode.c',
   'gskrendernodeimpl.c',
-  'gskroundedrect.c',
-  'gsktexture.c',
+  'gskroundedrect.c'
 ])
 
 gsk_private_sources = files([
   'gskcairoblur.c',
   'gskcairorenderer.c',
   'gskdebug.c',
-  'gskgldriver.c',
-  'gskglprofiler.c',
-  'gskglrenderer.c',
   'gskprivate.c',
   'gskprofiler.c',
   'gskshaderbuilder.c',
+  'gl/gskglprofiler.c',
+  'gl/gskglrenderer.c',
+  'gl/gskglglyphcache.c',
+  'gl/gskglimage.c',
+  'gl/gskgldriver.c',
+  'gl/gskglrenderops.c'
 ])
 
 gsk_public_headers = files([
@@ -38,7 +48,6 @@ gsk_public_headers = files([
   'gskrenderer.h',
   'gskrendernode.h',
   'gskroundedrect.h',
-  'gsktexture.h',
   'gsktypes.h',
 ])
 
@@ -81,6 +90,12 @@ if have_vulkan
 
   subdir('resources/vulkan')
 endif # have_vulkan
+
+if get_variable('broadway_enabled')
+  gsk_private_sources += files([
+    'gskbroadwayrenderer.c',
+  ])
+endif
 
 gsk_resources_xml = configure_file(output: 'gsk.resources.xml',
                                    input: 'gen-gsk-gresources-xml.py',

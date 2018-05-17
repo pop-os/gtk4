@@ -423,7 +423,7 @@ gtk_menu_button_toggled (GtkToggleButton *button)
             gtk_menu_shell_select_first (GTK_MENU_SHELL (priv->menu), FALSE);
 
           if (event)
-            gdk_event_free (event);
+            g_object_unref (event);
         }
     }
   else if (priv->popover)
@@ -576,7 +576,7 @@ gtk_menu_button_class_init (GtkMenuButtonClass *klass)
   g_object_class_install_properties (gobject_class, LAST_PROP, menu_button_props);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_MENU_BUTTON_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "button");
+  gtk_widget_class_set_css_name (widget_class, I_("button"));
 }
 
 static void
@@ -586,19 +586,19 @@ set_arrow_type (GtkImage     *image,
   switch (arrow_type)
     {
     case GTK_ARROW_NONE:
-      gtk_image_set_from_icon_name (image, "open-menu-symbolic", GTK_ICON_SIZE_BUTTON);
+      gtk_image_set_from_icon_name (image, "open-menu-symbolic");
       break;
     case GTK_ARROW_DOWN:
-      gtk_image_set_from_icon_name (image, "pan-down-symbolic", GTK_ICON_SIZE_BUTTON);
+      gtk_image_set_from_icon_name (image, "pan-down-symbolic");
       break;
     case GTK_ARROW_UP:
-      gtk_image_set_from_icon_name (image, "pan-up-symbolic", GTK_ICON_SIZE_BUTTON);
+      gtk_image_set_from_icon_name (image, "pan-up-symbolic");
       break;
     case GTK_ARROW_LEFT:
-      gtk_image_set_from_icon_name (image, "pan-start-symbolic", GTK_ICON_SIZE_BUTTON);
+      gtk_image_set_from_icon_name (image, "pan-start-symbolic");
       break;
     case GTK_ARROW_RIGHT:
-      gtk_image_set_from_icon_name (image, "pan-end-symbolic", GTK_ICON_SIZE_BUTTON);
+      gtk_image_set_from_icon_name (image, "pan-end-symbolic");
       break;
     default:
       break;
@@ -661,7 +661,6 @@ static gboolean
 menu_deactivate_cb (GtkMenuButton *menu_button)
 {
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (menu_button), FALSE);
-  gtk_widget_unset_state_flags (GTK_WIDGET (menu_button), GTK_STATE_FLAG_PRELIGHT);
 
   return TRUE;
 }

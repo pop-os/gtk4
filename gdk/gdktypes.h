@@ -32,9 +32,10 @@
 /* GDK uses "glib". (And so does GTK).
  */
 #include <glib.h>
-#include <pango/pango.h>
 #include <glib-object.h>
+#include <gio/gio.h>
 #include <cairo.h>
+#include <pango/pango.h>
 
 /* The system specific file gdkconfig.h contains such configuration
  * settings that are needed not only when compiling GDK (or GTK)
@@ -65,12 +66,26 @@
 G_BEGIN_DECLS
 
 
-/* Type definitions for the basic structures.
+/**
+ * GdkPoint:
+ * @x: the x coordinate of the point
+ * @y: the y coordinate of the point
+ *
+ * Defines the x and y coordinates of a point.
  */
+struct _GdkPoint
+{
+  gint x;
+  gint y;
+};
 typedef struct _GdkPoint              GdkPoint;
 
 /**
  * GdkRectangle:
+ * @x: the x coordinate of the top left corner
+ * @y: the y coordinate of the top left corner
+ * @width: the width of the rectangle
+ * @height: the height of the rectangle
  *
  * Defines the position and size of a rectangle. It is identical to
  * #cairo_rectangle_int_t.
@@ -99,46 +114,20 @@ typedef cairo_rectangle_int_t         GdkRectangle;
  * An opaque type representing a string as an index into a table
  * of strings on the X server.
  */
-typedef struct _GdkAtom            *GdkAtom;
-
-/**
- * GDK_ATOM_TO_POINTER:
- * @atom: a #GdkAtom.
- *
- * Converts a #GdkAtom into a pointer type.
- */
-#define GDK_ATOM_TO_POINTER(atom) (atom)
-
-/**
- * GDK_POINTER_TO_ATOM:
- * @ptr: a pointer containing a #GdkAtom.
- *
- * Extracts a #GdkAtom from a pointer. The #GdkAtom must have been
- * stored in the pointer with GDK_ATOM_TO_POINTER().
- */
-#define GDK_POINTER_TO_ATOM(ptr)  ((GdkAtom)(ptr))
-
-#define _GDK_MAKE_ATOM(val) ((GdkAtom)GUINT_TO_POINTER(val))
-
-/**
- * GDK_NONE:
- *
- * A null value for #GdkAtom, used in a similar way as
- * `None` in the Xlib API.
- */
-#define GDK_NONE            _GDK_MAKE_ATOM (0)
+typedef const char                   *GdkAtom;
 
 /* Forward declarations of commonly used types */
 typedef struct _GdkRGBA               GdkRGBA;
+typedef struct _GdkContentFormats     GdkContentFormats;
+typedef struct _GdkContentProvider    GdkContentProvider;
 typedef struct _GdkCursor             GdkCursor;
-typedef struct _GdkVisual             GdkVisual;
+typedef struct _GdkTexture            GdkTexture;
 typedef struct _GdkDevice             GdkDevice;
 typedef struct _GdkDragContext        GdkDragContext;
 
+typedef struct _GdkClipboard          GdkClipboard;
 typedef struct _GdkDisplayManager     GdkDisplayManager;
-typedef struct _GdkDeviceManager      GdkDeviceManager;
 typedef struct _GdkDisplay            GdkDisplay;
-typedef struct _GdkScreen             GdkScreen;
 typedef struct _GdkWindow             GdkWindow;
 typedef struct _GdkKeymap             GdkKeymap;
 typedef struct _GdkAppLaunchContext   GdkAppLaunchContext;
@@ -386,7 +375,6 @@ typedef enum
  * @GDK_FOCUS_CHANGE_MASK: receive focus change events
  * @GDK_STRUCTURE_MASK: receive events about window configuration change
  * @GDK_PROPERTY_CHANGE_MASK: receive property change events
- * @GDK_VISIBILITY_NOTIFY_MASK: receive visibility change events
  * @GDK_PROXIMITY_IN_MASK: receive proximity in events
  * @GDK_PROXIMITY_OUT_MASK: receive proximity out events
  * @GDK_SUBSTRUCTURE_MASK: receive events about window configuration changes of
@@ -434,7 +422,6 @@ typedef enum
   GDK_FOCUS_CHANGE_MASK         = 1 << 14,
   GDK_STRUCTURE_MASK            = 1 << 15,
   GDK_PROPERTY_CHANGE_MASK      = 1 << 16,
-  GDK_VISIBILITY_NOTIFY_MASK    = 1 << 17,
   GDK_PROXIMITY_IN_MASK         = 1 << 18,
   GDK_PROXIMITY_OUT_MASK        = 1 << 19,
   GDK_SUBSTRUCTURE_MASK         = 1 << 20,
@@ -443,21 +430,8 @@ typedef enum
   GDK_SMOOTH_SCROLL_MASK        = 1 << 23,
   GDK_TOUCHPAD_GESTURE_MASK     = 1 << 24,
   GDK_TABLET_PAD_MASK           = 1 << 25,
-  GDK_ALL_EVENTS_MASK           = 0xFFFFFE
+  GDK_ALL_EVENTS_MASK           = 0x3FFFFFE
 } GdkEventMask;
-
-/**
- * GdkPoint:
- * @x: the x coordinate of the point.
- * @y: the y coordinate of the point.
- *
- * Defines the x and y coordinates of a point.
- */
-struct _GdkPoint
-{
-  gint x;
-  gint y;
-};
 
 /**
  * GdkGLError:

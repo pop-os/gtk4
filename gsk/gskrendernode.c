@@ -28,10 +28,7 @@
  * children nodes.
  *
  * Each node has an associated drawing surface, which has the size of
- * the rectangle set using gsk_render_node_set_bounds(). Nodes have an
- * associated transformation matrix, which is used to position and
- * transform the node on the scene graph; additionally, they also have
- * a child transformation matrix, which will be applied to each child.
+ * the rectangle set using gsk_render_node_set_bounds().
  *
  * Render nodes are meant to be transient; once they have been associated
  * to a #GskRenderer it's safe to release any reference you have on them.
@@ -45,7 +42,6 @@
 
 #include "gskdebugprivate.h"
 #include "gskrendererprivate.h"
-#include "gsktexture.h"
 
 #include <graphene-gobject.h>
 
@@ -96,9 +92,6 @@ gsk_render_node_new (const GskRenderNodeClass *node_class, gsize extra_size)
   self->node_class = node_class;
 
   self->ref_count = 1;
-
-  self->min_filter = GSK_SCALING_FILTER_NEAREST;
-  self->mag_filter = GSK_SCALING_FILTER_NEAREST;
 
   return self;
 }
@@ -179,30 +172,6 @@ gsk_render_node_get_bounds (GskRenderNode   *node,
   g_return_if_fail (bounds != NULL);
 
   graphene_rect_init_from_rect (bounds, &node->bounds);
-}
-
-/**
- * gsk_render_node_set_scaling_filters:
- * @node: a #GskRenderNode
- * @min_filter: the filter for scaling down
- * @mag_filter: the filter for scaling up
- *
- * Sets filters to be used when a node must be scaled up
- * or down.
- *
- * Since: 3.90
- */
-void
-gsk_render_node_set_scaling_filters (GskRenderNode    *node,
-                                     GskScalingFilter  min_filter,
-                                     GskScalingFilter  mag_filter)
-{
-  g_return_if_fail (GSK_IS_RENDER_NODE (node));
-
-  if (node->min_filter != min_filter)
-    node->min_filter = min_filter;
-  if (node->mag_filter != mag_filter)
-    node->mag_filter = mag_filter;
 }
 
 /**

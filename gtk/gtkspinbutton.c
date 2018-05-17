@@ -559,7 +559,7 @@ gtk_spin_button_class_init (GtkSpinButtonClass *class)
   add_spin_binding (binding_set, GDK_KEY_Page_Down, GDK_CONTROL_MASK, GTK_SCROLL_START);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_SPIN_BUTTON_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "spinbutton");
+  gtk_widget_class_set_css_name (widget_class, I_("spinbutton"));
 }
 
 static void
@@ -884,7 +884,7 @@ gtk_spin_button_init (GtkSpinButton *spin_button)
   g_signal_connect (priv->entry, "activate", G_CALLBACK (gtk_spin_button_activate), spin_button);
   gtk_container_add (GTK_CONTAINER (priv->box), priv->entry);
 
-  priv->down_button = gtk_button_new_from_icon_name ("list-remove-symbolic", GTK_ICON_SIZE_BUTTON);
+  priv->down_button = gtk_button_new_from_icon_name ("list-remove-symbolic");
   gtk_widget_set_can_focus (priv->down_button, FALSE);
   gtk_style_context_add_class (gtk_widget_get_style_context (priv->down_button), "down");
   gtk_container_add (GTK_CONTAINER (priv->box), priv->down_button);
@@ -897,7 +897,7 @@ gtk_spin_button_init (GtkSpinButton *spin_button)
   g_signal_connect (priv->down_click_gesture, "pressed", G_CALLBACK (button_pressed_cb), spin_button);
   g_signal_connect (priv->down_click_gesture, "released", G_CALLBACK (button_released_cb), spin_button);
 
-  priv->up_button = gtk_button_new_from_icon_name ("list-add-symbolic", GTK_ICON_SIZE_BUTTON);
+  priv->up_button = gtk_button_new_from_icon_name ("list-add-symbolic");
   gtk_widget_set_can_focus (priv->up_button, FALSE);
   gtk_style_context_add_class (gtk_widget_get_style_context (priv->up_button), "up");
   gtk_container_add (GTK_CONTAINER (priv->box), priv->up_button);
@@ -1531,13 +1531,13 @@ gtk_spin_button_default_output (GtkSpinButton *spin_button)
 /**
  * gtk_spin_button_configure:
  * @spin_button: a #GtkSpinButton
- * @adjustment: (allow-none):  a #GtkAdjustment
+ * @adjustment: (nullable): a #GtkAdjustment to replace the spin button’s
+ *     existing adjustment, or %NULL to leave its current adjustment unchanged
  * @climb_rate: the new climb rate
  * @digits: the number of decimal places to display in the spin button
  *
  * Changes the properties of an existing spin button. The adjustment,
- * climb rate, and number of decimal places are all changed accordingly,
- * after this function call.
+ * climb rate, and number of decimal places are updated accordingly.
  */
 void
 gtk_spin_button_configure (GtkSpinButton *spin_button,

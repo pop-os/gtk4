@@ -26,6 +26,7 @@
 #include "gtkgesturelongpress.h"
 #include "gtkintl.h"
 #include "gtksnapshot.h"
+#include "gtkprivate.h"
 
 struct _GtkColorPlanePrivate
 {
@@ -56,8 +57,8 @@ sv_to_xy (GtkColorPlane *plane,
   gdouble s, v;
   gint width, height;
 
-  width = gtk_widget_get_allocated_width (GTK_WIDGET (plane));
-  height = gtk_widget_get_allocated_height (GTK_WIDGET (plane));
+  width = gtk_widget_get_width (GTK_WIDGET (plane));
+  height = gtk_widget_get_height (GTK_WIDGET (plane));
 
   s = gtk_adjustment_get_value (plane->priv->s_adj);
   v = gtk_adjustment_get_value (plane->priv->v_adj);
@@ -76,8 +77,8 @@ plane_snapshot (GtkWidget   *widget,
   cairo_t *cr;
 
   sv_to_xy (plane, &x, &y);
-  width = gtk_widget_get_allocated_width (widget);
-  height = gtk_widget_get_allocated_height (widget);
+  width = gtk_widget_get_width (widget);
+  height = gtk_widget_get_height (widget);
 
   cr = gtk_snapshot_append_cairo (snapshot,
                                   &GRAPHENE_RECT_INIT (0, 0, width, height),
@@ -130,8 +131,8 @@ create_surface (GtkColorPlane *plane)
   if (!gtk_widget_get_realized (widget))
     return;
 
-  width = gtk_widget_get_allocated_width (widget);
-  height = gtk_widget_get_allocated_height (widget);
+  width = gtk_widget_get_width (widget);
+  height = gtk_widget_get_height (widget);
 
   surface = gdk_window_create_similar_surface (gtk_widget_get_window (widget),
                                                CAIRO_CONTENT_COLOR,
@@ -212,23 +213,10 @@ static void
 set_cross_cursor (GtkWidget *widget,
                   gboolean   enabled)
 {
-  GdkCursor *cursor = NULL;
-  GdkWindow *window;
-  GdkDevice *device;
-
-  window = gtk_widget_get_window (widget);
-  device = gtk_gesture_get_device (GTK_COLOR_PLANE (widget)->priv->drag_gesture);
-
-  if (!window || !device)
-    return;
-
   if (enabled)
-    cursor = gdk_cursor_new_from_name (gtk_widget_get_display (GTK_WIDGET (widget)), "crosshair");
-
-  gdk_window_set_device_cursor (window, device, cursor);
-
-  if (cursor)
-    g_object_unref (cursor);
+    gtk_widget_set_cursor_from_name (widget, "crosshair");
+  else
+    gtk_widget_set_cursor (widget, NULL);
 }
 
 static void
@@ -252,8 +240,8 @@ update_color (GtkColorPlane *plane,
   GtkWidget *widget = GTK_WIDGET (plane);
   gdouble s, v;
 
-  s = CLAMP (1 - y * (1.0 / gtk_widget_get_allocated_height (widget)), 0, 1);
-  v = CLAMP (x * (1.0 / gtk_widget_get_allocated_width (widget)), 0, 1);
+  s = CLAMP (1 - y * (1.0 / gtk_widget_get_height (widget)), 0, 1);
+  v = CLAMP (x * (1.0 / gtk_widget_get_width (widget)), 0, 1);
   gtk_adjustment_set_value (plane->priv->s_adj, s);
   gtk_adjustment_set_value (plane->priv->v_adj, v);
 
@@ -471,7 +459,7 @@ plane_set_property (GObject      *object,
 		    GParamSpec   *pspec)
 {
   GtkColorPlane *plane = GTK_COLOR_PLANE (object);
-  GObject *adjustment;
+  GtkAdjustment *adjustment;
 
   /* Construct only properties can only be set once, these are created
    * only in order to be properly buildable from gtkcoloreditor.ui
@@ -529,7 +517,7 @@ gtk_color_plane_class_init (GtkColorPlaneClass *class)
                                                         "Hue Adjustment",
                                                         "Hue Adjustment",
 							GTK_TYPE_ADJUSTMENT,
-							G_PARAM_WRITABLE |
+							GTK_PARAM_WRITABLE |
 							G_PARAM_CONSTRUCT_ONLY));
 
   g_object_class_install_property (object_class,
@@ -538,7 +526,7 @@ gtk_color_plane_class_init (GtkColorPlaneClass *class)
                                                         "Saturation Adjustment",
                                                         "Saturation Adjustment",
 							GTK_TYPE_ADJUSTMENT,
-							G_PARAM_WRITABLE |
+							GTK_PARAM_WRITABLE |
 							G_PARAM_CONSTRUCT_ONLY));
 
   g_object_class_install_property (object_class,
@@ -547,7 +535,7 @@ gtk_color_plane_class_init (GtkColorPlaneClass *class)
                                                         "Value Adjustment",
                                                         "Value Adjustment",
 							GTK_TYPE_ADJUSTMENT,
-							G_PARAM_WRITABLE |
+							GTK_PARAM_WRITABLE |
 							G_PARAM_CONSTRUCT_ONLY));
 }
 

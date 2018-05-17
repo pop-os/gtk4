@@ -90,6 +90,7 @@ struct _GskVulkanOpText
   guint                texture_index; /* index of the texture in the glyph cache */
   guint                start_glyph; /* the first glyph in nodes glyphstring that we render */
   guint                num_glyphs; /* number of *non-empty* glyphs (== instances) we render */
+  float                scale;
 };
 
 struct _GskVulkanOpPushConstants
@@ -236,7 +237,7 @@ gsk_vulkan_render_pass_free (GskVulkanRenderPass *self)
 }
 
 static gboolean
-font_has_color_glyphs (PangoFont *font)
+font_has_color_glyphs (const PangoFont *font)
 {
   cairo_scaled_font_t *scaled_font;
   gboolean has_color = FALSE;
@@ -353,7 +354,7 @@ gsk_vulkan_render_pass_add_node (GskVulkanRenderPass           *self,
       return;
 
     case GSK_CAIRO_NODE:
-      if (gsk_cairo_node_get_surface (node) == NULL)
+      if (gsk_cairo_node_peek_surface (node) == NULL)
         return;
       if (gsk_vulkan_clip_contains_rect (&constants->clip, &node->bounds))
         pipeline_type = GSK_VULKAN_PIPELINE_TEXTURE;
@@ -370,8 +371,9 @@ gsk_vulkan_render_pass_add_node (GskVulkanRenderPass           *self,
 
     case GSK_TEXT_NODE:
       {
-        PangoFont *font = gsk_text_node_get_font (node);
-        PangoGlyphString *glyphs = gsk_text_node_get_glyphs (node);
+        const PangoFont *font = gsk_text_node_peek_font (node);
+        const PangoGlyphInfo *glyphs = gsk_text_node_peek_glyphs (node);
+        guint num_glyphs = gsk_text_node_get_num_glyphs (node);
         int i;
         guint count;
         guint texture_index;
@@ -405,14 +407,15 @@ gsk_vulkan_render_pass_add_node (GskVulkanRenderPass           *self,
 
         op.text.start_glyph = 0;
         op.text.texture_index = G_MAXUINT;
+        op.text.scale = self->scale_factor;
 
-        for (i = 0, count = 0; i < glyphs->num_glyphs; i++)
+        for (i = 0, count = 0; i < num_glyphs; i++)
           {
-            PangoGlyphInfo *gi = &glyphs->glyphs[i];
+            const PangoGlyphInfo *gi = &glyphs[i];
 
             if (gi->glyph != PANGO_GLYPH_EMPTY && !(gi->glyph & PANGO_GLYPH_UNKNOWN_FLAG))
               {
-                texture_index = gsk_vulkan_renderer_cache_glyph (renderer, font, gi->glyph);
+                texture_index = gsk_vulkan_renderer_cache_glyph (renderer, (PangoFont *)font, gi->glyph, op.text.scale);
                 if (op.text.texture_index == G_MAXUINT)
                   op.text.texture_index = texture_index;
                 if (texture_index != op.text.texture_index)
@@ -555,8 +558,7 @@ gsk_vulkan_render_pass_add_node (GskVulkanRenderPass           *self,
 
     case GSK_TRANSFORM_NODE:
       {
-        graphene_matrix_t transform;
-        graphene_matrix_t mv;
+        graphene_matrix_t transform, mv;
         GskRenderNode *child;
 
 #if 0
@@ -564,8 +566,8 @@ gsk_vulkan_render_pass_add_node (GskVulkanRenderPass           *self,
           FALLBACK ("Transform nodes can't deal with clip type %u\n", clip->type);
 #endif
 
-        gsk_transform_node_get_transform (node, &transform);
-        mv = self->mv;
+        graphene_matrix_init_from_matrix (&transform, gsk_transform_node_peek_transform (node));
+        graphene_matrix_init_from_matrix (&mv, &self->mv);
         graphene_matrix_multiply (&transform, &mv, &self->mv);
         child = gsk_transform_node_get_child (node);
         if (!gsk_vulkan_push_constants_transform (&op.constants.constants, constants, &transform, &child->bounds))
@@ -575,7 +577,7 @@ gsk_vulkan_render_pass_add_node (GskVulkanRenderPass           *self,
 
         gsk_vulkan_render_pass_add_node (self, render, &op.constants.constants, child);
         gsk_vulkan_push_constants_init_copy (&op.constants.constants, constants);
-        self->mv = mv;
+        graphene_matrix_init_from_matrix (&self->mv, &mv);
         g_array_append_val (self->render_ops, op);
       }
       return;
@@ -691,7 +693,7 @@ gsk_vulkan_render_pass_get_node_as_texture (GskVulkanRenderPass   *self,
     case GSK_CAIRO_NODE:
       if (graphene_rect_equal (bounds, &node->bounds))
         {
-          surface = cairo_surface_reference (gsk_cairo_node_get_surface (node));
+          surface = cairo_surface_reference ((cairo_surface_t *)gsk_cairo_node_peek_surface (node));
           goto got_surface;
         }
       break;
@@ -846,8 +848,9 @@ gsk_vulkan_render_pass_upload_fallback (GskVulkanRenderPass  *self,
 
   /* XXX: We could intersect bounds with clip bounds here */
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                        ceil (node->bounds.size.width),
-                                        ceil (node->bounds.size.height));
+                                        ceil (node->bounds.size.width * self->scale_factor),
+                                        ceil (node->bounds.size.height * self->scale_factor));
+  cairo_surface_set_device_scale (surface, self->scale_factor, self->scale_factor);
   cr = cairo_create (surface);
   cairo_translate (cr, -node->bounds.origin.x, -node->bounds.origin.y);
 
@@ -910,7 +913,7 @@ gsk_vulkan_render_pass_upload (GskVulkanRenderPass  *self,
           {
             cairo_surface_t *surface;
 
-            surface = gsk_cairo_node_get_surface (op->render.node);
+            surface = (cairo_surface_t *)gsk_cairo_node_peek_surface (op->render.node);
             op->render.source = gsk_vulkan_image_new_from_data (uploader,
                                                                 cairo_image_surface_get_data (surface),
                                                                 cairo_image_surface_get_width (surface),
@@ -1225,13 +1228,15 @@ gsk_vulkan_render_pass_collect_vertex_data (GskVulkanRenderPass *self,
                                                           data + n_bytes + offset,
                                                           GSK_VULKAN_RENDERER (gsk_vulkan_render_get_renderer (render)),
                                                           &op->text.node->bounds,
-                                                          gsk_text_node_get_font (op->text.node),
-                                                          gsk_text_node_get_glyphs (op->text.node),
-                                                          gsk_text_node_get_color (op->text.node),
+                                                          (PangoFont *)gsk_text_node_peek_font (op->text.node),
+                                                          gsk_text_node_get_num_glyphs (op->text.node),
+                                                          gsk_text_node_peek_glyphs (op->text.node),
+                                                          gsk_text_node_peek_color (op->text.node),
                                                           gsk_text_node_get_x (op->text.node),
                                                           gsk_text_node_get_y (op->text.node),
                                                           op->text.start_glyph,
-                                                          op->text.num_glyphs);
+                                                          op->text.num_glyphs,
+                                                          op->text.scale);
             n_bytes += op->text.vertex_count;
           }
           break;
@@ -1243,12 +1248,14 @@ gsk_vulkan_render_pass_collect_vertex_data (GskVulkanRenderPass *self,
                                                                 data + n_bytes + offset,
                                                                 GSK_VULKAN_RENDERER (gsk_vulkan_render_get_renderer (render)),
                                                                 &op->text.node->bounds,
-                                                                gsk_text_node_get_font (op->text.node),
-                                                                gsk_text_node_get_glyphs (op->text.node),
+                                                                (PangoFont *)gsk_text_node_peek_font (op->text.node),
+                                                                gsk_text_node_get_num_glyphs (op->text.node),
+                                                                gsk_text_node_peek_glyphs (op->text.node),
                                                                 gsk_text_node_get_x (op->text.node),
                                                                 gsk_text_node_get_y (op->text.node),
                                                                 op->text.start_glyph,
-                                                                op->text.num_glyphs);
+                                                                op->text.num_glyphs,
+                                                                op->text.scale);
             n_bytes += op->text.vertex_count;
           }
           break;

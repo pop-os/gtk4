@@ -553,7 +553,7 @@ gtk_color_chooser_widget_init (GtkColorChooserWidget *cc)
   gtk_container_add (GTK_CONTAINER (box), button);
 
   cc->priv->settings = g_settings_new ("org.gtk.Settings.ColorChooser");
-  variant = g_settings_get_value (cc->priv->settings, "custom-colors");
+  variant = g_settings_get_value (cc->priv->settings, I_("custom-colors"));
   g_variant_iter_init (&iter, variant);
   i = 0;
   p = NULL;
@@ -587,7 +587,7 @@ gtk_color_chooser_widget_init (GtkColorChooserWidget *cc)
   gtk_container_add (GTK_CONTAINER (cc), box);
   gtk_container_add (GTK_CONTAINER (box), cc->priv->editor);
 
-  g_settings_get (cc->priv->settings, "selected-color", "(bdddd)",
+  g_settings_get (cc->priv->settings, I_("selected-color"), "(bdddd)",
                   &selected,
                   &color.red, &color.green, &color.blue, &color.alpha);
   if (selected)
@@ -697,7 +697,7 @@ gtk_color_chooser_widget_class_init (GtkColorChooserWidgetClass *class)
       g_param_spec_boolean ("show-editor", P_("Show editor"), P_("Show editor"),
                             FALSE, GTK_PARAM_READWRITE));
 
-  gtk_widget_class_set_css_name (GTK_WIDGET_CLASS (class), "colorchooser");
+  gtk_widget_class_set_css_name (GTK_WIDGET_CLASS (class), I_("colorchooser"));
 }
 
 /* GtkColorChooser implementation {{{1 */

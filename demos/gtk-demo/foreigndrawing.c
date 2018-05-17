@@ -830,6 +830,7 @@ draw_spinbutton (GtkWidget *widget,
   GtkIconTheme *icon_theme;
   GtkIconInfo *icon_info;
   GdkPixbuf *pixbuf;
+  GdkTexture *texture;
   gint icon_width, icon_height, icon_size;
   gint button_width;
   gint contents_x, contents_y, contents_width, contents_height;
@@ -850,30 +851,33 @@ draw_spinbutton (GtkWidget *widget,
   draw_style_common (spin_context, cr, x, y, width, *height, NULL, NULL, NULL, NULL);
   draw_style_common (entry_context, cr, x, y, width, *height, NULL, NULL, NULL, NULL);
 
-  icon_theme = gtk_icon_theme_get_for_screen (gtk_widget_get_screen (widget));
+  icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (widget));
 
   gtk_style_context_get (up_context,
                          "min-width", &icon_width, "min-height", &icon_height, NULL);
   icon_size = MIN (icon_width, icon_height);
   icon_info = gtk_icon_theme_lookup_icon (icon_theme, "list-add-symbolic", icon_size, 0);
   pixbuf = gtk_icon_info_load_symbolic_for_context (icon_info, up_context, NULL, NULL);
+  texture = gdk_texture_new_for_pixbuf (pixbuf);
   g_object_unref (icon_info);
   draw_style_common (up_context, cr, x + width - button_width, y, button_width, *height,
                      &contents_x, &contents_y, &contents_width, &contents_height);
-  gtk_render_icon (up_context, cr, pixbuf, contents_x, contents_y + (contents_height - icon_size) / 2);
+  gtk_render_icon (up_context, cr, texture, contents_x, contents_y + (contents_height - icon_size) / 2);
   g_object_unref (pixbuf);
-
+  g_object_unref (texture);
 
   gtk_style_context_get (down_context,
                          "min-width", &icon_width, "min-height", &icon_height, NULL);
   icon_size = MIN (icon_width, icon_height);
   icon_info = gtk_icon_theme_lookup_icon (icon_theme, "list-remove-symbolic", icon_size, 0);
   pixbuf = gtk_icon_info_load_symbolic_for_context (icon_info, down_context, NULL, NULL);
+  texture = gdk_texture_new_for_pixbuf (pixbuf);
   g_object_unref (icon_info);
   draw_style_common (down_context, cr, x + width - 2 * button_width, y, button_width, *height,
                      &contents_x, &contents_y, &contents_width, &contents_height);
-  gtk_render_icon (down_context, cr, pixbuf, contents_x, contents_y + (contents_height - icon_size) / 2);
+  gtk_render_icon (down_context, cr, texture, contents_x, contents_y + (contents_height - icon_size) / 2);
   g_object_unref (pixbuf);
+  g_object_unref (texture);
 
   g_object_unref (down_context);
   g_object_unref (up_context);
@@ -960,8 +964,8 @@ do_foreigndrawing (GtkWidget *do_widget)
 
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
       gtk_window_set_title (GTK_WINDOW (window), "Foreign drawing");
-      gtk_window_set_screen (GTK_WINDOW (window),
-                             gtk_widget_get_screen (do_widget));
+      gtk_window_set_display (GTK_WINDOW (window),
+                              gtk_widget_get_display (do_widget));
       g_signal_connect (window, "destroy",
                         G_CALLBACK (gtk_widget_destroyed), &window);
 

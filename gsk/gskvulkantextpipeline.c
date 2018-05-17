@@ -105,12 +105,14 @@ gsk_vulkan_text_pipeline_collect_vertex_data (GskVulkanTextPipeline  *pipeline,
                                               GskVulkanRenderer      *renderer,
                                               const graphene_rect_t  *rect,
                                               PangoFont              *font,
-                                              PangoGlyphString       *glyphs,
+                                              guint                   total_glyphs,
+                                              const PangoGlyphInfo   *glyphs,
                                               const GdkRGBA          *color,
                                               float                   x,
                                               float                   y,
                                               guint                   start_glyph,
-                                              guint                   num_glyphs)
+                                              guint                   num_glyphs,
+                                              float                   scale)
 {
   GskVulkanTextInstance *instances = (GskVulkanTextInstance *) data;
   int i;
@@ -118,11 +120,11 @@ gsk_vulkan_text_pipeline_collect_vertex_data (GskVulkanTextPipeline  *pipeline,
   int x_position = 0;
 
   for (i = 0; i < start_glyph; i++)
-    x_position += glyphs->glyphs[i].geometry.width;
+    x_position += glyphs[i].geometry.width;
 
-  for (; i < glyphs->num_glyphs && count < num_glyphs; i++)
+  for (; i < total_glyphs && count < num_glyphs; i++)
     {
-      PangoGlyphInfo *gi = &glyphs->glyphs[i];
+      const PangoGlyphInfo *gi = &glyphs[i];
 
       if (gi->glyph != PANGO_GLYPH_EMPTY)
         {
@@ -134,7 +136,7 @@ gsk_vulkan_text_pipeline_collect_vertex_data (GskVulkanTextPipeline  *pipeline,
               GskVulkanTextInstance *instance = &instances[count];
               GskVulkanCachedGlyph *glyph;
 
-              glyph = gsk_vulkan_renderer_get_cached_glyph (renderer, font, gi->glyph);
+              glyph = gsk_vulkan_renderer_get_cached_glyph (renderer, font, gi->glyph, scale);
 
               instance->tex_rect[0] = glyph->tx;
               instance->tex_rect[1] = glyph->ty;

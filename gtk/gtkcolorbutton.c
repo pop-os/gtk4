@@ -114,7 +114,6 @@ static void gtk_color_button_drag_begin    (GtkWidget        *widget,
 static void gtk_color_button_drag_data_get (GtkWidget        *widget,
                                             GdkDragContext   *context,
                                             GtkSelectionData *selection_data,
-                                            guint             info,
                                             guint             time,
                                             GtkColorButton   *button);
 
@@ -124,14 +123,13 @@ static void gtk_color_button_drag_data_received (GtkWidget        *widget,
                                                  gint              x,
                                                  gint              y,
                                                  GtkSelectionData *selection_data,
-                                                 guint             info,
                                                  guint32           time,
                                                  GtkColorButton   *button);
 
 
 static guint color_button_signals[LAST_SIGNAL] = { 0 };
 
-static const GtkTargetEntry drop_types[] = { { (char *) "application/x-color", 0, 0 } };
+static const char *drop_types[] = { "application/x-color" };
 
 static void gtk_color_button_iface_init (GtkColorChooserInterface *iface);
 
@@ -292,7 +290,6 @@ gtk_color_button_drag_data_received (GtkWidget        *widget,
                                      gint              x,
                                      gint              y,
                                      GtkSelectionData *selection_data,
-                                     guint             info,
                                      guint32           time,
                                      GtkColorButton   *button)
 {
@@ -364,7 +361,6 @@ static void
 gtk_color_button_drag_data_get (GtkWidget        *widget,
                                 GdkDragContext   *context,
                                 GtkSelectionData *selection_data,
-                                guint             info,
                                 guint             time,
                                 GtkColorButton   *button)
 {
@@ -388,6 +384,7 @@ gtk_color_button_init (GtkColorButton *button)
   PangoLayout *layout;
   PangoRectangle rect;
   GtkStyleContext *context;
+  GdkContentFormats *targets;
 
   gtk_widget_set_has_window (GTK_WIDGET (button), FALSE);
 
@@ -416,15 +413,18 @@ gtk_color_button_init (GtkColorButton *button)
   priv->rgba.alpha = 1;
   priv->use_alpha = FALSE;
 
+  targets = gdk_content_formats_new (drop_types, G_N_ELEMENTS (drop_types));
   gtk_drag_dest_set (priv->button,
                      GTK_DEST_DEFAULT_MOTION |
                      GTK_DEST_DEFAULT_HIGHLIGHT |
                      GTK_DEST_DEFAULT_DROP,
-                     drop_types, 1, GDK_ACTION_COPY);
+                     targets,
+                     GDK_ACTION_COPY);
   gtk_drag_source_set (priv->button,
                        GDK_BUTTON1_MASK|GDK_BUTTON3_MASK,
-                       drop_types, 1,
+                       targets,
                        GDK_ACTION_COPY);
+  gdk_content_formats_unref (targets);
   g_signal_connect (priv->button, "drag-begin",
                     G_CALLBACK (gtk_color_button_drag_begin), button);
   g_signal_connect (priv->button, "drag-data-received",

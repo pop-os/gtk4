@@ -260,7 +260,7 @@ void calendar_select_font (GtkWidget    *button,
           gtk_style_context_add_provider (gtk_widget_get_style_context (calendar->window), GTK_STYLE_PROVIDER (provider), GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
           g_object_set_data_full (G_OBJECT (calendar->window), "css-provider", provider, g_object_unref);
         }
-      font = gtk_font_button_get_font_name (GTK_FONT_BUTTON (button));
+      font = gtk_font_chooser_get_font (GTK_FONT_CHOOSER (button));
       data = g_strdup_printf ("GtkCalendar { font: %s; }", font);
       gtk_css_provider_load_from_data (provider, data, -1);
       g_free (data);
@@ -499,8 +499,7 @@ create_calendar(void)
   size = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
   context = gtk_widget_get_style_context (calendar);
-  gtk_style_context_get (context, GTK_STATE_FLAG_NORMAL,
-			 GTK_STYLE_PROPERTY_FONT, &font_desc, NULL);
+  gtk_style_context_get (context, GTK_STYLE_PROPERTY_FONT, &font_desc, NULL);
   font = pango_font_description_to_string (font_desc);
   button = gtk_font_button_new_with_font (font);
   g_free (font);

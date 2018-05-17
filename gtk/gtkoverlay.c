@@ -173,8 +173,7 @@ gtk_overlay_get_main_widget_allocation (GtkOverlay *overlay,
       main_alloc.height = gtk_widget_get_allocated_height (GTK_WIDGET (overlay));
     }
 
-  if (main_alloc_out)
-    *main_alloc_out = main_alloc;
+  *main_alloc_out = main_alloc;
 }
 
 static void
@@ -806,7 +805,7 @@ gtk_overlay_class_init (GtkOverlayClass *klass)
                   GTK_TYPE_WIDGET,
                   GDK_TYPE_RECTANGLE | G_SIGNAL_TYPE_STATIC_SCOPE);
 
-  gtk_widget_class_set_css_name (widget_class, "overlay");
+  gtk_widget_class_set_css_name (widget_class, I_("overlay"));
 }
 
 static void

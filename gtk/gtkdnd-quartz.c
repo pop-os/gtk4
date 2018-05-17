@@ -110,23 +110,20 @@ struct _GtkDragFindData
 @implementation GtkDragSourceOwner
 -(void)pasteboard:(NSPasteboard *)sender provideDataForType:(NSString *)type
 {
-  guint target_info;
   GtkSelectionData selection_data;
 
-  selection_data.selection = GDK_NONE;
+  selection_data.selection = NULL;
   selection_data.data = NULL;
   selection_data.length = -1;
   selection_data.target = gdk_quartz_pasteboard_type_to_atom_libgtk_only (type);
   selection_data.display = gdk_display_get_default ();
 
   if (gtk_target_list_find (info->target_list, 
-			    selection_data.target, 
-			    &target_info)) 
+			    selection_data.target))
     {
       g_signal_emit_by_name (info->widget, "drag-data-get",
 			     info->context,
 			     &selection_data,
-			     target_info,
 			     time);
 
       if (selection_data.length >= 0)
@@ -834,7 +831,7 @@ gtk_drag_dest_drop (GtkWidget	     *widget,
     {
       GdkAtom target = gtk_drag_dest_find_target (widget, context, NULL);
 
-      if (target == GDK_NONE)
+      if (target == NULL)
 	{
 	  gtk_drag_finish (context, FALSE, FALSE, time);
 	  return TRUE;
@@ -992,8 +989,8 @@ gtk_drag_dest_find_target (GtkWidget      *widget,
   GList *tmp_source = NULL;
   GList *source_targets;
 
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), GDK_NONE);
-  g_return_val_if_fail (GDK_IS_DRAG_CONTEXT (context), GDK_NONE);
+  g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
+  g_return_val_if_fail (GDK_IS_DRAG_CONTEXT (context), NULL);
 
   dragging_info = gdk_quartz_drag_context_get_dragging_info_libgtk_only (context);
   pasteboard = [dragging_info draggingPasteboard];
@@ -1004,7 +1001,7 @@ gtk_drag_dest_find_target (GtkWidget      *widget,
     target_list = gtk_drag_dest_get_target_list (widget);
   
   if (target_list == NULL)
-    return GDK_NONE;
+    return NULL;
 
   source_targets = _gtk_quartz_pasteboard_types_to_atom_list ([pasteboard types]);
   tmp_target = target_list->list;
@@ -1031,7 +1028,7 @@ gtk_drag_dest_find_target (GtkWidget      *widget,
     }
 
   g_list_free (source_targets);
-  return GDK_NONE;
+  return NULL;
 }
 
 static gboolean
@@ -1444,7 +1441,7 @@ gtk_drag_set_icon_name (GdkDragContext *context,
 			gint            hot_x,
 			gint            hot_y)
 {
-  GdkScreen *screen;
+  GdkDisplay *display;
   GtkIconTheme *icon_theme;
   GdkPixbuf *pixbuf;
   gint width, height, icon_size;
@@ -1452,13 +1449,13 @@ gtk_drag_set_icon_name (GdkDragContext *context,
   g_return_if_fail (GDK_IS_DRAG_CONTEXT (context));
   g_return_if_fail (icon_name != NULL);
 
-  screen = gdk_window_get_screen (gdk_drag_context_get_source_window (context));
-  g_return_if_fail (screen != NULL);
+  display = gdk_window_get_display (gdk_drag_context_get_source_window (context));
+  g_return_if_fail (display != NULL);
 
   gtk_icon_size_lookup (GTK_ICON_SIZE_DND, &width, &height);
   icon_size = MAX (width, height);
 
-  icon_theme = gtk_icon_theme_get_for_screen (screen);
+  icon_theme = gtk_icon_theme_get_for_display (display);
 
   pixbuf = gtk_icon_theme_load_icon (icon_theme, icon_name,
 		  		     icon_size, 0, NULL);

@@ -30,6 +30,7 @@
 #endif
 
 #include <gdk/gdk.h>
+#include <gdk/x11/gdkx11screen.h>
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -53,9 +54,27 @@ typedef struct _GdkX11DisplayClass GdkX11DisplayClass;
 GDK_AVAILABLE_IN_ALL
 GType      gdk_x11_display_get_type            (void);
 
-GDK_AVAILABLE_IN_ALL
-Display *gdk_x11_display_get_xdisplay     (GdkDisplay  *display);
+GDK_AVAILABLE_IN_3_94
+GdkDisplay *  gdk_x11_display_open        (const char  *display_name);
 
+GDK_AVAILABLE_IN_ALL
+Display *     gdk_x11_display_get_xdisplay     (GdkDisplay  *display);
+GDK_AVAILABLE_IN_3_94
+Screen *      gdk_x11_display_get_xscreen      (GdkDisplay  *display);
+GDK_AVAILABLE_IN_3_94
+Window        gdk_x11_display_get_xrootwindow  (GdkDisplay  *display);
+GDK_AVAILABLE_IN_3_94
+Cursor        gdk_x11_display_get_xcursor      (GdkDisplay  *display,
+                                                GdkCursor   *cursor);
+
+/**
+ * GDK_DISPLAY_XDISPLAY:
+ * @display: a #GdkDisplay
+ *
+ * Returns the display of a #GdkDisplay.
+ *
+ * Returns: an Xlib Display*
+ */
 #define GDK_DISPLAY_XDISPLAY(display) (gdk_x11_display_get_xdisplay (display))
 
 GDK_AVAILABLE_IN_ALL
@@ -66,6 +85,9 @@ const gchar * gdk_x11_display_get_startup_notification_id         (GdkDisplay *d
 GDK_AVAILABLE_IN_ALL
 void          gdk_x11_display_set_startup_notification_id         (GdkDisplay  *display,
                                                                    const gchar *startup_id);
+GDK_AVAILABLE_IN_3_94
+void          gdk_x11_display_set_program_class                   (GdkDisplay  *display,
+                                                                   const char  *program_class);
 
 GDK_AVAILABLE_IN_ALL
 void          gdk_x11_display_set_cursor_theme (GdkDisplay  *display,
@@ -79,6 +101,9 @@ void gdk_x11_display_broadcast_startup_message (GdkDisplay *display,
 
 GDK_AVAILABLE_IN_ALL
 GdkDisplay   *gdk_x11_lookup_xdisplay (Display *xdisplay);
+
+GDK_AVAILABLE_IN_3_94
+GdkX11Screen *gdk_x11_display_get_screen (GdkDisplay *display);
 
 GDK_AVAILABLE_IN_ALL
 void        gdk_x11_display_grab              (GdkDisplay *display);

@@ -34,12 +34,13 @@
 #define _WIN32_WINNT WINVER
 #endif
 
-#include <gdk/gdkprivate.h>
 #include <gdk/gdkcursorprivate.h>
 #include <gdk/win32/gdkwindow-win32.h>
 #include <gdk/win32/gdkwin32display.h>
 #include <gdk/win32/gdkwin32screen.h>
 #include <gdk/win32/gdkwin32keys.h>
+#include <gdk/win32/gdkdevicemanager-win32.h>
+#include <gdk/win32/gdkselection-win32.h>
 
 #include "gdkinternals.h"
 
@@ -122,7 +123,7 @@
 #define GDK_DEBUG_EVENTS_OR_INPUT (GDK_DEBUG_EVENTS|GDK_DEBUG_INPUT)
 #define GDK_DEBUG_MISC_OR_EVENTS (GDK_DEBUG_MISC|GDK_DEBUG_EVENTS)
 
-GdkScreen *GDK_WINDOW_SCREEN(GObject *win);
+GdkWin32Screen *GDK_WINDOW_SCREEN(GObject *win);
 
 #define GDK_WINDOW_IS_WIN32(win)        (GDK_IS_WINDOW_IMPL_WIN32 (win->impl))
 
@@ -132,7 +133,6 @@ struct _GdkWin32Cursor
 {
   GdkCursor cursor;
 
-  gchar *name;
   HCURSOR hcursor;
 };
 
@@ -176,9 +176,6 @@ void _gdk_win32_window_move_region (GdkWindow       *window,
 
 void _gdk_win32_selection_init (void);
 void _gdk_win32_dnd_exit (void);
-
-GdkDragProtocol _gdk_win32_window_get_drag_protocol (GdkWindow *window,
-						     GdkWindow **target);
 
 void	 gdk_win32_handle_table_insert  (HANDLE   *handle,
 					 gpointer data);
@@ -261,6 +258,8 @@ extern LRESULT CALLBACK _gdk_win32_window_procedure (HWND, UINT, WPARAM, LPARAM)
 
 extern GdkDisplay       *_gdk_display;
 
+extern GdkDeviceManagerWin32 *_gdk_device_manager;
+
 /* Offsets to add to Windows coordinates (which are relative to the
  * primary monitor's origin, and thus might be negative for monitors
  * to the left and/or above the primary monitor) to get GDK
@@ -272,7 +271,7 @@ extern HDC		 _gdk_display_hdc;
 extern HINSTANCE	 _gdk_dll_hinstance;
 extern HINSTANCE	 _gdk_app_hmodule;
 
-extern gboolean		 _gdk_input_ignore_core;
+extern gint		 _gdk_input_ignore_core;
 
 /* These are thread specific, but GDK/win32 works OK only when invoked
  * from a single thread anyway.
@@ -283,46 +282,8 @@ extern UINT		 _gdk_input_codepage;
 
 extern guint		 _gdk_keymap_serial;
 
-/* GdkAtoms: properties, targets and types */
-extern GdkAtom		 _gdk_selection;
-extern GdkAtom		 _wm_transient_for;
-extern GdkAtom		 _targets;
-extern GdkAtom		 _delete;
-extern GdkAtom		 _save_targets;
-extern GdkAtom           _utf8_string;
-extern GdkAtom		 _text;
-extern GdkAtom		 _compound_text;
-extern GdkAtom		 _text_uri_list;
-extern GdkAtom		 _text_html;
-extern GdkAtom		 _image_png;
-extern GdkAtom		 _image_jpeg;
-extern GdkAtom		 _image_bmp;
-extern GdkAtom		 _image_gif;
-
-/* DND selections */
-extern GdkAtom           _local_dnd;
-extern GdkAtom		 _gdk_win32_dropfiles;
-extern GdkAtom		 _gdk_ole2_dnd;
-
-/* Clipboard formats */
-extern UINT		 _cf_png;
-extern UINT		 _cf_jfif;
-extern UINT		 _cf_gif;
-extern UINT		 _cf_url;
-extern UINT		 _cf_html_format;
-extern UINT		 _cf_text_html;
-
-/* OLE-based DND state */
-typedef enum {
-  GDK_WIN32_DND_NONE,
-  GDK_WIN32_DND_PENDING,
-  GDK_WIN32_DND_DROPPED,
-  GDK_WIN32_DND_FAILED,
-  GDK_WIN32_DND_DRAGGING,
-} GdkWin32DndState;
-
-extern GdkWin32DndState  _dnd_target_state;
-extern GdkWin32DndState  _dnd_source_state;
+/* The singleton selection object pointer */
+GdkWin32Selection *_win32_selection;
 
 void _gdk_win32_dnd_do_dragdrop (void);
 void _gdk_win32_ole2_dnd_property_change (GdkAtom       type,
@@ -330,39 +291,33 @@ void _gdk_win32_ole2_dnd_property_change (GdkAtom       type,
 					  const guchar *data,
 					  gint          nelements);
 
-void  _gdk_win32_begin_modal_call (void);
-void  _gdk_win32_end_modal_call (void);
+typedef enum {
+  GDK_WIN32_MODAL_OP_NONE = 0x0,
+  GDK_WIN32_MODAL_OP_SIZE = 0x1 << 0,
+  GDK_WIN32_MODAL_OP_MOVE = 0x1 << 1,
+  GDK_WIN32_MODAL_OP_MENU = 0x1 << 2,
+  GDK_WIN32_MODAL_OP_DND  = 0x1 << 3
+} GdkWin32ModalOpKind;
+
+#define GDK_WIN32_MODAL_OP_SIZEMOVE_MASK (GDK_WIN32_MODAL_OP_SIZE | GDK_WIN32_MODAL_OP_MOVE)
+
+/* Non-zero while a modal sizing, moving, or dnd operation is in progress */
+extern GdkWin32ModalOpKind _modal_operation_in_progress;
+
+extern HWND		_modal_move_resize_window;
+
+void  _gdk_win32_begin_modal_call (GdkWin32ModalOpKind kind);
+void  _gdk_win32_end_modal_call (GdkWin32ModalOpKind kind);
 
 
 /* Options */
 extern gboolean		 _gdk_input_ignore_wintab;
 extern gint		 _gdk_max_colors;
 
-/* TRUE while a modal sizing, moving, or dnd operation is in progress */
-extern gboolean		_modal_operation_in_progress;
-
-extern HWND		_modal_move_resize_window;
-
-/* TRUE when we are emptying the clipboard ourselves */
-extern gboolean		_ignore_destroy_clipboard;
-
-/* Mapping from registered clipboard format id (native) to
- * corresponding GdkAtom
- */
-extern GHashTable	*_format_atom_table;
-
-/* Hold the result of a delayed rendering */
-extern HGLOBAL		_delayed_rendering_data;
-
-extern GdkCursor *_gdk_win32_grab_cursor;
-
-HGLOBAL _gdk_win32_selection_convert_to_dib (HGLOBAL  hdata,
-					     GdkAtom  target);
-
 /* Convert a pixbuf to an HICON (or HCURSOR).  Supports alpha under
  * Windows XP, thresholds alpha otherwise.
  */
-HICON _gdk_win32_pixbuf_to_hicon   (GdkPixbuf *pixbuf);
+HICON _gdk_win32_texture_to_hicon  (GdkTexture *texture);
 HICON _gdk_win32_pixbuf_to_hcursor (GdkPixbuf *pixbuf,
 				    gint       x_hotspot,
 				    gint       y_hotspot);
@@ -370,6 +325,8 @@ HICON _gdk_win32_pixbuf_to_hcursor (GdkPixbuf *pixbuf,
 void _gdk_win32_display_init_cursors (GdkWin32Display     *display);
 void _gdk_win32_display_finalize_cursors (GdkWin32Display *display);
 void _gdk_win32_display_update_cursors (GdkWin32Display   *display);
+GdkCursor *_gdk_win32_display_get_cursor_for_name (GdkDisplay   *display, const gchar* cursor_name);
+GdkCursor *gdk_win32_display_cursor_from_hcursor (GdkDisplay *display, HCURSOR     hcursor);
 
 typedef struct _Win32CursorTheme Win32CursorTheme;
 
@@ -393,7 +350,6 @@ struct _Win32Cursor {
   gint height;
   guint load_flags;
   gint xcursor_number;
-  GdkCursorType cursor_type;
 };
 
 Win32CursorTheme *win32_cursor_theme_load             (const gchar      *name,
@@ -404,14 +360,6 @@ void              win32_cursor_theme_destroy          (Win32CursorTheme *theme);
 Win32CursorTheme *_gdk_win32_display_get_cursor_theme (GdkWin32Display  *win32_display);
 
 /* GdkDisplay member functions */
-GdkCursor *_gdk_win32_display_get_cursor_for_type (GdkDisplay   *display,
-						   GdkCursorType cursor_type);
-GdkCursor *_gdk_win32_display_get_cursor_for_name (GdkDisplay  *display,
-						   const gchar *name);
-GdkCursor *_gdk_win32_display_get_cursor_for_surface (GdkDisplay *display,
-						     cairo_surface_t  *surface,
-						     gdouble          x,
-						     gdouble          y);
 void     _gdk_win32_display_get_default_cursor_size (GdkDisplay  *display,
 						     guint       *width,
 						     guint       *height);
@@ -427,13 +375,6 @@ gboolean _gdk_win32_display_has_pending (GdkDisplay *display);
 void _gdk_win32_display_queue_events (GdkDisplay *display);
 
 gboolean _gdk_win32_selection_owner_set_for_display (GdkDisplay *display,
-						     GdkWindow  *owner,
-						     GdkAtom     selection,
-						     guint32     time,
-						     gboolean    send_event);
-GdkWindow *_gdk_win32_display_get_selection_owner   (GdkDisplay *display,
-						     GdkAtom     selection);
-gboolean   _gdk_win32_display_set_selection_owner   (GdkDisplay *display,
 						     GdkWindow  *owner,
 						     GdkAtom     selection,
 						     guint32     time,
@@ -474,36 +415,22 @@ GdkKeymap *_gdk_win32_display_get_keymap (GdkDisplay *display);
 void       _gdk_win32_display_create_window_impl   (GdkDisplay    *display,
                                                     GdkWindow     *window,
                                                     GdkWindow     *real_parent,
-                                                    GdkScreen     *screen,
                                                     GdkEventMask   event_mask,
                                                     GdkWindowAttr *attributes);
 
 /* stray GdkWindowImplWin32 members */
 void _gdk_win32_window_register_dnd (GdkWindow *window);
-GdkDragContext *_gdk_win32_window_drag_begin (GdkWindow *window, GdkDevice *device, GList *targets, gint x_root, gint y_root);
-
-gint _gdk_win32_window_get_property (GdkWindow   *window,
-				     GdkAtom      property,
-				     GdkAtom      type,
-				     gulong       offset,
-				     gulong       length,
-				     gint         pdelete,
-				     GdkAtom     *actual_property_type,
-				     gint        *actual_format_type,
-				     gint        *actual_length,
-				     guchar     **data);
-void _gdk_win32_window_change_property (GdkWindow    *window,
-					GdkAtom       property,
-					GdkAtom       type,
-					gint          format,
-					GdkPropMode   mode,
-					const guchar *data,
-					gint          nelements);
-void _gdk_win32_window_delete_property (GdkWindow *window, GdkAtom    property);
+GdkDragContext *_gdk_win32_window_drag_begin (GdkWindow         *window,
+                                              GdkDevice         *device,
+                                              GdkContentFormats *formats,
+                                              gint               x_root,
+                                              gint               y_root);
 
 /* Stray GdkWin32Screen members */
-gboolean _gdk_win32_screen_get_setting (GdkScreen   *screen, const gchar *name, GValue *value);
+gboolean _gdk_win32_get_setting (const gchar *name, GValue *value);
 void _gdk_win32_screen_on_displaychange_event (GdkWin32Screen *screen);
+GdkWindow *gdk_win32_screen_get_root_window (GdkWin32Screen *screen);
+GdkWindow *gdk_win32_display_get_root_window (GdkDisplay *display);
 
 /* Distributed display manager implementation */
 GdkDisplay *_gdk_win32_display_open (const gchar *display_name);
@@ -536,8 +463,6 @@ gboolean _gdk_win32_window_lacks_wm_decorations (GdkWindow *window);
 
 BOOL WINAPI GtkShowWindow (GdkWindow *window,
                            int        cmd_show);
-
-void     _gdk_win32_screen_set_font_resolution (GdkWin32Screen *win32_screen);
 
 /* Initialization */
 void _gdk_win32_windowing_init (void);

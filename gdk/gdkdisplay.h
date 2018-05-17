@@ -29,7 +29,6 @@
 #include <gdk/gdkversionmacros.h>
 #include <gdk/gdktypes.h>
 #include <gdk/gdkevents.h>
-#include <gdk/gdkdevicemanager.h>
 #include <gdk/gdkseat.h>
 #include <gdk/gdkmonitor.h>
 
@@ -46,9 +45,6 @@ GdkDisplay *gdk_display_open                (const gchar *display_name);
 
 GDK_AVAILABLE_IN_ALL
 const gchar * gdk_display_get_name         (GdkDisplay *display);
-
-GDK_AVAILABLE_IN_ALL
-GdkScreen * gdk_display_get_default_screen (GdkDisplay  *display);
 
 GDK_AVAILABLE_IN_ALL
 gboolean    gdk_display_device_is_grabbed  (GdkDisplay  *display,
@@ -81,13 +77,6 @@ GDK_AVAILABLE_IN_ALL
 gboolean  gdk_display_has_pending (GdkDisplay  *display);
 
 GDK_AVAILABLE_IN_ALL
-void gdk_display_set_double_click_time     (GdkDisplay   *display,
-                                            guint         msec);
-GDK_AVAILABLE_IN_ALL
-void gdk_display_set_double_click_distance (GdkDisplay   *display,
-                                            guint         distance);
-
-GDK_AVAILABLE_IN_ALL
 GdkDisplay *gdk_display_get_default (void);
 
 GDK_AVAILABLE_IN_ALL
@@ -104,20 +93,10 @@ void     gdk_display_get_maximal_cursor_size   (GdkDisplay    *display,
 GDK_AVAILABLE_IN_ALL
 GdkWindow *gdk_display_get_default_group       (GdkDisplay *display); 
 
-GDK_AVAILABLE_IN_ALL
-gboolean gdk_display_supports_selection_notification (GdkDisplay *display);
-GDK_AVAILABLE_IN_ALL
-gboolean gdk_display_request_selection_notification  (GdkDisplay *display,
-                                                      GdkAtom     selection);
-
-GDK_AVAILABLE_IN_ALL
-gboolean gdk_display_supports_clipboard_persistence (GdkDisplay    *display);
-GDK_AVAILABLE_IN_ALL
-void     gdk_display_store_clipboard                (GdkDisplay    *display,
-                                                     GdkWindow     *clipboard_window,
-                                                     guint32        time_,
-                                                     const GdkAtom *targets,
-                                                     gint           n_targets);
+GDK_AVAILABLE_IN_3_94
+GdkClipboard *          gdk_display_get_clipboard               (GdkDisplay     *display);
+GDK_AVAILABLE_IN_3_94
+GdkClipboard *          gdk_display_get_primary_clipboard       (GdkDisplay     *display);
 
 GDK_AVAILABLE_IN_ALL
 gboolean gdk_display_supports_shapes           (GdkDisplay    *display);
@@ -126,9 +105,6 @@ gboolean gdk_display_supports_input_shapes     (GdkDisplay    *display);
 GDK_AVAILABLE_IN_ALL
 void     gdk_display_notify_startup_complete   (GdkDisplay    *display,
                                                 const gchar   *startup_id);
-
-GDK_DEPRECATED_IN_3_20_FOR(gdk_display_get_default_seat)
-GdkDeviceManager * gdk_display_get_device_manager (GdkDisplay *display);
 
 GDK_AVAILABLE_IN_ALL
 GdkAppLaunchContext *gdk_display_get_app_launch_context (GdkDisplay *display);
@@ -153,6 +129,15 @@ GdkMonitor * gdk_display_get_monitor_at_point  (GdkDisplay *display,
 GDK_AVAILABLE_IN_3_22
 GdkMonitor * gdk_display_get_monitor_at_window (GdkDisplay *display,
                                                 GdkWindow  *window);
+
+GDK_AVAILABLE_IN_3_94
+GdkKeymap *  gdk_display_get_keymap  (GdkDisplay *display);
+
+GDK_AVAILABLE_IN_3_94
+gboolean     gdk_display_get_setting (GdkDisplay *display,
+                                      const char *name,
+                                      GValue     *value);
+
 
 
 G_END_DECLS

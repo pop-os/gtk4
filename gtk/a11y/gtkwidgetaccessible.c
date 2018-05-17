@@ -372,14 +372,8 @@ gtk_widget_accessible_ref_state_set (AtkObject *accessible)
             atk_state_set_add_state (state_set, ATK_STATE_SHOWING);
         }
 
-      if (gtk_widget_has_focus (widget) && (widget == _focus_widget))
-        {
-          AtkObject *focus_obj;
-
-          focus_obj = g_object_get_data (G_OBJECT (accessible), "gail-focus-object");
-          if (focus_obj == NULL)
-            atk_state_set_add_state (state_set, ATK_STATE_FOCUSED);
-        }
+      if (gtk_widget_has_focus (widget))
+        atk_state_set_add_state (state_set, ATK_STATE_FOCUSED);
 
       if (gtk_widget_has_default (widget))
         atk_state_set_add_state (state_set, ATK_STATE_DEFAULT);
@@ -479,6 +473,9 @@ gtk_widget_accessible_notify_gtk (GObject    *obj,
     {
       gtk_widget_accessible_update_tooltip (GTK_WIDGET_ACCESSIBLE (atk_obj),
                                             widget);
+
+      if (atk_obj->description == NULL)
+        g_object_notify (G_OBJECT (atk_obj), "accessible-description");
       return;
     }
   else if (g_strcmp0 (pspec->name, "visible") == 0)

@@ -31,8 +31,6 @@
 #include "gtkappchooserwidget.h"
 #include "gtkappchooserprivate.h"
 #include "gtkliststore.h"
-#include "gtkcellrenderertext.h"
-#include "gtkcellrendererpixbuf.h"
 #include "gtktreeview.h"
 #include "gtktreeselection.h"
 #include "gtktreemodelsort.h"
@@ -563,7 +561,8 @@ gtk_app_chooser_widget_add_section (GtkAppChooserWidget *self,
     {
       app = l->data;
 
-      if (!g_app_info_supports_uris (app) &&
+      if (self->priv->content_type != NULL &&
+          !g_app_info_supports_uris (app) &&
           !g_app_info_supports_files (app))
         continue;
 
@@ -1175,7 +1174,7 @@ gtk_app_chooser_widget_class_init (GtkAppChooserWidgetClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, program_list_selection_activated);
   gtk_widget_class_bind_template_callback (widget_class, widget_button_press_event_cb);
 
-  gtk_widget_class_set_css_name (widget_class, "appchooser");
+  gtk_widget_class_set_css_name (widget_class, I_("appchooser"));
 }
 
 static void

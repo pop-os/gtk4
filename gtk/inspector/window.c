@@ -202,8 +202,7 @@ gtk_inspector_window_init (GtkInspectorWindow *iw)
 
       if (use_picker)
         {
-          button = gtk_button_new_from_icon_name ("find-location-symbolic",
-                                                  GTK_ICON_SIZE_MENU);
+          button = gtk_button_new_from_icon_name ("find-location-symbolic");
           gtk_widget_set_focus_on_click (button, FALSE);
           gtk_widget_set_halign (button, GTK_ALIGN_START);
           gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
@@ -286,8 +285,8 @@ gtk_inspector_window_class_init (GtkInspectorWindowClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, object_details_changed);
 }
 
-static GdkScreen *
-get_inspector_screen (void)
+static GdkDisplay *
+get_inspector_display (void)
 {
   static GdkDisplay *display = NULL;
 
@@ -327,14 +326,14 @@ get_inspector_screen (void)
   if (!display)
     display = gdk_display_get_default ();
 
-  return gdk_display_get_default_screen (display);
+  return display;
 }
 
 GtkWidget *
 gtk_inspector_window_new (void)
 {
   return GTK_WIDGET (g_object_new (GTK_TYPE_INSPECTOR_WINDOW,
-                                   "screen", get_inspector_screen (),
+                                   "display", get_inspector_display (),
                                    NULL));
 }
 

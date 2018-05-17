@@ -25,7 +25,6 @@
 #include "gtkcellrendererpixbuf.h"
 #include "gtkprivate.h"
 #include "gtkorientableprivate.h"
-#include "gtkrender.h"
 #include "gtkwidgetprivate.h"
 #include <gobject/gmarshal.h>
 #include "gtkbuildable.h"
@@ -267,7 +266,7 @@ gtk_cell_view_class_init (GtkCellViewClass *klass)
 							  FALSE,
 							  GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
 
-  gtk_widget_class_set_css_name (widget_class, "cellview");
+  gtk_widget_class_set_css_name (widget_class, I_("cellview"));
 }
 
 static void
@@ -658,7 +657,8 @@ gtk_cell_view_snapshot (GtkWidget   *widget,
   /* render cells */
   area.x = 0;
   area.y = 0;
-  gtk_widget_get_content_size (widget, &area.width, &area.height);
+  area.width = gtk_widget_get_width (widget);
+  area.height = gtk_widget_get_height (widget);
 
   /* set cell data (if available) */
   if (cellview->priv->displayed_row)
@@ -913,18 +913,18 @@ gtk_cell_view_new_with_markup (const gchar *markup)
 }
 
 /**
- * gtk_cell_view_new_with_pixbuf:
- * @pixbuf: the image to display in the cell view
+ * gtk_cell_view_new_with_texture:
+ * @texture: the image to display in the cell view
  *
  * Creates a new #GtkCellView widget, adds a #GtkCellRendererPixbuf
- * to it, and makes it show @pixbuf.
+ * to it, and makes it show @texture.
  *
  * Returns: A newly created #GtkCellView widget.
  *
- * Since: 2.6
+ * Since: 3.94
  */
 GtkWidget *
-gtk_cell_view_new_with_pixbuf (GdkPixbuf *pixbuf)
+gtk_cell_view_new_with_texture (GdkTexture *texture)
 {
   GtkCellView *cellview;
   GtkCellRenderer *renderer;
@@ -936,9 +936,9 @@ gtk_cell_view_new_with_pixbuf (GdkPixbuf *pixbuf)
   gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (cellview),
 			      renderer, TRUE);
 
-  g_value_init (&value, GDK_TYPE_PIXBUF);
-  g_value_set_object (&value, pixbuf);
-  gtk_cell_view_set_value (cellview, renderer, "pixbuf", &value);
+  g_value_init (&value, GDK_TYPE_TEXTURE);
+  g_value_set_object (&value, texture);
+  gtk_cell_view_set_value (cellview, renderer, "texture", &value);
   g_value_unset (&value);
 
   return GTK_WIDGET (cellview);

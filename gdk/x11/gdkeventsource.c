@@ -22,6 +22,7 @@
 #include "gdkinternals.h"
 #include "gdkwindow-x11.h"
 #include "gdkprivate-x11.h"
+#include "xsettings-client.h"
 
 
 static gboolean gdk_event_source_prepare  (GSource     *source,
@@ -54,9 +55,9 @@ static GSourceFuncs event_funcs = {
 };
 
 static gint
-gdk_event_apply_filters (XEvent    *xevent,
-			 GdkEvent  *event,
-			 GdkWindow *window)
+gdk_event_apply_filters (const XEvent *xevent,
+			 GdkEvent     *event,
+			 GdkWindow    *window)
 {
   GList *tmp_list;
   GdkFilterReturn result;
@@ -78,7 +79,7 @@ gdk_event_apply_filters (XEvent    *xevent,
         }
 
       filter->ref_count++;
-      result = filter->function (xevent, event, filter->data);
+      result = filter->function ((GdkXEvent *) xevent, event, filter->data);
 
       /* Protect against unreffing the filter mutating the list */
       node = tmp_list->next;
@@ -96,7 +97,7 @@ gdk_event_apply_filters (XEvent    *xevent,
 
 static GdkWindow *
 gdk_event_source_get_filter_window (GdkEventSource      *event_source,
-                                    XEvent              *xevent,
+                                    const XEvent        *xevent,
                                     GdkEventTranslator **event_translator)
 {
   GList *list = event_source->translators;
@@ -135,9 +136,9 @@ handle_focus_change (GdkEventCrossing *event)
   GdkX11Screen *x11_screen;
   gboolean focus_in, had_focus;
 
-  toplevel = _gdk_x11_window_get_toplevel (event->window);
-  x11_screen = GDK_X11_SCREEN (gdk_window_get_screen (event->window));
-  focus_in = (event->type == GDK_ENTER_NOTIFY);
+  toplevel = _gdk_x11_window_get_toplevel (event->any.window);
+  x11_screen = GDK_X11_SCREEN (GDK_WINDOW_SCREEN (event->any.window));
+  focus_in = (event->any.type == GDK_ENTER_NOTIFY);
 
   if (x11_screen->wmspec_check_window)
     return;
@@ -158,13 +159,13 @@ handle_focus_change (GdkEventCrossing *event)
       GdkEvent *focus_event;
 
       focus_event = gdk_event_new (GDK_FOCUS_CHANGE);
-      focus_event->focus_change.window = g_object_ref (event->window);
-      focus_event->focus_change.send_event = FALSE;
+      focus_event->any.window = g_object_ref (event->any.window);
+      focus_event->any.send_event = FALSE;
       focus_event->focus_change.in = focus_in;
       gdk_event_set_device (focus_event, gdk_event_get_device ((GdkEvent *) event));
 
-      gdk_event_put (focus_event);
-      gdk_event_free (focus_event);
+      gdk_display_put_event (gdk_window_get_display (event->any.window), focus_event);
+      g_object_unref (focus_event);
     }
 }
 
@@ -180,8 +181,8 @@ create_synth_crossing_event (GdkEventType     evtype,
   g_assert (evtype == GDK_ENTER_NOTIFY || evtype == GDK_LEAVE_NOTIFY);
 
   event = gdk_event_new (evtype);
-  event->crossing.send_event = TRUE;
-  event->crossing.window = g_object_ref (real_event->any.window);
+  event->any.send_event = TRUE;
+  event->any.window = g_object_ref (real_event->any.window);
   event->crossing.detail = GDK_NOTIFY_ANCESTOR;
   event->crossing.mode = mode;
   event->crossing.time = gdk_event_get_time (real_event);
@@ -257,38 +258,56 @@ handle_touch_synthetic_crossing (GdkEvent *event)
 
   if (crossing)
     {
-      gdk_event_put (crossing);
-      gdk_event_free (crossing);
+      gdk_display_put_event (gdk_device_get_display (device), crossing);
+      g_object_unref (crossing);
     }
 }
 
 static GdkEvent *
-gdk_event_source_translate_event (GdkEventSource *event_source,
-                                  XEvent         *xevent)
+gdk_event_source_translate_event (GdkX11Display  *x11_display,
+                                  const XEvent   *xevent)
 {
+  GdkEventSource *event_source = (GdkEventSource *) x11_display->event_source;
   GdkEvent *event = gdk_event_new (GDK_NOTHING);
   GdkFilterReturn result = GDK_FILTER_CONTINUE;
+  GdkDisplay *display = GDK_DISPLAY (x11_display);
   GdkEventTranslator *event_translator;
   GdkWindow *filter_window;
   Display *dpy;
+  GdkX11Screen *x11_screen;
+  gpointer cache;
 
-  dpy = GDK_DISPLAY_XDISPLAY (event_source->display);
+  x11_screen = GDK_X11_DISPLAY (display)->screen;
 
-#ifdef HAVE_XGENERICEVENTS
-  /* Get cookie data here so it's available
-   * to every event translator and event filter.
-   */
-  if (xevent->type == GenericEvent)
-    XGetEventData (dpy, &xevent->xcookie);
-#endif
+  dpy = GDK_DISPLAY_XDISPLAY (display);
 
   filter_window = gdk_event_source_get_filter_window (event_source, xevent,
                                                       &event_translator);
   if (filter_window)
     event->any.window = g_object_ref (filter_window);
 
+  /* apply XSettings filters */
+  if (xevent->xany.window == XRootWindow (dpy, 0))
+    result = gdk_xsettings_root_window_filter (xevent, event, x11_screen);
+
+  if (result == GDK_FILTER_CONTINUE &&
+      xevent->xany.window == x11_screen->xsettings_manager_window)
+    result = gdk_xsettings_manager_window_filter (xevent, event, x11_screen);
+
+  cache = gdk_window_cache_get (display);
+  if (cache)
+    {
+      if (result == GDK_FILTER_CONTINUE)
+        result = gdk_window_cache_shape_filter (xevent, event, cache);
+
+      if (result == GDK_FILTER_CONTINUE &&
+          xevent->xany.window == XRootWindow (dpy, 0))
+        result = gdk_window_cache_filter (xevent, event, cache);
+    }
+
   /* Run default filters */
-  if (_gdk_default_filters)
+  if (result == GDK_FILTER_CONTINUE &&
+      _gdk_default_filters)
     {
       /* Apply global filters */
       result = gdk_event_apply_filters (xevent, event, NULL);
@@ -303,28 +322,23 @@ gdk_event_source_translate_event (GdkEventSource *event_source,
 
   if (result != GDK_FILTER_CONTINUE)
     {
-#ifdef HAVE_XGENERICEVENTS
-      if (xevent->type == GenericEvent)
-        XFreeEventData (dpy, &xevent->xcookie);
-#endif
-
       if (result == GDK_FILTER_REMOVE)
         {
-          gdk_event_free (event);
+          g_object_unref (event);
           return NULL;
         }
       else /* GDK_FILTER_TRANSLATE */
         return event;
     }
 
-  gdk_event_free (event);
+  g_object_unref (event);
   event = NULL;
 
   if (event_translator)
     {
       /* Event translator was gotten before in get_filter_window() */
       event = _gdk_x11_event_translator_translate (event_translator,
-                                                   event_source->display,
+                                                   display,
                                                    xevent);
     }
   else
@@ -337,36 +351,49 @@ gdk_event_source_translate_event (GdkEventSource *event_source,
 
           list = list->next;
           event = _gdk_x11_event_translator_translate (translator,
-                                                       event_source->display,
+                                                       display,
                                                        xevent);
         }
     }
 
   if (event &&
-      (event->type == GDK_ENTER_NOTIFY ||
-       event->type == GDK_LEAVE_NOTIFY) &&
-      event->crossing.window != NULL)
+      (event->any.type == GDK_ENTER_NOTIFY ||
+       event->any.type == GDK_LEAVE_NOTIFY) &&
+      event->any.window != NULL)
     {
       /* Handle focusing (in the case where no window manager is running */
       handle_focus_change (&event->crossing);
     }
 
   if (event &&
-      (event->type == GDK_TOUCH_BEGIN ||
-       event->type == GDK_TOUCH_END ||
-       event->type == GDK_MOTION_NOTIFY ||
-       event->type == GDK_ENTER_NOTIFY ||
-       event->type == GDK_LEAVE_NOTIFY))
+      (event->any.type == GDK_TOUCH_BEGIN ||
+       event->any.type == GDK_TOUCH_END ||
+       event->any.type == GDK_MOTION_NOTIFY ||
+       event->any.type == GDK_ENTER_NOTIFY ||
+       event->any.type == GDK_LEAVE_NOTIFY))
     {
       handle_touch_synthetic_crossing (event);
     }
 
-#ifdef HAVE_XGENERICEVENTS
-  if (xevent->type == GenericEvent)
-    XFreeEventData (dpy, &xevent->xcookie);
-#endif
-
   return event;
+}
+
+gboolean
+gdk_event_source_xevent (GdkX11Display  *x11_display,
+                         const XEvent   *xevent)
+{
+  GdkDisplay *display = GDK_DISPLAY (x11_display);
+  GdkEvent *event;
+  GList *node;
+
+  event = gdk_event_source_translate_event (x11_display, xevent);
+  if (event == NULL)
+    return FALSE;
+
+  node = _gdk_event_queue_append (display, event);
+  _gdk_windowing_got_event (display, node, event, xevent->xany.serial);
+
+  return TRUE;
 }
 
 static gboolean
@@ -421,14 +448,9 @@ gdk_event_source_check (GSource *source)
 void
 _gdk_x11_display_queue_events (GdkDisplay *display)
 {
-  GdkEvent *event;
-  XEvent xevent;
   Display *xdisplay = GDK_DISPLAY_XDISPLAY (display);
-  GdkEventSource *event_source;
-  GdkX11Display *display_x11;
-
-  display_x11 = GDK_X11_DISPLAY (display);
-  event_source = (GdkEventSource *) display_x11->event_source;
+  XEvent xevent;
+  gboolean unused;
 
   while (!_gdk_event_queue_find_first (display) && XPending (xdisplay))
     {
@@ -444,15 +466,20 @@ _gdk_x11_display_queue_events (GdkDisplay *display)
             continue;
         }
 
-      event = gdk_event_source_translate_event (event_source, &xevent);
+#ifdef HAVE_XGENERICEVENTS
+      /* Get cookie data here so it's available
+       * to every event translator and event filter.
+       */
+      if (xevent.type == GenericEvent)
+        XGetEventData (xdisplay, &xevent.xcookie);
+#endif
 
-      if (event)
-        {
-          GList *node;
+      g_signal_emit_by_name (display, "xevent", &xevent, &unused);
 
-          node = _gdk_event_queue_append (display, event);
-          _gdk_windowing_got_event (display, node, event, xevent.xany.serial);
-        }
+#ifdef HAVE_XGENERICEVENTS
+      if (xevent.type == GenericEvent)
+        XFreeEventData (xdisplay, &xevent.xcookie);
+#endif
     }
 }
 
@@ -472,7 +499,7 @@ gdk_event_source_dispatch (GSource     *source,
     {
       _gdk_event_emit (event);
 
-      gdk_event_free (event);
+      g_object_unref (event);
     }
 
   gdk_threads_leave ();

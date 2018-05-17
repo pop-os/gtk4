@@ -67,6 +67,13 @@
  * they will stay exactly synchronized.
  */
 
+/**
+ * GdkFrameClock:
+ *
+ * The GdkFrameClock struct contains only private fields and
+ * should not be accessed directly.
+ */
+
 enum {
   FLUSH_EVENTS,
   BEFORE_PAINT,
@@ -477,7 +484,7 @@ gdk_frame_clock_get_timings (GdkFrameClock *frame_clock,
  *
  * Returns: (nullable): the #GdkFrameTimings for the frame currently
  *  being processed, or even no frame is being processed, for the
- *  previous frame. Before any frames have been procesed, returns
+ *  previous frame. Before any frames have been processed, returns
  *  %NULL.
  * Since: 3.8
  */

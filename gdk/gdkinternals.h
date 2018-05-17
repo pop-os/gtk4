@@ -27,11 +27,12 @@
 #ifndef __GDK_INTERNALS_H__
 #define __GDK_INTERNALS_H__
 
-#include <gio/gio.h>
+#include <gdk-pixbuf/gdk-pixbuf.h>
 #include "gdkwindowimpl.h"
 #include "gdkdisplay.h"
-#include "gdkprivate.h"
 #include "gdkeventsprivate.h"
+#include "gdkenumtypes.h"
+#include "gdkdndprivate.h"
 
 G_BEGIN_DECLS
 
@@ -69,7 +70,9 @@ typedef enum {
   GDK_DEBUG_FRAMES        = 1 << 10,
   GDK_DEBUG_SETTINGS      = 1 << 11,
   GDK_DEBUG_OPENGL        = 1 << 12,
-  GDK_DEBUG_VULKAN        = 1 << 13
+  GDK_DEBUG_VULKAN        = 1 << 13,
+  GDK_DEBUG_SELECTION     = 1 << 14,
+  GDK_DEBUG_CLIPBOARD     = 1 << 15
 } GdkDebugFlag;
 
 typedef enum {
@@ -140,21 +143,6 @@ typedef enum
   GDK_EVENT_FLUSHED = 1 << 2
 } GdkEventFlags;
 
-struct _GdkEventPrivate
-{
-  GdkEvent   event;
-  guint      flags;
-  GdkScreen *screen;
-  gpointer   windowing_data;
-  GdkDevice *device;
-  GdkDevice *source_device;
-  GdkSeat   *seat;
-  GdkDeviceTool *tool;
-  guint16    key_scancode;
-
-  GObject *user_data;
-};
-
 typedef struct _GdkWindowPaint GdkWindowPaint;
 
 typedef enum
@@ -166,7 +154,6 @@ typedef enum
 
 struct _GdkWindowAttr
 {
-  gint event_mask;
   gint x, y;
   gint width;
   gint height;
@@ -248,7 +235,6 @@ struct _GdkWindow
   guint applied_shape : 1;
   guint in_update : 1;
   guint geometry_dirty : 1;
-  guint event_compression : 1;
   guint frame_clock_events_paused : 1;
 
   /* The GdkWindow that has the impl, ref:ed if another window.
@@ -279,10 +265,6 @@ struct _GdkWindow
   GList *devices_inside;
   GHashTable *device_events;
 
-  GHashTable *source_event_masks;
-  gulong device_added_handler_id;
-  gulong device_changed_handler_id;
-
   GdkFrameClock *frame_clock; /* NULL to use from parent or default */
 
   GdkDrawingContext *drawing_context;
@@ -293,10 +275,7 @@ struct _GdkWindow
 #define GDK_WINDOW_TYPE(d) ((((GdkWindow *)(d)))->window_type)
 #define GDK_WINDOW_DESTROYED(d) (((GdkWindow *)(d))->destroyed)
 
-extern gchar     *_gdk_display_name;
 extern gint       _gdk_screen_number;
-extern gchar     *_gdk_display_arg_name;
-extern gboolean   _gdk_disable_multidevice;
 
 GdkEvent* _gdk_event_unqueue (GdkDisplay *display);
 
@@ -308,9 +287,6 @@ void     gdk_event_set_pointer_emulated (GdkEvent *event,
 
 void     gdk_event_set_scancode        (GdkEvent *event,
                                         guint16 scancode);
-
-void     gdk_event_set_seat              (GdkEvent *event,
-                                          GdkSeat  *seat);
 
 void   _gdk_event_emit               (GdkEvent   *event);
 GList* _gdk_event_queue_find_first   (GdkDisplay *display);
@@ -335,8 +311,8 @@ void _gdk_windowing_event_data_copy (const GdkEvent *src,
                                      GdkEvent       *dst);
 void _gdk_windowing_event_data_free (GdkEvent       *event);
 
-void _gdk_set_window_state (GdkWindow *window,
-                            GdkWindowState new_state);
+void gdk_window_set_state (GdkWindow      *window,
+                           GdkWindowState  new_state);
 
 gboolean        _gdk_cairo_surface_extents       (cairo_surface_t *surface,
                                                   GdkRectangle    *extents);
@@ -392,14 +368,6 @@ cairo_region_t *gdk_window_get_current_paint_region (GdkWindow *window);
 void       _gdk_window_process_updates_recurse (GdkWindow *window,
                                                 cairo_region_t *expose_region);
 
-void       _gdk_screen_set_resolution    (GdkScreen      *screen,
-                                          gdouble         dpi);
-void       _gdk_screen_close             (GdkScreen      *screen);
-
-GdkWindow *gdk_screen_get_root_window (GdkScreen *screen);
-GdkWindow *gdk_get_default_root_window (void);
-
-
 /*****************************************
  * Interfaces provided by windowing code *
  *****************************************/
@@ -453,6 +421,13 @@ void _gdk_display_set_window_under_pointer (GdkDisplay *display,
 
 gboolean    _gdk_window_has_impl (GdkWindow *window);
 GdkWindow * _gdk_window_get_impl_window (GdkWindow *window);
+
+void gdk_window_destroy_notify       (GdkWindow *window);
+
+void gdk_synthesize_window_state (GdkWindow     *window,
+                                  GdkWindowState unset_flags,
+                                  GdkWindowState set_flags);
+
 
 G_END_DECLS
 

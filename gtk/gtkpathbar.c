@@ -45,6 +45,30 @@ struct _GtkPathBarPrivate
   GFile *home_file;
   GFile *desktop_file;
 
+  /* List of running GCancellable.  When we cancel one, we remove it from this list.
+   * The pathbar cancels all outstanding cancellables when it is disposed.
+   *
+   * In code that queues async I/O operations:
+   *
+   *   - Obtain a cancellable from the async I/O APIs, and call add_cancellable().
+   *
+   * To cancel a cancellable:
+   *
+   *   - Call cancel_cancellable().
+   *
+   * In async I/O callbacks:
+   *
+   *   - Check right away if g_cancellable_is_cancelled():  if true, just
+   *     g_object_unref() the cancellable and return early (also free your
+   *     closure data if you have one).
+   *
+   *   - If it was not cancelled, call cancellable_async_done().  This will
+   *     unref the cancellable and unqueue it from the pathbar's outstanding
+   *     cancellables.  Do your normal work to process the async result and free
+   *     your closure data if you have one.
+   */
+  GList *cancellables;
+
   GCancellable *get_info_cancellable;
 
   GIcon *root_icon;
@@ -60,13 +84,6 @@ struct _GtkPathBarPrivate
   GtkWidget *down_slider_button;
   guint settings_signal_id;
   gint16 slider_width;
-  gint16 button_offset;
-  guint timer;
-  guint slider_visible : 1;
-  guint need_timer     : 1;
-  guint ignore_click   : 1;
-  guint scrolling_up   : 1;
-  guint scrolling_down : 1;
 };
 
 enum {
@@ -82,10 +99,6 @@ typedef enum {
 } ButtonType;
 
 #define BUTTON_DATA(x) ((ButtonData *)(x))
-
-#define SCROLL_DELAY_FACTOR 5
-#define TIMEOUT_INITIAL     500
-#define TIMEOUT_REPEAT      50
 
 static guint path_bar_signals [LAST_SIGNAL] = { 0 };
 
@@ -123,7 +136,6 @@ static void gtk_path_bar_measure (GtkWidget *widget,
                                   int            *natural,
                                   int            *minimum_baseline,
                                   int            *natural_baseline);
-static void gtk_path_bar_unmap                    (GtkWidget        *widget);
 static void gtk_path_bar_size_allocate            (GtkWidget           *widget,
                                                    const GtkAllocation *allocation,
                                                    int                  baseline,
@@ -137,26 +149,15 @@ static void gtk_path_bar_forall                   (GtkContainer     *container,
 						   gpointer          callback_data);
 static void gtk_path_bar_scroll_up                (GtkPathBar       *path_bar);
 static void gtk_path_bar_scroll_down              (GtkPathBar       *path_bar);
-static void gtk_path_bar_stop_scrolling           (GtkPathBar       *path_bar);
 static gboolean gtk_path_bar_slider_up_defocus    (GtkWidget        *widget,
 						   GdkEventButton   *event,
 						   GtkPathBar       *path_bar);
 static gboolean gtk_path_bar_slider_down_defocus  (GtkWidget        *widget,
 						   GdkEventButton   *event,
 						   GtkPathBar       *path_bar);
-static gboolean gtk_path_bar_slider_button_press  (GtkWidget        *widget,
-						   GdkEventButton   *event,
-						   GtkPathBar       *path_bar);
-static gboolean gtk_path_bar_slider_button_release(GtkWidget        *widget,
-						   GdkEventButton   *event,
-						   GtkPathBar       *path_bar);
-static void gtk_path_bar_grab_notify              (GtkWidget        *widget,
-						   gboolean          was_grabbed);
-static void gtk_path_bar_state_flags_changed      (GtkWidget        *widget,
-                                                   GtkStateFlags     previous_state);
 static void gtk_path_bar_style_updated            (GtkWidget        *widget);
-static void gtk_path_bar_screen_changed           (GtkWidget        *widget,
-						   GdkScreen        *previous_screen);
+static void gtk_path_bar_display_changed          (GtkWidget        *widget,
+						   GdkDisplay       *previous_display);
 static void gtk_path_bar_check_icon_theme         (GtkPathBar       *path_bar);
 static void gtk_path_bar_update_button_appearance (GtkPathBar       *path_bar,
 						   ButtonData       *button_data,
@@ -168,13 +169,49 @@ static void gtk_path_bar_scroll_controller_scroll (GtkEventControllerScroll *scr
                                                    GtkPathBar               *path_bar);
 
 static void
-on_slider_unmap (GtkWidget  *widget,
-		 GtkPathBar *path_bar)
+add_cancellable (GtkPathBar   *path_bar,
+		 GCancellable *cancellable)
 {
-  if (path_bar->priv->timer &&
-      ((widget == path_bar->priv->up_slider_button && path_bar->priv->scrolling_up) ||
-       (widget == path_bar->priv->down_slider_button && path_bar->priv->scrolling_down)))
-    gtk_path_bar_stop_scrolling (path_bar);
+  g_assert (g_list_find (path_bar->priv->cancellables, cancellable) == NULL);
+  path_bar->priv->cancellables = g_list_prepend (path_bar->priv->cancellables, cancellable);
+}
+
+static void
+drop_node_for_cancellable (GtkPathBar *path_bar,
+			   GCancellable *cancellable)
+{
+  GList *node;
+
+  node = g_list_find (path_bar->priv->cancellables, cancellable);
+  g_assert (node != NULL);
+  node->data = NULL;
+  path_bar->priv->cancellables = g_list_delete_link (path_bar->priv->cancellables, node);
+}
+
+static void
+cancel_cancellable (GtkPathBar   *path_bar,
+		    GCancellable *cancellable)
+{
+  drop_node_for_cancellable (path_bar, cancellable);
+  g_cancellable_cancel (cancellable);
+}
+
+static void
+cancellable_async_done (GtkPathBar   *path_bar,
+			GCancellable *cancellable)
+{
+  drop_node_for_cancellable (path_bar, cancellable);
+  g_object_unref (cancellable);
+}
+
+static void
+cancel_all_cancellables (GtkPathBar *path_bar)
+{
+  while (path_bar->priv->cancellables)
+    {
+      GCancellable *cancellable = path_bar->priv->cancellables->data;
+      cancel_cancellable (path_bar, cancellable);
+    }
 }
 
 static void
@@ -207,6 +244,7 @@ gtk_path_bar_init (GtkPathBar *path_bar)
   gtk_style_context_add_class (context, GTK_STYLE_CLASS_LINKED);
 
   path_bar->priv->get_info_cancellable = NULL;
+  path_bar->priv->cancellables = NULL;
 
   path_bar->priv->scroll_controller =
     gtk_event_controller_scroll_new (GTK_WIDGET (path_bar),
@@ -232,12 +270,9 @@ gtk_path_bar_class_init (GtkPathBarClass *path_bar_class)
   gobject_class->dispose = gtk_path_bar_dispose;
 
   widget_class->measure = gtk_path_bar_measure;
-  widget_class->unmap = gtk_path_bar_unmap;
   widget_class->size_allocate = gtk_path_bar_size_allocate;
   widget_class->style_updated = gtk_path_bar_style_updated;
-  widget_class->screen_changed = gtk_path_bar_screen_changed;
-  widget_class->grab_notify = gtk_path_bar_grab_notify;
-  widget_class->state_flags_changed = gtk_path_bar_state_flags_changed;
+  widget_class->display_changed = gtk_path_bar_display_changed;
 
   container_class->add = gtk_path_bar_add;
   container_class->forall = gtk_path_bar_forall;
@@ -265,13 +300,10 @@ gtk_path_bar_class_init (GtkPathBarClass *path_bar_class)
   gtk_widget_class_bind_template_child_private (widget_class, GtkPathBar, up_slider_button);
   gtk_widget_class_bind_template_child_private (widget_class, GtkPathBar, down_slider_button);
 
-  gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_slider_button_press);
-  gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_slider_button_release);
   gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_slider_up_defocus);
   gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_slider_down_defocus);
   gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_scroll_up);
   gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_scroll_down);
-  gtk_widget_class_bind_template_callback (widget_class, on_slider_unmap);
 }
 
 
@@ -282,7 +314,7 @@ gtk_path_bar_finalize (GObject *object)
 
   path_bar = GTK_PATH_BAR (object);
 
-  gtk_path_bar_stop_scrolling (path_bar);
+  cancel_all_cancellables (path_bar);
 
   g_list_free (path_bar->priv->button_list);
   g_clear_object (&path_bar->priv->root_file);
@@ -303,13 +335,13 @@ gtk_path_bar_finalize (GObject *object)
 /* Removes the settings signal handler.  It's safe to call multiple times */
 static void
 remove_settings_signal (GtkPathBar *path_bar,
-			GdkScreen  *screen)
+			GdkDisplay *display)
 {
   if (path_bar->priv->settings_signal_id)
     {
       GtkSettings *settings;
 
-      settings = gtk_settings_get_for_screen (screen);
+      settings = gtk_settings_get_for_display (display);
       g_signal_handler_disconnect (settings,
 				   path_bar->priv->settings_signal_id);
       path_bar->priv->settings_signal_id = 0;
@@ -321,11 +353,10 @@ gtk_path_bar_dispose (GObject *object)
 {
   GtkPathBar *path_bar = GTK_PATH_BAR (object);
 
-  remove_settings_signal (path_bar, gtk_widget_get_screen (GTK_WIDGET (object)));
+  remove_settings_signal (path_bar, gtk_widget_get_display (GTK_WIDGET (object)));
 
-  if (path_bar->priv->get_info_cancellable)
-    g_cancellable_cancel (path_bar->priv->get_info_cancellable);
   path_bar->priv->get_info_cancellable = NULL;
+  cancel_all_cancellables (path_bar);
 
   G_OBJECT_CLASS (gtk_path_bar_parent_class)->dispose (object);
 }
@@ -436,30 +467,16 @@ gtk_path_bar_update_slider_buttons (GtkPathBar *path_bar)
 
       button = BUTTON_DATA (path_bar->priv->button_list->data)->button;
       if (gtk_widget_get_child_visible (button))
-	{
-	  gtk_path_bar_stop_scrolling (path_bar);
-	  gtk_widget_set_sensitive (path_bar->priv->down_slider_button, FALSE);
-	}
+	gtk_widget_set_sensitive (path_bar->priv->down_slider_button, FALSE);
       else
 	gtk_widget_set_sensitive (path_bar->priv->down_slider_button, TRUE);
 
       button = BUTTON_DATA (g_list_last (path_bar->priv->button_list)->data)->button;
       if (gtk_widget_get_child_visible (button))
-	{
-	  gtk_path_bar_stop_scrolling (path_bar);
-	  gtk_widget_set_sensitive (path_bar->priv->up_slider_button, FALSE);
-	}
+	gtk_widget_set_sensitive (path_bar->priv->up_slider_button, FALSE);
       else
 	gtk_widget_set_sensitive (path_bar->priv->up_slider_button, TRUE);
     }
-}
-
-static void
-gtk_path_bar_unmap (GtkWidget *widget)
-{
-  gtk_path_bar_stop_scrolling (GTK_PATH_BAR (widget));
-
-  GTK_WIDGET_CLASS (gtk_path_bar_parent_class)->unmap (widget);
 }
 
 /* This is a tad complicated
@@ -711,15 +728,15 @@ gtk_path_bar_style_updated (GtkWidget *widget)
 }
 
 static void
-gtk_path_bar_screen_changed (GtkWidget *widget,
-			     GdkScreen *previous_screen)
+gtk_path_bar_display_changed (GtkWidget  *widget,
+			      GdkDisplay *previous_display)
 {
-  if (GTK_WIDGET_CLASS (gtk_path_bar_parent_class)->screen_changed)
-    GTK_WIDGET_CLASS (gtk_path_bar_parent_class)->screen_changed (widget, previous_screen);
+  if (GTK_WIDGET_CLASS (gtk_path_bar_parent_class)->display_changed)
+    GTK_WIDGET_CLASS (gtk_path_bar_parent_class)->display_changed (widget, previous_display);
 
   /* We might nave a new settings, so we remove the old one */
-  if (previous_screen)
-    remove_settings_signal (GTK_PATH_BAR (widget), previous_screen);
+  if (previous_display)
+    remove_settings_signal (GTK_PATH_BAR (widget), previous_display);
 
   gtk_path_bar_check_icon_theme (GTK_PATH_BAR (widget));
 }
@@ -828,12 +845,6 @@ gtk_path_bar_scroll_down (GtkPathBar *path_bar)
   GList *down_button = NULL;
   gint space_available;
 
-  if (path_bar->priv->ignore_click)
-    {
-      path_bar->priv->ignore_click = FALSE;
-      return;   
-    }
-
   if (gtk_widget_get_child_visible (BUTTON_DATA (path_bar->priv->button_list->data)->button))
     {
       /* Return if the last button is already visible */
@@ -879,12 +890,6 @@ gtk_path_bar_scroll_up (GtkPathBar *path_bar)
 {
   GList *list;
 
-  if (path_bar->priv->ignore_click)
-    {
-      path_bar->priv->ignore_click = FALSE;
-      return;   
-    }
-
   list = g_list_last (path_bar->priv->button_list);
 
   if (gtk_widget_get_child_visible (BUTTON_DATA (list->data)->button))
@@ -904,45 +909,6 @@ gtk_path_bar_scroll_up (GtkPathBar *path_bar)
 	  path_bar->priv->first_scrolled_button = list;
 	  return;
 	}
-    }
-}
-
-static gboolean
-gtk_path_bar_scroll_timeout (GtkPathBar *path_bar)
-{
-  gboolean retval = FALSE;
-
-  if (path_bar->priv->timer)
-    {
-      if (path_bar->priv->scrolling_up)
-	gtk_path_bar_scroll_up (path_bar);
-      else if (path_bar->priv->scrolling_down)
-	gtk_path_bar_scroll_down (path_bar);
-
-      if (path_bar->priv->need_timer) 
-	{
-	  path_bar->priv->need_timer = FALSE;
-
-	  path_bar->priv->timer = gdk_threads_add_timeout (TIMEOUT_REPEAT * SCROLL_DELAY_FACTOR,
-					   (GSourceFunc)gtk_path_bar_scroll_timeout,
-					   path_bar);
-          g_source_set_name_by_id (path_bar->priv->timer, "[gtk+] gtk_path_bar_scroll_timeout");
-	}
-      else
-	retval = TRUE;
-    }
-
-  return retval;
-}
-
-static void 
-gtk_path_bar_stop_scrolling (GtkPathBar *path_bar)
-{
-  if (path_bar->priv->timer)
-    {
-      g_source_remove (path_bar->priv->timer);
-      path_bar->priv->timer = 0;
-      path_bar->priv->need_timer = FALSE;
     }
 }
 
@@ -1002,77 +968,6 @@ gtk_path_bar_slider_down_defocus (GtkWidget      *widget,
   return FALSE;
 }
 
-static gboolean
-gtk_path_bar_slider_button_press (GtkWidget      *widget, 
-				  GdkEventButton *event,
-				  GtkPathBar     *path_bar)
-{
-  guint button;
-
-  gdk_event_get_button ((GdkEvent*)event, &button);
-
-  if (gdk_event_get_event_type ((GdkEvent *) event) != GDK_BUTTON_PRESS ||
-      button != GDK_BUTTON_PRIMARY)
-    return FALSE;
-
-  path_bar->priv->ignore_click = FALSE;
-
-  if (widget == path_bar->priv->up_slider_button)
-    {
-      path_bar->priv->scrolling_down = FALSE;
-      path_bar->priv->scrolling_up = TRUE;
-      gtk_path_bar_scroll_up (path_bar);
-    }
-  else if (widget == path_bar->priv->down_slider_button)
-    {
-      path_bar->priv->scrolling_up = FALSE;
-      path_bar->priv->scrolling_down = TRUE;
-      gtk_path_bar_scroll_down (path_bar);
-    }
-
-  if (!path_bar->priv->timer)
-    {
-      path_bar->priv->need_timer = TRUE;
-      path_bar->priv->timer = gdk_threads_add_timeout (TIMEOUT_INITIAL,
-				       (GSourceFunc)gtk_path_bar_scroll_timeout,
-				       path_bar);
-      g_source_set_name_by_id (path_bar->priv->timer, "[gtk+] gtk_path_bar_scroll_timeout");
-    }
-
-  return FALSE;
-}
-
-static gboolean
-gtk_path_bar_slider_button_release (GtkWidget      *widget, 
-				    GdkEventButton *event,
-				    GtkPathBar     *path_bar)
-{
-  if (gdk_event_get_event_type ((GdkEvent *) event) != GDK_BUTTON_RELEASE)
-    return FALSE;
-
-  path_bar->priv->ignore_click = TRUE;
-  gtk_path_bar_stop_scrolling (path_bar);
-
-  return FALSE;
-}
-
-static void
-gtk_path_bar_grab_notify (GtkWidget *widget,
-			  gboolean   was_grabbed)
-{
-  if (!was_grabbed)
-    gtk_path_bar_stop_scrolling (GTK_PATH_BAR (widget));
-}
-
-static void
-gtk_path_bar_state_flags_changed (GtkWidget     *widget,
-                                  GtkStateFlags  previous_state)
-{
-  if (!gtk_widget_is_sensitive (widget))
-    gtk_path_bar_stop_scrolling (GTK_PATH_BAR (widget));
-}
-
-
 /* Changes the icons wherever it is needed */
 static void
 reload_icons (GtkPathBar *path_bar)
@@ -1124,7 +1019,7 @@ gtk_path_bar_check_icon_theme (GtkPathBar *path_bar)
     {
       GtkSettings *settings;
 
-      settings = gtk_settings_get_for_screen (gtk_widget_get_screen (GTK_WIDGET (path_bar)));
+      settings = gtk_widget_get_settings (GTK_WIDGET (path_bar));
       path_bar->priv->settings_signal_id = g_signal_connect (settings, "notify",
                                                              G_CALLBACK (settings_notify_cb), path_bar);
     }
@@ -1203,22 +1098,25 @@ set_button_image_get_info_cb (GCancellable *cancellable,
   GIcon *icon;
   struct SetButtonImageData *data = user_data;
 
-  if (cancellable != data->button_data->cancellable)
-    goto out;
-
-  data->button_data->cancellable = NULL;
-
-  if (!data->button_data->button)
+  if (cancelled)
     {
-      g_free (data->button_data);
-      goto out;
+      g_free (data);
+      g_object_unref (cancellable);
+      return;
     }
 
-  if (cancelled || error)
+  g_assert (GTK_IS_PATH_BAR (data->path_bar));
+  g_assert (G_OBJECT (data->path_bar)->ref_count > 0);
+
+  g_assert (cancellable == data->button_data->cancellable);
+  cancellable_async_done (data->path_bar, cancellable);
+  data->button_data->cancellable = NULL;
+
+  if (error)
     goto out;
 
   icon = g_file_info_get_symbolic_icon (info);
-  gtk_image_set_from_gicon (GTK_IMAGE (data->button_data->image), icon, GTK_ICON_SIZE_BUTTON);
+  gtk_image_set_from_gicon (GTK_IMAGE (data->button_data->image), icon);
 
   switch (data->button_data->type)
     {
@@ -1238,7 +1136,6 @@ set_button_image_get_info_cb (GCancellable *cancellable,
 
 out:
   g_free (data);
-  g_object_unref (cancellable);
 }
 
 static void
@@ -1254,7 +1151,7 @@ set_button_image (GtkPathBar *path_bar,
 
       if (path_bar->priv->root_icon != NULL)
         {
-          gtk_image_set_from_gicon (GTK_IMAGE (button_data->image), path_bar->priv->root_icon, GTK_ICON_SIZE_BUTTON);
+          gtk_image_set_from_gicon (GTK_IMAGE (button_data->image), path_bar->priv->root_icon);
 	  break;
 	}
 
@@ -1264,14 +1161,14 @@ set_button_image (GtkPathBar *path_bar,
 
       path_bar->priv->root_icon = _gtk_file_system_volume_get_symbolic_icon (volume);
       _gtk_file_system_volume_unref (volume);
-      gtk_image_set_from_gicon (GTK_IMAGE (button_data->image), path_bar->priv->root_icon, GTK_ICON_SIZE_BUTTON);
+      gtk_image_set_from_gicon (GTK_IMAGE (button_data->image), path_bar->priv->root_icon);
 
       break;
 
     case HOME_BUTTON:
       if (path_bar->priv->home_icon != NULL)
         {
-          gtk_image_set_from_gicon (GTK_IMAGE (button_data->image), path_bar->priv->home_icon, GTK_ICON_SIZE_BUTTON);
+          gtk_image_set_from_gicon (GTK_IMAGE (button_data->image), path_bar->priv->home_icon);
 	  break;
 	}
 
@@ -1280,7 +1177,9 @@ set_button_image (GtkPathBar *path_bar,
       data->button_data = button_data;
 
       if (button_data->cancellable)
-	g_cancellable_cancel (button_data->cancellable);
+	{
+	  cancel_cancellable (path_bar, button_data->cancellable);
+	}
 
       button_data->cancellable =
         _gtk_file_system_get_info (path_bar->priv->file_system,
@@ -1288,12 +1187,13 @@ set_button_image (GtkPathBar *path_bar,
 				   "standard::symbolic-icon",
 				   set_button_image_get_info_cb,
 				   data);
+      add_cancellable (path_bar, button_data->cancellable);
       break;
 
     case DESKTOP_BUTTON:
       if (path_bar->priv->desktop_icon != NULL)
         {
-          gtk_image_set_from_gicon (GTK_IMAGE (button_data->image), path_bar->priv->desktop_icon, GTK_ICON_SIZE_BUTTON);
+          gtk_image_set_from_gicon (GTK_IMAGE (button_data->image), path_bar->priv->desktop_icon);
 	  break;
 	}
 
@@ -1302,7 +1202,9 @@ set_button_image (GtkPathBar *path_bar,
       data->button_data = button_data;
 
       if (button_data->cancellable)
-	g_cancellable_cancel (button_data->cancellable);
+	{
+	  cancel_cancellable (path_bar, button_data->cancellable);
+	}
 
       button_data->cancellable =
         _gtk_file_system_get_info (path_bar->priv->file_system,
@@ -1310,6 +1212,7 @@ set_button_image (GtkPathBar *path_bar,
 				   "standard::symbolic-icon",
 				   set_button_image_get_info_cb,
 				   data);
+      add_cancellable (path_bar, button_data->cancellable);
       break;
 
     case NORMAL_BUTTON:
@@ -1330,10 +1233,7 @@ button_data_free (ButtonData *button_data)
 
   button_data->button = NULL;
 
-  if (button_data->cancellable)
-    g_cancellable_cancel (button_data->cancellable);
-  else
-    g_free (button_data);
+  g_free (button_data);
 }
 
 static const char *
@@ -1398,7 +1298,6 @@ static void
 button_drag_data_get_cb (GtkWidget        *widget,
                          GdkDragContext   *context,
                          GtkSelectionData *selection_data,
-                         guint             info,
                          guint             time_,
                          gpointer          data)
 {
@@ -1429,7 +1328,6 @@ make_directory_button (GtkPathBar  *path_bar,
   file_is_hidden = !! file_is_hidden;
   /* Is it a special button? */
   button_data = g_new0 (ButtonData, 1);
-
   button_data->type = find_button_type (path_bar, file);
   button_data->button = gtk_toggle_button_new ();
   atk_obj = gtk_widget_get_accessible (button_data->button);
@@ -1474,7 +1372,7 @@ make_directory_button (GtkPathBar  *path_bar,
 
   gtk_drag_source_set (button_data->button,
 		       GDK_BUTTON1_MASK,
-		       NULL, 0,
+		       NULL,
 		       GDK_ACTION_COPY);
   gtk_drag_source_add_uri_targets (button_data->button);
   g_signal_connect (button_data->button, "drag-data-get",
@@ -1613,20 +1511,21 @@ gtk_path_bar_get_info_callback (GCancellable *cancellable,
   const gchar *display_name;
   gboolean is_hidden;
 
-  if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-    return;
-
-  if (cancellable != file_info->path_bar->priv->get_info_cancellable)
+  if (cancelled)
     {
       gtk_path_bar_set_file_finish (file_info, FALSE);
       g_object_unref (cancellable);
       return;
     }
 
-  g_object_unref (cancellable);
+  g_assert (GTK_IS_PATH_BAR (file_info->path_bar));
+  g_assert (G_OBJECT (file_info->path_bar)->ref_count > 0);
+
+  g_assert (cancellable == file_info->path_bar->priv->get_info_cancellable);
+  cancellable_async_done (file_info->path_bar, cancellable);
   file_info->path_bar->priv->get_info_cancellable = NULL;
 
-  if (cancelled || !info)
+  if (!info)
     {
       gtk_path_bar_set_file_finish (file_info, FALSE);
       return;
@@ -1638,7 +1537,7 @@ gtk_path_bar_get_info_callback (GCancellable *cancellable,
   button_data = make_directory_button (file_info->path_bar, display_name,
                                        file_info->file,
 				       file_info->first_directory, is_hidden);
-  g_object_unref (file_info->file);
+  g_clear_object (&file_info->file);
 
   file_info->new_buttons = g_list_prepend (file_info->new_buttons, button_data);
 
@@ -1668,6 +1567,7 @@ gtk_path_bar_get_info_callback (GCancellable *cancellable,
 			       "standard::display-name,standard::is-hidden,standard::is-backup",
 			       gtk_path_bar_get_info_callback,
 			       file_info);
+  add_cancellable (file_info->path_bar, file_info->path_bar->priv->get_info_cancellable);
 }
 
 void
@@ -1693,7 +1593,9 @@ _gtk_path_bar_set_file (GtkPathBar *path_bar,
   info->parent_file = g_file_get_parent (info->file);
 
   if (path_bar->priv->get_info_cancellable)
-    g_cancellable_cancel (path_bar->priv->get_info_cancellable);
+    {
+      cancel_cancellable (path_bar, path_bar->priv->get_info_cancellable);
+    }
 
   path_bar->priv->get_info_cancellable =
     _gtk_file_system_get_info (path_bar->priv->file_system,
@@ -1701,7 +1603,7 @@ _gtk_path_bar_set_file (GtkPathBar *path_bar,
                                "standard::display-name,standard::is-hidden,standard::is-backup",
                                gtk_path_bar_get_info_callback,
                                info);
-
+  add_cancellable (path_bar, path_bar->priv->get_info_cancellable);
 }
 
 /* FIXME: This should be a construct-only property */

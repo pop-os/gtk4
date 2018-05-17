@@ -25,7 +25,7 @@ gtk_tests = [
   ['testbuttons'],
   ['testcairo'],
   ['testcalendar'],
-  ['testclipboard'],
+  ['testclipboard2'],
   ['testcolorchooser'],
   ['testcolorchooser2'],
   ['testcombo'],
@@ -65,7 +65,6 @@ gtk_tests = [
   ['testlockbutton'],
   ['testmenubutton'],
   ['testmountoperation'],
-  ['testmultidisplay'],
   ['testnotebookdnd'],
   ['testnouiprint'],
   ['testorientable'],
@@ -74,9 +73,7 @@ gtk_tests = [
   ['testprint', ['testprintfileoperation.c']],
   ['testrecentchooser'],
   ['testrecentchoosermenu'],
-  ['testrichtext'],
   ['testscale'],
-  ['testselection'],
   ['testselectionmode'],
   ['testspinbutton'],
   ['testtoolbar'],
@@ -109,7 +106,6 @@ gtk_tests = [
   ['testtreepos'],
   ['testsensitive'],
   ['testtextview'],
-  ['testanimation'],
   ['testpixbuf-scale'],
   ['testgmenu'],
   ['testlogout'],
@@ -129,7 +125,10 @@ gtk_tests = [
   ['testgaction'],
   ['testwidgetfocus'],
   ['testcenterbox'],
-  ['testgridbaseline']
+  ['testgridbaseline'],
+  ['showrendernode'],
+  ['testborderdrawing'],
+  ['testoutsetshadowdrawing'],
 ]
 
 if os_linux

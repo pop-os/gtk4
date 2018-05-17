@@ -71,7 +71,6 @@
 #include <gtk/gtkcenterbox.h>
 #include <gtk/gtkcheckbutton.h>
 #include <gtk/gtkcheckmenuitem.h>
-#include <gtk/gtkclipboard.h>
 #include <gtk/gtkcolorbutton.h>
 #include <gtk/gtkcolorchooser.h>
 #include <gtk/gtkcolorchooserdialog.h>
@@ -94,6 +93,7 @@
 #include <gtk/gtkentrycompletion.h>
 #include <gtk/gtkenums.h>
 #include <gtk/gtkeventcontroller.h>
+#include <gtk/gtkeventcontrollermotion.h>
 #include <gtk/gtkeventcontrollerscroll.h>
 #include <gtk/gtkexpander.h>
 #include <gtk/gtkfixed.h>
@@ -207,7 +207,6 @@
 #include <gtk/gtkstyleprovider.h>
 #include <gtk/gtkswitch.h>
 #include <gtk/gtktextbuffer.h>
-#include <gtk/gtktextbufferrichtext.h>
 #include <gtk/gtktextchild.h>
 #include <gtk/gtktextiter.h>
 #include <gtk/gtktextmark.h>

@@ -34,6 +34,7 @@
 #include <gdk/gdkdrawingcontext.h>
 #include <gdk/gdkevents.h>
 #include <gdk/gdkframeclock.h>
+#include <gdk/gdkmonitor.h>
 
 G_BEGIN_DECLS
 
@@ -369,6 +370,52 @@ struct _GdkGeometry
   GdkGravity win_gravity;
 };
 
+/**
+ * GdkWindowState:
+ * @GDK_WINDOW_STATE_WITHDRAWN: the window is not shown.
+ * @GDK_WINDOW_STATE_ICONIFIED: the window is minimized.
+ * @GDK_WINDOW_STATE_MAXIMIZED: the window is maximized.
+ * @GDK_WINDOW_STATE_STICKY: the window is sticky.
+ * @GDK_WINDOW_STATE_FULLSCREEN: the window is maximized without
+ *   decorations.
+ * @GDK_WINDOW_STATE_ABOVE: the window is kept above other windows.
+ * @GDK_WINDOW_STATE_BELOW: the window is kept below other windows.
+ * @GDK_WINDOW_STATE_FOCUSED: the window is presented as focused (with active decorations).
+ * @GDK_WINDOW_STATE_TILED: the window is in a tiled state, Since 3.10. Since 3.91.2, this
+ *                          is deprecated in favor of per-edge information.
+ * @GDK_WINDOW_STATE_TOP_TILED: whether the top edge is tiled, Since 3.91.2
+ * @GDK_WINDOW_STATE_TOP_RESIZABLE: whether the top edge is resizable, Since 3.91.2
+ * @GDK_WINDOW_STATE_RIGHT_TILED: whether the right edge is tiled, Since 3.91.2
+ * @GDK_WINDOW_STATE_RIGHT_RESIZABLE: whether the right edge is resizable, Since 3.91.2
+ * @GDK_WINDOW_STATE_BOTTOM_TILED: whether the bottom edge is tiled, Since 3.91.2
+ * @GDK_WINDOW_STATE_BOTTOM_RESIZABLE: whether the bottom edge is resizable, Since 3.91.2
+ * @GDK_WINDOW_STATE_LEFT_TILED: whether the left edge is tiled, Since 3.91.2
+ * @GDK_WINDOW_STATE_LEFT_RESIZABLE: whether the left edge is resizable, Since 3.91.2
+ *
+ * Specifies the state of a toplevel window.
+ */
+typedef enum
+{
+  GDK_WINDOW_STATE_WITHDRAWN        = 1 << 0,
+  GDK_WINDOW_STATE_ICONIFIED        = 1 << 1,
+  GDK_WINDOW_STATE_MAXIMIZED        = 1 << 2,
+  GDK_WINDOW_STATE_STICKY           = 1 << 3,
+  GDK_WINDOW_STATE_FULLSCREEN       = 1 << 4,
+  GDK_WINDOW_STATE_ABOVE            = 1 << 5,
+  GDK_WINDOW_STATE_BELOW            = 1 << 6,
+  GDK_WINDOW_STATE_FOCUSED          = 1 << 7,
+  GDK_WINDOW_STATE_TILED            = 1 << 8,
+  GDK_WINDOW_STATE_TOP_TILED        = 1 << 9,
+  GDK_WINDOW_STATE_TOP_RESIZABLE    = 1 << 10,
+  GDK_WINDOW_STATE_RIGHT_TILED      = 1 << 11,
+  GDK_WINDOW_STATE_RIGHT_RESIZABLE  = 1 << 12,
+  GDK_WINDOW_STATE_BOTTOM_TILED     = 1 << 13,
+  GDK_WINDOW_STATE_BOTTOM_RESIZABLE = 1 << 14,
+  GDK_WINDOW_STATE_LEFT_TILED       = 1 << 15,
+  GDK_WINDOW_STATE_LEFT_RESIZABLE   = 1 << 16
+} GdkWindowState;
+
+
 typedef struct _GdkWindowClass GdkWindowClass;
 
 #define GDK_TYPE_WINDOW              (gdk_window_get_type ())
@@ -400,18 +447,15 @@ GDK_AVAILABLE_IN_ALL
 GType         gdk_window_get_type              (void) G_GNUC_CONST;
 GDK_AVAILABLE_IN_3_90
 GdkWindow *   gdk_window_new_toplevel          (GdkDisplay    *display,
-                                                gint           event_mask,
                                                 int            width,
                                                 int            height);
 GDK_AVAILABLE_IN_3_90
 GdkWindow *   gdk_window_new_popup             (GdkDisplay    *display,
-                                                gint           event_mask,
                                                 const GdkRectangle *position);
 GDK_AVAILABLE_IN_3_90
 GdkWindow *   gdk_window_new_temp              (GdkDisplay    *display);
 GDK_AVAILABLE_IN_3_90
 GdkWindow *   gdk_window_new_child             (GdkWindow     *parent,
-                                                gint           event_mask,
                                                 const GdkRectangle *position);
 
 GDK_AVAILABLE_IN_ALL
@@ -421,8 +465,6 @@ GdkWindowType gdk_window_get_window_type       (GdkWindow     *window);
 GDK_AVAILABLE_IN_ALL
 gboolean      gdk_window_is_destroyed          (GdkWindow     *window);
 
-GDK_AVAILABLE_IN_ALL
-GdkScreen *   gdk_window_get_screen            (GdkWindow     *window);
 GDK_AVAILABLE_IN_ALL
 GdkDisplay *  gdk_window_get_display           (GdkWindow     *window);
 GDK_AVAILABLE_IN_ALL
@@ -591,11 +633,6 @@ cairo_region_t *gdk_window_get_clip_region  (GdkWindow          *window);
 GDK_AVAILABLE_IN_ALL
 cairo_region_t *gdk_window_get_visible_region(GdkWindow         *window);
 
-
-GDK_AVAILABLE_IN_3_16
-void	      gdk_window_mark_paint_from_clip (GdkWindow          *window,
-					       cairo_t            *cr);
-
 GDK_AVAILABLE_IN_3_90
 GdkDrawingContext *gdk_window_begin_draw_frame  (GdkWindow            *window,
                                                  GdkDrawContext       *context,
@@ -719,16 +756,8 @@ GdkEventMask  gdk_window_get_device_events (GdkWindow    *window,
                                             GdkDevice    *device);
 
 GDK_AVAILABLE_IN_ALL
-void          gdk_window_set_source_events (GdkWindow      *window,
-                                            GdkInputSource  source,
-                                            GdkEventMask    event_mask);
-GDK_AVAILABLE_IN_ALL
-GdkEventMask  gdk_window_get_source_events (GdkWindow      *window,
-                                            GdkInputSource  source);
-
-GDK_AVAILABLE_IN_ALL
 void          gdk_window_set_icon_list   (GdkWindow       *window,
-					  GList           *pixbufs);
+					  GList           *surfaces);
 GDK_AVAILABLE_IN_ALL
 void	      gdk_window_set_icon_name	 (GdkWindow	  *window, 
 					  const gchar	  *name);
@@ -779,7 +808,7 @@ GDK_AVAILABLE_IN_ALL
 void          gdk_window_fullscreen      (GdkWindow       *window);
 GDK_AVAILABLE_IN_3_18
 void          gdk_window_fullscreen_on_monitor (GdkWindow      *window,
-                                                gint            monitor);
+                                                GdkMonitor     *monitor);
 GDK_AVAILABLE_IN_3_8
 void          gdk_window_set_fullscreen_mode (GdkWindow   *window,
                                           GdkFullscreenMode mode);
@@ -799,11 +828,6 @@ void          gdk_window_set_opacity     (GdkWindow       *window,
                                           gdouble          opacity);
 GDK_AVAILABLE_IN_ALL
 void          gdk_window_register_dnd    (GdkWindow       *window);
-
-GDK_AVAILABLE_IN_ALL
-GdkDragProtocol
-              gdk_window_get_drag_protocol(GdkWindow      *window,
-                                           GdkWindow     **target);
 
 GDK_AVAILABLE_IN_ALL
 void gdk_window_begin_resize_drag            (GdkWindow     *window,
@@ -893,12 +917,6 @@ GdkFrameClock* gdk_window_get_frame_clock      (GdkWindow     *window);
 GDK_AVAILABLE_IN_3_10
 void       gdk_window_set_opaque_region        (GdkWindow      *window,
                                                 cairo_region_t *region);
-
-GDK_AVAILABLE_IN_3_12
-void       gdk_window_set_event_compression    (GdkWindow      *window,
-                                                gboolean        event_compression);
-GDK_AVAILABLE_IN_3_12
-gboolean   gdk_window_get_event_compression    (GdkWindow      *window);
 
 GDK_AVAILABLE_IN_3_12
 void       gdk_window_set_shadow_width         (GdkWindow      *window,

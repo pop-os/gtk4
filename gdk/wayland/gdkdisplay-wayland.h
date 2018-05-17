@@ -22,7 +22,8 @@
 #ifndef __GDK_WAYLAND_DISPLAY__
 #define __GDK_WAYLAND_DISPLAY__
 
-#include <config.h>
+#include "config.h"
+
 #include <stdint.h>
 #include <wayland-client.h>
 #include <wayland-cursor.h>
@@ -32,6 +33,7 @@
 #include <gdk/wayland/xdg-shell-unstable-v6-client-protocol.h>
 #include <gdk/wayland/xdg-foreign-unstable-v1-client-protocol.h>
 #include <gdk/wayland/keyboard-shortcuts-inhibit-unstable-v1-client-protocol.h>
+#include <gdk/wayland/server-decoration-client-protocol.h>
 
 #include <glib.h>
 #include <gdk/gdkkeys.h>
@@ -40,22 +42,36 @@
 #include <gdk/gdk.h>		/* For gdk_get_program_class() */
 
 #include "gdkdisplayprivate.h"
+#include "gdkwaylanddevice.h"
 
 #include <epoxy/egl.h>
 
 G_BEGIN_DECLS
 
-#define GDK_WAYLAND_MAX_THEME_SCALE 2
+#define GDK_WAYLAND_MAX_THEME_SCALE 3
 #define GDK_WAYLAND_THEME_SCALES_COUNT GDK_WAYLAND_MAX_THEME_SCALE
 
 #define GDK_ZWP_POINTER_GESTURES_V1_VERSION 1
 
 typedef struct _GdkWaylandSelection GdkWaylandSelection;
 
+typedef struct {
+        gboolean     antialias;
+        gboolean     hinting;
+        gint         dpi;
+        const gchar *rgba;
+        const gchar *hintstyle;
+} GsdXftSettings;
+
 struct _GdkWaylandDisplay
 {
   GdkDisplay parent_instance;
-  GdkScreen *screen;
+  GList *toplevels;
+
+  GHashTable *settings;
+  GsdXftSettings xft_settings;
+
+  guint32    shell_capabilities;
 
   /* Startup notification */
   gchar *startup_notification_id;
@@ -79,6 +95,7 @@ struct _GdkWaylandDisplay
   struct zxdg_exporter_v1 *xdg_exporter;
   struct zxdg_importer_v1 *xdg_importer;
   struct zwp_keyboard_shortcuts_inhibit_manager_v1 *keyboard_shortcuts_inhibit;
+  struct org_kde_kwin_server_decoration_manager *server_decoration_manager;
 
   GList *async_roundtrips;
 
@@ -97,7 +114,7 @@ struct _GdkWaylandDisplay
   struct wl_cursor_theme *scaled_cursor_themes[GDK_WAYLAND_THEME_SCALES_COUNT];
   gchar *cursor_theme_name;
   int cursor_theme_size;
-  GHashTable *cursor_cache;
+  GHashTable *cursor_surface_cache;
 
   GSource *event_source;
 
@@ -105,6 +122,8 @@ struct _GdkWaylandDisplay
   int seat_version;
   int data_device_manager_version;
   int gtk_shell_version;
+
+  uint32_t server_decoration_mode;
 
   struct xkb_context *xkb_context;
 

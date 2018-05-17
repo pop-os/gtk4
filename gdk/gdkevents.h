@@ -38,20 +38,12 @@
 G_BEGIN_DECLS
 
 
-/**
- * SECTION:event_structs
- * @Short_description: Data structures specific to each type of event
- * @Title: Event Structures
- *
- * The event structures contain data specific to each type of event in GDK.
- *
- * > A common mistake is to forget to set the event mask of a widget so that
- * > the required events are received. See gtk_widget_set_events().
- */
-
-
 #define GDK_TYPE_EVENT          (gdk_event_get_type ())
 #define GDK_TYPE_EVENT_SEQUENCE (gdk_event_sequence_get_type ())
+
+#define GDK_EVENT(object)       (G_TYPE_CHECK_INSTANCE_CAST ((object), GDK_TYPE_EVENT, GdkEvent))
+#define GDK_IS_EVENT(object)    (G_TYPE_CHECK_INSTANCE_TYPE ((object), GDK_TYPE_EVENT))
+
 
 /**
  * GDK_PRIORITY_EVENTS:
@@ -123,7 +115,6 @@ G_BEGIN_DECLS
 
 typedef struct _GdkEventAny	    GdkEventAny;
 typedef struct _GdkEventExpose	    GdkEventExpose;
-typedef struct _GdkEventVisibility  GdkEventVisibility;
 typedef struct _GdkEventMotion	    GdkEventMotion;
 typedef struct _GdkEventButton	    GdkEventButton;
 typedef struct _GdkEventTouch       GdkEventTouch;
@@ -132,12 +123,8 @@ typedef struct _GdkEventKey	    GdkEventKey;
 typedef struct _GdkEventFocus	    GdkEventFocus;
 typedef struct _GdkEventCrossing    GdkEventCrossing;
 typedef struct _GdkEventConfigure   GdkEventConfigure;
-typedef struct _GdkEventProperty    GdkEventProperty;
-typedef struct _GdkEventSelection   GdkEventSelection;
-typedef struct _GdkEventOwnerChange GdkEventOwnerChange;
 typedef struct _GdkEventProximity   GdkEventProximity;
 typedef struct _GdkEventDND         GdkEventDND;
-typedef struct _GdkEventWindowState GdkEventWindowState;
 typedef struct _GdkEventSetting     GdkEventSetting;
 typedef struct _GdkEventGrabBroken  GdkEventGrabBroken;
 typedef struct _GdkEventTouchpadSwipe GdkEventTouchpadSwipe;
@@ -147,7 +134,6 @@ typedef struct _GdkEventPadAxis     GdkEventPadAxis;
 typedef struct _GdkEventPadGroupMode GdkEventPadGroupMode;
 
 typedef struct _GdkEventSequence    GdkEventSequence;
-
 typedef union  _GdkEvent	    GdkEvent;
 
 /**
@@ -233,10 +219,6 @@ typedef GdkFilterReturn (*GdkFilterFunc) (GdkXEvent *xevent,
  *   Note that GTK+ discards these events for %GDK_WINDOW_CHILD windows.
  * @GDK_MAP: the window has been mapped.
  * @GDK_UNMAP: the window has been unmapped.
- * @GDK_PROPERTY_NOTIFY: a property on the window has been changed or deleted.
- * @GDK_SELECTION_CLEAR: the application has lost ownership of a selection.
- * @GDK_SELECTION_REQUEST: another application has requested a selection.
- * @GDK_SELECTION_NOTIFY: a selection has been received.
  * @GDK_PROXIMITY_IN: an input device has moved into contact with a sensing
  *   surface (e.g. a touchscreen or graphics tablet).
  * @GDK_PROXIMITY_OUT: an input device has moved out of contact with a sensing
@@ -245,22 +227,10 @@ typedef GdkFilterReturn (*GdkFilterFunc) (GdkXEvent *xevent,
  * @GDK_DRAG_LEAVE: the mouse has left the window while a drag is in progress.
  * @GDK_DRAG_MOTION: the mouse has moved in the window while a drag is in
  *   progress.
- * @GDK_DRAG_STATUS: the status of the drag operation initiated by the window
- *   has changed.
  * @GDK_DROP_START: a drop operation onto the window has started.
- * @GDK_DROP_FINISHED: the drop operation initiated by the window has completed.
- * @GDK_CLIENT_EVENT: a message has been received from another application.
- * @GDK_VISIBILITY_NOTIFY: the window visibility status has changed.
  * @GDK_SCROLL: the scroll wheel was turned
- * @GDK_WINDOW_STATE: the state of a window has changed. See #GdkWindowState
- *   for the possible window states
- * @GDK_SETTING: a setting has been modified.
- * @GDK_OWNER_CHANGE: the owner of a selection has changed. This event type
- *   was added in 2.6
  * @GDK_GRAB_BROKEN: a pointer or keyboard grab was broken. This event type
  *   was added in 2.8.
- * @GDK_DAMAGE: the content of the window has been changed. This event type
- *   was added in 2.14.
  * @GDK_TOUCH_BEGIN: A new touch event sequence has just started. This event
  *   type was added in 3.4.
  * @GDK_TOUCH_UPDATE: A touch event sequence has been updated. This event type
@@ -293,69 +263,42 @@ typedef GdkFilterReturn (*GdkFilterFunc) (GdkXEvent *xevent,
  */
 typedef enum
 {
-  GDK_NOTHING		= -1,
-  GDK_DELETE		= 0,
-  GDK_DESTROY		= 1,
-  GDK_EXPOSE		= 2,
-  GDK_MOTION_NOTIFY	= 3,
-  GDK_BUTTON_PRESS	= 4,
-  GDK_BUTTON_RELEASE	= 7,
-  GDK_KEY_PRESS		= 8,
-  GDK_KEY_RELEASE	= 9,
-  GDK_ENTER_NOTIFY	= 10,
-  GDK_LEAVE_NOTIFY	= 11,
-  GDK_FOCUS_CHANGE	= 12,
-  GDK_CONFIGURE		= 13,
-  GDK_MAP		= 14,
-  GDK_UNMAP		= 15,
-  GDK_PROPERTY_NOTIFY	= 16,
-  GDK_SELECTION_CLEAR	= 17,
-  GDK_SELECTION_REQUEST = 18,
-  GDK_SELECTION_NOTIFY	= 19,
-  GDK_PROXIMITY_IN	= 20,
-  GDK_PROXIMITY_OUT	= 21,
-  GDK_DRAG_ENTER        = 22,
-  GDK_DRAG_LEAVE        = 23,
-  GDK_DRAG_MOTION       = 24,
-  GDK_DRAG_STATUS       = 25,
-  GDK_DROP_START        = 26,
-  GDK_DROP_FINISHED     = 27,
-  GDK_CLIENT_EVENT	= 28,
-  GDK_VISIBILITY_NOTIFY = 29,
-  GDK_SCROLL            = 31,
-  GDK_WINDOW_STATE      = 32,
-  GDK_SETTING           = 33,
-  GDK_OWNER_CHANGE      = 34,
-  GDK_GRAB_BROKEN       = 35,
-  GDK_DAMAGE            = 36,
-  GDK_TOUCH_BEGIN       = 37,
-  GDK_TOUCH_UPDATE      = 38,
-  GDK_TOUCH_END         = 39,
-  GDK_TOUCH_CANCEL      = 40,
-  GDK_TOUCHPAD_SWIPE    = 41,
-  GDK_TOUCHPAD_PINCH    = 42,
-  GDK_PAD_BUTTON_PRESS  = 43,
-  GDK_PAD_BUTTON_RELEASE = 44,
-  GDK_PAD_RING          = 45,
-  GDK_PAD_STRIP         = 46,
-  GDK_PAD_GROUP_MODE    = 47,
+  GDK_NOTHING,
+  GDK_DELETE,
+  GDK_DESTROY,
+  GDK_EXPOSE,
+  GDK_MOTION_NOTIFY,
+  GDK_BUTTON_PRESS,
+  GDK_BUTTON_RELEASE,
+  GDK_KEY_PRESS,
+  GDK_KEY_RELEASE,
+  GDK_ENTER_NOTIFY,
+  GDK_LEAVE_NOTIFY,
+  GDK_FOCUS_CHANGE,
+  GDK_CONFIGURE,
+  GDK_MAP,
+  GDK_UNMAP,
+  GDK_PROXIMITY_IN,
+  GDK_PROXIMITY_OUT,
+  GDK_DRAG_ENTER,
+  GDK_DRAG_LEAVE,
+  GDK_DRAG_MOTION,
+  GDK_DROP_START,
+  GDK_SCROLL,
+  GDK_GRAB_BROKEN,
+  GDK_TOUCH_BEGIN,
+  GDK_TOUCH_UPDATE,
+  GDK_TOUCH_END,
+  GDK_TOUCH_CANCEL,
+  GDK_TOUCHPAD_SWIPE,
+  GDK_TOUCHPAD_PINCH,
+  GDK_PAD_BUTTON_PRESS,
+  GDK_PAD_BUTTON_RELEASE,
+  GDK_PAD_RING,
+  GDK_PAD_STRIP,
+  GDK_PAD_GROUP_MODE,
   GDK_EVENT_LAST        /* helper variable for decls */
 } GdkEventType;
-
-/**
- * GdkVisibilityState:
- * @GDK_VISIBILITY_UNOBSCURED: the window is completely visible.
- * @GDK_VISIBILITY_PARTIAL: the window is partially visible.
- * @GDK_VISIBILITY_FULLY_OBSCURED: the window is not visible at all.
- *
- * Specifies the visiblity status of a window for a #GdkEventVisibility.
- */
-typedef enum
-{
-  GDK_VISIBILITY_UNOBSCURED,
-  GDK_VISIBILITY_PARTIAL,
-  GDK_VISIBILITY_FULLY_OBSCURED
-} GdkVisibilityState;
 
 /**
  * GdkTouchpadGesturePhase:
@@ -382,9 +325,6 @@ typedef enum
  * %GDK_TOUCHPAD_GESTURE_PHASE_CANCEL, this should be used as a hint
  * to undo any visible/permanent changes that were done throughout the
  * progress of the gesture.
- *
- * See also #GdkEventTouchpadSwipe and #GdkEventTouchpadPinch.
- *
  */
 typedef enum
 {
@@ -401,9 +341,9 @@ typedef enum
  * @GDK_SCROLL_LEFT: the window is scrolled to the left.
  * @GDK_SCROLL_RIGHT: the window is scrolled to the right.
  * @GDK_SCROLL_SMOOTH: the scrolling is determined by the delta values
- *   in #GdkEventScroll. See gdk_event_get_scroll_deltas(). Since: 3.4
+ *   in scroll events. See gdk_event_get_scroll_deltas(). Since: 3.4
  *
- * Specifies the direction for #GdkEventScroll.
+ * Specifies the direction for scroll events.
  */
 typedef enum
 {
@@ -430,7 +370,7 @@ typedef enum
  *   common ancestor.
  * @GDK_NOTIFY_UNKNOWN: an unknown type of enter/leave event occurred.
  *
- * Specifies the kind of crossing for #GdkEventCrossing.
+ * Specifies the kind of crossing for enter and leave events.
  *
  * See the X11 protocol specification of LeaveNotify for
  * full details of crossing event generation.
@@ -462,7 +402,7 @@ typedef enum
  *   a mouse taking control of the pointer after a touch device), this event
  *   is synthetic as the pointer didn’t leave the window.
  *
- * Specifies the crossing mode for #GdkEventCrossing.
+ * Specifies the crossing mode for enter and leave events.
  */
 typedef enum
 {
@@ -477,110 +417,11 @@ typedef enum
   GDK_CROSSING_DEVICE_SWITCH
 } GdkCrossingMode;
 
-/**
- * GdkPropertyState:
- * @GDK_PROPERTY_NEW_VALUE: the property value was changed.
- * @GDK_PROPERTY_DELETE: the property was deleted.
- *
- * Specifies the type of a property change for a #GdkEventProperty.
- */
-typedef enum
-{
-  GDK_PROPERTY_NEW_VALUE,
-  GDK_PROPERTY_DELETE
-} GdkPropertyState;
-
-/**
- * GdkWindowState:
- * @GDK_WINDOW_STATE_WITHDRAWN: the window is not shown.
- * @GDK_WINDOW_STATE_ICONIFIED: the window is minimized.
- * @GDK_WINDOW_STATE_MAXIMIZED: the window is maximized.
- * @GDK_WINDOW_STATE_STICKY: the window is sticky.
- * @GDK_WINDOW_STATE_FULLSCREEN: the window is maximized without
- *   decorations.
- * @GDK_WINDOW_STATE_ABOVE: the window is kept above other windows.
- * @GDK_WINDOW_STATE_BELOW: the window is kept below other windows.
- * @GDK_WINDOW_STATE_FOCUSED: the window is presented as focused (with active decorations).
- * @GDK_WINDOW_STATE_TILED: the window is in a tiled state, Since 3.10. Since 3.91.2, this
- *                          is deprecated in favor of per-edge information.
- * @GDK_WINDOW_STATE_TOP_TILED: whether the top edge is tiled, Since 3.91.2
- * @GDK_WINDOW_STATE_TOP_RESIZABLE: whether the top edge is resizable, Since 3.91.2
- * @GDK_WINDOW_STATE_RIGHT_TILED: whether the right edge is tiled, Since 3.91.2
- * @GDK_WINDOW_STATE_RIGHT_RESIZABLE: whether the right edge is resizable, Since 3.91.2
- * @GDK_WINDOW_STATE_BOTTOM_TILED: whether the bottom edge is tiled, Since 3.91.2
- * @GDK_WINDOW_STATE_BOTTOM_RESIZABLE: whether the bottom edge is resizable, Since 3.91.2
- * @GDK_WINDOW_STATE_LEFT_TILED: whether the left edge is tiled, Since 3.91.2
- * @GDK_WINDOW_STATE_LEFT_RESIZABLE: whether the left edge is resizable, Since 3.91.2
- *
- * Specifies the state of a toplevel window.
- */
-typedef enum
-{
-  GDK_WINDOW_STATE_WITHDRAWN        = 1 << 0,
-  GDK_WINDOW_STATE_ICONIFIED        = 1 << 1,
-  GDK_WINDOW_STATE_MAXIMIZED        = 1 << 2,
-  GDK_WINDOW_STATE_STICKY           = 1 << 3,
-  GDK_WINDOW_STATE_FULLSCREEN       = 1 << 4,
-  GDK_WINDOW_STATE_ABOVE            = 1 << 5,
-  GDK_WINDOW_STATE_BELOW            = 1 << 6,
-  GDK_WINDOW_STATE_FOCUSED          = 1 << 7,
-  GDK_WINDOW_STATE_TILED            = 1 << 8,
-  GDK_WINDOW_STATE_TOP_TILED        = 1 << 9,
-  GDK_WINDOW_STATE_TOP_RESIZABLE    = 1 << 10,
-  GDK_WINDOW_STATE_RIGHT_TILED      = 1 << 11,
-  GDK_WINDOW_STATE_RIGHT_RESIZABLE  = 1 << 12,
-  GDK_WINDOW_STATE_BOTTOM_TILED     = 1 << 13,
-  GDK_WINDOW_STATE_BOTTOM_RESIZABLE = 1 << 14,
-  GDK_WINDOW_STATE_LEFT_TILED       = 1 << 15,
-  GDK_WINDOW_STATE_LEFT_RESIZABLE   = 1 << 16
-} GdkWindowState;
-
-/**
- * GdkSettingAction:
- * @GDK_SETTING_ACTION_NEW: a setting was added.
- * @GDK_SETTING_ACTION_CHANGED: a setting was changed.
- * @GDK_SETTING_ACTION_DELETED: a setting was deleted.
- *
- * Specifies the kind of modification applied to a setting in a
- * #GdkEventSetting.
- */
-typedef enum
-{
-  GDK_SETTING_ACTION_NEW,
-  GDK_SETTING_ACTION_CHANGED,
-  GDK_SETTING_ACTION_DELETED
-} GdkSettingAction;
-
-/**
- * GdkOwnerChange:
- * @GDK_OWNER_CHANGE_NEW_OWNER: some other app claimed the ownership
- * @GDK_OWNER_CHANGE_DESTROY: the window was destroyed
- * @GDK_OWNER_CHANGE_CLOSE: the client was closed
- *
- * Specifies why a selection ownership was changed.
- */
-typedef enum
-{
-  GDK_OWNER_CHANGE_NEW_OWNER,
-  GDK_OWNER_CHANGE_DESTROY,
-  GDK_OWNER_CHANGE_CLOSE
-} GdkOwnerChange;
-
 GDK_AVAILABLE_IN_ALL
 GType     gdk_event_get_type            (void) G_GNUC_CONST;
 
 GDK_AVAILABLE_IN_3_14
 GType     gdk_event_sequence_get_type   (void) G_GNUC_CONST;
-
-GDK_AVAILABLE_IN_ALL
-gboolean  gdk_events_pending	 	(void);
-GDK_AVAILABLE_IN_ALL
-GdkEvent* gdk_event_get			(void);
-
-GDK_AVAILABLE_IN_ALL
-GdkEvent* gdk_event_peek                (void);
-GDK_AVAILABLE_IN_ALL
-void      gdk_event_put	 		(const GdkEvent *event);
 
 GDK_AVAILABLE_IN_ALL
 GdkEvent* gdk_event_new                 (GdkEventType    type);
@@ -661,8 +502,6 @@ void       gdk_event_set_source_device  (GdkEvent        *event,
                                          GdkDevice       *device);
 GDK_AVAILABLE_IN_ALL
 GdkDevice* gdk_event_get_source_device  (const GdkEvent  *event);
-GDK_AVAILABLE_IN_ALL
-void       gdk_event_request_motions    (const GdkEventMotion *event);
 GDK_AVAILABLE_IN_3_4
 gboolean   gdk_event_triggers_context_menu (const GdkEvent *event);
 
@@ -685,11 +524,11 @@ void	  gdk_event_handler_set 	(GdkEventFunc    func,
 					 gpointer        data,
 					 GDestroyNotify  notify);
 
-GDK_AVAILABLE_IN_ALL
-void       gdk_event_set_screen         (GdkEvent        *event,
-                                         GdkScreen       *screen);
-GDK_AVAILABLE_IN_ALL
-GdkScreen *gdk_event_get_screen         (const GdkEvent  *event);
+GDK_AVAILABLE_IN_3_94
+void       gdk_event_set_display        (GdkEvent        *event,
+                                         GdkDisplay      *display);
+GDK_AVAILABLE_IN_3_94
+GdkDisplay *gdk_event_get_display       (const GdkEvent  *event);
 
 GDK_AVAILABLE_IN_3_4
 GdkEventSequence *gdk_event_get_event_sequence (const GdkEvent *event);
@@ -704,10 +543,6 @@ GDK_AVAILABLE_IN_ALL
 void	  gdk_set_show_events		(gboolean	 show_events);
 GDK_AVAILABLE_IN_ALL
 gboolean  gdk_get_show_events		(void);
-
-GDK_AVAILABLE_IN_ALL
-gboolean gdk_setting_get                (const gchar    *name,
-                                         GValue         *value);
 
 GDK_AVAILABLE_IN_3_22
 GdkDeviceTool *gdk_event_get_device_tool (const GdkEvent *event);
@@ -725,10 +560,6 @@ gboolean       gdk_event_get_pointer_emulated (GdkEvent *event);
 GDK_AVAILABLE_IN_3_92
 void           gdk_event_set_user_data (GdkEvent *event,
                                         GObject  *user_data);
-
-GDK_AVAILABLE_IN_3_92
-gboolean       gdk_event_get_setting   (const GdkEvent  *event,
-                                        const char     **setting);
 
 GDK_AVAILABLE_IN_3_92
 gboolean       gdk_event_is_sent       (const GdkEvent *event);
@@ -767,10 +598,6 @@ GDK_AVAILABLE_IN_3_92
 gboolean       gdk_event_get_grab_window (const GdkEvent  *event,
                                           GdkWindow      **window);
 GDK_AVAILABLE_IN_3_92
-gboolean       gdk_event_get_window_state (const GdkEvent  *event,
-                                           GdkWindowState  *changed,
-                                           GdkWindowState  *new_state);
-GDK_AVAILABLE_IN_3_92
 gboolean       gdk_event_get_focus_in (const GdkEvent *event,
                                        gboolean       *focus_in);
 GDK_AVAILABLE_IN_3_92
@@ -785,26 +612,10 @@ gboolean       gdk_event_get_pad_axis_value (const GdkEvent *event,
                                              guint          *index,
                                              gdouble        *value);
 GDK_AVAILABLE_IN_3_92
-gboolean       gdk_event_get_property (const GdkEvent   *event,
-                                       GdkAtom          *property,
-                                       GdkPropertyState *state);
-GDK_AVAILABLE_IN_3_92
-gboolean       gdk_event_get_selection (const GdkEvent   *event,
-                                        GdkAtom          *selection);
-GDK_AVAILABLE_IN_3_92
-gboolean       gdk_event_get_selection_property (const GdkEvent  *event,
-                                                 GdkAtom         *property,
-                                                 GdkAtom         *target,
-                                                 GdkWindow      **requestor);
-GDK_AVAILABLE_IN_3_92
-void           gdk_event_set_selection (GdkEvent  *event,
-                                        GdkWindow *window,
-                                        GdkAtom    selection,
-                                        guint32    time);
-GDK_AVAILABLE_IN_3_92
 gboolean       gdk_event_get_axes      (GdkEvent  *event,
                                         gdouble  **axes,
                                         guint     *n_axes);
+GList        * gdk_event_get_history   (const GdkEvent  *event);
 
 G_END_DECLS
 

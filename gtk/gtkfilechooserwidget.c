@@ -28,7 +28,6 @@
 #include "gtkcellrendererpixbuf.h"
 #include "gtkcellrenderertext.h"
 #include "gtkcheckmenuitem.h"
-#include "gtkclipboard.h"
 #include "gtkcomboboxtext.h"
 #include "gtkcssnumbervalueprivate.h"
 #include "gtkdragsource.h"
@@ -106,11 +105,6 @@
  *
  * GtkFileChooserWidget has a single CSS node with name filechooser.
  */
-
-
-/* Values for GtkSelection-related "info" fields */
-#define SELECTION_TEXT 0
-#define SELECTION_URI  1
 
 /* 150 mseconds of delay */
 #define LOCATION_CHANGED_TIMEOUT 150
@@ -342,7 +336,6 @@ struct _GtkFileChooserWidgetPrivate {
   guint location_changed_id;
 
   gulong settings_signal_id;
-  int icon_size;
 
   GSource *focus_entry_idle;
 
@@ -408,7 +401,7 @@ enum {
   MODEL_COL_NAME_COLLATED,
   MODEL_COL_IS_FOLDER,
   MODEL_COL_IS_SENSITIVE,
-  MODEL_COL_SURFACE,
+  MODEL_COL_ICON,
   MODEL_COL_SIZE_TEXT,
   MODEL_COL_DATE_TEXT,
   MODEL_COL_TIME_TEXT,
@@ -427,7 +420,7 @@ enum {
         G_TYPE_STRING,            /* MODEL_COL_NAME_COLLATED */ \
         G_TYPE_BOOLEAN,           /* MODEL_COL_IS_FOLDER */     \
         G_TYPE_BOOLEAN,           /* MODEL_COL_IS_SENSITIVE */  \
-        CAIRO_GOBJECT_TYPE_SURFACE,  /* MODEL_COL_SURFACE */    \
+        G_TYPE_ICON,              /* MODEL_COL_ICON */          \
         G_TYPE_STRING,            /* MODEL_COL_SIZE_TEXT */     \
         G_TYPE_STRING,            /* MODEL_COL_DATE_TEXT */     \
         G_TYPE_STRING,            /* MODEL_COL_TIME_TEXT */     \
@@ -436,8 +429,7 @@ enum {
 
 #define DEFAULT_RECENT_FILES_LIMIT 50
 
-/* Icon size for if we can't get it from the theme */
-#define FALLBACK_ICON_SIZE 16
+#define ICON_SIZE 16
 
 #define PREVIEW_HBOX_SPACING 12
 #define NUM_LINES 45
@@ -462,9 +454,9 @@ static void     gtk_file_chooser_widget_map            (GtkWidget             *w
 static void     gtk_file_chooser_widget_unmap          (GtkWidget             *widget);
 static void     gtk_file_chooser_widget_hierarchy_changed (GtkWidget          *widget,
                                                             GtkWidget          *previous_toplevel);
-static void     gtk_file_chooser_widget_style_updated  (GtkWidget             *widget);
-static void     gtk_file_chooser_widget_screen_changed (GtkWidget             *widget,
-                                                        GdkScreen             *previous_screen);
+static void     gtk_file_chooser_widget_style_updated   (GtkWidget             *widget);
+static void     gtk_file_chooser_widget_display_changed (GtkWidget            *widget,
+                                                         GdkDisplay           *previous_display);
 static gboolean gtk_file_chooser_widget_key_press_event (GtkWidget            *widget,
                                                          GdkEventKey          *event);
 
@@ -1662,62 +1654,6 @@ rename_file_cb (GSimpleAction *action,
   gtk_tree_selection_selected_foreach (selection, rename_selected_cb, impl);
 }
 
-/* callback used to set data to clipboard */
-static void
-copy_file_get_cb  (GtkClipboard     *clipboard,
-                   GtkSelectionData *selection_data,
-                   guint             info,
-                   gpointer          data)
-{
-  GSList *selected_files = data;
-
-  if (selected_files)
-    {
-      gint num_files = g_slist_length (selected_files);
-      gchar **uris;
-      gint i;
-      GSList *l;
-
-      uris = g_new (gchar *, num_files + 1);
-      uris[num_files] = NULL; /* null terminator */
-
-      i = 0;
-
-      for (l = selected_files; l; l = l->next)
-        {
-          GFile *file = (GFile *) l->data;
-
-          if (info == SELECTION_URI)
-            uris[i] = g_file_get_uri (file);
-          else /* if (info == SELECTION_TEXT) - let this be the fallback */
-            uris[i] = g_file_get_parse_name (file);
-
-          i++;
-        }
-
-      if (info == SELECTION_URI)
-        gtk_selection_data_set_uris (selection_data, uris);
-      else /* if (info == SELECTION_TEXT) - let this be the fallback */
-        {
-          char *str = g_strjoinv (" ", uris);
-          gtk_selection_data_set_text (selection_data, str, -1);
-          g_free (str);
-        }
-
-      g_strfreev (uris);
-    }
-}
-
-/* callback used to clear the clipboard data */
-static void
-copy_file_clear_cb (GtkClipboard *clipboard,
-                    gpointer      data)
-{
-  GSList *selected_files = data;
-
-  g_slist_free_full (selected_files, g_object_unref);
-}
-
 /* Callback used when the "Copy file’s location" menu item is activated */
 static void
 copy_file_location_cb (GSimpleAction *action,
@@ -1731,26 +1667,11 @@ copy_file_location_cb (GSimpleAction *action,
 
   if (selected_files)
     {
-      GtkClipboard *clipboard;
-      GtkTargetList *target_list;
-      GtkTargetEntry *targets;
-      int n_targets;
+      GdkClipboard *clipboard;
 
-      clipboard = gtk_widget_get_clipboard (GTK_WIDGET (impl), GDK_SELECTION_CLIPBOARD);
-
-      target_list = gtk_target_list_new (NULL, 0);
-      gtk_target_list_add_text_targets (target_list, SELECTION_TEXT);
-      gtk_target_list_add_uri_targets (target_list, SELECTION_URI);
-
-      targets = gtk_target_table_new_from_list (target_list, &n_targets);
-      gtk_target_list_unref (target_list);
-
-      gtk_clipboard_set_with_data (clipboard, targets, n_targets,
-                                   copy_file_get_cb,
-                                   copy_file_clear_cb,
-                                   selected_files);
-
-      gtk_target_table_free (targets, n_targets);
+      clipboard = gtk_widget_get_clipboard (GTK_WIDGET (impl));
+      gdk_clipboard_set (clipboard, GDK_TYPE_FILE_LIST, selected_files);
+      g_slist_free_full (selected_files, g_object_unref);
     }
 }
 
@@ -2007,10 +1928,7 @@ out:
 static void
 file_list_drag_data_received_cb (GtkWidget        *widget,
                                  GdkDragContext   *context,
-                                 gint              x,
-                                 gint              y,
                                  GtkSelectionData *selection_data,
-                                 guint             info,
                                  guint             time_,
                                  gpointer          user_data)
 {
@@ -2552,8 +2470,8 @@ set_icon_cell_renderer_fixed_size (GtkFileChooserWidget *impl)
 
   gtk_cell_renderer_get_padding (priv->list_pixbuf_renderer, &xpad, &ypad);
   gtk_cell_renderer_set_fixed_size (priv->list_pixbuf_renderer,
-                                    xpad * 2 + priv->icon_size,
-                                    ypad * 2 + priv->icon_size);
+                                    xpad * 2 + ICON_SIZE,
+                                    ypad * 2 + ICON_SIZE);
 }
 
 static gboolean
@@ -3614,7 +3532,7 @@ cancel_all_operations (GtkFileChooserWidget *impl)
 /* Removes the settings signal handler.  It's safe to call multiple times */
 static void
 remove_settings_signal (GtkFileChooserWidget *impl,
-                        GdkScreen             *screen)
+                        GdkDisplay           *display)
 {
   GtkFileChooserWidgetPrivate *priv = impl->priv;
 
@@ -3622,7 +3540,7 @@ remove_settings_signal (GtkFileChooserWidget *impl,
     {
       GtkSettings *settings;
 
-      settings = gtk_settings_get_for_screen (screen);
+      settings = gtk_settings_get_for_display (display);
       g_signal_handler_disconnect (settings,
                                    priv->settings_signal_id);
       priv->settings_signal_id = 0;
@@ -3652,7 +3570,7 @@ gtk_file_chooser_widget_dispose (GObject *object)
       priv->extra_widget = NULL;
     }
 
-  remove_settings_signal (impl, gtk_widget_get_screen (GTK_WIDGET (impl)));
+  remove_settings_signal (impl, gtk_widget_get_display (GTK_WIDGET (impl)));
 
   if (priv->bookmarks_manager)
     {
@@ -3726,19 +3644,13 @@ static void
 change_icon_theme (GtkFileChooserWidget *impl)
 {
   GtkFileChooserWidgetPrivate *priv = impl->priv;
-  gint width, height;
 
   profile_start ("start", NULL);
-
-  if (gtk_icon_size_lookup (GTK_ICON_SIZE_MENU, &width, &height))
-    priv->icon_size = MAX (width, height);
-  else
-    priv->icon_size = FALLBACK_ICON_SIZE;
 
   /* the first cell in the first column is the icon column, and we have a fixed size there */
   set_icon_cell_renderer_fixed_size (impl);
 
-  clear_model_cache (impl, MODEL_COL_SURFACE);
+  clear_model_cache (impl, MODEL_COL_ICON);
   gtk_widget_queue_resize (priv->browse_files_tree_view);
 
   profile_end ("end", NULL);
@@ -3779,14 +3691,11 @@ check_icon_theme (GtkFileChooserWidget *impl)
       return;
     }
 
-  if (gtk_widget_has_screen (GTK_WIDGET (impl)))
-    {
-      settings = gtk_settings_get_for_screen (gtk_widget_get_screen (GTK_WIDGET (impl)));
-      priv->settings_signal_id = g_signal_connect (settings, "notify",
-                                                   G_CALLBACK (settings_notify_cb), impl);
+  settings = gtk_widget_get_settings (GTK_WIDGET (impl));
+  priv->settings_signal_id = g_signal_connect (settings, "notify",
+                                               G_CALLBACK (settings_notify_cb), impl);
 
-      change_icon_theme (impl);
-    }
+  change_icon_theme (impl);
 
   profile_end ("end", NULL);
 }
@@ -3804,8 +3713,7 @@ gtk_file_chooser_widget_style_updated (GtkWidget *widget)
   GTK_WIDGET_CLASS (gtk_file_chooser_widget_parent_class)->style_updated (widget);
   profile_msg ("    parent class style_updated end", NULL);
 
-  if (gtk_widget_has_screen (GTK_WIDGET (impl)))
-    change_icon_theme (impl);
+  change_icon_theme (impl);
 
   emit_default_size_changed (impl);
 
@@ -3813,8 +3721,8 @@ gtk_file_chooser_widget_style_updated (GtkWidget *widget)
 }
 
 static void
-gtk_file_chooser_widget_screen_changed (GtkWidget *widget,
-                                         GdkScreen *previous_screen)
+gtk_file_chooser_widget_display_changed (GtkWidget  *widget,
+                                         GdkDisplay *previous_display)
 {
   GtkFileChooserWidget *impl;
 
@@ -3822,10 +3730,10 @@ gtk_file_chooser_widget_screen_changed (GtkWidget *widget,
 
   impl = GTK_FILE_CHOOSER_WIDGET (widget);
 
-  if (GTK_WIDGET_CLASS (gtk_file_chooser_widget_parent_class)->screen_changed)
-    GTK_WIDGET_CLASS (gtk_file_chooser_widget_parent_class)->screen_changed (widget, previous_screen);
+  if (GTK_WIDGET_CLASS (gtk_file_chooser_widget_parent_class)->display_changed)
+    GTK_WIDGET_CLASS (gtk_file_chooser_widget_parent_class)->display_changed (widget, previous_display);
 
-  remove_settings_signal (impl, previous_screen);
+  remove_settings_signal (impl, previous_display);
   check_icon_theme (impl);
 
   emit_default_size_changed (impl);
@@ -4318,26 +4226,16 @@ set_busy_cursor (GtkFileChooserWidget *impl,
 {
   GtkWidget *widget;
   GtkWindow *toplevel;
-  GdkDisplay *display;
-  GdkCursor *cursor;
 
   toplevel = get_toplevel (GTK_WIDGET (impl));
   widget = GTK_WIDGET (toplevel);
   if (!toplevel || !gtk_widget_get_realized (widget))
     return;
 
-  display = gtk_widget_get_display (widget);
-
   if (busy)
-    cursor = gdk_cursor_new_from_name (display, "progress");
+    gtk_widget_set_cursor_from_name (widget, "progress");
   else
-    cursor = NULL;
-
-  gdk_window_set_cursor (gtk_widget_get_window (widget), cursor);
-  gdk_display_flush (display);
-
-  if (cursor)
-    g_object_unref (cursor);
+    gtk_widget_set_cursor (widget, NULL);
 }
 
 static void
@@ -4965,12 +4863,12 @@ file_system_model_set (GtkFileSystemModel *model,
       else
         g_value_set_boolean (value, TRUE);
       break;
-    case MODEL_COL_SURFACE:
+    case MODEL_COL_ICON:
       if (info)
         {
           if (g_file_info_has_attribute (info, G_FILE_ATTRIBUTE_STANDARD_ICON))
             {
-              g_value_take_boxed (value, _gtk_file_info_render_icon (info, GTK_WIDGET (impl), priv->icon_size));
+              g_value_take_object (value, _gtk_file_info_get_icon (info, ICON_SIZE, gtk_widget_get_scale_factor (GTK_WIDGET (impl))));
             }
           else
             {
@@ -6721,12 +6619,15 @@ out:
 }
 
 static void
-paste_text_received (GtkClipboard         *clipboard,
-                     const gchar          *text,
-                     GtkFileChooserWidget *impl)
+paste_text_received (GObject      *source,
+                     GAsyncResult *result,
+                     gpointer      data)
 {
+  GtkFileChooserWidget *impl = data;
   GFile *file;
+  char *text;
 
+  text = gdk_clipboard_read_text_finish (GDK_CLIPBOARD (source), result, NULL);
   if (!text)
     return;
 
@@ -6736,17 +6637,19 @@ paste_text_received (GtkClipboard         *clipboard,
     location_popup_handler (impl, text);
 
   g_object_unref (file);
+  g_free (text);
 }
 
 /* Handler for the "location-popup-on-paste" keybinding signal */
 static void
 location_popup_on_paste_handler (GtkFileChooserWidget *impl)
 {
-  GtkClipboard *clipboard = gtk_widget_get_clipboard (GTK_WIDGET (impl),
-                                                      GDK_SELECTION_CLIPBOARD);
-  gtk_clipboard_request_text (clipboard,
-                              (GtkClipboardTextReceivedFunc) paste_text_received,
-                              impl);
+  GdkClipboard *clipboard = gtk_widget_get_clipboard (GTK_WIDGET (impl));
+
+  gdk_clipboard_read_text_async (clipboard,
+                                 NULL,
+                                 paste_text_received,
+                                 impl);
 }
 
 /* Implementation for GtkFileChooserEmbed::should_respond() */
@@ -7867,7 +7770,7 @@ update_cell_renderer_attributes (GtkFileChooserWidget *impl)
 
   gtk_tree_view_column_set_attributes (priv->list_name_column,
                                        priv->list_pixbuf_renderer,
-                                       "surface", MODEL_COL_SURFACE,
+                                       "gicon", MODEL_COL_ICON,
                                        "sensitive", MODEL_COL_IS_SENSITIVE,
                                        NULL);
   gtk_tree_view_column_set_attributes (priv->list_name_column,
@@ -8127,7 +8030,7 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
   widget_class->unmap = gtk_file_chooser_widget_unmap;
   widget_class->hierarchy_changed = gtk_file_chooser_widget_hierarchy_changed;
   widget_class->style_updated = gtk_file_chooser_widget_style_updated;
-  widget_class->screen_changed = gtk_file_chooser_widget_screen_changed;
+  widget_class->display_changed = gtk_file_chooser_widget_display_changed;
   widget_class->key_press_event = gtk_file_chooser_widget_key_press_event;
   widget_class->measure = gtk_file_chooser_widget_measure;
   widget_class->size_allocate = gtk_file_chooser_widget_size_allocate;
@@ -8470,14 +8373,14 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
                                                          P_("Search mode"),
                                                          P_("Search mode"),
                                                          FALSE,
-                                                         G_PARAM_READWRITE));
+                                                         GTK_PARAM_READWRITE));
 
   g_object_class_install_property (gobject_class, PROP_SUBTITLE,
                                    g_param_spec_string ("subtitle",
                                                         P_("Subtitle"),
                                                         P_("Subtitle"),
                                                         "",
-                                                        G_PARAM_READABLE));
+                                                        GTK_PARAM_READABLE));
 
   _gtk_file_chooser_install_properties (gobject_class);
 
@@ -8553,7 +8456,7 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
   gtk_widget_class_bind_template_callback (widget_class, rename_file_rename_clicked);
   gtk_widget_class_bind_template_callback (widget_class, rename_file_end);
 
-  gtk_widget_class_set_css_name (widget_class, "filechooser");
+  gtk_widget_class_set_css_name (widget_class, I_("filechooser"));
 }
 
 static void
@@ -8574,13 +8477,13 @@ post_process_ui (GtkFileChooserWidget *impl)
                                           impl, NULL);
   gtk_tree_view_enable_model_drag_source (GTK_TREE_VIEW (impl->priv->browse_files_tree_view),
                                           GDK_BUTTON1_MASK,
-                                          NULL, 0,
+                                          NULL,
                                           GDK_ACTION_COPY | GDK_ACTION_MOVE);
   gtk_drag_source_add_uri_targets (impl->priv->browse_files_tree_view);
 
   gtk_drag_dest_set (impl->priv->browse_files_tree_view,
                      GTK_DEST_DEFAULT_ALL,
-                     NULL, 0,
+                     NULL,
                      GDK_ACTION_COPY | GDK_ACTION_MOVE);
   gtk_drag_dest_add_uri_targets (impl->priv->browse_files_tree_view);
 
@@ -8662,7 +8565,6 @@ gtk_file_chooser_widget_init (GtkFileChooserWidget *impl)
   priv->select_multiple = FALSE;
   priv->show_hidden = FALSE;
   priv->show_size_column = TRUE;
-  priv->icon_size = FALLBACK_ICON_SIZE;
   priv->load_state = LOAD_EMPTY;
   priv->reload_state = RELOAD_EMPTY;
   priv->pending_select_files = NULL;

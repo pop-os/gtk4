@@ -59,12 +59,11 @@ struct _GdkWin32Display
 {
   GdkDisplay display;
 
-  GdkScreen *screen;
+  GdkWin32Screen *screen;
 
   Win32CursorTheme *cursor_theme;
   gchar *cursor_theme_name;
   int cursor_theme_size;
-  GHashTable *cursor_cache;
 
   HWND hwnd;
   HWND clipboard_hwnd;
@@ -72,7 +71,6 @@ struct _GdkWin32Display
   /* WGL/OpenGL Items */
   guint have_wgl : 1;
   guint gl_version;
-  HDC gl_hdc;
   HWND gl_hwnd;
 
   GPtrArray *monitors;
@@ -91,6 +89,10 @@ struct _GdkWin32Display
 
   GdkWin32ShcoreFuncs shcore_funcs;
   GdkWin32User32DPIFuncs user32_dpi_funcs;
+  
+  /* Cursor Items (GdkCursor->HCURSOR) */
+  GHashTable *cursors;
+  GdkCursor *grab_cursor;
 };
 
 struct _GdkWin32DisplayClass

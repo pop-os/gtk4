@@ -20,7 +20,7 @@
 #include <gdk/gdk.h>
 
 #ifdef GDK_WINDOWING_X11
-#include <gdk/gdkx.h>
+#include <gdk/x11/gdkx.h>
 #endif
 #ifdef GDK_WINDOWING_WAYLAND
 #include <wayland/gdkwayland.h>
@@ -1017,10 +1017,10 @@ check_emoji (GtkIMContextSimple *context_simple,
 static void
 beep_window (GdkWindow *window)
 {
-  GdkScreen *screen = gdk_window_get_screen (window);
+  GdkDisplay *display = gdk_window_get_display (window);
   gboolean   beep;
 
-  g_object_get (gtk_settings_get_for_screen (screen),
+  g_object_get (gtk_settings_get_for_display (display),
                 "gtk-error-bell", &beep,
                 NULL);
 
@@ -1057,7 +1057,7 @@ no_sequence_matches (GtkIMContextSimple *context_simple,
           gdk_event_set_keyval (tmp_event, priv->compose_buffer[len + i]);
 	  
 	  gtk_im_context_filter_keypress (context, (GdkEventKey *)tmp_event);
-	  gdk_event_free (tmp_event);
+	  g_object_unref (tmp_event);
 	}
 
       return gtk_im_context_filter_keypress (context, event);
@@ -1096,7 +1096,7 @@ static guint
 canonical_hex_keyval (GdkEventKey *event)
 {
   GdkWindow *window = gdk_event_get_window ((GdkEvent *) event);
-  GdkKeymap *keymap = gdk_keymap_get_for_display (gdk_window_get_display (window));
+  GdkKeymap *keymap = gdk_display_get_keymap (gdk_window_get_display (window));
   guint keyval, event_keyval;
   guint *keyvals = NULL;
   gint n_vals = 0;
@@ -1157,6 +1157,7 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
   GtkIMContextSimplePrivate *priv = context_simple->priv;
   GdkWindow *window = gdk_event_get_window ((GdkEvent *) event);
   GdkDisplay *display = gdk_window_get_display (window);
+  GdkKeymap *keymap = gdk_display_get_keymap (display);
   GSList *tmp_list;
   int n_compose = 0;
   GdkModifierType hex_mod_mask;
@@ -1227,8 +1228,7 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
     if (keyval == gtk_compose_ignore[i])
       return FALSE;
 
-  hex_mod_mask = gdk_keymap_get_modifier_mask (gdk_keymap_get_for_display (display),
-                                               GDK_MODIFIER_INTENT_PRIMARY_ACCELERATOR);
+  hex_mod_mask = gdk_keymap_get_modifier_mask (keymap, GDK_MODIFIER_INTENT_PRIMARY_ACCELERATOR);
   hex_mod_mask |= GDK_SHIFT_MASK;
 
   if ((priv->in_hex_sequence || priv->in_emoji_sequence) && priv->modifiers_dropped)
@@ -1263,9 +1263,7 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
     {
       GdkModifierType no_text_input_mask;
 
-      no_text_input_mask =
-        gdk_keymap_get_modifier_mask (gdk_keymap_get_for_display (display),
-                                      GDK_MODIFIER_INTENT_NO_TEXT_INPUT);
+      no_text_input_mask = gdk_keymap_get_modifier_mask (keymap, GDK_MODIFIER_INTENT_NO_TEXT_INPUT);
 
       if (state & no_text_input_mask ||
 	  ((priv->in_hex_sequence || priv->in_emoji_sequence) && priv->modifiers_dropped &&
@@ -1446,7 +1444,7 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
       guint16  output[2];
       gsize    output_size = 2;
 
-      switch (gdk_win32_keymap_check_compose (GDK_WIN32_KEYMAP (gdk_keymap_get_default ()),
+      switch (gdk_win32_keymap_check_compose (GDK_WIN32_KEYMAP (keymap),
                                               priv->compose_buffer,
                                               n_compose,
                                               output, &output_size))

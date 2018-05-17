@@ -29,7 +29,6 @@
 #include "gdkdisplayprivate.h"
 #include "gdkinternals.h"
 #include "gdkkeysprivate.h"
-#include "gdkmarshalers.h"
 #include "gdkintl.h"
 
 #ifdef GDK_WINDOWING_X11
@@ -110,6 +109,12 @@
  * ]|
  */
 
+/**
+ * GdkDisplayManager:
+ *
+ * The GdkDisplayManager struct contains only private fields and
+ * should not be accessed directly.
+ */
 
 enum {
   PROP_0,
@@ -157,7 +162,7 @@ gdk_display_manager_class_init (GdkDisplayManagerClass *klass)
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GdkDisplayManagerClass, display_opened),
                   NULL, NULL,
-                  _gdk_marshal_VOID__OBJECT,
+                  g_cclosure_marshal_VOID__OBJECT,
                   G_TYPE_NONE,
                   1,
                   GDK_TYPE_DISPLAY);
@@ -168,8 +173,7 @@ gdk_display_manager_class_init (GdkDisplayManagerClass *klass)
                                                         P_("Default Display"),
                                                         P_("The default display for GDK"),
                                                         GDK_TYPE_DISPLAY,
-                                                        G_PARAM_READWRITE|G_PARAM_STATIC_NAME|
-                                                        G_PARAM_STATIC_NICK|G_PARAM_STATIC_BLURB));
+                                                        G_PARAM_READWRITE|G_PARAM_STATIC_STRINGS));
 }
 
 static void
@@ -276,7 +280,7 @@ static GdkBackend gdk_backends[] = {
   { "mir",      _gdk_mir_display_open },
 #endif
 #ifdef GDK_WINDOWING_X11
-  { "x11",      _gdk_x11_display_open },
+  { "x11",      gdk_x11_display_open },
 #endif
 #ifdef GDK_WINDOWING_BROADWAY
   { "broadway", _gdk_broadway_display_open },
@@ -346,30 +350,6 @@ GdkDisplay *
 gdk_display_get_default (void)
 {
   return gdk_display_manager_get_default_display (gdk_display_manager_get ());
-}
-
-/**
- * gdk_screen_get_default:
- *
- * Gets the default screen for the default display. (See
- * gdk_display_get_default ()).
- *
- * Returns: (nullable) (transfer none): a #GdkScreen, or %NULL if
- *     there is no default display.
- *
- * Since: 2.2
- */
-GdkScreen *
-gdk_screen_get_default (void)
-{
-  GdkDisplay *display;
-
-  display = gdk_display_get_default ();
-
-  if (display)
-    return GDK_DISPLAY_GET_CLASS (display)->get_default_screen (display);
-  else
-    return NULL;
 }
 
 /**

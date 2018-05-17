@@ -33,7 +33,6 @@
 #include "gtkcsssectionprivate.h"
 #include "gtkcssselectorprivate.h"
 #include "gtkcssshorthandpropertyprivate.h"
-#include "gtkcssstylefuncsprivate.h"
 #include "gtksettingsprivate.h"
 #include "gtkstyleprovider.h"
 #include "gtkstylecontextprivate.h"
@@ -58,20 +57,20 @@
  * An application can make GTK+ parse a specific CSS style sheet by calling
  * gtk_css_provider_load_from_file() or gtk_css_provider_load_from_resource()
  * and adding the provider with gtk_style_context_add_provider() or
- * gtk_style_context_add_provider_for_screen().
+ * gtk_style_context_add_provider_for_display().
 
  * In addition, certain files will be read when GTK+ is initialized. First, the
  * file `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` is loaded if it exists. Then, GTK+
  * loads the first existing file among
- * `XDG_DATA_HOME/themes/theme-name/gtk-VERSION/gtk.css`,
- * `$HOME/.themes/theme-name/gtk-VERSION/gtk.css`,
- * `$XDG_DATA_DIRS/themes/theme-name/gtk-VERSION/gtk.css` and
+ * `XDG_DATA_HOME/themes/THEME/gtk-VERSION/gtk.css`,
+ * `$HOME/.themes/THEME/gtk-VERSION/gtk.css`,
+ * `$XDG_DATA_DIRS/themes/THEME/gtk-VERSION/gtk.css` and
  * `DATADIR/share/themes/THEME/gtk-VERSION/gtk.css`, where `THEME` is the name of
  * the current theme (see the #GtkSettings:gtk-theme-name setting), `DATADIR`
  * is the prefix configured when GTK+ was compiled (unless overridden by the
  * `GTK_DATA_PREFIX` environment variable), and `VERSION` is the GTK+ version number.
  * If no file is found for the current version, GTK+ tries older versions all the
- * way back to 3.0.
+ * way back to 4.0.
  *
  * In the same way, GTK+ tries to load a gtk-keys.css file for the current
  * key theme, as defined by #GtkSettings:gtk-key-theme-name.
@@ -132,11 +131,10 @@ static gboolean gtk_keep_css_sections = FALSE;
 static guint css_provider_signals[LAST_SIGNAL] = { 0 };
 
 static void gtk_css_provider_finalize (GObject *object);
-static void gtk_css_style_provider_iface_init (GtkStyleProviderIface *iface);
-static void gtk_css_style_provider_private_iface_init (GtkStyleProviderPrivateInterface *iface);
-static void gtk_css_style_provider_emit_error (GtkStyleProviderPrivate *provider,
-                                               GtkCssSection           *section,
-                                               const GError            *error);
+static void gtk_css_style_provider_iface_init (GtkStyleProviderInterface *iface);
+static void gtk_css_style_provider_emit_error (GtkStyleProvider *provider,
+                                               GtkCssSection    *section,
+                                               const GError     *error);
 
 static void
 gtk_css_provider_load_internal (GtkCssProvider *css_provider,
@@ -153,9 +151,7 @@ gtk_css_provider_error_quark (void)
 G_DEFINE_TYPE_EXTENDED (GtkCssProvider, gtk_css_provider, G_TYPE_OBJECT, 0,
                         G_ADD_PRIVATE (GtkCssProvider)
                         G_IMPLEMENT_INTERFACE (GTK_TYPE_STYLE_PROVIDER,
-                                               gtk_css_style_provider_iface_init)
-                        G_IMPLEMENT_INTERFACE (GTK_TYPE_STYLE_PROVIDER_PRIVATE,
-                                               gtk_css_style_provider_private_iface_init));
+                                               gtk_css_style_provider_iface_init));
 
 static void
 gtk_css_provider_parsing_error (GtkCssProvider  *provider,
@@ -328,9 +324,9 @@ gtk_css_scanner_destroy (GtkCssScanner *scanner)
 }
 
 static void
-gtk_css_style_provider_emit_error (GtkStyleProviderPrivate *provider,
-                                   GtkCssSection           *section,
-                                   const GError            *error)
+gtk_css_style_provider_emit_error (GtkStyleProvider *provider,
+                                   GtkCssSection    *section,
+                                   const GError     *error)
 {
   g_signal_emit (provider, css_provider_signals[PARSING_ERROR], 0, section, error);
 }
@@ -340,7 +336,7 @@ gtk_css_provider_emit_error (GtkCssProvider *provider,
                              GtkCssScanner  *scanner,
                              const GError   *error)
 {
-  gtk_css_style_provider_emit_error (GTK_STYLE_PROVIDER_PRIVATE (provider),
+  gtk_css_style_provider_emit_error (GTK_STYLE_PROVIDER (provider),
                                      scanner ? scanner->section : NULL,
                                      error);
 }
@@ -538,14 +534,9 @@ verify_tree_get_change_results (GtkCssProvider *provider,
 }
 
 
-static void
-gtk_css_style_provider_iface_init (GtkStyleProviderIface *iface)
-{
-}
-
 static GtkCssValue *
-gtk_css_style_provider_get_color (GtkStyleProviderPrivate *provider,
-                                  const char              *name)
+gtk_css_style_provider_get_color (GtkStyleProvider *provider,
+                                  const char       *name)
 {
   GtkCssProvider *css_provider = GTK_CSS_PROVIDER (provider);
 
@@ -553,8 +544,8 @@ gtk_css_style_provider_get_color (GtkStyleProviderPrivate *provider,
 }
 
 static GtkCssKeyframes *
-gtk_css_style_provider_get_keyframes (GtkStyleProviderPrivate *provider,
-                                      const char              *name)
+gtk_css_style_provider_get_keyframes (GtkStyleProvider *provider,
+                                      const char       *name)
 {
   GtkCssProvider *css_provider = GTK_CSS_PROVIDER (provider);
 
@@ -562,10 +553,10 @@ gtk_css_style_provider_get_keyframes (GtkStyleProviderPrivate *provider,
 }
 
 static void
-gtk_css_style_provider_lookup (GtkStyleProviderPrivate *provider,
-                               const GtkCssMatcher     *matcher,
-                               GtkCssLookup            *lookup,
-                               GtkCssChange            *change)
+gtk_css_style_provider_lookup (GtkStyleProvider    *provider,
+                               const GtkCssMatcher *matcher,
+                               GtkCssLookup        *lookup,
+                               GtkCssChange        *change)
 {
   GtkCssProvider *css_provider;
   GtkCssProviderPrivate *priv;
@@ -626,7 +617,7 @@ gtk_css_style_provider_lookup (GtkStyleProviderPrivate *provider,
 }
 
 static void
-gtk_css_style_provider_private_iface_init (GtkStyleProviderPrivateInterface *iface)
+gtk_css_style_provider_iface_init (GtkStyleProviderInterface *iface)
 {
   iface->get_color = gtk_css_style_provider_get_color;
   iface->get_keyframes = gtk_css_style_provider_get_keyframes;
@@ -1495,7 +1486,7 @@ gtk_css_provider_load_from_data (GtkCssProvider  *css_provider,
 
   g_free (free_data);
 
-  _gtk_style_provider_private_changed (GTK_STYLE_PROVIDER_PRIVATE (css_provider));
+  gtk_style_provider_changed (GTK_STYLE_PROVIDER (css_provider));
 }
 
 /**
@@ -1517,7 +1508,7 @@ gtk_css_provider_load_from_file (GtkCssProvider  *css_provider,
 
   gtk_css_provider_load_internal (css_provider, NULL, file, NULL);
 
-  _gtk_style_provider_private_changed (GTK_STYLE_PROVIDER_PRIVATE (css_provider));
+  gtk_style_provider_changed (GTK_STYLE_PROVIDER (css_provider));
 }
 
 /**

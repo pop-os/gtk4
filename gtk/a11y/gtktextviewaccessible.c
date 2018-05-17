@@ -56,13 +56,11 @@ static void       mark_set_cb          (GtkTextBuffer    *buffer,
 
 static void atk_editable_text_interface_init      (AtkEditableTextIface      *iface);
 static void atk_text_interface_init               (AtkTextIface              *iface);
-static void atk_streamable_content_interface_init (AtkStreamableContentIface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GtkTextViewAccessible, gtk_text_view_accessible, GTK_TYPE_CONTAINER_ACCESSIBLE,
                          G_ADD_PRIVATE (GtkTextViewAccessible)
                          G_IMPLEMENT_INTERFACE (ATK_TYPE_EDITABLE_TEXT, atk_editable_text_interface_init)
-                         G_IMPLEMENT_INTERFACE (ATK_TYPE_TEXT, atk_text_interface_init)
-                         G_IMPLEMENT_INTERFACE (ATK_TYPE_STREAMABLE_CONTENT, atk_streamable_content_interface_init))
+                         G_IMPLEMENT_INTERFACE (ATK_TYPE_TEXT, atk_text_interface_init))
 
 
 static void
@@ -456,7 +454,7 @@ gtk_text_view_accessible_get_offset_at_point (AtkText      *text,
     return -1;
 
   view = GTK_TEXT_VIEW (widget);
-  window = gtk_text_view_get_window (view, GTK_TEXT_WINDOW_WIDGET);
+  window = gtk_widget_get_window (widget);
   gdk_window_get_origin (window, &x_widget, &y_widget);
 
   if (coords == ATK_XY_SCREEN)
@@ -525,7 +523,7 @@ gtk_text_view_accessible_get_character_extents (AtkText      *text,
   gtk_text_buffer_get_iter_at_offset (buffer, &iter, offset);
   gtk_text_view_get_iter_location (view, &iter, &rectangle);
 
-  window = gtk_text_view_get_window (view, GTK_TEXT_WINDOW_WIDGET);
+  window = gtk_widget_get_window (widget);
   if (window == NULL)
     return;
 
@@ -1602,7 +1600,7 @@ gtk_text_view_accessible_copy_text (AtkEditableText *text,
   GtkTextBuffer *buffer;
   GtkTextIter start, end;
   gchar *str;
-  GtkClipboard *clipboard;
+  GdkClipboard *clipboard;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (text));
   if (widget == NULL)
@@ -1614,8 +1612,8 @@ gtk_text_view_accessible_copy_text (AtkEditableText *text,
   gtk_text_buffer_get_iter_at_offset (buffer, &end, end_pos);
   str = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
 
-  clipboard = gtk_widget_get_clipboard (widget, GDK_SELECTION_CLIPBOARD);
-  gtk_clipboard_set_text (clipboard, str, -1);
+  clipboard = gtk_widget_get_clipboard (widget);
+  gdk_clipboard_set_text (clipboard, str);
 }
 
 static void
@@ -1628,7 +1626,7 @@ gtk_text_view_accessible_cut_text (AtkEditableText *text,
   GtkTextBuffer *buffer;
   GtkTextIter start, end;
   gchar *str;
-  GtkClipboard *clipboard;
+  GdkClipboard *clipboard;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (text));
   if (widget == NULL)
@@ -1642,8 +1640,8 @@ gtk_text_view_accessible_cut_text (AtkEditableText *text,
   gtk_text_buffer_get_iter_at_offset (buffer, &start, start_pos);
   gtk_text_buffer_get_iter_at_offset (buffer, &end, end_pos);
   str = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
-  clipboard = gtk_widget_get_clipboard (widget, GDK_SELECTION_CLIPBOARD);
-  gtk_clipboard_set_text (clipboard, str, -1);
+  clipboard = gtk_widget_get_clipboard (widget);
+  gdk_clipboard_set_text (clipboard, str);
   gtk_text_buffer_delete (buffer, &start, &end);
 }
 
@@ -1679,17 +1677,20 @@ typedef struct
 } PasteData;
 
 static void
-paste_received (GtkClipboard *clipboard,
-                const gchar  *text,
+paste_received (GObject      *clipboard,
+                GAsyncResult *result,
                 gpointer      data)
 {
   PasteData* paste = data;
   GtkTextIter pos_itr;
+  char *text;
 
+  text = gdk_clipboard_read_text_finish (GDK_CLIPBOARD (clipboard), result, NULL);
   if (text)
     {
       gtk_text_buffer_get_iter_at_offset (paste->buffer, &pos_itr, paste->position);
       gtk_text_buffer_insert (paste->buffer, &pos_itr, text, -1);
+      g_free (text);
     }
 
   g_object_unref (paste->buffer);
@@ -1703,7 +1704,7 @@ gtk_text_view_accessible_paste_text (AtkEditableText *text,
   GtkWidget *widget;
   GtkTextBuffer *buffer;
   PasteData paste;
-  GtkClipboard *clipboard;
+  GdkClipboard *clipboard;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (text));
   if (widget == NULL)
@@ -1718,8 +1719,8 @@ gtk_text_view_accessible_paste_text (AtkEditableText *text,
   paste.position = position;
 
   g_object_ref (paste.buffer);
-  clipboard = gtk_widget_get_clipboard (widget, GDK_SELECTION_CLIPBOARD);
-  gtk_clipboard_request_text (clipboard, paste_received, &paste);
+  clipboard = gtk_widget_get_clipboard (widget);
+  gdk_clipboard_read_text_async (clipboard, NULL, paste_received, &paste);
 }
 
 static void
@@ -1824,146 +1825,6 @@ mark_set_cb (GtkTextBuffer *buffer,
     {
       gtk_text_view_accessible_update_cursor (accessible, buffer);
     }
-}
-
-static gint
-gail_streamable_content_get_n_mime_types (AtkStreamableContent *streamable)
-{
-  GtkWidget *widget;
-  GtkTextBuffer *buffer;
-  gint n_mime_types = 0;
-
-  widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (streamable));
-  if (widget == NULL)
-    return 0;
-
-  buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (widget));
-  if (buffer)
-    {
-      gint i;
-      gboolean advertises_plaintext = FALSE;
-      GdkAtom *atoms;
-
-      atoms = gtk_text_buffer_get_serialize_formats (buffer, &n_mime_types);
-      for (i = 0; i < n_mime_types-1; ++i)
-        if (!strcmp ("text/plain", gdk_atom_name (atoms[i])))
-            advertises_plaintext = TRUE;
-      if (!advertises_plaintext)
-        n_mime_types++;
-    }
-
-  return n_mime_types;
-}
-
-static const gchar *
-gail_streamable_content_get_mime_type (AtkStreamableContent *streamable,
-                                       gint                  i)
-{
-  GtkWidget *widget;
-  GtkTextBuffer *buffer;
-
-  widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (streamable));
-  if (widget == NULL)
-    return 0;
-
-  buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (widget));
-  if (buffer)
-    {
-      gint n_mime_types = 0;
-      GdkAtom *atoms;
-
-      atoms = gtk_text_buffer_get_serialize_formats (buffer, &n_mime_types);
-      if (i < n_mime_types)
-        return gdk_atom_name (atoms [i]);
-      else if (i == n_mime_types)
-        return "text/plain";
-    }
-
-  return NULL;
-}
-
-static GIOChannel *
-gail_streamable_content_get_stream (AtkStreamableContent *streamable,
-                                    const gchar          *mime_type)
-{
-  GtkWidget *widget;
-  GtkTextBuffer *buffer;
-  gint i, n_mime_types = 0;
-  GdkAtom *atoms;
-
-  widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (streamable));
-  if (widget == NULL)
-    return 0;
-
-  buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (widget));
-  if (!buffer)
-    return NULL;
-
-  atoms = gtk_text_buffer_get_serialize_formats (buffer, &n_mime_types);
-
-  for (i = 0; i < n_mime_types; ++i)
-    {
-      if (!strcmp ("text/plain", mime_type) ||
-          !strcmp (gdk_atom_name (atoms[i]), mime_type))
-        {
-          guint8 *cbuf;
-          GError *err = NULL;
-          gsize len, written;
-          gchar tname[80];
-          GtkTextIter start, end;
-          GIOChannel *gio = NULL;
-          int fd;
-
-          gtk_text_buffer_get_iter_at_offset (buffer, &start, 0);
-          gtk_text_buffer_get_iter_at_offset (buffer, &end, -1);
-          if (!strcmp ("text/plain", mime_type))
-            {
-              cbuf = (guint8*) gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
-              len = strlen ((const char *) cbuf);
-            }
-          else
-            {
-              cbuf = gtk_text_buffer_serialize (buffer, buffer, atoms[i], &start, &end, &len);
-            }
-          g_snprintf (tname, 20, "streamXXXXXX");
-          fd = g_mkstemp (tname);
-          gio = g_io_channel_unix_new (fd);
-          g_io_channel_set_encoding (gio, NULL, &err);
-          if (!err)
-            g_io_channel_write_chars (gio, (const char *) cbuf, (gssize) len, &written, &err);
-          else
-            g_message ("%s", err->message);
-          if (!err)
-            g_io_channel_seek_position (gio, 0, G_SEEK_SET, &err);
-          else
-            g_message ("%s", err->message);
-          if (!err)
-            g_io_channel_flush (gio, &err);
-          else
-            g_message ("%s", err->message);
-          if (err)
-            {
-              g_message ("<error writing to stream [%s]>", tname);
-              g_error_free (err);
-            }
-          /* make sure the file is removed on unref of the giochannel */
-          else
-            {
-              g_unlink (tname);
-              return gio;
-            }
-        }
-    }
-
-  return NULL;
-}
-
-static void
-atk_streamable_content_interface_init (AtkStreamableContentIface *iface)
-{
-  iface->get_n_mime_types = gail_streamable_content_get_n_mime_types;
-  iface->get_mime_type = gail_streamable_content_get_mime_type;
-  iface->get_stream = gail_streamable_content_get_stream;
 }
 
 void

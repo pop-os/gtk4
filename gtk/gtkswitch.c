@@ -205,13 +205,10 @@ gtk_switch_multipress_gesture_released (GtkGestureMultiPress *gesture,
                                         GtkSwitch            *sw)
 {
   GdkEventSequence *sequence;
-  GdkRectangle own_alloc;
 
   sequence = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
 
-  gtk_widget_get_own_allocation (GTK_WIDGET (sw), &own_alloc);
-
-  if (gdk_rectangle_contains_point (&own_alloc, x, y) &&
+  if (gtk_widget_contains (GTK_WIDGET (sw), x, y) &&
       gtk_gesture_handles_sequence (GTK_GESTURE (gesture), sequence))
     gtk_switch_begin_toggle_animation (sw);
 }
@@ -224,15 +221,14 @@ gtk_switch_pan_gesture_pan (GtkGesturePan   *gesture,
 {
   GtkWidget *widget = GTK_WIDGET (sw);
   GtkSwitchPrivate *priv = gtk_switch_get_instance_private (sw);
-  gint width;
-  int height;
+  int width;
+
+  width = gtk_widget_get_width (widget);
 
   if (direction == GTK_PAN_DIRECTION_LEFT)
     offset = -offset;
 
   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
-
-  gtk_widget_get_content_size (widget, &width, &height);
 
   if (priv->is_active)
     offset += width / 2;
@@ -618,7 +614,7 @@ gtk_switch_class_init (GtkSwitchClass *klass)
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_SWITCH_ACCESSIBLE);
   gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_TOGGLE_BUTTON);
 
-  gtk_widget_class_set_css_name (widget_class, "switch");
+  gtk_widget_class_set_css_name (widget_class, I_("switch"));
 }
 
 static void

@@ -20,39 +20,14 @@
 #include "gtkimagedefinitionprivate.h"
 
 typedef struct _GtkImageDefinitionEmpty GtkImageDefinitionEmpty;
-typedef struct _GtkImageDefinitionPixbuf GtkImageDefinitionPixbuf;
-typedef struct _GtkImageDefinitionStock GtkImageDefinitionStock;
-typedef struct _GtkImageDefinitionAnimation GtkImageDefinitionAnimation;
 typedef struct _GtkImageDefinitionIconName GtkImageDefinitionIconName;
 typedef struct _GtkImageDefinitionGIcon GtkImageDefinitionGIcon;
 typedef struct _GtkImageDefinitionSurface GtkImageDefinitionSurface;
+typedef struct _GtkImageDefinitionTexture GtkImageDefinitionTexture;
 
 struct _GtkImageDefinitionEmpty {
   GtkImageType type;
   gint ref_count;
-};
-
-struct _GtkImageDefinitionPixbuf {
-  GtkImageType type;
-  gint ref_count;
-
-  GdkPixbuf *pixbuf;
-  int scale;
-};
-
-struct _GtkImageDefinitionStock {
-  GtkImageType type;
-  gint ref_count;
-
-  char *id;
-};
-
-struct _GtkImageDefinitionAnimation {
-  GtkImageType type;
-  gint ref_count;
-
-  GdkPixbufAnimation *animation;
-  int scale;
 };
 
 struct _GtkImageDefinitionIconName {
@@ -76,16 +51,21 @@ struct _GtkImageDefinitionSurface {
   cairo_surface_t *surface;
 };
 
+struct _GtkImageDefinitionTexture {
+  GtkImageType type;
+  gint ref_count;
+
+  GdkTexture *texture;
+};
+
 union _GtkImageDefinition
 {
   GtkImageType type;
   GtkImageDefinitionEmpty empty;
-  GtkImageDefinitionPixbuf pixbuf;
-  GtkImageDefinitionStock stock;
-  GtkImageDefinitionAnimation animation;
   GtkImageDefinitionIconName icon_name;
   GtkImageDefinitionGIcon gicon;
   GtkImageDefinitionSurface surface;
+  GtkImageDefinitionTexture texture;
 };
 
 GtkImageDefinition *
@@ -101,12 +81,10 @@ gtk_image_definition_alloc (GtkImageType type)
 {
   static gsize sizes[] = {
     sizeof (GtkImageDefinitionEmpty),
-    sizeof (GtkImageDefinitionPixbuf),
-    sizeof (GtkImageDefinitionStock),
-    sizeof (GtkImageDefinitionAnimation),
     sizeof (GtkImageDefinitionIconName),
     sizeof (GtkImageDefinitionGIcon),
-    sizeof (GtkImageDefinitionSurface)
+    sizeof (GtkImageDefinitionSurface),
+    sizeof (GtkImageDefinitionTexture)
   };
   GtkImageDefinition *def;
 
@@ -115,38 +93,6 @@ gtk_image_definition_alloc (GtkImageType type)
   def = g_malloc0 (sizes[type]);
   def->type = type;
   def->empty.ref_count = 1;
-
-  return def;
-}
-
-GtkImageDefinition *
-gtk_image_definition_new_pixbuf (GdkPixbuf *pixbuf,
-                                 int        scale)
-{
-  GtkImageDefinition *def;
-
-  if (pixbuf == NULL || scale <= 0)
-    return NULL;
-
-  def = gtk_image_definition_alloc (GTK_IMAGE_PIXBUF);
-  def->pixbuf.pixbuf = g_object_ref (pixbuf);
-  def->pixbuf.scale = scale;
-
-  return def;
-}
-
-GtkImageDefinition *
-gtk_image_definition_new_animation (GdkPixbufAnimation *animation,
-                                    int                 scale)
-{
-  GtkImageDefinition *def;
-
-  if (animation == NULL || scale <= 0)
-    return NULL;
-
-  def = gtk_image_definition_alloc (GTK_IMAGE_ANIMATION);
-  def->animation.animation = g_object_ref (animation);
-  def->animation.scale = scale;
 
   return def;
 }
@@ -194,6 +140,20 @@ gtk_image_definition_new_surface (cairo_surface_t *surface)
 }
 
 GtkImageDefinition *
+gtk_image_definition_new_texture (GdkTexture *texture)
+{
+  GtkImageDefinition *def;
+
+  if (texture == NULL)
+    return NULL;
+
+  def = gtk_image_definition_alloc (GTK_IMAGE_TEXTURE);
+  def->texture.texture = g_object_ref (texture);
+
+  return def;
+}
+
+GtkImageDefinition *
 gtk_image_definition_ref (GtkImageDefinition *def)
 {
   def->empty.ref_count++;
@@ -215,14 +175,11 @@ gtk_image_definition_unref (GtkImageDefinition *def)
     case GTK_IMAGE_EMPTY:
       g_assert_not_reached ();
       break;
-    case GTK_IMAGE_PIXBUF:
-      g_object_unref (def->pixbuf.pixbuf);
-      break;
-    case GTK_IMAGE_ANIMATION:
-      g_object_unref (def->animation.animation);
-      break;
     case GTK_IMAGE_SURFACE:
       cairo_surface_destroy (def->surface.surface);
+      break;
+    case GTK_IMAGE_TEXTURE:
+      g_object_unref (def->texture.texture);
       break;
     case GTK_IMAGE_ICON_NAME:
       g_free (def->icon_name.icon_name);
@@ -250,32 +207,11 @@ gtk_image_definition_get_scale (const GtkImageDefinition *def)
       g_assert_not_reached ();
     case GTK_IMAGE_EMPTY:
     case GTK_IMAGE_SURFACE:
+    case GTK_IMAGE_TEXTURE:
     case GTK_IMAGE_ICON_NAME:
     case GTK_IMAGE_GICON:
       return 1;
-    case GTK_IMAGE_PIXBUF:
-      return def->pixbuf.scale;
-    case GTK_IMAGE_ANIMATION:
-      return def->animation.scale;
     }
-}
-
-GdkPixbuf *
-gtk_image_definition_get_pixbuf (const GtkImageDefinition *def)
-{
-  if (def->type != GTK_IMAGE_PIXBUF)
-    return NULL;
-
-  return def->pixbuf.pixbuf;
-}
-
-GdkPixbufAnimation *
-gtk_image_definition_get_animation (const GtkImageDefinition *def)
-{
-  if (def->type != GTK_IMAGE_ANIMATION)
-    return NULL;
-
-  return def->animation.animation;
 }
 
 const gchar *
@@ -303,4 +239,13 @@ gtk_image_definition_get_surface (const GtkImageDefinition *def)
     return NULL;
 
   return def->surface.surface;
+}
+
+GdkTexture *
+gtk_image_definition_get_texture (const GtkImageDefinition *def)
+{
+  if (def->type != GTK_IMAGE_TEXTURE)
+    return NULL;
+
+  return def->texture.texture;
 }

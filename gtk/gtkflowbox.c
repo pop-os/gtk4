@@ -471,7 +471,7 @@ gtk_flow_box_child_class_init (GtkFlowBoxChildClass *class)
   widget_class->activate_signal = child_signals[CHILD_ACTIVATE];
 
   gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_LIST_ITEM);
-  gtk_widget_class_set_css_name (widget_class, "flowboxchild");
+  gtk_widget_class_set_css_name (widget_class, I_("flowboxchild"));
 }
 
 static void
@@ -1389,7 +1389,6 @@ gtk_flow_box_size_allocate (GtkWidget           *widget,
   GtkFlowBox *box = GTK_FLOW_BOX (widget);
   GtkFlowBoxPrivate  *priv = BOX_PRIV (box);
   GdkRectangle child_clip;
-  GtkAllocation widget_allocation;
   GtkAllocation child_allocation;
   gint avail_size, avail_other_size, min_items, item_spacing, line_spacing;
   GtkAlign item_align;
@@ -1405,8 +1404,6 @@ gtk_flow_box_size_allocate (GtkWidget           *widget,
   gint extra_line_pixels = 0, extra_per_line = 0, extra_line_extra = 0;
   gint i, this_line_size;
   GSequenceIter *iter;
-
-  gtk_widget_get_allocation (widget, &widget_allocation);
 
   min_items = MAX (1, priv->min_children_per_line);
 
@@ -1584,16 +1581,9 @@ gtk_flow_box_size_allocate (GtkWidget           *widget,
       extra_line_extra = extra_line_pixels % n_lines;
     }
 
-  /*
-   * Prepare item/line initial offsets and jump into the
-   * real allocation loop.
-   */
-  line_offset = allocation->y - widget_allocation.y;
-  item_offset = allocation->x - widget_allocation.x;
-
   /* prepend extra space to item_offset/line_offset for SPREAD_END */
-  item_offset += get_offset_pixels (item_align, extra_pixels);
-  line_offset += get_offset_pixels (line_align, extra_line_pixels);
+  item_offset = get_offset_pixels (item_align, extra_pixels);
+  line_offset = get_offset_pixels (line_align, extra_line_pixels);
 
   /* Get the allocation size for the first line */
   if (priv->homogeneous)
@@ -1653,7 +1643,7 @@ gtk_flow_box_size_allocate (GtkWidget           *widget,
                 }
             }
 
-          item_offset = allocation->x - widget_allocation.x;
+          item_offset = 0;
 
           if (item_align == GTK_ALIGN_CENTER)
             {
@@ -1712,15 +1702,15 @@ gtk_flow_box_size_allocate (GtkWidget           *widget,
       /* Do the actual allocation */
       if (priv->orientation == GTK_ORIENTATION_HORIZONTAL)
         {
-          child_allocation.x = widget_allocation.x + item_offset;
-          child_allocation.y = widget_allocation.y + line_offset;
+          child_allocation.x = item_offset;
+          child_allocation.y = line_offset;
           child_allocation.width = this_item_size;
           child_allocation.height = this_line_size;
         }
       else /* GTK_ORIENTATION_VERTICAL */
         {
-          child_allocation.x = widget_allocation.x + line_offset;
-          child_allocation.y = widget_allocation.y + item_offset;
+          child_allocation.x = line_offset;
+          child_allocation.y = item_offset;
           child_allocation.width = this_line_size;
           child_allocation.height = this_item_size;
         }
@@ -2336,9 +2326,10 @@ gtk_flow_box_snapshot (GtkWidget   *widget,
 
   GTK_WIDGET_CLASS (gtk_flow_box_parent_class)->snapshot (widget, snapshot);
 
-  gtk_widget_get_content_size (widget, &width, &height);
   x = 0;
   y = 0;
+  width = gtk_widget_get_width (widget);
+  height = gtk_widget_get_height (widget);
 
   if (priv->rubberband_first && priv->rubberband_last)
     {
@@ -2555,8 +2546,8 @@ get_view_rect (GtkFlowBox   *box,
     {
       rect->x = gtk_adjustment_get_value (priv->hadjustment);
       rect->y = gtk_adjustment_get_value (priv->vadjustment);
-      rect->width = gtk_widget_get_allocated_width (parent);
-      rect->height = gtk_widget_get_allocated_height (parent);
+      rect->width = gtk_widget_get_width (parent);
+      rect->height = gtk_widget_get_height (parent);
       return TRUE;
     }
 
@@ -2682,6 +2673,26 @@ gtk_flow_box_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
 
   if (n_press == 2 && !priv->activate_on_single_click)
     g_signal_emit (box, signals[CHILD_ACTIVATED], 0, child);
+}
+
+static void
+gtk_flow_box_multipress_unpaired_release (GtkGestureMultiPress *gesture,
+                                          gdouble               x,
+                                          gdouble               y,
+                                          guint                 button,
+                                          GdkEventSequence     *sequence,
+                                          GtkFlowBox           *box)
+{
+  GtkFlowBoxPrivate *priv = BOX_PRIV (box);
+  GtkFlowBoxChild *child;
+
+  if (!priv->activate_on_single_click)
+    return;
+
+  child = gtk_flow_box_get_child_at_pos (box, x, y);
+
+  if (child)
+    gtk_flow_box_select_and_activate (box, child);
 }
 
 static void
@@ -2996,9 +3007,9 @@ gtk_flow_box_add_move_binding (GtkBindingSet   *binding_set,
   display = gdk_display_get_default ();
   if (display)
     {
-      extend_mod_mask = gdk_keymap_get_modifier_mask (gdk_keymap_get_for_display (display),
+      extend_mod_mask = gdk_keymap_get_modifier_mask (gdk_display_get_keymap (display),
                                                       GDK_MODIFIER_INTENT_EXTEND_SELECTION);
-      modify_mod_mask = gdk_keymap_get_modifier_mask (gdk_keymap_get_for_display (display),
+      modify_mod_mask = gdk_keymap_get_modifier_mask (gdk_display_get_keymap (display),
                                                       GDK_MODIFIER_INTENT_MODIFY_SELECTION);
     }
 
@@ -3419,7 +3430,7 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                        P_("The selection mode"),
                        GTK_TYPE_SELECTION_MODE,
                        GTK_SELECTION_SINGLE,
-                       G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+                       GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkFlowBox:activate-on-single-click:
@@ -3432,7 +3443,7 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                           P_("Activate on Single Click"),
                           P_("Activate row on a single click"),
                           TRUE,
-                          G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+                          GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkFlowBox:homogeneous:
@@ -3445,7 +3456,7 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                           P_("Homogeneous"),
                           P_("Whether the children should all be the same size"),
                           FALSE,
-                          G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+                          GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkFlowBox:min-children-per-line:
@@ -3463,7 +3474,7 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                        P_("The minimum number of children to allocate "
                        "consecutively in the given orientation."),
                        0, G_MAXUINT, 0,
-                       G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+                       GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkFlowBox:max-children-per-line:
@@ -3477,7 +3488,7 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                        P_("The maximum amount of children to request space for "
                           "consecutively in the given orientation."),
                        1, G_MAXUINT, DEFAULT_MAX_CHILDREN_PER_LINE,
-                       G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+                       GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkFlowBox:row-spacing:
@@ -3489,7 +3500,7 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                        P_("Vertical spacing"),
                        P_("The amount of vertical space between two children"),
                        0, G_MAXUINT, 0,
-                       G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+                       GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkFlowBox:column-spacing:
@@ -3501,7 +3512,7 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                        P_("Horizontal spacing"),
                        P_("The amount of horizontal space between two children"),
                        0, G_MAXUINT, 0,
-                       G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+                       GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
@@ -3694,7 +3705,7 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                                 "unselect-all", 0);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_FLOW_BOX_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "flowbox");
+  gtk_widget_class_set_css_name (widget_class, I_("flowbox"));
 }
 
 static void
@@ -3728,6 +3739,8 @@ gtk_flow_box_init (GtkFlowBox *box)
                     G_CALLBACK (gtk_flow_box_multipress_gesture_released), box);
   g_signal_connect (priv->multipress_gesture, "stopped",
                     G_CALLBACK (gtk_flow_box_multipress_gesture_stopped), box);
+  g_signal_connect (priv->multipress_gesture, "unpaired-release",
+                    G_CALLBACK (gtk_flow_box_multipress_unpaired_release), box);
 
   priv->drag_gesture = gtk_gesture_drag_new (GTK_WIDGET (box));
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (priv->drag_gesture),

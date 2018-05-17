@@ -51,7 +51,6 @@
 #include "gtkprivate.h"
 #include "gtkradiobutton.h"
 #include "gtkradiotoolbutton.h"
-#include "gtkrender.h"
 #include "gtkseparatormenuitem.h"
 #include "gtkseparatortoolitem.h"
 #include "gtktoolshell.h"
@@ -60,6 +59,7 @@
 #include "gtkwidgetprivate.h"
 #include "gtkwindowprivate.h"
 #include "gtkgesturemultipress.h"
+#include "gtkbuttonprivate.h"
 
 
 /**
@@ -102,7 +102,6 @@ typedef struct _ToolbarContent ToolbarContent;
 #define SPACE_LINE_START    2.0
 #define SPACE_LINE_END      8.0
 
-#define DEFAULT_ICON_SIZE GTK_ICON_SIZE_LARGE_TOOLBAR
 #define DEFAULT_TOOLBAR_STYLE GTK_TOOLBAR_BOTH_HORIZ
 #define DEFAULT_ANIMATION_STATE TRUE
 
@@ -119,7 +118,6 @@ struct _GtkToolbarPrivate
   GtkMenu         *menu;
   GtkSettings     *settings;
 
-  GtkIconSize      icon_size;
   GtkToolbarStyle  style;
 
   GtkToolItem     *highlight_tool_item;
@@ -145,10 +143,8 @@ struct _GtkToolbarPrivate
   GtkOrientation   orientation;
 
   guint            animation : 1;
-  guint            icon_size_set : 1;
   guint            is_sliding : 1;
   guint            need_rebuild : 1;  /* whether the overflow menu should be regenerated */
-  guint            need_sync : 1;
   guint            show_arrow : 1;
   guint            style_set     : 1;
 };
@@ -160,8 +156,6 @@ enum {
   PROP_TOOLBAR_STYLE,
   PROP_SHOW_ARROW,
   PROP_TOOLTIPS,
-  PROP_ICON_SIZE,
-  PROP_ICON_SIZE_SET
 };
 
 /* Child properties */
@@ -207,8 +201,8 @@ static gboolean   gtk_toolbar_focus                (GtkWidget           *widget,
 						    GtkDirectionType     dir);
 static void       gtk_toolbar_move_focus           (GtkWidget           *widget,
 						    GtkDirectionType     dir);
-static void       gtk_toolbar_screen_changed       (GtkWidget           *widget,
-						    GdkScreen           *previous_screen);
+static void       gtk_toolbar_display_changed      (GtkWidget           *widget,
+						    GdkDisplay          *previous_display);
 static void       gtk_toolbar_set_child_property   (GtkContainer        *container,
 						    GtkWidget           *child,
 						    guint                property_id,
@@ -238,8 +232,10 @@ static void       gtk_toolbar_real_style_changed   (GtkToolbar          *toolbar
 						    GtkToolbarStyle      style);
 static gboolean   gtk_toolbar_focus_home_or_end    (GtkToolbar          *toolbar,
 						    gboolean             focus_home);
-static gboolean   gtk_toolbar_arrow_button_press   (GtkWidget           *button,
-						    GdkEventButton      *event,
+static void       gtk_toolbar_arrow_button_press   (GtkGesture          *gesture,
+                                                    int                  n_press,
+                                                    double               x,
+                                                    double               y,
 						    GtkToolbar          *toolbar);
 static void       gtk_toolbar_arrow_button_clicked (GtkWidget           *button,
 						    GtkToolbar          *toolbar);
@@ -315,7 +311,6 @@ static void	       toolbar_content_set_expand	    (ToolbarContent      *content,
 							     gboolean		  expand);
 
 static void            toolbar_tool_shell_iface_init        (GtkToolShellIface   *iface);
-static GtkIconSize     toolbar_get_icon_size                (GtkToolShell        *shell);
 static GtkOrientation  toolbar_get_orientation              (GtkToolShell        *shell);
 static GtkToolbarStyle toolbar_get_style                    (GtkToolShell        *shell);
 static void            toolbar_rebuild_menu                 (GtkToolShell        *shell);
@@ -393,7 +388,7 @@ gtk_toolbar_class_init (GtkToolbarClass *klass)
                                    GTK_TYPE_TOOLBAR,
                                    G_CALLBACK (gtk_toolbar_move_focus));
 
-  widget_class->screen_changed = gtk_toolbar_screen_changed;
+  widget_class->display_changed = gtk_toolbar_display_changed;
   widget_class->popup_menu = gtk_toolbar_popup_menu;
   widget_class->direction_changed = gtk_toolbar_direction_changed;
   
@@ -509,43 +504,6 @@ gtk_toolbar_class_init (GtkToolbarClass *klass)
 							 TRUE,
 							 GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
 
-  /**
-   * GtkToolbar:icon-size:
-   *
-   * The size of the icons in a toolbar is normally determined by
-   * the toolbar-icon-size setting. When this property is set, it 
-   * overrides the setting. 
-   * 
-   * This should only be used for special-purpose toolbars, normal
-   * application toolbars should respect the user preferences for the
-   * size of icons.
-   *
-   * Since: 2.10
-   */
-  g_object_class_install_property (gobject_class,
-				   PROP_ICON_SIZE,
-				   g_param_spec_enum ("icon-size",
-                                                      P_("Icon size"),
-                                                      P_("Size of icons in this toolbar"),
-                                                      GTK_TYPE_ICON_SIZE,
-                                                      DEFAULT_ICON_SIZE,
-                                                      GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
-
-  /**
-   * GtkToolbar:icon-size-set:
-   *
-   * Is %TRUE if the icon-size property has been set.
-   *
-   * Since: 2.10
-   */
-  g_object_class_install_property (gobject_class,
-				   PROP_ICON_SIZE_SET,
-				   g_param_spec_boolean ("icon-size-set",
-							 P_("Icon size set"),
-							 P_("Whether the icon-size property has been set"),
-							 FALSE,
-							 GTK_PARAM_READWRITE));  
-
   /* child properties */
   gtk_container_class_install_child_property (container_class,
 					      CHILD_PROP_EXPAND,
@@ -586,13 +544,12 @@ gtk_toolbar_class_init (GtkToolbarClass *klass)
   add_ctrl_tab_bindings (binding_set, 0, GTK_DIR_TAB_FORWARD);
   add_ctrl_tab_bindings (binding_set, GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
 
-  gtk_widget_class_set_css_name (widget_class, "toolbar");
+  gtk_widget_class_set_css_name (widget_class, I_("toolbar"));
 }
 
 static void
 toolbar_tool_shell_iface_init (GtkToolShellIface *iface)
 {
-  iface->get_icon_size    = toolbar_get_icon_size;
   iface->get_orientation  = toolbar_get_orientation;
   iface->get_style        = toolbar_get_style;
   iface->rebuild_menu     = toolbar_rebuild_menu;
@@ -613,20 +570,19 @@ gtk_toolbar_init (GtkToolbar *toolbar)
 
   priv->orientation = GTK_ORIENTATION_HORIZONTAL;
   priv->style = DEFAULT_TOOLBAR_STYLE;
-  priv->icon_size = DEFAULT_ICON_SIZE;
   priv->animation = DEFAULT_ANIMATION_STATE;
 
   _gtk_orientable_set_style_classes (GTK_ORIENTABLE (toolbar));
 
   priv->arrow_button = gtk_toggle_button_new ();
-  g_signal_connect (priv->arrow_button, "button-press-event",
+  g_signal_connect (gtk_button_get_gesture (GTK_BUTTON (priv->arrow_button)), "pressed",
 		    G_CALLBACK (gtk_toolbar_arrow_button_press), toolbar);
   g_signal_connect (priv->arrow_button, "clicked",
 		    G_CALLBACK (gtk_toolbar_arrow_button_clicked), toolbar);
 
   gtk_widget_set_focus_on_click (priv->arrow_button, FALSE);
 
-  priv->arrow = gtk_image_new_from_icon_name ("pan-down-symbolic", GTK_ICON_SIZE_BUTTON);
+  priv->arrow = gtk_image_new_from_icon_name ("pan-down-symbolic");
   gtk_widget_set_name (priv->arrow, "gtk-toolbar-arrow");
   gtk_container_add (GTK_CONTAINER (priv->arrow_button), priv->arrow);
   
@@ -655,7 +611,6 @@ gtk_toolbar_set_property (GObject      *object,
 			  GParamSpec   *pspec)
 {
   GtkToolbar *toolbar = GTK_TOOLBAR (object);
-  GtkToolbarPrivate *priv = toolbar->priv;
 
   switch (prop_id)
     {
@@ -668,15 +623,6 @@ gtk_toolbar_set_property (GObject      *object,
       break;
     case PROP_SHOW_ARROW:
       gtk_toolbar_set_show_arrow (toolbar, g_value_get_boolean (value));
-      break;
-    case PROP_ICON_SIZE:
-      gtk_toolbar_set_icon_size (toolbar, g_value_get_enum (value));
-      break;
-    case PROP_ICON_SIZE_SET:
-      if (g_value_get_boolean (value))
-	priv->icon_size_set = TRUE;
-      else
-	gtk_toolbar_unset_icon_size (toolbar);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -703,12 +649,6 @@ gtk_toolbar_get_property (GObject    *object,
       break;
     case PROP_SHOW_ARROW:
       g_value_set_boolean (value, priv->show_arrow);
-      break;
-    case PROP_ICON_SIZE:
-      g_value_set_enum (value, gtk_toolbar_get_icon_size (toolbar));
-      break;
-    case PROP_ICON_SIZE_SET:
-      g_value_set_boolean (value, priv->icon_size_set);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -957,12 +897,6 @@ slide_idle_handler (gpointer data)
   GtkToolbarPrivate *priv = toolbar->priv;
   GList *list;
 
-  if (priv->need_sync)
-    {
-      gdk_flush ();
-      priv->need_sync = FALSE;
-    }
-  
   for (list = priv->content; list != NULL; list = list->next)
     {
       ToolbarContent *content = list->data;
@@ -1541,8 +1475,6 @@ gtk_toolbar_size_allocate (GtkWidget           *widget,
                                                &start_allocation,
                                                &goal_allocation,
                                                &alloc);
-
-              priv->need_sync = TRUE;
             }
           else
             {
@@ -1786,18 +1718,15 @@ settings_change_notify (GtkSettings      *settings,
 }
 
 static void
-gtk_toolbar_screen_changed (GtkWidget *widget,
-			    GdkScreen *previous_screen)
+gtk_toolbar_display_changed (GtkWidget *widget,
+			     GdkDisplay *previous_display)
 {
   GtkToolbar *toolbar = GTK_TOOLBAR (widget);
   GtkToolbarPrivate *priv = toolbar->priv;
   GtkSettings *old_settings = toolbar_get_settings (toolbar);
   GtkSettings *settings;
   
-  if (gtk_widget_has_screen (GTK_WIDGET (toolbar)))
-    settings = gtk_widget_get_settings (GTK_WIDGET (toolbar));
-  else
-    settings = NULL;
+  settings = gtk_widget_get_settings (GTK_WIDGET (toolbar));
   
   if (settings == old_settings)
     return;
@@ -2262,9 +2191,9 @@ gtk_toolbar_orientation_changed (GtkToolbar    *toolbar,
       priv->orientation = orientation;
       
       if (orientation == GTK_ORIENTATION_HORIZONTAL)
-        gtk_image_set_from_icon_name (GTK_IMAGE (priv->arrow), "pan-down-symbolic", GTK_ICON_SIZE_BUTTON);
+        gtk_image_set_from_icon_name (GTK_IMAGE (priv->arrow), "pan-down-symbolic");
       else
-        gtk_image_set_from_icon_name (GTK_IMAGE (priv->arrow), "pan-end-symbolic", GTK_ICON_SIZE_BUTTON);
+        gtk_image_set_from_icon_name (GTK_IMAGE (priv->arrow), "pan-end-symbolic");
       
       gtk_toolbar_reconfigured (toolbar);
       
@@ -2362,15 +2291,18 @@ gtk_toolbar_arrow_button_clicked (GtkWidget  *button,
     }
 }
 
-static gboolean
-gtk_toolbar_arrow_button_press (GtkWidget      *button,
-				GdkEventButton *event,
+static void
+gtk_toolbar_arrow_button_press (GtkGesture     *gesture,
+                                int             n_press,
+                                double          x,
+                                double          y,
 				GtkToolbar     *toolbar)
 {
-  show_menu (toolbar, event);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+  GtkWidget *button;
 
-  return TRUE;
+  button = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+  show_menu (toolbar, NULL);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
 }
 
 
@@ -2628,22 +2560,6 @@ gtk_toolbar_get_nth_item (GtkToolbar *toolbar,
 }
 
 /**
- * gtk_toolbar_get_icon_size:
- * @toolbar: a #GtkToolbar
- *
- * Retrieves the icon size for the toolbar. See gtk_toolbar_set_icon_size().
- *
- * Returns: the current icon size for the icons on the toolbar.
- **/
-GtkIconSize
-gtk_toolbar_get_icon_size (GtkToolbar *toolbar)
-{
-  g_return_val_if_fail (GTK_IS_TOOLBAR (toolbar), DEFAULT_ICON_SIZE);
-
-  return toolbar->priv->icon_size;
-}
-
-/**
  * gtk_toolbar_set_show_arrow:
  * @toolbar: a #GtkToolbar
  * @show_arrow: Whether to show an overflow menu
@@ -2774,80 +2690,6 @@ gtk_toolbar_finalize (GObject *object)
   g_clear_object (&priv->click_gesture);
 
   G_OBJECT_CLASS (gtk_toolbar_parent_class)->finalize (object);
-}
-
-/**
- * gtk_toolbar_set_icon_size:
- * @toolbar: A #GtkToolbar
- * @icon_size: The #GtkIconSize that stock icons in the toolbar shall have.
- *
- * This function sets the size of stock icons in the toolbar. You
- * can call it both before you add the icons and after they’ve been
- * added. The size you set will override user preferences for the default
- * icon size.
- * 
- * This should only be used for special-purpose toolbars, normal
- * application toolbars should respect the user preferences for the
- * size of icons.
- **/
-void
-gtk_toolbar_set_icon_size (GtkToolbar  *toolbar,
-			   GtkIconSize  icon_size)
-{
-  GtkToolbarPrivate *priv;
-
-  g_return_if_fail (GTK_IS_TOOLBAR (toolbar));
-  g_return_if_fail (icon_size != GTK_ICON_SIZE_INVALID);
-
-  priv = toolbar->priv;
-
-  if (!priv->icon_size_set)
-    {
-      priv->icon_size_set = TRUE;
-      g_object_notify (G_OBJECT (toolbar), "icon-size-set");
-    }
-
-  if (priv->icon_size == icon_size)
-    return;
-
-  priv->icon_size = icon_size;
-  g_object_notify (G_OBJECT (toolbar), "icon-size");
-  
-  gtk_toolbar_reconfigured (toolbar);
-  
-  gtk_widget_queue_resize (GTK_WIDGET (toolbar));
-}
-
-/**
- * gtk_toolbar_unset_icon_size:
- * @toolbar: a #GtkToolbar
- * 
- * Unsets toolbar icon size set with gtk_toolbar_set_icon_size(), so that
- * user preferences will be used to determine the icon size.
- **/
-void
-gtk_toolbar_unset_icon_size (GtkToolbar *toolbar)
-{
-  GtkToolbarPrivate *priv;
-  GtkIconSize size;
-
-  g_return_if_fail (GTK_IS_TOOLBAR (toolbar));
-
-  priv = toolbar->priv;
-
-  if (priv->icon_size_set)
-    {
-      size = DEFAULT_ICON_SIZE;
-
-      if (size != priv->icon_size)
-	{
-	  gtk_toolbar_set_icon_size (toolbar, size);
-	  g_object_notify (G_OBJECT (toolbar), "icon-size");	  
-	}
-
-      priv->icon_size_set = FALSE;
-      g_object_notify (G_OBJECT (toolbar), "icon-size-set");      
-    }
 }
 
 /*
@@ -3256,15 +3098,6 @@ _gtk_toolbar_elide_underscores (const gchar *original)
   *q = '\0';
   
   return result;
-}
-
-static GtkIconSize
-toolbar_get_icon_size (GtkToolShell *shell)
-{
-  GtkToolbar *toolbar = GTK_TOOLBAR (shell);
-  GtkToolbarPrivate *priv = toolbar->priv;
-
-  return priv->icon_size;
 }
 
 static GtkOrientation

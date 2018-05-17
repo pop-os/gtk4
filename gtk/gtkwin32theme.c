@@ -25,6 +25,8 @@
 
 #include "gtkwin32drawprivate.h"
 
+#include "gdk/gdk-private.h"
+
 #ifdef G_OS_WIN32
 
 #include <windows.h>
@@ -168,7 +170,7 @@ invalidate_win32_themes (GdkXEvent *xevent,
       theme_was_open |= gtk_win32_theme_close (theme);
     }
   if (theme_was_open)
-    gtk_style_context_reset_widgets (gdk_display_get_default_screen (gdk_window_get_display (event->any.window)));
+    gtk_style_context_reset_widgets (gdk_window_get_display (event->any.window));
 
   return GDK_FILTER_CONTINUE;
 }

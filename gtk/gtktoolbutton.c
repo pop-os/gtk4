@@ -21,7 +21,7 @@
 #include "config.h"
 #include "gtktoolbutton.h"
 #include "gtkbutton.h"
-#include "gtkimage.h"
+#include "gtkimageprivate.h"
 #include "gtklabel.h"
 #include "gtkbox.h"
 #include "gtkintl.h"
@@ -176,23 +176,20 @@ gtk_tool_button_class_init (GtkToolButtonClass *klass)
   /* Properties are interpreted like this:
    *
    *          - if the tool button has an icon_widget, then that widget
-   *            will be used as the icon. Otherwise, if the tool button
-   *            has a stock id, the corresponding stock icon will be
-   *            used. Otherwise, if the tool button has an icon name,
-   *            the corresponding icon from the theme will be used.
+   *            will be used as the icon. Otherwise, if the tool button has
+   *            an icon name, the corresponding icon from the theme will be used.
    *            Otherwise, the tool button will not have an icon.
    *
    *          - if the tool button has a label_widget then that widget
    *            will be used as the label. Otherwise, if the tool button
    *            has a label text, that text will be used as label. Otherwise,
-   *            if the toolbutton has a stock id, the corresponding text
-   *            will be used as label. Otherwise, if the tool button has
-   *            an icon name, the corresponding icon name from the theme will
-   *            be used. Otherwise, the toolbutton will have an empty label.
+   *            if the tool button has an icon name, the corresponding icon name
+   *            from the theme will be used. Otherwise, the toolbutton will have
+   *            an empty label.
    *
    *	      - The use_underline property only has an effect when the label
    *            on the toolbutton comes from the label property (ie. not from
-   *            label_widget or from stock_id).
+   *            label_widget).
    *
    *            In that case, if use_underline is set,
    *
@@ -275,7 +272,7 @@ gtk_tool_button_class_init (GtkToolButtonClass *klass)
   
   g_type_class_add_private (object_class, sizeof (GtkToolButtonPrivate));
 
-  gtk_widget_class_set_css_name (widget_class, "toolbutton");
+  gtk_widget_class_set_css_name (widget_class, I_("toolbutton"));
 }
 
 static void
@@ -311,7 +308,6 @@ gtk_tool_button_construct_contents (GtkToolItem *tool_item)
   GtkToolbarStyle style;
   gboolean need_label = FALSE;
   gboolean need_icon = FALSE;
-  GtkIconSize icon_size;
   GtkWidget *box = NULL;
   GtkOrientation text_orientation = GTK_ORIENTATION_HORIZONTAL;
   GtkSizeGroup *size_group = NULL;
@@ -446,23 +442,15 @@ gtk_tool_button_construct_contents (GtkToolItem *tool_item)
         }
     }
 
-  icon_size = gtk_tool_item_get_icon_size (GTK_TOOL_ITEM (button));
   if (need_icon)
     {
       if (button->priv->icon_widget)
 	{
 	  icon = button->priv->icon_widget;
-
-	  if (GTK_IS_IMAGE (icon))
-	    {
-	      g_object_set (button->priv->icon_widget,
-			    "icon-size", icon_size,
-			    NULL);
-	    }
 	}
       else if (button->priv->icon_name)
 	{
-	  icon = gtk_image_new_from_icon_name (button->priv->icon_name, icon_size);
+	  icon = gtk_image_new_from_icon_name (button->priv->icon_name);
 	}
 
       if (icon)
@@ -713,34 +701,43 @@ clone_image_menu_size (GtkImage *image)
 
   if (storage_type == GTK_IMAGE_ICON_NAME)
     {
-      const gchar *icon_name;
-      gtk_image_get_icon_name (image, &icon_name, NULL);
-      return gtk_image_new_from_icon_name (icon_name, GTK_ICON_SIZE_MENU);
+      const gchar *icon_name = gtk_image_get_icon_name (image);
+
+      return gtk_image_new_from_icon_name (icon_name);
     }
   else if (storage_type == GTK_IMAGE_GICON)
     {
-      GIcon *icon;
-      gtk_image_get_gicon (image, &icon, NULL);
-      return gtk_image_new_from_gicon (icon, GTK_ICON_SIZE_MENU);
+      GIcon *icon = gtk_image_get_gicon (image);
+
+      return gtk_image_new_from_gicon (icon);
     }
-  else if (storage_type == GTK_IMAGE_PIXBUF)
+  else if (storage_type == GTK_IMAGE_SURFACE)
     {
-      gint width, height;
-      
-      if (gtk_icon_size_lookup (GTK_ICON_SIZE_MENU, &width, &height))
-	{
-	  GdkPixbuf *src_pixbuf, *dest_pixbuf;
-	  GtkWidget *cloned_image;
+      int width, height;
+      cairo_surface_t *src_surface, *dest_surface;
+      GtkWidget *cloned_image;
+      gint scale = gtk_widget_get_scale_factor (GTK_WIDGET (image));
+      cairo_t *cr;
 
-	  src_pixbuf = gtk_image_get_pixbuf (image);
-	  dest_pixbuf = gdk_pixbuf_scale_simple (src_pixbuf, width, height,
-						 GDK_INTERP_BILINEAR);
+      gtk_image_get_image_size (image, &width, &height);
 
-	  cloned_image = gtk_image_new_from_pixbuf (dest_pixbuf);
-	  g_object_unref (dest_pixbuf);
+      src_surface = gtk_image_get_surface (image);
+      dest_surface =
+            gdk_window_create_similar_image_surface (gtk_widget_get_window (GTK_WIDGET (image)),
+                                                     CAIRO_FORMAT_ARGB32,
+                                                     width * scale, height * scale, scale);
+      cr = cairo_create (dest_surface);
+      cairo_set_source_surface (cr, src_surface, 0, 0);
+      cairo_scale (cr,
+                   width / cairo_image_surface_get_width (src_surface),
+                   height / cairo_image_surface_get_height (src_surface));
+      cairo_paint (cr);
+      cairo_destroy (cr);
 
-	  return cloned_image;
-	}
+      cloned_image = gtk_image_new_from_surface (dest_surface);
+      cairo_surface_destroy (dest_surface);
+
+      return cloned_image;
     }
 
   return NULL;

@@ -218,7 +218,7 @@ gtk_frame_class_init (GtkFrameClass *class)
   class->compute_child_allocation = gtk_frame_real_compute_child_allocation;
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_FRAME_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "frame");
+  gtk_widget_class_set_css_name (widget_class, I_("frame"));
 }
 
 static void
@@ -683,7 +683,8 @@ gtk_frame_real_compute_child_allocation (GtkFrame      *frame,
   int frame_width, frame_height;
   gint height;
 
-  gtk_widget_get_content_size (GTK_WIDGET (frame), &frame_width, &frame_height);
+  frame_width = gtk_widget_get_width (GTK_WIDGET (frame));
+  frame_height = gtk_widget_get_height (GTK_WIDGET (frame));
 
   if (priv->label_widget)
     {

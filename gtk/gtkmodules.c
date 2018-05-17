@@ -458,17 +458,12 @@ static void
 display_closed_cb (GdkDisplay *display,
 		   gboolean    is_error)
 {
-  GdkScreen *screen;
   GtkSettings *settings;
 
-  screen = gdk_display_get_default_screen (display);
-  settings = gtk_settings_get_for_screen (screen);
+  settings = gtk_settings_get_for_display (display);
 
-  g_object_set_data_full (G_OBJECT (settings),
-			  I_("gtk-modules"),
-			  NULL, NULL);
+  g_object_set_data_full (G_OBJECT (settings), I_("gtk-modules"), NULL, NULL);
 }
-		   
 
 static void
 display_opened_cb (GdkDisplayManager *display_manager,
@@ -476,7 +471,6 @@ display_opened_cb (GdkDisplayManager *display_manager,
 {
   GValue value = G_VALUE_INIT;
   GSList *slist;
-  GdkScreen *screen;
   GtkSettings *settings;
 
   for (slist = gtk_modules; slist; slist = slist->next)
@@ -489,13 +483,12 @@ display_opened_cb (GdkDisplayManager *display_manager,
 	    (* info->display_init_func) (display);
 	}
     }
-  
-  g_value_init (&value, G_TYPE_STRING);
-  screen = gdk_display_get_default_screen (display);
 
-  if (gdk_screen_get_setting (screen, "gtk-modules", &value))
+  g_value_init (&value, G_TYPE_STRING);
+
+  if (gdk_display_get_setting (display, "gtk-modules", &value))
     {
-      settings = gtk_settings_get_for_screen (screen);
+      settings = gtk_settings_get_for_display (display);
       _gtk_modules_settings_changed (settings, g_value_get_string (&value));
       g_value_unset (&value);
     }

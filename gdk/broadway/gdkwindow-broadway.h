@@ -47,14 +47,8 @@ struct _GdkWindowImplBroadway
   GdkWindowImpl parent_instance;
 
   GdkWindow *wrapper;
-  GdkScreen *screen;
-
-  cairo_surface_t *surface;
-  cairo_surface_t *last_surface;
-  cairo_surface_t *ref_surface;
 
   GdkCursor *cursor;
-  GHashTable *device_cursor;
 
   int id;
 
@@ -73,6 +67,9 @@ struct _GdkWindowImplBroadway
 
   GdkGeometry geometry_hints;
   GdkWindowHints geometry_hints_mask;
+
+  GArray *node_data;
+  GPtrArray *node_data_textures;
 };
 
 struct _GdkWindowImplBroadwayClass

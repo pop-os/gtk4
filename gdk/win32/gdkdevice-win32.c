@@ -22,9 +22,9 @@
 #include <windowsx.h>
 #include <objbase.h>
 
-#include "gdkdisplayprivate.h"
 #include "gdkdevice-win32.h"
 #include "gdkwin32.h"
+#include "gdkdisplay-win32.h"
 
 G_DEFINE_TYPE (GdkDeviceWin32, gdk_device_win32, GDK_TYPE_DEVICE)
 
@@ -65,7 +65,6 @@ gdk_device_win32_set_window_cursor (GdkDevice *device,
 
 static void
 gdk_device_win32_warp (GdkDevice *device,
-                       GdkScreen *screen,
                        gdouble    x,
                        gdouble    y)
 {
@@ -109,30 +108,39 @@ gdk_device_win32_query_state (GdkDevice        *device,
 {
   POINT point;
   HWND hwnd, hwndc;
-  GdkWindowImplWin32 *impl;
+  gint scale;
 
-  if (window == NULL)
-    window = gdk_get_default_root_window ();
-  impl = GDK_WINDOW_IMPL_WIN32 (window->impl);
+  if (window)
+    {
+      scale = GDK_WINDOW_IMPL_WIN32 (window->impl)->window_scale;
+      hwnd = GDK_WINDOW_HWND (window);
+    }
+  else
+    {
+      GdkDisplay *display = gdk_device_get_display (device);
 
-  hwnd = GDK_WINDOW_HWND (window);
+      scale = GDK_WIN32_DISPLAY (display)->window_scale;
+      hwnd = NULL;
+    }
+
   GetCursorPos (&point);
 
   if (root_x)
-    *root_x = point.x / impl->window_scale;
+    *root_x = point.x / scale;
 
   if (root_y)
-    *root_y = point.y / impl->window_scale;
+    *root_y = point.y / scale;
 
-  ScreenToClient (hwnd, &point);
+  if (hwnd)
+    ScreenToClient (hwnd, &point);
 
   if (win_x)
-    *win_x = point.x / impl->window_scale;
+    *win_x = point.x / scale;
 
   if (win_y)
-    *win_y = point.y / impl->window_scale;
+    *win_y = point.y / scale;
 
-  if (window == gdk_get_default_root_window ())
+  if (window)
     {
       if (win_x)
         *win_x += _gdk_offset_x;
@@ -147,7 +155,7 @@ gdk_device_win32_query_state (GdkDevice        *device,
         *root_y += _gdk_offset_y;
     }
 
-  if (child_window)
+  if (hwnd && child_window)
     {
       hwndc = ChildWindowFromPoint (hwnd, point);
 
@@ -215,7 +223,6 @@ _gdk_device_win32_window_at_position (GdkDevice       *device,
         window = gdk_win32_handle_table_lookup (hwnd);
 
         if (window != NULL &&
-            GDK_WINDOW_TYPE (window) != GDK_WINDOW_ROOT &&
             GDK_WINDOW_TYPE (window) != GDK_WINDOW_FOREIGN)
           break;
 
@@ -248,15 +255,12 @@ _gdk_device_win32_window_at_position (GdkDevice       *device,
       /* If we didn't hit any window at that point, return the desktop */
       if (hwnd == NULL)
         {
-          window = gdk_get_default_root_window ();
-          impl = GDK_WINDOW_IMPL_WIN32 (window->impl);
-
           if (win_x)
-            *win_x = (screen_pt.x + _gdk_offset_x) / impl->window_scale;
+            *win_x = screen_pt.x + _gdk_offset_x;
           if (win_y)
-            *win_y = (screen_pt.y + _gdk_offset_y) / impl->window_scale;
+            *win_y = screen_pt.y + _gdk_offset_y;
 
-          return window;
+          return NULL;
         }
 
       window = gdk_win32_handle_table_lookup (hwnd);
@@ -305,6 +309,6 @@ gdk_device_win32_init (GdkDeviceWin32 *device_win32)
 
   device = GDK_DEVICE (device_win32);
 
-  _gdk_device_add_axis (device, GDK_NONE, GDK_AXIS_X, 0, 0, 1);
-  _gdk_device_add_axis (device, GDK_NONE, GDK_AXIS_Y, 0, 0, 1);
+  _gdk_device_add_axis (device, NULL, GDK_AXIS_X, 0, 0, 1);
+  _gdk_device_add_axis (device, NULL, GDK_AXIS_Y, 0, 0, 1);
 }

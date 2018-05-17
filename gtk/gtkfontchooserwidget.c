@@ -128,10 +128,8 @@ static void gtk_font_chooser_widget_get_property         (GObject         *objec
                                                           GParamSpec      *pspec);
 static void gtk_font_chooser_widget_finalize             (GObject         *object);
 
-static void gtk_font_chooser_widget_screen_changed       (GtkWidget       *widget,
-                                                          GdkScreen       *previous_screen);
-
-static void gtk_font_chooser_widget_style_updated        (GtkWidget       *widget);
+static void gtk_font_chooser_widget_display_changed      (GtkWidget       *widget,
+                                                          GdkDisplay      *previous_display);
 
 static gboolean gtk_font_chooser_widget_find_font        (GtkFontChooserWidget *fontchooser,
                                                           const PangoFontDescription *font_desc,
@@ -549,27 +547,14 @@ gtk_font_chooser_widget_update_preview_attributes (GtkFontChooserWidget *fontcho
 }
 
 static void
-row_inserted_cb (GtkTreeModel *model,
-                 GtkTreePath  *path,
-                 GtkTreeIter  *iter,
-                 gpointer      user_data)
+rows_changed_cb (GtkFontChooserWidget *fontchooser)
 {
-  GtkFontChooserWidget *fontchooser = user_data;
   GtkFontChooserWidgetPrivate *priv = fontchooser->priv;
 
-  gtk_stack_set_visible_child_name (GTK_STACK (priv->list_stack), "list");
-}
-
-static void
-row_deleted_cb  (GtkTreeModel *model,
-                 GtkTreePath  *path,
-                 gpointer      user_data)
-{
-  GtkFontChooserWidget *fontchooser = user_data;
-  GtkFontChooserWidgetPrivate *priv = fontchooser->priv;
-
-  if (gtk_tree_model_iter_n_children (model, NULL) == 0)
+  if (gtk_tree_model_iter_n_children (priv->filter_model, NULL) == 0)
     gtk_stack_set_visible_child_name (GTK_STACK (priv->list_stack), "empty");
+  else
+    gtk_stack_set_visible_child_name (GTK_STACK (priv->list_stack), "list");
 }
 
 static void
@@ -637,8 +622,7 @@ gtk_font_chooser_widget_class_init (GtkFontChooserWidgetClass *klass)
   g_type_ensure (GTK_TYPE_DELAYED_FONT_DESCRIPTION);
   g_type_ensure (G_TYPE_THEMED_ICON);
 
-  widget_class->screen_changed = gtk_font_chooser_widget_screen_changed;
-  widget_class->style_updated = gtk_font_chooser_widget_style_updated;
+  widget_class->display_changed = gtk_font_chooser_widget_display_changed;
   widget_class->measure = gtk_font_chooser_widget_measure;
   widget_class->size_allocate = gtk_font_chooser_widget_size_allocate;
   widget_class->snapshot = gtk_font_chooser_widget_snapshot;
@@ -673,13 +657,11 @@ gtk_font_chooser_widget_class_init (GtkFontChooserWidgetClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, row_activated_cb);
   gtk_widget_class_bind_template_callback (widget_class, gtk_font_chooser_widget_set_cell_size);
   gtk_widget_class_bind_template_callback (widget_class, resize_by_scroll_cb);
-  gtk_widget_class_bind_template_callback (widget_class, row_deleted_cb);
-  gtk_widget_class_bind_template_callback (widget_class, row_inserted_cb);
-  gtk_widget_class_bind_template_callback (widget_class, row_deleted_cb);
+  gtk_widget_class_bind_template_callback (widget_class, rows_changed_cb);
   gtk_widget_class_bind_template_callback (widget_class, size_change_cb);
   gtk_widget_class_bind_template_callback (widget_class, output_cb);
 
-  gtk_widget_class_set_css_name (widget_class, "fontchooser");
+  gtk_widget_class_set_css_name (widget_class, I_("fontchooser"));
 }
 
 static void
@@ -791,10 +773,8 @@ gtk_font_chooser_widget_load_fonts (GtkFontChooserWidget *fontchooser,
   qsort (families, n_families, sizeof (PangoFontFamily *), cmp_families);
 
   g_signal_handlers_block_by_func (priv->family_face_list, cursor_changed_cb, fontchooser);
-  g_signal_handlers_block_by_func (priv->filter_model, row_deleted_cb, fontchooser);
+  g_signal_handlers_block_by_func (priv->filter_model, rows_changed_cb, fontchooser);
   gtk_list_store_clear (list_store);
-  g_signal_handlers_unblock_by_func (priv->filter_model, row_deleted_cb, fontchooser);
-  g_signal_handlers_unblock_by_func (priv->family_face_list, cursor_changed_cb, fontchooser);
 
   /* Iterate over families and faces */
   for (i = 0; i < n_families; i++)
@@ -832,17 +812,16 @@ gtk_font_chooser_widget_load_fonts (GtkFontChooserWidget *fontchooser,
 
   g_free (families);
 
+  rows_changed_cb (fontchooser);
+
+  g_signal_handlers_unblock_by_func (priv->filter_model, rows_changed_cb, fontchooser);
+  g_signal_handlers_unblock_by_func (priv->family_face_list, cursor_changed_cb, fontchooser);
+
   /* now make sure the font list looks right */
   if (!gtk_font_chooser_widget_find_font (fontchooser, priv->font_desc, &priv->font_iter))
     memset (&priv->font_iter, 0, sizeof (GtkTreeIter));
 
   gtk_font_chooser_widget_ensure_selection (fontchooser);
-
-  /* We block row_deleted_cb when reloading, now manually switch to the
-   * "empty" pane if the filter model is empty.
-   */
-  if (gtk_tree_model_iter_n_children (priv->filter_model, NULL) == 0)
-    gtk_stack_set_visible_child_name (GTK_STACK (priv->list_stack), "empty");
 }
 
 static gboolean
@@ -1111,40 +1090,30 @@ fontconfig_changed (GtkFontChooserWidget *fontchooser)
 }
 
 static void
-gtk_font_chooser_widget_screen_changed (GtkWidget *widget,
-                                        GdkScreen *previous_screen)
+gtk_font_chooser_widget_display_changed (GtkWidget  *widget,
+                                         GdkDisplay *previous_display)
 {
   GtkFontChooserWidget *fontchooser = GTK_FONT_CHOOSER_WIDGET (widget);
   GtkSettings *settings;
 
-  if (GTK_WIDGET_CLASS (gtk_font_chooser_widget_parent_class)->screen_changed)
-    GTK_WIDGET_CLASS (gtk_font_chooser_widget_parent_class)->screen_changed (widget, previous_screen);
+  if (GTK_WIDGET_CLASS (gtk_font_chooser_widget_parent_class)->display_changed)
+    GTK_WIDGET_CLASS (gtk_font_chooser_widget_parent_class)->display_changed (widget, previous_display);
 
-  if (previous_screen)
+  if (previous_display)
     {
-      settings = gtk_settings_get_for_screen (previous_screen);
+      settings = gtk_settings_get_for_display (previous_display);
       g_signal_handlers_disconnect_by_func (settings, fontconfig_changed, widget);
     }
   settings = gtk_widget_get_settings (widget);
   g_signal_connect_object (settings, "notify::gtk-fontconfig-timestamp",
                            G_CALLBACK (fontconfig_changed), widget, G_CONNECT_SWAPPED);
 
-  if (previous_screen == NULL)
-    previous_screen = gdk_screen_get_default ();
+  if (previous_display == NULL)
+    previous_display = gdk_display_get_default ();
 
-  if (previous_screen == gtk_widget_get_screen (widget))
+  if (previous_display == gtk_widget_get_display (widget))
     return;
 
-  gtk_font_chooser_widget_load_fonts (fontchooser, FALSE);
-}
-
-static void
-gtk_font_chooser_widget_style_updated (GtkWidget *widget)
-{
-  GtkFontChooserWidget *fontchooser = GTK_FONT_CHOOSER_WIDGET (widget);
-
-  GTK_WIDGET_CLASS (gtk_font_chooser_widget_parent_class)->style_updated (widget);
- 
   gtk_font_chooser_widget_load_fonts (fontchooser, FALSE);
 }
 

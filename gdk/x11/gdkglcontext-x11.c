@@ -29,8 +29,7 @@
 #include "gdkx11glcontext.h"
 #include "gdkx11screen.h"
 #include "gdkx11window.h"
-#include "gdkx11visual.h"
-#include "gdkvisualprivate.h"
+#include "gdkvisual-x11.h"
 #include "gdkx11property.h"
 #include <X11/Xatom.h>
 
@@ -783,9 +782,9 @@ gdk_x11_gl_context_init (GdkX11GLContext *self)
 }
 
 gboolean
-gdk_x11_screen_init_gl (GdkScreen *screen)
+gdk_x11_screen_init_gl (GdkX11Screen *screen)
 {
-  GdkDisplay *display = gdk_screen_get_display (screen);
+  GdkDisplay *display = GDK_SCREEN_DISPLAY (screen);
   GdkX11Display *display_x11 = GDK_X11_DISPLAY (display);
   Display *dpy;
   int error_base, event_base;
@@ -799,10 +798,13 @@ gdk_x11_screen_init_gl (GdkScreen *screen)
 
   dpy = gdk_x11_display_get_xdisplay (display);
 
+  if (!epoxy_has_glx (dpy))
+    return FALSE;
+
   if (!glXQueryExtension (dpy, &error_base, &event_base))
     return FALSE;
 
-  screen_num = GDK_X11_SCREEN (screen)->screen_num;
+  screen_num = screen->screen_num;
 
   display_x11->have_glx = TRUE;
 
@@ -953,7 +955,7 @@ struct glvisualinfo {
 };
 
 static gboolean
-visual_compatible (const GdkVisual *a, const GdkVisual *b)
+visual_compatible (const GdkX11Visual *a, const GdkX11Visual *b)
 {
   return a->type == b->type &&
     a->depth == b->depth &&
@@ -965,7 +967,7 @@ visual_compatible (const GdkVisual *a, const GdkVisual *b)
 }
 
 static gboolean
-visual_is_rgba (const GdkVisual *visual)
+visual_is_rgba (const GdkX11Visual *visual)
 {
   return
     visual->depth == 32 &&
@@ -976,12 +978,12 @@ visual_is_rgba (const GdkVisual *visual)
 
 /* This picks a compatible (as in has the same X visual details) visual
    that has "better" characteristics on the GL side */
-static GdkVisual *
+static GdkX11Visual *
 pick_better_visual_for_gl (GdkX11Screen *x11_screen,
                            struct glvisualinfo *gl_info,
-                           GdkVisual *compatible)
+                           GdkX11Visual *compatible)
 {
-  GdkVisual *visual;
+  GdkX11Visual *visual;
   int i;
   gboolean want_alpha = visual_is_rgba (compatible);
 
@@ -1114,9 +1116,8 @@ save_cached_gl_visuals (GdkDisplay *display, int system, int rgba)
 }
 
 void
-_gdk_x11_screen_update_visuals_for_gl (GdkScreen *screen)
+_gdk_x11_screen_update_visuals_for_gl (GdkX11Screen *x11_screen)
 {
-  GdkX11Screen *x11_screen;
   GdkDisplay *display;
   GdkX11Display *display_x11;
   Display *dpy;
@@ -1124,7 +1125,6 @@ _gdk_x11_screen_update_visuals_for_gl (GdkScreen *screen)
   int i;
   int system_visual_id, rgba_visual_id;
 
-  x11_screen = GDK_X11_SCREEN (screen);
   display = x11_screen->display;
   display_x11 = GDK_X11_DISPLAY (display);
   dpy = gdk_x11_display_get_xdisplay (display);
@@ -1135,7 +1135,7 @@ _gdk_x11_screen_update_visuals_for_gl (GdkScreen *screen)
     {
       for (i = 0; i < x11_screen->nvisuals; i++)
         {
-          GdkVisual *visual = x11_screen->visuals[i];
+          GdkX11Visual *visual = x11_screen->visuals[i];
           int visual_id = gdk_x11_visual_get_xvisual (visual)->visualid;
 
           if (visual_id == system_visual_id)
@@ -1147,7 +1147,7 @@ _gdk_x11_screen_update_visuals_for_gl (GdkScreen *screen)
       return;
     }
 
-  if (!gdk_x11_screen_init_gl (screen))
+  if (!gdk_x11_screen_init_gl (x11_screen))
     return;
 
   gl_info = g_new0 (struct glvisualinfo, x11_screen->nvisuals);
@@ -1206,7 +1206,7 @@ gdk_x11_window_create_gl_context (GdkWindow    *window,
 
   display = gdk_window_get_display (window);
 
-  if (!gdk_x11_screen_init_gl (gdk_window_get_screen (window)))
+  if (!gdk_x11_screen_init_gl (GDK_WINDOW_SCREEN (window)))
     {
       g_set_error_literal (error, GDK_GL_ERROR,
                            GDK_GL_ERROR_NOT_AVAILABLE,
@@ -1312,7 +1312,7 @@ gdk_x11_display_get_glx_version (GdkDisplay *display,
   if (!GDK_IS_X11_DISPLAY (display))
     return FALSE;
 
-  if (!gdk_x11_screen_init_gl (gdk_display_get_default_screen (display)))
+  if (!gdk_x11_screen_init_gl (GDK_X11_DISPLAY (display)->screen))
     return FALSE;
 
   if (major != NULL)

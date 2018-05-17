@@ -250,11 +250,9 @@ void       gtk_window_set_gravity              (GtkWindow           *window,
 GDK_AVAILABLE_IN_ALL
 GdkGravity gtk_window_get_gravity              (GtkWindow           *window);
 
-GDK_AVAILABLE_IN_ALL
-void	   gtk_window_set_screen	       (GtkWindow	    *window,
-						GdkScreen	    *screen);
-GDK_AVAILABLE_IN_ALL
-GdkScreen* gtk_window_get_screen	       (GtkWindow	    *window);
+GDK_AVAILABLE_IN_3_94
+void	   gtk_window_set_display              (GtkWindow	    *window,
+						GdkDisplay          *display);
 
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_window_is_active                (GtkWindow           *window);
@@ -277,7 +275,7 @@ GDK_AVAILABLE_IN_ALL
 GList*     gtk_window_get_icon_list                (GtkWindow  *window);
 GDK_AVAILABLE_IN_ALL
 void       gtk_window_set_icon                     (GtkWindow  *window,
-                                                    GdkPixbuf  *icon);
+                                                    GdkTexture *icon);
 GDK_AVAILABLE_IN_ALL
 void       gtk_window_set_icon_name                (GtkWindow   *window,
 						    const gchar *name);
@@ -286,7 +284,7 @@ gboolean   gtk_window_set_icon_from_file           (GtkWindow   *window,
 						    const gchar *filename,
 						    GError     **err);
 GDK_AVAILABLE_IN_ALL
-GdkPixbuf* gtk_window_get_icon                     (GtkWindow  *window);
+GdkTexture *  gtk_window_get_icon                  (GtkWindow  *window);
 GDK_AVAILABLE_IN_ALL
 const gchar * gtk_window_get_icon_name             (GtkWindow  *window);
 GDK_AVAILABLE_IN_ALL
@@ -294,7 +292,7 @@ void       gtk_window_set_default_icon_list        (GList      *list);
 GDK_AVAILABLE_IN_ALL
 GList*     gtk_window_get_default_icon_list        (void);
 GDK_AVAILABLE_IN_ALL
-void       gtk_window_set_default_icon             (GdkPixbuf  *icon);
+void       gtk_window_set_default_icon             (GdkTexture  *icon);
 GDK_AVAILABLE_IN_ALL
 void       gtk_window_set_default_icon_name        (const gchar *name);
 GDK_AVAILABLE_IN_ALL
@@ -365,9 +363,8 @@ void     gtk_window_fullscreen    (GtkWindow *window);
 GDK_AVAILABLE_IN_ALL
 void     gtk_window_unfullscreen  (GtkWindow *window);
 GDK_AVAILABLE_IN_3_18
-void     gtk_window_fullscreen_on_monitor(GtkWindow *window,
-                                          GdkScreen *screen,
-                                          gint monitor);
+void     gtk_window_fullscreen_on_monitor (GtkWindow  *window,
+                                           GdkMonitor *monitor);
 GDK_AVAILABLE_IN_3_10
 void     gtk_window_close         (GtkWindow *window);
 GDK_AVAILABLE_IN_ALL

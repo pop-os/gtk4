@@ -627,12 +627,12 @@ gsk_vulkan_image_new_for_texture (GdkVulkanContext *context,
   return self;
 }
 
-GskTexture *
+GdkTexture *
 gsk_vulkan_image_download (GskVulkanImage    *self,
                            GskVulkanUploader *uploader)
 {
   GskVulkanBuffer *buffer;
-  GskTexture *texture;
+  GdkTexture *texture;
   guchar *mem;
 
   gsk_vulkan_uploader_add_image_barrier (uploader,
@@ -671,7 +671,7 @@ gsk_vulkan_image_download (GskVulkanImage    *self,
   GSK_VK_CHECK (vkQueueWaitIdle, gdk_vulkan_context_get_queue (self->vulkan));
 
   mem = gsk_vulkan_buffer_map (buffer);
-  texture = gsk_texture_new_for_data (mem, self->width, self->height, self->width * 4);
+  texture = gdk_texture_new_for_data (mem, self->width, self->height, self->width * 4);
   gsk_vulkan_buffer_unmap (buffer);
   gsk_vulkan_buffer_free (buffer);
 
@@ -772,11 +772,11 @@ gsk_vulkan_image_finalize (GObject *object)
    * the VkImage */
   if (self->memory)
     {
-      gsk_vulkan_memory_free (self->memory);
-
       vkDestroyImage (gdk_vulkan_context_get_device (self->vulkan),
                       self->vk_image,
                       NULL);
+
+      gsk_vulkan_memory_free (self->memory);
     }
 
   g_object_unref (self->vulkan);

@@ -175,25 +175,24 @@ typedef enum
 
 /**
  * GtkIconSize:
- * @GTK_ICON_SIZE_INVALID: Invalid size.
- * @GTK_ICON_SIZE_MENU: Size appropriate for menus (16px).
- * @GTK_ICON_SIZE_SMALL_TOOLBAR: Size appropriate for small toolbars (16px).
- * @GTK_ICON_SIZE_LARGE_TOOLBAR: Size appropriate for large toolbars (24px)
- * @GTK_ICON_SIZE_BUTTON: Size appropriate for buttons (16px)
- * @GTK_ICON_SIZE_DND: Size appropriate for drag and drop (32px)
- * @GTK_ICON_SIZE_DIALOG: Size appropriate for dialogs (48px)
+ * @GTK_ICON_SIZE_INHERIT: Keep the size of the parent element
+ * @GTK_ICON_SIZE_NORMAL: Size similar to text size
+ * @GTK_ICON_SIZE_LARGE: Large size, for example in an icon view
  *
- * Built-in stock icon sizes.
+ * Built-in icon sizes.
+ *
+ * Icon sizes default to being inherited. Where they cannot be
+ * inherited, text size is the default.
+ *
+ * All widgets which use GtkIconSize set the normal-icons or large-icons
+ * style classes correspondingly, and let themes determine the actual size
+ * to be used with the -gtk-icon-size CSS property.
  */
 typedef enum
 {
-  GTK_ICON_SIZE_INVALID,
-  GTK_ICON_SIZE_MENU,
-  GTK_ICON_SIZE_SMALL_TOOLBAR,
-  GTK_ICON_SIZE_LARGE_TOOLBAR,
-  GTK_ICON_SIZE_BUTTON,
-  GTK_ICON_SIZE_DND,
-  GTK_ICON_SIZE_DIALOG
+  GTK_ICON_SIZE_INHERIT,
+  GTK_ICON_SIZE_NORMAL,
+  GTK_ICON_SIZE_LARGE
 } GtkIconSize;
 
 /**
@@ -786,6 +785,7 @@ typedef enum
  * @GTK_STATE_FLAG_VISITED: The location the widget points to has already been visited. Since 3.12
  * @GTK_STATE_FLAG_CHECKED: Widget is checked. Since 3.14
  * @GTK_STATE_FLAG_DROP_ACTIVE: Widget is highlighted as a drop target for DND. Since 3.20
+ * @GTK_STATE_FLAG_FOCUS_VISIBLE: Widget has the visible focus. Since: 3.92
  *
  * Describes a widget state. Widget states are used to match the widget
  * against CSS pseudo-classes. Note that GTK extends the regular CSS
@@ -793,20 +793,21 @@ typedef enum
  */
 typedef enum
 {
-  GTK_STATE_FLAG_NORMAL       = 0,
-  GTK_STATE_FLAG_ACTIVE       = 1 << 0,
-  GTK_STATE_FLAG_PRELIGHT     = 1 << 1,
-  GTK_STATE_FLAG_SELECTED     = 1 << 2,
-  GTK_STATE_FLAG_INSENSITIVE  = 1 << 3,
-  GTK_STATE_FLAG_INCONSISTENT = 1 << 4,
-  GTK_STATE_FLAG_FOCUSED      = 1 << 5,
-  GTK_STATE_FLAG_BACKDROP     = 1 << 6,
-  GTK_STATE_FLAG_DIR_LTR      = 1 << 7,
-  GTK_STATE_FLAG_DIR_RTL      = 1 << 8,
-  GTK_STATE_FLAG_LINK         = 1 << 9,
-  GTK_STATE_FLAG_VISITED      = 1 << 10,
-  GTK_STATE_FLAG_CHECKED      = 1 << 11,
-  GTK_STATE_FLAG_DROP_ACTIVE  = 1 << 12
+  GTK_STATE_FLAG_NORMAL        = 0,
+  GTK_STATE_FLAG_ACTIVE        = 1 << 0,
+  GTK_STATE_FLAG_PRELIGHT      = 1 << 1,
+  GTK_STATE_FLAG_SELECTED      = 1 << 2,
+  GTK_STATE_FLAG_INSENSITIVE   = 1 << 3,
+  GTK_STATE_FLAG_INCONSISTENT  = 1 << 4,
+  GTK_STATE_FLAG_FOCUSED       = 1 << 5,
+  GTK_STATE_FLAG_BACKDROP      = 1 << 6,
+  GTK_STATE_FLAG_DIR_LTR       = 1 << 7,
+  GTK_STATE_FLAG_DIR_RTL       = 1 << 8,
+  GTK_STATE_FLAG_LINK          = 1 << 9,
+  GTK_STATE_FLAG_VISITED       = 1 << 10,
+  GTK_STATE_FLAG_CHECKED       = 1 << 11,
+  GTK_STATE_FLAG_DROP_ACTIVE   = 1 << 12,
+  GTK_STATE_FLAG_FOCUS_VISIBLE = 1 << 13
 } GtkStateFlags;
 
 /**

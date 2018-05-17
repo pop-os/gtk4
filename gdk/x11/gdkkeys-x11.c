@@ -642,11 +642,11 @@ update_lock_state (GdkX11Keymap *keymap_x11,
  * call in gdk_display_open()
  */
 void
-_gdk_x11_keymap_state_changed (GdkDisplay *display,
-                               XEvent     *xevent)
+_gdk_x11_keymap_state_changed (GdkDisplay   *display,
+                               const XEvent *xevent)
 {
   GdkX11Display *display_x11 = GDK_X11_DISPLAY (display);
-  XkbEvent *xkb_event = (XkbEvent *)xevent;
+  const XkbEvent *xkb_event = (const XkbEvent *) xevent;
 
   if (display_x11->keymap)
     {
@@ -1416,7 +1416,7 @@ gdk_x11_keymap_get_group_for_state (GdkKeymap *keymap,
   else
 #endif
     {
-      GdkX11Keymap *keymap_impl = GDK_X11_KEYMAP (gdk_keymap_get_for_display (display));
+      GdkX11Keymap *keymap_impl = GDK_X11_KEYMAP (gdk_display_get_keymap (display));
       update_keymaps (keymap_impl);
       return (state & keymap_impl->group_switch_mask) ? 1 : 0;
     }

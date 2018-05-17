@@ -187,6 +187,7 @@ gtk_im_context_ime_init (GtkIMContextIME *context_ime)
   context_ime->cursor_location.y      = 0;
   context_ime->cursor_location.width  = 0;
   context_ime->cursor_location.height = 0;
+  context_ime->commit_string          = NULL;
 
   context_ime->priv = g_malloc0 (sizeof (GtkIMContextIMEPrivate));
   context_ime->priv->conversion_mode  = 0;
@@ -374,14 +375,18 @@ gtk_im_context_ime_filter_keypress (GtkIMContext *context,
   GtkIMContextIME *context_ime;
   gboolean retval = FALSE;
   guint32 c;
+  GdkModifierType state;
+  guint keyval;
 
   g_return_val_if_fail (GTK_IS_IM_CONTEXT_IME (context), FALSE);
   g_return_val_if_fail (event, FALSE);
 
-  if (event->type == GDK_KEY_RELEASE)
+  if (gdk_event_get_event_type ((GdkEvent *) event) == GDK_KEY_RELEASE)
     return FALSE;
 
-  if (event->state & GDK_CONTROL_MASK)
+  gdk_event_get_state ((GdkEvent *) event, &state);
+
+  if (state & GDK_CONTROL_MASK)
     return FALSE;
 
   context_ime = GTK_IM_CONTEXT_IME (context);
@@ -392,7 +397,9 @@ gtk_im_context_ime_filter_keypress (GtkIMContext *context,
   if (!GDK_IS_WINDOW (context_ime->client_window))
     return FALSE;
 
-  if (event->keyval == GDK_KEY_space &&
+  gdk_event_get_keyval ((GdkEvent *) event, &keyval);
+
+  if (keyval == GDK_KEY_space &&
       context_ime->priv->dead_key_keyval != 0)
     {
       c = _gtk_im_context_ime_dead_key_unichar (context_ime->priv->dead_key_keyval, TRUE);
@@ -401,21 +408,21 @@ gtk_im_context_ime_filter_keypress (GtkIMContext *context,
       return TRUE;
     }
 
-  c = gdk_keyval_to_unicode (event->keyval);
+  c = gdk_keyval_to_unicode (keyval);
 
   if (c)
     {
       _gtk_im_context_ime_commit_unichar (context_ime, c);
       retval = TRUE;
     }
-  else if (IS_DEAD_KEY (event->keyval))
+  else if (IS_DEAD_KEY (keyval))
     {
       gunichar dead_key;
 
-      dead_key = _gtk_im_context_ime_dead_key_unichar (event->keyval, FALSE);
+      dead_key = _gtk_im_context_ime_dead_key_unichar (keyval, FALSE);
 
       /* Emulate double input of dead keys */
-      if (dead_key && event->keyval == context_ime->priv->dead_key_keyval)
+      if (dead_key && keyval == context_ime->priv->dead_key_keyval)
         {
           c = _gtk_im_context_ime_dead_key_unichar (context_ime->priv->dead_key_keyval, TRUE);
           context_ime->priv->dead_key_keyval = 0;
@@ -423,7 +430,7 @@ gtk_im_context_ime_filter_keypress (GtkIMContext *context,
           _gtk_im_context_ime_commit_unichar (context_ime, c);
         }
       else
-        context_ime->priv->dead_key_keyval = event->keyval;
+        context_ime->priv->dead_key_keyval = keyval;
     }
 
   return retval;
@@ -948,7 +955,6 @@ gtk_im_context_ime_set_preedit_font (GtkIMContext *context)
   gtk_style_context_save (style);
   gtk_style_context_set_state (style, GTK_STATE_FLAG_NORMAL);
   gtk_style_context_get (style,
-                         gtk_style_context_get_state (style),
                          "font",
                          &font_desc,
                          NULL);
@@ -1065,14 +1071,14 @@ gtk_im_context_ime_message_filter (GdkXEvent *xevent,
             gchar *utf8str = NULL;
             GError *error = NULL;
 
-	    len = ImmGetCompositionStringW (himc, GCS_RESULTSTR, NULL, 0);
+            len = ImmGetCompositionStringW (himc, GCS_RESULTSTR, NULL, 0);
 
             if (len > 0)
               {
-		gpointer buf = g_alloca (len);
-		ImmGetCompositionStringW (himc, GCS_RESULTSTR, buf, len);
-		len /= 2;
-		utf8str = g_utf16_to_utf8 (buf, len, NULL, NULL, &error);
+                gpointer buf = g_alloca (len);
+                ImmGetCompositionStringW (himc, GCS_RESULTSTR, buf, len);
+                len /= 2;
+                context_ime->commit_string = g_utf16_to_utf8 (buf, len, NULL, NULL, &error);
                 if (error)
                   {
                     g_warning ("%s", error->message);
@@ -1080,12 +1086,8 @@ gtk_im_context_ime_message_filter (GdkXEvent *xevent,
                   }
               }
 
-            if (utf8str)
-              {
-                g_signal_emit_by_name (context, "commit", utf8str);
-                g_free (utf8str);
-		retval = TRUE;
-              }
+            if (context_ime->commit_string)
+              retval = TRUE;
           }
 
         if (context_ime->use_preedit)
@@ -1105,6 +1107,14 @@ gtk_im_context_ime_message_filter (GdkXEvent *xevent,
       context_ime->preediting = FALSE;
       g_signal_emit_by_name (context, "preedit-changed");
       g_signal_emit_by_name (context, "preedit-end");
+
+      if (context_ime->commit_string)
+        {
+          g_signal_emit_by_name (context, "commit", context_ime->commit_string);
+          g_free (context_ime->commit_string);
+          context_ime->commit_string = NULL;
+        }
+
       if (context_ime->use_preedit)
         retval = TRUE;
       break;

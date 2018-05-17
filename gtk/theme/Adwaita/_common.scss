@@ -13,7 +13,14 @@ $button_transition: all 200ms $ease-out-quad;
   -gtk-secondary-caret-color: $selected_bg_color
 }
 
-*:focus {
+button:focus(visible),
+checkbutton:focus(visible),
+radiobutton:focus(visible),
+switch:focus(visible),
+scale:focus(visible),
+label:focus(visible),
+row:focus(visible),
+flowboxchild:focus(visible) {
   // We use the outline properties to signal the focus properties
   // to the adwaita engine: using real CSS properties is faster,
   // and we don't use any outlines for now.
@@ -39,6 +46,18 @@ $button_transition: all 200ms $ease-out-quad;
     text-shadow: none;
     -gtk-icon-shadow: none;
   }
+}
+
+.normal-icons {
+  -gtk-icon-size: 16px;
+}
+
+.large-icons {
+  -gtk-icon-size: 32px;
+}
+
+image.drag-icon {
+  -gtk-icon-size: 32px;
 }
 
 /*
@@ -102,6 +121,7 @@ $button_transition: all 200ms $ease-out-quad;
 
 .view,
 textview {
+  outline: none;
   text {
     @extend %view;
 
@@ -265,7 +285,7 @@ entry {
     }
 
     &.flat {
-      &:focus, & {
+      &:focus, &:backdrop, &:disabled, &:backdrop:disabled, & {
         min-height: 0;
         padding: 2px;
         background-color: transparent;
@@ -2737,19 +2757,25 @@ radio {
 %check,
 check {
   border-radius: 3px;
+  -gtk-icon-size: 14px;
 
-  &:checked { -gtk-icon-source: -gtk-recolor(url("assets/check-symbolic.symbolic.png")); }
+  &:checked { -gtk-icon-source: -gtk-scaled(-gtk-recolor(url("assets/check-symbolic.symbolic.png")),
+                                            -gtk-recolor(url("assets/check@2-symbolic.symbolic.png"))); }
 
-  &:indeterminate { -gtk-icon-source: -gtk-recolor(url("assets/dash-symbolic.symbolic.png")); }
+  &:indeterminate { -gtk-icon-source: -gtk-scaled(-gtk-recolor(url("assets/dash-symbolic.symbolic.png")),
+                                                  -gtk-recolor(url("assets/dash@2-symbolic.symbolic.png"))); }
 }
 
 %radio,
 radio {
   border-radius: 100%;
+  -gtk-icon-size: 14px;
 
-  &:checked { -gtk-icon-source: -gtk-recolor(url("assets/bullet-symbolic.symbolic.png")); }
+  &:checked { -gtk-icon-source: -gtk-scaled(-gtk-recolor(url("assets/bullet-symbolic.symbolic.png")),
+                                            -gtk-recolor(url("assets/bullet@2-symbolic.symbolic.png"))); }
 
-  &:indeterminate { -gtk-icon-source: -gtk-recolor(url("assets/dash-symbolic.symbolic.png")); }
+  &:indeterminate { -gtk-icon-source: -gtk-scaled(-gtk-recolor(url("assets/dash-symbolic.symbolic.png")),
+                                                  -gtk-recolor(url("assets/dash@2-symbolic.symbolic.png"))); }
 }
 
 // ANIMATION:
@@ -2878,6 +2904,8 @@ scale {
     min-width: 18px;
     margin: -9px;
   }
+
+  &:focus { outline: none; }
 
   // click-and-hold the slider to activate
   &.fine-tune {
@@ -3606,9 +3634,10 @@ expander {
 
     &:dir(rtl) { -gtk-icon-source: -gtk-icontheme('pan-end-symbolic-rtl'); }
 
-    &:hover { color: lighten($fg_color,30%); } //only lightens the arrow
-
     &:checked { -gtk-icon-source: -gtk-icontheme('pan-down-symbolic'); }
+  }
+  title:hover arrow {
+    color: lighten($fg_color,30%); //only lightens the arrow
   }
 }
 

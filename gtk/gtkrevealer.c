@@ -258,11 +258,11 @@ gtk_revealer_class_init (GtkRevealerClass *klass)
                           P_("Child Revealed"),
                           P_("Whether the child is revealed and the animation target reached"),
                           FALSE,
-                          G_PARAM_READABLE);
+                          GTK_PARAM_READABLE);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
-  gtk_widget_class_set_css_name (widget_class, "revealer");
+  gtk_widget_class_set_css_name (widget_class, I_("revealer"));
 }
 
 /**
@@ -645,8 +645,8 @@ gtk_revealer_snapshot (GtkWidget   *widget,
       gtk_snapshot_push_clip (snapshot,
                               &GRAPHENE_RECT_INIT(
                                   0, 0,
-                                  gtk_widget_get_allocated_width (widget),
-                                  gtk_widget_get_allocated_height (widget)
+                                  gtk_widget_get_width (widget),
+                                  gtk_widget_get_height (widget)
                               ),
                               "RevealerClip");
       gtk_widget_snapshot_child (widget, child, snapshot);

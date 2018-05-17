@@ -139,6 +139,7 @@ struct _GtkEntryClass
   void (* copy_clipboard)     (GtkEntry             *entry);
   void (* paste_clipboard)    (GtkEntry             *entry);
   void (* toggle_overwrite)   (GtkEntry             *entry);
+  void (* insert_emoji)       (GtkEntry             *entry);
 
   /*< private >*/
 
@@ -149,7 +150,6 @@ struct _GtkEntryClass
   void (*_gtk_reserved4)      (void);
   void (*_gtk_reserved5)      (void);
   void (*_gtk_reserved6)      (void);
-  void (*_gtk_reserved7)      (void);
 };
 
 GDK_AVAILABLE_IN_ALL
@@ -283,10 +283,10 @@ void           gtk_entry_set_placeholder_text    (GtkEntry             *entry,
                                                   const gchar          *text);
 /* Setting and managing icons
  */
-GDK_AVAILABLE_IN_ALL
-void           gtk_entry_set_icon_from_pixbuf            (GtkEntry             *entry,
+GDK_AVAILABLE_IN_3_94
+void           gtk_entry_set_icon_from_texture           (GtkEntry             *entry,
 							  GtkEntryIconPosition  icon_pos,
-							  GdkPixbuf            *pixbuf);
+							  GdkTexture           *texture);
 GDK_AVAILABLE_IN_ALL
 void           gtk_entry_set_icon_from_icon_name         (GtkEntry             *entry,
 							  GtkEntryIconPosition  icon_pos,
@@ -296,10 +296,10 @@ void           gtk_entry_set_icon_from_gicon             (GtkEntry             *
 							  GtkEntryIconPosition  icon_pos,
 							  GIcon                *icon);
 GDK_AVAILABLE_IN_ALL
-GtkImageType gtk_entry_get_icon_storage_type             (GtkEntry             *entry,
+GtkImageType   gtk_entry_get_icon_storage_type           (GtkEntry             *entry,
 							  GtkEntryIconPosition  icon_pos);
-GDK_AVAILABLE_IN_ALL
-GdkPixbuf*   gtk_entry_get_icon_pixbuf                   (GtkEntry             *entry,
+GDK_AVAILABLE_IN_3_94
+GdkTexture *   gtk_entry_get_icon_texture                (GtkEntry             *entry,
 							  GtkEntryIconPosition  icon_pos);
 GDK_AVAILABLE_IN_ALL
 const gchar* gtk_entry_get_icon_name                     (GtkEntry             *entry,
@@ -342,7 +342,7 @@ gchar *      gtk_entry_get_icon_tooltip_markup           (GtkEntry             *
 GDK_AVAILABLE_IN_ALL
 void         gtk_entry_set_icon_drag_source              (GtkEntry             *entry,
 							  GtkEntryIconPosition  icon_pos,
-							  GtkTargetList        *target_list,
+							  GdkContentFormats    *formats,
 							  GdkDragAction         actions);
 GDK_AVAILABLE_IN_ALL
 gint         gtk_entry_get_current_icon_drag_source      (GtkEntry             *entry);

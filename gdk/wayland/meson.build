@@ -1,5 +1,6 @@
 gdk_wayland_sources = files([
   'gdkapplaunchcontext-wayland.c',
+  'gdkclipboard-wayland.c',
   'gdkcursor-wayland.c',
   'gdkdevice-wayland.c',
   'gdkdisplay-wayland.c',
@@ -8,7 +9,7 @@ gdk_wayland_sources = files([
   'gdkglcontext-wayland.c',
   'gdkkeys-wayland.c',
   'gdkmonitor-wayland.c',
-  'gdkscreen-wayland.c',
+  'gdkprimary-wayland.c',
   'gdkselection-wayland.c',
   'gdkvulkancontext-wayland.c',
   'gdkwindow-wayland.c',
@@ -20,7 +21,6 @@ gdk_wayland_public_headers = files([
   'gdkwaylanddisplay.h',
   'gdkwaylandglcontext.h',
   'gdkwaylandmonitor.h',
-  'gdkwaylandselection.h',
   'gdkwaylandwindow.h'
 ])
 
@@ -54,7 +54,8 @@ proto_sources = [
   ['xdg-shell', 'unstable', 'v6', ],
   ['xdg-foreign', 'unstable', 'v1', ],
   ['tablet', 'unstable', 'v2', ],
-  [ 'keyboard-shortcuts-inhibit', 'unstable', 'v1', ],
+  ['keyboard-shortcuts-inhibit', 'unstable', 'v1', ],
+  ['server-decoration', 'stable' ],
 ]
 
 gdk_wayland_gen_headers = []

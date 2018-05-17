@@ -244,7 +244,7 @@ gtk_lock_button_init (GtkLockButton *button)
   update_state (button);
 
   context = gtk_widget_get_style_context (GTK_WIDGET (button));
-  gtk_style_context_add_class (context, "lock");
+  gtk_style_context_add_class (context, I_("lock"));
 }
 
 static void
@@ -323,7 +323,7 @@ gtk_lock_button_class_init (GtkLockButtonClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, GtkLockButton, stack);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_LOCK_BUTTON_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "button");
+  gtk_widget_class_set_css_name (widget_class, I_("button"));
 }
 
 static void
@@ -384,7 +384,7 @@ update_state (GtkLockButton *button)
       g_assert_not_reached ();
     }
 
-  gtk_image_set_from_gicon (GTK_IMAGE (priv->image), icon, GTK_ICON_SIZE_MENU);
+  gtk_image_set_from_gicon (GTK_IMAGE (priv->image), icon);
   gtk_stack_set_visible_child (GTK_STACK (priv->stack),
                                allowed ? priv->label_lock : priv->label_unlock);
   _gtk_lock_button_accessible_name_changed (button);

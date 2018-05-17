@@ -302,7 +302,7 @@ add_child (GtkWidget       *widget,
   g_signal_connect (widget, "child-notify::position",
                     G_CALLBACK (on_position_updated), sidebar);
 
-  g_object_set_data (G_OBJECT (item), "stack-child", widget);
+  g_object_set_data (G_OBJECT (item), I_("stack-child"), widget);
   g_hash_table_insert (priv->rows, widget, row);
   gtk_container_add (GTK_CONTAINER (priv->list), row);
 }
@@ -450,7 +450,7 @@ gtk_stack_sidebar_class_init (GtkStackSidebarClass *klass)
 
   g_object_class_install_properties (object_class, N_PROPERTIES, obj_properties);
 
-  gtk_widget_class_set_css_name (widget_class, "stacksidebar");
+  gtk_widget_class_set_css_name (widget_class, I_("stacksidebar"));
 }
 
 /**

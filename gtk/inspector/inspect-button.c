@@ -73,20 +73,10 @@ find_widget_at_pointer (GdkDevice *device)
       gdk_window_get_device_position_double (gtk_widget_get_window (widget),
                                              device, &x, &y, NULL);
 
-      while (widget)
-        {
-          GtkWidget *w;
-
-          w = GTK_WIDGET_GET_CLASS (widget)->pick (widget, x, y, &x, &y);
-
-          if (!w)
-            return widget;
-
-          widget = w;
-        }
+      widget = gtk_widget_pick (widget, x, y);
     }
 
-  return NULL;
+  return widget;
 }
 
 static gboolean draw_flash (GtkWidget          *widget,
@@ -277,13 +267,13 @@ gtk_inspector_on_inspect (GtkWidget          *button,
 
   if (!iw->invisible)
     {
-      iw->invisible = gtk_invisible_new_for_screen (gdk_screen_get_default ());
+      iw->invisible = gtk_invisible_new_for_display (gdk_display_get_default ());
       gtk_widget_realize (iw->invisible);
       gtk_widget_show (iw->invisible);
     }
 
   display = gdk_display_get_default ();
-  cursor = gdk_cursor_new_from_name (display, "crosshair");
+  cursor = gdk_cursor_new_from_name ("crosshair", NULL);
   status = gdk_seat_grab (gdk_display_get_default_seat (display),
                           gtk_widget_get_window (iw->invisible),
                           GDK_SEAT_CAPABILITY_ALL_POINTING, TRUE,

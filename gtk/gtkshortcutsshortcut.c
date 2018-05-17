@@ -249,7 +249,7 @@ update_icon_from_type (GtkShortcutsShortcut *self)
 
   if (icon)
     {
-      gtk_image_set_from_gicon (self->image, icon, GTK_ICON_SIZE_DIALOG);
+      gtk_image_set_from_gicon (self->image, icon);
       gtk_image_set_pixel_size (self->image, 64);
       g_object_unref (icon);
     }
@@ -271,7 +271,7 @@ static void
 gtk_shortcuts_shortcut_set_icon (GtkShortcutsShortcut *self,
                                  GIcon                *gicon)
 {
-  gtk_image_set_from_gicon (self->image, gicon, GTK_ICON_SIZE_DIALOG);
+  gtk_image_set_from_gicon (self->image, gicon);
   gtk_shortcuts_shortcut_set_icon_set (self, gicon != NULL);
   g_object_notify (G_OBJECT (self), "icon");
 }
@@ -369,12 +369,7 @@ gtk_shortcuts_shortcut_get_property (GObject    *object,
       break;
 
     case PROP_ICON:
-      {
-        GIcon *icon;
-
-        gtk_image_get_gicon (self->image, &icon, NULL);
-        g_value_set_object (value, icon);
-      }
+      g_value_set_object (value, gtk_image_get_gicon (self->image));
       break;
 
     case PROP_ICON_SET:
@@ -717,7 +712,7 @@ gtk_shortcuts_shortcut_class_init (GtkShortcutsShortcutClass *klass)
                          G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, LAST_PROP, properties);
-  gtk_widget_class_set_css_name (widget_class, "shortcut");
+  gtk_widget_class_set_css_name (widget_class, I_("shortcut"));
 }
 
 static void

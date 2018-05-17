@@ -90,7 +90,7 @@ spinbutton:not(.vertical) undershoot.left, entry undershoot.left { background-co
 
 spinbutton:not(.vertical) undershoot.right, entry undershoot.right { background-color: transparent; background-image: linear-gradient(to top, rgba(255, 255, 255, 0.2) 50%, rgba(0, 0, 0, 0.2) 50%); padding-right: 1px; background-size: 1px 10px; background-repeat: repeat-y; background-origin: content-box; background-position: right center; border: none; box-shadow: none; }
 
-spinbutton.flat:focus:not(.vertical), spinbutton.flat:not(.vertical), entry.flat:focus, entry.flat { min-height: 0; padding: 2px; background-image: none; border-color: transparent; border-radius: 0; }
+spinbutton.flat:focus:not(.vertical), spinbutton.flat:backdrop:not(.vertical), spinbutton.flat:disabled:not(.vertical), spinbutton.flat:not(.vertical), entry.flat:focus, entry.flat:backdrop, entry.flat:disabled, entry.flat { min-height: 0; padding: 2px; background-image: none; border-color: transparent; border-radius: 0; box-shadow: none; }
 
 spinbutton:focus:not(.vertical), entry:focus { background-color: transparent; border-style: solid; background-image: linear-gradient(to bottom, #f7f7f7, #fff 90%); border-color: #000; box-shadow: inset 0 2px 2px -2px gray, inset 0 0 0 1px #000; }
 
@@ -166,7 +166,7 @@ button.titlebutton:backdrop, button:backdrop { border-width: 2px; border-style: 
 
 button.titlebutton:backdrop:active, button.titlebutton:backdrop:checked, button:backdrop:active, button:backdrop:checked { border-width: 2px; border-style: solid; color: white; background-color: #8d8d8d; border-color: #8d8d8d; background-image: none; }
 
-button.titlebutton:backdrop:disabled, button:backdrop:disabled { border-width: 2px; border-style: solid; color: gray; background-color: white; border-color: silver; background-image: none; }
+  button.titlebutton:backdrop:disabled, button:backdrop:disabled { border-width: 2px; border-style: solid; color: gray; background-color: white; border-color: silver; background-image: none; }
 
 button.titlebutton:backdrop:disabled:active, button.titlebutton:backdrop:disabled:checked, button:backdrop:disabled:active, button:backdrop:disabled:checked { border-width: 2px; border-style: solid; color: gray; border-color: silver; background-image: none; background-color: #f6f6f6; }
 
@@ -1244,9 +1244,9 @@ expander arrow { min-width: 16px; min-height: 16px; -gtk-icon-source: -gtk-icont
 
 expander arrow:dir(rtl) { -gtk-icon-source: -gtk-icontheme("pan-end-symbolic-rtl"); }
 
-expander arrow:hover { color: #4d4d4d; }
-
 expander arrow:checked { -gtk-icon-source: -gtk-icontheme("pan-down-symbolic"); }
+
+expander title:hover arrow { color: #4d4d4d; }
 
 /************ Calendar * */
 calendar { border: 1px solid gray; }

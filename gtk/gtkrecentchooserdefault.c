@@ -33,10 +33,7 @@
 #include "gtkliststore.h"
 #include "gtkbutton.h"
 #include "gtkcelllayout.h"
-#include "gtkcellrendererpixbuf.h"
-#include "gtkcellrenderertext.h"
 #include "gtkcheckmenuitem.h"
-#include "gtkclipboard.h"
 #include "gtkcomboboxtext.h"
 #include "gtkcssiconthemevalueprivate.h"
 #include "gtkdragsource.h"
@@ -77,8 +74,6 @@ typedef struct
   gulong manager_changed_id;
   guint local_manager : 1;
 
-  gint icon_size;
-
   /* RecentChooser properties */
   gint limit;
   GtkRecentSortType sort_type;
@@ -100,8 +95,6 @@ typedef struct
   gpointer sort_data;
   GDestroyNotify sort_data_destroy;
 
-  GtkIconTheme *icon_theme;
-  
   GtkWidget *recent_view;
   GtkListStore *recent_store;
   GtkTreeViewColumn *icon_column;
@@ -150,8 +143,6 @@ enum {
   LOAD_FINISHED  /* the model is fully loaded and inserted */
 };
 
-/* Icon size for if we can't get it from the theme */
-#define FALLBACK_ICON_SIZE  48
 #define FALLBACK_ITEM_LIMIT 20
 
 #define NUM_CHARS 40
@@ -203,10 +194,6 @@ static void gtk_recent_chooser_default_map      (GtkWidget *widget);
 
 static void set_current_filter        (GtkRecentChooserDefault *impl,
 				       GtkRecentFilter         *filter);
-
-static GtkIconTheme *get_icon_theme_for_widget (GtkWidget   *widget);
-static gint          get_icon_size_for_widget  (GtkWidget   *widget,
-						GtkIconSize  icon_size);
 
 static void reload_recent_items (GtkRecentChooserDefault *impl);
 static void chooser_set_model   (GtkRecentChooserDefault *impl);
@@ -352,9 +339,6 @@ _gtk_recent_chooser_default_init (GtkRecentChooserDefault *impl)
   priv->select_multiple = FALSE;
   priv->local_only = TRUE;
   
-  priv->icon_size = FALLBACK_ICON_SIZE;
-  priv->icon_theme = NULL;
-  
   priv->current_filter = NULL;
 
   priv->recent_items = NULL;
@@ -380,7 +364,7 @@ _gtk_recent_chooser_default_init (GtkRecentChooserDefault *impl)
   					   NULL);
   gtk_drag_source_set (priv->recent_view,
 		       GDK_BUTTON1_MASK,
-		       NULL, 0,
+		       NULL,
 		       GDK_ACTION_COPY);
   gtk_drag_source_add_uri_targets (priv->recent_view);
 }
@@ -626,25 +610,15 @@ set_busy_cursor (GtkRecentChooserDefault *impl,
 		 gboolean                 busy)
 {
   GtkWindow *toplevel;
-  GdkDisplay *display;
-  GdkCursor *cursor;
 
   toplevel = get_toplevel (GTK_WIDGET (impl));
   if (!toplevel || !gtk_widget_get_realized (GTK_WIDGET (toplevel)))
     return;
 
-  display = gtk_widget_get_display (GTK_WIDGET (toplevel));
-
   if (busy)
-    cursor = gdk_cursor_new_from_name (display, "progress");
+    gtk_widget_set_cursor_from_name (GTK_WIDGET (toplevel), "progress");
   else
-    cursor = NULL;
-
-  gdk_window_set_cursor (gtk_widget_get_window (GTK_WIDGET (toplevel)), cursor);
-  gdk_display_flush (display);
-
-  if (cursor)
-    g_object_unref (cursor);
+    gtk_widget_set_cursor (GTK_WIDGET (toplevel), NULL);
 }
 
 static void
@@ -772,22 +746,12 @@ cleanup_after_load (gpointer user_data)
 static void
 reload_recent_items (GtkRecentChooserDefault *impl)
 {
-  GtkWidget *widget;
-
   /* reload is already in progress - do not disturb */
   if (impl->priv->load_id)
     return;
-  
-  widget = GTK_WIDGET (impl);
 
   gtk_tree_view_set_model (GTK_TREE_VIEW (impl->priv->recent_view), NULL);
   gtk_list_store_clear (impl->priv->recent_store);
-  
-  if (!impl->priv->icon_theme)
-    impl->priv->icon_theme = get_icon_theme_for_widget (widget);
-
-  impl->priv->icon_size = get_icon_size_for_widget (widget,
-		  			      GTK_ICON_SIZE_BUTTON);
 
   if (!impl->priv->limit_set)
     impl->priv->limit = DEFAULT_RECENT_FILES_LIMIT;
@@ -822,8 +786,8 @@ set_default_size (GtkRecentChooserDefault *impl)
   /* Size based on characters and the icon size */
   gtk_style_context_get (context, "font-size", &font_size, NULL);
 
-  width = impl->priv->icon_size + font_size * NUM_CHARS + 0.5;
-  height = (impl->priv->icon_size + font_size) * NUM_LINES + 0.5;
+  width = 16 + font_size * NUM_CHARS + 0.5;
+  height = (16 + font_size) * NUM_LINES + 0.5;
 
   /* Use at least the requisition size... */
   gtk_widget_get_preferred_size (widget, &req, NULL);
@@ -1273,27 +1237,6 @@ chooser_set_sort_type (GtkRecentChooserDefault *impl,
     }
 }
 
-
-static GtkIconTheme *
-get_icon_theme_for_widget (GtkWidget *widget)
-{
-  return gtk_css_icon_theme_value_get_icon_theme
-    (_gtk_style_context_peek_property (gtk_widget_get_style_context (widget),
-                                       GTK_CSS_PROPERTY_ICON_THEME));
-}
-
-static gint
-get_icon_size_for_widget (GtkWidget   *widget,
-			  GtkIconSize  icon_size)
-{
-  gint width, height;
-
-  if (gtk_icon_size_lookup (icon_size, &width, &height))
-    return MAX (width, height);
-
-  return FALLBACK_ICON_SIZE;
-}
-
 static void
 recent_manager_changed_cb (GtkRecentManager *manager,
 			   gpointer          user_data)
@@ -1335,25 +1278,22 @@ filter_combo_changed_cb (GtkComboBox *combo_box,
   set_current_filter (impl, filter);
 }
 
-static GdkPixbuf *
-get_drag_pixbuf (GtkRecentChooserDefault *impl)
+static GIcon *
+get_drag_icon (GtkRecentChooserDefault *impl)
 {
   GtkRecentInfo *info;
-  GdkPixbuf *retval;
-  gint size;
-  
+  GIcon *gicon = NULL;
+
   g_assert (GTK_IS_RECENT_CHOOSER_DEFAULT (impl));
 
   info = gtk_recent_chooser_get_current_item (GTK_RECENT_CHOOSER (impl));
-  if (!info)
-    return NULL;
+  if (info != NULL)
+    {
+      gicon = gtk_recent_info_get_gicon (info);
+      gtk_recent_info_unref (info);
+    }
 
-  size = get_icon_size_for_widget (GTK_WIDGET (impl), GTK_ICON_SIZE_DND);
-
-  retval = gtk_recent_info_get_icon (info, size);
-  gtk_recent_info_unref (info);
-
-  return retval;
+  return gicon;
 }
 
 static void
@@ -1362,13 +1302,13 @@ recent_view_drag_begin_cb (GtkWidget      *widget,
 			   gpointer        user_data)
 {
   GtkRecentChooserDefault *impl = GTK_RECENT_CHOOSER_DEFAULT (user_data);
-  GdkPixbuf *pixbuf;
+  GIcon *icon;
 
-  pixbuf = get_drag_pixbuf (impl);
-  if (pixbuf)
+  icon = get_drag_icon (impl);
+  if (icon)
     {
-      gtk_drag_set_icon_pixbuf (context, pixbuf, 0, 0);
-      g_object_unref (pixbuf);
+      gtk_drag_set_icon_gicon (context, icon, 0, 0);
+      g_object_unref (icon);
     }
   else
     gtk_drag_set_icon_default (context);
@@ -1519,9 +1459,8 @@ copy_activated_cb (GtkMenuItem *menu_item,
 
   utf8_uri = gtk_recent_info_get_uri_display (info);
   
-  gtk_clipboard_set_text (gtk_widget_get_clipboard (GTK_WIDGET (impl),
-			  			    GDK_SELECTION_CLIPBOARD),
-                          utf8_uri, -1);
+  gdk_clipboard_set_text (gtk_widget_get_clipboard (GTK_WIDGET (impl)),
+                          utf8_uri);
 
   gtk_recent_info_unref (info);
   g_free (utf8_uri);

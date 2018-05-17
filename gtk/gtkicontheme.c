@@ -74,7 +74,7 @@
  * directly is also simple. The #GtkIconTheme object acts
  * as a database of all the icons in the current theme. You
  * can create new #GtkIconTheme objects, but it’s much more
- * efficient to use the standard icon theme for the #GdkScreen
+ * efficient to use the standard icon theme for the #GdkDisplay
  * so that the icon information is shared with other people
  * looking up icons.
  * |[<!-- language="C" -->
@@ -139,11 +139,11 @@ struct _GtkIconThemePrivate
   gint search_path_len;
   GList *resource_paths;
 
-  guint custom_theme        : 1;
-  guint is_screen_singleton : 1;
-  guint pixbuf_supports_svg : 1;
-  guint themes_valid        : 1;
-  guint loading_themes      : 1;
+  guint custom_theme         : 1;
+  guint is_display_singleton : 1;
+  guint pixbuf_supports_svg  : 1;
+  guint themes_valid         : 1;
+  guint loading_themes       : 1;
 
   /* A list of all the themes needed to look up icons.
    * In search order, without duplicates
@@ -151,8 +151,8 @@ struct _GtkIconThemePrivate
   GList *themes;
   GHashTable *unthemed_icons;
 
-  /* GdkScreen for the icon theme (may be NULL) */
-  GdkScreen *screen;
+  /* GdkDisplay for the icon theme (may be NULL) */
+  GdkDisplay *display;
 
   /* time when we last stat:ed for theme changes */
   glong last_stat_time;
@@ -225,6 +225,7 @@ struct _GtkIconInfo
    */
   GdkPixbuf *pixbuf;
   GdkPixbuf *proxy_pixbuf;
+  GdkTexture *texture;
   GError *load_error;
   gdouble unscaled_scale;
   gdouble scale;
@@ -274,12 +275,6 @@ typedef struct
   gboolean is_resource;
 } UnthemedIcon;
 
-typedef struct
-{
-  gint size;
-  GdkPixbuf *pixbuf;
-} BuiltinIcon;
-
 typedef struct 
 {
   gchar *dir;
@@ -317,19 +312,12 @@ static IconSuffix   theme_dir_get_icon_suffix (IconThemeDir     *dir,
 static GtkIconInfo *icon_info_new             (IconThemeDirType  type,
                                                gint              dir_size,
                                                gint              dir_scale);
-static GtkIconInfo *icon_info_new_builtin     (BuiltinIcon      *icon);
 static IconSuffix   suffix_from_name          (const gchar      *name);
-static BuiltinIcon *find_builtin_icon         (const gchar      *icon_name,
-                                               gint              size,
-                                               gint              scale,
-                                               gint             *min_difference_p);
 static void         remove_from_lru_cache     (GtkIconTheme     *icon_theme,
                                                GtkIconInfo      *icon_info);
 static gboolean     icon_info_ensure_scale_and_pixbuf (GtkIconInfo* icon_info);
 
 static guint signal_changed = 0;
-
-static GHashTable *icon_theme_builtin_icons;
 
 static guint
 icon_info_key_hash (gconstpointer _key)
@@ -383,7 +371,7 @@ G_DEFINE_TYPE_WITH_PRIVATE (GtkIconTheme, gtk_icon_theme, G_TYPE_OBJECT)
  * Creates a new icon theme object. Icon theme objects are used
  * to lookup up an icon by name in a particular icon theme.
  * Usually, you’ll want to use gtk_icon_theme_get_default()
- * or gtk_icon_theme_get_for_screen() rather than creating
+ * or gtk_icon_theme_get_for_display() rather than creating
  * a new icon theme object for scratch.
  * 
  * Returns: the newly created #GtkIconTheme object.
@@ -399,12 +387,12 @@ gtk_icon_theme_new (void)
 /**
  * gtk_icon_theme_get_default:
  * 
- * Gets the icon theme for the default screen. See
- * gtk_icon_theme_get_for_screen().
+ * Gets the icon theme for the default display. See
+ * gtk_icon_theme_get_for_display().
  *
  * Returns: (transfer none): A unique #GtkIconTheme associated with
- *     the default screen. This icon theme is associated with
- *     the screen and can be used as long as the screen
+ *     the default display. This icon theme is associated with
+ *     the display and can be used as long as the display
  *     is open. Do not ref or unref it.
  *
  * Since: 2.4
@@ -412,48 +400,48 @@ gtk_icon_theme_new (void)
 GtkIconTheme *
 gtk_icon_theme_get_default (void)
 {
-  return gtk_icon_theme_get_for_screen (gdk_screen_get_default ());
+  return gtk_icon_theme_get_for_display (gdk_display_get_default ());
 }
 
 /**
- * gtk_icon_theme_get_for_screen:
- * @screen: a #GdkScreen
+ * gtk_icon_theme_get_for_display:
+ * @display: a #GdkDisplay
  * 
- * Gets the icon theme object associated with @screen; if this
+ * Gets the icon theme object associated with @display; if this
  * function has not previously been called for the given
- * screen, a new icon theme object will be created and
- * associated with the screen. Icon theme objects are
+ * display, a new icon theme object will be created and
+ * associated with the display. Icon theme objects are
  * fairly expensive to create, so using this function
  * is usually a better choice than calling than gtk_icon_theme_new()
- * and setting the screen yourself; by using this function
+ * and setting the display yourself; by using this function
  * a single icon theme object will be shared between users.
  *
  * Returns: (transfer none): A unique #GtkIconTheme associated with
- *  the given screen. This icon theme is associated with
- *  the screen and can be used as long as the screen
+ *  the given display. This icon theme is associated with
+ *  the display and can be used as long as the display
  *  is open. Do not ref or unref it.
  *
- * Since: 2.4
+ * Since: 3.94
  */
 GtkIconTheme *
-gtk_icon_theme_get_for_screen (GdkScreen *screen)
+gtk_icon_theme_get_for_display (GdkDisplay *display)
 {
   GtkIconTheme *icon_theme;
 
-  g_return_val_if_fail (GDK_IS_SCREEN (screen), NULL);
+  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
-  icon_theme = g_object_get_data (G_OBJECT (screen), "gtk-icon-theme");
+  icon_theme = g_object_get_data (G_OBJECT (display), "gtk-icon-theme");
   if (!icon_theme)
     {
       GtkIconThemePrivate *priv;
 
       icon_theme = gtk_icon_theme_new ();
-      gtk_icon_theme_set_screen (icon_theme, screen);
+      gtk_icon_theme_set_display (icon_theme, display);
 
       priv = icon_theme->priv;
-      priv->is_screen_singleton = TRUE;
+      priv->is_display_singleton = TRUE;
 
-      g_object_set_data (G_OBJECT (screen), I_("gtk-icon-theme"), icon_theme);
+      g_object_set_data (G_OBJECT (display), I_("gtk-icon-theme"), icon_theme);
     }
 
   return icon_theme;
@@ -485,8 +473,8 @@ gtk_icon_theme_class_init (GtkIconThemeClass *klass)
 
 
 /* Callback when the display that the icon theme is attached
- * to is closed; unset the screen, and if it’s the unique theme
- * for the screen, drop the reference
+ * to is closed; unset the display, and if it’s the unique theme
+ * for the display, drop the reference
  */
 static void
 display_closed (GdkDisplay   *display,
@@ -494,18 +482,17 @@ display_closed (GdkDisplay   *display,
                 GtkIconTheme *icon_theme)
 {
   GtkIconThemePrivate *priv = icon_theme->priv;
-  GdkScreen *screen = priv->screen;
-  gboolean was_screen_singleton = priv->is_screen_singleton;
+  gboolean was_display_singleton = priv->is_display_singleton;
 
-  if (was_screen_singleton)
+  if (was_display_singleton)
     {
-      g_object_set_data (G_OBJECT (screen), I_("gtk-icon-theme"), NULL);
-      priv->is_screen_singleton = FALSE;
+      g_object_set_data (G_OBJECT (display), I_("gtk-icon-theme"), NULL);
+      priv->is_display_singleton = FALSE;
     }
 
-  gtk_icon_theme_set_screen (icon_theme, NULL);
+  gtk_icon_theme_set_display (icon_theme, NULL);
 
-  if (was_screen_singleton)
+  if (was_display_singleton)
     {
       g_object_unref (icon_theme);
     }
@@ -524,9 +511,9 @@ update_current_theme (GtkIconTheme *icon_theme)
       gchar *theme = NULL;
       gboolean changed = FALSE;
 
-      if (priv->screen)
+      if (priv->display)
         {
-          GtkSettings *settings = gtk_settings_get_for_screen (priv->screen);
+          GtkSettings *settings = gtk_settings_get_for_display (priv->display);
           g_object_get (settings, "gtk-icon-theme-name", &theme, NULL);
         }
 
@@ -556,60 +543,56 @@ theme_changed (GtkSettings  *settings,
 }
 
 static void
-unset_screen (GtkIconTheme *icon_theme)
+unset_display (GtkIconTheme *icon_theme)
 {
   GtkIconThemePrivate *priv = icon_theme->priv;
   GtkSettings *settings;
-  GdkDisplay *display;
   
-  if (priv->screen)
+  if (priv->display)
     {
-      settings = gtk_settings_get_for_screen (priv->screen);
-      display = gdk_screen_get_display (priv->screen);
+      settings = gtk_settings_get_for_display (priv->display);
       
-      g_signal_handlers_disconnect_by_func (display,
+      g_signal_handlers_disconnect_by_func (priv->display,
                                             (gpointer) display_closed,
                                             icon_theme);
       g_signal_handlers_disconnect_by_func (settings,
                                             (gpointer) theme_changed,
                                             icon_theme);
 
-      priv->screen = NULL;
+      priv->display = NULL;
     }
 }
 
 /**
- * gtk_icon_theme_set_screen:
+ * gtk_icon_theme_set_display:
  * @icon_theme: a #GtkIconTheme
- * @screen: a #GdkScreen
+ * @display: a #GdkDisplay
  * 
- * Sets the screen for an icon theme; the screen is used
+ * Sets the display for an icon theme; the display is used
  * to track the user’s currently configured icon theme,
- * which might be different for different screens.
+ * which might be different for different displays.
  *
- * Since: 2.4
+ * Since: 3.94
  */
 void
-gtk_icon_theme_set_screen (GtkIconTheme *icon_theme,
-                           GdkScreen    *screen)
+gtk_icon_theme_set_display (GtkIconTheme *icon_theme,
+                            GdkDisplay   *display)
 {
   GtkIconThemePrivate *priv;
   GtkSettings *settings;
-  GdkDisplay *display;
 
   g_return_if_fail (GTK_ICON_THEME (icon_theme));
-  g_return_if_fail (screen == NULL || GDK_IS_SCREEN (screen));
+  g_return_if_fail (display == NULL || GDK_IS_DISPLAY (display));
 
   priv = icon_theme->priv;
 
-  unset_screen (icon_theme);
+  unset_display (icon_theme);
   
-  if (screen)
+  if (display)
     {
-      display = gdk_screen_get_display (screen);
-      settings = gtk_settings_get_for_screen (screen);
+      settings = gtk_settings_get_for_display (display);
       
-      priv->screen = screen;
+      priv->display = display;
       
       g_signal_connect (display, "closed",
                         G_CALLBACK (display_closed), icon_theme);
@@ -706,7 +689,7 @@ gtk_icon_theme_init (GtkIconTheme *icon_theme)
   for (j = 0; xdg_data_dirs[j]; j++) 
     priv->search_path[i++] = g_build_filename (xdg_data_dirs[j], "pixmaps", NULL);
 
-  priv->resource_paths = g_list_append (NULL, g_strdup ("/org/gtk/libgtk/icons"));
+  priv->resource_paths = g_list_append (NULL, g_strdup ("/org/gtk/libgtk/icons/"));
 
   priv->themes_valid = FALSE;
   priv->themes = NULL;
@@ -736,8 +719,8 @@ theme_changed_idle (gpointer user_data)
 
   g_signal_emit (icon_theme, signal_changed, 0);
 
-  if (priv->screen && priv->is_screen_singleton)
-    gtk_style_context_reset_widgets (priv->screen);
+  if (priv->display && priv->is_display_singleton)
+    gtk_style_context_reset_widgets (priv->display);
 
   priv->theme_changed_idle = 0;
 
@@ -809,7 +792,7 @@ gtk_icon_theme_finalize (GObject *object)
   if (priv->theme_changed_idle)
     g_source_remove (priv->theme_changed_idle);
 
-  unset_screen (icon_theme);
+  unset_display (icon_theme);
 
   g_free (priv->current_theme);
 
@@ -1013,7 +996,7 @@ gtk_icon_theme_add_resource_path (GtkIconTheme *icon_theme,
  * Sets the name of the icon theme that the #GtkIconTheme object uses
  * overriding system configuration. This function cannot be called
  * on the icon theme objects returned from gtk_icon_theme_get_default()
- * and gtk_icon_theme_get_for_screen().
+ * and gtk_icon_theme_get_for_display().
  *
  * Since: 2.4
  */
@@ -1027,7 +1010,7 @@ gtk_icon_theme_set_custom_theme (GtkIconTheme *icon_theme,
 
   priv = icon_theme->priv;
 
-  g_return_if_fail (!priv->is_screen_singleton);
+  g_return_if_fail (!priv->is_display_singleton);
   
   if (theme_name != NULL)
     {
@@ -2418,11 +2401,6 @@ gtk_icon_theme_has_icon (GtkIconTheme *icon_theme,
         return TRUE;
     }
 
-  if (icon_theme_builtin_icons &&
-      g_hash_table_lookup_extended (icon_theme_builtin_icons,
-                                    icon_name, NULL, NULL))
-    return TRUE;
-
   return FALSE;
 }
 
@@ -2459,7 +2437,7 @@ gint *
 gtk_icon_theme_get_icon_sizes (GtkIconTheme *icon_theme,
                                const gchar  *icon_name)
 {
-  GList *l, *d, *icons;
+  GList *l, *d;
   GHashTable *sizes;
   gint *result, *r;
   guint suffix;  
@@ -2492,19 +2470,6 @@ gtk_icon_theme_get_icon_sizes (GtkIconTheme *icon_theme,
                 g_hash_table_insert (sizes, GINT_TO_POINTER (dir->size), NULL);
             }
         }
-    }
-
-  if (icon_theme_builtin_icons)
-    {
-      icons = g_hash_table_lookup (icon_theme_builtin_icons, icon_name);
-      
-      while (icons)
-        {
-          BuiltinIcon *icon = icons->data;
-
-          g_hash_table_insert (sizes, GINT_TO_POINTER (icon->size), NULL);
-          icons = icons->next;
-        }      
     }
 
   r = result = g_new0 (gint, g_hash_table_size (sizes) + 1);
@@ -2994,24 +2959,10 @@ theme_lookup_icon (IconTheme   *theme,
   IconThemeDir *dir, *min_dir;
   gchar *file;
   gint min_difference, difference;
-  BuiltinIcon *closest_builtin = NULL;
   IconSuffix suffix;
 
   min_difference = G_MAXINT;
   min_dir = NULL;
-
-  /* Builtin icons are logically part of the default theme and
-   * are searched before other subdirectories of the default theme.
-   */
-  if (use_builtin && strcmp (theme->name, FALLBACK_ICON_THEME) == 0)
-    {
-      closest_builtin = find_builtin_icon (icon_name, 
-                                           size, scale,
-                                           &min_difference);
-
-      if (min_difference == 0)
-        return icon_info_new_builtin (closest_builtin);
-    }
 
   dirs = theme->dirs;
 
@@ -3085,9 +3036,6 @@ theme_lookup_icon (IconTheme   *theme,
       return icon_info;
     }
 
-  if (closest_builtin)
-    return icon_info_new_builtin (closest_builtin);
-  
   return NULL;
 }
 
@@ -3363,7 +3311,9 @@ theme_subdir_load (GtkIconTheme *icon_theme,
     { 
       for (d = icon_theme->priv->resource_paths; d; d = d->next)
         {
-          full_dir = g_build_filename ((const gchar *)d->data, subdir, NULL);
+          /* Force a trailing / here, to avoid extra copies in GResource */
+          full_dir = g_build_filename ((const gchar *)d->data, subdir, " ", NULL);
+          full_dir[strlen (full_dir) - 1] = '\0';
           dir = g_new0 (IconThemeDir, 1);
           dir->type = type;
           dir->is_resource = TRUE;
@@ -3464,16 +3414,6 @@ icon_info_dup (GtkIconInfo *icon_info)
   return dup;
 }
 
-static GtkIconInfo *
-icon_info_new_builtin (BuiltinIcon *icon)
-{
-  GtkIconInfo *icon_info = icon_info_new (ICON_THEME_DIR_THRESHOLD, icon->size, 1);
-
-  icon_info->cache_pixbuf = g_object_ref (icon->pixbuf);
-
-  return icon_info;
-}
-
 static void
 gtk_icon_info_finalize (GObject *object)
 {
@@ -3542,7 +3482,7 @@ gtk_icon_info_get_base_size (GtkIconInfo *icon_info)
  *
  * Gets the base scale for the icon. The base scale is a scale
  * for the icon that was specified by the icon theme creator.
- * For instance an icon drawn for a high-dpi screen with window
+ * For instance an icon drawn for a high-dpi monitor with window
  * scale 2 for a base size of 32 will be 64 pixels tall and have
  * a base scale of 2.
  *
@@ -3797,7 +3737,12 @@ icon_info_ensure_scale_and_pixbuf (GtkIconInfo *icon_info)
           else
             size = icon_info->dir_size * dir_scale * icon_info->scale;
 
-          if (size == 0)
+          if (gtk_icon_info_is_symbolic (icon_info))
+            source_pixbuf = gtk_make_symbolic_pixbuf_from_resource (icon_info->filename,
+                                                                    size, size,
+                                                                    icon_info->desired_scale,
+                                                                    &icon_info->load_error);
+          else if (size == 0)
             source_pixbuf = _gdk_pixbuf_new_from_resource_scaled (icon_info->filename,
                                                                   icon_info->desired_scale,
                                                                   &icon_info->load_error);
@@ -3832,7 +3777,13 @@ icon_info_ensure_scale_and_pixbuf (GtkIconInfo *icon_info)
                 size = scaled_desired_size;
               else
                 size = icon_info->dir_size * dir_scale * icon_info->scale;
-              if (size == 0)
+
+              if (gtk_icon_info_is_symbolic (icon_info) && icon_info->icon_file)
+                source_pixbuf = gtk_make_symbolic_pixbuf_from_file (icon_info->icon_file,
+                                                                    size, size,
+                                                                    icon_info->desired_scale,
+                                                                    &icon_info->load_error);
+              else if (size == 0)
                 source_pixbuf = _gdk_pixbuf_new_from_stream_scaled (stream,
                                                                     icon_info->desired_scale,
                                                                     NULL,
@@ -4002,6 +3953,39 @@ gtk_icon_info_load_icon (GtkIconInfo *icon_info,
                               g_object_ref (icon_info));
 
   return icon_info->proxy_pixbuf;
+}
+
+/**
+ * gtk_icon_info_load_texture:
+ * @icon_info: a #GtkIconInfo
+ *
+ * Returns a texture object that can be used to render the icon
+ * with GSK.
+ *
+ * Returns: (transfer full): the icon texture; this may be a newly
+ *     created texture or a new reference to an exiting texture. Use
+ *     g_object_unref() to release your reference.
+ *
+ * Since: 3.94
+ */
+GdkTexture *
+gtk_icon_info_load_texture (GtkIconInfo *icon_info)
+{
+  if (!icon_info->texture)
+    {
+      GdkPixbuf *pixbuf;
+
+      pixbuf = gtk_icon_info_load_icon (icon_info, NULL);
+      icon_info->texture = gdk_texture_new_for_pixbuf (pixbuf);
+      g_object_unref (pixbuf);
+
+      g_object_add_weak_pointer (G_OBJECT (icon_info->texture), (void **)&icon_info->texture);
+    }
+
+  if (icon_info->in_cache != NULL)
+    ensure_in_lru_cache (icon_info->in_cache, icon_info);
+
+  return g_object_ref (icon_info->texture);
 }
 
 /**
@@ -5013,79 +4997,6 @@ gtk_icon_info_load_symbolic_for_context_finish (GtkIconInfo   *icon_info,
   return gtk_icon_info_load_symbolic_finish (icon_info, result, was_symbolic, error);
 }
 
-/* Look up a builtin icon; the min_difference_p and
- * has_larger_p out parameters allow us to combine
- * this lookup with searching through the actual directories
- * of the “hicolor” icon theme. See theme_lookup_icon()
- * for how they are used.
- */
-static BuiltinIcon *
-find_builtin_icon (const gchar *icon_name,
-                   gint         size,
-                   gint         scale,
-                   gint        *min_difference_p)
-{
-  GSList *icons = NULL;
-  gint min_difference = G_MAXINT;
-  gboolean has_larger = FALSE;
-  BuiltinIcon *min_icon = NULL;
-  
-  if (!icon_theme_builtin_icons)
-    return NULL;
-
-  size *= scale;
-
-  icons = g_hash_table_lookup (icon_theme_builtin_icons, icon_name);
-
-  while (icons)
-    {
-      BuiltinIcon *default_icon = icons->data;
-      int min, max, difference;
-      gboolean smaller;
-      
-      min = default_icon->size - 2;
-      max = default_icon->size + 2;
-      smaller = size < min;
-      if (size < min)
-        difference = min - size;
-      else if (size > max)
-        difference = size - max;
-      else
-        difference = 0;
-      
-      if (difference == 0)
-        {
-          min_icon = default_icon;
-          break;
-        }
-      
-      if (!has_larger)
-        {
-          if (difference < min_difference || smaller)
-            {
-              min_difference = difference;
-              min_icon = default_icon;
-              has_larger = smaller;
-            }
-        }
-      else
-        {
-          if (difference < min_difference && smaller)
-            {
-              min_difference = difference;
-              min_icon = default_icon;
-            }
-        }
-      
-      icons = icons->next;
-    }
-
-  if (min_difference_p)
-    *min_difference_p = min_difference;
-
-  return min_icon;
-}
-
 /**
  * gtk_icon_theme_lookup_by_gicon:
  * @icon_theme: a #GtkIconTheme
@@ -5304,95 +5215,4 @@ gtk_icon_info_new_for_file (GFile *file,
  info->forced_size = FALSE;
 
  return info;
-}
-
-typedef struct _IconSize IconSize;
-
-struct _IconSize
-{
-  const char *name;
-
-  int width;
-  int height;
-};
-
-static const IconSize icon_sizes[] = {
-  [GTK_ICON_SIZE_INVALID] = {
-    .name = NULL,
-    .width = 0,
-    .height = 0,
-  },
-  [GTK_ICON_SIZE_MENU] = {
-    .name = "gtk-menu",
-    .width = 16,
-    .height = 16,
-  },
-  [GTK_ICON_SIZE_BUTTON] = {
-    .name = "gtk-button",
-    .width = 16,
-    .height = 16,
-  },
-  [GTK_ICON_SIZE_SMALL_TOOLBAR] = {
-    .name = "gtk-small-toolbar",
-    .width = 16,
-    .height = 16,
-  },
-  [GTK_ICON_SIZE_LARGE_TOOLBAR] = {
-    .name = "gtk-large-toolbar",
-    .width = 24,
-    .height = 24,
-  },
-  [GTK_ICON_SIZE_DND] = {
-    .name = "gtk-dnd",
-    .width = 32,
-    .height = 32,
-  },
-  [GTK_ICON_SIZE_DIALOG] = {
-    .name = "gtk-dialog",
-    .width = 48,
-    .height = 48,
-  },
-};
-
-/**
- * gtk_icon_size_lookup:
- * @size: (type int): an icon size (#GtkIconSize)
- * @width: (out) (optional): location to store icon width
- * @height: (out) (optional): location to store icon height
- *
- * Obtains the pixel size of a semantic icon size @size:
- * #GTK_ICON_SIZE_MENU, #GTK_ICON_SIZE_BUTTON, etc.  This function
- * isn’t normally needed, gtk_icon_theme_load_icon() is the usual
- * way to get an icon for rendering, then just look at the size of
- * the rendered pixbuf. The rendered pixbuf may not even correspond to
- * the width/height returned by gtk_icon_size_lookup(), because themes
- * are free to render the pixbuf however they like, including changing
- * the usual size.
- *
- * Returns: %TRUE if @size was a valid size
- */
-gboolean
-gtk_icon_size_lookup (GtkIconSize  size,
-                      gint        *widthp,
-                      gint        *heightp)
-{
-  GTK_NOTE (MULTIHEAD,
-            g_warning ("gtk_icon_size_lookup ()) is not multihead safe"));
-
-  if (size == (GtkIconSize)-1)
-    return FALSE;
-
-  if (size >= G_N_ELEMENTS (icon_sizes))
-    return FALSE;
-
-  if (size == GTK_ICON_SIZE_INVALID)
-    return FALSE;
-
-  if (widthp)
-    *widthp = icon_sizes[size].width;
-
-  if (heightp)
-    *heightp = icon_sizes[size].height;
-
-  return TRUE;
 }

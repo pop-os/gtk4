@@ -366,7 +366,7 @@ apply_response_for_header_bar (GtkDialog *dialog,
                            NULL);
 
   if (response_id == GTK_RESPONSE_CANCEL || response_id == GTK_RESPONSE_CLOSE)
-    gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (priv->headerbar), FALSE);
+    gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (priv->headerbar), FALSE);
 }
 
 static void
@@ -597,7 +597,7 @@ gtk_dialog_class_init (GtkDialogClass *class)
   gtk_widget_class_bind_template_child_private (widget_class, GtkDialog, action_box);
   gtk_widget_class_bind_template_callback (widget_class, gtk_dialog_delete_event_handler);
 
-  gtk_widget_class_set_css_name (widget_class, "dialog");
+  gtk_widget_class_set_css_name (widget_class, I_("dialog"));
 }
 
 static void

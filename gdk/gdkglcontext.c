@@ -21,14 +21,14 @@
 /**
  * SECTION:gdkglcontext
  * @Title: GdkGLContext
- * @Short_description: OpenGL context
+ * @Short_description: OpenGL draw context
  *
  * #GdkGLContext is an object representing the platform-specific
- * OpenGL drawing context.
+ * OpenGL draw context.
  *
  * #GdkGLContexts are created for a #GdkWindow using
- * gdk_window_create_gl_context(), and the context will match
- * the #GdkVisual of the window.
+ * gdk_window_create_gl_context(), and the context will match the
+ * the characteristics of the window.
  *
  * A #GdkGLContext is not tied to any particular normal framebuffer.
  * For instance, it cannot draw to the #GdkWindow back buffer. The GDK
@@ -74,6 +74,13 @@
  * You can check which #GdkGLContext is the current one by using
  * gdk_gl_context_get_current(); you can also unset any #GdkGLContext
  * that is currently set by calling gdk_gl_context_clear_current().
+ */
+
+/**
+ * GdkGLContext:
+ *
+ * The GdkGLContext struct contains only private fields and
+ * should not be accessed directly.
  */
 
 #include "config.h"
@@ -334,7 +341,7 @@ gdk_gl_context_class_init (GdkGLContextClass *klass)
   /**
    * GdkGLContext:shared-context:
    *
-   * The #GdkGLContext that this context is sharing data with, or #NULL
+   * The #GdkGLContext that this context is sharing data with, or %NULL
    *
    * Since: 3.16
    */

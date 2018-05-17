@@ -57,12 +57,12 @@ list_ignore_properties (gboolean buglist)
     { "GtkWidget",              "parent",               NULL, },                        /* needs working parent widget */
     { "GtkCList",               "selection-mode",       (void*) GTK_SELECTION_NONE, },
     { "GtkWidget",              "has-default",          (void*) TRUE, },                /* conflicts with toplevel-less widgets */
-    { "GtkWidget",              "screen",               NULL, },
+    { "GtkWidget",              "display",              (void*) MATCH_ANY_VALUE },
     { "GtkWindow",              "type-hint",            (void*) GDK_WINDOW_TYPE_HINT_DND, }, /* conflicts with ::visible=TRUE */
     { "GtkCellView",            "background",           (void*) "", },                  /* "" is not a valid background color */
     { "GtkColorButton",         "color",                (void*) NULL, },                /* not a valid boxed color */
     { "GtkInputDialog",         "has-separator",        (void*) MATCH_ANY_VALUE, },     /* property disabled */
-    { "GtkInvisible",           "screen",               (void*) MATCH_ANY_VALUE },      /* cannot create GdkScreen */
+    { "GtkInvisible",           "display",              (void*) MATCH_ANY_VALUE },      /* cannot create GdkScreen */
     { "GtkMessageDialog",       "has-separator",        (void*) MATCH_ANY_VALUE, },     /* property disabled */
     { "GtkColorSelectionDialog","has-separator",        (void*) MATCH_ANY_VALUE, },     /* property disabled */
     { "GtkColorSelection",      "child",                NULL, },
@@ -78,9 +78,8 @@ list_ignore_properties (gboolean buglist)
     { "GtkMenuItem",            "accel-path",           (void*) MATCH_ANY_VALUE },      /* has odd restrictions in the setter */
     { "GtkRecentChooserMenu",   "select-multiple",      (void*) MATCH_ANY_VALUE },      /* property disabled */
     { "GtkTextView",            "overwrite",            (void*) MATCH_ANY_VALUE },      /* needs text buffer */
-    { "GtkToolbar",             "icon-size",            (void*) GTK_ICON_SIZE_INVALID },
     { "GtkTreeView",            "expander-column",      (void*) MATCH_ANY_VALUE },      /* assertion list != NULL */
-    { "GtkWindow",              "screen",               (void*) MATCH_ANY_VALUE },      /* cannot create GdkScreen */
+    { "GtkWindow",              "display",              (void*) MATCH_ANY_VALUE },
     { NULL, NULL, NULL }
   };
   /* properties suspected to be Gdk/Gtk+ bugs */

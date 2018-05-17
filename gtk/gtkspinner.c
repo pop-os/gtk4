@@ -110,13 +110,11 @@ gtk_spinner_snapshot (GtkWidget   *widget,
                       GtkSnapshot *snapshot)
 {
   GtkCssStyle *style = gtk_css_node_get_style (gtk_widget_get_css_node (widget));
-  int width, height;
-
-  gtk_widget_get_content_size (widget, &width, &height);
 
   gtk_css_style_snapshot_icon (style,
                                snapshot,
-                               width, height,
+                               gtk_widget_get_width (widget),
+                               gtk_widget_get_height (widget),
                                GTK_CSS_IMAGE_BUILTIN_SPINNER);
 }
 
@@ -206,7 +204,7 @@ gtk_spinner_class_init (GtkSpinnerClass *klass)
                                                          GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_SPINNER_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "spinner");
+  gtk_widget_class_set_css_name (widget_class, I_("spinner"));
 }
 
 static void

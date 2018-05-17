@@ -5,7 +5,7 @@
 #include "gskdebugprivate.h"
 #include "gskrendererprivate.h"
 #include "gskrendernodeprivate.h"
-#include "gsktextureprivate.h"
+#include "gdk/gdktextureprivate.h"
 
 #ifdef G_ENABLE_DEBUG
 typedef struct {
@@ -70,12 +70,12 @@ gsk_cairo_renderer_do_render (GskRenderer   *renderer,
 #endif
 }
 
-static GskTexture *
+static GdkTexture *
 gsk_cairo_renderer_render_texture (GskRenderer           *renderer,
                                    GskRenderNode         *root,
                                    const graphene_rect_t *viewport)
 {
-  GskTexture *texture;
+  GdkTexture *texture;
   cairo_surface_t *surface;
   cairo_t *cr;
 
@@ -88,7 +88,7 @@ gsk_cairo_renderer_render_texture (GskRenderer           *renderer,
 
   cairo_destroy (cr);
 
-  texture = gsk_texture_new_for_surface (surface);
+  texture = gdk_texture_new_for_surface (surface);
   cairo_surface_destroy (surface);
 
   return texture;
@@ -99,7 +99,7 @@ gsk_cairo_renderer_render (GskRenderer   *renderer,
                            GskRenderNode *root)
 {
   GdkDrawingContext *context = gsk_renderer_get_drawing_context (renderer);
-  graphene_rect_t viewport;
+  GdkWindow *window = gsk_renderer_get_window (renderer);
 
   cairo_t *cr;
 
@@ -107,17 +107,13 @@ gsk_cairo_renderer_render (GskRenderer   *renderer,
 
   g_return_if_fail (cr != NULL);
 
-  gsk_renderer_get_viewport (renderer, &viewport);
-
   if (GSK_RENDER_MODE_CHECK (GEOMETRY))
     {
       cairo_save (cr);
       cairo_set_operator (cr, CAIRO_OPERATOR_OVER);
       cairo_rectangle (cr,
-                       viewport.origin.x,
-                       viewport.origin.y,
-                       viewport.size.width,
-                       viewport.size.height);
+                       0, 0,
+                       gdk_window_get_width (window), gdk_window_get_height (window));
       cairo_set_source_rgba (cr, 0, 0, 0.85, 0.5);
       cairo_stroke (cr);
       cairo_restore (cr);

@@ -150,17 +150,6 @@ gtk_tool_item_group_get_style (GtkToolShell *shell)
   return GTK_TOOLBAR_ICONS;
 }
 
-static GtkIconSize
-gtk_tool_item_group_get_icon_size (GtkToolShell *shell)
-{
-  GtkWidget *parent = gtk_widget_get_parent (GTK_WIDGET (shell));
-
-  if (GTK_IS_TOOL_PALETTE (parent))
-    return gtk_tool_palette_get_icon_size (GTK_TOOL_PALETTE (parent));
-
-  return GTK_ICON_SIZE_SMALL_TOOLBAR;
-}
-
 static PangoEllipsizeMode
 gtk_tool_item_group_get_ellipsize_mode (GtkToolShell *shell)
 {
@@ -220,18 +209,15 @@ gtk_tool_item_group_settings_change_notify (GtkSettings      *settings,
 }
 
 static void
-gtk_tool_item_group_screen_changed (GtkWidget *widget,
-                                    GdkScreen *previous_screen)
+gtk_tool_item_group_display_changed (GtkWidget  *widget,
+                                     GdkDisplay *previous_display)
 {
   GtkToolItemGroup *group = GTK_TOOL_ITEM_GROUP (widget);
   GtkToolItemGroupPrivate* priv = group->priv;
   GtkSettings *old_settings = priv->settings;
   GtkSettings *settings;
 
-  if (gtk_widget_has_screen (GTK_WIDGET (group)))
-    settings = gtk_widget_get_settings (GTK_WIDGET (group));
-  else
-    settings = NULL;
+  settings = gtk_widget_get_settings (GTK_WIDGET (group));
 
   if (settings == old_settings)
     return;
@@ -260,7 +246,6 @@ gtk_tool_item_group_screen_changed (GtkWidget *widget,
 static void
 gtk_tool_item_group_tool_shell_init (GtkToolShellIface *iface)
 {
-  iface->get_icon_size = gtk_tool_item_group_get_icon_size;
   iface->get_orientation = gtk_tool_item_group_get_orientation;
   iface->get_style = gtk_tool_item_group_get_style;
   iface->get_text_alignment = gtk_tool_item_group_get_text_alignment;
@@ -1544,7 +1529,7 @@ gtk_tool_item_group_class_init (GtkToolItemGroupClass *cls)
   wclass->realize              = gtk_tool_item_group_realize;
   wclass->unrealize            = gtk_tool_item_group_unrealize;
   wclass->style_updated        = gtk_tool_item_group_style_updated;
-  wclass->screen_changed       = gtk_tool_item_group_screen_changed;
+  wclass->display_changed      = gtk_tool_item_group_display_changed;
   wclass->state_flags_changed  = gtk_tool_item_group_state_flags_changed;
 
   cclass->add                = gtk_tool_item_group_add;
@@ -1626,7 +1611,7 @@ gtk_tool_item_group_class_init (GtkToolItemGroupClass *cls)
                                                                 0,
                                                                 GTK_PARAM_READWRITE));
 
-  gtk_widget_class_set_css_name (wclass, "toolitemgroup");
+  gtk_widget_class_set_css_name (wclass, I_("toolitemgroup"));
 }
 
 /**

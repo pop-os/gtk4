@@ -19,7 +19,6 @@
 
 #include "gdkpango.h"
 
-#include "gdkscreen.h"
 #include "gdkintl.h"
 
 #include <math.h>
@@ -39,9 +38,8 @@
  * Creating a #PangoLayout object is the first step in rendering text,
  * and requires getting a handle to a #PangoContext. For GTK+ programs,
  * you’ll usually want to use gtk_widget_get_pango_context(), or
- * gtk_widget_create_pango_layout(), rather than using the lowlevel
- * gdk_pango_context_get_for_screen(). Once you have a #PangoLayout, you
- * can set the text and attributes of it with Pango functions like
+ * gtk_widget_create_pango_layout(). Once you have a #PangoLayout,
+ * you can set the text and attributes of it with Pango functions like
  * pango_layout_set_text() and get its size with pango_layout_get_size().
  * (Note that Pango uses a fixed point system internally, so converting
  * between Pango units and pixels using [PANGO_SCALE][PANGO-SCALE-CAPS]
@@ -79,7 +77,7 @@
  *                  cairo_scale (cr, radius / RADIUS, radius / RADIUS);
  *
  * // Create a PangoLayout, set the font and text
- * context = gdk_pango_context_get_for_screen (screen);
+ * context = gdk_pango_context_get_for_display (display);
  * layout = pango_layout_new (context);
  * pango_layout_set_text (layout, "Text", -1);
  * desc = pango_font_description_from_string (FONT);
@@ -296,99 +294,4 @@ gdk_pango_layout_get_clip_region (PangoLayout *layout,
   pango_layout_iter_free (iter);
 
   return clip_region;
-}
-
-/**
- * gdk_pango_context_get:
- * 
- * Creates a #PangoContext for the default GDK screen.
- *
- * The context must be freed when you’re finished with it.
- * 
- * When using GTK+, normally you should use gtk_widget_get_pango_context()
- * instead of this function, to get the appropriate context for
- * the widget you intend to render text onto.
- * 
- * The newly created context will have the default font options (see
- * #cairo_font_options_t) for the default screen; if these options
- * change it will not be updated. Using gtk_widget_get_pango_context()
- * is more convenient if you want to keep a context around and track
- * changes to the screen’s font rendering settings.
- *
- * Returns: (transfer full): a new #PangoContext for the default display
- **/
-PangoContext *
-gdk_pango_context_get (void)
-{
-  return gdk_pango_context_get_for_display (gdk_display_get_default ());
-}
-
-/**
- * gdk_pango_context_get_for_screen:
- * @screen: the #GdkScreen for which the context is to be created.
- * 
- * Creates a #PangoContext for @screen.
- *
- * The context must be freed when you’re finished with it.
- * 
- * When using GTK+, normally you should use gtk_widget_get_pango_context()
- * instead of this function, to get the appropriate context for
- * the widget you intend to render text onto.
- * 
- * The newly created context will have the default font options
- * (see #cairo_font_options_t) for the screen; if these options
- * change it will not be updated. Using gtk_widget_get_pango_context()
- * is more convenient if you want to keep a context around and track
- * changes to the screen’s font rendering settings.
- * 
- * Returns: (transfer full): a new #PangoContext for @screen
- *
- * Since: 2.2
- **/
-PangoContext *
-gdk_pango_context_get_for_screen (GdkScreen *screen)
-{
-  PangoFontMap *fontmap;
-  PangoContext *context;
-  double dpi;
-
-  g_return_val_if_fail (GDK_IS_SCREEN (screen), NULL);
-
-  fontmap = pango_cairo_font_map_get_default ();
-  context = pango_font_map_create_context (fontmap);
-
-  dpi = gdk_screen_get_resolution (screen);
-  pango_cairo_context_set_resolution (context, dpi);
-
-  return context;
-}
-
-/**
- * gdk_pango_context_get_for_display:
- * @display: the #GdkDisplay for which the context is to be created
- *
- * Creates a #PangoContext for @display.
- *
- * The context must be freed when you’re finished with it.
- *
- * When using GTK+, normally you should use gtk_widget_get_pango_context()
- * instead of this function, to get the appropriate context for
- * the widget you intend to render text onto.
- *
- * The newly created context will have the default font options
- * (see #cairo_font_options_t) for the display; if these options
- * change it will not be updated. Using gtk_widget_get_pango_context()
- * is more convenient if you want to keep a context around and track
- * changes to the font rendering settings.
- *
- * Returns: (transfer full): a new #PangoContext for @display
- *
- * Since: 3.22
- */
-PangoContext *
-gdk_pango_context_get_for_display (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  return gdk_pango_context_get_for_screen (gdk_display_get_default_screen (display));
 }

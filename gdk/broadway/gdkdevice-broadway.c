@@ -37,7 +37,6 @@ static void gdk_broadway_device_set_window_cursor (GdkDevice *device,
 						   GdkWindow *window,
 						   GdkCursor *cursor);
 static void gdk_broadway_device_warp (GdkDevice *device,
-				      GdkScreen *screen,
 				      gdouble    x,
 				      gdouble    y);
 static void gdk_broadway_device_query_state (GdkDevice        *device,
@@ -92,8 +91,8 @@ gdk_broadway_device_init (GdkBroadwayDevice *device_core)
 
   device = GDK_DEVICE (device_core);
 
-  _gdk_device_add_axis (device, GDK_NONE, GDK_AXIS_X, 0, 0, 1);
-  _gdk_device_add_axis (device, GDK_NONE, GDK_AXIS_Y, 0, 0, 1);
+  _gdk_device_add_axis (device, NULL, GDK_AXIS_X, 0, 0, 1);
+  _gdk_device_add_axis (device, NULL, GDK_AXIS_Y, 0, 0, 1);
 }
 
 static gboolean
@@ -133,7 +132,6 @@ gdk_broadway_device_set_window_cursor (GdkDevice *device,
 
 static void
 gdk_broadway_device_warp (GdkDevice *device,
-			  GdkScreen *screen,
 			  gdouble    x,
 			  gdouble    y)
 {
@@ -179,28 +177,13 @@ gdk_broadway_device_query_state (GdkDevice        *device,
     *mask = mask32;
   if (child_window)
     {
-      GdkWindowImplBroadway *impl;
-      GdkWindow *toplevel;
       GdkWindow *mouse_toplevel;
 
-      if (window == NULL)
-        window = gdk_get_default_root_window ();
-
-      impl = GDK_WINDOW_IMPL_BROADWAY (window->impl);
-      toplevel = impl->wrapper;
-
       mouse_toplevel = g_hash_table_lookup (broadway_display->id_ht, GUINT_TO_POINTER (mouse_toplevel_id));
-      if (gdk_window_get_window_type (toplevel) == GDK_WINDOW_ROOT)
-	{
-	  *child_window = mouse_toplevel;
-	  if (*child_window == NULL)
-	    *child_window = toplevel;
-	}
+      if (window == NULL)
+	*child_window = mouse_toplevel;
       else
-	{
-	  /* No native children */
-	  *child_window = toplevel;
-	}
+	*child_window = NULL;
     }
 
   return;
@@ -335,14 +318,9 @@ gdk_broadway_device_window_at_position (GdkDevice       *device,
 					GdkModifierType *mask,
 					gboolean         get_toplevel)
 {
-  GdkScreen *screen;
-  GdkWindow *root_window;
   GdkWindow *window;
 
-  screen = gdk_display_get_default_screen (gdk_device_get_display (device));
-  root_window = gdk_screen_get_root_window (screen);
-
-  gdk_broadway_device_query_state (device, root_window, &window, NULL, NULL, win_x, win_y, mask);
+  gdk_broadway_device_query_state (device, NULL, &window, NULL, NULL, win_x, win_y, mask);
 
   return window;
 }

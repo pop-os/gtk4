@@ -25,8 +25,9 @@
 
 #include <gio/gio.h>
 #ifdef HAVE_CLOUDPROVIDERS
-#include <cloudproviders/cloudproviders.h>
-#include <cloudproviders/cloudprovideraccount.h>
+#include <cloudproviders/cloudproviderscollector.h>
+#include <cloudproviders/cloudprovidersaccount.h>
+#include <cloudproviders/cloudprovidersprovider.h>
 #endif
 
 #include "gtkplacessidebarprivate.h"
@@ -34,8 +35,6 @@
 #include "gdk/gdkkeysyms.h"
 #include "gtkbookmarksmanager.h"
 #include "gtkcelllayout.h"
-#include "gtkcellrenderertext.h"
-#include "gtkcellrendererpixbuf.h"
 #include "gtkfilesystem.h"
 #include "gtkicontheme.h"
 #include "gtkintl.h"
@@ -63,6 +62,7 @@
 #include "gtkgesturelongpress.h"
 #include "gtkbox.h"
 #include "gtkmodelbutton.h"
+#include "gtkprivate.h"
 
 /**
  * SECTION:gtkplacessidebar
@@ -127,8 +127,8 @@ struct _GtkPlacesSidebar {
   GtkBookmarksManager     *bookmarks_manager;
 
 #ifdef HAVE_CLOUDPROVIDERS
-  CloudProviders *cloud_manager;
-  GList *cloud_rows;
+  CloudProvidersCollector *cloud_manager;
+  GList *unready_accounts;
 #endif
 
   GVolumeMonitor    *volume_monitor;
@@ -149,13 +149,13 @@ struct _GtkPlacesSidebar {
   GList     *drag_list; /* list of GFile */
   gint       drag_data_info;
   gboolean   dragging_over;
-  GtkTargetList *source_targets;
+  GdkContentFormats *source_targets;
   GtkWidget *drag_row;
   gint drag_row_height;
   gint drag_row_x;
   gint drag_row_y;
-  gint drag_root_x;
-  gint drag_root_y;
+  gint drag_x;
+  gint drag_y;
   GtkWidget *row_placeholder;
   DropState drop_state;
   GtkGesture *long_press_gesture;
@@ -186,6 +186,7 @@ struct _GtkPlacesSidebar {
   guint show_enter_location    : 1;
   guint show_other_locations   : 1;
   guint show_trash             : 1;
+  guint show_starred_location  : 1;
   guint local_only             : 1;
   guint populate_all           : 1;
 };
@@ -218,6 +219,8 @@ struct _GtkPlacesSidebarClass {
   void    (* show_other_locations_with_flags)   (GtkPlacesSidebar   *sidebar,
                                                  GtkPlacesOpenFlags  open_flags);
 
+  void    (* show_starred_location)    (GtkPlacesSidebar   *sidebar);
+
   void    (* mount)                  (GtkPlacesSidebar   *sidebar,
                                       GMountOperation    *mount_operation);
   void    (* unmount)                (GtkPlacesSidebar   *sidebar,
@@ -233,6 +236,7 @@ enum {
   DRAG_ACTION_ASK,
   DRAG_PERFORM_DROP,
   SHOW_OTHER_LOCATIONS_WITH_FLAGS,
+  SHOW_STARRED_LOCATION,
   MOUNT,
   UNMOUNT,
   LAST_SIGNAL
@@ -245,6 +249,7 @@ enum {
   PROP_SHOW_DESKTOP,
   PROP_SHOW_ENTER_LOCATION,
   PROP_SHOW_TRASH,
+  PROP_SHOW_STARRED_LOCATION,
   PROP_LOCAL_ONLY,
   PROP_SHOW_OTHER_LOCATIONS,
   PROP_POPULATE_ALL,
@@ -306,13 +311,13 @@ enum {
 };
 
 /* Target types for dragging from the shortcuts list */
-static const GtkTargetEntry dnd_source_targets[] = {
-  { (char *) "DND_GTK_SIDEBAR_ROW", GTK_TARGET_SAME_WIDGET, DND_GTK_SIDEBAR_ROW }
+static const char *dnd_source_targets[] = {
+  "DND_GTK_SIDEBAR_ROW"
 };
 
 /* Target types for dropping into the shortcuts list */
-static const GtkTargetEntry dnd_drop_targets [] = {
-  { (char *) "DND_GTK_SIDEBAR_ROW", GTK_TARGET_SAME_WIDGET, DND_GTK_SIDEBAR_ROW }
+static const char *dnd_drop_targets [] = {
+  "DND_GTK_SIDEBAR_ROW"
 };
 
 G_DEFINE_TYPE (GtkPlacesSidebar, gtk_places_sidebar, GTK_TYPE_SCROLLED_WINDOW);
@@ -351,6 +356,15 @@ emit_show_other_locations_with_flags (GtkPlacesSidebar   *sidebar,
   g_signal_emit (sidebar, places_sidebar_signals[SHOW_OTHER_LOCATIONS_WITH_FLAGS],
                  0, open_flags);
 }
+
+static void
+emit_show_starred_location (GtkPlacesSidebar  *sidebar,
+                            GtkPlacesOpenFlags open_flags)
+{
+  g_signal_emit (sidebar, places_sidebar_signals[SHOW_STARRED_LOCATION], 0,
+                 open_flags);
+}
+
 
 static void
 emit_mount_operation (GtkPlacesSidebar *sidebar,
@@ -444,7 +458,7 @@ add_place (GtkPlacesSidebar            *sidebar,
            GVolume                     *volume,
            GMount                      *mount,
 #ifdef HAVE_CLOUDPROVIDERS
-           CloudProviderAccount        *cloud_provider_account,
+           CloudProvidersAccount       *cloud_provider_account,
 #else
            gpointer                    *cloud_provider_account,
 #endif
@@ -479,7 +493,7 @@ add_place (GtkPlacesSidebar            *sidebar,
                       "volume", volume,
                       "mount", mount,
 #ifdef HAVE_CLOUDPROVIDERS
-                      "cloud-provider", cloud_provider_account,
+                      "cloud-provider-account", cloud_provider_account,
 #endif
                       NULL);
 
@@ -900,61 +914,80 @@ update_trash_icon (GtkPlacesSidebar *sidebar)
 }
 
 #ifdef HAVE_CLOUDPROVIDERS
-static void
-cloud_row_update (CloudProviderAccount *cloud_provider_account,
-                  GtkWidget          *cloud_row)
+
+static gboolean
+create_cloud_provider_account_row (GtkPlacesSidebar      *sidebar,
+                                   CloudProvidersAccount *account)
 {
   GIcon *end_icon;
-  gint provider_status;
-  provider_status = cloud_provider_account_get_status (cloud_provider_account);
-  switch (provider_status)
+  GIcon *start_icon;
+  gchar *mount_uri;
+  gchar *name;
+  gchar *tooltip;
+  guint provider_account_status;
+
+  start_icon = cloud_providers_account_get_icon (account);
+  name = cloud_providers_account_get_name (account);
+  provider_account_status = cloud_providers_account_get_status (account);
+  mount_uri = cloud_providers_account_get_path (account);
+  if (start_icon != NULL
+      && name != NULL
+      && provider_account_status != CLOUD_PROVIDERS_ACCOUNT_STATUS_INVALID
+      && mount_uri != NULL)
     {
-      case CLOUD_PROVIDER_STATUS_IDLE:
-        end_icon = NULL;
-        break;
+      switch (provider_account_status)
+        {
+          case CLOUD_PROVIDERS_ACCOUNT_STATUS_IDLE:
+            end_icon = NULL;
+          break;
 
-      case CLOUD_PROVIDER_STATUS_SYNCING:
-        end_icon = g_themed_icon_new ("emblem-synchronizing-symbolic");
-        break;
+          case CLOUD_PROVIDERS_ACCOUNT_STATUS_SYNCING:
+            end_icon = g_themed_icon_new ("emblem-synchronizing-symbolic");
+          break;
 
-      case CLOUD_PROVIDER_STATUS_ERROR:
-        end_icon = g_themed_icon_new ("dialog-warning-symbolic");
-        break;
+          case CLOUD_PROVIDERS_ACCOUNT_STATUS_ERROR:
+            end_icon = g_themed_icon_new ("dialog-warning-symbolic");
+          break;
 
-      default:
-        return;
+          default:
+            return FALSE;
+        }
+
+      mount_uri = g_strconcat ("file://", mount_uri, NULL);
+
+      /* translators: %s is the name of a cloud provider for files */
+      tooltip = g_strdup_printf (_("Open %s"), name);
+
+      add_place (sidebar, PLACES_BUILT_IN,
+                 SECTION_CLOUD,
+                 name, start_icon, end_icon, mount_uri,
+                 NULL, NULL, NULL, account, 0,
+                 tooltip);
+
+      return TRUE;
     }
-
-  gtk_sidebar_row_set_end_icon (GTK_SIDEBAR_ROW (cloud_row), end_icon);
-  if (end_icon != NULL)
-    g_object_unref (end_icon);
-
-  g_object_set (cloud_row,
-                "label", cloud_provider_account_get_name (cloud_provider_account),
-                NULL);
-  g_object_set (cloud_row,
-                "tooltip", cloud_provider_account_get_status_details (cloud_provider_account),
-                NULL);
-
+  else
+    {
+      return FALSE;
+    }
 }
 
-void
-cloud_row_destroy (GtkWidget *object,
-                   gpointer   user_data)
+static void
+on_account_updated (GObject    *object,
+                    GParamSpec *pspec,
+                    gpointer    user_data)
 {
-  GtkPlacesSidebar *sidebar = GTK_PLACES_SIDEBAR (user_data);
-  CloudProviderAccount *cloud_provider_account = NULL;
-  g_object_get (GTK_SIDEBAR_ROW (object), "cloud-provider", &cloud_provider_account, NULL);
-  if (cloud_provider_account != NULL)
-    {
-      g_signal_handlers_disconnect_matched (cloud_provider_account,
-                                            G_SIGNAL_MATCH_DATA,
-                                            0, 0, 0, cloud_row_update, object);
-      g_object_unref (object);
-      g_object_unref (cloud_provider_account);
-    }
-  sidebar->cloud_rows = g_list_remove (sidebar->cloud_rows, object);
+    CloudProvidersAccount *account = CLOUD_PROVIDERS_ACCOUNT (object);
+    GtkPlacesSidebar *sidebar = GTK_PLACES_SIDEBAR (user_data);
+
+    if (create_cloud_provider_account_row (sidebar, account))
+      {
+          g_signal_handlers_disconnect_by_data (account, sidebar);
+          sidebar->unready_accounts = g_list_remove (sidebar->unready_accounts, account);
+          g_object_unref (account);
+      }
 }
+
 #endif
 
 static void
@@ -977,10 +1010,10 @@ update_places (GtkPlacesSidebar *sidebar)
   GList *network_mounts, *network_volumes;
   GIcon *new_bookmark_icon;
 #ifdef HAVE_CLOUDPROVIDERS
-  GIcon *end_icon;
-  GList *cloud_provider_proxies;
-  guint provider_status;
-  gchar *cloudprovider_path;
+  GList *cloud_providers;
+  GList *cloud_providers_accounts;
+  CloudProvidersAccount *cloud_provider_account;
+  CloudProvidersProvider *cloud_provider;
 #endif
   GtkStyleContext *context;
 
@@ -1014,6 +1047,17 @@ update_places (GtkPlacesSidebar *sidebar)
                  _("Recent"), start_icon, NULL, "recent:///",
                  NULL, NULL, NULL, NULL, 0,
                  _("Recent files"));
+      g_object_unref (start_icon);
+    }
+
+  if (sidebar->show_starred_location)
+    {
+      start_icon = g_themed_icon_new_with_default_fallbacks ("starred-symbolic");
+      add_place (sidebar, PLACES_STARRED_LOCATION,
+                 SECTION_COMPUTER,
+                 _("Starred"), start_icon, NULL, "favorites:///",
+                 NULL, NULL, NULL, NULL, 0,
+                 _("Favorite files"));
       g_object_unref (start_icon);
     }
 
@@ -1078,52 +1122,39 @@ update_places (GtkPlacesSidebar *sidebar)
 
   /* Cloud providers */
 #ifdef HAVE_CLOUDPROVIDERS
-  cloud_provider_proxies = cloud_providers_get_providers (sidebar->cloud_manager);
-  for (l = cloud_provider_proxies; l != NULL; l = l->next)
+  cloud_providers = cloud_providers_collector_get_providers (sidebar->cloud_manager);
+  for (l = sidebar->unready_accounts; l != NULL; l = l->next)
     {
-      start_icon = cloud_provider_account_get_icon (l->data);
-      name = cloud_provider_account_get_name (l->data);
-      provider_status = cloud_provider_account_get_status (l->data);
-      cloudprovider_path = cloud_provider_account_get_path (l->data);
-      if (start_icon == NULL
-          || name == NULL
-          || provider_status == CLOUD_PROVIDER_STATUS_INVALID
-          || cloudprovider_path == NULL)
-        continue;
-      cloudprovider_path = g_strconcat ("file://", cloud_provider_account_get_path (l->data), NULL);
-      switch (provider_status)
+        g_signal_handlers_disconnect_by_data (l->data, sidebar);
+    }
+  g_list_free_full (sidebar->unready_accounts, g_object_unref);
+  sidebar->unready_accounts = NULL;
+  for (l = cloud_providers; l != NULL; l = l->next)
+    {
+      cloud_provider = CLOUD_PROVIDERS_PROVIDER (l->data);
+      g_signal_connect_swapped (cloud_provider, "accounts-changed",
+                                G_CALLBACK (update_places), sidebar);
+      cloud_providers_accounts = cloud_providers_provider_get_accounts (cloud_provider);
+      for (ll = cloud_providers_accounts; ll != NULL; ll = ll->next)
         {
-        case CLOUD_PROVIDER_STATUS_IDLE:
-          end_icon = NULL;
-          break;
+          cloud_provider_account = CLOUD_PROVIDERS_ACCOUNT (ll->data);
+          if (!create_cloud_provider_account_row (sidebar, cloud_provider_account))
+            {
 
-        case CLOUD_PROVIDER_STATUS_SYNCING:
-          end_icon = g_themed_icon_new ("emblem-synchronizing-symbolic");
-          break;
+              g_signal_connect (cloud_provider_account, "notify::name",
+                                G_CALLBACK (on_account_updated), sidebar);
+              g_signal_connect (cloud_provider_account, "notify::status",
+                                G_CALLBACK (on_account_updated), sidebar);
+              g_signal_connect (cloud_provider_account, "notify::status-details",
+                                G_CALLBACK (on_account_updated), sidebar);
+              g_signal_connect (cloud_provider_account, "notify::path",
+                                G_CALLBACK (on_account_updated), sidebar);
+              sidebar->unready_accounts = g_list_append (sidebar->unready_accounts,
+                                                         g_object_ref (cloud_provider_account));
+              continue;
+            }
 
-        case CLOUD_PROVIDER_STATUS_ERROR:
-          end_icon = g_themed_icon_new ("dialog-warning-symbolic");
-          break;
-
-        default:
-          continue;
         }
-
-      /* translators: %s is the name of a cloud provider for files */
-      tooltip = g_strdup_printf (_("Open %s"), name);
-
-      GtkWidget *cloud_row = NULL;
-      cloud_row = add_place (sidebar, PLACES_BUILT_IN,
-                               SECTION_CLOUD,
-                               name, start_icon, end_icon, cloudprovider_path,
-                               NULL, NULL, NULL, l->data, 0,
-                               tooltip);
-
-      g_signal_connect (l->data, "changed", G_CALLBACK (cloud_row_update), cloud_row);
-      g_signal_connect (cloud_row, "destroy", G_CALLBACK (cloud_row_destroy), sidebar);
-      g_object_ref (cloud_row);
-      g_object_ref (l->data);
-      sidebar->cloud_rows = g_list_append (sidebar->cloud_rows, cloud_row);
     }
 #endif
 
@@ -1506,6 +1537,12 @@ check_valid_drop_target (GtkPlacesSidebar *sidebar,
                 "uri", &uri,
                 NULL);
 
+  if (place_type == PLACES_STARRED_LOCATION)
+    {
+      g_free (uri);
+      return FALSE;
+    }
+
   if (place_type == PLACES_CONNECT_TO_SERVER)
     {
       g_free (uri);
@@ -1597,7 +1634,7 @@ get_drag_data (GtkWidget      *list_box,
 
   target = gtk_drag_dest_find_target (list_box, context, NULL);
 
-  if (target == GDK_NONE)
+  if (target == NULL)
     return FALSE;
 
   gtk_drag_get_data (list_box, context, target, time);
@@ -1671,7 +1708,7 @@ on_motion_notify_event (GtkWidget      *widget,
 {
   GtkPlacesSidebar *sidebar = GTK_PLACES_SIDEBAR (user_data);
   guint state;
-  double x_root, y_root;
+  double x, y;
 
   if (sidebar->drag_row == NULL || sidebar->dragging_over)
     return FALSE;
@@ -1680,17 +1717,18 @@ on_motion_notify_event (GtkWidget      *widget,
       !(state & GDK_BUTTON1_MASK))
     return FALSE;
 
-  gdk_event_get_root_coords ((GdkEvent *) event, &x_root, &y_root);
+  gdk_event_get_coords ((GdkEvent *) event, &x, &y);
 
   if (gtk_drag_check_threshold (widget,
-                                sidebar->drag_root_x, sidebar->drag_root_y,
-                                x_root, y_root))
+                                sidebar->drag_x, sidebar->drag_y,
+                                x, y))
     {
       sidebar->dragging_over = TRUE;
 
-      gtk_drag_begin_with_coordinates (widget, sidebar->source_targets, GDK_ACTION_MOVE,
-                                       GDK_BUTTON_PRIMARY, (GdkEvent*)event,
-                                       -1, -1);
+      gtk_drag_begin_with_coordinates (widget,
+                                       gdk_event_get_device ((GdkEvent*) event),
+                                       sidebar->source_targets, GDK_ACTION_MOVE,
+                                       sidebar->drag_x, sidebar->drag_y);
     }
 
   return FALSE;
@@ -1934,14 +1972,12 @@ static void
 drag_data_get_callback (GtkWidget        *widget,
                         GdkDragContext   *context,
                         GtkSelectionData *data,
-                        guint             info,
-                        guint             time,
                         gpointer          user_data)
 {
   GtkPlacesSidebar *sidebar = GTK_PLACES_SIDEBAR (user_data);
   GdkAtom target = gtk_selection_data_get_target (data);
 
-  if (target == gdk_atom_intern_static_string ("DND_GTK_SIDEBAR_ROW"))
+  if (target == g_intern_static_string ("DND_GTK_SIDEBAR_ROW"))
     {
       gtk_selection_data_set (data,
                               target,
@@ -1957,7 +1993,6 @@ drag_data_received_callback (GtkWidget        *list_box,
                              int               x,
                              int               y,
                              GtkSelectionData *selection_data,
-                             guint             info,
                              guint             time,
                              gpointer          user_data)
 {
@@ -1971,8 +2006,7 @@ drag_data_received_callback (GtkWidget        *list_box,
 
   if (!sidebar->drag_data_received)
     {
-      if (gtk_selection_data_get_target (selection_data) != GDK_NONE &&
-          info == DND_TEXT_URI_LIST)
+      if (gtk_selection_data_targets_include_uri (selection_data))
         {
           gchar **uris;
 
@@ -1982,13 +2016,15 @@ drag_data_received_callback (GtkWidget        *list_box,
             g_list_free_full (sidebar->drag_list, g_object_unref);
           sidebar->drag_list = build_file_list_from_uris ((const char **) uris);
           g_strfreev (uris);
+          sidebar->drag_data_info = DND_TEXT_URI_LIST;
         }
       else
         {
           sidebar->drag_list = NULL;
+          if (gtk_selection_data_get_target (selection_data) == g_intern_static_string ("DND_GTK_SIDEBAR_ROW"))
+            sidebar->drag_data_info = DND_GTK_SIDEBAR_ROW;
         }
       sidebar->drag_data_received = TRUE;
-      sidebar->drag_data_info = info;
     }
 
   g_signal_stop_emission_by_name (list_box, "drag-data-received");
@@ -2066,7 +2102,7 @@ drag_data_received_callback (GtkWidget        *list_box,
 
 out:
   sidebar->drop_occurred = FALSE;
-  gtk_drag_finish (context, success, FALSE, time);
+  gtk_drag_finish (context, success, time);
   stop_drop_feedback (sidebar);
   g_free (target_uri);
 }
@@ -2452,6 +2488,10 @@ open_row (GtkSidebarRow      *row,
   if (place_type == PLACES_OTHER_LOCATIONS)
     {
       emit_show_other_locations_with_flags (sidebar, open_flags);
+    }
+  else if (place_type == PLACES_STARRED_LOCATION)
+    {
+      emit_show_starred_location (sidebar, open_flags);
     }
   else if (uri != NULL)
     {
@@ -3507,17 +3547,17 @@ on_row_popover_destroy (GtkWidget        *row_popover,
 static void
 build_popup_menu_using_gmenu (GtkSidebarRow *row)
 {
-  CloudProviderAccount *cloud_provider_account;
+  CloudProvidersAccount *cloud_provider_account;
   GtkPlacesSidebar *sidebar;
   GMenuModel *cloud_provider_menu;
   GActionGroup *cloud_provider_action_group;
 
   g_object_get (row,
                 "sidebar", &sidebar,
-                "cloud-provider", &cloud_provider_account,
+                "cloud-provider-account", &cloud_provider_account,
                 NULL);
 
-  /* Cloud provider */
+  /* Cloud provider account */
   if (cloud_provider_account)
     {
       GMenu *menu = g_menu_new ();
@@ -3526,27 +3566,35 @@ build_popup_menu_using_gmenu (GtkSidebarRow *row)
       g_menu_item_set_action_and_target_value (item, "row.open",
                                                g_variant_new_int32 (GTK_PLACES_OPEN_NORMAL));
       g_menu_append_item (menu, item);
-      item = g_menu_item_new (_("Open in New _Tab"), "row.open-other");
-      g_menu_item_set_action_and_target_value (item, "row.open-other",
-                                               g_variant_new_int32 (GTK_PLACES_OPEN_NEW_TAB));
-      g_menu_append_item (menu, item);
-      item = g_menu_item_new (_("Open in New _Window"), "row.open-other");
-      g_menu_item_set_action_and_target_value (item, "row.open-other",
-                                               g_variant_new_int32 (GTK_PLACES_OPEN_NEW_WINDOW));
-      g_menu_append_item (menu, item);
-      cloud_provider_menu = cloud_provider_account_get_menu_model (cloud_provider_account);
-      g_menu_append_section (menu, NULL, cloud_provider_menu);
-      cloud_provider_action_group = cloud_provider_account_get_action_group (cloud_provider_account);
-      gtk_widget_insert_action_group (GTK_WIDGET (sidebar),
-                                      "cloudprovider",
-                                      G_ACTION_GROUP (cloud_provider_action_group));
+      if (sidebar->open_flags & GTK_PLACES_OPEN_NEW_TAB)
+        {
+          item = g_menu_item_new (_("Open in New _Tab"), "row.open-other");
+          g_menu_item_set_action_and_target_value (item, "row.open-other", g_variant_new_int32(GTK_PLACES_OPEN_NEW_TAB));
+          g_menu_append_item (menu, item);
+        }
+      if (sidebar->open_flags & GTK_PLACES_OPEN_NEW_WINDOW)
+        {
+          item = g_menu_item_new (_("Open in New _Window"), "row.open-other");
+          g_menu_item_set_action_and_target_value (item, "row.open-other", g_variant_new_int32(GTK_PLACES_OPEN_NEW_WINDOW));
+          g_menu_append_item (menu, item);
+        }
+      cloud_provider_menu = cloud_providers_account_get_menu_model (cloud_provider_account);
+      cloud_provider_action_group = cloud_providers_account_get_action_group (cloud_provider_account);
+      if (cloud_provider_menu != NULL && cloud_provider_action_group != NULL)
+        {
+          g_menu_append_section (menu, NULL, cloud_provider_menu);
+          gtk_widget_insert_action_group (GTK_WIDGET (sidebar),
+                                          "cloudprovider",
+                                          G_ACTION_GROUP (cloud_provider_action_group));
+        }
       add_actions (sidebar);
       if (sidebar->popover)
         gtk_widget_destroy (sidebar->popover);
 
       sidebar->popover = gtk_popover_new_from_model (GTK_WIDGET (sidebar),
                                                      G_MENU_MODEL (menu));
-      g_signal_connect (sidebar->popover, "destroy", G_CALLBACK (on_row_popover_destroy), sidebar);
+      g_signal_connect (sidebar->popover, "destroy",
+                        G_CALLBACK (on_row_popover_destroy), sidebar);
       g_object_unref (sidebar);
       g_object_unref (cloud_provider_account);
     }
@@ -3562,15 +3610,15 @@ create_row_popover (GtkPlacesSidebar *sidebar,
   GtkWidget *box;
 
 #ifdef HAVE_CLOUDPROVIDERS
-  CloudProviderAccount *cloud_provider_account;
+  CloudProvidersAccount *cloud_provider_account;
 
-  g_object_get (row, "cloud-provider", &cloud_provider_account, NULL);
+  g_object_get (row, "cloud-provider-account", &cloud_provider_account, NULL);
 
   if (cloud_provider_account)
-  {
-    build_popup_menu_using_gmenu (row);
-    return;
-  }
+    {
+      build_popup_menu_using_gmenu (row);
+       return;
+    }
 #endif
 
   sidebar->popover = gtk_popover_new (GTK_WIDGET (sidebar));
@@ -3683,7 +3731,6 @@ on_button_press_event (GtkWidget      *widget,
   GtkPlacesSidebar *sidebar;
   GtkPlacesSidebarSectionType section_type;
   gdouble x, y;
-  double x_root, y_root;
 
   g_object_get (GTK_SIDEBAR_ROW (row),
                 "sidebar", &sidebar,
@@ -3693,13 +3740,12 @@ on_button_press_event (GtkWidget      *widget,
   if (section_type == SECTION_BOOKMARKS)
     {
       gdk_event_get_coords ((GdkEvent *) event, &x, &y);
-      gdk_event_get_root_coords ((GdkEvent *) event, &x_root, &y_root);
       sidebar->drag_row = GTK_WIDGET (row);
       sidebar->drag_row_x = (gint)x;
       sidebar->drag_row_y = (gint)y;
 
-      sidebar->drag_root_x = x_root;
-      sidebar->drag_root_y = y_root;
+      sidebar->drag_x = x;
+      sidebar->drag_y = y;
     }
 
   g_object_unref (sidebar);
@@ -3971,7 +4017,7 @@ shell_shows_desktop_changed (GtkSettings *settings,
 static void
 gtk_places_sidebar_init (GtkPlacesSidebar *sidebar)
 {
-  GtkTargetList *target_list;
+  GdkContentFormats *target_list;
   gboolean show_desktop;
   GtkStyleContext *context;
 
@@ -4022,14 +4068,14 @@ gtk_places_sidebar_init (GtkPlacesSidebar *sidebar)
   /* DND support */
   gtk_drag_dest_set (sidebar->list_box,
                      0,
-                     NULL, 0,
+                     NULL,
                      GDK_ACTION_MOVE | GDK_ACTION_COPY | GDK_ACTION_LINK);
-  target_list = gtk_target_list_new  (dnd_drop_targets, G_N_ELEMENTS (dnd_drop_targets));
-  gtk_target_list_add_uri_targets (target_list, DND_TEXT_URI_LIST);
+  target_list = gdk_content_formats_new  (dnd_drop_targets, G_N_ELEMENTS (dnd_drop_targets));
+  target_list = gtk_content_formats_add_uri_targets (target_list);
   gtk_drag_dest_set_target_list (sidebar->list_box, target_list);
-  gtk_target_list_unref (target_list);
-  sidebar->source_targets = gtk_target_list_new (dnd_source_targets, G_N_ELEMENTS (dnd_source_targets));
-  gtk_target_list_add_text_targets (sidebar->source_targets, 0);
+  gdk_content_formats_unref (target_list);
+  sidebar->source_targets = gdk_content_formats_new (dnd_source_targets, G_N_ELEMENTS (dnd_source_targets));
+  sidebar->source_targets = gtk_content_formats_add_text_targets (sidebar->source_targets);
 
   g_signal_connect (sidebar->list_box, "motion-notify-event",
                     G_CALLBACK (on_motion_notify_event), sidebar);
@@ -4077,13 +4123,11 @@ gtk_places_sidebar_init (GtkPlacesSidebar *sidebar)
 
   /* Cloud providers */
 #ifdef HAVE_CLOUDPROVIDERS
-  sidebar->cloud_rows = NULL;
-  sidebar->cloud_manager = cloud_providers_dup_singleton ();
+  sidebar->cloud_manager = cloud_providers_collector_dup_singleton ();
   g_signal_connect_swapped (sidebar->cloud_manager,
-                            "owners-changed",
+                            "providers-changed",
                             G_CALLBACK (update_places),
                             sidebar);
-  cloud_providers_update (sidebar->cloud_manager);
 #endif
 
   /* populate the sidebar */
@@ -4128,6 +4172,10 @@ gtk_places_sidebar_set_property (GObject      *obj,
 
     case PROP_SHOW_TRASH:
       gtk_places_sidebar_set_show_trash (sidebar, g_value_get_boolean (value));
+      break;
+
+    case PROP_SHOW_STARRED_LOCATION:
+      gtk_places_sidebar_set_show_starred_location (sidebar, g_value_get_boolean (value));
       break;
 
     case PROP_LOCAL_ONLY:
@@ -4186,6 +4234,10 @@ gtk_places_sidebar_get_property (GObject    *obj,
       g_value_set_boolean (value, gtk_places_sidebar_get_show_trash (sidebar));
       break;
 
+    case PROP_SHOW_STARRED_LOCATION:
+      g_value_set_boolean (value, gtk_places_sidebar_get_show_starred_location (sidebar));
+      break;
+
     case PROP_LOCAL_ONLY:
       g_value_set_boolean (value, gtk_places_sidebar_get_local_only (sidebar));
       break;
@@ -4204,6 +4256,9 @@ static void
 gtk_places_sidebar_dispose (GObject *object)
 {
   GtkPlacesSidebar *sidebar;
+#ifdef HAVE_CLOUDPROVIDERS
+  GList *l;
+#endif
 
   sidebar = GTK_PLACES_SIDEBAR (object);
 
@@ -4281,7 +4336,7 @@ gtk_places_sidebar_dispose (GObject *object)
 
   if (sidebar->source_targets)
     {
-      gtk_target_list_unref (sidebar->source_targets);
+      gdk_content_formats_unref (sidebar->source_targets);
       sidebar->source_targets = NULL;
     }
 
@@ -4289,10 +4344,33 @@ gtk_places_sidebar_dispose (GObject *object)
   sidebar->shortcuts = NULL;
 
 #ifdef HAVE_CLOUDPROVIDERS
-  g_clear_object (&sidebar->cloud_manager);
+  for (l = cloud_providers_collector_get_providers (sidebar->cloud_manager);
+       l != NULL; l = l->next)
+    {
+      g_signal_handlers_disconnect_by_data (l->data, sidebar);
+    }
+  for (l = sidebar->unready_accounts; l != NULL; l = l->next)
+    {
+        g_signal_handlers_disconnect_by_data (l->data, sidebar);
+    }
+  g_list_free_full (sidebar->unready_accounts, g_object_unref);
+  sidebar->unready_accounts = NULL;
 #endif
 
   G_OBJECT_CLASS (gtk_places_sidebar_parent_class)->dispose (object);
+}
+
+static void
+gtk_places_sidebar_finalize (GObject *object)
+{
+#ifdef HAVE_CLOUDPROVIDERS
+  GtkPlacesSidebar *sidebar;
+
+  sidebar = GTK_PLACES_SIDEBAR (object);
+  g_clear_object (&sidebar->cloud_manager);
+#endif
+
+  G_OBJECT_CLASS (gtk_places_sidebar_parent_class)->finalize (object);
 }
 
 static void
@@ -4303,6 +4381,7 @@ gtk_places_sidebar_class_init (GtkPlacesSidebarClass *class)
 
 
   gobject_class->dispose = gtk_places_sidebar_dispose;
+  gobject_class->finalize = gtk_places_sidebar_finalize;
   gobject_class->set_property = gtk_places_sidebar_set_property;
   gobject_class->get_property = gtk_places_sidebar_get_property;
 
@@ -4334,8 +4413,10 @@ gtk_places_sidebar_class_init (GtkPlacesSidebarClass *class)
    * GtkPlacesSidebar::populate-popup:
    * @sidebar: the object which received the signal.
    * @container: (type Gtk.Widget): a #GtkMenu or another #GtkContainer
-   * @selected_item: (type Gio.File) (nullable): #GFile with the item to which the popup should refer, or #NULL in the case of a @selected_volume.
-   * @selected_volume: (type Gio.Volume) (nullable): #GVolume if the selected item is a volume, or #NULL if it is a file.
+   * @selected_item: (type Gio.File) (nullable): #GFile with the item to which
+   *     the popup should refer, or %NULL in the case of a @selected_volume.
+   * @selected_volume: (type Gio.Volume) (nullable): #GVolume if the selected
+   *     item is a volume, or %NULL if it is a file.
    *
    * The places sidebar emits this signal when the user invokes a contextual
    * popup on one of its items. In the signal handler, the application may
@@ -4576,56 +4657,84 @@ gtk_places_sidebar_class_init (GtkPlacesSidebarClass *class)
                         1,
                         G_TYPE_MOUNT_OPERATION);
 
+  /**
+   * GtkPlacesSidebar::show-starred-location:
+   * @sidebar: the object which received the signal
+   * @flags: the flags for the operation
+   *
+   * The places sidebar emits this signal when it needs the calling
+   * application to present a way to show the starred files. In GNOME,
+   * starred files are implemented by setting the nao:predefined-tag-favorite
+   * tag in the tracker database.
+   *
+   * Since: 3.22.26
+   */
+  places_sidebar_signals [SHOW_STARRED_LOCATION] =
+          g_signal_new (I_("show-starred-location"),
+                        G_OBJECT_CLASS_TYPE (gobject_class),
+                        G_SIGNAL_RUN_FIRST,
+                        G_STRUCT_OFFSET (GtkPlacesSidebarClass, show_starred_location),
+                        NULL, NULL,
+                        NULL,
+                        G_TYPE_NONE, 1,
+                        GTK_TYPE_PLACES_OPEN_FLAGS);
 
   properties[PROP_LOCATION] =
           g_param_spec_object ("location",
                                P_("Location to Select"),
                                P_("The location to highlight in the sidebar"),
                                G_TYPE_FILE,
-                               G_PARAM_READWRITE);
+                               GTK_PARAM_READWRITE);
   properties[PROP_OPEN_FLAGS] =
           g_param_spec_flags ("open-flags",
                               P_("Open Flags"),
                               P_("Modes in which the calling application can open locations selected in the sidebar"),
                               GTK_TYPE_PLACES_OPEN_FLAGS,
                               GTK_PLACES_OPEN_NORMAL,
-                              G_PARAM_READWRITE);
+                              GTK_PARAM_READWRITE);
   properties[PROP_SHOW_RECENT] =
           g_param_spec_boolean ("show-recent",
                                 P_("Show recent files"),
                                 P_("Whether the sidebar includes a builtin shortcut for recent files"),
                                 TRUE,
-                                G_PARAM_READWRITE);
+                                GTK_PARAM_READWRITE);
   properties[PROP_SHOW_DESKTOP] =
           g_param_spec_boolean ("show-desktop",
                                 P_("Show “Desktop”"),
                                 P_("Whether the sidebar includes a builtin shortcut to the Desktop folder"),
                                 TRUE,
-                                G_PARAM_READWRITE);
+                                GTK_PARAM_READWRITE);
   properties[PROP_SHOW_ENTER_LOCATION] =
           g_param_spec_boolean ("show-enter-location",
                                 P_("Show “Enter Location”"),
                                 P_("Whether the sidebar includes a builtin shortcut to manually enter a location"),
                                 FALSE,
-                                G_PARAM_READWRITE);
+                                GTK_PARAM_READWRITE);
   properties[PROP_LOCAL_ONLY] =
           g_param_spec_boolean ("local-only",
                                 P_("Local Only"),
                                 P_("Whether the sidebar only includes local files"),
                                 FALSE,
-                                G_PARAM_READWRITE);
+                                GTK_PARAM_READWRITE);
   properties[PROP_SHOW_TRASH] =
           g_param_spec_boolean ("show-trash",
                                 P_("Show “Trash”"),
                                 P_("Whether the sidebar includes a builtin shortcut to the Trash location"),
                                 TRUE,
-                                G_PARAM_READWRITE);
+                                GTK_PARAM_READWRITE);
   properties[PROP_SHOW_OTHER_LOCATIONS] =
           g_param_spec_boolean ("show-other-locations",
                                 P_("Show “Other locations”"),
                                 P_("Whether the sidebar includes an item to show external locations"),
                                 FALSE,
-                                G_PARAM_READWRITE);
+                                GTK_PARAM_READWRITE);
+  properties[PROP_SHOW_STARRED_LOCATION] =
+          g_param_spec_boolean ("show-starred-location",
+                                P_("Show “Starred Location”"),
+                                P_("Whether the sidebar includes an item to show starred files"),
+                                FALSE,
+                                GTK_PARAM_READWRITE);
+
 
   /**
    * GtkPlacesSidebar:populate-all:
@@ -4636,7 +4745,7 @@ gtk_places_sidebar_class_init (GtkPlacesSidebarClass *class)
    * Since: 3.18
    */
   properties[PROP_POPULATE_ALL] =
-          g_param_spec_boolean ("populate-all",
+          g_param_spec_boolean (I_("populate-all"),
                                 P_("Populate all"),
                                 P_("Whether to emit ::populate-popup for popups that are not menus"),
                                 FALSE,
@@ -4644,7 +4753,7 @@ gtk_places_sidebar_class_init (GtkPlacesSidebarClass *class)
 
   g_object_class_install_properties (gobject_class, NUM_PROPERTIES, properties);
 
-  gtk_widget_class_set_css_name (widget_class, "placessidebar");
+  gtk_widget_class_set_css_name (widget_class, I_("placessidebar"));
 }
 
 /**
@@ -4725,7 +4834,7 @@ gtk_places_sidebar_get_open_flags (GtkPlacesSidebar *sidebar)
 /**
  * gtk_places_sidebar_set_location:
  * @sidebar: a places sidebar
- * @location: (allow-none): location to select, or #NULL for no current path
+ * @location: (nullable): location to select, or %NULL for no current path
  *
  * Sets the location that is being shown in the widgets surrounding the
  * @sidebar, for example, in a folder view in a file manager.  In turn, the
@@ -4785,7 +4894,7 @@ gtk_places_sidebar_set_location (GtkPlacesSidebar *sidebar,
  * gtk_places_sidebar_get_location:
  * @sidebar: a places sidebar
  *
- * Gets the currently-selected location in the @sidebar.  This can be #NULL when
+ * Gets the currently selected location in the @sidebar. This can be %NULL when
  * nothing is selected, for example, when gtk_places_sidebar_set_location() has
  * been called with a location that is not among the sidebar’s list of places to
  * show.
@@ -4795,7 +4904,7 @@ gtk_places_sidebar_set_location (GtkPlacesSidebar *sidebar,
  * function to get the location that is being referred to during the callbacks
  * for your menu items.
  *
- * Returns: (nullable) (transfer full): a GFile with the selected location, or
+ * Returns: (nullable) (transfer full): a #GFile with the selected location, or
  * %NULL if nothing is visually selected.
  *
  * Since: 3.10
@@ -5331,4 +5440,47 @@ gtk_places_sidebar_set_drop_targets_visible (GtkPlacesSidebar *sidebar,
             }
         }
     }
+}
+
+/**
+ * gtk_places_sidebar_set_show_starred_location:
+ * @sidebar: a places sidebar
+ * @show_starred_location: whether to show an item for Starred files
+ *
+ * If you enable this, you should connect to the
+ * #GtkPlacesSidebar::show-starred-location signal.
+ *
+ * Since: 3.22.26
+ */
+void
+gtk_places_sidebar_set_show_starred_location (GtkPlacesSidebar *sidebar,
+                                              gboolean          show_starred_location)
+{
+  g_return_if_fail (GTK_IS_PLACES_SIDEBAR (sidebar));
+
+  show_starred_location = !!show_starred_location;
+  if (sidebar->show_starred_location != show_starred_location)
+    {
+      sidebar->show_starred_location = show_starred_location;
+      update_places (sidebar);
+      g_object_notify_by_pspec (G_OBJECT (sidebar), properties[PROP_SHOW_STARRED_LOCATION]);
+    }
+}
+
+/**
+ * gtk_places_sidebar_get_show_starred_location:
+ * @sidebar: a places sidebar
+ *
+ * Returns the value previously set with gtk_places_sidebar_set_show_starred_location()
+ *
+ * Returns: %TRUE if the sidebar will display a Starred item.
+ *
+ * Since: 3.22.26
+ */
+gboolean
+gtk_places_sidebar_get_show_starred_location (GtkPlacesSidebar *sidebar)
+{
+  g_return_val_if_fail (GTK_IS_PLACES_SIDEBAR (sidebar), FALSE);
+
+  return sidebar->show_starred_location;
 }

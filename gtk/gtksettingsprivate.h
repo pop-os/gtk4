@@ -31,7 +31,6 @@ void                _gtk_settings_set_property_value_from_rc (GtkSettings       
                                                               const GtkSettingsValue *svalue);
 void                _gtk_settings_reset_rc_values            (GtkSettings            *settings);
 
-void                _gtk_settings_handle_event               (GdkEvent               *event);
 GtkRcPropertyParser _gtk_rc_property_parser_from_type        (GType                   type);
 gboolean            _gtk_settings_parse_convert              (GtkRcPropertyParser     parser,
                                                               const GValue           *src_value,
@@ -39,7 +38,7 @@ gboolean            _gtk_settings_parse_convert              (GtkRcPropertyParse
                                                               GValue                 *dest_value);
 const cairo_font_options_t *
                     gtk_settings_get_font_options            (GtkSettings            *settings);
-GdkScreen          *_gtk_settings_get_screen                 (GtkSettings            *settings);
+GdkDisplay         *_gtk_settings_get_display                (GtkSettings            *settings);
 GtkStyleCascade    *_gtk_settings_get_style_cascade          (GtkSettings            *settings,
                                                               gint                    scale);
 

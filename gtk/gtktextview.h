@@ -191,6 +191,7 @@ struct _GtkTextViewClass
                                   const GtkTextIter      *location,
                                   GtkTextIter            *start,
                                   GtkTextIter            *end);
+  void (* insert_emoji)          (GtkTextView      *text_view);
 
   /*< private >*/
 
@@ -199,7 +200,6 @@ struct _GtkTextViewClass
   void (*_gtk_reserved2) (void);
   void (*_gtk_reserved3) (void);
   void (*_gtk_reserved4) (void);
-  void (*_gtk_reserved5) (void);
 };
 
 GDK_AVAILABLE_IN_ALL
@@ -294,13 +294,6 @@ void gtk_text_view_window_to_buffer_coords (GtkTextView       *text_view,
                                             gint               window_y,
                                             gint              *buffer_x,
                                             gint              *buffer_y);
-
-GDK_AVAILABLE_IN_ALL
-GdkWindow*        gtk_text_view_get_window      (GtkTextView       *text_view,
-                                                 GtkTextWindowType  win);
-GDK_AVAILABLE_IN_ALL
-GtkTextWindowType gtk_text_view_get_window_type (GtkTextView       *text_view,
-                                                 GdkWindow         *window);
 
 GDK_AVAILABLE_IN_ALL
 void gtk_text_view_set_border_window_size (GtkTextView       *text_view,

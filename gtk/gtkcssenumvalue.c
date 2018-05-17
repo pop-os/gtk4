@@ -24,6 +24,10 @@
 #include "gtkstyleproviderprivate.h"
 #include "gtksettingsprivate.h"
 
+#ifdef _MSC_VER
+# include <intrin.h>
+#endif
+
 /* repeated API */
 
 struct _GtkCssValue {
@@ -39,11 +43,11 @@ gtk_css_value_enum_free (GtkCssValue *value)
 }
 
 static GtkCssValue *
-gtk_css_value_enum_compute (GtkCssValue             *value,
-                            guint                    property_id,
-                            GtkStyleProviderPrivate *provider,
-                            GtkCssStyle             *style,
-                            GtkCssStyle             *parent_style)
+gtk_css_value_enum_compute (GtkCssValue      *value,
+                            guint             property_id,
+                            GtkStyleProvider *provider,
+                            GtkCssStyle      *style,
+                            GtkCssStyle      *parent_style)
 {
   return _gtk_css_value_ref (value);
 }
@@ -201,13 +205,13 @@ get_dpi (GtkCssStyle *style)
 #define DEFAULT_FONT_SIZE_PT 10
 
 double
-gtk_css_font_size_get_default_px (GtkStyleProviderPrivate *provider,
-                                  GtkCssStyle             *style)
+gtk_css_font_size_get_default_px (GtkStyleProvider *provider,
+                                  GtkCssStyle      *style)
 {
   GtkSettings *settings;
   int font_size;
 
-  settings = _gtk_style_provider_private_get_settings (provider);
+  settings = gtk_style_provider_get_settings (provider);
   if (settings == NULL)
     return DEFAULT_FONT_SIZE_PT * get_dpi (style) / 72.0;
 
@@ -221,11 +225,11 @@ gtk_css_font_size_get_default_px (GtkStyleProviderPrivate *provider,
 }
 
 static GtkCssValue *
-gtk_css_value_font_size_compute (GtkCssValue             *value,
-                                 guint                    property_id,
-                                 GtkStyleProviderPrivate *provider,
-                                 GtkCssStyle             *style,
-                                 GtkCssStyle             *parent_style)
+gtk_css_value_font_size_compute (GtkCssValue      *value,
+                                 guint             property_id,
+                                 GtkStyleProvider *provider,
+                                 GtkCssStyle      *style,
+                                 GtkCssStyle      *parent_style)
 {
   double font_size;
 
@@ -382,11 +386,11 @@ _gtk_css_font_style_value_get (const GtkCssValue *value)
 #define LIGHTER -2
 
 static GtkCssValue *
-gtk_css_value_font_weight_compute (GtkCssValue             *value,
-                                   guint                    property_id,
-                                   GtkStyleProviderPrivate *provider,
-                                   GtkCssStyle             *style,
-                                   GtkCssStyle             *parent_style)
+gtk_css_value_font_weight_compute (GtkCssValue      *value,
+                                   guint             property_id,
+                                   GtkStyleProvider *provider,
+                                   GtkCssStyle      *style,
+                                   GtkCssStyle      *parent_style)
 {
   PangoWeight new_weight;
   int parent_value;
@@ -1428,6 +1432,39 @@ static const GtkCssValueClass GTK_CSS_VALUE_FONT_VARIANT_EAST_ASIAN = {
   gtk_css_value_enum_transition,
   gtk_css_font_variant_east_asian_value_print
 };
+
+#ifdef _MSC_VER
+/* __builtin_popcount is a GCC-only function
+   so we need to define it for ourselves somehow */
+
+static inline guint
+__msvc_compat_popcnt (guint32 value)
+{
+  static gssize popcnt_checked = 0;
+  static gboolean have_popcnt = FALSE;
+
+# if defined (_M_AMD64) || defined (_M_X64) || (_M_IX86)
+  if (g_once_init_enter (&popcnt_checked))
+    {
+      int cpuinfo[4] = {-1};
+
+	  __cpuid (cpuinfo, 1);
+      have_popcnt =  (cpuinfo[2] & 0x00800000) != 0;
+      g_once_init_leave (&popcnt_checked, 1);
+    }
+# endif
+
+  if (have_popcnt)
+    return __popcnt (value);
+  else
+    /* http://graphics.stanford.edu/~seander/bithacks.html#CountBitsSetParallel */
+    return (((value & 0xfff) * 0x1001001001001ULL & 0x84210842108421ULL) % 0x1f) +
+           ((((value & 0xfff000) >> 12) * 0x1001001001001ULL & 0x84210842108421ULL) % 0x1f) +
+           (((value >> 24) * 0x1001001001001ULL & 0x84210842108421ULL) % 0x1f);
+}
+
+# define __builtin_popcount(v) __msvc_compat_popcnt(v)
+#endif
 
 static gboolean
 east_asian_value_is_valid (GtkCssFontVariantEastAsian east_asian)

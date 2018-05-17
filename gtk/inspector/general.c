@@ -128,7 +128,7 @@ init_version (GtkInspectorGeneral *gen)
 #endif
     backend = "Unknown";
 
-  window = gdk_window_new_toplevel (display, 0, 10, 10);
+  window = gdk_window_new_toplevel (display, 10, 10);
   gsk_renderer = gsk_renderer_new_for_window (window);
   if (strcmp (G_OBJECT_TYPE_NAME (gsk_renderer), "GskVulkanRenderer") == 0)
     renderer = "Vulkan";
@@ -139,6 +139,7 @@ init_version (GtkInspectorGeneral *gen)
   else
     renderer = "Unknown";
 
+  gsk_renderer_unrealize (gsk_renderer);
   g_object_unref (gsk_renderer);
   gdk_window_destroy (window);
 
@@ -169,7 +170,7 @@ add_check_row (GtkInspectorGeneral *gen,
   gtk_widget_set_hexpand (label, TRUE);
   gtk_box_pack_start (GTK_BOX (box), label);
 
-  check = gtk_image_new_from_icon_name ("object-select-symbolic", GTK_ICON_SIZE_MENU);
+  check = gtk_image_new_from_icon_name ("object-select-symbolic");
   gtk_widget_set_halign (check, GTK_ALIGN_END);
   gtk_widget_set_valign (check, GTK_ALIGN_BASELINE);
   gtk_widget_set_opacity (check, value ? 1.0 : 0.0);
@@ -387,7 +388,7 @@ init_vulkan (GtkInspectorGeneral *gen)
   GdkVulkanContext *context;
   GdkDisplay *display = gdk_display_get_default ();
 
-  window = gdk_window_new_toplevel (display, 0, 10, 10);
+  window = gdk_window_new_toplevel (display, 10, 10);
   context = gdk_window_create_vulkan_context (window, NULL);
   gdk_window_destroy (window);
 
@@ -501,17 +502,16 @@ translate_subpixel_layout (GdkSubpixelLayout subpixel)
     case GDK_SUBPIXEL_LAYOUT_HORIZONTAL_BGR: return "horizontal bgr";
     case GDK_SUBPIXEL_LAYOUT_VERTICAL_RGB: return "vertical rgb";
     case GDK_SUBPIXEL_LAYOUT_VERTICAL_BGR: return "vertical bgr";
-    default: g_assert_not_reached ();
+    default: g_assert_not_reached (); return "none";
     }
 }
 
 static void
-populate_display (GdkScreen *screen, GtkInspectorGeneral *gen)
+populate_display (GdkDisplay *display, GtkInspectorGeneral *gen)
 {
   gint i;
   GList *children, *l;
   GtkWidget *child;
-  GdkDisplay *display;
   int n_monitors;
   GtkListBox *list;
 
@@ -529,8 +529,6 @@ populate_display (GdkScreen *screen, GtkInspectorGeneral *gen)
       gtk_widget_destroy (child);
     }
   g_list_free (children);
-
-  display = gdk_screen_get_display (screen);
 
   gtk_label_set_label (GTK_LABEL (gen->priv->display_name), gdk_display_get_name (display));
 
@@ -600,22 +598,29 @@ populate_display_notify_cb (GdkDisplay          *display,
                             GParamSpec          *pspec,
                             GtkInspectorGeneral *gen)
 {
-  populate_display (gdk_display_get_default_screen (display), gen);
+  populate_display (display, gen);
+}
+
+static void
+populate_display_monitor_cb (GdkDisplay          *display,
+                             GdkMonitor          *monitor,
+                             GtkInspectorGeneral *gen)
+{
+  populate_display (display, gen);
 }
 
 static void
 init_display (GtkInspectorGeneral *gen)
 {
-  GdkScreen *screen;
   GdkDisplay *display;
 
   display = gdk_display_get_default ();
-  screen = gdk_screen_get_default ();
 
   g_signal_connect (display, "notify", G_CALLBACK (populate_display_notify_cb), gen);
-  g_signal_connect (screen, "monitors-changed", G_CALLBACK (populate_display), gen);
+  g_signal_connect (display, "monitor-added", G_CALLBACK (populate_display_monitor_cb), gen);
+  g_signal_connect (display, "monitor-removed", G_CALLBACK (populate_display_monitor_cb), gen);
 
-  populate_display (screen, gen);
+  populate_display (display, gen);
 }
 
 static void populate_seats (GtkInspectorGeneral *gen);

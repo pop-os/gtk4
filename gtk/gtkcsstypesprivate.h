@@ -28,7 +28,6 @@ typedef union _GtkCssMatcher GtkCssMatcher;
 typedef struct _GtkCssNode GtkCssNode;
 typedef struct _GtkCssNodeDeclaration GtkCssNodeDeclaration;
 typedef struct _GtkCssStyle GtkCssStyle;
-typedef struct _GtkStyleProviderPrivate GtkStyleProviderPrivate; /* dummy typedef */
 
 #define GTK_CSS_CHANGE_CLASS                          (1ULL <<  0)
 #define GTK_CSS_CHANGE_NAME                           (1ULL <<  1)
@@ -101,10 +100,10 @@ typedef guint64 GtkCssChange;
  *   see @GTK_CSS_AFFECTS_FONT.
  * @GTK_CSS_AFFECTS_BACKGROUND: The background rendering is affected.
  * @GTK_CSS_AFFECTS_BORDER: The border styling is affected.
- * @GTK_CSS_AFFECTS_FONT: The font is affected and should be reloaded
- *   if it was cached.
- * @GTK_CSS_AFFECTS_TEXT: Text rendering is affected.
+ * @GTK_CSS_AFFECTS_ICON_SIZE: Icon size is affected.
  * @GTK_CSS_AFFECTS_TEXT_ATTRS: Text attributes are affected.
+ * @GTK_CSS_AFFECTS_TEXT_SIZE: Text size is affected.
+ * @GTK_CSS_AFFECTS_TEXT_CLIP: Text clipping is affected.
  * @GTK_CSS_AFFECTS_ICON: Fullcolor icons and their rendering is affected.
  * @GTK_CSS_AFFECTS_SYMBOLIC_ICON: Symbolic icons and their rendering is affected.
  * @GTK_CSS_AFFECTS_OUTLINE: The outline styling is affected. Outlines
@@ -116,7 +115,8 @@ typedef guint64 GtkCssChange;
  *   on the allocated size of the element. Changes in these properties
  *   should cause a recomputation of the element's allocated size.
  * @GTK_CSS_AFFECTS_POSTEFFECT: An effect is applied after drawing that changes
- *   the drawing.
+ * @GTK_CSS_AFFECTS_TEXT: Affects anything related to text rendering.
+ * @GTK_CSS_AFFECTS_REDRAW: Affects anything that requires redraw.
  *
  * The generic effects that a CSS property can have. If a value is
  * set, then the property will have an influence on that feature.
@@ -219,6 +219,7 @@ enum { /*< skip >*/
   GTK_CSS_PROPERTY_BORDER_IMAGE_SLICE,
   GTK_CSS_PROPERTY_BORDER_IMAGE_WIDTH,
   GTK_CSS_PROPERTY_ICON_SOURCE,
+  GTK_CSS_PROPERTY_ICON_SIZE,
   GTK_CSS_PROPERTY_ICON_SHADOW,
   GTK_CSS_PROPERTY_ICON_STYLE,
   GTK_CSS_PROPERTY_ICON_TRANSFORM,
@@ -243,6 +244,7 @@ enum { /*< skip >*/
   GTK_CSS_PROPERTY_GTK_KEY_BINDINGS,
   GTK_CSS_PROPERTY_CARET_COLOR,
   GTK_CSS_PROPERTY_SECONDARY_CARET_COLOR,
+  GTK_CSS_PROPERTY_FONT_FEATURE_SETTINGS,
   /* add more */
   GTK_CSS_PROPERTY_N_PROPERTIES
 };

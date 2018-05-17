@@ -51,7 +51,6 @@ static void gdk_quartz_device_core_set_window_cursor (GdkDevice *device,
                                                       GdkWindow *window,
                                                       GdkCursor *cursor);
 static void gdk_quartz_device_core_warp (GdkDevice *device,
-                                         GdkScreen *screen,
                                          gdouble    x,
                                          gdouble    y);
 static void gdk_quartz_device_core_query_state (GdkDevice        *device,
@@ -107,8 +106,8 @@ gdk_quartz_device_core_init (GdkQuartzDeviceCore *quartz_device_core)
 
   device = GDK_DEVICE (quartz_device_core);
 
-  _gdk_device_add_axis (device, GDK_NONE, GDK_AXIS_X, 0, 0, 1);
-  _gdk_device_add_axis (device, GDK_NONE, GDK_AXIS_Y, 0, 0, 1);
+  _gdk_device_add_axis (device, NULL, GDK_AXIS_X, 0, 0, 1);
+  _gdk_device_add_axis (device, NULL, GDK_AXIS_Y, 0, 0, 1);
 }
 
 static gboolean
@@ -180,7 +179,6 @@ gdk_quartz_device_core_set_window_cursor (GdkDevice *device,
 
 static void
 gdk_quartz_device_core_warp (GdkDevice *device,
-                             GdkScreen *screen,
                              gdouble    x,
                              gdouble    y)
 {
@@ -325,25 +323,18 @@ gdk_quartz_device_core_window_at_position (GdkDevice       *device,
                                            GdkModifierType *mask,
                                            gboolean         get_toplevel)
 {
-  GdkDisplay *display;
-  GdkScreen *screen;
   GdkWindow *found_window;
   NSPoint point;
   gint x_tmp, y_tmp;
-
-  display = gdk_device_get_display (device);
-  screen = gdk_display_get_default_screen (display);
 
   /* Get mouse coordinates, find window under the mouse pointer */
   point = [NSEvent mouseLocation];
   _gdk_quartz_window_nspoint_to_gdk_xy (point, &x_tmp, &y_tmp);
 
-  found_window = _gdk_quartz_window_find_child (_gdk_root, x_tmp, y_tmp,
-                                                get_toplevel);
+  found_window = _gdk_quartz_window_find_child (_gdk_root, x_tmp, y_tmp, get_toplevel);
 
   if (found_window)
-    translate_coords_to_child_coords (_gdk_root, found_window,
-                                      &x_tmp, &y_tmp);
+    translate_coords_to_child_coords (_gdk_root, found_window, &x_tmp, &y_tmp);
 
   if (win_x)
     *win_x = found_window ? x_tmp : -1;

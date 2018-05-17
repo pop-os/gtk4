@@ -36,15 +36,15 @@ GdkDragContext *
 _gdk_quartz_window_drag_begin (GdkWindow *window,
                                GdkDevice *device,
                                GList     *targets,
-                               gint       x_root,
-                               gint       y_root)
+                               gint       dx,
+                               gint       dy)
 {
   g_assert (_gdk_quartz_drag_source_context == NULL);
 
   /* Create fake context */
   _gdk_quartz_drag_source_context = g_object_new (GDK_TYPE_QUARTZ_DRAG_CONTEXT,
+                                                  "display", display,
                                                   NULL);
-  _gdk_quartz_drag_source_context->display = gdk_window_get_display (window);
   _gdk_quartz_drag_source_context->is_source = TRUE;
 
   _gdk_quartz_drag_source_context->source_window = window;
@@ -74,7 +74,6 @@ gdk_quartz_drag_context_drag_motion (GdkDragContext  *context,
 static GdkWindow *
 gdk_quartz_drag_context_find_window (GdkDragContext  *context,
                                      GdkWindow       *drag_window,
-                                     GdkScreen       *screen,
                                      gint             x_root,
                                      gint             y_root,
                                      GdkDragProtocol *protocol)
@@ -127,13 +126,6 @@ _gdk_quartz_window_register_dnd (GdkWindow *window)
   /* FIXME: Implement */
 }
 
-static GdkAtom
-gdk_quartz_drag_context_get_selection (GdkDragContext *context)
-{
-  /* FIXME: Implement */
-  return GDK_NONE;
-}
-
 static gboolean
 gdk_quartz_drag_context_drop_status (GdkDragContext *context)
 {
@@ -174,5 +166,4 @@ gdk_quartz_drag_context_class_init (GdkQuartzDragContextClass *klass)
   context_class->drop_reply = gdk_quartz_drag_context_drop_reply;
   context_class->drop_finish = gdk_quartz_drag_context_drop_finish;
   context_class->drop_status = gdk_quartz_drag_context_drop_status;
-  context_class->get_selection = gdk_quartz_drag_context_get_selection;
 }

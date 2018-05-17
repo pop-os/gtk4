@@ -32,7 +32,6 @@
 #include "gtkwidgetprivate.h"
 #include "gtkintl.h"
 
-#define DEFAULT_ICON_SIZE       GTK_ICON_SIZE_SMALL_TOOLBAR
 #define DEFAULT_ORIENTATION     GTK_ORIENTATION_VERTICAL
 #define DEFAULT_TOOLBAR_STYLE   GTK_TOOLBAR_ICONS
 
@@ -123,8 +122,6 @@ typedef struct _GtkToolPaletteDragData GtkToolPaletteDragData;
 enum
 {
   PROP_NONE,
-  PROP_ICON_SIZE,
-  PROP_ICON_SIZE_SET,
   PROP_ORIENTATION,
   PROP_TOOLBAR_STYLE,
   PROP_HADJUSTMENT,
@@ -157,8 +154,6 @@ struct _GtkToolPalettePrivate
   GtkAdjustment        *hadjustment;
   GtkAdjustment        *vadjustment;
 
-  GtkIconSize           icon_size;
-  gboolean              icon_size_set;
   GtkOrientation        orientation;
   GtkToolbarStyle       style;
   gboolean              style_set;
@@ -181,13 +176,13 @@ struct _GtkToolPaletteDragData
   GtkWidget      *item;
 };
 
-static GdkAtom dnd_target_atom_item = GDK_NONE;
-static GdkAtom dnd_target_atom_group = GDK_NONE;
+static GdkAtom dnd_target_atom_item = NULL;
+static GdkAtom dnd_target_atom_group = NULL;
 
-static const GtkTargetEntry dnd_targets[] =
+static const char *dnd_targets[] =
 {
-  { (char *) "application/x-gtk-tool-palette-item", GTK_TARGET_SAME_APP, 0 },
-  { (char *) "application/x-gtk-tool-palette-group", GTK_TARGET_SAME_APP, 0 },
+  "application/x-gtk-tool-palette-item",
+  "application/x-gtk-tool-palette-group"
 };
 
 static void gtk_tool_palette_set_hadjustment (GtkToolPalette *palette,
@@ -210,18 +205,16 @@ gtk_tool_palette_init (GtkToolPalette *palette)
   palette->priv->groups = g_ptr_array_sized_new (4);
   g_ptr_array_set_free_func (palette->priv->groups, g_free);
 
-  palette->priv->icon_size = DEFAULT_ICON_SIZE;
-  palette->priv->icon_size_set = FALSE;
   palette->priv->orientation = DEFAULT_ORIENTATION;
   palette->priv->style = DEFAULT_TOOLBAR_STYLE;
   palette->priv->style_set = FALSE;
 
   palette->priv->text_size_group = gtk_size_group_new (GTK_SIZE_GROUP_BOTH);
 
-  if (dnd_target_atom_item == GDK_NONE)
+  if (dnd_target_atom_item == NULL)
     {
-      dnd_target_atom_item = gdk_atom_intern_static_string (dnd_targets[0].target);
-      dnd_target_atom_group = gdk_atom_intern_static_string (dnd_targets[1].target);
+      dnd_target_atom_item = g_intern_static_string (dnd_targets[0]);
+      dnd_target_atom_group = g_intern_static_string (dnd_targets[1]);
     }
 
   gtk_widget_set_has_window (GTK_WIDGET (palette), FALSE);
@@ -252,24 +245,6 @@ gtk_tool_palette_set_property (GObject      *object,
 
   switch (prop_id)
     {
-      case PROP_ICON_SIZE:
-        if (palette->priv->icon_size != g_value_get_enum (value))
-          {
-            palette->priv->icon_size = g_value_get_enum (value);
-            gtk_tool_palette_reconfigured (palette);
-            g_object_notify_by_pspec (object, pspec);
-          }
-        break;
-
-      case PROP_ICON_SIZE_SET:
-        if (palette->priv->icon_size_set != g_value_get_boolean (value))
-          {
-            palette->priv->icon_size_set = g_value_get_boolean (value);
-            gtk_tool_palette_reconfigured (palette);
-            g_object_notify_by_pspec (object, pspec);
-          }
-        break;
-
       case PROP_ORIENTATION:
         if (palette->priv->orientation != g_value_get_enum (value))
           {
@@ -331,14 +306,6 @@ gtk_tool_palette_get_property (GObject    *object,
 
   switch (prop_id)
     {
-      case PROP_ICON_SIZE:
-        g_value_set_enum (value, gtk_tool_palette_get_icon_size (palette));
-        break;
-
-      case PROP_ICON_SIZE_SET:
-        g_value_set_boolean (value, palette->priv->icon_size_set);
-        break;
-
       case PROP_ORIENTATION:
         g_value_set_enum (value, palette->priv->orientation);
         break;
@@ -726,7 +693,7 @@ gtk_tool_palette_add (GtkContainer *container,
 
   g_ptr_array_add (palette->priv->groups, info);
   info->pos = palette->priv->groups->len - 1;
-  info->widget = g_object_ref_sink (child);
+  info->widget = (GtkToolItemGroup *)g_object_ref_sink (child);
 
   gtk_widget_set_parent (child, GTK_WIDGET (palette));
 }
@@ -839,8 +806,8 @@ gtk_tool_palette_get_child_property (GtkContainer *container,
 }
 
 static void
-gtk_tool_palette_screen_changed (GtkWidget *widget,
-                                 GdkScreen *previous_screen)
+gtk_tool_palette_display_changed (GtkWidget  *widget,
+                                  GdkDisplay *previous_display)
 {
   GtkToolPalette *palette = GTK_TOOL_PALETTE (widget);
 
@@ -851,12 +818,12 @@ static void
 gtk_tool_palette_snapshot (GtkWidget   *widget,
                            GtkSnapshot *snapshot)
 {
-  int width, height;
-
-  gtk_widget_get_content_size (widget, &width, &height);
-
   gtk_snapshot_push_clip (snapshot,
-                          &GRAPHENE_RECT_INIT(0, 0, width, height), "ToolPalette Clip");
+                          &GRAPHENE_RECT_INIT(
+                              0, 0,
+                              gtk_widget_get_width (widget),
+                              gtk_widget_get_height (widget)
+                          ), "ToolPalette Clip");
 
   GTK_WIDGET_CLASS (gtk_tool_palette_parent_class)->snapshot (widget, snapshot);
 
@@ -886,9 +853,9 @@ gtk_tool_palette_class_init (GtkToolPaletteClass *cls)
   cclass->set_child_property  = gtk_tool_palette_set_child_property;
   cclass->get_child_property  = gtk_tool_palette_get_child_property;
 
-  /* Handle screen-changed so we can update our configuration.
+  /* Handle display-changed so we can update our configuration.
    */
-  wclass->screen_changed      = gtk_tool_palette_screen_changed;
+  wclass->display_changed      = gtk_tool_palette_display_changed;
 
   g_object_class_override_property (oclass, PROP_ORIENTATION,    "orientation");
 
@@ -896,42 +863,6 @@ gtk_tool_palette_class_init (GtkToolPaletteClass *cls)
   g_object_class_override_property (oclass, PROP_VADJUSTMENT,    "vadjustment");
   g_object_class_override_property (oclass, PROP_HSCROLL_POLICY, "hscroll-policy");
   g_object_class_override_property (oclass, PROP_VSCROLL_POLICY, "vscroll-policy");
-
-  /**
-   * GtkToolPalette:icon-size:
-   *
-   * The size of the icons in a tool palette. When this property is set,
-   * it overrides the default setting.
-   *
-   * This should only be used for special-purpose tool palettes, normal
-   * application tool palettes should respect the user preferences for the
-   * size of icons.
-   *
-   * Since: 2.20
-   */
-  g_object_class_install_property (oclass,
-                                   PROP_ICON_SIZE,
-                                   g_param_spec_enum ("icon-size",
-                                                      P_("Icon size"),
-                                                      P_("Size of icons in this tool palette"),
-                                                      GTK_TYPE_ICON_SIZE,
-                                                      DEFAULT_ICON_SIZE,
-                                                      GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
-
-  /**
-   * GtkToolPalette:icon-size-set:
-   *
-   * Is %TRUE if the #GtkToolPalette:icon-size property has been set.
-   *
-   * Since: 2.20
-   */
-  g_object_class_install_property (oclass,
-                                   PROP_ICON_SIZE_SET,
-                                   g_param_spec_boolean ("icon-size-set",
-                                                         P_("Icon size set"),
-                                                         P_("Whether the icon-size property has been set"),
-                                                         FALSE,
-                                                         GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
 
   /**
    * GtkToolPalette:toolbar-style:
@@ -979,7 +910,7 @@ gtk_tool_palette_class_init (GtkToolPaletteClass *cls)
                                                                     DEFAULT_CHILD_EXPAND,
                                                                     GTK_PARAM_READWRITE));
 
-  gtk_widget_class_set_css_name (wclass, "toolpalette");
+  gtk_widget_class_set_css_name (wclass, I_("toolpalette"));
 }
 
 /**
@@ -995,76 +926,6 @@ GtkWidget*
 gtk_tool_palette_new (void)
 {
   return g_object_new (GTK_TYPE_TOOL_PALETTE, NULL);
-}
-
-/**
- * gtk_tool_palette_set_icon_size:
- * @palette: a #GtkToolPalette
- * @icon_size: (type int): the #GtkIconSize that icons in the tool
- *     palette shall have
- *
- * Sets the size of icons in the tool palette.
- *
- * Since: 2.20
- */
-void
-gtk_tool_palette_set_icon_size (GtkToolPalette *palette,
-                                GtkIconSize     icon_size)
-{
-  GtkToolPalettePrivate *priv;
-
-  g_return_if_fail (GTK_IS_TOOL_PALETTE (palette));
-  g_return_if_fail (icon_size != GTK_ICON_SIZE_INVALID);
-
-  priv = palette->priv;
-
-  if (!priv->icon_size_set)
-    {
-      priv->icon_size_set = TRUE;
-      g_object_notify (G_OBJECT (palette), "icon-size-set");
-    }
-
-  if (priv->icon_size == icon_size)
-    return;
-
-  priv->icon_size = icon_size;
-  g_object_notify (G_OBJECT (palette), "icon-size");
-
-  gtk_tool_palette_reconfigured (palette);
-
-  gtk_widget_queue_resize (GTK_WIDGET (palette));
-}
-
-/**
- * gtk_tool_palette_unset_icon_size:
- * @palette: a #GtkToolPalette
- *
- * Unsets the tool palette icon size set with gtk_tool_palette_set_icon_size(),
- * so that user preferences will be used to determine the icon size.
- *
- * Since: 2.20
- */
-void
-gtk_tool_palette_unset_icon_size (GtkToolPalette *palette)
-{
-  GtkToolPalettePrivate* priv = palette->priv;
-  GtkIconSize size;
-
-  g_return_if_fail (GTK_IS_TOOL_PALETTE (palette));
-
-  if (palette->priv->icon_size_set)
-    {
-      size = DEFAULT_ICON_SIZE;
-
-      if (size != palette->priv->icon_size)
-      {
-        gtk_tool_palette_set_icon_size (palette, size);
-        g_object_notify (G_OBJECT (palette), "icon-size");
-      }
-
-      priv->icon_size_set = FALSE;
-      g_object_notify (G_OBJECT (palette), "icon-size-set");
-    }
 }
 
 /* Set the "toolbar-style" property and do appropriate things.
@@ -1135,25 +996,6 @@ gtk_tool_palette_unset_style (GtkToolPalette *palette)
 
       priv->style_set = FALSE;
     }
-}
-
-/**
- * gtk_tool_palette_get_icon_size:
- * @palette: a #GtkToolPalette
- *
- * Gets the size of icons in the tool palette.
- * See gtk_tool_palette_set_icon_size().
- *
- * Returns: (type int): the #GtkIconSize of icons in the tool palette
- *
- * Since: 2.20
- */
-GtkIconSize
-gtk_tool_palette_get_icon_size (GtkToolPalette *palette)
-{
-  g_return_val_if_fail (GTK_IS_TOOL_PALETTE (palette), DEFAULT_ICON_SIZE);
-
-  return palette->priv->icon_size;
 }
 
 /**
@@ -1614,8 +1456,9 @@ gtk_tool_palette_add_drag_dest (GtkToolPalette            *palette,
                                 GtkToolPaletteDragTargets  targets,
                                 GdkDragAction              actions)
 {
-  GtkTargetEntry entries[G_N_ELEMENTS (dnd_targets)];
+  const char *entries[G_N_ELEMENTS (dnd_targets)];
   gint n_entries = 0;
+  GdkContentFormats *list;
 
   g_return_if_fail (GTK_IS_TOOL_PALETTE (palette));
   g_return_if_fail (GTK_IS_WIDGET (widget));
@@ -1628,7 +1471,9 @@ gtk_tool_palette_add_drag_dest (GtkToolPalette            *palette,
   if (targets & GTK_TOOL_PALETTE_DRAG_GROUPS)
     entries[n_entries++] = dnd_targets[1];
 
-  gtk_drag_dest_set (widget, flags, entries, n_entries, actions);
+  list = gdk_content_formats_new (entries, n_entries);
+  gtk_drag_dest_set (widget, flags, list, actions);
+  gdk_content_formats_unref (list);
 }
 
 void
@@ -1674,7 +1519,6 @@ static void
 gtk_tool_palette_item_drag_data_get (GtkWidget        *widget,
                                      GdkDragContext   *context,
                                      GtkSelectionData *selection,
-                                     guint             info,
                                      guint             time,
                                      gpointer          data)
 {
@@ -1727,6 +1571,8 @@ _gtk_tool_palette_child_set_drag_source (GtkWidget *child,
   if (GTK_IS_TOOL_ITEM (child) &&
       (palette->priv->drag_source & GTK_TOOL_PALETTE_DRAG_ITEMS))
     {
+      GdkContentFormats *targets;
+
       /* Connect to child instead of the item itself,
        * to work arround bug 510377.
        */
@@ -1736,8 +1582,10 @@ _gtk_tool_palette_child_set_drag_source (GtkWidget *child,
       if (!child)
         return;
 
+      targets = gdk_content_formats_new (&dnd_targets[0], 1);
       gtk_drag_source_set (child, GDK_BUTTON1_MASK | GDK_BUTTON3_MASK,
-                           &dnd_targets[0], 1, GDK_ACTION_COPY | GDK_ACTION_MOVE);
+                           targets, GDK_ACTION_COPY | GDK_ACTION_MOVE);
+      gdk_content_formats_unref (targets);
 
       g_signal_connect (child, "drag-data-get",
                         G_CALLBACK (gtk_tool_palette_item_drag_data_get),
@@ -1746,8 +1594,12 @@ _gtk_tool_palette_child_set_drag_source (GtkWidget *child,
   else if (GTK_IS_BUTTON (child) &&
            (palette->priv->drag_source & GTK_TOOL_PALETTE_DRAG_GROUPS))
     {
+      GdkContentFormats *targets;
+
+      targets = gdk_content_formats_new (&dnd_targets[1], 1);
       gtk_drag_source_set (child, GDK_BUTTON1_MASK | GDK_BUTTON3_MASK,
-                           &dnd_targets[1], 1, GDK_ACTION_COPY | GDK_ACTION_MOVE);
+                           targets, GDK_ACTION_COPY | GDK_ACTION_MOVE);
+      gdk_content_formats_unref (targets);
 
       g_signal_connect (child, "drag-data-get",
                         G_CALLBACK (gtk_tool_palette_child_drag_data_get),
@@ -1758,16 +1610,16 @@ _gtk_tool_palette_child_set_drag_source (GtkWidget *child,
 /**
  * gtk_tool_palette_get_drag_target_item:
  *
- * Gets the target entry for a dragged #GtkToolItem.
+ * Gets the mime type for a dragged #GtkToolItem.
  *
  * Returns: (transfer none): the #GtkTargetEntry for a dragged item.
  *
  * Since: 2.20
  */
-const GtkTargetEntry*
+const char *
 gtk_tool_palette_get_drag_target_item (void)
 {
-  return &dnd_targets[0];
+  return dnd_targets[0];
 }
 
 /**
@@ -1779,10 +1631,10 @@ gtk_tool_palette_get_drag_target_item (void)
  *
  * Since: 2.20
  */
-const GtkTargetEntry*
+const char *
 gtk_tool_palette_get_drag_target_group (void)
 {
-  return &dnd_targets[1];
+  return dnd_targets[1];
 }
 
 void

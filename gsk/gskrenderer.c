@@ -39,10 +39,9 @@
 
 #include "gskcairorendererprivate.h"
 #include "gskdebugprivate.h"
-#include "gskglrendererprivate.h"
+#include "gl/gskglrendererprivate.h"
 #include "gskprofilerprivate.h"
 #include "gskrendernodeprivate.h"
-#include "gsktexture.h"
 
 #include "gskenumtypes.h"
 
@@ -56,6 +55,9 @@
 #ifdef GDK_WINDOWING_WAYLAND
 #include <gdk/wayland/gdkwayland.h>
 #endif
+#ifdef GDK_WINDOWING_BROADWAY
+#include "gskbroadwayrendererprivate.h"
+#endif
 #ifdef GDK_RENDERING_VULKAN
 #include "gskvulkanrendererprivate.h"
 #endif
@@ -63,8 +65,6 @@
 typedef struct
 {
   GObject parent_instance;
-
-  graphene_rect_t viewport;
 
   GskScalingFilter min_filter;
   GskScalingFilter mag_filter;
@@ -76,17 +76,13 @@ typedef struct
 
   GskProfiler *profiler;
 
-  int scale_factor;
-
   gboolean is_realized : 1;
 } GskRendererPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GskRenderer, gsk_renderer, G_TYPE_OBJECT)
 
 enum {
-  PROP_VIEWPORT = 1,
-  PROP_SCALE_FACTOR,
-  PROP_WINDOW,
+  PROP_WINDOW = 1,
   PROP_DISPLAY,
   PROP_DRAWING_CONTEXT,
 
@@ -113,7 +109,7 @@ gsk_renderer_real_unrealize (GskRenderer *self)
   GSK_RENDERER_WARN_NOT_IMPLEMENTED_METHOD (self, unrealize);
 }
 
-static GskTexture *
+static GdkTexture *
 gsk_renderer_real_render_texture (GskRenderer           *self,
                                   GskRenderNode         *root,
                                   const graphene_rect_t *viewport)
@@ -157,7 +153,7 @@ gsk_renderer_real_create_cairo_surface (GskRenderer    *self,
                                         int             height)
 {
   GskRendererPrivate *priv = gsk_renderer_get_instance_private (self);
-  int scale_factor = priv->scale_factor > 0 ? priv->scale_factor : 1;
+  int scale_factor = priv->window ? gdk_window_get_scale_factor (priv->window) : 1;
   int real_width = width * scale_factor;
   int real_height = height * scale_factor;
 
@@ -174,7 +170,9 @@ gsk_renderer_dispose (GObject *gobject)
   GskRenderer *self = GSK_RENDERER (gobject);
   GskRendererPrivate *priv = gsk_renderer_get_instance_private (self);
 
-  gsk_renderer_unrealize (self);
+  /* We can't just unrealize here because superclasses have already run dispose.
+   * So we insist that unrealize must be called before unreffing. */
+  g_assert (!priv->is_realized);
 
   g_clear_object (&priv->profiler);
   g_clear_object (&priv->display);
@@ -193,14 +191,6 @@ gsk_renderer_set_property (GObject      *gobject,
 
   switch (prop_id)
     {
-    case PROP_VIEWPORT:
-      gsk_renderer_set_viewport (self, g_value_get_boxed (value));
-      break;
-
-    case PROP_SCALE_FACTOR:
-      gsk_renderer_set_scale_factor (self, g_value_get_int (value));
-      break;
-
     case PROP_DISPLAY:
       /* Construct-only */
       priv->display = g_value_dup_object (value);
@@ -223,14 +213,6 @@ gsk_renderer_get_property (GObject    *gobject,
 
   switch (prop_id)
     {
-    case PROP_VIEWPORT:
-      g_value_set_boxed (value, &priv->viewport);
-      break;
-
-    case PROP_SCALE_FACTOR:
-      g_value_set_int (value, priv->scale_factor);
-      break;
-
     case PROP_WINDOW:
       g_value_set_object (value, priv->window);
       break;
@@ -285,22 +267,6 @@ gsk_renderer_class_init (GskRendererClass *klass)
   gobject_class->dispose = gsk_renderer_dispose;
 
   /**
-   * GskRenderer:viewport:
-   *
-   * The visible area used by the #GskRenderer to render its contents.
-   *
-   * Since: 3.90
-   */
-  gsk_renderer_properties[PROP_VIEWPORT] =
-    g_param_spec_boxed ("viewport",
-			"Viewport",
-			"The visible area used by the renderer",
-			GRAPHENE_TYPE_RECT,
-			G_PARAM_READWRITE |
-			G_PARAM_STATIC_STRINGS |
-			G_PARAM_EXPLICIT_NOTIFY);
-
-  /**
    * GskRenderer:display:
    *
    * The #GdkDisplay used by the #GskRenderer.
@@ -323,23 +289,6 @@ gsk_renderer_class_init (GskRendererClass *klass)
                          GDK_TYPE_WINDOW,
                          G_PARAM_READABLE |
                          G_PARAM_STATIC_STRINGS);
-
-  /**
-   * GskRenderer:scale-factor:
-   *
-   * The scale factor used when rendering.
-   *
-   * Since: 3.90
-   */
-  gsk_renderer_properties[PROP_SCALE_FACTOR] =
-    g_param_spec_int ("scale-factor",
-                      "Scale Factor",
-                      "The scaling factor of the renderer",
-                      1, G_MAXINT,
-                      1,
-                      G_PARAM_READWRITE |
-                      G_PARAM_STATIC_STRINGS |
-                      G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GskRenderer:drawing-context:
@@ -365,107 +314,6 @@ gsk_renderer_init (GskRenderer *self)
   GskRendererPrivate *priv = gsk_renderer_get_instance_private (self);
 
   priv->profiler = gsk_profiler_new ();
-
-  priv->scale_factor = 1;
-}
-
-/**
- * gsk_renderer_set_viewport:
- * @renderer: a #GskRenderer
- * @viewport: (nullable): the viewport rectangle used by the @renderer
- *
- * Sets the visible rectangle to be used as the viewport for
- * the rendering.
- *
- * Since: 3.90
- */
-void
-gsk_renderer_set_viewport (GskRenderer           *renderer,
-                           const graphene_rect_t *viewport)
-{
-  GskRendererPrivate *priv = gsk_renderer_get_instance_private (renderer);
-
-  g_return_if_fail (GSK_IS_RENDERER (renderer));
-
-  if (viewport == NULL)
-    {
-      graphene_rect_init (&priv->viewport, 0.f, 0.f, 0.f, 0.f);
-      g_object_notify_by_pspec (G_OBJECT (renderer), gsk_renderer_properties[PROP_VIEWPORT]);
-      return;
-    }
-
-  if (graphene_rect_equal (viewport, &priv->viewport))
-    return;
-
-  graphene_rect_init_from_rect (&priv->viewport, viewport);
-
-  g_object_notify_by_pspec (G_OBJECT (renderer), gsk_renderer_properties[PROP_VIEWPORT]);
-}
-
-/**
- * gsk_renderer_get_viewport:
- * @renderer: a #GskRenderer
- * @viewport: (out caller-allocates): return location for the viewport rectangle
- *
- * Retrieves the viewport of the #GskRenderer.
- *
- * Since: 3.90
- */
-void
-gsk_renderer_get_viewport (GskRenderer     *renderer,
-                           graphene_rect_t *viewport)
-{
-  GskRendererPrivate *priv = gsk_renderer_get_instance_private (renderer);
-
-  g_return_if_fail (GSK_IS_RENDERER (renderer));
-  g_return_if_fail (viewport != NULL);
-
-  graphene_rect_init_from_rect (viewport, &priv->viewport);
-}
-
-/**
- * gsk_renderer_set_scale_factor:
- * @renderer: a #GskRenderer
- * @scale_factor: the new scale factor
- *
- * Sets the scale factor for the renderer.
- *
- * Since: 3.90
- */
-void
-gsk_renderer_set_scale_factor (GskRenderer *renderer,
-                               int          scale_factor)
-{
-  GskRendererPrivate *priv = gsk_renderer_get_instance_private (renderer);
-
-  g_return_if_fail (GSK_IS_RENDERER (renderer));
-
-  if (priv->scale_factor != scale_factor)
-    {
-      priv->scale_factor = scale_factor;
-
-      g_object_notify_by_pspec (G_OBJECT (renderer), gsk_renderer_properties[PROP_SCALE_FACTOR]);
-    }
-}
-
-/**
- * gsk_renderer_get_scale_factor:
- * @renderer: a #GskRenderer
- *
- * Gets the scale factor for the @renderer.
- *
- * Returns: the scale factor
- *
- * Since: 3.90
- */
-int
-gsk_renderer_get_scale_factor (GskRenderer *renderer)
-{
-  GskRendererPrivate *priv = gsk_renderer_get_instance_private (renderer);
-
-  g_return_val_if_fail (GSK_IS_RENDERER (renderer), 1);
-
-  return priv->scale_factor;
 }
 
 /**
@@ -630,7 +478,7 @@ gsk_renderer_unrealize (GskRenderer *renderer)
  * @viewport: (allow-none): the section to draw or %NULL to use @root's bounds
  *
  * Renders the scene graph, described by a tree of #GskRenderNode instances,
- * to a #GskTexture.
+ * to a #GdkTexture.
  *
  * The @renderer will acquire a reference on the #GskRenderNode tree while
  * the rendering is in progress, and will make the tree immutable.
@@ -638,18 +486,18 @@ gsk_renderer_unrealize (GskRenderer *renderer)
  * If you want to apply any transformations to @root, you should put it into a 
  * transform node and pass that node instead.
  *
- * Returns: (transfer full): a #GskTexture with the rendered contents of @root.
+ * Returns: (transfer full): a #GdkTexture with the rendered contents of @root.
  *
  * Since: 3.90
  */
-GskTexture *
+GdkTexture *
 gsk_renderer_render_texture (GskRenderer           *renderer,
                              GskRenderNode         *root,
                              const graphene_rect_t *viewport)
 {
   GskRendererPrivate *priv = gsk_renderer_get_instance_private (renderer);
   graphene_rect_t real_viewport;
-  GskTexture *texture;
+  GdkTexture *texture;
 
   g_return_val_if_fail (GSK_IS_RENDERER (renderer), NULL);
   g_return_val_if_fail (priv->is_realized, NULL);
@@ -825,6 +673,10 @@ get_renderer_for_backend (GdkWindow *window)
 #ifdef GDK_WINDOWING_WAYLAND
   if (GDK_IS_WAYLAND_WINDOW (window))
     return GSK_TYPE_GL_RENDERER;
+#endif
+#ifdef GDK_WINDOWING_BROADWAY
+  if (GDK_IS_BROADWAY_WINDOW (window))
+    return GSK_TYPE_BROADWAY_RENDERER;
 #endif
 
   return G_TYPE_INVALID;

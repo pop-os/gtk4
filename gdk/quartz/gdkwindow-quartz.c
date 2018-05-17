@@ -62,9 +62,7 @@ static FullscreenSavedGeometry *get_fullscreen_geometry (GdkWindow *window);
 static void update_toplevel_order (void);
 static void clear_toplevel_order  (void);
 
-#define WINDOW_IS_TOPLEVEL(window)		     \
-  (GDK_WINDOW_TYPE (window) != GDK_WINDOW_CHILD &&   \
-   GDK_WINDOW_TYPE (window) != GDK_WINDOW_FOREIGN)
+#define WINDOW_IS_TOPLEVEL(window)      (GDK_WINDOW_TYPE (window) != GDK_WINDOW_CHILD)
 
 /*
  * GdkQuartzWindow
@@ -683,10 +681,9 @@ _gdk_quartz_window_did_resign_main (GdkWindow *window)
     {
       GList *toplevels;
 
-      toplevels = gdk_screen_get_toplevel_windows (gdk_screen_get_default ());
+      toplevels = get_toplevels ();
       if (toplevels)
         new_window = toplevels->data;
-      g_list_free (toplevels);
     }
 
   if (new_window &&
@@ -734,7 +731,6 @@ void
 _gdk_quartz_display_create_window_impl (GdkDisplay    *display,
                                         GdkWindow     *window,
                                         GdkWindow     *real_parent,
-                                        GdkScreen     *screen,
                                         GdkEventMask   event_mask,
                                         GdkWindowAttr *attributes)
 {
@@ -879,8 +875,7 @@ _gdk_quartz_window_update_position (GdkWindow *window)
 }
 
 void
-_gdk_quartz_window_init_windowing (GdkDisplay *display,
-                                   GdkScreen  *screen)
+_gdk_quartz_window_init_windowing (GdkDisplay *display)
 {
   GdkWindowImplQuartz *impl;
 
@@ -1410,21 +1405,6 @@ gdk_window_quartz_restack_toplevel (GdkWindow *window,
     [impl->toplevel orderWindow:NSWindowAbove relativeTo:sibling_num];
   else
     [impl->toplevel orderWindow:NSWindowBelow relativeTo:sibling_num];
-}
-
-static void
-gdk_window_quartz_set_device_cursor (GdkWindow *window,
-                                     GdkDevice *device,
-                                     GdkCursor *cursor)
-{
-  NSCursor *nscursor;
-
-  if (GDK_WINDOW_DESTROYED (window))
-    return;
-
-  nscursor = _gdk_quartz_cursor_get_ns_cursor (cursor);
-
-  [nscursor set];
 }
 
 static void
@@ -2126,7 +2106,7 @@ gdk_quartz_window_begin_move_drag (GdkWindow *window,
 
 static void
 gdk_quartz_window_set_icon_list (GdkWindow *window,
-                                 GList     *pixbufs)
+                                 GList     *surfaces)
 {
   /* FIXME: Implement */
 }
@@ -2781,7 +2761,6 @@ gdk_window_impl_quartz_class_init (GdkWindowImplQuartzClass *klass)
   impl_class->lower = gdk_window_quartz_lower;
   impl_class->restack_toplevel = gdk_window_quartz_restack_toplevel;
   impl_class->move_resize = gdk_window_quartz_move_resize;
-  impl_class->set_device_cursor = gdk_window_quartz_set_device_cursor;
   impl_class->get_geometry = gdk_window_quartz_get_geometry;
   impl_class->get_root_coords = gdk_window_quartz_get_root_coords;
   impl_class->get_device_state = gdk_window_quartz_get_device_state;
@@ -2832,9 +2811,6 @@ gdk_window_impl_quartz_class_init (GdkWindowImplQuartzClass *klass)
   impl_class->register_dnd = _gdk_quartz_window_register_dnd;
   impl_class->drag_begin = _gdk_quartz_window_drag_begin;
   impl_class->process_updates_recurse = _gdk_quartz_window_process_updates_recurse;
-  impl_class->get_property = _gdk_quartz_window_get_property;
-  impl_class->change_property = _gdk_quartz_window_change_property;
-  impl_class->delete_property = _gdk_quartz_window_delete_property;
 
   impl_class->create_gl_context = gdk_quartz_window_create_gl_context;
 
@@ -2972,4 +2948,11 @@ _gdk_root_window_impl_quartz_get_type (void)
     }
 
   return object_type;
+}
+
+GList *
+get_toplevels (void)
+{
+  update_toplevel_order ();
+  return GDK_WINDOW_IMPL_QUARTZ (_gdk_root->impl)->sorted_children;
 }

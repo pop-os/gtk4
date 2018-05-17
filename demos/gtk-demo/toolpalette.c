@@ -39,14 +39,12 @@ canvas_item_new (GtkWidget     *widget,
   const gchar *icon_name;
   GdkPixbuf *pixbuf;
   GtkIconTheme *icon_theme;
-  int width;
 
   icon_name = gtk_tool_button_get_icon_name (button);
-  icon_theme = gtk_icon_theme_get_for_screen (gtk_widget_get_screen (widget));
-  gtk_icon_size_lookup (GTK_ICON_SIZE_DIALOG, &width, NULL);
+  icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (widget));
   pixbuf = gtk_icon_theme_load_icon (icon_theme,
                                      icon_name,
-                                     width,
+                                     48,
                                      GTK_ICON_LOOKUP_GENERIC_FALLBACK,
                                      NULL);
 
@@ -168,7 +166,6 @@ palette_drag_data_received (GtkWidget        *widget,
                             gint              x,
                             gint              y,
                             GtkSelectionData *selection,
-                            guint             info,
                             guint             time,
                             gpointer          data)
 {
@@ -212,7 +209,6 @@ passive_canvas_drag_data_received (GtkWidget        *widget,
                                    gint              x,
                                    gint              y,
                                    GtkSelectionData *selection,
-                                   guint             info,
                                    guint             time,
                                    gpointer          data)
 {
@@ -287,7 +283,6 @@ interactive_canvas_drag_data_received (GtkWidget        *widget,
                                        gint              x,
                                        gint              y,
                                        GtkSelectionData *selection,
-                                       guint             info,
                                        guint             time,
                                        gpointer          data)
 
@@ -327,7 +322,7 @@ interactive_canvas_drag_data_received (GtkWidget        *widget,
       canvas_items = g_list_append (canvas_items, item);
       drop_item = NULL;
 
-      gtk_drag_finish (context, TRUE, FALSE, time);
+      gtk_drag_finish (context, TRUE, time);
     } else
     {
       drop_item = item;
@@ -436,8 +431,8 @@ do_toolpalette (GtkWidget *do_widget)
   if (!window)
     {
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-      gtk_window_set_screen (GTK_WINDOW (window),
-                             gtk_widget_get_screen (do_widget));
+      gtk_window_set_display (GTK_WINDOW (window),
+                              gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Tool Palette");
       gtk_window_set_default_size (GTK_WINDOW (window), 200, 600);
 
@@ -568,8 +563,8 @@ do_toolpalette (GtkWidget *do_widget)
       contents = gtk_drawing_area_new ();
 
       g_object_connect (contents,
-                        "signal::draw", canvas_draw, NULL,
-                        "signal::drag-data-received", passive_canvas_drag_data_received, NULL,
+                        "draw", canvas_draw, NULL,
+                        "drag-data-received", passive_canvas_drag_data_received, NULL,
                         NULL);
 
       gtk_tool_palette_add_drag_dest (GTK_TOOL_PALETTE (palette),
@@ -594,11 +589,11 @@ do_toolpalette (GtkWidget *do_widget)
       contents = gtk_drawing_area_new ();
 
       g_object_connect (contents,
-                        "signal::draw", canvas_draw, NULL,
-                        "signal::drag-motion", interactive_canvas_drag_motion, NULL,
-                        "signal::drag-data-received", interactive_canvas_drag_data_received, NULL,
-                        "signal::drag-leave", interactive_canvas_drag_leave, contents,
-                        "signal::drag-drop", interactive_canvas_drag_drop, NULL,
+                        "draw", canvas_draw, NULL,
+                        "drag-motion", interactive_canvas_drag_motion, NULL,
+                        "drag-data-received", interactive_canvas_drag_data_received, NULL,
+                        "drag-leave", interactive_canvas_drag_leave, contents,
+                        "drag-drop", interactive_canvas_drag_drop, NULL,
                         NULL);
 
       gtk_tool_palette_add_drag_dest (GTK_TOOL_PALETTE (palette),
@@ -638,7 +633,7 @@ load_icon_items (GtkToolPalette *palette)
   GList *l;
   GtkIconTheme *icon_theme;
 
-  icon_theme = gtk_icon_theme_get_for_screen (gtk_widget_get_screen (GTK_WIDGET (palette)));
+  icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (palette)));
 
   contexts = gtk_icon_theme_list_contexts (icon_theme);
   for (l = contexts; l; l = l->next)

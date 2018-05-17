@@ -593,7 +593,7 @@ gtk_assistant_class_init (GtkAssistantClass *class)
   gtk_widget_class_bind_template_callback (widget_class, on_assistant_cancel);
   gtk_widget_class_bind_template_callback (widget_class, on_assistant_last);
 
-  gtk_widget_class_set_css_name (widget_class, "assistant");
+  gtk_widget_class_set_css_name (widget_class, I_("assistant"));
 }
 
 static gint
@@ -1025,14 +1025,9 @@ on_assistant_last (GtkWidget    *widget,
 static gboolean
 alternative_button_order (GtkAssistant *assistant)
 {
-  GtkSettings *settings;
-  GdkScreen *screen;
   gboolean result;
 
-  screen   = gtk_widget_get_screen (GTK_WIDGET (assistant));
-  settings = gtk_settings_get_for_screen (screen);
-
-  g_object_get (settings,
+  g_object_get (gtk_widget_get_settings (GTK_WIDGET (assistant)),
                 "gtk-alternative-button-order", &result,
                 NULL);
   return result;

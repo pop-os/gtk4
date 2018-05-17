@@ -815,7 +815,7 @@ gtk_scrolled_window_class_init (GtkScrolledWindowClass *class)
   add_tab_bindings (binding_set, GDK_CONTROL_MASK | GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_SCROLLED_WINDOW_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "scrolledwindow");
+  gtk_widget_class_set_css_name (widget_class, I_("scrolledwindow"));
 }
 
 static gboolean
@@ -2986,7 +2986,8 @@ gtk_scrolled_window_relative_allocation (GtkWidget     *widget,
   gtk_widget_measure (priv->hscrollbar, GTK_ORIENTATION_VERTICAL, -1,
                       &sb_height, NULL, NULL, NULL);
 
-  gtk_widget_get_content_size (widget, &width, &height);
+  width = gtk_widget_get_width (widget);
+  height = gtk_widget_get_height (widget);
 
   allocation->x = 0;
   allocation->y = 0;
@@ -3194,13 +3195,7 @@ gtk_scrolled_window_allocate_scrollbar (GtkScrolledWindow *scrolled_window,
 static void
 install_scroll_cursor (GtkScrolledWindow *scrolled_window)
 {
-  GdkDisplay *display;
-  GdkCursor *cursor;
-
-  display = gtk_widget_get_display (GTK_WIDGET (scrolled_window));
-  cursor = gdk_cursor_new_from_name (display, "all-scroll");
-  gtk_widget_set_cursor (GTK_WIDGET (scrolled_window), cursor);
-  g_clear_object (&cursor);
+  gtk_widget_set_cursor_from_name (GTK_WIDGET (scrolled_window), "all-scroll");
 }
 
 static void
