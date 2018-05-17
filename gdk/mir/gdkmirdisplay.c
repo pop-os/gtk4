@@ -176,6 +176,7 @@ _gdk_mir_display_open (const gchar *display_name)
   MirPixelFormat sw_pixel_format, hw_pixel_format;
   GdkMirDisplay *display;
   GDBusConnection *session;
+  GError *error = NULL;
 
   connection = mir_connect_sync (NULL, g_get_prgname ());
   if (!connection)
@@ -208,7 +209,15 @@ _gdk_mir_display_open (const gchar *display_name)
   display->sw_pixel_format = sw_pixel_format;
   display->hw_pixel_format = hw_pixel_format;
 
-  session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
+  session = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, &error);
+
+  if (session == NULL)
+    {
+      g_error ("Error connecting to D-Bus session bus: %s", error->message);
+      g_clear_error (&error);
+      mir_connection_release (connection);
+      return NULL;
+    }
 
   display->content_service = content_hub_service_proxy_new_sync (
     session,
@@ -374,12 +383,6 @@ gdk_mir_display_supports_input_shapes (GdkDisplay *display)
 }
 
 static gboolean
-gdk_mir_display_supports_clipboard_persistence (GdkDisplay *display)
-{
-  return FALSE;
-}
-
-static gboolean
 gdk_mir_display_supports_cursor_alpha (GdkDisplay *display)
 {
   return FALSE;
@@ -389,28 +392,6 @@ static gboolean
 gdk_mir_display_supports_cursor_color (GdkDisplay *display)
 {
   return FALSE;
-}
-
-static gboolean
-gdk_mir_display_supports_selection_notification (GdkDisplay *display)
-{
-  return FALSE;
-}
-
-static gboolean
-gdk_mir_display_request_selection_notification (GdkDisplay *display,
-                                                GdkAtom     selection)
-{
-  return FALSE;
-}
-
-static void
-gdk_mir_display_store_clipboard (GdkDisplay    *display,
-                                 GdkWindow     *clipboard_window,
-                                 guint32        time_,
-                                 const GdkAtom *targets,
-                                 gint           n_targets)
-{
 }
 
 static void
@@ -427,29 +408,6 @@ gdk_mir_display_get_maximal_cursor_size (GdkDisplay *display,
                                          guint      *height)
 {
   *width = *height = 32; // FIXME: Random value
-}
-
-static GdkCursor *
-gdk_mir_display_get_cursor_for_type (GdkDisplay    *display,
-                                     GdkCursorType  cursor_type)
-{
-  return _gdk_mir_cursor_new_for_type (display, cursor_type);
-}
-
-static GdkCursor *
-gdk_mir_display_get_cursor_for_name (GdkDisplay  *display,
-                                     const gchar *name)
-{
-  return _gdk_mir_cursor_new_for_name (display, name);
-}
-
-static GdkCursor *
-gdk_mir_display_get_cursor_for_surface (GdkDisplay      *display,
-                                        cairo_surface_t *surface,
-                                        gdouble          x,
-                                        gdouble          y)
-{
-  return NULL;
 }
 
 static GdkAppLaunchContext *
@@ -474,7 +432,6 @@ static void
 gdk_mir_display_create_window_impl (GdkDisplay    *display,
                                     GdkWindow     *window,
                                     GdkWindow     *real_parent,
-                                    GdkScreen     *screen,
                                     GdkEventMask   event_mask,
                                     GdkWindowAttr *attributes)
 {
@@ -509,366 +466,6 @@ gdk_mir_display_pop_error_trap (GdkDisplay *display,
                                 gboolean    ignored)
 {
   return 0;
-}
-
-static GdkWindow *
-gdk_mir_display_get_selection_owner (GdkDisplay *display,
-                                     GdkAtom     selection)
-{
-  return NULL;
-}
-
-static gboolean
-gdk_mir_display_set_selection_owner (GdkDisplay *display,
-                                     GdkWindow  *owner,
-                                     GdkAtom     selection,
-                                     guint32     time,
-                                     gboolean    send_event)
-{
-  GdkEvent *event;
-
-  if (selection == GDK_SELECTION_CLIPBOARD)
-    {
-      if (owner)
-        {
-          event = gdk_event_new (GDK_SELECTION_REQUEST);
-          event->selection.window = g_object_ref (owner);
-          event->selection.send_event = FALSE;
-          event->selection.selection = selection;
-          event->selection.target = gdk_atom_intern_static_string ("TARGETS");
-          event->selection.property = gdk_atom_intern_static_string ("AVAILABLE_TARGETS");
-          event->selection.time = GDK_CURRENT_TIME;
-          event->selection.requestor = g_object_ref (owner);
-
-          gdk_event_put (event);
-          gdk_event_free (event);
-
-          return TRUE;
-        }
-    }
-
-  return FALSE;
-}
-
-static void
-gdk_mir_display_send_selection_notify (GdkDisplay *display,
-                                       GdkWindow  *requestor,
-                                       GdkAtom     selection,
-                                       GdkAtom     target,
-                                       GdkAtom     property,
-                                       guint32     time)
-{
-}
-
-static gint
-gdk_mir_display_get_selection_property (GdkDisplay  *display,
-                                        GdkWindow   *requestor,
-                                        guchar     **data,
-                                        GdkAtom     *ret_type,
-                                        gint        *ret_format)
-{
-  gint length;
-
-  gdk_property_get (requestor,
-                    gdk_atom_intern_static_string ("GDK_SELECTION"),
-                    GDK_NONE,
-                    0,
-                    G_MAXULONG,
-                    FALSE,
-                    ret_type,
-                    ret_format,
-                    &length,
-                    data);
-
-  return length;
-}
-
-static gint
-get_format_score (const gchar *format,
-                  GdkAtom      target,
-                  GdkAtom     *out_type,
-                  gint        *out_size)
-{
-  const gchar *target_string;
-  GdkAtom dummy_type;
-  gint dummy_size;
-
-  target_string = _gdk_atom_name_const (target);
-
-  if (!out_type)
-    out_type = &dummy_type;
-
-  if (!out_size)
-    out_size = &dummy_size;
-
-  if (!g_ascii_strcasecmp (format, target_string))
-    {
-      *out_type = GDK_SELECTION_TYPE_STRING;
-      *out_size = sizeof (guchar);
-
-      return G_MAXINT;
-    }
-
-  if (target == gdk_atom_intern_static_string ("UTF8_STRING"))
-    return get_format_score (format, gdk_atom_intern_static_string ("text/plain;charset=utf-8"), out_type, out_size);
-
-  /* TODO: use best media type for COMPOUND_TEXT target */
-  if (target == gdk_atom_intern_static_string ("COMPOUND_TEXT"))
-    return get_format_score (format, gdk_atom_intern_static_string ("text/plain;charset=utf-8"), out_type, out_size);
-
-  if (target == GDK_TARGET_STRING)
-    return get_format_score (format, gdk_atom_intern_static_string ("text/plain;charset=iso-8859-1"), out_type, out_size);
-
-  if (target == gdk_atom_intern_static_string ("GTK_TEXT_BUFFER_CONTENTS"))
-    return get_format_score (format, gdk_atom_intern_static_string ("text/plain;charset=utf-8"), out_type, out_size);
-
-  if (g_content_type_is_a (format, target_string))
-    {
-      *out_type = GDK_SELECTION_TYPE_STRING;
-      *out_size = sizeof (guchar);
-
-      return 2;
-    }
-
-  if (g_content_type_is_a (target_string, format))
-    {
-      *out_type = GDK_SELECTION_TYPE_STRING;
-      *out_size = sizeof (guchar);
-
-      return 1;
-    }
-
-  return 0;
-}
-
-static gint
-get_best_format_index (const gchar * const *formats,
-                       guint                n_formats,
-                       GdkAtom              target,
-                       GdkAtom             *out_type,
-                       gint                *out_size)
-{
-  gint best_i = -1;
-  gint best_score = 0;
-  GdkAtom best_type;
-  gint best_size;
-  gint score;
-  GdkAtom type;
-  gint size;
-  gint i;
-
-  if (!out_type)
-    out_type = &best_type;
-
-  if (!out_size)
-    out_size = &best_size;
-
-  *out_type = GDK_NONE;
-  *out_size = 0;
-
-  for (i = 0; i < n_formats; i++)
-    {
-      score = get_format_score (formats[i], target, &type, &size);
-
-      if (score > best_score)
-        {
-          best_i = i;
-          best_score = score;
-          *out_type = type;
-          *out_size = size;
-        }
-    }
-
-  return best_i;
-}
-
-static void
-gdk_mir_display_real_convert_selection (GdkDisplay *display,
-                                        GdkWindow  *requestor,
-                                        GdkAtom     selection,
-                                        GdkAtom     target,
-                                        guint32     time)
-{
-  GdkMirDisplay *mir_display = GDK_MIR_DISPLAY (display);
-  const gchar *paste_data;
-  gsize paste_size;
-  const gint *paste_header;
-  GPtrArray *paste_formats;
-  GArray *paste_targets;
-  GdkAtom paste_target;
-  GdkEvent *event;
-  gint best_i;
-  GdkAtom best_type;
-  gint best_size;
-  gint i;
-
-  g_return_if_fail (mir_display->paste_data);
-
-  paste_data = g_variant_get_fixed_array (mir_display->paste_data, &paste_size, sizeof (guchar));
-  paste_header = (const gint *) paste_data;
-
-  if (paste_data)
-    {
-      paste_formats = g_ptr_array_new_full (paste_header[0], g_free);
-
-      for (i = 0; i < paste_header[0]; i++)
-        g_ptr_array_add (paste_formats, g_strndup (paste_data + paste_header[1 + 4 * i], paste_header[2 + 4 * i]));
-    }
-  else
-    paste_formats = g_ptr_array_new_with_free_func (g_free);
-
-  if (target == gdk_atom_intern_static_string ("TARGETS"))
-    {
-      paste_targets = g_array_sized_new (TRUE, FALSE, sizeof (GdkAtom), paste_formats->len);
-
-      for (i = 0; i < paste_formats->len; i++)
-        {
-          paste_target = gdk_atom_intern (g_ptr_array_index (paste_formats, i), FALSE);
-          g_array_append_val (paste_targets, paste_target);
-        }
-
-      gdk_property_change (requestor,
-                           gdk_atom_intern_static_string ("GDK_SELECTION"),
-                           GDK_SELECTION_TYPE_ATOM,
-                           8 * sizeof (GdkAtom),
-                           GDK_PROP_MODE_REPLACE,
-                           (const guchar *) paste_targets->data,
-                           paste_targets->len);
-
-      g_array_unref (paste_targets);
-
-      event = gdk_event_new (GDK_SELECTION_NOTIFY);
-      event->selection.window = g_object_ref (requestor);
-      event->selection.send_event = FALSE;
-      event->selection.selection = selection;
-      event->selection.target = target;
-      event->selection.property = gdk_atom_intern_static_string ("GDK_SELECTION");
-      event->selection.time = time;
-      event->selection.requestor = g_object_ref (requestor);
-
-      gdk_event_put (event);
-      gdk_event_free (event);
-    }
-  else
-    {
-      best_i = get_best_format_index ((const gchar * const *) paste_formats->pdata,
-                                      paste_formats->len,
-                                      target,
-                                      &best_type,
-                                      &best_size);
-
-      if (best_i >= 0)
-        {
-          gdk_property_change (requestor,
-                               gdk_atom_intern_static_string ("GDK_SELECTION"),
-                               best_type,
-                               8 * best_size,
-                               GDK_PROP_MODE_REPLACE,
-                               (const guchar *) paste_data + paste_header[3 + 4 * best_i],
-                               paste_header[4 + 4 * best_i] / best_size);
-
-          event = gdk_event_new (GDK_SELECTION_NOTIFY);
-          event->selection.window = g_object_ref (requestor);
-          event->selection.send_event = FALSE;
-          event->selection.selection = selection;
-          event->selection.target = target;
-          event->selection.property = gdk_atom_intern_static_string ("GDK_SELECTION");
-          event->selection.time = time;
-          event->selection.requestor = g_object_ref (requestor);
-
-          gdk_event_put (event);
-          gdk_event_free (event);
-        }
-    }
-
-  g_ptr_array_unref (paste_formats);
-}
-
-typedef struct
-{
-  GdkDisplay *display;
-  GdkWindow  *requestor;
-  GdkAtom     selection;
-  GdkAtom     target;
-  guint32     time;
-} ConvertInfo;
-
-static void
-paste_data_ready_cb (GObject      *source_object,
-                     GAsyncResult *res,
-                     gpointer      user_data)
-{
-  ContentHubService *content_service = CONTENT_HUB_SERVICE (source_object);
-  ConvertInfo *info = user_data;
-  GdkMirDisplay *mir_display = GDK_MIR_DISPLAY (info->display);
-  gboolean result;
-
-  g_clear_pointer (&mir_display->paste_data, g_variant_unref);
-
-  result = content_hub_service_call_get_latest_paste_data_finish (content_service,
-                                                                  &mir_display->paste_data,
-                                                                  res,
-                                                                  NULL);
-
-  if (result)
-    gdk_mir_display_real_convert_selection (info->display,
-                                            info->requestor,
-                                            info->selection,
-                                            info->target,
-                                            info->time);
-
-  g_object_unref (info->requestor);
-  g_object_unref (info->display);
-  g_free (info);
-}
-
-static void
-gdk_mir_display_convert_selection (GdkDisplay *display,
-                                   GdkWindow  *requestor,
-                                   GdkAtom     selection,
-                                   GdkAtom     target,
-                                   guint32     time)
-{
-  GdkMirDisplay *mir_display = GDK_MIR_DISPLAY (display);
-  MirWindow *mir_window;
-  MirWindowId *mir_window_id;
-  ConvertInfo *info;
-
-  if (selection != GDK_SELECTION_CLIPBOARD)
-    return;
-  else if (mir_display->paste_data)
-    gdk_mir_display_real_convert_selection (display, requestor, selection, target, time);
-  else if (mir_display->focused_window)
-    {
-      mir_window = _gdk_mir_window_get_mir_window (mir_display->focused_window);
-
-      if (!mir_window)
-        return;
-
-      mir_window_id = mir_window_request_window_id_sync (mir_window);
-
-      if (!mir_window_id)
-        return;
-
-      if (mir_window_id_is_valid (mir_window_id))
-        {
-          info = g_new (ConvertInfo, 1);
-          info->display = g_object_ref (display);
-          info->requestor = g_object_ref (requestor);
-          info->selection = selection;
-          info->target = target;
-          info->time = time;
-
-          content_hub_service_call_get_latest_paste_data (
-            mir_display->content_service,
-            mir_window_id_as_string (mir_window_id),
-            NULL,
-            paste_data_ready_cb,
-            info);
-        }
-
-      mir_window_id_release (mir_window_id);
-    }
 }
 
 static gint
@@ -1178,6 +775,14 @@ gdk_mir_display_get_monitor (GdkDisplay *display,
   return g_list_nth_data (GDK_MIR_DISPLAY (display)->monitors, index);
 }
 
+static gboolean
+gdk_mir_display_get_setting (GdkDisplay *display,
+                             const char *name,
+                             GValue     *value)
+{
+  return gdk_mir_screen_get_setting (GDK_MIR_DISPLAY (display)->screen, name, value);
+}
+
 static void
 gdk_mir_display_init (GdkMirDisplay *display)
 {
@@ -1207,17 +812,10 @@ gdk_mir_display_class_init (GdkMirDisplayClass *klass)
   display_class->get_default_group = gdk_mir_display_get_default_group;
   display_class->supports_shapes = gdk_mir_display_supports_shapes;
   display_class->supports_input_shapes = gdk_mir_display_supports_input_shapes;
-  display_class->supports_clipboard_persistence = gdk_mir_display_supports_clipboard_persistence;
   display_class->supports_cursor_alpha = gdk_mir_display_supports_cursor_alpha;
   display_class->supports_cursor_color = gdk_mir_display_supports_cursor_color;
-  display_class->supports_selection_notification = gdk_mir_display_supports_selection_notification;
-  display_class->request_selection_notification = gdk_mir_display_request_selection_notification;
-  display_class->store_clipboard = gdk_mir_display_store_clipboard;
   display_class->get_default_cursor_size = gdk_mir_display_get_default_cursor_size;
   display_class->get_maximal_cursor_size = gdk_mir_display_get_maximal_cursor_size;
-  display_class->get_cursor_for_type = gdk_mir_display_get_cursor_for_type;
-  display_class->get_cursor_for_name = gdk_mir_display_get_cursor_for_name;
-  display_class->get_cursor_for_surface = gdk_mir_display_get_cursor_for_surface;
   display_class->get_app_launch_context = gdk_mir_display_get_app_launch_context;
   display_class->get_next_serial = gdk_mir_display_get_next_serial;
   display_class->notify_startup_complete = gdk_mir_display_notify_startup_complete;
@@ -1225,14 +823,10 @@ gdk_mir_display_class_init (GdkMirDisplayClass *klass)
   display_class->get_keymap = gdk_mir_display_get_keymap;
   display_class->push_error_trap = gdk_mir_display_push_error_trap;
   display_class->pop_error_trap = gdk_mir_display_pop_error_trap;
-  display_class->get_selection_owner = gdk_mir_display_get_selection_owner;
-  display_class->set_selection_owner = gdk_mir_display_set_selection_owner;
-  display_class->send_selection_notify = gdk_mir_display_send_selection_notify;
-  display_class->get_selection_property = gdk_mir_display_get_selection_property;
-  display_class->convert_selection = gdk_mir_display_convert_selection;
   display_class->text_property_to_utf8_list = gdk_mir_display_text_property_to_utf8_list;
   display_class->utf8_to_string_target = gdk_mir_display_utf8_to_string_target;
   display_class->make_gl_context_current = gdk_mir_display_make_gl_context_current;
   display_class->get_n_monitors = gdk_mir_display_get_n_monitors;
   display_class->get_monitor = gdk_mir_display_get_monitor;
+  display_class->get_setting = gdk_mir_display_get_setting;
 }

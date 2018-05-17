@@ -1,37 +1,31 @@
 #include <gtk/gtk.h>
 
-static GdkPixbuf *
-get_image_pixbuf (GtkImage *image)
+static cairo_surface_t *
+get_image_surface (GtkImage *image,
+                   int      *out_size)
 {
-  const gchar *icon_name;
-  GtkIconSize size;
   GtkIconTheme *icon_theme;
-  int width;
+  const char *icon_name;
+  int width = 48;
+  cairo_surface_t *surface;
 
   switch (gtk_image_get_storage_type (image))
     {
-    case GTK_IMAGE_PIXBUF:
-      return g_object_ref (gtk_image_get_pixbuf (image));
+    case GTK_IMAGE_SURFACE:
+      surface = gtk_image_get_surface (image);
+      *out_size = cairo_image_surface_get_width (surface);
+      return cairo_surface_reference (surface);
     case GTK_IMAGE_ICON_NAME:
-      gtk_image_get_icon_name (image, &icon_name, &size);
-      icon_theme = gtk_icon_theme_get_for_screen (gtk_widget_get_screen (GTK_WIDGET (image)));
-      gtk_icon_size_lookup (size, &width, NULL);
-      return gtk_icon_theme_load_icon (icon_theme,
-                                       icon_name,
-                                       width,
-                                       GTK_ICON_LOOKUP_GENERIC_FALLBACK,
-                                       NULL);
+      icon_name = gtk_image_get_icon_name (image);
+      icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (image)));
+      *out_size = width;
+      return gtk_icon_theme_load_surface (icon_theme, icon_name, width, 1, NULL, GTK_ICON_LOOKUP_GENERIC_FALLBACK, NULL);
     default:
       g_warning ("Image storage type %d not handled",
                  gtk_image_get_storage_type (image));
       return NULL;
     }
 }
-
-enum {
-  TARGET_IMAGE,
-  TARGET_TEXT
-};
 
 enum {
   TOP_LEFT,
@@ -44,11 +38,12 @@ image_drag_begin (GtkWidget      *widget,
                   GdkDragContext *context,
                   gpointer        data)
 {
-  GdkPixbuf *pixbuf;
+  cairo_surface_t *surface;
   gint hotspot;
   gint hot_x, hot_y;
+  gint size;
 
-  pixbuf = get_image_pixbuf (GTK_IMAGE (data));
+  surface = get_image_surface (GTK_IMAGE (data), &size);
   hotspot = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (data), "hotspot"));
   switch (hotspot)
     {
@@ -58,16 +53,17 @@ image_drag_begin (GtkWidget      *widget,
       hot_y = 0;
       break;
     case CENTER:
-      hot_x = gdk_pixbuf_get_width (pixbuf) / 2;
-      hot_y = gdk_pixbuf_get_height (pixbuf) / 2;
+      hot_x = size / 2;
+      hot_y = size / 2;
       break;
     case BOTTOM_RIGHT:
-      hot_x = gdk_pixbuf_get_width (pixbuf);
-      hot_y = gdk_pixbuf_get_height (pixbuf);
+      hot_x = size;
+      hot_y = size;
       break;
     }
-  gtk_drag_set_icon_pixbuf (context, pixbuf, hot_x, hot_y);
-  g_object_unref (pixbuf);
+  cairo_surface_set_device_offset (surface, hot_x, hot_y);
+  gtk_drag_set_icon_surface (context, surface);
+  cairo_surface_destroy (surface);
 }
 
 static void
@@ -94,9 +90,10 @@ window_drag_begin (GtkWidget      *widget,
                    GdkDragContext *context,
                    gpointer        data)
 {
-  GdkPixbuf *pixbuf;
+  cairo_surface_t *surface;
   GtkWidget *image;
   int hotspot;
+  int size;
 
   hotspot = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (data), "hotspot"));
 
@@ -104,9 +101,9 @@ window_drag_begin (GtkWidget      *widget,
   if (image == NULL)
     {
       g_print ("creating new drag widget\n");
-      pixbuf = get_image_pixbuf (GTK_IMAGE (data));
-      image = gtk_image_new_from_pixbuf (pixbuf);
-      g_object_unref (pixbuf);
+      surface = get_image_surface (GTK_IMAGE (data), &size);
+      image = gtk_image_new_from_surface (surface);
+      cairo_surface_destroy (surface);
       g_object_ref (image);
       g_object_set_data (G_OBJECT (widget), "drag widget", image);
       g_signal_connect (image, "destroy", G_CALLBACK (drag_widget_destroyed), widget);
@@ -123,60 +120,60 @@ window_drag_begin (GtkWidget      *widget,
 static void
 update_source_target_list (GtkWidget *image)
 {
-  GtkTargetList *target_list;
+  GdkContentFormats *target_list;
 
-  target_list = gtk_target_list_new (NULL, 0);
+  target_list = gdk_content_formats_new (NULL, 0);
 
-  gtk_target_list_add_image_targets (target_list, TARGET_IMAGE, FALSE);
+  target_list = gtk_content_formats_add_image_targets (target_list, FALSE);
   if (gtk_image_get_storage_type (GTK_IMAGE (image)) == GTK_IMAGE_ICON_NAME)
-    gtk_target_list_add_text_targets (target_list, TARGET_TEXT);
+    target_list = gtk_content_formats_add_text_targets (target_list);
 
   gtk_drag_source_set_target_list (image, target_list);
 
-  gtk_target_list_unref (target_list);
+  gdk_content_formats_unref (target_list);
 }
 
 static void
 update_dest_target_list (GtkWidget *image)
 {
-  GtkTargetList *target_list;
+  GdkContentFormats *target_list;
 
-  target_list = gtk_target_list_new (NULL, 0);
+  target_list = gdk_content_formats_new (NULL, 0);
 
-  gtk_target_list_add_image_targets (target_list, TARGET_IMAGE, FALSE);
-  gtk_target_list_add_text_targets (target_list, TARGET_TEXT);
+  target_list = gtk_content_formats_add_image_targets (target_list, FALSE);
+  target_list = gtk_content_formats_add_text_targets (target_list);
 
   gtk_drag_dest_set_target_list (image, target_list);
 
-  gtk_target_list_unref (target_list);
+  gdk_content_formats_unref (target_list);
 }
 
 void
 image_drag_data_get (GtkWidget        *widget,
                      GdkDragContext   *context,
                      GtkSelectionData *selection_data,
-                     guint             info,
                      guint             time,
                      gpointer          data)
 {
-  GdkPixbuf *pixbuf;
+  cairo_surface_t *surface;
   const gchar *name;
+  int size;
 
-  switch (info)
+  if (gtk_selection_data_targets_include_image (selection_data, TRUE))
     {
-    case TARGET_IMAGE:
-      pixbuf = get_image_pixbuf (GTK_IMAGE (data));
-      gtk_selection_data_set_pixbuf (selection_data, pixbuf);
-      g_object_unref (pixbuf);
-      break;
-    case TARGET_TEXT:
+      surface = get_image_surface (GTK_IMAGE (data), &size);
+      gtk_selection_data_set_surface (selection_data, surface);
+    }
+  else if (gtk_selection_data_targets_include_text (selection_data))
+    {
       if (gtk_image_get_storage_type (GTK_IMAGE (data)) == GTK_IMAGE_ICON_NAME)
-        gtk_image_get_icon_name (GTK_IMAGE (data), &name, NULL);
+        name = gtk_image_get_icon_name (GTK_IMAGE (data));
       else
         name = "Boo!";
       gtk_selection_data_set_text (selection_data, name, -1);
-      break;
-    default:
+    }
+  else
+    {
       g_assert_not_reached ();
     }
 }
@@ -184,32 +181,30 @@ image_drag_data_get (GtkWidget        *widget,
 static void
 image_drag_data_received (GtkWidget        *widget,
                           GdkDragContext   *context,
-                          gint              x,
-                          gint              y,
                           GtkSelectionData *selection_data,
-                          guint             info,
                           guint32           time,
                           gpointer          data)
 {
-  GdkPixbuf *pixbuf;
+  cairo_surface_t *surface;
   gchar *text;
 
   if (gtk_selection_data_get_length (selection_data) == 0)
     return;
 
-  switch (info)
+  if (gtk_selection_data_targets_include_image (selection_data, FALSE))
     {
-    case TARGET_IMAGE:
-      pixbuf = gtk_selection_data_get_pixbuf (selection_data);
-      gtk_image_set_from_pixbuf (GTK_IMAGE (data), pixbuf);
-      g_object_unref (pixbuf);
-      break;
-    case TARGET_TEXT:
+      surface = gtk_selection_data_get_surface (selection_data);
+      gtk_image_set_from_surface (GTK_IMAGE (data), surface);
+      cairo_surface_destroy (surface);
+    }
+  else if (gtk_selection_data_targets_include_text (selection_data))
+    {
       text = (gchar *)gtk_selection_data_get_text (selection_data);
-      gtk_image_set_from_icon_name (GTK_IMAGE (data), text, GTK_ICON_SIZE_DIALOG);
+      gtk_image_set_from_icon_name (GTK_IMAGE (data), text);
       g_free (text);
-      break;
-    default:
+    }
+  else
+    {
       g_assert_not_reached ();
     }
 }
@@ -220,9 +215,10 @@ make_image (const gchar *icon_name, int hotspot)
 {
   GtkWidget *image;
 
-  image = gtk_image_new_from_icon_name (icon_name, GTK_ICON_SIZE_DIALOG);
+  image = gtk_image_new_from_icon_name (icon_name);
+  gtk_image_set_icon_size (GTK_IMAGE (image), GTK_ICON_SIZE_LARGE);
 
-  gtk_drag_source_set (image, GDK_BUTTON1_MASK, NULL, 0, GDK_ACTION_COPY);
+  gtk_drag_source_set (image, GDK_BUTTON1_MASK, NULL, GDK_ACTION_COPY);
   update_source_target_list (image);
 
   g_object_set_data  (G_OBJECT (image), "hotspot", GINT_TO_POINTER (hotspot));
@@ -230,7 +226,7 @@ make_image (const gchar *icon_name, int hotspot)
   g_signal_connect (image, "drag-begin", G_CALLBACK (image_drag_begin), image);
   g_signal_connect (image, "drag-data-get", G_CALLBACK (image_drag_data_get), image);
 
-  gtk_drag_dest_set (image, GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY);
+  gtk_drag_dest_set (image, GTK_DEST_DEFAULT_ALL, NULL, GDK_ACTION_COPY);
   g_signal_connect (image, "drag-data-received", G_CALLBACK (image_drag_data_received), image);
   update_dest_target_list (image);
 
@@ -242,9 +238,10 @@ make_image2 (const gchar *icon_name, int hotspot)
 {
   GtkWidget *image;
 
-  image = gtk_image_new_from_icon_name (icon_name, GTK_ICON_SIZE_DIALOG);
+  image = gtk_image_new_from_icon_name (icon_name);
+  gtk_image_set_icon_size (GTK_IMAGE (image), GTK_ICON_SIZE_LARGE);
 
-  gtk_drag_source_set (image, GDK_BUTTON1_MASK, NULL, 0, GDK_ACTION_COPY);
+  gtk_drag_source_set (image, GDK_BUTTON1_MASK, NULL, GDK_ACTION_COPY);
   update_source_target_list (image);
 
   g_object_set_data  (G_OBJECT (image), "hotspot", GINT_TO_POINTER (hotspot));
@@ -252,7 +249,7 @@ make_image2 (const gchar *icon_name, int hotspot)
   g_signal_connect (image, "drag-begin", G_CALLBACK (window_drag_begin), image);
   g_signal_connect (image, "drag-data-get", G_CALLBACK (image_drag_data_get), image);
 
-  gtk_drag_dest_set (image, GTK_DEST_DEFAULT_ALL, NULL, 0, GDK_ACTION_COPY);
+  gtk_drag_dest_set (image, GTK_DEST_DEFAULT_ALL, NULL, GDK_ACTION_COPY);
   g_signal_connect (image, "drag-data-received", G_CALLBACK (image_drag_data_received), image);
   update_dest_target_list (image);
 
@@ -308,7 +305,6 @@ void
 spinner_drag_data_get (GtkWidget        *widget,
                        GdkDragContext   *context,
                        GtkSelectionData *selection_data,
-                       guint             info,
                        guint             time,
                        gpointer          data)
 {
@@ -324,7 +320,7 @@ make_spinner (void)
   spinner = gtk_spinner_new ();
   gtk_spinner_start (GTK_SPINNER (spinner));
 
-  gtk_drag_source_set (spinner, GDK_BUTTON1_MASK, NULL, 0, GDK_ACTION_COPY);
+  gtk_drag_source_set (spinner, GDK_BUTTON1_MASK, NULL, GDK_ACTION_COPY);
   gtk_drag_source_add_text_targets (spinner);
 
   g_signal_connect (spinner, "drag-begin", G_CALLBACK (spinner_drag_begin), spinner);

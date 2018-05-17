@@ -46,9 +46,9 @@
 #include <X11/extensions/Xfixes.h>
 #endif
 
-static void         gdk_x11_screen_dispose     (GObject		  *object);
-static void         gdk_x11_screen_finalize    (GObject		  *object);
-static void	    init_randr_support	       (GdkScreen	  *screen);
+static void gdk_x11_screen_dispose  (GObject      *object);
+static void gdk_x11_screen_finalize (GObject      *object);
+static void init_randr_support	    (GdkX11Screen *screen);
 
 enum
 {
@@ -58,7 +58,7 @@ enum
 
 static guint signals[LAST_SIGNAL] = { 0 };
 
-G_DEFINE_TYPE (GdkX11Screen, gdk_x11_screen, GDK_TYPE_SCREEN)
+G_DEFINE_TYPE (GdkX11Screen, gdk_x11_screen, G_TYPE_OBJECT)
 
 typedef struct _NetWmSupportedAtoms NetWmSupportedAtoms;
 
@@ -71,18 +71,6 @@ struct _NetWmSupportedAtoms
 static void
 gdk_x11_screen_init (GdkX11Screen *screen)
 {
-}
-
-static GdkDisplay *
-gdk_x11_screen_get_display (GdkScreen *screen)
-{
-  return GDK_X11_SCREEN (screen)->display;
-}
-
-static GdkWindow *
-gdk_x11_screen_get_root_window (GdkScreen *screen)
-{
-  return GDK_X11_SCREEN (screen)->root_window;
 }
 
 static void
@@ -102,9 +90,6 @@ gdk_x11_screen_dispose (GObject *object)
 
   _gdk_x11_xsettings_finish (x11_screen);
 
-  if (x11_screen->root_window)
-    _gdk_window_destroy (x11_screen->root_window, TRUE);
-
   for (i = 0; i < x11_screen->nvisuals; i++)
     g_object_run_dispose (G_OBJECT (x11_screen->visuals[i]));
 
@@ -122,9 +107,6 @@ gdk_x11_screen_finalize (GObject *object)
   GdkX11Screen *x11_screen = GDK_X11_SCREEN (object);
   gint          i;
 
-  if (x11_screen->root_window)
-    g_object_unref (x11_screen->root_window);
-
   /* Visual Part */
   for (i = 0; i < x11_screen->nvisuals; i++)
     g_object_unref (x11_screen->visuals[i]);
@@ -137,7 +119,7 @@ gdk_x11_screen_finalize (GObject *object)
 
 /**
  * gdk_x11_screen_get_monitor_output:
- * @screen: (type GdkX11Screen): a #GdkScreen
+ * @screen: a #GdkX11Screen
  * @monitor_num: number of the monitor, between 0 and gdk_screen_get_n_monitors (screen)
  *
  * Gets the XID of the specified output/monitor.
@@ -149,14 +131,12 @@ gdk_x11_screen_finalize (GObject *object)
  * Since: 2.14
  */
 XID
-gdk_x11_screen_get_monitor_output (GdkScreen *screen,
-                                   gint       monitor_num)
+gdk_x11_screen_get_monitor_output (GdkX11Screen *x11_screen,
+                                   gint          monitor_num)
 {
-  GdkX11Screen *x11_screen = GDK_X11_SCREEN (screen);
   GdkX11Display *x11_display = GDK_X11_DISPLAY (x11_screen->display);
   GdkX11Monitor *monitor;
 
-  g_return_val_if_fail (GDK_IS_SCREEN (screen), None);
   g_return_val_if_fail (monitor_num >= 0, None);
   g_return_val_if_fail (monitor_num < x11_display->monitors->len, None);
 
@@ -165,7 +145,7 @@ gdk_x11_screen_get_monitor_output (GdkScreen *screen,
 }
 
 static int
-get_current_desktop (GdkScreen *screen)
+get_current_desktop (GdkX11Screen *screen)
 {
   Display *display;
   Window win;
@@ -176,11 +156,11 @@ get_current_desktop (GdkScreen *screen)
   int workspace = 0;
 
   if (!gdk_x11_screen_supports_net_wm_hint (screen,
-                                            gdk_atom_intern_static_string ("_NET_CURRENT_DESKTOP")))
+                                            g_intern_static_string ("_NET_CURRENT_DESKTOP")))
     return workspace;
 
-  display = GDK_DISPLAY_XDISPLAY (gdk_screen_get_display (screen));
-  win = XRootWindow (display, GDK_SCREEN_XNUMBER (screen));
+  display = GDK_DISPLAY_XDISPLAY (GDK_SCREEN_DISPLAY (screen));
+  win = XRootWindow (display, gdk_x11_screen_get_screen_number (screen));
 
   current_desktop = XInternAtom (display, "_NET_CURRENT_DESKTOP", True);
 
@@ -202,11 +182,9 @@ get_current_desktop (GdkScreen *screen)
 }
 
 void
-gdk_x11_screen_get_work_area (GdkScreen    *screen,
+gdk_x11_screen_get_work_area (GdkX11Screen *x11_screen,
                               GdkRectangle *area)
 {
-  GdkX11Screen   *x11_screen = GDK_X11_SCREEN (screen);
-  GdkWindow      *root_window;
   Atom            workarea;
   Atom            type;
   Window          win;
@@ -217,29 +195,26 @@ gdk_x11_screen_get_work_area (GdkScreen    *screen,
   guchar         *ret_workarea = NULL;
   long           *workareas;
   int             result;
-  int             disp_screen;
   int             desktop;
   Display        *display;
 
-  display = GDK_DISPLAY_XDISPLAY (gdk_screen_get_display (screen));
-  disp_screen = GDK_SCREEN_XNUMBER (screen);
-  root_window = gdk_screen_get_root_window (screen);
+  display = GDK_SCREEN_XDISPLAY (x11_screen);
   workarea = XInternAtom (display, "_NET_WORKAREA", True);
 
   /* Defaults in case of error */
   area->x = 0;
   area->y = 0;
-  area->width = gdk_window_get_width (root_window);
-  area->height = gdk_window_get_height (root_window);
+  area->width = WidthOfScreen (x11_screen->xscreen);
+  area->height = HeightOfScreen (x11_screen->xscreen);
 
-  if (!gdk_x11_screen_supports_net_wm_hint (screen,
-                                            gdk_atom_intern_static_string ("_NET_WORKAREA")))
+  if (!gdk_x11_screen_supports_net_wm_hint (x11_screen,
+                                            g_intern_static_string ("_NET_WORKAREA")))
     return;
 
   if (workarea == None)
     return;
 
-  win = XRootWindow (display, disp_screen);
+  win = XRootWindow (display, gdk_x11_screen_get_screen_number (x11_screen));
   result = XGetWindowProperty (display,
                                win,
                                workarea,
@@ -259,7 +234,7 @@ gdk_x11_screen_get_work_area (GdkScreen    *screen,
       num % 4 != 0)
     goto out;
 
-  desktop = get_current_desktop (screen);
+  desktop = get_current_desktop (x11_screen);
   if (desktop + 1 > num / 4) /* fvwm gets this wrong */
     goto out;
 
@@ -281,25 +256,25 @@ out:
 
 /**
  * gdk_x11_screen_get_xscreen:
- * @screen: (type GdkX11Screen): a #GdkScreen
+ * @screen: a #GdkX11Screen
  *
- * Returns the screen of a #GdkScreen.
+ * Returns the screen of a #GdkX11Screen.
  *
  * Returns: (transfer none): an Xlib Screen*
  *
  * Since: 2.2
  */
 Screen *
-gdk_x11_screen_get_xscreen (GdkScreen *screen)
+gdk_x11_screen_get_xscreen (GdkX11Screen *screen)
 {
-  return GDK_X11_SCREEN (screen)->xscreen;
+  return screen->xscreen;
 }
 
 /**
  * gdk_x11_screen_get_screen_number:
- * @screen: (type GdkX11Screen): a #GdkScreen
+ * @screen: a #GdkX11Screen
  *
- * Returns the index of a #GdkScreen.
+ * Returns the index of a #GdkX11Screen.
  *
  * Returns: the position of @screen among the screens
  *     of its display
@@ -307,9 +282,9 @@ gdk_x11_screen_get_xscreen (GdkScreen *screen)
  * Since: 2.2
  */
 int
-gdk_x11_screen_get_screen_number (GdkScreen *screen)
+gdk_x11_screen_get_screen_number (GdkX11Screen *screen)
 {
-  return GDK_X11_SCREEN (screen)->screen_num;
+  return screen->screen_num;
 }
 
 static GdkX11Monitor *
@@ -342,12 +317,11 @@ translate_subpixel_order (int subpixel)
 }
 
 static gboolean
-init_randr15 (GdkScreen *screen, gboolean *changed)
+init_randr15 (GdkX11Screen *x11_screen, gboolean *changed)
 {
 #ifdef HAVE_RANDR15
-  GdkDisplay *display = gdk_screen_get_display (screen);
+  GdkDisplay *display = GDK_SCREEN_DISPLAY (x11_screen);
   GdkX11Display *x11_display = GDK_X11_DISPLAY (display);
-  GdkX11Screen *x11_screen = GDK_X11_SCREEN (screen);
   XRRScreenResources *resources;
   RROutput primary_output = None;
   RROutput first_output = None;
@@ -527,12 +501,11 @@ init_randr15 (GdkScreen *screen, gboolean *changed)
 }
 
 static gboolean
-init_randr13 (GdkScreen *screen, gboolean *changed)
+init_randr13 (GdkX11Screen *x11_screen, gboolean *changed)
 {
 #ifdef HAVE_RANDR
-  GdkDisplay *display = gdk_screen_get_display (screen);
+  GdkDisplay *display = GDK_SCREEN_DISPLAY (x11_screen);
   GdkX11Display *x11_display = GDK_X11_DISPLAY (display);
-  GdkX11Screen *x11_screen = GDK_X11_SCREEN (screen);
   XRRScreenResources *resources;
   RROutput primary_output = None;
   RROutput first_output = None;
@@ -697,9 +670,8 @@ init_randr13 (GdkScreen *screen, gboolean *changed)
 }
 
 static void
-init_no_multihead (GdkScreen *screen, gboolean *changed)
+init_no_multihead (GdkX11Screen *x11_screen, gboolean *changed)
 {
-  GdkX11Screen *x11_screen = GDK_X11_SCREEN (screen);
   GdkX11Display *x11_display = GDK_X11_DISPLAY (x11_screen->display);
   GdkX11Monitor *monitor;
   GdkRectangle geometry;
@@ -771,7 +743,7 @@ init_no_multihead (GdkScreen *screen, gboolean *changed)
 }
 
 static gboolean
-init_multihead (GdkScreen *screen)
+init_multihead (GdkX11Screen *screen)
 {
   gboolean any_changed = FALSE;
 
@@ -782,24 +754,22 @@ init_multihead (GdkScreen *screen)
   return any_changed;
 }
 
-GdkScreen *
+GdkX11Screen *
 _gdk_x11_screen_new (GdkDisplay *display,
 		     gint	 screen_number,
                      gboolean    setup_display)
 {
-  GdkScreen *screen;
   GdkX11Screen *x11_screen;
   GdkX11Display *display_x11 = GDK_X11_DISPLAY (display);
   const char *scale_str;
 
-  screen = g_object_new (GDK_TYPE_X11_SCREEN, NULL);
+  x11_screen = g_object_new (GDK_TYPE_X11_SCREEN, NULL);
 
-  x11_screen = GDK_X11_SCREEN (screen);
   x11_screen->display = display;
   x11_screen->xdisplay = display_x11->xdisplay;
   x11_screen->xscreen = ScreenOfDisplay (display_x11->xdisplay, screen_number);
   x11_screen->screen_num = screen_number;
-  x11_screen->xroot_window = RootWindow (display_x11->xdisplay,screen_number);
+  x11_screen->xroot_window = RootWindow (display_x11->xdisplay, screen_number);
   x11_screen->wmspec_check_window = None;
   /* we want this to be always non-null */
   x11_screen->window_manager_name = g_strdup ("unknown");
@@ -815,13 +785,12 @@ _gdk_x11_screen_new (GdkDisplay *display,
   else
     x11_screen->window_scale = 1;
 
-  init_randr_support (screen);
-  init_multihead (screen);
+  init_randr_support (x11_screen);
+  init_multihead (x11_screen);
 
-  _gdk_x11_screen_init_visuals (screen, setup_display);
-  _gdk_x11_screen_init_root_window (screen);
+  _gdk_x11_screen_init_visuals (x11_screen, setup_display);
 
-  return screen;
+  return x11_screen;
 }
 
 void
@@ -830,7 +799,6 @@ _gdk_x11_screen_set_window_scale (GdkX11Screen *x11_screen,
 {
   GdkX11Display *x11_display = GDK_X11_DISPLAY (x11_screen->display);
   GList *toplevels, *l;
-  GdkWindow *root;
   int i;
 
   if (x11_screen->window_scale == scale)
@@ -838,10 +806,7 @@ _gdk_x11_screen_set_window_scale (GdkX11Screen *x11_screen,
 
   x11_screen->window_scale = scale;
 
-  root = x11_screen->root_window;
-  GDK_WINDOW_IMPL_X11 (root->impl)->window_scale = scale;
-
-  toplevels = gdk_screen_get_toplevel_windows (GDK_SCREEN (x11_screen));
+  toplevels = gdk_x11_display_get_toplevel_windows (x11_screen->display);
 
   for (l = toplevels; l != NULL; l = l->next)
     {
@@ -856,25 +821,21 @@ _gdk_x11_screen_set_window_scale (GdkX11Screen *x11_screen,
 
       gdk_monitor_set_scale_factor (monitor, scale);
     }
-
-  g_signal_emit_by_name (GDK_SCREEN (x11_screen), "monitors-changed");
 }
 
 static void
-init_randr_support (GdkScreen *screen)
+init_randr_support (GdkX11Screen *x11_screen)
 {
-  GdkX11Screen *x11_screen = GDK_X11_SCREEN (screen);
-
   /* NB: This is also needed for XSettings, so don't remove. */
-  XSelectInput (GDK_SCREEN_XDISPLAY (screen),
+  XSelectInput (GDK_SCREEN_XDISPLAY (x11_screen),
                 x11_screen->xroot_window,
                 StructureNotifyMask);
 
 #ifdef HAVE_RANDR
-  if (!GDK_X11_DISPLAY (gdk_screen_get_display (screen))->have_randr12)
+  if (!GDK_X11_DISPLAY (GDK_SCREEN_DISPLAY (x11_screen))->have_randr12)
     return;
 
-  XRRSelectInput (GDK_SCREEN_XDISPLAY (screen),
+  XRRSelectInput (GDK_SCREEN_XDISPLAY (x11_screen),
                   x11_screen->xroot_window,
                   RRScreenChangeNotifyMask
                   | RRCrtcChangeNotifyMask
@@ -883,27 +844,24 @@ init_randr_support (GdkScreen *screen)
 }
 
 static void
-process_monitors_change (GdkScreen *screen)
+process_monitors_change (GdkX11Screen *screen)
 {
-  if (init_multihead (screen))
-    {
-      g_signal_emit_by_name (screen, "monitors-changed");
-    }
+  init_multihead (screen);
 }
 
 void
-_gdk_x11_screen_size_changed (GdkScreen *screen,
-			      XEvent    *event)
+_gdk_x11_screen_size_changed (GdkX11Screen *screen,
+			      const XEvent *event)
 {
 #ifdef HAVE_RANDR
   GdkX11Display *display_x11;
 
-  display_x11 = GDK_X11_DISPLAY (gdk_screen_get_display (screen));
+  display_x11 = GDK_X11_DISPLAY (GDK_SCREEN_DISPLAY (screen));
 
   if (display_x11->have_randr13 && event->type == ConfigureNotify)
     return;
 
-  XRRUpdateConfiguration (event);
+  XRRUpdateConfiguration ((XEvent *) event);
 #else
   if (event->type != ConfigureNotify)
     return;
@@ -913,17 +871,15 @@ _gdk_x11_screen_size_changed (GdkScreen *screen,
 }
 
 void
-_gdk_x11_screen_get_edge_monitors (GdkScreen *screen,
+_gdk_x11_screen_get_edge_monitors (GdkX11Screen *x11_screen,
                                    gint      *top,
                                    gint      *bottom,
                                    gint      *left,
                                    gint      *right)
 {
 #ifdef HAVE_XFREE_XINERAMA
-  GdkX11Screen *x11_screen = GDK_X11_SCREEN (screen);
-  GdkWindow    *root_window = gdk_screen_get_root_window (screen);
-  gint          top_most_pos = gdk_window_get_height (root_window);
-  gint          left_most_pos = gdk_window_get_width (root_window);
+  gint          top_most_pos = HeightOfScreen (x11_screen->xscreen);
+  gint          left_most_pos = WidthOfScreen (x11_screen->xscreen);
   gint          bottom_most_pos = 0;
   gint          right_most_pos = 0;
   gint          i;
@@ -975,17 +931,16 @@ _gdk_x11_screen_get_edge_monitors (GdkScreen *screen,
 }
 
 void
-_gdk_x11_screen_window_manager_changed (GdkScreen *screen)
+_gdk_x11_screen_window_manager_changed (GdkX11Screen *screen)
 {
   g_signal_emit (screen, signals[WINDOW_MANAGER_CHANGED], 0);
 }
 
-static gboolean
-gdk_x11_screen_get_setting (GdkScreen   *screen,
+gboolean
+gdk_x11_screen_get_setting (GdkX11Screen   *x11_screen,
 			    const gchar *name,
 			    GValue      *value)
 {
-  GdkX11Screen *x11_screen = GDK_X11_SCREEN (screen);
   const GValue *setting;
 
   if (x11_screen->xsettings == NULL)
@@ -1006,7 +961,7 @@ gdk_x11_screen_get_setting (GdkScreen   *screen,
   return TRUE;
 
  out:
-  return _gdk_x11_get_xft_setting (screen, name, value);
+  return _gdk_x11_screen_get_xft_setting (x11_screen, name, value);
 }
 
 static void
@@ -1052,15 +1007,13 @@ get_net_supporting_wm_check (GdkX11Screen *screen,
 }
 
 static void
-fetch_net_wm_check_window (GdkScreen *screen)
+fetch_net_wm_check_window (GdkX11Screen *x11_screen)
 {
-  GdkX11Screen *x11_screen;
   GdkDisplay *display;
   Window window;
   GTimeVal tv;
   gint error;
 
-  x11_screen = GDK_X11_SCREEN (screen);
   display = x11_screen->display;
 
   g_return_if_fail (GDK_X11_DISPLAY (display)->trusted_client);
@@ -1102,13 +1055,13 @@ fetch_net_wm_check_window (GdkScreen *screen)
       x11_screen->need_refetch_wm_name = TRUE;
 
       /* Careful, reentrancy */
-      _gdk_x11_screen_window_manager_changed (screen);
+      _gdk_x11_screen_window_manager_changed (x11_screen);
     }
 }
 
 /**
  * gdk_x11_screen_supports_net_wm_hint:
- * @screen: (type GdkX11Screen): the relevant #GdkScreen.
+ * @screen: the relevant #GdkX11Screen.
  * @property: a property atom.
  *
  * This function is specific to the X11 backend of GDK, and indicates
@@ -1121,7 +1074,7 @@ fetch_net_wm_check_window (GdkScreen *screen)
  * is that your application can start up before the window manager
  * does when the user logs in, and before the window manager starts
  * gdk_x11_screen_supports_net_wm_hint() will return %FALSE for every property.
- * You can monitor the window_manager_changed signal on #GdkScreen to detect
+ * You can monitor the window_manager_changed signal on #GdkX11Screen to detect
  * a window manager change.
  *
  * Returns: %TRUE if the window manager supports @property
@@ -1129,31 +1082,27 @@ fetch_net_wm_check_window (GdkScreen *screen)
  * Since: 2.2
  **/
 gboolean
-gdk_x11_screen_supports_net_wm_hint (GdkScreen *screen,
+gdk_x11_screen_supports_net_wm_hint (GdkX11Screen *x11_screen,
 				     GdkAtom    property)
 {
   gulong i;
-  GdkX11Screen *x11_screen;
   NetWmSupportedAtoms *supported_atoms;
   GdkDisplay *display;
   Atom atom;
 
-  g_return_val_if_fail (GDK_IS_SCREEN (screen), FALSE);
-
-  x11_screen = GDK_X11_SCREEN (screen);
   display = x11_screen->display;
 
   if (!G_LIKELY (GDK_X11_DISPLAY (display)->trusted_client))
     return FALSE;
 
-  supported_atoms = g_object_get_data (G_OBJECT (screen), "gdk-net-wm-supported-atoms");
+  supported_atoms = g_object_get_data (G_OBJECT (x11_screen), "gdk-net-wm-supported-atoms");
   if (!supported_atoms)
     {
       supported_atoms = g_new0 (NetWmSupportedAtoms, 1);
-      g_object_set_data_full (G_OBJECT (screen), "gdk-net-wm-supported-atoms", supported_atoms, cleanup_atoms);
+      g_object_set_data_full (G_OBJECT (x11_screen), "gdk-net-wm-supported-atoms", supported_atoms, cleanup_atoms);
     }
 
-  fetch_net_wm_check_window (screen);
+  fetch_net_wm_check_window (x11_screen);
 
   if (x11_screen->wmspec_check_window == None)
     return FALSE;
@@ -1201,7 +1150,7 @@ gdk_x11_screen_supports_net_wm_hint (GdkScreen *screen,
 
 /**
  * gdk_x11_screen_get_window_manager_name:
- * @screen: (type GdkX11Screen): a #GdkScreen
+ * @screen: a #GdkX11Screen
  *
  * Returns the name of the window manager for @screen.
  *
@@ -1212,18 +1161,16 @@ gdk_x11_screen_supports_net_wm_hint (GdkScreen *screen,
  * Since: 2.2
  **/
 const char*
-gdk_x11_screen_get_window_manager_name (GdkScreen *screen)
+gdk_x11_screen_get_window_manager_name (GdkX11Screen *x11_screen)
 {
-  GdkX11Screen *x11_screen;
   GdkDisplay *display;
 
-  x11_screen = GDK_X11_SCREEN (screen);
   display = x11_screen->display;
 
   if (!G_LIKELY (GDK_X11_DISPLAY (display)->trusted_client))
     return x11_screen->window_manager_name;
 
-  fetch_net_wm_check_window (screen);
+  fetch_net_wm_check_window (x11_screen);
 
   if (x11_screen->need_refetch_wm_name)
     {
@@ -1267,21 +1214,16 @@ gdk_x11_screen_get_window_manager_name (GdkScreen *screen)
         }
     }
 
-  return GDK_X11_SCREEN (screen)->window_manager_name;
+  return x11_screen->window_manager_name;
 }
 
 static void
 gdk_x11_screen_class_init (GdkX11ScreenClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  GdkScreenClass *screen_class = GDK_SCREEN_CLASS (klass);
 
   object_class->dispose = gdk_x11_screen_dispose;
   object_class->finalize = gdk_x11_screen_finalize;
-
-  screen_class->get_display = gdk_x11_screen_get_display;
-  screen_class->get_root_window = gdk_x11_screen_get_root_window;
-  screen_class->get_setting = gdk_x11_screen_get_setting;
 
   signals[WINDOW_MANAGER_CHANGED] =
     g_signal_new (g_intern_static_string ("window-manager-changed"),
@@ -1295,10 +1237,9 @@ gdk_x11_screen_class_init (GdkX11ScreenClass *klass)
 }
 
 static guint32
-get_netwm_cardinal_property (GdkScreen   *screen,
-                             const gchar *name)
+get_netwm_cardinal_property (GdkX11Screen *x11_screen,
+                             const gchar  *name)
 {
-  GdkX11Screen *x11_screen = GDK_X11_SCREEN (screen);
   GdkAtom atom;
   guint32 prop = 0;
   Atom type;
@@ -1307,14 +1248,14 @@ get_netwm_cardinal_property (GdkScreen   *screen,
   gulong bytes_after;
   guchar *data;
 
-  atom = gdk_atom_intern_static_string (name);
+  atom = g_intern_static_string (name);
 
-  if (!gdk_x11_screen_supports_net_wm_hint (screen, atom))
+  if (!gdk_x11_screen_supports_net_wm_hint (x11_screen, atom))
     return 0;
 
   XGetWindowProperty (x11_screen->xdisplay,
                       x11_screen->xroot_window,
-                      gdk_x11_get_xatom_by_name_for_display (GDK_SCREEN_DISPLAY (screen), name),
+                      gdk_x11_get_xatom_by_name_for_display (GDK_SCREEN_DISPLAY (x11_screen), name),
                       0, G_MAXLONG,
                       False, XA_CARDINAL, &type, &format, &nitems,
                       &bytes_after, &data);
@@ -1329,7 +1270,7 @@ get_netwm_cardinal_property (GdkScreen   *screen,
 
 /**
  * gdk_x11_screen_get_number_of_desktops:
- * @screen: (type GdkX11Screen): a #GdkScreen
+ * @screen: a #GdkX11Screen
  *
  * Returns the number of workspaces for @screen when running under a
  * window manager that supports multiple workspaces, as described
@@ -1341,14 +1282,14 @@ get_netwm_cardinal_property (GdkScreen   *screen,
  * Since: 3.10
  */
 guint32
-gdk_x11_screen_get_number_of_desktops (GdkScreen *screen)
+gdk_x11_screen_get_number_of_desktops (GdkX11Screen *screen)
 {
   return get_netwm_cardinal_property (screen, "_NET_NUMBER_OF_DESKTOPS");
 }
 
 /**
  * gdk_x11_screen_get_current_desktop:
- * @screen: (type GdkX11Screen): a #GdkScreen
+ * @screen: a #GdkX11Screen
  *
  * Returns the current workspace for @screen when running under a
  * window manager that supports multiple workspaces, as described
@@ -1360,7 +1301,7 @@ gdk_x11_screen_get_number_of_desktops (GdkScreen *screen)
  * Since: 3.10
  */
 guint32
-gdk_x11_screen_get_current_desktop (GdkScreen *screen)
+gdk_x11_screen_get_current_desktop (GdkX11Screen *screen)
 {
   return get_netwm_cardinal_property (screen, "_NET_CURRENT_DESKTOP");
 }

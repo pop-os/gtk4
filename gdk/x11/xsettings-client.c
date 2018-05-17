@@ -39,6 +39,13 @@
 #include <X11/Xlib.h>
 #include <X11/Xmd.h>		/* For CARD16 */
 
+typedef enum
+{
+  GDK_SETTING_ACTION_NEW,
+  GDK_SETTING_ACTION_CHANGED,
+  GDK_SETTING_ACTION_DELETED
+} GdkSettingAction;
+
 #include "gdksettings.c"
 
 /* Types of settings possible. Enum values correspond to
@@ -66,18 +73,7 @@ gdk_xsettings_notify (GdkX11Screen     *x11_screen,
                       const char       *name,
 		      GdkSettingAction  action)
 {
-  GdkEvent new_event;
-
-  if (!g_str_has_prefix (name, "gtk-"))
-    return;
-
-  new_event.type = GDK_SETTING;
-  new_event.setting.window = gdk_screen_get_root_window (GDK_SCREEN (x11_screen));
-  new_event.setting.send_event = FALSE;
-  new_event.setting.action = action;
-  new_event.setting.name = (char*) name;
-
-  gdk_event_put (&new_event);
+  gdk_display_setting_changed (x11_screen->display, name);
 }
 
 static gboolean
@@ -402,7 +398,7 @@ static void
 read_settings (GdkX11Screen *x11_screen,
                gboolean      do_notify)
 {
-  GdkScreen *screen = GDK_SCREEN (x11_screen);
+  GdkDisplay *display = x11_screen->display;
 
   Atom type;
   int format;
@@ -417,14 +413,13 @@ read_settings (GdkX11Screen *x11_screen,
 
   x11_screen->xsettings = NULL;
 
-  if (x11_screen->xsettings_manager_window)
+  if (x11_screen->xsettings_manager_window != 0)
     {
-      GdkDisplay *display = x11_screen->display;
       Atom xsettings_atom = gdk_x11_get_xatom_by_name_for_display (display, "_XSETTINGS_SETTINGS");
 
       gdk_x11_display_error_trap_push (display);
       result = XGetWindowProperty (gdk_x11_display_get_xdisplay (display),
-                                   gdk_x11_window_get_xid (x11_screen->xsettings_manager_window),
+                                   x11_screen->xsettings_manager_window,
 				   xsettings_atom, 0, LONG_MAX,
 				   False, xsettings_atom,
 				   &type, &format, &n_items, &bytes_after, &data);
@@ -469,45 +464,9 @@ read_settings (GdkX11Screen *x11_screen,
 
   g_value_init (&value, G_TYPE_INT);
 
-  if (!screen->resolution_set)
-    {
-      /* This code is duplicated with gtksettings.c:settings_update_resolution().
-       * The update of the screen resolution needs to happen immediately when
-       * gdk_x11_display_set_window_scale() is called, and not wait for events
-       * to be processed, so we can't always handling it in gtksettings.c.
-       * But we can't always handle it here because the DPI can be set through
-       * GtkSettings, which we don't have access to.
-       */
-      int dpi_int = 0;
-      double dpi;
-      const char *scale_env;
-      double scale;
-
-      if (gdk_screen_get_setting (GDK_SCREEN (x11_screen),
-                                  "gtk-xft-dpi", &value))
-        dpi_int = g_value_get_int (&value);
-
-      if (dpi_int > 0)
-        dpi = dpi_int / 1024.;
-      else
-        dpi = -1.;
-
-      scale_env = g_getenv ("GDK_DPI_SCALE");
-      if (scale_env)
-        {
-          scale = g_ascii_strtod (scale_env, NULL);
-          if (scale != 0 && dpi > 0)
-            dpi *= scale;
-        }
-
-      _gdk_screen_set_resolution (screen, dpi);
-    }
-
   if (!x11_screen->fixed_window_scale &&
-      gdk_screen_get_setting (GDK_SCREEN (x11_screen),
-			      "gdk-window-scaling-factor", &value))
-    _gdk_x11_screen_set_window_scale (x11_screen,
-				      g_value_get_int (&value));
+      gdk_display_get_setting (display, "gdk-window-scaling-factor", &value))
+    _gdk_x11_screen_set_window_scale (x11_screen, g_value_get_int (&value));
 }
 
 static Atom
@@ -516,60 +475,39 @@ get_selection_atom (GdkX11Screen *x11_screen)
   return _gdk_x11_get_xatom_for_display_printf (x11_screen->display, "_XSETTINGS_S%d", x11_screen->screen_num);
 }
 
-static GdkFilterReturn
-gdk_xsettings_manager_window_filter (GdkXEvent *xevent,
-                                     GdkEvent  *event,
-                                     gpointer   data);
-
 static void
 check_manager_window (GdkX11Screen *x11_screen,
                       gboolean      notify_changes)
 {
   GdkDisplay *display;
   Display *xdisplay;
-  Window manager_window_xid;
 
   display = x11_screen->display;
   xdisplay = gdk_x11_display_get_xdisplay (display);
 
-  if (x11_screen->xsettings_manager_window)
-    {
-      gdk_window_remove_filter (x11_screen->xsettings_manager_window, gdk_xsettings_manager_window_filter, x11_screen);
-      g_object_unref (x11_screen->xsettings_manager_window);
-    }
-
   gdk_x11_display_grab (display);
 
-  manager_window_xid = XGetSelectionOwner (xdisplay, get_selection_atom (x11_screen));
-  x11_screen->xsettings_manager_window = gdk_x11_window_foreign_new_for_display (display,
-                                                                   manager_window_xid);
-  /* XXX: Can't use gdk_window_set_events() here because the first call to this
-   * function happens too early in gdk_init() */
-  if (x11_screen->xsettings_manager_window)
+  x11_screen->xsettings_manager_window = XGetSelectionOwner (xdisplay, get_selection_atom (x11_screen));
+
+  if (x11_screen->xsettings_manager_window != 0)
     XSelectInput (xdisplay,
-                  gdk_x11_window_get_xid (x11_screen->xsettings_manager_window),
+                  x11_screen->xsettings_manager_window,
                   PropertyChangeMask | StructureNotifyMask);
 
   gdk_x11_display_ungrab (display);
-  
+
   gdk_display_flush (display);
 
-  if (x11_screen->xsettings_manager_window)
-    {
-      gdk_window_add_filter (x11_screen->xsettings_manager_window, gdk_xsettings_manager_window_filter, x11_screen);
-    }
-      
   read_settings (x11_screen, notify_changes);
 }
 
-static GdkFilterReturn
-gdk_xsettings_root_window_filter (GdkXEvent *xevent,
-                                  GdkEvent  *event,
-                                  gpointer   data)
+GdkFilterReturn
+gdk_xsettings_root_window_filter (const XEvent *xev,
+                                  GdkEvent     *event,
+                                  gpointer      data)
 {
   GdkX11Screen *x11_screen = data;
   GdkDisplay *display = x11_screen->display;
-  XEvent *xev = xevent;
 
   /* The checks here will not unlikely cause us to reread
    * the properties from the manager window a number of
@@ -583,38 +521,35 @@ gdk_xsettings_root_window_filter (GdkXEvent *xevent,
       check_manager_window (x11_screen, TRUE);
       return GDK_FILTER_REMOVE;
     }
-  
+
   return GDK_FILTER_CONTINUE;
 }
 
-static GdkFilterReturn
-gdk_xsettings_manager_window_filter (GdkXEvent *xevent,
-                                     GdkEvent  *event,
-                                     gpointer   data)
+GdkFilterReturn
+gdk_xsettings_manager_window_filter (const XEvent *xev,
+                                     GdkEvent     *event,
+                                     gpointer      data)
 {
   GdkX11Screen *x11_screen = data;
-  XEvent *xev = xevent;
 
   if (xev->xany.type == DestroyNotify)
     {
       check_manager_window (x11_screen, TRUE);
       /* let GDK do its cleanup */
-      return GDK_FILTER_CONTINUE; 
+      return GDK_FILTER_CONTINUE;
     }
   else if (xev->xany.type == PropertyNotify)
     {
       read_settings (x11_screen, TRUE);
       return GDK_FILTER_REMOVE;
     }
-  
-  return GDK_FILTER_CONTINUE;;
+
+  return GDK_FILTER_CONTINUE;
 }
 
 void
 _gdk_x11_xsettings_init (GdkX11Screen *x11_screen)
 {
-  gdk_window_add_filter (gdk_screen_get_root_window (GDK_SCREEN (x11_screen)), gdk_xsettings_root_window_filter, x11_screen);
-
   check_manager_window (x11_screen, FALSE);
 }
 
@@ -627,18 +562,12 @@ _gdk_x11_settings_force_reread (GdkX11Screen *x11_screen)
 void
 _gdk_x11_xsettings_finish (GdkX11Screen *x11_screen)
 {
-  gdk_window_remove_filter (gdk_screen_get_root_window (GDK_SCREEN (x11_screen)), gdk_xsettings_root_window_filter, x11_screen);
   if (x11_screen->xsettings_manager_window)
-    {
-      gdk_window_remove_filter (x11_screen->xsettings_manager_window, gdk_xsettings_manager_window_filter, x11_screen);
-      g_object_unref (x11_screen->xsettings_manager_window);
-      x11_screen->xsettings_manager_window = NULL;
-    }
-  
+    x11_screen->xsettings_manager_window = 0;
+
   if (x11_screen->xsettings)
     {
       g_hash_table_unref (x11_screen->xsettings);
       x11_screen->xsettings = NULL;
     }
 }
-

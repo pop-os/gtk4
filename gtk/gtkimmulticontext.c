@@ -298,7 +298,6 @@ gtk_im_multicontext_set_client_widget (GtkIMContext *context,
   GtkIMMulticontext *multicontext = GTK_IM_MULTICONTEXT (context);
   GtkIMMulticontextPrivate *priv = multicontext->priv;
   GtkIMContext *slave;
-  GdkScreen *screen;
   GtkSettings *settings;
   gboolean connected;
 
@@ -306,8 +305,7 @@ gtk_im_multicontext_set_client_widget (GtkIMContext *context,
 
   if (widget)
     {
-      screen = gtk_widget_get_screen (widget);
-      settings = gtk_settings_get_for_screen (screen);
+      settings = gtk_widget_get_settings (widget);
 
       connected = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (settings),
                                                       "gtk-im-module-connected"));
@@ -368,7 +366,7 @@ gtk_im_multicontext_filter_keypress (GtkIMContext *context,
       display = gdk_window_get_display (gdk_event_get_window ((GdkEvent *) event));
 
       no_text_input_mask =
-        gdk_keymap_get_modifier_mask (gdk_keymap_get_for_display (display),
+        gdk_keymap_get_modifier_mask (gdk_display_get_keymap (display),
                                       GDK_MODIFIER_INTENT_NO_TEXT_INPUT);
 
       if (gdk_event_get_event_type ((GdkEvent *) event) == GDK_KEY_PRESS &&

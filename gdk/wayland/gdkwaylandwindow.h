@@ -47,7 +47,6 @@ GType                    gdk_wayland_window_get_type             (void);
 
 GDK_AVAILABLE_IN_3_90
 GdkWindow *              gdk_wayland_window_new_subsurface       (GdkDisplay            *display,
-                                                                  int                    event_mask,
                                                                   const GdkRectangle    *position);
 GDK_AVAILABLE_IN_ALL
 struct wl_surface       *gdk_wayland_window_get_wl_surface       (GdkWindow *window);
@@ -80,6 +79,8 @@ void                     gdk_wayland_window_unexport_handle (GdkWindow *window);
 GDK_AVAILABLE_IN_3_22
 gboolean                 gdk_wayland_window_set_transient_for_exported (GdkWindow *window,
                                                                         char      *parent_handle_str);
+
+void gdk_wayland_window_announce_csd                        (GdkWindow *window);
 
 G_END_DECLS
 

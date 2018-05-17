@@ -288,11 +288,22 @@ gtk_snapshot_collect_opacity (GtkSnapshot      *snapshot,
   if (node == NULL)
     return NULL;
 
-  opacity_node = gsk_opacity_node_new (node, state->data.opacity.opacity);
-  if (name)
-    gsk_render_node_set_name (opacity_node, name);
-
-  gsk_render_node_unref (node);
+  if (state->data.opacity.opacity == 1.0)
+    {
+      opacity_node = node;
+    }
+  else if (state->data.opacity.opacity == 0.0)
+    {
+      gsk_render_node_unref (node);
+      opacity_node = NULL;
+    }
+  else
+    {
+      opacity_node = gsk_opacity_node_new (node, state->data.opacity.opacity);
+      if (name)
+        gsk_render_node_set_name (opacity_node, name);
+      gsk_render_node_unref (node);
+    }
 
   return opacity_node;
 }
@@ -324,7 +335,7 @@ gtk_snapshot_push_opacity (GtkSnapshot *snapshot,
                                    current_state->translate_x,
                                    current_state->translate_y,
                                    gtk_snapshot_collect_opacity);
-  state->data.opacity.opacity = opacity;
+  state->data.opacity.opacity = CLAMP (opacity, 0.0, 1.0);
 }
 
 static GskRenderNode *
@@ -335,12 +346,18 @@ gtk_snapshot_collect_blur (GtkSnapshot      *snapshot,
                            const char     *name)
 {
   GskRenderNode *node, *blur_node;
+  double radius;
 
   node = gtk_snapshot_collect_default (snapshot, state, nodes, n_nodes, name);
   if (node == NULL)
     return NULL;
 
-  blur_node = gsk_blur_node_new (node, state->data.blur.radius);
+  radius = state->data.blur.radius;
+
+  if (radius == 0.0)
+    return node;
+
+  blur_node = gsk_blur_node_new (node, radius);
   if (name)
     gsk_render_node_set_name (blur_node, name);
 
@@ -393,13 +410,44 @@ gtk_snapshot_collect_color_matrix (GtkSnapshot      *snapshot,
   if (node == NULL)
     return NULL;
 
-  color_matrix_node = gsk_color_matrix_node_new (node,
-                                                 &state->data.color_matrix.matrix,
-                                                 &state->data.color_matrix.offset);
+  if (gsk_render_node_get_node_type (node) == GSK_COLOR_MATRIX_NODE)
+    {
+      GskRenderNode *child = gsk_render_node_ref (gsk_color_matrix_node_get_child (node));
+      const graphene_matrix_t *mat1 = gsk_color_matrix_node_peek_color_matrix (node);
+      graphene_matrix_t mat2;
+      graphene_vec4_t offset2;
+
+      /* color matrix node: color = mat * p + offset; for a pixel p.
+       * color =  mat1 * (mat2 * p + offset2) + offset1;
+       *       =  mat1 * mat2  * p + offset2 * mat1 + offset1
+       *       = (mat1 * mat2) * p + (offset2 * mat1 + offset1)
+       * Which this code does.
+       * mat1 and offset1 come from @child.
+       */
+
+      mat2 = state->data.color_matrix.matrix;
+      offset2 = state->data.color_matrix.offset;
+      graphene_matrix_transform_vec4 (mat1, &offset2, &offset2);
+      graphene_vec4_add (&offset2, gsk_color_matrix_node_peek_color_offset (node), &offset2);
+
+      graphene_matrix_multiply (mat1, &mat2, &mat2);
+
+      gsk_render_node_unref (node);
+      node = NULL;
+      color_matrix_node = gsk_color_matrix_node_new (child, &mat2, &offset2);
+
+      gsk_render_node_unref (child);
+    }
+  else
+    {
+      color_matrix_node = gsk_color_matrix_node_new (node,
+                                                     &state->data.color_matrix.matrix,
+                                                     &state->data.color_matrix.offset);
+      gsk_render_node_unref (node);
+    }
+
   if (name)
     gsk_render_node_set_name (color_matrix_node, name);
-
-  gsk_render_node_unref (node);
 
   return color_matrix_node;
 }
@@ -537,6 +585,10 @@ gtk_snapshot_collect_clip (GtkSnapshot      *snapshot,
   if (node == NULL)
     return NULL;
 
+  /* Check if the child node will even be clipped */
+  if (graphene_rect_contains_rect (&state->data.clip.bounds, &node->bounds))
+    return node;
+
   clip_node = gsk_clip_node_new (node, &state->data.clip.bounds);
   if (name)
     gsk_render_node_set_name (clip_node, name);
@@ -607,7 +659,23 @@ gtk_snapshot_collect_rounded_clip (GtkSnapshot      *snapshot,
   if (node == NULL)
     return NULL;
 
-  clip_node = gsk_rounded_clip_node_new (node, &state->data.rounded_clip.bounds);
+  /* If the given radius is 0 in all corners, we can just create a normal clip node */
+  if (gsk_rounded_rect_is_rectilinear (&state->data.rounded_clip.bounds))
+    {
+      /* ... and do the same optimization */
+      if (graphene_rect_contains_rect (&state->data.rounded_clip.bounds.bounds, &node->bounds))
+        return node;
+
+      clip_node = gsk_clip_node_new (node, &state->data.rounded_clip.bounds.bounds);
+    }
+  else
+    {
+      if (gsk_rounded_rect_contains_rect (&state->data.rounded_clip.bounds, &node->bounds))
+        return node;
+
+      clip_node = gsk_rounded_clip_node_new (node, &state->data.rounded_clip.bounds);
+    }
+
   if (name)
     gsk_render_node_set_name (clip_node, name);
 
@@ -1205,7 +1273,7 @@ gtk_snapshot_append_cairo (GtkSnapshot           *snapshot,
 /**
  * gtk_snapshot_append_texture:
  * @snapshot: a #GtkSnapshot
- * @texture: the #GskTexture to render
+ * @texture: the #GdkTexture to render
  * @bounds: the bounds for the new node
  * @name: (transfer none): a printf() style format string for the name for the new node
  * @...: arguments to insert into the format string
@@ -1215,7 +1283,7 @@ gtk_snapshot_append_cairo (GtkSnapshot           *snapshot,
  **/
 void
 gtk_snapshot_append_texture (GtkSnapshot            *snapshot,
-                             GskTexture             *texture,
+                             GdkTexture             *texture,
                              const graphene_rect_t  *bounds,
                              const char             *name,
                              ...)
@@ -1225,7 +1293,7 @@ gtk_snapshot_append_texture (GtkSnapshot            *snapshot,
   graphene_rect_t real_bounds;
 
   g_return_if_fail (snapshot != NULL);
-  g_return_if_fail (GSK_IS_TEXTURE (texture));
+  g_return_if_fail (GDK_IS_TEXTURE (texture));
   g_return_if_fail (bounds != NULL);
 
   graphene_rect_offset_r (bounds, current_state->translate_x, current_state->translate_y, &real_bounds);
@@ -1277,7 +1345,23 @@ gtk_snapshot_append_color (GtkSnapshot           *snapshot,
   g_return_if_fail (color != NULL);
   g_return_if_fail (bounds != NULL);
 
+
   graphene_rect_offset_r (bounds, current_state->translate_x, current_state->translate_y, &real_bounds);
+
+  /* Color nodes are trivially "clippable" so we do it now */
+  if (current_state->clip_region)
+    {
+      cairo_rectangle_int_t clip_extents;
+      cairo_region_get_extents (current_state->clip_region, &clip_extents);
+      graphene_rect_intersection (&GRAPHENE_RECT_INIT (
+                                    clip_extents.x,
+                                    clip_extents.y,
+                                    clip_extents.width,
+                                    clip_extents.height
+                                  ),
+                                  &real_bounds, &real_bounds);
+    }
+
   node = gsk_color_node_new (color, &real_bounds);
 
   if (name && snapshot->record_names)
@@ -1305,7 +1389,7 @@ gtk_snapshot_append_color (GtkSnapshot           *snapshot,
  *
  * Tests whether the rectangle is entirely outside the clip region of @snapshot.
  *
- * Returns: %TRUE is @bounds is entirely outside the clip region
+ * Returns: %TRUE if @bounds is entirely outside the clip region
  *
  * Since: 3.90
  */
@@ -1449,8 +1533,7 @@ gtk_snapshot_render_layout (GtkSnapshot     *snapshot,
 {
   const GdkRGBA *fg_color;
   GtkCssValue *shadows_value;
-  GskShadow *shadows;
-  gsize n_shadows;
+  gboolean has_shadow;
 
   g_return_if_fail (snapshot != NULL);
   g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
@@ -1461,53 +1544,172 @@ gtk_snapshot_render_layout (GtkSnapshot     *snapshot,
   fg_color = _gtk_css_rgba_value_get_rgba (_gtk_style_context_peek_property (context, GTK_CSS_PROPERTY_COLOR));
 
   shadows_value = _gtk_style_context_peek_property (context, GTK_CSS_PROPERTY_TEXT_SHADOW);
-  n_shadows = gtk_css_shadows_value_get_n_shadows (shadows_value);
-
-  if (n_shadows > 0)
-    {
-      shadows = g_newa (GskShadow, n_shadows);
-      gtk_css_shadows_value_get_shadows (shadows_value, shadows);
-      gtk_snapshot_push_shadow (snapshot, shadows, n_shadows, "TextShadow<%zu>", n_shadows);
-    }
+  has_shadow = gtk_css_shadows_value_push_snapshot (shadows_value, snapshot);
 
   gsk_pango_show_layout (snapshot, fg_color, layout);
 
-  if (n_shadows > 0)
+  if (has_shadow)
     gtk_snapshot_pop (snapshot);
 
   gtk_snapshot_offset (snapshot, -x, -y);
 }
 
-/**
- * gtk_snapshot_render_icon:
+/*
+ * gtk_snapshot_append_linear_gradient:
  * @snapshot: a #GtkSnapshot
- * @context: the #GtkStyleContext to use
- * @pixbuf: the #GdkPixbuf to render
- * @x: X origin of the rectangle
- * @y: Y origin of the rectangle
+ * @bounds: the rectangle to render the linear gradient into
+ * @start: the point at which the linear gradient will begin
+ * @end: the point at which the linear gradient will finish
+ * @stops: (array length=n_stops): a pointer to an array of #GskColorStop defining the gradient
+ * @n_stops: the number of elements in @color_stops
  *
- * Creates a render node for rendering @pixbuf according to the style
- * information in @context, and appends it to the current node of @snapshot,
- * without changing the current node.
+ * Appends a linear gradient node with the given stops to @snapshot.
  *
- * Since: 3.90
+ * Since: 3.94
  */
 void
-gtk_snapshot_render_icon (GtkSnapshot     *snapshot,
-                          GtkStyleContext *context,
-                          GdkPixbuf       *pixbuf,
-                          gdouble          x,
-                          gdouble          y)
+gtk_snapshot_append_linear_gradient (GtkSnapshot            *snapshot,
+                                     const graphene_rect_t  *bounds,
+                                     const graphene_point_t *start_point,
+                                     const graphene_point_t *end_point,
+                                     const GskColorStop     *stops,
+                                     gsize                   n_stops,
+                                     const char             *name,
+                                     ...)
 {
-  GskTexture *texture;
+  const GtkSnapshotState *current_state = gtk_snapshot_get_current_state (snapshot);
+  GskRenderNode *node;
+  graphene_rect_t real_bounds;
+  graphene_point_t real_start_point;
+  graphene_point_t real_end_point;
 
-  texture = gsk_texture_new_for_pixbuf (pixbuf);
-  gtk_snapshot_offset (snapshot, x, y);
-  gtk_css_style_snapshot_icon_texture (gtk_style_context_lookup_style (context),
-                                       snapshot,
-                                       texture,
-                                       1);
-  gtk_snapshot_offset (snapshot, -x, -y);
-  g_object_unref (texture);
+  g_return_if_fail (snapshot != NULL);
+  g_return_if_fail (start_point != NULL);
+  g_return_if_fail (end_point != NULL);
+  g_return_if_fail (stops != NULL);
+  g_return_if_fail (n_stops > 1);
+
+  graphene_rect_offset_r (bounds, current_state->translate_x, current_state->translate_y, &real_bounds);
+  real_start_point.x = start_point->x + current_state->translate_x;
+  real_start_point.y = start_point->y + current_state->translate_y;
+  real_end_point.x = end_point->x + current_state->translate_x;
+  real_end_point.y = end_point->y + current_state->translate_y;
+
+  /* Linear gradients can be trivially clipped if we don't change the start/end points. */
+  if (current_state->clip_region)
+    {
+      cairo_rectangle_int_t clip_extents;
+
+      cairo_region_get_extents (current_state->clip_region, &clip_extents);
+      graphene_rect_intersection (&GRAPHENE_RECT_INIT (
+                                    clip_extents.x,
+                                    clip_extents.y,
+                                    clip_extents.width,
+                                    clip_extents.height
+                                  ),
+                                  &real_bounds, &real_bounds);
+    }
+
+  node = gsk_linear_gradient_node_new (&real_bounds,
+                                       &real_start_point,
+                                       &real_end_point,
+                                       stops,
+                                       n_stops);
+
+  if (name && snapshot->record_names)
+    {
+      va_list args;
+      char *str;
+
+      va_start (args, name);
+      str = g_strdup_vprintf (name, args);
+      va_end (args);
+
+      gsk_render_node_set_name (node, str);
+
+      g_free (str);
+    }
+
+  gtk_snapshot_append_node (snapshot, node);
+  gsk_render_node_unref (node);
 }
 
+/*
+ * gtk_snapshot_append_repeating_linear_gradient:
+ * @snapshot: a #GtkSnapshot
+ * @bounds: the rectangle to render the linear gradient into
+ * @start: the point at which the linear gradient will begin
+ * @end: the point at which the linear gradient will finish
+ * @stops: (array length=n_stops): a pointer to an array of #GskColorStop defining the gradient
+ * @n_stops: the number of elements in @color_stops
+ *
+ * Appends a repeating linear gradient node with the given stops to @snapshot.
+ *
+ * Since: 3.94
+ */
+void
+gtk_snapshot_append_repeating_linear_gradient (GtkSnapshot            *snapshot,
+                                               const graphene_rect_t  *bounds,
+                                               const graphene_point_t *start_point,
+                                               const graphene_point_t *end_point,
+                                               const GskColorStop     *stops,
+                                               gsize                   n_stops,
+                                               const char             *name,
+                                               ...)
+{
+  const GtkSnapshotState *current_state = gtk_snapshot_get_current_state (snapshot);
+  GskRenderNode *node;
+  graphene_rect_t real_bounds;
+  graphene_point_t real_start_point;
+  graphene_point_t real_end_point;
+
+  g_return_if_fail (snapshot != NULL);
+  g_return_if_fail (start_point != NULL);
+  g_return_if_fail (end_point != NULL);
+  g_return_if_fail (stops != NULL);
+  g_return_if_fail (n_stops > 1);
+
+  graphene_rect_offset_r (bounds, current_state->translate_x, current_state->translate_y, &real_bounds);
+  real_start_point.x = start_point->x + current_state->translate_x;
+  real_start_point.y = start_point->y + current_state->translate_y;
+  real_end_point.x = end_point->x + current_state->translate_x;
+  real_end_point.y = end_point->y + current_state->translate_y;
+
+  /* Repeating Linear gradients can be trivially clipped if we don't change the start/end points. */
+  if (current_state->clip_region)
+    {
+      cairo_rectangle_int_t clip_extents;
+
+      cairo_region_get_extents (current_state->clip_region, &clip_extents);
+      graphene_rect_intersection (&GRAPHENE_RECT_INIT (
+                                    clip_extents.x,
+                                    clip_extents.y,
+                                    clip_extents.width,
+                                    clip_extents.height
+                                  ),
+                                  &real_bounds, &real_bounds);
+    }
+
+  node = gsk_repeating_linear_gradient_node_new (&real_bounds,
+                                                 &real_start_point,
+                                                 &real_end_point,
+                                                 stops,
+                                                 n_stops);
+
+  if (name && snapshot->record_names)
+    {
+      va_list args;
+      char *str;
+
+      va_start (args, name);
+      str = g_strdup_vprintf (name, args);
+      va_end (args);
+
+      gsk_render_node_set_name (node, str);
+
+      g_free (str);
+    }
+
+  gtk_snapshot_append_node (snapshot, node);
+  gsk_render_node_unref (node);
+}

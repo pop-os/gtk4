@@ -30,6 +30,8 @@
 
 #include <string.h>
 
+#include <cairo-gobject.h>
+
 #include "gtkaboutdialog.h"
 #include "gtkbutton.h"
 #include "gtkbbox.h"
@@ -57,6 +59,8 @@
 #include "gtkprivate.h"
 #include "gtkintl.h"
 #include "gtkdialogprivate.h"
+#include "gtkeventcontrollermotion.h"
+#include "gtkgesturemultipress.h"
 
 
 /**
@@ -90,7 +94,7 @@
  * set the title property explicitly when constructing a GtkAboutDialog,
  * as shown in the following example:
  * |[<!-- language="C" -->
- * GdkPixbuf *example_logo = gdk_pixbuf_new_from_file ("./logo.png", NULL);
+ * GdkTexture *example_logo = gdk_texture_new_from_file ("./logo.png", NULL);
  * gtk_show_about_dialog (NULL,
  *                        "program-name", "ExampleCode",
  *                        "logo", example_logo,
@@ -177,10 +181,12 @@ struct _GtkAboutDialogPrivate
   GtkWidget *license_view;
   GtkWidget *system_view;
 
-  GdkCursor *hand_cursor;
-  GdkCursor *regular_cursor;
-
   GSList *visited_links;
+
+  GtkGesture *license_press;
+  GtkGesture *system_press;
+  GtkEventController *license_motion;
+  GtkEventController *system_motion;
 
   GtkLicense license_type;
 
@@ -221,8 +227,6 @@ static void                 gtk_about_dialog_set_property   (GObject            
                                                              guint               prop_id,
                                                              const GValue       *value,
                                                              GParamSpec         *pspec);
-static void                 gtk_about_dialog_realize        (GtkWidget          *widget);
-static void                 gtk_about_dialog_unrealize      (GtkWidget          *widget);
 static void                 gtk_about_dialog_show           (GtkWidget          *widget);
 static void                 update_name_version             (GtkAboutDialog     *about);
 static void                 follow_if_link                  (GtkAboutDialog     *about,
@@ -230,7 +234,6 @@ static void                 follow_if_link                  (GtkAboutDialog     
                                                              GtkTextIter        *iter);
 static void                 set_cursor_if_appropriate       (GtkAboutDialog     *about,
                                                              GtkTextView        *text_view,
-                                                             GdkDevice          *device,
                                                              gint                x,
                                                              gint                y);
 static void                 populate_credits_page           (GtkAboutDialog     *about);
@@ -244,12 +247,15 @@ static gboolean             emit_activate_link              (GtkAboutDialog     
 static gboolean             text_view_key_press_event       (GtkWidget          *text_view,
 							     GdkEventKey        *event,
 							     GtkAboutDialog     *about);
-static gboolean             text_view_event_after           (GtkWidget          *text_view,
-							     GdkEvent           *event,
-							     GtkAboutDialog     *about);
-static gboolean             text_view_motion_notify_event   (GtkWidget          *text_view,
-							     GdkEventMotion     *event,
-							     GtkAboutDialog     *about);
+static void                 text_view_released              (GtkGestureMultiPress *press,
+                                                             int                   n,
+                                                             double                x,
+                                                             double                y,
+							     GtkAboutDialog       *about);
+static void                 text_view_motion                (GtkEventControllerMotion *motion,
+                                                             double                    x,
+                                                             double                    y,
+							     GtkAboutDialog           *about);
 static void                 toggle_credits                  (GtkToggleButton    *button,
                                                              gpointer            user_data);
 static void                 toggle_license                  (GtkToggleButton    *button,
@@ -317,8 +323,6 @@ gtk_about_dialog_class_init (GtkAboutDialogClass *klass)
   object_class->finalize = gtk_about_dialog_finalize;
 
   widget_class->show = gtk_about_dialog_show;
-  widget_class->realize = gtk_about_dialog_realize;
-  widget_class->unrealize = gtk_about_dialog_unrealize;
 
   klass->activate_link = gtk_about_dialog_activate_link;
 
@@ -583,7 +587,7 @@ gtk_about_dialog_class_init (GtkAboutDialogClass *klass)
     g_param_spec_object ("logo",
                          P_("Logo"),
                          P_("A logo for the about box. If this is not set, it defaults to gtk_window_get_default_icon_list()"),
-                         GDK_TYPE_PIXBUF,
+                         GDK_TYPE_TEXTURE,
                          GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
@@ -639,9 +643,7 @@ gtk_about_dialog_class_init (GtkAboutDialogClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, GtkAboutDialog, system_view);
 
   gtk_widget_class_bind_template_callback (widget_class, emit_activate_link);
-  gtk_widget_class_bind_template_callback (widget_class, text_view_event_after);
   gtk_widget_class_bind_template_callback (widget_class, text_view_key_press_event);
-  gtk_widget_class_bind_template_callback (widget_class, text_view_motion_notify_event);
   gtk_widget_class_bind_template_callback (widget_class, stack_visible_child_notify);
 }
 
@@ -805,6 +807,15 @@ gtk_about_dialog_init (GtkAboutDialog *about)
   switch_page (about, "main");
   update_stack_switcher_visibility (about);
 
+  priv->license_press = gtk_gesture_multi_press_new (priv->license_view);
+  g_signal_connect (priv->license_press, "released", G_CALLBACK (text_view_released), about);
+  priv->system_press = gtk_gesture_multi_press_new (priv->system_view);
+  g_signal_connect (priv->system_press, "released", G_CALLBACK (text_view_released), about);
+  priv->license_motion = gtk_event_controller_motion_new (priv->license_view);
+  g_signal_connect (priv->license_motion, "motion", G_CALLBACK (text_view_motion), about);
+  priv->system_motion = gtk_event_controller_motion_new (priv->system_view);
+  g_signal_connect (priv->system_motion, "motion", G_CALLBACK (text_view_motion), about);
+
   /* force defaults */
   gtk_about_dialog_set_program_name (about, NULL);
   gtk_about_dialog_set_logo (about, NULL);
@@ -841,33 +852,12 @@ gtk_about_dialog_finalize (GObject *object)
   g_slist_free_full (priv->credit_sections, destroy_credit_section);
   g_slist_free_full (priv->visited_links, g_free);
 
+  g_object_unref (priv->license_press);
+  g_object_unref (priv->system_press);
+  g_object_unref (priv->license_motion);
+  g_object_unref (priv->system_motion);
+
   G_OBJECT_CLASS (gtk_about_dialog_parent_class)->finalize (object);
-}
-
-static void
-gtk_about_dialog_realize (GtkWidget *widget)
-{
-  GtkAboutDialog *about = GTK_ABOUT_DIALOG (widget);
-  GtkAboutDialogPrivate *priv = about->priv;
-  GdkDisplay *display;
-
-  GTK_WIDGET_CLASS (gtk_about_dialog_parent_class)->realize (widget);
-
-  display = gtk_widget_get_display (widget);
-  priv->hand_cursor = gdk_cursor_new_from_name (display, "pointer");
-  priv->regular_cursor = gdk_cursor_new_from_name (display, "text");
-}
-
-static void
-gtk_about_dialog_unrealize (GtkWidget *widget)
-{
-  GtkAboutDialog *about = GTK_ABOUT_DIALOG (widget);
-  GtkAboutDialogPrivate *priv = about->priv;
-
-  g_clear_object (&priv->hand_cursor);
-  g_clear_object (&priv->regular_cursor);
-
-  GTK_WIDGET_CLASS (gtk_about_dialog_parent_class)->unrealize (widget);
 }
 
 static void
@@ -985,19 +975,14 @@ gtk_about_dialog_get_property (GObject    *object,
       g_value_set_boxed (value, priv->artists);
       break;
     case PROP_LOGO:
-      if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) == GTK_IMAGE_PIXBUF)
-        g_value_set_object (value, gtk_image_get_pixbuf (GTK_IMAGE (priv->logo_image)));
+      if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) == GTK_IMAGE_TEXTURE)
+        g_value_set_object (value, gtk_image_get_texture (GTK_IMAGE (priv->logo_image)));
       else
         g_value_set_object (value, NULL);
       break;
     case PROP_LOGO_ICON_NAME:
       if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) == GTK_IMAGE_ICON_NAME)
-        {
-          const gchar *icon_name;
-
-          gtk_image_get_icon_name (GTK_IMAGE (priv->logo_image), &icon_name, NULL);
-          g_value_set_string (value, icon_name);
-        }
+        g_value_set_string (value, gtk_image_get_icon_name (GTK_IMAGE (priv->logo_image)));
       else
         g_value_set_string (value, NULL);
       break;
@@ -1417,6 +1402,14 @@ gtk_about_dialog_set_license (GtkAboutDialog *about,
   g_object_notify_by_pspec (G_OBJECT (about), props[PROP_LICENSE_TYPE]);
 }
 
+/**
+ * gtk_about_dialog_get_system_information:
+ * @about: a #GtkAboutDialog
+ *
+ * Returns the system information that is shown in the about dialog.
+ *
+ * Returns: the system information
+ */
 const gchar *
 gtk_about_dialog_get_system_information (GtkAboutDialog *about)
 {
@@ -1425,6 +1418,17 @@ gtk_about_dialog_get_system_information (GtkAboutDialog *about)
   return about->priv->system_information;
 }
 
+/**
+ * gtk_about_dialog_set_system_information:
+ * @about: a #GtkAboutDialog
+ * @system_information: (allow-none): system information or %NULL
+ *
+ * Sets the system information to be displayed in the about
+ * dialog. If @system_information is %NULL, the system information
+ * tab is hidden.
+ *
+ * See #GtkAboutdialog:system-information.
+ */
 void
 gtk_about_dialog_set_system_information (GtkAboutDialog *about,
                                          const gchar    *system_information)
@@ -1664,7 +1668,7 @@ gtk_about_dialog_get_documenters (GtkAboutDialog *about)
  * @documenters: (array zero-terminated=1): a %NULL-terminated array of strings
  *
  * Sets the strings which are displayed in the documenters tab
- * of the secondary credits dialog.
+ * of the credits dialog.
  *
  * Since: 2.6
  */
@@ -1807,15 +1811,15 @@ gtk_about_dialog_set_translator_credits (GtkAboutDialog *about,
  * gtk_about_dialog_get_logo:
  * @about: a #GtkAboutDialog
  *
- * Returns the pixbuf displayed as logo in the about dialog.
+ * Returns the texture displayed as logo in the about dialog.
  *
- * Returns: (transfer none): the pixbuf displayed as logo. The
- *   pixbuf is owned by the about dialog. If you want to keep a
+ * Returns: (transfer none): the texture displayed as logo. The
+ *   texture is owned by the about dialog. If you want to keep a
  *   reference to it, you have to call g_object_ref() on it.
  *
  * Since: 2.6
  */
-GdkPixbuf *
+GdkTexture *
 gtk_about_dialog_get_logo (GtkAboutDialog *about)
 {
   GtkAboutDialogPrivate *priv;
@@ -1824,8 +1828,8 @@ gtk_about_dialog_get_logo (GtkAboutDialog *about)
 
   priv = about->priv;
 
-  if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) == GTK_IMAGE_PIXBUF)
-    return gtk_image_get_pixbuf (GTK_IMAGE (priv->logo_image));
+  if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) == GTK_IMAGE_TEXTURE)
+    return gtk_image_get_texture (GTK_IMAGE (priv->logo_image));
   else
     return NULL;
 }
@@ -1833,9 +1837,9 @@ gtk_about_dialog_get_logo (GtkAboutDialog *about)
 /**
  * gtk_about_dialog_set_logo:
  * @about: a #GtkAboutDialog
- * @logo: (allow-none): a #GdkPixbuf, or %NULL
+ * @logo: (allow-none): a #GdkTexture, or %NULL
  *
- * Sets the pixbuf to be displayed as logo in the about dialog.
+ * Sets the surface to be displayed as logo in the about dialog.
  * If it is %NULL, the default window icon set with
  * gtk_window_set_default_icon() will be used.
  *
@@ -1843,11 +1847,12 @@ gtk_about_dialog_get_logo (GtkAboutDialog *about)
  */
 void
 gtk_about_dialog_set_logo (GtkAboutDialog *about,
-                           GdkPixbuf      *logo)
+                           GdkTexture     *logo)
 {
   GtkAboutDialogPrivate *priv;
 
   g_return_if_fail (GTK_IS_ABOUT_DIALOG (about));
+  g_return_if_fail (logo == NULL || GDK_IS_TEXTURE (logo));
 
   priv = about->priv;
 
@@ -1857,17 +1862,17 @@ gtk_about_dialog_set_logo (GtkAboutDialog *about,
     g_object_notify_by_pspec (G_OBJECT (about), props[PROP_LOGO_ICON_NAME]);
 
   if (logo != NULL)
-    gtk_image_set_from_pixbuf (GTK_IMAGE (priv->logo_image), logo);
+    gtk_image_set_from_texture (GTK_IMAGE (priv->logo_image), logo);
   else
     {
-      GList *pixbufs = gtk_window_get_default_icon_list ();
+      GList *surfaces = gtk_window_get_default_icon_list ();
 
-      if (pixbufs != NULL)
+      if (surfaces != NULL)
         {
-          gtk_image_set_from_pixbuf (GTK_IMAGE (priv->logo_image),
-                                     GDK_PIXBUF (pixbufs->data));
+          gtk_image_set_from_texture (GTK_IMAGE (priv->logo_image),
+				      GDK_TEXTURE (surfaces->data));
 
-          g_list_free (pixbufs);
+          g_list_free (surfaces);
         }
     }
 
@@ -1892,16 +1897,15 @@ const gchar *
 gtk_about_dialog_get_logo_icon_name (GtkAboutDialog *about)
 {
   GtkAboutDialogPrivate *priv;
-  const gchar *icon_name = NULL;
 
   g_return_val_if_fail (GTK_IS_ABOUT_DIALOG (about), NULL);
 
   priv = about->priv;
 
-  if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) == GTK_IMAGE_ICON_NAME)
-    gtk_image_get_icon_name (GTK_IMAGE (priv->logo_image), &icon_name, NULL);
+  if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) != GTK_IMAGE_ICON_NAME)
+    return NULL;
 
-  return icon_name;
+  return gtk_image_get_icon_name (GTK_IMAGE (priv->logo_image));
 }
 
 /**
@@ -1909,7 +1913,7 @@ gtk_about_dialog_get_logo_icon_name (GtkAboutDialog *about)
  * @about: a #GtkAboutDialog
  * @icon_name: (allow-none): an icon name, or %NULL
  *
- * Sets the pixbuf to be displayed as logo in the about dialog.
+ * Sets the surface to be displayed as logo in the about dialog.
  * If it is %NULL, the default window icon set with
  * gtk_window_set_default_icon() will be used.
  *
@@ -1928,7 +1932,7 @@ gtk_about_dialog_set_logo_icon_name (GtkAboutDialog *about,
 
   g_object_freeze_notify (G_OBJECT (about));
 
-  if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) == GTK_IMAGE_PIXBUF)
+  if (gtk_image_get_storage_type (GTK_IMAGE (priv->logo_image)) == GTK_IMAGE_TEXTURE)
     g_object_notify_by_pspec (G_OBJECT (about), props[PROP_LOGO]);
 
   if (icon_name)
@@ -1959,13 +1963,12 @@ gtk_about_dialog_set_logo_icon_name (GtkAboutDialog *about,
         }
       g_free (sizes);
 
-      gtk_image_set_from_icon_name (GTK_IMAGE (priv->logo_image), icon_name,
-                                    GTK_ICON_SIZE_DIALOG);
+      gtk_image_set_from_icon_name (GTK_IMAGE (priv->logo_image), icon_name);
       gtk_image_set_pixel_size (GTK_IMAGE (priv->logo_image), best_size);
     }
   else if ((icons = gtk_window_get_default_icon_list ()))
     {
-      gtk_image_set_from_pixbuf (GTK_IMAGE (priv->logo_image), icons->data);
+      gtk_image_set_from_surface (GTK_IMAGE (priv->logo_image), icons->data);
       g_list_free (icons);
     }
   else
@@ -2044,46 +2047,41 @@ text_view_key_press_event (GtkWidget      *text_view,
   return FALSE;
 }
 
-static gboolean
-text_view_event_after (GtkWidget      *text_view,
-                       GdkEvent       *event,
-                       GtkAboutDialog *about)
+static void
+text_view_released (GtkGestureMultiPress *gesture,
+                    int                   n_press,
+                    double                x,
+                    double                y,
+                    GtkAboutDialog       *about)
 {
+  GtkWidget *text_view;
   GtkTextIter start, end, iter;
   GtkTextBuffer *buffer;
-  gdouble event_x, event_y;
-  gint x, y;
-  guint button;
+  gint tx, ty;
 
-  if (gdk_event_get_event_type (event) != GDK_BUTTON_RELEASE)
-    return FALSE;
+  if (gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture)) != GDK_BUTTON_PRIMARY)
+    return;
 
-  if (!gdk_event_get_button (event, &button) || button != GDK_BUTTON_PRIMARY)
-    return FALSE;
-
+  text_view = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (text_view));
 
   /* we shouldn't follow a link if the user has selected something */
   gtk_text_buffer_get_selection_bounds (buffer, &start, &end);
   if (gtk_text_iter_get_offset (&start) != gtk_text_iter_get_offset (&end))
-    return FALSE;
+    return;
 
-  gdk_event_get_coords (event, &event_x, &event_y);
   gtk_text_view_window_to_buffer_coords (GTK_TEXT_VIEW (text_view),
                                          GTK_TEXT_WINDOW_WIDGET,
-                                         event_x, event_y, &x, &y);
+                                         x, y, &tx, &ty);
 
-  gtk_text_view_get_iter_at_location (GTK_TEXT_VIEW (text_view), &iter, x, y);
+  gtk_text_view_get_iter_at_location (GTK_TEXT_VIEW (text_view), &iter, tx, ty);
 
   follow_if_link (about, GTK_TEXT_VIEW (text_view), &iter);
-
-  return FALSE;
 }
 
 static void
 set_cursor_if_appropriate (GtkAboutDialog *about,
                            GtkTextView    *text_view,
-                           GdkDevice      *device,
                            gint            x,
                            gint            y)
 {
@@ -2112,31 +2110,30 @@ set_cursor_if_appropriate (GtkAboutDialog *about,
       priv->hovering_over_link = hovering_over_link;
 
       if (hovering_over_link)
-        gdk_window_set_device_cursor (gtk_text_view_get_window (text_view, GTK_TEXT_WINDOW_TEXT), device, priv->hand_cursor);
+        gtk_widget_set_cursor_from_name (GTK_WIDGET (text_view), "pointer");
       else
-        gdk_window_set_device_cursor (gtk_text_view_get_window (text_view, GTK_TEXT_WINDOW_TEXT), device, priv->regular_cursor);
+        gtk_widget_set_cursor_from_name (GTK_WIDGET (text_view), "text");
     }
 
   g_slist_free (tags);
 }
 
-static gboolean
-text_view_motion_notify_event (GtkWidget      *text_view,
-                               GdkEventMotion *event,
-                               GtkAboutDialog *about)
+static void
+text_view_motion (GtkEventControllerMotion *motion,
+                  double                    x,
+                  double                    y,
+                  GtkAboutDialog           *about)
 {
-  gdouble event_x, event_y;
-  gint x, y;
+  gint tx, ty;
+  GtkWidget *widget;
 
-  gdk_event_get_coords ((GdkEvent *) event, &event_x, &event_y);
-  gtk_text_view_window_to_buffer_coords (GTK_TEXT_VIEW (text_view),
+  widget = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (motion));
+
+  gtk_text_view_window_to_buffer_coords (GTK_TEXT_VIEW (widget),
                                          GTK_TEXT_WINDOW_WIDGET,
-                                         event_x, event_y, &x, &y);
+                                         x, y, &tx, &ty);
 
-  set_cursor_if_appropriate (about, GTK_TEXT_VIEW (text_view),
-                             gdk_event_get_device ((GdkEvent *) event), x, y);
-
-  return FALSE;
+  set_cursor_if_appropriate (about, GTK_TEXT_VIEW (widget), tx, ty);
 }
 
 static GtkTextBuffer *
@@ -2565,7 +2562,7 @@ gtk_about_dialog_set_license_type (GtkAboutDialog *about,
 
   g_return_if_fail (GTK_IS_ABOUT_DIALOG (about));
   g_return_if_fail (license_type >= GTK_LICENSE_UNKNOWN &&
-                    license_type <= GTK_LICENSE_LGPL_3_0_ONLY);
+                    license_type <= GTK_LICENSE_AGPL_3_0);
 
   priv = about->priv;
 

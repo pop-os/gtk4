@@ -933,7 +933,7 @@ gtk_menu_class_init (GtkMenuClass *class)
                                 GTK_SCROLL_PAGE_DOWN);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_MENU_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "menu");
+  gtk_widget_class_set_css_name (widget_class, I_("menu"));
 }
 
 
@@ -1118,37 +1118,6 @@ gtk_menu_get_child_property (GtkContainer *container,
     }
 }
 
-static gboolean
-gtk_menu_window_event (GtkWidget *window,
-                       GdkEvent  *event,
-                       GtkWidget *menu)
-{
-  gboolean handled = FALSE;
-
-  g_object_ref (window);
-  g_object_ref (menu);
-
-  switch ((guint) gdk_event_get_event_type (event))
-    {
-    case GDK_WINDOW_STATE:
-      /* Window for the menu has been closed by the display server or by GDK.
-       * Update the internal state as if the user had clicked outside the
-       * menu
-       */
-      if (event->window_state.new_window_state & GDK_WINDOW_STATE_WITHDRAWN &&
-          event->window_state.changed_mask & GDK_WINDOW_STATE_WITHDRAWN)
-        gtk_menu_shell_deactivate (GTK_MENU_SHELL(menu));
-      break;
-    default:
-      break;
-    }
-
-  g_object_unref (window);
-  g_object_unref (menu);
-
-  return handled;
-}
-
 static void
 gtk_menu_init (GtkMenu *menu)
 {
@@ -1160,7 +1129,6 @@ gtk_menu_init (GtkMenu *menu)
 
   priv->toplevel = gtk_window_new (GTK_WINDOW_POPUP);
   gtk_container_add (GTK_CONTAINER (priv->toplevel), GTK_WIDGET (menu));
-  g_signal_connect (priv->toplevel, "event", G_CALLBACK (gtk_menu_window_event), menu);
   g_signal_connect (priv->toplevel, "destroy", G_CALLBACK (gtk_widget_destroyed), &priv->toplevel);
   gtk_window_set_resizable (GTK_WINDOW (priv->toplevel), FALSE);
   gtk_window_set_mnemonic_modifier (GTK_WINDOW (priv->toplevel), 0);
@@ -1288,29 +1256,25 @@ gtk_menu_finalize (GObject *object)
 }
 
 static void
-menu_change_screen (GtkMenu   *menu,
-                    GdkScreen *new_screen)
+menu_change_display (GtkMenu    *menu,
+                     GdkDisplay *new_display)
 {
   GtkMenuPrivate *priv = menu->priv;
 
-  if (gtk_widget_has_screen (GTK_WIDGET (menu)))
-    {
-      if (new_screen == gtk_widget_get_screen (GTK_WIDGET (menu)))
-        return;
-    }
+  if (new_display == gtk_widget_get_display (GTK_WIDGET (menu)))
+    return;
 
-  gtk_window_set_screen (GTK_WINDOW (priv->toplevel), new_screen);
+  gtk_window_set_display (GTK_WINDOW (priv->toplevel), new_display);
   priv->monitor_num = -1;
 }
 
 static void
-attach_widget_screen_changed (GtkWidget *attach_widget,
-                              GdkScreen *previous_screen,
-                              GtkMenu   *menu)
+attach_widget_display_changed (GtkWidget  *attach_widget,
+                               GdkDisplay *previous_display,
+                               GtkMenu    *menu)
 {
-  if (gtk_widget_has_screen (attach_widget) &&
-      !g_object_get_data (G_OBJECT (menu), "gtk-menu-explicit-screen"))
-    menu_change_screen (menu, gtk_widget_get_screen (attach_widget));
+  if (!g_object_get_data (G_OBJECT (menu), "gtk-menu-explicit-display"))
+    menu_change_display (menu, gtk_widget_get_display (attach_widget));
 }
 
 static void
@@ -1366,9 +1330,9 @@ gtk_menu_attach_to_widget (GtkMenu           *menu,
   data = g_slice_new (GtkMenuAttachData);
   data->attach_widget = attach_widget;
 
-  g_signal_connect (attach_widget, "screen-changed",
-                    G_CALLBACK (attach_widget_screen_changed), menu);
-  attach_widget_screen_changed (attach_widget, NULL, menu);
+  g_signal_connect (attach_widget, "display-changed",
+                    G_CALLBACK (attach_widget_display_changed), menu);
+  attach_widget_display_changed (attach_widget, NULL, menu);
 
   data->detacher = detacher;
   g_object_set_data (G_OBJECT (menu), I_(attach_data_key), data);
@@ -1445,7 +1409,7 @@ gtk_menu_detach (GtkMenu *menu)
     gtk_window_set_attached_to (toplevel, NULL);
 
   g_signal_handlers_disconnect_by_func (data->attach_widget,
-                                        (gpointer) attach_widget_screen_changed,
+                                        (gpointer) attach_widget_display_changed,
                                         menu);
 
   if (data->detacher)
@@ -1696,7 +1660,7 @@ gtk_menu_popup_internal (GtkMenu             *menu,
         menu_shell->priv->ignore_enter = TRUE;
 
       source_device = gdk_event_get_source_device (current_event);
-      gdk_event_free (current_event);
+      g_object_unref (current_event);
     }
   else
     menu_shell->priv->ignore_enter = TRUE;
@@ -1704,7 +1668,7 @@ gtk_menu_popup_internal (GtkMenu             *menu,
   parent_toplevel = NULL;
   if (parent_menu_shell)
     parent_toplevel = gtk_widget_get_toplevel (parent_menu_shell);
-  else if (!g_object_get_data (G_OBJECT (menu), "gtk-menu-explicit-screen"))
+  else if (!g_object_get_data (G_OBJECT (menu), "gtk-menu-explicit-display"))
     {
       GtkWidget *attach_widget = gtk_menu_get_attach_widget (menu);
       if (attach_widget)
@@ -1886,7 +1850,6 @@ get_device_for_event (const GdkEvent *event)
 {
   GdkDevice *device = NULL;
   GdkSeat *seat = NULL;
-  GdkScreen *screen = NULL;
   GdkDisplay *display = NULL;
 
   device = gdk_event_get_device (event);
@@ -1898,10 +1861,7 @@ get_device_for_event (const GdkEvent *event)
 
   if (!seat)
     {
-      screen = gdk_event_get_screen (event);
-
-      if (screen)
-        display = gdk_screen_get_display (screen);
+      display = gdk_event_get_display (event);
 
       if (!display)
         {
@@ -1998,7 +1958,7 @@ gtk_menu_popup_at_rect (GtkMenu            *menu,
                            button,
                            activate_time);
 
-  g_clear_pointer (&current_event, gdk_event_free);
+  g_clear_object (&current_event);
 }
 
 /**
@@ -2091,7 +2051,7 @@ gtk_menu_popup_at_widget (GtkMenu        *menu,
                            button,
                            activate_time);
 
-  g_clear_pointer (&current_event, gdk_event_free);
+  g_clear_object (&current_event);
 }
 
 /**
@@ -2158,7 +2118,7 @@ gtk_menu_popup_at_pointer (GtkMenu        *menu,
                           GDK_GRAVITY_NORTH_WEST,
                           trigger_event);
 
-  g_clear_pointer (&current_event, gdk_event_free);
+  g_clear_object (&current_event);
 }
 
 static void
@@ -2813,14 +2773,14 @@ static void
 gtk_menu_snapshot (GtkWidget   *widget,
                    GtkSnapshot *snapshot)
 {
-  int width, height;
-
-  gtk_widget_get_content_size (widget, &width, &height);
-
   /* XXX The arrows *might* be missing here */
 
   gtk_snapshot_push_clip (snapshot,
-                          &GRAPHENE_RECT_INIT(0, 0, width, height), "MenuClip");
+                          &GRAPHENE_RECT_INIT(
+                            0, 0,
+                            gtk_widget_get_width (widget),
+                            gtk_widget_get_height (widget)),
+                          "MenuClip");
 
   GTK_WIDGET_CLASS (gtk_menu_parent_class)->snapshot (widget, snapshot);
 
@@ -3807,7 +3767,7 @@ gtk_menu_position_legacy (GtkMenu  *menu,
 
   display = gtk_widget_get_display (widget);
   pointer = _gtk_menu_shell_get_grab_device (GTK_MENU_SHELL (menu));
-  gdk_device_get_position (pointer, NULL, &x, &y);
+  gdk_device_get_position (pointer, &x, &y);
 
   /* Realize so we have the proper width and height to figure out
    * the right place to popup the menu.
@@ -4303,33 +4263,33 @@ gtk_menu_select_item (GtkMenuShell *menu_shell,
 }
 
 /**
- * gtk_menu_set_screen:
+ * gtk_menu_set_display:
  * @menu: a #GtkMenu
- * @screen: (allow-none): a #GdkScreen, or %NULL if the screen should be
- *          determined by the widget the menu is attached to
+ * @display: (allow-none): a #GdkDisplay, or %NULL if the display should be
+ *           determined by the widget the menu is attached to
  *
- * Sets the #GdkScreen on which the menu will be displayed.
+ * Sets the #GdkDisplay on which the menu will be displayed.
  *
- * Since: 2.2
+ * Since: 3.94
  */
 void
-gtk_menu_set_screen (GtkMenu   *menu,
-                     GdkScreen *screen)
+gtk_menu_set_display (GtkMenu    *menu,
+                      GdkDisplay *display)
 {
   g_return_if_fail (GTK_IS_MENU (menu));
-  g_return_if_fail (screen == NULL || GDK_IS_SCREEN (screen));
+  g_return_if_fail (display == NULL || GDK_IS_DISPLAY (display));
 
-  g_object_set_data (G_OBJECT (menu), I_("gtk-menu-explicit-screen"), screen);
+  g_object_set_data (G_OBJECT (menu), I_("gtk-menu-explicit-display"), display);
 
-  if (screen)
+  if (display)
     {
-      menu_change_screen (menu, screen);
+      menu_change_display (menu, display);
     }
   else
     {
       GtkWidget *attach_widget = gtk_menu_get_attach_widget (menu);
       if (attach_widget)
-        attach_widget_screen_changed (attach_widget, NULL, menu);
+        attach_widget_display_changed (attach_widget, NULL, menu);
     }
 }
 

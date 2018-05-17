@@ -129,6 +129,7 @@ insert_text (GtkTextBuffer *buffer)
   GtkTextIter iter;
   GtkTextIter start, end;
   GdkPixbuf *pixbuf;
+  GdkTexture *texture;
   GtkIconTheme *icon_theme;
 
   icon_theme = gtk_icon_theme_get_default ();
@@ -138,6 +139,7 @@ insert_text (GtkTextBuffer *buffer)
                                      GTK_ICON_LOOKUP_GENERIC_FALLBACK,
                                      NULL);
   g_assert (pixbuf);
+  texture = gdk_texture_new_for_pixbuf (pixbuf);
 
   /* get start of buffer; each insertion will revalidate the
    * iterator to point to just after the inserted text.
@@ -232,9 +234,9 @@ insert_text (GtkTextBuffer *buffer)
                                             "heading", NULL);
 
   gtk_text_buffer_insert (buffer, &iter, "The buffer can have images in it: ", -1);
-  gtk_text_buffer_insert_pixbuf (buffer, &iter, pixbuf);
-  gtk_text_buffer_insert_pixbuf (buffer, &iter, pixbuf);
-  gtk_text_buffer_insert_pixbuf (buffer, &iter, pixbuf);
+  gtk_text_buffer_insert_texture (buffer, &iter, texture);
+  gtk_text_buffer_insert_texture (buffer, &iter, texture);
+  gtk_text_buffer_insert_texture (buffer, &iter, texture);
   gtk_text_buffer_insert (buffer, &iter, " for example.\n\n", -1);
 
   gtk_text_buffer_insert_with_tags_by_name (buffer, &iter, "Spacing. ", -1,
@@ -363,8 +365,6 @@ insert_text (GtkTextBuffer *buffer)
   gtk_text_buffer_create_child_anchor (buffer, &iter);
   gtk_text_buffer_insert (buffer, &iter, " and a scale: ", -1);
   gtk_text_buffer_create_child_anchor (buffer, &iter);
-  gtk_text_buffer_insert (buffer, &iter, " and an animation: ", -1);
-  gtk_text_buffer_create_child_anchor (buffer, &iter);
   gtk_text_buffer_insert (buffer, &iter, " finally a text entry: ", -1);
   gtk_text_buffer_create_child_anchor (buffer, &iter);
   gtk_text_buffer_insert (buffer, &iter, ".\n", -1);
@@ -380,6 +380,7 @@ insert_text (GtkTextBuffer *buffer)
   gtk_text_buffer_apply_tag_by_name (buffer, "word_wrap", &start, &end);
 
   g_object_unref (pixbuf);
+  g_object_unref (texture);
 }
 
 static gboolean
@@ -436,10 +437,6 @@ attach_widgets (GtkTextView *text_view)
         }
       else if (i == 3)
         {
-          widget = gtk_image_new_from_resource ("/textview/floppybuddy.gif");
-        }
-      else if (i == 4)
-        {
           widget = gtk_entry_new ();
         }
       else
@@ -470,8 +467,8 @@ do_textview (GtkWidget *do_widget)
       GtkTextBuffer *buffer;
 
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-      gtk_window_set_screen (GTK_WINDOW (window),
-                             gtk_widget_get_screen (do_widget));
+      gtk_window_set_display (GTK_WINDOW (window),
+                              gtk_widget_get_display (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window),
                                    450, 450);
 

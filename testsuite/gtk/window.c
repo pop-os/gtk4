@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 
 #ifdef GDK_WINDOWING_X11
-#include <gdk/gdkx.h>
+#include <gdk/x11/gdkx.h>
 #include <X11/Xatom.h>
 #endif
 
@@ -186,7 +186,7 @@ test_resize_popup (void)
 
   /* testcase for the dnd window */
   window = gtk_window_new (GTK_WINDOW_POPUP);
-  gtk_window_set_screen (GTK_WINDOW (window), gdk_screen_get_default ());
+  gtk_window_set_display (GTK_WINDOW (window), gdk_display_get_default ());
   gtk_window_resize (GTK_WINDOW (window), 1, 1);
   gtk_window_move (GTK_WINDOW (window), -99, -99);
 

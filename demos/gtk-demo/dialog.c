@@ -58,7 +58,8 @@ interactive_dialog_clicked (GtkButton *button,
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 8);
   gtk_box_pack_start (GTK_BOX (content_area), hbox);
 
-  image = gtk_image_new_from_icon_name ("dialog-question", GTK_ICON_SIZE_DIALOG);
+  image = gtk_image_new_from_icon_name ("dialog-question");
+  gtk_image_set_icon_size (GTK_IMAGE (image), GTK_ICON_SIZE_LARGE);
   gtk_box_pack_start (GTK_BOX (hbox), image);
 
   table = gtk_grid_new ();
@@ -105,8 +106,8 @@ do_dialog (GtkWidget *do_widget)
   if (!window)
     {
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-      gtk_window_set_screen (GTK_WINDOW (window),
-                             gtk_widget_get_screen (do_widget));
+      gtk_window_set_display (GTK_WINDOW (window),
+                              gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Dialogs and Message Boxes");
 
       g_signal_connect (window, "destroy",

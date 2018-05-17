@@ -26,12 +26,14 @@ void                    gsk_vulkan_text_pipeline_collect_vertex_data   (GskVulka
                                                                         GskVulkanRenderer              *renderer,
                                                                         const graphene_rect_t          *rect,
                                                                         PangoFont                      *font,
-                                                                        PangoGlyphString               *glyphs,
+                                                                        guint                           total_glyphs,
+                                                                        const PangoGlyphInfo           *glyphs,
                                                                         const GdkRGBA                  *color,
                                                                         float                           x,
                                                                         float                           y,
                                                                         guint                           start_glyph,
-                                                                        guint                           num_glyphs);
+                                                                        guint                           num_glyphs,
+                                                                        float                           scale);
 gsize                   gsk_vulkan_text_pipeline_draw                  (GskVulkanTextPipeline         *pipeline,
                                                                         VkCommandBuffer                 command_buffer,
                                                                         gsize                           offset,

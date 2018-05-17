@@ -31,7 +31,9 @@
 #define VIRTUAL_CORE_POINTER_ID 2
 #define VIRTUAL_CORE_KEYBOARD_ID 3
 
-GdkDeviceManager *
+static gboolean _gdk_disable_multidevice = FALSE;
+
+GdkX11DeviceManagerCore *
 _gdk_x11_device_manager_new (GdkDisplay *display)
 {
   if (!g_getenv ("GDK_CORE_DEVICE_EVENTS"))
@@ -64,7 +66,7 @@ _gdk_x11_device_manager_new (GdkDisplay *display)
                                                  "minor", minor,
                                                  NULL);
 
-              return GDK_DEVICE_MANAGER (device_manager_xi2);
+              return GDK_X11_DEVICE_MANAGER_CORE (device_manager_xi2);
             }
         }
 #endif /* XINPUT_2 */
@@ -90,12 +92,12 @@ _gdk_x11_device_manager_new (GdkDisplay *display)
  * Since: 3.2
  **/
 GdkDevice *
-gdk_x11_device_manager_lookup (GdkDeviceManager *device_manager,
-			       gint              device_id)
+gdk_x11_device_manager_lookup (GdkX11DeviceManagerCore *device_manager,
+			       gint                     device_id)
 {
   GdkDevice *device = NULL;
 
-  g_return_val_if_fail (GDK_IS_DEVICE_MANAGER (device_manager), NULL);
+  g_return_val_if_fail (GDK_IS_X11_DEVICE_MANAGER_CORE (device_manager), NULL);
 
 #ifdef XINPUT_2
   if (GDK_IS_X11_DEVICE_MANAGER_XI2 (device_manager))
@@ -155,4 +157,24 @@ gdk_x11_device_get_id (GdkDevice *device)
       }
 
   return device_id;
+}
+
+/**
+ * gdk_disable_multidevice:
+ *
+ * Disables multidevice support in GDKs X11 backend. This call must happen prior
+ * to gdk_display_open(), gtk_init() or gtk_init_check() in order to
+ * take effect.
+ *
+ * Most common GTK+ applications won’t ever need to call this. Only
+ * applications that do mixed GDK/Xlib calls could want to disable
+ * multidevice support if such Xlib code deals with input devices in
+ * any way and doesn’t observe the presence of XInput 2.
+ *
+ * Since: 3.0
+ */
+void
+gdk_disable_multidevice (void)
+{
+  _gdk_disable_multidevice = TRUE;
 }

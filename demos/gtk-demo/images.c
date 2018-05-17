@@ -54,17 +54,8 @@ progressive_updated_callback (GdkPixbufLoader *loader,
 
   image = GTK_WIDGET (data);
 
-  /* We know the pixbuf inside the GtkImage has changed, but the image
-   * itself doesn't know this; so give it a hint by setting the pixbuf
-   * again. Queuing a redraw used to be sufficient, but nowadays GtkImage
-   * uses GtkIconHelper which caches the pixbuf state and will just redraw
-   * from the cache.
-   */
-
-  pixbuf = gtk_image_get_pixbuf (GTK_IMAGE (image));
-  g_object_ref (pixbuf);
+  pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
   gtk_image_set_from_pixbuf (GTK_IMAGE (image), pixbuf);
-  g_object_unref (pixbuf);
 }
 
 static gint
@@ -338,8 +329,8 @@ do_images (GtkWidget *do_widget)
   if (!window)
     {
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-      gtk_window_set_screen (GTK_WINDOW (window),
-                             gtk_widget_get_screen (do_widget));
+      gtk_window_set_display (GTK_WINDOW (window),
+                              gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Images");
 
       g_signal_connect (window, "destroy",
@@ -362,7 +353,8 @@ do_images (GtkWidget *do_widget)
       gtk_widget_set_valign (frame, GTK_ALIGN_CENTER);
       gtk_box_pack_start (GTK_BOX (vbox), frame);
 
-      image = gtk_image_new_from_icon_name ("gtk3-demo", GTK_ICON_SIZE_DIALOG);
+      image = gtk_image_new_from_icon_name ("gtk3-demo");
+      gtk_image_set_icon_size (GTK_IMAGE (image), GTK_ICON_SIZE_LARGE);
 
       gtk_container_add (GTK_CONTAINER (frame), image);
 
@@ -398,7 +390,8 @@ do_images (GtkWidget *do_widget)
       gtk_box_pack_start (GTK_BOX (vbox), frame);
 
       gicon = g_themed_icon_new_with_default_fallbacks ("battery-caution-charging-symbolic");
-      image = gtk_image_new_from_gicon (gicon, GTK_ICON_SIZE_DIALOG);
+      image = gtk_image_new_from_gicon (gicon);
+      gtk_image_set_icon_size (GTK_IMAGE (image), GTK_ICON_SIZE_LARGE);
 
       gtk_container_add (GTK_CONTAINER (frame), image);
 

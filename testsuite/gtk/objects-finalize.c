@@ -20,7 +20,7 @@
 #include <string.h>
 
 #ifdef GDK_WINDOWING_X11
-# include <gdk/gdkx.h>
+# include <gdk/x11/gdkx.h>
 #endif
 
 
@@ -52,6 +52,10 @@ test_finalize_object (gconstpointer data)
   GType test_type = GPOINTER_TO_SIZE (data);
   GObject *object;
 
+  if (g_str_equal (g_type_name (test_type), "GdkClipboard") ||
+      g_str_equal (g_type_name (test_type), "GdkDragContext"))
+    object = g_object_new (test_type, "display", gdk_display_get_default (), NULL);
+  else
   object = g_object_new (test_type, NULL);
   g_assert (G_IS_OBJECT (object));
 
@@ -109,7 +113,6 @@ main (int argc, char **argv)
 	  !G_TYPE_IS_ABSTRACT (all_types[i]) &&
 #ifdef GDK_WINDOWING_X11
 	  all_types[i] != GDK_TYPE_X11_WINDOW &&
-	  all_types[i] != GDK_TYPE_X11_CURSOR &&
 	  all_types[i] != GDK_TYPE_X11_SCREEN &&
 	  all_types[i] != GDK_TYPE_X11_DISPLAY &&
 	  all_types[i] != GDK_TYPE_X11_DEVICE_MANAGER_CORE &&

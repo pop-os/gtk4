@@ -82,15 +82,15 @@ _gtk_css_value_unref (GtkCssValue *value)
  * Returns: the computed value
  **/
 GtkCssValue *
-_gtk_css_value_compute (GtkCssValue             *value,
-                        guint                    property_id,
-                        GtkStyleProviderPrivate *provider,
-                        GtkCssStyle             *style,
-                        GtkCssStyle             *parent_style)
+_gtk_css_value_compute (GtkCssValue      *value,
+                        guint             property_id,
+                        GtkStyleProvider *provider,
+                        GtkCssStyle      *style,
+                        GtkCssStyle      *parent_style)
 {
 
   gtk_internal_return_val_if_fail (value != NULL, NULL);
-  gtk_internal_return_val_if_fail (GTK_IS_STYLE_PROVIDER_PRIVATE (provider), NULL);
+  gtk_internal_return_val_if_fail (GTK_IS_STYLE_PROVIDER (provider), NULL);
   gtk_internal_return_val_if_fail (GTK_IS_CSS_STYLE (style), NULL);
   gtk_internal_return_val_if_fail (parent_style == NULL || GTK_IS_CSS_STYLE (parent_style), NULL);
 

@@ -35,9 +35,13 @@
  * monitors with gdk_display_get_monitors() and to find particular
  * monitors with gdk_display_get_primary_monitor() or
  * gdk_display_get_monitor_at_window().
+ */
+
+/**
+ * GdkMonitor:
  *
- * GdkMonitor was introduced in GTK+ 3.22 and supersedes earlier
- * APIs in GdkScreen to obtain monitor-related information.
+ * The GdkMonitor struct contains only private fields and should not
+ * be accessed directly.
  */
 
 enum {
@@ -52,6 +56,7 @@ enum {
   PROP_HEIGHT_MM,
   PROP_REFRESH_RATE,
   PROP_SUBPIXEL_LAYOUT,
+  PROP_VALID,
   LAST_PROP
 };
 
@@ -70,6 +75,7 @@ static void
 gdk_monitor_init (GdkMonitor *monitor)
 {
   monitor->scale_factor = 1;
+  monitor->valid = TRUE;
 }
 
 static void
@@ -126,6 +132,10 @@ gdk_monitor_get_property (GObject    *object,
       g_value_set_enum (value, monitor->subpixel_layout);
       break;
 
+    case PROP_VALID:
+      g_value_set_boolean (value, monitor->valid);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -175,70 +185,83 @@ gdk_monitor_class_init (GdkMonitorClass *class)
                          "Display",
                          "The display of the monitor",
                          GDK_TYPE_DISPLAY,
-                         G_PARAM_READWRITE|G_PARAM_CONSTRUCT_ONLY);
+                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
   props[PROP_MANUFACTURER] =
     g_param_spec_string ("manufacturer",
                          "Manufacturer",
                          "The manufacturer name",
                          NULL,
-                         G_PARAM_READABLE);
+                         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
   props[PROP_MODEL] =
     g_param_spec_string ("model",
                          "Model",
                          "The model name",
                          NULL,
-                         G_PARAM_READABLE);
+                         G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
   props[PROP_SCALE_FACTOR] =
     g_param_spec_int ("scale-factor",
                       "Scale factor",
                       "The scale factor",
                       0, G_MAXINT,
                       1,
-                      G_PARAM_READABLE);
+                      G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
   props[PROP_GEOMETRY] =
     g_param_spec_boxed ("geometry",
                         "Geometry",
                         "The geometry of the monitor",
                         GDK_TYPE_RECTANGLE,
-                        G_PARAM_READABLE);
+                        G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
   props[PROP_WORKAREA] =
     g_param_spec_boxed ("workarea",
                         "Workarea",
                         "The workarea of the monitor",
                         GDK_TYPE_RECTANGLE,
-                        G_PARAM_READABLE);
+                        G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
   props[PROP_WIDTH_MM] =
     g_param_spec_int ("width-mm",
                       "Physical width",
                       "The width of the monitor, in millimeters",
                       0, G_MAXINT,
                       0,
-                      G_PARAM_READABLE);
+                      G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
   props[PROP_HEIGHT_MM] =
     g_param_spec_int ("height-mm",
                       "Physical height",
                       "The height of the monitor, in millimeters",
                       0, G_MAXINT,
                       0,
-                      G_PARAM_READABLE);
+                      G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
   props[PROP_REFRESH_RATE] =
     g_param_spec_int ("refresh-rate",
                       "Refresh rate",
                       "The refresh rate, in millihertz",
                       0, G_MAXINT,
                       0,
-                      G_PARAM_READABLE);
+                      G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
   props[PROP_SUBPIXEL_LAYOUT] =
     g_param_spec_enum ("subpixel-layout",
                        "Subpixel layout",
                        "The subpixel layout",
                        GDK_TYPE_SUBPIXEL_LAYOUT,
                        GDK_SUBPIXEL_LAYOUT_UNKNOWN,
-                       G_PARAM_READABLE);
+                       G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+  props[PROP_VALID] =
+    g_param_spec_boolean ("valid",
+                          "Valid",
+                          "Whether the monitor is still valid",
+                          TRUE,
+                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
-  signals[INVALIDATE] = g_signal_new ("invalidate",
+  /**
+   * GdkMonitor::invalidate:
+   * @monitor: the object on which this signal was emitted
+   *
+   * The ::invalidate signal gets emitted when the output represented
+   * by @monitor gets disconnected.
+   */
+  signals[INVALIDATE] = g_signal_new (g_intern_static_string ("invalidate"),
                                       G_TYPE_FROM_CLASS (object_class),
                                       G_SIGNAL_RUN_FIRST,
                                       0,
@@ -267,7 +290,7 @@ gdk_monitor_get_display (GdkMonitor *monitor)
 /**
  * gdk_monitor_get_geometry:
  * @monitor: a #GdkMonitor
- * @geometry: (out): a #GdkRectangle to be filled wiht the monitor geometry
+ * @geometry: (out): a #GdkRectangle to be filled with the monitor geometry
  *
  * Retrieves the size and position of an individual monitor within the
  * display coordinate space. The returned geometry is in  ”application pixels”,
@@ -598,5 +621,27 @@ gdk_monitor_set_subpixel_layout (GdkMonitor        *monitor,
 void
 gdk_monitor_invalidate (GdkMonitor *monitor)
 {
+  monitor->valid = FALSE;
+  g_object_notify (G_OBJECT (monitor), "valid");
   g_signal_emit (monitor, signals[INVALIDATE], 0);
+}
+
+/**
+ * gdk_monitor_is_valid:
+ * @monitor: a #GdkMonitor
+ *
+ * Returns %TRUE if the @monitor object corresponds to a
+ * physical monitor. The @monitor becomes invalid when the
+ * physical monitor is unplugged or removed.
+ *
+ * Returns: %TRUE if the object corresponds to a physical monitor
+ *
+ * Since: 3.94
+ */
+gboolean
+gdk_monitor_is_valid (GdkMonitor *monitor)
+{
+  g_return_val_if_fail (GDK_IS_MONITOR (monitor), FALSE);
+
+  return monitor->valid;
 }

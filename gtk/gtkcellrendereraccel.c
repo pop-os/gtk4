@@ -589,7 +589,7 @@ gtk_cell_editable_widget_key_press_event (GtkWidget   *widget,
     }
   else
     {
-      _gtk_translate_keyboard_accel_state (gdk_keymap_get_for_display (display),
+      _gtk_translate_keyboard_accel_state (gdk_display_get_keymap (display),
                                            keycode,
                                            state,
                                            gtk_accelerator_get_default_mod_mask (),
@@ -747,7 +747,7 @@ gtk_cell_editable_widget_class_init (GtkCellEditableWidgetClass *class)
       g_param_spec_string ("path", NULL, NULL,
                            NULL, GTK_PARAM_READWRITE));
 
-  gtk_widget_class_set_css_name (widget_class, "acceleditor");
+  gtk_widget_class_set_css_name (widget_class, I_("acceleditor"));
 }
 
 static void

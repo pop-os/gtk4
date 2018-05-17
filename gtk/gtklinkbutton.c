@@ -55,7 +55,6 @@
 
 #include <string.h>
 
-#include "gtkclipboard.h"
 #include "gtkdnd.h"
 #include "gtklabel.h"
 #include "gtkmain.h"
@@ -109,7 +108,6 @@ static gboolean gtk_link_button_popup_menu   (GtkWidget        *widget);
 static void gtk_link_button_drag_data_get_cb (GtkWidget        *widget,
 					      GdkDragContext   *context,
 					      GtkSelectionData *selection,
-					      guint             _info,
 					      guint             _time,
 					      gpointer          user_data);
 static gboolean gtk_link_button_query_tooltip_cb (GtkWidget    *widget,
@@ -129,9 +127,9 @@ static gboolean gtk_link_button_activate_link (GtkLinkButton *link_button);
 static void     set_hand_cursor (GtkWidget *widget,
 				 gboolean   show_hand);
 
-static const GtkTargetEntry link_drop_types[] = {
-  { (char *) "text/uri-list", 0, 0 },
-  { (char *) "_NETSCAPE_URL", 0, 0 }
+static const char *link_drop_types[] = {
+  "text/uri-list",
+  "_NETSCAPE_URL"
 };
 
 static guint link_signals[LAST_SIGNAL] = { 0, };
@@ -210,7 +208,7 @@ gtk_link_button_class_init (GtkLinkButtonClass *klass)
                   G_TYPE_BOOLEAN, 0);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_LINK_BUTTON_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "button");
+  gtk_widget_class_set_css_name (widget_class, I_("button"));
 }
 
 static void
@@ -218,6 +216,7 @@ gtk_link_button_init (GtkLinkButton *link_button)
 {
   GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
   GtkStyleContext *context;
+  GdkContentFormats *targets;
 
   link_button->priv = priv;
 
@@ -232,10 +231,13 @@ gtk_link_button_init (GtkLinkButton *link_button)
                     G_CALLBACK (gtk_link_button_query_tooltip_cb), NULL);
 
   /* enable drag source */
+  targets = gdk_content_formats_new (link_drop_types, G_N_ELEMENTS (link_drop_types));
   gtk_drag_source_set (GTK_WIDGET (link_button),
   		       GDK_BUTTON1_MASK,
-  		       link_drop_types, G_N_ELEMENTS (link_drop_types),
+  		       targets,
   		       GDK_ACTION_COPY);
+  gdk_content_formats_unref (targets);
+  gtk_drag_source_set_icon_name (GTK_WIDGET (link_button), "text-x-generic");
 
   priv->click_gesture = gtk_gesture_multi_press_new (GTK_WIDGET (link_button));
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (priv->click_gesture), FALSE);
@@ -309,19 +311,10 @@ static void
 set_hand_cursor (GtkWidget *widget,
 		 gboolean   show_hand)
 {
-  GdkDisplay *display;
-  GdkCursor *cursor;
-
-  display = gtk_widget_get_display (widget);
-
-  cursor = NULL;
   if (show_hand)
-    cursor = gdk_cursor_new_from_name (display, "pointer");
-
-  gtk_widget_set_cursor (widget, cursor);
-
-  if (cursor)
-    g_object_unref (cursor);
+    gtk_widget_set_cursor_from_name (widget, "pointer");
+  else
+    gtk_widget_set_cursor (widget, NULL);
 }
 
 static void
@@ -339,9 +332,8 @@ copy_activate_cb (GtkWidget     *widget,
 {
   GtkLinkButtonPrivate *priv = link_button->priv;
   
-  gtk_clipboard_set_text (gtk_widget_get_clipboard (GTK_WIDGET (link_button),
-			  			    GDK_SELECTION_CLIPBOARD),
-		  	  priv->uri, -1);
+  gdk_clipboard_set_text (gtk_widget_get_clipboard (GTK_WIDGET (link_button)),
+		  	  priv->uri);
 }
 
 static void
@@ -458,7 +450,6 @@ static void
 gtk_link_button_drag_data_get_cb (GtkWidget        *widget,
 				  GdkDragContext   *context,
 				  GtkSelectionData *selection,
-				  guint             _info,
 				  guint             _time,
 				  gpointer          user_data)
 {

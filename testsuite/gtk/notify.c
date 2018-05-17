@@ -399,14 +399,17 @@ test_type (gconstpointer data)
   klass = g_type_class_ref (type);
 
   if (g_type_is_a (type, GTK_TYPE_SETTINGS))
-    instance = g_object_ref (gtk_settings_get_default ());
+    instance = G_OBJECT (g_object_ref (gtk_settings_get_default ()));
   else if (g_type_is_a (type, GDK_TYPE_WINDOW))
     {
-      instance = g_object_ref (gdk_window_new_popup (gdk_display_get_default (),
-                                                     0,
-                                                     &(GdkRectangle) { 0, 0, 100, 100 }));
+      instance = G_OBJECT (g_object_ref (gdk_window_new_popup (display,
+                                                               &(GdkRectangle) { 0, 0, 100, 100 })));
     }
   else if (g_str_equal (g_type_name (type), "GdkX11Cursor"))
+    instance = g_object_new (type, "display", display, NULL);
+  else if (g_str_equal (g_type_name (type), "GdkClipboard"))
+    instance = g_object_new (type, "display", display, NULL);
+  else if (g_str_equal (g_type_name (type), "GdkDragContext"))
     instance = g_object_new (type, "display", display, NULL);
   else
     instance = g_object_new (type, NULL);
@@ -522,8 +525,7 @@ test_type (gconstpointer data)
       if (g_type_is_a (pspec->owner_type, GTK_TYPE_CELL_RENDERER_PIXBUF) &&
 	  (g_str_equal (pspec->name, "follow-state") ||
 	   g_str_equal (pspec->name, "stock-id") ||
-           g_str_equal (pspec->name, "stock-size") ||
-           g_str_equal (pspec->name, "stock-detail")))
+           g_str_equal (pspec->name, "stock-size")))
         continue;
 
       if (g_type_is_a (pspec->owner_type, GTK_TYPE_MENU) &&

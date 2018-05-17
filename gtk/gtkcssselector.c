@@ -683,7 +683,8 @@ gtk_css_pseudoclass_name (GtkStateFlags state)
     "link",
     "visited",
     "checked",
-    "drop(active)"
+    "drop(active)",
+    "focus(visible)"
   };
   guint i;
 
@@ -876,6 +877,7 @@ change_pseudoclass_position (const GtkCssSelector *selector)
       return GTK_CSS_CHANGE_FIRST_CHILD | GTK_CSS_CHANGE_LAST_CHILD;
     default:
       g_assert_not_reached ();
+      return 0;
     }
 }
 
@@ -1107,22 +1109,23 @@ parse_selector_pseudo_class (GtkCssParser   *parser,
     int            position_a;
     int            position_b;
   } pseudo_classes[] = {
-    { "first-child",   0,                           POSITION_FORWARD,  0, 1 },
-    { "last-child",    0,                           POSITION_BACKWARD, 0, 1 },
-    { "only-child",    0,                           POSITION_ONLY,     0, 0 },
-    { "active",        GTK_STATE_FLAG_ACTIVE, },
-    { "hover",         GTK_STATE_FLAG_PRELIGHT, },
-    { "selected",      GTK_STATE_FLAG_SELECTED, },
-    { "disabled",      GTK_STATE_FLAG_INSENSITIVE, },
-    { "indeterminate", GTK_STATE_FLAG_INCONSISTENT, },
-    { "focus",         GTK_STATE_FLAG_FOCUSED, },
-    { "backdrop",      GTK_STATE_FLAG_BACKDROP, },
-    { "dir(ltr)",      GTK_STATE_FLAG_DIR_LTR, },
-    { "dir(rtl)",      GTK_STATE_FLAG_DIR_RTL, },
-    { "link",          GTK_STATE_FLAG_LINK, },
-    { "visited",       GTK_STATE_FLAG_VISITED, },
-    { "checked",       GTK_STATE_FLAG_CHECKED, },
-    { "drop(active)",  GTK_STATE_FLAG_DROP_ACTIVE, }
+    { "first-child",    0,                           POSITION_FORWARD,  0, 1 },
+    { "last-child",     0,                           POSITION_BACKWARD, 0, 1 },
+    { "only-child",     0,                           POSITION_ONLY,     0, 0 },
+    { "active",         GTK_STATE_FLAG_ACTIVE, },
+    { "hover",          GTK_STATE_FLAG_PRELIGHT, },
+    { "selected",       GTK_STATE_FLAG_SELECTED, },
+    { "disabled",       GTK_STATE_FLAG_INSENSITIVE, },
+    { "indeterminate",  GTK_STATE_FLAG_INCONSISTENT, },
+    { "focus(visible)", GTK_STATE_FLAG_FOCUS_VISIBLE, },
+    { "focus",          GTK_STATE_FLAG_FOCUSED, },
+    { "backdrop",       GTK_STATE_FLAG_BACKDROP, },
+    { "dir(ltr)",       GTK_STATE_FLAG_DIR_LTR, },
+    { "dir(rtl)",       GTK_STATE_FLAG_DIR_RTL, },
+    { "link",           GTK_STATE_FLAG_LINK, },
+    { "visited",        GTK_STATE_FLAG_VISITED, },
+    { "checked",        GTK_STATE_FLAG_CHECKED, },
+    { "drop(active)",   GTK_STATE_FLAG_DROP_ACTIVE, }
   };
 
   guint i;
@@ -1215,8 +1218,7 @@ parse_simple_selector (GtkCssParser   *parser,
   name = _gtk_css_parser_try_ident (parser, FALSE);
   if (name)
     {
-      selector = gtk_css_selector_new (&GTK_CSS_SELECTOR_NAME,
-                                       selector);
+      selector = gtk_css_selector_new (&GTK_CSS_SELECTOR_NAME, selector);
       selector->name.name = g_intern_string (name);
       g_free (name);
       parsed_something = TRUE;

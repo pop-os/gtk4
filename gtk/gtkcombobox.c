@@ -894,7 +894,7 @@ gtk_combo_box_class_init (GtkComboBoxClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, gtk_combo_box_menu_hide);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_COMBO_BOX_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "combobox");
+  gtk_widget_class_set_css_name (widget_class, I_("combobox"));
 }
 
 static void
@@ -1415,9 +1415,9 @@ gtk_combo_box_menu_popup (GtkComboBox    *combo_box)
 
   if (priv->wrap_width == 0)
     {
-      int width, height, min_width, nat_width;
+      int width, min_width, nat_width;
 
-      gtk_widget_get_content_size (GTK_WIDGET (combo_box), &width, &height);
+      width = gtk_widget_get_width (GTK_WIDGET (combo_box));
       gtk_widget_set_size_request (priv->popup_widget, -1, -1);
       gtk_widget_measure (priv->popup_widget, GTK_ORIENTATION_HORIZONTAL, -1,
                           &min_width, &nat_width, NULL, NULL);

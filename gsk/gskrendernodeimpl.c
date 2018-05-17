@@ -24,7 +24,7 @@
 #include "gskdebugprivate.h"
 #include "gskrendererprivate.h"
 #include "gskroundedrectprivate.h"
-#include "gsktextureprivate.h"
+#include "gdk/gdktextureprivate.h"
 
 static gboolean
 check_variant_type (GVariant *variant,
@@ -412,7 +412,7 @@ gsk_linear_gradient_node_peek_end (GskRenderNode *node)
   return &self->end;
 }
 
-const gsize
+gsize
 gsk_linear_gradient_node_get_n_color_stops (GskRenderNode *node)
 {
   GskLinearGradientNode *self = (GskLinearGradientNode *) node;
@@ -663,7 +663,7 @@ struct _GskTextureNode
 {
   GskRenderNode render_node;
 
-  GskTexture *texture;
+  GdkTexture *texture;
 };
 
 static void
@@ -681,14 +681,14 @@ gsk_texture_node_draw (GskRenderNode *node,
   GskTextureNode *self = (GskTextureNode *) node;
   cairo_surface_t *surface;
 
-  surface = gsk_texture_download_surface (self->texture);
+  surface = gdk_texture_download_surface (self->texture);
 
   cairo_save (cr);
 
   cairo_translate (cr, node->bounds.origin.x, node->bounds.origin.y);
   cairo_scale (cr,
-               node->bounds.size.width / gsk_texture_get_width (self->texture),
-               node->bounds.size.height / gsk_texture_get_height (self->texture));
+               node->bounds.size.width / gdk_texture_get_width (self->texture),
+               node->bounds.size.height / gdk_texture_get_height (self->texture));
 
   cairo_set_source_surface (cr, surface, 0, 0);
   cairo_paint (cr);
@@ -707,19 +707,19 @@ gsk_texture_node_serialize (GskRenderNode *node)
   cairo_surface_t *surface;
   GVariant *result;
 
-  surface = gsk_texture_download_surface (self->texture);
+  surface = gdk_texture_download_surface (self->texture);
 
   g_assert (cairo_image_surface_get_width (surface) * 4 == cairo_image_surface_get_stride (surface));
 
   result = g_variant_new ("(dddduu@au)",
                           (double) node->bounds.origin.x, (double) node->bounds.origin.y,
                           (double) node->bounds.size.width, (double) node->bounds.size.height,
-                          (guint32) gsk_texture_get_width (self->texture),
-                          (guint32) gsk_texture_get_height (self->texture),
+                          (guint32) gdk_texture_get_width (self->texture),
+                          (guint32) gdk_texture_get_height (self->texture),
                           g_variant_new_fixed_array (G_VARIANT_TYPE ("u"),
                                                      cairo_image_surface_get_data (surface),
-                                                     gsk_texture_get_width (self->texture)
-                                                     * gsk_texture_get_height (self->texture),
+                                                     gdk_texture_get_width (self->texture)
+                                                     * gdk_texture_get_height (self->texture),
                                                      sizeof (guint32)));
 
   cairo_surface_destroy (surface);
@@ -732,7 +732,7 @@ gsk_texture_node_deserialize (GVariant  *variant,
                               GError   **error)
 {
   GskRenderNode *node;
-  GskTexture *texture;
+  GdkTexture *texture;
   double bounds[4];
   guint32 width, height;
   GVariant *pixel_variant;
@@ -746,7 +746,7 @@ gsk_texture_node_deserialize (GVariant  *variant,
                  &width, &height, &pixel_variant);
 
   /* XXX: Make this work without copying the data */
-  texture = gsk_texture_new_for_data (g_variant_get_fixed_array (pixel_variant, &n_pixels, sizeof (guint32)),
+  texture = gdk_texture_new_for_data (g_variant_get_fixed_array (pixel_variant, &n_pixels, sizeof (guint32)),
                                       width, height, width * 4);
   g_variant_unref (pixel_variant);
 
@@ -767,7 +767,7 @@ static const GskRenderNodeClass GSK_TEXTURE_NODE_CLASS = {
   gsk_texture_node_deserialize
 };
 
-GskTexture *
+GdkTexture *
 gsk_texture_node_get_texture (GskRenderNode *node)
 {
   GskTextureNode *self = (GskTextureNode *) node;
@@ -779,7 +779,7 @@ gsk_texture_node_get_texture (GskRenderNode *node)
 
 /**
  * gsk_texture_node_new:
- * @texture: the #GskTexture
+ * @texture: the #GdkTexture
  * @bounds: the rectangle to render the texture into
  *
  * Creates a #GskRenderNode that will render the given
@@ -790,12 +790,12 @@ gsk_texture_node_get_texture (GskRenderNode *node)
  * Since: 3.90
  */
 GskRenderNode *
-gsk_texture_node_new (GskTexture            *texture,
+gsk_texture_node_new (GdkTexture            *texture,
                       const graphene_rect_t *bounds)
 {
   GskTextureNode *self;
 
-  g_return_val_if_fail (GSK_IS_TEXTURE (texture), NULL);
+  g_return_val_if_fail (GDK_IS_TEXTURE (texture), NULL);
   g_return_val_if_fail (bounds != NULL, NULL);
 
   self = (GskTextureNode *) gsk_render_node_new (&GSK_TEXTURE_NODE_CLASS, 0);
@@ -1829,16 +1829,8 @@ static const GskRenderNodeClass GSK_CAIRO_NODE_CLASS = {
   gsk_cairo_node_deserialize
 };
 
-/*< private >
- * gsk_cairo_node_get_surface:
- * @node: a #GskRenderNode
- *
- * Retrieves the surface set using gsk_render_node_set_surface().
- *
- * Returns: (transfer none) (nullable): a Cairo surface
- */
-cairo_surface_t *
-gsk_cairo_node_get_surface (GskRenderNode *node)
+const cairo_surface_t *
+gsk_cairo_node_peek_surface (GskRenderNode *node)
 {
   GskCairoNode *self = (GskCairoNode *) node;
 
@@ -2334,15 +2326,14 @@ gsk_transform_node_get_child (GskRenderNode *node)
   return self->child;
 }
 
-void
-gsk_transform_node_get_transform (GskRenderNode     *node,
-                                  graphene_matrix_t *transform)
+const graphene_matrix_t *
+gsk_transform_node_peek_transform (GskRenderNode *node)
 {
   GskTransformNode *self = (GskTransformNode *) node;
 
-  g_return_if_fail (GSK_IS_RENDER_NODE_TYPE (node, GSK_TRANSFORM_NODE));
+  g_return_val_if_fail (GSK_IS_RENDER_NODE_TYPE (node, GSK_TRANSFORM_NODE), NULL);
 
-  graphene_matrix_init_from_matrix (transform, &self->transform);
+  return &self->transform;
 }
 
 /*** GSK_OPACITY_NODE ***/
@@ -3863,11 +3854,13 @@ struct _GskTextNode
   GskRenderNode render_node;
 
   PangoFont *font;
-  PangoGlyphString *glyphs;
 
   GdkRGBA color;
   double x;
   double y;
+
+  guint num_glyphs;
+  PangoGlyphInfo glyphs[];
 };
 
 static void
@@ -3876,7 +3869,6 @@ gsk_text_node_finalize (GskRenderNode *node)
   GskTextNode *self = (GskTextNode *) node;
 
   g_object_unref (self->font);
-  pango_glyph_string_free (self->glyphs);
 }
 
 #ifndef STACK_BUFFER_SIZE
@@ -3906,15 +3898,15 @@ gsk_text_node_draw (GskRenderNode *node,
   cairo_set_scaled_font (cr, scaled_font);
   gdk_cairo_set_source_rgba (cr, &self->color);
 
-  if (self->glyphs->num_glyphs > (int) G_N_ELEMENTS (stack_glyphs))
-    cairo_glyphs = g_new (cairo_glyph_t, self->glyphs->num_glyphs);
+  if (self->num_glyphs > (int) G_N_ELEMENTS (stack_glyphs))
+    cairo_glyphs = g_new (cairo_glyph_t, self->num_glyphs);
   else
     cairo_glyphs = stack_glyphs;
 
   count = 0;
-  for (i = 0; i < self->glyphs->num_glyphs; i++)
+  for (i = 0; i < self->num_glyphs; i++)
     {
-      PangoGlyphInfo *gi = &self->glyphs->glyphs[i];
+      PangoGlyphInfo *gi = &self->glyphs[i];
 
       if (gi->glyph != PANGO_GLYPH_EMPTY)
         {
@@ -3956,9 +3948,9 @@ gsk_text_node_serialize (GskRenderNode *node)
   s = pango_font_description_to_string (desc);
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(uiiii)"));
-  for (i = 0; i < self->glyphs->num_glyphs; i++)
+  for (i = 0; i < self->num_glyphs; i++)
     {
-      PangoGlyphInfo *glyph = &self->glyphs->glyphs[i];
+      PangoGlyphInfo *glyph = &self->glyphs[i];
       g_variant_builder_add (&builder, "(uiiii)",
                              glyph->glyph,
                              glyph->geometry.width,
@@ -4080,13 +4072,14 @@ gsk_text_node_new (PangoFont        *font,
   if (ink_rect.width == 0 || ink_rect.height == 0)
     return NULL;
 
-  self = (GskTextNode *) gsk_render_node_new (&GSK_TEXT_NODE_CLASS, 0);
+  self = (GskTextNode *) gsk_render_node_new (&GSK_TEXT_NODE_CLASS, sizeof (PangoGlyphInfo) * glyphs->num_glyphs);
 
   self->font = g_object_ref (font);
-  self->glyphs = pango_glyph_string_copy (glyphs);
   self->color = *color;
   self->x = x;
   self->y = y;
+  self->num_glyphs = glyphs->num_glyphs;
+  memcpy (self->glyphs, glyphs->glyphs, sizeof (PangoGlyphInfo) * glyphs->num_glyphs);
 
   graphene_rect_init (&self->render_node.bounds,
                       x,
@@ -4098,7 +4091,7 @@ gsk_text_node_new (PangoFont        *font,
 }
 
 const GdkRGBA *
-gsk_text_node_get_color (GskRenderNode *node)
+gsk_text_node_peek_color (GskRenderNode *node)
 {
   GskTextNode *self = (GskTextNode *) node;
 
@@ -4107,8 +4100,8 @@ gsk_text_node_get_color (GskRenderNode *node)
   return &self->color;
 }
 
-PangoFont *
-gsk_text_node_get_font (GskRenderNode *node)
+const PangoFont *
+gsk_text_node_peek_font (GskRenderNode *node)
 {
   GskTextNode *self = (GskTextNode *) node;
 
@@ -4117,8 +4110,18 @@ gsk_text_node_get_font (GskRenderNode *node)
   return self->font;
 }
 
-PangoGlyphString *
-gsk_text_node_get_glyphs (GskRenderNode *node)
+guint
+gsk_text_node_get_num_glyphs (GskRenderNode *node)
+{
+  GskTextNode *self = (GskTextNode *) node;
+
+  g_return_val_if_fail (GSK_IS_RENDER_NODE_TYPE (node, GSK_TEXT_NODE), 0);
+
+  return self->num_glyphs;
+}
+
+const PangoGlyphInfo *
+gsk_text_node_peek_glyphs (GskRenderNode *node)
 {
   GskTextNode *self = (GskTextNode *) node;
 

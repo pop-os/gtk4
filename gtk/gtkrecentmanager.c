@@ -102,7 +102,6 @@
 #include "gtkrecentmanager.h"
 #include "gtkintl.h"
 #include "gtksettings.h"
-#include "gtkicontheme.h"
 #include "gtktypebuiltins.h"
 #include "gtkprivate.h"
 #include "gtkmarshalers.h"
@@ -159,8 +158,6 @@ struct _GtkRecentInfo
   GSList *groups;
 
   gboolean is_private;
-
-  GdkPixbuf *icon;
 
   gint ref_count;
 };
@@ -289,7 +286,7 @@ gtk_recent_manager_class_init (GtkRecentManagerClass *klass)
                                                         P_("Filename"),
                                                         P_("The full path to the file to be used to store and read the list"),
                                                         NULL,
-                                                        (G_PARAM_CONSTRUCT_ONLY | G_PARAM_READWRITE)));
+                                                        (G_PARAM_CONSTRUCT_ONLY | GTK_PARAM_READWRITE)));
 
   /**
    * GtkRecentManager:size:
@@ -303,10 +300,8 @@ gtk_recent_manager_class_init (GtkRecentManagerClass *klass)
                                    g_param_spec_int ("size",
                                                      P_("Size"),
                                                      P_("The size of the recently used resources list"),
-                                                     -1,
-                                                     G_MAXINT,
-                                                     0,
-                                                     G_PARAM_READABLE));
+                                                     -1, G_MAXINT, 0,
+                                                     GTK_PARAM_READABLE));
 
   /**
    * GtkRecentManager::changed:
@@ -1550,9 +1545,6 @@ gtk_recent_info_free (GtkRecentInfo *recent_info)
 
   g_slist_free_full (recent_info->groups, g_free);
 
-  if (recent_info->icon)
-    g_object_unref (recent_info->icon);
-
   g_free (recent_info);
 }
 
@@ -1958,94 +1950,6 @@ gtk_recent_info_last_application (GtkRecentInfo *info)
   return g_strdup (name);
 }
 
-static GdkPixbuf *
-get_icon_for_mime_type (const gchar *mime_type,
-                        gint         pixel_size)
-{
-  GtkIconTheme *icon_theme;
-  char *content_type;
-  GIcon *icon;
-  GtkIconInfo *info;
-  GdkPixbuf *pixbuf;
-
-  icon_theme = gtk_icon_theme_get_default ();
-
-  content_type = g_content_type_from_mime_type (mime_type);
-
-  if (!content_type)
-    return NULL;
-
-  icon = g_content_type_get_icon (content_type);
-  info = gtk_icon_theme_lookup_by_gicon (icon_theme,
-                                         icon,
-                                         pixel_size,
-                                         GTK_ICON_LOOKUP_USE_BUILTIN);
-  g_free (content_type);
-  g_object_unref (icon);
-
-  if (!info)
-    return NULL;
-
-  pixbuf = gtk_icon_info_load_icon (info, NULL);
-  g_object_unref (info);
-
-  return pixbuf;
-}
-
-static GdkPixbuf *
-get_icon_fallback (const gchar *icon_name,
-                   gint         size)
-{
-  GtkIconTheme *icon_theme;
-  GdkPixbuf *retval;
-
-  icon_theme = gtk_icon_theme_get_default ();
-
-  retval = gtk_icon_theme_load_icon (icon_theme, icon_name,
-                                     size,
-                                     GTK_ICON_LOOKUP_USE_BUILTIN,
-                                     NULL);
-  g_assert (retval != NULL);
-
-  return retval;
-}
-
-/**
- * gtk_recent_info_get_icon:
- * @info: a #GtkRecentInfo
- * @size: the size of the icon in pixels
- *
- * Retrieves the icon of size @size associated to the resource MIME type.
- *
- * Returns: (nullable) (transfer full): a #GdkPixbuf containing the icon,
- *     or %NULL. Use g_object_unref() when finished using the icon.
- *
- * Since: 2.10
- */
-GdkPixbuf *
-gtk_recent_info_get_icon (GtkRecentInfo *info,
-                          gint           size)
-{
-  GdkPixbuf *retval = NULL;
-
-  g_return_val_if_fail (info != NULL, NULL);
-
-  if (info->mime_type)
-    retval = get_icon_for_mime_type (info->mime_type, size);
-
-  /* this function should never fail */
-  if (!retval)
-    {
-      if (info->mime_type &&
-          strcmp (info->mime_type, "x-directory/normal") == 0)
-        retval = get_icon_fallback ("folder", size);
-      else
-        retval = get_icon_fallback ("text-x-generic", size);
-    }
-
-  return retval;
-}
-
 /**
  * gtk_recent_info_get_gicon:
  * @info: a #GtkRecentInfo
@@ -2070,6 +1974,14 @@ gtk_recent_info_get_gicon (GtkRecentInfo *info)
     {
       icon = g_content_type_get_icon (content_type);
       g_free (content_type);
+    }
+  else
+    {
+      if (info->mime_type &&
+          strcmp (info->mime_type, "x-directory/normal") == 0)
+        icon = g_themed_icon_new ("folder");
+      else
+        icon = g_themed_icon_new ("text-x-generic");
     }
 
   return icon;

@@ -93,10 +93,9 @@ typedef enum
  *                          be an associated focus indicator on the screen.
  * @GDK_DEVICE_TYPE_SLAVE: Device is a slave (or physical) device.
  * @GDK_DEVICE_TYPE_FLOATING: Device is a physical device, currently not attached to
- *                            any virtual device.
+ *                            any seat.
  *
- * Indicates the device type. See [above][GdkDeviceManager.description]
- * for more information about the meaning of these device types.
+ * Indicates the device type.
  */
 typedef enum {
   GDK_DEVICE_TYPE_MASTER,
@@ -169,7 +168,6 @@ void     gdk_device_get_state    (GdkDevice         *device,
                                   GdkModifierType   *mask);
 GDK_AVAILABLE_IN_ALL
 void     gdk_device_get_position (GdkDevice         *device,
-                                  GdkScreen        **screen,
                                   gint              *x,
                                   gint              *y);
 GDK_AVAILABLE_IN_ALL
@@ -180,7 +178,6 @@ GdkWindow *
                                   gint              *win_y);
 GDK_AVAILABLE_IN_3_10
 void     gdk_device_get_position_double (GdkDevice         *device,
-                                         GdkScreen        **screen,
                                          gdouble           *x,
                                          gdouble           *y);
 GDK_AVAILABLE_IN_3_10
@@ -241,7 +238,6 @@ void          gdk_device_ungrab      (GdkDevice        *device,
 
 GDK_AVAILABLE_IN_ALL
 void          gdk_device_warp        (GdkDevice        *device,
-                                      GdkScreen        *screen,
                                       gint              x,
                                       gint              y);
 

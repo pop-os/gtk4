@@ -23,16 +23,14 @@ static cairo_surface_t *surface = NULL;
 static void
 create_surface (GtkWidget *widget)
 {
-  GtkAllocation allocation;
   cairo_t *cr;
 
   if (surface)
     cairo_surface_destroy (surface);
 
-  gtk_widget_get_allocation (widget, &allocation);
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
-                                        allocation.width,
-                                        allocation.height);
+                                        gtk_widget_get_width (widget),
+                                        gtk_widget_get_height (widget));
 
   /* Initialize the surface to white */
   cr = cairo_create (surface);
@@ -71,8 +69,8 @@ draw_brush (GtkWidget *widget,
   cairo_t *cr;
 
   if (surface == NULL ||
-      cairo_image_surface_get_width (surface) != gtk_widget_get_allocated_width (widget) ||
-      cairo_image_surface_get_height (surface) != gtk_widget_get_allocated_height (widget))
+      cairo_image_surface_get_width (surface) != gtk_widget_get_width (widget) ||
+      cairo_image_surface_get_height (surface) != gtk_widget_get_height (widget))
     create_surface (widget);
 
   update_rect.x = x - 3;
@@ -195,8 +193,8 @@ do_drawingarea (GtkWidget *do_widget)
   if (!window)
     {
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-      gtk_window_set_screen (GTK_WINDOW (window),
-                             gtk_widget_get_screen (do_widget));
+      gtk_window_set_display (GTK_WINDOW (window),
+                              gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Drawing Area");
 
       g_signal_connect (window, "destroy",

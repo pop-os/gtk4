@@ -157,8 +157,6 @@ struct _GtkWidget
  * @size_allocate: Signal emitted to get the widget allocation.
  * @state_flags_changed: Signal emitted when the widget state changes,
  *   see gtk_widget_get_state_flags().
- * @parent_set: Signal emitted when a new parent has been set on a
- *   widget.
  * @hierarchy_changed: Signal emitted when the anchored state of a
  *   widget changes.
  * @direction_changed: Signal emitted when the text direction of a
@@ -176,13 +174,12 @@ struct _GtkWidget
  *   #GtkWidgetClass.get_preferred_width() called and then
  *   #GtkWidgetClass.get_preferred_height_for_width().
  *   %GTK_SIZE_REQUEST_CONSTANT_SIZE disables any height-for-width or
- *   width-for-height geometry management for a said widget and is the
+ *   width-for-height geometry management for said widget and is the
  *   default return.
- *   It’s important to note (as described below) that any widget
+ *   It’s important to note that any widget
  *   which trades height-for-width or width-for-height must respond properly
- *   to both of the virtual methods #GtkWidgetClass.get_preferred_height_for_width()
- *   and #GtkWidgetClass.get_preferred_width_for_height() since it might be
- *   queried in either #GtkSizeRequestMode by its parent container.
+ *   to a for_size value >= -1 passed to #GtkWidgetClass.measure, for both
+ *   possible orientations.
  * @measure: This is called by containers to obtain the minimum and natural
  *   size of the widget. Depending on the orientation parameter, the passed
  *   for_size can be interpreted as width or height. A widget will never be
@@ -225,18 +222,8 @@ struct _GtkWidget
  * @map_event: Signal emitted when the widget’s window is mapped.
  * @unmap_event: Signal will be emitted when the widget’s window is
  *   unmapped.
- * @property_notify_event: Signal will be emitted when a property on
- *   the widget’s window has been changed or deleted.
- * @selection_clear_event: Signal will be emitted when the the
- *   widget’s window has lost ownership of a selection.
- * @selection_request_event: Signal will be emitted when another
- *   client requests ownership of the selection owned by the widget's
- *   window.
- * @selection_notify_event:
  * @proximity_in_event:
  * @proximity_out_event:
- * @window_state_event: Signal emitted when the state of the toplevel
- *   window associated to the widget changes.
  * @grab_broken_event: Signal emitted when a pointer or keyboard grab
  *   on a window belonging to widget gets broken.
  * @selection_get:
@@ -263,7 +250,7 @@ struct _GtkWidget
  *   context menu.
  * @get_accessible: Returns the accessible object that describes the
  *   widget to an assistive technology.
- * @screen_changed: Signal emitted when the screen of a widget has
+ * @display_changed: Signal emitted when the #GdkDisplay of a widget has
  *   changed.
  * @can_activate_accel: Signal allows applications and derived widgets
  *   to override the default GtkWidget handling for determining whether
@@ -306,8 +293,6 @@ struct _GtkWidgetClass
                                 GtkAllocation       *out_clip);
   void (* state_flags_changed) (GtkWidget        *widget,
 				GtkStateFlags  	  previous_state_flags);
-  void (* parent_set)	       (GtkWidget        *widget,
-				GtkWidget        *previous_parent);
   void (* hierarchy_changed)   (GtkWidget        *widget,
 				GtkWidget        *previous_toplevel);
   void (* direction_changed)   (GtkWidget        *widget,
@@ -377,27 +362,16 @@ struct _GtkWidgetClass
 					 GdkEventAny	     *event);
   gboolean (* unmap_event)		(GtkWidget	     *widget,
 					 GdkEventAny	     *event);
-  gboolean (* property_notify_event)	(GtkWidget	     *widget,
-					 GdkEventProperty    *event);
-  gboolean (* selection_clear_event)	(GtkWidget	     *widget,
-					 GdkEventSelection   *event);
-  gboolean (* selection_request_event)	(GtkWidget	     *widget,
-					 GdkEventSelection   *event);
-  gboolean (* selection_notify_event)	(GtkWidget	     *widget,
-					 GdkEventSelection   *event);
   gboolean (* proximity_in_event)	(GtkWidget	     *widget,
 					 GdkEventProximity   *event);
   gboolean (* proximity_out_event)	(GtkWidget	     *widget,
 					 GdkEventProximity   *event);
-  gboolean (* window_state_event)	(GtkWidget	     *widget,
-					 GdkEventWindowState *event);
   gboolean (* grab_broken_event)        (GtkWidget           *widget,
                                          GdkEventGrabBroken  *event);
 
   /* selection */
   void     (* selection_get)       (GtkWidget          *widget,
 				    GtkSelectionData   *selection_data,
-				    guint               info,
 				    guint               time_);
   void     (* selection_received)  (GtkWidget          *widget,
 				    GtkSelectionData   *selection_data,
@@ -411,7 +385,6 @@ struct _GtkWidgetClass
   void     (* drag_data_get)       (GtkWidget          *widget,
 				    GdkDragContext     *context,
 				    GtkSelectionData   *selection_data,
-				    guint               info,
 				    guint               time_);
   void     (* drag_data_delete)    (GtkWidget          *widget,
 				    GdkDragContext     *context);
@@ -432,10 +405,7 @@ struct _GtkWidgetClass
 				    guint               time_);
   void     (* drag_data_received)  (GtkWidget          *widget,
 				    GdkDragContext     *context,
-				    gint                x,
-				    gint                y,
 				    GtkSelectionData   *selection_data,
-				    guint               info,
 				    guint               time_);
   gboolean (* drag_failed)         (GtkWidget          *widget,
                                     GdkDragContext     *context,
@@ -446,10 +416,10 @@ struct _GtkWidgetClass
 
   /* accessibility support
    */
-  AtkObject *  (* get_accessible)     (GtkWidget *widget);
+  AtkObject *  (* get_accessible)     (GtkWidget       *widget);
 
-  void         (* screen_changed)     (GtkWidget *widget,
-                                       GdkScreen *previous_screen);
+  void         (* display_changed)     (GtkWidget      *widget,
+                                        GdkDisplay     *previous_display);
   gboolean     (* can_activate_accel) (GtkWidget *widget,
                                        guint      signal_id);
 
@@ -472,11 +442,12 @@ struct _GtkWidgetClass
   void         (* snapshot)                    (GtkWidget            *widget,
                                                 GtkSnapshot          *snapshot);
 
+  gboolean     (* contains)                    (GtkWidget *widget,
+                                                gdouble    x,
+                                                gdouble    y);
   GtkWidget *  (* pick)                        (GtkWidget *widget,
                                                 gdouble    x,
-                                                gdouble    y,
-                                                gdouble   *x_out,
-                                                gdouble   *y_out);
+                                                gdouble    y);
 
   /*< private >*/
 
@@ -745,6 +716,11 @@ void                  gtk_widget_get_allocated_size     (GtkWidget     *widget,
 GDK_AVAILABLE_IN_ALL
 void                  gtk_widget_get_allocation         (GtkWidget     *widget,
                                                          GtkAllocation *allocation);
+GDK_AVAILABLE_IN_3_94
+int                   gtk_widget_get_width              (GtkWidget     *widget);
+GDK_AVAILABLE_IN_3_94
+int                   gtk_widget_get_height             (GtkWidget     *widget);
+
 GDK_AVAILABLE_IN_3_14
 void                  gtk_widget_get_clip               (GtkWidget     *widget,
                                                          GtkAllocation *clip);
@@ -773,32 +749,21 @@ GDK_AVAILABLE_IN_3_8
 double	   gtk_widget_get_opacity	  (GtkWidget	       *widget);
 
 GDK_AVAILABLE_IN_ALL
-void       gtk_widget_set_device_enabled  (GtkWidget    *widget,
-                                           GdkDevice    *device,
-                                           gboolean      enabled);
-GDK_AVAILABLE_IN_ALL
-gboolean   gtk_widget_get_device_enabled  (GtkWidget    *widget,
-                                           GdkDevice    *device);
-
-GDK_AVAILABLE_IN_ALL
 GtkWidget*   gtk_widget_get_toplevel	(GtkWidget	*widget);
 GDK_AVAILABLE_IN_ALL
 GtkWidget*   gtk_widget_get_ancestor	(GtkWidget	*widget,
 					 GType		 widget_type);
 
-GDK_AVAILABLE_IN_ALL
-GdkScreen *   gtk_widget_get_screen      (GtkWidget *widget);
-GDK_AVAILABLE_IN_ALL
-gboolean      gtk_widget_has_screen      (GtkWidget *widget);
 GDK_AVAILABLE_IN_3_10
 gint          gtk_widget_get_scale_factor (GtkWidget *widget);
 GDK_AVAILABLE_IN_ALL
 GdkDisplay *  gtk_widget_get_display     (GtkWidget *widget);
 GDK_AVAILABLE_IN_ALL
 GtkSettings*  gtk_widget_get_settings    (GtkWidget *widget);
-GDK_AVAILABLE_IN_ALL
-GtkClipboard *gtk_widget_get_clipboard   (GtkWidget *widget,
-					  GdkAtom    selection);
+GDK_AVAILABLE_IN_3_94
+GdkClipboard *gtk_widget_get_clipboard   (GtkWidget *widget);
+GDK_AVAILABLE_IN_3_94
+GdkClipboard *gtk_widget_get_primary_clipboard (GtkWidget *widget);
 
 
 /* Expand flags and related support */
@@ -891,6 +856,14 @@ gboolean     gtk_widget_translate_coordinates (GtkWidget  *src_widget,
 					       gint       *dest_x,
 					       gint       *dest_y);
 
+GDK_AVAILABLE_IN_3_94
+gboolean     gtk_widget_contains              (GtkWidget  *widget,
+                                               gdouble     x,
+                                               gdouble     y);
+GDK_AVAILABLE_IN_3_94
+GtkWidget *  gtk_widget_pick                  (GtkWidget  *widget,
+                                               gdouble     x,
+                                               gdouble     y);
 /* Hide widget and return TRUE.
  */
 GDK_AVAILABLE_IN_ALL
@@ -934,6 +907,15 @@ GDK_AVAILABLE_IN_ALL
 void	     gtk_widget_input_shape_combine_region (GtkWidget *widget,
                                                     cairo_region_t *region);
 
+GDK_AVAILABLE_IN_3_94
+void                    gtk_widget_set_cursor                   (GtkWidget              *widget,
+                                                                 GdkCursor              *cursor);
+GDK_AVAILABLE_IN_3_94
+void                    gtk_widget_set_cursor_from_name         (GtkWidget              *widget,
+                                                                 const char             *name);
+GDK_AVAILABLE_IN_3_94
+GdkCursor *             gtk_widget_get_cursor                   (GtkWidget              *widget);
+
 GDK_AVAILABLE_IN_ALL
 GList* gtk_widget_list_mnemonic_labels  (GtkWidget *widget);
 GDK_AVAILABLE_IN_ALL
@@ -965,11 +947,6 @@ void       gtk_widget_set_has_tooltip       (GtkWidget   *widget,
 					     gboolean     has_tooltip);
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_get_has_tooltip       (GtkWidget   *widget);
-
-GDK_AVAILABLE_IN_ALL
-void       gtk_cairo_transform_to_window    (cairo_t     *cr,
-                                             GtkWidget   *widget,
-                                             GdkWindow   *window);
 
 GDK_AVAILABLE_IN_ALL
 GType           gtk_requisition_get_type (void) G_GNUC_CONST;

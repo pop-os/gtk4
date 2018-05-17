@@ -289,15 +289,10 @@ GdkPixbuf *trashcan_closed;
 
 gboolean have_drag;
 
-enum {
-  TARGET_STRING,
-  TARGET_ROOTWIN
-};
-
-static GtkTargetEntry target_table[] = {
-  { "STRING",     0, TARGET_STRING },
-  { "text/plain", 0, TARGET_STRING },
-  { "application/x-rootwindow-drop", 0, TARGET_ROOTWIN }
+static const char *target_table[] = {
+  "STRING",
+  "text/plain",
+  "application/x-rootwindow-drop"
 };
 
 static guint n_targets = sizeof(target_table) / sizeof(target_table[0]);
@@ -320,7 +315,7 @@ target_drag_motion	   (GtkWidget	       *widget,
 			    guint               time)
 {
   GtkWidget *source_widget;
-  GList *tmp_list;
+  char *s;
 
   if (!have_drag)
     {
@@ -333,15 +328,8 @@ target_drag_motion	   (GtkWidget	       *widget,
 	   G_OBJECT_TYPE_NAME (source_widget) :
 	   "NULL");
 
-  tmp_list = gdk_drag_context_list_targets (context);
-  while (tmp_list)
-    {
-      char *name = gdk_atom_name (GDK_POINTER_TO_ATOM (tmp_list->data));
-      g_print ("%s\n", name);
-      g_free (name);
-      
-      tmp_list = tmp_list->next;
-    }
+  s = gdk_content_formats_to_string (gdk_drag_context_get_formats (context));
+  g_print ("%s\n", s);
 
   gdk_drag_status (context, gdk_drag_context_get_suggested_action (context), time);
 
@@ -355,15 +343,20 @@ target_drag_drop	   (GtkWidget	       *widget,
 			    gint                y,
 			    guint               time)
 {
+  GdkContentFormats *formats;
+  const char *format;
+
   g_print("drop\n");
   have_drag = FALSE;
 
   gtk_image_set_from_pixbuf (GTK_IMAGE (widget), trashcan_closed);
 
-  if (gdk_drag_context_list_targets (context))
+  formats = gdk_drag_context_get_formats (context);
+  format = gdk_content_formats_match_mime_type (formats, formats);
+  if (format)
     {
       gtk_drag_get_data (widget, context,
-			 GDK_POINTER_TO_ATOM (gdk_drag_context_list_targets (context)->data),
+			 format,
 			 time);
       return TRUE;
     }
@@ -374,8 +367,6 @@ target_drag_drop	   (GtkWidget	       *widget,
 void  
 target_drag_data_received  (GtkWidget          *widget,
 			    GdkDragContext     *context,
-			    gint                x,
-			    gint                y,
 			    GtkSelectionData   *selection_data,
 			    guint               info,
 			    guint               time)
@@ -384,18 +375,16 @@ target_drag_data_received  (GtkWidget          *widget,
       gtk_selection_data_get_format (selection_data) == 8)
     {
       g_print ("Received \"%s\" in trashcan\n", (gchar *) gtk_selection_data_get_data (selection_data));
-      gtk_drag_finish (context, TRUE, FALSE, time);
+      gtk_drag_finish (context, TRUE, time);
       return;
     }
   
-  gtk_drag_finish (context, FALSE, FALSE, time);
+  gtk_drag_finish (context, FALSE, time);
 }
   
 void  
 label_drag_data_received  (GtkWidget          *widget,
 			    GdkDragContext     *context,
-			    gint                x,
-			    gint                y,
 			    GtkSelectionData   *selection_data,
 			    guint               info,
 			    guint               time)
@@ -404,22 +393,21 @@ label_drag_data_received  (GtkWidget          *widget,
       gtk_selection_data_get_format (selection_data) == 8)
     {
       g_print ("Received \"%s\" in label\n", (gchar *) gtk_selection_data_get_data (selection_data));
-      gtk_drag_finish (context, TRUE, FALSE, time);
+      gtk_drag_finish (context, TRUE, time);
       return;
     }
   
-  gtk_drag_finish (context, FALSE, FALSE, time);
+  gtk_drag_finish (context, FALSE, time);
 }
 
 void  
 source_drag_data_get  (GtkWidget          *widget,
 		       GdkDragContext     *context,
 		       GtkSelectionData   *selection_data,
-		       guint               info,
 		       guint               time,
 		       gpointer            data)
 {
-  if (info == TARGET_ROOTWIN)
+  if (gtk_selection_data_get_target (selection_data) == g_intern_static_string ("application/x-rootwindow-drop"))
     g_print ("I was dropped on the rootwin\n");
   else
     gtk_selection_data_set (selection_data,
@@ -496,11 +484,13 @@ popup_cb (gpointer data)
 	  GtkWidget *button;
 	  GtkWidget *grid;
 	  int i, j;
+          GdkContentFormats *targets;
 	  
 	  popup_window = gtk_window_new (GTK_WINDOW_POPUP);
 	  gtk_window_set_position (GTK_WINDOW (popup_window), GTK_WIN_POS_MOUSE);
 
 	  grid = gtk_grid_new ();
+          targets = gdk_content_formats_new (target_table, n_targets - 1); /* no rootwin */
 
 	  for (i=0; i<3; i++)
 	    for (j=0; j<3; j++)
@@ -514,7 +504,7 @@ popup_cb (gpointer data)
 
 		gtk_drag_dest_set (button,
 				   GTK_DEST_DEFAULT_ALL,
-				   target_table, n_targets - 1, /* no rootwin */
+                                   targets,
 				   GDK_ACTION_COPY | GDK_ACTION_MOVE);
 		g_signal_connect (button, "drag_motion",
 				  G_CALLBACK (popup_motion), NULL);
@@ -522,6 +512,7 @@ popup_cb (gpointer data)
 				  G_CALLBACK (popup_leave), NULL);
 	      }
 	  gtk_container_add (GTK_CONTAINER (popup_window), grid);
+          gdk_content_formats_unref (targets);
 
 	}
       gtk_widget_show (popup_window);
@@ -585,6 +576,8 @@ main (int argc, char **argv)
   GtkWidget *pixmap;
   GtkWidget *button;
   GdkPixbuf *drag_icon;
+  cairo_surface_t *surface;
+  GdkContentFormats *targets;
 
   test_init ();
   
@@ -599,14 +592,17 @@ main (int argc, char **argv)
   gtk_container_add (GTK_CONTAINER (window), grid);
 
   drag_icon = gdk_pixbuf_new_from_xpm_data (drag_icon_xpm);
+  surface = gdk_cairo_surface_create_from_pixbuf (drag_icon, 1, NULL);
+  g_object_unref (drag_icon);
   trashcan_open = gdk_pixbuf_new_from_xpm_data (trashcan_open_xpm);
   trashcan_closed = gdk_pixbuf_new_from_xpm_data (trashcan_closed_xpm);
   
   label = gtk_label_new ("Drop Here\n");
 
+  targets = gdk_content_formats_new (target_table, n_targets - 1); /* no rootwin */
   gtk_drag_dest_set (label,
 		     GTK_DEST_DEFAULT_ALL,
-		     target_table, n_targets - 1, /* no rootwin */
+                     targets,
 		     GDK_ACTION_COPY | GDK_ACTION_MOVE);
 
   g_signal_connect (label, "drag_data_received",
@@ -620,7 +616,7 @@ main (int argc, char **argv)
 
   gtk_drag_dest_set (label,
 		     GTK_DEST_DEFAULT_ALL,
-		     target_table, n_targets - 1, /* no rootwin */
+                     targets,
 		     GDK_ACTION_COPY | GDK_ACTION_MOVE);
 
   gtk_widget_set_hexpand (label, TRUE);
@@ -631,9 +627,10 @@ main (int argc, char **argv)
 		    G_CALLBACK (popsite_motion), NULL);
   g_signal_connect (label, "drag_leave",
 		    G_CALLBACK (popsite_leave), NULL);
+  gdk_content_formats_unref (targets);
   
   pixmap = gtk_image_new_from_pixbuf (trashcan_closed);
-  gtk_drag_dest_set (pixmap, 0, NULL, 0, 0);
+  gtk_drag_dest_set (pixmap, 0, NULL, 0);
   gtk_widget_set_hexpand (pixmap, TRUE);
   gtk_widget_set_vexpand (pixmap, TRUE);
   gtk_grid_attach (GTK_GRID (grid), pixmap, 1, 0, 1, 1);
@@ -654,12 +651,14 @@ main (int argc, char **argv)
 
   button = gtk_button_new_with_label ("Drag Here\n");
 
+  targets = gdk_content_formats_new (target_table, n_targets);
   gtk_drag_source_set (button, GDK_BUTTON1_MASK | GDK_BUTTON3_MASK,
-		       target_table, n_targets, 
+                       targets,
 		       GDK_ACTION_COPY | GDK_ACTION_MOVE);
-  gtk_drag_source_set_icon_pixbuf (button, drag_icon);
+  gtk_drag_source_set_icon_surface (button, surface);
+  gdk_content_formats_unref (targets);
 
-  g_object_unref (drag_icon);
+  cairo_surface_destroy (surface);
 
   gtk_widget_set_hexpand (button, TRUE);
   gtk_widget_set_vexpand (button, TRUE);

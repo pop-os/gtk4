@@ -109,7 +109,7 @@ static void   gtk_mount_operation_aborted      (GMountOperation *op);
 struct _GtkMountOperationPrivate {
   GtkWindow *parent_window;
   GtkDialog *dialog;
-  GdkScreen *screen;
+  GdkDisplay *display;
 
   /* bus proxy */
   _GtkMountOperationHandler *handler;
@@ -137,7 +137,7 @@ enum {
   PROP_0,
   PROP_PARENT,
   PROP_IS_SHOWING,
-  PROP_SCREEN
+  PROP_DISPLAY
 
 };
 
@@ -175,11 +175,11 @@ gtk_mount_operation_class_init (GtkMountOperationClass *klass)
                                                          GTK_PARAM_READABLE));
 
   g_object_class_install_property (object_class,
-                                   PROP_SCREEN,
-                                   g_param_spec_object ("screen",
-                                                        P_("Screen"),
-                                                        P_("The screen where this window will be displayed."),
-                                                        GDK_TYPE_SCREEN,
+                                   PROP_DISPLAY,
+                                   g_param_spec_object ("display",
+                                                        P_("Display"),
+                                                        P_("The display where this window will be displayed."),
+                                                        GDK_TYPE_DISPLAY,
                                                         GTK_PARAM_READWRITE));
 }
 
@@ -222,8 +222,8 @@ gtk_mount_operation_finalize (GObject *object)
       g_object_unref (priv->parent_window);
     }
 
-  if (priv->screen)
-    g_object_unref (priv->screen);
+  if (priv->display)
+    g_object_unref (priv->display);
 
   if (priv->handler)
     g_object_unref (priv->handler);
@@ -245,8 +245,8 @@ gtk_mount_operation_set_property (GObject      *object,
       gtk_mount_operation_set_parent (operation, g_value_get_object (value));
       break;
 
-    case PROP_SCREEN:
-      gtk_mount_operation_set_screen (operation, g_value_get_object (value));
+    case PROP_DISPLAY:
+      gtk_mount_operation_set_display (operation, g_value_get_object (value));
       break;
 
     case PROP_IS_SHOWING:
@@ -275,8 +275,8 @@ gtk_mount_operation_get_property (GObject    *object,
       g_value_set_boolean (value, priv->dialog != NULL || priv->handler_showing);
       break;
 
-    case PROP_SCREEN:
-      g_value_set_object (value, priv->screen);
+    case PROP_DISPLAY:
+      g_value_set_object (value, priv->display);
       break;
 
     default:
@@ -549,8 +549,8 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   gtk_box_pack_start (GTK_BOX (content_area), hbox);
 
-  icon = gtk_image_new_from_icon_name ("dialog-password",
-                                       GTK_ICON_SIZE_DIALOG);
+  icon = gtk_image_new_from_icon_name ("dialog-password");
+  gtk_image_set_icon_size (GTK_IMAGE (icon), GTK_ICON_SIZE_LARGE);
 
   gtk_widget_set_halign (icon, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (icon, GTK_ALIGN_START);
@@ -717,8 +717,8 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       gtk_window_set_transient_for (window, priv->parent_window);
       gtk_window_set_modal (window, TRUE);
     }
-  else if (priv->screen)
-    gtk_window_set_screen (GTK_WINDOW (dialog), priv->screen);
+  else if (priv->display)
+    gtk_window_set_display (GTK_WINDOW (dialog), priv->display);
 
   gtk_widget_show (GTK_WIDGET (dialog));
 
@@ -885,8 +885,8 @@ gtk_mount_operation_ask_question_do_gtk (GtkMountOperation *op,
   priv->dialog = GTK_DIALOG (dialog);
   g_object_notify (G_OBJECT (op), "is-showing");
 
-  if (priv->parent_window == NULL && priv->screen)
-    gtk_window_set_screen (GTK_WINDOW (dialog), priv->screen);
+  if (priv->parent_window == NULL && priv->display)
+    gtk_window_set_display (GTK_WINDOW (dialog), priv->display);
 
   gtk_widget_show (dialog);
   g_object_ref (op);
@@ -1061,19 +1061,19 @@ add_pid_to_process_list_store (GtkMountOperation              *mount_operation,
 {
   gchar *command_line;
   gchar *name;
-  GdkPixbuf *pixbuf;
+  GdkTexture *texture;
   gchar *markup;
   GtkTreeIter iter;
 
   name = NULL;
-  pixbuf = NULL;
+  texture = NULL;
   command_line = NULL;
   _gtk_mount_operation_lookup_info (lookup_context,
                                     pid,
                                     24,
                                     &name,
                                     &command_line,
-                                    &pixbuf);
+                                    &texture);
 
   if (name == NULL)
     name = g_strdup_printf (_("Unknown Application (PID %d)"), (int) (gssize) pid);
@@ -1081,17 +1081,17 @@ add_pid_to_process_list_store (GtkMountOperation              *mount_operation,
   if (command_line == NULL)
     command_line = g_strdup ("");
 
-  if (pixbuf == NULL)
+  if (texture == NULL)
     {
       GtkIconTheme *theme;
+      GtkIconInfo *info;
+
       theme = gtk_css_icon_theme_value_get_icon_theme
         (_gtk_style_context_peek_property (gtk_widget_get_style_context (GTK_WIDGET (mount_operation->priv->dialog)),
                                            GTK_CSS_PROPERTY_ICON_THEME));
-      pixbuf = gtk_icon_theme_load_icon (theme,
-                                         "application-x-executable",
-                                         24,
-                                         0,
-                                         NULL);
+      info = gtk_icon_theme_lookup_icon (theme, "application-x-executable", 24, 0);
+      texture = gtk_icon_info_load_texture (info);
+      g_object_unref (info);
     }
 
   markup = g_strdup_printf ("<b>%s</b>\n"
@@ -1101,13 +1101,13 @@ add_pid_to_process_list_store (GtkMountOperation              *mount_operation,
 
   gtk_list_store_append (list_store, &iter);
   gtk_list_store_set (list_store, &iter,
-                      0, pixbuf,
+                      0, texture,
                       1, markup,
                       2, pid,
                       -1);
 
-  if (pixbuf != NULL)
-    g_object_unref (pixbuf);
+  if (texture != NULL)
+    g_object_unref (texture);
   g_free (markup);
   g_free (name);
   g_free (command_line);
@@ -1415,7 +1415,8 @@ create_show_processes_dialog (GtkMountOperation *op,
   gtk_box_pack_start (GTK_BOX (vbox), label);
 
   /* First count the items in the list then
-   * add the buttons in reverse order */
+   * add the buttons in reverse order
+   */
 
   while (choices[len] != NULL)
     len++;
@@ -1429,20 +1430,17 @@ create_show_processes_dialog (GtkMountOperation *op,
   priv->dialog = GTK_DIALOG (dialog);
   g_object_notify (G_OBJECT (op), "is-showing");
 
-  if (priv->parent_window == NULL && priv->screen)
-    gtk_window_set_screen (GTK_WINDOW (dialog), priv->screen);
+  if (priv->parent_window == NULL && priv->display)
+    gtk_window_set_display (GTK_WINDOW (dialog), priv->display);
 
   tree_view = gtk_tree_view_new ();
-  /* TODO: should use EM's when gtk+ RI patches land */
-  gtk_widget_set_size_request (tree_view,
-                               300,
-                               120);
+  gtk_widget_set_size_request (tree_view, 300, 120);
 
   column = gtk_tree_view_column_new ();
   renderer = gtk_cell_renderer_pixbuf_new ();
   gtk_tree_view_column_pack_start (column, renderer, FALSE);
   gtk_tree_view_column_set_attributes (column, renderer,
-                                       "pixbuf", 0,
+                                       "texture", 0,
                                        NULL);
   renderer = gtk_cell_renderer_text_new ();
   g_object_set (renderer,
@@ -1474,7 +1472,7 @@ create_show_processes_dialog (GtkMountOperation *op,
                     op);
 
   list_store = gtk_list_store_new (3,
-                                   GDK_TYPE_PIXBUF,
+                                   GDK_TYPE_TEXTURE,
                                    G_TYPE_STRING,
                                    G_TYPE_INT);
 
@@ -1742,52 +1740,52 @@ gtk_mount_operation_get_parent (GtkMountOperation *op)
 }
 
 /**
- * gtk_mount_operation_set_screen:
+ * gtk_mount_operation_set_display:
  * @op: a #GtkMountOperation
- * @screen: a #GdkScreen
+ * @display: a #Gdk
  *
- * Sets the screen to show windows of the #GtkMountOperation on.
+ * Sets the display to show windows of the #GtkMountOperation on.
  *
- * Since: 2.14
+ * Since: 3.94
  */
 void
-gtk_mount_operation_set_screen (GtkMountOperation *op,
-                                GdkScreen         *screen)
+gtk_mount_operation_set_display (GtkMountOperation *op,
+                                 GdkDisplay        *display)
 {
   GtkMountOperationPrivate *priv;
 
   g_return_if_fail (GTK_IS_MOUNT_OPERATION (op));
-  g_return_if_fail (GDK_IS_SCREEN (screen));
+  g_return_if_fail (GDK_IS_DISPLAY (display));
 
   priv = op->priv;
 
-  if (priv->screen == screen)
+  if (priv->display == display)
     return;
 
-  if (priv->screen)
-    g_object_unref (priv->screen);
+  if (priv->display)
+    g_object_unref (priv->display);
 
-  priv->screen = g_object_ref (screen);
+  priv->display = g_object_ref (display);
 
   if (priv->dialog)
-    gtk_window_set_screen (GTK_WINDOW (priv->dialog), screen);
+    gtk_window_set_display (GTK_WINDOW (priv->dialog), display);
 
-  g_object_notify (G_OBJECT (op), "screen");
+  g_object_notify (G_OBJECT (op), "display");
 }
 
 /**
- * gtk_mount_operation_get_screen:
+ * gtk_mount_operation_get_display:
  * @op: a #GtkMountOperation
  *
- * Gets the screen on which windows of the #GtkMountOperation
+ * Gets the display on which windows of the #GtkMountOperation
  * will be shown.
  *
- * Returns: (transfer none): the screen on which windows of @op are shown
+ * Returns: (transfer none): the display on which windows of @op are shown
  *
- * Since: 2.14
+ * Since: 3.94
  */
-GdkScreen *
-gtk_mount_operation_get_screen (GtkMountOperation *op)
+GdkDisplay *
+gtk_mount_operation_get_display (GtkMountOperation *op)
 {
   GtkMountOperationPrivate *priv;
 
@@ -1796,11 +1794,11 @@ gtk_mount_operation_get_screen (GtkMountOperation *op)
   priv = op->priv;
 
   if (priv->dialog)
-    return gtk_window_get_screen (GTK_WINDOW (priv->dialog));
+    return gtk_widget_get_display (GTK_WIDGET (priv->dialog));
   else if (priv->parent_window)
-    return gtk_window_get_screen (GTK_WINDOW (priv->parent_window));
-  else if (priv->screen)
-    return priv->screen;
+    return gtk_widget_get_display (GTK_WIDGET (priv->parent_window));
+  else if (priv->display)
+    return priv->display;
   else
-    return gdk_screen_get_default ();
+    return gdk_display_get_default ();
 }

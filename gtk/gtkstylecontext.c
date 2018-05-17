@@ -62,18 +62,18 @@
  * In order to construct the final style information, #GtkStyleContext
  * queries information from all attached #GtkStyleProviders. Style providers
  * can be either attached explicitly to the context through
- * gtk_style_context_add_provider(), or to the screen through
- * gtk_style_context_add_provider_for_screen(). The resulting style is a
+ * gtk_style_context_add_provider(), or to the display through
+ * gtk_style_context_add_provider_for_display(). The resulting style is a
  * combination of all providers’ information in priority order.
  *
  * For GTK+ widgets, any #GtkStyleContext returned by
  * gtk_widget_get_style_context() will already have a #GtkWidgetPath, a
- * #GdkScreen and RTL/LTR information set. The style context will also be
+ * #GdkDisplay and RTL/LTR information set. The style context will also be
  * updated automatically if any of these settings change on the widget.
  *
  * If you are using the theming layer standalone, you will need to set a
- * widget path and a screen yourself to the created style context through
- * gtk_style_context_set_path() and gtk_style_context_set_screen(), as well
+ * widget path and a display yourself to the created style context through
+ * gtk_style_context_set_path() and gtk_style_context_set_display(), as well
  * as updating the context yourself using gtk_style_context_invalidate()
  * whenever any of the conditions change, such as a change in the
  * #GtkSettings:gtk-theme-name setting or a hierarchy change in the rendered
@@ -118,7 +118,7 @@ struct PropertyValue
 
 struct _GtkStyleContextPrivate
 {
-  GdkScreen *screen;
+  GdkDisplay *display;
 
   guint cascade_changed_id;
   GtkStyleCascade *cascade;
@@ -134,7 +134,7 @@ typedef struct _GtkStyleContextPrivate GtkStyleContextPrivate;
 
 enum {
   PROP_0,
-  PROP_SCREEN,
+  PROP_DISPLAY,
   PROP_FRAME_CLOCK,
   PROP_PARENT,
   LAST_PROP
@@ -206,11 +206,11 @@ gtk_style_context_class_init (GtkStyleContextClass *klass)
                   g_cclosure_marshal_VOID__VOID,
                   G_TYPE_NONE, 0);
 
-  properties[PROP_SCREEN] =
-      g_param_spec_object ("screen",
-                           P_("Screen"),
-                           P_("The associated GdkScreen"),
-                           GDK_TYPE_SCREEN,
+  properties[PROP_DISPLAY] =
+      g_param_spec_object ("display",
+                           P_("Display"),
+                           P_("The associated GdkDisplay"),
+                           GDK_TYPE_DISPLAY,
                            GTK_PARAM_READWRITE);
 
   properties[PROP_FRAME_CLOCK] =
@@ -295,13 +295,13 @@ gtk_style_context_init (GtkStyleContext *context)
 {
   GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
 
-  priv->screen = gdk_screen_get_default ();
+  priv->display = gdk_display_get_default ();
 
-  if (priv->screen == NULL)
+  if (priv->display == NULL)
     g_error ("Can't create a GtkStyleContext without a display connection");
 
   gtk_style_context_set_cascade (context,
-                                 _gtk_settings_get_style_cascade (gtk_settings_get_for_screen (priv->screen), 1));
+                                 _gtk_settings_get_style_cascade (gtk_settings_get_for_display (priv->display), 1));
 }
 
 static void
@@ -344,8 +344,8 @@ gtk_style_context_impl_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_SCREEN:
-      gtk_style_context_set_screen (context, g_value_get_object (value));
+    case PROP_DISPLAY:
+      gtk_style_context_set_display (context, g_value_get_object (value));
       break;
     case PROP_FRAME_CLOCK:
       gtk_style_context_set_frame_clock (context, g_value_get_object (value));
@@ -370,8 +370,8 @@ gtk_style_context_impl_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_SCREEN:
-      g_value_set_object (value, priv->screen);
+    case PROP_DISPLAY:
+      g_value_set_object (value, priv->display);
       break;
     case PROP_FRAME_CLOCK:
       g_value_set_object (value, priv->frame_clock);
@@ -409,19 +409,19 @@ gtk_style_context_get_root (GtkStyleContext *context)
     return priv->cssnode;
 }
 
-GtkStyleProviderPrivate *
+GtkStyleProvider *
 gtk_style_context_get_style_provider (GtkStyleContext *context)
 {
   GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
 
-  return GTK_STYLE_PROVIDER_PRIVATE (priv->cascade);
+  return GTK_STYLE_PROVIDER (priv->cascade);
 }
 
 static gboolean
 gtk_style_context_has_custom_cascade (GtkStyleContext *context)
 {
   GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
-  GtkSettings *settings = gtk_settings_get_for_screen (priv->screen);
+  GtkSettings *settings = gtk_settings_get_for_display (priv->display);
 
   return priv->cascade != _gtk_settings_get_style_cascade (settings, _gtk_style_cascade_get_scale (priv->cascade));
 }
@@ -500,11 +500,11 @@ gtk_style_context_new_for_node (GtkCssNode *node)
  * Note that a style provider added by this function only affects
  * the style of the widget to which @context belongs. If you want
  * to affect the style of all widgets, use
- * gtk_style_context_add_provider_for_screen().
+ * gtk_style_context_add_provider_for_display().
  *
  * Note: If both priorities are the same, a #GtkStyleProvider
  * added through this function takes precedence over another added
- * through gtk_style_context_add_provider_for_screen().
+ * through gtk_style_context_add_provider_for_display().
  *
  * Since: 3.0
  **/
@@ -525,7 +525,7 @@ gtk_style_context_add_provider (GtkStyleContext  *context,
       new_cascade = _gtk_style_cascade_new ();
       _gtk_style_cascade_set_scale (new_cascade, _gtk_style_cascade_get_scale (priv->cascade));
       _gtk_style_cascade_set_parent (new_cascade,
-                                     _gtk_settings_get_style_cascade (gtk_settings_get_for_screen (priv->screen), 1));
+                                     _gtk_settings_get_style_cascade (gtk_settings_get_for_display (priv->display), 1));
       _gtk_style_cascade_add_provider (new_cascade, provider, priority);
       gtk_style_context_set_cascade (context, new_cascade);
       g_object_unref (new_cascade);
@@ -562,10 +562,10 @@ gtk_style_context_remove_provider (GtkStyleContext  *context,
 
 /**
  * gtk_style_context_reset_widgets:
- * @screen: a #GdkScreen
+ * @display: a #GdkDisplay
  *
  * This function recomputes the styles for all widgets under a particular
- * #GdkScreen. This is useful when some global parameter has changed that
+ * #GdkDisplay. This is useful when some global parameter has changed that
  * affects the appearance of all widgets, because when a widget gets a new
  * style, it will both redraw and recompute any cached information about
  * its appearance. As an example, it is used when the color scheme changes
@@ -574,7 +574,7 @@ gtk_style_context_remove_provider (GtkStyleContext  *context,
  * Since: 3.0
  **/
 void
-gtk_style_context_reset_widgets (GdkScreen *screen)
+gtk_style_context_reset_widgets (GdkDisplay *display)
 {
   GList *list, *toplevels;
 
@@ -583,7 +583,7 @@ gtk_style_context_reset_widgets (GdkScreen *screen)
 
   for (list = toplevels; list; list = list->next)
     {
-      if (gtk_widget_get_screen (list->data) == screen)
+      if (gtk_widget_get_display (list->data) == display)
         gtk_widget_reset_style (list->data);
 
       g_object_unref (list->data);
@@ -593,8 +593,8 @@ gtk_style_context_reset_widgets (GdkScreen *screen)
 }
 
 /**
- * gtk_style_context_add_provider_for_screen:
- * @screen: a #GdkScreen
+ * gtk_style_context_add_provider_for_display:
+ * @display: a #GdkDisplay
  * @provider: a #GtkStyleProvider
  * @priority: the priority of the style provider. The lower
  *            it is, the earlier it will be used in the style
@@ -602,8 +602,8 @@ gtk_style_context_reset_widgets (GdkScreen *screen)
  *            between %GTK_STYLE_PROVIDER_PRIORITY_FALLBACK and
  *            %GTK_STYLE_PROVIDER_PRIORITY_USER
  *
- * Adds a global style provider to @screen, which will be used
- * in style construction for all #GtkStyleContexts under @screen.
+ * Adds a global style provider to @display, which will be used
+ * in style construction for all #GtkStyleContexts under @display.
  *
  * GTK+ uses this to make styling information from #GtkSettings
  * available.
@@ -612,43 +612,43 @@ gtk_style_context_reset_widgets (GdkScreen *screen)
  * added through gtk_style_context_add_provider() takes precedence
  * over another added through this function.
  *
- * Since: 3.0
+ * Since: 3.94
  **/
 void
-gtk_style_context_add_provider_for_screen (GdkScreen        *screen,
-                                           GtkStyleProvider *provider,
-                                           guint             priority)
+gtk_style_context_add_provider_for_display (GdkDisplay       *display,
+                                            GtkStyleProvider *provider,
+                                            guint             priority)
 {
   GtkStyleCascade *cascade;
 
-  g_return_if_fail (GDK_IS_SCREEN (screen));
+  g_return_if_fail (GDK_IS_DISPLAY (display));
   g_return_if_fail (GTK_IS_STYLE_PROVIDER (provider));
-  g_return_if_fail (!GTK_IS_SETTINGS (provider) || _gtk_settings_get_screen (GTK_SETTINGS (provider)) == screen);
+  g_return_if_fail (!GTK_IS_SETTINGS (provider) || _gtk_settings_get_display (GTK_SETTINGS (provider)) == display);
 
-  cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_screen (screen), 1);
+  cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_display (display), 1);
   _gtk_style_cascade_add_provider (cascade, provider, priority);
 }
 
 /**
- * gtk_style_context_remove_provider_for_screen:
- * @screen: a #GdkScreen
+ * gtk_style_context_remove_provider_for_display:
+ * @display: a #GdkDisplay
  * @provider: a #GtkStyleProvider
  *
- * Removes @provider from the global style providers list in @screen.
+ * Removes @provider from the global style providers list in @display.
  *
- * Since: 3.0
+ * Since: 3.94
  **/
 void
-gtk_style_context_remove_provider_for_screen (GdkScreen        *screen,
-                                              GtkStyleProvider *provider)
+gtk_style_context_remove_provider_for_display (GdkDisplay       *display,
+                                               GtkStyleProvider *provider)
 {
   GtkStyleCascade *cascade;
 
-  g_return_if_fail (GDK_IS_SCREEN (screen));
+  g_return_if_fail (GDK_IS_DISPLAY (display));
   g_return_if_fail (GTK_IS_STYLE_PROVIDER (provider));
   g_return_if_fail (!GTK_IS_SETTINGS (provider));
 
-  cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_screen (screen), 1);
+  cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_display (display), 1);
   _gtk_style_cascade_remove_provider (cascade, provider);
 }
 
@@ -749,6 +749,7 @@ gtk_style_context_get_property (GtkStyleContext *context,
 /**
  * gtk_style_context_get_valist:
  * @context: a #GtkStyleContext
+ * @first_property_name: Name of the first property
  * @args: va_list of property name/return location pairs, followed by %NULL
  *
  * Retrieves several style property values from @context for a given state.
@@ -765,13 +766,15 @@ gtk_style_context_get_property (GtkStyleContext *context,
  */
 void
 gtk_style_context_get_valist (GtkStyleContext *context,
+                              const char      *first_property_name,
                               va_list          args)
 {
   const gchar *property_name;
 
   g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
+  g_return_if_fail (first_property_name != NULL);
 
-  property_name = va_arg (args, const gchar *);
+  property_name = first_property_name;
 
   while (property_name)
     {
@@ -799,6 +802,7 @@ gtk_style_context_get_valist (GtkStyleContext *context,
 /**
  * gtk_style_context_get:
  * @context: a #GtkStyleContext
+ * @first_property_name: Name of the first property
  * @...: property name /return value pairs, followed by %NULL
  *
  * Retrieves several style property values from @context for a
@@ -816,14 +820,16 @@ gtk_style_context_get_valist (GtkStyleContext *context,
  */
 void
 gtk_style_context_get (GtkStyleContext *context,
+                       const char      *first_property_name,
                        ...)
 {
   va_list args;
 
   g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
+  g_return_if_fail (first_property_name != NULL);
 
-  va_start (args, context);
-  gtk_style_context_get_valist (context, args);
+  va_start (args, first_property_name);
+  gtk_style_context_get_valist (context, first_property_name, args);
   va_end (args);
 }
 
@@ -936,7 +942,7 @@ gtk_style_context_set_scale (GtkStyleContext *context,
     {
       GtkStyleCascade *new_cascade;
 
-      new_cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_screen (priv->screen),
+      new_cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_display (priv->display),
                                                      scale);
       gtk_style_context_set_cascade (context, new_cascade);
     }
@@ -1324,67 +1330,69 @@ _gtk_style_context_peek_property (GtkStyleContext *context,
 }
 
 /**
- * gtk_style_context_set_screen:
+ * gtk_style_context_set_display:
  * @context: a #GtkStyleContext
- * @screen: a #GdkScreen
+ * @display: a #GdkDisplay
  *
- * Attaches @context to the given screen.
+ * Attaches @context to the given display.
  *
- * The screen is used to add style information from “global” style
- * providers, such as the screens #GtkSettings instance.
+ * The display is used to add style information from “global” style
+ * providers, such as the display's #GtkSettings instance.
  *
  * If you are using a #GtkStyleContext returned from
  * gtk_widget_get_style_context(), you do not need to
  * call this yourself.
  *
- * Since: 3.0
+ * Since: 3.94
  **/
 void
-gtk_style_context_set_screen (GtkStyleContext *context,
-                              GdkScreen       *screen)
+gtk_style_context_set_display (GtkStyleContext *context,
+                               GdkDisplay      *display)
 {
   GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
-  GtkStyleCascade *screen_cascade;
+  GtkStyleCascade *display_cascade;
 
   g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
-  g_return_if_fail (GDK_IS_SCREEN (screen));
+  g_return_if_fail (GDK_IS_DISPLAY (display));
 
-  if (priv->screen == screen)
+  if (priv->display == display)
     return;
 
   if (gtk_style_context_has_custom_cascade (context))
     {
-      screen_cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_screen (screen), 1);
-      _gtk_style_cascade_set_parent (priv->cascade, screen_cascade);
+      display_cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_display (display), 1);
+      _gtk_style_cascade_set_parent (priv->cascade, display_cascade);
     }
   else
     {
-      screen_cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_screen (screen),
+      display_cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_display (display),
                                                         _gtk_style_cascade_get_scale (priv->cascade));
-      gtk_style_context_set_cascade (context, screen_cascade);
+      gtk_style_context_set_cascade (context, display_cascade);
     }
 
-  priv->screen = screen;
+  priv->display = display;
 
-  g_object_notify_by_pspec (G_OBJECT (context), properties[PROP_SCREEN]);
+  g_object_notify_by_pspec (G_OBJECT (context), properties[PROP_DISPLAY]);
 }
 
 /**
- * gtk_style_context_get_screen:
+ * gtk_style_context_get_display:
  * @context: a #GtkStyleContext
  *
- * Returns the #GdkScreen to which @context is attached.
+ * Returns the #GdkDisplay to which @context is attached.
  *
- * Returns: (transfer none): a #GdkScreen.
+ * Returns: (transfer none): a #GdkDisplay.
+ *
+ * Since: 3.94
  **/
-GdkScreen *
-gtk_style_context_get_screen (GtkStyleContext *context)
+GdkDisplay *
+gtk_style_context_get_display (GtkStyleContext *context)
 {
   GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
 
   g_return_val_if_fail (GTK_IS_STYLE_CONTEXT (context), NULL);
 
-  return priv->screen;
+  return priv->display;
 }
 
 /**
@@ -1449,7 +1457,7 @@ _gtk_style_context_resolve_color (GtkStyleContext    *context,
   g_return_val_if_fail (result != NULL, FALSE);
 
   val = _gtk_css_color_value_resolve (color,
-                                      GTK_STYLE_PROVIDER_PRIVATE (priv->cascade),
+                                      GTK_STYLE_PROVIDER (priv->cascade),
                                       _gtk_style_context_peek_property (context, GTK_CSS_PROPERTY_COLOR),
                                       NULL);
   if (val == NULL)
@@ -1482,7 +1490,7 @@ gtk_style_context_lookup_color (GtkStyleContext *context,
   g_return_val_if_fail (color_name != NULL, FALSE);
   g_return_val_if_fail (color != NULL, FALSE);
 
-  value = _gtk_style_provider_private_get_color (GTK_STYLE_PROVIDER_PRIVATE (priv->cascade), color_name);
+  value = gtk_style_provider_get_color (GTK_STYLE_PROVIDER (priv->cascade), color_name);
   if (value == NULL)
     return FALSE;
 
@@ -1895,11 +1903,11 @@ gtk_render_insertion_cursor (GtkStyleContext *context,
   g_return_if_fail (PANGO_IS_LAYOUT (layout));
   g_return_if_fail (index >= 0);
 
-  g_object_get (gtk_settings_get_for_screen (priv->screen),
+  g_object_get (gtk_settings_get_for_display (priv->display),
                 "gtk-split-cursor", &split_cursor,
                 NULL);
 
-  keymap_direction = gdk_keymap_get_direction (gdk_keymap_get_for_display (gdk_screen_get_display (priv->screen)));
+  keymap_direction = gdk_keymap_get_direction (gdk_display_get_keymap (priv->display));
 
   pango_layout_get_cursor_pos (layout, index, &strong_pos, &weak_pos);
 
@@ -1980,11 +1988,11 @@ gtk_snapshot_render_insertion_cursor (GtkSnapshot     *snapshot,
   g_return_if_fail (PANGO_IS_LAYOUT (layout));
   g_return_if_fail (index >= 0);
 
-  g_object_get (gtk_settings_get_for_screen (priv->screen),
+  g_object_get (gtk_settings_get_for_display (priv->display),
                 "gtk-split-cursor", &split_cursor,
                 NULL);
 
-  keymap_direction = gdk_keymap_get_direction (gdk_keymap_get_for_display (gdk_screen_get_display (priv->screen)));
+  keymap_direction = gdk_keymap_get_direction (gdk_display_get_keymap (priv->display));
 
   pango_layout_get_cursor_pos (layout, index, &strong_pos, &weak_pos);
 

@@ -197,7 +197,10 @@ gtk_message_row_update (GtkMessageRow *row)
     gtk_button_set_label (GTK_BUTTON (priv->resent_by_button), priv->message->resent_by);
 
   if (strcmp (priv->message->sender_nick, "@GTKtoolkit") == 0)
-    gtk_image_set_from_icon_name (priv->avatar_image, "gtk3-demo", GTK_ICON_SIZE_DND);
+    {
+      gtk_image_set_from_icon_name (priv->avatar_image, "gtk3-demo");
+      gtk_image_set_icon_size (priv->avatar_image, GTK_ICON_SIZE_LARGE);
+    }
   else
     gtk_image_set_from_pixbuf (priv->avatar_image, avatar_pixbuf_other);
 
@@ -345,8 +348,8 @@ do_listbox (GtkWidget *do_widget)
       avatar_pixbuf_other = gdk_pixbuf_new_from_resource_at_scale ("/listbox/apple-red.png", 32, 32, FALSE, NULL);
 
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-      gtk_window_set_screen (GTK_WINDOW (window),
-                             gtk_widget_get_screen (do_widget));
+      gtk_window_set_display (GTK_WINDOW (window),
+                              gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "List Box");
       gtk_window_set_default_size (GTK_WINDOW (window),
                                    400, 600);

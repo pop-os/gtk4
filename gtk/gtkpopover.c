@@ -487,7 +487,6 @@ gtk_popover_realize (GtkWidget *widget)
       g_assert (GTK_IS_WINDOW (toplevel));
 
       window = gdk_wayland_window_new_subsurface (gtk_widget_get_display (toplevel),
-                                                  GDK_ALL_EVENTS_MASK,
                                                   &allocation);
 
       gdk_window_set_transient_for (window,
@@ -497,7 +496,6 @@ gtk_popover_realize (GtkWidget *widget)
 #endif
     {
       window = gdk_window_new_child (gtk_widget_get_parent_window (widget),
-                                     GDK_ALL_EVENTS_MASK,
                                      &allocation);
     }
 
@@ -828,7 +826,8 @@ gtk_popover_get_gap_coords (GtkPopover      *popover,
   int popover_width, popover_height;
 
   gtk_popover_get_pointing_to (popover, &rect);
-  gtk_widget_get_content_size (widget, &popover_width, &popover_height);
+  popover_width = gtk_widget_get_width (widget);
+  popover_height = gtk_widget_get_height (widget);
 
 #ifdef GDK_WINDOWING_WAYLAND
   if (GDK_IS_WAYLAND_DISPLAY (gtk_widget_get_display (widget)))
@@ -1217,16 +1216,14 @@ gtk_popover_snapshot (GtkWidget   *widget,
   GtkBorder border;
   graphene_rect_t bounds;
   cairo_t *cr;
-  int width, height;
 
   /* Draw the child first so we can draw the arrow (partially) over it */
   gtk_widget_snapshot_child (widget, priv->contents_widget, snapshot);
 
-  gtk_widget_get_content_size (widget, &width, &height);
-
   graphene_rect_init (&bounds,
                       0, 0,
-                      width, height);
+                      gtk_widget_get_width (widget),
+                      gtk_widget_get_height (widget));
   cr = gtk_snapshot_append_cairo (snapshot,
                                   &bounds,
                                   "Popover");
@@ -1245,7 +1242,8 @@ gtk_popover_snapshot (GtkWidget   *widget,
   /* Render the arrow background */
   gtk_render_background (context, cr,
                          0, 0,
-                         width, height);
+                         gtk_widget_get_width (widget),
+                         gtk_widget_get_height (widget));
 
   /* Render the border of the arrow tip */
   if (border.bottom > 0)
@@ -1691,7 +1689,7 @@ gtk_popover_class_init (GtkPopoverClass *klass)
 
   quark_widget_popovers = g_quark_from_static_string ("gtk-quark-widget-popovers");
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_POPOVER_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "popover");
+  gtk_widget_class_set_css_name (widget_class, I_("popover"));
 }
 
 static void

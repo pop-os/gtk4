@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 
-static GtkTargetEntry entries[] = {
-  { "GTK_LIST_BOX_ROW", GTK_TARGET_SAME_APP, 0 }
+static const char *entries[] = {
+  "GTK_LIST_BOX_ROW"
 };
 
 static void
@@ -37,12 +37,11 @@ void
 drag_data_get (GtkWidget        *widget,
                GdkDragContext   *context,
                GtkSelectionData *selection_data,
-               guint             info,
                guint             time,
                gpointer          data)
 {
   gtk_selection_data_set (selection_data,
-                          gdk_atom_intern_static_string ("GTK_LIST_BOX_ROW"),
+                          g_intern_static_string ("GTK_LIST_BOX_ROW"),
                           32,
                           (const guchar *)&widget,
                           sizeof (gpointer));
@@ -52,10 +51,7 @@ drag_data_get (GtkWidget        *widget,
 static void
 drag_data_received (GtkWidget        *widget,
                     GdkDragContext   *context,
-                    gint              x,
-                    gint              y,
                     GtkSelectionData *selection_data,
-                    guint             info,
                     guint32           time,
                     gpointer          data)
 {
@@ -83,9 +79,10 @@ static GtkWidget *
 create_row (const gchar *text)
 {
   GtkWidget *row, *box, *label, *image;
+  GdkContentFormats *targets;
 
   row = gtk_list_box_row_new (); 
-  image = gtk_image_new_from_icon_name ("open-menu-symbolic", 1);
+  image = gtk_image_new_from_icon_name ("open-menu-symbolic");
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
   g_object_set (box, "margin-start", 10, "margin-end", 10, NULL);
   label = gtk_label_new (text);
@@ -94,12 +91,16 @@ create_row (const gchar *text)
   gtk_container_add (GTK_CONTAINER (box), label);
   gtk_container_add (GTK_CONTAINER (box), image);
 
-  gtk_drag_source_set (image, GDK_BUTTON1_MASK, entries, 1, GDK_ACTION_MOVE);
+  targets = gdk_content_formats_new (entries, 1);
+
+  gtk_drag_source_set (image, GDK_BUTTON1_MASK, targets, GDK_ACTION_MOVE);
   g_signal_connect (image, "drag-begin", G_CALLBACK (drag_begin), NULL);
   g_signal_connect (image, "drag-data-get", G_CALLBACK (drag_data_get), NULL);
 
-  gtk_drag_dest_set (row, GTK_DEST_DEFAULT_ALL, entries, 1, GDK_ACTION_MOVE);
+  gtk_drag_dest_set (row, GTK_DEST_DEFAULT_ALL, targets, GDK_ACTION_MOVE);
   g_signal_connect (row, "drag-data-received", G_CALLBACK (drag_data_received), NULL);
+
+  gdk_content_formats_unref (targets);
 
   return row;
 }
@@ -152,7 +153,7 @@ main (int argc, char *argv[])
 
   provider = gtk_css_provider_new ();
   gtk_css_provider_load_from_data (provider, css, -1);
-  gtk_style_context_add_provider_for_screen (gdk_screen_get_default (), GTK_STYLE_PROVIDER (provider), 800);
+  gtk_style_context_add_provider_for_display (gdk_display_get_default (), GTK_STYLE_PROVIDER (provider), 800);
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_default_size (GTK_WINDOW (window), -1, 300);
 

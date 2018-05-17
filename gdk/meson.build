@@ -2,10 +2,14 @@ gdk_public_sources = files([
   'gdk.c',
   'gdkapplaunchcontext.c',
   'gdkcairo.c',
+  'gdkclipboard.c',
+  'gdkcontentdeserializer.c',
+  'gdkcontentformats.c',
+  'gdkcontentprovider.c',
+  'gdkcontentproviderimpl.c',
+  'gdkcontentserializer.c',
   'gdkcursor.c',
-  'gdkdeprecated.c',
   'gdkdevice.c',
-  'gdkdevicemanager.c',
   'gdkdevicepad.c',
   'gdkdevicetool.c',
   'gdkdisplay.c',
@@ -25,14 +29,14 @@ gdk_public_sources = files([
   'gdkmonitor.c',
   'gdkpango.c',
   'gdkpixbuf-drawable.c',
+  'gdkpipeiostream.c',
   'gdkproperty.c',
   'gdkrectangle.c',
   'gdkrgba.c',
-  'gdkscreen.c',
   'gdkseat.c',
   'gdkseatdefault.c',
   'gdkselection.c',
-  'gdkvisual.c',
+  'gdktexture.c',
   'gdkvulkancontext.c',
   'gdkwindow.c',
   'gdkwindowimpl.c',
@@ -43,9 +47,14 @@ gdk_public_headers = files([
   'gdk.h',
   'gdkapplaunchcontext.h',
   'gdkcairo.h',
+  'gdkclipboard.h',
+  'gdkcontentdeserializer.h',
+  'gdkcontentformats.h',
+  'gdkcontentprovider.h',
+  'gdkcontentproviderimpl.h',
+  'gdkcontentserializer.h',
   'gdkcursor.h',
   'gdkdevice.h',
-  'gdkdevicemanager.h',
   'gdkdevicepad.h',
   'gdkdevicetool.h',
   'gdkdisplay.h',
@@ -59,20 +68,16 @@ gdk_public_headers = files([
   'gdkglcontext.h',
   'gdkkeys.h',
   'gdkkeysyms.h',
-  'gdkmain.h',
   'gdkmonitor.h',
   'gdkpango.h',
   'gdkpixbuf.h',
-  'gdkprivate.h',
   'gdkproperty.h',
   'gdkrectangle.h',
   'gdkrgba.h',
-  'gdkscreen.h',
   'gdkseat.h',
-  'gdkselection.h',
   'gdkthreads.h',
+  'gdktexture.h',
   'gdktypes.h',
-  'gdkvisual.h',
   'gdkvulkancontext.h',
   'gdkwindow.h',
 ])
@@ -85,7 +90,6 @@ gdk_private_h_sources = files([
   'gdkdevicetoolprivate.h',
   'gdkdrawingcontextprivate.h',
   'gdkmonitorprivate.h',
-  'gdkprivate.h',
   'gdkseatdefaultprivate.h',
 ])
 
@@ -121,6 +125,7 @@ gdkmarshal_h = gdk_marshalers[1]
 gdkconfig_cdata = configuration_data()
 gdkconfig_cdata.set('GDK_WINDOWING_X11', x11_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_WAYLAND', wayland_enabled)
+gdkconfig_cdata.set('GDK_WINDOWING_WIN32', win32_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_BROADWAY', broadway_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_MIR', mir_enabled)
 gdkconfig_cdata.set('GDK_RENDERING_VULKAN', have_vulkan)
@@ -160,7 +165,7 @@ gdk_deps = [
   gobject_dep,
   epoxy_dep,
   fontconfig_dep,
-  giounix_dep,
+  platform_gio_dep,
   pangocairo_dep,
   vulkan_lib
 ]

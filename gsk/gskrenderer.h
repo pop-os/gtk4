@@ -42,17 +42,6 @@ GDK_AVAILABLE_IN_3_90
 GskRenderer *           gsk_renderer_new_for_window             (GdkWindow               *window);
 
 GDK_AVAILABLE_IN_3_90
-void                    gsk_renderer_set_viewport               (GskRenderer             *renderer,
-                                                                 const graphene_rect_t   *viewport);
-GDK_AVAILABLE_IN_3_90
-void                    gsk_renderer_get_viewport               (GskRenderer             *renderer,
-                                                                 graphene_rect_t         *viewport);
-GDK_AVAILABLE_IN_3_90
-void                    gsk_renderer_set_scale_factor           (GskRenderer             *renderer,
-                                                                 int                      scale_factor);
-GDK_AVAILABLE_IN_3_90
-int                     gsk_renderer_get_scale_factor           (GskRenderer             *renderer);
-GDK_AVAILABLE_IN_3_90
 GdkWindow *             gsk_renderer_get_window                 (GskRenderer             *renderer);
 
 GDK_AVAILABLE_IN_3_90
@@ -66,7 +55,7 @@ GDK_AVAILABLE_IN_3_90
 void                    gsk_renderer_unrealize                  (GskRenderer             *renderer);
 
 GDK_AVAILABLE_IN_3_90
-GskTexture *            gsk_renderer_render_texture             (GskRenderer             *renderer,
+GdkTexture *            gsk_renderer_render_texture             (GskRenderer             *renderer,
                                                                  GskRenderNode           *root,
                                                                  const graphene_rect_t   *viewport);
 

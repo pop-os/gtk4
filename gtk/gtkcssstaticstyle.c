@@ -33,6 +33,7 @@
 #include "gtkcssstylepropertyprivate.h"
 #include "gtkcsstransitionprivate.h"
 #include "gtkprivate.h"
+#include "gtkintl.h"
 #include "gtksettings.h"
 #include "gtkstyleanimationprivate.h"
 #include "gtkstylepropertyprivate.h"
@@ -155,10 +156,10 @@ gtk_css_static_style_get_default (void)
       GtkSettings *settings;
 
       settings = gtk_settings_get_default ();
-      default_style = gtk_css_static_style_new_compute (GTK_STYLE_PROVIDER_PRIVATE (settings),
+      default_style = gtk_css_static_style_new_compute (GTK_STYLE_PROVIDER (settings),
                                                         NULL,
                                                         NULL);
-      g_object_set_data_full (G_OBJECT (settings), "gtk-default-style",
+      g_object_set_data_full (G_OBJECT (settings), I_("gtk-default-style"),
                               default_style, clear_default_style);
     }
 
@@ -166,9 +167,9 @@ gtk_css_static_style_get_default (void)
 }
 
 GtkCssStyle *
-gtk_css_static_style_new_compute (GtkStyleProviderPrivate *provider,
-                                  const GtkCssMatcher     *matcher,
-                                  GtkCssStyle             *parent)
+gtk_css_static_style_new_compute (GtkStyleProvider    *provider,
+                                  const GtkCssMatcher *matcher,
+                                  GtkCssStyle         *parent)
 {
   GtkCssStaticStyle *result;
   GtkCssLookup *lookup;
@@ -177,10 +178,10 @@ gtk_css_static_style_new_compute (GtkStyleProviderPrivate *provider,
   lookup = _gtk_css_lookup_new (NULL);
 
   if (matcher)
-    _gtk_style_provider_private_lookup (provider,
-                                        matcher,
-                                        lookup,
-                                        &change);
+    gtk_style_provider_lookup (provider,
+                               matcher,
+                               lookup,
+                               &change);
 
   result = g_object_new (GTK_TYPE_CSS_STATIC_STYLE, NULL);
 
@@ -197,17 +198,17 @@ gtk_css_static_style_new_compute (GtkStyleProviderPrivate *provider,
 }
 
 void
-gtk_css_static_style_compute_value (GtkCssStaticStyle       *style,
-                                    GtkStyleProviderPrivate *provider,
-                                    GtkCssStyle             *parent_style,
-                                    guint                    id,
-                                    GtkCssValue             *specified,
-                                    GtkCssSection           *section)
+gtk_css_static_style_compute_value (GtkCssStaticStyle *style,
+                                    GtkStyleProvider  *provider,
+                                    GtkCssStyle       *parent_style,
+                                    guint              id,
+                                    GtkCssValue       *specified,
+                                    GtkCssSection     *section)
 {
   GtkCssValue *value;
 
   gtk_internal_return_if_fail (GTK_IS_CSS_STATIC_STYLE (style));
-  gtk_internal_return_if_fail (GTK_IS_STYLE_PROVIDER_PRIVATE (provider));
+  gtk_internal_return_if_fail (GTK_IS_STYLE_PROVIDER (provider));
   gtk_internal_return_if_fail (parent_style == NULL || GTK_IS_CSS_STYLE (parent_style));
   gtk_internal_return_if_fail (id < GTK_CSS_PROPERTY_N_PROPERTIES);
 

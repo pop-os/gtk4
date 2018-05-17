@@ -362,9 +362,16 @@ text (guint n)
   PangoFontDescription *desc;
   PangoContext *context;
   PangoLayout *layout;
+  GtkSettings *settings;
+  int dpi_int;
   int i;
 
-  context = gdk_pango_context_get ();
+  context = pango_font_map_create_context (pango_cairo_font_map_get_default ());
+
+  settings = gtk_settings_get_default ();
+  g_object_get (settings, "gtk-xft-dpi", &dpi_int, NULL);
+  if (dpi_int > 0)
+    pango_cairo_context_set_resolution (context, dpi_int / 1024.);
 
   desc = pango_font_description_new ();
   pango_font_description_set_family (desc, "Cantarell");
@@ -430,10 +437,7 @@ cairo_node (guint n)
 {
   GskRenderNode **nodes = g_newa (GskRenderNode *, n);
   GskRenderNode *container;
-  cairo_surface_t *surface;
   graphene_rect_t bounds;
-  gint offset = 0, height, width, stride;
-  guchar *buf;
   guint i;
 
   for (i = 0; i < n; i++)
@@ -442,25 +446,7 @@ cairo_node (guint n)
       bounds.origin.x = g_random_int_range (0, 1000 - bounds.size.width);
       bounds.size.height = g_random_int_range (20, 100);
       bounds.origin.y = g_random_int_range (0, 1000 - bounds.size.height);
-
-      height = g_random_int_range (1, 100);
-      width = g_random_int_range (1, 100);
-      stride = cairo_format_stride_for_width (CAIRO_FORMAT_ARGB32, width + offset);
-
-      buf = g_malloc (stride * height);
-
-      if (i % 3 == 0)
-        surface = NULL;
-      else
-        surface = cairo_image_surface_create_for_data (buf, CAIRO_FORMAT_ARGB32, width, height, stride);
-
-      nodes[i] = gsk_cairo_node_new_for_surface (&bounds, surface);
-
-      /* Offset in stride helps to test when image is not 'tightly packed' condition */
-      offset = offset ? 0 : 3;
-
-      cairo_surface_destroy (surface);
-      g_free (buf);
+      nodes [i] = gsk_cairo_node_new (&bounds);
     }
 
   container = gsk_container_node_new (nodes, n);

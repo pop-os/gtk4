@@ -39,6 +39,20 @@ G_BEGIN_DECLS
 typedef struct _GtkEventControllerScroll GtkEventControllerScroll;
 typedef struct _GtkEventControllerScrollClass GtkEventControllerScrollClass;
 
+/**
+ * GtkEventControllerScrollFlags:
+ * @GTK_EVENT_CONTROLLER_SCROLL_NONE: Don't emit scroll.
+ * @GTK_EVENT_CONTROLLER_SCROLL_VERTICAL: Emit scroll with vertical deltas.
+ * @GTK_EVENT_CONTROLLER_SCROLL_HORIZONTAL: Emit scroll with horizontal deltas.
+ * @GTK_EVENT_CONTROLLER_SCROLL_DISCRETE: Only emit deltas that are multiples of 1.
+ * @GTK_EVENT_CONTROLLER_SCROLL_KINETIC: Emit #GtkEventControllerScroll::decelerate
+ *   after continuous scroll finishes.
+ * @GTK_EVENT_CONTROLLER_SCROLL_BOTH_AXES: Emit scroll on both axes.
+ *
+ * Describes the behavior of a #GtkEventControllerScroll.
+ *
+ * Since: 3.93
+ **/
 typedef enum {
   GTK_EVENT_CONTROLLER_SCROLL_NONE       = 0,
   GTK_EVENT_CONTROLLER_SCROLL_VERTICAL   = 1 << 0,
@@ -55,11 +69,11 @@ GDK_AVAILABLE_IN_3_92
 GtkEventController *gtk_event_controller_scroll_new (GtkWidget                     *widget,
                                                      GtkEventControllerScrollFlags  flags);
 GDK_AVAILABLE_IN_3_92
-void                gtk_event_controller_scroll_set_flags (GtkEventControllerScroll      *controller,
+void                gtk_event_controller_scroll_set_flags (GtkEventControllerScroll      *scroll,
                                                            GtkEventControllerScrollFlags  flags);
 GDK_AVAILABLE_IN_3_92
 GtkEventControllerScrollFlags
-                    gtk_event_controller_scroll_get_flags (GtkEventControllerScroll      *controller);
+                    gtk_event_controller_scroll_get_flags (GtkEventControllerScroll      *scroll);
 
 G_END_DECLS
 

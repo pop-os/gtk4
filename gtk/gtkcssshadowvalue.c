@@ -65,11 +65,11 @@ gtk_css_value_shadow_free (GtkCssValue *shadow)
 }
 
 static GtkCssValue *
-gtk_css_value_shadow_compute (GtkCssValue             *shadow,
-                              guint                    property_id,
-                              GtkStyleProviderPrivate *provider,
-                              GtkCssStyle             *style,
-                              GtkCssStyle             *parent_style)
+gtk_css_value_shadow_compute (GtkCssValue      *shadow,
+                              guint             property_id,
+                              GtkStyleProvider *provider,
+                              GtkCssStyle      *style,
+                              GtkCssStyle      *parent_style)
 {
   GtkCssValue *hoffset, *voffset, *radius, *spread, *color;
 
@@ -361,7 +361,7 @@ gtk_css_shadow_value_start_drawing (const GtkCssValue *shadow,
   cairo_surface_set_device_scale (surface, x_scale, y_scale);
   cairo_surface_set_device_offset (surface,
                                     x_scale * ((blur_x ? clip_radius: 0) - clip_rect.x),
-                                    y_scale * ((blur_y ? clip_radius * y_scale : 0) - clip_rect.y));
+                                    y_scale * ((blur_y ? clip_radius: 0) - clip_rect.y));
 
   blur_cr = cairo_create (surface);
   cairo_set_user_data (blur_cr, &original_cr_key, cairo_reference (cr), (cairo_destroy_func_t) cairo_destroy);
@@ -1088,5 +1088,11 @@ gtk_css_shadow_value_snapshot_inset (const GtkCssValue   *shadow,
     gsk_render_node_set_name (node, "Inset Shadow");
   gtk_snapshot_append_node (snapshot, node);
   gsk_render_node_unref (node);
+}
+
+gboolean
+gtk_css_shadow_value_is_clear (const GtkCssValue *shadow)
+{
+  return gdk_rgba_is_clear (_gtk_css_rgba_value_get_rgba (shadow->color));
 }
 

@@ -21,6 +21,7 @@
 #include <gtk/gtk.h>
 #include "gtkimageaccessible.h"
 #include "gtktoolbarprivate.h"
+#include "gtkimageprivate.h"
 #include "gtkintl.h"
 
 struct _GtkImageAccessiblePrivate
@@ -192,17 +193,14 @@ gtk_image_accessible_get_name (AtkObject *accessible)
 
   if (storage_type == GTK_IMAGE_ICON_NAME)
     {
-      const gchar *icon_name;
-
-      gtk_image_get_icon_name (image, &icon_name, NULL);
-      image_accessible->priv->stock_name = name_from_icon_name (icon_name);
+      image_accessible->priv->stock_name = name_from_icon_name (gtk_image_get_icon_name (image));
     }
   else if (storage_type == GTK_IMAGE_GICON)
     {
       GIcon *icon;
       const gchar * const *icon_names;
 
-      gtk_image_get_gicon (image, &icon, NULL);
+      icon = gtk_image_get_gicon (image);
       if (G_IS_THEMED_ICON (icon))
         {
 	  icon_names = g_themed_icon_get_names (G_THEMED_ICON (icon));
@@ -255,7 +253,6 @@ gtk_image_accessible_get_image_size (AtkImage *image,
 {
   GtkWidget* widget;
   GtkImage *gtk_image;
-  GtkImageType image_type;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (image));
   if (widget == NULL)
@@ -267,45 +264,8 @@ gtk_image_accessible_get_image_size (AtkImage *image,
 
   gtk_image = GTK_IMAGE (widget);
 
-  image_type = gtk_image_get_storage_type (gtk_image);
-  switch (image_type)
-    {
-    case GTK_IMAGE_PIXBUF:
-      {
-        GdkPixbuf *pixbuf;
-
-        pixbuf = gtk_image_get_pixbuf (gtk_image);
-        *height = gdk_pixbuf_get_height (pixbuf);
-        *width = gdk_pixbuf_get_width (pixbuf);
-        break;
-      }
-    case GTK_IMAGE_ICON_NAME:
-    case GTK_IMAGE_GICON:
-      {
-        GtkIconSize size;
-
-        g_object_get (gtk_image, "icon-size", &size, NULL);
-        gtk_icon_size_lookup (size, width, height);
-        break;
-      }
-    case GTK_IMAGE_ANIMATION:
-      {
-        GdkPixbufAnimation *animation;
-
-        animation = gtk_image_get_animation (gtk_image);
-        *height = gdk_pixbuf_animation_get_height (animation);
-        *width = gdk_pixbuf_animation_get_width (animation);
-        break;
-      }
-    case GTK_IMAGE_EMPTY:
-    case GTK_IMAGE_SURFACE:
-    default:
-      {
-        *height = -1;
-        *width = -1;
-        break;
-      }
-    }
+  if (gtk_image_get_storage_type (gtk_image) != GTK_IMAGE_EMPTY)
+    gtk_image_get_image_size (gtk_image, width, height);
 }
 
 static gboolean

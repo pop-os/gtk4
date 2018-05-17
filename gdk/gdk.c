@@ -25,7 +25,6 @@
 #include "config.h"
 
 #include "gdkversionmacros.h"
-#include "gdkmain.h"
 
 #include "gdkinternals.h"
 #include "gdkintl.h"
@@ -131,9 +130,6 @@ static int gdk_initialized = 0;                     /* 1 if the library is initi
                                                      * 0 otherwise.
                                                      */
 
-static gchar  *gdk_progclass = NULL;
-static gboolean gdk_progclass_overridden;
-
 static GMutex gdk_threads_mutex;
 
 static GCallback gdk_threads_lock = NULL;
@@ -170,7 +166,9 @@ static const GDebugKey gdk_debug_keys[] = {
   { "frames",        GDK_DEBUG_FRAMES },
   { "settings",      GDK_DEBUG_SETTINGS },
   { "opengl",        GDK_DEBUG_OPENGL },
-  { "vulkan",        GDK_DEBUG_VULKAN }
+  { "vulkan",        GDK_DEBUG_VULKAN },
+  { "selection",     GDK_DEBUG_SELECTION },
+  { "clipboard",     GDK_DEBUG_CLIPBOARD }
 };
 #endif
 
@@ -200,13 +198,6 @@ gdk_pre_parse (void)
 
   gdk_ensure_resources ();
 
-  /* We set the fallback program class here, rather than lazily in
-   * gdk_get_program_class, since we don't want -name to override it.
-   */
-  gdk_progclass = g_strdup (g_get_prgname ());
-  if (gdk_progclass && gdk_progclass[0])
-    gdk_progclass[0] = g_ascii_toupper (gdk_progclass[0]);
-  
 #ifdef G_ENABLE_DEBUG
   {
     gchar *debug_string = getenv("GDK_DEBUG");
@@ -241,27 +232,6 @@ gdk_pre_parse (void)
     }
 }
 
-/**
- * gdk_get_display_arg_name:
- *
- * Gets the display name specified in the command line arguments passed
- * to gdk_init() or gdk_parse_args(), if any.
- *
- * Returns: (nullable): the display name, if specified explicitly,
- *   otherwise %NULL this string is owned by GTK+ and must not be
- *   modified or freed.
- *
- * Since: 2.2
- */
-const gchar *
-gdk_get_display_arg_name (void)
-{
-  if (!_gdk_display_arg_name)
-    _gdk_display_arg_name = g_strdup (_gdk_display_name);
-
-   return _gdk_display_arg_name;
-}
-
 /*< private >
  * gdk_display_open_default:
  *
@@ -285,7 +255,7 @@ gdk_display_open_default (void)
   if (display)
     return display;
 
-  display = gdk_display_open (gdk_get_display_arg_name ());
+  display = gdk_display_open (NULL);
 
   return display;
 }
@@ -730,68 +700,4 @@ gdk_threads_add_timeout_seconds (guint       interval,
 {
   return gdk_threads_add_timeout_seconds_full (G_PRIORITY_DEFAULT,
                                                interval, function, data, NULL);
-}
-
-/**
- * gdk_get_program_class:
- *
- * Gets the program class. Unless the program class has explicitly
- * been set with gdk_set_program_class() or with the `--class`
- * commandline option, the default value is the program name (determined
- * with g_get_prgname()) with the first character converted to uppercase.
- *
- * Returns: the program class.
- */
-const char *
-gdk_get_program_class (void)
-{
-  if (gdk_progclass)
-    return gdk_progclass;
-
-  return "GTK+ Application";
-}
-
-/**
- * gdk_set_program_class:
- * @program_class: a string.
- *
- * Sets the program class. The X11 backend uses the program class to set
- * the class name part of the `WM_CLASS` property on
- * toplevel windows; see the ICCCM.
- *
- * The program class can still be overridden with the --class command
- * line option.
- */
-void
-gdk_set_program_class (const char *program_class)
-{
-  if (gdk_progclass_overridden)
-    return;
-
-  g_free (gdk_progclass);
-
-  gdk_progclass = g_strdup (program_class);
-}
-
-/**
- * gdk_disable_multidevice:
- *
- * Disables multidevice support in GDK. This call must happen prior
- * to gdk_display_open(), gtk_init() or
- * gtk_init_check() in order to take effect.
- *
- * Most common GTK+ applications won’t ever need to call this. Only
- * applications that do mixed GDK/Xlib calls could want to disable
- * multidevice support if such Xlib code deals with input devices in
- * any way and doesn’t observe the presence of XInput 2.
- *
- * Since: 3.0
- */
-void
-gdk_disable_multidevice (void)
-{
-  if (gdk_initialized)
-    return;
-
-  _gdk_disable_multidevice = TRUE;
 }

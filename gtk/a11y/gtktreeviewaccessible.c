@@ -469,7 +469,7 @@ gtk_tree_view_accessible_ref_child (AtkObject *obj,
   if (cell == NULL)
     cell = create_cell (tree_view, accessible, tree, node, tv_col);
 
-  return g_object_ref (cell);
+  return (AtkObject *) g_object_ref (cell);
 }
 
 static AtkStateSet*
@@ -562,7 +562,7 @@ gtk_tree_view_accessible_ref_accessible_at_point (AtkComponent *component,
   if (cell == NULL)
     cell = create_cell (tree_view, GTK_TREE_VIEW_ACCESSIBLE (component), tree, node, column);
 
-  return g_object_ref (cell);
+  return (AtkObject *) g_object_ref (cell);
 }
 
 static void
@@ -1890,7 +1890,7 @@ static GtkTreeViewColumn *
 get_effective_focus_column (GtkTreeView       *treeview,
                             GtkTreeViewColumn *column)
 {
-  if (column == NULL)
+  if (column == NULL && get_n_columns (treeview) > 0)
     column = get_visible_column (treeview, 0);
 
   return column;

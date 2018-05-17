@@ -529,9 +529,9 @@ _gtk_gesture_update_point (GtkGesture     *gesture,
     }
 
   if (data->event)
-    gdk_event_free (data->event);
+    g_object_unref (data->event);
 
-  data->event = gdk_event_copy (event);
+  data->event = g_object_ref ((gpointer) event);
   _update_touchpad_deltas (data);
   _update_widget_coordinates (gesture, data);
 
@@ -912,7 +912,7 @@ free_point_data (gpointer data)
   PointData *point = data;
 
   if (point->event)
-    gdk_event_free (point->event);
+    g_object_unref (point->event);
 
   g_free (point);
 }

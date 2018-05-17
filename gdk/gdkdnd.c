@@ -28,8 +28,11 @@
 #include "gdkdisplay.h"
 #include "gdkwindow.h"
 #include "gdkintl.h"
-#include "gdkenumtypes.h"
+#include "gdkcontentformats.h"
+#include "gdkcontentprovider.h"
+#include "gdkcontentserializer.h"
 #include "gdkcursor.h"
+#include "gdkenumtypes.h"
 #include "gdkeventsprivate.h"
 
 static struct {
@@ -46,6 +49,14 @@ static struct {
 };
 
 enum {
+  PROP_0,
+  PROP_CONTENT,
+  PROP_DISPLAY,
+  PROP_FORMATS,
+  N_PROPERTIES
+};
+
+enum {
   CANCEL,
   DROP_PERFORMED,
   DND_FINISHED,
@@ -53,6 +64,7 @@ enum {
   N_SIGNALS
 };
 
+static GParamSpec *properties[N_PROPERTIES] = { NULL, };
 static guint signals[N_SIGNALS] = { 0 };
 static GList *contexts = NULL;
 
@@ -73,21 +85,42 @@ static GList *contexts = NULL;
  */
 
 /**
- * gdk_drag_context_list_targets:
+ * GdkDragContext:
+ *
+ * The GdkDragContext struct contains only private fields and
+ * should not be accessed directly.
+ */
+
+/**
+ * gdk_drag_context_get_display:
  * @context: a #GdkDragContext
  *
- * Retrieves the list of targets of the context.
+ * Gets the #GdkDisplay that the drag context was created for.
  *
- * Returns: (transfer none) (element-type GdkAtom): a #GList of targets
- *
- * Since: 2.22
+ * Returns: (transfer none): a #GdkDisplay
  **/
-GList *
-gdk_drag_context_list_targets (GdkDragContext *context)
+GdkDisplay *
+gdk_drag_context_get_display (GdkDragContext *context)
+{
+  return context->display;
+}
+
+/**
+ * gdk_drag_context_get_formats:
+ * @context: a #GdkDragContext
+ *
+ * Retrieves the formats supported by this context.
+ *
+ * Returns: (transfer none): a #GdkContentFormats
+ *
+ * Since: 3.94
+ **/
+GdkContentFormats *
+gdk_drag_context_get_formats (GdkDragContext *context)
 {
   g_return_val_if_fail (GDK_IS_DRAG_CONTEXT (context), NULL);
 
-  return context->targets;
+  return context->formats;
 }
 
 /**
@@ -182,24 +215,6 @@ gdk_drag_context_get_dest_window (GdkDragContext *context)
 }
 
 /**
- * gdk_drag_context_get_protocol:
- * @context: a #GdkDragContext
- *
- * Returns the drag protocol thats used by this context.
- *
- * Returns: the drag protocol
- *
- * Since: 3.0
- */
-GdkDragProtocol
-gdk_drag_context_get_protocol (GdkDragContext *context)
-{
-  g_return_val_if_fail (GDK_IS_DRAG_CONTEXT (context), GDK_DRAG_PROTO_NONE);
-
-  return context->protocol;
-}
-
-/**
  * gdk_drag_context_set_device:
  * @context: a #GdkDragContext
  * @device: a #GdkDevice
@@ -248,12 +263,69 @@ gdk_drag_context_init (GdkDragContext *context)
 }
 
 static void
+gdk_drag_context_set_property (GObject      *gobject,
+                               guint         prop_id,
+                               const GValue *value,
+                               GParamSpec   *pspec)
+{
+  GdkDragContext *context = GDK_DRAG_CONTEXT (gobject);
+
+  switch (prop_id)
+    {
+    case PROP_CONTENT:
+      context->content = g_value_dup_object (value);
+      if (context->content)
+        context->formats = gdk_content_provider_ref_formats (context->content);
+      break;
+
+    case PROP_DISPLAY:
+      context->display = g_value_get_object (value);
+      g_assert (context->display != NULL);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, prop_id, pspec);
+      break;
+    }
+}
+
+static void
+gdk_drag_context_get_property (GObject    *gobject,
+                               guint       prop_id,
+                               GValue     *value,
+                               GParamSpec *pspec)
+{
+  GdkDragContext *context = GDK_DRAG_CONTEXT (gobject);
+
+  switch (prop_id)
+    {
+    case PROP_CONTENT:
+      g_value_set_object (value, context->content);
+      break;
+
+    case PROP_DISPLAY:
+      g_value_set_object (value, context->display);
+      break;
+
+    case PROP_FORMATS:
+      g_value_set_boxed (value, context->formats);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (gobject, prop_id, pspec);
+      break;
+    }
+}
+
+static void
 gdk_drag_context_finalize (GObject *object)
 {
   GdkDragContext *context = GDK_DRAG_CONTEXT (object);
 
   contexts = g_list_remove (contexts, context);
-  g_list_free (context->targets);
+
+  g_clear_object (&context->content);
+  g_clear_pointer (&context->formats, gdk_content_formats_unref);
 
   if (context->source_window)
     g_object_unref (context->source_window);
@@ -265,11 +337,98 @@ gdk_drag_context_finalize (GObject *object)
 }
 
 static void
+gdk_drag_context_read_local_async (GdkDragContext      *context,
+                                   GdkContentFormats   *formats,
+                                   int                  io_priority,
+                                   GCancellable        *cancellable,
+                                   GAsyncReadyCallback  callback,
+                                   gpointer             user_data)
+{
+  GTask *task;
+
+  task = g_task_new (context, cancellable, callback, user_data);
+  g_task_set_priority (task, io_priority);
+  g_task_set_source_tag (task, gdk_drag_context_read_local_async);
+
+  g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                                 _("Reading not implemented."));
+  g_object_unref (task);
+}
+
+static GInputStream *
+gdk_drag_context_read_local_finish (GdkDragContext  *context,
+                                    const char     **out_mime_type,
+                                    GAsyncResult    *result,
+                                    GError         **error)
+{
+  g_return_val_if_fail (g_task_is_valid (result, context), NULL);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == gdk_drag_context_read_local_async, NULL);
+
+  if (out_mime_type)
+    *out_mime_type = g_task_get_task_data (G_TASK (result));
+
+  return g_task_propagate_pointer (G_TASK (result), error);
+}
+
+static void
 gdk_drag_context_class_init (GdkDragContextClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
+  object_class->get_property = gdk_drag_context_get_property;
+  object_class->set_property = gdk_drag_context_set_property;
   object_class->finalize = gdk_drag_context_finalize;
+
+  /**
+   * GdkDragContext:content:
+   *
+   * The #GdkContentProvider or %NULL if the context is not a source-side
+   * context.
+   *
+   * Since: 3.94
+   */
+  properties[PROP_CONTENT] =
+    g_param_spec_object ("content",
+                         "Content",
+                         "The content being dragged",
+                         GDK_TYPE_CONTENT_PROVIDER,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS |
+                         G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
+   * GdkDragContext:display:
+   *
+   * The #GdkDisplay that the drag context belongs to.
+   *
+   * Since: 3.94
+   */
+  properties[PROP_DISPLAY] =
+    g_param_spec_object ("display",
+                         "Display",
+                         "Display owning this clipboard",
+                         GDK_TYPE_DISPLAY,
+                         G_PARAM_READWRITE |
+                         G_PARAM_CONSTRUCT_ONLY |
+                         G_PARAM_STATIC_STRINGS |
+                         G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
+   * GdkDragContext:formats:
+   *
+   * The possible formats that the context can provide its data in.
+   *
+   * Since: 3.94
+   */
+  properties[PROP_FORMATS] =
+    g_param_spec_boxed ("formats",
+                        "Formats",
+                        "The possible formats for data",
+                        GDK_TYPE_CONTENT_FORMATS,
+                        G_PARAM_READABLE |
+                        G_PARAM_STATIC_STRINGS |
+                        G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GdkDragContext::cancel:
@@ -278,14 +437,10 @@ gdk_drag_context_class_init (GdkDragContextClass *klass)
    *
    * The drag and drop operation was cancelled.
    *
-   * This signal will only be emitted if the #GdkDragContext manages
-   * the drag and drop operation. See gdk_drag_context_manage_dnd()
-   * for more information.
-   *
    * Since: 3.20
    */
   signals[CANCEL] =
-    g_signal_new ("cancel",
+    g_signal_new (g_intern_static_string ("cancel"),
                   G_TYPE_FROM_CLASS (object_class),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GdkDragContextClass, cancel),
@@ -300,14 +455,10 @@ gdk_drag_context_class_init (GdkDragContextClass *klass)
    *
    * The drag and drop operation was performed on an accepting client.
    *
-   * This signal will only be emitted if the #GdkDragContext manages
-   * the drag and drop operation. See gdk_drag_context_manage_dnd()
-   * for more information.
-   *
    * Since: 3.20
    */
   signals[DROP_PERFORMED] =
-    g_signal_new ("drop-performed",
+    g_signal_new (g_intern_static_string ("drop-performed"),
                   G_TYPE_FROM_CLASS (object_class),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GdkDragContextClass, drop_performed),
@@ -323,14 +474,10 @@ gdk_drag_context_class_init (GdkDragContextClass *klass)
    * finished reading all data. The drag source can now free all
    * miscellaneous data.
    *
-   * This signal will only be emitted if the #GdkDragContext manages
-   * the drag and drop operation. See gdk_drag_context_manage_dnd()
-   * for more information.
-   *
    * Since: 3.20
    */
   signals[DND_FINISHED] =
-    g_signal_new ("dnd-finished",
+    g_signal_new (g_intern_static_string ("dnd-finished"),
                   G_TYPE_FROM_CLASS (object_class),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GdkDragContextClass, dnd_finished),
@@ -345,28 +492,25 @@ gdk_drag_context_class_init (GdkDragContextClass *klass)
    *
    * A new action is being chosen for the drag and drop operation.
    *
-   * This signal will only be emitted if the #GdkDragContext manages
-   * the drag and drop operation. See gdk_drag_context_manage_dnd()
-   * for more information.
-   *
    * Since: 3.20
    */
   signals[ACTION_CHANGED] =
-    g_signal_new ("action-changed",
+    g_signal_new (g_intern_static_string ("action-changed"),
                   G_TYPE_FROM_CLASS (object_class),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GdkDragContextClass, action_changed),
                   NULL, NULL,
                   g_cclosure_marshal_VOID__FLAGS,
                   G_TYPE_NONE, 1, GDK_TYPE_DRAG_ACTION);
+
+  g_object_class_install_properties (object_class, N_PROPERTIES, properties);
 }
 
-/**
- * gdk_drag_find_window_for_screen:
+/*
+ * gdk_drag_find_window:
  * @context: a #GdkDragContext
  * @drag_window: a window which may be at the pointer position, but
  *     should be ignored, since it is put up by the drag source as an icon
- * @screen: the screen where the destination window is sought
  * @x_root: the x position of the pointer in root coordinates
  * @y_root: the y position of the pointer in root coordinates
  * @dest_window: (out): location to store the destination window in
@@ -381,18 +525,17 @@ gdk_drag_context_class_init (GdkDragContextClass *klass)
  * Since: 2.2
  */
 void
-gdk_drag_find_window_for_screen (GdkDragContext  *context,
-                                 GdkWindow       *drag_window,
-                                 GdkScreen       *screen,
-                                 gint             x_root,
-                                 gint             y_root,
-                                 GdkWindow      **dest_window,
-                                 GdkDragProtocol *protocol)
+gdk_drag_find_window (GdkDragContext  *context,
+                      GdkWindow       *drag_window,
+                      gint             x_root,
+                      gint             y_root,
+                      GdkWindow      **dest_window,
+                      GdkDragProtocol *protocol)
 {
   g_return_if_fail (GDK_IS_DRAG_CONTEXT (context));
 
   *dest_window = GDK_DRAG_CONTEXT_GET_CLASS (context)
-      ->find_window (context, drag_window, screen, x_root, y_root, protocol);
+      ->find_window (context, drag_window, x_root, y_root, protocol);
 }
 
 /**
@@ -417,7 +560,7 @@ gdk_drag_status (GdkDragContext *context,
   GDK_DRAG_CONTEXT_GET_CLASS (context)->drag_status (context, action, time_);
 }
 
-/**
+/*
  * gdk_drag_motion:
  * @context: a #GdkDragContext
  * @dest_window: the new destination window, obtained by
@@ -433,9 +576,6 @@ gdk_drag_status (GdkDragContext *context,
  * set of actions changes.
  *
  * This function is called by the drag source.
- *
- * This function does not need to be called in managed drag and drop
- * operations. See gdk_drag_context_manage_dnd() for more information.
  *
  * Returns:
  */
@@ -462,7 +602,7 @@ gdk_drag_motion (GdkDragContext *context,
                       time_);
 }
 
-/**
+/*
  * gdk_drag_abort:
  * @context: a #GdkDragContext
  * @time_: the timestamp for this operation
@@ -470,9 +610,6 @@ gdk_drag_motion (GdkDragContext *context,
  * Aborts a drag without dropping.
  *
  * This function is called by the drag source.
- *
- * This function does not need to be called in managed drag and drop
- * operations. See gdk_drag_context_manage_dnd() for more information.
  */
 void
 gdk_drag_abort (GdkDragContext *context,
@@ -483,7 +620,7 @@ gdk_drag_abort (GdkDragContext *context,
   GDK_DRAG_CONTEXT_GET_CLASS (context)->drag_abort (context, time_);
 }
 
-/**
+/*
  * gdk_drag_drop:
  * @context: a #GdkDragContext
  * @time_: the timestamp for this operation
@@ -491,9 +628,6 @@ gdk_drag_abort (GdkDragContext *context,
  * Drops on the current destination.
  *
  * This function is called by the drag source.
- *
- * This function does not need to be called in managed drag and drop
- * operations. See gdk_drag_context_manage_dnd() for more information.
  */
 void
 gdk_drag_drop (GdkDragContext *context,
@@ -566,20 +700,169 @@ gdk_drag_drop_succeeded (GdkDragContext *context)
   return GDK_DRAG_CONTEXT_GET_CLASS (context)->drop_status (context);
 }
 
-/**
- * gdk_drag_get_selection:
- * @context: a #GdkDragContext.
- *
- * Returns the selection atom for the current source window.
- *
- * Returns: (transfer none): the selection atom, or %GDK_NONE
- */
-GdkAtom
-gdk_drag_get_selection (GdkDragContext *context)
+static void
+gdk_drag_context_write_done (GObject      *content,
+                             GAsyncResult *result,
+                             gpointer      task)
 {
-  g_return_val_if_fail (GDK_IS_DRAG_CONTEXT (context), GDK_NONE);
+  GError *error = NULL;
 
-  return GDK_DRAG_CONTEXT_GET_CLASS (context)->get_selection (context);
+  if (gdk_content_provider_write_mime_type_finish (GDK_CONTENT_PROVIDER (content), result, &error))
+    g_task_return_boolean (task, TRUE);
+  else
+    g_task_return_error (task, error);
+
+  g_object_unref (task);
+}
+
+static void
+gdk_drag_context_write_serialize_done (GObject      *content,
+                                       GAsyncResult *result,
+                                       gpointer      task)
+{
+  GError *error = NULL;
+
+  if (gdk_content_serialize_finish (result, &error))
+    g_task_return_boolean (task, TRUE);
+  else
+    g_task_return_error (task, error);
+
+  g_object_unref (task);
+}
+
+void
+gdk_drag_context_write_async (GdkDragContext      *context,
+                              const char          *mime_type,
+                              GOutputStream       *stream,
+                              int                  io_priority,
+                              GCancellable        *cancellable,
+                              GAsyncReadyCallback  callback,
+                              gpointer             user_data)
+{
+  GdkContentFormats *formats, *mime_formats;
+  GTask *task;
+  GType gtype;
+
+  g_return_if_fail (GDK_IS_DRAG_CONTEXT (context));
+  g_return_if_fail (context->content);
+  g_return_if_fail (mime_type != NULL);
+  g_return_if_fail (mime_type == g_intern_string (mime_type));
+  g_return_if_fail (G_IS_OUTPUT_STREAM (stream));
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_return_if_fail (callback != NULL);
+
+  task = g_task_new (context, cancellable, callback, user_data);
+  g_task_set_priority (task, io_priority);
+  g_task_set_source_tag (task, gdk_drag_context_write_async);
+
+  formats = gdk_content_provider_ref_formats (context->content);
+  if (gdk_content_formats_contain_mime_type (formats, mime_type))
+    {
+      gdk_content_provider_write_mime_type_async (context->content,
+                                                  mime_type,
+                                                  stream,
+                                                  io_priority,
+                                                  cancellable,
+                                                  gdk_drag_context_write_done,
+                                                  task);
+      gdk_content_formats_unref (formats);
+      return;
+    }
+
+  mime_formats = gdk_content_formats_new ((const gchar *[2]) { mime_type, NULL }, 1);
+  mime_formats = gdk_content_formats_union_serialize_gtypes (mime_formats);
+  gtype = gdk_content_formats_match_gtype (formats, mime_formats);
+  if (gtype != G_TYPE_INVALID)
+    {
+      GValue value = G_VALUE_INIT;
+      GError *error = NULL;
+
+      g_assert (gtype != G_TYPE_INVALID);
+      
+      g_value_init (&value, gtype);
+      if (gdk_content_provider_get_value (context->content, &value, &error))
+        {
+          gdk_content_serialize_async (stream,
+                                       mime_type,
+                                       &value,
+                                       io_priority,
+                                       cancellable,
+                                       gdk_drag_context_write_serialize_done,
+                                       g_object_ref (task));
+        }
+      else
+        {
+          g_task_return_error (task, error);
+        }
+      
+      g_value_unset (&value);
+    }
+  else
+    {
+      g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
+                               _("No compatible formats to transfer clipboard contents."));
+    }
+
+  gdk_content_formats_unref (mime_formats);
+  gdk_content_formats_unref (formats);
+  g_object_unref (task);
+}
+
+gboolean
+gdk_drag_context_write_finish (GdkDragContext *context,
+                               GAsyncResult   *result,
+                               GError        **error)
+{
+  g_return_val_if_fail (g_task_is_valid (result, context), FALSE);
+  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == gdk_drag_context_write_async, FALSE);
+
+  return g_task_propagate_boolean (G_TASK (result), error); 
+}
+
+void
+gdk_drop_read_async (GdkDragContext      *context,
+                     const char         **mime_types,
+                     int                  io_priority,
+                     GCancellable        *cancellable,
+                     GAsyncReadyCallback  callback,
+                     gpointer             user_data)
+{
+  GdkContentFormats *formats;
+
+  g_return_if_fail (GDK_IS_DRAG_CONTEXT (context));
+  g_return_if_fail (mime_types != NULL && mime_types[0] != NULL);
+  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
+  g_return_if_fail (callback != NULL);
+
+  formats = gdk_content_formats_new (mime_types, g_strv_length ((char **) mime_types));
+
+  GDK_DRAG_CONTEXT_GET_CLASS (context)->read_async (context,
+                                                    formats,
+                                                    io_priority,
+                                                    cancellable,
+                                                    callback,
+                                                    user_data);
+
+  gdk_content_formats_unref (formats);
+}
+
+GInputStream *
+gdk_drop_read_finish (GdkDragContext *context,
+                      const char    **out_mime_type,
+                      GAsyncResult   *result,
+                      GError        **error)
+{
+  g_return_val_if_fail (GDK_IS_DRAG_CONTEXT (context), NULL);
+  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
+
+  if (g_async_result_is_tagged (result, gdk_drag_context_read_local_async))
+    {
+      return gdk_drag_context_read_local_finish (context, out_mime_type, result, error);
+    }
+  else
+    {
+      return GDK_DRAG_CONTEXT_GET_CLASS (context)->read_finish (context, out_mime_type, result, error);
+    }
 }
 
 /**
@@ -664,47 +947,6 @@ gdk_drag_drop_done (GdkDragContext *context,
     GDK_DRAG_CONTEXT_GET_CLASS (context)->drop_done (context, success);
 }
 
-/**
- * gdk_drag_context_manage_dnd:
- * @context: a #GdkDragContext
- * @ipc_window: Window to use for IPC messaging/events
- * @actions: the actions supported by the drag source
- *
- * Requests the drag and drop operation to be managed by @context.
- * When a drag and drop operation becomes managed, the #GdkDragContext
- * will internally handle all input and source-side #GdkEventDND events
- * as required by the windowing system.
- *
- * Once the drag and drop operation is managed, the drag context will
- * emit the following signals:
- * - The #GdkDragContext::action-changed signal whenever the final action
- *   to be performed by the drag and drop operation changes.
- * - The #GdkDragContext::drop-performed signal after the user performs
- *   the drag and drop gesture (typically by releasing the mouse button).
- * - The #GdkDragContext::dnd-finished signal after the drag and drop
- *   operation concludes (after all #GdkSelection transfers happen).
- * - The #GdkDragContext::cancel signal if the drag and drop operation is
- *   finished but doesn't happen over an accepting destination, or is
- *   cancelled through other means.
- *
- * Returns: #TRUE if the drag and drop operation is managed.
- *
- * Since: 3.20
- **/
-gboolean
-gdk_drag_context_manage_dnd (GdkDragContext *context,
-                             GdkWindow      *ipc_window,
-                             GdkDragAction   actions)
-{
-  g_return_val_if_fail (GDK_IS_DRAG_CONTEXT (context), FALSE);
-  g_return_val_if_fail (GDK_IS_WINDOW (ipc_window), FALSE);
-
-  if (GDK_DRAG_CONTEXT_GET_CLASS (context)->manage_dnd)
-    return GDK_DRAG_CONTEXT_GET_CLASS (context)->manage_dnd (context, ipc_window, actions);
-
-  return FALSE;
-}
-
 void
 gdk_drag_context_set_cursor (GdkDragContext *context,
                              GdkCursor      *cursor)
@@ -722,12 +964,6 @@ gdk_drag_context_cancel (GdkDragContext      *context,
   g_return_if_fail (GDK_IS_DRAG_CONTEXT (context));
 
   g_signal_emit (context, signals[CANCEL], 0, reason);
-}
-
-GList *
-gdk_drag_context_list (void)
-{
-  return contexts;
 }
 
 gboolean
@@ -764,8 +1000,8 @@ gdk_drag_get_cursor (GdkDragContext *context,
       break;
 
   if (drag_cursors[i].cursor == NULL)
-    drag_cursors[i].cursor = gdk_cursor_new_from_name (context->display,
-                                                       drag_cursors[i].name);
+    drag_cursors[i].cursor = gdk_cursor_new_from_name (drag_cursors[i].name, NULL);
+                                                       
   return drag_cursors[i].cursor;
 }
 
@@ -787,26 +1023,12 @@ gboolean
 gdk_drag_context_handle_dest_event (GdkEvent *event)
 {
   GdkDragContext *context = NULL;
-  GList *l;
 
-  switch ((guint) event->type)
+  switch ((guint) event->any.type)
     {
     case GDK_DRAG_MOTION:
     case GDK_DROP_START:
       context = event->dnd.context;
-      break;
-    case GDK_SELECTION_NOTIFY:
-      for (l = contexts; l; l = l->next)
-        {
-          GdkDragContext *c = l->data;
-
-          if (!c->is_source &&
-              event->selection.selection == gdk_drag_get_selection (c))
-            {
-              context = c;
-              break;
-            }
-        }
       break;
     default:
       return FALSE;

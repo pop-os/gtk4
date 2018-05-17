@@ -55,7 +55,6 @@ static void     gdk_x11_device_core_set_window_cursor (GdkDevice *device,
                                                        GdkWindow *window,
                                                        GdkCursor *cursor);
 static void     gdk_x11_device_core_warp (GdkDevice *device,
-                                          GdkScreen *screen,
                                           gdouble    x,
                                           gdouble    y);
 static void gdk_x11_device_core_query_state (GdkDevice        *device,
@@ -109,8 +108,8 @@ gdk_x11_device_core_init (GdkX11DeviceCore *device_core)
 
   device = GDK_DEVICE (device_core);
 
-  _gdk_device_add_axis (device, GDK_NONE, GDK_AXIS_X, 0, 0, 1);
-  _gdk_device_add_axis (device, GDK_NONE, GDK_AXIS_Y, 0, 0, 1);
+  _gdk_device_add_axis (device, NULL, GDK_AXIS_X, 0, 0, 1);
+  _gdk_device_add_axis (device, NULL, GDK_AXIS_Y, 0, 0, 1);
 }
 
 static gboolean
@@ -217,33 +216,37 @@ gdk_x11_device_core_set_window_cursor (GdkDevice *device,
                                        GdkWindow *window,
                                        GdkCursor *cursor)
 {
+  GdkDisplay *display = gdk_device_get_display (device);
   Cursor xcursor;
 
   if (!cursor)
     xcursor = None;
   else
-    xcursor = gdk_x11_cursor_get_xcursor (cursor);
+    xcursor = gdk_x11_display_get_xcursor (display, cursor);
 
-  XDefineCursor (GDK_WINDOW_XDISPLAY (window),
+  XDefineCursor (GDK_DISPLAY_XDISPLAY (display),
                  GDK_WINDOW_XID (window),
                  xcursor);
 }
 
 static void
 gdk_x11_device_core_warp (GdkDevice *device,
-                          GdkScreen *screen,
                           gdouble    x,
                           gdouble    y)
 {
+  GdkDisplay *display;
   Display *xdisplay;
   Window dest;
+  GdkX11Screen *screen;
 
-  xdisplay = GDK_DISPLAY_XDISPLAY (gdk_device_get_display (device));
-  dest = GDK_WINDOW_XID (gdk_screen_get_root_window (screen));
+  display = gdk_device_get_display (device);
+  xdisplay = GDK_DISPLAY_XDISPLAY (display);
+  screen = GDK_X11_DISPLAY (display)->screen;
+  dest = GDK_SCREEN_XROOTWIN (screen);
 
   XWarpPointer (xdisplay, None, dest, 0, 0, 0, 0,
-                round (x * GDK_X11_SCREEN (screen)->window_scale),
-                round (y * GDK_X11_SCREEN (screen)->window_scale));
+                round (x * screen->window_scale),
+                round (y * screen->window_scale));
 }
 
 static void
@@ -256,22 +259,30 @@ gdk_x11_device_core_query_state (GdkDevice        *device,
                                  gdouble          *win_y,
                                  GdkModifierType  *mask)
 {
-  GdkWindowImplX11 *impl;
   GdkDisplay *display;
-  GdkScreen *default_screen;
+  GdkX11Screen *screen;
+  Window xwindow, w;
   Window xroot_window, xchild_window;
   int xroot_x, xroot_y, xwin_x, xwin_y;
   unsigned int xmask;
+  int scale;
 
   display = gdk_device_get_display (device);
-  default_screen = gdk_display_get_default_screen (display);
+  screen = GDK_X11_DISPLAY (display)->screen;
   if (window == NULL)
-    window = gdk_screen_get_root_window (default_screen);
-  impl = GDK_WINDOW_IMPL_X11 (window->impl);
+    {
+      xwindow = GDK_SCREEN_XROOTWIN (screen);
+      scale = screen->window_scale;
+    }
+  else
+    {
+      xwindow = GDK_WINDOW_XID (window);
+      scale = GDK_WINDOW_IMPL_X11 (window->impl)->window_scale;
+    }
 
   if (!GDK_X11_DISPLAY (display)->trusted_client ||
       !XQueryPointer (GDK_WINDOW_XDISPLAY (window),
-                      GDK_WINDOW_XID (window),
+                      xwindow,
                       &xroot_window,
                       &xchild_window,
                       &xroot_x, &xroot_y,
@@ -280,11 +291,10 @@ gdk_x11_device_core_query_state (GdkDevice        *device,
     {
       XSetWindowAttributes attributes;
       Display *xdisplay;
-      Window xwindow, w;
 
       /* FIXME: untrusted clients not multidevice-safe */
-      xdisplay = GDK_SCREEN_XDISPLAY (default_screen);
-      xwindow = GDK_SCREEN_XROOTWIN (default_screen);
+      xdisplay = GDK_SCREEN_XDISPLAY (screen);
+      xwindow = GDK_SCREEN_XROOTWIN (screen);
 
       w = XCreateWindow (xdisplay, xwindow, 0, 0, 1, 1, 0,
                          CopyFromParent, InputOnly, CopyFromParent,
@@ -302,16 +312,16 @@ gdk_x11_device_core_query_state (GdkDevice        *device,
     *child_window = gdk_x11_window_lookup_for_display (display, xchild_window);
 
   if (root_x)
-    *root_x = (double)xroot_x / impl->window_scale;
+    *root_x = (double)xroot_x / scale;
 
   if (root_y)
-    *root_y = (double)xroot_y / impl->window_scale;
+    *root_y = (double)xroot_y / scale;
 
   if (win_x)
-    *win_x = (double)xwin_x / impl->window_scale;
+    *win_x = (double)xwin_x / scale;
 
   if (win_y)
-    *win_y = (double)xwin_y / impl->window_scale;
+    *win_y = (double)xwin_y / scale;
 
   if (mask)
     *mask = xmask;
@@ -367,8 +377,7 @@ gdk_x11_device_core_grab (GdkDevice    *device,
         xcursor = None;
       else
         {
-          _gdk_x11_cursor_update_theme (cursor);
-          xcursor = gdk_x11_cursor_get_xcursor (cursor);
+          xcursor = gdk_x11_display_get_xcursor (display, cursor);
         }
 
       xevent_mask = 0;
@@ -426,16 +435,16 @@ gdk_x11_device_core_window_at_position (GdkDevice       *device,
 {
   GdkWindowImplX11 *impl;
   GdkDisplay *display;
-  GdkScreen *screen;
   Display *xdisplay;
   GdkWindow *window;
+  GdkX11Screen *screen;
   Window xwindow, root, child, last;
   int xroot_x, xroot_y, xwin_x, xwin_y;
   unsigned int xmask;
 
   last = None;
   display = gdk_device_get_display (device);
-  screen = gdk_display_get_default_screen (display);
+  screen = GDK_X11_DISPLAY (display)->screen;
 
   /* This function really only works if the mouse pointer is held still
    * during its operation. If it moves from one leaf window to another
@@ -470,8 +479,7 @@ gdk_x11_device_core_window_at_position (GdkDevice       *device,
 
       /* FIXME: untrusted clients case not multidevice-safe */
       pointer_window = None;
-      screen = gdk_display_get_default_screen (display);
-      toplevels = gdk_screen_get_toplevel_windows (screen);
+      toplevels = gdk_x11_display_get_toplevel_windows (display);
       for (list = toplevels; list != NULL; list = list->next)
         {
           window = GDK_WINDOW (list->data);
@@ -514,8 +522,6 @@ gdk_x11_device_core_window_at_position (GdkDevice       *device,
                 }
             }
         }
-
-      g_list_free (toplevels);
 
       xwindow = pointer_window;
     }

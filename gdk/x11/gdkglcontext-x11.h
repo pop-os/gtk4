@@ -29,10 +29,9 @@
 
 #include "gdkglcontextprivate.h"
 #include "gdkdisplayprivate.h"
-#include "gdkvisual.h"
+#include "gdkvisual-x11.h"
 #include "gdkwindow.h"
 #include "gdkinternals.h"
-#include "gdkmain.h"
 
 G_BEGIN_DECLS
 
@@ -55,7 +54,7 @@ struct _GdkX11GLContextClass
   GdkGLContextClass parent_class;
 };
 
-gboolean        gdk_x11_screen_init_gl                          (GdkScreen         *screen);
+gboolean        gdk_x11_screen_init_gl                          (GdkX11Screen      *screen);
 GdkGLContext *  gdk_x11_window_create_gl_context                (GdkWindow         *window,
 								 gboolean           attached,
                                                                  GdkGLContext      *share,

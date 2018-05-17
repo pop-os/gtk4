@@ -47,7 +47,6 @@ void gtk_drag_get_data (GtkWidget      *widget,
 GDK_AVAILABLE_IN_ALL
 void gtk_drag_finish   (GdkDragContext *context,
 			gboolean        success,
-			gboolean        del,
 			guint32         time_);
 
 GDK_AVAILABLE_IN_ALL
@@ -62,10 +61,9 @@ void gtk_drag_unhighlight (GtkWidget  *widget);
 
 GDK_AVAILABLE_IN_3_10
 GdkDragContext *gtk_drag_begin_with_coordinates (GtkWidget         *widget,
-                                                 GtkTargetList     *targets,
+                                                 GdkDevice         *device,
+                                                 GdkContentFormats *targets,
                                                  GdkDragAction      actions,
-                                                 gint               button,
-                                                 GdkEvent          *event,
                                                  gint               x,
                                                  gint               y);
 
@@ -78,13 +76,13 @@ void gtk_drag_set_icon_widget (GdkDragContext *context,
 			       gint            hot_x,
 			       gint            hot_y);
 GDK_AVAILABLE_IN_ALL
-void gtk_drag_set_icon_pixbuf (GdkDragContext *context,
-			       GdkPixbuf      *pixbuf,
-			       gint            hot_x,
-			       gint            hot_y);
-GDK_AVAILABLE_IN_ALL
 void gtk_drag_set_icon_surface(GdkDragContext *context,
 			       cairo_surface_t *surface);
+GDK_AVAILABLE_IN_3_94
+void gtk_drag_set_icon_texture(GdkDragContext *context,
+			       GdkTexture     *texture,
+                               int             hot_x,
+                               int             hot_y);
 GDK_AVAILABLE_IN_ALL
 void gtk_drag_set_icon_name   (GdkDragContext *context,
 			       const gchar    *icon_name,

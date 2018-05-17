@@ -116,8 +116,8 @@ static void gtk_button_get_property   (GObject            *object,
                                        guint               prop_id,
                                        GValue             *value,
                                        GParamSpec         *pspec);
-static void gtk_button_screen_changed (GtkWidget          *widget,
-				       GdkScreen          *previous_screen);
+static void gtk_button_display_changed (GtkWidget         *widget,
+				        GdkDisplay        *previous_display);
 static void gtk_button_unrealize (GtkWidget * widget);
 static gint gtk_button_grab_broken (GtkWidget * widget,
 				    GdkEventGrabBroken * event);
@@ -200,7 +200,7 @@ gtk_button_class_init (GtkButtonClass *klass)
   gobject_class->get_property = gtk_button_get_property;
 
   widget_class->measure = gtk_button_measure_;
-  widget_class->screen_changed = gtk_button_screen_changed;
+  widget_class->display_changed = gtk_button_display_changed;
   widget_class->unrealize = gtk_button_unrealize;
   widget_class->grab_broken_event = gtk_button_grab_broken;
   widget_class->key_release_event = gtk_button_key_release;
@@ -284,7 +284,7 @@ gtk_button_class_init (GtkButtonClass *klass)
   widget_class->activate_signal = button_signals[ACTIVATE];
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_BUTTON_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "button");
+  gtk_widget_class_set_css_name (widget_class, I_("button"));
 }
 
 static void
@@ -313,7 +313,6 @@ multipress_pressed_cb (GtkGestureMultiPress *gesture,
 static gboolean
 touch_release_in_button (GtkButton *button)
 {
-  GtkAllocation allocation;
   GdkEvent *event;
   gdouble x, y;
 
@@ -324,16 +323,15 @@ touch_release_in_button (GtkButton *button)
 
   if (gdk_event_get_event_type (event) != GDK_TOUCH_END)
     {
-      gdk_event_free (event);
+      g_object_unref (event);
       return FALSE;
     }
 
   gdk_event_get_coords (event, &x, &y);
-  gtk_widget_get_own_allocation (GTK_WIDGET (button), &allocation);
 
-  gdk_event_free (event);
+  g_object_unref (event);
 
-  if (gdk_rectangle_contains_point (&allocation, x, y))
+  if (gtk_widget_contains (GTK_WIDGET (button), x, y))
     return TRUE;
 
   return FALSE;
@@ -370,17 +368,15 @@ multipress_gesture_update_cb (GtkGesture       *gesture,
                               GtkButton        *button)
 {
   GtkButtonPrivate *priv = button->priv;
-  GtkAllocation allocation;
   gboolean in_button;
   gdouble x, y;
 
   if (sequence != gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture)))
     return;
 
-  gtk_widget_get_own_allocation (GTK_WIDGET (button), &allocation);
   gtk_gesture_get_point (gesture, sequence, &x, &y);
 
-  in_button = gdk_rectangle_contains_point (&allocation, x, y);
+  in_button = gtk_widget_contains (GTK_WIDGET (button), x, y);
 
   if (priv->in_button != in_button)
     {
@@ -618,7 +614,6 @@ gtk_button_new_with_label (const gchar *label)
 /**
  * gtk_button_new_from_icon_name:
  * @icon_name: (nullable): an icon name or %NULL
- * @size: (type int): an icon size (#GtkIconSize)
  *
  * Creates a new button containing an icon from the current icon theme.
  *
@@ -631,15 +626,13 @@ gtk_button_new_with_label (const gchar *label)
  * Since: 3.10
  */
 GtkWidget*
-gtk_button_new_from_icon_name (const gchar *icon_name,
-                               GtkIconSize  size)
+gtk_button_new_from_icon_name (const gchar *icon_name)
 {
   GtkWidget *button;
-  GtkWidget *image;
 
-  image = gtk_image_new_from_icon_name (icon_name, size);
-  button =  g_object_new (GTK_TYPE_BUTTON, NULL);
-  gtk_container_add (GTK_CONTAINER (button), image);
+  button = g_object_new (GTK_TYPE_BUTTON,
+                         "icon-name", icon_name,
+                         NULL);
 
   return button;
 }
@@ -1039,19 +1032,16 @@ gtk_button_update_state (GtkButton *button)
 }
 
 static void
-gtk_button_screen_changed (GtkWidget *widget,
-			   GdkScreen *previous_screen)
+gtk_button_display_changed (GtkWidget  *widget,
+                            GdkDisplay *previous_display)
 {
   GtkButton *button;
   GtkButtonPrivate *priv;
 
-  if (!gtk_widget_has_screen (widget))
-    return;
-
   button = GTK_BUTTON (widget);
   priv = button->priv;
 
-  /* If the button is being pressed while the screen changes the
+  /* If the button is being pressed while the display changes the
     release might never occur, so we reset the state. */
   if (priv->button_down)
     {
@@ -1116,14 +1106,14 @@ gtk_button_set_icon_name (GtkButton  *button,
       if (child != NULL)
         gtk_container_remove (GTK_CONTAINER (button), child);
 
-      child = gtk_image_new_from_icon_name (icon_name, GTK_ICON_SIZE_BUTTON);
+      child = gtk_image_new_from_icon_name (icon_name);
       gtk_container_add (GTK_CONTAINER (button), child);
       gtk_style_context_remove_class (context, "text-button");
       gtk_style_context_add_class (context, "image-button");
     }
   else
     {
-      gtk_image_set_from_icon_name (GTK_IMAGE (child), icon_name, GTK_ICON_SIZE_BUTTON);
+      gtk_image_set_from_icon_name (GTK_IMAGE (child), icon_name);
     }
 
   gtk_button_set_child_type (button, ICON_CHILD);
@@ -1149,12 +1139,18 @@ gtk_button_get_icon_name (GtkButton *button)
 
   if (priv->child_type == ICON_CHILD)
     {
-      const char *icon_name;
       GtkWidget *child = gtk_bin_get_child (GTK_BIN (button));
-      gtk_image_get_icon_name (GTK_IMAGE (child), &icon_name, NULL);
 
-      return icon_name;
+      return gtk_image_get_icon_name (GTK_IMAGE (child));
     }
 
   return NULL;
+}
+
+GtkGesture *
+gtk_button_get_gesture (GtkButton *button)
+{
+  GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
+
+  return priv->gesture;
 }

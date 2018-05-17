@@ -53,8 +53,8 @@ do_markup (GtkWidget *do_widget)
       GtkWidget *show_source;
 
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-      gtk_window_set_screen (GTK_WINDOW (window),
-                             gtk_widget_get_screen (do_widget));
+      gtk_window_set_display (GTK_WINDOW (window),
+                              gtk_widget_get_display (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window), 450, 450);
       g_signal_connect (window, "destroy",
                         G_CALLBACK (gtk_widget_destroyed), &window);
@@ -68,7 +68,7 @@ do_markup (GtkWidget *do_widget)
       g_signal_connect (show_source, "toggled", G_CALLBACK (source_toggled), stack);
 
       header = gtk_header_bar_new ();
-      gtk_header_bar_set_show_close_button (GTK_HEADER_BAR (header), TRUE);
+      gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
       gtk_header_bar_pack_start (GTK_HEADER_BAR (header), show_source);
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
 

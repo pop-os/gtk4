@@ -25,6 +25,7 @@
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <gdk/gdk.h>
 #include <gtk/gtkstylecontext.h>
+#include <gsk/gsk.h>
 
 G_BEGIN_DECLS
 
@@ -59,9 +60,9 @@ typedef struct _GtkIconThemePrivate GtkIconThemePrivate;
  *
  * Acts as a database of information about an icon theme.
  * Normally, you retrieve the icon theme for a particular
- * screen using gtk_icon_theme_get_for_screen() and it
+ * display using gtk_icon_theme_get_for_display() and it
  * will contain information about current icon theme for
- * that screen, but you can also create a new #GtkIconTheme
+ * that display, but you can also create a new #GtkIconTheme
  * object and set the icon theme name explicitly using
  * gtk_icon_theme_set_custom_theme().
  */
@@ -167,11 +168,11 @@ GDK_AVAILABLE_IN_ALL
 GtkIconTheme *gtk_icon_theme_new                   (void);
 GDK_AVAILABLE_IN_ALL
 GtkIconTheme *gtk_icon_theme_get_default           (void);
-GDK_AVAILABLE_IN_ALL
-GtkIconTheme *gtk_icon_theme_get_for_screen        (GdkScreen                   *screen);
-GDK_AVAILABLE_IN_ALL
-void          gtk_icon_theme_set_screen            (GtkIconTheme                *icon_theme,
-						    GdkScreen                   *screen);
+GDK_AVAILABLE_IN_3_94
+GtkIconTheme *gtk_icon_theme_get_for_display       (GdkDisplay                  *display);
+GDK_AVAILABLE_IN_3_94
+void          gtk_icon_theme_set_display           (GtkIconTheme                *icon_theme,
+						    GdkDisplay                  *display);
 
 GDK_AVAILABLE_IN_ALL
 void          gtk_icon_theme_set_search_path       (GtkIconTheme                *icon_theme,
@@ -293,6 +294,9 @@ GDK_AVAILABLE_IN_3_10
 cairo_surface_t *     gtk_icon_info_load_surface       (GtkIconInfo   *icon_info,
 							GdkWindow     *for_window,
 							GError       **error);
+GDK_AVAILABLE_IN_3_94
+GdkTexture *          gtk_icon_info_load_texture       (GtkIconInfo   *icon_info);
+
 GDK_AVAILABLE_IN_3_8
 void                  gtk_icon_info_load_icon_async   (GtkIconInfo          *icon_info,
 						       GCancellable         *cancellable,
@@ -340,13 +344,6 @@ GdkPixbuf *           gtk_icon_info_load_symbolic_for_context_finish (GtkIconInf
 								      GAsyncResult     *res,
 								      gboolean         *was_symbolic,
 								      GError          **error);
-
-#ifndef GDK_MULTIHEAD_SAFE
-GDK_AVAILABLE_IN_ALL
-gboolean gtk_icon_size_lookup (GtkIconSize  size,
-                               gint        *width,
-                               gint        *height);
-#endif /* GDK_MULTIHEAD_SAFE */
 
 
 G_END_DECLS

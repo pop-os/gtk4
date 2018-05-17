@@ -70,7 +70,7 @@ struct _GtkHeaderBarPrivate
 
   GList *children;
 
-  gboolean shows_wm_decorations;
+  gboolean show_title_buttons;
   gchar *decoration_layout;
   gboolean decoration_layout_set;
 
@@ -81,6 +81,8 @@ struct _GtkHeaderBarPrivate
   GtkWidget *titlebar_end_separator;
 
   GtkWidget *titlebar_icon;
+
+  GdkWindowState state;
 
   guint shows_app_menu : 1;
 };
@@ -99,7 +101,7 @@ enum {
   PROP_HAS_SUBTITLE,
   PROP_CUSTOM_TITLE,
   PROP_SPACING,
-  PROP_SHOW_CLOSE_BUTTON,
+  PROP_SHOW_TITLE_BUTTONS,
   PROP_DECORATION_LAYOUT,
   PROP_DECORATION_LAYOUT_SET,
   LAST_PROP
@@ -200,7 +202,7 @@ _gtk_header_bar_update_window_icon (GtkHeaderBar *bar,
                                     GtkWindow    *window)
 {
   GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
-  GdkPixbuf *pixbuf;
+  GdkTexture *texture;
   gint scale;
 
   if (priv->titlebar_icon == NULL)
@@ -208,19 +210,14 @@ _gtk_header_bar_update_window_icon (GtkHeaderBar *bar,
 
   scale = gtk_widget_get_scale_factor (priv->titlebar_icon);
   if (GTK_IS_BUTTON (gtk_widget_get_parent (priv->titlebar_icon)))
-    pixbuf = gtk_window_get_icon_for_size (window, scale * 16);
+    texture = gtk_window_get_icon_for_size (window, 16 * scale);
   else
-    pixbuf = gtk_window_get_icon_for_size (window, scale * 20);
+    texture = gtk_window_get_icon_for_size (window, 20 * scale);
 
-  if (pixbuf)
+  if (texture)
     {
-      cairo_surface_t *surface;
-
-      surface = gdk_cairo_surface_create_from_pixbuf (pixbuf, scale, gtk_widget_get_window (priv->titlebar_icon));
-
-      gtk_image_set_from_surface (GTK_IMAGE (priv->titlebar_icon), surface);
-      cairo_surface_destroy (surface);
-      g_object_unref (pixbuf);
+      gtk_image_set_from_texture (GTK_IMAGE (priv->titlebar_icon), texture);
+      g_object_unref (texture);
       gtk_widget_show (priv->titlebar_icon);
 
       return TRUE;
@@ -291,7 +288,7 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
   priv->titlebar_icon = NULL;
   priv->shows_app_menu = FALSE;
 
-  if (!priv->shows_wm_decorations)
+  if (!priv->show_title_buttons)
     return;
 
   direction = gtk_widget_get_direction (widget);
@@ -380,8 +377,7 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
 
                   priv->titlebar_icon = image;
                   if (!_gtk_header_bar_update_window_icon (bar, window))
-                    gtk_image_set_from_icon_name (GTK_IMAGE (priv->titlebar_icon),
-                                                  "application-x-executable-symbolic", GTK_ICON_SIZE_MENU);
+                    gtk_image_set_from_icon_name (GTK_IMAGE (priv->titlebar_icon), "application-x-executable-symbolic");
 
                   priv->shows_app_menu = TRUE;
                 }
@@ -392,7 +388,7 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
                   gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
                   gtk_style_context_add_class (gtk_widget_get_style_context (button), "titlebutton");
                   gtk_style_context_add_class (gtk_widget_get_style_context (button), "minimize");
-                  image = gtk_image_new_from_icon_name ("window-minimize-symbolic", GTK_ICON_SIZE_MENU);
+                  image = gtk_image_new_from_icon_name ("window-minimize-symbolic");
                   g_object_set (image, "use-fallback", TRUE, NULL);
                   gtk_container_add (GTK_CONTAINER (button), image);
                   gtk_widget_set_can_focus (button, FALSE);
@@ -415,7 +411,7 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
                   gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
                   gtk_style_context_add_class (gtk_widget_get_style_context (button), "titlebutton");
                   gtk_style_context_add_class (gtk_widget_get_style_context (button), "maximize");
-                  image = gtk_image_new_from_icon_name (icon_name, GTK_ICON_SIZE_MENU);
+                  image = gtk_image_new_from_icon_name (icon_name);
                   g_object_set (image, "use-fallback", TRUE, NULL);
                   gtk_container_add (GTK_CONTAINER (button), image);
                   gtk_widget_set_can_focus (button, FALSE);
@@ -431,7 +427,7 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
                 {
                   button = gtk_button_new ();
                   gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
-                  image = gtk_image_new_from_icon_name ("window-close-symbolic", GTK_ICON_SIZE_MENU);
+                  image = gtk_image_new_from_icon_name ("window-close-symbolic");
                   gtk_style_context_add_class (gtk_widget_get_style_context (button), "titlebutton");
                   gtk_style_context_add_class (gtk_widget_get_style_context (button), "close");
                   g_object_set (image, "use-fallback", TRUE, NULL);
@@ -507,8 +503,7 @@ _gtk_header_bar_shows_app_menu (GtkHeaderBar *bar)
 {
   GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
 
-  return priv->shows_wm_decorations &&
-         priv->shows_app_menu;
+  return priv->show_title_buttons && priv->shows_app_menu;
 }
 
 /* As an intended side effect, this function allows @child
@@ -1462,8 +1457,8 @@ gtk_header_bar_get_property (GObject    *object,
       g_value_set_int (value, priv->spacing);
       break;
 
-    case PROP_SHOW_CLOSE_BUTTON:
-      g_value_set_boolean (value, gtk_header_bar_get_show_close_button (bar));
+    case PROP_SHOW_TITLE_BUTTONS:
+      g_value_set_boolean (value, gtk_header_bar_get_show_title_buttons (bar));
       break;
 
     case PROP_HAS_SUBTITLE:
@@ -1516,8 +1511,8 @@ gtk_header_bar_set_property (GObject      *object,
         }
       break;
 
-    case PROP_SHOW_CLOSE_BUTTON:
-      gtk_header_bar_set_show_close_button (bar, g_value_get_boolean (value));
+    case PROP_SHOW_TITLE_BUTTONS:
+      gtk_header_bar_set_show_title_buttons (bar, g_value_get_boolean (value));
       break;
 
     case PROP_HAS_SUBTITLE:
@@ -1768,6 +1763,8 @@ gtk_header_bar_set_child_property (GtkContainer *container,
     }
 }
 
+static void window_state_changed (GtkWidget *widget);
+
 static void
 gtk_header_bar_realize (GtkWidget *widget)
 {
@@ -1780,6 +1777,8 @@ gtk_header_bar_realize (GtkWidget *widget)
                             G_CALLBACK (_gtk_header_bar_update_window_buttons), widget);
   g_signal_connect_swapped (settings, "notify::gtk-decoration-layout",
                             G_CALLBACK (_gtk_header_bar_update_window_buttons), widget);
+  g_signal_connect_swapped (_gtk_widget_get_window (widget), "notify::state",
+                            G_CALLBACK (window_state_changed), widget);
   _gtk_header_bar_update_window_buttons (GTK_HEADER_BAR (widget));
 }
 
@@ -1791,41 +1790,37 @@ gtk_header_bar_unrealize (GtkWidget *widget)
   settings = gtk_widget_get_settings (widget);
 
   g_signal_handlers_disconnect_by_func (settings, _gtk_header_bar_update_window_buttons, widget);
+  g_signal_handlers_disconnect_by_func (_gtk_widget_get_window (widget), window_state_changed, widget);
 
   GTK_WIDGET_CLASS (gtk_header_bar_parent_class)->unrealize (widget);
 }
 
-static gboolean
-window_state_changed (GtkWidget           *window,
-                      GdkEventWindowState *event,
-                      gpointer             data)
+static void
+window_state_changed (GtkWidget *widget)
 {
-  GtkHeaderBar *bar = GTK_HEADER_BAR (data);
+  GtkHeaderBar *bar = GTK_HEADER_BAR (widget);
+  GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
   GdkWindowState changed, new_state;
 
-  gdk_event_get_window_state ((GdkEvent *)event, &changed, &new_state);
-  if (changed & (GDK_WINDOW_STATE_FULLSCREEN | GDK_WINDOW_STATE_MAXIMIZED | GDK_WINDOW_STATE_TILED))
-    _gtk_header_bar_update_window_buttons (bar);
+  new_state = gdk_window_get_state (_gtk_widget_get_window (widget));
+  changed = new_state ^ priv->state;
+  priv->state = new_state;
 
-  return FALSE;
+  if (changed & (GDK_WINDOW_STATE_FULLSCREEN |
+                 GDK_WINDOW_STATE_MAXIMIZED |
+                 GDK_WINDOW_STATE_TILED |
+                 GDK_WINDOW_STATE_TOP_TILED |
+                 GDK_WINDOW_STATE_RIGHT_TILED |
+                 GDK_WINDOW_STATE_BOTTOM_TILED |
+                 GDK_WINDOW_STATE_LEFT_TILED))
+    _gtk_header_bar_update_window_buttons (bar);
 }
 
 static void
 gtk_header_bar_hierarchy_changed (GtkWidget *widget,
                                   GtkWidget *previous_toplevel)
 {
-  GtkWidget *toplevel;
   GtkHeaderBar *bar = GTK_HEADER_BAR (widget);
-
-  toplevel = gtk_widget_get_toplevel (widget);
-
-  if (previous_toplevel)
-    g_signal_handlers_disconnect_by_func (previous_toplevel,
-                                          window_state_changed, widget);
-
-  if (toplevel)
-    g_signal_connect_after (toplevel, "window-state-event",
-                            G_CALLBACK (window_state_changed), widget);
 
   _gtk_header_bar_update_window_buttons (bar);
 }
@@ -1910,19 +1905,19 @@ gtk_header_bar_class_init (GtkHeaderBarClass *class)
                         GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkHeaderBar:show-close-button:
+   * GtkHeaderBar:show-title-buttons:
    *
-   * Whether to show window decorations.
+   * Whether to show title buttons like close, minimize, maximize.
    *
    * Which buttons are actually shown and where is determined
    * by the #GtkHeaderBar:decoration-layout property, and by
    * the state of the window (e.g. a close button will not be
    * shown if the window can't be closed).
    */
-  header_bar_props[PROP_SHOW_CLOSE_BUTTON] =
-      g_param_spec_boolean ("show-close-button",
-                            P_("Show decorations"),
-                            P_("Whether to show window decorations"),
+  header_bar_props[PROP_SHOW_TITLE_BUTTONS] =
+      g_param_spec_boolean ("show-title-buttons",
+                            P_("Show title buttons"),
+                            P_("Whether to show title buttons"),
                             FALSE,
                             GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
@@ -1977,7 +1972,7 @@ gtk_header_bar_class_init (GtkHeaderBarClass *class)
   g_object_class_install_properties (object_class, LAST_PROP, header_bar_props);
 
   gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_PANEL);
-  gtk_widget_class_set_css_name (widget_class, "headerbar");
+  gtk_widget_class_set_css_name (widget_class, I_("headerbar"));
 }
 
 static void
@@ -1998,6 +1993,7 @@ gtk_header_bar_init (GtkHeaderBar *bar)
   priv->decoration_layout = NULL;
   priv->decoration_layout_set = FALSE;
   priv->shows_app_menu = FALSE;
+  priv->state = GDK_WINDOW_STATE_WITHDRAWN;
 
   init_sizing_box (bar);
   construct_label_box (bar);
@@ -2073,18 +2069,18 @@ gtk_header_bar_new (void)
 }
 
 /**
- * gtk_header_bar_get_show_close_button:
+ * gtk_header_bar_get_show_title_buttons:
  * @bar: a #GtkHeaderBar
  *
  * Returns whether this header bar shows the standard window
- * decorations.
+ * title buttons.
  *
- * Returns: %TRUE if the decorations are shown
+ * Returns: %TRUE if title buttons are shown
  *
- * Since: 3.10
+ * Since: 3.94
  */
 gboolean
-gtk_header_bar_get_show_close_button (GtkHeaderBar *bar)
+gtk_header_bar_get_show_title_buttons (GtkHeaderBar *bar)
 {
   GtkHeaderBarPrivate *priv;
 
@@ -2092,22 +2088,22 @@ gtk_header_bar_get_show_close_button (GtkHeaderBar *bar)
 
   priv = gtk_header_bar_get_instance_private (bar);
 
-  return priv->shows_wm_decorations;
+  return priv->show_title_buttons;
 }
 
 /**
- * gtk_header_bar_set_show_close_button:
+ * gtk_header_bar_set_show_title_buttons:
  * @bar: a #GtkHeaderBar
- * @setting: %TRUE to show standard window decorations
+ * @setting: %TRUE to show standard title buttons
  *
- * Sets whether this header bar shows the standard window decorations,
- * including close, maximize, and minimize.
+ * Sets whether this header bar shows the standard window
+ * title buttons including close, maximize, and minimize.
  *
- * Since: 3.10
+ * Since: 3.94
  */
 void
-gtk_header_bar_set_show_close_button (GtkHeaderBar *bar,
-                                      gboolean      setting)
+gtk_header_bar_set_show_title_buttons (GtkHeaderBar *bar,
+                                       gboolean      setting)
 {
   GtkHeaderBarPrivate *priv;
 
@@ -2117,12 +2113,12 @@ gtk_header_bar_set_show_close_button (GtkHeaderBar *bar,
 
   setting = setting != FALSE;
 
-  if (priv->shows_wm_decorations == setting)
+  if (priv->show_title_buttons == setting)
     return;
 
-  priv->shows_wm_decorations = setting;
+  priv->show_title_buttons = setting;
   _gtk_header_bar_update_window_buttons (bar);
-  g_object_notify_by_pspec (G_OBJECT (bar), header_bar_props[PROP_SHOW_CLOSE_BUTTON]);
+  g_object_notify_by_pspec (G_OBJECT (bar), header_bar_props[PROP_SHOW_TITLE_BUTTONS]);
 }
 
 /**

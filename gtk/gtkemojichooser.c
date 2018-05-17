@@ -19,7 +19,7 @@
 
 #include "gtkemojichooser.h"
 
-#include "gtkadjustment.h"
+#include "gtkadjustmentprivate.h"
 #include "gtkbox.h"
 #include "gtkbutton.h"
 #include "gtkcssprovider.h"
@@ -28,6 +28,7 @@
 #include "gtkstack.h"
 #include "gtklabel.h"
 #include "gtkgesturelongpress.h"
+#include "gtkgesturemultipress.h"
 #include "gtkpopover.h"
 #include "gtkscrolledwindow.h"
 #include "gtkintl.h"
@@ -61,9 +62,12 @@ struct _GtkEmojiChooser
   EmojiSection symbols;
   EmojiSection flags;
 
-  GtkGesture *recent_press;
-  GtkGesture *people_press;
-  GtkGesture *body_press;
+  GtkGesture *recent_long_press;
+  GtkGesture *recent_multi_press;
+  GtkGesture *people_long_press;
+  GtkGesture *people_multi_press;
+  GtkGesture *body_long_press;
+  GtkGesture *body_multi_press;
 
   GVariant *data;
 
@@ -91,6 +95,13 @@ gtk_emoji_chooser_finalize (GObject *object)
   g_variant_unref (chooser->data);
   g_object_unref (chooser->settings);
 
+  g_clear_object (&chooser->recent_long_press);
+  g_clear_object (&chooser->recent_multi_press);
+  g_clear_object (&chooser->people_long_press);
+  g_clear_object (&chooser->people_multi_press);
+  g_clear_object (&chooser->body_long_press);
+  g_clear_object (&chooser->body_multi_press);
+
   G_OBJECT_CLASS (gtk_emoji_chooser_parent_class)->finalize (object);
 }
 
@@ -102,26 +113,21 @@ scroll_to_section (GtkButton *button,
   GtkEmojiChooser *chooser;
   GtkAdjustment *adj;
   GtkAllocation alloc = { 0, 0, 0, 0 };
-  double page_increment, value;
-  gboolean dummy;
 
   chooser = GTK_EMOJI_CHOOSER (gtk_widget_get_ancestor (GTK_WIDGET (button), GTK_TYPE_EMOJI_CHOOSER));
 
   adj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (chooser->scrolled_window));
   if (section->heading)
     gtk_widget_get_allocation (section->heading, &alloc);
-  page_increment = gtk_adjustment_get_page_increment (adj);
-  value = gtk_adjustment_get_value (adj);
-  gtk_adjustment_set_page_increment (adj, alloc.y - value);
-  g_signal_emit_by_name (chooser->scrolled_window, "scroll-child", GTK_SCROLL_PAGE_FORWARD, FALSE, &dummy);
-  gtk_adjustment_set_page_increment (adj, page_increment);
+  gtk_adjustment_animate_to_value (adj, alloc.y);
 }
 
 static void
 add_emoji (GtkWidget    *box,
            gboolean      prepend,
            GVariant     *item,
-           gunichar      modifier);
+           gunichar      modifier,
+           GtkEmojiChooser *chooser);
 
 #define MAX_RECENT (7*3)
 
@@ -141,7 +147,7 @@ populate_recent_section (GtkEmojiChooser *chooser)
 
       emoji_data = g_variant_get_child_value (item, 0);
       g_variant_get_child (item, 1, "u", &modifier);
-      add_emoji (chooser->recent.box, FALSE, emoji_data, modifier);
+      add_emoji (chooser->recent.box, FALSE, emoji_data, modifier, chooser);
       g_variant_unref (emoji_data);
       g_variant_unref (item);
     }
@@ -184,7 +190,7 @@ add_recent_item (GtkEmojiChooser *chooser,
     }
   g_list_free (children);
 
-  add_emoji (chooser->recent.box, TRUE, item, modifier);
+  add_emoji (chooser->recent.box, TRUE, item, modifier, chooser);
 
   g_settings_set_value (chooser->settings, "recent-emoji", g_variant_builder_end (&builder));
 
@@ -215,31 +221,12 @@ emoji_activated (GtkFlowBox      *box,
   g_free (text);
 }
 
-static void
-long_pressed_cb (GtkGesture *gesture,
-                 double      x,
-                 double      y,
-                 gpointer    data)
+static gboolean
+has_variations (GVariant *emoji_data)
 {
-  GtkWidget *child;
-  GtkWidget *popover;
-  GtkWidget *view;
-  GtkWidget *box;
-  GVariant *emoji_data;
-  GtkWidget *parent_popover;
   GVariant *codes;
   int i;
   gboolean has_variations;
-  gunichar modifier;
-
-  box = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
-  child = GTK_WIDGET (gtk_flow_box_get_child_at_pos (GTK_FLOW_BOX (box), x, y));
-  if (!child)
-    return;
-
-  emoji_data = (GVariant*) g_object_get_data (G_OBJECT (child), "emoji-data");
-  if (!emoji_data)
-    return;
 
   has_variations = FALSE;
   codes = g_variant_get_child_value (emoji_data, 0);
@@ -254,7 +241,29 @@ long_pressed_cb (GtkGesture *gesture,
         }
     }
   g_variant_unref (codes);
-  if (!has_variations)
+
+  return has_variations;
+}
+
+static void
+show_variations (GtkEmojiChooser *chooser,
+                 GtkWidget       *child)
+{
+  GtkWidget *popover;
+  GtkWidget *view;
+  GtkWidget *box;
+  GVariant *emoji_data;
+  GtkWidget *parent_popover;
+  gunichar modifier;
+
+  if (!child)
+    return;
+
+  emoji_data = (GVariant*) g_object_get_data (G_OBJECT (child), "emoji-data");
+  if (!emoji_data)
+    return;
+
+  if (!has_variations (emoji_data))
     return;
 
   parent_popover = gtk_widget_get_ancestor (child, GTK_TYPE_POPOVER);
@@ -272,18 +281,60 @@ long_pressed_cb (GtkGesture *gesture,
 
   g_signal_connect (box, "child-activated", G_CALLBACK (emoji_activated), parent_popover);
 
-  add_emoji (box, FALSE, emoji_data, 0);
+  add_emoji (box, FALSE, emoji_data, 0, NULL);
   for (modifier = 0x1f3fb; modifier <= 0x1f3ff; modifier++)
-    add_emoji (box, FALSE, emoji_data, modifier);
+    add_emoji (box, FALSE, emoji_data, modifier, NULL);
 
   gtk_popover_popup (GTK_POPOVER (popover));
+}
+
+static void
+long_pressed_cb (GtkGesture *gesture,
+                 double      x,
+                 double      y,
+                 gpointer    data)
+{
+  GtkEmojiChooser *chooser = data;
+  GtkWidget *box;
+  GtkWidget *child;
+
+  box = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+  child = GTK_WIDGET (gtk_flow_box_get_child_at_pos (GTK_FLOW_BOX (box), x, y));
+  show_variations (chooser, child);
+}
+
+static void
+pressed_cb (GtkGesture *gesture,
+            int         n_press,
+            double      x,
+            double      y,
+            gpointer    data)
+{
+  GtkEmojiChooser *chooser = data;
+  GtkWidget *box;
+  GtkWidget *child;
+
+  box = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+  child = GTK_WIDGET (gtk_flow_box_get_child_at_pos (GTK_FLOW_BOX (box), x, y));
+  show_variations (chooser, child);
+}
+
+static gboolean
+popup_menu (GtkWidget *widget,
+            gpointer   data)
+{
+  GtkEmojiChooser *chooser = data;
+
+  show_variations (chooser, widget);
+  return TRUE;
 }
 
 static void
 add_emoji (GtkWidget    *box,
            gboolean      prepend,
            GVariant     *item,
-           gunichar      modifier)
+           gunichar      modifier,
+           GtkEmojiChooser *chooser)
 {
   GtkWidget *child;
   GtkWidget *label;
@@ -292,6 +343,9 @@ add_emoji (GtkWidget    *box,
   char text[64];
   char *p = text;
   int i;
+  PangoLayout *layout;
+  PangoRectangle rect;
+  int width;
 
   codes = g_variant_get_child_value (item, 0);
   for (i = 0; i < g_variant_n_children (codes); i++)
@@ -307,11 +361,26 @@ add_emoji (GtkWidget    *box,
   g_variant_unref (codes);
   p[0] = 0;
 
-  label = gtk_label_new (text);
+  label = gtk_label_new ("🙂");
   attrs = pango_attr_list_new ();
   pango_attr_list_insert (attrs, pango_attr_scale_new (PANGO_SCALE_X_LARGE));
   gtk_label_set_attributes (GTK_LABEL (label), attrs);
   pango_attr_list_unref (attrs);
+
+  layout = gtk_label_get_layout (GTK_LABEL (label));
+  pango_layout_get_extents (layout, &rect, NULL);
+  width = rect.width;
+
+  gtk_label_set_text (GTK_LABEL (label), text);
+  layout = gtk_label_get_layout (GTK_LABEL (label));
+  pango_layout_get_extents (layout, &rect, NULL);
+
+  /* Check for fallback rendering that generates too wide items */
+  if (rect.width >= 2 * width)
+    {
+      gtk_widget_destroy (label);
+      return;
+    }
 
   child = gtk_flow_box_child_new ();
   gtk_style_context_add_class (gtk_widget_get_style_context (child), "emoji");
@@ -320,6 +389,9 @@ add_emoji (GtkWidget    *box,
                           (GDestroyNotify)g_variant_unref);
   if (modifier != 0)
     g_object_set_data (G_OBJECT (child), "modifier", GUINT_TO_POINTER (modifier));
+
+  if (chooser)
+    g_signal_connect (child, "popup-menu", G_CALLBACK (popup_menu), chooser);
 
   gtk_container_add (GTK_CONTAINER (child), label);
   gtk_flow_box_insert (GTK_FLOW_BOX (box), child, prepend ? 0 : -1);
@@ -361,7 +433,7 @@ populate_emoji_chooser (GtkEmojiChooser *chooser)
       else if (strcmp (name, chooser->flags.first) == 0)
         box = chooser->flags.box;
 
-      add_emoji (box, FALSE, item, 0);
+      add_emoji (box, FALSE, item, 0, chooser);
       g_variant_unref (item);
     }
 
@@ -544,14 +616,23 @@ gtk_emoji_chooser_init (GtkEmojiChooser *chooser)
 
   gtk_widget_init_template (GTK_WIDGET (chooser));
 
-  chooser->recent_press = gtk_gesture_long_press_new (chooser->recent.box);
-  g_signal_connect (chooser->recent_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
+  chooser->recent_long_press = gtk_gesture_long_press_new (chooser->recent.box);
+  g_signal_connect (chooser->recent_long_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
+  chooser->recent_multi_press = gtk_gesture_multi_press_new (chooser->recent.box);
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (chooser->recent_multi_press), GDK_BUTTON_SECONDARY);
+  g_signal_connect (chooser->recent_multi_press, "pressed", G_CALLBACK (pressed_cb), chooser);
 
-  chooser->people_press = gtk_gesture_long_press_new (chooser->people.box);
-  g_signal_connect (chooser->people_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
+  chooser->people_long_press = gtk_gesture_long_press_new (chooser->people.box);
+  g_signal_connect (chooser->people_long_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
+  chooser->people_multi_press = gtk_gesture_multi_press_new (chooser->people.box);
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (chooser->people_multi_press), GDK_BUTTON_SECONDARY);
+  g_signal_connect (chooser->people_multi_press, "pressed", G_CALLBACK (pressed_cb), chooser);
 
-  chooser->body_press = gtk_gesture_long_press_new (chooser->body.box);
-  g_signal_connect (chooser->body_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
+  chooser->body_long_press = gtk_gesture_long_press_new (chooser->body.box);
+  g_signal_connect (chooser->body_long_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
+  chooser->body_multi_press = gtk_gesture_multi_press_new (chooser->body.box);
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (chooser->body_multi_press), GDK_BUTTON_SECONDARY);
+  g_signal_connect (chooser->body_multi_press, "pressed", G_CALLBACK (pressed_cb), chooser);
 
   adj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (chooser->scrolled_window));
   g_signal_connect (adj, "value-changed", G_CALLBACK (adj_value_changed), chooser);

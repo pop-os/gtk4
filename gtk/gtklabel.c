@@ -32,7 +32,6 @@
 #include "gtkbindings.h"
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
-#include "gtkclipboard.h"
 #include "gtkcssshadowsvalueprivate.h"
 #include "gtkcssstylepropertyprivate.h"
 #include "gtkdnd.h"
@@ -55,6 +54,7 @@
 #include "gtkwindow.h"
 #include "gtkcssnodeprivate.h"
 #include "gtkwidgetprivate.h"
+#include "gtkeventcontrollermotion.h"
 
 #include "a11y/gtklabelaccessibleprivate.h"
 
@@ -328,12 +328,14 @@ struct _GtkLabelSelectionInfo
   gint selection_end;
   GtkWidget *popup_menu;
   GtkCssNode *selection_node;
+  GdkContentProvider *provider;
 
   GList *links;
   GtkLabelLink *active_link;
 
   GtkGesture *drag_gesture;
   GtkGesture *multipress_gesture;
+  GtkEventController *motion_controller;
 
   gint drag_start_x;
   gint drag_start_y;
@@ -412,12 +414,15 @@ static gboolean gtk_label_focus         (GtkWidget         *widget,
                                          GtkDirectionType   direction);
 
 static void gtk_label_realize           (GtkWidget        *widget);
+static void gtk_label_unrealize         (GtkWidget        *widget);
 static void gtk_label_unmap             (GtkWidget        *widget);
 
-static gboolean gtk_label_motion            (GtkWidget        *widget,
-					     GdkEventMotion   *event);
-static gboolean gtk_label_leave_notify      (GtkWidget        *widget,
-                                             GdkEventCrossing *event);
+static void gtk_label_motion            (GtkEventControllerMotion *controller,
+                                         double                    x,
+                                         double                    y,
+                                         gpointer                  data);
+static void gtk_label_leave             (GtkEventControllerMotion *controller,
+                                         gpointer                  data);
 
 static void     gtk_label_grab_focus        (GtkWidget        *widget);
 
@@ -446,8 +451,8 @@ static void gtk_label_set_markup_internal        (GtkLabel      *label,
 static void gtk_label_recalculate                (GtkLabel      *label);
 static void gtk_label_hierarchy_changed          (GtkWidget     *widget,
 						  GtkWidget     *old_toplevel);
-static void gtk_label_screen_changed             (GtkWidget     *widget,
-						  GdkScreen     *old_screen);
+static void gtk_label_display_changed            (GtkWidget     *widget,
+						  GdkDisplay    *old_display);
 static gboolean gtk_label_popup_menu             (GtkWidget     *widget);
 
 static void gtk_label_set_selectable_hint (GtkLabel *label);
@@ -471,7 +476,6 @@ static void     gtk_label_setup_mnemonic    (GtkLabel          *label,
 static void     gtk_label_drag_data_get     (GtkWidget         *widget,
 					     GdkDragContext    *context,
 					     GtkSelectionData  *selection_data,
-					     guint              info,
 					     guint              time);
 
 static void     gtk_label_buildable_interface_init     (GtkBuildableIface *iface);
@@ -596,11 +600,10 @@ gtk_label_class_init (GtkLabelClass *class)
   widget_class->query_tooltip = gtk_label_query_tooltip;
   widget_class->snapshot = gtk_label_snapshot;
   widget_class->realize = gtk_label_realize;
+  widget_class->unrealize = gtk_label_unrealize;
   widget_class->unmap = gtk_label_unmap;
-  widget_class->motion_notify_event = gtk_label_motion;
-  widget_class->leave_notify_event = gtk_label_leave_notify;
   widget_class->hierarchy_changed = gtk_label_hierarchy_changed;
-  widget_class->screen_changed = gtk_label_screen_changed;
+  widget_class->display_changed = gtk_label_display_changed;
   widget_class->mnemonic_activate = gtk_label_mnemonic_activate;
   widget_class->drag_data_get = gtk_label_drag_data_get;
   widget_class->grab_focus = gtk_label_grab_focus;
@@ -1128,7 +1131,7 @@ gtk_label_class_init (GtkLabelClass *class)
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_LABEL_ACCESSIBLE);
 
-  gtk_widget_class_set_css_name (widget_class, "label");
+  gtk_widget_class_set_css_name (widget_class, I_("label"));
 
   quark_shortcuts_connected = g_quark_from_static_string ("gtk-label-shortcuts-connected");
   quark_mnemonic_menu = g_quark_from_static_string ("gtk-mnemonic-menu");
@@ -1624,7 +1627,7 @@ gtk_label_buildable_custom_tag_start (GtkBuildable     *buildable,
 
       parser_data = g_slice_new0 (PangoParserData);
       parser_data->builder = g_object_ref (builder);
-      parser_data->object = g_object_ref (buildable);
+      parser_data->object = (GObject *) g_object_ref (buildable);
       *parser = pango_parser;
       *data = parser_data;
       return TRUE;
@@ -1916,17 +1919,14 @@ label_mnemonics_visible_changed (GtkWindow  *window,
 }
 
 static void
-gtk_label_screen_changed (GtkWidget *widget,
-			  GdkScreen *old_screen)
+gtk_label_display_changed (GtkWidget  *widget,
+			   GdkDisplay *old_display)
 {
   GtkSettings *settings;
   gboolean shortcuts_connected;
 
-  /* The PangoContext is replaced when the screen changes, so clear the layouts */
+  /* The PangoContext is replaced when the display changes, so clear the layouts */
   gtk_label_clear_layout (GTK_LABEL (widget));
-
-  if (!gtk_widget_has_screen (widget))
-    return;
 
   settings = gtk_widget_get_settings (widget);
 
@@ -3215,6 +3215,7 @@ gtk_label_finalize (GObject *object)
     {
       g_object_unref (priv->select_info->drag_gesture);
       g_object_unref (priv->select_info->multipress_gesture);
+      g_object_unref (priv->select_info->motion_controller);
     }
 
   gtk_label_clear_links (label);
@@ -3310,17 +3311,9 @@ gtk_label_update_layout_width (GtkLabel *label)
   g_assert (priv->layout);
 
   if (priv->ellipsize || priv->wrap)
-    {
-      int width, height;
-
-      gtk_widget_get_content_size (GTK_WIDGET (label), &width, &height);
-
-      pango_layout_set_width (priv->layout, width * PANGO_SCALE);
-    }
+    pango_layout_set_width (priv->layout, gtk_widget_get_width (GTK_WIDGET (label)) * PANGO_SCALE);
   else
-    {
-      pango_layout_set_width (priv->layout, -1);
-    }
+    pango_layout_set_width (priv->layout, -1);
 }
 
 static void
@@ -3670,7 +3663,8 @@ get_layout_location (GtkLabel  *label,
   req_width  = logical.width;
   req_height = logical.height;
 
-  gtk_widget_get_content_size (widget, &label_width, &label_height);
+  label_width = gtk_widget_get_width (widget);
+  label_height = gtk_widget_get_height (widget);
 
   baseline = gtk_widget_get_allocated_baseline (widget);
 
@@ -3759,27 +3753,17 @@ gtk_label_update_cursor (GtkLabel *label)
 
   if (gtk_widget_get_realized (widget))
     {
-      GdkDisplay *display;
-      GdkCursor *cursor;
-
       if (gtk_widget_is_sensitive (widget))
         {
-          display = gtk_widget_get_display (widget);
-
           if (priv->select_info->active_link)
-            cursor = gdk_cursor_new_from_name (display, "pointer");
+            gtk_widget_set_cursor_from_name (widget, "pointer");
           else if (priv->select_info->selectable)
-            cursor = gdk_cursor_new_from_name (display, "text");
+            gtk_widget_set_cursor_from_name (widget, "text");
           else
-            cursor = NULL;
+            gtk_widget_set_cursor (widget, NULL);
         }
       else
-        cursor = NULL;
-
-      gtk_widget_set_cursor (widget, cursor);
-
-      if (cursor)
-        g_object_unref (cursor);
+        gtk_widget_set_cursor (widget, NULL);
     }
 }
 
@@ -3922,7 +3906,8 @@ gtk_label_snapshot (GtkWidget   *widget,
 
   context = _gtk_widget_get_style_context (widget);
 
-  gtk_widget_get_content_size (widget, &width, &height);
+  width = gtk_widget_get_width (widget);
+  height = gtk_widget_get_height (widget);
   x = 0;
 
   if (priv->text && (*priv->text != '\0'))
@@ -4162,6 +4147,21 @@ gtk_label_realize (GtkWidget *widget)
 
   if (priv->select_info)
     gtk_label_set_selectable_hint (label);
+}
+
+static void
+gtk_label_unrealize (GtkWidget *widget)
+{
+  GtkLabel *label = GTK_LABEL (widget);
+  GtkLabelPrivate *priv = gtk_label_get_instance_private (label);
+  GdkClipboard *clipboard;
+
+  clipboard = gtk_widget_get_primary_clipboard (widget);
+  if (priv->select_info &&
+      gdk_clipboard_get_content (clipboard) == priv->select_info->provider)
+    gdk_clipboard_set_content (clipboard, NULL);
+
+  GTK_WIDGET_CLASS (gtk_label_parent_class)->unrealize (widget);
 }
 
 static void
@@ -4788,23 +4788,22 @@ gtk_label_drag_gesture_update (GtkGestureDrag *gesture,
 				    info->drag_start_y,
 				    x, y))
 	{
-	  GtkTargetList *target_list = gtk_target_list_new (NULL, 0);
-          const GdkEvent *event;
+	  GdkContentFormats *target_list = gdk_content_formats_new (NULL, 0);
 
-          event = gtk_gesture_get_last_event (GTK_GESTURE (gesture), sequence);
-	  gtk_target_list_add_text_targets (target_list, 0);
+	  target_list = gtk_content_formats_add_text_targets (target_list);
 
           g_signal_connect (widget, "drag-begin",
                             G_CALLBACK (drag_begin_cb), NULL);
-	  gtk_drag_begin_with_coordinates (widget, target_list,
+	  gtk_drag_begin_with_coordinates (widget,
+                                           gtk_gesture_get_device (GTK_GESTURE (gesture)),
+                                           target_list,
                                            GDK_ACTION_COPY,
-                                           1, (GdkEvent*) event,
                                            info->drag_start_x,
                                            info->drag_start_y);
 
 	  info->in_drag = FALSE;
 
-	  gtk_target_list_unref (target_list);
+	  gdk_content_formats_unref (target_list);
 	}
     }
   else
@@ -4918,36 +4917,28 @@ gtk_label_update_active_link (GtkWidget *widget,
     }
 }
 
-static gboolean
-gtk_label_motion (GtkWidget      *widget,
-                  GdkEventMotion *event)
+static void
+gtk_label_motion (GtkEventControllerMotion *controller,
+                  double                    x,
+                  double                    y,
+                  gpointer                  data)
 {
-  gdouble x, y;
-
-  gdk_event_get_coords ((GdkEvent *) event, &x, &y);
-  gtk_label_update_active_link (widget, x, y);
-
-  return GTK_WIDGET_CLASS (gtk_label_parent_class)->motion_notify_event (widget, event);
+  gtk_label_update_active_link (GTK_WIDGET (data), x, y);
 }
 
-static gboolean
-gtk_label_leave_notify (GtkWidget        *widget,
-                        GdkEventCrossing *event)
+static void
+gtk_label_leave (GtkEventControllerMotion *controller,
+                 gpointer                  data)
 {
-  GtkLabel *label = GTK_LABEL (widget);
+  GtkLabel *label = GTK_LABEL (data);
   GtkLabelPrivate *priv = gtk_label_get_instance_private (label);
 
   if (priv->select_info)
     {
       priv->select_info->active_link = NULL;
       gtk_label_update_cursor (label);
-      gtk_widget_queue_draw (widget);
+      gtk_widget_queue_draw (GTK_WIDGET (label));
     }
-
-  if (GTK_WIDGET_CLASS (gtk_label_parent_class)->leave_notify_event)
-    return GTK_WIDGET_CLASS (gtk_label_parent_class)->leave_notify_event (widget, event);
-
- return FALSE;
 }
 
 static void
@@ -4963,10 +4954,121 @@ gtk_label_set_selectable_hint (GtkLabel *label)
     {
       GdkCursor *cursor;
 
-      cursor = gdk_cursor_new_for_display (gtk_widget_get_display (widget), GDK_XTERM);
+      cursor = gdk_cursor_new_from_name ("text", NULL);
       gtk_widget_set_cursor (widget, cursor);
       g_object_unref (cursor);
     }
+}
+
+#define GTK_TYPE_LABEL_CONTENT            (gtk_label_content_get_type ())
+#define GTK_LABEL_CONTENT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_LABEL_CONTENT, GtkLabelContent))
+#define GTK_IS_LABEL_CONTENT(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_LABEL_CONTENT))
+#define GTK_LABEL_CONTENT_CLASS(klass)    (G_TYPE_CHECK_CLASS_CAST ((klass), GTK_TYPE_LABEL_CONTENT, GtkLabelContentClass))
+#define GTK_IS_LABEL_CONTENT_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_LABEL_CONTENT))
+#define GTK_LABEL_CONTENT_GET_CLASS(obj)  (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_LABEL_CONTENT, GtkLabelContentClass))
+
+typedef struct _GtkLabelContent GtkLabelContent;
+typedef struct _GtkLabelContentClass GtkLabelContentClass;
+
+struct _GtkLabelContent
+{
+  GdkContentProvider parent;
+
+  GtkLabel *label;
+};
+
+struct _GtkLabelContentClass
+{
+  GdkContentProviderClass parent_class;
+};
+
+GType gtk_label_content_get_type (void) G_GNUC_CONST;
+
+G_DEFINE_TYPE (GtkLabelContent, gtk_label_content, GDK_TYPE_CONTENT_PROVIDER)
+
+static GdkContentFormats *
+gtk_label_content_ref_formats (GdkContentProvider *provider)
+{
+  GtkLabelContent *content = GTK_LABEL_CONTENT (provider);
+
+  if (content->label)
+    return gdk_content_formats_new_for_gtype (G_TYPE_STRING);
+  else
+    return gdk_content_formats_new (NULL, 0);
+}
+
+static gboolean
+gtk_label_content_get_value (GdkContentProvider  *provider,
+                             GValue              *value,
+                             GError             **error)
+{
+  GtkLabelContent *content = GTK_LABEL_CONTENT (provider);
+
+  if (G_VALUE_HOLDS (value, G_TYPE_STRING) &&
+      content->label != NULL)
+    {
+      GtkLabelPrivate *priv = gtk_label_get_instance_private (content->label);
+
+      if (priv->select_info &&
+          (priv->select_info->selection_anchor !=
+           priv->select_info->selection_end) &&
+          priv->text)
+        {
+          gint start, end;
+          gint len;
+          char *str;
+
+          start = MIN (priv->select_info->selection_anchor,
+                       priv->select_info->selection_end);
+          end = MAX (priv->select_info->selection_anchor,
+                     priv->select_info->selection_end);
+
+          len = strlen (priv->text);
+
+          if (end > len)
+            end = len;
+
+          if (start > len)
+            start = len;
+
+          str = g_strndup (priv->text + start, end - start);
+          g_value_take_string (value, str);
+          return TRUE;
+        }
+    }
+
+  return GDK_CONTENT_PROVIDER_CLASS (gtk_label_content_parent_class)->get_value (provider, value, error);
+}
+
+static void
+gtk_label_content_detach (GdkContentProvider *provider,
+                          GdkClipboard       *clipboard)
+{
+  GtkLabelContent *content = GTK_LABEL_CONTENT (provider);
+  GtkLabel *label = content->label;
+  GtkLabelPrivate *priv = gtk_label_get_instance_private (label);
+
+  if (label == NULL || priv->select_info == NULL)
+    return;
+
+  priv->select_info->selection_anchor = priv->select_info->selection_end;
+
+  gtk_widget_queue_draw (GTK_WIDGET (label));
+}
+
+static void
+gtk_label_content_class_init (GtkLabelContentClass *class)
+{
+  GdkContentProviderClass *provider_class = GDK_CONTENT_PROVIDER_CLASS (class);
+
+  provider_class->ref_formats = gtk_label_content_ref_formats;
+  provider_class->get_value = gtk_label_content_get_value;
+  provider_class->detach_clipboard = gtk_label_content_detach;
+}
+
+static void
+gtk_label_content_init (GtkLabelContent *content)
+{
 }
 
 static void
@@ -4997,6 +5099,15 @@ gtk_label_ensure_select_info (GtkLabel *label)
                         G_CALLBACK (gtk_label_multipress_gesture_released), label);
       gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (priv->select_info->multipress_gesture), 0);
       gtk_gesture_single_set_exclusive (GTK_GESTURE_SINGLE (priv->select_info->multipress_gesture), TRUE);
+
+      priv->select_info->motion_controller = gtk_event_controller_motion_new (GTK_WIDGET (label));
+      g_signal_connect (priv->select_info->motion_controller, "motion",
+                        G_CALLBACK (gtk_label_motion), label);
+      g_signal_connect (priv->select_info->motion_controller, "leave",
+                        G_CALLBACK (gtk_label_leave), label);
+
+      priv->select_info->provider = g_object_new (GTK_TYPE_LABEL_CONTENT, NULL);
+      GTK_LABEL_CONTENT (priv->select_info->provider)->label = label;
     }
 }
 
@@ -5012,6 +5123,9 @@ gtk_label_clear_select_info (GtkLabel *label)
     {
       g_object_unref (priv->select_info->drag_gesture);
       g_object_unref (priv->select_info->multipress_gesture);
+      g_object_unref (priv->select_info->motion_controller);
+      GTK_LABEL_CONTENT (priv->select_info->provider)->label = NULL;
+      g_object_unref (priv->select_info->provider);
 
       g_free (priv->select_info);
       priv->select_info = NULL;
@@ -5126,34 +5240,9 @@ static void
 gtk_label_drag_data_get (GtkWidget        *widget,
 			 GdkDragContext   *context,
 			 GtkSelectionData *selection_data,
-			 guint             info,
 			 guint             time)
 {
   gtk_label_set_selection_text (GTK_LABEL (widget), selection_data);
-}
-
-static void
-get_text_callback (GtkClipboard     *clipboard,
-                   GtkSelectionData *selection_data,
-                   guint             info,
-                   gpointer          user_data_or_owner)
-{
-  gtk_label_set_selection_text (GTK_LABEL (user_data_or_owner), selection_data);
-}
-
-static void
-clear_text_callback (GtkClipboard     *clipboard,
-                     gpointer          user_data_or_owner)
-{
-  GtkLabel *label = GTK_LABEL (user_data_or_owner);
-  GtkLabelPrivate *priv = gtk_label_get_instance_private (label);
-
-  if (priv->select_info)
-    {
-      priv->select_info->selection_anchor = priv->select_info->selection_end;
-
-      gtk_widget_queue_draw (GTK_WIDGET (label));
-    }
 }
 
 static void
@@ -5167,7 +5256,7 @@ gtk_label_select_region_index (GtkLabel *label,
 
   if (priv->select_info && priv->select_info->selectable)
     {
-      GtkClipboard *clipboard;
+      GdkClipboard *clipboard;
       gint s, e;
 
       /* Ensure that we treat an ellipsized region like a single
@@ -5237,31 +5326,12 @@ gtk_label_select_region_index (GtkLabel *label,
       priv->select_info->selection_anchor = anchor_index;
       priv->select_info->selection_end = end_index;
 
-      if (gtk_widget_has_screen (GTK_WIDGET (label)))
-        clipboard = gtk_widget_get_clipboard (GTK_WIDGET (label),
-                                              GDK_SELECTION_PRIMARY);
-      else
-        clipboard = NULL;
+      clipboard = gtk_widget_get_primary_clipboard (GTK_WIDGET (label));
 
       if (anchor_index != end_index)
         {
-          GtkTargetList *list;
-          GtkTargetEntry *targets;
-          gint n_targets;
-
-          list = gtk_target_list_new (NULL, 0);
-          gtk_target_list_add_text_targets (list, 0);
-          targets = gtk_target_table_new_from_list (list, &n_targets);
-
-          if (clipboard)
-            gtk_clipboard_set_with_owner (clipboard,
-                                          targets, n_targets,
-                                          get_text_callback,
-                                          clear_text_callback,
-                                          G_OBJECT (label));
-
-          gtk_target_table_free (targets, n_targets);
-          gtk_target_list_unref (list);
+          gdk_content_provider_content_changed (priv->select_info->provider);
+          gdk_clipboard_set_content (clipboard, priv->select_info->provider);
 
           if (!priv->select_info->selection_node)
             {
@@ -5277,9 +5347,8 @@ gtk_label_select_region_index (GtkLabel *label,
         }
       else
         {
-          if (clipboard &&
-              gtk_clipboard_get_owner (clipboard) == G_OBJECT (label))
-            gtk_clipboard_clear (clipboard);
+          if (gdk_clipboard_get_content (clipboard) == priv->select_info->provider)
+            gdk_clipboard_set_content (clipboard, NULL);
 
           if (priv->select_info->selection_node)
             {
@@ -5595,7 +5664,7 @@ get_better_cursor (GtkLabel *label,
 		   gint      *y)
 {
   GtkLabelPrivate *priv = gtk_label_get_instance_private (label);
-  GdkKeymap *keymap = gdk_keymap_get_for_display (gtk_widget_get_display (GTK_WIDGET (label)));
+  GdkKeymap *keymap = gdk_display_get_keymap (gtk_widget_get_display (GTK_WIDGET (label)));
   PangoDirection keymap_direction = gdk_keymap_get_direction (keymap);
   PangoDirection cursor_direction = get_cursor_direction (label);
   gboolean split_cursor;
@@ -5701,7 +5770,7 @@ gtk_label_move_visually (GtkLabel *label,
 	strong = TRUE;
       else
 	{
-	  GdkKeymap *keymap = gdk_keymap_get_for_display (gtk_widget_get_display (GTK_WIDGET (label)));
+	  GdkKeymap *keymap = gdk_display_get_keymap (gtk_widget_get_display (GTK_WIDGET (label)));
 	  PangoDirection keymap_direction = gdk_keymap_get_direction (keymap);
 
 	  strong = keymap_direction == get_cursor_direction (label);
@@ -5930,7 +5999,7 @@ gtk_label_copy_clipboard (GtkLabel *label)
     {
       gint start, end;
       gint len;
-      GtkClipboard *clipboard;
+      GdkClipboard *clipboard;
 
       start = MIN (priv->select_info->selection_anchor,
                    priv->select_info->selection_end);
@@ -5945,17 +6014,21 @@ gtk_label_copy_clipboard (GtkLabel *label)
       if (start > len)
         start = len;
 
-      clipboard = gtk_widget_get_clipboard (GTK_WIDGET (label), GDK_SELECTION_CLIPBOARD);
+      clipboard = gtk_widget_get_clipboard (GTK_WIDGET (label));
 
       if (start != end)
-	gtk_clipboard_set_text (clipboard, priv->text + start, end - start);
+        {
+          char *str = g_strndup (priv->text + start, end - start);
+	  gdk_clipboard_set_text (clipboard, str);
+          g_free (str);
+        }
       else
         {
           GtkLabelLink *link;
 
           link = gtk_label_get_focus_link (label);
           if (link)
-            gtk_clipboard_set_text (clipboard, link->uri, -1);
+            gdk_clipboard_set_text (clipboard, link->uri);
         }
     }
 }
@@ -6023,11 +6096,11 @@ copy_link_activate_cb (GtkMenuItem *menuitem,
                        GtkLabel    *label)
 {
   GtkLabelLink *link;
-  GtkClipboard *clipboard;
+  GdkClipboard *clipboard;
 
   link = g_object_get_qdata (G_OBJECT (menuitem), quark_link);
-  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (label), GDK_SELECTION_CLIPBOARD);
-  gtk_clipboard_set_text (clipboard, link->uri, -1);
+  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (label));
+  gdk_clipboard_set_text (clipboard, link->uri);
 }
 
 static gboolean

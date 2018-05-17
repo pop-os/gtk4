@@ -25,10 +25,8 @@
 #error "Only <gdk/gdk.h> can be included directly."
 #endif
 
-#include <gio/gio.h>
 #include <gdk/gdkversionmacros.h>
 #include <gdk/gdktypes.h>
-#include <gdk/gdkscreen.h>
 
 G_BEGIN_DECLS
 
@@ -40,9 +38,6 @@ G_BEGIN_DECLS
 GDK_AVAILABLE_IN_ALL
 GType                gdk_app_launch_context_get_type      (void);
 
-GDK_AVAILABLE_IN_ALL
-void                 gdk_app_launch_context_set_screen    (GdkAppLaunchContext *context,
-                                                           GdkScreen           *screen);
 GDK_AVAILABLE_IN_ALL
 void                 gdk_app_launch_context_set_desktop   (GdkAppLaunchContext *context,
                                                            gint                 desktop);

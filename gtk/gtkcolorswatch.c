@@ -98,17 +98,15 @@ swatch_snapshot (GtkWidget   *widget,
     {
       cairo_pattern_t *pattern;
       cairo_matrix_t matrix;
-      int width, height;
       GskRoundedRect content_box;
-
-      gtk_widget_get_content_size (widget, &width, &height);
 
       gtk_rounded_boxes_init_for_style (NULL,
                                         NULL,
                                         &content_box,
                                         gtk_style_context_lookup_style (context),
                                         0, 0,
-                                        width, height);
+                                        gtk_widget_get_width (widget),
+                                        gtk_widget_get_height (widget));
       gtk_snapshot_push_rounded_clip (snapshot,
                                       &content_box,
                                       "ColorSwatchClip");
@@ -191,7 +189,6 @@ static void
 swatch_drag_data_get (GtkWidget        *widget,
                       GdkDragContext   *context,
                       GtkSelectionData *selection_data,
-                      guint             info,
                       guint             time)
 {
   GtkColorSwatch *swatch = GTK_COLOR_SWATCH (widget);
@@ -206,17 +203,14 @@ swatch_drag_data_get (GtkWidget        *widget,
   vals[3] = color.alpha * 0xffff;
 
   gtk_selection_data_set (selection_data,
-                          gdk_atom_intern_static_string ("application/x-color"),
+                          g_intern_static_string ("application/x-color"),
                           16, (guchar *)vals, 8);
 }
 
 static void
 swatch_drag_data_received (GtkWidget        *widget,
                            GdkDragContext   *context,
-                           gint              x,
-                           gint              y,
                            GtkSelectionData *selection_data,
-                           guint             info,
                            guint             time)
 {
   gint length;
@@ -419,9 +413,9 @@ update_icon (GtkColorSwatch *swatch)
   GtkImage *image = GTK_IMAGE (swatch->priv->overlay_widget);
 
   if (swatch->priv->icon)
-    gtk_image_set_from_icon_name (image, swatch->priv->icon, GTK_ICON_SIZE_BUTTON);
+    gtk_image_set_from_icon_name (image, swatch->priv->icon);
   else if (gtk_widget_get_state_flags (GTK_WIDGET (swatch)) & GTK_STATE_FLAG_SELECTED)
-    gtk_image_set_from_icon_name (image, "object-select-symbolic", GTK_ICON_SIZE_BUTTON);
+    gtk_image_set_from_icon_name (image, "object-select-symbolic");
   else
     gtk_image_clear (image);
 }
@@ -565,7 +559,7 @@ gtk_color_swatch_class_init (GtkColorSwatchClass *class)
                             TRUE, GTK_PARAM_READWRITE));
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_COLOR_SWATCH_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, "colorswatch");
+  gtk_widget_class_set_css_name (widget_class, I_("colorswatch"));
 }
 
 static void
@@ -606,8 +600,8 @@ gtk_color_swatch_new (void)
   return (GtkWidget *) g_object_new (GTK_TYPE_COLOR_SWATCH, NULL);
 }
 
-static const GtkTargetEntry dnd_targets[] = {
-  { (char *) "application/x-color", 0 }
+static const char *dnd_targets[] = {
+  "application/x-color"
 };
 
 void
@@ -620,10 +614,12 @@ gtk_color_swatch_set_rgba (GtkColorSwatch *swatch,
 
   if (!swatch->priv->has_color)
     {
+      GdkContentFormats *targets = gdk_content_formats_new (dnd_targets, G_N_ELEMENTS (dnd_targets));
       gtk_drag_source_set (GTK_WIDGET (swatch),
                            GDK_BUTTON1_MASK | GDK_BUTTON3_MASK,
-                           dnd_targets, G_N_ELEMENTS (dnd_targets),
+                           targets,
                            GDK_ACTION_COPY | GDK_ACTION_MOVE);
+      gdk_content_formats_unref (targets);
     }
 
   swatch->priv->has_color = TRUE;
@@ -681,12 +677,14 @@ gtk_color_swatch_set_can_drop (GtkColorSwatch *swatch,
 {
   if (can_drop)
     {
+      GdkContentFormats *targets = gdk_content_formats_new (dnd_targets, G_N_ELEMENTS (dnd_targets));
       gtk_drag_dest_set (GTK_WIDGET (swatch),
                          GTK_DEST_DEFAULT_HIGHLIGHT |
                          GTK_DEST_DEFAULT_MOTION |
                          GTK_DEST_DEFAULT_DROP,
-                         dnd_targets, G_N_ELEMENTS (dnd_targets),
+                         targets,
                          GDK_ACTION_COPY);
+      gdk_content_formats_unref (targets);
     }
   else
     {

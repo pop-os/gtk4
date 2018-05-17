@@ -85,6 +85,7 @@ gtk_public_sources = files([
   'gtkcsseasevalue.c',
   'gtkcssenumvalue.c',
   'gtkcssfiltervalue.c',
+  'gtkcssfontfeaturesvalue.c',
   'gtkcssiconthemevalue.c',
   'gtkcssimage.c',
   'gtkcssimagebuiltin.c',
@@ -125,7 +126,6 @@ gtk_public_sources = files([
   'gtkcssstringvalue.c',
   'gtkcssstyle.c',
   'gtkcssstylechange.c',
-  'gtkcssstylefuncs.c',
   'gtkcssstyleproperty.c',
   'gtkcssstylepropertyimpl.c',
   'gtkcsstransformvalue.c',
@@ -147,6 +147,7 @@ gtk_public_sources = files([
   'gtkentrycompletion.c',
   'gtkeventcontroller.c',
   'gtkeventcontrollerlegacy.c',
+  'gtkeventcontrollermotion.c',
   'gtkeventcontrollerscroll.c',
   'gtkexpander.c',
   'gtkfilechooser.c',
@@ -243,7 +244,6 @@ gtk_public_sources = files([
   'gtkpopover.c',
   'gtkpopovermenu.c',
   'gtkprintcontext.c',
-  'gtkprintoperation-portal.c',
   'gtkprintoperation.c',
   'gtkprintoperationpreview.c',
   'gtkprintsettings.c',
@@ -308,14 +308,11 @@ gtk_public_sources = files([
   'gtkstylecontext.c',
   'gtkstyleproperty.c',
   'gtkstyleprovider.c',
-  'gtkstyleproviderprivate.c',
   'gtkswitch.c',
   'gtktestutils.c',
   'gtktextattributes.c',
   'gtktextbtree.c',
   'gtktextbuffer.c',
-  'gtktextbufferrichtext.c',
-  'gtktextbufferserialize.c',
   'gtktextchild.c',
   'gtktextdisplay.c',
   'gtktexthandle.c',
@@ -418,7 +415,6 @@ gtk_public_headers = files([
   'gtkcellview.h',
   'gtkcheckbutton.h',
   'gtkcheckmenuitem.h',
-  'gtkclipboard.h',
   'gtkcolorbutton.h',
   'gtkcolorchooser.h',
   'gtkcolorchooserdialog.h',
@@ -442,6 +438,7 @@ gtk_public_headers = files([
   'gtkenums.h',
   'gtkeventcontroller.h',
   'gtkeventcontrollerscroll.h',
+  'gtkeventcontrollermotion.h',
   'gtkexpander.h',
   'gtkfilechooser.h',
   'gtkfilechooserbutton.h',
@@ -556,9 +553,7 @@ gtk_public_headers = files([
   'gtkswitch.h',
   'gtktestutils.h',
   'gtktextbuffer.h',
-  'gtktextbufferrichtext.h',
   'gtktextchild.h',
-  'gtktextdisplay.h',
   'gtktextiter.h',
   'gtktextmark.h',
   'gtktexttag.h',
@@ -609,7 +604,7 @@ if os_unix
   ]
   install_headers(gtk_unix_print_headers, subdir: 'gtk-4.0/unix-print/gtk')
 
-  gtk_sources += files([
+  gtk_unix_print_sources = files([
     'gtkcustompaperunixdialog.c',
     'gtkpagesetupunixdialog.c',
     'gtkprintbackend.c',
@@ -623,15 +618,19 @@ if os_unix
     'gtkprintunixdialog.c',
     'gtksearchenginetracker.c',
   ])
+
+  gtk_sources += gtk_unix_print_sources
 endif
 
 if os_win32
-  gtk_sources += [
+  gtk_win32_print_sources = files([
     'gtkprint-win32.c',
     'gtkprintoperation-win32.c',
     'gtkfilechoosernativewin32.c',
     'gtkwin32.c',
-  ]
+  ])
+
+  gtk_sources += gtk_win32_print_sources
 
   if cc.has_header_symbol('windows.h', 'IPrintDialogCallback')
     cdata.set('HAVE_IPRINTDIALOGCALLBACK', 1)
@@ -655,14 +654,14 @@ if win32_enabled
 endif
 
 if quartz_enabled
-  gtk_sources += [
+  gtk_sources += files([
     'gtksearchenginequartz.c',
     'gtkmountoperation-stub.c',
     'gtkapplication-quartz.c',
     'gtkapplication-quartz-menu.c',
     'gtkfilechoosernativequartz.c',
     'gtkquartz.c',
-  ]
+  ])
   gtk_cargs += ['-xobjective-c']  # FIXME? maybe add_languages() instead?
 endif
 
@@ -714,12 +713,10 @@ gtk_use_wayland_or_x11_c_sources = files([
 
 if quartz_enabled
   dnd_sources = files([
-    'gtkclipboard-quartz.c',
     'gtkdnd-quartz.c',
   ])
 else
   dnd_sources = files([
-    'gtkclipboard.c',
     'gtkdnd.c',
     'gtkdragdest.c',
   ])
@@ -812,10 +809,9 @@ gtk_sources += [
 
 gtk_deps = [
   gmodule_dep,
-  giounix_dep,
   glib_dep,
   gobject_dep,
-  atkbridge_dep,
+  platform_gio_dep,
   pangocairo_dep,
   pango_dep,
   cairogobj_dep,
@@ -838,6 +834,19 @@ endif
 
 if wayland_enabled
   gtk_sources += gtk_wayland_sources
+endif
+
+if win32_enabled
+  gtk_cargs += ['-DGTK_PRINT_BACKENDS="file,lpr"']
+  gtk_deps += [ giowin32_dep ]
+  gtk_deps += [cc.find_library('advapi32'),
+               cc.find_library('comctl32'),
+               cc.find_library('dwmapi'),
+               cc.find_library('imm32'),
+               cc.find_library('setupapi'),
+               cc.find_library('winmm')]
+else
+  gtk_deps += [ atkbridge_dep, ]
 endif
 
 # So we don't add these twice
@@ -976,12 +985,26 @@ if build_gir
   gsk_gir_dep = declare_dependency(dependencies: [gdk_gir_dep, graphene_dep], sources: gsk_gir)
   gtk_dep_sources += gsk_gir
 
+  gtk_introspection_sources = [
+    gtk_public_headers,
+    gtk_public_sources,
+    dnd_sources,
+    a11y_headers,
+    a11y_sources,
+    gtktypebuiltins_h,
+    gtkversion,
+  ]
+
+  if os_unix
+    gtk_introspection_sources += gtk_unix_print_sources
+  endif
+
+  if os_win32
+    gtk_introspection_sources += gtk_win32_print_sources
+  endif
 
   gtk_gir = gnome.generate_gir(libgtk,
-                               sources: gtk_public_headers + gtk_public_sources + dnd_sources + a11y_headers + a11y_sources + [
-                                 gtktypebuiltins_h,
-                                 gtkversion,
-                               ],
+                               sources: gtk_introspection_sources,
                                namespace: 'Gtk',
                                nsversion: gtk_api_version,
                                identifier_prefix: 'Gtk',
@@ -994,7 +1017,6 @@ if build_gir
                                  '--c-include=gtk/gtk.h',
                                  '--include-uninstalled=./gtk/Gdk-4.0.gir',
                                  '--include-uninstalled=./gtk/Gsk-4.0.gir',
-                                 '-DGTK_TEXT_USE_INTERNAL_UNSUPPORTED_API',
                                  '-DGTK_COMPILATION',
                                ])
   gtk_dep_sources += gtk_gir
@@ -1011,10 +1033,13 @@ gtk_tools = [
   ['gtk4-query-settings', ['gtk-query-settings.c']],
   ['gtk4-builder-tool', ['gtk-builder-tool.c']],
   ['gtk4-update-icon-cache', ['updateiconcache.c']],
-  ['gtk4-encode-symbolic-svg', ['encodesymbolic.c']],
-  ['gtk4-launch', ['gtk-launch.c']],
+  ['gtk4-encode-symbolic-svg', ['encodesymbolic.c', 'gdkpixbufutils.c']],
   ['gtk4-query-immodules', ['queryimmodules.c', 'gtkutils.c']],
 ]
+
+if os_unix
+  gtk_tools += [['gtk4-launch', ['gtk-launch.c']]]
+endif
 
 foreach tool: gtk_tools
   tool_name = tool.get(0)

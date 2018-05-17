@@ -33,7 +33,6 @@
 #include "gtkintl.h"
 #include "gtkmain.h"
 #include "gtkprivate.h"
-#include "gtkrender.h"
 #include "gtksizerequest.h"
 #include "gtksnapshot.h"
 #include "gtkstylecontextprivate.h"
@@ -254,7 +253,7 @@ gtk_accel_label_class_init (GtkAccelLabelClass *class)
 
   g_object_class_install_properties (gobject_class, LAST_PROP, props);
 
-  gtk_widget_class_set_css_name (widget_class, "accellabel");
+  gtk_widget_class_set_css_name (widget_class, I_("accellabel"));
 }
 
 static void

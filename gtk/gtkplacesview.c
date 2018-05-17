@@ -22,6 +22,7 @@
 #include <gio/gvfs.h>
 #include <gtk/gtk.h>
 
+#include "gtkprivate.h"
 #include "gtkintl.h"
 #include "gtkmarshalers.h"
 #include "gtkplacesviewprivate.h"
@@ -34,7 +35,7 @@
  * @Title: GtkPlacesView
  * @See_also: #GtkFileChooser
  *
- * #GtkPlacesView is a stock widget that displays a list of persistent drives
+ * #GtkPlacesView is a widget that displays a list of persistent drives
  * such as harddisk partitions and networks.  #GtkPlacesView does not monitor
  * removable devices.
  *
@@ -324,26 +325,16 @@ set_busy_cursor (GtkPlacesView *view,
 {
   GtkWidget *widget;
   GtkWindow *toplevel;
-  GdkDisplay *display;
-  GdkCursor *cursor;
 
   toplevel = get_toplevel (GTK_WIDGET (view));
   widget = GTK_WIDGET (toplevel);
   if (!toplevel || !gtk_widget_get_realized (widget))
     return;
 
-  display = gtk_widget_get_display (widget);
-
   if (busy)
-    cursor = gdk_cursor_new_from_name (display, "progress");
+    gtk_widget_set_cursor_from_name (widget, "progress");
   else
-    cursor = NULL;
-
-  gdk_window_set_cursor (gtk_widget_get_window (widget), cursor);
-  gdk_display_flush (display);
-
-  if (cursor)
-    g_object_unref (cursor);
+    gtk_widget_set_cursor (widget, NULL);
 }
 
 /* Activates the given row, with the given flags as parameter */
@@ -592,7 +583,7 @@ populate_servers (GtkPlacesView *view)
       gtk_container_add (GTK_CONTAINER (grid), label);
 
       /* remove button */
-      button = gtk_button_new_from_icon_name ("window-close-symbolic", GTK_ICON_SIZE_BUTTON);
+      button = gtk_button_new_from_icon_name ("window-close-symbolic");
       gtk_widget_set_halign (button, GTK_ALIGN_END);
       gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
       gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
@@ -1180,8 +1171,7 @@ update_places (GtkPlacesView *view)
   populate_servers (view);
 
   /* fetch networks and add them asynchronously */
-  if (!gtk_places_view_get_local_only (view))
-    fetch_networks (view);
+  fetch_networks (view);
 
   update_view_mode (view);
   /* Check whether we still are in a loading state */
@@ -1892,10 +1882,45 @@ on_listbox_row_activated (GtkPlacesView    *view,
                           GtkWidget        *listbox)
 {
   GtkPlacesViewPrivate *priv;
+  GdkEvent *event;
+  guint button;
+  GtkPlacesOpenFlags open_flags;
 
   priv = gtk_places_view_get_instance_private (view);
 
-  activate_row (view, row, priv->current_open_flags);
+  event = gtk_get_current_event ();
+  gdk_event_get_button (event, &button);
+
+  if (gdk_event_get_event_type (event) == GDK_BUTTON_RELEASE && button == GDK_BUTTON_MIDDLE)
+    open_flags = GTK_PLACES_OPEN_NEW_TAB;
+  else
+    open_flags = priv->current_open_flags;
+
+  activate_row (view, row, open_flags);
+}
+
+static gboolean
+is_mount_locally_accessible (GMount *mount)
+{
+  GFile *base_file;
+  gchar *path;
+
+  if (mount == NULL)
+    return FALSE;
+
+  base_file = g_mount_get_root (mount);
+
+  if (base_file == NULL)
+    return FALSE;
+
+  path = g_file_get_path (base_file);
+  g_object_unref (base_file);
+
+  if (path == NULL)
+    return FALSE;
+
+  g_free (path);
+  return TRUE;
 }
 
 static gboolean
@@ -1905,6 +1930,7 @@ listbox_filter_func (GtkListBoxRow *row,
   GtkPlacesViewPrivate *priv;
   gboolean is_network;
   gboolean is_placeholder;
+  gboolean is_local = FALSE;
   gboolean retval;
   gboolean searching;
   gchar *name;
@@ -1917,7 +1943,20 @@ listbox_filter_func (GtkListBoxRow *row,
   is_network = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (row), "is-network"));
   is_placeholder = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (row), "is-placeholder"));
 
-  if (is_network && priv->local_only)
+  if (GTK_IS_PLACES_VIEW_ROW (row))
+    {
+      GtkPlacesViewRow *placesviewrow;
+      GMount *mount;
+
+      placesviewrow = GTK_PLACES_VIEW_ROW (row);
+      g_object_get(G_OBJECT (placesviewrow), "mount", &mount, NULL);
+
+      is_local = is_mount_locally_accessible (mount);
+
+      g_clear_object (&mount);
+    }
+
+  if (is_network && priv->local_only && !is_local)
     return FALSE;
 
   if (is_placeholder && searching)
@@ -2203,21 +2242,21 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
                                 P_("Local Only"),
                                 P_("Whether the sidebar only includes local files"),
                                 FALSE,
-                                G_PARAM_READWRITE);
+                                GTK_PARAM_READWRITE);
 
   properties[PROP_LOADING] =
           g_param_spec_boolean ("loading",
                                 P_("Loading"),
                                 P_("Whether the view is loading locations"),
                                 FALSE,
-                                G_PARAM_READABLE);
+                                GTK_PARAM_READABLE);
 
   properties[PROP_FETCHING_NETWORKS] =
           g_param_spec_boolean ("fetching-networks",
                                 P_("Fetching networks"),
                                 P_("Whether the view is fetching networks"),
                                 FALSE,
-                                G_PARAM_READABLE);
+                                GTK_PARAM_READABLE);
 
   properties[PROP_OPEN_FLAGS] =
           g_param_spec_flags ("open-flags",
@@ -2225,7 +2264,7 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
                               P_("Modes in which the calling application can open locations selected in the sidebar"),
                               GTK_TYPE_PLACES_OPEN_FLAGS,
                               GTK_PLACES_OPEN_NORMAL,
-                              G_PARAM_READWRITE);
+                              GTK_PARAM_READWRITE);
 
   g_object_class_install_properties (object_class, LAST_PROP, properties);
 
@@ -2251,7 +2290,7 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_listbox_row_activated);
   gtk_widget_class_bind_template_callback (widget_class, on_recent_servers_listbox_row_activated);
 
-  gtk_widget_class_set_css_name (widget_class, "placesview");
+  gtk_widget_class_set_css_name (widget_class, I_("placesview"));
 }
 
 static void

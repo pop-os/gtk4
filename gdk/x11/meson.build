@@ -2,6 +2,7 @@
 gdk_x11_sources = files([
   'gdkapplaunchcontext-x11.c',
   'gdkasync.c',
+  'gdkclipboard-x11.c',
   'gdkcursor-x11.c',
   'gdkdevice-core-x11.c',
   'gdkdevice-xi2.c',
@@ -20,6 +21,9 @@ gdk_x11_sources = files([
   'gdkproperty-x11.c',
   'gdkscreen-x11.c',
   'gdkselection-x11.c',
+  'gdkselectioninputstream-x11.c',
+  'gdkselectionoutputstream-x11.c',
+  'gdktextlistconverter-x11.c',
   'gdkvisual-x11.c',
   'gdkvulkancontext-x11.c',
   'gdkwindow-x11.c',
@@ -31,7 +35,6 @@ gdk_x11_sources = files([
 gdk_x11_public_headers = files([
   'gdkx-autocleanups.h',
   'gdkx11applaunchcontext.h',
-  'gdkx11cursor.h',
   'gdkx11device-core.h',
   'gdkx11device-xi2.h',
   'gdkx11device.h',
@@ -47,7 +50,6 @@ gdk_x11_public_headers = files([
   'gdkx11screen.h',
   'gdkx11selection.h',
   'gdkx11utils.h',
-  'gdkx11visual.h',
   'gdkx11window.h',
 ])
 

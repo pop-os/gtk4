@@ -34,7 +34,7 @@
 
 G_BEGIN_DECLS
 
-#define GTK_STATE_FLAGS_BITS 13
+#define GTK_STATE_FLAGS_BITS 14
 
 struct _GtkWidgetPrivate
 {
@@ -214,10 +214,10 @@ void              _gtk_widget_set_is_toplevel              (GtkWidget *widget,
 void              _gtk_widget_grab_notify                  (GtkWidget *widget,
                                                             gboolean   was_grabbed);
 
-void              _gtk_widget_propagate_hierarchy_changed  (GtkWidget *widget,
-                                                            GtkWidget *previous_toplevel);
-void              _gtk_widget_propagate_screen_changed     (GtkWidget *widget,
-                                                            GdkScreen *previous_screen);
+void              _gtk_widget_propagate_hierarchy_changed  (GtkWidget  *widget,
+                                                            GtkWidget  *previous_toplevel);
+void              _gtk_widget_propagate_display_changed    (GtkWidget  *widget,
+                                                            GdkDisplay *previous_display);
 
 void              _gtk_widget_set_device_window            (GtkWidget *widget,
                                                             GdkDevice *device,
@@ -315,9 +315,6 @@ void              gtk_widget_get_outer_allocation          (GtkWidget        *wi
                                                             GtkAllocation    *allocation);
 void              gtk_widget_get_own_allocation            (GtkWidget        *widget,
                                                             GtkAllocation    *allocation);
-void              gtk_widget_get_content_size              (GtkWidget        *widget,
-                                                            int              *width,
-                                                            int              *height);
 
 void              gtk_widget_get_window_allocation         (GtkWidget *widget,
                                                             GtkAllocation *allocation);
@@ -325,10 +322,6 @@ void              gtk_widget_get_window_allocation         (GtkWidget *widget,
 
 GtkWidget *       gtk_widget_common_ancestor               (GtkWidget *widget_a,
                                                             GtkWidget *widget_b);
-
-void              gtk_widget_set_cursor                    (GtkWidget *widget,
-                                                            GdkCursor *cursor);
-GdkCursor *       gtk_widget_get_cursor                    (GtkWidget *widget);
 
 void              gtk_widget_set_pass_through              (GtkWidget *widget,
                                                             gboolean   pass_through);

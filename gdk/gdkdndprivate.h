@@ -23,6 +23,33 @@
 G_BEGIN_DECLS
 
 
+/*
+ * GdkDragProtocol:
+ * @GDK_DRAG_PROTO_NONE: no protocol.
+ * @GDK_DRAG_PROTO_MOTIF: The Motif DND protocol. No longer supported
+ * @GDK_DRAG_PROTO_XDND: The Xdnd protocol.
+ * @GDK_DRAG_PROTO_ROOTWIN: An extension to the Xdnd protocol for
+ *  unclaimed root window drops.
+ * @GDK_DRAG_PROTO_WIN32_DROPFILES: The simple WM_DROPFILES protocol.
+ * @GDK_DRAG_PROTO_OLE2: The complex OLE2 DND protocol (not implemented).
+ * @GDK_DRAG_PROTO_LOCAL: Intra-application DND.
+ * @GDK_DRAG_PROTO_WAYLAND: Wayland DND protocol.
+ *
+ * Used in #GdkDragContext to indicate the protocol according to
+ * which DND is done.
+ */
+typedef enum
+{
+  GDK_DRAG_PROTO_NONE = 0,
+  GDK_DRAG_PROTO_MOTIF,
+  GDK_DRAG_PROTO_XDND,
+  GDK_DRAG_PROTO_ROOTWIN,
+  GDK_DRAG_PROTO_WIN32_DROPFILES,
+  GDK_DRAG_PROTO_OLE2,
+  GDK_DRAG_PROTO_LOCAL,
+  GDK_DRAG_PROTO_WAYLAND
+} GdkDragProtocol;
+
 #define GDK_DRAG_CONTEXT_CLASS(klass)      (G_TYPE_CHECK_CLASS_CAST ((klass), GDK_TYPE_DRAG_CONTEXT, GdkDragContextClass))
 #define GDK_IS_DRAG_CONTEXT_CLASS(klass)   (G_TYPE_CHECK_CLASS_TYPE ((klass), GDK_TYPE_DRAG_CONTEXT))
 #define GDK_DRAG_CONTEXT_GET_CLASS(obj)    (G_TYPE_INSTANCE_GET_CLASS ((obj), GDK_TYPE_DRAG_CONTEXT, GdkDragContextClass))
@@ -35,11 +62,9 @@ struct _GdkDragContextClass {
 
   GdkWindow * (*find_window)   (GdkDragContext  *context,
                                 GdkWindow       *drag_window,
-                                GdkScreen       *screen,
                                 gint             x_root,
                                 gint             y_root,
                                 GdkDragProtocol *protocol);
-  GdkAtom     (*get_selection) (GdkDragContext  *context);
   gboolean    (*drag_motion)   (GdkDragContext  *context,
                                 GdkWindow       *dest_window,
                                 GdkDragProtocol  protocol,
@@ -61,6 +86,16 @@ struct _GdkDragContextClass {
   void        (*drop_finish)   (GdkDragContext  *context,
                                 gboolean         success,
                                 guint32          time_);
+  void                  (* read_async)                          (GdkDragContext         *context,
+                                                                 GdkContentFormats      *formats,
+                                                                 int                     io_priority,
+                                                                 GCancellable           *cancellable,
+                                                                 GAsyncReadyCallback     callback,
+                                                                 gpointer                user_data);
+  GInputStream *        (* read_finish)                         (GdkDragContext         *context,
+                                                                 const char            **out_mime_type,
+                                                                 GAsyncResult           *result,
+                                                                 GError                **error);
   gboolean    (*drop_status)   (GdkDragContext  *context);
   GdkWindow*  (*get_drag_window) (GdkDragContext *context);
   void        (*set_hotspot)   (GdkDragContext  *context,
@@ -69,9 +104,6 @@ struct _GdkDragContextClass {
   void        (*drop_done)     (GdkDragContext   *context,
                                 gboolean          success);
 
-  gboolean    (*manage_dnd)     (GdkDragContext  *context,
-                                 GdkWindow       *ipc_window,
-                                 GdkDragAction    actions);
   void        (*set_cursor)     (GdkDragContext  *context,
                                  GdkCursor       *cursor);
   void        (*cancel)         (GdkDragContext      *context,
@@ -101,7 +133,8 @@ struct _GdkDragContext {
   GdkWindow *dest_window;
   GdkWindow *drag_window;
 
-  GList *targets;
+  GdkContentProvider *content;
+  GdkContentFormats *formats;
   GdkDragAction actions;
   GdkDragAction suggested_action;
   GdkDragAction action;
@@ -113,8 +146,8 @@ struct _GdkDragContext {
   guint drop_done : 1; /* Whether gdk_drag_drop_done() was performed */
 };
 
-GList *  gdk_drag_context_list (void);
-
+void     gdk_drag_context_set_device          (GdkDragContext *context,
+                                               GdkDevice      *device);
 void     gdk_drag_context_set_cursor          (GdkDragContext *context,
                                                GdkCursor      *cursor);
 void     gdk_drag_context_cancel              (GdkDragContext      *context,
@@ -123,6 +156,38 @@ gboolean gdk_drag_context_handle_source_event (GdkEvent *event);
 gboolean gdk_drag_context_handle_dest_event   (GdkEvent *event);
 GdkCursor * gdk_drag_get_cursor               (GdkDragContext *context,
                                                GdkDragAction   action);
+
+gboolean gdk_drag_motion (GdkDragContext *context,
+                          GdkWindow      *dest_window,
+                          GdkDragProtocol protocol,
+                          gint            x_root,
+                          gint            y_root,
+                          GdkDragAction   suggested_action,
+                          GdkDragAction   possible_actions,
+                          guint32         time_);
+void     gdk_drag_abort  (GdkDragContext *context,
+                          guint32         time_);
+void     gdk_drag_drop   (GdkDragContext *context,
+                          guint32         time_);
+
+void     gdk_drag_find_window             (GdkDragContext   *context,
+                                           GdkWindow        *drag_window,
+                                           gint              x_root,
+                                           gint              y_root,
+                                           GdkWindow       **dest_window,
+                                           GdkDragProtocol  *protocol);
+
+void                    gdk_drag_context_write_async            (GdkDragContext         *context,
+                                                                 const char             *mime_type,
+                                                                 GOutputStream          *stream,
+                                                                 int                     io_priority,
+                                                                 GCancellable           *cancellable,
+                                                                 GAsyncReadyCallback     callback,
+                                                                 gpointer                user_data);
+gboolean                gdk_drag_context_write_finish           (GdkDragContext         *context,
+                                                                 GAsyncResult           *result,
+                                                                 GError                **error);
+
 
 G_END_DECLS
 

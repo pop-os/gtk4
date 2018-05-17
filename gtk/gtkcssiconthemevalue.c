@@ -22,6 +22,7 @@
 #include "gtkicontheme.h"
 #include "gtksettingsprivate.h"
 #include "gtkstyleproviderprivate.h"
+#include "gtkintl.h"
 
 /*
  * The idea behind this value (and the '-gtk-icon-theme' CSS property) is
@@ -70,18 +71,18 @@ gtk_css_value_icon_theme_free (GtkCssValue *value)
 }
 
 static GtkCssValue *
-gtk_css_value_icon_theme_compute (GtkCssValue             *icon_theme,
-                                  guint                    property_id,
-                                  GtkStyleProviderPrivate *provider,
-                                  GtkCssStyle             *style,
-                                  GtkCssStyle             *parent_style)
+gtk_css_value_icon_theme_compute (GtkCssValue      *icon_theme,
+                                  guint             property_id,
+                                  GtkStyleProvider *provider,
+                                  GtkCssStyle      *style,
+                                  GtkCssStyle      *parent_style)
 {
   GtkIconTheme *icontheme;
 
   if (icon_theme->icontheme)
     icontheme = icon_theme->icontheme;
   else
-    icontheme = gtk_icon_theme_get_for_screen (_gtk_settings_get_screen (_gtk_style_provider_private_get_settings (provider)));
+    icontheme = gtk_icon_theme_get_for_display (_gtk_settings_get_display (gtk_style_provider_get_settings (provider)));
 
   return gtk_css_icon_theme_value_new (icontheme);
 }
@@ -134,7 +135,7 @@ gtk_css_icon_theme_value_new (GtkIconTheme *icontheme)
   result = _gtk_css_value_new (GtkCssValue, &GTK_CSS_VALUE_ICON_THEME);
   result->icontheme = g_object_ref (icontheme);
 
-  g_object_set_data (G_OBJECT (icontheme), "-gtk-css-value", result);
+  g_object_set_data (G_OBJECT (icontheme), I_("-gtk-css-value"), result);
   result->changed_id = g_signal_connect (icontheme, "changed", G_CALLBACK (gtk_css_value_icon_theme_changed_cb), result);
 
   return result;

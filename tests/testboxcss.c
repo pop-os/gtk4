@@ -83,8 +83,6 @@ css_text_changed (GtkTextBuffer  *buffer,
   text = gtk_text_buffer_get_text (buffer, &start, &end, FALSE);
   gtk_css_provider_load_from_data (provider, text, -1);
   g_free (text);
-
-  gtk_style_context_reset_widgets (gdk_screen_get_default ());
 }
 
 static void
@@ -158,9 +156,9 @@ main (gint argc, gchar **argv)
                               NULL);
 
   provider = GTK_STYLE_PROVIDER (gtk_css_provider_new ());
-  gtk_style_context_add_provider_for_screen (gdk_screen_get_default (),
-                                             provider,
-                                             GTK_STYLE_PROVIDER_PRIORITY_FORCE);
+  gtk_style_context_add_provider_for_display (gdk_display_get_default (),
+                                              provider,
+                                              GTK_STYLE_PROVIDER_PRIORITY_FORCE);
   
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 

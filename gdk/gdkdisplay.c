@@ -27,13 +27,12 @@
 #include "gdkintl.h"
 #include "gdk-private.h"
 
+#include "gdkclipboardprivate.h"
 #include "gdkdeviceprivate.h"
 #include "gdkdisplaymanagerprivate.h"
 #include "gdkevents.h"
 #include "gdkwindowimpl.h"
 #include "gdkinternals.h"
-#include "gdkmarshalers.h"
-#include "gdkscreen.h"
 #include "gdkmonitorprivate.h"
 
 #include <math.h>
@@ -44,29 +43,29 @@
 
 /**
  * SECTION:gdkdisplay
- * @Short_description: Controls a set of GdkScreens and their associated input devices
+ * @Short_description: Controls a set of monitors and their associated input devices
  * @Title: GdkDisplay
  *
- * #GdkDisplay objects purpose are two fold:
+ * GdkDisplay objects are the GDK representation of a workstation.
  *
- * - To manage and provide information about input devices (pointers and keyboards)
+ * Their purpose are two-fold:
+ * - To manage and provide information about input devices (pointers, keyboards, etc)
+ * - To manage and provide information about output devices (monitors, projectors, etc)
  *
- * - To manage and provide information about the available #GdkScreens
+ * Most of the input device handling has been factored out into separate #GdkSeat
+ * objects. Every display has a one or more seats, which can be accessed with
+ * gdk_display_get_default_seat() and gdk_display_list_seats().
  *
- * GdkDisplay objects are the GDK representation of an X Display,
- * which can be described as a workstation consisting of
- * a keyboard, a pointing device (such as a mouse) and one or more
- * screens.
- * It is used to open and keep track of various GdkScreen objects
- * currently instantiated by the application. It is also used to
- * access the keyboard(s) and mouse pointer(s) of the display.
- *
- * Most of the input device handling has been factored out into
- * the separate #GdkDeviceManager object. Every display has a
- * device manager, which you can obtain using
- * gdk_display_get_device_manager().
+ * Output devices are represented by #GdkMonitor objects, which can be accessed
+ * with gdk_display_get_monitor() and similar APIs.
  */
 
+/**
+ * GdkDisplay:
+ *
+ * The GdkDisplay struct contains only private fields and should not
+ * be accessed directly.
+ */
 enum
 {
   PROP_0,
@@ -84,6 +83,7 @@ enum {
   SEAT_REMOVED,
   MONITOR_ADDED,
   MONITOR_REMOVED,
+  SETTING_CHANGED,
   LAST_SIGNAL
 };
 
@@ -128,28 +128,8 @@ gdk_display_real_make_default (GdkDisplay *display)
 }
 
 static void
-device_removed_cb (GdkDeviceManager *device_manager,
-                   GdkDevice        *device,
-                   GdkDisplay       *display)
-{
-  g_hash_table_remove (display->device_grabs, device);
-  g_hash_table_remove (display->pointers_info, device);
-
-  /* FIXME: change core pointer and remove from device list */
-}
-
-static void
 gdk_display_real_opened (GdkDisplay *display)
 {
-  GdkDeviceManager *device_manager;
-
-  G_GNUC_BEGIN_IGNORE_DEPRECATIONS;
-  device_manager = gdk_display_get_device_manager (display);
-  G_GNUC_END_IGNORE_DEPRECATIONS;
-
-  g_signal_connect (device_manager, "device-removed",
-                    G_CALLBACK (device_removed_cb), display);
-
   _gdk_display_manager_add_display (gdk_display_manager_get (), display);
 }
 
@@ -214,7 +194,7 @@ gdk_display_class_init (GdkDisplayClass *class)
                           P_("Composited"),
                           P_("Composited"),
                           TRUE,
-                          G_PARAM_READABLE);
+                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   /**
    * GdkDisplay:rgba:
@@ -229,7 +209,7 @@ gdk_display_class_init (GdkDisplayClass *class)
                           P_("RGBA"),
                           P_("RGBA"),
                           TRUE,
-                          G_PARAM_READABLE);
+                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
@@ -265,7 +245,7 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GdkDisplayClass, closed),
 		  NULL, NULL,
-		  _gdk_marshal_VOID__BOOLEAN,
+                  g_cclosure_marshal_VOID__BOOLEAN,
 		  G_TYPE_NONE,
 		  1,
 		  G_TYPE_BOOLEAN);
@@ -341,6 +321,24 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  0, NULL, NULL,
                   g_cclosure_marshal_VOID__OBJECT,
 		  G_TYPE_NONE, 1, GDK_TYPE_MONITOR);
+
+  /**
+   * GdkDisplay::setting-changed:
+   * @display: the object on which the signal is emitted
+   * @setting: the name of the setting that changed
+   *
+   * The ::setting-changed signal is emitted whenever a setting
+   * changes its value.
+   *
+   * Since: 3.94
+   */
+  signals[SETTING_CHANGED] =
+    g_signal_new (g_intern_static_string ("setting-changed"),
+		  G_OBJECT_CLASS_TYPE (object_class),
+		  G_SIGNAL_RUN_LAST,
+		  0, NULL, NULL,
+                  NULL,
+		  G_TYPE_NONE, 1, G_TYPE_STRING | G_SIGNAL_TYPE_STATIC_SCOPE);
 }
 
 static void
@@ -391,26 +389,12 @@ static void
 gdk_display_dispose (GObject *object)
 {
   GdkDisplay *display = GDK_DISPLAY (object);
-  GdkDeviceManager *device_manager;
-
-  G_GNUC_BEGIN_IGNORE_DEPRECATIONS;
-  device_manager = gdk_display_get_device_manager (GDK_DISPLAY (object));
-  G_GNUC_END_IGNORE_DEPRECATIONS;
 
   _gdk_display_manager_remove_display (gdk_display_manager_get (), display);
 
   g_list_free_full (display->queued_events, (GDestroyNotify) gdk_event_free);
   display->queued_events = NULL;
   display->queued_tail = NULL;
-
-  if (device_manager)
-    {
-      /* this is to make it drop devices which may require using the X
-       * display and therefore can't be cleaned up in finalize.
-       * It will also disconnect device_removed_cb
-       */
-      g_object_run_dispose (G_OBJECT (display->device_manager));
-    }
 
   G_OBJECT_CLASS (gdk_display_parent_class)->dispose (object);
 }
@@ -428,9 +412,6 @@ gdk_display_finalize (GObject *object)
   g_hash_table_destroy (display->pointers_info);
 
   g_list_free_full (display->seats, g_object_unref);
-
-  if (display->device_manager)
-    g_object_unref (display->device_manager);
 
   G_OBJECT_CLASS (gdk_display_parent_class)->finalize (object);
 }
@@ -485,13 +466,12 @@ gdk_display_is_closed  (GdkDisplay  *display)
  * Gets the next #GdkEvent to be processed for @display, fetching events from the
  * windowing system if necessary.
  * 
- * Returns: (nullable): the next #GdkEvent to be processed, or %NULL
- * if no events are pending. The returned #GdkEvent should be freed
- * with gdk_event_free().
+ * Returns: (nullable) (transfer full): the next #GdkEvent to be processed,
+ *   or %NULL if no events are pending
  *
  * Since: 2.2
- **/
-GdkEvent*
+ */
+GdkEvent *
 gdk_display_get_event (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
@@ -511,13 +491,12 @@ gdk_display_get_event (GdkDisplay *display)
  * not get more events from the windowing system.  It only checks the events
  * that have already been moved to the GDK event queue.)
  * 
- * Returns: (nullable): a copy of the first #GdkEvent on the event
- * queue, or %NULL if no events are in the queue. The returned
- * #GdkEvent should be freed with gdk_event_free().
+ * Returns: (nullable) (transfer full): the first #GdkEvent on the
+ *   event queue
  *
  * Since: 2.2
  **/
-GdkEvent*
+GdkEvent *
 gdk_display_peek_event (GdkDisplay *display)
 {
   GList *tmp_list;
@@ -526,10 +505,10 @@ gdk_display_peek_event (GdkDisplay *display)
 
   tmp_list = _gdk_event_queue_find_first (display);
   
-  if (tmp_list)
-    return gdk_event_copy (tmp_list->data);
-  else
-    return NULL;
+  if (tmp_list != NULL)
+    return g_object_ref (tmp_list->data);
+
+  return NULL;
 }
 
 static void
@@ -561,40 +540,6 @@ gdk_display_put_event (GdkDisplay     *display,
   gdk_display_put_event_nocopy (display, gdk_event_copy (event));
 }
 
-/**
- * gdk_beep:
- * 
- * Emits a short beep on the default display.
- **/
-void
-gdk_beep (void)
-{
-  gdk_display_beep (gdk_display_get_default ());
-}
-
-/**
- * gdk_flush:
- *
- * Flushes the output buffers of all display connections and waits
- * until all requests have been processed.
- * This is rarely needed by applications.
- */
-void
-gdk_flush (void)
-{
-  GSList *list, *l;
-
-  list = gdk_display_manager_list_displays (gdk_display_manager_get ());
-  for (l = list; l; l = l->next)
-    {
-      GdkDisplay *display = l->data;
-
-      GDK_DISPLAY_GET_CLASS (display)->sync (display);
-    }
-
-  g_slist_free (list);
-}
-
 static void
 generate_grab_broken_event (GdkDisplay *display,
                             GdkWindow  *window,
@@ -609,8 +554,8 @@ generate_grab_broken_event (GdkDisplay *display,
       GdkEvent *event;
 
       event = gdk_event_new (GDK_GRAB_BROKEN);
-      event->grab_broken.window = g_object_ref (window);
-      event->grab_broken.send_event = FALSE;
+      event->any.window = g_object_ref (window);
+      event->any.send_event = FALSE;
       event->grab_broken.implicit = implicit;
       event->grab_broken.grab_window = grab_window;
       gdk_event_set_device (event, device);
@@ -1106,28 +1051,6 @@ gdk_display_device_is_grabbed (GdkDisplay *display,
 }
 
 /**
- * gdk_display_get_device_manager:
- * @display: a #GdkDisplay.
- *
- * Returns the #GdkDeviceManager associated to @display.
- *
- * Returns: (nullable) (transfer none): A #GdkDeviceManager, or
- *          %NULL. This memory is owned by GDK and must not be freed
- *          or unreferenced.
- *
- * Since: 3.0
- *
- * Deprecated: 3.20. Use gdk_display_get_default_seat() and #GdkSeat operations.
- **/
-GdkDeviceManager *
-gdk_display_get_device_manager (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  return display->device_manager;
-}
-
-/**
  * gdk_display_get_name:
  * @display: a #GdkDisplay
  *
@@ -1144,24 +1067,6 @@ gdk_display_get_name (GdkDisplay *display)
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
   return GDK_DISPLAY_GET_CLASS (display)->get_name (display);
-}
-
-/**
- * gdk_display_get_default_screen:
- * @display: a #GdkDisplay
- *
- * Get the default #GdkScreen for @display.
- *
- * Returns: (transfer none): the default #GdkScreen object for @display
- *
- * Since: 2.2
- */
-GdkScreen *
-gdk_display_get_default_screen (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  return GDK_DISPLAY_GET_CLASS (display)->get_default_screen (display);
 }
 
 /**
@@ -1250,97 +1155,43 @@ gdk_display_get_default_group (GdkDisplay *display)
 }
 
 /**
- * gdk_display_supports_selection_notification:
+ * gdk_display_get_clipboard:
  * @display: a #GdkDisplay
  *
- * Returns whether #GdkEventOwnerChange events will be
- * sent when the owner of a selection changes.
+ * Gets the clipboard used for copy/paste operations.
  *
- * Returns: whether #GdkEventOwnerChange events will
- *               be sent.
- *
- * Since: 2.6
- **/
-gboolean
-gdk_display_supports_selection_notification (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
-
-  return GDK_DISPLAY_GET_CLASS (display)->supports_selection_notification (display);
-}
-
-/**
- * gdk_display_request_selection_notification:
- * @display: a #GdkDisplay
- * @selection: the #GdkAtom naming the selection for which
- *             ownership change notification is requested
- *
- * Request #GdkEventOwnerChange events for ownership changes
- * of the selection named by the given atom.
- *
- * Returns: whether #GdkEventOwnerChange events will
- *               be sent.
- *
- * Since: 2.6
- **/
-gboolean
-gdk_display_request_selection_notification (GdkDisplay *display,
-					    GdkAtom     selection)
-
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
-
-  return GDK_DISPLAY_GET_CLASS (display)->request_selection_notification (display, selection);
-}
-
-/**
- * gdk_display_supports_clipboard_persistence:
- * @display: a #GdkDisplay
- *
- * Returns whether the speicifed display supports clipboard
- * persistance; i.e. if it’s possible to store the clipboard data after an
- * application has quit. On X11 this checks if a clipboard daemon is
- * running.
- *
- * Returns: %TRUE if the display supports clipboard persistance.
- *
- * Since: 2.6
+ * Returns: (transfer none): the display's clipboard
  */
-gboolean
-gdk_display_supports_clipboard_persistence (GdkDisplay *display)
+GdkClipboard *
+gdk_display_get_clipboard (GdkDisplay *display)
 {
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
+  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
-  return GDK_DISPLAY_GET_CLASS (display)->supports_clipboard_persistence (display);
+  if (display->clipboard == NULL)
+    display->clipboard = gdk_clipboard_new (display);
+
+  return display->clipboard;
 }
 
 /**
- * gdk_display_store_clipboard:
- * @display:          a #GdkDisplay
- * @clipboard_window: a #GdkWindow belonging to the clipboard owner
- * @time_:            a timestamp
- * @targets:          (array length=n_targets) (nullable): an array of targets
- *                    that should be saved, or %NULL
- *                    if all available targets should be saved.
- * @n_targets:        length of the @targets array
+ * gdk_display_get_primary_clipboard:
+ * @display: a #GdkDisplay
  *
- * Issues a request to the clipboard manager to store the
- * clipboard data. On X11, this is a special program that works
- * according to the
- * [FreeDesktop Clipboard Specification](http://www.freedesktop.org/Standards/clipboard-manager-spec).
+ * Gets the clipboard used for the primary selection. On backends where the
+ * primary clipboard is not supported natively, GDK emulates this clipboard
+ * locally.
  *
- * Since: 2.6
+ * Returns: (transfer none): the primary clipboard
  */
-void
-gdk_display_store_clipboard (GdkDisplay    *display,
-			     GdkWindow     *clipboard_window,
-			     guint32        time_,
-			     const GdkAtom *targets,
-			     gint           n_targets)
+GdkClipboard *
+gdk_display_get_primary_clipboard (GdkDisplay *display)
 {
-  g_return_if_fail (GDK_IS_DISPLAY (display));
+  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
-  GDK_DISPLAY_GET_CLASS (display)->store_clipboard (display, clipboard_window, time_, targets, n_targets);
+  if (display->primary_clipboard == NULL)
+    display->primary_clipboard = gdk_clipboard_new (display);
+
+  return display->primary_clipboard;
 }
 
 /**
@@ -1542,52 +1393,6 @@ _gdk_display_get_next_serial (GdkDisplay *display)
   return GDK_DISPLAY_GET_CLASS (display)->get_next_serial (display);
 }
 
-
-/**
- * gdk_notify_startup_complete:
- *
- * Indicates to the GUI environment that the application has finished
- * loading. If the applications opens windows, this function is
- * normally called after opening the application’s initial set of
- * windows.
- *
- * GTK+ will call this function automatically after opening the first
- * #GtkWindow unless gtk_window_set_auto_startup_notification() is called
- * to disable that feature.
- *
- * Since: 2.2
- **/
-void
-gdk_notify_startup_complete (void)
-{
-  gdk_notify_startup_complete_with_id (NULL);
-}
-
-/**
- * gdk_notify_startup_complete_with_id:
- * @startup_id: a startup-notification identifier, for which
- *     notification process should be completed
- *
- * Indicates to the GUI environment that the application has
- * finished loading, using a given identifier.
- *
- * GTK+ will call this function automatically for #GtkWindow
- * with custom startup-notification identifier unless
- * gtk_window_set_auto_startup_notification() is called to
- * disable that feature.
- *
- * Since: 2.12
- */
-void
-gdk_notify_startup_complete_with_id (const gchar* startup_id)
-{
-  GdkDisplay *display;
-
-  display = gdk_display_get_default ();
-  if (display)
-    gdk_display_notify_startup_complete (display, startup_id);
-}
-
 /**
  * gdk_display_notify_startup_complete:
  * @display: a #GdkDisplay
@@ -1646,14 +1451,12 @@ void
 _gdk_display_create_window_impl (GdkDisplay       *display,
                                  GdkWindow        *window,
                                  GdkWindow        *real_parent,
-                                 GdkScreen        *screen,
                                  GdkEventMask      event_mask,
                                  GdkWindowAttr    *attributes)
 {
   GDK_DISPLAY_GET_CLASS (display)->create_window_impl (display,
                                                        window,
                                                        real_parent,
-                                                       screen,
                                                        event_mask,
                                                        attributes);
 }
@@ -1667,158 +1470,21 @@ _gdk_display_create_window (GdkDisplay *display)
 }
 
 /**
- * gdk_keymap_get_for_display:
- * @display: the #GdkDisplay.
+ * gdk_display_get_keymap:
+ * @display: the #GdkDisplay
  *
  * Returns the #GdkKeymap attached to @display.
  *
  * Returns: (transfer none): the #GdkKeymap attached to @display.
  *
- * Since: 2.2
+ * Since: 3.94
  */
-GdkKeymap*
-gdk_keymap_get_for_display (GdkDisplay *display)
+GdkKeymap *
+gdk_display_get_keymap (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
   return GDK_DISPLAY_GET_CLASS (display)->get_keymap (display);
-}
-
-typedef struct _GdkGlobalErrorTrap  GdkGlobalErrorTrap;
-
-struct _GdkGlobalErrorTrap
-{
-  GSList *displays;
-};
-
-static GQueue gdk_error_traps = G_QUEUE_INIT;
-
-/**
- * gdk_error_trap_push:
- *
- * This function allows X errors to be trapped instead of the normal
- * behavior of exiting the application. It should only be used if it
- * is not possible to avoid the X error in any other way. Errors are
- * ignored on all #GdkDisplay currently known to the
- * #GdkDisplayManager. If you don’t care which error happens and just
- * want to ignore everything, pop with gdk_error_trap_pop_ignored().
- * If you need the error code, use gdk_error_trap_pop() which may have
- * to block and wait for the error to arrive from the X server.
- *
- * This API exists on all platforms but only does anything on X.
- *
- * You can use gdk_x11_display_error_trap_push() to ignore errors
- * on only a single display.
- *
- * ## Trapping an X error
- *
- * |[<!-- language="C" -->
- * gdk_error_trap_push ();
- *
- *  // ... Call the X function which may cause an error here ...
- *
- *
- * if (gdk_error_trap_pop ())
- *  {
- *    // ... Handle the error here ...
- *  }
- * ]|
- */
-void
-gdk_error_trap_push (void)
-{
-  GdkDisplayManager *manager;
-  GdkGlobalErrorTrap *trap;
-  GSList *displays;
-  GSList *l;
-
-  manager = gdk_display_manager_get ();
-  displays = gdk_display_manager_list_displays (manager);
-
-  trap = g_slice_new0 (GdkGlobalErrorTrap);
-  for (l = displays; l != NULL; l = l->next)
-    {
-      GdkDisplay *display = l->data;
-      GdkDisplayClass *class = GDK_DISPLAY_GET_CLASS (display);
-
-      if (class->push_error_trap != NULL)
-        {
-          class->push_error_trap (display);
-          trap->displays = g_slist_prepend (trap->displays, g_object_ref (display));
-        }
-    }
-
-  g_queue_push_head (&gdk_error_traps, trap);
-
-  g_slist_free (displays);
-}
-
-static gint
-gdk_error_trap_pop_internal (gboolean need_code)
-{
-  GdkGlobalErrorTrap *trap;
-  gint result;
-  GSList *l;
-
-  trap = g_queue_pop_head (&gdk_error_traps);
-
-  g_return_val_if_fail (trap != NULL, 0);
-
-  result = 0;
-  for (l = trap->displays; l != NULL; l = l->next)
-    {
-      GdkDisplay *display = l->data;
-      GdkDisplayClass *class = GDK_DISPLAY_GET_CLASS (display);
-      gint code = class->pop_error_trap (display, !need_code);
-
-      /* we use the error on the last display listed, why not. */
-      if (code != 0)
-        result = code;
-    }
-
-  g_slist_free_full (trap->displays, g_object_unref);
-  g_slice_free (GdkGlobalErrorTrap, trap);
-
-  return result;
-}
-
-/**
- * gdk_error_trap_pop_ignored:
- *
- * Removes an error trap pushed with gdk_error_trap_push(), but
- * without bothering to wait and see whether an error occurred.  If an
- * error arrives later asynchronously that was triggered while the
- * trap was pushed, that error will be ignored.
- *
- * Since: 3.0
- */
-void
-gdk_error_trap_pop_ignored (void)
-{
-  gdk_error_trap_pop_internal (FALSE);
-}
-
-/**
- * gdk_error_trap_pop:
- *
- * Removes an error trap pushed with gdk_error_trap_push().
- * May block until an error has been definitively received
- * or not received from the X server. gdk_error_trap_pop_ignored()
- * is preferred if you don’t need to know whether an error
- * occurred, because it never has to block. If you don't
- * need the return value of gdk_error_trap_pop(), use
- * gdk_error_trap_pop_ignored().
- *
- * Prior to GDK 3.0, this function would not automatically
- * sync for you, so you had to gdk_flush() if your last
- * call to Xlib was not a blocking round trip.
- *
- * Returns: X error code or 0 on success
- */
-gint
-gdk_error_trap_pop (void)
-{
-  return gdk_error_trap_pop_internal (TRUE);
 }
 
 /*< private >
@@ -1936,6 +1602,16 @@ gdk_display_set_rgba (GdkDisplay *display,
   g_object_notify_by_pspec (G_OBJECT (display), props[PROP_RGBA]);
 }
 
+static void
+device_removed_cb (GdkSeat    *seat,
+                   GdkDevice  *device,
+                   GdkDisplay *display)
+{
+  g_hash_table_remove (display->device_grabs, device);
+  g_hash_table_remove (display->pointers_info, device);
+
+  /* FIXME: change core pointer and remove from device list */
+}
 
 void
 gdk_display_add_seat (GdkDisplay *display,
@@ -1946,6 +1622,8 @@ gdk_display_add_seat (GdkDisplay *display,
 
   display->seats = g_list_append (display->seats, g_object_ref (seat));
   g_signal_emit (display, signals[SEAT_ADDED], 0, seat);
+
+  g_signal_connect (seat, "device-removed", G_CALLBACK (device_removed_cb), display);
 }
 
 void
@@ -1956,6 +1634,8 @@ gdk_display_remove_seat (GdkDisplay *display,
 
   g_return_if_fail (GDK_IS_DISPLAY (display));
   g_return_if_fail (GDK_IS_SEAT (seat));
+
+  g_signal_handlers_disconnect_by_func (seat, G_CALLBACK (device_removed_cb), display);
 
   link = g_list_find (display->seats, seat);
 
@@ -2222,4 +1902,71 @@ void
 gdk_display_emit_opened (GdkDisplay *display)
 {
   g_signal_emit (display, signals[OPENED], 0);
+}
+
+/**
+ * gdk_display_get_setting:
+ * @display: a #GdkDisplay
+ * @name: the name of the setting
+ * @value: location to store the value of the setting
+ *
+ * Retrieves a desktop-wide setting such as double-click time
+ * for the @display.
+ *
+ * Returns: %TRUE if the setting existed and a value was stored
+ *   in @value, %FALSE otherwise
+ *
+ * Since: 3.94
+ */
+gboolean
+gdk_display_get_setting (GdkDisplay *display,
+                         const char *name,
+                         GValue     *value)
+{
+  g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
+  g_return_val_if_fail (name != NULL, FALSE);
+  g_return_val_if_fail (value != NULL, FALSE);
+
+  return GDK_DISPLAY_GET_CLASS (display)->get_setting (display, name, value);
+}
+
+void
+gdk_display_setting_changed (GdkDisplay       *display,
+                             const char       *name)
+{
+  g_signal_emit (display, signals[SETTING_CHANGED], 0, name);
+}
+
+guint32
+gdk_display_get_last_seen_time (GdkDisplay *display)
+{
+  g_return_val_if_fail (GDK_IS_DISPLAY (display), GDK_CURRENT_TIME);
+
+  if (GDK_DISPLAY_GET_CLASS (display)->get_last_seen_time)
+    return GDK_DISPLAY_GET_CLASS (display)->get_last_seen_time (display);
+
+  return GDK_CURRENT_TIME;
+}
+
+void
+gdk_display_set_double_click_time (GdkDisplay *display,
+                                   guint       msec)
+{
+  display->double_click_time = msec;
+}
+
+void
+gdk_display_set_double_click_distance (GdkDisplay *display,
+                                       guint       distance)
+{
+  display->double_click_distance = distance;
+}
+
+void
+gdk_display_set_cursor_theme (GdkDisplay *display,
+                              const char *name,
+                              int         size)
+{
+  if (GDK_DISPLAY_GET_CLASS (display)->set_cursor_theme)
+    GDK_DISPLAY_GET_CLASS (display)->set_cursor_theme (display, name, size);
 }

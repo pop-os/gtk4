@@ -30,7 +30,6 @@
 #include "gdkproperty.h"
 #include "gdkprivate-broadway.h"
 #include "gdkinternals.h"
-#include "gdkscreen-broadway.h"
 #include "gdkdisplay-broadway.h"
 
 #include <string.h>
@@ -85,11 +84,12 @@ gdk_broadway_drag_context_finalize (GObject *object)
 /* Drag Contexts */
 
 GdkDragContext *
-_gdk_broadway_window_drag_begin (GdkWindow *window,
-				 GdkDevice *device,
-				 GList     *targets,
-                                 gint       x_root,
-                                 gint       y_root)
+_gdk_broadway_window_drag_begin (GdkWindow          *window,
+				 GdkDevice          *device,
+			         GdkContentProvider *content,
+                                 GdkDragAction       actions,
+                                 gint                dx,
+                                 gint                dy)
 {
   GdkDragContext *new_context;
 
@@ -97,23 +97,16 @@ _gdk_broadway_window_drag_begin (GdkWindow *window,
   g_return_val_if_fail (GDK_WINDOW_IS_BROADWAY (window), NULL);
 
   new_context = g_object_new (GDK_TYPE_BROADWAY_DRAG_CONTEXT,
+                              "display", gdk_window_get_display (window),
+                              "content", content,
 			      NULL);
-  new_context->display = gdk_window_get_display (window);
 
   return new_context;
-}
-
-GdkDragProtocol
-_gdk_broadway_window_get_drag_protocol (GdkWindow *window,
-					GdkWindow **target)
-{
-  return GDK_DRAG_PROTO_NONE;
 }
 
 static GdkWindow *
 gdk_broadway_drag_context_find_window (GdkDragContext  *context,
 				       GdkWindow       *drag_window,
-				       GdkScreen       *screen,
 				       gint             x_root,
 				       gint             y_root,
 				       GdkDragProtocol *protocol)
@@ -183,14 +176,6 @@ _gdk_broadway_window_register_dnd (GdkWindow      *window)
 {
 }
 
-static GdkAtom
-gdk_broadway_drag_context_get_selection (GdkDragContext *context)
-{
-  g_return_val_if_fail (context != NULL, GDK_NONE);
-
-  return GDK_NONE;
-}
-
 static gboolean
 gdk_broadway_drag_context_drop_status (GdkDragContext *context)
 {
@@ -220,5 +205,4 @@ gdk_broadway_drag_context_class_init (GdkBroadwayDragContextClass *klass)
   context_class->drop_reply = gdk_broadway_drag_context_drop_reply;
   context_class->drop_finish = gdk_broadway_drag_context_drop_finish;
   context_class->drop_status = gdk_broadway_drag_context_drop_status;
-  context_class->get_selection = gdk_broadway_drag_context_get_selection;
 }

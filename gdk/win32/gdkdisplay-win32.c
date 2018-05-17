@@ -199,42 +199,6 @@ _gdk_win32_display_init_monitors (GdkWin32Display *win32_display)
       g_ptr_array_insert (win32_display->monitors, 0, primary_to_move);
       changed = TRUE;
     }
-
-  for (i = 0; i < win32_display->monitors->len; i++)
-    {
-      GdkMonitor *monitor;
-      GdkWin32Monitor *win32_monitor;
-
-      monitor = GDK_MONITOR (g_ptr_array_index (win32_display->monitors, i));
-
-      if (win32_display->has_fixed_scale)
-        gdk_monitor_set_scale_factor (monitor, win32_display->window_scale);
-      else
-        {
-          /* First acquire the scale using the current screen */
-          GdkRectangle workarea;
-          POINT pt;
-          guint scale = _gdk_win32_display_get_monitor_scale_factor (win32_display, NULL, NULL, NULL);
-
-          gdk_monitor_get_workarea (monitor, &workarea);
-          workarea.x -= _gdk_offset_x;
-          workarea.y -= _gdk_offset_y;
-          workarea.x += workarea.width / scale;
-          workarea.y += workarea.height / scale;
-          pt.x = workarea.x;
-          pt.y = workarea.y;
-
-          /* acquire the scale using the monitor which the window is nearest on Windows 8.1+ */
-          if (win32_display->have_at_least_win81)
-            {
-              HMONITOR hmonitor = MonitorFromPoint (pt, MONITOR_DEFAULTTONEAREST);
-              scale = _gdk_win32_display_get_monitor_scale_factor (win32_display, hmonitor, NULL, NULL);
-            }
-
-          gdk_monitor_set_scale_factor (monitor, scale);
-        }
-    }
-
   return changed;
 }
 
@@ -253,7 +217,7 @@ _gdk_win32_display_init_monitors (GdkWin32Display *win32_display)
  * with gdk_cursor_new(), gdk_cursor_new_for_display() and
  * gdk_cursor_new_from_name() are updated to reflect the theme
  * change. Custom cursors constructed with
- * gdk_cursor_new_from_pixbuf() will have to be handled
+ * gdk_cursor_new_from_texture() will have to be handled
  * by the application (GTK+ applications can learn about
  * cursor theme changes by listening for change notification
  * for the corresponding #GtkSetting).
@@ -444,11 +408,11 @@ _gdk_win32_display_open (const gchar *display_name)
 
   _gdk_events_init (_gdk_display);
 
-  _gdk_input_ignore_core = FALSE;
+  _gdk_input_ignore_core = 0;
 
-  _gdk_display->device_manager = g_object_new (GDK_TYPE_DEVICE_MANAGER_WIN32,
-                                               "display", _gdk_display,
-                                               NULL);
+  _gdk_device_manager = g_object_new (GDK_TYPE_DEVICE_MANAGER_WIN32,
+                                      NULL);
+  _gdk_device_manager->display = _gdk_display;
 
   _gdk_dnd_init ();
 
@@ -530,14 +494,6 @@ gdk_win32_display_get_name (GdkDisplay *display)
   return display_name_cache;
 }
 
-static GdkScreen *
-gdk_win32_display_get_default_screen (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_WIN32_DISPLAY (display), NULL);
-
-  return GDK_WIN32_DISPLAY (display)->screen;
-}
-
 static GdkWindow *
 gdk_win32_display_get_default_group (GdkDisplay *display)
 {
@@ -546,14 +502,6 @@ gdk_win32_display_get_default_group (GdkDisplay *display)
   g_warning ("gdk_display_get_default_group not yet implemented");
 
   return NULL;
-}
-
-static gboolean
-gdk_win32_display_supports_selection_notification (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
-
-  return TRUE;
 }
 
 static HWND _hwnd_next_viewer = NULL;
@@ -593,7 +541,7 @@ inner_clipboard_window_procedure (HWND   hwnd,
         HWND hwnd_owner;
         HWND hwnd_opener;
         GdkEvent *event;
-        GdkWindow *owner;
+        GdkWin32Selection *win32_sel = _gdk_win32_selection_get ();
 
         hwnd_owner = GetClipboardOwner ();
 
@@ -608,14 +556,16 @@ inner_clipboard_window_procedure (HWND   hwnd,
 #ifdef G_ENABLE_DEBUG
         if (_gdk_debug_flags & GDK_DEBUG_DND)
           {
-            if (OpenClipboard (hwnd))
+            if (win32_sel->clipboard_opened_for != INVALID_HANDLE_VALUE ||
+                OpenClipboard (hwnd))
               {
                 UINT nFormat = 0;
 
                 while ((nFormat = EnumClipboardFormats (nFormat)) != 0)
                   g_print ("%s ", _gdk_win32_cf_to_string (nFormat));
 
-                CloseClipboard ();
+                if (win32_sel->clipboard_opened_for == INVALID_HANDLE_VALUE)
+                  CloseClipboard ();
               }
             else
               {
@@ -626,13 +576,22 @@ inner_clipboard_window_procedure (HWND   hwnd,
 
         GDK_NOTE (DND, g_print (" \n"));
 
-        owner = gdk_win32_window_lookup_for_display (_gdk_display, hwnd_owner);
-        if (owner == NULL)
-          owner = gdk_win32_window_foreign_new_for_display (_gdk_display, hwnd_owner);
+        if (win32_sel->stored_hwnd_owner != hwnd_owner)
+          {
+            if (win32_sel->clipboard_opened_for != INVALID_HANDLE_VALUE)
+              {
+                CloseClipboard ();
+                GDK_NOTE (DND, g_print ("Closed clipboard @ %s:%d\n", __FILE__, __LINE__));
+              }
+
+            win32_sel->clipboard_opened_for = INVALID_HANDLE_VALUE;
+            win32_sel->stored_hwnd_owner = hwnd_owner;
+
+            _gdk_win32_clear_clipboard_queue ();
+          }
 
         event = gdk_event_new (GDK_OWNER_CHANGE);
-        event->owner_change.window = gdk_get_default_root_window ();
-        event->owner_change.owner = owner;
+        event->owner_change.window = NULL;
         event->owner_change.reason = GDK_OWNER_CHANGE_NEW_OWNER;
         event->owner_change.selection = GDK_SELECTION_CLIPBOARD;
         event->owner_change.time = _gdk_win32_get_next_tick (0);
@@ -720,55 +679,6 @@ failed:
 }
 
 static gboolean
-gdk_win32_display_request_selection_notification (GdkDisplay *display,
-                                                  GdkAtom     selection)
-
-{
-  GdkWin32Display *display_win32 = GDK_WIN32_DISPLAY (display);
-  gboolean ret = FALSE;
-
-  GDK_NOTE (DND,
-            g_print ("gdk_display_request_selection_notification (..., %s)",
-                     gdk_atom_name (selection)));
-
-  if (selection == GDK_SELECTION_CLIPBOARD ||
-      selection == GDK_SELECTION_PRIMARY)
-    {
-      if (display_win32->clipboard_hwnd == NULL)
-        {
-          if (register_clipboard_notification (display))
-            GDK_NOTE (DND, g_print (" registered"));
-          else
-            GDK_NOTE (DND, g_print (" failed to register"));
-        }
-      ret = (display_win32->clipboard_hwnd != NULL);
-    }
-  else
-    {
-      GDK_NOTE (DND, g_print (" unsupported"));
-      ret = FALSE;
-    }
-
-  GDK_NOTE (DND, g_print (" -> %s\n", ret ? "TRUE" : "FALSE"));
-  return ret;
-}
-
-static gboolean
-gdk_win32_display_supports_clipboard_persistence (GdkDisplay *display)
-{
-  return FALSE;
-}
-
-static void
-gdk_win32_display_store_clipboard (GdkDisplay    *display,
-			     GdkWindow     *clipboard_window,
-			     guint32        time_,
-			     const GdkAtom *targets,
-			     gint           n_targets)
-{
-}
-
-static gboolean
 gdk_win32_display_supports_shapes (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
@@ -813,8 +723,6 @@ static void
 gdk_win32_display_dispose (GObject *object)
 {
   GdkWin32Display *display_win32 = GDK_WIN32_DISPLAY (object);
-
-  _gdk_screen_close (display_win32->screen);
 
   if (display_win32->hwnd != NULL)
     {
@@ -940,13 +848,9 @@ _gdk_win32_enable_hidpi (GdkWin32Display *display)
                     break;
                 }
             }
-
-          /* Should not get here! */
-          if (status == DPI_STATUS_PENDING)
+          else
             {
-              g_assert_not_reached ();
-              display->dpi_aware_type = PROCESS_DPI_UNAWARE;
-              status = DPI_STATUS_FAILED;
+              check_for_dpi_awareness = TRUE;
             }
         }
       else
@@ -1099,19 +1003,6 @@ gdk_win32_display_notify_startup_complete (GdkDisplay  *display,
   /* nothing */
 }
 
-static void
-gdk_win32_display_push_error_trap (GdkDisplay *display)
-{
-  /* nothing */
-}
-
-static gint
-gdk_win32_display_pop_error_trap (GdkDisplay *display,
-				  gboolean    ignored)
-{
-  return 0;
-}
-
 static int
 gdk_win32_display_get_n_monitors (GdkDisplay *display)
 {
@@ -1127,10 +1018,10 @@ gdk_win32_display_get_monitor (GdkDisplay *display,
 {
   GdkWin32Display *win32_display = GDK_WIN32_DISPLAY (display);
 
-  if (0 <= monitor_num || monitor_num < win32_display->monitors->len)
-    return (GdkMonitor *) g_ptr_array_index (win32_display->monitors, monitor_num);
+  if (monitor_num < 0 || monitor_num >= win32_display->monitors->len)
+    return NULL;
 
-  return NULL;
+  return (GdkMonitor *) g_ptr_array_index (win32_display->monitors, monitor_num);
 }
 
 static GdkMonitor *
@@ -1228,6 +1119,20 @@ _gdk_win32_display_get_monitor_scale_factor (GdkWin32Display *win32_display,
   }
 }
 
+static gboolean
+gdk_win32_display_get_setting (GdkDisplay  *display,
+                               const gchar *name,
+                               GValue      *value)
+{
+  return _gdk_win32_get_setting (name, value);
+}
+
+static guint32
+gdk_win32_display_get_last_seen_time (GdkDisplay *display)
+{
+  return GetMessageTime ();
+}
+
 static void
 gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
 {
@@ -1240,7 +1145,6 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
   display_class->window_type = GDK_TYPE_WIN32_WINDOW;
 
   display_class->get_name = gdk_win32_display_get_name;
-  display_class->get_default_screen = gdk_win32_display_get_default_screen;
   display_class->beep = gdk_win32_display_beep;
   display_class->sync = gdk_win32_display_sync;
   display_class->flush = gdk_win32_display_flush;
@@ -1248,17 +1152,10 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
   display_class->queue_events = _gdk_win32_display_queue_events;
   display_class->get_default_group = gdk_win32_display_get_default_group;
 
-  display_class->supports_selection_notification = gdk_win32_display_supports_selection_notification;
-  display_class->request_selection_notification = gdk_win32_display_request_selection_notification;
-  display_class->supports_clipboard_persistence = gdk_win32_display_supports_clipboard_persistence;
-  display_class->store_clipboard = gdk_win32_display_store_clipboard;
   display_class->supports_shapes = gdk_win32_display_supports_shapes;
   display_class->supports_input_shapes = gdk_win32_display_supports_input_shapes;
 
   //? display_class->get_app_launch_context = _gdk_win32_display_get_app_launch_context;
-  display_class->get_cursor_for_type = _gdk_win32_display_get_cursor_for_type;
-  display_class->get_cursor_for_name = _gdk_win32_display_get_cursor_for_name;
-  display_class->get_cursor_for_surface = _gdk_win32_display_get_cursor_for_surface;
   display_class->get_default_cursor_size = _gdk_win32_display_get_default_cursor_size;
   display_class->get_maximal_cursor_size = _gdk_win32_display_get_maximal_cursor_size;
   display_class->supports_cursor_alpha = _gdk_win32_display_supports_cursor_alpha;
@@ -1269,13 +1166,6 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
   display_class->create_window_impl = _gdk_win32_display_create_window_impl;
 
   display_class->get_keymap = _gdk_win32_display_get_keymap;
-  display_class->push_error_trap = gdk_win32_display_push_error_trap;
-  display_class->pop_error_trap = gdk_win32_display_pop_error_trap;
-  display_class->get_selection_owner = _gdk_win32_display_get_selection_owner;
-  display_class->set_selection_owner = _gdk_win32_display_set_selection_owner;
-  display_class->send_selection_notify = _gdk_win32_display_send_selection_notify;
-  display_class->get_selection_property = _gdk_win32_display_get_selection_property;
-  display_class->convert_selection = _gdk_win32_display_convert_selection;
   display_class->text_property_to_utf8_list = _gdk_win32_display_text_property_to_utf8_list;
   display_class->utf8_to_string_target = _gdk_win32_display_utf8_to_string_target;
   display_class->make_gl_context_current = _gdk_win32_display_make_gl_context_current;
@@ -1288,6 +1178,10 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
   display_class->vk_context_type = GDK_TYPE_WIN32_VULKAN_CONTEXT;
   display_class->vk_extension_name = VK_KHR_WIN32_SURFACE_EXTENSION_NAME;
 #endif
+
+  display_class->get_setting = gdk_win32_display_get_setting;
+  display_class->get_last_seen_time = gdk_win32_display_get_last_seen_time;
+  display_class->set_cursor_theme = gdk_win32_display_set_cursor_theme;
 
   _gdk_win32_windowing_init ();
 }

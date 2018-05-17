@@ -29,7 +29,6 @@
 #endif
 
 #include "gtkapplicationprivate.h"
-#include "gtkclipboardprivate.h"
 #include "gtkmarshalers.h"
 #include "gtkmain.h"
 #include "gtkrecentmanager.h"
@@ -38,6 +37,7 @@
 #include "gtkbuilder.h"
 #include "gtkshortcutswindow.h"
 #include "gtkintl.h"
+#include "gtkprivate.h"
 
 /* NB: please do not add backend-specific GDK headers here.  This should
  * be abstracted via GtkApplicationImpl.
@@ -204,7 +204,7 @@ gtk_application_load_resources (GtkApplication *application)
     gchar *iconspath;
 
     default_theme = gtk_icon_theme_get_default ();
-    iconspath = g_strconcat (base_path, "/icons", NULL);
+    iconspath = g_strconcat (base_path, "/icons/", NULL);
     gtk_icon_theme_add_resource_path (default_theme, iconspath);
     g_free (iconspath);
   }
@@ -311,13 +311,7 @@ gtk_application_shutdown (GApplication *g_application)
 
   gtk_action_muxer_remove (application->priv->muxer, "app");
 
-  /* Keep this section in sync with gtk_main() */
-
-  /* Try storing all clipboard data we have */
-  _gtk_clipboard_store_all ();
-
-  /* Synchronize the recent manager singleton */
-  _gtk_recent_manager_sync ();
+  gtk_main_sync ();
 
   G_APPLICATION_CLASS (gtk_application_parent_class)->shutdown (g_application);
 }
@@ -1148,28 +1142,6 @@ gtk_application_uninhibit (GtkApplication *application,
   g_return_if_fail (cookie > 0);
 
   gtk_application_impl_uninhibit (application->priv->impl, cookie);
-}
-
-/**
- * gtk_application_is_inhibited:
- * @application: the #GtkApplication
- * @flags: what types of actions should be queried
- *
- * Determines if any of the actions specified in @flags are
- * currently inhibited (possibly by another application).
- *
- * Returns: %TRUE if any of the actions specified in @flags are inhibited
- *
- * Since: 3.4
- */
-gboolean
-gtk_application_is_inhibited (GtkApplication             *application,
-                              GtkApplicationInhibitFlags  flags)
-{
-  g_return_val_if_fail (GTK_IS_APPLICATION (application), FALSE);
-  g_return_val_if_fail (!g_application_get_is_remote (G_APPLICATION (application)), FALSE);
-
-  return gtk_application_impl_is_inhibited (application->priv->impl, flags);
 }
 
 GtkActionMuxer *

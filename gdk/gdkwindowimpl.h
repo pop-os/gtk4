@@ -85,10 +85,6 @@ struct _GdkWindowImplClass
   void         (* set_events)           (GdkWindow       *window,
                                          GdkEventMask     event_mask);
 
-  void         (* set_device_cursor)    (GdkWindow       *window,
-                                         GdkDevice       *device,
-                                         GdkCursor       *cursor);
-
   void         (* get_geometry)         (GdkWindow       *window,
                                          gint            *x,
                                          gint            *y,
@@ -185,7 +181,8 @@ struct _GdkWindowImplClass
   void         (* maximize)             (GdkWindow *window);
   void         (* unmaximize)           (GdkWindow *window);
   void         (* fullscreen)           (GdkWindow *window);
-  void         (* fullscreen_on_monitor) (GdkWindow *window, gint monitor);
+  void         (* fullscreen_on_monitor) (GdkWindow  *window,
+                                          GdkMonitor *monitor);
   void         (* apply_fullscreen_mode) (GdkWindow *window);
   void         (* unfullscreen)         (GdkWindow *window);
   void         (* set_keep_above)       (GdkWindow *window,
@@ -219,37 +216,16 @@ struct _GdkWindowImplClass
   void         (* set_opacity)          (GdkWindow *window,
 					 gdouble    opacity);
   void         (* destroy_notify)       (GdkWindow *window);
-  GdkDragProtocol (* get_drag_protocol) (GdkWindow *window,
-                                         GdkWindow **target);
   void         (* register_dnd)         (GdkWindow *window);
-  GdkDragContext * (*drag_begin)        (GdkWindow *window,
-                                         GdkDevice *device,
-                                         GList     *targets,
-                                         gint       x_root,
-                                         gint       y_root);
+  GdkDragContext * (*drag_begin)        (GdkWindow        *window,
+                                         GdkDevice        *device,
+                                         GdkContentProvider*content,
+                                         GdkDragAction     actions,
+                                         gint              dx,
+                                         gint              dy);
 
   void         (*process_updates_recurse) (GdkWindow      *window,
                                            cairo_region_t *region);
-
-  gboolean     (*get_property)            (GdkWindow      *window,
-                                           GdkAtom         property,
-                                           GdkAtom         type,
-                                           gulong          offset,
-                                           gulong          length,
-                                           gint            pdelete,
-                                           GdkAtom        *actual_type,
-                                           gint           *actual_format,
-                                           gint           *actual_length,
-                                           guchar        **data);
-  void         (*change_property)         (GdkWindow      *window,
-                                           GdkAtom         property,
-                                           GdkAtom         type,
-                                           gint            format,
-                                           GdkPropMode     mode,
-                                           const guchar   *data,
-                                           gint            n_elements);
-  void         (*delete_property)         (GdkWindow      *window,
-                                           GdkAtom         property);
 
   gint         (* get_scale_factor)       (GdkWindow      *window);
   void         (* get_unscaled_size)      (GdkWindow      *window,

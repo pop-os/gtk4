@@ -400,7 +400,7 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
     <property name="title">GTK+ Widget Factory</property>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="headerbar1">
-        <property name="show-close-button">1</property>
+        <property name="show-title-buttons">1</property>
         <child type="title">
           <object class="GtkStackSwitcher" id="stack_switcher">
             <property name="stack">toplevel_stack</property>
@@ -424,7 +424,7 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
         <property name="margin">10</property>
         <child>
           <object class="GtkStack" id="toplevel_stack">
-            <property name="transition-duration">1000</property>
+            <property name="transition-duration">30000</property>
             <child>
               <object class="GtkBox" id="page1">
                 <property name="orientation">vertical</property>
@@ -1851,7 +1851,6 @@ microphone-sensitivity-medium-symbolic</property>
                                         <child>
                                           <object class="GtkImage" id="listboxrow3image">
                                             <property name="icon-name">object-select-symbolic</property>
-                                            <property name="icon-size">1</property>
                                             <property name="halign">end</property>
                                             <property name="valign">center</property>
                                             <property name="margin-top">6</property>
@@ -1881,7 +1880,6 @@ microphone-sensitivity-medium-symbolic</property>
                                         <child>
                                           <object class="GtkImage">
                                             <property name="icon-name">object-select-symbolic</property>
-                                            <property name="icon-size">1</property>
                                             <property name="halign">end</property>
                                             <property name="valign">center</property>
                                             <property name="margin-top">6</property>
@@ -2402,7 +2400,6 @@ microphone-sensitivity-medium-symbolic</property>
                                         <property name="model">iconsmodel</property>
                                         <child>
                                           <object class="GtkCellRendererPixbuf" id="iconviewcell">
-                                            <property name="stock-size">2</property>
                                           </object>
                                           <attributes>
                                             <attribute name="icon-name">0</attribute>
@@ -2414,7 +2411,6 @@ microphone-sensitivity-medium-symbolic</property>
                                 </child>
                                 <child>
                                   <object class="GtkToolbar">
-                                    <property name="icon-size">1</property>
                                     <property name="toolbar-style">icons</property>
                                     <style>
                                       <class name="inline-toolbar"/>
@@ -2422,21 +2418,21 @@ microphone-sensitivity-medium-symbolic</property>
                                     <child>
                                       <object class="GtkToolButton" id="decrease_button">
                                         <property name="icon-name">zoom-out-symbolic</property>
-                                        <property name="label">Remove item</property>
+                                        <property name="tooltip-text">Normal icons</property>
                                         <signal name="clicked" handler="decrease_icon_size" object="iconview1" swapped="yes"/>
                                       </object>
                                     </child>
                                     <child>
                                       <object class="GtkToolButton" id="increase_button">
                                         <property name="icon-name">zoom-in-symbolic</property>
-                                        <property name="label">Add item</property>
+                                        <property name="tooltip-text">Large icons</property>
                                         <signal name="clicked" handler="increase_icon_size" object="iconview1" swapped="yes"/>
                                       </object>
                                     </child>
                                     <child>
                                       <object class="GtkToolButton" id="reset_button">
                                         <property name="icon-name">zoom-original-symbolic</property>
-                                        <property name="label">Refresh</property>
+                                        <property name="tooltip-text">Inherited icon size</property>
                                         <signal name="clicked" handler="reset_icon_size" object="iconview1" swapped="yes"/>
                                       </object>
                                     </child>
@@ -2900,7 +2896,6 @@ microphone-sensitivity-medium-symbolic</property>
                               <object class="GtkToolbar">
                                 <property name="orientation">vertical</property>
                                 <property name="toolbar-style">icons</property>
-                                <property name="icon-size">1</property>
                                 <child>
                                   <object class="GtkToolButton" id="toolbutton1">
                                     <property name="icon-name">document-open-symbolic</property>
@@ -3037,7 +3032,6 @@ microphone-sensitivity-medium-symbolic</property>
                         </child>
                         <child>
                           <object class="GtkFrame" id="osd_frame">
-                            <signal name="button-press-event" handler="osd_frame_button_press"/>
                             <child>
                               <object class="GtkPaned">
                                 <property name="wide-handle">1</property>

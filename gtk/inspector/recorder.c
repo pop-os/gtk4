@@ -32,9 +32,9 @@
 #include <gtk/gtktreeview.h>
 #include <gsk/gskrendererprivate.h>
 #include <gsk/gskrendernodeprivate.h>
-#include <gsk/gsktextureprivate.h>
 #include <gsk/gskroundedrectprivate.h>
 
+#include <gdk/gdktextureprivate.h>
 #include "gtk/gtkdebug.h"
 
 #include "gtktreemodelrendernode.h"
@@ -313,16 +313,16 @@ populate_render_node_properties (GtkListStore  *store,
 
         if (gsk_render_node_get_node_type (node) == GSK_TEXTURE_NODE)
           {
-            GskTexture *texture;
+            GdkTexture *texture;
 
             text = "Texture";
             texture = gsk_texture_node_get_texture (node);
-            surface = gsk_texture_download_surface (texture);
+            surface = gdk_texture_download_surface (texture);
           }
         else
           {
             text = "Surface";
-            surface = gsk_cairo_node_get_surface (node);
+            surface = (cairo_surface_t *)gsk_cairo_node_peek_surface (node);
           }
 
         show_inline = cairo_image_surface_get_height (surface) <= 40 &&
@@ -378,24 +378,25 @@ populate_render_node_properties (GtkListStore  *store,
 
     case GSK_TEXT_NODE:
       {
-        PangoFont *font = gsk_text_node_get_font (node);
-        PangoGlyphString *glyphs = gsk_text_node_get_glyphs (node);
-        const GdkRGBA *color = gsk_text_node_get_color (node);
+        const PangoFont *font = gsk_text_node_peek_font (node);
+        const PangoGlyphInfo *glyphs = gsk_text_node_peek_glyphs (node);
+        const GdkRGBA *color = gsk_text_node_peek_color (node);
+        guint num_glyphs = gsk_text_node_get_num_glyphs (node);
         float x = gsk_text_node_get_x (node);
         float y = gsk_text_node_get_y (node);
         PangoFontDescription *desc;
         GString *s;
         int i;
 
-        desc = pango_font_describe (font);
+        desc = pango_font_describe ((PangoFont *)font);
         tmp = pango_font_description_to_string (desc);
         add_text_row (store, "Font", tmp);
         g_free (tmp);
         pango_font_description_free (desc);
 
-        s = g_string_sized_new (6 * glyphs->num_glyphs);
-        for (i = 0; i < glyphs->num_glyphs; i++)
-          g_string_append_printf (s, "%x ", glyphs->glyphs[i].glyph);
+        s = g_string_sized_new (6 * num_glyphs);
+        for (i = 0; i < num_glyphs; i++)
+          g_string_append_printf (s, "%x ", glyphs[i].glyph);
         add_text_row (store, "Glyphs", s->str);
         g_string_free (s, TRUE);
 
@@ -513,16 +514,123 @@ populate_render_node_properties (GtkListStore  *store,
                                child_bounds->origin.y);
         add_text_row (store, "Child Bounds", tmp);
         g_free (tmp);
-     }
+      }
+      break;
+
+    case GSK_COLOR_MATRIX_NODE:
+      {
+        const graphene_matrix_t *matrix = gsk_color_matrix_node_peek_color_matrix (node);
+        const graphene_vec4_t *offset = gsk_color_matrix_node_peek_color_offset (node);
+
+        tmp = g_strdup_printf ("% .2f % .2f % .2f % .2f\n"
+                               "% .2f % .2f % .2f % .2f\n"
+                               "% .2f % .2f % .2f % .2f\n"
+                               "% .2f % .2f % .2f % .2f",
+                               graphene_matrix_get_value (matrix, 0, 0),
+                               graphene_matrix_get_value (matrix, 0, 1),
+                               graphene_matrix_get_value (matrix, 0, 2),
+                               graphene_matrix_get_value (matrix, 0, 3),
+                               graphene_matrix_get_value (matrix, 1, 0),
+                               graphene_matrix_get_value (matrix, 1, 1),
+                               graphene_matrix_get_value (matrix, 1, 2),
+                               graphene_matrix_get_value (matrix, 1, 3),
+                               graphene_matrix_get_value (matrix, 2, 0),
+                               graphene_matrix_get_value (matrix, 2, 1),
+                               graphene_matrix_get_value (matrix, 2, 2),
+                               graphene_matrix_get_value (matrix, 2, 3),
+                               graphene_matrix_get_value (matrix, 3, 0),
+                               graphene_matrix_get_value (matrix, 3, 1),
+                               graphene_matrix_get_value (matrix, 3, 2),
+                               graphene_matrix_get_value (matrix, 3, 3));
+        add_text_row (store, "Matrix", tmp);
+        g_free (tmp);
+        tmp = g_strdup_printf ("%.2f %.2f %.2f %.2f",
+                               graphene_vec4_get_x (offset),
+                               graphene_vec4_get_y (offset),
+                               graphene_vec4_get_z (offset),
+                               graphene_vec4_get_w (offset));
+        add_text_row (store, "Offset", tmp);
+        g_free (tmp);
+      }
+      break;
+
+    case GSK_CLIP_NODE:
+      {
+        const graphene_rect_t *clip = gsk_clip_node_peek_clip (node);
+        tmp = g_strdup_printf ("%.2f x %.2f + %.2f + %.2f",
+                               clip->size.width,
+                               clip->size.height,
+                               clip->origin.x,
+                               clip->origin.y);
+        add_text_row (store, "Clip", tmp);
+        g_free (tmp);
+      }
+      break;
+
+    case GSK_ROUNDED_CLIP_NODE:
+      {
+        const GskRoundedRect *clip = gsk_rounded_clip_node_peek_clip (node);
+        tmp = g_strdup_printf ("%.2f x %.2f + %.2f + %.2f",
+                               clip->bounds.size.width,
+                               clip->bounds.size.height,
+                               clip->bounds.origin.x,
+                               clip->bounds.origin.y);
+        add_text_row (store, "Clip", tmp);
+        g_free (tmp);
+
+        tmp = g_strdup_printf ("%.2f x %.2f", clip->corner[0].width, clip->corner[0].height);
+        add_text_row (store, "Top Left Corner Size", tmp);
+        g_free (tmp);
+
+        tmp = g_strdup_printf ("%.2f x %.2f", clip->corner[1].width, clip->corner[1].height);
+        add_text_row (store, "Top Right Corner Size", tmp);
+        g_free (tmp);
+
+        tmp = g_strdup_printf ("%.2f x %.2f", clip->corner[2].width, clip->corner[2].height);
+        add_text_row (store, "Bottom Right Corner Size", tmp);
+        g_free (tmp);
+
+        tmp = g_strdup_printf ("%.2f x %.2f", clip->corner[3].width, clip->corner[3].height);
+        add_text_row (store, "Bottom Left Corner Size", tmp);
+        g_free (tmp);
+      }
+      break;
+
+    case GSK_CONTAINER_NODE:
+      tmp = g_strdup_printf ("%d", gsk_container_node_get_n_children (node));
+      add_text_row (store, "Children", tmp);
+      g_free (tmp);
+      break;
+
+    case GSK_SHADOW_NODE:
+      {
+        int i;
+
+        for (i = 0; i < gsk_shadow_node_get_n_shadows (node); i++)
+          {
+            char *label;
+            char *value;
+            const GskShadow *shadow = gsk_shadow_node_peek_shadow (node, i);
+
+            label = g_strdup_printf ("Color %d", i);
+            add_color_row (store, label, &shadow->color);
+            g_free (label);
+
+            label = g_strdup_printf ("Offset %d", i);
+            value = g_strdup_printf ("%.2f %.2f", shadow->dx, shadow->dy);
+            add_text_row (store, label, value);
+            g_free (value);
+            g_free (label);
+
+            label = g_strdup_printf ("Radius %d", i);
+            add_float_row (store, label, shadow->radius);
+            g_free (label);
+          }
+      }
       break;
 
     case GSK_NOT_A_RENDER_NODE:
-    case GSK_CONTAINER_NODE:
     case GSK_TRANSFORM_NODE:
-    case GSK_COLOR_MATRIX_NODE:
-    case GSK_CLIP_NODE:
-    case GSK_ROUNDED_CLIP_NODE:
-    case GSK_SHADOW_NODE:
     default:
       break;
     }

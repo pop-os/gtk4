@@ -18,8 +18,6 @@
 #ifndef __GDK_DEVICE_MANAGER_WIN32_H__
 #define __GDK_DEVICE_MANAGER_WIN32_H__
 
-#include <gdk/gdkdevicemanagerprivate.h>
-
 G_BEGIN_DECLS
 
 #define GDK_TYPE_DEVICE_MANAGER_WIN32         (gdk_device_manager_win32_get_type ())
@@ -34,7 +32,8 @@ typedef struct _GdkDeviceManagerWin32Class GdkDeviceManagerWin32Class;
 
 struct _GdkDeviceManagerWin32
 {
-  GdkDeviceManager parent_object;
+  GObject parent_object;
+  GdkDisplay *display;
   /* Master Devices */
   GdkDevice *core_pointer;
   GdkDevice *core_keyboard;
@@ -42,11 +41,17 @@ struct _GdkDeviceManagerWin32
   GdkDevice *system_pointer;
   GdkDevice *system_keyboard;
   GList *wintab_devices;
+
+  /* Bumped up every time a wintab device enters the proximity
+   * of our context (WT_PROXIMITY). Bumped down when we either
+   * receive a WT_PACKET, or a WT_CSRCHANGE.
+   */
+  gint dev_entered_proximity;
 };
 
 struct _GdkDeviceManagerWin32Class
 {
-  GdkDeviceManagerClass parent_class;
+  GObjectClass parent_class;
 };
 
 GType gdk_device_manager_win32_get_type (void) G_GNUC_CONST;
