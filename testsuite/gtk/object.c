@@ -58,7 +58,7 @@ list_ignore_properties (gboolean buglist)
     { "GtkCList",               "selection-mode",       (void*) GTK_SELECTION_NONE, },
     { "GtkWidget",              "has-default",          (void*) TRUE, },                /* conflicts with toplevel-less widgets */
     { "GtkWidget",              "display",              (void*) MATCH_ANY_VALUE },
-    { "GtkWindow",              "type-hint",            (void*) GDK_WINDOW_TYPE_HINT_DND, }, /* conflicts with ::visible=TRUE */
+    { "GtkWindow",              "type-hint",            (void*) GDK_SURFACE_TYPE_HINT_DND, }, /* conflicts with ::visible=TRUE */
     { "GtkCellView",            "background",           (void*) "", },                  /* "" is not a valid background color */
     { "GtkColorButton",         "color",                (void*) NULL, },                /* not a valid boxed color */
     { "GtkInputDialog",         "has-separator",        (void*) MATCH_ANY_VALUE, },     /* property disabled */
@@ -323,17 +323,12 @@ main (int   argc,
 {
   const GType *otypes;
   guint i;
-  gchar *schema_dir;
 
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
 
   /* initialize test program */
   gtk_test_init (&argc, &argv);
   gtk_test_register_all_types ();
-
-  /* g_test_build_filename must be called after gtk_test_init */
-  schema_dir = g_test_build_filename (G_TEST_BUILT, "", NULL);
-  g_setenv ("GSETTINGS_SCHEMA_DIR", schema_dir, TRUE);
 
   /* install a property test for each widget type */
   otypes = gtk_test_list_all_types (NULL);
@@ -347,6 +342,5 @@ main (int   argc,
         g_free (testpath);
       }
 
-  g_free (schema_dir);
   return g_test_run ();
 }

@@ -6,7 +6,7 @@
 #include "gskprivate.h"
 
 #include <graphene.h>
-#include <cairo/cairo.h>
+#include <cairo.h>
 #include <epoxy/gl.h>
 
 /* Parameters for our cache eviction strategy.
@@ -80,6 +80,7 @@ free_atlas (gpointer v)
 
 void
 gsk_gl_glyph_cache_init (GskGLGlyphCache *self,
+                         GskRenderer     *renderer,
                          GskGLDriver     *gl_driver)
 {
   self->hash_table = g_hash_table_new_full (glyph_cache_hash, glyph_cache_equal,
@@ -87,6 +88,7 @@ gsk_gl_glyph_cache_init (GskGLGlyphCache *self,
   self->atlases = g_ptr_array_new_with_free_func (free_atlas);
   g_ptr_array_add (self->atlases, create_atlas (self));
 
+  self->renderer = renderer;
   self->gl_driver = gl_driver;
 }
 
@@ -214,7 +216,7 @@ add_to_cache (GskGLGlyphCache  *cache,
   atlas->num_glyphs++;
 
 #ifdef G_ENABLE_DEBUG
-  if (GSK_DEBUG_CHECK(GLYPH_CACHE))
+  if (GSK_RENDERER_DEBUG_CHECK (cache->renderer, GLYPH_CACHE))
     {
       g_print ("Glyph cache:\n");
       for (i = 0; i < cache->atlases->len; i++)
@@ -240,7 +242,8 @@ render_glyph (const GskGLGlyphAtlas *atlas,
   cairo_surface_t *surface;
   cairo_t *cr;
   cairo_scaled_font_t *scaled_font;
-  cairo_glyph_t cg;
+  PangoGlyphString glyph_string;
+  PangoGlyphInfo glyph_info;
 
   scaled_font = pango_cairo_font_get_scaled_font ((PangoCairoFont *)key->font);
   if (G_UNLIKELY (!scaled_font || cairo_scaled_font_status (scaled_font) != CAIRO_STATUS_SUCCESS))
@@ -256,12 +259,18 @@ render_glyph (const GskGLGlyphAtlas *atlas,
   cairo_set_scaled_font (cr, scaled_font);
   cairo_set_source_rgba (cr, 1, 1, 1, 1);
 
-  cg.index = key->glyph;
-  cg.x = - value->draw_x;
-  cg.y = - value->draw_y;
+  glyph_info.glyph = key->glyph;
+  glyph_info.geometry.width = value->draw_width * 1024;
+  if (key->glyph & PANGO_GLYPH_UNKNOWN_FLAG)
+    glyph_info.geometry.x_offset = 0;
+  else
+    glyph_info.geometry.x_offset = - value->draw_x * 1024;
+  glyph_info.geometry.y_offset = - value->draw_y * 1024;
 
-  cairo_show_glyphs (cr, &cg, 1);
+  glyph_string.num_glyphs = 1;
+  glyph_string.glyphs = &glyph_info;
 
+  pango_cairo_show_glyph_string (cr, key->font, &glyph_string);
   cairo_destroy (cr);
 
   glyph->surface = surface;
@@ -289,8 +298,8 @@ upload_dirty_glyphs (GskGLGlyphCache *self,
   for (l = atlas->dirty_glyphs, i = 0; l; l = l->next, i++)
     render_glyph (atlas, (DirtyGlyph *)l->data, &regions[i]);
 
-  GSK_NOTE (GLYPH_CACHE,
-            g_print ("uploading %d glyphs to cache\n", num_regions));
+  GSK_RENDERER_NOTE (self->renderer, GLYPH_CACHE,
+            g_message ("uploading %d glyphs to cache", num_regions));
 
 
   gsk_gl_image_upload_regions (atlas->image, self->gl_driver, num_regions, regions);
@@ -306,14 +315,14 @@ gsk_gl_glyph_cache_lookup (GskGLGlyphCache *cache,
                            PangoGlyph       glyph,
                            float            scale)
 {
-  GlyphCacheKey lookup_key;
   GskGLCachedGlyph *value;
 
-  lookup_key.font = font;
-  lookup_key.glyph = glyph;
-  lookup_key.scale = (guint)(scale * 1024);
-
-  value = g_hash_table_lookup (cache->hash_table, &lookup_key);
+  value = g_hash_table_lookup (cache->hash_table,
+                               &(GlyphCacheKey) {
+                                 .font = font,
+                                 .glyph = glyph,
+                                 .scale = (guint)(scale * 1024)
+                               });
 
   if (value)
     {
@@ -418,8 +427,8 @@ gsk_gl_glyph_cache_begin_frame (GskGLGlyphCache *self)
 
       if (atlas->old_pixels > MAX_OLD * atlas->width * atlas->height)
         {
-          GSK_NOTE(GLYPH_CACHE,
-                   g_print ("Dropping atlas %d (%g.2%% old)\n",
+          GSK_RENDERER_NOTE(self->renderer, GLYPH_CACHE,
+                   g_message ("Dropping atlas %d (%g.2%% old)",
                             i, 100.0 * (double)atlas->old_pixels / (double)(atlas->width * atlas->height)));
 
           if (atlas->image)
@@ -441,5 +450,5 @@ gsk_gl_glyph_cache_begin_frame (GskGLGlyphCache *self)
         }
     }
 
-  GSK_NOTE(GLYPH_CACHE, g_print ("Dropped %d glyphs\n", dropped));
+  GSK_RENDERER_NOTE(self->renderer, GLYPH_CACHE, g_message ("Dropped %d glyphs", dropped));
 }

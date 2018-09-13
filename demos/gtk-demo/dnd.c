@@ -299,7 +299,7 @@ pressed_cb (GtkGesture *gesture,
       rect.height = 0;
 
       gtk_menu_popup_at_rect (GTK_MENU (menu),
-                              gtk_widget_get_window (widget),
+                              gtk_widget_get_surface (widget),
                               &rect,
                               GDK_GRAVITY_NORTH_WEST,
                               GDK_GRAVITY_NORTH_WEST,
@@ -356,10 +356,11 @@ do_dnd (GtkWidget *do_widget)
       gtk_widget_set_hexpand (fixed, TRUE);
       gtk_widget_set_vexpand (fixed, TRUE);
 
-      multipress = gtk_gesture_multi_press_new (fixed);
+      multipress = gtk_gesture_multi_press_new ();
       gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (multipress), 0);
       g_signal_connect (multipress, "pressed", G_CALLBACK (pressed_cb), NULL);
       g_signal_connect (multipress, "released", G_CALLBACK (released_cb), NULL);
+      gtk_widget_add_controller (fixed, GTK_EVENT_CONTROLLER (multipress));
 
       provider = gtk_css_provider_new ();
       gtk_css_provider_load_from_resource (provider, "/dnd/dnd.css");

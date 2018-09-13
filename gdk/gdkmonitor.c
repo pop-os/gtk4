@@ -32,9 +32,9 @@
  *
  * GdkMonitor objects represent the individual outputs that are
  * associated with a #GdkDisplay. GdkDisplay has APIs to enumerate
- * monitors with gdk_display_get_monitors() and to find particular
- * monitors with gdk_display_get_primary_monitor() or
- * gdk_display_get_monitor_at_window().
+ * monitors with gdk_display_get_n_monitors() and gdk_display_get_monitor(), and
+ * to find particular monitors with gdk_display_get_primary_monitor() or
+ * gdk_display_get_monitor_at_surface().
  */
 
 /**
@@ -277,7 +277,6 @@ gdk_monitor_class_init (GdkMonitorClass *class)
  * Gets the display that this monitor belongs to.
  *
  * Returns: (transfer none): the display
- * Since: 3.22
  */
 GdkDisplay *
 gdk_monitor_get_display (GdkMonitor *monitor)
@@ -295,8 +294,6 @@ gdk_monitor_get_display (GdkMonitor *monitor)
  * Retrieves the size and position of an individual monitor within the
  * display coordinate space. The returned geometry is in  ”application pixels”,
  * not in ”device pixels” (see gdk_monitor_get_scale_factor()).
- *
- * Since: 3.22
  */
 void
 gdk_monitor_get_geometry (GdkMonitor   *monitor,
@@ -326,8 +323,6 @@ gdk_monitor_get_geometry (GdkMonitor   *monitor,
  * Note that not all backends may have a concept of workarea. This
  * function will return the monitor geometry if a workarea is not
  * available, or does not apply.
- *
- * Since: 3.22
  */
 void
 gdk_monitor_get_workarea (GdkMonitor   *monitor,
@@ -349,8 +344,6 @@ gdk_monitor_get_workarea (GdkMonitor   *monitor,
  * Gets the width in millimeters of the monitor.
  *
  * Returns: the physical width of the monitor
- *
- * Since: 3.22
  */
 int
 gdk_monitor_get_width_mm (GdkMonitor *monitor)
@@ -367,7 +360,6 @@ gdk_monitor_get_width_mm (GdkMonitor *monitor)
  * Gets the height in millimeters of the monitor.
  *
  * Returns: the physical height of the monitor
- * Since: 3.22
  */
 int
 gdk_monitor_get_height_mm (GdkMonitor *monitor)
@@ -418,11 +410,10 @@ gdk_monitor_get_model (GdkMonitor *monitor)
  * on very high density outputs this can be a higher value (often 2).
  *
  * This can be used if you want to create pixel based data for a
- * particular monitor, but most of the time you’re drawing to a window
- * where it is better to use gdk_window_get_scale_factor() instead.
+ * particular monitor, but most of the time you’re drawing to a surface
+ * where it is better to use gdk_surface_get_scale_factor() instead.
  *
  * Returns: the scale factor
- * Since: 3.22
  */
 int
 gdk_monitor_get_scale_factor (GdkMonitor *monitor)
@@ -442,7 +433,6 @@ gdk_monitor_get_scale_factor (GdkMonitor *monitor)
  * is returned as 60000.
  *
  * Returns: the refresh rate in milli-Hertz, or 0
- * Since: 3.22
  */
 int
 gdk_monitor_get_refresh_rate (GdkMonitor *monitor)
@@ -460,7 +450,6 @@ gdk_monitor_get_refresh_rate (GdkMonitor *monitor)
  * primaries for each pixel in this monitor, if available.
  *
  * Returns: the subpixel layout
- * Since: 3.22
  */
 GdkSubpixelLayout
 gdk_monitor_get_subpixel_layout (GdkMonitor *monitor)
@@ -478,7 +467,6 @@ gdk_monitor_get_subpixel_layout (GdkMonitor *monitor)
  * (see gdk_display_get_primary_monitor()).
  *
  * Returns: %TRUE if @monitor is primary
- * Since: 3.22
  */
 gboolean
 gdk_monitor_is_primary (GdkMonitor *monitor)
@@ -635,8 +623,6 @@ gdk_monitor_invalidate (GdkMonitor *monitor)
  * physical monitor is unplugged or removed.
  *
  * Returns: %TRUE if the object corresponds to a physical monitor
- *
- * Since: 3.94
  */
 gboolean
 gdk_monitor_is_valid (GdkMonitor *monitor)

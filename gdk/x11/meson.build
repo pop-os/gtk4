@@ -2,6 +2,7 @@
 gdk_x11_sources = files([
   'gdkapplaunchcontext-x11.c',
   'gdkasync.c',
+  'gdkcairocontext-x11.c',
   'gdkclipboard-x11.c',
   'gdkcursor-x11.c',
   'gdkdevice-core-x11.c',
@@ -11,9 +12,9 @@ gdk_x11_sources = files([
   'gdkdevicemanager-xi2.c',
   'gdkdisplay-x11.c',
   'gdkdnd-x11.c',
+  'gdkdrop-x11.c',
   'gdkeventsource.c',
   'gdkeventtranslator.c',
-  'gdkgeometry-x11.c',
   'gdkglcontext-x11.c',
   'gdkkeys-x11.c',
   'gdkmain-x11.c',
@@ -26,7 +27,7 @@ gdk_x11_sources = files([
   'gdktextlistconverter-x11.c',
   'gdkvisual-x11.c',
   'gdkvulkancontext-x11.c',
-  'gdkwindow-x11.c',
+  'gdksurface-x11.c',
   'gdkxftdefaults.c',
   'gdkxid.c',
   'xsettings-client.c',
@@ -50,7 +51,7 @@ gdk_x11_public_headers = files([
   'gdkx11screen.h',
   'gdkx11selection.h',
   'gdkx11utils.h',
-  'gdkx11window.h',
+  'gdkx11surface.h',
 ])
 
 install_headers(gdk_x11_public_headers, subdir: 'gtk-4.0/gdk/x11/')

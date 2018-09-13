@@ -58,8 +58,7 @@ static void
 entry_size_allocate_cb (GtkEntry            *entry,
                         const GtkAllocation *allocation,
                         int                  baseline,
-                        GtkAllocation       *out_clip,
-                        gpointer       user_data)
+                        gpointer             user_data)
 {
   GtkEntryIconPosition popover_pos;
   GtkPopover *popover = user_data;
@@ -78,7 +77,6 @@ entry_size_allocate_cb (GtkEntry            *entry,
 static void
 entry_icon_press_cb (GtkEntry             *entry,
                      GtkEntryIconPosition  icon_pos,
-                     GdkEvent             *event,
                      gpointer              user_data)
 {
   GtkWidget *popover = user_data;
@@ -120,7 +118,7 @@ day_selected_cb (GtkCalendar *calendar,
 
   gtk_widget_show (popover);
 
-  gdk_event_free (event);
+  g_object_unref (event);
 }
 
 GtkWidget *

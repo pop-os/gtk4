@@ -31,6 +31,7 @@
 #include <gdk/gdkversionmacros.h>
 #include <gdk/gdkapplaunchcontext.h>
 #include <gdk/gdkcairo.h>
+#include <gdk/gdkcairocontext.h>
 #include <gdk/gdkclipboard.h>
 #include <gdk/gdkcontentdeserializer.h>
 #include <gdk/gdkcontentformats.h>
@@ -45,26 +46,29 @@
 #include <gdk/gdkdisplaymanager.h>
 #include <gdk/gdkdnd.h>
 #include <gdk/gdkdrawcontext.h>
-#include <gdk/gdkdrawingcontext.h>
+#include <gdk/gdkdrop.h>
 #include <gdk/gdkenumtypes.h>
 #include <gdk/gdkevents.h>
 #include <gdk/gdkframeclock.h>
 #include <gdk/gdkframetimings.h>
 #include <gdk/gdkglcontext.h>
+#include <gdk/gdkgltexture.h>
 #include <gdk/gdkkeys.h>
 #include <gdk/gdkkeysyms.h>
+#include <gdk/gdkmemorytexture.h>
 #include <gdk/gdkmonitor.h>
+#include <gdk/gdkpaintable.h>
 #include <gdk/gdkpango.h>
 #include <gdk/gdkpixbuf.h>
 #include <gdk/gdkproperty.h>
 #include <gdk/gdkrectangle.h>
 #include <gdk/gdkrgba.h>
 #include <gdk/gdkseat.h>
+#include <gdk/gdksnapshot.h>
 #include <gdk/gdktexture.h>
-#include <gdk/gdkthreads.h>
 #include <gdk/gdktypes.h>
 #include <gdk/gdkvulkancontext.h>
-#include <gdk/gdkwindow.h>
+#include <gdk/gdksurface.h>
 
 #include <gdk/gdk-autocleanup.h>
 

@@ -1,25 +1,29 @@
 #include <gtk/gtk.h>
 
-static cairo_surface_t *
-get_image_surface (GtkImage *image,
-                   int      *out_size)
+static GdkPaintable *
+get_image_paintable (GtkImage *image,
+                    int      *out_size)
 {
   GtkIconTheme *icon_theme;
   const char *icon_name;
   int width = 48;
-  cairo_surface_t *surface;
+  GdkPaintable *paintable;
+  GtkIconInfo *icon_info;
 
   switch (gtk_image_get_storage_type (image))
     {
-    case GTK_IMAGE_SURFACE:
-      surface = gtk_image_get_surface (image);
-      *out_size = cairo_image_surface_get_width (surface);
-      return cairo_surface_reference (surface);
+    case GTK_IMAGE_PAINTABLE:
+      paintable = gtk_image_get_paintable (image);
+      *out_size = gdk_paintable_get_intrinsic_width (paintable);
+      return g_object_ref (paintable);
     case GTK_IMAGE_ICON_NAME:
       icon_name = gtk_image_get_icon_name (image);
       icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (image)));
       *out_size = width;
-      return gtk_icon_theme_load_surface (icon_theme, icon_name, width, 1, NULL, GTK_ICON_LOOKUP_GENERIC_FALLBACK, NULL);
+      icon_info = gtk_icon_theme_lookup_icon (icon_theme, icon_name, width, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
+      paintable = GDK_PAINTABLE (gtk_icon_info_load_texture (icon_info));
+      g_object_unref (icon_info);
+      return paintable;
     default:
       g_warning ("Image storage type %d not handled",
                  gtk_image_get_storage_type (image));
@@ -38,12 +42,12 @@ image_drag_begin (GtkWidget      *widget,
                   GdkDragContext *context,
                   gpointer        data)
 {
-  cairo_surface_t *surface;
+  GdkPaintable *paintable;
   gint hotspot;
   gint hot_x, hot_y;
   gint size;
 
-  surface = get_image_surface (GTK_IMAGE (data), &size);
+  paintable = get_image_paintable (GTK_IMAGE (data), &size);
   hotspot = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (data), "hotspot"));
   switch (hotspot)
     {
@@ -61,9 +65,8 @@ image_drag_begin (GtkWidget      *widget,
       hot_y = size;
       break;
     }
-  cairo_surface_set_device_offset (surface, hot_x, hot_y);
-  gtk_drag_set_icon_surface (context, surface);
-  cairo_surface_destroy (surface);
+  gtk_drag_set_icon_paintable (context, paintable, hot_x, hot_y);
+  g_object_unref (paintable);
 }
 
 static void
@@ -90,7 +93,7 @@ window_drag_begin (GtkWidget      *widget,
                    GdkDragContext *context,
                    gpointer        data)
 {
-  cairo_surface_t *surface;
+  GdkPaintable *paintable;
   GtkWidget *image;
   int hotspot;
   int size;
@@ -101,9 +104,9 @@ window_drag_begin (GtkWidget      *widget,
   if (image == NULL)
     {
       g_print ("creating new drag widget\n");
-      surface = get_image_surface (GTK_IMAGE (data), &size);
-      image = gtk_image_new_from_surface (surface);
-      cairo_surface_destroy (surface);
+      paintable = get_image_paintable (GTK_IMAGE (data), &size);
+      image = gtk_image_new_from_paintable (paintable);
+      g_object_unref (paintable);
       g_object_ref (image);
       g_object_set_data (G_OBJECT (widget), "drag widget", image);
       g_signal_connect (image, "destroy", G_CALLBACK (drag_widget_destroyed), widget);
@@ -152,17 +155,19 @@ void
 image_drag_data_get (GtkWidget        *widget,
                      GdkDragContext   *context,
                      GtkSelectionData *selection_data,
-                     guint             time,
                      gpointer          data)
 {
-  cairo_surface_t *surface;
+  GdkPaintable *paintable;
   const gchar *name;
   int size;
 
   if (gtk_selection_data_targets_include_image (selection_data, TRUE))
     {
-      surface = get_image_surface (GTK_IMAGE (data), &size);
-      gtk_selection_data_set_surface (selection_data, surface);
+      paintable = get_image_paintable (GTK_IMAGE (data), &size);
+      if (GDK_IS_TEXTURE (paintable))
+        gtk_selection_data_set_texture (selection_data, GDK_TEXTURE (paintable));
+      if (paintable)
+        g_object_unref (paintable);
     }
   else if (gtk_selection_data_targets_include_text (selection_data))
     {
@@ -180,12 +185,10 @@ image_drag_data_get (GtkWidget        *widget,
 
 static void
 image_drag_data_received (GtkWidget        *widget,
-                          GdkDragContext   *context,
+                          GdkDrop          *drop,
                           GtkSelectionData *selection_data,
-                          guint32           time,
                           gpointer          data)
 {
-  cairo_surface_t *surface;
   gchar *text;
 
   if (gtk_selection_data_get_length (selection_data) == 0)
@@ -193,9 +196,12 @@ image_drag_data_received (GtkWidget        *widget,
 
   if (gtk_selection_data_targets_include_image (selection_data, FALSE))
     {
-      surface = gtk_selection_data_get_surface (selection_data);
-      gtk_image_set_from_surface (GTK_IMAGE (data), surface);
-      cairo_surface_destroy (surface);
+      GdkTexture *texture;
+
+      texture = gtk_selection_data_get_texture (selection_data);
+      gtk_image_set_from_paintable (GTK_IMAGE (data), GDK_PAINTABLE (texture));
+
+      g_object_unref (texture);
     }
   else if (gtk_selection_data_targets_include_text (selection_data))
     {
@@ -305,7 +311,6 @@ void
 spinner_drag_data_get (GtkWidget        *widget,
                        GdkDragContext   *context,
                        GtkSelectionData *selection_data,
-                       guint             time,
                        gpointer          data)
 {
   g_print ("GtkWidget::drag-data-get\n");

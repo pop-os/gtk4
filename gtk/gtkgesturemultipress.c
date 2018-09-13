@@ -151,9 +151,7 @@ _gtk_gesture_multi_press_update_timeout (GtkGestureMultiPress *gesture)
   settings = gtk_widget_get_settings (widget);
   g_object_get (settings, "gtk-double-click-time", &double_click_time, NULL);
 
-  priv->double_click_timeout_id = gdk_threads_add_timeout (double_click_time,
-                                                           _double_click_timeout_cb,
-                                                           gesture);
+  priv->double_click_timeout_id = g_timeout_add (double_click_time, _double_click_timeout_cb, gesture);
   g_source_set_name_by_id (priv->double_click_timeout_id, "[gtk+] _double_click_timeout_cb");
 }
 
@@ -276,13 +274,18 @@ gtk_gesture_multi_press_end (GtkGesture       *gesture,
   GtkGestureMultiPressPrivate *priv;
   GdkEventSequence *current;
   gdouble x, y;
+  gboolean interpreted;
+  GtkEventSequenceState state;
 
   multi_press = GTK_GESTURE_MULTI_PRESS (gesture);
   priv = gtk_gesture_multi_press_get_instance_private (multi_press);
   current = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
-  gtk_gesture_get_point (gesture, current, &x, &y);
+  interpreted = gtk_gesture_get_point (gesture, current, &x, &y);
+  state = gtk_gesture_get_sequence_state (gesture, current);
 
-  g_signal_emit (gesture, signals[RELEASED], 0, priv->n_release, x, y);
+  if (state != GTK_EVENT_SEQUENCE_DENIED && interpreted)
+    g_signal_emit (gesture, signals[RELEASED], 0, priv->n_release, x, y);
+
   priv->n_release = 0;
 }
 
@@ -356,8 +359,6 @@ gtk_gesture_multi_press_class_init (GtkGestureMultiPressClass *klass)
    * @y: The Y coordinate, in widget allocation coordinates
    *
    * This signal is emitted whenever a button or touch press happens.
-   *
-   * Since: 3.14
    */
   signals[PRESSED] =
     g_signal_new (I_("pressed"),
@@ -379,8 +380,6 @@ gtk_gesture_multi_press_class_init (GtkGestureMultiPressClass *klass)
    * will report the number of press that is paired to this event, note
    * that #GtkGestureMultiPress::stopped may have been emitted between the
    * press and its release, @n_press will only start over at the next press.
-   *
-   * Since: 3.14
    */
   signals[RELEASED] =
     g_signal_new (I_("released"),
@@ -396,8 +395,6 @@ gtk_gesture_multi_press_class_init (GtkGestureMultiPressClass *klass)
    *
    * This signal is emitted whenever any time/distance threshold has
    * been exceeded.
-   *
-   * Since: 3.14
    */
   signals[STOPPED] =
     g_signal_new (I_("stopped"),
@@ -420,8 +417,6 @@ gtk_gesture_multi_press_class_init (GtkGestureMultiPressClass *klass)
    * grabs, this can only happen on situations where input is grabbed
    * elsewhere mid-press or the pressed widget voluntarily relinquishes
    * its implicit grab.
-   *
-   * Since: 3.93.
    */
   signals[UNPAIRED_RELEASE] =
     g_signal_new (I_("unpaired-release"),
@@ -440,22 +435,16 @@ gtk_gesture_multi_press_init (GtkGestureMultiPress *gesture)
 
 /**
  * gtk_gesture_multi_press_new:
- * @widget: a #GtkWidget
  *
  * Returns a newly created #GtkGesture that recognizes single and multiple
  * presses.
  *
  * Returns: a newly created #GtkGestureMultiPress
- *
- * Since: 3.14
  **/
 GtkGesture *
-gtk_gesture_multi_press_new (GtkWidget *widget)
+gtk_gesture_multi_press_new (void)
 {
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
-
   return g_object_new (GTK_TYPE_GESTURE_MULTI_PRESS,
-                       "widget", widget,
                        NULL);
 }
 
@@ -473,8 +462,6 @@ gtk_gesture_multi_press_new (GtkWidget *widget)
  * Note: The rectangle is only used to determine whether any
  * non-first click falls within the expected area. This is not
  * akin to an input shape.
- *
- * Since: 3.14
  **/
 void
 gtk_gesture_multi_press_set_area (GtkGestureMultiPress *gesture,
@@ -506,8 +493,6 @@ gtk_gesture_multi_press_set_area (GtkGestureMultiPress *gesture,
  * details on what the press area represents.
  *
  * Returns: %TRUE if @rect was filled with the press area
- *
- * Since: 3.14
  **/
 gboolean
 gtk_gesture_multi_press_get_area (GtkGestureMultiPress *gesture,

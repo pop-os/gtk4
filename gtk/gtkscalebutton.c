@@ -36,28 +36,31 @@
 
 #include "gtkscalebutton.h"
 
-#include <math.h>
-#include <stdlib.h>
-#include <string.h>
-
 #include "gtkadjustment.h"
 #include "gtkbindings.h"
+#include "gtkbox.h"
+#include "gtkbuttonprivate.h"
+#include "gtkimage.h"
+#include "gtkeventcontrollerscroll.h"
 #include "gtkframe.h"
+#include "gtkgesture.h"
+#include "gtkintl.h"
 #include "gtkmain.h"
 #include "gtkmarshalers.h"
 #include "gtkorientable.h"
 #include "gtkpopover.h"
 #include "gtkprivate.h"
-#include "gtkscale.h"
 #include "gtkrangeprivate.h"
-#include "gtkbox.h"
+#include "gtkscale.h"
+#include "gtktypebuiltins.h"
 #include "gtkwindow.h"
 #include "gtkwindowprivate.h"
-#include "gtktypebuiltins.h"
-#include "gtkgesture.h"
-#include "gtkbuttonprivate.h"
-#include "gtkintl.h"
+
 #include "a11y/gtkscalebuttonaccessible.h"
+
+#include <math.h>
+#include <stdlib.h>
+#include <string.h>
 
 /**
  * SECTION:gtkscalebutton
@@ -121,8 +124,6 @@ struct _GtkScaleButtonPrivate
   gchar **icon_list;
 
   GtkAdjustment *adjustment; /* needed because it must be settable in init() */
-
-  GtkEventController *scroll_controller;
 };
 
 static void     gtk_scale_button_constructed    (GObject             *object);
@@ -186,8 +187,6 @@ gtk_scale_button_class_init (GtkScaleButtonClass *klass)
    * #GtkOrientable interface which has its own @orientation
    * property. However we redefine the property here in order to
    * override its default horizontal orientation.
-   *
-   * Since: 2.14
    **/
   g_object_class_override_property (gobject_class,
 				    PROP_ORIENTATION,
@@ -229,8 +228,6 @@ gtk_scale_button_class_init (GtkScaleButtonClass *klass)
    * It is recommended to use at least 3 icons so that the
    * #GtkScaleButton reflects the current value of the scale
    * better for the users.
-   *
-   * Since: 2.12
    */
   g_object_class_install_property (gobject_class,
                                    PROP_ICONS,
@@ -247,8 +244,6 @@ gtk_scale_button_class_init (GtkScaleButtonClass *klass)
    *
    * The ::value-changed signal is emitted when the value field has
    * changed.
-   *
-   * Since: 2.12
    */
   signals[VALUE_CHANGED] =
     g_signal_new (I_("value-changed"),
@@ -268,8 +263,6 @@ gtk_scale_button_class_init (GtkScaleButtonClass *klass)
    * which gets emitted to popup the scale widget.
    *
    * The default bindings for this signal are Space, Enter and Return.
-   *
-   * Since: 2.12
    */
   signals[POPUP] =
     g_signal_new_class_handler (I_("popup"),
@@ -289,8 +282,6 @@ gtk_scale_button_class_init (GtkScaleButtonClass *klass)
    * which gets emitted to popdown the scale widget.
    *
    * The default binding for this signal is Escape.
-   *
-   * Since: 2.12
    */
   signals[POPDOWN] =
     g_signal_new_class_handler (I_("popdown"),
@@ -374,6 +365,7 @@ gtk_scale_button_init (GtkScaleButton *button)
 {
   GtkScaleButtonPrivate *priv;
   GtkStyleContext *context;
+  GtkEventController *controller;
 
   button->priv = priv = gtk_scale_button_get_instance_private (button);
 
@@ -392,12 +384,11 @@ gtk_scale_button_init (GtkScaleButton *button)
   context = gtk_widget_get_style_context (GTK_WIDGET (button));
   gtk_style_context_add_class (context, "scale");
 
-  priv->scroll_controller =
-    gtk_event_controller_scroll_new (GTK_WIDGET (button),
-                                     GTK_EVENT_CONTROLLER_SCROLL_VERTICAL);
-  g_signal_connect (priv->scroll_controller, "scroll",
+  controller = gtk_event_controller_scroll_new (GTK_EVENT_CONTROLLER_SCROLL_VERTICAL);
+  g_signal_connect (controller, "scroll",
                     G_CALLBACK (gtk_scale_button_scroll_controller_scroll),
                     button);
+  gtk_widget_add_controller (GTK_WIDGET (button), controller);
 
   g_signal_connect (gtk_button_get_gesture (GTK_BUTTON (priv->plus_button)),
                     "pressed", G_CALLBACK (button_pressed_cb), button);
@@ -492,8 +483,6 @@ gtk_scale_button_finalize (GObject *object)
       priv->adjustment = NULL;
     }
 
-  g_object_unref (priv->scroll_controller);
-
   if (priv->autoscroll_timeout)
     g_source_remove (priv->autoscroll_timeout);
 
@@ -535,8 +524,6 @@ gtk_scale_button_dispose (GObject *object)
  * a stepping of @step.
  *
  * Returns: a new #GtkScaleButton
- *
- * Since: 2.12
  */
 GtkWidget *
 gtk_scale_button_new (gdouble       min,
@@ -564,8 +551,6 @@ gtk_scale_button_new (gdouble       min,
  * Gets the current value of the scale button.
  *
  * Returns: current value of the scale button
- *
- * Since: 2.12
  */
 gdouble
 gtk_scale_button_get_value (GtkScaleButton * button)
@@ -588,8 +573,6 @@ gtk_scale_button_get_value (GtkScaleButton * button)
  * the minimum or maximum range values, it will be clamped to fit
  * inside them. The scale button emits the #GtkScaleButton::value-changed
  * signal if the value changes.
- *
- * Since: 2.12
  */
 void
 gtk_scale_button_set_value (GtkScaleButton *button,
@@ -612,8 +595,6 @@ gtk_scale_button_set_value (GtkScaleButton *button,
  *
  * Sets the icons to be used by the scale button.
  * For details, see the #GtkScaleButton:icons property.
- *
- * Since: 2.12
  */
 void
 gtk_scale_button_set_icons (GtkScaleButton  *button,
@@ -642,8 +623,6 @@ gtk_scale_button_set_icons (GtkScaleButton  *button,
  * See gtk_range_get_adjustment() for details.
  *
  * Returns: (transfer none): the adjustment associated with the scale
- *
- * Since: 2.12
  */
 GtkAdjustment*
 gtk_scale_button_get_adjustment	(GtkScaleButton *button)
@@ -661,8 +640,6 @@ gtk_scale_button_get_adjustment	(GtkScaleButton *button)
  * Sets the #GtkAdjustment to be used as a model
  * for the #GtkScaleButton’s scale.
  * See gtk_range_set_adjustment() for details.
- *
- * Since: 2.12
  */
 void
 gtk_scale_button_set_adjustment	(GtkScaleButton *button,
@@ -695,8 +672,6 @@ gtk_scale_button_set_adjustment	(GtkScaleButton *button,
  * Retrieves the plus button of the #GtkScaleButton.
  *
  * Returns: (transfer none) (type Gtk.Button): the plus button of the #GtkScaleButton as a #GtkButton
- *
- * Since: 2.14
  */
 GtkWidget *
 gtk_scale_button_get_plus_button (GtkScaleButton *button)
@@ -713,8 +688,6 @@ gtk_scale_button_get_plus_button (GtkScaleButton *button)
  * Retrieves the minus button of the #GtkScaleButton.
  *
  * Returns: (transfer none) (type Gtk.Button): the minus button of the #GtkScaleButton as a #GtkButton
- *
- * Since: 2.14
  */
 GtkWidget *
 gtk_scale_button_get_minus_button (GtkScaleButton *button)
@@ -731,8 +704,6 @@ gtk_scale_button_get_minus_button (GtkScaleButton *button)
  * Retrieves the popup of the #GtkScaleButton.
  *
  * Returns: (transfer none): the popup of the #GtkScaleButton
- *
- * Since: 2.14
  */
 GtkWidget *
 gtk_scale_button_get_popup (GtkScaleButton *button)

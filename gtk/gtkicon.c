@@ -33,6 +33,13 @@
  * but a widget is needed for other reasons.
  */
 
+struct _GtkIcon
+{
+  GtkWidget parent;
+
+  GtkCssImageBuiltinType image;
+};
+
 G_DEFINE_TYPE (GtkIcon, gtk_icon, GTK_TYPE_WIDGET)
 
 static void
@@ -80,7 +87,7 @@ gtk_icon_class_init (GtkIconClass *klass)
 static void
 gtk_icon_init (GtkIcon *self)
 {
-  gtk_widget_set_has_window (GTK_WIDGET (self), FALSE);
+  gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
   self->image = GTK_CSS_IMAGE_BUILTIN_NONE;
 }
 

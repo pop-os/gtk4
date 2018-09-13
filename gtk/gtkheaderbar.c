@@ -19,16 +19,24 @@
 
 #include "config.h"
 
-#include "gtkheaderbar.h"
 #include "gtkheaderbarprivate.h"
+
+#include "gtkbox.h"
+#include "gtkbutton.h"
+#include "gtkbuildable.h"
+#include "gtkcontainerprivate.h"
+#include "gtkcssnodeprivate.h"
+#include "gtkimage.h"
 #include "gtkintl.h"
+#include "gtklabel.h"
+#include "gtkmenubutton.h"
 #include "gtkprivate.h"
+#include "gtkseparator.h"
+#include "gtksizerequest.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
-#include "gtkcssnodeprivate.h"
 #include "gtkwindowprivate.h"
-#include "gtkwidgetprivate.h"
-#include "gtkcontainerprivate.h"
+
 #include "a11y/gtkcontaineraccessible.h"
 
 #include <string.h>
@@ -50,6 +58,10 @@
  *
  * GtkHeaderBar can add typical window frame controls, such as minimize,
  * maximize and close buttons, or the window icon.
+ *
+ * For these reasons, GtkHeaderBar is the natural choice for use as the custom
+ * titlebar widget of a #GtkWindow (see gtk_window_set_titlebar()), as it gives
+ * features typical of titlebars while allowing the addition of child widgets.
  */
 
 #define DEFAULT_SPACING 6
@@ -82,7 +94,7 @@ struct _GtkHeaderBarPrivate
 
   GtkWidget *titlebar_icon;
 
-  GdkWindowState state;
+  GdkSurfaceState state;
 
   guint shows_app_menu : 1;
 };
@@ -216,7 +228,8 @@ _gtk_header_bar_update_window_icon (GtkHeaderBar *bar,
 
   if (texture)
     {
-      gtk_image_set_from_texture (GTK_IMAGE (priv->titlebar_icon), texture);
+      gtk_image_set_from_paintable (GTK_IMAGE (priv->titlebar_icon),
+                                    GDK_PAINTABLE (texture));
       g_object_unref (texture);
       gtk_widget_show (priv->titlebar_icon);
 
@@ -260,7 +273,6 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
   GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
   GtkWidget *widget = GTK_WIDGET (bar), *toplevel;
   GtkWindow *window;
-  GtkTextDirection direction;
   gchar *layout_desc;
   gchar **tokens, **t;
   gint i, j;
@@ -291,8 +303,6 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
   if (!priv->show_title_buttons)
     return;
 
-  direction = gtk_widget_get_direction (widget);
-
   g_object_get (gtk_widget_get_settings (widget),
                 "gtk-shell-shows-app-menu", &shown_by_shell,
                 "gtk-decoration-layout", &layout_desc,
@@ -313,7 +323,7 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
 
   is_sovereign_window = (!gtk_window_get_modal (window) &&
                           gtk_window_get_transient_for (window) == NULL &&
-                          gtk_window_get_type_hint (window) == GDK_WINDOW_TYPE_HINT_NORMAL);
+                          gtk_window_get_type_hint (window) == GDK_SURFACE_TYPE_HINT_NORMAL);
 
   tokens = g_strsplit (layout_desc, ":", 2);
   if (tokens)
@@ -462,21 +472,10 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
           if (i == 1)
             gtk_box_reorder_child (GTK_BOX (box), separator, 0);
 
-          if ((direction == GTK_TEXT_DIR_LTR && i == 0) ||
-              (direction == GTK_TEXT_DIR_RTL && i == 1))
-            {
-              gtk_style_context_add_class (gtk_widget_get_style_context (box), GTK_STYLE_CLASS_LEFT);
-              gtk_css_node_insert_after (gtk_widget_get_css_node (GTK_WIDGET (bar)),
-                                         gtk_widget_get_css_node (box),
-                                         NULL);
-            }
+          if (i == 0)
+            gtk_style_context_add_class (gtk_widget_get_style_context (box), GTK_STYLE_CLASS_LEFT);
           else
-            {
-              gtk_style_context_add_class (gtk_widget_get_style_context (box), GTK_STYLE_CLASS_RIGHT);
-              gtk_css_node_insert_before (gtk_widget_get_css_node (GTK_WIDGET (bar)),
-                                          gtk_widget_get_css_node (box),
-                                          NULL);
-            }
+            gtk_style_context_add_class (gtk_widget_get_style_context (box), GTK_STYLE_CLASS_RIGHT);
 
           gtk_widget_set_parent (box, GTK_WIDGET (bar));
 
@@ -516,7 +515,7 @@ gtk_header_bar_reorder_css_node (GtkHeaderBar *bar,
   GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
   GtkWidget *previous_widget;
   GList *l;
-  
+
   if (pack_type == GTK_PACK_START)
     previous_widget = priv->titlebar_start_box;
   else
@@ -533,8 +532,7 @@ gtk_header_bar_reorder_css_node (GtkHeaderBar *bar,
         previous_widget = iter->widget;
     }
 
-  if ((pack_type == GTK_PACK_START)
-      ^ (gtk_widget_get_direction (GTK_WIDGET (bar)) == GTK_TEXT_DIR_LTR))
+  if ((pack_type == GTK_PACK_START))
     gtk_css_node_insert_after (gtk_widget_get_css_node (GTK_WIDGET (bar)),
                                gtk_widget_get_css_node (widget),
                                previous_widget ? gtk_widget_get_css_node (previous_widget) : NULL);
@@ -898,8 +896,7 @@ gtk_header_bar_measure (GtkWidget      *widget,
 static void
 gtk_header_bar_size_allocate (GtkWidget           *widget,
                               const GtkAllocation *allocation,
-                              int                  baseline,
-                              GtkAllocation       *out_clip)
+                              int                  baseline)
 {
   GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (GTK_HEADER_BAR (widget));
   GtkWidget *title_widget;
@@ -923,7 +920,6 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
   gint x;
   gint child_size;
   GtkTextDirection direction;
-  GtkAllocation child_clip = {0, };
 
   direction = gtk_widget_get_direction (widget);
   nvis_children = count_visible_children (bar);
@@ -1100,8 +1096,7 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
           if (direction == GTK_TEXT_DIR_RTL)
             child_allocation.x = allocation->x + allocation->width - (child_allocation.x - allocation->x) - child_allocation.width;
 
-          gtk_widget_size_allocate (child->widget, &child_allocation, baseline, &child_clip);
-          gdk_rectangle_union (out_clip, &child_clip, out_clip);
+          gtk_widget_size_allocate (child->widget, &child_allocation, baseline);
 
         next:
           i++;
@@ -1138,8 +1133,7 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
 
   if (title_widget != NULL)
     {
-      gtk_widget_size_allocate (title_widget, &child_allocation, baseline, &child_clip);
-      gdk_rectangle_union (out_clip, &child_clip, out_clip);
+      gtk_widget_size_allocate (title_widget, &child_allocation, baseline);
     }
 
   child_allocation.y = allocation->y;
@@ -1153,8 +1147,7 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
       else
         child_allocation.x = allocation->x + allocation->width - start_width + priv->spacing;
       child_allocation.width = start_width - priv->spacing;
-      gtk_widget_size_allocate (priv->titlebar_start_box, &child_allocation, baseline, &child_clip);
-      gdk_rectangle_union (out_clip, &child_clip, out_clip);
+      gtk_widget_size_allocate (priv->titlebar_start_box, &child_allocation, baseline);
     }
 
   if (priv->titlebar_end_box)
@@ -1165,8 +1158,7 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
       else
         child_allocation.x = allocation->x + allocation->width - end_width + priv->spacing;
       child_allocation.width = end_width - priv->spacing;
-      gtk_widget_size_allocate (priv->titlebar_end_box, &child_allocation, baseline, &child_clip);
-      gdk_rectangle_union (out_clip, &child_clip, out_clip);
+      gtk_widget_size_allocate (priv->titlebar_end_box, &child_allocation, baseline);
     }
 }
 
@@ -1178,8 +1170,6 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
  * Sets the title of the #GtkHeaderBar. The title should help a user
  * identify the current view. A good title should not include the
  * application name.
- *
- * Since: 3.10
  */
 void
 gtk_header_bar_set_title (GtkHeaderBar *bar,
@@ -1212,8 +1202,6 @@ gtk_header_bar_set_title (GtkHeaderBar *bar,
  * Returns: (nullable): the title of the header, or %NULL if none has
  *    been set explicitly. The returned string is owned by the widget
  *    and must not be modified or freed.
- *
- * Since: 3.10
  */
 const gchar *
 gtk_header_bar_get_title (GtkHeaderBar *bar)
@@ -1236,8 +1224,6 @@ gtk_header_bar_get_title (GtkHeaderBar *bar)
  * Note that GtkHeaderBar by default reserves room for the subtitle,
  * even if none is currently set. If this is not desired, set the
  * #GtkHeaderBar:has-subtitle property to %FALSE.
- *
- * Since: 3.10
  */
 void
 gtk_header_bar_set_subtitle (GtkHeaderBar *bar,
@@ -1273,8 +1259,6 @@ gtk_header_bar_set_subtitle (GtkHeaderBar *bar,
  * Returns: (nullable): the subtitle of the header, or %NULL if none has
  *    been set explicitly. The returned string is owned by the widget
  *    and must not be modified or freed.
- *
- * Since: 3.10
  */
 const gchar *
 gtk_header_bar_get_subtitle (GtkHeaderBar *bar)
@@ -1301,8 +1285,6 @@ gtk_header_bar_get_subtitle (GtkHeaderBar *bar)
  *
  * You should set the custom title to %NULL, for the header title
  * label to be visible again.
- *
- * Since: 3.10
  */
 void
 gtk_header_bar_set_custom_title (GtkHeaderBar *bar,
@@ -1365,8 +1347,6 @@ gtk_header_bar_set_custom_title (GtkHeaderBar *bar,
  *
  * Returns: (nullable) (transfer none): the custom title widget
  *    of the header, or %NULL if none has been set explicitly.
- *
- * Since: 3.10
  */
 GtkWidget *
 gtk_header_bar_get_custom_title (GtkHeaderBar *bar)
@@ -1763,7 +1743,7 @@ gtk_header_bar_set_child_property (GtkContainer *container,
     }
 }
 
-static void window_state_changed (GtkWidget *widget);
+static void surface_state_changed (GtkWidget *widget);
 
 static void
 gtk_header_bar_realize (GtkWidget *widget)
@@ -1777,8 +1757,8 @@ gtk_header_bar_realize (GtkWidget *widget)
                             G_CALLBACK (_gtk_header_bar_update_window_buttons), widget);
   g_signal_connect_swapped (settings, "notify::gtk-decoration-layout",
                             G_CALLBACK (_gtk_header_bar_update_window_buttons), widget);
-  g_signal_connect_swapped (_gtk_widget_get_window (widget), "notify::state",
-                            G_CALLBACK (window_state_changed), widget);
+  g_signal_connect_swapped (_gtk_widget_get_surface (widget), "notify::state",
+                            G_CALLBACK (surface_state_changed), widget);
   _gtk_header_bar_update_window_buttons (GTK_HEADER_BAR (widget));
 }
 
@@ -1790,29 +1770,29 @@ gtk_header_bar_unrealize (GtkWidget *widget)
   settings = gtk_widget_get_settings (widget);
 
   g_signal_handlers_disconnect_by_func (settings, _gtk_header_bar_update_window_buttons, widget);
-  g_signal_handlers_disconnect_by_func (_gtk_widget_get_window (widget), window_state_changed, widget);
+  g_signal_handlers_disconnect_by_func (_gtk_widget_get_surface (widget), surface_state_changed, widget);
 
   GTK_WIDGET_CLASS (gtk_header_bar_parent_class)->unrealize (widget);
 }
 
 static void
-window_state_changed (GtkWidget *widget)
+surface_state_changed (GtkWidget *widget)
 {
   GtkHeaderBar *bar = GTK_HEADER_BAR (widget);
   GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
-  GdkWindowState changed, new_state;
+  GdkSurfaceState changed, new_state;
 
-  new_state = gdk_window_get_state (_gtk_widget_get_window (widget));
+  new_state = gdk_surface_get_state (_gtk_widget_get_surface (widget));
   changed = new_state ^ priv->state;
   priv->state = new_state;
 
-  if (changed & (GDK_WINDOW_STATE_FULLSCREEN |
-                 GDK_WINDOW_STATE_MAXIMIZED |
-                 GDK_WINDOW_STATE_TILED |
-                 GDK_WINDOW_STATE_TOP_TILED |
-                 GDK_WINDOW_STATE_RIGHT_TILED |
-                 GDK_WINDOW_STATE_BOTTOM_TILED |
-                 GDK_WINDOW_STATE_LEFT_TILED))
+  if (changed & (GDK_SURFACE_STATE_FULLSCREEN |
+                 GDK_SURFACE_STATE_MAXIMIZED |
+                 GDK_SURFACE_STATE_TILED |
+                 GDK_SURFACE_STATE_TOP_TILED |
+                 GDK_SURFACE_STATE_RIGHT_TILED |
+                 GDK_SURFACE_STATE_BOTTOM_TILED |
+                 GDK_SURFACE_STATE_LEFT_TILED))
     _gtk_header_bar_update_window_buttons (bar);
 }
 
@@ -1823,15 +1803,6 @@ gtk_header_bar_hierarchy_changed (GtkWidget *widget,
   GtkHeaderBar *bar = GTK_HEADER_BAR (widget);
 
   _gtk_header_bar_update_window_buttons (bar);
-}
-
-static void
-gtk_header_bar_direction_changed (GtkWidget        *widget,
-                                  GtkTextDirection  previous_direction)
-{
-  GTK_WIDGET_CLASS (gtk_header_bar_parent_class)->direction_changed (widget, previous_direction);
-
-  gtk_css_node_reverse_children (gtk_widget_get_css_node (widget));
 }
 
 static void
@@ -1851,7 +1822,6 @@ gtk_header_bar_class_init (GtkHeaderBarClass *class)
   widget_class->realize = gtk_header_bar_realize;
   widget_class->unrealize = gtk_header_bar_unrealize;
   widget_class->hierarchy_changed = gtk_header_bar_hierarchy_changed;
-  widget_class->direction_changed = gtk_header_bar_direction_changed;
 
   container_class->add = gtk_header_bar_add;
   container_class->remove = gtk_header_bar_remove;
@@ -1930,8 +1900,6 @@ gtk_header_bar_class_init (GtkHeaderBarClass *class)
    *
    * See gtk_header_bar_set_decoration_layout() for information
    * about the format of this string.
-   *
-   * Since: 3.12
    */
   header_bar_props[PROP_DECORATION_LAYOUT] =
       g_param_spec_string ("decoration-layout",
@@ -1944,8 +1912,6 @@ gtk_header_bar_class_init (GtkHeaderBarClass *class)
    * GtkHeaderBar:decoration-layout-set:
    *
    * Set to %TRUE if #GtkHeaderBar:decoration-layout is set.
-   *
-   * Since: 3.12
    */
   header_bar_props[PROP_DECORATION_LAYOUT_SET] =
       g_param_spec_boolean ("decoration-layout-set",
@@ -1959,8 +1925,6 @@ gtk_header_bar_class_init (GtkHeaderBarClass *class)
    *
    * If %TRUE, reserve space for a subtitle, even if none
    * is currently set.
-   *
-   * Since: 3.12
    */
   header_bar_props[PROP_HAS_SUBTITLE] =
       g_param_spec_boolean ("has-subtitle",
@@ -1982,7 +1946,7 @@ gtk_header_bar_init (GtkHeaderBar *bar)
 
   priv = gtk_header_bar_get_instance_private (bar);
 
-  gtk_widget_set_has_window (GTK_WIDGET (bar), FALSE);
+  gtk_widget_set_has_surface (GTK_WIDGET (bar), FALSE);
 
   priv->title = NULL;
   priv->subtitle = NULL;
@@ -1993,11 +1957,13 @@ gtk_header_bar_init (GtkHeaderBar *bar)
   priv->decoration_layout = NULL;
   priv->decoration_layout_set = FALSE;
   priv->shows_app_menu = FALSE;
-  priv->state = GDK_WINDOW_STATE_WITHDRAWN;
+  priv->state = GDK_SURFACE_STATE_WITHDRAWN;
 
   init_sizing_box (bar);
   construct_label_box (bar);
 }
+
+static GtkBuildableIface *parent_buildable_iface;
 
 static void
 gtk_header_bar_buildable_add_child (GtkBuildable *buildable,
@@ -2007,15 +1973,15 @@ gtk_header_bar_buildable_add_child (GtkBuildable *buildable,
 {
   if (type && strcmp (type, "title") == 0)
     gtk_header_bar_set_custom_title (GTK_HEADER_BAR (buildable), GTK_WIDGET (child));
-  else if (!type)
-    gtk_container_add (GTK_CONTAINER (buildable), GTK_WIDGET (child));
   else
-    GTK_BUILDER_WARN_INVALID_CHILD_TYPE (GTK_HEADER_BAR (buildable), type);
+    parent_buildable_iface->add_child (buildable, builder, child, type);
 }
 
 static void
 gtk_header_bar_buildable_init (GtkBuildableIface *iface)
 {
+  parent_buildable_iface = g_type_interface_peek_parent (iface);
+
   iface->add_child = gtk_header_bar_buildable_add_child;
 }
 
@@ -2026,8 +1992,6 @@ gtk_header_bar_buildable_init (GtkBuildableIface *iface)
  *
  * Adds @child to @bar, packed with reference to the
  * start of the @bar.
- *
- * Since: 3.10
  */
 void
 gtk_header_bar_pack_start (GtkHeaderBar *bar,
@@ -2043,8 +2007,6 @@ gtk_header_bar_pack_start (GtkHeaderBar *bar,
  *
  * Adds @child to @bar, packed with reference to the
  * end of the @bar.
- *
- * Since: 3.10
  */
 void
 gtk_header_bar_pack_end (GtkHeaderBar *bar,
@@ -2059,8 +2021,6 @@ gtk_header_bar_pack_end (GtkHeaderBar *bar,
  * Creates a new #GtkHeaderBar widget.
  *
  * Returns: a new #GtkHeaderBar
- *
- * Since: 3.10
  */
 GtkWidget *
 gtk_header_bar_new (void)
@@ -2076,8 +2036,6 @@ gtk_header_bar_new (void)
  * title buttons.
  *
  * Returns: %TRUE if title buttons are shown
- *
- * Since: 3.94
  */
 gboolean
 gtk_header_bar_get_show_title_buttons (GtkHeaderBar *bar)
@@ -2098,8 +2056,6 @@ gtk_header_bar_get_show_title_buttons (GtkHeaderBar *bar)
  *
  * Sets whether this header bar shows the standard window
  * title buttons including close, maximize, and minimize.
- *
- * Since: 3.94
  */
 void
 gtk_header_bar_set_show_title_buttons (GtkHeaderBar *bar,
@@ -2128,8 +2084,6 @@ gtk_header_bar_set_show_title_buttons (GtkHeaderBar *bar,
  *
  * Sets whether the header bar should reserve space
  * for a subtitle, even if none is currently set.
- *
- * Since: 3.12
  */
 void
 gtk_header_bar_set_has_subtitle (GtkHeaderBar *bar,
@@ -2163,8 +2117,6 @@ gtk_header_bar_set_has_subtitle (GtkHeaderBar *bar,
  *
  * Returns: %TRUE if the header bar reserves space
  *     for a subtitle
- *
- * Since: 3.12
  */
 gboolean
 gtk_header_bar_get_has_subtitle (GtkHeaderBar *bar)
@@ -2201,8 +2153,6 @@ gtk_header_bar_get_has_subtitle (GtkHeaderBar *bar)
  *
  * For example, “menu:minimize,maximize,close” specifies a menu
  * on the left, and minimize, maximize and close buttons on the right.
- *
- * Since: 3.12
  */
 void
 gtk_header_bar_set_decoration_layout (GtkHeaderBar *bar,
@@ -2231,8 +2181,6 @@ gtk_header_bar_set_decoration_layout (GtkHeaderBar *bar,
  * gtk_header_bar_set_decoration_layout().
  *
  * Returns: the decoration layout
- *
- * Since: 3.12 
  */
 const gchar *
 gtk_header_bar_get_decoration_layout (GtkHeaderBar *bar)

@@ -28,6 +28,7 @@
 #include "gtkplacesviewprivate.h"
 #include "gtkplacesviewrowprivate.h"
 #include "gtktypebuiltins.h"
+#include "gtkeventcontrollerkey.h"
 
 /*
  * SECTION:gtkplacesview
@@ -98,9 +99,6 @@ struct _GtkPlacesViewPrivate
 
 static void        mount_volume                                  (GtkPlacesView *view,
                                                                   GVolume       *volume);
-
-static gboolean    on_button_press_event                         (GtkPlacesViewRow *row,
-                                                                  GdkEventButton   *event);
 
 static void        on_eject_button_clicked                       (GtkWidget        *widget,
                                                                   GtkPlacesViewRow *row);
@@ -393,6 +391,9 @@ gtk_places_view_destroy (GtkWidget *widget)
   if (priv->network_monitor)
     g_signal_handlers_disconnect_by_func (priv->network_monitor, update_places, widget);
 
+  if (priv->server_list_monitor)
+    g_signal_handlers_disconnect_by_func (priv->server_list_monitor, server_file_changed_cb, widget);
+
   g_cancellable_cancel (priv->cancellable);
   g_cancellable_cancel (priv->networks_fetching_cancellable);
 
@@ -662,15 +663,7 @@ insert_row (GtkPlacesView *view,
 
   g_object_set_data (G_OBJECT (row), "is-network", GINT_TO_POINTER (is_network));
 
-  g_signal_connect_swapped (GTK_PLACES_VIEW_ROW (row),
-                            "button-press-event",
-                            G_CALLBACK (on_button_press_event),
-                            row);
-
-  g_signal_connect (row,
-                    "popup-menu",
-                    G_CALLBACK (on_row_popup_menu),
-                    row);
+  g_signal_connect (row, "popup-menu", G_CALLBACK (on_row_popup_menu), row);
 
   g_signal_connect (gtk_places_view_row_get_eject_button (GTK_PLACES_VIEW_ROW (row)),
                     "clicked",
@@ -1393,6 +1386,7 @@ pulse_entry_cb (gpointer user_data)
     {
       gtk_entry_set_progress_pulse_step (GTK_ENTRY (priv->address_entry), 0.0);
       gtk_entry_set_progress_fraction (GTK_ENTRY (priv->address_entry), 0.0);
+      priv->entry_pulse_timeout_id = 0;
 
       return G_SOURCE_REMOVE;
     }
@@ -1698,67 +1692,46 @@ on_row_popup_menu (GtkPlacesViewRow *row)
 }
 
 static gboolean
-on_button_press_event (GtkPlacesViewRow *row,
-                       GdkEventButton   *event)
-{
-  if (row &&
-      gdk_event_triggers_context_menu ((GdkEvent*) event) &&
-      gdk_event_get_event_type ((GdkEvent *)event) == GDK_BUTTON_PRESS)
-    {
-      popup_menu (row, event);
-
-      return TRUE;
-    }
-
-  return FALSE;
-}
-
-static gboolean
-on_key_press_event (GtkWidget     *widget,
-                    GdkEventKey   *event,
-                    GtkPlacesView *view)
+on_key_press_event (GtkEventController *controller,
+                    guint               keyval,
+                    guint               keycode,
+                    GdkModifierType     state,
+                    GtkPlacesView      *view)
 {
   GtkPlacesViewPrivate *priv;
-  guint keyval, state;
+  GdkModifierType modifiers;
 
   priv = gtk_places_view_get_instance_private (view);
 
-  if (event &&
-      gdk_event_get_keyval ((GdkEvent *) event, &keyval) &&
-      gdk_event_get_state ((GdkEvent *) event, &state))
+  modifiers = gtk_accelerator_get_default_mod_mask ();
+
+  if (keyval == GDK_KEY_Return ||
+      keyval == GDK_KEY_KP_Enter ||
+      keyval == GDK_KEY_ISO_Enter ||
+      keyval == GDK_KEY_space)
     {
-      guint modifiers;
+      GtkWidget *focus_widget;
+      GtkWindow *toplevel;
 
-      modifiers = gtk_accelerator_get_default_mod_mask ();
+      priv->current_open_flags = GTK_PLACES_OPEN_NORMAL;
+      toplevel = get_toplevel (GTK_WIDGET (view));
 
-      if (keyval == GDK_KEY_Return ||
-          keyval == GDK_KEY_KP_Enter ||
-          keyval == GDK_KEY_ISO_Enter ||
-          keyval == GDK_KEY_space)
-        {
-          GtkWidget *focus_widget;
-          GtkWindow *toplevel;
+      if (!toplevel)
+        return FALSE;
 
-          priv->current_open_flags = GTK_PLACES_OPEN_NORMAL;
-          toplevel = get_toplevel (GTK_WIDGET (view));
+      focus_widget = gtk_window_get_focus (toplevel);
 
-          if (!toplevel)
-            return FALSE;
+      if (!GTK_IS_PLACES_VIEW_ROW (focus_widget))
+        return FALSE;
 
-          focus_widget = gtk_window_get_focus (toplevel);
+      if ((state & modifiers) == GDK_SHIFT_MASK)
+        priv->current_open_flags = GTK_PLACES_OPEN_NEW_TAB;
+      else if ((state & modifiers) == GDK_CONTROL_MASK)
+        priv->current_open_flags = GTK_PLACES_OPEN_NEW_WINDOW;
 
-          if (!GTK_IS_PLACES_VIEW_ROW (focus_widget))
-            return FALSE;
+      activate_row (view, GTK_PLACES_VIEW_ROW (focus_widget), priv->current_open_flags);
 
-          if ((state & modifiers) == GDK_SHIFT_MASK)
-            priv->current_open_flags = GTK_PLACES_OPEN_NEW_TAB;
-          else if ((state & modifiers) == GDK_CONTROL_MASK)
-            priv->current_open_flags = GTK_PLACES_OPEN_NEW_WINDOW;
-
-          activate_row (view, GTK_PLACES_VIEW_ROW (focus_widget), priv->current_open_flags);
-
-          return TRUE;
-        }
+      return TRUE;
     }
 
   return FALSE;
@@ -1843,7 +1816,6 @@ out:
 static void
 on_address_entry_show_help_pressed (GtkPlacesView        *view,
                                     GtkEntryIconPosition  icon_pos,
-                                    GdkEvent             *event,
                                     GtkEntry             *entry)
 {
   GtkPlacesViewPrivate *priv;
@@ -2200,8 +2172,6 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
    * in it. The calling application should display the contents of that
    * location; for example, a file manager should show a list of files in
    * the specified location.
-   *
-   * Since: 3.18
    */
   places_view_signals [OPEN_LOCATION] =
           g_signal_new (I_("open-location"),
@@ -2223,8 +2193,6 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
    * application to present an error message.  Most of these messages
    * refer to mounting or unmounting media, for example, when a drive
    * cannot be started for some reason.
-   *
-   * Since: 3.18
    */
   places_view_signals [SHOW_ERROR_MESSAGE] =
           g_signal_new (I_("show-error-message"),
@@ -2286,7 +2254,6 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_address_entry_text_changed);
   gtk_widget_class_bind_template_callback (widget_class, on_address_entry_show_help_pressed);
   gtk_widget_class_bind_template_callback (widget_class, on_connect_button_clicked);
-  gtk_widget_class_bind_template_callback (widget_class, on_key_press_event);
   gtk_widget_class_bind_template_callback (widget_class, on_listbox_row_activated);
   gtk_widget_class_bind_template_callback (widget_class, on_recent_servers_listbox_row_activated);
 
@@ -2297,6 +2264,7 @@ static void
 gtk_places_view_init (GtkPlacesView *self)
 {
   GtkPlacesViewPrivate *priv;
+  GtkEventController *controller;
 
   priv = gtk_places_view_get_instance_private (self);
 
@@ -2304,6 +2272,10 @@ gtk_places_view_init (GtkPlacesView *self)
   priv->open_flags = GTK_PLACES_OPEN_NORMAL;
   priv->path_size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
   priv->space_size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
+
+  controller = gtk_event_controller_key_new ();
+  g_signal_connect (controller, "key-pressed", G_CALLBACK (on_key_press_event), self);
+  gtk_widget_add_controller (GTK_WIDGET (self), controller);
 
   gtk_widget_init_template (GTK_WIDGET (self));
 }
@@ -2318,8 +2290,6 @@ gtk_places_view_init (GtkPlacesView *self)
  * when the user makes a selection in the view.
  *
  * Returns: a newly created #GtkPlacesView
- *
- * Since: 3.18
  */
 GtkWidget *
 gtk_places_view_new (void)
@@ -2347,8 +2317,6 @@ gtk_places_view_new (void)
  *
  * Passing 0 for @flags will cause #GTK_PLACES_OPEN_NORMAL to always be sent
  * to callbacks for the “open-location” signal.
- *
- * Since: 3.18
  */
 void
 gtk_places_view_set_open_flags (GtkPlacesView      *view,
@@ -2374,8 +2342,6 @@ gtk_places_view_set_open_flags (GtkPlacesView      *view,
  * Gets the open flags.
  *
  * Returns: the #GtkPlacesOpenFlags of @view
- *
- * Since: 3.18
  */
 GtkPlacesOpenFlags
 gtk_places_view_get_open_flags (GtkPlacesView *view)
@@ -2444,8 +2410,6 @@ gtk_places_view_set_search_query (GtkPlacesView *view,
  * @view: a #GtkPlacesView
  *
  * Returns %TRUE if the view is loading locations.
- *
- * Since: 3.18
  */
 gboolean
 gtk_places_view_get_loading (GtkPlacesView *view)
@@ -2529,8 +2493,6 @@ gtk_places_view_set_fetching_networks (GtkPlacesView *view,
  * are displayed.
  *
  * Returns: %TRUE if only local volumes are shown, %FALSE otherwise.
- *
- * Since: 3.18
  */
 gboolean
 gtk_places_view_get_local_only (GtkPlacesView *view)
@@ -2550,8 +2512,6 @@ gtk_places_view_get_local_only (GtkPlacesView *view)
  * @local_only: %TRUE to hide remote locations, %FALSE to show.
  *
  * Sets the #GtkPlacesView::local-only property to @local_only.
- *
- * Since: 3.18
  */
 void
 gtk_places_view_set_local_only (GtkPlacesView *view,

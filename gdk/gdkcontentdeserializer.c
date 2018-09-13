@@ -184,7 +184,7 @@ gdk_content_deserializer_get_mime_type (GdkContentDeserializer *deserializer)
  *
  * Gets the GType to create an instance of.
  *
- * Returns: (transfer none): the GType for the current operation
+ * Returns: the GType for the current operation
  */
 GType
 gdk_content_deserializer_get_gtype (GdkContentDeserializer *deserializer)
@@ -458,7 +458,7 @@ gdk_content_formats_union_deserialize_gtypes (GdkContentFormats *formats)
 
   gdk_content_formats_unref (formats);
 
-  return gdk_content_formats_builder_free (builder);
+  return gdk_content_formats_builder_free_to_formats (builder);
 }
 
 /**
@@ -493,7 +493,7 @@ gdk_content_formats_union_deserialize_mime_types (GdkContentFormats *formats)
 
   gdk_content_formats_unref (formats);
 
-  return gdk_content_formats_builder_free (builder);
+  return gdk_content_formats_builder_free_to_formats (builder);
 }
 
 static void

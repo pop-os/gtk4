@@ -34,6 +34,8 @@
 #include "gtkintl.h"
 #include "gtkprivate.h"
 
+#define BOX_SPACE 6
+
 typedef struct {
   GtkWidget *box;
   GtkWidget *heading;
@@ -51,6 +53,8 @@ struct _GtkEmojiChooser
   GtkWidget *stack;
   GtkWidget *scrolled_window;
 
+  int emoji_max_width;
+
   EmojiSection recent;
   EmojiSection people;
   EmojiSection body;
@@ -61,13 +65,6 @@ struct _GtkEmojiChooser
   EmojiSection objects;
   EmojiSection symbols;
   EmojiSection flags;
-
-  GtkGesture *recent_long_press;
-  GtkGesture *recent_multi_press;
-  GtkGesture *people_long_press;
-  GtkGesture *people_multi_press;
-  GtkGesture *body_long_press;
-  GtkGesture *body_multi_press;
 
   GVariant *data;
 
@@ -95,13 +92,6 @@ gtk_emoji_chooser_finalize (GObject *object)
   g_variant_unref (chooser->data);
   g_object_unref (chooser->settings);
 
-  g_clear_object (&chooser->recent_long_press);
-  g_clear_object (&chooser->recent_multi_press);
-  g_clear_object (&chooser->people_long_press);
-  g_clear_object (&chooser->people_multi_press);
-  g_clear_object (&chooser->body_long_press);
-  g_clear_object (&chooser->body_multi_press);
-
   G_OBJECT_CLASS (gtk_emoji_chooser_parent_class)->finalize (object);
 }
 
@@ -119,7 +109,7 @@ scroll_to_section (GtkButton *button,
   adj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (chooser->scrolled_window));
   if (section->heading)
     gtk_widget_get_allocation (section->heading, &alloc);
-  gtk_adjustment_animate_to_value (adj, alloc.y);
+  gtk_adjustment_animate_to_value (adj, alloc.y - BOX_SPACE);
 }
 
 static void
@@ -137,6 +127,7 @@ populate_recent_section (GtkEmojiChooser *chooser)
   GVariant *variant;
   GVariant *item;
   GVariantIter iter;
+  gboolean empty = FALSE;
 
   variant = g_settings_get_value (chooser->settings, "recent-emoji");
   g_variant_iter_init (&iter, variant);
@@ -150,6 +141,13 @@ populate_recent_section (GtkEmojiChooser *chooser)
       add_emoji (chooser->recent.box, FALSE, emoji_data, modifier, chooser);
       g_variant_unref (emoji_data);
       g_variant_unref (item);
+      empty = FALSE;
+    }
+
+  if (!empty)
+    {
+      gtk_widget_show (chooser->recent.box);
+      gtk_widget_set_sensitive (chooser->recent.button, TRUE);
     }
   g_variant_unref (variant);
 }
@@ -191,6 +189,10 @@ add_recent_item (GtkEmojiChooser *chooser,
   g_list_free (children);
 
   add_emoji (chooser->recent.box, TRUE, item, modifier, chooser);
+
+  /* Enable recent */
+  gtk_widget_show (chooser->recent.box);
+  gtk_widget_set_sensitive (chooser->recent.button, TRUE);
 
   g_settings_set_value (chooser->settings, "recent-emoji", g_variant_builder_end (&builder));
 
@@ -276,6 +278,7 @@ show_variations (GtkEmojiChooser *chooser,
   gtk_flow_box_set_max_children_per_line (GTK_FLOW_BOX (box), 6);
   gtk_flow_box_set_activate_on_single_click (GTK_FLOW_BOX (box), TRUE);
   gtk_flow_box_set_selection_mode (GTK_FLOW_BOX (box), GTK_SELECTION_NONE);
+  g_object_set (box, "accept-unpaired-release", TRUE, NULL);
   gtk_container_add (GTK_CONTAINER (popover), view);
   gtk_container_add (GTK_CONTAINER (view), box);
 
@@ -345,7 +348,6 @@ add_emoji (GtkWidget    *box,
   int i;
   PangoLayout *layout;
   PangoRectangle rect;
-  int width;
 
   codes = g_variant_get_child_value (item, 0);
   for (i = 0; i < g_variant_n_children (codes); i++)
@@ -361,7 +363,7 @@ add_emoji (GtkWidget    *box,
   g_variant_unref (codes);
   p[0] = 0;
 
-  label = gtk_label_new ("🙂");
+  label = gtk_label_new (text);
   attrs = pango_attr_list_new ();
   pango_attr_list_insert (attrs, pango_attr_scale_new (PANGO_SCALE_X_LARGE));
   gtk_label_set_attributes (GTK_LABEL (label), attrs);
@@ -369,14 +371,9 @@ add_emoji (GtkWidget    *box,
 
   layout = gtk_label_get_layout (GTK_LABEL (label));
   pango_layout_get_extents (layout, &rect, NULL);
-  width = rect.width;
-
-  gtk_label_set_text (GTK_LABEL (label), text);
-  layout = gtk_label_get_layout (GTK_LABEL (label));
-  pango_layout_get_extents (layout, &rect, NULL);
 
   /* Check for fallback rendering that generates too wide items */
-  if (rect.width >= 2 * width)
+  if (rect.width >= 2 * chooser->emoji_max_width)
     {
       gtk_widget_destroy (label);
       return;
@@ -472,7 +469,7 @@ adj_value_changed (GtkAdjustment *adj,
       else
         gtk_widget_get_allocation (section->box, &alloc);
 
-      if (value < alloc.y)
+      if (value < alloc.y - BOX_SPACE)
         break;
 
       select_section = section;
@@ -514,7 +511,7 @@ filter_func (GtkFlowBoxChild *child,
     goto out;
 
   g_variant_get_child (emoji_data, 1, "&s", &name);
-  res = strstr (name, text) != NULL;
+  res = g_str_match_string (text, name, TRUE);
 
 out:
   if (res)
@@ -616,23 +613,25 @@ gtk_emoji_chooser_init (GtkEmojiChooser *chooser)
 
   gtk_widget_init_template (GTK_WIDGET (chooser));
 
-  chooser->recent_long_press = gtk_gesture_long_press_new (chooser->recent.box);
-  g_signal_connect (chooser->recent_long_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
-  chooser->recent_multi_press = gtk_gesture_multi_press_new (chooser->recent.box);
-  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (chooser->recent_multi_press), GDK_BUTTON_SECONDARY);
-  g_signal_connect (chooser->recent_multi_press, "pressed", G_CALLBACK (pressed_cb), chooser);
+  /* Get a reasonable maximum width for an emoji. We do this to
+   * skip overly wide fallback rendering for certain emojis the
+   * font does not contain and therefore end up being rendered
+   * as multiply glyphs. */
+  {
+    PangoLayout *layout = gtk_widget_create_pango_layout (GTK_WIDGET (chooser), "🙂");
+    PangoAttrList *attrs;
+    PangoRectangle rect;
 
-  chooser->people_long_press = gtk_gesture_long_press_new (chooser->people.box);
-  g_signal_connect (chooser->people_long_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
-  chooser->people_multi_press = gtk_gesture_multi_press_new (chooser->people.box);
-  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (chooser->people_multi_press), GDK_BUTTON_SECONDARY);
-  g_signal_connect (chooser->people_multi_press, "pressed", G_CALLBACK (pressed_cb), chooser);
+    attrs = pango_attr_list_new ();
+    pango_attr_list_insert (attrs, pango_attr_scale_new (PANGO_SCALE_X_LARGE));
+    pango_layout_set_attributes (layout, attrs);
+    pango_attr_list_unref (attrs);
 
-  chooser->body_long_press = gtk_gesture_long_press_new (chooser->body.box);
-  g_signal_connect (chooser->body_long_press, "pressed", G_CALLBACK (long_pressed_cb), chooser);
-  chooser->body_multi_press = gtk_gesture_multi_press_new (chooser->body.box);
-  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (chooser->body_multi_press), GDK_BUTTON_SECONDARY);
-  g_signal_connect (chooser->body_multi_press, "pressed", G_CALLBACK (pressed_cb), chooser);
+    pango_layout_get_extents (layout, &rect, NULL);
+    chooser->emoji_max_width = rect.width;
+
+    g_object_unref (layout);
+  }
 
   adj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (chooser->scrolled_window));
   g_signal_connect (adj, "value-changed", G_CALLBACK (adj_value_changed), chooser);
@@ -733,6 +732,8 @@ gtk_emoji_chooser_class_init (GtkEmojiChooserClass *klass)
 
   gtk_widget_class_bind_template_callback (widget_class, emoji_activated);
   gtk_widget_class_bind_template_callback (widget_class, search_changed);
+  gtk_widget_class_bind_template_callback (widget_class, pressed_cb);
+  gtk_widget_class_bind_template_callback (widget_class, long_pressed_cb);
 }
 
 GtkWidget *

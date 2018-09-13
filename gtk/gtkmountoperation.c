@@ -52,6 +52,7 @@
 #include "gtksettings.h"
 #include "gtkstylecontextprivate.h"
 #include "gtkdialogprivate.h"
+#include "gtkgesturemultipress.h"
 
 #include <glib/gprintf.h>
 
@@ -1340,22 +1341,22 @@ on_popup_menu_for_process_tree_view (GtkWidget *widget,
   return do_popup_menu_for_process_tree_view (widget, NULL, op);
 }
 
-static gboolean
-on_button_press_event_for_process_tree_view (GtkWidget      *widget,
-                                             GdkEventButton *event,
-                                             gpointer        user_data)
+static void
+multi_press_cb (GtkGesture *gesture,
+                int         n_press,
+                double      x,
+                double      y,
+                gpointer    user_data)
 {
   GtkMountOperation *op = GTK_MOUNT_OPERATION (user_data);
-  gboolean ret;
+  const GdkEvent *event;
+  GdkEventSequence *sequence;
+  GtkWidget *widget;
 
-  ret = FALSE;
-
-  if (gdk_event_triggers_context_menu ((GdkEvent *) event))
-    {
-      ret = do_popup_menu_for_process_tree_view (widget, (GdkEvent *) event, op);
-    }
-
-  return ret;
+  sequence = gtk_gesture_get_last_updated_sequence (gesture);
+  event = gtk_gesture_get_last_event (gesture, sequence);
+  widget = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
+  do_popup_menu_for_process_tree_view (widget, event, op);
 }
 
 static GtkWidget *
@@ -1378,6 +1379,7 @@ create_show_processes_dialog (GtkMountOperation *op,
   GtkListStore *list_store;
   gchar *s;
   gboolean use_header;
+  GtkGesture *gesture;
 
   priv = op->priv;
 
@@ -1467,9 +1469,12 @@ create_show_processes_dialog (GtkMountOperation *op,
   g_signal_connect (tree_view, "popup-menu",
                     G_CALLBACK (on_popup_menu_for_process_tree_view),
                     op);
-  g_signal_connect (tree_view, "button-press-event",
-                    G_CALLBACK (on_button_press_event_for_process_tree_view),
-                    op);
+
+  gesture = gtk_gesture_multi_press_new ();
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
+  g_signal_connect (gesture, "pressed",
+                    G_CALLBACK (multi_press_cb), op);
+  gtk_widget_add_controller (tree_view, GTK_EVENT_CONTROLLER (gesture));
 
   list_store = gtk_list_store_new (3,
                                    GDK_TYPE_TEXTURE,
@@ -1642,8 +1647,6 @@ gtk_mount_operation_aborted (GMountOperation *op)
  * Creates a new #GtkMountOperation
  *
  * Returns: a new #GtkMountOperation
- *
- * Since: 2.14
  */
 GMountOperation *
 gtk_mount_operation_new (GtkWindow *parent)
@@ -1664,8 +1667,6 @@ gtk_mount_operation_new (GtkWindow *parent)
  * a window.
  *
  * Returns: %TRUE if @op is currently displaying a window
- *
- * Since: 2.14
  */
 gboolean
 gtk_mount_operation_is_showing (GtkMountOperation *op)
@@ -1682,8 +1683,6 @@ gtk_mount_operation_is_showing (GtkMountOperation *op)
  *
  * Sets the transient parent for windows shown by the
  * #GtkMountOperation.
- *
- * Since: 2.14
  */
 void
 gtk_mount_operation_set_parent (GtkMountOperation *op,
@@ -1728,8 +1727,6 @@ gtk_mount_operation_set_parent (GtkMountOperation *op,
  * Gets the transient parent used by the #GtkMountOperation
  *
  * Returns: (transfer none): the transient parent for windows shown by @op
- *
- * Since: 2.14
  */
 GtkWindow *
 gtk_mount_operation_get_parent (GtkMountOperation *op)
@@ -1745,8 +1742,6 @@ gtk_mount_operation_get_parent (GtkMountOperation *op)
  * @display: a #Gdk
  *
  * Sets the display to show windows of the #GtkMountOperation on.
- *
- * Since: 3.94
  */
 void
 gtk_mount_operation_set_display (GtkMountOperation *op,
@@ -1781,8 +1776,6 @@ gtk_mount_operation_set_display (GtkMountOperation *op,
  * will be shown.
  *
  * Returns: (transfer none): the display on which windows of @op are shown
- *
- * Since: 3.94
  */
 GdkDisplay *
 gtk_mount_operation_get_display (GtkMountOperation *op)

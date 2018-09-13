@@ -48,7 +48,7 @@
  *
  * Cursors by themselves are not very interesting, they must be
  * bound to a window for users to see them. This is done with
- * gdk_window_set_cursor() or gdk_window_set_device_cursor().
+ * gdk_surface_set_cursor() or gdk_surface_set_device_cursor().
  * Applications will typically use higher-level GTK+ functions such
  * as gtk_widget_set_cursor() instead.
  *
@@ -69,7 +69,7 @@
  * gdk_display_get_maximal_cursor_size() for the limitations that might apply.
  *
  * To ease work with unsupported cursors, a fallback cursor can be provided.
- * If a #GdkWindow cannot use a cursor because of the reasons mentioned above,
+ * If a #GdkSurface cannot use a cursor because of the reasons mentioned above,
  * it will try the fallback cursor. Of course, fallback cursors can themselves
  * have fallback cursors again, so it is possible to provide a chain of
  * progressively easier to support cursors. If none of the provided cursors
@@ -322,8 +322,6 @@ gdk_cursor_equal (gconstpointer a,
  *
  * Returns: (nullable): a new #GdkCursor, or %NULL if there is no
  *   cursor with the given name
- *
- * Since: 2.8
  */
 GdkCursor*
 gdk_cursor_new_from_name (const gchar *name,
@@ -361,8 +359,6 @@ gdk_cursor_new_from_name (const gchar *name,
  * sufficently new version of the X Render extension.
  *
  * Returns: a new #GdkCursor.
- *
- * Since: 3.94
  */
 GdkCursor *
 gdk_cursor_new_from_texture (GdkTexture *texture,
@@ -395,10 +391,8 @@ gdk_cursor_new_from_texture (GdkTexture *texture,
  * For textured cursors, this can happen when the texture is too large or
  * when the #GdkDisplay it is used on does not support textured cursors.
  *
- * Returns: (transfer none): the fallback of the cursor or %NULL to use
+ * Returns: (transfer none) (nullable): the fallback of the cursor or %NULL to use
  *     the default cursor as fallback.
- *
- * Since: 3.94
  */
 GdkCursor *
 gdk_cursor_get_fallback (GdkCursor *cursor)
@@ -415,10 +409,8 @@ gdk_cursor_get_fallback (GdkCursor *cursor)
  * Returns the name of the cursor. If the cursor is not a named cursor, %NULL
  * will be returned and the GdkCursor::texture property will be set.
  *
- * Returns: (transfer none): the name of the cursor or %NULL if it is not
+ * Returns: (transfer none) (nullable): the name of the cursor or %NULL if it is not
  *     a named cursor
- *
- * Since: 3.94
  */
 const char *
 gdk_cursor_get_name (GdkCursor *cursor)
@@ -435,10 +427,8 @@ gdk_cursor_get_name (GdkCursor *cursor)
  * Returns the texture for the cursor. If the cursor is a named cursor, %NULL
  * will be returned and the GdkCursor::name property will be set.
  *
- * Returns: (transfer none): the texture for cursor or %NULL if it is a
+ * Returns: (transfer none) (nullable): the texture for cursor or %NULL if it is a
  *     named cursor
- *
- * Since: 3.94
  */
 GdkTexture *
 gdk_cursor_get_texture (GdkCursor *cursor)
@@ -456,8 +446,6 @@ gdk_cursor_get_texture (GdkCursor *cursor)
  * pixel that will be directly above the cursor.
  *
  * Returns: the horizontal offset of the hotspot or 0 for named cursors
- *
- * Since: 3.94
  */
 int
 gdk_cursor_get_hotspot_x (GdkCursor *cursor)
@@ -475,8 +463,6 @@ gdk_cursor_get_hotspot_x (GdkCursor *cursor)
  * pixel that will be directly above the cursor.
  *
  * Returns: the vertical offset of the hotspot or 0 for named cursors
- *
- * Since: 3.94
  */
 int
 gdk_cursor_get_hotspot_y (GdkCursor *cursor)

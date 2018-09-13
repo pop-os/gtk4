@@ -44,7 +44,7 @@ struct _GdkEventClass
 /*
  * GdkEventAny:
  * @type: the type of the event.
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  *
  * Contains the fields which are common to all event structs.
@@ -55,7 +55,7 @@ struct _GdkEventAny
 {
   GObject parent_instance;
   GdkEventType type;
-  GdkWindow *window;
+  GdkSurface *surface;
   guint16 flags;
   gint8 send_event;
   GdkDevice *device;
@@ -66,41 +66,33 @@ struct _GdkEventAny
 /*
  * GdkEventExpose:
  * @type: the type of the event (%GDK_EXPOSE)
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @area: bounding box of @region.
  * @region: the region that needs to be redrawn.
- * @count: the number of contiguous %GDK_EXPOSE events following this one.
- *   The only use for this is “exposure compression”, i.e. handling all
- *   contiguous %GDK_EXPOSE events in one go, though GDK performs some
- *   exposure compression so this is not normally needed.
  *
- * Generated when all or part of a window becomes visible and needs to be
+ * Generated when all or part of a surface becomes visible and needs to be
  * redrawn.
  */
 struct _GdkEventExpose
 {
   GdkEventAny any;
-  GdkRectangle area;
   cairo_region_t *region;
-  gint count; /* If non-zero, how many more events follow. */
 };
 
 /*
  * GdkEventMotion:
  * @type: the type of the event.
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
- * @x: the x coordinate of the pointer relative to the window.
- * @y: the y coordinate of the pointer relative to the window.
+ * @x: the x coordinate of the pointer relative to the surface.
+ * @y: the y coordinate of the pointer relative to the surface.
  * @axes: @x, @y translated to the axes of @device, or %NULL if @device is
  *   the mouse.
  * @state: (type GdkModifierType): a bit-mask representing the state of
  *   the modifier keys (e.g. Control, Shift and Alt) and the pointer
  *   buttons. See #GdkModifierType.
- * @is_hint: set to 1 if this event is just a hint, see the
- *   %GDK_POINTER_MOTION_HINT_MASK value of #GdkEventMask.
  * @device: the master device that the event originated from. Use
  * gdk_event_get_source_device() to get the slave device.
  * @x_root: the x coordinate of the pointer relative to the root of the
@@ -118,7 +110,6 @@ struct _GdkEventMotion
   gdouble y;
   gdouble *axes;
   guint state;
-  gint16 is_hint;
   GdkDeviceTool *tool;
   gdouble x_root, y_root;
   GList *history;
@@ -127,11 +118,11 @@ struct _GdkEventMotion
 /*
  * GdkEventButton:
  * @type: the type of the event (%GDK_BUTTON_PRESS or %GDK_BUTTON_RELEASE).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
- * @x: the x coordinate of the pointer relative to the window.
- * @y: the y coordinate of the pointer relative to the window.
+ * @x: the x coordinate of the pointer relative to the surface.
+ * @y: the y coordinate of the pointer relative to the surface.
  * @axes: @x, @y translated to the axes of @device, or %NULL if @device is
  *   the mouse.
  * @state: (type GdkModifierType): a bit-mask representing the state of
@@ -168,11 +159,11 @@ struct _GdkEventButton
  * GdkEventTouch:
  * @type: the type of the event (%GDK_TOUCH_BEGIN, %GDK_TOUCH_UPDATE,
  *   %GDK_TOUCH_END, %GDK_TOUCH_CANCEL)
- * @window: the window which received the event
+ * @surface: the surface which received the event
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
- * @x: the x coordinate of the pointer relative to the window
- * @y: the y coordinate of the pointer relative to the window
+ * @x: the x coordinate of the pointer relative to the surface
+ * @y: the y coordinate of the pointer relative to the surface
  * @axes: @x, @y translated to the axes of @device, or %NULL if @device is
  *   the mouse
  * @state: (type GdkModifierType): a bit-mask representing the state of
@@ -215,11 +206,11 @@ struct _GdkEventTouch
 /*
  * GdkEventScroll:
  * @type: the type of the event (%GDK_SCROLL).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
- * @x: the x coordinate of the pointer relative to the window.
- * @y: the y coordinate of the pointer relative to the window.
+ * @x: the x coordinate of the pointer relative to the surface.
+ * @y: the y coordinate of the pointer relative to the surface.
  * @state: (type GdkModifierType): a bit-mask representing the state of
  *   the modifier keys (e.g. Control, Shift and Alt) and the pointer
  *   buttons. See #GdkModifierType.
@@ -261,7 +252,7 @@ struct _GdkEventScroll
 /*
  * GdkEventKey:
  * @type: the type of the event (%GDK_KEY_PRESS or %GDK_KEY_RELEASE).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
  * @state: (type GdkModifierType): a bit-mask representing the state of
@@ -285,7 +276,7 @@ struct _GdkEventScroll
  * @hardware_keycode: the raw code of the key that was pressed or released.
  * @group: the keyboard group.
  * @is_modifier: a flag that indicates if @hardware_keycode is mapped to a
- *   modifier. Since 2.10
+ *   modifier
  *
  * Describes a key press or key release event.
  */
@@ -306,12 +297,12 @@ struct _GdkEventKey
 /*
  * GdkEventCrossing:
  * @type: the type of the event (%GDK_ENTER_NOTIFY or %GDK_LEAVE_NOTIFY).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
- * @subwindow: the window that was entered or left.
+ * @child_surface: the surface that was entered or left.
  * @time: the time of the event in milliseconds.
- * @x: the x coordinate of the pointer relative to the window.
- * @y: the y coordinate of the pointer relative to the window.
+ * @x: the x coordinate of the pointer relative to the surface.
+ * @y: the y coordinate of the pointer relative to the surface.
  * @x_root: the x coordinate of the pointer relative to the root of the screen.
  * @y_root: the y coordinate of the pointer relative to the root of the screen.
  * @mode: the crossing mode (%GDK_CROSSING_NORMAL, %GDK_CROSSING_GRAB,
@@ -322,17 +313,17 @@ struct _GdkEventKey
  * @detail: the kind of crossing that happened (%GDK_NOTIFY_INFERIOR,
  *  %GDK_NOTIFY_ANCESTOR, %GDK_NOTIFY_VIRTUAL, %GDK_NOTIFY_NONLINEAR or
  *  %GDK_NOTIFY_NONLINEAR_VIRTUAL).
- * @focus: %TRUE if @window is the focus window or an inferior.
+ * @focus: %TRUE if @surface is the focus surface or an inferior.
  * @state: (type GdkModifierType): a bit-mask representing the state of
  *   the modifier keys (e.g. Control, Shift and Alt) and the pointer
  *   buttons. See #GdkModifierType.
  *
- * Generated when the pointer enters or leaves a window.
+ * Generated when the pointer enters or leaves a surface.
  */
 struct _GdkEventCrossing
 {
   GdkEventAny any;
-  GdkWindow *subwindow;
+  GdkSurface *child_surface;
   guint32 time;
   gdouble x;
   gdouble y;
@@ -347,9 +338,9 @@ struct _GdkEventCrossing
 /*
  * GdkEventFocus:
  * @type: the type of the event (%GDK_FOCUS_CHANGE).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
- * @in: %TRUE if the window has gained the keyboard focus, %FALSE if
+ * @in: %TRUE if the surface has gained the keyboard focus, %FALSE if
  *   it has lost the focus.
  *
  * Describes a change of keyboard focus.
@@ -363,14 +354,14 @@ struct _GdkEventFocus
 /*
  * GdkEventConfigure:
  * @type: the type of the event (%GDK_CONFIGURE).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
- * @x: the new x coordinate of the window, relative to its parent.
- * @y: the new y coordinate of the window, relative to its parent.
- * @width: the new width of the window.
- * @height: the new height of the window.
+ * @x: the new x coordinate of the surface, relative to its parent.
+ * @y: the new y coordinate of the surface, relative to its parent.
+ * @width: the new width of the surface.
+ * @height: the new height of the surface.
  *
- * Generated when a window size or position has changed.
+ * Generated when a surface size or position has changed.
  */
 struct _GdkEventConfigure
 {
@@ -383,7 +374,7 @@ struct _GdkEventConfigure
 /*
  * GdkEventProximity:
  * @type: the type of the event (%GDK_PROXIMITY_IN or %GDK_PROXIMITY_OUT).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
  * @device: the master device that the event originated from. Use
@@ -408,38 +399,36 @@ struct _GdkEventProximity
 /*
  * GdkEventGrabBroken:
  * @type: the type of the event (%GDK_GRAB_BROKEN)
- * @window: the window which received the event, i.e. the window
+ * @surface: the surface which received the event, i.e. the surface
  *   that previously owned the grab
  * @send_event: %TRUE if the event was sent explicitly.
  * @keyboard: %TRUE if a keyboard grab was broken, %FALSE if a pointer
  *   grab was broken
  * @implicit: %TRUE if the broken grab was implicit
- * @grab_window: If this event is caused by another grab in the same
- *   application, @grab_window contains the new grab window. Otherwise
- *   @grab_window is %NULL.
+ * @grab_surface: If this event is caused by another grab in the same
+ *   application, @grab_surface contains the new grab surface. Otherwise
+ *   @grab_surface is %NULL.
  *
  * Generated when a pointer or keyboard grab is broken. On X11, this happens
- * when the grab window becomes unviewable (i.e. it or one of its ancestors
+ * when the grab surface becomes unviewable (i.e. it or one of its ancestors
  * is unmapped), or if the same application grabs the pointer or keyboard
  * again. Note that implicit grabs (which are initiated by button presses)
  * can also cause #GdkEventGrabBroken events.
- *
- * Since: 2.8
  */
 struct _GdkEventGrabBroken {
   GdkEventAny any;
   gboolean keyboard;
   gboolean implicit;
-  GdkWindow *grab_window;
+  GdkSurface *grab_surface;
 };
 
 /*
  * GdkEventDND:
  * @type: the type of the event (%GDK_DRAG_ENTER, %GDK_DRAG_LEAVE,
  *   %GDK_DRAG_MOTION or %GDK_DROP_START)
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
- * @context: the #GdkDragContext for the current DND operation.
+ * @drop: the #GdkDrop for the current DND operation.
  * @time: the time of the event in milliseconds.
  * @x_root: the x coordinate of the pointer relative to the root of the
  *   screen, only set for %GDK_DRAG_MOTION and %GDK_DROP_START.
@@ -450,7 +439,7 @@ struct _GdkEventGrabBroken {
  */
 struct _GdkEventDND {
   GdkEventAny any;
-  GdkDragContext *context;
+  GdkDrop *drop;
 
   guint32 time;
   gshort x_root, y_root;
@@ -459,7 +448,7 @@ struct _GdkEventDND {
 /*
  * GdkEventTouchpadSwipe:
  * @type: the type of the event (%GDK_TOUCHPAD_SWIPE)
- * @window: the window which received the event
+ * @surface: the surface which received the event
  * @send_event: %TRUE if the event was sent explicitly
  * @phase: (type GdkTouchpadGesturePhase): the current phase of the gesture
  * @n_fingers: The number of fingers triggering the swipe
@@ -494,7 +483,7 @@ struct _GdkEventTouchpadSwipe {
 /*
  * GdkEventTouchpadPinch:
  * @type: the type of the event (%GDK_TOUCHPAD_PINCH)
- * @window: the window which received the event
+ * @surface: the surface which received the event
  * @send_event: %TRUE if the event was sent explicitly
  * @phase: (type GdkTouchpadGesturePhase): the current phase of the gesture
  * @n_fingers: The number of fingers triggering the pinch
@@ -535,7 +524,7 @@ struct _GdkEventTouchpadPinch {
 /*
  * GdkEventPadButton:
  * @type: the type of the event (%GDK_PAD_BUTTON_PRESS or %GDK_PAD_BUTTON_RELEASE).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
  * @group: the pad group the button belongs to. A %GDK_SOURCE_TABLET_PAD device
@@ -545,8 +534,6 @@ struct _GdkEventTouchpadPinch {
  *   device may have different current modes.
  *
  * Generated during %GDK_SOURCE_TABLET_PAD button presses and releases.
- *
- * Since: 3.22
  */
 struct _GdkEventPadButton {
   GdkEventAny any;
@@ -559,7 +546,7 @@ struct _GdkEventPadButton {
 /*
  * GdkEventPadAxis:
  * @type: the type of the event (%GDK_PAD_RING or %GDK_PAD_STRIP).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
  * @group: the pad group the ring/strip belongs to. A %GDK_SOURCE_TABLET_PAD
@@ -571,8 +558,6 @@ struct _GdkEventPadButton {
  * @value: The current value for the given axis.
  *
  * Generated during %GDK_SOURCE_TABLET_PAD interaction with tactile sensors.
- *
- * Since: 3.22
  */
 struct _GdkEventPadAxis {
   GdkEventAny any;
@@ -586,7 +571,7 @@ struct _GdkEventPadAxis {
 /*
  * GdkEventPadGroupMode:
  * @type: the type of the event (%GDK_PAD_GROUP_MODE).
- * @window: the window which received the event.
+ * @surface: the surface which received the event.
  * @send_event: %TRUE if the event was sent explicitly.
  * @time: the time of the event in milliseconds.
  * @group: the pad group that is switching mode. A %GDK_SOURCE_TABLET_PAD
@@ -596,8 +581,6 @@ struct _GdkEventPadAxis {
  *   device may have different current modes.
  *
  * Generated during %GDK_SOURCE_TABLET_PAD mode switches in a group.
- *
- * Since: 3.22
  */
 struct _GdkEventPadGroupMode {
   GdkEventAny any;

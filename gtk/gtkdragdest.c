@@ -37,7 +37,7 @@ gtk_drag_dest_realized (GtkWidget *widget)
   GtkWidget *toplevel = gtk_widget_get_toplevel (widget);
 
   if (gtk_widget_is_toplevel (toplevel))
-    gdk_window_register_dnd (gtk_widget_get_window (toplevel));
+    gdk_surface_register_dnd (gtk_widget_get_surface (toplevel));
 }
 
 static void
@@ -47,7 +47,7 @@ gtk_drag_dest_hierarchy_changed (GtkWidget *widget,
   GtkWidget *toplevel = gtk_widget_get_toplevel (widget);
 
   if (gtk_widget_is_toplevel (toplevel) && gtk_widget_get_realized (toplevel))
-    gdk_window_register_dnd (gtk_widget_get_window (toplevel));
+    gdk_surface_register_dnd (gtk_widget_get_surface (toplevel));
 }
 
 static void
@@ -115,7 +115,7 @@ gtk_drag_dest_set_internal (GtkWidget       *widget,
  * behaviors described by @flags make some assumptions, that can conflict
  * with your own signal handlers. For instance #GTK_DEST_DEFAULT_DROP causes
  * invokations of gdk_drag_status() in the context of #GtkWidget::drag-motion,
- * and invokations of gtk_drag_finish() in #GtkWidget::drag-data-received.
+ * and invokations of gdk_drag_finish() in #GtkWidget::drag-data-received.
  * Especially the later is dramatic, when your own #GtkWidget::drag-motion
  * handler calls gtk_drag_get_data() to inspect the dragged data.
  *
@@ -132,7 +132,7 @@ gtk_drag_dest_set_internal (GtkWidget       *widget,
  * {
 *   GdkModifierType mask;
  *
- *   gdk_window_get_pointer (gtk_widget_get_window (widget),
+ *   gdk_surface_get_pointer (gtk_widget_get_surface (widget),
  *                           NULL, NULL, &mask);
  *   if (mask & GDK_CONTROL_MASK)
  *     gdk_drag_status (context, GDK_ACTION_COPY, time);
@@ -259,8 +259,6 @@ gtk_drag_dest_set_target_list (GtkWidget     *widget,
  * are added with @info = 0. If you need another value,
  * use gtk_target_list_add_text_targets() and
  * gtk_drag_dest_set_target_list().
- *
- * Since: 2.6
  */
 void
 gtk_drag_dest_add_text_targets (GtkWidget *widget)
@@ -286,8 +284,6 @@ gtk_drag_dest_add_text_targets (GtkWidget *widget)
  * are added with @info = 0. If you need another value,
  * use gtk_target_list_add_image_targets() and
  * gtk_drag_dest_set_target_list().
- *
- * Since: 2.6
  */
 void
 gtk_drag_dest_add_image_targets (GtkWidget *widget)
@@ -313,8 +309,6 @@ gtk_drag_dest_add_image_targets (GtkWidget *widget)
  * are added with @info = 0. If you need another value,
  * use gtk_target_list_add_uri_targets() and
  * gtk_drag_dest_set_target_list().
- *
- * Since: 2.6
  */
 void
 gtk_drag_dest_add_uri_targets (GtkWidget *widget)
@@ -342,8 +336,6 @@ gtk_drag_dest_add_uri_targets (GtkWidget *widget)
  *
  * This may be used when a widget wants to do generic
  * actions regardless of the targets that the source offers.
- *
- * Since: 2.10
  */
 void
 gtk_drag_dest_set_track_motion (GtkWidget *widget,
@@ -369,8 +361,6 @@ gtk_drag_dest_set_track_motion (GtkWidget *widget,
  *
  * Returns: %TRUE if the widget always emits
  *   #GtkWidget::drag-motion events
- *
- * Since: 2.10
  */
 gboolean
 gtk_drag_dest_get_track_motion (GtkWidget *widget)
@@ -390,11 +380,11 @@ gtk_drag_dest_get_track_motion (GtkWidget *widget)
 /**
  * gtk_drag_dest_find_target: (method)
  * @widget: drag destination widget
- * @context: drag context
+ * @drop: #GdkDrop
  * @target_list: (allow-none): list of droppable targets, or %NULL to use
  *    gtk_drag_dest_get_target_list (@widget).
  *
- * Looks for a match between the supported targets of @context and the
+ * Looks for a match between the supported targets of @drop and the
  * @dest_target_list, returning the first matching target, otherwise
  * returning %NULL. @dest_target_list should usually be the return
  * value from gtk_drag_dest_get_target_list(), but some widgets may
@@ -407,11 +397,11 @@ gtk_drag_dest_get_track_motion (GtkWidget *widget)
  */
 const char *
 gtk_drag_dest_find_target (GtkWidget         *widget,
-                           GdkDragContext    *context,
+                           GdkDrop           *drop,
                            GdkContentFormats *target_list)
 {
   g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
-  g_return_val_if_fail (GDK_IS_DRAG_CONTEXT (context), NULL);
+  g_return_val_if_fail (GDK_IS_DROP (drop), NULL);
 
   if (target_list == NULL)
     target_list = gtk_drag_dest_get_target_list (widget);
@@ -420,6 +410,6 @@ gtk_drag_dest_find_target (GtkWidget         *widget,
     return NULL;
 
   return gdk_content_formats_match_mime_type (target_list,
-                                              gdk_drag_context_get_formats (context));
+                                              gdk_drop_get_formats (drop));
 }
 

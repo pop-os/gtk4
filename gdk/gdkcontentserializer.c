@@ -187,7 +187,7 @@ gdk_content_serializer_get_mime_type (GdkContentSerializer *serializer)
  *
  * Gets the GType to of the object to serialize.
  *
- * Returns: (transfer none): the GType for the current operation
+ * Returns: the GType for the current operation
  */
 GType
 gdk_content_serializer_get_gtype (GdkContentSerializer *serializer)
@@ -461,7 +461,7 @@ gdk_content_formats_union_serialize_gtypes (GdkContentFormats *formats)
 
   gdk_content_formats_unref (formats);
 
-  return gdk_content_formats_builder_free (builder);
+  return gdk_content_formats_builder_free_to_formats (builder);
 }
 
 /**
@@ -496,7 +496,7 @@ gdk_content_formats_union_serialize_mime_types (GdkContentFormats *formats)
 
   gdk_content_formats_unref (formats);
 
-  return gdk_content_formats_builder_free (builder);
+  return gdk_content_formats_builder_free_to_formats (builder);
 }
 
 static void
@@ -850,12 +850,12 @@ init (void)
           gdk_content_register_serializer (GDK_TYPE_TEXTURE,
                                            *m,
                                            pixbuf_serializer,
-                                           g_strdup (gdk_pixbuf_format_get_name (fmt)),
+                                           gdk_pixbuf_format_get_name (fmt),
                                            g_free);
           gdk_content_register_serializer (GDK_TYPE_PIXBUF,
                                            *m,
                                            pixbuf_serializer,
-                                           g_strdup (gdk_pixbuf_format_get_name (fmt)),
+                                           gdk_pixbuf_format_get_name (fmt),
                                            g_free);
 	}
       g_strfreev (mimes);
@@ -895,8 +895,8 @@ init (void)
       gdk_content_register_serializer (G_TYPE_STRING,
                                        mime,
                                        string_serializer,
-                                       mime,
-                                       g_free);
+                                       (gpointer) charset,
+                                       NULL);
     }
   gdk_content_register_serializer (G_TYPE_STRING,
                                    "text/plain",

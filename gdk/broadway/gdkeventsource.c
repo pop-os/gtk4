@@ -60,13 +60,9 @@ gdk_event_source_prepare (GSource *source,
   GdkDisplay *display = ((GdkEventSource*) source)->display;
   gboolean retval;
 
-  gdk_threads_enter ();
-
   *timeout = -1;
 
   retval = (_gdk_event_queue_find_first (display) != NULL);
-
-  gdk_threads_leave ();
 
   return retval;
 }
@@ -77,15 +73,11 @@ gdk_event_source_check (GSource *source)
   GdkEventSource *event_source = (GdkEventSource*) source;
   gboolean retval;
 
-  gdk_threads_enter ();
-
   if (event_source->display->event_pause_count > 0 ||
       event_source->event_poll_fd.revents & G_IO_IN)
     retval = (_gdk_event_queue_find_first (event_source->display) != NULL);
   else
     retval = FALSE;
-
-  gdk_threads_leave ();
 
   return retval;
 }
@@ -96,7 +88,7 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
   GdkDisplay *display;
   GdkBroadwayDisplay *display_broadway;
   GdkSeat *seat;
-  GdkWindow *window;
+  GdkSurface *surface;
   GdkEvent *event = NULL;
   GList *node;
   GSList *list, *d;
@@ -121,11 +113,11 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
 
   switch (message->base.type) {
   case BROADWAY_EVENT_ENTER:
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
+    if (surface)
       {
         event = gdk_event_new (GDK_ENTER_NOTIFY);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->crossing.time = message->base.time;
         event->crossing.x = message->pointer.win_x;
         event->crossing.y = message->pointer.win_y;
@@ -141,11 +133,11 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
       }
     break;
   case BROADWAY_EVENT_LEAVE:
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
+    if (surface)
       {
         event = gdk_event_new (GDK_LEAVE_NOTIFY);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->crossing.time = message->base.time;
         event->crossing.x = message->pointer.win_x;
         event->crossing.y = message->pointer.win_y;
@@ -164,11 +156,11 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
     if (_gdk_broadway_moveresize_handle_event (display, message))
       break;
 
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
+    if (surface)
       {
         event = gdk_event_new (GDK_MOTION_NOTIFY);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->motion.time = message->base.time;
         event->motion.x = message->pointer.win_x;
         event->motion.y = message->pointer.win_y;
@@ -188,11 +180,11 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
         _gdk_broadway_moveresize_handle_event (display, message))
       break;
 
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
+    if (surface)
       {
         event = gdk_event_new (message->base.type == 'b' ? GDK_BUTTON_PRESS : GDK_BUTTON_RELEASE);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->button.time = message->base.time;
         event->button.x = message->pointer.win_x;
         event->button.y = message->pointer.win_y;
@@ -208,11 +200,11 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
 
     break;
   case BROADWAY_EVENT_SCROLL:
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->pointer.event_surface_id));
+    if (surface)
       {
         event = gdk_event_new (GDK_SCROLL);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->scroll.time = message->base.time;
         event->scroll.x = message->pointer.win_x;
         event->scroll.y = message->pointer.win_y;
@@ -227,8 +219,8 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
 
     break;
   case BROADWAY_EVENT_TOUCH:
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->touch.event_surface_id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->touch.event_surface_id));
+    if (surface)
       {
         GdkEventType event_type = 0;
 
@@ -251,7 +243,7 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
           break;
 
         event = gdk_event_new (event_type);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->touch.sequence = GUINT_TO_POINTER(message->touch.sequence_id);
         event->touch.emulating_pointer = message->touch.is_emulated;
         event->touch.time = message->base.time;
@@ -282,12 +274,12 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
     break;
   case BROADWAY_EVENT_KEY_PRESS:
   case BROADWAY_EVENT_KEY_RELEASE:
-    window = g_hash_table_lookup (display_broadway->id_ht,
+    surface = g_hash_table_lookup (display_broadway->id_ht,
                                   GINT_TO_POINTER (message->key.surface_id));
-    if (window)
+    if (surface)
       {
         event = gdk_event_new (message->base.type == 'k' ? GDK_KEY_PRESS : GDK_KEY_RELEASE);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->key.time = message->base.time;
         event->key.keyval = message->key.key;
         event->key.state = message->key.state;
@@ -307,14 +299,14 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
     break;
 
   case BROADWAY_EVENT_CONFIGURE_NOTIFY:
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->configure_notify.id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->configure_notify.id));
+    if (surface)
       {
-        window->x = message->configure_notify.x;
-        window->y = message->configure_notify.y;
+        surface->x = message->configure_notify.x;
+        surface->y = message->configure_notify.y;
 
         event = gdk_event_new (GDK_CONFIGURE);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->configure.x = message->configure_notify.x;
         event->configure.y = message->configure_notify.y;
         event->configure.width = message->configure_notify.width;
@@ -323,20 +315,20 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
         node = _gdk_event_queue_append (display, event);
         _gdk_windowing_got_event (display, node, event, message->base.serial);
 
-        if (window->resize_count >= 1)
+        if (surface->resize_count >= 1)
           {
-            window->resize_count -= 1;
+            surface->resize_count -= 1;
 
-            if (window->resize_count == 0)
-              _gdk_broadway_moveresize_configure_done (display, window);
+            if (surface->resize_count == 0)
+              _gdk_broadway_moveresize_configure_done (display, surface);
           }
       }
     break;
 
   case BROADWAY_EVENT_ROUNDTRIP_NOTIFY:
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->roundtrip_notify.id));
-    if (window)
-      _gdk_broadway_roundtrip_notify (window, message->roundtrip_notify.tag, message->roundtrip_notify.local);
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->roundtrip_notify.id));
+    if (surface)
+      _gdk_broadway_roundtrip_notify (surface, message->roundtrip_notify.tag, message->roundtrip_notify.local);
     break;
 
   case BROADWAY_EVENT_SCREEN_SIZE_CHANGED:
@@ -344,21 +336,21 @@ _gdk_broadway_events_got_input (BroadwayInputMsg *message)
     break;
 
   case BROADWAY_EVENT_FOCUS:
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->focus.old_id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->focus.old_id));
+    if (surface)
       {
         event = gdk_event_new (GDK_FOCUS_CHANGE);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->focus_change.in = FALSE;
         gdk_event_set_device (event, gdk_seat_get_pointer (seat));
         node = _gdk_event_queue_append (display, event);
         _gdk_windowing_got_event (display, node, event, message->base.serial);
       }
-    window = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->focus.new_id));
-    if (window)
+    surface = g_hash_table_lookup (display_broadway->id_ht, GINT_TO_POINTER (message->focus.new_id));
+    if (surface)
       {
         event = gdk_event_new (GDK_FOCUS_CHANGE);
-        event->any.window = g_object_ref (window);
+        event->any.surface = g_object_ref (surface);
         event->focus_change.in = TRUE;
         gdk_event_set_device (event, gdk_seat_get_pointer (seat));
         node = _gdk_event_queue_append (display, event);
@@ -385,18 +377,14 @@ gdk_event_source_dispatch (GSource     *source,
   GdkDisplay *display = ((GdkEventSource*) source)->display;
   GdkEvent *event;
 
-  gdk_threads_enter ();
-
   event = gdk_display_get_event (display);
 
   if (event)
     {
       _gdk_event_emit (event);
 
-      gdk_event_free (event);
+      g_object_unref (event);
     }
-
-  gdk_threads_leave ();
 
   return TRUE;
 }

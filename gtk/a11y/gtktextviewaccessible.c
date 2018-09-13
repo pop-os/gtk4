@@ -39,19 +39,23 @@ struct _GtkTextViewAccessiblePrivate
   gint selection_bound;
 };
 
-static void       insert_text_cb       (GtkTextBuffer    *buffer,
-                                                        GtkTextIter      *arg1,
-                                                        gchar            *arg2,
-                                                        gint             arg3,
-                                                        gpointer         user_data);
-static void       delete_range_cb      (GtkTextBuffer    *buffer,
-                                                        GtkTextIter      *arg1,
-                                                        GtkTextIter      *arg2,
-                                                        gpointer         user_data);
-static void       mark_set_cb          (GtkTextBuffer    *buffer,
-                                                        GtkTextIter      *arg1,
-                                                        GtkTextMark      *arg2,
-                                                        gpointer         user_data);
+static void       insert_text_cb        (GtkTextBuffer    *buffer,
+                                                         GtkTextIter      *arg1,
+                                                         gchar            *arg2,
+                                                         gint             arg3,
+                                                         gpointer         user_data);
+static void       delete_range_cb       (GtkTextBuffer    *buffer,
+                                                         GtkTextIter      *arg1,
+                                                         GtkTextIter      *arg2,
+                                                         gpointer         user_data);
+static void       delete_range_after_cb (GtkTextBuffer    *buffer,
+                                                         GtkTextIter      *arg1,
+                                                         GtkTextIter      *arg2,
+                                                         gpointer         user_data);
+static void       mark_set_cb           (GtkTextBuffer    *buffer,
+                                                         GtkTextIter      *arg1,
+                                                         GtkTextMark      *arg2,
+                                                         gpointer         user_data);
 
 
 static void atk_editable_text_interface_init      (AtkEditableTextIface      *iface);
@@ -132,6 +136,7 @@ gtk_text_view_accessible_change_buffer (GtkTextViewAccessible *accessible,
     {
       g_signal_connect_after (new_buffer, "insert-text", G_CALLBACK (insert_text_cb), accessible);
       g_signal_connect (new_buffer, "delete-range", G_CALLBACK (delete_range_cb), accessible);
+      g_signal_connect_after (new_buffer, "delete-range", G_CALLBACK (delete_range_after_cb), accessible);
       g_signal_connect_after (new_buffer, "mark-set", G_CALLBACK (mark_set_cb), accessible);
 
       g_signal_emit_by_name (accessible,
@@ -444,9 +449,9 @@ gtk_text_view_accessible_get_offset_at_point (AtkText      *text,
 {
   GtkTextView *view;
   GtkTextIter iter;
-  gint x_widget, y_widget, x_window, y_window, buff_x, buff_y;
+  gint x_widget, y_widget, x_surface, y_surface, buff_x, buff_y;
   GtkWidget *widget;
-  GdkWindow *window;
+  GdkSurface *surface;
   GdkRectangle rect;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (text));
@@ -454,8 +459,8 @@ gtk_text_view_accessible_get_offset_at_point (AtkText      *text,
     return -1;
 
   view = GTK_TEXT_VIEW (widget);
-  window = gtk_widget_get_window (widget);
-  gdk_window_get_origin (window, &x_widget, &y_widget);
+  surface = gtk_widget_get_surface (widget);
+  gdk_surface_get_origin (surface, &x_widget, &y_widget);
 
   if (coords == ATK_XY_SCREEN)
     {
@@ -464,11 +469,11 @@ gtk_text_view_accessible_get_offset_at_point (AtkText      *text,
     }
   else if (coords == ATK_XY_WINDOW)
     {
-      window = gdk_window_get_toplevel (window);
-      gdk_window_get_origin (window, &x_window, &y_window);
+      surface = gdk_surface_get_toplevel (surface);
+      gdk_surface_get_origin (surface, &x_surface, &y_surface);
 
-      x = x - x_widget + x_window;
-      y = y - y_widget + y_window;
+      x = x - x_widget + x_surface;
+      y = y - y_widget + y_surface;
     }
   else
     return -1;
@@ -506,8 +511,8 @@ gtk_text_view_accessible_get_character_extents (AtkText      *text,
   GtkTextIter iter;
   GtkWidget *widget;
   GdkRectangle rectangle;
-  GdkWindow *window;
-  gint x_widget, y_widget, x_window, y_window;
+  GdkSurface *surface;
+  gint x_widget, y_widget, x_surface, y_surface;
 
   *x = 0;
   *y = 0;
@@ -523,23 +528,23 @@ gtk_text_view_accessible_get_character_extents (AtkText      *text,
   gtk_text_buffer_get_iter_at_offset (buffer, &iter, offset);
   gtk_text_view_get_iter_location (view, &iter, &rectangle);
 
-  window = gtk_widget_get_window (widget);
-  if (window == NULL)
+  surface = gtk_widget_get_surface (widget);
+  if (surface == NULL)
     return;
 
-  gdk_window_get_origin (window, &x_widget, &y_widget);
+  gdk_surface_get_origin (surface, &x_widget, &y_widget);
 
   *height = rectangle.height;
   *width = rectangle.width;
 
-  gtk_text_view_buffer_to_window_coords (view, GTK_TEXT_WINDOW_WIDGET,
+  gtk_text_view_buffer_to_surface_coords (view, GTK_TEXT_WINDOW_WIDGET,
     rectangle.x, rectangle.y, x, y);
   if (coords == ATK_XY_WINDOW)
     {
-      window = gdk_window_get_toplevel (window);
-      gdk_window_get_origin (window, &x_window, &y_window);
-      *x += x_widget - x_window;
-      *y += y_widget - y_window;
+      surface = gdk_surface_get_toplevel (surface);
+      gdk_surface_get_origin (surface, &x_surface, &y_surface);
+      *x += x_widget - x_surface;
+      *y += y_widget - y_surface;
     }
   else if (coords == ATK_XY_SCREEN)
     {
@@ -1801,6 +1806,15 @@ delete_range_cb (GtkTextBuffer *buffer,
                          "text-changed::delete",
                          offset,
                          length);
+}
+
+static void
+delete_range_after_cb (GtkTextBuffer *buffer,
+                       GtkTextIter   *start,
+                       GtkTextIter   *end,
+                       gpointer       data)
+{
+  GtkTextViewAccessible *accessible = data;
 
   gtk_text_view_accessible_update_cursor (accessible, buffer);
 }

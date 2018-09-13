@@ -32,8 +32,9 @@ enum {
   OP_CHANGE_BORDER          =  16,
   OP_CHANGE_BORDER_COLOR    =  17,
   OP_CHANGE_CROSS_FADE      =  18,
-  OP_CLEAR                  =  19,
-  OP_DRAW                   =  20,
+  OP_CHANGE_UNBLURRED_OUTSET_SHADOW = 19,
+  OP_CLEAR                  =  20,
+  OP_DRAW                   =  21,
 };
 
 typedef struct
@@ -43,7 +44,6 @@ typedef struct
   int id;
   /* Common locations (gl_common)*/
   int source_location;
-  int mask_location;
   int position_location;
   int uv_location;
   int alpha_location;
@@ -63,9 +63,6 @@ typedef struct
       int color_location;
     } coloring;
     struct {
-      int color_location;
-    } shadow;
-    struct {
       int color_matrix_location;
       int color_offset_location;
     } color_matrix;
@@ -79,6 +76,7 @@ typedef struct
     struct {
       int blur_radius_location;
       int blur_size_location;
+      int dir_location;
     } blur;
     struct {
       int color_location;
@@ -94,8 +92,19 @@ typedef struct
       int corner_heights_location;
     } outset_shadow;
     struct {
+      int outline_location;
+      int corner_widths_location;
+      int corner_heights_location;
+      int color_location;
+      int spread_location;
+      int offset_location;
+    } unblurred_outset_shadow;
+    struct {
       int color_location;
       int widths_location;
+      int outline_location;
+      int corner_widths_location;
+      int corner_heights_location;
     } border;
     struct {
       int source2_location;
@@ -138,6 +147,7 @@ typedef struct
     struct {
       float radius;
       graphene_size_t size;
+      float dir[2];
     } blur;
     struct {
       float outline[4];
@@ -158,11 +168,21 @@ typedef struct
       float color[4];
     } outset_shadow;
     struct {
+      float outline[4];
+      float corner_widths[4];
+      float corner_heights[4];
+      float radius;
+      float spread;
+      float offset[2];
+      float color[4];
+    } unblurred_outset_shadow;
+    struct {
       float color[4];
     } shadow;
     struct {
       float widths[4];
       float color[4];
+      GskRoundedRect outline;
     } border;
     struct {
       float progress;
@@ -191,6 +211,7 @@ typedef struct
       struct {
         float widths[4];
         float color[4];
+        GskRoundedRect outline;
       } border;
     };
   } program_state[GL_N_PROGRAMS];
@@ -213,6 +234,8 @@ typedef struct
 } RenderOpBuilder;
 
 
+
+float             ops_get_scale          (const RenderOpBuilder   *builder);
 
 void              ops_set_program        (RenderOpBuilder         *builder,
                                           const Program           *program);
@@ -245,7 +268,8 @@ void              ops_set_color_matrix   (RenderOpBuilder         *builder,
                                           const graphene_vec4_t   *offset);
 
 void              ops_set_border         (RenderOpBuilder         *builder,
-                                          const float             *widths);
+                                          const float             *widths,
+                                          const GskRoundedRect    *outline);
 
 void              ops_set_border_color   (RenderOpBuilder         *builder,
                                           const GdkRGBA           *color);

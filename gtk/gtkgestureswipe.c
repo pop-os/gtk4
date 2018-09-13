@@ -231,8 +231,6 @@ gtk_gesture_swipe_class_init (GtkGestureSwipeClass *klass)
    *
    * This signal is emitted when the recognized gesture is finished, velocity
    * and direction are a product of previously recorded events.
-   *
-   * Since: 3.14
    */
   signals[SWIPE] =
     g_signal_new (I_("swipe"),
@@ -254,21 +252,15 @@ gtk_gesture_swipe_init (GtkGestureSwipe *gesture)
 
 /**
  * gtk_gesture_swipe_new:
- * @widget: a #GtkWidget
  *
  * Returns a newly created #GtkGesture that recognizes swipes.
  *
  * Returns: a newly created #GtkGestureSwipe
- *
- * Since: 3.14
  **/
 GtkGesture *
-gtk_gesture_swipe_new (GtkWidget *widget)
+gtk_gesture_swipe_new (void)
 {
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
-
   return g_object_new (GTK_TYPE_GESTURE_SWIPE,
-                       "widget", widget,
                        NULL);
 }
 
@@ -283,8 +275,6 @@ gtk_gesture_swipe_new (GtkWidget *widget)
  * last event(s) processed.
  *
  * Returns: whether velocity could be calculated
- *
- * Since: 3.14
  **/
 gboolean
 gtk_gesture_swipe_get_velocity (GtkGestureSwipe *gesture,

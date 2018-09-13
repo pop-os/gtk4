@@ -108,7 +108,8 @@ gtk_drag_source_site_destroy (gpointer data)
     gdk_content_formats_unref (site->target_list);
 
   gtk_image_definition_unref (site->image_def);
-  g_clear_object (&site->drag_gesture);
+  /* This gets called only during widget finalization.
+   * And widget finalization takes care of gestures. */
   g_slice_free (GtkDragSourceSite, site);
 }
 
@@ -144,9 +145,9 @@ gtk_drag_source_set (GtkWidget         *widget,
     {
       site = g_slice_new0 (GtkDragSourceSite);
       site->image_def = gtk_image_definition_new_empty ();
-      site->drag_gesture = gtk_gesture_drag_new (widget);
+      site->drag_gesture = gtk_gesture_drag_new ();
       gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (site->drag_gesture),
-                                                  GTK_PHASE_BUBBLE);
+                                                  GTK_PHASE_CAPTURE);
       gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (site->drag_gesture), 0);
       g_signal_connect (site->drag_gesture, "begin",
                         G_CALLBACK (gtk_drag_source_gesture_begin),
@@ -154,6 +155,7 @@ gtk_drag_source_set (GtkWidget         *widget,
       g_signal_connect (site->drag_gesture, "update",
                         G_CALLBACK (gtk_drag_source_gesture_update),
                         site);
+      gtk_widget_add_controller (widget, GTK_EVENT_CONTROLLER (site->drag_gesture));
 
       g_object_set_data_full (G_OBJECT (widget),
                               I_("gtk-site-data"), 
@@ -192,8 +194,6 @@ gtk_drag_source_unset (GtkWidget *widget)
  * drag-and-drop.
  *
  * Returns: (nullable) (transfer none): the #GdkContentFormats, or %NULL if none
- *
- * Since: 2.4
  */
 GdkContentFormats *
 gtk_drag_source_get_target_list (GtkWidget *widget)
@@ -215,8 +215,6 @@ gtk_drag_source_get_target_list (GtkWidget *widget)
  * Changes the target types that this widget offers for drag-and-drop.
  * The widget must first be made into a drag source with
  * gtk_drag_source_set().
- *
- * Since: 2.4
  */
 void
 gtk_drag_source_set_target_list (GtkWidget         *widget,
@@ -252,8 +250,6 @@ gtk_drag_source_set_target_list (GtkWidget         *widget,
  * are added with @info = 0. If you need another value, 
  * use gtk_content_formats_add_text_targets() and
  * gtk_drag_source_set_target_list().
- * 
- * Since: 2.6
  */
 void
 gtk_drag_source_add_text_targets (GtkWidget *widget)
@@ -279,8 +275,6 @@ gtk_drag_source_add_text_targets (GtkWidget *widget)
  * are added with @info = 0. If you need another value, 
  * use gtk_target_list_add_image_targets() and
  * gtk_drag_source_set_target_list().
- * 
- * Since: 2.6
  */
 void
 gtk_drag_source_add_image_targets (GtkWidget *widget)
@@ -306,8 +300,6 @@ gtk_drag_source_add_image_targets (GtkWidget *widget)
  * are added with @info = 0. If you need another value, 
  * use gtk_content_formats_add_uri_targets() and
  * gtk_drag_source_set_target_list().
- * 
- * Since: 2.6
  */
 void
 gtk_drag_source_add_uri_targets (GtkWidget *widget)
@@ -325,40 +317,12 @@ gtk_drag_source_add_uri_targets (GtkWidget *widget)
 }
 
 /**
- * gtk_drag_source_set_icon_surface: (method)
- * @widget: a #GtkWidget
- * @surface: the cairo surface for the drag icon
- * 
- * Sets the icon that will be used for drags from a particular widget
- * from a cairo surface. GTK+ retains a reference for @surface and will
- * release it when it is no longer needed.
- *
- * Since: 3.94
- */
-void
-gtk_drag_source_set_icon_surface (GtkWidget       *widget,
-                                  cairo_surface_t *surface)
-{
-  GtkDragSourceSite *site;
-
-  g_return_if_fail (GTK_IS_WIDGET (widget));
-
-  site = g_object_get_data (G_OBJECT (widget), "gtk-site-data");
-  g_return_if_fail (site != NULL);
-
-  g_clear_pointer (&site->image_def, gtk_image_definition_unref);
-  site->image_def = gtk_image_definition_new_surface (surface);
-}
-
-/**
  * gtk_drag_source_set_icon_name: (method)
  * @widget: a #GtkWidget
  * @icon_name: name of icon to use
  *
  * Sets the icon that will be used for drags from a particular source
  * to a themed icon. See the docs for #GtkIconTheme for more details.
- *
- * Since: 2.8
  */
 void
 gtk_drag_source_set_icon_name (GtkWidget   *widget,
@@ -383,8 +347,6 @@ gtk_drag_source_set_icon_name (GtkWidget   *widget,
  * 
  * Sets the icon that will be used for drags from a particular source
  * to @icon. See the docs for #GtkIconTheme for more details.
- *
- * Since: 3.2
  */
 void
 gtk_drag_source_set_icon_gicon (GtkWidget *widget,
@@ -400,5 +362,29 @@ gtk_drag_source_set_icon_gicon (GtkWidget *widget,
 
   gtk_image_definition_unref (site->image_def);
   site->image_def = gtk_image_definition_new_gicon (icon);
+}
+
+/**
+ * gtk_drag_source_set_icon_paintable: (method)
+ * @widget: a #GtkWidget
+ * @paintable: A #GdkPaintable
+ *
+ * Sets the icon that will be used for drags from a particular source
+ * to @paintable.
+ */
+void
+gtk_drag_source_set_icon_paintable (GtkWidget    *widget,
+                                    GdkPaintable *paintable)
+{
+  GtkDragSourceSite *site;
+
+  g_return_if_fail (GTK_IS_WIDGET (widget));
+  g_return_if_fail (GDK_IS_PAINTABLE (paintable));
+
+  site = g_object_get_data (G_OBJECT (widget), "gtk-site-data");
+  g_return_if_fail (site != NULL);
+
+  gtk_image_definition_unref (site->image_def);
+  site->image_def = gtk_image_definition_new_paintable (paintable);
 }
 

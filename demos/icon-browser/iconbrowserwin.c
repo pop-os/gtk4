@@ -286,13 +286,16 @@ populate (IconBrowserWindow *win)
 }
 
 static gboolean
-key_press_event_cb (GtkWidget *widget,
-                    GdkEvent  *event,
-                    gpointer   data)
+key_event_cb (GtkEventController *controller,
+              guint               keyval,
+              guint               keycode,
+              GdkModifierType     state,
+              gpointer            data)
 {
   IconBrowserWindow *win = data;
 
-  return gtk_search_bar_handle_event (GTK_SEARCH_BAR (win->searchbar), event);
+  return gtk_search_bar_handle_event (GTK_SEARCH_BAR (win->searchbar),
+                                      gtk_get_current_event ());
 }
 
 static void
@@ -376,7 +379,6 @@ get_image_data (GtkWidget        *widget,
                 GdkDragContext   *context,
                 GtkSelectionData *selection,
                 guint             target_info,
-                guint             time,
                 gpointer          data)
 {
   GtkWidget *image;
@@ -399,7 +401,6 @@ get_scalable_image_data (GtkWidget        *widget,
                          GdkDragContext   *context,
                          GtkSelectionData *selection,
                          guint             target_info,
-                         guint             time,
                          gpointer          data)
 {
   gchar *uris[2];
@@ -451,6 +452,7 @@ static void
 icon_browser_window_init (IconBrowserWindow *win)
 {
   GdkContentFormats *list;
+  GtkEventController *controller;
 
   gtk_widget_init_template (GTK_WIDGET (win));
 
@@ -467,6 +469,7 @@ icon_browser_window_init (IconBrowserWindow *win)
   setup_image_dnd (win->image3);
   setup_image_dnd (win->image4);
   setup_image_dnd (win->image5);
+  setup_image_dnd (win->image6);
   setup_scalable_image_dnd (win->image6);
 
   win->contexts = g_hash_table_new_full (g_str_hash, g_str_equal, NULL, context_free);
@@ -479,12 +482,30 @@ icon_browser_window_init (IconBrowserWindow *win)
 
   symbolic_toggled (GTK_TOGGLE_BUTTON (win->symbolic_radio), win);
 
+  controller = gtk_event_controller_key_new ();
+  g_signal_connect (controller, "key-pressed", G_CALLBACK (key_event_cb), win);
+  gtk_widget_add_controller (GTK_WIDGET (win), controller);
+
   populate (win);
+}
+
+static void
+icon_browser_window_finalize (GObject *object)
+{
+  IconBrowserWindow *win = ICON_BROWSER_WINDOW (object);
+
+  g_hash_table_unref (win->contexts);
+
+  G_OBJECT_CLASS (icon_browser_window_parent_class)->finalize (object);
 }
 
 static void
 icon_browser_window_class_init (IconBrowserWindowClass *class)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+
+  object_class->finalize = icon_browser_window_finalize;
+
   g_type_ensure (ICON_STORE_TYPE);
 
   gtk_widget_class_set_template_from_resource (GTK_WIDGET_CLASS (class),
@@ -515,7 +536,6 @@ icon_browser_window_class_init (IconBrowserWindowClass *class)
   gtk_widget_class_bind_template_callback (GTK_WIDGET_CLASS (class), item_activated);
   gtk_widget_class_bind_template_callback (GTK_WIDGET_CLASS (class), selected_context_changed);
   gtk_widget_class_bind_template_callback (GTK_WIDGET_CLASS (class), symbolic_toggled);
-  gtk_widget_class_bind_template_callback (GTK_WIDGET_CLASS (class), key_press_event_cb);
   gtk_widget_class_bind_template_callback (GTK_WIDGET_CLASS (class), copy_to_clipboard);
 }
 

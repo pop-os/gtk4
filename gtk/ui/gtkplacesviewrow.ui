@@ -73,7 +73,6 @@
             </child>
             <child>
               <object class="GtkSpinner" id="busy_spinner">
-                <property name="active">1</property>
                 <property name="halign">center</property>
                 <property name="valign">center</property>
               </object>
@@ -83,6 +82,12 @@
             <property name="position">4</property>
           </packing>
         </child>
+      </object>
+    </child>
+    <child>
+      <object class="GtkGestureMultiPress">
+        <property name="button">3</property>
+        <signal name="pressed" handler="pressed_cb" swapped="no"/>
       </object>
     </child>
   </template>

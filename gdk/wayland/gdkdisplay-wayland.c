@@ -42,6 +42,7 @@
 #include "gdkdeviceprivate.h"
 #include "gdkkeysprivate.h"
 #include "gdkprivate-wayland.h"
+#include "gdkcairocontext-wayland.h"
 #include "gdkglcontext-wayland.h"
 #include "gdkvulkancontext-wayland.h"
 #include "gdkwaylandmonitor.h"
@@ -52,6 +53,8 @@
 #include <wayland/server-decoration-client-protocol.h>
 
 #include "wm-button-layout-translation.h"
+
+#include "gdk/gdk-private.h"
 
 /**
  * SECTION:wayland_interaction
@@ -125,22 +128,41 @@ _gdk_wayland_display_async_roundtrip (GdkWaylandDisplay *display_wayland)
 }
 
 static void
-xdg_shell_ping (void                 *data,
-                struct zxdg_shell_v6 *xdg_shell,
-                uint32_t              serial)
+xdg_wm_base_ping (void               *data,
+                  struct xdg_wm_base *xdg_wm_base,
+                  uint32_t            serial)
 {
   GdkWaylandDisplay *display_wayland = data;
 
   _gdk_wayland_display_update_serial (display_wayland, serial);
 
   GDK_NOTE (EVENTS,
+            g_message ("ping, shell %p, serial %u\n", xdg_wm_base, serial));
+
+  xdg_wm_base_pong (xdg_wm_base, serial);
+}
+
+static const struct xdg_wm_base_listener xdg_wm_base_listener = {
+  xdg_wm_base_ping,
+};
+
+static void
+zxdg_shell_v6_ping (void                 *data,
+                    struct zxdg_shell_v6 *xdg_shell,
+                    uint32_t              serial)
+{
+  GdkWaylandDisplay *display_wayland = data;
+
+  _gdk_wayland_display_update_serial (display_wayland, serial);
+
+  GDK_DISPLAY_NOTE (GDK_DISPLAY (data), EVENTS,
             g_message ("ping, shell %p, serial %u\n", xdg_shell, serial));
 
   zxdg_shell_v6_pong (xdg_shell, serial);
 }
 
-static const struct zxdg_shell_v6_listener xdg_shell_listener = {
-  xdg_shell_ping,
+static const struct zxdg_shell_v6_listener zxdg_shell_v6_listener = {
+  zxdg_shell_v6_ping,
 };
 
 static gboolean
@@ -384,7 +406,6 @@ gdk_registry_handle_global (void               *data,
 {
   GdkWaylandDisplay *display_wayland = data;
   struct wl_output *output;
-  gboolean handled = TRUE;
 
   GDK_NOTE (MISC,
             g_message ("add global %u, interface %s, version %u", id, interface, version));
@@ -401,14 +422,13 @@ gdk_registry_handle_global (void               *data,
         wl_registry_bind (display_wayland->wl_registry, id, &wl_shm_interface, 1);
       wl_shm_add_listener (display_wayland->shm, &wl_shm_listener, display_wayland);
     }
+  else if (strcmp (interface, "xdg_wm_base") == 0)
+    {
+      display_wayland->xdg_wm_base_id = id;
+    }
   else if (strcmp (interface, "zxdg_shell_v6") == 0)
     {
-      display_wayland->xdg_shell =
-        wl_registry_bind (display_wayland->wl_registry, id,
-                          &zxdg_shell_v6_interface, 1);
-      zxdg_shell_v6_add_listener (display_wayland->xdg_shell,
-                                  &xdg_shell_listener,
-                                  display_wayland);
+      display_wayland->zxdg_shell_v6_id = id;
     }
   else if (strcmp (interface, "gtk_shell1") == 0)
     {
@@ -507,12 +527,9 @@ gdk_registry_handle_global (void               *data,
                                                            &server_decoration_listener,
                                                            display_wayland);
     }
-  else
-    handled = FALSE;
 
-  if (handled)
-    g_hash_table_insert (display_wayland->known_globals,
-                         GUINT_TO_POINTER (id), g_strdup (interface));
+  g_hash_table_insert (display_wayland->known_globals,
+                       GUINT_TO_POINTER (id), g_strdup (interface));
 
   process_on_globals_closures (display_wayland);
 }
@@ -620,17 +637,36 @@ _gdk_wayland_display_open (const gchar *display_name)
         }
     }
 
-  /* Make sure we have xdg_shell at least */
-  if (display_wayland->xdg_shell == NULL)
+  if (display_wayland->xdg_wm_base_id)
     {
-      g_warning ("Wayland compositor does not support xdg_shell interface,"
-                 " not using Wayland display");
+      display_wayland->shell_variant = GDK_WAYLAND_SHELL_VARIANT_XDG_SHELL;
+      display_wayland->xdg_wm_base =
+        wl_registry_bind (display_wayland->wl_registry,
+                          display_wayland->xdg_wm_base_id,
+                          &xdg_wm_base_interface, 1);
+      xdg_wm_base_add_listener (display_wayland->xdg_wm_base,
+                                &xdg_wm_base_listener,
+                                display_wayland);
+    }
+  else if (display_wayland->zxdg_shell_v6_id)
+    {
+      display_wayland->shell_variant = GDK_WAYLAND_SHELL_VARIANT_ZXDG_SHELL_V6;
+      display_wayland->zxdg_shell_v6 =
+        wl_registry_bind (display_wayland->wl_registry,
+                          display_wayland->zxdg_shell_v6_id,
+                          &zxdg_shell_v6_interface, 1);
+      zxdg_shell_v6_add_listener (display_wayland->zxdg_shell_v6,
+                                  &zxdg_shell_v6_listener,
+                                  display_wayland);
+    }
+  else
+    {
+      g_warning ("The Wayland compositor does not provide any supported shell interface, "
+                 "not using Wayland display");
       g_object_unref (display);
 
       return NULL;
     }
-
-  display_wayland->selection = gdk_wayland_selection_new ();
 
   gdk_display_emit_opened (display);
 
@@ -640,7 +676,7 @@ _gdk_wayland_display_open (const gchar *display_name)
 static void
 destroy_toplevel (gpointer data)
 {
-  _gdk_window_destroy (GDK_WINDOW (data), FALSE);
+  _gdk_surface_destroy (GDK_SURFACE (data), FALSE);
 }
 
 static void
@@ -655,12 +691,6 @@ gdk_wayland_display_dispose (GObject *object)
       g_source_destroy (display_wayland->event_source);
       g_source_unref (display_wayland->event_source);
       display_wayland->event_source = NULL;
-    }
-
-  if (display_wayland->selection)
-    {
-      gdk_wayland_selection_free (display_wayland->selection);
-      display_wayland->selection = NULL;
     }
 
   g_list_free_full (display_wayland->async_roundtrips, (GDestroyNotify) wl_callback_destroy);
@@ -718,7 +748,7 @@ gdk_wayland_display_get_name (GdkDisplay *display)
 
 void
 gdk_wayland_display_system_bell (GdkDisplay *display,
-                                 GdkWindow  *window)
+                                 GdkSurface  *window)
 {
   GdkWaylandDisplay *display_wayland;
   struct gtk_surface1 *gtk_surface;
@@ -732,7 +762,7 @@ gdk_wayland_display_system_bell (GdkDisplay *display,
     return;
 
   if (window)
-    gtk_surface = gdk_wayland_window_get_gtk_surface (window);
+    gtk_surface = gdk_wayland_surface_get_gtk_surface (window);
   else
     gtk_surface = NULL;
 
@@ -781,19 +811,9 @@ gdk_wayland_display_make_default (GdkDisplay *display)
   g_free (display_wayland->startup_notification_id);
   display_wayland->startup_notification_id = NULL;
 
-  startup_id = g_getenv ("DESKTOP_STARTUP_ID");
-  if (startup_id && *startup_id != '\0')
-    {
-      if (!g_utf8_validate (startup_id, -1, NULL))
-        g_warning ("DESKTOP_STARTUP_ID contains invalid UTF-8");
-      else
-        display_wayland->startup_notification_id = g_strdup (startup_id);
-
-      /* Clear the environment variable so it won't be inherited by
-       * child processes and confuse things.
-       */
-      g_unsetenv ("DESKTOP_STARTUP_ID");
-    }
+  startup_id = gdk_get_startup_notification_id ();
+  if (startup_id)
+    display_wayland->startup_notification_id = g_strdup (startup_id);
 }
 
 static gboolean
@@ -802,7 +822,7 @@ gdk_wayland_display_has_pending (GdkDisplay *display)
   return FALSE;
 }
 
-static GdkWindow *
+static GdkSurface *
 gdk_wayland_display_get_default_group (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
@@ -830,6 +850,21 @@ gdk_wayland_display_get_next_serial (GdkDisplay *display)
 }
 
 /**
+ * gdk_wayland_display_get_startup_notification_id:
+ * @display: (type GdkX11Display): a #GdkDisplay
+ *
+ * Gets the startup notification ID for a Wayland display, or %NULL
+ * if no ID has been defined.
+ *
+ * Returns: the startup notification ID for @display, or %NULL
+ */
+const gchar *
+gdk_wayland_display_get_startup_notification_id (GdkDisplay  *display)
+{
+  return GDK_WAYLAND_DISPLAY (display)->startup_notification_id;
+}
+
+/**
  * gdk_wayland_display_set_startup_notification_id:
  * @display: (type GdkWaylandDisplay): a #GdkDisplay
  * @startup_id: the startup notification ID (must be valid utf8)
@@ -843,8 +878,6 @@ gdk_wayland_display_get_next_serial (GdkDisplay *display)
  * The startup ID is also what is used to signal that the startup is
  * complete (for example, when opening a window or when calling
  * gdk_notify_startup_complete()).
- *
- * Since: 3.22
  **/
 void
 gdk_wayland_display_set_startup_notification_id (GdkDisplay *display,
@@ -896,7 +929,7 @@ _gdk_wayland_display_get_keymap (GdkDisplay *display)
     return _gdk_wayland_device_get_keymap (core_keyboard);
 
   if (!tmp_keymap)
-    tmp_keymap = _gdk_wayland_keymap_new ();
+    tmp_keymap = _gdk_wayland_keymap_new (display);
 
   return tmp_keymap;
 }
@@ -922,16 +955,16 @@ gdk_wayland_display_get_monitor (GdkDisplay *display,
 }
 
 static GdkMonitor *
-gdk_wayland_display_get_monitor_at_window (GdkDisplay *display,
-                                           GdkWindow  *window)
+gdk_wayland_display_get_monitor_at_surface (GdkDisplay *display,
+                                           GdkSurface  *window)
 {
   GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
   struct wl_output *output;
   int i;
 
-  g_return_val_if_fail (GDK_IS_WAYLAND_WINDOW (window), NULL);
+  g_return_val_if_fail (GDK_IS_WAYLAND_SURFACE (window), NULL);
 
-  output = gdk_wayland_window_get_wl_output (window);
+  output = gdk_wayland_surface_get_wl_output (window);
   if (output == NULL)
     return NULL;
 
@@ -959,7 +992,8 @@ gdk_wayland_display_class_init (GdkWaylandDisplayClass *class)
   object_class->dispose = gdk_wayland_display_dispose;
   object_class->finalize = gdk_wayland_display_finalize;
 
-  display_class->window_type = gdk_wayland_window_get_type ();
+  display_class->surface_type = gdk_wayland_surface_get_type ();
+  display_class->cairo_context_type = GDK_TYPE_WAYLAND_CAIRO_CONTEXT;
 
 #ifdef GDK_RENDERING_VULKAN
   display_class->vk_context_type = GDK_TYPE_WAYLAND_VULKAN_CONTEXT;
@@ -977,13 +1011,10 @@ gdk_wayland_display_class_init (GdkWaylandDisplayClass *class)
   display_class->supports_shapes = gdk_wayland_display_supports_shapes;
   display_class->supports_input_shapes = gdk_wayland_display_supports_input_shapes;
   display_class->get_app_launch_context = _gdk_wayland_display_get_app_launch_context;
-  display_class->get_default_cursor_size = _gdk_wayland_display_get_default_cursor_size;
-  display_class->get_maximal_cursor_size = _gdk_wayland_display_get_maximal_cursor_size;
-  display_class->supports_cursor_alpha = _gdk_wayland_display_supports_cursor_alpha;
-  display_class->supports_cursor_color = _gdk_wayland_display_supports_cursor_color;
   display_class->get_next_serial = gdk_wayland_display_get_next_serial;
+  display_class->get_startup_notification_id = gdk_wayland_display_get_startup_notification_id;
   display_class->notify_startup_complete = gdk_wayland_display_notify_startup_complete;
-  display_class->create_window_impl = _gdk_wayland_display_create_window_impl;
+  display_class->create_surface_impl = _gdk_wayland_display_create_surface_impl;
   display_class->get_keymap = _gdk_wayland_display_get_keymap;
   display_class->text_property_to_utf8_list = _gdk_wayland_display_text_property_to_utf8_list;
   display_class->utf8_to_string_target = _gdk_wayland_display_utf8_to_string_target;
@@ -992,7 +1023,7 @@ gdk_wayland_display_class_init (GdkWaylandDisplayClass *class)
 
   display_class->get_n_monitors = gdk_wayland_display_get_n_monitors;
   display_class->get_monitor = gdk_wayland_display_get_monitor;
-  display_class->get_monitor_at_window = gdk_wayland_display_get_monitor_at_window;
+  display_class->get_monitor_at_surface = gdk_wayland_display_get_monitor_at_surface;
   display_class->get_setting = gdk_wayland_display_get_setting;
   display_class->set_cursor_theme = gdk_wayland_display_set_cursor_theme;
 }
@@ -1006,7 +1037,7 @@ gdk_wayland_display_init (GdkWaylandDisplay *display)
 }
 
 GList *
-gdk_wayland_display_get_toplevel_windows (GdkDisplay *display)
+gdk_wayland_display_get_toplevel_surfaces (GdkDisplay *display)
 {
   return GDK_WAYLAND_DISPLAY (display)->toplevels;
 }
@@ -1124,8 +1155,6 @@ _gdk_wayland_display_update_serial (GdkWaylandDisplay *display_wayland,
  * Returns the Wayland wl_display of a #GdkDisplay.
  *
  * Returns: (transfer none): a Wayland wl_display
- *
- * Since: 3.8
  */
 struct wl_display *
 gdk_wayland_display_get_wl_display (GdkDisplay *display)
@@ -1142,8 +1171,6 @@ gdk_wayland_display_get_wl_display (GdkDisplay *display)
  * Returns the Wayland global singleton compositor of a #GdkDisplay.
  *
  * Returns: (transfer none): a Wayland wl_compositor
- *
- * Since: 3.8
  */
 struct wl_compositor *
 gdk_wayland_display_get_wl_compositor (GdkDisplay *display)
@@ -1191,6 +1218,9 @@ open_shared_memory (void)
 
       if (force_shm_open)
         {
+#if defined (__FreeBSD__)
+          ret = shm_open (SHM_ANON, O_CREAT | O_EXCL | O_RDWR | O_CLOEXEC, 0600);
+#else
           char name[NAME_MAX - 1] = "";
 
           sprintf (name, "/gdk-wayland-%x", g_random_int ());
@@ -1201,6 +1231,7 @@ open_shared_memory (void)
             shm_unlink (name);
           else if (errno == EEXIST)
             continue;
+#endif
         }
     }
   while (ret < 0 && errno == EINTR);
@@ -1328,15 +1359,6 @@ _gdk_wayland_is_shm_surface (cairo_surface_t *surface)
 {
   return cairo_surface_get_user_data (surface, &gdk_wayland_shm_surface_cairo_key) != NULL;
 }
-
-GdkWaylandSelection *
-gdk_wayland_display_get_selection (GdkDisplay *display)
-{
-  GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
-
-  return display_wayland->selection;
-}
-
 
 typedef enum
 {
@@ -1861,8 +1883,8 @@ transform_to_string (int transform)
 static void
 update_scale (GdkDisplay *display)
 {
-  g_list_foreach (gdk_wayland_display_get_toplevel_windows (display),
-                  (GFunc)gdk_wayland_window_update_scale,
+  g_list_foreach (gdk_wayland_display_get_toplevel_surfaces (display),
+                  (GFunc)gdk_wayland_surface_update_scale,
                   NULL);
 }
 
@@ -2086,4 +2108,36 @@ gdk_wayland_display_get_output_scale (GdkWaylandDisplay *display_wayland,
     return gdk_monitor_get_scale_factor (GDK_MONITOR (monitor));
 
   return 0;
+}
+
+/**
+ * gdk_wayland_display_query_registry:
+ * @display: a wayland #GdkDisplay
+ * @global: global interface to query in the registry
+ *
+ * Returns %TRUE if the the interface was found in the display
+ * wl_registry.global handler.
+ *
+ * Returns: %TRUE if the global is offered by the compositor
+ **/
+gboolean
+gdk_wayland_display_query_registry (GdkDisplay  *display,
+				    const gchar *global)
+{
+  GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
+  GHashTableIter iter;
+  gchar *value;
+
+  g_return_val_if_fail (GDK_IS_WAYLAND_DISPLAY (display), FALSE);
+  g_return_val_if_fail (global != NULL, FALSE);
+
+  g_hash_table_iter_init (&iter, display_wayland->known_globals);
+
+  while (g_hash_table_iter_next (&iter, NULL, (gpointer*) &value))
+    {
+      if (strcmp (value, global) == 0)
+        return TRUE;
+    }
+
+  return FALSE;
 }

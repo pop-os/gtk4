@@ -64,7 +64,7 @@ get_idle (gpointer data)
   GtkApplication *app = gtk_window_get_application (GTK_WINDOW (window));
 
   gtk_widget_set_sensitive (window, TRUE);
-  gdk_window_set_cursor (gtk_widget_get_window (window), NULL);
+  gdk_surface_set_cursor (gtk_widget_get_surface (window), NULL);
   g_application_unmark_busy (G_APPLICATION (app));
 
   return G_SOURCE_REMOVE;
@@ -81,7 +81,7 @@ get_busy (GSimpleAction *action,
 
   g_application_mark_busy (G_APPLICATION (app));
   cursor = gdk_cursor_new_from_name ("wait", NULL);
-  gdk_window_set_cursor (gtk_widget_get_window (window), cursor);
+  gdk_surface_set_cursor (gtk_widget_get_surface (window), cursor);
   g_object_unref (cursor);
   g_timeout_add (5000, get_idle, window);
 
@@ -353,7 +353,6 @@ update_pulse_time (GtkAdjustment *adjustment, GtkWidget *widget)
 static void
 on_entry_icon_release (GtkEntry            *entry,
                        GtkEntryIconPosition icon_pos,
-                       GdkEvent            *event,
                        gpointer             user_data)
 {
   if (icon_pos != GTK_ENTRY_ICON_SECONDARY)
@@ -1082,7 +1081,7 @@ set_accel (GtkApplication *app, GtkWidget *widget)
 typedef struct
 {
   GtkTextView tv;
-  cairo_surface_t *surface;
+  GdkPixbuf *pixbuf;
 } MyTextView;
 
 typedef GtkTextViewClass MyTextViewClass;
@@ -1101,10 +1100,10 @@ my_tv_draw_layer (GtkTextView      *widget,
 {
   MyTextView *tv = (MyTextView *)widget;
 
-  if (layer == GTK_TEXT_VIEW_LAYER_BELOW_TEXT && tv->surface)
+  if (layer == GTK_TEXT_VIEW_LAYER_BELOW_TEXT && tv->pixbuf)
     {
       cairo_save (cr);
-      cairo_set_source_surface (cr, tv->surface, 0.0, 0.0);
+      gdk_cairo_set_source_pixbuf (cr, tv->pixbuf, 0.0, 0.0);
       cairo_paint_with_alpha (cr, 0.333);
       cairo_restore (cr);
     }
@@ -1115,8 +1114,7 @@ my_tv_finalize (GObject *object)
 {
   MyTextView *tv = (MyTextView *)object;
 
-  if (tv->surface)
-    cairo_surface_destroy (tv->surface);
+  g_clear_object (&tv->pixbuf);
 
   G_OBJECT_CLASS (my_text_view_parent_class)->finalize (object);
 }
@@ -1134,28 +1132,20 @@ my_text_view_class_init (MyTextViewClass *class)
 static void
 my_text_view_set_background (MyTextView *tv, const gchar *filename)
 {
-  GdkPixbuf *pixbuf;
   GError *error = NULL;
 
-  if (tv->surface)
-    cairo_surface_destroy (tv->surface);
-
-  tv->surface = NULL;
+  g_clear_object (&tv->pixbuf);
 
   if (filename == NULL)
     return;
 
-  pixbuf = gdk_pixbuf_new_from_file (filename, &error);
+  tv->pixbuf = gdk_pixbuf_new_from_file (filename, &error);
   if (error)
     {
       g_warning ("%s", error->message);
       g_error_free (error);
       return;
     }
-
-  tv->surface = gdk_cairo_surface_create_from_pixbuf (pixbuf, 1, NULL);
-
-  g_object_unref (pixbuf);
 
   gtk_widget_queue_draw (GTK_WIDGET (tv));
 }
@@ -1655,7 +1645,6 @@ activate (GApplication *app)
   gint i;
   GPermission *permission;
   GAction *action;
-  GtkGesture *gesture;
 
   g_type_ensure (my_text_view_get_type ());
 
@@ -1680,6 +1669,7 @@ activate (GApplication *app)
   gtk_builder_add_callback_symbol (builder, "reset_icon_size", (GCallback)reset_icon_size);
   gtk_builder_add_callback_symbol (builder, "scale_format_value", (GCallback)scale_format_value);
   gtk_builder_add_callback_symbol (builder, "scale_format_value_blank", (GCallback)scale_format_value_blank);
+  gtk_builder_add_callback_symbol (builder, "osd_frame_pressed", (GCallback)osd_frame_pressed);
 
   gtk_builder_connect_signals (builder, NULL);
 
@@ -1896,10 +1886,6 @@ activate (GApplication *app)
   widget2 = (GtkWidget *)gtk_builder_get_object (builder, "progressbar2");
   g_signal_connect (adj, "value-changed", G_CALLBACK (adjustment3_value_changed), widget);
   g_signal_connect (adj, "value-changed", G_CALLBACK (adjustment3_value_changed), widget2);
-
-  widget = (GtkWidget *)gtk_builder_get_object (builder, "osd_frame");
-  gesture = gtk_gesture_multi_press_new (widget);
-  g_signal_connect (gesture, "pressed", G_CALLBACK (osd_frame_pressed), widget);
 
   gtk_widget_show (GTK_WIDGET (window));
 

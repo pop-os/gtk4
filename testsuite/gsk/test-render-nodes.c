@@ -134,7 +134,7 @@ cairo (void)
   cairo_t *cr;
 
   node = gsk_cairo_node_new (&GRAPHENE_RECT_INIT (0, 0, 200, 600));
-  cr = gsk_cairo_node_get_draw_context (node, NULL);
+  cr = gsk_cairo_node_get_draw_context (node);
 
   cairo_set_source_rgb (cr, 1, 0, 0);
   cairo_rectangle (cr, 0, 0, 200, 200);
@@ -159,7 +159,7 @@ cairo2 (void)
   int i, j;
 
   node = gsk_cairo_node_new (&GRAPHENE_RECT_INIT (0, 0, 200, 200));
-  cr = gsk_cairo_node_get_draw_context (node, NULL);
+  cr = gsk_cairo_node_get_draw_context (node);
 
   cairo_set_source_rgb (cr, 1, 1, 1);
 
@@ -263,7 +263,7 @@ ducky (void)
   node = gsk_cairo_node_new (&GRAPHENE_RECT_INIT (0, 0,
                                                   gdk_pixbuf_get_width (pixbuf),
                                                   gdk_pixbuf_get_height (pixbuf)));
-  cr = gsk_cairo_node_get_draw_context (node, NULL);
+  cr = gsk_cairo_node_get_draw_context (node);
   gdk_cairo_set_source_pixbuf (cr, pixbuf, 0, 0);
   cairo_paint (cr);
   cairo_destroy (cr);
@@ -443,10 +443,11 @@ opacity (void)
   return container;
 }
 
+#define N 5
+
 static GskRenderNode *
 color_matrix1 (void)
 {
-  const int N = 5;
   GskRenderNode *container_node;
   GskRenderNode *cairo_node = cairo ();
   GskRenderNode *n;
@@ -517,6 +518,8 @@ color_matrix1 (void)
 
   return container_node;
 }
+
+#undef N
 
 static GskRenderNode *
 transformed_clip (void)
@@ -667,7 +670,7 @@ load_node_file (GFile *file, gboolean generate)
   GBytes *bytes;
   GskRenderNode *node;
   GskRenderer *renderer;
-  GdkWindow *window;
+  GdkSurface *window;
   GdkTexture *texture = NULL;
   cairo_surface_t *surface;
   char *png_file;
@@ -696,8 +699,8 @@ load_node_file (GFile *file, gboolean generate)
       return;
     }
 
-  window = gdk_window_new_toplevel (gdk_display_get_default(), 10 , 10);
-  renderer = gsk_renderer_new_for_window (window);
+  window = gdk_surface_new_toplevel (gdk_display_get_default(), 10 , 10);
+  renderer = gsk_renderer_new_for_surface (window);
   texture = gsk_renderer_render_texture (renderer, node, NULL);
 
   surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32,
@@ -721,7 +724,7 @@ load_node_file (GFile *file, gboolean generate)
   g_object_unref (window);
   gsk_renderer_unrealize (renderer);
   g_object_unref (renderer);
-  gdk_window_destroy (window);
+  gdk_surface_destroy (window);
 
   gsk_render_node_unref (node);
 

@@ -24,6 +24,7 @@
 
 #include "gdkdisplay-broadway.h"
 
+#include "gdkcairocontext-broadway.h"
 #include "gdkdisplay.h"
 #include "gdkeventsource.h"
 #include "gdkmonitor-broadway.h"
@@ -42,92 +43,6 @@
 #include <unistd.h>
 #endif
 #include <sys/types.h>
-
-static gboolean
-compare_surface (cairo_surface_t *a,
-                 cairo_surface_t *b,
-                 int width,
-                 int height)
-{
-  unsigned char *data_a, *data_b;
-  int stride_a, stride_b;
-  int y;
-
-  data_a = cairo_image_surface_get_data (a);
-  stride_a = cairo_image_surface_get_stride (a);
-
-  data_b = cairo_image_surface_get_data (b);
-  stride_b = cairo_image_surface_get_stride (b);
-
-  for (y = 0; y < height; y++)
-    {
-      if (memcmp (data_a, data_b, 4 * width) != 0)
-        return FALSE;
-      data_a += stride_a;
-      data_b += stride_b;
-    }
-
-  return TRUE;
-}
-
-static gboolean
-gdk_texture_equal (GdkTexture *a,
-                   GdkTexture *b)
-{
-  cairo_surface_t *surface_a;
-  cairo_surface_t *surface_b;
-  gboolean res;
-
-  if (a == b)
-    return TRUE;
-
-  if (a->width != b->width ||
-      a->height != b->height)
-    return FALSE;
-
-  surface_a = gdk_texture_download_surface (a);
-  surface_b = gdk_texture_download_surface (b);
-
-  res = compare_surface (surface_a, surface_b, a->width, a->height);
-
-  cairo_surface_destroy (surface_a);
-  cairo_surface_destroy (surface_b);
-
-  return res;
-}
-
-static guint
-gdk_texture_hash (GdkTexture *self)
-{
-  cairo_surface_t *surface;
-  unsigned char *data;
-  int stride;
-  guint32 *row;
-  guint64 sum;
-  int x, y, width, height;
-  guint h;
-
-  surface = gdk_texture_download_surface (self);
-  data = cairo_image_surface_get_data (surface);
-  stride = cairo_image_surface_get_stride (surface);
-
-  width = MIN (self->width, 4);
-  height = MIN (self->height, 4);
-
-  sum = 0;
-  for (y = 0; y < height; y++, data += stride)
-    {
-      row = (guint32 *)data;
-      for (x = 0; x < width; x++)
-        sum += row[x];
-    }
-
-  cairo_surface_destroy (surface);
-
-  h = sum / (width * height);
-
-  return h ^ self->width ^ (self->height << 16);
-}
 
 static void   gdk_broadway_display_dispose            (GObject            *object);
 static void   gdk_broadway_display_finalize           (GObject            *object);
@@ -148,7 +63,6 @@ gdk_broadway_display_init (GdkBroadwayDisplay *display)
                                    NULL);
   gdk_monitor_set_manufacturer (display->monitor, "browser");
   gdk_monitor_set_model (display->monitor, "0");
-  display->texture_cache = g_hash_table_new ((GHashFunc)gdk_texture_hash, (GEqualFunc)gdk_texture_equal);
 }
 
 static void
@@ -181,10 +95,10 @@ _gdk_broadway_display_size_changed (GdkDisplay                      *display,
   toplevels =  broadway_display->toplevels;
   for (l = toplevels; l != NULL; l = l->next)
     {
-      GdkWindowImplBroadway *toplevel_impl = l->data;
+      GdkSurfaceImplBroadway *toplevel_impl = l->data;
 
       if (toplevel_impl->maximized)
-        gdk_window_move_resize (toplevel_impl->wrapper, 0, 0, msg->width, msg->height);
+        gdk_surface_move_resize (toplevel_impl->wrapper, 0, 0, msg->width, msg->height);
     }
 }
 
@@ -263,7 +177,7 @@ _gdk_broadway_display_open (const gchar *display_name)
   broadway_display->server = _gdk_broadway_server_new (display_name, &error);
   if (broadway_display->server == NULL)
     {
-      g_printerr ("Unable to init server: %s\n", error->message);
+      g_printerr ("Unable to init Broadway server: %s\n", error->message);
       g_error_free (error);
       return NULL;
     }
@@ -313,7 +227,7 @@ gdk_broadway_display_has_pending (GdkDisplay *display)
   return FALSE;
 }
 
-static GdkWindow *
+static GdkSurface *
 gdk_broadway_display_get_default_group (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
@@ -438,39 +352,17 @@ gdk_broadway_display_get_last_seen_time (GdkDisplay *display)
 typedef struct {
   int id;
   GdkDisplay *display;
-  GdkTexture *in_cache;
   GList *textures;
 } BroadwayTextureData;
 
 static void
-broadway_texture_data_notify (BroadwayTextureData *data,
-			      GdkTexture *disposed_texture)
+broadway_texture_data_free (BroadwayTextureData *data)
 {
   GdkBroadwayDisplay *broadway_display = GDK_BROADWAY_DISPLAY (data->display);
 
-  if (data->in_cache == disposed_texture)
-    {
-      g_hash_table_remove (broadway_display->texture_cache, disposed_texture);
-      data->in_cache = NULL;
-    }
-
-  g_object_set_data (G_OBJECT (disposed_texture), "broadway-data", NULL);
-
-  data->textures = g_list_remove (data->textures, disposed_texture);
-  if (data->textures == NULL)
-    {
-      gdk_broadway_server_release_texture (broadway_display->server, data->id);
-      g_object_unref (data->display);
-      g_free (data);
-    }
-  else if (data->in_cache == NULL)
-    {
-      GdkTexture *first = data->textures->data;
-
-      data->in_cache = first;
-      g_hash_table_replace (broadway_display->texture_cache,
-			    data->in_cache, data->in_cache);
-    }
+  gdk_broadway_server_release_texture (broadway_display->server, data->id);
+  g_object_unref (data->display);
+  g_free (data);
 }
 
 guint32
@@ -479,34 +371,17 @@ gdk_broadway_display_ensure_texture (GdkDisplay *display,
 {
   GdkBroadwayDisplay *broadway_display = GDK_BROADWAY_DISPLAY (display);
   BroadwayTextureData *data;
-  guint32 id;
-  GdkTexture *cached;
 
   data = g_object_get_data (G_OBJECT (texture), "broadway-data");
-  if (data != NULL)
-    return data->id;
-
-  cached = g_hash_table_lookup (broadway_display->texture_cache, texture);
-  if (cached)
-    data = g_object_get_data (G_OBJECT (cached), "broadway-data");
-
   if (data == NULL)
     {
-      id = gdk_broadway_server_upload_texture (broadway_display->server, texture);
+      guint32 id = gdk_broadway_server_upload_texture (broadway_display->server, texture);
 
       data = g_new0 (BroadwayTextureData, 1);
       data->id = id;
       data->display = g_object_ref (display);
-
-      data->in_cache = texture;
-      g_hash_table_replace (broadway_display->texture_cache,
-			    data->in_cache, data->in_cache);
+      g_object_set_data_full (G_OBJECT (texture), "broadway-data", data, (GDestroyNotify)broadway_texture_data_free);
     }
-
-  data->textures = g_list_prepend (data->textures, texture);
-
-  g_object_weak_ref (G_OBJECT (texture), (GWeakNotify)broadway_texture_data_notify, data);
-  g_object_set_data (G_OBJECT (texture), "broadway-data", data);
 
   return data->id;
 }
@@ -520,7 +395,8 @@ gdk_broadway_display_class_init (GdkBroadwayDisplayClass * class)
   object_class->dispose = gdk_broadway_display_dispose;
   object_class->finalize = gdk_broadway_display_finalize;
 
-  display_class->window_type = GDK_TYPE_BROADWAY_WINDOW;
+  display_class->surface_type = GDK_TYPE_BROADWAY_SURFACE;
+  display_class->cairo_context_type = GDK_TYPE_BROADWAY_CAIRO_CONTEXT;
 
   display_class->get_name = gdk_broadway_display_get_name;
   display_class->beep = gdk_broadway_display_beep;
@@ -531,14 +407,10 @@ gdk_broadway_display_class_init (GdkBroadwayDisplayClass * class)
   display_class->get_default_group = gdk_broadway_display_get_default_group;
   display_class->supports_shapes = gdk_broadway_display_supports_shapes;
   display_class->supports_input_shapes = gdk_broadway_display_supports_input_shapes;
-  display_class->get_default_cursor_size = _gdk_broadway_display_get_default_cursor_size;
-  display_class->get_maximal_cursor_size = _gdk_broadway_display_get_maximal_cursor_size;
-  display_class->supports_cursor_alpha = _gdk_broadway_display_supports_cursor_alpha;
-  display_class->supports_cursor_color = _gdk_broadway_display_supports_cursor_color;
 
   display_class->get_next_serial = gdk_broadway_display_get_next_serial;
   display_class->notify_startup_complete = gdk_broadway_display_notify_startup_complete;
-  display_class->create_window_impl = _gdk_broadway_display_create_window_impl;
+  display_class->create_surface_impl = _gdk_broadway_display_create_surface_impl;
   display_class->get_keymap = _gdk_broadway_display_get_keymap;
   display_class->text_property_to_utf8_list = _gdk_broadway_display_text_property_to_utf8_list;
   display_class->utf8_to_string_target = _gdk_broadway_display_utf8_to_string_target;

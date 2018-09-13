@@ -19,30 +19,10 @@
 #ifndef __GTK_BUTTON_PRIVATE_H__
 #define __GTK_BUTTON_PRIVATE_H__
 
-#include "gtkactionhelper.h"
-#include "gtkgesturesingle.h"
+#include "gtkbutton.h"
 
-G_BEGIN_DECLS
-
-
-struct _GtkButtonPrivate
-{
-  GtkActionHelper       *action_helper;
-
-  GdkDevice             *grab_keyboard;
-
-  GtkGesture            *gesture;
-
-  guint                  activate_timeout;
-
-  guint          button_down           : 1;
-  guint          in_button             : 1;
-  guint          use_underline         : 1;
-  guint          child_type            : 2;
-};
+#include "gtkgesture.h"
 
 GtkGesture * gtk_button_get_gesture (GtkButton *button);
-
-G_END_DECLS
 
 #endif /* __GTK_BUTTON_PRIVATE_H__ */
