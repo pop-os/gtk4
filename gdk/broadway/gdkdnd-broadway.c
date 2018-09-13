@@ -84,104 +84,43 @@ gdk_broadway_drag_context_finalize (GObject *object)
 /* Drag Contexts */
 
 GdkDragContext *
-_gdk_broadway_window_drag_begin (GdkWindow          *window,
-				 GdkDevice          *device,
-			         GdkContentProvider *content,
-                                 GdkDragAction       actions,
-                                 gint                dx,
-                                 gint                dy)
+_gdk_broadway_surface_drag_begin (GdkSurface         *surface,
+                                  GdkDevice          *device,
+                                  GdkContentProvider *content,
+                                  GdkDragAction       actions,
+                                  gint                dx,
+                                  gint                dy)
 {
   GdkDragContext *new_context;
 
-  g_return_val_if_fail (window != NULL, NULL);
-  g_return_val_if_fail (GDK_WINDOW_IS_BROADWAY (window), NULL);
+  g_return_val_if_fail (surface != NULL, NULL);
+  g_return_val_if_fail (GDK_SURFACE_IS_BROADWAY (surface), NULL);
 
   new_context = g_object_new (GDK_TYPE_BROADWAY_DRAG_CONTEXT,
-                              "display", gdk_window_get_display (window),
+                              "device", device,
                               "content", content,
-			      NULL);
+                              NULL);
 
   return new_context;
 }
 
-static GdkWindow *
-gdk_broadway_drag_context_find_window (GdkDragContext  *context,
-				       GdkWindow       *drag_window,
-				       gint             x_root,
-				       gint             y_root,
-				       GdkDragProtocol *protocol)
-{
-  g_return_val_if_fail (context != NULL, NULL);
-  return NULL;
-}
-
-static gboolean
-gdk_broadway_drag_context_drag_motion (GdkDragContext *context,
-				       GdkWindow      *dest_window,
-				       GdkDragProtocol protocol,
-				       gint            x_root,
-				       gint            y_root,
-				       GdkDragAction   suggested_action,
-				       GdkDragAction   possible_actions,
-				       guint32         time)
-{
-  g_return_val_if_fail (context != NULL, FALSE);
-  g_return_val_if_fail (dest_window == NULL || GDK_WINDOW_IS_BROADWAY (dest_window), FALSE);
-
-  return FALSE;
-}
-
 static void
 gdk_broadway_drag_context_drag_drop (GdkDragContext *context,
-				     guint32         time)
+                                     guint32         time)
 {
   g_return_if_fail (context != NULL);
 }
 
 static void
 gdk_broadway_drag_context_drag_abort (GdkDragContext *context,
-				      guint32         time)
-{
-  g_return_if_fail (context != NULL);
-}
-
-/* Destination side */
-
-static void
-gdk_broadway_drag_context_drag_status (GdkDragContext   *context,
-				       GdkDragAction     action,
-				       guint32           time)
-{
-  g_return_if_fail (context != NULL);
-}
-
-static void
-gdk_broadway_drag_context_drop_reply (GdkDragContext   *context,
-				      gboolean          ok,
-				      guint32           time)
-{
-  g_return_if_fail (context != NULL);
-}
-
-static void
-gdk_broadway_drag_context_drop_finish (GdkDragContext   *context,
-				       gboolean          success,
-				       guint32           time)
+                                      guint32         time)
 {
   g_return_if_fail (context != NULL);
 }
 
 void
-_gdk_broadway_window_register_dnd (GdkWindow      *window)
+_gdk_broadway_surface_register_dnd (GdkSurface      *surface)
 {
-}
-
-static gboolean
-gdk_broadway_drag_context_drop_status (GdkDragContext *context)
-{
-  g_return_val_if_fail (context != NULL, FALSE);
-
-  return FALSE;
 }
 
 void
@@ -197,12 +136,6 @@ gdk_broadway_drag_context_class_init (GdkBroadwayDragContextClass *klass)
 
   object_class->finalize = gdk_broadway_drag_context_finalize;
 
-  context_class->find_window = gdk_broadway_drag_context_find_window;
-  context_class->drag_status = gdk_broadway_drag_context_drag_status;
-  context_class->drag_motion = gdk_broadway_drag_context_drag_motion;
   context_class->drag_abort = gdk_broadway_drag_context_drag_abort;
   context_class->drag_drop = gdk_broadway_drag_context_drag_drop;
-  context_class->drop_reply = gdk_broadway_drag_context_drop_reply;
-  context_class->drop_finish = gdk_broadway_drag_context_drop_finish;
-  context_class->drop_status = gdk_broadway_drag_context_drop_status;
 }

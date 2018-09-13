@@ -221,8 +221,6 @@ gtk_entry_icon_accessible_do_action (AtkAction *action,
   GtkEntryIconAccessible *icon = (GtkEntryIconAccessible *)action;
   GtkWidget *widget;
   GtkEntry *gtk_entry;
-  GdkEvent *event;
-  GdkRectangle icon_area;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (icon->entry));
   if (widget == NULL)
@@ -240,18 +238,7 @@ gtk_entry_icon_accessible_do_action (AtkAction *action,
       !gtk_entry_get_icon_activatable (gtk_entry, icon->pos))
     return FALSE;
 
-  gtk_entry_get_icon_area (gtk_entry, icon->pos, &icon_area);
-
-  event = gdk_event_new (GDK_BUTTON_PRESS);
-  event->any.window = g_object_ref (gtk_widget_get_window (widget));
-  event->button.button = 1;
-  event->any.send_event = TRUE;
-  event->button.time = GDK_CURRENT_TIME;
-  event->button.x = icon_area.x;
-  event->button.y = icon_area.y;
-
-  g_signal_emit_by_name (widget, "icon-press", 0, icon->pos, event);
-  gdk_event_free (event);
+  g_signal_emit_by_name (widget, "icon-press", 0, icon->pos);
   return TRUE;
 }
 
@@ -604,7 +591,7 @@ gtk_entry_accessible_notify_gtk (GObject    *obj,
             }
           else
             {
-              atk_object_set_description (priv->icons[GTK_ENTRY_ICON_PRIMARY],
+              atk_object_set_description (priv->icons[GTK_ENTRY_ICON_SECONDARY],
                                       "");
             }
         }
@@ -956,8 +943,8 @@ gtk_entry_accessible_get_character_extents (AtkText      *text,
   PangoRectangle char_rect;
   gchar *entry_text;
   gint index, x_layout, y_layout;
-  GdkWindow *window;
-  gint x_window, y_window;
+  GdkSurface *surface;
+  gint x_surface, y_surface;
   GtkAllocation allocation;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (text));
@@ -976,21 +963,21 @@ gtk_entry_accessible_get_character_extents (AtkText      *text,
 
   _gtk_widget_get_allocation (widget, &allocation);
 
-  window = gtk_widget_get_window (widget);
-  gdk_window_get_origin (window, &x_window, &y_window);
+  surface = gtk_widget_get_surface (widget);
+  gdk_surface_get_origin (surface, &x_surface, &y_surface);
 
-  *x = x_window + allocation.x + x_layout + char_rect.x;
-  *y = y_window + allocation.y + y_layout + char_rect.y;
+  *x = x_surface + allocation.x + x_layout + char_rect.x;
+  *y = y_surface + allocation.y + y_layout + char_rect.y;
   *width = char_rect.width;
   *height = char_rect.height;
 
   if (coords == ATK_XY_WINDOW)
     {
-      window = gdk_window_get_toplevel (window);
-      gdk_window_get_origin (window, &x_window, &y_window);
+      surface = gdk_surface_get_toplevel (surface);
+      gdk_surface_get_origin (surface, &x_surface, &y_surface);
 
-      *x -= x_window;
-      *y -= y_window;
+      *x -= x_surface;
+      *y -= y_surface;
     }
 }
 
@@ -1004,9 +991,9 @@ gtk_entry_accessible_get_offset_at_point (AtkText      *atk_text,
   GtkEntry *entry;
   gchar *text;
   gint index, x_layout, y_layout;
-  gint x_window, y_window;
+  gint x_surface, y_surface;
   gint x_local, y_local;
-  GdkWindow *window;
+  GdkSurface *surface;
   glong offset;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (atk_text));
@@ -1017,19 +1004,19 @@ gtk_entry_accessible_get_offset_at_point (AtkText      *atk_text,
 
   gtk_entry_get_layout_offsets (entry, &x_layout, &y_layout);
 
-  window = gtk_widget_get_window (widget);
-  gdk_window_get_origin (window, &x_window, &y_window);
+  surface = gtk_widget_get_surface (widget);
+  gdk_surface_get_origin (surface, &x_surface, &y_surface);
 
-  x_local = x - x_layout - x_window;
-  y_local = y - y_layout - y_window;
+  x_local = x - x_layout - x_surface;
+  y_local = y - y_layout - y_surface;
 
   if (coords == ATK_XY_WINDOW)
     {
-      window = gdk_window_get_toplevel (window);
-      gdk_window_get_origin (window, &x_window, &y_window);
+      surface = gdk_surface_get_toplevel (surface);
+      gdk_surface_get_origin (surface, &x_surface, &y_surface);
 
-      x_local += x_window;
-      y_local += y_window;
+      x_local += x_surface;
+      y_local += y_surface;
     }
   if (!pango_layout_xy_to_index (gtk_entry_get_layout (entry),
                                  x_local * PANGO_SCALE,
@@ -1426,7 +1413,7 @@ delete_text_cb (GtkEditable *editable,
   g_signal_emit_by_name (accessible,
                          "text-changed::delete",
                          start,
-                         end);
+                         end - start);
 }
 
 static gboolean

@@ -76,14 +76,26 @@
 #include <config.h>
 
 #include "gtkflowbox.h"
+
+#include "gtkadjustment.h"
+#include "gtkbindings.h"
+#include "gtkcontainerprivate.h"
+#include "gtkcssnodeprivate.h"
+#include "gtkgesturedrag.h"
+#include "gtkgesturemultipress.h"
+#include "gtkintl.h"
+#include "gtkmain.h"
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
 #include "gtkorientableprivate.h"
-#include "gtkintl.h"
-#include "gtkcssnodeprivate.h"
-#include "gtkwidgetprivate.h"
+#include "gtkrender.h"
+#include "gtksizerequest.h"
+#include "gtksnapshot.h"
 #include "gtkstylecontextprivate.h"
-#include "gtkcontainerprivate.h"
+#include "gtktypebuiltins.h"
+#include "gtkviewport.h"
+#include "gtkwidgetprivate.h"
+#include "gtkeventcontrollerkey.h"
 
 #include "a11y/gtkflowboxaccessibleprivate.h"
 #include "a11y/gtkflowboxchildaccessible.h"
@@ -111,6 +123,9 @@ static void gtk_flow_box_bound_model_changed (GListModel *list,
                                               guint       removed,
                                               guint       added,
                                               gpointer    user_data);
+
+static void gtk_flow_box_set_accept_unpaired_release (GtkFlowBox *box,
+                                                      gboolean    accept);
 
 static void gtk_flow_box_check_model_compat  (GtkFlowBox *box);
 
@@ -423,14 +438,13 @@ gtk_flow_box_child_measure (GtkWidget     *widget,
 static void
 gtk_flow_box_child_size_allocate (GtkWidget           *widget,
                                   const GtkAllocation *allocation,
-                                  int                  baseline,
-                                  GtkAllocation       *out_clip)
+                                  int                  baseline)
 {
   GtkWidget *child;
 
   child = gtk_bin_get_child (GTK_BIN (widget));
   if (child && gtk_widget_get_visible (child))
-    gtk_widget_size_allocate (child, allocation, -1, out_clip);
+    gtk_widget_size_allocate (child, allocation, -1);
 }
 
 /* GObject implementation {{{2 */
@@ -489,8 +503,6 @@ gtk_flow_box_child_init (GtkFlowBoxChild *child)
  * of a #GtkFlowBox.
  *
  * Returns: a new #GtkFlowBoxChild
- *
- * Since: 3.12
  */
 GtkWidget *
 gtk_flow_box_child_new (void)
@@ -506,8 +518,6 @@ gtk_flow_box_child_new (void)
  *
  * Returns: the index of the @child, or -1 if the @child is not
  *     in a flow box.
- *
- * Since: 3.12
  */
 gint
 gtk_flow_box_child_get_index (GtkFlowBoxChild *child)
@@ -532,8 +542,6 @@ gtk_flow_box_child_get_index (GtkFlowBoxChild *child)
  * #GtkFlowBox container.
  *
  * Returns: %TRUE if @child is selected
- *
- * Since: 3.12
  */
 gboolean
 gtk_flow_box_child_is_selected (GtkFlowBoxChild *child)
@@ -563,8 +571,6 @@ gtk_flow_box_child_is_selected (GtkFlowBoxChild *child)
  * and filtering functions into the widgets themselves. Another
  * alternative is to call gtk_flow_box_invalidate_sort() on any
  * model change, but that is more expensive.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_child_changed (GtkFlowBoxChild *child)
@@ -616,6 +622,7 @@ enum {
   PROP_MAX_CHILDREN_PER_LINE,
   PROP_SELECTION_MODE,
   PROP_ACTIVATE_ON_SINGLE_CLICK,
+  PROP_ACCEPT_UNPAIRED_RELEASE,
 
   /* orientable */
   PROP_ORIENTATION,
@@ -642,6 +649,7 @@ struct _GtkFlowBoxPrivate {
   GtkAdjustment    *hadjustment;
   GtkAdjustment    *vadjustment;
   gboolean          activate_on_single_click;
+  gboolean          accept_unpaired_release;
 
   guint16           min_children_per_line;
   guint16           max_children_per_line;
@@ -657,7 +665,6 @@ struct _GtkFlowBoxPrivate {
   gpointer           sort_data;
   GDestroyNotify     sort_destroy;
 
-  GtkGesture        *multipress_gesture;
   GtkGesture        *drag_gesture;
 
   GtkFlowBoxChild   *rubberband_first;
@@ -833,7 +840,6 @@ gtk_flow_box_update_cursor (GtkFlowBox      *box,
 {
   BOX_PRIV (box)->cursor_child = child;
   gtk_widget_grab_focus (GTK_WIDGET (child));
-  gtk_widget_queue_draw (GTK_WIDGET (child));
   _gtk_flow_box_accessible_update_cursor (GTK_WIDGET (box), GTK_WIDGET (child));
 }
 
@@ -1383,12 +1389,10 @@ get_offset_pixels (GtkAlign align,
 static void
 gtk_flow_box_size_allocate (GtkWidget           *widget,
                             const GtkAllocation *allocation,
-                            int                  baseline,
-                            GtkAllocation       *out_clip)
+                            int                  baseline)
 {
   GtkFlowBox *box = GTK_FLOW_BOX (widget);
   GtkFlowBoxPrivate  *priv = BOX_PRIV (box);
-  GdkRectangle child_clip;
   GtkAllocation child_allocation;
   gint avail_size, avail_other_size, min_items, item_spacing, line_spacing;
   GtkAlign item_align;
@@ -1718,8 +1722,7 @@ gtk_flow_box_size_allocate (GtkWidget           *widget,
       if (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL)
         child_allocation.x = allocation->width - child_allocation.x - child_allocation.width;
 
-      gtk_widget_size_allocate (child, &child_allocation, -1, &child_clip);
-      gdk_rectangle_union (out_clip, &child_clip, out_clip);
+      gtk_widget_size_allocate (child, &child_allocation, -1);
 
       item_offset += this_item_size;
       item_offset += item_spacing;
@@ -2343,8 +2346,7 @@ gtk_flow_box_snapshot (GtkWidget   *widget,
       vertical = priv->orientation == GTK_ORIENTATION_VERTICAL;
 
       cr = gtk_snapshot_append_cairo (snapshot,
-                                      &GRAPHENE_RECT_INIT (x, y, width, height),
-                                      "FlowBox Rubberband");
+                                      &GRAPHENE_RECT_INIT (x, y, width, height));
 
       context = gtk_widget_get_style_context (widget);
       gtk_style_context_save_to_node (context, priv->rubberband_node);
@@ -2686,7 +2688,7 @@ gtk_flow_box_multipress_unpaired_release (GtkGestureMultiPress *gesture,
   GtkFlowBoxPrivate *priv = BOX_PRIV (box);
   GtkFlowBoxChild *child;
 
-  if (!priv->activate_on_single_click)
+  if (!priv->activate_on_single_click || !priv->accept_unpaired_release)
     return;
 
   child = gtk_flow_box_get_child_at_pos (box, x, y);
@@ -2816,24 +2818,22 @@ gtk_flow_box_drag_gesture_end (GtkGestureDrag *gesture,
 }
 
 static gboolean
-gtk_flow_box_key_press_event (GtkWidget   *widget,
-                              GdkEventKey *event)
+gtk_flow_box_key_controller_key_pressed (GtkEventControllerKey *controller,
+                                         guint                  keyval,
+                                         guint                  keycode,
+                                         GdkModifierType        state,
+                                         GtkWidget             *widget)
 {
   GtkFlowBox *box = GTK_FLOW_BOX (widget);
   GtkFlowBoxPrivate *priv = BOX_PRIV (box);
-  guint keyval;
 
-  if (priv->rubberband_select)
+  if (priv->rubberband_select && keyval == GDK_KEY_Escape)
     {
-      if (gdk_event_get_keyval ((GdkEvent *) event, &keyval) &&
-          keyval == GDK_KEY_Escape)
-        {
-          gtk_flow_box_stop_rubberband (box);
-          return TRUE;
-        }
+      gtk_flow_box_stop_rubberband (box);
+      return TRUE;
     }
 
-  return GTK_WIDGET_CLASS (gtk_flow_box_parent_class)->key_press_event (widget, event);
+  return FALSE;
 }
 
 /* Realize and map {{{3 */
@@ -3302,6 +3302,9 @@ gtk_flow_box_get_property (GObject    *object,
     case PROP_ACTIVATE_ON_SINGLE_CLICK:
       g_value_set_boolean (value, priv->activate_on_single_click);
       break;
+    case PROP_ACCEPT_UNPAIRED_RELEASE:
+      g_value_set_boolean (value, priv->accept_unpaired_release);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -3350,6 +3353,9 @@ gtk_flow_box_set_property (GObject      *object,
     case PROP_ACTIVATE_ON_SINGLE_CLICK:
       gtk_flow_box_set_activate_on_single_click (box, g_value_get_boolean (value));
       break;
+    case PROP_ACCEPT_UNPAIRED_RELEASE:
+      gtk_flow_box_set_accept_unpaired_release (box, g_value_get_boolean (value));
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -3369,9 +3375,6 @@ gtk_flow_box_finalize (GObject *obj)
   g_sequence_free (priv->children);
   g_clear_object (&priv->hadjustment);
   g_clear_object (&priv->vadjustment);
-
-  g_object_unref (priv->drag_gesture);
-  g_object_unref (priv->multipress_gesture);
 
   if (priv->bound_model)
     {
@@ -3401,7 +3404,6 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
   widget_class->unmap = gtk_flow_box_unmap;
   widget_class->focus = gtk_flow_box_focus;
   widget_class->snapshot = gtk_flow_box_snapshot;
-  widget_class->key_press_event = gtk_flow_box_key_press_event;
   widget_class->get_request_mode = gtk_flow_box_get_request_mode;
   widget_class->measure = gtk_flow_box_measure;
 
@@ -3443,6 +3445,13 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                           P_("Activate on Single Click"),
                           P_("Activate row on a single click"),
                           TRUE,
+                          GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+
+  props[PROP_ACCEPT_UNPAIRED_RELEASE] =
+    g_param_spec_boolean ("accept-unpaired-release",
+                          P_("Accept unpaired release"),
+                          P_("Accept an unpaired release event"),
+                          FALSE,
                           GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
@@ -3712,8 +3721,10 @@ static void
 gtk_flow_box_init (GtkFlowBox *box)
 {
   GtkFlowBoxPrivate *priv = BOX_PRIV (box);
+  GtkEventController *controller;
+  GtkGesture *gesture;
 
-  gtk_widget_set_has_window (GTK_WIDGET (box), FALSE);
+  gtk_widget_set_has_surface (GTK_WIDGET (box), FALSE);
 
   priv->orientation = GTK_ORIENTATION_HORIZONTAL;
   priv->selection_mode = GTK_SELECTION_SINGLE;
@@ -3726,23 +3737,24 @@ gtk_flow_box_init (GtkFlowBox *box)
 
   priv->children = g_sequence_new (NULL);
 
-  priv->multipress_gesture = gtk_gesture_multi_press_new (GTK_WIDGET (box));
-  gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (priv->multipress_gesture),
+  gesture = gtk_gesture_multi_press_new ();
+  gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture),
                                      FALSE);
-  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (priv->multipress_gesture),
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture),
                                  GDK_BUTTON_PRIMARY);
-  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->multipress_gesture),
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
                                               GTK_PHASE_BUBBLE);
-  g_signal_connect (priv->multipress_gesture, "pressed",
+  g_signal_connect (gesture, "pressed",
                     G_CALLBACK (gtk_flow_box_multipress_gesture_pressed), box);
-  g_signal_connect (priv->multipress_gesture, "released",
+  g_signal_connect (gesture, "released",
                     G_CALLBACK (gtk_flow_box_multipress_gesture_released), box);
-  g_signal_connect (priv->multipress_gesture, "stopped",
+  g_signal_connect (gesture, "stopped",
                     G_CALLBACK (gtk_flow_box_multipress_gesture_stopped), box);
-  g_signal_connect (priv->multipress_gesture, "unpaired-release",
+  g_signal_connect (gesture, "unpaired-release",
                     G_CALLBACK (gtk_flow_box_multipress_unpaired_release), box);
+  gtk_widget_add_controller (GTK_WIDGET (box), GTK_EVENT_CONTROLLER (gesture));
 
-  priv->drag_gesture = gtk_gesture_drag_new (GTK_WIDGET (box));
+  priv->drag_gesture = gtk_gesture_drag_new ();
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (priv->drag_gesture),
                                      FALSE);
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (priv->drag_gesture),
@@ -3755,6 +3767,12 @@ gtk_flow_box_init (GtkFlowBox *box)
                     G_CALLBACK (gtk_flow_box_drag_gesture_update), box);
   g_signal_connect (priv->drag_gesture, "drag-end",
                     G_CALLBACK (gtk_flow_box_drag_gesture_end), box);
+  gtk_widget_add_controller (GTK_WIDGET (box), GTK_EVENT_CONTROLLER (priv->drag_gesture));
+
+  controller = gtk_event_controller_key_new ();
+  g_signal_connect (controller, "key-pressed",
+                    G_CALLBACK (gtk_flow_box_key_controller_key_pressed), box);
+  gtk_widget_add_controller (GTK_WIDGET (box), controller);
 }
 
 static void
@@ -3811,8 +3829,6 @@ gtk_flow_box_bound_model_changed (GListModel *list,
  * Creates a GtkFlowBox.
  *
  * Returns: a new #GtkFlowBox container
- *
- * Since: 3.12
  */
 GtkWidget *
 gtk_flow_box_new (void)
@@ -3853,8 +3869,6 @@ gtk_flow_box_insert_css_node (GtkFlowBox    *box,
  *
  * If @position is -1, or larger than the total number of children
  * in the @box, then the @widget will be appended to the end.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_insert (GtkFlowBox *box,
@@ -3910,8 +3924,6 @@ gtk_flow_box_insert (GtkFlowBox *box,
  * Returns: (transfer none) (nullable): the child widget, which will
  *     always be a #GtkFlowBoxChild or %NULL in case no child widget
  *     with the given index exists.
- *
- * Since: 3.12
  */
 GtkFlowBoxChild *
 gtk_flow_box_get_child_at_index (GtkFlowBox *box,
@@ -3940,8 +3952,6 @@ gtk_flow_box_get_child_at_index (GtkFlowBox *box,
  * Returns: (transfer none) (nullable): the child widget, which will
  *     always be a #GtkFlowBoxChild or %NULL in case no child widget
  *     exists for the given x and y coordinates.
- *
- * Since: 3.22.6
  */
 GtkFlowBoxChild *
 gtk_flow_box_get_child_at_pos (GtkFlowBox *box,
@@ -3984,8 +3994,6 @@ gtk_flow_box_get_child_at_pos (GtkFlowBox *box,
  * The adjustments have to be in pixel units and in the same
  * coordinate system as the allocation for immediate children
  * of the box.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_hadjustment (GtkFlowBox    *box,
@@ -4021,8 +4029,6 @@ gtk_flow_box_set_hadjustment (GtkFlowBox    *box,
  * The adjustments have to be in pixel units and in the same
  * coordinate system as the allocation for immediate children
  * of the box.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_vadjustment (GtkFlowBox    *box,
@@ -4076,8 +4082,6 @@ gtk_flow_box_check_model_compat (GtkFlowBox *box)
  * Note that using a model is incompatible with the filtering and sorting
  * functionality in GtkFlowBox. When using a model, filtering and sorting
  * should be implemented by the model.
- *
- * Since: 3.18
  */
 void
 gtk_flow_box_bind_model (GtkFlowBox                 *box,
@@ -4127,8 +4131,6 @@ gtk_flow_box_bind_model (GtkFlowBox                 *box,
  * same size). See gtk_box_set_homogeneous().
  *
  * Returns: %TRUE if the box is homogeneous.
- *
- * Since: 3.12
  */
 gboolean
 gtk_flow_box_get_homogeneous (GtkFlowBox *box)
@@ -4147,8 +4149,6 @@ gtk_flow_box_get_homogeneous (GtkFlowBox *box)
  * Sets the #GtkFlowBox:homogeneous property of @box, controlling
  * whether or not all children of @box are given equal space
  * in the box.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_homogeneous (GtkFlowBox *box,
@@ -4174,8 +4174,6 @@ gtk_flow_box_set_homogeneous (GtkFlowBox *box,
  *
  * Sets the vertical space to add between children.
  * See the #GtkFlowBox:row-spacing property.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_row_spacing (GtkFlowBox *box,
@@ -4199,8 +4197,6 @@ gtk_flow_box_set_row_spacing (GtkFlowBox *box,
  * Gets the vertical spacing.
  *
  * Returns: the vertical spacing
- *
- * Since: 3.12
  */
 guint
 gtk_flow_box_get_row_spacing (GtkFlowBox *box)
@@ -4217,8 +4213,6 @@ gtk_flow_box_get_row_spacing (GtkFlowBox *box)
  *
  * Sets the horizontal space to add between children.
  * See the #GtkFlowBox:column-spacing property.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_column_spacing (GtkFlowBox *box,
@@ -4242,8 +4236,6 @@ gtk_flow_box_set_column_spacing (GtkFlowBox *box,
  * Gets the horizontal spacing.
  *
  * Returns: the horizontal spacing
- *
- * Since: 3.12
  */
 guint
 gtk_flow_box_get_column_spacing (GtkFlowBox *box)
@@ -4260,8 +4252,6 @@ gtk_flow_box_get_column_spacing (GtkFlowBox *box)
  *
  * Sets the minimum number of children to line up
  * in @box’s orientation before flowing.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_min_children_per_line (GtkFlowBox *box,
@@ -4285,8 +4275,6 @@ gtk_flow_box_set_min_children_per_line (GtkFlowBox *box,
  * Gets the minimum number of children per line.
  *
  * Returns: the minimum number of children per line
- *
- * Since: 3.12
  */
 guint
 gtk_flow_box_get_min_children_per_line (GtkFlowBox *box)
@@ -4307,8 +4295,6 @@ gtk_flow_box_get_min_children_per_line (GtkFlowBox *box)
  * Setting the maximum number of children per line
  * limits the overall natural size request to be no more
  * than @n_children children long in the given orientation.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_max_children_per_line (GtkFlowBox *box,
@@ -4333,8 +4319,6 @@ gtk_flow_box_set_max_children_per_line (GtkFlowBox *box,
  * Gets the maximum number of children per line.
  *
  * Returns: the maximum number of children per line
- *
- * Since: 3.12
  */
 guint
 gtk_flow_box_get_max_children_per_line (GtkFlowBox *box)
@@ -4351,8 +4335,6 @@ gtk_flow_box_get_max_children_per_line (GtkFlowBox *box)
  *
  * If @single is %TRUE, children will be activated when you click
  * on them, otherwise you need to double-click.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_activate_on_single_click (GtkFlowBox *box,
@@ -4377,8 +4359,6 @@ gtk_flow_box_set_activate_on_single_click (GtkFlowBox *box,
  *
  * Returns: %TRUE if children are activated on single click,
  *     %FALSE otherwise
- *
- * Since: 3.12
  */
 gboolean
 gtk_flow_box_get_activate_on_single_click (GtkFlowBox *box)
@@ -4387,7 +4367,18 @@ gtk_flow_box_get_activate_on_single_click (GtkFlowBox *box)
 
   return BOX_PRIV (box)->activate_on_single_click;
 }
- 
+
+static void
+gtk_flow_box_set_accept_unpaired_release (GtkFlowBox *box,
+                                          gboolean    accept)
+{
+  if (BOX_PRIV (box)->accept_unpaired_release == accept)
+    return;
+
+  BOX_PRIV (box)->accept_unpaired_release = accept;
+  g_object_notify_by_pspec (G_OBJECT (box), props[PROP_ACCEPT_UNPAIRED_RELEASE]);
+}
+
  /* Selection handling {{{2 */
 
 /**
@@ -4399,8 +4390,6 @@ gtk_flow_box_get_activate_on_single_click (GtkFlowBox *box)
  * Returns: (element-type GtkFlowBoxChild) (transfer container):
  *     A #GList containing the #GtkWidget for each selected child.
  *     Free with g_list_free() when done.
- *
- * Since: 3.12
  */
 GList *
 gtk_flow_box_get_selected_children (GtkFlowBox *box)
@@ -4430,8 +4419,6 @@ gtk_flow_box_get_selected_children (GtkFlowBox *box)
  *
  * Selects a single child of @box, if the selection
  * mode allows it.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_select_child (GtkFlowBox      *box,
@@ -4450,8 +4437,6 @@ gtk_flow_box_select_child (GtkFlowBox      *box,
  *
  * Unselects a single child of @box, if the selection
  * mode allows it.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_unselect_child (GtkFlowBox      *box,
@@ -4469,8 +4454,6 @@ gtk_flow_box_unselect_child (GtkFlowBox      *box,
  *
  * Select all children of @box, if the selection
  * mode allows it.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_select_all (GtkFlowBox *box)
@@ -4493,8 +4476,6 @@ gtk_flow_box_select_all (GtkFlowBox *box)
  *
  * Unselect all children of @box, if the selection
  * mode allows it.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_unselect_all (GtkFlowBox *box)
@@ -4520,8 +4501,6 @@ gtk_flow_box_unselect_all (GtkFlowBox *box)
  *
  * A function used by gtk_flow_box_selected_foreach().
  * It will be called on every selected child of the @box.
- *
- * Since: 3.12
  */
 
 /**
@@ -4534,8 +4513,6 @@ gtk_flow_box_unselect_all (GtkFlowBox *box)
  *
  * Note that the selection cannot be modified from within
  * this function.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_selected_foreach (GtkFlowBox            *box,
@@ -4564,8 +4541,6 @@ gtk_flow_box_selected_foreach (GtkFlowBox            *box,
  *
  * Sets how selection works in @box.
  * See #GtkSelectionMode for details.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_selection_mode (GtkFlowBox       *box,
@@ -4600,8 +4575,6 @@ gtk_flow_box_set_selection_mode (GtkFlowBox       *box,
  * Gets the selection mode of @box.
  *
  * Returns: the #GtkSelectionMode
- *
- * Since: 3.12
  */
 GtkSelectionMode
 gtk_flow_box_get_selection_mode (GtkFlowBox *box)
@@ -4623,8 +4596,6 @@ gtk_flow_box_get_selection_mode (GtkFlowBox *box)
  * visible or not.
  *
  * Returns: %TRUE if the row should be visible, %FALSE otherwise
- *
- * Since: 3.12
  */
 
 /**
@@ -4646,8 +4617,6 @@ gtk_flow_box_get_selection_mode (GtkFlowBox *box)
  *
  * Note that using a filter function is incompatible with using a model
  * (see gtk_flow_box_bind_model()).
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_filter_func (GtkFlowBox           *box,
@@ -4684,8 +4653,6 @@ gtk_flow_box_set_filter_func (GtkFlowBox           *box,
  * factor. For instance, this would be used if the
  * filter function just looked for a specific search
  * term, and the entry with the string has changed.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_invalidate_filter (GtkFlowBox *box)
@@ -4709,8 +4676,6 @@ gtk_flow_box_invalidate_filter (GtkFlowBox *box)
  *
  * Returns: < 0 if @child1 should be before @child2, 0 if
  *     the are equal, and > 0 otherwise
- *
- * Since: 3.12
  */
 
 /**
@@ -4731,8 +4696,6 @@ gtk_flow_box_invalidate_filter (GtkFlowBox *box)
  *
  * Note that using a sort function is incompatible with using a model
  * (see gtk_flow_box_bind_model()).
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_set_sort_func (GtkFlowBox         *box,
@@ -4797,8 +4760,6 @@ gtk_flow_box_css_node_foreach (gpointer data,
  *
  * Call this when the result of the sort function on
  * @box is changed due to an external factor.
- *
- * Since: 3.12
  */
 void
 gtk_flow_box_invalidate_sort (GtkFlowBox *box)

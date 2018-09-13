@@ -60,7 +60,10 @@ typedef void (*GtkWindowKeysForeachFunc) (GtkWindow      *window,
                                           gboolean        is_mnemonic,
                                           gpointer        data);
 
-gboolean _gtk_window_check_handle_wm_event (GdkEvent  *event);
+gboolean gtk_window_emit_close_request (GtkWindow *window);
+gboolean gtk_window_configure    (GtkWindow         *window,
+                                  guint              width,
+                                  guint              height);
 
 /* --- internal (GtkAcceleratable) --- */
 gboolean        _gtk_window_query_nonaccels     (GtkWindow      *window,
@@ -115,8 +118,8 @@ GdkTexture *     gtk_window_get_icon_for_size (GtkWindow *window,
 
 void       gtk_window_set_use_subsurface (GtkWindow *window,
                                           gboolean   use_subsurface);
-void       gtk_window_set_hardcoded_window (GtkWindow *window,
-                                            GdkWindow *gdk_window);
+void       gtk_window_set_hardcoded_surface (GtkWindow *window,
+					     GdkSurface *surface);
 
 GdkDisplay *gtk_window_get_display (GtkWindow *window);
 

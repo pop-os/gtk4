@@ -93,8 +93,8 @@ paste_button_clicked (GtkWidget *button,
   gdk_clipboard_read_text_async (clipboard, NULL, paste_received, entry);
 }
 
-static GdkTexture *
-get_image_texture (GtkImage *image)
+static GdkPaintable *
+get_image_paintable (GtkImage *image)
 {
   const gchar *icon_name;
   GtkIconTheme *icon_theme;
@@ -102,15 +102,15 @@ get_image_texture (GtkImage *image)
 
   switch (gtk_image_get_storage_type (image))
     {
-    case GTK_IMAGE_TEXTURE:
-      return g_object_ref (gtk_image_get_texture (image));
+    case GTK_IMAGE_PAINTABLE:
+      return g_object_ref (gtk_image_get_paintable (image));
     case GTK_IMAGE_ICON_NAME:
       icon_name = gtk_image_get_icon_name (image);
       icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (image)));
       icon_info = gtk_icon_theme_lookup_icon (icon_theme, icon_name, 48, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
       if (icon_info == NULL)
         return NULL;
-      return gtk_icon_info_load_texture (icon_info);
+      return GDK_PAINTABLE (gtk_icon_info_load_texture (icon_info));
     default:
       g_warning ("Image storage type %d not handled",
                  gtk_image_get_storage_type (image));
@@ -123,11 +123,14 @@ drag_begin (GtkWidget      *widget,
             GdkDragContext *context,
             gpointer        data)
 {
-  GdkTexture *texture;
+  GdkPaintable *paintable;
 
-  texture = get_image_texture (GTK_IMAGE (widget));
-  if (texture)
-    gtk_drag_set_icon_texture (context, texture, -2, -2);
+  paintable = get_image_paintable (GTK_IMAGE (widget));
+  if (paintable)
+    {
+      gtk_drag_set_icon_paintable (context, paintable, -2, -2);
+      g_object_unref (paintable);
+    }
 }
 
 void
@@ -135,21 +138,19 @@ drag_data_get (GtkWidget        *widget,
                GdkDragContext   *context,
                GtkSelectionData *selection_data,
                guint             info,
-               guint             time,
                gpointer          data)
 {
-  GdkTexture *texture;
+  GdkPaintable *paintable;
 
-  texture = get_image_texture (GTK_IMAGE (widget));
-  if (texture)
-    gtk_selection_data_set_texture (selection_data, texture);
+  paintable = get_image_paintable (GTK_IMAGE (widget));
+  if (GDK_IS_TEXTURE (paintable))
+    gtk_selection_data_set_texture (selection_data, GDK_TEXTURE (paintable));
 }
 
 static void
 drag_data_received (GtkWidget        *widget,
-                    GdkDragContext   *context,
+                    GdkDrop          *drop,
                     GtkSelectionData *selection_data,
-                    guint32           time,
                     gpointer          data)
 {
   if (gtk_selection_data_get_length (selection_data) > 0)
@@ -157,7 +158,7 @@ drag_data_received (GtkWidget        *widget,
       GdkTexture *texture;
 
       texture = gtk_selection_data_get_texture (selection_data);
-      gtk_image_set_from_texture (GTK_IMAGE (data), texture);
+      gtk_image_set_from_paintable (GTK_IMAGE (data), GDK_PAINTABLE (texture));
       g_object_unref (texture);
     }
 }
@@ -167,16 +168,16 @@ copy_image (GtkMenuItem *item,
             gpointer     data)
 {
   GdkClipboard *clipboard;
-  GdkTexture *texture;
+  GdkPaintable *paintable;
 
   clipboard = gtk_widget_get_clipboard (GTK_WIDGET (data));
-  texture = get_image_texture (GTK_IMAGE (data));
+  paintable = get_image_paintable (GTK_IMAGE (data));
 
-  if (texture)
-    {
-      gdk_clipboard_set_texture (clipboard, texture);
-      g_object_unref (texture);
-    }
+  if (GDK_IS_TEXTURE (paintable))
+    gdk_clipboard_set_texture (clipboard, GDK_TEXTURE (paintable));
+
+  if (paintable)
+    g_object_unref (paintable);
 }
 
 static void
@@ -190,7 +191,7 @@ paste_image_received (GObject      *source,
   if (texture == NULL)
     return;
     
-  gtk_image_set_from_texture (GTK_IMAGE (data), texture);
+  gtk_image_set_from_paintable (GTK_IMAGE (data), GDK_PAINTABLE (texture));
   g_object_unref (texture);
 }
 
@@ -207,34 +208,29 @@ paste_image (GtkMenuItem *item,
                                     data);
 }
 
-static gboolean
-button_press (GtkWidget      *widget,
-              GdkEventButton *event,
-              gpointer        data)
+static void
+pressed_cb (GtkGesture *gesture,
+            int         n_press,
+            double      x,
+            double      y,
+            GtkWidget  *image)
 {
   GtkWidget *menu;
   GtkWidget *item;
-  guint button;
-
-  gdk_event_get_button ((GdkEvent *)event, &button);
-
-  if (button != GDK_BUTTON_SECONDARY)
-    return FALSE;
 
   menu = gtk_menu_new ();
 
   item = gtk_menu_item_new_with_mnemonic (_("_Copy"));
-  g_signal_connect (item, "activate", G_CALLBACK (copy_image), data);
+  g_signal_connect (item, "activate", G_CALLBACK (copy_image), image);
   gtk_widget_show (item);
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
 
   item = gtk_menu_item_new_with_mnemonic (_("_Paste"));
-  g_signal_connect (item, "activate", G_CALLBACK (paste_image), data);
+  g_signal_connect (item, "activate", G_CALLBACK (paste_image), image);
   gtk_widget_show (item);
   gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
 
-  gtk_menu_popup_at_pointer (GTK_MENU (menu), (GdkEvent *) event);
-  return TRUE;
+  gtk_menu_popup_at_pointer (GTK_MENU (menu), NULL);
 }
 
 GtkWidget *
@@ -246,6 +242,7 @@ do_clipboard (GtkWidget *do_widget)
       GtkWidget *label;
       GtkWidget *entry, *button;
       GtkWidget *image;
+      GtkGesture *gesture;
 
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
       gtk_window_set_display (GTK_WINDOW (window),
@@ -322,8 +319,10 @@ do_clipboard (GtkWidget *do_widget)
                         G_CALLBACK (drag_data_received), image);
 
       /* context menu on image */
-      g_signal_connect (image, "button-press-event",
-                        G_CALLBACK (button_press), image);
+      gesture = gtk_gesture_multi_press_new ();
+      gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
+      g_signal_connect (gesture, "pressed", G_CALLBACK (pressed_cb), image);
+      gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (gesture));
 
       /* Create the second image */
       image = gtk_image_new_from_icon_name ("process-stop");
@@ -345,8 +344,10 @@ do_clipboard (GtkWidget *do_widget)
                         G_CALLBACK (drag_data_received), image);
 
       /* context menu on image */
-      g_signal_connect (image, "button-press-event",
-                        G_CALLBACK (button_press), image);
+      gesture = gtk_gesture_multi_press_new ();
+      gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
+      g_signal_connect (gesture, "pressed", G_CALLBACK (pressed_cb), image);
+      gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (gesture));
     }
 
   if (!gtk_widget_get_visible (window))

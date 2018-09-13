@@ -233,8 +233,6 @@ gtk_tool_button_class_init (GtkToolButtonClass *klass)
    * The name of the themed icon displayed on the item.
    * This property only has an effect if not overridden by
    * #GtkToolButton:label-widget or #GtkToolButton:icon-widget
-   *
-   * Since: 2.8
    */
   g_object_class_install_property (object_class,
 				   PROP_ICON_NAME,
@@ -514,7 +512,11 @@ gtk_tool_button_construct_contents (GtkToolItem *tool_item)
 	{
           box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 	  if (icon)
-            gtk_box_pack_start (GTK_BOX (box), icon);
+            {
+              gtk_box_pack_start (GTK_BOX (box), icon);
+              if (!label)
+                gtk_widget_set_hexpand (icon, TRUE);
+            }
 	  if (label)
             gtk_box_pack_end (GTK_BOX (box), label);
 	}
@@ -522,7 +524,11 @@ gtk_tool_button_construct_contents (GtkToolItem *tool_item)
 	{
           box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 	  if (icon)
-            gtk_box_pack_end (GTK_BOX (box), icon);
+            {
+              gtk_box_pack_end (GTK_BOX (box), icon);
+              if (!label)
+                gtk_widget_set_vexpand (icon, TRUE);
+            }
 	  if (label)
             gtk_box_pack_start (GTK_BOX (box), label);
 	}
@@ -711,34 +717,6 @@ clone_image_menu_size (GtkImage *image)
 
       return gtk_image_new_from_gicon (icon);
     }
-  else if (storage_type == GTK_IMAGE_SURFACE)
-    {
-      int width, height;
-      cairo_surface_t *src_surface, *dest_surface;
-      GtkWidget *cloned_image;
-      gint scale = gtk_widget_get_scale_factor (GTK_WIDGET (image));
-      cairo_t *cr;
-
-      gtk_image_get_image_size (image, &width, &height);
-
-      src_surface = gtk_image_get_surface (image);
-      dest_surface =
-            gdk_window_create_similar_image_surface (gtk_widget_get_window (GTK_WIDGET (image)),
-                                                     CAIRO_FORMAT_ARGB32,
-                                                     width * scale, height * scale, scale);
-      cr = cairo_create (dest_surface);
-      cairo_set_source_surface (cr, src_surface, 0, 0);
-      cairo_scale (cr,
-                   width / cairo_image_surface_get_width (src_surface),
-                   height / cairo_image_surface_get_height (src_surface));
-      cairo_paint (cr);
-      cairo_destroy (cr);
-
-      cloned_image = gtk_image_new_from_surface (dest_surface);
-      cairo_surface_destroy (dest_surface);
-
-      return cloned_image;
-    }
 
   return NULL;
 }
@@ -824,8 +802,6 @@ gtk_tool_button_toolbar_reconfigured (GtkToolItem *tool_item)
  * label.
  *
  * Returns: A new #GtkToolButton
- * 
- * Since: 2.4
  **/
 GtkToolItem *
 gtk_tool_button_new (GtkWidget	 *icon_widget,
@@ -852,8 +828,6 @@ gtk_tool_button_new (GtkWidget	 *icon_widget,
  * property only has an effect if not overridden by a non-%NULL 
  * #GtkToolButton:label-widget property. If both the #GtkToolButton:label-widget
  * and #GtkToolButton:label properties are %NULL, @button will not have a label.
- * 
- * Since: 2.4
  **/
 void
 gtk_tool_button_set_label (GtkToolButton *button,
@@ -892,8 +866,6 @@ gtk_tool_button_set_label (GtkToolButton *button,
  * string is owned by GTK+, and must not be modified or freed.
  *
  * Returns: (nullable) (transfer none): The label, or %NULL
- *
- * Since: 2.4
  **/
 const gchar *
 gtk_tool_button_get_label (GtkToolButton *button)
@@ -916,8 +888,6 @@ gtk_tool_button_get_label (GtkToolButton *button)
  * 
  * Labels shown on tool buttons never have mnemonics on them; this property
  * only affects the menu item on the overflow menu.
- * 
- * Since: 2.4
  **/
 void
 gtk_tool_button_set_use_underline (GtkToolButton *button,
@@ -945,8 +915,6 @@ gtk_tool_button_set_use_underline (GtkToolButton *button,
  * 
  * Returns: %TRUE if underscores in the label property are used as
  * mnemonics on menu items on the overflow menu.
- * 
- * Since: 2.4
  **/
 gboolean
 gtk_tool_button_get_use_underline (GtkToolButton *button)
@@ -966,8 +934,6 @@ gtk_tool_button_get_use_underline (GtkToolButton *button)
  * The #GtkToolButton:icon-name property only has an effect if not
  * overridden by non-%NULL #GtkToolButton:label-widget or
  * #GtkToolButton:icon-widget properties.
- * 
- * Since: 2.8
  **/
 void
 gtk_tool_button_set_icon_name (GtkToolButton *button,
@@ -996,8 +962,6 @@ gtk_tool_button_set_icon_name (GtkToolButton *button,
  *
  * Returns: (nullable): the icon name or %NULL if the tool button has
  * no themed icon
- *
- * Since: 2.8
  **/
 const gchar*
 gtk_tool_button_get_icon_name (GtkToolButton *button)
@@ -1013,8 +977,6 @@ gtk_tool_button_get_icon_name (GtkToolButton *button)
  * @icon_widget: (allow-none): the widget used as icon, or %NULL
  *
  * Sets @icon as the widget used as icon on @button.
- *
- * Since: 2.4
  **/
 void
 gtk_tool_button_set_icon_widget (GtkToolButton *button,
@@ -1055,8 +1017,6 @@ gtk_tool_button_set_icon_widget (GtkToolButton *button,
  * Sets @label_widget as the widget that will be used as the label
  * for @button. If @label_widget is %NULL the #GtkToolButton:label property is used
  * as label. If #GtkToolButton:label is also %NULL, @button does not have a label.
- *
- * Since: 2.4
  **/
 void
 gtk_tool_button_set_label_widget (GtkToolButton *button,
@@ -1098,8 +1058,6 @@ gtk_tool_button_set_label_widget (GtkToolButton *button,
  *
  * Returns: (nullable) (transfer none): The widget used as label
  *     on @button, or %NULL.
- *
- * Since: 2.4
  **/
 GtkWidget *
 gtk_tool_button_get_label_widget (GtkToolButton *button)
@@ -1118,8 +1076,6 @@ gtk_tool_button_get_label_widget (GtkToolButton *button)
  *
  * Returns: (nullable) (transfer none): The widget used as icon
  *     on @button, or %NULL.
- *
- * Since: 2.4
  **/
 GtkWidget *
 gtk_tool_button_get_icon_widget (GtkToolButton *button)

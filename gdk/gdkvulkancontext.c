@@ -36,9 +36,9 @@
  * #GdkVulkanContext is an object representing the platform-specific
  * Vulkan draw context.
  *
- * #GdkVulkanContexts are created for a #GdkWindow using
- * gdk_window_create_vulkan_context(), and the context will match the
- * the characteristics of the window.
+ * #GdkVulkanContexts are created for a #GdkSurface using
+ * gdk_surface_create_vulkan_context(), and the context will match the
+ * the characteristics of the surface.
  *
  * Support for #GdkVulkanContext is platform-specific, context creation
  * can fail, returning %NULL context.
@@ -58,7 +58,6 @@ struct _GdkVulkanContextPrivate {
   VkSurfaceKHR surface;
   VkSurfaceFormatKHR image_format;
 
-  int swapchain_width, swapchain_height;
   VkSwapchainKHR swapchain;
   VkSemaphore draw_semaphore;
 
@@ -93,6 +92,34 @@ G_DEFINE_ABSTRACT_TYPE_WITH_CODE (GdkVulkanContext, gdk_vulkan_context, GDK_TYPE
 const char *
 gdk_vulkan_strerror (VkResult result)
 {
+  /* If your compiler brought you here with a warning about missing
+   * enumeration values, you're running a newer Vulkan version than
+   * the GTK developers )or you are a GTK developer) and have
+   * encountered a newly added Vulkan error message.
+   * You want to add it to this enum now.
+   *
+   * Becuse the Vulkan people don't make adding this too easy, here's
+   * the process to manage it:
+   * 1. go to
+   *    https://github.com/KhronosGroup/Vulkan-LoaderAndValidationLayers/blame/master/include/vulkan/vulkan.h
+   * 2. Find the line where this enum value was added.
+   * 3. Click the commit that added this line.
+   * 4. The commit you're looking at now should also change
+   *    VK_HEADER_VERSION, find that number.
+   * 5. Use that number in the #ifdef when adding the enum value to
+   *    this enum.
+   * 6. For the error message, look at the specification (the one
+   *    that includes all extensions) at
+   *    https://www.khronos.org/registry/vulkan/specs/1.0-extensions/html/vkspec.html#VkResult
+   * 7. If this value has not been added to the specification yet,
+   *    search for the error message in the text of specification.
+   *    Often it will have a description that can be used as an error
+   *    message.
+   * 8. If that didn't lead to one (or you are lazy), just use the
+   *    literal string of the enum value as the error message. A
+   *    GTK developer will add the correct one once it's added to the
+   *    specification.
+   */
   switch (result)
   {
     case VK_SUCCESS:
@@ -131,8 +158,10 @@ gdk_vulkan_strerror (VkResult result)
       return "Too many objects of the type have already been created.";
     case VK_ERROR_FORMAT_NOT_SUPPORTED:
       return "A requested format is not supported on this device.";
+#if VK_HEADER_VERSION >= 24
     case VK_ERROR_FRAGMENTED_POOL:
       return "A requested pool allocation has failed due to fragmentation of the pool’s memory.";
+#endif
     case VK_ERROR_SURFACE_LOST_KHR:
       return "A surface is no longer available.";
     case VK_ERROR_NATIVE_WINDOW_IN_USE_KHR:
@@ -145,8 +174,22 @@ gdk_vulkan_strerror (VkResult result)
       return "The application caused the validation layer to fail.";
     case VK_ERROR_INVALID_SHADER_NV:
       return "One or more shaders failed to compile or link.";
+#if VK_HEADER_VERSION >= 39
     case VK_ERROR_OUT_OF_POOL_MEMORY_KHR:
+      return "A pool memory allocation has failed.";
+#endif
+#if VK_HEADER_VERSION >= 54
     case VK_ERROR_INVALID_EXTERNAL_HANDLE_KHR:
+      return "An external handle is not a valid handle of the specified type.";
+#endif
+#if VK_HEADER_VERSION >= 64
+    case VK_ERROR_NOT_PERMITTED_EXT:
+      return "The caller does not have sufficient privileges.";
+#endif
+#if VK_HEADER_VERSION >= 72
+    case VK_ERROR_FRAGMENTATION_EXT:
+      return "A descriptor pool creation has failed due to fragmentation";
+#endif
     case VK_RESULT_RANGE_SIZE:
     case VK_RESULT_MAX_ENUM:
     default:
@@ -210,17 +253,13 @@ gdk_vulkan_context_check_swapchain (GdkVulkanContext  *context,
                                     GError           **error)
 {
   GdkVulkanContextPrivate *priv = gdk_vulkan_context_get_instance_private (context);
-  GdkWindow *window = gdk_draw_context_get_window (GDK_DRAW_CONTEXT (context));
+  GdkSurface *surface = gdk_draw_context_get_surface (GDK_DRAW_CONTEXT (context));
   VkSurfaceCapabilitiesKHR capabilities;
   VkCompositeAlphaFlagBitsKHR composite_alpha;
   VkSwapchainKHR new_swapchain;
   VkResult res;
   VkDevice device;
   guint i;
-
-  if (gdk_window_get_width (window) * gdk_window_get_scale_factor (window) == priv->swapchain_width &&
-      gdk_window_get_height (window) * gdk_window_get_scale_factor (window) == priv->swapchain_height)
-    return TRUE;
 
   device = gdk_vulkan_context_get_device (context);
 
@@ -236,8 +275,6 @@ gdk_vulkan_context_check_swapchain (GdkVulkanContext  *context,
 
   if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR)
     composite_alpha = VK_COMPOSITE_ALPHA_PRE_MULTIPLIED_BIT_KHR;
-  else if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR)
-    composite_alpha = VK_COMPOSITE_ALPHA_POST_MULTIPLIED_BIT_KHR;
   else if (capabilities.supportedCompositeAlpha & VK_COMPOSITE_ALPHA_INHERIT_BIT_KHR)
     {
       /* let's hope the backend knows what it's doing */
@@ -245,19 +282,20 @@ gdk_vulkan_context_check_swapchain (GdkVulkanContext  *context,
     }
   else
     {
-      GDK_NOTE (VULKAN, g_warning ("Vulkan swapchain doesn't do transparency. Using opaque swapchain instead."));
+      GDK_DISPLAY_NOTE (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)),
+                        VULKAN, g_warning ("Vulkan swapchain doesn't do transparency. Using opaque swapchain instead."));
       composite_alpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     }
 
   /*
    * Per https://www.khronos.org/registry/vulkan/specs/1.0-wsi_extensions/xhtml/vkspec.html#VkSurfaceCapabilitiesKHR
    * the current extent may assume a special value, meaning that the extend should assume whatever
-   * value the window has.
+   * value the surface has.
    */
   if (capabilities.currentExtent.width == -1 || capabilities.currentExtent.height == -1)
     {
-      capabilities.currentExtent.width = gdk_window_get_width (window) * gdk_window_get_scale_factor (window);
-      capabilities.currentExtent.height = gdk_window_get_height (window) * gdk_window_get_scale_factor (window);
+      capabilities.currentExtent.width = gdk_surface_get_width (surface) * gdk_surface_get_scale_factor (surface);
+      capabilities.currentExtent.height = gdk_surface_get_height (surface) * gdk_surface_get_scale_factor (surface);
     }
 
   res = GDK_VK_CHECK (vkCreateSwapchainKHR, device,
@@ -266,7 +304,7 @@ gdk_vulkan_context_check_swapchain (GdkVulkanContext  *context,
                                                 .pNext = NULL,
                                                 .flags = 0,
                                                 .surface = priv->surface,
-                                                .minImageCount = CLAMP (2,
+                                                .minImageCount = CLAMP (4,
                                                                         capabilities.minImageCount,
                                                                         capabilities.maxImageCount ? capabilities.maxImageCount : G_MAXUINT32),
                                                 .imageFormat = priv->image_format.format,
@@ -304,8 +342,6 @@ gdk_vulkan_context_check_swapchain (GdkVulkanContext  *context,
 
   if (res == VK_SUCCESS)
     {
-      priv->swapchain_width = capabilities.currentExtent.width;
-      priv->swapchain_height = capabilities.currentExtent.height;
       priv->swapchain = new_swapchain;
 
       GDK_VK_CHECK (vkGetSwapchainImagesKHR, device,
@@ -322,18 +358,16 @@ gdk_vulkan_context_check_swapchain (GdkVulkanContext  *context,
         {
           priv->regions[i] = cairo_region_create_rectangle (&(cairo_rectangle_int_t) {
                                                                 0, 0,
-                                                                gdk_window_get_width (window),
-                                                                gdk_window_get_height (window),
+                                                                gdk_surface_get_width (surface),
+                                                                gdk_surface_get_height (surface),
                                                             });
         }
     }
   else
     {
       g_set_error (error, GDK_VULKAN_ERROR, GDK_VULKAN_ERROR_NOT_AVAILABLE,
-                   "Could not create swapchain for this window: %s", gdk_vulkan_strerror (res));
+                   "Could not create swapchain for this surface: %s", gdk_vulkan_strerror (res));
       priv->swapchain = VK_NULL_HANDLE;
-      priv->swapchain_width = 0;
-      priv->swapchain_height = 0;
       return FALSE;
     }
 
@@ -348,15 +382,7 @@ gdk_vulkan_context_begin_frame (GdkDrawContext *draw_context,
 {
   GdkVulkanContext *context = GDK_VULKAN_CONTEXT (draw_context);
   GdkVulkanContextPrivate *priv = gdk_vulkan_context_get_instance_private (context);
-  GError *error = NULL;
   guint i;
-
-  if (!gdk_vulkan_context_check_swapchain (context, &error))
-    {
-      g_warning ("%s", error->message);
-      g_error_free (error);
-      return;
-    }
 
   for (i = 0; i < priv->n_images; i++)
     {
@@ -375,8 +401,7 @@ gdk_vulkan_context_begin_frame (GdkDrawContext *draw_context,
 
 static void
 gdk_vulkan_context_end_frame (GdkDrawContext *draw_context,
-                              cairo_region_t *painted,
-                              cairo_region_t *damage)
+                              cairo_region_t *painted)
 {
   GdkVulkanContext *context = GDK_VULKAN_CONTEXT (draw_context);
   GdkVulkanContextPrivate *priv = gdk_vulkan_context_get_instance_private (context);
@@ -402,6 +427,20 @@ gdk_vulkan_context_end_frame (GdkDrawContext *draw_context,
 }
 
 static void
+gdk_vulkan_context_surface_resized (GdkDrawContext *draw_context)
+{
+  GdkVulkanContext *context = GDK_VULKAN_CONTEXT (draw_context);
+  GError *error = NULL;
+
+  if (!gdk_vulkan_context_check_swapchain (context, &error))
+    {
+      g_warning ("%s", error->message);
+      g_error_free (error);
+      return;
+    }
+}
+
+static void
 gdk_vulkan_context_class_init (GdkVulkanContextClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
@@ -411,6 +450,7 @@ gdk_vulkan_context_class_init (GdkVulkanContextClass *klass)
 
   draw_context_class->begin_frame = gdk_vulkan_context_begin_frame;
   draw_context_class->end_frame = gdk_vulkan_context_end_frame;
+  draw_context_class->surface_resized = gdk_vulkan_context_surface_resized;
 
   /**
    * GdkVulkanContext::images-updated:
@@ -418,7 +458,7 @@ gdk_vulkan_context_class_init (GdkVulkanContextClass *klass)
    *
    * This signal is emitted when the images managed by this context have
    * changed. Usually this means that the swapchain had to be recreated,
-   * for example in response to a change of the window size.
+   * for example in response to a change of the surface size.
    */
   signals[IMAGES_UPDATED] =
     g_signal_new (g_intern_static_string ("images-updated"),
@@ -454,7 +494,7 @@ gdk_vulkan_context_real_init (GInitable     *initable,
   if (res != VK_SUCCESS)
     {
       g_set_error (error, GDK_VULKAN_ERROR, GDK_VULKAN_ERROR_NOT_AVAILABLE,
-                   "Could not create surface for this window: %s", gdk_vulkan_strerror (res));
+                   "Could not create surface for this surface: %s", gdk_vulkan_strerror (res));
       return FALSE;
     }
 
@@ -465,7 +505,7 @@ gdk_vulkan_context_real_init (GInitable     *initable,
   if (res != VK_SUCCESS)
     {
       g_set_error (error, GDK_VULKAN_ERROR, GDK_VULKAN_ERROR_NOT_AVAILABLE,
-                   "Could not check if queue family supports this window: %s", gdk_vulkan_strerror (res));
+                   "Could not check if queue family supports this surface: %s", gdk_vulkan_strerror (res));
     }
   else if (!supported)
     {
@@ -666,9 +706,8 @@ gdk_vulkan_context_get_image (GdkVulkanContext *context,
  *
  * Gets the index of the image that is currently being drawn.
  *
- * This function can only be used between gdk_window_begin_draw_frame() and
- * gdk_window_end_draw_frame() calls for the toplevel window that the
- * @context is associated with.
+ * This function can only be used between gdk_cairo_context_begin_frame() and
+ * gdk_draw_context_end_frame() calls.
  *
  * Returns: the index of the images that is being drawn
  */
@@ -678,7 +717,7 @@ gdk_vulkan_context_get_draw_index (GdkVulkanContext *context)
   GdkVulkanContextPrivate *priv = gdk_vulkan_context_get_instance_private (context);
 
   g_return_val_if_fail (GDK_IS_VULKAN_CONTEXT (context), 0);
-  g_return_val_if_fail (gdk_draw_context_is_drawing (GDK_DRAW_CONTEXT (context)), 0);
+  g_return_val_if_fail (gdk_draw_context_is_in_frame (GDK_DRAW_CONTEXT (context)), 0);
 
   return priv->draw_index;
 }
@@ -690,9 +729,8 @@ gdk_vulkan_context_get_draw_index (GdkVulkanContext *context)
  * Gets the Vulkan semaphore that protects access to the image that is
  * currently being drawn.
  *
- * This function can only be used between gdk_window_begin_draw_frame() and
- * gdk_window_end_draw_frame() calls for the toplevel window that the
- * @context is associated with.
+ * This function can only be used between gdk_cairo_context_begin_frame() and
+ * gdk_draw_context_end_frame() calls.
  *
  * Returns: (transfer none): the VkSemaphore
  */
@@ -702,7 +740,7 @@ gdk_vulkan_context_get_draw_semaphore (GdkVulkanContext *context)
   GdkVulkanContextPrivate *priv = gdk_vulkan_context_get_instance_private (context);
 
   g_return_val_if_fail (GDK_IS_VULKAN_CONTEXT (context), VK_NULL_HANDLE);
-  g_return_val_if_fail (gdk_draw_context_is_drawing (GDK_DRAW_CONTEXT (context)), VK_NULL_HANDLE);
+  g_return_val_if_fail (gdk_draw_context_is_in_frame (GDK_DRAW_CONTEXT (context)), VK_NULL_HANDLE);
 
   return priv->draw_semaphore;
 }
@@ -711,7 +749,10 @@ static gboolean
 gdk_display_create_vulkan_device (GdkDisplay  *display,
                                   GError     **error)
 {
-  uint32_t i, j;
+  uint32_t i, j, k;
+  const char *override;
+  gboolean list_devices;
+  int first, last;
 
   uint32_t n_devices = 0;
   GDK_VK_CHECK(vkEnumeratePhysicalDevices, display->vk_instance, &n_devices, NULL);
@@ -728,25 +769,90 @@ gdk_display_create_vulkan_device (GdkDisplay  *display,
   devices = g_newa (VkPhysicalDevice, n_devices);
   GDK_VK_CHECK(vkEnumeratePhysicalDevices, display->vk_instance, &n_devices, devices);
 
-  for (i = 0; i < n_devices; i++)
+  first = 0;
+  last = n_devices;
+
+  override = g_getenv ("GDK_VULKAN_DEVICE");
+  list_devices = FALSE;
+  if (override)
     {
-      VkPhysicalDeviceProperties props;
+      if (g_strcmp0 (override, "list") == 0)
+        list_devices = TRUE;
+      else
+        {
+          gint64 device_idx;
+          GError *error = NULL;
 
-      vkGetPhysicalDeviceProperties (devices[i], &props);
+          if (!g_ascii_string_to_signed (override, 10, 0, G_MAXINT, &device_idx, &error))
+            {
+              g_warning ("Failed to parse %s: %s", "GDK_VULKAN_DEVICE", error->message);
+              g_error_free (error);
+              device_idx = -1;
+            }
 
-      GDK_NOTE (VULKAN, g_print ("Vulkan Device %u:\n", i));
-      GDK_NOTE (VULKAN, g_print ("    %s (%u)\n", props.deviceName, props.deviceType));
-      GDK_NOTE (VULKAN, g_print ("    vendor ID: 0x%Xu\n", props.vendorID));
-      GDK_NOTE (VULKAN, g_print ("    device ID: 0x%Xu\n", props.deviceID));
-      GDK_NOTE (VULKAN, g_print ("    API version %u.%u.%u\n",
-                                 VK_VERSION_MAJOR (props.apiVersion),
-                                 VK_VERSION_MINOR (props.apiVersion),
-                                 VK_VERSION_PATCH (props.apiVersion)));
-      GDK_NOTE (VULKAN, g_print ("    driver version %u.%u.%u\n",
-                                 VK_VERSION_MAJOR (props.driverVersion),
-                                 VK_VERSION_MINOR (props.driverVersion),
-                                 VK_VERSION_PATCH (props.driverVersion)));
+          if (device_idx < 0 || device_idx >= n_devices)
+            g_warning ("%s value out of range, ignoring", "GDK_VULKAN_DEVICE");
+          else
+            {
+              first = device_idx;
+              last = first + 1;
+            }
+        }
+    }
 
+  if (list_devices || GDK_DISPLAY_DEBUG_CHECK (display, VULKAN))
+    {
+      for (i = 0; i < n_devices; i++)
+        {
+          VkPhysicalDeviceProperties props;
+          VkQueueFamilyProperties *queue_props;
+          uint32_t n_queue_props;
+          const char *device_type[] = {
+            "Other", "Integrated GPU", "Discrete GPU", "Virtual GPU", "CPU"
+          };
+          struct {
+            int bit;
+            const char *name;
+          } queue_caps[] = {
+            { VK_QUEUE_GRAPHICS_BIT, "graphics" },
+            { VK_QUEUE_COMPUTE_BIT, "compute" },
+            { VK_QUEUE_TRANSFER_BIT, "transfer" },
+            { VK_QUEUE_SPARSE_BINDING_BIT, "sparse binding" }
+          };
+
+          vkGetPhysicalDeviceProperties (devices[i], &props);
+          vkGetPhysicalDeviceQueueFamilyProperties (devices[i], &n_queue_props, NULL);
+          queue_props = g_newa (VkQueueFamilyProperties, n_queue_props);
+          vkGetPhysicalDeviceQueueFamilyProperties (devices[i], &n_queue_props, queue_props);
+
+          g_print ("Vulkan Device %u:\n", i);
+          g_print ("    %s (%s)\n", props.deviceName, device_type[props.deviceType]);
+          g_print ("    Vendor ID: 0x%Xu\n", props.vendorID);
+          g_print ("    Device ID: 0x%Xu\n", props.deviceID);
+          g_print ("    API version %u.%u.%u\n",
+                   VK_VERSION_MAJOR (props.apiVersion),
+                   VK_VERSION_MINOR (props.apiVersion),
+                   VK_VERSION_PATCH (props.apiVersion));
+          for (j = 0; j < n_queue_props; j++)
+            {
+              const char *sep = "";
+
+              g_print ("    Queue %d: ", j);
+              for (k = 0; k < G_N_ELEMENTS (queue_caps); k++)
+                {
+                  if (queue_props[j].queueFlags & queue_caps[k].bit)
+                    {
+                      g_print ("%s%s", sep, queue_caps[k].name);
+                      sep = "/";
+                    }
+                }
+              g_print ("\n");
+            }
+        }
+    }
+
+  for (i = first; i < last; i++)
+    {
       uint32_t n_queue_props;
       vkGetPhysicalDeviceQueueFamilyProperties (devices[i], &n_queue_props, NULL);
       VkQueueFamilyProperties *queue_props = g_newa (VkQueueFamilyProperties, n_queue_props);
@@ -754,10 +860,9 @@ gdk_display_create_vulkan_device (GdkDisplay  *display,
 
       for (j = 0; j < n_queue_props; j++)
         {
-          GDK_NOTE (VULKAN, g_print ("    queue %u/%u: %s\n", j, n_queue_props, queue_props[j].queueFlags & VK_QUEUE_GRAPHICS_BIT ? "graphics" : "no graphics"));
           if (queue_props[j].queueFlags & VK_QUEUE_GRAPHICS_BIT)
             {
-              GDK_NOTE (VULKAN, g_print ("    => trying this queue\n"));
+              GDK_DISPLAY_NOTE (display, VULKAN, g_print ("Using Vulkan device %u, queue %u\n", i, j));
               if (GDK_VK_CHECK (vkCreateDevice, devices[i],
                                                 &(VkDeviceCreateInfo) {
                                                     VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO,
@@ -846,11 +951,12 @@ gdk_display_create_vulkan_instance (GdkDisplay  *display,
 
   for (i = 0; i < n_extensions; i++)
     {
-      GDK_NOTE (VULKAN, g_print ("Extension available: %s v%u.%u.%u\n",
+      if (GDK_DISPLAY_DEBUG_CHECK (display, VULKAN))
+        g_print ("Extension available: %s v%u.%u.%u\n",
                                  extensions[i].extensionName,
                                  VK_VERSION_MAJOR (extensions[i].specVersion),
                                  VK_VERSION_MINOR (extensions[i].specVersion),
-                                 VK_VERSION_PATCH (extensions[i].specVersion)));
+                                 VK_VERSION_PATCH (extensions[i].specVersion));
 
       if (g_str_equal (extensions[i].extensionName, VK_EXT_DEBUG_REPORT_EXTENSION_NAME))
         {
@@ -868,13 +974,14 @@ gdk_display_create_vulkan_instance (GdkDisplay  *display,
 
   for (i = 0; i < n_layers; i++)
     {
-      GDK_NOTE (VULKAN, g_print ("Layer available: %s v%u.%u.%u (%s)\n",
+      if (GDK_DISPLAY_DEBUG_CHECK (display, VULKAN))
+        g_print ("Layer available: %s v%u.%u.%u (%s)\n",
                                  layers[i].layerName,
                                  VK_VERSION_MAJOR (layers[i].specVersion),
                                  VK_VERSION_MINOR (layers[i].specVersion),
                                  VK_VERSION_PATCH (layers[i].specVersion),
-                                 layers[i].description));
-      if ((_gdk_vulkan_flags & GDK_VULKAN_VALIDATE) &&
+                                 layers[i].description);
+      if (GDK_DISPLAY_DEBUG_CHECK (display, VULKAN_VALIDATE) &&
           g_str_equal (layers[i].layerName, "VK_LAYER_LUNARG_standard_validation"))
         {
           g_ptr_array_add (used_layers, (gpointer) "VK_LAYER_LUNARG_standard_validation");
@@ -882,7 +989,7 @@ gdk_display_create_vulkan_instance (GdkDisplay  *display,
         }
     }
 
-  if ((_gdk_vulkan_flags & GDK_VULKAN_VALIDATE) && !validate)
+  if (GDK_DISPLAY_DEBUG_CHECK (display, VULKAN_VALIDATE) && !validate)
     {
       g_warning ("Vulkan validation layers were requested, but not found. Running without.");
     }

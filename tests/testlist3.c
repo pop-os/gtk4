@@ -11,25 +11,17 @@ drag_begin (GtkWidget      *widget,
 {
   GtkWidget *row;
   GtkAllocation alloc;
-  cairo_surface_t *surface;
-  cairo_t *cr;
+  GdkPaintable *paintable;
   int x, y;
 
   row = gtk_widget_get_ancestor (widget, GTK_TYPE_LIST_BOX_ROW);
   gtk_widget_get_allocation (row, &alloc);
-  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, alloc.width, alloc.height);
-  cr = cairo_create (surface);
 
-  gtk_style_context_add_class (gtk_widget_get_style_context (row), "during-dnd");
-  gtk_widget_draw (row, cr);
-  gtk_style_context_remove_class (gtk_widget_get_style_context (row), "during-dnd");
-
+  paintable = gtk_widget_paintable_new (row);
   gtk_widget_translate_coordinates (widget, row, 0, 0, &x, &y);
-  cairo_surface_set_device_offset (surface, -x, -y);
-  gtk_drag_set_icon_surface (context, surface);
+  gtk_drag_set_icon_paintable (context, paintable, -x, -y);
 
-  cairo_destroy (cr);
-  cairo_surface_destroy (surface);
+  g_object_unref (paintable);
 }
 
 
@@ -37,7 +29,6 @@ void
 drag_data_get (GtkWidget        *widget,
                GdkDragContext   *context,
                GtkSelectionData *selection_data,
-               guint             time,
                gpointer          data)
 {
   gtk_selection_data_set (selection_data,
@@ -50,9 +41,8 @@ drag_data_get (GtkWidget        *widget,
 
 static void
 drag_data_received (GtkWidget        *widget,
-                    GdkDragContext   *context,
+                    GdkDrop          *drop,
                     GtkSelectionData *selection_data,
-                    guint32           time,
                     gpointer          data)
 {
   GtkWidget *target;

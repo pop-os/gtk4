@@ -28,6 +28,7 @@
  */
 #ifdef GTK_COMPILATION
 #include "gtkbutton.h"
+#include "gtkgesture.h"
 #include "gtkimage.h"
 #include "gtkintl.h"
 #include "gtklabel.h"
@@ -190,6 +191,16 @@ measure_available_space (GtkPlacesViewRow *row)
                                               row);
         }
     }
+}
+
+static void
+pressed_cb (GtkGesture       *gesture,
+            int               n_pressed,
+            double            x,
+            double            y,
+            GtkPlacesViewRow *row)
+{
+  g_signal_emit_by_name (row, "popup-menu", 0);
 }
 
 static void
@@ -378,6 +389,8 @@ gtk_places_view_row_class_init (GtkPlacesViewRowClass *klass)
   gtk_widget_class_bind_template_child (widget_class, GtkPlacesViewRow, icon_image);
   gtk_widget_class_bind_template_child (widget_class, GtkPlacesViewRow, name_label);
   gtk_widget_class_bind_template_child (widget_class, GtkPlacesViewRow, path_label);
+
+  gtk_widget_class_bind_template_callback (widget_class, pressed_cb);
 }
 
 static void
@@ -438,10 +451,12 @@ gtk_places_view_row_set_busy (GtkPlacesViewRow *row,
     {
       gtk_stack_set_visible_child (row->mount_stack, GTK_WIDGET (row->busy_spinner));
       gtk_widget_set_child_visible (GTK_WIDGET (row->mount_stack), TRUE);
+      gtk_spinner_start (row->busy_spinner);
     }
   else
     {
       gtk_widget_set_child_visible (GTK_WIDGET (row->mount_stack), FALSE);
+      gtk_spinner_stop (row->busy_spinner);
     }
 }
 

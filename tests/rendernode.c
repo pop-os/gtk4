@@ -114,11 +114,11 @@ main(int argc, char **argv)
   else
     {
       GskRenderer *renderer;
-      GdkWindow *window;
+      GdkSurface *window;
       GdkTexture *texture = NULL;
 
-      window = gdk_window_new_toplevel (gdk_display_get_default(), 10 , 10);
-      renderer = gsk_renderer_new_for_window (window);
+      window = gdk_surface_new_toplevel (gdk_display_get_default(), 10 , 10);
+      renderer = gsk_renderer_new_for_surface (window);
 
       for (run = 0; run < runs; run++)
         {
@@ -138,6 +138,7 @@ main(int argc, char **argv)
                             cairo_image_surface_get_data (surface),
                             cairo_image_surface_get_stride (surface));
       cairo_surface_mark_dirty (surface);
+      gsk_renderer_unrealize (renderer);
       g_object_unref (texture);
       g_object_unref (window);
       g_object_unref (renderer);

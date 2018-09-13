@@ -393,6 +393,7 @@ static void
 gtk_model_button_set_active (GtkModelButton *button,
                              gboolean        active)
 {
+  active = !!active;
   if (button->active == active)
     return;
 
@@ -420,6 +421,7 @@ static void
 gtk_model_button_set_inverted (GtkModelButton *button,
                                gboolean        inverted)
 {
+  inverted = !!inverted;
   if (button->inverted == inverted)
     return;
 
@@ -434,6 +436,7 @@ static void
 gtk_model_button_set_centered (GtkModelButton *button,
                                gboolean        centered)
 {
+  centered = !!centered;
   if (button->centered == centered)
     return;
 
@@ -450,6 +453,7 @@ gtk_model_button_set_iconic (GtkModelButton *button,
   GtkCssNode *widget_node;
   GtkStyleContext *context;
 
+  iconic = !!iconic;
   if (button->iconic == iconic)
     return;
 
@@ -524,7 +528,8 @@ gtk_model_button_get_property (GObject    *object,
       break;
 
     default:
-      g_assert_not_reached ();
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
     }
 }
 
@@ -571,7 +576,8 @@ gtk_model_button_set_property (GObject      *object,
       break;
 
     default:
-      g_assert_not_reached ();
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
     }
 }
 
@@ -752,19 +758,16 @@ gtk_model_button_measure (GtkWidget      *widget,
 static void
 gtk_model_button_size_allocate (GtkWidget           *widget,
                                 const GtkAllocation *allocation,
-                                int                  baseline,
-                                GtkAllocation       *out_clip)
+                                int                  baseline)
 {
   if (GTK_MODEL_BUTTON (widget)->iconic)
     {
       GTK_WIDGET_CLASS (gtk_model_button_parent_class)->size_allocate (widget,
                                                                        allocation,
-                                                                       baseline,
-                                                                       out_clip);
+                                                                       baseline);
     }
   else
     {
-      GtkAllocation child_clip = *allocation;
       GtkModelButton *button;
       GtkAllocation child_allocation;
       GtkWidget *child;
@@ -795,8 +798,7 @@ gtk_model_button_size_allocate (GtkWidget           *widget,
       child_allocation.width = check_nat_width;
       child_allocation.height = check_nat_height;
 
-      gtk_widget_size_allocate (button->indicator_widget, &child_allocation, baseline, &child_clip);
-      gdk_rectangle_union (out_clip, &child_clip, out_clip);
+      gtk_widget_size_allocate (button->indicator_widget, &child_allocation, baseline);
 
       if (child && gtk_widget_get_visible (child))
         {
@@ -823,8 +825,7 @@ gtk_model_button_size_allocate (GtkWidget           *widget,
           if (baseline != -1)
             baseline -= border.top;
 
-          gtk_widget_size_allocate (child, &child_allocation, baseline, &child_clip);
-          gdk_rectangle_union (out_clip, &child_clip, out_clip);
+          gtk_widget_size_allocate (child, &child_allocation, baseline);
         }
     }
 }
@@ -921,8 +922,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
    * Specifies whether the button is a plain, check or radio button.
    * When #GtkActionable:action-name is set, the role will be determined
    * from the action and does not have to be set explicitly.
-   *
-   * Since: 3.16
    */
   properties[PROP_ROLE] =
     g_param_spec_enum ("role",
@@ -937,8 +936,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
    *
    * A #GIcon that will be used if iconic appearance for the button is
    * desired.
-   *
-   * Since: 3.16
    */
   properties[PROP_ICON] = 
     g_param_spec_object ("icon",
@@ -951,8 +948,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
    * GtkModelButton:text:
    *
    * The label for the button.
-   *
-   * Since: 3.16
    */
   properties[PROP_TEXT] =
     g_param_spec_string ("text",
@@ -966,8 +961,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
    *
    * The state of the button. This is reflecting the state of the associated
    * #GAction.
-   *
-   * Since: 3.16
    */
   properties[PROP_ACTIVE] =
     g_param_spec_boolean ("active",
@@ -981,8 +974,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
    *
    * The name of a submenu to open when the button is activated.
    * If this is set, the button should not have an action associated with it.
-   *
-   * Since: 3.16
    */
   properties[PROP_MENU_NAME] =
     g_param_spec_string ("menu-name",
@@ -997,8 +988,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
    * Whether to show the submenu indicator at the opposite side than normal.
    * This property should be set for model buttons that 'go back' to a parent
    * menu.
-   *
-   * Since: 3.16
    */
   properties[PROP_INVERTED] =
     g_param_spec_boolean ("inverted",
@@ -1010,10 +999,8 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
   /**
    * GtkModelButton:centered:
    *
-   * Wether to render the button contents centered instead of left-aligned.
+   * Whether to render the button contents centered instead of left-aligned.
    * This property should be set for title-like items.
-   *
-   * Since: 3.16
    */
   properties[PROP_CENTERED] =
     g_param_spec_boolean ("centered",
@@ -1028,8 +1015,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
    * If this property is set, the button will show an icon if one is set.
    * If no icon is set, the text will be used. This is typically used for
    * horizontal sections of linked buttons.
-   *
-   * Since: 3.16
    */
   properties[PROP_ICONIC] =
     g_param_spec_boolean ("iconic",
@@ -1070,8 +1055,6 @@ gtk_model_button_init (GtkModelButton *button)
  * Creates a new GtkModelButton.
  *
  * Returns: the newly created #GtkModelButton widget
- *
- * Since: 3.16
  */
 GtkWidget *
 gtk_model_button_new (void)

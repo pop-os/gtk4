@@ -26,7 +26,7 @@
 
 #include "gdkdisplayprivate.h"
 #include "gdkkeys.h"
-#include "gdkwindow.h"
+#include "gdksurface.h"
 #include "gdkinternals.h"
 #include "gdkbroadway-server.h"
 #include "gdkmonitorprivate.h"
@@ -48,9 +48,6 @@ struct _GdkBroadwayDisplay
 
   /* Keyboard related information */
   GdkKeymap *keymap;
-
-  /* drag and drop information */
-  GdkDragContext *current_dest_drag;
 
   GdkBroadwayServer *server;
 

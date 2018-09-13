@@ -41,13 +41,8 @@ G_BEGIN_DECLS
 
 GDK_AVAILABLE_IN_ALL
 void gtk_drag_get_data (GtkWidget      *widget,
-			GdkDragContext *context,
-			GdkAtom         target,
-			guint32         time_);
-GDK_AVAILABLE_IN_ALL
-void gtk_drag_finish   (GdkDragContext *context,
-			gboolean        success,
-			guint32         time_);
+			GdkDrop        *drop,
+			GdkAtom         target);
 
 GDK_AVAILABLE_IN_ALL
 GtkWidget *gtk_drag_get_source_widget (GdkDragContext *context);
@@ -59,7 +54,7 @@ void gtk_drag_unhighlight (GtkWidget  *widget);
 
 /* Source side */
 
-GDK_AVAILABLE_IN_3_10
+GDK_AVAILABLE_IN_ALL
 GdkDragContext *gtk_drag_begin_with_coordinates (GtkWidget         *widget,
                                                  GdkDevice         *device,
                                                  GdkContentFormats *targets,
@@ -67,7 +62,7 @@ GdkDragContext *gtk_drag_begin_with_coordinates (GtkWidget         *widget,
                                                  gint               x,
                                                  gint               y);
 
-GDK_AVAILABLE_IN_3_16
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_cancel           (GdkDragContext *context);
 
 GDK_AVAILABLE_IN_ALL
@@ -76,11 +71,8 @@ void gtk_drag_set_icon_widget (GdkDragContext *context,
 			       gint            hot_x,
 			       gint            hot_y);
 GDK_AVAILABLE_IN_ALL
-void gtk_drag_set_icon_surface(GdkDragContext *context,
-			       cairo_surface_t *surface);
-GDK_AVAILABLE_IN_3_94
-void gtk_drag_set_icon_texture(GdkDragContext *context,
-			       GdkTexture     *texture,
+void gtk_drag_set_icon_paintable (GdkDragContext *context,
+			       GdkPaintable   *paintable,
                                int             hot_x,
                                int             hot_y);
 GDK_AVAILABLE_IN_ALL
@@ -88,7 +80,7 @@ void gtk_drag_set_icon_name   (GdkDragContext *context,
 			       const gchar    *icon_name,
 			       gint            hot_x,
 			       gint            hot_y);
-GDK_AVAILABLE_IN_3_2
+GDK_AVAILABLE_IN_ALL
 void gtk_drag_set_icon_gicon  (GdkDragContext *context,
 			       GIcon          *icon,
 			       gint            hot_x,

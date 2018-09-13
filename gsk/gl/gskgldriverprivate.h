@@ -16,6 +16,12 @@ typedef struct {
   float uv[2];
 } GskQuadVertex;
 
+typedef struct {
+  cairo_rectangle_int_t rect;
+  guint texture_id;
+} TextureSlice;
+
+
 GskGLDriver *   gsk_gl_driver_new                       (GdkGLContext    *context);
 
 int             gsk_gl_driver_get_max_texture_size      (GskGLDriver     *driver);
@@ -33,16 +39,6 @@ int             gsk_gl_driver_create_permanent_texture  (GskGLDriver     *driver
 int             gsk_gl_driver_create_texture            (GskGLDriver     *driver,
                                                          float            width,
                                                          float            height);
-int             gsk_gl_driver_create_vao_for_quad       (GskGLDriver     *driver,
-                                                         int              position_id,
-                                                         int              uv_id,
-                                                         int              n_vertices,
-                                                         GskQuadVertex   *vertices);
-void           gsk_gl_driver_create_permanent_vao_for_quad (GskGLDriver        *driver,
-                                                            int                  n_vertices,
-                                                            const GskQuadVertex *quads,
-                                                            int                 *out_vao_id,
-                                                            int                 *out_vao_buffer_id);
 int             gsk_gl_driver_create_render_target      (GskGLDriver     *driver,
                                                          int              texture_id,
                                                          gboolean         add_depth_buffer,
@@ -50,10 +46,6 @@ int             gsk_gl_driver_create_render_target      (GskGLDriver     *driver
 
 void            gsk_gl_driver_bind_source_texture       (GskGLDriver     *driver,
                                                          int              texture_id);
-void            gsk_gl_driver_bind_mask_texture         (GskGLDriver     *driver,
-                                                         int              texture_id);
-void            gsk_gl_driver_bind_vao                  (GskGLDriver     *driver,
-                                                         int              vao_id);
 gboolean        gsk_gl_driver_bind_render_target        (GskGLDriver     *driver,
                                                          int              texture_id);
 
@@ -67,11 +59,12 @@ void            gsk_gl_driver_init_texture_with_surface (GskGLDriver     *driver
 
 void            gsk_gl_driver_destroy_texture           (GskGLDriver     *driver,
                                                          int              texture_id);
-void            gsk_gl_driver_destroy_vao               (GskGLDriver     *driver,
-                                                         int              vao_id);
 
 int             gsk_gl_driver_collect_textures          (GskGLDriver     *driver);
-int             gsk_gl_driver_collect_vaos              (GskGLDriver     *driver);
+void            gsk_gl_driver_slice_texture             (GskGLDriver     *self,
+                                                         GdkTexture      *texture,
+                                                         TextureSlice   **out_slices,
+                                                         guint           *out_n_slices);
 
 G_END_DECLS
 

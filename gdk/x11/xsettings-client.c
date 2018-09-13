@@ -28,8 +28,9 @@
 #include <gdk/x11/gdkx11display.h>
 #include <gdk/x11/gdkx11property.h>
 #include <gdk/x11/gdkx11screen.h>
-#include <gdk/x11/gdkx11window.h>
+#include <gdk/x11/gdkx11surface.h>
 #include <gdk/x11/gdkprivate-x11.h>
+#include <gdk/x11/gdkdisplay-x11.h>
 #include <gdk/x11/gdkscreen-x11.h>
 
 #include <gdkinternals.h>
@@ -137,7 +138,7 @@ notify_changes (GdkX11Screen *x11_screen,
 #define return_if_fail_bytes(buffer, n_bytes) G_STMT_START{ \
   if (BYTES_LEFT (buffer) < (n_bytes)) \
     { \
-      g_warning ("Invalid XSETTINGS property (read off end: Expected %u bytes, only %ld left", \
+      g_warning ("Invalid XSETTINGS property (read off end: Expected %u bytes, only %"G_GSIZE_FORMAT" left", \
                  (n_bytes), BYTES_LEFT (buffer)); \
       return FALSE; \
     } \
@@ -272,7 +273,8 @@ parse_settings (unsigned char *data,
       !fetch_card32 (&buffer, &n_entries))
     goto out;
 
-  GDK_NOTE(SETTINGS, g_message ("reading %u settings (serial %u byte order %u)", n_entries, serial, buffer.byte_order));
+  GDK_NOTE (SETTINGS, g_message ("reading %lu settings (serial %lu byte order %u)",
+                                 (unsigned long)n_entries, (unsigned long)serial, buffer.byte_order));
 
   for (i = 0; i < n_entries; i++)
     {
@@ -303,7 +305,7 @@ parse_settings (unsigned char *data,
           g_value_init (value, G_TYPE_INT);
           g_value_set_int (value, (gint32) v_int);
 
-          GDK_NOTE(SETTINGS, g_message ("  %s = %d", x_name, (gint32) v_int));
+          GDK_NOTE (SETTINGS, g_message ("  %s = %d", x_name, (gint32) v_int));
 	  break;
 	case XSETTINGS_TYPE_STRING:
           {
@@ -317,7 +319,7 @@ parse_settings (unsigned char *data,
             g_value_init (value, G_TYPE_STRING);
             g_value_take_string (value, s);
 
-            GDK_NOTE(SETTINGS, g_message ("  %s = \"%s\"", x_name, s));
+            GDK_NOTE (SETTINGS, g_message ("  %s = \"%s\"", x_name, s));
           }
 	  break;
 	case XSETTINGS_TYPE_COLOR:
@@ -340,12 +342,12 @@ parse_settings (unsigned char *data,
             g_value_init (value, G_TYPE_STRING);
             g_value_set_boxed (value, &rgba);
 
-            GDK_NOTE(SETTINGS, g_message ("  %s = #%02X%02X%02X%02X", x_name, alpha,red, green, blue));
+            GDK_NOTE (SETTINGS, g_message ("  %s = #%02X%02X%02X%02X", x_name, alpha,red, green, blue));
           }
 	  break;
 	default:
 	  /* Quietly ignore unknown types */
-          GDK_NOTE(SETTINGS, g_message ("  %s = ignored (unknown type %u)", x_name, type));
+          GDK_NOTE (SETTINGS, g_message ("  %s = ignored (unknown type %u)", x_name, type));
 	  break;
 	}
 
@@ -355,12 +357,12 @@ parse_settings (unsigned char *data,
 
       if (gdk_name == NULL)
         {
-          GDK_NOTE(SETTINGS, g_message ("    ==> unknown to GTK"));
+          GDK_NOTE (SETTINGS, g_message ("    ==> unknown to GTK"));
           free_value (value);
         }
       else
         {
-          GDK_NOTE(SETTINGS, g_message ("    ==> storing as '%s'", gdk_name));
+          GDK_NOTE (SETTINGS, g_message ("    ==> storing as '%s'", gdk_name));
 
           if (settings == NULL)
             settings = g_hash_table_new_full (g_str_hash, g_str_equal,
@@ -444,7 +446,7 @@ read_settings (GdkX11Screen *x11_screen,
 
   /* Since we support scaling we look at the specific Gdk/UnscaledDPI
      setting if it exists and use that instead of Xft/DPI if it is set */
-  if (x11_screen->xsettings && !x11_screen->fixed_window_scale)
+  if (x11_screen->xsettings && !x11_screen->fixed_surface_scale)
     {
       setting = g_hash_table_lookup (x11_screen->xsettings, "gdk-unscaled-dpi");
       if (setting)
@@ -464,9 +466,9 @@ read_settings (GdkX11Screen *x11_screen,
 
   g_value_init (&value, G_TYPE_INT);
 
-  if (!x11_screen->fixed_window_scale &&
+  if (!x11_screen->fixed_surface_scale &&
       gdk_display_get_setting (display, "gdk-window-scaling-factor", &value))
-    _gdk_x11_screen_set_window_scale (x11_screen, g_value_get_int (&value));
+    _gdk_x11_screen_set_surface_scale (x11_screen, g_value_get_int (&value));
 }
 
 static Atom

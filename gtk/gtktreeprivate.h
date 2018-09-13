@@ -21,7 +21,7 @@
 
 #include <gtk/gtktreeview.h>
 #include <gtk/gtktreeselection.h>
-#include <gtk/gtkrbtree.h>
+#include <gtk/gtkrbtreeprivate.h>
 
 G_BEGIN_DECLS
 
@@ -51,10 +51,6 @@ gboolean     _gtk_tree_view_get_cursor_node           (GtkTreeView       *tree_v
 						       GtkRBNode        **node);
 GtkTreePath *_gtk_tree_path_new_from_rbtree           (GtkRBTree         *tree,
 						       GtkRBNode         *node);
-void         _gtk_tree_view_queue_draw_node           (GtkTreeView       *tree_view,
-						       GtkRBTree         *tree,
-						       GtkRBNode         *node,
-						       const GdkRectangle *clip_rect);
 
 void         _gtk_tree_view_add_editable              (GtkTreeView       *tree_view,
                                                        GtkTreeViewColumn *column,

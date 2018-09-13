@@ -130,8 +130,6 @@ struct _GtkToolbarPrivate
 
   GTimer          *timer;
 
-  GtkGesture      *click_gesture;
-
   gulong           settings_connection;
 
   gint             idle_id;
@@ -194,8 +192,7 @@ static void       gtk_toolbar_snapshot             (GtkWidget           *widget,
                                                     GtkSnapshot         *snapshot);
 static void       gtk_toolbar_size_allocate        (GtkWidget           *widget,
                                                     const GtkAllocation *allocation,
-                                                    int                  baseline,
-                                                    GtkAllocation       *out_clip);
+                                                    int                  baseline);
 static void       gtk_toolbar_style_updated        (GtkWidget           *widget);
 static gboolean   gtk_toolbar_focus                (GtkWidget           *widget,
 						    GtkDirectionType     dir);
@@ -224,8 +221,6 @@ static void       gtk_toolbar_forall               (GtkContainer        *contain
 						    gpointer             callback_data);
 static GType      gtk_toolbar_child_type           (GtkContainer        *container);
 
-static void       gtk_toolbar_direction_changed    (GtkWidget           *widget,
-                                                    GtkTextDirection     previous_direction);
 static void       gtk_toolbar_orientation_changed  (GtkToolbar          *toolbar,
 						    GtkOrientation       orientation);
 static void       gtk_toolbar_real_style_changed   (GtkToolbar          *toolbar,
@@ -390,8 +385,7 @@ gtk_toolbar_class_init (GtkToolbarClass *klass)
 
   widget_class->display_changed = gtk_toolbar_display_changed;
   widget_class->popup_menu = gtk_toolbar_popup_menu;
-  widget_class->direction_changed = gtk_toolbar_direction_changed;
-  
+
   container_class->add    = gtk_toolbar_add;
   container_class->remove = gtk_toolbar_remove;
   container_class->forall = gtk_toolbar_forall;
@@ -560,13 +554,14 @@ gtk_toolbar_init (GtkToolbar *toolbar)
 {
   GtkToolbarPrivate *priv;
   GtkWidget *widget;
+  GtkGesture *gesture;
 
   widget = GTK_WIDGET (toolbar);
   toolbar->priv = gtk_toolbar_get_instance_private (toolbar);
   priv = toolbar->priv;
 
   gtk_widget_set_can_focus (widget, FALSE);
-  gtk_widget_set_has_window (widget, FALSE);
+  gtk_widget_set_has_surface (widget, FALSE);
 
   priv->orientation = GTK_ORIENTATION_HORIZONTAL;
   priv->style = DEFAULT_TOOLBAR_STYLE;
@@ -597,11 +592,12 @@ gtk_toolbar_init (GtkToolbar *toolbar)
   
   priv->timer = g_timer_new ();
 
-  priv->click_gesture = gtk_gesture_multi_press_new (GTK_WIDGET (toolbar));
-  gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (priv->click_gesture), FALSE);
-  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (priv->click_gesture), 0);
-  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->click_gesture), GTK_PHASE_BUBBLE);
-  g_signal_connect (priv->click_gesture, "pressed", G_CALLBACK (gtk_toolbar_pressed_cb), toolbar);
+  gesture = gtk_gesture_multi_press_new ();
+  gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture), FALSE);
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), 0);
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture), GTK_PHASE_BUBBLE);
+  g_signal_connect (gesture, "pressed", G_CALLBACK (gtk_toolbar_pressed_cb), toolbar);
+  gtk_widget_add_controller (GTK_WIDGET (toolbar), GTK_EVENT_CONTROLLER (gesture));
 }
 
 static void
@@ -1002,11 +998,14 @@ gtk_toolbar_begin_sliding (GtkToolbar *toolbar)
   
   if (!priv->idle_id)
     {
-      priv->idle_id = gdk_threads_add_idle (slide_idle_handler, toolbar);
+      priv->idle_id = g_idle_add (slide_idle_handler, toolbar);
       g_source_set_name_by_id (priv->idle_id, "[gtk+] slide_idle_handler");
     }
 
-  gtk_widget_get_own_allocation (widget, &content_allocation);
+  content_allocation.x = 0;
+  content_allocation.y = 0;
+  content_allocation.width = gtk_widget_get_width (widget);
+  content_allocation.height = gtk_widget_get_height (widget);
 
   rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
   vertical = (priv->orientation == GTK_ORIENTATION_VERTICAL);
@@ -1021,9 +1020,6 @@ gtk_toolbar_begin_sliding (GtkToolbar *toolbar)
       cur_x = 0;
       cur_y = 0;
     }
-
-  cur_x += content_allocation.x;
-  cur_y += content_allocation.y;
 
   for (list = priv->content; list != NULL; list = list->next)
     {
@@ -1206,8 +1202,7 @@ rebuild_menu (GtkToolbar *toolbar)
 static void
 gtk_toolbar_size_allocate (GtkWidget           *widget,
                            const GtkAllocation *allocation,
-                           int                  baseline,
-                           GtkAllocation       *out_clip)
+                           int                  baseline)
 {
   GtkToolbar *toolbar = GTK_TOOLBAR (widget);
   GtkToolbarPrivate *priv = toolbar->priv;
@@ -1512,7 +1507,7 @@ gtk_toolbar_size_allocate (GtkWidget           *widget,
 
   if (need_arrow)
     {
-      gtk_widget_size_allocate (GTK_WIDGET (priv->arrow_button), &arrow_allocation, -1, out_clip);
+      gtk_widget_size_allocate (GTK_WIDGET (priv->arrow_button), &arrow_allocation, -1);
       gtk_widget_show (GTK_WIDGET (priv->arrow_button));
     }
   else
@@ -1929,8 +1924,6 @@ logical_to_physical (GtkToolbar *toolbar,
  * hierarchy. When an item is set as drop highlight item it can not
  * added to any widget hierarchy or used as highlight item for another
  * toolbar.
- * 
- * Since: 2.4
  **/
 void
 gtk_toolbar_set_drop_highlight_item (GtkToolbar  *toolbar,
@@ -2240,7 +2233,7 @@ show_menu (GtkToolbar     *toolbar,
                     "anchor-hints", (GDK_ANCHOR_FLIP_Y |
                                      GDK_ANCHOR_SLIDE |
                                      GDK_ANCHOR_RESIZE),
-                    "menu-type-hint", GDK_WINDOW_TYPE_HINT_DROPDOWN_MENU,
+                    "menu-type-hint", GDK_SURFACE_TYPE_HINT_DROPDOWN_MENU,
                     "rect-anchor-dx", -minimum_size.width,
                     NULL);
 
@@ -2371,8 +2364,6 @@ gtk_toolbar_new (void)
  * Insert a #GtkToolItem into the toolbar at position @pos. If @pos is
  * 0 the item is prepended to the start of the toolbar. If @pos is
  * negative, the item is appended to the end of the toolbar.
- *
- * Since: 2.4
  **/
 void
 gtk_toolbar_insert (GtkToolbar  *toolbar,
@@ -2399,8 +2390,6 @@ gtk_toolbar_insert (GtkToolbar  *toolbar,
  * It is an error if @item is not a child of the toolbar.
  * 
  * Returns: the position of item on the toolbar.
- * 
- * Since: 2.4
  **/
 gint
 gtk_toolbar_get_item_index (GtkToolbar  *toolbar,
@@ -2506,8 +2495,6 @@ gtk_toolbar_unset_style (GtkToolbar *toolbar)
  * Returns the number of items on the toolbar.
  * 
  * Returns: the number of items on the toolbar
- * 
- * Since: 2.4
  **/
 gint
 gtk_toolbar_get_n_items (GtkToolbar *toolbar)
@@ -2531,8 +2518,6 @@ gtk_toolbar_get_n_items (GtkToolbar *toolbar)
  *
  * Returns: (nullable) (transfer none): The @n'th #GtkToolItem on @toolbar,
  *     or %NULL if there isn’t an @n'th item.
- *
- * Since: 2.4
  **/
 GtkToolItem *
 gtk_toolbar_get_nth_item (GtkToolbar *toolbar,
@@ -2570,8 +2555,6 @@ gtk_toolbar_get_nth_item (GtkToolbar *toolbar,
  * or #GtkToolItem::create-menu-proxy, will be available in an overflow menu,
  * which can be opened by an added arrow button. If %FALSE, @toolbar will
  * request enough size to fit all of its child items without any overflow.
- * 
- * Since: 2.4
  **/
 void
 gtk_toolbar_set_show_arrow (GtkToolbar *toolbar,
@@ -2605,8 +2588,6 @@ gtk_toolbar_set_show_arrow (GtkToolbar *toolbar,
  * See gtk_toolbar_set_show_arrow().
  * 
  * Returns: %TRUE if the toolbar has an overflow menu.
- * 
- * Since: 2.4
  **/
 gboolean
 gtk_toolbar_get_show_arrow (GtkToolbar *toolbar)
@@ -2630,8 +2611,6 @@ gtk_toolbar_get_show_arrow (GtkToolbar *toolbar)
  * @x and @y are in @toolbar coordinates.
  * 
  * Returns: The position corresponding to the point (@x, @y) on the toolbar.
- * 
- * Since: 2.4
  **/
 gint
 gtk_toolbar_get_drop_index (GtkToolbar *toolbar,
@@ -2687,8 +2666,6 @@ gtk_toolbar_finalize (GObject *object)
   if (priv->idle_id)
     g_source_remove (priv->idle_id);
 
-  g_clear_object (&priv->click_gesture);
-
   G_OBJECT_CLASS (gtk_toolbar_parent_class)->finalize (object);
 }
 
@@ -2732,16 +2709,8 @@ toolbar_content_new_tool_item (GtkToolbar  *toolbar,
   previous = pos > 0 ? g_list_nth_data (priv->content, -1) : NULL;
   priv->content = g_list_insert (priv->content, content, pos);
 
-  if (gtk_widget_get_direction (GTK_WIDGET (toolbar)) == GTK_TEXT_DIR_RTL)
-    gtk_css_node_insert_after (gtk_widget_get_css_node (GTK_WIDGET (toolbar)),
-                               gtk_widget_get_css_node (GTK_WIDGET (item)),
-                               previous ? gtk_widget_get_css_node (GTK_WIDGET (previous->item)) : NULL);
-  else
-    gtk_css_node_insert_before (gtk_widget_get_css_node (GTK_WIDGET (toolbar)),
-                                gtk_widget_get_css_node (GTK_WIDGET (item)),
-                                previous ? gtk_widget_get_css_node (GTK_WIDGET (previous->item)) : NULL);
-
-  gtk_widget_set_parent (GTK_WIDGET (item), GTK_WIDGET (toolbar));
+  gtk_widget_insert_after (GTK_WIDGET (item), GTK_WIDGET (toolbar),
+                           previous ? GTK_WIDGET (previous->item) : NULL);
 
   if (!is_placeholder)
     {
@@ -2971,10 +2940,8 @@ static void
 toolbar_content_size_allocate (ToolbarContent *content,
 			       GtkAllocation  *allocation)
 {
-  GtkAllocation clip;
-
   content->allocation = *allocation;
-  gtk_widget_size_allocate (GTK_WIDGET (content->item), allocation, -1, &clip);
+  gtk_widget_size_allocate (GTK_WIDGET (content->item), allocation, -1);
 }
 
 static void
@@ -3136,13 +3103,3 @@ toolbar_rebuild_menu (GtkToolShell *shell)
   
   gtk_widget_queue_resize (GTK_WIDGET (shell));
 }
-
-static void
-gtk_toolbar_direction_changed (GtkWidget        *widget,
-                               GtkTextDirection  previous_direction)
-{
-  GTK_WIDGET_CLASS (gtk_toolbar_parent_class)->direction_changed (widget, previous_direction);
-
-  gtk_css_node_reverse_children (gtk_widget_get_css_node (widget));
-}
-

@@ -2,6 +2,7 @@ gdk_public_sources = files([
   'gdk.c',
   'gdkapplaunchcontext.c',
   'gdkcairo.c',
+  'gdkcairocontext.c',
   'gdkclipboard.c',
   'gdkcontentdeserializer.c',
   'gdkcontentformats.c',
@@ -16,7 +17,7 @@ gdk_public_sources = files([
   'gdkdisplaymanager.c',
   'gdkdnd.c',
   'gdkdrawcontext.c',
-  'gdkdrawingcontext.c',
+  'gdkdrop.c',
   'gdkevents.c',
   'gdkframeclock.c',
   'gdkframeclockidle.c',
@@ -24,9 +25,12 @@ gdk_public_sources = files([
   'gdkgl.c',
   'gdkglcontext.c',
   'gdkglobals.c',
+  'gdkgltexture.c',
   'gdkkeys.c',
   'gdkkeyuni.c',
+  'gdkmemorytexture.c',
   'gdkmonitor.c',
+  'gdkpaintable.c',
   'gdkpango.c',
   'gdkpixbuf-drawable.c',
   'gdkpipeiostream.c',
@@ -36,10 +40,11 @@ gdk_public_sources = files([
   'gdkseat.c',
   'gdkseatdefault.c',
   'gdkselection.c',
+  'gdksnapshot.c',
   'gdktexture.c',
   'gdkvulkancontext.c',
-  'gdkwindow.c',
-  'gdkwindowimpl.c',
+  'gdksurface.c',
+  'gdksurfaceimpl.c',
 ])
 
 gdk_public_headers = files([
@@ -47,6 +52,7 @@ gdk_public_headers = files([
   'gdk.h',
   'gdkapplaunchcontext.h',
   'gdkcairo.h',
+  'gdkcairocontext.h',
   'gdkclipboard.h',
   'gdkcontentdeserializer.h',
   'gdkcontentformats.h',
@@ -61,25 +67,28 @@ gdk_public_headers = files([
   'gdkdisplaymanager.h',
   'gdkdnd.h',
   'gdkdrawcontext.h',
-  'gdkdrawingcontext.h',
+  'gdkdrop.h',
   'gdkevents.h',
   'gdkframeclock.h',
   'gdkframetimings.h',
   'gdkglcontext.h',
+  'gdkgltexture.h',
   'gdkkeys.h',
   'gdkkeysyms.h',
+  'gdkmemorytexture.h',
   'gdkmonitor.h',
+  'gdkpaintable.h',
   'gdkpango.h',
   'gdkpixbuf.h',
   'gdkproperty.h',
   'gdkrectangle.h',
   'gdkrgba.h',
   'gdkseat.h',
-  'gdkthreads.h',
+  'gdksnapshot.h',
   'gdktexture.h',
   'gdktypes.h',
   'gdkvulkancontext.h',
-  'gdkwindow.h',
+  'gdksurface.h',
 ])
 install_headers(gdk_public_headers, subdir: 'gtk-4.0/gdk/')
 
@@ -88,7 +97,6 @@ gdk_sources = gdk_public_sources
 gdk_private_h_sources = files([
   'gdkeventsprivate.h',
   'gdkdevicetoolprivate.h',
-  'gdkdrawingcontextprivate.h',
   'gdkmonitorprivate.h',
   'gdkseatdefaultprivate.h',
 ])
@@ -127,7 +135,6 @@ gdkconfig_cdata.set('GDK_WINDOWING_X11', x11_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_WAYLAND', wayland_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_WIN32', win32_enabled)
 gdkconfig_cdata.set('GDK_WINDOWING_BROADWAY', broadway_enabled)
-gdkconfig_cdata.set('GDK_WINDOWING_MIR', mir_enabled)
 gdkconfig_cdata.set('GDK_RENDERING_VULKAN', have_vulkan)
 
 gdkconfig = configure_file(
@@ -149,8 +156,9 @@ gdkversionmacros = configure_file(
   install_dir: join_paths(gtk_includedir, 'gtk-4.0/gdk'))
 
 gdkinc = include_directories('.')
+gdkx11_inc = include_directories('x11')
+gdkwayland_inc = include_directories('wayland')
 
-xinc = include_directories('x11')
 wlinc = include_directories('.')
 
 gdk_gen_headers = [gdkenum_h, gdkmarshal_h, gdkconfig, gdkversionmacros]
@@ -163,11 +171,12 @@ gdk_deps = [
   cairogobj_dep,
   glib_dep,
   gobject_dep,
+  graphene_dep,
   epoxy_dep,
   fontconfig_dep,
   platform_gio_dep,
   pangocairo_dep,
-  vulkan_lib
+  vulkan_dep,
 ]
 
 # add generated gdk sources
@@ -182,9 +191,9 @@ gdk_sources += [
 ]
 
 if wayland_enabled or broadway_enabled
-  if cc.has_function('shm_open', name : 'shm_open() in libc')
+  if cc.has_function('shm_open')
     shmlib = []
-  elif cc.has_function('shm_open', args : '-lrt', name : 'shm_open() in librt')
+  elif cc.has_function('shm_open', args : '-lrt')
     shmlib = cc.find_library('rt')
   else
     shmlib = []
@@ -193,7 +202,7 @@ endif
 
 gdk_backends = []
 gdk_backends_gen_headers = []  # non-public generated headers
-foreach backend : ['broadway', 'mir', 'quartz', 'wayland', 'win32', 'x11']
+foreach backend : ['broadway', 'quartz', 'wayland', 'win32', 'x11']
   if get_variable('@0@_enabled'.format(backend))
     subdir(backend)
     gdk_deps += get_variable('gdk_@0@_deps'.format(backend))
@@ -206,11 +215,15 @@ foreach backend : ['broadway', 'mir', 'quartz', 'wayland', 'win32', 'x11']
   endif
 endforeach
 
+if gdk_backends.length() == 0
+  error('No backends enabled')
+endif
+
 # FIXME: might have to add '-xobjective-c' to c_args for quartz backend?
 libgdk = static_library('gdk',
   sources: [gdk_sources, gdk_backends_gen_headers, gdkconfig],
   dependencies: gdk_deps,
-  include_directories: [confinc, xinc, wlinc],
+  include_directories: [confinc, gdkx11_inc, wlinc],
   c_args: [
     '-DGDK_COMPILATION',
     '-DG_LOG_DOMAIN="Gdk"',
@@ -223,5 +236,5 @@ libgdk = static_library('gdk',
 # "public" libgtk_dep used by internal executables.
 libgdk_dep = declare_dependency(
   sources: ['gdk.h', gdkconfig, gdkenum_h],
-  include_directories: [confinc, xinc, wlinc],
+  include_directories: [confinc, gdkx11_inc, wlinc],
   dependencies: gdk_deps)

@@ -43,7 +43,7 @@
 #define TWOPI (2 * G_PI)
 
 static GList     *wintab_contexts = NULL;
-static GdkWindow *wintab_window = NULL;
+static GdkSurface *wintab_window = NULL;
 extern gint       _gdk_input_ignore_core;
 
 typedef UINT (WINAPI *t_WTInfoA) (UINT a, UINT b, LPVOID c);
@@ -432,7 +432,7 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
 			    ndevices, ncursors));
 #endif
   /* Create a dummy window to receive wintab events */
-  wintab_window = gdk_window_new_popup (display, &(GdkRectangle) { -100, -100, 2, 2 });
+  wintab_window = gdk_surface_new_popup (display, &(GdkRectangle) { -100, -100, 2, 2 });
   g_object_ref (wintab_window);
 
   for (devix = 0; devix < ndevices; devix++)
@@ -496,7 +496,7 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
 			print_lc(&lc)));
 #endif
       hctx = g_new (HCTX, 1);
-      if ((*hctx = (*p_WTOpenA) (GDK_WINDOW_HWND (wintab_window), &lc, TRUE)) == NULL)
+      if ((*hctx = (*p_WTOpenA) (GDK_SURFACE_HWND (wintab_window), &lc, TRUE)) == NULL)
         {
           g_warning ("gdk_input_wintab_init: WTOpen failed");
           return;
@@ -831,7 +831,7 @@ decode_tilt (gint   *axis_data,
 
 /*
  * Get the currently active keyboard modifiers (ignoring the mouse buttons)
- * We could use gdk_window_get_pointer but that function does a lot of other
+ * We could use gdk_surface_get_pointer but that function does a lot of other
  * expensive things besides getting the modifiers. This code is somewhat based
  * on build_pointer_event_state from gdkevents-win32.c
  */
@@ -878,7 +878,7 @@ gboolean
 gdk_input_other_event (GdkDisplay *display,
                        GdkEvent   *event,
                        MSG        *msg,
-                       GdkWindow  *window)
+                       GdkSurface  *window)
 {
   GdkDeviceManagerWin32 *device_manager;
   GdkDeviceWintab *source_device = NULL;
@@ -886,7 +886,7 @@ gdk_input_other_event (GdkDisplay *display,
   GdkEventMask masktest;
   guint key_state;
   POINT pt;
-  GdkWindowImplWin32 *impl;
+  GdkSurfaceImplWin32 *impl;
 
   PACKET packet;
   gint root_x, root_y;
@@ -898,21 +898,21 @@ gdk_input_other_event (GdkDisplay *display,
    */
   static guint button_map[8] = {0, 1, 4, 5, 2, 3, 6, 7};
 
-  if (event->any.window != wintab_window)
+  if (event->any.surface != wintab_window)
     {
       g_warning ("gdk_input_other_event: not wintab_window?");
       return FALSE;
     }
 
   device_manager = GDK_DEVICE_MANAGER_WIN32 (_gdk_device_manager);
-  window = gdk_device_get_window_at_position (device_manager->core_pointer, &x, &y);
+  window = gdk_device_get_surface_at_position (device_manager->core_pointer, &x, &y);
 
   if (window)
     g_object_ref (window);
 
   GDK_NOTE (EVENTS_OR_INPUT,
 	    g_print ("gdk_input_other_event: window=%p %+d%+d\n",
-               window ? GDK_WINDOW_HWND (window) : NULL, x, y));
+               window ? GDK_SURFACE_HWND (window) : NULL, x, y));
 
   if (msg->message == WT_PACKET || msg->message == WT_CSRCHANGE)
     {
@@ -982,11 +982,11 @@ gdk_input_other_event (GdkDisplay *display,
 
       last_grab = _gdk_display_get_last_device_grab (display, GDK_DEVICE (source_device));
 
-      if (last_grab && last_grab->window)
+      if (last_grab && last_grab->surface)
         {
           g_object_unref (window);
 
-          window = g_object_ref (last_grab->window);
+          window = g_object_ref (last_grab->surface);
         }
 
       if (window == NULL)
@@ -1036,55 +1036,19 @@ gdk_input_other_event (GdkDisplay *display,
           if (!(translated_buttons & button_mask))
             {
               event->any.type = GDK_BUTTON_RELEASE;
-              masktest = GDK_BUTTON_RELEASE_MASK;
             }
           else
             {
               event->any.type = GDK_BUTTON_PRESS;
-              masktest = GDK_BUTTON_PRESS_MASK;
             }
           source_device->button_state ^= button_mask;
         }
       else
         {
           event->any.type = GDK_MOTION_NOTIFY;
-          masktest = GDK_POINTER_MOTION_MASK;
-          if (source_device->button_state & (1 << 0))
-            masktest |= GDK_BUTTON_MOTION_MASK | GDK_BUTTON1_MOTION_MASK;
-          if (source_device->button_state & (1 << 1))
-            masktest |= GDK_BUTTON_MOTION_MASK | GDK_BUTTON2_MOTION_MASK;
-          if (source_device->button_state & (1 << 2))
-            masktest |= GDK_BUTTON_MOTION_MASK | GDK_BUTTON3_MOTION_MASK;
         }
 
-      /* Now we can check if the window wants the event, and
-       * propagate if necessary.
-       */
-      while ((gdk_window_get_device_events (window, GDK_DEVICE (source_device)) & masktest) == 0 &&
-	     (gdk_device_get_device_type (GDK_DEVICE (source_device)) == GDK_DEVICE_TYPE_SLAVE &&
-	      (gdk_window_get_events (window) & masktest) == 0))
-        {
-          GDK_NOTE (EVENTS_OR_INPUT, g_print ("... not selected\n"));
-
-          if (window->parent == NULL)
-            return FALSE;
-
-          impl = GDK_WINDOW_IMPL_WIN32 (window->impl);
-          pt.x = x * impl->window_scale;
-          pt.y = y * impl->window_scale;
-          ClientToScreen (GDK_WINDOW_HWND (window), &pt);
-          g_object_unref (window);
-          window = window->parent;
-          impl = GDK_WINDOW_IMPL_WIN32 (window->impl);
-          g_object_ref (window);
-          ScreenToClient (GDK_WINDOW_HWND (window), &pt);
-          x = pt.x / impl->window_scale;
-          y = pt.y / impl->window_scale;
-          GDK_NOTE (EVENTS_OR_INPUT, g_print ("... propagating to %p %+d%+d\n",
-                                              GDK_WINDOW_HWND (window), x, y));
-        }
-
-      event->any.window = window;
+      event->any.surface = window;
       key_state = get_modifier_key_state ();
       if (event->any.type == GDK_BUTTON_PRESS ||
           event->any.type == GDK_BUTTON_RELEASE)
@@ -1093,10 +1057,9 @@ gdk_input_other_event (GdkDisplay *display,
 	  if (source_device->sends_core)
 	    gdk_event_set_device (event, device_manager->core_pointer);
           gdk_event_set_source_device (event, GDK_DEVICE (source_device));
-          gdk_event_set_seat (event, gdk_device_get_seat (device_manager->core_pointer));
 
           event->button.axes = g_new (gdouble, num_axes);
-	  gdk_window_get_origin (window, &root_x, &root_y);
+	  gdk_surface_get_origin (window, &root_x, &root_y);
 
           _gdk_device_wintab_translate_axes (source_device,
                                              window,
@@ -1115,7 +1078,7 @@ gdk_input_other_event (GdkDisplay *display,
 
           GDK_NOTE (EVENTS_OR_INPUT,
                     g_print ("WINTAB button %s:%d %g,%g\n",
-                             (event->button.type == GDK_BUTTON_PRESS ?
+                             (event->any.type == GDK_BUTTON_PRESS ?
                               "press" : "release"),
                              event->button.button,
                              event->button.x, event->button.y));
@@ -1123,13 +1086,11 @@ gdk_input_other_event (GdkDisplay *display,
       else
         {
           event->motion.time = _gdk_win32_get_next_tick (msg->time);
-          event->motion.is_hint = FALSE;
           gdk_event_set_device (event, device_manager->core_pointer);
           gdk_event_set_source_device (event, GDK_DEVICE (source_device));
-          gdk_event_set_seat (event, gdk_device_get_seat (device_manager->core_pointer));
 
           event->motion.axes = g_new (gdouble, num_axes);
-	  gdk_window_get_origin (window, &root_x, &root_y);
+	  gdk_surface_get_origin (window, &root_x, &root_y);
 
           _gdk_device_wintab_translate_axes (source_device,
                                              window,

@@ -55,15 +55,18 @@ gtk_tests = [
   ['testiconview'],
   ['testiconview-keynav'],
   ['testicontheme'],
+  ['testinfobar'],
   ['testimage'],
   ['testinput'],
   ['testkineticscrolling'],
   ['testlist'],
   ['testlist2'],
   ['testlist3'],
+  ['testlist4'],
   ['testlevelbar'],
   ['testlockbutton'],
   ['testmenubutton'],
+  ['testmodelbutton'],
   ['testmountoperation'],
   ['testnotebookdnd'],
   ['testnouiprint'],
@@ -71,8 +74,6 @@ gtk_tests = [
   ['testoverlay'],
   ['testoverlaystyleclass'],
   ['testprint', ['testprintfileoperation.c']],
-  ['testrecentchooser'],
-  ['testrecentchoosermenu'],
   ['testscale'],
   ['testselectionmode'],
   ['testspinbutton'],
@@ -101,7 +102,6 @@ gtk_tests = [
   ['testscrolledge'],
   ['testcellarea'],
   ['testswitch'],
-  ['testtoplevelembed'],
   ['testnoscreen'],
   ['testtreepos'],
   ['testsensitive'],
@@ -129,9 +129,11 @@ gtk_tests = [
   ['showrendernode'],
   ['testborderdrawing'],
   ['testoutsetshadowdrawing'],
+  ['testblur'],
+  ['testtexture'],
 ]
 
-if os_linux
+if os_unix
   gtk_tests += [['testfontchooserdialog']]
 endif
 

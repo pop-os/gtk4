@@ -10,6 +10,15 @@ rgba_to_float (const GdkRGBA *c,
   f[3] = c->alpha;
 }
 
+float
+ops_get_scale (const RenderOpBuilder *builder)
+{
+  const graphene_matrix_t *mv = &builder->current_modelview;
+
+  return MAX (graphene_matrix_get_x_scale (mv),
+              graphene_matrix_get_y_scale (mv));
+}
+
 void
 ops_set_program (RenderOpBuilder *builder,
                  const Program   *program)
@@ -115,17 +124,25 @@ ops_set_modelview (RenderOpBuilder         *builder,
 {
   RenderOp op;
   graphene_matrix_t prev_mv;
-  RenderOp *last_op;
 
   if (builder->current_program &&
       memcmp (&builder->program_state[builder->current_program->index].modelview, modelview,
               sizeof (graphene_matrix_t)) == 0)
     return *modelview;
 
-  last_op = &g_array_index (builder->render_ops, RenderOp, builder->render_ops->len - 1);
-  if (last_op->op == OP_CHANGE_MODELVIEW)
+  if (builder->render_ops->len > 0)
     {
-      last_op->modelview = *modelview;
+      RenderOp *last_op = &g_array_index (builder->render_ops, RenderOp, builder->render_ops->len - 1);
+      if (last_op->op == OP_CHANGE_MODELVIEW)
+        {
+          last_op->modelview = *modelview;
+        }
+      else
+        {
+          op.op = OP_CHANGE_MODELVIEW;
+          op.modelview = *modelview;
+          g_array_append_val (builder->render_ops, op);
+        }
     }
   else
     {
@@ -149,12 +166,20 @@ ops_set_projection (RenderOpBuilder         *builder,
 {
   RenderOp op;
   graphene_matrix_t prev_mv;
-  RenderOp *last_op;
 
-  last_op = &g_array_index (builder->render_ops, RenderOp, builder->render_ops->len - 1);
-  if (last_op->op == OP_CHANGE_PROJECTION)
+  if (builder->render_ops->len > 0)
     {
-      last_op->projection = *projection;
+      RenderOp *last_op = &g_array_index (builder->render_ops, RenderOp, builder->render_ops->len - 1);
+      if (last_op->op == OP_CHANGE_PROJECTION)
+        {
+          last_op->projection = *projection;
+        }
+      else
+        {
+          op.op = OP_CHANGE_PROJECTION;
+          op.projection = *projection;
+          g_array_append_val (builder->render_ops, op);
+        }
     }
   else
     {
@@ -309,23 +334,31 @@ ops_set_color_matrix (RenderOpBuilder         *builder,
 }
 
 void
-ops_set_border (RenderOpBuilder *builder,
-                const float     *widths)
+ops_set_border (RenderOpBuilder      *builder,
+                const float          *widths,
+                const GskRoundedRect *outline)
 {
   RenderOp op;
 
+  /* TODO: Assert that current_program == border program? */
+
   if (memcmp (&builder->program_state[builder->current_program->index].border.widths,
-              widths, sizeof (float) * 4) == 0)
+              widths, sizeof (float) * 4) == 0 &&
+      memcmp (&builder->program_state[builder->current_program->index].border.outline,
+              outline, sizeof (GskRoundedRect)) == 0)
     return;
 
   memcpy (&builder->program_state[builder->current_program->index].border.widths,
           widths, sizeof (float) * 4);
+
+  builder->program_state[builder->current_program->index].border.outline = *outline;
 
   op.op = OP_CHANGE_BORDER;
   op.border.widths[0] = widths[0];
   op.border.widths[1] = widths[1];
   op.border.widths[2] = widths[2];
   op.border.widths[3] = widths[3];
+  op.border.outline = *outline;
   g_array_append_val (builder->render_ops, op);
 }
 
@@ -374,17 +407,21 @@ ops_draw (RenderOpBuilder     *builder,
     }
   else
     {
-      RenderOp op;
+      const gsize n_ops = builder->render_ops->len;
+      RenderOp *op;
       gsize offset = builder->buffer_size / sizeof (GskQuadVertex);
 
-      op.op = OP_CHANGE_VAO;
-      memcpy (&op.vertex_data, vertex_data, sizeof(GskQuadVertex) * GL_N_VERTICES);
-      g_array_append_val (builder->render_ops, op);
+      /* We will add two render ops here. */
+      g_array_set_size (builder->render_ops, n_ops + 2);
 
-      op.op = OP_DRAW;
-      op.draw.vao_offset = offset;
-      op.draw.vao_size = GL_N_VERTICES;
-      g_array_append_val (builder->render_ops, op);
+      op = &g_array_index (builder->render_ops, RenderOp, n_ops);
+      op->op = OP_CHANGE_VAO;
+      memcpy (&op->vertex_data, vertex_data, sizeof(GskQuadVertex) * GL_N_VERTICES);
+
+      op = &g_array_index (builder->render_ops, RenderOp, n_ops + 1);
+      op->op = OP_DRAW;
+      op->draw.vao_offset = offset;
+      op->draw.vao_size = GL_N_VERTICES;
     }
 
   /* We added new vertex data in both cases so increase the buffer size */
@@ -396,8 +433,8 @@ ops_offset (RenderOpBuilder *builder,
             float            x,
             float            y)
 {
-  builder->dx = x;
-  builder->dy = y;
+  builder->dx += x;
+  builder->dy += y;
 }
 
 void

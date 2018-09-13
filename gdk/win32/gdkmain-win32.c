@@ -67,7 +67,7 @@ const GOptionEntry _gdk_windowing_args[] = {
 };
 
 void
-_gdk_win32_windowing_init (void)
+_gdk_win32_surfaceing_init (void)
 {
   gchar buf[10];
 
@@ -91,7 +91,7 @@ _gdk_win32_windowing_init (void)
   GDK_NOTE (EVENTS, g_print ("input_locale:%p, codepage:%d\n",
 			     _gdk_input_locale, _gdk_input_codepage));
 
-  _gdk_win32_selection_init ();
+  _gdk_win32_clipdrop_init ();
 }
 
 void
@@ -268,9 +268,6 @@ _gdk_win32_drag_protocol_to_string (GdkDragProtocol protocol)
   switch (protocol)
     {
 #define CASE(x) case GDK_DRAG_PROTO_##x: return #x
-      CASE (MOTIF);
-      CASE (XDND);
-      CASE (ROOTWIN);
       CASE (NONE);
       CASE (WIN32_DROPFILES);
       CASE (OLE2);
@@ -283,7 +280,7 @@ _gdk_win32_drag_protocol_to_string (GdkDragProtocol protocol)
 }
 
 gchar *
-_gdk_win32_window_state_to_string (GdkWindowState state)
+_gdk_win32_surface_state_to_string (GdkSurfaceState state)
 {
   gchar buf[100];
   gchar *bufp = buf;
@@ -292,11 +289,11 @@ _gdk_win32_window_state_to_string (GdkWindowState state)
   buf[0] = '\0';
 
 #define BIT(x)						\
-  if (state & GDK_WINDOW_STATE_ ## x)			\
+  if (state & GDK_SURFACE_STATE_ ## x)			\
     (bufp += sprintf (bufp, "%s" #x, s), s = "|")
 
   /* For clarity, also show the complement of WITHDRAWN, i.e. "MAPPED" */
-  if (!(state & GDK_WINDOW_STATE_WITHDRAWN))
+  if (!(state & GDK_SURFACE_STATE_WITHDRAWN))
     (bufp += sprintf (bufp, "MAPPED"), s = "|");
 
   BIT (WITHDRAWN);
@@ -309,7 +306,7 @@ _gdk_win32_window_state_to_string (GdkWindowState state)
 }
 
 gchar *
-_gdk_win32_window_style_to_string (LONG style)
+_gdk_win32_surface_style_to_string (LONG style)
 {
   gchar buf[1000];
   gchar *bufp = buf;
@@ -351,7 +348,7 @@ _gdk_win32_window_style_to_string (LONG style)
 }
 
 gchar *
-_gdk_win32_window_exstyle_to_string (LONG style)
+_gdk_win32_surface_exstyle_to_string (LONG style)
 {
   gchar buf[1000];
   gchar *bufp = buf;
@@ -397,7 +394,7 @@ _gdk_win32_window_exstyle_to_string (LONG style)
 }
 
 gchar *
-_gdk_win32_window_pos_bits_to_string (UINT flags)
+_gdk_win32_surface_pos_bits_to_string (UINT flags)
 {
   gchar buf[1000];
   gchar *bufp = buf;
@@ -441,11 +438,9 @@ _gdk_win32_drag_action_to_string (GdkDragAction actions)
   if (actions & GDK_ACTION_ ## x)				\
     (bufp += sprintf (bufp, "%s" #x, s), s = "|")
 
-  BIT (DEFAULT);
   BIT (COPY);
   BIT (MOVE);
   BIT (LINK);
-  BIT (PRIVATE);
   BIT (ASK);
 #undef BIT
 
@@ -914,15 +909,15 @@ _gdk_win32_cairo_region_to_string (const cairo_region_t *rgn)
 }
 
 gchar *
-_gdk_win32_window_description (GdkWindow *d)
+_gdk_win32_surface_description (GdkSurface *d)
 {
-  g_return_val_if_fail (GDK_IS_WINDOW (d), NULL);
+  g_return_val_if_fail (GDK_IS_SURFACE (d), NULL);
 
   return static_printf ("%s:%p:%dx%d",
 			G_OBJECT_TYPE_NAME (d),
-			GDK_WINDOW_HWND (d),
-			gdk_window_get_width (GDK_WINDOW (d)),
-                        gdk_window_get_height (GDK_WINDOW (d)));
+			GDK_SURFACE_HWND (d),
+			gdk_surface_get_width (GDK_SURFACE (d)),
+                        gdk_surface_get_height (GDK_SURFACE (d)));
 }
 
 #endif /* G_ENABLE_DEBUG */

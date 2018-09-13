@@ -30,10 +30,8 @@
 #include "gtkintl.h"
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
-#include "gtkrenderbackgroundprivate.h"
 #include "gtkscrollable.h"
 #include "gtksnapshot.h"
-#include "gtkstylecontextprivate.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
 
@@ -100,8 +98,7 @@ static void gtk_viewport_snapshot                 (GtkWidget        *widget,
 						   GtkSnapshot      *snapshot);
 static void gtk_viewport_size_allocate            (GtkWidget           *widget,
                                                    const GtkAllocation *allocation,
-                                                   int                  baseline,
-                                                   GtkAllocation       *out_clip);
+                                                   int                  baseline);
 static void gtk_viewport_adjustment_value_changed (GtkAdjustment    *adjustment,
 						   gpointer          data);
 static void viewport_set_adjustment               (GtkViewport      *viewport,
@@ -284,9 +281,8 @@ gtk_viewport_set_property (GObject         *object,
 			   const GValue    *value,
 			   GParamSpec      *pspec)
 {
-  GtkViewport *viewport;
-
-  viewport = GTK_VIEWPORT (object);
+  GtkViewport *viewport = GTK_VIEWPORT (object);
+  GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
 
   switch (prop_id)
     {
@@ -297,17 +293,17 @@ gtk_viewport_set_property (GObject         *object,
       viewport_set_adjustment (viewport, GTK_ORIENTATION_VERTICAL, g_value_get_object (value));
       break;
     case PROP_HSCROLL_POLICY:
-      if (viewport->priv->hscroll_policy != g_value_get_enum (value))
+      if (priv->hscroll_policy != g_value_get_enum (value))
         {
-          viewport->priv->hscroll_policy = g_value_get_enum (value);
+          priv->hscroll_policy = g_value_get_enum (value);
           gtk_widget_queue_resize (GTK_WIDGET (viewport));
           g_object_notify_by_pspec (object, pspec);
         }
       break;
     case PROP_VSCROLL_POLICY:
-      if (viewport->priv->vscroll_policy != g_value_get_enum (value))
+      if (priv->vscroll_policy != g_value_get_enum (value))
         {
-          viewport->priv->vscroll_policy = g_value_get_enum (value);
+          priv->vscroll_policy = g_value_get_enum (value);
           gtk_widget_queue_resize (GTK_WIDGET (viewport));
           g_object_notify_by_pspec (object, pspec);
         }
@@ -328,7 +324,7 @@ gtk_viewport_get_property (GObject         *object,
 			   GParamSpec      *pspec)
 {
   GtkViewport *viewport = GTK_VIEWPORT (object);
-  GtkViewportPrivate *priv = viewport->priv;
+  GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
 
   switch (prop_id)
     {
@@ -357,13 +353,11 @@ static void
 gtk_viewport_init (GtkViewport *viewport)
 {
   GtkWidget *widget;
-  GtkViewportPrivate *priv;
+  GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
 
-  viewport->priv = gtk_viewport_get_instance_private (viewport);
-  priv = viewport->priv;
   widget = GTK_WIDGET (viewport);
 
-  gtk_widget_set_has_window (widget, FALSE);
+  gtk_widget_set_has_surface (widget, FALSE);
 
   priv->shadow_type = GTK_SHADOW_IN;
   priv->hadjustment = NULL;
@@ -399,15 +393,16 @@ gtk_viewport_new (GtkAdjustment *hadjustment,
   return viewport;
 }
 
-#define ADJUSTMENT_POINTER(viewport, orientation)         \
-  (((orientation) == GTK_ORIENTATION_HORIZONTAL) ?        \
-     &(viewport)->priv->hadjustment : &(viewport)->priv->vadjustment)
+#define ADJUSTMENT_POINTER(orientation)            \
+  (((orientation) == GTK_ORIENTATION_HORIZONTAL) ? \
+     &priv->hadjustment : &priv->vadjustment)
 
 static void
 viewport_disconnect_adjustment (GtkViewport    *viewport,
 				GtkOrientation  orientation)
 {
-  GtkAdjustment **adjustmentp = ADJUSTMENT_POINTER (viewport, orientation);
+  GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
+  GtkAdjustment **adjustmentp = ADJUSTMENT_POINTER (orientation);
 
   if (*adjustmentp)
     {
@@ -435,7 +430,8 @@ viewport_set_adjustment (GtkViewport    *viewport,
 			 GtkOrientation  orientation,
 			 GtkAdjustment  *adjustment)
 {
-  GtkAdjustment **adjustmentp = ADJUSTMENT_POINTER (viewport, orientation);
+  GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
+  GtkAdjustment **adjustmentp = ADJUSTMENT_POINTER (orientation);
 
   if (adjustment && adjustment == *adjustmentp)
     return;
@@ -466,14 +462,13 @@ void
 gtk_viewport_set_shadow_type (GtkViewport   *viewport,
 			      GtkShadowType  type)
 {
-  GtkViewportPrivate *priv;
+  GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
   GtkWidget *widget;
   GtkStyleContext *context;
 
   g_return_if_fail (GTK_IS_VIEWPORT (viewport));
 
   widget = GTK_WIDGET (viewport);
-  priv = viewport->priv;
 
   if ((GtkShadowType) priv->shadow_type != type)
     {
@@ -503,9 +498,11 @@ gtk_viewport_set_shadow_type (GtkViewport   *viewport,
 GtkShadowType
 gtk_viewport_get_shadow_type (GtkViewport *viewport)
 {
+  GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
+
   g_return_val_if_fail (GTK_IS_VIEWPORT (viewport), GTK_SHADOW_NONE);
 
-  return viewport->priv->shadow_type;
+  return priv->shadow_type;
 }
 
 static void
@@ -516,8 +513,7 @@ gtk_viewport_snapshot (GtkWidget   *widget,
                           &GRAPHENE_RECT_INIT(
                             0, 0,
                             gtk_widget_get_width (widget),
-                            gtk_widget_get_height (widget)),
-                            "Viewport");
+                            gtk_widget_get_height (widget)));
 
   GTK_WIDGET_CLASS (gtk_viewport_parent_class)->snapshot (widget, snapshot);
 
@@ -527,11 +523,10 @@ gtk_viewport_snapshot (GtkWidget   *widget,
 static void
 gtk_viewport_size_allocate (GtkWidget           *widget,
                             const GtkAllocation *allocation,
-                            int                  baseline,
-                            GtkAllocation       *out_clip)
+                            int                  baseline)
 {
   GtkViewport *viewport = GTK_VIEWPORT (widget);
-  GtkViewportPrivate *priv = viewport->priv;
+  GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
   GtkAdjustment *hadjustment = priv->hadjustment;
   GtkAdjustment *vadjustment = priv->vadjustment;
   GtkWidget *child;
@@ -545,15 +540,14 @@ gtk_viewport_size_allocate (GtkWidget           *widget,
   child = gtk_bin_get_child (GTK_BIN (widget));
   if (child && gtk_widget_get_visible (child))
     {
-      GtkAllocation child_allocation, child_clip;
+      GtkAllocation child_allocation;
 
       child_allocation.x = - gtk_adjustment_get_value (hadjustment);
       child_allocation.y = - gtk_adjustment_get_value (vadjustment);
       child_allocation.width = gtk_adjustment_get_upper (hadjustment);
       child_allocation.height = gtk_adjustment_get_upper (vadjustment);
 
-      /* Explicitly ignore the child clip here. */
-      gtk_widget_size_allocate (child, &child_allocation, -1, &child_clip);
+      gtk_widget_size_allocate (child, &child_allocation, -1);
     }
 
   g_object_thaw_notify (G_OBJECT (hadjustment));

@@ -24,11 +24,12 @@
 
 #include "gdkdisplayprivate.h"
 #include "gdkkeys.h"
-#include "gdkwindow.h"
+#include "gdksurface.h"
 #include "gdkinternals.h"
 #include "gdkx11devicemanager.h"
 #include "gdkx11display.h"
 #include "gdkx11screen.h"
+#include "gdkprivate-x11.h"
 
 #include <X11/X.h>
 #include <X11/Xlib.h>
@@ -86,7 +87,7 @@ struct _GdkX11Display
   gboolean trusted_client;
 
   /* drag and drop information */
-  GdkDragContext *current_dest_drag;
+  GdkDrop *current_drop;
 
   /* Mapping to/from virtual atoms */
   GHashTable *atom_from_virtual;
@@ -95,7 +96,7 @@ struct _GdkX11Display
   /* Session Management leader window see ICCCM */
   char *program_class;
   Window leader_window;
-  GdkWindow *leader_gdk_window;
+  GdkSurface *leader_gdk_surface;
   gboolean leader_window_title_set;
 
   /* List of functions to go from extension event => X window */
@@ -104,14 +105,11 @@ struct _GdkX11Display
   /* X ID hashtable */
   GHashTable *xid_ht;
 
-  /* translation queue */
-  GQueue *translate_queue;
-
   /* streams reading selections */
   GSList *streams;
 
-  /* input GdkWindow list */
-  GList *input_windows;
+  /* input GdkSurface list */
+  GList *input_surfaces;
 
   /* GdkCursor => XCursor */
   GHashTable *cursors;
@@ -180,9 +178,9 @@ gsize           gdk_x11_display_get_max_request_size            (GdkDisplay     
 gboolean        gdk_x11_display_request_selection_notification  (GdkDisplay             *display,
                                                                  const char             *selection);
 
-GdkFilterReturn _gdk_wm_protocols_filter        (GdkXEvent   *xev,
-                                                 GdkEvent    *event,
-                                                 gpointer     data);
+GdkFilterReturn _gdk_wm_protocols_filter        (const XEvent   *xevent,
+                                                 GdkEvent       *event,
+                                                 gpointer        data);
 
 G_END_DECLS
 

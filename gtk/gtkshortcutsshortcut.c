@@ -20,10 +20,14 @@
 
 #include "gtkshortcutsshortcutprivate.h"
 
+#include "gtkimage.h"
+#include "gtkintl.h"
+#include "gtklabel.h"
+#include "gtkprivate.h"
 #include "gtkshortcutlabel.h"
 #include "gtkshortcutswindowprivate.h"
-#include "gtkprivate.h"
-#include "gtkintl.h"
+#include "gtksizegroup.h"
+#include "gtktypebuiltins.h"
 
 /**
  * SECTION:gtkshortcutsshortcut
@@ -515,12 +519,11 @@ gtk_shortcuts_shortcut_snapshot (GtkWidget   *widget,
 static void
 gtk_shortcuts_shortcut_size_allocate (GtkWidget           *widget,
                                       const GtkAllocation *allocation,
-                                      int                  baseline,
-                                      GtkAllocation       *out_clip)
+                                      int                  baseline)
 {
-  GTK_WIDGET_CLASS (gtk_shortcuts_shortcut_parent_class)->size_allocate (widget, allocation, baseline, out_clip);
+  GTK_WIDGET_CLASS (gtk_shortcuts_shortcut_parent_class)->size_allocate (widget, allocation, baseline);
 
-  gtk_widget_size_allocate (GTK_WIDGET (GTK_SHORTCUTS_SHORTCUT (widget)->box), allocation, -1, out_clip);
+  gtk_widget_size_allocate (GTK_WIDGET (GTK_SHORTCUTS_SHORTCUT (widget)->box), allocation, -1);
 }
 
 static void
@@ -701,8 +704,6 @@ gtk_shortcuts_shortcut_class_init (GtkShortcutsShortcutClass *klass)
    * the accelerators that are associated with the action
    * via gtk_application_set_accels_for_action(), and setting
    * #GtkShortcutsShortcut::accelerator is not necessary.
-   *
-   * Since: 3.22
    */
   properties[PROP_ACTION_NAME] =
     g_param_spec_string ("action-name",
@@ -718,7 +719,7 @@ gtk_shortcuts_shortcut_class_init (GtkShortcutsShortcutClass *klass)
 static void
 gtk_shortcuts_shortcut_init (GtkShortcutsShortcut *self)
 {
-  gtk_widget_set_has_window (GTK_WIDGET (self), FALSE);
+  gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
 
   self->box = g_object_new (GTK_TYPE_BOX,
                             "orientation", GTK_ORIENTATION_HORIZONTAL,
