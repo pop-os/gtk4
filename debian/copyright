@@ -83,6 +83,7 @@ Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 2010 Sadia Afroz <sadia@ankur.org.bd>
            Copyright (C) 2010 Israt Jahan <israt@ankur.org.bd>
            Copyright (C) 2010 Intel Corporation
+           Copyright (C) 2015 Matthew Waters
            Copyright (C) 2017-2018 Руслан Ижбулатов (LRN)
            Copyright (C) 2016-2018 Benjamin Otte
            Copyright (C) Federico Mena
@@ -142,6 +143,12 @@ Files: gsk/gskdiff.c
        gtk/inspector/inspectoroverlay.*
        gtk/inspector/updatesoverlay.*
        gtk/org.gtk.Settings.FileChooser.gschema.xml
+       modules/media/gtkffmediafile.c
+       modules/media/gtkffmediafileprivate.h
+       modules/media/gtkgstmediafile.c
+       modules/media/gtkgstmediafileprivate.h
+       modules/media/gtkgstpaintable.c
+       modules/media/gtkgstpaintableprivate.h
 Copyright: Copyright (C) 2010 Christian Dywan
            Copyright (C) 2008 Openismus GmbH
            Copyright (C) 2001 CodeFactory AB
