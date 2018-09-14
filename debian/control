@@ -3,59 +3,59 @@ Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
 Uploaders: Emilio Pozuelo Monfort <pochu@debian.org>, Iain Lane <laney@debian.org>, Jeremy Bicha <jbicha@debian.org>, Michael Biebl <biebl@debian.org>
-Build-Depends: debhelper (>= 10.3~),
-               gnome-pkg-tools (>= 0.11),
-               dpkg-dev (>= 1.17.14),
-               autoconf-archive,
-               gtk-doc-tools (>= 1.26),
-               meson (>= 0.42.1),
-               pkg-config,
-               dbus <!nocheck>,
-               gsettings-desktop-schemas <!nocheck>,
-               adwaita-icon-theme <!nocheck>,
+Build-Depends: adwaita-icon-theme <!nocheck>,
                at-spi2-core <!nocheck>,
-               libglib2.0-dev (>= 2.53.0),
-               libgdk-pixbuf2.0-dev (>= 2.30.0),
-               libpango1.0-dev (>= 1.40.5),
-               libatk1.0-dev (>= 2.15.1),
+               autoconf-archive,
+               dbus <!nocheck>,
+               debhelper (>= 10.3~),
+               dpkg-dev (>= 1.17.14),
+               gnome-pkg-tools (>= 0.11),
+               gobject-introspection (>= 1.41.3),
+               gsettings-desktop-schemas <!nocheck>,
+               gtk-doc-tools (>= 1.26),
                libatk-bridge2.0-dev,
+               libatk1.0-dev (>= 2.15.1),
+               libcairo2-dev (>= 1.14.0),
+               libcolord-dev (>= 0.1.9),
+               libcups2-dev (>= 1.2),
                libegl1-mesa-dev [linux-any],
                libepoxy-dev,
-               libgraphene-1.0-dev (>= 1.5.1),
                libfontconfig1-dev,
+               libgdk-pixbuf2.0-dev (>= 2.30.0),
+               libgirepository1.0-dev (>= 1.39.0),
+               libglib2.0-dev (>= 2.53.0),
+               libgraphene-1.0-dev (>= 1.5.1),
                libharfbuzz-dev (>= 0.9),
+               libjson-glib-dev,
+               libpango1.0-dev (>= 1.40.5),
+               librest-dev,
                libvulkan-dev [linux-any],
                libwayland-dev (>= 1.9.91) [linux-any],
-               wayland-protocols (>= 1.9) [linux-any],
-               libxkbcommon-dev (>= 0.2.0),
                libx11-dev,
+               libxcomposite-dev,
+               libxcursor-dev,
+               libxdamage-dev,
                libxext-dev,
+               libxfixes-dev,
                libxi-dev,
+               libxinerama-dev,
+               libxkbcommon-dev (>= 0.2.0),
+               libxkbfile-dev,
                libxml2-utils,
                libxrandr-dev (>= 2:1.5.0),
-               libxcursor-dev,
-               libxcomposite-dev,
-               libxdamage-dev,
-               libxkbfile-dev,
-               libxinerama-dev,
-               libxfixes-dev,
-               libcairo2-dev (>= 1.14.0),
-               libcups2-dev (>= 1.2),
-               libcolord-dev (>= 0.1.9),
-               librest-dev,
-               libjson-glib-dev,
-               gobject-introspection (>= 1.41.3),
-               libgirepository1.0-dev (>= 1.39.0),
+               meson (>= 0.42.1),
+               pkg-config,
                sassc,
+               wayland-protocols (>= 1.9) [linux-any],
                xauth <!nocheck>,
-               xvfb <!nocheck>,
-Build-Depends-Indep: libglib2.0-doc,
-                     libatk1.0-doc,
-                     libpango1.0-doc,
-                     libcairo2-doc,
-                     docbook-xml,
+               xvfb <!nocheck>
+Build-Depends-Indep: docbook-xml,
                      docbook-xsl,
-                     xsltproc,
+                     libatk1.0-doc,
+                     libcairo2-doc,
+                     libglib2.0-doc,
+                     libpango1.0-doc,
+                     xsltproc
 Standards-Version: 4.1.0
 Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
 Vcs-Git: https://salsa.debian.org/gnome-team/gtk4.git
@@ -64,16 +64,16 @@ Homepage: http://www.gtk.org/
 Package: libgtk-4-0
 Architecture: any
 Multi-Arch: same
-Depends: libgtk-4-common (>= ${source:Version}),
+Depends: adwaita-icon-theme,
+         hicolor-icon-theme,
+         shared-mime-info,
          ${misc:Depends},
          ${shlibs:Depends},
-         hicolor-icon-theme,
-         adwaita-icon-theme,
-         shared-mime-info
+         libgtk-4-common (>= ${source:Version})
 Provides: gtk4-binver-4.0.0
 Recommends: libgtk-4-bin
-Suggests: librsvg2-common,
-          gvfs
+Suggests: gvfs,
+          librsvg2-common
 Breaks: gnome-themes-standard (<< 3.6),
         gtk3-engines-oxygen (<< 1.4.1-3)
 Pre-Depends: ${misc:Pre-Depends}
@@ -90,8 +90,8 @@ XC-Package-Type: udeb
 Section: debian-installer
 Priority: extra
 Architecture: any
-Depends: ${shlibs:Depends},
-         ${misc:Depends}
+Depends: ${misc:Depends},
+         ${shlibs:Depends}
 Provides: gtk4-binver-4.0.0
 Description: GTK+ graphical user interface library - minimal runtime
  This is a udeb, or a microdeb, for the debian-installer.
@@ -108,8 +108,8 @@ Package: libgtk-4-common
 Section: misc
 Architecture: all
 Multi-Arch: foreign
-Depends: ${misc:Depends},
-         libgtk-3-common
+Depends: libgtk-3-common,
+         ${misc:Depends}
 Recommends: libgtk-4-0
 Description: common files for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
@@ -123,11 +123,12 @@ Package: libgtk-4-bin
 Section: misc
 Architecture: any
 Multi-Arch: foreign
-Depends: ${misc:Depends}, ${shlibs:Depends},
-         libgtk-4-0 (>= ${source:Version}),
+Depends: gtk-update-icon-cache,
+         libgtk-3-bin,
+         ${misc:Depends},
+         ${shlibs:Depends},
          libgtk-4-common (>= ${source:Version}),
-         gtk-update-icon-cache,
-         libgtk-3-bin
+         libgtk-4-0 (>= ${source:Version})
 Description: programs for the GTK+ graphical user interface library
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -141,34 +142,34 @@ Package: libgtk-4-dev
 Section: libdevel
 Architecture: any
 Multi-Arch: same
-Depends: libgtk-4-0 (= ${binary:Version}),
-         gir1.2-gtk-4.0 (= ${binary:Version}),
-         libgtk-4-common,
-         ${misc:Depends},
-         ${shlibs:Depends},
-         libglib2.0-dev (>= 2.53.0),
-         libgdk-pixbuf2.0-dev (>= 2.30.0),
-         libpango1.0-dev (>= 1.40.5),
-         libatk1.0-dev (>= 2.15.1),
+Depends: gir1.2-gtk-4.0 (= ${binary:Version}),
          libatk-bridge2.0-dev,
+         libatk1.0-dev (>= 2.15.1),
          libcairo2-dev (>= 1.14.0),
+         libegl1-mesa-dev [linux-any],
          libepoxy-dev (>= 1.0),
          libfontconfig1-dev,
+         libgdk-pixbuf2.0-dev (>= 2.30.0),
+         libglib2.0-dev (>= 2.53.0),
          libgraphene-1.0-dev (>= 1.5.1),
-         libx11-dev,
-         libxext-dev,
-         libxinerama-dev,
-         libxi-dev,
-         libxrandr-dev,
-         libxcursor-dev,
-         libxfixes-dev,
-         libxcomposite-dev,
-         libxdamage-dev,
-         pkg-config,
-         libegl1-mesa-dev [linux-any],
+         libpango1.0-dev (>= 1.40.5),
          libwayland-dev (>= 1.9.91) [linux-any],
+         libx11-dev,
+         libxcomposite-dev,
+         libxcursor-dev,
+         libxdamage-dev,
+         libxext-dev,
+         libxfixes-dev,
+         libxi-dev,
+         libxinerama-dev,
+         libxkbcommon-dev,
+         libxrandr-dev,
+         pkg-config,
          wayland-protocols (>= 1.9) [linux-any],
-         libxkbcommon-dev
+         ${misc:Depends},
+         ${shlibs:Depends},
+         libgtk-4-common,
+         libgtk-4-0 (= ${binary:Version})
 Suggests: libgtk-4-doc
 Description: development files for the GTK+ library
  GTK+ is a multi-platform toolkit for creating graphical user
@@ -184,8 +185,8 @@ Section: doc
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}
-Recommends: libglib2.0-doc,
-            libatk1.0-doc,
+Recommends: libatk1.0-doc,
+            libglib2.0-doc,
             libpango1.0-doc
 Suggests: devhelp
 Description: documentation for the GTK+ graphical user interface library
@@ -201,10 +202,10 @@ Package: gtk-4-examples
 Section: x11
 Priority: extra
 Architecture: any
-Depends: ${shlibs:Depends},
+Depends: gtk-3-examples,
          ${misc:Depends},
-         libgtk-4-0 (= ${binary:Version}),
-         gtk-3-examples
+         ${shlibs:Depends},
+         libgtk-4-0 (= ${binary:Version})
 Description: example files for GTK+ 4
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
@@ -218,15 +219,15 @@ Package: gir1.2-gtk-4.0
 Section: introspection
 Architecture: any
 Multi-Arch: same
-Depends: libgtk-4-common,
+Depends: ${gir:Depends},
          ${misc:Depends},
          ${shlibs:Depends},
-         ${gir:Depends}
+         libgtk-4-common
 Breaks: python-gi (<< 3.18),
-        python3-gi (<< 3.18),
+        python3-gi (<< 3.18)
 Provides: gir1.2-gdk-4.0 (= ${binary:Version}),
           gir1.2-gdkx11-4.0 (= ${binary:Version}),
-          gir1.2-gsk-4.0 (= ${binary:Version}),
+          gir1.2-gsk-4.0 (= ${binary:Version})
 Description: GTK+ graphical user interface library -- gir bindings
  GTK+ is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK+ is suitable
