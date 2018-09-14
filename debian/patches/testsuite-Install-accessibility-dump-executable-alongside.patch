@@ -1,0 +1,22 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Fri, 14 Sep 2018 13:15:09 +0100
+Subject: testsuite: Install accessibility-dump executable alongside tests
+
+Signed-off-by: Simon McVittie <smcv@debian.org>
+---
+ testsuite/a11y/meson.build | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/testsuite/a11y/meson.build b/testsuite/a11y/meson.build
+index ddd8f01..01fab47 100644
+--- a/testsuite/a11y/meson.build
++++ b/testsuite/a11y/meson.build
+@@ -44,6 +44,8 @@ a11y_state_tests = [
+ a11y_dump_bin = executable('accessibility-dump',
+   'accessibility-dump.c',
+   dependencies: libgtk_dep,
++  install: get_option('install-tests'),
++  install_dir: testexecdir,
+ )
+ 
+ foreach t: a11y_state_tests

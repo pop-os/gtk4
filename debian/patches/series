@@ -1,2 +1,3 @@
 reftest-known-fail.patch
 reftests-Fix-path-to-installed-tests-in-.test-metadata.patch
+testsuite-Install-accessibility-dump-executable-alongside.patch

@@ -50,6 +50,8 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
     autopkgtest)
   * d/tests/control: Mark python3-gi as flaky until python3-gi overrides
     get updated for the rename of Gdk.Window to Gdk.Surface
+  * d/p/testsuite-Install-accessibility-dump-executable-alongside.patch:
+    Install accessibility-dump in installed-tests so one more test can pass
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
