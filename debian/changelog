@@ -39,6 +39,9 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * d/libgtk-4-common.install.in: Don't install im-multipress.conf,
     no longer available (the multipress IM module is unmaintained and
     was removed)
+  * d/libgtk-4-0.install.in: Don't install IM modules. The backend IM
+    modules such as XIM and Wayland are now linked into GTK+ itself,
+    while non-backend IM modules have been removed.
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
