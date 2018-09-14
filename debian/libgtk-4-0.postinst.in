@@ -1,19 +1,22 @@
 #!/bin/sh
 set -e
 
-IMMODULES_DIR=/@MODULES_BASE_PATH@/immodules
+update_modules () {
+    for dir in immodules; do
+        if [ -d "/@MODULES_BASE_PATH@/$dir" ]; then
+            /@LIBDIR@/glib-2.0/gio-querymodules "/@MODULES_BASE_PATH@/$dir" || true
+        fi
+    done
+}
 
 if [ "$1" = triggered ]; then
     # This is triggered everytime an application installs a
-    # GTK immodule loader
-    /@LIBDIR@/@SHARED_PKG@/gtk4-query-immodules --update-cache || true
+    # GTK IM module
+    update_modules
     exit 0
 fi
 
 #DEBHELPER#
 
 # Also handle the initial installation
-if [ -d $IMMODULES_DIR ]; then
-     /@LIBDIR@/@SHARED_PKG@/gtk4-query-immodules --update-cache || true
-fi
-
+update_modules
