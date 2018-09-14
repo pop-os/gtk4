@@ -1,1 +1,2 @@
 reftest-known-fail.patch
+reftests-Fix-path-to-installed-tests-in-.test-metadata.patch

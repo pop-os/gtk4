@@ -1,0 +1,52 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Fri, 14 Sep 2018 09:22:15 +0100
+Subject: reftests: Fix path to installed-tests in .test metadata
+
+Signed-off-by: Simon McVittie <smcv@debian.org>
+---
+ testsuite/reftests/reftests-dark.test.in | 2 +-
+ testsuite/reftests/reftests-hc.test.in   | 2 +-
+ testsuite/reftests/reftests-hci.test.in  | 2 +-
+ testsuite/reftests/reftests.test.in      | 2 +-
+ 4 files changed, 4 insertions(+), 4 deletions(-)
+
+diff --git a/testsuite/reftests/reftests-dark.test.in b/testsuite/reftests/reftests-dark.test.in
+index 9ff9e21..ab0e2fb 100644
+--- a/testsuite/reftests/reftests-dark.test.in
++++ b/testsuite/reftests/reftests-dark.test.in
+@@ -1,4 +1,4 @@
+ [Test]
+-Exec=/bin/sh -c "env GTK_THEME=Adwaita:dark G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk+/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk+/reftests"
++Exec=/bin/sh -c "env GTK_THEME=Adwaita:dark G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk-4.0/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk-4.0/reftests"
+ Type=session-exclusive
+ Output=TAP
+diff --git a/testsuite/reftests/reftests-hc.test.in b/testsuite/reftests/reftests-hc.test.in
+index ea3ae9e..9d6cb56 100644
+--- a/testsuite/reftests/reftests-hc.test.in
++++ b/testsuite/reftests/reftests-hc.test.in
+@@ -1,4 +1,4 @@
+ [Test]
+-Exec=/bin/sh -c "env GTK_THEME=HighContrast G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk+/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk+/reftests"
++Exec=/bin/sh -c "env GTK_THEME=HighContrast G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk-4.0/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk-4.0/reftests"
+ Type=session-exclusive
+ Output=TAP
+diff --git a/testsuite/reftests/reftests-hci.test.in b/testsuite/reftests/reftests-hci.test.in
+index d08bb98..6ea0b1a 100644
+--- a/testsuite/reftests/reftests-hci.test.in
++++ b/testsuite/reftests/reftests-hci.test.in
+@@ -1,4 +1,4 @@
+ [Test]
+-Exec=/bin/sh -c "env GTK_THEME=HighContrastInverse G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk+/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk+/reftests"
++Exec=/bin/sh -c "env GTK_THEME=HighContrastInverse G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk-4.0/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk-4.0/reftests"
+ Type=session-exclusive
+ Output=TAP
+diff --git a/testsuite/reftests/reftests.test.in b/testsuite/reftests/reftests.test.in
+index 6b8a42f..9eb1864 100644
+--- a/testsuite/reftests/reftests.test.in
++++ b/testsuite/reftests/reftests.test.in
+@@ -1,4 +1,4 @@
+ [Test]
+-Exec=/bin/sh -c "env G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk+/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk+/reftests"
++Exec=/bin/sh -c "env G_ENABLE_DIAGNOSTIC=0 @libexecdir@/installed-tests/gtk-4.0/gtk-reftest -k --verbose --tap --output $(pwd) --directory @libexecdir@/installed-tests/gtk-4.0/reftests"
+ Type=session-exclusive
+ Output=TAP
