@@ -48,6 +48,8 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * List installed but unpackaged files in d/not-installed
   * libgtk-4-dev: Add missing dependency on libvulkan-dev (thanks,
     autopkgtest)
+  * d/tests/control: Mark python3-gi as flaky until python3-gi overrides
+    get updated for the rename of Gdk.Window to Gdk.Surface
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 

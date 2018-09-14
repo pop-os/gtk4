@@ -1,5 +1,9 @@
-Tests: build python3-gi
-Depends: libgtk-4-dev, build-essential, xauth, xvfb, python3-gi, gir1.2-gtk-4.0, dbus
+Tests: build
+Depends: build-essential, libgtk-4-dev
+
+Tests: python3-gi
+Depends: dbus, gir1.2-gtk-4.0, python3-gi, xauth, xvfb
+Restrictions: flaky
 
 Tests: installed-tests
 Depends: at-spi2-core, dbus (>= 1.8), gnome-desktop-testing (>= 2018.1-1~), gtk-4-examples, xauth, xvfb
