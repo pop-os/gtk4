@@ -89,29 +89,28 @@ debian/%: debian/%.in
 
 configure_flags_common = \
 	--libdir=/$(LIBDIR) \
-	--libexecdir=/usr/libexec \
-	-Denable-test-print-backend=yes
+	--libexecdir=/usr/libexec
 
 configure_flags_deb = \
-	-Denable-broadway-backend=true \
-	-Denable-x11-backend=true \
+	-Dbroadway-backend=true \
+	-Dx11-backend=true \
 	-Ddocumentation=true \
 	-Dman-pages=true \
 	-Dintrospection=true \
 	-Dinstall-tests=true \
-	-Denable-cloudprint-print-backend=yes \
+	-Dcloudprint=yes \
 	-Dmedia=none
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
-configure_flags_deb += -Denable-colord=yes
+configure_flags_deb += -Dcolord=yes
 else
-configure_flags_deb += -Denable-colord=no
+configure_flags_deb += -Dcolord=no
 endif
 
 ifeq (linux,$(DEB_HOST_ARCH_OS))
-configure_flags_deb += -Denable-wayland-backend=true
+configure_flags_deb += -Dwayland-backend=true
 else
-configure_flags_deb += -Denable-wayland-backend=true
+configure_flags_deb += -Dwayland-backend=true
 endif
 
 ifeq ($(filter %-doc,$(binaries)),)
@@ -119,11 +118,11 @@ configure_flags_deb += -Ddocumentation=no -Dman-pages=no
 endif
 
 configure_flags_udeb = \
-	-Denable-broadway-backend=false \
-	-Denable-wayland-backend=false \
-	-Denable-x11-backend=true \
+	-Dbroadway-backend=false \
+	-Dwayland-backend=false \
+	-Dx11-backend=true \
 	-Dintrospection=true \
-	-Denable-cloudprint-print-backend=no \
+	-Dcloudprint=no \
 	-Dcolord=no \
 	-Dmedia=none
 
