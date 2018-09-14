@@ -32,6 +32,8 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
     - Mark them as flaky for now
   * Disable GStreamer video support for now
   * Stop installing gtk4-query-immodules, superseded by gio-querymodules
+  * Drop support for OLD_MODULES_BASE_PATH. GTK+ 4 only supports modules
+    in the multiarch location.
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 

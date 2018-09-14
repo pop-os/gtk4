@@ -31,7 +31,6 @@ CONFDIR := etc/gtk-4.0
 
 # relative base directory for all types of modules
 MODULES_BASE_PATH := $(LIBDIR)/gtk-4.0/$(GTK_BINARY_VERSION)
-OLD_MODULES_BASE_PATH := usr/lib/gtk-4.0/$(GTK_BINARY_VERSION)
 
 # package names
 SHARED_PKG := libgtk-$(APIVER)-$(SONAME)
@@ -84,7 +83,6 @@ debian/%: debian/%.in
 		-e "s#@LIBDIR@#$(LIBDIR)#g" \
 		-e 's#@CONFDIR@#$(CONFDIR)#g' \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
-		-e "s#@OLD_MODULES_BASE_PATH@#$(OLD_MODULES_BASE_PATH)#g" \
 		-e "s#@NEWS@#$(NEWS)#g" \
 		-e "s#@README.md@#$(README.md)#g" \
 		$@.in > $@
