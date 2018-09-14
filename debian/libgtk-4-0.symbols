@@ -1,46 +1,128 @@
-libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
+libgtk-4.so.0.9400.0 libgtk-4-0 #MINVER#
  gdk_anchor_hints_get_type@Base 3.91.2
  gdk_app_launch_context_get_type@Base 3.91.2
  gdk_app_launch_context_set_desktop@Base 3.91.2
  gdk_app_launch_context_set_icon@Base 3.91.2
  gdk_app_launch_context_set_icon_name@Base 3.91.2
- gdk_app_launch_context_set_screen@Base 3.91.2
  gdk_app_launch_context_set_timestamp@Base 3.91.2
- gdk_atom_intern@Base 3.91.2
- gdk_atom_intern_static_string@Base 3.91.2
- gdk_atom_name@Base 3.91.2
  gdk_axis_flags_get_type@Base 3.91.2
  gdk_axis_use_get_type@Base 3.91.2
- gdk_beep@Base 3.91.2
- gdk_broadway_cursor_get_type@Base 3.91.2
+ gdk_broadway_cairo_context_get_type@Base 3.94.0
  gdk_broadway_display_get_type@Base 3.91.2
  gdk_broadway_display_hide_keyboard@Base 3.91.2
  gdk_broadway_display_show_keyboard@Base 3.91.2
+ gdk_broadway_draw_context_get_type@Base 3.94.0
  gdk_broadway_get_last_seen_time@Base 3.91.2
  gdk_broadway_monitor_get_type@Base 3.91.2
- gdk_broadway_window_get_type@Base 3.91.2
+ gdk_broadway_surface_get_type@Base 3.94.0
  gdk_byte_order_get_type@Base 3.91.2
+ gdk_cairo_context_cairo_create@Base 3.94.0
+ gdk_cairo_context_get_type@Base 3.94.0
  gdk_cairo_draw_from_gl@Base 3.91.2
  gdk_cairo_get_clip_rectangle@Base 3.91.2
- gdk_cairo_get_drawing_context@Base 3.91.2
  gdk_cairo_rectangle@Base 3.91.2
  gdk_cairo_region@Base 3.91.2
  gdk_cairo_region_create_from_surface@Base 3.91.2
  gdk_cairo_set_source_pixbuf@Base 3.91.2
  gdk_cairo_set_source_rgba@Base 3.91.2
- gdk_cairo_surface_create_from_pixbuf@Base 3.91.2
  gdk_cairo_surface_upload_to_gl@Base 3.91.2
+ gdk_clipboard_get_content@Base 3.94.0
+ gdk_clipboard_get_display@Base 3.94.0
+ gdk_clipboard_get_formats@Base 3.94.0
+ gdk_clipboard_get_type@Base 3.94.0
+ gdk_clipboard_is_local@Base 3.94.0
+ gdk_clipboard_read_async@Base 3.94.0
+ gdk_clipboard_read_finish@Base 3.94.0
+ gdk_clipboard_read_text_async@Base 3.94.0
+ gdk_clipboard_read_text_finish@Base 3.94.0
+ gdk_clipboard_read_texture_async@Base 3.94.0
+ gdk_clipboard_read_texture_finish@Base 3.94.0
+ gdk_clipboard_read_value_async@Base 3.94.0
+ gdk_clipboard_read_value_finish@Base 3.94.0
+ gdk_clipboard_set@Base 3.94.0
+ gdk_clipboard_set_content@Base 3.94.0
+ gdk_clipboard_set_text@Base 3.94.0
+ gdk_clipboard_set_texture@Base 3.94.0
+ gdk_clipboard_set_valist@Base 3.94.0
+ gdk_clipboard_set_value@Base 3.94.0
+ gdk_clipboard_store_async@Base 3.94.0
+ gdk_clipboard_store_finish@Base 3.94.0
+ gdk_content_deserialize_async@Base 3.94.0
+ gdk_content_deserialize_finish@Base 3.94.0
+ gdk_content_deserializer_get_cancellable@Base 3.94.0
+ gdk_content_deserializer_get_gtype@Base 3.94.0
+ gdk_content_deserializer_get_input_stream@Base 3.94.0
+ gdk_content_deserializer_get_mime_type@Base 3.94.0
+ gdk_content_deserializer_get_priority@Base 3.94.0
+ gdk_content_deserializer_get_task_data@Base 3.94.0
+ gdk_content_deserializer_get_type@Base 3.94.0
+ gdk_content_deserializer_get_user_data@Base 3.94.0
+ gdk_content_deserializer_get_value@Base 3.94.0
+ gdk_content_deserializer_return_error@Base 3.94.0
+ gdk_content_deserializer_return_success@Base 3.94.0
+ gdk_content_deserializer_set_task_data@Base 3.94.0
+ gdk_content_formats_builder_add_formats@Base 3.94.0
+ gdk_content_formats_builder_add_gtype@Base 3.94.0
+ gdk_content_formats_builder_add_mime_type@Base 3.94.0
+ gdk_content_formats_builder_free_to_formats@Base 3.94.0
+ gdk_content_formats_builder_get_type@Base 3.94.0
+ gdk_content_formats_builder_new@Base 3.94.0
+ gdk_content_formats_builder_ref@Base 3.94.0
+ gdk_content_formats_builder_to_formats@Base 3.94.0
+ gdk_content_formats_builder_unref@Base 3.94.0
+ gdk_content_formats_contain_gtype@Base 3.94.0
+ gdk_content_formats_contain_mime_type@Base 3.94.0
+ gdk_content_formats_get_gtypes@Base 3.94.0
+ gdk_content_formats_get_mime_types@Base 3.94.0
+ gdk_content_formats_get_type@Base 3.94.0
+ gdk_content_formats_match@Base 3.94.0
+ gdk_content_formats_match_gtype@Base 3.94.0
+ gdk_content_formats_match_mime_type@Base 3.94.0
+ gdk_content_formats_new@Base 3.94.0
+ gdk_content_formats_new_for_gtype@Base 3.94.0
+ gdk_content_formats_print@Base 3.94.0
+ gdk_content_formats_ref@Base 3.94.0
+ gdk_content_formats_to_string@Base 3.94.0
+ gdk_content_formats_union@Base 3.94.0
+ gdk_content_formats_union_deserialize_gtypes@Base 3.94.0
+ gdk_content_formats_union_deserialize_mime_types@Base 3.94.0
+ gdk_content_formats_union_serialize_gtypes@Base 3.94.0
+ gdk_content_formats_union_serialize_mime_types@Base 3.94.0
+ gdk_content_formats_unref@Base 3.94.0
+ gdk_content_provider_content_changed@Base 3.94.0
+ gdk_content_provider_get_type@Base 3.94.0
+ gdk_content_provider_get_value@Base 3.94.0
+ gdk_content_provider_new_for_bytes@Base 3.94.0
+ gdk_content_provider_new_for_value@Base 3.94.0
+ gdk_content_provider_ref_formats@Base 3.94.0
+ gdk_content_provider_ref_storable_formats@Base 3.94.0
+ gdk_content_provider_write_mime_type_async@Base 3.94.0
+ gdk_content_provider_write_mime_type_finish@Base 3.94.0
+ gdk_content_register_deserializer@Base 3.94.0
+ gdk_content_register_serializer@Base 3.94.0
+ gdk_content_serialize_async@Base 3.94.0
+ gdk_content_serialize_finish@Base 3.94.0
+ gdk_content_serializer_get_cancellable@Base 3.94.0
+ gdk_content_serializer_get_gtype@Base 3.94.0
+ gdk_content_serializer_get_mime_type@Base 3.94.0
+ gdk_content_serializer_get_output_stream@Base 3.94.0
+ gdk_content_serializer_get_priority@Base 3.94.0
+ gdk_content_serializer_get_task_data@Base 3.94.0
+ gdk_content_serializer_get_type@Base 3.94.0
+ gdk_content_serializer_get_user_data@Base 3.94.0
+ gdk_content_serializer_get_value@Base 3.94.0
+ gdk_content_serializer_return_error@Base 3.94.0
+ gdk_content_serializer_return_success@Base 3.94.0
+ gdk_content_serializer_set_task_data@Base 3.94.0
  gdk_crossing_mode_get_type@Base 3.91.2
- gdk_cursor_get_cursor_type@Base 3.91.2
- gdk_cursor_get_display@Base 3.91.2
- gdk_cursor_get_image@Base 3.91.2
- gdk_cursor_get_surface@Base 3.91.2
+ gdk_cursor_get_fallback@Base 3.94.0
+ gdk_cursor_get_hotspot_x@Base 3.94.0
+ gdk_cursor_get_hotspot_y@Base 3.94.0
+ gdk_cursor_get_name@Base 3.94.0
+ gdk_cursor_get_texture@Base 3.94.0
  gdk_cursor_get_type@Base 3.91.2
- gdk_cursor_new_for_display@Base 3.91.2
  gdk_cursor_new_from_name@Base 3.91.2
- gdk_cursor_new_from_pixbuf@Base 3.91.2
- gdk_cursor_new_from_surface@Base 3.91.2
- gdk_cursor_type_get_type@Base 3.91.2
+ gdk_cursor_new_from_texture@Base 3.94.0
  gdk_device_free_history@Base 3.91.2
  gdk_device_get_associated_device@Base 3.91.2
  gdk_device_get_axes@Base 3.91.2
@@ -52,7 +134,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_device_get_has_cursor@Base 3.91.2
  gdk_device_get_history@Base 3.91.2
  gdk_device_get_key@Base 3.91.2
- gdk_device_get_last_event_window@Base 3.91.2
+ gdk_device_get_last_event_surface@Base 3.94.0
  gdk_device_get_mode@Base 3.91.2
  gdk_device_get_n_axes@Base 3.91.2
  gdk_device_get_n_keys@Base 3.91.2
@@ -63,16 +145,13 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_device_get_seat@Base 3.91.2
  gdk_device_get_source@Base 3.91.2
  gdk_device_get_state@Base 3.91.2
+ gdk_device_get_surface_at_position@Base 3.94.0
+ gdk_device_get_surface_at_position_double@Base 3.94.0
  gdk_device_get_type@Base 3.91.2
  gdk_device_get_vendor_id@Base 3.91.2
- gdk_device_get_window_at_position@Base 3.91.2
- gdk_device_get_window_at_position_double@Base 3.91.2
  gdk_device_grab@Base 3.91.2
  gdk_device_list_axes@Base 3.91.2
  gdk_device_list_slave_devices@Base 3.91.2
- gdk_device_manager_get_display@Base 3.91.2
- gdk_device_manager_get_type@Base 3.91.2
- gdk_device_manager_list_devices@Base 3.91.2
  gdk_device_pad_feature_get_type@Base 3.91.2
  gdk_device_pad_get_feature_group@Base 3.91.2
  gdk_device_pad_get_group_n_modes@Base 3.91.2
@@ -96,20 +175,21 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_display_device_is_grabbed@Base 3.91.2
  gdk_display_flush@Base 3.91.2
  gdk_display_get_app_launch_context@Base 3.91.2
+ gdk_display_get_clipboard@Base 3.94.0
  gdk_display_get_default@Base 3.91.2
- gdk_display_get_default_cursor_size@Base 3.91.2
  gdk_display_get_default_group@Base 3.91.2
- gdk_display_get_default_screen@Base 3.91.2
  gdk_display_get_default_seat@Base 3.91.2
- gdk_display_get_device_manager@Base 3.91.2
  gdk_display_get_event@Base 3.91.2
- gdk_display_get_maximal_cursor_size@Base 3.91.2
+ gdk_display_get_keymap@Base 3.94.0
  gdk_display_get_monitor@Base 3.91.2
  gdk_display_get_monitor_at_point@Base 3.91.2
- gdk_display_get_monitor_at_window@Base 3.91.2
+ gdk_display_get_monitor_at_surface@Base 3.94.0
  gdk_display_get_n_monitors@Base 3.91.2
  gdk_display_get_name@Base 3.91.2
+ gdk_display_get_primary_clipboard@Base 3.94.0
  gdk_display_get_primary_monitor@Base 3.91.2
+ gdk_display_get_setting@Base 3.94.0
+ gdk_display_get_startup_notification_id@Base 3.94.0
  gdk_display_get_type@Base 3.91.2
  gdk_display_has_pending@Base 3.91.2
  gdk_display_is_closed@Base 3.91.2
@@ -126,61 +206,46 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_display_open@Base 3.91.2
  gdk_display_peek_event@Base 3.91.2
  gdk_display_put_event@Base 3.91.2
- gdk_display_request_selection_notification@Base 3.91.2
- gdk_display_set_double_click_distance@Base 3.91.2
- gdk_display_set_double_click_time@Base 3.91.2
- gdk_display_store_clipboard@Base 3.91.2
- gdk_display_supports_clipboard_persistence@Base 3.91.2
- gdk_display_supports_cursor_alpha@Base 3.91.2
- gdk_display_supports_cursor_color@Base 3.91.2
  gdk_display_supports_input_shapes@Base 3.91.2
- gdk_display_supports_selection_notification@Base 3.91.2
  gdk_display_supports_shapes@Base 3.91.2
  gdk_display_sync@Base 3.91.2
- gdk_drag_abort@Base 3.91.2
  gdk_drag_action_get_type@Base 3.91.2
+ gdk_drag_action_is_unique@Base 3.94.0
  gdk_drag_begin@Base 3.91.2
- gdk_drag_begin_for_device@Base 3.91.2
- gdk_drag_begin_from_point@Base 3.91.2
  gdk_drag_cancel_reason_get_type@Base 3.91.2
  gdk_drag_context_get_actions@Base 3.91.2
- gdk_drag_context_get_dest_window@Base 3.91.2
  gdk_drag_context_get_device@Base 3.91.2
- gdk_drag_context_get_drag_window@Base 3.91.2
- gdk_drag_context_get_protocol@Base 3.91.2
+ gdk_drag_context_get_display@Base 3.94.0
+ gdk_drag_context_get_drag_surface@Base 3.94.0
+ gdk_drag_context_get_formats@Base 3.94.0
  gdk_drag_context_get_selected_action@Base 3.91.2
- gdk_drag_context_get_source_window@Base 3.91.2
  gdk_drag_context_get_suggested_action@Base 3.91.2
  gdk_drag_context_get_type@Base 3.91.2
- gdk_drag_context_list_targets@Base 3.91.2
- gdk_drag_context_manage_dnd@Base 3.91.2
- gdk_drag_context_set_device@Base 3.91.2
  gdk_drag_context_set_hotspot@Base 3.91.2
- gdk_drag_drop@Base 3.91.2
  gdk_drag_drop_done@Base 3.91.2
- gdk_drag_drop_succeeded@Base 3.91.2
- gdk_drag_find_window_for_screen@Base 3.91.2
- gdk_drag_get_selection@Base 3.91.2
- gdk_drag_motion@Base 3.91.2
- gdk_drag_protocol_get_type@Base 3.91.2
- gdk_drag_status@Base 3.91.2
+ gdk_draw_context_begin_frame@Base 3.94.0
+ gdk_draw_context_end_frame@Base 3.94.0
  gdk_draw_context_get_display@Base 3.91.2
+ gdk_draw_context_get_frame_region@Base 3.94.0
+ gdk_draw_context_get_surface@Base 3.94.0
  gdk_draw_context_get_type@Base 3.91.2
- gdk_draw_context_get_window@Base 3.91.2
- gdk_drawing_context_get_cairo_context@Base 3.91.2
- gdk_drawing_context_get_clip@Base 3.91.2
- gdk_drawing_context_get_paint_context@Base 3.91.2
- gdk_drawing_context_get_type@Base 3.91.2
- gdk_drawing_context_get_window@Base 3.91.2
- gdk_drawing_context_is_valid@Base 3.91.2
+ gdk_draw_context_is_in_frame@Base 3.94.0
  gdk_drop_finish@Base 3.91.2
- gdk_drop_reply@Base 3.91.2
- gdk_error_trap_pop@Base 3.91.2
- gdk_error_trap_pop_ignored@Base 3.91.2
- gdk_error_trap_push@Base 3.91.2
+ gdk_drop_get_actions@Base 3.94.0
+ gdk_drop_get_device@Base 3.94.0
+ gdk_drop_get_display@Base 3.94.0
+ gdk_drop_get_drag@Base 3.94.0
+ gdk_drop_get_formats@Base 3.94.0
+ gdk_drop_get_surface@Base 3.94.0
+ gdk_drop_get_type@Base 3.94.0
+ gdk_drop_read_async@Base 3.94.0
+ gdk_drop_read_finish@Base 3.94.0
+ gdk_drop_read_text_async@Base 3.94.0
+ gdk_drop_read_text_finish@Base 3.94.0
+ gdk_drop_read_value_async@Base 3.94.0
+ gdk_drop_read_value_finish@Base 3.94.0
+ gdk_drop_status@Base 3.94.0
  gdk_event_copy@Base 3.91.2
- gdk_event_free@Base 3.91.2
- gdk_event_get@Base 3.91.2
  gdk_event_get_axes@Base 3.92.1
  gdk_event_get_axis@Base 3.91.2
  gdk_event_get_button@Base 3.91.2
@@ -190,32 +255,30 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_event_get_crossing_mode@Base 3.92.1
  gdk_event_get_device@Base 3.91.2
  gdk_event_get_device_tool@Base 3.91.2
- gdk_event_get_drag_context@Base 3.92.1
+ gdk_event_get_display@Base 3.94.0
+ gdk_event_get_drop@Base 3.94.0
  gdk_event_get_event_sequence@Base 3.91.2
  gdk_event_get_event_type@Base 3.91.2
  gdk_event_get_focus_in@Base 3.92.1
- gdk_event_get_grab_window@Base 3.92.1
+ gdk_event_get_grab_surface@Base 3.94.0
  gdk_event_get_key_group@Base 3.92.1
  gdk_event_get_key_is_modifier@Base 3.92.1
  gdk_event_get_keycode@Base 3.91.2
  gdk_event_get_keyval@Base 3.91.2
+ gdk_event_get_motion_history@Base 3.94.0
  gdk_event_get_pad_axis_value@Base 3.92.1
  gdk_event_get_pad_button@Base 3.92.1
  gdk_event_get_pad_group_mode@Base 3.92.1
  gdk_event_get_pointer_emulated@Base 3.91.2
- gdk_event_get_property@Base 3.92.1
  gdk_event_get_root_coords@Base 3.91.2
  gdk_event_get_scancode@Base 3.91.2
- gdk_event_get_screen@Base 3.91.2
  gdk_event_get_scroll_deltas@Base 3.91.2
  gdk_event_get_scroll_direction@Base 3.91.2
  gdk_event_get_seat@Base 3.91.2
- gdk_event_get_selection@Base 3.92.1
- gdk_event_get_selection_property@Base 3.92.1
- gdk_event_get_setting@Base 3.92.1
  gdk_event_get_source_device@Base 3.91.2
  gdk_event_get_state@Base 3.91.2
  gdk_event_get_string@Base 3.92.1
+ gdk_event_get_surface@Base 3.94.0
  gdk_event_get_time@Base 3.91.2
  gdk_event_get_touch_emulating_pointer@Base 3.92.1
  gdk_event_get_touchpad_angle_delta@Base 3.92.1
@@ -224,22 +287,17 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_event_get_touchpad_gesture_phase@Base 3.92.1
  gdk_event_get_touchpad_scale@Base 3.92.1
  gdk_event_get_type@Base 3.91.2
- gdk_event_get_window@Base 3.91.2
- gdk_event_get_window_state@Base 3.92.1
  gdk_event_handler_set@Base 3.91.2
  gdk_event_is_scroll_stop_event@Base 3.91.2
  gdk_event_is_sent@Base 3.92.1
  gdk_event_mask_get_type@Base 3.91.2
  gdk_event_new@Base 3.91.2
- gdk_event_peek@Base 3.91.2
- gdk_event_put@Base 3.91.2
  gdk_event_sequence_get_type@Base 3.91.2
  gdk_event_set_coords@Base 3.91.2
  gdk_event_set_device@Base 3.91.2
  gdk_event_set_device_tool@Base 3.91.2
+ gdk_event_set_display@Base 3.94.0
  gdk_event_set_keyval@Base 3.92.1
- gdk_event_set_screen@Base 3.91.2
- gdk_event_set_selection@Base 3.92.1
  gdk_event_set_source_device@Base 3.91.2
  gdk_event_set_user_data@Base 3.91.2
  gdk_event_triggers_context_menu@Base 3.91.2
@@ -247,9 +305,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_events_get_angle@Base 3.91.2
  gdk_events_get_center@Base 3.91.2
  gdk_events_get_distance@Base 3.91.2
- gdk_events_pending@Base 3.91.2
- gdk_filter_return_get_type@Base 3.91.2
- gdk_flush@Base 3.91.2
+ gdk_file_list_get_type@Base 3.94.0
  gdk_frame_clock_begin_updating@Base 3.91.2
  gdk_frame_clock_end_updating@Base 3.91.2
  gdk_frame_clock_get_current_timings@Base 3.91.2
@@ -271,21 +327,18 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_frame_timings_ref@Base 3.91.2
  gdk_frame_timings_unref@Base 3.91.2
  gdk_fullscreen_mode_get_type@Base 3.91.2
- gdk_get_display_arg_name@Base 3.91.2
- gdk_get_program_class@Base 3.91.2
  gdk_get_show_events@Base 3.91.2
  gdk_gl_context_clear_current@Base 3.91.2
  gdk_gl_context_get_current@Base 3.91.2
- gdk_gl_context_get_damage@Base 3.91.2
  gdk_gl_context_get_debug_enabled@Base 3.91.2
  gdk_gl_context_get_display@Base 3.91.2
  gdk_gl_context_get_forward_compatible@Base 3.91.2
  gdk_gl_context_get_required_version@Base 3.91.2
  gdk_gl_context_get_shared_context@Base 3.91.2
+ gdk_gl_context_get_surface@Base 3.94.0
  gdk_gl_context_get_type@Base 3.91.2
  gdk_gl_context_get_use_es@Base 3.91.2
  gdk_gl_context_get_version@Base 3.91.2
- gdk_gl_context_get_window@Base 3.91.2
  gdk_gl_context_is_legacy@Base 3.91.2
  gdk_gl_context_make_current@Base 3.91.2
  gdk_gl_context_realize@Base 3.91.2
@@ -295,18 +348,21 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_gl_context_set_use_es@Base 3.91.2
  gdk_gl_error_get_type@Base 3.91.2
  gdk_gl_error_quark@Base 3.91.2
+ gdk_gl_texture_get_type@Base 3.94.0
+ gdk_gl_texture_new@Base 3.94.0
+ gdk_gl_texture_release@Base 3.94.0
  gdk_grab_ownership_get_type@Base 3.91.2
  gdk_grab_status_get_type@Base 3.91.2
  gdk_gravity_get_type@Base 3.91.2
  gdk_input_mode_get_type@Base 3.91.2
  gdk_input_source_get_type@Base 3.91.2
+ gdk_intern_mime_type@Base 3.94.0
  gdk_keymap_add_virtual_modifiers@Base 3.91.2
  gdk_keymap_get_caps_lock_state@Base 3.91.2
- gdk_keymap_get_default@Base 3.91.2
  gdk_keymap_get_direction@Base 3.91.2
+ gdk_keymap_get_display@Base 3.94.0
  gdk_keymap_get_entries_for_keycode@Base 3.91.2
  gdk_keymap_get_entries_for_keyval@Base 3.91.2
- gdk_keymap_get_for_display@Base 3.91.2
  gdk_keymap_get_modifier_mask@Base 3.91.2
  gdk_keymap_get_modifier_state@Base 3.91.2
  gdk_keymap_get_num_lock_state@Base 3.91.2
@@ -324,6 +380,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_keyval_to_lower@Base 3.91.2
  gdk_keyval_to_unicode@Base 3.91.2
  gdk_keyval_to_upper@Base 3.91.2
+ gdk_memory_format_get_type@Base 3.94.0
+ gdk_memory_texture_get_type@Base 3.94.0
+ gdk_memory_texture_new@Base 3.94.0
  gdk_modifier_intent_get_type@Base 3.91.2
  gdk_modifier_type_get_type@Base 3.91.2
  gdk_monitor_get_display@Base 3.91.2
@@ -338,21 +397,23 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_monitor_get_width_mm@Base 3.91.2
  gdk_monitor_get_workarea@Base 3.91.2
  gdk_monitor_is_primary@Base 3.91.2
- gdk_notify_startup_complete@Base 3.91.2
- gdk_notify_startup_complete_with_id@Base 3.91.2
+ gdk_monitor_is_valid@Base 3.94.0
  gdk_notify_type_get_type@Base 3.91.2
- gdk_owner_change_get_type@Base 3.91.2
- gdk_pango_context_get@Base 3.91.2
- gdk_pango_context_get_for_display@Base 3.91.2
- gdk_pango_context_get_for_screen@Base 3.91.2
+ gdk_paintable_compute_concrete_size@Base 3.94.0
+ gdk_paintable_flags_get_type@Base 3.94.0
+ gdk_paintable_get_current_image@Base 3.94.0
+ gdk_paintable_get_flags@Base 3.94.0
+ gdk_paintable_get_intrinsic_aspect_ratio@Base 3.94.0
+ gdk_paintable_get_intrinsic_height@Base 3.94.0
+ gdk_paintable_get_intrinsic_width@Base 3.94.0
+ gdk_paintable_get_type@Base 3.94.0
+ gdk_paintable_invalidate_contents@Base 3.94.0
+ gdk_paintable_invalidate_size@Base 3.94.0
+ gdk_paintable_new_empty@Base 3.94.0
+ gdk_paintable_snapshot@Base 3.94.0
  gdk_pango_layout_get_clip_region@Base 3.91.2
  gdk_pango_layout_line_get_clip_region@Base 3.91.2
  gdk_pixbuf_get_from_surface@Base 3.91.2
- gdk_prop_mode_get_type@Base 3.91.2
- gdk_property_change@Base 3.91.2
- gdk_property_delete@Base 3.91.2
- gdk_property_get@Base 3.91.2
- gdk_property_state_get_type@Base 3.91.2
  gdk_rectangle_contains_point@Base 3.91.2
  gdk_rectangle_equal@Base 3.91.2
  gdk_rectangle_get_type@Base 3.91.2
@@ -367,62 +428,152 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_rgba_is_opaque@Base 3.91.2
  gdk_rgba_parse@Base 3.91.2
  gdk_rgba_to_string@Base 3.91.2
- gdk_screen_get_default@Base 3.91.2
- gdk_screen_get_display@Base 3.91.2
- gdk_screen_get_resolution@Base 3.91.2
- gdk_screen_get_setting@Base 3.91.2
- gdk_screen_get_toplevel_windows@Base 3.91.2
- gdk_screen_get_type@Base 3.91.2
- gdk_screen_set_resolution@Base 3.91.2
  gdk_scroll_direction_get_type@Base 3.91.2
  gdk_seat_capabilities_get_type@Base 3.91.2
  gdk_seat_get_capabilities@Base 3.91.2
  gdk_seat_get_display@Base 3.91.2
  gdk_seat_get_keyboard@Base 3.91.2
+ gdk_seat_get_master_pointers@Base 3.94.0
  gdk_seat_get_pointer@Base 3.91.2
  gdk_seat_get_slaves@Base 3.91.2
  gdk_seat_get_type@Base 3.91.2
  gdk_seat_grab@Base 3.91.2
  gdk_seat_ungrab@Base 3.91.2
- gdk_selection_convert@Base 3.91.2
- gdk_selection_owner_get@Base 3.91.2
- gdk_selection_owner_get_for_display@Base 3.91.2
- gdk_selection_owner_set@Base 3.91.2
- gdk_selection_owner_set_for_display@Base 3.91.2
- gdk_selection_property_get@Base 3.91.2
- gdk_selection_send_notify@Base 3.91.2
- gdk_selection_send_notify_for_display@Base 3.91.2
  gdk_set_allowed_backends@Base 3.91.2
- gdk_set_double_click_time@Base 3.91.2
- gdk_set_program_class@Base 3.91.2
  gdk_set_show_events@Base 3.91.2
- gdk_setting_action_get_type@Base 3.91.2
- gdk_setting_get@Base 3.91.2
- gdk_status_get_type@Base 3.91.2
+ gdk_snapshot_get_type@Base 3.94.0
  gdk_subpixel_layout_get_type@Base 3.91.2
- gdk_synthesize_window_state@Base 3.91.2
+ gdk_surface_beep@Base 3.94.0
+ gdk_surface_begin_move_drag@Base 3.94.0
+ gdk_surface_begin_move_drag_for_device@Base 3.94.0
+ gdk_surface_begin_resize_drag@Base 3.94.0
+ gdk_surface_begin_resize_drag_for_device@Base 3.94.0
+ gdk_surface_constrain_size@Base 3.94.0
+ gdk_surface_coords_from_parent@Base 3.94.0
+ gdk_surface_coords_to_parent@Base 3.94.0
+ gdk_surface_create_cairo_context@Base 3.94.0
+ gdk_surface_create_gl_context@Base 3.94.0
+ gdk_surface_create_similar_surface@Base 3.94.0
+ gdk_surface_create_vulkan_context@Base 3.94.0
+ gdk_surface_deiconify@Base 3.94.0
+ gdk_surface_destroy@Base 3.94.0
+ gdk_surface_edge_get_type@Base 3.94.0
+ gdk_surface_focus@Base 3.94.0
+ gdk_surface_freeze_updates@Base 3.94.0
+ gdk_surface_fullscreen@Base 3.94.0
+ gdk_surface_fullscreen_on_monitor@Base 3.94.0
+ gdk_surface_get_accept_focus@Base 3.94.0
+ gdk_surface_get_children@Base 3.94.0
+ gdk_surface_get_children_with_user_data@Base 3.94.0
+ gdk_surface_get_cursor@Base 3.94.0
+ gdk_surface_get_decorations@Base 3.94.0
+ gdk_surface_get_device_cursor@Base 3.94.0
+ gdk_surface_get_device_position@Base 3.94.0
+ gdk_surface_get_device_position_double@Base 3.94.0
+ gdk_surface_get_display@Base 3.94.0
+ gdk_surface_get_focus_on_map@Base 3.94.0
+ gdk_surface_get_frame_clock@Base 3.94.0
+ gdk_surface_get_frame_extents@Base 3.94.0
+ gdk_surface_get_fullscreen_mode@Base 3.94.0
+ gdk_surface_get_geometry@Base 3.94.0
+ gdk_surface_get_group@Base 3.94.0
+ gdk_surface_get_height@Base 3.94.0
+ gdk_surface_get_modal_hint@Base 3.94.0
+ gdk_surface_get_origin@Base 3.94.0
+ gdk_surface_get_parent@Base 3.94.0
+ gdk_surface_get_pass_through@Base 3.94.0
+ gdk_surface_get_position@Base 3.94.0
+ gdk_surface_get_root_coords@Base 3.94.0
+ gdk_surface_get_root_origin@Base 3.94.0
+ gdk_surface_get_scale_factor@Base 3.94.0
+ gdk_surface_get_state@Base 3.94.0
+ gdk_surface_get_support_multidevice@Base 3.94.0
+ gdk_surface_get_surface_type@Base 3.94.0
+ gdk_surface_get_toplevel@Base 3.94.0
+ gdk_surface_get_type@Base 3.94.0
+ gdk_surface_get_type_hint@Base 3.94.0
+ gdk_surface_get_user_data@Base 3.94.0
+ gdk_surface_get_width@Base 3.94.0
+ gdk_surface_has_native@Base 3.94.0
+ gdk_surface_hide@Base 3.94.0
+ gdk_surface_hints_get_type@Base 3.94.0
+ gdk_surface_iconify@Base 3.94.0
+ gdk_surface_input_shape_combine_region@Base 3.94.0
+ gdk_surface_invalidate_rect@Base 3.94.0
+ gdk_surface_invalidate_region@Base 3.94.0
+ gdk_surface_is_destroyed@Base 3.94.0
+ gdk_surface_is_input_only@Base 3.94.0
+ gdk_surface_is_viewable@Base 3.94.0
+ gdk_surface_is_visible@Base 3.94.0
+ gdk_surface_lower@Base 3.94.0
+ gdk_surface_maximize@Base 3.94.0
+ gdk_surface_merge_child_input_shapes@Base 3.94.0
+ gdk_surface_move@Base 3.94.0
+ gdk_surface_move_resize@Base 3.94.0
+ gdk_surface_move_to_rect@Base 3.94.0
+ gdk_surface_new_child@Base 3.94.0
+ gdk_surface_new_popup@Base 3.94.0
+ gdk_surface_new_temp@Base 3.94.0
+ gdk_surface_new_toplevel@Base 3.94.0
+ gdk_surface_peek_children@Base 3.94.0
+ gdk_surface_queue_expose@Base 3.94.0
+ gdk_surface_raise@Base 3.94.0
+ gdk_surface_register_dnd@Base 3.94.0
+ gdk_surface_resize@Base 3.94.0
+ gdk_surface_restack@Base 3.94.0
+ gdk_surface_set_accept_focus@Base 3.94.0
+ gdk_surface_set_child_input_shapes@Base 3.94.0
+ gdk_surface_set_cursor@Base 3.94.0
+ gdk_surface_set_decorations@Base 3.94.0
+ gdk_surface_set_device_cursor@Base 3.94.0
+ gdk_surface_set_focus_on_map@Base 3.94.0
+ gdk_surface_set_fullscreen_mode@Base 3.94.0
+ gdk_surface_set_functions@Base 3.94.0
+ gdk_surface_set_geometry_hints@Base 3.94.0
+ gdk_surface_set_group@Base 3.94.0
+ gdk_surface_set_icon_list@Base 3.94.0
+ gdk_surface_set_icon_name@Base 3.94.0
+ gdk_surface_set_keep_above@Base 3.94.0
+ gdk_surface_set_keep_below@Base 3.94.0
+ gdk_surface_set_modal_hint@Base 3.94.0
+ gdk_surface_set_opacity@Base 3.94.0
+ gdk_surface_set_opaque_region@Base 3.94.0
+ gdk_surface_set_pass_through@Base 3.94.0
+ gdk_surface_set_role@Base 3.94.0
+ gdk_surface_set_shadow_width@Base 3.94.0
+ gdk_surface_set_skip_pager_hint@Base 3.94.0
+ gdk_surface_set_skip_taskbar_hint@Base 3.94.0
+ gdk_surface_set_startup_id@Base 3.94.0
+ gdk_surface_set_support_multidevice@Base 3.94.0
+ gdk_surface_set_title@Base 3.94.0
+ gdk_surface_set_transient_for@Base 3.94.0
+ gdk_surface_set_type_hint@Base 3.94.0
+ gdk_surface_set_urgency_hint@Base 3.94.0
+ gdk_surface_set_user_data@Base 3.94.0
+ gdk_surface_show@Base 3.94.0
+ gdk_surface_show_unraised@Base 3.94.0
+ gdk_surface_show_window_menu@Base 3.94.0
+ gdk_surface_state_get_type@Base 3.94.0
+ gdk_surface_stick@Base 3.94.0
+ gdk_surface_thaw_updates@Base 3.94.0
+ gdk_surface_type_get_type@Base 3.94.0
+ gdk_surface_type_hint_get_type@Base 3.94.0
+ gdk_surface_unfullscreen@Base 3.94.0
+ gdk_surface_unmaximize@Base 3.94.0
+ gdk_surface_unstick@Base 3.94.0
+ gdk_surface_withdraw@Base 3.94.0
  gdk_text_property_to_utf8_list_for_display@Base 3.91.2
- gdk_threads_add_idle@Base 3.91.2
- gdk_threads_add_idle_full@Base 3.91.2
- gdk_threads_add_timeout@Base 3.91.2
- gdk_threads_add_timeout_full@Base 3.91.2
- gdk_threads_add_timeout_seconds@Base 3.91.2
- gdk_threads_add_timeout_seconds_full@Base 3.91.2
- gdk_threads_enter@Base 3.91.2
- gdk_threads_init@Base 3.91.2
- gdk_threads_leave@Base 3.91.2
+ gdk_texture_download@Base 3.94.0
+ gdk_texture_get_height@Base 3.94.0
+ gdk_texture_get_type@Base 3.94.0
+ gdk_texture_get_width@Base 3.94.0
+ gdk_texture_new_for_pixbuf@Base 3.94.0
+ gdk_texture_new_from_file@Base 3.94.0
+ gdk_texture_new_from_resource@Base 3.94.0
+ gdk_texture_save_to_png@Base 3.94.0
  gdk_touchpad_gesture_phase_get_type@Base 3.91.2
  gdk_unicode_to_keyval@Base 3.91.2
  gdk_utf8_to_string_target@Base 3.91.2
- gdk_visibility_state_get_type@Base 3.91.2
- gdk_visual_get_blue_pixel_details@Base 3.91.2
- gdk_visual_get_depth@Base 3.91.2
- gdk_visual_get_green_pixel_details@Base 3.91.2
- gdk_visual_get_red_pixel_details@Base 3.91.2
- gdk_visual_get_screen@Base 3.91.2
- gdk_visual_get_type@Base 3.91.2
- gdk_visual_get_visual_type@Base 3.91.2
- gdk_visual_type_get_type@Base 3.91.2
  (arch=linux-any)gdk_vulkan_context_get_device@Base 3.91.2
  (arch=linux-any)gdk_vulkan_context_get_draw_index@Base 3.91.2
  (arch=linux-any)gdk_vulkan_context_get_draw_semaphore@Base 3.91.2
@@ -437,182 +588,38 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_vulkan_error_get_type@Base 3.91.2
  gdk_vulkan_error_quark@Base 3.91.2
  (arch=linux-any)gdk_vulkan_strerror@Base 3.91.2
+ gdk_wayland_cairo_context_get_type@Base 3.94.0
  (arch=linux-any)gdk_wayland_device_get_node_path@Base 3.91.2
  (arch=linux-any)gdk_wayland_device_get_type@Base 3.91.2
  (arch=linux-any)gdk_wayland_device_get_wl_keyboard@Base 3.91.2
  (arch=linux-any)gdk_wayland_device_get_wl_pointer@Base 3.91.2
  (arch=linux-any)gdk_wayland_device_get_wl_seat@Base 3.91.2
  (arch=linux-any)gdk_wayland_device_pad_set_feedback@Base 3.91.2
+ gdk_wayland_display_get_startup_notification_id@Base 3.94.0
  (arch=linux-any)gdk_wayland_display_get_type@Base 3.91.2
  (arch=linux-any)gdk_wayland_display_get_wl_compositor@Base 3.91.2
  (arch=linux-any)gdk_wayland_display_get_wl_display@Base 3.91.2
+ gdk_wayland_display_query_registry@Base 3.94.0
  (arch=linux-any)gdk_wayland_display_set_cursor_theme@Base 3.91.2
  (arch=linux-any)gdk_wayland_display_set_startup_notification_id@Base 3.91.2
  (arch=linux-any)gdk_wayland_gl_context_get_type@Base 3.91.2
  (arch=linux-any)gdk_wayland_monitor_get_type@Base 3.91.2
  (arch=linux-any)gdk_wayland_monitor_get_wl_output@Base 3.91.2
  (arch=linux-any)gdk_wayland_seat_get_wl_seat@Base 3.91.2
- (arch=linux-any)gdk_wayland_selection_add_targets_libgtk_only@Base 3.91.2
- (arch=linux-any)gdk_wayland_selection_clear_targets_libgtk_only@Base 3.91.2
+ gdk_wayland_surface_export_handle@Base 3.94.0
+ gdk_wayland_surface_get_type@Base 3.94.0
+ gdk_wayland_surface_get_wl_surface@Base 3.94.0
+ gdk_wayland_surface_new_subsurface@Base 3.94.0
+ gdk_wayland_surface_set_dbus_properties_libgtk_only@Base 3.94.0
+ gdk_wayland_surface_set_transient_for_exported@Base 3.94.0
+ gdk_wayland_surface_set_use_custom_surface@Base 3.94.0
+ gdk_wayland_surface_unexport_handle@Base 3.94.0
  (arch=linux-any)gdk_wayland_vulkan_context_get_type@Base 3.91.2
- (arch=linux-any)gdk_wayland_window_export_handle@Base 3.91.2
- (arch=linux-any)gdk_wayland_window_get_type@Base 3.91.2
- (arch=linux-any)gdk_wayland_window_get_wl_surface@Base 3.91.2
- (arch=linux-any)gdk_wayland_window_new_subsurface@Base 3.91.2
- (arch=linux-any)gdk_wayland_window_set_dbus_properties_libgtk_only@Base 3.91.2
- (arch=linux-any)gdk_wayland_window_set_transient_for_exported@Base 3.91.2
- (arch=linux-any)gdk_wayland_window_set_use_custom_surface@Base 3.91.2
- (arch=linux-any)gdk_wayland_window_unexport_handle@Base 3.91.2
- gdk_window_add_filter@Base 3.91.2
- gdk_window_beep@Base 3.91.2
- gdk_window_begin_draw_frame@Base 3.91.2
- gdk_window_begin_move_drag@Base 3.91.2
- gdk_window_begin_move_drag_for_device@Base 3.91.2
- gdk_window_begin_resize_drag@Base 3.91.2
- gdk_window_begin_resize_drag_for_device@Base 3.91.2
- gdk_window_constrain_size@Base 3.91.2
- gdk_window_coords_from_parent@Base 3.91.2
- gdk_window_coords_to_parent@Base 3.91.2
- gdk_window_create_gl_context@Base 3.91.2
- gdk_window_create_similar_image_surface@Base 3.91.2
- gdk_window_create_similar_surface@Base 3.91.2
- gdk_window_create_vulkan_context@Base 3.91.2
- gdk_window_deiconify@Base 3.91.2
- gdk_window_destroy@Base 3.91.2
- gdk_window_destroy_notify@Base 3.91.2
- gdk_window_edge_get_type@Base 3.91.2
- gdk_window_end_draw_frame@Base 3.91.2
- gdk_window_focus@Base 3.91.2
- gdk_window_freeze_updates@Base 3.91.2
- gdk_window_fullscreen@Base 3.91.2
- gdk_window_fullscreen_on_monitor@Base 3.91.2
- gdk_window_get_accept_focus@Base 3.91.2
- gdk_window_get_children@Base 3.91.2
- gdk_window_get_children_with_user_data@Base 3.91.2
- gdk_window_get_clip_region@Base 3.91.2
- gdk_window_get_cursor@Base 3.91.2
- gdk_window_get_decorations@Base 3.91.2
- gdk_window_get_device_cursor@Base 3.91.2
- gdk_window_get_device_events@Base 3.91.2
- gdk_window_get_device_position@Base 3.91.2
- gdk_window_get_device_position_double@Base 3.91.2
- gdk_window_get_display@Base 3.91.2
- gdk_window_get_drag_protocol@Base 3.91.2
- gdk_window_get_event_compression@Base 3.91.2
- gdk_window_get_events@Base 3.91.2
- gdk_window_get_focus_on_map@Base 3.91.2
- gdk_window_get_frame_clock@Base 3.91.2
- gdk_window_get_frame_extents@Base 3.91.2
- gdk_window_get_fullscreen_mode@Base 3.91.2
- gdk_window_get_geometry@Base 3.91.2
- gdk_window_get_group@Base 3.91.2
- gdk_window_get_height@Base 3.91.2
- gdk_window_get_modal_hint@Base 3.91.2
- gdk_window_get_origin@Base 3.91.2
- gdk_window_get_parent@Base 3.91.2
- gdk_window_get_pass_through@Base 3.91.2
- gdk_window_get_position@Base 3.91.2
- gdk_window_get_root_coords@Base 3.91.2
- gdk_window_get_root_origin@Base 3.91.2
- gdk_window_get_scale_factor@Base 3.91.2
- gdk_window_get_screen@Base 3.91.2
- gdk_window_get_source_events@Base 3.91.2
- gdk_window_get_state@Base 3.91.2
- gdk_window_get_support_multidevice@Base 3.91.2
- gdk_window_get_toplevel@Base 3.91.2
- gdk_window_get_type@Base 3.91.2
- gdk_window_get_type_hint@Base 3.91.2
- gdk_window_get_update_area@Base 3.91.2
- gdk_window_get_user_data@Base 3.91.2
- gdk_window_get_visible_region@Base 3.91.2
- gdk_window_get_width@Base 3.91.2
- gdk_window_get_window_type@Base 3.91.2
- gdk_window_has_native@Base 3.91.2
- gdk_window_hide@Base 3.91.2
- gdk_window_hints_get_type@Base 3.91.2
- gdk_window_iconify@Base 3.91.2
- gdk_window_input_shape_combine_region@Base 3.91.2
- gdk_window_invalidate_maybe_recurse@Base 3.91.2
- gdk_window_invalidate_rect@Base 3.91.2
- gdk_window_invalidate_region@Base 3.91.2
- gdk_window_is_destroyed@Base 3.91.2
- gdk_window_is_input_only@Base 3.91.2
- gdk_window_is_shaped@Base 3.91.2
- gdk_window_is_viewable@Base 3.91.2
- gdk_window_is_visible@Base 3.91.2
- gdk_window_lower@Base 3.91.2
- gdk_window_maximize@Base 3.91.2
- gdk_window_merge_child_input_shapes@Base 3.91.2
- gdk_window_merge_child_shapes@Base 3.91.2
- gdk_window_move@Base 3.91.2
- gdk_window_move_region@Base 3.91.2
- gdk_window_move_resize@Base 3.91.2
- gdk_window_new_child@Base 3.91.2
- gdk_window_new_popup@Base 3.91.2
- gdk_window_new_temp@Base 3.91.2
- gdk_window_new_toplevel@Base 3.91.2
- gdk_window_peek_children@Base 3.91.2
- gdk_window_raise@Base 3.91.2
- gdk_window_register_dnd@Base 3.91.2
- gdk_window_remove_filter@Base 3.91.2
- gdk_window_resize@Base 3.91.2
- gdk_window_restack@Base 3.91.2
- gdk_window_scroll@Base 3.91.2
- gdk_window_set_accept_focus@Base 3.91.2
- gdk_window_set_child_input_shapes@Base 3.91.2
- gdk_window_set_child_shapes@Base 3.91.2
- gdk_window_set_cursor@Base 3.91.2
- gdk_window_set_decorations@Base 3.91.2
- gdk_window_set_device_cursor@Base 3.91.2
- gdk_window_set_device_events@Base 3.91.2
- gdk_window_set_event_compression@Base 3.91.2
- gdk_window_set_events@Base 3.91.2
- gdk_window_set_focus_on_map@Base 3.91.2
- gdk_window_set_fullscreen_mode@Base 3.91.2
- gdk_window_set_functions@Base 3.91.2
- gdk_window_set_geometry_hints@Base 3.91.2
- gdk_window_set_group@Base 3.91.2
- gdk_window_set_icon_list@Base 3.91.2
- gdk_window_set_icon_name@Base 3.91.2
- gdk_window_set_keep_above@Base 3.91.2
- gdk_window_set_keep_below@Base 3.91.2
- gdk_window_set_modal_hint@Base 3.91.2
- gdk_window_set_opacity@Base 3.91.2
- gdk_window_set_opaque_region@Base 3.91.2
- gdk_window_set_pass_through@Base 3.91.2
- gdk_window_set_role@Base 3.91.2
- gdk_window_set_shadow_width@Base 3.91.2
- gdk_window_set_skip_pager_hint@Base 3.91.2
- gdk_window_set_skip_taskbar_hint@Base 3.91.2
- gdk_window_set_source_events@Base 3.91.2
- gdk_window_set_startup_id@Base 3.91.2
- gdk_window_set_support_multidevice@Base 3.91.2
- gdk_window_set_title@Base 3.91.2
- gdk_window_set_transient_for@Base 3.91.2
- gdk_window_set_type_hint@Base 3.91.2
- gdk_window_set_urgency_hint@Base 3.91.2
- gdk_window_set_user_data@Base 3.91.2
- gdk_window_shape_combine_region@Base 3.91.2
- gdk_window_show@Base 3.91.2
- gdk_window_show_unraised@Base 3.91.2
- gdk_window_show_window_menu@Base 3.91.2
- gdk_window_state_get_type@Base 3.91.2
- gdk_window_stick@Base 3.91.2
- gdk_window_thaw_updates@Base 3.91.2
- gdk_window_type_get_type@Base 3.91.2
- gdk_window_type_hint_get_type@Base 3.91.2
- gdk_window_unfullscreen@Base 3.91.2
- gdk_window_unmaximize@Base 3.91.2
- gdk_window_unstick@Base 3.91.2
- gdk_window_withdraw@Base 3.91.2
  gdk_wm_decoration_get_type@Base 3.91.2
  gdk_wm_function_get_type@Base 3.91.2
  gdk_x11_app_launch_context_get_type@Base 3.91.2
- gdk_x11_atom_to_xatom@Base 3.91.2
  gdk_x11_atom_to_xatom_for_display@Base 3.91.2
- gdk_x11_cursor_get_type@Base 3.91.2
- gdk_x11_cursor_get_xcursor@Base 3.91.2
- gdk_x11_cursor_get_xdisplay@Base 3.91.2
+ gdk_x11_cairo_context_get_type@Base 3.94.0
  gdk_x11_device_core_get_type@Base 3.91.2
  gdk_x11_device_get_id@Base 3.91.2
  gdk_x11_device_manager_core_get_type@Base 3.91.2
@@ -624,14 +631,20 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_x11_display_error_trap_pop_ignored@Base 3.91.2
  gdk_x11_display_error_trap_push@Base 3.91.2
  gdk_x11_display_get_glx_version@Base 3.91.2
+ gdk_x11_display_get_screen@Base 3.94.0
  gdk_x11_display_get_startup_notification_id@Base 3.91.2
  gdk_x11_display_get_type@Base 3.91.2
  gdk_x11_display_get_user_time@Base 3.91.2
+ gdk_x11_display_get_xcursor@Base 3.94.0
  gdk_x11_display_get_xdisplay@Base 3.91.2
+ gdk_x11_display_get_xrootwindow@Base 3.94.0
+ gdk_x11_display_get_xscreen@Base 3.94.0
  gdk_x11_display_grab@Base 3.91.2
+ gdk_x11_display_open@Base 3.94.0
  gdk_x11_display_set_cursor_theme@Base 3.91.2
+ gdk_x11_display_set_program_class@Base 3.94.0
  gdk_x11_display_set_startup_notification_id@Base 3.91.2
- gdk_x11_display_set_window_scale@Base 3.91.2
+ gdk_x11_display_set_surface_scale@Base 3.94.0
  gdk_x11_display_string_to_compound_text@Base 3.91.2
  gdk_x11_display_text_property_to_text_list@Base 3.91.2
  gdk_x11_display_ungrab@Base 3.91.2
@@ -639,16 +652,10 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_x11_drag_context_get_type@Base 3.91.2
  gdk_x11_free_compound_text@Base 3.91.2
  gdk_x11_free_text_list@Base 3.91.2
- gdk_x11_get_default_root_xwindow@Base 3.91.2
- gdk_x11_get_default_screen@Base 3.91.2
- gdk_x11_get_default_xdisplay@Base 3.91.2
  gdk_x11_get_server_time@Base 3.91.2
- gdk_x11_get_xatom_by_name@Base 3.91.2
  gdk_x11_get_xatom_by_name_for_display@Base 3.91.2
- gdk_x11_get_xatom_name@Base 3.91.2
  gdk_x11_get_xatom_name_for_display@Base 3.91.2
  gdk_x11_gl_context_get_type@Base 3.91.2
- gdk_x11_grab_server@Base 3.91.2
  gdk_x11_keymap_get_group_for_state@Base 3.91.2
  gdk_x11_keymap_get_type@Base 3.91.2
  gdk_x11_keymap_key_is_modifier@Base 3.91.2
@@ -663,81 +670,106 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gdk_x11_screen_get_type@Base 3.91.2
  gdk_x11_screen_get_window_manager_name@Base 3.91.2
  gdk_x11_screen_get_xscreen@Base 3.91.2
- gdk_x11_screen_lookup_visual@Base 3.91.2
  gdk_x11_screen_supports_net_wm_hint@Base 3.91.2
  gdk_x11_set_sm_client_id@Base 3.91.2
- gdk_x11_ungrab_server@Base 3.91.2
- gdk_x11_visual_get_type@Base 3.91.2
- gdk_x11_visual_get_xvisual@Base 3.91.2
+ gdk_x11_surface_get_desktop@Base 3.94.0
+ gdk_x11_surface_get_type@Base 3.94.0
+ gdk_x11_surface_get_xid@Base 3.94.0
+ gdk_x11_surface_lookup_for_display@Base 3.94.0
+ gdk_x11_surface_move_to_current_desktop@Base 3.94.0
+ gdk_x11_surface_move_to_desktop@Base 3.94.0
+ gdk_x11_surface_set_frame_sync_enabled@Base 3.94.0
+ gdk_x11_surface_set_theme_variant@Base 3.94.0
+ gdk_x11_surface_set_user_time@Base 3.94.0
+ gdk_x11_surface_set_utf8_property@Base 3.94.0
  (arch=linux-any)gdk_x11_vulkan_context_get_type@Base 3.91.2
- gdk_x11_window_foreign_new_for_display@Base 3.91.2
- gdk_x11_window_get_desktop@Base 3.91.2
- gdk_x11_window_get_type@Base 3.91.2
- gdk_x11_window_get_xid@Base 3.91.2
- gdk_x11_window_lookup_for_display@Base 3.91.2
- gdk_x11_window_move_to_current_desktop@Base 3.91.2
- gdk_x11_window_move_to_desktop@Base 3.91.2
- gdk_x11_window_set_frame_extents@Base 3.91.2
- gdk_x11_window_set_frame_sync_enabled@Base 3.91.2
- gdk_x11_window_set_theme_variant@Base 3.91.2
- gdk_x11_window_set_user_time@Base 3.91.2
- gdk_x11_window_set_utf8_property@Base 3.91.2
- gdk_x11_xatom_to_atom@Base 3.91.2
  gdk_x11_xatom_to_atom_for_display@Base 3.91.2
  gsk_blend_mode_get_type@Base 3.91.2
+ gsk_blend_node_get_blend_mode@Base 3.94.0
+ gsk_blend_node_get_bottom_child@Base 3.94.0
+ gsk_blend_node_get_top_child@Base 3.94.0
  gsk_blend_node_new@Base 3.91.2
+ gsk_blur_node_get_child@Base 3.94.0
+ gsk_blur_node_get_radius@Base 3.94.0
  gsk_blur_node_new@Base 3.92.1
  gsk_border_node_new@Base 3.91.2
+ gsk_border_node_peek_colors@Base 3.94.0
+ gsk_border_node_peek_outline@Base 3.94.0
+ gsk_border_node_peek_widths@Base 3.94.0
  gsk_cairo_node_get_draw_context@Base 3.91.2
  gsk_cairo_node_new@Base 3.91.2
- gsk_cairo_node_new_for_surface@Base 3.92.1
+ gsk_cairo_node_peek_surface@Base 3.94.0
  gsk_clip_node_get_child@Base 3.91.2
  gsk_clip_node_new@Base 3.91.2
+ gsk_clip_node_peek_clip@Base 3.94.0
+ gsk_color_matrix_node_get_child@Base 3.94.0
  gsk_color_matrix_node_new@Base 3.91.2
+ gsk_color_matrix_node_peek_color_matrix@Base 3.94.0
+ gsk_color_matrix_node_peek_color_offset@Base 3.94.0
  gsk_color_node_new@Base 3.91.2
+ gsk_color_node_peek_color@Base 3.94.0
  gsk_container_node_get_child@Base 3.91.2
  gsk_container_node_get_n_children@Base 3.91.2
  gsk_container_node_new@Base 3.91.2
  gsk_corner_get_type@Base 3.91.2
+ gsk_cross_fade_node_get_end_child@Base 3.94.0
+ gsk_cross_fade_node_get_progress@Base 3.94.0
+ gsk_cross_fade_node_get_start_child@Base 3.94.0
  gsk_cross_fade_node_new@Base 3.91.2
+ gsk_debug_node_get_child@Base 3.94.0
+ gsk_debug_node_get_message@Base 3.94.0
+ gsk_debug_node_new@Base 3.94.0
+ gsk_inset_shadow_node_get_blur_radius@Base 3.94.0
+ gsk_inset_shadow_node_get_dx@Base 3.94.0
+ gsk_inset_shadow_node_get_dy@Base 3.94.0
+ gsk_inset_shadow_node_get_spread@Base 3.94.0
  gsk_inset_shadow_node_new@Base 3.91.2
+ gsk_inset_shadow_node_peek_color@Base 3.94.0
+ gsk_inset_shadow_node_peek_outline@Base 3.94.0
+ gsk_linear_gradient_node_get_n_color_stops@Base 3.94.0
  gsk_linear_gradient_node_new@Base 3.91.2
+ gsk_linear_gradient_node_peek_color_stops@Base 3.94.0
+ gsk_linear_gradient_node_peek_end@Base 3.94.0
+ gsk_linear_gradient_node_peek_start@Base 3.94.0
+ gsk_offset_node_get_child@Base 3.94.0
+ gsk_offset_node_get_x_offset@Base 3.94.0
+ gsk_offset_node_get_y_offset@Base 3.94.0
+ gsk_offset_node_new@Base 3.94.0
  gsk_opacity_node_get_child@Base 3.91.2
+ gsk_opacity_node_get_opacity@Base 3.94.0
  gsk_opacity_node_new@Base 3.91.2
+ gsk_outset_shadow_node_get_blur_radius@Base 3.94.0
+ gsk_outset_shadow_node_get_dx@Base 3.94.0
+ gsk_outset_shadow_node_get_dy@Base 3.94.0
+ gsk_outset_shadow_node_get_spread@Base 3.94.0
  gsk_outset_shadow_node_new@Base 3.91.2
- gsk_pango_renderer_get_type@Base 3.92.1
- gsk_pango_show_layout@Base 3.92.1
+ gsk_outset_shadow_node_peek_color@Base 3.94.0
+ gsk_outset_shadow_node_peek_outline@Base 3.94.0
  gsk_render_node_deserialize@Base 3.91.2
  gsk_render_node_draw@Base 3.91.2
  gsk_render_node_get_bounds@Base 3.91.2
- gsk_render_node_get_name@Base 3.91.2
  gsk_render_node_get_node_type@Base 3.91.2
  gsk_render_node_get_type@Base 3.91.2
  gsk_render_node_ref@Base 3.91.2
  gsk_render_node_serialize@Base 3.91.2
- gsk_render_node_set_name@Base 3.91.2
- gsk_render_node_set_scaling_filters@Base 3.91.2
  gsk_render_node_type_get_type@Base 3.91.2
  gsk_render_node_unref@Base 3.91.2
  gsk_render_node_write_to_file@Base 3.91.2
- gsk_renderer_begin_draw_frame@Base 3.91.2
- gsk_renderer_end_draw_frame@Base 3.91.2
  gsk_renderer_get_display@Base 3.91.2
- gsk_renderer_get_scale_factor@Base 3.91.2
+ gsk_renderer_get_surface@Base 3.94.0
  gsk_renderer_get_type@Base 3.91.2
- gsk_renderer_get_viewport@Base 3.91.2
- gsk_renderer_get_window@Base 3.91.2
- gsk_renderer_new_for_window@Base 3.91.2
+ gsk_renderer_new_for_surface@Base 3.94.0
  gsk_renderer_realize@Base 3.91.2
  gsk_renderer_render@Base 3.91.2
  gsk_renderer_render_texture@Base 3.91.2
- gsk_renderer_set_scale_factor@Base 3.91.2
- gsk_renderer_set_viewport@Base 3.91.2
  gsk_renderer_unrealize@Base 3.91.2
+ gsk_repeat_node_get_child@Base 3.94.0
  gsk_repeat_node_new@Base 3.91.2
+ gsk_repeat_node_peek_child_bounds@Base 3.94.0
  gsk_repeating_linear_gradient_node_new@Base 3.91.2
  gsk_rounded_clip_node_get_child@Base 3.91.2
  gsk_rounded_clip_node_new@Base 3.91.2
+ gsk_rounded_clip_node_peek_clip@Base 3.94.0
  gsk_rounded_rect_contains_point@Base 3.91.2
  gsk_rounded_rect_contains_rect@Base 3.91.2
  gsk_rounded_rect_init@Base 3.91.2
@@ -751,17 +783,22 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gsk_scaling_filter_get_type@Base 3.91.2
  gsk_serialization_error_get_type@Base 3.91.2
  gsk_serialization_error_quark@Base 3.91.2
+ gsk_shadow_node_get_child@Base 3.94.0
+ gsk_shadow_node_get_n_shadows@Base 3.94.0
  gsk_shadow_node_new@Base 3.91.2
+ gsk_shadow_node_peek_shadow@Base 3.94.0
+ gsk_text_node_get_num_glyphs@Base 3.94.0
+ gsk_text_node_get_x@Base 3.94.0
+ gsk_text_node_get_y@Base 3.94.0
  gsk_text_node_new@Base 3.92.1
- gsk_texture_download@Base 3.91.2
- gsk_texture_get_height@Base 3.91.2
- gsk_texture_get_type@Base 3.91.2
- gsk_texture_get_width@Base 3.91.2
- gsk_texture_new_for_data@Base 3.91.2
- gsk_texture_new_for_pixbuf@Base 3.91.2
+ gsk_text_node_peek_color@Base 3.94.0
+ gsk_text_node_peek_font@Base 3.94.0
+ gsk_text_node_peek_glyphs@Base 3.94.0
+ gsk_texture_node_get_texture@Base 3.94.0
  gsk_texture_node_new@Base 3.91.2
  gsk_transform_node_get_child@Base 3.91.2
  gsk_transform_node_new@Base 3.91.2
+ gsk_transform_node_peek_transform@Base 3.94.0
  gtk_about_dialog_add_credit_section@Base 3.91.2
  gtk_about_dialog_get_artists@Base 3.91.2
  gtk_about_dialog_get_authors@Base 3.91.2
@@ -934,7 +971,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_application_get_windows@Base 3.91.2
  gtk_application_inhibit@Base 3.91.2
  gtk_application_inhibit_flags_get_type@Base 3.91.2
- gtk_application_is_inhibited@Base 3.91.2
  gtk_application_list_action_descriptions@Base 3.91.2
  gtk_application_new@Base 3.91.2
  gtk_application_prefers_app_menu@Base 3.91.2
@@ -1206,7 +1242,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_cell_renderer_get_preferred_width_for_height@Base 3.91.2
  gtk_cell_renderer_get_request_mode@Base 3.91.2
  gtk_cell_renderer_get_sensitive@Base 3.91.2
- gtk_cell_renderer_get_size@Base 3.91.2
  gtk_cell_renderer_get_state@Base 3.91.2
  gtk_cell_renderer_get_type@Base 3.91.2
  gtk_cell_renderer_get_visible@Base 3.91.2
@@ -1250,8 +1285,8 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_cell_view_new@Base 3.91.2
  gtk_cell_view_new_with_context@Base 3.91.2
  gtk_cell_view_new_with_markup@Base 3.91.2
- gtk_cell_view_new_with_pixbuf@Base 3.91.2
  gtk_cell_view_new_with_text@Base 3.91.2
+ gtk_cell_view_new_with_texture@Base 3.94.0
  gtk_cell_view_set_displayed_row@Base 3.91.2
  gtk_cell_view_set_draw_sensitive@Base 3.91.2
  gtk_cell_view_set_fit_model@Base 3.91.2
@@ -1287,37 +1322,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_check_menu_item_set_inconsistent@Base 3.91.2
  gtk_check_menu_item_toggled@Base 3.91.2
  gtk_check_version@Base 3.91.2
- gtk_clipboard_clear@Base 3.91.2
- gtk_clipboard_get@Base 3.91.2
- gtk_clipboard_get_default@Base 3.91.2
- gtk_clipboard_get_display@Base 3.91.2
- gtk_clipboard_get_for_display@Base 3.91.2
- gtk_clipboard_get_owner@Base 3.91.2
- gtk_clipboard_get_selection@Base 3.91.2
- gtk_clipboard_get_type@Base 3.91.2
- gtk_clipboard_request_contents@Base 3.91.2
- gtk_clipboard_request_image@Base 3.91.2
- gtk_clipboard_request_rich_text@Base 3.91.2
- gtk_clipboard_request_targets@Base 3.91.2
- gtk_clipboard_request_text@Base 3.91.2
- gtk_clipboard_request_uris@Base 3.91.2
- gtk_clipboard_set_can_store@Base 3.91.2
- gtk_clipboard_set_image@Base 3.91.2
- gtk_clipboard_set_text@Base 3.91.2
- gtk_clipboard_set_with_data@Base 3.91.2
- gtk_clipboard_set_with_owner@Base 3.91.2
- gtk_clipboard_store@Base 3.91.2
- gtk_clipboard_wait_for_contents@Base 3.91.2
- gtk_clipboard_wait_for_image@Base 3.91.2
- gtk_clipboard_wait_for_rich_text@Base 3.91.2
- gtk_clipboard_wait_for_targets@Base 3.91.2
- gtk_clipboard_wait_for_text@Base 3.91.2
- gtk_clipboard_wait_for_uris@Base 3.91.2
- gtk_clipboard_wait_is_image_available@Base 3.91.2
- gtk_clipboard_wait_is_rich_text_available@Base 3.91.2
- gtk_clipboard_wait_is_target_available@Base 3.91.2
- gtk_clipboard_wait_is_text_available@Base 3.91.2
- gtk_clipboard_wait_is_uris_available@Base 3.91.2
  gtk_color_button_get_title@Base 3.91.2
  gtk_color_button_get_type@Base 3.91.2
  gtk_color_button_new@Base 3.91.2
@@ -1415,6 +1419,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_container_set_focus_hadjustment@Base 3.91.2
  gtk_container_set_focus_vadjustment@Base 3.91.2
  gtk_container_unset_focus_chain@Base 3.91.2
+ gtk_content_formats_add_image_targets@Base 3.94.0
+ gtk_content_formats_add_text_targets@Base 3.94.0
+ gtk_content_formats_add_uri_targets@Base 3.94.0
  gtk_corner_type_get_type@Base 3.91.2
  gtk_css_provider_error_get_type@Base 3.91.2
  gtk_css_provider_error_quark@Base 3.91.2
@@ -1475,7 +1482,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_drag_dest_set_target_list@Base 3.91.2
  gtk_drag_dest_set_track_motion@Base 3.91.2
  gtk_drag_dest_unset@Base 3.91.2
- gtk_drag_finish@Base 3.91.2
  gtk_drag_get_data@Base 3.91.2
  gtk_drag_get_source_widget@Base 3.91.2
  gtk_drag_highlight@Base 3.91.2
@@ -1483,8 +1489,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_drag_set_icon_default@Base 3.91.2
  gtk_drag_set_icon_gicon@Base 3.91.2
  gtk_drag_set_icon_name@Base 3.91.2
- gtk_drag_set_icon_pixbuf@Base 3.91.2
- gtk_drag_set_icon_surface@Base 3.91.2
+ gtk_drag_set_icon_paintable@Base 3.94.0
  gtk_drag_set_icon_widget@Base 3.91.2
  gtk_drag_source_add_image_targets@Base 3.91.2
  gtk_drag_source_add_text_targets@Base 3.91.2
@@ -1493,7 +1498,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_drag_source_set@Base 3.91.2
  gtk_drag_source_set_icon_gicon@Base 3.91.2
  gtk_drag_source_set_icon_name@Base 3.91.2
- gtk_drag_source_set_icon_pixbuf@Base 3.91.2
+ gtk_drag_source_set_icon_paintable@Base 3.94.0
  gtk_drag_source_set_target_list@Base 3.91.2
  gtk_drag_source_unset@Base 3.91.2
  gtk_drag_unhighlight@Base 3.91.2
@@ -1565,14 +1570,13 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_entry_get_buffer@Base 3.91.2
  gtk_entry_get_completion@Base 3.91.2
  gtk_entry_get_current_icon_drag_source@Base 3.91.2
- gtk_entry_get_cursor_hadjustment@Base 3.91.2
  gtk_entry_get_has_frame@Base 3.91.2
  gtk_entry_get_icon_activatable@Base 3.91.2
  gtk_entry_get_icon_area@Base 3.91.2
  gtk_entry_get_icon_at_pos@Base 3.91.2
  gtk_entry_get_icon_gicon@Base 3.91.2
  gtk_entry_get_icon_name@Base 3.91.2
- gtk_entry_get_icon_pixbuf@Base 3.91.2
+ gtk_entry_get_icon_paintable@Base 3.94.0
  gtk_entry_get_icon_sensitive@Base 3.91.2
  gtk_entry_get_icon_storage_type@Base 3.91.2
  gtk_entry_get_icon_tooltip_markup@Base 3.91.2
@@ -1608,13 +1612,12 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_entry_set_attributes@Base 3.91.2
  gtk_entry_set_buffer@Base 3.91.2
  gtk_entry_set_completion@Base 3.91.2
- gtk_entry_set_cursor_hadjustment@Base 3.91.2
  gtk_entry_set_has_frame@Base 3.91.2
  gtk_entry_set_icon_activatable@Base 3.91.2
  gtk_entry_set_icon_drag_source@Base 3.91.2
  gtk_entry_set_icon_from_gicon@Base 3.91.2
  gtk_entry_set_icon_from_icon_name@Base 3.91.2
- gtk_entry_set_icon_from_pixbuf@Base 3.91.2
+ gtk_entry_set_icon_from_paintable@Base 3.94.0
  gtk_entry_set_icon_sensitive@Base 3.91.2
  gtk_entry_set_icon_tooltip_markup@Base 3.91.2
  gtk_entry_set_icon_tooltip_text@Base 3.91.2
@@ -1638,6 +1641,14 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_event_controller_get_type@Base 3.91.2
  gtk_event_controller_get_widget@Base 3.91.2
  gtk_event_controller_handle_event@Base 3.91.2
+ gtk_event_controller_key_forward@Base 3.94.0
+ gtk_event_controller_key_get_group@Base 3.94.0
+ gtk_event_controller_key_get_im_context@Base 3.94.0
+ gtk_event_controller_key_get_type@Base 3.94.0
+ gtk_event_controller_key_new@Base 3.94.0
+ gtk_event_controller_key_set_im_context@Base 3.94.0
+ gtk_event_controller_motion_get_type@Base 3.94.0
+ gtk_event_controller_motion_new@Base 3.94.0
  gtk_event_controller_reset@Base 3.91.2
  gtk_event_controller_scroll_flags_get_type@Base 3.92.1
  gtk_event_controller_scroll_get_flags@Base 3.92.1
@@ -1650,7 +1661,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_expander_accessible_get_type@Base 3.91.2
  gtk_expander_get_expanded@Base 3.91.2
  gtk_expander_get_label@Base 3.91.2
- gtk_expander_get_label_fill@Base 3.91.2
  gtk_expander_get_label_widget@Base 3.91.2
  gtk_expander_get_resize_toplevel@Base 3.91.2
  gtk_expander_get_type@Base 3.91.2
@@ -1660,12 +1670,10 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_expander_new_with_mnemonic@Base 3.91.2
  gtk_expander_set_expanded@Base 3.91.2
  gtk_expander_set_label@Base 3.91.2
- gtk_expander_set_label_fill@Base 3.91.2
  gtk_expander_set_label_widget@Base 3.91.2
  gtk_expander_set_resize_toplevel@Base 3.91.2
  gtk_expander_set_use_markup@Base 3.91.2
  gtk_expander_set_use_underline@Base 3.91.2
- gtk_false@Base 3.91.2
  gtk_file_chooser_action_get_type@Base 3.91.2
  gtk_file_chooser_add_choice@Base 3.91.2
  gtk_file_chooser_add_filter@Base 3.91.2
@@ -1807,18 +1815,12 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_flow_box_set_vadjustment@Base 3.91.2
  gtk_flow_box_unselect_all@Base 3.91.2
  gtk_flow_box_unselect_child@Base 3.91.2
- gtk_font_button_get_font_name@Base 3.91.2
- gtk_font_button_get_show_size@Base 3.91.2
- gtk_font_button_get_show_style@Base 3.91.2
  gtk_font_button_get_title@Base 3.91.2
  gtk_font_button_get_type@Base 3.91.2
  gtk_font_button_get_use_font@Base 3.91.2
  gtk_font_button_get_use_size@Base 3.91.2
  gtk_font_button_new@Base 3.91.2
  gtk_font_button_new_with_font@Base 3.91.2
- gtk_font_button_set_font_name@Base 3.91.2
- gtk_font_button_set_show_size@Base 3.91.2
- gtk_font_button_set_show_style@Base 3.91.2
  gtk_font_button_set_title@Base 3.91.2
  gtk_font_button_set_use_font@Base 3.91.2
  gtk_font_button_set_use_size@Base 3.91.2
@@ -1828,15 +1830,21 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_font_chooser_get_font_desc@Base 3.91.2
  gtk_font_chooser_get_font_face@Base 3.91.2
  gtk_font_chooser_get_font_family@Base 3.91.2
+ gtk_font_chooser_get_font_features@Base 3.94.0
  gtk_font_chooser_get_font_map@Base 3.91.2
  gtk_font_chooser_get_font_size@Base 3.91.2
+ gtk_font_chooser_get_language@Base 3.94.0
+ gtk_font_chooser_get_level@Base 3.94.0
  gtk_font_chooser_get_preview_text@Base 3.91.2
  gtk_font_chooser_get_show_preview_entry@Base 3.91.2
  gtk_font_chooser_get_type@Base 3.91.2
+ gtk_font_chooser_level_get_type@Base 3.94.0
  gtk_font_chooser_set_filter_func@Base 3.91.2
  gtk_font_chooser_set_font@Base 3.91.2
  gtk_font_chooser_set_font_desc@Base 3.91.2
  gtk_font_chooser_set_font_map@Base 3.91.2
+ gtk_font_chooser_set_language@Base 3.94.0
+ gtk_font_chooser_set_level@Base 3.94.0
  gtk_font_chooser_set_preview_text@Base 3.91.2
  gtk_font_chooser_set_show_preview_entry@Base 3.91.2
  gtk_font_chooser_widget_get_type@Base 3.91.2
@@ -1895,6 +1903,12 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_gesture_single_set_button@Base 3.91.2
  gtk_gesture_single_set_exclusive@Base 3.91.2
  gtk_gesture_single_set_touch_only@Base 3.91.2
+ gtk_gesture_stylus_get_axes@Base 3.94.0
+ gtk_gesture_stylus_get_axis@Base 3.94.0
+ gtk_gesture_stylus_get_backlog@Base 3.94.0
+ gtk_gesture_stylus_get_device_tool@Base 3.94.0
+ gtk_gesture_stylus_get_type@Base 3.94.0
+ gtk_gesture_stylus_new@Base 3.94.0
  gtk_gesture_swipe_get_type@Base 3.91.2
  gtk_gesture_swipe_get_velocity@Base 3.91.2
  gtk_gesture_swipe_new@Base 3.91.2
@@ -1912,10 +1926,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_get_event_target@Base 3.91.2
  gtk_get_event_target_with_type@Base 3.91.2
  gtk_get_event_widget@Base 3.91.2
- gtk_get_im_module_file@Base 3.91.2
- gtk_get_im_module_path@Base 3.91.2
  gtk_get_interface_age@Base 3.91.2
  gtk_get_locale_direction@Base 3.91.2
+ gtk_get_main_thread@Base 3.94.0
  gtk_get_major_version@Base 3.91.2
  gtk_get_micro_version@Base 3.91.2
  gtk_get_minor_version@Base 3.91.2
@@ -1923,7 +1936,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_gl_area_get_auto_render@Base 3.91.2
  gtk_gl_area_get_context@Base 3.91.2
  gtk_gl_area_get_error@Base 3.91.2
- gtk_gl_area_get_has_alpha@Base 3.91.2
  gtk_gl_area_get_has_depth_buffer@Base 3.91.2
  gtk_gl_area_get_has_stencil_buffer@Base 3.91.2
  gtk_gl_area_get_required_version@Base 3.91.2
@@ -1934,7 +1946,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_gl_area_queue_render@Base 3.91.2
  gtk_gl_area_set_auto_render@Base 3.91.2
  gtk_gl_area_set_error@Base 3.91.2
- gtk_gl_area_set_has_alpha@Base 3.91.2
  gtk_gl_area_set_has_depth_buffer@Base 3.91.2
  gtk_gl_area_set_has_stencil_buffer@Base 3.91.2
  gtk_gl_area_set_required_version@Base 3.91.2
@@ -1968,7 +1979,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_header_bar_get_custom_title@Base 3.91.2
  gtk_header_bar_get_decoration_layout@Base 3.91.2
  gtk_header_bar_get_has_subtitle@Base 3.91.2
- gtk_header_bar_get_show_close_button@Base 3.91.2
+ gtk_header_bar_get_show_title_buttons@Base 3.94.0
  gtk_header_bar_get_subtitle@Base 3.91.2
  gtk_header_bar_get_title@Base 3.91.2
  gtk_header_bar_get_type@Base 3.91.2
@@ -1978,7 +1989,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_header_bar_set_custom_title@Base 3.91.2
  gtk_header_bar_set_decoration_layout@Base 3.91.2
  gtk_header_bar_set_has_subtitle@Base 3.91.2
- gtk_header_bar_set_show_close_button@Base 3.91.2
+ gtk_header_bar_set_show_title_buttons@Base 3.94.0
  gtk_header_bar_set_subtitle@Base 3.91.2
  gtk_header_bar_set_title@Base 3.91.2
  gtk_hsv_to_rgb@Base 3.91.2
@@ -1990,17 +2001,16 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_icon_info_load_icon@Base 3.91.2
  gtk_icon_info_load_icon_async@Base 3.91.2
  gtk_icon_info_load_icon_finish@Base 3.91.2
- gtk_icon_info_load_surface@Base 3.91.2
  gtk_icon_info_load_symbolic@Base 3.91.2
  gtk_icon_info_load_symbolic_async@Base 3.91.2
  gtk_icon_info_load_symbolic_finish@Base 3.91.2
  gtk_icon_info_load_symbolic_for_context@Base 3.91.2
  gtk_icon_info_load_symbolic_for_context_async@Base 3.91.2
  gtk_icon_info_load_symbolic_for_context_finish@Base 3.91.2
+ gtk_icon_info_load_texture@Base 3.94.0
  gtk_icon_info_new_for_pixbuf@Base 3.91.2
  gtk_icon_lookup_flags_get_type@Base 3.91.2
  gtk_icon_size_get_type@Base 3.91.2
- gtk_icon_size_lookup@Base 3.91.2
  gtk_icon_theme_add_resource_path@Base 3.91.2
  gtk_icon_theme_append_search_path@Base 3.91.2
  gtk_icon_theme_choose_icon@Base 3.91.2
@@ -2009,7 +2019,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_icon_theme_error_quark@Base 3.91.2
  gtk_icon_theme_get_default@Base 3.91.2
  gtk_icon_theme_get_example_icon_name@Base 3.91.2
- gtk_icon_theme_get_for_screen@Base 3.91.2
+ gtk_icon_theme_get_for_display@Base 3.94.0
  gtk_icon_theme_get_icon_sizes@Base 3.91.2
  gtk_icon_theme_get_search_path@Base 3.91.2
  gtk_icon_theme_get_type@Base 3.91.2
@@ -2018,7 +2028,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_icon_theme_list_icons@Base 3.91.2
  gtk_icon_theme_load_icon@Base 3.91.2
  gtk_icon_theme_load_icon_for_scale@Base 3.91.2
- gtk_icon_theme_load_surface@Base 3.91.2
  gtk_icon_theme_lookup_by_gicon@Base 3.91.2
  gtk_icon_theme_lookup_by_gicon_for_scale@Base 3.91.2
  gtk_icon_theme_lookup_icon@Base 3.91.2
@@ -2027,7 +2036,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_icon_theme_prepend_search_path@Base 3.91.2
  gtk_icon_theme_rescan_if_needed@Base 3.91.2
  gtk_icon_theme_set_custom_theme@Base 3.91.2
- gtk_icon_theme_set_screen@Base 3.91.2
+ gtk_icon_theme_set_display@Base 3.94.0
  gtk_icon_theme_set_search_path@Base 3.91.2
  gtk_icon_view_accessible_get_type@Base 3.91.2
  gtk_icon_view_create_drag_icon@Base 3.91.2
@@ -2119,28 +2128,27 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_image_accessible_get_type@Base 3.91.2
  gtk_image_cell_accessible_get_type@Base 3.91.2
  gtk_image_clear@Base 3.91.2
- gtk_image_get_animation@Base 3.91.2
  gtk_image_get_gicon@Base 3.91.2
  gtk_image_get_icon_name@Base 3.91.2
- gtk_image_get_pixbuf@Base 3.91.2
+ gtk_image_get_icon_size@Base 3.94.0
+ gtk_image_get_paintable@Base 3.94.0
  gtk_image_get_pixel_size@Base 3.91.2
  gtk_image_get_storage_type@Base 3.91.2
  gtk_image_get_type@Base 3.91.2
  gtk_image_new@Base 3.91.2
- gtk_image_new_from_animation@Base 3.91.2
  gtk_image_new_from_file@Base 3.91.2
  gtk_image_new_from_gicon@Base 3.91.2
  gtk_image_new_from_icon_name@Base 3.91.2
+ gtk_image_new_from_paintable@Base 3.94.0
  gtk_image_new_from_pixbuf@Base 3.91.2
  gtk_image_new_from_resource@Base 3.91.2
- gtk_image_new_from_surface@Base 3.91.2
- gtk_image_set_from_animation@Base 3.91.2
  gtk_image_set_from_file@Base 3.91.2
  gtk_image_set_from_gicon@Base 3.91.2
  gtk_image_set_from_icon_name@Base 3.91.2
+ gtk_image_set_from_paintable@Base 3.94.0
  gtk_image_set_from_pixbuf@Base 3.91.2
  gtk_image_set_from_resource@Base 3.91.2
- gtk_image_set_from_surface@Base 3.91.2
+ gtk_image_set_icon_size@Base 3.94.0
  gtk_image_set_pixel_size@Base 3.91.2
  gtk_image_type_get_type@Base 3.91.2
  gtk_info_bar_add_action_widget@Base 3.91.2
@@ -2164,11 +2172,12 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_init_check@Base 3.91.2
  gtk_input_hints_get_type@Base 3.91.2
  gtk_input_purpose_get_type@Base 3.91.2
- gtk_invisible_get_screen@Base 3.91.2
+ gtk_invisible_get_display@Base 3.94.0
  gtk_invisible_get_type@Base 3.91.2
  gtk_invisible_new@Base 3.91.2
- gtk_invisible_new_for_screen@Base 3.91.2
- gtk_invisible_set_screen@Base 3.91.2
+ gtk_invisible_new_for_display@Base 3.94.0
+ gtk_invisible_set_display@Base 3.94.0
+ gtk_is_initialized@Base 3.94.0
  gtk_justification_get_type@Base 3.91.2
  gtk_label_accessible_get_type@Base 3.91.2
  gtk_label_get_attributes@Base 3.91.2
@@ -2328,6 +2337,55 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_main_iteration_do@Base 3.91.2
  gtk_main_level@Base 3.91.2
  gtk_main_quit@Base 3.91.2
+ gtk_media_controls_get_media_stream@Base 3.94.0
+ gtk_media_controls_get_type@Base 3.94.0
+ gtk_media_controls_new@Base 3.94.0
+ gtk_media_controls_set_media_stream@Base 3.94.0
+ gtk_media_file_clear@Base 3.94.0
+ gtk_media_file_get_file@Base 3.94.0
+ gtk_media_file_get_input_stream@Base 3.94.0
+ gtk_media_file_get_type@Base 3.94.0
+ gtk_media_file_new@Base 3.94.0
+ gtk_media_file_new_for_file@Base 3.94.0
+ gtk_media_file_new_for_filename@Base 3.94.0
+ gtk_media_file_new_for_input_stream@Base 3.94.0
+ gtk_media_file_new_for_resource@Base 3.94.0
+ gtk_media_file_set_file@Base 3.94.0
+ gtk_media_file_set_filename@Base 3.94.0
+ gtk_media_file_set_input_stream@Base 3.94.0
+ gtk_media_file_set_resource@Base 3.94.0
+ gtk_media_stream_ended@Base 3.94.0
+ gtk_media_stream_error@Base 3.94.0
+ gtk_media_stream_error_valist@Base 3.94.0
+ gtk_media_stream_gerror@Base 3.94.0
+ gtk_media_stream_get_duration@Base 3.94.0
+ gtk_media_stream_get_ended@Base 3.94.0
+ gtk_media_stream_get_error@Base 3.94.0
+ gtk_media_stream_get_loop@Base 3.94.0
+ gtk_media_stream_get_muted@Base 3.94.0
+ gtk_media_stream_get_playing@Base 3.94.0
+ gtk_media_stream_get_timestamp@Base 3.94.0
+ gtk_media_stream_get_type@Base 3.94.0
+ gtk_media_stream_get_volume@Base 3.94.0
+ gtk_media_stream_has_audio@Base 3.94.0
+ gtk_media_stream_has_video@Base 3.94.0
+ gtk_media_stream_is_prepared@Base 3.94.0
+ gtk_media_stream_is_seekable@Base 3.94.0
+ gtk_media_stream_is_seeking@Base 3.94.0
+ gtk_media_stream_pause@Base 3.94.0
+ gtk_media_stream_play@Base 3.94.0
+ gtk_media_stream_prepared@Base 3.94.0
+ gtk_media_stream_realize@Base 3.94.0
+ gtk_media_stream_seek@Base 3.94.0
+ gtk_media_stream_seek_failed@Base 3.94.0
+ gtk_media_stream_seek_success@Base 3.94.0
+ gtk_media_stream_set_loop@Base 3.94.0
+ gtk_media_stream_set_muted@Base 3.94.0
+ gtk_media_stream_set_playing@Base 3.94.0
+ gtk_media_stream_set_volume@Base 3.94.0
+ gtk_media_stream_unprepared@Base 3.94.0
+ gtk_media_stream_unrealize@Base 3.94.0
+ gtk_media_stream_update@Base 3.94.0
  gtk_menu_accessible_get_type@Base 3.91.2
  gtk_menu_attach@Base 3.91.2
  gtk_menu_attach_to_widget@Base 3.91.2
@@ -2397,9 +2455,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_menu_set_accel_group@Base 3.91.2
  gtk_menu_set_accel_path@Base 3.91.2
  gtk_menu_set_active@Base 3.91.2
+ gtk_menu_set_display@Base 3.94.0
  gtk_menu_set_monitor@Base 3.91.2
  gtk_menu_set_reserve_toggle_size@Base 3.91.2
- gtk_menu_set_screen@Base 3.91.2
  gtk_menu_shell_accessible_get_type@Base 3.91.2
  gtk_menu_shell_activate_item@Base 3.91.2
  gtk_menu_shell_append@Base 3.91.2
@@ -2432,13 +2490,13 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_message_type_get_type@Base 3.91.2
  gtk_model_button_get_type@Base 3.91.2
  gtk_model_button_new@Base 3.91.2
+ gtk_mount_operation_get_display@Base 3.94.0
  gtk_mount_operation_get_parent@Base 3.91.2
- gtk_mount_operation_get_screen@Base 3.91.2
  gtk_mount_operation_get_type@Base 3.91.2
  gtk_mount_operation_is_showing@Base 3.91.2
  gtk_mount_operation_new@Base 3.91.2
+ gtk_mount_operation_set_display@Base 3.94.0
  gtk_mount_operation_set_parent@Base 3.91.2
- gtk_mount_operation_set_screen@Base 3.91.2
  gtk_movement_step_get_type@Base 3.91.2
  gtk_native_dialog_destroy@Base 3.91.2
  gtk_native_dialog_get_modal@Base 3.91.2
@@ -2507,10 +2565,14 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_orientable_set_orientation@Base 3.91.2
  gtk_orientation_get_type@Base 3.91.2
  gtk_overlay_add_overlay@Base 3.91.2
+ gtk_overlay_get_clip_overlay@Base 3.94.0
+ gtk_overlay_get_measure_overlay@Base 3.94.0
  gtk_overlay_get_overlay_pass_through@Base 3.91.2
  gtk_overlay_get_type@Base 3.91.2
  gtk_overlay_new@Base 3.91.2
  gtk_overlay_reorder_overlay@Base 3.91.2
+ gtk_overlay_set_clip_overlay@Base 3.94.0
+ gtk_overlay_set_measure_overlay@Base 3.94.0
  gtk_overlay_set_overlay_pass_through@Base 3.91.2
  gtk_pack_direction_get_type@Base 3.91.2
  gtk_pack_type_get_type@Base 3.91.2
@@ -2596,30 +2658,28 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_paper_size_to_gvariant@Base 3.91.2
  gtk_paper_size_to_key_file@Base 3.91.2
  gtk_path_bar_get_type@Base 3.91.2
+ gtk_picture_accessible_get_type@Base 3.94.0
+ gtk_picture_get_alternative_text@Base 3.94.0
+ gtk_picture_get_can_shrink@Base 3.94.0
+ gtk_picture_get_file@Base 3.94.0
+ gtk_picture_get_keep_aspect_ratio@Base 3.94.0
+ gtk_picture_get_paintable@Base 3.94.0
+ gtk_picture_get_type@Base 3.94.0
+ gtk_picture_new@Base 3.94.0
+ gtk_picture_new_for_file@Base 3.94.0
+ gtk_picture_new_for_filename@Base 3.94.0
+ gtk_picture_new_for_paintable@Base 3.94.0
+ gtk_picture_new_for_pixbuf@Base 3.94.0
+ gtk_picture_new_for_resource@Base 3.94.0
+ gtk_picture_set_alternative_text@Base 3.94.0
+ gtk_picture_set_can_shrink@Base 3.94.0
+ gtk_picture_set_file@Base 3.94.0
+ gtk_picture_set_filename@Base 3.94.0
+ gtk_picture_set_keep_aspect_ratio@Base 3.94.0
+ gtk_picture_set_paintable@Base 3.94.0
+ gtk_picture_set_pixbuf@Base 3.94.0
+ gtk_picture_set_resource@Base 3.94.0
  gtk_places_open_flags_get_type@Base 3.91.2
- gtk_places_sidebar_add_shortcut@Base 3.91.2
- gtk_places_sidebar_get_local_only@Base 3.91.2
- gtk_places_sidebar_get_location@Base 3.91.2
- gtk_places_sidebar_get_nth_bookmark@Base 3.91.2
- gtk_places_sidebar_get_open_flags@Base 3.91.2
- gtk_places_sidebar_get_show_desktop@Base 3.91.2
- gtk_places_sidebar_get_show_enter_location@Base 3.91.2
- gtk_places_sidebar_get_show_other_locations@Base 3.91.2
- gtk_places_sidebar_get_show_recent@Base 3.91.2
- gtk_places_sidebar_get_show_trash@Base 3.91.2
- gtk_places_sidebar_get_type@Base 3.91.2
- gtk_places_sidebar_list_shortcuts@Base 3.91.2
- gtk_places_sidebar_new@Base 3.91.2
- gtk_places_sidebar_remove_shortcut@Base 3.91.2
- gtk_places_sidebar_set_drop_targets_visible@Base 3.91.2
- gtk_places_sidebar_set_local_only@Base 3.91.2
- gtk_places_sidebar_set_location@Base 3.91.2
- gtk_places_sidebar_set_open_flags@Base 3.91.2
- gtk_places_sidebar_set_show_desktop@Base 3.91.2
- gtk_places_sidebar_set_show_enter_location@Base 3.91.2
- gtk_places_sidebar_set_show_other_locations@Base 3.91.2
- gtk_places_sidebar_set_show_recent@Base 3.91.2
- gtk_places_sidebar_set_show_trash@Base 3.91.2
  gtk_policy_type_get_type@Base 3.91.2
  gtk_popover_accessible_get_type@Base 3.91.2
  gtk_popover_bind_model@Base 3.91.2
@@ -2980,65 +3040,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_rc_property_parse_enum@Base 3.91.2
  gtk_rc_property_parse_flags@Base 3.91.2
  gtk_rc_property_parse_requisition@Base 3.91.2
- gtk_recent_chooser_add_filter@Base 3.91.2
- gtk_recent_chooser_dialog_get_type@Base 3.91.2
- gtk_recent_chooser_dialog_new@Base 3.91.2
- gtk_recent_chooser_dialog_new_for_manager@Base 3.91.2
- gtk_recent_chooser_error_get_type@Base 3.91.2
- gtk_recent_chooser_error_quark@Base 3.91.2
- gtk_recent_chooser_get_current_item@Base 3.91.2
- gtk_recent_chooser_get_current_uri@Base 3.91.2
- gtk_recent_chooser_get_filter@Base 3.91.2
- gtk_recent_chooser_get_items@Base 3.91.2
- gtk_recent_chooser_get_limit@Base 3.91.2
- gtk_recent_chooser_get_local_only@Base 3.91.2
- gtk_recent_chooser_get_select_multiple@Base 3.91.2
- gtk_recent_chooser_get_show_icons@Base 3.91.2
- gtk_recent_chooser_get_show_not_found@Base 3.91.2
- gtk_recent_chooser_get_show_private@Base 3.91.2
- gtk_recent_chooser_get_show_tips@Base 3.91.2
- gtk_recent_chooser_get_sort_type@Base 3.91.2
- gtk_recent_chooser_get_type@Base 3.91.2
- gtk_recent_chooser_get_uris@Base 3.91.2
- gtk_recent_chooser_list_filters@Base 3.91.2
- gtk_recent_chooser_menu_get_show_numbers@Base 3.91.2
- gtk_recent_chooser_menu_get_type@Base 3.91.2
- gtk_recent_chooser_menu_new@Base 3.91.2
- gtk_recent_chooser_menu_new_for_manager@Base 3.91.2
- gtk_recent_chooser_menu_set_show_numbers@Base 3.91.2
- gtk_recent_chooser_remove_filter@Base 3.91.2
- gtk_recent_chooser_select_all@Base 3.91.2
- gtk_recent_chooser_select_uri@Base 3.91.2
- gtk_recent_chooser_set_current_uri@Base 3.91.2
- gtk_recent_chooser_set_filter@Base 3.91.2
- gtk_recent_chooser_set_limit@Base 3.91.2
- gtk_recent_chooser_set_local_only@Base 3.91.2
- gtk_recent_chooser_set_select_multiple@Base 3.91.2
- gtk_recent_chooser_set_show_icons@Base 3.91.2
- gtk_recent_chooser_set_show_not_found@Base 3.91.2
- gtk_recent_chooser_set_show_private@Base 3.91.2
- gtk_recent_chooser_set_show_tips@Base 3.91.2
- gtk_recent_chooser_set_sort_func@Base 3.91.2
- gtk_recent_chooser_set_sort_type@Base 3.91.2
- gtk_recent_chooser_unselect_all@Base 3.91.2
- gtk_recent_chooser_unselect_uri@Base 3.91.2
- gtk_recent_chooser_widget_get_type@Base 3.91.2
- gtk_recent_chooser_widget_new@Base 3.91.2
- gtk_recent_chooser_widget_new_for_manager@Base 3.91.2
- gtk_recent_filter_add_age@Base 3.91.2
- gtk_recent_filter_add_application@Base 3.91.2
- gtk_recent_filter_add_custom@Base 3.91.2
- gtk_recent_filter_add_group@Base 3.91.2
- gtk_recent_filter_add_mime_type@Base 3.91.2
- gtk_recent_filter_add_pattern@Base 3.91.2
- gtk_recent_filter_add_pixbuf_formats@Base 3.91.2
- gtk_recent_filter_filter@Base 3.91.2
- gtk_recent_filter_flags_get_type@Base 3.91.2
- gtk_recent_filter_get_name@Base 3.91.2
- gtk_recent_filter_get_needed@Base 3.91.2
- gtk_recent_filter_get_type@Base 3.91.2
- gtk_recent_filter_new@Base 3.91.2
- gtk_recent_filter_set_name@Base 3.91.2
  gtk_recent_info_create_app_info@Base 3.91.2
  gtk_recent_info_exists@Base 3.91.2
  gtk_recent_info_get_added@Base 3.91.2
@@ -3049,7 +3050,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_recent_info_get_display_name@Base 3.91.2
  gtk_recent_info_get_gicon@Base 3.91.2
  gtk_recent_info_get_groups@Base 3.91.2
- gtk_recent_info_get_icon@Base 3.91.2
  gtk_recent_info_get_mime_type@Base 3.91.2
  gtk_recent_info_get_modified@Base 3.91.2
  gtk_recent_info_get_private_hint@Base 3.91.2
@@ -3078,7 +3078,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_recent_manager_new@Base 3.91.2
  gtk_recent_manager_purge_items@Base 3.91.2
  gtk_recent_manager_remove_item@Base 3.91.2
- gtk_recent_sort_type_get_type@Base 3.91.2
  gtk_relief_style_get_type@Base 3.91.2
  gtk_render_activity@Base 3.91.2
  gtk_render_arrow@Base 3.91.2
@@ -3091,7 +3090,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_render_frame_gap@Base 3.91.2
  gtk_render_handle@Base 3.91.2
  gtk_render_icon@Base 3.91.2
- gtk_render_icon_surface@Base 3.91.2
  gtk_render_insertion_cursor@Base 3.91.2
  gtk_render_layout@Base 3.91.2
  gtk_render_line@Base 3.91.2
@@ -3157,7 +3155,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_scrollable_set_vscroll_policy@Base 3.91.2
  gtk_scrollbar_get_adjustment@Base 3.91.2
  gtk_scrollbar_get_type@Base 3.91.2
- gtk_scrollbar_get_wheel_delta@Base 3.91.2
  gtk_scrollbar_new@Base 3.91.2
  gtk_scrollbar_set_adjustment@Base 3.91.2
  gtk_scrolled_window_accessible_get_type@Base 3.91.2
@@ -3195,20 +3192,20 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_scrolled_window_set_vadjustment@Base 3.91.2
  gtk_scrolled_window_unset_placement@Base 3.91.2
  gtk_search_bar_connect_entry@Base 3.91.2
+ gtk_search_bar_get_key_capture_widget@Base 3.94.0
  gtk_search_bar_get_search_mode@Base 3.91.2
  gtk_search_bar_get_show_close_button@Base 3.91.2
  gtk_search_bar_get_type@Base 3.91.2
  gtk_search_bar_handle_event@Base 3.91.2
  gtk_search_bar_new@Base 3.91.2
+ gtk_search_bar_set_key_capture_widget@Base 3.94.0
  gtk_search_bar_set_search_mode@Base 3.91.2
  gtk_search_bar_set_show_close_button@Base 3.91.2
+ gtk_search_entry_get_key_capture_widget@Base 3.94.0
  gtk_search_entry_get_type@Base 3.91.2
  gtk_search_entry_handle_event@Base 3.91.2
  gtk_search_entry_new@Base 3.91.2
- gtk_selection_add_target@Base 3.91.2
- gtk_selection_add_targets@Base 3.91.2
- gtk_selection_clear_targets@Base 3.91.2
- gtk_selection_convert@Base 3.91.2
+ gtk_search_entry_set_key_capture_widget@Base 3.94.0
  gtk_selection_data_copy@Base 3.91.2
  gtk_selection_data_free@Base 3.91.2
  gtk_selection_data_get_data@Base 3.91.2
@@ -3218,24 +3215,21 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_selection_data_get_format@Base 3.91.2
  gtk_selection_data_get_length@Base 3.91.2
  gtk_selection_data_get_pixbuf@Base 3.91.2
- gtk_selection_data_get_selection@Base 3.91.2
  gtk_selection_data_get_target@Base 3.91.2
  gtk_selection_data_get_targets@Base 3.91.2
  gtk_selection_data_get_text@Base 3.91.2
+ gtk_selection_data_get_texture@Base 3.94.0
  gtk_selection_data_get_type@Base 3.91.2
  gtk_selection_data_get_uris@Base 3.91.2
  gtk_selection_data_set@Base 3.91.2
  gtk_selection_data_set_pixbuf@Base 3.91.2
  gtk_selection_data_set_text@Base 3.91.2
+ gtk_selection_data_set_texture@Base 3.94.0
  gtk_selection_data_set_uris@Base 3.91.2
  gtk_selection_data_targets_include_image@Base 3.91.2
- gtk_selection_data_targets_include_rich_text@Base 3.91.2
  gtk_selection_data_targets_include_text@Base 3.91.2
  gtk_selection_data_targets_include_uri@Base 3.91.2
  gtk_selection_mode_get_type@Base 3.91.2
- gtk_selection_owner_set@Base 3.91.2
- gtk_selection_owner_set_for_display@Base 3.91.2
- gtk_selection_remove_all@Base 3.91.2
  gtk_sensitivity_type_get_type@Base 3.91.2
  gtk_separator_get_type@Base 3.91.2
  gtk_separator_menu_item_get_type@Base 3.91.2
@@ -3247,7 +3241,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_separator_tool_item_set_draw@Base 3.91.2
  gtk_set_debug_flags@Base 3.91.2
  gtk_settings_get_default@Base 3.91.2
- gtk_settings_get_for_screen@Base 3.91.2
+ gtk_settings_get_for_display@Base 3.94.0
  gtk_settings_get_type@Base 3.91.2
  gtk_settings_reset_property@Base 3.91.2
  gtk_shadow_type_get_type@Base 3.91.2
@@ -3275,18 +3269,24 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_size_request_mode_get_type@Base 3.91.2
  gtk_snapshot_append_cairo@Base 3.91.2
  gtk_snapshot_append_color@Base 3.91.2
+ gtk_snapshot_append_layout@Base 3.94.0
+ gtk_snapshot_append_linear_gradient@Base 3.94.0
  gtk_snapshot_append_node@Base 3.91.2
+ gtk_snapshot_append_repeating_linear_gradient@Base 3.94.0
  gtk_snapshot_append_texture@Base 3.91.2
- gtk_snapshot_clips_rect@Base 3.91.2
+ gtk_snapshot_free_to_node@Base 3.94.0
+ gtk_snapshot_free_to_paintable@Base 3.94.0
  gtk_snapshot_get_offset@Base 3.91.2
+ gtk_snapshot_get_type@Base 3.94.0
+ gtk_snapshot_new@Base 3.94.0
  gtk_snapshot_offset@Base 3.91.2
  gtk_snapshot_pop@Base 3.91.2
- gtk_snapshot_push@Base 3.91.2
  gtk_snapshot_push_blend@Base 3.91.2
  gtk_snapshot_push_blur@Base 3.92.1
  gtk_snapshot_push_clip@Base 3.91.2
  gtk_snapshot_push_color_matrix@Base 3.91.2
  gtk_snapshot_push_cross_fade@Base 3.91.2
+ gtk_snapshot_push_debug@Base 3.94.0
  gtk_snapshot_push_opacity@Base 3.91.2
  gtk_snapshot_push_repeat@Base 3.91.2
  gtk_snapshot_push_rounded_clip@Base 3.91.2
@@ -3295,9 +3295,10 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_snapshot_render_background@Base 3.91.2
  gtk_snapshot_render_focus@Base 3.91.2
  gtk_snapshot_render_frame@Base 3.91.2
- gtk_snapshot_render_icon@Base 3.91.2
  gtk_snapshot_render_insertion_cursor@Base 3.91.2
  gtk_snapshot_render_layout@Base 3.91.2
+ gtk_snapshot_to_node@Base 3.94.0
+ gtk_snapshot_to_paintable@Base 3.94.0
  gtk_sort_type_get_type@Base 3.91.2
  gtk_spin_button_accessible_get_type@Base 3.91.2
  gtk_spin_button_configure@Base 3.91.2
@@ -3383,20 +3384,19 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_statusbar_remove_all@Base 3.91.2
  gtk_style_context_add_class@Base 3.91.2
  gtk_style_context_add_provider@Base 3.91.2
- gtk_style_context_add_provider_for_screen@Base 3.91.2
+ gtk_style_context_add_provider_for_display@Base 3.94.0
  gtk_style_context_get@Base 3.91.2
  gtk_style_context_get_background_color@Base 3.91.2
  gtk_style_context_get_border@Base 3.91.2
  gtk_style_context_get_border_color@Base 3.91.2
  gtk_style_context_get_color@Base 3.91.2
- gtk_style_context_get_frame_clock@Base 3.91.2
+ gtk_style_context_get_display@Base 3.94.0
  gtk_style_context_get_margin@Base 3.91.2
  gtk_style_context_get_padding@Base 3.91.2
  gtk_style_context_get_parent@Base 3.91.2
  gtk_style_context_get_path@Base 3.91.2
  gtk_style_context_get_property@Base 3.91.2
  gtk_style_context_get_scale@Base 3.91.2
- gtk_style_context_get_screen@Base 3.91.2
  gtk_style_context_get_section@Base 3.91.2
  gtk_style_context_get_state@Base 3.91.2
  gtk_style_context_get_type@Base 3.91.2
@@ -3408,15 +3408,14 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_style_context_print_flags_get_type@Base 3.91.2
  gtk_style_context_remove_class@Base 3.91.2
  gtk_style_context_remove_provider@Base 3.91.2
- gtk_style_context_remove_provider_for_screen@Base 3.91.2
+ gtk_style_context_remove_provider_for_display@Base 3.94.0
  gtk_style_context_reset_widgets@Base 3.91.2
  gtk_style_context_restore@Base 3.91.2
  gtk_style_context_save@Base 3.91.2
- gtk_style_context_set_frame_clock@Base 3.91.2
+ gtk_style_context_set_display@Base 3.94.0
  gtk_style_context_set_parent@Base 3.91.2
  gtk_style_context_set_path@Base 3.91.2
  gtk_style_context_set_scale@Base 3.91.2
- gtk_style_context_set_screen@Base 3.91.2
  gtk_style_context_set_state@Base 3.91.2
  gtk_style_context_to_string@Base 3.91.2
  gtk_style_provider_get_type@Base 3.91.2
@@ -3427,27 +3426,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_switch_new@Base 3.91.2
  gtk_switch_set_active@Base 3.91.2
  gtk_switch_set_state@Base 3.91.2
- gtk_target_entry_copy@Base 3.91.2
- gtk_target_entry_free@Base 3.91.2
- gtk_target_entry_get_type@Base 3.91.2
- gtk_target_entry_new@Base 3.91.2
- gtk_target_flags_get_type@Base 3.91.2
- gtk_target_list_add@Base 3.91.2
- gtk_target_list_add_image_targets@Base 3.91.2
- gtk_target_list_add_rich_text_targets@Base 3.91.2
- gtk_target_list_add_table@Base 3.91.2
- gtk_target_list_add_text_targets@Base 3.91.2
- gtk_target_list_add_uri_targets@Base 3.91.2
- gtk_target_list_find@Base 3.91.2
- gtk_target_list_get_type@Base 3.91.2
- gtk_target_list_new@Base 3.91.2
- gtk_target_list_ref@Base 3.91.2
- gtk_target_list_remove@Base 3.91.2
- gtk_target_list_unref@Base 3.91.2
- gtk_target_table_free@Base 3.91.2
- gtk_target_table_new_from_list@Base 3.91.2
  gtk_targets_include_image@Base 3.91.2
- gtk_targets_include_rich_text@Base 3.91.2
  gtk_targets_include_text@Base 3.91.2
  gtk_targets_include_uri@Base 3.91.2
  gtk_test_init@Base 3.91.2
@@ -3477,14 +3456,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_text_buffer_delete_mark@Base 3.91.2
  gtk_text_buffer_delete_mark_by_name@Base 3.91.2
  gtk_text_buffer_delete_selection@Base 3.91.2
- gtk_text_buffer_deserialize@Base 3.91.2
- gtk_text_buffer_deserialize_get_can_create_tags@Base 3.91.2
- gtk_text_buffer_deserialize_set_can_create_tags@Base 3.91.2
  gtk_text_buffer_end_user_action@Base 3.91.2
  gtk_text_buffer_get_bounds@Base 3.91.2
  gtk_text_buffer_get_char_count@Base 3.91.2
- gtk_text_buffer_get_copy_target_list@Base 3.91.2
- gtk_text_buffer_get_deserialize_formats@Base 3.91.2
  gtk_text_buffer_get_end_iter@Base 3.91.2
  gtk_text_buffer_get_has_selection@Base 3.91.2
  gtk_text_buffer_get_insert@Base 3.91.2
@@ -3497,10 +3471,8 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_text_buffer_get_line_count@Base 3.91.2
  gtk_text_buffer_get_mark@Base 3.91.2
  gtk_text_buffer_get_modified@Base 3.91.2
- gtk_text_buffer_get_paste_target_list@Base 3.91.2
  gtk_text_buffer_get_selection_bound@Base 3.91.2
  gtk_text_buffer_get_selection_bounds@Base 3.91.2
- gtk_text_buffer_get_serialize_formats@Base 3.91.2
  gtk_text_buffer_get_slice@Base 3.91.2
  gtk_text_buffer_get_start_iter@Base 3.91.2
  gtk_text_buffer_get_tag_table@Base 3.91.2
@@ -3512,9 +3484,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_text_buffer_insert_interactive@Base 3.91.2
  gtk_text_buffer_insert_interactive_at_cursor@Base 3.91.2
  gtk_text_buffer_insert_markup@Base 3.91.2
- gtk_text_buffer_insert_pixbuf@Base 3.91.2
  gtk_text_buffer_insert_range@Base 3.91.2
  gtk_text_buffer_insert_range_interactive@Base 3.91.2
+ gtk_text_buffer_insert_texture@Base 3.94.0
  gtk_text_buffer_insert_with_tags@Base 3.91.2
  gtk_text_buffer_insert_with_tags_by_name@Base 3.91.2
  gtk_text_buffer_move_mark@Base 3.91.2
@@ -3522,21 +3494,14 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_text_buffer_new@Base 3.91.2
  gtk_text_buffer_paste_clipboard@Base 3.91.2
  gtk_text_buffer_place_cursor@Base 3.91.2
- gtk_text_buffer_register_deserialize_format@Base 3.91.2
- gtk_text_buffer_register_deserialize_tagset@Base 3.91.2
- gtk_text_buffer_register_serialize_format@Base 3.91.2
- gtk_text_buffer_register_serialize_tagset@Base 3.91.2
  gtk_text_buffer_remove_all_tags@Base 3.91.2
  gtk_text_buffer_remove_selection_clipboard@Base 3.91.2
  gtk_text_buffer_remove_tag@Base 3.91.2
  gtk_text_buffer_remove_tag_by_name@Base 3.91.2
  gtk_text_buffer_select_range@Base 3.91.2
- gtk_text_buffer_serialize@Base 3.91.2
  gtk_text_buffer_set_modified@Base 3.91.2
  gtk_text_buffer_set_text@Base 3.91.2
  gtk_text_buffer_target_info_get_type@Base 3.91.2
- gtk_text_buffer_unregister_deserialize_format@Base 3.91.2
- gtk_text_buffer_unregister_serialize_format@Base 3.91.2
  gtk_text_byte_begins_utf8_char@Base 3.91.2
  gtk_text_cell_accessible_get_type@Base 3.91.2
  gtk_text_child_anchor_get_deleted@Base 3.91.2
@@ -3610,10 +3575,10 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_text_iter_get_line_offset@Base 3.91.2
  gtk_text_iter_get_marks@Base 3.91.2
  gtk_text_iter_get_offset@Base 3.91.2
- gtk_text_iter_get_pixbuf@Base 3.91.2
  gtk_text_iter_get_slice@Base 3.91.2
  gtk_text_iter_get_tags@Base 3.91.2
  gtk_text_iter_get_text@Base 3.91.2
+ gtk_text_iter_get_texture@Base 3.94.0
  gtk_text_iter_get_toggled_tags@Base 3.91.2
  gtk_text_iter_get_type@Base 3.91.2
  gtk_text_iter_get_visible_line_index@Base 3.91.2
@@ -3695,7 +3660,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_text_mark_set_visible@Base 3.91.2
  gtk_text_search_flags_get_type@Base 3.91.2
  gtk_text_tag_changed@Base 3.91.2
- gtk_text_tag_event@Base 3.91.2
  gtk_text_tag_get_priority@Base 3.91.2
  gtk_text_tag_get_type@Base 3.91.2
  gtk_text_tag_new@Base 3.91.2
@@ -3713,7 +3677,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_text_view_add_child_in_window@Base 3.91.2
  gtk_text_view_backward_display_line@Base 3.91.2
  gtk_text_view_backward_display_line_start@Base 3.91.2
- gtk_text_view_buffer_to_window_coords@Base 3.91.2
+ gtk_text_view_buffer_to_surface_coords@Base 3.94.0
  gtk_text_view_forward_display_line@Base 3.91.2
  gtk_text_view_forward_display_line_end@Base 3.91.2
  gtk_text_view_get_accepts_tab@Base 3.91.2
@@ -3743,8 +3707,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_text_view_get_top_margin@Base 3.91.2
  gtk_text_view_get_type@Base 3.91.2
  gtk_text_view_get_visible_rect@Base 3.91.2
- gtk_text_view_get_window@Base 3.91.2
- gtk_text_view_get_window_type@Base 3.91.2
  gtk_text_view_get_wrap_mode@Base 3.91.2
  gtk_text_view_im_context_filter_keypress@Base 3.91.2
  gtk_text_view_layer_get_type@Base 3.91.2
@@ -3809,7 +3771,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_tool_item_get_ellipsize_mode@Base 3.91.2
  gtk_tool_item_get_expand@Base 3.91.2
  gtk_tool_item_get_homogeneous@Base 3.91.2
- gtk_tool_item_get_icon_size@Base 3.91.2
  gtk_tool_item_get_is_important@Base 3.91.2
  gtk_tool_item_get_orientation@Base 3.91.2
  gtk_tool_item_get_proxy_menu_item@Base 3.91.2
@@ -3820,24 +3781,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_tool_item_get_type@Base 3.91.2
  gtk_tool_item_get_visible_horizontal@Base 3.91.2
  gtk_tool_item_get_visible_vertical@Base 3.91.2
- gtk_tool_item_group_get_collapsed@Base 3.91.2
- gtk_tool_item_group_get_drop_item@Base 3.91.2
- gtk_tool_item_group_get_ellipsize@Base 3.91.2
- gtk_tool_item_group_get_header_relief@Base 3.91.2
- gtk_tool_item_group_get_item_position@Base 3.91.2
- gtk_tool_item_group_get_label@Base 3.91.2
- gtk_tool_item_group_get_label_widget@Base 3.91.2
- gtk_tool_item_group_get_n_items@Base 3.91.2
- gtk_tool_item_group_get_nth_item@Base 3.91.2
- gtk_tool_item_group_get_type@Base 3.91.2
- gtk_tool_item_group_insert@Base 3.91.2
- gtk_tool_item_group_new@Base 3.91.2
- gtk_tool_item_group_set_collapsed@Base 3.91.2
- gtk_tool_item_group_set_ellipsize@Base 3.91.2
- gtk_tool_item_group_set_header_relief@Base 3.91.2
- gtk_tool_item_group_set_item_position@Base 3.91.2
- gtk_tool_item_group_set_label@Base 3.91.2
- gtk_tool_item_group_set_label_widget@Base 3.91.2
  gtk_tool_item_new@Base 3.91.2
  gtk_tool_item_rebuild_menu@Base 3.91.2
  gtk_tool_item_retrieve_proxy_menu_item@Base 3.91.2
@@ -3850,30 +3793,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_tool_item_set_visible_horizontal@Base 3.91.2
  gtk_tool_item_set_visible_vertical@Base 3.91.2
  gtk_tool_item_toolbar_reconfigured@Base 3.91.2
- gtk_tool_palette_add_drag_dest@Base 3.91.2
- gtk_tool_palette_drag_targets_get_type@Base 3.91.2
- gtk_tool_palette_get_drag_item@Base 3.91.2
- gtk_tool_palette_get_drag_target_group@Base 3.91.2
- gtk_tool_palette_get_drag_target_item@Base 3.91.2
- gtk_tool_palette_get_drop_group@Base 3.91.2
- gtk_tool_palette_get_drop_item@Base 3.91.2
- gtk_tool_palette_get_exclusive@Base 3.91.2
- gtk_tool_palette_get_expand@Base 3.91.2
- gtk_tool_palette_get_group_position@Base 3.91.2
- gtk_tool_palette_get_icon_size@Base 3.91.2
- gtk_tool_palette_get_style@Base 3.91.2
- gtk_tool_palette_get_type@Base 3.91.2
- gtk_tool_palette_new@Base 3.91.2
- gtk_tool_palette_set_drag_source@Base 3.91.2
- gtk_tool_palette_set_exclusive@Base 3.91.2
- gtk_tool_palette_set_expand@Base 3.91.2
- gtk_tool_palette_set_group_position@Base 3.91.2
- gtk_tool_palette_set_icon_size@Base 3.91.2
- gtk_tool_palette_set_style@Base 3.91.2
- gtk_tool_palette_unset_icon_size@Base 3.91.2
- gtk_tool_palette_unset_style@Base 3.91.2
  gtk_tool_shell_get_ellipsize_mode@Base 3.91.2
- gtk_tool_shell_get_icon_size@Base 3.91.2
  gtk_tool_shell_get_orientation@Base 3.91.2
  gtk_tool_shell_get_style@Base 3.91.2
  gtk_tool_shell_get_text_alignment@Base 3.91.2
@@ -3882,7 +3802,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_tool_shell_get_type@Base 3.91.2
  gtk_tool_shell_rebuild_menu@Base 3.91.2
  gtk_toolbar_get_drop_index@Base 3.91.2
- gtk_toolbar_get_icon_size@Base 3.91.2
  gtk_toolbar_get_item_index@Base 3.91.2
  gtk_toolbar_get_n_items@Base 3.91.2
  gtk_toolbar_get_nth_item@Base 3.91.2
@@ -3892,11 +3811,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_toolbar_insert@Base 3.91.2
  gtk_toolbar_new@Base 3.91.2
  gtk_toolbar_set_drop_highlight_item@Base 3.91.2
- gtk_toolbar_set_icon_size@Base 3.91.2
  gtk_toolbar_set_show_arrow@Base 3.91.2
  gtk_toolbar_set_style@Base 3.91.2
  gtk_toolbar_style_get_type@Base 3.91.2
- gtk_toolbar_unset_icon_size@Base 3.91.2
  gtk_toolbar_unset_style@Base 3.91.2
  gtk_tooltip_get_type@Base 3.91.2
  gtk_tooltip_set_custom@Base 3.91.2
@@ -4208,8 +4125,23 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_tree_view_set_tooltip_row@Base 3.91.2
  gtk_tree_view_unset_rows_drag_dest@Base 3.91.2
  gtk_tree_view_unset_rows_drag_source@Base 3.91.2
- gtk_true@Base 3.91.2
  gtk_unit_get_type@Base 3.91.2
+ gtk_video_get_autoplay@Base 3.94.0
+ gtk_video_get_file@Base 3.94.0
+ gtk_video_get_loop@Base 3.94.0
+ gtk_video_get_media_stream@Base 3.94.0
+ gtk_video_get_type@Base 3.94.0
+ gtk_video_new@Base 3.94.0
+ gtk_video_new_for_file@Base 3.94.0
+ gtk_video_new_for_filename@Base 3.94.0
+ gtk_video_new_for_media_stream@Base 3.94.0
+ gtk_video_new_for_resource@Base 3.94.0
+ gtk_video_set_autoplay@Base 3.94.0
+ gtk_video_set_file@Base 3.94.0
+ gtk_video_set_filename@Base 3.94.0
+ gtk_video_set_loop@Base 3.94.0
+ gtk_video_set_media_stream@Base 3.94.0
+ gtk_video_set_resource@Base 3.94.0
  gtk_viewport_get_shadow_type@Base 3.91.2
  gtk_viewport_get_type@Base 3.91.2
  gtk_viewport_new@Base 3.91.2
@@ -4219,6 +4151,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_accessible_get_type@Base 3.91.2
  gtk_widget_activate@Base 3.91.2
  gtk_widget_add_accelerator@Base 3.91.2
+ gtk_widget_add_controller@Base 3.94.0
  gtk_widget_add_mnemonic_label@Base 3.91.2
  gtk_widget_add_tick_callback@Base 3.91.2
  gtk_widget_can_activate_accel@Base 3.91.2
@@ -4233,13 +4166,14 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_class_set_css_name@Base 3.91.2
  gtk_widget_class_set_template@Base 3.91.2
  gtk_widget_class_set_template_from_resource@Base 3.91.2
+ gtk_widget_compute_bounds@Base 3.94.0
  gtk_widget_compute_expand@Base 3.91.2
+ gtk_widget_contains@Base 3.94.0
  gtk_widget_create_pango_context@Base 3.91.2
  gtk_widget_create_pango_layout@Base 3.91.2
  gtk_widget_destroy@Base 3.91.2
  gtk_widget_destroyed@Base 3.91.2
  gtk_widget_device_is_shadowed@Base 3.91.2
- gtk_widget_draw@Base 3.91.2
  gtk_widget_error_bell@Base 3.91.2
  gtk_widget_event@Base 3.91.2
  gtk_widget_freeze_child_notify@Base 3.91.2
@@ -4254,10 +4188,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_get_can_default@Base 3.91.2
  gtk_widget_get_can_focus@Base 3.91.2
  gtk_widget_get_child_visible@Base 3.91.2
- gtk_widget_get_clip@Base 3.91.2
  gtk_widget_get_clipboard@Base 3.91.2
+ gtk_widget_get_cursor@Base 3.94.0
  gtk_widget_get_default_direction@Base 3.91.2
- gtk_widget_get_device_enabled@Base 3.91.2
  gtk_widget_get_direction@Base 3.91.2
  gtk_widget_get_display@Base 3.91.2
  gtk_widget_get_first_child@Base 3.91.2
@@ -4266,8 +4199,9 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_get_font_options@Base 3.91.2
  gtk_widget_get_frame_clock@Base 3.91.2
  gtk_widget_get_halign@Base 3.91.2
+ gtk_widget_get_has_surface@Base 3.94.0
  gtk_widget_get_has_tooltip@Base 3.91.2
- gtk_widget_get_has_window@Base 3.91.2
+ gtk_widget_get_height@Base 3.94.0
  gtk_widget_get_hexpand@Base 3.91.2
  gtk_widget_get_hexpand_set@Base 3.91.2
  gtk_widget_get_last_child@Base 3.91.2
@@ -4282,21 +4216,22 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_get_opacity@Base 3.91.2
  gtk_widget_get_pango_context@Base 3.91.2
  gtk_widget_get_parent@Base 3.91.2
- gtk_widget_get_parent_window@Base 3.91.2
+ gtk_widget_get_parent_surface@Base 3.94.0
  gtk_widget_get_path@Base 3.91.2
  gtk_widget_get_preferred_size@Base 3.91.2
  gtk_widget_get_prev_sibling@Base 3.91.2
+ gtk_widget_get_primary_clipboard@Base 3.94.0
  gtk_widget_get_realized@Base 3.91.2
  gtk_widget_get_receives_default@Base 3.91.2
  gtk_widget_get_request_mode@Base 3.91.2
  gtk_widget_get_scale_factor@Base 3.91.2
- gtk_widget_get_screen@Base 3.91.2
  gtk_widget_get_sensitive@Base 3.91.2
  gtk_widget_get_settings@Base 3.91.2
  gtk_widget_get_size_request@Base 3.91.2
  gtk_widget_get_state_flags@Base 3.91.2
  gtk_widget_get_style_context@Base 3.91.2
  gtk_widget_get_support_multidevice@Base 3.91.2
+ gtk_widget_get_surface@Base 3.94.0
  gtk_widget_get_template_child@Base 3.91.2
  gtk_widget_get_tooltip_markup@Base 3.91.2
  gtk_widget_get_tooltip_text@Base 3.91.2
@@ -4307,16 +4242,14 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_get_vexpand@Base 3.91.2
  gtk_widget_get_vexpand_set@Base 3.91.2
  gtk_widget_get_visible@Base 3.91.2
- gtk_widget_get_window@Base 3.91.2
+ gtk_widget_get_width@Base 3.94.0
  gtk_widget_grab_default@Base 3.91.2
  gtk_widget_grab_focus@Base 3.91.2
  gtk_widget_has_default@Base 3.91.2
  gtk_widget_has_focus@Base 3.91.2
  gtk_widget_has_grab@Base 3.91.2
- gtk_widget_has_screen@Base 3.91.2
  gtk_widget_has_visible_focus@Base 3.91.2
  gtk_widget_hide@Base 3.91.2
- gtk_widget_hide_on_delete@Base 3.91.2
  gtk_widget_in_destruction@Base 3.91.2
  gtk_widget_init_template@Base 3.91.2
  gtk_widget_input_shape_combine_region@Base 3.91.2
@@ -4338,6 +4271,10 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_measure@Base 3.91.2
  gtk_widget_mnemonic_activate@Base 3.91.2
  gtk_widget_new@Base 3.91.2
+ gtk_widget_paintable_get_type@Base 3.94.0
+ gtk_widget_paintable_get_widget@Base 3.94.0
+ gtk_widget_paintable_new@Base 3.94.0
+ gtk_widget_paintable_set_widget@Base 3.94.0
  gtk_widget_path_append_for_widget@Base 3.91.2
  gtk_widget_path_append_type@Base 3.91.2
  gtk_widget_path_append_with_siblings@Base 3.91.2
@@ -4371,16 +4308,16 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_path_ref@Base 3.91.2
  gtk_widget_path_to_string@Base 3.91.2
  gtk_widget_path_unref@Base 3.91.2
+ gtk_widget_pick@Base 3.94.0
  gtk_widget_queue_allocate@Base 3.91.2
  gtk_widget_queue_compute_expand@Base 3.91.2
  gtk_widget_queue_draw@Base 3.91.2
- gtk_widget_queue_draw_area@Base 3.91.2
- gtk_widget_queue_draw_region@Base 3.91.2
  gtk_widget_queue_resize@Base 3.91.2
  gtk_widget_queue_resize_no_redraw@Base 3.91.2
  gtk_widget_realize@Base 3.91.2
- gtk_widget_register_window@Base 3.91.2
+ gtk_widget_register_surface@Base 3.94.0
  gtk_widget_remove_accelerator@Base 3.91.2
+ gtk_widget_remove_controller@Base 3.94.0
  gtk_widget_remove_mnemonic_label@Base 3.91.2
  gtk_widget_remove_tick_callback@Base 3.91.2
  gtk_widget_reset_style@Base 3.91.2
@@ -4389,16 +4326,17 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_set_can_default@Base 3.91.2
  gtk_widget_set_can_focus@Base 3.91.2
  gtk_widget_set_child_visible@Base 3.91.2
+ gtk_widget_set_cursor@Base 3.94.0
+ gtk_widget_set_cursor_from_name@Base 3.94.0
  gtk_widget_set_default_direction@Base 3.91.2
- gtk_widget_set_device_enabled@Base 3.91.2
  gtk_widget_set_direction@Base 3.91.2
  gtk_widget_set_focus_child@Base 3.91.2
  gtk_widget_set_focus_on_click@Base 3.91.2
  gtk_widget_set_font_map@Base 3.91.2
  gtk_widget_set_font_options@Base 3.91.2
  gtk_widget_set_halign@Base 3.91.2
+ gtk_widget_set_has_surface@Base 3.94.0
  gtk_widget_set_has_tooltip@Base 3.91.2
- gtk_widget_set_has_window@Base 3.91.2
  gtk_widget_set_hexpand@Base 3.91.2
  gtk_widget_set_hexpand_set@Base 3.91.2
  gtk_widget_set_margin_bottom@Base 3.91.2
@@ -4408,13 +4346,13 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_set_name@Base 3.91.2
  gtk_widget_set_opacity@Base 3.91.2
  gtk_widget_set_parent@Base 3.91.2
- gtk_widget_set_parent_window@Base 3.91.2
- gtk_widget_set_realized@Base 3.91.2
+ gtk_widget_set_parent_surface@Base 3.94.0
  gtk_widget_set_receives_default@Base 3.91.2
  gtk_widget_set_sensitive@Base 3.91.2
  gtk_widget_set_size_request@Base 3.91.2
  gtk_widget_set_state_flags@Base 3.91.2
  gtk_widget_set_support_multidevice@Base 3.91.2
+ gtk_widget_set_surface@Base 3.94.0
  gtk_widget_set_tooltip_markup@Base 3.91.2
  gtk_widget_set_tooltip_text@Base 3.91.2
  gtk_widget_set_tooltip_window@Base 3.91.2
@@ -4422,10 +4360,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_set_vexpand@Base 3.91.2
  gtk_widget_set_vexpand_set@Base 3.91.2
  gtk_widget_set_visible@Base 3.91.2
- gtk_widget_set_window@Base 3.91.2
- gtk_widget_shape_combine_region@Base 3.91.2
  gtk_widget_show@Base 3.91.2
- gtk_widget_show_now@Base 3.91.2
  gtk_widget_size_allocate@Base 3.91.2
  gtk_widget_snapshot_child@Base 3.91.2
  gtk_widget_thaw_child_notify@Base 3.91.2
@@ -4434,7 +4369,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_widget_unmap@Base 3.91.2
  gtk_widget_unparent@Base 3.91.2
  gtk_widget_unrealize@Base 3.91.2
- gtk_widget_unregister_window@Base 3.91.2
+ gtk_widget_unregister_surface@Base 3.94.0
  gtk_widget_unset_state_flags@Base 3.91.2
  gtk_window_accessible_get_type@Base 3.91.2
  gtk_window_activate_default@Base 3.91.2
@@ -4463,6 +4398,7 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_window_get_focus_visible@Base 3.91.2
  gtk_window_get_gravity@Base 3.91.2
  gtk_window_get_group@Base 3.91.2
+ gtk_window_get_hide_on_close@Base 3.94.0
  gtk_window_get_icon@Base 3.91.2
  gtk_window_get_icon_list@Base 3.91.2
  gtk_window_get_icon_name@Base 3.91.2
@@ -4472,7 +4408,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_window_get_position@Base 3.91.2
  gtk_window_get_resizable@Base 3.91.2
  gtk_window_get_role@Base 3.91.2
- gtk_window_get_screen@Base 3.91.2
  gtk_window_get_size@Base 3.91.2
  gtk_window_get_skip_pager_hint@Base 3.91.2
  gtk_window_get_skip_taskbar_hint@Base 3.91.2
@@ -4519,11 +4454,13 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_window_set_default_size@Base 3.91.2
  gtk_window_set_deletable@Base 3.91.2
  gtk_window_set_destroy_with_parent@Base 3.91.2
+ gtk_window_set_display@Base 3.94.0
  gtk_window_set_focus@Base 3.91.2
  gtk_window_set_focus_on_map@Base 3.91.2
  gtk_window_set_focus_visible@Base 3.91.2
  gtk_window_set_gravity@Base 3.91.2
  gtk_window_set_has_user_ref_count@Base 3.91.2
+ gtk_window_set_hide_on_close@Base 3.94.0
  gtk_window_set_icon@Base 3.91.2
  gtk_window_set_icon_from_file@Base 3.91.2
  gtk_window_set_icon_list@Base 3.91.2
@@ -4537,7 +4474,6 @@ libgtk-4.so.0.9201.0 libgtk-4-0 #MINVER#
  gtk_window_set_position@Base 3.91.2
  gtk_window_set_resizable@Base 3.91.2
  gtk_window_set_role@Base 3.91.2
- gtk_window_set_screen@Base 3.91.2
  gtk_window_set_skip_pager_hint@Base 3.91.2
  gtk_window_set_skip_taskbar_hint@Base 3.91.2
  gtk_window_set_startup_id@Base 3.91.2
