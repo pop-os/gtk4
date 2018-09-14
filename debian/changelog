@@ -1,7 +1,7 @@
 gtk+4.0 (3.92.1-2) UNRELEASED; urgency=medium
 
   [ Jeremy Bicha ]
-  * New upstream release
+  * New upstream release 3.92
   * Switch to meson
   * README has been renamed to README.md
   * debian/libgtk-4-0.symbols: Update
@@ -22,6 +22,7 @@ gtk+4.0 (3.92.1-2) UNRELEASED; urgency=medium
   * gir1.2-gtk-4.0: Add Provides for gir1.2-gdk-4.0, gir1.2-gdkx11-4.0
     and gir1.2-gsk-4.0 to reflect its contents
   * Canonicalize permissions of debian/rules
+  * New upstream release 3.94
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
