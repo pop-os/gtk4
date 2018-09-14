@@ -35,6 +35,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * Drop support for OLD_MODULES_BASE_PATH. GTK+ 4 only supports modules
     in the multiarch location.
   * d/libgtk-4-0.postinst.in: Run gio-querymodules for IM modules
+  * Look for print backends in the same triggers as IM modules
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
