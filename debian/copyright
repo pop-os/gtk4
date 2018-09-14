@@ -585,13 +585,6 @@ Copyright: Copyright (C) 1992-1994 The Regents of the University of California.
 License: LGPL-2+ or sun-permissive
 
 Files:
- debian/missing-sources/zlib.js-0.1.6
- gdk/broadway/rawinflate.min.js
-Copyright:
- © 2012 imaya
-License: Expat
-
-Files:
  gtk/inspector/logs.*
 Copyright:
  © 2018 Red Hat, Inc.
