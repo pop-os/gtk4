@@ -36,6 +36,9 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
     in the multiarch location.
   * d/libgtk-4-0.postinst.in: Run gio-querymodules for IM modules
   * Look for print backends in the same triggers as IM modules
+  * d/libgtk-4-common.install.in: Don't install im-multipress.conf,
+    no longer available (the multipress IM module is unmaintained and
+    was removed)
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
