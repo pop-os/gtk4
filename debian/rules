@@ -16,7 +16,13 @@ binaries := $(shell dh_listpackages)
 LDFLAGS += -Wl,-O1
 
 APIVER := 4
-SONAME := 0
+# The library is packaged as though this is its SONAME version (which will
+# be true for the GTK 4 stable release), to avoid going through the NEW
+# queue a lot...
+FAKE_SONAME := 0
+# ... but while it's in development, the SONAME version is really this,
+# changing with every upstream release
+SONAME := 0.9400.0
 
 LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 
@@ -33,7 +39,7 @@ CONFDIR := etc/gtk-4.0
 MODULES_BASE_PATH := $(LIBDIR)/gtk-4.0/$(GTK_BINARY_VERSION)
 
 # package names
-SHARED_PKG := libgtk-$(APIVER)-$(SONAME)
+SHARED_PKG := libgtk-$(APIVER)-$(FAKE_SONAME)
 COMMON_PKG := libgtk-$(APIVER)-common
 DEV_PKG := libgtk-$(APIVER)-dev
 UDEB_PKG := $(SHARED_PKG)-udeb

@@ -1,0 +1,4 @@
+# During Gtk 4 development, every release breaks the ABI. For now we use
+# Provides: libgtk-4-0.whatever instead of renaming the binary package,
+# to avoid regular trips through the NEW queue.
+libgtk-4-0: package-name-doesnt-match-sonames libgtk-4-0.*

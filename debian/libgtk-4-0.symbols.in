@@ -1,4 +1,4 @@
-libgtk-4.so.0.9400.0 libgtk-4-0 #MINVER#
+libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#, libgtk-@APIVER@-@SONAME@
  gdk_anchor_hints_get_type@Base 3.91.2
  gdk_app_launch_context_get_type@Base 3.91.2
  gdk_app_launch_context_set_desktop@Base 3.91.2
