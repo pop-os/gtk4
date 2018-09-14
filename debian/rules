@@ -101,7 +101,8 @@ configure_flags_deb = \
 	-Dman-pages=true \
 	-Dintrospection=true \
 	-Dinstall-tests=true \
-	-Denable-cloudprint-print-backend=yes
+	-Denable-cloudprint-print-backend=yes \
+	-Dmedia=none
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
 configure_flags_deb += -Denable-colord=yes
@@ -125,7 +126,8 @@ configure_flags_udeb = \
 	-Denable-x11-backend=true \
 	-Dintrospection=true \
 	-Denable-cloudprint-print-backend=no \
-	-Dcolord=no
+	-Dcolord=no \
+	-Dmedia=none
 
 %:
 	dh $@ --with gir --buildsystem=meson
