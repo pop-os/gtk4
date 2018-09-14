@@ -1,6 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: gtk+
 Source: https://download.gnome.org/sources/gtk+/
+License: LGPL-2.1+
 
 Files: *
 Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
@@ -19,7 +20,7 @@ Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 1998 Shawn T. Amundson
            Copyright (C) 1998-2004 Tor Lillqvist
            Copyright (C) 1998-2001, 2005, 2006 Tim Janik
-           Copyright (C) 1998-2007, 2010 Red Hat, Inc.
+           Copyright (C) 1998-2018 Red Hat, Inc.
            Copyright (C) 1998 Stanislav Brabec <utx@k332.feld.cvut.cz>
            Copyright (C) 1998 Jiří Pavlovský <pavlovsk@ff.cuni.cz>
            Copyright (C) 1999 Mark Crichton, Larry Ewing
@@ -59,10 +60,10 @@ Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 2005-2008 Imendio AB
            Copyright (C) 2005 Novell, Inc.
            Copyright (C) 2005-2007 Emmanuele Bassi
-           Copyright (C) 2006 Alexander Larsson <alexl@redhat.com>
+           Copyright (C) 2006-2013 Alexander Larsson <alexl@redhat.com>
            Copyright (C) 2006 John (J5) Palmieri <johnp@redhat.com>
            Copyright (C) 2006-2008, 2010 Christian Persch
-           Copyright (C) 2006,2008 Jan Arne Petersen
+           Copyright (C) 2006-2013 Jan Arne Petersen
            Copyright (C) 2006 Hong Jen Yee (PCMan) <pcman.tw@gmail.com>
            Copyright (C) 2006-2007 Async Open Source
            Copyright (C) 2006-2010 Openismus GmbH
@@ -81,6 +82,9 @@ Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 2010 Damyan Ivanov <dam+gnome@ktnx.net>
            Copyright (C) 2010 Sadia Afroz <sadia@ankur.org.bd>
            Copyright (C) 2010 Israt Jahan <israt@ankur.org.bd>
+           Copyright (C) 2010 Intel Corporation
+           Copyright (C) 2017-2018 Руслан Ижбулатов (LRN)
+           Copyright (C) 2016-2018 Benjamin Otte
            Copyright (C) Federico Mena
            Copyright (C) Christian Kellner <gicmo@gnome.org>
            Copyright (C) David Zeuthen <davidz@redhat.com>
@@ -103,19 +107,50 @@ License: LGPL-2+
  .
  See /usr/share/common-licenses/LGPL-2 on your debian system.
 
-Files: gtk/gtkcomboboxtext.h
+Files: gsk/gskdiff.c
+       gsk/gskdiffprivate.h
+       gtk/a11y/gtkpictureaccessible.c
+       gtk/a11y/gtkpictureaccessibleprivate.h
+       gtk/gtkaboutdialog.h
+       gtk/gtkcomboboxtext.h
+       gtk/gtkcssdynamic.c
+       gtk/gtkcssdynamicprivate.h
+       gtk/gtkcssfontvariationsvalueprivate.h
+       gtk/gtkcssimageinvalid.c
+       gtk/gtkcssimageinvalidprivate.h
+       gtk/gtkcssimagepaintable.c
+       gtk/gtkcssimagepaintableprivate.h
+       gtk/gtkmediacontrols.*
+       gtk/gtkmediafile.*
+       gtk/gtkmediafile.*
+       gtk/gtknomediafile.c
+       gtk/gtknomediafileprivate.h
+       gtk/gtkpicture.*
+       gtk/gtkrendernodepaintable.c
+       gtk/gtkrendernodepaintableprivate.h
+       gtk/gtkscaler.c
+       gtk/gtkscalerprivate.c
        gtk/gtktoolpaletteprivate.h
        gtk/gtktoolitemgroup.*
        gtk/gtktoolpalette.c
-       gtk/gtkaboutdialog.h
        gtk/gtktoolpaletteprivate.c
+       gtk/gtkvideo.*
+       gtk/gtkwidgetpaintable.*
+       gtk/gtkwidgetpaintableprivate.h
+       gtk/inspector/fpsoverlay.*
+       gtk/inspector/highlightoverlay.*
+       gtk/inspector/inspectoroverlay.*
+       gtk/inspector/updatesoverlay.*
        gtk/org.gtk.Settings.FileChooser.gschema.xml
 Copyright: Copyright (C) 2010 Christian Dywan
            Copyright (C) 2008 Openismus GmbH
            Copyright (C) 2001 CodeFactory AB
            Copyright (C) 2001 Anders Carlsson <andersca@codefactory.se>
            Copyright (C) 2003, 2004 Matthias Clasen <mclasen@redhat.com>
+           Copyright (C) 2003 Davide Libenzi
            Copyright (C) 2010 Christian Persch
+           Copyright (C) 2018 Benjamin Otte
+           Copyright (C) 2011-2018 Red Hat Inc.
 License: LGPL-2.1+
  This library is free software; you can redistribute it and/or modify it
  under the terms of the GNU Lesser General Public License as published by the
@@ -481,6 +516,13 @@ License: LGPL-2+
  .
  See /usr/share/common-licenses/LGPL-2 on your debian system.
 
+Files:
+ gtk/gtk-text-input.c
+Copyright:
+ 2012-2013 Intel Corporation
+ 2015-2016 Jan Arne Petersen
+License: X11R5-permissive
+
 Files: gdk/win32/wintab.h
        gdk/win32/pktdef.h
 Copyright: Copyright (C) 1991-1998 LCS/Telegraphics
@@ -604,9 +646,18 @@ License: LGPL-2+ or other
  See /usr/share/common-licenses/LGPL-2 on your debian system.
 
 Files:
- gdk/broadway/rawinflate.min.js
  debian/missing-sources/zlib.js-0.1.6
-Copyright: © 2012 imaya
+ gdk/broadway/rawinflate.min.js
+Copyright:
+ © 2012 imaya
+License: Expat
+
+Files:
+ gtk/inspector/logs.*
+Copyright:
+ © 2018 Red Hat, Inc.
+License: Expat
+
 License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -644,3 +695,25 @@ License: Apache-2.0
 Comment:
  On Debian systems a copy of the Apache License, Version 2.0 can be
  found in /usr/share/common-licenses/Apache-2.0
+
+License: X11R5-permissive
+ Permission to use, copy, modify, distribute, and sell this
+ software and its documentation for any purpose is hereby granted
+ without fee, provided that the above copyright notice appear in
+ all copies and that both that copyright notice and this permission
+ notice appear in supporting documentation, and that the name of
+ the copyright holders not be used in advertising or publicity
+ pertaining to distribution of the software without specific,
+ written prior permission.  The copyright holders make no
+ representations about the suitability of this software for any
+ purpose.  It is provided "as is" without express or implied
+ warranty.
+ .
+ THE COPYRIGHT HOLDERS DISCLAIM ALL WARRANTIES WITH REGARD TO THIS
+ SOFTWARE, INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY AND
+ FITNESS, IN NO EVENT SHALL THE COPYRIGHT HOLDERS BE LIABLE FOR ANY
+ SPECIAL, INDIRECT OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES
+ WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS, WHETHER IN
+ AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF
+ THIS SOFTWARE.
