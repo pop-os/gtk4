@@ -52,6 +52,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
     get updated for the rename of Gdk.Window to Gdk.Surface
   * d/p/testsuite-Install-accessibility-dump-executable-alongside.patch:
     Install accessibility-dump in installed-tests so one more test can pass
+  * libgtk-4-0.postrm.in: Remove the correct cache files
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
