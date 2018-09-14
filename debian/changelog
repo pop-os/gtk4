@@ -25,6 +25,7 @@ gtk+4.0 (3.92.1-2) UNRELEASED; urgency=medium
   * New upstream release 3.94
   * d/copyright: Update
   * Normalize various packaging files with wrap-and-sort -a
+  * Update build-dependencies
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
