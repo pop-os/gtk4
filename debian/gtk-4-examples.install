@@ -6,11 +6,13 @@ usr/bin/gtk4-demo-application
 usr/bin/gtk4-encode-symbolic-svg
 usr/bin/gtk4-icon-browser
 usr/bin/gtk4-widget-factory
+usr/libexec/installed-tests/gtk-4.0
 usr/share/applications/gtk4-demo.desktop
 usr/share/applications/gtk4-icon-browser.desktop
 usr/share/applications/gtk4-widget-factory.desktop
 usr/share/icons/hicolor/*/*/gtk4-demo*
 usr/share/icons/hicolor/*/*/gtk4-widget-factory*
+usr/share/installed-tests/gtk-4.0
 usr/share/man/*/gtk4-demo-application.*
 usr/share/man/*/gtk4-demo.*
 usr/share/man/*/gtk4-encode-symbolic-svg.*

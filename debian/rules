@@ -91,6 +91,7 @@ debian/%: debian/%.in
 
 configure_flags_common = \
 	--libdir=/$(LIBDIR) \
+	--libexecdir=/usr/libexec \
 	-Denable-test-print-backend=yes
 
 configure_flags_deb = \
@@ -99,6 +100,7 @@ configure_flags_deb = \
 	-Ddocumentation=true \
 	-Dman-pages=true \
 	-Dintrospection=true \
+	-Dinstall-tests=true \
 	-Denable-cloudprint-print-backend=yes
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))

@@ -24,6 +24,8 @@ gtk+4.0 (3.92.1-2) UNRELEASED; urgency=medium
     Drop, obsoleted by commit 02eb344 in GTK+ 3.93
   * d/p/no-accessibility-dump.patch: Drop, no longer needed.
     The build-time tests correctly set GTK_CSD=1 now.
+  * Build installed-tests
+    - Install them in gtk-4-examples for now to avoid the NEW queue
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
