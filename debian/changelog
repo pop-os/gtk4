@@ -6,13 +6,7 @@ gtk+4.0 (3.92.1-2) UNRELEASED; urgency=medium
   * README has been renamed to README.md
   * debian/libgtk-4-0.symbols: Update
   * debian/libgtk-4-common.install.in: themes are bundled in the gtkresources
-  * Refresh no-accessibility-dump.patch
   * Disable 018_gdkenumtypes.c_location.patch: might not be needed any more
-  * Cherry-pick patches:
-    - git_add-a-return-value.patch
-    - git_add-default-return-values.patch
-    - git_fix-build.patch
-    - git_install-printbackends.patch
   * Update Vcs fields for migration to https://salsa.debian.org/
 
   [ Simon McVittie ]
@@ -26,6 +20,10 @@ gtk+4.0 (3.92.1-2) UNRELEASED; urgency=medium
   * d/copyright: Update
   * Normalize various packaging files with wrap-and-sort -a
   * Update build-dependencies
+  * d/p/gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch:
+    Drop, obsoleted by commit 02eb344 in GTK+ 3.93
+  * d/p/no-accessibility-dump.patch: Drop, no longer needed.
+    The build-time tests correctly set GTK_CSD=1 now.
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
