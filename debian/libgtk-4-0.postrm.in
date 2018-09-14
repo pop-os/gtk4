@@ -7,8 +7,9 @@ set -e
 if [ -d /@MODULES_BASE_PATH@ ]; then
     # Purge the cache
     for dir in immodules printbackends; do
-        rm -f "/@MODULES_BASE_PATH@/$dir/giomodule.cache"
-        rmdir -p --ignore-fail-on-non-empty "/@MODULES_BASE_PATH@/$dir"
+        if [ -e "/@MODULES_BASE_PATH@/$dir" ]; then
+            rm -f "/@MODULES_BASE_PATH@/$dir/giomodule.cache"
+            rmdir -p --ignore-fail-on-non-empty "/@MODULES_BASE_PATH@/$dir"
+        fi
     done
-    rmdir -p --ignore-fail-on-non-empty /@MODULES_BASE_PATH@
 fi
