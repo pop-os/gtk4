@@ -164,6 +164,7 @@ Depends: gir1.2-gtk-4.0 (= ${binary:Version}),
          libxinerama-dev,
          libxkbcommon-dev,
          libxrandr-dev,
+         libvulkan-dev [linux-any],
          pkg-config,
          wayland-protocols (>= 1.9) [linux-any],
          ${misc:Depends},
@@ -213,7 +214,7 @@ Description: example files for GTK+ 4
  suites.
  .
  This package contains the example files and a demonstration program
- for GTK+4.
+ for GTK+4. It also contains the installed tests.
 
 Package: gir1.2-gtk-4.0
 Section: introspection

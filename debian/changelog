@@ -46,6 +46,8 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * d/rules: Update Meson options, mostly removing enable- prefix
   * d/libgtk-4-0.symbols: Update
   * List installed but unpackaged files in d/not-installed
+  * libgtk-4-dev: Add missing dependency on libvulkan-dev (thanks,
+    autopkgtest)
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
