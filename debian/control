@@ -88,7 +88,6 @@ Description: GTK+ graphical user interface library
 Package: libgtk-4-0-udeb
 XC-Package-Type: udeb
 Section: debian-installer
-Priority: extra
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends}
@@ -201,7 +200,6 @@ Description: documentation for the GTK+ graphical user interface library
 
 Package: gtk-4-examples
 Section: x11
-Priority: extra
 Architecture: any
 Depends: gtk-3-examples,
          ${misc:Depends},

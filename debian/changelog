@@ -54,6 +54,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
     Install accessibility-dump in installed-tests so one more test can pass
   * libgtk-4-0.postrm.in: Remove the correct cache files
   * d/rules: Defang dh_auto_test when built with nocheck
+  * Stop using Priority: extra
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
