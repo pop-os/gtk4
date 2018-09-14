@@ -28,6 +28,8 @@ gtk+4.0 (3.92.1-2) UNRELEASED; urgency=medium
     - Install them in gtk-4-examples for now to avoid the NEW queue
     - d/p/reftests-Fix-path-to-installed-tests-in-.test-metadata.patch:
       Add patch to fix .test metadata
+  * Run installed-tests as autopkgtests (similar to #908440)
+    - Mark them as flaky for now
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
