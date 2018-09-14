@@ -57,6 +57,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * Stop using Priority: extra
   * d/tests/build: Update for GTK+ 4.0
   * d/missing-sources: Remove, no longer needed
+  * Fix generation of README.md.gz symlinks
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
