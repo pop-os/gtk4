@@ -163,6 +163,7 @@ ifneq ($(filter %-udeb,$(binaries)),)
 endif
 
 override_dh_auto_test:
+ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	# Mark reftests with known failures as non-fatal
 	touch testsuite/reftests/nonresizable-size.ui.known_fail
 	touch testsuite/reftests/window-show-contents-on-map.ui.known_fail
@@ -174,6 +175,7 @@ override_dh_auto_test:
 	glib-compile-schemas debian/build/glib-2.0/schemas/
 	# Remove LD_PRELOAD so we don't run with fakeroot, which makes dbus-related tests fail
 	env -u LD_PRELOAD dh_auto_test --builddirectory=debian/build/deb -- -k check -j1 || true
+endif
 
 override_dh_auto_install:
 	dh_auto_install --builddirectory=debian/build/deb --destdir=debian/install/deb
