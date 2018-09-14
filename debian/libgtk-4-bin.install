@@ -1,6 +1,3 @@
-# Currently shipped by libgtk-3-bin
-#usr/share/gettext/its/gtkbuilder.its
-#usr/share/gettext/its/gtkbuilder.loc
 usr/bin/gtk4-broadwayd
 usr/bin/gtk4-builder-tool
 usr/bin/gtk4-launch

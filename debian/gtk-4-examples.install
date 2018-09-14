@@ -1,6 +1,3 @@
-# Currently shipped by gtk-3-examples
-#usr/share/glib-2.0/schemas/org.gtk.Demo.gschema.xml
-#usr/share/glib-2.0/schemas/org.gtk.exampleapp.gschema.xml
 usr/bin/gtk4-demo
 usr/bin/gtk4-demo-application
 usr/bin/gtk4-encode-symbolic-svg

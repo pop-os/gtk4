@@ -1,0 +1,17 @@
+# Currently shipped by libgtk-3-bin
+usr/share/gettext/its/gtkbuilder.its
+usr/share/gettext/its/gtkbuilder.loc
+
+# Currently shipped by gtk-3-examples
+usr/share/glib-2.0/schemas/org.gtk.Demo.gschema.xml
+usr/share/glib-2.0/schemas/org.gtk.exampleapp.gschema.xml
+
+# Currently shipped by libgtk-3-common
+usr/share/glib-2.0/schemas/org.gtk.Settings.EmojiChooser.gschema.xml
+usr/share/glib-2.0/schemas/org.gtk.Settings.FileChooser.gschema.xml
+usr/share/glib-2.0/schemas/org.gtk.Settings.ColorChooser.gschema.xml
+
+# Currently shipped by libgtk-3-dev
+# Since it's only used for the Inspector, there's no need
+# to have libgtk-4-dev depend on libgtk-3-dev now
+usr/share/glib-2.0/schemas/org.gtk.Settings.Debug.gschema.xml
