@@ -120,7 +120,7 @@ configure_flags_deb += -Dwayland-backend=true
 endif
 
 ifeq ($(filter %-doc,$(binaries)),)
-configure_flags_deb += -Ddocumentation=false -Dman-pages=false
+configure_flags_deb += -Ddocumentation=false
 endif
 
 configure_flags_udeb = \
