@@ -48,14 +48,14 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                sassc,
                wayland-protocols (>= 1.12) [linux-any],
                xauth <!nocheck>,
+               xsltproc,
                xvfb <!nocheck>
 Build-Depends-Indep: docbook-xml,
                      docbook-xsl,
                      libatk1.0-doc,
                      libcairo2-doc,
                      libglib2.0-doc,
-                     libpango1.0-doc,
-                     xsltproc
+                     libpango1.0-doc
 Standards-Version: 4.1.0
 Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
 Vcs-Git: https://salsa.debian.org/gnome-team/gtk4.git
@@ -70,7 +70,7 @@ Depends: adwaita-icon-theme,
          ${misc:Depends},
          ${shlibs:Depends},
          libgtk-4-common (>= ${source:Version})
-Provides: gtk4-binver-4.0.0
+Provides: gtk4-binver-4.0.0, libgtk-4-0.9400.0
 Recommends: libgtk-4-bin
 Suggests: gvfs,
           librsvg2-common
@@ -91,7 +91,7 @@ Section: debian-installer
 Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends}
-Provides: gtk4-binver-4.0.0
+Provides: gtk4-binver-4.0.0, libgtk-4-0.9400.0
 Description: GTK+ graphical user interface library - minimal runtime
  This is a udeb, or a microdeb, for the debian-installer.
  .

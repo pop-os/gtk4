@@ -48,14 +48,14 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                sassc,
                wayland-protocols (>= 1.12) [linux-any],
                xauth <!nocheck>,
+               xsltproc,
                xvfb <!nocheck>
 Build-Depends-Indep: docbook-xml,
                      docbook-xsl,
                      libatk1.0-doc,
                      libcairo2-doc,
                      libglib2.0-doc,
-                     libpango1.0-doc,
-                     xsltproc
+                     libpango1.0-doc
 Standards-Version: 4.1.0
 Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
 Vcs-Git: https://salsa.debian.org/gnome-team/gtk4.git
