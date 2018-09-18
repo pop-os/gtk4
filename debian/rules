@@ -30,7 +30,7 @@ LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 GTK_BINARY_VERSION := 4.0.0
 
 # Gtk binary version virtual Provide
-GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION)
+GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION), libgtk-$(APIVER)-$(SONAME)
 
 # relative base directory for configuration
 CONFDIR := etc/gtk-4.0
