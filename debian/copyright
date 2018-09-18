@@ -133,8 +133,6 @@ Files: gsk/gskdiff.c
        gtk/gtkrendernodepaintableprivate.h
        gtk/gtkscaler.c
        gtk/gtkscalerprivate.h
-       gtk/gtktoolpalette.c
-       gtk/gtktoolpaletteprivate.h
        gtk/gtkvideo.*
        gtk/gtkwidgetpaintable.*
        gtk/gtkwidgetpaintableprivate.h
