@@ -104,7 +104,7 @@ configure_flags_deb = \
 	-Dman-pages=true \
 	-Dintrospection=true \
 	-Dinstall-tests=true \
-	-Dcloudprint=yes \
+	-Dprint-backends=all \
 	-Dmedia=none
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
@@ -128,7 +128,7 @@ configure_flags_udeb = \
 	-Dwayland-backend=false \
 	-Dx11-backend=true \
 	-Dintrospection=true \
-	-Dcloudprint=no \
+	-Dprint-backends=none \
 	-Dcolord=no \
 	-Dmedia=none
 
