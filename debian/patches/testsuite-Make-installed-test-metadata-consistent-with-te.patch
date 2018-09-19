@@ -1,0 +1,25 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Wed, 19 Sep 2018 08:09:18 +0100
+Subject: testsuite: Make installed-test metadata consistent with test naming
+
+Signed-off-by: Simon McVittie <smcv@debian.org>
+---
+ testsuite/gtk/meson.build | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/testsuite/gtk/meson.build b/testsuite/gtk/meson.build
+index d2febc4..ff0f85b 100644
+--- a/testsuite/gtk/meson.build
++++ b/testsuite/gtk/meson.build
+@@ -110,9 +110,9 @@ if add_languages('cpp')
+   if get_option('install-tests')
+     conf = configuration_data()
+     conf.set('testexecdir', testexecdir)
+-    conf.set('test', 'keywords')
++    conf.set('test', 'autotestkeywords')
+     configure_file(input: 'gtk.test.in',
+-                   output: 'keywords.test',
++                   output: 'autotestkeywords.test',
+                    configuration: conf,
+                    install_dir: testdatadir)
+   endif

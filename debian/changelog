@@ -26,8 +26,9 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
     The build-time tests correctly set GTK_CSD=1 now.
   * Build installed-tests
     - Install them in gtk-4-examples for now to avoid the NEW queue
-    - d/p/reftests-Fix-path-to-installed-tests-in-.test-metadata.patch:
-      Add patch to fix .test metadata
+    - d/p/reftests-Fix-path-to-installed-tests-in-.test-metadata.patch,
+      d/p/testsuite-Make-installed-test-metadata-consistent-with-te.patch:
+      Add patches to fix .test metadata
   * Run installed-tests as autopkgtests (similar to #908440)
     - Mark them as flaky for now
   * Disable GStreamer video support for now
