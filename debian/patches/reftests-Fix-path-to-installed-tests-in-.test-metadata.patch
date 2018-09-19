@@ -3,6 +3,8 @@ Date: Fri, 14 Sep 2018 09:22:15 +0100
 Subject: reftests: Fix path to installed-tests in .test metadata
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
+Forwarded: GNOME/gtk!348
+Applied-upstream: 3.94.1, commit:d19cba429d5fc5ca316fa71d2ab3e5a9d0d86ba3
 ---
  testsuite/reftests/reftests-dark.test.in | 2 +-
  testsuite/reftests/reftests-hc.test.in   | 2 +-

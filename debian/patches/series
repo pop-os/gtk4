@@ -1,4 +1,4 @@
-reftest-known-fail.patch
 reftests-Fix-path-to-installed-tests-in-.test-metadata.patch
 testsuite-Install-accessibility-dump-executable-alongside.patch
 testsuite-Make-installed-test-metadata-consistent-with-te.patch
+reftest-known-fail.patch

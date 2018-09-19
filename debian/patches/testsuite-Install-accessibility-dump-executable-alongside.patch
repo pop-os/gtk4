@@ -3,6 +3,8 @@ Date: Fri, 14 Sep 2018 13:15:09 +0100
 Subject: testsuite: Install accessibility-dump executable alongside tests
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
+Forwarded: GNOME/gtk!348
+Applied-upstream: 3.94.1, commit:fa8190328d6596a7212de13f0639f26531097a62
 ---
  testsuite/a11y/meson.build | 2 ++
  1 file changed, 2 insertions(+)

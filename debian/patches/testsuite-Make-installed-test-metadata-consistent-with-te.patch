@@ -3,6 +3,8 @@ Date: Wed, 19 Sep 2018 08:09:18 +0100
 Subject: testsuite: Make installed-test metadata consistent with test naming
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
+Forwarded: GNOME/gtk!348
+Applied-upstream: 3.94.1, commit:a0d83bdfa757c07ddf856e4199ff261a24463e80
 ---
  testsuite/gtk/meson.build | 4 ++--
  1 file changed, 2 insertions(+), 2 deletions(-)
