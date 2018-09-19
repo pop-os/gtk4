@@ -10,58 +10,58 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * Update Vcs fields for migration to https://salsa.debian.org/
 
   [ Simon McVittie ]
-  * d/patches: Delete patches that aren't applied
+  * New upstream release 3.94
+    - Update build-dependencies
+    - d/copyright: Update
+    - d/patches: Delete patches that aren't applied
+    - d/p/gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch:
+      Drop, obsoleted by commit 02eb344 in GTK+ 3.93
+    - d/p/no-accessibility-dump.patch: Drop, no longer needed.
+      The build-time tests correctly set GTK_CSD=1 now.
+    - Disable GStreamer video support for now
+    - Stop installing gtk4-query-immodules, superseded by gio-querymodules
+    - d/libgtk-4-common.install.in: Don't install im-multipress.conf,
+      no longer available (the multipress IM module is unmaintained and
+      was removed)
+    - d/libgtk-4-0.install.in: Don't install IM modules. The backend IM
+      modules such as XIM and Wayland are now linked into GTK+ itself,
+      while non-backend IM modules have been removed.
+    - d/rules: Update Meson options, mostly removing enable- prefix
+    - d/libgtk-4-0.symbols: Update
   * d/patches: Refresh remaining patches through gbp pq
     - Get date/author information from d/changelog where needed
+  * Generate a dependency on a virtual package that reflects the unstable
+    SONAME, currently libgtk-4-0.9400.0, and Provide that virtual package
+    from libgtk-4-0. This avoids repeated package renames while the ABI
+    of GTK+ 4 remains unstable.
   * gir1.2-gtk-4.0: Add Provides for gir1.2-gdk-4.0, gir1.2-gdkx11-4.0
     and gir1.2-gsk-4.0 to reflect its contents
-  * Canonicalize permissions of debian/rules
-  * New upstream release 3.94
-  * d/copyright: Update
-  * Normalize various packaging files with wrap-and-sort -a
-  * Update build-dependencies
-  * d/p/gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch:
-    Drop, obsoleted by commit 02eb344 in GTK+ 3.93
-  * d/p/no-accessibility-dump.patch: Drop, no longer needed.
-    The build-time tests correctly set GTK_CSD=1 now.
-  * Build installed-tests
-    - Install them in gtk-4-examples for now to avoid the NEW queue
-    - d/p/reftests-Fix-path-to-installed-tests-in-.test-metadata.patch,
-      d/p/testsuite-Make-installed-test-metadata-consistent-with-te.patch:
-      Add patches to fix .test metadata
-  * Run installed-tests as autopkgtests (similar to #908440)
-    - Mark them as flaky for now
-  * Disable GStreamer video support for now
-  * Stop installing gtk4-query-immodules, superseded by gio-querymodules
-  * Drop support for OLD_MODULES_BASE_PATH. GTK+ 4 only supports modules
-    in the multiarch location.
   * d/libgtk-4-0.postinst.in: Run gio-querymodules for IM modules
-  * Look for print backends in the same triggers as IM modules
-  * d/libgtk-4-common.install.in: Don't install im-multipress.conf,
-    no longer available (the multipress IM module is unmaintained and
-    was removed)
-  * d/libgtk-4-0.install.in: Don't install IM modules. The backend IM
-    modules such as XIM and Wayland are now linked into GTK+ itself,
-    while non-backend IM modules have been removed.
-  * Remove obsolete debian/*.install files from GTK+ 3
-  * d/rules: Update Meson options, mostly removing enable- prefix
-  * d/libgtk-4-0.symbols: Update
-  * List installed but unpackaged files in d/not-installed
+    and print backends
   * libgtk-4-dev: Add missing dependency on libvulkan-dev (thanks,
     autopkgtest)
+  * libgtk-4-0.postrm.in: Remove the correct cache files
+  * Drop support for OLD_MODULES_BASE_PATH. GTK+ 4 has never supported
+    modules in the non-multiarch location.
+  * Run tests under Xvfb with GLX available (see #874077)
+  * Build installed-tests and run them as autopkgtests (similar to #908440)
+    - Install them in gtk-4-examples for now to avoid the NEW queue
+    - Mark them as flaky for now
+    - d/p/testsuite-Install-accessibility-dump-executable-alongside.patch,
+      d/p/reftests-Fix-path-to-installed-tests-in-.test-metadata.patch,
+      d/p/testsuite-Make-installed-test-metadata-consistent-with-te.patch:
+      Add patches (already in upstream git) to fix some tests
   * d/tests/control: Mark python3-gi as flaky until python3-gi overrides
     get updated for the rename of Gdk.Window to Gdk.Surface
-  * d/p/testsuite-Install-accessibility-dump-executable-alongside.patch:
-    Install accessibility-dump in installed-tests so one more test can pass
-  * libgtk-4-0.postrm.in: Remove the correct cache files
+  * d/tests/build: Update for GTK+ 4.0
+  * Canonicalize permissions of debian/rules
+  * Normalize various packaging files with wrap-and-sort -a
+  * Remove obsolete debian/*.install files from GTK+ 3
+  * List installed but unpackaged files in d/not-installed
   * d/rules: Defang dh_auto_test when built with nocheck
   * Stop using Priority: extra
-  * d/tests/build: Update for GTK+ 4.0
   * d/missing-sources: Remove, no longer needed
   * Fix generation of README.md.gz symlinks
-  * Generate a dependency on libgtk-4-0.9400.0 since the ABI is not yet
-    stable
-  * Run tests under Xvfb with GLX available (see #874077)
   * d/gbp.conf: Import configuration from glib2.0
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
