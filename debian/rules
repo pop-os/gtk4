@@ -177,7 +177,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	glib-compile-schemas debian/build/glib-2.0/schemas/
 	# Remove LD_PRELOAD so we don't run with fakeroot, which makes dbus-related tests fail
 	env -u LD_PRELOAD \
-	xvfb-run -a \
+	xvfb-run -a -s "-screen 0 640x480x16" \
 	dh_auto_test --builddirectory=debian/build/deb -- -k 0 -j 1 || true
 endif
 

@@ -60,7 +60,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * Fix generation of README.md.gz symlinks
   * Generate a dependency on libgtk-4-0.9400.0 since the ABI is not yet
     stable
-  * Run build-time tests under Xvfb
+  * Run tests under Xvfb with GLX available (see #874077)
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
