@@ -12,7 +12,7 @@ export GIO_USE_VOLUME_MONITOR=unix
 export XDG_RUNTIME_DIR="$AUTOPKGTEST_TMP"
 
 exec dbus-run-session -- \
-xvfb-run -a -s "-screen 0 640x480x16" \
+xvfb-run -a -s "-screen 0 1024x768x24" \
 gnome-desktop-testing-runner \
 --report-directory="$AUTOPKGTEST_ARTIFACTS" \
 --tap \
