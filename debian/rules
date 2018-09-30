@@ -6,7 +6,8 @@ include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
 include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 include /usr/share/dpkg/default.mk
 
-binaries := $(shell dh_listpackages)
+built_binaries := $(shell dh_listpackages)
+all_binaries := $(shell sed -ne 's/^Package: *//p' < debian/control)
 
 # Ensure the build aborts when there are still references to undefined symbols
 # currently fails at least in the im-multipress im module
@@ -134,13 +135,13 @@ configure_flags_udeb = \
 override_dh_clean: debian/control
 	# gross kludge to force control generation with the %.in target
 	touch debian/control.in
-	rm -f $(call dh_subst_files,$(binaries))
+	rm -f $(call dh_subst_files,$(all_binaries))
 	rm -f testsuite/reftests/*.ui.known_fail
 	rm -rf debian/build debian/install
 	dh_clean
 
 # Add dependencies to generate files from the debian/*.in ones
-override_dh_auto_build: $(call dh_subst_files,$(binaries))
+override_dh_auto_build: $(call dh_subst_files,$(all_binaries))
 
 override_dh_auto_configure: debian/control
 	dh_auto_configure \
@@ -149,7 +150,7 @@ override_dh_auto_configure: debian/control
 		$(configure_flags_common) \
 		$(configure_flags_deb) \
 		$(NULL)
-ifneq ($(filter %-udeb,$(binaries)),)
+ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_auto_configure \
 		--builddirectory=debian/build/udeb \
 		-- \
@@ -160,7 +161,7 @@ endif
 
 override_dh_auto_build:
 	dh_auto_build --builddirectory=debian/build/deb
-ifneq ($(filter %-udeb,$(binaries)),)
+ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_auto_build --builddirectory=debian/build/udeb
 endif
 
@@ -183,7 +184,7 @@ endif
 
 override_dh_auto_install:
 	dh_auto_install --builddirectory=debian/build/deb --destdir=debian/install/deb
-ifneq ($(filter %-udeb,$(binaries)),)
+ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_auto_install --builddirectory=debian/build/udeb --destdir=debian/install/udeb
 endif
 

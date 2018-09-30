@@ -63,6 +63,11 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * d/missing-sources: Remove, no longer needed
   * Fix generation of README.md.gz symlinks
   * d/gbp.conf: Import configuration from glib2.0
+  * d/rules: Generate files from .in counterparts for every package,
+    not just the ones we are going to build. This avoids dh_missing
+    false positives for files that would have gone into packages not
+    included in the current build, for example libgtk-4-common during
+    an amd64-only build.
 
  -- Jeremy Bicha <jbicha@debian.org>  Fri, 19 Jan 2018 22:05:35 -0500
 
