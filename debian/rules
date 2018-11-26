@@ -1,10 +1,9 @@
 #!/usr/bin/make -f
 
-GNOME_MODULE = gtk+
 DISABLE_UPDATE_UPLOADERS = 1
 include /usr/share/gnome-pkg-tools/1/rules/uploaders.mk
-include /usr/share/gnome-pkg-tools/1/rules/gnome-get-source.mk
 include /usr/share/dpkg/default.mk
+include /usr/share/dpkg/pkg-info.mk
 
 built_binaries := $(shell dh_listpackages)
 all_binaries := $(shell sed -ne 's/^Package: *//p' < debian/control)
@@ -76,7 +75,7 @@ debian/%: debian/%.in
 	sed \
 		-e "s#@SONAME@#$(SONAME)#g" \
 		-e "s#@APIVER@#$(APIVER)#g" \
-		-e "s#@VERSION@#$(DEB_UPSTREAM_VERSION)#g" \
+		-e "s#@VERSION@#$(DEB_VERSION_UPSTREAM)#g" \
 		-e "s#@GTK_BINVER_DEP@#$(GTK_BINVER_DEP)#g" \
 		-e "s#@SHARED_PKG@#$(SHARED_PKG)#g" \
 		-e "s#@COMMON_PKG@#$(COMMON_PKG)#g" \
