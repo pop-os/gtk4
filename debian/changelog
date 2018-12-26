@@ -39,7 +39,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * d/libgtk-4-0.postinst.in: Run gio-querymodules for IM modules
     and print backends
   * libgtk-4-dev: Add missing dependency on libvulkan-dev (thanks,
-    autopkgtest)
+    autopkgtest) (Closes: #910640)
   * libgtk-4-0.postrm.in: Remove the correct cache files
   * Drop support for OLD_MODULES_BASE_PATH. GTK+ 4 has never supported
     modules in the non-multiarch location.
