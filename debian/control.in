@@ -85,6 +85,7 @@ Description: GTK+ graphical user interface library
  This package contains the shared libraries.
 
 Package: @UDEB_PKG@
+Build-Profiles: <!noudeb>
 XC-Package-Type: udeb
 Section: debian-installer
 Architecture: any
