@@ -1,5 +1,6 @@
 Tests: build
 Depends: build-essential, libgtk-4-dev, xauth, xvfb
+Restrictions: allow-stderr
 
 Tests: python3-gi
 Depends: dbus, gir1.2-gtk-4.0, python3-gi, xauth, xvfb
