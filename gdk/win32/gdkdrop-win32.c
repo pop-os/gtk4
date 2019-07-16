@@ -41,7 +41,7 @@
 
 #include "gdkdropprivate.h"
 
-#include "gdkdnd.h"
+#include "gdkdrag.h"
 #include "gdkproperty.h"
 #include "gdkinternals.h"
 #include "gdkprivate-win32.h"
@@ -172,7 +172,7 @@ gdk_win32_drop_finalize (GObject *object)
 static GdkDrop *
 gdk_drop_new (GdkDisplay        *display,
               GdkDevice         *device,
-              GdkDragContext    *drag,
+              GdkDrag           *drag,
               GdkContentFormats *formats,
               GdkSurface        *surface,
               GdkDragProtocol    protocol)
@@ -453,7 +453,7 @@ set_source_actions_helper (GdkDrop       *drop,
 }
 
 void
-_gdk_win32_local_drop_target_dragenter (GdkDragContext *drag,
+_gdk_win32_local_drop_target_dragenter (GdkDrag        *drag,
                                         GdkSurface     *dest_surface,
                                         gint            x_root,
                                         gint            y_root,
@@ -478,7 +478,7 @@ _gdk_win32_local_drop_target_dragenter (GdkDragContext *drag,
   drop = gdk_drop_new (display,
                        gdk_seat_get_pointer (gdk_display_get_default_seat (display)),
                        drag,
-                       gdk_content_formats_ref (gdk_drag_context_get_formats (drag)),
+                       gdk_content_formats_ref (gdk_drag_get_formats (drag)),
                        dest_surface,
                        GDK_DRAG_PROTO_LOCAL);
   drop_win32 = GDK_WIN32_DROP (drop);
@@ -518,7 +518,7 @@ idroptarget_dragenter (LPDROPTARGET This,
   GdkDisplay *display;
   gint pt_x;
   gint pt_y;
-  GdkDragContext *drag;
+  GdkDrag *drag;
   GdkDragAction source_actions;
   GdkDragAction dest_actions;
 
@@ -531,7 +531,7 @@ idroptarget_dragenter (LPDROPTARGET This,
 
   g_clear_object (&ctx->drop);
 
-  /* Try to find the GdkDragContext object for this DnD operation,
+  /* Try to find the GdkDrag object for this DnD operation,
    * if it originated in our own application.
    */
   drag = NULL;
@@ -593,7 +593,7 @@ _gdk_win32_local_drop_target_will_emit_motion (GdkDrop *drop,
 
 void
 _gdk_win32_local_drop_target_dragover (GdkDrop        *drop,
-                                       GdkDragContext *drag,
+                                       GdkDrag        *drag,
                                        gint            x_root,
                                        gint            y_root,
                                        DWORD           grfKeyState,
@@ -710,7 +710,7 @@ idroptarget_dragleave (LPDROPTARGET This)
 
 void
 _gdk_win32_local_drop_target_drop (GdkDrop        *drop,
-                                   GdkDragContext *drag,
+                                   GdkDrag        *drag,
                                    guint32         time_,
                                    GdkDragAction  *actions)
 {
@@ -1065,7 +1065,7 @@ gdk_win32_drop_status (GdkDrop       *drop,
                        GdkDragAction  actions)
 {
   GdkWin32Drop *drop_win32 = GDK_WIN32_DROP (drop);
-  GdkDragContext *drag;
+  GdkDrag *drag;
 
   g_return_if_fail (drop != NULL);
 
@@ -1090,7 +1090,6 @@ static void
 gdk_win32_drop_finish (GdkDrop       *drop,
                        GdkDragAction  action)
 {
-  GdkDragContext *drag;
   GdkWin32Drop *drop_win32 = GDK_WIN32_DROP (drop);
 
   g_return_if_fail (drop != NULL);
@@ -1103,12 +1102,6 @@ gdk_win32_drop_finish (GdkDrop       *drop,
 
   if (drop_win32->protocol == GDK_DRAG_PROTO_OLE2)
     return;
-/* FIXME: remove?
-  drag = gdk_drop_get_drag (drop);
-
-  if (drag != NULL)
-    _gdk_win32_local_drag_context_drop_response (drag, action);
-*/
 }
 
 #if 0
@@ -1389,8 +1382,8 @@ gdk_win32_drop_read_async (GdkDrop             *drop,
 
 static GInputStream *
 gdk_win32_drop_read_finish (GdkDrop       *drop,
-                            const char   **out_mime_type,
                             GAsyncResult  *result,
+                            const char   **out_mime_type,
                             GError       **error)
 {
   GTask *task;

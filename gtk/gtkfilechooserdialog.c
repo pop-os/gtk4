@@ -230,8 +230,9 @@ static void     gtk_file_chooser_dialog_notify       (GObject               *obj
 
 static void     gtk_file_chooser_dialog_map          (GtkWidget             *widget);
 static void     gtk_file_chooser_dialog_unmap        (GtkWidget             *widget);
-static void     gtk_file_chooser_dialog_size_allocate (GtkWidget             *widget,
-                                                       const GtkAllocation   *allocation,
+static void     gtk_file_chooser_dialog_size_allocate (GtkWidget            *widget,
+                                                       int                   width,
+                                                       int                   height,
                                                        int                    baseline);
 static void     file_chooser_widget_file_activated   (GtkFileChooser        *chooser,
                                                       GtkFileChooserDialog  *dialog);
@@ -340,17 +341,7 @@ static void
 file_chooser_widget_file_activated (GtkFileChooser       *chooser,
                                     GtkFileChooserDialog *dialog)
 {
-  GtkWidget *widget;
-
-  if (gtk_window_activate_default (GTK_WINDOW (dialog)))
-    return;
-
-  /* There probably isn't a default widget, so make things easier for the
-   * programmer by looking for a reasonable button on our own.
-   */
-  widget = get_accept_action_widget (GTK_DIALOG (dialog), TRUE);
-  if (widget)
-    gtk_widget_activate (widget);
+  gtk_widget_activate_default (GTK_WIDGET (chooser));
 }
 
 static void
@@ -408,12 +399,6 @@ file_chooser_widget_response_requested (GtkWidget            *widget,
 
   dialog->priv->response_requested = TRUE;
 
-  if (gtk_window_activate_default (GTK_WINDOW (dialog)))
-    return;
-
-  /* There probably isn't a default widget, so make things easier for the
-   * programmer by looking for a reasonable button on our own.
-   */
   button = get_accept_action_widget (GTK_DIALOG (dialog), TRUE);
   if (button)
     {
@@ -562,7 +547,7 @@ ensure_default_response (GtkFileChooserDialog *dialog)
 
   widget = get_accept_action_widget (GTK_DIALOG (dialog), TRUE);
   if (widget)
-    gtk_widget_grab_default (widget);
+    gtk_window_set_default_widget (GTK_WINDOW (dialog), widget);
 }
 
 static void
@@ -581,51 +566,21 @@ gtk_file_chooser_dialog_map (GtkWidget *widget)
 }
 
 static void
-save_dialog_geometry (GtkFileChooserDialog *dialog)
-{
-  GtkWindow *window;
-  GSettings *settings;
-  int old_x, old_y, old_width, old_height;
-  int x, y, width, height;
-
-  settings = _gtk_file_chooser_get_settings_for_widget (GTK_WIDGET (dialog));
-
-  window = GTK_WINDOW (dialog);
-
-  gtk_window_get_position (window, &x, &y);
-  gtk_window_get_size (window, &width, &height);
-
-  g_settings_get (settings, SETTINGS_KEY_WINDOW_POSITION, "(ii)", &old_x, &old_y);
-  if (old_x != x || old_y != y)
-    g_settings_set (settings, SETTINGS_KEY_WINDOW_POSITION, "(ii)", x, y);
-
-  g_settings_get (settings, SETTINGS_KEY_WINDOW_SIZE, "(ii)", &old_width, &old_height);
-  if (old_width != width || old_height != height)
-    g_settings_set (settings, SETTINGS_KEY_WINDOW_SIZE, "(ii)", width, height);
-
-  g_settings_apply (settings);
-}
-
-static void
 gtk_file_chooser_dialog_unmap (GtkWidget *widget)
 {
-  GtkFileChooserDialog *dialog = GTK_FILE_CHOOSER_DIALOG (widget);
-
-  save_dialog_geometry (dialog);
-
   GTK_WIDGET_CLASS (gtk_file_chooser_dialog_parent_class)->unmap (widget);
 }
 
 static void
-gtk_file_chooser_dialog_size_allocate (GtkWidget           *widget,
-                                       const GtkAllocation *allocation,
-                                       int                  baseline)
+gtk_file_chooser_dialog_size_allocate (GtkWidget *widget,
+                                       int        width,
+                                       int        height,
+                                       int        baseline)
 {
   GTK_WIDGET_CLASS (gtk_file_chooser_dialog_parent_class)->size_allocate (widget,
-                                                                          allocation,
+                                                                          width,
+                                                                          height,
                                                                           baseline);
-  if (gtk_widget_is_drawable (widget))
-    save_dialog_geometry (GTK_FILE_CHOOSER_DIALOG (widget));
 }
 
 /* We do a signal connection here rather than overriding the method in

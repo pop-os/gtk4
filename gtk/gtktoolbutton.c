@@ -279,6 +279,10 @@ gtk_tool_button_init (GtkToolButton      *button,
 {
   GtkToolItem *toolitem = GTK_TOOL_ITEM (button);
 
+  /* We still need to use G_TYPE_INSTANCE_GET_PRIVATE() because GtkToolButton
+     need to access the class pointer inside instance_init
+     See a detailed explanation of this at
+     https://gitlab.gnome.org/GNOME/gtk/merge_requests/402#note_361210 */
   button->priv = G_TYPE_INSTANCE_GET_PRIVATE (button,
                                               GTK_TYPE_TOOL_BUTTON,
                                               GtkToolButtonPrivate);
@@ -499,9 +503,11 @@ gtk_tool_button_construct_contents (GtkToolItem *tool_item)
         box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
       else
         box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL,0);
+
       if (icon)
-          gtk_box_pack_start (GTK_BOX (box), icon);
-      gtk_box_pack_end (GTK_BOX (box), label);
+        gtk_container_add (GTK_CONTAINER (box), icon);
+
+      gtk_container_add (GTK_CONTAINER (box), label);
       gtk_container_add (GTK_CONTAINER (button->priv->button), box);
       gtk_style_context_add_class (gtk_widget_get_style_context (button->priv->button), "image-button");
       gtk_style_context_add_class (gtk_widget_get_style_context (button->priv->button), "text-button");
@@ -513,24 +519,24 @@ gtk_tool_button_construct_contents (GtkToolItem *tool_item)
           box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 	  if (icon)
             {
-              gtk_box_pack_start (GTK_BOX (box), icon);
+              gtk_container_add (GTK_CONTAINER (box), icon);
               if (!label)
                 gtk_widget_set_hexpand (icon, TRUE);
             }
 	  if (label)
-            gtk_box_pack_end (GTK_BOX (box), label);
+            gtk_container_add (GTK_CONTAINER (box), label);
 	}
       else
 	{
           box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 	  if (icon)
             {
-              gtk_box_pack_end (GTK_BOX (box), icon);
+              gtk_container_add (GTK_CONTAINER (box), icon);
               if (!label)
                 gtk_widget_set_vexpand (icon, TRUE);
             }
 	  if (label)
-            gtk_box_pack_start (GTK_BOX (box), label);
+            gtk_container_add (GTK_CONTAINER (box), label);
 	}
       gtk_container_add (GTK_CONTAINER (button->priv->button), box);
       gtk_style_context_add_class (gtk_widget_get_style_context (button->priv->button), "image-button");

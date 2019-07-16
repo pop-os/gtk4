@@ -1,5 +1,5 @@
-project('gtk+', 'c',
-        version: '3.94.0',
+project('gtk', 'c',
+        version: '3.96.0',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -7,11 +7,11 @@ project('gtk+', 'c',
           # https://github.com/mesonbuild/meson/issues/2289
           'c_std=gnu99',
         ],
-        meson_version : '>= 0.43.0',
+        meson_version : '>= 0.48.0',
         license: 'LGPLv2.1+')
 
 glib_major_req = 2
-glib_minor_req = 55
+glib_minor_req = 59
 glib_micro_req = 0
 
 if glib_minor_req.is_odd()
@@ -28,13 +28,14 @@ endif
 
 glib_req           = '>= @0@.@1@.@2@'.format(glib_major_req, glib_minor_req, glib_micro_req)
 pango_req          = '>= 1.41.0'
+fribidi_req        = '>= 0.19.7'
 atk_req            = '>= 2.15.1'
 cairo_req          = '>= 1.14.0'
 gdk_pixbuf_req     = '>= 2.30.0'
 introspection_req  = '>= 1.39.0'
 wayland_proto_req  = '>= 1.12'
 wayland_req        = '>= 1.14.91'
-graphene_req       = '>= 1.5.1'
+graphene_req       = '>= 1.9.1'
 epoxy_req          = '>= 1.4'
 cloudproviders_req = '>= 0.2.5'
 xkbcommon_req      = '>= 0.2.0'
@@ -227,41 +228,44 @@ if cc.get_id() == 'msvc'
 elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
   test_cflags = [
     '-fno-strict-aliasing',
-    '-Wpointer-arith',
-    '-Wmissing-declarations',
-    '-Wimplicit-function-declaration',
+    '-Wcast-align',
     '-Wformat=2',
     '-Wformat-nonliteral',
     '-Wformat-security',
-    '-Wstrict-prototypes',
-    '-Wmissing-prototypes',
-    '-Wnested-externs',
-    '-Wold-style-definition',
-    '-Wundef',
-    '-Wunused',
-    '-Wcast-align',
-    '-Wmissing-noreturn',
+    '-Wignored-qualifiers',
+    '-Wimplicit-function-declaration',
+    '-Wlogical-op',
     '-Wmissing-format-attribute',
     '-Wmissing-include-dirs',
-    '-Wlogical-op',
+    '-Wmissing-noreturn',
+    '-Wnested-externs',
+    '-Wold-style-definition',
+    '-Wpointer-arith',
+    '-Wshadow',
+    '-Wstrict-prototypes',
     '-Wswitch-default',
     '-Wswitch-enum',
-    '-Wignored-qualifiers',
-    '-Werror=redundant-decls',
+    '-Wundef',
+    '-Wuninitialized',
+    '-Wunused',
+    '-Werror=address',
+    '-Werror=array-bounds',
+    '-Werror=empty-body',
     '-Werror=implicit',
-    '-Werror=nonnull',
+    '-Werror=implicit-fallthrough',
     '-Werror=init-self',
+    '-Werror=int-to-pointer-cast',
     '-Werror=main',
     '-Werror=missing-braces',
-    '-Werror=sequence-point',
-    '-Werror=return-type',
-    '-Werror=trigraphs',
-    '-Werror=array-bounds',
-    '-Werror=write-strings',
-    '-Werror=address',
-    '-Werror=int-to-pointer-cast',
+    '-Werror=missing-declarations',
+    '-Werror=missing-prototypes',
+    '-Werror=nonnull',
     '-Werror=pointer-to-int-cast',
-    '-Werror=empty-body',
+    '-Werror=redundant-decls',
+    '-Werror=return-type',
+    '-Werror=sequence-point',
+    '-Werror=trigraphs',
+    '-Werror=vla',
     '-Werror=write-strings',
   ]
 else
@@ -324,15 +328,12 @@ cairo_dep      = dependency('cairo', version: cairo_req, required : cc.get_id() 
 cairogobj_dep  = dependency('cairo-gobject', version: cairo_req, required : cc.get_id() != 'msvc')
 pango_dep      = dependency('pango', version: pango_req,
                             fallback : ['pango', 'libpango_dep'])
+fribidi_dep    = dependency('fribidi', version: fribidi_req,
+                            fallback : ['fribidi', 'libfribidi_dep'])
 
 # Require PangoFT2 if on X11 or wayland
 require_pangoft2 = wayland_enabled or x11_enabled
-
-if require_pangoft2
-  pangoft_dep  = dependency('pangoft2', fallback : ['pango', 'libpangoft2_dep'])
-else
-  pangoft_dep  = dependency('pangoft2', required: false)
-endif
+pangoft_dep    = dependency('pangoft2', required: false)
 
 if pangoft_dep.found()
   # Need at least 2.7.1 for FT_Get_Var_Design_Coordinates()
@@ -359,6 +360,10 @@ if pangoft_dep.found()
       endforeach
     endif
   endif
+endif
+
+if require_pangoft2
+  pangoft_dep    = dependency('pangoft2', fallback : ['pango', 'libpangoft2_dep'])
 endif
 
 if win32_enabled
@@ -454,6 +459,11 @@ if cc.get_id() == 'msvc'
       harfbuzz_dep = cc.find_library('harfbuzz', required : false)
     endif
   endif
+endif
+
+if not harfbuzz_dep.found()
+  harfbuzz_dep = dependency('harfbuzz', version: '>= 0.9', required: false,
+                            fallback: ['harfbuzz', 'libharfbuzz_dep'])
 endif
 
 cdata.set('HAVE_HARFBUZZ', harfbuzz_dep.found())
@@ -590,9 +600,24 @@ endif
 # Check for bind_textdomain_codeset, including -lintl if GLib brings it in by
 # doing the same check as glib. We can't check that by linking to glib because
 # it might be a subproject and hence not built yet.
-libintl_dep = cc.find_library('intl', required : false)
-if cc.has_function('bind_textdomain_codeset', dependencies: libintl_dep)
+if cc.has_function('ngettext')
+  libintl_dep = []
   cdata.set('HAVE_BIND_TEXTDOMAIN_CODESET', 1)
+else
+  libintl_dep = cc.find_library('intl', required : false)
+  if cc.has_function('bind_textdomain_codeset', dependencies: libintl_dep)
+    cdata.set('HAVE_BIND_TEXTDOMAIN_CODESET', 1)
+  else
+    # Don't use subproject('proxy-libintl').get_variable('intl_dep') because that
+    # makes the dependency unconditional. This way, people have the option of
+    # either not providing the subproject or disabling it entirely with
+    # --wrap-mode=nodownload or nofallback.
+    libintl_dep = dependency('', required : false,
+                             fallback: ['proxy-libintl', 'intl_dep'])
+    if libintl_dep.found()
+      cdata.set('HAVE_BIND_TEXTDOMAIN_CODESET', 1)
+    endif
+  endif
 endif
 
 if os_unix
@@ -640,114 +665,14 @@ if cloudproviders_enabled
   endif
 endif
 
-graphene_has_sse2 = graphene_dep.get_pkgconfig_variable('graphene_has_sse2') == '1'
-graphene_has_gcc = graphene_dep.get_pkgconfig_variable('graphene_has_gcc') == '1'
-
-malloc_is_aligned = false
-
-if not meson.is_cross_build() or meson.has_exe_wrapper()
-  malloc_test = cc.run ('''
-  #include <malloc.h>
-  #include <stdio.h>
-
-  #define COUNT 100
-  #define is_aligned(POINTER, BYTE_COUNT) \
-    (((uintptr_t)(const void *)(POINTER)) % (BYTE_COUNT) == 0)
-  int
-  main (int argc, char *argv[])
-  {
-    void **pointers;
-    int i, a, min_a;
-    FILE *f;
-    int wrote;
-    pointers = malloc (sizeof (void *) * COUNT);
-    for (i = 0, min_a = 128; i < COUNT; i++, pointers++)
-    {
-      *pointers = malloc (sizeof (void *));
-      for (a = 1; a <= 128; a = a * 2)
-      {
-        if (!is_aligned (*pointers, a))
-        {
-          a = a / 2;
-          break;
-        }
-      }
-      if (a > 128)
-        a = 128;
-      if (a < min_a)
-        min_a = a;
-    }
-    wrote = fprintf (stderr, "%d", min_a);
-    if (wrote <= 0)
-      return 1;
-    return 0;
-  }
-  ''')
-
-  if not malloc_test.compiled() or malloc_test.returncode() != 0
-    message ('malloc() alignment test failed, assuming unaligned malloc()')
-  elif malloc_test.stderr().to_int() >= 16
-    malloc_is_aligned = true
-    cdata.set('MALLOC_IS_ALIGNED16', 1)
-  endif
+graphene_dep_type = graphene_dep.type_name()
+if graphene_dep_type == 'pkgconfig'
+  graphene_has_sse2 = graphene_dep.get_pkgconfig_variable('graphene_has_sse2') == '1'
+  graphene_has_gcc = graphene_dep.get_pkgconfig_variable('graphene_has_gcc') == '1'
 else
-  # TODO: more reasinable cross-compiling defaults?
-  message ('cross-compiling, assuming unaligned malloc()')
-endif
-
-if cc.get_id() == 'gcc' or cc.get_id() == 'clang'
-    no_builtin_args = cc.get_supported_arguments(['-fno-builtin'])
-else
-    no_builtin_args = []
-endif
-
-# Check that posix_memalign() is not a builtin
-have_posix_memalign = cc.links('''#include <stdlib.h>
-                                  int main (int argc, char ** argv) {
-                                    void *p;
-                                    return posix_memalign (&p, 16, argc);
-                                  }
-                               ''',
-                               args : no_builtin_args,
-                               name : 'posix_memalign() is not a builtin')
-if have_posix_memalign
-  cdata.set('HAVE_POSIX_MEMALIGN', 1)
-endif
-
-# Check that memalign() is not a builtin
-have_memalign = cc.links('''#include <malloc.h>
-                            int main (int argc, char ** argv) {
-                              return memalign (16, argc);
-                            }
-                         ''',
-                         args : no_builtin_args,
-                         name : 'memalign() is not a builtin')
-if have_memalign
-  cdata.set('HAVE_MEMALIGN', 1)
-endif
-
-# Check that aligned_alloc() is not a builtin
-have_aligned_alloc = cc.links('''#include <stdlib.h>
-                                 int main (int argc, char ** argv) {
-                                   return aligned_alloc (16, argc);
-                                 }
-                              ''',
-                              args : no_builtin_args,
-                              name : 'aligned_alloc() is not a builtin')
-  if have_aligned_alloc
-  cdata.set('HAVE_ALIGNED_ALLOC', 1)
-endif
-
-# Check that _aligned_malloc() is not a builtin
-have__aligned_malloc = cc.links('''#include <malloc.h>
-                                   int main (int argc, char ** argv) {
-                                     return _aligned_malloc (argc, 16);
-                                   }
-                                ''',
-                                args : no_builtin_args,
-                                name : '_aligned_malloc() is not a builtin')
-if have__aligned_malloc
-  cdata.set('HAVE__ALIGNED_MALLOC', 1)
+  graphene_simd = subproject('graphene').get_variable('graphene_simd')
+  graphene_has_sse2 = graphene_simd.contains('sse2')
+  graphene_has_gcc = graphene_simd.contains('gcc')
 endif
 
 if graphene_has_sse2 or graphene_has_gcc
@@ -756,17 +681,9 @@ if graphene_has_sse2 or graphene_has_gcc
   if os_win32 and cc.get_id() == 'gcc'
     add_global_arguments(['-mstackrealign'], language: 'c')
   endif
-
-  if (not malloc_is_aligned and
-      not have_posix_memalign and
-      not have_memalign and
-      not have_aligned_alloc and
-      not have__aligned_malloc)
-    error('Failed to find any means of allocating aligned memory')
-  endif
-
 endif
 
+subdir('gtk/css')
 subdir('gdk')
 subdir('gsk')
 subdir('gtk')
@@ -844,27 +761,27 @@ pkgconf.set('GTK_EXTRA_CFLAGS', '')
 
 pkg_install_dir = join_paths(get_option('libdir'), 'pkgconfig')
 
-pkgs = [ 'gtk+-4.0.pc' ]
+pkgs = [ 'gtk4.pc' ]
 
 pkg_targets = ''
 foreach backend: [ 'broadway', 'quartz', 'wayland', 'win32', 'x11', ]
   if get_variable('@0@_enabled'.format(backend))
-    pkgs += ['gtk+-@0@-4.0.pc'.format(backend)]
+    pkgs += ['gtk4-@0@.pc'.format(backend)]
     pkg_targets += ' ' + backend
   endif
 endforeach
 pkgconf.set('GDK_BACKENDS', pkg_targets.strip())
 
 foreach pkg: pkgs
-  configure_file(input: 'gtk+-4.0.pc.in',
+  configure_file(input: 'gtk4.pc.in',
                  output: pkg,
                  configuration: pkgconf,
                  install_dir: pkg_install_dir)
 endforeach
 
 if os_unix
-  configure_file(input: 'gtk+-unix-print-4.0.pc.in',
-                 output: 'gtk+-unix-print-4.0.pc',
+  configure_file(input: 'gtk4-unix-print.pc.in',
+                 output: 'gtk4-unix-print.pc',
                  configuration: pkgconf,
                  install_dir: pkg_install_dir)
 endif
@@ -878,7 +795,7 @@ if get_option('documentation')
 endif
 
 # Keep this in sync with post-install.sh expected arguments
-meson.add_install_script('build-aux/meson/post-install.sh',
+meson.add_install_script('build-aux/meson/post-install.py',
                          gtk_api_version,
                          gtk_binary_version,
                          gtk_libdir,
@@ -887,7 +804,7 @@ meson.add_install_script('build-aux/meson/post-install.sh',
 summary = [
   '',
   '------',
-  'GTK+ @0@ (@1@)'.format(gtk_version, gtk_api_version),
+  'GTK @0@ (@1@)'.format(gtk_version, gtk_api_version),
   '',
   '  Display backends: @0@'.format(pkg_targets.strip()),
   '    Print backends: @0@'.format(' '.join(print_backends)),

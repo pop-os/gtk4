@@ -11,7 +11,6 @@ private_headers = [
   'gtkapplicationprivate.h',
   'gtkbindingsprivate.h',
   'gtkbitmaskprivate.h',
-  'gtkboxprivate.h',
   'gtkbuilderprivate.h',
   'gtkbuttonprivate.h',
   'gtkcellareaboxcontextprivate.h',
@@ -334,13 +333,13 @@ images = [
 ]
 
 content_files = [
+  'actions.xml',
   'broadway.xml',
   'building.sgml',
   'compiling.sgml',
   'css-overview.xml',
   'css-properties.xml',
   'drawing-model.xml',
-  'getting_started.xml',
   'glossary.xml',
   'gtk4-broadwayd.xml',
   'gtk4-builder-tool.xml',
@@ -355,7 +354,6 @@ content_files = [
   'input-handling.xml',
   'migrating-2to4.xml',
   'migrating-3to4.xml',
-  'mir.xml',
   'osx.sgml',
   'other_software.sgml',
   'overview.xml',
@@ -371,9 +369,9 @@ content_files = [
 ]
 
 expand_content_files = [
+  'actions.xml',
   'compiling.sgml',
   'drawing-model.xml',
-  'getting_started.xml',
   'glossary.xml',
   'input-handling.xml',
   'migrating-2to4.xml',
@@ -384,6 +382,7 @@ expand_content_files = [
 ]
 
 configure_file(input: 'version.xml.in', output: 'version.xml', configuration: version_conf)
+configure_file(input: 'getting_started.xml.in', output: 'getting_started.xml', configuration: src_dir_conf)
 
 types_conf = configuration_data()
 if os_win32
@@ -413,6 +412,9 @@ gnome.gtkdoc('gtk4',
              scan_args: [
                '--ignore-decorators=_GDK_EXTERN|G_GNUC_WARN_UNUSED_RESULT',
                '--ignore-headers=' + ' '.join(private_headers),
+             ],
+             mkdb_args: [
+               '--default-includes=gtk/gtk.h',
              ],
              fixxref_args: [
                '--html-dir=@0@'.format(docpath),

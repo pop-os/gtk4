@@ -1,111 +1,6 @@
 #include <gtk/gtk.h>
 
 static char *icon_names[] = {
-  /*** stock icons, from gtkiconfactory.c:get_default_icons() ***/
-  "dialog-password",
-  "dialog-error",
-  "dialog-information",
-  "dialog-question",
-  "dialog-warning",
-  "gtk-dnd", /* internal icon */
-  "gtk-dnd-multiple", /* internal icon */
-  "gtk-apply", /* deprecated stock id */
-  "gtk-cancel", /* deprecated stock id */
-  "gtk-no", /* deprecated stock id */
-  "gtk-ok", /* deprecated stock id */
-  "gtk-yes", /* deprecated stock id */
-  "window-close",
-  "list-add",
-  "format-justify-center",
-  "format-justify-fill",
-  "format-justify-left",
-  "format-justify-right",
-  "go-bottom",
-  "media-optical",
-  "gtk-convert", /* deprecated stock id */
-  "edit-copy",
-  "edit-cut",
-  "go-down",
-  "system-run",
-  "application-exit",
-  "go-first",
-  "gtk-select-font", /* deprecated stock id */
-  "view-fullscreen",
-  "view-restore",
-  "drive-harddisk",
-  "help-contents",
-  "go-home",
-  "go-jump",
-  "go-last",
-  "go-previous",
-  "image-missing",
-  "network-idle",
-  "document-new",
-  "document-open",
-  "gtk-orientation-portrait", /* internal icon */
-  "gtk-orientation-landscape", /* internal icon */
-  "gtk-orientation-reverse-portrait", /* internal icon */
-  "gtk-orientation-reverse-landscape", /* internal icon */
-  "gtk-page-setup", /* internal icon */
-  "edit-paste",
-  "gtk-preferences", /* deprecated stock id */
-  "document-print",
-  "document-print-preview",
-  "printer-error",
-  /* "printer-paused", */
-  /* "printer-info", */
-  /* "printer-warning", */
-  "document-properties",
-  "edit-redo",
-  "list-remove",
-  "view-refresh",
-  "document-revert",
-  "go-next",
-  "document-save",
-  "media-floppy",
-  "document-save-as",
-  "edit-find",
-  "edit-find-replace",
-  "view-sort-descending",
-  "view-sort-ascending",
-  "tools-check-spelling",
-  "process-stop",
-  "format-text-bold",
-  "format-text-italic",
-  "format-text-strikethrough",
-  "format-text-underline",
-  "format-indent-more",
-  "format-indent-less",
-  "go-top",
-  "edit-delete",
-  "gtk-undelete", /* deprecated stock id */
-  "edit-undo",
-  "go-up",
-  "text-x-generic",
-  "folder",
-  "help-about",
-  "gtk-connect", /* deprecated stock id */
-  "gtk-disconnect", /* deprecated stock id */
-  "gtk-edit", /* deprecated stock id */
-  "gtk-caps-lock-warning", /* internal icon */
-  "media-seek-forward",
-  "media-skip-forward",
-  "media-playback-pause",
-  "media-playback-start",
-  "media-skip-backward",
-  "media-record",
-  "media-seek-backward",
-  "media-playback-stop",
-  "gtk-index", /* deprecated stock id */
-  "zoom-original",
-  "zoom-in",
-  "zoom-out",
-  "zoom-fit-best",
-  "edit-select-all",
-  "edit-clear",
-  "gtk-select-color", /* deprecated stock id */
-  "gtk-color-picker", /* deprecated stock id */
-
   /*** Icons used in code or templates, sorted alphabetically ***/
   "audio-volume-high",
   "audio-volume-high-symbolic",
@@ -115,22 +10,60 @@ static char *icon_names[] = {
   "audio-volume-medium-symbolic",
   "audio-volume-muted",
   "audio-volume-muted-symbolic",
+  "application-x-executable-symbolic",
+  "bookmark-new-symbolic",
   "changes-allow-symbolic",
   "changes-prevent-symbolic",
   "dialog-password-symbolic",
   "dialog-warning-symbolic",
   "document-open-symbolic",
+  "document-save-as-symbolic",
+  "document-save-symbolic",
   "edit-clear-symbolic",
+  "edit-clear-all-symbolic",
+  "edit-cut-symbolic",
+  "edit-delete-symbolic",
   "edit-find-symbolic",
+  "edit-paste-symbolic",
+  "emblem-important-symbolic",
+  "emblem-system-symbolic",
+  "emoji-activities-symbolic",
+  "emoji-body-symbolic",
+  "emoji-flags-symbolic",
+  "emoji-food-symbolic",
+  "emoji-nature-symbolic",
+  "emoji-objects-symbolic",
+  "emoji-people-symbolic",
+  "emoji-recent-symbolic",
+  "emoji-symbols-symbolic",
+  "emoji-travel-symbolic",
+  "find-location-symbolic",
+  "folder-new-symbolic",
+  "folder-pictures-symbolic",
+  "go-down-symbolic",
+  "go-up-symbolic",
+  "orientation-landscape-symbolic",
+  "orientation-landscape-inverse-symbolic",
+  "orientation-portrait-symbolic",
+  "orientation-portrait-inverse-symbolic",
+  "insert-image",
+  "insert-object-symbolic",
   "list-add-symbolic",
   "list-remove-symbolic",
+  "media-eject-symbolic",
+  "media-playback-pause-symbolic",
+  "media-playback-start-symbolic",
+  "media-playlist-repeat",
+  "media-record-symbolic",
+  "network-server-symbolic",
+  "object-select-symbolic",
   "open-menu-symbolic",
   "pan-down-symbolic",
   "pan-end-symbolic",
   "pan-start-symbolic",
   "pan-up-symbolic",
-  "user-trash-full-symbolic",
   "user-trash-symbolic",
+  "view-list-symbolic",
   "window-close-symbolic",
   "window-maximize-symbolic",
   "window-minimize-symbolic",

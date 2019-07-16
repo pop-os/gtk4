@@ -190,6 +190,15 @@ gdk_vulkan_strerror (VkResult result)
     case VK_ERROR_FRAGMENTATION_EXT:
       return "A descriptor pool creation has failed due to fragmentation";
 #endif
+#if VK_HEADER_VERSION >= 89
+    case VK_ERROR_INVALID_DRM_FORMAT_MODIFIER_PLANE_LAYOUT_EXT:
+      return "Invalid DRM format modifier plane layout";
+#endif
+#if VK_HEADER_VERSION >= 97
+    case VK_ERROR_INVALID_DEVICE_ADDRESS_EXT:
+      return "Invalid device address";
+#endif
+
     case VK_RESULT_RANGE_SIZE:
     case VK_RESULT_MAX_ENUM:
     default:
@@ -706,7 +715,7 @@ gdk_vulkan_context_get_image (GdkVulkanContext *context,
  *
  * Gets the index of the image that is currently being drawn.
  *
- * This function can only be used between gdk_cairo_context_begin_frame() and
+ * This function can only be used between gdk_draw_context_begin_frame() and
  * gdk_draw_context_end_frame() calls.
  *
  * Returns: the index of the images that is being drawn
@@ -729,7 +738,7 @@ gdk_vulkan_context_get_draw_index (GdkVulkanContext *context)
  * Gets the Vulkan semaphore that protects access to the image that is
  * currently being drawn.
  *
- * This function can only be used between gdk_cairo_context_begin_frame() and
+ * This function can only be used between gdk_draw_context_begin_frame() and
  * gdk_draw_context_end_frame() calls.
  *
  * Returns: (transfer none): the VkSemaphore
@@ -781,12 +790,12 @@ gdk_display_create_vulkan_device (GdkDisplay  *display,
       else
         {
           gint64 device_idx;
-          GError *error = NULL;
+          GError *error2 = NULL;
 
-          if (!g_ascii_string_to_signed (override, 10, 0, G_MAXINT, &device_idx, &error))
+          if (!g_ascii_string_to_signed (override, 10, 0, G_MAXINT, &device_idx, &error2))
             {
-              g_warning ("Failed to parse %s: %s", "GDK_VULKAN_DEVICE", error->message);
-              g_error_free (error);
+              g_warning ("Failed to parse %s: %s", "GDK_VULKAN_DEVICE", error2->message);
+              g_error_free (error2);
               device_idx = -1;
             }
 
@@ -1003,7 +1012,7 @@ gdk_display_create_vulkan_instance (GdkDisplay  *display,
                                                  .pNext = NULL,
                                                  .pApplicationName = g_get_application_name (),
                                                  .applicationVersion = 0,
-                                                 .pEngineName = "GTK+",
+                                                 .pEngineName = "GTK",
                                                  .engineVersion = VK_MAKE_VERSION (GDK_MAJOR_VERSION, GDK_MINOR_VERSION, GDK_MICRO_VERSION),
                                                  .apiVersion = VK_API_VERSION_1_0
                                              },

@@ -370,6 +370,7 @@ test_type (gconstpointer data)
   /* These can't be freely constructed/destroyed */
   if (g_type_is_a (type, GTK_TYPE_APPLICATION) ||
       g_type_is_a (type, GDK_TYPE_PIXBUF_LOADER) ||
+      g_type_is_a (type, GTK_TYPE_LAYOUT_CHILD) ||
 #ifdef G_OS_UNIX
       g_type_is_a (type, GTK_TYPE_PRINT_JOB) ||
 #endif
@@ -412,7 +413,7 @@ test_type (gconstpointer data)
     instance = g_object_new (type, "display", display, NULL);
   else if (g_str_equal (g_type_name (type), "GdkClipboard"))
     instance = g_object_new (type, "display", display, NULL);
-  else if (g_str_equal (g_type_name (type), "GdkDragContext"))
+  else if (g_str_equal (g_type_name (type), "GdkDrag"))
     {
       GdkContentFormats *formats = gdk_content_formats_new_for_gtype (G_TYPE_STRING);
       instance = g_object_new (type,
@@ -429,6 +430,14 @@ test_type (gconstpointer data)
                                "formats", formats,
                                NULL);
       gdk_content_formats_unref (formats);
+    }
+  else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL))
+    {
+      GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
+      instance = g_object_new (type,
+                               "model", list_store,
+                               NULL);
+      g_object_unref (list_store);
     }
   else
     instance = g_object_new (type, NULL);
@@ -505,21 +514,6 @@ test_type (gconstpointer data)
 	  g_str_equal (pspec->name, "page"))
         continue;
 
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_TOGGLE_BUTTON) &&
-	  g_str_equal (pspec->name, "draw-indicator"))
-        continue;
-
-      if (g_str_equal (g_type_name (type), "GtkRecentChooserMenu") &&
-	  g_str_equal (pspec->name, "select-multiple"))
-        continue;
-
-      /* Really a bug in the way GtkButton and its subclasses interact:
-       * setting label etc on a subclass destroys the content, breaking
-       * e.g. GtkColorButton pretty badly
-       */
-      if (type == GTK_TYPE_COLOR_BUTTON && pspec->owner_type == GTK_TYPE_BUTTON)
-        continue;
-
       /* Too many special cases involving -set properties */
       if (g_str_equal (g_type_name (pspec->owner_type), "GtkCellRendererText") ||
           g_str_equal (g_type_name (pspec->owner_type), "GtkTextTag"))
@@ -529,40 +523,6 @@ test_type (gconstpointer data)
       if (g_str_equal (g_type_name (pspec->owner_type), "GtkComboBox"))
         continue;
 
-      /* Deprecated, not getting fixed */
-      if (g_str_equal (g_type_name (pspec->owner_type), "GtkAction"))
-        continue;
-
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_CONTAINER) &&
-	  g_str_equal (pspec->name, "resize-mode"))
-        continue;
-
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_COLOR_BUTTON) &&
-	  g_str_equal (pspec->name, "alpha"))
-        continue;
-
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_CELL_RENDERER_PIXBUF) &&
-	  (g_str_equal (pspec->name, "stock-id") ||
-           g_str_equal (pspec->name, "stock-size")))
-        continue;
-
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_MENU) &&
-	  g_str_equal (pspec->name, "tearoff-state"))
-        continue;
-
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_WIDGET) &&
-	  g_str_equal (pspec->name, "double-buffered"))
-        continue;
-
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_WINDOW) &&
-	  g_str_equal (pspec->name, "has-resize-grip"))
-        continue;
-
-      /* Can only be set on window widgets */
-      if (pspec->owner_type == GTK_TYPE_WIDGET &&
-          g_str_equal (pspec->name, "events"))
-        continue;
-
       /* Can only be set on unmapped windows */
       if (pspec->owner_type == GTK_TYPE_WINDOW &&
           g_str_equal (pspec->name, "type-hint"))
@@ -570,9 +530,7 @@ test_type (gconstpointer data)
 
       /* Special restrictions on allowed values */
       if (pspec->owner_type == GTK_TYPE_COMBO_BOX &&
-          (g_str_equal (pspec->name, "row-span-column") ||
-           g_str_equal (pspec->name, "column-span-column") ||
-           g_str_equal (pspec->name, "id-column") ||
+          (g_str_equal (pspec->name, "id-column") ||
            g_str_equal (pspec->name, "active-id") ||
            g_str_equal (pspec->name, "entry-text-column")))
         continue;
@@ -598,16 +556,16 @@ test_type (gconstpointer data)
           g_str_equal (pspec->name, "visible-child-name"))
         continue;
 
+      if (pspec->owner_type == GTK_TYPE_STACK_PAGE && /* Can't change position without a stack */
+          g_str_equal (pspec->name, "position"))
+        continue;
+
       if (pspec->owner_type == GTK_TYPE_POPOVER_MENU &&
           g_str_equal (pspec->name, "visible-submenu"))
         continue;
 
       if (pspec->owner_type == GTK_TYPE_TEXT_VIEW &&
           g_str_equal (pspec->name, "im-module"))
-        continue;
-
-      if (pspec->owner_type == GTK_TYPE_TOOLBAR &&
-          g_str_equal (pspec->name, "icon-size"))
         continue;
 
       if (pspec->owner_type == GTK_TYPE_TREE_SELECTION &&
@@ -643,15 +601,27 @@ test_type (gconstpointer data)
 	  g_str_equal (pspec->name, "font"))
 	continue;
 
-      if (g_type_is_a (type, GTK_TYPE_FONT_BUTTON) &&
-	  g_str_equal (pspec->name, "font-name"))
-	continue;
-
       /* these depend on the min-content- properties in a way that breaks our test */
       if (g_type_is_a (type, GTK_TYPE_SCROLLED_WINDOW) &&
 	  (g_str_equal (pspec->name, "max-content-width") ||
 	   g_str_equal (pspec->name, "max-content-height")))
 	continue;
+
+      /* expanding only works if rows are expandable */
+      if (g_type_is_a (type, GTK_TYPE_TREE_LIST_ROW) &&
+	  g_str_equal (pspec->name, "expanded"))
+	continue;
+
+       /* can't select items without an underlying, populated model */
+       if (g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION) &&
+           (g_str_equal (pspec->name, "selected") ||
+            g_str_equal (pspec->name, "selected-item")))
+         continue;
+
+       /* can't set position without a notebook */
+       if (g_type_is_a (type, GTK_TYPE_NOTEBOOK_PAGE) &&
+           g_str_equal (pspec->name, "position"))
+         continue;
 
       if (g_test_verbose ())
         g_print ("Property %s.%s\n", g_type_name (pspec->owner_type), pspec->name);

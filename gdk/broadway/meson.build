@@ -24,9 +24,7 @@ gdk_broadway_public_headers = [
   'gdkbroadwaymonitor.h',
 ]
 
-# Broadway backend headers aren't installed it seems
-#install_headers(gdk_broadway_public_headers, subdir: 'gtk-4.0/gdk/broadway/')
-#install_headers('gdkbroadway.h', subdir: 'gtk-4.0/gdk/')
+install_headers(gdk_broadway_public_headers, 'gdkbroadway.h', subdir: 'gtk-4.0/gdk/broadway/')
 
 gdk_broadway_deps = [shmlib]
 
@@ -43,8 +41,19 @@ clienthtml_h = custom_target('clienthtml.h',
   ],
 )
 
+broadwayjs_h = custom_target('broadwayjs.h',
+  input : ['broadway.js'],
+  output : 'broadwayjs.h',
+  command : [
+    gen_c_array,
+    '--array-name=broadway_js',
+    '--output=@OUTPUT@',
+    '@INPUT0@',
+  ],
+)
+
 libgdk_broadway = static_library('gdk-broadway',
-  clienthtml_h,
+  clienthtml_h, broadwayjs_h,
   gdk_broadway_sources, gdkconfig, gdkenum_h,
   include_directories: [confinc, gdkinc],
   c_args: [
@@ -57,17 +66,6 @@ libgdk_broadway = static_library('gdk-broadway',
 # gtk4-broadwayd
 
 broadwayd_syslib = os_win32 ? find_library('ws2_32') : shmlib
-
-broadwayjs_h = custom_target('broadwayjs.h',
-  input : ['broadway.js'],
-  output : 'broadwayjs.h',
-  command : [
-    gen_c_array,
-    '--array-name=broadway_js',
-    '--output=@OUTPUT@',
-    '@INPUT0@',
-  ],
-)
 
 executable('gtk4-broadwayd',
   clienthtml_h, broadwayjs_h,

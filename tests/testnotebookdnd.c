@@ -79,7 +79,6 @@ window_creation_function (GtkNotebook *source_notebook,
   gtk_container_add (GTK_CONTAINER (window), notebook);
 
   gtk_window_set_default_size (GTK_WINDOW (window), 300, 300);
-  gtk_window_move (GTK_WINDOW (window), x, y);
   gtk_widget_show (window);
 
   return GTK_NOTEBOOK (notebook);
@@ -93,7 +92,7 @@ on_page_reordered (GtkNotebook *notebook, GtkWidget *child, guint page_num, gpoi
 
 static void
 on_notebook_drag_begin (GtkWidget      *widget,
-                        GdkDragContext *context,
+                        GdkDrag        *drag,
                         gpointer        data)
 {
   guint page_num;
@@ -101,7 +100,7 @@ on_notebook_drag_begin (GtkWidget      *widget,
   page_num = gtk_notebook_get_current_page (GTK_NOTEBOOK (widget));
 
   if (page_num > 2)
-    gtk_drag_set_icon_name (context,
+    gtk_drag_set_icon_name (drag,
                             (page_num % 2) ? "help-browser" : "process-stop",
                             0, 0);
 }
@@ -140,7 +139,7 @@ action_clicked_cb (GtkWidget *button,
   GtkWidget *page, *title;
 
   page = gtk_entry_new ();
-  gtk_entry_set_text (GTK_ENTRY (page), "Addition");
+  gtk_editable_set_text (GTK_EDITABLE (page), "Addition");
 
   title = gtk_label_new ("Addition");
 
@@ -174,7 +173,7 @@ create_notebook (gchar           **labels,
   while (*labels)
     {
       page = gtk_entry_new ();
-      gtk_entry_set_text (GTK_ENTRY (page), *labels);
+      gtk_editable_set_text (GTK_EDITABLE (page), *labels);
 
       title = gtk_label_new (*labels);
 

@@ -26,29 +26,24 @@
 
 #include "actions.h"
 #include "cellrenderergraph.h"
+#include "controllers.h"
 #include "css-editor.h"
 #include "css-node-tree.h"
 #include "data-list.h"
 #include "general.h"
-#include "gestures.h"
 #include "graphdata.h"
 #include "logs.h"
 #include "magnifier.h"
 #include "menu.h"
 #include "misc-info.h"
-#include "object-hierarchy.h"
 #include "object-tree.h"
 #include "prop-list.h"
 #include "recorder.h"
-#include "rendernodeview.h"
 #include "resource-list.h"
-#include "selector.h"
-#include "signals-list.h"
 #include "size-groups.h"
 #include "statistics.h"
 #include "visual.h"
 #include "window.h"
-#include "gtkstackcombo.h"
 
 #include "gtkmagnifierprivate.h"
 
@@ -64,29 +59,24 @@ gtk_inspector_init (void)
   g_type_ensure (GTK_TYPE_CELL_RENDERER_GRAPH);
   g_type_ensure (GTK_TYPE_GRAPH_DATA);
   g_type_ensure (GTK_TYPE_INSPECTOR_ACTIONS);
+  g_type_ensure (GTK_TYPE_INSPECTOR_CONTROLLERS);
   g_type_ensure (GTK_TYPE_INSPECTOR_CSS_EDITOR);
   g_type_ensure (GTK_TYPE_INSPECTOR_CSS_NODE_TREE);
   g_type_ensure (GTK_TYPE_INSPECTOR_DATA_LIST);
   g_type_ensure (GTK_TYPE_INSPECTOR_GENERAL);
-  g_type_ensure (GTK_TYPE_INSPECTOR_GESTURES);
   g_type_ensure (GTK_TYPE_INSPECTOR_LOGS);
   g_type_ensure (GTK_TYPE_MAGNIFIER);
   g_type_ensure (GTK_TYPE_INSPECTOR_MAGNIFIER);
   g_type_ensure (GTK_TYPE_INSPECTOR_MENU);
   g_type_ensure (GTK_TYPE_INSPECTOR_MISC_INFO);
-  g_type_ensure (GTK_TYPE_INSPECTOR_OBJECT_HIERARCHY);
   g_type_ensure (GTK_TYPE_INSPECTOR_OBJECT_TREE);
   g_type_ensure (GTK_TYPE_INSPECTOR_PROP_LIST);
   g_type_ensure (GTK_TYPE_INSPECTOR_RECORDER);
   g_type_ensure (GTK_TYPE_INSPECTOR_RESOURCE_LIST);
-  g_type_ensure (GTK_TYPE_INSPECTOR_SELECTOR);
-  g_type_ensure (GTK_TYPE_INSPECTOR_SIGNALS_LIST);
   g_type_ensure (GTK_TYPE_INSPECTOR_SIZE_GROUPS);
   g_type_ensure (GTK_TYPE_INSPECTOR_STATISTICS);
   g_type_ensure (GTK_TYPE_INSPECTOR_VISUAL);
   g_type_ensure (GTK_TYPE_INSPECTOR_WINDOW);
-  g_type_ensure (GTK_TYPE_RENDER_NODE_VIEW);
-  g_type_ensure (GTK_TYPE_STACK_COMBO);
 
   if (extension_point == NULL)
     {

@@ -21,6 +21,17 @@
 
 #include "gtkbuilder.h"
 
+enum {
+  TAG_PROPERTY,
+  TAG_MENU,
+  TAG_REQUIRES,
+  TAG_OBJECT,
+  TAG_CHILD,
+  TAG_SIGNAL,
+  TAG_INTERFACE,
+  TAG_TEMPLATE,
+};
+
 typedef struct {
   guint tag_type;
 } CommonInfo;
@@ -124,7 +135,7 @@ typedef GType (*GTypeGetFunc) (void);
 void _gtk_builder_parser_parse_buffer (GtkBuilder *builder,
                                        const gchar *filename,
                                        const gchar *buffer,
-                                       gsize length,
+                                       gssize length,
                                        gchar **requested_objs,
                                        GError **error);
 GObject * _gtk_builder_construct (GtkBuilder *builder,

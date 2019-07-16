@@ -76,7 +76,7 @@
  * to the toolbar, add an instance of #GtkToolButton.
  *
  * Toolbar items can be visually grouped by adding instances of
- * #GtkSeparatorToolItem to the toolbar. If the GtkToolbar child property
+ * #GtkSeparatorToolItem to the toolbar. If the GtkToolItem property
  * “expand” is #TRUE and the property #GtkSeparatorToolItem:draw is set to
  * #FALSE, the effect is to force all following items to the end of the toolbar.
  *
@@ -95,12 +95,6 @@
 
 
 typedef struct _ToolbarContent ToolbarContent;
-
-#define DEFAULT_SPACE_SIZE  12
-#define DEFAULT_SPACE_STYLE GTK_TOOLBAR_SPACE_LINE
-#define SPACE_LINE_DIVISION 10.0
-#define SPACE_LINE_START    2.0
-#define SPACE_LINE_END      8.0
 
 #define DEFAULT_TOOLBAR_STYLE GTK_TOOLBAR_BOTH_HORIZ
 #define DEFAULT_ANIMATION_STATE TRUE
@@ -156,13 +150,6 @@ enum {
   PROP_TOOLTIPS,
 };
 
-/* Child properties */
-enum {
-  CHILD_PROP_0,
-  CHILD_PROP_EXPAND,
-  CHILD_PROP_HOMOGENEOUS
-};
-
 /* Signals */
 enum {
   ORIENTATION_CHANGED,
@@ -191,25 +178,16 @@ static void       gtk_toolbar_get_property         (GObject             *object,
 static void       gtk_toolbar_snapshot             (GtkWidget           *widget,
                                                     GtkSnapshot         *snapshot);
 static void       gtk_toolbar_size_allocate        (GtkWidget           *widget,
-                                                    const GtkAllocation *allocation,
+                                                    int                  width,
+                                                    int                  height,
                                                     int                  baseline);
 static void       gtk_toolbar_style_updated        (GtkWidget           *widget);
 static gboolean   gtk_toolbar_focus                (GtkWidget           *widget,
 						    GtkDirectionType     dir);
 static void       gtk_toolbar_move_focus           (GtkWidget           *widget,
 						    GtkDirectionType     dir);
-static void       gtk_toolbar_display_changed      (GtkWidget           *widget,
-						    GdkDisplay          *previous_display);
-static void       gtk_toolbar_set_child_property   (GtkContainer        *container,
-						    GtkWidget           *child,
-						    guint                property_id,
-						    const GValue        *value,
-						    GParamSpec          *pspec);
-static void       gtk_toolbar_get_child_property   (GtkContainer        *container,
-						    GtkWidget           *child,
-						    guint                property_id,
-						    GValue              *value,
-						    GParamSpec          *pspec);
+static void       gtk_toolbar_root                 (GtkWidget           *widget);
+static void       gtk_toolbar_unroot               (GtkWidget           *widget);
 static void       gtk_toolbar_finalize             (GObject             *object);
 static void       gtk_toolbar_dispose              (GObject             *object);
 static void       gtk_toolbar_add                  (GtkContainer        *container,
@@ -281,7 +259,8 @@ static void            toolbar_content_set_start_allocation (ToolbarContent     
 							     GtkAllocation       *new_start_allocation);
 static void            toolbar_content_get_start_allocation (ToolbarContent      *content,
 							     GtkAllocation       *start_allocation);
-static gboolean        toolbar_content_get_expand           (ToolbarContent      *content);
+static gboolean        toolbar_content_get_expand           (ToolbarContent      *content,
+                                                             GtkOrientation       orientation);
 static void            toolbar_content_set_goal_allocation  (ToolbarContent      *content,
 							     GtkAllocation       *allocation);
 static void            toolbar_content_set_child_visible    (ToolbarContent      *content,
@@ -383,15 +362,14 @@ gtk_toolbar_class_init (GtkToolbarClass *klass)
                                    GTK_TYPE_TOOLBAR,
                                    G_CALLBACK (gtk_toolbar_move_focus));
 
-  widget_class->display_changed = gtk_toolbar_display_changed;
+  widget_class->root = gtk_toolbar_root;
+  widget_class->unroot = gtk_toolbar_unroot;
   widget_class->popup_menu = gtk_toolbar_popup_menu;
 
   container_class->add    = gtk_toolbar_add;
   container_class->remove = gtk_toolbar_remove;
   container_class->forall = gtk_toolbar_forall;
   container_class->child_type = gtk_toolbar_child_type;
-  container_class->get_child_property = gtk_toolbar_get_child_property;
-  container_class->set_child_property = gtk_toolbar_set_child_property;
 
   klass->orientation_changed = gtk_toolbar_orientation_changed;
   klass->style_changed = gtk_toolbar_real_style_changed;
@@ -442,7 +420,7 @@ gtk_toolbar_class_init (GtkToolbarClass *klass)
    * to display a context menu on the toolbar. The context-menu should
    * appear at the coordinates given by @x and @y. The mouse button
    * number is given by the @button parameter. If the menu was popped
-   * up using the keybaord, @button is -1.
+   * up using the keyboard, @button is -1.
    *
    * Returns: return %TRUE if the signal was handled, %FALSE if not
    */
@@ -497,23 +475,6 @@ gtk_toolbar_class_init (GtkToolbarClass *klass)
 							 P_("If an arrow should be shown if the toolbar doesn’t fit"),
 							 TRUE,
 							 GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
-
-  /* child properties */
-  gtk_container_class_install_child_property (container_class,
-					      CHILD_PROP_EXPAND,
-					      g_param_spec_boolean ("expand", 
-								    P_("Expand"), 
-								    P_("Whether the item should receive extra space when the toolbar grows"),
-								    FALSE,
-								    GTK_PARAM_READWRITE));
-  
-  gtk_container_class_install_child_property (container_class,
-					      CHILD_PROP_HOMOGENEOUS,
-					      g_param_spec_boolean ("homogeneous", 
-								    P_("Homogeneous"), 
-								    P_("Whether the item should be the same size as other homogeneous items"),
-								    FALSE,
-								    GTK_PARAM_READWRITE));
 
   binding_set = gtk_binding_set_by_class (klass);
   
@@ -999,7 +960,7 @@ gtk_toolbar_begin_sliding (GtkToolbar *toolbar)
   if (!priv->idle_id)
     {
       priv->idle_id = g_idle_add (slide_idle_handler, toolbar);
-      g_source_set_name_by_id (priv->idle_id, "[gtk+] slide_idle_handler");
+      g_source_set_name_by_id (priv->idle_id, "[gtk] slide_idle_handler");
     }
 
   content_allocation.x = 0;
@@ -1200,13 +1161,14 @@ rebuild_menu (GtkToolbar *toolbar)
 }
 
 static void
-gtk_toolbar_size_allocate (GtkWidget           *widget,
-                           const GtkAllocation *allocation,
-                           int                  baseline)
+gtk_toolbar_size_allocate (GtkWidget *widget,
+                           int        width,
+                           int        height,
+                           int        baseline)
 {
   GtkToolbar *toolbar = GTK_TOOLBAR (widget);
   GtkToolbarPrivate *priv = toolbar->priv;
-  GtkAllocation arrow_allocation, item_area, widget_allocation;
+  GtkAllocation arrow_allocation, item_area;
   GtkAllocation *allocations;
   ItemState *new_states;
   gint arrow_size;
@@ -1220,34 +1182,22 @@ gtk_toolbar_size_allocate (GtkWidget           *widget,
   gint needed_size;
   GtkRequisition arrow_requisition;
   gboolean overflowing;
-  gboolean size_changed;
 
-  gtk_widget_get_allocation (widget, &widget_allocation);
-  size_changed = FALSE;
-  if (widget_allocation.x != priv->prev_allocation.x ||
-      widget_allocation.y != priv->prev_allocation.y ||
-      widget_allocation.width != priv->prev_allocation.width ||
-      widget_allocation.height != priv->prev_allocation.height)
-    {
-      size_changed = TRUE;
-    }
-
-  if (size_changed)
-    gtk_toolbar_stop_sliding (toolbar);
+  gtk_toolbar_stop_sliding (toolbar);
 
   gtk_widget_get_preferred_size (priv->arrow_button,
                                  &arrow_requisition, NULL);
 
   if (priv->orientation == GTK_ORIENTATION_HORIZONTAL)
     {
-      available_size = size = allocation->width;
-      short_size = allocation->height;
+      available_size = size = width;
+      short_size = height;
       arrow_size = arrow_requisition.width;
     }
   else
     {
-      available_size = size = allocation->height;
-      short_size = allocation->width;
+      available_size = size = height;
+      short_size = width;
       arrow_size = arrow_requisition.height;
     }
 
@@ -1336,7 +1286,7 @@ gtk_toolbar_size_allocate (GtkWidget           *widget,
         {
           ToolbarContent *content = list->data;
 
-          if (toolbar_content_get_expand (content) && new_states[i] == NORMAL)
+          if (toolbar_content_get_expand (content, priv->orientation) && new_states[i] == NORMAL)
             n_expand_items++;
         }
 
@@ -1344,7 +1294,7 @@ gtk_toolbar_size_allocate (GtkWidget           *widget,
         {
           ToolbarContent *content = list->data;
 
-          if (toolbar_content_get_expand (content) && new_states[i] == NORMAL)
+          if (toolbar_content_get_expand (content, priv->orientation) && new_states[i] == NORMAL)
             {
               gint extra = size / n_expand_items;
               if (size % n_expand_items != 0)
@@ -1410,22 +1360,6 @@ gtk_toolbar_size_allocate (GtkWidget           *widget,
       fixup_allocation_for_rtl (available_size, &item_area);
     }
 
-  /* translate the items by allocation->(x,y) */
-  for (i = 0; i < n_items; ++i)
-    {
-      allocations[i].x += allocation->x;
-      allocations[i].y += allocation->y;
-    }
-
-  if (need_arrow)
-    {
-      arrow_allocation.x += allocation->x;
-      arrow_allocation.y += allocation->y;
-    }
-
-  item_area.x += allocation->x;
-  item_area.y += allocation->y;
-
   /* did anything change? */
   for (list = priv->content, i = 0; list != NULL; list = list->next, i++)
     {
@@ -1435,8 +1369,7 @@ gtk_toolbar_size_allocate (GtkWidget           *widget,
           new_states[i] != NORMAL)
         {
           /* an item disappeared and we didn't change size, so begin sliding */
-          if (!size_changed)
-            gtk_toolbar_begin_sliding (toolbar);
+          gtk_toolbar_begin_sliding (toolbar);
         }
     }
 
@@ -1713,39 +1646,38 @@ settings_change_notify (GtkSettings      *settings,
 }
 
 static void
-gtk_toolbar_display_changed (GtkWidget *widget,
-			     GdkDisplay *previous_display)
+gtk_toolbar_root (GtkWidget *widget)
 {
   GtkToolbar *toolbar = GTK_TOOLBAR (widget);
   GtkToolbarPrivate *priv = toolbar->priv;
-  GtkSettings *old_settings = toolbar_get_settings (toolbar);
   GtkSettings *settings;
-  
+
+  GTK_WIDGET_CLASS (gtk_toolbar_parent_class)->root (widget);
+
   settings = gtk_widget_get_settings (GTK_WIDGET (toolbar));
-  
-  if (settings == old_settings)
-    return;
-  
-  if (old_settings)
-    {
-      g_signal_handler_disconnect (old_settings, priv->settings_connection);
-      priv->settings_connection = 0;
-      g_object_unref (old_settings);
-    }
 
-  if (settings)
-    {
-      priv->settings_connection =
-	g_signal_connect (settings, "notify",
-                          G_CALLBACK (settings_change_notify),
-                          toolbar);
+  priv->settings_connection =
+    g_signal_connect (settings, "notify",
+                      G_CALLBACK (settings_change_notify),
+                      toolbar);
 
-      priv->settings = g_object_ref (settings);
-    }
-  else
-    priv->settings = NULL;
+  priv->settings = g_object_ref (settings);
 
   animation_change_notify (toolbar);
+}
+
+static void
+gtk_toolbar_unroot (GtkWidget *widget)
+{
+  GtkToolbar *toolbar = GTK_TOOLBAR (widget);
+  GtkToolbarPrivate *priv = toolbar->priv;
+
+  if (priv->settings_connection)
+    g_signal_handler_disconnect (priv->settings, priv->settings_connection);
+  priv->settings_connection = 0;
+  g_clear_object (&priv->settings);
+
+  GTK_WIDGET_CLASS (gtk_toolbar_parent_class)->unroot (widget);
 }
 
 static int
@@ -2032,54 +1964,6 @@ gtk_toolbar_set_drop_highlight_item (GtkToolbar  *toolbar,
   
   if (restart_sliding)
     gtk_toolbar_begin_sliding (toolbar);
-}
-
-static void
-gtk_toolbar_get_child_property (GtkContainer *container,
-				GtkWidget    *child,
-				guint         property_id,
-				GValue       *value,
-				GParamSpec   *pspec)
-{
-  GtkToolItem *item = GTK_TOOL_ITEM (child);
-  
-  switch (property_id)
-    {
-    case CHILD_PROP_HOMOGENEOUS:
-      g_value_set_boolean (value, gtk_tool_item_get_homogeneous (item));
-      break;
-      
-    case CHILD_PROP_EXPAND:
-      g_value_set_boolean (value, gtk_tool_item_get_expand (item));
-      break;
-      
-    default:
-      GTK_CONTAINER_WARN_INVALID_CHILD_PROPERTY_ID (container, property_id, pspec);
-      break;
-    }
-}
-
-static void
-gtk_toolbar_set_child_property (GtkContainer *container,
-				GtkWidget    *child,
-				guint         property_id,
-				const GValue *value,
-				GParamSpec   *pspec)
-{
-  switch (property_id)
-    {
-    case CHILD_PROP_HOMOGENEOUS:
-      gtk_tool_item_set_homogeneous (GTK_TOOL_ITEM (child), g_value_get_boolean (value));
-      break;
-      
-    case CHILD_PROP_EXPAND:
-      gtk_tool_item_set_expand (GTK_TOOL_ITEM (child), g_value_get_boolean (value));
-      break;
-      
-    default:
-      GTK_CONTAINER_WARN_INVALID_CHILD_PROPERTY_ID (container, property_id, pspec);
-      break;
-    }
 }
 
 static void
@@ -2628,11 +2512,7 @@ gtk_toolbar_dispose (GObject *object)
   GtkToolbar *toolbar = GTK_TOOLBAR (object);
   GtkToolbarPrivate *priv = toolbar->priv;
 
-  if (priv->arrow_button)
-    {
-      gtk_widget_unparent (priv->arrow_button);
-      priv->arrow_button = NULL;
-    }
+  g_clear_pointer (&priv->arrow_button, gtk_widget_unparent);
 
   if (priv->menu)
     {
@@ -2904,10 +2784,10 @@ toolbar_content_set_start_allocation (ToolbarContent *content,
 }
 
 static gboolean
-toolbar_content_get_expand (ToolbarContent *content)
+toolbar_content_get_expand (ToolbarContent *content, GtkOrientation orientation)
 {
   if (!content->disappearing &&
-      gtk_tool_item_get_expand (content->item))
+      (gtk_tool_item_get_expand (content->item) || gtk_widget_compute_expand (GTK_WIDGET (content->item), orientation)))
     return TRUE;
 
   return FALSE;

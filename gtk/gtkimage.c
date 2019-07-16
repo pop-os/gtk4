@@ -72,22 +72,21 @@
  * # CSS nodes
  *
  * GtkImage has a single CSS node with the name image. The style classes
- * .normal-icons or .large-icons may appear, depending on the #GtkImage::icon-size
+ * .normal-icons or .large-icons may appear, depending on the #GtkImage:icon-size
  * property.
  */
 
 
-struct _GtkImagePrivate
+typedef struct
 {
   GtkIconHelper *icon_helper;
   GtkIconSize icon_size;
 
   float baseline_align;
 
-  gchar                *filename;       /* Only used with GTK_IMAGE_SURFACE */
-  gchar                *resource_path;  /* Only used with GTK_IMAGE_SURFACE */
-};
-
+  char *filename;
+  char *resource_path;
+} GtkImagePrivate;
 
 static void gtk_image_snapshot             (GtkWidget    *widget,
                                             GtkSnapshot  *snapshot);
@@ -131,15 +130,6 @@ static GParamSpec *image_props[NUM_PROPERTIES] = { NULL, };
 
 G_DEFINE_TYPE_WITH_PRIVATE (GtkImage, gtk_image, GTK_TYPE_WIDGET)
 
-static GtkSizeRequestMode
-gtk_image_get_request_mode (GtkWidget *widget)
-{
-  GtkImage *image = GTK_IMAGE (widget);
-  GtkImagePrivate *priv = gtk_image_get_instance_private (image);
-
-  return gtk_icon_helper_get_request_mode (priv->icon_helper);
-}
-
 static void
 gtk_image_class_init (GtkImageClass *class)
 {
@@ -154,7 +144,6 @@ gtk_image_class_init (GtkImageClass *class)
 
   widget_class = GTK_WIDGET_CLASS (class);
   widget_class->snapshot = gtk_image_snapshot;
-  widget_class->get_request_mode = gtk_image_get_request_mode;
   widget_class->measure = gtk_image_measure;
   widget_class->unrealize = gtk_image_unrealize;
   widget_class->style_updated = gtk_image_style_updated;
@@ -929,15 +918,21 @@ gtk_image_set_from_paintable (GtkImage     *image,
 
   if (paintable)
     {
+      const guint flags = gdk_paintable_get_flags (paintable);
+
       _gtk_icon_helper_set_paintable (priv->icon_helper, paintable);
-      g_signal_connect (paintable,
-                        "invalidate-contents",
-                        G_CALLBACK (gtk_image_paintable_invalidate_contents),
-                        image);
-      g_signal_connect (paintable,
-                        "invalidate-size",
-                        G_CALLBACK (gtk_image_paintable_invalidate_size),
-                        image);
+
+      if ((flags & GDK_PAINTABLE_STATIC_CONTENTS) == 0)
+        g_signal_connect (paintable,
+                          "invalidate-contents",
+                          G_CALLBACK (gtk_image_paintable_invalidate_contents),
+                          image);
+
+      if ((flags & GDK_PAINTABLE_STATIC_SIZE) == 0)
+        g_signal_connect (paintable,
+                          "invalidate-size",
+                          G_CALLBACK (gtk_image_paintable_invalidate_size),
+                          image);
       g_object_unref (paintable);
     }
 
@@ -1111,16 +1106,16 @@ gtk_image_snapshot (GtkWidget   *widget,
     {
       double image_ratio = (double) width / height;
 
-    if (ratio > image_ratio)
-      {
-        w = width;
-        h = width / ratio;
-      }
-    else
-      {
-        w = height * ratio;
-        h = height;
-      }
+      if (ratio > image_ratio)
+        {
+          w = width;
+          h = width / ratio;
+        }
+      else
+        {
+          w = height * ratio;
+          h = height;
+        }
 
       x = (width - ceil (w)) / 2;
 
@@ -1130,9 +1125,10 @@ gtk_image_snapshot (GtkWidget   *widget,
       else
         y = CLAMP (baseline - h * gtk_image_get_baseline_align (image), 0, height - ceil (h));
 
-      gtk_snapshot_offset (snapshot, x, y);
+      gtk_snapshot_save (snapshot);
+      gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
       gdk_paintable_snapshot (GDK_PAINTABLE (priv->icon_helper), snapshot, w, h);
-      gtk_snapshot_offset (snapshot, -x, -y);
+      gtk_snapshot_restore (snapshot);
     }
 }
 
@@ -1226,12 +1222,17 @@ gtk_image_clear (GtkImage *image)
   if (storage_type == GTK_IMAGE_PAINTABLE)
     {
       GdkPaintable *paintable = _gtk_icon_helper_peek_paintable (priv->icon_helper);
-      g_signal_handlers_disconnect_by_func (paintable,
-                                            gtk_image_paintable_invalidate_contents,
-                                            image);
-      g_signal_handlers_disconnect_by_func (paintable,
-                                            gtk_image_paintable_invalidate_size,
-                                            image);
+      const guint flags = gdk_paintable_get_flags (paintable);
+
+      if ((flags & GDK_PAINTABLE_STATIC_CONTENTS) == 0)
+        g_signal_handlers_disconnect_by_func (paintable,
+                                              gtk_image_paintable_invalidate_contents,
+                                              image);
+
+      if ((flags & GDK_PAINTABLE_STATIC_SIZE) == 0)
+        g_signal_handlers_disconnect_by_func (paintable,
+                                              gtk_image_paintable_invalidate_size,
+                                              image);
     }
 
   _gtk_icon_helper_clear (priv->icon_helper);

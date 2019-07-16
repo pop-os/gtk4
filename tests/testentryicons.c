@@ -5,24 +5,24 @@ static void
 clear_pressed (GtkEntry *entry, gint icon, gpointer data)
 {
    if (icon == GTK_ENTRY_ICON_SECONDARY)
-     gtk_entry_set_text (entry, "");
+     gtk_editable_set_text (GTK_EDITABLE (entry), "");
 }
 
 static void
 drag_begin_cb (GtkWidget      *widget,
-               GdkDragContext *context,
+               GdkDrag        *drag,
                gpointer        user_data)
 {
   gint pos;
 
   pos = gtk_entry_get_current_icon_drag_source (GTK_ENTRY (widget));
   if (pos != -1)
-    gtk_drag_set_icon_name (context, "dialog-information", 2, 2);
+    gtk_drag_set_icon_name (drag, "dialog-information", 2, 2);
 }
 
 static void
 drag_data_get_cb (GtkWidget        *widget,
-                  GdkDragContext   *context,
+                  GdkDrag          *drag,
                   GtkSelectionData *data,
                   gpointer          user_data)
 {
@@ -180,7 +180,7 @@ main (int argc, char **argv)
   entry = gtk_entry_new ();
   gtk_widget_set_hexpand (entry, TRUE);
   gtk_grid_attach (GTK_GRID (grid), entry, 1, 1, 1, 1);
-  gtk_entry_set_text (GTK_ENTRY (entry), "‏Right-to-left");
+  gtk_editable_set_text (GTK_EDITABLE (entry), "‏Right-to-left");
   gtk_widget_set_direction (entry, GTK_TEXT_DIR_RTL);
   
   gtk_entry_set_icon_from_icon_name (GTK_ENTRY (entry),
@@ -241,22 +241,10 @@ main (int argc, char **argv)
   gtk_widget_set_halign (label, GTK_ALIGN_START);
   gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
 
-  entry = gtk_entry_new ();
+  entry = gtk_password_entry_new ();
+  gtk_password_entry_set_show_peek_icon (GTK_PASSWORD_ENTRY (entry), TRUE);
   gtk_widget_set_hexpand (entry, TRUE);
   gtk_grid_attach (GTK_GRID (grid), entry, 1, 3, 1, 1);
-  gtk_entry_set_visibility (GTK_ENTRY (entry), FALSE);
-
-  gtk_entry_set_icon_from_icon_name (GTK_ENTRY (entry),
-                                     GTK_ENTRY_ICON_PRIMARY,
-                                     "dialog-password-symbolic");
-
-  gtk_entry_set_icon_activatable (GTK_ENTRY (entry),
-				  GTK_ENTRY_ICON_PRIMARY,
-				  FALSE);
-
-  gtk_entry_set_icon_tooltip_text (GTK_ENTRY (entry),
-                                   GTK_ENTRY_ICON_PRIMARY,
-                                   "The password is hidden for security");
 
   /* Name - Does not set any icons. */
   label = gtk_label_new ("Name:");

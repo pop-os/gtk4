@@ -54,7 +54,7 @@ test_finalize_object (gconstpointer data)
 
   if (g_str_equal (g_type_name (test_type), "GdkClipboard"))
     object = g_object_new (test_type, "display", gdk_display_get_default (), NULL);
-  else if (g_str_equal (g_type_name (test_type), "GdkDragContext") ||
+  else if (g_str_equal (g_type_name (test_type), "GdkDrag") ||
            g_str_equal (g_type_name (test_type), "GdkDrop"))
     {
       GdkContentFormats *formats = gdk_content_formats_new_for_gtype (G_TYPE_STRING);
@@ -63,6 +63,19 @@ test_finalize_object (gconstpointer data)
                              "formats", formats,
                              NULL);
       gdk_content_formats_unref (formats);
+    }
+  else if (g_type_is_a (test_type, GTK_TYPE_FILTER_LIST_MODEL))
+    {
+      GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
+      object = g_object_new (test_type,
+                             "model", list_store,
+                             NULL);
+      g_object_unref (list_store);
+    }
+  else if (g_type_is_a (test_type, GTK_TYPE_LAYOUT_CHILD))
+    {
+      g_test_skip ("Skipping GtkLayoutChild type");
+      return;
     }
   else
     object = g_object_new (test_type, NULL);
@@ -76,7 +89,7 @@ test_finalize_object (gconstpointer data)
   g_object_weak_ref (object, check_finalized, &finalized);
 
   /* Toplevels are owned by GTK+, just tell GTK+ to destroy it */
-  if (GTK_IS_WINDOW (object) || GTK_IS_INVISIBLE (object))
+  if (GTK_IS_WINDOW (object))
     gtk_widget_destroy (GTK_WIDGET (object));
   else
     g_object_unref (object);

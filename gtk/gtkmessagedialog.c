@@ -25,18 +25,19 @@
 
 #include "config.h"
 
-#include <string.h>
-
 #include "gtkmessagedialog.h"
-#include "gtkdialogprivate.h"
+
 #include "gtkaccessible.h"
-#include "gtkbuildable.h"
-#include "gtklabel.h"
 #include "gtkbox.h"
-#include "gtkbbox.h"
+#include "gtkbuildable.h"
+#include "gtkdialogprivate.h"
 #include "gtkintl.h"
+#include "gtklabel.h"
 #include "gtkprivate.h"
+#include "gtkstylecontext.h"
 #include "gtktypebuiltins.h"
+
+#include <string.h>
 
 /**
  * SECTION:gtkmessagedialog
@@ -47,10 +48,6 @@
  * #GtkMessageDialog presents a dialog with some message text. It’s simply a
  * convenience widget; you could construct the equivalent of #GtkMessageDialog
  * from #GtkDialog without too much effort, but #GtkMessageDialog saves typing.
- *
- * One difference from #GtkDialog is that #GtkMessageDialog sets the
- * #GtkWindow:skip-taskbar-hint property to %TRUE, so that the dialog is hidden
- * from the taskbar by default.
  *
  * The easiest way to do a modal message dialog is to use gtk_dialog_run(), though
  * you can also pass in the %GTK_DIALOG_MODAL flag, gtk_dialog_run() automatically
@@ -281,7 +278,8 @@ gtk_message_dialog_init (GtkMessageDialog *dialog)
 
   gtk_widget_init_template (GTK_WIDGET (dialog));
   action_area = gtk_dialog_get_action_area (GTK_DIALOG (dialog));
-  gtk_button_box_set_layout (GTK_BUTTON_BOX (action_area), GTK_BUTTONBOX_EXPAND);
+  gtk_widget_set_halign (action_area, GTK_ALIGN_FILL);
+  gtk_box_set_homogeneous (GTK_BOX (action_area), TRUE);
 
   settings = gtk_widget_get_settings (GTK_WIDGET (dialog));
   g_object_get (settings, "gtk-keynav-use-caret", &use_caret, NULL);

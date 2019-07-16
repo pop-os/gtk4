@@ -4,7 +4,6 @@ demos = files([
   'application_demo.c',
   'assistant.c',
   'builder.c',
-  'button_box.c',
   'changedisplay.c',
   'clipboard.c',
   'colorsel.c',
@@ -22,10 +21,10 @@ demos = files([
   'editable_cells.c',
   'entry_buffer.c',
   'entry_completion.c',
-  'event_axes.c',
   'expander.c',
   'filtermodel.c',
   'fishbowl.c',
+  'fixed.c',
   'foreigndrawing.c',
   'gestures.c',
   'glarea.c',
@@ -49,6 +48,7 @@ demos = files([
   'paintable_animated.c',
   'paintable_mediastream.c',
   'panes.c',
+  'password_entry.c',
   'pickers.c',
   'pixbufs.c',
   'popover.c',
@@ -66,6 +66,7 @@ demos = files([
   'spinner.c',
   'stack.c',
   'tabs.c',
+  'tagged_entry.c',
   'textmask.c',
   'textview.c',
   'textscroll.c',
@@ -77,7 +78,13 @@ demos = files([
 
 gtkdemo_deps = [ libgtk_dep, ]
 
-extra_demo_sources = files(['main.c', 'gtkfishbowl.c', 'fontplane.c', 'gtkgears.c', 'puzzlepiece.c'])
+extra_demo_sources = files(['main.c',
+                            'gtkfishbowl.c',
+                            'fontplane.c',
+                            'gtkgears.c',
+                            'puzzlepiece.c',
+                            'bluroverlay.c',
+                            'demotaggedentry.c'])
 
 if harfbuzz_dep.found() and pangoft_dep.found()
   demos += files('font_features.c')
@@ -101,7 +108,7 @@ gtkdemo_resources = gnome.compile_resources('gtkdemo_resources',
                                             source_dir: '.')
 
 executable('gtk4-demo',
-                   demos, demos_h, extra_demo_sources, gtkdemo_resources,
+           demos, demos_h, extra_demo_sources, gtkdemo_resources,
            c_args: gtkdemo_args,
            dependencies: gtkdemo_deps,
            include_directories: confinc,
@@ -121,20 +128,18 @@ executable('gtk4-demo-application',
 # icons
 icontheme_dir = join_paths(gtk_datadir, 'icons/hicolor')
 
-foreach icon_size: [ '16x16', '22x22', '24x24', '32x32', '48x48', '256x256', ]
-  gtk_demo_icons_dir = join_paths(icontheme_dir, '@0@/apps'.format(icon_size))
-  install_data('data/@0@/gtk4-demo.png'.format(icon_size),
-               install_dir: gtk_demo_icons_dir)
-  install_data('data/@0@/gtk4-demo-symbolic.symbolic.png'.format(icon_size),
-               install_dir: gtk_demo_icons_dir)
+foreach size: ['scalable', 'symbolic']
+  install_subdir('data/' + size,
+    install_dir: icontheme_dir
+  )
 endforeach
 
 # desktop file
-install_data('gtk4-demo.desktop', install_dir: gtk_applicationsdir)
+install_data('org.gtk.Demo4.desktop', install_dir: gtk_applicationsdir)
 
 # GSettings
-install_data('org.gtk.Demo.gschema.xml', install_dir: gtk_schemasdir)
+install_data('org.gtk.Demo4.gschema.xml', install_dir: gtk_schemasdir)
 gnome.compile_schemas()
 
 # appdata
-install_data('org.gtk.Demo.appdata.xml', install_dir: gtk_appdatadir)
+install_data('org.gtk.Demo4.appdata.xml', install_dir: gtk_appdatadir)

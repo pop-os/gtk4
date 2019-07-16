@@ -47,7 +47,6 @@
 #include "gtksettings.h"
 #include "gtktrashmonitor.h"
 #include "gtktypebuiltins.h"
-#include "gtkwindow.h"
 #include "gtkpopover.h"
 #include "gtkgrid.h"
 #include "gtklabel.h"
@@ -203,7 +202,7 @@ struct _GtkPlacesSidebarClass {
                                       const gchar        *primary,
                                       const gchar        *secondary);
   GdkDragAction (* drag_action_requested)  (GtkPlacesSidebar   *sidebar,
-                                      GdkDragContext     *context,
+                                      GdkDrag            *drag,
                                       GFile              *dest_file,
                                       GList              *source_file_list);
   GdkDragAction (* drag_action_ask)  (GtkPlacesSidebar   *sidebar,
@@ -389,14 +388,14 @@ emit_unmount_operation (GtkPlacesSidebar *sidebar,
 
 static GdkDragAction
 emit_drag_action_requested (GtkPlacesSidebar *sidebar,
-                            GdkDrop          *drop,
+                            GdkDrag          *drag,
                             GFile            *dest_file,
                             GList            *source_file_list)
 {
   GdkDragAction ret_action = 0;
 
   g_signal_emit (sidebar, places_sidebar_signals[DRAG_ACTION_REQUESTED], 0,
-                 drop, dest_file, source_file_list, &ret_action);
+                 drag, dest_file, source_file_list, &ret_action);
 
   return ret_action;
 }
@@ -1281,10 +1280,13 @@ update_places (GtkPlacesSidebar *sidebar)
     }
   g_list_free_full (drives, g_object_unref);
 
-  /* add all network volumes that is not associated with a drive */
+  /* add all network volumes that are not associated with a drive, and
+   * loop devices
+   */
   volumes = g_volume_monitor_get_volumes (sidebar->volume_monitor);
   for (l = volumes; l != NULL; l = l->next)
     {
+      gboolean is_loop = FALSE;
       volume = l->data;
       drive = g_volume_get_drive (volume);
       if (drive != NULL)
@@ -1302,9 +1304,13 @@ update_places (GtkPlacesSidebar *sidebar)
           network_volumes = g_list_prepend (network_volumes, volume);
           continue;
         }
+      else if (g_strcmp0 (identifier, "loop") == 0)
+        is_loop = TRUE;
       g_free (identifier);
 
-      if (sidebar->show_other_locations && !is_external_volume (volume))
+      if (sidebar->show_other_locations &&
+          !is_external_volume (volume) &&
+          !is_loop)
         {
           g_object_unref (volume);
           continue;
@@ -1536,7 +1542,7 @@ update_places (GtkPlacesSidebar *sidebar)
 static gboolean
 check_valid_drop_target (GtkPlacesSidebar *sidebar,
                          GtkSidebarRow    *row,
-                         GdkDrop          *drop)
+                         GdkDrag          *drag)
 {
   GtkPlacesSidebarPlaceType place_type;
   GtkPlacesSidebarSectionType section_type;
@@ -1592,12 +1598,12 @@ check_valid_drop_target (GtkPlacesSidebar *sidebar,
   else
     {
       /* Dragging a file */
-      if (drop)
+      if (drag)
         {
           if (uri != NULL)
             {
               dest_file = g_file_new_for_uri (uri);
-              drag_action = emit_drag_action_requested (sidebar, drop, dest_file, sidebar->drag_list);
+              drag_action = emit_drag_action_requested (sidebar, drag, dest_file, sidebar->drag_list);
               valid = drag_action > 0;
 
               g_object_unref (dest_file);
@@ -1625,7 +1631,7 @@ check_valid_drop_target (GtkPlacesSidebar *sidebar,
 static void
 update_possible_drop_targets (GtkPlacesSidebar *sidebar,
                               gboolean          dragging,
-                              GdkDrop          *drop)
+                              GdkDrag          *drag)
 {
   GList *rows;
   GList *l;
@@ -1635,7 +1641,7 @@ update_possible_drop_targets (GtkPlacesSidebar *sidebar,
 
   for (l = rows; l != NULL; l = l->next)
     {
-      sensitive = !dragging || check_valid_drop_target (sidebar, GTK_SIDEBAR_ROW (l->data), drop);
+      sensitive = !dragging || check_valid_drop_target (sidebar, GTK_SIDEBAR_ROW (l->data), drag);
       gtk_widget_set_sensitive (GTK_WIDGET (l->data), sensitive);
     }
 
@@ -1677,7 +1683,7 @@ free_drag_data (GtkPlacesSidebar *sidebar)
 static void
 start_drop_feedback (GtkPlacesSidebar *sidebar,
                      GtkSidebarRow    *row,
-                     GdkDrop          *drop)
+                     GdkDrag          *drag)
 {
   if (sidebar->drag_data_info != DND_GTK_SIDEBAR_ROW)
     {
@@ -1687,7 +1693,7 @@ start_drop_feedback (GtkPlacesSidebar *sidebar,
         sidebar->drop_state = DROP_STATE_NEW_BOOKMARK_ARMED;
     }
 
-  update_possible_drop_targets (sidebar, TRUE, drop);
+  update_possible_drop_targets (sidebar, TRUE, drag);
 }
 
 static void
@@ -1722,7 +1728,7 @@ stop_drop_feedback (GtkPlacesSidebar *sidebar)
 
 static void
 drag_begin_callback (GtkWidget      *widget,
-                     GdkDragContext *context,
+                     GdkDrag        *drag,
                      gpointer        user_data)
 {
   GtkPlacesSidebar *sidebar = GTK_PLACES_SIDEBAR (user_data);
@@ -1738,7 +1744,7 @@ drag_begin_callback (GtkWidget      *widget,
 
   gtk_widget_set_opacity (drag_widget, 0.8);
 
-  gtk_drag_set_icon_widget (context,
+  gtk_drag_set_icon_widget (drag,
                             drag_widget,
                             sidebar->drag_row_x,
                             sidebar->drag_row_y);
@@ -1766,10 +1772,12 @@ drag_motion_callback (GtkWidget *widget,
   gchar *drop_target_uri = NULL;
   gint row_index;
   gint row_placeholder_index;
+  GdkDrag *drag;
 
   sidebar->dragging_over = TRUE;
   action = 0;
   row = gtk_list_box_get_row_at_y (GTK_LIST_BOX (sidebar->list_box), y);
+  drag = gdk_drop_get_drag (drop);
 
   gtk_list_box_drag_unhighlight_row (GTK_LIST_BOX (sidebar->list_box));
 
@@ -1779,7 +1787,7 @@ drag_motion_callback (GtkWidget *widget,
     goto out;
 
   /* Nothing to do if the target is not valid drop destination */
-  if (!check_valid_drop_target (sidebar, GTK_SIDEBAR_ROW (row), drop))
+  if (!check_valid_drop_target (sidebar, GTK_SIDEBAR_ROW (row), drag))
     goto out;
 
   if (sidebar->drag_data_received &&
@@ -1866,7 +1874,7 @@ drag_motion_callback (GtkWidget *widget,
                 {
                   GFile *dest_file = g_file_new_for_uri (drop_target_uri);
 
-                  action = emit_drag_action_requested (sidebar, drop, dest_file, sidebar->drag_list);
+                  action = emit_drag_action_requested (sidebar, drag, dest_file, sidebar->drag_list);
 
                   g_object_unref (dest_file);
                 }
@@ -1877,7 +1885,7 @@ drag_motion_callback (GtkWidget *widget,
     }
 
  out:
-  start_drop_feedback (sidebar, GTK_SIDEBAR_ROW (row), drop);
+  start_drop_feedback (sidebar, GTK_SIDEBAR_ROW (row), drag);
 
   g_signal_stop_emission_by_name (sidebar->list_box, "drag-motion");
 
@@ -1951,7 +1959,7 @@ drop_files_as_bookmarks (GtkPlacesSidebar *sidebar,
 
 static void
 drag_data_get_callback (GtkWidget        *widget,
-                        GdkDragContext   *context,
+                        GdkDrag          *drag,
                         GtkSelectionData *data,
                         gpointer          user_data)
 {
@@ -2023,7 +2031,7 @@ drag_data_received_callback (GtkWidget        *list_box,
 
   real_action = 0;
 
-  if (!check_valid_drop_target (sidebar, GTK_SIDEBAR_ROW (target_row), drop))
+  if (!check_valid_drop_target (sidebar, GTK_SIDEBAR_ROW (target_row), gdk_drop_get_drag (drop)))
     goto out;
 
   if (sidebar->drag_data_info == DND_GTK_SIDEBAR_ROW)
@@ -2034,6 +2042,9 @@ drag_data_received_callback (GtkWidget        *list_box,
         goto out;
 
       source_row = (void*) gtk_selection_data_get_data (selection_data);
+
+      if (sidebar->row_placeholder != NULL)
+        g_object_get (sidebar->row_placeholder, "order-index", &target_order_index, NULL);
 
       reorder_bookmarks (sidebar, GTK_SIDEBAR_ROW (*source_row), target_order_index);
       real_action = GDK_ACTION_MOVE;
@@ -2085,7 +2096,7 @@ out:
 
 static void
 drag_end_callback (GtkWidget      *widget,
-                   GdkDragContext *context,
+                   GdkDrag        *drag,
                    gpointer        user_data)
 {
   stop_drop_feedback (GTK_PLACES_SIDEBAR (user_data));
@@ -2118,7 +2129,7 @@ drag_leave_callback (GtkWidget *widget,
 
   if (sidebar->drop_state != DROP_STATE_NEW_BOOKMARK_ARMED_PERMANENT)
     {
-      update_possible_drop_targets (sidebar, FALSE, drop);
+      update_possible_drop_targets (sidebar, FALSE, gdk_drop_get_drag (drop));
       gtk_sidebar_row_hide (GTK_SIDEBAR_ROW (sidebar->new_bookmark_row), FALSE);
       sidebar->drop_state = DROP_STATE_NORMAL;
     }
@@ -2348,7 +2359,8 @@ volume_mount_cb (GObject      *source_object,
                  GAsyncResult *result,
                  gpointer      user_data)
 {
-  GtkPlacesSidebar *sidebar = GTK_PLACES_SIDEBAR (user_data);
+  GtkSidebarRow *row = GTK_SIDEBAR_ROW (user_data);
+  GtkPlacesSidebar *sidebar;
   GVolume *volume;
   GError *error;
   gchar *primary;
@@ -2356,6 +2368,7 @@ volume_mount_cb (GObject      *source_object,
   GMount *mount;
 
   volume = G_VOLUME (source_object);
+  g_object_get (row, "sidebar", &sidebar, NULL);
 
   error = NULL;
   if (!g_volume_mount_finish (volume, result, &error))
@@ -2364,7 +2377,13 @@ volume_mount_cb (GObject      *source_object,
           error->code != G_IO_ERROR_ALREADY_MOUNTED)
         {
           name = g_volume_get_name (G_VOLUME (source_object));
-          primary = g_strdup_printf (_("Unable to access “%s”"), name);
+          if (g_str_has_prefix (error->message, "Error unlocking"))
+            /* Translators: This means that unlocking an encrypted storage
+             * device failed. %s is the name of the device.
+             */
+            primary = g_strdup_printf (_("Error unlocking “%s”"), name);
+          else
+            primary = g_strdup_printf (_("Unable to access “%s”"), name);
           g_free (name);
           emit_show_error_message (sidebar, primary, error->message);
           g_free (primary);
@@ -2373,6 +2392,7 @@ volume_mount_cb (GObject      *source_object,
     }
 
   sidebar->mounting = FALSE;
+  gtk_sidebar_row_set_busy (row, FALSE);
 
   mount = g_volume_get_mount (volume);
   if (mount != NULL)
@@ -2386,32 +2406,42 @@ volume_mount_cb (GObject      *source_object,
       g_object_unref (G_OBJECT (mount));
     }
 
+  g_object_unref (row);
   g_object_unref (sidebar);
 }
 
 static void
-mount_volume (GtkPlacesSidebar *sidebar,
-              GVolume          *volume)
+mount_volume (GtkSidebarRow *row,
+              GVolume       *volume)
 {
+  GtkPlacesSidebar *sidebar;
   GMountOperation *mount_op;
+
+  g_object_get (row, "sidebar", &sidebar, NULL);
 
   mount_op = get_mount_operation (sidebar);
   g_mount_operation_set_password_save (mount_op, G_PASSWORD_SAVE_FOR_SESSION);
 
+  g_object_ref (row);
   g_object_ref (sidebar);
-  g_volume_mount (volume, 0, mount_op, NULL, volume_mount_cb, sidebar);
+  g_volume_mount (volume, 0, mount_op, NULL, volume_mount_cb, row);
 }
 
 static void
-open_drive (GtkPlacesSidebar   *sidebar,
+open_drive (GtkSidebarRow      *row,
             GDrive             *drive,
             GtkPlacesOpenFlags  open_flags)
 {
+  GtkPlacesSidebar *sidebar;
+
+  g_object_get (row, "sidebar", &sidebar, NULL);
+
   if (drive != NULL &&
       (g_drive_can_start (drive) || g_drive_can_start_degraded (drive)))
     {
       GMountOperation *mount_op;
 
+      gtk_sidebar_row_set_busy (row, TRUE);
       mount_op = get_mount_operation (sidebar);
       g_drive_start (drive, G_DRIVE_START_NONE, mount_op, NULL, drive_start_from_bookmark_cb, NULL);
       g_object_unref (mount_op);
@@ -2419,15 +2449,20 @@ open_drive (GtkPlacesSidebar   *sidebar,
 }
 
 static void
-open_volume (GtkPlacesSidebar   *sidebar,
+open_volume (GtkSidebarRow      *row,
              GVolume            *volume,
              GtkPlacesOpenFlags  open_flags)
 {
+  GtkPlacesSidebar *sidebar;
+
+  g_object_get (row, "sidebar", &sidebar, NULL);
+
   if (volume != NULL && !sidebar->mounting)
     {
       sidebar->mounting = TRUE;
       sidebar->go_to_after_mount_open_flags = open_flags;
-      mount_volume (sidebar, volume);
+      gtk_sidebar_row_set_busy (row, TRUE);
+      mount_volume (row, volume);
     }
 }
 
@@ -2479,11 +2514,11 @@ open_row (GtkSidebarRow      *row,
     }
   else if (volume != NULL)
     {
-      open_volume (sidebar, volume, open_flags);
+      open_volume (row, volume, open_flags);
     }
   else if (drive != NULL)
     {
-      open_drive (sidebar, drive, open_flags);
+      open_drive (row, drive, open_flags);
     }
 
   g_object_unref (sidebar);
@@ -2547,7 +2582,7 @@ rename_entry_changed (GtkEntry         *entry,
   GList *rows;
   GList *l;
 
-  new_name = gtk_entry_get_text (GTK_ENTRY (sidebar->rename_entry));
+  new_name = gtk_editable_get_text (GTK_EDITABLE (sidebar->rename_entry));
 
   if (strcmp (new_name, "") == 0)
     {
@@ -2587,7 +2622,7 @@ do_rename (GtkButton        *button,
   gchar *new_text;
   GFile *file;
 
-  new_text = g_strdup (gtk_entry_get_text (GTK_ENTRY (sidebar->rename_entry)));
+  new_text = g_strdup (gtk_editable_get_text (GTK_EDITABLE (sidebar->rename_entry)));
 
   file = g_file_new_for_uri (sidebar->rename_uri);
   if (!_gtk_bookmarks_manager_has_bookmark (sidebar->bookmarks_manager, file))
@@ -2653,7 +2688,6 @@ create_rename_popover (GtkPlacesSidebar *sidebar)
   gtk_label_set_mnemonic_widget (GTK_LABEL (label), entry);
   g_free (str);
   button = gtk_button_new_with_mnemonic (_("_Rename"));
-  gtk_widget_set_can_default (button, TRUE);
   gtk_style_context_add_class (gtk_widget_get_style_context (button), "suggested-action");
   g_signal_connect (button, "clicked", G_CALLBACK (do_rename), sidebar);
   error = gtk_label_new ("");
@@ -2736,7 +2770,7 @@ show_rename_popover (GtkSidebarRow *row)
     g_free (sidebar->rename_uri);
   sidebar->rename_uri = g_strdup (uri);
 
-  gtk_entry_set_text (GTK_ENTRY (sidebar->rename_entry), name);
+  gtk_editable_set_text (GTK_EDITABLE (sidebar->rename_entry), name);
   gtk_popover_set_relative_to (GTK_POPOVER (sidebar->rename_popover), GTK_WIDGET (row));
   setup_popover_shadowing (sidebar->rename_popover);
 
@@ -2819,7 +2853,7 @@ mount_shortcut_cb (GSimpleAction *action,
                 NULL);
 
   if (volume != NULL)
-    mount_volume (sidebar, volume);
+    mount_volume (sidebar->context_row, volume);
 
   g_object_unref (volume);
 }
@@ -3793,10 +3827,10 @@ on_row_dragged (GtkGestureDrag *gesture,
 
       sidebar->dragging_over = TRUE;
 
-      gtk_drag_begin_with_coordinates (GTK_WIDGET (sidebar),
-                                       gtk_gesture_get_device (GTK_GESTURE (gesture)),
-                                       sidebar->source_targets, GDK_ACTION_MOVE,
-                                       drag_x, drag_y);
+      gtk_drag_begin (GTK_WIDGET (sidebar),
+                      gtk_gesture_get_device (GTK_GESTURE (gesture)),
+                      sidebar->source_targets, GDK_ACTION_MOVE,
+                      drag_x, drag_y);
     }
 
   g_object_unref (sidebar);
@@ -4537,7 +4571,7 @@ gtk_places_sidebar_class_init (GtkPlacesSidebarClass *class)
                         NULL, NULL,
                         _gtk_marshal_INT__OBJECT_OBJECT_POINTER,
                         G_TYPE_INT, 3,
-                        GDK_TYPE_DROP,
+                        GDK_TYPE_DRAG,
                         G_TYPE_OBJECT,
                         G_TYPE_POINTER /* GList of GFile */ );
 
@@ -5356,12 +5390,15 @@ gtk_places_sidebar_get_nth_bookmark (GtkPlacesSidebar *sidebar,
 void
 gtk_places_sidebar_set_drop_targets_visible (GtkPlacesSidebar *sidebar,
                                              gboolean          visible,
-                                             GdkDrop          *drop)
+                                             GdkDrag          *drag)
 {
+  g_return_if_fail (GTK_IS_PLACES_SIDEBAR (sidebar));
+  g_return_if_fail (GDK_IS_DRAG (drag));
+
   if (visible)
     {
       sidebar->drop_state = DROP_STATE_NEW_BOOKMARK_ARMED_PERMANENT;
-      start_drop_feedback (sidebar, NULL, drop);
+      start_drop_feedback (sidebar, NULL, drag);
     }
   else
     {

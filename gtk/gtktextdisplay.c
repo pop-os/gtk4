@@ -81,10 +81,6 @@
 #include "gtkintl.h"
 #include <gdk/gdktextureprivate.h>
 
-/* DO NOT go putting private headers in here. This file should only
- * use the semi-public headers, as with gtktextview.c.
- */
-
 #define GTK_TYPE_TEXT_RENDERER            (_gtk_text_renderer_get_type())
 #define GTK_TEXT_RENDERER(object)         (G_TYPE_CHECK_INSTANCE_CAST ((object), GTK_TYPE_TEXT_RENDERER, GtkTextRenderer))
 #define GTK_IS_TEXT_RENDERER(object)      (G_TYPE_CHECK_INSTANCE_TYPE ((object), GTK_TYPE_TEXT_RENDERER))
@@ -444,7 +440,7 @@ gtk_text_renderer_draw_shape (PangoRenderer   *renderer,
 					       g_object_ref (widget));
     }
   else
-    g_assert_not_reached (); /* not a pixbuf or widget */
+    g_assert_not_reached (); /* not a texture or widget */
 }
 
 static void
@@ -573,7 +569,7 @@ render_para (GtkTextRenderer    *text_renderer,
   int byte_offset = 0;
   PangoLayoutIter *iter;
   int screen_width;
-  GdkRGBA selection;
+  GdkRGBA *selection;
   gboolean first = TRUE;
   GtkCssNode *selection_node;
 
@@ -584,11 +580,9 @@ render_para (GtkTextRenderer    *text_renderer,
   selection_node = gtk_text_view_get_selection_node ((GtkTextView*)text_renderer->widget);
   gtk_style_context_save_to_node (context, selection_node);
 
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-  gtk_style_context_get_background_color (context, &selection);
-G_GNUC_END_IGNORE_DEPRECATIONS
+  gtk_style_context_get (context, "background-color", &selection, NULL);
 
- gtk_style_context_restore (context);
+  gtk_style_context_restore (context);
 
   do
     {
@@ -633,7 +627,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
           cairo_t *cr = text_renderer->cr;
 
           cairo_save (cr);
-          gdk_cairo_set_source_rgba (cr, &selection);
+          gdk_cairo_set_source_rgba (cr, selection);
           cairo_rectangle (cr, 
                            line_display->left_margin, selection_y,
                            screen_width, selection_height);
@@ -689,7 +683,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
               cairo_clip (cr);
               cairo_region_destroy (clip_region);
 
-              gdk_cairo_set_source_rgba (cr, &selection);
+              gdk_cairo_set_source_rgba (cr, selection);
               cairo_rectangle (cr,
                                PANGO_PIXELS (line_rect.x),
                                selection_y,
@@ -712,7 +706,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
                 {
                   cairo_save (cr);
 
-                  gdk_cairo_set_source_rgba (cr, &selection);
+                  gdk_cairo_set_source_rgba (cr, selection);
                   cairo_rectangle (cr,
                                    line_display->left_margin,
                                    selection_y,
@@ -736,7 +730,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 
                   cairo_save (cr);
 
-                  gdk_cairo_set_source_rgba (cr, &selection);
+                  gdk_cairo_set_source_rgba (cr, selection);
                   cairo_rectangle (cr,
                                    PANGO_PIXELS (line_rect.x) + PANGO_PIXELS (line_rect.width),
                                    selection_y,
@@ -777,13 +771,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
               /* draw text under the cursor if any */
               if (!line_display->cursor_at_line_end)
                 {
-                  GdkRGBA color;
+                  GdkRGBA *color;
 
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-                  gtk_style_context_get_background_color (context, &color);
-G_GNUC_END_IGNORE_DEPRECATIONS
+                  gtk_style_context_get (context, "background-color", &color, NULL);
 
-                  gdk_cairo_set_source_rgba (cr, &color);
+                  gdk_cairo_set_source_rgba (cr, color);
 
 		  text_renderer_set_state (text_renderer, CURSOR);
 
@@ -791,6 +783,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 						   line,
 						   line_rect.x,
 						   baseline);
+                  gdk_rgba_free (color);
                 }
 
               cairo_restore (cr);
@@ -801,6 +794,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
     }
   while (pango_layout_iter_next_line (iter));
 
+  gdk_rgba_free (selection);
   pango_layout_iter_free (iter);
 }
 
@@ -816,9 +810,10 @@ get_text_renderer (void)
 }
 
 void
-gtk_text_layout_draw (GtkTextLayout *layout,
-                      GtkWidget *widget,
-                      cairo_t *cr)
+gtk_text_layout_snapshot (GtkTextLayout      *layout,
+                          GtkWidget          *widget,
+                          GtkSnapshot        *snapshot,
+                          const GdkRectangle *clip)
 {
   GtkStyleContext *context;
   gint offset_y;
@@ -827,23 +822,22 @@ gtk_text_layout_draw (GtkTextLayout *layout,
   gboolean have_selection;
   GSList *line_list;
   GSList *tmp_list;
-  GdkRectangle clip;
+  cairo_t *cr;
 
   g_return_if_fail (GTK_IS_TEXT_LAYOUT (layout));
   g_return_if_fail (layout->default_style != NULL);
   g_return_if_fail (layout->buffer != NULL);
-  g_return_if_fail (cr != NULL);
-
-  if (!gdk_cairo_get_clip_rectangle (cr, &clip))
-    return;
+  g_return_if_fail (snapshot != NULL);
 
   context = gtk_widget_get_style_context (widget);
 
-  line_list = gtk_text_layout_get_lines (layout, clip.y, clip.y + clip.height, &offset_y);
+  line_list = gtk_text_layout_get_lines (layout, clip->y, clip->y + clip->height, &offset_y);
 
   if (line_list == NULL)
     return; /* nothing on the screen */
 
+  cr = gtk_snapshot_append_cairo (snapshot,
+                                  &GRAPHENE_RECT_INIT(clip->x, clip->y, clip->width, clip->height));
   text_renderer = get_text_renderer ();
   text_renderer_begin (text_renderer, widget, cr);
 
@@ -933,4 +927,6 @@ gtk_text_layout_draw (GtkTextLayout *layout,
   text_renderer_end (text_renderer);
 
   g_slist_free (line_list);
+
+  cairo_destroy (cr);
 }

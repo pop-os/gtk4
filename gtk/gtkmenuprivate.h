@@ -31,14 +31,6 @@
 
 G_BEGIN_DECLS
 
-/* Directions for submenus */
-typedef enum
-{
-  GTK_DIRECTION_LEFT,
-  GTK_DIRECTION_RIGHT
-} GtkSubmenuDirection;
-
-
 struct _GtkMenuPrivate
 {
   GtkWidget *parent_menu_item;
@@ -47,9 +39,6 @@ struct _GtkMenuPrivate
   GtkAccelGroup *accel_group;
   const char    *accel_path;
 
-  GtkMenuPositionFunc position_func;
-  gpointer            position_func_data;
-  GDestroyNotify      position_func_data_destroy;
   gint                position_x;
   gint                position_y;
 
@@ -75,8 +64,6 @@ struct _GtkMenuPrivate
   GtkWidget *top_arrow_widget;
   GtkWidget *bottom_arrow_widget;
 
-  GtkEventController *key_controller;
-
   gint scroll_offset;
   gint saved_scroll_offset;
   gint scroll_step;
@@ -86,14 +73,10 @@ struct _GtkMenuPrivate
   guint needs_destruction_ref : 1;
   guint scroll_fast           : 1;
 
-  guint upper_arrow_visible   : 1;
-  guint lower_arrow_visible   : 1;
   guint upper_arrow_prelight  : 1;
   guint lower_arrow_prelight  : 1;
 
-  guint have_position         : 1;
   guint have_layout           : 1;
-  guint seen_item_enter       : 1;
   guint ignore_button_release : 1;
   guint no_toggle_size        : 1;
   guint drag_already_pressed  : 1;
@@ -104,7 +87,6 @@ struct _GtkMenuPrivate
   gint heights_length;
   gint requested_height;
 
-  gboolean initially_pushed_in;
   gint monitor_num;
 
   /* Cached layout information */

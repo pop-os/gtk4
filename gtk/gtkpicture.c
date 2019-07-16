@@ -50,13 +50,13 @@
  * “broken image” icon similar to that used in many web browsers.
  * If you want to handle errors in loading the file yourself,
  * for example by displaying an error message, then load the image with
- * gdk_texture_new_for_file(), then create the #GtkPicture with
+ * gdk_texture_new_from_file(), then create the #GtkPicture with
  * gtk_picture_new_for_paintable().
  *
  * Sometimes an application will want to avoid depending on external data
  * files, such as image files. See the documentation of #GResource for details.
- * In this case, the #GtkPicture:resource property, gtk_picture_new_for_resource() and
- * gtk_picture_set_resource() should be used.
+ * In this case, gtk_picture_new_for_resource() and gtk_picture_set_resource()
+ * should be used.
  *
  * # CSS nodes
  *
@@ -133,9 +133,10 @@ gtk_picture_snapshot (GtkWidget   *widget,
       x = (width - ceil (w)) / 2;
       y = floor(height - ceil (h)) / 2;
 
-      gtk_snapshot_offset (snapshot, x, y);
+      gtk_snapshot_save (snapshot);
+      gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
       gdk_paintable_snapshot (self->paintable, snapshot, w, h);
-      gtk_snapshot_offset (snapshot, -x, -y);
+      gtk_snapshot_restore (snapshot);
     }
 }
 
@@ -603,6 +604,7 @@ load_scalable_with_loader (GFile *file,
 out2:
   g_bytes_unref (bytes);
 out1:
+  gdk_pixbuf_loader_close (loader, NULL);
   g_object_unref (loader);
 
   return result;
@@ -636,7 +638,7 @@ gtk_picture_set_file (GtkPicture *self,
 
   paintable = load_scalable_with_loader (file, gtk_widget_get_scale_factor (GTK_WIDGET (self)));
   gtk_picture_set_paintable (self, paintable);
-  g_object_unref (paintable);
+  g_clear_object (&paintable);
 
   g_object_thaw_notify (G_OBJECT (self));
 }
@@ -798,26 +800,36 @@ gtk_picture_set_paintable (GtkPicture   *self,
 
   if (self->paintable)
     {
-      g_signal_handlers_disconnect_by_func (self->paintable,
-                                            gtk_picture_paintable_invalidate_contents,
-                                            self);
-      g_signal_handlers_disconnect_by_func (self->paintable,
-                                            gtk_picture_paintable_invalidate_size,
-                                            self);
+      const guint flags = gdk_paintable_get_flags (self->paintable);
+
+      if ((flags & GDK_PAINTABLE_STATIC_CONTENTS) == 0)
+        g_signal_handlers_disconnect_by_func (self->paintable,
+                                              gtk_picture_paintable_invalidate_contents,
+                                              self);
+
+      if ((flags & GDK_PAINTABLE_STATIC_SIZE) == 0)
+        g_signal_handlers_disconnect_by_func (self->paintable,
+                                              gtk_picture_paintable_invalidate_size,
+                                              self);
     }
 
   self->paintable = paintable;
 
   if (paintable)
     {
-      g_signal_connect (paintable,
-                        "invalidate-contents",
-                        G_CALLBACK (gtk_picture_paintable_invalidate_contents),
-                        self);
-      g_signal_connect (paintable,
-                        "invalidate-size",
-                        G_CALLBACK (gtk_picture_paintable_invalidate_size),
-                        self);
+      const guint flags = gdk_paintable_get_flags (paintable);
+
+      if ((flags & GDK_PAINTABLE_STATIC_CONTENTS) == 0)
+        g_signal_connect (paintable,
+                          "invalidate-contents",
+                          G_CALLBACK (gtk_picture_paintable_invalidate_contents),
+                          self);
+
+      if ((flags & GDK_PAINTABLE_STATIC_SIZE) == 0)
+        g_signal_connect (paintable,
+                          "invalidate-size",
+                          G_CALLBACK (gtk_picture_paintable_invalidate_size),
+                          self);
     }
 
   gtk_widget_queue_resize (GTK_WIDGET (self));
@@ -939,7 +951,7 @@ gtk_picture_get_can_shrink (GtkPicture *self)
  *
  * This text will be made available to accessibility tools.
  *
- * If the picture cannot be described textually, set this proeprty to %NULL.
+ * If the picture cannot be described textually, set this property to %NULL.
  */
 void
 gtk_picture_set_alternative_text (GtkPicture *self,

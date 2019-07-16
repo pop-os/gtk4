@@ -31,7 +31,6 @@
 #include "gtkcontainerprivate.h"
 #include "gtkmain.h"
 #include "gtkmarshalers.h"
-#include "gtkmenuprivate.h"
 #include "gtkmenushellprivate.h"
 #include "gtkmenuitemprivate.h"
 #include "gtkmenubar.h"
@@ -104,6 +103,13 @@
  * the .left or .right style class.
  */
 
+/* Directions for submenus */
+typedef enum
+{
+  GTK_DIRECTION_LEFT,
+  GTK_DIRECTION_RIGHT
+} GtkSubmenuDirection;
+
 
 enum {
   ACTIVATE,
@@ -142,8 +148,12 @@ static void gtk_menu_item_destroy        (GtkWidget        *widget);
 static void gtk_menu_item_enter          (GtkEventController *controller,
                                           double              x,
                                           double              y,
+                                          GdkCrossingMode     mode,
+                                          GdkNotifyType       detail,
                                           gpointer            user_data);
 static void gtk_menu_item_leave          (GtkEventController *controller,
+                                          GdkCrossingMode     mode,
+                                          GdkNotifyType       detail,
                                           gpointer            user_data);
 static void gtk_menu_item_parent_cb      (GObject          *object,
                                           GParamSpec       *pspec,
@@ -252,51 +262,32 @@ gtk_menu_item_actionable_interface_init (GtkActionableInterface *iface)
 }
 
 static void
-gtk_menu_item_size_allocate (GtkWidget           *widget,
-                             const GtkAllocation *allocation,
-                             int                  baseline)
+gtk_menu_item_size_allocate (GtkWidget *widget,
+                             int        width,
+                             int        height,
+                             int        baseline)
 {
   GtkMenuItem *menu_item = GTK_MENU_ITEM (widget);
   GtkMenuItemPrivate *priv = menu_item->priv;
   GtkAllocation child_allocation;
   GtkTextDirection direction;
-  GtkPackDirection child_pack_dir;
   GtkWidget *child;
   GtkWidget *parent;
 
   g_return_if_fail (GTK_IS_MENU_ITEM (widget));
-  g_return_if_fail (allocation != NULL);
 
   direction = gtk_widget_get_direction (widget);
 
   parent = gtk_widget_get_parent (widget);
-  if (GTK_IS_MENU_BAR (parent))
-    {
-      child_pack_dir = gtk_menu_bar_get_child_pack_direction (GTK_MENU_BAR (parent));
-    }
-  else
-    {
-      child_pack_dir = GTK_PACK_DIRECTION_LTR;
-    }
 
   child = gtk_bin_get_child (GTK_BIN (widget));
   if (child)
     {
-      child_allocation = *allocation;
+      child_allocation = (GtkAllocation) {0, 0, width, height};
 
-      if (child_pack_dir == GTK_PACK_DIRECTION_LTR ||
-          child_pack_dir == GTK_PACK_DIRECTION_RTL)
-        {
-          if ((direction == GTK_TEXT_DIR_LTR) == (child_pack_dir != GTK_PACK_DIRECTION_RTL))
-            child_allocation.x += priv->toggle_size;
-          child_allocation.width -= priv->toggle_size;
-        }
-      else
-        {
-          if ((direction == GTK_TEXT_DIR_LTR) == (child_pack_dir != GTK_PACK_DIRECTION_BTT))
-            child_allocation.y += priv->toggle_size;
-          child_allocation.height -= priv->toggle_size;
-        }
+      if (direction == GTK_TEXT_DIR_LTR)
+        child_allocation.x += priv->toggle_size;
+      child_allocation.width -= priv->toggle_size;
 
       if ((priv->submenu && !GTK_IS_MENU_BAR (parent)) || priv->reserve_indicator)
 	{
@@ -746,12 +737,7 @@ gtk_menu_item_dispose (GObject *object)
 
   g_clear_object (&priv->motion_controller);
   g_clear_object (&priv->action_helper);
-
-  if (priv->arrow_widget)
-    {
-      gtk_widget_unparent (priv->arrow_widget);
-      priv->arrow_widget = NULL;
-    }
+  g_clear_pointer (&priv->arrow_widget, gtk_widget_unparent);
 
   G_OBJECT_CLASS (gtk_menu_item_parent_class)->dispose (object);
 }
@@ -847,11 +833,7 @@ gtk_menu_item_detacher (GtkWidget *widget,
   g_return_if_fail (priv->submenu == (GtkWidget*) menu);
 
   priv->submenu = NULL;
-  if (priv->arrow_widget)
-    {
-      gtk_widget_unparent (priv->arrow_widget);
-      priv->arrow_widget = NULL;
-    }
+  g_clear_pointer (&priv->arrow_widget, gtk_widget_unparent);
 }
 
 static void
@@ -1127,22 +1109,21 @@ static void
 gtk_menu_item_enter (GtkEventController *controller,
                      double              x,
                      double              y,
+                     GdkCrossingMode     mode,
+                     GdkNotifyType       detail,
                      gpointer            user_data)
 {
   GtkMenuItem *menu_item = GTK_MENU_ITEM (user_data);
   GtkWidget *menu_shell;
-  GdkCrossingMode mode;
   GdkEvent *event;
+  gboolean is_focus, contains_focus;
 
   event = gtk_get_current_event (); /* FIXME controller event */
 
-  if (gdk_event_get_crossing_mode ((GdkEvent *)event, &mode))
-    {
-      if (mode == GDK_CROSSING_GTK_GRAB ||
-          mode == GDK_CROSSING_GTK_UNGRAB ||
-          mode == GDK_CROSSING_STATE_CHANGED)
-        return;
-    }
+  if (mode == GDK_CROSSING_GTK_GRAB ||
+      mode == GDK_CROSSING_GTK_UNGRAB ||
+      mode == GDK_CROSSING_STATE_CHANGED)
+    return;
 
   if (gdk_event_get_device ((GdkEvent*) event) ==
       gdk_event_get_source_device ((GdkEvent*) event))
@@ -1150,19 +1131,35 @@ gtk_menu_item_enter (GtkEventController *controller,
 
   menu_shell = gtk_widget_get_parent (GTK_WIDGET (menu_item));
 
+  g_object_get (controller,
+                "is-pointer-focus", &is_focus,
+                "contains-pointer-focus", &contains_focus,
+                NULL);
+
   if (GTK_IS_MENU_SHELL (menu_shell) &&
-      GTK_MENU_SHELL (menu_shell)->priv->active)
+      GTK_MENU_SHELL (menu_shell)->priv->active &&
+      (is_focus || contains_focus))
     gtk_menu_shell_select_item (GTK_MENU_SHELL (menu_shell), GTK_WIDGET (menu_item));
 }
 
 static void
 gtk_menu_item_leave (GtkEventController *controller,
+                     GdkCrossingMode     mode,
+                     GdkNotifyType       detail,
                      gpointer            user_data)
 {
   GtkMenuItem *menu_item = GTK_MENU_ITEM (user_data);
   GtkWidget *menu_shell = gtk_widget_get_parent (GTK_WIDGET (menu_item));
+  gboolean is_focus, contains_focus;
 
-  if (GTK_IS_MENU_SHELL (menu_shell) && !menu_item->priv->submenu)
+  g_object_get (controller,
+                "is-pointer-focus", &is_focus,
+                "contains-pointer-focus", &contains_focus,
+                NULL);
+
+  if (GTK_IS_MENU_SHELL (menu_shell) &&
+      !menu_item->priv->submenu &&
+      !(is_focus || contains_focus))
     gtk_menu_shell_deselect (GTK_MENU_SHELL (menu_shell));
 }
 
@@ -1191,7 +1188,6 @@ gtk_real_menu_item_select (GtkMenuItem *menu_item)
 
   gtk_widget_set_state_flags (GTK_WIDGET (menu_item),
                               GTK_STATE_FLAG_PRELIGHT, FALSE);
-  gtk_widget_queue_draw (GTK_WIDGET (menu_item));
 }
 
 static void
@@ -1204,7 +1200,6 @@ gtk_real_menu_item_deselect (GtkMenuItem *menu_item)
 
   gtk_widget_unset_state_flags (GTK_WIDGET (menu_item),
                                 GTK_STATE_FLAG_PRELIGHT);
-  gtk_widget_queue_draw (GTK_WIDGET (menu_item));
 }
 
 static gboolean
@@ -1560,7 +1555,7 @@ _gtk_menu_item_popup_submenu (GtkWidget *widget,
           info->trigger_event = gtk_get_current_event ();
 
           priv->timer = g_timeout_add (popup_delay, gtk_menu_item_popup_timeout, info);
-          g_source_set_name_by_id (priv->timer, "[gtk+] gtk_menu_item_popup_timeout");
+          g_source_set_name_by_id (priv->timer, "[gtk] gtk_menu_item_popup_timeout");
 
           return;
         }

@@ -85,11 +85,6 @@
 #define MENU_POPUP_DELAY     225
 #define MENU_POPDOWN_DELAY   1000
 
-#define PACK_DIRECTION(m)                                 \
-   (GTK_IS_MENU_BAR (m)                                   \
-     ? gtk_menu_bar_get_pack_direction (GTK_MENU_BAR (m)) \
-     : GTK_PACK_DIRECTION_LTR)
-
 enum {
   DEACTIVATE,
   SELECTION_DONE,
@@ -123,8 +118,7 @@ static gboolean gtk_menu_shell_key_press     (GtkEventControllerKey *key,
                                               guint                  keycode,
                                               GdkModifierType        modifiers,
                                               GtkWidget             *widget);
-static void gtk_menu_shell_display_changed   (GtkWidget         *widget,
-                                              GdkDisplay        *previous_display);
+static void gtk_menu_shell_root              (GtkWidget         *widget);
 static void multi_press_pressed  (GtkGestureMultiPress *gesture,
                                   gint                  n_press,
                                   gdouble               x,
@@ -193,7 +187,7 @@ gtk_menu_shell_class_init (GtkMenuShellClass *klass)
   object_class->finalize = gtk_menu_shell_finalize;
   object_class->dispose = gtk_menu_shell_dispose;
 
-  widget_class->display_changed = gtk_menu_shell_display_changed;
+  widget_class->root = gtk_menu_shell_root;
 
   container_class->add = gtk_menu_shell_add;
   container_class->remove = gtk_menu_shell_remove;
@@ -436,6 +430,7 @@ gtk_menu_shell_init (GtkMenuShell *menu_shell)
   gtk_widget_set_has_surface (widget, FALSE);
 
   controller = GTK_EVENT_CONTROLLER (gtk_gesture_multi_press_new ());
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (controller), 0);
   g_signal_connect (controller, "pressed",
                     G_CALLBACK (multi_press_pressed), menu_shell);
   g_signal_connect (controller, "released",
@@ -707,7 +702,7 @@ multi_press_pressed (GtkGestureMultiPress *gesture,
               gtk_widget_get_parent (menu_item) == GTK_WIDGET (menu_shell) &&
               menu_item != priv->active_menu_item)
             {
-              gtk_menu_shell_activate (menu_shell);
+              priv->active = TRUE;
 
               if (GTK_MENU_SHELL_GET_CLASS (menu_shell)->submenu_placement == GTK_TOP_BOTTOM)
                 {
@@ -949,9 +944,10 @@ gtk_menu_shell_key_press (GtkEventControllerKey *key,
 }
 
 static void
-gtk_menu_shell_display_changed (GtkWidget  *widget,
-                                GdkDisplay *previous_display)
+gtk_menu_shell_root (GtkWidget  *widget)
 {
+  GTK_WIDGET_CLASS (gtk_menu_shell_parent_class)->root (widget);
+
   gtk_menu_shell_reset_key_hash (GTK_MENU_SHELL (widget));
 }
 
@@ -1079,7 +1075,6 @@ gtk_menu_shell_real_select_item (GtkMenuShell *menu_shell,
                                  GtkWidget    *menu_item)
 {
   GtkMenuShellPrivate *priv = menu_shell->priv;
-  GtkPackDirection pack_dir = PACK_DIRECTION (menu_shell);
 
   if (priv->active_menu_item)
     {
@@ -1097,12 +1092,8 @@ gtk_menu_shell_real_select_item (GtkMenuShell *menu_shell,
   gtk_menu_shell_activate (menu_shell);
 
   priv->active_menu_item = menu_item;
-  if (pack_dir == GTK_PACK_DIRECTION_TTB || pack_dir == GTK_PACK_DIRECTION_BTT)
-    _gtk_menu_item_set_placement (GTK_MENU_ITEM (priv->active_menu_item),
-                                  GTK_LEFT_RIGHT);
-  else
-    _gtk_menu_item_set_placement (GTK_MENU_ITEM (priv->active_menu_item),
-                                  GTK_MENU_SHELL_GET_CLASS (menu_shell)->submenu_placement);
+  _gtk_menu_item_set_placement (GTK_MENU_ITEM (priv->active_menu_item),
+                                GTK_MENU_SHELL_GET_CLASS (menu_shell)->submenu_placement);
   gtk_menu_item_select (GTK_MENU_ITEM (priv->active_menu_item));
 
   _gtk_menu_shell_update_mnemonics (menu_shell);
@@ -1386,10 +1377,7 @@ gtk_real_menu_shell_move_current (GtkMenuShell         *menu_shell,
             gtk_menu_shell_deselect (menu_shell);
           else
             {
-              if (PACK_DIRECTION (parent_menu_shell) == GTK_PACK_DIRECTION_LTR)
-                gtk_menu_shell_move_selected (parent_menu_shell, -1);
-              else
-                gtk_menu_shell_move_selected (parent_menu_shell, 1);
+              gtk_menu_shell_move_selected (parent_menu_shell, -1);
               gtk_menu_shell_select_submenu_first (parent_menu_shell);
             }
         }
@@ -1428,10 +1416,7 @@ gtk_real_menu_shell_move_current (GtkMenuShell         *menu_shell,
 
       if (parent_menu_shell)
         {
-          if (PACK_DIRECTION (parent_menu_shell) == GTK_PACK_DIRECTION_LTR)
-            gtk_menu_shell_move_selected (parent_menu_shell, 1);
-          else
-            gtk_menu_shell_move_selected (parent_menu_shell, -1);
+          gtk_menu_shell_move_selected (parent_menu_shell, 1);
 
           gtk_menu_shell_select_submenu_first (parent_menu_shell);
         }

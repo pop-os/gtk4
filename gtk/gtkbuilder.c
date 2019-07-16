@@ -63,7 +63,7 @@
  * RELAX NG schema below. We refer to these descriptions as “GtkBuilder
  * UI definitions” or just “UI definitions” if the context is clear.
  *
- * [RELAX NG Compact Syntax](https://git.gnome.org/browse/gtk+/tree/gtk/gtkbuilder.rnc)
+ * [RELAX NG Compact Syntax](https://gitlab.gnome.org/GNOME/gtk/tree/master/gtk/gtkbuilder.rnc)
  *
  * The toplevel element is <interface>. It optionally takes a “domain”
  * attribute, which will make the builder look for translated strings
@@ -171,7 +171,7 @@
  *     <child internal-child="vbox">
  *       <object class="GtkBox" id="vbox1">
  *         <child internal-child="action_area">
- *           <object class="GtkButtonBox" id="hbuttonbox1">
+ *           <object class="GtkBox" id="hbuttonbox1">
  *             <child>
  *               <object class="GtkButton" id="ok_button">
  *                 <property name="label">gtk-ok</property>
@@ -213,7 +213,6 @@
 #include "gtkintl.h"
 #include "gtkprivate.h"
 #include "gtktypebuiltins.h"
-#include "gtkwindow.h"
 #include "gtkicontheme.h"
 #include "gtktestutils.h"
 
@@ -537,7 +536,7 @@ gtk_builder_get_parameters (GtkBuilder         *builder,
           (G_PARAM_SPEC_VALUE_TYPE (prop->pspec) != G_TYPE_FILE))
         {
           GObject *object = g_hash_table_lookup (priv->objects,
-                                                 prop->text->str);
+                                                 g_strstrip (prop->text->str));
 
           if (object)
             {
@@ -723,7 +722,9 @@ _gtk_builder_construct (GtkBuilder  *builder,
    * be set once.
    */
   if (info->constructor ||
-      (info->parent && ((ChildInfo*)info->parent)->internal_child != NULL))
+      (info->parent &&
+       info->parent->tag_type == TAG_CHILD &&
+       ((ChildInfo*)info->parent)->internal_child != NULL))
     param_filter_flags = G_PARAM_CONSTRUCT_ONLY;
   else
     param_filter_flags = G_PARAM_CONSTRUCT | G_PARAM_CONSTRUCT_ONLY;
@@ -759,7 +760,9 @@ _gtk_builder_construct (GtkBuilder  *builder,
       if (construct_parameters->len)
         g_warning ("Can't pass in construct-only parameters to %s", info->id);
     }
-  else if (info->parent && ((ChildInfo*)info->parent)->internal_child != NULL)
+  else if (info->parent &&
+           info->parent->tag_type == TAG_CHILD &&
+           ((ChildInfo*)info->parent)->internal_child != NULL)
     {
       gchar *childname = ((ChildInfo*)info->parent)->internal_child;
       obj = gtk_builder_get_internal_child (builder, info, childname, error);
@@ -1091,7 +1094,7 @@ gtk_builder_add_from_file (GtkBuilder   *builder,
   priv->resource_prefix = NULL;
 
   _gtk_builder_parser_parse_buffer (builder, filename,
-                                    buffer, length,
+                                    buffer, (gssize)length,
                                     NULL,
                                     &tmp_error);
 
@@ -1157,7 +1160,7 @@ gtk_builder_add_objects_from_file (GtkBuilder   *builder,
   priv->resource_prefix = NULL;
 
   _gtk_builder_parser_parse_buffer (builder, filename,
-                                    buffer, length,
+                                    buffer, (gssize)length,
                                     object_ids,
                                     &tmp_error);
 
@@ -1195,7 +1198,7 @@ gtk_builder_extend_with_template (GtkBuilder   *builder,
                                   GtkWidget    *widget,
                                   GType         template_type,
                                   const gchar  *buffer,
-                                  gsize         length,
+                                  gssize        length,
                                   GError      **error)
 {
   GtkBuilderPrivate *priv = gtk_builder_get_instance_private (builder);
@@ -1391,7 +1394,7 @@ gtk_builder_add_objects_from_resource (GtkBuilder   *builder,
  *
  * Most users will probably want to use gtk_builder_new_from_string().
  *
- * Upon errors 0 will be returned and @error will be assigned a
+ * Upon errors %FALSE will be returned and @error will be assigned a
  * #GError from the #GTK_BUILDER_ERROR, #G_MARKUP_ERROR or
  * #G_VARIANT_PARSE_ERROR domain.
  *
@@ -1404,7 +1407,7 @@ gtk_builder_add_objects_from_resource (GtkBuilder   *builder,
 gboolean
 gtk_builder_add_from_string (GtkBuilder   *builder,
                              const gchar  *buffer,
-                             gsize         length,
+                             gssize        length,
                              GError      **error)
 {
   GtkBuilderPrivate *priv = gtk_builder_get_instance_private (builder);
@@ -1446,7 +1449,7 @@ gtk_builder_add_from_string (GtkBuilder   *builder,
  * building only the requested objects and merges
  * them with the current contents of @builder.
  *
- * Upon errors 0 will be returned and @error will be assigned a
+ * Upon errors %FALSE will be returned and @error will be assigned a
  * #GError from the #GTK_BUILDER_ERROR or #G_MARKUP_ERROR domain.
  *
  * If you are adding an object that depends on an object that is not
@@ -1458,7 +1461,7 @@ gtk_builder_add_from_string (GtkBuilder   *builder,
 gboolean
 gtk_builder_add_objects_from_string (GtkBuilder   *builder,
                                      const gchar  *buffer,
-                                     gsize         length,
+                                     gssize        length,
                                      gchar       **object_ids,
                                      GError      **error)
 {
@@ -2054,6 +2057,22 @@ gtk_builder_value_from_string_type (GtkBuilder   *builder,
                            GTK_BUILDER_ERROR,
                            GTK_BUILDER_ERROR_INVALID_VALUE,
                            "Could not parse RGBA color '%s'",
+                           string);
+              ret = FALSE;
+            }
+        }
+      else if (G_VALUE_HOLDS (value, GSK_TYPE_TRANSFORM))
+        {
+          GskTransform *transform;
+
+          if (gsk_transform_parse (string, &transform))
+            g_value_take_boxed (value, transform);
+          else
+            {
+              g_set_error (error,
+                           GTK_BUILDER_ERROR,
+                           GTK_BUILDER_ERROR_INVALID_VALUE,
+                           "Could not parse transform '%s'",
                            string);
               ret = FALSE;
             }

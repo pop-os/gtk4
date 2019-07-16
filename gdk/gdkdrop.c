@@ -38,7 +38,7 @@ typedef struct _GdkDropPrivate GdkDropPrivate;
 
 struct _GdkDropPrivate {
   GdkDevice *device;
-  GdkDragContext *drag;
+  GdkDrag *drag;
   GdkContentFormats *formats;
   GdkSurface *surface;
   GdkDragAction actions;
@@ -78,7 +78,7 @@ gdk_drop_read_local_write_done (GObject      *drag,
                                 gpointer      stream)
 {
   /* we don't care about the error, we just want to clean up */
-  gdk_drag_context_write_finish (GDK_DRAG_CONTEXT (drag), result, NULL);
+  gdk_drag_write_finish (GDK_DRAG (drag), result, NULL);
 
   /* XXX: Do we need to close_async() here? */
   g_output_stream_close (stream, NULL, NULL);
@@ -98,6 +98,7 @@ gdk_drop_read_local_async (GdkDrop             *self,
   GdkContentFormats *content_formats;
   const char *mime_type;
   GTask *task;
+  GdkContentProvider *content;
 
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
@@ -106,12 +107,14 @@ gdk_drop_read_local_async (GdkDrop             *self,
   if (priv->drag == NULL)
     {
       g_task_return_new_error (task, G_IO_ERROR, G_IO_ERROR_NOT_SUPPORTED,
-                                     _("Drag'n'drop from other applications is not supported."));
+                                     _("Drag’n’drop from other applications is not supported."));
       g_object_unref (task);
       return;
     }
 
-  content_formats = gdk_content_provider_ref_formats (priv->drag->content);
+  g_object_get (priv->drag, "content", &content, NULL);
+  content_formats = gdk_content_provider_ref_formats (content);
+  g_object_unref (content); 
   content_formats = gdk_content_formats_union_serialize_mime_types (content_formats);
   mime_type = gdk_content_formats_match_mime_type (content_formats, formats);
 
@@ -122,7 +125,7 @@ gdk_drop_read_local_async (GdkDrop             *self,
 
       stream = gdk_pipe_io_stream_new ();
       output_stream = g_io_stream_get_output_stream (stream);
-      gdk_drag_context_write_async (priv->drag,
+      gdk_drag_write_async (priv->drag,
                                     mime_type,
                                     output_stream,
                                     io_priority,
@@ -146,8 +149,8 @@ gdk_drop_read_local_async (GdkDrop             *self,
 
 static GInputStream *
 gdk_drop_read_local_finish (GdkDrop         *self,
-                            const char     **out_mime_type,
                             GAsyncResult    *result,
+                            const char     **out_mime_type,
                             GError         **error)
 {
   g_return_val_if_fail (g_task_is_valid (result, self), NULL);
@@ -321,7 +324,7 @@ gdk_drop_class_init (GdkDropClass *klass)
     g_param_spec_object ("drag",
                          "Drag",
                          "The drag that initiated this drop",
-                         GDK_TYPE_DRAG_CONTEXT,
+                         GDK_TYPE_DRAG,
                          G_PARAM_READWRITE |
                          G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS |
@@ -492,7 +495,7 @@ gdk_drop_set_actions (GdkDrop       *self,
  *
  * Returns: (transfer none) (nullable): the corresponding #GdkDrag
  **/
-GdkDragContext *
+GdkDrag *
 gdk_drop_get_drag (GdkDrop *self)
 {
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
@@ -619,8 +622,8 @@ gdk_drop_read_async (GdkDrop             *self,
 /**
  * gdk_drop_read_finish:
  * @self: a #GdkDrop
- * @out_mime_type: (out) (type utf8): return location for the used mime type
  * @result: a #GAsyncResult
+ * @out_mime_type: (out) (type utf8): return location for the used mime type
  * @error: (allow-none): location to store error information on failure, or %NULL
  *
  * Finishes an async drop read operation, see gdk_drop_read_async().
@@ -629,8 +632,8 @@ gdk_drop_read_async (GdkDrop             *self,
  */
 GInputStream *
 gdk_drop_read_finish (GdkDrop       *self,
-                      const char   **out_mime_type,
                       GAsyncResult  *result,
+                      const char   **out_mime_type,
                       GError       **error)
 {
   g_return_val_if_fail (GDK_IS_DROP (self), NULL);
@@ -638,11 +641,11 @@ gdk_drop_read_finish (GdkDrop       *self,
 
   if (g_async_result_is_tagged (result, gdk_drop_read_local_async))
     {
-      return gdk_drop_read_local_finish (self, out_mime_type, result, error);
+      return gdk_drop_read_local_finish (self, result, out_mime_type, error);
     }
   else
     {
-      return GDK_DROP_GET_CLASS (self)->read_finish (self, out_mime_type, result, error);
+      return GDK_DROP_GET_CLASS (self)->read_finish (self, result, out_mime_type, error);
     }
 }
 
@@ -675,7 +678,7 @@ gdk_drop_read_value_got_stream (GObject      *source,
   GTask *task = data;
   const char *mime_type;
 
-  stream = gdk_drop_read_finish (GDK_DROP (source), &mime_type, result, &error);
+  stream = gdk_drop_read_finish (GDK_DROP (source), result, &mime_type, &error);
   if (stream == NULL)
     {
       g_task_return_error (task, error);
@@ -724,8 +727,16 @@ gdk_drop_read_value_internal (GdkDrop             *self,
   if (priv->drag)
     {
       GError *error = NULL;
+      GdkContentProvider *content;
+      gboolean res;
 
-      if (gdk_content_provider_get_value (priv->drag->content, value, &error))
+      g_object_get (priv->drag, "content", &content, NULL);
+
+      res = gdk_content_provider_get_value (content, value, &error);
+
+      g_object_unref (content);
+
+      if (res)
         {
           g_task_return_pointer (task, value, NULL);
           g_object_unref (task);

@@ -18,18 +18,33 @@ typedef struct
   guint64 timestamp;
 } GskGLGlyphCache;
 
+typedef struct
+{
+  PangoFont *font;
+  PangoGlyph glyph;
+  guint scale; /* times 1024 */
+} GlyphCacheKey;
+
+typedef struct _DirtyGlyph DirtyGlyph;
+typedef struct _GskGLCachedGlyph GskGLCachedGlyph;
+
+struct _DirtyGlyph
+{
+  GlyphCacheKey *key;
+  GskGLCachedGlyph *value;
+};
 
 typedef struct
 {
   GskGLImage *image;
   int width, height;
   int x, y, y0;
-  int num_glyphs;
-  GList *dirty_glyphs;
   guint old_pixels;
+
+  DirtyGlyph pending_glyph;
 } GskGLGlyphAtlas;
 
-typedef struct
+struct _GskGLCachedGlyph
 {
   GskGLGlyphAtlas *atlas;
 
@@ -43,8 +58,11 @@ typedef struct
   int draw_width;
   int draw_height;
 
+  float scale;
+
   guint64 timestamp;
-} GskGLCachedGlyph;
+};
+
 
 void                     gsk_gl_glyph_cache_init            (GskGLGlyphCache        *self,
                                                              GskRenderer            *renderer,

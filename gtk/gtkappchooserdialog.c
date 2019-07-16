@@ -48,7 +48,6 @@
 #include "gtkmessagedialog.h"
 #include "gtksettings.h"
 #include "gtklabel.h"
-#include "gtkbbox.h"
 #include "gtkbutton.h"
 #include "gtkentry.h"
 #include "gtktogglebutton.h"
@@ -338,7 +337,7 @@ construct_appchooser_widget (GtkAppChooserDialog *self)
   /* Need to build the appchooser widget after, because of the content-type construct-only property */
   self->priv->app_chooser_widget = gtk_app_chooser_widget_new (self->priv->content_type);
   gtk_widget_set_vexpand (self->priv->app_chooser_widget, TRUE);
-  gtk_box_pack_start (GTK_BOX (self->priv->inner_box), self->priv->app_chooser_widget);
+  gtk_container_add (GTK_CONTAINER (self->priv->inner_box), self->priv->app_chooser_widget);
 
 
   g_signal_connect (self->priv->app_chooser_widget, "application-selected",
@@ -351,10 +350,10 @@ construct_appchooser_widget (GtkAppChooserDialog *self)
                     G_CALLBACK (widget_populate_popup_cb), self);
 
   /* Add the custom button to the new appchooser */
-  gtk_box_pack_start (GTK_BOX (self->priv->inner_box),
+  gtk_container_add (GTK_CONTAINER (self->priv->inner_box),
                       self->priv->show_more_button);
 
-  gtk_box_pack_start (GTK_BOX (self->priv->inner_box),
+  gtk_container_add (GTK_CONTAINER (self->priv->inner_box),
                       self->priv->software_button);
 
   info = gtk_app_chooser_get_app_info (GTK_APP_CHOOSER (self->priv->app_chooser_widget));
@@ -363,7 +362,7 @@ construct_appchooser_widget (GtkAppChooserDialog *self)
     g_object_unref (info);
 
   _gtk_app_chooser_widget_set_search_entry (GTK_APP_CHOOSER_WIDGET (self->priv->app_chooser_widget),
-                                            GTK_ENTRY (self->priv->search_entry));
+                                            GTK_EDITABLE (self->priv->search_entry));
 
   gtk_search_bar_set_key_capture_widget (GTK_SEARCH_BAR (self->priv->search_bar),
                                          GTK_WIDGET (self));

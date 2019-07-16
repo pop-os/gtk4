@@ -641,7 +641,7 @@ preview_ready (GtkPrintOperationPreview *preview,
                         preview_print_idle,
                         pop,
                         preview_print_idle_done);
-  g_source_set_name_by_id (id, "[gtk+] preview_print_idle");
+  g_source_set_name_by_id (id, "[gtk] preview_print_idle");
 }
 
 
@@ -2852,7 +2852,9 @@ handle_progress_response (GtkWidget *dialog,
 static gboolean
 show_progress_timeout (PrintPagesData *data)
 {
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   gtk_window_present (GTK_WINDOW (data->progress));
+  G_GNUC_END_IGNORE_DEPRECATIONS
 
   data->op->priv->show_progress_timeout_id = 0;
 
@@ -2907,7 +2909,7 @@ print_pages (GtkPrintOperation       *op,
 	g_timeout_add (SHOW_PROGRESS_TIME,
                        (GSourceFunc) show_progress_timeout,
                        data);
-      g_source_set_name_by_id (priv->show_progress_timeout_id, "[gtk+] show_progress_timeout");
+      g_source_set_name_by_id (priv->show_progress_timeout_id, "[gtk] show_progress_timeout");
 
       data->progress = progress;
     }
@@ -2976,7 +2978,7 @@ print_pages (GtkPrintOperation       *op,
                                                print_pages_idle,
                                                data,
                                                print_pages_idle_done);
-  g_source_set_name_by_id (priv->print_pages_idle_id, "[gtk+] print_pages_idle");
+  g_source_set_name_by_id (priv->print_pages_idle_id, "[gtk] print_pages_idle");
   
   /* Recursive main loop to make sure we don't exit  on sync operations  */
   if (priv->is_sync)

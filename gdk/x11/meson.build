@@ -11,7 +11,7 @@ gdk_x11_sources = files([
   'gdkdevicemanager-x11.c',
   'gdkdevicemanager-xi2.c',
   'gdkdisplay-x11.c',
-  'gdkdnd-x11.c',
+  'gdkdrag-x11.c',
   'gdkdrop-x11.c',
   'gdkeventsource.c',
   'gdkeventtranslator.c',
@@ -54,8 +54,7 @@ gdk_x11_public_headers = files([
   'gdkx11surface.h',
 ])
 
-install_headers(gdk_x11_public_headers, subdir: 'gtk-4.0/gdk/x11/')
-install_headers('gdkx.h', subdir: 'gtk-4.0/gdk/')
+install_headers(gdk_x11_public_headers, 'gdkx.h', subdir: 'gtk-4.0/gdk/x11/')
 
 gdk_x11_deps = [
   xrender_dep,
@@ -70,7 +69,7 @@ gdk_x11_deps = [
   xinerama_dep,
 ]
 
-libgdk_x11 = static_library('gdk-x11',
+libgdk_x11 = static_library('gdk-x11', gdkmarshal_h,
                             gdk_x11_sources, gdkconfig, gdkenum_h,
                             include_directories: [ confinc, gdkinc, ],
                             c_args: [

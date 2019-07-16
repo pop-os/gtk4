@@ -458,6 +458,7 @@ gtk_file_chooser_native_set_property (GObject      *object,
 
     case GTK_FILE_CHOOSER_PROP_FILTER:
       self->current_filter = g_value_get_object (value);
+      gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (self->dialog), self->current_filter);
       g_object_notify (G_OBJECT (self), "filter");
       break;
 
@@ -622,7 +623,9 @@ show_dialog (GtkFileChooserNative *self)
                     G_CALLBACK (dialog_update_preview_cb),
                     self);
 
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   gtk_window_present (GTK_WINDOW (self->dialog));
+  G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 static void

@@ -17,7 +17,11 @@ tests = [
   ['cellarea'],
   ['check-icon-names'],
   ['cssprovider'],
+  ['rbtree-crash', ['../../gtk/gtkrbtree.c'], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']],
+  ['defaultvalue'],
   ['entry'],
+  ['filterlistmodel'],
+  ['flattenlistmodel'],
   ['firefox-stylecontext'],
   ['floating'],
   ['focus'],
@@ -28,21 +32,29 @@ tests = [
   ['keyhash', ['../../gtk/gtkkeyhash.c', gtkresources, '../../gtk/gtkprivate.c'], gtk_cargs],
   ['listbox'],
   ['main'],
+  ['maplistmodel'],
   ['notify'],
   ['no-gtk-init'],
   ['object'],
   ['objects-finalize'],
   ['papersize'],
-  ['rbtree', ['../../gtk/gtkrbtree.c'], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']],
+  ['propertylookuplistmodel', ['../../gtk/gtkpropertylookuplistmodel.c'], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']],
+  ['rbtree', ['../../gtk/gtktreerbtree.c'], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']],
   ['recentmanager'],
   ['regression-tests'],
   ['scrolledwindow'],
   ['searchbar'],
+  ['singleselection'],
+  ['slicelistmodel'],
+  ['sortlistmodel'],
   ['spinbutton'],
   ['stylecontext'],
   ['templates'],
   ['textbuffer'],
   ['textiter'],
+  ['theme-validate'],
+  ['transform'],
+  ['treelistmodel'],
   ['treemodel', ['treemodel.c', 'liststore.c', 'treestore.c', 'filtermodel.c',
                  'modelrefcount.c', 'sortmodel.c', 'gtktreemodelrefcount.c']],
   ['treepath'],
@@ -89,7 +101,7 @@ foreach t : tests
 endforeach
 
 # FIXME: if objc autotestkeywords_CPPFLAGS += -DHAVE_OBJC=1 -x objective-c++
-if add_languages('cpp')
+if add_languages('cpp', required: false)
   test_exe = executable('autotestkeywords',
                         'autotestkeywords.cc',
                         c_args : test_cargs + ['-Idummy-headers'],
@@ -110,9 +122,9 @@ if add_languages('cpp')
   if get_option('install-tests')
     conf = configuration_data()
     conf.set('testexecdir', testexecdir)
-    conf.set('test', 'keywords')
+    conf.set('test', 'autotestkeywords')
     configure_file(input: 'gtk.test.in',
-                   output: 'keywords.test',
+                   output: 'autotestkeywords.test',
                    configuration: conf,
                    install_dir: testdatadir)
   endif

@@ -1,4 +1,4 @@
-/*  gcc -g -Wall -O2 -o dialog-test dialog-test.c `pkg-config --cflags --libs gtk+-3.0` */
+/*  gcc -g -Wall -O2 -o dialog-test dialog-test.c `pkg-config --cflags --libs gtk4` */
 #include <gtk/gtk.h>
 
 static GtkWidget *window;
@@ -8,21 +8,14 @@ static GtkWidget *default_width_spin;
 static GtkWidget *default_height_spin;
 static GtkWidget *resizable_check;
 
-static gboolean
-configure_event_cb (GtkWidget *window, GdkEvent *event, GtkLabel *label)
+static void
+size_changed_cb (GdkSurface *surface, int width, int height, GtkLabel *label)
 {
-  if (gdk_event_get_event_type (event) == GDK_CONFIGURE)
-    {
-      gchar *str;
-      gint width, height;
+  gchar *str;
 
-      gtk_window_get_size (GTK_WINDOW (window), &width, &height);
-      str = g_strdup_printf ("%d x %d", width, height);
-      gtk_label_set_label (label, str);
-      g_free (str);
-    }
-
-  return GDK_EVENT_PROPAGATE;
+  str = g_strdup_printf ("%d x %d", width, height);
+  gtk_label_set_label (label, str);
+  g_free (str);
 }
 
 static void
@@ -63,7 +56,7 @@ show_dialog (void)
   gtk_window_set_resizable (GTK_WINDOW (dialog), resizable);
 
 
-  gtk_box_pack_start (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))),
+  gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog))),
                       label);
   gtk_widget_show (label);
 
@@ -71,8 +64,9 @@ show_dialog (void)
   //gtk_widget_show (label);
 
   gtk_dialog_add_action_widget (GTK_DIALOG (dialog), label, GTK_RESPONSE_HELP);
-  g_signal_connect (dialog, "event",
-                    G_CALLBACK (configure_event_cb), label);
+  gtk_widget_realize (dialog);
+  g_signal_connect (gtk_widget_get_surface (dialog), "size-changed",
+                    G_CALLBACK (size_changed_cb), label);
 
   gtk_dialog_run (GTK_DIALOG (dialog));
 

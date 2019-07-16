@@ -33,7 +33,6 @@
 #include "gtk/gtkcssimagescaledprivate.h"
 #include "gtk/gtkcssimagerecolorprivate.h"
 #include "gtk/gtkcssimagefallbackprivate.h"
-#include "gtk/gtkcssimagewin32private.h"
 
 G_DEFINE_ABSTRACT_TYPE (GtkCssImage, _gtk_css_image, G_TYPE_OBJECT)
 
@@ -499,21 +498,23 @@ gtk_css_image_get_parser_type (GtkCssParser *parser)
     { "-gtk-icontheme", _gtk_css_image_icon_theme_get_type },
     { "-gtk-scaled", _gtk_css_image_scaled_get_type },
     { "-gtk-recolor", _gtk_css_image_recolor_get_type },
-    { "-gtk-win32-theme-part", _gtk_css_image_win32_get_type },
     { "linear-gradient", _gtk_css_image_linear_get_type },
     { "repeating-linear-gradient", _gtk_css_image_linear_get_type },
     { "radial-gradient", _gtk_css_image_radial_get_type },
     { "repeating-radial-gradient", _gtk_css_image_radial_get_type },
-    { "cross-fade", _gtk_css_image_cross_fade_get_type },
+    { "cross-fade", gtk_css_image_cross_fade_get_type },
     { "image", _gtk_css_image_fallback_get_type }
   };
   guint i;
 
   for (i = 0; i < G_N_ELEMENTS (image_types); i++)
     {
-      if (_gtk_css_parser_has_prefix (parser, image_types[i].prefix))
+      if (gtk_css_parser_has_function (parser, image_types[i].prefix))
         return image_types[i].type_func ();
     }
+
+  if (gtk_css_parser_has_token (parser, GTK_CSS_TOKEN_URL))
+    return _gtk_css_image_url_get_type ();
 
   return G_TYPE_INVALID;
 }
@@ -547,7 +548,7 @@ _gtk_css_image_new_parse (GtkCssParser *parser)
   image_type = gtk_css_image_get_parser_type (parser);
   if (image_type == G_TYPE_INVALID)
     {
-      _gtk_css_parser_error (parser, "Not a valid image");
+      gtk_css_parser_error_syntax (parser, "Not a valid image");
       return NULL;
     }
 

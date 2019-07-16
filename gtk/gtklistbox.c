@@ -73,11 +73,12 @@
  * # CSS nodes
  *
  * |[<!-- language="plain" -->
- * list
+ * list[.separators]
  * ╰── row[.activatable]
  * ]|
  *
- * GtkListBox uses a single CSS node named list. Each GtkListBoxRow uses
+ * GtkListBox uses a single CSS node named list. It may carry the .separators style
+ * class, when the #GtkListBox::show-separators property is set. Each GtkListBoxRow uses
  * a single CSS node named row. The row nodes get the .activatable
  * style class added when appropriate.
  */
@@ -113,6 +114,7 @@ typedef struct
   GtkAdjustment *adjustment;
   gboolean activate_single_click;
   gboolean accept_unpaired_release;
+  gboolean show_separators;
 
   /* DnD */
   GtkListBoxRow *drag_highlighted_row;
@@ -160,6 +162,7 @@ enum {
   PROP_SELECTION_MODE,
   PROP_ACTIVATE_ON_SINGLE_CLICK,
   PROP_ACCEPT_UNPAIRED_RELEASE,
+  PROP_SHOW_SEPARATORS,
   LAST_PROPERTY
 };
 
@@ -227,7 +230,8 @@ static void                 gtk_list_box_compute_expand               (GtkWidget
 static GType                gtk_list_box_child_type                   (GtkContainer        *container);
 static GtkSizeRequestMode   gtk_list_box_get_request_mode             (GtkWidget           *widget);
 static void                 gtk_list_box_size_allocate                (GtkWidget           *widget,
-                                                                       const GtkAllocation *allocation,
+                                                                       int                  width,
+                                                                       int                  height,
                                                                        int                  baseline);
 static void                 gtk_list_box_drag_leave                   (GtkWidget           *widget,
                                                                        GdkDrop             *drop);
@@ -331,6 +335,9 @@ gtk_list_box_get_property (GObject    *obj,
     case PROP_ACCEPT_UNPAIRED_RELEASE:
       g_value_set_boolean (value, priv->accept_unpaired_release);
       break;
+    case PROP_SHOW_SEPARATORS:
+      g_value_set_boolean (value, priv->show_separators);
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, property_id, pspec);
       break;
@@ -355,6 +362,9 @@ gtk_list_box_set_property (GObject      *obj,
       break;
     case PROP_ACCEPT_UNPAIRED_RELEASE:
       gtk_list_box_set_accept_unpaired_release (box, g_value_get_boolean (value));
+      break;
+    case PROP_SHOW_SEPARATORS:
+      gtk_list_box_set_show_separators (box, g_value_get_boolean (value));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (obj, property_id, pspec);
@@ -442,6 +452,13 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
     g_param_spec_boolean ("accept-unpaired-release",
                           P_("Accept unpaired release"),
                           P_("Accept unpaired release"),
+                          FALSE,
+                          G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+
+  properties[PROP_SHOW_SEPARATORS] =
+    g_param_spec_boolean ("show-separators",
+                          P_("Show separators"),
+                          P_("Show separators between rows"),
                           FALSE,
                           G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
@@ -1442,7 +1459,9 @@ ensure_row_visible (GtkListBox    *box,
   if (!priv->adjustment)
     return;
 
-  gtk_widget_compute_bounds (GTK_WIDGET (row), GTK_WIDGET (box), &rect);
+  if (!gtk_widget_compute_bounds (GTK_WIDGET (row), GTK_WIDGET (box), &rect))
+    return;
+
   y = rect.origin.y;
   height = rect.size.height;
 
@@ -1450,9 +1469,11 @@ ensure_row_visible (GtkListBox    *box,
   header = ROW_PRIV (row)->header;
   if (GTK_IS_WIDGET (header) && gtk_widget_is_drawable (header))
     {
-      gtk_widget_compute_bounds (header, GTK_WIDGET (box), &rect);
-      y = rect.origin.y;
-      height += rect.size.height;
+      if (gtk_widget_compute_bounds (header, GTK_WIDGET (box), &rect))
+        {
+          y = rect.origin.y;
+          height += rect.size.height;
+        }
     }
 
   gtk_adjustment_clamp_page (priv->adjustment, y, y + height);
@@ -1644,8 +1665,8 @@ gtk_list_box_update_selection_full (GtkListBox    *box,
     {
       gtk_list_box_unselect_all_internal (box);
       gtk_list_box_row_set_selected (row, TRUE);
-      g_signal_emit (box, signals[ROW_SELECTED], 0, row);
       priv->selected_row = row;
+      g_signal_emit (box, signals[ROW_SELECTED], 0, row);
     }
   else if (priv->selection_mode == GTK_SELECTION_SINGLE)
     {
@@ -1743,9 +1764,6 @@ gtk_list_box_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
   if (row != NULL && gtk_widget_is_sensitive (GTK_WIDGET (row)))
     {
       priv->active_row = row;
-      gtk_widget_set_state_flags (GTK_WIDGET (priv->active_row),
-                                  GTK_STATE_FLAG_ACTIVE,
-                                  FALSE);
 
       if (n_press == 2 && !priv->activate_single_click)
         gtk_list_box_activate (box, row);
@@ -1841,7 +1859,6 @@ gtk_list_box_multipress_gesture_released (GtkGestureMultiPress *gesture,
 
   if (priv->active_row)
     {
-      gtk_widget_unset_state_flags (GTK_WIDGET (priv->active_row), GTK_STATE_FLAG_ACTIVE);
       priv->active_row = NULL;
     }
 
@@ -1856,7 +1873,6 @@ gtk_list_box_multipress_gesture_stopped (GtkGestureMultiPress *gesture,
 
   if (priv->active_row)
     {
-      gtk_widget_unset_state_flags (GTK_WIDGET (priv->active_row), GTK_STATE_FLAG_ACTIVE);
       priv->active_row = NULL;
       gtk_widget_queue_draw (GTK_WIDGET (box));
     }
@@ -2262,6 +2278,7 @@ gtk_list_box_remove (GtkContainer *container,
   gboolean was_visible;
   gboolean was_selected;
   GtkListBoxRow *row;
+  GSequenceIter *iter;
   GSequenceIter *next;
 
   was_visible = gtk_widget_get_visible (child);
@@ -2295,7 +2312,8 @@ gtk_list_box_remove (GtkContainer *container,
     }
 
   row = GTK_LIST_BOX_ROW (child);
-  if (g_sequence_iter_get_sequence (ROW_PRIV (row)->iter) != priv->children)
+  iter = ROW_PRIV (row)->iter;
+  if (g_sequence_iter_get_sequence (iter) != priv->children)
     {
       g_warning ("Tried to remove non-child %p", child);
       return;
@@ -2318,17 +2336,20 @@ gtk_list_box_remove (GtkContainer *container,
   if (row == priv->cursor_row)
     priv->cursor_row = NULL;
   if (row == priv->active_row)
-    {
-      gtk_widget_unset_state_flags (GTK_WIDGET (row), GTK_STATE_FLAG_ACTIVE);
-      priv->active_row = NULL;
-    }
+    priv->active_row = NULL;
 
   if (row == priv->drag_highlighted_row)
     gtk_list_box_drag_unhighlight_row (box);
 
-  next = gtk_list_box_get_next_visible (box, ROW_PRIV (row)->iter);
+  next = gtk_list_box_get_next_visible (box, iter);
   gtk_widget_unparent (child);
-  g_sequence_remove (ROW_PRIV (row)->iter);
+  g_sequence_remove (iter);
+
+  /* After unparenting, those values are garbage */
+  iter = NULL;
+  row = NULL;
+  child = NULL;
+
   if (gtk_widget_get_visible (widget))
     gtk_list_box_update_header (box, next);
 
@@ -2496,9 +2517,10 @@ gtk_list_box_measure (GtkWidget     *widget,
 }
 
 static void
-gtk_list_box_size_allocate (GtkWidget           *widget,
-                            const GtkAllocation *allocation,
-                            int                  baseline)
+gtk_list_box_size_allocate (GtkWidget *widget,
+                            int        width,
+                            int        height,
+                            int        baseline)
 {
   GtkListBoxPrivate *priv = BOX_PRIV (widget);
   GtkAllocation child_allocation;
@@ -2508,22 +2530,22 @@ gtk_list_box_size_allocate (GtkWidget           *widget,
   int child_min;
 
 
-  child_allocation.x = allocation->x;
-  child_allocation.y = allocation->y;
-  child_allocation.width = allocation->width;
+  child_allocation.x = 0;
+  child_allocation.y = 0;
+  child_allocation.width = width;
   child_allocation.height = 0;
 
-  header_allocation.x = allocation->x;
-  header_allocation.y = allocation->y;
-  header_allocation.width = allocation->width;
+  header_allocation.x = 0;
+  header_allocation.y = 0;
+  header_allocation.width = width;
   header_allocation.height = 0;
 
   if (priv->placeholder && gtk_widget_get_child_visible (priv->placeholder))
     {
       gtk_widget_measure (priv->placeholder, GTK_ORIENTATION_VERTICAL,
-                          allocation->width,
+                          width,
                           &child_min, NULL, NULL, NULL);
-      header_allocation.height = allocation->height;
+      header_allocation.height = height;
       header_allocation.y = child_allocation.y;
       gtk_widget_size_allocate (priv->placeholder, &header_allocation, -1);
       child_allocation.y += child_min;
@@ -2544,7 +2566,7 @@ gtk_list_box_size_allocate (GtkWidget           *widget,
       if (ROW_PRIV (row)->header != NULL)
         {
           gtk_widget_measure (ROW_PRIV (row)->header, GTK_ORIENTATION_VERTICAL,
-                              allocation->width,
+                              width,
                               &child_min, NULL, NULL, NULL);
           header_allocation.height = child_min;
           header_allocation.y = child_allocation.y;
@@ -3592,4 +3614,52 @@ gtk_list_box_bind_model (GtkListBox                 *box,
 
   g_signal_connect (priv->bound_model, "items-changed", G_CALLBACK (gtk_list_box_bound_model_changed), box);
   gtk_list_box_bound_model_changed (model, 0, 0, g_list_model_get_n_items (model), box);
+}
+
+/**
+ * gtk_list_box_set_show_separators:
+ * @box: a #GtkListBox
+ * @show_separators: %TRUE to show separators
+ *
+ * Sets whether the list box should show separators
+ * between rows.
+ */
+void
+gtk_list_box_set_show_separators (GtkListBox *box,
+                                  gboolean    show_separators)
+{
+  GtkListBoxPrivate *priv = BOX_PRIV (box);
+
+  g_return_if_fail (GTK_IS_LIST_BOX (box));
+
+  if (priv->show_separators == show_separators)
+    return;
+
+  priv->show_separators = show_separators;
+
+  if (show_separators)
+    gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (box)), "separators");
+  else
+    gtk_style_context_remove_class (gtk_widget_get_style_context (GTK_WIDGET (box)), "separators");
+
+  g_object_notify_by_pspec (G_OBJECT (box), properties[PROP_SHOW_SEPARATORS]);
+}
+
+/**
+ * gtk_list_box_get_show_separators:
+ * @box: a #GtkListBox
+ *
+ * Returns whether the list box should show separators
+ * between rows.
+ *
+ * Returns: %TRUE if the list box shows separators
+ */
+gboolean
+gtk_list_box_get_show_separators (GtkListBox *box)
+{
+  GtkListBoxPrivate *priv = BOX_PRIV (box);
+
+  g_return_val_if_fail (GTK_IS_LIST_BOX (box), FALSE);
+
+  return priv->show_separators;
 }

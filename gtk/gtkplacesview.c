@@ -74,6 +74,7 @@ struct _GtkPlacesViewPrivate
   GtkWidget                     *recent_servers_stack;
   GtkWidget                     *stack;
   GtkWidget                     *server_adresses_popover;
+  GtkWidget                     *available_protocols_grid;
   GtkWidget                     *network_placeholder;
   GtkWidget                     *network_placeholder_label;
 
@@ -1237,7 +1238,7 @@ server_mount_ready_cb (GObject      *source_file,
        * Otherwise, the user would lost the typed address even if it fails
        * to connect.
        */
-      gtk_entry_set_text (GTK_ENTRY (priv->address_entry), "");
+      gtk_editable_set_text (GTK_EDITABLE (priv->address_entry), "");
 
       if (priv->should_open_location)
         emit_open_location (view, location, priv->open_flags);
@@ -1583,6 +1584,52 @@ unmount_cb (GtkMenuItem      *item,
   unmount_mount (GTK_PLACES_VIEW (view), mount);
 }
 
+static void
+attach_protocol_row_to_grid (GtkGrid     *grid,
+                             const gchar *protocol_name,
+                             const gchar *protocol_prefix)
+{
+  GtkWidget *name_label;
+  GtkWidget *prefix_label;
+
+  name_label = gtk_label_new (protocol_name);
+  gtk_widget_set_halign (name_label, GTK_ALIGN_START);
+  gtk_grid_attach_next_to (grid, name_label, NULL, GTK_POS_BOTTOM, 1, 1);
+
+  prefix_label = gtk_label_new (protocol_prefix);
+  gtk_widget_set_halign (prefix_label, GTK_ALIGN_START);
+  gtk_grid_attach_next_to (grid, prefix_label, name_label, GTK_POS_RIGHT, 1, 1);
+}
+
+static void
+populate_available_protocols_grid (GtkGrid *grid)
+{
+  const gchar* const *supported_protocols;
+
+  supported_protocols = g_vfs_get_supported_uri_schemes (g_vfs_get_default ());
+
+  if (g_strv_contains (supported_protocols, "afp"))
+    attach_protocol_row_to_grid (grid, _("AppleTalk"), "afp://");
+
+  if (g_strv_contains (supported_protocols, "ftp"))
+    /* Translators: do not translate ftp:// and ftps:// */
+    attach_protocol_row_to_grid (grid, _("File Transfer Protocol"), _("ftp:// or ftps://"));
+
+  if (g_strv_contains (supported_protocols, "nfs"))
+    attach_protocol_row_to_grid (grid, _("Network File System"), "nfs://");
+
+  if (g_strv_contains (supported_protocols, "smb"))
+    attach_protocol_row_to_grid (grid, _("Samba"), "smb://");
+
+  if (g_strv_contains (supported_protocols, "ssh"))
+    /* Translators: do not translate sftp:// and ssh:// */
+    attach_protocol_row_to_grid (grid, _("SSH File Transfer Protocol"), _("sftp:// or ssh://"));
+
+  if (g_strv_contains (supported_protocols, "dav"))
+    /* Translators: do not translate dav:// and davs:// */
+    attach_protocol_row_to_grid (grid, _("WebDAV"), _("dav:// or davs://"));
+}
+
 /* Constructs the popup menu if needed */
 static void
 build_popup_menu (GtkPlacesView    *view,
@@ -1719,7 +1766,7 @@ on_key_press_event (GtkEventController *controller,
       if (!toplevel)
         return FALSE;
 
-      focus_widget = gtk_window_get_focus (toplevel);
+      focus_widget = gtk_root_get_focus (GTK_ROOT (toplevel));
 
       if (!GTK_IS_PLACES_VIEW_ROW (focus_widget))
         return FALSE;
@@ -1767,7 +1814,7 @@ on_connect_button_clicked (GtkPlacesView *view)
   if (!gtk_widget_get_sensitive (priv->connect_button))
     return;
 
-  uri = gtk_entry_get_text (GTK_ENTRY (priv->address_entry));
+  uri = gtk_editable_get_text (GTK_EDITABLE (priv->address_entry));
 
   if (uri != NULL && uri[0] != '\0')
     file = g_file_new_for_commandline_arg (uri);
@@ -1795,7 +1842,7 @@ on_address_entry_text_changed (GtkPlacesView *view)
   priv = gtk_places_view_get_instance_private (view);
   supported = FALSE;
   supported_protocols = g_vfs_get_supported_uri_schemes (g_vfs_get_default ());
-  address = g_strdup (gtk_entry_get_text (GTK_ENTRY (priv->address_entry)));
+  address = g_strdup (gtk_editable_get_text (GTK_EDITABLE (priv->address_entry)));
   scheme = g_uri_parse_scheme (address);
 
   if (!supported_protocols)
@@ -1809,6 +1856,13 @@ on_address_entry_text_changed (GtkPlacesView *view)
 
 out:
   gtk_widget_set_sensitive (priv->connect_button, supported);
+  if (scheme && !supported)
+    gtk_style_context_add_class (gtk_widget_get_style_context (priv->address_entry),
+                                 GTK_STYLE_CLASS_ERROR);
+  else
+    gtk_style_context_remove_class (gtk_widget_get_style_context (priv->address_entry),
+                                    GTK_STYLE_CLASS_ERROR);
+
   g_free (address);
   g_free (scheme);
 }
@@ -1843,7 +1897,7 @@ on_recent_servers_listbox_row_activated (GtkPlacesView    *view,
   priv = gtk_places_view_get_instance_private (view);
   uri = g_object_get_data (G_OBJECT (row), "uri");
 
-  gtk_entry_set_text (GTK_ENTRY (priv->address_entry), uri);
+  gtk_editable_set_text (GTK_EDITABLE (priv->address_entry), uri);
 
   gtk_widget_hide (priv->recent_servers_popover);
 }
@@ -2142,7 +2196,7 @@ gtk_places_view_map (GtkWidget *widget)
 
   priv = gtk_places_view_get_instance_private (GTK_PLACES_VIEW (widget));
 
-  gtk_entry_set_text (GTK_ENTRY (priv->address_entry), "");
+  gtk_editable_set_text (GTK_EDITABLE (priv->address_entry), "");
 
   GTK_WIDGET_CLASS (gtk_places_view_parent_class)->map (widget);
 }
@@ -2250,6 +2304,7 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, GtkPlacesView, recent_servers_stack);
   gtk_widget_class_bind_template_child_private (widget_class, GtkPlacesView, stack);
   gtk_widget_class_bind_template_child_private (widget_class, GtkPlacesView, server_adresses_popover);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkPlacesView, available_protocols_grid);
 
   gtk_widget_class_bind_template_callback (widget_class, on_address_entry_text_changed);
   gtk_widget_class_bind_template_callback (widget_class, on_address_entry_show_help_pressed);
@@ -2278,6 +2333,8 @@ gtk_places_view_init (GtkPlacesView *self)
   gtk_widget_add_controller (GTK_WIDGET (self), controller);
 
   gtk_widget_init_template (GTK_WIDGET (self));
+
+  populate_available_protocols_grid (GTK_GRID (priv->available_protocols_grid));
 }
 
 /*

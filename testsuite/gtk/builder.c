@@ -772,23 +772,31 @@ test_notebook (void)
     "<interface>"
     "  <object class=\"GtkNotebook\" id=\"notebook1\">"
     "    <child>"
-    "      <object class=\"GtkLabel\" id=\"label1\">"
-    "        <property name=\"label\">label1</property>"
-    "      </object>"
-    "    </child>"
-    "    <child type=\"tab\">"
-    "      <object class=\"GtkLabel\" id=\"tablabel1\">"
-    "        <property name=\"label\">tab_label1</property>"
+    "      <object class=\"GtkNotebookPage\">"
+    "        <property name=\"child\">"
+    "          <object class=\"GtkLabel\" id=\"label1\">"
+    "            <property name=\"label\">label1</property>"
+    "          </object>"
+    "        </property>"
+    "        <property name=\"tab\">"
+    "          <object class=\"GtkLabel\" id=\"tablabel1\">"
+    "           <property name=\"label\">tab_label1</property>"
+    "          </object>"
+    "        </property>"
     "      </object>"
     "    </child>"
     "    <child>"
-    "      <object class=\"GtkLabel\" id=\"label2\">"
-    "        <property name=\"label\">label2</property>"
-    "      </object>"
-    "    </child>"
-    "    <child type=\"tab\">"
-    "      <object class=\"GtkLabel\" id=\"tablabel2\">"
-    "        <property name=\"label\">tab_label2</property>"
+    "      <object class=\"GtkNotebookPage\">"
+    "        <property name=\"child\">"
+    "          <object class=\"GtkLabel\" id=\"label2\">"
+    "            <property name=\"label\">label2</property>"
+    "          </object>"
+    "        </property>"
+    "        <property name=\"tab\">"
+    "          <object class=\"GtkLabel\" id=\"tablabel2\">"
+    "            <property name=\"label\">tab_label2</property>"
+    "          </object>"
+    "        </property>"
     "      </object>"
     "    </child>"
     "  </object>"
@@ -918,11 +926,11 @@ test_children (void)
     "<interface>"
     "  <object class=\"GtkDialog\" id=\"dialog1\">"
     "    <property name=\"use_header_bar\">1</property>"
-    "    <child internal-child=\"vbox\">"
+    "    <child internal-child=\"content_area\">"
     "      <object class=\"GtkBox\" id=\"dialog1-vbox\">"
     "        <property name=\"orientation\">vertical</property>"
     "          <child internal-child=\"action_area\">"
-    "            <object class=\"GtkButtonBox\" id=\"dialog1-action_area\">"
+    "            <object class=\"GtkBox\" id=\"dialog1-action_area\">"
     "              <property name=\"orientation\">horizontal</property>"
     "            </object>"
     "          </child>"
@@ -961,12 +969,11 @@ test_children (void)
   g_assert (vbox != NULL);
   g_assert (GTK_IS_BOX (vbox));
   g_assert (gtk_orientable_get_orientation (GTK_ORIENTABLE (vbox)) == GTK_ORIENTATION_VERTICAL);
-  g_assert (strcmp (gtk_buildable_get_name (GTK_BUILDABLE (gtk_widget_get_parent (GTK_WIDGET (vbox)))), "dialog1") == 0);
   g_assert (strcmp (gtk_buildable_get_name (GTK_BUILDABLE (content_area)), "dialog1-vbox") == 0);
 
   action_area = gtk_builder_get_object (builder, "dialog1-action_area");
   g_assert (action_area != NULL);
-  g_assert (GTK_IS_BUTTON_BOX (action_area));
+  g_assert (GTK_IS_BOX (action_area));
   g_assert (gtk_orientable_get_orientation (GTK_ORIENTABLE (action_area)) == GTK_ORIENTATION_HORIZONTAL);
   g_assert (gtk_widget_get_parent (GTK_WIDGET (action_area)) != NULL);
   g_assert (gtk_buildable_get_name (GTK_BUILDABLE (action_area)) != NULL);
@@ -983,43 +990,24 @@ test_child_properties (void)
     "  <object class=\"GtkBox\" id=\"vbox1\">"
     "    <child>"
     "      <object class=\"GtkLabel\" id=\"label1\"/>"
-    "      <packing>"
-    "        <property name=\"pack-type\">start</property>"
-    "      </packing>"
     "    </child>"
     "    <child>"
     "      <object class=\"GtkLabel\" id=\"label2\"/>"
-    "      <packing>"
-    "        <property name=\"pack-type\">end</property>"
-    "      </packing>"
     "    </child>"
     "  </object>"
     "</interface>";
 
   GObject *label, *vbox;
-  GtkPackType pack_type;
-  
+
   builder = builder_new_from_string (buffer1, -1, NULL);
   vbox = gtk_builder_get_object (builder, "vbox1");
   g_assert (GTK_IS_BOX (vbox));
 
   label = gtk_builder_get_object (builder, "label1");
   g_assert (GTK_IS_LABEL (label));
-  gtk_container_child_get (GTK_CONTAINER (vbox),
-                           GTK_WIDGET (label),
-                           "pack-type",
-                           &pack_type,
-                           NULL);
-  g_assert (pack_type == GTK_PACK_START);
-  
+
   label = gtk_builder_get_object (builder, "label2");
   g_assert (GTK_IS_LABEL (label));
-  gtk_container_child_get (GTK_CONTAINER (vbox),
-                           GTK_WIDGET (label),
-                           "pack-type",
-                           &pack_type,
-                           NULL);
-  g_assert (pack_type == GTK_PACK_END);
 
   g_object_unref (builder);
 }
@@ -1294,7 +1282,6 @@ test_cell_view (void)
     "      <object class=\"GtkCellView\" id=\"cellview1\">"
     "        <property name=\"visible\">True</property>"
     "        <property name=\"model\">liststore1</property>"
-    "        <accelerator key=\"f\" modifiers=\"GDK_CONTROL_MASK\" signal=\"grab_focus\"/>"
     "        <child>"
     "          <object class=\"GtkCellRendererText\" id=\"renderer1\"/>"
     "          <attributes>"
@@ -1340,11 +1327,11 @@ test_dialog (void)
   const gchar buffer1[] =
     "<interface>"
     "  <object class=\"GtkDialog\" id=\"dialog1\">"
-    "    <child internal-child=\"vbox\">"
+    "    <child internal-child=\"content_area\">"
     "      <object class=\"GtkBox\" id=\"dialog1-vbox\">"
     "        <property name=\"orientation\">vertical</property>"
     "          <child internal-child=\"action_area\">"
-    "            <object class=\"GtkButtonBox\" id=\"dialog1-action_area\">"
+    "            <object class=\"GtkBox\" id=\"dialog1-action_area\">"
     "              <property name=\"orientation\">horizontal</property>"
     "              <child>"
     "                <object class=\"GtkButton\" id=\"button_cancel\"/>"
@@ -1429,7 +1416,6 @@ test_accelerators (void)
     "    <child>"
     "      <object class=\"GtkTreeView\" id=\"treeview1\">"
     "        <signal name=\"cursor-changed\" handler=\"gtk_main_quit\"/>"
-    "        <accelerator key=\"f\" modifiers=\"GDK_CONTROL_MASK\" signal=\"grab_focus\"/>"
     "      </object>"
     "    </child>"
     "  </object>"
@@ -1457,9 +1443,7 @@ test_accelerators (void)
   g_assert (GTK_IS_WINDOW (window1));
 
   accel_groups = gtk_accel_groups_from_object (window1);
-  g_assert (g_slist_length (accel_groups) == 1);
-  accel_group = g_slist_nth_data (accel_groups, 0);
-  g_assert (accel_group);
+  g_assert_cmpint (g_slist_length (accel_groups), ==, 0);
 
   gtk_widget_destroy (GTK_WIDGET (window1));
   g_object_unref (builder);
@@ -1484,8 +1468,7 @@ test_widget (void)
     "  <object class=\"GtkWindow\" id=\"window1\">"
     "    <child>"
     "      <object class=\"GtkButton\" id=\"button1\">"
-    "         <property name=\"can-default\">True</property>"
-    "         <property name=\"has-default\">True</property>"
+    "         <property name=\"receives-default\">True</property>"
     "      </object>"
     "    </child>"
     "  </object>"
@@ -1787,9 +1770,6 @@ test_reference_counting (void)
     "        <property name=\"orientation\">vertical</property>"
     "    <child>"
     "      <object class=\"GtkLabel\" id=\"label1\"/>"
-    "      <packing>"
-    "        <property name=\"pack-type\">start</property>"
-    "      </packing>"
     "    </child>"
     "  </object>"
     "</interface>";
@@ -1974,9 +1954,6 @@ test_add_objects (void)
     "            <property name=\"visible\">True</property>"
     "            <property name=\"label\" translatable=\"no\">second label</property>"
     "          </object>"
-    "          <packing>"
-    "            <property name=\"position\">1</property>"
-    "          </packing>"
     "        </child>"
     "      </object>"
     "    </child>"
@@ -2205,7 +2182,7 @@ test_message_area (void)
     "      </object>"
     "    </child>"
     "    <child internal-child=\"action_area\">"
-    "      <object class=\"GtkButtonBox\" id=\"actionarea1\">"
+    "      <object class=\"GtkBox\" id=\"actionarea1\">"
     "       <property name=\"orientation\">vertical</property>"
     "        <child>"
     "          <object class=\"GtkButton\" id=\"button_ok\">"
@@ -2446,7 +2423,7 @@ test_no_ids (void)
     "      </object>"
     "    </child>"
     "    <child internal-child=\"action_area\">"
-    "      <object class=\"GtkButtonBox\">"
+    "      <object class=\"GtkBox\">"
     "       <property name=\"orientation\">vertical</property>"
     "        <child>"
     "          <object class=\"GtkButton\" id=\"button_ok\">"

@@ -27,6 +27,7 @@
 
 #include <glib-object.h>
 #include <gdk/gdk.h>
+#include <gdk/gdk-private.h>
 
 #include "gtkcsstypesprivate.h"
 #include "gtktexthandleprivate.h"
@@ -93,23 +94,22 @@ void             gtk_propagate_event_internal  (GtkWidget       *widget,
                                                 GdkEvent        *event,
                                                 GtkWidget       *topmost);
 
-gboolean         gtk_widget_translate_coordinatesf (GtkWidget  *src_widget,
-                                                    GtkWidget  *dest_widget,
-                                                    double      src_x,
-                                                    double      src_y,
-                                                    double     *dest_x,
-                                                    double     *dest_y);
-
-GtkWidget *     _gtk_toplevel_pick (GtkWindow *toplevel,
-                                    gdouble    x,
-                                    gdouble    y,
-                                    gdouble   *x_out,
-                                    gdouble   *y_out);
-
 gdouble _gtk_get_slowdown (void);
 void    _gtk_set_slowdown (gdouble slowdown_factor);
 
-gboolean gtk_should_use_portal (void);
+char *gtk_get_portal_request_path (GDBusConnection  *connection,
+                                   char            **token);
+char *gtk_get_portal_session_path (GDBusConnection  *connection,
+                                   char            **token);
+
+#define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
+#define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
+#define PORTAL_REQUEST_INTERFACE "org.freedesktop.portal.Request"
+#define PORTAL_SESSION_INTERFACE "org.freedesktop.portal.Session"
+#define PORTAL_FILECHOOSER_INTERFACE "org.freedesktop.portal.FileChooser"
+#define PORTAL_PRINT_INTERFACE "org.freedesktop.portal.Print"
+#define PORTAL_SCREENSHOT_INTERFACE "org.freedesktop.portal.Screenshot"
+#define PORTAL_INHIBIT_INTERFACE "org.freedesktop.portal.Inhibit"
 
 #ifdef G_OS_WIN32
 void _gtk_load_dll_with_libgtk3_manifest (const char *dllname);
@@ -120,10 +120,11 @@ gboolean        gtk_simulate_touchscreen (void);
 void  gtk_set_display_debug_flags (GdkDisplay *display,
                                    guint       flags);
 guint gtk_get_display_debug_flags (GdkDisplay *display);
+gboolean gtk_get_any_display_debug_flag_set (void);
 
 #ifdef G_ENABLE_DEBUG
 
-#define GTK_DISPLAY_DEBUG_CHECK(display,type) G_UNLIKELY (gtk_get_display_debug_flags (display) & GTK_DEBUG_##type)
+#define GTK_DISPLAY_DEBUG_CHECK(display,type) (gtk_get_any_display_debug_flag_set () && G_UNLIKELY (gtk_get_display_debug_flags (display) & GTK_DEBUG_##type))
 #define GTK_DISPLAY_NOTE(display,type,action) \
   G_STMT_START { \
   if (GTK_DISPLAY_DEBUG_CHECK (display,type)) { action; }; \

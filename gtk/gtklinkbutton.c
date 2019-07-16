@@ -65,6 +65,7 @@
 #include "gtkprivate.h"
 #include "gtkshow.h"
 #include "gtksizerequest.h"
+#include "gtkstylecontext.h"
 #include "gtktooltip.h"
 #include "gtkwidgetprivate.h"
 
@@ -107,7 +108,7 @@ static void     gtk_link_button_set_property (GObject          *object,
 static void     gtk_link_button_clicked      (GtkButton        *button);
 static gboolean gtk_link_button_popup_menu   (GtkWidget        *widget);
 static void gtk_link_button_drag_data_get_cb (GtkWidget        *widget,
-					      GdkDragContext   *context,
+					      GdkDrag          *drag,
 					      GtkSelectionData *selection,
 					      gpointer          user_data);
 static gboolean gtk_link_button_query_tooltip_cb (GtkWidget    *widget,
@@ -433,7 +434,7 @@ gtk_link_button_popup_menu (GtkWidget *widget)
 
 static void
 gtk_link_button_drag_data_get_cb (GtkWidget        *widget,
-				  GdkDragContext   *context,
+				  GdkDrag          *drag,
 				  GtkSelectionData *selection,
 				  gpointer          user_data)
 {

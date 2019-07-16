@@ -21,6 +21,7 @@
 
 #include <windowsx.h>
 #include <objbase.h>
+#include <math.h>
 
 #include "gdkdevice-win32.h"
 #include "gdkwin32.h"
@@ -45,14 +46,14 @@ gdk_device_win32_get_state (GdkDevice       *device,
                             gdouble         *axes,
                             GdkModifierType *mask)
 {
-  gint x_int, y_int;
+  double x, y;
 
-  gdk_surface_get_device_position (window, device, &x_int, &y_int, mask);
+  gdk_surface_get_device_position (window, device, &x, &y, mask);
 
   if (axes)
     {
-      axes[0] = x_int;
-      axes[1] = y_int;
+      axes[0] = round (x);
+      axes[1] = round (y);
     }
 }
 
@@ -60,13 +61,6 @@ static void
 gdk_device_win32_set_surface_cursor (GdkDevice *device,
                                     GdkSurface *window,
                                     GdkCursor *cursor)
-{
-}
-
-static void
-gdk_device_win32_warp (GdkDevice *device,
-                       gdouble    x,
-                       gdouble    y)
 {
 }
 
@@ -286,7 +280,6 @@ gdk_device_win32_class_init (GdkDeviceWin32Class *klass)
   device_class->get_history = gdk_device_win32_get_history;
   device_class->get_state = gdk_device_win32_get_state;
   device_class->set_surface_cursor = gdk_device_win32_set_surface_cursor;
-  device_class->warp = gdk_device_win32_warp;
   device_class->query_state = gdk_device_win32_query_state;
   device_class->grab = gdk_device_win32_grab;
   device_class->ungrab = gdk_device_win32_ungrab;

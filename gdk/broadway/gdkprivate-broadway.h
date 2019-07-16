@@ -41,12 +41,14 @@
 guint32 gdk_broadway_display_ensure_texture (GdkDisplay *display,
                                              GdkTexture *texture);
 
+void gdk_broadway_display_flush_in_idle (GdkDisplay *display);
+
 void gdk_broadway_surface_set_nodes (GdkSurface *surface,
                                      GArray *nodes,
                                      GPtrArray *node_textures);
 
 void     _gdk_broadway_surface_register_dnd       (GdkSurface      *surface);
-GdkDragContext * _gdk_broadway_surface_drag_begin (GdkSurface          *surface,
+GdkDrag * _gdk_broadway_surface_drag_begin        (GdkSurface          *surface,
                                                    GdkDevice          *device,
                                                    GdkContentProvider *content,
                                                    GdkDragAction       actions,
@@ -78,7 +80,8 @@ gboolean _gdk_keymap_key_is_modifier   (GdkKeymap       *keymap,
 void _gdk_broadway_display_size_changed (GdkDisplay *display,
                                          BroadwayInputScreenResizeNotify *msg);
 
-void _gdk_broadway_events_got_input      (BroadwayInputMsg *message);
+void _gdk_broadway_events_got_input      (GdkDisplay *display,
+                                          BroadwayInputMsg *message);
 
 void _gdk_broadway_display_init_root_window (GdkDisplay *display);
 void _gdk_broadway_display_init_dnd (GdkDisplay *display);

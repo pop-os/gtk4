@@ -342,12 +342,28 @@ typedef enum
 } GtkOrientation;
 
 /**
+ * GtkOverflow:
+ * @GTK_OVERFLOW_VISIBLE: No change is applied. Content is drawn at the specified
+ *     position.
+ * @GTK_OVERFLOW_HIDDEN: Content is clipped to the bounds of the area. Content
+ *     outside the area is not drawn and cannot be interacted with.
+ *
+ * Defines how content overflowing a given area should be handled, such as
+ * with gtk_widget_set_overflow(). This property is modeled after the CSS overflow
+ * property, but implements it only partially.
+ */
+typedef enum
+{
+  GTK_OVERFLOW_VISIBLE,
+  GTK_OVERFLOW_HIDDEN
+} GtkOverflow;
+
+/**
  * GtkPackType:
  * @GTK_PACK_START: The child is packed into the start of the box
  * @GTK_PACK_END: The child is packed into the end of the box
  *
- * Represents the packing location #GtkBox children. (See: #GtkVBox,
- * #GtkHBox, and #GtkButtonBox).
+ * Represents the packing location #GtkBox children
  */
 typedef enum
 {
@@ -464,7 +480,7 @@ typedef enum
  * Used to change the appearance of an outline typically provided by a #GtkFrame.
  *
  * Note that many themes do not differentiate the appearance of the
- * various shadow types: Either their is no visible shadow (@GTK_SHADOW_NONE),
+ * various shadow types: Either there is no visible shadow (@GTK_SHADOW_NONE),
  * or there is (any other value).
  */
 typedef enum
@@ -532,24 +548,6 @@ typedef enum
   GTK_SORT_ASCENDING,
   GTK_SORT_DESCENDING
 } GtkSortType;
-
-/**
- * GtkPackDirection:
- * @GTK_PACK_DIRECTION_LTR: Widgets are packed left-to-right
- * @GTK_PACK_DIRECTION_RTL: Widgets are packed right-to-left
- * @GTK_PACK_DIRECTION_TTB: Widgets are packed top-to-bottom
- * @GTK_PACK_DIRECTION_BTT: Widgets are packed bottom-to-top
- *
- * Determines how widgets should be packed inside menubars
- * and menuitems contained in menubars.
- */
-typedef enum
-{
-  GTK_PACK_DIRECTION_LTR,
-  GTK_PACK_DIRECTION_RTL,
-  GTK_PACK_DIRECTION_TTB,
-  GTK_PACK_DIRECTION_BTT
-} GtkPackDirection;
 
 /**
  * GtkPrintPages:
@@ -1023,5 +1021,19 @@ typedef enum {
   GTK_PLACES_OPEN_NEW_TAB    = 1 << 1,
   GTK_PLACES_OPEN_NEW_WINDOW = 1 << 2
 } GtkPlacesOpenFlags;
+
+/**
+ * GtkPickFlags:
+ * @GTK_PICK_DEFAULT: The default behavior, include widgets that are receiving events
+ * @GTK_PICK_INSENSITIVE: Include widgets that are insensitive
+ * @GTK_PICK_NON_TARGETABLE: Include widgets that are marked as non-targetable. See #GtkWidget::can-target 
+ * 
+ * Flags that influence the behavior of gtk_widget_pick()
+ */
+typedef enum {
+  GTK_PICK_DEFAULT        = 0,
+  GTK_PICK_INSENSITIVE    = 1 << 0,
+  GTK_PICK_NON_TARGETABLE = 1 << 1
+} GtkPickFlags;
 
 #endif /* __GTK_ENUMS_H__ */

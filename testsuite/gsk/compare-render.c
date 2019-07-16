@@ -49,9 +49,21 @@ save_image (cairo_surface_t *surface,
 {
   char *filename = get_output_file (test_name, ".node", extension);
 
-  g_test_message ("Storing test result image at %s", filename);
+  g_print ("Storing test result image at %s\n", filename);
   g_assert (cairo_surface_write_to_png (surface, filename) == CAIRO_STATUS_SUCCESS);
   g_free (filename);
+}
+
+static void
+deserialize_error_func (const GtkCssSection *section,
+                        const GError        *error,
+                        gpointer             user_data)
+{
+  char *section_str = gtk_css_section_to_string (section);
+
+  g_error ("Error at %s: %s", section_str, error->message);
+
+  free (section_str);
 }
 
 /*
@@ -82,8 +94,8 @@ main (int argc, char **argv)
   window = gdk_surface_new_toplevel (gdk_display_get_default(), 10 , 10);
   renderer = gsk_renderer_new_for_surface (window);
 
-  g_test_message ("Node file: '%s'\n", node_file);
-  g_test_message ("PNG file: '%s'\n", png_file);
+  g_print ("Node file: '%s'\n", node_file);
+  g_print ("PNG file: '%s'\n", png_file);
 
   /* Load the render node from the given .node file */
   {
@@ -94,16 +106,17 @@ main (int argc, char **argv)
 
     if (!g_file_get_contents (node_file, &contents, &len, &error))
       {
-        g_test_message ("Could not open node file: %s\n", error->message);
+        g_print ("Could not open node file: %s\n", error->message);
         g_clear_error (&error);
         g_test_fail ();
         return -1;
       }
 
     bytes = g_bytes_new_take (contents, len);
-    node = gsk_render_node_deserialize (bytes, &error);
+    node = gsk_render_node_deserialize (bytes, deserialize_error_func, NULL);
     g_bytes_unref (bytes);
 
+    g_assert_no_error (error);
     g_assert (node != NULL);
   }
 
@@ -131,7 +144,5 @@ main (int argc, char **argv)
   if (diff_surface)
     save_image (diff_surface, node_file, ".diff.png");
 
-  g_assert (diff_surface == NULL);
-
-  return 0;
+  return diff_surface == NULL ? 0 : 1;
 }

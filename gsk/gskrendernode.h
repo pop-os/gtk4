@@ -25,6 +25,7 @@
 
 #include <gsk/gskroundedrect.h>
 #include <gsk/gsktypes.h>
+#include <gtk/css/gtkcss.h>
 
 G_BEGIN_DECLS
 
@@ -51,6 +52,10 @@ struct _GskShadow
   float dy;
   float radius;
 };
+
+typedef void           (* GskParseErrorFunc)                    (const GtkCssSection *section,
+                                                                 const GError        *error,
+                                                                 gpointer             user_data);
 
 GDK_AVAILABLE_IN_ALL
 GType                   gsk_render_node_get_type                (void) G_GNUC_CONST;
@@ -81,8 +86,9 @@ gboolean                gsk_render_node_write_to_file           (GskRenderNode *
                                                                  const char    *filename,
                                                                  GError       **error);
 GDK_AVAILABLE_IN_ALL
-GskRenderNode *         gsk_render_node_deserialize             (GBytes        *bytes,
-                                                                 GError       **error);
+GskRenderNode *         gsk_render_node_deserialize             (GBytes            *bytes,
+                                                                 GskParseErrorFunc  error_func,
+                                                                 gpointer           user_data);
 
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_debug_node_new                      (GskRenderNode            *child,
@@ -196,23 +202,11 @@ GskRenderNode *         gsk_container_node_get_child            (GskRenderNode  
 
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_transform_node_new                  (GskRenderNode            *child,
-                                                                 const graphene_matrix_t  *transform);
+                                                                 GskTransform             *transform);
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_transform_node_get_child            (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
-const graphene_matrix_t *
-                        gsk_transform_node_peek_transform       (GskRenderNode            *node);
-
-GDK_AVAILABLE_IN_ALL
-GskRenderNode *         gsk_offset_node_new                     (GskRenderNode            *child,
-                                                                 double                    x_offset,
-                                                                 double                    y_offset);
-GDK_AVAILABLE_IN_ALL
-GskRenderNode *         gsk_offset_node_get_child               (GskRenderNode            *node);
-GDK_AVAILABLE_IN_ALL
-double                  gsk_offset_node_get_x_offset            (GskRenderNode            *node);
-GDK_AVAILABLE_IN_ALL
-double                  gsk_offset_node_get_y_offset            (GskRenderNode            *node);
+GskTransform *          gsk_transform_node_get_transform        (GskRenderNode            *node);
 
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_opacity_node_new                    (GskRenderNode            *child,
@@ -298,8 +292,8 @@ GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_text_node_new                       (PangoFont                *font,
                                                                  PangoGlyphString         *glyphs,
                                                                  const GdkRGBA            *color,
-                                                                 double                    x,
-                                                                 double                    y);
+                                                                 float                     x,
+                                                                 float                     y);
 GDK_AVAILABLE_IN_ALL
 const PangoFont *       gsk_text_node_peek_font                 (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL

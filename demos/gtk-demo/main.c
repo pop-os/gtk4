@@ -42,25 +42,46 @@ activate_about (GSimpleAction *action,
 {
   GtkApplication *app = user_data;
   const gchar *authors[] = {
-    "The GTK+ Team",
+    "The GTK Team",
     NULL
   };
+  char *version;
+  GString *s;
+
+  s = g_string_new ("");
+
+  g_string_append (s, "System libraries\n");
+  g_string_append_printf (s, "\tGLib\t%d.%d.%d\n",
+                          glib_major_version,
+                          glib_minor_version,
+                          glib_micro_version);
+  g_string_append_printf (s, "\tGTK\t%d.%d.%d\n",
+                          gtk_get_major_version (),
+                          gtk_get_minor_version (),
+                          gtk_get_micro_version ());
+  g_string_append_printf (s, "\nA link can apppear here: <http://www.gtk.org>");
+
+  version = g_strdup_printf ("%s\nRunning against GTK %d.%d.%d",
+                             PACKAGE_VERSION,
+                             gtk_get_major_version (),
+                             gtk_get_minor_version (),
+                             gtk_get_micro_version ());
 
   gtk_show_about_dialog (GTK_WINDOW (gtk_application_get_active_window (app)),
-                         "program-name", "GTK+ Demo",
-                         "version", g_strdup_printf ("%s,\nRunning against GTK+ %d.%d.%d",
-                                                     PACKAGE_VERSION,
-                                                     gtk_get_major_version (),
-                                                     gtk_get_minor_version (),
-                                                     gtk_get_micro_version ()),
-                         "copyright", "(C) 1997-2013 The GTK+ Team",
+                         "program-name", "GTK Demo",
+                         "version", version,
+                         "copyright", "© 1997—2019 The GTK Team",
                          "license-type", GTK_LICENSE_LGPL_2_1,
                          "website", "http://www.gtk.org",
-                         "comments", "Program to demonstrate GTK+ widgets",
+                         "comments", "Program to demonstrate GTK widgets",
                          "authors", authors,
-                         "logo-icon-name", "gtk3-demo",
-                         "title", "About GTK+ Demo",
+                         "logo-icon-name", "org.gtk.Demo4",
+                         "title", "About GTK Demo",
+                         "system-information", s->str,
                          NULL);
+
+  g_string_free (s, TRUE);
+  g_free (version);
 }
 
 static void
@@ -82,6 +103,14 @@ activate_quit (GSimpleAction *action,
 
       list = next;
     }
+}
+
+static void
+activate_inspector (GSimpleAction *action,
+                    GVariant      *parameter,
+                    gpointer       user_data)
+{
+  gtk_window_set_interactive_debugging (TRUE);
 }
 
 static void
@@ -667,10 +696,9 @@ add_data_tab (const gchar *demoname)
       label = gtk_label_new (resources[i]);
       gtk_widget_show (label);
       gtk_notebook_append_page (GTK_NOTEBOOK (notebook), widget, label);
-      gtk_container_child_set (GTK_CONTAINER (notebook),
-                               widget,
-                               "tab-expand", TRUE,
-                               NULL);
+      g_object_set (gtk_notebook_get_page (GTK_NOTEBOOK (notebook), widget),
+                    "tab-expand", FALSE,
+                    NULL);
 
       g_free (resource_name);
     }
@@ -831,14 +859,13 @@ load_file (const gchar *demoname,
           /* Skipping blank lines */
           while (g_ascii_isspace (*p))
             p++;
-          if (*p)
-            {
-              p = lines[i];
-              state++;
-              /* Fall through */
-            }
-          else
+
+          if (!*p)
             break;
+
+          p = lines[i];
+          state++;
+          /* Fall through */
 
         case 3:
           /* Reading program body */
@@ -1202,6 +1229,7 @@ main (int argc, char **argv)
   static GActionEntry app_entries[] = {
     { "about", activate_about, NULL, NULL, NULL },
     { "quit", activate_quit, NULL, NULL, NULL },
+    { "inspector", activate_inspector, NULL, NULL, NULL },
   };
 
   /* Most code in gtk-demo is intended to be exemplary, but not
@@ -1214,7 +1242,7 @@ main (int argc, char **argv)
     }
   /* -- End of hack -- */
 
-  app = gtk_application_new ("org.gtk.Demo", G_APPLICATION_NON_UNIQUE|G_APPLICATION_HANDLES_COMMAND_LINE);
+  app = gtk_application_new ("org.gtk.Demo4", G_APPLICATION_NON_UNIQUE|G_APPLICATION_HANDLES_COMMAND_LINE);
 
   g_action_map_add_action_entries (G_ACTION_MAP (app),
                                    app_entries, G_N_ELEMENTS (app_entries),

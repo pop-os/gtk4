@@ -52,103 +52,10 @@
  * must both be true. For example, by calling gtk_widget_set_can_focus()
  * in the widget’s initialisation function; and by calling
  * gtk_widget_grab_focus() when the widget is clicked.
- *
- * # Installing a key binding
- *
- * A CSS file binding consists of a “binding-set” definition and a match
- * statement to apply the binding set to specific widget types. Details
- * on the matching mechanism are described under
- * [Selectors][gtkcssprovider-selectors]
- * in the #GtkCssProvider documentation. Inside the binding set
- * definition, key combinations are bound to one or more specific
- * signal emissions on the target widget. Key combinations are strings
- * consisting of an optional #GdkModifierType name and
- * [key names][gdk3-Keyboard-Handling]
- * such as those defined in `gdk/gdkkeysyms.h`
- * or returned from gdk_keyval_name(), they have to be parsable by
- * gtk_accelerator_parse(). Specifications of signal emissions consist
- * of a string identifying the signal name, and a list of signal specific
- * arguments in parenthesis.
- *
- * For example for binding Control and the left or right cursor keys
- * of a #GtkEntry widget to the #GtkEntry::move-cursor signal (so
- * movement occurs in 3-character steps), the following binding can be
- * used:
- *
- * |[ <!-- language="CSS" -->
- * @binding-set MoveCursor3
- * {
- *   bind "<Control>Right" { "move-cursor" (visual-positions, 3, 0) };
- *   bind "<Control>Left" { "move-cursor" (visual-positions, -3, 0) };
- * }
- *
- * entry
- * {
- *   -gtk-key-bindings: MoveCursor3;
- * }
- * ]|
- *
- * # Unbinding existing key bindings
- *
- * GTK+ already defines a number of useful bindings for the widgets
- * it provides. Because custom bindings set up in CSS files take
- * precedence over the default bindings shipped with GTK+, overriding
- * existing bindings as demonstrated in
- * [Installing a key binding][gtk-bindings-install]
- * works as expected. The same mechanism can not be used to “unbind”
- * existing bindings, however.
- *
- * |[ <!-- language="CSS" -->
- * @binding-set MoveCursor3
- * {
- *   bind "<Control>Right" {  };
- *   bind "<Control>Left" {  };
- * }
- *
- * entry
- * {
- *   -gtk-key-bindings: MoveCursor3;
- * }
- * ]|
- *
- * The above example will not have the desired effect of causing
- * “<Control>Right” and “<Control>Left” key presses to be ignored by GTK+.
- * Instead, it just causes any existing bindings from the bindings set
- * “MoveCursor3” to be deleted, so when “<Control>Right” or
- * “<Control>Left” are pressed, no binding for these keys is found in
- * binding set “MoveCursor3”. GTK+ will thus continue to search for
- * matching key bindings, and will eventually lookup and find the default
- * GTK+ bindings for entries which implement word movement. To keep GTK+
- * from activating its default bindings, the “unbind” keyword can be used
- * like this:
- *
- * |[ <!-- language="CSS" -->
- * @binding-set MoveCursor3
- * {
- *   unbind "<Control>Right";
- *   unbind "<Control>Left";
- * }
- *
- * entry
- * {
- *   -gtk-key-bindings: MoveCursor3;
- * }
- * ]|
- *
- * Now, GTK+ will find a match when looking up “<Control>Right” and
- * “<Control>Left” key presses before it resorts to its default bindings,
- * and the match instructs it to abort (“unbind”) the search, so the key
- * presses are not consumed by this widget. As usual, further processing
- * of the key presses, e.g. by an entry’s parent widget, is now possible.
  */
 
 /* --- defines --- */
 #define BINDING_MOD_MASK() (gtk_accelerator_get_default_mod_mask () | GDK_RELEASE_MASK)
-
-
-#define GTK_TYPE_IDENTIFIER (gtk_identifier_get_type ())
-_GDK_EXTERN
-GType gtk_identifier_get_type (void) G_GNUC_CONST;
 
 
 /* --- structures --- */
@@ -166,19 +73,6 @@ static GQuark            key_id_class_binding_set = 0;
 
 
 /* --- functions --- */
-GType
-gtk_identifier_get_type (void)
-{
-  static GType our_type = 0;
-
-  if (our_type == 0)
-    {
-      GTypeInfo tinfo = { 0, };
-      our_type = g_type_register_static (G_TYPE_STRING, I_("GtkIdentifier"), &tinfo, 0);
-    }
-
-  return our_type;
-}
 
 static GtkBindingSignal*
 binding_signal_new (const gchar *signal_name,
@@ -494,21 +388,19 @@ binding_compose_params (GObject         *object,
           if (G_TYPE_FUNDAMENTAL (*types) == G_TYPE_ENUM)
             {
               GEnumClass *class = G_ENUM_CLASS (g_type_class_ref (*types));
+              GEnumValue *enum_value;
 
               valid = FALSE;
 
-              if (args->arg_type == GTK_TYPE_IDENTIFIER)
+              enum_value = g_enum_get_value_by_name (class, args->d.string_data);
+              if (!enum_value)
+                enum_value = g_enum_get_value_by_nick (class, args->d.string_data);
+
+              if (enum_value)
                 {
-                  GEnumValue *enum_value = NULL;
-                  enum_value = g_enum_get_value_by_name (class, args->d.string_data);
-                  if (!enum_value)
-                    enum_value = g_enum_get_value_by_nick (class, args->d.string_data);
-                  if (enum_value)
-                    {
-                      g_value_init (&tmp_value, *types);
-                      g_value_set_enum (&tmp_value, enum_value->value);
-                      valid = TRUE;
-                    }
+                  g_value_init (&tmp_value, *types);
+                  g_value_set_enum (&tmp_value, enum_value->value);
+                  valid = TRUE;
                 }
 
               g_type_class_unref (class);
@@ -520,21 +412,18 @@ binding_compose_params (GObject         *object,
           else if (G_TYPE_FUNDAMENTAL (*types) == G_TYPE_FLAGS)
             {
               GFlagsClass *class = G_FLAGS_CLASS (g_type_class_ref (*types));
+              GFlagsValue *flags_value;
 
               valid = FALSE;
 
-              if (args->arg_type == GTK_TYPE_IDENTIFIER)
+              flags_value = g_flags_get_value_by_name (class, args->d.string_data);
+              if (!flags_value)
+                flags_value = g_flags_get_value_by_nick (class, args->d.string_data);
+              if (flags_value)
                 {
-                  GFlagsValue *flags_value = NULL;
-                  flags_value = g_flags_get_value_by_name (class, args->d.string_data);
-                  if (!flags_value)
-                    flags_value = g_flags_get_value_by_nick (class, args->d.string_data);
-                  if (flags_value)
-                    {
-                      g_value_init (&tmp_value, *types);
-                      g_value_set_flags (&tmp_value, flags_value->value);
-                      valid = TRUE;
-                    }
+                  g_value_init (&tmp_value, *types);
+                  g_value_set_flags (&tmp_value, flags_value->value);
+                  valid = TRUE;
                 }
 
               g_type_class_unref (class);
@@ -948,10 +837,7 @@ _gtk_binding_entry_add_signall (GtkBindingSet  *binding_set,
           arg->d.double_data = tmp_arg->d.double_data;
           break;
         case  G_TYPE_STRING:
-          if (tmp_arg->arg_type != GTK_TYPE_IDENTIFIER)
-            arg->arg_type = G_TYPE_STRING;
-          else
-            arg->arg_type = GTK_TYPE_IDENTIFIER;
+          arg->arg_type = G_TYPE_STRING;
           arg->d.string_data = g_strdup (tmp_arg->d.string_data);
           if (!arg->d.string_data)
             {
@@ -1063,8 +949,7 @@ gtk_binding_entry_add_signal (GtkBindingSet  *binding_set,
           arg->d.double_data = va_arg (args, gdouble);
           break;
         case G_TYPE_STRING:
-          if (arg->arg_type != GTK_TYPE_IDENTIFIER)
-            arg->arg_type = G_TYPE_STRING;
+          arg->arg_type = G_TYPE_STRING;
           arg->d.string_data = va_arg (args, gchar*);
           if (!arg->d.string_data)
             {
@@ -1206,7 +1091,7 @@ gtk_binding_parse_signal (GScanner       *scanner,
             {
               need_arg = FALSE;
               arg = g_new (GtkBindingArg, 1);
-              arg->arg_type = GTK_TYPE_IDENTIFIER;
+              arg->arg_type = G_TYPE_STRING;
               arg->d.string_data = g_strdup (scanner->value.v_identifier);
               args = g_slist_prepend (args, arg);
             }
@@ -1459,39 +1344,12 @@ gtk_bindings_activate_list (GObject  *object,
                             GSList   *entries,
                             gboolean  is_release)
 {
-  GtkStyleContext *context;
   GtkBindingSet *binding_set;
   gboolean handled = FALSE;
   gboolean unbound = FALSE;
-  GPtrArray *array;
 
   if (!entries)
     return FALSE;
-
-  context = gtk_widget_get_style_context (GTK_WIDGET (object));
-
-  gtk_style_context_get (context,
-                         "-gtk-key-bindings", &array,
-                         NULL);
-  if (array)
-    {
-      gint i;
-
-      for (i = 0; i < array->len; i++)
-        {
-          binding_set = g_ptr_array_index (array, i);
-          handled = binding_activate (binding_set, entries,
-                                      object, is_release,
-                                      &unbound);
-          if (handled || unbound)
-            break;
-        }
-
-      g_ptr_array_unref (array);
-
-      if (unbound)
-        return FALSE;
-    }
 
   if (!handled)
     {

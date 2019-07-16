@@ -82,8 +82,7 @@ struct _GtkEntry
  *   non-%NULL, this will be called to add additional entries to the context
  *   menu when it is displayed.
  * @activate: Class handler for the #GtkEntry::activate signal. The default
- *   implementation calls gtk_window_activate_default() on the entry’s top-level
- *   window.
+ *   implementation activates the gtk.activate-default action.
  * @move_cursor: Class handler for the #GtkEntry::move-cursor signal. The
  *   default implementation specifies the standard #GtkEntry cursor movement
  *   behavior.
@@ -115,28 +114,9 @@ struct _GtkEntryClass
 {
   GtkWidgetClass parent_class;
 
-  /* Hook to customize right-click popup */
-  void (* populate_popup)   (GtkEntry       *entry,
-                             GtkWidget      *popup);
-
   /* Action signals
    */
   void (* activate)           (GtkEntry             *entry);
-  void (* move_cursor)        (GtkEntry             *entry,
-			       GtkMovementStep       step,
-			       gint                  count,
-			       gboolean              extend_selection);
-  void (* insert_at_cursor)   (GtkEntry             *entry,
-			       const gchar          *str);
-  void (* delete_from_cursor) (GtkEntry             *entry,
-			       GtkDeleteType         type,
-			       gint                  count);
-  void (* backspace)          (GtkEntry             *entry);
-  void (* cut_clipboard)      (GtkEntry             *entry);
-  void (* copy_clipboard)     (GtkEntry             *entry);
-  void (* paste_clipboard)    (GtkEntry             *entry);
-  void (* toggle_overwrite)   (GtkEntry             *entry);
-  void (* insert_emoji)       (GtkEntry             *entry);
 
   /*< private >*/
 
@@ -204,33 +184,6 @@ GDK_AVAILABLE_IN_ALL
 gboolean   gtk_entry_get_activates_default      (GtkEntry      *entry);
 
 GDK_AVAILABLE_IN_ALL
-void       gtk_entry_set_width_chars            (GtkEntry      *entry,
-                                                 gint           n_chars);
-GDK_AVAILABLE_IN_ALL
-gint       gtk_entry_get_width_chars            (GtkEntry      *entry);
-
-GDK_AVAILABLE_IN_ALL
-void       gtk_entry_set_max_width_chars        (GtkEntry      *entry,
-                                                 gint           n_chars);
-GDK_AVAILABLE_IN_ALL
-gint       gtk_entry_get_max_width_chars        (GtkEntry      *entry);
-
-/* Somewhat more convenient than the GtkEditable generic functions
- */
-GDK_AVAILABLE_IN_ALL
-void       gtk_entry_set_text                   (GtkEntry      *entry,
-                                                 const gchar   *text);
-/* returns a reference to the text */
-GDK_AVAILABLE_IN_ALL
-const gchar* gtk_entry_get_text        (GtkEntry      *entry);
-
-GDK_AVAILABLE_IN_ALL
-PangoLayout* gtk_entry_get_layout               (GtkEntry      *entry);
-GDK_AVAILABLE_IN_ALL
-void         gtk_entry_get_layout_offsets       (GtkEntry      *entry,
-                                                 gint          *x,
-                                                 gint          *y);
-GDK_AVAILABLE_IN_ALL
 void       gtk_entry_set_alignment              (GtkEntry      *entry,
                                                  gfloat         xalign);
 GDK_AVAILABLE_IN_ALL
@@ -241,13 +194,6 @@ void                gtk_entry_set_completion (GtkEntry           *entry,
                                               GtkEntryCompletion *completion);
 GDK_AVAILABLE_IN_ALL
 GtkEntryCompletion *gtk_entry_get_completion (GtkEntry           *entry);
-
-GDK_AVAILABLE_IN_ALL
-gint       gtk_entry_layout_index_to_text_index (GtkEntry      *entry,
-                                                 gint           layout_index);
-GDK_AVAILABLE_IN_ALL
-gint       gtk_entry_text_index_to_layout_index (GtkEntry      *entry,
-                                                 gint           text_index);
 
 /* Progress API
  */
@@ -340,9 +286,6 @@ void         gtk_entry_get_icon_area                     (GtkEntry             *
                                                           GtkEntryIconPosition  icon_pos,
                                                           GdkRectangle         *icon_area);
 
-GDK_AVAILABLE_IN_ALL
-gboolean    gtk_entry_im_context_filter_keypress         (GtkEntry             *entry,
-                                                          GdkEventKey          *event);
 GDK_AVAILABLE_IN_ALL
 void        gtk_entry_reset_im_context                   (GtkEntry             *entry);
 

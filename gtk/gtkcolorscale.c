@@ -36,6 +36,7 @@ typedef struct
 {
   GdkRGBA color;
   GtkColorScaleType type;
+  GdkTexture *hue_texture;
 } GtkColorScalePrivate;
 
 enum
@@ -54,8 +55,6 @@ G_DEFINE_TYPE_WITH_PRIVATE (GtkColorScale, gtk_color_scale, GTK_TYPE_SCALE)
 void
 gtk_color_scale_snapshot_trough (GtkColorScale  *scale,
                                  GtkSnapshot    *snapshot,
-                                 int             x,
-                                 int             y,
                                  int             width,
                                  int             height)
 {
@@ -65,45 +64,59 @@ gtk_color_scale_snapshot_trough (GtkColorScale  *scale,
   if (width <= 1 || height <= 1)
     return;
 
+  if (priv->hue_texture  &&
+      (width != gdk_texture_get_width (priv->hue_texture) ||
+       height != gdk_texture_get_height (priv->hue_texture)))
+    g_clear_object (&priv->hue_texture);
+
   if (priv->type == GTK_COLOR_SCALE_HUE)
     {
-      GdkTexture *texture;
-      gint stride;
-      GBytes *bytes;
-      guchar *data, *p;
-      gdouble h;
-      gdouble r, g, b;
-      gdouble f;
-      int hue_x, hue_y;
-
-      stride = width * 3;
-      data = g_malloc (width * height * 3);
-
-      f = 1.0 / (height - 1);
-      for (hue_y = 0; hue_y < height; hue_y++)
+      if (!priv->hue_texture)
         {
-          h = CLAMP (hue_y * f, 0.0, 1.0);
-          p = data + hue_y * stride;
-          for (hue_x = 0; hue_x < stride; hue_x += 3)
+          GdkTexture *texture;
+          gint stride;
+          GBytes *bytes;
+          guchar *data, *p;
+          gdouble h;
+          gdouble r, g, b;
+          gdouble f;
+          int hue_x, hue_y;
+
+          stride = width * 3;
+          data = g_malloc (width * height * 3);
+
+          f = 1.0 / (height - 1);
+          for (hue_y = 0; hue_y < height; hue_y++)
             {
-              gtk_hsv_to_rgb (h, 1, 1, &r, &g, &b);
-              p[hue_x + 0] = CLAMP (r * 255, 0, 255);
-              p[hue_x + 1] = CLAMP (g * 255, 0, 255);
-              p[hue_x + 2] = CLAMP (b * 255, 0, 255);
+              h = CLAMP (hue_y * f, 0.0, 1.0);
+              p = data + hue_y * stride;
+              for (hue_x = 0; hue_x < stride; hue_x += 3)
+                {
+                  gtk_hsv_to_rgb (h, 1, 1, &r, &g, &b);
+                  p[hue_x + 0] = CLAMP (r * 255, 0, 255);
+                  p[hue_x + 1] = CLAMP (g * 255, 0, 255);
+                  p[hue_x + 2] = CLAMP (b * 255, 0, 255);
+                }
             }
+
+          bytes = g_bytes_new_take (data, width * height * 3);
+          texture = gdk_memory_texture_new (width, height,
+                                            GDK_MEMORY_R8G8B8,
+                                            bytes,
+                                            stride);
+          g_bytes_unref (bytes);
+
+          gtk_snapshot_append_texture (snapshot,
+                                       texture,
+                                       &GRAPHENE_RECT_INIT(0, 0, width, height));
+          priv->hue_texture = texture;
         }
-
-      bytes = g_bytes_new_take (data, width * height * 3);
-      texture = gdk_memory_texture_new (width, height,
-                                        GDK_MEMORY_R8G8B8,
-                                        bytes,
-                                        stride);
-      g_bytes_unref (bytes);
-
-      gtk_snapshot_append_texture (snapshot,
-                                   texture,
-                                   &GRAPHENE_RECT_INIT(x, y, width, height));
-      g_object_unref (texture);
+      else
+        {
+          gtk_snapshot_append_texture (snapshot,
+                                       priv->hue_texture,
+                                       &GRAPHENE_RECT_INIT(0, 0, width, height));
+        }
     }
   else if (priv->type == GTK_COLOR_SCALE_ALPHA)
     {
@@ -111,21 +124,20 @@ gtk_color_scale_snapshot_trough (GtkColorScale  *scale,
       graphene_point_t start, end;
 
       cr = gtk_snapshot_append_cairo (snapshot,
-                                      &GRAPHENE_RECT_INIT(x, y, width, height));
-      cairo_translate (cr, x, y);
+                                      &GRAPHENE_RECT_INIT(0, 0, width, height));
 
       if (gtk_orientable_get_orientation (GTK_ORIENTABLE (widget)) == GTK_ORIENTATION_HORIZONTAL &&
           gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL)
         {
           cairo_translate (cr, width, 0);
           cairo_scale (cr, -1, 1);
-          graphene_point_init (&start, x + width, y);
-          graphene_point_init (&end, x, y);
+          graphene_point_init (&start, width, 0);
+          graphene_point_init (&end, 0, 0);
         }
       else
         {
-          graphene_point_init (&start, x, y);
-          graphene_point_init (&end, x + width, y);
+          graphene_point_init (&start, 0, 0);
+          graphene_point_init (&end, width, 0);
         }
 
       cairo_pattern_t *pattern;
@@ -147,7 +159,7 @@ gtk_color_scale_snapshot_trough (GtkColorScale  *scale,
       color = &priv->color;
 
       gtk_snapshot_append_linear_gradient (snapshot,
-                                           &GRAPHENE_RECT_INIT(x, y, width, height),
+                                           &GRAPHENE_RECT_INIT(0, 0, width, height),
                                            &start,
                                            &end,
                                            (GskColorStop[2]) {
@@ -246,10 +258,21 @@ hold_action (GtkGestureLongPress *gesture,
 }
 
 static void
+scale_finalize (GObject *object)
+{
+  GtkColorScalePrivate *priv = gtk_color_scale_get_instance_private (GTK_COLOR_SCALE (object));
+
+  g_clear_object (&priv->hue_texture);
+
+  G_OBJECT_CLASS (gtk_color_scale_parent_class)->finalize (object);
+}
+
+static void
 gtk_color_scale_class_init (GtkColorScaleClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
 
+  object_class->finalize = scale_finalize;
   object_class->get_property = scale_get_property;
   object_class->set_property = scale_set_property;
 
@@ -266,7 +289,7 @@ gtk_color_scale_set_rgba (GtkColorScale *scale,
   GtkColorScalePrivate *priv = gtk_color_scale_get_instance_private (scale);
 
   priv->color = *color;
-  gtk_widget_queue_draw (GTK_WIDGET (scale));
+  gtk_widget_queue_draw (gtk_range_get_trough_widget (GTK_RANGE (scale)));
 }
 
 GtkWidget *

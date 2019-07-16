@@ -36,9 +36,6 @@ static void gdk_broadway_device_get_state (GdkDevice       *device,
 static void gdk_broadway_device_set_surface_cursor (GdkDevice *device,
                                                     GdkSurface *surface,
                                                     GdkCursor *cursor);
-static void gdk_broadway_device_warp (GdkDevice *device,
-                                      gdouble    x,
-                                      gdouble    y);
 static void gdk_broadway_device_query_state (GdkDevice        *device,
                                              GdkSurface        *surface,
                                              GdkSurface       **child_surface,
@@ -73,7 +70,6 @@ gdk_broadway_device_class_init (GdkBroadwayDeviceClass *klass)
   device_class->get_history = gdk_broadway_device_get_history;
   device_class->get_state = gdk_broadway_device_get_state;
   device_class->set_surface_cursor = gdk_broadway_device_set_surface_cursor;
-  device_class->warp = gdk_broadway_device_warp;
   device_class->query_state = gdk_broadway_device_query_state;
   device_class->grab = gdk_broadway_device_grab;
   device_class->ungrab = gdk_broadway_device_ungrab;
@@ -110,7 +106,7 @@ gdk_broadway_device_get_state (GdkDevice       *device,
 {
   gdouble x, y;
 
-  gdk_surface_get_device_position_double (surface, device, &x, &y, mask);
+  gdk_surface_get_device_position (surface, device, &x, &y, mask);
 
   if (axes)
     {
@@ -123,13 +119,6 @@ static void
 gdk_broadway_device_set_surface_cursor (GdkDevice *device,
                                         GdkSurface *surface,
                                         GdkCursor *cursor)
-{
-}
-
-static void
-gdk_broadway_device_warp (GdkDevice *device,
-                          gdouble    x,
-                          gdouble    y)
 {
 }
 

@@ -201,7 +201,7 @@ limit_layout_lines (PangoLayout *layout)
 GdkPaintable *
 gtk_text_util_create_drag_icon (GtkWidget *widget,
                                 gchar     *text,
-                                gsize      len)
+                                gssize     len)
 {
   GtkStyleContext *style_context;
   GtkSnapshot *snapshot;
@@ -244,15 +244,17 @@ set_attributes_from_style (GtkStyleContext   *context,
                            GtkTextAttributes *values)
 {
   const GdkRGBA black = { 0, };
+  GdkRGBA *bg;
 
   if (!values->appearance.bg_rgba)
     values->appearance.bg_rgba = gdk_rgba_copy (&black);
   if (!values->appearance.fg_rgba)
     values->appearance.fg_rgba = gdk_rgba_copy (&black);
 
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-  gtk_style_context_get_background_color (context, values->appearance.bg_rgba);
-G_GNUC_END_IGNORE_DEPRECATIONS
+  
+  gtk_style_context_get (context, "background-color", &bg, NULL);
+  *values->appearance.bg_rgba = *bg;
+  gdk_rgba_free (bg);
   gtk_style_context_get_color (context, values->appearance.fg_rgba);
 
   if (values->font)
@@ -276,7 +278,6 @@ gtk_text_util_create_rich_drag_icon (GtkWidget     *widget,
   GtkTextAttributes *style;
   PangoContext      *ltr_context, *rtl_context;
   GtkTextIter        iter;
-  cairo_t           *cr;
 
   g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
   g_return_val_if_fail (GTK_IS_TEXT_BUFFER (buffer), NULL);
@@ -333,12 +334,9 @@ gtk_text_util_create_rich_drag_icon (GtkWidget     *widget,
   layout_height = MIN (layout_height, DRAG_ICON_MAX_HEIGHT);
 
   snapshot = gtk_snapshot_new ();
-  cr = gtk_snapshot_append_cairo (snapshot,
-                                  &GRAPHENE_RECT_INIT (0, 0, layout_width, layout_height));
 
-  gtk_text_layout_draw (layout, widget, cr);
+  gtk_text_layout_snapshot (layout, widget, snapshot, &(GdkRectangle) { 0, 0, layout_width, layout_height });
 
-  cairo_destroy (cr);
   g_object_unref (layout);
   g_object_unref (new_buffer);
 

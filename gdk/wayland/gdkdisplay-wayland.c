@@ -38,6 +38,7 @@
 #include "gdkdisplay.h"
 #include "gdkdisplay-wayland.h"
 #include "gdkmonitor-wayland.h"
+#include "gdkseat-wayland.h"
 #include "gdkinternals.h"
 #include "gdkdeviceprivate.h"
 #include "gdkkeysprivate.h"
@@ -63,8 +64,7 @@
  *
  * The functions in this section are specific to the GDK Wayland backend.
  * To use them, you need to include the `<gdk/gdkwayland.h>` header and use
- * the Wayland-specific pkg-config files to build your application (either
- * `gdk-wayland-3.0` or `gtk+-wayland-3.0`).
+ * the Wayland-specific pkg-config `gtk4-wayland` file to build your application.
  *
  * To make your code compile with other GDK backends, guard backend-specific
  * calls by an ifdef as follows. Since GDK may be built with multiple
@@ -396,6 +396,8 @@ static void gdk_wayland_display_add_output        (GdkWaylandDisplay *display_wa
                                                    guint32            version);
 static void gdk_wayland_display_remove_output     (GdkWaylandDisplay *display_wayland,
                                                    guint32            id);
+static void gdk_wayland_display_init_xdg_output   (GdkWaylandDisplay *display_wayland);
+static void gdk_wayland_display_get_xdg_output    (GdkWaylandMonitor *monitor);
 
 static void
 gdk_registry_handle_global (void               *data,
@@ -526,6 +528,13 @@ gdk_registry_handle_global (void               *data,
       org_kde_kwin_server_decoration_manager_add_listener (display_wayland->server_decoration_manager,
                                                            &server_decoration_listener,
                                                            display_wayland);
+    }
+  else if (strcmp(interface, "zxdg_output_manager_v1") == 0)
+    {
+      display_wayland->xdg_output_manager =
+            wl_registry_bind (registry, id, &zxdg_output_manager_v1_interface, 1);
+      gdk_wayland_display_init_xdg_output (display_wayland);
+      _gdk_wayland_display_async_roundtrip (display_wayland);
     }
 
   g_hash_table_insert (display_wayland->known_globals,
@@ -729,7 +738,10 @@ gdk_wayland_display_finalize (GObject *object)
 
   g_ptr_array_free (display_wayland->monitors, TRUE);
 
-  g_hash_table_destroy (display_wayland->settings);
+  if (display_wayland->settings)
+    g_hash_table_destroy (display_wayland->settings);
+
+  g_clear_object (&display_wayland->settings_portal);
 
   G_OBJECT_CLASS (gdk_wayland_display_parent_class)->finalize (object);
 }
@@ -1206,13 +1218,21 @@ open_shared_memory (void)
 #if defined (__NR_memfd_create)
       if (!force_shm_open)
         {
-          ret = syscall (__NR_memfd_create, "gdk-wayland", MFD_CLOEXEC);
+          int options = MFD_CLOEXEC;
+#if defined (MFD_ALLOW_SEALING)
+          options |= MFD_ALLOW_SEALING;
+#endif
+          ret = syscall (__NR_memfd_create, "gdk-wayland", options);
 
           /* fall back to shm_open until debian stops shipping 3.16 kernel
            * See bug 766341
            */
           if (ret < 0 && errno == ENOSYS)
             force_shm_open = TRUE;
+#if defined (F_ADD_SEALS) && defined (F_SEAL_SHRINK)
+          if (ret >= 0)
+            fcntl (ret, F_ADD_SEALS, F_SEAL_SHRINK);
+#endif
         }
 #endif
 
@@ -1367,6 +1387,19 @@ typedef enum
   GSD_FONT_ANTIALIASING_MODE_RGBA
 } GsdFontAntialiasingMode;
 
+static int
+get_antialiasing (const char *s)
+{
+  const char *names[] = { "none", "grayscale", "rgba" };
+  int i;
+
+  for (i = 0; i < G_N_ELEMENTS (names); i++)
+    if (strcmp (s, names[i]) == 0)
+      return i;
+
+  return 0;
+}
+
 typedef enum
 {
   GSD_FONT_HINTING_NONE,
@@ -1374,6 +1407,19 @@ typedef enum
   GSD_FONT_HINTING_MEDIUM,
   GSD_FONT_HINTING_FULL
 } GsdFontHinting;
+
+static int
+get_hinting (const char *s)
+{
+  const char *names[] = { "none", "slight", "medium", "full" };
+  int i;
+
+  for (i = 0; i < G_N_ELEMENTS (names); i++)
+    if (strcmp (s, names[i]) == 0)
+      return i;
+
+  return 0;
+}
 
 typedef enum
 {
@@ -1383,6 +1429,19 @@ typedef enum
   GSD_FONT_RGBA_ORDER_VRGB,
   GSD_FONT_RGBA_ORDER_VBGR
 } GsdFontRgbaOrder;
+
+static int
+get_order (const char *s)
+{
+  const char *names[] = { "rgba", "rgb", "bgr", "vrgb", "vbgr" };
+  int i;
+
+  for (i = 0; i < G_N_ELEMENTS (names); i++)
+    if (strcmp (s, names[i]) == 0)
+      return i;
+
+  return 0;
+}
 
 static gdouble
 get_dpi_from_gsettings (GdkWaylandDisplay *display_wayland)
@@ -1400,6 +1459,26 @@ get_dpi_from_gsettings (GdkWaylandDisplay *display_wayland)
   return 96.0 * factor;
 }
 
+/* When using the Settings portal, we cache the value in
+ * the fallback member, and we ignore the valid field
+ */
+typedef struct _TranslationEntry TranslationEntry;
+struct _TranslationEntry {
+  gboolean valid;
+  const gchar *schema;
+  const gchar *key;
+  const gchar *setting;
+  GType type;
+  union {
+    const char *s;
+    gint         i;
+    gboolean     b;
+  } fallback;
+};
+
+static TranslationEntry * find_translation_entry_by_schema (const char *schema,
+                                                            const char *key);
+
 static void
 update_xft_settings (GdkDisplay *display)
 {
@@ -1410,25 +1489,47 @@ update_xft_settings (GdkDisplay *display)
   GsdFontRgbaOrder order;
   gboolean use_rgba = FALSE;
   GsdXftSettings xft_settings;
+  double dpi;
 
-  settings = g_hash_table_lookup (display_wayland->settings,
-                                  "org.gnome.settings-daemon.plugins.xsettings");
-
-  if (settings)
+  if (display_wayland->settings_portal)
     {
-      antialiasing = g_settings_get_enum (settings, "antialiasing");
-      hinting = g_settings_get_enum (settings, "hinting");
-      order = g_settings_get_enum (settings, "rgba-order");
+      TranslationEntry *entry;
+
+      entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "antialiasing");
+      antialiasing = entry->fallback.i;
+
+      entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "hinting");
+      hinting = entry->fallback.i;
+
+      entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "rgba-order");
+      order = entry->fallback.i;
+
+      entry = find_translation_entry_by_schema ("org.gnome.desktop.interface", "text-scaling-factor");
+      dpi = 96.0 * entry->fallback.i / 65536.0 * 1024; /* Xft wants 1/1024th of an inch */
     }
   else
     {
-      antialiasing = GSD_FONT_ANTIALIASING_MODE_GRAYSCALE;
-      hinting = GSD_FONT_HINTING_MEDIUM;
-      order = GSD_FONT_RGBA_ORDER_RGB;
+      settings = g_hash_table_lookup (display_wayland->settings,
+                                      "org.gnome.settings-daemon.plugins.xsettings");
+
+      if (settings)
+        {
+          antialiasing = g_settings_get_enum (settings, "antialiasing");
+          hinting = g_settings_get_enum (settings, "hinting");
+          order = g_settings_get_enum (settings, "rgba-order");
+        }
+      else
+        {
+          antialiasing = GSD_FONT_ANTIALIASING_MODE_GRAYSCALE;
+          hinting = GSD_FONT_HINTING_MEDIUM;
+          order = GSD_FONT_RGBA_ORDER_RGB;
+        }
+
+      dpi = get_dpi_from_gsettings (display_wayland) * 1024;
     }
 
   xft_settings.hinting = (hinting != GSD_FONT_HINTING_NONE);
-  xft_settings.dpi = get_dpi_from_gsettings (display_wayland) * 1024; /* Xft wants 1/1024ths of an inch */
+  xft_settings.dpi = dpi;
 
   switch (hinting)
     {
@@ -1515,23 +1616,6 @@ update_xft_settings (GdkDisplay *display)
     }
 }
 
-#define WM_SETTINGS_SCHEMA "org.gnome.desktop.wm.preferences"
-#define CLASSIC_WM_SETTINGS_SCHEMA "org.gnome.shell.extensions.classic-overrides"
-
-typedef struct _TranslationEntry TranslationEntry;
-struct _TranslationEntry {
-  gboolean valid;
-  const gchar *schema;
-  const gchar *key;
-  const gchar *setting;
-  GType type;
-  union {
-    const gchar *s;
-    gint         i;
-    gboolean     b;
-  } fallback;
-};
-
 static TranslationEntry translations[] = {
   { FALSE, "org.gnome.desktop.interface", "gtk-theme", "gtk-theme-name" , G_TYPE_STRING, { .s = "Adwaita" } },
   { FALSE, "org.gnome.desktop.interface", "icon-theme", "gtk-icon-theme-name", G_TYPE_STRING, { .s = "gnome" } },
@@ -1551,41 +1635,48 @@ static TranslationEntry translations[] = {
   { FALSE, "org.gnome.desktop.sound", "input-feedback-sounds", "gtk-enable-input-feedback-sounds", G_TYPE_BOOLEAN, { . b = FALSE } },
   { FALSE, "org.gnome.desktop.privacy", "recent-files-max-age", "gtk-recent-files-max-age", G_TYPE_INT, { .i = 30 } },
   { FALSE, "org.gnome.desktop.privacy", "remember-recent-files",    "gtk-recent-files-enabled", G_TYPE_BOOLEAN, { .b = TRUE } },
-  { FALSE, WM_SETTINGS_SCHEMA, "button-layout",    "gtk-decoration-layout", G_TYPE_STRING, { .s = "menu:close" } },
-  { FALSE, CLASSIC_WM_SETTINGS_SCHEMA, "button-layout",   "gtk-decoration-layout", G_TYPE_STRING, { .s = "menu:close" } },
+  { FALSE, "org.gnome.desktop.wm.preferences", "button-layout",    "gtk-decoration-layout", G_TYPE_STRING, { .s = "menu:close" } },
   { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "antialiasing", "gtk-xft-antialias", G_TYPE_NONE, { .i = 0 } },
   { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "hinting", "gtk-xft-hinting", G_TYPE_NONE, { .i = 0 } },
   { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "hinting", "gtk-xft-hintstyle", G_TYPE_NONE, { .i = 0 } },
   { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "rgba-order", "gtk-xft-rgba", G_TYPE_NONE, { .i = 0 } },
-  { FALSE, "org.gnome.desktop.interface", "text-scaling-factor", "gtk-xft-dpi" , G_TYPE_NONE, { .i = 0 } },
+  { FALSE, "org.gnome.desktop.interface", "text-scaling-factor", "gtk-xft-dpi" , G_TYPE_NONE, { .i = 0 } }, /* We store the factor as 16.16 */
   { FALSE, "org.gnome.desktop.wm.preferences", "action-double-click-titlebar", "gtk-titlebar-double-click", G_TYPE_STRING, { .s = "toggle-maximize" } },
   { FALSE, "org.gnome.desktop.wm.preferences", "action-middle-click-titlebar", "gtk-titlebar-middle-click", G_TYPE_STRING, { .s = "none" } },
   { FALSE, "org.gnome.desktop.wm.preferences", "action-right-click-titlebar", "gtk-titlebar-right-click", G_TYPE_STRING, { .s = "menu" } },
-  { FALSE, "org.gnome.desktop.a11y", "always-show-text-caret", "gtk-keynav-use-caret", G_TYPE_BOOLEAN, { .b = FALSE } }
+  { FALSE, "org.gnome.desktop.a11y", "always-show-text-caret", "gtk-keynav-use-caret", G_TYPE_BOOLEAN, { .b = FALSE } },
+  { FALSE, "org.gnome.fontconfig", "serial", "gtk-fontconfig-timestamp", G_TYPE_NONE, { .i = 0 } }
 };
 
+
 static TranslationEntry *
-find_translation_entry_by_key (GSettings  *settings,
-                               const char *key)
+find_translation_entry_by_schema (const char *schema,
+                                  const char *key)
 {
   guint i;
-  char *schema;
-
-  g_object_get (settings, "schema", &schema, NULL);
 
   for (i = 0; i < G_N_ELEMENTS (translations); i++)
     {
       if (g_str_equal (schema, translations[i].schema) &&
           g_str_equal (key, translations[i].key))
-        {
-          g_free (schema);
-          return &translations[i];
-        }
+        return &translations[i];
     }
 
+  return NULL;
+}
+
+static TranslationEntry *
+find_translation_entry_by_key (GSettings  *settings,
+                               const char *key)
+{
+  char *schema;
+  TranslationEntry *entry;
+
+  g_object_get (settings, "schema", &schema, NULL);
+  entry = find_translation_entry_by_schema (schema, key);
   g_free (schema);
 
-  return NULL;
+  return entry;
 }
 
 static TranslationEntry *
@@ -1621,6 +1712,79 @@ settings_changed (GSettings  *settings,
 }
 
 static void
+apply_portal_setting (TranslationEntry *entry,
+                      GVariant         *value,
+                      GdkDisplay       *display)
+{
+  switch (entry->type)
+    {
+    case G_TYPE_STRING:
+      entry->fallback.s = g_intern_string (g_variant_get_string (value, NULL));
+      break;
+    case G_TYPE_INT:
+      entry->fallback.i = g_variant_get_int32 (value);
+      break;
+    case G_TYPE_BOOLEAN:
+      entry->fallback.b = g_variant_get_boolean (value);
+      break;
+    case G_TYPE_NONE:
+      if (strcmp (entry->key, "serial") == 0)
+        {
+          entry->fallback.i = g_variant_get_int32 (value);
+          break;
+        }
+      if (strcmp (entry->key, "antialiasing") == 0)
+        entry->fallback.i = get_antialiasing (g_variant_get_string (value, NULL));
+      else if (strcmp (entry->key, "hinting") == 0)
+        entry->fallback.i = get_hinting (g_variant_get_string (value, NULL));
+      else if (strcmp (entry->key, "rgba-order") == 0)
+        entry->fallback.i = get_order (g_variant_get_string (value, NULL));
+      else if (strcmp (entry->key, "text-scaling-factor") == 0)
+        entry->fallback.i = (int) (g_variant_get_double (value) * 65536.0);
+      update_xft_settings (display);
+      break;
+    default:
+      break;
+    }
+}
+
+static void
+settings_portal_changed (GDBusProxy *proxy,
+                         const char *sender_name,
+                         const char *signal_name,
+                         GVariant   *parameters,
+                         GdkDisplay *display)
+{
+  if (strcmp (signal_name, "SettingChanged") == 0)
+    {
+      const char *namespace;
+      const char *name;
+      GVariant *value;
+      TranslationEntry *entry;
+
+      g_variant_get (parameters, "(&s&sv)", &namespace, &name, &value);
+
+      entry = find_translation_entry_by_schema (namespace, name);
+      if (entry != NULL)
+        {
+          char *a = g_variant_print (value, FALSE);
+          g_debug ("Using changed portal setting %s %s: %s", namespace, name, a);
+          g_free (a);
+          apply_portal_setting (entry, value, display);
+          gdk_display_setting_changed (display, entry->setting);
+        }
+      else
+        g_debug ("Ignoring portal setting %s %s", namespace, name);
+
+      g_variant_unref (value);
+    }
+}
+
+#define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
+#define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"
+#define PORTAL_SETTINGS_INTERFACE "org.freedesktop.portal.Settings"
+
+static void
 init_settings (GdkDisplay *display)
 {
   GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
@@ -1628,6 +1792,86 @@ init_settings (GdkDisplay *display)
   GSettingsSchema *schema;
   GSettings *settings;
   gint i;
+
+  if (gdk_should_use_portal ())
+    {
+      GVariant *ret;
+      GError *error = NULL;
+      const char *schema_str;
+      GVariant *val;
+      GVariantIter *iter;
+      const char *patterns[] = { "org.gnome.*", NULL }; 
+
+      display_wayland->settings_portal = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
+                                                                        G_DBUS_PROXY_FLAGS_NONE,
+                                                                        NULL,
+                                                                        PORTAL_BUS_NAME,
+                                                                        PORTAL_OBJECT_PATH,
+                                                                        PORTAL_SETTINGS_INTERFACE,
+                                                                        NULL,
+                                                                        &error);
+      if (error)
+        {
+          g_warning ("Settings portal not found: %s", error->message);
+          g_error_free (error);
+
+          goto fallback;
+        }
+
+      ret = g_dbus_proxy_call_sync (display_wayland->settings_portal,
+                                    "ReadAll",
+                                    g_variant_new ("(^as)", patterns),
+                                    G_DBUS_CALL_FLAGS_NONE,
+                                    G_MAXINT,
+                                    NULL,
+                                    &error);
+
+      if (error)
+        {
+          g_warning ("Failed to read portal settings: %s", error->message);
+          g_error_free (error);
+          g_clear_object (&display_wayland->settings_portal);
+
+          goto fallback;
+        }
+
+      g_variant_get (ret, "(a{sa{sv}})", &iter);
+
+      while (g_variant_iter_loop (iter, "{s@a{sv}}", &schema_str, &val))
+        {
+          GVariantIter *iter2 = g_variant_iter_new (val);
+          const char *key;
+          GVariant *v;
+
+          while (g_variant_iter_loop (iter2, "{sv}", &key, &v))
+            {
+              TranslationEntry *entry = find_translation_entry_by_schema (schema_str, key);
+              if (entry)
+                {
+                  char *a = g_variant_print (v, FALSE);
+                  g_debug ("Using portal setting for %s %s: %s\n", schema_str, key, a);
+                  g_free (a);
+                  apply_portal_setting (entry, v, display);
+                }
+              else
+                {
+                  g_debug ("Ignoring portal setting for %s %s", schema_str, key);
+                }
+            }
+          g_variant_iter_free (iter2);
+        }
+      g_variant_iter_free (iter);
+
+      g_variant_unref (ret);
+
+      g_signal_connect (display_wayland->settings_portal, "g-signal",
+                        G_CALLBACK (settings_portal_changed), display_wayland);
+
+      return;
+
+fallback:
+      g_debug ("Failed to use Settings portal; falling back to gsettings");
+    }
 
   g_intern_static_string ("antialiasing");
   g_intern_static_string ("hinting");
@@ -1700,6 +1944,43 @@ set_value_from_entry (GdkDisplay       *display,
   GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
   GSettings *settings;
 
+  if (display_wayland->settings_portal)
+    {
+      switch (entry->type)
+        {
+        case G_TYPE_STRING:
+          g_value_set_string (value, entry->fallback.s);
+          break;
+        case G_TYPE_INT:
+          g_value_set_int (value, entry->fallback.i);
+          break;
+        case G_TYPE_BOOLEAN:
+          g_value_set_boolean (value, entry->fallback.b);
+          break;
+        case G_TYPE_NONE:
+          if (g_str_equal (entry->setting, "gtk-fontconfig-timestamp"))
+            g_value_set_uint (value, (guint)entry->fallback.i);
+          else if (g_str_equal (entry->setting, "gtk-xft-antialias"))
+            g_value_set_int (value, display_wayland->xft_settings.antialias);
+          else if (g_str_equal (entry->setting, "gtk-xft-hinting"))
+            g_value_set_int (value, display_wayland->xft_settings.hinting);
+          else if (g_str_equal (entry->setting, "gtk-xft-hintstyle"))
+            g_value_set_static_string (value, display_wayland->xft_settings.hintstyle);
+          else if (g_str_equal (entry->setting, "gtk-xft-rgba"))
+            g_value_set_static_string (value, display_wayland->xft_settings.rgba);
+          else if (g_str_equal (entry->setting, "gtk-xft-dpi"))
+            g_value_set_int (value, display_wayland->xft_settings.dpi);
+          else
+            g_assert_not_reached ();
+          break;
+        default:
+          g_assert_not_reached ();
+          break;
+        }
+
+      return;
+    }
+
   settings = (GSettings *)g_hash_table_lookup (display_wayland->settings, entry->schema);
   switch (entry->type)
     {
@@ -1727,7 +2008,9 @@ set_value_from_entry (GdkDisplay       *display,
                                   : entry->fallback.b);
       break;
     case G_TYPE_NONE:
-      if (g_str_equal (entry->setting, "gtk-xft-antialias"))
+      if (g_str_equal (entry->setting, "gtk-fontconfig-timestamp"))
+        g_value_set_uint (value, (guint)entry->fallback.i);
+      else if (g_str_equal (entry->setting, "gtk-xft-antialias"))
         g_value_set_int (value, display_wayland->xft_settings.antialias);
       else if (g_str_equal (entry->setting, "gtk-xft-hinting"))
         g_value_set_int (value, display_wayland->xft_settings.hinting);
@@ -1752,18 +2035,14 @@ set_decoration_layout_from_entry (GdkDisplay       *display,
 {
   GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
   GSettings *settings = NULL;
-  const char *session;
 
-  /* Hack: until we get session-dependent defaults in GSettings,
-   *       swap out the usual schema for the "classic" one when
-   *       running in classic mode
-   */
-  session = g_getenv ("XDG_CURRENT_DESKTOP");
-  if (session && strstr (session, "GNOME-Classic"))
-    settings = (GSettings *)g_hash_table_lookup (display_wayland->settings, CLASSIC_WM_SETTINGS_SCHEMA);
+  if (display_wayland->settings_portal)
+    {
+      g_value_set_string (value, entry->fallback.s);
+      return;
+    }
 
-  if (settings == NULL)
-    settings = (GSettings *)g_hash_table_lookup (display_wayland->settings, WM_SETTINGS_SCHEMA);
+  settings = (GSettings *)g_hash_table_lookup (display_wayland->settings, entry->schema);
 
   if (settings)
     {
@@ -1799,7 +2078,8 @@ gdk_wayland_display_get_setting (GdkDisplay *display,
 {
   TranslationEntry *entry;
 
-  if (g_hash_table_size (GDK_WAYLAND_DISPLAY (display)->settings) == 0)
+  if (GDK_WAYLAND_DISPLAY (display)->settings != NULL &&
+      g_hash_table_size (GDK_WAYLAND_DISPLAY (display)->settings) == 0)
     return FALSE;
 
   entry = find_translation_entry_by_setting (name);
@@ -1883,9 +2163,137 @@ transform_to_string (int transform)
 static void
 update_scale (GdkDisplay *display)
 {
+  GList *seats;
+  GList *l;
+
   g_list_foreach (gdk_wayland_display_get_toplevel_surfaces (display),
                   (GFunc)gdk_wayland_surface_update_scale,
                   NULL);
+  seats = gdk_display_list_seats (display);
+  for (l = seats; l; l = l->next)
+    {
+      GdkSeat *seat = l->data;
+
+      gdk_wayland_seat_update_cursor_scale (GDK_WAYLAND_SEAT (seat));
+    }
+  g_list_free (seats);
+}
+
+static void
+gdk_wayland_display_init_xdg_output (GdkWaylandDisplay *display_wayland)
+{
+  int i;
+
+  GDK_NOTE (MISC,
+            g_message ("init xdg-output support, %d monitor(s) already present",
+                       display_wayland->monitors->len));
+
+  for (i = 0; i < display_wayland->monitors->len; i++)
+    gdk_wayland_display_get_xdg_output (display_wayland->monitors->pdata[i]);
+}
+
+static gboolean
+display_has_xdg_output_support (GdkWaylandDisplay *display_wayland)
+{
+  return (display_wayland->xdg_output_manager != NULL);
+}
+
+static gboolean
+monitor_has_xdg_output (GdkWaylandMonitor *monitor)
+{
+  return (monitor->xdg_output != NULL);
+}
+
+static gboolean
+should_update_monitor (GdkWaylandMonitor *monitor)
+{
+  return (GDK_MONITOR (monitor)->geometry.width != 0 &&
+          monitor->version < OUTPUT_VERSION_WITH_DONE);
+}
+
+static void
+apply_monitor_change (GdkWaylandMonitor *monitor)
+{
+  GDK_NOTE (MISC,
+            g_message ("monitor %d changed position %d %d, size %d %d",
+                       monitor->id,
+                       monitor->x, monitor->y,
+                       monitor->width, monitor->height));
+
+  gdk_monitor_set_position (GDK_MONITOR (monitor), monitor->x, monitor->y);
+  gdk_monitor_set_size (GDK_MONITOR (monitor), monitor->width, monitor->height);
+  monitor->wl_output_done = FALSE;
+  monitor->xdg_output_done = FALSE;
+
+  update_scale (GDK_MONITOR (monitor)->display);
+}
+
+static void
+xdg_output_handle_logical_position (void                  *data,
+                                    struct zxdg_output_v1 *xdg_output,
+                                    int32_t                x,
+                                    int32_t                y)
+{
+  GdkWaylandMonitor *monitor = (GdkWaylandMonitor *) data;
+
+  GDK_NOTE (MISC,
+            g_message ("handle logical position xdg-output %d, position %d %d",
+                       monitor->id, x, y));
+  monitor->x = x;
+  monitor->y = y;
+}
+
+static void
+xdg_output_handle_logical_size (void                  *data,
+                                struct zxdg_output_v1 *xdg_output,
+                                int32_t                width,
+                                int32_t                height)
+{
+  GdkWaylandMonitor *monitor = (GdkWaylandMonitor *) data;
+
+  GDK_NOTE (MISC,
+            g_message ("handle logical size xdg-output %d, size %d %d",
+                       monitor->id, width, height));
+  monitor->width = width;
+  monitor->height = height;
+}
+
+static void
+xdg_output_handle_done (void                  *data,
+                        struct zxdg_output_v1 *xdg_output)
+{
+  GdkWaylandMonitor *monitor = (GdkWaylandMonitor *) data;
+
+  GDK_NOTE (MISC,
+            g_message ("handle done xdg-output %d", monitor->id));
+
+  monitor->xdg_output_done = TRUE;
+  if (monitor->wl_output_done)
+    apply_monitor_change (monitor);
+}
+
+static const struct zxdg_output_v1_listener xdg_output_listener = {
+    xdg_output_handle_logical_position,
+    xdg_output_handle_logical_size,
+    xdg_output_handle_done,
+};
+
+static void
+gdk_wayland_display_get_xdg_output (GdkWaylandMonitor *monitor)
+{
+  GdkDisplay *display = GDK_MONITOR (monitor)->display;
+  GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
+
+  GDK_NOTE (MISC,
+            g_message ("get xdg-output for monitor %d", monitor->id));
+
+  monitor->xdg_output =
+    zxdg_output_manager_v1_get_xdg_output (display_wayland->xdg_output_manager,
+                                           monitor->output);
+
+  zxdg_output_v1_add_listener (monitor->xdg_output,
+                               &xdg_output_listener,
+                               monitor);
 }
 
 static void
@@ -1906,13 +2314,17 @@ output_handle_geometry (void             *data,
             g_message ("handle geometry output %d, position %d %d, phys. size %d %d, subpixel layout %s, manufacturer %s, model %s, transform %s",
                        monitor->id, x, y, physical_width, physical_height, subpixel_to_string (subpixel), make, model, transform_to_string (transform)));
 
-  gdk_monitor_set_position (GDK_MONITOR (monitor), x, y);
+  monitor->x = x;
+  monitor->y = y;
   gdk_monitor_set_physical_size (GDK_MONITOR (monitor), physical_width, physical_height);
   gdk_monitor_set_subpixel_layout (GDK_MONITOR (monitor), subpixel);
   gdk_monitor_set_manufacturer (GDK_MONITOR (monitor), make);
   gdk_monitor_set_model (GDK_MONITOR (monitor), model);
 
-  if (GDK_MONITOR (monitor)->geometry.width != 0 && monitor->version < OUTPUT_VERSION_WITH_DONE)
+  if (should_update_monitor (monitor) || !monitor_has_xdg_output (monitor))
+    apply_monitor_change (monitor);
+
+  if (should_update_monitor (monitor))
     update_scale (GDK_MONITOR (monitor)->display);
 }
 
@@ -1921,19 +2333,14 @@ output_handle_done (void             *data,
                     struct wl_output *wl_output)
 {
   GdkWaylandMonitor *monitor = (GdkWaylandMonitor *)data;
-  GdkDisplay *display = gdk_monitor_get_display (GDK_MONITOR (monitor));
 
   GDK_NOTE (MISC,
             g_message ("handle done output %d", monitor->id));
 
-  if (!monitor->added)
-    {
-      monitor->added = TRUE;
-      g_ptr_array_add (GDK_WAYLAND_DISPLAY (display)->monitors, monitor);
-      gdk_display_monitor_added (display, GDK_MONITOR (monitor));
-    }
+  monitor->wl_output_done = TRUE;
 
-  update_scale (display);
+  if (!monitor_has_xdg_output (monitor) || monitor->xdg_output_done)
+    apply_monitor_change (monitor);
 }
 
 static void
@@ -1950,6 +2357,9 @@ output_handle_scale (void             *data,
   GDK_NOTE (MISC,
             g_message ("handle scale output %d, scale %d", monitor->id, scale));
 
+  if (monitor_has_xdg_output (monitor))
+    return;
+
   gdk_monitor_get_geometry (GDK_MONITOR (monitor), &previous_geometry);
   previous_scale = gdk_monitor_get_scale_factor (GDK_MONITOR (monitor));
 
@@ -1957,10 +2367,11 @@ output_handle_scale (void             *data,
   height = previous_geometry.height * previous_scale;
 
   gdk_monitor_set_scale_factor (GDK_MONITOR (monitor), scale);
-  gdk_monitor_set_size (GDK_MONITOR (monitor), width / scale, height / scale);
+  monitor->width = width / scale;
+  monitor->height = height / scale;
 
-  if (GDK_MONITOR (monitor)->geometry.width != 0 && monitor->version < OUTPUT_VERSION_WITH_DONE)
-    update_scale (GDK_MONITOR (monitor)->display);
+  if (should_update_monitor (monitor))
+    apply_monitor_change (monitor);
 }
 
 static void
@@ -1982,11 +2393,12 @@ output_handle_mode (void             *data,
     return;
 
   scale = gdk_monitor_get_scale_factor (GDK_MONITOR (monitor));
-  gdk_monitor_set_size (GDK_MONITOR (monitor), width / scale, height / scale);
+  monitor->width = width / scale;
+  monitor->height = height / scale;
   gdk_monitor_set_refresh_rate (GDK_MONITOR (monitor), refresh);
 
-  if (width != 0 && monitor->version < OUTPUT_VERSION_WITH_DONE)
-    update_scale (GDK_MONITOR (monitor)->display);
+  if (should_update_monitor (monitor) || !monitor_has_xdg_output (monitor))
+    apply_monitor_change (monitor);
 }
 
 static const struct wl_output_listener output_listener =
@@ -2013,13 +2425,17 @@ gdk_wayland_display_add_output (GdkWaylandDisplay *display_wayland,
   monitor->output = output;
   monitor->version = version;
 
-  if (monitor->version < OUTPUT_VERSION_WITH_DONE)
-    {
-      g_ptr_array_add (display_wayland->monitors, monitor);
-      gdk_display_monitor_added (GDK_DISPLAY (display_wayland), GDK_MONITOR (monitor));
-    }
+  g_ptr_array_add (display_wayland->monitors, monitor);
+  gdk_display_monitor_added (GDK_DISPLAY (display_wayland), GDK_MONITOR (monitor));
 
   wl_output_add_listener (output, &output_listener, monitor);
+
+  GDK_NOTE (MISC,
+            g_message ("xdg_output_manager %p",
+                       display_wayland->xdg_output_manager));
+
+  if (display_has_xdg_output_support (display_wayland))
+    gdk_wayland_display_get_xdg_output (monitor);
 }
 
 struct wl_output *

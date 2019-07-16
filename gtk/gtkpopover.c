@@ -155,6 +155,7 @@ enum {
   PROP_POSITION,
   PROP_MODAL,
   PROP_CONSTRAIN_TO,
+  PROP_DEFAULT_WIDGET,
   NUM_PROPERTIES
 };
 
@@ -246,15 +247,20 @@ measure_contents (GtkGizmo       *gizmo,
 }
 
 static void
-allocate_contents (GtkGizmo            *gizmo,
-                   const GtkAllocation *allocation,
-                   int                  baseline)
+allocate_contents (GtkGizmo *gizmo,
+                   int       width,
+                   int       height,
+                   int       baseline)
 {
   GtkPopover *popover = GTK_POPOVER (gtk_widget_get_parent (GTK_WIDGET (gizmo)));
   GtkWidget *child = gtk_bin_get_child (GTK_BIN (popover));
 
   if (child)
-    gtk_widget_size_allocate (child, allocation, -1);
+    gtk_widget_size_allocate (child,
+                              &(GtkAllocation) {
+                                0, 0,
+                                width, height
+                              }, -1);
 }
 
 static void
@@ -326,20 +332,52 @@ gesture_released (GtkGestureMultiPress *gesture,
                   GtkPopover           *popover)
 {
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
-  GtkAllocation child_alloc;
+  graphene_rect_t child_bounds;
   GtkWidget *child;
 
   if (!priv->button_pressed)
     return;
 
   child = gtk_bin_get_child (GTK_BIN (popover));
-  gtk_widget_get_allocation (child, &child_alloc);
-
-  if (x < child_alloc.x ||
-      x > child_alloc.x + child_alloc.width ||
-      y < child_alloc.y ||
-      y > child_alloc.y + child_alloc.height)
+  if (!child ||
+      !gtk_widget_compute_bounds (child, GTK_WIDGET (popover), &child_bounds) ||
+      !graphene_rect_contains_point (&child_bounds,
+                                     &(graphene_point_t){x, y}))
     gtk_popover_popdown (popover);
+}
+
+static void
+activate_default_cb (GSimpleAction *action,
+                     GVariant      *parameter,
+                     gpointer       data)
+{
+  GtkPopover *popover = data;
+  GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
+  GtkWidget *focus_widget;
+
+  focus_widget = gtk_window_get_focus (GTK_WINDOW (gtk_widget_get_root (priv->widget)));
+  if (priv->default_widget && gtk_widget_is_sensitive (priv->default_widget) &&
+      (!focus_widget || !gtk_widget_get_receives_default (focus_widget)))
+    gtk_widget_activate (priv->default_widget);
+  else if (focus_widget && gtk_widget_is_sensitive (focus_widget))
+    gtk_widget_activate (focus_widget);
+}
+
+static void
+add_actions (GtkPopover *popover)
+{
+  GActionEntry entries[] = {
+    { "activate", activate_default_cb, NULL, NULL, NULL },
+  };
+
+  GActionGroup *actions;
+
+  actions = G_ACTION_GROUP (g_simple_action_group_new ());
+  g_action_map_add_action_entries (G_ACTION_MAP (actions),
+                                   entries, G_N_ELEMENTS (entries),
+                                   popover);
+  gtk_widget_insert_action_group (GTK_WIDGET (popover), "default", actions);
+  g_object_unref (actions);
 }
 
 static void
@@ -368,10 +406,7 @@ gtk_popover_init (GtkPopover *popover)
                            G_CALLBACK (node_style_changed_cb), popover, 0);
   g_object_unref (priv->arrow_node);
 
-  priv->contents_widget = gtk_gizmo_new ("contents",
-                                         measure_contents,
-                                         allocate_contents,
-                                         NULL);
+  priv->contents_widget = gtk_gizmo_new ("contents", measure_contents, allocate_contents, NULL, NULL);
 
   gtk_widget_set_parent (priv->contents_widget, widget);
 
@@ -389,6 +424,8 @@ gtk_popover_init (GtkPopover *popover)
   g_signal_connect (controller, "released",
                     G_CALLBACK (gesture_released), popover);
   gtk_widget_add_controller (widget, controller);
+
+  add_actions (popover);
 }
 
 static void
@@ -419,6 +456,10 @@ gtk_popover_set_property (GObject      *object,
       gtk_popover_set_constrain_to (GTK_POPOVER (object),
                                     g_value_get_enum (value));
       break;
+    case PROP_DEFAULT_WIDGET:
+      gtk_popover_set_default_widget (GTK_POPOVER (object),
+                                      g_value_get_object (value));
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
     }
@@ -448,6 +489,9 @@ gtk_popover_get_property (GObject    *object,
       break;
     case PROP_CONSTRAIN_TO:
       g_value_set_enum (value, priv->constraint);
+      break;
+    case PROP_DEFAULT_WIDGET:
+      g_value_set_object (value, priv->default_widget);
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -564,29 +608,7 @@ gtk_popover_realize (GtkWidget *widget)
 
   gtk_widget_get_surface_allocation (widget, &allocation);
 
-  /* We want to use subsurfaces for popovers, so they can extend outside
-   * the main window, but for that, we first need to have clean subsurface
-   * support that works with GSK.
-   */
-#if 0
-  if (GDK_IS_WAYLAND_DISPLAY (gtk_widget_get_display (widget)))
-    {
-      GtkWidget *toplevel = gtk_widget_get_toplevel (widget);
-
-      g_assert (GTK_IS_WINDOW (toplevel));
-
-      surface = gdk_wayland_surface_new_subsurface (gtk_widget_get_display (toplevel),
-						    &allocation);
-
-      gdk_surface_set_transient_for (surface,
-				     gtk_widget_get_surface (toplevel));
-    }
-  else
-#endif
-    {
-      surface = gdk_surface_new_child (gtk_widget_get_parent_surface (widget),
-				       &allocation);
-    }
+  surface = gdk_surface_new_child (gtk_widget_get_surface (gtk_widget_get_parent (widget)), &allocation);
 
   gtk_widget_set_surface (widget, surface);
   gtk_widget_register_surface (widget, surface);
@@ -634,10 +656,11 @@ window_active_changed (GtkWindow  *window,
 
 static void
 window_set_focus (GtkWindow  *window,
-                  GtkWidget  *widget,
+                  GParamSpec *pspec,
                   GtkPopover *popover)
 {
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
+  GtkWidget *widget = gtk_root_get_focus (GTK_ROOT (window));
 
   if (!priv->modal || !widget || !gtk_widget_is_drawable (GTK_WIDGET (popover)))
     return;
@@ -693,7 +716,7 @@ gtk_popover_apply_modality (GtkPopover *popover,
 
       g_signal_connect (priv->window, "notify::is-active",
                         G_CALLBACK (window_active_changed), popover);
-      g_signal_connect (priv->window, "set-focus",
+      g_signal_connect (priv->window, "notify::focus-widget",
                         G_CALLBACK (window_set_focus), popover);
     }
   else
@@ -839,7 +862,7 @@ gtk_popover_map (GtkWidget *widget)
   gdk_surface_show (gtk_widget_get_surface (widget));
   gtk_popover_update_position (GTK_POPOVER (widget));
 
-  gtk_window_set_default (priv->window, priv->default_widget);
+  gtk_window_set_default_widget (priv->window, priv->default_widget);
 }
 
 static void
@@ -853,7 +876,7 @@ gtk_popover_unmap (GtkWidget *widget)
   GTK_WIDGET_CLASS (gtk_popover_parent_class)->unmap (widget);
 
   if (gtk_window_get_default_widget (priv->window) == priv->default_widget)
-    gtk_window_set_default (priv->window, priv->prev_default);
+    gtk_window_set_default_widget (priv->window, priv->prev_default);
   g_clear_object (&priv->prev_default);
 }
 
@@ -1153,7 +1176,7 @@ _gtk_popover_update_child_visible (GtkPopover *popover)
     }
 
   parent = gtk_widget_get_parent (GTK_WIDGET (priv->parent_scrollable));
-  rect = priv->pointing_to;
+  gtk_popover_get_pointing_to (popover, &rect);
 
   gtk_widget_translate_coordinates (priv->widget, parent,
                                     rect.x, rect.y, &rect.x, &rect.y);
@@ -1194,7 +1217,7 @@ gtk_popover_update_position (GtkPopover *popover)
   gint i, j;
   gint best;
 
-  if (!priv->window)
+  if (!priv->window || !gtk_widget_get_mapped (widget))
     return;
 
   gtk_widget_get_preferred_size (widget, NULL, &req);
@@ -1327,16 +1350,15 @@ gtk_popover_snapshot (GtkWidget   *widget,
   /* Render the border of the arrow tip */
   if (border.bottom > 0)
     {
-      GdkRGBA border_color;
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-      gtk_style_context_get_border_color (context, &border_color);
-G_GNUC_END_IGNORE_DEPRECATIONS
+      GdkRGBA *border_color;
 
+      gtk_style_context_get (context, "border-color", &border_color, NULL);
       gtk_popover_apply_tail_path (popover, cr);
-      gdk_cairo_set_source_rgba (cr, &border_color);
+      gdk_cairo_set_source_rgba (cr, border_color);
 
       cairo_set_line_width (cr, border.bottom + 1);
       cairo_stroke (cr);
+      gdk_rgba_free (border_color);
     }
 
   cairo_restore (cr);
@@ -1388,19 +1410,15 @@ gtk_popover_measure (GtkWidget      *widget,
 {
   GtkPopover *popover = GTK_POPOVER (widget);
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
-  GtkWidget *child = gtk_bin_get_child (GTK_BIN (widget));
   int minimal_size;
 
   *minimum = 0;
   *natural = 0;
 
-  if (child != NULL)
-    {
-      if (for_size >= 0)
-        for_size -= TAIL_HEIGHT;
+  if (for_size >= 0)
+    for_size -= TAIL_HEIGHT;
 
-      gtk_widget_measure (priv->contents_widget, orientation, for_size, minimum, natural, NULL, NULL);
-    }
+  gtk_widget_measure (priv->contents_widget, orientation, for_size, minimum, natural, NULL, NULL);
 
   minimal_size = get_minimal_size (popover, orientation);
   *minimum = MAX (*minimum, minimal_size);
@@ -1411,13 +1429,14 @@ gtk_popover_measure (GtkWidget      *widget,
 }
 
 static void
-gtk_popover_size_allocate (GtkWidget           *widget,
-                           const GtkAllocation *allocation,
-                           int                  baseline)
+gtk_popover_size_allocate (GtkWidget *widget,
+                           int        width,
+                           int        height,
+                           int        baseline)
 {
   GtkPopover *popover = GTK_POPOVER (widget);
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
-  GtkAllocation child_alloc = *allocation;
+  GtkAllocation child_alloc = (GtkAllocation) {0, 0, width, height};
 
   /* Note that we in measure() we add TAIL_HEIGHT in both directions, regardless
    * of the popovers position. This is to ensure that we get enough space
@@ -1670,8 +1689,21 @@ gtk_popover_class_init (GtkPopoverClass *klass)
                          GTK_TYPE_POPOVER_CONSTRAINT, GTK_POPOVER_CONSTRAINT_WINDOW,
                          GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
+  properties[PROP_DEFAULT_WIDGET] =
+      g_param_spec_object ("default-widget",
+                           P_("Default widget"),
+                           P_("The default widget"),
+                           GTK_TYPE_WIDGET,
+                           GTK_PARAM_READWRITE|G_PARAM_STATIC_STRINGS|G_PARAM_EXPLICIT_NOTIFY);
+
   g_object_class_install_properties (object_class, NUM_PROPERTIES, properties);
 
+  /**
+   * GtkPopover::closed:
+   *
+   * This signal is emitted when the popover is dismissed either through
+   * API or user interaction.
+   */
   signals[CLOSED] =
     g_signal_new (I_("closed"),
                   G_TYPE_FROM_CLASS (object_class),
@@ -1698,7 +1730,7 @@ gtk_popover_update_scrollable (GtkPopover *popover)
 
 static void
 _gtk_popover_parent_hierarchy_changed (GtkWidget  *widget,
-                                       GtkWidget  *previous_toplevel,
+                                       GParamSpec *pspec,
                                        GtkPopover *popover)
 {
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
@@ -1797,10 +1829,11 @@ _gtk_popover_parent_unmap (GtkWidget *widget,
 }
 
 static void
-gtk_popover_parent_size_allocate (GtkWidget           *widget,
-                                  const GtkAllocation *allocation,
-                                  int                  baseline,
-                                  GtkPopover          *popover)
+gtk_popover_parent_size_allocate (GtkWidget  *widget,
+                                  int         width,
+                                  int         height,
+                                  int         baseline,
+                                  GtkPopover *popover)
 {
   gtk_popover_update_position (popover);
 }
@@ -1985,7 +2018,7 @@ gtk_popover_update_relative_to (GtkPopover *popover,
         GTK_WINDOW (gtk_widget_get_ancestor (priv->widget, GTK_TYPE_WINDOW));
 
       priv->hierarchy_changed_id =
-        g_signal_connect (priv->widget, "hierarchy-changed",
+        g_signal_connect (priv->widget, "notify::root",
                           G_CALLBACK (_gtk_popover_parent_hierarchy_changed),
                           popover);
       priv->size_allocate_id =
@@ -2158,7 +2191,8 @@ gtk_popover_get_pointing_to (GtkPopover   *popover,
     {
       graphene_rect_t r;
 
-      gtk_widget_compute_bounds (priv->widget, priv->widget, &r);
+      if (!gtk_widget_compute_bounds (priv->widget, priv->widget, &r))
+        return FALSE;
 
       rect->x = floorf (r.origin.x);
       rect->y = floorf (r.origin.y);
@@ -2395,7 +2429,6 @@ gtk_popover_set_default_widget (GtkPopover *popover,
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
 
   g_return_if_fail (GTK_IS_POPOVER (popover));
-  g_return_if_fail (widget == NULL || gtk_widget_get_can_default (widget));
 
   if (priv->default_widget == widget)
     return;
@@ -2409,7 +2442,9 @@ gtk_popover_set_default_widget (GtkPopover *popover,
     g_object_ref (priv->default_widget);
 
   if (gtk_widget_get_mapped (GTK_WIDGET (popover)))
-    gtk_window_set_default (priv->window, priv->default_widget);
+    gtk_window_set_default_widget (priv->window, priv->default_widget);
+
+  g_object_notify_by_pspec (G_OBJECT (popover), properties[PROP_DEFAULT_WIDGET]);
 }
 
 /**

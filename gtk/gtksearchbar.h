@@ -78,7 +78,7 @@ GtkWidget*  gtk_search_bar_new             (void);
 
 GDK_AVAILABLE_IN_ALL
 void        gtk_search_bar_connect_entry   (GtkSearchBar *bar,
-                                            GtkEntry     *entry);
+                                            GtkEditable  *entry);
 
 GDK_AVAILABLE_IN_ALL
 gboolean    gtk_search_bar_get_search_mode (GtkSearchBar *bar);
@@ -91,10 +91,6 @@ gboolean    gtk_search_bar_get_show_close_button (GtkSearchBar *bar);
 GDK_AVAILABLE_IN_ALL
 void        gtk_search_bar_set_show_close_button (GtkSearchBar *bar,
                                                   gboolean      visible);
-
-GDK_AVAILABLE_IN_ALL
-gboolean    gtk_search_bar_handle_event    (GtkSearchBar *bar,
-                                            GdkEvent     *event);
 
 GDK_AVAILABLE_IN_ALL
 void        gtk_search_bar_set_key_capture_widget (GtkSearchBar *bar,

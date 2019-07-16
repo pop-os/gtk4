@@ -228,7 +228,7 @@ puzzle_button_pressed (GtkGestureMultiPress *gesture,
   int l, t, i;
   int pos;
 
-  child = gtk_widget_pick (grid, x, y);
+  child = gtk_widget_pick (grid, x, y, GTK_PICK_DEFAULT);
 
   if (!child)
     {
@@ -236,10 +236,7 @@ puzzle_button_pressed (GtkGestureMultiPress *gesture,
       return;
     }
 
-  gtk_container_child_get (GTK_CONTAINER (grid), child,
-                           "left-attach", &l,
-                           "top-attach", &t,
-                           NULL);
+  gtk_grid_query_child (GTK_GRID (grid), child, &l, &t, NULL, NULL);
 
   if (l == pos_x && t == pos_y)
     {
@@ -295,6 +292,7 @@ start_puzzle (GdkPaintable *puzzle)
   grid = gtk_grid_new ();
   gtk_widget_set_can_focus (grid, TRUE);
   gtk_container_add (GTK_CONTAINER (frame), grid);
+  gtk_aspect_frame_set (GTK_ASPECT_FRAME (frame), 0.5, 0.5, (float) gdk_paintable_get_intrinsic_aspect_ratio (puzzle), FALSE);
 
   /* Add a key event controller so people can use the arrow
    * keys to move the puzzle */

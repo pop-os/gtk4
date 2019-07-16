@@ -352,6 +352,7 @@
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
 #include "gtksnapshot.h"
+#include "gtkstylecontext.h"
 
 #include <gobject/gvaluecollector.h>
 
@@ -468,7 +469,7 @@ static void      gtk_cell_area_buildable_custom_tag_end      (GtkBuildable      
                                                               GtkBuilder            *builder,
                                                               GObject               *child,
                                                               const gchar           *tagname,
-                                                              gpointer              *data);
+                                                              gpointer               data);
 
 /* Used in foreach loop to check if a child renderer is present */
 typedef struct {
@@ -1575,7 +1576,7 @@ gtk_cell_area_buildable_custom_tag_end (GtkBuildable *buildable,
                                         GtkBuilder   *builder,
                                         GObject      *child,
                                         const gchar  *tagname,
-                                        gpointer     *data)
+                                        gpointer      data)
 {
   /* Just ignore the boolean return from here */
   _gtk_cell_layout_buildable_custom_tag_end (buildable, builder, child, tagname, data);

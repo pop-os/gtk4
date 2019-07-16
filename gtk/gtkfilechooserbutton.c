@@ -49,6 +49,7 @@
 #include "gtkfilechooserprivate.h"
 #include "gtkfilechooserutils.h"
 #include "gtkmarshalers.h"
+#include "gtkbinlayout.h"
 
 #include "gtkfilechooserbutton.h"
 
@@ -105,7 +106,7 @@
 #define ICON_SIZE	        16
 #define DEFAULT_TITLE		N_("Select a File")
 #define DESKTOP_DISPLAY_NAME	N_("Desktop")
-#define FALLBACK_DISPLAY_NAME	N_("(None)") /* this string is used in gtk+/gtk/tests/filechooser.c - change it there if you change it here */
+#define FALLBACK_DISPLAY_NAME	N_("(None)") /* this string is used in gtk/gtk/tests/filechooser.c - change it there if you change it here */
 
 
 /* ********************** *
@@ -256,12 +257,11 @@ static void     gtk_file_chooser_button_drag_data_received (GtkWidget        *wi
 							    GtkSelectionData *data);
 static void     gtk_file_chooser_button_show               (GtkWidget        *widget);
 static void     gtk_file_chooser_button_hide               (GtkWidget        *widget);
+static void     gtk_file_chooser_button_root               (GtkWidget *widget);
 static void     gtk_file_chooser_button_map                (GtkWidget        *widget);
 static gboolean gtk_file_chooser_button_mnemonic_activate  (GtkWidget        *widget,
 							    gboolean          group_cycling);
 static void     gtk_file_chooser_button_style_updated      (GtkWidget        *widget);
-static void     gtk_file_chooser_button_display_changed    (GtkWidget        *widget,
-							    GdkDisplay       *old_display);
 static void     gtk_file_chooser_button_state_flags_changed (GtkWidget       *widget,
                                                              GtkStateFlags    previous_state);
 
@@ -340,36 +340,6 @@ G_DEFINE_TYPE_WITH_CODE (GtkFileChooserButton, gtk_file_chooser_button, GTK_TYPE
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_FILE_CHOOSER,
                                                 gtk_file_chooser_button_file_chooser_iface_init))
 
-
-
-static void
-gtk_file_chooser_button_measure (GtkWidget       *widget,
-                                 GtkOrientation  orientation,
-                                 int             for_size,
-                                 int            *minimum,
-                                 int            *natural,
-                                 int            *minimum_baseline,
-                                 int            *natural_baseline)
-{
-  GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (widget);
-  GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
-
-  gtk_widget_measure (priv->child, orientation, for_size,
-                      minimum, natural,
-                      minimum_baseline, natural_baseline);
-}
-
-static void
-gtk_file_chooser_button_size_allocate (GtkWidget           *widget,
-                                       const GtkAllocation *allocation,
-                                       int                  baseline)
-{
-  GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (widget);
-  GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
-
-  gtk_widget_size_allocate (priv->child, allocation, baseline);
-}
-
 static void
 gtk_file_chooser_button_class_init (GtkFileChooserButtonClass * class)
 {
@@ -390,11 +360,9 @@ gtk_file_chooser_button_class_init (GtkFileChooserButtonClass * class)
   widget_class->hide = gtk_file_chooser_button_hide;
   widget_class->map = gtk_file_chooser_button_map;
   widget_class->style_updated = gtk_file_chooser_button_style_updated;
-  widget_class->display_changed = gtk_file_chooser_button_display_changed;
+  widget_class->root = gtk_file_chooser_button_root;
   widget_class->mnemonic_activate = gtk_file_chooser_button_mnemonic_activate;
   widget_class->state_flags_changed = gtk_file_chooser_button_state_flags_changed;
-  widget_class->measure = gtk_file_chooser_button_measure;
-  widget_class->size_allocate = gtk_file_chooser_button_size_allocate;
 
   /**
    * GtkFileChooserButton::file-set:
@@ -454,6 +422,8 @@ gtk_file_chooser_button_class_init (GtkFileChooserButtonClass * class)
   _gtk_file_chooser_install_properties (gobject_class);
 
   gtk_widget_class_set_css_name (widget_class, I_("filechooserbutton"));
+
+  gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
 }
 
 static void
@@ -1018,17 +988,8 @@ gtk_file_chooser_button_finalize (GObject *object)
   GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (object);
   GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
 
-  if (priv->selection_while_inactive)
-    g_object_unref (priv->selection_while_inactive);
-
-  if (priv->current_folder_while_inactive)
-    g_object_unref (priv->current_folder_while_inactive);
-
-  if (priv->model)
-    {
-      model_remove_rows (button, 0, gtk_tree_model_iter_n_children (priv->model, NULL));
-      g_object_unref (priv->model);
-    }
+  g_clear_object (&priv->selection_while_inactive);
+  g_clear_object (&priv->current_folder_while_inactive);
 
   gtk_widget_unparent (priv->button);
   gtk_widget_unparent (priv->combo_box);
@@ -1062,31 +1023,22 @@ gtk_file_chooser_button_destroy (GtkWidget *widget)
   GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
   GSList *l;
 
-  if (priv->dialog != NULL)
+  if (priv->model)
     {
-      gtk_widget_destroy (priv->dialog);
-      priv->dialog = NULL;
+      model_remove_rows (button, 0, gtk_tree_model_iter_n_children (priv->model, NULL));
+      g_clear_object (&priv->model);
     }
+
+  g_clear_pointer (&priv->dialog, gtk_widget_destroy);
 
   if (priv->native)
-    {
-      gtk_native_dialog_destroy (GTK_NATIVE_DIALOG (priv->native));
-      g_clear_object (&priv->native);
-    }
+    gtk_native_dialog_destroy (GTK_NATIVE_DIALOG (priv->native));
 
-  priv->chooser = NULL;
+  g_clear_object (&priv->native);
+  priv->chooser = NULL; /* Was either priv->dialog or priv->native! */
 
-  if (priv->dnd_select_folder_cancellable)
-    {
-      g_cancellable_cancel (priv->dnd_select_folder_cancellable);
-      priv->dnd_select_folder_cancellable = NULL;
-    }
-
-  if (priv->update_button_cancellable)
-    {
-      g_cancellable_cancel (priv->update_button_cancellable);
-      priv->update_button_cancellable = NULL;
-    }
+  g_clear_pointer (&priv->dnd_select_folder_cancellable, g_cancellable_cancel);
+  g_clear_pointer (&priv->update_button_cancellable, g_cancellable_cancel);
 
   if (priv->change_icon_theme_cancellables)
     {
@@ -1099,24 +1051,15 @@ gtk_file_chooser_button_destroy (GtkWidget *widget)
       priv->change_icon_theme_cancellables = NULL;
     }
 
-  if (priv->filter_model)
-    {
-      g_object_unref (priv->filter_model);
-      priv->filter_model = NULL;
-    }
+  g_clear_object (&priv->filter_model);
 
   if (priv->fs)
     {
       g_signal_handler_disconnect (priv->fs, priv->fs_volumes_changed_id);
-      g_object_unref (priv->fs);
-      priv->fs = NULL;
+      g_clear_object (&priv->fs);
     }
 
-  if (priv->bookmarks_manager)
-    {
-      _gtk_bookmarks_manager_free (priv->bookmarks_manager);
-      priv->bookmarks_manager = NULL;
-    }
+  g_clear_pointer (&priv->bookmarks_manager, _gtk_bookmarks_manager_free);
 
   GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->destroy (widget);
 }
@@ -1489,15 +1432,12 @@ gtk_file_chooser_button_style_updated (GtkWidget *widget)
 }
 
 static void
-gtk_file_chooser_button_display_changed (GtkWidget  *widget,
-					 GdkDisplay *old_display)
+gtk_file_chooser_button_root (GtkWidget *widget)
 {
-  if (GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->display_changed)
-    GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->display_changed (widget, old_display);
+  GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->root (widget);
 
   change_icon_theme (GTK_FILE_CHOOSER_BUTTON (widget));
 }
-
 
 /* ******************* *
  *  Utility Functions  *
@@ -2700,7 +2640,11 @@ open_dialog (GtkFileChooserButton *button)
 
   gtk_widget_set_sensitive (priv->combo_box, FALSE);
   if (priv->dialog)
-    gtk_window_present (GTK_WINDOW (priv->dialog));
+    {
+      G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+      gtk_window_present (GTK_WINDOW (priv->dialog));
+      G_GNUC_END_IGNORE_DEPRECATIONS
+    }
   else
     gtk_native_dialog_show (GTK_NATIVE_DIALOG (priv->native));
 }

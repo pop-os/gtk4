@@ -35,6 +35,7 @@
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
 #include "gtkgesturedrag.h"
+#include "gtkeventcontrollerkey.h"
 
 #include "a11y/gtktreeviewaccessibleprivate.h"
 
@@ -413,7 +414,7 @@ gtk_tree_view_column_custom_tag_end (GtkBuildable *buildable,
 				     GtkBuilder   *builder,
 				     GObject      *child,
 				     const gchar  *tagname,
-				     gpointer     *data)
+				     gpointer      data)
 {
   /* Just ignore the boolean return from here */
   _gtk_cell_layout_buildable_custom_tag_end (buildable, builder, child, tagname, data);
@@ -811,6 +812,15 @@ gtk_tree_view_column_cell_layout_get_area (GtkCellLayout   *cell_layout)
   return priv->cell_area;
 }
 
+static void
+focus_in (GtkEventControllerKey *controller,
+          GdkCrossingMode        mode,
+          GdkNotifyType          detail,
+          GtkTreeViewColumn     *column)
+{
+  _gtk_tree_view_set_focus_column (GTK_TREE_VIEW (column->priv->tree_view), column);
+}
+
 /* Button handling code
  */
 static void
@@ -838,6 +848,10 @@ gtk_tree_view_column_create_button (GtkTreeViewColumn *tree_column)
   gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_CAPTURE);
   gtk_widget_add_controller (priv->button, controller);
 
+  controller = gtk_event_controller_key_new ();
+  g_signal_connect (controller, "focus-in", G_CALLBACK (focus_in), tree_column);
+  gtk_widget_add_controller (priv->button, controller);
+
   priv->frame = gtk_frame_new (NULL);
   gtk_frame_set_shadow_type (GTK_FRAME (priv->frame), GTK_SHADOW_NONE);
   gtk_widget_set_hexpand (priv->frame, TRUE);
@@ -859,13 +873,13 @@ gtk_tree_view_column_create_button (GtkTreeViewColumn *tree_column)
 
   if (priv->xalign <= 0.5)
     {
-      gtk_box_pack_start (GTK_BOX (hbox), priv->frame);
-      gtk_box_pack_start (GTK_BOX (hbox), priv->arrow);
+      gtk_container_add (GTK_CONTAINER (hbox), priv->frame);
+      gtk_container_add (GTK_CONTAINER (hbox), priv->arrow);
     }
   else
     {
-      gtk_box_pack_start (GTK_BOX (hbox), priv->arrow);
-      gtk_box_pack_start (GTK_BOX (hbox), priv->frame);
+      gtk_container_add (GTK_CONTAINER (hbox), priv->arrow);
+      gtk_container_add (GTK_CONTAINER (hbox), priv->frame);
     }
 
   gtk_container_add (GTK_CONTAINER (priv->frame), child);
@@ -964,9 +978,9 @@ gtk_tree_view_column_update_button (GtkTreeViewColumn *tree_column)
    * reverse things
    */
   if (priv->xalign <= 0.5)
-    gtk_box_reorder_child (GTK_BOX (hbox), arrow, 1);
+    gtk_box_reorder_child_after (GTK_BOX (hbox), arrow, gtk_widget_get_last_child (hbox));
   else
-    gtk_box_reorder_child (GTK_BOX (hbox), arrow, 0);
+    gtk_box_reorder_child_after (GTK_BOX (hbox), arrow, NULL);
 
   if (priv->show_sort_indicator
       || (GTK_IS_TREE_SORTABLE (model) && priv->sort_column_id >= 0))
@@ -1004,11 +1018,8 @@ gtk_tree_view_column_update_button (GtkTreeViewColumn *tree_column)
       gtk_widget_set_can_focus (priv->button, FALSE);
       if (gtk_widget_has_focus (priv->button))
 	{
-	  GtkWidget *toplevel = gtk_widget_get_toplevel (priv->tree_view);
-	  if (gtk_widget_is_toplevel (toplevel))
-	    {
-	      gtk_window_set_focus (GTK_WINDOW (toplevel), NULL);
-	    }
+          GtkRoot *root = gtk_widget_get_root (priv->tree_view);
+	  gtk_root_set_focus (root, NULL);
 	}
     }
   /* Queue a resize on the assumption that we always want to catch all changes
@@ -3060,7 +3071,8 @@ _gtk_tree_view_column_coords_in_resize_rect (GtkTreeViewColumn *column,
       !priv->visible)
     return FALSE;
 
-  gtk_widget_compute_bounds (priv->button, priv->tree_view, &button_bounds);
+  if (!gtk_widget_compute_bounds (priv->button, priv->tree_view, &button_bounds))
+    return FALSE;
 
   if (gtk_widget_get_direction (priv->tree_view) == GTK_TEXT_DIR_LTR)
     button_bounds.origin.x += button_bounds.size.width - TREE_VIEW_DRAG_WIDTH;

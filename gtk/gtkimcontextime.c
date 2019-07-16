@@ -29,6 +29,7 @@
 
 #include "gtkimcontextime.h"
 #include "gtkimmoduleprivate.h"
+#include "gtkroot.h"
 
 #include "imm-extra.h"
 
@@ -121,16 +122,13 @@ gtk_im_context_ime_message_filter               (GdkWin32Display *display,
 static void get_window_position                 (GdkSurface       *win,
                                                  gint            *x,
                                                  gint            *y);
-static void cb_client_widget_hierarchy_changed  (GtkWidget       *widget,
-                                                 GtkWidget       *widget2,
-                                                 GtkIMContextIME *context_ime);
 
 G_DEFINE_TYPE_WITH_CODE (GtkIMContextIME, gtk_im_context_ime, GTK_TYPE_IM_CONTEXT,
 			 gtk_im_module_ensure_extension_point ();
                          g_io_extension_point_implement (GTK_IM_MODULE_EXTENSION_POINT_NAME,
                                                          g_define_type_id,
                                                          "ime",
-                                                         10))
+                                                         0))
 
 static void
 gtk_im_context_ime_class_init (GtkIMContextIMEClass *class)
@@ -157,7 +155,6 @@ static void
 gtk_im_context_ime_init (GtkIMContextIME *context_ime)
 {
   context_ime->client_surface         = NULL;
-  context_ime->toplevel               = NULL;
   context_ime->use_preedit            = TRUE;
   context_ime->preediting             = FALSE;
   context_ime->opened                 = FALSE;
@@ -466,30 +463,53 @@ get_utf8_preedit_string (GtkIMContextIME *context_ime, gint *pos_ret)
 
       len = ImmGetCompositionStringW (himc, GCS_COMPSTR, NULL, 0);
       if (len > 0)
-	{
-	  GError *error = NULL;
-	  gpointer buf = g_alloca (len);
+        {
+          GError *error = NULL;
+          gpointer buf = g_alloca (len);
 
-	  ImmGetCompositionStringW (himc, GCS_COMPSTR, buf, len);
-	  len /= 2;
-	  utf8str = g_utf16_to_utf8 (buf, len, NULL, NULL, &error);
-	  if (error)
-	    {
-	      g_warning ("%s", error->message);
-	      g_error_free (error);
-	    }
+          ImmGetCompositionStringW (himc, GCS_COMPSTR, buf, len);
+          len /= 2;
+          utf8str = g_utf16_to_utf8 (buf, len, NULL, NULL, &error);
+          if (error)
+            {
+               g_warning ("%s", error->message);
+               g_error_free (error);
+            }
 
-	  if (pos_ret)
-	    {
-	      pos = ImmGetCompositionStringW (himc, GCS_CURSORPOS, NULL, 0);
-	      if (pos < 0 || len < pos)
-		{
-		  g_warning ("ImmGetCompositionString: "
-			     "Invalid cursor position!");
-		  pos = 0;
-		}
-	    }
-	}
+          if (pos_ret)
+            {
+              pos = ImmGetCompositionStringW (himc, GCS_CURSORPOS, NULL, 0);
+              if (pos < 0 || len < pos)
+                {
+                  g_warning ("ImmGetCompositionString: "
+                             "Invalid cursor position!");
+                  pos = 0;
+                }
+            }
+        }
+    }
+
+  if (context_ime->commit_string)
+    {
+      if (utf8str)
+        {
+          gchar *utf8str_new = g_strdup (utf8str);
+
+          /* Note: We *don't* want to update context_ime->commit_string here!
+           * Otherwise it will be updated repeatedly, not what we want!
+           */
+          g_free (utf8str);
+          utf8str = g_strconcat (context_ime->commit_string,
+                                 utf8str_new,
+                                 NULL);
+          g_free (utf8str_new);
+          pos += g_utf8_strlen (context_ime->commit_string, -1);
+        }
+      else
+        {
+          utf8str = g_strdup (context_ime->commit_string);
+          pos = g_utf8_strlen (context_ime->commit_string, -1);
+        }
     }
 
   if (!utf8str)
@@ -664,26 +684,12 @@ gtk_im_context_ime_focus_in (GtkIMContext *context)
     {
       gdk_win32_display_add_filter (gdk_surface_get_display (toplevel),
                                     gtk_im_context_ime_message_filter, context_ime);
-      context_ime->toplevel = toplevel;
     }
   else
     {
       g_warning ("gtk_im_context_ime_focus_in(): "
                  "cannot find toplevel window.");
       return;
-    }
-
-  /* trace reparenting (probably no need) */
-  gdk_surface_get_user_data (context_ime->client_surface, (gpointer) & widget);
-  if (GTK_IS_WIDGET (widget))
-    {
-      g_signal_connect (widget, "hierarchy-changed",
-                        G_CALLBACK (cb_client_widget_hierarchy_changed),
-                        context_ime);
-    }
-  else
-    {
-      /* warning? */
     }
 
   /* restore preedit context */
@@ -771,15 +777,6 @@ gtk_im_context_ime_focus_out (GtkIMContext *context)
       context_ime->preediting = FALSE;
     }
 
-  /* remove signal handler */
-  gdk_surface_get_user_data (context_ime->client_surface, (gpointer) & widget);
-  if (GTK_IS_WIDGET (widget))
-    {
-      g_signal_handlers_disconnect_by_func
-        (G_OBJECT (widget),
-         G_CALLBACK (cb_client_widget_hierarchy_changed), context_ime);
-    }
-
   /* remove event fileter */
   toplevel = gdk_surface_get_toplevel (context_ime->client_surface);
   if (GDK_IS_SURFACE (toplevel))
@@ -787,7 +784,6 @@ gtk_im_context_ime_focus_out (GtkIMContext *context)
       gdk_win32_display_remove_filter (gdk_surface_get_display (toplevel),
                                        gtk_im_context_ime_message_filter,
                                        context_ime);
-      context_ime->toplevel = NULL;
     }
   else
     {
@@ -883,9 +879,9 @@ gtk_im_context_ime_set_preedit_font (GtkIMContext *context)
   if (!context_ime->client_surface)
     return;
 
-  gdk_surface_get_user_data (context_ime->client_surface, (gpointer) &widget);
-  if (!GTK_IS_WIDGET (widget))
-    return;
+  widget = gtk_root_get_for_surface (context_ime->client_surface);
+  if (!widget)
+    return
 
   hwnd = gdk_win32_surface_get_impl_hwnd (context_ime->client_surface);
   himc = ImmGetContext (hwnd);
@@ -994,6 +990,7 @@ gtk_im_context_ime_message_filter (GdkWin32Display *display,
   GtkIMContextIME *context_ime;
   HWND hwnd;
   HIMC himc;
+  GdkSurface *toplevel;
   GdkWin32MessageFilterReturn retval = GDK_WIN32_MESSAGE_FILTER_CONTINUE;
 
   g_return_val_if_fail (GTK_IS_IM_CONTEXT_IME (data), retval);
@@ -1003,7 +1000,8 @@ gtk_im_context_ime_message_filter (GdkWin32Display *display,
   if (!context_ime->focus)
     return retval;
 
-  if (gdk_win32_surface_get_impl_hwnd (context_ime->toplevel) != msg->hwnd)
+  toplevel = gdk_surface_get_toplevel (context_ime->client_surface);
+  if (gdk_win32_surface_get_impl_hwnd (toplevel) != msg->hwnd)
     return retval;
 
   hwnd = gdk_win32_surface_get_impl_hwnd (context_ime->client_surface);
@@ -1065,10 +1063,15 @@ gtk_im_context_ime_message_filter (GdkWin32Display *display,
                     g_warning ("%s", error->message);
                     g_error_free (error);
                   }
-              }
 
-            if (context_ime->commit_string)
-              retval = GDK_WIN32_MESSAGE_FILTER_REMOVE;
+                if (context_ime->commit_string)
+                  {
+                    g_signal_emit_by_name (context, "commit", context_ime->commit_string);
+                    g_free (context_ime->commit_string);
+                    context_ime->commit_string = NULL;
+                    retval = GDK_WIN32_MESSAGE_FILTER_REMOVE;
+                  }
+              }
           }
 
         if (context_ime->use_preedit)
@@ -1088,13 +1091,6 @@ gtk_im_context_ime_message_filter (GdkWin32Display *display,
       context_ime->preediting = FALSE;
       g_signal_emit_by_name (context, "preedit-changed");
       g_signal_emit_by_name (context, "preedit-end");
-
-      if (context_ime->commit_string)
-        {
-          g_signal_emit_by_name (context, "commit", context_ime->commit_string);
-          g_free (context_ime->commit_string);
-          context_ime->commit_string = NULL;
-        }
 
       if (context_ime->use_preedit)
         retval = GDK_WIN32_MESSAGE_FILTER_REMOVE;
@@ -1141,30 +1137,4 @@ get_window_position (GdkSurface *surface, gint *x, gint *y)
 
   if (parent && parent != toplevel)
     get_window_position (parent, x, y);
-}
-
-
-/*
- *  probably, this handler isn't needed.
- */
-static void
-cb_client_widget_hierarchy_changed (GtkWidget       *widget,
-                                    GtkWidget       *widget2,
-                                    GtkIMContextIME *context_ime)
-{
-  GdkSurface *new_toplevel;
-
-  g_return_if_fail (GTK_IS_WIDGET (widget));
-  g_return_if_fail (GTK_IS_IM_CONTEXT_IME (context_ime));
-
-  if (!context_ime->client_surface)
-    return;
-  if (!context_ime->focus)
-    return;
-
-  new_toplevel = gdk_surface_get_toplevel (context_ime->client_surface);
-  if (context_ime->toplevel == new_toplevel)
-    return;
-
-  context_ime->toplevel = new_toplevel;
 }

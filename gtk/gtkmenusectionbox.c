@@ -134,7 +134,7 @@ gtk_menu_section_box_sync_separators (GtkMenuSectionBox *box,
     return;
 
   if (should_have_separator)
-    gtk_box_pack_start (GTK_BOX (box), box->separator);
+    gtk_box_insert_child_after (GTK_BOX (box), box->separator, NULL);
   else
     gtk_container_remove (GTK_CONTAINER (box), box->separator);
 }
@@ -164,7 +164,7 @@ gtk_menu_section_box_schedule_separator_sync (GtkMenuSectionBox *box)
       box->separator_sync_idle = g_idle_add_full (G_PRIORITY_HIGH_IDLE, /* before resize... */
                                                   gtk_menu_section_box_handle_sync_separators,
                                                   box, NULL);
-      g_source_set_name_by_id (box->separator_sync_idle, "[gtk+] menu section box handle sync separators");
+      g_source_set_name_by_id (box->separator_sync_idle, "[gtk] menu section box handle sync separators");
     }
 }
 
@@ -303,7 +303,7 @@ gtk_menu_section_box_insert_func (GtkMenuTrackerItem *item,
       g_object_bind_property (item, "sensitive", widget, "sensitive", G_BINDING_SYNC_CREATE);
 
       get_ancestors (GTK_WIDGET (box->toplevel), GTK_TYPE_STACK, &stack, &parent);
-      gtk_container_child_get (GTK_CONTAINER (stack), parent, "name", &name, NULL);
+      g_object_get (gtk_stack_get_page (GTK_STACK (stack), parent), "name", &name, NULL);
       gtk_menu_section_box_new_submenu (item, box->toplevel, widget, name);
       g_free (name);
     }
@@ -330,7 +330,17 @@ gtk_menu_section_box_insert_func (GtkMenuTrackerItem *item,
 
   gtk_widget_set_halign (widget, GTK_ALIGN_FILL);
   gtk_container_add (GTK_CONTAINER (box->item_box), widget);
-  gtk_box_reorder_child (GTK_BOX (box->item_box), widget, position);
+
+  if (position == 0)
+    gtk_box_reorder_child_after (GTK_BOX (box->item_box), widget, NULL);
+  else
+    {
+      GtkWidget *sibling = gtk_widget_get_first_child (GTK_WIDGET (box->item_box));
+      int i;
+      for (i = 1; i < position; i++)
+        sibling = gtk_widget_get_next_sibling (sibling);
+      gtk_box_reorder_child_after (GTK_BOX (box->item_box), widget, sibling);
+    }
 
   gtk_menu_section_box_schedule_separator_sync (box);
 }
@@ -346,7 +356,7 @@ gtk_menu_section_box_init (GtkMenuSectionBox *box)
 
   item_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   box->item_box = GTK_BOX (item_box);
-  gtk_box_pack_end (GTK_BOX (box), item_box);
+  gtk_container_add (GTK_CONTAINER (box), item_box);
   gtk_widget_set_halign (GTK_WIDGET (item_box), GTK_ALIGN_FILL);
 
   gtk_widget_set_halign (GTK_WIDGET (box), GTK_ALIGN_FILL);
@@ -454,7 +464,7 @@ gtk_menu_section_box_new_submenu (GtkMenuTrackerItem *item,
   g_object_set_data (G_OBJECT (button), "focus", focus);
   g_object_set_data (G_OBJECT (focus), "focus", button);
 
-  gtk_box_pack_start (GTK_BOX (box), button);
+  gtk_box_insert_child_after (GTK_BOX (box), button, NULL);
 
   g_signal_connect (focus, "clicked", G_CALLBACK (open_submenu), item);
   g_signal_connect (button, "clicked", G_CALLBACK (close_submenu), item);
@@ -515,17 +525,17 @@ gtk_menu_section_box_new_section (GtkMenuTrackerItem *item,
 
       separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
       gtk_widget_set_valign (separator, GTK_ALIGN_CENTER);
-      gtk_box_pack_start (GTK_BOX (box->separator), separator);
+      gtk_container_add (GTK_CONTAINER (box->separator), separator);
 
       title = gtk_label_new (label);
       g_object_bind_property (item, "label", title, "label", G_BINDING_SYNC_CREATE);
       gtk_style_context_add_class (gtk_widget_get_style_context (title), GTK_STYLE_CLASS_SEPARATOR);
       gtk_widget_set_halign (title, GTK_ALIGN_START);
-      gtk_box_pack_start (GTK_BOX (box->separator), title);
+      gtk_container_add (GTK_CONTAINER (box->separator), title);
 
       separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
       gtk_widget_set_valign (separator, GTK_ALIGN_CENTER);
-      gtk_box_pack_start (GTK_BOX (box->separator), separator);
+      gtk_container_add (GTK_CONTAINER (box->separator), separator);
     }
   else
     {

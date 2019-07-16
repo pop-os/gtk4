@@ -59,7 +59,7 @@
 #include "gdkwin32dnd-private.h"
 #include "gdkdisplay-win32.h"
 //#include "gdkselection-win32.h"
-#include "gdkdndprivate.h"
+#include "gdkdragprivate.h"
 
 #include <windowsx.h>
 
@@ -738,8 +738,6 @@ build_wm_ime_composition_event (GdkEvent *event,
   build_key_event_state (event, key_state);
 
   event->key.hardware_keycode = 0; /* FIXME: What should it be? */
-  event->key.string = NULL;
-  event->key.length = 0;
   event->key.keyval = gdk_unicode_to_keyval (wc);
 }
 
@@ -768,7 +766,7 @@ print_event_state (guint state)
 void
 _gdk_win32_print_event (const GdkEvent *event)
 {
-  gchar *escaped, *kvname;
+  gchar *kvname;
 
   g_print ("%s%*s===> ", (debug_indent > 0 ? "\n" : ""), debug_indent, "");
   switch (event->any.type)
@@ -777,7 +775,6 @@ _gdk_win32_print_event (const GdkEvent *event)
     CASE (GDK_NOTHING);
     CASE (GDK_DELETE);
     CASE (GDK_DESTROY);
-    CASE (GDK_EXPOSE);
     CASE (GDK_MOTION_NOTIFY);
     CASE (GDK_BUTTON_PRESS);
     CASE (GDK_BUTTON_RELEASE);
@@ -786,9 +783,6 @@ _gdk_win32_print_event (const GdkEvent *event)
     CASE (GDK_ENTER_NOTIFY);
     CASE (GDK_LEAVE_NOTIFY);
     CASE (GDK_FOCUS_CHANGE);
-    CASE (GDK_CONFIGURE);
-    CASE (GDK_MAP);
-    CASE (GDK_UNMAP);
     CASE (GDK_PROXIMITY_IN);
     CASE (GDK_PROXIMITY_OUT);
     CASE (GDK_DRAG_ENTER);
@@ -807,8 +801,6 @@ _gdk_win32_print_event (const GdkEvent *event)
 
   switch (event->any.type)
     {
-    case GDK_EXPOSE:
-      break;
     case GDK_MOTION_NOTIFY:
       g_print ("(%.4g,%.4g) (%.4g,%.4g)",
 	       event->motion.x, event->motion.y,
@@ -825,17 +817,10 @@ _gdk_win32_print_event (const GdkEvent *event)
       break;
     case GDK_KEY_PRESS:
     case GDK_KEY_RELEASE:
-      if (event->key.length == 0)
-	escaped = g_strdup ("");
-      else
-	escaped = g_strescape (event->key.string, NULL);
       kvname = gdk_keyval_name (event->key.keyval);
-      g_print ("%#.02x group:%d %s %d:\"%s\" ",
+      g_print ("%#.02x group:%d %s",
 	       event->key.hardware_keycode, event->key.group,
-	       (kvname ? kvname : "??"),
-	       event->key.length,
-	       escaped);
-      g_free (escaped);
+	       (kvname ? kvname : "??"));
       print_event_state (event->key.state);
       break;
     case GDK_ENTER_NOTIFY:
@@ -861,11 +846,6 @@ _gdk_win32_print_event (const GdkEvent *event)
     case GDK_FOCUS_CHANGE:
       g_print ("%s", (event->focus_change.in ? "IN" : "OUT"));
       break;
-    case GDK_CONFIGURE:
-      g_print ("x:%d y:%d w:%d h:%d",
-	       event->configure.x, event->configure.y,
-	       event->configure.width, event->configure.height);
-      break;
     case GDK_DRAG_ENTER:
     case GDK_DRAG_LEAVE:
     case GDK_DRAG_MOTION:
@@ -873,7 +853,7 @@ _gdk_win32_print_event (const GdkEvent *event)
       if (event->dnd.drop != NULL)
 	g_print ("ctx:%p: %s",
 		 event->dnd.drop,
-		 _gdk_win32_drag_protocol_to_string (GDK_WIN32_DRAG_CONTEXT (event->dnd.drop)->protocol));
+		 _gdk_win32_drag_protocol_to_string (GDK_WIN32_DRAG (event->dnd.drop)->protocol));
       break;
     case GDK_SCROLL:
       g_print ("(%.4g,%.4g) (%.4g,%.4g) %s ",
@@ -949,73 +929,6 @@ _gdk_win32_append_event (GdkEvent *event)
   _gdk_event_queue_append (display, event);
   GDK_NOTE (EVENTS, _gdk_win32_print_event (event));
 #endif
-}
-
-static void
-fill_key_event_string (GdkEvent *event)
-{
-  gunichar c;
-  gchar buf[256];
-
-  /* Fill in event->string crudely, since various programs
-   * depend on it.
-   */
-
-  c = 0;
-  if (event->key.keyval != GDK_KEY_VoidSymbol)
-    c = gdk_keyval_to_unicode (event->key.keyval);
-
-  if (c)
-    {
-      gsize bytes_written;
-      gint len;
-
-      /* Apply the control key - Taken from Xlib
-       */
-      if (event->key.state & GDK_CONTROL_MASK)
-	{
-	  if ((c >= '@' && c < '\177') || c == ' ')
-	    c &= 0x1F;
-	  else if (c == '2')
-	    {
-	      event->key.string = g_memdup ("\0\0", 2);
-	      event->key.length = 1;
-	      return;
-	    }
-	  else if (c >= '3' && c <= '7')
-	    c -= ('3' - '\033');
-	  else if (c == '8')
-	    c = '\177';
-	  else if (c == '/')
-	    c = '_' & 0x1F;
-	}
-
-      len = g_unichar_to_utf8 (c, buf);
-      buf[len] = '\0';
-
-      event->key.string = g_locale_from_utf8 (buf, len,
-					      NULL, &bytes_written,
-					      NULL);
-      if (event->key.string)
-	event->key.length = bytes_written;
-    }
-  else if (event->key.keyval == GDK_KEY_Escape)
-    {
-      event->key.length = 1;
-      event->key.string = g_strdup ("\033");
-    }
-  else if (event->key.keyval == GDK_KEY_Return ||
-	   event->key.keyval == GDK_KEY_KP_Enter)
-    {
-      event->key.length = 1;
-      event->key.string = g_strdup ("\r");
-    }
-
-  if (!event->key.string)
-    {
-      event->key.length = 0;
-      event->key.string = g_strdup ("");
-    }
 }
 
 static GdkWin32MessageFilterReturn
@@ -1418,7 +1331,6 @@ _gdk_win32_do_emit_configure_event (GdkSurface *window,
                                     RECT       rect)
 {
   GdkSurfaceImplWin32 *impl = GDK_SURFACE_IMPL_WIN32 (window->impl);
-  GdkEvent *event;
 
   impl->unscaled_width = rect.right - rect.left;
   impl->unscaled_height = rect.bottom - rect.top;
@@ -1429,17 +1341,7 @@ _gdk_win32_do_emit_configure_event (GdkSurface *window,
 
   _gdk_surface_update_size (window);
 
-  event = gdk_event_new (GDK_CONFIGURE);
-
-  event->any.surface = window;
-
-  event->configure.width = window->width;
-  event->configure.height = window->height;
-
-  event->configure.x = window->x;
-  event->configure.y = window->y;
-
-  _gdk_win32_append_event (event);
+  g_signal_emit_by_name (window, "size-changed", window->width, window->height);
 }
 
 void
@@ -1798,7 +1700,7 @@ ensure_stacking_on_unminimize (MSG *msg)
 		g_print (" restacking %p above %p",
 			 msg->hwnd, lowest_transient));
       SetWindowPos (msg->hwnd, lowest_transient, 0, 0, 0, 0,
-		    SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+		    SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER);
     }
 }
 
@@ -1879,7 +1781,7 @@ ensure_stacking_on_activate_app (MSG       *msg,
       impl->transient_owner != NULL)
     {
       SetWindowPos (msg->hwnd, HWND_TOP, 0, 0, 0, 0,
-		    SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+		    SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER);
       return;
     }
 
@@ -1921,7 +1823,7 @@ ensure_stacking_on_activate_app (MSG       *msg,
 		    g_print (" restacking %p above %p",
 			     msg->hwnd, rover));
 	  SetWindowPos (msg->hwnd, rover, 0, 0, 0, 0,
-			SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE);
+			SWP_NOACTIVATE | SWP_NOMOVE | SWP_NOSIZE | SWP_NOOWNERZORDER);
           break;
 	}
     }
@@ -2210,7 +2112,6 @@ gdk_event_translate (MSG  *msg,
     case WM_INPUTLANGCHANGE:
       _gdk_input_locale = (HKL) msg->lParam;
       _gdk_win32_keymap_set_active_layout (GDK_WIN32_KEYMAP (_gdk_win32_display_get_keymap (_gdk_display)), _gdk_input_locale);
-      _gdk_input_locale_is_ime = ImmIsIME (_gdk_input_locale);
       GetLocaleInfo (MAKELCID (LOWORD (_gdk_input_locale), SORT_DEFAULT),
 		     LOCALE_IDEFAULTANSICODEPAGE,
 		     buf, sizeof (buf));
@@ -2221,6 +2122,21 @@ gdk_event_translate (MSG  *msg,
 			 (gulong) msg->wParam,
 			 (gpointer) msg->lParam, _gdk_input_locale_is_ime ? " (IME)" : "",
 			 _gdk_input_codepage));
+      gdk_display_setting_changed (display, "gtk-im-module");
+
+      /* Generate a dummy key event to "nudge" IMContext */
+      event = gdk_event_new (GDK_KEY_PRESS);
+      event->any.surface = window;
+      event->key.time = _gdk_win32_get_next_tick (msg->time);
+      event->key.keyval = GDK_KEY_VoidSymbol;
+      event->key.hardware_keycode = 0;
+      event->key.group = 0;
+      gdk_event_set_scancode (event, 0);
+      gdk_event_set_device (event, device_manager_win32->core_keyboard);
+      gdk_event_set_source_device (event, device_manager_win32->system_keyboard);
+      event->key.is_modifier = FALSE;
+      event->key.state = 0;
+      _gdk_win32_append_event (event);
       break;
 
     case WM_SYSKEYUP:
@@ -2309,8 +2225,6 @@ gdk_event_translate (MSG  *msg,
       event->any.surface = window;
       event->key.time = _gdk_win32_get_next_tick (msg->time);
       event->key.keyval = GDK_KEY_VoidSymbol;
-      event->key.string = NULL;
-      event->key.length = 0;
       event->key.hardware_keycode = msg->wParam;
       /* save original scancode */
       gdk_event_set_scancode (event, msg->lParam >> 16);
@@ -2380,8 +2294,6 @@ gdk_event_translate (MSG  *msg,
 	impl->leading_surrogate_keydown = 0;
       else
 	impl->leading_surrogate_keyup = 0;
-
-      fill_key_event_string (event);
 
   /* Only one release key event is fired when both shift keys are pressed together
      and then released. In order to send the missing event, press events for shift
@@ -2813,13 +2725,20 @@ gdk_event_translate (MSG  *msg,
 
       event = gdk_event_new (GDK_SCROLL);
       event->any.surface = window;
+      event->scroll.direction = GDK_SCROLL_SMOOTH;
 
       if (msg->message == WM_MOUSEWHEEL)
-	  event->scroll.direction = (((short) HIWORD (msg->wParam)) > 0) ?
-	    GDK_SCROLL_UP : GDK_SCROLL_DOWN;
+        {
+          event->scroll.delta_y = (gdouble) GET_WHEEL_DELTA_WPARAM (msg->wParam) / (gdouble) WHEEL_DELTA;
+        }
       else if (msg->message == WM_MOUSEHWHEEL)
-	  event->scroll.direction = (((short) HIWORD (msg->wParam)) > 0) ?
-	    GDK_SCROLL_RIGHT : GDK_SCROLL_LEFT;
+        {
+          event->scroll.delta_x = (gdouble) GET_WHEEL_DELTA_WPARAM (msg->wParam) / (gdouble) WHEEL_DELTA;
+        }
+      /* Positive delta scrolls up, not down,
+         see API documentation for WM_MOUSEWHEEL message.
+       */
+      event->scroll.delta_y *= -1.0;
       event->scroll.time = _gdk_win32_get_next_tick (msg->time);
       event->scroll.x = (gint16) point.x / impl->surface_scale;
       event->scroll.y = (gint16) point.y / impl->surface_scale;
@@ -2828,6 +2747,20 @@ gdk_event_translate (MSG  *msg,
       event->scroll.state = build_pointer_event_state (msg);
       gdk_event_set_device (event, device_manager_win32->core_pointer);
       gdk_event_set_source_device (event, device_manager_win32->system_pointer);
+      gdk_event_set_pointer_emulated (event, FALSE);
+
+      _gdk_win32_append_event (gdk_event_copy (event));
+
+      /* Append the discrete version too */
+      if (msg->message == WM_MOUSEWHEEL)
+	event->scroll.direction = (((short) HIWORD (msg->wParam)) > 0) ?
+	  GDK_SCROLL_UP : GDK_SCROLL_DOWN;
+      else if (msg->message == WM_MOUSEHWHEEL)
+	event->scroll.direction = (((short) HIWORD (msg->wParam)) > 0) ?
+	  GDK_SCROLL_RIGHT : GDK_SCROLL_LEFT;
+      event->scroll.delta_x = 0;
+      event->scroll.delta_y = 0;
+      gdk_event_set_pointer_emulated (event, TRUE);
 
       _gdk_win32_append_event (event);
 
@@ -2897,8 +2830,8 @@ gdk_event_translate (MSG  *msg,
 	{
 	  generate_grab_broken_event (_gdk_device_manager, keyboard_grab->surface, TRUE, NULL);
 	}
+      G_GNUC_FALLTHROUGH;
 
-      /* fallthrough */
     case WM_SETFOCUS:
       if (keyboard_grab != NULL &&
 	  !keyboard_grab->owner_events)
@@ -3125,15 +3058,6 @@ gdk_event_translate (MSG  *msg,
           gdk_device_ungrab (device, msg -> time);
     }
 
-      /* Send MAP events  */
-      if ((windowpos->flags & SWP_SHOWWINDOW) &&
-	  !GDK_SURFACE_DESTROYED (window))
-	{
-	  event = gdk_event_new (GDK_MAP);
-	  event->any.surface = window;
-	  _gdk_win32_append_event (event);
-	}
-
       /* Update window state */
       if (windowpos->flags & (SWP_STATECHANGED | SWP_SHOWWINDOW | SWP_HIDEWINDOW))
 	{
@@ -3192,11 +3116,6 @@ gdk_event_translate (MSG  *msg,
       if ((windowpos->flags & SWP_HIDEWINDOW) &&
 	  !GDK_SURFACE_DESTROYED (window))
 	{
-	  /* Send UNMAP events  */
-	  event = gdk_event_new (GDK_UNMAP);
-	  event->any.surface = window;
-	  _gdk_win32_append_event (event);
-
 	  /* Make transient parent the forground window when window unmaps */
 	  impl = GDK_SURFACE_IMPL_WIN32 (window->impl);
 

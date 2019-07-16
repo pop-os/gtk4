@@ -50,7 +50,7 @@ GdkContentFormats *     gdk_drop_get_formats            (GdkDrop                
 GDK_AVAILABLE_IN_ALL
 GdkDragAction           gdk_drop_get_actions            (GdkDrop                *self);
 GDK_AVAILABLE_IN_ALL
-GdkDragContext *        gdk_drop_get_drag               (GdkDrop                *self);
+GdkDrag *               gdk_drop_get_drag               (GdkDrop                *self);
 
 GDK_AVAILABLE_IN_ALL
 void                    gdk_drop_status                 (GdkDrop                *self,
@@ -68,8 +68,8 @@ void                    gdk_drop_read_async             (GdkDrop                
                                                          gpointer                user_data);
 GDK_AVAILABLE_IN_ALL
 GInputStream *          gdk_drop_read_finish            (GdkDrop                *self,
-                                                         const char            **out_mime_type,
                                                          GAsyncResult           *result,
+                                                         const char            **out_mime_type,
                                                          GError                **error);
 GDK_AVAILABLE_IN_ALL
 void                    gdk_drop_read_value_async       (GdkDrop                *self,
@@ -83,12 +83,12 @@ const GValue *          gdk_drop_read_value_finish      (GdkDrop                
                                                          GAsyncResult           *result,
                                                          GError                **error);
 GDK_AVAILABLE_IN_ALL
-void                    gdk_drop_read_text_async        (GdkDrop                *drop,
+void                    gdk_drop_read_text_async        (GdkDrop                *self,
                                                          GCancellable           *cancellable,
                                                          GAsyncReadyCallback     callback,
                                                          gpointer                user_data);
 GDK_AVAILABLE_IN_ALL
-char *                  gdk_drop_read_text_finish       (GdkDrop                *drop,
+char *                  gdk_drop_read_text_finish       (GdkDrop                *self,
                                                          GAsyncResult           *result,
                                                          GError                **error);
 

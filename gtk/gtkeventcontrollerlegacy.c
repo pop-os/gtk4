@@ -17,8 +17,42 @@
  * Author(s): Carlos Garnacho <carlosg@gnome.org>
  */
 
+/**
+ * SECTION:gtkeventcontrollerlegacy
+ * @Short_description: Event controller for miscellaneous events
+ * @Title: GtkEventControllerLegacy
+ * @See_also: #GtkEventController
+ *
+ * #GtkEventControllerLegacy is an event controller that gives you
+ * direct access to the event stream. It should only be used as a
+ * last resort if none of the other event controllers or gestures
+ * do the job.
+ **/
+
 #include "config.h"
-#include "gtkeventcontrollerlegacyprivate.h"
+
+#include "gtkeventcontrollerlegacy.h"
+#include "gtkeventcontrollerprivate.h"
+#include "gtkmarshalers.h"
+#include "gtkintl.h"
+#include "gtkprivate.h"
+
+struct _GtkEventControllerLegacy
+{
+  GtkEventController parent_instance;
+};
+
+struct _GtkEventControllerLegacyClass
+{
+  GtkEventControllerClass parent_class;
+};
+
+enum {
+  EVENT,
+  N_SIGNALS
+};
+
+static guint signals[N_SIGNALS] = { 0, };
 
 G_DEFINE_TYPE (GtkEventControllerLegacy, gtk_event_controller_legacy,
                GTK_TYPE_EVENT_CONTROLLER)
@@ -27,9 +61,11 @@ static gboolean
 gtk_event_controller_legacy_handle_event (GtkEventController *controller,
                                           const GdkEvent     *event)
 {
-  GtkWidget *widget = gtk_event_controller_get_widget (controller);
+  gboolean handled;
 
-  return gtk_widget_emit_event_signals (widget, event);
+  g_signal_emit (controller, signals[EVENT], 0, event, &handled);
+
+  return handled;
 }
 
 static void
@@ -38,6 +74,28 @@ gtk_event_controller_legacy_class_init (GtkEventControllerLegacyClass *klass)
   GtkEventControllerClass *controller_class = GTK_EVENT_CONTROLLER_CLASS (klass);
 
   controller_class->handle_event = gtk_event_controller_legacy_handle_event;
+
+  /**
+   * GtkEventControllerLegacy::event:
+   * @controller: the object which received the signal.
+   * @event: the #GdkEvent which triggered this signal
+   *
+   * Emitted for each GDK event delivered to @controller.
+   *
+   * Returns: %TRUE to stop other handlers from being invoked for the event
+   *    and the emission of this signal. %FALSE to propagate the event further.
+   */
+  signals[EVENT] =
+    g_signal_new (I_("event"),
+                  G_TYPE_FROM_CLASS (klass),
+                  G_SIGNAL_RUN_LAST,
+                  0, _gtk_boolean_handled_accumulator, NULL,
+                  _gtk_marshal_BOOLEAN__OBJECT,
+                  G_TYPE_BOOLEAN, 1,
+                  GDK_TYPE_EVENT);
+
+  g_signal_set_va_marshaller (signals[EVENT], G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_BOOLEAN__OBJECTv);
 }
 
 static void
@@ -45,6 +103,13 @@ gtk_event_controller_legacy_init (GtkEventControllerLegacy *controller)
 {
 }
 
+/**
+ * gtk_event_controller_legacy_new:
+ *
+ * Creates a new legacy event controller.
+ *
+ * Returns: the newly created event controller.
+ */
 GtkEventController *
 gtk_event_controller_legacy_new (void)
 {

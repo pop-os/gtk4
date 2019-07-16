@@ -268,26 +268,39 @@ _gtk_ensure_resources (void)
   g_once (&register_resources_once, register_resources, NULL);
 }
 
-gboolean
-gtk_should_use_portal (void)
+static char *
+get_portal_path (GDBusConnection  *connection,
+                 const char       *kind,
+                 char            **token)
 {
-  static const char *use_portal = NULL;
+  char *sender;
+  int i;
+  char *path;
 
-  if (G_UNLIKELY (use_portal == NULL))
-    {
-      char *path;
+  *token = g_strdup_printf ("gtk%d", g_random_int_range (0, G_MAXINT));
+  /* +1 to skip the leading : */
+  sender = g_strdup (g_dbus_connection_get_unique_name (connection) + 1);
+  for (i = 0; sender[i]; i++)
+    if (sender[i] == '.')
+      sender[i] = '_';
 
-      path = g_build_filename (g_get_user_runtime_dir (), "flatpak-info", NULL);
-      if (g_file_test (path, G_FILE_TEST_EXISTS))
-        use_portal = "1";
-      else
-        {
-          use_portal = g_getenv ("GTK_USE_PORTAL");
-          if (!use_portal)
-            use_portal = "";
-        }
-      g_free (path);
-    }
+  path = g_strconcat (PORTAL_OBJECT_PATH, "/", kind, "/", sender, "/", *token, NULL);
 
-  return use_portal[0] == '1';
+  g_free (sender);
+
+  return path;
+}
+
+char *
+gtk_get_portal_request_path (GDBusConnection  *connection,
+                             char            **token)
+{
+   return get_portal_path (connection, "request", token);
+}
+
+char *
+gtk_get_portal_session_path (GDBusConnection  *connection,
+                             char            **token)
+{
+   return get_portal_path (connection, "session", token);
 }

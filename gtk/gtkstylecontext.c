@@ -46,7 +46,6 @@
 #include "gtkstylecascadeprivate.h"
 #include "gtkstyleproviderprivate.h"
 #include "gtktypebuiltins.h"
-#include "gtkwindow.h"
 #include "gtkwidgetpath.h"
 #include "gtkwidgetprivate.h"
 
@@ -1433,67 +1432,6 @@ gtk_style_context_get_color (GtkStyleContext *context,
 }
 
 /**
- * gtk_style_context_get_background_color:
- * @context: a #GtkStyleContext
- * @color: (out): return value for the background color
- *
- * Gets the background color for a given state.
- *
- * This function is far less useful than it seems, and it should not be used in
- * newly written code. CSS has no concept of "background color", as a background
- * can be an image, or a gradient, or any other pattern including solid colors.
- *
- * The only reason why you would call gtk_style_context_get_background_color() is
- * to use the returned value to draw the background with it; the correct way to
- * achieve this result is to use gtk_render_background() instead, along with CSS
- * style classes to modify the color to be rendered.
- *
- * Deprecated: 3.16: Use gtk_render_background() instead.
- **/
-void
-gtk_style_context_get_background_color (GtkStyleContext *context,
-                                        GdkRGBA         *color)
-{
-  GdkRGBA *c;
-
-  g_return_if_fail (color != NULL);
-  g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
-
-  gtk_style_context_get (context,
-                         "background-color", &c,
-                         NULL);
-
-  *color = *c;
-  gdk_rgba_free (c);
-}
-
-/**
- * gtk_style_context_get_border_color:
- * @context: a #GtkStyleContext
- * @color: (out): return value for the border color
- *
- * Gets the border color for a given state.
- *
- * Deprecated: 3.16: Use gtk_render_frame() instead.
- **/
-void
-gtk_style_context_get_border_color (GtkStyleContext *context,
-                                    GdkRGBA         *color)
-{
-  GdkRGBA *c;
-
-  g_return_if_fail (color != NULL);
-  g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
-
-  gtk_style_context_get (context,
-                         "border-color", &c,
-                         NULL);
-
-  *color = *c;
-  gdk_rgba_free (c);
-}
-
-/**
  * gtk_style_context_get_border:
  * @context: a #GtkStyleContext
  * @border: (out): return value for the border settings
@@ -1902,25 +1840,27 @@ gtk_snapshot_render_insertion_cursor (GtkSnapshot     *snapshot,
         cursor1 = &weak_pos;
     }
 
-  gtk_snapshot_offset (snapshot, x + PANGO_PIXELS (cursor1->x), y + PANGO_PIXELS (cursor1->y));
+  gtk_snapshot_save (snapshot);
+  gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x + PANGO_PIXELS (cursor1->x), y + PANGO_PIXELS (cursor1->y)));
   snapshot_insertion_cursor (snapshot,
                              context,
                              PANGO_PIXELS (cursor1->height),
                              TRUE,
                              direction,
                              direction2 != PANGO_DIRECTION_NEUTRAL);
-  gtk_snapshot_offset (snapshot, - x - PANGO_PIXELS (cursor1->x), - y - PANGO_PIXELS (cursor1->y));
+  gtk_snapshot_restore (snapshot);
 
   if (direction2 != PANGO_DIRECTION_NEUTRAL)
     {
-      gtk_snapshot_offset (snapshot, x + PANGO_PIXELS (cursor2->x), y + PANGO_PIXELS (cursor2->y));
+      gtk_snapshot_save (snapshot);
+      gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x + PANGO_PIXELS (cursor2->x), y + PANGO_PIXELS (cursor2->y)));
       snapshot_insertion_cursor (snapshot,
                                  context,
                                  PANGO_PIXELS (cursor2->height),
                                  FALSE,
                                  direction2,
                                  TRUE);
-      gtk_snapshot_offset (snapshot, - x - PANGO_PIXELS (cursor2->x), - y - PANGO_PIXELS (cursor2->y));
+      gtk_snapshot_restore (snapshot);
     }
 }
 
@@ -1948,28 +1888,6 @@ gtk_style_context_get_change (GtkStyleContext *context)
     return NULL;
 
   return priv->invalidating_context;
-}
-
-void
-_gtk_style_context_get_icon_extents (GtkStyleContext *context,
-                                     GdkRectangle    *extents,
-                                     gint             x,
-                                     gint             y,
-                                     gint             width,
-                                     gint             height)
-{
-  g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
-  g_return_if_fail (extents != NULL);
-
-  if (_gtk_css_image_value_get_image (_gtk_style_context_peek_property (context, GTK_CSS_PROPERTY_ICON_SOURCE)) == NULL)
-    {
-      extents->x = extents->y = extents->width = extents->height = 0;
-      return;
-    }
-
-  gtk_css_style_render_icon_get_extents (gtk_style_context_lookup_style (context),
-                                         extents,
-                                         x, y, width, height);
 }
 
 PangoAttrList *
@@ -2010,18 +1928,18 @@ AtkAttributeSet *
 _gtk_style_context_get_attributes (AtkAttributeSet *attributes,
                                    GtkStyleContext *context)
 {
+  GdkRGBA *bg; 
   GdkRGBA color;
   gchar *value;
 
-G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-  gtk_style_context_get_background_color (context, &color);
-G_GNUC_END_IGNORE_DEPRECATIONS
+  gtk_style_context_get (context, "background-color", &bg, NULL);
   value = g_strdup_printf ("%u,%u,%u",
-                           (guint) ceil (color.red * 65536 - color.red),
-                           (guint) ceil (color.green * 65536 - color.green),
-                           (guint) ceil (color.blue * 65536 - color.blue));
+                           (guint) ceil (bg->red * 65536 - bg->red),
+                           (guint) ceil (bg->green * 65536 - bg->green),
+                           (guint) ceil (bg->blue * 65536 - bg->blue));
   attributes = add_attribute (attributes, ATK_TEXT_ATTR_BG_COLOR, value);
   g_free (value);
+  gdk_rgba_free (bg);
 
   gtk_style_context_get_color (context, &color);
   value = g_strdup_printf ("%u,%u,%u",
