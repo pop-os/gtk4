@@ -1,4 +1,4 @@
-gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
 
   [ Jeremy Bicha ]
   * New upstream release 3.92
@@ -11,7 +11,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * Stop using gnome-get-source
 
   [ Simon McVittie ]
-  * New upstream release 3.94
+  * New upstream release 3.94, 3.96
     - Update build-dependencies
     - d/copyright: Update
     - d/patches: Delete patches that aren't applied
@@ -78,7 +78,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   [ Laurent Bigonville ]
   * Add Closes statement for #910640
 
- -- Simon McVittie <smcv@debian.org>  Tue, 16 Jul 2019 10:25:51 +0100
+ -- Simon McVittie <smcv@debian.org>  Tue, 16 Jul 2019 10:33:48 +0100
 
 gtk+4.0 (3.91.2-1) experimental; urgency=medium
 
