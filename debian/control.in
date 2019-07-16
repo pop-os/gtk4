@@ -76,9 +76,9 @@ Suggests: gvfs,
 Breaks: gnome-themes-standard (<< 3.6),
         gtk3-engines-oxygen (<< 1.4.1-3)
 Pre-Depends: ${misc:Pre-Depends}
-Description: GTK+ graphical user interface library
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
+Description: GTK graphical user interface library
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -92,11 +92,11 @@ Architecture: any
 Depends: ${misc:Depends},
          ${shlibs:Depends}
 Provides: @GTK_BINVER_DEP@
-Description: GTK+ graphical user interface library - minimal runtime
+Description: GTK graphical user interface library - minimal runtime
  This is a udeb, or a microdeb, for the debian-installer.
  .
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -110,9 +110,9 @@ Multi-Arch: foreign
 Depends: libgtk-3-common,
          ${misc:Depends}
 Recommends: @SHARED_PKG@
-Description: common files for the GTK+ graphical user interface library
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
+Description: common files for the GTK graphical user interface library
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -128,9 +128,9 @@ Depends: gtk-update-icon-cache,
          ${shlibs:Depends},
          @COMMON_PKG@ (>= ${source:Version}),
          @SHARED_PKG@ (>= ${source:Version})
-Description: programs for the GTK+ graphical user interface library
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
+Description: programs for the GTK graphical user interface library
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -171,14 +171,14 @@ Depends: gir1.2-gtk-4.0 (= ${binary:Version}),
          @COMMON_PKG@,
          @SHARED_PKG@ (= ${binary:Version})
 Suggests: @DOC_PKG@
-Description: development files for the GTK+ library
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
+Description: development files for the GTK library
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
  This package contains the header and development files which are
- needed for building GTK+ applications.
+ needed for building GTK applications.
 
 Package: @DOC_PKG@
 Section: doc
@@ -189,13 +189,13 @@ Recommends: libatk1.0-doc,
             libglib2.0-doc,
             libpango1.0-doc
 Suggests: devhelp
-Description: documentation for the GTK+ graphical user interface library
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
+Description: documentation for the GTK graphical user interface library
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
- This package contains the HTML documentation for the GTK+ library
+ This package contains the HTML documentation for the GTK library
  in /usr/share/doc/@DOC_PKG@/ .
 
 Package: @EXAMPLES_PKG@
@@ -205,14 +205,14 @@ Depends: gtk-3-examples,
          ${misc:Depends},
          ${shlibs:Depends},
          @SHARED_PKG@ (= ${binary:Version})
-Description: example files for GTK+ 4
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
+Description: example files for GTK 4
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
  This package contains the example files and a demonstration program
- for GTK+4. It also contains the installed tests.
+ for GTK4. It also contains the installed tests.
 
 Package: gir1.2-gtk-4.0
 Section: introspection
@@ -227,9 +227,9 @@ Breaks: python-gi (<< 3.18),
 Provides: gir1.2-gdk-4.0 (= ${binary:Version}),
           gir1.2-gdkx11-4.0 (= ${binary:Version}),
           gir1.2-gsk-4.0 (= ${binary:Version})
-Description: GTK+ graphical user interface library -- gir bindings
- GTK+ is a multi-platform toolkit for creating graphical user
- interfaces. Offering a complete set of widgets, GTK+ is suitable
+Description: GTK graphical user interface library -- gir bindings
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
  for projects ranging from small one-off tools to complete application
  suites.
  .
@@ -249,7 +249,7 @@ Description: GTK+ graphical user interface library -- gir bindings
 #Description: icon theme caching utility
 # gtk-update-icon-cache creates mmap()able cache files for icon themes.
 # .
-# GTK+ can use the cache files created by gtk-update-icon-cache to avoid a lot
+# GTK can use the cache files created by gtk-update-icon-cache to avoid a lot
 # of system call and disk seek overhead when the application starts. Since the
 # format of the cache files allows them to be mmap()ed shared between multiple
 # applications, the overall memory consumption is reduced as well.

@@ -2,7 +2,7 @@
 # autopkgtest check: Build and run a program against GTK, to verify that the
 # headers and pkg-config file are installed correctly
 # Based on examples/hello-world.c:
-# (C) 1997-2015 GTK+ contributors (see debian/copyright)
+# (C) 1997-2015 GTK contributors (see debian/copyright)
 # and on an older autopkgtest:
 # (C) 2012 Canonical Ltd.
 # Author: Martin Pitt <martin.pitt@ubuntu.com>

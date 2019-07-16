@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
-Upstream-Name: gtk+
-Source: https://download.gnome.org/sources/gtk+/
+Upstream-Name: GTK
+Source: https://download.gnome.org/sources/gtk/
 License: LGPL-2.1+
 
 Files: *

@@ -16,7 +16,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
     - d/copyright: Update
     - d/patches: Delete patches that aren't applied
     - d/p/gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch:
-      Drop, obsoleted by commit 02eb344 in GTK+ 3.93
+      Drop, obsoleted by commit 02eb344 in GTK 3.93
     - d/p/no-accessibility-dump.patch: Drop, no longer needed.
       The build-time tests correctly set GTK_CSD=1 now.
     - Disable GStreamer video support for now
@@ -25,7 +25,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
       no longer available (the multipress IM module is unmaintained and
       was removed)
     - d/libgtk-4-0.install.in: Don't install IM modules. The backend IM
-      modules such as XIM and Wayland are now linked into GTK+ itself,
+      modules such as XIM and Wayland are now linked into GTK itself,
       while non-backend IM modules have been removed.
     - d/rules: Update Meson options, mostly removing enable- prefix
     - d/libgtk-4-0.symbols: Update
@@ -34,7 +34,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * Generate a dependency on a virtual package that reflects the unstable
     SONAME, currently libgtk-4-0.9400.0, and Provide that virtual package
     from libgtk-4-0. This avoids repeated package renames while the ABI
-    of GTK+ 4 remains unstable.
+    of GTK 4 remains unstable.
   * gir1.2-gtk-4.0: Add Provides for gir1.2-gdk-4.0, gir1.2-gdkx11-4.0
     and gir1.2-gsk-4.0 to reflect its contents
   * d/libgtk-4-0.postinst.in: Run gio-querymodules for IM modules
@@ -42,7 +42,7 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * libgtk-4-dev: Add missing dependency on libvulkan-dev (thanks,
     autopkgtest) (Closes: #910640)
   * libgtk-4-0.postrm.in: Remove the correct cache files
-  * Drop support for OLD_MODULES_BASE_PATH. GTK+ 4 has never supported
+  * Drop support for OLD_MODULES_BASE_PATH. GTK 4 has never supported
     modules in the non-multiarch location.
   * Run tests under Xvfb with GLX available (see #874077)
   * Build installed-tests and run them as autopkgtests (similar to #908440)
@@ -54,10 +54,10 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
       Add patches (already in upstream git) to fix some tests
   * d/tests/control: Mark python3-gi as flaky until python3-gi overrides
     get updated for the rename of Gdk.Window to Gdk.Surface
-  * d/tests/build: Update for GTK+ 4.0
+  * d/tests/build: Update for GTK 4.0
   * Canonicalize permissions of debian/rules
   * Normalize various packaging files with wrap-and-sort -a
-  * Remove obsolete debian/*.install files from GTK+ 3
+  * Remove obsolete debian/*.install files from GTK 3
   * List installed but unpackaged files in d/not-installed
   * d/rules: Defang dh_auto_test when built with nocheck
   * Stop using Priority: extra
@@ -72,6 +72,8 @@ gtk+4.0 (3.94.0-1) UNRELEASED; urgency=medium
   * Remove autoconf-archive B-D
   * Don't build udebs if built with noudeb build-profile
   * Add test-dependency on xvfb so we can run the built program
+  * Change library name (and download location) from GTK+ to GTK,
+    following upstream re-branding
 
   [ Laurent Bigonville ]
   * Add Closes statement for #910640
