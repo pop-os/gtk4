@@ -22,7 +22,7 @@ APIVER := 4
 FAKE_SONAME := 0
 # ... but while it's in development, the SONAME version is really this,
 # changing with every upstream release
-SONAME := 0.9400.0
+SONAME := 0.9600.0
 
 LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 
