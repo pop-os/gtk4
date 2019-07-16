@@ -6,7 +6,7 @@ License: LGPL-2.1+
 Files: *
 Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 1993 Robert Nation
-           Copyright (C) 1997-2010 The GTK+ Team
+           Copyright (C) 1997-2019 The GTK Team
            Copyright (C) 1991-1993, 1995, 1999-2010 Free Software Foundation, Inc.
            Copyright (C) 1995, 1996, 1997, 1998 Steffen Beyer
            Copyright (C) 1996-2007, 2009 Sun Microsystems, Inc.
@@ -20,7 +20,7 @@ Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 1998 Shawn T. Amundson
            Copyright (C) 1998-2004 Tor Lillqvist
            Copyright (C) 1998-2001, 2005, 2006 Tim Janik
-           Copyright (C) 1998-2018 Red Hat, Inc.
+           Copyright (C) 1998-2019 Red Hat, Inc.
            Copyright (C) 1998 Stanislav Brabec <utx@k332.feld.cvut.cz>
            Copyright (C) 1998 Jiří Pavlovský <pavlovsk@ff.cuni.cz>
            Copyright (C) 1999 Mark Crichton, Larry Ewing
@@ -51,7 +51,7 @@ Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 2004-2006 Christian Hammond
            Copyright (C) 2004 Lorenzo Gil Sanchez
            Copyright (c) 2004 James M. Cape <jcape@ignore-your.tv>
-           Copyright (C) 2004-2009 GNOME Foundation
+           Copyright (C) 2004-2019 GNOME Foundation
            Copyright (C) 2005 Paolo Maggi
            Copyright (C) 2005 Jamie McCracken <jamiemcc@gnome.org>
            Copyright (C) 2005 Ronald S. Bultje
@@ -83,9 +83,13 @@ Copyright: Copyright (C) 1986, 1987, 1998  The Open Group
            Copyright (C) 2010 Sadia Afroz <sadia@ankur.org.bd>
            Copyright (C) 2010 Israt Jahan <israt@ankur.org.bd>
            Copyright (C) 2010 Intel Corporation
+           Copyright (C) 2011 Ignacio Casal Quinteiro
+           Copyright (C) 2011 Mike Krüger
            Copyright (C) 2015 Matthew Waters
-           Copyright (C) 2017-2018 Руслан Ижбулатов (LRN)
+           Copyright (C) 2017-2019 Руслан Ижбулатов (LRN)
            Copyright (C) 2016-2018 Benjamin Otte
+           Copyright (C) 2018 Purism SPC
+           Copyright (C) 2019 Zander Brown
            Copyright (C) Federico Mena
            Copyright (C) Christian Kellner <gicmo@gnome.org>
            Copyright (C) David Zeuthen <davidz@redhat.com>
@@ -110,11 +114,25 @@ License: LGPL-2+
  .
  See /usr/share/common-licenses/LGPL-2 on your debian system.
 
-Files: gsk/gskdiff.c
+Files:
+       demos/node-editor/*
+       gsk/broadway/gskbroadwayrenderer.*
+       gsk/gl/gskglrenderer.*
+       gsk/gskcairorenderer.*
+       gsk/gskdiff.c
        gsk/gskdiffprivate.h
+       gsk/gsktransform.*
+       gsk/gsktransformprivate.*
+       gsk/vulkan/gskvulkanrenderer.*
        gtk/a11y/gtkpictureaccessible.c
        gtk/a11y/gtkpictureaccessibleprivate.h
+       gtk/css/gtkcsserror.*
+       gtk/css/gtkcsslocation.*
+       gtk/css/gtkcsslocationprivate.*
+       gtk/css/gtkcssparser.*
+       gtk/css/gtkcssparserprivate.*
        gtk/gtkaboutdialog.h
+       gtk/gtkbinlayout.*
        gtk/gtkcomboboxtext.h
        gtk/gtkcssdynamic.c
        gtk/gtkcssdynamicprivate.h
@@ -123,16 +141,35 @@ Files: gsk/gskdiff.c
        gtk/gtkcssimageinvalidprivate.h
        gtk/gtkcssimagepaintable.c
        gtk/gtkcssimagepaintableprivate.h
+       gtk/gtkcustomlayout.*
+       gtk/gtkfilterlistmodel.*
+       gtk/gtkfixedlayout.*
+       gtk/gtkflattenlistmodel.*
+       gtk/gtkgridlayout.*
+       gtk/gtklayoutmanager.*
+       gtk/gtklistlistmodel.*
+       gtk/gtklistlistmodelprivate.*
+       gtk/gtkmaplistmodel.*
        gtk/gtkmediacontrols.*
        gtk/gtkmediafile.*
        gtk/gtkmediafile.*
        gtk/gtknomediafile.c
        gtk/gtknomediafileprivate.h
+       gtk/gtkoverlaylayout.*
        gtk/gtkpicture.*
+       gtk/gtkpropertylookuplistmodel.*
+       gtk/gtkpropertylookuplistmodelprivate.h
        gtk/gtkrendernodepaintable.c
        gtk/gtkrendernodepaintableprivate.h
+       gtk/gtkroot.*
+       gtk/gtkrootprivate.h
        gtk/gtkscaler.c
        gtk/gtkscalerprivate.h
+       gtk/gtkselectionmodel.*
+       gtk/gtksingleselection.*
+       gtk/gtkslicelistmodel.*
+       gtk/gtksortlistmodel.*
+       gtk/gtktreelistmodel.*
        gtk/gtkvideo.*
        gtk/gtkwidgetpaintable.*
        gtk/gtkwidgetpaintableprivate.h
@@ -147,6 +184,7 @@ Files: gsk/gskdiff.c
        modules/media/gtkgstmediafileprivate.h
        modules/media/gtkgstpaintable.c
        modules/media/gtkgstpaintableprivate.h
+       testsuite/gtk/transform.c
 Copyright: Copyright (C) 2010 Christian Dywan
            Copyright (C) 2008 Openismus GmbH
            Copyright (C) 2001 CodeFactory AB
@@ -154,8 +192,12 @@ Copyright: Copyright (C) 2010 Christian Dywan
            Copyright (C) 2003, 2004 Matthias Clasen <mclasen@redhat.com>
            Copyright (C) 2003 Davide Libenzi
            Copyright (C) 2010 Christian Persch
-           Copyright (C) 2018 Benjamin Otte
-           Copyright (C) 2011-2018 Red Hat Inc.
+           Copyright (C) 2016 Endless
+           Copyright (C) 2018 Timm Bäder
+           Copyright (C) 2018-2019 Benjamin Otte
+           Copyright (C) 2011-2019 Red Hat Inc.
+           Copyright (C) 2019 Alexander Larsson
+           Copyright (C) 2019 GNOME Foundation
 License: LGPL-2.1+
 
 License: LGPL-2.1+
@@ -178,8 +220,8 @@ License: LGPL-2.1+
 
 Files: po/*
        po-properties/*
-Copyright: Copyright (C) 1998-2010 The Free Software Foundation, Inc.
-           Copyright (C) 1999, 2003-2010 The GTK+ Team
+Copyright: Copyright (C) 1998-2019 Free Software Foundation, Inc.
+           Copyright (C) 1999, 2003-2010 The GTK Team
            Copyright (C) 2004 Zuza Software Foundation <info@translate.org.za>
            Copyright (C) 2008-2010 F Wolff <friedel@translate.org.za>
            Copyright (C) 2002 Ge'ez Frontier Foundation <locales@geez.org>
@@ -509,9 +551,12 @@ License: LGPL-2+
 
 Files:
  gtk/gtk-text-input.xml
+ gtk/text-input-unstable-v3.xml
 Copyright:
  2012-2013 Intel Corporation
  2015-2016 Jan Arne Petersen
+ 2017-2018 Red Hat, Inc.
+ 2018 Purism SPC
 License: X11R5-permissive
 
 Files: gdk/win32/wintab.h
@@ -585,6 +630,14 @@ Files:
 Copyright:
  © 2018 Red Hat, Inc.
 License: Expat
+
+Files:
+ demos/gtk-demo/org.gtk.Demo4.appdata.xml
+ demos/widget-factory/org.gtk.WidgetFactory4.appdata.xml
+Copyright: unspecified
+License: CC0-1.0
+ On Debian systems, a copy of the Creative Commons Zero license version 1.0
+ can be found in /usr/share/common-licenses/CC0-1.0.
 
 License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy
