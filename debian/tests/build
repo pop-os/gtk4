@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 }
 EOF
 
-gcc -o gtktest gtktest.c `pkg-config --cflags --libs gtk+-4.0`
+gcc -o gtktest gtktest.c `pkg-config --cflags --libs gtk4`
 echo "build: OK"
 [ -x gtktest ]
 xvfb-run -a -s "-screen 0 1024x768x24" \
