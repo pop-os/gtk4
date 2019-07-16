@@ -29,21 +29,20 @@
 
 #include "gtkfontbutton.h"
 
-#include "gtkmain.h"
 #include "gtkbox.h"
-#include "gtklabel.h"
+#include "gtkcssprovider.h"
 #include "gtkfontchooser.h"
 #include "gtkfontchooserdialog.h"
-#include "gtkimage.h"
-#include "gtkmarshalers.h"
-#include "gtkseparator.h"
-#include "gtkprivate.h"
+#include "gtkfontchooserutils.h"
 #include "gtkintl.h"
-#include "gtkcssprovider.h"
+#include "gtklabel.h"
+#include "gtkmarshalers.h"
+#include "gtkprivate.h"
+#include "gtkseparator.h"
+#include "gtkstylecontext.h"
 
 #include <string.h>
 #include <stdio.h>
-#include "gtkfontchooserutils.h"
 
 
 /**
@@ -487,14 +486,20 @@ gtk_font_button_measure (GtkWidget       *widget,
 }
 
 static void
-gtk_font_button_size_allocate (GtkWidget           *widget,
-                               const GtkAllocation *allocation,
+gtk_font_button_size_allocate (GtkWidget *widget,
+                               int        width,
+                               int        height,
                                int                  baseline)
 {
   GtkFontButton *button = GTK_FONT_BUTTON (widget);
   GtkFontButtonPrivate *priv = gtk_font_button_get_instance_private (button);
 
-  gtk_widget_size_allocate (priv->button, allocation, baseline);
+  gtk_widget_size_allocate (priv->button,
+                            &(GtkAllocation) {
+                              0, 0,
+                              width, height
+                            },
+                            baseline);
 }
 
 static void
@@ -989,7 +994,9 @@ gtk_font_button_clicked (GtkButton *button,
       gtk_font_chooser_set_font_desc (font_dialog, priv->font_desc);
     }
 
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   gtk_window_present (GTK_WINDOW (priv->font_dialog));
+  G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 

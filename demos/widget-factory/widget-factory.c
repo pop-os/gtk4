@@ -48,7 +48,7 @@ change_transition_state (GSimpleAction *action,
   GtkStackTransitionType transition;
 
   if (g_variant_get_boolean (state))
-    transition = GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT;
+    transition = GTK_STACK_TRANSITION_TYPE_ROTATE_LEFT_RIGHT;
   else
     transition = GTK_STACK_TRANSITION_TYPE_NONE;
 
@@ -212,28 +212,28 @@ activate_about (GSimpleAction *action,
                           glib_major_version,
                           glib_minor_version,
                           glib_micro_version);
-  g_string_append_printf (s, "\tGTK+\t%d.%d.%d\n",
+  g_string_append_printf (s, "\tGTK\t%d.%d.%d\n",
                           gtk_get_major_version (),
                           gtk_get_minor_version (),
                           gtk_get_micro_version ());
   g_string_append_printf (s, "\nA link can apppear here: <http://www.gtk.org>");
 
-  version = g_strdup_printf ("%s\nRunning against GTK+ %d.%d.%d",
+  version = g_strdup_printf ("%s\nRunning against GTK %d.%d.%d",
                              PACKAGE_VERSION,
                              gtk_get_major_version (),
                              gtk_get_minor_version (),
                              gtk_get_micro_version ());
 
   gtk_show_about_dialog (GTK_WINDOW (gtk_application_get_active_window (app)),
-                         "program-name", "GTK+ Widget Factory",
+                         "program-name", "GTK Widget Factory",
                          "version", version,
-                         "copyright", "(C) 1997-2013 The GTK+ Team",
+                         "copyright", "© 1997—2019 The GTK Team",
                          "license-type", GTK_LICENSE_LGPL_2_1,
                          "website", "http://www.gtk.org",
-                         "comments", "Program to demonstrate GTK+ themes and widgets",
+                         "comments", "Program to demonstrate GTK themes and widgets",
                          "authors", authors,
-                         "logo-icon-name", "gtk4-widget-factory",
-                         "title", "About GTK+ Widget Factory",
+                         "logo-icon-name", "org.gtk.WidgetFactory4",
+                         "title", "About GTK Widget Factory",
                          "system-information", s->str,
                          NULL);
 
@@ -260,6 +260,14 @@ activate_quit (GSimpleAction *action,
 
       list = next;
     }
+}
+
+static void
+activate_inspector (GSimpleAction *action,
+                    GVariant      *parameter,
+                    gpointer       user_data)
+{
+  gtk_window_set_interactive_debugging (TRUE);
 }
 
 static void
@@ -556,7 +564,7 @@ set_needs_attention (GtkWidget *page, gboolean needs_attention)
   GtkWidget *stack;
 
   stack = gtk_widget_get_parent (page);
-  gtk_container_child_set (GTK_CONTAINER (stack), page,
+  g_object_set (gtk_stack_get_page (GTK_STACK (stack), page),
                            "needs-attention", needs_attention,
                            NULL);
 }
@@ -803,7 +811,7 @@ overshot (GtkScrolledWindow *sw, GtkPositionType pos, GtkWidget *widget)
                 "margin", 6,
                 "xalign", 0.0,
                 NULL);
-  gtk_box_pack_start (GTK_BOX (row), label);
+  gtk_container_add (GTK_CONTAINER (row), label);
   gdk_rgba_parse (&rgba, color);
   swatch = g_object_new (g_type_from_name ("GtkColorSwatch"),
                          "rgba", &rgba,
@@ -815,7 +823,7 @@ overshot (GtkScrolledWindow *sw, GtkPositionType pos, GtkWidget *widget)
                          NULL);
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_container_add (GTK_CONTAINER (box), swatch);
-  gtk_box_pack_start (GTK_BOX (row), box);
+  gtk_container_add (GTK_CONTAINER (row), box);
   gtk_list_box_insert (GTK_LIST_BOX (widget), row, -1);
   row = gtk_widget_get_parent (row);
   gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
@@ -914,7 +922,7 @@ populate_colors (GtkWidget *widget, GtkWidget *chooser)
                     "hexpand", TRUE,
                     "xalign", 0.0,
                     NULL);
-      gtk_box_pack_start (GTK_BOX (row), label);
+      gtk_container_add (GTK_CONTAINER (row), label);
       gdk_rgba_parse (&rgba, colors[i].color);
       swatch = g_object_new (g_type_from_name ("GtkColorSwatch"),
                              "rgba", &rgba,
@@ -926,7 +934,7 @@ populate_colors (GtkWidget *widget, GtkWidget *chooser)
                              NULL);
       box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
       gtk_container_add (GTK_CONTAINER (box), swatch);
-      gtk_box_pack_start (GTK_BOX (row), box);
+      gtk_container_add (GTK_CONTAINER (row), box);
       gtk_list_box_insert (GTK_LIST_BOX (widget), row, -1);
       row = gtk_widget_get_parent (row);
       gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
@@ -966,8 +974,8 @@ background_loaded_cb (GObject      *source,
       return;
     }
 
-  child = gtk_image_new_from_pixbuf (pixbuf);
-  gtk_widget_show (child);
+  child = gtk_picture_new_for_pixbuf (pixbuf);
+  gtk_widget_set_size_request (child, 110, 70);
   gtk_flow_box_insert (GTK_FLOW_BOX (bd->flowbox), child, -1);
   child = gtk_widget_get_parent (child);
   g_object_set_data_full (G_OBJECT (child), "filename", bd->filename, g_free);
@@ -995,8 +1003,7 @@ populate_flowbox (GtkWidget *flowbox)
 
   pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, FALSE, 8, 110, 70);
   gdk_pixbuf_fill (pixbuf, 0xffffffff);
-  child = gtk_image_new_from_pixbuf (pixbuf);
-  gtk_widget_show (child);
+  child = gtk_picture_new_for_pixbuf (pixbuf);
   gtk_flow_box_insert (GTK_FLOW_BOX (flowbox), child, -1);
 
   location = "/usr/share/backgrounds/gnome";
@@ -1081,7 +1088,7 @@ set_accel (GtkApplication *app, GtkWidget *widget)
 typedef struct
 {
   GtkTextView tv;
-  GdkPixbuf *pixbuf;
+  GdkTexture *texture;
 } MyTextView;
 
 typedef GtkTextViewClass MyTextViewClass;
@@ -1094,18 +1101,23 @@ my_text_view_init (MyTextView *tv)
 }
 
 static void
-my_tv_draw_layer (GtkTextView      *widget,
-                  GtkTextViewLayer  layer,
-                  cairo_t          *cr)
+my_tv_snapshot_layer (GtkTextView      *widget,
+                      GtkTextViewLayer  layer,
+                      GtkSnapshot      *snapshot)
 {
   MyTextView *tv = (MyTextView *)widget;
 
-  if (layer == GTK_TEXT_VIEW_LAYER_BELOW_TEXT && tv->pixbuf)
+  if (layer == GTK_TEXT_VIEW_LAYER_BELOW_TEXT && tv->texture)
     {
-      cairo_save (cr);
-      gdk_cairo_set_source_pixbuf (cr, tv->pixbuf, 0.0, 0.0);
-      cairo_paint_with_alpha (cr, 0.333);
-      cairo_restore (cr);
+      gtk_snapshot_push_opacity (snapshot, 0.333);
+      gtk_snapshot_append_texture (snapshot,
+                                   tv->texture,
+                                   &GRAPHENE_RECT_INIT(
+                                     0, 0,
+                                     gdk_texture_get_width (tv->texture),
+                                     gdk_texture_get_height (tv->texture)
+                                   ));
+      gtk_snapshot_pop (snapshot);
     }
 }
 
@@ -1114,7 +1126,7 @@ my_tv_finalize (GObject *object)
 {
   MyTextView *tv = (MyTextView *)object;
 
-  g_clear_object (&tv->pixbuf);
+  g_clear_object (&tv->texture);
 
   G_OBJECT_CLASS (my_text_view_parent_class)->finalize (object);
 }
@@ -1126,20 +1138,24 @@ my_text_view_class_init (MyTextViewClass *class)
   GObjectClass *o_class = G_OBJECT_CLASS (class);
 
   o_class->finalize = my_tv_finalize;
-  tv_class->draw_layer = my_tv_draw_layer;
+  tv_class->snapshot_layer = my_tv_snapshot_layer;
 }
 
 static void
 my_text_view_set_background (MyTextView *tv, const gchar *filename)
 {
   GError *error = NULL;
+  GFile *file;
 
-  g_clear_object (&tv->pixbuf);
+  g_clear_object (&tv->texture);
 
   if (filename == NULL)
     return;
 
-  tv->pixbuf = gdk_pixbuf_new_from_file (filename, &error);
+  file = g_file_new_for_path (filename);
+  tv->texture = gdk_texture_new_from_file (file, &error);
+  g_object_unref (file);
+
   if (error)
     {
       g_warning ("%s", error->message);
@@ -1398,7 +1414,7 @@ open_popover_text_changed (GtkEntry *entry, GParamSpec *pspec, GtkWidget *button
 {
   const gchar *text;
 
-  text = gtk_entry_get_text (entry);
+  text = gtk_editable_get_text (GTK_EDITABLE (entry));
   gtk_widget_set_sensitive (button, strlen (text) > 0);
 }
 
@@ -1649,13 +1665,13 @@ activate (GApplication *app)
   g_type_ensure (my_text_view_get_type ());
 
   provider = gtk_css_provider_new ();
-  gtk_css_provider_load_from_resource (provider, "/org/gtk/WidgetFactory/widget-factory.css");
+  gtk_css_provider_load_from_resource (provider, "/org/gtk/WidgetFactory4/widget-factory.css");
   gtk_style_context_add_provider_for_display (gdk_display_get_default (),
                                               GTK_STYLE_PROVIDER (provider),
                                               GTK_STYLE_PROVIDER_PRIORITY_USER);
   g_object_unref (provider);
 
-  builder = gtk_builder_new_from_resource ("/org/gtk/WidgetFactory/widget-factory.ui");
+  builder = gtk_builder_new_from_resource ("/org/gtk/WidgetFactory4/widget-factory.ui");
   gtk_builder_add_callback_symbol (builder, "on_entry_icon_release", (GCallback)on_entry_icon_release);
   gtk_builder_add_callback_symbol (builder, "on_scale_button_value_changed", (GCallback)on_scale_button_value_changed);
   gtk_builder_add_callback_symbol (builder, "on_scale_button_query_tooltip", (GCallback)on_scale_button_query_tooltip);
@@ -1927,6 +1943,7 @@ main (int argc, char *argv[])
   static GActionEntry app_entries[] = {
     { "about", activate_about, NULL, NULL, NULL },
     { "quit", activate_quit, NULL, NULL, NULL },
+    { "inspector", activate_inspector, NULL, NULL, NULL },
     { "main", NULL, "s", "'steak'", NULL },
     { "wine", NULL, NULL, "false", NULL },
     { "beer", NULL, NULL, "false", NULL },
@@ -1936,7 +1953,7 @@ main (int argc, char *argv[])
   };
   gint status;
 
-  app = gtk_application_new ("org.gtk.WidgetFactory", G_APPLICATION_NON_UNIQUE);
+  app = gtk_application_new ("org.gtk.WidgetFactory4", G_APPLICATION_NON_UNIQUE);
 
   g_action_map_add_action_entries (G_ACTION_MAP (app),
                                    app_entries, G_N_ELEMENTS (app_entries),

@@ -23,48 +23,16 @@
 #define __GTK_RENDER_BORDER_H__
 
 #include "gtkborder.h"
-#include "gtkcssimageprivate.h"
-#include "gtkcssvalueprivate.h"
+#include "gtkcssboxesprivate.h"
 #include "gtktypes.h"
 
 G_BEGIN_DECLS
 
-gboolean        gtk_css_style_render_has_border         (GtkCssStyle            *style);
-void            gtk_css_style_render_border             (GtkCssStyle            *style,
-                                                         cairo_t                *cr,
-                                                         gdouble                 x,
-                                                         gdouble                 y,
-                                                         gdouble                 width,
-                                                         gdouble                 height);
-gboolean        gtk_css_style_render_border_get_clip    (GtkCssStyle            *style,
-                                                         gdouble                 x,
-                                                         gdouble                 y,
-                                                         gdouble                 width,
-                                                         gdouble                 height,
-                                                         GdkRectangle           *out_clip) G_GNUC_WARN_UNUSED_RESULT;
-void            gtk_css_style_snapshot_border           (GtkCssStyle            *style,
-                                                         GtkSnapshot            *snapshot,
-                                                         gdouble                 width,
-                                                         gdouble                 height);
+void            gtk_css_style_snapshot_border           (GtkCssBoxes            *boxes,
+                                                         GtkSnapshot            *snapshot);
 
-gboolean        gtk_css_style_render_has_outline        (GtkCssStyle            *style);
-void            gtk_css_style_render_outline            (GtkCssStyle            *style,
-                                                         cairo_t                *cr,
-                                                         gdouble                 x,
-                                                         gdouble                 y,
-                                                         gdouble                 width,
-                                                         gdouble                 height);
-void            gtk_css_style_snapshot_outline          (GtkCssStyle            *style,
-                                                         GtkSnapshot            *snapshot,
-                                                         gdouble                 width,
-                                                         gdouble                 height);
-gboolean        gtk_css_style_render_outline_get_clip   (GtkCssStyle            *style,
-                                                         gdouble                 x,
-                                                         gdouble                 y,
-                                                         gdouble                 width,
-                                                         gdouble                 height,
-                                                         GdkRectangle           *out_clip) G_GNUC_WARN_UNUSED_RESULT;
-
+void            gtk_css_style_snapshot_outline          (GtkCssBoxes            *boxes,
+                                                         GtkSnapshot            *snapshot);
 
 G_END_DECLS
 

@@ -1,5 +1,36 @@
 #include "gskglrenderopsprivate.h"
 
+static inline gboolean
+rect_equal (const graphene_rect_t *a,
+            const graphene_rect_t *b)
+{
+  return memcmp (a, b, sizeof (graphene_rect_t)) == 0;
+}
+
+void
+ops_finish (RenderOpBuilder *builder)
+{
+  if (builder->mv_stack)
+    g_array_free (builder->mv_stack, TRUE);
+  builder->mv_stack = NULL;
+
+  if (builder->clip_stack)
+    g_array_free (builder->clip_stack, TRUE);
+  builder->clip_stack = NULL;
+
+  builder->buffer_size = 0;
+  builder->dx = 0;
+  builder->dy = 0;
+  builder->current_modelview = NULL;
+  builder->current_clip = NULL;
+  builder->current_render_target = 0;
+  builder->current_texture = 0;
+  builder->current_program = NULL;
+  builder->current_program_state = NULL;
+  graphene_matrix_init_identity (&builder->current_projection);
+  builder->current_viewport = GRAPHENE_RECT_INIT (0, 0, 0, 0);
+}
+
 static inline void
 rgba_to_float (const GdkRGBA *c,
                float         *f)
@@ -10,13 +41,164 @@ rgba_to_float (const GdkRGBA *c,
   f[3] = c->alpha;
 }
 
+/* Debugging only! */
+void
+ops_dump_framebuffer (RenderOpBuilder *builder,
+                      const char      *filename,
+                      int              width,
+                      int              height)
+{
+  RenderOp op;
+
+  op.op = OP_DUMP_FRAMEBUFFER;
+  op.dump.filename = g_strdup (filename);
+  op.dump.width = width;
+  op.dump.height = height;
+
+  g_array_append_val (builder->render_ops, op);
+}
+
+void
+ops_push_debug_group (RenderOpBuilder *builder,
+                      const char      *text)
+{
+  RenderOp op;
+
+  op.op = OP_PUSH_DEBUG_GROUP;
+  strncpy (op.debug_group.text, text, sizeof(op.debug_group.text) - 1);
+  op.debug_group.text[sizeof(op.debug_group.text) - 1] = 0; /* Ensure zero terminated */
+
+  g_array_append_val (builder->render_ops, op);
+}
+
+void
+ops_pop_debug_group (RenderOpBuilder *builder)
+{
+  RenderOp op;
+
+  op.op = OP_POP_DEBUG_GROUP;
+  g_array_append_val (builder->render_ops, op);
+}
+
 float
 ops_get_scale (const RenderOpBuilder *builder)
 {
-  const graphene_matrix_t *mv = &builder->current_modelview;
+  const MatrixStackEntry *head;
 
-  return MAX (graphene_matrix_get_x_scale (mv),
-              graphene_matrix_get_y_scale (mv));
+  g_assert (builder->mv_stack != NULL);
+  g_assert (builder->mv_stack->len >= 1);
+
+  head = &g_array_index (builder->mv_stack, MatrixStackEntry, builder->mv_stack->len - 1);
+
+  /* TODO: Use two separate values */
+  return MAX (head->metadata.scale_x,
+              head->metadata.scale_y);
+}
+
+static void
+extract_matrix_metadata (const graphene_matrix_t *m,
+                         OpsMatrixMetadata       *md)
+{
+  switch (md->category)
+    {
+    case GSK_TRANSFORM_CATEGORY_IDENTITY:
+      md->scale_x = 1;
+      md->scale_y = 1;
+    break;
+
+    case GSK_TRANSFORM_CATEGORY_2D_TRANSLATE:
+      md->translate_x = graphene_matrix_get_value (m, 3, 0);
+      md->translate_y = graphene_matrix_get_value (m, 3, 1);
+      md->scale_x = 1;
+      md->scale_y = 1;
+    break;
+
+    case GSK_TRANSFORM_CATEGORY_UNKNOWN:
+    case GSK_TRANSFORM_CATEGORY_ANY:
+    case GSK_TRANSFORM_CATEGORY_3D:
+    case GSK_TRANSFORM_CATEGORY_2D:
+    case GSK_TRANSFORM_CATEGORY_2D_AFFINE:
+      {
+        graphene_vec3_t col1;
+        graphene_vec3_t col2;
+
+        md->translate_x = graphene_matrix_get_value (m, 3, 0);
+        md->translate_y = graphene_matrix_get_value (m, 3, 1);
+
+        graphene_vec3_init (&col1,
+                            graphene_matrix_get_value (m, 0, 0),
+                            graphene_matrix_get_value (m, 1, 0),
+                            graphene_matrix_get_value (m, 2, 0));
+
+        graphene_vec3_init (&col2,
+                            graphene_matrix_get_value (m, 0, 1),
+                            graphene_matrix_get_value (m, 1, 1),
+                            graphene_matrix_get_value (m, 2, 1));
+
+        md->scale_x = graphene_vec3_length (&col1);
+        md->scale_y = graphene_vec3_length (&col2);
+      }
+    break;
+    default:
+      {}
+    }
+}
+
+void
+ops_transform_bounds_modelview (const RenderOpBuilder *builder,
+                                const graphene_rect_t *src,
+                                graphene_rect_t       *dst)
+{
+  const MatrixStackEntry *head;
+
+  g_assert (builder->mv_stack != NULL);
+  g_assert (builder->mv_stack->len >= 1);
+
+  head = &g_array_index (builder->mv_stack, MatrixStackEntry, builder->mv_stack->len - 1);
+
+  switch (head->metadata.category)
+    {
+    case GSK_TRANSFORM_CATEGORY_IDENTITY:
+      *dst = *src;
+      break;
+
+    case GSK_TRANSFORM_CATEGORY_2D_TRANSLATE:
+      *dst = *src;
+      dst->origin.x += head->metadata.translate_x;
+      dst->origin.y += head->metadata.translate_y;
+      break;
+
+    /* TODO: Handle scale */
+    case GSK_TRANSFORM_CATEGORY_UNKNOWN:
+    case GSK_TRANSFORM_CATEGORY_ANY:
+    case GSK_TRANSFORM_CATEGORY_3D:
+    case GSK_TRANSFORM_CATEGORY_2D:
+    case GSK_TRANSFORM_CATEGORY_2D_AFFINE:
+    default:
+      graphene_matrix_transform_bounds (builder->current_modelview,
+                                        src,
+                                        dst);
+
+    }
+
+  dst->origin.x += builder->dx * head->metadata.scale_x;
+  dst->origin.y += builder->dy * head->metadata.scale_y;
+}
+
+void
+ops_init (RenderOpBuilder *builder)
+{
+  int i;
+
+  memset (builder, 0, sizeof (*builder));
+
+  builder->current_opacity = 1.0f;
+
+  for (i = 0; i < GL_N_PROGRAMS; i ++)
+    {
+      builder->program_state[i].opacity = 1.0f;
+    }
+
 }
 
 void
@@ -29,6 +211,7 @@ ops_set_program (RenderOpBuilder *builder,
   static const graphene_matrix_t empty_matrix;
   static const graphene_rect_t empty_rect;
   RenderOp op;
+  ProgramState *program_state;
 
   if (builder->current_program == program)
     return;
@@ -38,58 +221,65 @@ ops_set_program (RenderOpBuilder *builder,
   g_array_append_val (builder->render_ops, op);
   builder->current_program = program;
 
+  program_state = &builder->program_state[program->index];
+
   /* If the projection is not yet set for this program, we use the current one. */
-  if (memcmp (&empty_matrix, &builder->program_state[program->index].projection, sizeof (graphene_matrix_t)) == 0 ||
-      memcmp (&builder->current_projection, &builder->program_state[program->index].projection, sizeof (graphene_matrix_t)) != 0)
+  if (memcmp (&empty_matrix, &program_state->projection, sizeof (graphene_matrix_t)) == 0 ||
+      memcmp (&builder->current_projection, &program_state->projection, sizeof (graphene_matrix_t)) != 0)
     {
       op.op = OP_CHANGE_PROJECTION;
       op.projection = builder->current_projection;
       g_array_append_val (builder->render_ops, op);
-      builder->program_state[program->index].projection = builder->current_projection;
+      program_state->projection = builder->current_projection;
     }
 
-  if (memcmp (&empty_matrix, &builder->program_state[program->index].modelview, sizeof (graphene_matrix_t)) == 0 ||
-      memcmp (&builder->current_modelview, &builder->program_state[program->index].modelview, sizeof (graphene_matrix_t)) != 0)
+  if (memcmp (&empty_matrix, &program_state->modelview, sizeof (graphene_matrix_t)) == 0 ||
+      memcmp (builder->current_modelview, &program_state->modelview, sizeof (graphene_matrix_t)) != 0)
     {
       op.op = OP_CHANGE_MODELVIEW;
-      op.modelview = builder->current_modelview;
+      op.modelview = *builder->current_modelview;
       g_array_append_val (builder->render_ops, op);
-      builder->program_state[program->index].modelview = builder->current_modelview;
+      program_state->modelview = *builder->current_modelview;
     }
 
-  if (memcmp (&empty_rect, &builder->program_state[program->index].viewport, sizeof (graphene_rect_t)) == 0 ||
-      memcmp (&builder->current_viewport, &builder->program_state[program->index].viewport, sizeof (graphene_rect_t)) != 0)
+  if (rect_equal (&empty_rect, &program_state->viewport) ||
+      !rect_equal (&builder->current_viewport, &program_state->viewport))
     {
       op.op = OP_CHANGE_VIEWPORT;
       op.viewport = builder->current_viewport;
       g_array_append_val (builder->render_ops, op);
-      builder->program_state[program->index].viewport = builder->current_viewport;
+      program_state->viewport = builder->current_viewport;
     }
 
-  if (memcmp (&empty_clip, &builder->program_state[program->index].clip, sizeof (GskRoundedRect)) == 0 ||
-      memcmp (&builder->current_clip, &builder->program_state[program->index].clip, sizeof (GskRoundedRect)) != 0)
+  if (memcmp (&empty_clip, &program_state->clip, sizeof (GskRoundedRect)) == 0 ||
+      memcmp (&builder->current_clip, &program_state->clip, sizeof (GskRoundedRect)) != 0)
     {
       op.op = OP_CHANGE_CLIP;
-      op.clip = builder->current_clip;
+      op.clip = *builder->current_clip;
       g_array_append_val (builder->render_ops, op);
-      builder->program_state[program->index].clip = builder->current_clip;
+      program_state->clip = *builder->current_clip;
     }
 
-  if (builder->program_state[program->index].opacity != builder->current_opacity)
+  if (program_state->opacity != builder->current_opacity)
     {
       op.op = OP_CHANGE_OPACITY;
       op.opacity = builder->current_opacity;
       g_array_append_val (builder->render_ops, op);
-      builder->program_state[program->index].opacity = builder->current_opacity;
+      program_state->opacity = builder->current_opacity;
     }
+
+  builder->current_program_state = &builder->program_state[program->index];
 }
 
-GskRoundedRect
+static void
 ops_set_clip (RenderOpBuilder      *builder,
               const GskRoundedRect *clip)
 {
   RenderOp *last_op;
-  GskRoundedRect prev_clip;
+
+  if (builder->current_program_state &&
+      memcmp (&builder->current_program_state->clip, clip,sizeof (GskRoundedRect)) == 0)
+    return;
 
   if (builder->render_ops->len > 0)
     {
@@ -110,25 +300,62 @@ ops_set_clip (RenderOpBuilder      *builder,
     }
 
   if (builder->current_program != NULL)
-    builder->program_state[builder->current_program->index].clip = *clip;
-
-  prev_clip = builder->current_clip;
-  builder->current_clip = *clip;
-
-  return prev_clip;
+    builder->current_program_state->clip = *clip;
 }
 
-graphene_matrix_t
-ops_set_modelview (RenderOpBuilder         *builder,
-                   const graphene_matrix_t *modelview)
+void
+ops_push_clip (RenderOpBuilder      *self,
+               const GskRoundedRect *clip)
+{
+  if (G_UNLIKELY (self->clip_stack == NULL))
+    self->clip_stack = g_array_new (FALSE, TRUE, sizeof (GskRoundedRect));
+
+  g_assert (self->clip_stack != NULL);
+
+  g_array_append_val (self->clip_stack, *clip);
+  self->current_clip = &g_array_index (self->clip_stack, GskRoundedRect, self->clip_stack->len - 1);
+  ops_set_clip (self, clip);
+}
+
+void
+ops_pop_clip (RenderOpBuilder *self)
+{
+  const GskRoundedRect *head;
+
+  g_assert (self->clip_stack);
+  g_assert (self->clip_stack->len >= 1);
+
+  self->clip_stack->len --;
+  head = &g_array_index (self->clip_stack, GskRoundedRect, self->clip_stack->len - 1);
+
+  if (self->clip_stack->len >= 1)
+    {
+      self->current_clip = head;
+      ops_set_clip (self, head);
+    }
+  else
+    {
+      self->current_clip = NULL;
+    }
+}
+
+gboolean
+ops_has_clip (RenderOpBuilder *self)
+{
+  return self->clip_stack != NULL &&
+         self->clip_stack->len > 1;
+}
+
+static void
+ops_set_modelview_internal (RenderOpBuilder         *builder,
+                            const graphene_matrix_t *modelview)
 {
   RenderOp op;
-  graphene_matrix_t prev_mv;
 
   if (builder->current_program &&
-      memcmp (&builder->program_state[builder->current_program->index].modelview, modelview,
+      memcmp (&builder->current_program_state->modelview, modelview,
               sizeof (graphene_matrix_t)) == 0)
-    return *modelview;
+    return;
 
   if (builder->render_ops->len > 0)
     {
@@ -152,12 +379,113 @@ ops_set_modelview (RenderOpBuilder         *builder,
     }
 
   if (builder->current_program != NULL)
-    builder->program_state[builder->current_program->index].modelview = *modelview;
+    builder->current_program_state->modelview = *modelview;
+}
 
-  prev_mv = builder->current_modelview;
-  builder->current_modelview = *modelview;
+/* This sets the modelview to the given one without looking at the
+ * one that's currently set */
+void
+ops_set_modelview (RenderOpBuilder         *builder,
+                   const graphene_matrix_t *mv,
+                   GskTransformCategory     mv_category)
+{
+  MatrixStackEntry *entry;
 
-  return prev_mv;
+  if (G_UNLIKELY (builder->mv_stack == NULL))
+    builder->mv_stack = g_array_new (FALSE, TRUE, sizeof (MatrixStackEntry));
+
+  g_assert (builder->mv_stack != NULL);
+
+  g_array_set_size (builder->mv_stack, builder->mv_stack->len + 1);
+  entry = &g_array_index (builder->mv_stack, MatrixStackEntry, builder->mv_stack->len - 1);
+
+  entry->matrix = *mv;
+  entry->metadata.category = mv_category;
+
+  entry->metadata.dx_before = builder->dx;
+  entry->metadata.dy_before = builder->dy;
+  extract_matrix_metadata (mv, &entry->metadata);
+
+  builder->dx = 0;
+  builder->dy = 0;
+  builder->current_modelview = &entry->matrix;
+  ops_set_modelview_internal (builder, &entry->matrix);
+}
+
+/* This sets the given modelview to the one we get when multiplying
+ * the given modelview with the current one. */
+void
+ops_push_modelview (RenderOpBuilder         *builder,
+                    const graphene_matrix_t *mv,
+                    GskTransformCategory     mv_category)
+{
+  float scale = ops_get_scale (builder);
+  MatrixStackEntry *entry;
+
+  if (G_UNLIKELY (builder->mv_stack == NULL))
+    builder->mv_stack = g_array_new (FALSE, TRUE, sizeof (MatrixStackEntry));
+
+  g_assert (builder->mv_stack != NULL);
+
+  g_array_set_size (builder->mv_stack, builder->mv_stack->len + 1);
+  entry = &g_array_index (builder->mv_stack, MatrixStackEntry, builder->mv_stack->len - 1);
+
+  if (G_LIKELY (builder->mv_stack->len >= 2))
+    {
+      const MatrixStackEntry *cur;
+
+      cur = &g_array_index (builder->mv_stack, MatrixStackEntry, builder->mv_stack->len - 2);
+      /* Multiply given matrix with current modelview */
+
+      graphene_matrix_multiply (mv, &cur->matrix, &entry->matrix);
+      graphene_matrix_translate (&entry->matrix,
+                                 &(graphene_point3d_t) { builder->dx * scale, builder->dy * scale, 0});
+
+      entry->metadata.category = MIN (mv_category, cur->metadata.category);
+    }
+  else
+    {
+      entry->matrix = *mv;
+      entry->metadata.category = mv_category;
+    }
+
+  entry->metadata.dx_before = builder->dx;
+  entry->metadata.dy_before = builder->dy;
+
+  extract_matrix_metadata (mv, &entry->metadata);
+
+  builder->dx = 0;
+  builder->dy = 0;
+  builder->current_modelview = &entry->matrix;
+  ops_set_modelview_internal (builder, &entry->matrix);
+}
+
+void
+ops_pop_modelview (RenderOpBuilder *builder)
+{
+  const graphene_matrix_t *m;
+  const MatrixStackEntry *head;
+
+  g_assert (builder->mv_stack);
+  g_assert (builder->mv_stack->len >= 1);
+
+  head = &g_array_index (builder->mv_stack, MatrixStackEntry, builder->mv_stack->len - 1);
+  builder->dx = head->metadata.dx_before;
+  builder->dy = head->metadata.dy_before;
+
+  builder->mv_stack->len --;
+  head = &g_array_index (builder->mv_stack, MatrixStackEntry, builder->mv_stack->len - 1);
+  m = &head->matrix;
+
+  if (builder->mv_stack->len >= 1)
+    {
+      builder->current_modelview = m;
+      ops_set_modelview_internal (builder, m);
+    }
+  else
+    {
+      builder->current_modelview = NULL;
+    }
 }
 
 graphene_matrix_t
@@ -189,7 +517,7 @@ ops_set_projection (RenderOpBuilder         *builder,
     }
 
   if (builder->current_program != NULL)
-    builder->program_state[builder->current_program->index].projection = *projection;
+    builder->current_program_state->projection = *projection;
 
   prev_mv = builder->current_projection;
   builder->current_projection = *projection;
@@ -204,12 +532,16 @@ ops_set_viewport (RenderOpBuilder       *builder,
   RenderOp op;
   graphene_rect_t prev_viewport;
 
+  if (builder->current_program_state != NULL &&
+      rect_equal (&builder->current_program_state->viewport, viewport))
+    return builder->current_program_state->viewport;
+
   op.op = OP_CHANGE_VIEWPORT;
   op.viewport = *viewport;
   g_array_append_val (builder->render_ops, op);
 
   if (builder->current_program != NULL)
-    builder->program_state[builder->current_program->index].viewport = *viewport;
+    builder->current_program_state->viewport = *viewport;
 
   prev_viewport = builder->current_viewport;
   builder->current_viewport = *viewport;
@@ -243,9 +575,28 @@ ops_set_render_target (RenderOpBuilder *builder,
     return render_target_id;
 
   prev_render_target = builder->current_render_target;
-  op.op = OP_CHANGE_RENDER_TARGET;
-  op.render_target_id = render_target_id;
-  g_array_append_val (builder->render_ops, op);
+
+  if (builder->render_ops->len > 0)
+    {
+      RenderOp *last_op = &g_array_index (builder->render_ops, RenderOp, builder->render_ops->len - 1);
+      if (last_op->op == OP_CHANGE_RENDER_TARGET)
+        {
+          last_op->render_target_id = render_target_id;
+        }
+      else
+        {
+          op.op = OP_CHANGE_RENDER_TARGET;
+          op.render_target_id = render_target_id;
+          g_array_append_val (builder->render_ops, op);
+        }
+    }
+  else
+    {
+      op.op = OP_CHANGE_RENDER_TARGET;
+      op.render_target_id = render_target_id;
+      g_array_append_val (builder->render_ops, op);
+    }
+
   builder->current_render_target = render_target_id;
 
   return prev_render_target;
@@ -288,7 +639,7 @@ ops_set_opacity (RenderOpBuilder *builder,
   builder->current_opacity = opacity;
 
   if (builder->current_program != NULL)
-    builder->program_state[builder->current_program->index].opacity = opacity;
+    builder->current_program_state->opacity = opacity;
 
   return prev_opacity;
 }
@@ -299,10 +650,10 @@ ops_set_color (RenderOpBuilder *builder,
 {
   RenderOp op;
 
-  if (gdk_rgba_equal (color, &builder->program_state[builder->current_program->index].color))
+  if (gdk_rgba_equal (color, &builder->current_program_state->color))
     return;
 
-  builder->program_state[builder->current_program->index].color = *color;
+  builder->current_program_state->color = *color;
 
   op.op = OP_CHANGE_COLOR;
   op.color = *color;
@@ -317,15 +668,15 @@ ops_set_color_matrix (RenderOpBuilder         *builder,
   RenderOp op;
 
   if (memcmp (matrix,
-              &builder->program_state[builder->current_program->index].color_matrix.matrix,
+              &builder->current_program_state->color_matrix.matrix,
               sizeof (graphene_matrix_t)) == 0 &&
       memcmp (offset,
-              &builder->program_state[builder->current_program->index].color_matrix.offset,
+              &builder->current_program_state->color_matrix.offset,
               sizeof (graphene_vec4_t)) == 0)
     return;
 
-  builder->program_state[builder->current_program->index].color_matrix.matrix = *matrix;
-  builder->program_state[builder->current_program->index].color_matrix.offset = *offset;
+  builder->current_program_state->color_matrix.matrix = *matrix;
+  builder->current_program_state->color_matrix.offset = *offset;
 
   op.op = OP_CHANGE_COLOR_MATRIX;
   op.color_matrix.matrix = *matrix;
@@ -335,30 +686,40 @@ ops_set_color_matrix (RenderOpBuilder         *builder,
 
 void
 ops_set_border (RenderOpBuilder      *builder,
-                const float          *widths,
                 const GskRoundedRect *outline)
 {
   RenderOp op;
 
-  /* TODO: Assert that current_program == border program? */
-
-  if (memcmp (&builder->program_state[builder->current_program->index].border.widths,
-              widths, sizeof (float) * 4) == 0 &&
-      memcmp (&builder->program_state[builder->current_program->index].border.outline,
+  if (memcmp (&builder->current_program_state->border.outline,
               outline, sizeof (GskRoundedRect)) == 0)
     return;
 
-  memcpy (&builder->program_state[builder->current_program->index].border.widths,
-          widths, sizeof (float) * 4);
-
-  builder->program_state[builder->current_program->index].border.outline = *outline;
+  builder->current_program_state->border.outline = *outline;
 
   op.op = OP_CHANGE_BORDER;
+  op.border.outline = *outline;
+  g_array_append_val (builder->render_ops, op);
+}
+
+void
+ops_set_border_width (RenderOpBuilder *builder,
+                      const float     *widths)
+{
+  RenderOp op;
+
+  if (memcmp (builder->current_program_state->border.widths,
+              widths, sizeof (float) * 4) == 0)
+    return;
+
+  memcpy (&builder->current_program_state->border.widths,
+          widths, sizeof (float) * 4);
+
+  op.op = OP_CHANGE_BORDER_WIDTH;
   op.border.widths[0] = widths[0];
   op.border.widths[1] = widths[1];
   op.border.widths[2] = widths[2];
   op.border.widths[3] = widths[3];
-  op.border.outline = *outline;
+
   g_array_append_val (builder->render_ops, op);
 }
 
@@ -370,11 +731,11 @@ ops_set_border_color (RenderOpBuilder *builder,
   op.op = OP_CHANGE_BORDER_COLOR;
   rgba_to_float (color, op.border.color);
 
-  if (memcmp (&op.border.color, &builder->program_state[builder->current_program->index].border.color,
+  if (memcmp (&op.border.color, &builder->current_program_state->border.color,
               sizeof (float) * 4) == 0)
     return;
 
-  rgba_to_float (color, builder->program_state[builder->current_program->index].border.color);
+  rgba_to_float (color, builder->current_program_state->border.color);
 
   g_array_append_val (builder->render_ops, op);
 }
@@ -428,6 +789,9 @@ ops_draw (RenderOpBuilder     *builder,
   builder->buffer_size += sizeof (GskQuadVertex) * GL_N_VERTICES;
 }
 
+/* The offset is only valid for the current modelview.
+ * Setting a new modelview will add the offset to that matrix
+ * and reset the internal offset to 0. */
 void
 ops_offset (RenderOpBuilder *builder,
             float            x,

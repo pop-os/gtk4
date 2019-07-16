@@ -59,8 +59,9 @@ notify_cb (GObject    *obj,
 
 /* Translate GtkWidget::size-allocate to AtkComponent::bounds-changed */
 static void
-size_allocate_cb (GtkWidget     *widget,
-                  GtkAllocation *allocation)
+size_allocate_cb (GtkWidget *widget,
+                  int        width,
+                  int        height)
 {
   AtkObject* accessible;
   AtkRectangle rect;
@@ -68,10 +69,14 @@ size_allocate_cb (GtkWidget     *widget,
   accessible = gtk_widget_get_accessible (widget);
   if (ATK_IS_COMPONENT (accessible))
     {
-      rect.x = allocation->x;
-      rect.y = allocation->y;
-      rect.width = allocation->width;
-      rect.height = allocation->height;
+      GtkAllocation alloc;
+      gtk_widget_get_allocation (widget, &alloc);
+
+      rect.x = alloc.x;
+      rect.y = alloc.y;
+      rect.width = alloc.width;
+      rect.height = alloc.height;
+
       g_signal_emit_by_name (accessible, "bounds-changed", &rect);
     }
 }
@@ -552,7 +557,7 @@ gtk_widget_accessible_get_extents (AtkComponent   *component,
     {
       *x = allocation.x;
       *y = allocation.y;
-      surface = gtk_widget_get_parent_surface (widget);
+      surface = gtk_widget_get_surface (gtk_widget_get_parent (widget));
     }
   else
     {
@@ -603,9 +608,12 @@ gtk_widget_accessible_grab_focus (AtkComponent *component)
       gtk_window_present_with_time (GTK_WINDOW (toplevel),
       gdk_x11_get_server_time (gtk_widget_get_surface (widget)));
 #else
+      G_GNUC_BEGIN_IGNORE_DEPRECATIONS
       gtk_window_present (GTK_WINDOW (toplevel));
+      G_GNUC_END_IGNORE_DEPRECATIONS
 #endif
     }
+
   return TRUE;
 }
 
@@ -617,39 +625,7 @@ gtk_widget_accessible_set_extents (AtkComponent *component,
                                    gint          height,
                                    AtkCoordType  coord_type)
 {
-  GtkWidget *widget;
-
-  widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (component));
-  if (widget == NULL)
-    return FALSE;
-
-  if (!gtk_widget_is_toplevel (widget))
-    return FALSE;
-
-  if (coord_type == ATK_XY_WINDOW)
-    {
-      gint x_current, y_current;
-      GdkSurface *surface = gtk_widget_get_surface (widget);
-
-      gdk_surface_get_origin (surface, &x_current, &y_current);
-      x_current += x;
-      y_current += y;
-      if (x_current < 0 || y_current < 0)
-        return FALSE;
-      else
-        {
-          gtk_window_move (GTK_WINDOW (widget), x_current, y_current);
-          gtk_widget_set_size_request (widget, width, height);
-          return TRUE;
-        }
-    }
-  else if (coord_type == ATK_XY_SCREEN)
-    {
-      gtk_window_move (GTK_WINDOW (widget), x, y);
-      gtk_widget_set_size_request (widget, width, height);
-      return TRUE;
-    }
-  return FALSE;
+   return FALSE;
 }
 
 static gboolean
@@ -658,37 +634,7 @@ gtk_widget_accessible_set_position (AtkComponent *component,
                                     gint          y,
                                     AtkCoordType  coord_type)
 {
-  GtkWidget *widget;
-
-  widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (component));
-  if (widget == NULL)
-    return FALSE;
-
-  if (gtk_widget_is_toplevel (widget))
-    {
-      if (coord_type == ATK_XY_WINDOW)
-        {
-          gint x_current, y_current;
-          GdkSurface *surface = gtk_widget_get_surface (widget);
-
-          gdk_surface_get_origin (surface, &x_current, &y_current);
-          x_current += x;
-          y_current += y;
-          if (x_current < 0 || y_current < 0)
-            return FALSE;
-          else
-            {
-              gtk_window_move (GTK_WINDOW (widget), x_current, y_current);
-              return TRUE;
-            }
-        }
-      else if (coord_type == ATK_XY_SCREEN)
-        {
-          gtk_window_move (GTK_WINDOW (widget), x, y);
-          return TRUE;
-        }
-    }
-  return FALSE;
+   return FALSE;
 }
 
 static gboolean
@@ -696,18 +642,6 @@ gtk_widget_accessible_set_size (AtkComponent *component,
                                 gint          width,
                                 gint          height)
 {
-  GtkWidget *widget;
-
-  widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (component));
-  if (widget == NULL)
-    return FALSE;
-
-  if (gtk_widget_is_toplevel (widget))
-    {
-      gtk_widget_set_size_request (widget, width, height);
-      return TRUE;
-    }
-  else
    return FALSE;
 }
 

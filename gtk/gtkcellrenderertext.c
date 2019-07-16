@@ -26,6 +26,7 @@
 #include "gtkprivate.h"
 #include "gtksizerequest.h"
 #include "gtksnapshot.h"
+#include "gtkstylecontext.h"
 #include "gtktreeprivate.h"
 
 #include "a11y/gtktextcellaccessible.h"
@@ -1798,7 +1799,7 @@ gtk_cell_renderer_text_editing_done (GtkCellEditable *entry,
     return;
 
   path = g_object_get_data (G_OBJECT (entry), GTK_CELL_RENDERER_TEXT_PATH);
-  new_text = gtk_entry_get_text (GTK_ENTRY (entry));
+  new_text = gtk_editable_get_text (GTK_EDITABLE (entry));
 
   g_signal_emit (data, text_cell_renderer_signals[EDITED], 0, path, new_text);
 }
@@ -1832,7 +1833,7 @@ gtk_cell_renderer_text_popup_unmap (GtkMenu *menu,
     return;
 
   priv->entry_menu_popdown_timeout = g_timeout_add (500, popdown_timeout, data);
-  g_source_set_name_by_id (priv->entry_menu_popdown_timeout, "[gtk+] popdown_timeout");
+  g_source_set_name_by_id (priv->entry_menu_popdown_timeout, "[gtk] popdown_timeout");
 }
 
 static void
@@ -1905,10 +1906,10 @@ gtk_cell_renderer_text_start_editing (GtkCellRenderer      *cell,
 
   gtk_entry_set_has_frame (GTK_ENTRY (priv->entry), FALSE);
   gtk_entry_set_alignment (GTK_ENTRY (priv->entry), xalign);
-  gtk_entry_set_width_chars (GTK_ENTRY (priv->entry), 5);
+  gtk_editable_set_width_chars (GTK_EDITABLE (priv->entry), 5);
 
   if (priv->text)
-    gtk_entry_set_text (GTK_ENTRY (priv->entry), priv->text);
+    gtk_editable_set_text (GTK_EDITABLE (priv->entry), priv->text);
   g_object_set_data_full (G_OBJECT (priv->entry), I_(GTK_CELL_RENDERER_TEXT_PATH), g_strdup (path), g_free);
   
   gtk_editable_select_region (GTK_EDITABLE (priv->entry), 0, -1);

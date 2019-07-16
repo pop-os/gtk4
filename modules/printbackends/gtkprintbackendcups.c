@@ -586,8 +586,13 @@ cups_print_cb (GtkPrintBackendCups *print_backend,
 
 typedef struct {
   GtkCupsRequest *request;
+  GtkPageSetup *page_setup;
   GtkPrinterCups *printer;
 } CupsOptionsData;
+
+#define UNSIGNED_FLOAT_REGEX "([0-9]+([.,][0-9]*)?|[.,][0-9]+)([e][+-]?[0-9]+)?"
+#define SIGNED_FLOAT_REGEX "[+-]?"UNSIGNED_FLOAT_REGEX
+#define SIGNED_INTEGER_REGEX "[+-]?([0-9]+)"
 
 static void
 add_cups_options (const gchar *key,
@@ -612,7 +617,7 @@ add_cups_options (const gchar *key,
 
   key = key + strlen ("cups-");
 
-  if (printer && printer->ppd_file)
+  if (printer && printer->ppd_file && !g_str_has_prefix (value, "Custom."))
     {
       ppd_coption_t *coption;
       gboolean       found = FALSE;
@@ -633,14 +638,74 @@ add_cups_options (const gchar *key,
             }
 
           if (custom_values_enabled && !found)
-            custom_value = TRUE;
+            {
+              /* Check syntax of the invalid choice to see whether
+                 it could be a custom value */
+              if (g_str_equal (key, "PageSize") ||
+                  g_str_equal (key, "PageRegion"))
+                {
+                  /* Handle custom page sizes... */
+                  if (g_regex_match_simple ("^" UNSIGNED_FLOAT_REGEX "x" UNSIGNED_FLOAT_REGEX "(cm|mm|m|in|ft|pt)?$", value, G_REGEX_CASELESS, 0))
+                    custom_value = TRUE;
+                  else
+                    {
+                      if (data->page_setup != NULL)
+                        {
+                          custom_value = TRUE;
+                          new_value =
+                            g_strdup_printf ("Custom.%.2fx%.2fmm",
+                                             gtk_paper_size_get_width (gtk_page_setup_get_paper_size (data->page_setup), GTK_UNIT_MM),
+                                             gtk_paper_size_get_height (gtk_page_setup_get_paper_size (data->page_setup), GTK_UNIT_MM));
+                        }
+                    }
+                }
+              else
+                {
+                  /* Handle other custom options... */
+                  ppd_cparam_t  *cparam;
+
+                  cparam = (ppd_cparam_t *) cupsArrayFirst (coption->params);
+                  if (cparam != NULL)
+                    {
+                      switch (cparam->type)
+                        {
+                        case PPD_CUSTOM_CURVE :
+                        case PPD_CUSTOM_INVCURVE :
+                        case PPD_CUSTOM_REAL :
+                          if (g_regex_match_simple ("^" SIGNED_FLOAT_REGEX "$", value, G_REGEX_CASELESS, 0))
+                            custom_value = TRUE;
+                          break;
+
+                        case PPD_CUSTOM_POINTS :
+                          if (g_regex_match_simple ("^" SIGNED_FLOAT_REGEX "(cm|mm|m|in|ft|pt)?$", value, G_REGEX_CASELESS, 0))
+                            custom_value = TRUE;
+                          break;
+
+                        case PPD_CUSTOM_INT :
+                          if (g_regex_match_simple ("^" SIGNED_INTEGER_REGEX "$", value, G_REGEX_CASELESS, 0))
+                            custom_value = TRUE;
+                          break;
+
+                        case PPD_CUSTOM_PASSCODE :
+                        case PPD_CUSTOM_PASSWORD :
+                        case PPD_CUSTOM_STRING :
+                          custom_value = TRUE;
+                          break;
+
+                        default :
+                          custom_value = FALSE;
+                        }
+                    }
+                }
+            }
         }
     }
 
   /* Add "Custom." prefix to custom values if not already added. */
-  if (custom_value && !g_str_has_prefix (value, "Custom."))
+  if (custom_value)
     {
-      new_value = g_strdup_printf ("Custom.%s", value);
+      if (new_value == NULL)
+        new_value = g_strdup_printf ("Custom.%s", value);
       gtk_cups_request_encode_option (request, key, new_value);
       g_free (new_value);
     }
@@ -659,6 +724,7 @@ gtk_print_backend_cups_print_stream (GtkPrintBackend         *print_backend,
   GtkPrinterCups *cups_printer;
   CupsPrintStreamData *ps;
   CupsOptionsData *options_data;
+  GtkPageSetup *page_setup;
   GtkCupsRequest *request = NULL;
   GtkPrintSettings *settings;
   const gchar *title;
@@ -764,10 +830,16 @@ gtk_print_backend_cups_print_stream (GtkPrintBackend         *print_backend,
     g_free (title_truncated);
   }
 
+  g_object_get (job,
+                "page-setup", &page_setup,
+                NULL);
+
   options_data = g_new0 (CupsOptionsData, 1);
   options_data->request = request;
   options_data->printer = cups_printer;
+  options_data->page_setup = page_setup;
   gtk_print_settings_foreach (settings, add_cups_options, options_data);
+  g_clear_object (&page_setup);
   g_free (options_data);
 
   ps = g_new0 (CupsPrintStreamData, 1);
@@ -1636,7 +1708,7 @@ cups_request_execute (GtkPrintBackendCups              *print_backend,
 
   dispatch = (GtkPrintCupsDispatchWatch *) g_source_new (&_cups_dispatch_watch_funcs,
                                                          sizeof (GtkPrintCupsDispatchWatch));
-  g_source_set_name (&dispatch->source, "GTK+ CUPS backend");
+  g_source_set_name (&dispatch->source, "GTK CUPS backend");
 
   GTK_NOTE (PRINTING,
             g_print ("CUPS Backend: %s <source %p> - Executing cups request on server '%s' and resource '%s'\n", G_STRFUNC, dispatch, request->server, request->resource));
@@ -1766,7 +1838,7 @@ cups_request_job_info_cb (GtkPrintBackendCups *print_backend,
 	timeout = 1000;
 
       id = g_timeout_add (timeout, cups_job_info_poll_timeout, data);
-      g_source_set_name_by_id (id, "[gtk+] cups_job_info_poll_timeout");
+      g_source_set_name_by_id (id, "[gtk] cups_job_info_poll_timeout");
     }
   else
     cups_job_poll_data_free (data);
@@ -3685,7 +3757,7 @@ cups_request_printer_list (GtkPrintBackendCups *cups_backend)
       if (cups_backend->list_printers_poll > 0)
         g_source_remove (cups_backend->list_printers_poll);
       cups_backend->list_printers_poll = g_timeout_add (200, (GSourceFunc) cups_request_printer_list, cups_backend);
-      g_source_set_name_by_id (cups_backend->list_printers_poll, "[gtk+] cups_request_printer_list");
+      g_source_set_name_by_id (cups_backend->list_printers_poll, "[gtk] cups_request_printer_list");
     }
   else if (cups_backend->list_printers_attempts != -1)
     cups_backend->list_printers_attempts++;
@@ -3734,7 +3806,7 @@ cups_get_printer_list (GtkPrintBackend *backend)
       if (cups_request_printer_list (cups_backend))
         {
           cups_backend->list_printers_poll = g_timeout_add (50, (GSourceFunc) cups_request_printer_list, backend);
-          g_source_set_name_by_id (cups_backend->list_printers_poll, "[gtk+] cups_request_printer_list");
+          g_source_set_name_by_id (cups_backend->list_printers_poll, "[gtk] cups_request_printer_list");
         }
 
 #ifdef HAVE_CUPS_API_1_6
@@ -3868,7 +3940,7 @@ cups_request_ppd (GtkPrinter *printer)
               if (cups_printer->get_remote_ppd_poll > 0)
                 g_source_remove (cups_printer->get_remote_ppd_poll);
               cups_printer->get_remote_ppd_poll = g_timeout_add (200, (GSourceFunc) cups_request_ppd, printer);
-              g_source_set_name_by_id (cups_printer->get_remote_ppd_poll, "[gtk+] cups_request_ppd");
+              g_source_set_name_by_id (cups_printer->get_remote_ppd_poll, "[gtk] cups_request_ppd");
             }
           else if (cups_printer->get_remote_ppd_attempts != -1)
             cups_printer->get_remote_ppd_attempts++;
@@ -4132,7 +4204,7 @@ cups_get_default_printer (GtkPrintBackendCups *backend)
       if (cups_request_default_printer (cups_backend))
         {
           cups_backend->default_printer_poll = g_timeout_add (200, (GSourceFunc) cups_request_default_printer, backend);
-          g_source_set_name_by_id (cups_backend->default_printer_poll, "[gtk+] cups_request_default_printer");
+          g_source_set_name_by_id (cups_backend->default_printer_poll, "[gtk] cups_request_default_printer");
         }
     }
 }
@@ -4268,7 +4340,7 @@ cups_printer_request_details (GtkPrinter *printer)
               if (cups_request_ppd (printer))
                 {
                   cups_printer->get_remote_ppd_poll = g_timeout_add (50, (GSourceFunc) cups_request_ppd, printer);
-                  g_source_set_name_by_id (cups_printer->get_remote_ppd_poll, "[gtk+] cups_request_ppd");
+                  g_source_set_name_by_id (cups_printer->get_remote_ppd_poll, "[gtk] cups_request_ppd");
                 }
             }
         }
@@ -5173,7 +5245,7 @@ colord_printer_option_set_changed_cb (GtkPrinterOptionSet *set,
 #endif
 
 /*
- * Lookup translation and Gtk+ name of given IPP option name.
+ * Lookup translation and GTK name of given IPP option name.
  */
 static gboolean
 get_ipp_option_translation (const gchar  *ipp_option_name,

@@ -4,7 +4,6 @@ demos/gtk-demo/application.ui
 demos/gtk-demo/appmenu.ui
 demos/gtk-demo/appwindow.c
 demos/gtk-demo/blendmodes.ui
-demos/gtk-demo/button_box.c
 demos/gtk-demo/changedisplay.c
 demos/gtk-demo/clipboard.c
 demos/gtk-demo/combobox.c
@@ -26,6 +25,7 @@ demos/gtk-demo/main.ui
 demos/gtk-demo/menus.ui
 demos/gtk-demo/modelbutton.ui
 demos/gtk-demo/offscreen_window2.c
+demos/gtk-demo/paint.c
 demos/gtk-demo/popover.ui
 demos/gtk-demo/revealer.ui
 demos/gtk-demo/scale.ui
@@ -43,6 +43,7 @@ demos/gtk-demo/stack.ui
 demos/gtk-demo/theming.ui
 demos/icon-browser/menus.ui
 demos/icon-browser/window.ui
+demos/node-editor/node-editor-window.ui
 demos/widget-factory/menus.ui
 demos/widget-factory/widget-factory.c
 demos/widget-factory/widget-factory.ui
@@ -104,6 +105,7 @@ gtk/inspector/statistics.ui
 gtk/inspector/statistics.ui.h
 gtk/inspector/style-prop-list.ui
 gtk/inspector/style-prop-list.ui.h
+gtk/inspector/type-info.ui
 gtk/inspector/visual.ui
 gtk/inspector/visual.ui.h
 gtk/inspector/window.ui
@@ -260,6 +262,8 @@ testsuite/reftests/label-ellipsize-small.ref.ui
 testsuite/reftests/label-ellipsize-small.ui
 testsuite/reftests/label-ellipsize-with-big.ref.ui
 testsuite/reftests/label-ellipsize-with-big.ui
+testsuite/reftests/label-fonts.ref.ui
+testsuite/reftests/label-fonts.ui
 testsuite/reftests/label-shadows.ref.ui
 testsuite/reftests/label-shadows.ui
 testsuite/reftests/label-sizing.ref.ui
@@ -337,6 +341,10 @@ testsuite/reftests/window-height-for-width.ref.ui
 testsuite/reftests/window-height-for-width.ui
 testsuite/reftests/window-show-contents-on-map.ref.ui
 testsuite/reftests/window-show-contents-on-map.ui
+testsuite/tools/simplify-data-3to4/assistant.ui
+testsuite/tools/simplify-data-3to4/grid.ui
+testsuite/tools/simplify-data-3to4/notebook.ui
+testsuite/tools/simplify-data-3to4/stack.ui
 testsuite/tools/simplify-data/test3.ui
 tests/visuals/inline-toolbar-horizontal.ui
 tests/visuals/inline-toolbar-vertical.ui

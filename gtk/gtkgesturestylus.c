@@ -160,13 +160,11 @@ gesture_get_current_event (GtkGestureStylus *gesture)
  * @value: (out): return location for the axis value
  *
  * Returns the current value for the requested @axis. This function
- * must be called from either the #GtkGestureStylus:down,
- * #GtkGestureStylus:motion, #GtkGestureStylus:up or #GtkGestureStylus:proximity
+ * must be called from either the #GtkGestureStylus::down,
+ * #GtkGestureStylus::motion, #GtkGestureStylus::up or #GtkGestureStylus::proximity
  * signals.
  *
  * Returns: #TRUE if there is a current value for the axis
- *
- * Since: 3.94
  **/
 gboolean
 gtk_gesture_stylus_get_axis (GtkGestureStylus *gesture,
@@ -189,12 +187,12 @@ gtk_gesture_stylus_get_axis (GtkGestureStylus *gesture,
 /**
  * gtk_gesture_stylus_get_axes:
  * @gesture: a GtkGestureStylus
- * @axes: array of requested axes, terminated with #GDK_AXIS_IGNORE
- * @values: (out): return location for the axis values
+ * @axes: (array): array of requested axes, terminated with #GDK_AXIS_IGNORE
+ * @values: (out) (array): return location for the axis values
  *
  * Returns the current values for the requested @axes. This function
- * must be called from either the #GtkGestureStylus:down,
- * #GtkGestureStylus:motion, #GtkGestureStylus:up or #GtkGestureStylus:proximity
+ * must be called from either the #GtkGestureStylus::down,
+ * #GtkGestureStylus::motion, #GtkGestureStylus::up or #GtkGestureStylus::proximity
  * signals.
  *
  * Returns: #TRUE if there is a current value for the axes
@@ -282,15 +280,23 @@ gtk_gesture_stylus_get_backlog (GtkGestureStylus  *gesture,
   for (l = history; l; l = l->next)
     {
       GdkTimeCoord *time_coord = l->data;
+      graphene_point_t p;
 
       g_array_append_val (backlog_array, *time_coord);
       time_coord = &g_array_index (backlog_array, GdkTimeCoord, backlog_array->len - 1);
-      gtk_widget_translate_coordinatesf (gtk_get_event_widget (event),
-                                         gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture)),
-                                         time_coord->axes[GDK_AXIS_X],
-                                         time_coord->axes[GDK_AXIS_Y],
-                                         &time_coord->axes[GDK_AXIS_X],
-                                         &time_coord->axes[GDK_AXIS_Y]);
+      if (gtk_widget_compute_point (gtk_get_event_widget (event),
+                                    gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture)),
+                                    &GRAPHENE_POINT_INIT (time_coord->axes[GDK_AXIS_X],
+                                                          time_coord->axes[GDK_AXIS_Y]),
+                                    &p))
+        {
+          time_coord->axes[GDK_AXIS_X] = p.x;
+          time_coord->axes[GDK_AXIS_Y] = p.y;
+        }
+      else
+        {
+          g_array_set_size (backlog_array, backlog_array->len - 1);
+        }
     }
 
   *n_elems = backlog_array->len;
@@ -305,9 +311,9 @@ gtk_gesture_stylus_get_backlog (GtkGestureStylus  *gesture,
  * @gesture: a #GtkGestureStylus
  *
  * Returns the #GdkDeviceTool currently driving input through this gesture.
- * This function must be called from either the #GtkGestureStylus:down,
- * #GtkGestureStylus:motion, #GtkGestureStylus:up or #GtkGestureStylus:proximity
- * signals.
+ * This function must be called from either the #GtkGestureStylus::down,
+ * #GtkGestureStylus::motion, #GtkGestureStylus::up or #GtkGestureStylus::proximity
+ * signal handlers.
  *
  * Returns: (nullable) (transfer none): The current stylus tool
  **/

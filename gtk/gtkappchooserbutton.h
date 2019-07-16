@@ -1,5 +1,5 @@
 /*
- * gtkappchooserbutton.h: an app-chooser combobox
+ * gtkappchooserbutton.h: an app-chooser button
  *
  * Copyright (C) 2010 Red Hat, Inc.
  *
@@ -26,7 +26,7 @@
 #error "Only <gtk/gtk.h> can be included directly."
 #endif
 
-#include <gtk/gtkcombobox.h>
+#include <gtk/gtkwidget.h>
 #include <gio/gio.h>
 
 G_BEGIN_DECLS
@@ -40,13 +40,9 @@ G_BEGIN_DECLS
 
 typedef struct _GtkAppChooserButton        GtkAppChooserButton;
 typedef struct _GtkAppChooserButtonClass   GtkAppChooserButtonClass;
-typedef struct _GtkAppChooserButtonPrivate GtkAppChooserButtonPrivate;
 
 struct _GtkAppChooserButton {
-  GtkComboBox parent;
-
-  /*< private >*/
-  GtkAppChooserButtonPrivate *priv;
+  GtkWidget parent_instance;
 };
 
 /**
@@ -57,10 +53,11 @@ struct _GtkAppChooserButton {
  *    is activated from the dropdown menu.
  */
 struct _GtkAppChooserButtonClass {
-  GtkComboBoxClass parent_class;
+  GtkWidgetClass parent_class;
 
   /*< public >*/
 
+  void (* changed)               (GtkAppChooserButton *self);
   void (* custom_item_activated) (GtkAppChooserButton *self,
                                   const gchar *item_name);
 

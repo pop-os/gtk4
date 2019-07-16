@@ -60,11 +60,13 @@
 #include "gtkgesturesingle.h"
 #include "gtkgizmoprivate.h"
 #include "gtkintl.h"
-#include "gtklabel.h"
+#include "gtkimage.h"
+#include "gtkcustomlayout.h"
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
 #include "gtkprogresstrackerprivate.h"
 #include "gtksettingsprivate.h"
+#include "gtkstylecontextprivate.h"
 #include "gtkwidgetprivate.h"
 
 #include "a11y/gtkswitchaccessible.h"
@@ -85,8 +87,8 @@ struct _GtkSwitchPrivate
   guint state                 : 1;
   guint is_active             : 1;
 
-  GtkWidget *on_label;
-  GtkWidget *off_label;
+  GtkWidget *on_image;
+  GtkWidget *off_image;
   GtkWidget *slider;
 };
 typedef struct _GtkSwitchPrivate GtkSwitchPrivate;
@@ -190,7 +192,9 @@ gtk_switch_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
   GtkSwitchPrivate *priv = gtk_switch_get_instance_private (sw);
   graphene_rect_t switch_bounds;
 
-  gtk_widget_compute_bounds (GTK_WIDGET (sw), GTK_WIDGET (sw), &switch_bounds);
+  if (!gtk_widget_compute_bounds (GTK_WIDGET (sw), GTK_WIDGET (sw), &switch_bounds))
+    return;
+
   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
   /* If the press didn't happen in the draggable handle,
@@ -298,8 +302,8 @@ gtk_switch_measure (GtkWidget      *widget,
                       &slider_minimum, &slider_natural,
                       NULL, NULL);
 
-  gtk_widget_measure (priv->on_label, orientation, for_size, NULL, &on_nat, NULL, NULL);
-  gtk_widget_measure (priv->off_label, orientation, for_size, NULL, &off_nat, NULL, NULL);
+  gtk_widget_measure (priv->on_image, orientation, for_size, NULL, &on_nat, NULL, NULL);
+  gtk_widget_measure (priv->off_image, orientation, for_size, NULL, &off_nat, NULL, NULL);
 
   if (orientation == GTK_ORIENTATION_HORIZONTAL)
     {
@@ -316,41 +320,39 @@ gtk_switch_measure (GtkWidget      *widget,
 }
 
 static void
-gtk_switch_size_allocate (GtkWidget           *widget,
-                          const GtkAllocation *allocation,
-                          int                  baseline)
+gtk_switch_allocate (GtkWidget *widget,
+                     int        width,
+                     int        height,
+                     int        baseline)
 {
   GtkSwitch *self = GTK_SWITCH (widget);
   GtkSwitchPrivate *priv = gtk_switch_get_instance_private (self);
   GtkAllocation child_alloc;
-  GtkAllocation slider_alloc;
   int min;
 
-  slider_alloc.x = round (priv->handle_pos * (allocation->width / 2));
-  slider_alloc.y = 0;
-  slider_alloc.width = allocation->width / 2;
-  slider_alloc.height = allocation->height;
+  gtk_widget_size_allocate (priv->slider,
+                            &(GtkAllocation) {
+                              round (priv->handle_pos * (width / 2)), 0,
+                              width / 2, height
+                            }, -1);
 
-  gtk_widget_size_allocate (priv->slider, &slider_alloc, -1);
-
-
-  /* Center ON label in left half */
-  gtk_widget_measure (priv->on_label, GTK_ORIENTATION_HORIZONTAL, -1, &min, NULL, NULL, NULL);
-  child_alloc.x = ((allocation->width / 2) - min) / 2;
+  /* Center ON icon in left half */
+  gtk_widget_measure (priv->on_image, GTK_ORIENTATION_HORIZONTAL, -1, &min, NULL, NULL, NULL);
+  child_alloc.x = ((width / 2) - min) / 2;
   child_alloc.width = min;
-  gtk_widget_measure (priv->on_label, GTK_ORIENTATION_VERTICAL, min, &min, NULL, NULL, NULL);
-  child_alloc.y = (allocation->height - min) / 2;
+  gtk_widget_measure (priv->on_image, GTK_ORIENTATION_VERTICAL, min, &min, NULL, NULL, NULL);
+  child_alloc.y = (height - min) / 2;
   child_alloc.height = min;
-  gtk_widget_size_allocate (priv->on_label, &child_alloc, -1);
+  gtk_widget_size_allocate (priv->on_image, &child_alloc, -1);
 
-  /* Center OFF label in right half */
-  gtk_widget_measure (priv->off_label, GTK_ORIENTATION_HORIZONTAL, -1, &min, NULL, NULL, NULL);
-  child_alloc.x = (allocation->width / 2) + ((allocation->width / 2) - min) / 2;
+  /* Center OFF icon in right half */
+  gtk_widget_measure (priv->off_image, GTK_ORIENTATION_HORIZONTAL, -1, &min, NULL, NULL, NULL);
+  child_alloc.x = (width / 2) + ((width / 2) - min) / 2;
   child_alloc.width = min;
-  gtk_widget_measure (priv->off_label, GTK_ORIENTATION_VERTICAL, min, &min, NULL, NULL, NULL);
-  child_alloc.y = (allocation->height - min) / 2;
+  gtk_widget_measure (priv->off_image, GTK_ORIENTATION_VERTICAL, min, &min, NULL, NULL, NULL);
+  child_alloc.y = (height - min) / 2;
   child_alloc.height = min;
-  gtk_widget_size_allocate (priv->off_label, &child_alloc, -1);
+  gtk_widget_size_allocate (priv->off_image, &child_alloc, -1);
 }
 
 static void
@@ -485,8 +487,8 @@ gtk_switch_finalize (GObject *object)
 
   gtk_switch_end_toggle_animation (GTK_SWITCH (object));
 
-  gtk_widget_unparent (priv->on_label);
-  gtk_widget_unparent (priv->off_label);
+  gtk_widget_unparent (priv->on_image);
+  gtk_widget_unparent (priv->off_image);
   gtk_widget_unparent (priv->slider);
 
   G_OBJECT_CLASS (gtk_switch_parent_class)->finalize (object);
@@ -542,9 +544,6 @@ gtk_switch_class_init (GtkSwitchClass *klass)
   gobject_class->finalize = gtk_switch_finalize;
 
   g_object_class_install_properties (gobject_class, LAST_PROP, switch_props);
-
-  widget_class->measure = gtk_switch_measure;
-  widget_class->size_allocate = gtk_switch_size_allocate;
 
   klass->activate = gtk_switch_activate;
   klass->state_set = state_set;
@@ -612,6 +611,7 @@ static void
 gtk_switch_init (GtkSwitch *self)
 {
   GtkSwitchPrivate *priv = gtk_switch_get_instance_private (self);
+  GtkLayoutManager *layout;
   GtkGesture *gesture;
 
   gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
@@ -641,20 +641,18 @@ gtk_switch_init (GtkSwitch *self)
   gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (gesture));
   priv->pan_gesture = gesture;
 
-  /* Translators: if the "on" state label requires more than three
-   * glyphs then use MEDIUM VERTICAL BAR (U+2759) as the text for
-   * the state
-   */
-  priv->on_label = gtk_label_new (C_("switch", "ON"));
-  gtk_widget_set_parent (priv->on_label, GTK_WIDGET (self));
+  layout = gtk_custom_layout_new (NULL,
+                                  gtk_switch_measure,
+                                  gtk_switch_allocate);
+  gtk_widget_set_layout_manager (GTK_WIDGET (self), layout);
 
-  /* Translators: if the "off" state label requires more than three
-   * glyphs then use WHITE CIRCLE (U+25CB) as the text for the state
-   */
-  priv->off_label = gtk_label_new (C_("switch", "OFF"));
-  gtk_widget_set_parent (priv->off_label, GTK_WIDGET (self));
+  priv->on_image = gtk_image_new_from_icon_name ("switch-on-symbolic");
+  gtk_widget_set_parent (priv->on_image, GTK_WIDGET (self));
 
-  priv->slider = gtk_gizmo_new ("slider", NULL, NULL, NULL);
+  priv->off_image = gtk_image_new_from_icon_name ("switch-off-symbolic");
+  gtk_widget_set_parent (priv->off_image, GTK_WIDGET (self));
+
+  priv->slider = gtk_gizmo_new ("slider", NULL, NULL, NULL, NULL);
   gtk_widget_set_parent (priv->slider, GTK_WIDGET (self));
 }
 
@@ -769,7 +767,7 @@ gtk_switch_set_state (GtkSwitch *sw,
   else
     gtk_widget_unset_state_flags (GTK_WIDGET (sw), GTK_STATE_FLAG_CHECKED);
 
-  g_object_notify (G_OBJECT (sw), "state");
+  g_object_notify_by_pspec (G_OBJECT (sw), switch_props[PROP_STATE]);
 }
 
 /**

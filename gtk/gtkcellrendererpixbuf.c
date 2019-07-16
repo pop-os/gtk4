@@ -391,6 +391,7 @@ create_icon_helper (
 
   icon_helper = gtk_icon_helper_new (gtk_style_context_get_node (gtk_widget_get_style_context (widget)),
                                      widget);
+  _gtk_icon_helper_set_use_fallback (icon_helper, TRUE);
   _gtk_icon_helper_set_force_scale_pixbuf (icon_helper, TRUE);
   _gtk_icon_helper_set_definition (icon_helper, priv->image_def);
 
@@ -554,9 +555,10 @@ gtk_cell_renderer_pixbuf_snapshot (GtkCellRenderer      *cell,
       icon_helper = create_icon_helper (cellpixbuf, widget);
     }
 
-  gtk_snapshot_offset (snapshot, pix_rect.x, pix_rect.y);
+  gtk_snapshot_save (snapshot);
+  gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (pix_rect.x, pix_rect.y));
   gdk_paintable_snapshot (GDK_PAINTABLE (icon_helper), snapshot, pix_rect.width, pix_rect.height);
-  gtk_snapshot_offset (snapshot, - pix_rect.x, - pix_rect.y);
+  gtk_snapshot_restore (snapshot);
 
   g_object_unref (icon_helper);
   gtk_style_context_restore (context);

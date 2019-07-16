@@ -729,8 +729,10 @@ gtk_print_operation_unix_run_dialog_async (GtkPrintOperation          *op,
 
       g_signal_connect (pd, "response", 
 			G_CALLBACK (handle_print_response), rdata);
-      
+
+      G_GNUC_BEGIN_IGNORE_DEPRECATIONS
       gtk_window_present (GTK_WINDOW (pd));
+      G_GNUC_END_IGNORE_DEPRECATIONS
     }
   else
     {
@@ -1025,8 +1027,10 @@ gtk_print_run_page_setup_dialog_async (GtkWindow            *parent,
 
   g_signal_connect (dialog, "response",
 		    G_CALLBACK (handle_page_setup_response), rdata);
- 
+
+  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   gtk_window_present (GTK_WINDOW (dialog));
+  G_GNUC_END_IGNORE_DEPRECATIONS
  }
 
 struct _PrinterFinder 
@@ -1217,7 +1221,7 @@ _gtk_print_operation_platform_backend_run_dialog (GtkPrintOperation *op,
 						  GtkWindow         *parent,
 						  gboolean          *do_print)
 {
-  if (gtk_should_use_portal ())
+  if (gdk_should_use_portal ())
     return gtk_print_operation_portal_run_dialog (op, show_dialog, parent, do_print);
   else
     return gtk_print_operation_unix_run_dialog (op, show_dialog, parent, do_print);
@@ -1228,7 +1232,7 @@ _gtk_print_operation_platform_backend_run_dialog_async (GtkPrintOperation       
                                                         GtkWindow                  *parent,
 							GtkPrintOperationPrintFunc  print_cb)
 {
-  if (gtk_should_use_portal ())
+  if (gdk_should_use_portal ())
     gtk_print_operation_portal_run_dialog_async (op, show_dialog, parent, print_cb);
   else
     gtk_print_operation_unix_run_dialog_async (op, show_dialog, parent, print_cb);
@@ -1240,7 +1244,7 @@ _gtk_print_operation_platform_backend_launch_preview (GtkPrintOperation *op,
                                                       GtkWindow         *parent,
                                                       const gchar       *filename)
 {
-  if (gtk_should_use_portal ())
+  if (gdk_should_use_portal ())
     gtk_print_operation_portal_launch_preview (op, surface, parent, filename);
   else
     gtk_print_operation_unix_launch_preview (op, surface, parent, filename);

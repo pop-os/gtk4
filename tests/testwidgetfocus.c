@@ -88,13 +88,14 @@ GType gtk_focus_widget_get_type (void) G_GNUC_CONST;
 G_DEFINE_TYPE(GtkFocusWidget, gtk_focus_widget, GTK_TYPE_WIDGET)
 
 static void
-gtk_focus_widget_size_allocate (GtkWidget           *widget,
-                                const GtkAllocation *allocation,
-                                int                  baseline)
+gtk_focus_widget_size_allocate (GtkWidget *widget,
+                                int        width,
+                                int        height,
+                                int        baseline)
 {
   GtkFocusWidget *self = GTK_FOCUS_WIDGET (widget);
-  int child_width  = (allocation->width)  / 2;
-  int child_height = (allocation->height) / 2;
+  int child_width  = width  / 2;
+  int child_height = height / 2;
   GtkAllocation child_alloc;
 
   child_alloc.x = 0;
@@ -199,24 +200,18 @@ gtk_focus_widget_snapshot (GtkWidget *widget, GtkSnapshot *snapshot)
     }
 }
 
-static gboolean
-gtk_focus_widget_event (GtkWidget *widget,
-                        GdkEvent  *event)
+static void
+motion_cb (GtkEventControllerMotion *controller,
+           gdouble                   x,
+           gdouble                   y,
+           GtkWidget                *widget)
 {
   GtkFocusWidget *self = GTK_FOCUS_WIDGET (widget);
-  double x, y;
 
-  if (gdk_event_get_event_type (event) == GDK_MOTION_NOTIFY)
-    {
-      gdk_event_get_coords ((GdkEvent *)event, &x, &y);
+  self->mouse_x = x;
+  self->mouse_y = y;
 
-      self->mouse_x = x;
-      self->mouse_y = y;
-
-      gtk_widget_queue_draw (widget);
-    }
-
-  return GDK_EVENT_PROPAGATE;
+  gtk_widget_queue_draw (widget);
 }
 
 static void
@@ -235,6 +230,8 @@ gtk_focus_widget_finalize (GObject *object)
 static void
 gtk_focus_widget_init (GtkFocusWidget *self)
 {
+  GtkEventController *controller;
+
   gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
 
   self->child1 = gtk_button_new_with_label ("1");
@@ -248,6 +245,11 @@ gtk_focus_widget_init (GtkFocusWidget *self)
 
   self->mouse_x = G_MININT;
   self->mouse_y = G_MININT;
+
+  controller = gtk_event_controller_motion_new ();
+  g_signal_connect (controller, "motion",
+		    G_CALLBACK (motion_cb), self);
+  gtk_widget_add_controller (GTK_WIDGET (self), controller);
 }
 
 static void
@@ -261,7 +263,6 @@ gtk_focus_widget_class_init (GtkFocusWidgetClass *klass)
   widget_class->snapshot = gtk_focus_widget_snapshot;
   widget_class->measure = gtk_focus_widget_measure;
   widget_class->size_allocate = gtk_focus_widget_size_allocate;
-  widget_class->event = gtk_focus_widget_event;
 
   gtk_widget_class_set_css_name (widget_class, "focuswidget");
 }

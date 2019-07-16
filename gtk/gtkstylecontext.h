@@ -22,11 +22,11 @@
 #error "Only <gtk/gtk.h> can be included directly."
 #endif
 
+#include <gtk/css/gtkcss.h>
+
 #include <gtk/gtkborder.h>
-#include <gtk/gtkcsssection.h>
 #include <gtk/gtkstyleprovider.h>
 #include <gtk/gtktypes.h>
-#include <atk/atk.h>
 
 G_BEGIN_DECLS
 
@@ -1027,13 +1027,6 @@ gboolean gtk_style_context_lookup_color (GtkStyleContext *context,
 GDK_AVAILABLE_IN_ALL
 void gtk_style_context_get_color            (GtkStyleContext *context,
                                              GdkRGBA         *color);
-GDK_DEPRECATED_FOR(gtk_render_background)
-void gtk_style_context_get_background_color (GtkStyleContext *context,
-                                             GdkRGBA         *color);
-GDK_DEPRECATED_FOR(gtk_render_frame)
-void gtk_style_context_get_border_color     (GtkStyleContext *context,
-                                             GdkRGBA         *color);
-
 GDK_AVAILABLE_IN_ALL
 void gtk_style_context_get_border           (GtkStyleContext *context,
                                              GtkBorder       *border);

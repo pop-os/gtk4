@@ -69,7 +69,7 @@ gdk_wayland_drop_finalize (GObject *object)
 {
   GdkWaylandDrop *wayland_drop = GDK_WAYLAND_DROP (object);
 
-  g_clear_pointer (&wayland_drop->offer, (GDestroyNotify) wl_data_offer_destroy);
+  g_clear_pointer (&wayland_drop->offer, wl_data_offer_destroy);
 
   G_OBJECT_CLASS (gdk_wayland_drop_parent_class)->finalize (object);
 }
@@ -224,8 +224,8 @@ gdk_wayland_drop_read_async (GdkDrop             *drop,
 
 static GInputStream *
 gdk_wayland_drop_read_finish (GdkDrop       *drop,
-                              const char   **out_mime_type,
                               GAsyncResult  *result,
+                              const char   **out_mime_type,
                               GError       **error)
 {
   GTask *task;
@@ -261,7 +261,7 @@ gdk_wayland_drop_init (GdkWaylandDrop *drop)
 
 GdkDrop *
 gdk_wayland_drop_new (GdkDevice            *device,
-                      GdkDragContext       *drag,
+                      GdkDrag              *drag,
                       GdkContentFormats    *formats,
                       GdkSurface           *surface,
                       struct wl_data_offer *offer,

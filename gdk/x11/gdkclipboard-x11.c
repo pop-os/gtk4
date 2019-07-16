@@ -259,10 +259,11 @@ gdk_x11_clipboard_request_targets_finish (GObject      *source_object,
   GBytes *bytes;
   GError *error = NULL;
 
+  display = gdk_clipboard_get_display (GDK_CLIPBOARD (cb));
+
   bytes = g_input_stream_read_bytes_finish (stream, res, &error);
   if (bytes == NULL)
     {
-      GdkDisplay *display = gdk_clipboard_get_display (GDK_CLIPBOARD (cb));
       GDK_DISPLAY_NOTE (display, CLIPBOARD,
                 g_printerr ("%s: error reading TARGETS: %s\n", cb->selection, error->message));
       g_error_free (error);
@@ -292,7 +293,6 @@ gdk_x11_clipboard_request_targets_finish (GObject      *source_object,
                g_bytes_get_data (bytes, NULL),
                g_bytes_get_size (bytes) / sizeof (Atom));
 
-  display = gdk_clipboard_get_display (GDK_CLIPBOARD (cb));
   formats = gdk_x11_clipboard_formats_from_atoms (display,
                                                   g_bytes_get_data (bytes, NULL),
                                                   g_bytes_get_size (bytes) / sizeof (Atom));
@@ -490,6 +490,14 @@ gdk_x11_clipboard_xevent (GdkDisplay   *display,
 
           if (sn->selection != cb->xselection)
             return FALSE;
+
+          if (sn->selection_timestamp < cb->timestamp)
+            {
+              GDK_DISPLAY_NOTE (display, CLIPBOARD,
+                        g_printerr ("%s: Ignoring XFixesSelectionNotify with too old timestamp (%lu vs %lu)\n",
+                                    cb->selection, sn->selection_timestamp, cb->timestamp));
+              return FALSE;
+            }
 
           if (sn->owner == GDK_X11_DISPLAY (display)->leader_window)
             {
@@ -768,8 +776,8 @@ gdk_x11_clipboard_read_async (GdkClipboard        *clipboard,
 
 static GInputStream *
 gdk_x11_clipboard_read_finish (GdkClipboard  *clipboard,
-                               const char   **out_mime_type,
                                GAsyncResult  *result,
+                               const char   **out_mime_type,
                                GError       **error)
 {
   GTask *task;

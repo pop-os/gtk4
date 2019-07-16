@@ -193,7 +193,6 @@ gdk_surface_is_visible
 gdk_surface_is_viewable
 gdk_surface_is_input_only
 gdk_surface_get_state
-gdk_surface_withdraw
 gdk_surface_iconify
 gdk_surface_deiconify
 gdk_surface_stick
@@ -214,6 +213,7 @@ gdk_surface_get_pass_through
 gdk_surface_move
 gdk_surface_resize
 gdk_surface_move_resize
+gdk_surface_move_to_rect
 gdk_surface_has_native
 gdk_surface_raise
 gdk_surface_lower
@@ -231,17 +231,15 @@ gdk_surface_get_scale_factor
 gdk_surface_set_opaque_region
 gdk_surface_create_gl_context
 gdk_surface_create_vulkan_context
+gdk_surface_create_cairo_context
 
 <SUBSECTION>
-gdk_surface_invalidate_rect
-gdk_surface_invalidate_region
 gdk_surface_queue_expose
 gdk_surface_freeze_updates
 gdk_surface_thaw_updates
 gdk_surface_get_frame_clock
 
 <SUBSECTION>
-gdk_surface_set_user_data
 gdk_surface_set_accept_focus
 gdk_surface_get_accept_focus
 gdk_surface_set_focus_on_map
@@ -253,7 +251,6 @@ gdk_surface_set_title
 GDK_PARENT_RELATIVE
 gdk_surface_set_cursor
 gdk_surface_get_cursor
-gdk_surface_get_user_data
 gdk_surface_get_geometry
 gdk_surface_set_geometry_hints
 gdk_surface_get_width
@@ -264,29 +261,21 @@ gdk_surface_get_modal_hint
 gdk_surface_set_type_hint
 gdk_surface_get_type_hint
 gdk_surface_set_shadow_width
-gdk_surface_set_skip_taskbar_hint
-gdk_surface_set_skip_pager_hint
-gdk_surface_set_urgency_hint
 gdk_surface_get_position
 gdk_surface_get_root_origin
 gdk_surface_get_frame_extents
 gdk_surface_get_origin
 gdk_surface_get_root_coords
 gdk_surface_get_device_position
-gdk_surface_get_device_position_double
 GdkModifierType
 GdkModifierIntent
 gdk_surface_get_parent
 gdk_surface_get_toplevel
 gdk_surface_get_children
-gdk_surface_get_children_with_user_data
 gdk_surface_peek_children
 gdk_surface_set_icon_name
 gdk_surface_set_transient_for
-gdk_surface_set_role
 gdk_surface_set_startup_id
-gdk_surface_set_group
-gdk_surface_get_group
 gdk_surface_set_decorations
 gdk_surface_get_decorations
 GdkWMDecoration
@@ -378,6 +367,7 @@ gdk_content_formats_builder_to_formats
 GDK_TYPE_FILE_LIST
 gdk_file_list_get_type
 gdk_content_formats_get_type
+gdk_content_formats_builder_get_type
 </SECTION>
 
 <SECTION>
@@ -443,6 +433,7 @@ gdk_keymap_get_modifier_state
 gdk_keymap_add_virtual_modifiers
 gdk_keymap_map_virtual_modifiers
 gdk_keymap_get_modifier_mask
+gdk_keymap_get_display
 
 <SUBSECTION>
 gdk_keyval_name
@@ -503,19 +494,12 @@ gdk_device_get_has_cursor
 gdk_device_get_n_axes
 gdk_device_get_n_keys
 gdk_device_get_axes
-gdk_device_warp
 gdk_device_get_seat
-
-<SUBSECTION>
-gdk_device_grab
-gdk_device_ungrab
 
 <SUBSECTION>
 gdk_device_get_state
 gdk_device_get_position
-gdk_device_get_position_double
 gdk_device_get_surface_at_position
-gdk_device_get_surface_at_position_double
 gdk_device_get_history
 gdk_device_free_history
 GdkTimeCoord
@@ -623,6 +607,7 @@ GDK_BUTTON_SECONDARY
 gdk_event_new
 gdk_event_copy
 gdk_event_get_axes
+gdk_event_get_axis
 gdk_event_get_button
 gdk_event_get_click_count
 gdk_event_get_coords
@@ -656,7 +641,6 @@ gdk_event_get_key_is_modifier
 gdk_event_get_pad_axis_value
 gdk_event_get_pad_button
 gdk_event_get_pad_group_mode
-gdk_event_get_string
 gdk_event_get_touch_emulating_pointer
 gdk_event_get_touchpad_angle_delta
 gdk_event_get_touchpad_deltas
@@ -664,9 +648,6 @@ gdk_event_get_touchpad_gesture_n_fingers
 gdk_event_get_touchpad_gesture_phase
 gdk_event_get_touchpad_scale
 gdk_event_is_sent
-<SUBSECTION>
-gdk_event_handler_set
-GdkEventFunc
 
 <SUBSECTION>
 gdk_get_show_events
@@ -689,6 +670,7 @@ GDK_TYPE_SCROLL_DIRECTION
 GDK_TYPE_NOTIFY_TYPE
 GDK_IS_EVENT
 gdk_event_get_type
+gdk_event_sequence_get_type
 </SECTION>
 
 <SECTION>
@@ -774,38 +756,59 @@ gdk_cursor_get_type
 <SECTION>
 <TITLE>Drag and Drop</TITLE>
 <FILE>dnd</FILE>
-GdkDragContext
+GdkDrag
+GdkDrop
 GdkDragCancelReason
 gdk_drag_drop_done
 gdk_drag_begin
 GdkDragAction
 GDK_ACTION_ALL
 
-gdk_drag_context_get_display
-gdk_drag_context_get_actions
-gdk_drag_context_get_suggested_action
-gdk_drag_context_get_selected_action
-gdk_drag_context_get_formats
-gdk_drag_context_get_device
-gdk_drag_context_get_drag_surface
-gdk_drag_context_set_hotspot
+gdk_drag_get_display
+gdk_drag_get_actions
+gdk_drag_get_selected_action
+gdk_drag_get_formats
+gdk_drag_get_device
+gdk_drag_get_drag_surface
+gdk_drag_set_hotspot
 
 <SUBSECTION>
 gdk_drag_action_is_unique
 
+<SUBSECTION>
+gdk_drop_get_display
+gdk_drop_get_device
+gdk_drop_get_surface
+gdk_drop_get_formats
+gdk_drop_get_actions
+gdk_drop_get_drag
+gdk_drop_status
+gdk_drop_finish
+gdk_drop_read_async
+gdk_drop_read_finish
+gdk_drop_read_value_async
+gdk_drop_read_value_finish
+gdk_drop_read_text_async
+gdk_drop_read_text_finish
+
 <SUBSECTION Standard>
-GDK_DRAG_CONTEXT
-GDK_TYPE_DRAG_CONTEXT
-GDK_IS_DRAG_CONTEXT
-GDK_DRAG_CONTEXT_CLASS
-GDK_DRAG_CONTEXT_GET_CLASS
-GDK_IS_DRAG_CONTEXT_CLASS
+GDK_DRAG
+GDK_TYPE_DRAG
+GDK_IS_DRAG
+GDK_DRAG_CLASS
+GDK_DRAG_GET_CLASS
+GDK_IS_DRAG_CLASS
 GDK_TYPE_DRAG_ACTION
 GDK_TYPE_DRAG_PROTOCOL
+GDK_TYPE_DROP
+GDK_DROP
+GDK_IS_DROP
 
 <SUBSECTION Private>
-GdkDragContextClass
-gdk_drag_context_get_type
+GdkDragClass
+gdk_drag_get_type
+GdkDropClass
+gdk_drop_get_type
 </SECTION>
 
 <SECTION>
@@ -986,9 +989,7 @@ gdk_wayland_device_get_wl_seat
 gdk_wayland_display_get_wl_compositor
 gdk_wayland_display_get_wl_display
 gdk_wayland_display_query_registry
-gdk_wayland_surface_new_subsurface
 gdk_wayland_surface_get_wl_surface
-gdk_wayland_surface_set_use_custom_surface
 GdkWaylandSurfaceExported
 gdk_wayland_surface_export_handle
 gdk_wayland_surface_unexport_handle
@@ -1244,6 +1245,7 @@ gdk_clipboard_get_type
 <SECTION>
 <FILE>gdkcontentprovider</FILE>
 GdkContentProvider
+GdkContentProviderClass
 gdk_content_provider_new_for_value
 gdk_content_provider_new_for_bytes
 gdk_content_provider_ref_formats
@@ -1259,7 +1261,6 @@ GDK_CONTENT_PROVIDER_CLASS
 GDK_CONTENT_PROVIDER_GET_CLASS
 GDK_IS_CONTENT_PROVIDER
 GDK_IS_CONTENT_PROVIDER_CLASS
-GdkContentProviderClass
 gdk_content_provider_get_type
 </SECTION>
 

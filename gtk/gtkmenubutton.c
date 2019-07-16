@@ -110,19 +110,19 @@
 
 #include "config.h"
 
+#include "gtkaccessible.h"
+#include "gtkactionable.h"
+#include "gtkimage.h"
+#include "gtkintl.h"
+#include "gtkmain.h"
 #include "gtkmenubutton.h"
 #include "gtkmenubuttonprivate.h"
-#include "gtktypebuiltins.h"
-#include "gtkwindow.h"
-#include "gtkimage.h"
-#include "gtkactionable.h"
-#include "gtkmain.h"
-#include "gtkaccessible.h"
 #include "gtkpopover.h"
-#include "a11y/gtkmenubuttonaccessible.h"
-
 #include "gtkprivate.h"
-#include "gtkintl.h"
+#include "gtkstylecontext.h"
+#include "gtktypebuiltins.h"
+
+#include "a11y/gtkmenubuttonaccessible.h"
 
 struct _GtkMenuButtonPrivate
 {
@@ -1151,7 +1151,6 @@ gtk_menu_button_set_popover (GtkMenuButton *menu_button,
       g_signal_connect_swapped (priv->popover, "destroy",
                                 G_CALLBACK (popover_destroy_cb), menu_button);
       update_popover_direction (menu_button);
-      gtk_style_context_remove_class (gtk_widget_get_style_context (GTK_WIDGET (menu_button)), "menu-button");
     }
 
   if (popover && priv->menu)

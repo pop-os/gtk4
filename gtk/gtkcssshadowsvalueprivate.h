@@ -23,6 +23,7 @@
 #include <cairo.h>
 #include <pango/pango.h>
 
+#include "gtkborder.h"
 #include "gtktypes.h"
 #include "gtkcssparserprivate.h"
 #include "gtkcssvalueprivate.h"
@@ -41,17 +42,6 @@ gsize           gtk_css_shadows_value_get_n_shadows   (const GtkCssValue        
 void            gtk_css_shadows_value_get_shadows    (const GtkCssValue        *shadows,
                                                       GskShadow                *out_shadows);
 
-void            _gtk_css_shadows_value_paint_layout   (const GtkCssValue        *shadows,
-                                                       cairo_t                  *cr,
-                                                       PangoLayout              *layout);
-
-void            _gtk_css_shadows_value_paint_icon     (const GtkCssValue        *shadows,
-					               cairo_t                  *cr);
-
-void            _gtk_css_shadows_value_paint_box      (const GtkCssValue        *shadows,
-                                                       cairo_t                  *cr,
-                                                       const GskRoundedRect     *padding_box,
-                                                       gboolean                  inset);
 void            gtk_css_shadows_value_snapshot_outset (const GtkCssValue        *shadows,
                                                        GtkSnapshot              *snapshot,
                                                        const GskRoundedRect     *border_box);

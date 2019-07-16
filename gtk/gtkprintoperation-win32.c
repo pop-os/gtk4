@@ -41,7 +41,7 @@
 #include "gtkprintoperation-private.h"
 #include "gtkprint-win32.h"
 #include "gtkintl.h"
-#include "gtkinvisible.h"
+#include "gtkwindow.h"
 #include "gtkprivate.h"
 #include "gtkwidgetprivate.h"
 
@@ -538,7 +538,7 @@ win32_poll_status_timeout (GtkPrintOperation *op)
     op_win32->timeout_id = g_timeout_add (STATUS_POLLING_TIME,
 					  (GSourceFunc)win32_poll_status_timeout,
 					  op);
-    g_source_set_name_by_id (op_win32->timeout_id, "[gtk+] win32_poll_status_timeout");
+    g_source_set_name_by_id (op_win32->timeout_id, "[gtk] win32_poll_status_timeout");
   }
   g_object_unref (op);
   return FALSE;
@@ -582,7 +582,7 @@ win32_end_run (GtkPrintOperation *op,
       op_win32->timeout_id = g_timeout_add (STATUS_POLLING_TIME,
 					    (GSourceFunc)win32_poll_status_timeout,
 					    op);
-      g_source_set_name_by_id (op_win32->timeout_id, "[gtk+] win32_poll_status_timeout");
+      g_source_set_name_by_id (op_win32->timeout_id, "[gtk] win32_poll_status_timeout");
     }
   else
     /* Dunno what happened, pretend its finished */
@@ -1382,8 +1382,6 @@ pageDlgProc (HWND wnd, UINT message, WPARAM wparam, LPARAM lparam)
 
       SetWindowLongPtrW (wnd, GWLP_USERDATA, (LONG_PTR)op);
 
-      _gtk_widget_set_is_toplevel (plug, TRUE);
-
       gtk_window_set_modal (GTK_WINDOW (plug), TRUE);
       op_win32->embed_widget = plug;
       gtk_container_add (GTK_CONTAINER (plug), op->priv->custom_widget);
@@ -1719,7 +1717,7 @@ gtk_print_operation_run_with_dialog (GtkPrintOperation *op,
   
   if (parent == NULL)
     {
-      invisible = gtk_invisible_new ();
+      invisible = gtk_window_new (GTK_WINDOW_POPUP);
       parentHWnd = get_parent_hwnd (invisible);
     }
   else 

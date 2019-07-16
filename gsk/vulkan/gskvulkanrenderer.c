@@ -147,7 +147,7 @@ gsk_vulkan_renderer_unrealize (GskRenderer *renderer)
       data->renderer = NULL;
       gdk_texture_clear_render_data (data->texture);
     }
-  g_clear_pointer (&self->textures, (GDestroyNotify) g_slist_free);
+  g_clear_pointer (&self->textures, g_slist_free);
 
   g_clear_pointer (&self->render, gsk_vulkan_render_free);
 
@@ -363,4 +363,23 @@ gsk_vulkan_renderer_get_cached_glyph (GskVulkanRenderer *self,
                                       float              scale)
 {
   return gsk_vulkan_glyph_cache_lookup (self->glyph_cache, FALSE, font, glyph, scale);
+}
+
+/**
+ * gsk_vulkan_renderer_new:
+ *
+ * Creates a new Vulkan renderer.
+ *
+ * The Vulkan renderer is a renderer that uses the Vulkan library for
+ * rendering.
+ *
+ * This function is only available when GTK was compiled with Vulkan
+ * support.
+ *
+ * Returns: a new Vulkan renderer
+ **/
+GskRenderer *
+gsk_vulkan_renderer_new (void)
+{
+  return g_object_new (GSK_TYPE_VULKAN_RENDERER, NULL);
 }

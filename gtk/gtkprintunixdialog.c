@@ -62,6 +62,7 @@
  * @Short_description: A print dialog
  * @Title: GtkPrintUnixDialog
  * @See_also: #GtkPageSetupUnixDialog, #GtkPrinter, #GtkPrintJob
+ * @Include: gtk/gtkunixprint.h
  *
  * GtkPrintUnixDialog implements a print dialog for platforms
  * which don’t provide a native print dialog, like Unix. It can
@@ -92,18 +93,20 @@
  *   <child internal-child="notebook">
  *     <object class="GtkNotebook" id="notebook">
  *       <child>
- *         <object class="GtkLabel" id="tabcontent">
- *         <property name="label">Content on notebook tab</property>
- *         </object>
- *       </child>
- *       <child type="tab">
- *         <object class="GtkLabel" id="tablabel">
- *           <property name="label">Tab label</property>
- *         </object>
- *         <packing>
+ *         <object type="GtkNotebookPage">
  *           <property name="tab_expand">False</property>
  *           <property name="tab_fill">False</property>
- *         </packing>
+ *           <property name="tab">
+ *             <object class="GtkLabel" id="tablabel">
+ *               <property name="label">Tab label</property>
+ *             </object>
+ *           </property>
+ *           <property name="child">
+ *             <object class="GtkLabel" id="tabcontent">
+ *               <property name="label">Content on notebook tab</property>
+ *             </object>
+ *           </property>
+ *         </object>
  *       </child>
  *     </object>
  *   </child>
@@ -1294,13 +1297,13 @@ wrap_in_frame (const gchar *label,
   g_free (bold_text);
 
   frame = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-  gtk_box_pack_start (GTK_BOX (frame), label_widget);
+  gtk_container_add (GTK_CONTAINER (frame), label_widget);
 
   gtk_widget_set_margin_start (child, 12);
   gtk_widget_set_halign (child, GTK_ALIGN_FILL);
   gtk_widget_set_valign (child, GTK_ALIGN_FILL);
 
-  gtk_box_pack_start (GTK_BOX (frame), child);
+  gtk_container_add (GTK_CONTAINER (frame), child);
 
   gtk_widget_show (frame);
 
@@ -1345,30 +1348,27 @@ add_option_to_extension_point (GtkPrinterOption *option,
 
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
       gtk_widget_set_valign (hbox, GTK_ALIGN_BASELINE);
-      gtk_box_pack_start (GTK_BOX (hbox), label);
-      gtk_box_pack_start (GTK_BOX (hbox), widget);
+      gtk_container_add (GTK_CONTAINER (hbox), label);
+      gtk_container_add (GTK_CONTAINER (hbox), widget);
       gtk_widget_show (hbox);
 
-      gtk_box_pack_start (GTK_BOX (extension_point), hbox);
+      gtk_container_add (GTK_CONTAINER (extension_point), hbox);
     }
   else
-    gtk_box_pack_start (GTK_BOX (extension_point), widget);
+    gtk_container_add (GTK_CONTAINER (extension_point), widget);
 }
 
 static gint
 grid_rows (GtkGrid *table)
 {
-  gint t0, t1, t, h;
+  gint t0, t1, l, t, w, h;
   GList *children, *c;
 
   children = gtk_container_get_children (GTK_CONTAINER (table));
   t0 = t1 = 0;
   for (c = children; c; c = c->next)
     {
-      gtk_container_child_get (GTK_CONTAINER (table), c->data,
-                               "top-attach", &t,
-                               "height", &h,
-                               NULL);
+      gtk_grid_query_child (table, c->data, &l, &t, &w, &h);
       if (c == children)
         {
           t0 = t;
@@ -1466,7 +1466,7 @@ update_print_at_option (GtkPrintUnixDialog *dialog)
     {
       const gchar *text;
 
-      text = gtk_entry_get_text (GTK_ENTRY (priv->print_at_entry));
+      text = gtk_editable_get_text (GTK_EDITABLE (priv->print_at_entry));
       gtk_printer_option_set (option, text);
     }
 }
@@ -1487,7 +1487,7 @@ setup_print_at (GtkPrintUnixDialog *dialog)
       gtk_widget_set_sensitive (priv->print_at_radio, FALSE);
       gtk_widget_set_sensitive (priv->print_at_entry, FALSE);
       gtk_widget_set_sensitive (priv->print_hold_radio, FALSE);
-      gtk_entry_set_text (GTK_ENTRY (priv->print_at_entry), "");
+      gtk_editable_set_text (GTK_EDITABLE (priv->print_at_entry), "");
       return FALSE;
     }
 
@@ -1514,7 +1514,7 @@ setup_print_at (GtkPrintUnixDialog *dialog)
 
   option = gtk_printer_option_set_lookup (priv->options, "gtk-print-time-text");
   if (option != NULL)
-    gtk_entry_set_text (GTK_ENTRY (priv->print_at_entry), option->value);
+    gtk_editable_set_text (GTK_EDITABLE (priv->print_at_entry), option->value);
 
   priv->updating_print_at = FALSE;
 
@@ -1630,7 +1630,7 @@ update_dialog_from_settings (GtkPrintUnixDialog *dialog)
           gtk_widget_show (table);
           gtk_widget_show (frame);
 
-          gtk_box_pack_start (GTK_BOX (priv->advanced_vbox),
+          gtk_container_add (GTK_CONTAINER (priv->advanced_vbox),
                               frame);
         }
     }
@@ -1652,7 +1652,7 @@ update_dialog_from_capabilities (GtkPrintUnixDialog *dialog)
   const gchar *copies;
   GtkWidget *button;
 
-  copies = gtk_spin_button_get_text (GTK_SPIN_BUTTON (priv->copies_spin));
+  copies = gtk_editable_get_text (GTK_EDITABLE (priv->copies_spin));
   can_collate = (*copies != '\0' && atoi (copies) > 1);
 
   caps = priv->manual_capabilities | priv->printer_capabilities;
@@ -1936,7 +1936,7 @@ schedule_idle_mark_conflicts (GtkPrintUnixDialog *dialog)
     return;
 
   priv->mark_conflicts_id = g_idle_add (mark_conflicts_callback, dialog);
-  g_source_set_name_by_id (priv->mark_conflicts_id, "[gtk+] mark_conflicts_callback");
+  g_source_set_name_by_id (priv->mark_conflicts_id, "[gtk] mark_conflicts_callback");
 }
 
 static void
@@ -2357,7 +2357,7 @@ dialog_get_page_ranges (GtkPrintUnixDialog *dialog,
   GtkPageRange *ranges;
   gint start, end;
 
-  text = gtk_entry_get_text (GTK_ENTRY (priv->page_range_entry));
+  text = gtk_editable_get_text (GTK_EDITABLE (priv->page_range_entry));
 
   if (*text == 0)
     {
@@ -2448,7 +2448,7 @@ dialog_set_page_ranges (GtkPrintUnixDialog *dialog,
         g_string_append (s, ",");
     }
 
-  gtk_entry_set_text (GTK_ENTRY (priv->page_range_entry), s->str);
+  gtk_editable_set_text (GTK_EDITABLE (priv->page_range_entry), s->str);
 
   g_string_free (s, TRUE);
 }
@@ -2528,7 +2528,7 @@ dialog_get_n_copies (GtkPrintUnixDialog *dialog)
 
   adjustment = gtk_spin_button_get_adjustment (GTK_SPIN_BUTTON (priv->copies_spin));
 
-  text = gtk_spin_button_get_text (GTK_SPIN_BUTTON (priv->copies_spin));
+  text = gtk_editable_get_text (GTK_EDITABLE (priv->copies_spin));
   n_copies = g_ascii_strtoull (text, &endptr, 0);
 
   if (gtk_widget_is_sensitive (dialog->priv->copies_spin))
@@ -3311,7 +3311,9 @@ paper_size_changed (GtkComboBox        *combo_box,
           /* And show the custom paper dialog */
           custom_paper_dialog = _gtk_custom_paper_unix_dialog_new (GTK_WINDOW (dialog), _("Manage Custom Sizes"));
           g_signal_connect (custom_paper_dialog, "response", G_CALLBACK (custom_paper_dialog_response_cb), dialog);
+          G_GNUC_BEGIN_IGNORE_DEPRECATIONS
           gtk_window_present (GTK_WINDOW (custom_paper_dialog));
+          G_GNUC_END_IGNORE_DEPRECATIONS
 
           return;
         }

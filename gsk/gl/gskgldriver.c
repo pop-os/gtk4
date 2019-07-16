@@ -4,6 +4,7 @@
 
 #include "gskdebugprivate.h"
 #include "gskprofilerprivate.h"
+#include "gdk/gdkglcontextprivate.h"
 #include "gdk/gdktextureprivate.h"
 #include "gdk/gdkgltextureprivate.h"
 
@@ -46,6 +47,7 @@ struct _GskGLDriver
   Fbo default_fbo;
 
   GHashTable *textures;
+  GHashTable *pointer_textures;
 
   const Texture *bound_source_texture;
   const Fbo *bound_fbo;
@@ -119,6 +121,7 @@ gsk_gl_driver_finalize (GObject *gobject)
   gdk_gl_context_make_current (self->gl_context);
 
   g_clear_pointer (&self->textures, g_hash_table_unref);
+  g_clear_pointer (&self->pointer_textures, g_hash_table_unref);
   g_clear_object (&self->profiler);
 
   if (self->gl_context == gdk_gl_context_get_current ())
@@ -204,6 +207,12 @@ gsk_gl_driver_begin_frame (GskGLDriver *self)
 #endif
 }
 
+gboolean
+gsk_gl_driver_in_frame (GskGLDriver *self)
+{
+  return self->in_frame;
+}
+
 void
 gsk_gl_driver_end_frame (GskGLDriver *self)
 {
@@ -263,10 +272,38 @@ gsk_gl_driver_collect_textures (GskGLDriver *self)
             }
         }
       else
-        g_hash_table_iter_remove (&iter);
+        {
+          /* Remove from self->pointer_textures. */
+          /* TODO: Is there a better way for this? */
+          if (self->pointer_textures)
+            {
+              GHashTableIter pointer_iter;
+              gpointer value;
+              gpointer p;
+
+              g_hash_table_iter_init (&pointer_iter, self->pointer_textures);
+              while (g_hash_table_iter_next (&pointer_iter, &p, &value))
+                {
+                  if (GPOINTER_TO_INT (value) == t->texture_id)
+                    {
+                      g_hash_table_iter_remove (&pointer_iter);
+                      break;
+                    }
+                }
+            }
+
+          g_hash_table_iter_remove (&iter);
+        }
     }
 
   return old_size - g_hash_table_size (self->textures);
+}
+
+
+GdkGLContext *
+gsk_gl_driver_get_gl_context (GskGLDriver *self)
+{
+  return self->gl_context;
 }
 
 int
@@ -308,26 +345,6 @@ gsk_gl_driver_get_fbo (GskGLDriver *self,
 }
 
 static Texture *
-find_texture_by_size (GHashTable *textures,
-                      int         width,
-                      int         height)
-{
-  GHashTableIter iter;
-  gpointer value_p = NULL;
-
-  g_hash_table_iter_init (&iter, textures);
-  while (g_hash_table_iter_next (&iter, NULL, &value_p))
-    {
-      Texture *t = value_p;
-
-      if (t->width == width && t->height == height)
-        return t;
-    }
-
-  return NULL;
-}
-
-static Texture *
 create_texture (GskGLDriver *self,
                 float        fwidth,
                 float        fheight)
@@ -351,21 +368,7 @@ create_texture (GskGLDriver *self,
       height = MIN (height, self->max_texture_size);
     }
 
-  t = find_texture_by_size (self->textures, width, height);
-  if (t != NULL && !t->in_use && t->user == NULL)
-    {
-      GSK_NOTE (OPENGL, g_message ("Reusing Texture(%d) for size %dx%d",
-                                 t->texture_id, t->width, t->height));
-      t->in_use = TRUE;
-
-#ifdef G_ENABLE_DEBUG
-      gsk_profiler_counter_inc (self->profiler, self->counters.reused_textures);
-#endif
-      return t;
-    }
-
   glGenTextures (1, &texture_id);
-
   t = texture_new ();
   t->texture_id = texture_id;
   t->width = width;
@@ -542,9 +545,56 @@ gsk_gl_driver_get_texture_for_texture (GskGLDriver *self,
                                            surface,
                                            min_filter,
                                            mag_filter);
+  gdk_gl_context_label_object_printf (self->gl_context, GL_TEXTURE, t->texture_id,
+                                      "GdkTexture<%p> %d", texture, t->texture_id);
+
   cairo_surface_destroy (surface);
 
   return t->texture_id;
+}
+
+int
+gsk_gl_driver_get_texture_for_pointer (GskGLDriver *self,
+                                       gpointer     pointer)
+{
+  int id = 0;
+
+  if (G_UNLIKELY (self->pointer_textures == NULL))
+    self->pointer_textures = g_hash_table_new (NULL, NULL);
+
+  id = GPOINTER_TO_INT (g_hash_table_lookup (self->pointer_textures, pointer));
+
+  if (id != 0)
+    {
+      GHashTableIter iter;
+      gpointer value_p;
+      /* Find the texture in self->textures and mark it used */
+
+      g_hash_table_iter_init (&iter, self->textures);
+      while (g_hash_table_iter_next (&iter, NULL, &value_p))
+        {
+          Texture *t = value_p;
+
+          if (t->texture_id == id)
+            {
+              t->in_use = TRUE;
+              break;
+            }
+        }
+    }
+
+  return id;
+}
+
+void
+gsk_gl_driver_set_texture_for_pointer (GskGLDriver *self,
+                                       gpointer     pointer,
+                                       int          texture_id)
+{
+  if (G_UNLIKELY (self->pointer_textures == NULL))
+    self->pointer_textures = g_hash_table_new (NULL, NULL);
+
+  g_hash_table_insert (self->pointer_textures, pointer, GINT_TO_POINTER (texture_id));
 }
 
 int
@@ -600,7 +650,11 @@ gsk_gl_driver_create_render_target (GskGLDriver *self,
   glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, t->texture_id, 0);
 
   if (add_depth_buffer || add_stencil_buffer)
-    glGenRenderbuffersEXT (1, &depth_stencil_buffer_id);
+    {
+      glGenRenderbuffersEXT (1, &depth_stencil_buffer_id);
+      gdk_gl_context_label_object_printf (self->gl_context, GL_RENDERBUFFER, depth_stencil_buffer_id,
+                                          "%s buffer for %d", add_depth_buffer ? "Depth" : "Stencil", texture_id);
+    }
   else
     depth_stencil_buffer_id = 0;
 

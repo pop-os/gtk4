@@ -153,9 +153,10 @@ static void gtk_icon_view_measure (GtkWidget *widget,
                                    int            *natural,
                                    int            *minimum_baseline,
                                    int            *natural_baseline);
-static void             gtk_icon_view_size_allocate             (GtkWidget           *widget,
-                                                                 const GtkAllocation *allocation,
-                                                                 int                  baseline);
+static void             gtk_icon_view_size_allocate             (GtkWidget          *widget,
+                                                                 int                 width,
+                                                                 int                 height,
+                                                                 int                 baseline);
 static void             gtk_icon_view_snapshot                  (GtkWidget          *widget,
                                                                  GtkSnapshot        *snapshot);
 static void             gtk_icon_view_motion                    (GtkEventController *controller,
@@ -163,6 +164,8 @@ static void             gtk_icon_view_motion                    (GtkEventControl
                                                                  double              y,
                                                                  gpointer            user_data);
 static void             gtk_icon_view_leave                     (GtkEventController *controller,
+                                                                 GdkCrossingMode     mode,
+                                                                 GdkNotifyType       detail,
                                                                  gpointer            user_data);
 static void             gtk_icon_view_button_press              (GtkGestureMultiPress *gesture,
                                                                  int                   n_press,
@@ -277,14 +280,14 @@ static void                 update_pixbuf_cell                           (GtkIco
 
 /* Source side drag signals */
 static void gtk_icon_view_drag_begin       (GtkWidget        *widget,
-                                            GdkDragContext   *context);
+                                            GdkDrag          *drag);
 static void gtk_icon_view_drag_end         (GtkWidget        *widget,
-                                            GdkDragContext   *context);
+                                            GdkDrag          *drag);
 static void gtk_icon_view_drag_data_get    (GtkWidget        *widget,
-                                            GdkDragContext   *context,
+                                            GdkDrag          *drag,
                                             GtkSelectionData *selection_data);
 static void gtk_icon_view_drag_data_delete (GtkWidget        *widget,
-                                            GdkDragContext   *context);
+                                            GdkDrag          *drag);
 
 /* Target side drag signals */
 static void     gtk_icon_view_drag_leave         (GtkWidget        *widget,
@@ -320,7 +323,7 @@ static void     gtk_icon_view_buildable_custom_tag_end   (GtkBuildable  *buildab
 							  GtkBuilder    *builder,
 							  GObject       *child,
 							  const gchar   *tagname,
-							  gpointer      *data);
+							  gpointer       data);
 
 static guint icon_view_signals[LAST_SIGNAL] = { 0 };
 
@@ -935,6 +938,7 @@ gtk_icon_view_init (GtkIconView *icon_view)
 
   gtk_widget_set_has_surface (GTK_WIDGET (icon_view), FALSE);
   gtk_widget_set_can_focus (GTK_WIDGET (icon_view), TRUE);
+  gtk_widget_set_overflow (GTK_WIDGET (icon_view), GTK_OVERFLOW_HIDDEN);
 
   icon_view->priv->item_orientation = GTK_ORIENTATION_VERTICAL;
 
@@ -1616,9 +1620,10 @@ gtk_icon_view_allocate_children (GtkIconView *icon_view)
 }
 
 static void
-gtk_icon_view_size_allocate (GtkWidget           *widget,
-                             const GtkAllocation *allocation,
-                             int                  baseline)
+gtk_icon_view_size_allocate (GtkWidget *widget,
+                             int        width,
+                             int        height,
+                             int        baseline)
 {
   GtkIconView *icon_view = GTK_ICON_VIEW (widget);
 
@@ -1665,22 +1670,19 @@ gtk_icon_view_snapshot (GtkWidget   *widget,
   GtkIconViewItem *dest_item = NULL;
   GtkStyleContext *context;
   int width, height;
+  double offset_x, offset_y;
 
   icon_view = GTK_ICON_VIEW (widget);
 
   context = gtk_widget_get_style_context (widget);
-
   width = gtk_widget_get_width (widget);
   height = gtk_widget_get_height (widget);
-  gtk_snapshot_push_clip (snapshot,
-                          &GRAPHENE_RECT_INIT (
-                              0, 0,
-                              width, height
-                          ));
 
-  gtk_snapshot_offset (snapshot,
-                       - gtk_adjustment_get_value (icon_view->priv->hadjustment),
-                       - gtk_adjustment_get_value (icon_view->priv->vadjustment));
+  offset_x = gtk_adjustment_get_value (icon_view->priv->hadjustment);
+  offset_y = gtk_adjustment_get_value (icon_view->priv->vadjustment);
+
+  gtk_snapshot_save (snapshot);
+  gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (- offset_x, - offset_y));
 
   gtk_icon_view_get_drag_dest_item (icon_view, &path, &dest_pos);
 
@@ -1703,7 +1705,8 @@ gtk_icon_view_snapshot (GtkWidget   *widget,
                           item->cell_area.width  + icon_view->priv->item_padding * 2,
                           item->cell_area.height + icon_view->priv->item_padding * 2);
 
-      if (gdk_rectangle_intersect (&item->cell_area, &(GdkRectangle) { 0, 0, width, height }, NULL))
+      if (gdk_rectangle_intersect (&item->cell_area,
+                                   &(GdkRectangle) { offset_x, offset_y, width, height }, NULL))
         {
           gtk_icon_view_snapshot_item (icon_view, snapshot, item,
                                        item->cell_area.x, item->cell_area.y,
@@ -1760,7 +1763,7 @@ gtk_icon_view_snapshot (GtkWidget   *widget,
   if (icon_view->priv->doing_rubberband)
     gtk_icon_view_snapshot_rubberband (icon_view, snapshot);
 
-  gtk_snapshot_pop (snapshot);
+  gtk_snapshot_restore (snapshot);
 
   GTK_WIDGET_CLASS (gtk_icon_view_parent_class)->snapshot (widget, snapshot);
 }
@@ -1836,7 +1839,7 @@ gtk_icon_view_motion (GtkEventController *controller,
 
 	  if (icon_view->priv->scroll_timeout_id == 0) {
 	    icon_view->priv->scroll_timeout_id = g_timeout_add (30, rubberband_scroll_timeout, icon_view);
-	    g_source_set_name_by_id (icon_view->priv->scroll_timeout_id, "[gtk+] rubberband_scroll_timeout");
+	    g_source_set_name_by_id (icon_view->priv->scroll_timeout_id, "[gtk] rubberband_scroll_timeout");
 	  }
  	}
       else
@@ -1874,6 +1877,8 @@ gtk_icon_view_motion (GtkEventController *controller,
 
 static void
 gtk_icon_view_leave (GtkEventController *controller,
+                     GdkCrossingMode     mode,
+                     GdkNotifyType       detail,
                      gpointer            user_data)
 {
   GtkIconView *icon_view;
@@ -5702,27 +5707,27 @@ unset_reorderable (GtkIconView *icon_view)
 }
 
 static void
-set_source_row (GdkDragContext *context,
+set_source_row (GdkDrag        *drag,
                 GtkTreeModel   *model,
                 GtkTreePath    *source_row)
 {
   if (source_row)
-    g_object_set_data_full (G_OBJECT (context),
+    g_object_set_data_full (G_OBJECT (drag),
 			    I_("gtk-icon-view-source-row"),
 			    gtk_tree_row_reference_new (model, source_row),
 			    (GDestroyNotify) gtk_tree_row_reference_free);
   else
-    g_object_set_data_full (G_OBJECT (context),
+    g_object_set_data_full (G_OBJECT (drag),
 			    I_("gtk-icon-view-source-row"),
 			    NULL, NULL);
 }
 
 static GtkTreePath*
-get_source_row (GdkDragContext *context)
+get_source_row (GdkDrag *drag)
 {
   GtkTreeRowReference *ref;
 
-  ref = g_object_get_data (G_OBJECT (context), "gtk-icon-view-source-row");
+  ref = g_object_get_data (G_OBJECT (drag), "gtk-icon-view-source-row");
 
   if (ref)
     return gtk_tree_row_reference_get_path (ref);
@@ -6020,7 +6025,7 @@ gtk_icon_view_maybe_begin_drag (GtkIconView *icon_view,
                                 GdkDevice   *device)
 {
   GtkWidget *widget = GTK_WIDGET (icon_view);
-  GdkDragContext *context;
+  GdkDrag *drag;
   GtkTreePath *path = NULL;
   GtkTreeModel *model;
   gboolean retval = FALSE;
@@ -6064,14 +6069,14 @@ gtk_icon_view_maybe_begin_drag (GtkIconView *icon_view,
 
   retval = TRUE;
 
-  context = gtk_drag_begin_with_coordinates (widget,
-                                             device,
-                                             gtk_drag_source_get_target_list (widget),
-                                             icon_view->priv->source_actions,
-                                             icon_view->priv->press_start_x,
-                                             icon_view->priv->press_start_y);
+  drag = gtk_drag_begin (widget,
+                         device,
+                         gtk_drag_source_get_target_list (widget),
+                         icon_view->priv->source_actions,
+                         icon_view->priv->press_start_x,
+                         icon_view->priv->press_start_y);
 
-  set_source_row (context, model, path);
+  set_source_row (drag, model, path);
 
  out:
   if (path)
@@ -6083,7 +6088,7 @@ gtk_icon_view_maybe_begin_drag (GtkIconView *icon_view,
 /* Source side drag signals */
 static void
 gtk_icon_view_drag_begin (GtkWidget      *widget,
-			  GdkDragContext *context)
+			  GdkDrag        *drag)
 {
   GtkIconView *icon_view;
   GtkIconViewItem *item;
@@ -6112,21 +6117,21 @@ gtk_icon_view_drag_begin (GtkWidget      *widget,
   icon = gtk_icon_view_create_drag_icon (icon_view, path);
   gtk_tree_path_free (path);
 
-  gtk_drag_set_icon_paintable (context, icon, x, y);
+  gtk_drag_set_icon_paintable (drag, icon, x, y);
 
   g_object_unref (icon);
 }
 
 static void 
 gtk_icon_view_drag_end (GtkWidget      *widget,
-			GdkDragContext *context)
+			GdkDrag        *drag)
 {
   /* do nothing */
 }
 
 static void 
 gtk_icon_view_drag_data_get (GtkWidget        *widget,
-			     GdkDragContext   *context,
+			     GdkDrag          *drag,
 			     GtkSelectionData *selection_data)
 {
   GtkIconView *icon_view;
@@ -6142,7 +6147,7 @@ gtk_icon_view_drag_data_get (GtkWidget        *widget,
   if (!icon_view->priv->source_set)
     return;
 
-  source_row = get_source_row (context);
+  source_row = get_source_row (drag);
 
   if (source_row == NULL)
     return;
@@ -6170,7 +6175,7 @@ gtk_icon_view_drag_data_get (GtkWidget        *widget,
 
 static void 
 gtk_icon_view_drag_data_delete (GtkWidget      *widget,
-				GdkDragContext *context)
+				GdkDrag        *drag)
 {
   GtkTreeModel *model;
   GtkIconView *icon_view;
@@ -6185,7 +6190,7 @@ gtk_icon_view_drag_data_delete (GtkWidget      *widget,
   if (!icon_view->priv->source_set)
     return;
 
-  source_row = get_source_row (context);
+  source_row = get_source_row (drag);
 
   if (source_row == NULL)
     return;
@@ -6195,7 +6200,7 @@ gtk_icon_view_drag_data_delete (GtkWidget      *widget,
 
   gtk_tree_path_free (source_row);
 
-  set_source_row (context, NULL, NULL);
+  set_source_row (drag, NULL, NULL);
 }
 
 /* Target side drag signals */
@@ -6251,7 +6256,7 @@ gtk_icon_view_drag_motion (GtkWidget *widget,
       if (icon_view->priv->scroll_timeout_id == 0)
 	{
 	  icon_view->priv->scroll_timeout_id = g_timeout_add (50, drag_scroll_timeout, icon_view);
-	  g_source_set_name_by_id (icon_view->priv->scroll_timeout_id, "[gtk+] drag_scroll_timeout");
+	  g_source_set_name_by_id (icon_view->priv->scroll_timeout_id, "[gtk] drag_scroll_timeout");
 	}
 
       if (target == g_intern_static_string ("GTK_TREE_MODEL_ROW"))
@@ -6333,7 +6338,7 @@ static GdkDragAction
 gtk_icon_view_get_action (GtkWidget *treeview,
                           GdkDrop   *drop)
 {
-  GdkDragContext *drag = gdk_drop_get_drag (drop);
+  GdkDrag *drag = gdk_drop_get_drag (drop);
   GtkWidget *source_widget = gtk_drag_get_source_widget (drag);
   GdkDragAction actions;
 
@@ -6866,7 +6871,7 @@ gtk_icon_view_buildable_custom_tag_end (GtkBuildable *buildable,
                                         GtkBuilder   *builder,
                                         GObject      *child,
                                         const gchar  *tagname,
-                                        gpointer     *data)
+                                        gpointer      data)
 {
   if (!_gtk_cell_layout_buildable_custom_tag_end (buildable, builder,
                                                   child, tagname, data))

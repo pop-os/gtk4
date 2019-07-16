@@ -77,6 +77,7 @@ test_type (gconstpointer data)
   /* These can't be freely constructed/destroyed */
   if (g_type_is_a (type, GTK_TYPE_APPLICATION) ||
       g_type_is_a (type, GDK_TYPE_PIXBUF_LOADER) ||
+      g_type_is_a (type, GTK_TYPE_LAYOUT_CHILD) ||
 #ifdef G_OS_UNIX
       g_type_is_a (type, GTK_TYPE_PRINT_JOB) ||
 #endif
@@ -96,20 +97,28 @@ test_type (gconstpointer data)
   if (g_type_is_a (type, GTK_TYPE_FILE_CHOOSER_BUTTON) ||
       g_type_is_a (type, GTK_TYPE_FILE_CHOOSER_DIALOG) ||
       g_type_is_a (type, GTK_TYPE_FILE_CHOOSER_WIDGET) ||
-      g_type_is_a (type, GTK_TYPE_PLACES_SIDEBAR))
+      g_str_equal (g_type_name (type), "GtkPlacesSidebar"))
     return;
  
   klass = g_type_class_ref (type);
 
   if (g_type_is_a (type, GTK_TYPE_SETTINGS))
-    instance = g_object_ref (gtk_settings_get_default ());
+    instance = G_OBJECT (g_object_ref (gtk_settings_get_default ()));
   else if (g_type_is_a (type, GDK_TYPE_SURFACE))
     {
-      instance = g_object_ref (gdk_surface_new_popup (gdk_display_get_default (),
-                                                     0,
-                                                     &(GdkRectangle) { 0, 0, 100, 100 }));
+      instance = G_OBJECT (g_object_ref (gdk_surface_new_popup (display,
+                                                                &(GdkRectangle) { 0, 0, 100, 100 })));
     }
-  else if (g_str_equal (g_type_name (type), "GdkX11Cursor"))
+  else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL))
+    {
+      GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
+      instance = g_object_new (type,
+                               "model", list_store,
+                               NULL);
+      g_object_unref (list_store);
+    }
+  else if (g_type_is_a (type, GDK_TYPE_CLIPBOARD) ||
+           g_str_equal (g_type_name (type), "GdkX11Cursor"))
     instance = g_object_new (type, "display", display, NULL);
   else
     instance = g_object_new (type, NULL);
@@ -129,13 +138,36 @@ test_type (gconstpointer data)
       if ((pspec->flags & G_PARAM_READABLE) == 0)
 	continue;
 
+      if (g_type_is_a (type, GDK_TYPE_CLIPBOARD) &&
+	  strcmp (pspec->name, "display") == 0)
+	continue;
+
+      /* These are set in init() */
+      if ((g_type_is_a (type, GDK_TYPE_CLIPBOARD) ||
+           g_type_is_a (type, GDK_TYPE_CONTENT_PROVIDER)) &&
+	  strcmp (pspec->name, "formats") == 0)
+	continue;
+
+      if (g_type_is_a (type, GDK_TYPE_CONTENT_PROVIDER) &&
+	  strcmp (pspec->name, "storable-formats") == 0)
+	continue;
+
       /* This one has a special-purpose default value */
       if (g_type_is_a (type, GTK_TYPE_DIALOG) &&
 	  (strcmp (pspec->name, "use-header-bar") == 0))
 	continue;
 
       if (g_type_is_a (type, GTK_TYPE_ASSISTANT) &&
-	  (strcmp (pspec->name, "use-header-bar") == 0))
+	  (strcmp (pspec->name, "use-header-bar") == 0 ||
+           strcmp (pspec->name, "pages") == 0)) /* pages always gets a non-NULL value */
+	continue;
+
+      if (g_type_is_a (type, GTK_TYPE_STACK) &&
+	  (strcmp (pspec->name, "pages") == 0)) /* pages always gets a non-NULL value */
+	continue;
+
+      if (g_type_is_a (type, GTK_TYPE_NOTEBOOK) &&
+	  (strcmp (pspec->name, "pages") == 0)) /* pages always gets a non-NULL value */
 	continue;
 
       if (g_type_is_a (type, GTK_TYPE_POPOVER) &&
@@ -201,8 +233,15 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 
 G_GNUC_END_IGNORE_DEPRECATIONS
 
-      /* Default invisible char is determined at runtime */
+      /* Default invisible char is determined at runtime,
+       * and buffer gets created on-demand
+       */
       if (g_type_is_a (type, GTK_TYPE_ENTRY) &&
+	  (strcmp (pspec->name, "invisible-char") == 0 ||
+           strcmp (pspec->name, "buffer") == 0))
+	continue;
+
+      if (g_type_is_a (type, GTK_TYPE_TEXT) &&
 	  (strcmp (pspec->name, "invisible-char") == 0 ||
            strcmp (pspec->name, "buffer") == 0))
 	continue;
@@ -214,17 +253,25 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
            strcmp (pspec->name, "cell-area-context") == 0))
 	continue;
 
+G_GNUC_END_IGNORE_DEPRECATIONS
+
+      if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) &&
+          strcmp (pspec->name, "model") == 0)
+        continue;
+
+      /* This is set in init() */
+      if (g_type_is_a (type, GTK_TYPE_FONT_CHOOSER_WIDGET) &&
+          strcmp (pspec->name, "tweak-action") == 0)
+        continue;
+
+G_GNUC_BEGIN_IGNORE_DEPRECATIONS
+
       if (g_type_is_a (type, GTK_TYPE_ICON_VIEW) &&
 	  (strcmp (pspec->name, "cell-area") == 0 ||
            strcmp (pspec->name, "cell-area-context") == 0))
 	continue;
 
 G_GNUC_END_IGNORE_DEPRECATIONS
-
-      if (g_type_is_a (type, GTK_TYPE_LAYOUT) &&
-	  (strcmp (pspec->name, "hadjustment") == 0 ||
-           strcmp (pspec->name, "vadjustment") == 0))
-	continue;
 
       if (g_type_is_a (type, GTK_TYPE_MESSAGE_DIALOG) &&
           (strcmp (pspec->name, "image") == 0 ||
@@ -295,10 +342,6 @@ G_GNUC_END_IGNORE_DEPRECATIONS
           strcmp (pspec->name, "buffer") == 0)
         continue;
 
-      if (g_type_is_a (type, GTK_TYPE_TOOL_ITEM_GROUP) &&
-          strcmp (pspec->name, "label-widget") == 0)
-        continue;
-
       if (g_type_is_a (type, GTK_TYPE_TREE_VIEW) &&
 	  (strcmp (pspec->name, "hadjustment") == 0 ||
            strcmp (pspec->name, "vadjustment") == 0))
@@ -326,7 +369,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
         continue;
 
       /* show-desktop depends on desktop environment */
-      if (g_type_is_a (type, GTK_TYPE_PLACES_SIDEBAR) &&
+      if (g_str_equal (g_type_name (type), "GtkPlacesSidebar") &&
           strcmp (pspec->name, "show-desktop") == 0)
         continue;
 
@@ -341,11 +384,13 @@ G_GNUC_END_IGNORE_DEPRECATIONS
           strcmp (pspec->name, "adjustment") == 0)
         continue;
 
-
       if (g_test_verbose ())
-      g_print ("Property %s.%s\n",
-	     g_type_name (pspec->owner_type),
-	     pspec->name);
+        {
+          g_print ("Property %s:%s\n",
+                   g_type_name (pspec->owner_type),
+                   pspec->name);
+        }
+
       g_value_init (&value, G_PARAM_SPEC_VALUE_TYPE (pspec));
       g_object_get_property (instance, pspec->name, &value);
       check_property ("Property", pspec, &value);

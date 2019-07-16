@@ -21,6 +21,7 @@
 #include "misc-info.h"
 #include "window.h"
 #include "object-tree.h"
+#include "type-info.h"
 
 #include "gtktypebuiltins.h"
 #include "gtktreeview.h"
@@ -28,6 +29,7 @@
 #include "gtklabel.h"
 #include "gtkframe.h"
 #include "gtkbutton.h"
+#include "gtkmenubutton.h"
 #include "gtkwidgetprivate.h"
 
 
@@ -37,18 +39,14 @@ struct _GtkInspectorMiscInfoPrivate {
   GObject *object;
 
   GtkWidget *address;
+  GtkWidget *type;
+  GtkWidget *type_popover;
   GtkWidget *refcount_row;
   GtkWidget *refcount;
   GtkWidget *state_row;
   GtkWidget *state;
   GtkWidget *buildable_id_row;
   GtkWidget *buildable_id;
-  GtkWidget *default_widget_row;
-  GtkWidget *default_widget;
-  GtkWidget *default_widget_button;
-  GtkWidget *focus_widget_row;
-  GtkWidget *focus_widget;
-  GtkWidget *focus_widget_button;
   GtkWidget *mnemonic_label_row;
   GtkWidget *mnemonic_label;
   GtkWidget *request_mode_row;
@@ -134,7 +132,8 @@ state_flags_changed (GtkWidget *w, GtkStateFlags old_flags, GtkInspectorMiscInfo
 
 static void
 allocation_changed (GtkWidget    *w,
-                    GdkRectangle *allocation,
+                    int           width,
+                    int           height,
                     int           baseline,
                     GtkInspectorMiscInfo *sl)
 {
@@ -180,93 +179,8 @@ show_object (GtkInspectorMiscInfo *sl,
              GObject              *object,
              const gchar          *tab)
 {
-  GtkTreeIter iter;
-
-  g_object_set_data (G_OBJECT (sl->priv->object_tree), "next-tab", (gpointer)tab);
-  if (gtk_inspector_object_tree_find_object (sl->priv->object_tree, object, &iter))
-    {
-      gtk_inspector_object_tree_select_object (sl->priv->object_tree, object);
-    }
-  else if (GTK_IS_WIDGET (object) &&
-           gtk_inspector_object_tree_find_object (sl->priv->object_tree, G_OBJECT (gtk_widget_get_parent (GTK_WIDGET (object))), &iter))
-
-    {
-      gtk_inspector_object_tree_append_object (sl->priv->object_tree, object, &iter, NULL);
-      gtk_inspector_object_tree_select_object (sl->priv->object_tree, object);
-    }
-  else
-    {
-      g_warning ("GtkInspector: couldn't find the object in the tree");
-    }
-}
-
-static void
-update_default_widget (GtkInspectorMiscInfo *sl)
-{
-  GtkWidget *widget;
-
-  widget = gtk_window_get_default_widget (GTK_WINDOW (sl->priv->object));
-  if (widget)
-    {
-      gchar *tmp;
-      tmp = g_strdup_printf ("%p", widget);
-      gtk_label_set_label (GTK_LABEL (sl->priv->default_widget), tmp);
-      g_free (tmp);
-      gtk_widget_set_sensitive (sl->priv->default_widget_button, TRUE);
-    }
-  else
-    {
-      gtk_label_set_label (GTK_LABEL (sl->priv->default_widget), "NULL");   
-      gtk_widget_set_sensitive (sl->priv->default_widget_button, FALSE);
-    }
-}
-
-static void
-show_default_widget (GtkWidget *button, GtkInspectorMiscInfo *sl)
-{
-  GtkWidget *widget;
-
-  update_default_widget (sl);
-  widget = gtk_window_get_default_widget (GTK_WINDOW (sl->priv->object));
-  if (widget)
-    show_object (sl, G_OBJECT (widget), "properties"); 
-}
-
-static void
-update_focus_widget (GtkInspectorMiscInfo *sl)
-{
-  GtkWidget *widget;
-
-  widget = gtk_window_get_focus (GTK_WINDOW (sl->priv->object));
-  if (widget)
-    {
-      gchar *tmp;
-      tmp = g_strdup_printf ("%p", widget);
-      gtk_label_set_label (GTK_LABEL (sl->priv->focus_widget), tmp);
-      g_free (tmp);
-      gtk_widget_set_sensitive (sl->priv->focus_widget_button, TRUE);
-    }
-  else
-    {
-      gtk_label_set_label (GTK_LABEL (sl->priv->focus_widget), "NULL");   
-      gtk_widget_set_sensitive (sl->priv->focus_widget_button, FALSE);
-    }
-}
-
-static void
-set_focus_cb (GtkWindow *window, GtkWidget *focus, GtkInspectorMiscInfo *sl)
-{
-  update_focus_widget (sl);
-}
-
-static void
-show_focus_widget (GtkWidget *button, GtkInspectorMiscInfo *sl)
-{
-  GtkWidget *widget;
-
-  widget = gtk_window_get_focus (GTK_WINDOW (sl->priv->object));
-  if (widget)
-    show_object (sl, G_OBJECT (widget), "properties");
+  g_object_set_data_full (G_OBJECT (sl->priv->object_tree), "next-tab", g_strdup (tab), g_free);
+  gtk_inspector_object_tree_select_object (sl->priv->object_tree, object);
 }
 
 static void
@@ -315,10 +229,17 @@ update_info (gpointer data)
 {
   GtkInspectorMiscInfo *sl = data;
   gchar *tmp;
+  GType gtype;
 
   tmp = g_strdup_printf ("%p", sl->priv->object);
   gtk_label_set_text (GTK_LABEL (sl->priv->address), tmp);
   g_free (tmp);
+
+  gtype = G_TYPE_FROM_INSTANCE (sl->priv->object);
+
+  gtk_button_set_label (GTK_BUTTON (sl->priv->type), g_type_name (gtype));
+  gtk_inspector_type_popover_set_gtype (GTK_INSPECTOR_TYPE_POPOVER (sl->priv->type_popover),
+                                        gtype);
 
   if (G_IS_OBJECT (sl->priv->object))
     {
@@ -370,12 +291,6 @@ update_info (gpointer data)
                           gtk_buildable_get_name (GTK_BUILDABLE (sl->priv->object)));
     }
 
-  if (GTK_IS_WINDOW (sl->priv->object))
-    {
-      update_default_widget (sl);
-      update_focus_widget (sl);
-    }
-
   if (GDK_IS_FRAME_CLOCK (sl->priv->object))
     {
       GdkFrameClock *clock;
@@ -423,7 +338,6 @@ gtk_inspector_misc_info_set_object (GtkInspectorMiscInfo *sl,
   if (sl->priv->object)
     {
       g_signal_handlers_disconnect_by_func (sl->priv->object, state_flags_changed, sl);
-      g_signal_handlers_disconnect_by_func (sl->priv->object, set_focus_cb, sl);
       g_signal_handlers_disconnect_by_func (sl->priv->object, allocation_changed, sl);
       disconnect_each_other (sl->priv->object, G_OBJECT (sl));
       disconnect_each_other (sl, sl->priv->object);
@@ -458,7 +372,7 @@ gtk_inspector_misc_info_set_object (GtkInspectorMiscInfo *sl,
       state_flags_changed (GTK_WIDGET (sl->priv->object), 0, sl);
 
       g_signal_connect_object (object, "size-allocate", G_CALLBACK (allocation_changed), sl, 0);
-      allocation_changed (GTK_WIDGET (sl->priv->object), NULL, -1, sl);
+      allocation_changed (GTK_WIDGET (sl->priv->object), 0, 0, -1, sl);
     }
   else
     {
@@ -487,19 +401,6 @@ gtk_inspector_misc_info_set_object (GtkInspectorMiscInfo *sl,
       gtk_widget_hide (sl->priv->buildable_id_row);
     }
 
-  if (GTK_IS_WINDOW (object))
-    {
-      gtk_widget_show (sl->priv->default_widget_row);
-      gtk_widget_show (sl->priv->focus_widget_row);
-
-      g_signal_connect_object (object, "set-focus", G_CALLBACK (set_focus_cb), sl, G_CONNECT_AFTER);
-    }
-  else
-    {
-      gtk_widget_hide (sl->priv->default_widget_row);
-      gtk_widget_hide (sl->priv->focus_widget_row);
-    }
-
   if (GDK_IS_FRAME_CLOCK (object))
     {
       gtk_widget_show (sl->priv->framecount_row);
@@ -519,6 +420,11 @@ gtk_inspector_misc_info_init (GtkInspectorMiscInfo *sl)
 {
   sl->priv = gtk_inspector_misc_info_get_instance_private (sl);
   gtk_widget_init_template (GTK_WIDGET (sl));
+
+  sl->priv->type_popover = g_object_new (GTK_TYPE_INSPECTOR_TYPE_POPOVER, NULL);
+  gtk_menu_button_set_popover (GTK_MENU_BUTTON (sl->priv->type),
+                               sl->priv->type_popover);
+
 }
 
 static void
@@ -601,18 +507,13 @@ gtk_inspector_misc_info_class_init (GtkInspectorMiscInfoClass *klass)
 
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gtk/libgtk/inspector/misc-info.ui");
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, address);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, type);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, refcount_row);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, refcount);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, state_row);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, state);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, buildable_id_row);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, buildable_id);
-  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, default_widget_row);
-  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, default_widget);
-  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, default_widget_button);
-  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, focus_widget_row);
-  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, focus_widget);
-  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, focus_widget_button);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, mnemonic_label_row);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, mnemonic_label);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, request_mode_row);
@@ -645,8 +546,6 @@ gtk_inspector_misc_info_class_init (GtkInspectorMiscInfoClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, child_visible_row);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, child_visible);
 
-  gtk_widget_class_bind_template_callback (widget_class, show_default_widget);
-  gtk_widget_class_bind_template_callback (widget_class, show_focus_widget);
   gtk_widget_class_bind_template_callback (widget_class, show_frame_clock);
 }
 

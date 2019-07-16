@@ -144,7 +144,7 @@ gdk_quartz_screen_calculate_layout (GdkQuartzScreen *screen)
                                                 "display", display,
                                                 NULL);
       g_ptr_array_add (display_quartz->monitors, monitor);
-      monitor->nsscreen = [array objectAtIndex:i];
+      monitor->monitor_num = i;
 
       NSRect rect = [[array objectAtIndex:i] frame];
 
@@ -263,7 +263,7 @@ display_reconfiguration_callback (CGDirectDisplayID            display,
       if (!screen->screen_changed_id)
         {
           screen->screen_changed_id = g_idle_add (screen_changed_idle, screen);
-          g_source_set_name_by_id (screen->screen_changed_id, "[gtk+] screen_changed_idle");
+          g_source_set_name_by_id (screen->screen_changed_id, "[gtk] screen_changed_idle");
         }
     }
 }

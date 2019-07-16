@@ -39,7 +39,6 @@
 #include "gtkheaderbar.h"
 #include "gtklabel.h"
 #include "gtkmain.h"
-#include "gtkinvisible.h"
 #include "gtkfilechooserentry.h"
 #include "gtkfilefilterprivate.h"
 #include "gtkwindowprivate.h"
@@ -152,9 +151,9 @@ send_close (FilechooserPortalData *data)
   GDBusMessage *message;
   GError *error = NULL;
 
-  message = g_dbus_message_new_method_call ("org.freedesktop.portal.Desktop",
-                                            "/org/freedesktop/portal/desktop",
-                                            "org.freedesktop.portal.FileChooser",
+  message = g_dbus_message_new_method_call (PORTAL_BUS_NAME,
+                                            PORTAL_OBJECT_PATH,
+                                            PORTAL_FILECHOOSER_INTERFACE,
                                             "Close");
   g_dbus_message_set_body (message,
                            g_variant_new ("(o)", data->portal_handle));
@@ -216,8 +215,8 @@ open_file_msg_cb (GObject *source_object,
 
       data->portal_response_signal_id =
         g_dbus_connection_signal_subscribe (data->connection,
-                                            "org.freedesktop.portal.Desktop",
-                                            "org.freedesktop.portal.Request",
+                                            PORTAL_BUS_NAME,
+                                            PORTAL_REQUEST_INTERFACE,
                                             "Response",
                                             data->portal_handle,
                                             NULL,
@@ -296,27 +295,17 @@ show_portal_file_chooser (GtkFileChooserNative *self,
   gboolean multiple;
   const char *title;
   char *token;
-  char *sender;
-  int i;
 
-  message = g_dbus_message_new_method_call ("org.freedesktop.portal.Desktop",
-                                            "/org/freedesktop/portal/desktop",
-                                            "org.freedesktop.portal.FileChooser",
+  message = g_dbus_message_new_method_call (PORTAL_BUS_NAME,
+                                            PORTAL_OBJECT_PATH,
+                                            PORTAL_FILECHOOSER_INTERFACE,
                                             data->method_name);
 
-  token = g_strdup_printf ("gtk%d", g_random_int_range (0, G_MAXINT));
-  sender = g_strdup (g_dbus_connection_get_unique_name (data->connection) + 1);
-  for (i = 0; sender[i]; i++)
-    if (sender[i] == '.')
-      sender[i] = '_';
-
-  data->portal_handle = g_strdup_printf ("/org/fredesktop/portal/desktop/request/%s/%s", sender, token);
-  g_free (sender);
-
+  data->portal_handle = gtk_get_portal_request_path (data->connection, &token);
   data->portal_response_signal_id =
         g_dbus_connection_signal_subscribe (data->connection,
-                                            "org.freedesktop.portal.Desktop",
-                                            "org.freedesktop.portal.Request",
+                                            PORTAL_BUS_NAME,
+                                            PORTAL_REQUEST_INTERFACE,
                                             "Response",
                                             data->portal_handle,
                                             NULL,
@@ -342,10 +331,13 @@ show_portal_file_chooser (GtkFileChooserNative *self,
   g_variant_builder_add (&opt_builder, "{sv}", "modal",
                          g_variant_new_boolean (data->modal));
   g_variant_builder_add (&opt_builder, "{sv}", "filters", get_filters (GTK_FILE_CHOOSER (self)));
-  if (GTK_FILE_CHOOSER_NATIVE (self)->current_name)
+  if (self->current_filter)
+    g_variant_builder_add (&opt_builder, "{sv}", "current_filter",
+                           gtk_file_filter_to_gvariant (self->current_filter));
+  if (self->current_name)
     g_variant_builder_add (&opt_builder, "{sv}", "current_name",
                            g_variant_new_string (GTK_FILE_CHOOSER_NATIVE (self)->current_name));
-  if (GTK_FILE_CHOOSER_NATIVE (self)->current_folder)
+  if (self->current_folder)
     {
       gchar *path;
 
@@ -354,7 +346,7 @@ show_portal_file_chooser (GtkFileChooserNative *self,
                              g_variant_new_bytestring (path));
       g_free (path);
     }
-  if (GTK_FILE_CHOOSER_NATIVE (self)->current_file)
+  if (self->current_file)
     {
       gchar *path;
 
@@ -364,7 +356,7 @@ show_portal_file_chooser (GtkFileChooserNative *self,
       g_free (path);
     }
 
-  if (GTK_FILE_CHOOSER_NATIVE (self)->choices)
+  if (self->choices)
     g_variant_builder_add (&opt_builder, "{sv}", "choices",
                            serialize_choices (GTK_FILE_CHOOSER_NATIVE (self)));
 
@@ -398,9 +390,7 @@ window_handle_exported (GtkWindow  *window,
 
   if (data->modal)
     {
-      GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (window));
-
-      data->grab_widget = gtk_invisible_new_for_display (display);
+      data->grab_widget = gtk_label_new ("");
       gtk_grab_add (GTK_WIDGET (data->grab_widget));
     }
 
@@ -416,7 +406,7 @@ gtk_file_chooser_native_portal_show (GtkFileChooserNative *self)
   GtkFileChooserAction action;
   const char *method_name;
 
-  if (!gtk_should_use_portal ())
+  if (!gdk_should_use_portal ())
     return FALSE;
 
   connection = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);

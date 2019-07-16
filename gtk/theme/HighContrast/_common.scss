@@ -16,7 +16,14 @@ $ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
   outline-style: none;
 }
 
-*:focus(visible) {
+button:focus,
+checkbutton:focus,
+radiobutton:focus,
+switch:focus,
+scale:focus,
+label:focus,
+row:focus,
+flowboxchild:focus {
   // We use the outline properties to signal the focus properties
   // to the adwaita engine: using real CSS properties is faster,
   // and we don't use any outlines for now.
@@ -290,6 +297,10 @@ entry {
   .linked:not(.vertical) > &:focus + button,
   .linked:not(.vertical) > &:focus + combobox > box > button.combo { border-left-color: entry_focus_border(); }
 
+  .linked:not(.vertical) > &:focus.error + &,
+  .linked:not(.vertical) > &:focus.error + button,
+  .linked:not(.vertical) > &:focus.error + combobox > box > button.combo { border-left-color: $error_color; }
+
   .linked:not(.vertical) > &:drop(active) + &,
   .linked:not(.vertical) > &:drop(active) + button,
   .linked:not(.vertical) > &:drop(active) + combobox > box > button.combo { border-left-color: $fg_color; }
@@ -320,6 +331,9 @@ entry {
     + %entry:focus:not(:only-child),
     + entry:focus:not(:only-child) { border-top-color: entry_focus_border(); }
 
+    + %entry:focus.error:not(:only-child),
+    + entry:focus.error:not(:only-child) { border-top-color: $error_color; }
+
     + %entry:drop(active):not(:only-child),
     + entry:drop(active):not(:only-child) { border-top-color: $fg_color; }
 
@@ -330,6 +344,13 @@ entry {
       + entry,
       + button,
       + combobox > box > button.combo { border-top-color: entry_focus_border(); }
+    }
+
+    &:focus.error:not(:only-child) {
+      + %entry,
+      + entry,
+      + button,
+      + combobox > box > button.combo { border-top-color: $error_color; }
     }
 
     &:drop(active):not(:only-child) {
@@ -659,25 +680,13 @@ button {
   }
 
   //inline-toolbar buttons
-  .inline-toolbar &, .inline-toolbar &:backdrop {
-    border-radius: 2px;
-    border-width: 1px;
-    @extend %linked;
-  }
+  .inline-toolbar & { @extend %linked; }
 
   .primary-toolbar & { -gtk-icon-shadow: none; } // tango icons don't need shadows
 
-  .linked > &,
-  .linked > &:hover,
-  .linked > &:active,
-  .linked > &:checked,
-  .linked > &:backdrop { @extend %linked; }
+  .linked:not(.vertical) > & { @extend %linked; }
 
-  .linked.vertical > &,
-  .linked.vertical > &:hover,
-  .linked.vertical > &:active,
-  .linked.vertical > &:checked,
-  .linked.vertical > &:backdrop { @extend %linked_vertical; }
+  .linked.vertical > & { @extend %linked_vertical; }
 }
 
 %needs_attention {
@@ -728,80 +737,45 @@ button {
 }
 
 // More inline toolbar buttons
-toolbar.inline-toolbar toolbutton,
-toolbar.inline-toolbar toolbutton:backdrop {
-  & > button.flat { @extend %linked_middle; }
-
-  &:first-child > button.flat { @extend %linked:first-child; }
-
-  &:last-child > button.flat { @extend %linked:last-child; }
-
-  &:only-child > button.flat { @extend %linked:only-child; }
+toolbar.inline-toolbar toolbutton {
+  &:not(:first-child) > button.flat { @extend %linked:not(:first-child); }
+  &:not(:last-child) > button.flat { @extend %linked:not(:last-child); }
 }
 
-%linked_middle {
-  border-radius: 0;
+%linked_not_left {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+%linked_not_right {
   border-right-style: none;
-}
-
-%linked_left {
-    border-top-left-radius: 3px;
-    border-bottom-left-radius: 3px;
-    border-top-right-radius: 0;
-    border-bottom-right-radius: 0;
-    border-right-style: none;
-}
-
-%linked_right {
-    border-top-left-radius: 0;
-    border-bottom-left-radius: 0;
-    border-top-right-radius: 3px;
-    border-bottom-right-radius: 3px;
-    border-right-style: solid;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
 // 1st/last child are at text start/end
 %linked {
-  @extend %linked_middle;
-
   &:dir(ltr) {
-    &:first-child { @extend %linked_left; }
-    &:last-child { @extend %linked_right; }
+    &:not(:first-child) { @extend %linked_not_left; }
+    &:not(:last-child) { @extend %linked_not_right; }
   }
 
   &:dir(rtl) {
-    &:first-child { @extend %linked_right; }
-    &:last-child { @extend %linked_left; }
+    &:not(:first-child) { @extend %linked_not_right; }
+    &:not(:last-child) { @extend %linked_not_left; }
   }
-
-  &:only-child {
-    border-radius: 3px;
-    border-style: solid;
-  }
-}
-
-%linked_vertical_middle {
-  border-style: solid solid none solid;
-  border-radius: 0;
 }
 
 %linked_vertical{
-  @extend %linked_vertical_middle;
-
-  &:first-child {
-    border-top-left-radius: 3px;
-    border-top-right-radius: 3px;
+  &:not(:first-child) {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
   }
 
-  &:last-child {
-    border-bottom-left-radius: 3px;
-    border-bottom-right-radius: 3px;
-    border-style: solid;
-  }
-
-  &:only-child {
-    border-radius: 3px;
-    border-style: solid;
+  &:not(:last-child) {
+    border-bottom-style: none;
+    border-bottom-left-radius: 0;
+    border-bottom-right-radius: 0;
   }
 }
 
@@ -911,7 +885,7 @@ spinbutton {
     box-shadow: none;
     padding: 0;
  
-    entry {
+    text {
       min-width: 28px;
       margin: 0;
       background: none;
@@ -970,7 +944,7 @@ spinbutton {
       box-shadow: inset 0 2px 3px -1px transparentize(black, 0.8);
     }
     
-    entry {
+    text {
       box-shadow: none;
       color: $fg_color;
       text-shadow: none;
@@ -1046,7 +1020,8 @@ spinbutton {
       box-shadow: none;
     }
 
-    entry {
+    text {
+      @extend %entry;
       min-height: 32px;
       min-width: 32px;
       padding: 0;
@@ -1065,13 +1040,15 @@ spinbutton {
     }
 
     %top_button {
-      border-radius: 3px 3px 0 0;
-      border-style: solid solid none solid;
+      border-bottom-style: none;
+      border-bottom-left-radius: 0;
+      border-bottom-right-radius: 0;
     }
 
     %bottom_button {
-      border-radius: 0 0 3px 3px;
-      border-style: none solid solid solid;
+      border-top-style: none;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
     }
   }
 
@@ -1112,10 +1089,7 @@ combobox {
   }
 
   &.linked {
-    button:nth-child(2) {
-      &:dir(ltr) { @extend %linked:last-child; }
-      &:dir(rtl) { @extend %linked:first-child; }
-    }
+    button:nth-child(2) { @extend %linked:not(:first-child); }
   }
 
   &:drop(active) { // FIXME: untested
@@ -1125,23 +1099,19 @@ combobox {
   }
 }
 
-.linked > combobox > box > button.combo {
-  // the combo is a composite widget so the way we do button linking doesn't
-  // work, special case needed. See
-  // https://bugzilla.gnome.org/show_bug.cgi?id=733979
+// the combo is a composite widget so the way we do button linking doesn't
+// work, special case needed. See
+// https://bugzilla.gnome.org/show_bug.cgi?id=733979
 
-  &:dir(ltr),
-  &:dir(rtl) { @extend %linked_middle; } // specificity bump
+.linked:not(.vertical) > combobox {
+  &:not(:first-child) > box > button.combo { @extend %linked:not(:first-child); }
+  &:not(:last-child) > box > button.combo { @extend %linked:not(:last-child); }
 }
 
-.linked:not(.vertical) > combobox:first-child > box > button.combo { @extend %linked:first-child; }
-.linked:not(.vertical) > combobox:last-child > box > button.combo { @extend %linked:last-child; }
-.linked:not(.vertical) > combobox:only-child > box > button.combo { @extend %linked:only-child; }
-
-.linked.vertical > combobox > box > button.combo { @extend %linked_vertical_middle; }
-.linked.vertical > combobox:first-child > box > button.combo { @extend %linked_vertical:first-child;}
-.linked.vertical > combobox:last-child > box > button.combo { @extend %linked_vertical:last-child; }
-.linked.vertical > combobox:only-child > box > button.combo { @extend %linked_vertical:only-child; }
+.linked.vertical > combobox {
+  &:not(:first-child) > box > button.combo { @extend %linked_vertical:not(:first-child); }
+  &:not(:last-child) > box > button.combo { @extend %linked_vertical:not(:last-child); }
+}
 
 
 /************
@@ -1367,6 +1337,9 @@ treeview.view {
   }
 
   &.expander {
+    // GtkTreeView uses the larger of the expander’s min-width and min-height
+    min-width: 24px;
+    min-height: 24px;
     -gtk-icon-source: -gtk-icontheme('pan-end-symbolic');
     &:dir(rtl) { -gtk-icon-source: -gtk-icontheme('pan-end-symbolic-rtl'); }
     color: mix($fg_color, $base_color, 70%);
@@ -2482,49 +2455,58 @@ progressbar {
     border-color: $borders_color;
     background-color: mix($borders_color,$bg_color, 35%);
     box-shadow: inset 1px 1px transparentize(black, 0.9);
+
     &:backdrop {
       border-color: $backdrop_borders_color;
       background-color: mix($backdrop_borders_color,$backdrop_bg_color, 35%);
       box-shadow: 0 1px transparentize(white,1);
     }
   }
+
   &.osd trough {
     background-color: transparent;
     box-shadow: none;
     border-width: 0;
     //FIXME: there is a margin on top
   }
-}
 
-// moving bit
-progressbar {
+  // moving bit
   &.horizontal {
+    trough { min-width: 150px; }
     trough, progress { min-height: 2px; }
   }
+
   &.vertical {
+    trough { min-height: 80px; }
     trough, progress { min-width: 2px; }
   }
+
   & progress {
     border-width: 1px;
     border-style: solid;
     border-radius: 3px;
     border-color: $selected_borders_color;
     background-color: $selected_bg_color;
+
     // I really prefer these flat w/o this shadow - Lapo
     box-shadow: inset 0 1px 0 transparentize($borders_edge,0.8);
+
     &.vertical {
       box-shadow: inset 1px 0 0 transparentize($borders_edge,0.8);
     }
+
     &:backdrop {
       border-color: $selected_bg_color;
       background-color: $selected_bg_color;
       box-shadow: none;
     }
+
     &.osd {
       border-width: 0;
       border-radius: 0;
     }
   }
+
   trough.empty progress { all: unset; } // make the progress indicator disappear when the fraction is 0
 }
 
@@ -2782,8 +2764,8 @@ row.activatable {
 
 expander {
   title > arrow {
-    min-width: 16px;
-    min-height: 16px;
+    min-width: 24px;
+    min-height: 24px;
     -gtk-icon-source: -gtk-icontheme('pan-end-symbolic');
     &:dir(rtl) { -gtk-icon-source: -gtk-icontheme('pan-end-symbolic-rtl'); }
 
@@ -3250,7 +3232,7 @@ colorswatch {
 
   // nth-child is used for the custom colors row.
   // the :not() madness is needed since actually the overlay is selectable by GtkColorSwatch > .overlay
-  // and GtkColorSwatch.overlay, I know it's weird, but this is gtk+.
+  // and GtkColorSwatch.overlay, I know it's weird, but this is GTK.
 
   // hover effect
   &.activatable:hover,
@@ -3261,7 +3243,7 @@ colorswatch {
                 inset 0 -1px transparentize(black, 0.6);
   }
   &:backdrop,
-  &:backdrop:selectedi,
+  &:backdrop:selected,
   &.dark:backdrop,
   &.dark:backdrop:selected {
     background-image: none;

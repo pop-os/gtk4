@@ -32,7 +32,7 @@
 #include "gdkdisplay.h"
 #include "gdkeventsprivate.h"
 #include "gdkenumtypes.h"
-#include "gdkdndprivate.h"
+#include "gdkdragprivate.h"
 
 G_BEGIN_DECLS
 
@@ -63,8 +63,9 @@ typedef enum {
   GDK_DEBUG_GL_TEXTURE_RECT = 1 << 14,
   GDK_DEBUG_GL_LEGACY       = 1 << 15,
   GDK_DEBUG_GL_GLES         = 1 << 16,
-  GDK_DEBUG_VULKAN_DISABLE  = 1 << 17,
-  GDK_DEBUG_VULKAN_VALIDATE = 1 << 18
+  GDK_DEBUG_GL_DEBUG        = 1 << 17,
+  GDK_DEBUG_VULKAN_DISABLE  = 1 << 18,
+  GDK_DEBUG_VULKAN_VALIDATE = 1 << 19
 } GdkDebugFlags;
 
 extern guint _gdk_debug_flags;
@@ -131,7 +132,6 @@ struct _GdkSurfaceAttr
   gint height;
   GdkSurfaceSurfaceClass wclass;
   GdkSurfaceType surface_type;
-  GdkSurfaceTypeHint type_hint;
 };
 
 struct _GdkSurface
@@ -145,7 +145,7 @@ struct _GdkSurface
   GdkSurface *parent;
   GdkSurface *transient_for;
 
-  gpointer user_data;
+  gpointer widget;
 
   gint x;
   gint y;
@@ -233,10 +233,10 @@ void   _gdk_event_queue_remove_link  (GdkDisplay *display,
                                       GList      *node);
 GList* _gdk_event_queue_append       (GdkDisplay *display,
                                       GdkEvent   *event);
-GList* _gdk_event_queue_insert_after (GdkDisplay *display,
+void   _gdk_event_queue_insert_after (GdkDisplay *display,
                                       GdkEvent   *after_event,
                                       GdkEvent   *event);
-GList* _gdk_event_queue_insert_before(GdkDisplay *display,
+void   _gdk_event_queue_insert_before(GdkDisplay *display,
                                       GdkEvent   *after_event,
                                       GdkEvent   *event);
 
@@ -283,6 +283,10 @@ GdkSurface* gdk_surface_new               (GdkDisplay     *display,
                                            GdkSurfaceAttr  *attributes);
 void       _gdk_surface_destroy           (GdkSurface      *surface,
                                            gboolean        foreign_destroy);
+void       gdk_surface_invalidate_rect    (GdkSurface           *surface,
+                                           const GdkRectangle   *rect);
+void       gdk_surface_invalidate_region  (GdkSurface           *surface,
+                                           const cairo_region_t *region);
 void       _gdk_surface_clear_update_area (GdkSurface      *surface);
 void       _gdk_surface_update_size       (GdkSurface      *surface);
 gboolean   _gdk_surface_update_viewable   (GdkSurface      *surface);
@@ -291,6 +295,8 @@ GdkGLContext * gdk_surface_get_paint_gl_context (GdkSurface *surface,
 void gdk_surface_get_unscaled_size (GdkSurface *surface,
                                     int *unscaled_width,
                                     int *unscaled_height);
+gboolean gdk_surface_handle_event (GdkEvent       *event);
+
 
 /*****************************************
  * Interfaces provided by windowing code *
@@ -348,6 +354,16 @@ void gdk_surface_destroy_notify       (GdkSurface *surface);
 void gdk_synthesize_surface_state (GdkSurface     *surface,
                                    GdkSurfaceState unset_flags,
                                    GdkSurfaceState set_flags);
+
+GdkGrabStatus gdk_device_grab (GdkDevice        *device,
+                               GdkSurface        *surface,
+                               GdkGrabOwnership  grab_ownership,
+                               gboolean          owner_events,
+                               GdkEventMask      event_mask,
+                               GdkCursor        *cursor,
+                               guint32           time_);
+void gdk_device_ungrab        (GdkDevice        *device,
+                               guint32           time_);
 
 
 G_END_DECLS

@@ -746,7 +746,7 @@ setup_toplevel_window (GdkSurface    *surface,
   if (!gdk_running_in_sandbox ())
     {
       /* if sandboxed, we're likely in a pid namespace and would only confuse the wm with this */
-      pid_t pid = getpid ();
+      long pid = getpid ();
       XChangeProperty (xdisplay, xid,
                        gdk_x11_get_xatom_by_name_for_display (x11_screen->display, "_NET_WM_PID"),
                        XA_CARDINAL, 32,
@@ -880,16 +880,8 @@ _gdk_x11_display_create_surface_impl (GdkDisplay    *display,
     {
       class = InputOutput;
 
-      if (gdk_display_is_rgba (display))
-        {
-          xattributes.background_pixel = 0;
-          xattributes_mask |= CWBackPixel;
-        }
-      else
-        {
-          xattributes.background_pixmap = None;
-          xattributes_mask |= CWBackPixmap;
-        }
+      xattributes.background_pixmap = None;
+      xattributes_mask |= CWBackPixmap;
 
       xattributes.border_pixel = BlackPixel (xdisplay, x11_screen->screen_num);
       xattributes_mask |= CWBorderPixel;
@@ -1293,35 +1285,6 @@ gdk_surface_x11_show (GdkSurface *surface, gboolean already_mapped)
 }
 
 static void
-gdk_surface_x11_hide (GdkSurface *surface)
-{
-  /* We'll get the unmap notify eventually, and handle it then,
-   * but checking here makes things more consistent if we are
-   * just doing stuff ourself.
-   */
-  _gdk_x11_surface_grab_check_unmap (surface,
-                                    NextRequest (GDK_SURFACE_XDISPLAY (surface)));
-
-  /* You can't simply unmap toplevel surfaces. */
-  switch (surface->surface_type)
-    {
-    case GDK_SURFACE_TOPLEVEL:
-    case GDK_SURFACE_TEMP: /* ? */
-      gdk_surface_withdraw (surface);
-      return;
-      
-    case GDK_SURFACE_CHILD:
-    default:
-      break;
-    }
-  
-  _gdk_surface_clear_update_area (surface);
-  
-  XUnmapWindow (GDK_SURFACE_XDISPLAY (surface),
-		GDK_SURFACE_XID (surface));
-}
-
-static void
 gdk_surface_x11_withdraw (GdkSurface *surface)
 {
   if (!surface->destroyed)
@@ -1336,6 +1299,35 @@ gdk_surface_x11_withdraw (GdkSurface *surface)
       XWithdrawWindow (GDK_SURFACE_XDISPLAY (surface),
                        GDK_SURFACE_XID (surface), 0);
     }
+}
+
+static void
+gdk_surface_x11_hide (GdkSurface *surface)
+{
+  /* We'll get the unmap notify eventually, and handle it then,
+   * but checking here makes things more consistent if we are
+   * just doing stuff ourself.
+   */
+  _gdk_x11_surface_grab_check_unmap (surface,
+                                    NextRequest (GDK_SURFACE_XDISPLAY (surface)));
+
+  /* You can't simply unmap toplevel surfaces. */
+  switch (surface->surface_type)
+    {
+    case GDK_SURFACE_TOPLEVEL:
+    case GDK_SURFACE_TEMP: /* ? */
+      gdk_surface_x11_withdraw (surface);
+      return;
+      
+    case GDK_SURFACE_CHILD:
+    default:
+      break;
+    }
+  
+  _gdk_surface_clear_update_area (surface);
+  
+  XUnmapWindow (GDK_SURFACE_XDISPLAY (surface),
+		GDK_SURFACE_XID (surface));
 }
 
 static inline void
@@ -1875,9 +1867,17 @@ gdk_x11_surface_set_modal_hint (GdkSurface *surface,
 			     NULL);
 }
 
-static void
+/**
+ * gdk_x11_surface_set_skip_taskbar_hint:
+ * @surface: (type GdkX11Surface): a native #GdkSurface
+ * @skips_taskbar: %TRUE to skip taskbars
+ *
+ * Sets a hint on @surface that taskbars should not
+ * display it. See the EWMH for details.
+ */
+void
 gdk_x11_surface_set_skip_taskbar_hint (GdkSurface *surface,
-				      gboolean   skips_taskbar)
+                                       gboolean    skips_taskbar)
 {
   GdkToplevelX11 *toplevel;
   
@@ -1896,9 +1896,17 @@ gdk_x11_surface_set_skip_taskbar_hint (GdkSurface *surface,
 			     NULL);
 }
 
-static void
+/**
+ * gdk_x11_surface_set_skip_pager_hint:
+ * @surface: (type GdkX11Surface): a #GdkSurface
+ * @skips_pager: %TRUE to skip pagers
+ *
+ * Sets a hint on @surface that pagers should not
+ * display it. See the EWMH for details.
+ */
+void
 gdk_x11_surface_set_skip_pager_hint (GdkSurface *surface,
-				    gboolean   skips_pager)
+                                     gboolean    skips_pager)
 {
   GdkToplevelX11 *toplevel;
     
@@ -1917,9 +1925,17 @@ gdk_x11_surface_set_skip_pager_hint (GdkSurface *surface,
 			     NULL);
 }
 
-static void
+/**
+ * gdk_x11_surface_set_urgency_hint:
+ * @surface: (type GdkX11Surface): a native #GdkSurface
+ * @urgent: %TRUE to indicate urgenct attention needed
+ *
+ * Sets a hint on @surface that it needs user attention.
+ * See the ICCCM for details.
+ */
+void
 gdk_x11_surface_set_urgency_hint (GdkSurface *surface,
-			     gboolean   urgent)
+                                  gboolean    urgent)
 {
   GdkToplevelX11 *toplevel;
     
@@ -2237,27 +2253,6 @@ gdk_x11_surface_set_title (GdkSurface   *surface,
 			 gdk_x11_get_xatom_by_name_for_display (display, "WM_ICON_NAME"),
 			 title);
     }
-}
-
-static void
-gdk_x11_surface_set_role (GdkSurface   *surface,
-			 const gchar *role)
-{
-  GdkDisplay *display;
-
-  display = gdk_surface_get_display (surface);
-
-  if (GDK_SURFACE_DESTROYED (surface) ||
-      !SURFACE_IS_TOPLEVEL (surface))
-    return;
-
-  if (role)
-    XChangeProperty (GDK_DISPLAY_XDISPLAY (display), GDK_SURFACE_XID (surface),
-                     gdk_x11_get_xatom_by_name_for_display (display, "WM_WINDOW_ROLE"),
-                     XA_STRING, 8, PropModeReplace, (guchar *)role, strlen (role));
-  else
-    XDeleteProperty (GDK_DISPLAY_XDISPLAY (display), GDK_SURFACE_XID (surface),
-                     gdk_x11_get_xatom_by_name_for_display (display, "WM_WINDOW_ROLE"));
 }
 
 static void
@@ -3392,7 +3387,7 @@ gdk_x11_surface_set_keep_below (GdkSurface *surface, gboolean setting)
 				 setting ? GDK_SURFACE_STATE_BELOW : 0);
 }
 
-static GdkSurface *
+GdkSurface *
 gdk_x11_surface_get_group (GdkSurface *surface)
 {
   GdkToplevelX11 *toplevel;
@@ -3406,9 +3401,17 @@ gdk_x11_surface_get_group (GdkSurface *surface)
   return toplevel->group_leader;
 }
 
-static void
+/**
+ * gdk_x11_surface_set_group:
+ * @surface: (type GdkX11Surface): a native #GdkSurface
+ * @leader: a #GdkSurface
+ *
+ * Sets the group leader of @surface to be @leader.
+ * See the ICCCM for details.
+ */
+void
 gdk_x11_surface_set_group (GdkSurface *surface,
-			  GdkSurface *leader)
+                           GdkSurface *leader)
 {
   GdkToplevelX11 *toplevel;
   
@@ -4301,12 +4304,12 @@ emulate_resize_drag (GdkSurface     *surface,
 }
 
 static void
-emulate_move_drag (GdkSurface     *surface,
-                   GdkDevice     *device,
-                   gint           button,
-                   gint           root_x,
-                   gint           root_y,
-                   guint32        timestamp)
+emulate_move_drag (GdkSurface *surface,
+                   GdkDevice  *device,
+                   gint        button,
+                   gint        root_x,
+                   gint        root_y,
+                   guint32     timestamp)
 {
   MoveResizeData *mv_resize = get_move_resize_data (GDK_SURFACE_DISPLAY (surface), TRUE);
 
@@ -4346,16 +4349,20 @@ _should_perform_ewmh_drag (GdkSurface *surface,
 
 static void
 gdk_x11_surface_begin_resize_drag (GdkSurface     *surface,
-                                  GdkSurfaceEdge  edge,
-                                  GdkDevice     *device,
-                                  gint           button,
-                                  gint           root_x,
-                                  gint           root_y,
-                                  guint32        timestamp)
+                                   GdkSurfaceEdge  edge,
+                                   GdkDevice      *device,
+                                   gint            button,
+                                   gint            x,
+                                   gint            y,
+                                   guint32         timestamp)
 {
+  int root_x, root_y;
+
   if (GDK_SURFACE_DESTROYED (surface) ||
       !SURFACE_IS_TOPLEVEL (surface))
     return;
+
+  gdk_surface_x11_get_root_coords (surface, x, y, &root_x, &root_y);
 
   /* Avoid EWMH for touch devices */
   if (_should_perform_ewmh_drag (surface, device))
@@ -4366,12 +4373,13 @@ gdk_x11_surface_begin_resize_drag (GdkSurface     *surface,
 
 static void
 gdk_x11_surface_begin_move_drag (GdkSurface *surface,
-                                GdkDevice *device,
-				gint       button,
-				gint       root_x,
-				gint       root_y,
-				guint32    timestamp)
+                                 GdkDevice  *device,
+                                 gint        button,
+                                 gint        x,
+                                 gint        y,
+                                 guint32     timestamp)
 {
+  int root_x, root_y;
   gint direction;
 
   if (GDK_SURFACE_DESTROYED (surface) || !SURFACE_IS_TOPLEVEL (surface))
@@ -4381,6 +4389,8 @@ gdk_x11_surface_begin_move_drag (GdkSurface *surface,
     direction = _NET_WM_MOVERESIZE_MOVE_KEYBOARD;
   else
     direction = _NET_WM_MOVERESIZE_MOVE;
+
+  gdk_surface_x11_get_root_coords (surface, x, y, &root_x, &root_y);
 
   /* Avoid EWMH for touch devices */
   if (_should_perform_ewmh_drag (surface, device))
@@ -4680,12 +4690,8 @@ gdk_surface_impl_x11_class_init (GdkSurfaceImplX11Class *klass)
   impl_class->set_type_hint = gdk_x11_surface_set_type_hint;
   impl_class->get_type_hint = gdk_x11_surface_get_type_hint;
   impl_class->set_modal_hint = gdk_x11_surface_set_modal_hint;
-  impl_class->set_skip_taskbar_hint = gdk_x11_surface_set_skip_taskbar_hint;
-  impl_class->set_skip_pager_hint = gdk_x11_surface_set_skip_pager_hint;
-  impl_class->set_urgency_hint = gdk_x11_surface_set_urgency_hint;
   impl_class->set_geometry_hints = gdk_x11_surface_set_geometry_hints;
   impl_class->set_title = gdk_x11_surface_set_title;
-  impl_class->set_role = gdk_x11_surface_set_role;
   impl_class->set_startup_id = gdk_x11_surface_set_startup_id;
   impl_class->set_transient_for = gdk_x11_surface_set_transient_for;
   impl_class->get_frame_extents = gdk_x11_surface_get_frame_extents;
@@ -4705,8 +4711,6 @@ gdk_surface_impl_x11_class_init (GdkSurfaceImplX11Class *klass)
   impl_class->unfullscreen = gdk_x11_surface_unfullscreen;
   impl_class->set_keep_above = gdk_x11_surface_set_keep_above;
   impl_class->set_keep_below = gdk_x11_surface_set_keep_below;
-  impl_class->get_group = gdk_x11_surface_get_group;
-  impl_class->set_group = gdk_x11_surface_set_group;
   impl_class->set_decorations = gdk_x11_surface_set_decorations;
   impl_class->get_decorations = gdk_x11_surface_get_decorations;
   impl_class->set_functions = gdk_x11_surface_set_functions;

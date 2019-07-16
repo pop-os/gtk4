@@ -61,7 +61,7 @@
  *
  * A #GdkSurface is a (usually) rectangular region on the screen.
  * It’s a low-level object, used to implement high-level objects such as
- * #GtkWidget and #GtkWindow on the GTK+ level. A #GtkWindow is a toplevel
+ * #GtkWidget and #GtkWindow on the GTK level. A #GtkWindow is a toplevel
  * surface, the thing a user might think of as a “window” with a titlebar
  * and so on; a #GtkWindow may contain many sub-GdkSurfaces.
  */
@@ -97,6 +97,9 @@
 
 enum {
   MOVED_TO_RECT,
+  SIZE_CHANGED,
+  RENDER,
+  EVENT,
   LAST_SIGNAL
 };
 
@@ -104,7 +107,9 @@ enum {
   PROP_0,
   PROP_CURSOR,
   PROP_DISPLAY,
+  PROP_FRAME_CLOCK,
   PROP_STATE,
+  PROP_MAPPED,
   LAST_PROP
 };
 
@@ -264,12 +269,26 @@ gdk_surface_class_init (GdkSurfaceClass *klass)
                            GDK_TYPE_DISPLAY,
                            G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
 
+  properties[PROP_FRAME_CLOCK] =
+      g_param_spec_object ("frame-clock",
+                           P_("Frame Clock"),
+                           P_("Frame Clock"),
+                           GDK_TYPE_FRAME_CLOCK,
+                           G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS);
+
   properties[PROP_STATE] =
       g_param_spec_flags ("state",
                           P_("State"),
                           P_("State"),
                           GDK_TYPE_SURFACE_STATE, GDK_SURFACE_STATE_WITHDRAWN,
                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
+  properties[PROP_MAPPED] =
+      g_param_spec_boolean ("mapped",
+                            P_("Mapped"),
+                            P_("Mapped"),
+                            FALSE,
+                            G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (object_class, LAST_PROP, properties);
 
@@ -310,6 +329,69 @@ gdk_surface_class_init (GdkSurfaceClass *klass)
                   G_TYPE_POINTER,
                   G_TYPE_BOOLEAN,
                   G_TYPE_BOOLEAN);
+
+  /**
+   * GdkSurface::size-changed:
+   * @surface: the #GdkSurface
+   * @width: the new width
+   * @height: the new height
+   *
+   * Emitted when the size of @surface is changed.
+   */
+  signals[SIZE_CHANGED] =
+    g_signal_new (g_intern_static_string ("size-changed"),
+                  G_OBJECT_CLASS_TYPE (object_class),
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL,
+                  NULL,
+                  NULL,
+                  G_TYPE_NONE,
+                  2,
+                  G_TYPE_INT,
+                  G_TYPE_INT);
+
+  /**
+   * GdkSurface::render:
+   * @surface: the #GdkSurface
+   * @region: the region that needs to be redrawn
+   *
+   * Emitted when part of the surface needs to be redrawn.
+   *
+   * Returns: %TRUE to indicate that the signal has been handled
+   */ 
+  signals[RENDER] =
+    g_signal_new (g_intern_static_string ("render"),
+                  G_OBJECT_CLASS_TYPE (object_class),
+                  G_SIGNAL_RUN_LAST,
+                  0,
+                  g_signal_accumulator_true_handled,
+                  NULL,
+                  NULL,
+                  G_TYPE_BOOLEAN,
+                  1,
+                  CAIRO_GOBJECT_TYPE_REGION);
+
+  /**
+   * GdkSurface::event:
+   * @surface: the #GdkSurface
+   * @event: an input event
+   *
+   * Emitted when GDK receives an input event for @surface.
+   *
+   * Returns: %TRUE to indicate that the event has been handled
+   */ 
+  signals[EVENT] =
+    g_signal_new (g_intern_static_string ("event"),
+                  G_OBJECT_CLASS_TYPE (object_class),
+                  G_SIGNAL_RUN_LAST,
+                  0,
+                  g_signal_accumulator_true_handled,
+                  NULL,
+                  NULL,
+                  G_TYPE_BOOLEAN,
+                  1,
+                  GDK_TYPE_EVENT);
 }
 
 static void
@@ -388,6 +470,10 @@ gdk_surface_set_property (GObject      *object,
       g_assert (surface->display != NULL);
       break;
 
+    case PROP_FRAME_CLOCK:
+      gdk_surface_set_frame_clock (surface, GDK_FRAME_CLOCK (g_value_get_object (value)));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -412,20 +498,22 @@ gdk_surface_get_property (GObject    *object,
       g_value_set_object (value, surface->display);
       break;
 
+    case PROP_FRAME_CLOCK:
+      g_value_set_object (value, surface->frame_clock);
+      break;
+
     case PROP_STATE:
       g_value_set_flags (value, surface->state);
+      break;
+
+    case PROP_MAPPED:
+      g_value_set_boolean (value, GDK_SURFACE_IS_MAPPED (surface));
       break;
 
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
     }
-}
-
-static gboolean
-gdk_surface_is_subsurface (GdkSurface *surface)
-{
-   return surface->surface_type == GDK_SURFACE_SUBSURFACE;
 }
 
 static GdkSurface *
@@ -516,10 +604,7 @@ recompute_visible_regions_internal (GdkSurface *private,
   old_abs_y = private->abs_y;
 
   /* Update absolute position */
-  if ((gdk_surface_has_impl (private) &&
-       private->surface_type != GDK_SURFACE_SUBSURFACE) ||
-      (gdk_surface_is_toplevel (private) &&
-       private->surface_type == GDK_SURFACE_SUBSURFACE))
+  if (gdk_surface_has_impl (private))
     {
       /* Native surfaces and toplevel subsurfaces start here */
       private->abs_x = 0;
@@ -638,15 +723,6 @@ gdk_surface_new (GdkDisplay    *display,
       if (parent != NULL)
         g_warning (G_STRLOC "Toplevel surfaces must be created without a parent");
       break;
-    case GDK_SURFACE_SUBSURFACE:
-#ifdef GDK_WINDOWING_WAYLAND
-      if (!GDK_IS_WAYLAND_DISPLAY (display))
-        {
-          g_warning (G_STRLOC "Subsurface surfaces can only be used on Wayland");
-          return NULL;
-        }
-#endif
-      break;
     case GDK_SURFACE_CHILD:
       break;
     default:
@@ -675,11 +751,6 @@ gdk_surface_new (GdkDisplay    *display,
 
       native = TRUE; /* Always use native surfaces for toplevels */
     }
-
-#ifdef GDK_WINDOWING_WAYLAND
-  if (surface->surface_type == GDK_SURFACE_SUBSURFACE)
-    native = TRUE; /* Always use native windows for subsurfaces as well */
-#endif
 
   if (native)
     {
@@ -883,7 +954,6 @@ _gdk_surface_destroy_hierarchy (GdkSurface *surface,
     case GDK_SURFACE_TOPLEVEL:
     case GDK_SURFACE_CHILD:
     case GDK_SURFACE_TEMP:
-    case GDK_SURFACE_SUBSURFACE:
       if (surface->parent)
         {
           if (surface->parent->children)
@@ -946,6 +1016,7 @@ _gdk_surface_destroy_hierarchy (GdkSurface *surface,
       surface_remove_from_pointer_info (surface, display);
 
       g_object_notify_by_pspec (G_OBJECT (surface), properties[PROP_STATE]);
+      g_object_notify_by_pspec (G_OBJECT (surface), properties[PROP_MAPPED]);
       break;
     }
 }
@@ -987,43 +1058,17 @@ gdk_surface_destroy (GdkSurface *surface)
   g_object_unref (surface);
 }
 
-/**
- * gdk_surface_set_user_data:
- * @surface: a #GdkSurface
- * @user_data: (allow-none) (type GObject.Object): user data
- *
- * For most purposes this function is deprecated in favor of
- * g_object_set_data(). However, for historical reasons GTK+ stores
- * the #GtkWidget that owns a #GdkSurface as user data on the
- * #GdkSurface. So, custom widget implementations should use
- * this function for that. If GTK+ receives an event for a #GdkSurface,
- * and the user data for the surface is non-%NULL, GTK+ will assume the
- * user data is a #GtkWidget, and forward the event to that widget.
- *
- **/
 void
-gdk_surface_set_user_data (GdkSurface *surface,
-                           gpointer   user_data)
+gdk_surface_set_widget (GdkSurface *surface,
+                        gpointer    widget)
 {
-  g_return_if_fail (GDK_IS_SURFACE (surface));
-
-  surface->user_data = user_data;
+  surface->widget = widget;
 }
 
-/**
- * gdk_surface_get_user_data:
- * @surface: a #GdkSurface
- * @data: (out): return location for user data
- *
- * Retrieves the user data for @surface, which is normally the widget
- * that @surface belongs to. See gdk_surface_set_user_data().
- *
- **/
-void
-gdk_surface_get_user_data (GdkSurface *surface,
-                           gpointer  *data)
+gpointer
+gdk_surface_get_widget (GdkSurface *surface)
 {
-  *data = surface->user_data;
+  return surface->widget;
 }
 
 /**
@@ -1133,10 +1178,7 @@ gdk_surface_get_parent (GdkSurface *surface)
 {
   g_return_val_if_fail (GDK_IS_SURFACE (surface), NULL);
 
-  if (gdk_surface_is_subsurface (surface))
-    return surface->transient_for;
-  else
-    return surface->parent;
+  return surface->parent;
 }
 
 /**
@@ -1156,8 +1198,7 @@ gdk_surface_get_toplevel (GdkSurface *surface)
 {
   g_return_val_if_fail (GDK_IS_SURFACE (surface), NULL);
 
-  while (surface->surface_type == GDK_SURFACE_CHILD ||
-         surface->surface_type == GDK_SURFACE_SUBSURFACE)
+  while (surface->surface_type == GDK_SURFACE_CHILD)
     {
       if (gdk_surface_is_toplevel (surface))
         break;
@@ -1213,49 +1254,6 @@ gdk_surface_peek_children (GdkSurface *surface)
 
   return surface->children;
 }
-
-
-/**
- * gdk_surface_get_children_with_user_data:
- * @surface: a #GdkSurface
- * @user_data: user data to look for
- *
- * Gets the list of children of @surface known to GDK with a
- * particular @user_data set on it.
- *
- * The returned list must be freed, but the elements in the
- * list need not be.
- *
- * The list is returned in (relative) stacking order, i.e. the
- * lowest surface is first.
- *
- * Returns: (transfer container) (element-type GdkSurface):
- *     list of child surfaces inside @surface
- **/
-GList *
-gdk_surface_get_children_with_user_data (GdkSurface *surface,
-                                         gpointer   user_data)
-{
-  GdkSurface *child;
-  GList *res, *l;
-
-  g_return_val_if_fail (GDK_IS_SURFACE (surface), NULL);
-
-  if (GDK_SURFACE_DESTROYED (surface))
-    return NULL;
-
-  res = NULL;
-  for (l = surface->children; l != NULL; l = l->next)
-    {
-      child = l->data;
-
-      if (child->user_data == user_data)
-        res = g_list_prepend (res, child);
-    }
-
-  return res;
-}
-
 
 /**
  * gdk_surface_is_visible:
@@ -1617,20 +1615,13 @@ static void
 gdk_surface_process_updates_recurse (GdkSurface *surface,
                                      cairo_region_t *expose_region)
 {
-  GdkEvent *event;
+  gboolean handled;
 
   if (surface->destroyed)
     return;
 
   /* Paint the surface before the children, clipped to the surface region */
-
-  event = gdk_event_new (GDK_EXPOSE);
-  event->any.surface = g_object_ref (surface);
-  event->any.send_event = FALSE;
-  event->expose.region = cairo_region_reference (expose_region);
-
-  _gdk_event_emit (event);
-  g_object_unref (event);
+  g_signal_emit (surface, signals[RENDER], 0, expose_region, &handled);
 }
 
 /* Process and remove any invalid area on the native surface by creating
@@ -2064,7 +2055,7 @@ gdk_surface_constrain_size (GdkGeometry    *geometry,
 }
 
 /**
- * gdk_surface_get_device_position_double:
+ * gdk_surface_get_device_position:
  * @surface: a #GdkSurface.
  * @device: pointer #GdkDevice to query to.
  * @x: (out) (allow-none): return location for the X coordinate of @device, or %NULL.
@@ -2080,15 +2071,14 @@ gdk_surface_constrain_size (GdkGeometry    *geometry,
  * surface is not known to GDK.
  **/
 GdkSurface *
-gdk_surface_get_device_position_double (GdkSurface       *surface,
-                                        GdkDevice       *device,
-                                        double          *x,
-                                        double          *y,
-                                        GdkModifierType *mask)
+gdk_surface_get_device_position (GdkSurface       *surface,
+                                 GdkDevice       *device,
+                                 double          *x,
+                                 double          *y,
+                                 GdkModifierType *mask)
 {
   gdouble tmp_x, tmp_y;
   GdkModifierType tmp_mask;
-  gboolean normal_child;
 
   g_return_val_if_fail (GDK_IS_SURFACE (surface), NULL);
   g_return_val_if_fail (GDK_IS_DEVICE (device), NULL);
@@ -2096,14 +2086,10 @@ gdk_surface_get_device_position_double (GdkSurface       *surface,
 
   tmp_x = tmp_y = 0;
   tmp_mask = 0;
-  normal_child = GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->get_device_state (surface,
-                                                                             device,
-                                                                             &tmp_x, &tmp_y,
-                                                                             &tmp_mask);
-  /* We got the coords on the impl, convert to the surface */
-  tmp_x -= surface->abs_x;
-  tmp_y -= surface->abs_y;
-
+  GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->get_device_state (surface,
+                                                                device,
+                                                                &tmp_x, &tmp_y,
+                                                                &tmp_mask);
   if (x)
     *x = tmp_x;
   if (y)
@@ -2111,46 +2097,7 @@ gdk_surface_get_device_position_double (GdkSurface       *surface,
   if (mask)
     *mask = tmp_mask;
 
-  if (normal_child)
-    return _gdk_surface_find_child_at (surface, tmp_x, tmp_y);
   return NULL;
-}
-
-/**
- * gdk_surface_get_device_position:
- * @surface: a #GdkSurface.
- * @device: pointer #GdkDevice to query to.
- * @x: (out) (allow-none): return location for the X coordinate of @device, or %NULL.
- * @y: (out) (allow-none): return location for the Y coordinate of @device, or %NULL.
- * @mask: (out) (allow-none): return location for the modifier mask, or %NULL.
- *
- * Obtains the current device position and modifier state.
- * The position is given in coordinates relative to the upper left
- * corner of @surface.
- *
- * Use gdk_surface_get_device_position_double() if you need subpixel precision.
- *
- * Returns: (nullable) (transfer none): The surface underneath @device
- * (as with gdk_device_get_surface_at_position()), or %NULL if the
- * surface is not known to GDK.
- **/
-GdkSurface *
-gdk_surface_get_device_position (GdkSurface       *surface,
-                                 GdkDevice       *device,
-                                 gint            *x,
-                                 gint            *y,
-                                 GdkModifierType *mask)
-{
-  gdouble tmp_x, tmp_y;
-
-  surface = gdk_surface_get_device_position_double (surface, device,
-                                                  &tmp_x, &tmp_y, mask);
-  if (x)
-    *x = round (tmp_x);
-  if (y)
-    *y = round (tmp_y);
-
-  return surface;
 }
 
 static gboolean
@@ -2250,6 +2197,7 @@ gdk_surface_show_internal (GdkSurface *surface, gboolean raise)
     {
       surface->state = 0;
       g_object_notify_by_pspec (G_OBJECT (surface), properties[PROP_STATE]);
+      g_object_notify_by_pspec (G_OBJECT (surface), properties[PROP_MAPPED]);
     }
 
   did_show = _gdk_surface_update_viewable (surface);
@@ -2263,14 +2211,6 @@ gdk_surface_show_internal (GdkSurface *surface, gboolean raise)
     {
       impl_class = GDK_SURFACE_IMPL_GET_CLASS (surface->impl);
       impl_class->show (surface, !did_show ? was_mapped : TRUE);
-    }
-
-  if (!was_mapped && !gdk_surface_has_impl (surface))
-    {
-      _gdk_make_event (surface, GDK_MAP, NULL, FALSE);
-
-      if (surface->parent)
-        _gdk_make_event (surface, GDK_MAP, NULL, FALSE);
     }
 
   if (!was_mapped || did_raise)
@@ -2308,7 +2248,7 @@ gdk_surface_show_unraised (GdkSurface *surface)
  * other surfaces with the same parent surface appear below @surface.
  * This is true whether or not the surfaces are visible.
  *
- * If @surface is a toplevel, the surface manager may choose to deny the
+ * If @surface is a toplevel, the window manager may choose to deny the
  * request to move the surface in the Z-order, gdk_surface_raise() only
  * requests the restack, does not guarantee it.
  */
@@ -2529,6 +2469,7 @@ gdk_surface_hide (GdkSurface *surface)
     {
       surface->state = GDK_SURFACE_STATE_WITHDRAWN;
       g_object_notify_by_pspec (G_OBJECT (surface), properties[PROP_STATE]);
+      g_object_notify_by_pspec (G_OBJECT (surface), properties[PROP_MAPPED]);
     }
 
   if (was_mapped)
@@ -2575,60 +2516,9 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 
   recompute_visible_regions (surface, FALSE);
 
-  if (was_mapped && !gdk_surface_has_impl (surface))
-    {
-      _gdk_make_event (surface, GDK_UNMAP, NULL, FALSE);
-
-      if (surface->parent)
-        _gdk_make_event (surface, GDK_UNMAP, NULL, FALSE);
-    }
-
   /* Invalidate the rect */
   if (was_mapped)
     gdk_surface_invalidate_in_parent (surface);
-}
-
-/**
- * gdk_surface_withdraw:
- * @surface: a toplevel #GdkSurface
- *
- * Withdraws a surface (unmaps it and asks the surface manager to forget about it).
- * This function is not really useful as gdk_surface_hide() automatically
- * withdraws toplevel surfaces before hiding them.
- **/
-void
-gdk_surface_withdraw (GdkSurface *surface)
-{
-  GdkSurfaceImplClass *impl_class;
-  gboolean was_mapped;
-  GdkGLContext *current_context;
-
-  g_return_if_fail (GDK_IS_SURFACE (surface));
-
-  if (surface->destroyed)
-    return;
-
-  was_mapped = GDK_SURFACE_IS_MAPPED (surface);
-
-  if (gdk_surface_has_impl (surface))
-    {
-      impl_class = GDK_SURFACE_IMPL_GET_CLASS (surface->impl);
-      impl_class->withdraw (surface);
-
-      if (was_mapped)
-        {
-          _gdk_make_event (surface, GDK_UNMAP, NULL, FALSE);
-
-          if (surface->parent)
-            _gdk_make_event (surface, GDK_UNMAP, NULL, FALSE);
-        }
-
-      current_context = gdk_gl_context_get_current ();
-      if (current_context != NULL && gdk_gl_context_get_surface (current_context) == surface)
-        gdk_gl_context_clear_current ();
-
-      recompute_visible_regions (surface, FALSE);
-    }
 }
 
 static void
@@ -2774,7 +2664,7 @@ gdk_surface_move (GdkSurface *surface,
  * @height: new height of the surface
  *
  * Resizes @surface; for toplevel surfaces, asks the window manager to resize
- * the surface. The window manager may not allow the resize. When using GTK+,
+ * the surface. The window manager may not allow the resize. When using GTK,
  * use gtk_window_resize() instead of this low-level GDK function.
  *
  * Surfaces may not be resized below 1x1.
@@ -2917,7 +2807,7 @@ gdk_surface_get_cursor (GdkSurface *surface)
  *
  * Note that @cursor must be for the same display as @surface.
  *
- * Use gdk_cursor_new_for_display() or gdk_cursor_new_from_texture() to
+ * Use gdk_cursor_new_from_name() or gdk_cursor_new_from_texture() to
  * create the cursor. To make the cursor invisible, use %GDK_BLANK_CURSOR.
  * Passing %NULL for the @cursor argument to gdk_surface_set_cursor() means
  * that @surface will use the cursor of its parent surface. Most surfaces
@@ -3004,7 +2894,7 @@ gdk_surface_get_device_cursor (GdkSurface *surface,
  * @cursor: a #GdkCursor
  *
  * Sets a specific #GdkCursor for a given device when it gets inside @surface.
- * Use gdk_cursor_new_for_display() or gdk_cursor_new_from_texture() to create
+ * Use gdk_cursor_new_fromm_name() or gdk_cursor_new_from_texture() to create
  * the cursor. To make the cursor invisible, use %GDK_BLANK_CURSOR. Passing
  * %NULL for the @cursor argument to gdk_surface_set_cursor() means that
  * @surface will use the cursor of its parent surface. Most surfaces should
@@ -3445,7 +3335,7 @@ gdk_surface_merge_child_input_shapes (GdkSurface *surface)
  * gdk_surface_get_modal_hint:
  * @surface: A toplevel #GdkSurface.
  *
- * Determines whether or not the surface manager is hinted that @surface
+ * Determines whether or not the window manager is hinted that @surface
  * has modal behaviour.
  *
  * Returns: whether or not the surface has the modal hint set.
@@ -3909,11 +3799,8 @@ _gdk_make_event (GdkSurface    *surface,
 
     case GDK_FOCUS_CHANGE:
     case GDK_CONFIGURE:
-    case GDK_MAP:
-    case GDK_UNMAP:
     case GDK_DELETE:
     case GDK_DESTROY:
-    case GDK_EXPOSE:
     default:
       break;
     }
@@ -4183,7 +4070,7 @@ gdk_surface_create_similar_surface (GdkSurface *     surface,
  * @surface: a #GdkSurface
  * @timestamp: timestamp of the event triggering the surface focus
  *
- * Sets keyboard focus to @surface. In most cases, gtk_window_present()
+ * Sets keyboard focus to @surface. In most cases, gtk_window_present_with_time()
  * should be used on a #GtkWindow, rather than calling this function.
  *
  **/
@@ -4248,61 +4135,6 @@ gdk_surface_set_modal_hint (GdkSurface *surface,
 }
 
 /**
- * gdk_surface_set_skip_taskbar_hint:
- * @surface: a toplevel #GdkSurface
- * @skips_taskbar: %TRUE to skip the taskbar
- *
- * Toggles whether a surface should appear in a task list or surface
- * list. If a surface’s semantic type as specified with
- * gdk_surface_set_type_hint() already fully describes the surface, this
- * function should not be called in addition,
- * instead you should allow the surface to be treated according to
- * standard policy for its semantic type.
- **/
-void
-gdk_surface_set_skip_taskbar_hint (GdkSurface *surface,
-                                   gboolean   skips_taskbar)
-{
-  GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->set_skip_taskbar_hint (surface, skips_taskbar);
-}
-
-/**
- * gdk_surface_set_skip_pager_hint:
- * @surface: a toplevel #GdkSurface
- * @skips_pager: %TRUE to skip the pager
- *
- * Toggles whether a surface should appear in a pager (workspace
- * switcher, or other desktop utility program that displays a small
- * thumbnail representation of the surfaces on the desktop). If a
- * surface’s semantic type as specified with gdk_surface_set_type_hint()
- * already fully describes the surface, this function should
- * not be called in addition, instead you should
- * allow the surface to be treated according to standard policy for
- * its semantic type.
- **/
-void
-gdk_surface_set_skip_pager_hint (GdkSurface *surface,
-                                 gboolean   skips_pager)
-{
-  GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->set_skip_pager_hint (surface, skips_pager);
-}
-
-/**
- * gdk_surface_set_urgency_hint:
- * @surface: a toplevel #GdkSurface
- * @urgent: %TRUE if the surface is urgent
- *
- * Toggles whether a surface needs the user's
- * urgent attention.
- **/
-void
-gdk_surface_set_urgency_hint (GdkSurface *surface,
-                              gboolean   urgent)
-{
-  GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->set_urgency_hint (surface, urgent);
-}
-
-/**
  * gdk_surface_set_geometry_hints:
  * @surface: a toplevel #GdkSurface
  * @geometry: geometry hints
@@ -4349,7 +4181,7 @@ gdk_surface_set_geometry_hints (GdkSurface         *surface,
  * If you haven’t explicitly set the icon name for the surface
  * (using gdk_surface_set_icon_name()), the icon name will be set to
  * @title as well. @title must be in UTF-8 encoding (as with all
- * user-readable strings in GDK/GTK+). @title may not be %NULL.
+ * user-readable strings in GDK and GTK). @title may not be %NULL.
  **/
 void
 gdk_surface_set_title (GdkSurface   *surface,
@@ -4359,37 +4191,11 @@ gdk_surface_set_title (GdkSurface   *surface,
 }
 
 /**
- * gdk_surface_set_role:
- * @surface: a toplevel #GdkSurface
- * @role: a string indicating its role
- *
- * When using GTK+, typically you should use gtk_window_set_role() instead
- * of this low-level function.
- *
- * The window manager and session manager use a surface’s role to
- * distinguish it from other kinds of surface in the same application.
- * When an application is restarted after being saved in a previous
- * session, all surfaces with the same title and role are treated as
- * interchangeable.  So if you have two surfaces with the same title
- * that should be distinguished for session management purposes, you
- * should set the role on those surfaces. It doesn’t matter what string
- * you use for the role, as long as you have a different role for each
- * non-interchangeable kind of surface.
- *
- **/
-void
-gdk_surface_set_role (GdkSurface   *surface,
-                      const gchar *role)
-{
-  GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->set_role (surface, role);
-}
-
-/**
  * gdk_surface_set_startup_id:
  * @surface: a toplevel #GdkSurface
  * @startup_id: a string with startup-notification identifier
  *
- * When using GTK+, typically you should use gtk_window_set_startup_id()
+ * When using GTK, typically you should use gtk_window_set_startup_id()
  * instead of this low-level function.
  **/
 void
@@ -4414,7 +4220,7 @@ gdk_surface_set_startup_id (GdkSurface   *surface,
  **/
 void
 gdk_surface_set_transient_for (GdkSurface *surface,
-                              GdkSurface *parent)
+                               GdkSurface *parent)
 {
   surface->transient_for = parent;
 
@@ -4427,7 +4233,7 @@ gdk_surface_set_transient_for (GdkSurface *surface,
  * @x: (out): return location for X position of surface frame
  * @y: (out): return location for Y position of surface frame
  *
- * Obtains the top-left corner of the surface manager frame in root
+ * Obtains the top-left corner of the window manager frame in root
  * surface coordinates.
  *
  **/
@@ -4574,9 +4380,9 @@ gdk_surface_iconify (GdkSurface *surface)
  * @surface: a toplevel #GdkSurface
  *
  * Attempt to deiconify (unminimize) @surface. On X11 the window manager may
- * choose to ignore the request to deiconify. When using GTK+,
+ * choose to ignore the request to deiconify. When using GTK,
  * use gtk_window_deiconify() instead of the #GdkSurface variant. Or better yet,
- * you probably want to use gtk_window_present(), which raises the surface, focuses it,
+ * you probably want to use gtk_window_present_with_time(), which raises the surface, focuses it,
  * unminimizes it, and puts it on the current desktop.
  *
  **/
@@ -4839,43 +4645,6 @@ gdk_surface_set_keep_below (GdkSurface *surface,
 }
 
 /**
- * gdk_surface_get_group:
- * @surface: a toplevel #GdkSurface
- *
- * Returns the group leader surface for @surface. See gdk_surface_set_group().
- *
- * Returns: (transfer none): the group leader surface for @surface
- **/
-GdkSurface *
-gdk_surface_get_group (GdkSurface *surface)
-{
-  return GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->get_group (surface);
-}
-
-/**
- * gdk_surface_set_group:
- * @surface: a toplevel #GdkSurface
- * @leader: (allow-none): group leader surface, or %NULL to restore the default group leader surface
- *
- * Sets the group leader surface for @surface. By default,
- * GDK sets the group leader for all toplevel surfaces
- * to a global surface implicitly created by GDK. With this function
- * you can override this default.
- *
- * The group leader surface allows the window manager to distinguish
- * all surfaces that belong to a single application. It may for example
- * allow users to minimize/unminimize all surfaces belonging to an
- * application at once. You should only set a non-default group surface
- * if your application pretends to be multiple applications.
- **/
-void
-gdk_surface_set_group (GdkSurface *surface,
-                       GdkSurface *leader)
-{
-  GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->set_group (surface, leader);
-}
-
-/**
  * gdk_surface_set_decorations:
  * @surface: a toplevel #GdkSurface
  * @decorations: decoration hint mask
@@ -4953,27 +4722,23 @@ gdk_surface_set_functions (GdkSurface    *surface,
  * @edge: the edge or corner from which the drag is started
  * @device: the device used for the operation
  * @button: the button being used to drag, or 0 for a keyboard-initiated drag
- * @root_x: root window X coordinate of mouse click that began the drag
- * @root_y: root window Y coordinate of mouse click that began the drag
+ * @x: surface X coordinate of mouse click that began the drag
+ * @y: surface Y coordinate of mouse click that began the drag
  * @timestamp: timestamp of mouse click that began the drag (use gdk_event_get_time())
  *
  * Begins a surface resize operation (for a toplevel surface).
- * You might use this function to implement a “window resize grip,” for
- * example; in fact #GtkStatusbar uses it. The function works best
- * with window managers that support the
- * [Extended Window Manager Hints](http://www.freedesktop.org/Standards/wm-spec)
- * but has a fallback implementation for other window managers.
+ * You might use this function to implement a “window resize grip,”
  */
 void
 gdk_surface_begin_resize_drag_for_device (GdkSurface     *surface,
                                           GdkSurfaceEdge  edge,
-                                          GdkDevice     *device,
-                                          gint           button,
-                                          gint           root_x,
-                                          gint           root_y,
-                                          guint32        timestamp)
+                                          GdkDevice      *device,
+                                          gint            button,
+                                          gint            x,
+                                          gint            y,
+                                          guint32         timestamp)
 {
-  GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->begin_resize_drag (surface, edge, device, button, root_x, root_y, timestamp);
+  GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->begin_resize_drag (surface, edge, device, button, x, y, timestamp);
 }
 
 /**
@@ -4981,8 +4746,8 @@ gdk_surface_begin_resize_drag_for_device (GdkSurface     *surface,
  * @surface: a toplevel #GdkSurface
  * @edge: the edge or corner from which the drag is started
  * @button: the button being used to drag, or 0 for a keyboard-initiated drag
- * @root_x: root window X coordinate of mouse click that began the drag
- * @root_y: root window Y coordinate of mouse click that began the drag
+ * @x: surface X coordinate of mouse click that began the drag
+ * @y: surface Y coordinate of mouse click that began the drag
  * @timestamp: timestamp of mouse click that began the drag (use gdk_event_get_time())
  *
  * Begins a surface resize operation (for a toplevel surface).
@@ -4994,10 +4759,10 @@ gdk_surface_begin_resize_drag_for_device (GdkSurface     *surface,
 void
 gdk_surface_begin_resize_drag (GdkSurface     *surface,
                                GdkSurfaceEdge  edge,
-                               gint           button,
-                               gint           root_x,
-                               gint           root_y,
-                               guint32        timestamp)
+                               gint            button,
+                               gint            x,
+                               gint            y,
+                               guint32         timestamp)
 {
   GdkDisplay *display;
   GdkDevice *device;
@@ -5005,7 +4770,7 @@ gdk_surface_begin_resize_drag (GdkSurface     *surface,
   display = gdk_surface_get_display (surface);
   device = gdk_seat_get_pointer (gdk_display_get_default_seat (display));
   gdk_surface_begin_resize_drag_for_device (surface, edge,
-                                           device, button, root_x, root_y, timestamp);
+                                            device, button, x, y, timestamp);
 }
 
 /**
@@ -5013,34 +4778,30 @@ gdk_surface_begin_resize_drag (GdkSurface     *surface,
  * @surface: a toplevel #GdkSurface
  * @device: the device used for the operation
  * @button: the button being used to drag, or 0 for a keyboard-initiated drag
- * @root_x: root window X coordinate of mouse click that began the drag
- * @root_y: root window Y coordinate of mouse click that began the drag
+ * @x: surface X coordinate of mouse click that began the drag
+ * @y: surface Y coordinate of mouse click that began the drag
  * @timestamp: timestamp of mouse click that began the drag
  *
  * Begins a surface move operation (for a toplevel surface).
- * You might use this function to implement a “window move grip,” for
- * example. The function works best with window managers that support the
- * [Extended Window Manager Hints](http://www.freedesktop.org/Standards/wm-spec)
- * but has a fallback implementation for other window managers.
  */
 void
 gdk_surface_begin_move_drag_for_device (GdkSurface *surface,
-                                        GdkDevice *device,
-                                        gint       button,
-                                        gint       root_x,
-                                        gint       root_y,
-                                        guint32    timestamp)
+                                        GdkDevice  *device,
+                                        gint        button,
+                                        gint        x,
+                                        gint        y,
+                                        guint32     timestamp)
 {
   GDK_SURFACE_IMPL_GET_CLASS (surface->impl)->begin_move_drag (surface,
-                                                             device, button, root_x, root_y, timestamp);
+                                                               device, button, x, y, timestamp);
 }
 
 /**
  * gdk_surface_begin_move_drag:
  * @surface: a toplevel #GdkSurface
  * @button: the button being used to drag, or 0 for a keyboard-initiated drag
- * @root_x: root window X coordinate of mouse click that began the drag
- * @root_y: root window Y coordinate of mouse click that began the drag
+ * @x: surface X coordinate of mouse click that began the drag
+ * @y: surface Y coordinate of mouse click that began the drag
  * @timestamp: timestamp of mouse click that began the drag
  *
  * Begins a surface move operation (for a toplevel surface).
@@ -5052,8 +4813,8 @@ gdk_surface_begin_move_drag_for_device (GdkSurface *surface,
 void
 gdk_surface_begin_move_drag (GdkSurface *surface,
                              gint       button,
-                             gint       root_x,
-                             gint       root_y,
+                             gint       x,
+                             gint       y,
                              guint32    timestamp)
 {
   GdkDisplay *display;
@@ -5061,7 +4822,7 @@ gdk_surface_begin_move_drag (GdkSurface *surface,
 
   display = gdk_surface_get_display (surface);
   device = gdk_seat_get_pointer (gdk_display_get_default_seat (display));
-  gdk_surface_begin_move_drag_for_device (surface, device, button, root_x, root_y, timestamp);
+  gdk_surface_begin_move_drag_for_device (surface, device, button, x, y, timestamp);
 }
 
 /**
@@ -5140,10 +4901,10 @@ gdk_surface_register_dnd (GdkSurface *surface)
  *
  * This function is called by the drag source.
  *
- * Returns: (transfer full) (nullable): a newly created #GdkDragContext or
+ * Returns: (transfer full) (nullable): a newly created #GdkDrag or
  *     %NULL on error.
  */
-GdkDragContext *
+GdkDrag *
 gdk_drag_begin (GdkSurface          *surface,
                 GdkDevice          *device,
                 GdkContentProvider *content,
@@ -5347,7 +5108,7 @@ gdk_surface_get_unscaled_size (GdkSurface *surface,
  *
  * This function only works for toplevel surfaces.
  *
- * GTK+ will update this property automatically if
+ * GTK will update this property automatically if
  * the @surface background is opaque, as we know where the opaque regions
  * are. If your surface background is not opaque, please update this
  * property in your #GtkWidget::style-updated handler.
@@ -5383,14 +5144,14 @@ gdk_surface_set_opaque_region (GdkSurface      *surface,
  * @top: The top extent
  * @bottom: The bottom extent
  *
- * Newer GTK+ windows using client-side decorations use extra geometry
+ * Newer GTK windows using client-side decorations use extra geometry
  * around their frames for effects like shadows and invisible borders.
  * Window managers that want to maximize windows or snap to edges need
  * to know where the extents of the actual frame lie, so that users
  * don’t feel like windows are snapping against random invisible edges.
  *
- * Note that this property is automatically updated by GTK+, so this
- * function should only be used by applications which do not use GTK+
+ * Note that this property is automatically updated by GTK, so this
+ * function should only be used by applications which do not use GTK
  * to create toplevel surfaces.
  */
 void
@@ -5467,6 +5228,7 @@ void
 gdk_surface_set_state (GdkSurface      *surface,
                        GdkSurfaceState  new_state)
 {
+  gboolean was_mapped, mapped;
   g_return_if_fail (GDK_IS_SURFACE (surface));
 
   if (new_state == surface->state)
@@ -5477,7 +5239,11 @@ gdk_surface_set_state (GdkSurface      *surface,
    * inconsistent state to the user.
    */
 
+  was_mapped = GDK_SURFACE_IS_MAPPED (surface);
+
   surface->state = new_state;
+
+  mapped = GDK_SURFACE_IS_MAPPED (surface);
 
   _gdk_surface_update_viewable (surface);
 
@@ -5490,12 +5256,15 @@ gdk_surface_set_state (GdkSurface      *surface,
     {
     case GDK_SURFACE_TOPLEVEL:
     case GDK_SURFACE_TEMP: /* ? */
-      g_object_notify (G_OBJECT (surface), "state");
+      g_object_notify_by_pspec (G_OBJECT (surface), properties[PROP_STATE]);
       break;
     case GDK_SURFACE_CHILD:
     default:
       break;
     }
+
+  if (was_mapped != mapped)
+    g_object_notify_by_pspec (G_OBJECT (surface), properties[PROP_MAPPED]);
 }
 
 void
@@ -5504,4 +5273,22 @@ gdk_synthesize_surface_state (GdkSurface     *surface,
                               GdkSurfaceState set_flags)
 {
   gdk_surface_set_state (surface, (surface->state | set_flags) & ~unset_flags);
+}
+
+gboolean
+gdk_surface_handle_event (GdkEvent *event)
+{
+  gboolean handled = FALSE;
+  if (gdk_event_get_event_type (event) == GDK_CONFIGURE)
+    {
+      g_signal_emit (gdk_event_get_surface (event), signals[SIZE_CHANGED], 0,
+                     event->configure.width, event->configure.height);
+      handled = TRUE;
+    }
+  else
+    {
+      g_signal_emit (gdk_event_get_surface (event), signals[EVENT], 0, event, &handled);
+    }
+
+  return handled;
 }

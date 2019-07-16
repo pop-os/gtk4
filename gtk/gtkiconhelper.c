@@ -123,6 +123,8 @@ ensure_paintable_for_gicon (GtkIconHelper    *self,
 
   *symbolic = gtk_icon_info_is_symbolic (info);
   paintable = GDK_PAINTABLE (gtk_icon_info_load_texture (info));
+  g_object_unref (info);
+
   if (paintable && scale != 1)
     {
       GdkPaintable *orig = paintable;
@@ -225,13 +227,14 @@ gtk_icon_helper_paintable_snapshot (GdkPaintable *paintable,
         h = MIN (h, height);
         x = (width - w) / 2;
         y = (height - h) / 2;
-        gtk_snapshot_offset (snapshot, x, y);
+        gtk_snapshot_save (snapshot);
+        gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
         gtk_css_style_snapshot_icon_paintable (style,
                                                snapshot,
                                                self->paintable,
                                                w, h,
                                                self->texture_is_symbolic);
-        gtk_snapshot_offset (snapshot, -x, -y);
+        gtk_snapshot_restore (snapshot);
       }
       break;
 
@@ -240,9 +243,13 @@ gtk_icon_helper_paintable_snapshot (GdkPaintable *paintable,
     default:
       {
         double image_ratio = (double) width / height;
-        double ratio = gdk_paintable_get_intrinsic_aspect_ratio (self->paintable);
+        double ratio;
         double x, y, w, h;
 
+        if (self->paintable == NULL)
+          break;
+
+        ratio = gdk_paintable_get_intrinsic_aspect_ratio (self->paintable);
         if (ratio == 0)
           {
             w = width;
@@ -262,13 +269,14 @@ gtk_icon_helper_paintable_snapshot (GdkPaintable *paintable,
         x = floor (width - ceil (w)) / 2;
         y = floor (height - ceil (h)) / 2;
 
-        gtk_snapshot_offset (snapshot, x, y);
+        gtk_snapshot_save (snapshot);
+        gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
         gtk_css_style_snapshot_icon_paintable (style,
                                                snapshot,
                                                self->paintable,
-                                               width, height,
+                                               w, h,
                                                self->texture_is_symbolic);
-        gtk_snapshot_offset (snapshot, -x, -y);
+        gtk_snapshot_restore (snapshot);
       }
       break;
     }
@@ -424,22 +432,6 @@ gtk_icon_helper_new (GtkCssNode *css_node,
   g_signal_connect_swapped (owner, "notify::scale-factor", G_CALLBACK (gtk_icon_helper_invalidate), self);
 
   return self;
-}
-
-GtkSizeRequestMode
-gtk_icon_helper_get_request_mode (GtkIconHelper *self)
-{
-  switch (gtk_image_definition_get_storage_type (self->def))
-    {
-    case GTK_IMAGE_PAINTABLE:
-      return GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH;
-
-    case GTK_IMAGE_ICON_NAME:
-    case GTK_IMAGE_GICON:
-    case GTK_IMAGE_EMPTY:
-    default:
-      return GTK_SIZE_REQUEST_CONSTANT_SIZE;
-    }
 }
 
 int

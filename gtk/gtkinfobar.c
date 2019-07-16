@@ -35,7 +35,6 @@
 #include "gtkaccessible.h"
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
-#include "gtkbbox.h"
 #include "gtkbox.h"
 #include "gtklabel.h"
 #include "gtkbutton.h"
@@ -46,6 +45,7 @@
 #include "gtkintl.h"
 #include "gtkprivate.h"
 #include "gtkorientable.h"
+#include "gtkstylecontext.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
 
@@ -490,6 +490,7 @@ gtk_info_bar_add_action_widget (GtkInfoBar *info_bar,
 
   ad = get_response_data (child, TRUE);
 
+  G_DEBUG_HERE();
   ad->response_id = response_id;
 
   if (GTK_IS_BUTTON (child))
@@ -508,10 +509,7 @@ gtk_info_bar_add_action_widget (GtkInfoBar *info_bar,
   else
     g_warning ("Only 'activatable' widgets can be packed into the action area of a GtkInfoBar");
 
-  gtk_box_pack_end (GTK_BOX (priv->action_area), child);
-  if (response_id == GTK_RESPONSE_HELP)
-    gtk_button_box_set_child_secondary (GTK_BUTTON_BOX (priv->action_area),
-                                        child, TRUE);
+  gtk_container_add (GTK_CONTAINER (priv->action_area), child);
 }
 
 /**
@@ -577,8 +575,6 @@ gtk_info_bar_add_button (GtkInfoBar  *info_bar,
 
   button = gtk_button_new_with_label (button_text);
   gtk_button_set_use_underline (GTK_BUTTON (button), TRUE);
-
-  gtk_widget_set_can_default (button, TRUE);
 
   gtk_widget_show (button);
 
@@ -746,7 +742,12 @@ gtk_info_bar_set_default_response (GtkInfoBar *info_bar,
       ResponseData *rd = get_response_data (widget, FALSE);
 
       if (rd && rd->response_id == response_id)
-        gtk_widget_grab_default (widget);
+        {
+          GtkWidget *window;
+
+          window = gtk_widget_get_ancestor (GTK_WIDGET (info_bar), GTK_TYPE_WINDOW);
+          gtk_window_set_default_widget (GTK_WINDOW (window), widget);
+        }
     }
 
   g_list_free (children);
@@ -933,7 +934,6 @@ gtk_info_bar_buildable_custom_finished (GtkBuildable *buildable,
                                         gpointer      user_data)
 {
   GtkInfoBar *info_bar = GTK_INFO_BAR (buildable);
-  GtkInfoBarPrivate *priv = gtk_info_bar_get_instance_private (info_bar);
   GSList *l;
   SubParserData *data;
   GObject *object;
@@ -974,10 +974,6 @@ gtk_info_bar_buildable_custom_finished (GtkBuildable *buildable,
                                            G_OBJECT (info_bar));
           g_signal_connect_closure_by_id (object, signal_id, 0, closure, FALSE);
         }
-
-      if (ad->response_id == GTK_RESPONSE_HELP)
-        gtk_button_box_set_child_secondary (GTK_BUTTON_BOX (priv->action_area),
-                                            GTK_WIDGET (object), TRUE);
     }
 
   g_slist_free_full (data->items, action_widget_info_free);
@@ -1159,7 +1155,9 @@ gtk_info_bar_set_revealed (GtkInfoBar *info_bar,
  * gtk_info_bar_get_revealed:
  * @info_bar: a #GtkInfoBar
  *
- * Returns: the current value of the #GtkInfoBar:revealed property.
+ * Returns whether the info bar is currently revealed.
+ *
+ * Returns: the current value of the #GtkInfoBar:revealed property
  */
 gboolean
 gtk_info_bar_get_revealed (GtkInfoBar *info_bar)

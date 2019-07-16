@@ -23,8 +23,9 @@
 #include "gtkwidgetpaintable.h"
 
 
-void            gtk_widget_paintable_invalidate_size            (GtkWidgetPaintable     *self);
-void            gtk_widget_paintable_invalidate_contents        (GtkWidgetPaintable     *self);
+void            gtk_widget_paintable_update_image               (GtkWidgetPaintable     *self);
 
+void            gtk_widget_paintable_push_snapshot_count        (GtkWidgetPaintable     *self);
+void            gtk_widget_paintable_pop_snapshot_count         (GtkWidgetPaintable     *self);
 
 #endif /* __GTK_WIDGET_PAINTABLE_PRIVATE_H__ */

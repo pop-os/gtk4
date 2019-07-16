@@ -119,12 +119,6 @@ enum {
   LAST_PROP
 };
 
-enum {
-  CHILD_PROP_0,
-  CHILD_PROP_PACK_TYPE,
-  CHILD_PROP_POSITION
-};
-
 static GParamSpec *header_bar_props[LAST_PROP] = { NULL, };
 
 static void gtk_header_bar_buildable_init (GtkBuildableIface *iface);
@@ -152,7 +146,7 @@ init_sizing_box (GtkHeaderBar *bar)
   w = gtk_label_new (NULL);
   context = gtk_widget_get_style_context (w);
   gtk_style_context_add_class (context, GTK_STYLE_CLASS_TITLE);
-  gtk_box_pack_start (GTK_BOX (priv->label_sizing_box), w);
+  gtk_container_add (GTK_CONTAINER (priv->label_sizing_box), w);
   gtk_label_set_line_wrap (GTK_LABEL (w), FALSE);
   gtk_label_set_single_line_mode (GTK_LABEL (w), TRUE);
   gtk_label_set_ellipsize (GTK_LABEL (w), PANGO_ELLIPSIZE_END);
@@ -161,7 +155,7 @@ init_sizing_box (GtkHeaderBar *bar)
   w = gtk_label_new (NULL);
   context = gtk_widget_get_style_context (w);
   gtk_style_context_add_class (context, GTK_STYLE_CLASS_SUBTITLE);
-  gtk_box_pack_start (GTK_BOX (priv->label_sizing_box), w);
+  gtk_container_add (GTK_CONTAINER (priv->label_sizing_box), w);
   gtk_label_set_line_wrap (GTK_LABEL (w), FALSE);
   gtk_label_set_single_line_mode (GTK_LABEL (w), TRUE);
   gtk_label_set_ellipsize (GTK_LABEL (w), PANGO_ELLIPSIZE_END);
@@ -189,7 +183,7 @@ create_title_box (const char *title,
   gtk_label_set_line_wrap (GTK_LABEL (title_label), FALSE);
   gtk_label_set_single_line_mode (GTK_LABEL (title_label), TRUE);
   gtk_label_set_ellipsize (GTK_LABEL (title_label), PANGO_ELLIPSIZE_END);
-  gtk_box_pack_start (GTK_BOX (label_box), title_label);
+  gtk_container_add (GTK_CONTAINER (label_box), title_label);
   gtk_label_set_width_chars (GTK_LABEL (title_label), MIN_TITLE_CHARS);
 
   subtitle_label = gtk_label_new (subtitle);
@@ -198,7 +192,7 @@ create_title_box (const char *title,
   gtk_label_set_line_wrap (GTK_LABEL (subtitle_label), FALSE);
   gtk_label_set_single_line_mode (GTK_LABEL (subtitle_label), TRUE);
   gtk_label_set_ellipsize (GTK_LABEL (subtitle_label), PANGO_ELLIPSIZE_END);
-  gtk_box_pack_start (GTK_BOX (label_box), subtitle_label);
+  gtk_container_add (GTK_CONTAINER (label_box), subtitle_label);
   gtk_widget_set_visible (subtitle_label, subtitle && subtitle[0]);
 
   if (ret_title_label)
@@ -453,7 +447,7 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
 
               if (button)
                 {
-                  gtk_box_pack_start (GTK_BOX (box), button);
+                  gtk_container_add (GTK_CONTAINER (box), button);
                   n_children ++;
                 }
             }
@@ -468,9 +462,9 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
               continue;
             }
 
-          gtk_box_pack_start (GTK_BOX (box), separator);
+          gtk_container_add (GTK_CONTAINER (box), separator);
           if (i == 1)
-            gtk_box_reorder_child (GTK_BOX (box), separator, 0);
+            gtk_box_reorder_child_after (GTK_BOX (box), separator, NULL);
 
           if (i == 0)
             gtk_style_context_add_class (gtk_widget_get_style_context (box), GTK_STYLE_CLASS_LEFT);
@@ -532,7 +526,7 @@ gtk_header_bar_reorder_css_node (GtkHeaderBar *bar,
         previous_widget = iter->widget;
     }
 
-  if ((pack_type == GTK_PACK_START))
+  if (pack_type == GTK_PACK_START)
     gtk_css_node_insert_after (gtk_widget_get_css_node (GTK_WIDGET (bar)),
                                gtk_widget_get_css_node (widget),
                                previous_widget ? gtk_widget_get_css_node (previous_widget) : NULL);
@@ -885,18 +879,25 @@ gtk_header_bar_measure (GtkWidget      *widget,
                         int            *minimum_baseline,
                         int            *natural_baseline)
 {
+  int min, nat;
+  gtk_header_bar_get_size (widget, orientation, &min, &nat);
+
   if (for_size < 0)
-    gtk_header_bar_get_size (widget, orientation, minimum, natural);
+    *natural = nat;
   else if (orientation == GTK_ORIENTATION_HORIZONTAL)
     gtk_header_bar_compute_size_for_orientation (widget, for_size, minimum, natural);
   else
     gtk_header_bar_compute_size_for_opposing_orientation (widget, for_size, minimum, natural);
+
+  *minimum = MAX (*minimum, min);
+  *natural = MAX (*natural, min);
 }
 
 static void
-gtk_header_bar_size_allocate (GtkWidget           *widget,
-                              const GtkAllocation *allocation,
-                              int                  baseline)
+gtk_header_bar_size_allocate (GtkWidget *widget,
+                              int        widget_width,
+                              int        widget_height,
+                              int        baseline)
 {
   GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (GTK_HEADER_BAR (widget));
   GtkWidget *title_widget;
@@ -925,8 +926,8 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
   nvis_children = count_visible_children (bar);
   sizes = g_newa (GtkRequestedSize, nvis_children);
 
-  width = allocation->width - nvis_children * priv->spacing;
-  height = allocation->height;
+  width = widget_width - nvis_children * priv->spacing;
+  height = widget_height;
 
   i = 0;
   for (l = priv->children; l; l = l->next)
@@ -1025,7 +1026,7 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
     {
       gint side_free_space;
 
-      side_free_space = allocation->width / 2 - title_natural_size / 2 - side[packing];
+      side_free_space = widget_width / 2 - title_natural_size / 2 - side[packing];
 
       if (side_free_space > 0 && nexpand_children[packing] > 0)
         {
@@ -1043,12 +1044,12 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
   /* allocate the children on both sides of the title */
   for (packing = GTK_PACK_START; packing <= GTK_PACK_END; packing++)
     {
-      child_allocation.y = allocation->y;
+      child_allocation.y = 0;
       child_allocation.height = height;
       if (packing == GTK_PACK_START)
-        x = allocation->x + start_width;
+        x = start_width;
       else
-        x = allocation->x + allocation->width - end_width;
+        x = widget_width - end_width;
 
       i = 0;
       for (l = priv->children; l != NULL; l = l->next)
@@ -1094,7 +1095,7 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
             }
 
           if (direction == GTK_TEXT_DIR_RTL)
-            child_allocation.x = allocation->x + allocation->width - (child_allocation.x - allocation->x) - child_allocation.width;
+            child_allocation.x = widget_width - child_allocation.x  - child_allocation.width;
 
           gtk_widget_size_allocate (child->widget, &child_allocation, baseline);
 
@@ -1106,12 +1107,12 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
   /* We don't enforce css borders on the center widget, to make
    * title/subtitle combinations fit without growing the header
    */
-  child_allocation.y = allocation->y;
-  child_allocation.height = allocation->height;
+  child_allocation.y = 0;
+  child_allocation.height = widget_height;
 
-  child_size = MIN (allocation->width - side[0] - side[1], title_natural_size);
+  child_size = MIN (widget_width - side[0] - side[1], title_natural_size);
 
-  child_allocation.x = allocation->x + (allocation->width - child_size) / 2;
+  child_allocation.x = (widget_width - child_size) / 2;
   child_allocation.width = child_size;
 
   /* if the title widget is expanded, then grow it by all the available
@@ -1123,29 +1124,29 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
       child_allocation.x -= width / 2;
     }
 
-  if (allocation->x + side[0] > child_allocation.x)
-    child_allocation.x = allocation->x + side[0];
-  else if (allocation->x + allocation->width - side[1] < child_allocation.x + child_allocation.width)
-    child_allocation.x = allocation->x + allocation->width - side[1] - child_allocation.width;
+  if (side[0] > child_allocation.x)
+    child_allocation.x = side[0];
+  else if (widget_width - side[1] < child_allocation.x + child_allocation.width)
+    child_allocation.x = widget_width - side[1] - child_allocation.width;
 
   if (direction == GTK_TEXT_DIR_RTL)
-    child_allocation.x = allocation->x + allocation->width - (child_allocation.x - allocation->x) - child_allocation.width;
+    child_allocation.x = widget_width - (child_allocation.x) - child_allocation.width;
 
   if (title_widget != NULL)
     {
       gtk_widget_size_allocate (title_widget, &child_allocation, baseline);
     }
 
-  child_allocation.y = allocation->y;
+  child_allocation.y = 0;
   child_allocation.height = height;
 
   if (priv->titlebar_start_box)
     {
       gboolean left = (direction == GTK_TEXT_DIR_LTR);
       if (left)
-        child_allocation.x = allocation->x;
+        child_allocation.x = 0;
       else
-        child_allocation.x = allocation->x + allocation->width - start_width + priv->spacing;
+        child_allocation.x = widget_width - start_width + priv->spacing;
       child_allocation.width = start_width - priv->spacing;
       gtk_widget_size_allocate (priv->titlebar_start_box, &child_allocation, baseline);
     }
@@ -1154,9 +1155,9 @@ gtk_header_bar_size_allocate (GtkWidget           *widget,
     {
       gboolean left = (direction != GTK_TEXT_DIR_LTR);
       if (left)
-        child_allocation.x = allocation->x;
+        child_allocation.x = 0;
       else
-        child_allocation.x = allocation->x + allocation->width - end_width + priv->spacing;
+        child_allocation.x = widget_width - end_width + priv->spacing;
       child_allocation.width = end_width - priv->spacing;
       gtk_widget_size_allocate (priv->titlebar_end_box, &child_allocation, baseline);
     }
@@ -1537,13 +1538,9 @@ gtk_header_bar_pack (GtkHeaderBar *bar,
 
   priv->children = g_list_append (priv->children, child);
 
-  gtk_widget_freeze_child_notify (widget);
   gtk_header_bar_reorder_css_node (bar, GTK_PACK_START, widget);
   gtk_widget_set_parent (widget, GTK_WIDGET (bar));
   g_signal_connect (widget, "notify::visible", G_CALLBACK (notify_child_cb), bar);
-  gtk_widget_child_notify (widget, "pack-type");
-  gtk_widget_child_notify (widget, "position");
-  gtk_widget_thaw_child_notify (widget);
 
   _gtk_header_bar_update_separator_visibility (bar);
 }
@@ -1633,114 +1630,10 @@ gtk_header_bar_forall (GtkContainer *container,
     }
 }
 
-static void
-gtk_header_bar_reorder_child (GtkHeaderBar *bar,
-                              GtkWidget    *widget,
-                              gint          position)
-{
-  GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
-  GList *l;
-  gint old_position;
-  Child *child;
-
-  l = find_child_link (bar, widget, &old_position);
-
-  if (l == NULL)
-    return;
-
-  if (old_position == position)
-    return;
-
-  child = l->data; 
-  priv->children = g_list_delete_link (priv->children, l);
-
-  if (position < 0)
-    l = NULL;
-  else
-    l = g_list_nth (priv->children, position);
-
-  priv->children = g_list_insert_before (priv->children, l, child);
-  gtk_header_bar_reorder_css_node (bar, child->pack_type, widget);
-  gtk_widget_child_notify (widget, "position");
-  gtk_widget_queue_resize (widget);
-}
-
 static GType
 gtk_header_bar_child_type (GtkContainer *container)
 {
   return GTK_TYPE_WIDGET;
-}
-
-static void
-gtk_header_bar_get_child_property (GtkContainer *container,
-                                   GtkWidget    *widget,
-                                   guint         property_id,
-                                   GValue       *value,
-                                   GParamSpec   *pspec)
-{
-  GtkHeaderBar *bar = GTK_HEADER_BAR (container);
-  GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
-  GList *l;
-  Child *child;
-
-  l = find_child_link (bar, widget, NULL);
-  if (l == NULL)
-    {
-      g_param_value_set_default (pspec, value);
-      return;
-    }
-
-  child = l->data;
-
-  switch (property_id)
-    {
-    case CHILD_PROP_PACK_TYPE:
-      g_value_set_enum (value, child->pack_type);
-      break;
-
-    case CHILD_PROP_POSITION:
-      g_value_set_int (value, g_list_position (priv->children, l));
-      break;
-
-    default:
-      GTK_CONTAINER_WARN_INVALID_CHILD_PROPERTY_ID (container, property_id, pspec);
-      break;
-    }
-}
-
-static void
-gtk_header_bar_set_child_property (GtkContainer *container,
-                                   GtkWidget    *widget,
-                                   guint         property_id,
-                                   const GValue *value,
-                                   GParamSpec   *pspec)
-{
-  GtkHeaderBar *bar = GTK_HEADER_BAR (container);
-  GList *l;
-  Child *child;
-
-  l = find_child_link (bar, widget, NULL);
-  if (l == NULL)
-    return;
-
-  child = l->data;
-
-  switch (property_id)
-    {
-    case CHILD_PROP_PACK_TYPE:
-      child->pack_type = g_value_get_enum (value);
-      _gtk_header_bar_update_separator_visibility (bar);
-      gtk_widget_queue_resize (widget);
-      break;
-
-    case CHILD_PROP_POSITION:
-      gtk_header_bar_reorder_child (bar, widget, g_value_get_int (value));
-      break;
-
-    default:
-      GTK_CONTAINER_WARN_INVALID_CHILD_PROPERTY_ID (container, property_id, pspec);
-      break;
-    }
 }
 
 static void surface_state_changed (GtkWidget *widget);
@@ -1797,10 +1690,11 @@ surface_state_changed (GtkWidget *widget)
 }
 
 static void
-gtk_header_bar_hierarchy_changed (GtkWidget *widget,
-                                  GtkWidget *previous_toplevel)
+gtk_header_bar_root (GtkWidget *widget)
 {
   GtkHeaderBar *bar = GTK_HEADER_BAR (widget);
+
+  GTK_WIDGET_CLASS (gtk_header_bar_parent_class)->root (widget);
 
   _gtk_header_bar_update_window_buttons (bar);
 }
@@ -1821,29 +1715,12 @@ gtk_header_bar_class_init (GtkHeaderBarClass *class)
   widget_class->measure = gtk_header_bar_measure;
   widget_class->realize = gtk_header_bar_realize;
   widget_class->unrealize = gtk_header_bar_unrealize;
-  widget_class->hierarchy_changed = gtk_header_bar_hierarchy_changed;
+  widget_class->root = gtk_header_bar_root;
 
   container_class->add = gtk_header_bar_add;
   container_class->remove = gtk_header_bar_remove;
   container_class->forall = gtk_header_bar_forall;
   container_class->child_type = gtk_header_bar_child_type;
-  container_class->set_child_property = gtk_header_bar_set_child_property;
-  container_class->get_child_property = gtk_header_bar_get_child_property;
-
-  gtk_container_class_install_child_property (container_class,
-                                              CHILD_PROP_PACK_TYPE,
-                                              g_param_spec_enum ("pack-type",
-                                                                 P_("Pack type"),
-                                                                 P_("A GtkPackType indicating whether the child is packed with reference to the start or end of the parent"),
-                                                                 GTK_TYPE_PACK_TYPE, GTK_PACK_START,
-                                                                 GTK_PARAM_READWRITE));
-  gtk_container_class_install_child_property (container_class,
-                                              CHILD_PROP_POSITION,
-                                              g_param_spec_int ("position",
-                                                                P_("Position"),
-                                                                P_("The index of the child in the parent"),
-                                                                -1, G_MAXINT, 0,
-                                                                GTK_PARAM_READWRITE));
 
   header_bar_props[PROP_TITLE] =
       g_param_spec_string ("title",
@@ -1971,8 +1848,12 @@ gtk_header_bar_buildable_add_child (GtkBuildable *buildable,
                                     GObject      *child,
                                     const gchar  *type)
 {
-  if (type && strcmp (type, "title") == 0)
+  if (g_strcmp0 (type, "title") == 0)
     gtk_header_bar_set_custom_title (GTK_HEADER_BAR (buildable), GTK_WIDGET (child));
+  else if (g_strcmp0 (type, "start") == 0)
+    gtk_header_bar_pack_start (GTK_HEADER_BAR (buildable), GTK_WIDGET (child));
+  else if (g_strcmp0 (type, "end") == 0)
+    gtk_header_bar_pack_end (GTK_HEADER_BAR (buildable), GTK_WIDGET (child));
   else
     parent_buildable_iface->add_child (buildable, builder, child, type);
 }
@@ -2164,6 +2045,7 @@ gtk_header_bar_set_decoration_layout (GtkHeaderBar *bar,
 
   priv = gtk_header_bar_get_instance_private (bar);
 
+  g_free (priv->decoration_layout);
   priv->decoration_layout = g_strdup (layout);
   priv->decoration_layout_set = (layout != NULL);
 

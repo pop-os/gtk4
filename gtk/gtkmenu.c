@@ -39,9 +39,9 @@
  * Other composite widgets such as the #GtkNotebook can pop up a
  * #GtkMenu as well.
  *
- * Applications can display a #GtkMenu as a popup menu by calling the
- * gtk_menu_popup() function.  The example below shows how an application
- * can pop up a menu when the 3rd mouse button is pressed.
+ * Applications can display a #GtkMenu as a popup menu by calling one of the
+ * gtk_menu_popup_*() function. The example below shows how an application can
+ * pop up a menu when the 3rd mouse button is pressed.
  *
  * ## Connecting the popup signal handler.
  *
@@ -50,22 +50,22 @@
  *   gesture = gtk_gesture_multi_press_new (window);
  *   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture),
  *                                  GDK_BUTTON_SECONDARY);
- *   g_signal_connect (gesture, "event", G_CALLBACK (my_popup_handler), menu);
+ *   g_signal_connect (gesture, "begin", G_CALLBACK (my_popup_handler), menu);
  * ]|
  *
  * ## Signal handler which displays a popup menu.
  *
  * |[<!-- language="C" -->
  * static void
- * my_popup_handler (GtkGesture *gesture,
- *                   guint       n_press,
- *                   double      x,
- *                   double      y,
- *                   gpointer    data)
+ * my_popup_handler (GtkGesture       *gesture,
+ *                   GdkEventSequence *sequence
+ *                   gpointer          data)
  * {
  *   GtkMenu *menu = data;
+ *   const GdkEvent *event;
  *
- *   gtk_menu_popup (menu, NULL, NULL, NULL, NULL, button, GDK_CURRENT_TIME);
+ *   event = gtk_gesture_get_last_event (gesture, sequence);
+ *   gtk_menu_popup_at_pointer (menu, event);
  * }
  * ]|
  *
@@ -157,14 +157,7 @@ struct _GtkMenuPopdownData
 
 typedef struct
 {
-  gint left_attach;
-  gint right_attach;
-  gint top_attach;
-  gint bottom_attach;
-  gint effective_left_attach;
-  gint effective_right_attach;
   gint effective_top_attach;
-  gint effective_bottom_attach;
 } AttachInfo;
 
 enum {
@@ -189,14 +182,6 @@ enum {
   PROP_MENU_TYPE_HINT
 };
 
-enum {
-  CHILD_PROP_0,
-  CHILD_PROP_LEFT_ATTACH,
-  CHILD_PROP_RIGHT_ATTACH,
-  CHILD_PROP_TOP_ATTACH,
-  CHILD_PROP_BOTTOM_ATTACH
-};
-
 static void     gtk_menu_set_property      (GObject          *object,
                                             guint             prop_id,
                                             const GValue     *value,
@@ -206,22 +191,13 @@ static void     gtk_menu_get_property      (GObject          *object,
                                             GValue           *value,
                                             GParamSpec       *pspec);
 static void     gtk_menu_finalize          (GObject          *object);
-static void     gtk_menu_set_child_property(GtkContainer     *container,
-                                            GtkWidget        *child,
-                                            guint             property_id,
-                                            const GValue     *value,
-                                            GParamSpec       *pspec);
-static void     gtk_menu_get_child_property(GtkContainer     *container,
-                                            GtkWidget        *child,
-                                            guint             property_id,
-                                            GValue           *value,
-                                            GParamSpec       *pspec);
 static void     gtk_menu_destroy           (GtkWidget        *widget);
 static void     gtk_menu_realize           (GtkWidget        *widget);
 static void     gtk_menu_unrealize         (GtkWidget        *widget);
-static void     gtk_menu_size_allocate     (GtkWidget           *widget,
-                                            const GtkAllocation *allocation,
-                                            int                  baseline);
+static void     gtk_menu_size_allocate     (GtkWidget        *widget,
+                                            int               widget_width,
+                                            int               widget_height,
+                                            int               baseline);
 static void     gtk_menu_show              (GtkWidget        *widget);
 static void     gtk_menu_snapshot          (GtkWidget        *widget,
                                             GtkSnapshot      *snapshot);
@@ -232,8 +208,12 @@ static void     gtk_menu_motion            (GtkEventController *controller,
 static void     gtk_menu_enter             (GtkEventController *controller,
                                             double              x,
                                             double              y,
+                                            GdkCrossingMode     mode,
+                                            GdkNotifyType       detail,
                                             gpointer            user_data);
 static void     gtk_menu_leave             (GtkEventController *controller,
+                                            GdkCrossingMode     mode,
+                                            GdkNotifyType       detail,
                                             gpointer            user_data);
 static gboolean gtk_menu_key_pressed       (GtkEventControllerKey *controller,
                                             guint                  keyval,
@@ -247,7 +227,7 @@ static void     gtk_menu_grab_notify       (GtkWidget        *widget,
 static gboolean gtk_menu_captured_event    (GtkWidget        *widget,
                                             GdkEvent         *event);
 
-static void     gtk_menu_scroll_controller_scroll (GtkEventControllerScroll *scroll,
+static gboolean gtk_menu_scroll_controller_scroll (GtkEventControllerScroll *scroll,
                                                    gdouble                   dx,
                                                    gdouble                   dy,
                                                    GtkMenu                  *menu);
@@ -266,8 +246,7 @@ static void     gtk_menu_real_insert       (GtkMenuShell     *menu_shell,
 static void     gtk_menu_handle_scrolling  (GtkMenu          *menu,
                                             gint              event_x,
                                             gint              event_y,
-                                            gboolean          enter,
-                                            gboolean          motion);
+                                            gboolean          enter);
 static gboolean gtk_menu_focus             (GtkWidget        *widget,
                                             GtkDirectionType direction);
 static gint     gtk_menu_get_popup_delay   (GtkMenuShell     *menu_shell);
@@ -350,15 +329,6 @@ get_attach_info (GtkWidget *child)
   return ai;
 }
 
-static gboolean
-is_grid_attached (AttachInfo *ai)
-{
-  return (ai->left_attach >= 0 &&
-          ai->right_attach >= 0 &&
-          ai->top_attach >= 0 &&
-          ai->bottom_attach >= 0);
-}
-
 static void
 menu_ensure_layout (GtkMenu *menu)
 {
@@ -370,42 +340,14 @@ menu_ensure_layout (GtkMenu *menu)
       GList *l;
       gchar *row_occupied;
       gint current_row;
-      gint max_right_attach;
       gint max_bottom_attach;
 
       /* Find extents of gridded portion
        */
-      max_right_attach = 1;
       max_bottom_attach = 0;
-
-      for (l = menu_shell->priv->children; l; l = l->next)
-        {
-          GtkWidget *child = l->data;
-          AttachInfo *ai = get_attach_info (child);
-
-          if (is_grid_attached (ai))
-            {
-              max_bottom_attach = MAX (max_bottom_attach, ai->bottom_attach);
-              max_right_attach = MAX (max_right_attach, ai->right_attach);
-            }
-        }
 
       /* Find empty rows */
       row_occupied = g_malloc0 (max_bottom_attach);
-
-      for (l = menu_shell->priv->children; l; l = l->next)
-        {
-          GtkWidget *child = l->data;
-          AttachInfo *ai = get_attach_info (child);
-
-          if (is_grid_attached (ai))
-            {
-              gint i;
-
-              for (i = ai->top_attach; i < ai->bottom_attach; i++)
-                row_occupied[i] = TRUE;
-            }
-        }
 
       /* Lay non-grid-items out in those rows
        */
@@ -415,44 +357,19 @@ menu_ensure_layout (GtkMenu *menu)
           GtkWidget *child = l->data;
           AttachInfo *ai = get_attach_info (child);
 
-          if (!is_grid_attached (ai))
-            {
-              while (current_row < max_bottom_attach && row_occupied[current_row])
-                current_row++;
+          while (current_row < max_bottom_attach && row_occupied[current_row])
+            current_row++;
 
-              ai->effective_left_attach = 0;
-              ai->effective_right_attach = max_right_attach;
-              ai->effective_top_attach = current_row;
-              ai->effective_bottom_attach = current_row + 1;
+          ai->effective_top_attach = current_row;
 
-              current_row++;
-            }
-          else
-            {
-              ai->effective_left_attach = ai->left_attach;
-              ai->effective_right_attach = ai->right_attach;
-              ai->effective_top_attach = ai->top_attach;
-              ai->effective_bottom_attach = ai->bottom_attach;
-            }
+          current_row++;
         }
 
       g_free (row_occupied);
 
       priv->n_rows = MAX (current_row, max_bottom_attach);
-      priv->n_columns = max_right_attach;
       priv->have_layout = TRUE;
     }
-}
-
-
-static gint
-gtk_menu_get_n_columns (GtkMenu *menu)
-{
-  GtkMenuPrivate *priv = menu->priv;
-
-  menu_ensure_layout (menu);
-
-  return priv->n_columns;
 }
 
 static gint
@@ -467,10 +384,7 @@ gtk_menu_get_n_rows (GtkMenu *menu)
 
 static void
 get_effective_child_attach (GtkWidget *child,
-                            int       *l,
-                            int       *r,
-                            int       *t,
-                            int       *b)
+                            int       *t)
 {
   GtkMenu *menu = GTK_MENU (gtk_widget_get_parent (child));
   AttachInfo *ai;
@@ -479,15 +393,8 @@ get_effective_child_attach (GtkWidget *child,
 
   ai = get_attach_info (child);
 
-  if (l)
-    *l = ai->effective_left_attach;
-  if (r)
-    *r = ai->effective_right_attach;
   if (t)
     *t = ai->effective_top_attach;
-  if (b)
-    *b = ai->effective_bottom_attach;
-
 }
 
 static void
@@ -515,8 +422,6 @@ gtk_menu_class_init (GtkMenuClass *class)
   widget_class->measure = gtk_menu_measure;
 
   container_class->remove = gtk_menu_remove;
-  container_class->get_child_property = gtk_menu_get_child_property;
-  container_class->set_child_property = gtk_menu_set_child_property;
   
   menu_shell_class->submenu_placement = GTK_LEFT_RIGHT;
   menu_shell_class->deactivate = gtk_menu_deactivate;
@@ -781,38 +686,6 @@ gtk_menu_class_init (GtkMenuClass *class)
                                                       G_PARAM_STATIC_BLURB |
                                                       G_PARAM_EXPLICIT_NOTIFY));
 
- gtk_container_class_install_child_property (container_class,
-                                             CHILD_PROP_LEFT_ATTACH,
-                                              g_param_spec_int ("left-attach",
-                                                               P_("Left Attach"),
-                                                               P_("The column number to attach the left side of the child to"),
-                                                                -1, INT_MAX, -1,
-                                                               GTK_PARAM_READWRITE));
-
- gtk_container_class_install_child_property (container_class,
-                                             CHILD_PROP_RIGHT_ATTACH,
-                                              g_param_spec_int ("right-attach",
-                                                               P_("Right Attach"),
-                                                               P_("The column number to attach the right side of the child to"),
-                                                                -1, INT_MAX, -1,
-                                                               GTK_PARAM_READWRITE));
-
- gtk_container_class_install_child_property (container_class,
-                                             CHILD_PROP_TOP_ATTACH,
-                                              g_param_spec_int ("top-attach",
-                                                               P_("Top Attach"),
-                                                               P_("The row number to attach the top of the child to"),
-                                                                -1, INT_MAX, -1,
-                                                               GTK_PARAM_READWRITE));
-
- gtk_container_class_install_child_property (container_class,
-                                             CHILD_PROP_BOTTOM_ATTACH,
-                                              g_param_spec_int ("bottom-attach",
-                                                               P_("Bottom Attach"),
-                                                               P_("The row number to attach the bottom of the child to"),
-                                                                -1, INT_MAX, -1,
-                                                               GTK_PARAM_READWRITE));
-
   binding_set = gtk_binding_set_by_class (class);
   gtk_binding_entry_add_signal (binding_set,
                                 GDK_KEY_Up, 0,
@@ -1019,69 +892,6 @@ gtk_menu_get_property (GObject     *object,
 }
 
 static void
-gtk_menu_set_child_property (GtkContainer *container,
-                             GtkWidget    *child,
-                             guint         property_id,
-                             const GValue *value,
-                             GParamSpec   *pspec)
-{
-  GtkMenu *menu = GTK_MENU (container);
-  AttachInfo *ai = get_attach_info (child);
-
-  switch (property_id)
-    {
-    case CHILD_PROP_LEFT_ATTACH:
-      ai->left_attach = g_value_get_int (value);
-      break;
-    case CHILD_PROP_RIGHT_ATTACH:
-      ai->right_attach = g_value_get_int (value);
-      break;
-    case CHILD_PROP_TOP_ATTACH:
-      ai->top_attach = g_value_get_int (value);
-      break;
-    case CHILD_PROP_BOTTOM_ATTACH:
-      ai->bottom_attach = g_value_get_int (value);
-      break;
-
-    default:
-      GTK_CONTAINER_WARN_INVALID_CHILD_PROPERTY_ID (container, property_id, pspec);
-      return;
-    }
-
-  menu_queue_resize (menu);
-}
-
-static void
-gtk_menu_get_child_property (GtkContainer *container,
-                             GtkWidget    *child,
-                             guint         property_id,
-                             GValue       *value,
-                             GParamSpec   *pspec)
-{
-  AttachInfo *ai = get_attach_info (child);
-
-  switch (property_id)
-    {
-    case CHILD_PROP_LEFT_ATTACH:
-      g_value_set_int (value, ai->left_attach);
-      break;
-    case CHILD_PROP_RIGHT_ATTACH:
-      g_value_set_int (value, ai->right_attach);
-      break;
-    case CHILD_PROP_TOP_ATTACH:
-      g_value_set_int (value, ai->top_attach);
-      break;
-    case CHILD_PROP_BOTTOM_ATTACH:
-      g_value_set_int (value, ai->bottom_attach);
-      break;
-      
-    default:
-      GTK_CONTAINER_WARN_INVALID_CHILD_PROPERTY_ID (container, property_id, pspec);
-      return;
-    }
-}
-
-static void
 gtk_menu_init (GtkMenu *menu)
 {
   GtkMenuPrivate *priv;
@@ -1123,13 +933,13 @@ gtk_menu_init (GtkMenu *menu)
   gtk_style_context_add_class (gtk_widget_get_style_context (priv->top_arrow_widget),
                                GTK_STYLE_CLASS_TOP);
   gtk_widget_set_parent (priv->top_arrow_widget, GTK_WIDGET (menu));
-  gtk_widget_hide (priv->top_arrow_widget);
+  gtk_widget_set_child_visible (priv->top_arrow_widget, FALSE);
 
   priv->bottom_arrow_widget = gtk_icon_new ("arrow");
   gtk_style_context_add_class (gtk_widget_get_style_context (priv->bottom_arrow_widget),
                                GTK_STYLE_CLASS_BOTTOM);
   gtk_widget_set_parent (priv->bottom_arrow_widget, GTK_WIDGET (menu));
-  gtk_widget_hide (priv->bottom_arrow_widget);
+  gtk_widget_set_child_visible (priv->bottom_arrow_widget, FALSE);
 
   gesture = gtk_gesture_multi_press_new ();
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture), FALSE);
@@ -1207,13 +1017,6 @@ gtk_menu_destroy (GtkWidget *widget)
 
   g_clear_pointer (&priv->heights, g_free);
 
-  if (priv->position_func_data_destroy)
-    {
-      priv->position_func_data_destroy (priv->position_func_data);
-      priv->position_func_data = NULL;
-      priv->position_func_data_destroy = NULL;
-    }
-
   GTK_WIDGET_CLASS (gtk_menu_parent_class)->destroy (widget);
 }
 
@@ -1243,12 +1046,12 @@ menu_change_display (GtkMenu    *menu,
 }
 
 static void
-attach_widget_display_changed (GtkWidget  *attach_widget,
-                               GdkDisplay *previous_display,
-                               GtkMenu    *menu)
+attach_widget_root_changed (GObject    *attach_widget,
+                            GParamSpec *pspec,
+                            gpointer    menu)
 {
   if (!g_object_get_data (G_OBJECT (menu), "gtk-menu-explicit-display"))
-    menu_change_display (menu, gtk_widget_get_display (attach_widget));
+    menu_change_display (menu, gtk_widget_get_display (GTK_WIDGET (attach_widget)));
 }
 
 static void
@@ -1304,9 +1107,9 @@ gtk_menu_attach_to_widget (GtkMenu           *menu,
   data = g_slice_new (GtkMenuAttachData);
   data->attach_widget = attach_widget;
 
-  g_signal_connect (attach_widget, "display-changed",
-                    G_CALLBACK (attach_widget_display_changed), menu);
-  attach_widget_display_changed (attach_widget, NULL, menu);
+  g_signal_connect (attach_widget, "notify::root",
+                    G_CALLBACK (attach_widget_root_changed), menu);
+  attach_widget_root_changed (G_OBJECT (attach_widget), NULL, menu);
 
   data->detacher = detacher;
   g_object_set_data (G_OBJECT (menu), I_(attach_data_key), data);
@@ -1386,7 +1189,7 @@ gtk_menu_detach (GtkMenu *menu)
     }
 
   g_signal_handlers_disconnect_by_func (data->attach_widget,
-                                        (gpointer) attach_widget_display_changed,
+                                        (gpointer) attach_widget_root_changed,
                                         menu);
 
   if (data->detacher)
@@ -1448,12 +1251,6 @@ gtk_menu_real_insert (GtkMenuShell *menu_shell,
 {
   GtkMenu *menu = GTK_MENU (menu_shell);
   GtkMenuPrivate *priv = menu->priv;
-  AttachInfo *ai = get_attach_info (child);
-
-  ai->left_attach = -1;
-  ai->right_attach = -1;
-  ai->top_attach = -1;
-  ai->bottom_attach = -1;
 
   gtk_widget_insert_before (child, GTK_WIDGET (menu), priv->bottom_arrow_widget);
 
@@ -1468,6 +1265,8 @@ popup_grab_on_surface (GdkSurface *surface,
 {
   GdkGrabStatus status;
   GdkSeat *seat;
+
+  g_return_val_if_fail (gdk_surface_get_display (surface) == gdk_device_get_display (pointer), FALSE);
 
   seat = gdk_device_get_seat (pointer);
   status = gdk_seat_grab (seat, surface,
@@ -1498,9 +1297,6 @@ gtk_menu_popup_internal (GtkMenu             *menu,
                          GdkDevice           *device,
                          GtkWidget           *parent_menu_shell,
                          GtkWidget           *parent_menu_item,
-                         GtkMenuPositionFunc  func,
-                         gpointer             data,
-                         GDestroyNotify       destroy,
                          guint                button,
                          guint32              activate_time)
 {
@@ -1527,7 +1323,11 @@ gtk_menu_popup_internal (GtkMenu             *menu,
     device = NULL;
 
   if (device == NULL)
-    device = gdk_seat_get_pointer (gdk_display_get_default_seat (display));
+    {
+      device = gdk_seat_get_pointer (gdk_display_get_default_seat (display));
+      g_return_if_fail (gdk_device_get_display (device) == display);
+    }
+
 
   widget = GTK_WIDGET (menu);
   menu_shell = GTK_MENU_SHELL (menu);
@@ -1537,9 +1337,9 @@ gtk_menu_popup_internal (GtkMenu             *menu,
   else
     pointer = device;
 
-  menu_shell->priv->parent_menu_shell = parent_menu_shell;
+  g_return_if_fail (gdk_device_get_display (pointer) == display);
 
-  priv->seen_item_enter = FALSE;
+  menu_shell->priv->parent_menu_shell = parent_menu_shell;
 
   /* Find the last viewable ancestor, and make an X grab on it
    */
@@ -1645,7 +1445,7 @@ gtk_menu_popup_internal (GtkMenu             *menu,
   parent_toplevel = NULL;
   if (parent_menu_shell)
     parent_toplevel = gtk_widget_get_toplevel (parent_menu_shell);
-  else if (!g_object_get_data (G_OBJECT (menu), "gtk-menu-explicit-display"))
+  else
     {
       GtkWidget *attach_widget = gtk_menu_get_attach_widget (menu);
       if (attach_widget)
@@ -1658,9 +1458,6 @@ gtk_menu_popup_internal (GtkMenu             *menu,
                                   GTK_WINDOW (parent_toplevel));
 
   priv->parent_menu_item = parent_menu_item;
-  priv->position_func = func;
-  priv->position_func_data = data;
-  priv->position_func_data_destroy = destroy;
   menu_shell->priv->activate_time = activate_time;
 
   /* We need to show the menu here rather in the init function
@@ -1701,123 +1498,6 @@ gtk_menu_popup_internal (GtkMenu             *menu,
     _gtk_menu_shell_set_keyboard_mode (menu_shell, TRUE);
 
   _gtk_menu_shell_update_mnemonics (menu_shell);
-}
-
-/**
- * gtk_menu_popup_for_device:
- * @menu: a #GtkMenu
- * @device: (allow-none): a #GdkDevice
- * @parent_menu_shell: (allow-none): the menu shell containing the triggering
- *     menu item, or %NULL
- * @parent_menu_item: (allow-none): the menu item whose activation triggered
- *     the popup, or %NULL
- * @func: (allow-none): a user supplied function used to position the menu,
- *     or %NULL
- * @data: (allow-none): user supplied data to be passed to @func
- * @destroy: (allow-none): destroy notify for @data
- * @button: the mouse button which was pressed to initiate the event
- * @activate_time: the time at which the activation event occurred
- *
- * Displays a menu and makes it available for selection.
- *
- * Applications can use this function to display context-sensitive menus,
- * and will typically supply %NULL for the @parent_menu_shell,
- * @parent_menu_item, @func, @data and @destroy parameters. The default
- * menu positioning function will position the menu at the current position
- * of @device (or its corresponding pointer).
- *
- * The @button parameter should be the mouse button pressed to initiate
- * the menu popup. If the menu popup was initiated by something other than
- * a mouse button press, such as a mouse button release or a keypress,
- * @button should be 0.
- *
- * The @activate_time parameter is used to conflict-resolve initiation of
- * concurrent requests for mouse/keyboard grab requests. To function
- * properly, this needs to be the time stamp of the user event (such as
- * a mouse click or key press) that caused the initiation of the popup.
- * Only if no such event is available, gtk_get_current_event_time() can
- * be used instead.
- */
-void
-gtk_menu_popup_for_device (GtkMenu             *menu,
-                           GdkDevice           *device,
-                           GtkWidget           *parent_menu_shell,
-                           GtkWidget           *parent_menu_item,
-                           GtkMenuPositionFunc  func,
-                           gpointer             data,
-                           GDestroyNotify       destroy,
-                           guint                button,
-                           guint32              activate_time)
-{
-  GtkMenuPrivate *priv;
-
-  g_return_if_fail (GTK_IS_MENU (menu));
-
-  priv = menu->priv;
-  priv->rect_surface = NULL;
-  priv->widget = NULL;
-
-  gtk_menu_popup_internal (menu,
-                           device,
-                           parent_menu_shell,
-                           parent_menu_item,
-                           func,
-                           data,
-                           destroy,
-                           button,
-                           activate_time);
-}
-
-/**
- * gtk_menu_popup:
- * @menu: a #GtkMenu
- * @parent_menu_shell: (allow-none): the menu shell containing the
- *     triggering menu item, or %NULL
- * @parent_menu_item: (allow-none): the menu item whose activation
- *     triggered the popup, or %NULL
- * @func: (scope async) (allow-none): a user supplied function used to position
- *     the menu, or %NULL
- * @data: user supplied data to be passed to @func.
- * @button: the mouse button which was pressed to initiate the event.
- * @activate_time: the time at which the activation event occurred.
- *
- * Displays a menu and makes it available for selection.
- *
- * Applications can use this function to display context-sensitive
- * menus, and will typically supply %NULL for the @parent_menu_shell,
- * @parent_menu_item, @func and @data parameters. The default menu
- * positioning function will position the menu at the current mouse
- * cursor position.
- *
- * The @button parameter should be the mouse button pressed to initiate
- * the menu popup. If the menu popup was initiated by something other
- * than a mouse button press, such as a mouse button release or a keypress,
- * @button should be 0.
- *
- * The @activate_time parameter is used to conflict-resolve initiation
- * of concurrent requests for mouse/keyboard grab requests. To function
- * properly, this needs to be the timestamp of the user event (such as
- * a mouse click or key press) that caused the initiation of the popup.
- * Only if no such event is available, gtk_get_current_event_time() can
- * be used instead.
- */
-void
-gtk_menu_popup (GtkMenu             *menu,
-                GtkWidget           *parent_menu_shell,
-                GtkWidget           *parent_menu_item,
-                GtkMenuPositionFunc  func,
-                gpointer             data,
-                guint                button,
-                guint32              activate_time)
-{
-  g_return_if_fail (GTK_IS_MENU (menu));
-
-  gtk_menu_popup_for_device (menu,
-                             NULL,
-                             parent_menu_shell,
-                             parent_menu_item,
-                             func, data, NULL,
-                             button, activate_time);
 }
 
 static GdkDevice *
@@ -1924,9 +1604,6 @@ gtk_menu_popup_at_rect (GtkMenu            *menu,
                            device,
                            NULL,
                            NULL,
-                           NULL,
-                           NULL,
-                           NULL,
                            button,
                            activate_time);
 
@@ -2014,9 +1691,6 @@ gtk_menu_popup_at_widget (GtkMenu        *menu,
                            device,
                            parent_menu_shell,
                            parent_menu_item,
-                           NULL,
-                           NULL,
-                           NULL,
                            button,
                            activate_time);
 
@@ -2071,7 +1745,12 @@ gtk_menu_popup_at_pointer (GtkMenu        *menu,
             device = gdk_device_get_associated_device (device);
 
           if (device)
-            gdk_surface_get_device_position (rect_surface, device, &rect.x, &rect.y, NULL);
+            {
+              double px, py;
+              gdk_surface_get_device_position (rect_surface, device, &px, &py, NULL);
+              rect.x = round (px);
+              rect.y = round (py);
+            }
         }
     }
   else
@@ -2105,8 +1784,8 @@ get_arrows_border (GtkMenu   *menu,
                       &bottom_arrow_height, NULL,
                       NULL, NULL);
 
-  border->top = priv->upper_arrow_visible ? top_arrow_height : 0;
-  border->bottom = priv->lower_arrow_visible ? bottom_arrow_height : 0;
+  border->top = gtk_widget_get_child_visible (priv->top_arrow_widget) ? top_arrow_height : 0;
+  border->bottom = gtk_widget_get_child_visible (priv->bottom_arrow_widget) ? bottom_arrow_height : 0;
   border->left = border->right = 0;
 }
 
@@ -2165,8 +1844,6 @@ gtk_menu_popdown (GtkMenu *menu)
   menu_shell->priv->parent_menu_shell = NULL;
   menu_shell->priv->active = FALSE;
   menu_shell->priv->ignore_enter = FALSE;
-
-  priv->have_position = FALSE;
 
   gtk_menu_stop_scrolling (menu);
   gtk_menu_stop_navigating_submenu (menu);
@@ -2516,9 +2193,6 @@ gtk_menu_focus (GtkWidget       *widget,
   return FALSE;
 }
 
-/* See notes in gtk_menu_popup() for information
- * about the “grab transfer window”
- */
 static GdkSurface *
 menu_grab_transfer_surface_get (GtkMenu *menu)
 {
@@ -2573,7 +2247,6 @@ calculate_line_heights (GtkMenu *menu,
   GtkMenuShell   *menu_shell;
   GtkWidget      *child, *widget;
   GList          *children;
-  guint           n_columns;
   gint            n_heights;
   guint          *min_heights;
   guint          *nat_heights;
@@ -2586,14 +2259,13 @@ calculate_line_heights (GtkMenu *menu,
   min_heights  = g_new0 (guint, gtk_menu_get_n_rows (menu));
   nat_heights  = g_new0 (guint, gtk_menu_get_n_rows (menu));
   n_heights    = gtk_menu_get_n_rows (menu);
-  n_columns    = gtk_menu_get_n_columns (menu);
-  avail_width  = for_width - (2 * priv->toggle_size + priv->accel_size) * n_columns;
+  avail_width  = for_width - (2 * priv->toggle_size + priv->accel_size);
 
   for (children = menu_shell->priv->children; children; children = children->next)
     {
       gint part;
       gint toggle_size;
-      gint l, r, t, b;
+      gint t;
       gint child_min, child_nat;
 
       child = children->data;
@@ -2601,21 +2273,19 @@ calculate_line_heights (GtkMenu *menu,
       if (!gtk_widget_get_visible (child))
         continue;
 
-      get_effective_child_attach (child, &l, &r, &t, &b);
-
-      part = avail_width / (r - l);
+      get_effective_child_attach (child, &t);
 
       gtk_widget_measure (child, GTK_ORIENTATION_VERTICAL,
-                          part,
+                          avail_width,
                           &child_min, &child_nat,
                           NULL, NULL);
 
       gtk_menu_item_toggle_size_request (GTK_MENU_ITEM (child), &toggle_size);
 
-      part = MAX (child_min, toggle_size) / (b - t);
+      part = MAX (child_min, toggle_size);
       min_heights[t] = MAX (min_heights[t], part);
 
-      part = MAX (child_nat, toggle_size) / (b - t);
+      part = MAX (child_nat, toggle_size);
       nat_heights[t] = MAX (nat_heights[t], part);
     }
 
@@ -2633,9 +2303,10 @@ calculate_line_heights (GtkMenu *menu,
 }
 
 static void
-gtk_menu_size_allocate (GtkWidget           *widget,
-                        const GtkAllocation *allocation,
-                        int                  baseline)
+gtk_menu_size_allocate (GtkWidget *widget,
+                        int        widget_width,
+                        int        widget_height,
+                        int        baseline)
 {
   GtkMenu *menu;
   GtkMenuPrivate *priv;
@@ -2646,9 +2317,9 @@ gtk_menu_size_allocate (GtkWidget           *widget,
   gint x, y, i;
   gint width, height;
   GtkBorder arrow_border;
+  int base_width;
 
   g_return_if_fail (GTK_IS_MENU (widget));
-  g_return_if_fail (allocation != NULL);
 
   menu = GTK_MENU (widget);
   menu_shell = GTK_MENU_SHELL (widget);
@@ -2656,7 +2327,7 @@ gtk_menu_size_allocate (GtkWidget           *widget,
 
   g_free (priv->heights);
   priv->heights_length = calculate_line_heights (menu,
-                                                 allocation->width,
+                                                 widget_width,
                                                  &priv->heights,
                                                  NULL);
 
@@ -2665,10 +2336,23 @@ gtk_menu_size_allocate (GtkWidget           *widget,
   for (i = 0; i < priv->heights_length; i++)
     priv->requested_height += priv->heights[i];
 
-  x = allocation->x;
-  y = allocation->y;
-  width = allocation->width;
-  height = allocation->height;
+
+  /* Show scroll arrows if necessary */
+  if (priv->requested_height > widget_height)
+    {
+      gtk_widget_set_child_visible (priv->top_arrow_widget, TRUE);
+      gtk_widget_set_child_visible (priv->bottom_arrow_widget, TRUE);
+    }
+  else
+    {
+      gtk_widget_set_child_visible (priv->top_arrow_widget, FALSE);
+      gtk_widget_set_child_visible (priv->bottom_arrow_widget, FALSE);
+    }
+
+  x = 0;
+  y = 0;
+  width = widget_width;
+  height = widget_height;
 
   if (menu_shell->priv->active)
     gtk_menu_scroll_to (menu, priv->scroll_offset);
@@ -2680,60 +2364,46 @@ gtk_menu_size_allocate (GtkWidget           *widget,
   arrow_allocation.width = width;
   arrow_allocation.height = arrow_border.top;
 
-  if (priv->upper_arrow_visible)
+  if (gtk_widget_get_child_visible (priv->top_arrow_widget))
     gtk_widget_size_allocate (priv->top_arrow_widget, &arrow_allocation, -1);
 
   arrow_allocation.y = height - y - arrow_border.bottom;
   arrow_allocation.height = arrow_border.bottom;
 
-  if (priv->lower_arrow_visible)
+  if (gtk_widget_get_child_visible (priv->bottom_arrow_widget))
     gtk_widget_size_allocate (priv->bottom_arrow_widget, &arrow_allocation, -1);
 
-  width = MAX (1, width);
-  height = MAX (1, height);
 
-  if (menu_shell->priv->children)
+  base_width = width;
+  children = menu_shell->priv->children;
+  while (children)
     {
-      gint base_width = width / gtk_menu_get_n_columns (menu);
+      child = children->data;
+      children = children->next;
 
-      children = menu_shell->priv->children;
-      while (children)
+      if (gtk_widget_get_visible (child))
         {
-          child = children->data;
-          children = children->next;
+          gint t;
 
-          if (gtk_widget_get_visible (child))
+          get_effective_child_attach (child, &t);
+
+          child_allocation.width = base_width;
+          child_allocation.height = 0;
+          child_allocation.x = 0;
+          child_allocation.y = - priv->scroll_offset;
+
+          for (i = 0; i < t + 1; i++)
             {
-              gint l, r, t, b;
-
-              get_effective_child_attach (child, &l, &r, &t, &b);
-
-              if (gtk_widget_get_direction (GTK_WIDGET (menu)) == GTK_TEXT_DIR_RTL)
-                {
-                  guint tmp;
-                  tmp = gtk_menu_get_n_columns (menu) - l;
-                  l = gtk_menu_get_n_columns (menu) - r;
-                  r = tmp;
-                }
-
-              child_allocation.width = (r - l) * base_width;
-              child_allocation.height = 0;
-              child_allocation.x = l * base_width;
-              child_allocation.y = 0;
-
-              for (i = 0; i < b; i++)
-                {
-                  if (i < t)
-                    child_allocation.y += priv->heights[i];
-                  else
-                    child_allocation.height += priv->heights[i];
-                }
-
-              gtk_menu_item_toggle_size_allocate (GTK_MENU_ITEM (child),
-                                                  priv->toggle_size);
-
-              gtk_widget_size_allocate (child, &child_allocation, -1);
+              if (i < t)
+                child_allocation.y += priv->heights[i];
+              else
+                child_allocation.height += priv->heights[i];
             }
+
+          gtk_menu_item_toggle_size_allocate (GTK_MENU_ITEM (child),
+                                              priv->toggle_size);
+
+          gtk_widget_size_allocate (child, &child_allocation, -1);
         }
     }
 }
@@ -2742,15 +2412,28 @@ static void
 gtk_menu_snapshot (GtkWidget   *widget,
                    GtkSnapshot *snapshot)
 {
+  GtkMenuPrivate *priv = gtk_menu_get_instance_private (GTK_MENU (widget));
+  GtkBorder arrows_border;
+
+  get_arrows_border (GTK_MENU (widget), &arrows_border);
+
+  /* TODO: This snapshots the arrow widgets twice. */
+
+  if (gtk_widget_get_child_visible (priv->top_arrow_widget))
+    gtk_widget_snapshot_child (widget, priv->top_arrow_widget, snapshot);
+
   gtk_snapshot_push_clip (snapshot,
                           &GRAPHENE_RECT_INIT(
-                            0, 0,
+                            0, arrows_border.top,
                             gtk_widget_get_width (widget),
-                            gtk_widget_get_height (widget)));
+                            gtk_widget_get_height (widget) - arrows_border.top - arrows_border.bottom));
 
   GTK_WIDGET_CLASS (gtk_menu_parent_class)->snapshot (widget, snapshot);
 
   gtk_snapshot_pop (snapshot);
+
+  if (gtk_widget_get_child_visible (priv->bottom_arrow_widget))
+    gtk_widget_snapshot_child (widget, priv->bottom_arrow_widget, snapshot);
 }
 
 static void
@@ -2792,17 +2475,13 @@ static void gtk_menu_measure (GtkWidget      *widget,
       children = menu_shell->priv->children;
       while (children)
         {
-          gint part;
           gint toggle_size;
-          gint l, r, t, b;
 
           child = children->data;
           children = children->next;
 
           if (! gtk_widget_get_visible (child))
             continue;
-
-          get_effective_child_attach (child, &l, &r, &t, &b);
 
           /* It's important to size_request the child
            * before doing the toggle size request, in
@@ -2817,11 +2496,8 @@ static void gtk_menu_measure (GtkWidget      *widget,
            max_accel_width = MAX (max_accel_width,
                                   GTK_MENU_ITEM (child)->priv->accelerator_width);
 
-           part = child_min / (r - l);
-           min_width = MAX (min_width, part);
-
-           part = child_nat / (r - l);
-           nat_width = MAX (nat_width, part);
+           min_width = MAX (min_width, child_min);
+           nat_width = MAX (nat_width, child_min);
         }
 
       /* If the menu doesn't include any images or check items
@@ -2830,7 +2506,6 @@ static void gtk_menu_measure (GtkWidget      *widget,
        * menus or multi-column menus
        */
       if (max_toggle_size == 0 &&
-          gtk_menu_get_n_columns (menu) == 1 &&
           !priv->no_toggle_size)
         {
           GtkWidget *menu_item;
@@ -2848,16 +2523,12 @@ static void gtk_menu_measure (GtkWidget      *widget,
                               NULL, NULL);
           max_toggle_size = indicator_width;
 
-          gtk_widget_destroy (menu_item);
           g_object_ref_sink (menu_item);
           g_object_unref (menu_item);
         }
 
       min_width += 2 * max_toggle_size + max_accel_width;
-      min_width *= gtk_menu_get_n_columns (menu);
-
       nat_width += 2 * max_toggle_size + max_accel_width;
-      nat_width *= gtk_menu_get_n_columns (menu);
 
       priv->toggle_size = max_toggle_size;
       priv->accel_size  = max_accel_width;
@@ -2904,32 +2575,6 @@ static void gtk_menu_measure (GtkWidget      *widget,
           get_arrows_border (menu, &arrow_border);
           single_height += arrow_border.top + arrow_border.bottom;
           min_height = MIN (min_height, single_height);
-
-          if (priv->have_position)
-            {
-              GdkDisplay *display;
-              GdkMonitor *monitor;
-              GdkRectangle workarea;
-              GtkBorder border;
-
-              display = gtk_widget_get_display (priv->toplevel);
-              monitor = gdk_display_get_monitor (display, priv->monitor_num);
-              gdk_monitor_get_workarea (monitor, &workarea);
-
-              if (priv->position_y + min_height > workarea.y + workarea.height)
-                min_height = workarea.y + workarea.height - priv->position_y;
-
-              if (priv->position_y + nat_height > workarea.y + workarea.height)
-                nat_height = workarea.y + workarea.height - priv->position_y;
-
-              _gtk_window_get_shadow_width (GTK_WINDOW (priv->toplevel), &border);
-
-              if (priv->position_y + border.top < workarea.y)
-                {
-                  min_height -= workarea.y - (priv->position_y + border.top);
-                  nat_height -= workarea.y - (priv->position_y + border.top);
-                }
-            }
 
           *minimum = min_height;
           *natural = nat_height;
@@ -3075,7 +2720,9 @@ definitely_within_item (GtkMenu   *menu,
   int w, h;
   graphene_rect_t bounds;
 
-  gtk_widget_compute_bounds (widget, GTK_WIDGET (menu), &bounds);
+  if (!gtk_widget_compute_bounds (widget, GTK_WIDGET (menu), &bounds))
+    return FALSE;
+
   w = bounds.size.width;
   h = bounds.size.height;
 
@@ -3121,7 +2768,7 @@ gtk_menu_motion (GtkEventController *controller,
       if (priv->ignore_button_release)
         priv->ignore_button_release = FALSE;
 
-      gtk_menu_handle_scrolling (GTK_MENU (menu_item), event->x_root, event->y_root, TRUE, TRUE);
+      gtk_menu_handle_scrolling (GTK_MENU (menu_item), event->x_root, event->y_root, TRUE);
     }
 
   /*We received the event for one of two reasons:
@@ -3211,13 +2858,15 @@ gtk_menu_scroll_timeout (gpointer data)
   return TRUE;
 }
 
-static void
+static gboolean
 gtk_menu_scroll_controller_scroll (GtkEventControllerScroll *scroll,
                                    gdouble                   dx,
                                    gdouble                   dy,
                                    GtkMenu                  *menu)
 {
   gtk_menu_scroll_by (menu, dy * MENU_SCROLL_STEP2);
+
+  return GDK_EVENT_STOP;
 }
 
 static void
@@ -3270,8 +2919,7 @@ static void
 gtk_menu_handle_scrolling (GtkMenu *menu,
                            gint     x,
                            gint     y,
-                           gboolean enter,
-                           gboolean motion)
+                           gboolean enter)
 {
   GtkMenuPrivate *priv = menu->priv;
   GtkMenuShell *menu_shell;
@@ -3292,7 +2940,7 @@ gtk_menu_handle_scrolling (GtkMenu *menu,
   get_arrows_sensitive_area (menu, &rect, NULL);
 
   in_arrow = FALSE;
-  if (priv->upper_arrow_visible &&
+  if (gtk_widget_get_child_visible (priv->top_arrow_widget) &&
       (x >= rect.x) && (x < rect.x + rect.width) &&
       (y >= rect.y) && (y < rect.y + rect.height))
     {
@@ -3301,9 +2949,7 @@ gtk_menu_handle_scrolling (GtkMenu *menu,
 
   if ((priv->upper_arrow_state & GTK_STATE_FLAG_INSENSITIVE) == 0)
     {
-      gboolean arrow_pressed = FALSE;
-
-      if (priv->upper_arrow_visible)
+      if (gtk_widget_get_child_visible (priv->top_arrow_widget))
         {
           scroll_fast = (y < rect.y + MENU_SCROLL_FAST_ZONE);
 
@@ -3329,7 +2975,7 @@ gtk_menu_handle_scrolling (GtkMenu *menu,
                                                       : MENU_SCROLL_TIMEOUT1,
                                                     gtk_menu_scroll_timeout,
                                                     menu);
-              g_source_set_name_by_id (priv->scroll_timeout, "[gtk+] gtk_menu_scroll_timeout");
+              g_source_set_name_by_id (priv->scroll_timeout, "[gtk] gtk_menu_scroll_timeout");
             }
           else if (!enter && !in_arrow && priv->upper_arrow_prelight)
             {
@@ -3343,9 +2989,6 @@ gtk_menu_handle_scrolling (GtkMenu *menu,
       if ((priv->upper_arrow_state & GTK_STATE_FLAG_INSENSITIVE) == 0)
         {
           GtkStateFlags arrow_state = 0;
-
-          if (arrow_pressed)
-            arrow_state |= GTK_STATE_FLAG_ACTIVE;
 
           if (priv->upper_arrow_prelight)
             arrow_state |= GTK_STATE_FLAG_PRELIGHT;
@@ -3363,7 +3006,7 @@ gtk_menu_handle_scrolling (GtkMenu *menu,
   get_arrows_sensitive_area (menu, NULL, &rect);
 
   in_arrow = FALSE;
-  if (priv->lower_arrow_visible &&
+  if (gtk_widget_get_child_visible (priv->bottom_arrow_widget) &&
       (x >= rect.x) && (x < rect.x + rect.width) &&
       (y >= rect.y) && (y < rect.y + rect.height))
     {
@@ -3372,9 +3015,7 @@ gtk_menu_handle_scrolling (GtkMenu *menu,
 
   if ((priv->lower_arrow_state & GTK_STATE_FLAG_INSENSITIVE) == 0)
     {
-      gboolean arrow_pressed = FALSE;
-
-      if (priv->lower_arrow_visible)
+      if (gtk_widget_get_child_visible (priv->bottom_arrow_widget))
         {
           scroll_fast = (y > rect.y + rect.height - MENU_SCROLL_FAST_ZONE);
 
@@ -3400,7 +3041,7 @@ gtk_menu_handle_scrolling (GtkMenu *menu,
                                                       : MENU_SCROLL_TIMEOUT1,
                                                     gtk_menu_scroll_timeout,
                                                     menu);
-              g_source_set_name_by_id (priv->scroll_timeout, "[gtk+] gtk_menu_scroll_timeout");
+              g_source_set_name_by_id (priv->scroll_timeout, "[gtk] gtk_menu_scroll_timeout");
             }
           else if (!enter && !in_arrow && priv->lower_arrow_prelight)
             {
@@ -3414,9 +3055,6 @@ gtk_menu_handle_scrolling (GtkMenu *menu,
       if ((priv->lower_arrow_state & GTK_STATE_FLAG_INSENSITIVE) == 0)
         {
           GtkStateFlags arrow_state = 0;
-
-          if (arrow_pressed)
-            arrow_state |= GTK_STATE_FLAG_ACTIVE;
 
           if (priv->lower_arrow_prelight)
             arrow_state |= GTK_STATE_FLAG_PRELIGHT;
@@ -3434,6 +3072,8 @@ static void
 gtk_menu_enter (GtkEventController *controller,
                 double              x,
                 double              y,
+                GdkCrossingMode     mode,
+                GdkNotifyType       detail,
                 gpointer            user_data)
 {
   GdkDevice *source_device;
@@ -3454,12 +3094,14 @@ gtk_menu_enter (GtkEventController *controller,
 
       if (!menu_shell->priv->ignore_enter)
         gtk_menu_handle_scrolling (GTK_MENU (user_data),
-                                   event->x_root, event->y_root, TRUE, TRUE);
+                                   event->x_root, event->y_root, TRUE);
     }
 }
 
 static void
 gtk_menu_leave (GtkEventController *controller,
+                GdkCrossingMode     mode,
+                GdkNotifyType       detail,
                 gpointer            user_data)
 {
   GtkMenu *menu;
@@ -3481,7 +3123,7 @@ gtk_menu_leave (GtkEventController *controller,
   source_device = gdk_event_get_source_device ((GdkEvent *) event);
 
   if (gdk_device_get_source (source_device) != GDK_SOURCE_TOUCHSCREEN)
-    gtk_menu_handle_scrolling (menu, event->x_root, event->y_root, FALSE, TRUE);
+    gtk_menu_handle_scrolling (menu, event->x_root, event->y_root, FALSE);
 }
 
 static gboolean
@@ -3530,7 +3172,9 @@ gtk_menu_captured_event (GtkWidget *widget,
   menu = GTK_MENU (widget);
   priv = menu->priv;
 
-  if (!priv->upper_arrow_visible && !priv->lower_arrow_visible && priv->drag_start_y < 0)
+  if (!gtk_widget_get_child_visible (priv->top_arrow_widget) &&
+      !gtk_widget_get_child_visible (priv->bottom_arrow_widget) &&
+      priv->drag_start_y < 0)
     return retval;
 
   source_device = gdk_event_get_source_device (event);
@@ -3597,10 +3241,10 @@ gtk_menu_captured_event (GtkWidget *widget,
               view_height = gdk_surface_get_height (gtk_widget_get_surface (widget));
               get_arrows_border (menu, &arrow_border);
 
-              if (priv->upper_arrow_visible)
+              if (gtk_widget_get_child_visible (priv->top_arrow_widget))
                 view_height -= arrow_border.top;
 
-              if (priv->lower_arrow_visible)
+              if (gtk_widget_get_child_visible (priv->bottom_arrow_widget))
                 view_height -= arrow_border.bottom;
 
               offset = CLAMP (offset,
@@ -3713,231 +3357,6 @@ gtk_menu_deactivate (GtkMenuShell *menu_shell)
     gtk_menu_shell_deactivate (GTK_MENU_SHELL (parent));
 }
 
-static void
-gtk_menu_position_legacy (GtkMenu  *menu,
-                          gboolean  set_scroll_offset)
-{
-  GtkMenuPrivate *priv = menu->priv;
-  GtkWidget *widget;
-  GtkRequisition requisition;
-  gint x, y;
-  gint scroll_offset;
-  GdkDisplay *display;
-  GdkMonitor *monitor;
-  GdkRectangle workarea;
-  gint monitor_num;
-  GdkDevice *pointer;
-  GtkBorder border;
-  gint i;
-
-  widget = GTK_WIDGET (menu);
-
-  display = gtk_widget_get_display (widget);
-  pointer = _gtk_menu_shell_get_grab_device (GTK_MENU_SHELL (menu));
-  gdk_device_get_position (pointer, &x, &y);
-
-  /* Realize so we have the proper width and height to figure out
-   * the right place to popup the menu.
-   */
-  gtk_widget_realize (priv->toplevel);
-
-  _gtk_window_get_shadow_width (GTK_WINDOW (priv->toplevel), &border);
-
-  requisition.width = gtk_widget_get_allocated_width (widget);
-  requisition.height = gtk_widget_get_allocated_height (widget);
-
-  monitor = gdk_display_get_monitor_at_point (display, x, y);
-  monitor_num = 0;
-  for (i = 0; ; i++)
-    {
-      GdkMonitor *m = gdk_display_get_monitor (display, i);
-
-      if (m == monitor)
-        {
-          monitor_num = i;
-          break;
-        }
-      if (m == NULL)
-        break;
-    }
-
-  priv->monitor_num = monitor_num;
-  priv->initially_pushed_in = FALSE;
-
-  /* Set the type hint here to allow custom position functions
-   * to set a different hint
-   */
-  if (!gtk_widget_get_visible (priv->toplevel))
-    gtk_window_set_type_hint (GTK_WINDOW (priv->toplevel), GDK_SURFACE_TYPE_HINT_POPUP_MENU);
-
-  if (priv->position_func)
-    {
-      (* priv->position_func) (menu, &x, &y, &priv->initially_pushed_in,
-                               priv->position_func_data);
-
-      if (priv->monitor_num < 0)
-        priv->monitor_num = monitor_num;
-
-      monitor = gdk_display_get_monitor (display, priv->monitor_num);
-      gdk_monitor_get_workarea (monitor, &workarea);
-    }
-  else
-    {
-      gint space_left, space_right, space_above, space_below;
-      gint needed_width;
-      gint needed_height;
-      gboolean rtl = (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL);
-
-      /* The placement of popup menus horizontally works like this (with
-       * RTL in parentheses)
-       *
-       * - If there is enough room to the right (left) of the mouse cursor,
-       *   position the menu there.
-       *
-       * - Otherwise, if if there is enough room to the left (right) of the
-       *   mouse cursor, position the menu there.
-       *
-       * - Otherwise if the menu is smaller than the monitor, position it
-       *   on the side of the mouse cursor that has the most space available
-       *
-       * - Otherwise (if there is simply not enough room for the menu on the
-       *   monitor), position it as far left (right) as possible.
-       *
-       * Positioning in the vertical direction is similar: first try below
-       * mouse cursor, then above.
-       */
-      monitor = gdk_display_get_monitor (display, priv->monitor_num);
-      gdk_monitor_get_workarea (monitor, &workarea);
-
-      space_left = x - workarea.x;
-      space_right = workarea.x + workarea.width - x - 1;
-      space_above = y - workarea.y;
-      space_below = workarea.y + workarea.height - y - 1;
-
-      /* Position horizontally. */
-
-      /* the amount of space we need to position the menu.
-       * Note the menu is offset "thickness" pixels
-       */
-      needed_width = requisition.width;
-
-      if (needed_width <= space_left ||
-          needed_width <= space_right)
-        {
-          if ((rtl  && needed_width <= space_left) ||
-              (!rtl && needed_width >  space_right))
-            {
-              /* position left */
-              x = x - requisition.width + 1;
-            }
-          else
-            {
-              /* position right */
-            }
-
-          /* x is clamped on-screen further down */
-        }
-      else if (requisition.width <= workarea.width)
-        {
-          /* the menu is too big to fit on either side of the mouse
-           * cursor, but smaller than the monitor. Position it on
-           * the side that has the most space
-           */
-          if (space_left > space_right)
-            {
-              /* left justify */
-              x = workarea.x;
-            }
-          else
-            {
-              /* right justify */
-              x = workarea.x + workarea.width - requisition.width;
-            }
-        }
-      else /* menu is simply too big for the monitor */
-        {
-          if (rtl)
-            {
-              /* right justify */
-              x = workarea.x + workarea.width - requisition.width;
-            }
-          else
-            {
-              /* left justify */
-              x = workarea.x;
-            }
-        }
-
-      /* Position vertically.
-       * The algorithm is the same as above, but simpler
-       * because we don't have to take RTL into account.
-       */
-      needed_height = requisition.height;
-
-      if (needed_height <= space_above ||
-          needed_height <= space_below)
-        {
-          if (needed_height > space_below)
-            y = y - requisition.height + 1;
-
-          y = CLAMP (y, workarea.y,
-                     workarea.y + workarea.height - requisition.height);
-        }
-      else if (needed_height > space_below && needed_height > space_above)
-        {
-          if (space_below >= space_above)
-            y = workarea.y + workarea.height - requisition.height;
-          else
-            y = workarea.y;
-        }
-      else
-        {
-          y = workarea.y;
-        }
-    }
-
-  scroll_offset = 0;
-
-  if (y + requisition.height > workarea.y + workarea.height)
-    {
-      if (priv->initially_pushed_in)
-        scroll_offset += (workarea.y + workarea.height) - requisition.height - y;
-      y = (workarea.y + workarea.height) - requisition.height;
-    }
-
-  if (y < workarea.y)
-    {
-      if (priv->initially_pushed_in)
-        scroll_offset += workarea.y - y;
-      y = workarea.y;
-    }
-
-  x = CLAMP (x, workarea.x, MAX (workarea.x, workarea.x + workarea.width - requisition.width));
-
-  x -= border.left;
-  y -= border.top;
-
-  if (GTK_MENU_SHELL (menu)->priv->active)
-    {
-      priv->have_position = TRUE;
-      priv->position_x = x;
-      priv->position_y = y;
-    }
-
-  if (scroll_offset != 0)
-    {
-      GtkBorder arrow_border;
-
-      get_arrows_border (menu, &arrow_border);
-      scroll_offset += arrow_border.top;
-    }
-
-  gtk_window_move (GTK_WINDOW (priv->toplevel), x, y);
-
-  if (set_scroll_offset)
-    priv->scroll_offset = scroll_offset;
-}
-
 static GdkGravity
 get_horizontally_flipped_anchor (GdkGravity anchor)
 {
@@ -4000,41 +3419,9 @@ gtk_menu_position (GtkMenu  *menu,
       gtk_widget_get_surface_allocation (priv->widget, &rect);
       text_direction = gtk_widget_get_direction (priv->widget);
     }
-  else if (!priv->position_func)
+  else
     {
-      GtkWidget *attach_widget;
-      GdkDevice *grab_device;
-
-      /*
-       * One of the legacy gtk_menu_popup*() functions were used to popup but
-       * without a custom positioning function, so make an attempt to let the
-       * backend do the position constraining when required conditions are met.
-       */
-
-      grab_device = _gtk_menu_shell_get_grab_device (GTK_MENU_SHELL (menu));
-      attach_widget = gtk_menu_get_attach_widget (menu);
-
-      if (grab_device && attach_widget)
-        {
-          rect = (GdkRectangle) { 0, 0, 1, 1 };
-
-          rect_surface = gtk_widget_get_surface (attach_widget);
-          gdk_surface_get_device_position (rect_surface, grab_device,
-                                          &rect.x, &rect.y, NULL);
-          text_direction = gtk_widget_get_direction (attach_widget);
-          rect_anchor = GDK_GRAVITY_SOUTH_EAST;
-          menu_anchor = GDK_GRAVITY_NORTH_WEST;
-          anchor_hints = GDK_ANCHOR_FLIP | GDK_ANCHOR_SLIDE | GDK_ANCHOR_RESIZE;
-          rect_anchor_dx = 0;
-          rect_anchor_dy = 0;
-          emulated_move_to_rect = TRUE;
-        }
-    }
-
-  if (!rect_surface)
-    {
-      gtk_menu_position_legacy (menu, set_scroll_offset);
-      return;
+      g_assert_not_reached ();
     }
 
   /* Realize so we have the proper width and height to figure out
@@ -4114,31 +3501,31 @@ gtk_menu_scroll_to (GtkMenu *menu,
   GtkCssNode *top_arrow_node, *bottom_arrow_node;
 
   top_arrow_node = gtk_widget_get_css_node (priv->top_arrow_widget);
-  gtk_css_node_set_visible (top_arrow_node, priv->upper_arrow_visible);
+  gtk_css_node_set_visible (top_arrow_node,
+                            gtk_widget_get_child_visible (priv->top_arrow_widget));
   gtk_css_node_set_state (top_arrow_node, priv->upper_arrow_state);
 
   bottom_arrow_node = gtk_widget_get_css_node (priv->bottom_arrow_widget);
-  gtk_css_node_set_visible (bottom_arrow_node, priv->lower_arrow_visible);
+  gtk_css_node_set_visible (top_arrow_node,
+                            gtk_widget_get_child_visible (priv->bottom_arrow_widget));
   gtk_css_node_set_state (bottom_arrow_node, priv->lower_arrow_state);
 
   priv->scroll_offset = offset;
+  gtk_widget_queue_allocate (GTK_WIDGET (menu));
 }
 
 static gboolean
 compute_child_offset (GtkMenu   *menu,
                       GtkWidget *menu_item,
                       gint      *offset,
-                      gint      *height,
-                      gboolean  *is_last_child)
+                      gint      *height)
 {
   GtkMenuPrivate *priv = menu->priv;
   gint item_top_attach;
-  gint item_bottom_attach;
   gint child_offset = 0;
   gint i;
 
-  get_effective_child_attach (menu_item, NULL, NULL,
-                              &item_top_attach, &item_bottom_attach);
+  get_effective_child_attach (menu_item, &item_top_attach);
 
   /* there is a possibility that we get called before _size_request,
    * so check the height table for safety.
@@ -4152,8 +3539,6 @@ compute_child_offset (GtkMenu   *menu,
   for (i = 0; i < item_top_attach; i++)
     child_offset += priv->heights[i];
 
-  if (is_last_child)
-    *is_last_child = (item_bottom_attach == gtk_menu_get_n_rows (menu));
   if (offset)
     *offset = child_offset;
   if (height)
@@ -4173,14 +3558,12 @@ gtk_menu_scroll_item_visible (GtkMenuShell *menu_shell,
   gint height;
   gint y;
   gint arrow_height;
-  gboolean last_child = 0;
 
   /* We need to check if the selected item fully visible.
    * If not we need to scroll the menu so that it becomes fully
    * visible.
    */
-  if (compute_child_offset (menu, menu_item,
-                            &child_offset, &child_height, &last_child))
+  if (compute_child_offset (menu, menu_item, &child_offset, &child_height))
     {
       y = priv->scroll_offset;
       height = gdk_surface_get_height (gtk_widget_get_surface (widget));
@@ -4229,140 +3612,16 @@ gtk_menu_select_item (GtkMenuShell *menu_shell,
   GTK_MENU_SHELL_CLASS (gtk_menu_parent_class)->select_item (menu_shell, menu_item);
 }
 
-/**
- * gtk_menu_set_display:
- * @menu: a #GtkMenu
- * @display: (allow-none): a #GdkDisplay, or %NULL if the display should be
- *           determined by the widget the menu is attached to
- *
- * Sets the #GdkDisplay on which the menu will be displayed.
- */
-void
-gtk_menu_set_display (GtkMenu    *menu,
-                      GdkDisplay *display)
-{
-  g_return_if_fail (GTK_IS_MENU (menu));
-  g_return_if_fail (display == NULL || GDK_IS_DISPLAY (display));
-
-  g_object_set_data (G_OBJECT (menu), I_("gtk-menu-explicit-display"), display);
-
-  if (display)
-    {
-      menu_change_display (menu, display);
-    }
-  else
-    {
-      GtkWidget *attach_widget = gtk_menu_get_attach_widget (menu);
-      if (attach_widget)
-        attach_widget_display_changed (attach_widget, NULL, menu);
-    }
-}
-
-/**
- * gtk_menu_attach:
- * @menu: a #GtkMenu
- * @child: a #GtkMenuItem
- * @left_attach: The column number to attach the left side of the item to
- * @right_attach: The column number to attach the right side of the item to
- * @top_attach: The row number to attach the top of the item to
- * @bottom_attach: The row number to attach the bottom of the item to
- *
- * Adds a new #GtkMenuItem to a (table) menu. The number of “cells” that
- * an item will occupy is specified by @left_attach, @right_attach,
- * @top_attach and @bottom_attach. These each represent the leftmost,
- * rightmost, uppermost and lower column and row numbers of the table.
- * (Columns and rows are indexed from zero).
- *
- * Note that this function is not related to gtk_menu_detach().
- */
-void
-gtk_menu_attach (GtkMenu   *menu,
-                 GtkWidget *child,
-                 guint      left_attach,
-                 guint      right_attach,
-                 guint      top_attach,
-                 guint      bottom_attach)
-{
-  GtkMenuShell *menu_shell;
-  GtkWidget *parent;
-
-  g_return_if_fail (GTK_IS_MENU (menu));
-  g_return_if_fail (GTK_IS_MENU_ITEM (child));
-  parent = gtk_widget_get_parent (child);
-  g_return_if_fail (parent == NULL || parent == GTK_WIDGET (menu));
-  g_return_if_fail (left_attach < right_attach);
-  g_return_if_fail (top_attach < bottom_attach);
-
-  menu_shell = GTK_MENU_SHELL (menu);
-
-  if (!parent)
-    {
-      AttachInfo *ai = get_attach_info (child);
-
-      ai->left_attach = left_attach;
-      ai->right_attach = right_attach;
-      ai->top_attach = top_attach;
-      ai->bottom_attach = bottom_attach;
-
-      menu_shell->priv->children = g_list_append (menu_shell->priv->children, child);
-      gtk_widget_insert_before (child, GTK_WIDGET (menu), menu->priv->bottom_arrow_widget);
-
-      menu_queue_resize (menu);
-    }
-  else
-    {
-      gtk_container_child_set (GTK_CONTAINER (parent), child,
-                               "left-attach",   left_attach,
-                               "right-attach",  right_attach,
-                               "top-attach",    top_attach,
-                               "bottom-attach", bottom_attach,
-                               NULL);
-    }
-}
-
 static gint
 gtk_menu_get_popup_delay (GtkMenuShell *menu_shell)
 {
   return MENU_POPUP_DELAY;
 }
 
-static GtkWidget *
-find_child_containing (GtkMenuShell *menu_shell,
-                       int           left,
-                       int           right,
-                       int           top,
-                       int           bottom)
-{
-  GList *list;
-
-  /* find a child which includes the area given by
-   * left, right, top, bottom.
-   */
-  for (list = menu_shell->priv->children; list; list = list->next)
-    {
-      gint l, r, t, b;
-
-      if (!_gtk_menu_item_is_selectable (list->data))
-        continue;
-
-      get_effective_child_attach (list->data, &l, &r, &t, &b);
-
-      if (l <= left && right <= r && t <= top && bottom <= b)
-        return GTK_WIDGET (list->data);
-    }
-
-  return NULL;
-}
-
 static void
 gtk_menu_move_current (GtkMenuShell         *menu_shell,
                        GtkMenuDirectionType  direction)
 {
-  GtkMenu *menu = GTK_MENU (menu_shell);
-  gint i;
-  gint l, r, t, b;
-  GtkWidget *match = NULL;
-
   if (gtk_widget_get_direction (GTK_WIDGET (menu_shell)) == GTK_TEXT_DIR_RTL)
     {
       switch (direction)
@@ -4380,108 +3639,16 @@ gtk_menu_move_current (GtkMenuShell         *menu_shell,
         }
     }
 
-  /* use special table menu key bindings */
-  if (menu_shell->priv->active_menu_item && gtk_menu_get_n_columns (menu) > 1)
-    {
-      get_effective_child_attach (menu_shell->priv->active_menu_item, &l, &r, &t, &b);
-
-      if (direction == GTK_MENU_DIR_NEXT)
-        {
-          for (i = b; i < gtk_menu_get_n_rows (menu); i++)
-            {
-              match = find_child_containing (menu_shell, l, l + 1, i, i + 1);
-              if (match)
-                break;
-            }
-
-          if (!match)
-            {
-              /* wrap around */
-              for (i = 0; i < t; i++)
-                {
-                  match = find_child_containing (menu_shell,
-                                                 l, l + 1, i, i + 1);
-                  if (match)
-                    break;
-                }
-            }
-        }
-      else if (direction == GTK_MENU_DIR_PREV)
-        {
-          for (i = t; i > 0; i--)
-            {
-              match = find_child_containing (menu_shell,
-                                             l, l + 1, i - 1, i);
-              if (match)
-                break;
-            }
-
-          if (!match)
-            {
-              /* wrap around */
-              for (i = gtk_menu_get_n_rows (menu); i > b; i--)
-                {
-                  match = find_child_containing (menu_shell,
-                                                 l, l + 1, i - 1, i);
-                  if (match)
-                    break;
-                }
-            }
-        }
-      else if (direction == GTK_MENU_DIR_PARENT)
-        {
-          /* we go one left if possible */
-          if (l > 0)
-            match = find_child_containing (menu_shell,
-                                           l - 1, l, t, t + 1);
-
-          if (!match)
-            {
-              GtkWidget *parent = menu_shell->priv->parent_menu_shell;
-
-              if (!parent
-                  || g_list_length (GTK_MENU_SHELL (parent)->priv->children) <= 1)
-                match = menu_shell->priv->active_menu_item;
-            }
-        }
-      else if (direction == GTK_MENU_DIR_CHILD)
-        {
-          /* we go one right if possible */
-          if (r < gtk_menu_get_n_columns (menu))
-            match = find_child_containing (menu_shell, r, r + 1, t, t + 1);
-
-          if (!match)
-            {
-              GtkWidget *parent = menu_shell->priv->parent_menu_shell;
-
-              if (! GTK_MENU_ITEM (menu_shell->priv->active_menu_item)->priv->submenu &&
-                  (!parent ||
-                   g_list_length (GTK_MENU_SHELL (parent)->priv->children) <= 1))
-                match = menu_shell->priv->active_menu_item;
-            }
-        }
-
-      if (match)
-        {
-          gtk_menu_shell_select_item (menu_shell, match);
-          return;
-        }
-    }
-
   GTK_MENU_SHELL_CLASS (gtk_menu_parent_class)->move_current (menu_shell, direction);
 }
 
 static gint
 get_visible_size (GtkMenu *menu)
 {
-  GtkAllocation allocation;
-  GtkWidget *widget = GTK_WIDGET (menu);
   GtkBorder arrow_border;
   gint menu_height;
 
-  gtk_widget_get_allocation (widget, &allocation);
-
-  menu_height = allocation.height;
+  menu_height = gtk_widget_get_height (GTK_WIDGET (menu));
 
   get_arrows_border (menu, &arrow_border);
   menu_height -= arrow_border.top;
@@ -4581,12 +3748,12 @@ gtk_menu_real_move_scroll (GtkMenu       *menu,
             gint child_height;
 
             if (compute_child_offset (menu, menu_shell->priv->active_menu_item,
-                                      &child_offset, &child_height, NULL))
+                                      &child_offset, &child_height))
               child_offset += child_height / 2;
           }
 
         menu_shell->priv->ignore_enter = TRUE;
-        old_upper_arrow_visible = priv->upper_arrow_visible;
+        old_upper_arrow_visible = gtk_widget_get_child_visible (priv->top_arrow_widget);
         old_offset = priv->scroll_offset;
 
         new_offset = priv->scroll_offset + step;
@@ -4597,7 +3764,7 @@ gtk_menu_real_move_scroll (GtkMenu       *menu,
         if (menu_shell->priv->active_menu_item)
           {
             GtkWidget *new_child;
-            gboolean new_upper_arrow_visible = priv->upper_arrow_visible;
+            gboolean new_upper_arrow_visible = gtk_widget_get_child_visible (priv->top_arrow_widget);
             GtkBorder arrow_border;
 
             get_arrows_border (menu, &arrow_border);

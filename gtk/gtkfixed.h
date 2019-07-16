@@ -44,7 +44,6 @@ G_BEGIN_DECLS
 
 typedef struct _GtkFixed              GtkFixed;
 typedef struct _GtkFixedClass         GtkFixedClass;
-typedef struct _GtkFixedChild         GtkFixedChild;
 
 struct _GtkFixed
 {
@@ -62,29 +61,34 @@ struct _GtkFixedClass
   void (*_gtk_reserved4) (void);
 };
 
-struct _GtkFixedChild
-{
-  GtkWidget *widget;
-  gint x;
-  gint y;
-};
-
+GDK_AVAILABLE_IN_ALL
+GType gtk_fixed_get_type (void) G_GNUC_CONST;
 
 GDK_AVAILABLE_IN_ALL
-GType      gtk_fixed_get_type          (void) G_GNUC_CONST;
+GtkWidget *     gtk_fixed_new                (void);
 GDK_AVAILABLE_IN_ALL
-GtkWidget* gtk_fixed_new               (void);
+void            gtk_fixed_put                   (GtkFixed     *fixed,
+                                                 GtkWidget    *widget,
+                                                 gint          x,
+                                                 gint          y);
 GDK_AVAILABLE_IN_ALL
-void       gtk_fixed_put               (GtkFixed       *fixed,
-                                        GtkWidget      *widget,
-                                        gint            x,
-                                        gint            y);
+void            gtk_fixed_move                  (GtkFixed     *fixed,
+                                                 GtkWidget    *widget,
+                                                 gint          x,
+                                                 gint          y);
 GDK_AVAILABLE_IN_ALL
-void       gtk_fixed_move              (GtkFixed       *fixed,
-                                        GtkWidget      *widget,
-                                        gint            x,
-                                        gint            y);
+void            gtk_fixed_get_child_position    (GtkFixed     *fixed,
+                                                 GtkWidget    *widget,
+                                                 gint         *x,
+                                                 gint         *y);
 
+GDK_AVAILABLE_IN_ALL
+void            gtk_fixed_set_child_transform   (GtkFixed     *fixed,
+                                                 GtkWidget    *widget,
+                                                 GskTransform *transform);
+GDK_AVAILABLE_IN_ALL
+GskTransform *  gtk_fixed_get_child_transform   (GtkFixed     *fixed,
+                                                 GtkWidget    *widget);
 
 G_END_DECLS
 

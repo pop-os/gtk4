@@ -188,8 +188,6 @@ struct _GtkCalendarPrivate
 {
   GtkCalendarDisplayOptions display_flags;
 
-  gchar grow_space [32];
-
   gint  month;
   gint  year;
   gint  selected_day;
@@ -267,9 +265,10 @@ static void     gtk_calendar_measure        (GtkWidget        *widget,
                                              int            *natural,
                                              int            *minimum_baseline,
                                              int            *natural_baseline);
-static void     gtk_calendar_size_allocate  (GtkWidget           *widget,
-                                             const GtkAllocation *allocation,
-                                             int                  baseline);
+static void     gtk_calendar_size_allocate  (GtkWidget      *widget,
+                                             int             width,
+                                             int             height,
+                                             int             baseline);
 static void     gtk_calendar_snapshot       (GtkWidget        *widget,
                                              GtkSnapshot      *snapshot);
 static void     gtk_calendar_button_press   (GtkGestureMultiPress *gesture,
@@ -296,6 +295,8 @@ static gboolean gtk_calendar_key_controller_key_pressed (GtkEventControllerKey *
                                                          GdkModifierType        state,
                                                          GtkWidget             *widget);
 static void     gtk_calendar_key_controller_focus       (GtkEventControllerKey *controller,
+                                                         GdkCrossingMode        mode,
+                                                         GdkNotifyType          detail,
                                                          GtkWidget             *widget);
 static void     gtk_calendar_grab_notify    (GtkWidget        *widget,
                                              gboolean          was_grabbed);
@@ -308,7 +309,7 @@ static gboolean gtk_calendar_query_tooltip  (GtkWidget        *widget,
                                              GtkTooltip       *tooltip);
 
 static void     gtk_calendar_drag_data_get      (GtkWidget        *widget,
-                                                 GdkDragContext   *context,
+                                                 GdkDrag          *drag, 
                                                  GtkSelectionData *selection_data);
 static void     gtk_calendar_drag_data_received (GtkWidget        *widget,
                                                  GdkDrop          *drop,
@@ -340,10 +341,10 @@ static gint calendar_get_xsep          (GtkCalendar *calendar);
 static gint calendar_get_ysep          (GtkCalendar *calendar);
 static gint calendar_get_inner_border  (GtkCalendar *calendar);
 
-static void gtk_calendar_scroll_controller_scroll (GtkEventControllerScroll *scroll,
-                                                   gdouble                   dx,
-                                                   gdouble                   dy,
-                                                   GtkWidget                *widget);
+static gboolean gtk_calendar_scroll_controller_scroll (GtkEventControllerScroll *scroll,
+                                                       gdouble                   dx,
+                                                       gdouble                   dy,
+                                                       GtkWidget                *widget);
 
 static char    *default_abbreviated_dayname[7];
 static char    *default_monthname[12];
@@ -1846,9 +1847,10 @@ gtk_calendar_measure (GtkWidget        *widget,
 }
 
 static void
-gtk_calendar_size_allocate (GtkWidget           *widget,
-                            const GtkAllocation *allocation,
-                            int                  baseline)
+gtk_calendar_size_allocate (GtkWidget *widget,
+                            int        width,
+                            int        height,
+                            int        baseline)
 {
   GtkCalendar *calendar = GTK_CALENDAR (widget);
   GtkCalendarPrivate *priv = calendar->priv;
@@ -1858,16 +1860,16 @@ gtk_calendar_size_allocate (GtkWidget           *widget,
   if (priv->display_flags & GTK_CALENDAR_SHOW_WEEK_NUMBERS)
     {
       priv->day_width = (priv->min_day_width
-                         * ((allocation->width - (inner_border * 2)
+                         * ((width - (inner_border * 2)
                              - (CALENDAR_MARGIN * 2) -  (DAY_XSEP * 6) - calendar_xsep * 2))
                          / (7 * priv->min_day_width + priv->max_week_char_width * 2));
-      priv->week_width = ((allocation->width - (inner_border * 2)
+      priv->week_width = ((width - (inner_border * 2)
                            - (CALENDAR_MARGIN * 2) - (DAY_XSEP * 6) - calendar_xsep * 2 )
                           - priv->day_width * 7 + CALENDAR_MARGIN + calendar_xsep);
     }
   else
     {
-      priv->day_width = (allocation->width
+      priv->day_width = (width
                          - (inner_border * 2)
                          - (CALENDAR_MARGIN * 2)
                          - (DAY_XSEP * 6))/7;
@@ -2010,9 +2012,9 @@ calendar_snapshot_day_names (GtkCalendar *calendar,
   get_component_paddings (calendar, NULL, &day_name_padding, NULL);
   context = gtk_widget_get_style_context (widget);
 
-  gtk_snapshot_offset (snapshot,
-                       inner_border,
-                       priv->header_h + inner_border);
+  gtk_snapshot_save (snapshot);
+  gtk_snapshot_translate (snapshot,
+                          &GRAPHENE_POINT_INIT (inner_border, priv->header_h + inner_border));
 
   day_width = priv->day_width;
   cal_width = gtk_widget_get_width (widget) - (inner_border * 2);
@@ -2073,9 +2075,7 @@ calendar_snapshot_day_names (GtkCalendar *calendar,
   g_object_unref (layout);
 
   gtk_style_context_restore (context);
-  gtk_snapshot_offset (snapshot,
-                       - inner_border,
-                       - (priv->header_h + inner_border));
+  gtk_snapshot_restore (snapshot);
 }
 
 static void
@@ -2403,16 +2403,15 @@ calendar_snapshot_arrow (GtkCalendar *calendar,
   else
     image_type = GTK_CSS_IMAGE_BUILTIN_ARROW_RIGHT;
 
-  gtk_snapshot_offset (snapshot,
-                       rect.x + (rect.width - 8) / 2,
-                       rect.y + (rect.height - 8) / 2);
+  gtk_snapshot_save (snapshot);
+  gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT(
+                          rect.x + (rect.width - 8) / 2,
+                          rect.y + (rect.height - 8) / 2));
   gtk_css_style_snapshot_icon (gtk_style_context_lookup_style (context),
                                snapshot,
                                8, 8,
                                image_type);
-  gtk_snapshot_offset (snapshot,
-                       - rect.x - (rect.width - 8) / 2,
-                       - rect.y - (rect.height - 8) / 2);
+  gtk_snapshot_restore (snapshot);
 
   gtk_style_context_restore (context);
 }
@@ -2487,7 +2486,7 @@ calendar_timer (gpointer data)
                                             TIMEOUT_REPEAT * SCROLL_DELAY_FACTOR,
                                             (GSourceFunc) calendar_timer,
                                             calendar, NULL);
-          g_source_set_name_by_id (priv->timer, "[gtk+] calendar_timer");
+          g_source_set_name_by_id (priv->timer, "[gtk] calendar_timer");
         }
       else
         retval = TRUE;
@@ -2511,7 +2510,7 @@ calendar_start_spinning (GtkCalendar *calendar,
                                         TIMEOUT_INITIAL,
                                         (GSourceFunc) calendar_timer,
                                         calendar, NULL);
-      g_source_set_name_by_id (priv->timer, "[gtk+] calendar_timer");
+      g_source_set_name_by_id (priv->timer, "[gtk] calendar_timer");
     }
 }
 
@@ -2660,7 +2659,7 @@ gtk_calendar_drag_update (GtkGestureDrag *gesture,
   GtkWidget *widget = data;
   GtkCalendarPrivate *priv = GTK_CALENDAR (widget)->priv;
   gdouble start_x, start_y;
-  GdkDragContext *context;
+  GdkDrag *drag;
   GdkContentFormats *targets;
 
   if (!priv->in_drag)
@@ -2675,18 +2674,18 @@ gtk_calendar_drag_update (GtkGestureDrag *gesture,
 
   targets = gdk_content_formats_new (NULL, 0);
   targets = gtk_content_formats_add_text_targets (targets);
-  context = gtk_drag_begin_with_coordinates (widget,
-                                             gtk_gesture_get_device (GTK_GESTURE (gesture)),
-                                             targets, GDK_ACTION_COPY,
-                                             start_x, start_y);
+  drag = gtk_drag_begin (widget,
+                         gtk_gesture_get_device (GTK_GESTURE (gesture)),
+                         targets, GDK_ACTION_COPY,
+                         start_x, start_y);
 
   priv->in_drag = 0;
   gdk_content_formats_unref (targets);
 
-  gtk_drag_set_icon_default (context);
+  gtk_drag_set_icon_default (drag);
 }
 
-static void
+static gboolean
 gtk_calendar_scroll_controller_scroll (GtkEventControllerScroll *scroll,
                                        gdouble                   dx,
                                        gdouble                   dy,
@@ -2701,6 +2700,8 @@ gtk_calendar_scroll_controller_scroll (GtkEventControllerScroll *scroll,
     calendar_set_month_prev (calendar);
   else if (dy > 0)
     calendar_set_month_next (calendar);
+
+  return GDK_EVENT_STOP;
 }
 
 
@@ -2855,6 +2856,8 @@ gtk_calendar_key_controller_key_pressed (GtkEventControllerKey *controller,
 
 static void
 gtk_calendar_key_controller_focus (GtkEventControllerKey *key,
+                                   GdkCrossingMode        mode,
+                                   GdkNotifyType          detail,
                                    GtkWidget             *widget)
 {
   GtkCalendar *calendar = GTK_CALENDAR (widget);
@@ -2900,7 +2903,7 @@ gtk_calendar_grab_notify (GtkWidget *widget,
 
 static void
 gtk_calendar_drag_data_get (GtkWidget        *widget,
-                            GdkDragContext   *context,
+                            GdkDrag          *drag,
                             GtkSelectionData *selection_data)
 {
   GtkCalendar *calendar = GTK_CALENDAR (widget);

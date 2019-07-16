@@ -56,10 +56,9 @@ typedef struct
   GtkWidget *object_center_stack;
   GtkWidget *object_title;
   GtkWidget *prop_list;
-  GtkWidget *child_prop_list;
+  GtkWidget *layout_prop_list;
   GtkWidget *selector;
   GtkWidget *signals_list;
-  GtkWidget *style_prop_list;
   GtkWidget *classes_list;
   GtkWidget *widget_css_node_tree;
   GtkWidget *widget_recorder;
@@ -69,15 +68,15 @@ typedef struct
   GtkWidget *actions;
   GtkWidget *menu;
   GtkWidget *misc_info;
-  GtkWidget *gestures;
+  GtkWidget *controllers;
   GtkWidget *magnifier;
+  GtkWidget *sidebar_revealer;
 
-  GtkWidget *invisible;
   GtkWidget *selected_widget;
 
   GList *extra_pages;
 
-  gboolean grabbed;
+  GdkSeat *grab_seat;
 
   GtkInspectorOverlay *flash_overlay;
   gint flash_count;
@@ -111,14 +110,14 @@ void                    gtk_inspector_window_remove_overlay                     
 
 void                    gtk_inspector_window_select_widget_under_pointer        (GtkInspectorWindow     *iw);
 
-void                    gtk_inspector_window_rescan                             (GtkWidget              *iw);
-
 gboolean                gtk_inspector_is_recording                              (GtkWidget              *widget);
 GskRenderNode *         gtk_inspector_prepare_render                            (GtkWidget              *widget,
                                                                                  GskRenderer            *renderer,
                                                                                  GdkSurface             *surface,
                                                                                  const cairo_region_t   *region,
                                                                                  GskRenderNode          *node);
+gboolean                gtk_inspector_handle_event                              (GdkEvent               *event);
+                                                                                
 
 G_END_DECLS
 

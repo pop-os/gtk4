@@ -18,21 +18,22 @@
 
 #include "config.h"
 
-#include <string.h>
-
-#include "gtksettings.h"
-
 #include "gtksettingsprivate.h"
-#include "gtkintl.h"
-#include "gtkwidget.h"
-#include "gtkprivate.h"
+
 #include "gtkcssproviderprivate.h"
 #include "gtkhslaprivate.h"
+#include "gtkintl.h"
+#include "gtkprivate.h"
+#include "gtkscrolledwindow.h"
+#include "gtkstylecontext.h"
 #include "gtkstyleproviderprivate.h"
 #include "gtktypebuiltins.h"
 #include "gtkversion.h"
-#include "gtkscrolledwindow.h"
+#include "gtkwidget.h"
+
 #include "gdk/gdk-private.h"
+
+#include <string.h>
 
 #ifdef GDK_WINDOWING_X11
 #include "x11/gdkx.h"
@@ -74,7 +75,7 @@
  * [XSettings](http://www.freedesktop.org/wiki/Specifications/xsettings-spec)
  * manager that is usually part of the desktop environment, along with
  * utilities that let the user change these settings. In the absence of
- * an Xsettings manager, GTK+ reads default values for settings from
+ * an Xsettings manager, GTK reads default values for settings from
  * `settings.ini` files in
  * `/etc/gtk-4.0`, `$XDG_CONFIG_DIRS/gtk-4.0`
  * and `$XDG_CONFIG_HOME/gtk-4.0`.
@@ -120,7 +121,6 @@ struct _GtkSettingsPrivate
   GdkDisplay *display;
   GSList *style_cascades;
   GtkCssProvider *theme_provider;
-  GtkCssProvider *key_theme_provider;
   gint font_size;
   gboolean font_size_absolute;
   gchar *font_family;
@@ -149,7 +149,6 @@ enum {
   PROP_SPLIT_CURSOR,
   PROP_THEME_NAME,
   PROP_ICON_THEME_NAME,
-  PROP_KEY_THEME_NAME,
   PROP_DND_DRAG_THRESHOLD,
   PROP_FONT_NAME,
   PROP_XFT_ANTIALIAS,
@@ -215,7 +214,6 @@ static void    settings_update_font_options      (GtkSettings           *setting
 static void    settings_update_font_values       (GtkSettings           *settings);
 static gboolean settings_update_fontconfig       (GtkSettings           *settings);
 static void    settings_update_theme             (GtkSettings           *settings);
-static void    settings_update_key_theme         (GtkSettings           *settings);
 static gboolean settings_update_xsetting         (GtkSettings           *settings,
                                                   GParamSpec            *pspec,
                                                   gboolean               force);
@@ -420,15 +418,6 @@ gtk_settings_class_init (GtkSettingsClass *class)
   g_assert (result == PROP_ICON_THEME_NAME);
 
   result = settings_install_property_parser (class,
-                                             g_param_spec_string ("gtk-key-theme-name",
-                                                                  P_("Key Theme Name"),
-                                                                  P_("Name of key theme to load"),
-                                                                  NULL,
-                                                                  GTK_PARAM_READWRITE),
-                                             NULL);
-  g_assert (result == PROP_KEY_THEME_NAME);
-
-  result = settings_install_property_parser (class,
                                              g_param_spec_int ("gtk-dnd-drag-threshold",
                                                                P_("Drag threshold"),
                                                                P_("Number of pixels the cursor can move before dragging"),
@@ -440,7 +429,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
   /**
    * GtkSettings:gtk-font-name:
    *
-   * The default font to use. GTK+ uses the family name and size from this string.
+   * The default font to use. GTK uses the family name and size from this string.
    */
   result = settings_install_property_parser (class,
                                              g_param_spec_string ("gtk-font-name",
@@ -578,7 +567,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
    * GtkSettings:gtk-print-backends:
    *
    * A comma-separated list of print backends to use in the print
-   * dialog. Available print backends depend on the GTK+ installation,
+   * dialog. Available print backends depend on the GTK installation,
    * and may include "file", "cups", "lpr" or "papi".
    */
   result = settings_install_property_parser (class,
@@ -633,7 +622,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
    * Which IM (input method) module should be used by default. This is the
    * input method that will be used if the user has not explicitly chosen
    * another input method from the IM context menu.
-   * This also can be a colon-separated list of input methods, which GTK+
+   * This also can be a colon-separated list of input methods, which GTK
    * will try in turn until it finds one available on the system.
    *
    * See #GtkIMContext.
@@ -683,7 +672,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
    * See the [Sound Theme Specifications](http://www.freedesktop.org/wiki/Specifications/sound-theme-spec)
    * for more information on event sounds and sound themes.
    *
-   * GTK+ itself does not support event sounds, you have to use a loadable
+   * GTK itself does not support event sounds, you have to use a loadable
    * module like the one that comes with libcanberra.
    */
   result = settings_install_property_parser (class,
@@ -703,7 +692,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
    * See the [Sound Theme Specifications](http://www.freedesktop.org/wiki/Specifications/sound-theme-spec)
    * for more information on event sounds and sound themes.
    *
-   * GTK+ itself does not support event sounds, you have to use a loadable
+   * GTK itself does not support event sounds, you have to use a loadable
    * module like the one that comes with libcanberra.
    */
   result = settings_install_property_parser (class,
@@ -724,7 +713,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
    * See the [Sound Theme Specifications](http://www.freedesktop.org/wiki/Specifications/sound-theme-spec)
    * for more information on event sounds and sound themes.
    *
-   * GTK+ itself does not support event sounds, you have to use a loadable
+   * GTK itself does not support event sounds, you have to use a loadable
    * module like the one that comes with libcanberra.
    */
   result = settings_install_property_parser (class,
@@ -745,7 +734,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
    * slider/value to move by the range’s page-size towards the point clicked.
    *
    * Whichever action you choose for the primary button, the other action will
-   * be available by holding Shift and primary-clicking, or (since GTK+ 3.22.25)
+   * be available by holding Shift and primary-clicking, or (since GTK 3.22.25)
    * clicking the middle mouse button.
    */
   result = settings_install_property_parser (class,
@@ -760,7 +749,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
   /**
    * GtkSettings:gtk-application-prefer-dark-theme:
    *
-   * Whether the application prefers to use a dark theme. If a GTK+ theme
+   * Whether the application prefers to use a dark theme. If a GTK theme
    * includes a dark variant, it will be used instead of the configured
    * theme.
    *
@@ -935,7 +924,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
   /**
    * GtkSettings:gtk-dialogs-use-header:
    *
-   * Whether builtin GTK+ dialogs such as the file chooser, the
+   * Whether builtin GTK dialogs such as the file chooser, the
    * color chooser or the font chooser will use a header bar at
    * the top to show action widgets, or an action area at the bottom.
    *
@@ -945,7 +934,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
   result = settings_install_property_parser (class,
                                              g_param_spec_boolean ("gtk-dialogs-use-header",
                                                                    P_("Dialogs use header bar"),
-                                                                   P_("Whether builtin GTK+ dialogs should use a header bar instead of an action area."),
+                                                                   P_("Whether builtin GTK dialogs should use a header bar instead of an action area."),
                                                                    FALSE,
                                                                    GTK_PARAM_READWRITE),
                                              NULL);
@@ -969,13 +958,13 @@ gtk_settings_class_init (GtkSettingsClass *class)
   /**
    * GtkSettings:gtk-recent-files-enabled:
    *
-   * Whether GTK+ should keep track of items inside the recently used
+   * Whether GTK should keep track of items inside the recently used
    * resources list. If set to %FALSE, the list will always be empty.
    */
   result = settings_install_property_parser (class,
                                              g_param_spec_boolean ("gtk-recent-files-enabled",
                                                                    P_("Recent Files Enabled"),
-                                                                   P_("Whether GTK+ remembers recent files"),
+                                                                   P_("Whether GTK remembers recent files"),
                                                                    TRUE,
                                                                    GTK_PARAM_READWRITE),
                                              NULL);
@@ -998,7 +987,7 @@ gtk_settings_class_init (GtkSettingsClass *class)
   /**
    * GtkSettings:gtk-keynav-use-caret:
    *
-   * Whether GTK+ should make sure that text can be navigated with
+   * Whether GTK should make sure that text can be navigated with
    * a caret, even if it is not editable. This is useful when using
    * a screen reader.
    */
@@ -1040,7 +1029,6 @@ gtk_settings_finalize (GObject *object)
   g_datalist_clear (&priv->queued_settings);
 
   settings_update_provider (priv->display, &priv->theme_provider, NULL);
-  settings_update_provider (priv->display, &priv->key_theme_provider, NULL);
   g_slist_free_full (priv->style_cascades, g_object_unref);
 
   if (priv->font_options)
@@ -1119,7 +1107,6 @@ settings_init_style (GtkSettings *settings)
                                    GTK_STYLE_PROVIDER_PRIORITY_SETTINGS);
 
   settings_update_theme (settings);
-  settings_update_key_theme (settings);
 }
 
 static void
@@ -1151,33 +1138,6 @@ gtk_settings_create_for_display (GdkDisplay *display)
                              "gtk-shell-shows-app-menu", TRUE,
                              "gtk-shell-shows-menubar", TRUE,
                              NULL);
-  else
-#endif
-#ifdef GDK_WINDOWING_BROADWAY
-    if (GDK_IS_BROADWAY_DISPLAY (display))
-      settings = g_object_new (GTK_TYPE_SETTINGS,
-                               "gtk-im-module", "broadway",
-                               NULL);
-  else
-#endif
-#ifdef GDK_WINDOWING_WAYLAND
-    if (GDK_IS_WAYLAND_DISPLAY (display))
-      {
-        if (gdk_wayland_display_query_registry (display,
-                                                "gtk_text_input_manager"))
-          {
-            settings = g_object_new (GTK_TYPE_SETTINGS,
-                                     "gtk-im-module", "wayland",
-                                     NULL);
-          }
-        else
-          {
-            /* Fallback to other IM methods if the compositor does not
-             * implement the interface(s).
-             */
-            settings = g_object_new (GTK_TYPE_SETTINGS, NULL);
-          }
-      }
   else
 #endif
     settings = g_object_new (GTK_TYPE_SETTINGS, NULL);
@@ -1326,9 +1286,6 @@ gtk_settings_notify (GObject    *object,
       settings_update_font_values (settings);
       settings_invalidate_style (settings);
       gtk_style_context_reset_widgets (priv->display);
-      break;
-    case PROP_KEY_THEME_NAME:
-      settings_update_key_theme (settings);
       break;
     case PROP_THEME_NAME:
     case PROP_APPLICATION_PREFER_DARK_THEME:
@@ -2258,8 +2215,9 @@ settings_update_theme (GtkSettings *settings)
 
   get_theme_name (settings, &theme_name, &theme_variant);
 
-  _gtk_css_provider_load_named (priv->theme_provider,
-                                theme_name, theme_variant);
+  gtk_css_provider_load_named (priv->theme_provider,
+                               theme_name,
+                               theme_variant);
 
   /* reload per-theme settings */
   theme_dir = _gtk_css_provider_get_theme_dir (priv->theme_provider);
@@ -2273,24 +2231,6 @@ settings_update_theme (GtkSettings *settings)
 
   g_free (theme_name);
   g_free (theme_variant);
-}
-
-static void
-settings_update_key_theme (GtkSettings *settings)
-{
-  GtkSettingsPrivate *priv = settings->priv;
-  GtkCssProvider *provider = NULL;
-  gchar *key_theme_name;
-
-  g_object_get (settings,
-                "gtk-key-theme-name", &key_theme_name,
-                NULL);
-
-  if (key_theme_name && *key_theme_name)
-    provider = gtk_css_provider_get_named (key_theme_name, "keys");
-
-  settings_update_provider (priv->display, &priv->key_theme_provider, provider);
-  g_free (key_theme_name);
 }
 
 const cairo_font_options_t *

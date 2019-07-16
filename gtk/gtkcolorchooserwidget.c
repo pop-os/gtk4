@@ -29,6 +29,7 @@
 #include "gtkprivate.h"
 #include "gtkintl.h"
 #include "gtksizegroup.h"
+#include "gtkstylecontext.h"
 
 #include <math.h>
 
@@ -531,14 +532,14 @@ gtk_color_chooser_widget_init (GtkColorChooserWidget *cc)
 
   add_default_palette (cc);
 
-  cc->priv->custom = box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
-  g_object_set (box, "margin-top", 12, NULL);
-  gtk_box_pack_end (GTK_BOX (cc->priv->palette), box);
-
   /* translators: label for the custom section in the color chooser */
   cc->priv->custom_label = label = gtk_label_new (_("Custom"));
   gtk_widget_set_halign (label, GTK_ALIGN_START);
-  gtk_box_pack_end (GTK_BOX (cc->priv->palette), label);
+  gtk_container_add (GTK_CONTAINER (cc->priv->palette), label);
+
+  cc->priv->custom = box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
+  g_object_set (box, "margin-top", 12, NULL);
+  gtk_container_add (GTK_CONTAINER (cc->priv->palette), box);
 
   cc->priv->button = button = gtk_color_swatch_new ();
   gtk_widget_set_name (button, "add-color-button");
@@ -550,7 +551,7 @@ gtk_color_chooser_widget_init (GtkColorChooserWidget *cc)
   gtk_color_swatch_set_selectable (GTK_COLOR_SWATCH (button), FALSE);
   gtk_container_add (GTK_CONTAINER (box), button);
 
-  cc->priv->settings = g_settings_new ("org.gtk.Settings.ColorChooser");
+  cc->priv->settings = g_settings_new ("org.gtk.gtk4.Settings.ColorChooser");
   variant = g_settings_get_value (cc->priv->settings, I_("custom-colors"));
   g_variant_iter_init (&iter, variant);
   i = 0;
@@ -570,7 +571,7 @@ gtk_color_chooser_widget_init (GtkColorChooserWidget *cc)
       connect_custom_signals (p, cc);
       gtk_container_add (GTK_CONTAINER (box), p);
 
-      if (i == 9)
+      if (i == 8)
         break;
     }
   g_variant_unref (variant);
@@ -745,8 +746,7 @@ add_custom_color (GtkColorChooserWidget *cc,
   gtk_color_swatch_set_can_drop (GTK_COLOR_SWATCH (p), TRUE);
   connect_custom_signals (p, cc);
 
-  gtk_container_add (GTK_CONTAINER (cc->priv->custom), p);
-  gtk_box_reorder_child (GTK_BOX (cc->priv->custom), p, 1);
+  gtk_box_insert_child_after (GTK_BOX (cc->priv->custom), p, gtk_widget_get_first_child (cc->priv->custom));
   gtk_widget_show (p);
 
   select_swatch (cc, GTK_COLOR_SWATCH (p));

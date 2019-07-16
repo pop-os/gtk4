@@ -171,6 +171,7 @@ enum
   PROP_ROLE,
   PROP_ICON,
   PROP_TEXT,
+  PROP_USE_MARKUP,
   PROP_ACTIVE,
   PROP_MENU_NAME,
   PROP_INVERTED,
@@ -390,6 +391,19 @@ gtk_model_button_set_text (GtkModelButton *button,
 }
 
 static void
+gtk_model_button_set_use_markup (GtkModelButton *button,
+                                 gboolean        use_markup)
+{
+  use_markup = !!use_markup;
+  if (gtk_label_get_use_markup (GTK_LABEL (button->label)) == use_markup)
+    return;
+
+  gtk_label_set_use_markup (GTK_LABEL (button->label), use_markup);
+  update_visibility (button);
+  g_object_notify_by_pspec (G_OBJECT (button), properties[PROP_USE_MARKUP]);
+}
+
+static void
 gtk_model_button_set_active (GtkModelButton *button,
                              gboolean        active)
 {
@@ -507,6 +521,10 @@ gtk_model_button_get_property (GObject    *object,
       g_value_set_string (value, gtk_label_get_text (GTK_LABEL (button->label)));
       break;
 
+    case PROP_USE_MARKUP:
+      g_value_set_boolean (value, gtk_label_get_use_markup (GTK_LABEL (button->label)));
+      break;
+
     case PROP_ACTIVE:
       g_value_set_boolean (value, button->active);
       break;
@@ -553,6 +571,10 @@ gtk_model_button_set_property (GObject      *object,
 
     case PROP_TEXT:
       gtk_model_button_set_text (button, g_value_get_string (value));
+      break;
+
+    case PROP_USE_MARKUP:
+      gtk_model_button_set_use_markup (button, g_value_get_boolean (value));
       break;
 
     case PROP_ACTIVE:
@@ -756,14 +778,16 @@ gtk_model_button_measure (GtkWidget      *widget,
 }
 
 static void
-gtk_model_button_size_allocate (GtkWidget           *widget,
-                                const GtkAllocation *allocation,
-                                int                  baseline)
+gtk_model_button_size_allocate (GtkWidget *widget,
+                                int        width,
+                                int        height,
+                                int        baseline)
 {
   if (GTK_MODEL_BUTTON (widget)->iconic)
     {
       GTK_WIDGET_CLASS (gtk_model_button_parent_class)->size_allocate (widget,
-                                                                       allocation,
+                                                                       width,
+                                                                       height,
                                                                        baseline);
     }
   else
@@ -791,10 +815,10 @@ gtk_model_button_size_allocate (GtkWidget           *widget,
                           NULL, NULL);
 
       if (indicator_is_left (widget))
-        child_allocation.x = allocation->x;
+        child_allocation.x = 0;
       else
-        child_allocation.x = allocation->x + allocation->width - check_nat_width;
-      child_allocation.y = allocation->y + (allocation->height - check_nat_height) / 2;
+        child_allocation.x = width - check_nat_width;
+      child_allocation.y = (height - check_nat_height) / 2;
       child_allocation.width = check_nat_width;
       child_allocation.height = check_nat_height;
 
@@ -817,10 +841,10 @@ gtk_model_button_size_allocate (GtkWidget           *widget,
                 border.right += check_nat_width;
             }
 
-          child_allocation.x = allocation->x + border.left;
-          child_allocation.y = allocation->y + border.top;
-          child_allocation.width = allocation->width - border.left - border.right;
-          child_allocation.height = allocation->height - border.top - border.bottom;
+          child_allocation.x = border.left;
+          child_allocation.y = border.top;
+          child_allocation.width = width - border.left - border.right;
+          child_allocation.height = height - border.top - border.bottom;
 
           if (baseline != -1)
             baseline -= border.top;
@@ -828,29 +852,6 @@ gtk_model_button_size_allocate (GtkWidget           *widget,
           gtk_widget_size_allocate (child, &child_allocation, baseline);
         }
     }
-}
-
-static void
-gtk_model_button_snapshot (GtkWidget   *widget,
-                           GtkSnapshot *snapshot)
-{
-  if (GTK_MODEL_BUTTON (widget)->iconic)
-    {
-      GTK_WIDGET_CLASS (gtk_model_button_parent_class)->snapshot (widget, snapshot);
-    }
-  else
-    {
-      GtkWidget *child;
-      GtkModelButton *button = GTK_MODEL_BUTTON (widget);
-
-      if (gtk_widget_get_visible (button->indicator_widget))
-        gtk_widget_snapshot_child (widget, button->indicator_widget, snapshot);
-
-      child = gtk_bin_get_child (GTK_BIN (widget));
-      if (child)
-        gtk_widget_snapshot_child (widget, child, snapshot);
-    }
-
 }
 
 static void
@@ -909,7 +910,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
 
   widget_class->measure = gtk_model_button_measure;
   widget_class->size_allocate = gtk_model_button_size_allocate;
-  widget_class->snapshot = gtk_model_button_snapshot;
   widget_class->destroy = gtk_model_button_destroy;
   widget_class->state_flags_changed = gtk_model_button_state_flags_changed;
   widget_class->direction_changed = gtk_model_button_direction_changed;
@@ -955,6 +955,20 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
                          P_("The text"),
                          "",
                          G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
+
+  /**
+   * GtkModelButton:use-markup:
+   *
+   * If %TRUE, XML tags in the text of the button are interpreted as by
+   * pango_parse_markup() to format the enclosed spans of text. If %FALSE, the
+   * text will be displayed verbatim.
+   */
+  properties[PROP_USE_MARKUP] =
+    g_param_spec_boolean ("use-markup",
+                          P_("Use markup"),
+                          P_("The text of the button includes XML markup. See pango_parse_markup()"),
+                          FALSE,
+                          G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
 
   /**
    * GtkModelButton:active:

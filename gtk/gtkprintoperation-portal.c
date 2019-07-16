@@ -37,6 +37,7 @@
 #include "gtkshow.h"
 #include "gtkintl.h"
 #include "gtkwindowprivate.h"
+#include "gtkprivate.h"
 
 
 typedef struct {
@@ -61,6 +62,8 @@ portal_data_free (gpointer data)
 {
   PortalData *portal = data;
 
+  if (portal->parent)
+    gtk_window_unexport_handle (portal->parent);
   g_object_unref (portal->op);
   g_object_unref (portal->proxy);
   if (portal->loop)
@@ -377,7 +380,7 @@ prepare_print_response (GDBusConnection *connection,
 {
   PortalData *portal = data;
   guint32 response;
-  GVariant *options;
+  GVariant *options = NULL;
 
   if (portal->response_signal_id != 0)
     {
@@ -426,6 +429,9 @@ prepare_print_response (GDBusConnection *connection,
   else
     portal->result = GTK_PRINT_OPERATION_RESULT_CANCEL;
 
+  if (options)
+    g_variant_unref (options);
+
   if (portal->loop)
     g_main_loop_quit (portal->loop);
 }
@@ -461,8 +467,8 @@ prepare_print_called (GObject      *source,
                                             portal->response_signal_id);
       portal->response_signal_id =
         g_dbus_connection_signal_subscribe (g_dbus_proxy_get_connection (G_DBUS_PROXY (portal->proxy)),
-                                            "org.freedesktop.portal.Desktop",
-                                            "org.freedesktop.portal.Request",
+                                            PORTAL_BUS_NAME,
+                                            PORTAL_REQUEST_INTERFACE,
                                             "Response",
                                             handle,
                                             NULL,
@@ -491,9 +497,9 @@ create_portal_data (GtkPrintOperation          *op,
   proxy = g_dbus_proxy_new_for_bus_sync (G_BUS_TYPE_SESSION,
                                          G_DBUS_PROXY_FLAGS_NONE,
                                          NULL,
-                                         "org.freedesktop.portal.Desktop",
-                                         "/org/freedesktop/portal/desktop",
-                                         "org.freedesktop.portal.Print",
+                                         PORTAL_BUS_NAME,
+                                         PORTAL_OBJECT_PATH,
+                                         PORTAL_PRINT_INTERFACE,
                                          NULL,
                                          &error);
 
@@ -555,22 +561,14 @@ call_prepare_print (GtkPrintOperation *op,
   GtkPrintOperationPrivate *priv = op->priv;
   GVariantBuilder opt_builder;
   char *token;
-  char *sender;
-  int i;
 
-  token = g_strdup_printf ("gtk%d", g_random_int_range (0, G_MAXINT));
-  sender = g_strdup (g_dbus_connection_get_unique_name (g_dbus_proxy_get_connection (portal->proxy)) + 1);
-  for (i = 0; sender[i]; i++)
-    if (sender[i] == '.')
-      sender[i] = '_';
-
-  portal->prepare_print_handle = g_strdup_printf ("/org/fredesktop/portal/desktop/request/%s/%s", sender, token);
-  g_free (sender);
+  portal->prepare_print_handle =
+      gtk_get_portal_request_path (g_dbus_proxy_get_connection (portal->proxy), &token);
 
   portal->response_signal_id =
     g_dbus_connection_signal_subscribe (g_dbus_proxy_get_connection (G_DBUS_PROXY (portal->proxy)),
-                                        "org.freedesktop.portal.Desktop",
-                                        "org.freedesktop.portal.Request",
+                                        PORTAL_BUS_NAME,
+                                        PORTAL_REQUEST_INTERFACE,
                                         "Response",
                                         portal->prepare_print_handle,
                                         NULL,

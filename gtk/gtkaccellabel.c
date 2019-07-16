@@ -160,14 +160,19 @@ static void gtk_accel_label_measure (GtkWidget      *widget,
 G_DEFINE_TYPE_WITH_PRIVATE (GtkAccelLabel, gtk_accel_label, GTK_TYPE_WIDGET)
 
 static void
-gtk_accel_label_size_allocate (GtkWidget           *widget,
-                               const GtkAllocation *allocation,
-                               int                   baseline)
+gtk_accel_label_size_allocate (GtkWidget *widget,
+                               int        width,
+                               int        height,
+                               int        baseline)
 {
   GtkAccelLabel *al = GTK_ACCEL_LABEL (widget);
   GtkAccelLabelPrivate *priv = gtk_accel_label_get_instance_private (al);
 
-  gtk_widget_size_allocate (priv->box, allocation, baseline);
+  gtk_widget_size_allocate (priv->box,
+                            &(GtkAllocation) {
+                              0, 0,
+                              width, height
+                            },baseline);
 }
 
 static void
@@ -722,64 +727,71 @@ _gtk_accel_label_class_get_accelerator_label (GtkAccelLabelClass *klass,
   GString *gstring;
   gboolean seen_mod = FALSE;
   gunichar ch;
-  
-  gstring = g_string_new ("");
-  
+
+  gstring = g_string_sized_new (10); /* ~len('backspace') */
+
   if (accelerator_mods & GDK_SHIFT_MASK)
     {
       g_string_append (gstring, klass->mod_name_shift);
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_CONTROL_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
       g_string_append (gstring, klass->mod_name_control);
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_MOD1_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
       g_string_append (gstring, klass->mod_name_alt);
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_MOD2_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
 
       g_string_append (gstring, "Mod2");
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_MOD3_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
 
       g_string_append (gstring, "Mod3");
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_MOD4_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
 
       g_string_append (gstring, "Mod4");
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_MOD5_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
 
       g_string_append (gstring, "Mod5");
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_SUPER_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
 
       /* This is the text that should appear next to menu accelerators
        * that use the super key. If the text on this key isn't typically
@@ -789,10 +801,11 @@ _gtk_accel_label_class_get_accelerator_label (GtkAccelLabelClass *klass,
       g_string_append (gstring, C_("keyboard label", "Super"));
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_HYPER_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
 
       /* This is the text that should appear next to menu accelerators
        * that use the hyper key. If the text on this key isn't typically
@@ -802,10 +815,11 @@ _gtk_accel_label_class_get_accelerator_label (GtkAccelLabelClass *klass,
       g_string_append (gstring, C_("keyboard label", "Hyper"));
       seen_mod = TRUE;
     }
+
   if (accelerator_mods & GDK_META_MASK)
     {
       if (seen_mod)
-	g_string_append (gstring, klass->mod_separator);
+        g_string_append (gstring, klass->mod_separator);
 
 #ifndef GDK_WINDOWING_QUARTZ
       /* This is the text that should appear next to menu accelerators
@@ -1062,9 +1076,11 @@ gtk_accel_label_set_use_underline (GtkAccelLabel *accel_label,
  * gtk_accel_label_get_use_underline:
  * @accel_label: a #GtkAccelLabel
  *
- * Returns: Whether the accel label interprets underscores in it's
- * GtkAccelLabel:label property as mnemonic indicators.
+ * Returns whether the accel label interprets underscores in it's
+ * label property as mnemonic indicators.
  * See gtk_accel_label_set_use_underline() and gtk_label_set_use_underline();
+ *
+ * Returns: whether the accel label uses mnemonic underlines
  */
 gboolean
 gtk_accel_label_get_use_underline (GtkAccelLabel *accel_label)

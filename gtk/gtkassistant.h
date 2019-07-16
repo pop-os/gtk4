@@ -118,6 +118,16 @@ struct _GtkAssistantClass
   void (*_gtk_reserved5) (void);
 };
 
+#define GTK_TYPE_ASSISTANT_PAGE (gtk_assistant_page_get_type ())
+#define GTK_ASSISTANT_PAGE(obj) (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_ASSISTANT_PAGE, GtkAssistantPage))
+#define GTK_ASSISTANT_PAGE_CLASS(klass) (G_TYPE_CHECK_CLASS_CAST ((klass), GTK_TYPE_ASSISTANT_PAGE, GtkAssistantPageClass))
+#define GTK_IS_ASSISTANT_PAGE(obj) (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_ASSISTANT_PAGE))
+#define GTK_IS_ASSISTANT_PAGE_CLASS(klass) (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_ASSISTANT_PAGE))
+#define GTK_ASSISTANT_PAGE_GET_CLASS(obj) (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_ASSISTANT_PAGE, GtkAssistantPageClass))
+
+typedef struct _GtkAssistantPage GtkAssistantPage;
+typedef struct _GtkAssistantPageClass GtkAssistantPageClass;
+
 /**
  * GtkAssistantPageFunc:
  * @current_page: The page number used to calculate the next page.
@@ -132,6 +142,8 @@ struct _GtkAssistantClass
  */
 typedef gint (*GtkAssistantPageFunc) (gint current_page, gpointer data);
 
+GDK_AVAILABLE_IN_ALL
+GType                 gtk_assistant_page_get_type         (void) G_GNUC_CONST;
 GDK_AVAILABLE_IN_ALL
 GType                 gtk_assistant_get_type              (void) G_GNUC_CONST;
 GDK_AVAILABLE_IN_ALL
@@ -203,12 +215,13 @@ GDK_AVAILABLE_IN_ALL
 void                  gtk_assistant_commit                (GtkAssistant *assistant);
 
 GDK_AVAILABLE_IN_ALL
-void                  gtk_assistant_set_page_has_padding  (GtkAssistant *assistant,
-                                                           GtkWidget    *page,
-                                                           gboolean      has_padding);
+GtkAssistantPage *    gtk_assistant_get_page       (GtkAssistant     *assistant,
+                                                    GtkWidget        *child);
 GDK_AVAILABLE_IN_ALL
-gboolean              gtk_assistant_get_page_has_padding  (GtkAssistant *assistant,
-                                                           GtkWidget    *page);
+GtkWidget *           gtk_assistant_page_get_child (GtkAssistantPage *page);
+
+GDK_AVAILABLE_IN_ALL
+GListModel *          gtk_assistant_get_pages (GtkAssistant *assistant);
 
 G_END_DECLS
 
