@@ -15,6 +15,7 @@ gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
     - Update build-dependencies
     - d/copyright: Update
     - d/patches: Delete patches that aren't applied
+    - Refresh patch series and drop applied patches
     - d/p/gdk-x11-Check-if-we-have-access-to-GL-before-using-G.patch:
       Drop, obsoleted by commit 02eb344 in GTK 3.93
     - d/p/no-accessibility-dump.patch: Drop, no longer needed.
@@ -29,6 +30,7 @@ gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
       while non-backend IM modules have been removed.
     - d/rules: Update Meson options, mostly removing enable- prefix
     - d/libgtk-4-0.symbols: Update
+    - Update lists of installed files
   * d/patches: Refresh remaining patches through gbp pq
     - Get date/author information from d/changelog where needed
   * Generate a dependency on a virtual package that reflects the unstable
@@ -48,10 +50,6 @@ gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
   * Build installed-tests and run them as autopkgtests (similar to #908440)
     - Install them in gtk-4-examples for now to avoid the NEW queue
     - Mark them as flaky for now
-    - d/p/testsuite-Install-accessibility-dump-executable-alongside.patch,
-      d/p/reftests-Fix-path-to-installed-tests-in-.test-metadata.patch,
-      d/p/testsuite-Make-installed-test-metadata-consistent-with-te.patch:
-      Add patches (already in upstream git) to fix some tests
   * d/tests/control: Mark python3-gi as flaky until python3-gi overrides
     get updated for the rename of Gdk.Window to Gdk.Surface
   * d/tests/build: Update for GTK 4.0
@@ -74,11 +72,14 @@ gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
   * Add test-dependency on xvfb so we can run the built program
   * Change library name (and download location) from GTK+ to GTK,
     following upstream re-branding
+  * Add Build-Depends-Package to symbols file
+  * d/p/testsuite-Remove-dangling-references-to-box-packing-tests.patch:
+    Fix dangling references to removed box-packing tests
 
   [ Laurent Bigonville ]
   * Add Closes statement for #910640
 
- -- Simon McVittie <smcv@debian.org>  Tue, 16 Jul 2019 10:33:48 +0100
+ -- Simon McVittie <smcv@debian.org>  Wed, 17 Jul 2019 17:54:45 +0100
 
 gtk+4.0 (3.91.2-1) experimental; urgency=medium
 
