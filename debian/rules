@@ -192,7 +192,7 @@ override_dh_install:
 
 override_dh_missing:
 	dh_missing --sourcedir=debian/install/udeb --list-missing -X.la
-	dh_missing --sourcedir=debian/install/deb --list-missing -X.la
+	dh_missing --sourcedir=debian/install/deb --fail-missing -X.la
 
 override_dh_installdocs:
 	dh_installdocs -p$(COMMON_PKG) AUTHORS README.md NEWS
