@@ -1,5 +1,7 @@
 usr/include/gtk*
 usr/lib/*/libgtk*.so
 usr/lib/*/pkgconfig/g?k*
+usr/share/gettext/its/gtk4builder.its
+usr/share/gettext/its/gtk4builder.loc
 usr/share/gir-1.0
-usr/share/gtk-4.0/gtkbuilder.rng
+usr/share/gtk-4.0/gtk4builder.rng
