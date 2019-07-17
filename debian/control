@@ -6,7 +6,7 @@ Uploaders: Emilio Pozuelo Monfort <pochu@debian.org>, Iain Lane <laney@debian.or
 Build-Depends: adwaita-icon-theme <!nocheck>,
                at-spi2-core <!nocheck>,
                dbus <!nocheck>,
-               debhelper (>= 10.3~),
+               debhelper-compat (= 12),
                dpkg-dev (>= 1.17.14),
                gnome-pkg-tools (>= 0.11),
                gobject-introspection (>= 1.41.3),
