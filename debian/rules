@@ -95,7 +95,7 @@ debian/%: debian/%.in
 
 configure_flags_common = \
 	--libdir=/$(LIBDIR) \
-	--libexecdir=/usr/libexec
+	${NULL}
 
 configure_flags_deb = \
 	-Dbroadway-backend=true \
