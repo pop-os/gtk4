@@ -1,4 +1,5 @@
 libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#, libgtk-@APIVER@-@SONAME@
+* Build-Depends-Package: libgtk-4-dev
  gdk_anchor_hints_get_type@Base 3.91.2
  gdk_app_launch_context_get_type@Base 3.91.2
  gdk_app_launch_context_set_desktop@Base 3.91.2
