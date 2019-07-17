@@ -17,4 +17,5 @@ usr/share/man/*/gtk4-demo.*
 usr/share/man/*/gtk4-encode-symbolic-svg.*
 usr/share/man/*/gtk4-icon-browser.*
 usr/share/man/*/gtk4-widget-factory.*
+usr/share/metainfo/org.gtk.Demo4.appdata.xml
 usr/share/metainfo/org.gtk.WidgetFactory4.appdata.xml
