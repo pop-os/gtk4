@@ -177,7 +177,7 @@ Files:
        gtk/inspector/highlightoverlay.*
        gtk/inspector/inspectoroverlay.*
        gtk/inspector/updatesoverlay.*
-       gtk/org.gtk.Settings.FileChooser.gschema.xml
+       gtk/org.gtk.gtk4.Settings.FileChooser.gschema.xml
        modules/media/gtkffmediafile.c
        modules/media/gtkffmediafileprivate.h
        modules/media/gtkgstmediafile.c
