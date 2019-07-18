@@ -22,9 +22,9 @@ gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
       The build-time tests correctly set GTK_CSD=1 now.
     - Disable GStreamer video support for now
     - Stop installing gtk4-query-immodules, superseded by gio-querymodules
-    - d/libgtk-4-common.install.in: Don't install im-multipress.conf,
-      no longer available (the multipress IM module is unmaintained and
-      was removed)
+    - Don't install im-multipress.conf, no longer available (the multipress
+      IM module is unmaintained and was removed). Remove obsolete conffile
+      during upgrade.
     - d/libgtk-4-0.install.in: Don't install IM modules. The backend IM
       modules such as XIM and Wayland are now linked into GTK itself,
       while non-backend IM modules have been removed.
