@@ -1,4 +1,6 @@
-gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.96.0-1) experimental; urgency=medium
+
+  * Team upload
 
   [ Jeremy Bicha ]
   * New upstream release 3.92
@@ -77,11 +79,21 @@ gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
     Fix dangling references to removed box-packing tests
   * d/p/gtk4.pc-Move-third-party-libraries-from-Libs-to-Libs.priv.patch:
     Improve .pc file to avoid over-linking (and Lintian false-positives)
+  * Use debhelper-compat 12
+  * Remove infrastructure for dealing with reftests that are known to fail
+  * d/not-installed: Remove
+  * d/rules: Fail the build if anything from the deb build is not installed
+  * Only install AUTHORS in -doc package
+  * Install documentation in /usr/share/gtk-doc, with symlinks in /u/s/doc.
+    gtk-doc documentation is technically part of the package's functional
+    interface, since other packages use it to adjust cross-references.
+  * Standards-Version: 4.4.0 (no changes required)
+  * Set Rules-Requires-Root to no
 
   [ Laurent Bigonville ]
   * Add Closes statement for #910640
 
- -- Simon McVittie <smcv@debian.org>  Wed, 17 Jul 2019 17:54:45 +0100
+ -- Simon McVittie <smcv@debian.org>  Thu, 18 Jul 2019 09:22:44 +0100
 
 gtk+4.0 (3.91.2-1) experimental; urgency=medium
 
