@@ -75,6 +75,8 @@ gtk+4.0 (3.96.0-1) UNRELEASED; urgency=medium
   * Add Build-Depends-Package to symbols file
   * d/p/testsuite-Remove-dangling-references-to-box-packing-tests.patch:
     Fix dangling references to removed box-packing tests
+  * d/p/gtk4.pc-Move-third-party-libraries-from-Libs-to-Libs.priv.patch:
+    Improve .pc file to avoid over-linking (and Lintian false-positives)
 
   [ Laurent Bigonville ]
   * Add Closes statement for #910640
