@@ -116,7 +116,7 @@ endif
 ifeq (linux,$(DEB_HOST_ARCH_OS))
 configure_flags_deb += -Dwayland-backend=true
 else
-configure_flags_deb += -Dwayland-backend=true
+configure_flags_deb += -Dwayland-backend=false
 endif
 
 configure_flags_udeb = \
