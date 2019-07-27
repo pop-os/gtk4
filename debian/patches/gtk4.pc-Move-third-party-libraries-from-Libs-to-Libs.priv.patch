@@ -11,6 +11,8 @@ shared libraries, in which case pkg-config should be built with
 --enable-indirect-deps).
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
+Forwarded: https://gitlab.gnome.org/GNOME/gtk/merge_requests/998
+Applied-upstream: 3.97.0, commit:01a6bbdc738c3a61f5806b977e2cd9911f71507d
 ---
  gtk4.pc.in | 3 ++-
  1 file changed, 2 insertions(+), 1 deletion(-)

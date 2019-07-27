@@ -5,6 +5,8 @@ Subject: testsuite: Remove dangling references to box-packing tests
 These were removed in commit c47abb5f, before 3.96.0.
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
+Forwarded: https://gitlab.gnome.org/GNOME/gtk/merge_requests/997
+Applied-upstream: 3.97.0, commit:5cfe9ab6033f85a8cd9d6eef541427f4fd0efc74
 ---
  testsuite/css/nodes/meson.build | 4 ----
  1 file changed, 4 deletions(-)
