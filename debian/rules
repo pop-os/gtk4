@@ -193,7 +193,9 @@ override_dh_install:
 	dh_install --remaining-packages --sourcedir=debian/install/deb
 
 override_dh_missing:
+ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_missing --sourcedir=debian/install/udeb --list-missing -X.la
+endif
 	dh_missing --sourcedir=debian/install/deb --fail-missing -X.la
 
 override_dh_installdocs:
