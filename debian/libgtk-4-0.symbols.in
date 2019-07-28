@@ -808,8 +808,8 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#, libgtk-@APIVER@-@SONAME@
  gsk_transform_translate@Base 3.96.0
  gsk_transform_translate_3d@Base 3.96.0
  gsk_transform_unref@Base 3.96.0
- gsk_vulkan_renderer_get_type@Base 3.96.0
- gsk_vulkan_renderer_new@Base 3.96.0
+ (arch=linux-any)gsk_vulkan_renderer_get_type@Base 3.96.0
+ (arch=linux-any)gsk_vulkan_renderer_new@Base 3.96.0
  gtk_about_dialog_add_credit_section@Base 3.91.2
  gtk_about_dialog_get_artists@Base 3.91.2
  gtk_about_dialog_get_authors@Base 3.91.2

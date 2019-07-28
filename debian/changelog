@@ -1,7 +1,7 @@
 gtk+4.0 (3.96.0-3) UNRELEASED; urgency=medium
 
-  * debian/libgtk-4-0.symbols.in: Mark more Wayland symbols as
-    (arch=linux-any). They don't exist on hurd-i386, and presumably
+  * debian/libgtk-4-0.symbols.in: Mark more Wayland and Vulkan symbols
+    as (arch=linux-any). These don't exist on hurd-i386, and presumably
     not on kFreeBSD either.
 
  -- Simon McVittie <smcv@debian.org>  Sun, 28 Jul 2019 10:59:36 +0100
