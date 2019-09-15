@@ -6,6 +6,7 @@ from gi.repository import GLib, Gtk
 
 def do_quit(user_data):
     Gtk.main_quit()
+    return GLib.SOURCE_REMOVE
 
 dialog = Gtk.Dialog()
 dialog.set_title('Test dialog')
