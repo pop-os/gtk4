@@ -130,6 +130,8 @@ Depends: gtk-update-icon-cache,
          ${shlibs:Depends},
          @COMMON_PKG@ (>= ${source:Version}),
          @SHARED_PKG@ (>= ${source:Version})
+Breaks: @EXAMPLES_PKG@ (<< 3.96.0-3~)
+Replaces: @EXAMPLES_PKG@ (<< 3.96.0-3~)
 Description: programs for the GTK graphical user interface library
  GTK is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK is suitable
