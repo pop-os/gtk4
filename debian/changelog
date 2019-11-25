@@ -5,8 +5,12 @@ gtk+4.0 (3.96.0-3) UNRELEASED; urgency=medium
     not on kFreeBSD either.
   * Move gtk4-encode-symbolic-svg from gtk-4-examples to libgtk-4-bin.
     It's more of a development tool than an example.
+  * d/tests/python3-gi: Explicitly return GLib.SOURCE_REMOVE.
+    Implicitly returning None is OK, but explicit is better than implicit.
+  * d/tests/python3-gi: Make executable
+  * d/tests/build, d/tests/python3-gi: Mark as superficial
 
- -- Simon McVittie <smcv@debian.org>  Sun, 28 Jul 2019 10:59:36 +0100
+ -- Simon McVittie <smcv@debian.org>  Mon, 25 Nov 2019 11:25:30 +0000
 
 gtk+4.0 (3.96.0-2) experimental; urgency=medium
 
