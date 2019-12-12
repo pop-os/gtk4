@@ -9,6 +9,13 @@ gtk+4.0 (3.96.0-3) UNRELEASED; urgency=medium
     Implicitly returning None is OK, but explicit is better than implicit.
   * d/tests/python3-gi: Make executable
   * d/tests/build, d/tests/python3-gi: Mark as superficial
+  * d/tests/build: Use correct compiler for proposed autopkgtest
+    cross-architecture testing support, based on a patch for clutter-1.0
+    by Steve Langasek
+  * d/tests/build: Fix shellcheck warnings
+  * d/tests/build: Show commands before they are executed
+  * d/tests/build: Fail if using an undefined variable ("unofficial strict
+    mode")
 
  -- Simon McVittie <smcv@debian.org>  Mon, 25 Nov 2019 11:25:30 +0000
 

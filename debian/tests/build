@@ -8,10 +8,22 @@
 # Author: Martin Pitt <martin.pitt@ubuntu.com>
 
 set -e
+set -u
+set -x
 
 WORKDIR=$(mktemp -d)
-trap "rm -rf $WORKDIR" 0 INT QUIT ABRT PIPE TERM
-cd $WORKDIR
+cleanup () {
+    rm -fr "$WORKDIR"
+}
+trap cleanup 0 INT QUIT ABRT PIPE TERM
+cd "$WORKDIR"
+
+if [ -n "${DEB_HOST_GNU_TYPE:-}" ]; then
+    CROSS_COMPILE="$DEB_HOST_GNU_TYPE-"
+else
+    CROSS_COMPILE=
+fi
+
 cat <<EOF > gtktest.c
 #include <glib.h>
 #include <gtk/gtk.h>
@@ -51,7 +63,9 @@ int main(int argc, char **argv)
 }
 EOF
 
-gcc -o gtktest gtktest.c `pkg-config --cflags --libs gtk4`
+# Deliberately word-splitting, that's how pkg-config works:
+# shellcheck disable=SC2046
+"${CROSS_COMPILE}gcc" -o gtktest gtktest.c $("${CROSS_COMPILE}pkg-config" --cflags --libs gtk4)
 echo "build: OK"
 [ -x gtktest ]
 xvfb-run -a -s "-screen 0 1024x768x24" \
