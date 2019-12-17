@@ -16,6 +16,7 @@ gtk+4.0 (3.96.0-3) UNRELEASED; urgency=medium
   * d/tests/build: Show commands before they are executed
   * d/tests/build: Fail if using an undefined variable ("unofficial strict
     mode")
+  * d/upstream/metadata: Add upstream URLs
 
  -- Simon McVittie <smcv@debian.org>  Mon, 25 Nov 2019 11:25:30 +0000
 
