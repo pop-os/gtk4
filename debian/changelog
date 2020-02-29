@@ -37,8 +37,15 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     - Stop repeating "Copyright (C)"
     - Indent with a single space
   * Standards-Version: 4.5.0 (no changes required)
+  * Don't build HTML documentation in Architecture: any builds.
+    With Autotools, we would have had to leave gtk-doc-tools in the
+    Build-Depends for gtkdocize, but with Meson we can demote it to
+    Build-Depends-Indep.
+    Promote docbook-xml and docbook-xsl to Build-Depends instead: they are
+    needed in all builds for the example programs' man pages. Previously,
+    they were pulled in by gtk-doc-tools.
 
- -- Simon McVittie <smcv@debian.org>  Sat, 29 Feb 2020 14:18:02 +0000
+ -- Simon McVittie <smcv@debian.org>  Sat, 29 Feb 2020 23:33:18 +0000
 
 gtk+4.0 (3.96.0-2) experimental; urgency=medium
 
