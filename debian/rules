@@ -100,12 +100,13 @@ configure_flags_common = \
 configure_flags_deb = \
 	-Dbroadway-backend=true \
 	-Dgtk_doc=true \
-	-Dx11-backend=true \
-	-Dman-pages=true \
-	-Dintrospection=true \
 	-Dinstall-tests=true \
+	-Dintrospection=true \
+	-Dman-pages=true \
+	-Dmedia=none \
 	-Dprint-backends=all \
-	-Dmedia=none
+	-Dx11-backend=true \
+	${NULL}
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
 configure_flags_deb += -Dcolord=yes
