@@ -35,6 +35,7 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     - Merge entries differing only by email address
     - Stop repeating "Copyright (C)"
     - Indent with a single space
+  * Standards-Version: 4.5.0 (no changes required)
 
  -- Simon McVittie <smcv@debian.org>  Sat, 29 Feb 2020 14:18:02 +0000
 
