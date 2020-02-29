@@ -18,6 +18,7 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     mode")
   * d/upstream/metadata: Add upstream URLs
   * New upstream release
+    - Drop all patches, applied upstream
   * d/copyright: Simplify and consolidate (see individual source files if
     finer detail is required)
     - Stop distinguishing between LGPL 2+ and 2.1+, list both as
