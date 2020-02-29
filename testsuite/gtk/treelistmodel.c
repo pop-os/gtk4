@@ -29,8 +29,11 @@ get (GListModel *model,
      guint       position)
 {
   GObject *object = g_list_model_get_item (model, position);
+  guint number;
   g_assert (object != NULL);
-  return GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
+  number = GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
+  g_object_unref (object);
+  return number;
 }
 
 static char *
@@ -155,7 +158,7 @@ create_sub_model_cb (gpointer item,
                      gpointer unused)
 {
   if (G_IS_LIST_MODEL (item))
-    return item;
+    return g_object_ref (item);
 
   return NULL;
 }
@@ -254,7 +257,6 @@ main (int argc, char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
   setlocale (LC_ALL, "C");
-  g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=%s");
 
   number_quark = g_quark_from_static_string ("Hell and fire was spawned to be released.");
   changes_quark = g_quark_from_static_string ("What did I see? Can I believe what I saw?");

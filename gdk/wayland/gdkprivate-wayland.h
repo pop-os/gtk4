@@ -44,8 +44,6 @@
 #define WL_SURFACE_HAS_BUFFER_SCALE 3
 #define WL_POINTER_HAS_FRAME 5
 
-#define GDK_SURFACE_IS_WAYLAND(win)    (GDK_IS_SURFACE_IMPL_WAYLAND (((GdkSurface *)win)->impl))
-
 GdkKeymap *_gdk_wayland_keymap_new (GdkDisplay *display);
 void       _gdk_wayland_keymap_update_from_fd (GdkKeymap *keymap,
                                                uint32_t   format,
@@ -59,8 +57,7 @@ gboolean           _gdk_wayland_keymap_key_is_modifier (GdkKeymap *keymap,
 void       _gdk_wayland_display_init_cursors (GdkWaylandDisplay *display);
 void       _gdk_wayland_display_finalize_cursors (GdkWaylandDisplay *display);
 
-struct wl_cursor_theme * _gdk_wayland_display_get_scaled_cursor_theme (GdkWaylandDisplay *display_wayland,
-                                                                       guint              scale);
+struct wl_cursor_theme * _gdk_wayland_display_get_cursor_theme (GdkWaylandDisplay *display_wayland);
 
 void       _gdk_wayland_display_get_default_cursor_size (GdkDisplay *display,
                                                          guint       *width,
@@ -116,10 +113,13 @@ void             gdk_wayland_drop_set_source_actions       (GdkDrop             
 void             gdk_wayland_drop_set_action               (GdkDrop               *drop,
                                                             uint32_t               action);
 
-void _gdk_wayland_display_create_surface_impl (GdkDisplay     *display,
-                                               GdkSurface     *surface,
-                                               GdkSurface     *real_parent,
-                                               GdkSurfaceAttr *attributes);
+GdkSurface * _gdk_wayland_display_create_surface (GdkDisplay *display,
+                                                  GdkSurfaceType surface_type,
+                                                  GdkSurface *parent,
+                                                  int         x,
+                                                  int         y,
+                                                  int         width,
+                                                  int         height);
 
 gint        _gdk_wayland_display_text_property_to_utf8_list (GdkDisplay    *display,
                                                              GdkAtom        encoding,

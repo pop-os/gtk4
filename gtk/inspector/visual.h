@@ -32,18 +32,21 @@ typedef struct _GtkInspectorVisualPrivate GtkInspectorVisualPrivate;
 
 typedef struct _GtkInspectorVisual
 {
-  GtkScrolledWindow parent;
+  GtkWidget parent;
   GtkInspectorVisualPrivate *priv;
 } GtkInspectorVisual;
 
 typedef struct _GtkInspectorVisualClass
 {
-  GtkScrolledWindowClass parent;
+  GtkWidgetClass parent_class;
 } GtkInspectorVisualClass;
 
 G_BEGIN_DECLS
 
 GType      gtk_inspector_visual_get_type   (void);
+void       gtk_inspector_visual_set_display (GtkInspectorVisual *vis,
+                                             GdkDisplay         *display);
+
 
 G_END_DECLS
 

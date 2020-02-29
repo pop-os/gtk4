@@ -22,35 +22,27 @@
 #include "gtkmenubuttonaccessible.h"
 
 
-G_DEFINE_TYPE (GtkMenuButtonAccessible, gtk_menu_button_accessible, GTK_TYPE_TOGGLE_BUTTON_ACCESSIBLE)
+G_DEFINE_TYPE (GtkMenuButtonAccessible, gtk_menu_button_accessible, GTK_TYPE_WIDGET_ACCESSIBLE)
 
 static void
 gtk_menu_button_accessible_initialize (AtkObject *accessible,
                                         gpointer   data)
 {
   ATK_OBJECT_CLASS (gtk_menu_button_accessible_parent_class)->initialize (accessible, data);
+
+  accessible->role = ATK_ROLE_TOGGLE_BUTTON;
 }
 
 static gint
 gtk_menu_button_accessible_get_n_children (AtkObject* obj)
 {
   GtkWidget *widget;
-  GtkWidget *submenu;
   gint count = 0;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (obj));
   if (widget == NULL)
     return count;
 
-  submenu = GTK_WIDGET (gtk_menu_button_get_popup (GTK_MENU_BUTTON (widget)));
-  if (submenu)
-    {
-      GList *children;
-
-      children = gtk_container_get_children (GTK_CONTAINER (submenu));
-      count = g_list_length (children);
-      g_list_free (children);
-    }
   return count;
 }
 
@@ -60,27 +52,10 @@ gtk_menu_button_accessible_ref_child (AtkObject *obj,
 {
   AtkObject *accessible = NULL;
   GtkWidget *widget;
-  GtkWidget *submenu;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (obj));
   if (widget == NULL)
     return NULL;
-
-  submenu = GTK_WIDGET (gtk_menu_button_get_popup (GTK_MENU_BUTTON (widget)));
-  if (submenu)
-    {
-      GList *children;
-      GList *tmp_list;
-
-      children = gtk_container_get_children (GTK_CONTAINER (submenu));
-      tmp_list = g_list_nth (children, i);
-      if (tmp_list)
-        {
-          accessible = gtk_widget_get_accessible (GTK_WIDGET (tmp_list->data));
-          g_object_ref (accessible);
-        }
-      g_list_free (children);
-    }
 
   return accessible;
 }

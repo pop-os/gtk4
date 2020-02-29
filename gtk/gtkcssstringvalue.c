@@ -117,6 +117,7 @@ out:
 }
 
 static const GtkCssValueClass GTK_CSS_VALUE_STRING = {
+  "GtkCssStringValue",
   gtk_css_value_string_free,
   gtk_css_value_string_compute,
   gtk_css_value_string_equal,
@@ -127,6 +128,7 @@ static const GtkCssValueClass GTK_CSS_VALUE_STRING = {
 };
 
 static const GtkCssValueClass GTK_CSS_VALUE_IDENT = {
+  "GtkCssIdentValue",
   gtk_css_value_string_free,
   gtk_css_value_string_compute,
   gtk_css_value_string_equal,
@@ -149,6 +151,7 @@ _gtk_css_string_value_new_take (char *string)
 
   result = _gtk_css_value_new (GtkCssValue, &GTK_CSS_VALUE_STRING);
   result->string = string;
+  result->is_computed = TRUE;
 
   return result;
 }
@@ -189,6 +192,7 @@ _gtk_css_ident_value_new_take (char *ident)
 
   result = _gtk_css_value_new (GtkCssValue, &GTK_CSS_VALUE_IDENT);
   result->string = ident;
+  result->is_computed = TRUE;
 
   return result;
 }

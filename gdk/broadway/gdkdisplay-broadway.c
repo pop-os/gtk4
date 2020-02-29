@@ -95,10 +95,12 @@ _gdk_broadway_display_size_changed (GdkDisplay                      *display,
   toplevels =  broadway_display->toplevels;
   for (l = toplevels; l != NULL; l = l->next)
     {
-      GdkSurfaceImplBroadway *toplevel_impl = l->data;
+      GdkBroadwaySurface *toplevel = l->data;
 
-      if (toplevel_impl->maximized)
-        gdk_surface_move_resize (toplevel_impl->wrapper, 0, 0, msg->width, msg->height);
+      if (toplevel->maximized)
+        gdk_broadway_surface_move_resize (GDK_SURFACE (toplevel),
+                                          0, 0,
+                                          msg->width, msg->height);
     }
 }
 
@@ -327,14 +329,6 @@ gdk_broadway_display_get_monitor (GdkDisplay *display,
   return NULL;
 }
 
-static GdkMonitor *
-gdk_broadway_display_get_primary_monitor (GdkDisplay *display)
-{
-  GdkBroadwayDisplay *broadway_display = GDK_BROADWAY_DISPLAY (display);
-
-  return broadway_display->monitor;
-}
-
 static gboolean
 gdk_broadway_display_get_setting (GdkDisplay *display,
                                   const char *name,
@@ -420,7 +414,6 @@ gdk_broadway_display_class_init (GdkBroadwayDisplayClass * class)
   object_class->dispose = gdk_broadway_display_dispose;
   object_class->finalize = gdk_broadway_display_finalize;
 
-  display_class->surface_type = GDK_TYPE_BROADWAY_SURFACE;
   display_class->cairo_context_type = GDK_TYPE_BROADWAY_CAIRO_CONTEXT;
 
   display_class->get_name = gdk_broadway_display_get_name;
@@ -435,14 +428,13 @@ gdk_broadway_display_class_init (GdkBroadwayDisplayClass * class)
 
   display_class->get_next_serial = gdk_broadway_display_get_next_serial;
   display_class->notify_startup_complete = gdk_broadway_display_notify_startup_complete;
-  display_class->create_surface_impl = _gdk_broadway_display_create_surface_impl;
+  display_class->create_surface = _gdk_broadway_display_create_surface;
   display_class->get_keymap = _gdk_broadway_display_get_keymap;
   display_class->text_property_to_utf8_list = _gdk_broadway_display_text_property_to_utf8_list;
   display_class->utf8_to_string_target = _gdk_broadway_display_utf8_to_string_target;
 
   display_class->get_n_monitors = gdk_broadway_display_get_n_monitors;
   display_class->get_monitor = gdk_broadway_display_get_monitor;
-  display_class->get_primary_monitor = gdk_broadway_display_get_primary_monitor;
   display_class->get_setting = gdk_broadway_display_get_setting;
   display_class->get_last_seen_time = gdk_broadway_display_get_last_seen_time;
 }

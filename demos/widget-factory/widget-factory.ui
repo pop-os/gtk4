@@ -33,12 +33,12 @@
   <menu id="dinner_menu">
     <section>
       <item>
-        <attribute name="label" translatable="yes">Steak</attribute>
+        <attribute name="label" translatable="yes">_Steak</attribute>
         <attribute name="action">app.main</attribute>
         <attribute name="target">steak</attribute>
       </item>
       <item>
-        <attribute name="label" translatable="yes">Pizza</attribute>
+        <attribute name="label" translatable="yes">_Pizza</attribute>
         <attribute name="action">app.main</attribute>
         <attribute name="target">pizza</attribute>
       </item>
@@ -598,10 +598,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="label" translatable="yes">checkbutton</property>
                                     <property name="can-focus">1</property>
                                     <property name="active">1</property>
-                                    <layout>
-                                      <property name="left-attach">0</property>
-                                      <property name="top-attach">0</property>
-                                    </layout>
                                   </object>
                                 </child>
                                 <child>
@@ -666,8 +662,8 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="can-focus">1</property>
                                     <property name="active">1</property>
                                     <layout>
+                                      <property name="left-attach">0</property>
                                       <property name="left-attach">1</property>
-                                      <property name="top-attach">0</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -740,7 +736,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="active">1</property>
                                     <layout>
                                       <property name="left-attach">2</property>
-                                      <property name="top-attach">0</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -971,11 +966,11 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                 <property name="adjustment">adjustment3</property>
                                 <property name="restrict-to-fill-level">0</property>
                                 <marks>
-                                  <mark value="0" position="bottom"/>
-                                  <mark value="1" position="bottom"/>
-                                  <mark value="2" position="bottom"/>
-                                  <mark value="3" position="bottom"/>
-                                  <mark value="4" position="bottom"/>
+                                  <mark value="0" position="bottom"></mark>
+                                  <mark value="1" position="bottom"></mark>
+                                  <mark value="2" position="bottom"></mark>
+                                  <mark value="3" position="bottom"></mark>
+                                  <mark value="4" position="bottom"></mark>
                                 </marks>
                               </object>
                             </child>
@@ -1019,7 +1014,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                         <property name="fill-level">75</property>
                                         <property name="digits">-1</property>
                                         <property name="halign">end</property>
-                                        <signal name="format-value" handler="scale_format_value"/>
                                       </object>
                                     </child>
                                     <child>
@@ -1033,7 +1027,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                         <property name="fill-level">75</property>
                                         <property name="digits">-1</property>
                                         <property name="halign">start</property>
-                                        <signal name="format-value" handler="scale_format_value_blank"/>
                                       </object>
                                     </child>
                                   </object>
@@ -1207,7 +1200,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="wrap-mode">2</property>
                                     <property name="left-margin">10</property>
                                     <property name="right-margin">10</property>
-                                    <property name="populate-all">1</property>
                                   </object>
                                 </child>
                               </object>
@@ -1577,6 +1569,9 @@ microphone-sensitivity-medium-symbolic</property>
                                               <object class="GtkImage" id="imageo">
                                                 <property name="icon-name">org.gtk.WidgetFactory4</property>
                                                 <property name="pixel-size">256</property>
+                                                <style>
+                                                  <class name="icon-dropshadow"/>
+                                                </style>
                                               </object>
                                             </property>
                                           </object>
@@ -1617,6 +1612,7 @@ microphone-sensitivity-medium-symbolic</property>
                                 <child>
                                   <object class="GtkListBox" id="listbox">
                                     <property name="selection-mode">none</property>
+                                    <property name="show-separators">1</property>
                                     <child type="placeholder">
                                       <object class="GtkLabel">
                                         <property name="label">No rows found</property>
@@ -1725,15 +1721,11 @@ microphone-sensitivity-medium-symbolic</property>
                                               </object>
                                             </child>
                                             <child>
-                                              <object class="GtkImage">
-                                                <property name="icon-name">object-select-symbolic</property>
+                                              <object class="GtkSpinButton">
+                                                <property name="adjustment">adjustment1</property>
+                                                <property name="hexpand">1</property>
                                                 <property name="halign">end</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
-                                                <property name="margin-start">12</property>
-                                                <property name="margin-end">12</property>
-                                                <property name="opacity">0</property>
                                               </object>
                                             </child>
                                           </object>
@@ -1818,273 +1810,31 @@ microphone-sensitivity-medium-symbolic</property>
                                   <object class="GtkBox">
                                     <property name="orientation">vertical</property>
                                     <child>
-                                      <object class="GtkMenuBar">
-                                        <child>
-                                          <object class="GtkMenuItem" id="menuitem1">
-                                            <property name="label" translatable="yes">_File</property>
-                                            <property name="use-underline">1</property>
-                                            <child type="submenu">
-                                              <object class="GtkMenu" id="menu1">
-                                                <child>
-                                                  <object class="GtkMenuItem" id="menuitem101">
-                                                    <property name="label" translatable="yes">_New</property>
-                                                    <property name="use-underline">1</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="menuitem102">
-                                                    <property name="label" translatable="yes">_Open</property>
-                                                    <property name="use-underline">1</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="menuitem103">
-                                                    <property name="label" translatable="yes">_Save</property>
-                                                    <property name="use-underline">1</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="menuitem104">
-                                                    <property name="label" translatable="yes">Save _As</property>
-                                                    <property name="use-underline">1</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkSeparatorMenuItem" id="separatormenuitem1"/>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="quitmenuitem">
-                                                    <property name="label" translatable="yes">_Quit</property>
-                                                    <property name="use-underline">1</property>
-                                                    <property name="action-name">app.quit</property>
-                                                  </object>
-                                                </child>
-                                              </object>
-                                            </child>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkMenuItem" id="menuitem2">
-                                            <property name="label" translatable="yes">_Edit</property>
-                                            <property name="use-underline">1</property>
-                                            <child type="submenu">
-                                              <object class="GtkMenu" id="menu2">
-                                                <child>
-                                                  <object class="GtkMenuItem" id="menuitem106">
-                                                    <property name="label" translatable="yes">Cu_t</property>
-                                                    <property name="can-focus">1</property>
-                                                    <property name="use-underline">1</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="menuitem107">
-                                                    <property name="label" translatable="yes">_Copy</property>
-                                                    <property name="use-underline">1</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="menuitem108">
-                                                    <property name="label" translatable="yes">_Paste</property>
-                                                    <property name="use-underline">1</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="deletemenuitem">
-                                                    <property name="label" translatable="yes">_Delete</property>
-                                                    <property name="use-underline">1</property>
-                                                    <property name="action-name">win.delete</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="searchmenuitem">
-                                                    <property name="label" translatable="yes">_Search</property>
-                                                    <property name="use-underline">1</property>
-                                                    <property name="action-name">win.search</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="togglesmenuitem">
-                                                    <property name="label">Checks &amp; Radios</property>
-                                                    <property name="use-underline">1</property>
-                                                    <child type="submenu">
-                                                      <object class="GtkMenu" id="togglessubmenu">
-                                                        <child>
-                                                          <object class="GtkCheckMenuItem" id="checkmenuitem1">
-                                                            <property name="label">_Check</property>
-                                                            <property name="active">1</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkCheckMenuItem" id="checkmenuitem2">
-                                                            <property name="label">_Check</property>
-                                                            <property name="active">1</property>
-                                                            <property name="sensitive">0</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkCheckMenuItem" id="checkmenuitem3">
-                                                            <property name="label">_Check</property>
-                                                            <property name="inconsistent">1</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkCheckMenuItem" id="checkmenuitem4">
-                                                            <property name="label">_Check</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkCheckMenuItem" id="checkmenuitem5">
-                                                            <property name="label">_Check</property>
-                                                            <property name="sensitive">0</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkCheckMenuItem" id="checkmenuitem6">
-                                                            <property name="label">_Check</property>
-                                                            <property name="inconsistent">1</property>
-                                                            <property name="sensitive">0</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkSeparatorMenuItem" id="separatormenuitem"/>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkRadioMenuItem" id="radiomenuitem1">
-                                                            <property name="label">_Radio</property>
-                                                            <property name="active">1</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkRadioMenuItem" id="radiomenuitem2">
-                                                            <property name="label">_Radio</property>
-                                                            <property name="active">1</property>
-                                                            <property name="sensitive">0</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkRadioMenuItem" id="radiomenuitem3">
-                                                            <property name="label">_Radio</property>
-                                                            <property name="inconsistent">1</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkRadioMenuItem" id="radiomenuitem4">
-                                                            <property name="label">_Radio</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkRadioMenuItem" id="radiomenuitem5">
-                                                            <property name="label">_Radio</property>
-                                                            <property name="sensitive">0</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                        <child>
-                                                          <object class="GtkRadioMenuItem" id="radiomenuitem6">
-                                                            <property name="label">_Radio</property>
-                                                            <property name="inconsistent">1</property>
-                                                            <property name="sensitive">0</property>
-                                                            <property name="use-underline">1</property>
-                                                          </object>
-                                                        </child>
-                                                      </object>
-                                                    </child>
-                                                  </object>
-                                                </child>
-                                              </object>
-                                            </child>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkMenuItem" id="menuitem3">
-                                            <property name="label" translatable="yes">_View</property>
-                                            <property name="use-underline">1</property>
-                                            <child type="submenu">
-                                              <object class="GtkMenu" id="view-menu">
-                                                <child>
-                                                  <object class="GtkCheckMenuItem" id="darkmenuitem">
-                                                    <property name="label">_Dark theme</property>
-                                                    <property name="use-underline">1</property>
-                                                    <property name="action-name">win.dark</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkCheckMenuItem" id="toolbarmenuitem">
-                                                    <property name="label">_Toolbar</property>
-                                                    <property name="active">1</property>
-                                                    <property name="use-underline">1</property>
-                                                    <property name="action-name">win.toolbar</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkCheckMenuItem" id="statusbarmenuitem">
-                                                    <property name="label">_Statusbar</property>
-                                                    <property name="active">1</property>
-                                                    <property name="use-underline">1</property>
-                                                    <property name="action-name">win.statusbar</property>
-                                                  </object>
-                                                </child>
-                                                <child>
-                                                  <object class="GtkMenuItem" id="bgmenuitem">
-                                                    <property name="label">_Select Background</property>
-                                                    <property name="use-underline">1</property>
-                                                    <property name="action-name">win.background</property>
-                                                  </object>
-                                                </child>
-                                              </object>
-                                            </child>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkMenuItem" id="menuitem4">
-                                            <property name="label" translatable="yes">_Help</property>
-                                            <property name="use-underline">1</property>
-                                            <child type="submenu">
-                                              <object class="GtkMenu" id="menu3">
-                                                <child>
-                                                  <object class="GtkMenuItem" id="aboutmenuitem">
-                                                    <property name="label" translatable="yes">_About</property>
-                                                    <property name="use-underline">1</property>
-                                                    <property name="action-name">app.about</property>
-                                                  </object>
-                                                </child>
-                                              </object>
-                                            </child>
-                                          </object>
-                                        </child>
+                                      <object class="GtkPopoverMenuBar">
+                                        <property name="menu-model">menu_bar_model</property>
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkToolbar" id="toolbar">
+                                      <object class="GtkBox" id="toolbar">
                                         <child>
-                                          <object class="GtkToolButton">
+                                          <object class="GtkButton">
                                             <property name="label" translatable="yes">New</property>
                                             <property name="icon-name">document-new</property>
                                             <property name="tooltip-text" translatable="yes">Create a new document</property>
                                           </object>
                                         </child>
                                         <child>
-                                          <object class="GtkToolButton">
+                                          <object class="GtkButton">
                                             <property name="label" translatable="yes">Save</property>
                                             <property name="icon-name">document-save</property>
                                             <property name="tooltip-text" translatable="yes">Save the current document</property>
                                           </object>
                                         </child>
                                         <child>
-                                          <object class="GtkSeparatorToolItem"/>
+                                          <object class="GtkSeparator"/>
                                         </child>
                                         <child>
-                                          <object class="GtkToolButton">
+                                          <object class="GtkButton">
                                             <property name="label" translatable="yes">Search</property>
                                             <property name="icon-name">edit-find</property>
                                             <property name="action-name">win.search</property>
@@ -2092,7 +1842,7 @@ microphone-sensitivity-medium-symbolic</property>
                                           </object>
                                         </child>
                                         <child>
-                                          <object class="GtkToolButton">
+                                          <object class="GtkButton">
                                             <property name="sensitive">0</property>
                                             <property name="label" translatable="yes">Insert</property>
                                             <property name="icon-name">insert-image</property>
@@ -2112,7 +1862,7 @@ microphone-sensitivity-medium-symbolic</property>
                                       <object class="GtkInfoBar" id="infobar">
                                         <property name="visible">0</property>
                                         <property name="show-close-button">1</property>
-                                        <child internal-child="content_area">
+                                        <child>
                                           <object class="GtkBox">
                                             <child>
                                               <object class="GtkLabel">
@@ -2124,8 +1874,10 @@ microphone-sensitivity-medium-symbolic</property>
                                       </object>
                                     </child>
                                     <child>
+                                      <object class="GtkSeparator"/>
+                                    </child>
+                                    <child>
                                       <object class="GtkScrolledWindow">
-                                        <property name="shadow-type">in</property>
                                         <property name="vexpand">1</property>
                                         <child>
                                           <object class="MyTextView" id="text3">
@@ -2138,6 +1890,9 @@ microphone-sensitivity-medium-symbolic</property>
                                           </object>
                                         </child>
                                       </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkSeparator"/>
                                     </child>
                                     <child>
                                       <object class="GtkStatusbar" id="statusbar"/>
@@ -2252,27 +2007,26 @@ microphone-sensitivity-medium-symbolic</property>
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkToolbar">
-                                        <property name="toolbar-style">icons</property>
+                                      <object class="GtkBox">
                                         <style>
-                                          <class name="inline-toolbar"/>
+                                          <class name="linked"/>
                                         </style>
                                         <child>
-                                          <object class="GtkToolButton" id="decrease_button">
+                                          <object class="GtkButton" id="decrease_button">
                                             <property name="icon-name">zoom-out-symbolic</property>
                                             <property name="tooltip-text">Normal icons</property>
                                             <signal name="clicked" handler="decrease_icon_size" object="iconview1" swapped="yes"/>
                                           </object>
                                         </child>
                                         <child>
-                                          <object class="GtkToolButton" id="increase_button">
+                                          <object class="GtkButton" id="increase_button">
                                             <property name="icon-name">zoom-in-symbolic</property>
                                             <property name="tooltip-text">Large icons</property>
                                             <signal name="clicked" handler="increase_icon_size" object="iconview1" swapped="yes"/>
                                           </object>
                                         </child>
                                         <child>
-                                          <object class="GtkToolButton" id="reset_button">
+                                          <object class="GtkButton" id="reset_button">
                                             <property name="icon-name">zoom-original-symbolic</property>
                                             <property name="tooltip-text">Inherited icon size</property>
                                             <signal name="clicked" handler="reset_icon_size" object="iconview1" swapped="yes"/>
@@ -2429,37 +2183,16 @@ microphone-sensitivity-medium-symbolic</property>
                         <property name="spacing">10</property>
                         <child>
                           <object class="GtkBox">
-                            <property name="halign">start</property>
                             <property name="spacing">6</property>
                             <child>
                               <object class="GtkBox" id="lockbox">
-                                <property name="halign">start</property>
+                                <property name="hexpand">1</property>
                                 <property name="spacing">6</property>
                                 <child>
                                   <object class="GtkMenuButton" id="open_menubutton">
                                     <property name="halign">center</property>
                                     <property name="popover">open_popover</property>
-                                    <style>
-                                      <class name="text-button"/>
-                                      <class name="image-button"/>
-                                    </style>
-                                    <child>
-                                      <object class="GtkBox">
-                                        <property name="spacing">6</property>
-                                        <child>
-                                          <object class="GtkLabel">
-                                            <property name="valign">baseline</property>
-                                            <property name="label">Open</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkImage">
-                                            <property name="valign">baseline</property>
-                                            <property name="icon-name">pan-down-symbolic</property>
-                                          </object>
-                                        </child>
-                                      </object>
-                                    </child>
+                                    <property name="label">Open</property>
                                   </object>
                                 </child>
                                 <child>
@@ -2524,6 +2257,12 @@ microphone-sensitivity-medium-symbolic</property>
                             </child>
                             <child>
                               <object class="GtkLockButton" id="lockbutton"/>
+                            </child>
+                            <child>
+                              <object class="GtkMenuButton">
+                                <property name="icon-name">view-more-symbolic</property>
+                                <property name="popover">new_style_menu</property>
+                              </object>
                             </child>
                           </object>
                         </child>
@@ -2738,26 +2477,25 @@ microphone-sensitivity-medium-symbolic</property>
                             <child>
                               <object class="GtkBox">
                                 <child>
-                                  <object class="GtkToolbar">
+                                  <object class="GtkBox">
                                     <property name="orientation">vertical</property>
-                                    <property name="toolbar-style">icons</property>
                                     <child>
-                                      <object class="GtkToolButton" id="toolbutton1">
+                                      <object class="GtkButton" id="toolbutton1">
                                         <property name="icon-name">document-open-symbolic</property>
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkToolButton" id="toolbutton2">
+                                      <object class="GtkButton" id="toolbutton2">
                                         <property name="icon-name">send-to-symbolic</property>
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkToolButton" id="toolbutton3">
+                                      <object class="GtkButton" id="toolbutton3">
                                         <property name="icon-name">view-fullscreen-symbolic</property>
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkToolButton" id="toolbutton4">
+                                      <object class="GtkButton" id="toolbutton4">
                                         <property name="icon-name">star-new-symbolic</property>
                                       </object>
                                     </child>
@@ -2817,7 +2555,7 @@ microphone-sensitivity-medium-symbolic</property>
                         <child>
                           <object class="GtkOverlay">
                             <child type="overlay">
-                              <object class="GtkToolbar" id="totem_like_osd">
+                              <object class="GtkBox" id="totem_like_osd">
                                 <property name="visible">0</property>
                                 <property name="opacity">0.9</property>
                                 <property name="margin">20</property>
@@ -2826,48 +2564,36 @@ microphone-sensitivity-medium-symbolic</property>
                                   <class name="osd"/>
                                 </style>
                                 <child>
-                                  <object class="GtkToolItem">
+                                  <object class="GtkBox">
+                                    <style>
+                                      <class name="linked"/>
+                                    </style>
                                     <child>
-                                      <object class="GtkBox">
-                                        <style>
-                                          <class name="linked"/>
-                                        </style>
-                                        <child>
-                                          <object class="GtkButton">
-                                            <property name="icon-name">pan-start-symbolic</property>
-                                          </object>
-                                        </child>
-                                        <child>
-                                          <object class="GtkButton">
-                                            <property name="icon-name">pan-end-symbolic</property>
-                                          </object>
-                                        </child>
+                                      <object class="GtkButton">
+                                        <property name="icon-name">pan-start-symbolic</property>
+                                      </object>
+                                    </child>
+                                    <child>
+                                      <object class="GtkButton">
+                                        <property name="icon-name">pan-end-symbolic</property>
                                       </object>
                                     </child>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkToolItem">
-                                    <property name="expand-item">1</property>
-                                    <child>
-                                      <object class="GtkScale">
-                                        <property name="draw-value">0</property>
-                                        <property name="adjustment">adjustment1</property>
-                                      </object>
-                                    </child>
+                                  <object class="GtkScale">
+                                    <property name="hexpand">1</property>
+                                    <property name="draw-value">0</property>
+                                    <property name="adjustment">adjustment1</property>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkToolItem">
-                                    <child>
-                                      <object class="GtkVolumeButton">
-                                        <property name="orientation">vertical</property>
-                                        <property name="value">.5</property>
-                                        <style>
-                                          <class name="image-button"/>
-                                        </style>
-                                      </object>
-                                    </child>
+                                  <object class="GtkVolumeButton">
+                                    <property name="orientation">vertical</property>
+                                    <property name="value">.5</property>
+                                    <style>
+                                      <class name="image-button"/>
+                                    </style>
                                   </object>
                                 </child>
                               </object>
@@ -2979,7 +2705,7 @@ microphone-sensitivity-medium-symbolic</property>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkGestureMultiPress">
+                                  <object class="GtkGestureClick">
                                     <signal name="pressed" handler="osd_frame_pressed" object="osd_frame" swapped="no"/>
                                   </object>
                                 </child>
@@ -3039,7 +2765,7 @@ microphone-sensitivity-medium-symbolic</property>
                               <object class="GtkNotebookPage">
                                 <property name="tab-expand">1</property>
                                 <property name="child">
-                                  <object class="GtkBox">
+                                  <object class="GtkBox" id="box_for_context">
                                     <property name="height-request">120</property>
                                   </object>
                                 </property>
@@ -3357,10 +3083,6 @@ bad things might happen.</property>
             <accessibility>
               <relation type="label-for" target="open_popover_entry"/>
             </accessibility>
-            <layout>
-              <property name="left-attach">0</property>
-              <property name="top-attach">0</property>
-            </layout>
           </object>
         </child>
         <child>
@@ -3372,7 +3094,6 @@ bad things might happen.</property>
               <relation type="label-for" target="open_popover_textview"/>
             </accessibility>
             <layout>
-              <property name="left-attach">0</property>
               <property name="top-attach">1</property>
             </layout>
           </object>
@@ -3407,7 +3128,6 @@ bad things might happen.</property>
             </accessibility>
             <layout>
               <property name="left-attach">1</property>
-              <property name="top-attach">0</property>
               <property name="column-span">2</property>
             </layout>
           </object>
@@ -3420,8 +3140,9 @@ bad things might happen.</property>
               </object>
             </child>
             <child>
-              <object class="GtkEntry">
+              <object class="GtkEntry" id="extra_info_entry">
                 <property name="placeholder-text">Tell me anything…</property>
+                <property name="progress-fraction">0.2</property>
               </object>
             </child>
             <layout>
@@ -3436,6 +3157,7 @@ bad things might happen.</property>
             <property name="halign">end</property>
             <property name="icon-name">emblem-system-symbolic</property>
             <property name="menu-model">gear_menu</property>
+            <property name="tooltip-text">This is a menu button</property>
             <layout>
               <property name="left-attach">1</property>
               <property name="top-attach">3</property>
@@ -3444,7 +3166,6 @@ bad things might happen.</property>
         </child>
         <child>
           <object class="GtkButton" id="open_popover_button">
-            <property name="halign">fill</property>
             <property name="label">_Open</property>
             <property name="use-underline">1</property>
             <property name="sensitive">0</property>
@@ -3479,7 +3200,7 @@ bad things might happen.</property>
     </widgets>
   </object>
   <object class="GtkPopover" id="notebook_info_popover">
-    <property name="modal">0</property>
+    <property name="autohide">0</property>
     <child>
       <object class="GtkLabel">
         <property name="label">No updates at this time</property>
@@ -3490,10 +3211,10 @@ bad things might happen.</property>
     </child>
   </object>
   <object class="GtkPopover" id="notebook_info_popover3">
-    <property name="modal">0</property>
+    <property name="autohide">0</property>
     <child>
       <object class="GtkLabel">
-        <property name="label">You're in too deep!</property>
+        <property name="label">You&apos;re in too deep!</property>
         <accessibility>
           <role type="static"/>
         </accessibility>
@@ -3501,10 +3222,9 @@ bad things might happen.</property>
     </child>
   </object>
   <object class="GtkPopover" id="notebook_info_popover2">
-    <property name="modal">0</property>
+    <property name="autohide">0</property>
     <child>
       <object class="GtkBox">
-        <property name="orientation">horizontal</property>
         <child>
           <object class="GtkLabel">
             <property name="label">Hidden gems:</property>
@@ -3524,4 +3244,536 @@ bad things might happen.</property>
       </object>
     </child>
   </object>
+  <object class="GtkPopover" id="new_style_menu">
+    <child>
+      <object class="GtkStack">
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">main</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkBox">
+                    <style>
+                      <class name="circular-buttons"/>
+                    </style>
+                    <child>
+                      <object class="GtkModelButton">
+                        <property name="icon">
+                          <object class="GThemedIcon">
+                            <property name="name">printer-symbolic</property>
+                          </object>
+                        </property>
+                        <property name="iconic">1</property>
+                        <property name="action-name">app.print</property>
+                        <property name="hexpand">1</property>
+                        <property name="halign">center</property>
+                        <style>
+                          <class name="circular"/>
+                        </style>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkModelButton">
+                        <property name="icon">
+                          <object class="GThemedIcon">
+                            <property name="name">emblem-shared-symbolic</property>
+                          </object>
+                        </property>
+                        <property name="iconic">1</property>
+                        <property name="action-name">app.share</property>
+                        <property name="hexpand">1</property>
+                        <property name="halign">center</property>
+                        <style>
+                          <class name="circular"/>
+                        </style>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Open in New Window</property>
+                    <property name="action-name">app.open-in</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="GtkBox">
+                    <style>
+                      <class name="inline-buttons"/>
+                    </style>
+                    <child>
+                      <object class="GtkLabel" id="cut_copy_paste_filler"/>
+                    </child>
+                    <child>
+                      <object class="GtkLabel">
+                        <property name="label">Edit</property>
+                        <property name="xalign">0</property>
+                        <property name="hexpand">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkModelButton">
+                        <property name="icon">
+                          <object class="GThemedIcon">
+                            <property name="name">edit-cut-symbolic</property>
+                          </object>
+                        </property>
+                        <property name="iconic">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkModelButton">
+                        <property name="icon">
+                          <object class="GThemedIcon">
+                            <property name="name">edit-copy-symbolic</property>
+                          </object>
+                        </property>
+                        <property name="iconic">1</property>
+                      </object>
+                    </child>
+                    <child>
+                      <object class="GtkModelButton">
+                        <property name="icon">
+                          <object class="GThemedIcon">
+                            <property name="name">edit-paste-symbolic</property>
+                          </object>
+                        </property>
+                        <property name="iconic">1</property>
+                      </object>
+                    </child>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Pin</property>
+                    <property name="action-name">app.pin</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Select Labels…</property>
+                    <property name="action-name">app.labels</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Share…</property>
+                    <property name="action-name">app.share</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Basement</property>
+                    <property name="menu-name">basement</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Large</property>
+                    <property name="action-name">app.size</property>
+                    <property name="action-target">&apos;large&apos;</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Medium</property>
+                    <property name="action-name">app.size</property>
+                    <property name="action-target">&apos;medium&apos;</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Small</property>
+                    <property name="action-name">app.size</property>
+                    <property name="action-target">&apos;small&apos;</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Move to Trash</property>
+                    <property name="action-name">win.delete</property>
+                    <property name="indicator-size-group">main-indicators</property>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkStackPage">
+            <property name="name">basement</property>
+            <property name="child">
+              <object class="GtkBox">
+                <property name="orientation">vertical</property>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Basement</property>
+                    <property name="role">title</property>
+                    <property name="menu-name">main</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkSeparator"/>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Berk</property>
+                    <property name="action-name">app.berk</property>
+                    <property name="indicator-size-group">basement-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Broni</property>
+                    <property name="action-name">app.broni</property>
+                    <property name="indicator-size-group">basement-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">Drutt</property>
+                    <property name="action-name">app.drutt</property>
+                    <property name="indicator-size-group">basement-indicators</property>
+                  </object>
+                </child>
+                <child>
+                  <object class="GtkModelButton">
+                    <property name="text">The Thing Upstairs</property>
+                    <property name="action-name">app.upstairs</property>
+                    <property name="indicator-size-group">basement-indicators</property>
+                  </object>
+                </child>
+              </object>
+            </property>
+          </object>
+        </child>
+      </object>
+    </child>
+  </object>
+  <object class="GtkSizeGroup" id="main-indicators">
+    <widgets>
+      <widget name="cut_copy_paste_filler"/>
+    </widgets>
+  </object>
+  <object class="GtkSizeGroup" id="basement-indicators"/>
+  <menu id="new_style_menu_model">
+    <section>
+      <attribute name="display-hint">circular-buttons</attribute>
+      <item>
+        <attribute name="verb-icon">printer-symbolic</attribute>
+        <attribute name="action">app.print</attribute>
+      </item>
+      <item>
+        <attribute name="verb-icon">emblem-shared-symbolic</attribute>
+        <attribute name="action">app.share</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Open in New Window</attribute>
+        <attribute name="action">app.open-in</attribute>
+      </item>
+    </section>
+    <section>
+      <attribute name="display-hint">inline-buttons</attribute>
+      <attribute name="label" translatable="yes">Edit</attribute>
+      <item>
+        <attribute name="verb-icon">edit-cut-symbolic</attribute>
+        <attribute name="action">app.cut</attribute>
+      </item>
+      <item>
+        <attribute name="verb-icon">edit-copy-symbolic</attribute>
+        <attribute name="action">app.copy</attribute>
+      </item>
+      <item>
+        <attribute name="verb-icon">edit-paste-symbolic</attribute>
+        <attribute name="action">app.paste</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Pin</attribute>
+        <attribute name="action">app.pin</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Select Labels…</attribute>
+        <attribute name="action">app.labels</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Share…</attribute>
+        <attribute name="action">app.share</attribute>
+      </item>
+    </section>
+    <section>
+      <submenu>
+        <attribute name="label" translatable="yes">Basement</attribute>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">Berk</attribute>
+            <attribute name="action">app.berk</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">Broni</attribute>
+            <attribute name="action">app.broni</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">Drutt</attribute>
+            <attribute name="action">app.drutt</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">The Thing Upstairs</attribute>
+            <attribute name="action">app.upstairs</attribute>
+          </item>
+        </section>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Large</attribute>
+        <attribute name="action">app.size</attribute>
+        <attribute name="target">large</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Medium</attribute>
+        <attribute name="action">app.size</attribute>
+        <attribute name="target">medium</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Small</attribute>
+        <attribute name="action">app.size</attribute>
+        <attribute name="target">small</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Move to Trash</attribute>
+        <attribute name="action">win.delete</attribute>
+      </item>
+    </section>
+  </menu>
+  <menu id="new_style_context_menu_model">
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Open</attribute>
+        <attribute name="action">win.open</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Open in New Tab</attribute>
+        <attribute name="action">app.open-tab</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Open in New Window</attribute>
+        <attribute name="action">app.open-window</attribute>
+      </item>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Cut</attribute>
+        <attribute name="action">app.cut</attribute>
+      </item>
+      <item>
+        <attribute name="label" translatable="yes">Copy</attribute>
+        <attribute name="action">app.copy</attribute>
+      </item>
+    </section>
+    <section>
+      <submenu>
+        <attribute name="label" translatable="yes">Options</attribute>
+        <section>
+          <item>
+            <attribute name="label" translatable="yes">Option A</attribute>
+            <attribute name="action">app.option-a</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">Option B</attribute>
+            <attribute name="action">app.option-b</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">Option C</attribute>
+            <attribute name="action">app.option-c</attribute>
+          </item>
+          <item>
+            <attribute name="label" translatable="yes">Option D</attribute>
+            <attribute name="action">app.option-d</attribute>
+          </item>
+        </section>
+      </submenu>
+    </section>
+    <section>
+      <item>
+        <attribute name="label" translatable="yes">Move to Trash</attribute>
+        <attribute name="action">win.delete</attribute>
+      </item>
+    </section>
+  </menu>
+  <menu id="menu_bar_model">
+    <submenu>
+      <attribute name="label" translatable="yes">_File</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_New</attribute>
+          <attribute name="action">app.new</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Open</attribute>
+          <attribute name="action">app.open</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Save</attribute>
+          <attribute name="action">app.save</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Save _As</attribute>
+          <attribute name="action">app.save-as</attribute>
+        </item>
+      </section>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">_Quit</attribute>
+          <attribute name="action">app.quit</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Edit</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Cu_t</attribute>
+          <attribute name="action">app.cut</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Copy</attribute>
+          <attribute name="action">app.copy</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">_Paste</attribute>
+          <attribute name="action">app.paste</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Delete</attribute>
+          <attribute name="action">win.delete</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Search</attribute>
+          <attribute name="action">win.search</attribute>
+        </item>
+      </section>
+      <section>
+        <submenu>
+          <attribute name="label" translatable="yes">C_hecks</attribute>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">Check</attribute>
+              <attribute name="action">app.check-on</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Check</attribute>
+              <attribute name="action">app.check-off</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Check</attribute>
+              <attribute name="action">app.check-on-disabled</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Check</attribute>
+              <attribute name="action">app.check-off-disabled</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Check</attribute>
+              <attribute name="action">app.check-no-action</attribute>
+              <attribute name="hidden-when">action-missing</attribute>
+            </item>
+          </section>
+        </submenu>
+        <submenu>
+          <attribute name="label" translatable="yes">_Radios</attribute>
+          <section>
+            <item>
+              <attribute name="label" translatable="yes">Radio</attribute>
+              <attribute name="action">app.radio-x</attribute>
+              <attribute name="target">x</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Radio</attribute>
+              <attribute name="action">app.radio-x</attribute>
+              <attribute name="target">y</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Radio</attribute>
+              <attribute name="action">app.radio-x-disabled</attribute>
+              <attribute name="target">x</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Radio</attribute>
+              <attribute name="action">app.radio-x-disabled</attribute>
+              <attribute name="target">y</attribute>
+            </item>
+            <item>
+              <attribute name="label" translatable="yes">Radio</attribute>
+              <attribute name="action">app.radio-no-action</attribute>
+              <attribute name="hidden-when">action-missing</attribute>
+            </item>
+          </section>
+        </submenu>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_View</attribute>
+      <section>
+        <item>
+          <attribute name="label" translatable="yes">Dark Theme</attribute>
+          <attribute name="action">win.dark</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Toolbar</attribute>
+          <attribute name="action">win.toolbar</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Statusbar</attribute>
+          <attribute name="action">win.statusbar</attribute>
+        </item>
+        <item>
+          <attribute name="label" translatable="yes">Select Background</attribute>
+          <attribute name="action">win.background</attribute>
+        </item>
+      </section>
+    </submenu>
+    <submenu>
+      <attribute name="label" translatable="yes">_Help</attribute>
+      <item>
+        <attribute name="label" translatable="yes">About</attribute>
+        <attribute name="action">app.about</attribute>
+      </item>
+    </submenu>
+  </menu>
 </interface>

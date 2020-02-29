@@ -27,119 +27,21 @@
 #include "gtktextview.h"
 #include "gtktextutil.h"
 
-#include "gtktextdisplayprivate.h"
+#include "gtkcsscolorvalueprivate.h"
+#include "gtkstylecontextprivate.h"
 #include "gtktextbuffer.h"
-#include "gtkmenuitem.h"
+#include "gtktextlayoutprivate.h"
 #include "gtkintl.h"
+#include "gtkwidgetprivate.h"
+#include "gtkcssnodeprivate.h"
+#include "gtkcssstyleprivate.h"
+#include "gtkstylepropertyprivate.h"
+#include "gtkcsscolorvalueprivate.h"
 
 #define DRAG_ICON_MAX_WIDTH 250
 #define DRAG_ICON_MAX_HEIGHT 250
 #define DRAG_ICON_MAX_LINES 7
 #define ELLIPSIS_CHARACTER "\xe2\x80\xa6"
-
-typedef struct _GtkUnicodeMenuEntry GtkUnicodeMenuEntry;
-typedef struct _GtkTextUtilCallbackInfo GtkTextUtilCallbackInfo;
-
-struct _GtkUnicodeMenuEntry {
-  const char *label;
-  gunichar ch;
-};
-
-struct _GtkTextUtilCallbackInfo
-{
-  GtkTextUtilCharChosenFunc func;
-  gpointer data;
-};
-
-static const GtkUnicodeMenuEntry bidi_menu_entries[] = {
-  { N_("LRM _Left-to-right mark"), 0x200E },
-  { N_("RLM _Right-to-left mark"), 0x200F },
-  { N_("LRE Left-to-right _embedding"), 0x202A },
-  { N_("RLE Right-to-left e_mbedding"), 0x202B },
-  { N_("LRO Left-to-right _override"), 0x202D },
-  { N_("RLO Right-to-left o_verride"), 0x202E },
-  { N_("PDF _Pop directional formatting"), 0x202C },
-  { N_("ZWS _Zero width space"), 0x200B },
-  { N_("ZWJ Zero width _joiner"), 0x200D },
-  { N_("ZWNJ Zero width _non-joiner"), 0x200C }
-};
-
-static GtkTextUtilCallbackInfo *
-callback_info_new (GtkTextUtilCharChosenFunc  func,
-                   gpointer                   data)
-{
-  GtkTextUtilCallbackInfo *info;
-
-  info = g_slice_new (GtkTextUtilCallbackInfo);
-
-  info->func = func;
-  info->data = data;
-
-  return info;
-}
-
-static void
-callback_info_free (GtkTextUtilCallbackInfo *info)
-{
-  g_slice_free (GtkTextUtilCallbackInfo, info);
-}
-
-static void
-activate_cb (GtkWidget *menu_item,
-             gpointer   data)
-{
-  GtkUnicodeMenuEntry *entry;
-  GtkTextUtilCallbackInfo *info = data;
-  char buf[7];
-  
-  entry = g_object_get_data (G_OBJECT (menu_item), "gtk-unicode-menu-entry");
-
-  buf[g_unichar_to_utf8 (entry->ch, buf)] = '\0';
-  
-  (* info->func) (buf, info->data);
-}
-
-/*
- * _gtk_text_util_append_special_char_menuitems
- * @menushell: a #GtkMenuShell
- * @callback:  call this when an item is chosen
- * @data: data for callback
- * 
- * Add menuitems for various bidi control characters  to a menu;
- * the menuitems, when selected, will call the given function
- * with the chosen character.
- *
- * This function is private/internal in GTK 2.0, the functionality may
- * become public sometime, but it probably needs more thought first.
- * e.g. maybe there should be a way to just get the list of items,
- * instead of requiring the menu items to be created.
- */
-void
-_gtk_text_util_append_special_char_menuitems (GtkMenuShell              *menushell,
-                                              GtkTextUtilCharChosenFunc  func,
-                                              gpointer                   data)
-{
-  int i;
-
-  for (i = 0; i < G_N_ELEMENTS (bidi_menu_entries); i++)
-    {
-      GtkWidget *menuitem;
-      GtkTextUtilCallbackInfo *info;
-
-      info = callback_info_new (func, data);
-
-      menuitem = gtk_menu_item_new_with_mnemonic (_(bidi_menu_entries[i].label));
-      g_object_set_data (G_OBJECT (menuitem), I_("gtk-unicode-menu-entry"),
-                         (gpointer)&bidi_menu_entries[i]);
-
-      g_signal_connect_data (menuitem, "activate",
-                             G_CALLBACK (activate_cb),
-                             info, (GClosureNotify) callback_info_free, 0);
-
-      gtk_widget_show (menuitem);
-      gtk_menu_shell_append (menushell, menuitem);
-    }
-}
 
 static void
 append_n_lines (GString *str, const gchar *text, GSList *lines, gint n_lines)
@@ -203,13 +105,13 @@ gtk_text_util_create_drag_icon (GtkWidget *widget,
                                 gchar     *text,
                                 gssize     len)
 {
-  GtkStyleContext *style_context;
+  GtkCssStyle *style;
   GtkSnapshot *snapshot;
   PangoContext *context;
   PangoLayout  *layout;
   GdkPaintable *paintable;
   gint          layout_width;
-  GdkRGBA       color;
+  const GdkRGBA *color;
 
   g_return_val_if_fail (widget != NULL, NULL);
   g_return_val_if_fail (text != NULL, NULL);
@@ -228,10 +130,10 @@ gtk_text_util_create_drag_icon (GtkWidget *widget,
 
   snapshot = gtk_snapshot_new ();
 
-  style_context = gtk_widget_get_style_context (widget);
-  gtk_style_context_get_color (style_context,
-                               &color);
-  gtk_snapshot_append_layout (snapshot, layout, &color);
+  style = gtk_css_node_get_style (gtk_widget_get_css_node (widget));
+  color = gtk_css_color_value_get_rgba (style->core->color);
+
+  gtk_snapshot_append_layout (snapshot, layout, color);
 
   paintable = gtk_snapshot_free_to_paintable (snapshot, NULL);
   g_object_unref (layout);
@@ -240,27 +142,41 @@ gtk_text_util_create_drag_icon (GtkWidget *widget,
 }
 
 static void
-set_attributes_from_style (GtkStyleContext   *context,
+set_attributes_from_style (GtkWidget         *widget,
                            GtkTextAttributes *values)
 {
+  GtkCssStyle *style;
+  GtkStyleContext *context;
   const GdkRGBA black = { 0, };
-  GdkRGBA *bg;
 
   if (!values->appearance.bg_rgba)
     values->appearance.bg_rgba = gdk_rgba_copy (&black);
   if (!values->appearance.fg_rgba)
     values->appearance.fg_rgba = gdk_rgba_copy (&black);
 
-  
-  gtk_style_context_get (context, "background-color", &bg, NULL);
-  *values->appearance.bg_rgba = *bg;
-  gdk_rgba_free (bg);
-  gtk_style_context_get_color (context, values->appearance.fg_rgba);
+  context = gtk_widget_get_style_context (widget);
+  style = gtk_style_context_lookup_style (context);
+
+  *values->appearance.bg_rgba = *gtk_css_color_value_get_rgba (style->background->background_color);
+  *values->appearance.fg_rgba = *gtk_css_color_value_get_rgba (style->core->color);
 
   if (values->font)
     pango_font_description_free (values->font);
 
-  gtk_style_context_get (context, "font", &values->font, NULL);
+  values->font = gtk_css_style_get_pango_font (style);
+}
+
+static gint
+get_border_window_size (GtkTextView       *text_view,
+                        GtkTextWindowType  window_type)
+{
+  GtkWidget *gutter;
+
+  gutter = gtk_text_view_get_gutter (text_view, window_type);
+  if (gutter != NULL)
+    return gtk_widget_get_width (gutter);
+
+  return 0;
 }
 
 GdkPaintable *
@@ -308,13 +224,13 @@ gtk_text_util_create_rich_drag_icon (GtkWidget     *widget,
   gtk_widget_get_allocation (widget, &allocation);
   layout_width = allocation.width;
 
-  set_attributes_from_style (gtk_widget_get_style_context (widget), style);
+  set_attributes_from_style (widget, style);
 
   if (GTK_IS_TEXT_VIEW (widget))
     {
       layout_width = layout_width
-        - gtk_text_view_get_border_window_size (GTK_TEXT_VIEW (widget), GTK_TEXT_WINDOW_LEFT)
-        - gtk_text_view_get_border_window_size (GTK_TEXT_VIEW (widget), GTK_TEXT_WINDOW_RIGHT);
+        - get_border_window_size (GTK_TEXT_VIEW (widget), GTK_TEXT_WINDOW_LEFT)
+        - get_border_window_size (GTK_TEXT_VIEW (widget), GTK_TEXT_WINDOW_RIGHT);
     }
 
   style->direction = gtk_widget_get_direction (widget);
@@ -335,7 +251,7 @@ gtk_text_util_create_rich_drag_icon (GtkWidget     *widget,
 
   snapshot = gtk_snapshot_new ();
 
-  gtk_text_layout_snapshot (layout, widget, snapshot, &(GdkRectangle) { 0, 0, layout_width, layout_height });
+  gtk_text_layout_snapshot (layout, widget, snapshot, &(GdkRectangle) { 0, 0, layout_width, layout_height }, 1.0);
 
   g_object_unref (layout);
   g_object_unref (new_buffer);

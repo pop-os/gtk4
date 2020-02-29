@@ -94,12 +94,19 @@ G_DEFINE_BOXED_TYPE (GskTransform, gsk_transform,
 static gboolean
 gsk_transform_is_identity (GskTransform *self);
 
+static inline gboolean
+gsk_transform_has_class (GskTransform            *self,
+                         const GskTransformClass *transform_class)
+{
+  return self != NULL && self->transform_class == transform_class;
+}
+
 /*< private >
  * gsk_transform_alloc:
  * @transform_class: class structure for this self
  * @category: The category of this transform. Will be used to initialize
  *     the result's category together with &next's category
- * @next: (transfer full) Next matrix to multiply with or %NULL if none
+ * @next: (transfer full): Next matrix to multiply with or %NULL if none
  *
  * Returns: (transfer full): the newly created #GskTransform
  */
@@ -166,7 +173,7 @@ static void
 gsk_identity_transform_print (GskTransform *transform,
                               GString      *string)
 {
-  g_string_append (string, "identity");
+  g_string_append (string, "none");
 }
 
 static GskTransform *
@@ -454,7 +461,7 @@ gsk_transform_matrix_with_category (GskTransform            *next,
 
 /**
  * gsk_transform_matrix:
- * @next: (allow-none): the next transform
+ * @next: (allow-none) (transfer full): the next transform
  * @matrix: the matrix to multiply @next with
  *
  * Multiplies @next with the given @matrix.
@@ -605,7 +612,7 @@ static const GskTransformClass GSK_TRANSLATE_TRANSFORM_CLASS =
 
 /**
  * gsk_transform_translate:
- * @next: (allow-none): the next transform
+ * @next: (allow-none) (transfer full): the next transform
  * @point: the point to translate the matrix by
  *
  * Translates @next in 2dimensional space by @point.
@@ -625,7 +632,7 @@ gsk_transform_translate (GskTransform           *next,
 
 /**
  * gsk_transform_translate_3d:
- * @next: (allow-none): the next transform
+ * @next: (allow-none) (transfer full): the next transform
  * @point: the point to translate the matrix by
  *
  * Translates @next by @point.
@@ -637,7 +644,21 @@ gsk_transform_translate_3d (GskTransform             *next,
                             const graphene_point3d_t *point)
 {
   GskTranslateTransform *result;
-  
+
+  if (graphene_point3d_equal (point, graphene_point3d_zero ()))
+    return next;
+
+  if (gsk_transform_has_class (next, &GSK_TRANSLATE_TRANSFORM_CLASS))
+    {
+      GskTranslateTransform *t = (GskTranslateTransform *) next;
+      GskTransform *r = gsk_transform_translate_3d (gsk_transform_ref (next->next),
+                                                    &GRAPHENE_POINT3D_INIT(t->point.x + point->x,
+                                                                           t->point.y + point->y,
+                                                                           t->point.z + point->z));
+      gsk_transform_unref (next);
+      return r;
+    }
+
   result = gsk_transform_alloc (&GSK_TRANSLATE_TRANSFORM_CLASS,
                                 point->z == 0.0 ? GSK_TRANSFORM_CATEGORY_2D_TRANSLATE
                                                 : GSK_TRANSFORM_CATEGORY_3D,
@@ -664,16 +685,54 @@ gsk_rotate_transform_finalize (GskTransform *self)
 {
 }
 
+static inline void
+_sincos (float  deg,
+         float *out_s,
+         float *out_c)
+{
+  if (deg == 90.0)
+    {
+      *out_c = 0.0;
+      *out_s = 1.0;
+    }
+  else if (deg == 180.0)
+    {
+      *out_c = -1.0;
+      *out_s = 0.0;
+    }
+  else if (deg == 270.0)
+    {
+      *out_c = 0.0;
+      *out_s = -1.0;
+    }
+  else if (deg == 0.0)
+    {
+      *out_c = 1.0;
+      *out_s = 0.0;
+    }
+  else
+    {
+      float angle = deg * M_PI / 180.0;
+
+#ifdef HAVE_SINCOSF
+      sincosf (angle, out_s, out_c);
+#else
+      *out_s = sinf (angle);
+      *out_c = cosf (angle);
+#endif
+
+    }
+}
+
 static void
 gsk_rotate_transform_to_matrix (GskTransform      *transform,
                                 graphene_matrix_t *out_matrix)
 {
   GskRotateTransform *self = (GskRotateTransform *) transform;
-  float rad, c, s;
+  float c, s;
 
-  rad = self->angle * M_PI / 180.f;
-  c = cosf (rad);
-  s = sinf (rad);
+  _sincos (self->angle, &s, &c);
+
   graphene_matrix_init_from_2d (out_matrix,
                                 c, s,
                                 -s, c,
@@ -690,14 +749,9 @@ gsk_rotate_transform_apply_2d (GskTransform *transform,
                                float        *out_dy)
 {
   GskRotateTransform *self = (GskRotateTransform *) transform;
-  float s, c, rad, xx, xy, yx, yy;
+  float s, c, xx, xy, yx, yy;
 
-  if (fmodf (self->angle, 360.0f) == 0.0)
-    return;
-
-  rad = self->angle * G_PI / 180.0f;
-  s = sinf (rad);
-  c = cosf (rad);
+  _sincos (self->angle, &s, &c);
 
   xx =  c * *out_xx + s * *out_xy;
   yx =  c * *out_yx + s * *out_yy;
@@ -764,9 +818,28 @@ static const GskTransformClass GSK_ROTATE_TRANSFORM_CLASS =
   gsk_rotate_transform_equal,
 };
 
+static inline float
+normalize_angle (float angle)
+{
+  float f;
+
+  if (angle >= 0 && angle < 360)
+    return angle;
+
+  f = angle - (360 * ((int)(angle / 360.0)));
+
+  if (f < 0)
+    f = 360 + f;
+
+  g_assert (f < 360.0);
+  g_assert (f >= 0.0);
+
+  return f;
+}
+
 /**
  * gsk_transform_rotate:
- * @next: (allow-none): the next transform
+ * @next: (allow-none) (transfer full): the next transform
  * @angle: the rotation angle, in degrees (clockwise)
  *
  * Rotates @next @angle degrees in 2D - or in 3Dspeak, around the z axis.
@@ -777,11 +850,24 @@ GskTransform *
 gsk_transform_rotate (GskTransform *next,
                       float         angle)
 {
-  GskRotateTransform *result = gsk_transform_alloc (&GSK_ROTATE_TRANSFORM_CLASS,
-                                                    GSK_TRANSFORM_CATEGORY_2D,
-                                                    next);
+  GskRotateTransform *result;
 
-  result->angle = angle;
+  if (angle == 0.0f)
+    return next;
+
+  if (gsk_transform_has_class (next, &GSK_ROTATE_TRANSFORM_CLASS))
+    {
+      GskTransform *r  = gsk_transform_rotate (gsk_transform_ref (next->next),
+                                               ((GskRotateTransform *) next)->angle + angle);
+      gsk_transform_unref (next);
+      return r;
+    }
+
+  result = gsk_transform_alloc (&GSK_ROTATE_TRANSFORM_CLASS,
+                                GSK_TRANSFORM_CATEGORY_2D,
+                                next);
+
+  result->angle = normalize_angle (angle);
 
   return &result->parent;
 }
@@ -877,7 +963,7 @@ static const GskTransformClass GSK_ROTATE3D_TRANSFORM_CLASS =
 
 /**
  * gsk_transform_rotate_3d:
- * @next: (allow-none): the next transform
+ * @next: (allow-none) (transfer full): the next transform
  * @angle: the rotation angle, in degrees (clockwise)
  * @axis: The rotation axis
  *
@@ -893,15 +979,18 @@ gsk_transform_rotate_3d (GskTransform          *next,
                          const graphene_vec3_t *axis)
 {
   GskRotate3dTransform *result;
-  
+
   if (graphene_vec3_get_x (axis) == 0.0 && graphene_vec3_get_y (axis) == 0.0)
     return gsk_transform_rotate (next, angle);
+
+  if (angle == 0.0f)
+    return next;
 
   result = gsk_transform_alloc (&GSK_ROTATE3D_TRANSFORM_CLASS,
                                 GSK_TRANSFORM_CATEGORY_3D,
                                 next);
 
-  result->angle = angle;
+  result->angle = normalize_angle (angle);
   graphene_vec3_init_from_vec3 (&result->axis, axis);
 
   return &result->parent;
@@ -996,9 +1085,9 @@ gsk_scale_transform_equal (GskTransform *first_transform,
   GskScaleTransform *first = (GskScaleTransform *) first_transform;
   GskScaleTransform *second = (GskScaleTransform *) second_transform;
 
-  return G_APPROX_VALUE (first->factor_x, second->factor_x, 0.01f) &&
-         G_APPROX_VALUE (first->factor_y, second->factor_y, 0.01f) &&
-         G_APPROX_VALUE (first->factor_z, second->factor_z, 0.01f);
+  return G_APPROX_VALUE (first->factor_x, second->factor_x, FLT_EPSILON) &&
+         G_APPROX_VALUE (first->factor_y, second->factor_y, FLT_EPSILON) &&
+         G_APPROX_VALUE (first->factor_z, second->factor_z, FLT_EPSILON);
 }
 
 static void
@@ -1047,7 +1136,7 @@ static const GskTransformClass GSK_SCALE_TRANSFORM_CLASS =
 
 /**
  * gsk_transform_scale:
- * @next: (allow-none): the next transform
+ * @next: (allow-none) (transfer full): the next transform
  * @factor_x: scaling factor on the X axis
  * @factor_y: scaling factor on the Y axis
  *
@@ -1066,7 +1155,7 @@ gsk_transform_scale (GskTransform *next,
 
 /**
  * gsk_transform_scale_3d:
- * @next: (allow-none): the next transform
+ * @next: (allow-none) (transfer full): the next transform
  * @factor_x: scaling factor on the X axis
  * @factor_y: scaling factor on the Y axis
  * @factor_z: scaling factor on the Z axis
@@ -1082,7 +1171,21 @@ gsk_transform_scale_3d (GskTransform *next,
                         float         factor_z)
 {
   GskScaleTransform *result;
-  
+
+  if (factor_x == 1 && factor_y == 1 && factor_z == 1)
+    return next;
+
+  if (gsk_transform_has_class (next, &GSK_SCALE_TRANSFORM_CLASS))
+    {
+      GskScaleTransform *scale = (GskScaleTransform *) next;
+      GskTransform *r = gsk_transform_scale_3d (gsk_transform_ref (next->next),
+                                                scale->factor_x * factor_x,
+                                                scale->factor_y * factor_y,
+                                                scale->factor_z * factor_z);
+      gsk_transform_unref (next);
+      return r;
+    }
+
   result = gsk_transform_alloc (&GSK_SCALE_TRANSFORM_CLASS,
                                 factor_z != 1.0 ? GSK_TRANSFORM_CATEGORY_3D
                                                 : GSK_TRANSFORM_CATEGORY_2D_AFFINE,
@@ -1118,7 +1221,7 @@ gsk_perspective_transform_to_matrix (GskTransform      *transform,
   GskPerspectiveTransform *self = (GskPerspectiveTransform *) transform;
   float f[16] = { 1.f, 0.f, 0.f,  0.f,
                   0.f, 1.f, 0.f,  0.f,
-                  0.f, 0.f, 1.f, -1.f / self->depth,
+                  0.f, 0.f, 1.f, self->depth ? -1.f / self->depth : 0.f,
                   0.f, 0.f, 0.f,  1.f };
 
   graphene_matrix_init_from_float (out_matrix, f);
@@ -1181,7 +1284,7 @@ static const GskTransformClass GSK_PERSPECTIVE_TRANSFORM_CLASS =
 
 /**
  * gsk_transform_perspective:
- * @next: (allow-none): the next transform
+ * @next: (allow-none) (transfer full): the next transform
  * @depth: distance of the z=0 plane. Lower values give a more
  *     flattened pyramid and therefore a more pronounced
  *     perspective effect.
@@ -1199,7 +1302,15 @@ gsk_transform_perspective (GskTransform *next,
                            float         depth)
 {
   GskPerspectiveTransform *result;
-  
+
+  if (gsk_transform_has_class (next, &GSK_PERSPECTIVE_TRANSFORM_CLASS))
+    {
+      GskTransform *r = gsk_transform_perspective (gsk_transform_ref (next->next),
+                                                   ((GskPerspectiveTransform *) next)->depth + depth);
+      gsk_transform_unref (next);
+      return r;
+    }
+
   result = gsk_transform_alloc (&GSK_PERSPECTIVE_TRANSFORM_CLASS,
                                 GSK_TRANSFORM_CATEGORY_ANY,
                                 next);
@@ -1353,7 +1464,7 @@ gsk_transform_to_matrix (GskTransform      *self,
  * |[<!-- language="plain" -->
  *   | xx yx |   |  a  b  0 |
  *   | xy yy | = |  c  d  0 |
- *   | x0 y0 |   | tx ty  1 |
+ *   | dx dy |   | tx ty  1 |
  * ]|
  *
  * This function can be used to convert between a #GskTransform
@@ -1561,10 +1672,10 @@ gsk_transform_equal (GskTransform *first,
   if (first == NULL || second == NULL)
     return FALSE;
 
-  if (!gsk_transform_equal (first->next, second->next))
+  if (first->transform_class != second->transform_class)
     return FALSE;
 
-  if (first->transform_class != second->transform_class)
+  if (!gsk_transform_equal (first->next, second->next))
     return FALSE;
 
   return first->transform_class->equal (first, second);
@@ -1608,8 +1719,8 @@ gsk_transform_new (void)
  * @out_rect: (out caller-allocates): return location for the bounds
  *   of the transformed rectangle
  *
- * Transforms a #graphene_rect_t using the given matrix @m. The
- * result is the bounding box containing the coplanar quad.
+ * Transforms a #graphene_rect_t using the given transform @self.
+ * The result is the bounding box containing the coplanar quad.
  **/
 void
 gsk_transform_transform_bounds (GskTransform          *self,
@@ -1627,7 +1738,23 @@ gsk_transform_transform_bounds (GskTransform          *self,
         float dx, dy;
 
         gsk_transform_to_translate (self, &dx, &dy);
-        graphene_rect_offset_r (rect, dx, dy, out_rect);
+        out_rect->origin.x = rect->origin.x + dx;
+        out_rect->origin.y = rect->origin.y + dy;
+        out_rect->size.width = rect->size.width;
+        out_rect->size.height = rect->size.height;
+      }
+    break;
+
+    case GSK_TRANSFORM_CATEGORY_2D_AFFINE:
+      {
+        float dx, dy, scale_x, scale_y;
+
+        gsk_transform_to_affine (self, &scale_x, &scale_y, &dx, &dy);
+
+        out_rect->origin.x = (rect->origin.x * scale_x) + dx;
+        out_rect->origin.y = (rect->origin.y * scale_y) + dy;
+        out_rect->size.width = rect->size.width * scale_x;
+        out_rect->size.height = rect->size.height * scale_y;
       }
     break;
 
@@ -1635,13 +1762,68 @@ gsk_transform_transform_bounds (GskTransform          *self,
     case GSK_TRANSFORM_CATEGORY_ANY:
     case GSK_TRANSFORM_CATEGORY_3D:
     case GSK_TRANSFORM_CATEGORY_2D:
-    case GSK_TRANSFORM_CATEGORY_2D_AFFINE:
     default:
       {
         graphene_matrix_t mat;
 
         gsk_transform_to_matrix (self, &mat);
         graphene_matrix_transform_bounds (&mat, rect, out_rect);
+      }
+      break;
+    }
+}
+
+/**
+ * gsk_transform_transform_point:
+ * @self: a #GskTransform
+ * @point: a #graphene_point_t
+ * @out_point: (out caller-allocates): return location for
+ *   the transformed point
+ *
+ * Transforms a #graphene_point_t using the given transform @self.
+ */
+void
+gsk_transform_transform_point (GskTransform           *self,
+                               const graphene_point_t *point,
+                               graphene_point_t       *out_point)
+{
+  switch (gsk_transform_get_category (self))
+    {
+    case GSK_TRANSFORM_CATEGORY_IDENTITY:
+      *out_point = *point;
+      break;
+
+    case GSK_TRANSFORM_CATEGORY_2D_TRANSLATE:
+      {
+        float dx, dy;
+
+        gsk_transform_to_translate (self, &dx, &dy);
+        out_point->x = point->x + dx;
+        out_point->y = point->y + dy;
+      }
+    break;
+
+    case GSK_TRANSFORM_CATEGORY_2D_AFFINE:
+      {
+        float dx, dy, scale_x, scale_y;
+
+        gsk_transform_to_affine (self, &scale_x, &scale_y, &dx, &dy);
+
+        out_point->x = (point->x * scale_x) + dx;
+        out_point->y = (point->y * scale_y) + dy;
+      }
+    break;
+
+    case GSK_TRANSFORM_CATEGORY_UNKNOWN:
+    case GSK_TRANSFORM_CATEGORY_ANY:
+    case GSK_TRANSFORM_CATEGORY_3D:
+    case GSK_TRANSFORM_CATEGORY_2D:
+    default:
+      {
+        graphene_matrix_t mat;
+
+        gsk_transform_to_matrix (self, &mat);
+        graphene_matrix_transform_point (&mat, point, out_point);
       }
       break;
     }
@@ -1685,6 +1867,7 @@ gsk_transform_parser_parse (GtkCssParser  *parser,
   const GtkCssToken *token;
   GskTransform *transform = NULL;
   float f[16] = { 0, };
+  gboolean parsed_something = FALSE;
 
   token = gtk_css_parser_get_token (parser);
   if (gtk_css_token_is_ident (token, "none"))
@@ -1826,27 +2009,53 @@ gsk_transform_parser_parse (GtkCssParser  *parser,
 
           transform = gsk_transform_translate_3d (transform, &GRAPHENE_POINT3D_INIT (0.f, 0.f, f[0]));
         }
-#if 0
-      /* FIXME: add these */
       else if (gtk_css_token_is_function (token, "skew"))
         {
+          graphene_matrix_t matrix;
+
+          if (!gtk_css_parser_consume_function (parser, 2, 2, gsk_transform_parse_float, f))
+            goto fail;
+
+          f[0] = f[0] / 180.0 * G_PI;
+          f[1] = f[1] / 180.0 * G_PI;
+
+          graphene_matrix_init_skew (&matrix, f[0], f[1]);
+          transform = gsk_transform_matrix (transform, &matrix);
         }
       else if (gtk_css_token_is_function (token, "skewX"))
         {
+          graphene_matrix_t matrix;
+
+          if (!gtk_css_parser_consume_function (parser, 1, 1, gsk_transform_parse_float, f))
+            goto fail;
+
+          f[0] = f[0] / 180.0 * G_PI;
+
+          graphene_matrix_init_skew (&matrix, f[0], 0);
+          transform = gsk_transform_matrix (transform, &matrix);
         }
       else if (gtk_css_token_is_function (token, "skewY"))
         {
+          graphene_matrix_t matrix;
+
+          if (!gtk_css_parser_consume_function (parser, 1, 1, gsk_transform_parse_float, f))
+            goto fail;
+
+          f[0] = f[0] / 180.0 * G_PI;
+
+          graphene_matrix_init_skew (&matrix, 0, f[0]);
+          transform = gsk_transform_matrix (transform, &matrix);
         }
-#endif
       else
         {
           break;
         }
 
+      parsed_something = TRUE;
       token = gtk_css_parser_get_token (parser);
     }
 
-  if (transform == NULL)
+  if (!parsed_something)
     {
       gtk_css_parser_error_syntax (parser, "Expected a transform");
       goto fail;

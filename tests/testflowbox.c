@@ -147,8 +147,8 @@ populate_flowbox_wrappy (GtkFlowBox *flowbox)
 
       gtk_container_add (GTK_CONTAINER (frame), widget);
 
-      gtk_label_set_line_wrap (GTK_LABEL (widget), TRUE);
-      gtk_label_set_line_wrap_mode (GTK_LABEL (widget), PANGO_WRAP_WORD);
+      gtk_label_set_wrap (GTK_LABEL (widget), TRUE);
+      gtk_label_set_wrap_mode (GTK_LABEL (widget), PANGO_WRAP_WORD);
       gtk_label_set_width_chars (GTK_LABEL (widget), 10);
       g_object_set_data_full (G_OBJECT (frame), "id", (gpointer)g_strdup (strings[i]), g_free);
 
@@ -626,20 +626,33 @@ create_window (void)
   return window;
 }
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main (int argc, char *argv[])
 {
   GtkWidget *window;
+  gboolean done = FALSE;
 
   gtk_init ();
 
   window = create_window ();
 
-  g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 
   gtk_widget_show (window);
 
-  gtk_main ();
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

@@ -11,9 +11,9 @@
 #include <math.h>
 #include <stdlib.h>
 
-static gint
-hex_spin_input (GtkSpinButton *spin_button,
-                gdouble       *new_val)
+gint
+spinbutton_hex_spin_input (GtkSpinButton *spin_button,
+                           gdouble       *new_val)
 {
   const gchar *buf;
   gchar *err;
@@ -28,8 +28,8 @@ hex_spin_input (GtkSpinButton *spin_button,
     return TRUE;
 }
 
-static gint
-hex_spin_output (GtkSpinButton *spin_button)
+gint
+spinbutton_hex_spin_output (GtkSpinButton *spin_button)
 {
   GtkAdjustment *adjustment;
   gchar *buf;
@@ -48,9 +48,9 @@ hex_spin_output (GtkSpinButton *spin_button)
   return TRUE;
 }
 
-static gint
-time_spin_input (GtkSpinButton *spin_button,
-                 gdouble       *new_val)
+gint
+spinbutton_time_spin_input (GtkSpinButton *spin_button,
+                            gdouble       *new_val)
 {
   const gchar *text;
   gchar **str;
@@ -87,8 +87,8 @@ time_spin_input (GtkSpinButton *spin_button,
   return TRUE;
 }
 
-static gint
-time_spin_output (GtkSpinButton *spin_button)
+gint
+spinbutton_time_spin_output (GtkSpinButton *spin_button)
 {
   GtkAdjustment *adjustment;
   gchar *buf;
@@ -121,9 +121,9 @@ static gchar *month[12] = {
   "December"
 };
 
-static gint
-month_spin_input (GtkSpinButton *spin_button,
-                  gdouble       *new_val)
+gint
+spinbutton_month_spin_input (GtkSpinButton *spin_button,
+                             gdouble       *new_val)
 {
   gint i;
   gchar *tmp1, *tmp2;
@@ -150,8 +150,8 @@ month_spin_input (GtkSpinButton *spin_button,
   return TRUE;
 }
 
-static gint
-month_spin_output (GtkSpinButton *spin_button)
+gint
+spinbutton_month_spin_output (GtkSpinButton *spin_button)
 {
   GtkAdjustment *adjustment;
   gdouble value;
@@ -191,15 +191,6 @@ do_spinbutton (GtkWidget *do_widget)
     GtkWidget *label;
 
     builder = gtk_builder_new_from_resource ("/spinbutton/spinbutton.ui");
-    gtk_builder_add_callback_symbols (builder,
-                                      "hex_spin_input", G_CALLBACK (hex_spin_input),
-                                      "hex_spin_output", G_CALLBACK (hex_spin_output),
-                                      "time_spin_input", G_CALLBACK (time_spin_input),
-                                      "time_spin_output", G_CALLBACK (time_spin_output),
-                                      "month_spin_input", G_CALLBACK (month_spin_input),
-                                      "month_spin_output", G_CALLBACK (month_spin_output),
-                                      NULL);
-    gtk_builder_connect_signals (builder, NULL);
     window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
     gtk_window_set_display (GTK_WINDOW (window),
                             gtk_widget_get_display (do_widget));

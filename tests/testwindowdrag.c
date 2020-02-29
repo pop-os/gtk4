@@ -1,7 +1,7 @@
 #include <gtk/gtk.h>
 
 static void
-start_resize (GtkGestureMultiPress *gesture,
+start_resize (GtkGestureClick *gesture,
               int n_press,
               double x,
               double y,
@@ -18,7 +18,7 @@ start_resize (GtkGestureMultiPress *gesture,
 
   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
-  surface = gtk_widget_get_surface (widget);
+  surface = gtk_native_get_surface (gtk_widget_get_native (widget));
   event = gtk_get_current_event ();
   gdk_event_get_button (event, &button);  
   timestamp = gdk_event_get_time (event);
@@ -39,7 +39,7 @@ resize_button (GdkSurfaceEdge edge)
   button = gtk_image_new_from_icon_name ("view-fullscreen-symbolic");
   gtk_widget_set_hexpand (button, TRUE);
   gtk_widget_set_vexpand (button, TRUE);
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   g_signal_connect (gesture, "pressed", G_CALLBACK (start_resize), GINT_TO_POINTER (edge));
   gtk_widget_add_controller (button, GTK_EVENT_CONTROLLER (gesture));
 
@@ -47,7 +47,7 @@ resize_button (GdkSurfaceEdge edge)
 }
 
 static void
-start_move (GtkGestureMultiPress *gesture,
+start_move (GtkGestureClick *gesture,
             int n_press,
             double x,
             double y,
@@ -63,7 +63,7 @@ start_move (GtkGestureMultiPress *gesture,
 
   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
-  surface = gtk_widget_get_surface (widget);
+  surface = gtk_native_get_surface (gtk_widget_get_native (widget));
   event = gtk_get_current_event ();
   gdk_event_get_button (event, &button);  
   timestamp = gdk_event_get_time (event);
@@ -83,7 +83,7 @@ move_button (void)
   button = gtk_image_new_from_icon_name ("view-grid-symbolic");
   gtk_widget_set_hexpand (button, TRUE);
   gtk_widget_set_vexpand (button, TRUE);
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   g_signal_connect (gesture, "pressed", G_CALLBACK (start_move), NULL);
   gtk_widget_add_controller (button, GTK_EVENT_CONTROLLER (gesture));
 
@@ -134,7 +134,8 @@ main (int argc, char *argv[])
 
   gtk_widget_show (window);
 
-  gtk_main ();
+  while (TRUE)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

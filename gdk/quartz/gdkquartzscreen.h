@@ -19,8 +19,8 @@
 #ifndef __GDK_QUARTZ_SCREEN_H__
 #define __GDK_QUARTZ_SCREEN_H__
 
-#if !defined(__GDKQUARTZ_H_INSIDE__) && !defined (GDK_COMPILATION)
-#error "Only <gdk/gdkquartz.h> can be included directly."
+#if !defined(__GDKQUARTZ_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gdk/quartz/gdkquartz.h> can be included directly."
 #endif
 
 G_BEGIN_DECLS

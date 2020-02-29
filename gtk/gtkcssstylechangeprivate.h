@@ -22,13 +22,9 @@
 
 G_BEGIN_DECLS
 
-typedef struct _GtkCssStyleChange GtkCssStyleChange;
-
 struct _GtkCssStyleChange {
   GtkCssStyle   *old_style;
   GtkCssStyle   *new_style;
-
-  guint          n_compared;
 
   GtkCssAffects  affects;
   GtkBitmask    *changes;

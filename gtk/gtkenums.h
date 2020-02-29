@@ -332,7 +332,7 @@ typedef enum
  * @GTK_ORIENTATION_VERTICAL: The element is in vertical orientation.
  *
  * Represents the orientation of widgets and other objects which can be switched
- * between horizontal and vertical orientation on the fly, like #GtkToolbar or
+ * between horizontal and vertical orientation on the fly, like #GtkBox or
  * #GtkGesturePan.
  */
 typedef enum
@@ -493,28 +493,6 @@ typedef enum
 } GtkShadowType;
 
 /* Widget states */
-
-/**
- * GtkToolbarStyle:
- * @GTK_TOOLBAR_ICONS: Buttons display only icons in the toolbar.
- * @GTK_TOOLBAR_TEXT: Buttons display only text labels in the toolbar.
- * @GTK_TOOLBAR_BOTH: Buttons display text and icons in the toolbar.
- * @GTK_TOOLBAR_BOTH_HORIZ: Buttons display icons and text alongside each
- *  other, rather than vertically stacked
- *
- * Used to customize the appearance of a #GtkToolbar. Note that
- * setting the toolbar style overrides the user’s preferences
- * for the default toolbar style.  Note that if the button has only
- * a label set and GTK_TOOLBAR_ICONS is used, the label will be
- * visible, and vice versa.
- */
-typedef enum
-{
-  GTK_TOOLBAR_ICONS,
-  GTK_TOOLBAR_TEXT,
-  GTK_TOOLBAR_BOTH,
-  GTK_TOOLBAR_BOTH_HORIZ
-} GtkToolbarStyle;
 
 /**
  * GtkWrapMode:
@@ -694,31 +672,6 @@ typedef enum
 } GtkTreeViewGridLines;
 
 /**
- * GtkDragResult:
- * @GTK_DRAG_RESULT_SUCCESS: The drag operation was successful.
- * @GTK_DRAG_RESULT_NO_TARGET: No suitable drag target.
- * @GTK_DRAG_RESULT_USER_CANCELLED: The user cancelled the drag operation.
- * @GTK_DRAG_RESULT_TIMEOUT_EXPIRED: The drag operation timed out.
- * @GTK_DRAG_RESULT_GRAB_BROKEN: The pointer or keyboard grab used
- *  for the drag operation was broken.
- * @GTK_DRAG_RESULT_ERROR: The drag operation failed due to some
- *  unspecified error.
- *
- * Gives an indication why a drag operation failed.
- * The value can by obtained by connecting to the
- * #GtkWidget::drag-failed signal.
- */
-typedef enum
-{
-  GTK_DRAG_RESULT_SUCCESS,
-  GTK_DRAG_RESULT_NO_TARGET,
-  GTK_DRAG_RESULT_USER_CANCELLED,
-  GTK_DRAG_RESULT_TIMEOUT_EXPIRED,
-  GTK_DRAG_RESULT_GRAB_BROKEN,
-  GTK_DRAG_RESULT_ERROR
-} GtkDragResult;
-
-/**
  * GtkSizeGroupMode:
  * @GTK_SIZE_GROUP_NONE: group has no effect
  * @GTK_SIZE_GROUP_HORIZONTAL: group affects horizontal requisition
@@ -809,10 +762,10 @@ typedef enum
 /**
  * GtkBorderStyle:
  * @GTK_BORDER_STYLE_NONE: No visible border
+ * @GTK_BORDER_STYLE_HIDDEN: Same as @GTK_BORDER_STYLE_NONE
  * @GTK_BORDER_STYLE_SOLID: A single line segment
  * @GTK_BORDER_STYLE_INSET: Looks as if the content is sunken into the canvas
  * @GTK_BORDER_STYLE_OUTSET: Looks as if the content is coming out of the canvas
- * @GTK_BORDER_STYLE_HIDDEN: Same as @GTK_BORDER_STYLE_NONE
  * @GTK_BORDER_STYLE_DOTTED: A series of round dots
  * @GTK_BORDER_STYLE_DASHED: A series of square-ended dashes
  * @GTK_BORDER_STYLE_DOUBLE: Two parallel lines with some space between them
@@ -823,10 +776,10 @@ typedef enum
  */
 typedef enum {
   GTK_BORDER_STYLE_NONE,
+  GTK_BORDER_STYLE_HIDDEN,
   GTK_BORDER_STYLE_SOLID,
   GTK_BORDER_STYLE_INSET,
   GTK_BORDER_STYLE_OUTSET,
-  GTK_BORDER_STYLE_HIDDEN,
   GTK_BORDER_STYLE_DOTTED,
   GTK_BORDER_STYLE_DASHED,
   GTK_BORDER_STYLE_DOUBLE,
@@ -862,6 +815,7 @@ G_END_DECLS
  * @GTK_INPUT_PURPOSE_NAME: Edited field expects the name of a person
  * @GTK_INPUT_PURPOSE_PASSWORD: Like @GTK_INPUT_PURPOSE_FREE_FORM, but characters are hidden
  * @GTK_INPUT_PURPOSE_PIN: Like @GTK_INPUT_PURPOSE_DIGITS, but characters are hidden
+ * @GTK_INPUT_PURPOSE_TERMINAL: Allow any character, in addition to control codes
  *
  * Describes primary purpose of the input widget. This information is
  * useful for on-screen keyboards and similar input methods to decide
@@ -893,7 +847,8 @@ typedef enum
   GTK_INPUT_PURPOSE_EMAIL,
   GTK_INPUT_PURPOSE_NAME,
   GTK_INPUT_PURPOSE_PASSWORD,
-  GTK_INPUT_PURPOSE_PIN
+  GTK_INPUT_PURPOSE_PIN,
+  GTK_INPUT_PURPOSE_TERMINAL,
 } GtkInputPurpose;
 
 /**
@@ -968,6 +923,23 @@ typedef enum
 } GtkPropagationPhase;
 
 /**
+ * GtkPropagationLimit:
+ * @GTK_LIMIT_NONE: Events are handled regardless of what their
+ *   target is.
+ * @GTK_LIMIT_SAME_NATIVE: Events are only handled if their target
+ *   is in the same #GtkNative as the event controllers widget. Note
+ *   that some event types have two targets (origin and destination).
+ *
+ * Describes limits of a #GtkEventController for handling events
+ * targeting other widgets.
+ */
+typedef enum
+{
+  GTK_LIMIT_NONE,
+  GTK_LIMIT_SAME_NATIVE
+} GtkPropagationLimit;
+
+/**
  * GtkEventSequenceState:
  * @GTK_EVENT_SEQUENCE_NONE: The sequence is handled, but not grabbed.
  * @GTK_EVENT_SEQUENCE_CLAIMED: The sequence is handled and grabbed.
@@ -1035,5 +1007,99 @@ typedef enum {
   GTK_PICK_INSENSITIVE    = 1 << 0,
   GTK_PICK_NON_TARGETABLE = 1 << 1
 } GtkPickFlags;
+
+/**
+ * GtkConstraintRelation:
+ * @GTK_CONSTRAINT_RELATION_EQ: Equal
+ * @GTK_CONSTRAINT_RELATION_LE: Less than, or equal
+ * @GTK_CONSTRAINT_RELATION_GE: Greater than, or equal
+ *
+ * The relation between two terms of a constraint.
+ */
+typedef enum {
+  GTK_CONSTRAINT_RELATION_LE = -1,
+  GTK_CONSTRAINT_RELATION_EQ = 0,
+  GTK_CONSTRAINT_RELATION_GE = 1
+} GtkConstraintRelation;
+
+/**
+ * GtkConstraintStrength:
+ * @GTK_CONSTRAINT_STRENGTH_REQUIRED: The constraint is required towards solving the layout
+ * @GTK_CONSTRAINT_STRENGTH_STRONG: A strong constraint
+ * @GTK_CONSTRAINT_STRENGTH_MEDIUM: A medium constraint
+ * @GTK_CONSTRAINT_STRENGTH_WEAK: A weak constraint
+ *
+ * The strength of a constraint, expressed as a symbolic constant.
+ *
+ * The strength of a #GtkConstraint can be expressed with any positive
+ * integer; the values of this enumeration can be used for readability.
+ */
+typedef enum {
+  GTK_CONSTRAINT_STRENGTH_REQUIRED = 1001001000,
+  GTK_CONSTRAINT_STRENGTH_STRONG   = 1000000000,
+  GTK_CONSTRAINT_STRENGTH_MEDIUM   = 1000,
+  GTK_CONSTRAINT_STRENGTH_WEAK     = 1
+} GtkConstraintStrength;
+
+/**
+ * GtkConstraintAttribute:
+ * @GTK_CONSTRAINT_ATTRIBUTE_NONE: No attribute, used for constant
+ *   relations
+ * @GTK_CONSTRAINT_ATTRIBUTE_LEFT: The left edge of a widget, regardless of
+ *   text direction
+ * @GTK_CONSTRAINT_ATTRIBUTE_RIGHT: The right edge of a widget, regardless
+ *   of text direction
+ * @GTK_CONSTRAINT_ATTRIBUTE_TOP: The top edge of a widget
+ * @GTK_CONSTRAINT_ATTRIBUTE_BOTTOM: The bottom edge of a widget
+ * @GTK_CONSTRAINT_ATTRIBUTE_START: The leading edge of a widget, depending
+ *   on text direction; equivalent to %GTK_CONSTRAINT_ATTRIBUTE_LEFT for LTR
+ *   languages, and %GTK_CONSTRAINT_ATTRIBUTE_RIGHT for RTL ones
+ * @GTK_CONSTRAINT_ATTRIBUTE_END: The trailing edge of a widget, depending
+ *   on text direction; equivalent to %GTK_CONSTRAINT_ATTRIBUTE_RIGHT for LTR
+ *   languages, and %GTK_CONSTRAINT_ATTRIBUTE_LEFT for RTL ones
+ * @GTK_CONSTRAINT_ATTRIBUTE_WIDTH: The width of a widget
+ * @GTK_CONSTRAINT_ATTRIBUTE_HEIGHT: The height of a widget
+ * @GTK_CONSTRAINT_ATTRIBUTE_CENTER_X: The center of a widget, on the
+ *   horizontal axis
+ * @GTK_CONSTRAINT_ATTRIBUTE_CENTER_Y: The center of a widget, on the
+ *   vertical axis
+ * @GTK_CONSTRAINT_ATTRIBUTE_BASELINE: The baseline of a widget
+ *
+ * The widget attributes that can be used when creating a #GtkConstraint.
+ */
+typedef enum {
+  GTK_CONSTRAINT_ATTRIBUTE_NONE,
+  GTK_CONSTRAINT_ATTRIBUTE_LEFT,
+  GTK_CONSTRAINT_ATTRIBUTE_RIGHT,
+  GTK_CONSTRAINT_ATTRIBUTE_TOP,
+  GTK_CONSTRAINT_ATTRIBUTE_BOTTOM,
+  GTK_CONSTRAINT_ATTRIBUTE_START,
+  GTK_CONSTRAINT_ATTRIBUTE_END,
+  GTK_CONSTRAINT_ATTRIBUTE_WIDTH,
+  GTK_CONSTRAINT_ATTRIBUTE_HEIGHT,
+  GTK_CONSTRAINT_ATTRIBUTE_CENTER_X,
+  GTK_CONSTRAINT_ATTRIBUTE_CENTER_Y,
+  GTK_CONSTRAINT_ATTRIBUTE_BASELINE
+} GtkConstraintAttribute;
+
+/**
+ * GtkConstraintVflParserError:
+ * @GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_SYMBOL: Invalid or unknown symbol
+ * @GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_ATTRIBUTE: Invalid or unknown attribute
+ * @GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_VIEW: Invalid or unknown view
+ * @GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_METRIC: Invalid or unknown metric
+ * @GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_PRIORITY: Invalid or unknown priority
+ * @GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_RELATION: Invalid or unknown relation
+ *
+ * Domain for VFL parsing errors.
+ */
+typedef enum {
+  GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_SYMBOL,
+  GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_ATTRIBUTE,
+  GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_VIEW,
+  GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_METRIC,
+  GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_PRIORITY,
+  GTK_CONSTRAINT_VFL_PARSER_ERROR_INVALID_RELATION
+} GtkConstraintVflParserError;
 
 #endif /* __GTK_ENUMS_H__ */

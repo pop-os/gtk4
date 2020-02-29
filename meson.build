@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.96.0',
+        version: '3.98.0',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -7,7 +7,7 @@ project('gtk', 'c',
           # https://github.com/mesonbuild/meson/issues/2289
           'c_std=gnu99',
         ],
-        meson_version : '>= 0.48.0',
+        meson_version : '>= 0.50.1',
         license: 'LGPLv2.1+')
 
 glib_major_req = 2
@@ -27,13 +27,13 @@ else
 endif
 
 glib_req           = '>= @0@.@1@.@2@'.format(glib_major_req, glib_minor_req, glib_micro_req)
-pango_req          = '>= 1.41.0'
+pango_req          = '>= 1.44.0'
 fribidi_req        = '>= 0.19.7'
 atk_req            = '>= 2.15.1'
 cairo_req          = '>= 1.14.0'
 gdk_pixbuf_req     = '>= 2.30.0'
 introspection_req  = '>= 1.39.0'
-wayland_proto_req  = '>= 1.12'
+wayland_proto_req  = '>= 1.14'
 wayland_req        = '>= 1.14.91'
 graphene_req       = '>= 1.9.1'
 epoxy_req          = '>= 1.4'
@@ -198,6 +198,7 @@ check_functions = [
   'log2',
   'exp2',
   'sincos',
+  'sincosf',
 ]
 
 foreach func : check_functions
@@ -222,9 +223,17 @@ endif
 if cc.get_id() == 'msvc'
   # Compiler options taken from msvc_recommended_pragmas.h
   # in GLib, based on _Win32_Programming_ by Rector and Newcomer
-  test_cflags = []
-  add_project_arguments('-FImsvc_recommended_pragmas.h', language: 'c')
-  add_project_arguments('-D_USE_MATH_DEFINES', language: 'c')
+  test_cflags = [
+    '-FImsvc_recommended_pragmas.h',
+	'-D_USE_MATH_DEFINES',
+	'-utf-8',
+  ]
+  add_project_arguments(cc.get_supported_arguments(test_cflags), language: 'c')
+
+  cxx = meson.get_compiler('cpp')
+  if cxx.get_id() == 'msvc'
+    add_project_arguments(cxx.get_supported_arguments(test_cflags), language: 'cpp')
+  endif
 elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
   test_cflags = [
     '-fno-strict-aliasing',
@@ -335,33 +344,6 @@ fribidi_dep    = dependency('fribidi', version: fribidi_req,
 require_pangoft2 = wayland_enabled or x11_enabled
 pangoft_dep    = dependency('pangoft2', required: false)
 
-if pangoft_dep.found()
-  # Need at least 2.7.1 for FT_Get_Var_Design_Coordinates()
-  # We get the dependency itself from pango, but pango doesn't care
-  # about ft2 version, so an extra check is needed.
-  ft2_dep      = dependency('freetype2', version: '>= 2.7.1', required: require_pangoft2)
-
-  # Fallback case: Look for the FreeType2 headers and library manually when its .pc
-  # file is not available, such as on Visual Studio
-  if not ft2_dep.found()
-    ft2lib = ft2_dep
-    if cc.has_header('ft2build.h')
-      ft2_libnames = ['freetype', 'freetypemt']
-      foreach lib: ft2_libnames
-        if not ft2_dep.found()
-          ft2lib = cc.find_library(lib)
-          # If the FreeType2 library is found, check for FT_Get_Var_Design_Coordinates()
-          if ft2lib.found()
-            if cc.has_function('FT_Get_Var_Design_Coordinates', dependencies: ft2lib)
-              ft2_dep = ft2lib
-            endif
-          endif
-        endif
-      endforeach
-    endif
-  endif
-endif
-
 if require_pangoft2
   pangoft_dep    = dependency('pangoft2', fallback : ['pango', 'libpangoft2_dep'])
 endif
@@ -461,11 +443,15 @@ if cc.get_id() == 'msvc'
   endif
 endif
 
+cairo_csi_dep = cc.find_library('cairo-script-interpreter',
+                                required: get_option('build-tests'))
+
 if not harfbuzz_dep.found()
   harfbuzz_dep = dependency('harfbuzz', version: '>= 0.9', required: false,
                             fallback: ['harfbuzz', 'libharfbuzz_dep'])
 endif
 
+cdata.set('HAVE_CAIRO_SCRIPT_INTERPRETER', cairo_csi_dep.found())
 cdata.set('HAVE_HARFBUZZ', harfbuzz_dep.found())
 cdata.set('HAVE_PANGOFT', pangoft_dep.found())
 
@@ -475,7 +461,6 @@ wayland_pkgs = []
 if wayland_enabled
   wlclientdep    = dependency('wayland-client', version:  wayland_req)
   wlprotocolsdep = dependency('wayland-protocols', version: wayland_proto_req)
-  wlcursordep    = dependency('wayland-cursor', version: wayland_req)
   wlegldep       = dependency('wayland-egl')
   backend_immodules += ['wayland']
 
@@ -483,7 +468,6 @@ if wayland_enabled
     'wayland-client', wayland_req,
     'wayland-protocols', wayland_proto_req,
     'xkbcommon', xkbcommon_req,
-    'wayland-cursor', wayland_req,
     'wayland-egl',
   ]
 endif
@@ -542,18 +526,19 @@ if x11_enabled
     cdata.set('HAVE_XGENERICEVENTS', 1)
   endif
 
-  if xi_dep.found() and cc.has_header('X11/extensions/XInput2.h', dependencies: xi_dep)
-    cdata.set('XINPUT_2', 1)
-    # Note that we also check that the XIScrollClassInfo struct is defined,
-    # because at least Ubuntu Oneiric seems to have XIAllowTouchEvents(),
-    # but not the XIScrollClassInfo struct
-    has_allow_touch_evens = cc.has_function('XIAllowTouchEvents', dependencies: xi_dep)
-    has_scroll_class_info = cc.has_member('XIScrollClassInfo', 'number', dependencies: xi_dep,
-                                          prefix: '''#include <X11/Xlib.h>
-                                                     #include <X11/extensions/XInput2.h>''')
-    if has_allow_touch_evens and has_scroll_class_info
-      cdata.set('XINPUT_2_2', 1)
-    endif
+  if not xi_dep.found() or not cc.has_header('X11/extensions/XInput2.h', dependencies: xi_dep)
+    error('X11 backend enabled, but XInput2 not found.')
+  endif
+
+  # Note that we also check that the XIScrollClassInfo struct is defined,
+  # because at least Ubuntu Oneiric seems to have XIAllowTouchEvents(),
+  #   but not the XIScrollClassInfo struct
+  has_allow_touch_evens = cc.has_function('XIAllowTouchEvents', dependencies: xi_dep)
+  has_scroll_class_info = cc.has_member('XIScrollClassInfo', 'number', dependencies: xi_dep,
+                                        prefix: '''#include <X11/Xlib.h>
+                                                   #include <X11/extensions/XInput2.h>''')
+  if has_allow_touch_evens and has_scroll_class_info
+    cdata.set('XINPUT_2_2', 1)
   endif
 
   enable_xinerama = get_option('xinerama')
@@ -665,6 +650,16 @@ if cloudproviders_enabled
   endif
 endif
 
+profiler_enabled = get_option('profiler')
+if profiler_enabled
+  profiler_dep = dependency('sysprof-capture-3', static: true, required: true)
+  if profiler_dep.found()
+    cdata.set('HAVE_SYSPROF_CAPTURE', profiler_dep.found())
+  else
+    error('Profiler support not found, but was explicitly requested.')
+  endif
+endif
+
 graphene_dep_type = graphene_dep.type_name()
 if graphene_dep_type == 'pkgconfig'
   graphene_has_sse2 = graphene_dep.get_pkgconfig_variable('graphene_has_sse2') == '1'
@@ -679,7 +674,7 @@ if graphene_has_sse2 or graphene_has_gcc
   message('Need aligned memory due to the use of SSE2 or GCC vector instructions')
 
   if os_win32 and cc.get_id() == 'gcc'
-    add_global_arguments(['-mstackrealign'], language: 'c')
+    add_project_arguments(['-mstackrealign'], language: 'c')
   endif
 endif
 
@@ -789,10 +784,8 @@ endif
 subdir('po')
 subdir('po-properties')
 
-if get_option('documentation')
-  subdir('docs/tools')
-  subdir('docs/reference')
-endif
+subdir('docs/tools')
+subdir('docs/reference')
 
 # Keep this in sync with post-install.sh expected arguments
 meson.add_install_script('build-aux/meson/post-install.py',
@@ -812,8 +805,10 @@ summary = [
   '    Vulkan support: @0@'.format(have_vulkan),
   '     Cloud support: @0@'.format(get_option('cloudproviders')),
   '    Colord support: @0@'.format(get_option('colord')),
+  '          Profiler: @0@'.format(get_option('profiler')),
   '     Introspection: @0@'.format(get_option('introspection')),
-  '     Documentation: @0@'.format(get_option('documentation')),
+  '     Documentation: @0@'.format(get_option('gtk_doc')),
+  '         Man pages: @0@'.format(get_option('man-pages')),
   '       Build tests: @0@'.format(get_option('build-tests')),
   '     Install tests: @0@'.format(get_option('install-tests')),
   '             Demos: @0@'.format(get_option('demos')),

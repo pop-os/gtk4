@@ -30,6 +30,7 @@ enum {
   TEST_WIDGET_LAST
 };
 
+static gboolean done = FALSE;
 static GtkWidget *test_widgets[TEST_WIDGET_LAST];
 
 static GtkWidget*
@@ -46,7 +47,7 @@ create_label (gboolean wrap)
   widget = gtk_label_new ("This is a label, label label label");
 
   if (wrap)
-    gtk_label_set_line_wrap (GTK_LABEL (widget), TRUE);
+    gtk_label_set_wrap (GTK_LABEL (widget), TRUE);
 
   return widget;
 }
@@ -58,6 +59,17 @@ create_button (void)
 }
 
 static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
+static void
 open_test_window (void)
 {
   GtkWidget *grid;
@@ -66,7 +78,7 @@ open_test_window (void)
   test_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (test_window), "Tests");
 
-  g_signal_connect (test_window, "destroy", G_CALLBACK (gtk_main_quit), test_window);
+  g_signal_connect (test_window, "destroy", G_CALLBACK (quit_cb), &done);
 
   gtk_window_set_resizable (GTK_WINDOW (test_window), FALSE);
 
@@ -131,7 +143,7 @@ open_control_window (void)
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (window), "Controls");
 
-  g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add (GTK_CONTAINER (window), box);
@@ -230,7 +242,7 @@ open_alignment_window (void)
   test_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (test_window), "Alignment");
 
-  g_signal_connect (test_window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (test_window, "destroy", G_CALLBACK (quit_cb), &done);
 
   gtk_window_set_resizable (GTK_WINDOW (test_window), TRUE);
   gtk_window_set_default_size (GTK_WINDOW (test_window), 500, 500);
@@ -291,7 +303,7 @@ open_margin_window (void)
   test_window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   gtk_window_set_title (GTK_WINDOW (test_window), "Margin");
 
-  g_signal_connect (test_window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (test_window, "destroy", G_CALLBACK (quit_cb), &done);
 
   gtk_window_set_resizable (GTK_WINDOW (test_window), TRUE);
 
@@ -317,7 +329,7 @@ open_valigned_label_window (void)
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
 
-  g_signal_connect (test_window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (test_window, "destroy", G_CALLBACK (quit_cb), &done);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_widget_show (box);
@@ -328,7 +340,7 @@ open_valigned_label_window (void)
   gtk_container_add (GTK_CONTAINER (box), label);
 
   label = gtk_label_new ("Some wrapping text with width-chars = 15 and max-width-chars = 35");
-  gtk_label_set_line_wrap  (GTK_LABEL (label), TRUE);
+  gtk_label_set_wrap  (GTK_LABEL (label), TRUE);
   gtk_label_set_width_chars  (GTK_LABEL (label), 15);
   gtk_label_set_max_width_chars  (GTK_LABEL (label), 35);
 
@@ -372,7 +384,8 @@ main (int argc, char *argv[])
   open_margin_window ();
   open_valigned_label_window ();
 
-  gtk_main ();
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

@@ -1,4 +1,5 @@
 #include <gtk/gtk.h>
+#include "gtk/gtkmodelbuttonprivate.h"
 
 static void
 on_action_beep (GSimpleAction *action,
@@ -46,7 +47,7 @@ on_application_activate (GApplication *gapplication,
 
   gicon = g_themed_icon_new ("face-smile");
 
-  model_button = g_object_new (GTK_TYPE_MODEL_BUTTON,
+  model_button = g_object_new (g_type_from_name ("GtkModelButton"),
                                "action-name", "app.beep",
                                "text", "It’s-a-me! ModelButton",
                                "icon", gicon,
@@ -68,21 +69,9 @@ on_application_activate (GApplication *gapplication,
                           G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
   gtk_container_add (GTK_CONTAINER (box), widget);
 
-  widget = gtk_toggle_button_new_with_label (":centered");
-  g_object_bind_property (widget, "active",
-                          model_button, "centered",
-                          G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
-  gtk_container_add (GTK_CONTAINER (box), widget);
-
   widget = gtk_toggle_button_new_with_label (":iconic");
   g_object_bind_property (widget, "active",
                           model_button, "iconic",
-                          G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
-  gtk_container_add (GTK_CONTAINER (box), widget);
-
-  widget = gtk_toggle_button_new_with_label (":inverted");
-  g_object_bind_property (widget, "active",
-                          model_button, "inverted",
                           G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
   gtk_container_add (GTK_CONTAINER (box), widget);
 

@@ -31,7 +31,11 @@ static gboolean finalized = FALSE;
 static gboolean
 main_loop_quit_cb (gpointer data)
 {
-  gtk_main_quit ();
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
 
   g_assert (finalized);
   return FALSE;
@@ -51,6 +55,7 @@ test_finalize_object (gconstpointer data)
 {
   GType test_type = GPOINTER_TO_SIZE (data);
   GObject *object;
+  gboolean done;
 
   if (g_str_equal (g_type_name (test_type), "GdkClipboard"))
     object = g_object_new (test_type, "display", gdk_display_get_default (), NULL);
@@ -64,7 +69,9 @@ test_finalize_object (gconstpointer data)
                              NULL);
       gdk_content_formats_unref (formats);
     }
-  else if (g_type_is_a (test_type, GTK_TYPE_FILTER_LIST_MODEL))
+  else if (g_type_is_a (test_type, GTK_TYPE_FILTER_LIST_MODEL) ||
+           g_type_is_a (test_type, GTK_TYPE_NO_SELECTION) ||
+           g_type_is_a (test_type, GTK_TYPE_SINGLE_SELECTION))
     {
       GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
       object = g_object_new (test_type,
@@ -95,8 +102,23 @@ test_finalize_object (gconstpointer data)
     g_object_unref (object);
 
   /* Even if the object did finalize, it may have left some dangerous stuff in the GMainContext */
-  g_timeout_add (50, main_loop_quit_cb, NULL);
-  gtk_main();
+  done = FALSE;
+  g_timeout_add (50, main_loop_quit_cb, &done);
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
+}
+
+static gboolean
+dbind_warning_handler (const char     *log_domain,
+                       GLogLevelFlags  log_level,
+                       const char     *message,
+                       gpointer        user_data)
+{
+  if (strcmp (log_domain, "dbind") == 0 &&
+      log_level == (G_LOG_LEVEL_WARNING|G_LOG_FLAG_FATAL))
+    return FALSE;
+
+  return TRUE;
 }
 
 int
@@ -106,20 +128,32 @@ main (int argc, char **argv)
   guint n_types = 0, i;
   GTestDBus *bus;
   gint result;
+  const char *display, *x_r_d;
 
   /* These must be set before before gtk_test_init */
   g_setenv ("GIO_USE_VFS", "local", TRUE);
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
 
-  /* initialize test program */
-  gtk_test_init (&argc, &argv);
-  gtk_test_register_all_types ();
+  /* g_test_dbus_up() helpfully clears these, so we have to re-set it */
+  display = g_getenv ("DISPLAY");
+  x_r_d = g_getenv ("XDG_RUNTIME_DIR");
 
   /* Create one test bus for all tests, as we have a lot of very small
    * and quick tests.
    */
   bus = g_test_dbus_new (G_TEST_DBUS_NONE);
   g_test_dbus_up (bus);
+
+  if (display)
+    g_setenv ("DISPLAY", display, TRUE);
+  if (x_r_d)
+    g_setenv ("XDG_RUNTIME_DIR", x_r_d, TRUE);
+
+  g_test_log_set_fatal_handler (dbind_warning_handler, NULL);
+
+  /* initialize test program */
+  gtk_test_init (&argc, &argv);
+  gtk_test_register_all_types ();
 
   all_types = gtk_test_list_all_types (&n_types);
 
@@ -132,7 +166,6 @@ main (int argc, char **argv)
 	  all_types[i] != GDK_TYPE_X11_SURFACE &&
 	  all_types[i] != GDK_TYPE_X11_SCREEN &&
 	  all_types[i] != GDK_TYPE_X11_DISPLAY &&
-	  all_types[i] != GDK_TYPE_X11_DEVICE_MANAGER_CORE &&
 	  all_types[i] != GDK_TYPE_X11_DEVICE_MANAGER_XI2 &&
 	  all_types[i] != GDK_TYPE_X11_GL_CONTEXT &&
 #endif

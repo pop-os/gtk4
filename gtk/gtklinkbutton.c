@@ -1,5 +1,5 @@
 /* GTK - The GIMP Toolkit
- * gtklinkbutton.c - an hyperlink-enabled button
+ * gtklinkbutton.c - a hyperlink-enabled button
  *
  * Copyright (C) 2006 Emmanuele Bassi <ebassi@gmail.com>
  * All rights reserved.
@@ -54,14 +54,13 @@
 #include "gtklinkbutton.h"
 
 #include "gtkdragsource.h"
-#include "gtkgesturemultipress.h"
+#include "gtkgestureclick.h"
 #include "gtkgesturesingle.h"
 #include "gtkintl.h"
 #include "gtklabel.h"
 #include "gtkmain.h"
 #include "gtkmarshalers.h"
-#include "gtkmenu.h"
-#include "gtkmenuitem.h"
+#include "gtkpopovermenu.h"
 #include "gtkprivate.h"
 #include "gtkshow.h"
 #include "gtksizerequest.h"
@@ -72,6 +71,24 @@
 #include "a11y/gtklinkbuttonaccessible.h"
 
 #include <string.h>
+
+typedef struct _GtkLinkButtonClass GtkLinkButtonClass;
+typedef struct _GtkLinkButtonPrivate GtkLinkButtonPrivate;
+
+struct _GtkLinkButton
+{
+  /*< private >*/
+  GtkButton parent_instance;
+};
+
+struct _GtkLinkButtonClass
+{
+  /*< private >*/
+  GtkButtonClass parent_class;
+
+  /*< public >*/
+  gboolean (* activate_link) (GtkLinkButton *button);
+};
 
 struct _GtkLinkButtonPrivate
 {
@@ -107,17 +124,13 @@ static void     gtk_link_button_set_property (GObject          *object,
 					      GParamSpec       *pspec);
 static void     gtk_link_button_clicked      (GtkButton        *button);
 static gboolean gtk_link_button_popup_menu   (GtkWidget        *widget);
-static void gtk_link_button_drag_data_get_cb (GtkWidget        *widget,
-					      GdkDrag          *drag,
-					      GtkSelectionData *selection,
-					      gpointer          user_data);
 static gboolean gtk_link_button_query_tooltip_cb (GtkWidget    *widget,
                                                   gint          x,
                                                   gint          y,
                                                   gboolean      keyboard_tip,
                                                   GtkTooltip   *tooltip,
                                                   gpointer      data);
-static void gtk_link_button_pressed_cb (GtkGestureMultiPress *gesture,
+static void gtk_link_button_pressed_cb (GtkGestureClick *gesture,
                                         int                   n_press,
                                         double                x,
                                         double                y,
@@ -133,6 +146,17 @@ static const char *link_drop_types[] = {
 static guint link_signals[LAST_SIGNAL] = { 0, };
 
 G_DEFINE_TYPE_WITH_PRIVATE (GtkLinkButton, gtk_link_button, GTK_TYPE_BUTTON)
+
+static void
+gtk_link_button_activate_clipboard_copy (GtkWidget  *widget,
+                                         const char *name,
+                                         GVariant   *parameter)
+{
+  GtkLinkButton *link_button = GTK_LINK_BUTTON (widget);
+  GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
+
+  gdk_clipboard_set_text (gtk_widget_get_clipboard (widget), priv->uri);
+}
 
 static void
 gtk_link_button_class_init (GtkLinkButtonClass *klass)
@@ -203,35 +227,118 @@ gtk_link_button_class_init (GtkLinkButtonClass *klass)
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_LINK_BUTTON_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("button"));
+
+  gtk_widget_class_install_action (widget_class, "clipboard.copy", NULL,
+                                   gtk_link_button_activate_clipboard_copy);
+}
+
+static GMenuModel *
+gtk_link_button_get_menu_model (void)
+{
+  GMenu *menu, *section;
+
+  menu = g_menu_new ();
+
+  section = g_menu_new ();
+  g_menu_append (section, _("_Copy URL"), "clipboard.copy");
+  g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
+  g_object_unref (section);
+
+  return G_MENU_MODEL (menu);
+}
+
+#define GTK_TYPE_LINK_CONTENT            (gtk_link_content_get_type ())
+#define GTK_LINK_CONTENT(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_LINK_CONTENT, GtkLinkContent))
+
+typedef struct _GtkLinkContent GtkLinkContent;
+typedef struct _GtkLinkContentClass GtkLinkContentClass;
+
+struct _GtkLinkContent
+{
+  GdkContentProvider parent;
+  GtkLinkButton *link;
+};
+
+struct _GtkLinkContentClass
+{
+  GdkContentProviderClass parent_class;
+};
+
+GType gtk_link_content_get_type (void) G_GNUC_CONST;
+
+G_DEFINE_TYPE (GtkLinkContent, gtk_link_content, GDK_TYPE_CONTENT_PROVIDER)
+
+static GdkContentFormats *
+gtk_link_content_ref_formats (GdkContentProvider *provider)
+{
+  GtkLinkContent *content = GTK_LINK_CONTENT (provider);
+
+  if (content->link)
+    return gdk_content_formats_union (gdk_content_formats_new_for_gtype (G_TYPE_STRING),
+                                      gdk_content_formats_new (link_drop_types, G_N_ELEMENTS (link_drop_types)));
+  else
+    return gdk_content_formats_new (NULL, 0);
+}
+
+static gboolean
+gtk_link_content_get_value (GdkContentProvider  *provider,
+                             GValue              *value,
+                             GError             **error)
+{
+  GtkLinkContent *content = GTK_LINK_CONTENT (provider);
+
+  if (G_VALUE_HOLDS (value, G_TYPE_STRING) &&
+      content->link != NULL)
+    {
+      GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (content->link);
+      char *uri;
+  
+      uri = g_strdup_printf ("%s\r\n", priv->uri);
+      g_value_set_string (value, uri);
+      g_free (uri);
+
+      return TRUE;
+    }
+
+  return GDK_CONTENT_PROVIDER_CLASS (gtk_link_content_parent_class)->get_value (provider, value, error);
+}
+
+static void
+gtk_link_content_class_init (GtkLinkContentClass *class)
+{
+  GdkContentProviderClass *provider_class = GDK_CONTENT_PROVIDER_CLASS (class);
+
+  provider_class->ref_formats = gtk_link_content_ref_formats;
+  provider_class->get_value = gtk_link_content_get_value;
+}
+
+static void
+gtk_link_content_init (GtkLinkContent *content)
+{
 }
 
 static void
 gtk_link_button_init (GtkLinkButton *link_button)
 {
-  GtkStyleContext *context;
-  GdkContentFormats *targets;
   GtkGesture *gesture;
+  GdkContentProvider *content;
+  GtkDragSource *source;
 
   gtk_button_set_relief (GTK_BUTTON (link_button), GTK_RELIEF_NONE);
   gtk_widget_set_state_flags (GTK_WIDGET (link_button), GTK_STATE_FLAG_LINK, FALSE);
+  gtk_widget_set_has_tooltip (GTK_WIDGET (link_button), TRUE);
 
-  g_signal_connect (link_button, "drag-data-get",
-  		    G_CALLBACK (gtk_link_button_drag_data_get_cb), NULL);
-
-  g_object_set (link_button, "has-tooltip", TRUE, NULL);
   g_signal_connect (link_button, "query-tooltip",
                     G_CALLBACK (gtk_link_button_query_tooltip_cb), NULL);
 
-  /* enable drag source */
-  targets = gdk_content_formats_new (link_drop_types, G_N_ELEMENTS (link_drop_types));
-  gtk_drag_source_set (GTK_WIDGET (link_button),
-  		       GDK_BUTTON1_MASK,
-  		       targets,
-  		       GDK_ACTION_COPY);
-  gdk_content_formats_unref (targets);
-  gtk_drag_source_set_icon_name (GTK_WIDGET (link_button), "text-x-generic");
+  source = gtk_drag_source_new ();
+  content = g_object_new (GTK_TYPE_LINK_CONTENT, NULL);
+  GTK_LINK_CONTENT (content)->link = link_button;
+  gtk_drag_source_set_content (source, content);
+  g_object_unref (content);
+  gtk_widget_add_controller (GTK_WIDGET (link_button), GTK_EVENT_CONTROLLER (source));
 
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture), FALSE);
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), 0);
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture), GTK_PHASE_BUBBLE);
@@ -239,8 +346,7 @@ gtk_link_button_init (GtkLinkButton *link_button)
                     link_button);
   gtk_widget_add_controller (GTK_WIDGET (link_button), GTK_EVENT_CONTROLLER (gesture));
 
-  context = gtk_widget_get_style_context (GTK_WIDGET (link_button));
-  gtk_style_context_add_class (context, "link");
+  gtk_widget_add_css_class (GTK_WIDGET (link_button), "link");
 
   gtk_widget_set_cursor_from_name (GTK_WIDGET (link_button), "pointer");
 }
@@ -252,7 +358,9 @@ gtk_link_button_finalize (GObject *object)
   GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
 
   g_free (priv->uri);
-  
+
+  g_clear_pointer (&priv->popup_menu, gtk_widget_unparent);
+
   G_OBJECT_CLASS (gtk_link_button_parent_class)->finalize (object);
 }
 
@@ -302,73 +410,43 @@ gtk_link_button_set_property (GObject      *object,
 }
 
 static void
-popup_menu_detach (GtkWidget *attach_widget,
-		   GtkMenu   *menu)
-{
-  GtkLinkButton *link_button = GTK_LINK_BUTTON (attach_widget);
-  GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
-
-  priv->popup_menu = NULL;
-}
-
-static void
-copy_activate_cb (GtkWidget     *widget,
-		  GtkLinkButton *link_button)
+gtk_link_button_do_popup (GtkLinkButton *link_button,
+                          double         x,
+                          double         y)
 {
   GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
 
-  gdk_clipboard_set_text (gtk_widget_get_clipboard (GTK_WIDGET (link_button)),
-		  	  priv->uri);
-}
-
-static void
-gtk_link_button_do_popup (GtkLinkButton  *link_button,
-                          const GdkEvent *event)
-{
-  GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
-
-  if (gtk_widget_get_realized (GTK_WIDGET (link_button)))
+  if (!priv->popup_menu)
     {
-      GtkWidget *menu_item;
+      GMenuModel *model;
 
-      if (priv->popup_menu)
-	gtk_widget_destroy (priv->popup_menu);
+      model = gtk_link_button_get_menu_model ();
+      priv->popup_menu = gtk_popover_menu_new_from_model (GTK_WIDGET (link_button), model);
+      gtk_popover_set_position (GTK_POPOVER (priv->popup_menu), GTK_POS_BOTTOM);
 
-      priv->popup_menu = gtk_menu_new ();
-      gtk_style_context_add_class (gtk_widget_get_style_context (priv->popup_menu),
-                                   GTK_STYLE_CLASS_CONTEXT_MENU);
+      gtk_popover_set_has_arrow (GTK_POPOVER (priv->popup_menu), FALSE);
+      gtk_widget_set_halign (priv->popup_menu, GTK_ALIGN_START);
 
-      gtk_menu_attach_to_widget (GTK_MENU (priv->popup_menu),
-		      		 GTK_WIDGET (link_button),
-				 popup_menu_detach);
-
-      menu_item = gtk_menu_item_new_with_mnemonic (_("Copy URL"));
-      g_signal_connect (menu_item, "activate",
-		        G_CALLBACK (copy_activate_cb), link_button);
-      gtk_widget_show (menu_item);
-      gtk_menu_shell_append (GTK_MENU_SHELL (priv->popup_menu), menu_item);
-
-      if (event && gdk_event_triggers_context_menu (event))
-        gtk_menu_popup_at_pointer (GTK_MENU (priv->popup_menu), event);
-      else
-        {
-          gtk_menu_popup_at_widget (GTK_MENU (priv->popup_menu),
-                                    GTK_WIDGET (link_button),
-                                    GDK_GRAVITY_SOUTH,
-                                    GDK_GRAVITY_NORTH_WEST,
-                                    event);
-
-          gtk_menu_shell_select_first (GTK_MENU_SHELL (priv->popup_menu), FALSE);
-        }
+      g_object_unref (model);
     }
+
+  if (x != -1 && y != -1)
+    {
+      GdkRectangle rect = { x, y, 1, 1 };
+      gtk_popover_set_pointing_to (GTK_POPOVER (priv->popup_menu), &rect);
+    }
+  else
+    gtk_popover_set_pointing_to (GTK_POPOVER (priv->popup_menu), NULL);
+
+  gtk_popover_popup (GTK_POPOVER (priv->popup_menu));
 }
 
 static void
-gtk_link_button_pressed_cb (GtkGestureMultiPress *gesture,
-                            int                   n_press,
-                            double                x,
-                            double                y,
-                            gpointer              user_data)
+gtk_link_button_pressed_cb (GtkGestureClick *gesture,
+                            int              n_press,
+                            double           x,
+                            double           y,
+                            gpointer         user_data)
 {
   GtkLinkButton *link_button = user_data;
   GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
@@ -381,7 +459,7 @@ gtk_link_button_pressed_cb (GtkGestureMultiPress *gesture,
   if (gdk_event_triggers_context_menu (event) &&
       priv->uri != NULL)
     {
-      gtk_link_button_do_popup (link_button, event);
+      gtk_link_button_do_popup (link_button, x, y);
       gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
     }
   else
@@ -397,7 +475,7 @@ gtk_link_button_activate_link (GtkLinkButton *link_button)
   GtkWidget *toplevel;
   GError *error;
 
-  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (link_button));
+  toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (link_button)));
 
   error = NULL;
   gtk_show_uri_on_window (GTK_WINDOW (toplevel), priv->uri, GDK_CURRENT_TIME, &error);
@@ -427,29 +505,8 @@ gtk_link_button_clicked (GtkButton *button)
 static gboolean
 gtk_link_button_popup_menu (GtkWidget *widget)
 {
-  gtk_link_button_do_popup (GTK_LINK_BUTTON (widget), NULL);
-
-  return TRUE; 
-}
-
-static void
-gtk_link_button_drag_data_get_cb (GtkWidget        *widget,
-				  GdkDrag          *drag,
-				  GtkSelectionData *selection,
-				  gpointer          user_data)
-{
-  GtkLinkButton *link_button = GTK_LINK_BUTTON (widget);
-  GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
-  gchar *uri;
-  
-  uri = g_strdup_printf ("%s\r\n", priv->uri);
-  gtk_selection_data_set (selection,
-                          gtk_selection_data_get_target (selection),
-  			  8,
-  			  (guchar *) uri,
-			  strlen (uri));
-  
-  g_free (uri);
+  gtk_link_button_do_popup (GTK_LINK_BUTTON (widget), -1, -1);
+  return TRUE;
 }
 
 /**

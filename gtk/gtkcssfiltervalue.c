@@ -693,6 +693,7 @@ gtk_css_value_filter_print (const GtkCssValue *value,
 }
 
 static const GtkCssValueClass GTK_CSS_VALUE_FILTER = {
+  "GtkCssFilterValue",
   gtk_css_value_filter_free,
   gtk_css_value_filter_compute,
   gtk_css_value_filter_equal,
@@ -702,7 +703,7 @@ static const GtkCssValueClass GTK_CSS_VALUE_FILTER = {
   gtk_css_value_filter_print
 };
 
-static GtkCssValue none_singleton = { &GTK_CSS_VALUE_FILTER, 1, 0, {  { GTK_CSS_FILTER_NONE } } };
+static GtkCssValue none_singleton = { &GTK_CSS_VALUE_FILTER, 1, TRUE, 0, {  { GTK_CSS_FILTER_NONE } } };
 
 static GtkCssValue *
 gtk_css_filter_value_alloc (guint n_filters)
@@ -777,6 +778,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
   GtkCssValue *value;
   GArray *array;
   guint i;
+  gboolean computed = TRUE;
 
   if (gtk_css_parser_try_ident (parser, "none"))
     return gtk_css_filter_value_new_none ();
@@ -793,6 +795,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
             goto fail;
 
           filter.type = GTK_CSS_FILTER_BLUR;
+          computed = computed && gtk_css_value_is_computed (filter.blur.value);
         }
       else if (gtk_css_parser_has_function (parser, "brightness"))
         {
@@ -800,6 +803,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
             goto fail;
 
           filter.type = GTK_CSS_FILTER_BRIGHTNESS;
+          computed = computed && gtk_css_value_is_computed (filter.brightness.value);
         }
       else if (gtk_css_parser_has_function (parser, "contrast"))
         {
@@ -807,6 +811,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
             goto fail;
 
           filter.type = GTK_CSS_FILTER_CONTRAST;
+          computed = computed && gtk_css_value_is_computed (filter.contrast.value);
         }
       else if (gtk_css_parser_has_function (parser, "grayscale"))
         {
@@ -814,13 +819,15 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
             goto fail;
 
           filter.type = GTK_CSS_FILTER_GRAYSCALE;
+          computed = computed && gtk_css_value_is_computed (filter.grayscale.value);
         }
       else if (gtk_css_parser_has_function (parser, "hue-rotate"))
         {
-          if (!gtk_css_parser_consume_function (parser, 1, 1, gtk_css_filter_parse_angle, &filter.blur.value))
+          if (!gtk_css_parser_consume_function (parser, 1, 1, gtk_css_filter_parse_angle, &filter.hue_rotate.value))
             goto fail;
 
           filter.type = GTK_CSS_FILTER_HUE_ROTATE;
+          computed = computed && gtk_css_value_is_computed (filter.hue_rotate.value);
         }
       else if (gtk_css_parser_has_function (parser, "invert"))
         {
@@ -828,6 +835,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
             goto fail;
 
           filter.type = GTK_CSS_FILTER_INVERT;
+          computed = computed && gtk_css_value_is_computed (filter.invert.value);
         }
       else if (gtk_css_parser_has_function (parser, "opacity"))
         {
@@ -835,6 +843,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
             goto fail;
 
           filter.type = GTK_CSS_FILTER_OPACITY;
+          computed = computed && gtk_css_value_is_computed (filter.opacity.value);
         }
       else if (gtk_css_parser_has_function (parser, "saturate"))
         {
@@ -842,6 +851,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
             goto fail;
 
           filter.type = GTK_CSS_FILTER_SATURATE;
+          computed = computed && gtk_css_value_is_computed (filter.saturate.value);
         }
       else if (gtk_css_parser_has_function (parser, "sepia"))
         {
@@ -849,6 +859,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
             goto fail;
 
           filter.type = GTK_CSS_FILTER_SEPIA;
+          computed = computed && gtk_css_value_is_computed (filter.sepia.value);
         }
       else
         {
@@ -866,6 +877,7 @@ gtk_css_filter_value_parse (GtkCssParser *parser)
 
   value = gtk_css_filter_value_alloc (array->len);
   memcpy (value->filters, array->data, sizeof (GtkCssFilter) * array->len);
+  value->is_computed = computed;
 
   g_array_free (array, TRUE);
 

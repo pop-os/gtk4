@@ -31,6 +31,7 @@ gtk_tests = [
   ['testdialog'],
   ['testdnd'],
   ['testdnd2'],
+  ['testdnd3'],
   ['testellipsise'],
   ['testemblems'],
   ['testentrycompletion'],
@@ -53,7 +54,6 @@ gtk_tests = [
   ['testiconview-keynav'],
   ['testicontheme'],
   ['testinfobar'],
-  ['testimage'],
   ['testkineticscrolling'],
   ['testlist'],
   ['testlist2'],
@@ -73,9 +73,7 @@ gtk_tests = [
   ['testscale'],
   ['testselectionmode'],
   ['testspinbutton'],
-  ['testtoolbar'],
   ['testtoolbar2'],
-  ['stresstest-toolbar'],
   ['testtreechanging'],
   ['testtreednd'],
   ['testtreeedit'],
@@ -101,6 +99,7 @@ gtk_tests = [
   ['testtreepos'],
   ['testsensitive'],
   ['testtextview'],
+  ['testtextview2'],
   ['testpixbuf-scale'],
   ['testgmenu'],
   ['testlogout'],
@@ -114,7 +113,6 @@ gtk_tests = [
   ['testpopover'],
   ['gdkgears', ['gtkgears.c']],
   ['listmodel'],
-  ['testpopup'],
   ['testgaction'],
   ['testwidgetfocus'],
   ['testwidgettransforms'],
@@ -126,6 +124,7 @@ gtk_tests = [
   ['testblur'],
   ['testtexture'],
   ['testwindowdrag'],
+  ['testtexthistory', ['../gtk/gtktexthistory.c']],
 ]
 
 if os_unix
@@ -148,5 +147,10 @@ foreach t: gtk_tests
              c_args: test_args,
              dependencies: [libgtk_dep, libm])
 endforeach
+
+if get_option('profiler')
+  executable('testperf', 'testperf.c',
+              dependencies: [profiler_dep, platform_gio_dep, libm])
+endif
 
 subdir('visuals')

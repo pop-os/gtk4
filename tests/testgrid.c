@@ -32,11 +32,11 @@ test_widget (const gchar *label, const gchar *color)
 static GtkOrientation o;
 
 static void
-toggle_orientation (GtkGestureMultiPress *gesture,
-                    guint                 n_press,
-                    gdouble               x,
-                    gdouble               y,
-                    GtkGrid              *grid)
+toggle_orientation (GtkGestureClick *gesture,
+                    guint            n_press,
+                    gdouble          x,
+                    gdouble          y,
+                    GtkGrid         *grid)
 {
   o = 1 - o;
   gtk_orientable_set_orientation (GTK_ORIENTABLE (grid), o);
@@ -55,7 +55,7 @@ simple_grid (void)
   grid = gtk_grid_new ();
   gtk_container_add (GTK_CONTAINER (window), grid);
 
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   g_signal_connect (gesture, "pressed", G_CALLBACK (toggle_orientation), grid);
   gtk_widget_add_controller (window, GTK_EVENT_CONTROLLER (gesture));
 
@@ -114,7 +114,7 @@ text_grid (void)
 
   label = gtk_label_new ("Some text that may wrap if it has to");
   gtk_label_set_width_chars (GTK_LABEL (label), 10);
-  gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (label), TRUE);
   gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
 
   gtk_grid_attach (GTK_GRID (grid), test_widget ("1", "red"), 1, 0, 1, 1);
@@ -158,7 +158,7 @@ box_comparison (void)
   gtk_container_add (GTK_CONTAINER (box), test_widget ("2", "green"));
 
   label = gtk_label_new ("Some text that may wrap if needed");
-  gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (label), TRUE);
   gtk_label_set_width_chars (GTK_LABEL (label), 10);
   gtk_container_add (GTK_CONTAINER (box), label);
 
@@ -180,7 +180,7 @@ box_comparison (void)
   gtk_grid_attach (GTK_GRID (grid), test_widget ("2", "green"), 2, 0, 1, 1);
 
   label = gtk_label_new ("Some text that may wrap if needed");
-  gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (label), TRUE);
   gtk_label_set_width_chars (GTK_LABEL (label), 10);
   gtk_grid_attach (GTK_GRID (grid), label, 3, 0, 1, 1);
   gtk_widget_set_hexpand (label, TRUE);
@@ -471,7 +471,8 @@ main (int argc, char *argv[])
   empty_grid ();
   spanning_grid ();
 
-  gtk_main ();
+  while (TRUE)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

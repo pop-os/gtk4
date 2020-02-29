@@ -29,8 +29,11 @@ get (GListModel *model,
      guint       position)
 {
   GObject *object = g_list_model_get_item (model, position);
+  guint number;
   g_assert (object != NULL);
-  return GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
+  number = GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
+  g_object_unref (object);
+  return number;
 }
 
 static char *
@@ -301,6 +304,44 @@ test_submodel_add (void)
 }
 
 static void
+test_submodel_add2 (void)
+{
+  GtkFlattenListModel *flat;
+  GListStore *model, *store[2];
+
+  model = g_list_store_new (G_TYPE_LIST_MODEL);
+  flat = new_model (model);
+  assert_model (flat, "");
+  assert_changes (flat, "");
+
+  store[0] = add_store (model, 1, 0, 0);
+  store[1] = add_store (model, 1, 0, 0);
+  store[2] = add_store (model, 1, 0, 0);
+
+  assert_model (flat, "");
+  assert_changes (flat, "");
+
+  add (store[0], 1);
+  assert_model (flat, "1");
+  assert_changes (flat, "+0");
+
+  add (store[1], 3);
+  assert_model (flat, "1 3");
+  assert_changes (flat, "+1");
+
+  add (store[0], 2);
+  assert_model (flat, "1 2 3");
+  assert_changes (flat, "+1");
+
+  add (store[1], 4);
+  assert_model (flat, "1 2 3 4");
+  assert_changes (flat, "+3");
+
+  g_object_unref (model);
+  g_object_unref (flat);
+}
+
+static void
 test_model_remove (void)
 {
   GtkFlattenListModel *flat;
@@ -356,7 +397,6 @@ main (int argc, char *argv[])
 {
   g_test_init (&argc, &argv, NULL);
   setlocale (LC_ALL, "C");
-  g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=%s");
 
   number_quark = g_quark_from_static_string ("Hell and fire was spawned to be released.");
   changes_quark = g_quark_from_static_string ("What did I see? Can I believe what I saw?");
@@ -366,6 +406,7 @@ main (int argc, char *argv[])
   g_test_add_func ("/flattenlistmodel/model/add", test_model_add);
 #if GLIB_CHECK_VERSION (2, 58, 0) /* g_list_store_splice() is broken before 2.58 */
   g_test_add_func ("/flattenlistmodel/submodel/add", test_submodel_add);
+  g_test_add_func ("/flattenlistmodel/submodel/add2", test_submodel_add2);
   g_test_add_func ("/flattenlistmodel/model/remove", test_model_remove);
   g_test_add_func ("/flattenlistmodel/submodel/remove", test_submodel_remove);
 #endif

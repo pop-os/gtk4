@@ -25,8 +25,8 @@
 #ifndef __GDK_X11_DISPLAY_H__
 #define __GDK_X11_DISPLAY_H__
 
-#if !defined (__GDKX_H_INSIDE__) && !defined (GDK_COMPILATION)
-#error "Only <gdk/gdkx.h> can be included directly."
+#if !defined (__GDKX_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gdk/x11/gdkx.h> can be included directly."
 #endif
 
 #include <gdk/gdk.h>
@@ -37,7 +37,7 @@
 
 G_BEGIN_DECLS
 
-#ifdef GDK_COMPILATION
+#ifdef GTK_COMPILATION
 typedef struct _GdkX11Display GdkX11Display;
 #else
 typedef GdkDisplay GdkX11Display;
@@ -106,6 +106,9 @@ GDK_AVAILABLE_IN_ALL
 GdkX11Screen *gdk_x11_display_get_screen (GdkDisplay *display);
 
 GDK_AVAILABLE_IN_ALL
+GdkMonitor * gdk_x11_display_get_primary_monitor (GdkDisplay *display);
+
+GDK_AVAILABLE_IN_ALL
 void        gdk_x11_display_grab              (GdkDisplay *display);
 GDK_AVAILABLE_IN_ALL
 void        gdk_x11_display_ungrab            (GdkDisplay *display);
@@ -129,7 +132,6 @@ void        gdk_x11_register_standard_event_type (GdkDisplay *display,
 
 GDK_AVAILABLE_IN_ALL
 void        gdk_x11_set_sm_client_id (const gchar *sm_client_id);
-
 
 G_END_DECLS
 

@@ -29,6 +29,113 @@ struct _GtkCssValue {
 
 G_DEFINE_BOXED_TYPE (GtkCssValue, _gtk_css_value, _gtk_css_value_ref, _gtk_css_value_unref)
 
+#undef CSS_VALUE_ACCOUNTING
+
+#ifdef CSS_VALUE_ACCOUNTING
+static GHashTable *counters;
+
+typedef struct
+{
+  guint all;
+  guint alive;
+  guint computed;
+  guint transitioned;
+} ValueAccounting;
+
+static void
+dump_value_counts (void)
+{
+  int col_widths[5] = { 0, strlen ("all"), strlen ("alive"), strlen ("computed"), strlen("transitioned") };
+  GHashTableIter iter;
+  gpointer key;
+  gpointer value;
+  int sum_all = 0, sum_alive = 0, sum_computed = 0, sum_transitioned = 0;
+
+  g_hash_table_iter_init (&iter, counters);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+       const char *class = key;
+       const ValueAccounting *c = value;
+       char *str;
+
+       sum_all += c->all;
+       sum_alive += c->alive;
+       sum_computed += c->computed;
+       sum_transitioned += c->transitioned;
+
+       col_widths[0] = MAX (col_widths[0], strlen (class));
+
+       str = g_strdup_printf ("%'d", sum_all);
+       col_widths[1] = MAX (col_widths[1], strlen (str));
+       g_free (str);
+
+       str = g_strdup_printf ("%'d", sum_alive);
+       col_widths[2] = MAX (col_widths[2], strlen (str));
+       g_free (str);
+
+       str = g_strdup_printf ("%'d", sum_computed);
+       col_widths[3] = MAX (col_widths[3], strlen (str));
+       g_free (str);
+
+       str = g_strdup_printf ("%'d", sum_transitioned);
+       col_widths[4] = MAX (col_widths[4], strlen (str));
+       g_free (str);
+    }
+  /* Some spacing */
+  col_widths[0] += 4;
+  col_widths[1] += 4;
+  col_widths[2] += 4;
+  col_widths[3] += 4;
+  col_widths[4] += 4;
+
+  g_print("%*s%*s%*s%*s%*s\n", col_widths[0] + 1, " ",
+          col_widths[1] + 1, "All",
+          col_widths[2] + 1, "Alive",
+          col_widths[3] + 1, "Computed",
+          col_widths[4] + 1, "Transitioned");
+
+  g_hash_table_iter_init (&iter, counters);
+  while (g_hash_table_iter_next (&iter, &key, &value))
+    {
+       const char *class = key;
+       const ValueAccounting *c = value;
+
+       g_print ("%*s:", col_widths[0], class);
+       g_print (" %'*d", col_widths[1], c->all);
+       g_print (" %'*d", col_widths[2], c->alive);
+       g_print (" %'*d", col_widths[3], c->computed);
+       g_print (" %'*d", col_widths[4], c->transitioned);
+       g_print("\n");
+    }
+
+  g_print("%*s%'*d%'*d%'*d%'*d\n", col_widths[0] + 1, " ",
+          col_widths[1] + 1, sum_all,
+          col_widths[2] + 1, sum_alive,
+          col_widths[3] + 1, sum_computed,
+          col_widths[4] + 1, sum_transitioned);
+}
+
+static ValueAccounting *
+get_accounting_data (const char *class)
+{
+  ValueAccounting *c;
+
+  if (!counters)
+    {
+      counters = g_hash_table_new (g_str_hash, g_str_equal);
+      atexit (dump_value_counts);
+    }
+  c = g_hash_table_lookup (counters, class);
+  if (!c)
+    {
+       c = g_malloc0 (sizeof (ValueAccounting));
+       g_hash_table_insert (counters, (gpointer)class, c);
+    }
+
+  return c;
+}
+#endif
+
 GtkCssValue *
 _gtk_css_value_alloc (const GtkCssValueClass *klass,
                       gsize                   size)
@@ -39,6 +146,16 @@ _gtk_css_value_alloc (const GtkCssValueClass *klass,
 
   value->class = klass;
   value->ref_count = 1;
+
+#ifdef CSS_VALUE_ACCOUNTING
+  {
+    ValueAccounting *c;
+
+    c = get_accounting_data (klass->type_name);
+    c->all++;
+    c->alive++;
+  }
+#endif
 
   return value;
 }
@@ -62,6 +179,15 @@ gtk_css_value_unref (GtkCssValue *value)
   value->ref_count -= 1;
   if (value->ref_count > 0)
     return;
+
+#ifdef CSS_VALUE_ACCOUNTING
+  {
+    ValueAccounting *c;
+
+    c = get_accounting_data (value->class->type_name);
+    c->alive--;
+  }
+#endif
 
   value->class->free (value);
 }
@@ -88,6 +214,13 @@ _gtk_css_value_compute (GtkCssValue      *value,
                         GtkCssStyle      *style,
                         GtkCssStyle      *parent_style)
 {
+  if (gtk_css_value_is_computed (value))
+    return _gtk_css_value_ref (value);
+
+#ifdef CSS_VALUE_ACCOUNTING
+  get_accounting_data (value->class->type_name)->computed++;
+#endif
+
   return value->class->compute (value, property_id, provider, style, parent_style);
 }
 
@@ -134,6 +267,19 @@ _gtk_css_value_transition (GtkCssValue *start,
    * values can all transition to each other */
   if (start->class->transition != end->class->transition)
     return NULL;
+
+  if (progress == 0)
+    return _gtk_css_value_ref (start);
+
+  if (progress == 1)
+    return _gtk_css_value_ref (end);
+
+  if (start == end)
+    return _gtk_css_value_ref (start);
+
+#ifdef CSS_VALUE_ACCOUNTING
+  get_accounting_data (start->class->type_name)->transitioned++;
+#endif
 
   return start->class->transition (start, end, property_id, progress);
 }
@@ -183,7 +329,7 @@ _gtk_css_value_print (const GtkCssValue *value,
  * Returns %TRUE if the value is dynamic
  */
 gboolean
-gtk_css_value_is_dynamic (GtkCssValue *value)
+gtk_css_value_is_dynamic (const GtkCssValue *value)
 {
   gtk_internal_return_val_if_fail (value != NULL, FALSE);
 
@@ -216,4 +362,10 @@ gtk_css_value_get_dynamic_value (GtkCssValue *value,
     return gtk_css_value_ref (value);
 
   return value->class->get_dynamic_value (value, monotonic_time);
+}
+
+gboolean
+gtk_css_value_is_computed (const GtkCssValue *value)
+{
+  return value->is_computed;
 }

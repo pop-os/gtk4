@@ -51,7 +51,6 @@ struct _GdkWaylandDrop
   struct wl_data_offer *offer;
   uint32_t source_actions;
   uint32_t action;
-  GdkDragAction selected_action;
   uint32_t serial;
 };
 
@@ -116,43 +115,43 @@ gdk_wayland_drop_drop_set_status (GdkWaylandDrop *drop_wayland,
 }
 
 static void
-gdk_wayland_drop_commit_status (GdkWaylandDrop *wayland_drop)
+gdk_wayland_drop_commit_status (GdkWaylandDrop *wayland_drop,
+                                GdkDragAction   actions)
 {
   GdkDisplay *display;
-  uint32_t dnd_actions;
 
   display = gdk_drop_get_display (GDK_DROP (wayland_drop));
-
-  dnd_actions = gdk_to_wl_actions (wayland_drop->selected_action);
 
   if (GDK_WAYLAND_DISPLAY (display)->data_device_manager_version >=
       WL_DATA_OFFER_SET_ACTIONS_SINCE_VERSION)
     {
-      if (gdk_drag_action_is_unique (wayland_drop->selected_action))
-        {
-          wl_data_offer_set_actions (wayland_drop->offer, dnd_actions, dnd_actions);
-        }
+      uint32_t dnd_actions;
+      uint32_t preferred_action;
+
+      dnd_actions = gdk_to_wl_actions (actions);
+
+      if (dnd_actions & WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY)
+        preferred_action = WL_DATA_DEVICE_MANAGER_DND_ACTION_COPY;
+      else if (dnd_actions & WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE)
+        preferred_action = WL_DATA_DEVICE_MANAGER_DND_ACTION_MOVE;
+      else if (dnd_actions & WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK)
+        preferred_action = WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK;
       else
-        {
-          wl_data_offer_set_actions (wayland_drop->offer,
-                                     dnd_actions | WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK,
-                                     WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK);
-        }
+        preferred_action = 0;
+
+      wl_data_offer_set_actions (wayland_drop->offer, dnd_actions, preferred_action);
     }
 
-  gdk_wayland_drop_drop_set_status (wayland_drop, wayland_drop->selected_action != 0);
+  gdk_wayland_drop_drop_set_status (wayland_drop, actions != 0);
 }
 
 static void
 gdk_wayland_drop_status (GdkDrop       *drop,
-                         GdkDragAction  action)
+                         GdkDragAction  actions)
 {
-  GdkWaylandDrop *wayland_drop;
+  GdkWaylandDrop *wayland_drop = GDK_WAYLAND_DROP (drop);
 
-  wayland_drop = GDK_WAYLAND_DROP (drop);
-  wayland_drop->selected_action = action;
-
-  gdk_wayland_drop_commit_status (wayland_drop);
+  gdk_wayland_drop_commit_status (wayland_drop, actions);
 }
 
 static void
@@ -163,11 +162,9 @@ gdk_wayland_drop_finish (GdkDrop       *drop,
   GdkDisplay *display = gdk_drop_get_display (drop);
   GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
 
-  wayland_drop->selected_action = action;
-
   if (action)
     {
-      gdk_wayland_drop_commit_status (wayland_drop);
+      gdk_wayland_drop_commit_status (wayland_drop, action);
 
       if (display_wayland->data_device_manager_version >=
           WL_DATA_OFFER_FINISH_SINCE_VERSION)
@@ -184,19 +181,17 @@ gdk_wayland_drop_read_async (GdkDrop             *drop,
                              gpointer             user_data)
 {
   GdkWaylandDrop *wayland_drop = GDK_WAYLAND_DROP (drop);
-  GdkDisplay *display;
   GInputStream *stream;
   const char *mime_type;
   int pipe_fd[2];
   GError *error = NULL;
   GTask *task;
 
-  display = gdk_drop_get_display (drop),
   task = g_task_new (drop, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, gdk_wayland_drop_read_async);
 
-  GDK_DISPLAY_NOTE (display, DND, char *s = gdk_content_formats_to_string (formats);
+  GDK_DISPLAY_NOTE (gdk_drop_get_display (drop), DND, char *s = gdk_content_formats_to_string (formats);
                     g_message ("%p: read for %s", drop, s);
                     g_free (s); );
   mime_type = gdk_content_formats_match_mime_type (formats,
@@ -288,7 +283,8 @@ gdk_wayland_drop_update_actions (GdkWaylandDrop *drop)
   GdkDragAction gdk_actions = 0;
   uint32_t wl_actions;
 
-  if (drop->action & WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK)
+  if (drop->action == 0 ||
+      drop->action & WL_DATA_DEVICE_MANAGER_DND_ACTION_ASK)
     wl_actions = drop->source_actions;
   else
     wl_actions = drop->action;

@@ -25,10 +25,11 @@
 #include "gdkseatprivate.h"
 #include "gdkdeviceprivate.h"
 #include "gdkintl.h"
+#include "gdkinternals.h"
 
 /**
  * SECTION:gdkseat
- * @Short_description: Object representing an user seat
+ * @Short_description: Object representing a user seat
  * @Title: GdkSeat
  * @See_also: #GdkDisplay, #GdkDevice
  *
@@ -129,7 +130,7 @@ gdk_seat_class_init (GdkSeatClass *klass)
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GdkSeatClass, device_added),
                   NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL,
                   G_TYPE_NONE, 1,
                   GDK_TYPE_DEVICE);
 
@@ -147,7 +148,7 @@ gdk_seat_class_init (GdkSeatClass *klass)
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GdkSeatClass, device_removed),
                   NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL,
                   G_TYPE_NONE, 1,
                   GDK_TYPE_DEVICE);
 
@@ -168,7 +169,7 @@ gdk_seat_class_init (GdkSeatClass *klass)
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   0, NULL, NULL,
-                  g_cclosure_marshal_VOID__BOXED,
+                  NULL,
                   G_TYPE_NONE, 1,
                   GDK_TYPE_DEVICE_TOOL);
 
@@ -185,7 +186,7 @@ gdk_seat_class_init (GdkSeatClass *klass)
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   0, NULL, NULL,
-                  g_cclosure_marshal_VOID__BOXED,
+                  NULL,
                   G_TYPE_NONE, 1,
                   GDK_TYPE_DEVICE_TOOL);
 
@@ -247,10 +248,10 @@ gdk_seat_get_capabilities (GdkSeat *seat)
  *          elsewhere.
  * @event: (nullable): the event that is triggering the grab, or %NULL if none
  *         is available.
- * @prepare_func: (nullable) (scope call) (closure prepare_func_data): function to
+ * @prepare_func: (nullable) (scope call): function to
  *                prepare the surface to be grabbed, it can be %NULL if @surface is
  *                visible before this call.
- * @prepare_func_data: user data to pass to @prepare_func
+ * @prepare_func_data: (closure): user data to pass to @prepare_func
  *
  * Grabs the seat so that all events corresponding to the given @capabilities
  * are passed to this application until the seat is ungrabbed with gdk_seat_ungrab(),

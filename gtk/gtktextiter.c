@@ -173,7 +173,7 @@ gtk_text_iter_make_surreal (const GtkTextIter *_iter)
       _gtk_text_btree_get_chars_changed_stamp (iter->tree))
     {
       g_warning ("Invalid text buffer iterator: either the iterator "
-                 "is uninitialized, or the characters/textures/widgets "
+                 "is uninitialized, or the characters/paintables/widgets "
                  "in the buffer have been modified since the iterator "
                  "was created.\nYou must use marks, character numbers, "
                  "or line numbers to preserve a position across buffer "
@@ -896,7 +896,7 @@ gtk_text_iter_get_char (const GtkTextIter *iter)
  * such as images.  Because images are encoded in the slice, byte and
  * character offsets in the returned array will correspond to byte
  * offsets in the text buffer. Note that 0xFFFC can occur in normal
- * text as well, so it is not a reliable indicator that a texture or
+ * text as well, so it is not a reliable indicator that a paintable or
  * widget is in the buffer.
  *
  * Returns: (transfer full): slice of text from the buffer
@@ -990,16 +990,16 @@ gtk_text_iter_get_visible_text (const GtkTextIter  *start,
 }
 
 /**
- * gtk_text_iter_get_texture:
+ * gtk_text_iter_get_paintable:
  * @iter: an iterator
  *
- * If the element at @iter is a texture, the texture is returned
+ * If the element at @iter is a paintable, the paintable is returned
  * (with no new reference count added). Otherwise, %NULL is returned.
  *
- * Returns: (transfer none): the texture at @iter
+ * Returns: (transfer none): the paintable at @iter
  **/
-GdkTexture *
-gtk_text_iter_get_texture (const GtkTextIter *iter)
+GdkPaintable *
+gtk_text_iter_get_paintable (const GtkTextIter *iter)
 {
   GtkTextRealIter *real;
 
@@ -1012,10 +1012,10 @@ gtk_text_iter_get_texture (const GtkTextIter *iter)
 
   check_invariants (iter);
 
-  if (real->segment->type != &gtk_text_texture_type)
+  if (real->segment->type != &gtk_text_paintable_type)
     return NULL;
   else
-    return real->segment->body.texture.texture;
+    return real->segment->body.paintable.paintable;
 }
 
 /**
@@ -2444,7 +2444,7 @@ gtk_text_iter_backward_chars (GtkTextIter *iter, gint count)
  * @iter: a #GtkTextIter
  * @count: number of chars to move
  *
- * Moves forward by @count text characters (textures, widgets,
+ * Moves forward by @count text characters (paintables, widgets,
  * etc. do not count as characters for this). Equivalent to moving
  * through the results of gtk_text_iter_get_text(), rather than
  * gtk_text_iter_get_slice().
@@ -2465,7 +2465,7 @@ gtk_text_iter_forward_text_chars  (GtkTextIter *iter,
  * @iter: a #GtkTextIter
  * @count: number of chars to move
  *
- * Moves backward by @count text characters (textures, widgets,
+ * Moves backward by @count text characters (paintables, widgets,
  * etc. do not count as characters for this). Equivalent to moving
  * through the results of gtk_text_iter_get_text(), rather than
  * gtk_text_iter_get_slice().
@@ -4326,7 +4326,7 @@ matches_pred (GtkTextIter *iter,
  * gtk_text_iter_forward_find_char:
  * @iter: a #GtkTextIter
  * @pred: (scope call): a function to be called on each character
- * @user_data: user data for @pred
+ * @user_data: (closure): user data for @pred
  * @limit: (allow-none): search limit, or %NULL for none 
  * 
  * Advances @iter, calling @pred on each character. If
@@ -4364,7 +4364,7 @@ gtk_text_iter_forward_find_char (GtkTextIter         *iter,
  * gtk_text_iter_backward_find_char:
  * @iter: a #GtkTextIter
  * @pred: (scope call): function to be called on each character
- * @user_data: user data for @pred
+ * @user_data: (closure): user data for @pred
  * @limit: (allow-none): search limit, or %NULL for none
  * 
  * Same as gtk_text_iter_forward_find_char(), but goes backward from @iter.
@@ -5358,6 +5358,25 @@ gtk_text_iter_equal (const GtkTextIter *lhs,
     }
 }
 
+gboolean
+_gtk_text_iter_same_line (const GtkTextIter *lhs,
+                          const GtkTextIter *rhs)
+{
+  GtkTextRealIter *real_lhs;
+  GtkTextRealIter *real_rhs;
+
+  real_lhs = gtk_text_iter_make_surreal (lhs);
+  real_rhs = gtk_text_iter_make_surreal (rhs);
+
+  if (real_lhs == NULL || real_rhs == NULL)
+    return FALSE;
+
+  check_invariants (lhs);
+  check_invariants (rhs);
+
+  return real_lhs->line == real_rhs->line;
+}
+
 /**
  * gtk_text_iter_compare:
  * @lhs: a #GtkTextIter
@@ -5645,6 +5664,20 @@ _gtk_text_btree_get_iter_at_mark_name (GtkTextBTree *tree,
       check_invariants (iter);
       return TRUE;
     }
+}
+
+void
+_gtk_text_btree_get_iter_at_paintable (GtkTextBTree *tree,
+                                       GtkTextIter *iter,
+                                       GtkTextLineSegment *seg)
+{
+  g_return_if_fail (iter != NULL);
+  g_return_if_fail (tree != NULL);
+
+  iter_init_from_segment (iter, tree,
+                          seg->body.paintable.line, seg);
+  g_assert (seg->body.paintable.line == _gtk_text_iter_get_text_line (iter));
+  check_invariants (iter);
 }
 
 void

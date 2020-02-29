@@ -153,6 +153,7 @@ gtk_css_value_bg_size_print (const GtkCssValue *value,
 }
 
 static const GtkCssValueClass GTK_CSS_VALUE_BG_SIZE = {
+  "GtkCssBgSizeValue",
   gtk_css_value_bg_size_free,
   gtk_css_value_bg_size_compute,
   gtk_css_value_bg_size_equal,
@@ -162,9 +163,9 @@ static const GtkCssValueClass GTK_CSS_VALUE_BG_SIZE = {
   gtk_css_value_bg_size_print
 };
 
-static GtkCssValue auto_singleton = { &GTK_CSS_VALUE_BG_SIZE, 1, FALSE, FALSE, NULL, NULL };
-static GtkCssValue cover_singleton = { &GTK_CSS_VALUE_BG_SIZE, 1, TRUE, FALSE, NULL, NULL };
-static GtkCssValue contain_singleton = { &GTK_CSS_VALUE_BG_SIZE, 1, FALSE, TRUE, NULL, NULL };
+static GtkCssValue auto_singleton = { &GTK_CSS_VALUE_BG_SIZE, 1, TRUE, FALSE, FALSE, NULL, NULL };
+static GtkCssValue cover_singleton = { &GTK_CSS_VALUE_BG_SIZE, 1, TRUE, TRUE, FALSE, NULL, NULL };
+static GtkCssValue contain_singleton = { &GTK_CSS_VALUE_BG_SIZE, 1, TRUE, FALSE, TRUE, NULL, NULL };
 
 GtkCssValue *
 _gtk_css_bg_size_value_new (GtkCssValue *x,
@@ -178,6 +179,8 @@ _gtk_css_bg_size_value_new (GtkCssValue *x,
   result = _gtk_css_value_new (GtkCssValue, &GTK_CSS_VALUE_BG_SIZE);
   result->x = x;
   result->y = y;
+  result->is_computed = (!x || gtk_css_value_is_computed (x)) &&
+                        (!y || gtk_css_value_is_computed (y));
 
   return result;
 }

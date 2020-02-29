@@ -23,6 +23,7 @@
 #include "gtkcsscornervalueprivate.h"
 #include "gtkcssnodeprivate.h"
 #include "gtkcssnumbervalueprivate.h"
+#include "gtkcssdimensionvalueprivate.h"
 #include "gtkwidgetprivate.h"
 
 /* This file is included from gtkcssboxesprivate.h */
@@ -73,36 +74,64 @@ gtk_css_boxes_init_border_box (GtkCssBoxes *boxes,
 static inline void
 gtk_css_boxes_rect_grow (GskRoundedRect *dest,
                          GskRoundedRect *src,
-                         GtkCssStyle    *style,
-                         int             top_property,
-                         int             right_property,
-                         int             bottom_property,
-                         int             left_property)
+                         GtkCssValue    *top,
+                         GtkCssValue    *right,
+                         GtkCssValue    *bottom,
+                         GtkCssValue    *left)
 {
-  double top = _gtk_css_number_value_get (gtk_css_style_get_value (style, top_property), 100);
-  double right = _gtk_css_number_value_get (gtk_css_style_get_value (style, right_property), 100);
-  double bottom = _gtk_css_number_value_get (gtk_css_style_get_value (style, bottom_property), 100);
-  double left = _gtk_css_number_value_get (gtk_css_style_get_value (style, left_property), 100);
+  if (gtk_css_dimension_value_is_zero (left))
+    {
+      dest->bounds.origin.x = src->bounds.origin.x;
+      if (gtk_css_dimension_value_is_zero (right))
+        dest->bounds.size.width = src->bounds.size.width;
+      else
+        dest->bounds.size.width = src->bounds.size.width + _gtk_css_number_value_get (right, 100);
+    }
+  else
+    {
+      const double left_value = _gtk_css_number_value_get (left, 100);
 
-  dest->bounds.origin.x = src->bounds.origin.x - left;
-  dest->bounds.origin.y = src->bounds.origin.y - top;
-  dest->bounds.size.width = src->bounds.size.width + left + right;
-  dest->bounds.size.height = src->bounds.size.height + top + bottom;
+      dest->bounds.origin.x = src->bounds.origin.x - left_value;
+      if (gtk_css_dimension_value_is_zero (right))
+        dest->bounds.size.width = src->bounds.size.width + left_value;
+      else
+        dest->bounds.size.width = src->bounds.size.width + left_value + _gtk_css_number_value_get (right, 100);
+
+    }
+
+
+  if (gtk_css_dimension_value_is_zero (top))
+    {
+      dest->bounds.origin.y = src->bounds.origin.y;
+      if (gtk_css_dimension_value_is_zero (bottom))
+        dest->bounds.size.height = src->bounds.size.height;
+      else
+        dest->bounds.size.height = src->bounds.size.height + _gtk_css_number_value_get (bottom, 100);
+    }
+  else
+    {
+      const double top_value = _gtk_css_number_value_get (top, 100);
+
+      dest->bounds.origin.y = src->bounds.origin.y - top_value;
+      if (gtk_css_dimension_value_is_zero (bottom))
+        dest->bounds.size.height = src->bounds.size.height + top_value;
+      else
+        dest->bounds.size.height = src->bounds.size.height + top_value + _gtk_css_number_value_get (bottom, 100);
+    }
 }
 
 static inline void
 gtk_css_boxes_rect_shrink (GskRoundedRect *dest,
                            GskRoundedRect *src,
-                           GtkCssStyle    *style,
-                           int             top_property,
-                           int             right_property,
-                           int             bottom_property,
-                           int             left_property)
+                           GtkCssValue    *top_value,
+                           GtkCssValue    *right_value,
+                           GtkCssValue    *bottom_value,
+                           GtkCssValue    *left_value)
 {
-  double top = _gtk_css_number_value_get (gtk_css_style_get_value (style, top_property), 100);
-  double right = _gtk_css_number_value_get (gtk_css_style_get_value (style, right_property), 100);
-  double bottom = _gtk_css_number_value_get (gtk_css_style_get_value (style, bottom_property), 100);
-  double left = _gtk_css_number_value_get (gtk_css_style_get_value (style, left_property), 100);
+  double top = _gtk_css_number_value_get (top_value, 100);
+  double right = _gtk_css_number_value_get (right_value, 100);
+  double bottom = _gtk_css_number_value_get (bottom_value, 100);
+  double left = _gtk_css_number_value_get (left_value, 100);
 
   /* FIXME: Do we need underflow checks here? */
   dest->bounds.origin.x = src->bounds.origin.x + left;
@@ -141,11 +170,10 @@ gtk_css_boxes_compute_border_rect (GtkCssBoxes *boxes)
 
   gtk_css_boxes_rect_grow (&boxes->box[GTK_CSS_AREA_BORDER_BOX],
                            &boxes->box[GTK_CSS_AREA_PADDING_BOX],
-                           boxes->style,
-                           GTK_CSS_PROPERTY_BORDER_TOP_WIDTH,
-                           GTK_CSS_PROPERTY_BORDER_RIGHT_WIDTH,
-                           GTK_CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
-                           GTK_CSS_PROPERTY_BORDER_LEFT_WIDTH);
+                           boxes->style->border->border_top_width,
+                           boxes->style->border->border_right_width,
+                           boxes->style->border->border_bottom_width,
+                           boxes->style->border->border_left_width);
 
   boxes->has_rect[GTK_CSS_AREA_BORDER_BOX] = TRUE;
 }
@@ -160,21 +188,19 @@ gtk_css_boxes_compute_padding_rect (GtkCssBoxes *boxes)
     {
       gtk_css_boxes_rect_shrink (&boxes->box[GTK_CSS_AREA_PADDING_BOX],
                                  &boxes->box[GTK_CSS_AREA_BORDER_BOX],
-                                 boxes->style,
-                                 GTK_CSS_PROPERTY_BORDER_TOP_WIDTH,
-                                 GTK_CSS_PROPERTY_BORDER_RIGHT_WIDTH,
-                                 GTK_CSS_PROPERTY_BORDER_BOTTOM_WIDTH,
-                                 GTK_CSS_PROPERTY_BORDER_LEFT_WIDTH);
+                                 boxes->style->border->border_top_width,
+                                 boxes->style->border->border_right_width,
+                                 boxes->style->border->border_bottom_width,
+                                 boxes->style->border->border_left_width);
     }
   else
     {
       gtk_css_boxes_rect_grow (&boxes->box[GTK_CSS_AREA_PADDING_BOX],
                                &boxes->box[GTK_CSS_AREA_CONTENT_BOX],
-                               boxes->style,
-                               GTK_CSS_PROPERTY_PADDING_TOP,
-                               GTK_CSS_PROPERTY_PADDING_RIGHT,
-                               GTK_CSS_PROPERTY_PADDING_BOTTOM,
-                               GTK_CSS_PROPERTY_PADDING_LEFT);
+                               boxes->style->size->padding_top,
+                               boxes->style->size->padding_right,
+                               boxes->style->size->padding_bottom,
+                               boxes->style->size->padding_left);
     }
 
   boxes->has_rect[GTK_CSS_AREA_PADDING_BOX] = TRUE;
@@ -190,11 +216,10 @@ gtk_css_boxes_compute_content_rect (GtkCssBoxes *boxes)
 
   gtk_css_boxes_rect_shrink (&boxes->box[GTK_CSS_AREA_CONTENT_BOX],
                              &boxes->box[GTK_CSS_AREA_PADDING_BOX],
-                             boxes->style,
-                             GTK_CSS_PROPERTY_PADDING_TOP,
-                             GTK_CSS_PROPERTY_PADDING_RIGHT,
-                             GTK_CSS_PROPERTY_PADDING_BOTTOM,
-                             GTK_CSS_PROPERTY_PADDING_LEFT);
+                             boxes->style->size->padding_top,
+                             boxes->style->size->padding_right,
+                             boxes->style->size->padding_bottom,
+                             boxes->style->size->padding_left);
 
   boxes->has_rect[GTK_CSS_AREA_CONTENT_BOX] = TRUE;
 }
@@ -209,11 +234,10 @@ gtk_css_boxes_compute_margin_rect (GtkCssBoxes *boxes)
 
   gtk_css_boxes_rect_grow (&boxes->box[GTK_CSS_AREA_MARGIN_BOX],
                            &boxes->box[GTK_CSS_AREA_BORDER_BOX],
-                           boxes->style,
-                           GTK_CSS_PROPERTY_MARGIN_TOP,
-                           GTK_CSS_PROPERTY_MARGIN_RIGHT,
-                           GTK_CSS_PROPERTY_MARGIN_BOTTOM,
-                           GTK_CSS_PROPERTY_MARGIN_LEFT);
+                           boxes->style->size->margin_top,
+                           boxes->style->size->margin_right,
+                           boxes->style->size->margin_bottom,
+                           boxes->style->size->margin_left);
 
   boxes->has_rect[GTK_CSS_AREA_MARGIN_BOX] = TRUE;
 }
@@ -232,8 +256,8 @@ gtk_css_boxes_compute_outline_rect (GtkCssBoxes *boxes)
   dest = &boxes->box[GTK_CSS_AREA_OUTLINE_BOX].bounds;
   src = &boxes->box[GTK_CSS_AREA_BORDER_BOX].bounds;
 
-  d = _gtk_css_number_value_get (gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_OUTLINE_OFFSET), 100) +
-      _gtk_css_number_value_get (gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_OUTLINE_WIDTH), 100);
+  d = _gtk_css_number_value_get (boxes->style->outline->outline_offset, 100) +
+      _gtk_css_number_value_get (boxes->style->outline->outline_width, 100);
 
   dest->origin.x = src->origin.x - d;
   dest->origin.y = src->origin.y - d;
@@ -323,19 +347,38 @@ gtk_css_boxes_apply_border_radius (GskRoundedRect    *box,
                                    const GtkCssValue *bottom_right,
                                    const GtkCssValue *bottom_left)
 {
-  box->corner[GSK_CORNER_TOP_LEFT].width = _gtk_css_corner_value_get_x (top_left, box->bounds.size.width);
-  box->corner[GSK_CORNER_TOP_LEFT].height = _gtk_css_corner_value_get_y (top_left, box->bounds.size.height);
+  gboolean has_border_radius = FALSE;
 
-  box->corner[GSK_CORNER_TOP_RIGHT].width = _gtk_css_corner_value_get_x (top_right, box->bounds.size.width);
-  box->corner[GSK_CORNER_TOP_RIGHT].height = _gtk_css_corner_value_get_y (top_right, box->bounds.size.height);
+  if (!gtk_css_corner_value_is_zero (top_left))
+    {
+      box->corner[GSK_CORNER_TOP_LEFT].width = _gtk_css_corner_value_get_x (top_left, box->bounds.size.width);
+      box->corner[GSK_CORNER_TOP_LEFT].height = _gtk_css_corner_value_get_y (top_left, box->bounds.size.height);
+      has_border_radius = TRUE;
+    }
 
-  box->corner[GSK_CORNER_BOTTOM_RIGHT].width = _gtk_css_corner_value_get_x (bottom_right, box->bounds.size.width);
-  box->corner[GSK_CORNER_BOTTOM_RIGHT].height = _gtk_css_corner_value_get_y (bottom_right, box->bounds.size.height);
+  if (!gtk_css_corner_value_is_zero (top_right))
+    {
+      box->corner[GSK_CORNER_TOP_RIGHT].width = _gtk_css_corner_value_get_x (top_right, box->bounds.size.width);
+      box->corner[GSK_CORNER_TOP_RIGHT].height = _gtk_css_corner_value_get_y (top_right, box->bounds.size.height);
+      has_border_radius = TRUE;
+    }
 
-  box->corner[GSK_CORNER_BOTTOM_LEFT].width = _gtk_css_corner_value_get_x (bottom_left, box->bounds.size.width);
-  box->corner[GSK_CORNER_BOTTOM_LEFT].height = _gtk_css_corner_value_get_y (bottom_left, box->bounds.size.height);
+  if (!gtk_css_corner_value_is_zero (bottom_right))
+    {
+      box->corner[GSK_CORNER_BOTTOM_RIGHT].width = _gtk_css_corner_value_get_x (bottom_right, box->bounds.size.width);
+      box->corner[GSK_CORNER_BOTTOM_RIGHT].height = _gtk_css_corner_value_get_y (bottom_right, box->bounds.size.height);
+      has_border_radius = TRUE;
+    }
 
-  gtk_css_boxes_clamp_border_radius (box);
+  if (!gtk_css_corner_value_is_zero (bottom_left))
+    {
+      box->corner[GSK_CORNER_BOTTOM_LEFT].width = _gtk_css_corner_value_get_x (bottom_left, box->bounds.size.width);
+      box->corner[GSK_CORNER_BOTTOM_LEFT].height = _gtk_css_corner_value_get_y (bottom_left, box->bounds.size.height);
+      has_border_radius = TRUE;
+    }
+
+  if (has_border_radius)
+    gtk_css_boxes_clamp_border_radius (box);
 }
 
 /* NB: width and height must be >= 0 */
@@ -387,10 +430,10 @@ gtk_css_boxes_compute_border_box (GtkCssBoxes *boxes)
   gtk_css_boxes_compute_border_rect (boxes);
 
   gtk_css_boxes_apply_border_radius (&boxes->box[GTK_CSS_AREA_BORDER_BOX],
-                                     gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_BORDER_TOP_LEFT_RADIUS),
-                                     gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_BORDER_TOP_RIGHT_RADIUS),
-                                     gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_BORDER_BOTTOM_RIGHT_RADIUS),
-                                     gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_BORDER_BOTTOM_LEFT_RADIUS));
+                                     boxes->style->border->border_top_left_radius,
+                                     boxes->style->border->border_top_right_radius,
+                                     boxes->style->border->border_bottom_right_radius,
+                                     boxes->style->border->border_bottom_left_radius);
 
   boxes->has_box[GTK_CSS_AREA_BORDER_BOX] = TRUE;
 }
@@ -434,10 +477,10 @@ gtk_css_boxes_compute_outline_box (GtkCssBoxes *boxes)
   gtk_css_boxes_compute_outline_rect (boxes);
 
   gtk_css_boxes_apply_border_radius (&boxes->box[GTK_CSS_AREA_OUTLINE_BOX],
-                                     gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_OUTLINE_TOP_LEFT_RADIUS),
-                                     gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_OUTLINE_TOP_RIGHT_RADIUS),
-                                     gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_OUTLINE_BOTTOM_RIGHT_RADIUS),
-                                     gtk_css_style_get_value (boxes->style, GTK_CSS_PROPERTY_OUTLINE_BOTTOM_LEFT_RADIUS));
+                                     boxes->style->border->border_top_left_radius,
+                                     boxes->style->border->border_top_right_radius,
+                                     boxes->style->border->border_bottom_right_radius,
+                                     boxes->style->border->border_bottom_left_radius);
 
   boxes->has_box[GTK_CSS_AREA_OUTLINE_BOX] = TRUE;
 }

@@ -1,7 +1,7 @@
 window1
   "window"
   index: 0
-  state: active enabled resizable sensitive showing visible
+  state: enabled resizable sensitive showing visible
   toolkit: gtk
   window-type: normal
   <AtkComponent>
@@ -20,7 +20,7 @@ window1
       "filler"
       parent: box1
       index: 0
-      state: enabled horizontal sensitive showing visible
+      state: enabled sensitive showing visible
       toolkit: gtk
       <AtkComponent>
       layer: widget

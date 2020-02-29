@@ -25,7 +25,7 @@
 #ifndef __GDK_TYPES_H__
 #define __GDK_TYPES_H__
 
-#if !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
+#if !defined (__GDK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gdk/gdk.h> can be included directly."
 #endif
 
@@ -568,11 +568,12 @@ typedef enum
  * @GDK_ACTION_MOVE: Move the data, i.e. first copy it, then delete
  *  it from the source using the DELETE target of the X selection protocol.
  * @GDK_ACTION_LINK: Add a link to the data. Note that this is only
- *  useful if source and destination agree on what it means.
+ *  useful if source and destination agree on what it means, and is not
+ *  supported on all platforms.
  * @GDK_ACTION_ASK: Ask the user what to do with the data.
  *
- * Used in #GdkDrag to indicate what the destination
- * should do with the dropped data.
+ * Used in #GdkDrop and #GdkDrag to indicate the actions that the
+ * destination can and should do with the dropped data.
  */
 typedef enum
 {

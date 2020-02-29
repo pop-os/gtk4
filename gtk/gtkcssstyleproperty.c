@@ -120,22 +120,6 @@ gtk_css_style_property_get_property (GObject    *object,
     }
 }
 
-static void
-_gtk_css_style_property_query (GtkStyleProperty   *property,
-                               GValue             *value,
-                               GtkStyleQueryFunc   query_func,
-                               gpointer            query_data)
-{
-  GtkCssStyleProperty *style_property = GTK_CSS_STYLE_PROPERTY (property);
-  GtkCssValue *css_value;
-
-  css_value = (* query_func) (GTK_CSS_STYLE_PROPERTY (property)->id, query_data);
-  if (css_value == NULL)
-    css_value =_gtk_css_style_property_get_initial_value (style_property);
-
-  style_property->query_value (style_property, css_value, value);
-}
-
 static GtkCssValue *
 gtk_css_style_property_parse_value (GtkStyleProperty *property,
                                     GtkCssParser     *parser)
@@ -218,7 +202,6 @@ _gtk_css_style_property_class_init (GtkCssStylePropertyClass *klass)
                                                        GTK_TYPE_CSS_VALUE,
                                                        G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_STATIC_STRINGS));
 
-  property_class->query = _gtk_css_style_property_query;
   property_class->parse_value = gtk_css_style_property_parse_value;
 
   klass->style_properties = g_ptr_array_new ();
@@ -372,33 +355,3 @@ _gtk_css_style_property_get_initial_value (GtkCssStyleProperty *property)
 
   return property->initial_value;
 }
-
-/**
- * _gtk_css_style_property_get_mask_affecting:
- * @flags: the flags that are affected
- *
- * Computes a bitmask for all properties that have at least one of @flags
- * set.
- *
- * Returns: (transfer full): A #GtkBitmask with the bit set for every
- *          property that has at least one of @flags set.
- */
-GtkBitmask *
-_gtk_css_style_property_get_mask_affecting (GtkCssAffects affects)
-{
-  GtkBitmask *result;
-  guint i;
-
-  result = _gtk_bitmask_new ();
-
-  for (i = 0; i < _gtk_css_style_property_get_n_properties (); i++)
-    {
-      GtkCssStyleProperty *prop = _gtk_css_style_property_lookup_by_id (i);
-
-      if (_gtk_css_style_property_get_affects (prop) & affects)
-        result = _gtk_bitmask_set (result, i, TRUE);
-    }
-
-  return result;
-}
-

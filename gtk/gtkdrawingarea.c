@@ -116,8 +116,7 @@ static GParamSpec *props[LAST_PROP] = { NULL, };
  * The draw function is normally called when a drawing area first comes
  * onscreen, or when it’s covered by another window and then uncovered.
  * You can also force a redraw by adding to the “damage region” of the
- * drawing area’s window using gtk_widget_queue_draw_region(),
- * gtk_widget_queue_draw_area() or gtk_widget_queue_draw().
+ * drawing area’s window using gtk_widget_queue_draw().
  * This will cause the drawing area to call the draw function again.
  *
  * The available routines for drawing are documented on the
@@ -296,7 +295,6 @@ gtk_drawing_area_class_init (GtkDrawingAreaClass *class)
 static void
 gtk_drawing_area_init (GtkDrawingArea *darea)
 {
-  gtk_widget_set_has_surface (GTK_WIDGET (darea), FALSE);
 }
 
 /**
@@ -413,9 +411,9 @@ gtk_drawing_area_get_content_height (GtkDrawingArea *self)
 /**
  * gtk_drawing_area_set_draw_func:
  * @self: a #GtkDrawingArea
- * @draw_func: (closure user_data) (allow-none): callback that lets you draw
+ * @draw_func: (allow-none): callback that lets you draw
  *     the drawing area's contents
- * @user_data: user data passed to @draw_func
+ * @user_data: (closure): user data passed to @draw_func
  * @destroy: destroy notifier for @user_data
  *
  * Setting a draw function is the main thing you want to do when using a drawing

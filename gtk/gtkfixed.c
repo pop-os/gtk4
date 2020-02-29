@@ -117,7 +117,6 @@ gtk_fixed_init (GtkFixed *self)
 {
   GtkFixedPrivate *priv = gtk_fixed_get_instance_private (self);
 
-  gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
   gtk_widget_set_overflow (GTK_WIDGET (self), GTK_OVERFLOW_HIDDEN);
 
   priv->layout = gtk_widget_get_layout_manager (GTK_WIDGET (self)); 
@@ -165,7 +164,7 @@ gtk_fixed_put (GtkFixed  *fixed,
   child_info = GTK_FIXED_LAYOUT_CHILD (gtk_layout_manager_get_layout_child (priv->layout, widget));
 
   transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (x, y));
-  gtk_fixed_layout_child_set_position (child_info, transform);
+  gtk_fixed_layout_child_set_transform (child_info, transform);
   gsk_transform_unref (transform);
 }
 
@@ -184,8 +183,8 @@ gtk_fixed_put (GtkFixed  *fixed,
 void
 gtk_fixed_get_child_position (GtkFixed  *fixed,
                               GtkWidget *widget,
-                              gint      *x,
-                              gint      *y)
+                              int       *x,
+                              int       *y)
 {
   GtkFixedPrivate *priv = gtk_fixed_get_instance_private (fixed);
   GtkFixedLayoutChild *child_info;
@@ -194,28 +193,29 @@ gtk_fixed_get_child_position (GtkFixed  *fixed,
 
   g_return_if_fail (GTK_IS_FIXED (fixed));
   g_return_if_fail (GTK_IS_WIDGET (widget));
+  g_return_if_fail (x != NULL);
+  g_return_if_fail (y != NULL);
   g_return_if_fail (gtk_widget_get_parent (widget) == GTK_WIDGET (fixed));
 
   child_info = GTK_FIXED_LAYOUT_CHILD (gtk_layout_manager_get_layout_child (priv->layout, widget));
-  transform = gtk_fixed_layout_child_get_position (child_info);
+  transform = gtk_fixed_layout_child_get_transform (child_info);
   gsk_transform_to_translate (transform, &pos_x, &pos_y);
 
-  if (x != NULL)
-    *x = floorf (pos_x);
-  if (y != NULL)
-    *y = floorf (pos_y);
+  *x = floorf (pos_x);
+  *y = floorf (pos_y);
 }
 
 /**
  * gtk_fixed_set_child_transform:
  * @fixed: a #GtkFixed
  * @widget: a #GtkWidget, child of @fixed
- * @transform: (nullable): the transformation assigned to @widget
+ * @transform: (nullable): the transformation assigned to @widget or %NULL
+ *   to reset @widget's transform
  *
  * Sets the transformation for @widget.
  *
  * This is a convenience function that retrieves the #GtkFixedLayoutChild
- * instance associated to @widget and calls gtk_fixed_layout_child_set_position().
+ * instance associated to @widget and calls gtk_fixed_layout_child_set_transform().
  */
 void
 gtk_fixed_set_child_transform (GtkFixed     *fixed,
@@ -230,7 +230,7 @@ gtk_fixed_set_child_transform (GtkFixed     *fixed,
   g_return_if_fail (gtk_widget_get_parent (widget) == GTK_WIDGET (fixed));
 
   child_info = GTK_FIXED_LAYOUT_CHILD (gtk_layout_manager_get_layout_child (priv->layout, widget));
-  gtk_fixed_layout_child_set_position (child_info, transform);
+  gtk_fixed_layout_child_set_transform (child_info, transform);
 }
 
 /**
@@ -241,7 +241,8 @@ gtk_fixed_set_child_transform (GtkFixed     *fixed,
  * Retrieves the transformation for @widget set using
  * gtk_fixed_set_child_transform().
  *
- * Returns: (transfer none) (nullable): a #GskTransform
+ * Returns: (transfer none) (nullable): a #GskTransform or %NULL
+ *   in case no transform has been set on @widget
  */
 GskTransform *
 gtk_fixed_get_child_transform (GtkFixed  *fixed,
@@ -255,7 +256,7 @@ gtk_fixed_get_child_transform (GtkFixed  *fixed,
   g_return_val_if_fail (gtk_widget_get_parent (widget) == GTK_WIDGET (fixed), NULL);
 
   child_info = GTK_FIXED_LAYOUT_CHILD (gtk_layout_manager_get_layout_child (priv->layout, widget));
-  return gtk_fixed_layout_child_get_position (child_info);
+  return gtk_fixed_layout_child_get_transform (child_info);
 }
 
 /**
@@ -285,7 +286,7 @@ gtk_fixed_move (GtkFixed  *fixed,
   child_info = GTK_FIXED_LAYOUT_CHILD (gtk_layout_manager_get_layout_child (priv->layout,  widget));
 
   transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (x, y));
-  gtk_fixed_layout_child_set_position (child_info, transform);
+  gtk_fixed_layout_child_set_transform (child_info, transform);
   gsk_transform_unref (transform);
 }
 

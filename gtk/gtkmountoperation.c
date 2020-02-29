@@ -25,6 +25,7 @@
 
 #include "config.h"
 
+#include <errno.h>
 #include <string.h>
 
 #include "gtkmountoperationprivate.h"
@@ -47,13 +48,15 @@
 #include "gtkcellrendererpixbuf.h"
 #include "gtkscrolledwindow.h"
 #include "gtkicontheme.h"
-#include "gtkmenuitem.h"
 #include "gtkmain.h"
 #include "gtksettings.h"
 #include "gtkstylecontextprivate.h"
 #include "gtkdialogprivate.h"
-#include "gtkgesturemultipress.h"
-
+#include "gtkgestureclick.h"
+#include "gtkmodelbuttonprivate.h"
+#include "gtkpopover.h"
+#include "gtksnapshot.h"
+#include "gdktextureprivate.h"
 #include <glib/gprintf.h>
 
 /**
@@ -122,7 +125,10 @@ struct _GtkMountOperationPrivate {
   GtkWidget *username_entry;
   GtkWidget *domain_entry;
   GtkWidget *password_entry;
+  GtkWidget *pim_entry;
   GtkWidget *anonymous_toggle;
+  GtkWidget *tcrypt_hidden_toggle;
+  GtkWidget *tcrypt_system_toggle;
   GList *user_widgets;
 
   GAskPasswordFlags ask_flags;
@@ -197,6 +203,9 @@ gtk_mount_operation_init (GtkMountOperation *operation)
                                                          "org.gtk.MountOperationHandler",
                                                          "/org/gtk/MountOperationHandler",
                                                          NULL, NULL);
+  if (!operation->priv->handler)
+    return;
+
   name_owner = g_dbus_proxy_get_name_owner (G_DBUS_PROXY (operation->priv->handler));
   if (!name_owner)
     g_clear_object (&operation->priv->handler);
@@ -349,6 +358,27 @@ pw_dialog_got_response (GtkDialog         *dialog,
           g_mount_operation_set_password (op, text);
         }
 
+      if (priv->pim_entry)
+        {
+          text = gtk_editable_get_text (GTK_EDITABLE (priv->pim_entry));
+          if (text && strlen (text) > 0)
+            {
+              guint64 pim;
+              gchar *end = NULL;
+
+              errno = 0;
+              pim = g_ascii_strtoull (text, &end, 10);
+              if (errno == 0 && pim <= G_MAXUINT && end != text)
+                g_mount_operation_set_pim (op, (guint) pim);
+            }
+        }
+
+      if (priv->tcrypt_hidden_toggle && gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->tcrypt_hidden_toggle)))
+        g_mount_operation_set_is_tcrypt_hidden_volume (op, TRUE);
+
+      if (priv->tcrypt_system_toggle && gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->tcrypt_system_toggle)))
+        g_mount_operation_set_is_tcrypt_system_volume (op, TRUE);
+
       if (priv->ask_flags & G_ASK_PASSWORD_SAVING_SUPPORTED)
         g_mount_operation_set_password_save (op, priv->password_save);
 
@@ -377,6 +407,29 @@ entry_has_input (GtkWidget *entry_widget)
 }
 
 static gboolean
+pim_entry_is_valid (GtkWidget *entry_widget)
+{
+  const char *text;
+  gchar *end = NULL;
+  guint64 pim;
+
+  if (entry_widget == NULL)
+    return TRUE;
+
+  text = gtk_editable_get_text (GTK_EDITABLE (entry_widget));
+  /* An empty PIM entry is OK */
+  if (text == NULL || text[0] == '\0')
+    return TRUE;
+
+  errno = 0;
+  pim = g_ascii_strtoull (text, &end, 10);
+  if (errno || pim > G_MAXUINT || end == text)
+    return FALSE;
+  else
+    return TRUE;
+}
+
+static gboolean
 pw_dialog_input_is_valid (GtkMountOperation *operation)
 {
   GtkMountOperationPrivate *priv = operation->priv;
@@ -389,7 +442,8 @@ pw_dialog_input_is_valid (GtkMountOperation *operation)
    * definitively needs a password.
    */
   is_valid = entry_has_input (priv->username_entry) &&
-             entry_has_input (priv->domain_entry);
+             entry_has_input (priv->domain_entry) &&
+             pim_entry_is_valid (priv->pim_entry);
 
   return is_valid;
 }
@@ -573,7 +627,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   label = gtk_label_new (primary);
   gtk_widget_set_halign (label, GTK_ALIGN_START);
   gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
-  gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (label), TRUE);
   gtk_container_add (GTK_CONTAINER (main_vbox), GTK_WIDGET (label));
   g_free (primary);
   attrs = pango_attr_list_new ();
@@ -586,7 +640,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       label = gtk_label_new (secondary);
       gtk_widget_set_halign (label, GTK_ALIGN_START);
       gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
-      gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+      gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_container_add (GTK_CONTAINER (main_vbox), GTK_WIDGET (label));
     }
 
@@ -642,6 +696,31 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   if (priv->ask_flags & G_ASK_PASSWORD_NEED_DOMAIN)
     priv->domain_entry = table_add_entry (operation, rows++, _("_Domain"),
                                           default_domain, operation);
+
+  priv->pim_entry = NULL;
+  if (priv->ask_flags & G_ASK_PASSWORD_TCRYPT)
+    {
+      GtkWidget *volume_type_label;
+      GtkWidget *volume_type_box;
+
+      volume_type_label = gtk_label_new (_("Volume type"));
+      gtk_widget_set_halign (volume_type_label, GTK_ALIGN_END);
+      gtk_widget_set_hexpand (volume_type_label, FALSE);
+      gtk_grid_attach (GTK_GRID (grid), volume_type_label, 0, rows, 1, 1);
+      priv->user_widgets = g_list_prepend (priv->user_widgets, volume_type_label);
+
+      volume_type_box =  gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
+      gtk_grid_attach (GTK_GRID (grid), volume_type_box, 1, rows++, 1, 1);
+      priv->user_widgets = g_list_prepend (priv->user_widgets, volume_type_box);
+
+      priv->tcrypt_hidden_toggle = gtk_check_button_new_with_mnemonic (_("_Hidden"));
+      gtk_container_add (GTK_CONTAINER (volume_type_box), priv->tcrypt_hidden_toggle);
+
+      priv->tcrypt_system_toggle = gtk_check_button_new_with_mnemonic (_("_Windows system"));
+      gtk_container_add (GTK_CONTAINER (volume_type_box), priv->tcrypt_system_toggle);
+
+      priv->pim_entry = table_add_entry (operation, rows++, _("_PIM"), NULL, operation);
+    }
 
   priv->password_entry = NULL;
   if (priv->ask_flags & G_ASK_PASSWORD_NEED_PASSWORD)
@@ -759,6 +838,12 @@ call_password_proxy_cb (GObject      *source,
         g_mount_operation_set_password (op, g_variant_get_string (value, NULL));
       else if (strcmp (key, "password_save") == 0)
         g_mount_operation_set_password_save (op, g_variant_get_uint32 (value));
+      else if (strcmp (key, "hidden_volume") == 0)
+        g_mount_operation_set_is_tcrypt_hidden_volume (op, g_variant_get_boolean (value));
+      else if (strcmp (key, "system_volume") == 0)
+        g_mount_operation_set_is_tcrypt_system_volume (op, g_variant_get_boolean (value));
+      else if (strcmp (key, "pim") == 0)
+        g_mount_operation_set_pim (op, g_variant_get_uint32 (value));
     }
 
  out:
@@ -1053,6 +1138,36 @@ diff_sorted_arrays (GArray         *array1,
     }
 }
 
+static GdkTexture *
+render_paintable_to_texture (GdkPaintable *paintable)
+{
+  GtkSnapshot *snapshot;
+  GskRenderNode *node;
+  int width, height;
+  cairo_surface_t *surface;
+  cairo_t *cr;
+  GdkTexture *texture;
+
+  width = gdk_paintable_get_intrinsic_width (paintable);
+  height = gdk_paintable_get_intrinsic_height (paintable);
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+
+  snapshot = gtk_snapshot_new ();
+  gdk_paintable_snapshot (paintable, snapshot, width, height);
+  node = gtk_snapshot_free_to_node (snapshot);
+
+  cr = cairo_create (surface);
+  gsk_render_node_draw (node, cr);
+  cairo_destroy (cr);
+
+  gsk_render_node_unref (node);
+
+  texture = gdk_texture_new_for_surface (surface);
+  cairo_surface_destroy (surface);
+
+  return texture;
+}
 
 static void
 add_pid_to_process_list_store (GtkMountOperation              *mount_operation,
@@ -1085,14 +1200,19 @@ add_pid_to_process_list_store (GtkMountOperation              *mount_operation,
   if (texture == NULL)
     {
       GtkIconTheme *theme;
-      GtkIconInfo *info;
+      GtkIconPaintable *icon;
 
       theme = gtk_css_icon_theme_value_get_icon_theme
         (_gtk_style_context_peek_property (gtk_widget_get_style_context (GTK_WIDGET (mount_operation->priv->dialog)),
                                            GTK_CSS_PROPERTY_ICON_THEME));
-      info = gtk_icon_theme_lookup_icon (theme, "application-x-executable", 24, 0);
-      texture = gtk_icon_info_load_texture (info);
-      g_object_unref (info);
+      icon = gtk_icon_theme_lookup_icon (theme,
+                                         "application-x-executable",
+                                         NULL,
+                                         24, 1,
+                                         gtk_widget_get_direction (GTK_WIDGET (mount_operation->priv->dialog)),
+                                         0);
+      texture = render_paintable_to_texture (GDK_PAINTABLE (icon));
+      g_object_unref (icon);
     }
 
   markup = g_strdup_printf ("<b>%s</b>\n"
@@ -1216,7 +1336,7 @@ update_process_list_store (GtkMountOperation *mount_operation,
 }
 
 static void
-on_end_process_activated (GtkMenuItem *item,
+on_end_process_activated (GtkModelButton *button,
                           gpointer user_data)
 {
   GtkMountOperation *op = GTK_MOUNT_OPERATION (user_data);
@@ -1291,18 +1411,18 @@ do_popup_menu_for_process_tree_view (GtkWidget         *widget,
 {
   GtkWidget *menu;
   GtkWidget *item;
-  gdouble x, y;
+  double x, y;
 
-  menu = gtk_menu_new ();
+  menu = gtk_popover_new (widget);
   gtk_style_context_add_class (gtk_widget_get_style_context (menu),
                                GTK_STYLE_CLASS_CONTEXT_MENU);
 
-  item = gtk_menu_item_new_with_mnemonic (_("_End Process"));
-  g_signal_connect (item, "activate",
+  item = gtk_model_button_new ();
+  g_object_set (item, "text", _("_End Process"), NULL);
+  g_signal_connect (item, "clicked",
                     G_CALLBACK (on_end_process_activated),
                     op);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-  gtk_widget_show (menu);
+  gtk_container_add (GTK_CONTAINER (menu), item);
 
   if (event && gdk_event_triggers_context_menu (event) &&
       gdk_event_get_coords (event, &x, &y))
@@ -1327,9 +1447,11 @@ do_popup_menu_for_process_tree_view (GtkWidget         *widget,
           /* don't popup a menu if the user right-clicked in an area with no rows */
           return FALSE;
         }
+
+      gtk_popover_set_pointing_to (GTK_POPOVER (menu), &(GdkRectangle){ x, y, 1, 1});
     }
 
-  gtk_menu_popup_at_pointer (GTK_MENU (menu), event);
+  gtk_popover_popup (GTK_POPOVER (menu));
   return TRUE;
 }
 
@@ -1342,7 +1464,7 @@ on_popup_menu_for_process_tree_view (GtkWidget *widget,
 }
 
 static void
-multi_press_cb (GtkGesture *gesture,
+click_cb (GtkGesture *gesture,
                 int         n_press,
                 double      x,
                 double      y,
@@ -1470,10 +1592,10 @@ create_show_processes_dialog (GtkMountOperation *op,
                     G_CALLBACK (on_popup_menu_for_process_tree_view),
                     op);
 
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
   g_signal_connect (gesture, "pressed",
-                    G_CALLBACK (multi_press_cb), op);
+                    G_CALLBACK (click_cb), op);
   gtk_widget_add_controller (tree_view, GTK_EVENT_CONTROLLER (gesture));
 
   list_store = gtk_list_store_new (3,

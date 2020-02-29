@@ -45,18 +45,18 @@ get_base_font_size_px (guint             property_id,
   if (property_id == GTK_CSS_PROPERTY_FONT_SIZE)
     {
       if (parent_style)
-        return _gtk_css_number_value_get (gtk_css_style_get_value (parent_style, GTK_CSS_PROPERTY_FONT_SIZE), 100);
+        return _gtk_css_number_value_get (parent_style->core->font_size, 100);
       else
         return gtk_css_font_size_get_default_px (provider, style);
     }
 
-  return _gtk_css_number_value_get (gtk_css_style_get_value (style, GTK_CSS_PROPERTY_FONT_SIZE), 100);
+  return _gtk_css_number_value_get (style->core->font_size, 100);
 }
 
 static double
 get_dpi (GtkCssStyle *style)
 {
-  return _gtk_css_number_value_get (gtk_css_style_get_value (style, GTK_CSS_PROPERTY_DPI), 96);
+  return _gtk_css_number_value_get (style->core->dpi, 96);
 }
 
 static GtkCssValue *
@@ -66,40 +66,6 @@ gtk_css_value_dimension_compute (GtkCssValue      *number,
                                  GtkCssStyle      *style,
                                  GtkCssStyle      *parent_style)
 {
-  GtkBorderStyle border_style;
-
-  /* special case according to http://dev.w3.org/csswg/css-backgrounds/#the-border-width */
-  switch (property_id)
-    {
-      case GTK_CSS_PROPERTY_BORDER_TOP_WIDTH:
-        border_style = _gtk_css_border_style_value_get(gtk_css_style_get_value (style, GTK_CSS_PROPERTY_BORDER_TOP_STYLE));
-        if (border_style == GTK_BORDER_STYLE_NONE || border_style == GTK_BORDER_STYLE_HIDDEN)
-          return gtk_css_dimension_value_new (0, GTK_CSS_NUMBER);
-        break;
-      case GTK_CSS_PROPERTY_BORDER_RIGHT_WIDTH:
-        border_style = _gtk_css_border_style_value_get(gtk_css_style_get_value (style, GTK_CSS_PROPERTY_BORDER_RIGHT_STYLE));
-        if (border_style == GTK_BORDER_STYLE_NONE || border_style == GTK_BORDER_STYLE_HIDDEN)
-          return gtk_css_dimension_value_new (0, GTK_CSS_NUMBER);
-        break;
-      case GTK_CSS_PROPERTY_BORDER_BOTTOM_WIDTH:
-        border_style = _gtk_css_border_style_value_get(gtk_css_style_get_value (style, GTK_CSS_PROPERTY_BORDER_BOTTOM_STYLE));
-        if (border_style == GTK_BORDER_STYLE_NONE || border_style == GTK_BORDER_STYLE_HIDDEN)
-          return gtk_css_dimension_value_new (0, GTK_CSS_NUMBER);
-        break;
-      case GTK_CSS_PROPERTY_BORDER_LEFT_WIDTH:
-        border_style = _gtk_css_border_style_value_get(gtk_css_style_get_value (style, GTK_CSS_PROPERTY_BORDER_LEFT_STYLE));
-        if (border_style == GTK_BORDER_STYLE_NONE || border_style == GTK_BORDER_STYLE_HIDDEN)
-          return gtk_css_dimension_value_new (0, GTK_CSS_NUMBER);
-        break;
-      case GTK_CSS_PROPERTY_OUTLINE_WIDTH:
-        border_style = _gtk_css_border_style_value_get(gtk_css_style_get_value (style, GTK_CSS_PROPERTY_OUTLINE_STYLE));
-        if (border_style == GTK_BORDER_STYLE_NONE || border_style == GTK_BORDER_STYLE_HIDDEN)
-          return gtk_css_dimension_value_new (0, GTK_CSS_NUMBER);
-        break;
-      default:
-        break;
-    }
-
   switch (number->unit)
     {
     default:
@@ -228,18 +194,24 @@ gtk_css_value_dimension_has_percent (const GtkCssValue *value)
 }
 
 static GtkCssValue *
-gtk_css_value_dimension_multiply (const GtkCssValue *value,
-                                  double             factor)
+gtk_css_value_dimension_multiply (GtkCssValue *value,
+                                  double       factor)
 {
   return gtk_css_dimension_value_new (value->value * factor, value->unit);
 }
 
 static GtkCssValue *
-gtk_css_value_dimension_try_add (const GtkCssValue *value1,
-                                 const GtkCssValue *value2)
+gtk_css_value_dimension_try_add (GtkCssValue *value1,
+                                 GtkCssValue *value2)
 {
   if (value1->unit != value2->unit)
     return NULL;
+
+  if (value1->value == 0)
+    return _gtk_css_value_ref (value2);
+
+  if (value2->value == 0)
+    return _gtk_css_value_ref (value1);
 
   return gtk_css_dimension_value_new (value1->value + value2->value, value1->unit);
 }
@@ -271,12 +243,25 @@ gtk_css_value_dimension_get_calc_term_order (const GtkCssValue *value)
   return 1000 + order_per_unit[value->unit];
 }
 
+static GtkCssValue *
+gtk_css_value_dimension_transition (GtkCssValue *start,
+                                    GtkCssValue *end,
+                                    guint        property_id,
+                                    double       progress)
+{
+  if (start->unit != end->unit)
+    return NULL;
+
+  return gtk_css_dimension_value_new (start->value + (end->value - start->value) * progress, start->unit);
+}
+
 static const GtkCssNumberValueClass GTK_CSS_VALUE_DIMENSION = {
   {
+    "GtkCssDimensionValue",
     gtk_css_value_dimension_free,
     gtk_css_value_dimension_compute,
     gtk_css_value_dimension_equal,
-    gtk_css_number_value_transition,
+    gtk_css_value_dimension_transition,
     NULL,
     NULL,
     gtk_css_value_dimension_print
@@ -294,34 +279,107 @@ gtk_css_dimension_value_new (double     value,
                              GtkCssUnit unit)
 {
   static GtkCssValue number_singletons[] = {
-    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, GTK_CSS_NUMBER, 0 },
-    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, GTK_CSS_NUMBER, 1 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_NUMBER, 0 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_NUMBER, 1 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_NUMBER, 96 }, /* DPI default */
   };
   static GtkCssValue px_singletons[] = {
-    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, GTK_CSS_PX, 0 },
-    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, GTK_CSS_PX, 1 },
-    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, GTK_CSS_PX, 2 },
-    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, GTK_CSS_PX, 3 },
-    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, GTK_CSS_PX, 4 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 0 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 1 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 2 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 3 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 4 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 8 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 16 }, /* Icon size default */
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 32 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PX, 64 },
+  };
+  static GtkCssValue percent_singletons[] = {
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_PERCENT, 0 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, FALSE, GTK_CSS_PERCENT, 50 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, FALSE, GTK_CSS_PERCENT, 100 },
+  };
+  static GtkCssValue second_singletons[] = {
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_S, 0 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_S, 1 },
+  };
+  static GtkCssValue deg_singletons[] = {
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_DEG, 0   },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_DEG, 90  },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_DEG, 180 },
+    { &GTK_CSS_VALUE_DIMENSION.value_class, 1, TRUE, GTK_CSS_DEG, 270 },
   };
   GtkCssValue *result;
 
-  if (unit == GTK_CSS_NUMBER && (value == 0 || value == 1))
-    return _gtk_css_value_ref (&number_singletons[(int) value]);
-
-  if (unit == GTK_CSS_PX &&
-      (value == 0 ||
-       value == 1 ||
-       value == 2 ||
-       value == 3 ||
-       value == 4))
+  switch ((guint)unit)
     {
-      return _gtk_css_value_ref (&px_singletons[(int) value]);
+    case GTK_CSS_NUMBER:
+      if (value == 0 || value == 1)
+        return _gtk_css_value_ref (&number_singletons[(int) value]);
+
+      if (value == 96)
+        return _gtk_css_value_ref (&number_singletons[2]);
+
+      break;
+
+    case GTK_CSS_PX:
+      if (value == 0 ||
+          value == 1 ||
+          value == 2 ||
+          value == 3 ||
+          value == 4)
+        return _gtk_css_value_ref (&px_singletons[(int) value]);
+      if (value == 8)
+        return _gtk_css_value_ref (&px_singletons[5]);
+      if (value == 16)
+        return _gtk_css_value_ref (&px_singletons[6]);
+      if (value == 32)
+        return _gtk_css_value_ref (&px_singletons[7]);
+      if (value == 64)
+        return _gtk_css_value_ref (&px_singletons[8]);
+
+      break;
+
+    case GTK_CSS_PERCENT:
+      if (value == 0)
+        return _gtk_css_value_ref (&percent_singletons[0]);
+      if (value == 50)
+        return _gtk_css_value_ref (&percent_singletons[1]);
+      if (value == 100)
+        return _gtk_css_value_ref (&percent_singletons[2]);
+
+      break;
+
+    case GTK_CSS_S:
+      if (value == 0 || value == 1)
+        return _gtk_css_value_ref (&second_singletons[(int)value]);
+
+      break;
+
+    case GTK_CSS_DEG:
+      if (value == 0)
+        return _gtk_css_value_ref (&deg_singletons[0]);
+      if (value == 90)
+        return _gtk_css_value_ref (&deg_singletons[1]);
+      if (value == 180)
+        return _gtk_css_value_ref (&deg_singletons[2]);
+      if (value == 270)
+        return _gtk_css_value_ref (&deg_singletons[3]);
+
+      break;
+
+    default:
+      ;
     }
 
   result = _gtk_css_value_new (GtkCssValue, &GTK_CSS_VALUE_DIMENSION.value_class);
   result->unit = unit;
   result->value = value;
+  result->is_computed = value == 0 ||
+                        unit == GTK_CSS_NUMBER ||
+                        unit == GTK_CSS_PX ||
+                        unit == GTK_CSS_DEG ||
+                        unit == GTK_CSS_S;
 
   return result;
 }
@@ -439,3 +497,14 @@ gtk_css_dimension_value_parse (GtkCssParser           *parser,
   return result;
 }
 
+gboolean
+gtk_css_dimension_value_is_zero (const GtkCssValue *value)
+{
+  if (!value)
+    return TRUE;
+
+  if (value->class != &GTK_CSS_VALUE_DIMENSION.value_class)
+    return FALSE;
+
+  return value->value == 0;
+}

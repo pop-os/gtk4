@@ -199,6 +199,19 @@
       </para>
     </section>
 
+    <section>
+      <title>Stop using gtk_main() and related APIs</title>
+
+      <para>
+        GTK4 removes the gtk_main_ family of APIs. The recommended replacement
+        is GtkApplication, but you can also iterate the GLib mainloop directly,
+        using GMainContext APIs.
+      </para>
+      <para>
+        The replacement for gtk_events_pending() is g_main_context_pending(),
+        the replacement for gtk_main_iteration() is g_main_context_iteration().
+      </para>
+    </section>
   </section>
 
   <section>
@@ -265,9 +278,8 @@
       <para>
         The gdk_window_new() function has been replaced by a number of more
         specialized constructors: gdk_surface_new_toplevel(), gdk_surface_new_popup(),
-        gdk_surface_new_temp(), gdk_surface_new_child(), gdk_surface_new_input(),
-        gdk_wayland_surface_new_subsurface(). Use the appropriate ones to create
-        your windows.
+        gdk_surface_new_temp(), gdk_wayland_surface_new_subsurface().
+        Use the appropriate ones to create your windows.
       </para>
       <para>
         Native and foreign subwindows are no longer supported. These concepts were
@@ -307,6 +319,18 @@
     </section>
 
     <section>
+      <title>Stop using grabs</title>
+      <para>
+        GTK 4 no longer provides the gdk_device_grab() or gdk_seat_grab() apis.
+      </para>
+      <para>
+        If you need to dismiss a popup when the user clicks outside (a common
+        use for grabs), you can use the GdkSurface #GdkSurface:autohide property instead.
+        GtkPopover also has a #GtkPopover:autohide property.
+      </para>
+    </section>
+
+    <section>
       <title>Adapt to coordinate API changes</title>
       <para>
         A number of coordinate APIs in GTK 3 had _double variants: 
@@ -315,13 +339,35 @@
         doubles, and the _double variants have been removed. Update your
         code accordingly.
       </para>
+      <para>
+        Any APIs that deal with global (or root) coordinates have been
+        removed in GTK4, since not all backends support them. You should
+        replace your use of such APIs with surface-relative equivalents.
+        Examples of this are gdk_surfae_get_origin(), gdk_surface_move()
+        or gdk_event_get_root_coords().
+      </para>
     </section>
-
+ 
     <section>
       <title>Adapt to GdkKeymap API changes</title>
       <para>
         The way to get a keymap has changed slightly. gdk_keymap_get_for_display() has
         been renamed to gdk_display_get_keymap().
+      </para>
+    </section>
+
+    <section>
+      <title>Adapt to event controller API changes</title>
+      <para>
+        A few changes to the event controller and #GtkGesture APIs
+        did not make it back to GTK3, and have to be taken into account
+        when moving to GTK4. One is that the
+        #GtkEventControllerMotion::enter,
+        #GtkEventControllerMotion::leave,
+        #GtkEventControllerKey::focus-in and
+        #GtkEventControllerKey::focus-out signals
+        have gained new arguments. Another is that #GtkGestureMultiPress
+        has been renamed to #GtkGestureClick.
       </para>
     </section>
 
@@ -341,7 +387,7 @@
     </section>
 
     <section>
-      <title>Adapt to GtkButton API changes</title>
+      <title>Adapt to GtkBox API changes</title>
       <para>
         GtkBox no longer has pack-start and -end. Pack your widgets in the 
         correct order, or reorder them as necessary.
@@ -652,7 +698,7 @@
     <section>
       <title>Adapt to changes in the API of GtkEntry, GtkSearchEntry and GtkSpinButton</title>
       <para>
-        The GtkEditable has been made more useful, and the core functionality of
+        The GtkEditable interface has been made more useful, and the core functionality of
         GtkEntry has been broken out as a GtkText widget. GtkEntry, GtkSearchEntry,
         GtkSpinButton and the new GtkPasswordEntry now use a GtkText widget internally
         and implement GtkEditable. In particular, this means that it is no longer
@@ -671,7 +717,7 @@
       <title>Adapt to changes in GtkOverlay API</title>
       <para>
         The GtkOverlay::pass-through child property has been replaced by the
-        GtkWidget::can-pick property. Note that they have the oppositve sense:
+        GtkWidget::can-pick property. Note that they have the opposite sense:
         pass-through == !can-pick.
       </para>
     </section>
@@ -754,6 +800,150 @@
       <para>
         To track the current display, use the GtkWidget::root property
         instead.
+      </para>
+    </section>
+
+    <section>
+      <title>GtkPopover::modal has been renamed to autohide</title>
+      <para>
+        The modal property has been renamed to autohide.
+        gtk-builder-tool can assist with the rename in ui files.
+      </para>
+    </section>
+
+    <section>
+      <title>gtk_widget_get_surface has been removed</title>
+      <para>
+        gtk_widget_get_surface() has been removed.
+        Use gtk_native_get_surface() in combination with
+        gtk_widget_get_native() instead.
+      </para>
+    </section>
+
+    <section>
+      <title>gtk_widget_is_toplevel has been removed</title>
+      <para>
+        gtk_widget_is_toplevel() has been removed.
+        Use GTK_IS_ROOT, GTK_IS_NATIVE or GTK_IS_WINDOW
+        instead, as appropriate.
+      </para>
+    </section>
+
+    <section>
+      <title>gtk_widget_get_toplevel has been removed</title>
+      <para>
+        gtk_widget_get_toplevel() has been removed.
+        Use gtk_widget_get_root() or gtk_widget_get_native()
+        instead, as appropriate.
+      </para>
+    </section>
+
+    <section>
+      <title>GtkEntryBuffer ::deleted-text has changed</title>
+      <para>
+        To allow signal handlers to access the deleted text before it
+        has been deleted #GtkEntryBuffer::deleted-text has changed from
+        %G_SIGNAL_RUN_FIRST to %G_SIGNAL_RUN_LAST. The default handler
+        removes the text from the #GtkEntryBuffer.
+      </para>
+      <para>
+        To adapt existing code, use g_signal_connect_after() or
+        %G_CONNECT_AFTER when using g_signal_connect_data() or
+        g_signal_connect_object().
+      </para>
+    </section>
+
+    <section>
+      <title>The "iconified" window state has been renamed to "minimized"</title>
+      <para>
+        The <literal>GDK_SURFACE_STATE_ICONIFIED</literal> value of the
+        #GdkSurfaceState enumeration is now %GDK_SURFACE_STATE_MINIMIZED.
+      </para>
+      <para>
+        The #GdkSurface functions <function>gdk_surface_iconify()</function>
+        and <function>gdk_surface_deiconify()</function> have been renamed to
+        gdk_surface_minimize() and gdk_surface_unminimize(), respectively.
+      </para>
+      <para>
+        The corresponding #GtkWindow functions <function>gtk_window_iconify()</function>
+        and <function>gtk_window_deiconify()</function> have been renamed
+        to gtk_window_minimize() and gtk_window_unminimize(), respectively.
+      </para>
+      <para>
+        The behavior of the minimization and unminimization operations have
+        not been changed, and they still require support from the underlying
+        windowing system.
+      </para>
+    </section>
+
+    <section>
+      <title>GtkMenu, GtkMenuBar and GtkMenuItem are gone</title>
+      <para>
+        These widgets were heavily relying on X11-centric concepts such as
+        override-redirect windows and grabs, and were hard to adjust to other
+        windowing systems.
+      </para>
+      <para>
+        Menus can already be replaced using GtkPopoverMenu in GTK 3. Additionally,
+        GTK 4 introduces GtkPopoverMenuBar to replace menubars. These new widgets
+        can only be constructed from menu models, so the porting effort involves
+        switching to menu models and actions.
+      </para>
+      <para>
+        Since menus are gone, GtkMenuButton also lost its ability to show menus,
+        and needs to be used with popovers in GTK 4.
+      </para>
+    </section>
+
+    <section>
+      <title>GtkToolbar has been removed</title>
+      <para>
+        Toolbars were using outdated concepts such as requiring special toolitem
+        widgets.
+      </para>
+      <para>
+        Toolbars should be replaced by using a GtkBox with regular widgets instead.
+      </para>
+    </section>
+
+    <section>
+      <title>Stop using custom tooltip windows</title>
+      <para>
+        Tooltips no longer use GtkWindows in GTK 4, and it is no longer
+        possible to provide a custom window for tooltips. Replacing the content
+        of the tooltip with a custom widget is still possible, with
+        gtk_tooltip_set_custom().
+      </para>
+    </section>
+
+    <section>
+      <title>Switch to the new DND api</title>
+      <para>
+        The source-side DND apis in GTK 4 have been changed to use an event controller, #GtkDragSource.
+      </para>
+      <para>
+        Instead of calling gtk_drag_source_set() and connecting to #GtkWidget signals, you create
+        a #GtkDragSource object, attach it to the widget with gtk_widget_add_controller(), and connect
+        to #GtkDragSource signals. Instead of calling gtk_drag_begin() on a widget to start a drag
+        manually, call gdk_drag_begin().
+      </para>
+      <para>
+        The ::drag-data-get signal has been replaced by the #GtkDragSource::prepare signal, which
+        returns a #GdkContentProvider for the drag operation.
+      </para>
+      <para>
+        The destination-side DND apis in GTK 4 have also been changed to use and event controller,
+        #GTkDropTarget.
+      </para>
+      <para>
+        Instead of calling gtk_drag_dest_set() and connecting to #GtkWidget signals, you create
+        a #GtkDropTarget object, attach it to the widget with gtk_widget_add_controller(), and
+        connect to #GtkDropTarget signals.
+      </para>
+      <para>
+        The ::drag-motion signal has been renamed to #GtkDragSource::accept, and instead of
+        ::drag-data-received, you need to use async read methods on the #GdkDrop object, such
+        as gdk_drop_read_value_async() or gdk_drop_read_text_async().
       </para>
     </section>
   </section>

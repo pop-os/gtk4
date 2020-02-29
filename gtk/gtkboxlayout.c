@@ -28,6 +28,7 @@
 #include "gtkstylecontextprivate.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
+#include "gtknative.h"
 
 /**
  * SECTION:gtkboxlayout
@@ -173,24 +174,25 @@ count_expand_children (GtkWidget *widget,
        child != NULL;
        child = _gtk_widget_get_next_sibling (child))
     {
-      if (_gtk_widget_get_visible (child))
-        {
-          *visible_children += 1;
+      if (!gtk_widget_should_layout (child))
+        continue;
 
-          if (gtk_widget_compute_expand (child, orientation))
-            *expand_children += 1;
-        }
+      *visible_children += 1;
+
+      if (gtk_widget_compute_expand (child, orientation))
+        *expand_children += 1;
     }
 }
 
 static gint
 get_spacing (GtkBoxLayout *self,
-             GtkStyleContext *style_context)
+             GtkCssNode   *node)
 {
+  GtkCssStyle *style = gtk_css_node_get_style (node);
   GtkCssValue *border_spacing;
   gint css_spacing;
 
-  border_spacing = _gtk_style_context_peek_property (style_context, GTK_CSS_PROPERTY_BORDER_SPACING);
+  border_spacing = style->size->border_spacing;
   if (self->orientation == GTK_ORIENTATION_HORIZONTAL)
     css_spacing = _gtk_css_position_value_get_x (border_spacing, 100);
   else
@@ -210,7 +212,7 @@ gtk_box_layout_compute_size (GtkBoxLayout *self,
   int n_visible_children = 0;
   int required_min = 0, required_nat = 0;
   int largest_min = 0, largest_nat = 0;
-  int spacing = get_spacing (self, _gtk_widget_get_style_context (widget));
+  int spacing = get_spacing (self, gtk_widget_get_css_node (widget));
 
   for (child = gtk_widget_get_first_child (widget);
        child != NULL;
@@ -219,7 +221,7 @@ gtk_box_layout_compute_size (GtkBoxLayout *self,
       int child_min = 0;
       int child_nat = 0;
 
-      if (!_gtk_widget_get_visible (child))
+      if (!gtk_widget_should_layout (child))
         continue;
 
       gtk_widget_measure (child, self->orientation,
@@ -284,7 +286,7 @@ gtk_box_layout_compute_opposite_size (GtkBoxLayout *self,
   if (nvis_children <= 0)
     return;
 
-  spacing = get_spacing (self, _gtk_widget_get_style_context (widget));
+  spacing = get_spacing (self, gtk_widget_get_css_node (widget));
   sizes = g_newa (GtkRequestedSize, nvis_children);
   extra_space = MAX (0, for_size - (nvis_children - 1) * spacing);
 
@@ -293,17 +295,17 @@ gtk_box_layout_compute_opposite_size (GtkBoxLayout *self,
        child != NULL;
        child = _gtk_widget_get_next_sibling (child))
     {
-      if (_gtk_widget_get_visible (child))
-        {
-          gtk_widget_measure (child,
-                              self->orientation,
-                              -1,
-                              &sizes[i].minimum_size, &sizes[i].natural_size,
-                              NULL, NULL);
+      if (!gtk_widget_should_layout (child))
+        continue;
 
-          children_minimum_size += sizes[i].minimum_size;
-          i += 1;
-        }
+      gtk_widget_measure (child,
+                          self->orientation,
+                          -1,
+                          &sizes[i].minimum_size, &sizes[i].natural_size,
+                          NULL, NULL);
+
+      children_minimum_size += sizes[i].minimum_size;
+      i += 1;
     }
 
   if (self->homogeneous)
@@ -341,8 +343,7 @@ gtk_box_layout_compute_opposite_size (GtkBoxLayout *self,
        child != NULL;
        child = _gtk_widget_get_next_sibling (child))
     {
-      /* If widget is not visible, skip it. */
-      if (!_gtk_widget_get_visible (child))
+      if (!gtk_widget_should_layout (child))
         continue;
 
       /* Assign the child's size. */
@@ -489,7 +490,7 @@ gtk_box_layout_allocate (GtkLayoutManager *layout_manager,
 
   direction = _gtk_widget_get_direction (widget);
   sizes = g_newa (GtkRequestedSize, nvis_children);
-  spacing = get_spacing (self, _gtk_widget_get_style_context (widget));
+  spacing = get_spacing (self, gtk_widget_get_css_node (widget));
 
   if (self->orientation == GTK_ORIENTATION_HORIZONTAL)
     extra_space = width - (nvis_children - 1) * spacing;
@@ -505,7 +506,7 @@ gtk_box_layout_allocate (GtkLayoutManager *layout_manager,
        child != NULL;
        child = _gtk_widget_get_next_sibling (child))
     {
-      if (!_gtk_widget_get_visible (child))
+      if (!gtk_widget_should_layout (child))
         continue;
 
       gtk_widget_measure (child,
@@ -556,8 +557,7 @@ gtk_box_layout_allocate (GtkLayoutManager *layout_manager,
        child != NULL;
        child = _gtk_widget_get_next_sibling (child))
     {
-      /* If widget is not visible, skip it. */
-      if (!_gtk_widget_get_visible (child))
+      if (!gtk_widget_should_layout (child))
         continue;
 
       /* Assign the child's size. */
@@ -661,8 +661,7 @@ gtk_box_layout_allocate (GtkLayoutManager *layout_manager,
        child != NULL;
        child = _gtk_widget_get_next_sibling (child))
     {
-      /* If widget is not visible, skip it. */
-      if (!_gtk_widget_get_visible (child))
+      if (!gtk_widget_should_layout (child))
         continue;
 
       child_size = sizes[i].natural_size;

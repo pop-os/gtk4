@@ -3,50 +3,64 @@
 
 #include "gskgldriverprivate.h"
 #include "gskglimageprivate.h"
-#include "gskrendererprivate.h"
+#include "gskgltextureatlasprivate.h"
 #include <pango/pango.h>
 #include <gdk/gdk.h>
 
 typedef struct
 {
-  GskGLDriver *gl_driver;
-  GskRenderer *renderer;
+  int ref_count;
 
+  GdkDisplay *display;
   GHashTable *hash_table;
-  GPtrArray *atlases;
+  GskGLTextureAtlases *atlases;
 
-  guint64 timestamp;
+  int timestamp;
 } GskGLGlyphCache;
 
-typedef struct
+struct _CacheKeyData
 {
   PangoFont *font;
   PangoGlyph glyph;
-  guint scale; /* times 1024 */
-} GlyphCacheKey;
-
-typedef struct _DirtyGlyph DirtyGlyph;
-typedef struct _GskGLCachedGlyph GskGLCachedGlyph;
-
-struct _DirtyGlyph
-{
-  GlyphCacheKey *key;
-  GskGLCachedGlyph *value;
+  guint xshift : 3;
+  guint yshift : 3;
+  guint scale  : 26; /* times 1024 */
 };
 
-typedef struct
-{
-  GskGLImage *image;
-  int width, height;
-  int x, y, y0;
-  guint old_pixels;
+typedef struct _CacheKeyData CacheKeyData;
 
-  DirtyGlyph pending_glyph;
-} GskGLGlyphAtlas;
+struct _GlyphCacheKey
+{
+  CacheKeyData data;
+  guint hash;
+};
+
+typedef struct _GlyphCacheKey GlyphCacheKey;
+
+#define PHASE(x) ((int)(floor (4 * (x + 0.125)) - 4 * floor (x + 0.125)))
+
+static inline void
+glyph_cache_key_set_glyph_and_shift (GlyphCacheKey *key,
+                                     PangoGlyph glyph,
+                                     float x,
+                                     float y)
+{
+  key->data.glyph = glyph;
+  key->data.xshift = PHASE (x);
+  key->data.yshift = PHASE (y);
+  key->hash = GPOINTER_TO_UINT (key->data.font) ^
+              key->data.glyph ^
+              (key->data.xshift << 24) ^
+              (key->data.yshift << 26) ^
+              key->data.scale;
+}
+
+typedef struct _GskGLCachedGlyph GskGLCachedGlyph;
 
 struct _GskGLCachedGlyph
 {
-  GskGLGlyphAtlas *atlas;
+  GskGLTextureAtlas *atlas;
+  guint texture_id;
 
   float tx;
   float ty;
@@ -58,23 +72,21 @@ struct _GskGLCachedGlyph
   int draw_width;
   int draw_height;
 
-  float scale;
-
-  guint64 timestamp;
+  guint accessed : 1; /* accessed since last check */
+  guint used     : 1; /* accounted as used in the atlas */
 };
 
 
-void                     gsk_gl_glyph_cache_init            (GskGLGlyphCache        *self,
-                                                             GskRenderer            *renderer,
-                                                             GskGLDriver            *gl_driver);
-void                     gsk_gl_glyph_cache_free            (GskGLGlyphCache        *self);
-void                     gsk_gl_glyph_cache_begin_frame     (GskGLGlyphCache        *self);
-GskGLImage *             gsk_gl_glyph_cache_get_glyph_image (GskGLGlyphCache        *self,
-                                                             const GskGLCachedGlyph *glyph);
-const GskGLCachedGlyph * gsk_gl_glyph_cache_lookup          (GskGLGlyphCache        *self,
-                                                             gboolean                create,
-                                                             PangoFont              *font,
-                                                             PangoGlyph              glyph,
-                                                             float                   scale);
+GskGLGlyphCache *        gsk_gl_glyph_cache_new             (GdkDisplay *display,
+                                                             GskGLTextureAtlases *atlases);
+GskGLGlyphCache *        gsk_gl_glyph_cache_ref             (GskGLGlyphCache *self);
+void                     gsk_gl_glyph_cache_unref           (GskGLGlyphCache        *self);
+void                     gsk_gl_glyph_cache_begin_frame     (GskGLGlyphCache        *self,
+                                                             GskGLDriver            *driver,
+                                                             GPtrArray              *removed_atlases);
+void                     gsk_gl_glyph_cache_lookup_or_add   (GskGLGlyphCache        *self,
+                                                             GlyphCacheKey          *lookup,
+                                                             GskGLDriver            *driver,
+                                                             const GskGLCachedGlyph **cached_glyph_out);
 
 #endif

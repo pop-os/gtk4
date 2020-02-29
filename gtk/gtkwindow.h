@@ -81,11 +81,7 @@ struct _GtkWindowClass
   gboolean (* close_request)    (GtkWindow *window);
 
   /*< private >*/
-
-  /* Padding for future expansion */
-  void (*_gtk_reserved1) (void);
-  void (*_gtk_reserved2) (void);
-  void (*_gtk_reserved3) (void);
+  gpointer padding[8];
 };
 
 /**
@@ -113,29 +109,6 @@ typedef enum
   GTK_WINDOW_POPUP
 } GtkWindowType;
 
-/**
- * GtkWindowPosition:
- * @GTK_WIN_POS_NONE: No influence is made on placement.
- * @GTK_WIN_POS_CENTER: Windows should be placed in the center of the screen.
- * @GTK_WIN_POS_MOUSE: Windows should be placed at the current mouse position.
- * @GTK_WIN_POS_CENTER_ALWAYS: Keep window centered as it changes size, etc.
- * @GTK_WIN_POS_CENTER_ON_PARENT: Center the window on its transient
- *  parent (see gtk_window_set_transient_for()).
- *
- * Window placement can be influenced using this enumeration. Note that
- * using #GTK_WIN_POS_CENTER_ALWAYS is almost always a bad idea.
- * It won’t necessarily work well with all window managers or on all windowing systems.
- */
-typedef enum
-{
-  GTK_WIN_POS_NONE,
-  GTK_WIN_POS_CENTER,
-  GTK_WIN_POS_MOUSE,
-  GTK_WIN_POS_CENTER_ALWAYS,
-  GTK_WIN_POS_CENTER_ON_PARENT
-} GtkWindowPosition;
-
-
 GDK_AVAILABLE_IN_ALL
 GType      gtk_window_get_type                 (void) G_GNUC_CONST;
 GDK_AVAILABLE_IN_ALL
@@ -154,9 +127,6 @@ void       gtk_window_add_accel_group          (GtkWindow           *window,
 GDK_AVAILABLE_IN_ALL
 void       gtk_window_remove_accel_group       (GtkWindow           *window,
 						GtkAccelGroup	    *accel_group);
-GDK_AVAILABLE_IN_ALL
-void       gtk_window_set_position             (GtkWindow           *window,
-						GtkWindowPosition    position);
 GDK_AVAILABLE_IN_ALL
 void       gtk_window_set_focus                (GtkWindow           *window,
 						GtkWidget           *focus);
@@ -296,9 +266,9 @@ GDK_AVAILABLE_IN_ALL
 void     gtk_window_present_with_time  (GtkWindow *window,
 				        guint32    timestamp);
 GDK_AVAILABLE_IN_ALL
-void     gtk_window_iconify       (GtkWindow *window);
+void     gtk_window_minimize      (GtkWindow *window);
 GDK_AVAILABLE_IN_ALL
-void     gtk_window_deiconify     (GtkWindow *window);
+void     gtk_window_unminimize    (GtkWindow *window);
 GDK_AVAILABLE_IN_ALL
 void     gtk_window_stick         (GtkWindow *window);
 GDK_AVAILABLE_IN_ALL

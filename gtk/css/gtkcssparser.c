@@ -261,14 +261,14 @@ gtk_css_parser_get_end_location (GtkCssParser *self)
 const GtkCssLocation *
 gtk_css_parser_get_block_location (GtkCssParser *self)
 {
-  GtkCssParserBlock *block;
+  const GtkCssParserBlock *block;
 
   if (self->blocks->len == 0)
     {
       static const GtkCssLocation start_of_document = { 0, };
       return &start_of_document;
     }
-  
+
   block = &g_array_index (self->blocks, GtkCssParserBlock, self->blocks->len - 1);
   return &block->start_location;
 }
@@ -301,7 +301,7 @@ gtk_css_parser_peek_token (GtkCssParser *self)
 
   if (self->blocks->len)
     {
-      GtkCssParserBlock *block = &g_array_index (self->blocks, GtkCssParserBlock, self->blocks->len - 1);
+      const GtkCssParserBlock *block = &g_array_index (self->blocks, GtkCssParserBlock, self->blocks->len - 1);
       if (gtk_css_token_is (&self->token, block->end_token) ||
           gtk_css_token_is (&self->token, block->inherited_end_token) ||
           gtk_css_token_is (&self->token, block->alternative_token))
@@ -335,7 +335,9 @@ gtk_css_parser_consume_token (GtkCssParser *self)
   /* unpreserved tokens MUST be consumed via start_block() */
   g_assert (gtk_css_token_is_preserved (&self->token, NULL));
 
-  gtk_css_token_clear (&self->token);
+  /* Don't consume any tokens at the end of a block */
+  if (!gtk_css_token_is (gtk_css_parser_peek_token (self), GTK_CSS_TOKEN_EOF))
+    gtk_css_token_clear (&self->token);
 }
 
 void
@@ -435,7 +437,15 @@ gtk_css_parser_end_block (GtkCssParser *self)
   else
     {
       g_array_set_size (self->blocks, self->blocks->len - 1);
-      gtk_css_parser_skip (self);
+      if (gtk_css_token_is_preserved (&self->token, NULL))
+        {
+          gtk_css_token_clear (&self->token);
+        }
+      else
+        {
+          gtk_css_parser_start_block (self);
+          gtk_css_parser_end_block (self);
+        }
     }
 }
 
@@ -963,11 +973,10 @@ gtk_css_parser_parse_url_arg (GtkCssParser *parser,
  *
  * Returns: (nullable) (transfer full): the resulting URL or %NULL on error
  **/
-GFile *
+char *
 gtk_css_parser_consume_url (GtkCssParser *self)
 {
   const GtkCssToken *token;
-  GFile *result;
   char *url;
 
   token = gtk_css_parser_get_token (self);
@@ -988,16 +997,7 @@ gtk_css_parser_consume_url (GtkCssParser *self)
       return NULL;
     }
   
-  result = gtk_css_parser_resolve_url (self, url);
-  if (result == NULL)
-    {
-      gtk_css_parser_error_import (self, "Could not resolve \"%s\" to a valid URL", url);
-      g_free (url);
-      return NULL;
-    }
-  g_free (url);
-
-  return result;
+  return url;
 }
 
 gboolean

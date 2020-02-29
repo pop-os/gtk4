@@ -24,13 +24,12 @@
 #include <sys/stat.h>
 #include <stdlib.h>
 #include <time.h>
+
 /* Cups 1.6 deprecates ppdFindAttr(), ppdFindCustomOption(),
  * ppdFirstCustomParam(), and ppdNextCustomParam() among others. This
  * turns off the warning so that it will compile.
  */
-#ifdef HAVE_CUPS_API_1_6
-# define _PPD_DEPRECATED
-#endif
+#define _PPD_DEPRECATED
 
 #include <cups/cups.h>
 #include <cups/language.h>
@@ -46,9 +45,9 @@
 #include <gmodule.h>
 
 #include <gtk/gtk.h>
-#include <gtk/gtkprintbackend.h>
+#include <gtk/gtkprintbackendprivate.h>
 #include <gtk/gtkunixprint.h>
-#include <gtk/gtkprinter-private.h>
+#include <gtk/gtkprinterprivate.h>
 
 #include "gtkprintbackendcups.h"
 #include "gtkprintercups.h"
@@ -71,7 +70,6 @@ typedef struct _GtkPrintBackendCupsClass GtkPrintBackendCupsClass;
 #define _CUPS_MAX_ATTEMPTS 10
 #define _CUPS_MAX_CHUNK_SIZE 8192
 
-#ifdef HAVE_CUPS_API_1_6
 #define AVAHI_IF_UNSPEC -1
 #define AVAHI_PROTO_INET 0
 #define AVAHI_PROTO_INET6 1
@@ -81,8 +79,8 @@ typedef struct _GtkPrintBackendCupsClass GtkPrintBackendCupsClass;
 #define AVAHI_SERVER_IFACE "org.freedesktop.Avahi.Server"
 #define AVAHI_SERVICE_BROWSER_IFACE "org.freedesktop.Avahi.ServiceBrowser"
 #define AVAHI_SERVICE_RESOLVER_IFACE "org.freedesktop.Avahi.ServiceResolver"
-#endif
 
+#define PRINTER_NAME_ALLOWED_CHARACTERS "abcdefghijklmnopqrtsuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_"
 /* define this to see warnings about ignored ppd options */
 #undef PRINT_IGNORED_OPTIONS
 
@@ -143,14 +141,14 @@ struct _GtkPrintBackendCups
 #ifdef HAVE_COLORD
   CdClient   *colord_client;
 #endif
-#ifdef HAVE_CUPS_API_1_6
+
   GDBusConnection *dbus_connection;
-  gchar           *avahi_default_printer;
-  guint            avahi_service_browser_subscription_id;
-  guint            avahi_service_browser_subscription_ids[2];
-  gchar           *avahi_service_browser_paths[2];
-  GCancellable    *avahi_cancellable;
-#endif
+  char *avahi_default_printer;
+  guint avahi_service_browser_subscription_id;
+  guint avahi_service_browser_subscription_ids[2];
+  char *avahi_service_browser_paths[2];
+  GCancellable *avahi_cancellable;
+
   gboolean      secrets_service_available;
   guint         secrets_service_watch_id;
   GCancellable *secrets_service_cancellable;
@@ -228,9 +226,7 @@ static gboolean             is_address_local                        (const gchar
 static gboolean             request_auth_info                       (gpointer                          data);
 static void                 lookup_auth_info                        (gpointer                          data);
 
-#ifdef HAVE_CUPS_API_1_6
 static void                 avahi_request_printer_list              (GtkPrintBackendCups              *cups_backend);
-#endif
 
 static void                 secrets_service_appeared_cb             (GDBusConnection *connection,
                                                                      const gchar *name,
@@ -271,51 +267,6 @@ g_io_module_query (void)
 
   return g_strdupv (eps);
 }
-
-/* CUPS 1.6 Getter/Setter Functions CUPS 1.6 makes private most of the
- * IPP structures and enforces access via new getter functions, which
- * are unfortunately not available in earlier versions. We define
- * below those getter functions as macros for use when building
- * against earlier CUPS versions.
- */
-#ifndef HAVE_CUPS_API_1_6
-#define ippGetOperation(ipp_request) ipp_request->request.op.operation_id
-#define ippGet:Integer(attr, index) attr->values[index].integer
-#define ippGetBoolean(attr, index) attr->values[index].boolean
-#define ippGetString(attr, index, foo) attr->values[index].string.text
-#define ippGetValueTag(attr) attr->value_tag
-#define ippGetName(attr) attr->name
-#define ippGetCount(attr) attr->num_values
-#define ippGetGroupTag(attr) attr->group_tag
-#define ippGetCollection(attr, index) attr->values[index].collection
-
-static int
-ippGetRange (ipp_attribute_t *attr,
-             int element,
-             int *upper)
-{
-  *upper = attr->values[element].range.upper;
-  return (attr->values[element].range.lower);
-}
-
-static ipp_attribute_t *
-ippFirstAttribute (ipp_t *ipp)
-{
-  if (!ipp)
-    return (NULL);
-
-  return (ipp->current = ipp->attrs);
-}
-
-static ipp_attribute_t *
-ippNextAttribute (ipp_t *ipp)
-{
-  if (!ipp || !ipp->current)
-    return (NULL);
-
-  return (ipp->current = ipp->current->next);
-}
-#endif
 
 /*
  * GtkPrintBackendCups
@@ -737,10 +688,13 @@ gtk_print_backend_cups_print_stream (GtkPrintBackend         *print_backend,
   cups_printer = GTK_PRINTER_CUPS (gtk_print_job_get_printer (job));
   settings = gtk_print_job_get_settings (job);
 
-#ifdef HAVE_CUPS_API_1_6
   if (cups_printer->avahi_browsed)
     {
-      http = httpConnect (cups_printer->hostname, cups_printer->port);
+      http = httpConnect2 (cups_printer->hostname, cups_printer->port,
+                           NULL, AF_UNSPEC,
+                           HTTP_ENCRYPTION_IF_REQUESTED,
+                           1, 30000,
+                           NULL);
       if (http)
         {
           request = gtk_cups_request_new_with_username (http,
@@ -779,7 +733,6 @@ gtk_print_backend_cups_print_stream (GtkPrintBackend         *print_backend,
         }
     }
   else
-#endif
     {
       request = gtk_cups_request_new_with_username (NULL,
                                                     GTK_CUPS_POST,
@@ -889,9 +842,7 @@ void overwrite_and_free (gpointer data)
 static void
 gtk_print_backend_cups_init (GtkPrintBackendCups *backend_cups)
 {
-#ifdef HAVE_CUPS_API_1_6
-  gint i;
-#endif
+  int i;
 
   backend_cups->list_printers_poll = FALSE;
   backend_cups->got_default_printer = FALSE;
@@ -912,7 +863,6 @@ gtk_print_backend_cups_init (GtkPrintBackendCups *backend_cups)
   backend_cups->colord_client = cd_client_new ();
 #endif
 
-#ifdef HAVE_CUPS_API_1_6
   backend_cups->dbus_connection = NULL;
   backend_cups->avahi_default_printer = NULL;
   backend_cups->avahi_service_browser_subscription_id = 0;
@@ -921,7 +871,6 @@ gtk_print_backend_cups_init (GtkPrintBackendCups *backend_cups)
       backend_cups->avahi_service_browser_paths[i] = NULL;
       backend_cups->avahi_service_browser_subscription_ids[i] = 0;
     }
-#endif
 
   cups_get_local_default_printer (backend_cups);
 
@@ -957,11 +906,9 @@ gtk_print_backend_cups_finalize (GObject *object)
   g_object_unref (backend_cups->colord_client);
 #endif
 
-#ifdef HAVE_CUPS_API_1_6
   g_clear_object (&backend_cups->avahi_cancellable);
   g_clear_pointer (&backend_cups->avahi_default_printer, g_free);
   g_clear_object (&backend_cups->dbus_connection);
-#endif
 
   g_clear_object (&backend_cups->secrets_service_cancellable);
   if (backend_cups->secrets_service_watch_id != 0)
@@ -976,9 +923,7 @@ static void
 gtk_print_backend_cups_dispose (GObject *object)
 {
   GtkPrintBackendCups *backend_cups;
-#ifdef HAVE_CUPS_API_1_6
-  gint                 i;
-#endif
+  int i;
 
   GTK_NOTE (PRINTING,
             g_print ("CUPS Backend: %s\n", G_STRFUNC));
@@ -994,7 +939,6 @@ gtk_print_backend_cups_dispose (GObject *object)
     g_source_remove (backend_cups->default_printer_poll);
   backend_cups->default_printer_poll = 0;
 
-#ifdef HAVE_CUPS_API_1_6
   g_cancellable_cancel (backend_cups->avahi_cancellable);
 
   for (i = 0; i < 2; i++)
@@ -1030,7 +974,6 @@ gtk_print_backend_cups_dispose (GObject *object)
                                             backend_cups->avahi_service_browser_subscription_id);
       backend_cups->avahi_service_browser_subscription_id = 0;
     }
-#endif
 
   backend_parent_class->dispose (object);
 }
@@ -1784,18 +1727,8 @@ cups_request_job_info_cb (GtkPrintBackendCups *print_backend,
 
   state = 0;
 
-#ifdef HAVE_CUPS_API_1_6
   attr = ippFindAttribute (response, "job-state", IPP_TAG_ENUM);
   state = ippGetInteger (attr, 0);
-#else
-  for (attr = response->attrs; attr != NULL; attr = attr->next)
-    {
-      if (!attr->name)
-        continue;
-
-      _CUPS_MAP_ATTR_INT (attr, state, "job-state");
-    }
-#endif
 
   done = FALSE;
   switch (state)
@@ -2031,9 +1964,8 @@ typedef struct
   gboolean default_printer;
   gboolean got_printer_type;
   gboolean remote_printer;
-#ifdef HAVE_CUPS_API_1_6
   gboolean avahi_printer;
-#endif
+  gchar   *avahi_resource_path;
   gchar  **auth_info_required;
   gint     default_number_up;
   guchar   ipp_version_major;
@@ -2464,13 +2396,11 @@ cups_create_printer (GtkPrintBackendCups *cups_backend,
   char *cups_server;            /* CUPS server */
 
 #ifdef HAVE_COLORD
-#ifdef HAVE_CUPS_API_1_6
   if (info->avahi_printer)
     cups_printer = gtk_printer_cups_new (info->printer_name,
 					 backend,
 					 NULL);
   else
-#endif
     cups_printer = gtk_printer_cups_new (info->printer_name,
 					 backend,
 					 cups_backend->colord_client);
@@ -2478,8 +2408,16 @@ cups_create_printer (GtkPrintBackendCups *cups_backend,
   cups_printer = gtk_printer_cups_new (info->printer_name, backend, NULL);
 #endif
 
-  cups_printer->device_uri = g_strdup_printf ("/printers/%s",
-					      info->printer_name);
+  if (info->avahi_printer)
+    {
+      cups_printer->device_uri = g_strdup_printf ("/%s",
+                                                  info->avahi_resource_path);
+    }
+  else
+    {
+      cups_printer->device_uri = g_strdup_printf ("/printers/%s",
+                                                  info->printer_name);
+    }
 
   /* Check to see if we are looking at a class */
   if (info->member_uris)
@@ -2530,12 +2468,24 @@ cups_create_printer (GtkPrintBackendCups *cups_backend,
   cups_printer->default_cover_before = g_strdup (info->default_cover_before);
   cups_printer->default_cover_after = g_strdup (info->default_cover_after);
   cups_printer->original_device_uri = g_strdup (info->original_device_uri);
+  cups_printer->hostname = g_strdup (hostname);
+  cups_printer->port = port;
+
+  if (cups_printer->original_device_uri != NULL)
+    {
+      httpSeparateURI (HTTP_URI_CODING_ALL, cups_printer->original_device_uri,
+                       method, sizeof (method),
+                       username, sizeof (username),
+                       hostname, sizeof (hostname),
+                       &port,
+                       resource, sizeof (resource));
+      cups_printer->original_hostname = g_strdup (hostname);
+      cups_printer->original_resource = g_strdup (resource);
+      cups_printer->original_port = port;
+    }
 
   if (info->default_number_up > 0)
     cups_printer->default_number_up = info->default_number_up;
-
-  cups_printer->hostname = g_strdup (hostname);
-  cups_printer->port = port;
 
   cups_printer->auth_info_required = g_strdupv (info->auth_info_required);
   g_strfreev (info->auth_info_required);
@@ -2546,9 +2496,7 @@ cups_create_printer (GtkPrintBackendCups *cups_backend,
       strcmp (cups_backend->default_printer, gtk_printer_get_name (printer)) == 0)
     gtk_printer_set_is_default (printer, TRUE);
 
-#ifdef HAVE_CUPS_API_1_6
   cups_printer->avahi_browsed = info->avahi_printer;
-#endif
 
   gtk_print_backend_add_printer (backend, printer);
   return printer;
@@ -2727,18 +2675,33 @@ set_default_printer (GtkPrintBackendCups *cups_backend,
     }
 }
 
-#ifdef HAVE_CUPS_API_1_6
+typedef struct {
+  GtkPrinterCups *printer;
+  http_t         *http;
+} RequestPrinterInfoData;
+
+static void
+request_printer_info_data_free (RequestPrinterInfoData *data)
+{
+  GTK_NOTE (PRINTING,
+            g_print ("CUPS Backend: %s\n", G_STRFUNC));
+  httpClose (data->http);
+  g_object_unref (data->printer);
+  g_free (data);
+}
+
 static void
 cups_request_printer_info_cb (GtkPrintBackendCups *cups_backend,
                               GtkCupsResult       *result,
                               gpointer             user_data)
 {
-  PrinterSetupInfo *info = g_slice_new0 (PrinterSetupInfo);
-  GtkPrintBackend  *backend = GTK_PRINT_BACKEND (cups_backend);
-  ipp_attribute_t  *attr;
-  GtkPrinter       *printer;
-  gboolean          status_changed = FALSE;
-  ipp_t            *response;
+  RequestPrinterInfoData *data = (RequestPrinterInfoData *) user_data;
+  PrinterSetupInfo       *info = g_slice_new0 (PrinterSetupInfo);
+  GtkPrintBackend        *backend = GTK_PRINT_BACKEND (cups_backend);
+  ipp_attribute_t        *attr;
+  GtkPrinter             *printer = g_object_ref (GTK_PRINTER (data->printer));
+  gboolean                status_changed = FALSE;
+  ipp_t                  *response;
 
   GTK_NOTE (PRINTING,
             g_print ("CUPS Backend: %s\n", G_STRFUNC));
@@ -2770,12 +2733,6 @@ cups_request_printer_info_cb (GtkPrintBackendCups *cups_backend,
       if (info->printer_name && info->printer_uri)
         {
           set_info_state_message (info);
-
-          printer = gtk_print_backend_find_printer (backend, info->printer_name);
-          if (printer != NULL)
-            g_object_ref (printer);
-          else
-            goto done;
 
           if (info->got_printer_type &&
               info->default_printer &&
@@ -2824,13 +2781,12 @@ cups_request_printer_info_cb (GtkPrintBackendCups *cups_backend,
           if (status_changed)
             g_signal_emit_by_name (GTK_PRINT_BACKEND (backend),
                                    "printer-status-changed", printer);
-
-          /* The ref is held by GtkPrintBackend, in add_printer() */
-          g_object_unref (printer);
         }
     }
 
 done:
+  g_object_unref (printer);
+
   if (!cups_backend->got_default_printer &&
       gtk_print_backend_printer_list_is_done (backend) &&
       cups_backend->avahi_default_printer != NULL)
@@ -2842,17 +2798,20 @@ done:
 }
 
 static void
-cups_request_printer_info (const gchar         *printer_uri,
-                           const gchar         *host,
-                           gint                 port,
-                           GtkPrintBackendCups *backend)
+cups_request_printer_info (GtkPrinterCups *printer)
 {
-  GtkCupsRequest *request;
-  http_t         *http;
+  RequestPrinterInfoData *data;
+  GtkPrintBackendCups    *backend = GTK_PRINT_BACKEND_CUPS (gtk_printer_get_backend (GTK_PRINTER (printer)));
+  GtkCupsRequest         *request;
+  http_t                 *http;
 
-  http = httpConnect (host, port);
+  http = httpConnect2 (printer->hostname, printer->port, NULL, AF_UNSPEC, HTTP_ENCRYPTION_IF_REQUESTED, 1, 30000, NULL);
   if (http)
     {
+      data = g_new0 (RequestPrinterInfoData, 1);
+      data->http = http;
+      data->printer = g_object_ref (printer);
+
       request = gtk_cups_request_new_with_username (http,
                                                     GTK_CUPS_POST,
                                                     IPP_GET_PRINTER_ATTRIBUTES,
@@ -2864,7 +2823,7 @@ cups_request_printer_info (const gchar         *printer_uri,
       gtk_cups_request_set_ipp_version (request, 1, 1);
 
       gtk_cups_request_ipp_add_string (request, IPP_TAG_OPERATION, IPP_TAG_URI,
-                                       "printer-uri", NULL, printer_uri);
+                                       "printer-uri", NULL, printer->printer_uri);
 
       gtk_cups_request_ipp_add_strings (request, IPP_TAG_OPERATION, IPP_TAG_KEYWORD,
                                         "requested-attributes", G_N_ELEMENTS (printer_attrs_detailed),
@@ -2873,8 +2832,8 @@ cups_request_printer_info (const gchar         *printer_uri,
       cups_request_execute (backend,
                             request,
                             (GtkPrintCupsResponseCallbackFunc) cups_request_printer_info_cb,
-                            http,
-                            (GDestroyNotify) httpClose);
+                            data,
+                            (GDestroyNotify) request_printer_info_data_free);
     }
 }
 
@@ -2886,6 +2845,7 @@ typedef struct
   gint                 port;
   gchar               *printer_name;
   gchar               *name;
+  gchar               *resource_path;
   gboolean             got_printer_type;
   guint                printer_type;
   gboolean             got_printer_state;
@@ -2918,9 +2878,7 @@ find_printer_by_uuid (GtkPrintBackendCups *backend,
               printer_uuid += 5;
               printer_uuid = g_strndup (printer_uuid, 36);
 
-#if GLIB_CHECK_VERSION(2, 52, 0)
               if (g_uuid_string_is_valid (printer_uuid))
-#endif
                 {
                   if (g_strcmp0 (printer_uuid, UUID) == 0)
                     {
@@ -2952,6 +2910,10 @@ create_cups_printer_from_avahi_data (AvahiConnectionTestData *data)
   info->avahi_printer = TRUE;
   info->printer_name = data->printer_name;
   info->printer_uri = data->printer_uri;
+  info->avahi_resource_path = data->resource_path;
+  info->default_printer = FALSE;
+  info->remote_printer = TRUE;
+  info->is_accepting_jobs = TRUE;
 
   if (data->got_printer_state)
     {
@@ -2985,7 +2947,6 @@ create_cups_printer_from_avahi_data (AvahiConnectionTestData *data)
   set_info_state_message (info);
 
   printer = gtk_print_backend_find_printer (GTK_PRINT_BACKEND (data->backend), data->printer_name);
-
   if (printer == NULL && data->UUID != NULL)
     printer = find_printer_by_uuid (data->backend, data->UUID);
 
@@ -3009,6 +2970,7 @@ create_cups_printer_from_avahi_data (AvahiConnectionTestData *data)
       GTK_PRINTER_CUPS (printer)->avahi_name = g_strdup (data->name);
       GTK_PRINTER_CUPS (printer)->avahi_type = g_strdup (data->type);
       GTK_PRINTER_CUPS (printer)->avahi_domain = g_strdup (data->domain);
+      GTK_PRINTER_CUPS (printer)->printer_uri = g_strdup (data->printer_uri);
       g_free (GTK_PRINTER_CUPS (printer)->hostname);
       GTK_PRINTER_CUPS (printer)->hostname = g_strdup (data->host);
       GTK_PRINTER_CUPS (printer)->port = data->port;
@@ -3062,6 +3024,7 @@ avahi_connection_test_cb (GObject      *source_object,
   g_free (data->host);
   g_free (data->printer_name);
   g_free (data->name);
+  g_free (data->resource_path);
   g_free (data->type);
   g_free (data->domain);
   g_free (data);
@@ -3113,9 +3076,10 @@ avahi_service_resolver_cb (GObject      *source_object,
   guint32                  flags;
   guint16                  port;
   GError                  *error = NULL;
-  gchar                   *queue_name = NULL;
   gchar                   *tmp;
   gchar                   *printer_name;
+  gchar                  **printer_name_strv;
+  gchar                  **printer_name_compressed_strv;
   gchar                   *endptr;
   gchar                   *key;
   gchar                   *value;
@@ -3123,7 +3087,7 @@ avahi_service_resolver_cb (GObject      *source_object,
   gint                     interface;
   gint                     protocol;
   gint                     aprotocol;
-  gint                     i;
+  gint                     i, j;
 
   output = g_dbus_connection_call_finish (G_DBUS_CONNECTION (source_object),
                                           res,
@@ -3165,13 +3129,7 @@ avahi_service_resolver_cb (GObject      *source_object,
 
               if (g_strcmp0 (key, "rp") == 0)
                 {
-                  queue_name = g_strdup (value);
-
-                  printer_name = g_strrstr (queue_name, "/");
-                  if (printer_name != NULL)
-                    data->printer_name = g_strdup (printer_name + 1);
-                  else
-                    data->printer_name = g_strdup (queue_name);
+                  data->resource_path = g_strdup (value);
                 }
               else if (g_strcmp0 (key, "note") == 0)
                 {
@@ -3207,17 +3165,51 @@ avahi_service_resolver_cb (GObject      *source_object,
             }
         }
 
-      if (queue_name)
+      if (data->resource_path != NULL)
         {
+          if (data->got_printer_type &&
+              (g_strcmp0 (data->resource_path, "printers/") == 0 ||
+               g_strcmp0 (data->resource_path, "classes/") == 0))
+            {
+              /* This is a CUPS printer advertised via Avahi */
+              printer_name = g_strrstr (data->resource_path, "/");
+              if (printer_name != NULL && printer_name[0] != '\0')
+                data->printer_name = g_strdup (printer_name + 1);
+              else
+                data->printer_name = g_strdup (data->resource_path);
+            }
+          else
+            {
+              printer_name = g_strdup (name);
+              g_strcanon (printer_name, PRINTER_NAME_ALLOWED_CHARACTERS, '-');
+
+              printer_name_strv = g_strsplit_set (printer_name, "-", -1);
+              printer_name_compressed_strv = g_new0 (gchar *, g_strv_length (printer_name_strv) + 1);
+              for (i = 0, j = 0; printer_name_strv[i] != NULL; i++)
+                {
+                  if (printer_name_strv[i][0] != '\0')
+                    {
+                      printer_name_compressed_strv[j] = printer_name_strv[i];
+                      j++;
+                    }
+                }
+
+              data->printer_name = g_strjoinv ("-", printer_name_compressed_strv);
+
+              g_strfreev (printer_name_strv);
+              g_free (printer_name_compressed_strv);
+              g_free (printer_name);
+            }
+
           if (g_strcmp0 (type, "_ipp._tcp") == 0)
             protocol_string = "ipp";
           else
             protocol_string = "ipps";
 
           if (aprotocol == AVAHI_PROTO_INET6)
-            data->printer_uri = g_strdup_printf ("%s://[%s]:%u/%s", protocol_string, address, port, queue_name);
+            data->printer_uri = g_strdup_printf ("%s://[%s]:%u/%s", protocol_string, address, port, data->resource_path);
           else
-            data->printer_uri = g_strdup_printf ("%s://%s:%u/%s", protocol_string, address, port, queue_name);
+            data->printer_uri = g_strdup_printf ("%s://%s:%u/%s", protocol_string, address, port, data->resource_path);
 
           data->host = g_strdup (address);
           data->port = port;
@@ -3234,7 +3226,6 @@ avahi_service_resolver_cb (GObject      *source_object,
                                                  backend->avahi_cancellable,
                                                  avahi_connection_test_cb,
                                                  data);
-          g_free (queue_name);
         }
       else
         {
@@ -3493,7 +3484,6 @@ avahi_request_printer_list (GtkPrintBackendCups *cups_backend)
   cups_backend->avahi_cancellable = g_cancellable_new ();
   g_bus_get (G_BUS_TYPE_SYSTEM, cups_backend->avahi_cancellable, avahi_create_browsers, cups_backend);
 }
-#endif
 
 static void
 cups_request_printer_list_cb (GtkPrintBackendCups *cups_backend,
@@ -3542,7 +3532,6 @@ cups_request_printer_list_cb (GtkPrintBackendCups *cups_backend,
   removed_printer_checklist = gtk_print_backend_get_printer_list (backend);
 
   response = gtk_cups_result_get_response (result);
-#ifdef HAVE_CUPS_API_1_6
   for (attr = ippFirstAttribute (response); attr != NULL;
        attr = ippNextAttribute (response))
     {
@@ -3558,42 +3547,21 @@ cups_request_printer_list_cb (GtkPrintBackendCups *cups_backend,
 
       if (attr == NULL)
         break;
-      while (attr != NULL && ippGetGroupTag (attr) == IPP_TAG_PRINTER)
-      {
-	cups_printer_handle_attribute (cups_backend, attr, info);
-        attr = ippNextAttribute (response);
-      }
-#else
-  for (attr = response->attrs; attr != NULL; attr = attr->next)
-    {
-      GtkPrinter *printer;
-      gboolean status_changed = FALSE;
-      GList *node;
-      PrinterSetupInfo *info = g_slice_new0 (PrinterSetupInfo);
-      info->default_number_up = 1;
 
-      /* Skip leading attributes until we hit a printer...
-       */
-      while (attr != NULL && ippGetGroupTag (attr) != IPP_TAG_PRINTER)
-        attr = attr->next;
-
-      if (attr == NULL)
-        break;
       while (attr != NULL && ippGetGroupTag (attr) == IPP_TAG_PRINTER)
-      {
-	cups_printer_handle_attribute (cups_backend, attr, info);
-        attr = attr->next;
-      }
-#endif
+        {
+          cups_printer_handle_attribute (cups_backend, attr, info);
+          attr = ippNextAttribute (response);
+        }
 
       if (info->printer_name == NULL ||
 	  (info->printer_uri == NULL && info->member_uris == NULL))
-      {
-        if (attr == NULL)
-	  break;
-	else
-          continue;
-      }
+        {
+          if (attr == NULL)
+            break;
+          else
+            continue;
+        }
 
       if (info->got_printer_type)
         {
@@ -3691,9 +3659,7 @@ cups_request_printer_list_cb (GtkPrintBackendCups *cups_backend,
     {
       for (iter = removed_printer_checklist; iter; iter = iter->next)
         {
-#ifdef HAVE_CUPS_API_1_6
           if (!GTK_PRINTER_CUPS (iter->data)->avahi_browsed)
-#endif
             {
               mark_printer_inactive (GTK_PRINTER (iter->data), backend);
               list_has_changed = TRUE;
@@ -3715,12 +3681,8 @@ done:
       g_free (remote_default_printer);
     }
 
-#ifdef HAVE_CUPS_API_1_6
   if (!cups_backend->got_default_printer && cups_backend->avahi_default_printer != NULL)
-    {
-      set_default_printer (cups_backend, cups_backend->avahi_default_printer);
-    }
-#endif
+    set_default_printer (cups_backend, cups_backend->avahi_default_printer);
 }
 
 static void
@@ -3809,9 +3771,7 @@ cups_get_printer_list (GtkPrintBackend *backend)
           g_source_set_name_by_id (cups_backend->list_printers_poll, "[gtk] cups_request_printer_list");
         }
 
-#ifdef HAVE_CUPS_API_1_6
       avahi_request_printer_list (cups_backend);
-#endif
     }
 }
 
@@ -3847,26 +3807,6 @@ cups_request_ppd_cb (GtkPrintBackendCups *print_backend,
   GTK_PRINTER_CUPS (printer)->reading_ppd = FALSE;
   print_backend->reading_ppds--;
 
-#ifndef HAVE_CUPS_API_1_6
-  if (gtk_cups_result_is_error (result))
-    {
-      gboolean success = FALSE;
-
-      /* If we get a 404 then it is just a raw printer without a ppd
-         and not an error. */
-      if ((gtk_cups_result_get_error_type (result) == GTK_CUPS_ERROR_HTTP) &&
-          (gtk_cups_result_get_error_status (result) == HTTP_NOT_FOUND))
-        {
-          gtk_printer_set_has_details (printer, TRUE);
-          success = TRUE;
-        }
-
-      g_signal_emit_by_name (printer, "details-acquired", success);
-
-      return;
-    }
-#endif
-
   if (!gtk_cups_result_is_error (result))
     {
       /* let ppdOpenFd take over the ownership of the open file */
@@ -3876,7 +3816,6 @@ cups_request_ppd_cb (GtkPrintBackendCups *print_backend,
       ppdMarkDefaults (data->printer->ppd_file);
     }
 
-#ifdef HAVE_CUPS_API_1_6
   fstat (g_io_channel_unix_get_fd (data->ppd_io), &data_info);
   /*
    * Standalone Avahi printers and raw printers don't have PPD files or have
@@ -3889,14 +3828,47 @@ cups_request_ppd_cb (GtkPrintBackendCups *print_backend,
        ((gtk_cups_result_get_error_type (result) == GTK_CUPS_ERROR_HTTP) &&
          (gtk_cups_result_get_error_status (result) == HTTP_NOT_FOUND))))
     {
-      cups_request_printer_info (GTK_PRINTER_CUPS (printer)->printer_uri,
-                                 GTK_PRINTER_CUPS (printer)->hostname,
-                                 GTK_PRINTER_CUPS (printer)->port,
-                                 GTK_PRINT_BACKEND_CUPS (gtk_printer_get_backend (printer)));
+      GtkPrinterCups *cups_printer = GTK_PRINTER_CUPS (printer);
+
+      /* Try to get the PPD from original host if it is not
+       * available on current CUPS server.
+       */
+      if (!cups_printer->avahi_browsed &&
+          (gtk_cups_result_is_error (result) &&
+           ((gtk_cups_result_get_error_type (result) == GTK_CUPS_ERROR_HTTP) &&
+            (gtk_cups_result_get_error_status (result) == HTTP_NOT_FOUND))) &&
+          cups_printer->remote &&
+          !cups_printer->request_original_uri &&
+          cups_printer->original_device_uri != NULL &&
+          (g_str_has_prefix (cups_printer->original_device_uri, "ipp://") ||
+           g_str_has_prefix (cups_printer->original_device_uri, "ipps://")))
+        {
+          cups_printer->request_original_uri = TRUE;
+
+          gtk_cups_connection_test_free (cups_printer->remote_cups_connection_test);
+          g_clear_handle_id (&cups_printer->get_remote_ppd_poll, g_source_remove);
+          cups_printer->get_remote_ppd_attempts = 0;
+
+          cups_printer->remote_cups_connection_test =
+            gtk_cups_connection_test_new (cups_printer->original_hostname,
+                                          cups_printer->original_port);
+
+          if (cups_request_ppd (printer))
+            {
+              cups_printer->get_remote_ppd_poll = g_timeout_add (50, (GSourceFunc) cups_request_ppd, printer);
+              g_source_set_name_by_id (cups_printer->get_remote_ppd_poll, "[gtk] cups_request_ppd");
+            }
+        }
+      else
+        {
+          if (cups_printer->request_original_uri)
+            cups_printer->request_original_uri = FALSE;
+
+          cups_request_printer_info (cups_printer);
+        }
 
       return;
     }
-#endif
 
   gtk_printer_set_has_details (printer, TRUE);
   g_signal_emit_by_name (printer, "details-acquired", TRUE);
@@ -3914,6 +3886,8 @@ cups_request_ppd (GtkPrinter *printer)
   http_t *http;
   GetPPDData *data;
   int fd;
+  const gchar *hostname;
+  gint port;
 
   cups_printer = GTK_PRINTER_CUPS (printer);
 
@@ -3922,11 +3896,7 @@ cups_request_ppd (GtkPrinter *printer)
   GTK_NOTE (PRINTING,
             g_print ("CUPS Backend: %s\n", G_STRFUNC));
 
-  if (cups_printer->remote
-#ifdef HAVE_CUPS_API_1_6
-      && !cups_printer->avahi_browsed
-#endif
-      )
+  if (cups_printer->remote && !cups_printer->avahi_browsed)
     {
       GtkCupsConnectionState state;
 
@@ -3960,9 +3930,24 @@ cups_request_ppd (GtkPrinter *printer)
         }
     }
 
-  http = httpConnectEncrypt (cups_printer->hostname,
-			     cups_printer->port,
-			     cupsEncryption ());
+  if (cups_printer->request_original_uri)
+    {
+      hostname = cups_printer->original_hostname;
+      port = cups_printer->original_port;
+      resource = g_strdup_printf ("%s.ppd", cups_printer->original_resource);
+    }
+  else
+    {
+      hostname = cups_printer->hostname;
+      port = cups_printer->port;
+      resource = g_strdup_printf ("/printers/%s.ppd",
+                                  gtk_printer_cups_get_ppd_name (GTK_PRINTER_CUPS (printer)));
+    }
+
+  http = httpConnect2 (hostname, port,
+                       NULL, AF_UNSPEC,
+                       cupsEncryption (),
+                       1, 30000, NULL);
 
   data = g_new0 (GetPPDData, 1);
 
@@ -4000,16 +3985,13 @@ cups_request_ppd (GtkPrinter *printer)
 
   data->printer = (GtkPrinterCups *) g_object_ref (printer);
 
-  resource = g_strdup_printf ("/printers/%s.ppd",
-                              gtk_printer_cups_get_ppd_name (GTK_PRINTER_CUPS (printer)));
-
   print_backend = gtk_printer_get_backend (printer);
 
   request = gtk_cups_request_new_with_username (data->http,
                                                 GTK_CUPS_GET,
                                                 0,
                                                 data->ppd_io,
-                                                cups_printer->hostname,
+                                                hostname,
                                                 resource,
                                                 GTK_PRINT_BACKEND_CUPS (print_backend)->username);
 
@@ -4266,13 +4248,14 @@ cups_request_default_printer_cb (GtkPrintBackendCups *print_backend,
   response = gtk_cups_result_get_response (result);
 
   if ((attr = ippFindAttribute (response, "printer-name", IPP_TAG_NAME)) != NULL)
-      print_backend->default_printer = g_strdup (ippGetString (attr, 0, NULL));
+    print_backend->default_printer = g_strdup (ippGetString (attr, 0, NULL));
 
   print_backend->got_default_printer = TRUE;
 
   if (print_backend->default_printer != NULL)
     {
-      printer = gtk_print_backend_find_printer (GTK_PRINT_BACKEND (print_backend), print_backend->default_printer);
+      printer = gtk_print_backend_find_printer (GTK_PRINT_BACKEND (print_backend),
+                                                print_backend->default_printer);
       if (printer != NULL)
         {
           gtk_printer_set_is_default (printer, TRUE);
@@ -4325,11 +4308,7 @@ cups_printer_request_details (GtkPrinter *printer)
   if (!cups_printer->reading_ppd &&
       gtk_printer_cups_get_ppd (cups_printer) == NULL)
     {
-      if (cups_printer->remote
-#ifdef HAVE_CUPS_API_1_6
-          && !cups_printer->avahi_browsed
-#endif
-          )
+      if (cups_printer->remote && !cups_printer->avahi_browsed)
         {
           if (cups_printer->get_remote_ppd_poll == 0)
             {

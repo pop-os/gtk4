@@ -156,7 +156,15 @@
 
 G_DEFINE_INTERFACE (GtkEditable, gtk_editable, GTK_TYPE_WIDGET)
 
+enum {
+  CHANGED,
+  DELETE_TEXT,
+  INSERT_TEXT,
+  N_SIGNALS
+};
+
 static GQuark quark_editable_data;
+static guint signals[N_SIGNALS];
 
 static GtkEditable *
 get_delegate (GtkEditable *editable)
@@ -175,7 +183,7 @@ gtk_editable_default_do_insert_text (GtkEditable *editable,
                                      int          length,
                                      int         *position)
 {
-  g_signal_emit_by_name (editable, "insert-text", text, length, position);
+  g_signal_emit (editable, signals[INSERT_TEXT], 0, text, length, position);
 }
 
 #define warn_no_delegate(func) \
@@ -200,7 +208,7 @@ gtk_editable_default_do_delete_text (GtkEditable *editable,
                                      int          start_pos,
                                      int          end_pos)
 {
-  g_signal_emit_by_name (editable, "delete-text", start_pos, end_pos);
+  g_signal_emit (editable, signals[DELETE_TEXT], 0, start_pos, end_pos);
 }
 
 static void
@@ -289,16 +297,20 @@ gtk_editable_default_init (GtkEditableInterface *iface)
    * is possible to modify the inserted text, or prevent
    * it from being inserted entirely.
    */
-  g_signal_new (I_("insert-text"),
-                GTK_TYPE_EDITABLE,
-                G_SIGNAL_RUN_LAST,
-                G_STRUCT_OFFSET (GtkEditableInterface, insert_text),
-                NULL, NULL,
-                _gtk_marshal_VOID__STRING_INT_POINTER,
-                G_TYPE_NONE, 3,
-                G_TYPE_STRING,
-                G_TYPE_INT,
-                G_TYPE_POINTER);
+  signals[INSERT_TEXT] =
+    g_signal_new (I_("insert-text"),
+                  GTK_TYPE_EDITABLE,
+                  G_SIGNAL_RUN_LAST,
+                  G_STRUCT_OFFSET (GtkEditableInterface, insert_text),
+                  NULL, NULL,
+                  _gtk_marshal_VOID__STRING_INT_POINTER,
+                  G_TYPE_NONE, 3,
+                  G_TYPE_STRING,
+                  G_TYPE_INT,
+                  G_TYPE_POINTER);
+  g_signal_set_va_marshaller (signals[INSERT_TEXT],
+                              G_TYPE_FROM_INTERFACE (iface),
+                              _gtk_marshal_VOID__STRING_INT_POINTERv);
 
   /**
    * GtkEditable::delete-text:
@@ -316,15 +328,19 @@ gtk_editable_default_init (GtkEditableInterface *iface)
    * and @end_pos parameters are interpreted as for
    * gtk_editable_delete_text().
    */
-  g_signal_new (I_("delete-text"),
-                GTK_TYPE_EDITABLE,
-                G_SIGNAL_RUN_LAST,
-                G_STRUCT_OFFSET (GtkEditableInterface, delete_text),
-                NULL, NULL,
-                _gtk_marshal_VOID__INT_INT,
-                G_TYPE_NONE, 2,
-                G_TYPE_INT,
-                G_TYPE_INT);
+  signals[DELETE_TEXT] =
+    g_signal_new (I_("delete-text"),
+                  GTK_TYPE_EDITABLE,
+                  G_SIGNAL_RUN_LAST,
+                  G_STRUCT_OFFSET (GtkEditableInterface, delete_text),
+                  NULL, NULL,
+                  _gtk_marshal_VOID__INT_INT,
+                  G_TYPE_NONE, 2,
+                  G_TYPE_INT,
+                  G_TYPE_INT);
+  g_signal_set_va_marshaller (signals[DELETE_TEXT],
+                              G_TYPE_FROM_INTERFACE (iface),
+                              _gtk_marshal_VOID__INT_INTv);
 
   /**
    * GtkEditable::changed:
@@ -339,13 +355,14 @@ gtk_editable_default_init (GtkEditableInterface *iface)
    * the new content, and may cause multiple ::notify::text signals
    * to be emitted).
    */ 
-  g_signal_new (I_("changed"),
-                GTK_TYPE_EDITABLE,
-                G_SIGNAL_RUN_LAST,
-                G_STRUCT_OFFSET (GtkEditableInterface, changed),
-                NULL, NULL,
-                NULL,
-                G_TYPE_NONE, 0);
+  signals[CHANGED] =
+    g_signal_new (I_("changed"),
+                  GTK_TYPE_EDITABLE,
+                  G_SIGNAL_RUN_LAST,
+                  G_STRUCT_OFFSET (GtkEditableInterface, changed),
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE, 0);
 
   g_object_interface_install_property (iface,
       g_param_spec_string ("text",
@@ -361,6 +378,13 @@ gtk_editable_default_init (GtkEditableInterface *iface)
                         0, GTK_ENTRY_BUFFER_MAX_SIZE,
                         0,
                         GTK_PARAM_READABLE));
+
+  g_object_interface_install_property (iface,
+      g_param_spec_boolean ("enable-undo",
+                            P_("Enable Undo"),
+                            P_("If undo/redo should be enabled for the editable"),
+                            TRUE,
+                            GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
 
   g_object_interface_install_property (iface,
       g_param_spec_int ("selection-bound",
@@ -819,6 +843,46 @@ gtk_editable_set_max_width_chars (GtkEditable *editable,
 }
 
 /**
+ * gtk_editable_get_enable_undo:
+ * @editable: a #GtkEditable
+ *
+ * Gets if undo/redo actions are enabled for @editable
+ *
+ * Returns: %TRUE if undo is enabled
+ */
+gboolean
+gtk_editable_get_enable_undo (GtkEditable *editable)
+{
+  gboolean enable_undo;
+
+  g_return_val_if_fail (GTK_IS_EDITABLE (editable), 0);
+
+  g_object_get (editable, "enable-undo", &enable_undo, NULL);
+
+  return enable_undo;
+}
+
+/**
+ * gtk_editable_set_enable_undo:
+ * @editable: a #GtkEditable
+ * @enable_undo: if undo/redo should be enabled
+ *
+ * If enabled, changes to @editable will be saved for undo/redo actions.
+ *
+ * This results in an additional copy of text changes and are not stored in
+ * secure memory. As such, undo is forcefully disabled when #GtkText:visibility
+ * is set to %FALSE.
+ */
+void
+gtk_editable_set_enable_undo (GtkEditable *editable,
+                              gboolean     enable_undo)
+{
+  g_return_if_fail (GTK_IS_EDITABLE (editable));
+
+  g_object_set (editable, "enable-undo", enable_undo, NULL);
+}
+
+/**
  * gtk_editable_install_properties:
  * @object_class: a #GObjectClass
  * @first_prop: property ID to use for the first property
@@ -852,6 +916,7 @@ gtk_editable_install_properties (GObjectClass *object_class,
   g_object_class_override_property (object_class, first_prop + GTK_EDITABLE_PROP_WIDTH_CHARS, "width-chars");
   g_object_class_override_property (object_class, first_prop + GTK_EDITABLE_PROP_MAX_WIDTH_CHARS, "max-width-chars");
   g_object_class_override_property (object_class, first_prop + GTK_EDITABLE_PROP_XALIGN, "xalign");
+  g_object_class_override_property (object_class, first_prop + GTK_EDITABLE_PROP_ENABLE_UNDO, "enable-undo");
 
   return GTK_EDITABLE_NUM_PROPERTIES;
 }
@@ -860,7 +925,7 @@ static void
 delegate_changed (GtkEditable *delegate,
                   gpointer     editable)
 {
-  g_signal_emit_by_name (editable, "changed");
+  g_signal_emit (editable, signals[CHANGED], 0);
 }
 
 static void
@@ -965,6 +1030,10 @@ gtk_editable_delegate_set_property (GObject      *object,
       gtk_editable_set_alignment (delegate, g_value_get_float (value));
       break;
 
+    case GTK_EDITABLE_PROP_ENABLE_UNDO:
+      gtk_editable_set_enable_undo (delegate, g_value_get_boolean (value));
+      break;
+
     default:
       return FALSE;
     }
@@ -1035,6 +1104,10 @@ gtk_editable_delegate_get_property (GObject    *object,
 
     case GTK_EDITABLE_PROP_XALIGN:
       g_value_set_float (value, gtk_editable_get_alignment (delegate));
+      break;
+
+    case GTK_EDITABLE_PROP_ENABLE_UNDO:
+      g_value_set_boolean (value, gtk_editable_get_enable_undo (delegate));
       break;
 
     default:

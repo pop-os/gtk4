@@ -90,6 +90,7 @@ size_prepared_cb (GdkPixbufLoader *loader,
  */
 GdkPixbuf *
 _gdk_pixbuf_new_from_stream_scaled (GInputStream  *stream,
+                                    const char    *format,
                                     gdouble        scale,
                                     GCancellable  *cancellable,
                                     GError       **error)
@@ -97,10 +98,18 @@ _gdk_pixbuf_new_from_stream_scaled (GInputStream  *stream,
   GdkPixbufLoader *loader;
   GdkPixbuf *pixbuf;
 
-  loader = gdk_pixbuf_loader_new ();
+  if (format)
+    {
+      loader = gdk_pixbuf_loader_new_with_type (format, error);
+      if (!loader)
+        return NULL;
+    }
+  else
+    loader = gdk_pixbuf_loader_new ();
 
-  g_signal_connect (loader, "size-prepared",
-                    G_CALLBACK (size_prepared_cb), &scale);
+  if (scale != 0)
+    g_signal_connect (loader, "size-prepared",
+                      G_CALLBACK (size_prepared_cb), &scale);
 
   pixbuf = load_from_stream (loader, stream, cancellable, error);
 
@@ -109,14 +118,91 @@ _gdk_pixbuf_new_from_stream_scaled (GInputStream  *stream,
   return pixbuf;
 }
 
+static void
+size_prepared_cb2 (GdkPixbufLoader *loader,
+                   gint             width,
+                   gint             height,
+                   gpointer         data)
+{
+  int *scales = data;
+
+  if (scales[2]) /* keep same aspect ratio as original, while fitting in given size */
+    {
+      double aspect = (double) height / width;
+
+      /* First use given width and calculate size */
+      width = scales[0];
+      height = scales[0] * aspect;
+
+      /* Check if it fits given height, otherwise scale down */
+      if (height > scales[1])
+        {
+          width *= (double) scales[1] / height;
+          height = scales[1];
+        }
+    }
+  else
+    {
+      width = scales[0];
+      height = scales[1];
+    }
+
+  gdk_pixbuf_loader_set_size (loader, width, scales[1]);
+}
+
+GdkPixbuf *
+_gdk_pixbuf_new_from_stream_at_scale (GInputStream  *stream,
+                                      const char    *format,
+                                      int            width,
+                                      int            height,
+                                      gboolean       aspect,
+                                      GCancellable  *cancellable,
+                                      GError       **error)
+{
+  GdkPixbufLoader *loader;
+  GdkPixbuf *pixbuf;
+  int scales[3];
+
+  if (format)
+    {
+      loader = gdk_pixbuf_loader_new_with_type (format, error);
+      if (!loader)
+        return NULL;
+    }
+  else
+    loader = gdk_pixbuf_loader_new ();
+
+  scales[0] = width;
+  scales[1] = height;
+  scales[2] = aspect;
+  g_signal_connect (loader, "size-prepared",
+                    G_CALLBACK (size_prepared_cb2), scales);
+
+  pixbuf = load_from_stream (loader, stream, cancellable, error);
+
+  g_object_unref (loader);
+
+  return pixbuf;
+}
+
+GdkPixbuf *
+_gdk_pixbuf_new_from_stream (GInputStream  *stream,
+                             const char    *format,
+                             GCancellable  *cancellable,
+                             GError       **error)
+{
+  return _gdk_pixbuf_new_from_stream_scaled (stream, format, 0, cancellable, error);
+}
+
 /* Like gdk_pixbuf_new_from_resource_at_scale, but
  * load the image at its original size times the
  * given scale.
  */
 GdkPixbuf *
-_gdk_pixbuf_new_from_resource_scaled (const gchar  *resource_path,
-                                      gdouble       scale,
-                                      GError      **error)
+_gdk_pixbuf_new_from_resource_scaled (const char  *resource_path,
+                                      const char  *format,
+                                      double       scale,
+                                      GError     **error)
 {
   GInputStream *stream;
   GdkPixbuf *pixbuf;
@@ -125,60 +211,67 @@ _gdk_pixbuf_new_from_resource_scaled (const gchar  *resource_path,
   if (stream == NULL)
     return NULL;
 
-  pixbuf = _gdk_pixbuf_new_from_stream_scaled (stream, scale, NULL, error);
+  pixbuf = _gdk_pixbuf_new_from_stream_scaled (stream, format, scale, NULL, error);
   g_object_unref (stream);
 
   return pixbuf;
 }
 
+GdkPixbuf *
+_gdk_pixbuf_new_from_resource (const char   *resource_path,
+                               const char   *format,
+                               GError      **error)
+{
+  return _gdk_pixbuf_new_from_resource_scaled (resource_path, format, 0, error);
+}
+
+GdkPixbuf *
+_gdk_pixbuf_new_from_resource_at_scale (const char   *resource_path,
+                                        const char   *format,
+                                        int           width,
+                                        int           height,
+                                        gboolean      preserve_aspect,
+                                        GError      **error)
+{
+  GInputStream *stream;
+  GdkPixbuf *pixbuf;
+
+  stream = g_resources_open_stream (resource_path, 0, error);
+  if (stream == NULL)
+    return NULL;
+
+  pixbuf = _gdk_pixbuf_new_from_stream_at_scale (stream, format, width, height, preserve_aspect, NULL, error);
+  g_object_unref (stream);
+
+  return pixbuf;
+
+}
+
 static GdkPixbuf *
-load_symbolic_svg (const char     *file_data,
-                   gsize           file_len,
+load_symbolic_svg (const char     *escaped_file_data,
                    int             width,
                    int             height,
                    double          scale,
-                   const GdkRGBA  *fg,
-                   const GdkRGBA  *success_color,
-                   const GdkRGBA  *warning_color,
-                   const GdkRGBA  *error_color,
+                   int             icon_width,
+                   int             icon_height,
+                   const char     *fg_string,
+                   const char     *success_color_string,
+                   const char     *warning_color_string,
+                   const char     *error_color_string,
                    GError        **error)
 {
   GInputStream *stream;
   GdkPixbuf *pixbuf;
-  gchar *css_fg;
-  gchar *css_success;
-  gchar *css_warning;
-  gchar *css_error;
   gchar *data;
   gchar *svg_width, *svg_height;
-  gchar *escaped_file_data;
-
-  css_fg = gdk_rgba_to_string (fg);
-
-  css_success = css_warning = css_error = NULL;
-
-  css_warning = gdk_rgba_to_string (warning_color);
-  css_error = gdk_rgba_to_string (error_color);
-  css_success = gdk_rgba_to_string (success_color);
-
-  /* Fetch size from the original icon */
-  stream = g_memory_input_stream_new_from_data (file_data, file_len, NULL);
-  pixbuf = gdk_pixbuf_new_from_stream (stream, NULL, error);
-  g_object_unref (stream);
-
-  if (!pixbuf)
-    return NULL;
 
   if (width == 0)
-    width = gdk_pixbuf_get_width (pixbuf) * scale;
+    width = icon_width * scale;
   if (height == 0)
-    height = gdk_pixbuf_get_height (pixbuf) * scale;
+    height = icon_height * scale;
 
-  svg_width = g_strdup_printf ("%d", gdk_pixbuf_get_width (pixbuf));
-  svg_height = g_strdup_printf ("%d", gdk_pixbuf_get_height (pixbuf));
-  g_object_unref (pixbuf);
-
-  escaped_file_data = g_base64_encode ((guchar *) file_data, file_len);
+  svg_width = g_strdup_printf ("%d", icon_width);
+  svg_height = g_strdup_printf ("%d", icon_height);
 
   data = g_strconcat ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
                       "<svg version=\"1.1\"\n"
@@ -188,26 +281,21 @@ load_symbolic_svg (const char     *file_data,
                       "     height=\"", svg_height, "\">\n"
                       "  <style type=\"text/css\">\n"
                       "    rect,circle,path {\n"
-                      "      fill: ", css_fg," !important;\n"
+                      "      fill: ", fg_string," !important;\n"
                       "    }\n"
                       "    .warning {\n"
-                      "      fill: ", css_warning, " !important;\n"
+                      "      fill: ", warning_color_string, " !important;\n"
                       "    }\n"
                       "    .error {\n"
-                      "      fill: ", css_error ," !important;\n"
+                      "      fill: ", error_color_string ," !important;\n"
                       "    }\n"
                       "    .success {\n"
-                      "      fill: ", css_success, " !important;\n"
+                      "      fill: ", success_color_string, " !important;\n"
                       "    }\n"
                       "  </style>\n"
                       "  <xi:include href=\"data:text/xml;base64,", escaped_file_data, "\"/>\n"
                       "</svg>",
                       NULL);
-  g_free (escaped_file_data);
-  g_free (css_fg);
-  g_free (css_warning);
-  g_free (css_error);
-  g_free (css_success);
   g_free (svg_width);
   g_free (svg_height);
 
@@ -216,6 +304,99 @@ load_symbolic_svg (const char     *file_data,
   g_object_unref (stream);
 
   return pixbuf;
+}
+
+static void
+rgba_to_pixel (const GdkRGBA *rgba,
+               guint8         pixel[4])
+{
+  pixel[0] = rgba->red * 255;
+  pixel[1] = rgba->green * 255;
+  pixel[2] = rgba->blue * 255;
+  pixel[3] = 255;
+}
+
+GdkPixbuf *
+gtk_color_symbolic_pixbuf (GdkPixbuf     *symbolic,
+                           const GdkRGBA *fg_color,
+                           const GdkRGBA *success_color,
+                           const GdkRGBA *warning_color,
+                           const GdkRGBA *error_color)
+{
+  int width, height, x, y, src_stride, dst_stride;
+  guchar *src_data, *dst_data;
+  guchar *src_row, *dst_row;
+  int alpha;
+  GdkPixbuf *colored;
+  guint8 fg_pixel[4], success_pixel[4], warning_pixel[4], error_pixel[4];
+
+  alpha = fg_color->alpha * 255;
+
+  rgba_to_pixel (fg_color, fg_pixel);
+  rgba_to_pixel (success_color, success_pixel);
+  rgba_to_pixel (warning_color, warning_pixel);
+  rgba_to_pixel (error_color, error_pixel);
+
+  width = gdk_pixbuf_get_width (symbolic);
+  height = gdk_pixbuf_get_height (symbolic);
+
+  colored = gdk_pixbuf_new (GDK_COLORSPACE_RGB, TRUE, 8, width, height);
+
+  src_stride = gdk_pixbuf_get_rowstride (symbolic);
+  src_data = gdk_pixbuf_get_pixels (symbolic);
+
+  dst_data = gdk_pixbuf_get_pixels (colored);
+  dst_stride = gdk_pixbuf_get_rowstride (colored);
+  for (y = 0; y < height; y++)
+    {
+      src_row = src_data + src_stride * y;
+      dst_row = dst_data + dst_stride * y;
+      for (x = 0; x < width; x++)
+        {
+          guint r, g, b, a;
+          int c1, c2, c3, c4;
+
+          a = src_row[3];
+          dst_row[3] = a * alpha / 255;
+
+          if (a == 0)
+            {
+              dst_row[0] = 0;
+              dst_row[1] = 0;
+              dst_row[2] = 0;
+            }
+          else
+            {
+              c2 = src_row[0];
+              c3 = src_row[1];
+              c4 = src_row[2];
+
+              if (c2 == 0 && c3 == 0 && c4 == 0)
+                {
+                  dst_row[0] = fg_pixel[0];
+                  dst_row[1] = fg_pixel[1];
+                  dst_row[2] = fg_pixel[2];
+                }
+              else
+                {
+                  c1 = 255 - c2 - c3 - c4;
+
+                  r = fg_pixel[0] * c1 + success_pixel[0] * c2 +  warning_pixel[0] * c3 +  error_pixel[0] * c4;
+                  g = fg_pixel[1] * c1 + success_pixel[1] * c2 +  warning_pixel[1] * c3 +  error_pixel[1] * c4;
+                  b = fg_pixel[2] * c1 + success_pixel[2] * c2 +  warning_pixel[2] * c3 +  error_pixel[2] * c4;
+
+                  dst_row[0] = r / 255;
+                  dst_row[1] = g / 255;
+                  dst_row[2] = b / 255;
+                }
+            }
+
+          src_row += 4;
+          dst_row += 4;
+        }
+    }
+
+  return colored;
 }
 
 static void
@@ -263,10 +444,30 @@ gtk_make_symbolic_pixbuf_from_data (const char  *file_data,
                                     GError     **error)
 
 {
-  GdkRGBA r = { 1,0,0,1}, g = {0,1,0,1};
+  const char *r_string = "rgb(255,0,0)";
+  const char *g_string = "rgb(0,255,0)";
   GdkPixbuf *loaded;
   GdkPixbuf *pixbuf = NULL;
   int plane;
+  int icon_width, icon_height;
+  char *escaped_file_data;
+
+  /* Fetch size from the original icon */
+  {
+    GInputStream *stream = g_memory_input_stream_new_from_data (file_data, file_len, NULL);
+    GdkPixbuf *reference = gdk_pixbuf_new_from_stream (stream, NULL, error);
+
+    g_object_unref (stream);
+
+    if (!reference)
+      return NULL;
+
+    icon_width = gdk_pixbuf_get_width (reference);
+    icon_height = gdk_pixbuf_get_height (reference);
+    g_object_unref (reference);
+  }
+
+  escaped_file_data = g_base64_encode ((guchar *) file_data, file_len);
 
   for (plane = 0; plane < 3; plane++)
     {
@@ -282,11 +483,13 @@ gtk_make_symbolic_pixbuf_from_data (const char  *file_data,
        * channels, with the color of the fg being implicitly
        * the "rest", as all color fractions should add up to 1.
        */
-      loaded = load_symbolic_svg (file_data, file_len, width, height, scale,
-                                  &g,
-                                  plane == 0 ? &r : &g,
-                                  plane == 1 ? &r : &g,
-                                  plane == 2 ? &r : &g,
+      loaded = load_symbolic_svg (escaped_file_data, width, height, scale,
+                                  icon_width,
+                                  icon_height,
+                                  g_string,
+                                  plane == 0 ? r_string : g_string,
+                                  plane == 1 ? r_string : g_string,
+                                  plane == 2 ? r_string : g_string,
                                   error);
       if (loaded == NULL)
         return NULL;
@@ -306,6 +509,8 @@ gtk_make_symbolic_pixbuf_from_data (const char  *file_data,
 
       g_object_unref (loaded);
     }
+
+  g_free (escaped_file_data);
 
   return pixbuf;
 }
@@ -336,11 +541,32 @@ gtk_make_symbolic_pixbuf_from_resource (const char  *path,
 }
 
 GdkPixbuf *
-gtk_make_symbolic_pixbuf_from_file (GFile   *file,
-                                    int      width,
-                                    int      height,
-                                    double   scale,
-                                    GError **error)
+gtk_make_symbolic_pixbuf_from_path (const char  *path,
+                                    int          width,
+                                    int          height,
+                                    double       scale,
+                                    GError     **error)
+{
+  char *data;
+  gsize size;
+  GdkPixbuf *pixbuf;
+
+  if (!g_file_get_contents (path, &data, &size, error))
+    return NULL;
+
+  pixbuf = gtk_make_symbolic_pixbuf_from_data (data, size, width, height, scale, error);
+
+  g_free (data);
+
+  return pixbuf;
+}
+
+GdkPixbuf *
+gtk_make_symbolic_pixbuf_from_file (GFile       *file,
+                                    int          width,
+                                    int          height,
+                                    double       scale,
+                                    GError     **error)
 {
   char *data;
   gsize size;
@@ -354,6 +580,19 @@ gtk_make_symbolic_pixbuf_from_file (GFile   *file,
   g_free (data);
 
   return pixbuf;
+}
+
+GdkTexture *
+gtk_load_symbolic_texture_from_resource (const char *path)
+{
+  GdkPixbuf *pixbuf;
+  GdkTexture *texture;
+
+  pixbuf = _gdk_pixbuf_new_from_resource (path, "png", NULL);
+  texture = gdk_texture_new_for_pixbuf (pixbuf);
+  g_object_unref (pixbuf);
+
+  return texture;
 }
 
 GdkTexture *
@@ -377,11 +616,33 @@ gtk_make_symbolic_texture_from_resource (const char  *path,
 }
 
 GdkTexture *
-gtk_make_symbolic_texture_from_file (GFile   *file,
-                                     int      width,
-                                     int      height,
-                                     double   scale,
-                                     GError **error)
+gtk_load_symbolic_texture_from_file (GFile *file)
+{
+  GdkPixbuf *pixbuf;
+  GdkTexture *texture;
+  GInputStream *stream;
+
+  stream = G_INPUT_STREAM (g_file_read (file, NULL, NULL));
+  if (stream == NULL)
+    return NULL;
+
+  pixbuf = _gdk_pixbuf_new_from_stream (stream, "png", NULL, NULL);
+  g_object_unref (stream);
+  if (pixbuf == NULL)
+    return NULL;
+
+  texture = gdk_texture_new_for_pixbuf (pixbuf);
+  g_object_unref (pixbuf);
+
+  return texture;
+}
+
+GdkTexture *
+gtk_make_symbolic_texture_from_file (GFile       *file,
+                                     int          width,
+                                     int          height,
+                                     double       scale,
+                                     GError     **error)
 {
   GdkPixbuf *pixbuf;
   GdkTexture *texture;

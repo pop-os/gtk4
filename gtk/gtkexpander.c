@@ -115,10 +115,9 @@
 #include "gtkbox.h"
 #include "gtkbuildable.h"
 #include "gtkcontainerprivate.h"
-#include "gtkdnd.h"
 #include "gtkdragdest.h"
-#include "gtkiconprivate.h"
-#include "gtkgesturemultipress.h"
+#include "gtkbuiltiniconprivate.h"
+#include "gtkgestureclick.h"
 #include "gtkgesturesingle.h"
 #include "gtkintl.h"
 #include "gtklabel.h"
@@ -143,6 +142,20 @@ enum
   PROP_USE_MARKUP,
   PROP_LABEL_WIDGET,
   PROP_RESIZE_TOPLEVEL
+};
+
+typedef struct _GtkExpanderClass   GtkExpanderClass;
+
+struct _GtkExpander
+{
+  GtkContainer parent_instance;
+};
+
+struct _GtkExpanderClass
+{
+  GtkContainerClass parent_class;
+
+  void (* activate) (GtkExpander *expander);
 };
 
 typedef struct _GtkExpanderPrivate GtkExpanderPrivate;
@@ -179,12 +192,12 @@ static void     gtk_expander_size_allocate  (GtkWidget        *widget,
                                              int               baseline);
 static gboolean gtk_expander_focus          (GtkWidget        *widget,
                                              GtkDirectionType  direction);
-static gboolean gtk_expander_drag_motion    (GtkWidget        *widget,
+static gboolean gtk_expander_drag_accept    (GtkDropTarget    *dest,
                                              GdkDrop          *drop,
-                                             gint              x,
-                                             gint              y);
-static void     gtk_expander_drag_leave     (GtkWidget        *widget,
-                                             GdkDrop          *drop);
+                                             GtkExpander      *expander);
+static void     gtk_expander_drag_leave     (GtkDropTarget    *dest,
+                                             GdkDrop          *drop,
+                                             GtkExpander      *expander);
 
 static void gtk_expander_add    (GtkContainer *container,
                                  GtkWidget    *widget);
@@ -212,11 +225,11 @@ static void gtk_expander_measure (GtkWidget      *widget,
                                   int            *natural_baseline);
 
 /* Gestures */
-static void     gesture_multipress_released_cb (GtkGestureMultiPress *gesture,
-                                                gint                  n_press,
-                                                gdouble               x,
-                                                gdouble               y,
-                                                GtkExpander          *expander);
+static void     gesture_click_released_cb (GtkGestureClick *gesture,
+                                           gint             n_press,
+                                           gdouble          x,
+                                           gdouble          y,
+                                           GtkExpander     *expander);
 
 G_DEFINE_TYPE_WITH_CODE (GtkExpander, gtk_expander, GTK_TYPE_CONTAINER,
                          G_ADD_PRIVATE (GtkExpander)
@@ -254,8 +267,6 @@ gtk_expander_class_init (GtkExpanderClass *klass)
   widget_class->destroy              = gtk_expander_destroy;
   widget_class->size_allocate        = gtk_expander_size_allocate;
   widget_class->focus                = gtk_expander_focus;
-  widget_class->drag_motion          = gtk_expander_drag_motion;
-  widget_class->drag_leave           = gtk_expander_drag_leave;
   widget_class->measure              = gtk_expander_measure;
 
   container_class->add    = gtk_expander_add;
@@ -328,7 +339,7 @@ gtk_expander_class_init (GtkExpanderClass *klass)
                   G_TYPE_NONE, 0);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_EXPANDER_ACCESSIBLE);
-  gtk_widget_class_set_css_name (widget_class, I_("expander"));
+  gtk_widget_class_set_css_name (widget_class, I_("expander-widget"));
 }
 
 static void
@@ -336,9 +347,10 @@ gtk_expander_init (GtkExpander *expander)
 {
   GtkExpanderPrivate *priv = gtk_expander_get_instance_private (expander);
   GtkGesture *gesture;
+  GtkDropTarget *dest;
+  GdkContentFormats *formats;
 
   gtk_widget_set_can_focus (GTK_WIDGET (expander), TRUE);
-  gtk_widget_set_has_surface (GTK_WIDGET (expander), FALSE);
 
   priv->label_widget = NULL;
   priv->child = NULL;
@@ -357,21 +369,24 @@ gtk_expander_init (GtkExpander *expander)
                                      NULL);
   gtk_container_add (GTK_CONTAINER (priv->box), priv->title_widget);
 
-  priv->arrow_widget = gtk_icon_new ("arrow");
-  gtk_style_context_add_class (gtk_widget_get_style_context (priv->arrow_widget),
-                               GTK_STYLE_CLASS_HORIZONTAL);
+  priv->arrow_widget = gtk_builtin_icon_new ("expander");
+  gtk_widget_add_css_class (priv->arrow_widget, GTK_STYLE_CLASS_HORIZONTAL);
   gtk_container_add (GTK_CONTAINER (priv->title_widget), priv->arrow_widget);
 
-  gtk_drag_dest_set (GTK_WIDGET (expander), 0, NULL, 0);
-  gtk_drag_dest_set_track_motion (GTK_WIDGET (expander), TRUE);
+  formats = gdk_content_formats_new (NULL, 0);
+  dest = gtk_drop_target_new (formats, 0);
+  gdk_content_formats_unref (formats);
+  g_signal_connect (dest, "accept", G_CALLBACK (gtk_expander_drag_accept), expander);
+  g_signal_connect (dest, "drag-leave", G_CALLBACK (gtk_expander_drag_leave), expander);
+  gtk_widget_add_controller (GTK_WIDGET (expander), GTK_EVENT_CONTROLLER (dest));
 
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture),
                                  GDK_BUTTON_PRIMARY);
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture),
                                      FALSE);
   g_signal_connect (gesture, "released",
-                    G_CALLBACK (gesture_multipress_released_cb), expander);
+                    G_CALLBACK (gesture_click_released_cb), expander);
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
                                               GTK_PHASE_BUBBLE);
   gtk_widget_add_controller (GTK_WIDGET (priv->title_widget), GTK_EVENT_CONTROLLER (gesture));
@@ -509,11 +524,11 @@ gtk_expander_size_allocate (GtkWidget *widget,
 }
 
 static void
-gesture_multipress_released_cb (GtkGestureMultiPress *gesture,
-                                gint                  n_press,
-                                gdouble               x,
-                                gdouble               y,
-                                GtkExpander          *expander)
+gesture_click_released_cb (GtkGestureClick *gesture,
+                           gint             n_press,
+                           gdouble          x,
+                           gdouble          y,
+                           GtkExpander     *expander)
 {
   gtk_widget_activate (GTK_WIDGET (expander));
 }
@@ -531,12 +546,10 @@ expand_timeout (gpointer data)
 }
 
 static gboolean
-gtk_expander_drag_motion (GtkWidget *widget,
-                          GdkDrop   *drop,
-                          gint       x,
-                          gint       y)
+gtk_expander_drag_accept (GtkDropTarget *dest,
+                          GdkDrop       *drop,
+                          GtkExpander   *expander)
 {
-  GtkExpander *expander = GTK_EXPANDER (widget);
   GtkExpanderPrivate *priv = gtk_expander_get_instance_private (expander);
 
   if (!priv->expanded && !priv->expand_timer)
@@ -549,10 +562,10 @@ gtk_expander_drag_motion (GtkWidget *widget,
 }
 
 static void
-gtk_expander_drag_leave (GtkWidget *widget,
-                         GdkDrop   *drop)
+gtk_expander_drag_leave (GtkDropTarget *dest,
+                         GdkDrop       *drop,
+                         GtkExpander   *expander)
 {
-  GtkExpander *expander = GTK_EXPANDER (widget);
   GtkExpanderPrivate *priv = gtk_expander_get_instance_private (expander);
 
   if (priv->expand_timer)
@@ -707,9 +720,9 @@ gtk_expander_resize_toplevel (GtkExpander *expander)
   if (child && priv->resize_toplevel &&
       gtk_widget_get_realized (GTK_WIDGET (expander)))
     {
-      GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (expander));
+      GtkWidget *toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (expander)));
 
-      if (toplevel && GTK_IS_WINDOW (toplevel) &&
+      if (GTK_IS_WINDOW (toplevel) &&
           gtk_widget_get_realized (toplevel))
         {
           int toplevel_width, toplevel_height;

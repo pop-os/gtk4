@@ -60,7 +60,8 @@
 #include "gtkdialogprivate.h"
 #include "gtkeventcontrollermotion.h"
 #include "gtkeventcontrollerkey.h"
-#include "gtkgesturemultipress.h"
+#include "gtkgestureclick.h"
+#include "gtkstylecontext.h"
 
 
 /**
@@ -137,6 +138,22 @@ typedef struct
   gchar *heading;
   gchar **people;
 } CreditSection;
+
+typedef struct _GtkAboutDialogClass   GtkAboutDialogClass;
+
+struct _GtkAboutDialog
+{
+  GtkDialog parent_instance;
+};
+
+struct _GtkAboutDialogClass
+{
+  GtkDialogClass parent_class;
+
+  gboolean (*activate_link) (GtkAboutDialog *dialog,
+                             const gchar    *uri);
+};
+
 
 typedef struct
 {
@@ -244,7 +261,7 @@ static gboolean             text_view_key_pressed           (GtkEventController 
                                                              guint               keycode,
                                                              GdkModifierType     state,
 							     GtkAboutDialog     *about);
-static void                 text_view_released              (GtkGestureMultiPress *press,
+static void                 text_view_released              (GtkGestureClick *press,
                                                              int                   n,
                                                              double                x,
                                                              double                y,
@@ -684,7 +701,7 @@ update_credits_button_visibility (GtkAboutDialog *about)
   gboolean show;
   GtkStackPage *page;
 
-  page = gtk_stack_get_page (GTK_STACK (priv->stack), priv->system_page);
+  page = gtk_stack_get_page (GTK_STACK (priv->stack), priv->credits_page);
 
   show = (priv->authors != NULL ||
           priv->documenters != NULL ||
@@ -1815,8 +1832,8 @@ gtk_about_dialog_set_logo_icon_name (GtkAboutDialog *about,
 
   if (icon_name)
     {
-      gint *sizes = gtk_icon_theme_get_icon_sizes (gtk_icon_theme_get_default (),
-                                                   icon_name);
+      GtkIconTheme *icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (about)));
+      gint *sizes = gtk_icon_theme_get_icon_sizes (icon_theme, icon_name);
       gint i, best_size = 0;
 
       for (i = 0; sizes[i]; i++)
@@ -1922,7 +1939,7 @@ text_view_key_pressed (GtkEventController *controller,
 }
 
 static void
-text_view_released (GtkGestureMultiPress *gesture,
+text_view_released (GtkGestureClick *gesture,
                     int                   n_press,
                     double                x,
                     double                y,
@@ -2155,7 +2172,6 @@ add_credits_section (GtkAboutDialog  *about,
   gtk_widget_set_halign (label, GTK_ALIGN_END);
   gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
   gtk_grid_attach (grid, label, 0, *row, 1, 1);
-  gtk_widget_show (label);
 
   for (p = people; *p; p++)
     {

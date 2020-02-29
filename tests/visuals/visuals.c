@@ -53,12 +53,24 @@ create_dark_popup (GtkWidget *parent)
   gtk_widget_show (popup);
 }
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main (int argc, char *argv[])
 {
   GtkBuilder *builder;
   GtkWidget  *window;
   const gchar *filename;
+  gboolean done = FALSE;
 
   gtk_init ();
 
@@ -68,16 +80,16 @@ main (int argc, char *argv[])
 
   builder = gtk_builder_new ();
   gtk_builder_add_from_file (builder, filename, NULL);
-  gtk_builder_connect_signals (builder, NULL);
 
   window = GTK_WIDGET (gtk_builder_get_object (builder, "window1"));
   g_object_unref (G_OBJECT (builder));
-  g_signal_connect (window, "destroy",
-                    G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   gtk_widget_show (window);
 
   create_dark_popup (window);
-  gtk_main ();
+
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

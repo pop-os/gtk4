@@ -1,11 +1,13 @@
 inspector_sources = files(
   'action-editor.c',
   'actions.c',
+  'baselineoverlay.c',
   'cellrenderergraph.c',
   'controllers.c',
   'css-editor.c',
   'css-node-tree.c',
   'data-list.c',
+  'focusoverlay.c',
   'fpsoverlay.c',
   'general.c',
   'graphdata.c',

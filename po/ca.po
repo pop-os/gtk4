@@ -1497,7 +1497,7 @@ msgstr "S'estan obrint fitxers «%s»."
 #: gtk/gtkappchooserdialog.c:215
 #, c-format
 msgid "No applications found for “%s” files"
-msgstr "No hi ha cap aplicació disponible per fitxers «%s»."
+msgstr "No hi ha cap aplicació disponible per fitxers «%s»"
 
 #: gtk/gtkappchooserdialog.c:308
 msgid "Forget association"
@@ -2005,7 +2005,7 @@ msgstr "La fixació de majúscules està activada"
 
 #: gtk/gtkentry.c:9533
 msgid "Insert Emoji"
-msgstr "Inserta emoji"
+msgstr "Inserta un emoji"
 
 #: gtk/gtkfilechooserbutton.c:106
 msgid "Select a File"
@@ -2025,7 +2025,7 @@ msgstr "Altre…"
 
 #: gtk/gtkfilechooserdialog.c:539
 msgid "_Name"
-msgstr "_Nom:"
+msgstr "_Nom"
 
 #: gtk/gtkfilechoosererrorstack.c:45
 msgid "A folder cannot be called “.”"
@@ -2285,7 +2285,7 @@ msgstr "No s'ha pogut llegir el contingut de la carpeta"
 #. Translators: see g_date_time_format() for details on the format
 #: gtk/gtkfilechooserwidget.c:4661 gtk/gtkfilechooserwidget.c:4709
 msgid "%H:%M"
-msgstr "%H:%M"
+msgstr "%-H:%M"
 
 #: gtk/gtkfilechooserwidget.c:4663 gtk/gtkfilechooserwidget.c:4711
 msgid "%l:%M %p"
@@ -2312,7 +2312,7 @@ msgstr "Desconegut"
 
 #: gtk/gtkfilechooserwidget.c:4948 gtk/gtkplacessidebar.c:1086
 msgid "Home"
-msgstr "Inici"
+msgstr "Carpeta de l'usuari"
 
 #: gtk/gtkfilechooserwidget.c:5441
 msgid "Cannot change to folder because it is not local"
@@ -2842,7 +2842,7 @@ msgstr "No es pot iniciar «%s»"
 #: gtk/gtkplacessidebar.c:2375
 #, c-format
 msgid "Error unlocking “%s”"
-msgstr "S'ha produït un error en desbloquejar «%s»."
+msgstr "S'ha produït un error en desbloquejar «%s»"
 
 #: gtk/gtkplacessidebar.c:2377
 #, c-format
@@ -3380,7 +3380,7 @@ msgstr "Dreceres de cerca"
 #: gtk/gtkshortcutswindow.c:1039 gtk/ui/gtkemojichooser.ui:320
 #: gtk/ui/gtkfilechooserwidget.ui:293
 msgid "No Results Found"
-msgstr "No s'ha trobat cap tipus de lletra"
+msgstr "No s'ha trobat cap resultat"
 
 #: gtk/gtkshortcutswindow.c:1045 gtk/ui/gtkemojichooser.ui:333
 #: gtk/ui/gtkfilechooserwidget.ui:306 gtk/ui/gtkplacesview.ui:247
@@ -4788,7 +4788,7 @@ msgstr "Conjunt estilístic 20"
 #: gtk/open-type-layout.h:130
 msgctxt "OpenType layout"
 msgid "Math script style alternates"
-msgstr "Alternatives d'estil d'script matemàtic"
+msgstr "Alternatives d'estil de script matemàtic"
 
 #: gtk/open-type-layout.h:131
 msgctxt "OpenType layout"
@@ -6642,7 +6642,7 @@ msgstr "%s: manca el nom de l'aplicació"
 msgid "Creating AppInfo from id not supported on non unix operating systems"
 msgstr ""
 "No es poden crear «AppInfo» a partir d'identificadors en sistemes operatius "
-"que no siguin UNIX."
+"que no siguin Unix"
 
 #. Translators: the first %s is the program name, the second one
 #. is the application name.
@@ -7102,7 +7102,7 @@ msgstr "_Compagina"
 
 #: gtk/ui/gtkprintunixdialog.ui:335
 msgid "_Reverse"
-msgstr "_Restaura"
+msgstr "_Inverteix"
 
 #: gtk/ui/gtkprintunixdialog.ui:398
 msgid "Layout"

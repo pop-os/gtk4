@@ -26,6 +26,7 @@
 
 #include "gdkversionmacros.h"
 
+#include "gdkprofilerprivate.h"
 #include "gdkinternals.h"
 #include "gdkintl.h"
 
@@ -147,7 +148,8 @@ static const GDebugKey gdk_debug_keys[] = {
   { "gl-gles",         GDK_DEBUG_GL_GLES },
   { "gl-debug",        GDK_DEBUG_GL_DEBUG },
   { "vulkan-disable",  GDK_DEBUG_VULKAN_DISABLE },
-  { "vulkan-validate", GDK_DEBUG_VULKAN_VALIDATE }
+  { "vulkan-validate", GDK_DEBUG_VULKAN_VALIDATE },
+  { "default-settings",GDK_DEBUG_DEFAULT_SETTINGS },
 };
 #endif
 
@@ -213,6 +215,11 @@ gdk_pre_parse (void)
                                               G_N_ELEMENTS (gdk_debug_keys));
   }
 #endif  /* G_ENABLE_DEBUG */
+
+  if (g_getenv ("GTK_TRACE_FD"))
+    gdk_profiler_start (atoi (g_getenv ("GTK_TRACE_FD")));
+  else if (g_getenv ("GTK_TRACE"))
+    gdk_profiler_start (-1);
 
 #ifndef G_HAS_CONSTRUCTORS
   stash_desktop_startup_notification_id ();

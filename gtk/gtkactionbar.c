@@ -53,6 +53,19 @@
  * GtkActionBar has a single CSS node with name actionbar.
  */
 
+typedef struct _GtkActionBarPrivate       GtkActionBarPrivate;
+typedef struct _GtkActionBarClass         GtkActionBarClass;
+
+struct _GtkActionBar
+{
+  GtkContainer container;
+};
+
+struct _GtkActionBarClass
+{
+  GtkContainerClass parent_class;
+};
+
 struct _GtkActionBarPrivate
 {
   GtkWidget *center_box;
@@ -264,8 +277,6 @@ gtk_action_bar_init (GtkActionBar *action_bar)
 {
   GtkWidget *widget = GTK_WIDGET (action_bar);
   GtkActionBarPrivate *priv = gtk_action_bar_get_instance_private (action_bar);
-
-  gtk_widget_set_has_surface (widget, FALSE);
 
   priv->revealer = gtk_revealer_new ();
   gtk_widget_set_parent (priv->revealer, widget);

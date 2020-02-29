@@ -36,7 +36,8 @@
 #include "gtkstylecontextprivate.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
-//#include "gtkwindowprivate.h"
+#include "gtknative.h"
+#include "gtkroot.h"
 
 #include "a11y/gtkcontaineraccessibleprivate.h"
 
@@ -114,9 +115,6 @@ static void     gtk_container_children_callback    (GtkWidget         *widget,
                                                     gpointer           client_data);
 static GtkSizeRequestMode gtk_container_get_request_mode (GtkWidget   *widget);
 
-static GtkWidgetPath * gtk_container_real_get_path_for_child (GtkContainer *container,
-                                                              GtkWidget    *child);
-
 /* GtkBuildable */
 static void gtk_container_buildable_init           (GtkBuildableIface *iface);
 static GtkBuildableIface    *parent_buildable_iface;
@@ -148,7 +146,6 @@ gtk_container_class_init (GtkContainerClass *class)
   class->forall = NULL;
   class->set_focus_child = gtk_container_real_set_focus_child;
   class->child_type = NULL;
-  class->get_path_for_child = gtk_container_real_get_path_for_child;
 
   container_signals[ADD] =
     g_signal_new (I_("add"),
@@ -353,7 +350,7 @@ gtk_container_idle_sizer (GdkFrameClock *clock,
   /* We validate the style contexts in a single loop before even trying
    * to handle resizes instead of doing validations inline.
    * This is mostly necessary for compatibility reasons with old code,
-   * because both style_updated and size_allocate functions often change
+   * because both css_changed and size_allocate functions often change
    * styles and so could cause infinite loops in this function.
    *
    * It's important to note that even an invalid style context returns
@@ -374,10 +371,10 @@ gtk_container_idle_sizer (GdkFrameClock *clock,
    */
   if (gtk_widget_needs_allocate (GTK_WIDGET (container)))
     {
-      if (GTK_IS_WINDOW (container))
-        gtk_window_check_resize (GTK_WINDOW (container));
+      if (GTK_IS_ROOT (container))
+        gtk_native_check_resize (GTK_NATIVE (container));
       else
-        g_warning ("gtk_container_idle_sizer() called on a non-window");
+        g_warning ("gtk_container_idle_sizer() called on a non-native non-window");
     }
 
   if (!gtk_container_needs_idle_sizer (container))
@@ -477,8 +474,8 @@ gtk_container_get_request_mode (GtkWidget *widget)
 /**
  * gtk_container_forall: (virtual forall)
  * @container: a #GtkContainer
- * @callback: (scope call) (closure callback_data): a callback
- * @callback_data: callback user data
+ * @callback: (scope call): a callback
+ * @callback_data: (closure): callback user data
  *
  * Invokes @callback on each direct child of @container, including
  * children that are considered “internal” (implementation details
@@ -648,18 +645,6 @@ gtk_container_real_set_focus_child (GtkContainer *container,
     }
 }
 
-static GtkWidgetPath *
-gtk_container_real_get_path_for_child (GtkContainer *container,
-                                       GtkWidget    *child)
-{
-  GtkWidgetPath *path;
-
-  path = _gtk_widget_create_path (GTK_WIDGET (container));
-  gtk_widget_path_append_for_widget (path, child);
-
-  return path;
-}
-
 static void
 gtk_container_children_callback (GtkWidget *widget,
                                  gpointer   client_data)
@@ -780,35 +765,3 @@ gtk_container_get_focus_hadjustment (GtkContainer *container)
   return hadjustment;
 }
 
-/**
- * gtk_container_get_path_for_child:
- * @container: a #GtkContainer
- * @child: a child of @container
- *
- * Returns a newly created widget path representing all the widget hierarchy
- * from the toplevel down to and including @child.
- *
- * Returns: A newly created #GtkWidgetPath
- **/
-GtkWidgetPath *
-gtk_container_get_path_for_child (GtkContainer *container,
-                                  GtkWidget    *child)
-{
-  GtkWidgetPath *path;
-
-  g_return_val_if_fail (GTK_IS_CONTAINER (container), NULL);
-  g_return_val_if_fail (GTK_IS_WIDGET (child), NULL);
-  g_return_val_if_fail (container == (GtkContainer *) _gtk_widget_get_parent (child), NULL);
-
-  path = GTK_CONTAINER_GET_CLASS (container)->get_path_for_child (container, child);
-  if (gtk_widget_path_get_object_type (path) != G_OBJECT_TYPE (child))
-    {
-      g_critical ("%s %p returned a widget path for type %s, but child is %s",
-                  G_OBJECT_TYPE_NAME (container),
-                  container,
-                  g_type_name (gtk_widget_path_get_object_type (path)),
-                  G_OBJECT_TYPE_NAME (child));
-    }
-
-  return path;
-}

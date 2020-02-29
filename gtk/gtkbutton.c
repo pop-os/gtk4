@@ -46,8 +46,8 @@
  * can be made round by adding the .circular style class.
  *
  * Button-like widgets like #GtkToggleButton, #GtkMenuButton, #GtkVolumeButton,
- * #GtkLockButton, #GtkColorButton, #GtkFontButton or #GtkFileChooserButton use
- * style classes such as .toggle, .popup, .scale, .lock, .color, .file
+ * #GtkLockButton, #GtkColorButton or #GtkFontButton use style classes such as
+ * .toggle, .popup, .scale, .lock, .color on the button node
  * to differentiate themselves from a plain GtkButton.
  */
 
@@ -58,7 +58,7 @@
 #include "gtkactionhelperprivate.h"
 #include "gtkcheckbutton.h"
 #include "gtkcontainerprivate.h"
-#include "gtkgesturemultipress.h"
+#include "gtkgestureclick.h"
 #include "gtkeventcontrollerkey.h"
 #include "gtkimage.h"
 #include "gtkintl.h"
@@ -94,8 +94,6 @@ struct _GtkButtonPrivate
 
 enum {
   CLICKED,
-  ENTER,
-  LEAVE,
   ACTIVATE,
   LAST_SIGNAL
 };
@@ -287,11 +285,11 @@ gtk_button_class_init (GtkButtonClass *klass)
 }
 
 static void
-multipress_pressed_cb (GtkGestureMultiPress *gesture,
-                       guint                 n_press,
-                       gdouble               x,
-                       gdouble               y,
-                       GtkWidget            *widget)
+click_pressed_cb (GtkGestureClick *gesture,
+                  guint            n_press,
+                  gdouble          x,
+                  gdouble          y,
+                  GtkWidget       *widget)
 {
   GtkButton *button = GTK_BUTTON (widget);
   GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
@@ -335,11 +333,11 @@ touch_release_in_button (GtkButton *button)
 }
 
 static void
-multipress_released_cb (GtkGestureMultiPress *gesture,
-                        guint                 n_press,
-                        gdouble               x,
-                        gdouble               y,
-                        GtkWidget            *widget)
+click_released_cb (GtkGestureClick *gesture,
+                   guint            n_press,
+                   gdouble          x,
+                   gdouble          y,
+                   GtkWidget       *widget)
 {
   GtkButton *button = GTK_BUTTON (widget);
   GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
@@ -357,9 +355,9 @@ multipress_released_cb (GtkGestureMultiPress *gesture,
 }
 
 static void
-multipress_gesture_cancel_cb (GtkGesture       *gesture,
-                              GdkEventSequence *sequence,
-                              GtkButton        *button)
+click_gesture_cancel_cb (GtkGesture       *gesture,
+                         GdkEventSequence *sequence,
+                         GtkButton        *button)
 {
   gtk_button_do_release (button, FALSE);
 }
@@ -413,20 +411,19 @@ gtk_button_init (GtkButton *button)
 
   gtk_widget_set_can_focus (GTK_WIDGET (button), TRUE);
   gtk_widget_set_receives_default (GTK_WIDGET (button), TRUE);
-  gtk_widget_set_has_surface (GTK_WIDGET (button), FALSE);
 
   priv->in_button = FALSE;
   priv->button_down = FALSE;
   priv->use_underline = FALSE;
   priv->child_type = WIDGET_CHILD;
 
-  priv->gesture = gtk_gesture_multi_press_new ();
+  priv->gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (priv->gesture), FALSE);
   gtk_gesture_single_set_exclusive (GTK_GESTURE_SINGLE (priv->gesture), TRUE);
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (priv->gesture), GDK_BUTTON_PRIMARY);
-  g_signal_connect (priv->gesture, "pressed", G_CALLBACK (multipress_pressed_cb), button);
-  g_signal_connect (priv->gesture, "released", G_CALLBACK (multipress_released_cb), button);
-  g_signal_connect (priv->gesture, "cancel", G_CALLBACK (multipress_gesture_cancel_cb), button);
+  g_signal_connect (priv->gesture, "pressed", G_CALLBACK (click_pressed_cb), button);
+  g_signal_connect (priv->gesture, "released", G_CALLBACK (click_released_cb), button);
+  g_signal_connect (priv->gesture, "cancel", G_CALLBACK (click_gesture_cancel_cb), button);
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->gesture), GTK_PHASE_CAPTURE);
   gtk_widget_add_controller (GTK_WIDGET (button), GTK_EVENT_CONTROLLER (priv->gesture));
 
@@ -647,20 +644,6 @@ gtk_button_new_with_mnemonic (const gchar *label)
 }
 
 /**
- * gtk_button_clicked:
- * @button: The #GtkButton you want to send the signal to.
- *
- * Emits a #GtkButton::clicked signal to the given #GtkButton.
- */
-void
-gtk_button_clicked (GtkButton *button)
-{
-  g_return_if_fail (GTK_IS_BUTTON (button));
-
-  g_signal_emit (button, button_signals[CLICKED], 0);
-}
-
-/**
  * gtk_button_set_relief:
  * @button: The #GtkButton you want to set relief styles of
  * @relief: The GtkReliefStyle as described above
@@ -671,9 +654,8 @@ gtk_button_clicked (GtkButton *button)
  */
 void
 gtk_button_set_relief (GtkButton      *button,
-		       GtkReliefStyle  relief)
+                       GtkReliefStyle  relief)
 {
-  GtkStyleContext *context;
   GtkReliefStyle old_relief;
 
   g_return_if_fail (GTK_IS_BUTTON (button));
@@ -681,11 +663,10 @@ gtk_button_set_relief (GtkButton      *button,
   old_relief = gtk_button_get_relief (button);
   if (old_relief != relief)
     {
-      context = gtk_widget_get_style_context (GTK_WIDGET (button));
       if (relief == GTK_RELIEF_NONE)
-        gtk_style_context_add_class (context, GTK_STYLE_CLASS_FLAT);
+        gtk_widget_add_css_class (GTK_WIDGET (button), GTK_STYLE_CLASS_FLAT);
       else
-        gtk_style_context_remove_class (context, GTK_STYLE_CLASS_FLAT);
+        gtk_widget_remove_css_class (GTK_WIDGET (button), GTK_STYLE_CLASS_FLAT);
 
       g_object_notify_by_pspec (G_OBJECT (button), props[PROP_RELIEF]);
     }
@@ -702,12 +683,9 @@ gtk_button_set_relief (GtkButton      *button,
 GtkReliefStyle
 gtk_button_get_relief (GtkButton *button)
 {
-  GtkStyleContext *context;
-
   g_return_val_if_fail (GTK_IS_BUTTON (button), GTK_RELIEF_NORMAL);
 
-  context = gtk_widget_get_style_context (GTK_WIDGET (button));
-  if (gtk_style_context_has_class (context, GTK_STYLE_CLASS_FLAT))
+  if (gtk_widget_has_css_class (GTK_WIDGET (button), GTK_STYLE_CLASS_FLAT))
     return GTK_RELIEF_NONE;
   else
     return GTK_RELIEF_NORMAL;
@@ -739,7 +717,7 @@ gtk_button_do_release (GtkButton *button,
 	return;
 
       if (emit_clicked)
-        gtk_button_clicked (button);
+        g_signal_emit (button, button_signals[CLICKED], 0);
     }
 }
 
@@ -786,7 +764,7 @@ gtk_button_finish_activate (GtkButton *button,
   priv->button_down = FALSE;
 
   if (do_it)
-    gtk_button_clicked (button);
+    g_signal_emit (button, button_signals[CLICKED], 0);
 }
 
 /**
@@ -804,11 +782,8 @@ gtk_button_set_label (GtkButton   *button,
 {
   GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
   GtkWidget *child;
-  GtkStyleContext *context;
 
   g_return_if_fail (GTK_IS_BUTTON (button));
-
-  context = gtk_widget_get_style_context (GTK_WIDGET (button));
 
   child = gtk_bin_get_child (GTK_BIN (button));
 
@@ -828,8 +803,8 @@ gtk_button_set_label (GtkButton   *button,
           gtk_label_set_xalign (GTK_LABEL (child), 0.0);
         }
       gtk_container_add (GTK_CONTAINER (button), child);
-      gtk_style_context_remove_class (context, "image-button");
-      gtk_style_context_add_class (context, "text-button");
+      gtk_widget_remove_css_class (GTK_WIDGET (button), "image-button");
+      gtk_widget_add_css_class (GTK_WIDGET (button), "text-button");
     }
 
   gtk_label_set_label (GTK_LABEL (child), label);
@@ -949,7 +924,7 @@ gtk_button_grab_notify (GtkWidget *widget,
 /**
  * gtk_button_set_icon_name:
  * @button: A #GtkButton
- * @icon_name: A icon name
+ * @icon_name: An icon name
  *
  * Adds a #GtkImage with the given icon name as a child. If @button already
  * contains a child widget, that child widget will be removed and replaced
@@ -961,13 +936,11 @@ gtk_button_set_icon_name (GtkButton  *button,
 {
   GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
   GtkWidget *child;
-  GtkStyleContext *context;
 
   g_return_if_fail (GTK_IS_BUTTON (button));
   g_return_if_fail (icon_name != NULL);
 
   child = gtk_bin_get_child (GTK_BIN (button));
-  context = gtk_widget_get_style_context (GTK_WIDGET (button));
 
   if (priv->child_type != ICON_CHILD || child == NULL)
     {
@@ -976,8 +949,8 @@ gtk_button_set_icon_name (GtkButton  *button,
 
       child = gtk_image_new_from_icon_name (icon_name);
       gtk_container_add (GTK_CONTAINER (button), child);
-      gtk_style_context_remove_class (context, "text-button");
-      gtk_style_context_add_class (context, "image-button");
+      gtk_widget_remove_css_class (GTK_WIDGET (button), "text-button");
+      gtk_widget_add_css_class (GTK_WIDGET (button), "image-button");
     }
   else
     {

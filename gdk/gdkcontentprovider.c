@@ -199,7 +199,7 @@ gdk_content_provider_class_init (GdkContentProviderClass *class)
                         G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GdkContentProvider:content-changed:
+   * GdkContentProvider::content-changed:
    *
    * Emitted whenever the content provided by this provider has changed.
    */
@@ -347,7 +347,7 @@ gdk_content_provider_write_mime_type_finish (GdkContentProvider  *provider,
  * @error: a #GError location to store the error occurring, or %NULL to 
  *     ignore.
  *
- * Gets the convtents of @provider stored in @value.
+ * Gets the contents of @provider stored in @value.
  *
  * The @value will have been initialized to the #GType the value should be
  * provided in. This given #GType does not need to be listed in the formats

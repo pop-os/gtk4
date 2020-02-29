@@ -127,6 +127,28 @@ enum {
   CHILD2
 };
 
+typedef struct _GtkPanedClass   GtkPanedClass;
+
+struct _GtkPaned
+{
+  GtkContainer parent_instance;
+};
+
+struct _GtkPanedClass
+{
+  GtkContainerClass parent_class;
+
+  gboolean (* cycle_child_focus)   (GtkPaned      *paned,
+                                    gboolean       reverse);
+  gboolean (* toggle_handle_focus) (GtkPaned      *paned);
+  gboolean (* move_handle)         (GtkPaned      *paned,
+                                    GtkScrollType  scroll);
+  gboolean (* cycle_handle_focus)  (GtkPaned      *paned,
+                                    gboolean       reverse);
+  gboolean (* accept_position)     (GtkPaned      *paned);
+  gboolean (* cancel_position)     (GtkPaned      *paned);
+};
+
 typedef struct
 {
   GtkPaned       *first_paned;
@@ -205,9 +227,11 @@ static void     gtk_paned_size_allocate         (GtkWidget           *widget,
                                                  int                  width,
                                                  int                  height,
                                                  int                  baseline);
-static void     gtk_paned_unrealize             (GtkWidget        *widget);
-static gboolean gtk_paned_focus                 (GtkWidget        *widget,
-						 GtkDirectionType  direction);
+static void     gtk_paned_unrealize             (GtkWidget           *widget);
+static gboolean gtk_paned_focus                 (GtkWidget           *widget,
+						 GtkDirectionType     direction);
+static void     gtk_paned_css_changed           (GtkWidget           *widget,
+                                                 GtkCssStyleChange   *change);
 static void     gtk_paned_add                   (GtkContainer     *container,
 						 GtkWidget        *widget);
 static void     gtk_paned_remove                (GtkContainer     *container,
@@ -332,6 +356,7 @@ gtk_paned_class_init (GtkPanedClass *class)
   widget_class->size_allocate = gtk_paned_size_allocate;
   widget_class->unrealize = gtk_paned_unrealize;
   widget_class->focus = gtk_paned_focus;
+  widget_class->css_changed = gtk_paned_css_changed;
 
   container_class->add = gtk_paned_add;
   container_class->remove = gtk_paned_remove;
@@ -1304,10 +1329,7 @@ gtk_paned_render_handle (GtkGizmo    *gizmo,
   height = gtk_widget_get_height (widget);
 
   if (width > 0 && height > 0)
-    gtk_css_style_snapshot_icon (style,
-                                 snapshot,
-                                 width, height,
-                                 GTK_CSS_IMAGE_BUILTIN_PANE_SEPARATOR);
+    gtk_css_style_snapshot_icon (style, snapshot, width, height);
 }
 
 static void
@@ -1328,7 +1350,6 @@ gtk_paned_init (GtkPaned *paned)
   GtkPanedPrivate *priv = gtk_paned_get_instance_private (paned);
   GtkGesture *gesture;
 
-  gtk_widget_set_has_surface (GTK_WIDGET (paned), FALSE);
   gtk_widget_set_can_focus (GTK_WIDGET (paned), TRUE);
   gtk_widget_set_overflow (GTK_WIDGET (paned), GTK_OVERFLOW_HIDDEN);
 
@@ -1442,6 +1463,24 @@ gtk_paned_focus (GtkWidget        *widget,
   gtk_widget_set_can_focus (widget, TRUE);
 
   return retval;
+}
+
+static void
+gtk_paned_css_changed (GtkWidget         *widget,
+                       GtkCssStyleChange *change)
+{
+  GTK_WIDGET_CLASS (gtk_paned_parent_class)->css_changed (widget, change);
+
+  if (change == NULL ||
+      gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_ICON_SIZE))
+    {
+      gtk_widget_queue_resize (widget);
+    }
+  else if (gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_ICON_TEXTURE) ||
+           gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_ICON_REDRAW))
+    {
+      gtk_widget_queue_draw (widget);
+    }
 }
 
 /**
@@ -1825,8 +1864,8 @@ paned_get_focus_widget (GtkPaned *paned)
 {
   GtkWidget *toplevel;
 
-  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (paned));
-  if (gtk_widget_is_toplevel (toplevel))
+  toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (paned)));
+  if (GTK_IS_WINDOW (toplevel))
     return gtk_window_get_focus (GTK_WINDOW (toplevel));
 
   return NULL;
@@ -2378,11 +2417,9 @@ gtk_paned_set_wide_handle (GtkPaned *paned,
   if (old_wide != wide)
     {
       if (wide)
-        gtk_style_context_add_class (gtk_widget_get_style_context (priv->handle_widget),
-                                     GTK_STYLE_CLASS_WIDE);
+        gtk_widget_add_css_class (priv->handle_widget, GTK_STYLE_CLASS_WIDE);
       else
-        gtk_style_context_remove_class (gtk_widget_get_style_context (priv->handle_widget),
-                                        GTK_STYLE_CLASS_WIDE);
+        gtk_widget_remove_css_class (priv->handle_widget, GTK_STYLE_CLASS_WIDE);
 
       g_object_notify_by_pspec (G_OBJECT (paned), paned_props[PROP_WIDE_HANDLE]);
     }
@@ -2403,6 +2440,5 @@ gtk_paned_get_wide_handle (GtkPaned *paned)
 
   g_return_val_if_fail (GTK_IS_PANED (paned), FALSE);
 
-  return gtk_style_context_has_class (gtk_widget_get_style_context (priv->handle_widget),
-                                      GTK_STYLE_CLASS_WIDE);
+  return gtk_widget_has_css_class (priv->handle_widget, GTK_STYLE_CLASS_WIDE);
 }

@@ -25,7 +25,7 @@
 #ifndef __GDK_WIN32_DISPLAY_H__
 #define __GDK_WIN32_DISPLAY_H__
 
-#if !defined (__GDKWIN32_H_INSIDE__) && !defined (GDK_COMPILATION)
+#if !defined (__GDKWIN32_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gdk/gdkwin32.h> can be included directly."
 #endif
 
@@ -35,7 +35,7 @@
 
 G_BEGIN_DECLS
 
-#ifdef GDK_COMPILATION
+#ifdef GTK_COMPILATION
 typedef struct _GdkWin32Display GdkWin32Display;
 #else
 typedef GdkDisplay GdkWin32Display;
@@ -100,6 +100,10 @@ GDK_AVAILABLE_IN_ALL
 void       gdk_win32_display_remove_filter       (GdkWin32Display                 *display,
                                                   GdkWin32MessageFilterFunc        function,
                                                   gpointer                         data);
+
+GDK_AVAILABLE_IN_ALL
+GdkMonitor * gdk_win32_display_get_primary_monitor (GdkDisplay *display);
+
 
 G_END_DECLS
 

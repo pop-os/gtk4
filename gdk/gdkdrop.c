@@ -448,7 +448,10 @@ gdk_drop_get_surface (GdkDrop *self)
  * Returns the possible actions for this #GdkDrop. If this value
  * contains multiple actions - ie gdk_drag_action_is_unique()
  * returns %FALSE for the result - gdk_drag_finish() must choose
- * the action to use when accepting the drop.
+ * the action to use when accepting the drop. This will only
+ * happen if you passed %GDK_ACTION_ASK as one of the possible
+ * actions in gdk_drag_status(). %GDK_ACTION_ASK itself will not
+ * be included in the actions returned by this function.
  *
  * This value may change over the lifetime of the #GdkDrop both
  * as a response to source side actions as well as to calls to
@@ -938,6 +941,9 @@ gdk_drop_emit_motion_event (GdkDrop  *self,
 {
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
   GdkEvent *event;
+  int x, y;
+
+  gdk_surface_get_origin (priv->surface, &x, &y);
 
   event = gdk_event_new (GDK_DRAG_MOTION);
   event->any.surface = g_object_ref (priv->surface);
@@ -945,6 +951,8 @@ gdk_drop_emit_motion_event (GdkDrop  *self,
   event->dnd.time = time;
   event->dnd.x_root = x_root;
   event->dnd.y_root = y_root;
+  event->dnd.x = x_root - x;
+  event->dnd.y = y_root - y;
   gdk_event_set_device (event, priv->device);
 
   gdk_drop_do_emit_event (event, dont_queue);
@@ -976,6 +984,9 @@ gdk_drop_emit_drop_event (GdkDrop  *self,
 {
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
   GdkEvent *event;
+  int x, y;
+
+  gdk_surface_get_origin (priv->surface, &x, &y);
 
   event = gdk_event_new (GDK_DROP_START);
   event->any.surface = g_object_ref (priv->surface);
@@ -983,8 +994,37 @@ gdk_drop_emit_drop_event (GdkDrop  *self,
   event->dnd.time = time;
   event->dnd.x_root = x_root;
   event->dnd.y_root = y_root;
+  event->dnd.x = x_root - x;
+  event->dnd.y = y_root - y;
   gdk_event_set_device (event, priv->device);
 
   gdk_drop_do_emit_event (event, dont_queue);
+}
+
+/**
+ * gdk_drop_has_value:
+ * @self: a #GdkDrop
+ * @type: the type to check
+ *
+ * Returns whether calling gdk_drop_read_value_async() for @type
+ * can succeed.
+ *
+ * Returns: %TRUE if the data can be deserialized to the given type
+ */ 
+gboolean
+gdk_drop_has_value (GdkDrop *self,
+                    GType    type)
+{
+  GdkContentFormats *formats;
+  gboolean ret;
+
+  formats = gdk_content_formats_ref (gdk_drop_get_formats (self));
+  formats = gdk_content_formats_union_deserialize_gtypes (formats);
+
+  ret = gdk_content_formats_contain_gtype (formats, type);
+
+  gdk_content_formats_unref (formats);
+
+  return ret;
 }
 

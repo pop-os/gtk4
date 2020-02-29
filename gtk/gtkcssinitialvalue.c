@@ -64,7 +64,7 @@ gtk_css_value_initial_compute (GtkCssValue      *value,
     case GTK_CSS_PROPERTY_FONT_FAMILY:
       settings = gtk_style_provider_get_settings (provider);
       if (settings && gtk_settings_get_font_family (settings) != NULL)
-        return _gtk_css_array_value_new (_gtk_css_string_value_new (gtk_settings_get_font_family (settings)));
+        return _gtk_css_string_value_new (gtk_settings_get_font_family (settings));
       break;
 
     default:
@@ -102,6 +102,7 @@ gtk_css_value_initial_print (const GtkCssValue *value,
 }
 
 static const GtkCssValueClass GTK_CSS_VALUE_INITIAL = {
+  "GtkCssInitialValue",
   gtk_css_value_initial_free,
   gtk_css_value_initial_compute,
   gtk_css_value_initial_equal,
@@ -123,4 +124,16 @@ GtkCssValue *
 _gtk_css_initial_value_get (void)
 {
   return &initial;
+}
+GtkCssValue *
+_gtk_css_initial_value_new_compute (guint             property_id,
+                                    GtkStyleProvider *provider,
+                                    GtkCssStyle      *style,
+                                    GtkCssStyle      *parent_style)
+{
+  return gtk_css_value_initial_compute (NULL,
+                                        property_id,
+                                        provider,
+                                        style,
+                                        parent_style);
 }

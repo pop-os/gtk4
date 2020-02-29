@@ -28,7 +28,7 @@
 
 #include "gtkaccelgroup.h"
 #include "gtkaccelgroupprivate.h"
-#include "gtkaccellabel.h"
+#include "gtkaccellabelprivate.h"
 #include "gtkaccelmapprivate.h"
 #include "gtkintl.h"
 #include "gtkmarshalers.h"
@@ -1295,9 +1295,9 @@ gtk_accelerator_parse_with_keycode (const gchar     *accelerator,
               last_ch = *accelerator;
               while (last_ch && last_ch != '>')
                 {
-                  last_ch = *accelerator;
                   accelerator += 1;
                   len -= 1;
+                  last_ch = *accelerator;
                 }
             }
         }

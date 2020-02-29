@@ -23,7 +23,7 @@
 #error "Only <gtk/gtk.h> can be included directly."
 #endif
 
-#include <gtk/gtkapplication.h>
+#include <gtk/gtkbuilderscope.h>
 #include <gtk/gtkwidget.h>
 
 G_BEGIN_DECLS
@@ -63,7 +63,10 @@ typedef struct _GtkBuilderClass   GtkBuilderClass;
  * @GTK_BUILDER_ERROR_TEMPLATE_MISMATCH: The wrong type was specified in a composite class’s template XML
  * @GTK_BUILDER_ERROR_INVALID_PROPERTY: The specified property is unknown for the object class.
  * @GTK_BUILDER_ERROR_INVALID_SIGNAL: The specified signal is unknown for the object class.
- * @GTK_BUILDER_ERROR_INVALID_ID: An object id is unknown
+ * @GTK_BUILDER_ERROR_INVALID_ID: An object id is unknown.
+ * @GTK_BUILDER_ERROR_INVALID_FUNCTION: A function could not be found. This often happens
+ *     when symbols are set to be kept private. Compiling code with -rdynamic or using the
+ *     `gmodule-export-2.0` pkgconfig module can fix this problem.
  *
  * Error codes that identify various errors that can occur while using
  * #GtkBuilder.
@@ -83,34 +86,12 @@ typedef enum
   GTK_BUILDER_ERROR_TEMPLATE_MISMATCH,
   GTK_BUILDER_ERROR_INVALID_PROPERTY,
   GTK_BUILDER_ERROR_INVALID_SIGNAL,
-  GTK_BUILDER_ERROR_INVALID_ID
+  GTK_BUILDER_ERROR_INVALID_ID,
+  GTK_BUILDER_ERROR_INVALID_FUNCTION
 } GtkBuilderError;
 
 GDK_AVAILABLE_IN_ALL
 GQuark gtk_builder_error_quark (void);
-
-struct _GtkBuilder
-{
-  GObject parent_instance;
-};
-
-struct _GtkBuilderClass
-{
-  GObjectClass parent_class;
-
-  GType (* get_type_from_name) (GtkBuilder *builder,
-                                const char *type_name);
-
-  /* Padding for future expansion */
-  void (*_gtk_reserved1) (void);
-  void (*_gtk_reserved2) (void);
-  void (*_gtk_reserved3) (void);
-  void (*_gtk_reserved4) (void);
-  void (*_gtk_reserved5) (void);
-  void (*_gtk_reserved6) (void);
-  void (*_gtk_reserved7) (void);
-  void (*_gtk_reserved8) (void);
-};
 
 GDK_AVAILABLE_IN_ALL
 GType        gtk_builder_get_type                (void) G_GNUC_CONST;
@@ -156,17 +137,20 @@ void         gtk_builder_expose_object           (GtkBuilder    *builder,
                                                   const gchar   *name,
                                                   GObject       *object);
 GDK_AVAILABLE_IN_ALL
-void         gtk_builder_connect_signals         (GtkBuilder    *builder,
-						  gpointer       user_data);
+GObject *    gtk_builder_get_current_object      (GtkBuilder    *builder);
 GDK_AVAILABLE_IN_ALL
-void         gtk_builder_connect_signals_full    (GtkBuilder    *builder,
-                                                  GtkBuilderConnectFunc func,
-						  gpointer       user_data);
+void         gtk_builder_set_current_object      (GtkBuilder    *builder,
+                                                  GObject       *current_object);
 GDK_AVAILABLE_IN_ALL
 void         gtk_builder_set_translation_domain  (GtkBuilder   	*builder,
                                                   const gchar  	*domain);
 GDK_AVAILABLE_IN_ALL
 const gchar* gtk_builder_get_translation_domain  (GtkBuilder   	*builder);
+GDK_AVAILABLE_IN_ALL
+GtkBuilderScope *gtk_builder_get_scope           (GtkBuilder    *builder);
+GDK_AVAILABLE_IN_ALL
+void         gtk_builder_set_scope               (GtkBuilder    *builder,
+                                                  GtkBuilderScope *scope);
 GDK_AVAILABLE_IN_ALL
 GType        gtk_builder_get_type_from_name      (GtkBuilder   	*builder,
                                                   const char   	*type_name);
@@ -192,24 +176,12 @@ GtkBuilder * gtk_builder_new_from_string         (const gchar   *string,
                                                   gssize         length);
 
 GDK_AVAILABLE_IN_ALL
-void         gtk_builder_add_callback_symbol     (GtkBuilder    *builder,
-						  const gchar   *callback_name,
-						  GCallback      callback_symbol);
-GDK_AVAILABLE_IN_ALL
-void         gtk_builder_add_callback_symbols    (GtkBuilder    *builder,
-						  const gchar   *first_callback_name,
-						  GCallback      first_callback_symbol,
-						  ...) G_GNUC_NULL_TERMINATED;
-GDK_AVAILABLE_IN_ALL
-GCallback    gtk_builder_lookup_callback_symbol  (GtkBuilder    *builder,
-						  const gchar   *callback_name);
+GClosure *   gtk_builder_create_closure          (GtkBuilder    *builder,
+                                                  const char    *function_name,
+                                                  GtkBuilderClosureFlags flags,
+                                                  GObject       *object,
+                                                  GError       **error);
 
-GDK_AVAILABLE_IN_ALL
-void         gtk_builder_set_application         (GtkBuilder     *builder,
-                                                  GtkApplication *application);
-
-GDK_AVAILABLE_IN_ALL
-GtkApplication * gtk_builder_get_application     (GtkBuilder     *builder);
 
 
 /**

@@ -29,6 +29,7 @@
 #include "gtkplacesviewrowprivate.h"
 #include "gtktypebuiltins.h"
 #include "gtkeventcontrollerkey.h"
+#include "gtkpopovermenu.h"
 
 /*
  * SECTION:gtkplacesview
@@ -85,6 +86,8 @@ struct _GtkPlacesViewPrivate
   GtkListStore                  *completion_store;
 
   GCancellable                  *networks_fetching_cancellable;
+
+  GtkPlacesViewRow              *row_for_action;
 
   guint                          local_only : 1;
   guint                          should_open_location : 1;
@@ -311,11 +314,11 @@ get_toplevel (GtkWidget *widget)
 {
   GtkWidget *toplevel;
 
-  toplevel = gtk_widget_get_toplevel (widget);
-  if (!gtk_widget_is_toplevel (toplevel))
-    return NULL;
-  else
+  toplevel = GTK_WIDGET (gtk_widget_get_root (widget));
+  if (GTK_IS_WINDOW (toplevel))
     return GTK_WINDOW (toplevel);
+  else
+    return NULL;
 }
 
 static void
@@ -398,6 +401,8 @@ gtk_places_view_destroy (GtkWidget *widget)
   g_cancellable_cancel (priv->cancellable);
   g_cancellable_cancel (priv->networks_fetching_cancellable);
 
+  g_clear_pointer (&priv->server_adresses_popover, gtk_widget_unparent);
+
   GTK_WIDGET_CLASS (gtk_places_view_parent_class)->destroy (widget);
 }
 
@@ -424,6 +429,17 @@ gtk_places_view_finalize (GObject *object)
 }
 
 static void
+gtk_places_view_dispose (GObject *object)
+{
+  GtkPlacesView *self = (GtkPlacesView *)object;
+  GtkPlacesViewPrivate *priv = gtk_places_view_get_instance_private (self);
+
+  g_clear_pointer (&priv->popup_menu, gtk_widget_unparent);
+
+  G_OBJECT_CLASS (gtk_places_view_parent_class)->dispose (object);
+}
+
+static void
 gtk_places_view_get_property (GObject    *object,
                               guint       prop_id,
                               GValue     *value,
@@ -439,6 +455,10 @@ gtk_places_view_get_property (GObject    *object,
 
     case PROP_LOADING:
       g_value_set_boolean (value, gtk_places_view_get_loading (self));
+      break;
+
+    case PROP_OPEN_FLAGS:
+      g_value_set_flags (value, gtk_places_view_get_open_flags (self));
       break;
 
     case PROP_FETCHING_NETWORKS:
@@ -462,6 +482,10 @@ gtk_places_view_set_property (GObject      *object,
     {
     case PROP_LOCAL_ONLY:
       gtk_places_view_set_local_only (self, g_value_get_boolean (value));
+      break;
+
+    case PROP_OPEN_FLAGS:
+      gtk_places_view_set_open_flags (self, g_value_get_flags (value));
       break;
 
     default:
@@ -581,7 +605,7 @@ populate_servers (GtkPlacesView *view)
       gtk_widget_set_hexpand (label, TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0.0);
       gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
-      gtk_style_context_add_class (gtk_widget_get_style_context (label), "dim-label");
+      gtk_widget_add_css_class (label, "dim-label");
       gtk_container_add (GTK_CONTAINER (grid), label);
 
       /* remove button */
@@ -589,7 +613,7 @@ populate_servers (GtkPlacesView *view)
       gtk_widget_set_halign (button, GTK_ALIGN_END);
       gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
       gtk_button_set_relief (GTK_BUTTON (button), GTK_RELIEF_NONE);
-      gtk_style_context_add_class (gtk_widget_get_style_context (button), "sidebar-button");
+      gtk_widget_add_css_class (button, "sidebar-button");
       gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 2);
 
       gtk_container_add (GTK_CONTAINER (row), grid);
@@ -1241,7 +1265,21 @@ server_mount_ready_cb (GObject      *source_file,
       gtk_editable_set_text (GTK_EDITABLE (priv->address_entry), "");
 
       if (priv->should_open_location)
-        emit_open_location (view, location, priv->open_flags);
+        {
+          GMount *mount;
+          GFile *root;
+
+          mount = g_file_find_enclosing_mount (location, priv->cancellable, NULL);
+          if (mount)
+            {
+              root = g_mount_get_default_location (mount);
+
+              emit_open_location (view, root, priv->open_flags);
+
+              g_object_unref (root);
+              g_object_unref (mount);
+            }
+        }
     }
 
   update_places (view);
@@ -1402,7 +1440,7 @@ unmount_mount (GtkPlacesView *view,
   GtkWidget *toplevel;
 
   priv = gtk_places_view_get_instance_private (view);
-  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (view));
+  toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (view)));
 
   g_cancellable_cancel (priv->cancellable);
   g_clear_object (&priv->cancellable);
@@ -1440,7 +1478,7 @@ mount_server (GtkPlacesView *view,
     return;
 
   priv->cancellable = g_cancellable_new ();
-  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (view));
+  toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (view)));
   operation = gtk_mount_operation_new (GTK_WINDOW (toplevel));
 
   priv->should_pulse_entry = TRUE;
@@ -1479,7 +1517,7 @@ mount_volume (GtkPlacesView *view,
   GtkWidget *toplevel;
 
   priv = gtk_places_view_get_instance_private (view);
-  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (view));
+  toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (view)));
   operation = gtk_mount_operation_new (GTK_WINDOW (toplevel));
 
   g_cancellable_cancel (priv->cancellable);
@@ -1505,58 +1543,41 @@ mount_volume (GtkPlacesView *view,
   g_object_unref (operation);
 }
 
-/* Callback used when the file list's popup menu is detached */
 static void
-popup_menu_detach_cb (GtkWidget *attach_widget,
-                      GtkMenu   *menu)
+open_cb (GtkWidget  *widget,
+         const char *action_name,
+         GVariant   *parameter)
 {
-  GtkPlacesViewPrivate *priv;
+  GtkPlacesView *self = GTK_PLACES_VIEW (widget);
+  GtkPlacesViewPrivate *priv = gtk_places_view_get_instance_private (self);
+  GtkPlacesOpenFlags flags = GTK_PLACES_OPEN_NORMAL;
 
-  priv = gtk_places_view_get_instance_private (GTK_PLACES_VIEW (attach_widget));
-  priv->popup_menu = NULL;
+  if (priv->row_for_action == NULL)
+    return;
+
+  if (strcmp (action_name, "location.open") == 0)
+    flags = GTK_PLACES_OPEN_NORMAL;
+  else if (strcmp (action_name, "location.open-tab") == 0)
+    flags = GTK_PLACES_OPEN_NEW_TAB;
+  else if (strcmp (action_name, "location.open-window") == 0)
+    flags = GTK_PLACES_OPEN_NEW_WINDOW;
+
+  activate_row (self, priv->row_for_action, flags);
 }
 
 static void
-open_cb (GtkMenuItem      *item,
-         GtkPlacesViewRow *row)
+mount_cb (GtkWidget  *widget,
+          const char *action_name,
+          GVariant   *parameter)
 {
-  GtkPlacesView *self;
-
-  self = GTK_PLACES_VIEW (gtk_widget_get_ancestor (GTK_WIDGET (row), GTK_TYPE_PLACES_VIEW));
-  activate_row (self, row, GTK_PLACES_OPEN_NORMAL);
-}
-
-static void
-open_in_new_tab_cb (GtkMenuItem      *item,
-                    GtkPlacesViewRow *row)
-{
-  GtkPlacesView *self;
-
-  self = GTK_PLACES_VIEW (gtk_widget_get_ancestor (GTK_WIDGET (row), GTK_TYPE_PLACES_VIEW));
-  activate_row (self, row, GTK_PLACES_OPEN_NEW_TAB);
-}
-
-static void
-open_in_new_window_cb (GtkMenuItem      *item,
-                       GtkPlacesViewRow *row)
-{
-  GtkPlacesView *self;
-
-  self = GTK_PLACES_VIEW (gtk_widget_get_ancestor (GTK_WIDGET (row), GTK_TYPE_PLACES_VIEW));
-  activate_row (self, row, GTK_PLACES_OPEN_NEW_WINDOW);
-}
-
-static void
-mount_cb (GtkMenuItem      *item,
-          GtkPlacesViewRow *row)
-{
-  GtkPlacesViewPrivate *priv;
-  GtkWidget *view;
+  GtkPlacesView *self = GTK_PLACES_VIEW (widget);
+  GtkPlacesViewPrivate *priv = gtk_places_view_get_instance_private (self);
   GVolume *volume;
 
-  view = gtk_widget_get_ancestor (GTK_WIDGET (row), GTK_TYPE_PLACES_VIEW);
-  priv = gtk_places_view_get_instance_private (GTK_PLACES_VIEW (view));
-  volume = gtk_places_view_row_get_volume (row);
+  if (priv->row_for_action == NULL)
+    return;
+
+  volume = gtk_places_view_row_get_volume (priv->row_for_action);
 
   /*
    * When the mount item is activated, it's expected that
@@ -1565,23 +1586,27 @@ mount_cb (GtkMenuItem      *item,
    */
   priv->should_open_location = FALSE;
 
-  gtk_places_view_row_set_busy (row, TRUE);
-  mount_volume (GTK_PLACES_VIEW (view), volume);
+  gtk_places_view_row_set_busy (priv->row_for_action, TRUE);
+  mount_volume (self, volume);
 }
 
 static void
-unmount_cb (GtkMenuItem      *item,
-            GtkPlacesViewRow *row)
+unmount_cb (GtkWidget  *widget,
+            const char *action_name,
+            GVariant   *parameter)
 {
-  GtkWidget *view;
+  GtkPlacesView *self = GTK_PLACES_VIEW (widget);
+  GtkPlacesViewPrivate *priv = gtk_places_view_get_instance_private (self);
   GMount *mount;
 
-  view = gtk_widget_get_ancestor (GTK_WIDGET (row), GTK_TYPE_PLACES_VIEW);
-  mount = gtk_places_view_row_get_mount (row);
+  if (priv->row_for_action == NULL)
+    return;
 
-  gtk_places_view_row_set_busy (row, TRUE);
+  mount = gtk_places_view_row_get_mount (priv->row_for_action);
 
-  unmount_mount (GTK_PLACES_VIEW (view), mount);
+  gtk_places_view_row_set_busy (priv->row_for_action, TRUE);
+
+  unmount_mount (self, mount);
 }
 
 static void
@@ -1630,88 +1655,58 @@ populate_available_protocols_grid (GtkGrid *grid)
     attach_protocol_row_to_grid (grid, _("WebDAV"), _("dav:// or davs://"));
 }
 
-/* Constructs the popup menu if needed */
-static void
-build_popup_menu (GtkPlacesView    *view,
-                  GtkPlacesViewRow *row)
+static GMenuModel *
+get_menu_model (void)
 {
-  GtkPlacesViewPrivate *priv;
-  GtkWidget *item;
-  GMount *mount;
-  GFile *file;
-  gboolean is_network;
+  GMenu *menu;
+  GMenu *section;
+  GMenuItem *item;
 
-  priv = gtk_places_view_get_instance_private (view);
-  mount = gtk_places_view_row_get_mount (row);
-  file = gtk_places_view_row_get_file (row);
-  is_network = gtk_places_view_row_get_is_network (row);
+  menu = g_menu_new ();
+  section = g_menu_new ();
+  item = g_menu_item_new (_("_Open"), "location.open");
+  g_menu_append_item (section, item);
+  g_object_unref (item);
 
-  priv->popup_menu = gtk_menu_new ();
-  gtk_style_context_add_class (gtk_widget_get_style_context (priv->popup_menu),
-                               GTK_STYLE_CLASS_CONTEXT_MENU);
+  item = g_menu_item_new (_("Open in New _Tab"), "location.open-tab");
+  g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
+  g_menu_append_item (section, item);
+  g_object_unref (item);
 
-  gtk_menu_attach_to_widget (GTK_MENU (priv->popup_menu),
-                             GTK_WIDGET (view),
-                             popup_menu_detach_cb);
+  item = g_menu_item_new (_("Open in New _Window"), "location.open-window");
+  g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
+  g_menu_append_item (section, item);
+  g_object_unref (item);
 
-  /* Open item is always present */
-  item = gtk_menu_item_new_with_mnemonic (_("_Open"));
-  g_signal_connect (item,
-                    "activate",
-                    G_CALLBACK (open_cb),
-                    row);
-  gtk_menu_shell_append (GTK_MENU_SHELL (priv->popup_menu), item);
+  g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
+  g_object_unref (section);
 
-  if (priv->open_flags & GTK_PLACES_OPEN_NEW_TAB)
-    {
-      item = gtk_menu_item_new_with_mnemonic (_("Open in New _Tab"));
-      g_signal_connect (item,
-                        "activate",
-                        G_CALLBACK (open_in_new_tab_cb),
-                        row);
-      gtk_menu_shell_append (GTK_MENU_SHELL (priv->popup_menu), item);
-    }
+  section = g_menu_new ();
+  item = g_menu_item_new (_("_Disconnect"), "location.disconnect");
+  g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
+  g_menu_append_item (section, item);
+  g_object_unref (item);
 
-  if (priv->open_flags & GTK_PLACES_OPEN_NEW_WINDOW)
-    {
-      item = gtk_menu_item_new_with_mnemonic (_("Open in New _Window"));
-      g_signal_connect (item,
-                        "activate",
-                        G_CALLBACK (open_in_new_window_cb),
-                        row);
-      gtk_menu_shell_append (GTK_MENU_SHELL (priv->popup_menu), item);
-    }
+  item = g_menu_item_new (_("_Unmount"), "location.unmount");
+  g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
+  g_menu_append_item (section, item);
+  g_object_unref (item);
 
-  /*
-   * The only item that contains a file up to now is the Computer
-   * item, which cannot be mounted or unmounted.
-   */
-  if (file)
-    return;
 
-  /* Separator */
-  item = gtk_separator_menu_item_new ();
-  gtk_menu_shell_insert (GTK_MENU_SHELL (priv->popup_menu), item, -1);
+  item = g_menu_item_new (_("_Connect"), "location.connect");
+  g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
+  g_menu_append_item (section, item);
+  g_object_unref (item);
 
-  /* Mount/Unmount items */
-  if (mount)
-    {
-      item = gtk_menu_item_new_with_mnemonic (is_network ? _("_Disconnect") : _("_Unmount"));
-      g_signal_connect (item,
-                        "activate",
-                        G_CALLBACK (unmount_cb),
-                        row);
-      gtk_menu_shell_append (GTK_MENU_SHELL (priv->popup_menu), item);
-    }
-  else
-    {
-      item = gtk_menu_item_new_with_mnemonic (is_network ? _("_Connect") : _("_Mount"));
-      g_signal_connect (item,
-                        "activate",
-                        G_CALLBACK (mount_cb),
-                        row);
-      gtk_menu_shell_append (GTK_MENU_SHELL (priv->popup_menu), item);
-    }
+  item = g_menu_item_new (_("_Mount"), "location.mount");
+  g_menu_item_set_attribute (item, "hidden-when", "s", "action-disabled");
+  g_menu_append_item (section, item);
+  g_object_unref (item);
+
+  g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
+  g_object_unref (section);
+
+  return G_MENU_MODEL (menu);
 }
 
 static void
@@ -1720,15 +1715,44 @@ popup_menu (GtkPlacesViewRow *row,
 {
   GtkPlacesViewPrivate *priv;
   GtkWidget *view;
+  GMount *mount;
+  GFile *file;
+  gboolean is_network;
 
   view = gtk_widget_get_ancestor (GTK_WIDGET (row), GTK_TYPE_PLACES_VIEW);
   priv = gtk_places_view_get_instance_private (GTK_PLACES_VIEW (view));
 
-  g_clear_pointer (&priv->popup_menu, gtk_widget_destroy);
+  mount = gtk_places_view_row_get_mount (row);
+  file = gtk_places_view_row_get_file (row);
+  is_network = gtk_places_view_row_get_is_network (row);
 
-  build_popup_menu (GTK_PLACES_VIEW (view), row);
+  gtk_widget_action_set_enabled (GTK_WIDGET (view), "location.disconnect",
+                                 !file && mount && is_network);
+  gtk_widget_action_set_enabled (GTK_WIDGET (view), "location.unmount",
+                                 !file && mount && !is_network);
+  gtk_widget_action_set_enabled (GTK_WIDGET (view), "location.connect",
+                                 !file && !mount && is_network);
+  gtk_widget_action_set_enabled (GTK_WIDGET (view), "location.mount",
+                                 !file && !mount && !is_network);
+ 
+  if (!priv->popup_menu)
+    {
+      GMenuModel *model = get_menu_model ();
 
-  gtk_menu_popup_at_pointer (GTK_MENU (priv->popup_menu), (GdkEvent *) event);
+      priv->popup_menu = gtk_popover_menu_new_from_model (GTK_WIDGET (view), model);
+      gtk_popover_set_position (GTK_POPOVER (priv->popup_menu), GTK_POS_BOTTOM);
+
+      gtk_popover_set_has_arrow (GTK_POPOVER (priv->popup_menu), FALSE);
+      gtk_widget_set_halign (priv->popup_menu, GTK_ALIGN_START);
+
+      g_object_unref (model);
+    }
+
+  gtk_widget_set_halign (priv->popup_menu, GTK_ALIGN_CENTER);
+  gtk_popover_set_relative_to (GTK_POPOVER (priv->popup_menu), GTK_WIDGET (row));
+
+  priv->row_for_action = row;
+  gtk_popover_popup (GTK_POPOVER (priv->popup_menu));
 }
 
 static gboolean
@@ -1783,6 +1807,25 @@ on_key_press_event (GtkEventController *controller,
 
   return FALSE;
 }
+
+static void
+on_middle_click_row_event (GtkGestureClick *gesture,
+                           guint            n_press,
+                           double           x,
+                           double           y,
+                           GtkPlacesView   *self)
+{
+  GtkPlacesViewPrivate *priv = gtk_places_view_get_instance_private (self);
+  GtkListBoxRow *row;
+
+  if (n_press != 1)
+    return;
+
+  row = gtk_list_box_get_row_at_y (GTK_LIST_BOX (priv->listbox), y);
+  if (row != NULL && gtk_widget_is_sensitive (GTK_WIDGET (row)))
+    activate_row (self, GTK_PLACES_VIEW_ROW (row), GTK_PLACES_OPEN_NEW_TAB);
+}
+
 
 static void
 on_eject_button_clicked (GtkWidget        *widget,
@@ -1857,11 +1900,9 @@ on_address_entry_text_changed (GtkPlacesView *view)
 out:
   gtk_widget_set_sensitive (priv->connect_button, supported);
   if (scheme && !supported)
-    gtk_style_context_add_class (gtk_widget_get_style_context (priv->address_entry),
-                                 GTK_STYLE_CLASS_ERROR);
+    gtk_widget_add_css_class (priv->address_entry, GTK_STYLE_CLASS_ERROR);
   else
-    gtk_style_context_remove_class (gtk_widget_get_style_context (priv->address_entry),
-                                    GTK_STYLE_CLASS_ERROR);
+    gtk_widget_add_css_class (priv->address_entry, GTK_STYLE_CLASS_ERROR);
 
   g_free (address);
   g_free (scheme);
@@ -1907,22 +1948,9 @@ on_listbox_row_activated (GtkPlacesView    *view,
                           GtkPlacesViewRow *row,
                           GtkWidget        *listbox)
 {
-  GtkPlacesViewPrivate *priv;
-  GdkEvent *event;
-  guint button;
-  GtkPlacesOpenFlags open_flags;
+  GtkPlacesViewPrivate *priv = gtk_places_view_get_instance_private (view);
 
-  priv = gtk_places_view_get_instance_private (view);
-
-  event = gtk_get_current_event ();
-  gdk_event_get_button (event, &button);
-
-  if (gdk_event_get_event_type (event) == GDK_BUTTON_RELEASE && button == GDK_BUTTON_MIDDLE)
-    open_flags = GTK_PLACES_OPEN_NEW_TAB;
-  else
-    open_flags = priv->current_open_flags;
-
-  activate_row (view, row, open_flags);
+  activate_row (view, row, priv->current_open_flags);
 }
 
 static gboolean
@@ -1997,10 +2025,22 @@ listbox_filter_func (GtkListBoxRow *row,
                 NULL);
 
   if (name)
-    retval |= strstr (name, priv->search_query) != NULL;
+    {
+      char *lowercase_name = g_utf8_strdown (name, -1);
+
+      retval |= strstr (lowercase_name, priv->search_query) != NULL;
+
+      g_free (lowercase_name);
+    }
 
   if (path)
-    retval |= strstr (path, priv->search_query) != NULL;
+    {
+      char *lowercase_path = g_utf8_strdown (path, -1);
+
+      retval |= strstr (lowercase_path, priv->search_query) != NULL;
+
+      g_free (lowercase_path);
+    }
 
   g_free (name);
   g_free (path);
@@ -2055,15 +2095,11 @@ listbox_header_func (GtkListBoxRow *row,
           GtkWidget *header_name;
           GtkWidget *network_header_spinner;
 
-          g_object_set (label,
-                        "margin-end", 6,
-                        NULL);
+          gtk_widget_set_margin_end (label, 6);
 
           header_name = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
           network_header_spinner = gtk_spinner_new ();
-          g_object_set (network_header_spinner,
-                        "margin-end", 12,
-                        NULL);
+          gtk_widget_set_margin_end (network_header_spinner, 12);
           g_object_bind_property (GTK_PLACES_VIEW (user_data),
                                   "fetching-networks",
                                   network_header_spinner,
@@ -2076,10 +2112,8 @@ listbox_header_func (GtkListBoxRow *row,
         }
       else
         {
-          g_object_set (label,
-                        "hexpand", TRUE,
-                        "margin-end", 12,
-                        NULL);
+          gtk_widget_set_hexpand (label, TRUE);
+          gtk_widget_set_margin_end (label, 12);
           gtk_container_add (GTK_CONTAINER (header), label);
         }
 
@@ -2208,6 +2242,7 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->finalize = gtk_places_view_finalize;
+  object_class->dispose = gtk_places_view_dispose;
   object_class->constructed = gtk_places_view_constructed;
   object_class->get_property = gtk_places_view_get_property;
   object_class->set_property = gtk_places_view_set_property;
@@ -2232,10 +2267,14 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
                         G_OBJECT_CLASS_TYPE (object_class),
                         G_SIGNAL_RUN_FIRST,
                         G_STRUCT_OFFSET (GtkPlacesViewClass, open_location),
-                        NULL, NULL, NULL,
+                        NULL, NULL,
+                        _gtk_marshal_VOID__OBJECT_FLAGS,
                         G_TYPE_NONE, 2,
                         G_TYPE_OBJECT,
                         GTK_TYPE_PLACES_OPEN_FLAGS);
+  g_signal_set_va_marshaller (places_view_signals [OPEN_LOCATION],
+                              G_TYPE_FROM_CLASS (object_class),
+                              _gtk_marshal_VOID__OBJECT_FLAGSv);
 
   /*
    * GtkPlacesView::show-error-message:
@@ -2312,6 +2351,14 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, on_listbox_row_activated);
   gtk_widget_class_bind_template_callback (widget_class, on_recent_servers_listbox_row_activated);
 
+  gtk_widget_class_install_action (widget_class, "location.open", NULL, open_cb);
+  gtk_widget_class_install_action (widget_class, "location.open-tab", NULL, open_cb);
+  gtk_widget_class_install_action (widget_class, "location.open-window", NULL, open_cb);
+  gtk_widget_class_install_action (widget_class, "location.mount", NULL, mount_cb);
+  gtk_widget_class_install_action (widget_class, "location.connect", NULL, mount_cb);
+  gtk_widget_class_install_action (widget_class, "location.unmount", NULL, unmount_cb);
+  gtk_widget_class_install_action (widget_class, "location.disconnect", NULL, unmount_cb);
+
   gtk_widget_class_set_css_name (widget_class, I_("placesview"));
 }
 
@@ -2328,11 +2375,24 @@ gtk_places_view_init (GtkPlacesView *self)
   priv->path_size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
   priv->space_size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
+  gtk_widget_action_set_enabled (GTK_WIDGET (self), "location.open-tab", FALSE);
+  gtk_widget_action_set_enabled (GTK_WIDGET (self), "location.open-window", FALSE);
+
+  gtk_widget_init_template (GTK_WIDGET (self));
+
   controller = gtk_event_controller_key_new ();
   g_signal_connect (controller, "key-pressed", G_CALLBACK (on_key_press_event), self);
   gtk_widget_add_controller (GTK_WIDGET (self), controller);
 
-  gtk_widget_init_template (GTK_WIDGET (self));
+  /* We need an additional controller because GtkListBox only
+   * activates rows for GDK_BUTTON_PRIMARY clicks
+   */
+  controller = (GtkEventController *) gtk_gesture_click_new ();
+  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_BUBBLE);
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (controller), GDK_BUTTON_MIDDLE);
+  g_signal_connect (controller, "released",
+                    G_CALLBACK (on_middle_click_row_event), self);
+  gtk_widget_add_controller (priv->listbox, controller);
 
   populate_available_protocols_grid (GTK_GRID (priv->available_protocols_grid));
 }
@@ -2385,11 +2445,17 @@ gtk_places_view_set_open_flags (GtkPlacesView      *view,
 
   priv = gtk_places_view_get_instance_private (view);
 
-  if (priv->open_flags != flags)
-    {
-      priv->open_flags = flags;
-      g_object_notify_by_pspec (G_OBJECT (view), properties[PROP_OPEN_FLAGS]);
-    }
+  if (priv->open_flags == flags)
+    return;
+
+  priv->open_flags = flags;
+
+  gtk_widget_action_set_enabled (GTK_WIDGET (view), "location.open-tab",
+                                 (flags & GTK_PLACES_OPEN_NEW_TAB) != 0);
+  gtk_widget_action_set_enabled (GTK_WIDGET (view), "location.open-window",
+                                 (flags & GTK_PLACES_OPEN_NEW_WINDOW) != 0);
+
+  g_object_notify_by_pspec (G_OBJECT (view), properties[PROP_OPEN_FLAGS]);
 }
 
 /*
@@ -2453,7 +2519,7 @@ gtk_places_view_set_search_query (GtkPlacesView *view,
   if (g_strcmp0 (priv->search_query, query_text) != 0)
     {
       g_clear_pointer (&priv->search_query, g_free);
-      priv->search_query = g_strdup (query_text);
+      priv->search_query = g_utf8_strdown (query_text, -1);
 
       gtk_list_box_invalidate_filter (GTK_LIST_BOX (priv->listbox));
       gtk_list_box_invalidate_headers (GTK_LIST_BOX (priv->listbox));

@@ -14,34 +14,19 @@
         <child>
           <object class="GtkMenuButton">
             <property name="popover">thing_a</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="label">Color</property>
-                <property name="hexpand">1</property>
-              </object>
-            </child>
+            <property name="label">Color</property>
           </object>
         </child>
         <child>
           <object class="GtkMenuButton">
             <property name="popover">thing_b</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="label">Flavors</property>
-                <property name="hexpand">1</property>
-              </object>
-            </child>
+            <property name="label">Flavors</property>
           </object>
         </child>
         <child>
           <object class="GtkMenuButton">
             <property name="popover">thing_c</property>
-            <child>
-              <object class="GtkLabel">
-                <property name="label">Tools</property>
-                <property name="hexpand">1</property>
-              </object>
-            </child>
+            <property name="label">Tools</property>
           </object>
         </child>
       </object>
@@ -57,7 +42,6 @@
             <property name="action-name">win.color</property>
             <property name="action-target">&apos;red&apos;</property>
             <property name="text">Red</property>
-            <property name="inverted">1</property>
           </object>
         </child>
         <child>
@@ -65,7 +49,6 @@
             <property name="action-name">win.color</property>
             <property name="action-target">&apos;green&apos;</property>
             <property name="text">Green</property>
-            <property name="inverted">1</property>
           </object>
         </child>
         <child>
@@ -73,7 +56,6 @@
             <property name="action-name">win.color</property>
             <property name="action-target">&apos;blue&apos;</property>
             <property name="text">Blue</property>
-            <property name="inverted">1</property>
           </object>
         </child>
       </object>
@@ -119,21 +101,21 @@
           <object class="GtkModelButton">
             <property name="text">Hammer</property>
             <property name="role">check</property>
-            <signal name="clicked" handler="tool_clicked"/>
+            <signal name="clicked" handler="modelbutton_tool_clicked"/>
           </object>
         </child>
         <child>
           <object class="GtkModelButton">
             <property name="text">Screwdriver</property>
             <property name="role">check</property>
-            <signal name="clicked" handler="tool_clicked"/>
+            <signal name="clicked" handler="modelbutton_tool_clicked"/>
           </object>
         </child>
         <child>
           <object class="GtkModelButton">
             <property name="text">Drill</property>
             <property name="role">check</property>
-            <signal name="clicked" handler="tool_clicked"/>
+            <signal name="clicked" handler="modelbutton_tool_clicked"/>
           </object>
         </child>
       </object>

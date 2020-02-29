@@ -22,44 +22,15 @@
 
 G_DEFINE_TYPE (GtkCssTransientNode, gtk_css_transient_node, GTK_TYPE_CSS_NODE)
 
-static GtkWidgetPath *
-gtk_css_transient_node_create_widget_path (GtkCssNode *node)
-{
-  GtkWidgetPath *result;
-  GtkCssNode *parent;
-
-  parent = gtk_css_node_get_parent (node);
-  if (parent == NULL)
-    result = gtk_widget_path_new ();
-  else
-    result = gtk_css_node_create_widget_path (parent);
-
-  gtk_widget_path_append_type (result, gtk_css_node_get_widget_type (node));
-  gtk_css_node_declaration_add_to_widget_path (gtk_css_node_get_declaration (node), result, -1);
-  
-  return result;
-}
-
-static const GtkWidgetPath *
-gtk_css_transient_node_get_widget_path (GtkCssNode *node)
-{
-  GtkCssNode *parent;
-
-  parent = gtk_css_node_get_parent (node);
-  if (parent == NULL)
-    return NULL;
-
-  return gtk_css_node_get_widget_path (parent);
-}
-
 static GtkCssStyle *
-gtk_css_transient_node_update_style (GtkCssNode   *cssnode,
-                                     GtkCssChange  change,
-                                     gint64        timestamp,
-                                     GtkCssStyle  *style)
+gtk_css_transient_node_update_style (GtkCssNode                   *cssnode,
+                                     const GtkCountingBloomFilter *filter,
+                                     GtkCssChange                  change,
+                                     gint64                        timestamp,
+                                     GtkCssStyle                  *style)
 {
   /* This should get rid of animations */
-  return GTK_CSS_NODE_CLASS (gtk_css_transient_node_parent_class)->update_style (cssnode, change, 0, style);
+  return GTK_CSS_NODE_CLASS (gtk_css_transient_node_parent_class)->update_style (cssnode, filter, change, 0, style);
 }
 
 static void
@@ -67,8 +38,6 @@ gtk_css_transient_node_class_init (GtkCssTransientNodeClass *klass)
 {
   GtkCssNodeClass *node_class = GTK_CSS_NODE_CLASS (klass);
 
-  node_class->create_widget_path = gtk_css_transient_node_create_widget_path;
-  node_class->get_widget_path = gtk_css_transient_node_get_widget_path;
   node_class->update_style = gtk_css_transient_node_update_style;
 }
 

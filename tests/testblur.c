@@ -36,7 +36,9 @@ snapshot_blur (GtkWidget   *widget,
 
 
 static void
-gtk_blur_box_init (GtkBlurBox *box) {}
+gtk_blur_box_init (GtkBlurBox *box) {
+  box->radius = 0;
+}
 
 static void
 gtk_blur_box_class_init (GtkBlurBoxClass *klass)
@@ -70,6 +72,17 @@ value_changed_cb2 (GtkRange *range,
   g_free (text);
 }
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -77,10 +90,13 @@ main (int argc, char **argv)
   GtkWidget *blur_box;
   GtkWidget *scale;
   GtkWidget *value_label;
+  gboolean done = FALSE;
 
   gtk_init ();
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
+
   blur_box = g_object_new (gtk_blur_box_get_type (),
                            "orientation", GTK_ORIENTATION_VERTICAL,
                            "spacing", 32,
@@ -99,7 +115,7 @@ main (int argc, char **argv)
   gtk_container_add (GTK_CONTAINER (blur_box), value_label);
 
 
-  scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 10, 0.5);
+  scale = gtk_scale_new_with_range (GTK_ORIENTATION_HORIZONTAL, 0, 10, 0.05);
   gtk_widget_set_size_request (scale, 200, -1);
   gtk_widget_set_halign (scale, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (scale, GTK_ALIGN_CENTER);
@@ -107,12 +123,13 @@ main (int argc, char **argv)
   g_signal_connect (scale, "value-changed", G_CALLBACK (value_changed_cb), blur_box);
   g_signal_connect (scale, "value-changed", G_CALLBACK (value_changed_cb2), value_label);
 
-
   gtk_container_add (GTK_CONTAINER (blur_box), scale);
   gtk_container_add (GTK_CONTAINER (window), blur_box);
 
   gtk_widget_show (window);
-  gtk_main ();
+
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

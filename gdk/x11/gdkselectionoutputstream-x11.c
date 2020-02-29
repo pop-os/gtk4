@@ -44,7 +44,7 @@ struct _GdkX11SelectionOutputStreamPrivate {
   Atom xtarget;
   char *property;
   Atom xproperty;
-  const char *type;
+  char *type;
   Atom xtype;
   int format;
   gulong timestamp;
@@ -503,6 +503,7 @@ gdk_x11_selection_output_stream_invoke_close (gpointer stream)
   g_signal_handlers_disconnect_by_func (priv->display,
                                         gdk_x11_selection_output_stream_xevent,
                                         stream);
+  g_object_unref (stream);
 
   return G_SOURCE_REMOVE;
 }
@@ -512,7 +513,7 @@ gdk_x11_selection_output_stream_close (GOutputStream  *stream,
                                        GCancellable   *cancellable,
                                        GError        **error)
 {
-  g_main_context_invoke (NULL, gdk_x11_selection_output_stream_invoke_close, stream);
+  g_main_context_invoke (NULL, gdk_x11_selection_output_stream_invoke_close, g_object_ref (stream));
 
   return TRUE;
 }
@@ -563,6 +564,7 @@ gdk_x11_selection_output_stream_finalize (GObject *object)
   g_free (priv->selection);
   g_free (priv->target);
   g_free (priv->property);
+  g_free (priv->type);
 
   G_OBJECT_CLASS (gdk_x11_selection_output_stream_parent_class)->finalize (object);
 }

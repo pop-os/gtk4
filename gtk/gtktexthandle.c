@@ -16,6 +16,8 @@
  */
 
 #include "config.h"
+
+#include "gtkcssnumbervalueprivate.h"
 #include "gtkprivatetypebuiltins.h"
 #include "gtktexthandleprivate.h"
 #include "gtkmarshalers.h"
@@ -25,6 +27,7 @@
 #include "gtkwidgetprivate.h"
 #include "gtkgizmoprivate.h"
 #include "gtkrendericonprivate.h"
+#include "gtkstylecontextprivate.h"
 #include "gtkintl.h"
 
 #include <gtk/gtk.h>
@@ -89,11 +92,9 @@ _gtk_text_handle_get_size (GtkTextHandle         *handle,
   GtkStyleContext *context;
 
   context = gtk_widget_get_style_context (widget);
-
-  gtk_style_context_get (context,
-                         "min-width", width,
-                         "min-height", height,
-                         NULL);
+  
+  *width = _gtk_css_number_value_get (_gtk_style_context_peek_property (context, GTK_CSS_PROPERTY_MIN_WIDTH), 100);
+  *height = _gtk_css_number_value_get (_gtk_style_context_peek_property (context, GTK_CSS_PROPERTY_MIN_HEIGHT), 100);
 }
 
 static gint
@@ -185,8 +186,7 @@ snapshot_func (GtkGizmo    *gizmo,
   gtk_css_style_snapshot_icon (style,
                                snapshot,
                                gtk_widget_get_width (GTK_WIDGET (gizmo)),
-                               gtk_widget_get_height (GTK_WIDGET (gizmo)),
-                               GTK_CSS_IMAGE_BUILTIN_HANDLE);
+                               gtk_widget_get_height (GTK_WIDGET (gizmo)));
 }
 
 static GtkWidget *
@@ -200,7 +200,6 @@ _gtk_text_handle_ensure_widget (GtkTextHandle         *handle,
   if (!priv->windows[pos].widget)
     {
       GtkWidget *widget, *window;
-      GtkStyleContext *context;
       GtkEventController *controller;
 
       widget = gtk_gizmo_new (I_("cursor-handle"), NULL, NULL, snapshot_func, NULL);
@@ -220,16 +219,14 @@ _gtk_text_handle_ensure_widget (GtkTextHandle         *handle,
       priv->toplevel = window = gtk_widget_get_ancestor (priv->parent, GTK_TYPE_WINDOW);
       _gtk_window_add_popover (GTK_WINDOW (window), widget, priv->parent, FALSE);
 
-      context = gtk_widget_get_style_context (widget);
-      gtk_style_context_set_parent (context, gtk_widget_get_style_context (priv->parent));
       if (pos == GTK_TEXT_HANDLE_POSITION_SELECTION_END)
         {
-          gtk_style_context_add_class (context, GTK_STYLE_CLASS_BOTTOM);
+          gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_BOTTOM);
           if (priv->mode == GTK_TEXT_HANDLE_MODE_CURSOR)
-            gtk_style_context_add_class (context, GTK_STYLE_CLASS_INSERTION_CURSOR);
+            gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_INSERTION_CURSOR);
         }
       else
-        gtk_style_context_add_class (context, GTK_STYLE_CLASS_TOP);
+        gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_TOP);
     }
 
   return priv->windows[pos].widget;
@@ -616,7 +613,7 @@ _gtk_text_handle_class_init (GtkTextHandleClass *klass)
 		  G_OBJECT_CLASS_TYPE (object_class),
 		  G_SIGNAL_RUN_LAST, 0,
 		  NULL, NULL,
-                  g_cclosure_marshal_VOID__ENUM,
+                  NULL,
                   G_TYPE_NONE, 1,
                   GTK_TYPE_TEXT_HANDLE_POSITION);
   signals[DRAG_FINISHED] =
@@ -624,7 +621,7 @@ _gtk_text_handle_class_init (GtkTextHandleClass *klass)
 		  G_OBJECT_CLASS_TYPE (object_class),
 		  G_SIGNAL_RUN_LAST, 0,
 		  NULL, NULL,
-                  g_cclosure_marshal_VOID__ENUM,
+                  NULL,
                   G_TYPE_NONE, 1,
                   GTK_TYPE_TEXT_HANDLE_POSITION);
 

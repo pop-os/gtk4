@@ -736,9 +736,9 @@ move_drag_surface (GdkDrag *drag,
   g_assert (_win32_main_thread == NULL ||
             _win32_main_thread == g_thread_self ());
 
-  gdk_surface_move (drag_win32->drag_surface,
-                    x_root - drag_win32->hot_x,
-                    y_root - drag_win32->hot_y);
+  gdk_win32_surface_move (drag_win32->drag_surface,
+                          x_root - drag_win32->hot_x,
+                          y_root - drag_win32->hot_y);
   gdk_surface_raise (drag_win32->drag_surface);
 }
 
@@ -1700,7 +1700,7 @@ create_drag_surface (GdkDisplay *display)
 {
   GdkSurface *surface;
 
-  surface = gdk_surface_new_popup (display, &(GdkRectangle) { 0, 0, 100, 100 });
+  surface = gdk_surface_new_temp (display, &(GdkRectangle) { 0, 0, 100, 100 });
 
   gdk_surface_set_type_hint (surface, GDK_SURFACE_TYPE_HINT_DND);
 
@@ -1733,7 +1733,7 @@ _gdk_win32_surface_drag_begin (GdkSurface         *surface,
 
   GDK_NOTE (DND, g_print ("_gdk_win32_surface_drag_begin\n"));
 
-  gdk_device_get_position (device, &px, &px);
+  gdk_device_get_position (device, &px, &py);
   x_root = round (px) + dx;
   y_root = round (py) + dy;
 
@@ -2090,6 +2090,7 @@ gdk_drag_anim_timeout (gpointer data)
   gint64 current_time;
   double f;
   double t;
+  gint x, y;
 
   if (!frame_clock)
     return G_SOURCE_REMOVE;
@@ -2104,9 +2105,13 @@ gdk_drag_anim_timeout (gpointer data)
   t = ease_out_cubic (f);
 
   gdk_surface_show (drag->drag_surface);
-  gdk_surface_move (drag->drag_surface,
-                    drag->util_data.last_x + (drag->start_x - drag->util_data.last_x) * t - drag->hot_x,
-                    drag->util_data.last_y + (drag->start_y - drag->util_data.last_y) * t - drag->hot_y);
+  x = (drag->util_data.last_x +
+       (drag->start_x - drag->util_data.last_x) * t -
+       drag->hot_x);
+  y = (drag->util_data.last_y +
+       (drag->start_y - drag->util_data.last_y) * t -
+       drag->hot_y);
+  gdk_win32_surface_move (drag->drag_surface, x, y);
   gdk_surface_set_opacity (drag->drag_surface, 1.0 - f);
 
   return G_SOURCE_CONTINUE;

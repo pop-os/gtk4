@@ -36,8 +36,8 @@
 #include "gdk/gdkkeysyms.h"
 #include "gdk/win32/gdkwin32.h"
 #include "gtk/gtkimmodule.h"
-
-#include <pango/pango.h>
+#include "gtk/gtkstylecontextprivate.h"
+#include "gtk/gtkcssstyleprivate.h"
 
 /* avoid warning */
 #ifdef STRICT
@@ -251,13 +251,14 @@ gtk_im_context_ime_set_client_widget (GtkIMContext *context,
                                       GtkWidget    *widget)
 {
   GtkIMContextIME *context_ime;
-  GtkWidget *toplevel;
   GdkSurface *client_surface;
 
   g_return_if_fail (GTK_IS_IM_CONTEXT_IME (context));
   context_ime = GTK_IM_CONTEXT_IME (context);
-  toplevel = gtk_widget_get_toplevel (widget);
-  client_surface = gtk_widget_get_surface (toplevel);
+
+  client_surface = NULL;
+  if (widget)
+    client_surface = gtk_native_get_surface (gtk_widget_get_native (widget));
 
   if (client_surface)
     {
@@ -664,7 +665,6 @@ gtk_im_context_ime_focus_in (GtkIMContext *context)
 {
   GtkIMContextIME *context_ime = GTK_IM_CONTEXT_IME (context);
   GdkSurface *toplevel;
-  GtkWidget *widget = NULL;
   HWND hwnd;
   HIMC himc;
 
@@ -679,10 +679,10 @@ gtk_im_context_ime_focus_in (GtkIMContext *context)
   if (!himc)
     return;
 
-  toplevel = gdk_surface_get_toplevel (context_ime->client_surface);
+  toplevel = context_ime->client_surface;
   if (GDK_IS_SURFACE (toplevel))
     {
-      gdk_win32_display_add_filter (gdk_surface_get_display (toplevel),
+      gdk_win32_display_add_filter (GDK_WIN32_DISPLAY (gdk_surface_get_display (toplevel)),
                                     gtk_im_context_ime_message_filter, context_ime);
     }
   else
@@ -721,7 +721,6 @@ gtk_im_context_ime_focus_out (GtkIMContext *context)
 {
   GtkIMContextIME *context_ime = GTK_IM_CONTEXT_IME (context);
   GdkSurface *toplevel;
-  GtkWidget *widget = NULL;
   HWND hwnd;
   HIMC himc;
 
@@ -778,10 +777,10 @@ gtk_im_context_ime_focus_out (GtkIMContext *context)
     }
 
   /* remove event fileter */
-  toplevel = gdk_surface_get_toplevel (context_ime->client_surface);
+  toplevel = context_ime->client_surface;
   if (GDK_IS_SURFACE (toplevel))
     {
-      gdk_win32_display_remove_filter (gdk_surface_get_display (toplevel),
+      gdk_win32_display_remove_filter (GDK_WIN32_DISPLAY (gdk_surface_get_display (toplevel)),
                                        gtk_im_context_ime_message_filter,
                                        context_ime);
     }
@@ -870,7 +869,6 @@ gtk_im_context_ime_set_preedit_font (GtkIMContext *context)
   PangoContext *pango_context;
   PangoFont *font;
   LOGFONT *logfont;
-  GtkStyleContext *style;
   PangoFontDescription *font_desc;
 
   g_return_if_fail (GTK_IS_IM_CONTEXT_IME (context));
@@ -879,9 +877,9 @@ gtk_im_context_ime_set_preedit_font (GtkIMContext *context)
   if (!context_ime->client_surface)
     return;
 
-  widget = gtk_root_get_for_surface (context_ime->client_surface);
+  widget = GTK_WIDGET (gtk_native_get_for_surface (context_ime->client_surface));
   if (!widget)
-    return
+    return;
 
   hwnd = gdk_win32_surface_get_impl_hwnd (context_ime->client_surface);
   himc = ImmGetContext (hwnd);
@@ -924,14 +922,7 @@ gtk_im_context_ime_set_preedit_font (GtkIMContext *context)
       lang = ""; break;
     }
 
-  style = gtk_widget_get_style_context (widget);
-  gtk_style_context_save (style);
-  gtk_style_context_set_state (style, GTK_STATE_FLAG_NORMAL);
-  gtk_style_context_get (style,
-                         "font",
-                         &font_desc,
-                         NULL);
-  gtk_style_context_restore (style);
+  font_desc = gtk_css_style_get_pango_font (gtk_style_context_lookup_style (gtk_widget_get_style_context (widget)));
 
   if (lang[0])
     {
@@ -1000,7 +991,7 @@ gtk_im_context_ime_message_filter (GdkWin32Display *display,
   if (!context_ime->focus)
     return retval;
 
-  toplevel = gdk_surface_get_toplevel (context_ime->client_surface);
+  toplevel = context_ime->client_surface;
   if (gdk_win32_surface_get_impl_hwnd (toplevel) != msg->hwnd)
     return retval;
 
@@ -1026,8 +1017,7 @@ gtk_im_context_ime_message_filter (GdkWin32Display *display,
           RECT rc;
 
           hwnd_top =
-            gdk_win32_surface_get_impl_hwnd (gdk_surface_get_toplevel
-                                            (context_ime->client_surface));
+            gdk_win32_surface_get_impl_hwnd (context_ime->client_surface);
           GetWindowRect (hwnd_top, &rc);
           pt.x = wx;
           pt.y = wy;
@@ -1133,7 +1123,7 @@ get_window_position (GdkSurface *surface, gint *x, gint *y)
   *x += wx;
   *y += wy;
   parent = gdk_surface_get_parent (surface);
-  toplevel = gdk_surface_get_toplevel (surface);
+  toplevel = surface;
 
   if (parent && parent != toplevel)
     get_window_position (parent, x, y);

@@ -37,7 +37,7 @@
 #include "gtkstylecontextprivate.h"
 #include "gtkcssnumbervalueprivate.h"
 #include "gtkradiobutton.h"
-#include "gtkiconprivate.h"
+#include "gtkbuiltiniconprivate.h"
 
 
 /**
@@ -98,7 +98,6 @@ static void
 gtk_check_button_update_node_state (GtkWidget *widget)
 {
   GtkCheckButtonPrivate *priv = gtk_check_button_get_instance_private (GTK_CHECK_BUTTON (widget));
-  GtkCssImageBuiltinType image_type;
   GtkStateFlags state;
 
   if (!priv->indicator_widget)
@@ -106,17 +105,6 @@ gtk_check_button_update_node_state (GtkWidget *widget)
 
   state = gtk_widget_get_state_flags (widget);
 
-  /* XXX: This is somewhat awkward here, but there's no better
-   * way to update the icon
-   */
-  if (state & GTK_STATE_FLAG_CHECKED)
-    image_type = GTK_IS_RADIO_BUTTON (widget) ? GTK_CSS_IMAGE_BUILTIN_OPTION : GTK_CSS_IMAGE_BUILTIN_CHECK;
-  else if (state & GTK_STATE_FLAG_INCONSISTENT)
-    image_type = GTK_IS_RADIO_BUTTON (widget) ? GTK_CSS_IMAGE_BUILTIN_OPTION_INCONSISTENT : GTK_CSS_IMAGE_BUILTIN_CHECK_INCONSISTENT;
-  else
-    image_type = GTK_CSS_IMAGE_BUILTIN_NONE;
-
-  gtk_icon_set_image (GTK_ICON (priv->indicator_widget), image_type);
   gtk_widget_set_state_flags (priv->indicator_widget, state, TRUE);
 }
 
@@ -368,19 +356,19 @@ draw_indicator_changed (GtkCheckButton *check_button)
 
   if (priv->draw_indicator)
     {
-      priv->indicator_widget = gtk_icon_new ("check");
+      priv->indicator_widget = gtk_builtin_icon_new ("check");
       gtk_widget_set_halign (priv->indicator_widget, GTK_ALIGN_CENTER);
       gtk_widget_set_valign (priv->indicator_widget, GTK_ALIGN_CENTER);
       gtk_widget_set_parent (priv->indicator_widget, GTK_WIDGET (check_button));
       if (GTK_IS_RADIO_BUTTON (check_button))
         {
           gtk_css_node_remove_class (widget_node, g_quark_from_static_string ("radio"));
-          gtk_css_node_set_name (widget_node, I_("radiobutton"));
+          gtk_css_node_set_name (widget_node, g_quark_from_static_string ("radiobutton"));
         }
       else if (GTK_IS_CHECK_BUTTON (check_button))
         {
           gtk_css_node_remove_class (widget_node, g_quark_from_static_string ("check"));
-          gtk_css_node_set_name (widget_node, I_("checkbutton"));
+          gtk_css_node_set_name (widget_node, g_quark_from_static_string ("checkbutton"));
         }
     }
   else
@@ -390,12 +378,12 @@ draw_indicator_changed (GtkCheckButton *check_button)
       if (GTK_IS_RADIO_BUTTON (check_button))
         {
           gtk_css_node_add_class (widget_node, g_quark_from_static_string ("radio"));
-          gtk_css_node_set_name (widget_node, I_("button"));
+          gtk_css_node_set_name (widget_node, g_quark_from_static_string ("button"));
         }
       else if (GTK_IS_CHECK_BUTTON (check_button))
         {
           gtk_css_node_add_class (widget_node, g_quark_from_static_string ("check"));
-          gtk_css_node_set_name (widget_node, I_("button"));
+          gtk_css_node_set_name (widget_node, g_quark_from_static_string ("button"));
         }
     }
 }
@@ -405,10 +393,9 @@ gtk_check_button_init (GtkCheckButton *check_button)
 {
   GtkCheckButtonPrivate *priv = gtk_check_button_get_instance_private (check_button);
 
-
   gtk_widget_set_receives_default (GTK_WIDGET (check_button), FALSE);
 
-  gtk_style_context_remove_class (gtk_widget_get_style_context (GTK_WIDGET (check_button)), "toggle");
+  gtk_widget_remove_css_class (GTK_WIDGET (check_button), "toggle");
 
   priv->draw_indicator = TRUE;
   draw_indicator_changed (check_button);

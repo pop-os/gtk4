@@ -9,6 +9,7 @@
 
 #include <gtk/gtk.h>
 #include <stdlib.h> /* for exit() */
+#include "paintable.h"
 
 static void easter_egg_callback (GtkWidget *button, gpointer data);
 
@@ -124,28 +125,31 @@ create_tags (GtkTextBuffer *buffer)
 }
 
 static void
-insert_text (GtkTextBuffer *buffer)
+insert_text (GtkTextView *view)
 {
+  GtkWidget *widget = GTK_WIDGET (view);
+  GtkTextBuffer *buffer = gtk_text_view_get_buffer (view);
   GtkTextIter iter;
   GtkTextIter start, end;
-  GdkPixbuf *pixbuf;
-  GdkTexture *texture;
   GtkIconTheme *icon_theme;
+  GtkIconPaintable *icon;
+  GdkPaintable *nuclear;
 
-  icon_theme = gtk_icon_theme_get_default ();
-  pixbuf = gtk_icon_theme_load_icon (icon_theme,
-                                     "gtk3-demo",
-                                     32,
-                                     GTK_ICON_LOOKUP_GENERIC_FALLBACK,
-                                     NULL);
-  g_assert (pixbuf);
-  texture = gdk_texture_new_for_pixbuf (pixbuf);
+  icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (widget));
+  icon = gtk_icon_theme_lookup_icon (icon_theme,
+                                     "face-cool",
+                                     NULL,
+                                     32, 1,
+                                     gtk_widget_get_direction (widget),
+                                     0);
+  nuclear = gtk_nuclear_animation_new ();
 
   /* get start of buffer; each insertion will revalidate the
    * iterator to point to just after the inserted text.
    */
   gtk_text_buffer_get_iter_at_offset (buffer, &iter, 0);
 
+  gtk_text_buffer_begin_irreversible_action (buffer);
   gtk_text_buffer_insert (buffer, &iter,
       "The text widget can display text with all kinds of nifty attributes. "
       "It also supports multiple views of the same buffer; this demo is "
@@ -234,9 +238,11 @@ insert_text (GtkTextBuffer *buffer)
                                             "heading", NULL);
 
   gtk_text_buffer_insert (buffer, &iter, "The buffer can have images in it: ", -1);
-  gtk_text_buffer_insert_texture (buffer, &iter, texture);
-  gtk_text_buffer_insert_texture (buffer, &iter, texture);
-  gtk_text_buffer_insert_texture (buffer, &iter, texture);
+  gtk_text_buffer_insert_paintable (buffer, &iter, GDK_PAINTABLE (icon));
+  gtk_text_buffer_insert_paintable (buffer, &iter, GDK_PAINTABLE (icon));
+
+  gtk_text_buffer_insert_paintable (buffer, &iter, nuclear);
+
   gtk_text_buffer_insert (buffer, &iter, " for example.\n\n", -1);
 
   gtk_text_buffer_insert_with_tags_by_name (buffer, &iter, "Spacing. ", -1,
@@ -379,8 +385,10 @@ insert_text (GtkTextBuffer *buffer)
   gtk_text_buffer_get_bounds (buffer, &start, &end);
   gtk_text_buffer_apply_tag_by_name (buffer, "word_wrap", &start, &end);
 
-  g_object_unref (pixbuf);
-  g_object_unref (texture);
+  gtk_text_buffer_end_irreversible_action (buffer);
+
+  g_object_unref (icon);
+  g_object_unref (nuclear);
 }
 
 static gboolean
@@ -506,7 +514,7 @@ do_textview (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (sw), view2);
 
       create_tags (buffer);
-      insert_text (buffer);
+      insert_text (GTK_TEXT_VIEW (view1));
 
       attach_widgets (GTK_TEXT_VIEW (view1));
       attach_widgets (GTK_TEXT_VIEW (view2));

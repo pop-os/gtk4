@@ -26,7 +26,6 @@
 #include "gtklabel.h"
 #include "gtkstylecontext.h"
 #include "gtkrevealer.h"
-#include "gtkselection.h"
 #include "gtkintl.h"
 #include "gtkspinner.h"
 
@@ -212,7 +211,6 @@ gtk_sidebar_row_set_property (GObject      *object,
                               GParamSpec   *pspec)
 {
   GtkSidebarRow *self = GTK_SIDEBAR_ROW (object);
-  GtkStyleContext *context;
 
   switch (prop_id)
     {
@@ -353,8 +351,7 @@ gtk_sidebar_row_set_property (GObject      *object,
                                    (GtkCallback) gtk_widget_destroy,
                                    NULL);
 
-            context = gtk_widget_get_style_context (GTK_WIDGET (self));
-            gtk_style_context_add_class (context, "sidebar-placeholder-row");
+            gtk_widget_add_css_class (GTK_WIDGET (self), "sidebar-placeholder-row");
           }
 
         break;
@@ -465,6 +462,8 @@ static void
 gtk_sidebar_row_init (GtkSidebarRow *self)
 {
   gtk_widget_init_template (GTK_WIDGET (self));
+
+  gtk_widget_set_focus_on_click (GTK_WIDGET (self), FALSE);
 }
 
 static void

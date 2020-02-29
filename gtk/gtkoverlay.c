@@ -50,6 +50,9 @@
  * More complicated placement of overlays is possible by connecting
  * to the #GtkOverlay::get-child-position signal.
  *
+ * An overlay’s minimum and natural sizes are those of its main child. The sizes
+ * of overlay children are not considered when measuring these preferred sizes.
+ *
  * # GtkOverlay as GtkBuildable
  *
  * The GtkOverlay implementation of the GtkBuildable interface
@@ -71,6 +74,22 @@ enum {
 static guint signals[LAST_SIGNAL] = { 0 };
 
 static void gtk_overlay_buildable_init (GtkBuildableIface *iface);
+
+typedef struct _GtkOverlayClass    GtkOverlayClass;
+
+struct _GtkOverlay
+{
+  GtkBin parent_instance;
+};
+
+struct _GtkOverlayClass
+{
+  GtkBinClass parent_class;
+
+  gboolean (*get_child_position) (GtkOverlay    *overlay,
+                                  GtkWidget     *widget,
+                                  GtkAllocation *allocation);
+};
 
 typedef struct {
   GtkLayoutManager *layout;
@@ -300,6 +319,9 @@ gtk_overlay_class_init (GtkOverlayClass *klass)
                   G_TYPE_BOOLEAN, 2,
                   GTK_TYPE_WIDGET,
                   GDK_TYPE_RECTANGLE | G_SIGNAL_TYPE_STATIC_SCOPE);
+  g_signal_set_va_marshaller (signals[GET_CHILD_POSITION],
+                              G_TYPE_FROM_CLASS (object_class),
+                              _gtk_marshal_BOOLEAN__OBJECT_BOXEDv);
 
   gtk_widget_class_set_css_name (widget_class, I_("overlay"));
 
@@ -310,8 +332,6 @@ static void
 gtk_overlay_init (GtkOverlay *overlay)
 {
   GtkOverlayPrivate *priv = gtk_overlay_get_instance_private (overlay);
-
-  gtk_widget_set_has_surface (GTK_WIDGET (overlay), FALSE);
 
   priv->layout = gtk_widget_get_layout_manager (GTK_WIDGET (overlay));
 }

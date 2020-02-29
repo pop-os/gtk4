@@ -12,7 +12,6 @@ gdk_win32_sources = files([
   'gdkdrag-win32.c',
   'gdkdrop-win32.c',
   'gdkevents-win32.c',
-  'gdkgeometry-win32.c',
   'gdkglcontext-win32.c',
   'gdkglobals-win32.c',
   'gdkhdataoutputstream-win32.c',
@@ -51,5 +50,5 @@ gdk_win32_deps = [ # FIXME
 libgdk_win32 = static_library('gdk-win32',
   gdk_win32_sources, gdkconfig, gdkenum_h,
   include_directories: [confinc, gdkinc],
-  c_args: ['-DGDK_COMPILATION', '-DG_LOG_DOMAIN="Gdk"', '-DINSIDE_GDK_WIN32'],
+  c_args: ['-DGTK_COMPILATION', '-DG_LOG_DOMAIN="Gdk"', '-DINSIDE_GDK_WIN32'],
   dependencies: [gdk_deps, gdk_win32_deps])

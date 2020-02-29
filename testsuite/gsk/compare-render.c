@@ -4,6 +4,52 @@
 #include <stdlib.h>
 #include "reftest-compare.h"
 
+static char *arg_output_dir = NULL;
+
+static const char *
+get_output_dir (void)
+{
+  static const char *output_dir = NULL;
+  GError *error = NULL;
+  GFile *file;
+
+  if (output_dir)
+    return output_dir;
+
+  if (arg_output_dir)
+    {
+      GFile *file = g_file_new_for_commandline_arg (arg_output_dir);
+      output_dir = g_file_get_path (file);
+      g_object_unref (file);
+    }
+  else
+    {
+      output_dir = g_get_tmp_dir ();
+    }
+
+  /* Just try to create the output directory.
+   * If it already exists, that's exactly what we wanted to check,
+   * so we can happily skip that error.
+   */
+  file = g_file_new_for_path (output_dir);
+  if (!g_file_make_directory_with_parents (file, NULL, &error))
+    {
+      g_object_unref (file);
+
+      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_EXISTS))
+        {
+          g_error ("Failed to create output dir: %s", error->message);
+          g_error_free (error);
+          return NULL;
+        }
+      g_error_free (error);
+    }
+  else
+    g_object_unref (file);
+
+  return output_dir;
+}
+
 char *
 file_replace_extension (const char *old_file,
                         const char *old_ext,
@@ -30,7 +76,7 @@ get_output_file (const char *file,
   char *result, *base;
   char *name;
 
-  dir = g_get_tmp_dir ();
+  dir = get_output_dir ();
   base = g_path_get_basename (file);
   name = file_replace_extension (base, orig_ext, new_ext);
 
@@ -61,13 +107,20 @@ deserialize_error_func (const GtkCssSection *section,
 {
   char *section_str = gtk_css_section_to_string (section);
 
-  g_error ("Error at %s: %s", section_str, error->message);
+  g_print ("Error at %s: %s", section_str, error->message);
+  *((gboolean *) user_data) = FALSE;
 
   free (section_str);
 }
 
+static const GOptionEntry options[] = {
+  { "output", 0, 0, G_OPTION_ARG_FILENAME, &arg_output_dir,
+    "Directory to save image files to", "DIR" },
+  { NULL }
+};
+
 /*
- * Arguments:
+ * Non-option arguments:
  *   1) .node file to compare
  *   2) .png file to compare the rendered .node file to
  */
@@ -83,8 +136,25 @@ main (int argc, char **argv)
   GskRenderNode *node;
   const char *node_file;
   const char *png_file;
+  gboolean success = TRUE;
+  GError *error = NULL;
+  GOptionContext *context;
 
-  g_assert (argc == 3);
+  context = g_option_context_new ("NODE REF - run GSK node tests");
+  g_option_context_add_main_entries (context, options, NULL);
+  g_option_context_set_ignore_unknown_options (context, TRUE);
+
+  if (!g_option_context_parse (context, &argc, &argv, &error))
+    {
+      g_error ("Option parsing failed: %s\n", error->message);
+      return 1;
+    }
+  else if (argc != 3)
+    {
+      char *help = g_option_context_get_help (context, TRUE, NULL);
+      g_print ("%s", help);
+      return 1;
+    }
 
   gtk_init ();
 
@@ -108,12 +178,11 @@ main (int argc, char **argv)
       {
         g_print ("Could not open node file: %s\n", error->message);
         g_clear_error (&error);
-        g_test_fail ();
-        return -1;
+        return 1;
       }
 
     bytes = g_bytes_new_take (contents, len);
-    node = gsk_render_node_deserialize (bytes, deserialize_error_func, NULL);
+    node = gsk_render_node_deserialize (bytes, deserialize_error_func, &success);
     g_bytes_unref (bytes);
 
     g_assert_no_error (error);
@@ -134,15 +203,30 @@ main (int argc, char **argv)
 
   /* Load the given reference png file */
   reference_surface = cairo_image_surface_create_from_png (png_file);
-  g_assert (reference_surface != NULL);
+  if (cairo_surface_status (reference_surface))
+    {
+      g_print ("Error loading reference surface: %s\n",
+               cairo_status_to_string (cairo_surface_status (reference_surface)));
+      success = FALSE;
+    }
+  else
+    {
+      /* Now compare the two */
+      diff_surface = reftest_compare_surfaces (rendered_surface, reference_surface);
 
-  /* Now compare the two */
-  diff_surface = reftest_compare_surfaces (rendered_surface, reference_surface);
+      if (diff_surface)
+        {
+          save_image (diff_surface, node_file, ".diff.png");
+          cairo_surface_destroy (diff_surface);
+          success = FALSE;
+        }
+    }
 
   save_image (rendered_surface, node_file, ".out.png");
 
-  if (diff_surface)
-    save_image (diff_surface, node_file, ".diff.png");
+  cairo_surface_destroy (reference_surface);
+  cairo_surface_destroy (rendered_surface);
+  g_object_unref (texture);
 
-  return diff_surface == NULL ? 0 : 1;
+  return success ? 0 : 1;
 }

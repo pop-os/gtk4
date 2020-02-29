@@ -21,7 +21,7 @@
 #ifndef __GDK_DROP_H__
 #define __GDK_DROP_H__
 
-#if !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
+#if !defined (__GDK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gdk/gdk.h> can be included directly."
 #endif
 
@@ -92,6 +92,9 @@ char *                  gdk_drop_read_text_finish       (GdkDrop                
                                                          GAsyncResult           *result,
                                                          GError                **error);
 
+GDK_AVAILABLE_IN_ALL
+gboolean                gdk_drop_has_value              (GdkDrop                *self,
+                                                         GType                   type);
 
 G_END_DECLS
 

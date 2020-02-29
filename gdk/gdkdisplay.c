@@ -31,9 +31,9 @@
 #include "gdkdeviceprivate.h"
 #include "gdkdisplaymanagerprivate.h"
 #include "gdkevents.h"
-#include "gdksurfaceimpl.h"
 #include "gdkinternals.h"
 #include "gdkmonitorprivate.h"
+#include "gdkframeclockidleprivate.h"
 
 #include <math.h>
 #include <glib.h>
@@ -155,12 +155,6 @@ gdk_display_real_get_default_seat (GdkDisplay *display)
   return display->seats->data;
 }
 
-static GdkMonitor *
-gdk_display_real_get_primary_monitor (GdkDisplay *display)
-{
-  return gdk_display_get_monitor (display, 0);
-}
-
 static void
 gdk_display_class_init (GdkDisplayClass *class)
 {
@@ -171,15 +165,11 @@ gdk_display_class_init (GdkDisplayClass *class)
   object_class->get_property = gdk_display_get_property;
 
   class->get_app_launch_context = gdk_display_real_get_app_launch_context;
-  class->surface_type = GDK_TYPE_SURFACE;
-
   class->opened = gdk_display_real_opened;
   class->make_default = gdk_display_real_make_default;
   class->event_data_copy = gdk_display_real_event_data_copy;
   class->event_data_free = gdk_display_real_event_data_free;
   class->get_default_seat = gdk_display_real_get_default_seat;
-
-  class->get_primary_monitor = gdk_display_real_get_primary_monitor;
 
   /**
    * GdkDisplay:composited:
@@ -222,7 +212,7 @@ gdk_display_class_init (GdkDisplayClass *class)
                   G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GdkDisplayClass, opened),
                   NULL, NULL,
-                  g_cclosure_marshal_VOID__VOID,
+                  NULL,
                   G_TYPE_NONE, 0);
 
   /**
@@ -239,7 +229,7 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GdkDisplayClass, closed),
 		  NULL, NULL,
-                  g_cclosure_marshal_VOID__BOOLEAN,
+                  NULL,
 		  G_TYPE_NONE,
 		  1,
 		  G_TYPE_BOOLEAN);
@@ -257,7 +247,7 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  G_OBJECT_CLASS_TYPE (object_class),
 		  G_SIGNAL_RUN_LAST,
 		  0, NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL,
 		  G_TYPE_NONE, 1, GDK_TYPE_SEAT);
 
   /**
@@ -273,7 +263,7 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  G_OBJECT_CLASS_TYPE (object_class),
 		  G_SIGNAL_RUN_LAST,
 		  0, NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL,
 		  G_TYPE_NONE, 1, GDK_TYPE_SEAT);
 
   /**
@@ -289,7 +279,7 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  G_OBJECT_CLASS_TYPE (object_class),
 		  G_SIGNAL_RUN_LAST,
 		  0, NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL,
 		  G_TYPE_NONE, 1, GDK_TYPE_MONITOR);
 
   /**
@@ -305,7 +295,7 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  G_OBJECT_CLASS_TYPE (object_class),
 		  G_SIGNAL_RUN_LAST,
 		  0, NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL,
 		  G_TYPE_NONE, 1, GDK_TYPE_MONITOR);
 
   /**
@@ -336,7 +326,6 @@ static void
 free_device_grab (GdkDeviceGrabInfo *info)
 {
   g_object_unref (info->surface);
-  g_object_unref (info->native_surface);
   g_free (info);
 }
 
@@ -558,7 +547,6 @@ GdkDeviceGrabInfo *
 _gdk_display_add_device_grab (GdkDisplay       *display,
                               GdkDevice        *device,
                               GdkSurface        *surface,
-                              GdkSurface        *native_surface,
                               GdkGrabOwnership  grab_ownership,
                               gboolean          owner_events,
                               GdkEventMask      event_mask,
@@ -572,7 +560,6 @@ _gdk_display_add_device_grab (GdkDisplay       *display,
   info = g_new0 (GdkDeviceGrabInfo, 1);
 
   info->surface = g_object_ref (surface);
-  info->native_surface = g_object_ref (native_surface);
   info->serial_start = serial_start;
   info->serial_end = G_MAXULONG;
   info->owner_events = owner_events;
@@ -845,9 +832,7 @@ _gdk_display_end_device_grab (GdkDisplay *display,
     return FALSE;
 
   grab = l->data;
-  if (grab &&
-      (if_child == NULL ||
-       _gdk_surface_event_parent_of (if_child, grab->surface)))
+  if (grab && (if_child == NULL || if_child == grab->surface))
     {
       grab->serial_end = serial;
       grab->implicit_ungrab = implicit;
@@ -1329,24 +1314,19 @@ _gdk_display_event_data_free (GdkDisplay *display,
   GDK_DISPLAY_GET_CLASS (display)->event_data_free (display, event);
 }
 
-void
-gdk_display_create_surface_impl (GdkDisplay       *display,
-                                 GdkSurface       *surface,
-                                 GdkSurface       *real_parent,
-                                 GdkSurfaceAttr   *attributes)
-{
-  GDK_DISPLAY_GET_CLASS (display)->create_surface_impl (display,
-                                                        surface,
-                                                        real_parent,
-                                                        attributes);
-}
-
 GdkSurface *
-_gdk_display_create_surface (GdkDisplay *display)
+gdk_display_create_surface (GdkDisplay     *display,
+                            GdkSurfaceType  surface_type,
+                            GdkSurface     *parent,
+                            int             x,
+                            int             y,
+                            int             width,
+                            int             height)
 {
-  return g_object_new (GDK_DISPLAY_GET_CLASS (display)->surface_type,
-                       "display", display,
-                       NULL);
+  return GDK_DISPLAY_GET_CLASS (display)->create_surface (display,
+                                                          surface_type,
+                                                          parent,
+                                                          x, y, width, height);
 }
 
 /**
@@ -1601,92 +1581,6 @@ gdk_display_get_monitor (GdkDisplay *display,
 }
 
 /**
- * gdk_display_get_primary_monitor:
- * @display: a #GdkDisplay
- *
- * Gets the primary monitor for the display.
- *
- * The primary monitor is considered the monitor where the “main desktop”
- * lives. While normal application surfaces typically allow the window
- * manager to place the surfaces, specialized desktop applications
- * such as panels should place themselves on the primary monitor.
- *
- * If no monitor is the designated primary monitor, any monitor
- * (usually the first) may be returned. To make sure there is a dedicated
- * primary monitor, use gdk_monitor_is_primary() on the returned monitor.
- *
- * Returns: (transfer none): the primary monitor, or any monitor if no
- *     primary monitor is configured by the user
- */
-GdkMonitor *
-gdk_display_get_primary_monitor (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  return GDK_DISPLAY_GET_CLASS (display)->get_primary_monitor (display);
-}
-
-/**
- * gdk_display_get_monitor_at_point:
- * @display: a #GdkDisplay
- * @x: the x coordinate of the point
- * @y: the y coordinate of the point
- *
- * Gets the monitor in which the point (@x, @y) is located,
- * or a nearby monitor if the point is not in any monitor.
- *
- * Returns: (transfer none): the monitor containing the point
- */
-GdkMonitor *
-gdk_display_get_monitor_at_point (GdkDisplay *display,
-                                  int         x,
-                                  int         y)
-{
-  GdkMonitor *nearest = NULL;
-  int nearest_dist = G_MAXINT;
-  int n_monitors, i;
-
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  n_monitors = gdk_display_get_n_monitors (display);
-  for (i = 0; i < n_monitors; i++)
-    {
-      GdkMonitor *monitor;
-      GdkRectangle geometry;
-      int dist_x, dist_y, dist;
-
-      monitor = gdk_display_get_monitor (display, i);
-      gdk_monitor_get_geometry (monitor, &geometry);
-
-      if (x < geometry.x)
-        dist_x = geometry.x - x;
-      else if (geometry.x + geometry.width <= x)
-        dist_x = x - (geometry.x + geometry.width) + 1;
-      else
-        dist_x = 0;
-
-      if (y < geometry.y)
-        dist_y = geometry.y - y;
-      else if (geometry.y + geometry.height <= y)
-        dist_y = y - (geometry.y + geometry.height) + 1;
-      else
-        dist_y = 0;
-
-      dist = dist_x + dist_y;
-      if (dist < nearest_dist)
-        {
-          nearest_dist = dist;
-          nearest = monitor;
-        }
-
-      if (nearest_dist == 0)
-        break;
-    }
-
-  return nearest;
-}
-
-/**
  * gdk_display_get_monitor_at_surface:
  * @display: a #GdkDisplay
  * @surface: a #GdkSurface
@@ -1718,6 +1612,7 @@ gdk_display_get_monitor_at_surface (GdkDisplay *display,
         return best;
     }
 
+  /* the fallback implementation requires global coordinates */
   gdk_surface_get_geometry (surface, &win.x, &win.y, &win.width, &win.height);
   gdk_surface_get_origin (surface, &win.x, &win.y);
 
@@ -1739,12 +1634,7 @@ gdk_display_get_monitor_at_surface (GdkDisplay *display,
         }
     }
 
-  if (best)
-    return best;
-
-  return gdk_display_get_monitor_at_point (display,
-                                           win.x + win.width / 2,
-                                           win.y + win.height / 2);
+  return best;
 }
 
 void

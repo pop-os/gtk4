@@ -106,10 +106,12 @@ test_type (gconstpointer data)
     instance = G_OBJECT (g_object_ref (gtk_settings_get_default ()));
   else if (g_type_is_a (type, GDK_TYPE_SURFACE))
     {
-      instance = G_OBJECT (g_object_ref (gdk_surface_new_popup (display,
+      instance = G_OBJECT (g_object_ref (gdk_surface_new_temp (display,
                                                                 &(GdkRectangle) { 0, 0, 100, 100 })));
     }
-  else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL))
+  else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) ||
+           g_type_is_a (type, GTK_TYPE_NO_SELECTION) ||
+           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION))
     {
       GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
       instance = g_object_new (type,
@@ -137,6 +139,11 @@ test_type (gconstpointer data)
 
       if ((pspec->flags & G_PARAM_READABLE) == 0)
 	continue;
+
+      /* This is set via construct property */
+      if (g_type_is_a (type, GTK_TYPE_BUILDER) &&
+          strcmp (pspec->name, "scope") == 0)
+        continue;
 
       if (g_type_is_a (type, GDK_TYPE_CLIPBOARD) &&
 	  strcmp (pspec->name, "display") == 0)
@@ -255,7 +262,9 @@ G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 
 G_GNUC_END_IGNORE_DEPRECATIONS
 
-      if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) &&
+      if ((g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) ||
+           g_type_is_a (type, GTK_TYPE_NO_SELECTION) ||
+           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION)) &&
           strcmp (pspec->name, "model") == 0)
         continue;
 
@@ -406,6 +415,19 @@ G_GNUC_END_IGNORE_DEPRECATIONS
   g_type_class_unref (klass);
 }
 
+static gboolean
+dbind_warning_handler (const char     *log_domain,
+                       GLogLevelFlags  log_level,
+                       const char     *message,
+                       gpointer        user_data)
+{
+  if (strcmp (log_domain, "dbind") == 0 &&
+      log_level == (G_LOG_LEVEL_WARNING|G_LOG_FLAG_FATAL))
+    return FALSE;
+
+  return TRUE;
+}
+
 int
 main (int argc, char **argv)
 {
@@ -414,20 +436,32 @@ main (int argc, char **argv)
   GTestDBus *bus;
   GMainLoop *loop;
   gint result;
+  const char *display, *x_r_d;
 
   /* These must be set before before gtk_test_init */
   g_setenv ("GIO_USE_VFS", "local", TRUE);
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("G_ENABLE_DIAGNOSTIC", "0", TRUE);
 
-  gtk_test_init (&argc, &argv);
-  gtk_test_register_all_types();
+  /* g_test_dbus_up() helpfully clears these, so we have to re-set it */
+  display = g_getenv ("DISPLAY");
+  x_r_d = g_getenv ("XDG_RUNTIME_DIR");
 
   /* Create one test bus for all tests, as we have a lot of very small
    * and quick tests.
    */
   bus = g_test_dbus_new (G_TEST_DBUS_NONE);
   g_test_dbus_up (bus);
+
+  if (display)
+    g_setenv ("DISPLAY", display, TRUE);
+  if (x_r_d)
+    g_setenv ("XDG_RUNTIME_DIR", x_r_d, TRUE);
+
+  g_test_log_set_fatal_handler (dbind_warning_handler, NULL);
+
+  gtk_test_init (&argc, &argv);
+  gtk_test_register_all_types();
 
   otypes = gtk_test_list_all_types (NULL);
   for (i = 0; otypes[i]; i++)

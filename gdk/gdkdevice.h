@@ -18,7 +18,7 @@
 #ifndef __GDK_DEVICE_H__
 #define __GDK_DEVICE_H__
 
-#if !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
+#if !defined (__GDK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gdk/gdk.h> can be included directly."
 #endif
 
@@ -166,10 +166,6 @@ void     gdk_device_get_state    (GdkDevice         *device,
                                   GdkSurface         *surface,
                                   gdouble           *axes,
                                   GdkModifierType   *mask);
-GDK_AVAILABLE_IN_ALL
-void     gdk_device_get_position (GdkDevice *device,
-                                  double    *x,
-                                  double    *y);
 GDK_AVAILABLE_IN_ALL
 GdkSurface * gdk_device_get_surface_at_position (GdkDevice *device,
                                                  double    *win_x,

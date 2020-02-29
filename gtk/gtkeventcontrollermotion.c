@@ -31,6 +31,7 @@
 #include "gtkintl.h"
 #include "gtkprivate.h"
 #include "gtkwidgetprivate.h"
+#include "gtkmarshalers.h"
 #include "gtkeventcontrollerprivate.h"
 #include "gtkeventcontrollermotion.h"
 #include "gtktypebuiltins.h"
@@ -42,8 +43,8 @@ struct _GtkEventControllerMotion
 
   const GdkEvent *current_event;
 
-  guint is_pointer_focus       : 1;
-  guint contains_pointer_focus : 1;
+  guint is_pointer             : 1;
+  guint contains_pointer       : 1;
 };
 
 struct _GtkEventControllerMotionClass
@@ -59,8 +60,8 @@ enum {
 };
 
 enum {
-  PROP_IS_POINTER_FOCUS = 1,
-  PROP_CONTAINS_POINTER_FOCUS,
+  PROP_IS_POINTER = 1,
+  PROP_CONTAINS_POINTER,
   NUM_PROPERTIES
 };
 
@@ -88,11 +89,11 @@ update_pointer_focus (GtkEventControllerMotion *motion,
     case GDK_NOTIFY_ANCESTOR:
     case GDK_NOTIFY_NONLINEAR:
       is_pointer = enter;
-      contains_pointer = FALSE;
+      contains_pointer = enter;
       break;
     case GDK_NOTIFY_INFERIOR:
       is_pointer = enter;
-      contains_pointer = !enter;
+      contains_pointer = TRUE;
       break;
     case GDK_NOTIFY_UNKNOWN:
     default:
@@ -101,15 +102,15 @@ update_pointer_focus (GtkEventControllerMotion *motion,
     }
 
   g_object_freeze_notify (G_OBJECT (motion));
-  if (motion->is_pointer_focus != is_pointer)
+  if (motion->is_pointer != is_pointer)
     {
-      motion->is_pointer_focus = is_pointer;
-      g_object_notify (G_OBJECT (motion), "is-pointer-focus");
+      motion->is_pointer = is_pointer;
+      g_object_notify (G_OBJECT (motion), "is-pointer");
     }
-  if (motion->contains_pointer_focus != contains_pointer)
+  if (motion->contains_pointer != contains_pointer)
     {
-      motion->contains_pointer_focus = contains_pointer;
-      g_object_notify (G_OBJECT (motion), "contains-pointer-focus");
+      motion->contains_pointer = contains_pointer;
+      g_object_notify (G_OBJECT (motion), "contains-pointer");
     }
   g_object_thaw_notify (G_OBJECT (motion));
 }
@@ -181,12 +182,12 @@ gtk_event_controller_motion_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_IS_POINTER_FOCUS:
-      g_value_set_boolean (value, controller->is_pointer_focus);
+    case PROP_IS_POINTER:
+      g_value_set_boolean (value, controller->is_pointer);
       break;
 
-    case PROP_CONTAINS_POINTER_FOCUS:
-      g_value_set_boolean (value, controller->contains_pointer_focus);
+    case PROP_CONTAINS_POINTER:
+      g_value_set_boolean (value, controller->contains_pointer);
       break;
 
     default:
@@ -205,37 +206,37 @@ gtk_event_controller_motion_class_init (GtkEventControllerMotionClass *klass)
   controller_class->handle_event = gtk_event_controller_motion_handle_event;
 
   /**
-   * GtkEventControllerMotion:is-pointer-focus:
+   * GtkEventControllerMotion:is-pointer:
    *
    * Whether the pointer is in the controllers widget itself,
-   * as opposed to in a descendent widget. See
-   * #GtkEventControllerMotion:contains-pointer-focus.
+   * as opposed to in a descendent widget. See also
+   * #GtkEventControllerMotion:contains-pointer.
    *
    * When handling crossing events, this property is updated
    * before #GtkEventControllerMotion::enter or
    * #GtkEventControllerMotion::leave are emitted.
    */
-  props[PROP_IS_POINTER_FOCUS] =
-      g_param_spec_boolean ("is-pointer-focus",
-                            P_("Is Pointer Focus"),
+  props[PROP_IS_POINTER] =
+      g_param_spec_boolean ("is-pointer",
+                            P_("Is Pointer"),
                             P_("Whether the pointer is in the controllers widget"),
                             FALSE,
                             G_PARAM_READABLE);
 
   /**
-   * GtkEventControllerMotion:contains-pointer-focus:
+   * GtkEventControllerMotion:contains-pointer:
    *
-   * Whether the pointer is in a descendant of the controllers widget.
-   * See #GtkEventControllerMotion:is-pointer-focus.
+   * Whether the pointer is in the controllers widget or a descendant.
+   * See also #GtkEventControllerMotion:is-pointer.
    *
    * When handling crossing events, this property is updated
    * before #GtkEventControllerMotion::enter or
    * #GtkEventControllerMotion::leave are emitted.
    */
-  props[PROP_CONTAINS_POINTER_FOCUS] =
-      g_param_spec_boolean ("contains-pointer-focus",
-                            P_("Contains Pointer Focus"),
-                            P_("Whether the pointer is in a descendant of the controllers widget"),
+  props[PROP_CONTAINS_POINTER] =
+      g_param_spec_boolean ("contains-pointer",
+                            P_("Contains Pointer"),
+                            P_("Whether the pointer is inthe controllers widget or a descendant"),
                             FALSE,
                             G_PARAM_READABLE);
 
@@ -256,13 +257,16 @@ gtk_event_controller_motion_class_init (GtkEventControllerMotionClass *klass)
                   GTK_TYPE_EVENT_CONTROLLER_MOTION,
                   G_SIGNAL_RUN_FIRST,
                   0, NULL, NULL,
-                  NULL,
+                  _gtk_marshal_VOID__DOUBLE_DOUBLE_ENUM_ENUM,
                   G_TYPE_NONE,
                   4,
                   G_TYPE_DOUBLE,
                   G_TYPE_DOUBLE,
                   GDK_TYPE_CROSSING_MODE,
                   GDK_TYPE_NOTIFY_TYPE);
+  g_signal_set_va_marshaller (signals[ENTER],
+                              G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_VOID__DOUBLE_DOUBLE_ENUM_ENUMv);
 
   /**
    * GtkEventControllerMotion::leave:
@@ -277,11 +281,14 @@ gtk_event_controller_motion_class_init (GtkEventControllerMotionClass *klass)
                   GTK_TYPE_EVENT_CONTROLLER_MOTION,
                   G_SIGNAL_RUN_FIRST,
                   0, NULL, NULL,
-                  NULL,
+                  _gtk_marshal_VOID__ENUM_ENUM,
                   G_TYPE_NONE,
                   2,
                   GDK_TYPE_CROSSING_MODE,
                   GDK_TYPE_NOTIFY_TYPE);
+  g_signal_set_va_marshaller (signals[LEAVE],
+                              G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_VOID__ENUM_ENUMv);
 
   /**
    * GtkEventControllerMotion::motion:
@@ -296,8 +303,11 @@ gtk_event_controller_motion_class_init (GtkEventControllerMotionClass *klass)
                   GTK_TYPE_EVENT_CONTROLLER_MOTION,
                   G_SIGNAL_RUN_FIRST,
                   0, NULL, NULL,
-                  NULL,
+                  _gtk_marshal_VOID__DOUBLE_DOUBLE,
                   G_TYPE_NONE, 2, G_TYPE_DOUBLE, G_TYPE_DOUBLE);
+  g_signal_set_va_marshaller (signals[MOTION],
+                              G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_VOID__DOUBLE_DOUBLEv);
 }
 
 static void
@@ -371,3 +381,34 @@ gtk_event_controller_motion_get_pointer_target (GtkEventControllerMotion *contro
     return (GtkWidget *)gdk_event_get_related_target (controller->current_event);
 }
 
+/**
+ * gtk_event_controller_motion_contains_pointer:
+ * @self: a #GtkEventControllerMotion
+ *
+ * Returns the value of the GtkEventControllerMotion:contains-pointer property.
+ *
+ * Returns: %TRUE if a pointer is within @self or one of its children
+ */
+gboolean
+gtk_event_controller_motion_contains_pointer (GtkEventControllerMotion *self)
+{
+  g_return_val_if_fail (GTK_IS_EVENT_CONTROLLER_MOTION (self), FALSE);
+
+  return self->contains_pointer;
+}
+
+/**
+ * gtk_event_controller_motion_is_pointer:
+ * @self: a #GtkEventControllerKey
+ *
+ * Returns the value of the GtkEventControllerMotion:is-pointer property.
+ *
+ * Returns: %TRUE if a pointer is within @self but not one of its children
+ */
+gboolean
+gtk_event_controller_motion_is_pointer (GtkEventControllerMotion *self)
+{
+  g_return_val_if_fail (GTK_IS_EVENT_CONTROLLER_MOTION (self), FALSE);
+
+  return self->is_pointer;
+}

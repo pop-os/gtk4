@@ -24,7 +24,6 @@
 #include <math.h>
 
 #include "gtkcssiconthemevalueprivate.h"
-#include "gtkcssrgbavalueprivate.h"
 #include "gtksettingsprivate.h"
 #include "gtksnapshot.h"
 #include "gtkstyleproviderprivate.h"
@@ -46,84 +45,58 @@ gtk_css_image_icon_theme_snapshot (GtkCssImage *image,
                                    double       height)
 {
   GtkCssImageIconTheme *icon_theme = GTK_CSS_IMAGE_ICON_THEME (image);
-  GdkTexture *texture;
-  double texture_width, texture_height;
+  GtkIconPaintable *icon;
+  double icon_width, icon_height;
   gint size;
-  gboolean symbolic;
+  double x, y;
 
   size = floor (MIN (width, height));
   if (size <= 0)
     return;
 
   if (size == icon_theme->cached_size &&
-      icon_theme->cached_texture != NULL)
+      icon_theme->cached_icon != NULL)
     {
-      texture = icon_theme->cached_texture;
-      symbolic = icon_theme->cached_symbolic;
+      icon = icon_theme->cached_icon;
     }
   else
     {
-      GtkIconInfo *icon_info;
+      icon = gtk_icon_theme_lookup_icon (icon_theme->icon_theme,
+                                         icon_theme->name,
+                                         NULL,
+                                         size,
+                                         icon_theme->scale,
+                                         GTK_TEXT_DIR_NONE,
+                                         0);
 
-      icon_info = gtk_icon_theme_lookup_icon_for_scale (icon_theme->icon_theme,
-                                                        icon_theme->name,
-                                                        size,
-                                                        icon_theme->scale,
-                                                        GTK_ICON_LOOKUP_USE_BUILTIN);
-      if (icon_info == NULL)
-        icon_info = gtk_icon_theme_lookup_icon (icon_theme->icon_theme,
-                                                "image-missing",
-                                                size,
-                                                GTK_ICON_LOOKUP_USE_BUILTIN | GTK_ICON_LOOKUP_GENERIC_FALLBACK);
+      g_assert (icon != NULL);
 
-      g_assert (icon_info != NULL);
-
-      symbolic = gtk_icon_info_is_symbolic (icon_info);
-      texture = gtk_icon_info_load_texture (icon_info);
-
-      g_clear_object (&icon_theme->cached_texture);
+      g_clear_object (&icon_theme->cached_icon);
 
       icon_theme->cached_size = size;
-      icon_theme->cached_texture = texture;
-      icon_theme->cached_symbolic = symbolic;
-
-      g_object_unref (icon_info);
+      icon_theme->cached_icon = icon;
     }
 
-  texture_width = (double) gdk_texture_get_width (texture) / icon_theme->scale;
-  texture_height = (double) gdk_texture_get_height (texture) / icon_theme->scale;
+  icon_width = (double) MIN (gdk_paintable_get_intrinsic_width (GDK_PAINTABLE (icon)), width);
+  icon_height = (double) MIN (gdk_paintable_get_intrinsic_height (GDK_PAINTABLE (icon)), height);
 
-  if (symbolic)
+  x = (width - icon_width) / 2;
+  y = (height - icon_height) / 2;
+
+  if (x != 0 || y != 0)
     {
-      graphene_matrix_t matrix;
-      graphene_vec4_t offset;
-      GdkRGBA fg = icon_theme->color;
-      GdkRGBA sc = icon_theme->success;
-      GdkRGBA wc = icon_theme->warning;
-      GdkRGBA ec = icon_theme->error;
-
-      graphene_matrix_init_from_float (&matrix,
-          (float[16]) {
-                       sc.red - fg.red, sc.green - fg.green, sc.blue - fg.blue, 0,
-                       wc.red - fg.red, wc.green - fg.green, wc.blue - fg.blue, 0,
-                       ec.red - fg.red, ec.green - fg.green, ec.blue - fg.blue, 0,
-                       0, 0, 0, fg.alpha
-                      });
-      graphene_vec4_init (&offset, fg.red, fg.green, fg.blue, 0);
-
-      gtk_snapshot_push_color_matrix (snapshot, &matrix, &offset);
+      gtk_snapshot_save (snapshot);
+      gtk_snapshot_translate (snapshot, &GRAPHENE_POINT_INIT (x, y));
     }
-
-  gtk_snapshot_append_texture (snapshot,
-                               texture,
-                               &GRAPHENE_RECT_INIT(
-                                   (width - texture_width) / 2.0,
-                                   (height - texture_height) / 2.0,
-                                   texture_width,
-                                   texture_height
-                               ));
-  if (symbolic)
-    gtk_snapshot_pop (snapshot);
+  gtk_icon_paintable_snapshot_with_colors (icon, snapshot,
+                                           icon_width,
+                                           icon_height,
+                                           &icon_theme->color,
+                                           &icon_theme->success,
+                                           &icon_theme->warning,
+                                           &icon_theme->error);
+  if (x != 0 || y != 0)
+    gtk_snapshot_restore (snapshot);
 }
 
 static guint
@@ -176,7 +149,7 @@ gtk_css_image_icon_theme_compute (GtkCssImage      *image,
 
   copy = g_object_new (GTK_TYPE_CSS_IMAGE_ICON_THEME, NULL);
   copy->name = g_strdup (icon_theme->name);
-  copy->icon_theme = gtk_css_icon_theme_value_get_icon_theme (gtk_css_style_get_value (style, GTK_CSS_PROPERTY_ICON_THEME));
+  copy->icon_theme = gtk_css_icon_theme_value_get_icon_theme (style->core->icon_theme);
   copy->scale = gtk_style_provider_get_scale (provider);
   gtk_icon_theme_lookup_symbolic_colors (style, &copy->color, &copy->success, &copy->warning, &copy->error);
 
@@ -187,8 +160,8 @@ static gboolean
 gtk_css_image_icon_theme_equal (GtkCssImage *image1,
                                 GtkCssImage *image2)
 {
-  GtkCssImageIconTheme *icon_theme1 = GTK_CSS_IMAGE_ICON_THEME (image1);
-  GtkCssImageIconTheme *icon_theme2 = GTK_CSS_IMAGE_ICON_THEME (image2);
+  GtkCssImageIconTheme *icon_theme1 = (GtkCssImageIconTheme *) image1;
+  GtkCssImageIconTheme *icon_theme2 = (GtkCssImageIconTheme *) image2;
 
   return g_str_equal (icon_theme1->name, icon_theme2->name);
 }
@@ -201,7 +174,7 @@ gtk_css_image_icon_theme_dispose (GObject *object)
   g_free (icon_theme->name);
   icon_theme->name = NULL;
 
-  g_clear_object (&icon_theme->cached_texture);
+  g_clear_object (&icon_theme->cached_icon);
 
   G_OBJECT_CLASS (_gtk_css_image_icon_theme_parent_class)->dispose (object);
 }
@@ -225,9 +198,9 @@ _gtk_css_image_icon_theme_class_init (GtkCssImageIconThemeClass *klass)
 static void
 _gtk_css_image_icon_theme_init (GtkCssImageIconTheme *icon_theme)
 {
-  icon_theme->icon_theme = gtk_icon_theme_get_default ();
+  icon_theme->icon_theme = gtk_icon_theme_get_for_display (gdk_display_get_default ());
   icon_theme->scale = 1;
   icon_theme->cached_size = -1;
-  icon_theme->cached_texture = NULL;
+  icon_theme->cached_icon = NULL;
 }
 

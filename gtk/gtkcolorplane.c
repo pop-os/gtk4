@@ -118,8 +118,8 @@ create_texture (GtkColorPlane *plane)
   gint width, height, stride;
   guint red, green, blue;
   guint32 *data, *p;
-  gdouble h, s, v;
-  gdouble r, g, b;
+  float h, s, v;
+  float r, g, b;
   gdouble sf, vf;
   gint x, y;
 
@@ -128,6 +128,9 @@ create_texture (GtkColorPlane *plane)
 
   width = gtk_widget_get_width (widget);
   height = gtk_widget_get_height (widget);
+
+  if (width == 0 || height == 0)
+    return;
 
   g_clear_object (&plane->priv->texture);
 
@@ -397,7 +400,6 @@ gtk_color_plane_init (GtkColorPlane *plane)
 
   plane->priv = gtk_color_plane_get_instance_private (plane);
 
-  gtk_widget_set_has_surface (GTK_WIDGET (plane), FALSE);
   gtk_widget_set_can_focus (GTK_WIDGET (plane), TRUE);
 
   atk_obj = gtk_widget_get_accessible (GTK_WIDGET (plane));

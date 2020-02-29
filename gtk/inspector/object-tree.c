@@ -29,6 +29,7 @@
 
 #include "object-tree.h"
 #include "prop-list.h"
+#include "window.h"
 
 #include "gtkbuildable.h"
 #include "gtkbutton.h"
@@ -36,11 +37,11 @@
 #include "gtkcomboboxprivate.h"
 #include "gtkfilterlistmodel.h"
 #include "gtkflattenlistmodel.h"
-#include "gtkiconprivate.h"
+#include "gtkbuiltiniconprivate.h"
 #include "gtkiconview.h"
 #include "gtklabel.h"
 #include "gtklistbox.h"
-#include "gtkmenuitem.h"
+#include "gtkpopover.h"
 #include "gtksettings.h"
 #include "gtksizegroup.h"
 #include "gtktextview.h"
@@ -57,16 +58,6 @@
 #include "gtksearchentry.h"
 #include "gtkeventcontrollerkey.h"
 
-enum
-{
-  OBJECT,
-  OBJECT_TYPE,
-  OBJECT_NAME,
-  OBJECT_LABEL,
-  OBJECT_CLASSES,
-  SENSITIVE
-};
-
 
 enum
 {
@@ -74,7 +65,6 @@ enum
   OBJECT_ACTIVATED,
   LAST_SIGNAL
 };
-
 
 struct _GtkInspectorObjectTreePrivate
 {
@@ -118,14 +108,6 @@ static GObject *
 object_tree_widget_get_parent (GObject *object)
 {
   return G_OBJECT (gtk_widget_get_parent (GTK_WIDGET (object)));
-}
-
-static GObject *
-object_tree_menu_get_parent (GObject *object)
-{
-  GtkWidget *w = gtk_menu_get_attach_widget (GTK_MENU (object));
-
-  return w ? G_OBJECT (w) : NULL;
 }
 
 static GListModel *
@@ -244,12 +226,6 @@ list_model_for_properties (GObject     *object,
   result = G_LIST_MODEL (gtk_flatten_list_model_new (G_TYPE_OBJECT, G_LIST_MODEL (concat)));
   g_object_unref (concat);
   return result;
-}
-
-static GListModel *
-object_tree_menu_item_get_children (GObject *object)
-{
-  return list_model_for_properties (object, (const char *[2]) { "submenu", NULL });
 }
 
 static GListModel *
@@ -527,16 +503,6 @@ static const ObjectTreeClassFuncs object_tree_class_funcs[] = {
     object_tree_combo_box_get_children
   },
   {
-    gtk_menu_item_get_type,
-    object_tree_widget_get_parent,
-    object_tree_menu_item_get_children
-  },
-  {
-    gtk_menu_get_type,
-    object_tree_menu_get_parent,
-    object_tree_widget_get_children
-  },
-  {
     gtk_widget_get_type,
     object_tree_widget_get_parent,
     object_tree_widget_get_children
@@ -672,6 +638,11 @@ gtk_inspector_get_object_name (GObject *object)
         return id;
     }
 
+  if (GTK_IS_EVENT_CONTROLLER (object))
+    {
+      return gtk_event_controller_get_name (GTK_EVENT_CONTROLLER (object));
+    }
+
   return NULL;
 }
 
@@ -690,6 +661,7 @@ void
 gtk_inspector_object_tree_activate_object (GtkInspectorObjectTree *wt,
                                            GObject                *object)
 {
+  gtk_inspector_object_tree_select_object (wt, object);
   g_signal_emit (wt, signals[OBJECT_ACTIVATED], 0, object);
 }
 
@@ -813,6 +785,9 @@ destroy_controller (GtkEventController *controller)
   gtk_widget_remove_controller (gtk_event_controller_get_widget (controller), controller);
 }
 
+static gboolean toplevel_filter_func (gpointer item,
+                                      gpointer data);
+
 static void
 map (GtkWidget *widget)
 {
@@ -822,7 +797,7 @@ map (GtkWidget *widget)
 
   GTK_WIDGET_CLASS (gtk_inspector_object_tree_parent_class)->map (widget);
 
-  toplevel = gtk_widget_get_toplevel (widget);
+  toplevel = GTK_WIDGET (gtk_widget_get_root (widget));
 
   controller = gtk_event_controller_key_new ();
   g_object_set_data_full (G_OBJECT (toplevel), "object-controller", controller, (GDestroyNotify)destroy_controller);
@@ -837,7 +812,7 @@ unmap (GtkWidget *widget)
 {
   GtkWidget *toplevel;
 
-  toplevel = gtk_widget_get_toplevel (widget);
+  toplevel = GTK_WIDGET (gtk_widget_get_root (widget));
   g_object_set_data (G_OBJECT (toplevel), "object-controller", NULL);
 
   GTK_WIDGET_CLASS (gtk_inspector_object_tree_parent_class)->unmap (widget);
@@ -954,7 +929,6 @@ search (GtkInspectorObjectTree *wt,
           result = search_children (child, text, forward);
           if (result)
             {
-              g_print ("selecting!\n");
               gtk_inspector_object_tree_select_object (wt, result);
               g_object_unref (result);
               g_object_unref (child);
@@ -1048,13 +1022,13 @@ gtk_inspector_object_tree_create_list_widget (gpointer row_item,
       GtkWidget *title, *arrow;
 
       child = g_object_new (GTK_TYPE_BOX, "css-name", "expander", NULL);
-      
+
       title = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "css-name", "title", NULL);
       gtk_button_set_relief (GTK_BUTTON (title), GTK_RELIEF_NONE);
       g_object_bind_property (row_item, "expanded", title, "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
       gtk_container_add (GTK_CONTAINER (child), title);
 
-      arrow = gtk_icon_new ("arrow");
+      arrow = gtk_builtin_icon_new ("expander");
       gtk_container_add (GTK_CONTAINER (title), arrow);
     }
   else
@@ -1120,7 +1094,7 @@ toplevel_filter_func (gpointer item,
 }
 
 static GListModel *
-create_root_model (void)
+create_root_model (GdkDisplay *display)
 {
   GtkFilterListModel *filter;
   GtkFlattenListModel *flatten;
@@ -1133,15 +1107,14 @@ create_root_model (void)
   item = g_application_get_default ();
   if (item)
     g_list_store_append (special, item);
-  g_list_store_append (special, gtk_settings_get_default ());
+  g_list_store_append (special, gtk_settings_get_for_display (display));
   g_list_store_append (list, special);
   g_object_unref (special);
 
   filter = gtk_filter_list_model_new_for_type (G_TYPE_OBJECT);
   gtk_filter_list_model_set_filter_func (filter, 
                                          toplevel_filter_func,
-                                         g_object_ref (gdk_display_get_default ()),
-                                         g_object_unref);
+                                         display, NULL);
   gtk_filter_list_model_set_model (filter, gtk_window_get_toplevels ());
   g_list_store_append (list, filter);
   g_object_unref (filter);
@@ -1154,28 +1127,11 @@ create_root_model (void)
 static void
 gtk_inspector_object_tree_init (GtkInspectorObjectTree *wt)
 {
-  GListModel *root_model;
-
   wt->priv = gtk_inspector_object_tree_get_instance_private (wt);
   gtk_widget_init_template (GTK_WIDGET (wt));
 
   gtk_search_bar_connect_entry (GTK_SEARCH_BAR (wt->priv->search_bar),
                                 GTK_EDITABLE (wt->priv->search_entry));
-
-  root_model = create_root_model ();
-  wt->priv->tree_model = gtk_tree_list_model_new (FALSE,
-                                                  root_model,
-                                                  FALSE,
-                                                  create_model_for_object,
-                                                  NULL,
-                                                  NULL);
-  g_object_unref (root_model);
-
-  gtk_list_box_bind_model (wt->priv->list,
-                           G_LIST_MODEL (wt->priv->tree_model),
-                           gtk_inspector_object_tree_create_list_widget,
-                           wt,
-                           NULL);
 }
 
 static void
@@ -1299,3 +1255,24 @@ gtk_inspector_object_tree_select_object (GtkInspectorObjectTree *wt,
   g_object_unref (row_item);
 }
 
+void
+gtk_inspector_object_tree_set_display (GtkInspectorObjectTree *wt,
+                                       GdkDisplay *display)
+{
+  GListModel *root_model;
+
+  root_model = create_root_model (display);
+  wt->priv->tree_model = gtk_tree_list_model_new (FALSE,
+                                                  root_model,
+                                                  FALSE,
+                                                  create_model_for_object,
+                                                  NULL,
+                                                  NULL);
+  g_object_unref (root_model);
+
+  gtk_list_box_bind_model (wt->priv->list,
+                           G_LIST_MODEL (wt->priv->tree_model),
+                           gtk_inspector_object_tree_create_list_widget,
+                           wt,
+                           NULL);
+}

@@ -31,12 +31,24 @@ static GActionEntry entries[] = {
   { "action10", activate, NULL, NULL, NULL }
 };
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main (int argc, char *argv[])
 {
   GtkWidget *win;
   GtkWidget *box;
   GtkWidget *button;
+  GtkWidget *button1;
   GtkWidget *button2;
   GtkBuilder *builder;
   GMenuModel *model;
@@ -44,11 +56,13 @@ main (int argc, char *argv[])
   GtkWidget *overlay;
   GtkWidget *grid;
   GtkWidget *popover;
+  GtkWidget *popover1;
   GtkWidget *popover2;
   GtkWidget *label;
   GtkWidget *check;
   GtkWidget *combo;
   GtkWidget *header_bar;
+  gboolean done = FALSE;
 
 #ifdef GTK_SRCDIR
   g_chdir (GTK_SRCDIR);
@@ -93,13 +107,18 @@ main (int argc, char *argv[])
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
   button = gtk_menu_button_new ();
   gtk_container_add (GTK_CONTAINER (box), button);
+  button1 = gtk_menu_button_new ();
+  gtk_container_add (GTK_CONTAINER (box), button1);
   button2 = gtk_menu_button_new ();
   gtk_container_add (GTK_CONTAINER (box), button2);
 
   gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (button), model);
-  gtk_menu_button_set_use_popover (GTK_MENU_BUTTON (button), TRUE);
   popover = GTK_WIDGET (gtk_menu_button_get_popover (GTK_MENU_BUTTON (button)));
 
+  popover1 = gtk_popover_menu_new_from_model_full (NULL, model, GTK_POPOVER_MENU_NESTED);
+  gtk_menu_button_set_popover (GTK_MENU_BUTTON (button1), popover1);
+
+  g_object_unref (builder);
   builder = gtk_builder_new_from_file ("popover2.ui");
   popover2 = (GtkWidget *)gtk_builder_get_object (builder, "popover");
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (button2), popover2);
@@ -110,6 +129,7 @@ main (int argc, char *argv[])
   label = gtk_label_new ("Popover hexpand");
   check = gtk_check_button_new ();
   g_object_bind_property (check, "active", popover, "hexpand", G_BINDING_SYNC_CREATE);
+  g_object_bind_property (check, "active", popover1, "hexpand", G_BINDING_SYNC_CREATE);
   g_object_bind_property (check, "active", popover2, "hexpand", G_BINDING_SYNC_CREATE);
   gtk_grid_attach (GTK_GRID (grid), label , 1, 1, 1, 1);
   gtk_grid_attach (GTK_GRID (grid), check, 2, 1, 1, 1);
@@ -117,6 +137,7 @@ main (int argc, char *argv[])
   label = gtk_label_new ("Popover vexpand");
   check = gtk_check_button_new ();
   g_object_bind_property (check, "active", popover, "vexpand", G_BINDING_SYNC_CREATE);
+  g_object_bind_property (check, "active", popover1, "vexpand", G_BINDING_SYNC_CREATE);
   g_object_bind_property (check, "active", popover2, "vexpand", G_BINDING_SYNC_CREATE);
   gtk_grid_attach (GTK_GRID (grid), label , 1, 2, 1, 1);
   gtk_grid_attach (GTK_GRID (grid), check, 2, 2, 1, 1);
@@ -129,6 +150,7 @@ main (int argc, char *argv[])
   gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo), "right", "Right");
   gtk_combo_box_set_active (GTK_COMBO_BOX (combo), 1);
   g_object_bind_property (combo, "active", button, "direction", G_BINDING_SYNC_CREATE);
+  g_object_bind_property (combo, "active", button1, "direction", G_BINDING_SYNC_CREATE);
   g_object_bind_property (combo, "active", button2, "direction", G_BINDING_SYNC_CREATE);
   gtk_grid_attach (GTK_GRID (grid), label , 1, 3, 1, 1);
   gtk_grid_attach (GTK_GRID (grid), combo, 2, 3, 1, 1);
@@ -154,12 +176,14 @@ main (int argc, char *argv[])
   g_object_bind_property (combo, "active", box, "valign", G_BINDING_SYNC_CREATE);
   gtk_grid_attach (GTK_GRID (grid), label , 1, 5, 1, 1);
   gtk_grid_attach (GTK_GRID (grid), combo, 2, 5, 1, 1);
+  g_object_unref (builder);
 
 
-  g_signal_connect (win, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (win, "destroy", G_CALLBACK (quit_cb), &done);
   gtk_widget_show (win);
 
-  gtk_main ();
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

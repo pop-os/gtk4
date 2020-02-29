@@ -123,6 +123,8 @@
 #include "gtkprivate.h"
 #include "gtkmain.h"
 #include "gtkintl.h"
+#include "gtkmarshalers.h"
+#include "gtknative.h"
 
 typedef struct _GtkGesturePrivate GtkGesturePrivate;
 typedef struct _PointData PointData;
@@ -600,23 +602,12 @@ _gtk_gesture_cancel_all (GtkGesture *gesture)
 
 static gboolean
 gesture_within_surface (GtkGesture *gesture,
-                        GdkSurface  *parent)
+                        GdkSurface  *surface)
 {
-  GdkSurface *surface;
   GtkWidget *widget;
 
   widget = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
-  surface = gtk_widget_get_surface (widget);
-
-  while (surface)
-    {
-      if (surface == parent)
-        return TRUE;
-
-      surface = gdk_surface_get_parent (surface);
-    }
-
-  return FALSE;
+  return surface == gtk_native_get_surface (gtk_widget_get_native (widget));
 }
 
 static gboolean
@@ -890,9 +881,13 @@ gtk_gesture_class_init (GtkGestureClass *klass)
                   G_TYPE_FROM_CLASS (klass),
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GtkGestureClass, sequence_state_changed),
-                  NULL, NULL, NULL,
+                  NULL, NULL,
+                  _gtk_marshal_VOID__BOXED_ENUM,
                   G_TYPE_NONE, 2, GDK_TYPE_EVENT_SEQUENCE,
                   GTK_TYPE_EVENT_SEQUENCE_STATE);
+  g_signal_set_va_marshaller (signals[SEQUENCE_STATE_CHANGED],
+                              G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_VOID__BOXED_ENUMv);
 }
 
 static void
@@ -1340,12 +1335,19 @@ gtk_gesture_get_bounding_box_center (GtkGesture *gesture,
                                      gdouble    *x,
                                      gdouble    *y)
 {
+  const GdkEvent *last_event;
   GdkRectangle rect;
+  GdkEventSequence *sequence;
 
   g_return_val_if_fail (GTK_IS_GESTURE (gesture), FALSE);
   g_return_val_if_fail (x != NULL && y != NULL, FALSE);
 
-  if (!gtk_gesture_get_bounding_box (gesture, &rect))
+  sequence = gtk_gesture_get_last_updated_sequence (gesture);
+  last_event = gtk_gesture_get_last_event (gesture, sequence);
+
+  if (EVENT_IS_TOUCHPAD_GESTURE (last_event))
+    return gtk_gesture_get_point (gesture, sequence, x, y);
+  else if (!gtk_gesture_get_bounding_box (gesture, &rect))
     return FALSE;
 
   *x = rect.x + rect.width / 2;

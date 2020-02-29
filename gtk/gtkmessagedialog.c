@@ -106,6 +106,11 @@ typedef struct
   guint          message_type       : 3;
 } GtkMessageDialogPrivate;
 
+struct _GtkMessageDialogClass
+{
+  GtkDialogClass parent_class;
+};
+
 static void gtk_message_dialog_constructed  (GObject          *object);
 static void gtk_message_dialog_set_property (GObject          *object,
 					     guint             prop_id,
@@ -117,7 +122,6 @@ static void gtk_message_dialog_get_property (GObject          *object,
 					     GParamSpec       *pspec);
 static void gtk_message_dialog_add_buttons  (GtkMessageDialog *message_dialog,
 					     GtkButtonsType    buttons);
-static void      gtk_message_dialog_buildable_interface_init     (GtkBuildableIface *iface);
 
 enum {
   PROP_0,
@@ -131,20 +135,7 @@ enum {
   PROP_MESSAGE_AREA
 };
 
-G_DEFINE_TYPE_WITH_CODE (GtkMessageDialog, gtk_message_dialog, GTK_TYPE_DIALOG,
-                         G_ADD_PRIVATE (GtkMessageDialog)
-                         G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
-                                                gtk_message_dialog_buildable_interface_init))
-
-static GtkBuildableIface *parent_buildable_iface;
-
-static void
-gtk_message_dialog_buildable_interface_init (GtkBuildableIface *iface)
-{
-  parent_buildable_iface = g_type_interface_peek_parent (iface);
-  iface->custom_tag_start = parent_buildable_iface->custom_tag_start;
-  iface->custom_finished = parent_buildable_iface->custom_finished;
-}
+G_DEFINE_TYPE_WITH_PRIVATE (GtkMessageDialog, gtk_message_dialog, GTK_TYPE_DIALOG)
 
 static void
 gtk_message_dialog_class_init (GtkMessageDialogClass *class)
@@ -288,37 +279,6 @@ gtk_message_dialog_init (GtkMessageDialog *dialog)
 }
 
 static void
-setup_primary_label_font (GtkMessageDialog *dialog)
-{
-  GtkMessageDialogPrivate *priv = gtk_message_dialog_get_instance_private (dialog);
-
-  if (!priv->has_primary_markup)
-    {
-      PangoAttrList *attributes;
-      PangoAttribute *attr;
-
-      attributes = pango_attr_list_new ();
-
-      attr = pango_attr_weight_new (PANGO_WEIGHT_BOLD);
-      pango_attr_list_insert (attributes, attr);
-
-      if (priv->has_secondary_text)
-        {
-          attr = pango_attr_scale_new (PANGO_SCALE_LARGE);
-          pango_attr_list_insert (attributes, attr);
-        }
-
-      gtk_label_set_attributes (GTK_LABEL (priv->label), attributes);
-      pango_attr_list_unref (attributes);
-    }
-  else
-    {
-      /* unset the font settings */
-      gtk_label_set_attributes (GTK_LABEL (priv->label), NULL);
-    }
-}
-
-static void
 setup_type (GtkMessageDialog *dialog,
 	    GtkMessageType    type)
 {
@@ -406,7 +366,7 @@ gtk_message_dialog_constructed (GObject *object)
       gtk_widget_set_margin_bottom (label, 6);
       gtk_widget_set_halign (label, GTK_ALIGN_CENTER);
       gtk_widget_set_hexpand (label, TRUE);
-      gtk_style_context_add_class (gtk_widget_get_style_context (label), "title");
+      gtk_widget_add_css_class (label, "title");
       gtk_container_add (GTK_CONTAINER (box), label);
       g_signal_connect_object (dialog, "notify::title", G_CALLBACK (update_title), label, 0);
 
@@ -446,7 +406,6 @@ gtk_message_dialog_set_property (GObject      *object,
           gtk_label_set_use_markup (GTK_LABEL (priv->label), priv->has_primary_markup);
           g_object_notify_by_pspec (object, pspec);
         }
-        setup_primary_label_font (dialog);
       break;
     case PROP_SECONDARY_TEXT:
       {
@@ -467,7 +426,6 @@ gtk_message_dialog_set_property (GObject      *object,
 	    priv->has_secondary_text = FALSE;
 	    gtk_widget_hide (priv->secondary_label);
 	  }
-	setup_primary_label_font (dialog);
       }
       break;
     case PROP_SECONDARY_USE_MARKUP:
@@ -714,8 +672,6 @@ gtk_message_dialog_format_secondary_text (GtkMessageDialog *message_dialog,
       priv->has_secondary_text = FALSE;
       gtk_widget_hide (priv->secondary_label);
     }
-
-  setup_primary_label_font (message_dialog);
 }
 
 /**
@@ -772,8 +728,6 @@ gtk_message_dialog_format_secondary_markup (GtkMessageDialog *message_dialog,
       priv->has_secondary_text = FALSE;
       gtk_widget_hide (priv->secondary_label);
     }
-
-  setup_primary_label_font (message_dialog);
 }
 
 /**
