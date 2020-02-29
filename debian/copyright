@@ -507,13 +507,15 @@ Copyright:
 License: LGPL-2+ or sun-permissive
 
 Files:
+ debian/run-with-locales
  gdk/wayland/cursor/*
  gtk/inspector/logs.*
 Copyright:
- 2002 Keith Packard
- 2012 Collabora Ltd.
+ 2012-2018 Collabora Ltd.
  2012 Intel Corporation
+ 2002 Keith Packard
  2018 Red Hat, Inc.
+ 2016-2020 Simon McVittie
 License: Expat
 
 Files:

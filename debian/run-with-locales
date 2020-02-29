@@ -1,0 +1,122 @@
+#!/bin/sh
+#
+# Run a wrapped command with at least the requested locales available.
+# Requires a dependency on locales | locales-all.
+# The requested locales must be of the form foo_FOO.utf8, or special-cased
+# in generate().
+#
+# Copyright 2016-2020 Simon McVittie
+# Copyright 2017-2018 Collabora Ltd.
+#
+# SPDX-License-Identifier: MIT
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to
+# deal in the Software without restriction, including without limitation the
+# rights to use, copy, modify, merge, publish, distribute, sublicense, and/or
+# sell copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in
+# all copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+# FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+# IN THE SOFTWARE.
+
+set -eu
+
+me="$(basename "$0")"
+tempdir=
+
+usage () {
+    local status="${1-2}"
+
+    if [ "$status" -ne 0 ]; then
+        exec >&2
+    fi
+
+    echo "Usage: $me [--generate LOCALE...] COMMAND [ARGS...]"
+}
+
+getopt_temp=help
+getopt_temp="$getopt_temp,generate:"
+
+getopt_temp="$(getopt -o '' --long "$getopt_temp" -n "$0" -- "$@")"
+eval set -- "$getopt_temp"
+unset getopt_temp
+
+generate () {
+    local locale="$1"
+    local name
+    local charset
+
+    case "$locale" in
+        (*.utf8)
+            name="${locale%.utf8}"
+            charset=UTF-8
+            ;;
+
+        (sv_SE)
+            name="$locale"
+            charset=ISO-8859-1
+            ;;
+
+        (*)
+            echo "$me: Unsupported locale $locale" >&2
+            exit 1
+            ;;
+    esac
+
+    if [ -e "/usr/lib/locale/$locale/LC_MESSAGES/SYS_LC_MESSAGES" ]; then
+        return
+    fi
+
+    if [ -z "$tempdir" ]; then
+        tempdir="$(mktemp -d)"
+        trap 'rm -fr "$tempdir"' EXIT
+    fi
+
+    localedef -i "$name" -f "$charset" "$tempdir/$locale"
+}
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+        (--help)
+            usage 2
+            # not reached
+            ;;
+
+        (--generate)
+            generate "$2"
+            shift 2
+            ;;
+
+        (--)
+            shift
+            break
+            ;;
+
+        (-*)
+            echo "$me: Unknown option: $1" >&2
+            usage 2
+            # not reached
+            ;;
+
+        (*)
+            break
+            ;;
+    esac
+done
+
+if [ -n "$tmpdir" ]; then
+    export LOCPATH="$tmpdir"
+fi
+
+"$@"
+
+# vim:set sw=4 sts=4 et:

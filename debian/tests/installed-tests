@@ -13,6 +13,11 @@ export XDG_RUNTIME_DIR="$AUTOPKGTEST_TMP"
 
 exec dbus-run-session -- \
 xvfb-run -a -s "-screen 0 1024x768x24" \
+debian/run-with-locales \
+    --generate de_DE.UTF-8 \
+    --generate en_GB.UTF-8 \
+    --generate en_US.UTF-8 \
+    --generate sv_SE \
 gnome-desktop-testing-runner \
 --report-directory="$AUTOPKGTEST_ARTIFACTS" \
 --tap \
