@@ -6,6 +6,7 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     - d/rules: Update SONAME
     - Install new gtk4-constraint-editor
     - d/rules: Adjust build options for rename of documentation to gtk_doc
+    - debian/libgtk-4-0.symbols.in: Update
   * d/rules: Sort build options
   * d/run-with-locales, d/rules, d/tests/installed-tests:
     Generate locales used by the tests
