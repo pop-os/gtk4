@@ -1,4 +1,4 @@
-gtk+4.0 (3.96.0-3) UNRELEASED; urgency=medium
+gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
 
   * debian/libgtk-4-0.symbols.in: Mark more Wayland and Vulkan symbols
     as (arch=linux-any). These don't exist on hurd-i386, and presumably
@@ -17,8 +17,9 @@ gtk+4.0 (3.96.0-3) UNRELEASED; urgency=medium
   * d/tests/build: Fail if using an undefined variable ("unofficial strict
     mode")
   * d/upstream/metadata: Add upstream URLs
+  * New upstream release
 
- -- Simon McVittie <smcv@debian.org>  Mon, 25 Nov 2019 11:25:30 +0000
+ -- Simon McVittie <smcv@debian.org>  Sat, 29 Feb 2020 14:18:02 +0000
 
 gtk+4.0 (3.96.0-2) experimental; urgency=medium
 
