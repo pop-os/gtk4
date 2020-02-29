@@ -1,4 +1,6 @@
 private_headers = [
+  'imm-extra.h',
+  'gtkbitmaskprivateimpl.h',
   'gdkpixbufutilsprivate.h',
   'gtkaccelgroupprivate.h',
   'gtkaccelmapprivate.h',
@@ -15,7 +17,6 @@ private_headers = [
   'gtkbuttonprivate.h',
   'gtkcellareaboxcontextprivate.h',
   'gtkcheckbuttonprivate.h',
-  'gtkcheckmenuitemprivate.h',
   'gtkcolorchooserprivate.h',
   'gtkcoloreditorprivate.h',
   'gtkcolorplaneprivate.h',
@@ -23,11 +24,19 @@ private_headers = [
   'gtkcolorswatchprivate.h',
   'gtkcomboboxprivate.h',
   'gtkcontainerprivate.h',
+  'gtkconstraintexpressionprivate.h',
+  'gtkconstraintguideprivate.h',
+  'gtkconstraintlayoutprivate.h',
+  'gtkconstraintprivate.h',
+  'gtkconstraintsolverprivate.h',
+  'gtkconstrainttypesprivate.h',
+  'gtkconstraintvflparserprivate.h',
   'gtkcssanimatedstyleprivate.h',
   'gtkcssanimationprivate.h',
   'gtkcssarrayvalueprivate.h',
   'gtkcssbgsizevalueprivate.h',
   'gtkcssbordervalueprivate.h',
+  'gtkcssboxesprivate.h',
   'gtkcsscalcvalueprivate.h',
   'gtkcsscolorvalueprivate.h',
   'gtkcsscornervalueprivate.h',
@@ -39,7 +48,6 @@ private_headers = [
   'gtkcssfontfeaturesvalueprivate.h',
   'gtkcssfontvariationsvalueprivate.h',
   'gtkcssiconthemevalueprivate.h',
-  'gtkcssimagebuiltinprivate.h',
   'gtkcssimagecrossfadeprivate.h',
   'gtkcssimagefallbackprivate.h',
   'gtkcssimageiconthemeprivate.h',
@@ -88,7 +96,6 @@ private_headers = [
   'gtkcsswidgetnodeprivate.h',
   'gtkcsswin32sizevalueprivate.h',
   'gtkdialogprivate.h',
-  'gtkdndprivate.h',
   'gtkentryprivate.h',
   'gtkeventcontrollerlegacyprivate.h',
   'gtkeventcontrollerprivate.h',
@@ -128,9 +135,6 @@ private_headers = [
   'gtkmagnifierprivate.h',
   'gtkmediafileprivate.h',
   'gtkmenubuttonprivate.h',
-  'gtkmenuitemprivate.h',
-  'gtkmenuprivate.h',
-  'gtkmenushellprivate.h',
   'gtkmodulesprivate.h',
   'gtkmountoperationprivate.h',
   'gtknativedialogprivate.h',
@@ -141,7 +145,7 @@ private_headers = [
   'gtkplacesviewrowprivate.h',
   'gtkpointerfocusprivate.h',
   'gtkpopoverprivate.h',
-  'gtkprinter-private.h',
+  'gtkprinterprivate.h',
   'gtkprintoperation-private.h',
   'gtkprivate.h',
   'gtkprogresstrackerprivate.h',
@@ -171,8 +175,10 @@ private_headers = [
   'gtktextchildprivate.h',
   'gtktextdisplayprivate.h',
   'gtktexthandleprivate.h',
+  'gtktexthistoryprivate.h',
   'gtktextiterprivate.h',
   'gtktextlayoutprivate.h',
+  'gtktextlinedisplaycacheprivate.h',
   'gtktextmarkprivate.h',
   'gtktexttagprivate.h',
   'gtktextviewprivate.h',
@@ -335,8 +341,8 @@ images = [
 content_files = [
   'actions.xml',
   'broadway.xml',
-  'building.sgml',
-  'compiling.sgml',
+  'building.xml',
+  'compiling.xml',
   'css-overview.xml',
   'css-properties.xml',
   'drawing-model.xml',
@@ -354,35 +360,32 @@ content_files = [
   'input-handling.xml',
   'migrating-2to4.xml',
   'migrating-3to4.xml',
-  'osx.sgml',
-  'other_software.sgml',
+  'osx.xml',
+  'other_software.xml',
   'overview.xml',
-  'question_index.sgml',
-  'resources.sgml',
-  'running.sgml',
-  'text_widget.sgml',
-  'tree_widget.sgml',
+  'question_index.xml',
+  'resources.xml',
+  'running.xml',
+  'text_widget.xml',
+  'tree_widget.xml',
   'visual_index.xml',
   'wayland.xml',
-  'windows.sgml',
-  'x11.sgml',
+  'windows.xml',
+  'x11.xml',
 ]
 
 expand_content_files = [
   'actions.xml',
-  'compiling.sgml',
+  'compiling.xml',
   'drawing-model.xml',
   'glossary.xml',
   'input-handling.xml',
   'migrating-2to4.xml',
   'migrating-3to4.xml',
-  'question_index.sgml',
-  'text_widget.sgml',
-  'tree_widget.sgml',
+  'question_index.xml',
+  'text_widget.xml',
+  'tree_widget.xml',
 ]
-
-configure_file(input: 'version.xml.in', output: 'version.xml', configuration: version_conf)
-configure_file(input: 'getting_started.xml.in', output: 'getting_started.xml', configuration: src_dir_conf)
 
 types_conf = configuration_data()
 if os_win32
@@ -397,39 +400,44 @@ else
   types_conf.set('DISABLE_ON_QUARTZ', '')
 endif
 
-gnome.gtkdoc('gtk4',
-             mode: 'none',
-             main_xml: 'gtk4-docs.xml',
-             src_dir: [
-               gtkinc,
-	     ],
-             dependencies: libgtk_dep,
-             gobject_typesfile: configure_file(
-               input: 'gtk4.types.in',
-               output: 'gtk4.types',
-               configuration: types_conf,
-             ),
-             scan_args: [
-               '--ignore-decorators=_GDK_EXTERN|G_GNUC_WARN_UNUSED_RESULT',
-               '--ignore-headers=' + ' '.join(private_headers),
-             ],
-             mkdb_args: [
-               '--default-includes=gtk/gtk.h',
-             ],
-             fixxref_args: [
-               '--html-dir=@0@'.format(docpath),
-               '--extra-dir=@0@'.format(join_paths(glib_docpath, 'glib')),
-               '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gobject')),
-               '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gio')),
-               '--extra-dir=@0@'.format(cairo_docpath),
-               '--extra-dir=@0@'.format(gdkpixbuf_docpath),
-	       '--extra-dir=../gdk',
-	       '--extra-dir=../gsk',
-             ],
-             content_files: content_files,
-             expand_content_files: expand_content_files,
-             html_assets: images,
-             install: true)
+if get_option('gtk_doc')
+  configure_file(input: 'version.xml.in', output: 'version.xml', configuration: version_conf)
+  configure_file(input: 'getting_started.xml.in', output: 'getting_started.xml', configuration: src_dir_conf)
+
+  gnome.gtkdoc('gtk4',
+               mode: 'none',
+               main_xml: 'gtk4-docs.xml',
+               src_dir: [
+                 gtkinc,
+               ],
+               dependencies: libgtk_dep,
+               gobject_typesfile: configure_file(
+                 input: 'gtk4.types.in',
+                 output: 'gtk4.types',
+                 configuration: types_conf,
+               ),
+               scan_args: [
+                 '--ignore-decorators=_GDK_EXTERN|G_GNUC_WARN_UNUSED_RESULT',
+                 '--ignore-headers=' + ' '.join(private_headers),
+               ],
+               mkdb_args: [
+                 '--default-includes=gtk/gtk.h',
+               ],
+               fixxref_args: [
+                 '--html-dir=@0@'.format(docpath),
+                 '--extra-dir=@0@'.format(join_paths(glib_docpath, 'glib')),
+                 '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gobject')),
+                 '--extra-dir=@0@'.format(join_paths(glib_docpath, 'gio')),
+                 '--extra-dir=@0@'.format(cairo_docpath),
+                 '--extra-dir=@0@'.format(gdkpixbuf_docpath),
+                 '--extra-dir=../gdk',
+                 '--extra-dir=../gsk',
+               ],
+               content_files: content_files,
+               expand_content_files: expand_content_files,
+               html_assets: images,
+               install: true)
+endif
 
 xsltproc = find_program('xsltproc', required: false)
 if get_option('man-pages') and not xsltproc.found()

@@ -25,8 +25,8 @@
 #include "gtkbuildable.h"
 #include "gtkcontainerprivate.h"
 #include "gtkcssnodeprivate.h"
-#include "gtkdnd.h"
-#include "gtkgesturemultipress.h"
+#include "gtkdragdest.h"
+#include "gtkgestureclick.h"
 #include "gtkintl.h"
 #include "gtkmain.h"
 #include "gtkmarshalers.h"
@@ -70,6 +70,12 @@
  *
  * The GtkListBox widget was added in GTK+ 3.10.
  *
+ * # GtkListBox as GtkBuildable
+ *
+ * The GtkListBox implementation of the #GtkBuildable interface supports
+ * setting a child as the placeholder by specifying “placeholder” as the “type”
+ * attribute of a <child> element. See gtk_list_box_set_placeholder() for info.
+ *
  * # CSS nodes
  *
  * |[<!-- language="plain" -->
@@ -82,6 +88,31 @@
  * a single CSS node named row. The row nodes get the .activatable
  * style class added when appropriate.
  */
+
+typedef struct _GtkListBoxClass   GtkListBoxClass;
+
+struct _GtkListBox
+{
+  GtkContainer parent_instance;
+};
+
+struct _GtkListBoxClass
+{
+  GtkContainerClass parent_class;
+
+  void (*row_selected)        (GtkListBox      *box,
+                               GtkListBoxRow   *row);
+  void (*row_activated)       (GtkListBox      *box,
+                               GtkListBoxRow   *row);
+  void (*activate_cursor_row) (GtkListBox      *box);
+  void (*toggle_cursor_row)   (GtkListBox      *box);
+  void (*move_cursor)         (GtkListBox      *box,
+                               GtkMovementStep  step,
+                               gint             count);
+  void (*selected_rows_changed) (GtkListBox    *box);
+  void (*select_all)            (GtkListBox    *box);
+  void (*unselect_all)          (GtkListBox    *box);
+};
 
 typedef struct
 {
@@ -233,8 +264,6 @@ static void                 gtk_list_box_size_allocate                (GtkWidget
                                                                        int                  width,
                                                                        int                  height,
                                                                        int                  baseline);
-static void                 gtk_list_box_drag_leave                   (GtkWidget           *widget,
-                                                                       GdkDrop             *drop);
 static void                 gtk_list_box_activate_cursor_row          (GtkListBox          *box);
 static void                 gtk_list_box_toggle_cursor_row            (GtkListBox          *box);
 static void                 gtk_list_box_move_cursor                  (GtkListBox          *box,
@@ -257,24 +286,24 @@ static void                 gtk_list_box_selected_rows_changed          (GtkList
 static void                 gtk_list_box_set_accept_unpaired_release    (GtkListBox          *box,
                                                                          gboolean             accept);
 
-static void gtk_list_box_multipress_gesture_pressed  (GtkGestureMultiPress *gesture,
-                                                      guint                 n_press,
-                                                      gdouble               x,
-                                                      gdouble               y,
-                                                      GtkListBox           *box);
-static void gtk_list_box_multipress_gesture_released (GtkGestureMultiPress *gesture,
-                                                      guint                 n_press,
-                                                      gdouble               x,
-                                                      gdouble               y,
-                                                      GtkListBox           *box);
-static void gtk_list_box_multipress_unpaired_release (GtkGestureMultiPress *gesture,
-                                                      gdouble               x,
-                                                      gdouble               y,
-                                                      guint                 button,
-                                                      GdkEventSequence     *sequence,
-                                                      GtkListBox           *box);
-static void gtk_list_box_multipress_gesture_stopped  (GtkGestureMultiPress *gesture,
-                                                      GtkListBox           *box);
+static void gtk_list_box_click_gesture_pressed  (GtkGestureClick  *gesture,
+                                                 guint             n_press,
+                                                 gdouble           x,
+                                                 gdouble           y,
+                                                 GtkListBox       *box);
+static void gtk_list_box_click_gesture_released (GtkGestureClick  *gesture,
+                                                 guint             n_press,
+                                                 gdouble           x,
+                                                 gdouble           y,
+                                                 GtkListBox       *box);
+static void gtk_list_box_click_unpaired_release (GtkGestureClick  *gesture,
+                                                 gdouble           x,
+                                                 gdouble           y,
+                                                 guint             button,
+                                                 GdkEventSequence *sequence,
+                                                 GtkListBox       *box);
+static void gtk_list_box_click_gesture_stopped  (GtkGestureClick  *gesture,
+                                                 GtkListBox       *box);
 
 static void gtk_list_box_update_row_styles (GtkListBox    *box);
 static void gtk_list_box_update_row_style  (GtkListBox    *box,
@@ -421,7 +450,6 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
   widget_class->get_request_mode = gtk_list_box_get_request_mode;
   widget_class->measure = gtk_list_box_measure;
   widget_class->size_allocate = gtk_list_box_size_allocate;
-  widget_class->drag_leave = gtk_list_box_drag_leave;
   container_class->add = gtk_list_box_add;
   container_class->remove = gtk_list_box_remove;
   container_class->forall = gtk_list_box_forall;
@@ -482,7 +510,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GtkListBoxClass, row_selected),
                   NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL,
                   G_TYPE_NONE, 1,
                   GTK_TYPE_LIST_BOX_ROW);
 
@@ -498,7 +526,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                                                  G_SIGNAL_RUN_FIRST,
                                                  G_STRUCT_OFFSET (GtkListBoxClass, selected_rows_changed),
                                                  NULL, NULL,
-                                                 g_cclosure_marshal_VOID__VOID,
+                                                 NULL,
                                                  G_TYPE_NONE, 0);
 
   /**
@@ -516,7 +544,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                                       G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
                                       G_STRUCT_OFFSET (GtkListBoxClass, select_all),
                                       NULL, NULL,
-                                      g_cclosure_marshal_VOID__VOID,
+                                      NULL,
                                       G_TYPE_NONE, 0);
 
   /**
@@ -534,7 +562,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                                         G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
                                         G_STRUCT_OFFSET (GtkListBoxClass, unselect_all),
                                         NULL, NULL,
-                                        g_cclosure_marshal_VOID__VOID,
+                                        NULL,
                                         G_TYPE_NONE, 0);
 
   /**
@@ -550,7 +578,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GtkListBoxClass, row_activated),
                   NULL, NULL,
-                  g_cclosure_marshal_VOID__OBJECT,
+                  NULL,
                   G_TYPE_NONE, 1,
                   GTK_TYPE_LIST_BOX_ROW);
   signals[ACTIVATE_CURSOR_ROW] =
@@ -559,7 +587,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                   G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
                   G_STRUCT_OFFSET (GtkListBoxClass, activate_cursor_row),
                   NULL, NULL,
-                  g_cclosure_marshal_VOID__VOID,
+                  NULL,
                   G_TYPE_NONE, 0);
   signals[TOGGLE_CURSOR_ROW] =
     g_signal_new (I_("toggle-cursor-row"),
@@ -567,7 +595,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                   G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
                   G_STRUCT_OFFSET (GtkListBoxClass, toggle_cursor_row),
                   NULL, NULL,
-                  g_cclosure_marshal_VOID__VOID,
+                  NULL,
                   G_TYPE_NONE, 0);
   signals[MOVE_CURSOR] =
     g_signal_new (I_("move-cursor"),
@@ -578,6 +606,9 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                   _gtk_marshal_VOID__ENUM_INT,
                   G_TYPE_NONE, 2,
                   GTK_TYPE_MOVEMENT_STEP, G_TYPE_INT);
+  g_signal_set_va_marshaller (signals[MOVE_CURSOR],
+                              G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_VOID__ENUM_INTv);
 
   widget_class->activate_signal = signals[ACTIVATE_CURSOR_ROW];
 
@@ -627,14 +658,13 @@ gtk_list_box_init (GtkListBox *box)
   GtkWidget *widget = GTK_WIDGET (box);
   GtkGesture *gesture;
 
-  gtk_widget_set_has_surface (widget, FALSE);
   priv->selection_mode = GTK_SELECTION_SINGLE;
   priv->activate_single_click = TRUE;
 
   priv->children = g_sequence_new (NULL);
   priv->header_hash = g_hash_table_new_full (g_direct_hash, g_direct_equal, NULL, NULL);
 
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
                                               GTK_PHASE_BUBBLE);
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture),
@@ -642,13 +672,13 @@ gtk_list_box_init (GtkListBox *box)
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture),
                                  GDK_BUTTON_PRIMARY);
   g_signal_connect (gesture, "pressed",
-                    G_CALLBACK (gtk_list_box_multipress_gesture_pressed), box);
+                    G_CALLBACK (gtk_list_box_click_gesture_pressed), box);
   g_signal_connect (gesture, "released",
-                    G_CALLBACK (gtk_list_box_multipress_gesture_released), box);
+                    G_CALLBACK (gtk_list_box_click_gesture_released), box);
   g_signal_connect (gesture, "stopped",
-                    G_CALLBACK (gtk_list_box_multipress_gesture_stopped), box);
+                    G_CALLBACK (gtk_list_box_click_gesture_stopped), box);
   g_signal_connect (gesture, "unpaired-release",
-                    G_CALLBACK (gtk_list_box_multipress_unpaired_release), box);
+                    G_CALLBACK (gtk_list_box_click_unpaired_release), box);
   gtk_widget_add_controller (widget, GTK_EVENT_CONTROLLER (gesture));
 
   g_signal_connect (box, "notify::parent", G_CALLBACK (gtk_list_box_parent_cb), NULL);
@@ -1093,8 +1123,8 @@ gtk_list_box_get_selection_mode (GtkListBox *box)
 /**
  * gtk_list_box_set_filter_func:
  * @box: a #GtkListBox
- * @filter_func: (closure user_data) (allow-none): callback that lets you filter which rows to show
- * @user_data: user data passed to @filter_func
+ * @filter_func: (allow-none): callback that lets you filter which rows to show
+ * @user_data: (closure): user data passed to @filter_func
  * @destroy: destroy notifier for @user_data
  *
  * By setting a filter function on the @box one can decide dynamically which
@@ -1133,8 +1163,8 @@ gtk_list_box_set_filter_func (GtkListBox           *box,
 /**
  * gtk_list_box_set_header_func:
  * @box: a #GtkListBox
- * @update_header: (closure user_data) (allow-none): callback that lets you add row headers
- * @user_data: user data passed to @update_header
+ * @update_header: (allow-none): callback that lets you add row headers
+ * @user_data: (closure): user data passed to @update_header
  * @destroy: destroy notifier for @user_data
  *
  * By setting a header function on the @box one can dynamically add headers
@@ -1288,8 +1318,8 @@ gtk_list_box_invalidate_headers (GtkListBox *box)
 /**
  * gtk_list_box_set_sort_func:
  * @box: a #GtkListBox
- * @sort_func: (closure user_data) (allow-none): the sort function
- * @user_data: user data passed to @sort_func
+ * @sort_func: (allow-none): the sort function
+ * @user_data: (closure): user data passed to @sort_func
  * @destroy: destroy notifier for @user_data
  *
  * By setting a sort function on the @box one can dynamically reorder the rows
@@ -1749,11 +1779,11 @@ gtk_list_box_select_and_activate_full (GtkListBox    *box,
 }
 
 static void
-gtk_list_box_multipress_gesture_pressed (GtkGestureMultiPress *gesture,
-                                         guint                 n_press,
-                                         gdouble               x,
-                                         gdouble               y,
-                                         GtkListBox           *box)
+gtk_list_box_click_gesture_pressed (GtkGestureClick *gesture,
+                                    guint            n_press,
+                                    gdouble          x,
+                                    gdouble          y,
+                                    GtkListBox      *box)
 {
   GtkListBoxPrivate *priv = BOX_PRIV (box);
   GtkListBoxRow *row;
@@ -1793,12 +1823,12 @@ get_current_selection_modifiers (GtkWidget *widget,
 }
 
 static void
-gtk_list_box_multipress_unpaired_release (GtkGestureMultiPress *gesture,
-                                          gdouble               x,
-                                          gdouble               y,
-                                          guint                 button,
-                                          GdkEventSequence     *sequence,
-                                          GtkListBox           *box)
+gtk_list_box_click_unpaired_release (GtkGestureClick  *gesture,
+                                     gdouble           x,
+                                     gdouble           y,
+                                     guint             button,
+                                     GdkEventSequence *sequence,
+                                     GtkListBox       *box)
 {
   GtkListBoxPrivate *priv = BOX_PRIV (box);
   GtkListBoxRow *row;
@@ -1813,11 +1843,11 @@ gtk_list_box_multipress_unpaired_release (GtkGestureMultiPress *gesture,
 }
 
 static void
-gtk_list_box_multipress_gesture_released (GtkGestureMultiPress *gesture,
-                                          guint                 n_press,
-                                          gdouble               x,
-                                          gdouble               y,
-                                          GtkListBox           *box)
+gtk_list_box_click_gesture_released (GtkGestureClick *gesture,
+                                     guint            n_press,
+                                     gdouble          x,
+                                     gdouble          y,
+                                     GtkListBox      *box)
 {
   GtkListBoxPrivate *priv = BOX_PRIV (box);
 
@@ -1866,7 +1896,7 @@ gtk_list_box_multipress_gesture_released (GtkGestureMultiPress *gesture,
 }
 
 static void
-gtk_list_box_multipress_gesture_stopped (GtkGestureMultiPress *gesture,
+gtk_list_box_click_gesture_stopped (GtkGestureClick *gesture,
                                          GtkListBox           *box)
 {
   GtkListBoxPrivate *priv = BOX_PRIV (box);
@@ -2188,7 +2218,7 @@ gtk_list_box_update_header (GtkListBox    *box,
   GtkListBoxRow *row;
   GSequenceIter *before_iter;
   GtkListBoxRow *before_row;
-  GtkWidget *old_header;
+  GtkWidget *old_header, *new_header;
 
   if (iter == NULL || g_sequence_iter_is_end (iter))
     return;
@@ -2214,18 +2244,23 @@ gtk_list_box_update_header (GtkListBox    *box,
       priv->update_header_func (row,
                                 before_row,
                                 priv->update_header_func_target);
-      if (old_header != ROW_PRIV (row)->header)
+      new_header = ROW_PRIV (row)->header;
+      if (old_header != new_header)
         {
-          if (old_header != NULL)
+          if (old_header != NULL &&
+              g_hash_table_lookup (priv->header_hash, old_header) == row)
             {
+              /* Only unparent the @old_header if it hasn’t been re-used as the
+               * header for a different row. */
               gtk_widget_unparent (old_header);
               g_hash_table_remove (priv->header_hash, old_header);
             }
-          if (ROW_PRIV (row)->header != NULL)
+          if (new_header != NULL)
             {
-              g_hash_table_insert (priv->header_hash, ROW_PRIV (row)->header, row);
-              gtk_widget_set_parent (ROW_PRIV (row)->header, GTK_WIDGET (box));
-              gtk_widget_show (ROW_PRIV (row)->header);
+              g_hash_table_insert (priv->header_hash, new_header, row);
+              gtk_widget_unparent (new_header);
+              gtk_widget_set_parent (new_header, GTK_WIDGET (box));
+              gtk_widget_show (new_header);
             }
           gtk_widget_queue_resize (GTK_WIDGET (box));
         }
@@ -2690,7 +2725,7 @@ gtk_list_box_drag_unhighlight_row (GtkListBox *box)
   if (priv->drag_highlighted_row == NULL)
     return;
 
-  gtk_drag_unhighlight (GTK_WIDGET (priv->drag_highlighted_row));
+  gtk_widget_unset_state_flags (GTK_WIDGET (priv->drag_highlighted_row), GTK_STATE_FLAG_DROP_ACTIVE);
   g_clear_object (&priv->drag_highlighted_row);
 }
 
@@ -2719,15 +2754,8 @@ gtk_list_box_drag_highlight_row (GtkListBox    *box,
     return;
 
   gtk_list_box_drag_unhighlight_row (box);
-  gtk_drag_highlight (GTK_WIDGET (row));
+  gtk_widget_set_state_flags (GTK_WIDGET (row), GTK_STATE_FLAG_DROP_ACTIVE, FALSE);
   priv->drag_highlighted_row = g_object_ref (row);
-}
-
-static void
-gtk_list_box_drag_leave (GtkWidget *widget,
-                         GdkDrop   *drop)
-{
-  gtk_list_box_drag_unhighlight_row (GTK_LIST_BOX (widget));
 }
 
 static void
@@ -2864,7 +2892,7 @@ gtk_list_box_move_cursor (GtkListBox      *box,
 
       if (!gtk_widget_keynav_failed (GTK_WIDGET (box), direction))
         {
-          GtkWidget *toplevel = gtk_widget_get_toplevel (GTK_WIDGET (box));
+          GtkWidget *toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (box)));
 
           if (toplevel)
             gtk_widget_child_focus (toplevel,
@@ -3129,7 +3157,6 @@ static void
 gtk_list_box_update_row_style (GtkListBox    *box,
                                GtkListBoxRow *row)
 {
-  GtkStyleContext *context;
   gboolean can_select;
 
   if (box && BOX_PRIV (box)->selection_mode != GTK_SELECTION_NONE)
@@ -3137,12 +3164,11 @@ gtk_list_box_update_row_style (GtkListBox    *box,
   else
     can_select = FALSE;
 
-  context = gtk_widget_get_style_context (GTK_WIDGET (row));
   if (ROW_PRIV (row)->activatable ||
       (ROW_PRIV (row)->selectable && can_select))
-    gtk_style_context_add_class (context, "activatable");
+    gtk_widget_add_css_class (GTK_WIDGET (row), "activatable");
   else
-    gtk_style_context_remove_class (context, "activatable");
+    gtk_widget_remove_css_class (GTK_WIDGET (row), "activatable");
 }
 
 static void
@@ -3371,18 +3397,21 @@ gtk_list_box_row_dispose (GObject *object)
   G_OBJECT_CLASS (gtk_list_box_row_parent_class)->dispose (object);
 }
 
-static void
+static gboolean
 gtk_list_box_row_grab_focus (GtkWidget *widget)
 {
   GtkListBoxRow *row = GTK_LIST_BOX_ROW (widget);
   GtkListBox *box = gtk_list_box_row_get_box (row);
 
-  g_return_if_fail (box != NULL);
+  g_return_val_if_fail (box != NULL, FALSE);
+
+  if (!GTK_WIDGET_CLASS (gtk_list_box_row_parent_class)->grab_focus (widget))
+    return FALSE;
 
   if (BOX_PRIV (box)->cursor_row != row)
     gtk_list_box_update_cursor (box, row, FALSE);
 
-  GTK_WIDGET_CLASS (gtk_list_box_row_parent_class)->grab_focus (widget);
+  return TRUE;
 }
 
 static void
@@ -3465,8 +3494,7 @@ gtk_list_box_row_init (GtkListBoxRow *row)
   ROW_PRIV (row)->activatable = TRUE;
   ROW_PRIV (row)->selectable = TRUE;
 
-  gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (row)),
-                               "activatable");
+  gtk_widget_add_css_class (GTK_WIDGET (row), "activatable");
 }
 
 static void
@@ -3550,7 +3578,7 @@ gtk_list_box_check_model_compat (GtkListBox *box)
  * @model: (nullable): the #GListModel to be bound to @box
  * @create_widget_func: (nullable): a function that creates widgets for items
  *   or %NULL in case you also passed %NULL as @model
- * @user_data: user data passed to @create_widget_func
+ * @user_data: (closure): user data passed to @create_widget_func
  * @user_data_free_func: function for freeing @user_data
  *
  * Binds @model to @box.
@@ -3638,9 +3666,9 @@ gtk_list_box_set_show_separators (GtkListBox *box,
   priv->show_separators = show_separators;
 
   if (show_separators)
-    gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (box)), "separators");
+    gtk_widget_add_css_class (GTK_WIDGET (box), "separators");
   else
-    gtk_style_context_remove_class (gtk_widget_get_style_context (GTK_WIDGET (box)), "separators");
+    gtk_widget_remove_css_class (GTK_WIDGET (box), "separators");
 
   g_object_notify_by_pspec (G_OBJECT (box), properties[PROP_SHOW_SEPARATORS]);
 }

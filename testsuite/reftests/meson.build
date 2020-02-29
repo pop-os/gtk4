@@ -1,9 +1,9 @@
 # FIXME: $(no_undefined) ?
-libgtkreftestprivate = shared_library('gtkreftestprivate',
+libgtkreftestprivate = library('gtkreftestprivate',
   'reftest-compare.c', 'reftest-module.c', 'reftest-snapshot.c',
   dependencies : libgtk_dep)
 
-libreftest = shared_library('reftest',
+libreftest = library('reftest',
   [ 'expand-expander.c',
     'frame-inhibitor.c',
     'letter-spacing.c',
@@ -30,6 +30,9 @@ gtk_reftest = executable('gtk-reftest', 'gtk-reftest.c',
   link_with : [libgtkreftestprivate, libreftest],
   dependencies : libgtk_dep)
 
+image_compare = executable('image-compare', 'image-compare.c',
+  link_with : [libgtkreftestprivate, libreftest],
+  dependencies : libgtk_dep)
 # Installed data (TODO)
 
 testdata = [
@@ -194,6 +197,9 @@ testdata = [
   'css-multi-state.css',
   'css-multi-state.ref.ui',
   'css-multi-state.ui',
+  'data-url.css',
+  'data-url.ref.ui',
+  'data-url.ui',
   'fixed-widget-stacking.ref.ui',
   'fixed-widget-stacking.ui',
   'flipping-icons.ref.ui',
@@ -248,9 +254,6 @@ testdata = [
   'image-load-from-file.css',
   'image-load-from-file.ref.ui',
   'image-load-from-file.ui',
-  'inherit-and-initial.css',
-  'inherit-and-initial.ref.ui',
-  'inherit-and-initial.ui',
   'label-attribute-preference.css',
   'label-attribute-preference.ref.ui',
   'label-attribute-preference.ui',
@@ -394,8 +397,6 @@ testdata = [
   'textview-margins.ui',
   'textview-tags.ref.ui',
   'textview-tags.ui',
-  'toplevel-vs-popup.ref.ui',
-  'toplevel-vs-popup.ui',
   'treeview-crash-too-wide.ref.ui',
   'treeview-crash-too-wide.ui',
   'treeview-fixed-height.css',
@@ -422,11 +423,12 @@ xfails = [
   'background-image-multiple.ui',
   'background-origin.ui',
   'border-half-pixel.ui',
-  'border-image-url.ui',
   'sizegroups-evolution-identity-page.ui',
   'textview-border-windows.ui',
   'window-show-contents-on-map.ui',
-  'toplevel-vs-popup.ui',
+  # these depend on details of text layout
+  'label-sizing.ui',
+  'label-wrap-justify.ui',
 ]
 
 foreach testname : testdata
@@ -442,6 +444,7 @@ foreach testname : testdata
                 'GSETTINGS_BACKEND=memory',
                 'GSETTINGS_SCHEMA_DIR=@0@'.format(gtk_schema_build_dir),
                 'GTK_CSD=1',
+                'GDK_DEBUG=default-settings',
                 'G_ENABLE_DIAGNOSTIC=0',
                 'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
                 'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir()),

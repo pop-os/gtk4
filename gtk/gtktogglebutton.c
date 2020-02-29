@@ -24,7 +24,7 @@
 
 #include "config.h"
 
-#include "gtktogglebuttonprivate.h"
+#include "gtktogglebutton.h"
 
 #include "gtkbuttonprivate.h"
 #include "gtkintl.h"
@@ -189,12 +189,10 @@ static void
 gtk_toggle_button_init (GtkToggleButton *toggle_button)
 {
   GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (toggle_button);
-  GtkStyleContext *context;
 
   priv->active = FALSE;
 
-  context = gtk_widget_get_style_context (GTK_WIDGET (toggle_button));
-  gtk_style_context_add_class (context, "toggle");
+  gtk_widget_add_css_class (GTK_WIDGET (toggle_button), "toggle");
 }
 
 
@@ -293,8 +291,9 @@ gtk_toggle_button_get_property (GObject      *object,
  *
  * Sets the status of the toggle button. Set to %TRUE if you want the
  * GtkToggleButton to be “pressed in”, and %FALSE to raise it.
- * This action causes the #GtkToggleButton::toggled signal and the
- * #GtkButton::clicked signal to be emitted.
+ *
+ * If the status of the button changes, this action causes the
+ * #GtkToggleButton::toggled signal to be emitted.
  */
 void
 gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
@@ -306,18 +305,8 @@ gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
 
   is_active = is_active != FALSE;
 
-  if (priv->active != is_active)
-    {
-      gtk_button_clicked (GTK_BUTTON (toggle_button));
-      g_object_notify_by_pspec (G_OBJECT (toggle_button), toggle_button_props[PROP_ACTIVE]);
-    }
-}
-
-void
-_gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
-                               gboolean         is_active)
-{
-  GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (toggle_button);
+  if (priv->active == is_active)
+    return;
 
   priv->active = is_active;
 
@@ -326,6 +315,9 @@ _gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
   else
     gtk_widget_unset_state_flags (GTK_WIDGET (toggle_button), GTK_STATE_FLAG_CHECKED);
 
+  gtk_toggle_button_toggled (toggle_button);
+
+  g_object_notify_by_pspec (G_OBJECT (toggle_button), toggle_button_props[PROP_ACTIVE]);
 }
 
 /**
@@ -387,11 +379,7 @@ gtk_toggle_button_clicked (GtkButton *button)
   GtkToggleButton *toggle_button = GTK_TOGGLE_BUTTON (button);
   GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (toggle_button);
 
-  _gtk_toggle_button_set_active (toggle_button, !priv->active);
-
-  gtk_toggle_button_toggled (toggle_button);
-
-  g_object_notify_by_pspec (G_OBJECT (toggle_button), toggle_button_props[PROP_ACTIVE]);
+  gtk_toggle_button_set_active (toggle_button, !priv->active);
 
   if (GTK_BUTTON_CLASS (gtk_toggle_button_parent_class)->clicked)
     GTK_BUTTON_CLASS (gtk_toggle_button_parent_class)->clicked (button);

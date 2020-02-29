@@ -28,7 +28,6 @@
 #include "gtkstack.h"
 #include "gtklabel.h"
 #include "gtkgesturelongpress.h"
-#include "gtkgesturemultipress.h"
 #include "gtkpopover.h"
 #include "gtkscrolledwindow.h"
 #include "gtkintl.h"
@@ -36,6 +35,19 @@
 #include "gtksearchentryprivate.h"
 #include "gtkstylecontext.h"
 #include "gtktext.h"
+#include "gdk/gdkprofilerprivate.h"
+
+/**
+ * SECTION:gtkemojichooser
+ * @Title: GtkEmojiChooser
+ * @Short_description: A popover to choose an Emoji character
+ *
+ * The #GtkEmojiChooser popover is used by text widgets such as #GtkEntry or
+ * #GtkTextView to offer users a convenient way to insert Emoji characters.
+ *
+ * GtkEmojiChooser emits the #GtkEmojiChooser:emoji-picked signal when an
+ * Emoji is selected.
+ */
 
 #define BOX_SPACE 6
 
@@ -278,7 +290,7 @@ show_variations (GtkEmojiChooser *chooser,
   parent_popover = gtk_widget_get_ancestor (child, GTK_TYPE_POPOVER);
   popover = gtk_popover_new (child);
   view = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-  gtk_style_context_add_class (gtk_widget_get_style_context (view), "view");
+  gtk_widget_add_css_class (view, "view");
   box = gtk_flow_box_new ();
   gtk_flow_box_set_homogeneous (GTK_FLOW_BOX (box), TRUE);
   gtk_flow_box_set_min_children_per_line (GTK_FLOW_BOX (box), 6);
@@ -388,8 +400,7 @@ add_emoji (GtkWidget    *box,
       return;
     }
 
-  child = gtk_flow_box_child_new ();
-  gtk_style_context_add_class (gtk_widget_get_style_context (child), "emoji");
+  child = g_object_new (GTK_TYPE_FLOW_BOX_CHILD, "css-name", "emoji", NULL);
   g_object_set_data_full (G_OBJECT (child), "emoji-data",
                           g_variant_ref (item),
                           (GDestroyNotify)g_variant_unref);
@@ -453,13 +464,23 @@ populate_emoji_chooser (gpointer data)
 
       now = g_get_monotonic_time ();
       if (now > start + 8000)
-        return G_SOURCE_CONTINUE;
+        {
+          if (gdk_profiler_is_running ())
+            gdk_profiler_add_mark (start * 1000, (now - start) * 1000, "emojichooser", "populate");
+          return G_SOURCE_CONTINUE;
+        }
     }
 
   g_variant_iter_free (chooser->iter);
   chooser->iter = NULL;
   chooser->box = NULL;
   chooser->populate_idle = 0;
+
+  if (gdk_profiler_is_running ())
+    {
+      now = g_get_monotonic_time ();
+      gdk_profiler_add_mark (start * 1000, (now - start) * 1000, "emojichooser", "populate (finish)");
+    }
 
   return G_SOURCE_REMOVE;
 }
@@ -686,6 +707,7 @@ gtk_emoji_chooser_init (GtkEmojiChooser *chooser)
   populate_recent_section (chooser);
 
   chooser->populate_idle = g_idle_add (populate_emoji_chooser, chooser);
+  g_source_set_name_by_id (chooser->populate_idle, "[gtk] populate_emoji_chooser");
 }
 
 static void
@@ -712,6 +734,14 @@ gtk_emoji_chooser_class_init (GtkEmojiChooserClass *klass)
   object_class->finalize = gtk_emoji_chooser_finalize;
   widget_class->show = gtk_emoji_chooser_show;
 
+  /**
+   * GtkEmojiChooser::emoji-picked:
+   * @chooser: the #GtkEmojiChooser
+   * @text: the Unicode sequence for the picked Emoji, in UTF-8
+   *
+   * The ::emoji-picked signal is emitted when the user selects an
+   * Emoji.
+   */
   signals[EMOJI_PICKED] = g_signal_new ("emoji-picked",
                                         G_OBJECT_CLASS_TYPE (object_class),
                                         G_SIGNAL_RUN_LAST,
@@ -772,6 +802,13 @@ gtk_emoji_chooser_class_init (GtkEmojiChooserClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, long_pressed_cb);
 }
 
+/**
+ * gtk_emoji_chooser_new:
+ *
+ * Creates a new #GtkEmojiChooser.
+ *
+ * Returns: a new #GtkEmojiChoser
+ */
 GtkWidget *
 gtk_emoji_chooser_new (void)
 {

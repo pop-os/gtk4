@@ -56,29 +56,7 @@ gtk_css_value_font_variations_compute (GtkCssValue      *specified,
                                        GtkCssStyle      *style,
                                        GtkCssStyle      *parent_style)
 {
-  GHashTableIter iter;
-  gpointer name, coord;
-  GtkCssValue *computed_coord;
-  GtkCssValue *result;
-  gboolean changes = FALSE;
-
-  result = gtk_css_font_variations_value_new_empty ();
-
-  g_hash_table_iter_init (&iter, specified->axes);
-  while (g_hash_table_iter_next (&iter, &name, &coord))
-    {
-      computed_coord = _gtk_css_value_compute (coord, property_id, provider, style, parent_style);
-      changes |= computed_coord != coord;
-      gtk_css_font_variations_value_add_axis (result, name, computed_coord);
-    }
-
-  if (!changes)
-    {
-      _gtk_css_value_unref (result);
-      result = _gtk_css_value_ref (specified);
-    }
-
-  return result;
+  return _gtk_css_value_ref (specified);
 }
 
 static gboolean
@@ -176,6 +154,7 @@ gtk_css_value_font_variations_print (const GtkCssValue *value,
 }
 
 static const GtkCssValueClass GTK_CSS_VALUE_FONT_VARIATIONS = {
+  "GtkCssFontVariationsValue",
   gtk_css_value_font_variations_free,
   gtk_css_value_font_variations_compute,
   gtk_css_value_font_variations_equal,
@@ -194,6 +173,7 @@ gtk_css_font_variations_value_new_empty (void)
   result->axes = g_hash_table_new_full (g_str_hash, g_str_equal,
                                         g_free,
                                         (GDestroyNotify) _gtk_css_value_unref);
+  result->is_computed = TRUE;
 
   return result;
 }

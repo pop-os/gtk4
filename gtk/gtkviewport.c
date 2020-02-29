@@ -63,6 +63,14 @@
  * GtkViewport has a single CSS node with name viewport.
  */
 
+typedef struct _GtkViewportPrivate       GtkViewportPrivate;
+typedef struct _GtkViewportClass         GtkViewportClass;
+
+struct _GtkViewport
+{
+  GtkBin parent_instance;
+};
+
 struct _GtkViewportPrivate
 {
   GtkAdjustment  *hadjustment;
@@ -73,6 +81,11 @@ struct _GtkViewportPrivate
    * driving the scrollable adjustment values */
   guint hscroll_policy : 1;
   guint vscroll_policy : 1;
+};
+
+struct _GtkViewportClass
+{
+  GtkBinClass parent_class;
 };
 
 enum {
@@ -335,15 +348,13 @@ gtk_viewport_init (GtkViewport *viewport)
 
   widget = GTK_WIDGET (viewport);
 
-  gtk_widget_set_has_surface (widget, FALSE);
   gtk_widget_set_overflow (widget, GTK_OVERFLOW_HIDDEN);
 
   priv->shadow_type = GTK_SHADOW_IN;
   priv->hadjustment = NULL;
   priv->vadjustment = NULL;
 
-  gtk_style_context_add_class (gtk_widget_get_style_context (widget),
-                               GTK_STYLE_CLASS_FRAME);
+  gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_FRAME);
   viewport_set_adjustment (viewport, GTK_ORIENTATION_HORIZONTAL, NULL);
   viewport_set_adjustment (viewport, GTK_ORIENTATION_VERTICAL, NULL);
 }
@@ -439,27 +450,20 @@ viewport_set_adjustment (GtkViewport    *viewport,
  **/ 
 void
 gtk_viewport_set_shadow_type (GtkViewport   *viewport,
-			      GtkShadowType  type)
+                              GtkShadowType  type)
 {
   GtkViewportPrivate *priv = gtk_viewport_get_instance_private (viewport);
-  GtkWidget *widget;
-  GtkStyleContext *context;
 
   g_return_if_fail (GTK_IS_VIEWPORT (viewport));
-
-  widget = GTK_WIDGET (viewport);
 
   if ((GtkShadowType) priv->shadow_type != type)
     {
       priv->shadow_type = type;
 
-      context = gtk_widget_get_style_context (widget);
       if (type != GTK_SHADOW_NONE)
-        gtk_style_context_add_class (context, GTK_STYLE_CLASS_FRAME);
+        gtk_widget_add_css_class (GTK_WIDGET (viewport), GTK_STYLE_CLASS_FRAME);
       else
-        gtk_style_context_remove_class (context, GTK_STYLE_CLASS_FRAME);
- 
-      gtk_widget_queue_resize (widget);
+        gtk_widget_remove_css_class (GTK_WIDGET (viewport), GTK_STYLE_CLASS_FRAME);
 
       g_object_notify (G_OBJECT (viewport), "shadow-type");
     }

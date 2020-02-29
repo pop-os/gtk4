@@ -351,11 +351,11 @@ intern_string_modified (GtkEntry *entry, ObjectProperty *p)
 {
   const gchar *s;
 
-  s = g_intern_string (gtk_editable_get_text (GTK_EDITABLE (entry)));
+  s = gtk_editable_get_text (GTK_EDITABLE (entry));
   if (g_str_equal (p->spec->name, "id"))
-    gtk_css_node_set_id (GTK_CSS_NODE (p->obj), s);
+    gtk_css_node_set_id (GTK_CSS_NODE (p->obj), g_quark_from_string (s));
   else if (g_str_equal (p->spec->name, "name"))
-    gtk_css_node_set_name (GTK_CSS_NODE (p->obj), s);
+    gtk_css_node_set_name (GTK_CSS_NODE (p->obj), g_quark_from_string (s));
 }
 
 static void
@@ -569,7 +569,7 @@ flags_changed (GObject *object, GParamSpec *pspec, gpointer data)
   g_value_unset (&val);
 
   str = flags_to_string (fclass, flags);
-  gtk_button_set_label (GTK_BUTTON (data), str);
+  gtk_menu_button_set_label (GTK_MENU_BUTTON (data), str);
   g_free (str);
 
   popover = gtk_menu_button_get_popover (GTK_MENU_BUTTON (data));
@@ -626,6 +626,7 @@ unichar_changed (GObject *object, GParamSpec *pspec, gpointer data)
   g_value_init (&val, pspec->value_type);
   get_property_value (object, pspec, &val);
   new_val = (gunichar)g_value_get_uint (&val);
+  g_value_unset (&val);
 
   if (new_val != old_val)
     {
@@ -1250,57 +1251,41 @@ attribute_editor (GObject                *object,
   return box;
 }
 
-static GtkWidget *
-action_ancestor (GtkWidget *widget)
-{
-  if (GTK_IS_MENU (widget))
-    return gtk_menu_get_attach_widget (GTK_MENU (widget));
-  else if (GTK_IS_POPOVER (widget))
-    return gtk_popover_get_relative_to (GTK_POPOVER (widget));
-  else
-    return gtk_widget_get_parent (widget);
-}
-
 static GObject *
 find_action_owner (GtkActionable *actionable)
 {
   GtkWidget *widget = GTK_WIDGET (actionable);
   const gchar *full_name;
-  const gchar *dot;
-  const gchar *name;
-  gchar *prefix;
   GtkWidget *win;
-  GActionGroup *group;
 
   full_name = gtk_actionable_get_action_name (actionable);
   if (!full_name)
     return NULL;
 
-  dot = strchr (full_name, '.');
-  prefix = g_strndup (full_name, dot - full_name);
-  name = dot + 1;
-
   win = gtk_widget_get_ancestor (widget, GTK_TYPE_APPLICATION_WINDOW);
-  if (g_strcmp0 (prefix, "win") == 0)
+  if (g_str_has_prefix (full_name, "win.") == 0)
     {
       if (G_IS_OBJECT (win))
         return (GObject *)win;
     }
-  else if (g_strcmp0 (prefix, "app") == 0)
-    {  
+  else if (g_str_has_prefix (full_name, "app.") == 0)
+    {
       if (GTK_IS_WINDOW (win))
         return (GObject *)gtk_window_get_application (GTK_WINDOW (win));
     }
 
   while (widget != NULL)
     {
-      group = gtk_widget_get_action_group (widget, prefix);
-      if (group && g_action_group_has_action (group, name))
+      GtkActionMuxer *muxer;
+
+      muxer = _gtk_widget_get_action_muxer (widget, FALSE);
+      if (muxer && gtk_action_muxer_find (muxer, full_name, NULL))
         return (GObject *)widget;
-      widget = action_ancestor (widget);
+
+      widget = gtk_widget_get_parent (widget);
     }
 
-  return NULL;  
+  return NULL;
 }
 
 static void
@@ -1534,6 +1519,7 @@ readonly_changed (GObject    *object,
 
   gtk_label_set_label (GTK_LABEL (data), value);
 
+  g_value_unset (&gvalue);
   g_free (value);
   g_free (type);
 }

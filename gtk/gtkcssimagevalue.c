@@ -82,7 +82,7 @@ gtk_css_value_image_transition (GtkCssValue *start,
 }
 
 static gboolean
-gtk_css_value_image_is_dynamic (GtkCssValue *value)
+gtk_css_value_image_is_dynamic (const GtkCssValue *value)
 {
   GtkCssImage *image = _gtk_css_image_value_get_image (value);
 
@@ -123,6 +123,7 @@ gtk_css_value_image_print (const GtkCssValue *value,
 }
 
 static const GtkCssValueClass GTK_CSS_VALUE_IMAGE = {
+  "GtkCssImageValue",
   gtk_css_value_image_free,
   gtk_css_value_image_compute,
   gtk_css_value_image_equal,
@@ -135,7 +136,7 @@ static const GtkCssValueClass GTK_CSS_VALUE_IMAGE = {
 GtkCssValue *
 _gtk_css_image_value_new (GtkCssImage *image)
 {
-  static GtkCssValue none_singleton = { &GTK_CSS_VALUE_IMAGE, 1, NULL };
+  static GtkCssValue none_singleton = { &GTK_CSS_VALUE_IMAGE, 1, TRUE, NULL };
   GtkCssValue *value;
 
   if (image == NULL)
@@ -143,6 +144,7 @@ _gtk_css_image_value_new (GtkCssImage *image)
 
   value = _gtk_css_value_new (GtkCssValue, &GTK_CSS_VALUE_IMAGE);
   value->image = image;
+  value->is_computed = gtk_css_image_is_computed (image);
 
   return value;
 }

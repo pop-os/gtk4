@@ -980,7 +980,7 @@ gdk_win32_display_get_monitor (GdkDisplay *display,
   return (GdkMonitor *) g_ptr_array_index (win32_display->monitors, monitor_num);
 }
 
-static GdkMonitor *
+GdkMonitor *
 gdk_win32_display_get_primary_monitor (GdkDisplay *display)
 {
   GdkWin32Display *win32_display = GDK_WIN32_DISPLAY (display);
@@ -1098,7 +1098,6 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
   object_class->dispose = gdk_win32_display_dispose;
   object_class->finalize = gdk_win32_display_finalize;
 
-  display_class->surface_type = GDK_TYPE_WIN32_SURFACE;
   display_class->cairo_context_type = GDK_TYPE_WIN32_CAIRO_CONTEXT;
 
   display_class->get_name = gdk_win32_display_get_name;
@@ -1116,7 +1115,7 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
 
   display_class->get_next_serial = gdk_win32_display_get_next_serial;
   display_class->notify_startup_complete = gdk_win32_display_notify_startup_complete;
-  display_class->create_surface_impl = _gdk_win32_display_create_surface_impl;
+  display_class->create_surface = _gdk_win32_display_create_surface;
 
   display_class->get_keymap = _gdk_win32_display_get_keymap;
   display_class->text_property_to_utf8_list = _gdk_win32_display_text_property_to_utf8_list;
@@ -1125,7 +1124,6 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
 
   display_class->get_n_monitors = gdk_win32_display_get_n_monitors;
   display_class->get_monitor = gdk_win32_display_get_monitor;
-  display_class->get_primary_monitor = gdk_win32_display_get_primary_monitor;
 
 #ifdef GDK_RENDERING_VULKAN
   display_class->vk_context_type = GDK_TYPE_WIN32_VULKAN_CONTEXT;

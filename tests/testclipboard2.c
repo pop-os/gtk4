@@ -17,6 +17,48 @@
 
 #include <gtk/gtk.h>
 
+static GdkTexture *
+render_paintable_to_texture (GdkPaintable *paintable)
+{
+  GtkSnapshot *snapshot;
+  GskRenderNode *node;
+  int width, height;
+  cairo_surface_t *surface;
+  cairo_t *cr;
+  GdkTexture *texture;
+  GBytes *bytes;
+
+  width = gdk_paintable_get_intrinsic_width (paintable);
+  height = gdk_paintable_get_intrinsic_height (paintable);
+
+  surface = cairo_image_surface_create (CAIRO_FORMAT_ARGB32, width, height);
+
+  snapshot = gtk_snapshot_new ();
+  gdk_paintable_snapshot (paintable, snapshot, width, height);
+  node = gtk_snapshot_free_to_node (snapshot);
+
+  cr = cairo_create (surface);
+  gsk_render_node_draw (node, cr);
+  cairo_destroy (cr);
+
+  gsk_render_node_unref (node);
+
+  bytes = g_bytes_new_with_free_func (cairo_image_surface_get_data (surface),
+                                      cairo_image_surface_get_height (surface)
+                                      * cairo_image_surface_get_stride (surface),
+                                      (GDestroyNotify) cairo_surface_destroy,
+                                      cairo_surface_reference (surface));
+  texture = gdk_memory_texture_new (cairo_image_surface_get_width (surface),
+                                    cairo_image_surface_get_height (surface),
+                                    GDK_MEMORY_DEFAULT,
+                                    bytes,
+                                    cairo_image_surface_get_stride (surface));
+  g_bytes_unref (bytes);
+  cairo_surface_destroy (surface);
+
+  return texture;
+}
+
 static void
 clipboard_changed_cb (GdkClipboard *clipboard,
                       GtkWidget    *stack)
@@ -103,13 +145,43 @@ visible_child_changed_cb (GtkWidget    *stack,
     }
 }
 
+#ifdef G_OS_UNIX /* portal usage supported on *nix only */
+
+static GSList *
+get_file_list (const char *dir)
+{
+  GFileEnumerator *enumerator;
+  GFile *file;
+  GFileInfo *info;
+  GSList *list = NULL;
+  
+  file = g_file_new_for_path (dir);
+  enumerator = g_file_enumerate_children (file, "standard::name,standard::type", 0, NULL, NULL);
+  g_object_unref (file);
+  if (enumerator == NULL)
+    return NULL;
+
+  while (g_file_enumerator_iterate (enumerator, &info, &file, NULL, NULL) && file != NULL)
+    {
+      /* the portal can't handle directories */
+      if (g_file_info_get_file_type (info) != G_FILE_TYPE_REGULAR)
+        continue;
+
+      list = g_slist_prepend (list, g_object_ref (file));
+    }
+
+  return g_slist_reverse (list);
+}
+
+#else /* G_OS_UNIX -- original non-portal-enabled code */
+
 static GList *
 get_file_list (const char *dir)
 {
   GFileEnumerator *enumerator;
   GFile *file;
   GList *list = NULL;
-  
+
   file = g_file_new_for_path (dir);
   enumerator = g_file_enumerate_children (file, "standard::name", 0, NULL, NULL);
   g_object_unref (file);
@@ -121,6 +193,8 @@ get_file_list (const char *dir)
 
   return g_list_reverse (list);
 }
+
+#endif /* !G_OS_UNIX */
 
 static void
 format_list_add_row (GtkWidget         *list,
@@ -202,7 +276,7 @@ get_contents_widget (GdkClipboard *clipboard)
   gtk_stack_add_titled (GTK_STACK (stack), child, "image", "Image");
 
   child = gtk_label_new (NULL);
-  gtk_label_set_line_wrap (GTK_LABEL (child), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (child), TRUE);
   gtk_stack_add_titled (GTK_STACK (stack), child, "text", "Text");
 
   return stack;
@@ -240,6 +314,8 @@ get_button_list (GdkClipboard *clipboard,
                                          0xc9, 'g', 'a', 'l', 'i', 't', 0xe9, ',', ' ',
                                           'F', 'r', 'a', 't', 'e', 'r', 'n', 'i', 't', 0xe9, 0 };
   GtkWidget *box;
+  GtkIconPaintable *icon;
+  GdkTexture *texture;
   GValue value = G_VALUE_INIT;
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -252,9 +328,16 @@ get_button_list (GdkClipboard *clipboard,
                        "Empty");
 
   g_value_init (&value, GDK_TYPE_PIXBUF);
-  g_value_take_object (&value, gtk_icon_theme_load_icon (gtk_icon_theme_get_default (),
-                                                         "utilities-terminal",
-                                                         48, 0, NULL));
+  icon = gtk_icon_theme_lookup_icon (gtk_icon_theme_get_for_display (gdk_clipboard_get_display (clipboard)),
+                                     "utilities-terminal",
+                                     NULL,
+                                     48, 1,
+                                     gtk_widget_get_direction (box),
+                                     0);
+  texture = render_paintable_to_texture (GDK_PAINTABLE (icon));
+  g_value_take_object (&value, gdk_pixbuf_get_from_texture (texture));
+  g_object_unref (texture);
+  g_object_unref (icon);
   add_provider_button (box,
                        gdk_content_provider_new_for_value (&value),
                        clipboard,
@@ -342,11 +425,23 @@ get_window_contents (GdkDisplay *display,
   return box;
 }
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main (int argc, char **argv)
 {
   GtkWidget *window;
   GdkDisplay *alt_display;
+  gboolean done = FALSE;
 
   gtk_init ();
 
@@ -355,14 +450,15 @@ main (int argc, char **argv)
     alt_display = gdk_display_get_default ();
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   gtk_container_add (GTK_CONTAINER (window),
                      get_window_contents (gtk_widget_get_display (window),
                                           alt_display));
 
   gtk_widget_show (window);
 
-  gtk_main ();
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

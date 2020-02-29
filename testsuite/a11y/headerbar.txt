@@ -1,7 +1,7 @@
 window1
   "window"
   index: 0
-  state: active enabled resizable sensitive showing visible
+  state: enabled resizable sensitive showing visible
   toolkit: gtk
   window-type: normal
   <AtkComponent>
@@ -18,7 +18,7 @@ window1
     alpha: 1
     button1
       "push button"
-      parent: headerbar1
+      parent: unnamed-GtkContainerAccessible-0
       index: 0
       name: Yes
       state: enabled focusable focused sensitive showing visible
@@ -34,8 +34,8 @@ window1
       action 0 description: Clicks the button
     page2
       "push button"
-      parent: headerbar1
-      index: 1
+      parent: unnamed-GtkContainerAccessible-1
+      index: 0
       name: No
       state: enabled focusable sensitive showing visible
       toolkit: gtk

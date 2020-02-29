@@ -271,10 +271,6 @@ gtk_css_value_array_transition (GtkCssValue *start,
     case GTK_CSS_PROPERTY_OUTLINE_STYLE:
     case GTK_CSS_PROPERTY_OUTLINE_WIDTH:
     case GTK_CSS_PROPERTY_OUTLINE_OFFSET:
-    case GTK_CSS_PROPERTY_OUTLINE_TOP_LEFT_RADIUS:
-    case GTK_CSS_PROPERTY_OUTLINE_TOP_RIGHT_RADIUS:
-    case GTK_CSS_PROPERTY_OUTLINE_BOTTOM_RIGHT_RADIUS:
-    case GTK_CSS_PROPERTY_OUTLINE_BOTTOM_LEFT_RADIUS:
     case GTK_CSS_PROPERTY_BORDER_TOP_COLOR:
     case GTK_CSS_PROPERTY_BORDER_RIGHT_COLOR:
     case GTK_CSS_PROPERTY_BORDER_BOTTOM_COLOR:
@@ -299,7 +295,7 @@ gtk_css_value_array_transition (GtkCssValue *start,
 }
 
 static gboolean
-gtk_css_value_array_is_dynamic (GtkCssValue *value)
+gtk_css_value_array_is_dynamic (const GtkCssValue *value)
 {
   guint i;
 
@@ -369,6 +365,7 @@ gtk_css_value_array_print (const GtkCssValue *value,
 }
 
 static const GtkCssValueClass GTK_CSS_VALUE_ARRAY = {
+  "GtkCssArrayValue",
   gtk_css_value_array_free,
   gtk_css_value_array_compute,
   gtk_css_value_array_equal,
@@ -391,14 +388,28 @@ _gtk_css_array_value_new_from_array (GtkCssValue **values,
                                      guint         n_values)
 {
   GtkCssValue *result;
-           
+  guint i;
+
   g_return_val_if_fail (values != NULL, NULL);
   g_return_val_if_fail (n_values > 0, NULL);
-         
+
+  if (n_values == 1)
+    return values[0];
+
   result = _gtk_css_value_alloc (&GTK_CSS_VALUE_ARRAY, sizeof (GtkCssValue) + sizeof (GtkCssValue *) * (n_values - 1));
   result->n_values = n_values;
   memcpy (&result->values[0], values, sizeof (GtkCssValue *) * n_values);
-            
+
+  result->is_computed = TRUE;
+  for (i = 0; i < n_values; i ++)
+    {
+      if (!gtk_css_value_is_computed (values[i]))
+        {
+          result->is_computed = FALSE;
+          break;
+        }
+    }
+
   return result;
 }
 
@@ -407,32 +418,38 @@ _gtk_css_array_value_parse (GtkCssParser *parser,
                             GtkCssValue  *(* parse_func) (GtkCssParser *parser))
 {
   GtkCssValue *value, *result;
-  GPtrArray *values;
-
-  values = g_ptr_array_new ();
+  GtkCssValue *values[128];
+  guint n_values = 0;
+  guint i;
 
   do {
     value = parse_func (parser);
 
     if (value == NULL)
       {
-        g_ptr_array_set_free_func (values, (GDestroyNotify) _gtk_css_value_unref);
-        g_ptr_array_free (values, TRUE);
+        for (i = 0; i < n_values; i ++)
+          _gtk_css_value_unref (values[i]);
+
         return NULL;
       }
 
-    g_ptr_array_add (values, value);
+    values[n_values] = value;
+    n_values ++;
+    if (G_UNLIKELY (n_values > G_N_ELEMENTS (values)))
+      g_error ("Only %d elements in a css array are allowed", (int)G_N_ELEMENTS (values));
   } while (gtk_css_parser_try_token (parser, GTK_CSS_TOKEN_COMMA));
 
-  result = _gtk_css_array_value_new_from_array ((GtkCssValue **) values->pdata, values->len);
-  g_ptr_array_free (values, TRUE);
+  result = _gtk_css_array_value_new_from_array (values, n_values);
   return result;
 }
 
 GtkCssValue *
-_gtk_css_array_value_get_nth (const GtkCssValue *value,
-                              guint              i)
+_gtk_css_array_value_get_nth (GtkCssValue *value,
+                              guint        i)
 {
+  if (value->class != &GTK_CSS_VALUE_ARRAY)
+      return value;
+
   g_return_val_if_fail (value != NULL, NULL);
   g_return_val_if_fail (value->class == &GTK_CSS_VALUE_ARRAY, NULL);
   g_return_val_if_fail (value->n_values > 0, NULL);
@@ -443,6 +460,9 @@ _gtk_css_array_value_get_nth (const GtkCssValue *value,
 guint
 _gtk_css_array_value_get_n_values (const GtkCssValue *value)
 {
+  if (value->class != &GTK_CSS_VALUE_ARRAY)
+    return 1;
+
   g_return_val_if_fail (value != NULL, 0);
   g_return_val_if_fail (value->class == &GTK_CSS_VALUE_ARRAY, 0);
 

@@ -160,6 +160,17 @@ static GOptionEntry options[] = {
   { NULL }
 };
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main(int argc, char **argv)
 {
@@ -168,6 +179,7 @@ main(int argc, char **argv)
   GdkDisplay *display;
   GdkMonitor *monitor;
   GdkRectangle monitor_bounds;
+  gboolean done = FALSE;
 
   GOptionContext *context = g_option_context_new (NULL);
   g_option_context_add_main_entries (context, options, NULL);
@@ -194,19 +206,20 @@ main(int argc, char **argv)
   gtk_container_add (GTK_CONTAINER (window), da);
 
   g_signal_connect (window, "destroy",
-                    G_CALLBACK (gtk_main_quit), NULL);
+                    G_CALLBACK (quit_cb), NULL);
 
   g_signal_connect (window, "map",
                     G_CALLBACK (on_map), NULL);
   on_frame (0.);
 
   display = gtk_widget_get_display (window);
-  monitor = gdk_display_get_primary_monitor (display);
+  monitor = gdk_display_get_monitor (display, 0);
   gdk_monitor_get_geometry (monitor, &monitor_bounds);
 
   gtk_widget_show (window);
 
-  gtk_main ();
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

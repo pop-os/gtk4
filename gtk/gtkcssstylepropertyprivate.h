@@ -37,7 +37,7 @@ typedef struct _GtkCssStylePropertyClass      GtkCssStylePropertyClass;
 typedef GtkCssValue *    (* GtkCssStylePropertyParseFunc)  (GtkCssStyleProperty    *property,
                                                             GtkCssParser           *parser);
 typedef void             (* GtkCssStylePropertyQueryFunc)  (GtkCssStyleProperty    *property,
-                                                            const GtkCssValue      *cssvalue,
+                                                            GtkCssValue            *cssvalue,
                                                             GValue                 *value);
 struct _GtkCssStyleProperty
 {
@@ -64,7 +64,7 @@ GType                   _gtk_css_style_property_get_type        (void) G_GNUC_CO
 
 void                    _gtk_css_style_property_init_properties (void);
 
-guint                   _gtk_css_style_property_get_n_properties(void);
+guint                   _gtk_css_style_property_get_n_properties(void) G_GNUC_CONST;
 GtkCssStyleProperty *   _gtk_css_style_property_lookup_by_id    (guint                   id);
 
 gboolean                _gtk_css_style_property_is_inherit      (GtkCssStyleProperty    *property);
@@ -79,9 +79,6 @@ GtkCssValue  *          _gtk_css_style_property_get_initial_value
 void                    _gtk_css_style_property_print_value     (GtkCssStyleProperty    *property,
                                                                  GtkCssValue            *value,
                                                                  GString                *string);
-
-GtkBitmask *            _gtk_css_style_property_get_mask_affecting
-                                                                (GtkCssAffects           affects);
 
 /* XXX - find a better place for these */
 GtkCssValue * gtk_css_font_family_value_parse (GtkCssParser *parser);

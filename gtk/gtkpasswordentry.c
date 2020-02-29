@@ -26,10 +26,9 @@
 #include "gtkbindings.h"
 #include "gtktextprivate.h"
 #include "gtkeditable.h"
-#include "gtkgesturemultipress.h"
+#include "gtkgestureclick.h"
 #include "gtkbox.h"
 #include "gtkimage.h"
-#include "gtkcheckmenuitem.h"
 #include "gtkintl.h"
 #include "gtkprivate.h"
 #include "gtkmarshalers.h"
@@ -58,12 +57,19 @@ typedef struct {
   GtkWidget *icon;
   GtkWidget *peek_icon;
   GdkKeymap *keymap;
+  GMenuModel *extra_menu;
 } GtkPasswordEntryPrivate;
+
+struct _GtkPasswordEntryClass
+{
+  GtkWidgetClass parent_class;
+};
 
 enum {
   PROP_PLACEHOLDER_TEXT = 1,
   PROP_ACTIVATES_DEFAULT,
   PROP_SHOW_PEEK_ICON,
+  PROP_EXTRA_MENU,
   NUM_PROPERTIES 
 };
 
@@ -100,44 +106,33 @@ focus_changed (GtkWidget *widget)
   if (priv->keymap)
     keymap_state_changed (priv->keymap, widget);
 }
-
+ 
 static void
 gtk_password_entry_toggle_peek (GtkPasswordEntry *entry)
+{
+  GtkPasswordEntryPrivate *priv = gtk_password_entry_get_instance_private (entry);
+  gboolean visibility;
+
+  visibility = gtk_text_get_visibility (GTK_TEXT (priv->entry));
+  gtk_text_set_visibility (GTK_TEXT (priv->entry), !visibility);
+}
+
+static void
+visibility_toggled (GObject          *object,
+                    GParamSpec       *pspec,
+                    GtkPasswordEntry *entry)
 {
   GtkPasswordEntryPrivate *priv = gtk_password_entry_get_instance_private (entry);
 
   if (gtk_text_get_visibility (GTK_TEXT (priv->entry)))
     {
-      gtk_text_set_visibility (GTK_TEXT (priv->entry), FALSE);
-      gtk_image_set_from_icon_name (GTK_IMAGE (priv->peek_icon), "eye-not-looking-symbolic");
-      gtk_widget_set_tooltip_text (priv->peek_icon, _("Show text"));
-    }
-  else
-    {
-      gtk_text_set_visibility (GTK_TEXT (priv->entry), TRUE);
       gtk_image_set_from_icon_name (GTK_IMAGE (priv->peek_icon), "eye-open-negative-filled-symbolic");
       gtk_widget_set_tooltip_text (priv->peek_icon, _("Hide text"));
     }
-}
-
-static void
-populate_popup (GtkText          *text,
-                GtkWidget        *popup,
-                GtkPasswordEntry *entry)
-{
-  GtkPasswordEntryPrivate *priv = gtk_password_entry_get_instance_private (entry);
-
-  if (priv->peek_icon != NULL)
+  else
     {
-      GtkWidget *item;
-
-      item = gtk_check_menu_item_new_with_mnemonic (_("_Show text"));
-      gtk_check_menu_item_set_active (GTK_CHECK_MENU_ITEM (item),
-                                      gtk_text_get_visibility (text));
-      g_signal_connect_swapped (item, "activate",
-                                G_CALLBACK (gtk_password_entry_toggle_peek), entry);
-      gtk_widget_show (item);
-      gtk_menu_shell_append (GTK_MENU_SHELL (popup), item);
+      gtk_image_set_from_icon_name (GTK_IMAGE (priv->peek_icon), "eye-not-looking-symbolic");
+      gtk_widget_set_tooltip_text (priv->peek_icon, _("Show text"));
     }
 }
 
@@ -146,22 +141,21 @@ gtk_password_entry_init (GtkPasswordEntry *entry)
 {
   GtkPasswordEntryPrivate *priv = gtk_password_entry_get_instance_private (entry);
 
-  gtk_widget_set_has_surface (GTK_WIDGET (entry), FALSE);
-
   priv->entry = gtk_text_new ();
   gtk_text_set_visibility (GTK_TEXT (priv->entry), FALSE);
   gtk_widget_set_parent (priv->entry, GTK_WIDGET (entry));
   gtk_editable_init_delegate (GTK_EDITABLE (entry));
   g_signal_connect_swapped (priv->entry, "notify::has-focus", G_CALLBACK (focus_changed), entry);
-  g_signal_connect (priv->entry, "populate-popup", G_CALLBACK (populate_popup), entry);
 
   priv->icon = gtk_image_new_from_icon_name ("caps-lock-symbolic");
   gtk_widget_set_tooltip_text (priv->icon, _("Caps Lock is on"));
-  gtk_style_context_add_class (gtk_widget_get_style_context (priv->icon), "caps-lock-indicator");
+  gtk_widget_add_css_class (priv->icon, "caps-lock-indicator");
   gtk_widget_set_cursor (priv->icon, gtk_widget_get_cursor (priv->entry));
   gtk_widget_set_parent (priv->icon, GTK_WIDGET (entry));
 
-  gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (entry)), I_("password"));
+  gtk_widget_add_css_class (GTK_WIDGET (entry), I_("password"));
+
+  gtk_password_entry_set_extra_menu (entry, NULL);
 }
 
 static void
@@ -192,14 +186,9 @@ gtk_password_entry_dispose (GObject *object)
   g_clear_pointer (&priv->entry, gtk_widget_unparent);
   g_clear_pointer (&priv->icon, gtk_widget_unparent);
   g_clear_pointer (&priv->peek_icon, gtk_widget_unparent);
+  g_clear_object (&priv->extra_menu);
 
   G_OBJECT_CLASS (gtk_password_entry_parent_class)->dispose (object);
-}
-
-static void
-gtk_password_entry_finalize (GObject *object)
-{
-  G_OBJECT_CLASS (gtk_password_entry_parent_class)->finalize (object);
 }
 
 static void
@@ -232,6 +221,10 @@ gtk_password_entry_set_property (GObject      *object,
       gtk_password_entry_set_show_peek_icon (entry, g_value_get_boolean (value));
       break;
 
+    case PROP_EXTRA_MENU:
+      gtk_password_entry_set_extra_menu (entry, g_value_get_object (value));
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -262,6 +255,10 @@ gtk_password_entry_get_property (GObject    *object,
 
     case PROP_SHOW_PEEK_ICON:
       g_value_set_boolean (value, gtk_password_entry_get_show_peek_icon (entry));
+      break;
+
+    case PROP_EXTRA_MENU:
+      g_value_set_object (value, priv->extra_menu);
       break;
 
     default:
@@ -348,13 +345,13 @@ gtk_password_entry_get_accessible (GtkWidget *widget)
   return atk_obj;
 }
 
-static void
+static gboolean
 gtk_password_entry_grab_focus (GtkWidget *widget)
 {
   GtkPasswordEntry *entry = GTK_PASSWORD_ENTRY (widget);
   GtkPasswordEntryPrivate *priv = gtk_password_entry_get_instance_private (entry);
 
-  gtk_widget_grab_focus (priv->entry);
+  return gtk_widget_grab_focus (priv->entry);
 }
 
 static gboolean
@@ -376,7 +373,6 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
   object_class->dispose = gtk_password_entry_dispose;
-  object_class->finalize = gtk_password_entry_finalize;
   object_class->get_property = gtk_password_entry_get_property;
   object_class->set_property = gtk_password_entry_set_property;
 
@@ -386,7 +382,6 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
   widget_class->get_accessible = gtk_password_entry_get_accessible;
   widget_class->grab_focus = gtk_password_entry_grab_focus;
   widget_class->mnemonic_activate = gtk_password_entry_mnemonic_activate;
- 
   props[PROP_PLACEHOLDER_TEXT] =
       g_param_spec_string ("placeholder-text",
                            P_("Placeholder text"),
@@ -407,6 +402,19 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
                             P_("Whether to show an icon for revealing the content"),
                             FALSE,
                             GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
+
+  /**
+   * GtkPasswordEntry:extra-menu:
+   *
+   * A menu model whose contents will be appended to
+   * the context menu.
+   */
+  props[PROP_EXTRA_MENU] =
+      g_param_spec_object ("extra-menu",
+                           P_("Extra menu"),
+                           P_("Model menu to append to the context menu"),
+                           G_TYPE_MENU_MODEL,
+                           GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, NUM_PROPERTIES, props);
   gtk_editable_install_properties (object_class, NUM_PROPERTIES);
@@ -461,6 +469,8 @@ gtk_password_entry_set_show_peek_icon (GtkPasswordEntry *entry,
 
   g_return_if_fail (GTK_IS_PASSWORD_ENTRY (entry));
 
+  show_peek_icon = !!show_peek_icon;
+
   if (show_peek_icon == (priv->peek_icon != NULL))
     return;
 
@@ -472,15 +482,22 @@ gtk_password_entry_set_show_peek_icon (GtkPasswordEntry *entry,
       gtk_widget_set_tooltip_text (priv->peek_icon, _("Show text"));
       gtk_widget_set_parent (priv->peek_icon, GTK_WIDGET (entry));
 
-      press = gtk_gesture_multi_press_new ();
+      press = gtk_gesture_click_new ();
       g_signal_connect_swapped (press, "released",
                                 G_CALLBACK (gtk_password_entry_toggle_peek), entry);
       gtk_widget_add_controller (priv->peek_icon, GTK_EVENT_CONTROLLER (press));
+
+      g_signal_connect (priv->entry, "notify::visibility",
+                        G_CALLBACK (visibility_toggled), entry);
+      visibility_toggled (G_OBJECT (priv->entry), NULL, entry);
     }
   else
     {
       g_clear_pointer (&priv->peek_icon, gtk_widget_unparent);
       gtk_text_set_visibility (GTK_TEXT (priv->entry), FALSE);
+      g_signal_handlers_disconnect_by_func (priv->entry,
+                                            visibility_toggled,
+                                            entry);
     }
 
   keymap_state_changed (priv->keymap, GTK_WIDGET (entry));
@@ -505,4 +522,69 @@ gtk_password_entry_get_show_peek_icon (GtkPasswordEntry *entry)
   g_return_val_if_fail (GTK_IS_PASSWORD_ENTRY (entry), FALSE);
 
   return priv->peek_icon != NULL;
+}
+
+/**
+ * gtk_password_entry_set_extra_menu:
+ * @entry: a #GtkPasswordEntry
+ * @model: (allow-none): a #GMenuModel
+ *
+ * Sets a menu model to add when constructing
+ * the context menu for @entry.
+ */
+void
+gtk_password_entry_set_extra_menu (GtkPasswordEntry *entry,
+                                   GMenuModel       *model)
+{
+  GtkPasswordEntryPrivate *priv = gtk_password_entry_get_instance_private (entry);
+  GMenu *menu;
+  GMenu *section;
+  GMenuItem *item;
+
+  g_return_if_fail (GTK_IS_PASSWORD_ENTRY (entry));
+
+  /* bypass this check for the initial call from init */
+  if (priv->extra_menu)
+    {
+      if (!g_set_object (&priv->extra_menu, model))
+        return;
+    }
+
+  menu = g_menu_new ();
+
+  section = g_menu_new ();
+  item = g_menu_item_new (_("_Show Text"), "misc.toggle-visibility");
+  g_menu_item_set_attribute (item, "touch-icon", "s", "eye-not-looking-symbolic");
+  g_menu_append_item (section, item);
+  g_object_unref (item);
+
+  g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
+  g_object_unref (section);
+
+  if (model)
+    g_menu_append_section (menu, NULL, model);
+
+  gtk_text_set_extra_menu (GTK_TEXT (priv->entry), G_MENU_MODEL (menu));
+
+  g_object_unref (menu);
+
+  g_object_notify_by_pspec (G_OBJECT (entry), props[PROP_EXTRA_MENU]);
+}
+
+/**
+ * gtk_password_entry_get_extra_menu:
+ * @entry: a #GtkText
+ *
+ * Gets the menu model set with gtk_password_entry_set_extra_menu().
+ *
+ * Returns: (transfer none): (nullable): the menu model
+ */
+GMenuModel *
+gtk_password_entry_get_extra_menu (GtkPasswordEntry *entry)
+{
+  GtkPasswordEntryPrivate *priv = gtk_password_entry_get_instance_private (entry);
+
+  g_return_val_if_fail (GTK_IS_PASSWORD_ENTRY (entry), NULL);
+
+  return priv->extra_menu;
 }

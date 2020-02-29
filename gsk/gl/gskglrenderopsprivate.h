@@ -10,61 +10,27 @@
 #include "gskglrenderer.h"
 #include "gskrendernodeprivate.h"
 
+#include "opbuffer.h"
+
 #define GL_N_VERTICES 6
-#define GL_N_PROGRAMS 12
-
-
+#define GL_N_PROGRAMS 13
 
 typedef struct
 {
-  float translate_x;
-  float translate_y;
   float scale_x;
   float scale_y;
 
   float dx_before;
   float dy_before;
-
-  GskTransformCategory category;
 } OpsMatrixMetadata;
 
 typedef struct
 {
-  graphene_matrix_t matrix;
+  GskTransform *transform;
   OpsMatrixMetadata metadata;
 } MatrixStackEntry;
 
-enum {
-  OP_NONE,
-  OP_CHANGE_OPACITY         =  1,
-  OP_CHANGE_COLOR           =  2,
-  OP_CHANGE_PROJECTION      =  3,
-  OP_CHANGE_MODELVIEW       =  4,
-  OP_CHANGE_PROGRAM         =  5,
-  OP_CHANGE_RENDER_TARGET   =  6,
-  OP_CHANGE_CLIP            =  7,
-  OP_CHANGE_VIEWPORT        =  8,
-  OP_CHANGE_SOURCE_TEXTURE  =  9,
-  OP_CHANGE_VAO             =  10,
-  OP_CHANGE_LINEAR_GRADIENT =  11,
-  OP_CHANGE_COLOR_MATRIX    =  12,
-  OP_CHANGE_BLUR            =  13,
-  OP_CHANGE_INSET_SHADOW    =  14,
-  OP_CHANGE_OUTSET_SHADOW   =  15,
-  OP_CHANGE_BORDER          =  16,
-  OP_CHANGE_BORDER_COLOR    =  17,
-  OP_CHANGE_BORDER_WIDTH    =  18,
-  OP_CHANGE_CROSS_FADE      =  19,
-  OP_CHANGE_UNBLURRED_OUTSET_SHADOW = 20,
-  OP_CLEAR                  =  21,
-  OP_DRAW                   =  22,
-  OP_DUMP_FRAMEBUFFER       =  23,
-  OP_PUSH_DEBUG_GROUP       =  24,
-  OP_POP_DEBUG_GROUP        =  25,
-  OP_CHANGE_BLEND           =  26,
-};
-
-typedef struct
+struct _Program
 {
   int index;        /* Into the renderer's program array */
 
@@ -74,14 +40,10 @@ typedef struct
   int position_location;
   int uv_location;
   int alpha_location;
-  int blend_mode_location;
   int viewport_location;
   int projection_location;
   int modelview_location;
-  int clip_location;
-  int clip_corner_widths_location;
-  int clip_corner_heights_location;
-
+  int clip_rect_location;
   union {
     struct {
       int color_location;
@@ -96,32 +58,26 @@ typedef struct
     struct {
       int num_color_stops_location;
       int color_stops_location;
-      int color_offsets_location;
       int start_point_location;
       int end_point_location;
     } linear_gradient;
     struct {
       int blur_radius_location;
       int blur_size_location;
-      int dir_location;
+      int blur_dir_location;
     } blur;
     struct {
       int color_location;
       int spread_location;
       int offset_location;
-      int outline_location;
-      int corner_widths_location;
-      int corner_heights_location;
+      int outline_rect_location;
     } inset_shadow;
     struct {
-      int outline_location;
-      int corner_widths_location;
-      int corner_heights_location;
+      int color_location;
+      int outline_rect_location;
     } outset_shadow;
     struct {
-      int outline_location;
-      int corner_widths_location;
-      int corner_heights_location;
+      int outline_rect_location;
       int color_location;
       int spread_location;
       int offset_location;
@@ -129,9 +85,7 @@ typedef struct
     struct {
       int color_location;
       int widths_location;
-      int outline_location;
-      int corner_widths_location;
-      int corner_heights_location;
+      int outline_rect_location;
     } border;
     struct {
       int source2_location;
@@ -141,103 +95,17 @@ typedef struct
       int source2_location;
       int mode_location;
     } blend;
+    struct {
+      int child_bounds_location;
+      int texture_rect_location;
+    } repeat;
   };
-
-} Program;
+};
 
 typedef struct
 {
-  guint op;
-
-  union {
-    float opacity;
-    graphene_matrix_t modelview; /* TODO: Make both matrix members just "matrix" */
-    graphene_matrix_t projection;
-    const Program *program;
-    int texture_id;
-    int render_target_id;
-    GdkRGBA color;
-    GskQuadVertex vertex_data[6];
-    GskRoundedRect clip;
-    graphene_rect_t viewport;
-    struct {
-      int n_color_stops;
-      float color_offsets[8];
-      float color_stops[4 * 8];
-      graphene_point_t start_point;
-      graphene_point_t end_point;
-    } linear_gradient;
-    struct {
-      gsize vao_offset;
-      gsize vao_size;
-    } draw;
-    struct {
-      graphene_matrix_t matrix;
-      graphene_vec4_t offset;
-    } color_matrix;
-    struct {
-      float radius;
-      graphene_size_t size;
-      float dir[2];
-    } blur;
-    struct {
-      float outline[4];
-      float corner_widths[4];
-      float corner_heights[4];
-      float radius;
-      float spread;
-      float offset[2];
-      float color[4];
-    } inset_shadow;
-    struct {
-      float outline[4];
-      float corner_widths[4];
-      float corner_heights[4];
-      float radius;
-      float spread;
-      float offset[2];
-      float color[4];
-    } outset_shadow;
-    struct {
-      float outline[4];
-      float corner_widths[4];
-      float corner_heights[4];
-      float radius;
-      float spread;
-      float offset[2];
-      float color[4];
-    } unblurred_outset_shadow;
-    struct {
-      float color[4];
-    } shadow;
-    struct {
-      float widths[4];
-      float color[4];
-      GskRoundedRect outline;
-    } border;
-    struct {
-      float progress;
-      int source2;
-    } cross_fade;
-    struct {
-      int source2;
-      int mode;
-    } blend;
-    struct {
-      char *filename;
-      int width;
-      int height;
-    } dump;
-    struct {
-      char text[180]; /* Size of linear_gradient, so 'should be enough' without growing RenderOp */
-    } debug_group;
-  };
-} RenderOp;
-
-typedef struct
-{
+  GskTransform *modelview;
   GskRoundedRect clip;
-  graphene_matrix_t modelview;
   graphene_matrix_t projection;
   int source_texture;
   graphene_rect_t viewport;
@@ -251,7 +119,7 @@ typedef struct
     } color_matrix;
     struct {
       float widths[4];
-      float color[4];
+      GdkRGBA color;
       GskRoundedRect outline;
     } border;
   };
@@ -260,8 +128,6 @@ typedef struct
 typedef struct
 {
   ProgramState program_state[GL_N_PROGRAMS];
-  /* Current global state */
-  ProgramState *current_program_state;
   const Program *current_program;
   int current_render_target;
   int current_texture;
@@ -270,19 +136,20 @@ typedef struct
   graphene_rect_t current_viewport;
   float current_opacity;
   float dx, dy;
+  float scale_x, scale_y;
 
-  gsize buffer_size;
+  OpBuffer render_ops;
+  GArray *vertices;
 
-  GArray *render_ops;
   GskGLRenderer *renderer;
 
   /* Stack of modelview matrices */
   GArray *mv_stack;
-  /* Pointer into mv_stack */
-  const graphene_matrix_t *current_modelview;
+  GskTransform *current_modelview;
 
   /* Same thing */
   GArray *clip_stack;
+  /* Pointer into clip_stack */
   const GskRoundedRect *current_clip;
 } RenderOpBuilder;
 
@@ -292,17 +159,17 @@ void              ops_dump_framebuffer   (RenderOpBuilder         *builder,
                                           int                      width,
                                           int                      height);
 void              ops_init               (RenderOpBuilder         *builder);
+void              ops_free               (RenderOpBuilder         *builder);
+void              ops_reset              (RenderOpBuilder         *builder);
 void              ops_push_debug_group    (RenderOpBuilder         *builder,
                                            const char              *text);
 void              ops_pop_debug_group     (RenderOpBuilder         *builder);
 
 void              ops_finish             (RenderOpBuilder         *builder);
 void              ops_push_modelview     (RenderOpBuilder         *builder,
-                                          const graphene_matrix_t *mv,
-                                          GskTransformCategory     mv_category);
+                                          GskTransform            *transform);
 void              ops_set_modelview      (RenderOpBuilder         *builder,
-                                          const graphene_matrix_t *mv,
-                                          GskTransformCategory     mv_category);
+                                          GskTransform            *transform);
 void              ops_pop_modelview      (RenderOpBuilder         *builder);
 float             ops_get_scale          (const RenderOpBuilder   *builder);
 
@@ -347,14 +214,15 @@ void              ops_set_border_width   (RenderOpBuilder         *builder,
 void              ops_set_border_color   (RenderOpBuilder         *builder,
                                           const GdkRGBA           *color);
 
-void              ops_draw               (RenderOpBuilder        *builder,
+GskQuadVertex *   ops_draw               (RenderOpBuilder        *builder,
                                           const GskQuadVertex     vertex_data[GL_N_VERTICES]);
 
 void              ops_offset             (RenderOpBuilder        *builder,
                                           float                   x,
                                           float                   y);
 
-void              ops_add                (RenderOpBuilder        *builder,
-                                          const RenderOp         *op);
+gpointer          ops_begin              (RenderOpBuilder        *builder,
+                                          OpKind                  kind);
+OpBuffer         *ops_get_buffer         (RenderOpBuilder        *builder);
 
 #endif

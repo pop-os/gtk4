@@ -99,7 +99,7 @@ gsk_render_node_new (const GskRenderNodeClass *node_class, gsize extra_size)
  *
  * Acquires a reference on the given #GskRenderNode.
  *
- * Returns: (transfer none): the #GskRenderNode with an additional reference
+ * Returns: (transfer full): the #GskRenderNode with an additional reference
  */
 GskRenderNode *
 gsk_render_node_ref (GskRenderNode *node)
@@ -113,7 +113,7 @@ gsk_render_node_ref (GskRenderNode *node)
 
 /**
  * gsk_render_node_unref:
- * @node: a #GskRenderNode
+ * @node: (transfer full): a #GskRenderNode
  *
  * Releases a reference on the given #GskRenderNode.
  *
@@ -142,6 +142,13 @@ gsk_render_node_get_node_type (GskRenderNode *node)
 {
   g_return_val_if_fail (GSK_IS_RENDER_NODE (node), GSK_NOT_A_RENDER_NODE);
 
+  return node->node_class->node_type;
+}
+
+G_GNUC_PURE static inline
+GskRenderNodeType
+_gsk_render_node_get_node_type (const GskRenderNode *node)
+{
   return node->node_class->node_type;
 }
 
@@ -231,9 +238,9 @@ gsk_render_node_draw (GskRenderNode *node,
  * @node1: a #GskRenderNode
  * @node2: the #GskRenderNode to compare with
  *
- * Checks if 2 render nodes can be expected to be compared via
+ * Checks if two render nodes can be expected to be compared via
  * gsk_render_node_diff(). The node diffing algorithm uses this function
- * to match up similar nodes to compare when trying to minimze the
+ * to match up similar nodes to compare when trying to minimize the
  * resulting region.
  *
  * Nodes of different type always return %FALSE here.
@@ -241,13 +248,13 @@ gsk_render_node_draw (GskRenderNode *node,
  * Returns: %TRUE if @node1 and @node2 can be expected to be compared
  **/
 gboolean
-gsk_render_node_can_diff (GskRenderNode *node1,
-                          GskRenderNode *node2)
+gsk_render_node_can_diff (const GskRenderNode *node1,
+                          const GskRenderNode *node2)
 {
   if (node1 == node2)
     return TRUE;
 
-  if (gsk_render_node_get_node_type (node1) != gsk_render_node_get_node_type (node2))
+  if (_gsk_render_node_get_node_type (node1) != _gsk_render_node_get_node_type (node2))
     return FALSE;
 
   return node1->node_class->can_diff (node1, node2);
@@ -301,41 +308,10 @@ gsk_render_node_diff (GskRenderNode  *node1,
   if (node1 == node2)
     return;
 
-  if (gsk_render_node_get_node_type (node1) != gsk_render_node_get_node_type (node2))
+  if (_gsk_render_node_get_node_type (node1) != _gsk_render_node_get_node_type (node2))
     return gsk_render_node_diff_impossible (node1, node2, region);
 
   return node1->node_class->diff (node1, node2, region);
-}
-
-#define GSK_RENDER_NODE_SERIALIZATION_VERSION 0
-#define GSK_RENDER_NODE_SERIALIZATION_ID "GskRenderNode"
-
-/**
- * gsk_render_node_serialize:
- * @node: a #GskRenderNode
- *
- * Serializes the @node for later deserialization via
- * gsk_render_node_deserialize(). No guarantees are made about the format
- * used other than that the same version of GTK+ will be able to deserialize
- * the result of a call to gsk_render_node_serialize() and
- * gsk_render_node_deserialize() will correctly reject files it cannot open
- * that were created with previous versions of GTK+.
- *
- * The intended use of this functions is testing, benchmarking and debugging.
- * The format is not meant as a permanent storage format.
- *
- * Returns: a #GBytes representing the node.
- **/
-GBytes *
-gsk_render_node_serialize (GskRenderNode *node)
-{
-  GBytes *result;
-  char *str;
-
-  str = gsk_render_node_serialize_to_string (node);
-  result = g_bytes_new_take (str, strlen (str));
-
-  return result;
 }
 
 /**
@@ -378,7 +354,8 @@ gsk_render_node_write_to_file (GskRenderNode *node,
 /**
  * gsk_render_node_deserialize:
  * @bytes: the bytes containing the data
- * @error: (allow-none): location to store error or %NULL
+ * @error_func: (nullable) (scope call): Callback on parsing errors or %NULL
+ * @user_data: (closure error_func): user_data for @error_func
  *
  * Loads data previously created via gsk_render_node_serialize(). For a
  * discussion of the supported format, see that function.

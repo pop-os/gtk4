@@ -41,8 +41,6 @@ demo_tagged_entry_init (DemoTaggedEntry *entry)
 {
   DemoTaggedEntryPrivate *priv = demo_tagged_entry_get_instance_private (entry);
 
-  gtk_widget_set_has_surface (GTK_WIDGET (entry), FALSE);
-
   priv->box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_parent (priv->box, GTK_WIDGET (entry));
 
@@ -131,13 +129,13 @@ demo_tagged_entry_size_allocate (GtkWidget *widget,
                             baseline);
 }
 
-static void
+static gboolean
 demo_tagged_entry_grab_focus (GtkWidget *widget)
 {
   DemoTaggedEntry *entry = DEMO_TAGGED_ENTRY (widget);
   DemoTaggedEntryPrivate *priv = demo_tagged_entry_get_instance_private (entry);
 
-  gtk_widget_grab_focus (priv->entry);
+  return gtk_widget_grab_focus (priv->entry);
 }
 
 static void
@@ -252,11 +250,11 @@ static guint signals[LAST_SIGNAL] = { 0, };
 G_DEFINE_TYPE (DemoTaggedEntryTag, demo_tagged_entry_tag, GTK_TYPE_WIDGET)
 
 static void
-on_released (GtkGestureMultiPress *gesture,
+on_released (GtkGestureClick      *gesture,
              int                   n_press,
              double                x,
              double                y,
-             DemoTaggedEntryTag          *tag)
+             DemoTaggedEntryTag   *tag)
 {
   g_signal_emit (tag, signals[SIGNAL_CLICKED], 0);
 }
@@ -267,14 +265,12 @@ demo_tagged_entry_tag_init (DemoTaggedEntryTag *tag)
   GtkGesture *gesture;
   GtkCssProvider *provider;
 
-  gtk_widget_set_has_surface (GTK_WIDGET (tag), FALSE);
-
   tag->box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_parent (tag->box, GTK_WIDGET (tag));
   tag->label = gtk_label_new ("");
   gtk_container_add (GTK_CONTAINER (tag->box), tag->label);
 
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   g_signal_connect (gesture, "released", G_CALLBACK (on_released), tag);
   gtk_widget_add_controller (GTK_WIDGET (tag), GTK_EVENT_CONTROLLER (gesture));
 

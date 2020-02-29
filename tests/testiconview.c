@@ -334,33 +334,32 @@ do_popup_menu (GtkWidget   *icon_list,
 {
   GtkIconView *icon_view = GTK_ICON_VIEW (icon_list);
   GtkWidget *menu;
-  GtkWidget *menuitem;
+  GtkWidget *item;
   ItemData *data;
 
   if (!path)
     return;
 
-  menu = gtk_menu_new ();
+  menu = gtk_popover_new (icon_list);
 
   data = g_new0 (ItemData, 1);
   data->icon_list = icon_view;
   data->path = path;
   g_object_set_data_full (G_OBJECT (menu), "item-path", data, (GDestroyNotify)free_item_data);
 
-  menuitem = gtk_menu_item_new_with_label ("Activate");
-  gtk_widget_show (menuitem);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), menuitem);
-  g_signal_connect (menuitem, "activate", G_CALLBACK (item_cb), data);
+  item = gtk_button_new_with_label ("Activate");
+  gtk_container_add (GTK_CONTAINER (menu), item);
+  g_signal_connect (item, "clicked", G_CALLBACK (item_cb), data);
 
-  gtk_menu_popup_at_pointer (GTK_MENU (menu), NULL);
+  gtk_popover_popup (GTK_POPOVER (menu));
 }
 
 static void
-press_handler (GtkGestureMultiPress *gesture,
-               guint                 n_press,
-               gdouble               x,
-               gdouble               y,
-               GtkWidget            *widget)
+press_handler (GtkGestureClick *gesture,
+               guint            n_press,
+               gdouble          x,
+               gdouble          y,
+               GtkWidget       *widget)
 {
   GtkTreePath *path = NULL;
 
@@ -434,7 +433,7 @@ main (gint argc, gchar **argv)
   tvc = gtk_tree_view_column_new ();
   gtk_tree_view_append_column (GTK_TREE_VIEW (tv), tvc);
 
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture),
                                  GDK_BUTTON_SECONDARY);
   g_signal_connect (gesture, "pressed",
@@ -589,7 +588,8 @@ main (gint argc, gchar **argv)
 
   gtk_widget_show (window);
 
-  gtk_main ();
+  while (TRUE)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

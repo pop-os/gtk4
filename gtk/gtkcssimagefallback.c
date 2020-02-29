@@ -21,7 +21,7 @@
 
 #include "gtkcssimagefallbackprivate.h"
 #include "gtkcsscolorvalueprivate.h"
-#include "gtkcssrgbavalueprivate.h"
+#include "gtkcsscolorvalueprivate.h"
 
 #include "gtkstyleproviderprivate.h"
 
@@ -70,15 +70,18 @@ gtk_css_image_fallback_snapshot (GtkCssImage *image,
 
   if (fallback->used < 0)
     {
-      GdkRGBA red = { 1, 0, 0, 1 };
-      const GdkRGBA *color;
-
       if (fallback->color)
-        color = _gtk_css_rgba_value_get_rgba (fallback->color);
+        {
+          const GdkRGBA *color = gtk_css_color_value_get_rgba (fallback->color);
+          if (!gdk_rgba_is_clear (color))
+            gtk_snapshot_append_color (snapshot, color,
+                                       &GRAPHENE_RECT_INIT (0, 0, width, height));
+        }
       else
-        color = &red;
-
-      gtk_snapshot_append_color (snapshot, color, &GRAPHENE_RECT_INIT (0, 0, width, height));
+        {
+          gtk_snapshot_append_color (snapshot, &(GdkRGBA) {1, 0, 0, 1},
+                                     &GRAPHENE_RECT_INIT (0, 0, width, height));
+        }
     }
   else
     gtk_css_image_snapshot (fallback->images[fallback->used], snapshot, width, height);
@@ -142,6 +145,20 @@ gtk_css_image_fallback_compute (GtkCssImage      *image,
 
   if (fallback->used < 0)
     {
+      GtkCssValue *computed_color = NULL;
+
+      if (fallback->color)
+          computed_color= _gtk_css_value_compute (fallback->color,
+                                                           property_id,
+                                                           provider,
+                                                           style,
+                                                           parent_style);
+
+      /* image($color) that didn't change */
+      if (computed_color && !fallback->images &&
+          computed_color == fallback->color)
+        return g_object_ref (image);
+
       copy = g_object_new (_gtk_css_image_fallback_get_type (), NULL);
       copy->n_images = fallback->n_images;
       copy->images = g_new (GtkCssImage *, fallback->n_images);
@@ -160,14 +177,7 @@ gtk_css_image_fallback_compute (GtkCssImage      *image,
             copy->used = i;
         }
 
-      if (fallback->color)
-        copy->color = _gtk_css_value_compute (fallback->color,
-                                              property_id,
-                                              provider,
-                                              style,
-                                              parent_style);
-      else
-        copy->color = NULL;
+      copy->color = computed_color;
 
       return GTK_CSS_IMAGE (copy);
     }
@@ -263,6 +273,30 @@ gtk_css_image_fallback_equal (GtkCssImage *image1,
                                fallback2->images[fallback2->used]);
 }
 
+static gboolean
+gtk_css_image_fallback_is_computed (GtkCssImage *image)
+{
+  GtkCssImageFallback *fallback = GTK_CSS_IMAGE_FALLBACK (image);
+
+  if (fallback->used < 0)
+    {
+      guint i;
+
+      if (fallback->color && !fallback->images)
+        return gtk_css_value_is_computed (fallback->color);
+
+      for (i = 0; i < fallback->n_images; i++)
+        {
+          if (!gtk_css_image_is_computed (fallback->images[i]))
+            {
+              return FALSE;
+            }
+        }
+    }
+
+  return TRUE;
+}
+
 static void
 _gtk_css_image_fallback_class_init (GtkCssImageFallbackClass *klass)
 {
@@ -277,6 +311,7 @@ _gtk_css_image_fallback_class_init (GtkCssImageFallbackClass *klass)
   image_class->compute = gtk_css_image_fallback_compute;
   image_class->print = gtk_css_image_fallback_print;
   image_class->equal = gtk_css_image_fallback_equal;
+  image_class->is_computed = gtk_css_image_fallback_is_computed;
 
   object_class->dispose = gtk_css_image_fallback_dispose;
 }

@@ -32,8 +32,8 @@
 #include "gtkaccessible.h"
 #include "gtkbindings.h"
 #include "gtkeditable.h"
-#include "gtkbox.h"
-#include "gtkgesturemultipress.h"
+#include "gtkboxlayout.h"
+#include "gtkgestureclick.h"
 #include "gtktextprivate.h"
 #include "gtkimage.h"
 #include "gtkintl.h"
@@ -96,6 +96,24 @@ enum {
 static guint signals[LAST_SIGNAL] = { 0 };
 
 static GParamSpec *props[NUM_PROPERTIES] = { NULL, };
+
+typedef struct _GtkSearchEntryClass  GtkSearchEntryClass;
+
+struct _GtkSearchEntry
+{
+  GtkWidget parent;
+};
+
+struct _GtkSearchEntryClass
+{
+  GtkWidgetClass parent_class;
+
+  void (* activate)       (GtkSearchEntry *entry);
+  void (* search_changed) (GtkSearchEntry *entry);
+  void (* next_match)     (GtkSearchEntry *entry);
+  void (* previous_match) (GtkSearchEntry *entry);
+  void (* stop_search)    (GtkSearchEntry *entry);
+};
 
 typedef struct {
   GtkWidget *capture_widget;
@@ -212,65 +230,6 @@ gtk_search_entry_get_property (GObject    *object,
     }
 }
 
-static void
-gtk_search_entry_measure (GtkWidget      *widget,
-                          GtkOrientation  orientation,
-                          int             for_size,
-                          int            *minimum,
-                          int            *natural,
-                          int            *minimum_baseline,
-                          int            *natural_baseline)
-{
-  GtkSearchEntry *entry = GTK_SEARCH_ENTRY (widget);
-  GtkSearchEntryPrivate *priv = gtk_search_entry_get_instance_private (entry);
-  int icon_min = 0, icon_nat = 0;
-
-  gtk_widget_measure (priv->entry, orientation, for_size,
-                      minimum, natural,
-                      minimum_baseline, natural_baseline);
-
-  gtk_widget_measure (priv->icon, orientation, for_size,
-                      &icon_min, &icon_nat,
-                      NULL, NULL);
-
-  if (orientation == GTK_ORIENTATION_HORIZONTAL)
-    {
-      *minimum += icon_min;
-      *natural += icon_nat;
-    }
-  else
-    {
-      *minimum = MAX (*minimum, icon_min);
-      *natural = MAX (*natural, icon_nat);
-    }
-}
-
-static void
-gtk_search_entry_size_allocate (GtkWidget *widget,
-                                int        width,
-                                int        height,
-                                int        baseline)
-{
-  GtkSearchEntry *entry = GTK_SEARCH_ENTRY (widget);
-  GtkSearchEntryPrivate *priv = gtk_search_entry_get_instance_private (entry);
-  int icon_min = 0, icon_nat = 0;
-  int text_width;
-
-  gtk_widget_measure (priv->icon, GTK_ORIENTATION_HORIZONTAL, -1,
-                      &icon_min, &icon_nat,
-                      NULL, NULL);
-
-  text_width = width - icon_nat;
-
-  gtk_widget_size_allocate (priv->entry,
-                            &(GtkAllocation) { 0, 0, text_width, height },
-                            baseline);
-
-  gtk_widget_size_allocate (priv->icon,
-                            &(GtkAllocation) { text_width, 0, icon_nat, height },
-                            baseline);
-}
-
 static AtkObject *
 gtk_search_entry_get_accessible (GtkWidget *widget)
 {
@@ -282,13 +241,13 @@ gtk_search_entry_get_accessible (GtkWidget *widget)
   return atk_obj;
 }
 
-static void
+static gboolean
 gtk_search_entry_grab_focus (GtkWidget *widget)
 {
   GtkSearchEntry *entry = GTK_SEARCH_ENTRY (widget);
   GtkSearchEntryPrivate *priv = gtk_search_entry_get_instance_private (entry);
 
-  gtk_text_grab_focus_without_selecting (GTK_TEXT (priv->entry));
+  return gtk_text_grab_focus_without_selecting (GTK_TEXT (priv->entry));
 }
 
 static gboolean
@@ -314,8 +273,6 @@ gtk_search_entry_class_init (GtkSearchEntryClass *klass)
   object_class->get_property = gtk_search_entry_get_property;
   object_class->set_property = gtk_search_entry_set_property;
 
-  widget_class->measure = gtk_search_entry_measure;
-  widget_class->size_allocate = gtk_search_entry_size_allocate;
   widget_class->get_accessible = gtk_search_entry_get_accessible;
   widget_class->grab_focus = gtk_search_entry_grab_focus;
   widget_class->mnemonic_activate = gtk_search_entry_mnemonic_activate;
@@ -454,6 +411,7 @@ gtk_search_entry_class_init (GtkSearchEntryClass *klass)
                                 "stop-search", 0);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_ENTRY_ACCESSIBLE);
+  gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
   gtk_widget_class_set_css_name (widget_class, I_("entry"));
 }
 
@@ -473,11 +431,11 @@ gtk_search_entry_editable_init (GtkEditableInterface *iface)
 }
 
 static void
-gtk_search_entry_icon_release (GtkGestureMultiPress *press,
-                               int                   n_press,
-                               double                x,
-                               double                y,
-                               GtkSearchEntry       *entry)
+gtk_search_entry_icon_release (GtkGestureClick *press,
+                               int              n_press,
+                               double           x,
+                               double           y,
+                               GtkSearchEntry  *entry)
 {
   GtkSearchEntryPrivate *priv = gtk_search_entry_get_instance_private (entry);
 
@@ -563,10 +521,9 @@ gtk_search_entry_init (GtkSearchEntry *entry)
   GtkSearchEntryPrivate *priv = gtk_search_entry_get_instance_private (entry);
   GtkGesture *press;
 
-  gtk_widget_set_has_surface (GTK_WIDGET (entry), FALSE);
-
   priv->entry = gtk_text_new ();
   gtk_widget_set_parent (priv->entry, GTK_WIDGET (entry));
+  gtk_widget_set_hexpand (priv->entry, TRUE);
   gtk_editable_init_delegate (GTK_EDITABLE (entry));
   g_signal_connect_swapped (priv->entry, "changed", G_CALLBACK (text_changed), entry);
   g_signal_connect_after (priv->entry, "changed", G_CALLBACK (gtk_search_entry_changed), entry);
@@ -574,16 +531,16 @@ gtk_search_entry_init (GtkSearchEntry *entry)
   g_signal_connect (priv->entry, "notify", G_CALLBACK (notify_cb), entry);
   g_signal_connect (priv->entry, "activate", G_CALLBACK (activate_cb), entry);
 
-  priv->icon = gtk_image_new_from_icon_name ("edit-clear-symbolic");
+  priv->icon = gtk_image_new_from_icon_name ("edit-clear-all-symbolic");
   gtk_widget_set_tooltip_text (priv->icon, _("Clear entry"));
   gtk_widget_set_parent (priv->icon, GTK_WIDGET (entry));
   gtk_widget_set_child_visible (priv->icon, FALSE);
 
-  press = gtk_gesture_multi_press_new ();
+  press = gtk_gesture_click_new ();
   g_signal_connect (press, "released", G_CALLBACK (gtk_search_entry_icon_release), entry);
   gtk_widget_add_controller (priv->icon, GTK_EVENT_CONTROLLER (press));
 
-  gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (entry)), I_("search"));
+  gtk_widget_add_css_class (GTK_WIDGET (entry), I_("search"));
 }
 
 /**

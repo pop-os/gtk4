@@ -38,7 +38,7 @@ do_expander (GtkWidget *do_widget)
 
   if (!window)
     {
-      toplevel = gtk_widget_get_toplevel (do_widget);
+      toplevel = GTK_WIDGET (gtk_widget_get_root (do_widget));
       window = gtk_message_dialog_new_with_markup (GTK_WINDOW (toplevel),
                                                    0,
                                                    GTK_MESSAGE_ERROR,
@@ -52,7 +52,7 @@ do_expander (GtkWidget *do_widget)
       area = gtk_message_dialog_get_message_area (GTK_MESSAGE_DIALOG (window));
 
       label = gtk_widget_get_last_child (area);
-      gtk_label_set_line_wrap (GTK_LABEL (label), FALSE);
+      gtk_label_set_wrap (GTK_LABEL (label), FALSE);
       gtk_widget_set_vexpand (label, FALSE);
 
       expander = gtk_expander_new ("Details:");

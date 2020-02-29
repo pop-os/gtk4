@@ -41,6 +41,7 @@ show_page (GtkTextBuffer *buffer,
 
   gtk_text_buffer_set_text (buffer, "", 0);
   gtk_text_buffer_get_iter_at_offset (buffer, &iter, 0);
+  gtk_text_buffer_begin_irreversible_action (buffer);
   if (page == 1)
     {
       gtk_text_buffer_insert (buffer, &iter, "Some text to show that simple ", -1);
@@ -73,6 +74,7 @@ show_page (GtkTextBuffer *buffer,
                               "so that related items of information are connected.\n", -1);
       insert_link (buffer, &iter, "Go back", 1);
     }
+  gtk_text_buffer_end_irreversible_action (buffer);
 }
 
 /* Looks at all tags covering the position of iter in the text view,
@@ -136,11 +138,11 @@ static void set_cursor_if_appropriate (GtkTextView *text_view,
                                        gint         y);
 
 static void
-released_cb (GtkGestureMultiPress *gesture,
-             guint                 n_press,
-             gdouble               x,
-             gdouble               y,
-             GtkWidget            *text_view)
+released_cb (GtkGestureClick *gesture,
+             guint            n_press,
+             gdouble          x,
+             gdouble          y,
+             GtkWidget       *text_view)
 {
   GtkTextIter start, end, iter;
   GtkTextBuffer *buffer;
@@ -247,7 +249,7 @@ do_hypertext (GtkWidget *do_widget)
       g_signal_connect (controller, "key-pressed", G_CALLBACK (key_pressed), view);
       gtk_widget_add_controller (view, controller);
 
-      controller = GTK_EVENT_CONTROLLER (gtk_gesture_multi_press_new ());
+      controller = GTK_EVENT_CONTROLLER (gtk_gesture_click_new ());
       g_signal_connect (controller, "released",
                         G_CALLBACK (released_cb), view);
       gtk_widget_add_controller (view, controller);
@@ -258,6 +260,7 @@ do_hypertext (GtkWidget *do_widget)
       gtk_widget_add_controller (view, controller);
 
       buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));
+      gtk_text_buffer_set_enable_undo (buffer, TRUE);
 
       sw = gtk_scrolled_window_new (NULL, NULL);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),

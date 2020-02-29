@@ -5,16 +5,6 @@ test_parser = executable('test-css-parser', 'test-css-parser.c',
                          install: get_option('install-tests'),
                          install_dir: testexecdir,
                          dependencies: libgtk_dep)
-test('parser', test_parser,
-     args: [ '--tap', '-k' ],
-     env: [ 'GIO_USE_VOLUME_MONITOR=unix',
-            'GSETTINGS_BACKEND=memory',
-            'GTK_CSD=1',
-            'G_ENABLE_DIAGNOSTIC=0',
-            'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
-             'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir())
-          ],
-     suite: 'css')
 
 test_data = [
   'animation-crash-3.12.css',
@@ -160,12 +150,21 @@ test_data = [
   'background-shorthand-single.ref.css',
   'background-size.css',
   'background-size.ref.css',
+  'backslash.css',
+  'backslash.errors',
+  'backslash.ref.css',
+  'backslash-eof-is-identifier.css',
+  'backslash-eof-is-identifier.errors',
+  'backslash-eof-is-identifier.ref.css',
+  'border.css',
+  'border.errors',
   'border-color.css',
   'border-color-currentcolor.css',
   'border-color-currentcolor.ref.css',
   'border-color.ref.css',
-  'border.css',
-  'border.errors',
+  'border-crash-3.24.css',
+  'border-crash-3.24.errors',
+  'border-crash-3.24.ref.css',
   'border-image-repeat.css',
   'border-image-repeat.ref.css',
   'border-image-slice.css',
@@ -220,6 +219,18 @@ test_data = [
   'css-21-malformed-statements.errors',
   'css-21-malformed-statements.ref.css',
   'currentcolor-everywhere.css',
+  'dash-backslash-eof-is-identifier.ref.css',
+  'dash-backslash-eof-is-identifier.css',
+  'dash-backslash-eof-is-identifier.errors',
+  'dash-backslash-newline-is-delim.ref.css',
+  'dash-backslash-newline-is-delim.errors',
+  'dash-backslash-newline-is-delim.css',
+  'dash-dash-eof-is-identifier.ref.css',
+  'dash-dash-eof-is-identifier.css',
+  'dash-dash-eof-is-identifier.errors',
+  'dash-eof-is-delim.ref.css',
+  'dash-eof-is-delim.css',
+  'dash-eof-is-delim.errors',
   'declarations.css',
   'declarations.errors',
   'declarations-invalid-01.css',
@@ -358,6 +369,9 @@ test_data = [
   'no-semicolon.ref.css',
   'not.css',
   'not.ref.css',
+  'not-unclosed.css',
+  'not-unclosed.errors',
+  'not-unclosed.ref.css',
   'nth-child.css',
   'nth-child.ref.css',
   'opacity.css',
@@ -392,6 +406,8 @@ test_data = [
   'radial.ref.css',
   'selector.css',
   'selector.ref.css',
+  'selector-original.css',
+  'selector-original.ref.css',
   'shadow.css',
   'shadow.ref.css',
   'shadow-ordering.css',
@@ -440,6 +456,25 @@ test_data = [
   'value-none.errors',
   'value-none.ref.css',
 ]
+
+foreach testname : test_data
+  if testname.endswith('.css') and not testname.endswith('.ref.css')
+    test('parser ' + testname, test_parser,
+         args: [ '--tap',
+                 '-k',
+                 join_paths(meson.current_source_dir(), testname),
+               ],
+         env: [ 'GIO_USE_VOLUME_MONITOR=unix',
+                'GSETTINGS_BACKEND=memory',
+                'GDK_DEBUG=default-settings',
+                'GTK_CSD=1',
+                'G_ENABLE_DIAGNOSTIC=0',
+                'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
+                 'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir())
+              ],
+         suite: 'css')
+  endif
+endforeach
 
 if get_option('install-tests')
   conf = configuration_data()

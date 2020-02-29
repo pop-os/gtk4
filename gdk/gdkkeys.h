@@ -25,7 +25,7 @@
 #ifndef __GDK_KEYS_H__
 #define __GDK_KEYS_H__
 
-#if !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
+#if !defined (__GDK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gdk/gdk.h> can be included directly."
 #endif
 
@@ -133,7 +133,7 @@ GdkModifierType gdk_keymap_get_modifier_mask       (GdkKeymap           *keymap,
 /* Key values
  */
 GDK_AVAILABLE_IN_ALL
-gchar*   gdk_keyval_name         (guint        keyval) G_GNUC_CONST;
+const char *gdk_keyval_name      (guint        keyval) G_GNUC_CONST;
 
 GDK_AVAILABLE_IN_ALL
 guint    gdk_keyval_from_name    (const gchar *keyval_name);

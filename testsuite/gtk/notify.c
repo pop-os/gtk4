@@ -23,6 +23,21 @@
 #include "gdk/wayland/gdkwayland.h"
 #endif
 
+static void
+assert_notifies (GObject    *object,
+                 const char *property,
+                 guint       expected,
+                 guint       counted)
+{
+  if (expected == counted)
+    return;
+
+  g_test_message ("ERROR: While testing %s::%s: %u notify emissions expected, but got %u",
+                  G_OBJECT_TYPE_NAME (object), property,
+                  expected, counted);
+  g_test_fail ();
+}
+
 typedef struct
 {
   const gchar *name;
@@ -65,7 +80,7 @@ check_property (GObject *instance, GParamSpec *pspec)
       g_object_get (instance, pspec->name, &value, NULL);
       g_object_set (instance, pspec->name, value, NULL);
 
-      g_assert_cmpint (data.count, ==, 0);
+      assert_notifies (instance, pspec->name, data.count, 0);
 
       if (class->values[0].value == value)
         first = 1;
@@ -76,7 +91,7 @@ check_property (GObject *instance, GParamSpec *pspec)
         {
           current_count = data.count + 1;
           g_object_set (instance, pspec->name, class->values[i].value, NULL);
-          g_assert_cmpint (data.count, ==, current_count);  
+          assert_notifies (instance, pspec->name, data.count, current_count);
 
           if (current_count == 10) /* just test a few */
             break;
@@ -103,7 +118,7 @@ check_property (GObject *instance, GParamSpec *pspec)
       g_object_get (instance, pspec->name, &value, NULL);
       g_object_set (instance, pspec->name, value, NULL);
 
-      g_assert_cmpint (data.count, ==, 0);
+      assert_notifies (instance, pspec->name, data.count, 0);
 
       for (i = 0; i < class->n_values; i++)
         {
@@ -117,7 +132,7 @@ check_property (GObject *instance, GParamSpec *pspec)
           value |= class->values[i].value;
           current_count = data.count + 1;
           g_object_set (instance, pspec->name, value, NULL);
-          g_assert_cmpint (data.count, ==, current_count);  
+          assert_notifies (instance, pspec->name, data.count, current_count);
 
           if (current_count == 10) /* just test a few */
             break;
@@ -139,11 +154,11 @@ check_property (GObject *instance, GParamSpec *pspec)
       g_object_get (instance, pspec->name, &value, NULL);
       g_object_set (instance, pspec->name, value, NULL);
 
-      g_assert_cmpint (data.count, ==, 0);
+      assert_notifies (instance, pspec->name, data.count, 0);
 
       g_object_set (instance, pspec->name, 1 - value, NULL);
 
-      g_assert_cmpint (data.count, ==, 1);
+      assert_notifies (instance, pspec->name, data.count, 1);
 
       g_signal_handler_disconnect (instance, id);
     } 
@@ -163,7 +178,7 @@ check_property (GObject *instance, GParamSpec *pspec)
       g_object_get (instance, pspec->name, &value, NULL);
       g_object_set (instance, pspec->name, value, NULL);
 
-      g_assert_cmpint (data.count, ==, 0);
+      assert_notifies (instance, pspec->name, data.count, 0);
 
       for (i = p->minimum; i <= p->maximum; i++)
         {
@@ -173,7 +188,7 @@ check_property (GObject *instance, GParamSpec *pspec)
 
           current_count = data.count + 1;
           g_object_set (instance, pspec->name, i, NULL);
-          g_assert_cmpint (data.count, ==, current_count);  
+          assert_notifies (instance, pspec->name, data.count, current_count);
 
           if (current_count == 10) /* just test a few */
             break;
@@ -208,7 +223,7 @@ check_property (GObject *instance, GParamSpec *pspec)
       g_object_get (instance, pspec->name, &value, NULL);
       g_object_set (instance, pspec->name, value, NULL);
 
-      g_assert_cmpint (data.count, ==, 0);
+      assert_notifies (instance, pspec->name, data.count, 0);
 
       for (i = minimum; i <= maximum; i++)
         {
@@ -218,7 +233,7 @@ check_property (GObject *instance, GParamSpec *pspec)
 
           current_count = data.count + 1;
           g_object_set (instance, pspec->name, i, NULL);
-          g_assert_cmpint (data.count, ==, current_count);  
+          assert_notifies (instance, pspec->name, data.count, current_count);
 
           if (current_count == 10) /* just test a few */
             break;
@@ -244,7 +259,7 @@ check_property (GObject *instance, GParamSpec *pspec)
 
       g_object_set (instance, pspec->name, new_value, NULL);
 
-      g_assert_cmpint (data.count, ==, 1);
+      assert_notifies (instance, pspec->name, data.count, 1);
 
       g_free (value);
       g_free (new_value);
@@ -287,7 +302,7 @@ check_property (GObject *instance, GParamSpec *pspec)
 
           current_count = data.count + 1;
           g_object_set (instance, pspec->name, new_value, NULL);
-          g_assert_cmpint (data.count, ==, current_count);  
+          assert_notifies (instance, pspec->name, data.count, current_count);
         }
 
       g_signal_handler_disconnect (instance, id);
@@ -322,7 +337,7 @@ check_property (GObject *instance, GParamSpec *pspec)
             break;
 
           g_object_set (instance, pspec->name, new_value, NULL);
-          g_assert_cmpint (data.count, ==, current_count);  
+          assert_notifies (instance, pspec->name, data.count, current_count);
         }
 
       g_signal_handler_disconnect (instance, id);
@@ -400,13 +415,17 @@ test_type (gconstpointer data)
   if (g_type_is_a (type, GTK_TYPE_MOUNT_OPERATION))
     return;
 
+  /* Needs a special surface */
+  if (g_type_is_a (type, GTK_TYPE_DRAG_ICON))
+    return;
+
   klass = g_type_class_ref (type);
 
   if (g_type_is_a (type, GTK_TYPE_SETTINGS))
     instance = G_OBJECT (g_object_ref (gtk_settings_get_default ()));
   else if (g_type_is_a (type, GDK_TYPE_SURFACE))
     {
-      instance = G_OBJECT (g_object_ref (gdk_surface_new_popup (display,
+      instance = G_OBJECT (g_object_ref (gdk_surface_new_temp (display,
                                                                &(GdkRectangle) { 0, 0, 100, 100 })));
     }
   else if (g_str_equal (g_type_name (type), "GdkX11Cursor"))
@@ -431,7 +450,9 @@ test_type (gconstpointer data)
                                NULL);
       gdk_content_formats_unref (formats);
     }
-  else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL))
+  else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) ||
+           g_type_is_a (type, GTK_TYPE_NO_SELECTION) ||
+           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION))
     {
       GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
       instance = g_object_new (type,
@@ -493,19 +514,6 @@ test_type (gconstpointer data)
           g_str_equal (pspec->name, "text-column"))
         continue;
 
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_MENU_ITEM) &&
-	  g_str_equal (pspec->name, "accel-path"))
-        continue;
-
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_MENU) &&
-	  (g_str_equal (pspec->name, "accel-path") ||
-	   g_str_equal (pspec->name, "active")))
-        continue;
-
-      if (g_type_is_a (pspec->owner_type, GTK_TYPE_CHECK_MENU_ITEM) &&
-	  g_str_equal (pspec->name, "active"))
-        continue;
-
       if (g_type_is_a (pspec->owner_type, GTK_TYPE_COLOR_CHOOSER) &&
 	  g_str_equal (pspec->name, "show-editor"))
         continue;
@@ -560,6 +568,11 @@ test_type (gconstpointer data)
           g_str_equal (pspec->name, "position"))
         continue;
 
+      /* Can't realize a popover without a parent */
+      if (g_type_is_a (type, GTK_TYPE_POPOVER) &&
+          g_str_equal (pspec->name, "visible"))
+        continue;
+
       if (pspec->owner_type == GTK_TYPE_POPOVER_MENU &&
           g_str_equal (pspec->name, "visible-submenu"))
         continue;
@@ -584,10 +597,6 @@ test_type (gconstpointer data)
       if (g_type_is_a (type, GTK_TYPE_ASSISTANT) &&
 	  g_str_equal (pspec->name, "use-header-bar"))
 	continue;
-
-      if (type == GTK_TYPE_MODEL_BUTTON &&
-          pspec->owner_type == GTK_TYPE_BUTTON)
-        continue;
 
       if (g_type_is_a (type, GTK_TYPE_SHORTCUTS_SHORTCUT) &&
 	  g_str_equal (pspec->name, "accelerator"))

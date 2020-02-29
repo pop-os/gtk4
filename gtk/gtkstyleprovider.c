@@ -21,7 +21,6 @@
 
 #include "gtkintl.h"
 #include "gtkprivate.h"
-#include "gtkwidgetpath.h"
 
 /**
  * SECTION:gtkstyleprovider
@@ -45,12 +44,12 @@ static guint signals[LAST_SIGNAL];
 static void
 gtk_style_provider_default_init (GtkStyleProviderInterface *iface)
 {
-  signals[CHANGED] = g_signal_new (I_("-gtk-private-changed"),
+  signals[CHANGED] = g_signal_new (I_("gtk-private-changed"),
                                    G_TYPE_FROM_INTERFACE (iface),
                                    G_SIGNAL_RUN_LAST,
                                    G_STRUCT_OFFSET (GtkStyleProviderInterface, changed),
                                    NULL, NULL,
-                                   g_cclosure_marshal_VOID__VOID,
+                                   NULL,
                                    G_TYPE_NONE, 0);
 
 }
@@ -93,15 +92,16 @@ gtk_style_provider_get_keyframes (GtkStyleProvider *provider,
 }
 
 void
-gtk_style_provider_lookup (GtkStyleProvider    *provider,
-                           const GtkCssMatcher *matcher,
-                           GtkCssLookup        *lookup,
-                           GtkCssChange        *out_change)
+gtk_style_provider_lookup (GtkStyleProvider             *provider,
+                           const GtkCountingBloomFilter *filter,
+                           GtkCssNode                   *node,
+                           GtkCssLookup                 *lookup,
+                           GtkCssChange                 *out_change)
 {
   GtkStyleProviderInterface *iface;
 
   gtk_internal_return_if_fail (GTK_IS_STYLE_PROVIDER (provider));
-  gtk_internal_return_if_fail (matcher != NULL);
+  gtk_internal_return_if_fail (GTK_IS_CSS_NODE (node));
   gtk_internal_return_if_fail (lookup != NULL);
 
   if (out_change)
@@ -112,7 +112,7 @@ gtk_style_provider_lookup (GtkStyleProvider    *provider,
   if (!iface->lookup)
     return;
 
-  iface->lookup (provider, matcher, lookup, out_change);
+  iface->lookup (provider, filter, node, lookup, out_change);
 }
 
 void

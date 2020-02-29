@@ -98,7 +98,7 @@ get_image_paintable (GtkImage *image)
 {
   const gchar *icon_name;
   GtkIconTheme *icon_theme;
-  GtkIconInfo *icon_info;
+  GtkIconPaintable *icon;
 
   switch (gtk_image_get_storage_type (image))
     {
@@ -107,10 +107,15 @@ get_image_paintable (GtkImage *image)
     case GTK_IMAGE_ICON_NAME:
       icon_name = gtk_image_get_icon_name (image);
       icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (image)));
-      icon_info = gtk_icon_theme_lookup_icon (icon_theme, icon_name, 48, GTK_ICON_LOOKUP_GENERIC_FALLBACK);
-      if (icon_info == NULL)
+      icon = gtk_icon_theme_lookup_icon (icon_theme,
+                                         icon_name,
+                                         NULL,
+                                         48, 1,
+                                         gtk_widget_get_direction (GTK_WIDGET (image)),
+                                         0);
+      if (icon == NULL)
         return NULL;
-      return GDK_PAINTABLE (gtk_icon_info_load_texture (icon_info));
+      return GDK_PAINTABLE (icon);
     default:
       g_warning ("Image storage type %d not handled",
                  gtk_image_get_storage_type (image));
@@ -119,59 +124,85 @@ get_image_paintable (GtkImage *image)
 }
 
 static void
-drag_begin (GtkWidget      *widget,
-            GdkDrag        *drag,
-            gpointer        data)
+drag_begin (GtkDragSource *source,
+            GdkDrag       *drag,
+            GtkWidget     *widget)
 {
   GdkPaintable *paintable;
 
   paintable = get_image_paintable (GTK_IMAGE (widget));
   if (paintable)
     {
-      gtk_drag_set_icon_paintable (drag, paintable, -2, -2);
+      gtk_drag_source_set_icon (source, paintable, -2, -2);
       g_object_unref (paintable);
     }
 }
 
-void
-drag_data_get (GtkWidget        *widget,
-               GdkDrag          *drag,
-               GtkSelectionData *selection_data,
-               guint             info,
-               gpointer          data)
+static void
+get_texture (GValue   *value,
+             gpointer  data)
 {
-  GdkPaintable *paintable;
+  GdkPaintable *paintable = get_image_paintable (GTK_IMAGE (data));
 
-  paintable = get_image_paintable (GTK_IMAGE (widget));
   if (GDK_IS_TEXTURE (paintable))
-    gtk_selection_data_set_texture (selection_data, GDK_TEXTURE (paintable));
+    g_value_set_object (value, paintable);
+}
+
+static GdkContentProvider *
+prepare_drag (GtkDragSource *source,
+              double         x,
+              double         y,
+              GtkWidget     *image)
+{
+  return gdk_content_provider_new_with_callback (GDK_TYPE_TEXTURE, get_texture, image);
 }
 
 static void
-drag_data_received (GtkWidget        *widget,
-                    GdkDrop          *drop,
-                    GtkSelectionData *selection_data,
-                    gpointer          data)
+got_texture (GObject *source,
+             GAsyncResult *result,
+             gpointer data)
 {
-  if (gtk_selection_data_get_length (selection_data) > 0)
-    {
-      GdkTexture *texture;
+  GdkDrop *drop = GDK_DROP (source);
+  GtkWidget *image = data;
+  const GValue *value;
+  GError *error = NULL;
 
-      texture = gtk_selection_data_get_texture (selection_data);
-      gtk_image_set_from_paintable (GTK_IMAGE (data), GDK_PAINTABLE (texture));
-      g_object_unref (texture);
+  value = gdk_drop_read_value_finish (drop, result, &error);
+  if (value)
+    {
+      GdkTexture *texture = g_value_get_object (value);
+      gtk_image_set_from_paintable (GTK_IMAGE (image), GDK_PAINTABLE (texture));
+    }
+  else
+    {
+      g_print ("Failed to get data: %s\n", error->message);
+      g_error_free (error);
     }
 }
 
-static void
-copy_image (GtkMenuItem *item,
-            gpointer     data)
+static gboolean
+drag_drop (GtkDropTarget *dest,
+           GdkDrop       *drop,
+           int            x,
+           int            y,
+           GtkWidget     *widget)
 {
-  GdkClipboard *clipboard;
-  GdkPaintable *paintable;
+  if (gdk_drop_has_value (drop, GDK_TYPE_TEXTURE))
+    {
+      gdk_drop_read_value_async (drop, GDK_TYPE_TEXTURE, G_PRIORITY_DEFAULT, NULL, got_texture, widget);
+      return TRUE;
+    }
 
-  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (data));
-  paintable = get_image_paintable (GTK_IMAGE (data));
+  return FALSE;
+}
+
+static void
+copy_image (GSimpleAction *action,
+            GVariant      *value,
+            gpointer       data)
+{
+  GdkClipboard *clipboard = gtk_widget_get_clipboard (GTK_WIDGET (data));
+  GdkPaintable *paintable = get_image_paintable (GTK_IMAGE (data));
 
   if (GDK_IS_TEXTURE (paintable))
     gdk_clipboard_set_texture (clipboard, GDK_TEXTURE (paintable));
@@ -196,16 +227,12 @@ paste_image_received (GObject      *source,
 }
 
 static void
-paste_image (GtkMenuItem *item,
-             gpointer     data)
+paste_image (GSimpleAction *action,
+             GVariant      *value,
+             gpointer       data)
 {
-  GdkClipboard *clipboard;
-
-  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (data));
-  gdk_clipboard_read_texture_async (clipboard,
-                                    NULL,
-                                    paste_image_received,
-                                    data);
+  GdkClipboard *clipboard = gtk_widget_get_clipboard (GTK_WIDGET (data));
+  gdk_clipboard_read_texture_async (clipboard, NULL, paste_image_received, data);
 }
 
 static void
@@ -215,22 +242,23 @@ pressed_cb (GtkGesture *gesture,
             double      y,
             GtkWidget  *image)
 {
-  GtkWidget *menu;
-  GtkWidget *item;
+  GtkWidget *popover;
+  GMenu *menu;
+  GMenuItem *item;
 
-  menu = gtk_menu_new ();
+  menu = g_menu_new (); 
+  item = g_menu_item_new (_("_Copy"), "clipboard.copy");
+  g_menu_append_item (menu, item);
 
-  item = gtk_menu_item_new_with_mnemonic (_("_Copy"));
-  g_signal_connect (item, "activate", G_CALLBACK (copy_image), image);
-  gtk_widget_show (item);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+  item = g_menu_item_new (_("_Paste"), "clipboard.paste");
+  g_menu_append_item (menu, item);
 
-  item = gtk_menu_item_new_with_mnemonic (_("_Paste"));
-  g_signal_connect (item, "activate", G_CALLBACK (paste_image), image);
-  gtk_widget_show (item);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
+  popover = gtk_popover_menu_new_from_model (image, G_MENU_MODEL (menu));
 
-  gtk_menu_popup_at_pointer (GTK_MENU (menu), NULL);
+  gtk_popover_set_pointing_to (GTK_POPOVER (popover), &(GdkRectangle) { x, y, 1, 1});
+  gtk_popover_popup (GTK_POPOVER (popover));
+
+  g_object_unref (menu);
 }
 
 GtkWidget *
@@ -243,6 +271,14 @@ do_clipboard (GtkWidget *do_widget)
       GtkWidget *entry, *button;
       GtkWidget *image;
       GtkGesture *gesture;
+      GActionEntry entries[] = {
+        { "copy", copy_image, NULL, NULL, NULL },
+        { "paste", paste_image, NULL, NULL, NULL },
+      };
+      GActionGroup *actions;
+      GtkDragSource *source;
+      GtkDropTarget *dest;
+      GdkContentFormats *formats;
 
       window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
       gtk_window_set_display (GTK_WINDOW (window),
@@ -301,53 +337,65 @@ do_clipboard (GtkWidget *do_widget)
 
       /* Create the first image */
       image = gtk_image_new_from_icon_name ("dialog-warning");
+      gtk_image_set_pixel_size (GTK_IMAGE (image), 48);
       gtk_container_add (GTK_CONTAINER (hbox), image);
 
       /* make image a drag source */
-      gtk_drag_source_set (image, GDK_BUTTON1_MASK, NULL, GDK_ACTION_COPY);
-      gtk_drag_source_add_image_targets (image);
-      g_signal_connect (image, "drag-begin",
-                        G_CALLBACK (drag_begin), image);
-      g_signal_connect (image, "drag-data-get",
-                        G_CALLBACK (drag_data_get), image);
+      source = gtk_drag_source_new ();
+      g_signal_connect (source, "prepare", G_CALLBACK (prepare_drag), NULL);
+      g_signal_connect (source, "drag-begin", G_CALLBACK (drag_begin), image);
+      gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
 
       /* accept drops on image */
-      gtk_drag_dest_set (image, GTK_DEST_DEFAULT_ALL,
-                         NULL, GDK_ACTION_COPY);
-      gtk_drag_dest_add_image_targets (image);
-      g_signal_connect (image, "drag-data-received",
-                        G_CALLBACK (drag_data_received), image);
+      formats = gdk_content_formats_new_for_gtype (GDK_TYPE_TEXTURE);
+      dest = gtk_drop_target_new (formats, GDK_ACTION_COPY);
+      gdk_content_formats_unref (formats);
+      g_signal_connect (dest, "drag-drop", G_CALLBACK (drag_drop), image);
+      gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (dest));
 
       /* context menu on image */
-      gesture = gtk_gesture_multi_press_new ();
+      gesture = gtk_gesture_click_new ();
       gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
       g_signal_connect (gesture, "pressed", G_CALLBACK (pressed_cb), image);
       gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (gesture));
+
+      actions = G_ACTION_GROUP (g_simple_action_group_new ());
+      g_action_map_add_action_entries (G_ACTION_MAP (actions), entries, G_N_ELEMENTS (entries), image);
+
+      gtk_widget_insert_action_group (image, "clipboard", actions);
+
+      g_object_unref (actions);
 
       /* Create the second image */
       image = gtk_image_new_from_icon_name ("process-stop");
+      gtk_image_set_pixel_size (GTK_IMAGE (image), 48);
       gtk_container_add (GTK_CONTAINER (hbox), image);
 
       /* make image a drag source */
-      gtk_drag_source_set (image, GDK_BUTTON1_MASK, NULL, GDK_ACTION_COPY);
-      gtk_drag_source_add_image_targets (image);
-      g_signal_connect (image, "drag-begin",
-                        G_CALLBACK (drag_begin), image);
-      g_signal_connect (image, "drag-data-get",
-                        G_CALLBACK (drag_data_get), image);
+      source = gtk_drag_source_new ();
+      g_signal_connect (source, "prepare", G_CALLBACK (prepare_drag), NULL);
+      g_signal_connect (source, "drag-begin", G_CALLBACK (drag_begin), image);
+      gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
 
       /* accept drops on image */
-      gtk_drag_dest_set (image, GTK_DEST_DEFAULT_ALL,
-                         NULL, GDK_ACTION_COPY);
-      gtk_drag_dest_add_image_targets (image);
-      g_signal_connect (image, "drag-data-received",
-                        G_CALLBACK (drag_data_received), image);
+      formats = gdk_content_formats_new_for_gtype (GDK_TYPE_TEXTURE);
+      dest = gtk_drop_target_new (formats, GDK_ACTION_COPY);
+      gdk_content_formats_unref (formats);
+      g_signal_connect (dest, "drag-drop", G_CALLBACK (drag_drop), image);
+      gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (dest));
 
       /* context menu on image */
-      gesture = gtk_gesture_multi_press_new ();
+      gesture = gtk_gesture_click_new ();
       gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
       g_signal_connect (gesture, "pressed", G_CALLBACK (pressed_cb), image);
       gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (gesture));
+
+      actions = G_ACTION_GROUP (g_simple_action_group_new ());
+      g_action_map_add_action_entries (G_ACTION_MAP (actions), entries, G_N_ELEMENTS (entries), image);
+
+      gtk_widget_insert_action_group (image, "clipboard", actions);
+
+      g_object_unref (actions);
     }
 
   if (!gtk_widget_get_visible (window))

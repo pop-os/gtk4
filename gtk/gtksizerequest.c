@@ -71,11 +71,21 @@ pop_recursion_check (GtkWidget       *widget,
 #define pop_recursion_check(widget, orientation)
 #endif /* G_ENABLE_CONSISTENCY_CHECKS */
 
-static gint
-get_number (GtkCssStyle *style,
-            guint        property)
+static GtkSizeRequestMode
+fetch_request_mode (GtkWidget *widget)
 {
-  double d = _gtk_css_number_value_get (gtk_css_style_get_value (style, property), 100);
+  GtkLayoutManager *layout_manager = gtk_widget_get_layout_manager (widget);
+
+  if (layout_manager != NULL)
+    return gtk_layout_manager_get_request_mode (layout_manager);
+  else
+    return GTK_WIDGET_GET_CLASS (widget)->get_request_mode (widget);
+}
+
+static gint
+get_number (GtkCssValue *value)
+{
+  double d = _gtk_css_number_value_get (value, 100);
 
   if (d < 1)
     return ceil (d);
@@ -85,40 +95,39 @@ get_number (GtkCssStyle *style,
 
 /* Special-case min-width|height to round upwards, to avoid underalloc by 1px */
 static int
-get_number_ceil (GtkCssStyle *style,
-                 guint        property)
+get_number_ceil (GtkCssValue *value)
 {
-  return ceil (_gtk_css_number_value_get (gtk_css_style_get_value (style, property), 100));
+  return ceil (_gtk_css_number_value_get (value, 100));
 }
 
 static void
 get_box_margin (GtkCssStyle *style,
                 GtkBorder   *margin)
 {
-  margin->top = get_number (style, GTK_CSS_PROPERTY_MARGIN_TOP);
-  margin->left = get_number (style, GTK_CSS_PROPERTY_MARGIN_LEFT);
-  margin->bottom = get_number (style, GTK_CSS_PROPERTY_MARGIN_BOTTOM);
-  margin->right = get_number (style, GTK_CSS_PROPERTY_MARGIN_RIGHT);
+  margin->top = get_number (style->size->margin_top);
+  margin->left = get_number (style->size->margin_left);
+  margin->bottom = get_number (style->size->margin_bottom);
+  margin->right = get_number (style->size->margin_right);
 }
 
 static void
 get_box_border (GtkCssStyle *style,
                 GtkBorder   *border)
 {
-  border->top = get_number (style, GTK_CSS_PROPERTY_BORDER_TOP_WIDTH);
-  border->left = get_number (style, GTK_CSS_PROPERTY_BORDER_LEFT_WIDTH);
-  border->bottom = get_number (style, GTK_CSS_PROPERTY_BORDER_BOTTOM_WIDTH);
-  border->right = get_number (style, GTK_CSS_PROPERTY_BORDER_RIGHT_WIDTH);
+  border->top = get_number (style->border->border_top_width);
+  border->left = get_number (style->border->border_left_width);
+  border->bottom = get_number (style->border->border_bottom_width);
+  border->right = get_number (style->border->border_right_width);
 }
 
 static void
 get_box_padding (GtkCssStyle *style,
                  GtkBorder   *border)
 {
-  border->top = get_number (style, GTK_CSS_PROPERTY_PADDING_TOP);
-  border->left = get_number (style, GTK_CSS_PROPERTY_PADDING_LEFT);
-  border->bottom = get_number (style, GTK_CSS_PROPERTY_PADDING_BOTTOM);
-  border->right = get_number (style, GTK_CSS_PROPERTY_PADDING_RIGHT);
+  border->top = get_number (style->size->padding_top);
+  border->left = get_number (style->size->padding_left);
+  border->bottom = get_number (style->size->padding_bottom);
+  border->right = get_number (style->size->padding_right);
 }
 
 static void
@@ -146,7 +155,7 @@ gtk_widget_query_size_for_orientation (GtkWidget        *widget,
   cache = _gtk_widget_peek_request_cache (widget);
   if (G_UNLIKELY (!cache->request_mode_valid))
     {
-      cache->request_mode = GTK_WIDGET_GET_CLASS (widget)->get_request_mode (widget);
+      cache->request_mode = fetch_request_mode (widget);
       cache->request_mode_valid = TRUE;
     }
 
@@ -185,15 +194,15 @@ gtk_widget_query_size_for_orientation (GtkWidget        *widget,
         {
           css_extra_size = margin.left + margin.right + border.left + border.right + padding.left + padding.right;
           css_extra_for_size = margin.top + margin.bottom + border.top + border.bottom + padding.top + padding.bottom;
-          css_min_size = get_number_ceil (style, GTK_CSS_PROPERTY_MIN_WIDTH);
-          css_min_for_size = get_number_ceil (style, GTK_CSS_PROPERTY_MIN_HEIGHT);
+          css_min_size = get_number_ceil (style->size->min_width);
+          css_min_for_size = get_number_ceil (style->size->min_height);
         }
       else
         {
           css_extra_size = margin.top + margin.bottom + border.top + border.bottom + padding.top + padding.bottom;
           css_extra_for_size = margin.left + margin.right + border.left + border.right + padding.left + padding.right;
-          css_min_size = get_number_ceil (style, GTK_CSS_PROPERTY_MIN_HEIGHT);
-          css_min_for_size = get_number_ceil (style, GTK_CSS_PROPERTY_MIN_WIDTH);
+          css_min_size = get_number_ceil (style->size->min_height);
+          css_min_for_size = get_number_ceil (style->size->min_width);
         }
 
       GtkLayoutManager *layout_manager = gtk_widget_get_layout_manager (widget);
@@ -295,14 +304,14 @@ gtk_widget_query_size_for_orientation (GtkWidget        *widget,
             {
               g_warning ("%s %p (%s) reported min width %d and natural width %d in measure() with for_size=%d; natural size must be >= min size",
                          G_OBJECT_TYPE_NAME (widget), widget,
-                         gtk_css_node_get_name (gtk_widget_get_css_node (widget)),
+                         g_quark_to_string (gtk_css_node_get_name (gtk_widget_get_css_node (widget))),
                          min_size, nat_size, for_size);
             }
           else
             {
               g_warning ("%s %p (%s) reported min height %d and natural height %d in measure() with for_size=%d; natural size must be >= min size",
                          G_OBJECT_TYPE_NAME (widget), widget,
-                         gtk_css_node_get_name (gtk_widget_get_css_node (widget)),
+                         g_quark_to_string (gtk_css_node_get_name (gtk_widget_get_css_node (widget))),
                          min_size, nat_size, for_size);
 
             }
@@ -313,7 +322,7 @@ gtk_widget_query_size_for_orientation (GtkWidget        *widget,
         {
           g_warning ("%s %p (%s) reported min %s %d, but sizes must be >= 0",
                      G_OBJECT_TYPE_NAME (widget), widget,
-                     gtk_css_node_get_name (gtk_widget_get_css_node (widget)),
+                     g_quark_to_string (gtk_css_node_get_name (gtk_widget_get_css_node (widget))),
                      orientation == GTK_ORIENTATION_HORIZONTAL ? "width" : "height",
                      min_size);
           min_size = 0;
@@ -482,7 +491,7 @@ gtk_widget_measure (GtkWidget        *widget,
    * possibly queries the widget class to compute the size if it's
    * not cached.
    */
-  if (!_gtk_widget_get_visible (widget) && !_gtk_widget_is_toplevel (widget))
+  if (!_gtk_widget_get_visible (widget) && !GTK_IS_ROOT (widget))
     {
       if (minimum)
         *minimum = 0;
@@ -562,91 +571,11 @@ gtk_widget_get_request_mode (GtkWidget *widget)
 
   if (G_UNLIKELY (!cache->request_mode_valid))
     {
-      GtkLayoutManager *layout_manager = gtk_widget_get_layout_manager (widget);
-
-      if (layout_manager != NULL)
-        cache->request_mode = gtk_layout_manager_get_request_mode (layout_manager);
-      else
-        cache->request_mode = GTK_WIDGET_GET_CLASS (widget)->get_request_mode (widget);
-
+      cache->request_mode = fetch_request_mode (widget);
       cache->request_mode_valid = TRUE;
     }
 
   return cache->request_mode;
-}
-
-/*
- * _gtk_widget_get_preferred_size_and_baseline:
- * @widget: a #GtkWidget instance
- * @minimum_size: (out) (allow-none): location for storing the minimum size, or %NULL
- * @natural_size: (out) (allow-none): location for storing the natural size, or %NULL
- *
- * Retrieves the minimum and natural size  and the corresponding baselines of a widget, taking
- * into account the widget’s preference for height-for-width management. The baselines may
- * be -1 which means that no baseline is requested for this widget.
- *
- * This is used to retrieve a suitable size by container widgets which do
- * not impose any restrictions on the child placement. It can be used
- * to deduce toplevel window and menu sizes as well as child widgets in
- * free-form containers such as GtkLayout.
- *
- * Handle with care. Note that the natural height of a height-for-width
- * widget will generally be a smaller size than the minimum height, since the required
- * height for the natural width is generally smaller than the required height for
- * the minimum width.
- */
-void
-_gtk_widget_get_preferred_size_and_baseline (GtkWidget      *widget,
-                                             GtkRequisition *minimum_size,
-                                             GtkRequisition *natural_size,
-                                             gint           *minimum_baseline,
-                                             gint           *natural_baseline)
-{
-  gint min_width, nat_width;
-  gint min_height, nat_height;
-
-  g_return_if_fail (GTK_IS_WIDGET (widget));
-
-  if (gtk_widget_get_request_mode (widget) == GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH)
-    {
-      gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, -1,
-                          &min_width, &nat_width, NULL, NULL);
-
-      if (minimum_size)
-	{
-	  minimum_size->width = min_width;
-          gtk_widget_measure (widget,
-                              GTK_ORIENTATION_VERTICAL, min_width,
-                              &minimum_size->height, NULL, minimum_baseline, NULL);
-	}
-
-      if (natural_size)
-	{
-	  natural_size->width = nat_width;
-          gtk_widget_measure (widget,
-                              GTK_ORIENTATION_VERTICAL, nat_width,
-                              NULL, &natural_size->height, NULL, natural_baseline);
-	}
-    }
-  else /* GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT or CONSTANT_SIZE */
-    {
-      gtk_widget_measure (widget, GTK_ORIENTATION_VERTICAL,
-                          -1, &min_height, &nat_height, minimum_baseline, natural_baseline);
-
-      if (minimum_size)
-	{
-	  minimum_size->height = min_height;
-          gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, min_height,
-                              &minimum_size->width, NULL, NULL, NULL);
-	}
-
-      if (natural_size)
-	{
-	  natural_size->height = nat_height;
-          gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, nat_height,
-                              NULL, &natural_size->width, NULL, NULL);
-	}
-    }
 }
 
 /**
@@ -676,8 +605,51 @@ gtk_widget_get_preferred_size (GtkWidget      *widget,
                                GtkRequisition *minimum_size,
                                GtkRequisition *natural_size)
 {
-  _gtk_widget_get_preferred_size_and_baseline (widget, minimum_size, natural_size,
-                                               NULL, NULL);
+  int min_width, nat_width;
+  int min_height, nat_height;
+
+  g_return_if_fail (GTK_IS_WIDGET (widget));
+
+  if (gtk_widget_get_request_mode (widget) == GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH)
+    {
+      gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, -1,
+                          &min_width, &nat_width, NULL, NULL);
+
+      if (minimum_size)
+        {
+          minimum_size->width = min_width;
+          gtk_widget_measure (widget,
+                              GTK_ORIENTATION_VERTICAL, min_width,
+                              &minimum_size->height, NULL, NULL, NULL);
+        }
+
+      if (natural_size)
+        {
+          natural_size->width = nat_width;
+          gtk_widget_measure (widget,
+                              GTK_ORIENTATION_VERTICAL, nat_width,
+                              NULL, &natural_size->height, NULL, NULL);
+        }
+    }
+  else /* GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT or CONSTANT_SIZE */
+    {
+      gtk_widget_measure (widget, GTK_ORIENTATION_VERTICAL,
+                          -1, &min_height, &nat_height, NULL, NULL);
+
+      if (minimum_size)
+        {
+          minimum_size->height = min_height;
+          gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, min_height,
+                              &minimum_size->width, NULL, NULL, NULL);
+        }
+
+      if (natural_size)
+        {
+          natural_size->height = nat_height;
+          gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, nat_height,
+                              NULL, &natural_size->width, NULL, NULL);
+        }
+    }
 }
 
 static gint

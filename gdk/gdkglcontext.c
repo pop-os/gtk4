@@ -310,6 +310,12 @@ gdk_gl_context_real_begin_frame (GdkDrawContext *draw_context,
     }
 
   damage = GDK_GL_CONTEXT_GET_CLASS (context)->get_damage (context);
+
+  if (context->old_updated_area[1])
+    cairo_region_destroy (context->old_updated_area[1]);
+  context->old_updated_area[1] = context->old_updated_area[0];
+  context->old_updated_area[0] = cairo_region_copy (region);
+
   cairo_region_union (region, damage);
   cairo_region_destroy (damage);
 
@@ -341,11 +347,6 @@ gdk_gl_context_real_end_frame (GdkDrawContext *draw_context,
       GDK_DRAW_CONTEXT_GET_CLASS (GDK_DRAW_CONTEXT (shared))->end_frame (GDK_DRAW_CONTEXT (shared), painted);
       return;
     }
-
-  if (context->old_updated_area[1])
-    cairo_region_destroy (context->old_updated_area[1]);
-  context->old_updated_area[1] = context->old_updated_area[0];
-  context->old_updated_area[0] = cairo_region_reference (painted);
 }
 
 static void
@@ -637,7 +638,6 @@ gdk_gl_context_set_required_version (GdkGLContext *context,
                                      int           minor)
 {
   GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private (context);
-  GdkDisplay *display;
   int version, min_ver;
 
   g_return_if_fail (GDK_IS_GL_CONTEXT (context));
@@ -654,9 +654,7 @@ gdk_gl_context_set_required_version (GdkGLContext *context,
   /* Enforce a minimum context version number of 3.2 */
   version = (major * 100) + minor;
 
-  display = gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context));
-
-  if (priv->use_es > 0 || GDK_DISPLAY_DEBUG_CHECK (display, GL_GLES))
+  if (priv->use_es > 0 || GDK_DISPLAY_DEBUG_CHECK (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)), GL_GLES))
     min_ver = 200;
   else
     min_ver = 302;
@@ -685,15 +683,12 @@ gdk_gl_context_get_required_version (GdkGLContext *context,
                                      int          *minor)
 {
   GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private (context);
-  GdkDisplay *display;
   int default_major, default_minor;
   int maj, min;
 
   g_return_if_fail (GDK_IS_GL_CONTEXT (context));
 
-  display = gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context));
-
-  if (priv->use_es > 0 || GDK_DISPLAY_DEBUG_CHECK (display, GL_GLES))
+  if (priv->use_es > 0 || GDK_DISPLAY_DEBUG_CHECK (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)), GL_GLES))
     {
       default_major = 2;
       default_minor = 0;
@@ -769,7 +764,7 @@ gdk_gl_context_set_is_legacy (GdkGLContext *context,
  * @use_es: whether the context should use OpenGL ES instead of OpenGL,
  *   or -1 to allow auto-detection
  *
- * Requests that GDK create a OpenGL ES context instead of an OpenGL one,
+ * Requests that GDK create an OpenGL ES context instead of an OpenGL one,
  * if the platform and windowing system allows it.
  *
  * The @context must not have been realized.
@@ -940,7 +935,6 @@ static void
 gdk_gl_context_check_extensions (GdkGLContext *context)
 {
   GdkGLContextPrivate *priv = gdk_gl_context_get_instance_private (context);
-  GdkDisplay *display;
   gboolean has_npot, has_texture_rectangle;
 
   if (!priv->realized)
@@ -954,7 +948,8 @@ gdk_gl_context_check_extensions (GdkGLContext *context)
   if (priv->use_es < 0)
     priv->use_es = !epoxy_is_desktop_gl ();
 
-  priv->has_debug_output = epoxy_has_gl_extension ("GL_ARB_debug_output");
+  priv->has_debug_output = epoxy_has_gl_extension ("GL_ARB_debug_output") ||
+                           epoxy_has_gl_extension ("GL_KHR_debug");
 
 #ifdef G_ENABLE_CONSISTENCY_CHECKS
   if (priv->has_debug_output)
@@ -998,14 +993,12 @@ gdk_gl_context_check_extensions (GdkGLContext *context)
         priv->is_legacy = TRUE;
     }
 
-  display = gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context));
-
-  if (priv->has_khr_debug && GDK_DISPLAY_DEBUG_CHECK (display, GL_DEBUG))
+  if (priv->has_khr_debug && GDK_DISPLAY_DEBUG_CHECK (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)), GL_DEBUG))
     {
       priv->use_khr_debug = TRUE;
       glGetIntegerv (GL_MAX_LABEL_LENGTH, &priv->max_debug_label_length);
     }
-  if (!priv->use_es && GDK_DISPLAY_DEBUG_CHECK (display, GL_TEXTURE_RECT))
+  if (!priv->use_es && GDK_DISPLAY_DEBUG_CHECK (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)), GL_TEXTURE_RECT))
     priv->use_texture_rectangle = TRUE;
   else if (has_npot)
     priv->use_texture_rectangle = FALSE;
@@ -1014,7 +1007,7 @@ gdk_gl_context_check_extensions (GdkGLContext *context)
   else
     g_warning ("GL implementation doesn't support any form of non-power-of-two textures");
 
-  GDK_DISPLAY_NOTE (display, OPENGL,
+  GDK_DISPLAY_NOTE (gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context)), OPENGL,
     g_message ("%s version: %d.%d (%s)\n"
                        "* GLSL version: %s\n"
                        "* Extensions checked:\n"

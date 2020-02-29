@@ -83,7 +83,7 @@ static guint signals[LAST_SIGNAL] = { 0 };
 
 static void     gtk_file_chooser_entry_finalize       (GObject          *object);
 static void     gtk_file_chooser_entry_dispose        (GObject          *object);
-static void     gtk_file_chooser_entry_grab_focus     (GtkWidget        *widget);
+static gboolean gtk_file_chooser_entry_grab_focus     (GtkWidget        *widget);
 static gboolean gtk_file_chooser_entry_tab_handler    (GtkEventControllerKey *key,
                                                        guint                  keyval,
                                                        guint                  keycode,
@@ -442,8 +442,8 @@ is_directory_shortcut (const char *text)
 }
 
 static GFile *
-gtk_file_chooser_get_directory_for_text (GtkFileChooserEntry *chooser_entry,
-                                         const char *         text)
+gtk_file_chooser_entry_get_directory_for_text (GtkFileChooserEntry *chooser_entry,
+                                               const char *         text)
 {
   GFile *file, *parent;
 
@@ -497,11 +497,14 @@ explicitly_complete (GtkFileChooserEntry *chooser_entry)
   gtk_widget_error_bell (GTK_WIDGET (chooser_entry));
 }
 
-static void
+static gboolean
 gtk_file_chooser_entry_grab_focus (GtkWidget *widget)
 {
-  GTK_WIDGET_CLASS (_gtk_file_chooser_entry_parent_class)->grab_focus (widget);
+  if (!GTK_WIDGET_CLASS (_gtk_file_chooser_entry_parent_class)->grab_focus (widget))
+    return FALSE;
+
   _gtk_file_chooser_entry_select_filename (GTK_FILE_CHOOSER_ENTRY (widget));
+  return TRUE;
 }
 
 static void
@@ -746,7 +749,7 @@ refresh_current_folder_and_file_part (GtkFileChooserEntry *chooser_entry)
       chooser_entry->file_part = g_strdup (text);
     }
 
-  folder_file = gtk_file_chooser_get_directory_for_text (chooser_entry, text);
+  folder_file = gtk_file_chooser_entry_get_directory_for_text (chooser_entry, text);
 
   set_completion_folder (chooser_entry, folder_file, dir_part);
 
@@ -906,16 +909,17 @@ _gtk_file_chooser_entry_set_base_folder (GtkFileChooserEntry *chooser_entry,
  * be different.  If the user has entered unparsable text, or text which
  * the entry cannot handle, this will return %NULL.
  *
- * Returns: the file for the current folder - you must g_object_unref()
- *   the value after use.
+ * Returns: (nullable): the file for the current folder or %NULL if the
+ *   current folder can not be determined. Unref the file with
+ *   g_object_unref() after use.
  **/
 GFile *
 _gtk_file_chooser_entry_get_current_folder (GtkFileChooserEntry *chooser_entry)
 {
   g_return_val_if_fail (GTK_IS_FILE_CHOOSER_ENTRY (chooser_entry), NULL);
 
-  return gtk_file_chooser_get_directory_for_text (chooser_entry,
-                                                  gtk_editable_get_text (GTK_EDITABLE (chooser_entry)));
+  return gtk_file_chooser_entry_get_directory_for_text (chooser_entry,
+                                                        gtk_editable_get_text (GTK_EDITABLE (chooser_entry)));
 }
 
 /**

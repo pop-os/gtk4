@@ -10,24 +10,29 @@ endif
 tests = [
   ['accel'],
   ['accessible'],
+  ['action'],
   ['adjustment'],
   ['bitmask', ['../../gtk/gtkallocatedbitmask.c'], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']],
   ['builder', [], [], gtk_tests_export_dynamic_ldflag],
   ['builderparser'],
   ['cellarea'],
   ['check-icon-names'],
+  ['constraint-solver', [
+      '../../gtk/gtkconstraintsolver.c',
+      '../../gtk/gtkconstraintexpression.c',
+    ], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']
+  ],
   ['cssprovider'],
   ['rbtree-crash', ['../../gtk/gtkrbtree.c'], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']],
   ['defaultvalue'],
   ['entry'],
   ['filterlistmodel'],
   ['flattenlistmodel'],
-  ['firefox-stylecontext'],
   ['floating'],
   ['focus'],
   ['gestures'],
   ['grid'],
-  ['gtkmenu'],
+  ['grid-layout'],
   ['icontheme'],
   ['keyhash', ['../../gtk/gtkkeyhash.c', gtkresources, '../../gtk/gtkprivate.c'], gtk_cargs],
   ['listbox'],
@@ -38,6 +43,7 @@ tests = [
   ['object'],
   ['objects-finalize'],
   ['papersize'],
+  ['popover'],
   ['propertylookuplistmodel', ['../../gtk/gtkpropertylookuplistmodel.c'], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']],
   ['rbtree', ['../../gtk/gtktreerbtree.c'], ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG']],
   ['recentmanager'],
@@ -48,12 +54,10 @@ tests = [
   ['slicelistmodel'],
   ['sortlistmodel'],
   ['spinbutton'],
-  ['stylecontext'],
   ['templates'],
   ['textbuffer'],
   ['textiter'],
   ['theme-validate'],
-  ['transform'],
   ['treelistmodel'],
   ['treemodel', ['treemodel.c', 'liststore.c', 'treestore.c', 'filtermodel.c',
                  'modelrefcount.c', 'sortmodel.c', 'gtktreemodelrefcount.c']],
@@ -90,6 +94,7 @@ foreach t : tests
        args: [ '--tap', '-k' ],
        env: [ 'GIO_USE_VOLUME_MONITOR=unix',
               'GSETTINGS_BACKEND=memory',
+              'GDK_DEBUG=default-settings',
               'GTK_CSD=1',
               'G_ENABLE_DIAGNOSTIC=0',
               'GSK_RENDERER=cairo',
@@ -112,6 +117,7 @@ if add_languages('cpp', required: false)
        args: [ '--tap', '-k' ],
        env: [ 'GIO_USE_VOLUME_MONITOR=unix',
               'GSETTINGS_BACKEND=memory',
+              'GDK_DEBUG=default-settings',
               'GTK_CSD=1',
               'G_ENABLE_DIAGNOSTIC=0',
               'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
@@ -130,6 +136,40 @@ if add_languages('cpp', required: false)
   endif
 endif
 
+focus_chain_tests = [
+  # test     direction
+  [ 'basic', 'tab' ],
+  [ 'basic', 'tab-backward' ],
+  [ 'basic', 'left' ],
+  [ 'basic', 'right' ],
+  [ 'focusable-container', 'tab' ],
+  [ 'focusable-container', 'tab-backward' ],
+]
+
+focus_chain = executable(
+  'test-focus-chain',
+  ['test-focus-chain.c'],
+  dependencies: libgtk_dep,
+  install: get_option('install-tests'),
+  install_dir: testexecdir
+)
+
+foreach test : focus_chain_tests
+  test(test[0] + ' ' + test[1], focus_chain,
+       args: [ join_paths(meson.current_source_dir(), 'focus-chain', test[0] + '.ui'),
+               join_paths(meson.current_source_dir(), 'focus-chain', test[0] + '.' + test[1]) ],
+       env: [ 'GIO_USE_VOLUME_MONITOR=unix',
+              'GSETTINGS_BACKEND=memory',
+              'GDK_DEBUG=default-settings',
+              'GTK_CSD=1',
+              'G_ENABLE_DIAGNOSTIC=0',
+              'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
+              'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir())
+             ],
+       suite: [ 'gtk', 'focus' ])
+endforeach
+
+
 if get_option('install-tests')
   foreach t : tests
     test_name = t.get(0)
@@ -147,3 +187,22 @@ if get_option('install-tests')
 
 endif
 
+if get_option ('profiler')
+
+  test('performance-layout', test_performance,
+       args: [ '--mark', 'size allocation', join_paths(meson.current_build_dir(), '../../demos/widget-factory/gtk4-widget-factory') ],
+       env: [ 'GTK_THEME=Empty',
+              'GSETTINGS_SCHEMA_DIR=@0@'.format(gtk_schema_build_dir) ],
+       suite: [ 'css' ])
+
+endif
+
+if get_option ('profiler')
+
+  test('performance-snapshot', test_performance,
+       args: [ '--mark', 'widget snapshot', join_paths(meson.current_build_dir(), '../../demos/widget-factory/gtk4-widget-factory') ],
+       env: [ 'GTK_THEME=Empty',
+              'GSETTINGS_SCHEMA_DIR=@0@'.format(gtk_schema_build_dir) ],
+       suite: [ 'css' ])
+
+endif

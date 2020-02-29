@@ -164,7 +164,7 @@ run_example_for_row (GtkWidget    *window,
           cbdata->model = model;
           cbdata->path = gtk_tree_model_get_path (model, iter);
 
-          if (gtk_widget_is_toplevel (demo))
+          if (GTK_IS_WINDOW (demo))
             {
               gtk_window_set_transient_for (GTK_WINDOW (demo), GTK_WINDOW (window));
               gtk_window_set_modal (GTK_WINDOW (demo), TRUE);
@@ -487,7 +487,7 @@ parse_chars (gchar     *text,
 }
 
 /* While not as cool as c-mode, this will do as a quick attempt at highlighting */
-static void
+void
 fontify (GtkTextBuffer *source_buffer)
 {
   GtkTextIter start_iter, next_iter, tmp_iter;
@@ -639,7 +639,7 @@ display_nothing (const char *resource)
 
   str = g_strdup_printf ("The lazy GTK developers forgot to add a way to display the resource '%s'", resource);
   widget = gtk_label_new (str);
-  gtk_label_set_line_wrap (GTK_LABEL (widget), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (widget), TRUE);
 
   g_free (str);
 
@@ -747,6 +747,9 @@ load_file (const gchar *demoname,
                               NULL);
 
   source_buffer = gtk_text_buffer_new (NULL);
+
+  gtk_text_buffer_begin_irreversible_action (info_buffer);
+  gtk_text_buffer_begin_irreversible_action (source_buffer);
 
   resource_filename = g_strconcat ("/sources/", filename, NULL);
   bytes = g_resources_lookup_data (resource_filename, 0, &err);
@@ -880,9 +883,11 @@ load_file (const gchar *demoname,
 
   fontify (source_buffer);
 
+  gtk_text_buffer_end_irreversible_action (source_buffer);
   gtk_text_view_set_buffer (GTK_TEXT_VIEW (source_view), source_buffer);
   g_object_unref (source_buffer);
 
+  gtk_text_buffer_end_irreversible_action (info_buffer);
   gtk_text_view_set_buffer (GTK_TEXT_VIEW (info_view), info_buffer);
   g_object_unref (info_buffer);
 }
@@ -991,37 +996,11 @@ row_activated_cb (GtkWidget         *tree_view,
   GtkWidget *window;
   GtkTreeModel *model;
 
-  window = gtk_widget_get_toplevel (tree_view);
+  window = GTK_WIDGET (gtk_widget_get_root (tree_view));
   model = gtk_tree_view_get_model (GTK_TREE_VIEW (tree_view));
   gtk_tree_model_get_iter (model, &iter, path);
 
   run_example_for_row (window, model, &iter);
-}
-
-static void
-start_cb (GtkMenuItem *item, GtkWidget *scrollbar)
-{
-  GtkAdjustment *adj;
-
-  adj = gtk_scrollbar_get_adjustment (GTK_SCROLLBAR (scrollbar));
-  gtk_adjustment_set_value (adj, gtk_adjustment_get_lower (adj));
-}
-
-static void
-end_cb (GtkMenuItem *item, GtkWidget *scrollbar)
-{
-  GtkAdjustment *adj;
-
-  adj = gtk_scrollbar_get_adjustment (GTK_SCROLLBAR (scrollbar));
-  gtk_adjustment_set_value (adj, gtk_adjustment_get_upper (adj) - gtk_adjustment_get_page_size (adj));
-}
-
-static gboolean
-scrollbar_popup (GtkWidget *scrollbar, GtkWidget *menu)
-{
-  gtk_menu_popup_at_pointer (GTK_MENU (menu), NULL);
-
-  return TRUE;
 }
 
 static void
@@ -1032,23 +1011,12 @@ activate (GApplication *app)
   GtkWidget *widget;
   GtkTreeModel *model;
   GtkTreeIter iter;
-  GError *error = NULL;
-  GtkWidget *sw;
-  GtkWidget *scrollbar;
-  GtkWidget *menu;
-  GtkWidget *item;
 
   static GActionEntry win_entries[] = {
     { "run", activate_run, NULL, NULL, NULL }
   };
 
-  builder = gtk_builder_new ();
-  gtk_builder_add_from_resource (builder, "/ui/main.ui", &error);
-  if (error != NULL)
-    {
-      g_critical ("%s", error->message);
-      exit (1);
-    }
+  builder = gtk_builder_new_from_resource ("/ui/main.ui");
 
   window = (GtkWindow *)gtk_builder_get_object (builder, "window");
   gtk_application_add_window (GTK_APPLICATION (app), window);
@@ -1063,21 +1031,6 @@ activate (GApplication *app)
   headerbar = (GtkWidget *)gtk_builder_get_object (builder, "headerbar");
   treeview = (GtkWidget *)gtk_builder_get_object (builder, "treeview");
   model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
-
-  sw = (GtkWidget *)gtk_builder_get_object (builder, "source-scrolledwindow");
-  scrollbar = gtk_scrolled_window_get_vscrollbar (GTK_SCROLLED_WINDOW (sw));
-
-  menu = gtk_menu_new ();
-
-  item = gtk_menu_item_new_with_label ("Start");
-  g_signal_connect (item, "activate", G_CALLBACK (start_cb), scrollbar);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-
-  item = gtk_menu_item_new_with_label ("End");
-  g_signal_connect (item, "activate", G_CALLBACK (end_cb), scrollbar);
-  gtk_menu_shell_append (GTK_MENU_SHELL (menu), item);
-
-  g_signal_connect (scrollbar, "popup-menu", G_CALLBACK (scrollbar_popup), menu);
 
   load_file (gtk_demos[0].name, gtk_demos[0].filename);
 

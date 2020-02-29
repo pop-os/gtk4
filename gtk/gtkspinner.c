@@ -61,6 +61,18 @@
  * active, the :checked pseudoclass is added to this node.
  */
 
+typedef struct _GtkSpinnerClass GtkSpinnerClass;
+
+struct _GtkSpinner
+{
+  GtkWidget parent;
+};
+
+struct _GtkSpinnerClass
+{
+  GtkWidgetClass parent_class;
+};
+
 
 enum {
   PROP_0,
@@ -81,17 +93,14 @@ gtk_spinner_measure (GtkWidget      *widget,
                      int            *natural_baseline)
 {
   double min_size;
-  guint property;
   GtkCssStyle *style;
-
-  if (orientation == GTK_ORIENTATION_HORIZONTAL)
-    property = GTK_CSS_PROPERTY_MIN_WIDTH;
-  else
-    property = GTK_CSS_PROPERTY_MIN_HEIGHT;
 
   style = gtk_css_node_get_style (gtk_widget_get_css_node (widget));
 
-  min_size = _gtk_css_number_value_get (gtk_css_style_get_value (style, property), 100);
+  if (orientation == GTK_ORIENTATION_HORIZONTAL)
+    min_size = _gtk_css_number_value_get (style->size->min_width, 100);
+  else
+    min_size = _gtk_css_number_value_get (style->size->min_height, 100);
 
   if (min_size > 0.0)
     *minimum = *natural = min_size;
@@ -108,8 +117,25 @@ gtk_spinner_snapshot (GtkWidget   *widget,
   gtk_css_style_snapshot_icon (style,
                                snapshot,
                                gtk_widget_get_width (widget),
-                               gtk_widget_get_height (widget),
-                               GTK_CSS_IMAGE_BUILTIN_SPINNER);
+                               gtk_widget_get_height (widget));
+}
+
+static void
+gtk_spinner_css_changed (GtkWidget         *widget,
+                         GtkCssStyleChange *change)
+{ 
+  GTK_WIDGET_CLASS (gtk_spinner_parent_class)->css_changed (widget, change);
+  
+  if (change == NULL ||
+      gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_ICON_SIZE))
+    {
+      gtk_widget_queue_resize (widget);
+    }
+  else if (gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_ICON_TEXTURE) ||
+           gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_ICON_REDRAW))
+    {
+      gtk_widget_queue_draw (widget);
+    }
 }
 
 static gboolean
@@ -184,6 +210,7 @@ gtk_spinner_class_init (GtkSpinnerClass *klass)
   widget_class = GTK_WIDGET_CLASS(klass);
   widget_class->snapshot = gtk_spinner_snapshot;
   widget_class->measure = gtk_spinner_measure;
+  widget_class->css_changed = gtk_spinner_css_changed;
 
   /* GtkSpinner:active:
    *
@@ -204,7 +231,6 @@ gtk_spinner_class_init (GtkSpinnerClass *klass)
 static void
 gtk_spinner_init (GtkSpinner *spinner)
 {
-  gtk_widget_set_has_surface (GTK_WIDGET (spinner), FALSE);
 }
 
 /**

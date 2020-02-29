@@ -18,8 +18,8 @@
 #ifndef __GDK_WAYLAND_DEVICE_H__
 #define __GDK_WAYLAND_DEVICE_H__
 
-#if !defined (__GDKWAYLAND_H_INSIDE__) && !defined (GDK_COMPILATION)
-#error "Only <gdk/gdkwayland.h> can be included directly."
+#if !defined (__GDKWAYLAND_H_INSIDE__) && !defined (GTK_COMPILATION)
+#error "Only <gdk/wayland/gdkwayland.h> can be included directly."
 #endif
 
 #include <gdk/gdk.h>
@@ -28,7 +28,7 @@
 
 G_BEGIN_DECLS
 
-#ifdef GDK_COMPILATION
+#ifdef GTK_COMPILATION
 typedef struct _GdkWaylandDevice GdkWaylandDevice;
 #else
 typedef GdkDevice GdkWaylandDevice;

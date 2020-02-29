@@ -18,12 +18,12 @@
  */
 
 #include "gtkactionhelperprivate.h"
-#include "gtkactionobservable.h"
+#include "gtkactionobservableprivate.h"
 
 #include "gtkwidgetprivate.h"
 #include "gtkdebug.h"
-#include "gtkmodelbutton.h"
 #include "gtktypebuiltins.h"
+#include "gtkmodelbuttonprivate.h"
 
 #include <string.h>
 

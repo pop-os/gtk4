@@ -28,7 +28,7 @@ init_icon_names (GtkIconTheme *theme)
   if (icon_names)
     return;
 
-  icon_list = gtk_icon_theme_list_icons (theme, NULL);
+  icon_list = gtk_icon_theme_list_icons (theme);
   icons = g_ptr_array_new ();
 
   for (l = icon_list; l; l = l->next)
@@ -60,8 +60,10 @@ create_icon (void)
 {
   GtkWidget *image;
 
-  image = gtk_image_new_from_icon_name (get_random_icon_name (gtk_icon_theme_get_default ()));
+  image = gtk_image_new ();
   gtk_image_set_icon_size (GTK_IMAGE (image), GTK_ICON_SIZE_LARGE);
+  gtk_image_set_from_icon_name (GTK_IMAGE (image),
+                                get_random_icon_name (gtk_icon_theme_get_for_display (gtk_widget_get_display (image))));
 
   return image;
 }
@@ -124,7 +126,7 @@ create_label (void)
 {
   GtkWidget *w = gtk_label_new ("pLorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua.");
 
-  gtk_label_set_line_wrap (GTK_LABEL (w), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (w), TRUE);
   gtk_label_set_max_width_chars (GTK_LABEL (w), 100);
 
   return w;
@@ -164,6 +166,26 @@ create_switch (void)
   return w;
 }
 
+static void
+mapped (GtkWidget *w)
+{
+  gtk_menu_button_popup (GTK_MENU_BUTTON (w));
+}
+
+static GtkWidget *
+create_menu_button (void)
+{
+  GtkWidget *w = gtk_menu_button_new ();
+  GtkWidget *popover = gtk_popover_new (NULL);
+
+  gtk_container_add (GTK_CONTAINER (popover), gtk_button_new_with_label ("Hey!"));
+  gtk_popover_set_autohide (GTK_POPOVER (popover), FALSE);
+  gtk_menu_button_set_popover (GTK_MENU_BUTTON (w), popover);
+  g_signal_connect (w, "map", G_CALLBACK (mapped), NULL);
+
+  return w;
+}
+
 static const struct {
   const char *name;
   GtkWidget * (*create_func) (void);
@@ -179,6 +201,7 @@ static const struct {
   { "Video",      create_video          },
   { "Gears",      create_gears          },
   { "Switch",     create_switch         },
+  { "Menubutton", create_menu_button    },
 };
 
 static int selected_widget_type = -1;
@@ -198,15 +221,15 @@ set_widget_type (GtkFishbowl *fishbowl,
   gtk_fishbowl_set_creation_func (fishbowl,
                                   widget_types[selected_widget_type].create_func);
 
-  window = gtk_widget_get_toplevel (GTK_WIDGET (fishbowl));
+  window = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (fishbowl)));
   headerbar = gtk_window_get_titlebar (GTK_WINDOW (window));
   gtk_header_bar_set_title (GTK_HEADER_BAR (headerbar),
                             widget_types[selected_widget_type].name);
 }
 
 void
-next_button_clicked_cb (GtkButton *source,
-                        gpointer   user_data)
+fishbowl_next_button_clicked_cb (GtkButton *source,
+                                 gpointer   user_data)
 {
   GtkFishbowl *fishbowl = user_data;
   int new_index;
@@ -220,8 +243,8 @@ next_button_clicked_cb (GtkButton *source,
 }
 
 void
-prev_button_clicked_cb (GtkButton *source,
-                        gpointer   user_data)
+fishbowl_prev_button_clicked_cb (GtkButton *source,
+                                 gpointer   user_data)
 {
   GtkFishbowl *fishbowl = user_data;
   int new_index;
@@ -234,6 +257,15 @@ prev_button_clicked_cb (GtkButton *source,
   set_widget_type (fishbowl, new_index);
 }
 
+void
+fishbowl_changes_toggled_cb (GtkToggleButton *button,
+                             gpointer         user_data)
+{
+  if (gtk_toggle_button_get_active (button))
+    gtk_button_set_icon_name (GTK_BUTTON (button), "changes-prevent");
+  else
+    gtk_button_set_icon_name (GTK_BUTTON (button), "changes-allow");
+}
 
 GtkWidget *
 do_fishbowl (GtkWidget *do_widget)
@@ -258,11 +290,6 @@ do_fishbowl (GtkWidget *do_widget)
       g_type_ensure (GTK_TYPE_FISHBOWL);
 
       builder = gtk_builder_new_from_resource ("/fishbowl/fishbowl.ui");
-      gtk_builder_add_callback_symbols (builder,
-                                        "next_button_clicked_cb", G_CALLBACK (next_button_clicked_cb),
-                                        "prev_button_clicked_cb", G_CALLBACK (prev_button_clicked_cb),
-                                        NULL);
-      gtk_builder_connect_signals (builder, NULL);
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
       g_signal_connect (window, "destroy",
                         G_CALLBACK (gtk_widget_destroyed), &window);
@@ -275,6 +302,7 @@ do_fishbowl (GtkWidget *do_widget)
                         G_CALLBACK (gtk_widget_destroyed), &window);
 
       gtk_widget_realize (window);
+      g_object_unref (builder);
     }
 
   if (!gtk_widget_get_visible (window))

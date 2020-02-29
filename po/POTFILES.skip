@@ -1,5 +1,6 @@
 # List of source files that should *not* be translated.
 # Please keep this file sorted alphabetically.
+demos/constraint-editor/constraint-editor-window.ui
 demos/gtk-demo/application.ui
 demos/gtk-demo/appmenu.ui
 demos/gtk-demo/appwindow.c
@@ -18,6 +19,7 @@ demos/gtk-demo/filtermodel.ui
 demos/gtk-demo/fishbowl.ui
 demos/gtk-demo/font_features.c
 demos/gtk-demo/font-features.ui
+demos/gtk-demo/fontrendering.ui
 demos/gtk-demo/iconview.c
 demos/gtk-demo/infobar.c
 demos/gtk-demo/listbox.ui
@@ -40,6 +42,7 @@ demos/gtk-demo/sizegroup.c
 demos/gtk-demo/spinbutton.ui
 demos/gtk-demo/spinner.c
 demos/gtk-demo/stack.ui
+demos/gtk-demo/themes.ui
 demos/gtk-demo/theming.ui
 demos/icon-browser/menus.ui
 demos/icon-browser/window.ui
@@ -112,6 +115,8 @@ testsuite/a11y/notebook.ui
 testsuite/a11y/paned.ui
 testsuite/a11y/placeholder-text.ui
 testsuite/a11y/stack.ui
+testsuite/css/change/test1.ui
+testsuite/css/change/test3.ui
 testsuite/css/nodes/buttons.ui
 testsuite/css/nodes/entries.ui
 testsuite/css/nodes/notebook-arrows2.ui
@@ -130,6 +135,7 @@ testsuite/css/nodes/notebook.top.rtl.ui
 testsuite/css/nodes/notebook.top.ui
 testsuite/css/nodes/notebook.ui
 testsuite/css/style/adjacent-states.ui
+testsuite/css/style/bloomfilter-not.ui
 testsuite/css/style/currentcolor.ui
 testsuite/css/style/font.ui
 testsuite/css/style/inherit.ui
@@ -304,11 +310,9 @@ testsuite/reftests/window-show-contents-on-map.ui
 testsuite/tools/simplify-data-3to4/assistant.ui
 testsuite/tools/simplify-data-3to4/grid.ui
 testsuite/tools/simplify-data-3to4/notebook.ui
+testsuite/tools/simplify-data-3to4/office-runner.ui
 testsuite/tools/simplify-data-3to4/stack.ui
 testsuite/tools/simplify-data/test3.ui
-tests/visuals/inline-toolbar-horizontal.ui
-tests/visuals/inline-toolbar-vertical.ui
 tests/visuals/linked-buttons-horizontal.ui
 tests/visuals/linked-buttons-vertical.ui
-tests/visuals/primary-toolbar.ui
 tests/visuals/suggested-action-buttons.ui

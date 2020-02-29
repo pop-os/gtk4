@@ -132,7 +132,13 @@ GDK_AVAILABLE_IN_ALL
 PangoTabArray * gtk_text_get_tabs                       (GtkText         *self);
 
 GDK_AVAILABLE_IN_ALL
-void            gtk_text_grab_focus_without_selecting   (GtkText         *self);
+gboolean        gtk_text_grab_focus_without_selecting   (GtkText         *self);
+
+GDK_AVAILABLE_IN_ALL
+void            gtk_text_set_extra_menu                 (GtkText         *self,
+                                                         GMenuModel      *model);
+GDK_AVAILABLE_IN_ALL
+GMenuModel *    gtk_text_get_extra_menu                 (GtkText         *self);
 
 G_END_DECLS
 

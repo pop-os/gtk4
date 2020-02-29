@@ -216,17 +216,25 @@ gtk_flatten_list_model_items_changed_cb (GListModel          *model,
                                          guint                added,
                                          gpointer             _node)
 {
-  FlattenNode *node = _node, *parent;
+  FlattenNode *node = _node, *parent, *left;
   GtkFlattenListModel *self = node->list;
   guint real_position;
 
   gtk_rb_tree_node_mark_dirty (node);
+  real_position = position;
 
-  for (real_position = position;
+  left = gtk_rb_tree_node_get_left (node);
+  if (left)
+    {
+      FlattenAugment *aug = gtk_rb_tree_get_augment (self->items, left);
+      real_position += aug->n_items;
+    }
+
+  for (;
        (parent = gtk_rb_tree_node_get_parent (node)) != NULL;
        node = parent)
     {
-      FlattenNode *left = gtk_rb_tree_node_get_left (parent);
+      left = gtk_rb_tree_node_get_left (parent);
       if (left != node)
         {
           if (left)
@@ -486,7 +494,7 @@ gtk_flatten_list_model_set_model (GtkFlattenListModel *self,
   g_return_if_fail (model == NULL || G_IS_LIST_MODEL (model));
   if (model)
     {
-      g_return_if_fail (g_list_model_get_item_type (model) == G_TYPE_LIST_MODEL);
+      g_return_if_fail (g_type_is_a (g_list_model_get_item_type (model), G_TYPE_LIST_MODEL));
     }
 
   if (self->model == model)

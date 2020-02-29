@@ -22,7 +22,7 @@
 #include "gtkcssimagerecolorprivate.h"
 #include "gtkcssimageprivate.h"
 #include "gtkcsspalettevalueprivate.h"
-#include "gtkcssrgbavalueprivate.h"
+#include "gtkcsscolorvalueprivate.h"
 #include "gtkiconthemeprivate.h"
 #include "gdkpixbufutilsprivate.h"
 
@@ -70,11 +70,9 @@ lookup_symbolic_colors (GtkCssStyle *style,
                         GdkRGBA     *warning_out,
                         GdkRGBA     *error_out)
 {
-  GtkCssValue *color;
   const GdkRGBA *lookup;
 
-  color = gtk_css_style_get_value (style, GTK_CSS_PROPERTY_COLOR);
-  *color_out = *_gtk_css_rgba_value_get_rgba (color);
+  *color_out = *gtk_css_color_value_get_rgba (style->core->color);
 
   lookup = gtk_css_palette_value_get_color (palette, "success");
   if (lookup)
@@ -111,7 +109,7 @@ gtk_css_image_recolor_load_texture (GtkCssImageRecolor  *recolor,
       char *resource_path = g_uri_unescape_string (uri + strlen ("resource://"), NULL);
 
       if (g_str_has_suffix (uri, ".symbolic.png"))
-        recolor->texture = gdk_texture_new_from_resource (resource_path);
+        recolor->texture = gtk_load_symbolic_texture_from_resource (resource_path);
       else
         recolor->texture = gtk_make_symbolic_texture_from_resource (resource_path, 0, 0, 1.0, NULL);
 
@@ -120,7 +118,7 @@ gtk_css_image_recolor_load_texture (GtkCssImageRecolor  *recolor,
   else
     {
       if (g_str_has_suffix (uri, ".symbolic.png"))
-        recolor->texture = gdk_texture_new_from_file (recolor->file, NULL);
+        recolor->texture = gtk_load_symbolic_texture_from_file (recolor->file);
       else
         recolor->texture = gtk_make_symbolic_texture_from_file (recolor->file, 0, 0, 1.0, NULL);
     }
@@ -174,24 +172,25 @@ gtk_css_image_recolor_snapshot (GtkCssImage *image,
                                 double       height)
 {
   GtkCssImageRecolor *recolor = GTK_CSS_IMAGE_RECOLOR (image);
+  const GdkRGBA *fg = &recolor->color;
+  const GdkRGBA *sc = &recolor->success;
+  const GdkRGBA *wc = &recolor->warning;
+  const GdkRGBA *ec = &recolor->error;
   graphene_matrix_t matrix;
   graphene_vec4_t offset;
-  GdkRGBA fg = recolor->color;
-  GdkRGBA sc = recolor->success;
-  GdkRGBA wc = recolor->warning;
-  GdkRGBA ec = recolor->error;
 
   if (recolor->texture == NULL)
     return;
 
   graphene_matrix_init_from_float (&matrix,
           (float[16]) {
-                       sc.red - fg.red, sc.green - fg.green, sc.blue - fg.blue, 0,
-                       wc.red - fg.red, wc.green - fg.green, wc.blue - fg.blue, 0,
-                       ec.red - fg.red, ec.green - fg.green, ec.blue - fg.blue, 0,
-                       0, 0, 0, fg.alpha
+                       sc->red - fg->red, sc->green - fg->green, sc->blue - fg->blue, 0,
+                       wc->red - fg->red, wc->green - fg->green, wc->blue - fg->blue, 0,
+                       ec->red - fg->red, ec->green - fg->green, ec->blue - fg->blue, 0,
+                       0, 0, 0, fg->alpha
                       });
-  graphene_vec4_init (&offset, fg.red, fg.green, fg.blue, 0);
+
+  graphene_vec4_init (&offset, fg->red, fg->green, fg->blue, 0);
   gtk_snapshot_push_color_matrix (snapshot, &matrix, &offset);
 
   gtk_snapshot_append_texture (snapshot,
@@ -219,7 +218,7 @@ gtk_css_image_recolor_compute (GtkCssImage      *image,
   if (recolor->palette)
     palette = _gtk_css_value_compute (recolor->palette, property_id, provider, style, parent_style);
   else
-    palette = _gtk_css_value_ref (gtk_css_style_get_value (style, GTK_CSS_PROPERTY_ICON_PALETTE));
+    palette = _gtk_css_value_ref (style->core->icon_palette);
 
   img = gtk_css_image_recolor_load (recolor, style, palette, scale, &error);
 
@@ -245,10 +244,16 @@ gtk_css_image_recolor_parse_arg (GtkCssParser *parser,
   switch (arg)
   {
     case 0:
-      self->file = gtk_css_parser_consume_url (parser);
-      if (self->file == NULL)
-        return 0;
-      return 1;
+      {
+        char *url = gtk_css_parser_consume_url (parser);
+        if (url == NULL)
+          return 0;
+        self->file = gtk_css_parser_resolve_url (parser, url);
+        g_free (url);
+        if (self->file == NULL)
+          return 0;
+        return 1;
+      }
 
     case 1:
       self->palette = gtk_css_palette_value_parse (parser);
@@ -301,6 +306,15 @@ gtk_css_image_recolor_get_height (GtkCssImage *image)
   return gdk_texture_get_height (recolor->texture);
 }
 
+static gboolean
+gtk_css_image_recolor_is_computed (GtkCssImage *image)
+{
+  GtkCssImageRecolor *recolor = GTK_CSS_IMAGE_RECOLOR (image);
+
+  return recolor->texture &&
+         (!recolor->palette || gtk_css_value_is_computed (recolor->palette));
+}
+
 static void
 _gtk_css_image_recolor_class_init (GtkCssImageRecolorClass *klass)
 {
@@ -313,6 +327,7 @@ _gtk_css_image_recolor_class_init (GtkCssImageRecolorClass *klass)
   image_class->snapshot = gtk_css_image_recolor_snapshot;
   image_class->parse = gtk_css_image_recolor_parse;
   image_class->print = gtk_css_image_recolor_print;
+  image_class->is_computed = gtk_css_image_recolor_is_computed;
 
   object_class->dispose = gtk_css_image_recolor_dispose;
 }

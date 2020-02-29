@@ -62,8 +62,6 @@ struct _GtkContainer
  * @child_type: Returns the type of the children supported by the container.
  * @set_child_property: Set a property on a child of container.
  * @get_child_property: Get a property from a child of container.
- * @get_path_for_child: Get path representing entire widget hierarchy
- *    from the toplevel down to and including @child.
  *
  * Base class for containers.
  */
@@ -83,21 +81,11 @@ struct _GtkContainerClass
   void    (*set_focus_child)	(GtkContainer	 *container,
 				 GtkWidget	 *child);
   GType   (*child_type)		(GtkContainer	 *container);
-  GtkWidgetPath * (*get_path_for_child) (GtkContainer *container,
-                                         GtkWidget    *child);
 
 
   /*< private >*/
 
-  /* Padding for future expansion */
-  void (*_gtk_reserved1) (void);
-  void (*_gtk_reserved2) (void);
-  void (*_gtk_reserved3) (void);
-  void (*_gtk_reserved4) (void);
-  void (*_gtk_reserved5) (void);
-  void (*_gtk_reserved6) (void);
-  void (*_gtk_reserved7) (void);
-  void (*_gtk_reserved8) (void);
+  gpointer padding[8];
 };
 
 
@@ -139,10 +127,6 @@ GDK_AVAILABLE_IN_ALL
 void    gtk_container_forall		     (GtkContainer *container,
 					      GtkCallback   callback,
 					      gpointer	    callback_data);
-
-GDK_AVAILABLE_IN_ALL
-GtkWidgetPath * gtk_container_get_path_for_child (GtkContainer      *container,
-                                                  GtkWidget         *child);
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkContainer, g_object_unref)
 

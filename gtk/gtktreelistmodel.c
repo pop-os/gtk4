@@ -749,7 +749,7 @@ gtk_tree_list_model_init (GtkTreeListModel *self)
  * @autoexpand: %TRUE to set the autoexpand property and expand the @root model
  * @create_func: Function to call to create the #GListModel for the children
  *     of an item
- * @user_data: Data to pass to @create_func
+ * @user_data: (closure): Data to pass to @create_func
  * @user_destroy: Function to call to free @user_data
  *
  * Creates a new empty #GtkTreeListModel displaying @root with all rows collapsed.
@@ -930,7 +930,24 @@ gtk_tree_list_model_get_child_row (GtkTreeListModel *self,
   return tree_node_get_row (child);
 }
 
-/***   ROW   ***/
+/**
+ * SECTION:gtktreelistrow
+ * @Short_description: A  row in a GtkTreeListModel
+ * @Title: GtkTreeListRow
+ * @See_also: #GtkTreeListModel
+ *
+ * #GtkTreeListRow is the object used by #GtkTreeListModel to
+ * represent items. It allows navigating the model as a tree and
+ * modify the state of rows.
+ *
+ * #GtkTreeListRow instances are created by a #GtkTreeListModel only
+ * when the #GtkTreeListModel:passthrough property is not set.
+ *
+ * There are various support objects that can make use of #GtkTreeListRow
+ * objects, such as the #GtkTreeExpander widget that allows displaying
+ * an icon to expand or collapse a row or #GtkTreeListRowSorter that makes
+ * it possible to sort trees properly.
+ */
 
 enum {
   ROW_PROP_0,

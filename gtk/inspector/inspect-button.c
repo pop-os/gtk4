@@ -32,10 +32,9 @@
 #include "gtkstack.h"
 #include "gtkmain.h"
 #include "gtkwidgetprivate.h"
-#include "gtkgesturemultipress.h"
 #include "gtkeventcontrollermotion.h"
 #include "gtkeventcontrollerkey.h"
-#include "gtkroot.h"
+#include "gtknative.h"
 
 static GtkWidget *
 find_widget_at_pointer (GdkDevice *device)
@@ -46,13 +45,13 @@ find_widget_at_pointer (GdkDevice *device)
   pointer_surface = gdk_device_get_surface_at_position (device, NULL, NULL);
 
   if (pointer_surface)
-    widget = gtk_root_get_for_surface (pointer_surface);
+    widget = gtk_native_get_for_surface (pointer_surface);
 
   if (widget)
     {
       double x, y;
 
-      gdk_surface_get_device_position (gtk_widget_get_surface (widget),
+      gdk_surface_get_device_position (gtk_native_get_surface (GTK_NATIVE (widget)),
                                        device, &x, &y, NULL);
 
       widget = gtk_widget_pick (widget, x, y, GTK_PICK_INSENSITIVE|GTK_PICK_NON_TARGETABLE);
@@ -99,7 +98,7 @@ on_inspect_widget (GtkInspectorWindow *iw,
 {
   GtkWidget *widget;
 
-  gdk_surface_raise (gtk_widget_get_surface (GTK_WIDGET (iw)));
+  gdk_surface_raise (gtk_native_get_surface (GTK_NATIVE (iw)));
 
   clear_flash (iw);
 
@@ -107,59 +106,6 @@ on_inspect_widget (GtkInspectorWindow *iw,
 
   if (widget)
     select_widget (iw, widget);
-}
-
-static void
-on_highlight_widget (GtkWidget          *button,
-                     GdkEvent           *event,
-                     GtkInspectorWindow *iw)
-{
-  GtkWidget *widget;
-
-  widget = find_widget_at_pointer (gdk_event_get_device (event));
-
-  if (widget == NULL)
-    {
-      /* This window isn't in-process. Ignore it. */
-      return;
-    }
-
-  if (gtk_widget_get_toplevel (widget) == GTK_WIDGET (iw))
-    {
-      /* Don't hilight things in the inspector window */
-      return;
-    }
-
-  if (iw->flash_overlay &&
-      gtk_highlight_overlay_get_widget (GTK_HIGHLIGHT_OVERLAY (iw->flash_overlay)) == widget)
-    {
-      /* Already selected */
-      return;
-    }
-
-  clear_flash (iw);
-  start_flash (iw, widget);
-}
-
-static void
-deemphasize_window (GtkWidget *window)
-{
-  GdkDisplay *display;
-
-  display = gtk_widget_get_display (window);
-  if (gdk_display_is_composited (display))
-    {
-      cairo_rectangle_int_t rect;
-      cairo_region_t *region;
-
-      gtk_widget_set_opacity (window, 0.3);
-      rect.x = rect.y = rect.width = rect.height = 0;
-      region = cairo_region_create_rectangle (&rect);
-      gtk_widget_input_shape_combine_region (window, region);
-      cairo_region_destroy (region);
-    }
-  else
-    gdk_surface_lower (gtk_widget_get_surface (window));
 }
 
 static void
@@ -174,41 +120,10 @@ reemphasize_window (GtkWidget *window)
       gtk_widget_input_shape_combine_region (window, NULL);
     }
   else
-    gdk_surface_raise (gtk_widget_get_surface (window));
+    gdk_surface_raise (gtk_native_get_surface (GTK_NATIVE (window)));
 }
 
 static gboolean handle_event (GtkInspectorWindow *iw, GdkEvent *event);
-
-static void
-handle_button_event (GtkInspectorWindow *iw,
-                     GdkEvent           *event)
-{
-  g_signal_handlers_disconnect_by_func (iw, handle_event, NULL);
-  reemphasize_window (GTK_WIDGET (iw));
-  on_inspect_widget (iw, event);
-}
-
-static void
-handle_motion_event (GtkInspectorWindow *iw,
-                     GdkEvent           *event)
-{
-  on_highlight_widget (NULL, event, iw);
-}
-
-static void
-handle_key_event (GtkInspectorWindow *iw,
-                  GdkEvent           *event)
-{
-  guint keyval = 0;
-
-  gdk_event_get_keyval (event, &keyval);
-  if (keyval == GDK_KEY_Escape)
-    {
-      g_signal_handlers_disconnect_by_func (iw, handle_event, NULL);
-      reemphasize_window (GTK_WIDGET (iw));
-      clear_flash (iw);
-    }
-}
 
 static gboolean
 handle_event (GtkInspectorWindow *iw, GdkEvent *event)
@@ -217,16 +132,51 @@ handle_event (GtkInspectorWindow *iw, GdkEvent *event)
     {
     case GDK_KEY_PRESS:
     case GDK_KEY_RELEASE:
-      handle_key_event (iw, event);
+      {
+        guint keyval = 0;
+
+        gdk_event_get_keyval (event, &keyval);
+        if (keyval == GDK_KEY_Escape)
+          {
+            g_signal_handlers_disconnect_by_func (iw, handle_event, NULL);
+            reemphasize_window (GTK_WIDGET (iw));
+            clear_flash (iw);
+          }
+      }
       break;
 
     case GDK_MOTION_NOTIFY:
-      handle_motion_event (iw, event);
+      {
+        GtkWidget *widget = find_widget_at_pointer (gdk_event_get_device (event));
+
+        if (widget == NULL)
+          {
+            /* This window isn't in-process. Ignore it. */
+            break;
+          }
+
+        if (gtk_widget_get_root (widget) == GTK_ROOT (iw))
+          {
+            /* Don't hilight things in the inspector window */
+            break;
+          }
+
+        if (iw->flash_overlay &&
+            gtk_highlight_overlay_get_widget (GTK_HIGHLIGHT_OVERLAY (iw->flash_overlay)) == widget)
+          {
+            /* Already selected */
+            break;
+          }
+
+        start_flash (iw, widget);
+      }
       break;
 
     case GDK_BUTTON_PRESS:
     case GDK_BUTTON_RELEASE:
-      handle_button_event (iw, event);
+      g_signal_handlers_disconnect_by_func (iw, handle_event, NULL);
+      reemphasize_window (GTK_WIDGET (iw));
+      on_inspect_widget (iw, event);
       break;
 
     default:;
@@ -239,8 +189,24 @@ void
 gtk_inspector_on_inspect (GtkWidget          *button,
                           GtkInspectorWindow *iw)
 {
+  GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (iw));
+
+  /* de-emphasize window */
+  if (gdk_display_is_composited (display))
+    {
+      cairo_rectangle_int_t rect;
+      cairo_region_t *region;
+
+      gtk_widget_set_opacity (GTK_WIDGET (iw), 0.3);
+      rect.x = rect.y = rect.width = rect.height = 0;
+      region = cairo_region_create_rectangle (&rect);
+      gtk_widget_input_shape_combine_region (GTK_WIDGET (iw), region);
+      cairo_region_destroy (region);
+    }
+  else
+    gdk_surface_lower (gtk_native_get_surface (GTK_NATIVE (iw)));
+
   g_signal_connect (iw, "event", G_CALLBACK (handle_event), NULL);
-  deemphasize_window (GTK_WIDGET (iw));
 }
 
 static gboolean
@@ -289,7 +255,7 @@ gtk_inspector_window_select_widget_under_pointer (GtkInspectorWindow *iw)
   GdkDevice *device;
   GtkWidget *widget;
 
-  display = gdk_display_get_default ();
+  display = gtk_inspector_window_get_inspected_display (iw);
   device = gdk_seat_get_pointer (gdk_display_get_default_seat (display));
 
   widget = find_widget_at_pointer (device);

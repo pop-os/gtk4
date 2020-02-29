@@ -25,7 +25,7 @@
 #ifndef __GDK_EVENTS_H__
 #define __GDK_EVENTS_H__
 
-#if !defined (__GDK_H_INSIDE__) && !defined (GDK_COMPILATION)
+#if !defined (__GDK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gdk/gdk.h> can be included directly."
 #endif
 
@@ -141,7 +141,6 @@ typedef union  _GdkEvent	    GdkEvent;
  * @GDK_LEAVE_NOTIFY: the pointer has left the surface.
  * @GDK_FOCUS_CHANGE: the keyboard focus has entered or left the surface.
  * @GDK_CONFIGURE: the size, position or stacking order of the surface has changed.
- *   Note that GTK+ discards these events for %GDK_SURFACE_CHILD surfaces.
  * @GDK_PROXIMITY_IN: an input device has moved into contact with a sensing
  *   surface (e.g. a touchscreen or graphics tablet).
  * @GDK_PROXIMITY_OUT: an input device has moved out of contact with a sensing
@@ -364,10 +363,6 @@ GDK_AVAILABLE_IN_ALL
 void      gdk_event_set_coords          (GdkEvent *event,
                                          gdouble   x,
                                          gdouble   y);
-GDK_AVAILABLE_IN_ALL
-gboolean  gdk_event_get_root_coords	(const GdkEvent *event,
-					 gdouble	*x_root,
-					 gdouble	*y_root);
 GDK_AVAILABLE_IN_ALL
 gboolean  gdk_event_get_button          (const GdkEvent *event,
                                          guint          *button);

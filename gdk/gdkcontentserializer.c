@@ -23,7 +23,9 @@
 
 #include "gdkcontentformats.h"
 #include "gdkpixbuf.h"
+#include "filetransferportalprivate.h"
 #include "gdktextureprivate.h"
+#include "gdkrgba.h"
 
 #include <gdk-pixbuf/gdk-pixbuf.h>
 #include <string.h>
@@ -431,7 +433,7 @@ lookup_serializer (const char *mime_type,
 
 /**
  * gdk_content_formats_union_serialize_gtypes:
- * @formats: a #GdkContentFormats
+ * @formats: (transfer full): a #GdkContentFormats
  *
  * Add GTypes for the mime types in @formats for which serializers are
  * registered.
@@ -466,7 +468,7 @@ gdk_content_formats_union_serialize_gtypes (GdkContentFormats *formats)
 
 /**
  * gdk_content_formats_union_serialize_mime_types:
- * @formats: a #GdkContentFormats
+ * @formats: (transfer full):  a #GdkContentFormats
  *
  * Add mime types for GTypes in @formats for which serializers are
  * registered.
@@ -803,6 +805,48 @@ file_text_serializer (GdkContentSerializer *serializer)
 }
 
 static void
+color_serializer_finish (GObject      *source,
+                         GAsyncResult *result,
+                         gpointer      serializer)
+{
+  GOutputStream *stream = G_OUTPUT_STREAM (source);
+  GError *error = NULL;
+
+  if (!g_output_stream_write_all_finish (stream, result, NULL, &error))
+    gdk_content_serializer_return_error (serializer, error);
+  else
+    gdk_content_serializer_return_success (serializer);
+}
+
+static void
+color_serializer (GdkContentSerializer *serializer)
+{
+  const GValue *value;
+  GdkRGBA *rgba;
+  guint16 *data;
+
+  value = gdk_content_serializer_get_value (serializer);
+  rgba = g_value_get_boxed (value);
+  data = g_new0 (guint16, 4);
+  if (rgba)
+    {
+      data[0] = (guint16) (rgba->red * 65535);
+      data[1] = (guint16) (rgba->green * 65535);
+      data[2] = (guint16) (rgba->blue * 65535);
+      data[3] = (guint16) (rgba->alpha * 65535);
+    }
+
+  g_output_stream_write_all_async (gdk_content_serializer_get_output_stream (serializer),
+                                   data,
+                                   4 * sizeof (guint16),
+                                   gdk_content_serializer_get_priority (serializer),
+                                   gdk_content_serializer_get_cancellable (serializer),
+                                   color_serializer_finish,
+                                   serializer);
+  gdk_content_serializer_set_task_data (serializer, data, g_free);
+}
+
+static void
 init (void)
 {
   static gboolean initialized = FALSE;
@@ -863,6 +907,10 @@ init (void)
 
   g_slist_free (formats);
 
+#ifdef G_OS_UNIX
+  file_transfer_portal_register ();
+#endif
+
   gdk_content_register_serializer (G_TYPE_FILE,
                                    "text/uri-list",
                                    file_uri_serializer,
@@ -873,6 +921,7 @@ init (void)
                                    file_text_serializer,
                                    NULL,
                                    NULL);
+
   gdk_content_register_serializer (GDK_TYPE_FILE_LIST,
                                    "text/uri-list",
                                    file_uri_serializer,
@@ -902,6 +951,12 @@ init (void)
                                    "text/plain",
                                    string_serializer,
                                    (gpointer) "ASCII",
+                                   NULL);
+
+  gdk_content_register_serializer (GDK_TYPE_RGBA,
+                                   "application/x-color",
+                                   color_serializer,
+                                   NULL,
                                    NULL);
 }
 

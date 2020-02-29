@@ -9,45 +9,6 @@ clear_pressed (GtkEntry *entry, gint icon, gpointer data)
 }
 
 static void
-drag_begin_cb (GtkWidget      *widget,
-               GdkDrag        *drag,
-               gpointer        user_data)
-{
-  gint pos;
-
-  pos = gtk_entry_get_current_icon_drag_source (GTK_ENTRY (widget));
-  if (pos != -1)
-    gtk_drag_set_icon_name (drag, "dialog-information", 2, 2);
-}
-
-static void
-drag_data_get_cb (GtkWidget        *widget,
-                  GdkDrag          *drag,
-                  GtkSelectionData *data,
-                  gpointer          user_data)
-{
-  gint pos;
-
-  pos = gtk_entry_get_current_icon_drag_source (GTK_ENTRY (widget));
-
-  if (pos == GTK_ENTRY_ICON_PRIMARY)
-    {
-      gint start, end;
-
-      if (gtk_editable_get_selection_bounds (GTK_EDITABLE (widget), &start, &end))
-        {
-          gchar *str;
-
-          str = gtk_editable_get_chars (GTK_EDITABLE (widget), start, end);
-          gtk_selection_data_set_text (data, str, -1);
-          g_free (str);
-        }
-      else
-        gtk_selection_data_set_text (data, "XXX", -1);
-    }
-}
-
-static void
 set_blank (GtkWidget *button,
            GtkEntry  *entry)
 {
@@ -113,6 +74,17 @@ icon_pressed_cb (GtkGesture *gesture,
   g_print ("You clicked me!\n");
 }
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -127,7 +99,9 @@ main (int argc, char **argv)
   GtkWidget *button3;
   GtkWidget *button4;
   GIcon *icon;
-  GdkContentFormats *tlist;
+  GdkContentProvider *content;
+  GValue value = G_VALUE_INIT;
+  gboolean done = FALSE;
 
   gtk_init ();
 
@@ -135,7 +109,7 @@ main (int argc, char **argv)
   gtk_window_set_title (GTK_WINDOW (window), "Gtk Entry Icons Test");
 
   g_signal_connect (G_OBJECT (window), "destroy",
-		    G_CALLBACK (gtk_main_quit), NULL);
+		    G_CALLBACK (quit_cb), &done);
 
   grid = gtk_grid_new ();
   gtk_container_add (GTK_CONTAINER (window), grid);
@@ -159,8 +133,9 @@ main (int argc, char **argv)
   g_themed_icon_append_name (G_THEMED_ICON (icon), "folder-symbolic");
 
   gtk_entry_set_icon_from_gicon (GTK_ENTRY (entry),
-				 GTK_ENTRY_ICON_PRIMARY,
-				 icon);
+                                 GTK_ENTRY_ICON_PRIMARY,
+                                 icon);
+  g_object_unref (icon);
   gtk_entry_set_icon_sensitive (GTK_ENTRY (entry),
 			        GTK_ENTRY_ICON_PRIMARY,
 				FALSE);
@@ -189,16 +164,15 @@ main (int argc, char **argv)
   gtk_entry_set_icon_tooltip_text (GTK_ENTRY (entry),
 				   GTK_ENTRY_ICON_PRIMARY,
 				   "Save a file");
-  tlist = gdk_content_formats_new (NULL, 0);
-  tlist = gtk_content_formats_add_text_targets (tlist);
+ 
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_set_string (&value, "Amazing");
+  content = gdk_content_provider_new_for_value (&value);
+  g_value_unset (&value);
   gtk_entry_set_icon_drag_source (GTK_ENTRY (entry),
                                   GTK_ENTRY_ICON_PRIMARY,
-                                  tlist, GDK_ACTION_COPY); 
-  g_signal_connect_after (entry, "drag-begin", 
-                          G_CALLBACK (drag_begin_cb), NULL);
-  g_signal_connect (entry, "drag-data-get", 
-                    G_CALLBACK (drag_data_get_cb), NULL);
-  gdk_content_formats_unref (tlist);
+                                  content, GDK_ACTION_COPY); 
+  g_object_unref (content);
 
   /*
    * Search - Uses a helper function
@@ -308,7 +282,7 @@ main (int argc, char **argv)
   gtk_widget_set_tooltip_text (image, "Click me");
 
   GtkGesture *gesture;
-  gesture = gtk_gesture_multi_press_new ();
+  gesture = gtk_gesture_click_new ();
   g_signal_connect (gesture, "pressed", G_CALLBACK (icon_pressed_cb), NULL);
   gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (gesture));
   gtk_container_add (GTK_CONTAINER (box), image);
@@ -322,7 +296,9 @@ main (int argc, char **argv)
   gtk_css_provider_load_from_data (provider, cssdata, -1);
   gtk_style_context_add_provider_for_display (gdk_display_get_default (), GTK_STYLE_PROVIDER (provider), 800);
   gtk_widget_show (window);
-  gtk_main();
+
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

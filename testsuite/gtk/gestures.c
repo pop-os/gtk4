@@ -1,6 +1,6 @@
 #include <gtk/gtk.h>
 
-#define GDK_COMPILATION
+#define GTK_COMPILATION
 #include "gdk/gdkeventsprivate.h"
 
 typedef struct {
@@ -19,6 +19,14 @@ static PointState touch_state[10]; /* touchpoint 0 gets pointer emulation,
 #define EVENT_SEQUENCE(point) (GdkEventSequence*) ((point) - touch_state + 1)
 
 static void
+inject_event (GdkEvent *event)
+{
+  gboolean handled;
+
+  g_signal_emit_by_name (event->any.surface, "event", event, &handled);
+}
+
+static void
 point_press (PointState *point,
              GtkWidget  *widget,
              guint       button)
@@ -26,16 +34,18 @@ point_press (PointState *point,
   GdkDisplay *display;
   GdkDevice *device;
   GdkSeat *seat;
+  GdkSurface *surface;
   GdkEvent *ev;
 
   display = gtk_widget_get_display (widget);
   seat = gdk_display_get_default_seat (display);
   device = gdk_seat_get_pointer (seat);
+  surface = gtk_native_get_surface (gtk_widget_get_native (widget));
 
   if (point == &mouse_state)
     {
       ev = gdk_event_new (GDK_BUTTON_PRESS);
-      ev->any.surface = g_object_ref (gtk_widget_get_surface (widget));
+      ev->any.surface = g_object_ref (surface);
       ev->button.time = GDK_CURRENT_TIME;
       ev->button.x = point->x;
       ev->button.y = point->y;
@@ -47,7 +57,7 @@ point_press (PointState *point,
   else
     {
       ev = gdk_event_new (GDK_TOUCH_BEGIN);
-      ev->any.surface = g_object_ref (gtk_widget_get_surface (widget));
+      ev->any.surface = g_object_ref (surface);
       ev->touch.time = GDK_CURRENT_TIME;
       ev->touch.x = point->x;
       ev->touch.y = point->y;
@@ -59,7 +69,7 @@ point_press (PointState *point,
 
   gdk_event_set_device (ev, device);
 
-  gtk_main_do_event (ev);
+  inject_event (ev);
 
   g_object_unref (ev);
 
@@ -75,11 +85,13 @@ point_update (PointState *point,
   GdkDisplay *display;
   GdkDevice *device;
   GdkSeat *seat;
+  GdkSurface *surface;
   GdkEvent *ev;
 
   display = gtk_widget_get_display (widget);
   seat = gdk_display_get_default_seat (display);
   device = gdk_seat_get_pointer (seat);
+  surface = gtk_native_get_surface (gtk_widget_get_native (widget));
 
   point->x = x;
   point->y = y;
@@ -87,7 +99,7 @@ point_update (PointState *point,
   if (point == &mouse_state)
     {
       ev = gdk_event_new (GDK_MOTION_NOTIFY);
-      ev->any.surface = g_object_ref (gtk_widget_get_surface (widget));
+      ev->any.surface = g_object_ref (surface);
       ev->button.time = GDK_CURRENT_TIME;
       ev->motion.x = x;
       ev->motion.y = y;
@@ -99,7 +111,7 @@ point_update (PointState *point,
         return;
 
       ev = gdk_event_new (GDK_TOUCH_UPDATE);
-      ev->any.surface = g_object_ref (gtk_widget_get_surface (widget));
+      ev->any.surface = g_object_ref (surface);
       ev->touch.time = GDK_CURRENT_TIME;
       ev->touch.x = x;
       ev->touch.y = y;
@@ -112,7 +124,7 @@ point_update (PointState *point,
 
   gdk_event_set_device (ev, device);
 
-  gtk_main_do_event (ev);
+  inject_event (ev);
 
   g_object_unref (ev);
 }
@@ -124,6 +136,7 @@ point_release (PointState *point,
   GdkDisplay *display;
   GdkDevice *device;
   GdkSeat *seat;
+  GdkSurface *surface;
   GdkEvent *ev;
 
   if (point->widget == NULL)
@@ -132,6 +145,7 @@ point_release (PointState *point,
   display = gtk_widget_get_display (point->widget);
   seat = gdk_display_get_default_seat (display);
   device = gdk_seat_get_pointer (seat);
+  surface = gtk_native_get_surface (gtk_widget_get_native (point->widget));
 
   if (!point->widget)
     return;
@@ -142,7 +156,7 @@ point_release (PointState *point,
         return;
 
       ev = gdk_event_new (GDK_BUTTON_RELEASE);
-      ev->any.surface = g_object_ref (gtk_widget_get_surface (point->widget));
+      ev->any.surface = g_object_ref (surface);
       ev->button.time = GDK_CURRENT_TIME;
       ev->button.x = point->x;
       ev->button.y = point->y;
@@ -153,7 +167,7 @@ point_release (PointState *point,
   else
     {
       ev = gdk_event_new (GDK_TOUCH_END);
-      ev->any.surface = g_object_ref (gtk_widget_get_surface (point->widget));
+      ev->any.surface = g_object_ref (surface);
       ev->touch.time = GDK_CURRENT_TIME;
       ev->touch.x = point->x;
       ev->touch.y = point->y;
@@ -166,7 +180,7 @@ point_release (PointState *point,
 
   gdk_event_set_device (ev, device);
 
-  gtk_main_do_event (ev);
+  inject_event (ev);
 
   g_object_unref (ev);
 }
@@ -335,7 +349,7 @@ add_gesture (GtkWidget *w, const gchar *name, GtkPropagationPhase phase, GString
   data->str = str;
   data->state = state;
 
-  g = gtk_gesture_multi_press_new ();
+  g = gtk_gesture_click_new ();
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (g), FALSE);
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (g), 1);
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (g), phase);
@@ -423,9 +437,9 @@ test_phases (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (C, "c3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
+  gtk_widget_get_allocation (B, &allocation);
 
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -479,9 +493,9 @@ test_mixed (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (C, "c3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
+  gtk_widget_get_allocation (B, &allocation);
 
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -536,9 +550,9 @@ test_early_exit (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (C, "c3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
+  gtk_widget_get_allocation (B, &allocation);
 
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -587,9 +601,9 @@ test_claim_capture (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (C, "c3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
+  gtk_widget_get_allocation (B, &allocation);
 
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -634,8 +648,8 @@ test_claim_target (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (C, "c3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  gtk_widget_get_allocation (B, &allocation);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -681,8 +695,8 @@ test_claim_bubble (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_CLAIMED);
   add_gesture (C, "c3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  gtk_widget_get_allocation (B, &allocation);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -735,8 +749,8 @@ test_early_claim_capture (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (C, "c3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  gtk_widget_get_allocation (B, &allocation);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -792,8 +806,8 @@ test_late_claim_capture (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (C, "c3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  gtk_widget_get_allocation (B, &allocation);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -853,10 +867,8 @@ test_group (void)
   add_gesture (B, "b3", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (C, "c4", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
-
-  gtk_widget_get_allocation (A, &allocation);
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  gtk_widget_get_allocation (B, &allocation);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -906,8 +918,8 @@ test_gestures_outside_grab (void)
   add_gesture (B, "b2", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (A, "a2", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  gtk_widget_get_allocation (B, &allocation);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -963,8 +975,8 @@ test_gestures_inside_grab (void)
   add_gesture (B, "b2", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (A, "a2", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_NONE);
 
-  gtk_widget_get_allocation (A, &allocation);
-  point_update (&mouse_state, A, allocation.width / 2, allocation.height / 2);
+  gtk_widget_get_allocation (B, &allocation);
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   point_press (&mouse_state, A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -982,8 +994,7 @@ test_gestures_inside_grab (void)
 
   /* Update with the grab under effect */
   g_string_erase (str, 0, str->len);
-  point_update (&mouse_state, A, (allocation.width / 2),
-                (allocation.height / 2));
+  point_update (&mouse_state, A, allocation.x, allocation.y);
   g_assert_cmpstr (str->str, ==,
                    "b1 updated, "
                    "c1 updated, "
@@ -1020,10 +1031,10 @@ test_multitouch_on_single (void)
   add_gesture (A, "a1", GTK_PHASE_CAPTURE, str, GTK_EVENT_SEQUENCE_NONE);
   add_gesture (B, "b1", GTK_PHASE_CAPTURE, str, GTK_EVENT_SEQUENCE_CLAIMED);
 
-  gtk_widget_get_allocation (A, &allocation);
+  gtk_widget_get_allocation (B, &allocation);
 
   /* First touch down */
-  point_update (&touch_state[0], A, allocation.width / 2, allocation.height / 2);
+  point_update (&touch_state[0], A, allocation.x, allocation.y);
   point_press (&touch_state[0], A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -1033,8 +1044,7 @@ test_multitouch_on_single (void)
 
   /* Second touch down */
   g_string_erase (str, 0, str->len);
-  point_update (&touch_state[1], A, (allocation.width / 2),
-                (allocation.height / 2));
+  point_update (&touch_state[1], A, allocation.x, allocation.y);
   point_press (&touch_state[1], A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -1070,17 +1080,16 @@ test_multitouch_activation (void)
   str = g_string_new ("");
 
   add_mt_gesture (C, "c1", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_CLAIMED);
-  gtk_widget_get_allocation (A, &allocation);
+  gtk_widget_get_allocation (B, &allocation);
 
   /* First touch down */
-  point_update (&touch_state[0], A, allocation.width / 2, allocation.height / 2);
+  point_update (&touch_state[0], A, allocation.x, allocation.y);
   point_press (&touch_state[0], A, 1);
 
   g_assert_cmpstr (str->str, ==, "");
 
   /* Second touch down */
-  point_update (&touch_state[1], A, (allocation.width / 2),
-                (allocation.height / 2));
+  point_update (&touch_state[1], A, allocation.x, allocation.y);
   point_press (&touch_state[1], A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -1097,8 +1106,7 @@ test_multitouch_activation (void)
 
   /* A third touch down triggering again action */
   g_string_erase (str, 0, str->len);
-  point_update (&touch_state[2], A, (allocation.width / 2),
-                (allocation.height / 2));
+  point_update (&touch_state[2], A, allocation.x, allocation.y);
   point_press (&touch_state[2], A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -1149,10 +1157,10 @@ test_multitouch_interaction (void)
 
   g = add_gesture (A, "a1", GTK_PHASE_CAPTURE, str, GTK_EVENT_SEQUENCE_CLAIMED);
   add_mt_gesture (C, "c1", GTK_PHASE_BUBBLE, str, GTK_EVENT_SEQUENCE_CLAIMED);
-  gtk_widget_get_allocation (A, &allocation);
+  gtk_widget_get_allocation (B, &allocation);
 
   /* First touch down, a1 claims the sequence */
-  point_update (&touch_state[0], A, allocation.width / 2, allocation.height / 2);
+  point_update (&touch_state[0], A, allocation.x, allocation.y);
   point_press (&touch_state[0], A, 1);
 
   g_assert_cmpstr (str->str, ==,
@@ -1161,8 +1169,7 @@ test_multitouch_interaction (void)
 
   /* Second touch down, a1 denies and c1 takes over */
   g_string_erase (str, 0, str->len);
-  point_update (&touch_state[1], A, (allocation.width / 2),
-                (allocation.height / 2));
+  point_update (&touch_state[1], A, allocation.x, allocation.y);
   point_press (&touch_state[1], A, 1);
 
   /* Denying sequences in touch-excess situation is a responsibility of the caller */
@@ -1177,8 +1184,7 @@ test_multitouch_interaction (void)
 
   /* Move first point, only c1 should update */
   g_string_erase (str, 0, str->len);
-  point_update (&touch_state[0], A, (allocation.width / 2),
-                (allocation.height / 2));
+  point_update (&touch_state[0], A, allocation.x, allocation.y);
 
   g_assert_cmpstr (str->str, ==,
                    "c1 updated");
@@ -1192,8 +1198,7 @@ test_multitouch_interaction (void)
 
   /* A third touch down triggering again action on c1 */
   g_string_erase (str, 0, str->len);
-  point_update (&touch_state[2], A, (allocation.width / 2),
-                (allocation.height / 2));
+  point_update (&touch_state[2], A, allocation.x, allocation.y);
   point_press (&touch_state[2], A, 1);
 
   g_assert_cmpstr (str->str, ==,

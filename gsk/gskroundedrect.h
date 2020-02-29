@@ -19,7 +19,7 @@
 #ifndef __GSK_ROUNDED_RECT_H__
 #define __GSK_ROUNDED_RECT_H__
 
-#if !defined (__GSK_H_INSIDE__) && !defined (GSK_COMPILATION)
+#if !defined (__GSK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gsk/gsk.h> can be included directly."
 #endif
 
@@ -98,16 +98,16 @@ GskRoundedRect *        gsk_rounded_rect_shrink                 (GskRoundedRect 
                                                                  float                     left);
 
 GDK_AVAILABLE_IN_ALL
-gboolean                gsk_rounded_rect_is_rectilinear         (const GskRoundedRect     *self);
+gboolean                gsk_rounded_rect_is_rectilinear         (const GskRoundedRect     *self) G_GNUC_PURE;
 GDK_AVAILABLE_IN_ALL
 gboolean                gsk_rounded_rect_contains_point         (const GskRoundedRect     *self,
-                                                                 const graphene_point_t   *point);
+                                                                 const graphene_point_t   *point) G_GNUC_PURE;
 GDK_AVAILABLE_IN_ALL
 gboolean                gsk_rounded_rect_contains_rect          (const GskRoundedRect     *self,
-                                                                 const graphene_rect_t    *rect);
+                                                                 const graphene_rect_t    *rect) G_GNUC_PURE;
 GDK_AVAILABLE_IN_ALL
 gboolean                gsk_rounded_rect_intersects_rect        (const GskRoundedRect     *self,
-                                                                 const graphene_rect_t    *rect);
+                                                                 const graphene_rect_t    *rect) G_GNUC_PURE;
 
 G_END_DECLS
 

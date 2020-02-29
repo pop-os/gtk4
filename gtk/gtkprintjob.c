@@ -49,12 +49,29 @@
 
 #include "gtkprintjob.h"
 #include "gtkprinter.h"
-#include "gtkprinter-private.h"
-#include "gtkprintbackend.h"
+#include "gtkprinterprivate.h"
+#include "gtkprintbackendprivate.h"
 
 #ifndef O_BINARY
 #define O_BINARY 0
 #endif
+
+typedef struct _GtkPrintJobClass     GtkPrintJobClass;
+typedef struct _GtkPrintJobPrivate   GtkPrintJobPrivate;
+
+struct _GtkPrintJob
+{
+  GObject parent_instance;
+
+  GtkPrintJobPrivate *priv;
+};
+
+struct _GtkPrintJobClass
+{
+  GObjectClass parent_class;
+
+  void (*status_changed) (GtkPrintJob *job);
+};
 
 struct _GtkPrintJobPrivate
 {
@@ -187,7 +204,7 @@ gtk_print_job_class_init (GtkPrintJobClass *class)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GtkPrintJobClass, status_changed),
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
+		  NULL,
 		  G_TYPE_NONE, 0);
 }
 
@@ -676,7 +693,7 @@ gtk_print_job_get_property (GObject    *object,
  * gtk_print_job_send:
  * @job: a GtkPrintJob
  * @callback: function to call when the job completes or an error occurs
- * @user_data: user data that gets passed to @callback
+ * @user_data: (closure): user data that gets passed to @callback
  * @dnotify: destroy notify for @user_data
  * 
  * Sends the print job off to the printer.  

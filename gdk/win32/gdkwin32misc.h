@@ -26,7 +26,7 @@
 #ifndef __GDK_WIN32_MISC_H__
 #define __GDK_WIN32_MISC_H__
 
-#if !defined (__GDKWIN32_H_INSIDE__) && !defined (GDK_COMPILATION)
+#if !defined (__GDKWIN32_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gdk/gdkwin32.h> can be included directly."
 #endif
 
@@ -44,7 +44,7 @@ G_BEGIN_DECLS
 
 #include "gdkprivate-win32.h"
 
-#define GDK_SURFACE_HWND(win)          (GDK_SURFACE_IMPL_WIN32(win->impl)->handle)
+#define GDK_SURFACE_HWND(win)          (GDK_WIN32_SURFACE(win)->handle)
 #else
 /* definition for exported 'internals' go here */
 #define GDK_SURFACE_HWND(d) (gdk_win32_surface_get_handle (d))
@@ -85,7 +85,7 @@ GDK_AVAILABLE_IN_ALL
 GdkSurface *   gdk_win32_surface_lookup_for_display (GdkDisplay *display,
                                                      HWND        anid);
 
-#if defined (INSIDE_GDK_WIN32) || defined (GDK_COMPILATION) || defined (GTK_COMPILATION)
+#if defined (INSIDE_GDK_WIN32) || defined (GTK_COMPILATION) || defined (GTK_COMPILATION)
 
 /* For internal GTK use only */
 GDK_AVAILABLE_IN_ALL

@@ -43,7 +43,7 @@ static const char *css =
 ".b1 {"
 "  all: unset;"
 "  min-width: 100px;"
-"  min-height:100px;"
+"  min-height: 100px;"
 "  border-radius: 7px 7px 0px 0px;"
 "  box-shadow: 0px 0px 9px 0px rgba(0, 0, 0, 0.5);"
 "}"
@@ -73,6 +73,16 @@ static const char *css =
 ""
 ;
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
 
 int
 main (int argc, char **argv)
@@ -83,6 +93,7 @@ main (int argc, char **argv)
   GtkWidget *bottom;
   GtkWidget *w;
   GtkCssProvider *provider;
+  gboolean done = FALSE;
 
   gtk_init ();
 
@@ -93,6 +104,7 @@ main (int argc, char **argv)
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 120);
   top = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 120);
   bottom = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 120);
@@ -124,7 +136,6 @@ main (int argc, char **argv)
   gtk_style_context_add_class (gtk_widget_get_style_context (w), "five");
   gtk_container_add (GTK_CONTAINER (top), w);
 
-
   /* Bottom */
   w = gtk_button_new ();
   gtk_widget_set_valign (w, GTK_ALIGN_CENTER);
@@ -149,10 +160,9 @@ main (int argc, char **argv)
   gtk_container_add (GTK_CONTAINER (box), top);
   gtk_container_add (GTK_CONTAINER (box), bottom);
   gtk_container_add (GTK_CONTAINER (window), box);
-  g_signal_connect (window, "destroy", gtk_main_quit, NULL);
+  g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   gtk_widget_show (window);
 
-  gtk_main ();
-
-  gtk_widget_destroy (window);
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 }

@@ -20,7 +20,7 @@ on_bar_response (GtkInfoBar *info_bar,
       return;
     }
 
-  window = gtk_widget_get_toplevel (GTK_WIDGET (info_bar));
+  window = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (info_bar)));
   dialog = gtk_message_dialog_new (GTK_WINDOW (window),
                                    GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
                                    GTK_MESSAGE_INFO,
@@ -68,7 +68,7 @@ do_infobar (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), bar);
       gtk_info_bar_set_message_type (GTK_INFO_BAR (bar), GTK_MESSAGE_INFO);
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_INFO");
-      gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+      gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
       gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
 
@@ -80,7 +80,7 @@ do_infobar (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), bar);
       gtk_info_bar_set_message_type (GTK_INFO_BAR (bar), GTK_MESSAGE_WARNING);
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_WARNING");
-      gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+      gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
       gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
 
@@ -94,9 +94,10 @@ do_infobar (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), bar);
       gtk_info_bar_set_message_type (GTK_INFO_BAR (bar), GTK_MESSAGE_QUESTION);
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_QUESTION");
-      gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+      gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
       gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
+      gtk_info_bar_set_default_response (GTK_INFO_BAR (bar), GTK_RESPONSE_OK);
 
       button = gtk_toggle_button_new_with_label ("Question");
       g_object_bind_property (bar, "revealed", button, "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
@@ -106,7 +107,7 @@ do_infobar (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), bar);
       gtk_info_bar_set_message_type (GTK_INFO_BAR (bar), GTK_MESSAGE_ERROR);
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_ERROR");
-      gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+      gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
       gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
 
@@ -119,7 +120,7 @@ do_infobar (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), bar);
       gtk_info_bar_set_message_type (GTK_INFO_BAR (bar), GTK_MESSAGE_OTHER);
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_OTHER");
-      gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+      gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
       gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
 

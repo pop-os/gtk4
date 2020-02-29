@@ -1,7 +1,7 @@
 window1
   "window"
   index: 0
-  state: active enabled resizable sensitive showing visible
+  state: enabled resizable sensitive showing visible
   toolkit: gtk
   window-type: normal
   <AtkComponent>
@@ -51,6 +51,7 @@ window1
     button5
       "push button"
       parent: unnamed-GtkWidgetAccessible-1
+      index: 1
       name: Center
       state: enabled focusable sensitive showing visible
       toolkit: gtk

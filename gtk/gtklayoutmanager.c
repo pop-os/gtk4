@@ -76,6 +76,7 @@
 #include "gtklayoutmanagerprivate.h"
 #include "gtklayoutchild.h"
 #include "gtkwidgetprivate.h"
+#include "gtknative.h"
 
 #ifdef G_ENABLE_DEBUG
 #define LAYOUT_MANAGER_WARN_NOT_IMPLEMENTED(m,method)   G_STMT_START {  \
@@ -90,12 +91,23 @@
 
 typedef struct {
   GtkWidget *widget;
+  GtkRoot *root;
 
   /* HashTable<Widget, LayoutChild> */
   GHashTable *layout_children;
 } GtkLayoutManagerPrivate;
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GtkLayoutManager, gtk_layout_manager, G_TYPE_OBJECT)
+
+static void
+gtk_layout_manager_real_root (GtkLayoutManager *manager)
+{
+}
+
+static void
+gtk_layout_manager_real_unroot (GtkLayoutManager *manager)
+{
+}
 
 static GtkSizeRequestMode
 gtk_layout_manager_real_get_request_mode (GtkLayoutManager *manager,
@@ -188,12 +200,29 @@ gtk_layout_manager_real_create_layout_child (GtkLayoutManager *manager,
 }
 
 static void
+gtk_layout_manager_finalize (GObject *gobject)
+{
+  GtkLayoutManager *self = GTK_LAYOUT_MANAGER (gobject);
+  GtkLayoutManagerPrivate *priv = gtk_layout_manager_get_instance_private (self);
+
+  g_clear_pointer (&priv->layout_children, g_hash_table_unref);
+
+  G_OBJECT_CLASS (gtk_layout_manager_parent_class)->finalize (gobject);
+}
+
+static void
 gtk_layout_manager_class_init (GtkLayoutManagerClass *klass)
 {
+  GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
+
+  gobject_class->finalize = gtk_layout_manager_finalize;
+
   klass->get_request_mode = gtk_layout_manager_real_get_request_mode;
   klass->measure = gtk_layout_manager_real_measure;
   klass->allocate = gtk_layout_manager_real_allocate;
   klass->create_layout_child = gtk_layout_manager_real_create_layout_child;
+  klass->root = gtk_layout_manager_real_root;
+  klass->unroot = gtk_layout_manager_real_unroot;
 }
 
 static void
@@ -225,6 +254,38 @@ gtk_layout_manager_set_widget (GtkLayoutManager *layout_manager,
     }
 
   priv->widget = widget;
+
+  if (widget != NULL)
+    gtk_layout_manager_set_root (layout_manager, gtk_widget_get_root (widget));
+}
+
+/*< private >
+ * gtk_layout_manager_set_root:
+ * @layout_manager: a #GtkLayoutManager
+ * @root: (nullable): a #GtkWidget implementing #GtkRoot
+ *
+ * Sets a back pointer from @root to @layout_manager.
+ *
+ * This function is called by #GtkWidget when getting rooted and unrooted,
+ * and will call #GtkLayoutManagerClass.root() or #GtkLayoutManagerClass.unroot()
+ * depending on whether @root is a #GtkWidget or %NULL.
+ */
+void
+gtk_layout_manager_set_root (GtkLayoutManager *layout_manager,
+                             GtkRoot          *root)
+{
+  GtkLayoutManagerPrivate *priv = gtk_layout_manager_get_instance_private (layout_manager);
+  GtkRoot *old_root = priv->root;
+
+  priv->root = root;
+
+  if (old_root != root)
+    {
+      if (priv->root != NULL)
+        GTK_LAYOUT_MANAGER_GET_CLASS (layout_manager)->root (layout_manager);
+      else
+        GTK_LAYOUT_MANAGER_GET_CLASS (layout_manager)->unroot (layout_manager);
+    }
 }
 
 /**
@@ -264,6 +325,11 @@ gtk_layout_manager_measure (GtkLayoutManager *manager,
                             int              *natural_baseline)
 {
   GtkLayoutManagerClass *klass;
+  int min_size = 0;
+  int nat_size = 0;
+  int min_baseline = -1;
+  int nat_baseline = -1;
+
 
   g_return_if_fail (GTK_IS_LAYOUT_MANAGER (manager));
   g_return_if_fail (GTK_IS_WIDGET (widget));
@@ -272,8 +338,34 @@ gtk_layout_manager_measure (GtkLayoutManager *manager,
 
   klass->measure (manager, widget, orientation,
                   for_size,
-                  minimum, natural,
-                  minimum_baseline, natural_baseline);
+                  &min_size, &nat_size,
+                  &min_baseline, &nat_baseline);
+
+  if (minimum)
+    *minimum = min_size;
+
+  if (natural)
+    *natural = nat_size;
+
+  if (minimum_baseline)
+    *minimum_baseline = min_baseline;
+
+  if (natural_baseline)
+    *natural_baseline = nat_baseline;
+}
+
+static void
+allocate_native_children (GtkWidget *widget)
+{
+  GtkWidget *child;
+
+  for (child = _gtk_widget_get_first_child (widget);
+       child != NULL;
+       child = _gtk_widget_get_next_sibling (child))
+    {
+      if (GTK_IS_NATIVE (child))
+        gtk_native_check_resize (GTK_NATIVE (child));
+    }
 }
 
 /**
@@ -300,6 +392,8 @@ gtk_layout_manager_allocate (GtkLayoutManager *manager,
   g_return_if_fail (GTK_IS_LAYOUT_MANAGER (manager));
   g_return_if_fail (GTK_IS_WIDGET (widget));
   g_return_if_fail (baseline >= -1);
+
+  allocate_native_children (widget);
 
   klass = GTK_LAYOUT_MANAGER_GET_CLASS (manager);
 

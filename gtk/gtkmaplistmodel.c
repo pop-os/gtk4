@@ -34,10 +34,30 @@
  * #GtkMapListModel is a list model that takes a list model and maps the items
  * in that model to different items according to a #GtkMapListModelMapFunc.
  *
- * FIXME: Add useful examples here, like turning #GFile into #GFileInfo or #GdkPixmap.
+ * Example: Create a list of #GtkEventControllers
+ * |[
+ *   static gpointer
+ *   map_to_controllers (gpointer widget,
+ *                       gpointer data)
+ *  {
+ *     gpointer result = gtk_widget_observe_controllers (widget);
+ *     g_object_unref (widget);
+ *     return result;
+ *  }
  *
- * #GtkMapListModel will attempt to discard the mapped objects as soon as they are no
- * longer needed and recreate them if necessary.
+ *   widgets = gtk_widget_observe_children (widget);
+ *
+ *   controllers = gtk_map_list_model_new (G_TYPE_LIST_MODEL,
+ *                                         widgets,
+ *                                         map_to_controllers,
+ *                                         NULL, NULL);
+ *
+ *   model = gtk_flatten_list_model_new (GTK_TYPE_EVENT_CONTROLLER,
+ *                                       controllers);
+ * ]|
+ *
+ * #GtkMapListModel will attempt to discard the mapped objects as soon as
+ * they are no longer needed and recreate them if necessary.
  */
 
 enum {
@@ -424,7 +444,7 @@ gtk_map_list_model_augment (GtkRbTree *map,
  * @item_type: the #GType to use as the model's item type
  * @model: (allow-none): The model to map or %NULL for none
  * @map_func: (allow-none): map function or %NULL to not map items
- * @user_data: user data passed to @map_func
+ * @user_data: (closure): user data passed to @map_func
  * @user_destroy: destroy notifier for @user_data
  *
  * Creates a new #GtkMapListModel for the given arguments.
@@ -501,7 +521,7 @@ gtk_map_list_model_init_items (GtkMapListModel *self)
  * gtk_map_list_model_set_map_func:
  * @self: a #GtkMapListModel
  * @map_func: (allow-none): map function or %NULL to not map items
- * @user_data: user data passed to @map_func
+ * @user_data: (closure): user data passed to @map_func
  * @user_destroy: destroy notifier for @user_data
  *
  * Sets the function used to map items. The function will be called whenever

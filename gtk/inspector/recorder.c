@@ -38,7 +38,7 @@
 #include <glib/gi18n-lib.h>
 #include <gdk/gdktextureprivate.h>
 #include "gtk/gtkdebug.h"
-#include "gtk/gtkiconprivate.h"
+#include "gtk/gtkbuiltiniconprivate.h"
 #include "gtk/gtkrendernodepaintableprivate.h"
 
 #include "recording.h"
@@ -322,14 +322,14 @@ create_widget_for_render_node (gpointer row_item,
       GtkWidget *title, *arrow;
 
       child = g_object_new (GTK_TYPE_BOX, "css-name", "expander", NULL);
-      
+
       title = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "css-name", "title", NULL);
       gtk_button_set_relief (GTK_BUTTON (title), GTK_RELIEF_NONE);
       g_object_bind_property (row_item, "expanded", title, "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
       gtk_container_add (GTK_CONTAINER (child), title);
       g_object_set_data_full (G_OBJECT (row), "make-sure-its-not-unreffed", g_object_ref (row_item), g_object_unref);
 
-      arrow = gtk_icon_new ("arrow");
+      arrow = gtk_builtin_icon_new ("expander");
       gtk_container_add (GTK_CONTAINER (title), arrow);
     }
   else
@@ -636,8 +636,7 @@ populate_render_node_properties (GtkListStore  *store,
         const PangoGlyphInfo *glyphs = gsk_text_node_peek_glyphs (node);
         const GdkRGBA *color = gsk_text_node_peek_color (node);
         guint num_glyphs = gsk_text_node_get_num_glyphs (node);
-        float x = gsk_text_node_get_x (node);
-        float y = gsk_text_node_get_y (node);
+        const graphene_point_t *offset = gsk_text_node_get_offset (node);
         PangoFontDescription *desc;
         GString *s;
         int i;
@@ -654,7 +653,7 @@ populate_render_node_properties (GtkListStore  *store,
         add_text_row (store, "Glyphs", s->str);
         g_string_free (s, TRUE);
 
-        tmp = g_strdup_printf ("%.2f %.2f", x, y);
+        tmp = g_strdup_printf ("%.2f %.2f", offset->x, offset->y);
         add_text_row (store, "Position", tmp);
         g_free (tmp);
 
@@ -1022,7 +1021,7 @@ render_node_save (GtkButton            *button,
     return;
 
   dialog = gtk_file_chooser_dialog_new ("",
-                                        GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (recorder))),
+                                        GTK_WINDOW (gtk_widget_get_root (GTK_WIDGET (recorder))),
                                         GTK_FILE_CHOOSER_ACTION_SAVE,
                                         _("_Cancel"), GTK_RESPONSE_CANCEL,
                                         _("_Save"), GTK_RESPONSE_ACCEPT,

@@ -19,8 +19,6 @@
 
 #include "fontplane.h"
 
-#include "gtk.h"
-
 enum {
   PROP_0,
   PROP_WEIGHT_ADJUSTMENT,
@@ -209,7 +207,6 @@ gtk_font_plane_init (GtkFontPlane *plane)
 {
   GtkGesture *gesture;
 
-  gtk_widget_set_has_surface (GTK_WIDGET (plane), FALSE);
   gtk_widget_set_can_focus (GTK_WIDGET (plane), TRUE);
 
   gesture = gtk_gesture_drag_new ();

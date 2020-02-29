@@ -211,8 +211,8 @@ gtk_css_value_calc_has_percent (const GtkCssValue *value)
 }
 
 static GtkCssValue *
-gtk_css_value_calc_multiply (const GtkCssValue *value,
-                             double             factor)
+gtk_css_value_calc_multiply (GtkCssValue *value,
+                             double       factor)
 {
   GtkCssValue *result;
   gsize i;
@@ -228,8 +228,8 @@ gtk_css_value_calc_multiply (const GtkCssValue *value,
 }
 
 static GtkCssValue *
-gtk_css_value_calc_try_add (const GtkCssValue *value1,
-                            const GtkCssValue *value2)
+gtk_css_value_calc_try_add (GtkCssValue *value1,
+                            GtkCssValue *value2)
 {
   return NULL;
 }
@@ -245,6 +245,7 @@ gtk_css_value_calc_get_calc_term_order (const GtkCssValue *value)
 
 static const GtkCssNumberValueClass GTK_CSS_VALUE_CALC = {
   {
+    "GtkCssCalcValue",
     gtk_css_value_calc_free,
     gtk_css_value_calc_compute,
     gtk_css_value_calc_equal,

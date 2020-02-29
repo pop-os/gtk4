@@ -38,6 +38,7 @@ struct _GtkInspectorMiscInfoPrivate {
 
   GObject *object;
 
+  GtkWidget *swin;
   GtkWidget *address;
   GtkWidget *type;
   GtkWidget *type_popover;
@@ -55,6 +56,12 @@ struct _GtkInspectorMiscInfoPrivate {
   GtkWidget *allocated_size;
   GtkWidget *baseline_row;
   GtkWidget *baseline;
+  GtkWidget *surface_row;
+  GtkWidget *surface;
+  GtkWidget *surface_button;
+  GtkWidget *renderer_row;
+  GtkWidget *renderer;
+  GtkWidget *renderer_button;
   GtkWidget *frame_clock_row;
   GtkWidget *frame_clock;
   GtkWidget *frame_clock_button;
@@ -89,7 +96,7 @@ enum
   PROP_OBJECT_TREE
 };
 
-G_DEFINE_TYPE_WITH_PRIVATE (GtkInspectorMiscInfo, gtk_inspector_misc_info, GTK_TYPE_SCROLLED_WINDOW)
+G_DEFINE_TYPE_WITH_PRIVATE (GtkInspectorMiscInfo, gtk_inspector_misc_info, GTK_TYPE_WIDGET)
 
 static gchar *
 format_state_flags (GtkStateFlags state)
@@ -180,7 +187,7 @@ show_object (GtkInspectorMiscInfo *sl,
              const gchar          *tab)
 {
   g_object_set_data_full (G_OBJECT (sl->priv->object_tree), "next-tab", g_strdup (tab), g_free);
-  gtk_inspector_object_tree_select_object (sl->priv->object_tree, object);
+  gtk_inspector_object_tree_activate_object (sl->priv->object_tree, object);
 }
 
 static void
@@ -194,6 +201,26 @@ show_mnemonic_label (GtkWidget *button, GtkInspectorMiscInfo *sl)
 }
 
 static void
+show_surface (GtkWidget *button, GtkInspectorMiscInfo *sl)
+{
+  GObject *surface;
+
+  surface = (GObject *)gtk_native_get_surface (GTK_NATIVE (sl->priv->object));
+  if (surface)
+    show_object (sl, G_OBJECT (surface), "properties");
+}
+
+static void
+show_renderer (GtkWidget *button, GtkInspectorMiscInfo *sl)
+{
+  GObject *renderer;
+
+  renderer = (GObject *)gtk_native_get_renderer (GTK_NATIVE (sl->priv->object));
+  if (renderer)
+    show_object (sl, G_OBJECT (renderer), "properties");
+}
+
+static void
 show_frame_clock (GtkWidget *button, GtkInspectorMiscInfo *sl)
 {
   GObject *clock;
@@ -204,23 +231,74 @@ show_frame_clock (GtkWidget *button, GtkInspectorMiscInfo *sl)
 }
 
 static void
-update_frame_clock (GtkInspectorMiscInfo *sl)
+update_surface (GtkInspectorMiscInfo *sl)
 {
-  GObject *clock;
-
-  clock = (GObject *)gtk_widget_get_frame_clock (GTK_WIDGET (sl->priv->object));
-  if (clock)
+  if (GTK_IS_NATIVE (sl->priv->object))
     {
-      gchar *tmp;
-      tmp = g_strdup_printf ("%p", clock);
-      gtk_label_set_label (GTK_LABEL (sl->priv->frame_clock), tmp);
+      GObject *obj;
+      char *tmp;
+
+      gtk_widget_show (sl->priv->surface_row);
+
+      obj = (GObject *)gtk_native_get_surface (GTK_NATIVE (sl->priv->object));
+      tmp = g_strdup_printf ("%p", obj);
+      gtk_label_set_label (GTK_LABEL (sl->priv->surface), tmp);
       g_free (tmp);
-      gtk_widget_set_sensitive (sl->priv->frame_clock_button, TRUE);
     }
   else
     {
-      gtk_label_set_label (GTK_LABEL (sl->priv->frame_clock), "NULL");
-      gtk_widget_set_sensitive (sl->priv->frame_clock_button, FALSE);
+      gtk_widget_hide (sl->priv->surface_row);
+    }
+}
+
+static void
+update_renderer (GtkInspectorMiscInfo *sl)
+{
+  if (GTK_IS_NATIVE (sl->priv->object))
+    {
+      GObject *obj;
+      char *tmp;
+
+      gtk_widget_show (sl->priv->renderer_row);
+
+      obj = (GObject *)gtk_native_get_surface (GTK_NATIVE (sl->priv->object));
+      tmp = g_strdup_printf ("%p", obj);
+      gtk_label_set_label (GTK_LABEL (sl->priv->renderer), tmp);
+      g_free (tmp);
+    }
+  else
+    {
+      gtk_widget_hide (sl->priv->renderer_row);
+    }
+}
+
+static void
+update_frame_clock (GtkInspectorMiscInfo *sl)
+{
+  if (GTK_IS_ROOT (sl->priv->object))
+    {
+      GObject *clock;
+
+      gtk_widget_show (sl->priv->frame_clock_row);
+
+      clock = (GObject *)gtk_widget_get_frame_clock (GTK_WIDGET (sl->priv->object));
+      if (clock)
+        {
+          gchar *tmp;
+          tmp = g_strdup_printf ("%p", clock);
+          gtk_label_set_label (GTK_LABEL (sl->priv->frame_clock), tmp);
+          g_free (tmp);
+          gtk_widget_set_sensitive (sl->priv->frame_clock_button, TRUE);
+        }
+      else
+        {
+          gtk_label_set_label (GTK_LABEL (sl->priv->frame_clock), "NULL");
+          gtk_widget_set_sensitive (sl->priv->frame_clock_button, FALSE);
+        }
+    }
+  else
+    {
+      gtk_widget_hide (sl->priv->frame_clock_row);
     }
 }
 
@@ -237,7 +315,7 @@ update_info (gpointer data)
 
   gtype = G_TYPE_FROM_INSTANCE (sl->priv->object);
 
-  gtk_button_set_label (GTK_BUTTON (sl->priv->type), g_type_name (gtype));
+  gtk_menu_button_set_label (GTK_MENU_BUTTON (sl->priv->type), g_type_name (gtype));
   gtk_inspector_type_popover_set_gtype (GTK_INSPECTOR_TYPE_POPOVER (sl->priv->type_popover),
                                         gtype);
 
@@ -279,11 +357,13 @@ update_info (gpointer data)
       gtk_label_set_text (GTK_LABEL (sl->priv->accessible_description), atk_object_get_description (accessible));
       gtk_widget_set_visible (sl->priv->mapped, gtk_widget_get_mapped (GTK_WIDGET (sl->priv->object)));
       gtk_widget_set_visible (sl->priv->realized, gtk_widget_get_realized (GTK_WIDGET (sl->priv->object)));
-      gtk_widget_set_visible (sl->priv->is_toplevel, gtk_widget_is_toplevel (GTK_WIDGET (sl->priv->object)));
+      gtk_widget_set_visible (sl->priv->is_toplevel, GTK_IS_ROOT (sl->priv->object));
       gtk_widget_set_visible (sl->priv->child_visible, gtk_widget_get_child_visible (GTK_WIDGET (sl->priv->object)));
-
-      update_frame_clock (sl);
     }
+
+  update_surface (sl);
+  update_renderer (sl);
+  update_frame_clock (sl);
 
   if (GTK_IS_BUILDABLE (sl->priv->object))
     {
@@ -490,6 +570,37 @@ set_property (GObject      *object,
 }
 
 static void
+measure (GtkWidget      *widget,
+         GtkOrientation  orientation,
+         int             for_size,
+         int            *minimum,
+         int            *natural,
+         int            *minimum_baseline,
+         int            *natural_baseline)
+{
+  GtkInspectorMiscInfo *sl = GTK_INSPECTOR_MISC_INFO (widget);
+
+  gtk_widget_measure (sl->priv->swin,
+                      orientation,
+                      for_size,
+                      minimum, natural,
+                      minimum_baseline, natural_baseline);
+}
+
+static void
+size_allocate (GtkWidget *widget,
+               int        width,
+               int        height,
+               int        baseline)
+{
+  GtkInspectorMiscInfo *sl = GTK_INSPECTOR_MISC_INFO (widget);
+
+  gtk_widget_size_allocate (sl->priv->swin,
+                            &(GtkAllocation) { 0, 0, width, height },
+                            baseline);
+}
+
+static void
 gtk_inspector_misc_info_class_init (GtkInspectorMiscInfoClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -500,12 +611,15 @@ gtk_inspector_misc_info_class_init (GtkInspectorMiscInfoClass *klass)
 
   widget_class->map = map;
   widget_class->unmap = unmap;
+  widget_class->measure = measure;
+  widget_class->size_allocate = size_allocate;
 
   g_object_class_install_property (object_class, PROP_OBJECT_TREE,
       g_param_spec_object ("object-tree", "Object Tree", "Object tree",
                            GTK_TYPE_WIDGET, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gtk/libgtk/inspector/misc-info.ui");
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, swin);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, address);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, type);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, refcount_row);
@@ -522,6 +636,12 @@ gtk_inspector_misc_info_class_init (GtkInspectorMiscInfoClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, allocated_size);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, baseline_row);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, baseline);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, surface_row);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, surface);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, surface_button);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, renderer_row);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, renderer);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, renderer_button);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, frame_clock_row);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, frame_clock);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, frame_clock_button);
@@ -546,6 +666,8 @@ gtk_inspector_misc_info_class_init (GtkInspectorMiscInfoClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, child_visible_row);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorMiscInfo, child_visible);
 
+  gtk_widget_class_bind_template_callback (widget_class, show_surface);
+  gtk_widget_class_bind_template_callback (widget_class, show_renderer);
   gtk_widget_class_bind_template_callback (widget_class, show_frame_clock);
 }
 

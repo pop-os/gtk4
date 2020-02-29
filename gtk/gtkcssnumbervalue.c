@@ -44,10 +44,13 @@ gtk_css_number_value_has_percent (const GtkCssValue *value)
 }
 
 GtkCssValue *
-gtk_css_number_value_multiply (const GtkCssValue *value,
-                               double             factor)
+gtk_css_number_value_multiply (GtkCssValue *value,
+                               double       factor)
 {
   GtkCssNumberValueClass *number_value_class = (GtkCssNumberValueClass *) value->class;
+
+  if (factor == 1)
+    return _gtk_css_value_ref (value);
 
   return number_value_class->multiply (value, factor);
 }
@@ -66,8 +69,8 @@ gtk_css_number_value_add (GtkCssValue *value1,
 }
 
 GtkCssValue *
-gtk_css_number_value_try_add (const GtkCssValue *value1,
-                              const GtkCssValue *value2)
+gtk_css_number_value_try_add (GtkCssValue *value1,
+                              GtkCssValue *value2)
 {
   GtkCssNumberValueClass *number_value_class;
   
@@ -114,6 +117,9 @@ gtk_css_number_value_transition (GtkCssValue *start,
                                  double       progress)
 {
   GtkCssValue *result, *mul_start, *mul_end;
+
+  if (start == end)
+    return _gtk_css_value_ref (start);
 
   mul_start = gtk_css_number_value_multiply (start, 1 - progress);
   mul_end = gtk_css_number_value_multiply (end, progress);

@@ -86,7 +86,6 @@ gtk_texture_view_finalize (GObject *object)
 static void
 gtk_texture_view_init (GtkTextureView *self)
 {
-  gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
 }
 
 static void
@@ -101,6 +100,17 @@ gtk_texture_view_class_init (GtkTextureViewClass *klass)
   widget_class->snapshot = gtk_texture_view_snapshot;
 }
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -109,6 +119,7 @@ main (int argc, char **argv)
   GdkTexture *texture;
   GFile *file;
   GError *error = NULL;
+  gboolean done = FALSE;
 
   gtk_init ();
 
@@ -128,15 +139,16 @@ main (int argc, char **argv)
     }
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
-  g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   view = g_object_new (GTK_TYPE_TEXTURE_VIEW, NULL);
   ((GtkTextureView*)view)->texture = g_steal_pointer (&texture);
 
   gtk_container_add (GTK_CONTAINER (window), view);
 
   gtk_widget_show (window);
-  gtk_main ();
 
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   g_object_unref (file);
 

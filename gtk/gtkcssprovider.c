@@ -31,8 +31,6 @@
 #include "gtkstylecontextprivate.h"
 #include "gtkstylepropertyprivate.h"
 #include "gtkstyleproviderprivate.h"
-#include "gtkwidgetpath.h"
-#include "gtkbindings.h"
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
 #include "gtkintl.h"
@@ -42,6 +40,7 @@
 #include <stdlib.h>
 
 #include <gdk-pixbuf/gdk-pixbuf.h>
+#include "gdk/gdkprofilerprivate.h"
 #include <cairo-gobject.h>
 
 /**
@@ -61,20 +60,28 @@
  * In addition, certain files will be read when GTK+ is initialized. First, the
  * file `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` is loaded if it exists. Then, GTK+
  * loads the first existing file among
- * `XDG_DATA_HOME/themes/THEME/gtk-VERSION/gtk.css`,
- * `$HOME/.themes/THEME/gtk-VERSION/gtk.css`,
- * `$XDG_DATA_DIRS/themes/THEME/gtk-VERSION/gtk.css` and
- * `DATADIR/share/themes/THEME/gtk-VERSION/gtk.css`, where `THEME` is the name of
- * the current theme (see the #GtkSettings:gtk-theme-name setting), `DATADIR`
+ * `XDG_DATA_HOME/themes/THEME/gtk-VERSION/gtk-VARIANT.css`,
+ * `$HOME/.themes/THEME/gtk-VERSION/gtk-VARIANT.css`,
+ * `$XDG_DATA_DIRS/themes/THEME/gtk-VERSION/gtk-VARIANT.css` and
+ * `DATADIR/share/themes/THEME/gtk-VERSION/gtk-VARIANT.css`, where `THEME` is the name of
+ * the current theme (see the #GtkSettings:gtk-theme-name setting),
+ * VARIANT is the variant to load (see the #GtkSettings:gtk-application-prefer-dark-theme setting), `DATADIR`
  * is the prefix configured when GTK+ was compiled (unless overridden by the
  * `GTK_DATA_PREFIX` environment variable), and `VERSION` is the GTK+ version number.
  * If no file is found for the current version, GTK+ tries older versions all the
  * way back to 4.0.
- *
- * In the same way, GTK+ tries to load a gtk-keys.css file for the current
- * key theme, as defined by #GtkSettings:gtk-key-theme-name.
  */
 
+#define MAX_SELECTOR_LIST_LENGTH 64
+
+struct _GtkCssProviderClass
+{
+  GObjectClass parent_class;
+
+  void (* parsing_error)                        (GtkCssProvider  *provider,
+                                                 GtkCssSection   *section,
+                                                 const GError *   error);
+};
 
 typedef struct GtkCssRuleset GtkCssRuleset;
 typedef struct _GtkCssScanner GtkCssScanner;
@@ -93,7 +100,6 @@ struct GtkCssRuleset
   GtkCssSelector *selector;
   GtkCssSelectorTree *selector_match;
   PropertyValue *styles;
-  GtkBitmask *set_styles;
   guint n_styles;
   guint owns_styles : 1;
 };
@@ -103,7 +109,6 @@ struct _GtkCssScanner
   GtkCssProvider *provider;
   GtkCssParser *parser;
   GtkCssScanner *parent;
-  GSList *state;
 };
 
 struct _GtkCssProviderPrivate
@@ -231,8 +236,6 @@ gtk_css_ruleset_init_copy (GtkCssRuleset       *new,
   /* First copy takes over ownership */
   if (ruleset->owns_styles)
     ruleset->owns_styles = FALSE;
-  if (new->set_styles)
-    new->set_styles = _gtk_bitmask_copy (new->set_styles);
 }
 
 static void
@@ -251,8 +254,6 @@ gtk_css_ruleset_clear (GtkCssRuleset *ruleset)
         }
       g_free (ruleset->styles);
     }
-  if (ruleset->set_styles)
-    _gtk_bitmask_free (ruleset->set_styles);
   if (ruleset->selector)
     _gtk_css_selector_free (ruleset->selector);
 
@@ -268,13 +269,6 @@ gtk_css_ruleset_add (GtkCssRuleset       *ruleset,
   guint i;
 
   g_return_if_fail (ruleset->owns_styles || ruleset->n_styles == 0);
-
-  if (ruleset->set_styles == NULL)
-    ruleset->set_styles = _gtk_bitmask_new ();
-
-  ruleset->set_styles = _gtk_bitmask_set (ruleset->set_styles,
-                                          _gtk_css_style_property_get_id (property),
-                                          TRUE);
 
   ruleset->owns_styles = TRUE;
 
@@ -397,11 +391,11 @@ gtk_css_provider_init (GtkCssProvider *css_provider)
 
 static void
 verify_tree_match_results (GtkCssProvider *provider,
-			   const GtkCssMatcher *matcher,
-			   GPtrArray *tree_rules)
+			   GtkCssNode     *node,
+			   GPtrArray      *tree_rules)
 {
 #ifdef VERIFY_TREE
-  GtkCssProviderPrivate *priv = gtk_css_provider_get_instance_private (css_provider);
+  GtkCssProviderPrivate *priv = gtk_css_provider_get_instance_private (provider);
   GtkCssRuleset *ruleset;
   gboolean should_match;
   int i, j;
@@ -420,7 +414,7 @@ verify_tree_match_results (GtkCssProvider *provider,
 	      break;
 	    }
 	}
-      should_match = _gtk_css_selector_matches (ruleset->selector, matcher);
+      should_match = gtk_css_selector_matches (ruleset->selector, node);
       if (found != !!should_match)
 	{
 	  g_error ("expected rule '%s' to %s, but it %s",
@@ -431,62 +425,6 @@ verify_tree_match_results (GtkCssProvider *provider,
     }
 #endif
 }
-
-static void
-verify_tree_get_change_results (GtkCssProvider *provider,
-				const GtkCssMatcher *matcher,
-				GtkCssChange change)
-{
-#ifdef VERIFY_TREE
-  {
-    GtkCssProviderPrivate *priv = gtk_css_provider_get_instance_private (provider);
-    GtkCssChange verify_change = 0;
-    GPtrArray *tree_rules;
-    int i;
-
-    tree_rules = _gtk_css_selector_tree_match_all (priv->tree, matcher);
-    if (tree_rules)
-      {
-        verify_tree_match_results (provider, matcher, tree_rules);
-
-        for (i = tree_rules->len - 1; i >= 0; i--)
-          {
-	    GtkCssRuleset *ruleset;
-
-            ruleset = tree_rules->pdata[i];
-
-            verify_change |= _gtk_css_selector_get_change (ruleset->selector);
-          }
-
-        g_ptr_array_free (tree_rules, TRUE);
-      }
-
-    if (change != verify_change)
-      {
-	GString *s;
-
-	s = g_string_new ("");
-	g_string_append (s, "expected change ");
-        gtk_css_change_print (verify_change, s);
-        g_string_append (s, ", but it was ");
-        gtk_css_change_print (change, s);
-	if ((change & ~verify_change) != 0)
-          {
-	    g_string_append (s, ", unexpectedly set: ");
-            gtk_css_change_print (change & ~verify_change, s);
-          }
-	if ((~change & verify_change) != 0)
-          {
-	    g_string_append_printf (s, ", unexpectedly not set: ");
-            gtk_css_change_print (~change & verify_change, s);
-          }
-	g_warning (s->str);
-	g_string_free (s, TRUE);
-      }
-  }
-#endif
-}
-
 
 static GtkCssValue *
 gtk_css_style_provider_get_color (GtkStyleProvider *provider,
@@ -509,10 +447,11 @@ gtk_css_style_provider_get_keyframes (GtkStyleProvider *provider,
 }
 
 static void
-gtk_css_style_provider_lookup (GtkStyleProvider    *provider,
-                               const GtkCssMatcher *matcher,
-                               GtkCssLookup        *lookup,
-                               GtkCssChange        *change)
+gtk_css_style_provider_lookup (GtkStyleProvider             *provider,
+                               const GtkCountingBloomFilter *filter,
+                               GtkCssNode                   *node,
+                               GtkCssLookup                 *lookup,
+                               GtkCssChange                 *change)
 {
   GtkCssProvider *css_provider = GTK_CSS_PROVIDER (provider);
   GtkCssProviderPrivate *priv = gtk_css_provider_get_instance_private (css_provider);
@@ -521,10 +460,13 @@ gtk_css_style_provider_lookup (GtkStyleProvider    *provider,
   int i;
   GPtrArray *tree_rules;
 
-  tree_rules = _gtk_css_selector_tree_match_all (priv->tree, matcher);
+  if (_gtk_css_selector_tree_is_empty (priv->tree))
+    return;
+
+  tree_rules = _gtk_css_selector_tree_match_all (priv->tree, filter, node);
   if (tree_rules)
     {
-      verify_tree_match_results (css_provider, matcher, tree_rules);
+      verify_tree_match_results (css_provider, node, tree_rules);
 
       for (i = tree_rules->len - 1; i >= 0; i--)
         {
@@ -532,10 +474,6 @@ gtk_css_style_provider_lookup (GtkStyleProvider    *provider,
 
           if (ruleset->styles == NULL)
             continue;
-
-          if (!_gtk_bitmask_intersects (_gtk_css_lookup_get_missing (lookup),
-                                        ruleset->set_styles))
-          continue;
 
           for (j = 0; j < ruleset->n_styles; j++)
             {
@@ -548,25 +486,15 @@ gtk_css_style_provider_lookup (GtkStyleProvider    *provider,
               _gtk_css_lookup_set (lookup,
                                    id,
                                    ruleset->styles[j].section,
-                                  ruleset->styles[j].value);
+                                   ruleset->styles[j].value);
             }
-
-          if (_gtk_bitmask_is_empty (_gtk_css_lookup_get_missing (lookup)))
-            break;
         }
 
       g_ptr_array_free (tree_rules, TRUE);
     }
 
   if (change)
-    {
-      GtkCssMatcher change_matcher;
-
-      _gtk_css_matcher_superset_init (&change_matcher, matcher, GTK_CSS_CHANGE_NAME | GTK_CSS_CHANGE_CLASS);
-
-      *change = _gtk_css_selector_tree_get_change_all (priv->tree, &change_matcher);
-      verify_tree_get_change_results (css_provider, &change_matcher, *change);
-    }
+    *change = gtk_css_selector_tree_get_change_all (priv->tree, filter, node);
 }
 
 static void
@@ -620,23 +548,28 @@ gtk_css_provider_new (void)
 }
 
 static void
-css_provider_commit (GtkCssProvider *css_provider,
-                     GSList         *selectors,
-                     GtkCssRuleset  *ruleset)
+css_provider_commit (GtkCssProvider  *css_provider,
+                     GtkCssSelector **selectors,
+                     guint            n_selectors,
+                     GtkCssRuleset   *ruleset)
 {
   GtkCssProviderPrivate *priv = gtk_css_provider_get_instance_private (css_provider);
-  GSList *l;
+  guint i;
 
-  for (l = selectors; l; l = l->next)
+  if (ruleset->styles == NULL)
     {
-      GtkCssRuleset new;
-
-      gtk_css_ruleset_init_copy (&new, ruleset, l->data);
-
-      g_array_append_val (priv->rulesets, new);
+      return;
     }
 
-  g_slist_free (selectors);
+  for (i = 0; i < n_selectors; i ++)
+    {
+      GtkCssRuleset *new;
+
+      g_array_set_size (priv->rulesets, priv->rulesets->len + 1);
+
+      new = &g_array_index (priv->rulesets, GtkCssRuleset, priv->rulesets->len - 1);
+      gtk_css_ruleset_init_copy (new, ruleset, selectors[i]);
+    }
 }
 
 static void
@@ -697,7 +630,14 @@ parse_import (GtkCssScanner *scanner)
     }
   else
     {
-      file = gtk_css_parser_consume_url (scanner->parser);
+      char *url = gtk_css_parser_consume_url (scanner->parser);
+      if (url)
+        {
+          file = gtk_css_parser_resolve_url (scanner->parser, url);
+          g_free (url);
+        }
+      else
+        file = NULL;
     }
 
   if (file == NULL)
@@ -814,22 +754,32 @@ parse_at_keyword (GtkCssScanner *scanner)
   gtk_css_parser_end_block (scanner->parser);
 }
 
-static GSList *
-parse_selector_list (GtkCssScanner *scanner)
+static guint
+parse_selector_list (GtkCssScanner  *scanner,
+                     GtkCssSelector *out_selectors[MAX_SELECTOR_LIST_LENGTH])
 {
-  GSList *selectors = NULL;
+  guint n_selectors = 0;
 
   do {
       GtkCssSelector *select = _gtk_css_selector_parse (scanner->parser);
 
       if (select == NULL)
-        return NULL;
+        return 0;
 
-      selectors = g_slist_prepend (selectors, select);
+      out_selectors[n_selectors] = select;
+      n_selectors++;
+
+      if (G_UNLIKELY (n_selectors > MAX_SELECTOR_LIST_LENGTH))
+        {
+          gtk_css_parser_error_syntax (scanner->parser,
+                                       "Only %u selectors per ruleset allowed",
+                                       MAX_SELECTOR_LIST_LENGTH);
+          return 0;
+        }
     }
   while (gtk_css_parser_try_token (scanner->parser, GTK_CSS_TOKEN_COMMA));
 
-  return selectors;
+  return n_selectors;
 }
 
 static void
@@ -948,11 +898,12 @@ parse_declarations (GtkCssScanner *scanner,
 static void
 parse_ruleset (GtkCssScanner *scanner)
 {
-  GSList *selectors;
+  GtkCssSelector *selectors[MAX_SELECTOR_LIST_LENGTH];
+  guint n_selectors;
   GtkCssRuleset ruleset = { 0, };
 
-  selectors = parse_selector_list (scanner);
-  if (selectors == NULL)
+  n_selectors = parse_selector_list (scanner, selectors);
+  if (n_selectors == 0)
     {
       gtk_css_parser_skip_until (scanner->parser, GTK_CSS_TOKEN_OPEN_CURLY);
       gtk_css_parser_skip (scanner->parser);
@@ -961,8 +912,10 @@ parse_ruleset (GtkCssScanner *scanner)
 
   if (!gtk_css_parser_has_token (scanner->parser, GTK_CSS_TOKEN_OPEN_CURLY))
     {
+      guint i;
       gtk_css_parser_error_syntax (scanner->parser, "Expected '{' after selectors");
-      g_slist_free_full (selectors, (GDestroyNotify) _gtk_css_selector_free);
+      for (i = 0; i < n_selectors; i ++)
+        _gtk_css_selector_free (selectors[i]);
       gtk_css_parser_skip_until (scanner->parser, GTK_CSS_TOKEN_OPEN_CURLY);
       gtk_css_parser_skip (scanner->parser);
       return;
@@ -974,7 +927,7 @@ parse_ruleset (GtkCssScanner *scanner)
 
   gtk_css_parser_end_block (scanner->parser);
 
-  css_provider_commit (scanner->provider, selectors, &ruleset);
+  css_provider_commit (scanner->provider, selectors, n_selectors, &ruleset);
   gtk_css_ruleset_clear (&ruleset);
 }
 
@@ -1024,6 +977,7 @@ gtk_css_provider_postprocess (GtkCssProvider *css_provider)
   GtkCssProviderPrivate *priv = gtk_css_provider_get_instance_private (css_provider);
   GtkCssSelectorTreeBuilder *builder;
   guint i;
+  gint64 before = g_get_monotonic_time ();
 
   g_array_sort (priv->rulesets, gtk_css_provider_compare_rule);
 
@@ -1054,6 +1008,9 @@ gtk_css_provider_postprocess (GtkCssProvider *css_provider)
       ruleset->selector = NULL;
     }
 #endif
+
+  if (gdk_profiler_is_running ())
+    gdk_profiler_add_mark (before * 1000, (g_get_monotonic_time () - before) * 1000, "create selector tree", NULL);
 }
 
 static void
@@ -1062,6 +1019,8 @@ gtk_css_provider_load_internal (GtkCssProvider *self,
                                 GFile          *file,
                                 GBytes         *bytes)
 {
+  gint64 before = g_get_monotonic_time ();
+
   if (bytes == NULL)
     {
       GError *load_error = NULL;
@@ -1105,6 +1064,15 @@ gtk_css_provider_load_internal (GtkCssProvider *self,
 
       if (parent == NULL)
         gtk_css_provider_postprocess (self);
+
+      g_bytes_unref (bytes);
+    }
+
+  if (gdk_profiler_is_running ())
+    {
+      char *uri = g_file_get_uri (file);
+      gdk_profiler_add_mark (before * 1000, (g_get_monotonic_time () - before) * 1000, "theme load", uri);
+      g_free (uri);
     }
 }
 
@@ -1136,8 +1104,8 @@ gtk_css_provider_load_from_data (GtkCssProvider  *css_provider,
 
   gtk_css_provider_reset (css_provider);
 
+  g_bytes_ref (bytes);
   gtk_css_provider_load_internal (css_provider, NULL, NULL, bytes);
-
   g_bytes_unref (bytes);
 
   gtk_style_provider_changed (GTK_STYLE_PROVIDER (css_provider));
@@ -1283,9 +1251,6 @@ _gtk_css_find_theme_dir (const gchar *dir,
 
   for (i = MINOR; i >= 0; i = i - 2)
     {
-      if (i < 14)
-        i = 0;
-
       subsubdir = g_strdup_printf ("gtk-4.%d", i);
       path = g_build_filename (base, subsubdir, file, NULL);
       g_free (subsubdir);

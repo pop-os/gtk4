@@ -24,6 +24,7 @@
 
 #include "gdkinternals.h"
 #include "gdkintl.h"
+#include "gdkprofilerprivate.h"
 
 /**
  * SECTION:gdkdrawcontext
@@ -174,9 +175,13 @@ gdk_draw_context_class_init (GdkDrawContextClass *klass)
   g_object_class_install_properties (gobject_class, LAST_PROP, pspecs);
 }
 
+static guint pixels_counter;
+
 static void
 gdk_draw_context_init (GdkDrawContext *self)
 {
+  if (pixels_counter == 0)
+    pixels_counter = gdk_profiler_define_int_counter ("frame pixels", "Pixels drawn per frame");
 }
 
 /**
@@ -315,6 +320,23 @@ gdk_draw_context_begin_frame (GdkDrawContext       *context,
   GDK_DRAW_CONTEXT_GET_CLASS (context)->begin_frame (context, priv->frame_region);
 }
 
+static gint64
+region_get_pixels (cairo_region_t *region)
+{
+  int i, n;
+  cairo_rectangle_int_t rect;
+  gint64 pixels = 0;
+
+  n = cairo_region_num_rectangles (region);
+  for (i = 0; i < n; i++)
+    {
+      cairo_region_get_rectangle (region, i, &rect);
+      pixels += rect.width * rect.height;
+    }
+
+  return pixels;
+}
+
 /**
  * gdk_draw_context_end_frame:
  * @context: a #GdkDrawContext
@@ -353,6 +375,11 @@ gdk_draw_context_end_frame (GdkDrawContext *context)
     }
 
   GDK_DRAW_CONTEXT_GET_CLASS (context)->end_frame (context, priv->frame_region);
+
+  if (gdk_profiler_is_running ())
+    gdk_profiler_set_int_counter (pixels_counter,
+                                  g_get_monotonic_time () * 1000,
+                                  region_get_pixels (priv->frame_region));
 
   g_clear_pointer (&priv->frame_region, cairo_region_destroy);
   g_clear_object (&priv->surface->paint_context);

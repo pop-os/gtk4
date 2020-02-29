@@ -93,7 +93,6 @@ gtk_node_view_finalize (GObject *object)
 static void
 gtk_node_view_init (GtkNodeView *self)
 {
-  gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
 }
 
 static void
@@ -117,7 +116,18 @@ deserialize_error_func (const GtkCssSection *section,
 
   g_warning ("Error at %s: %s", section_str, error->message);
 
-  free (section_str);
+  g_free (section_str);
+}
+
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
 }
 
 int
@@ -131,6 +141,7 @@ main (int argc, char **argv)
   graphene_rect_t node_bounds;
   GOptionContext *option_context;
   GError *error = NULL;
+  gboolean done = FALSE;
 
   option_context = g_option_context_new ("NODE-FILE [-o OUTPUT] [--compare]");
   g_option_context_add_main_entries (option_context, options, NULL);
@@ -224,9 +235,11 @@ main (int argc, char **argv)
                      MAX (600, node_bounds.size.width),
                      MAX (500, node_bounds.size.height));
 
-  g_signal_connect (window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   gtk_widget_show (window);
-  gtk_main ();
+
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

@@ -50,52 +50,81 @@ test_get_other_file (const char *ui_file, const char *extension)
   return g_string_free (file, FALSE);
 }
 
-static char *
+static GBytes *
 diff_with_file (const char  *file1,
                 char        *text,
                 gssize       len,
                 GError     **error)
 {
-  const char *command[] = { "diff", "-u", file1, NULL, NULL };
-  char *diff, *tmpfile;
-  int fd;
+  GSubprocess *process;
+  GBytes *input, *output;
 
-  diff = NULL;
-
-  if (len < 0)
-    len = strlen (text);
-  
-  /* write the text buffer to a temporary file */
-  fd = g_file_open_tmp (NULL, &tmpfile, error);
-  if (fd < 0)
+  process = g_subprocess_new (G_SUBPROCESS_FLAGS_STDIN_PIPE
+                              | G_SUBPROCESS_FLAGS_STDOUT_PIPE,
+                              error,
+                              "diff", "-u", file1, "-", NULL);
+  if (process == NULL)
     return NULL;
 
-  if (write (fd, text, len) != (int) len)
+  input = g_bytes_new_static (text, len >= 0 ? len : strlen (text));
+  if (!g_subprocess_communicate (process,
+                                 input,
+                                 NULL,
+                                 &output,
+                                 NULL,
+                                 error))
     {
-      close (fd);
-      g_set_error (error,
-                   G_FILE_ERROR, G_FILE_ERROR_FAILED,
-                   "Could not write data to temporary file '%s'", tmpfile);
-      goto done;
+      g_object_unref (process);
+      g_bytes_unref (input);
+      return NULL;
     }
-  close (fd);
-  command[3] = tmpfile;
 
-  /* run diff command */
-  g_spawn_sync (NULL, 
-                (char **) command,
-                NULL,
-                G_SPAWN_SEARCH_PATH,
-                NULL, NULL,
-	        &diff,
-                NULL, NULL,
-                error);
+  if (!g_subprocess_get_successful (process) &&
+      /* this is the condition when the files differ */
+      !(g_subprocess_get_if_exited (process) && g_subprocess_get_exit_status (process) == 1))
+    {
+      g_clear_pointer (&output, g_bytes_unref);
+      g_set_error (error, G_IO_ERROR, G_IO_ERROR_FAILED,
+                   "The `diff' process exited with error status %d",
+                   g_subprocess_get_exit_status (process));
+    }
 
-done:
-  g_unlink (tmpfile);
-  g_free (tmpfile);
+  g_object_unref (process);
+  g_bytes_unref (input);
 
-  return diff;
+  return output;
+}
+
+static char *
+fixup_style_differences (const char *str)
+{
+  GRegex *regex;
+  char *result;
+
+  /* normalize differences that creep in from hard-to-control environmental influences */
+  regex = g_regex_new ("[.]solid-csd", 0, 0, NULL);
+  result = g_regex_replace_literal (regex, str, -1, 0, ".csd", 0, NULL);
+  g_regex_unref (regex);
+
+  return result;
+}
+
+static void
+style_context_changed (GtkWidget *window, const char **output)
+{
+  GtkStyleContext *context;
+  char *str;
+
+  context = gtk_widget_get_style_context (window);
+
+  str = gtk_style_context_to_string (context, GTK_STYLE_CONTEXT_PRINT_RECURSE |
+                                              GTK_STYLE_CONTEXT_PRINT_SHOW_STYLE);
+
+  *output = fixup_style_differences (str);
+
+  g_free (str);
+
+  g_main_context_wakeup (NULL);
 }
 
 static void
@@ -103,8 +132,8 @@ load_ui_file (GFile *file, gboolean generate)
 {
   GtkBuilder *builder;
   GtkWidget *window;
-  GtkStyleContext *context;
-  char *output, *diff;
+  char *output;
+  GBytes *diff;
   char *ui_file, *css_file, *reference_file;
   GtkCssProvider *provider;
   GError *error = NULL;
@@ -125,10 +154,13 @@ load_ui_file (GFile *file, gboolean generate)
 
   g_assert (window != NULL);
 
-  context = gtk_widget_get_style_context (window);
+  output = NULL;
+  g_signal_connect (window, "map", G_CALLBACK (style_context_changed), &output);
 
-  output = gtk_style_context_to_string (context, GTK_STYLE_CONTEXT_PRINT_RECURSE |
-                                                 GTK_STYLE_CONTEXT_PRINT_SHOW_STYLE);
+  gtk_widget_show (window);
+
+  while (!output)
+    g_main_context_iteration (NULL, FALSE);
 
   if (generate)
     {
@@ -137,17 +169,18 @@ load_ui_file (GFile *file, gboolean generate)
     }
 
   reference_file = test_get_other_file (ui_file, ".nodes");
+  g_assert (reference_file != NULL);
 
   diff = diff_with_file (reference_file, output, -1, &error);
   g_assert_no_error (error);
 
-  if (diff && diff[0])
+  if (diff && g_bytes_get_size (diff) > 0)
     {
-      g_test_message ("Resulting output doesn't match reference:\n%s", diff);
+      g_test_message ("Resulting output doesn't match reference:\n%s", (const char *) g_bytes_get_data (diff, NULL));
       g_test_fail ();
     }
   g_free (reference_file);
-  g_free (diff);
+  g_clear_pointer (&diff, g_bytes_unref);
 
 out:
   gtk_style_context_remove_provider_for_display (gdk_display_get_default (),
@@ -243,13 +276,26 @@ int
 main (int argc, char **argv)
 {
   g_setenv ("GTK_CSS_DEBUG", "1", TRUE);
+  g_setenv ("GTK_THEME", "Empty", TRUE);
+
+  if (argc >= 3 && strcmp (argv[1], "--generate") == 0)
+    {
+      GFile *file = g_file_new_for_commandline_arg (argv[2]);
+
+      gtk_init ();
+
+      g_object_set (gtk_settings_get_default (), "gtk-font-name", "Sans", NULL);
+
+      load_ui_file (file, TRUE);
+
+      g_object_unref (file);
+
+      return 0;
+    }
 
   gtk_test_init (&argc, &argv);
+  g_object_set (gtk_settings_get_default (), "gtk-font-name", "Sans", NULL);
 
-  g_object_set (gtk_settings_get_default (),
-                "gtk-font-name", "Sans",
-                "gtk-theme-name", "Empty",
-                NULL);
   if (argc < 2)
     {
       const char *basedir;
@@ -260,17 +306,6 @@ main (int argc, char **argv)
       add_tests_for_files_in_directory (dir);
 
       g_object_unref (dir);
-    }
-  else if (strcmp (argv[1], "--generate") == 0)
-    {
-      if (argc >= 3)
-        {
-          GFile *file = g_file_new_for_commandline_arg (argv[2]);
-
-          load_ui_file (file, TRUE);
-
-          g_object_unref (file);
-        }
     }
   else
     {

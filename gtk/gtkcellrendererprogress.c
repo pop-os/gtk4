@@ -58,6 +58,19 @@ enum
   PROP_INVERTED
 };
 
+typedef struct _GtkCellRendererProgressClass    GtkCellRendererProgressClass;
+typedef struct _GtkCellRendererProgressPrivate  GtkCellRendererProgressPrivate;
+
+struct _GtkCellRendererProgress
+{
+  GtkCellRenderer parent_instance;
+};
+
+struct _GtkCellRendererProgressClass
+{
+  GtkCellRendererClass parent_class;
+};
+
 struct _GtkCellRendererProgressPrivate
 {
   gint value;
@@ -223,10 +236,7 @@ gtk_cell_renderer_progress_class_init (GtkCellRendererProgressClass *klass)
 static void
 gtk_cell_renderer_progress_init (GtkCellRendererProgress *cellprogress)
 {
-  GtkCellRendererProgressPrivate *priv;
-
-  cellprogress->priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
-  priv = cellprogress->priv;
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
 
   priv->value = 0;
   priv->text = NULL;
@@ -261,7 +271,7 @@ static void
 gtk_cell_renderer_progress_finalize (GObject *object)
 {
   GtkCellRendererProgress *cellprogress = GTK_CELL_RENDERER_PROGRESS (object);
-  GtkCellRendererProgressPrivate *priv = cellprogress->priv;
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
   
   g_free (priv->text);
   g_free (priv->label);
@@ -276,7 +286,7 @@ gtk_cell_renderer_progress_get_property (GObject    *object,
 					 GParamSpec *pspec)
 {
   GtkCellRendererProgress *cellprogress = GTK_CELL_RENDERER_PROGRESS (object);
-  GtkCellRendererProgressPrivate *priv = cellprogress->priv;
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
   
   switch (param_id)
     {
@@ -313,7 +323,7 @@ gtk_cell_renderer_progress_set_property (GObject      *object,
 					 GParamSpec   *pspec)
 {
   GtkCellRendererProgress *cellprogress = GTK_CELL_RENDERER_PROGRESS (object);
-  GtkCellRendererProgressPrivate *priv = cellprogress->priv;
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
   
   switch (param_id)
     {
@@ -357,7 +367,7 @@ gtk_cell_renderer_progress_set_property (GObject      *object,
 static void
 recompute_label (GtkCellRendererProgress *cellprogress)
 {
-  GtkCellRendererProgressPrivate *priv = cellprogress->priv;
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
   gchar *label;
 
   if (priv->text)
@@ -375,9 +385,11 @@ static void
 gtk_cell_renderer_progress_set_value (GtkCellRendererProgress *cellprogress, 
 				      gint                     value)
 {
-  if (cellprogress->priv->value != value)
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
+
+  if (priv->value != value)
     {
-      cellprogress->priv->value = value;
+      priv->value = value;
       recompute_label (cellprogress);
       g_object_notify (G_OBJECT (cellprogress), "value");
     }
@@ -387,11 +399,12 @@ static void
 gtk_cell_renderer_progress_set_text (GtkCellRendererProgress *cellprogress, 
 				     const gchar             *text)
 {
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
   gchar *new_text;
 
   new_text = g_strdup (text);
-  g_free (cellprogress->priv->text);
-  cellprogress->priv->text = new_text;
+  g_free (priv->text);
+  priv->text = new_text;
   recompute_label (cellprogress);
   g_object_notify (G_OBJECT (cellprogress), "text");
 }
@@ -400,7 +413,7 @@ static void
 gtk_cell_renderer_progress_set_pulse (GtkCellRendererProgress *cellprogress, 
 				      gint                     pulse)
 {
-  GtkCellRendererProgressPrivate *priv = cellprogress->priv;
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
 
   if (pulse != priv->pulse)
     {
@@ -450,7 +463,7 @@ gtk_cell_renderer_progress_get_size (GtkCellRenderer    *cell,
 				     gint               *height)
 {
   GtkCellRendererProgress *cellprogress = GTK_CELL_RENDERER_PROGRESS (cell);
-  GtkCellRendererProgressPrivate *priv = cellprogress->priv;
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
   gint w, h;
   gchar *text;
 
@@ -541,7 +554,7 @@ gtk_cell_renderer_progress_snapshot (GtkCellRenderer      *cell,
                                      GtkCellRendererState  flags)
 {
   GtkCellRendererProgress *cellprogress = GTK_CELL_RENDERER_PROGRESS (cell);
-  GtkCellRendererProgressPrivate *priv= cellprogress->priv;
+  GtkCellRendererProgressPrivate *priv = gtk_cell_renderer_progress_get_instance_private (cellprogress);
   GtkStyleContext *context;
   GtkBorder padding;
   PangoLayout *layout;

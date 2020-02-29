@@ -187,24 +187,6 @@ struct _GtkWidget
  * @focus:
  * @move_focus: Signal emitted when a change of focus is requested
  * @keynav_failed: Signal emitted if keyboard navigation fails.
- * @drag_begin: Signal emitted on the drag source when a drag is
- *   started.
- * @drag_end: Signal emitted on the drag source when a drag is
- *   finished.
- * @drag_data_get: Signal emitted on the drag source when the drop
- *   site requests the data which is dragged.
- * @drag_data_delete: Signal emitted on the drag source when a drag
- *   with the action %GDK_ACTION_MOVE is successfully completed.
- * @drag_leave: Signal emitted on the drop site when the cursor leaves
- *   the widget.
- * @drag_motion: signal emitted on the drop site when the user moves
- *   the cursor over the widget during a drag.
- * @drag_drop: Signal emitted on the drop site when the user drops the
- *   data onto the widget.
- * @drag_data_received: Signal emitted on the drop site when the
- *   dragged data has been received.
- * @drag_failed: Signal emitted on the drag source when a drag has
- *   failed.
  * @popup_menu: Signal emitted whenever a widget should pop up a
  *   context menu.
  * @get_accessible: Returns the accessible object that describes the
@@ -217,8 +199,10 @@ struct _GtkWidget
  *   widget; or emitted when widget got focus in keyboard mode.
  * @compute_expand: Computes whether a container should give this
  *   widget extra space when possible.
- * @style_updated: Signal emitted when the GtkStyleContext of a widget
- *   is changed.
+ * @css_changed: Signal emitted when the CSS used by widget was changed. Widgets
+ *   should then discard their caches that depend on CSS and queue resizes or
+ *   redraws accordingly. The default implementation will take care of this for
+ *   all the default CSS properties, so implementations must chain up.
  * @snapshot: Vfunc for gtk_widget_snapshot().
  * @contains: Vfunc for gtk_widget_contains().
  */
@@ -266,7 +250,7 @@ struct _GtkWidgetClass
                                          gboolean             group_cycling);
 
   /* explicit focus */
-  void     (* grab_focus)               (GtkWidget           *widget);
+  gboolean (* grab_focus)               (GtkWidget           *widget);
   gboolean (* focus)                    (GtkWidget           *widget,
                                          GtkDirectionType     direction);
 
@@ -275,35 +259,6 @@ struct _GtkWidgetClass
                                          GtkDirectionType     direction);
   gboolean (* keynav_failed)            (GtkWidget           *widget,
                                          GtkDirectionType     direction);
-
-  /* Source side drag signals */
-  void     (* drag_begin)          (GtkWidget          *widget,
-                                    GdkDrag            *drag);
-  void     (* drag_end)            (GtkWidget          *widget,
-                                    GdkDrag            *drag);
-  void     (* drag_data_get)       (GtkWidget          *widget,
-                                    GdkDrag            *drag,
-                                    GtkSelectionData   *selection_data);
-  void     (* drag_data_delete)    (GtkWidget          *widget,
-                                    GdkDrag            *drag);
-
-  /* Target side drag signals */
-  void     (* drag_leave)          (GtkWidget          *widget,
-                                    GdkDrop            *drop);
-  gboolean (* drag_motion)         (GtkWidget          *widget,
-                                    GdkDrop            *drop,
-                                    gint                x,
-                                    gint                y);
-  gboolean (* drag_drop)           (GtkWidget          *widget,
-                                    GdkDrop            *drop,
-                                    gint                x,
-                                    gint                y);
-  void     (* drag_data_received)  (GtkWidget          *widget,
-                                    GdkDrop            *drop,
-                                    GtkSelectionData   *selection_data);
-  gboolean (* drag_failed)         (GtkWidget          *widget,
-                                    GdkDrag            *drag,
-                                    GtkDragResult       result);
 
   /* Signals used only for keybindings */
   gboolean (* popup_menu)          (GtkWidget          *widget);
@@ -326,7 +281,8 @@ struct _GtkWidgetClass
                                        gboolean   *hexpand_p,
                                        gboolean   *vexpand_p);
 
-  void         (* style_updated)          (GtkWidget *widget);
+  void         (* css_changed)                 (GtkWidget            *widget,
+                                                GtkCssStyleChange    *change);
 
   void         (* snapshot)                    (GtkWidget            *widget,
                                                 GtkSnapshot          *snapshot);
@@ -339,8 +295,7 @@ struct _GtkWidgetClass
 
   GtkWidgetClassPrivate *priv;
 
-  /* Padding for future expansion */
-  void (*_gtk_reserved7) (void);
+  gpointer padding[8];
 };
 
 
@@ -375,8 +330,6 @@ GDK_AVAILABLE_IN_ALL
 void       gtk_widget_queue_draw          (GtkWidget           *widget);
 GDK_AVAILABLE_IN_ALL
 void       gtk_widget_queue_resize        (GtkWidget           *widget);
-GDK_AVAILABLE_IN_ALL
-void       gtk_widget_queue_resize_no_redraw (GtkWidget *widget);
 GDK_AVAILABLE_IN_ALL
 void       gtk_widget_queue_allocate      (GtkWidget           *widget);
 GDK_AVAILABLE_IN_ALL
@@ -446,7 +399,7 @@ gboolean   gtk_widget_mnemonic_activate   (GtkWidget           *widget,
                                            gboolean             group_cycling);
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_event               (GtkWidget           *widget,
-                                           const GdkEvent      *event);
+                                           GdkEvent            *event);
 
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_activate               (GtkWidget        *widget);
@@ -463,7 +416,7 @@ gboolean   gtk_widget_is_focus            (GtkWidget           *widget);
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_has_visible_focus   (GtkWidget           *widget);
 GDK_AVAILABLE_IN_ALL
-void       gtk_widget_grab_focus          (GtkWidget           *widget);
+gboolean   gtk_widget_grab_focus          (GtkWidget           *widget);
 GDK_AVAILABLE_IN_ALL
 void       gtk_widget_set_focus_on_click  (GtkWidget           *widget,
                                            gboolean             focus_on_click);
@@ -527,14 +480,6 @@ GDK_AVAILABLE_IN_ALL
 gboolean              gtk_widget_is_visible             (GtkWidget    *widget);
 
 GDK_AVAILABLE_IN_ALL
-void                  gtk_widget_set_has_surface        (GtkWidget    *widget,
-                                                         gboolean      has_surface);
-GDK_AVAILABLE_IN_ALL
-gboolean              gtk_widget_get_has_surface        (GtkWidget    *widget);
-
-GDK_AVAILABLE_IN_ALL
-gboolean              gtk_widget_is_toplevel            (GtkWidget    *widget);
-GDK_AVAILABLE_IN_ALL
 gboolean              gtk_widget_is_drawable            (GtkWidget    *widget);
 GDK_AVAILABLE_IN_ALL
 gboolean              gtk_widget_get_realized           (GtkWidget    *widget);
@@ -551,22 +496,13 @@ GDK_AVAILABLE_IN_ALL
 GtkRoot *             gtk_widget_get_root               (GtkWidget    *widget);
 
 GDK_AVAILABLE_IN_ALL
+GtkNative *           gtk_widget_get_native             (GtkWidget    *widget);
+
+GDK_AVAILABLE_IN_ALL
 void                  gtk_widget_set_child_visible      (GtkWidget    *widget,
                                                          gboolean      child_visible);
 GDK_AVAILABLE_IN_ALL
 gboolean              gtk_widget_get_child_visible      (GtkWidget    *widget);
-
-GDK_AVAILABLE_IN_ALL
-void                  gtk_widget_set_surface            (GtkWidget    *widget,
-                                                         GdkSurface    *surface);
-GDK_AVAILABLE_IN_ALL
-GdkSurface           * gtk_widget_get_surface           (GtkWidget    *widget);
-GDK_AVAILABLE_IN_ALL
-void                  gtk_widget_register_surface       (GtkWidget    *widget,
-                                                         GdkSurface    *surface);
-GDK_AVAILABLE_IN_ALL
-void                  gtk_widget_unregister_surface     (GtkWidget    *widget,
-                                                         GdkSurface    *surface);
 
 GDK_AVAILABLE_IN_ALL
 int                   gtk_widget_get_allocated_width    (GtkWidget     *widget);
@@ -625,9 +561,6 @@ void         gtk_widget_set_overflow      (GtkWidget           *widget,
 GDK_AVAILABLE_IN_ALL
 GtkOverflow  gtk_widget_get_overflow      (GtkWidget           *widget);
 
-
-GDK_AVAILABLE_IN_ALL
-GtkWidget*   gtk_widget_get_toplevel    (GtkWidget      *widget);
 GDK_AVAILABLE_IN_ALL
 GtkWidget*   gtk_widget_get_ancestor    (GtkWidget      *widget,
                                          GType           widget_type);
@@ -665,8 +598,6 @@ gboolean gtk_widget_get_vexpand_set      (GtkWidget      *widget);
 GDK_AVAILABLE_IN_ALL
 void     gtk_widget_set_vexpand_set      (GtkWidget      *widget,
                                           gboolean        set);
-GDK_AVAILABLE_IN_ALL
-void     gtk_widget_queue_compute_expand (GtkWidget      *widget);
 GDK_AVAILABLE_IN_ALL
 gboolean gtk_widget_compute_expand       (GtkWidget      *widget,
                                           GtkOrientation  orientation);
@@ -779,7 +710,7 @@ void             gtk_widget_set_default_direction (GtkTextDirection  dir);
 GDK_AVAILABLE_IN_ALL
 GtkTextDirection gtk_widget_get_default_direction (void);
 
-/* Counterpart to gdk_surface_shape_combine_region.
+/* Counterpart to gdk_surface_input_shape_combine_region.
  */
 GDK_AVAILABLE_IN_ALL
 void         gtk_widget_input_shape_combine_region (GtkWidget *widget,
@@ -803,11 +734,6 @@ GDK_AVAILABLE_IN_ALL
 void   gtk_widget_remove_mnemonic_label (GtkWidget *widget,
                                          GtkWidget *label);
 
-GDK_AVAILABLE_IN_ALL
-void                  gtk_widget_set_tooltip_window    (GtkWidget   *widget,
-                                                        GtkWindow   *custom_window);
-GDK_AVAILABLE_IN_ALL
-GtkWindow *gtk_widget_get_tooltip_window    (GtkWidget   *widget);
 GDK_AVAILABLE_IN_ALL
 void       gtk_widget_trigger_tooltip_query (GtkWidget   *widget);
 GDK_AVAILABLE_IN_ALL
@@ -842,9 +768,6 @@ GDK_AVAILABLE_IN_ALL
 GtkStyleContext * gtk_widget_get_style_context (GtkWidget *widget);
 
 GDK_AVAILABLE_IN_ALL
-GtkWidgetPath *   gtk_widget_get_path (GtkWidget *widget);
-
-GDK_AVAILABLE_IN_ALL
 void              gtk_widget_class_set_css_name (GtkWidgetClass *widget_class,
                                                  const char     *name);
 GDK_AVAILABLE_IN_ALL
@@ -853,13 +776,6 @@ const char *      gtk_widget_class_get_css_name (GtkWidgetClass *widget_class);
 GDK_AVAILABLE_IN_ALL
 GdkModifierType   gtk_widget_get_modifier_mask (GtkWidget         *widget,
                                                 GdkModifierIntent  intent);
-
-GDK_AVAILABLE_IN_ALL
-void                    gtk_widget_insert_action_group                  (GtkWidget    *widget,
-                                                                         const gchar  *name,
-                                                                         GActionGroup *group);
-
-
 
 GDK_AVAILABLE_IN_ALL
 guint gtk_widget_add_tick_callback (GtkWidget       *widget,
@@ -879,7 +795,9 @@ void gtk_widget_remove_tick_callback (GtkWidget       *widget,
  * Binds a callback function defined in a template to the @widget_class.
  *
  * This macro is a convenience wrapper around the
- * gtk_widget_class_bind_template_callback_full() function.
+ * gtk_widget_class_bind_template_callback_full() function. It is not
+ * supported after gtk_widget_class_set_template_scope() has been used
+ * on @widget_class.
  */
 #define gtk_widget_class_bind_template_callback(widget_class, callback) \
   gtk_widget_class_bind_template_callback_full (GTK_WIDGET_CLASS (widget_class), \
@@ -988,10 +906,8 @@ void    gtk_widget_class_bind_template_callback_full    (GtkWidgetClass        *
                                                          const gchar           *callback_name,
                                                          GCallback              callback_symbol);
 GDK_AVAILABLE_IN_ALL
-void    gtk_widget_class_set_connect_func               (GtkWidgetClass        *widget_class,
-                                                         GtkBuilderConnectFunc  connect_func,
-                                                         gpointer               connect_data,
-                                                         GDestroyNotify         connect_data_destroy);
+void    gtk_widget_class_set_template_scope             (GtkWidgetClass        *widget_class,
+                                                         GtkBuilderScope       *scope);
 GDK_AVAILABLE_IN_ALL
 void    gtk_widget_class_bind_template_child_full       (GtkWidgetClass        *widget_class,
                                                          const gchar           *name,
@@ -999,19 +915,22 @@ void    gtk_widget_class_bind_template_child_full       (GtkWidgetClass        *
                                                          gssize                 struct_offset);
 
 GDK_AVAILABLE_IN_ALL
-GActionGroup           *gtk_widget_get_action_group     (GtkWidget             *widget,
-                                                         const gchar           *prefix);
+void                    gtk_widget_insert_action_group  (GtkWidget    *widget,
+                                                         const gchar  *name,
+                                                         GActionGroup *group);
 
 GDK_AVAILABLE_IN_ALL
-const gchar **          gtk_widget_list_action_prefixes (GtkWidget             *widget);
-
-GDK_AVAILABLE_IN_ALL
-void                    gtk_widget_activate_action      (GtkWidget  *widget,
+gboolean                gtk_widget_activate_action      (GtkWidget  *widget,
                                                          const char *name,
-                                                         GVariant   *parameter);
+                                                         const char *format_string,
+                                                         ...);
+GDK_AVAILABLE_IN_ALL
+gboolean                gtk_widget_activate_action_variant (GtkWidget  *widget,
+                                                            const char *name,
+                                                            GVariant   *args);
 
 GDK_AVAILABLE_IN_ALL
-void                   gtk_widget_activate_default      (GtkWidget *widget);
+void                    gtk_widget_activate_default     (GtkWidget *widget);
 
 GDK_AVAILABLE_IN_ALL
 void                    gtk_widget_set_font_map         (GtkWidget             *widget,
@@ -1049,6 +968,60 @@ GDK_AVAILABLE_IN_ALL
 void                    gtk_widget_snapshot_child       (GtkWidget   *widget,
                                                          GtkWidget   *child,
                                                          GtkSnapshot *snapshot);
+GDK_AVAILABLE_IN_ALL
+gboolean                gtk_widget_should_layout        (GtkWidget   *widget);
+GDK_AVAILABLE_IN_ALL
+void                    gtk_widget_add_css_class        (GtkWidget   *widget,
+                                                         const char  *css_class);
+GDK_AVAILABLE_IN_ALL
+void                    gtk_widget_remove_css_class     (GtkWidget   *widget,
+                                                         const char  *css_class);
+GDK_AVAILABLE_IN_ALL
+gboolean                gtk_widget_has_css_class        (GtkWidget   *widget,
+                                                         const char  *css_class);
+
+
+
+
+/**
+ * GtkWidgetActionActivateFunc:
+ * @widget: the widget to which the action belongs
+ * @action_name: the action name
+ * @parameter: parameter for activation
+ *
+ * The type of the callback functions used for activating
+ * actions installed with gtk_widget_class_install_action().
+ *
+ * The @parameter must match the @parameter_type of the action.
+ */
+typedef void (* GtkWidgetActionActivateFunc) (GtkWidget  *widget,
+                                              const char *action_name,
+                                              GVariant   *parameter);
+
+GDK_AVAILABLE_IN_ALL
+void                    gtk_widget_class_install_action (GtkWidgetClass              *widget_class,
+                                                         const char                  *action_name,
+                                                         const char                  *parameter_type,
+                                                         GtkWidgetActionActivateFunc  activate);
+
+GDK_AVAILABLE_IN_ALL
+void                    gtk_widget_class_install_property_action (GtkWidgetClass *widget_class,
+                                                                  const char     *action_name,
+                                                                  const char     *property_name);
+
+GDK_AVAILABLE_IN_ALL
+gboolean               gtk_widget_class_query_action  (GtkWidgetClass      *widget_class,
+                                                       guint                index_,
+                                                       GType               *owner,
+                                                       const char         **action_name,
+                                                       const GVariantType **parameter_type,
+                                                       const char         **property_name);
+
+GDK_AVAILABLE_IN_ALL
+void                    gtk_widget_action_set_enabled (GtkWidget  *widget,
+                                                       const char *action_name,
+                                                       gboolean    enabled);
+
 
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkWidget, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkRequisition, gtk_requisition_free)

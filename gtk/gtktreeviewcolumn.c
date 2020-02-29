@@ -133,6 +133,23 @@ static void gtk_tree_view_column_set_attributesv               (GtkTreeViewColum
 /* GtkBuildable implementation */
 static void gtk_tree_view_column_buildable_init                 (GtkBuildableIface     *iface);
 
+typedef struct _GtkTreeViewColumnClass   GtkTreeViewColumnClass;
+typedef struct _GtkTreeViewColumnPrivate GtkTreeViewColumnPrivate;
+
+struct _GtkTreeViewColumn
+{
+  GInitiallyUnowned parent_instance;
+
+  GtkTreeViewColumnPrivate *priv;
+};
+
+struct _GtkTreeViewColumnClass
+{
+  GInitiallyUnownedClass parent_class;
+
+  void (*clicked) (GtkTreeViewColumn *tree_column);
+};
+
 
 struct _GtkTreeViewColumnPrivate 
 {
@@ -1087,7 +1104,7 @@ gtk_tree_view_column_mnemonic_activate (GtkWidget *widget,
   _gtk_tree_view_set_focus_column (GTK_TREE_VIEW (priv->tree_view), column);
 
   if (priv->clickable)
-    gtk_button_clicked (GTK_BUTTON (priv->button));
+     g_signal_emit_by_name (priv->button, "clicked");
   else if (gtk_widget_get_can_focus (priv->button))
     gtk_widget_grab_focus (priv->button);
   else
@@ -2244,9 +2261,8 @@ gtk_tree_view_column_clicked (GtkTreeViewColumn *tree_column)
 
   priv = tree_column->priv;
 
-  if (priv->visible &&
-      priv->clickable)
-    gtk_button_clicked (GTK_BUTTON (priv->button));
+  if (priv->visible && priv->clickable)
+    g_signal_emit_by_name (priv->button, "clicked");
 }
 
 /**
@@ -2731,7 +2747,6 @@ gtk_tree_view_column_cell_set_cell_data (GtkTreeViewColumn *tree_column,
 /**
  * gtk_tree_view_column_cell_get_size:
  * @tree_column: A #GtkTreeViewColumn.
- * @cell_area: (allow-none): The area a cell in the column will be allocated, or %NULL
  * @x_offset: (out) (optional): location to return x offset of a cell relative to @cell_area, or %NULL
  * @y_offset: (out) (optional): location to return y offset of a cell relative to @cell_area, or %NULL
  * @width: (out) (optional): location to return width needed to render a cell, or %NULL
@@ -2742,11 +2757,10 @@ gtk_tree_view_column_cell_set_cell_data (GtkTreeViewColumn *tree_column,
  **/
 void
 gtk_tree_view_column_cell_get_size (GtkTreeViewColumn  *tree_column,
-				    const GdkRectangle *cell_area,
-				    gint               *x_offset,
-				    gint               *y_offset,
-				    gint               *width,
-				    gint               *height)
+                                    int                *x_offset,
+                                    int                *y_offset,
+                                    int                *width,
+                                    int                *height)
 {
   GtkTreeViewColumnPrivate *priv;
   gint min_width = 0, min_height = 0;

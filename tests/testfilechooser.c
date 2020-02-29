@@ -70,8 +70,11 @@ print_selected (GtkFileChooser *chooser)
 
 static void
 response_cb (GtkDialog *dialog,
-	     gint       response_id)
+	     gint       response_id,
+             gpointer   data)
 {
+  gboolean *done = data;
+
   if (response_id == GTK_RESPONSE_OK)
     {
       GSList *list;
@@ -98,7 +101,9 @@ response_cb (GtkDialog *dialog,
   else
     g_print ("Dialog was closed\n");
 
-  gtk_main_quit ();
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
 }
 
 static gboolean
@@ -475,7 +480,7 @@ confirm_overwrite_cb (GtkFileChooser *chooser,
   int response;
   GtkFileChooserConfirmation conf;
 
-  dialog = gtk_message_dialog_new (GTK_WINDOW (gtk_widget_get_toplevel (GTK_WIDGET (chooser))),
+  dialog = gtk_message_dialog_new (GTK_WINDOW (gtk_widget_get_root (GTK_WIDGET (chooser))),
 				   GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT,
 				   GTK_MESSAGE_QUESTION,
 				   GTK_BUTTONS_NONE,
@@ -522,7 +527,6 @@ main (int argc, char **argv)
   GtkWidget *vbbox;
   GtkWidget *button;
   GtkWidget *dialog;
-  GtkWidget *extra;
   GtkFileFilter *filter;
   gboolean force_rtl = FALSE;
   gboolean multiple = FALSE;
@@ -541,6 +545,7 @@ main (int argc, char **argv)
     { NULL }
   };
   GOptionContext *context;
+  gboolean done = FALSE;
 
   context = g_option_context_new ("");
   g_option_context_add_main_entries (context, options, NULL);
@@ -616,7 +621,7 @@ main (int argc, char **argv)
   g_signal_connect (dialog, "current-folder-changed",
 		    G_CALLBACK (print_current_folder), NULL);
   g_signal_connect (dialog, "response",
-		    G_CALLBACK (response_cb), NULL);
+		    G_CALLBACK (response_cb), &done);
   g_signal_connect (dialog, "confirm-overwrite",
 		    G_CALLBACK (confirm_overwrite_cb), NULL);
 
@@ -677,9 +682,11 @@ main (int argc, char **argv)
 
   /* Extra widget */
 
-  extra = gtk_check_button_new_with_mnemonic ("Lar_t whoever asks about this button");
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (extra), TRUE);
-  gtk_file_chooser_set_extra_widget (GTK_FILE_CHOOSER (dialog), extra);
+  gtk_file_chooser_add_choice (GTK_FILE_CHOOSER (dialog), "choice1",
+                               "Choose one:",
+                               (const char *[]){"one", "two", "three", NULL},
+                               (const char *[]){"One", "Two", "Three", NULL});
+  gtk_file_chooser_set_choice (GTK_FILE_CHOOSER (dialog), "choice1", "two");
 
   /* Shortcuts */
 
@@ -767,7 +774,8 @@ main (int argc, char **argv)
    * someone else destroys them.  We explicitly destroy windows to catch leaks.
    */
   g_object_ref (dialog);
-  gtk_main ();
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
   gtk_widget_destroy (dialog);
   g_object_unref (dialog);
 

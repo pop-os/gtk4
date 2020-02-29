@@ -40,20 +40,6 @@
 
 G_DEFINE_TYPE (GtkCssAnimatedStyle, gtk_css_animated_style, GTK_TYPE_CSS_STYLE)
 
-static GtkCssValue *
-gtk_css_animated_style_get_value (GtkCssStyle *style,
-                                  guint        id)
-{
-  /* This is called a lot, so we avoid a dynamic type check here */
-  GtkCssAnimatedStyle *animated = (GtkCssAnimatedStyle *) style;
-
-  if (animated->animated_values &&
-      id < animated->animated_values->len &&
-      g_ptr_array_index (animated->animated_values, id))
-    return g_ptr_array_index (animated->animated_values, id);
-
-  return gtk_css_animated_style_get_intrinsic_value (animated, id);
-}
 
 static GtkCssSection *
 gtk_css_animated_style_get_section (GtkCssStyle *style,
@@ -68,29 +54,37 @@ static gboolean
 gtk_css_animated_style_is_static (GtkCssStyle *style)
 {
   GtkCssAnimatedStyle *animated = GTK_CSS_ANIMATED_STYLE (style);
-  GSList *list;
+  guint i;
 
-  for (list = animated->animations; list; list = list->next)
+  for (i = 0; i < animated->n_animations; i ++)
     {
-      if (!_gtk_style_animation_is_static (list->data))
+      if (!_gtk_style_animation_is_static (animated->animations[i]))
         return FALSE;
     }
 
   return TRUE;
 }
 
+static GtkCssStaticStyle *
+gtk_css_animated_style_get_static_style (GtkCssStyle *style)
+{
+  /* This is called a lot, so we avoid a dynamic type check here */
+  GtkCssAnimatedStyle *animated = (GtkCssAnimatedStyle *) style;
+
+  return (GtkCssStaticStyle *)animated->style;
+}
+
 static void
 gtk_css_animated_style_dispose (GObject *object)
 {
   GtkCssAnimatedStyle *style = GTK_CSS_ANIMATED_STYLE (object);
+  guint i;
 
-  if (style->animated_values)
-    {
-      g_ptr_array_unref (style->animated_values);
-      style->animated_values = NULL;
-    }
+  for (i = 0; i < style->n_animations; i ++)
+    g_object_unref (style->animations[i]);
 
-  g_slist_free_full (style->animations, g_object_unref);
+  style->n_animations = 0;
+  g_free (style->animations);
   style->animations = NULL;
 
   G_OBJECT_CLASS (gtk_css_animated_style_parent_class)->dispose (object);
@@ -115,9 +109,9 @@ gtk_css_animated_style_class_init (GtkCssAnimatedStyleClass *klass)
   object_class->dispose = gtk_css_animated_style_dispose;
   object_class->finalize = gtk_css_animated_style_finalize;
 
-  style_class->get_value = gtk_css_animated_style_get_value;
   style_class->get_section = gtk_css_animated_style_get_section;
   style_class->is_static = gtk_css_animated_style_is_static;
+  style_class->get_static_style = gtk_css_animated_style_get_static_style;
 }
 
 static void
@@ -125,23 +119,416 @@ gtk_css_animated_style_init (GtkCssAnimatedStyle *style)
 {
 }
 
+#define DEFINE_UNSHARE(TYPE, NAME) \
+static inline void \
+unshare_ ## NAME (GtkCssAnimatedStyle *animated) \
+{ \
+  GtkCssStyle *style = (GtkCssStyle *)animated; \
+  if (style->NAME == animated->style->NAME) \
+    { \
+      gtk_css_values_unref ((GtkCssValues *)style->NAME); \
+      style->NAME = (TYPE *)gtk_css_values_copy ((GtkCssValues *)animated->style->NAME); \
+    } \
+}
+
+DEFINE_UNSHARE (GtkCssCoreValues, core)
+DEFINE_UNSHARE (GtkCssBackgroundValues, background)
+DEFINE_UNSHARE (GtkCssBorderValues, border)
+DEFINE_UNSHARE (GtkCssIconValues, icon)
+DEFINE_UNSHARE (GtkCssOutlineValues, outline)
+DEFINE_UNSHARE (GtkCssFontValues, font)
+DEFINE_UNSHARE (GtkCssFontVariantValues, font_variant)
+DEFINE_UNSHARE (GtkCssAnimationValues, animation)
+DEFINE_UNSHARE (GtkCssTransitionValues, transition)
+DEFINE_UNSHARE (GtkCssSizeValues, size)
+DEFINE_UNSHARE (GtkCssOtherValues, other)
+
+static inline void
+gtk_css_take_value (GtkCssValue **variable,
+                    GtkCssValue  *value)
+{
+  if (*variable)
+    gtk_css_value_unref (*variable);
+  *variable = value;
+}
+
 void
-gtk_css_animated_style_set_animated_value (GtkCssAnimatedStyle *style,
+gtk_css_animated_style_set_animated_value (GtkCssAnimatedStyle *animated,
                                            guint                id,
                                            GtkCssValue         *value)
 {
+  GtkCssStyle *style = (GtkCssStyle *)animated;
+
   gtk_internal_return_if_fail (GTK_IS_CSS_ANIMATED_STYLE (style));
   gtk_internal_return_if_fail (value != NULL);
 
-  if (style->animated_values == NULL)
-    style->animated_values = g_ptr_array_new_with_free_func ((GDestroyNotify)_gtk_css_value_unref);
-  if (id >= style->animated_values->len)
-   g_ptr_array_set_size (style->animated_values, id + 1);
+  switch (id)
+    {
+    case GTK_CSS_PROPERTY_COLOR:
+      unshare_core (animated);
+      gtk_css_take_value (&style->core->color, value);
+      break;
+    case GTK_CSS_PROPERTY_DPI:
+      unshare_core (animated);
+      gtk_css_take_value (&style->core->dpi, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_SIZE:
+      unshare_core (animated);
+      gtk_css_take_value (&style->core->font_size, value);
+      break;
+    case GTK_CSS_PROPERTY_ICON_THEME:
+      unshare_core (animated);
+      gtk_css_take_value (&style->core->icon_theme, value);
+      break;
+    case GTK_CSS_PROPERTY_ICON_PALETTE:
+      unshare_core (animated);
+      gtk_css_take_value (&style->core->icon_palette, value);
+      break;
+    case GTK_CSS_PROPERTY_BACKGROUND_COLOR:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->background_color, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_FAMILY:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->font_family, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_STYLE:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->font_style, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_WEIGHT:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->font_weight, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_STRETCH:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->font_stretch, value);
+      break;
+    case GTK_CSS_PROPERTY_LETTER_SPACING:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->letter_spacing, value);
+      break;
+    case GTK_CSS_PROPERTY_TEXT_DECORATION_LINE:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->text_decoration_line, value);
+      break;
+    case GTK_CSS_PROPERTY_TEXT_DECORATION_COLOR:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->text_decoration_color, value);
+      break;
+    case GTK_CSS_PROPERTY_TEXT_DECORATION_STYLE:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->text_decoration_style, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_KERNING:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->font_kerning, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_VARIANT_LIGATURES:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->font_variant_ligatures, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_VARIANT_POSITION:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->font_variant_position, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_VARIANT_CAPS:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->font_variant_caps, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_VARIANT_NUMERIC:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->font_variant_numeric, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_VARIANT_ALTERNATES:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->font_variant_alternates, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_VARIANT_EAST_ASIAN:
+      unshare_font_variant (animated);
+      gtk_css_take_value (&style->font_variant->font_variant_east_asian, value);
+      break;
+    case GTK_CSS_PROPERTY_TEXT_SHADOW:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->text_shadow, value);
+      break;
+    case GTK_CSS_PROPERTY_BOX_SHADOW:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->box_shadow, value);
+      break;
+    case GTK_CSS_PROPERTY_MARGIN_TOP:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->margin_top, value);
+      break;
+    case GTK_CSS_PROPERTY_MARGIN_LEFT:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->margin_left, value);
+      break;
+    case GTK_CSS_PROPERTY_MARGIN_BOTTOM:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->margin_bottom, value);
+      break;
+    case GTK_CSS_PROPERTY_MARGIN_RIGHT:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->margin_right, value);
+      break;
+    case GTK_CSS_PROPERTY_PADDING_TOP:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->padding_top, value);
+      break;
+    case GTK_CSS_PROPERTY_PADDING_LEFT:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->padding_left, value);
+      break;
+    case GTK_CSS_PROPERTY_PADDING_BOTTOM:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->padding_bottom, value);
+      break;
+    case GTK_CSS_PROPERTY_PADDING_RIGHT:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->padding_right, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_TOP_STYLE:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_top_style, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_TOP_WIDTH:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_top_width, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_LEFT_STYLE:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_left_style, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_LEFT_WIDTH:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_left_width, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_BOTTOM_STYLE:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_bottom_style, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_BOTTOM_WIDTH:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_bottom_width, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_RIGHT_STYLE:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_right_style, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_RIGHT_WIDTH:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_right_width, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_TOP_LEFT_RADIUS:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_top_left_radius, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_TOP_RIGHT_RADIUS:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_top_right_radius, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_BOTTOM_RIGHT_RADIUS:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_bottom_right_radius, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_BOTTOM_LEFT_RADIUS:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_bottom_left_radius, value);
+      break;
+    case GTK_CSS_PROPERTY_OUTLINE_STYLE:
+      unshare_outline (animated);
+      gtk_css_take_value (&style->outline->outline_style, value);
+      break;
+    case GTK_CSS_PROPERTY_OUTLINE_WIDTH:
+      unshare_outline (animated);
+      gtk_css_take_value (&style->outline->outline_width, value);
+      break;
+    case GTK_CSS_PROPERTY_OUTLINE_OFFSET:
+      unshare_outline (animated);
+      gtk_css_take_value (&style->outline->outline_offset, value);
+      break;
+    case GTK_CSS_PROPERTY_BACKGROUND_CLIP:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->background_clip, value);
+      break;
+    case GTK_CSS_PROPERTY_BACKGROUND_ORIGIN:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->background_origin, value);
+      break;
+    case GTK_CSS_PROPERTY_BACKGROUND_SIZE:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->background_size, value);
+      break;
+    case GTK_CSS_PROPERTY_BACKGROUND_POSITION:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->background_position, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_TOP_COLOR:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_top_color, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_RIGHT_COLOR:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_right_color, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_BOTTOM_COLOR:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_bottom_color, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_LEFT_COLOR:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_left_color, value);
+      break;
+    case GTK_CSS_PROPERTY_OUTLINE_COLOR:
+      unshare_outline (animated);
+      gtk_css_take_value (&style->outline->outline_color, value);
+      break;
+    case GTK_CSS_PROPERTY_BACKGROUND_REPEAT:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->background_repeat, value);
+      break;
+    case GTK_CSS_PROPERTY_BACKGROUND_IMAGE:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->background_image, value);
+      break;
+    case GTK_CSS_PROPERTY_BACKGROUND_BLEND_MODE:
+      unshare_background (animated);
+      gtk_css_take_value (&style->background->background_blend_mode, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_IMAGE_SOURCE:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_image_source, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_IMAGE_REPEAT:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_image_repeat, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_IMAGE_SLICE:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_image_slice, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_IMAGE_WIDTH:
+      unshare_border (animated);
+      gtk_css_take_value (&style->border->border_image_width, value);
+      break;
+    case GTK_CSS_PROPERTY_ICON_SOURCE:
+      unshare_other (animated);
+      gtk_css_take_value (&style->other->icon_source, value);
+      break;
+    case GTK_CSS_PROPERTY_ICON_SIZE:
+      unshare_icon (animated);
+      gtk_css_take_value (&style->icon->icon_size, value);
+      break;
+    case GTK_CSS_PROPERTY_ICON_SHADOW:
+      unshare_icon (animated);
+      gtk_css_take_value (&style->icon->icon_shadow, value);
+      break;
+    case GTK_CSS_PROPERTY_ICON_STYLE:
+      unshare_icon (animated);
+      gtk_css_take_value (&style->icon->icon_style, value);
+      break;
+    case GTK_CSS_PROPERTY_ICON_TRANSFORM:
+      unshare_other (animated);
+      gtk_css_take_value (&style->other->icon_transform, value);
+      break;
+    case GTK_CSS_PROPERTY_ICON_FILTER:
+      unshare_other (animated);
+      gtk_css_take_value (&style->other->icon_filter, value);
+      break;
+    case GTK_CSS_PROPERTY_BORDER_SPACING:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->border_spacing, value);
+      break;
+    case GTK_CSS_PROPERTY_TRANSFORM:
+      unshare_other (animated);
+      gtk_css_take_value (&style->other->transform, value);
+      break;
+    case GTK_CSS_PROPERTY_MIN_WIDTH:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->min_width, value);
+      break;
+    case GTK_CSS_PROPERTY_MIN_HEIGHT:
+      unshare_size (animated);
+      gtk_css_take_value (&style->size->min_height, value);
+      break;
+    case GTK_CSS_PROPERTY_TRANSITION_PROPERTY:
+      unshare_transition (animated);
+      gtk_css_take_value (&style->transition->transition_property, value);
+      break;
+    case GTK_CSS_PROPERTY_TRANSITION_DURATION:
+      unshare_transition (animated);
+      gtk_css_take_value (&style->transition->transition_duration, value);
+      break;
+    case GTK_CSS_PROPERTY_TRANSITION_TIMING_FUNCTION:
+      unshare_transition (animated);
+      gtk_css_take_value (&style->transition->transition_timing_function, value);
+      break;
+    case GTK_CSS_PROPERTY_TRANSITION_DELAY:
+      unshare_transition (animated);
+      gtk_css_take_value (&style->transition->transition_delay, value);
+      break;
+    case GTK_CSS_PROPERTY_ANIMATION_NAME:
+      unshare_animation (animated);
+      gtk_css_take_value (&style->animation->animation_name, value);
+      break;
+    case GTK_CSS_PROPERTY_ANIMATION_DURATION:
+      unshare_animation (animated);
+      gtk_css_take_value (&style->animation->animation_duration, value);
+      break;
+    case GTK_CSS_PROPERTY_ANIMATION_TIMING_FUNCTION:
+      unshare_animation (animated);
+      gtk_css_take_value (&style->animation->animation_timing_function, value);
+      break;
+    case GTK_CSS_PROPERTY_ANIMATION_ITERATION_COUNT:
+      unshare_animation (animated);
+      gtk_css_take_value (&style->animation->animation_iteration_count, value);
+      break;
+    case GTK_CSS_PROPERTY_ANIMATION_DIRECTION:
+      unshare_animation (animated);
+      gtk_css_take_value (&style->animation->animation_direction, value);
+      break;
+    case GTK_CSS_PROPERTY_ANIMATION_PLAY_STATE:
+      unshare_animation (animated);
+      gtk_css_take_value (&style->animation->animation_play_state, value);
+      break;
+    case GTK_CSS_PROPERTY_ANIMATION_DELAY:
+      unshare_animation (animated);
+      gtk_css_take_value (&style->animation->animation_delay, value);
+      break;
+    case GTK_CSS_PROPERTY_ANIMATION_FILL_MODE:
+      unshare_animation (animated);
+      gtk_css_take_value (&style->animation->animation_fill_mode, value);
+      break;
+    case GTK_CSS_PROPERTY_OPACITY:
+      unshare_other (animated);
+      gtk_css_take_value (&style->other->opacity, value);
+      break;
+    case GTK_CSS_PROPERTY_FILTER:
+      unshare_other (animated);
+      gtk_css_take_value (&style->other->filter, value);
+      break;
+    case GTK_CSS_PROPERTY_CARET_COLOR:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->caret_color, value);
+      break;
+    case GTK_CSS_PROPERTY_SECONDARY_CARET_COLOR:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->secondary_caret_color, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_FEATURE_SETTINGS:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->font_feature_settings, value);
+      break;
+    case GTK_CSS_PROPERTY_FONT_VARIATION_SETTINGS:
+      unshare_font (animated);
+      gtk_css_take_value (&style->font->font_variation_settings, value);
+      break;
 
-  if (g_ptr_array_index (style->animated_values, id))
-    _gtk_css_value_unref (g_ptr_array_index (style->animated_values, id));
-  g_ptr_array_index (style->animated_values, id) = _gtk_css_value_ref (value);
-
+    default:
+      g_assert_not_reached ();
+      break;
+    }
 }
 
 GtkCssValue *
@@ -151,8 +538,8 @@ gtk_css_animated_style_get_intrinsic_value (GtkCssAnimatedStyle *style,
   return gtk_css_style_get_value (style->style, id);
 }
 
-static GSList *
-gtk_css_animated_style_create_dynamic (GSList      *animations,
+static GPtrArray *
+gtk_css_animated_style_create_dynamic (GPtrArray   *animations,
                                        GtkCssStyle *style,
                                        gint64       timestamp)
 {
@@ -164,7 +551,10 @@ gtk_css_animated_style_create_dynamic (GSList      *animations,
     {
       if (gtk_css_value_is_dynamic (gtk_css_style_get_value (style, i)))
         {
-          animations = g_slist_append (animations, gtk_css_dynamic_new (timestamp));
+          if (!animations)
+            animations = g_ptr_array_new ();
+
+          g_ptr_array_insert (animations, 0, gtk_css_dynamic_new (timestamp));
           break;
         }
     }
@@ -194,18 +584,24 @@ transition_info_add (TransitionInfo    infos[GTK_CSS_PROPERTY_N_PROPERTIES],
       for (i = 0; i < len; i++)
         {
           GtkCssStyleProperty *prop = _gtk_css_shorthand_property_get_subproperty (shorthand, i);
+          guint id;
 
-          transition_info_add (infos, GTK_STYLE_PROPERTY (prop), index);
+          if (!_gtk_css_style_property_is_animated ((GtkCssStyleProperty *) prop))
+            continue;
+
+          id = _gtk_css_style_property_get_id ((GtkCssStyleProperty *) prop);
+          infos[id].index = index;
+          infos[id].pending = TRUE;
         }
     }
   else
     {
       guint id;
 
-      if (!_gtk_css_style_property_is_animated (GTK_CSS_STYLE_PROPERTY (property)))
+      if (!_gtk_css_style_property_is_animated ((GtkCssStyleProperty *) property))
         return;
 
-      id = _gtk_css_style_property_get_id (GTK_CSS_STYLE_PROPERTY (property));
+      id = _gtk_css_style_property_get_id ((GtkCssStyleProperty *) property);
       g_assert (id < GTK_CSS_PROPERTY_N_PROPERTIES);
       infos[id].index = index;
       infos[id].pending = TRUE;
@@ -231,7 +627,7 @@ transition_infos_set (TransitionInfo  infos[GTK_CSS_PROPERTY_N_PROPERTIES],
 
           for (j = 0; j < len; j++)
             {
-              property = GTK_STYLE_PROPERTY (_gtk_css_style_property_lookup_by_id (j));
+              property = (GtkStyleProperty *)_gtk_css_style_property_lookup_by_id (j);
               transition_info_add (infos, property, i);
             }
         }
@@ -248,36 +644,46 @@ static GtkStyleAnimation *
 gtk_css_animated_style_find_transition (GtkCssAnimatedStyle *style,
                                         guint                property_id)
 {
-  GSList *list;
+  guint i;
 
-  for (list = style->animations; list; list = list->next)
+  for (i = 0; i < style->n_animations; i ++)
     {
-      if (!GTK_IS_CSS_TRANSITION (list->data))
+      GtkStyleAnimation *animation = style->animations[i];
+
+      if (!GTK_IS_CSS_TRANSITION (animation))
         continue;
 
-      if (_gtk_css_transition_get_property (list->data) == property_id)
-        return list->data;
+      if (_gtk_css_transition_get_property ((GtkCssTransition *)animation) == property_id)
+        return animation;
     }
 
   return NULL;
 }
 
-static GSList *
-gtk_css_animated_style_create_css_transitions (GSList              *animations,
-                                               GtkCssStyle         *base_style,
-                                               gint64               timestamp,
-                                               GtkCssStyle         *source)
+static GPtrArray *
+gtk_css_animated_style_create_css_transitions (GPtrArray   *animations,
+                                               GtkCssStyle *base_style,
+                                               gint64       timestamp,
+                                               GtkCssStyle *source)
 {
   TransitionInfo transitions[GTK_CSS_PROPERTY_N_PROPERTIES] = { { 0, } };
   GtkCssValue *durations, *delays, *timing_functions;
+  gboolean source_is_animated;
   guint i;
 
-  transition_infos_set (transitions, gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_TRANSITION_PROPERTY));
+  durations = base_style->transition->transition_duration;
+  delays = base_style->transition->transition_delay;
+  timing_functions = base_style->transition->transition_timing_function;
 
-  durations = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_TRANSITION_DURATION);
-  delays = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_TRANSITION_DELAY);
-  timing_functions = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_TRANSITION_TIMING_FUNCTION);
+  if (_gtk_css_array_value_get_n_values (durations) == 1 &&
+      _gtk_css_array_value_get_n_values (delays) == 1 &&
+      _gtk_css_number_value_get (_gtk_css_array_value_get_nth (durations, 0), 100) +
+      _gtk_css_number_value_get (_gtk_css_array_value_get_nth (delays, 0), 100) == 0)
+    return animations;
 
+  transition_infos_set (transitions, base_style->transition->transition_property);
+
+  source_is_animated = GTK_IS_CSS_ANIMATED_STYLE (source);
   for (i = 0; i < GTK_CSS_PROPERTY_N_PROPERTIES; i++)
     {
       GtkStyleAnimation *animation;
@@ -292,18 +698,21 @@ gtk_css_animated_style_create_css_transitions (GSList              *animations,
       if (duration + delay == 0.0)
         continue;
 
-      if (GTK_IS_CSS_ANIMATED_STYLE (source))
+      if (source_is_animated)
         {
-          start = gtk_css_animated_style_get_intrinsic_value (GTK_CSS_ANIMATED_STYLE (source), i);
+          start = gtk_css_animated_style_get_intrinsic_value ((GtkCssAnimatedStyle *)source, i);
           end = gtk_css_style_get_value (base_style, i);
 
           if (_gtk_css_value_equal (start, end))
             {
-              animation = gtk_css_animated_style_find_transition (GTK_CSS_ANIMATED_STYLE (source), i);
+              animation = gtk_css_animated_style_find_transition ((GtkCssAnimatedStyle *)source, i);
               if (animation)
                 {
                   animation = _gtk_style_animation_advance (animation, timestamp);
-                  animations = g_slist_prepend (animations, animation);
+                  if (!animations)
+                    animations = g_ptr_array_new ();
+
+                  g_ptr_array_add (animations, animation);
                 }
 
               continue;
@@ -320,32 +729,38 @@ gtk_css_animated_style_create_css_transitions (GSList              *animations,
                                            timestamp,
                                            duration * G_USEC_PER_SEC,
                                            delay * G_USEC_PER_SEC);
-      animations = g_slist_prepend (animations, animation);
+      if (!animations)
+        animations = g_ptr_array_new ();
+
+      g_ptr_array_add (animations, animation);
     }
 
   return animations;
 }
 
 static GtkStyleAnimation *
-gtk_css_animated_style_find_animation (GSList     *animations,
-                                       const char *name)
+gtk_css_animated_style_find_animation (GtkStyleAnimation **animations,
+                                       guint               n_animations,
+                                       const char         *name)
 {
-  GSList *list;
+  guint i;
 
-  for (list = animations; list; list = list->next)
+  for (i = 0; i < n_animations; i ++)
     {
-      if (!GTK_IS_CSS_ANIMATION (list->data))
+      GtkStyleAnimation *animation = animations[i];
+
+      if (!GTK_IS_CSS_ANIMATION (animation))
         continue;
 
-      if (g_str_equal (_gtk_css_animation_get_name (list->data), name))
-        return list->data;
+      if (g_str_equal (_gtk_css_animation_get_name ((GtkCssAnimation *)animation), name))
+        return animation;
     }
 
   return NULL;
 }
 
-static GSList *
-gtk_css_animated_style_create_css_animations (GSList           *animations,
+static GPtrArray *
+gtk_css_animated_style_create_css_animations (GPtrArray        *animations,
                                               GtkCssStyle      *base_style,
                                               GtkCssStyle      *parent_style,
                                               gint64            timestamp,
@@ -356,31 +771,35 @@ gtk_css_animated_style_create_css_animations (GSList           *animations,
   GtkCssValue *iteration_counts, *directions, *play_states, *fill_modes;
   guint i;
 
-  animation_names = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_ANIMATION_NAME);
-  durations = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_ANIMATION_DURATION);
-  delays = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_ANIMATION_DELAY);
-  timing_functions = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_ANIMATION_TIMING_FUNCTION);
-  iteration_counts = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_ANIMATION_ITERATION_COUNT);
-  directions = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_ANIMATION_DIRECTION);
-  play_states = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_ANIMATION_PLAY_STATE);
-  fill_modes = gtk_css_style_get_value (base_style, GTK_CSS_PROPERTY_ANIMATION_FILL_MODE);
+  animation_names = base_style->animation->animation_name;
+  durations = base_style->animation->animation_duration;
+  delays = base_style->animation->animation_delay;
+  timing_functions = base_style->animation->animation_timing_function;
+  iteration_counts = base_style->animation->animation_iteration_count;
+  directions = base_style->animation->animation_direction;
+  play_states = base_style->animation->animation_play_state;
+  fill_modes = base_style->animation->animation_fill_mode;
 
   for (i = 0; i < _gtk_css_array_value_get_n_values (animation_names); i++)
     {
-      GtkStyleAnimation *animation;
+      GtkStyleAnimation *animation = NULL;
       GtkCssKeyframes *keyframes;
       const char *name;
-      
+
       name = _gtk_css_ident_value_get (_gtk_css_array_value_get_nth (animation_names, i));
       if (g_ascii_strcasecmp (name, "none") == 0)
         continue;
 
-      animation = gtk_css_animated_style_find_animation (animations, name);
+      if (animations)
+        animation = gtk_css_animated_style_find_animation ((GtkStyleAnimation **)animations->pdata, animations->len, name);
+
       if (animation)
         continue;
 
       if (GTK_IS_CSS_ANIMATED_STYLE (source))
-        animation = gtk_css_animated_style_find_animation (GTK_CSS_ANIMATED_STYLE (source)->animations, name);
+        animation = gtk_css_animated_style_find_animation ((GtkStyleAnimation **)GTK_CSS_ANIMATED_STYLE (source)->animations,
+                                                           GTK_CSS_ANIMATED_STYLE (source)->n_animations,
+                                                           name);
 
       if (animation)
         {
@@ -408,7 +827,11 @@ gtk_css_animated_style_create_css_animations (GSList           *animations,
                                               _gtk_css_number_value_get (_gtk_css_array_value_get_nth (iteration_counts, i), 100));
           _gtk_css_keyframes_unref (keyframes);
         }
-      animations = g_slist_prepend (animations, animation);
+
+      if (!animations)
+        animations = g_ptr_array_new ();
+
+      g_ptr_array_add (animations, animation);
     }
 
   return animations;
@@ -419,14 +842,13 @@ gtk_css_animated_style_create_css_animations (GSList           *animations,
 static void
 gtk_css_animated_style_apply_animations (GtkCssAnimatedStyle *style)
 {
-  GSList *l;
+  guint i;
 
-  for (l = style->animations; l; l = l->next)
+  for (i = 0; i < style->n_animations; i ++)
     {
-      GtkStyleAnimation *animation = l->data;
-      
-      _gtk_style_animation_apply_values (animation,
-                                         GTK_CSS_ANIMATED_STYLE (style));
+      GtkStyleAnimation *animation = style->animations[i];
+
+      _gtk_style_animation_apply_values (animation, style);
     }
 }
 
@@ -438,8 +860,9 @@ gtk_css_animated_style_new (GtkCssStyle      *base_style,
                             GtkCssStyle      *previous_style)
 {
   GtkCssAnimatedStyle *result;
-  GSList *animations;
-  
+  GtkCssStyle *style;
+  GPtrArray *animations = NULL;
+
   gtk_internal_return_val_if_fail (GTK_IS_CSS_STYLE (base_style), NULL);
   gtk_internal_return_val_if_fail (parent_style == NULL || GTK_IS_CSS_STYLE (parent_style), NULL);
   gtk_internal_return_val_if_fail (GTK_IS_STYLE_PROVIDER (provider), NULL);
@@ -448,10 +871,9 @@ gtk_css_animated_style_new (GtkCssStyle      *base_style,
   if (timestamp == 0)
     return g_object_ref (base_style);
 
-  animations = NULL;
-
   if (previous_style != NULL)
     animations = gtk_css_animated_style_create_css_transitions (animations, base_style, timestamp, previous_style);
+
   animations = gtk_css_animated_style_create_css_animations (animations, base_style, parent_style, timestamp, provider, previous_style);
   animations = gtk_css_animated_style_create_dynamic (animations, base_style, timestamp);
 
@@ -462,7 +884,21 @@ gtk_css_animated_style_new (GtkCssStyle      *base_style,
 
   result->style = g_object_ref (base_style);
   result->current_time = timestamp;
-  result->animations = animations;
+  result->n_animations = animations->len;
+  result->animations = g_ptr_array_free (animations, FALSE);
+
+  style = (GtkCssStyle *)result;
+  style->core = (GtkCssCoreValues *)gtk_css_values_ref ((GtkCssValues *)base_style->core);
+  style->background = (GtkCssBackgroundValues *)gtk_css_values_ref ((GtkCssValues *)base_style->background);
+  style->border = (GtkCssBorderValues *)gtk_css_values_ref ((GtkCssValues *)base_style->border);
+  style->icon = (GtkCssIconValues *)gtk_css_values_ref ((GtkCssValues *)base_style->icon);
+  style->outline = (GtkCssOutlineValues *)gtk_css_values_ref ((GtkCssValues *)base_style->outline);
+  style->font = (GtkCssFontValues *)gtk_css_values_ref ((GtkCssValues *)base_style->font);
+  style->font_variant = (GtkCssFontVariantValues *)gtk_css_values_ref ((GtkCssValues *)base_style->font_variant);
+  style->animation = (GtkCssAnimationValues *)gtk_css_values_ref ((GtkCssValues *)base_style->animation);
+  style->transition = (GtkCssTransitionValues *)gtk_css_values_ref ((GtkCssValues *)base_style->transition);
+  style->size = (GtkCssSizeValues *)gtk_css_values_ref ((GtkCssValues *)base_style->size);
+  style->other = (GtkCssOtherValues *)gtk_css_values_ref ((GtkCssValues *)base_style->other);
 
   gtk_css_animated_style_apply_animations (result);
 
@@ -471,41 +907,59 @@ gtk_css_animated_style_new (GtkCssStyle      *base_style,
 
 GtkCssStyle *
 gtk_css_animated_style_new_advance (GtkCssAnimatedStyle *source,
-                                    GtkCssStyle         *base,
+                                    GtkCssStyle         *base_style,
                                     gint64               timestamp)
 {
   GtkCssAnimatedStyle *result;
-  GSList *l, *animations;
+  GtkCssStyle *style;
+  GPtrArray *animations;
+  guint i;
 
   gtk_internal_return_val_if_fail (GTK_IS_CSS_ANIMATED_STYLE (source), NULL);
-  gtk_internal_return_val_if_fail (GTK_IS_CSS_STYLE (base), NULL);
-  
+  gtk_internal_return_val_if_fail (GTK_IS_CSS_STYLE (base_style), NULL);
+
   if (timestamp == 0 || timestamp == source->current_time)
     return g_object_ref (source->style);
 
   gtk_internal_return_val_if_fail (timestamp > source->current_time, NULL);
 
   animations = NULL;
-  for (l = source->animations; l; l = l->next)
+  for (i = 0; i < source->n_animations; i ++)
     {
-      GtkStyleAnimation *animation = l->data;
-      
+      GtkStyleAnimation *animation = source->animations[i];
+
       if (_gtk_style_animation_is_finished (animation))
         continue;
 
+      if (!animations)
+        animations = g_ptr_array_new ();
+
       animation = _gtk_style_animation_advance (animation, timestamp);
-      animations = g_slist_prepend (animations, animation);
+      g_ptr_array_add (animations, animation);
     }
-  animations = g_slist_reverse (animations);
 
   if (animations == NULL)
     return g_object_ref (source->style);
 
   result = g_object_new (GTK_TYPE_CSS_ANIMATED_STYLE, NULL);
 
-  result->style = g_object_ref (base);
+  result->style = g_object_ref (base_style);
   result->current_time = timestamp;
-  result->animations = animations;
+  result->n_animations = animations->len;
+  result->animations = g_ptr_array_free (animations, FALSE);
+
+  style = (GtkCssStyle *)result;
+  style->core = (GtkCssCoreValues *)gtk_css_values_ref ((GtkCssValues *)base_style->core);
+  style->background = (GtkCssBackgroundValues *)gtk_css_values_ref ((GtkCssValues *)base_style->background);
+  style->border = (GtkCssBorderValues *)gtk_css_values_ref ((GtkCssValues *)base_style->border);
+  style->icon = (GtkCssIconValues *)gtk_css_values_ref ((GtkCssValues *)base_style->icon);
+  style->outline = (GtkCssOutlineValues *)gtk_css_values_ref ((GtkCssValues *)base_style->outline);
+  style->font = (GtkCssFontValues *)gtk_css_values_ref ((GtkCssValues *)base_style->font);
+  style->font_variant = (GtkCssFontVariantValues *)gtk_css_values_ref ((GtkCssValues *)base_style->font_variant);
+  style->animation = (GtkCssAnimationValues *)gtk_css_values_ref ((GtkCssValues *)base_style->animation);
+  style->transition = (GtkCssTransitionValues *)gtk_css_values_ref ((GtkCssValues *)base_style->transition);
+  style->size = (GtkCssSizeValues *)gtk_css_values_ref ((GtkCssValues *)base_style->size);
+  style->other = (GtkCssOtherValues *)gtk_css_values_ref ((GtkCssValues *)base_style->other);
 
   gtk_css_animated_style_apply_animations (result);
 

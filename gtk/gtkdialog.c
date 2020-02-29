@@ -31,6 +31,7 @@
 #include "gtkdialog.h"
 #include "gtkdialogprivate.h"
 #include "gtkheaderbar.h"
+#include "gtkheaderbarprivate.h"
 #include "gtklabel.h"
 #include "gtkmarshalers.h"
 #include "gtkbox.h"
@@ -197,22 +198,22 @@ static void      gtk_dialog_close                (GtkDialog    *dialog);
 static ResponseData * get_response_data          (GtkWidget    *widget,
                                                   gboolean      create);
 
-static void      gtk_dialog_buildable_interface_init     (GtkBuildableIface *iface);
-static gboolean  gtk_dialog_buildable_custom_tag_start   (GtkBuildable  *buildable,
-                                                          GtkBuilder    *builder,
-                                                          GObject       *child,
-                                                          const gchar   *tagname,
-                                                          GMarkupParser *parser,
-                                                          gpointer      *data);
-static void      gtk_dialog_buildable_custom_finished    (GtkBuildable  *buildable,
-                                                          GtkBuilder    *builder,
-                                                          GObject       *child,
-                                                          const gchar   *tagname,
-                                                          gpointer       user_data);
-static void      gtk_dialog_buildable_add_child          (GtkBuildable  *buildable,
-                                                          GtkBuilder    *builder,
-                                                          GObject       *child,
-                                                          const gchar   *type);
+static void     gtk_dialog_buildable_interface_init   (GtkBuildableIface  *iface);
+static gboolean gtk_dialog_buildable_custom_tag_start (GtkBuildable       *buildable,
+                                                       GtkBuilder         *builder,
+                                                       GObject            *child,
+                                                       const gchar        *tagname,
+                                                       GtkBuildableParser *parser,
+                                                       gpointer           *data);
+static void     gtk_dialog_buildable_custom_finished  (GtkBuildable       *buildable,
+                                                       GtkBuilder         *builder,
+                                                       GObject            *child,
+                                                       const gchar        *tagname,
+                                                       gpointer            user_data);
+static void     gtk_dialog_buildable_add_child        (GtkBuildable       *buildable,
+                                                       GtkBuilder         *builder,
+                                                       GObject            *child,
+                                                       const gchar        *type);
 
 
 enum {
@@ -397,12 +398,11 @@ update_suggested_action (GtkDialog *dialog)
       for (l = children; l != NULL; l = l->next)
         {
           GtkWidget *child = l->data;
-	  GtkStyleContext *context = gtk_widget_get_style_context (child);
 
-          if (gtk_style_context_has_class (context, GTK_STYLE_CLASS_DEFAULT))
-            gtk_style_context_add_class (context, GTK_STYLE_CLASS_SUGGESTED_ACTION);
+          if (gtk_widget_has_css_class (child, GTK_STYLE_CLASS_DEFAULT))
+            gtk_widget_add_css_class (child, GTK_STYLE_CLASS_SUGGESTED_ACTION);
           else
-            gtk_style_context_remove_class (context, GTK_STYLE_CLASS_SUGGESTED_ACTION);
+            gtk_widget_remove_css_class (child, GTK_STYLE_CLASS_SUGGESTED_ACTION);
         }
       g_list_free (children);
     }
@@ -460,6 +460,7 @@ gtk_dialog_constructed (GObject *object)
       g_list_free (children);
 
       update_suggested_action (dialog);
+      _gtk_header_bar_track_default_decoration (GTK_HEADER_BAR (priv->headerbar));
 
       g_signal_connect (priv->action_area, "add", G_CALLBACK (add_cb), dialog);
     }
@@ -899,8 +900,6 @@ gtk_dialog_add_button (GtkDialog   *dialog,
   button = gtk_button_new_with_label (button_text);
   gtk_button_set_use_underline (GTK_BUTTON (button), TRUE);
 
-  gtk_widget_show (button);
-
   gtk_dialog_add_action_widget (dialog, button, response_id);
 
   return button;
@@ -1315,12 +1314,12 @@ free_action_widget_info (gpointer data)
 }
 
 static void
-parser_start_element (GMarkupParseContext *context,
-                      const gchar         *element_name,
-                      const gchar        **names,
-                      const gchar        **values,
-                      gpointer             user_data,
-                      GError             **error)
+parser_start_element (GtkBuildableParseContext *context,
+                      const gchar              *element_name,
+                      const gchar             **names,
+                      const gchar             **values,
+                      gpointer                  user_data,
+                      GError                  **error)
 {
   SubParserData *data = (SubParserData*)user_data;
 
@@ -1352,7 +1351,7 @@ parser_start_element (GMarkupParseContext *context,
       data->is_default = is_default;
       data->is_text = TRUE;
       g_string_set_size (data->string, 0);
-      g_markup_parse_context_get_position (context, &data->line, &data->col);
+      gtk_buildable_parse_context_get_position (context, &data->line, &data->col);
     }
   else if (strcmp (element_name, "action-widgets") == 0)
     {
@@ -1375,11 +1374,11 @@ parser_start_element (GMarkupParseContext *context,
 }
 
 static void
-parser_text_element (GMarkupParseContext *context,
-                     const gchar         *text,
-                     gsize                text_len,
-                     gpointer             user_data,
-                     GError             **error)
+parser_text_element (GtkBuildableParseContext *context,
+                     const gchar              *text,
+                     gsize                     text_len,
+                     gpointer                  user_data,
+                     GError                  **error)
 {
   SubParserData *data = (SubParserData*)user_data;
 
@@ -1388,10 +1387,10 @@ parser_text_element (GMarkupParseContext *context,
 }
 
 static void
-parser_end_element (GMarkupParseContext  *context,
-                    const gchar          *element_name,
-                    gpointer              user_data,
-                    GError              **error)
+parser_end_element (GtkBuildableParseContext  *context,
+                    const gchar               *element_name,
+                    gpointer                   user_data,
+                    GError                   **error)
 {
   SubParserData *data = (SubParserData*)user_data;
 
@@ -1412,7 +1411,7 @@ parser_end_element (GMarkupParseContext  *context,
     }
 }
 
-static const GMarkupParser sub_parser =
+static const GtkBuildableParser sub_parser =
   {
     parser_start_element,
     parser_end_element,
@@ -1420,12 +1419,12 @@ static const GMarkupParser sub_parser =
   };
 
 static gboolean
-gtk_dialog_buildable_custom_tag_start (GtkBuildable  *buildable,
-                                       GtkBuilder    *builder,
-                                       GObject       *child,
-                                       const gchar   *tagname,
-                                       GMarkupParser *parser,
-                                       gpointer      *parser_data)
+gtk_dialog_buildable_custom_tag_start (GtkBuildable       *buildable,
+                                       GtkBuilder         *builder,
+                                       GObject            *child,
+                                       const gchar        *tagname,
+                                       GtkBuildableParser *parser,
+                                       gpointer           *parser_data)
 {
   SubParserData *data;
 
@@ -1513,7 +1512,7 @@ gtk_dialog_buildable_custom_finished (GtkBuildable *buildable,
         {
           apply_response_for_action_area (dialog, GTK_WIDGET (object), ad->response_id);
         }
-      else if (gtk_widget_get_parent (GTK_WIDGET (object)) == priv->headerbar)
+      else if (gtk_widget_get_ancestor (GTK_WIDGET (object), GTK_TYPE_HEADER_BAR) == priv->headerbar)
         {
           if (is_action)
             {
@@ -1549,6 +1548,7 @@ gtk_dialog_buildable_add_child (GtkBuildable  *buildable,
   else if (g_str_equal (type, "titlebar"))
     {
       priv->headerbar = GTK_WIDGET (child);
+      _gtk_header_bar_track_default_decoration (GTK_HEADER_BAR (priv->headerbar));
       gtk_window_set_titlebar (GTK_WINDOW (buildable), priv->headerbar);
     }
   else if (g_str_equal (type, "action"))

@@ -1,5 +1,5 @@
 /* GTK - The GIMP Toolkit
- * gtkprintbackend.h: Abstract printer backend interfaces
+ * gtkprintbackendprivate.h: Abstract printer backend interfaces
  * Copyright (C) 2003, Red Hat, Inc.
  *
  * This library is free software; you can redistribute it and/or
@@ -26,7 +26,7 @@
 #include "gtkmodulesprivate.h"
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
-#include "gtkprintbackend.h"
+#include "gtkprintbackendprivate.h"
 
 
 static void gtk_print_backend_dispose      (GObject      *object);
@@ -280,7 +280,7 @@ gtk_print_backend_class_init (GtkPrintBackendClass *class)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GtkPrintBackendClass, printer_list_changed),
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
+		  NULL,
 		  G_TYPE_NONE, 0);
   signals[PRINTER_LIST_DONE] =
     g_signal_new (I_("printer-list-done"),
@@ -288,7 +288,7 @@ gtk_print_backend_class_init (GtkPrintBackendClass *class)
 		    G_SIGNAL_RUN_LAST,
 		    G_STRUCT_OFFSET (GtkPrintBackendClass, printer_list_done),
 		    NULL, NULL,
-		    g_cclosure_marshal_VOID__VOID,
+		    NULL,
 		    G_TYPE_NONE, 0);
   signals[PRINTER_ADDED] =
     g_signal_new (I_("printer-added"),
@@ -296,7 +296,7 @@ gtk_print_backend_class_init (GtkPrintBackendClass *class)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GtkPrintBackendClass, printer_added),
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__OBJECT,
+		  NULL,
 		  G_TYPE_NONE, 1, GTK_TYPE_PRINTER);
   signals[PRINTER_REMOVED] =
     g_signal_new (I_("printer-removed"),
@@ -304,7 +304,7 @@ gtk_print_backend_class_init (GtkPrintBackendClass *class)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GtkPrintBackendClass, printer_removed),
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__OBJECT,
+		  NULL,
 		  G_TYPE_NONE, 1, GTK_TYPE_PRINTER);
   signals[PRINTER_STATUS_CHANGED] =
     g_signal_new (I_("printer-status-changed"),
@@ -312,7 +312,7 @@ gtk_print_backend_class_init (GtkPrintBackendClass *class)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GtkPrintBackendClass, printer_status_changed),
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__OBJECT,
+		  NULL,
 		  G_TYPE_NONE, 1, GTK_TYPE_PRINTER);
   signals[REQUEST_PASSWORD] =
     g_signal_new (I_("request-password"),
@@ -677,7 +677,7 @@ request_password (GtkPrintBackend  *backend,
   label = gtk_label_new (NULL);
   markup = g_markup_printf_escaped ("<span weight=\"bold\" size=\"large\">%s</span>", prompt);
   gtk_label_set_markup (GTK_LABEL (label), markup);
-  gtk_label_set_line_wrap (GTK_LABEL (label), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (label), TRUE);
   gtk_widget_set_size_request (GTK_WIDGET (label), 320, -1);
   g_free (markup);
 

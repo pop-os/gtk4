@@ -19,6 +19,7 @@ gdk_public_sources = files([
   'gdkdrawcontext.c',
   'gdkdrop.c',
   'gdkevents.c',
+  'filetransferportal.c',
   'gdkframeclock.c',
   'gdkframeclockidle.c',
   'gdkframetimings.c',
@@ -44,7 +45,7 @@ gdk_public_sources = files([
   'gdktexture.c',
   'gdkvulkancontext.c',
   'gdksurface.c',
-  'gdksurfaceimpl.c',
+  'gdkprofiler.c'
 ])
 
 gdk_public_headers = files([
@@ -181,6 +182,12 @@ gdk_deps = [
   vulkan_dep,
 ]
 
+if profiler_enabled
+  if profiler_dep.found()
+    gdk_deps += [profiler_dep]
+  endif
+endif
+
 # add generated gdk sources
 gdk_sources += [
   gdkconfig,
@@ -228,7 +235,7 @@ libgdk = static_library('gdk',
   link_with: [libgtk_css, ],
   include_directories: [confinc, gdkx11_inc, wlinc],
   c_args: [
-    '-DGDK_COMPILATION',
+    '-DGTK_COMPILATION',
     '-DG_LOG_DOMAIN="Gdk"',
   ] + common_cflags,
   link_whole: gdk_backends,

@@ -84,6 +84,16 @@ enum  {
   LAST_PROP
 };
 
+typedef struct _GtkRevealerClass GtkRevealerClass;
+
+struct _GtkRevealer {
+  GtkBin parent_instance;
+};
+
+struct _GtkRevealerClass {
+  GtkBinClass parent_class;
+};
+
 typedef struct {
   GtkRevealerTransitionType transition_type;
   guint transition_duration;
@@ -127,7 +137,6 @@ gtk_revealer_init (GtkRevealer *revealer)
   priv->current_pos = 0.0;
   priv->target_pos = 0.0;
 
-  gtk_widget_set_has_surface (GTK_WIDGET (revealer), FALSE);
   gtk_widget_set_overflow (GTK_WIDGET (revealer), GTK_OVERFLOW_HIDDEN);
 }
 
@@ -449,7 +458,6 @@ gtk_revealer_real_size_allocate (GtkWidget *widget,
     }
 
   gtk_widget_allocate (child, child_width, child_height, -1, transform);
-  gsk_transform_unref (transform);
 }
 
 static void

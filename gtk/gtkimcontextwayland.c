@@ -361,7 +361,7 @@ notify_cursor_location (GtkIMContextWayland *context)
 
   rect = context->cursor_rect;
   gtk_widget_translate_coordinates (context->widget,
-                                    gtk_widget_get_toplevel (context->widget),
+                                    GTK_WIDGET (gtk_widget_get_root (context->widget)),
                                     rect.x, rect.y,
                                     &rect.x, &rect.y);
 
@@ -424,6 +424,8 @@ translate_purpose (GtkInputPurpose purpose)
       return ZWP_TEXT_INPUT_V3_CONTENT_PURPOSE_PASSWORD;
     case GTK_INPUT_PURPOSE_PIN:
       return ZWP_TEXT_INPUT_V3_CONTENT_PURPOSE_PIN;
+    case GTK_INPUT_PURPOSE_TERMINAL:
+      return ZWP_TEXT_INPUT_V3_CONTENT_PURPOSE_TERMINAL;
     default:
       g_assert_not_reached ();
     }
@@ -482,11 +484,11 @@ gtk_im_context_wayland_finalize (GObject *object)
 }
 
 static void
-pressed_cb (GtkGestureMultiPress *gesture,
-            gint                  n_press,
-            gdouble               x,
-            gdouble               y,
-            GtkIMContextWayland  *context)
+pressed_cb (GtkGestureClick     *gesture,
+            gint                 n_press,
+            gdouble              x,
+            gdouble              y,
+            GtkIMContextWayland *context)
 {
   if (n_press == 1)
     {
@@ -496,11 +498,11 @@ pressed_cb (GtkGestureMultiPress *gesture,
 }
 
 static void
-released_cb (GtkGestureMultiPress *gesture,
-             gint                  n_press,
-             gdouble               x,
-             gdouble               y,
-             GtkIMContextWayland  *context)
+released_cb (GtkGestureClick     *gesture,
+             gint                 n_press,
+             gdouble              x,
+             gdouble              y,
+             GtkIMContextWayland *context)
 {
   GtkIMContextWaylandGlobal *global;
   GtkInputHints hints;
@@ -547,7 +549,7 @@ gtk_im_context_wayland_set_client_widget (GtkIMContext *context,
     {
       GtkGesture *gesture;
 
-      gesture = gtk_gesture_multi_press_new ();
+      gesture = gtk_gesture_click_new ();
       gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
                                                   GTK_PHASE_CAPTURE);
       g_signal_connect (gesture, "pressed",
@@ -590,7 +592,8 @@ gtk_im_context_wayland_get_preedit_string (GtkIMContext   *context,
   if (str)
     *str = g_strdup (preedit_str);
   if (cursor_pos)
-    *cursor_pos = context_wayland->current_preedit.cursor_begin;
+    *cursor_pos = g_utf8_strlen (preedit_str,
+                                 context_wayland->current_preedit.cursor_begin);
 
   if (attrs)
     {

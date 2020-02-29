@@ -24,7 +24,6 @@
 
 #include "gtkbox.h"
 #include "gtkcssnodeprivate.h"
-#include "gtkdnd.h"
 #include "gtkdragsource.h"
 #include "gtkicontheme.h"
 #include "gtkimage.h"
@@ -34,9 +33,9 @@
 #include "gtkmarshalers.h"
 #include "gtksettings.h"
 #include "gtktogglebutton.h"
-#include "gtkwidgetpath.h"
 #include "gtkwidgetprivate.h"
 #include "gtkeventcontrollerscroll.h"
+#include "gtkdragsource.h"
 
 typedef struct
 {
@@ -80,7 +79,6 @@ typedef struct
   GList *fake_root;
   GtkWidget *up_slider_button;
   GtkWidget *down_slider_button;
-  guint settings_signal_id;
   gint16 slider_width;
 } GtkPathBarPrivate;
 
@@ -150,10 +148,6 @@ static gboolean gtk_path_bar_slider_up_defocus    (GtkWidget        *widget,
 static gboolean gtk_path_bar_slider_down_defocus  (GtkWidget        *widget,
 						   GdkEventButton   *event,
 						   GtkPathBar       *path_bar);
-static void gtk_path_bar_style_updated            (GtkWidget        *widget);
-static void gtk_path_bar_root                     (GtkWidget        *widget);
-static void gtk_path_bar_unroot                   (GtkWidget        *widget);
-static void gtk_path_bar_check_icon_theme         (GtkPathBar       *path_bar);
 static void gtk_path_bar_update_button_appearance (GtkPathBar       *path_bar,
 						   ButtonData       *button_data,
 						   gboolean          current_dir);
@@ -218,7 +212,6 @@ static void
 gtk_path_bar_init (GtkPathBar *path_bar)
 {
   GtkPathBarPrivate *priv = gtk_path_bar_get_instance_private (path_bar);
-  GtkStyleContext *context;
   GtkEventController *controller;
 
   priv = gtk_path_bar_get_instance_private (path_bar);
@@ -239,11 +232,7 @@ gtk_path_bar_init (GtkPathBar *path_bar)
   g_signal_connect_swapped (priv->down_slider_button, "clicked",
 			    G_CALLBACK (gtk_path_bar_scroll_down), path_bar);
 
-  gtk_widget_set_has_surface (GTK_WIDGET (path_bar), FALSE);
-
-  context = gtk_widget_get_style_context (GTK_WIDGET (path_bar));
-  gtk_style_context_add_class (context, "path-bar");
-  gtk_style_context_add_class (context, GTK_STYLE_CLASS_LINKED);
+  gtk_widget_add_css_class (GTK_WIDGET (path_bar), GTK_STYLE_CLASS_LINKED);
 
   priv->get_info_cancellable = NULL;
   priv->cancellables = NULL;
@@ -272,9 +261,6 @@ gtk_path_bar_class_init (GtkPathBarClass *path_bar_class)
 
   widget_class->measure = gtk_path_bar_measure;
   widget_class->size_allocate = gtk_path_bar_size_allocate;
-  widget_class->style_updated = gtk_path_bar_style_updated;
-  widget_class->root = gtk_path_bar_root;
-  widget_class->unroot = gtk_path_bar_unroot;
 
   container_class->add = gtk_path_bar_add;
   container_class->forall = gtk_path_bar_forall;
@@ -306,6 +292,8 @@ gtk_path_bar_class_init (GtkPathBarClass *path_bar_class)
   gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_slider_down_defocus);
   gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_scroll_up);
   gtk_widget_class_bind_template_callback (widget_class, gtk_path_bar_scroll_down);
+
+  gtk_widget_class_set_css_name (widget_class, "pathbar");
 }
 
 
@@ -331,31 +319,11 @@ gtk_path_bar_finalize (GObject *object)
   G_OBJECT_CLASS (gtk_path_bar_parent_class)->finalize (object);
 }
 
-/* Removes the settings signal handler.  It's safe to call multiple times */
-static void
-remove_settings_signal (GtkPathBar *path_bar,
-			GdkDisplay *display)
-{
-  GtkPathBarPrivate *priv = gtk_path_bar_get_instance_private (path_bar);
-
-  if (priv->settings_signal_id)
-    {
-      GtkSettings *settings;
-
-      settings = gtk_settings_get_for_display (display);
-      g_signal_handler_disconnect (settings,
-				   priv->settings_signal_id);
-      priv->settings_signal_id = 0;
-    }
-}
-
 static void
 gtk_path_bar_dispose (GObject *object)
 {
   GtkPathBar *path_bar = GTK_PATH_BAR (object);
   GtkPathBarPrivate *priv = gtk_path_bar_get_instance_private (path_bar);
-
-  remove_settings_signal (path_bar, gtk_widget_get_display (GTK_WIDGET (object)));
 
   priv->get_info_cancellable = NULL;
   cancel_all_cancellables (path_bar);
@@ -721,30 +689,6 @@ gtk_path_bar_size_allocate (GtkWidget *widget,
     }
 }
 
-static void
-gtk_path_bar_style_updated (GtkWidget *widget)
-{
-  GTK_WIDGET_CLASS (gtk_path_bar_parent_class)->style_updated (widget);
-
-  gtk_path_bar_check_icon_theme (GTK_PATH_BAR (widget));
-}
-
-static void
-gtk_path_bar_root (GtkWidget *widget)
-{
-  GTK_WIDGET_CLASS (gtk_path_bar_parent_class)->root (widget);
-
-  gtk_path_bar_check_icon_theme (GTK_PATH_BAR (widget));
-}
-
-static void
-gtk_path_bar_unroot (GtkWidget *widget)
-{
-  remove_settings_signal (GTK_PATH_BAR (widget), gtk_widget_get_display (widget));
-
-  GTK_WIDGET_CLASS (gtk_path_bar_parent_class)->unroot (widget);
-}
-
 static gboolean
 gtk_path_bar_scroll_controller_scroll (GtkEventControllerScroll *scroll,
                                        gdouble                   dx,
@@ -977,68 +921,6 @@ gtk_path_bar_slider_down_defocus (GtkWidget      *widget,
   return FALSE;
 }
 
-/* Changes the icons wherever it is needed */
-static void
-reload_icons (GtkPathBar *path_bar)
-{
-  GtkPathBarPrivate *priv = gtk_path_bar_get_instance_private (path_bar);
-  GList *list;
-
-  g_clear_object (&priv->root_icon);
-  g_clear_object (&priv->home_icon);
-  g_clear_object (&priv->desktop_icon);
-
-  for (list = priv->button_list; list; list = list->next)
-    {
-      ButtonData *button_data;
-      gboolean current_dir;
-
-      button_data = BUTTON_DATA (list->data);
-      if (button_data->type != NORMAL_BUTTON)
-	{
-	  current_dir = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_data->button));
-	  gtk_path_bar_update_button_appearance (path_bar, button_data, current_dir);
-	}
-    }
-}
-
-static void
-change_icon_theme (GtkPathBar *path_bar)
-{
-  reload_icons (path_bar);
-}
-
-/* Callback used when a GtkSettings value changes */
-static void
-settings_notify_cb (GObject    *object,
-		    GParamSpec *pspec,
-		    GtkPathBar *path_bar)
-{
-  const char *name;
-
-  name = g_param_spec_get_name (pspec);
-
-  if (strcmp (name, "gtk-icon-theme-name") == 0)
-    change_icon_theme (path_bar);
-}
-
-static void
-gtk_path_bar_check_icon_theme (GtkPathBar *path_bar)
-{
-  GtkPathBarPrivate *priv = gtk_path_bar_get_instance_private (path_bar);
-
-  if (priv->settings_signal_id == 0)
-    {
-      GtkSettings *settings;
-
-      settings = gtk_widget_get_settings (GTK_WIDGET (path_bar));
-      priv->settings_signal_id = g_signal_connect (settings, "notify",
-                                                             G_CALLBACK (settings_notify_cb), path_bar);
-    }
-
-  change_icon_theme (path_bar);
-}
-
 /* Public functions and their helpers */
 static void
 gtk_path_bar_clear_buttons (GtkPathBar *path_bar)
@@ -1242,15 +1124,8 @@ set_button_image (GtkPathBar *path_bar,
 static void
 button_data_free (ButtonData *button_data)
 {
-  if (button_data->file)
-    g_object_unref (button_data->file);
-  button_data->file = NULL;
-
+  g_clear_object (&button_data->file);
   g_free (button_data->dir_name);
-  button_data->dir_name = NULL;
-
-  button_data->button = NULL;
-
   g_free (button_data);
 }
 
@@ -1266,25 +1141,22 @@ gtk_path_bar_update_button_appearance (GtkPathBar *path_bar,
 				       gboolean    current_dir)
 {
   const gchar *dir_name = get_dir_name (button_data);
-  GtkStyleContext *context;
 
-  context = gtk_widget_get_style_context (button_data->button);
-
-  gtk_style_context_remove_class (context, "text-button");
-  gtk_style_context_remove_class (context, "image-button");
+  gtk_widget_remove_css_class (button_data->button, "text-button");
+  gtk_widget_remove_css_class (button_data->button, "image-button");
 
   if (button_data->label != NULL)
     {
       gtk_label_set_text (GTK_LABEL (button_data->label), dir_name);
       if (button_data->image == NULL)
-        gtk_style_context_add_class (context, "text-button");
+        gtk_widget_add_css_class (button_data->button, "text-button");
     }
 
   if (button_data->image != NULL)
     {
       set_button_image (path_bar, button_data);
       if (button_data->label == NULL)
-        gtk_style_context_add_class (context, "image-button");
+        gtk_widget_add_css_class (button_data->button, "image-button");
     }
 
   if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (button_data->button)) != current_dir)
@@ -1314,25 +1186,6 @@ find_button_type (GtkPathBar  *path_bar,
  return NORMAL_BUTTON;
 }
 
-static void
-button_drag_data_get_cb (GtkWidget        *widget,
-                         GdkDrag          *drag,
-                         GtkSelectionData *selection_data,
-                         gpointer          data)
-{
-  ButtonData *button_data;
-  char *uris[2];
-
-  button_data = data;
-
-  uris[0] = g_file_get_uri (button_data->file);
-  uris[1] = NULL;
-
-  gtk_selection_data_set_uris (selection_data, uris);
-
-  g_free (uris[0]);
-}
-
 static ButtonData *
 make_directory_button (GtkPathBar  *path_bar,
 		       const char  *dir_name,
@@ -1343,6 +1196,9 @@ make_directory_button (GtkPathBar  *path_bar,
   AtkObject *atk_obj;
   GtkWidget *child = NULL;
   ButtonData *button_data;
+  GValue value = G_VALUE_INIT;
+  GdkContentProvider *content;
+  GtkDragSource *source;
 
   file_is_hidden = !! file_is_hidden;
   /* Is it a special button? */
@@ -1389,13 +1245,14 @@ make_directory_button (GtkPathBar  *path_bar,
   g_object_weak_ref (G_OBJECT (button_data->button),
 		     (GWeakNotify) button_data_free, button_data);
 
-  gtk_drag_source_set (button_data->button,
-		       GDK_BUTTON1_MASK,
-		       NULL,
-		       GDK_ACTION_COPY);
-  gtk_drag_source_add_uri_targets (button_data->button);
-  g_signal_connect (button_data->button, "drag-data-get",
-		    G_CALLBACK (button_drag_data_get_cb), button_data);
+  g_value_init (&value, G_TYPE_FILE);
+  g_value_set_object (&value, button_data->file);
+  source = gtk_drag_source_new ();
+  content = gdk_content_provider_new_for_value (&value);
+  gtk_drag_source_set_content (source, content);
+  g_object_unref (content);
+  gtk_widget_add_controller (button_data->button, GTK_EVENT_CONTROLLER (source));
+  g_value_unset (&value);
 
   return button_data;
 }

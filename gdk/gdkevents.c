@@ -45,9 +45,9 @@
  * This section describes functions dealing with events from the window
  * system.
  *
- * In GTK+ applications the events are handled automatically in
- * gtk_main_do_event() and passed on to the appropriate widgets,
- * so these functions are rarely needed.
+ * In GTK+ applications the events are handled automatically by toplevel
+ * widgets and passed on to the appropriate widgets, so these functions are
+ * rarely needed.
  */
 
 /**
@@ -947,6 +947,13 @@ gdk_event_get_coords (const GdkEvent *event,
       x = event->touchpad_pinch.x;
       y = event->touchpad_pinch.y;
       break;
+    case GDK_DRAG_ENTER:
+    case GDK_DRAG_LEAVE:
+    case GDK_DRAG_MOTION:
+    case GDK_DROP_START:
+      x = event->dnd.x;
+      y = event->dnd.y;
+      break;
     default:
       fetched = FALSE;
       break;
@@ -956,81 +963,6 @@ gdk_event_get_coords (const GdkEvent *event,
     *x_win = x;
   if (y_win)
     *y_win = y;
-
-  return fetched;
-}
-
-/**
- * gdk_event_get_root_coords:
- * @event: a #GdkEvent
- * @x_root: (out) (optional): location to put root window x coordinate
- * @y_root: (out) (optional): location to put root window y coordinate
- *
- * Extract the root window relative x/y coordinates from an event.
- *
- * Returns: %TRUE if the event delivered root window coordinates
- **/
-gboolean
-gdk_event_get_root_coords (const GdkEvent *event,
-			   gdouble        *x_root,
-			   gdouble        *y_root)
-{
-  gdouble x = 0, y = 0;
-  gboolean fetched = TRUE;
-  
-  g_return_val_if_fail (event != NULL, FALSE);
-
-  switch ((guint) event->any.type)
-    {
-    case GDK_MOTION_NOTIFY:
-      x = event->motion.x_root;
-      y = event->motion.y_root;
-      break;
-    case GDK_SCROLL:
-      x = event->scroll.x_root;
-      y = event->scroll.y_root;
-      break;
-    case GDK_BUTTON_PRESS:
-    case GDK_BUTTON_RELEASE:
-      x = event->button.x_root;
-      y = event->button.y_root;
-      break;
-    case GDK_TOUCH_BEGIN:
-    case GDK_TOUCH_UPDATE:
-    case GDK_TOUCH_END:
-    case GDK_TOUCH_CANCEL:
-      x = event->touch.x_root;
-      y = event->touch.y_root;
-      break;
-    case GDK_ENTER_NOTIFY:
-    case GDK_LEAVE_NOTIFY:
-      x = event->crossing.x_root;
-      y = event->crossing.y_root;
-      break;
-    case GDK_DRAG_ENTER:
-    case GDK_DRAG_LEAVE:
-    case GDK_DRAG_MOTION:
-    case GDK_DROP_START:
-      x = event->dnd.x_root;
-      y = event->dnd.y_root;
-      break;
-    case GDK_TOUCHPAD_SWIPE:
-      x = event->touchpad_swipe.x_root;
-      y = event->touchpad_swipe.y_root;
-      break;
-    case GDK_TOUCHPAD_PINCH:
-      x = event->touchpad_pinch.x_root;
-      y = event->touchpad_pinch.y_root;
-      break;
-    default:
-      fetched = FALSE;
-      break;
-    }
-
-  if (x_root)
-    *x_root = x;
-  if (y_root)
-    *y_root = y;
 
   return fetched;
 }
@@ -1080,6 +1012,13 @@ gdk_event_set_coords (GdkEvent *event,
     case GDK_TOUCHPAD_PINCH:
       event->touchpad_pinch.x = x;
       event->touchpad_pinch.y = y;
+      break;
+    case GDK_DRAG_ENTER:
+    case GDK_DRAG_LEAVE:
+    case GDK_DRAG_MOTION:
+    case GDK_DROP_START:
+      event->dnd.x = x;
+      event->dnd.y = y;
       break;
     default:
       break;
@@ -1387,7 +1326,7 @@ gdk_event_get_scroll_deltas (const GdkEvent *event,
  * stop scroll event is the signal that a widget may trigger kinetic
  * scrolling based on the current velocity.
  *
- * Stop scroll events always have a a delta of 0/0.
+ * Stop scroll events always have a delta of 0/0.
  *
  * Returns: %TRUE if the event is a scroll stop event
  */

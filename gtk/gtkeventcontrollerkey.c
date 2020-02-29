@@ -30,6 +30,7 @@
 #include "config.h"
 
 #include "gtkintl.h"
+#include "gtkmarshalers.h"
 #include "gtkprivate.h"
 #include "gtkwidgetprivate.h"
 #include "gtkeventcontrollerprivate.h"
@@ -45,6 +46,8 @@ struct _GtkEventControllerKey
   GtkEventController parent_instance;
   GtkIMContext *im_context;
   GHashTable *pressed_keys;
+
+  GdkModifierType state;
 
   const GdkEvent *current_event;
 
@@ -109,11 +112,11 @@ update_focus (GtkEventControllerKey *key,
     case GDK_NOTIFY_ANCESTOR:
     case GDK_NOTIFY_NONLINEAR:
       is_focus = focus_in;
-      contains_focus = FALSE;
+      contains_focus = is_focus;
       break;
     case GDK_NOTIFY_INFERIOR:
       is_focus = focus_in;
-      contains_focus = !focus_in;
+      contains_focus = TRUE;
       break;
     case GDK_NOTIFY_UNKNOWN:
     default:
@@ -126,6 +129,13 @@ update_focus (GtkEventControllerKey *key,
     {
       key->is_focus = is_focus;
       g_object_notify (G_OBJECT (key), "is-focus");
+      if (key->im_context)
+        {
+          if (focus_in)
+            gtk_im_context_focus_in (key->im_context);
+          else
+            gtk_im_context_focus_out (key->im_context);
+        }
     }
   if (key->contains_focus != contains_focus)
     {
@@ -141,10 +151,10 @@ gtk_event_controller_key_handle_event (GtkEventController *controller,
 {
   GtkEventControllerKey *key = GTK_EVENT_CONTROLLER_KEY (controller);
   GdkEventType event_type = gdk_event_get_event_type (event);
-  gboolean handled, is_modifier;
   GdkModifierType state;
   guint16 keycode;
   guint keyval;
+  gboolean handled = FALSE;
 
   if (event_type == GDK_FOCUS_CHANGE)
     {
@@ -180,24 +190,15 @@ gtk_event_controller_key_handle_event (GtkEventController *controller,
       return TRUE;
     }
 
-  if (!gdk_event_get_state (event, &state) ||
-      !gdk_event_get_key_is_modifier (event, &is_modifier))
-    return FALSE;
-
   key->current_event = event;
 
-  if (is_modifier)
+  gdk_event_get_state (event, &state);
+  if (key->state != state)
     {
-      if (event_type == GDK_KEY_PRESS)
-        g_signal_emit (controller, signals[MODIFIERS], 0, state, &handled);
-      else
-        handled = TRUE;
+      gboolean unused;
 
-      if (handled == TRUE)
-        {
-          key->current_event = NULL;
-          return TRUE;
-        }
+      key->state = state;
+      g_signal_emit (controller, signals[MODIFIERS], 0, state, &unused);
     }
 
   gdk_event_get_keycode (event, &keycode);
@@ -263,7 +264,7 @@ gtk_event_controller_key_class_init (GtkEventControllerKeyClass *klass)
    * GtkEventControllerKey:is-focus:
    *
    * Whether focus is in the controllers widget itself,
-   * as opposed to in a descendent widget. See
+   * opposed to in a descendent widget. See also
    * #GtkEventControllerKey:contains-focus.
    *
    * When handling focus events, this property is updated
@@ -280,8 +281,9 @@ gtk_event_controller_key_class_init (GtkEventControllerKeyClass *klass)
   /**
    * GtkEventControllerKey:contains-focus:
    *
-   * Whether focus is in a descendant of the controllers widget.
-   * See #GtkEventControllerKey:is-focus.
+   * Whether focus is contain in the controllers widget. See
+   * See #GtkEventControllerKey:is-focus for whether the focus is in the widget itself
+   * or inside a descendent.
    *
    * When handling focus events, this property is updated
    * before #GtkEventControllerKey::focus-in or
@@ -311,8 +313,12 @@ gtk_event_controller_key_class_init (GtkEventControllerKeyClass *klass)
     g_signal_new (I_("key-pressed"),
                   GTK_TYPE_EVENT_CONTROLLER_KEY,
                   G_SIGNAL_RUN_LAST,
-                  0, _gtk_boolean_handled_accumulator, NULL, NULL,
+                  0, _gtk_boolean_handled_accumulator, NULL,
+                  _gtk_marshal_BOOLEAN__UINT_UINT_FLAGS,
                   G_TYPE_BOOLEAN, 3, G_TYPE_UINT, G_TYPE_UINT, GDK_TYPE_MODIFIER_TYPE);
+  g_signal_set_va_marshaller (signals[KEY_PRESSED],
+                              G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_BOOLEAN__UINT_UINT_FLAGSv);
 
   /**
    * GtkEventControllerKey::key-released:
@@ -327,8 +333,12 @@ gtk_event_controller_key_class_init (GtkEventControllerKeyClass *klass)
     g_signal_new (I_("key-released"),
                   GTK_TYPE_EVENT_CONTROLLER_KEY,
                   G_SIGNAL_RUN_LAST,
-                  0, NULL, NULL, NULL,
+                  0, NULL, NULL,
+                  _gtk_marshal_VOID__UINT_UINT_FLAGS,
                   G_TYPE_NONE, 3, G_TYPE_UINT, G_TYPE_UINT, GDK_TYPE_MODIFIER_TYPE);
+  g_signal_set_va_marshaller (signals[KEY_RELEASED],
+                              G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_VOID__UINT_UINT_FLAGSv);
 
   /**
    * GtkEventControllerKey::modifiers:
@@ -344,9 +354,13 @@ gtk_event_controller_key_class_init (GtkEventControllerKeyClass *klass)
     g_signal_new (I_("modifiers"),
                   GTK_TYPE_EVENT_CONTROLLER_KEY,
                   G_SIGNAL_RUN_LAST,
-                  0, NULL, NULL,
-                  g_cclosure_marshal_BOOLEAN__FLAGS,
+                  0, NULL,
+                  NULL,
+                  _gtk_marshal_BOOLEAN__FLAGS,
                   G_TYPE_BOOLEAN, 1, GDK_TYPE_MODIFIER_TYPE);
+  g_signal_set_va_marshaller (signals[MODIFIERS],
+                              G_TYPE_FROM_CLASS (klass),
+                              _gtk_marshal_BOOLEAN__FLAGSv);
 
   /**
    * GtkEventControllerKey::im-update:
@@ -589,4 +603,36 @@ gtk_event_controller_key_get_focus_target (GtkEventControllerKey *controller)
     return (GtkWidget *)gdk_event_get_target (controller->current_event);
   else
     return (GtkWidget *)gdk_event_get_related_target (controller->current_event);
+}
+
+/**
+ * gtk_event_controller_key_contains_focus:
+ * @self: a #GtkEventControllerKey
+ *
+ * Returns the value of the GtkEventControllerKey:contains-focus property.
+ *
+ * Returns: %TRUE if focus is within @self or one of its children
+ */
+gboolean
+gtk_event_controller_key_contains_focus (GtkEventControllerKey *self)
+{
+  g_return_val_if_fail (GTK_IS_EVENT_CONTROLLER_KEY (self), FALSE);
+
+  return self->contains_focus;
+}
+
+/**
+ * gtk_event_controller_key_is_focus:
+ * @self: a #GtkEventControllerKey
+ *
+ * Returns the value of the GtkEventControllerKey:is-focus property.
+ *
+ * Returns: %TRUE if focus is within @self but not one of its children
+ */
+gboolean
+gtk_event_controller_key_is_focus (GtkEventControllerKey *self)
+{
+  g_return_val_if_fail (GTK_IS_EVENT_CONTROLLER_KEY (self), FALSE);
+
+  return self->is_focus;
 }

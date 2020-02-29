@@ -14,7 +14,7 @@ typedef struct {
   GtkWidget *message;
   GtkWidget *infobar;
   GtkWidget *status;
-  GtkWidget *menutool;
+  GtkWidget *menubutton;
   GMenuModel *toolmenu;
   GtkTextBuffer *buffer;
 
@@ -419,7 +419,7 @@ demo_application_window_load_state (DemoApplicationWindow *win)
 static void
 demo_application_window_init (DemoApplicationWindow *window)
 {
-  GtkWidget *menu;
+  GtkWidget *popover;
 
   window->width = -1;
   window->height = -1;
@@ -428,8 +428,8 @@ demo_application_window_init (DemoApplicationWindow *window)
 
   gtk_widget_init_template (GTK_WIDGET (window));
 
-  menu = gtk_menu_new_from_model (window->toolmenu);
-  gtk_menu_tool_button_set_menu (GTK_MENU_TOOL_BUTTON (window->menutool), menu);
+  popover = gtk_popover_menu_new_from_model (window->menubutton, window->toolmenu);
+  gtk_menu_button_set_popover (GTK_MENU_BUTTON (window->menubutton), popover);
 
   g_action_map_add_action_entries (G_ACTION_MAP (window),
                                    win_entries, G_N_ELEMENTS (win_entries),
@@ -477,7 +477,7 @@ surface_state_changed (GtkWidget *widget)
   DemoApplicationWindow *window = (DemoApplicationWindow *)widget;
   GdkSurfaceState new_state;
 
-  new_state = gdk_surface_get_state (gtk_widget_get_surface (widget));
+  new_state = gdk_surface_get_state (gtk_native_get_surface (GTK_NATIVE (widget)));
   window->maximized = (new_state & GDK_SURFACE_STATE_MAXIMIZED) != 0;
   window->fullscreen = (new_state & GDK_SURFACE_STATE_FULLSCREEN) != 0;
 }
@@ -487,14 +487,14 @@ demo_application_window_realize (GtkWidget *widget)
 {
   GTK_WIDGET_CLASS (demo_application_window_parent_class)->realize (widget);
 
-  g_signal_connect_swapped (gtk_widget_get_surface (widget), "notify::state",
+  g_signal_connect_swapped (gtk_native_get_surface (GTK_NATIVE (widget)), "notify::state",
                             G_CALLBACK (surface_state_changed), widget);
 }
 
 static void
 demo_application_window_unrealize (GtkWidget *widget)
 {
-  g_signal_handlers_disconnect_by_func (gtk_widget_get_surface (widget),
+  g_signal_handlers_disconnect_by_func (gtk_native_get_surface (GTK_NATIVE (widget)),
                                         surface_state_changed, widget);
 
   GTK_WIDGET_CLASS (demo_application_window_parent_class)->unrealize (widget);
@@ -528,7 +528,7 @@ demo_application_window_class_init (DemoApplicationWindowClass *class)
   gtk_widget_class_bind_template_child (widget_class, DemoApplicationWindow, infobar);
   gtk_widget_class_bind_template_child (widget_class, DemoApplicationWindow, status);
   gtk_widget_class_bind_template_child (widget_class, DemoApplicationWindow, buffer);
-  gtk_widget_class_bind_template_child (widget_class, DemoApplicationWindow, menutool);
+  gtk_widget_class_bind_template_child (widget_class, DemoApplicationWindow, menubutton);
   gtk_widget_class_bind_template_child (widget_class, DemoApplicationWindow, toolmenu);
   gtk_widget_class_bind_template_callback (widget_class, clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, update_statusbar);

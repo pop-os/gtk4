@@ -18,8 +18,8 @@
 #include "config.h"
 
 #include "gtkcsscornervalueprivate.h"
-
 #include "gtkcssnumbervalueprivate.h"
+#include "gtkcssdimensionvalueprivate.h"
 
 struct _GtkCssValue {
   GTK_CSS_VALUE_BASE
@@ -99,6 +99,7 @@ gtk_css_value_corner_print (const GtkCssValue *corner,
 }
 
 static const GtkCssValueClass GTK_CSS_VALUE_CORNER = {
+  "GtkCssCornerValue",
   gtk_css_value_corner_free,
   gtk_css_value_corner_compute,
   gtk_css_value_corner_equal,
@@ -113,6 +114,12 @@ _gtk_css_corner_value_new (GtkCssValue *x,
                            GtkCssValue *y)
 {
   GtkCssValue *result;
+
+  if (_gtk_css_value_equal (x, y))
+    {
+      _gtk_css_value_unref (y);
+      return x;
+    }
 
   result = _gtk_css_value_new (GtkCssValue, &GTK_CSS_VALUE_CORNER);
   result->x = x;
@@ -155,6 +162,9 @@ double
 _gtk_css_corner_value_get_x (const GtkCssValue *corner,
                              double             one_hundred_percent)
 {
+  if (corner->class != &GTK_CSS_VALUE_CORNER)
+    return _gtk_css_number_value_get (corner, one_hundred_percent);
+
   g_return_val_if_fail (corner != NULL, 0.0);
   g_return_val_if_fail (corner->class == &GTK_CSS_VALUE_CORNER, 0.0);
 
@@ -165,9 +175,21 @@ double
 _gtk_css_corner_value_get_y (const GtkCssValue *corner,
                              double             one_hundred_percent)
 {
+  if (corner->class != &GTK_CSS_VALUE_CORNER)
+    return _gtk_css_number_value_get (corner, one_hundred_percent);
+
   g_return_val_if_fail (corner != NULL, 0.0);
   g_return_val_if_fail (corner->class == &GTK_CSS_VALUE_CORNER, 0.0);
 
   return _gtk_css_number_value_get (corner->y, one_hundred_percent);
 }
 
+gboolean
+gtk_css_corner_value_is_zero (const GtkCssValue *corner)
+{
+  if (corner->class != &GTK_CSS_VALUE_CORNER)
+    return gtk_css_dimension_value_is_zero (corner);
+
+  return gtk_css_dimension_value_is_zero (corner->x) &&
+         gtk_css_dimension_value_is_zero (corner->y);
+}

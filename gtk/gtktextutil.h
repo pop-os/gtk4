@@ -27,16 +27,11 @@
 
 G_BEGIN_DECLS
 
+#include "gtktextbuffer.h"
+
 /* This is a private uninstalled header shared between
  * GtkTextView and GtkEntry
  */
-
-typedef void (* GtkTextUtilCharChosenFunc) (const char *text,
-                                            gpointer    data);
-
-void _gtk_text_util_append_special_char_menuitems (GtkMenuShell              *menushell,
-                                                   GtkTextUtilCharChosenFunc  func,
-                                                   gpointer                   data);
 
 GdkPaintable *    gtk_text_util_create_drag_icon  (GtkWidget     *widget,
                                                    gchar         *text,

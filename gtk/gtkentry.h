@@ -36,11 +36,9 @@
 
 #include <gtk/gtkeditable.h>
 #include <gtk/gtkimcontext.h>
-#include <gtk/gtkmenu.h>
 #include <gtk/gtkentrybuffer.h>
 #include <gtk/gtkentrycompletion.h>
 #include <gtk/gtkimage.h>
-#include <gtk/gtkselection.h>
 
 
 G_BEGIN_DECLS
@@ -66,7 +64,6 @@ typedef enum
 } GtkEntryIconPosition;
 
 typedef struct _GtkEntry              GtkEntry;
-typedef struct _GtkEntryPrivate       GtkEntryPrivate;
 typedef struct _GtkEntryClass         GtkEntryClass;
 
 struct _GtkEntry
@@ -78,9 +75,6 @@ struct _GtkEntry
 /**
  * GtkEntryClass:
  * @parent_class: The parent class.
- * @populate_popup: Class handler for the #GtkEntry::populate-popup signal. If
- *   non-%NULL, this will be called to add additional entries to the context
- *   menu when it is displayed.
  * @activate: Class handler for the #GtkEntry::activate signal. The default
  *   implementation activates the gtk.activate-default action.
  * @move_cursor: Class handler for the #GtkEntry::move-cursor signal. The
@@ -120,13 +114,7 @@ struct _GtkEntryClass
 
   /*< private >*/
 
-  /* Padding for future expansion */
-  void (*_gtk_reserved1)      (void);
-  void (*_gtk_reserved2)      (void);
-  void (*_gtk_reserved3)      (void);
-  void (*_gtk_reserved4)      (void);
-  void (*_gtk_reserved5)      (void);
-  void (*_gtk_reserved6)      (void);
+  gpointer padding[8];
 };
 
 GDK_AVAILABLE_IN_ALL
@@ -277,7 +265,7 @@ gchar *      gtk_entry_get_icon_tooltip_markup           (GtkEntry             *
 GDK_AVAILABLE_IN_ALL
 void         gtk_entry_set_icon_drag_source              (GtkEntry             *entry,
 							  GtkEntryIconPosition  icon_pos,
-							  GdkContentFormats    *formats,
+							  GdkContentProvider   *provider,
 							  GdkDragAction         actions);
 GDK_AVAILABLE_IN_ALL
 gint         gtk_entry_get_current_icon_drag_source      (GtkEntry             *entry);
@@ -315,7 +303,13 @@ GDK_AVAILABLE_IN_ALL
 PangoTabArray  *gtk_entry_get_tabs                           (GtkEntry             *entry);
 
 GDK_AVAILABLE_IN_ALL
-void           gtk_entry_grab_focus_without_selecting        (GtkEntry             *entry);
+gboolean       gtk_entry_grab_focus_without_selecting        (GtkEntry             *entry);
+
+GDK_AVAILABLE_IN_ALL
+void           gtk_entry_set_extra_menu                      (GtkEntry             *entry,
+                                                              GMenuModel           *model);
+GDK_AVAILABLE_IN_ALL
+GMenuModel *   gtk_entry_get_extra_menu                      (GtkEntry             *entry);
 
 G_END_DECLS
 

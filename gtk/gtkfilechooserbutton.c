@@ -30,13 +30,13 @@
 #include <cairo-gobject.h>
 
 #include "gtkintl.h"
+#include "gtkbookmarksmanagerprivate.h"
 #include "gtkbutton.h"
 #include "gtkcelllayout.h"
 #include "gtkcellrenderertext.h"
 #include "gtkcellrendererpixbuf.h"
 #include "gtkcombobox.h"
 #include "gtkcssiconthemevalueprivate.h"
-#include "gtkdnd.h"
 #include "gtkdragdest.h"
 #include "gtkicontheme.h"
 #include "gtkimage.h"
@@ -60,6 +60,7 @@
 #include "gtksettings.h"
 #include "gtkstylecontextprivate.h"
 #include "gtkbitmaskprivate.h"
+#include "gtkeventcontroller.h"
 
 /**
  * SECTION:gtkfilechooserbutton
@@ -96,6 +97,10 @@
  * > gtk_file_chooser_button_set_width_chars(), or pack the button in
  * > such a way that other interface elements give space to the
  * > widget.
+ *
+ * # CSS nodes
+ *
+ * GtkFileChooserButton has a single CSS node with the name “filechooserbutton”.
  */
 
 
@@ -106,7 +111,7 @@
 #define ICON_SIZE	        16
 #define DEFAULT_TITLE		N_("Select a File")
 #define DESKTOP_DISPLAY_NAME	N_("Desktop")
-#define FALLBACK_DISPLAY_NAME	N_("(None)") /* this string is used in gtk/gtk/tests/filechooser.c - change it there if you change it here */
+#define FALLBACK_DISPLAY_NAME N_("(None)")
 
 
 /* ********************** *
@@ -155,7 +160,6 @@ typedef enum
   ROW_TYPE_CURRENT_FOLDER,
   ROW_TYPE_OTHER_SEPARATOR,
   ROW_TYPE_OTHER,
-  ROW_TYPE_EMPTY_SELECTION,
 
   ROW_TYPE_INVALID = -1
 }
@@ -165,6 +169,20 @@ RowType;
 /* ******************** *
  *  Private Structures  *
  * ******************** */
+
+typedef struct _GtkFileChooserButtonClass   GtkFileChooserButtonClass;
+
+struct _GtkFileChooserButton
+{
+  GtkWidget parent_instance;
+};
+
+struct _GtkFileChooserButtonClass
+{
+  GtkWidgetClass parent_class;
+
+  void (* file_set) (GtkFileChooserButton *fc);
+};
 
 typedef struct
 {
@@ -178,9 +196,6 @@ typedef struct
   GtkWidget *combo_box;
   GtkCellRenderer *icon_cell;
   GtkCellRenderer *name_cell;
-
-  /* Currently visible child (either priv->combo_box or priv->button) */
-  GtkWidget *child;
 
   GtkTreeModel *model;
   GtkTreeModel *filter_model;
@@ -252,18 +267,21 @@ static void     gtk_file_chooser_button_finalize           (GObject          *ob
 
 /* GtkWidget Functions */
 static void     gtk_file_chooser_button_destroy            (GtkWidget        *widget);
-static void     gtk_file_chooser_button_drag_data_received (GtkWidget        *widget,
-							    GdkDrop          *drop,
-							    GtkSelectionData *data);
+static gboolean gtk_file_chooser_button_drag_drop          (GtkDropTarget    *dest,
+                                                            GdkDrop          *drop,
+                                                            int               x,
+                                                            int               y,
+							    GtkWidget        *widget);
 static void     gtk_file_chooser_button_show               (GtkWidget        *widget);
 static void     gtk_file_chooser_button_hide               (GtkWidget        *widget);
 static void     gtk_file_chooser_button_root               (GtkWidget *widget);
 static void     gtk_file_chooser_button_map                (GtkWidget        *widget);
 static gboolean gtk_file_chooser_button_mnemonic_activate  (GtkWidget        *widget,
 							    gboolean          group_cycling);
-static void     gtk_file_chooser_button_style_updated      (GtkWidget        *widget);
-static void     gtk_file_chooser_button_state_flags_changed (GtkWidget       *widget,
-                                                             GtkStateFlags    previous_state);
+static void     gtk_file_chooser_button_css_changed             (GtkWidget              *widget,
+                                                                 GtkCssStyleChange      *change);
+static void     gtk_file_chooser_button_state_flags_changed     (GtkWidget       *widget,
+                                                                 GtkStateFlags    previous_state);
 
 /* Utility Functions */
 static void          set_info_for_file_at_iter         (GtkFileChooserButton *fs,
@@ -276,7 +294,6 @@ static void          model_free_row_data          (GtkFileChooserButton *button,
 						   GtkTreeIter          *iter);
 static void          model_add_special            (GtkFileChooserButton *button);
 static void          model_add_other              (GtkFileChooserButton *button);
-static void          model_add_empty_selection    (GtkFileChooserButton *button);
 static void          model_add_volumes            (GtkFileChooserButton *button,
 						   GSList               *volumes);
 static void          model_add_bookmarks          (GtkFileChooserButton *button,
@@ -309,9 +326,6 @@ static void     fs_volumes_changed_cb            (GtkFileSystem  *fs,
 static void     bookmarks_changed_cb             (gpointer        user_data);
 
 static void     combo_box_changed_cb             (GtkComboBox    *combo_box,
-						  gpointer        user_data);
-static void     combo_box_notify_popup_shown_cb  (GObject        *object,
-						  GParamSpec     *pspec,
 						  gpointer        user_data);
 
 static void     button_clicked_cb                (GtkButton      *real_button,
@@ -355,11 +369,10 @@ gtk_file_chooser_button_class_init (GtkFileChooserButtonClass * class)
   gobject_class->finalize = gtk_file_chooser_button_finalize;
 
   widget_class->destroy = gtk_file_chooser_button_destroy;
-  widget_class->drag_data_received = gtk_file_chooser_button_drag_data_received;
   widget_class->show = gtk_file_chooser_button_show;
   widget_class->hide = gtk_file_chooser_button_hide;
   widget_class->map = gtk_file_chooser_button_map;
-  widget_class->style_updated = gtk_file_chooser_button_style_updated;
+  widget_class->css_changed = gtk_file_chooser_button_css_changed;
   widget_class->root = gtk_file_chooser_button_root;
   widget_class->mnemonic_activate = gtk_file_chooser_button_mnemonic_activate;
   widget_class->state_flags_changed = gtk_file_chooser_button_state_flags_changed;
@@ -432,9 +445,9 @@ gtk_file_chooser_button_init (GtkFileChooserButton *button)
   GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
   GtkWidget *box;
   GtkWidget *icon;
+  GdkContentFormatsBuilder *builder;
   GdkContentFormats *target_list;
-
-  gtk_widget_set_has_surface (GTK_WIDGET (button), FALSE);
+  GtkDropTarget *dest;
 
   priv->button = gtk_button_new ();
   g_signal_connect (priv->button, "clicked", G_CALLBACK (button_clicked_cb), button);
@@ -464,12 +477,9 @@ gtk_file_chooser_button_init (GtkFileChooserButton *button)
 
   priv->combo_box = gtk_combo_box_new ();
   g_signal_connect (priv->combo_box, "changed", G_CALLBACK (combo_box_changed_cb), button);
-  g_signal_connect (priv->combo_box, "notify::popup-shown", G_CALLBACK (combo_box_notify_popup_shown_cb), button);
   priv->icon_cell = gtk_cell_renderer_pixbuf_new ();
   priv->name_cell = gtk_cell_renderer_text_new ();
-  g_object_set (priv->name_cell,
-                "xpad", 6,
-                NULL);
+  g_object_set (priv->name_cell, "xpad", 6, NULL);
 
   gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (priv->combo_box), priv->icon_cell, FALSE);
   gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (priv->combo_box),
@@ -482,8 +492,6 @@ gtk_file_chooser_button_init (GtkFileChooserButton *button)
   gtk_widget_hide (priv->combo_box);
   gtk_widget_set_parent (priv->combo_box, GTK_WIDGET (button));
 
-  priv->child = priv->button;
-
   /* Bookmarks manager */
   priv->bookmarks_manager = _gtk_bookmarks_manager_new (bookmarks_changed_cb, button);
   gtk_cell_layout_set_cell_data_func (GTK_CELL_LAYOUT (priv->combo_box),
@@ -491,13 +499,13 @@ gtk_file_chooser_button_init (GtkFileChooserButton *button)
 				      NULL, NULL);
 
   /* DnD */
-  target_list = gdk_content_formats_new (NULL, 0);
-  target_list = gtk_content_formats_add_uri_targets (target_list);
-  target_list = gtk_content_formats_add_text_targets (target_list);
-  gtk_drag_dest_set (GTK_WIDGET (button),
-                     (GTK_DEST_DEFAULT_ALL),
-		     target_list,
-		     GDK_ACTION_COPY);
+  builder = gdk_content_formats_builder_new ();
+  gdk_content_formats_builder_add_gtype (builder, G_TYPE_STRING);
+  gdk_content_formats_builder_add_gtype (builder, GDK_TYPE_FILE_LIST);
+  target_list = gdk_content_formats_builder_free_to_formats (builder);
+  dest = gtk_drop_target_new (target_list, GDK_ACTION_COPY);
+  g_signal_connect (dest, "drag-drop", G_CALLBACK (gtk_file_chooser_button_drag_drop), button);
+  gtk_widget_add_controller (GTK_WIDGET (button), GTK_EVENT_CONTROLLER (dest));
   gdk_content_formats_unref (target_list);
 }
 
@@ -826,8 +834,6 @@ gtk_file_chooser_button_constructed (GObject *object)
 
   model_add_other (button);
 
-  model_add_empty_selection (button);
-
   priv->filter_model = gtk_tree_model_filter_new (priv->model, NULL);
   gtk_tree_model_filter_set_visible_func (GTK_TREE_MODEL_FILTER (priv->filter_model),
 					  filter_model_visible_func,
@@ -898,23 +904,21 @@ gtk_file_chooser_button_set_property (GObject      *object,
       update_combo_box (GTK_FILE_CHOOSER_BUTTON (object));
 
       switch (g_value_get_enum (value))
-	{
-	case GTK_FILE_CHOOSER_ACTION_OPEN:
+        {
+        case GTK_FILE_CHOOSER_ACTION_OPEN:
           gtk_widget_hide (priv->combo_box);
           gtk_widget_show (priv->button);
-          priv->child = priv->button;
           gtk_widget_queue_resize (GTK_WIDGET (button));
-	  break;
-	case GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER:
+          break;
+        case GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER:
           gtk_widget_show (priv->combo_box);
           gtk_widget_hide (priv->button);
-          priv->child = priv->combo_box;
           gtk_widget_queue_resize (GTK_WIDGET (button));
-	  break;
-	default:
-	  g_assert_not_reached ();
-	  break;
-	}
+          break;
+        default:
+          g_assert_not_reached ();
+          break;
+        }
       break;
 
     case PROP_TITLE:
@@ -1009,9 +1013,15 @@ gtk_file_chooser_button_state_flags_changed (GtkWidget     *widget,
   GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
 
   if (gtk_widget_get_state_flags (widget) & GTK_STATE_FLAG_DROP_ACTIVE)
-    gtk_widget_set_state_flags (priv->child, GTK_STATE_FLAG_DROP_ACTIVE, FALSE);
+    {
+      gtk_widget_set_state_flags (priv->button, GTK_STATE_FLAG_DROP_ACTIVE, FALSE);
+      gtk_widget_set_state_flags (priv->combo_box, GTK_STATE_FLAG_DROP_ACTIVE, FALSE);
+    }
   else
-    gtk_widget_unset_state_flags (priv->child, GTK_STATE_FLAG_DROP_ACTIVE);
+    {
+      gtk_widget_unset_state_flags (priv->button, GTK_STATE_FLAG_DROP_ACTIVE);
+      gtk_widget_unset_state_flags (priv->combo_box, GTK_STATE_FLAG_DROP_ACTIVE);
+    }
 
   GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->state_flags_changed (widget, previous_state);
 }
@@ -1140,62 +1150,91 @@ dnd_select_folder_get_info_cb (GCancellable *cancellable,
 }
 
 static void
-gtk_file_chooser_button_drag_data_received (GtkWidget	     *widget,
-					    GdkDrop          *drop,
-					    GtkSelectionData *data)
+dnd_select_file (GtkFileChooserButton *button,
+                 GFile                *file)
 {
-  GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (widget);
   GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
-  GFile *file;
-  gchar *text;
+  struct DndSelectFolderData *info;
 
-  if (GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->drag_data_received != NULL)
-    GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->drag_data_received (widget,
-										 drop,
-										 data);
+  info = g_new0 (struct DndSelectFolderData, 1);
+  info->button = g_object_ref (button);
+  info->i = 0;
+  info->uris = g_new0 (char *, 2);
+  info->selected = FALSE;
+  info->file_system = priv->fs;
+  g_object_get (priv->chooser, "action", &info->action, NULL);
 
-  if (widget == NULL || gtk_selection_data_get_length (data) < 0)
-    return;
+  info->file = g_object_ref (file);
 
-  if (gtk_selection_data_targets_include_uri (data))
+  if (priv->dnd_select_folder_cancellable)
+    g_cancellable_cancel (priv->dnd_select_folder_cancellable);
+
+  priv->dnd_select_folder_cancellable =
+    _gtk_file_system_get_info (priv->fs, info->file,
+                               "standard::type",
+                               dnd_select_folder_get_info_cb, info);
+}
+
+static void
+got_file (GObject      *source,
+          GAsyncResult *result,
+          gpointer      data)
+{
+  GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (data);
+  GdkDrop *drop = GDK_DROP (source);
+  const GValue *value;
+
+  value = gdk_drop_read_value_finish (drop, result, NULL);
+  if (value)
     {
-      gchar **uris;
-      struct DndSelectFolderData *info;
+      GFile *file;
 
-      uris = gtk_selection_data_get_uris (data);
-
-      if (uris != NULL)
-        {
-          info = g_new0 (struct DndSelectFolderData, 1);
-          info->button = g_object_ref (button);
-          info->i = 0;
-          info->uris = uris;
-          info->selected = FALSE;
-          info->file_system = priv->fs;
-          g_object_get (priv->chooser, "action", &info->action, NULL);
-
-          info->file = g_file_new_for_uri (info->uris[info->i]);
-
-          if (priv->dnd_select_folder_cancellable)
-            g_cancellable_cancel (priv->dnd_select_folder_cancellable);
-
-          priv->dnd_select_folder_cancellable =
-            _gtk_file_system_get_info (priv->fs, info->file,
-                                       "standard::type",
-                                       dnd_select_folder_get_info_cb, info);
-        }
+      file = g_value_get_object (value);
+      dnd_select_file (button, file);
     }
-  else if (gtk_selection_data_targets_include_text (data))
+}
+
+static void
+got_text (GObject      *source,
+          GAsyncResult *result,
+          gpointer      data)
+{
+  GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (data);
+  GdkDrop *drop = GDK_DROP (source);
+  char *str;
+
+  str = gdk_drop_read_text_finish (drop, result, NULL);
+  if (str)
     {
-      text = (char*) gtk_selection_data_get_text (data);
-      file = g_file_new_for_uri (text);
-      gtk_file_chooser_select_file (GTK_FILE_CHOOSER (priv->chooser), file, NULL);
+      GFile *file;
+
+      file = g_file_new_for_uri (str);
+      dnd_select_file (button, file);
       g_object_unref (file);
-      g_free (text);
-      g_signal_emit (button, file_chooser_button_signals[FILE_SET], 0);
     }
 
-  gdk_drop_finish (drop, GDK_ACTION_COPY);
+}
+
+static gboolean
+gtk_file_chooser_button_drag_drop (GtkDropTarget *dest,
+                                   GdkDrop       *drop,
+                                   int            x,
+                                   int            y,
+                                   GtkWidget     *button)
+{
+  if (gdk_drop_has_value (drop, G_TYPE_FILE))
+    {
+      gdk_drop_read_value_async (drop, G_TYPE_FILE, G_PRIORITY_DEFAULT, NULL, got_file, button);
+      return TRUE;
+    }
+  else
+    {
+      gdk_drop_read_text_async (drop, NULL, got_text, button);
+      return TRUE;
+    }
+
+  return FALSE;
+
 }
 
 static void
@@ -1219,7 +1258,7 @@ gtk_file_chooser_button_hide (GtkWidget *widget)
 
   if (priv->dialog)
     gtk_widget_hide (priv->dialog);
-  else
+  else if (priv->native)
     gtk_native_dialog_hide (GTK_NATIVE_DIALOG (priv->native));
 
   if (GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->hide)
@@ -1418,12 +1457,10 @@ change_icon_theme (GtkFileChooserButton *button)
 }
 
 static void
-gtk_file_chooser_button_style_updated (GtkWidget *widget)
+gtk_file_chooser_button_css_changed (GtkWidget         *widget,
+                                     GtkCssStyleChange *change)
 {
-  GtkStyleContext *context = gtk_widget_get_style_context (widget);
-  GtkCssStyleChange *change = gtk_style_context_get_change (context);
-
-  GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->style_updated (widget);
+  GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->css_changed (widget, change);
 
   /* We need to update the icon surface, but only in case
    * the icon theme really changed. */
@@ -1598,9 +1635,6 @@ model_get_type_position (GtkFileChooserButton *button,
     return retval;
 
   retval++;
-
-  if (row_type == ROW_TYPE_EMPTY_SELECTION)
-    return retval;
 
   g_assert_not_reached ();
   return -1;
@@ -2042,18 +2076,20 @@ model_add_other (GtkFileChooserButton *button)
   GtkListStore *store;
   GtkTreeIter iter;
   gint pos;
+  GIcon *icon;
 
   store = GTK_LIST_STORE (priv->model);
   pos = model_get_type_position (button, ROW_TYPE_OTHER_SEPARATOR);
+  icon = g_themed_icon_new ("document-open-symbolic");
 
   gtk_list_store_insert (store, &iter, pos);
   gtk_list_store_set (store, &iter,
-		      ICON_COLUMN, NULL,
-		      DISPLAY_NAME_COLUMN, NULL,
-		      TYPE_COLUMN, ROW_TYPE_OTHER_SEPARATOR,
-		      DATA_COLUMN, NULL,
-		      IS_FOLDER_COLUMN, FALSE,
-		      -1);
+                      ICON_COLUMN, icon,
+                      DISPLAY_NAME_COLUMN, _(FALLBACK_DISPLAY_NAME),
+                      TYPE_COLUMN, ROW_TYPE_OTHER_SEPARATOR,
+                      DATA_COLUMN, NULL,
+                      IS_FOLDER_COLUMN, FALSE,
+                      -1);
   priv->has_other_separator = TRUE;
   pos++;
 
@@ -2065,27 +2101,8 @@ model_add_other (GtkFileChooserButton *button)
 		      DATA_COLUMN, NULL,
 		      IS_FOLDER_COLUMN, FALSE,
 		      -1);
-}
 
-static void
-model_add_empty_selection (GtkFileChooserButton *button)
-{
-  GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
-  GtkListStore *store;
-  GtkTreeIter iter;
-  gint pos;
-
-  store = GTK_LIST_STORE (priv->model);
-  pos = model_get_type_position (button, ROW_TYPE_EMPTY_SELECTION);
-
-  gtk_list_store_insert (store, &iter, pos);
-  gtk_list_store_set (store, &iter,
-		      ICON_COLUMN, NULL,
-		      DISPLAY_NAME_COLUMN, _(FALLBACK_DISPLAY_NAME),
-		      TYPE_COLUMN, ROW_TYPE_EMPTY_SELECTION,
-		      DATA_COLUMN, NULL,
-		      IS_FOLDER_COLUMN, FALSE,
-		      -1);
+  g_object_unref (icon);
 }
 
 static void
@@ -2188,34 +2205,6 @@ filter_model_visible_func (GtkTreeModel *model,
 	  }
       }
       break;
-    case ROW_TYPE_EMPTY_SELECTION:
-      {
-	gboolean popup_shown;
-
-	g_object_get (priv->combo_box,
-		      "popup-shown", &popup_shown,
-		      NULL);
-
-	if (popup_shown)
-	  retval = FALSE;
-	else
-	  {
-	    GFile *selected;
-
-	    /* When the combo box is not popped up... */
-
-	    selected = get_selected_file (button);
-	    if (selected)
-	      retval = FALSE; /* ... nonempty selection means the ROW_TYPE_EMPTY_SELECTION is *not* visible... */
-	    else
-	      retval = TRUE;  /* ... and empty selection means the ROW_TYPE_EMPTY_SELECTION *is* visible */
-
-	    if (selected)
-	      g_object_unref (selected);
-	  }
-
-	break;
-      }
     default:
       retval = TRUE;
       break;
@@ -2352,7 +2341,7 @@ update_combo_box (GtkFileChooserButton *button)
 	{
 	  /* No selection; switch to that row */
 
-	  pos = model_get_type_position (button, ROW_TYPE_EMPTY_SELECTION);
+	  pos = model_get_type_position (button, ROW_TYPE_OTHER_SEPARATOR);
 	}
 
       gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (priv->filter_model));
@@ -2588,7 +2577,7 @@ open_dialog (GtkFileChooserButton *button)
   GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
   GtkWidget *toplevel;
 
-  toplevel = gtk_widget_get_toplevel (GTK_WIDGET (button));
+  toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (button)));
 
   /* Setup the dialog parent to be chooser button's toplevel, and be modal
      as needed. */
@@ -2596,7 +2585,7 @@ open_dialog (GtkFileChooserButton *button)
     {
       if (!gtk_widget_get_visible (priv->dialog))
         {
-          if (gtk_widget_is_toplevel (toplevel) && GTK_IS_WINDOW (toplevel))
+          if (GTK_IS_WINDOW (toplevel))
             {
               if (GTK_WINDOW (toplevel) != gtk_window_get_transient_for (GTK_WINDOW (priv->dialog)))
                 gtk_window_set_transient_for (GTK_WINDOW (priv->dialog),
@@ -2611,7 +2600,7 @@ open_dialog (GtkFileChooserButton *button)
     {
       if (!gtk_native_dialog_get_visible (GTK_NATIVE_DIALOG (priv->native)))
         {
-          if (gtk_widget_is_toplevel (toplevel) && GTK_IS_WINDOW (toplevel))
+          if (GTK_IS_WINDOW (toplevel))
             {
               if (GTK_WINDOW (toplevel) != gtk_native_dialog_get_transient_for (GTK_NATIVE_DIALOG (priv->native)))
                 gtk_native_dialog_set_transient_for (GTK_NATIVE_DIALOG (priv->native),
@@ -2709,51 +2698,6 @@ combo_box_changed_cb (GtkComboBox *combo_box,
 
   if (file_was_set)
     g_signal_emit (button, file_chooser_button_signals[FILE_SET], 0);
-}
-
-/* Calback for the "notify::popup-shown" signal on the combo box.
- * When the combo is popped up, we don’t want the ROW_TYPE_EMPTY_SELECTION to be visible
- * at all; otherwise we would be showing a “(None)” item in the combo box’s popup.
- *
- * However, when the combo box is *not* popped up, we want the empty-selection row
- * to be visible depending on the selection.
- *
- * Since all that is done through the filter_model_visible_func(), this means
- * that we need to refilter the model when the combo box pops up - hence the
- * present signal handler.
- */
-static void
-combo_box_notify_popup_shown_cb (GObject    *object,
-				 GParamSpec *pspec,
-				 gpointer    user_data)
-{
-  GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (user_data);
-  GtkFileChooserButtonPrivate *priv = gtk_file_chooser_button_get_instance_private (button);
-  gboolean popup_shown;
-
-  g_object_get (priv->combo_box,
-		"popup-shown", &popup_shown,
-		NULL);
-
-  /* Indicate that the ROW_TYPE_EMPTY_SELECTION will change visibility... */
-  gtk_tree_model_filter_refilter (GTK_TREE_MODEL_FILTER (priv->filter_model));
-
-  /* If the combo box popup got dismissed, go back to showing the ROW_TYPE_EMPTY_SELECTION if needed */
-  if (!popup_shown)
-
-    {
-      GFile *selected = get_selected_file (button);
-
-      if (!selected)
-	{
-	  int pos;
-
-	  pos = model_get_type_position (button, ROW_TYPE_EMPTY_SELECTION);
-	  select_combo_box_row_no_notify (button, pos);
-	}
-      else
-	g_object_unref (selected);
-    }
 }
 
 /* Button */

@@ -31,15 +31,10 @@ G_BEGIN_DECLS
 /* -- type macros --- */
 #define GTK_TYPE_SETTINGS             (gtk_settings_get_type ())
 #define GTK_SETTINGS(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_SETTINGS, GtkSettings))
-#define GTK_SETTINGS_CLASS(klass)     (G_TYPE_CHECK_CLASS_CAST ((klass), GTK_TYPE_SETTINGS, GtkSettingsClass))
 #define GTK_IS_SETTINGS(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_SETTINGS))
-#define GTK_IS_SETTINGS_CLASS(klass)  (G_TYPE_CHECK_CLASS_TYPE ((klass), GTK_TYPE_SETTINGS))
-#define GTK_SETTINGS_GET_CLASS(obj)   (G_TYPE_INSTANCE_GET_CLASS ((obj), GTK_TYPE_SETTINGS, GtkSettingsClass))
 
 
 /* --- typedefs --- */
-typedef struct _GtkSettingsPrivate GtkSettingsPrivate;
-typedef struct _GtkSettingsClass GtkSettingsClass;
 typedef struct _GtkSettingsValue GtkSettingsValue;
 
 
@@ -47,20 +42,6 @@ typedef struct _GtkSettingsValue GtkSettingsValue;
 struct _GtkSettings
 {
   GObject parent_instance;
-
-  /*< private >*/
-  GtkSettingsPrivate *priv;
-};
-
-struct _GtkSettingsClass
-{
-  GObjectClass parent_class;
-
-  /* Padding for future expansion */
-  void (*_gtk_reserved1) (void);
-  void (*_gtk_reserved2) (void);
-  void (*_gtk_reserved3) (void);
-  void (*_gtk_reserved4) (void);
 };
 
 /**
@@ -91,28 +72,6 @@ GDK_AVAILABLE_IN_ALL
 GtkSettings*    gtk_settings_get_default             (void);
 GDK_AVAILABLE_IN_ALL
 GtkSettings*    gtk_settings_get_for_display         (GdkDisplay *display);
-
-/* --- precoded parsing functions --- */
-GDK_AVAILABLE_IN_ALL
-gboolean gtk_rc_property_parse_color       (const GParamSpec *pspec,
-                                            const GString    *gstring,
-                                            GValue           *property_value);
-GDK_AVAILABLE_IN_ALL
-gboolean gtk_rc_property_parse_enum        (const GParamSpec *pspec,
-                                            const GString    *gstring,
-                                            GValue           *property_value);
-GDK_AVAILABLE_IN_ALL
-gboolean gtk_rc_property_parse_flags       (const GParamSpec *pspec,
-                                            const GString    *gstring,
-                                            GValue           *property_value);
-GDK_AVAILABLE_IN_ALL
-gboolean gtk_rc_property_parse_requisition (const GParamSpec *pspec,
-                                            const GString    *gstring,
-                                            GValue           *property_value);
-GDK_AVAILABLE_IN_ALL
-gboolean gtk_rc_property_parse_border      (const GParamSpec *pspec,
-                                            const GString    *gstring,
-                                            GValue           *property_value);
 
 GDK_AVAILABLE_IN_ALL
 void     gtk_settings_reset_property       (GtkSettings            *settings,

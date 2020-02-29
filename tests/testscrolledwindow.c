@@ -112,7 +112,7 @@ scrollable_policy (void)
 			 "is enough height to fit the content vertically if the window were "
 			 "to be allocated a width without a vscrollbar present");
 
-  gtk_label_set_line_wrap  (GTK_LABEL (label), TRUE);
+  gtk_label_set_wrap (GTK_LABEL (label), TRUE);
   gtk_label_set_width_chars  (GTK_LABEL (label), 40);
   gtk_label_set_max_width_chars  (GTK_LABEL (label), 100);
 
@@ -217,7 +217,7 @@ scrollable_policy (void)
 
   widget = gtk_menu_button_new ();
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (widget), popover);
-  gtk_container_add (GTK_CONTAINER (widget), gtk_label_new ("Popover"));
+  gtk_menu_button_set_label (GTK_MENU_BUTTON (widget), "Popover");
   gtk_container_add (GTK_CONTAINER (cntl), widget);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
@@ -327,7 +327,8 @@ main (int argc, char *argv[])
 
   scrollable_policy ();
 
-  gtk_main ();
+  while (TRUE)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

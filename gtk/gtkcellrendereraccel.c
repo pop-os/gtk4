@@ -28,6 +28,8 @@
 #include "gtktypebuiltins.h"
 #include "gtkprivate.h"
 #include "gtkeventcontrollerkey.h"
+#include "gtknative.h"
+#include "gtkbinlayout.h"
 
 
 /**
@@ -87,6 +89,35 @@ enum {
 
 static guint signals[LAST_SIGNAL] = { 0 };
 
+typedef struct _GtkCellRendererAccelPrivate       GtkCellRendererAccelPrivate;
+typedef struct _GtkCellRendererAccelClass         GtkCellRendererAccelClass;
+
+struct _GtkCellRendererAccel
+{
+  GtkCellRendererText parent;
+};
+
+struct _GtkCellRendererAccelClass
+{
+  GtkCellRendererTextClass parent_class;
+
+  void (* accel_edited)  (GtkCellRendererAccel *accel,
+                          const gchar          *path_string,
+                          guint                 accel_key,
+                          GdkModifierType       accel_mods,
+                          guint                 hardware_keycode);
+
+  void (* accel_cleared) (GtkCellRendererAccel *accel,
+                          const gchar          *path_string);
+
+  /* Padding for future expansion */
+  void (*_gtk_reserved0) (void);
+  void (*_gtk_reserved1) (void);
+  void (*_gtk_reserved2) (void);
+  void (*_gtk_reserved3) (void);
+  void (*_gtk_reserved4) (void);
+};
+
 struct _GtkCellRendererAccelPrivate
 {
   GtkWidget *sizing_label;
@@ -95,8 +126,6 @@ struct _GtkCellRendererAccelPrivate
   GdkModifierType accel_mods;
   guint accel_key;
   guint keycode;
-
-  GdkSeat *grab_seat;
 };
 
 G_DEFINE_TYPE_WITH_PRIVATE (GtkCellRendererAccel, gtk_cell_renderer_accel, GTK_TYPE_CELL_RENDERER_TEXT)
@@ -106,8 +135,6 @@ gtk_cell_renderer_accel_init (GtkCellRendererAccel *cell_accel)
 {
   gchar *text;
 
-  cell_accel->priv = gtk_cell_renderer_accel_get_instance_private (cell_accel);
-
   text = convert_keysym_state_to_string (cell_accel, 0, 0, 0);
   g_object_set (cell_accel, "text", text, NULL);
   g_free (text);
@@ -116,7 +143,7 @@ gtk_cell_renderer_accel_init (GtkCellRendererAccel *cell_accel)
 static void
 gtk_cell_renderer_accel_dispose (GObject *object)
 {
-  GtkCellRendererAccelPrivate *priv = GTK_CELL_RENDERER_ACCEL (object)->priv;
+  GtkCellRendererAccelPrivate *priv = gtk_cell_renderer_accel_get_instance_private (GTK_CELL_RENDERER_ACCEL (object));
 
   g_clear_object (&priv->sizing_label);
 
@@ -236,7 +263,7 @@ gtk_cell_renderer_accel_class_init (GtkCellRendererAccelClass *cell_accel_class)
                                          G_SIGNAL_RUN_LAST,
                                          G_STRUCT_OFFSET (GtkCellRendererAccelClass, accel_cleared),
                                          NULL, NULL,
-                                         g_cclosure_marshal_VOID__STRING,
+                                         NULL,
                                          G_TYPE_NONE, 1,
                                          G_TYPE_STRING);
 }
@@ -261,7 +288,7 @@ convert_keysym_state_to_string (GtkCellRendererAccel *accel,
                                 GdkModifierType       mask,
                                 guint                 keycode)
 {
-  GtkCellRendererAccelPrivate *priv = accel->priv;
+  GtkCellRendererAccelPrivate *priv = gtk_cell_renderer_accel_get_instance_private (accel);
 
   if (keysym == 0 && keycode == 0)
     /* This label is displayed in a treeview cell displaying
@@ -300,7 +327,7 @@ gtk_cell_renderer_accel_get_property (GObject    *object,
                                       GValue     *value,
                                       GParamSpec *pspec)
 {
-  GtkCellRendererAccelPrivate *priv = GTK_CELL_RENDERER_ACCEL (object)->priv;
+  GtkCellRendererAccelPrivate *priv = gtk_cell_renderer_accel_get_instance_private (GTK_CELL_RENDERER_ACCEL (object));
 
   switch (param_id)
     {
@@ -332,7 +359,7 @@ gtk_cell_renderer_accel_set_property (GObject      *object,
                                       GParamSpec   *pspec)
 {
   GtkCellRendererAccel *accel = GTK_CELL_RENDERER_ACCEL (object);
-  GtkCellRendererAccelPrivate *priv = accel->priv;
+  GtkCellRendererAccelPrivate *priv = gtk_cell_renderer_accel_get_instance_private (GTK_CELL_RENDERER_ACCEL (object));
   gboolean changed = FALSE;
 
   switch (param_id)
@@ -404,7 +431,7 @@ gtk_cell_renderer_accel_get_preferred_width (GtkCellRenderer *cell,
                                              gint            *natural_size)
 
 {
-  GtkCellRendererAccelPrivate *priv = GTK_CELL_RENDERER_ACCEL (cell)->priv;
+  GtkCellRendererAccelPrivate *priv = gtk_cell_renderer_accel_get_instance_private (GTK_CELL_RENDERER_ACCEL (cell));
   GtkRequisition min_req, nat_req;
 
   if (priv->sizing_label == NULL)
@@ -434,77 +461,20 @@ gtk_cell_renderer_accel_start_editing (GtkCellRenderer      *cell,
                                        const GdkRectangle   *cell_area,
                                        GtkCellRendererState  flags)
 {
-  GtkCellRendererAccelPrivate *priv;
-  GtkCellRendererText *celltext;
-  GtkCellRendererAccel *accel;
-  GtkWidget *label;
+  GtkCellRendererText *celltext = GTK_CELL_RENDERER_TEXT (cell);
+  GtkCellRendererAccel *accel = GTK_CELL_RENDERER_ACCEL (cell);
+  GtkCellRendererAccelPrivate *priv = gtk_cell_renderer_accel_get_instance_private (accel);
   GtkWidget *editable;
   gboolean is_editable;
-  GdkSeat *seat = NULL;
-  GdkSurface *surface;
-
-  celltext = GTK_CELL_RENDERER_TEXT (cell);
-  accel = GTK_CELL_RENDERER_ACCEL (cell);
-  priv = accel->priv;
 
   /* If the cell isn't editable we return NULL. */
   g_object_get (celltext, "editable", &is_editable, NULL);
   if (!is_editable)
     return NULL;
 
-  surface = gtk_widget_get_surface (gtk_widget_get_toplevel (widget));
-
-  if (event)
-    seat = gdk_event_get_seat (event);
-  else
-    {
-      GdkDevice *device;
-
-      device = gtk_get_current_event_device ();
-      if (device)
-        seat = gdk_device_get_seat (device);
-    }
-
-  if (!seat || !surface)
-    return NULL;
-
-  if (gdk_seat_grab (seat, surface,
-                     GDK_SEAT_CAPABILITY_ALL, FALSE,
-                     NULL, event, NULL, NULL) != GDK_GRAB_SUCCESS)
-    return NULL;
-
-  priv->grab_seat = seat;
-
   editable = gtk_cell_editable_widget_new (cell, priv->accel_mode, path);
 
-  label = gtk_label_new (NULL);
-  gtk_widget_set_halign (label, GTK_ALIGN_START);
-  gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
-
-  gtk_widget_set_state_flags (label, GTK_STATE_FLAG_SELECTED, TRUE);
-
-  /* This label is displayed in a treeview cell displaying an accelerator
-   * when the cell is clicked to change the acelerator.
-   */
-  gtk_label_set_text (GTK_LABEL (label), _("New accelerator…"));
-
-  gtk_container_add (GTK_CONTAINER (editable), label);
-
-  gtk_grab_add (editable);
-
   return GTK_CELL_EDITABLE (editable);
-}
-
-static void
-gtk_cell_renderer_accel_ungrab (GtkCellRendererAccel *accel)
-{
-  GtkCellRendererAccelPrivate *priv = accel->priv;
-
-  if (priv->grab_seat)
-    {
-      gdk_seat_ungrab (priv->grab_seat);
-      priv->grab_seat = NULL;
-    }
 }
 
 /* --------------------------------- */
@@ -520,6 +490,7 @@ struct _GtkCellEditableWidget
   GtkCellRendererAccelMode accel_mode;
   gchar *path;
   GtkCellRenderer *cell;
+  GtkWidget *label;
 };
 
 enum {
@@ -638,7 +609,6 @@ key_controller_key_pressed (GtkEventControllerKey *key,
 
  out:
   gtk_grab_remove (widget);
-  gtk_cell_renderer_accel_ungrab (GTK_CELL_RENDERER_ACCEL (box->cell));
   gtk_cell_editable_editing_done (GTK_CELL_EDITABLE (widget));
   gtk_cell_editable_remove_widget (GTK_CELL_EDITABLE (widget));
 
@@ -654,10 +624,7 @@ key_controller_key_pressed (GtkEventControllerKey *key,
 static void
 gtk_cell_editable_widget_unrealize (GtkWidget *widget)
 {
-  GtkCellEditableWidget *box = (GtkCellEditableWidget*)widget;
-
   gtk_grab_remove (widget);
-  gtk_cell_renderer_accel_ungrab (GTK_CELL_RENDERER_ACCEL (box->cell));
   
   GTK_WIDGET_CLASS (gtk_cell_editable_widget_parent_class)->unrealize (widget); 
 }
@@ -713,6 +680,16 @@ gtk_cell_editable_widget_get_property (GObject    *object,
 }
 
 static void
+gtk_cell_editable_widget_dispose (GObject *object)
+{
+  GtkCellEditableWidget *box = (GtkCellEditableWidget*)object;
+
+  g_clear_pointer (&box->label, gtk_widget_unparent);
+
+  G_OBJECT_CLASS (gtk_cell_editable_widget_parent_class)->dispose (object);
+}
+
+static void
 gtk_cell_editable_widget_finalize (GObject *object)
 {
   GtkCellEditableWidget *box = (GtkCellEditableWidget*)object;
@@ -729,6 +706,7 @@ gtk_cell_editable_widget_class_init (GtkCellEditableWidgetClass *class)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
 
   object_class->finalize = gtk_cell_editable_widget_finalize;
+  object_class->dispose = gtk_cell_editable_widget_dispose;
   object_class->set_property = gtk_cell_editable_widget_set_property;
   object_class->get_property = gtk_cell_editable_widget_get_property;
 
@@ -748,6 +726,7 @@ gtk_cell_editable_widget_class_init (GtkCellEditableWidgetClass *class)
       g_param_spec_string ("path", NULL, NULL,
                            NULL, GTK_PARAM_READWRITE));
 
+  gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
   gtk_widget_class_set_css_name (widget_class, I_("acceleditor"));
 }
 
@@ -765,8 +744,6 @@ gtk_cell_editable_widget_init (GtkCellEditableWidget *box)
   g_signal_connect (controller, "modifiers",
                     G_CALLBACK (key_controller_modifiers), box);
   gtk_widget_add_controller (widget, controller);
-
-  gtk_widget_set_has_surface (widget, FALSE);
 }
 
 static GtkWidget *
@@ -781,6 +758,21 @@ gtk_cell_editable_widget_new (GtkCellRenderer          *cell,
                       "path", path,
                       NULL);
   box->cell = cell;
+
+  box->label = gtk_label_new (NULL);
+  gtk_widget_set_halign (box->label, GTK_ALIGN_START);
+  gtk_widget_set_valign (box->label, GTK_ALIGN_CENTER);
+
+  gtk_widget_set_state_flags (box->label, GTK_STATE_FLAG_SELECTED, TRUE);
+
+  /* This label is displayed in a treeview cell displaying an accelerator
+   * when the cell is clicked to change the acelerator.
+   */
+  gtk_label_set_text (GTK_LABEL (box->label), _("New accelerator…"));
+
+  gtk_widget_set_parent (box->label, GTK_WIDGET (box));
+
+  gtk_grab_add (GTK_WIDGET (box));
 
   return GTK_WIDGET (box);
 }

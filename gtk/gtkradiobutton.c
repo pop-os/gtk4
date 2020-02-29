@@ -27,7 +27,6 @@
 #include "gtkradiobutton.h"
 
 #include "gtkwidgetprivate.h"
-#include "gtktogglebuttonprivate.h"
 #include "gtkcheckbuttonprivate.h"
 #include "gtklabel.h"
 #include "gtkmarshalers.h"
@@ -128,6 +127,19 @@
  * can be used to determine if the button has been selected or deselected.
  */
 
+typedef struct _GtkRadioButtonClass         GtkRadioButtonClass;
+
+struct _GtkRadioButton
+{
+  GtkCheckButton parent_instance;
+};
+
+struct _GtkRadioButtonClass
+{
+  GtkCheckButtonClass parent_class;
+
+  void (*group_changed) (GtkRadioButton *radio_button);
+};
 
 typedef struct
 {
@@ -222,19 +234,22 @@ gtk_radio_button_class_init (GtkRadioButtonClass *class)
 }
 
 static void
-gtk_radio_button_init (GtkRadioButton *radio_button)
+gtk_radio_button_init (GtkRadioButton *self)
 {
-  GtkRadioButtonPrivate *priv = gtk_radio_button_get_instance_private (radio_button);
+  GtkRadioButtonPrivate *priv = gtk_radio_button_get_instance_private (self);
+  GtkWidget *widget = GTK_WIDGET (self);
   GtkCssNode *css_node;
 
-  gtk_widget_set_receives_default (GTK_WIDGET (radio_button), FALSE);
+  gtk_widget_set_receives_default (widget, FALSE);
 
-  _gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (radio_button), TRUE);
+  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (self), TRUE);
 
-  priv->group = g_slist_prepend (NULL, radio_button);
+  priv->group = g_slist_prepend (NULL, self);
 
-  css_node = gtk_check_button_get_indicator_node (GTK_CHECK_BUTTON (radio_button));
-  gtk_css_node_set_name (css_node, I_("radio"));
+  css_node = gtk_widget_get_css_node (widget);
+  gtk_css_node_set_name (css_node, g_quark_from_static_string ("radiobutton"));
+  css_node = gtk_check_button_get_indicator_node (GTK_CHECK_BUTTON (self));
+  gtk_css_node_set_name (css_node, g_quark_from_static_string ("radio"));
 }
 
 static void
@@ -379,7 +394,7 @@ gtk_radio_button_set_group (GtkRadioButton *radio_button,
  *
  *   while (some_condition)
  *     {
- *        radio_button = gtk_radio_button_new (NULL);
+ *        radio_button = GTK_RADIO_BUTTON (gtk_radio_button_new (NULL));
  *
  *        gtk_radio_button_join_group (radio_button, last_button);
  *        last_button = radio_button;
@@ -716,9 +731,6 @@ gtk_radio_button_clicked (GtkButton *button)
   GtkToggleButton *toggle_button = GTK_TOGGLE_BUTTON (button);
   GtkToggleButton *tmp_button;
   GSList *tmp_list;
-  gint toggled;
-
-  toggled = FALSE;
 
   g_object_ref (GTK_WIDGET (button));
 
@@ -740,17 +752,13 @@ gtk_radio_button_clicked (GtkButton *button)
 	}
 
       if (tmp_button)
-	{
-	  toggled = TRUE;
-          _gtk_toggle_button_set_active (toggle_button,
-                                         !gtk_toggle_button_get_active (toggle_button));
-	}
+        gtk_toggle_button_set_active (toggle_button,
+                                      !gtk_toggle_button_get_active (toggle_button));
     }
   else
     {
-      toggled = TRUE;
-      _gtk_toggle_button_set_active (toggle_button,
-                                     !gtk_toggle_button_get_active (toggle_button));
+      gtk_toggle_button_set_active (toggle_button,
+                                    !gtk_toggle_button_get_active (toggle_button));
 
       tmp_list = priv->group;
       while (tmp_list)
@@ -760,17 +768,10 @@ gtk_radio_button_clicked (GtkButton *button)
 
 	  if (gtk_toggle_button_get_active (tmp_button) && (tmp_button != toggle_button))
 	    {
-	      gtk_button_clicked (GTK_BUTTON (tmp_button));
+              g_signal_emit_by_name (tmp_button, "clicked");
 	      break;
 	    }
 	}
-    }
-
-  if (toggled)
-    {
-      gtk_toggle_button_toggled (toggle_button);
-
-      g_object_notify (G_OBJECT (toggle_button), "active");
     }
 
   gtk_widget_queue_draw (GTK_WIDGET (button));

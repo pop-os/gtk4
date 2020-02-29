@@ -142,15 +142,14 @@ struct _GtkTextLineSegment {
     char chars[4];                      /* Characters that make up character
                                          * info.  Actual length varies to
                                          * hold as many characters as needed.*/
-    GtkTextToggleBody toggle;              /* Information about tag toggle. */
-    GtkTextMarkBody mark;              /* Information about mark. */
-    GtkTextTexture texture;            /* Child texture */
-    GtkTextChildBody child;            /* Child widget */
+    GtkTextToggleBody toggle;           /* Information about tag toggle. */
+    GtkTextMarkBody mark;               /* Information about mark. */
+    GtkTextPaintable paintable;         /* Child texture */
+    GtkTextChildBody child;             /* Child widget */
   } body;
 };
 
 
-GDK_AVAILABLE_IN_ALL
 GtkTextLineSegment  *gtk_text_line_segment_split (const GtkTextIter *iter);
 
 GtkTextLineSegment *_gtk_char_segment_new                  (const gchar    *text,

@@ -19,7 +19,7 @@
 #ifndef __GSK_RENDER_NODE_H__
 #define __GSK_RENDER_NODE_H__
 
-#if !defined (__GSK_H_INSIDE__) && !defined (GSK_COMPILATION)
+#if !defined (__GSK_H_INSIDE__) && !defined (GTK_COMPILATION)
 #error "Only <gsk/gsk.h> can be included directly."
 #endif
 
@@ -41,7 +41,7 @@ typedef struct _GskShadow               GskShadow;
 
 struct _GskColorStop
 {
-  double offset;
+  float offset;
   GdkRGBA color;
 };
 
@@ -53,6 +53,15 @@ struct _GskShadow
   float radius;
 };
 
+/**
+ * GskParseErrorFunc:
+ * @section: the #GtkCssSection where the error occurred
+ * @error:  the error
+ * @user_data: user data
+ *
+ * The type of callback that is called when a parse error occurs
+ * during deserialization of node data.
+ */
 typedef void           (* GskParseErrorFunc)                    (const GtkCssSection *section,
                                                                  const GError        *error,
                                                                  gpointer             user_data);
@@ -189,7 +198,7 @@ GskRenderNode *         gsk_cairo_node_new                      (const graphene_
 GDK_AVAILABLE_IN_ALL
 cairo_t *               gsk_cairo_node_get_draw_context         (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
-const cairo_surface_t * gsk_cairo_node_peek_surface             (GskRenderNode            *node);
+cairo_surface_t *       gsk_cairo_node_peek_surface             (GskRenderNode            *node);
 
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_container_node_new                  (GskRenderNode           **children,
@@ -210,11 +219,11 @@ GskTransform *          gsk_transform_node_get_transform        (GskRenderNode  
 
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_opacity_node_new                    (GskRenderNode            *child,
-                                                                 double                    opacity);
+                                                                 float                     opacity);
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_opacity_node_get_child              (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
-double                  gsk_opacity_node_get_opacity            (GskRenderNode            *node);
+float                   gsk_opacity_node_get_opacity            (GskRenderNode            *node);
 
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_color_matrix_node_new               (GskRenderNode            *child,
@@ -280,22 +289,22 @@ GskBlendMode            gsk_blend_node_get_blend_mode           (GskRenderNode  
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_cross_fade_node_new                 (GskRenderNode            *start,
                                                                  GskRenderNode            *end,
-                                                                 double                    progress);
+                                                                 float                     progress);
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_cross_fade_node_get_start_child     (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_cross_fade_node_get_end_child       (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
-double                  gsk_cross_fade_node_get_progress        (GskRenderNode            *node);
+float                   gsk_cross_fade_node_get_progress        (GskRenderNode            *node);
 
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_text_node_new                       (PangoFont                *font,
                                                                  PangoGlyphString         *glyphs,
                                                                  const GdkRGBA            *color,
-                                                                 float                     x,
-                                                                 float                     y);
+                                                                 const graphene_point_t   *offset);
 GDK_AVAILABLE_IN_ALL
-const PangoFont *       gsk_text_node_peek_font                 (GskRenderNode            *node);
+PangoFont *             gsk_text_node_peek_font                 (GskRenderNode            *node);
+gboolean                gsk_text_node_has_color_glyphs          (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
 guint                   gsk_text_node_get_num_glyphs            (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
@@ -303,17 +312,15 @@ const PangoGlyphInfo   *gsk_text_node_peek_glyphs               (GskRenderNode  
 GDK_AVAILABLE_IN_ALL
 const GdkRGBA *         gsk_text_node_peek_color                (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
-float                   gsk_text_node_get_x                     (GskRenderNode            *node);
-GDK_AVAILABLE_IN_ALL
-float                   gsk_text_node_get_y                     (GskRenderNode            *node);
+const graphene_point_t *gsk_text_node_get_offset                (GskRenderNode            *node);
 
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_blur_node_new                       (GskRenderNode            *child,
-                                                                 double                    radius);
+                                                                 float                     radius);
 GDK_AVAILABLE_IN_ALL
 GskRenderNode *         gsk_blur_node_get_child                 (GskRenderNode            *node);
 GDK_AVAILABLE_IN_ALL
-double                  gsk_blur_node_get_radius                (GskRenderNode            *node);
+float                   gsk_blur_node_get_radius                (GskRenderNode            *node);
 
 G_END_DECLS
 

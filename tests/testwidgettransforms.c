@@ -50,7 +50,6 @@ G_DEFINE_TYPE (GtkMatrixChooser, gtk_matrix_chooser, GTK_TYPE_WIDGET)
 static void
 gtk_matrix_chooser_init (GtkMatrixChooser *self)
 {
-  gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
 }
 
 static void
@@ -129,8 +128,6 @@ gtk_transform_tester_size_allocate (GtkWidget  *widget,
                        w, h,
                        -1,
                        global_transform);
-
-  gsk_transform_unref (global_transform);
 }
 
 static void
@@ -237,8 +234,6 @@ gtk_transform_tester_snapshot (GtkWidget   *widget,
 static void
 gtk_transform_tester_init (GtkTransformTester *self)
 {
-  gtk_widget_set_has_surface (GTK_WIDGET (self), FALSE);
-
   self->pick_increase = 4;
 }
 
@@ -283,6 +278,17 @@ toggled_cb (GtkToggleButton *source,
   do_picking = gtk_toggle_button_get_active (source);
 }
 
+static void
+quit_cb (GtkWidget *widget,
+         gpointer   data)
+{
+  gboolean *done = data;
+
+  *done = TRUE;
+
+  g_main_context_wakeup (NULL);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -292,6 +298,7 @@ main (int argc, char **argv)
   GtkWidget *titlebar;
   GtkWidget *toggle_button;
   GtkCssProvider *provider;
+  gboolean done = FALSE;
 
   gtk_init ();
 
@@ -300,7 +307,6 @@ main (int argc, char **argv)
   gtk_style_context_add_provider_for_display (gdk_display_get_default (),
                                               GTK_STYLE_PROVIDER (provider),
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
-
 
   window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
   matrix_chooser = g_object_new (GTK_TYPE_MATRIX_CHOOSER, NULL);
@@ -338,10 +344,11 @@ main (int argc, char **argv)
   gtk_container_add (GTK_CONTAINER (window), box);
 
   gtk_window_set_default_size ((GtkWindow *)window, 200, 200);
-  g_signal_connect (window, "close-request", G_CALLBACK (gtk_main_quit), NULL);
+  g_signal_connect (window, "close-request", G_CALLBACK (quit_cb), &done);
   gtk_widget_show (window);
 
-  gtk_main ();
+  while (!done)
+    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

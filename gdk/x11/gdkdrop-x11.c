@@ -145,9 +145,9 @@ gdk_x11_drop_read_got_stream (GObject      *source,
     }
   else
     {
-      const char *mime_type = ((GSList *) g_task_get_task_data (task))->data;
 #if 0
       gsize i;
+      const char *mime_type = ((GSList *) g_task_get_task_data (task))->data;
 
       for (i = 0; i < G_N_ELEMENTS (special_targets); i++)
         {
@@ -166,7 +166,7 @@ gdk_x11_drop_read_got_stream (GObject      *source,
 #endif
 
       GDK_NOTE (DND, g_printerr ("reading DND as %s now\n",
-                                mime_type));
+                                 (const char *)((GSList *) g_task_get_task_data (task))->data));
       g_task_return_pointer (task, stream, g_object_unref);
     }
 
@@ -621,7 +621,7 @@ static gboolean
 xdnd_position_filter (GdkSurface   *surface,
                       const XEvent *xevent)
 {
-  GdkSurfaceImplX11 *impl;
+  GdkX11Surface *impl;
   Window source_window = xevent->xclient.data.l[0];
   gint16 x_root = xevent->xclient.data.l[2] >> 16;
   gint16 y_root = xevent->xclient.data.l[2] & 0xffff;
@@ -647,7 +647,7 @@ xdnd_position_filter (GdkSurface   *surface,
   if ((drop != NULL) &&
       (drop_x11->source_window == source_window))
     {
-      impl = GDK_SURFACE_IMPL_X11 (gdk_drop_get_surface (drop)->impl);
+      impl = GDK_X11_SURFACE (gdk_drop_get_surface (drop));
 
       drop_x11->suggested_action = xdnd_action_from_atom (display, action);
       gdk_x11_drop_update_actions (drop_x11);
@@ -732,14 +732,14 @@ gdk_x11_drop_do_nothing (Window   window,
                          gboolean success,
                          gpointer data)
 {
+#ifdef G_ENABLE_DEBUG
   GdkDisplay *display = data;
 
   if (!success)
     {
-      GDK_DISPLAY_NOTE (display, DND,
-                g_message ("Send event to %lx failed",
-                           window));
+      GDK_DISPLAY_NOTE (display, DND, g_message ("Send event to %lx failed", window));
     }
+#endif
 }
 
 static void
@@ -747,13 +747,24 @@ gdk_x11_drop_status (GdkDrop       *drop,
                      GdkDragAction  actions)
 {
   GdkX11Drop *drop_x11 = GDK_X11_DROP (drop);
-  GdkDragAction possible_actions;
+  GdkDragAction possible_actions, suggested_action;
   XEvent xev;
   GdkDisplay *display;
 
   display = gdk_drop_get_display (drop);
 
   possible_actions = actions & gdk_drop_get_actions (drop);
+
+  if (drop_x11->suggested_action != 0)
+    suggested_action = drop_x11->suggested_action;
+  else if (possible_actions & GDK_ACTION_COPY)
+    suggested_action = GDK_ACTION_COPY;
+  else if (possible_actions & GDK_ACTION_MOVE)
+    suggested_action = GDK_ACTION_MOVE;
+  else if (possible_actions & GDK_ACTION_ASK)
+    suggested_action = GDK_ACTION_ASK;
+  else
+    suggested_action = 0;
 
   xev.xclient.type = ClientMessage;
   xev.xclient.message_type = gdk_x11_get_xatom_by_name_for_display (display, "XdndStatus");
@@ -764,7 +775,7 @@ gdk_x11_drop_status (GdkDrop       *drop,
   xev.xclient.data.l[1] = (possible_actions != 0) ? (2 | 1) : 0;
   xev.xclient.data.l[2] = 0;
   xev.xclient.data.l[3] = 0;
-  xev.xclient.data.l[4] = xdnd_action_to_atom (display, possible_actions);
+  xev.xclient.data.l[4] = xdnd_action_to_atom (display, suggested_action);
 
   if (gdk_drop_get_drag (drop))
     {
@@ -821,7 +832,7 @@ gdk_x11_drop_finish (GdkDrop       *drop,
 
   if (gdk_drop_get_drag (drop))
     {
-      gdk_x11_drag_handle_status (display, &xev);
+      gdk_x11_drag_handle_finished (display, &xev);
     }
   else
     {

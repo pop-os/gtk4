@@ -185,7 +185,7 @@ gdk_keymap_class_init (GdkKeymapClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GdkKeymapClass, direction_changed),
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
+		  NULL,
 		  G_TYPE_NONE,
 		  0);
   /**
@@ -201,7 +201,7 @@ gdk_keymap_class_init (GdkKeymapClass *klass)
 		  G_SIGNAL_RUN_LAST,
 		  G_STRUCT_OFFSET (GdkKeymapClass, keys_changed),
 		  NULL, NULL,
-		  g_cclosure_marshal_VOID__VOID,
+		  NULL,
 		  G_TYPE_NONE,
 		  0);
 
@@ -219,7 +219,7 @@ gdk_keymap_class_init (GdkKeymapClass *klass)
                   G_SIGNAL_RUN_LAST,
                   G_STRUCT_OFFSET (GdkKeymapClass, state_changed),
                   NULL, NULL,
-                  g_cclosure_marshal_VOID__VOID,
+                  NULL,
                   G_TYPE_NONE,
                   0);
 }
@@ -738,7 +738,7 @@ gdk_keymap_get_modifier_mask (GdkKeymap         *keymap,
  *     of the key, or %NULL if @keyval is not a valid key. The string
  *     should not be modified.
  */
-gchar *
+const gchar *
 gdk_keyval_name (guint keyval)
 {
   return _gdk_keyval_name (keyval);
@@ -887,8 +887,9 @@ gdk_keyval_convert_case (guint symbol,
         xupper -= (GDK_KEY_Greek_alphaaccent - GDK_KEY_Greek_ALPHAaccent);
       else if (symbol >= GDK_KEY_Greek_ALPHA && symbol <= GDK_KEY_Greek_OMEGA)
         xlower += (GDK_KEY_Greek_alpha - GDK_KEY_Greek_ALPHA);
-      else if (symbol >= GDK_KEY_Greek_alpha && symbol <= GDK_KEY_Greek_omega &&
-               symbol != GDK_KEY_Greek_finalsmallsigma)
+      else if (symbol == GDK_KEY_Greek_finalsmallsigma)
+        xupper = GDK_KEY_Greek_SIGMA;
+      else if (symbol >= GDK_KEY_Greek_alpha && symbol <= GDK_KEY_Greek_omega)
         xupper -= (GDK_KEY_Greek_alpha - GDK_KEY_Greek_ALPHA);
       break;
 
