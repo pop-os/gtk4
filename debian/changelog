@@ -18,6 +18,15 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     mode")
   * d/upstream/metadata: Add upstream URLs
   * New upstream release
+  * d/copyright: Simplify and consolidate (see individual source files if
+    finer detail is required)
+    - Stop distinguishing between LGPL 2+ and 2.1+, list both as
+      "LGPL-2+ and LGPL-2.1+"
+    - Stop distinguishing between code and translations
+    - Merge copyright years
+    - Merge entries differing only by email address
+    - Stop repeating "Copyright (C)"
+    - Indent with a single space
 
  -- Simon McVittie <smcv@debian.org>  Sat, 29 Feb 2020 14:18:02 +0000
 
