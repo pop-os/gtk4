@@ -99,8 +99,8 @@ configure_flags_common = \
 
 configure_flags_deb = \
 	-Dbroadway-backend=true \
+	-Dgtk_doc=true \
 	-Dx11-backend=true \
-	-Ddocumentation=true \
 	-Dman-pages=true \
 	-Dintrospection=true \
 	-Dinstall-tests=true \
