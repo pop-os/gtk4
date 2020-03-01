@@ -28,6 +28,10 @@
 # FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
 # IN THE SOFTWARE.
 
+# Assume a Debian Policy §10.4-compatible shell like dash or bash (with the
+# 'local' builtin)
+# shellcheck disable=SC2039
+
 set -eu
 
 me="$(basename "$0")"
