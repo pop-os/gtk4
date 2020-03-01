@@ -184,9 +184,9 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	env -u LD_PRELOAD \
 	xvfb-run -a -s "-screen 0 1024x768x24" \
 	debian/run-with-locales \
-		--generate de_DE.UTF-8 \
-		--generate en_GB.UTF-8 \
-		--generate en_US.UTF-8 \
+		--generate de_DE.utf8 \
+		--generate en_GB.utf8 \
+		--generate en_US.utf8 \
 		--generate sv_SE \
 		-- \
 	dh_auto_test --builddirectory=debian/build/deb -- -k 0 -j 1 || true
