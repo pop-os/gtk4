@@ -4,7 +4,6 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     - Drop all patches, applied upstream
     - d/control.in: Update build-dependencies
     - d/rules: Update SONAME
-    - Install new gtk4-constraint-editor
     - d/rules: Adjust build options for rename of documentation to gtk_doc
     - debian/libgtk-4-0.symbols.in: Update
   * d/rules: Sort build options
@@ -46,8 +45,9 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     they were pulled in by gtk-doc-tools.
   * d/p/build-Install-gtkemojichooser.h.patch:
     Add patch from upstream to fix installation of headers
+  * d/.gitignore: Add
 
- -- Simon McVittie <smcv@debian.org>  Sat, 29 Feb 2020 23:33:18 +0000
+ -- Simon McVittie <smcv@debian.org>  Sun, 01 Mar 2020 21:43:13 +0000
 
 gtk+4.0 (3.96.0-2) experimental; urgency=medium
 
