@@ -1,5 +1,6 @@
-gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.98.0-1) experimental; urgency=medium
 
+  * Team upload
   * New upstream release
     - Drop all patches, applied upstream
     - d/control.in: Update build-dependencies
@@ -47,7 +48,7 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     Add patch from upstream to fix installation of headers
   * d/.gitignore: Add
 
- -- Simon McVittie <smcv@debian.org>  Sun, 01 Mar 2020 21:43:13 +0000
+ -- Simon McVittie <smcv@debian.org>  Sun, 01 Mar 2020 21:44:08 +0000
 
 gtk+4.0 (3.96.0-2) experimental; urgency=medium
 
