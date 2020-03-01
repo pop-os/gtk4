@@ -188,6 +188,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		--generate en_GB.UTF-8 \
 		--generate en_US.UTF-8 \
 		--generate sv_SE \
+		-- \
 	dh_auto_test --builddirectory=debian/build/deb -- -k 0 -j 1 || true
 endif
 
