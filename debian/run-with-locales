@@ -44,48 +44,64 @@ usage () {
         exec >&2
     fi
 
-    echo "Usage: $me [--generate LOCALE...] COMMAND [ARGS...]"
+    echo "Usage: $me [--generate LOCALE...] [--] COMMAND [ARGS...]"
+    exit "$status"
 }
 
-getopt_temp=+help
+getopt_temp=help
 getopt_temp="$getopt_temp,generate:"
 
-getopt_temp="$(getopt -o '' --long "$getopt_temp" -n "$0" -- "$@")"
+getopt_temp="$(getopt -o '+' --long "$getopt_temp" -n "$0" -- "$@")"
 eval set -- "$getopt_temp"
 unset getopt_temp
 
 generate () {
     local locale="$1"
-    local name
     local charset
+    local source
+    local output
+
+    echo "$me: $locale..." >&2
 
     case "$locale" in
-        (*.utf8)
-            name="${locale%.utf8}"
-            charset=UTF-8
-            ;;
-
-        (sv_SE)
-            name="$locale"
-            charset=ISO-8859-1
+        (*.*)
+            source="${locale%.*}"
+            output="$source.$(
+                export LC_ALL=C
+                printf '%s' "${locale##*.}" | \
+                    tr '[:upper:]' '[:lower:]' | \
+                    tr -d -C '[:lower:][:digit:]'
+            )"
             ;;
 
         (*)
-            echo "$me: Unsupported locale $locale" >&2
-            exit 1
-            ;;
+            source="${locale}"
+            output="${locale}"
     esac
 
-    if [ -e "/usr/lib/locale/$locale/LC_MESSAGES/SYS_LC_MESSAGES" ]; then
+    if [ -e "/usr/lib/locale/$output/LC_MESSAGES/SYS_LC_MESSAGES" ]; then
+        printf '\t%s\n' "Found in locales-all" >&2
         return
     fi
+
+    charset=$(sed -ne "s/^$locale //p" /usr/share/i18n/SUPPORTED)
+
+    if [ -z "$charset" ]; then
+        echo "$me: $locale not found in /usr/share/i18n/SUPPORTED" >&2
+        exit 1
+    fi
+
+    printf '\t%s\n' "Character set: $charset" >&2
+    printf '\t%s\n' "Source file: $source" >&2
 
     if [ -z "$tempdir" ]; then
         tempdir="$(mktemp -d)"
         trap 'rm -fr "$tempdir"' EXIT
     fi
 
-    localedef -i "$name" -f "$charset" "$tempdir/$locale"
+    printf '\t%s\n' "Output: $tempdir/$output" >&2
+
+    localedef -i "$source" -f "$charset" "$tempdir/$output"
 }
 
 while [ "$#" -gt 0 ]; do
