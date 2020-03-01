@@ -44,6 +44,8 @@ gtk+4.0 (3.98.0-1) UNRELEASED; urgency=medium
     Promote docbook-xml and docbook-xsl to Build-Depends instead: they are
     needed in all builds for the example programs' man pages. Previously,
     they were pulled in by gtk-doc-tools.
+  * d/p/build-Install-gtkemojichooser.h.patch:
+    Add patch from upstream to fix installation of headers
 
  -- Simon McVittie <smcv@debian.org>  Sat, 29 Feb 2020 23:33:18 +0000
 
