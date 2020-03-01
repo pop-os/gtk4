@@ -43,7 +43,7 @@ usage () {
     echo "Usage: $me [--generate LOCALE...] COMMAND [ARGS...]"
 }
 
-getopt_temp=help
+getopt_temp=+help
 getopt_temp="$getopt_temp,generate:"
 
 getopt_temp="$(getopt -o '' --long "$getopt_temp" -n "$0" -- "$@")"
