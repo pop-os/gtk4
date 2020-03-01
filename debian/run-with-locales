@@ -113,8 +113,8 @@ while [ "$#" -gt 0 ]; do
     esac
 done
 
-if [ -n "$tmpdir" ]; then
-    export LOCPATH="$tmpdir"
+if [ -n "$tempdir" ]; then
+    export LOCPATH="$tempdir"
 fi
 
 "$@"
