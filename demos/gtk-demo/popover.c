@@ -22,10 +22,14 @@ create_popover (GtkWidget       *parent,
 {
   GtkWidget *popover;
 
-  popover = gtk_popover_new (parent);
+  popover = gtk_popover_new ();
+  gtk_widget_set_parent (popover, parent);
   gtk_popover_set_position (GTK_POPOVER (popover), pos);
   gtk_container_add (GTK_CONTAINER (popover), child);
-  g_object_set (child, "margin", 6, NULL);
+  gtk_widget_set_margin_start (child, 6);
+  gtk_widget_set_margin_end (child, 6);
+  gtk_widget_set_margin_top (child, 6);
+  gtk_widget_set_margin_bottom (child, 6);
   gtk_widget_show (child);
 
   return popover;
@@ -99,14 +103,16 @@ day_selected_cb (GtkCalendar *calendar,
   GtkWidget *popover;
   GdkEvent *event;
   gdouble x, y;
+  GtkWidget *widget;
 
   event = gtk_get_current_event ();
 
   if (gdk_event_get_event_type (event) != GDK_BUTTON_PRESS)
     return;
 
-  gdk_event_get_coords (event, &x, &y);
-  gtk_widget_translate_coordinates (gtk_get_event_widget (event),
+  gdk_event_get_position (event, &x, &y);
+  widget = gtk_native_get_for_surface (gdk_event_get_surface (event));
+  gtk_widget_translate_coordinates (widget,
                                     GTK_WIDGET (calendar),
                                     x, y,
                                     &rect.x, &rect.y);
@@ -119,7 +125,7 @@ day_selected_cb (GtkCalendar *calendar,
 
   gtk_widget_show (popover);
 
-  g_object_unref (event);
+  gdk_event_unref (event);
 }
 
 GtkWidget *
@@ -130,10 +136,13 @@ do_popover (GtkWidget *do_widget)
 
   if (!window)
     {
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_title (GTK_WINDOW (window), "Popovers");
       box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 24);
-      g_object_set (box, "margin", 24, NULL);
+      gtk_widget_set_margin_start (box, 24);
+      gtk_widget_set_margin_end (box, 24);
+      gtk_widget_set_margin_top (box, 24);
+      gtk_widget_set_margin_bottom (box, 24);
       gtk_container_add (GTK_CONTAINER (window), box);
 
       g_signal_connect (window, "destroy",

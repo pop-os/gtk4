@@ -102,6 +102,7 @@ gtk/inspector/resource-list.ui
 gtk/inspector/resource-list.ui.h
 gtk/inspector/selector.ui
 gtk/inspector/selector.ui.h
+gtk/inspector/shortcuts.ui
 gtk/inspector/signals-list.ui
 gtk/inspector/signals-list.ui.h
 gtk/inspector/statistics.ui
@@ -128,7 +129,6 @@ gtk/ui/gtkfontchooserwidget.ui
 gtk/ui/gtklockbutton.ui
 gtk/ui/gtkmessagedialog.ui
 gtk/ui/gtkpagesetupunixdialog.ui
-gtk/ui/gtkpathbar.ui
 gtk/ui/gtkplacesviewrow.ui
 gtk/ui/gtkplacesview.ui
 gtk/ui/gtkprintunixdialog.ui

@@ -92,8 +92,7 @@ enum {
   PROP_NAME,
   PROP_ASSOCIATED_DEVICE,
   PROP_TYPE,
-  PROP_INPUT_SOURCE,
-  PROP_INPUT_MODE,
+  PROP_SOURCE,
   PROP_HAS_CURSOR,
   PROP_N_AXES,
   PROP_VENDOR_ID,
@@ -169,31 +168,18 @@ gdk_device_class_init (GdkDeviceClass *klass)
                            G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
   /**
-   * GdkDevice:input-source:
+   * GdkDevice:source:
    *
    * Source type for the device.
    */
-  device_props[PROP_INPUT_SOURCE] =
-      g_param_spec_enum ("input-source",
+  device_props[PROP_SOURCE] =
+      g_param_spec_enum ("source",
                          P_("Input source"),
                          P_("Source type for the device"),
                          GDK_TYPE_INPUT_SOURCE,
                          GDK_SOURCE_MOUSE,
                          G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY |
                          G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
-
-  /*
-   * GdkDevice:input-mode:
-   *
-   * Input mode for the device.
-   */
-  device_props[PROP_INPUT_MODE] =
-      g_param_spec_enum ("input-mode",
-                         P_("Input mode for the device"),
-                         P_("Input mode for the device"),
-                         GDK_TYPE_INPUT_MODE,
-                         GDK_MODE_DISABLED,
-                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GdkDevice:has-cursor:
@@ -414,11 +400,8 @@ gdk_device_set_property (GObject      *object,
     case PROP_TYPE:
       device->type = g_value_get_enum (value);
       break;
-    case PROP_INPUT_SOURCE:
+    case PROP_SOURCE:
       device->source = g_value_get_enum (value);
-      break;
-    case PROP_INPUT_MODE:
-      gdk_device_set_mode (device, g_value_get_enum (value));
       break;
     case PROP_HAS_CURSOR:
       device->has_cursor = g_value_get_boolean (value);
@@ -463,11 +446,8 @@ gdk_device_get_property (GObject    *object,
     case PROP_TYPE:
       g_value_set_enum (value, device->type);
       break;
-    case PROP_INPUT_SOURCE:
+    case PROP_SOURCE:
       g_value_set_enum (value, device->source);
-      break;
-    case PROP_INPUT_MODE:
-      g_value_set_enum (value, device->mode);
       break;
     case PROP_HAS_CURSOR:
       g_value_set_boolean (value, device->has_cursor);
@@ -519,7 +499,7 @@ gdk_device_get_state (GdkDevice       *device,
                       GdkModifierType *mask)
 {
   g_return_if_fail (GDK_IS_DEVICE (device));
-  g_return_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD);
+  g_return_if_fail (device->source != GDK_SOURCE_KEYBOARD);
   g_return_if_fail (GDK_IS_SURFACE (surface));
   g_return_if_fail (gdk_device_get_device_type (device) != GDK_DEVICE_TYPE_SLAVE ||
                     gdk_display_device_is_grabbed (gdk_device_get_display (device), device));
@@ -541,17 +521,12 @@ gdk_device_get_position (GdkDevice *device,
                          double    *x,
                          double    *y)
 {
-  GdkDisplay *display;
-
   g_return_if_fail (GDK_IS_DEVICE (device));
-  g_return_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD);
-
-  display = gdk_device_get_display (device);
-
+  g_return_if_fail (device->source != GDK_SOURCE_KEYBOARD);
   g_return_if_fail (gdk_device_get_device_type (device) != GDK_DEVICE_TYPE_SLAVE ||
-                    gdk_display_device_is_grabbed (display, device));
+                    gdk_display_device_is_grabbed (gdk_device_get_display (device), device));
 
-  _gdk_device_query_state (device, NULL, NULL, x, y, NULL, NULL, NULL);
+  _gdk_device_query_state (device, NULL, NULL, x, y, NULL);
 }
 
 /**
@@ -582,7 +557,7 @@ gdk_device_get_surface_at_position (GdkDevice *device,
   GdkSurface *surface;
 
   g_return_val_if_fail (GDK_IS_DEVICE (device), NULL);
-  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, NULL);
+  g_return_val_if_fail (device->source != GDK_SOURCE_KEYBOARD, NULL);
   g_return_val_if_fail (gdk_device_get_device_type (device) != GDK_DEVICE_TYPE_SLAVE ||
                         gdk_display_device_is_grabbed (gdk_device_get_display (device), device), NULL);
 
@@ -631,7 +606,7 @@ gdk_device_get_history (GdkDevice      *device,
                         gint           *n_events)
 {
   g_return_val_if_fail (GDK_IS_DEVICE (device), FALSE);
-  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, FALSE);
+  g_return_val_if_fail (device->source != GDK_SOURCE_KEYBOARD, FALSE);
   g_return_val_if_fail (GDK_IS_SURFACE (surface), FALSE);
 
   if (n_events)
@@ -733,56 +708,6 @@ gdk_device_get_source (GdkDevice *device)
 }
 
 /**
- * gdk_device_get_mode:
- * @device: a #GdkDevice
- *
- * Determines the mode of the device.
- *
- * Returns: a #GdkInputMode
- **/
-GdkInputMode
-gdk_device_get_mode (GdkDevice *device)
-{
-  g_return_val_if_fail (GDK_IS_DEVICE (device), 0);
-
-  return device->mode;
-}
-
-/**
- * gdk_device_set_mode:
- * @device: a #GdkDevice.
- * @mode: the input mode.
- *
- * Sets a the mode of an input device. The mode controls if the
- * device is active and whether the device’s range is mapped to the
- * entire screen or to a single surface.
- *
- * Note: This is only meaningful for floating devices, master devices (and
- * slaves connected to these) drive the pointer cursor, which is not limited
- * by the input mode.
- *
- * Returns: %TRUE if the mode was successfully changed.
- **/
-gboolean
-gdk_device_set_mode (GdkDevice    *device,
-                     GdkInputMode  mode)
-{
-  g_return_val_if_fail (GDK_IS_DEVICE (device), FALSE);
-
-  if (device->mode == mode)
-    return TRUE;
-
-  if (mode == GDK_MODE_DISABLED &&
-      gdk_device_get_device_type (device) == GDK_DEVICE_TYPE_MASTER)
-    return FALSE;
-
-  device->mode = mode;
-  g_object_notify_by_pspec (G_OBJECT (device), device_props[PROP_INPUT_MODE]);
-
-  return TRUE;
-}
-
-/**
  * gdk_device_get_n_keys:
  * @device: a #GdkDevice
  *
@@ -871,7 +796,7 @@ gdk_device_get_axis_use (GdkDevice *device,
   GdkAxisInfo *info;
 
   g_return_val_if_fail (GDK_IS_DEVICE (device), GDK_AXIS_IGNORE);
-  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, GDK_AXIS_IGNORE);
+  g_return_val_if_fail (device->source != GDK_SOURCE_KEYBOARD, GDK_AXIS_IGNORE);
   g_return_val_if_fail (index_ < device->axes->len, GDK_AXIS_IGNORE);
 
   info = &g_array_index (device->axes, GdkAxisInfo, index_);
@@ -895,7 +820,7 @@ gdk_device_set_axis_use (GdkDevice   *device,
   GdkAxisInfo *info;
 
   g_return_if_fail (GDK_IS_DEVICE (device));
-  g_return_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD);
+  g_return_if_fail (device->source != GDK_SOURCE_KEYBOARD);
   g_return_if_fail (index_ < device->axes->len);
 
   info = &g_array_index (device->axes, GdkAxisInfo, index_);
@@ -1080,39 +1005,47 @@ gint
 gdk_device_get_n_axes (GdkDevice *device)
 {
   g_return_val_if_fail (GDK_IS_DEVICE (device), 0);
-  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, 0);
+  g_return_val_if_fail (device->source != GDK_SOURCE_KEYBOARD, 0);
 
   return device->axes->len;
 }
 
 /**
- * gdk_device_list_axes:
- * @device: a pointer #GdkDevice
+ * gdk_device_get_axis_names:
+ * @device: a #GdkDevice
  *
- * Returns a #GList of #GdkAtoms, containing the labels for
+ * Returns a null-terminated array of strings, containing the labels for
  * the axes that @device currently has.
+ * If the device has no axes, %NULL is returned.
  *
- * Returns: (transfer container) (element-type GdkAtom):
- *     A #GList of strings, free with g_list_free().
+ * Returns: (nullable) (transfer full): A null-terminated string array,
+ *     free with g_strfreev().
  **/
-GList *
-gdk_device_list_axes (GdkDevice *device)
+char **
+gdk_device_get_axis_names (GdkDevice *device)
 {
-  GList *axes = NULL;
+  GPtrArray *axes;
   gint i;
 
   g_return_val_if_fail (GDK_IS_DEVICE (device), NULL);
-  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, NULL);
+  g_return_val_if_fail (device->source != GDK_SOURCE_KEYBOARD, NULL);
+
+  if (device->axes->len == 0)
+    return NULL;
+
+  axes = g_ptr_array_new ();
 
   for (i = 0; i < device->axes->len; i++)
     {
       GdkAxisInfo axis_info;
 
       axis_info = g_array_index (device->axes, GdkAxisInfo, i);
-      axes = g_list_prepend (axes, axis_info.label);
+      g_ptr_array_add (axes, g_strdup (axis_info.label));
     }
 
-  return g_list_reverse (axes);
+  g_ptr_array_add (axes, NULL);
+
+  return (char **) g_ptr_array_free (axes, FALSE);
 }
 
 /**
@@ -1124,7 +1057,7 @@ gdk_device_list_axes (GdkDevice *device)
  *
  * Interprets an array of double as axis values for a given device,
  * and locates the value in the array for a given axis label, as returned
- * by gdk_device_list_axes()
+ * by gdk_device_get_axes()
  *
  * Returns: %TRUE if the given axis use was found, otherwise %FALSE.
  **/
@@ -1137,7 +1070,7 @@ gdk_device_get_axis_value (GdkDevice  *device,
   gint i;
 
   g_return_val_if_fail (GDK_IS_DEVICE (device), FALSE);
-  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, FALSE);
+  g_return_val_if_fail (device->source != GDK_SOURCE_KEYBOARD, FALSE);
 
   if (axes == NULL)
     return FALSE;
@@ -1181,7 +1114,7 @@ gdk_device_get_axis (GdkDevice  *device,
   gint i;
 
   g_return_val_if_fail (GDK_IS_DEVICE (device), FALSE);
-  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, FALSE);
+  g_return_val_if_fail (device->source != GDK_SOURCE_KEYBOARD, FALSE);
 
   if (axes == NULL)
     return FALSE;
@@ -1421,11 +1354,15 @@ _gdk_device_translate_surface_coord (GdkDevice *device,
     {
       axis_info_x = &axis_info;
       axis_info_y = find_axis_info (device->axes, GDK_AXIS_Y);
+      if (axis_info_y == NULL)
+        return FALSE;
     }
   else
     {
       axis_info_x = find_axis_info (device->axes, GDK_AXIS_X);
       axis_info_y = &axis_info;
+      if (axis_info_x == NULL)
+        return FALSE;
     }
 
   device_width = axis_info_x->max_value - axis_info_x->min_value;
@@ -1503,9 +1440,6 @@ _gdk_device_translate_screen_coord (GdkDevice *device,
   GdkAxisInfo axis_info;
   gdouble axis_width, scale, offset;
 
-  if (device->mode != GDK_MODE_SCREEN)
-    return FALSE;
-
   if (index_ >= device->axes->len)
     return FALSE;
 
@@ -1574,8 +1508,6 @@ void
 _gdk_device_query_state (GdkDevice        *device,
                          GdkSurface        *surface,
                          GdkSurface       **child_surface,
-                         gdouble          *root_x,
-                         gdouble          *root_y,
                          gdouble          *win_x,
                          gdouble          *win_y,
                          GdkModifierType  *mask)
@@ -1583,8 +1515,6 @@ _gdk_device_query_state (GdkDevice        *device,
   GDK_DEVICE_GET_CLASS (device)->query_state (device,
                                               surface,
                                               child_surface,
-                                              root_x,
-                                              root_y,
                                               win_x,
                                               win_y,
                                               mask);
@@ -1623,7 +1553,7 @@ gdk_device_get_last_event_surface (GdkDevice *device)
   GdkPointerSurfaceInfo *info;
 
   g_return_val_if_fail (GDK_IS_DEVICE (device), NULL);
-  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, NULL);
+  g_return_val_if_fail (device->source != GDK_SOURCE_KEYBOARD, NULL);
 
   display = gdk_device_get_display (device);
   info = _gdk_display_get_pointer_info (display, device);
@@ -1751,8 +1681,34 @@ gdk_device_update_tool (GdkDevice     *device,
     }
 }
 
-GdkInputMode
-gdk_device_get_input_mode (GdkDevice *device)
+/**
+ * gdk_device_get_num_touches:
+ * @device: a #GdkDevice
+ *
+ * Retrieves the number of touch points associated to @device.
+ *
+ * Returns: the number of touch points
+ */
+guint
+gdk_device_get_num_touches (GdkDevice *device)
 {
-  return device->mode;
+  g_return_val_if_fail (GDK_IS_DEVICE (device), 0);
+
+  return device->num_touches;
+}
+
+/**
+ * gdk_device_get_device_tool:
+ * @device: a #GdkDevice
+ *
+ * Retrieves the #GdkDeviceTool associated to @device.
+ *
+ * Returns: (transfer none): the #GdkDeviceTool
+ */
+GdkDeviceTool *
+gdk_device_get_device_tool (GdkDevice *device)
+{
+  g_return_val_if_fail (GDK_IS_DEVICE (device), NULL);
+
+  return device->last_tool;
 }

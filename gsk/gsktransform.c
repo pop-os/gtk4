@@ -821,20 +821,28 @@ static const GskTransformClass GSK_ROTATE_TRANSFORM_CLASS =
 static inline float
 normalize_angle (float angle)
 {
-  float f;
 
   if (angle >= 0 && angle < 360)
     return angle;
 
-  f = angle - (360 * ((int)(angle / 360.0)));
+  while (angle >= 360)
+    angle -= 360;
+  while (angle < 0)
+    angle += 360;
 
-  if (f < 0)
-    f = 360 + f;
+  /* Due to precision issues we may end up with a result that is just
+   * past the allowed range when rounded. For example, something like
+   * -epsilon + 360 when rounded to a float may end up with 360.
+   * So, we handle these cases by returning the exact value 0.
+   */
 
-  g_assert (f < 360.0);
-  g_assert (f >= 0.0);
+  if (angle >= 360)
+    angle = 0;
 
-  return f;
+  g_assert (angle < 360.0);
+  g_assert (angle >= 0.0);
+
+  return angle;
 }
 
 /**
@@ -1614,6 +1622,14 @@ gsk_transform_transform (GskTransform *next,
   if (other == NULL)
     return next;
 
+  if (gsk_transform_is_identity (next))
+    {
+      /* ref before unref to avoid catastrophe when other == next */
+      other = gsk_transform_ref (other);
+      gsk_transform_unref (next);
+      return other;
+    }
+
   next = gsk_transform_transform (next, other->next);
   return other->transform_class->apply (other, next);
 }
@@ -1669,8 +1685,11 @@ gsk_transform_equal (GskTransform *first,
   if (first == second)
     return TRUE;
 
-  if (first == NULL || second == NULL)
-    return FALSE;
+  if (first == NULL)
+    return gsk_transform_is_identity (second);
+
+  if (second == NULL)
+    return gsk_transform_is_identity (first);
 
   if (first->transform_class != second->transform_class)
     return FALSE;

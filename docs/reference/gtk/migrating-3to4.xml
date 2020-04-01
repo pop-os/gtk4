@@ -291,11 +291,16 @@
     </section>
 
     <section>
-      <title>Stop accessing GdkEvent fields</title>
+      <title>Adapt to GdkEvent API changes</title>
       <para>
-        Direct access to GdkEvent structs is no longer possible in GTK 4. Some
-        frequently-used fields already had accessors in GTK 3, and the remaining
-        fields have gained accessors in GTK 4.
+        Direct access to GdkEvent structs is no longer possible in 
+        GTK 4. Some frequently-used fields already had accessors
+        in GTK 3, and the remaining fields have gained accessors
+        in GTK 4.
+      </para>
+      <para>
+        GdkEvent is now a strictly read-only boxed type, and you
+        can no longer change any of its fields.
       </para>
     </section>
 
@@ -324,9 +329,50 @@
         GTK 4 no longer provides the gdk_device_grab() or gdk_seat_grab() apis.
       </para>
       <para>
-        If you need to dismiss a popup when the user clicks outside (a common
+        If you need to dismiss a popup when the user clicks outside (the most common
         use for grabs), you can use the GdkSurface #GdkSurface:autohide property instead.
         GtkPopover also has a #GtkPopover:autohide property.
+      </para>
+      <para>
+        If you need to prevent the user from interacting with a window
+        while a dialog is open, use #GtkDialog::modal.
+      </para>
+    </section>
+
+    <section>
+      <title>Adapt to surface API changes</title>
+      <para>
+        In GTK 4, the two roles of a standalone toplevel window
+        and of a popup that is placed relative to a parent window
+        have been separated out into two interfaces, #GdkToplevel
+        and #GtkPopup.
+      </para>
+      <para>
+        Surfaces implementing these interfaces are created with
+        gdk_surface_new_toplevel() and gdk_surface_new_popup(),
+        respectively, and they are presented on screen using
+        gtk_toplevel_present() and gdk_popup_present(). The
+        present() functions take parameters in the form of an
+        auxiliary layout struct, #GdkPopupLayout or
+        #GdkToplevelLayout.
+      </para>
+      <para>
+        If your code is dealing directly with surfaces, you may
+        have to change it to call the API in these interfaces,
+        depending on whether the surface you are dealing with
+        is a toplevel or a popup.
+      </para>
+      <para>
+        As part of this reorganization, X11-only concepts such
+        as sticky or keep-below have been removed. If you need
+        to use them on your X11 windows, you will have to set
+        the corresponding X11 properties (as specified in the
+        EWMH) yourself.
+      </para>
+      <para>
+        A number of minor API cleanups have happened in GdkSurface
+        as well. For example, gdk_surface_input_shape_combine_region()
+        has been renamed to gdk_surface_set_input_region().
       </para>
     </section>
 
@@ -508,6 +554,14 @@
         GTK now supports a more versatile -gtk-icon-filter instead. Replace
         -gtk-icon-effect: dim; with -gtk-icon-filter: opacity(0.5); and
         -gtk-icon-effect: hilight; with -gtk-icon-filter: brightness(1.2);.
+      </para>
+    </section>
+
+    <section>
+      <title>Don't use -gtk-outline-...-radius in your CSS</title>
+      <para>
+        These non-standard properties have been removed from GTK
+        CSS. Just use regular border radius.
       </para>
     </section>
 
@@ -717,8 +771,8 @@
       <title>Adapt to changes in GtkOverlay API</title>
       <para>
         The GtkOverlay::pass-through child property has been replaced by the
-        GtkWidget::can-pick property. Note that they have the opposite sense:
-        pass-through == !can-pick.
+        GtkWidget::can-target property. Note that they have the opposite sense:
+        pass-through == !can-target.
       </para>
     </section>
 
@@ -946,7 +1000,53 @@
         as gdk_drop_read_value_async() or gdk_drop_read_text_async().
       </para>
     </section>
+
+    <section>
+      <title>Adapt to GtkIconTheme API changes</title>
+      <para>
+        gtk_icon_theme_lookup_icon() returns a #GtkIconPaintable
+        object now, instead of a #GtkIconInfo. It always returns
+        a paintable in the requested size, and never fails.
+      </para>
+      <para>
+        A number of no-longer-relevant lookup flags and API
+        variants have been removed.
+      </para>
+    </section>
+
+    <section>
+      <title>Update to GtkFileChooser API changes</title>
+      <para>
+        GtkFileChooser moved to a GFile-based API. If you need to convert a
+        path or a URI, use g_file_new_for_path(), g_file_new_for_commandline_arg(),
+        or g_file_new_for_uri(); similarly, if you need to get a path or a URI
+        from a GFile, use g_file_get_path(), or g_file_get_uri(). With the
+        removal or path and URI-based functions, the "local-only" property has
+        been removed; GFile can be used to access non-local as well as local
+        resources.
+      </para>
+      <para>
+        The GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER action has been removed. Use
+        %GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER, instead. If a new folder is needed,
+        the user can create one.
+      </para>
+      <para>
+        The "confirm-overwrite" signal, and the "do-overwrite-confirmation"
+        property have been removed from GtkFileChooser. The file chooser widgets
+        will automatically handle the confirmation of overwriting a file when
+        using GTK_FILE_CHOOSER_ACTION_SAVE.
+      </para>
+      <para>
+        GtkFileChooser does not support a custom extra widget any more. If you
+        need to add extra widgets, use gtk_file_chooser_add_choice() instead.
+      </para>
+      <para>
+        GtkFileChooser does not support a custom preview widget any more. If
+        you need to show a custom preview, you can create your own GtkDialog
+        with a GtkFileChooserWidget and your own preview widget that you
+        update whenever the #GtkFileChooser::selection-changed signal is
+        emitted.
+      </para>
+    </section>
   </section>
-
 </chapter>
-

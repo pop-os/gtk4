@@ -1024,12 +1024,9 @@ gtk_cell_area_real_event (GtkCellArea          *area,
 
   if (event_type == GDK_KEY_PRESS && (flags & GTK_CELL_RENDERER_FOCUSED) != 0)
     {
-      guint keyval;
-
       /* Cancel any edits in progress */
       if (priv->edited_cell &&
-          gdk_event_get_keyval (event, &keyval) &&
-          keyval == GDK_KEY_Escape)
+          gdk_key_event_get_keyval (event) == GDK_KEY_Escape)
         {
           gtk_cell_area_stop_editing (area, TRUE);
           retval = TRUE;
@@ -1039,16 +1036,24 @@ gtk_cell_area_real_event (GtkCellArea          *area,
     {
       guint button;
 
-      if (gdk_event_get_button (event, &button) && button == GDK_BUTTON_PRIMARY)
+      button = gdk_button_event_get_button (event);
+      if (button == GDK_BUTTON_PRIMARY)
         {
           GtkCellRenderer *renderer = NULL;
           GtkCellRenderer *focus_renderer;
           GdkRectangle     alloc_area;
-          gdouble          event_x, event_y;
+          double event_x, event_y;
+          int x, y;
+          GtkNative *native;
 
           /* We may need some semantics to tell us the offset of the event
            * window we are handling events for (i.e. GtkTreeView has a bin_window) */
-          gdk_event_get_coords (event, &event_x, &event_y);
+          gdk_event_get_position (event, &event_x, &event_y);
+
+          native = gtk_widget_get_native (widget);
+          gtk_widget_translate_coordinates (GTK_WIDGET (native), widget, event_x, event_y, &x, &y);
+          event_x = x;
+          event_y = y;
 
           /* Dont try to search for an event coordinate that is not in the area, that will
            * trigger a runtime warning.
@@ -2952,7 +2957,9 @@ gtk_cell_area_add_focus_sibling (GtkCellArea     *area,
   siblings = g_hash_table_lookup (priv->focus_siblings, renderer);
 
   if (siblings)
-    siblings = g_list_append (siblings, sibling);
+    {
+      G_GNUC_UNUSED GList *unused = g_list_append (siblings, sibling);
+    }
   else
     {
       siblings = g_list_append (siblings, sibling);

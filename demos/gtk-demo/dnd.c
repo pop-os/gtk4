@@ -42,7 +42,7 @@ free_demo_widget (gpointer data)
 }
 
 #define GTK_TYPE_DEMO_WIDGET (gtk_demo_widget_get_type ())
-
+static GType gtk_demo_widget_get_type (void);
 G_DEFINE_BOXED_TYPE (GtkDemoWidget, gtk_demo_widget, copy_demo_widget, free_demo_widget)
 
 static GtkDemoWidget *
@@ -59,7 +59,7 @@ serialize_widget (GtkWidget *widget)
     }
   else if (GTK_IS_SPINNER (widget))
     {
-      g_object_get (widget, "active", &demo->active, NULL);
+      g_object_get (widget, "spinning", &demo->active, NULL);
     }
   else
     {
@@ -80,7 +80,7 @@ deserialize_widget (GtkDemoWidget *demo)
     }
   else if (demo->type == GTK_TYPE_SPINNER)
     {
-      widget = g_object_new (demo->type, "active", demo->active, NULL);
+      widget = g_object_new (demo->type, "spinning", demo->active, NULL);
       gtk_style_context_add_class (gtk_widget_get_style_context (widget), "demo");
     }
   else
@@ -240,8 +240,8 @@ edit_cb (GtkWidget *button, GtkWidget *child)
     {
       gboolean active;
 
-      g_object_get (child, "active", &active, NULL);
-      g_object_set (child, "active", !active, NULL);
+      g_object_get (child, "spinning", &active, NULL);
+      g_object_set (child, "spinning", !active, NULL);
     }
 
   if (button)
@@ -271,7 +271,8 @@ pressed_cb (GtkGesture *gesture,
       pos_x = x;
       pos_y = y;
 
-      menu = gtk_popover_new (widget);
+      menu = gtk_popover_new ();
+      gtk_widget_set_parent (menu, widget);
       gtk_popover_set_has_arrow (GTK_POPOVER (menu), FALSE);
       gtk_popover_set_pointing_to (GTK_POPOVER (menu), &(GdkRectangle){ x, y, 1, 1});
       box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -356,7 +357,7 @@ do_dnd (GtkWidget *do_widget)
       GtkGesture *multipress;
       GtkCssProvider *provider;
 
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Drag-and-drop");

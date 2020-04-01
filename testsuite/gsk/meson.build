@@ -184,6 +184,7 @@ foreach test : node_parser_tests
 endforeach
 
 tests = [
+  ['rounded-rect'],
   ['transform'],
 ]
 
@@ -196,7 +197,7 @@ foreach t : tests
   test_extra_ldflags = t.get(3, [])
 
   test_exe = executable(test_name, test_srcs,
-    c_args : test_cargs + test_extra_cargs,
+    c_args : test_cargs + test_extra_cargs + common_cflags,
     link_args : test_extra_ldflags,
     dependencies : libgtk_dep,
     install: get_option('install-tests'),
@@ -204,6 +205,7 @@ foreach t : tests
 
   test(test_name, test_exe,
        args: [ '--tap', '-k' ],
+       protocol: 'tap',
        env: [ 'GIO_USE_VOLUME_MONITOR=unix',
               'GSETTINGS_BACKEND=memory',
               'GDK_DEBUG=default-settings',

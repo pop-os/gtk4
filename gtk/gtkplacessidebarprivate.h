@@ -88,11 +88,6 @@ gboolean           gtk_places_sidebar_get_show_enter_location    (GtkPlacesSideb
 void               gtk_places_sidebar_set_show_enter_location    (GtkPlacesSidebar   *sidebar,
                                                                   gboolean            show_enter_location);
 
-void                 gtk_places_sidebar_set_local_only           (GtkPlacesSidebar   *sidebar,
-                                                                  gboolean            local_only);
-gboolean             gtk_places_sidebar_get_local_only           (GtkPlacesSidebar   *sidebar);
-
-
 void               gtk_places_sidebar_add_shortcut               (GtkPlacesSidebar   *sidebar,
                                                                   GFile              *location);
 void               gtk_places_sidebar_remove_shortcut            (GtkPlacesSidebar   *sidebar,
@@ -102,8 +97,7 @@ GSList *           gtk_places_sidebar_list_shortcuts             (GtkPlacesSideb
 GFile *            gtk_places_sidebar_get_nth_bookmark           (GtkPlacesSidebar   *sidebar,
                                                                   gint                n);
 void               gtk_places_sidebar_set_drop_targets_visible   (GtkPlacesSidebar   *sidebar,
-                                                                  gboolean            visible,
-                                                                  GdkDrag            *drag);
+                                                                  gboolean            visible);
 gboolean           gtk_places_sidebar_get_show_trash             (GtkPlacesSidebar   *sidebar);
 void               gtk_places_sidebar_set_show_trash             (GtkPlacesSidebar   *sidebar,
                                                                   gboolean            show_trash);

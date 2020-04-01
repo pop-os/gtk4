@@ -28,7 +28,6 @@
 #include "gtkscale.h"
 
 #include "gtkadjustment.h"
-#include "gtkbindings.h"
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
 #include "gtkgizmoprivate.h"
@@ -623,10 +622,11 @@ gtk_scale_size_allocate (GtkWidget *widget,
     }
 }
 
-#define add_slider_binding(binding_set, keyval, mask, scroll)              \
-  gtk_binding_entry_add_signal (binding_set, keyval, mask,                 \
-                                I_("move-slider"), 1, \
-                                GTK_TYPE_SCROLL_TYPE, scroll)
+#define add_slider_binding(binding_set, keyval, mask, scroll)        \
+  gtk_widget_class_add_binding_signal (widget_class,                 \
+                                       keyval, mask,                 \
+                                       I_("move-slider"),            \
+                                       "(i)", scroll)
 
 static void
 gtk_scale_value_changed (GtkRange *range)
@@ -650,7 +650,6 @@ gtk_scale_class_init (GtkScaleClass *class)
   GObjectClass   *gobject_class;
   GtkWidgetClass *widget_class;
   GtkRangeClass  *range_class;
-  GtkBindingSet  *binding_set;
   
   gobject_class = G_OBJECT_CLASS (class);
   range_class = (GtkRangeClass*) class;
@@ -706,8 +705,6 @@ gtk_scale_class_init (GtkScaleClass *class)
    * blind users etc. don't care about scale orientation.
    */
   
-  binding_set = gtk_binding_set_by_class (class);
-
   add_slider_binding (binding_set, GDK_KEY_Left, 0,
                       GTK_SCROLL_STEP_LEFT);
 
@@ -1066,20 +1063,17 @@ update_value_position (GtkScale *scale)
  * gtk_scale_set_draw_value:
  * @scale: a #GtkScale
  * @draw_value: %TRUE to draw the value
- * 
+ *
  * Specifies whether the current value is displayed as a string next 
  * to the slider.
  */
 void
 gtk_scale_set_draw_value (GtkScale *scale,
-			  gboolean  draw_value)
+                          gboolean  draw_value)
 {
   GtkScalePrivate *priv = gtk_scale_get_instance_private (scale);
-  GtkWidget *widget;
 
   g_return_if_fail (GTK_IS_SCALE (scale));
-
-  widget = GTK_WIDGET (scale);
 
   draw_value = draw_value != FALSE;
 
@@ -1101,9 +1095,9 @@ gtk_scale_set_draw_value (GtkScale *scale,
           g_free (txt);
 
           if (priv->value_pos == GTK_POS_TOP || priv->value_pos == GTK_POS_LEFT)
-            gtk_widget_insert_after (priv->value_widget, widget, NULL);
+            gtk_widget_insert_after (priv->value_widget, GTK_WIDGET (scale), NULL);
           else
-            gtk_widget_insert_before (priv->value_widget, widget, NULL);
+            gtk_widget_insert_before (priv->value_widget, GTK_WIDGET (scale), NULL);
 
           gtk_range_set_round_digits (GTK_RANGE (scale), priv->digits);
           update_value_position (scale);

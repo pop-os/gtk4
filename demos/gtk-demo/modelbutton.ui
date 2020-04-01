@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <object class="GtkWindow" id="window1">
+    <property name="resizable">0</property>
     <child type="titlebar">
       <object class="GtkHeaderBar">
         <property name="show-title-buttons">1</property>
@@ -10,32 +11,40 @@
     <child>
       <object class="GtkBox">
         <property name="orientation">vertical</property>
-        <property name="margin">80</property>
+        <property name="margin-start">80</property>
+        <property name="margin-end">80</property>
+        <property name="margin-top">80</property>
+        <property name="margin-bottom">80</property>
         <child>
           <object class="GtkMenuButton">
             <property name="popover">thing_a</property>
-            <property name="label">Color</property>
+            <property name="label">_Color</property>
+            <property name="use-underline">1</property>
           </object>
         </child>
         <child>
           <object class="GtkMenuButton">
             <property name="popover">thing_b</property>
-            <property name="label">Flavors</property>
+            <property name="label">_Flavors</property>
+            <property name="use-underline">1</property>
           </object>
         </child>
         <child>
           <object class="GtkMenuButton">
             <property name="popover">thing_c</property>
-            <property name="label">Tools</property>
+            <property name="label">_Tools</property>
+            <property name="use-underline">1</property>
           </object>
         </child>
       </object>
     </child>
   </object>
   <object class="GtkPopover" id="thing_a">
+    <style>
+      <class name="menu"/>
+    </style>
     <child>
       <object class="GtkBox">
-        <property name="margin">10</property>
         <property name="orientation">vertical</property>
         <child>
           <object class="GtkModelButton">
@@ -62,11 +71,12 @@
     </child>
   </object>
   <object class="GtkPopover" id="thing_b">
+    <style>
+      <class name="menu"/>
+    </style>
     <child>
       <object class="GtkBox">
-        <property name="margin">10</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">10</property>
         <child>
           <object class="GtkModelButton">
             <property name="action-name">win.chocolate</property>
@@ -92,11 +102,12 @@
     </child>
   </object>
   <object class="GtkPopover" id="thing_c">
+    <style>
+      <class name="menu"/>
+    </style>
     <child>
       <object class="GtkBox">
-        <property name="margin">10</property>
         <property name="orientation">vertical</property>
-        <property name="spacing">10</property>
         <child>
           <object class="GtkModelButton">
             <property name="text">Hammer</property>

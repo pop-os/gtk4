@@ -54,7 +54,7 @@ do_markup (GtkWidget *do_widget)
       GtkWidget *header;
       GtkWidget *show_source;
 
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window), 450, 450);
@@ -78,7 +78,7 @@ do_markup (GtkWidget *do_widget)
 
       view = gtk_text_view_new ();
       gtk_text_view_set_editable (GTK_TEXT_VIEW (view), FALSE);
-      gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (view), GTK_WRAP_WORD);
+      gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (view), GTK_WRAP_WORD_CHAR);
       gtk_text_view_set_left_margin (GTK_TEXT_VIEW (view), 10);
       gtk_text_view_set_right_margin (GTK_TEXT_VIEW (view), 10);
 

@@ -382,8 +382,7 @@ state_pop (ParserData *data)
 {
   gpointer old = NULL;
 
-  if (!data->stack)
-    return NULL;
+  g_assert (data->stack);
 
   old = data->stack->data;
   data->stack = g_slist_delete_link (data->stack, data->stack);
@@ -1543,7 +1542,7 @@ _gtk_builder_parser_parse_buffer (GtkBuilder   *builder,
                                   const gchar  *filename,
                                   const gchar  *buffer,
                                   gssize        length,
-                                  gchar       **requested_objs,
+                                  const char  **requested_objs,
                                   GError      **error)
 {
   const gchar* domain;
@@ -1625,5 +1624,10 @@ _gtk_builder_parser_parse_buffer (GtkBuilder   *builder,
   /* restore the original domain */
   gtk_builder_set_translation_domain (builder, domain);
 
-  gdk_profiler_add_mark (before * 1000, (g_get_monotonic_time () - before) * 1000, "builder load", filename);
+  if (GDK_PROFILER_IS_RUNNING)
+    {
+      guint64 after = g_get_monotonic_time ();
+      if (after - before > 500)
+        gdk_profiler_add_mark (before, after - before, "builder load", filename);
+    }
 }

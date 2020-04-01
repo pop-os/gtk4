@@ -7,11 +7,13 @@ testexecdir = join_paths(installed_test_bindir, 'css')
 testdatadir = join_paths(installed_test_datadir, 'css')
 
 test_api = executable('api', 'api.c',
+                      c_args: common_cflags,
                       dependencies: libgtk_dep,
                       install: get_option('install-tests'),
                       install_dir: testexecdir)
 test('api', test_api,
      args: ['--tap', '-k' ],
+     protocol: 'tap',
      env: [ 'GIO_USE_VOLUME_MONITOR=unix',
             'GSETTINGS_BACKEND=memory',
             'GDK_DEBUG=default-settings',
@@ -23,12 +25,14 @@ test('api', test_api,
      suite: 'css')
 
 test_data = executable('data', ['data.c', '../../gtk/css/gtkcssdataurl.c'],
+                       c_args: common_cflags,
                        include_directories: [confinc, ],
                        dependencies: gtk_deps,
                        install: get_option('install-tests'),
                        install_dir: testexecdir)
 test('data', test_data,
      args: ['--tap', '-k' ],
+     protocol: 'tap',
      env: [ 'GIO_USE_VOLUME_MONITOR=unix',
             'GSETTINGS_BACKEND=memory',
             'GDK_DEBUG=default-settings',
@@ -48,7 +52,7 @@ if get_option('install-tests')
                  install_dir: testdatadir)
 endif
 
-if get_option ('profiler')
+if false and get_option ('profiler')
 
   test('performance-adwaita', test_performance,
        args: [ '--mark', 'css validation',

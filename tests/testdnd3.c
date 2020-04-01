@@ -5,8 +5,6 @@ prepare (GtkDragSource *source,  double x, double y)
 {
   GtkWidget *canvas;
   GtkWidget *item;
-  GdkContentProvider *provider;
-  GBytes *bytes;
 
   canvas = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (source));
   item = gtk_widget_pick (canvas, x, y, GTK_PICK_DEFAULT);
@@ -14,13 +12,9 @@ prepare (GtkDragSource *source,  double x, double y)
   if (!GTK_IS_LABEL (item))
     return NULL;
 
-  bytes = g_bytes_new (&item, sizeof (gpointer));
-  provider = gdk_content_provider_new_for_bytes ("CANVAS_ITEM", bytes);
-  g_bytes_unref (bytes);
-
   g_object_set_data (G_OBJECT (canvas), "dragged-item", item);
 
-  return provider;
+  return gdk_content_provider_new_typed (GTK_TYPE_WIDGET, item);
 }
 
 static void
@@ -48,11 +42,13 @@ drag_end (GtkDragSource *source, GdkDrag *drag)
   gtk_widget_set_opacity (item, 1.0);
 }
 
-typedef struct {
-  GtkWidget *canvas;
-  double x;
-  double y;
-} DropData;
+static void
+drag_cancel (GtkDragSource       *source,
+             GdkDrag             *drag,
+             GdkDragCancelReason  reason)
+{
+  drag_end (source, drag);
+}
 
 typedef struct {
   double x, y;
@@ -74,30 +70,22 @@ apply_transform (GtkWidget *item)
   gsk_transform_unref (transform);
 }
 
-static void
-got_data (GObject      *source,
-          GAsyncResult *result,
-          gpointer      user_data)
+static gboolean
+drag_drop (GtkDropTarget *target,
+           const GValue  *value,
+           double         x,
+           double         y)
 {
-  GdkDrop *drop = GDK_DROP (source);
-  DropData *data = user_data;
-  GInputStream *stream;
-  GBytes *bytes;
   GtkWidget *item;
-  const char *mime_type;
-  GError *error = NULL;
   TransformData *transform_data;
   GtkWidget *canvas;
   GtkWidget *last_child;
 
-  stream = gdk_drop_read_finish (drop, result, &mime_type, &error);
-  bytes = g_input_stream_read_bytes (stream, sizeof (gpointer), NULL, NULL);
-  item = (gpointer) *(gpointer *)g_bytes_get_data (bytes, NULL);
-
+  item = g_value_get_object (value);
   transform_data = g_object_get_data (G_OBJECT (item), "transform-data");
 
-  transform_data->x = data->x;
-  transform_data->y = data->y;
+  transform_data->x = x;
+  transform_data->y = y;
 
   canvas = gtk_widget_get_parent (item);
   last_child = gtk_widget_get_last_child (canvas);
@@ -105,28 +93,6 @@ got_data (GObject      *source,
     gtk_widget_insert_after (item, canvas, last_child);
 
   apply_transform (item);
-
-  gdk_drop_finish (drop, GDK_ACTION_MOVE);
-
-  g_bytes_unref (bytes);
-  g_object_unref (stream);
-  g_free (data);
-}
-
-static gboolean
-drag_drop (GtkDropTarget *dest,
-           GdkDrop       *drop,
-           int            x,
-           int            y)
-{
-  DropData *data;
-
-  data = g_new (DropData, 1);
-  data->canvas = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (dest));
-  data->x = x;
-  data->y = y;
-
-  gdk_drop_read_async (drop, (const char *[]){"CANVAS_ITEM", NULL}, G_PRIORITY_DEFAULT, NULL, got_data, data);
 
   return TRUE;
 }
@@ -137,7 +103,6 @@ canvas_new (void)
   GtkWidget *canvas;
   GtkDragSource *source;
   GtkDropTarget *dest;
-  GdkContentFormats *formats;
 
   canvas = gtk_fixed_new ();
   gtk_widget_set_hexpand (canvas, TRUE);
@@ -149,13 +114,12 @@ canvas_new (void)
   g_signal_connect (source, "prepare", G_CALLBACK (prepare), NULL);
   g_signal_connect (source, "drag-begin", G_CALLBACK (drag_begin), NULL);
   g_signal_connect (source, "drag-end", G_CALLBACK (drag_end), NULL);
+  g_signal_connect (source, "drag-cancel", G_CALLBACK (drag_cancel), NULL);
   gtk_widget_add_controller (canvas, GTK_EVENT_CONTROLLER (source));
 
-  formats = gdk_content_formats_new ((const char *[]){"CANVAS_ITEM", NULL}, 1);
-  dest = gtk_drop_target_new (formats, GDK_ACTION_MOVE);
-  g_signal_connect (dest, "drag-drop", G_CALLBACK (drag_drop), NULL);
+  dest = gtk_drop_target_new (GTK_TYPE_WIDGET, GDK_ACTION_MOVE);
+  g_signal_connect (dest, "drop", G_CALLBACK (drag_drop), NULL);
   gtk_widget_add_controller (canvas, GTK_EVENT_CONTROLLER (dest));
-  gdk_content_formats_unref (formats);
 
   return canvas;
 }
@@ -186,50 +150,17 @@ set_color (GtkWidget *item,
   g_free (css);
 }
 
-static void
-got_color (GObject *source,
-           GAsyncResult *result,
-           gpointer data)
-{
-  GdkDrop *drop = GDK_DROP (source);
-  GtkDropTarget *dest = data;
-  GtkWidget *item = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (dest));
-  const GValue *value;
-  GdkRGBA *color;
-
-  value = gdk_drop_read_value_finish (drop, result, NULL);
-  color = g_value_get_boxed (value);
-  set_color (item, color);
-
-  gdk_drop_finish (drop, GDK_ACTION_COPY);
-}
-
 static gboolean
 item_drag_drop (GtkDropTarget *dest,
-                GdkDrop       *drop,
-               int            x,
-               int            y)
+                const GValue  *value,
+                double         x,
+                double         y)
 {
-  if (gtk_drop_target_find_mimetype (dest))
-    {
-      gdk_drop_read_value_async (drop, GDK_TYPE_RGBA, G_PRIORITY_DEFAULT, NULL, got_color, dest);
-      return TRUE;
-    }
+  GtkWidget *item = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (dest));
 
-  return FALSE;
-}
+  set_color (item, g_value_get_boxed (value));
 
-static gboolean
-item_drag_motion (GtkDropTarget *dest,
-                  GdkDrop       *drop)
-{
-  if (gtk_drop_target_find_mimetype (dest) != NULL)
-    {
-      gdk_drop_status (drop, GDK_ACTION_COPY);
-      return TRUE;
-    }
-
-  return FALSE;
+  return TRUE;
 }
 
 static void
@@ -279,7 +210,6 @@ canvas_item_new (int i,
   TransformData *transform_data;
   GdkRGBA rgba;
   GtkDropTarget *dest;
-  GdkContentFormats *formats;
   GtkGesture *gesture;
 
   label = g_strdup_printf ("Item %d", i);
@@ -301,12 +231,9 @@ canvas_item_new (int i,
   g_free (label);
   g_free (id);
 
-  formats = gdk_content_formats_new_for_gtype (GDK_TYPE_RGBA);
-  dest = gtk_drop_target_new (formats, GDK_ACTION_COPY);
-  g_signal_connect (dest, "drag-drop", G_CALLBACK (item_drag_drop), NULL);
-  g_signal_connect (dest, "accept", G_CALLBACK (item_drag_motion), NULL);
+  dest = gtk_drop_target_new (GDK_TYPE_RGBA, GDK_ACTION_COPY);
+  g_signal_connect (dest, "drop", G_CALLBACK (item_drag_drop), NULL);
   gtk_widget_add_controller (widget, GTK_EVENT_CONTROLLER (dest));
-  gdk_content_formats_unref (formats);
 
   gesture = gtk_gesture_rotate_new ();
   g_signal_connect (gesture, "angle-changed", G_CALLBACK (angle_changed), NULL);
@@ -341,7 +268,7 @@ int main (int argc, char *argv[])
   widget = gtk_color_button_new ();
   gtk_widget_destroy (widget);
   
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_default_size (GTK_WINDOW (window), 640, 480);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);

@@ -44,7 +44,11 @@
 #include "gtkactionable.h"
 #include "gtkeventcontrollermotion.h"
 #include "gtkeventcontrollerkey.h"
+#include "gtkeventcontrollerfocus.h"
 #include "gtknative.h"
+#include "gtkshortcuttrigger.h"
+#include "gtkshortcutcontroller.h"
+#include "gtkshortcut.h"
 
 /**
  * SECTION:gtkmodelbutton
@@ -59,7 +63,7 @@
  * radio button.
  *
  * Model buttons are used when popovers from a menu model with
- * gtk_popover_new_from_model(); they can also be used manually in
+ * gtk_popover_menu_new_from_model(); they can also be used manually in
  * a #GtkPopoverMenu.
  *
  * When the action is specified via the #GtkActionable:action-name
@@ -87,7 +91,10 @@
  *   <child>
  *     <object class="GtkBox">
  *       <property name="visible">True</property>
- *       <property name="margin">10</property>
+ *       <property name="margin-start">10</property>
+ *       <property name="margin-end">10</property>
+ *       <property name="margin-top">10</property>
+ *       <property name="margin-bottom">10</property>
  *       <child>
  *         <object class="GtkModelButton">
  *           <property name="visible">True</property>
@@ -170,6 +177,7 @@ struct _GtkModelButton
   GtkSizeGroup *indicators;
   char *accel;
   guint open_timeout;
+  GtkEventController *controller;
 
   guint active : 1;
   guint centered : 1;
@@ -698,13 +706,13 @@ gtk_model_button_set_popover (GtkModelButton *button,
                               GtkWidget      *popover)
 {
   if (button->popover)
-    gtk_popover_set_relative_to (GTK_POPOVER (button->popover), NULL);
+    gtk_widget_unparent (button->popover);
 
   button->popover = popover;
 
   if (button->popover)
     {
-      gtk_popover_set_relative_to (GTK_POPOVER (button->popover), GTK_WIDGET (button));
+      gtk_widget_set_parent (button->popover, GTK_WIDGET (button));
       gtk_popover_set_position (GTK_POPOVER (button->popover), GTK_POS_RIGHT);
     }
 
@@ -723,7 +731,6 @@ update_accel (GtkModelButton *self,
     {
       guint key;
       GdkModifierType mods;
-      GtkAccelLabelClass *accel_class;
       char *str;
 
       if (!self->accel_label)
@@ -735,16 +742,46 @@ update_accel (GtkModelButton *self,
         }
 
       gtk_accelerator_parse (accel, &key, &mods);
-
-      accel_class = g_type_class_ref (GTK_TYPE_ACCEL_LABEL);
-      str = _gtk_accel_label_class_get_accelerator_label (accel_class, key, mods);
+      str = gtk_accelerator_get_label (key, mods);
       gtk_label_set_label (GTK_LABEL (self->accel_label), str);
       g_free (str);
-      g_type_class_unref (accel_class);
+
+      if (GTK_IS_POPOVER (gtk_widget_get_native (GTK_WIDGET (self))))
+        {
+          GtkShortcutTrigger *trigger;
+          GtkShortcutAction *action;
+
+          if (self->controller)
+            {
+              while (g_list_model_get_n_items (G_LIST_MODEL (self->controller)) > 0)
+                {
+                  GtkShortcut *shortcut = g_list_model_get_item (G_LIST_MODEL (self->controller), 0);
+                  gtk_shortcut_controller_remove_shortcut (GTK_SHORTCUT_CONTROLLER (self->controller),
+                                                           shortcut);
+                  g_object_unref (shortcut);
+                }
+            }
+          else
+            {
+              self->controller = gtk_shortcut_controller_new ();
+              gtk_shortcut_controller_set_scope (GTK_SHORTCUT_CONTROLLER (self->controller), GTK_SHORTCUT_SCOPE_MANAGED);
+              gtk_widget_add_controller (GTK_WIDGET (self), self->controller);
+            }
+
+          trigger = gtk_keyval_trigger_new (key, mods);
+          action = gtk_signal_action_new ("clicked");
+          gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (self->controller),
+                                                gtk_shortcut_new (trigger, action));
+        }
     }
   else
     {
       g_clear_pointer (&self->accel_label, gtk_widget_unparent);
+      if (self->controller)
+        {
+          gtk_widget_remove_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (self->controller));
+          g_clear_object (&self->controller);
+        }
     }
 }
 
@@ -980,48 +1017,6 @@ gtk_model_button_finalize (GObject *object)
   G_OBJECT_CLASS (gtk_model_button_parent_class)->finalize (object);
 }
 
-static void
-gtk_model_button_root (GtkWidget *widget)
-{
-  GtkModelButton *self = GTK_MODEL_BUTTON (widget);
-  GtkRoot *root;
-  GtkApplication *app;
-  const char *action_name;
-  GVariant *action_target;
-
-  GTK_WIDGET_CLASS (gtk_model_button_parent_class)->root (widget);
-
-  if (!self->accel)
-    return;
-
-  root = gtk_widget_get_root (widget);
-
-  if (!GTK_IS_WINDOW (root))
-    return;
-
-  app = gtk_window_get_application (GTK_WINDOW (root));
-
-  if (!app)
-    return;
-
-  action_name = gtk_actionable_get_action_name (GTK_ACTIONABLE (widget));
-  action_target = gtk_actionable_get_action_target_value (GTK_ACTIONABLE (widget));
-
-  if (action_name)
-    {
-      char *detailed;
-      char **accels;
-
-      detailed = g_action_print_detailed_name (action_name, action_target);
-      accels = gtk_application_get_accels_for_action (app, detailed);
-
-      update_accel (self, accels[0]);
-
-      g_strfreev (accels);
-      g_free (detailed);
-    }
-}
-
 static gboolean
 gtk_model_button_focus (GtkWidget        *widget,
                         GtkDirectionType  direction)
@@ -1094,7 +1089,6 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
   widget_class->state_flags_changed = gtk_model_button_state_flags_changed;
   widget_class->direction_changed = gtk_model_button_direction_changed;
   widget_class->focus = gtk_model_button_focus;
-  widget_class->root = gtk_model_button_root;
   widget_class->get_accessible = gtk_model_button_get_accessible;
 
   /**
@@ -1229,6 +1223,8 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
                                           NULL,
                                           G_TYPE_NONE, 0);
 
+  widget_class->activate_signal = signals[SIGNAL_CLICKED];
+
   gtk_widget_class_set_accessible_role (GTK_WIDGET_CLASS (class), ATK_ROLE_PUSH_BUTTON);
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
   gtk_widget_class_set_css_name (GTK_WIDGET_CLASS (class), I_("modelbutton"));
@@ -1311,25 +1307,35 @@ stop_open (GtkModelButton *button)
 }
 
 static void
-enter_cb (GtkEventController *controller,
-          double              x,
-          double              y,
-          GdkCrossingMode     mode,
-          GdkNotifyType       type,
-          gpointer            data)
+pointer_cb (GObject    *object,
+            GParamSpec *pspec,
+            gpointer    data)
 {
-  GtkWidget *target;
-  GtkWidget *popover;
+  gboolean contains;
 
-  target = gtk_event_controller_get_widget (controller);
-  popover = gtk_widget_get_ancestor (target, GTK_TYPE_POPOVER_MENU);
+  contains = gtk_event_controller_motion_contains_pointer (GTK_EVENT_CONTROLLER_MOTION (object));
 
-  if (popover && gtk_event_controller_motion_contains_pointer (GTK_EVENT_CONTROLLER_MOTION (controller)))
+  if (contains)
     {
-      if (gtk_popover_menu_get_open_submenu (GTK_POPOVER_MENU (popover)) != NULL)
-        start_open (GTK_MODEL_BUTTON (target));
-      else
-        open_submenu (target);
+      GtkWidget *target;
+      GtkWidget *popover;
+
+      target = GTK_WIDGET (data);
+      popover = gtk_widget_get_ancestor (target, GTK_TYPE_POPOVER_MENU);
+
+      if (popover)
+        {
+          if (gtk_popover_menu_get_open_submenu (GTK_POPOVER_MENU (popover)) != NULL)
+            start_open (GTK_MODEL_BUTTON (target));
+          else
+            open_submenu (target);
+        }
+    }
+  else
+    {
+      GtkModelButton *button = data;
+
+      stop_open (button);
     }
 }
 
@@ -1343,19 +1349,8 @@ motion_cb (GtkEventController *controller,
 }
 
 static void
-leave_cb (GtkEventController *controller,
-          GdkCrossingMode     mode,
-          GdkNotifyType       type,
-          gpointer            data)
-{
-  stop_open (GTK_MODEL_BUTTON (data));
-}
-
-static void
-focus_in_cb (GtkEventController *controller,
-             GdkCrossingMode     mode,
-             GdkNotifyType       type,
-             gpointer            data)
+focus_in_cb (GtkEventController   *controller,
+             gpointer              data)
 {
   GtkWidget *target;
   GtkWidget *popover;
@@ -1387,13 +1382,12 @@ gtk_model_button_init (GtkModelButton *self)
   gtk_widget_add_css_class (GTK_WIDGET (self), "flat");
 
   controller = gtk_event_controller_motion_new ();
-  g_signal_connect (controller, "enter", G_CALLBACK (enter_cb), self);
+  g_signal_connect (controller, "notify::contains-pointer", G_CALLBACK (pointer_cb), self);
   g_signal_connect (controller, "motion", G_CALLBACK (motion_cb), self);
-  g_signal_connect (controller, "leave", G_CALLBACK (leave_cb), self);
   gtk_widget_add_controller (GTK_WIDGET (self), controller);
 
-  controller = gtk_event_controller_key_new ();
-  g_signal_connect (controller, "focus-in", G_CALLBACK (focus_in_cb), NULL);
+  controller = gtk_event_controller_focus_new ();
+  g_signal_connect (controller, "enter", G_CALLBACK (focus_in_cb), NULL);
   gtk_widget_add_controller (GTK_WIDGET (self), controller);
 
   gesture = gtk_gesture_click_new ();

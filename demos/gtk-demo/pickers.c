@@ -14,7 +14,7 @@ do_pickers (GtkWidget *do_widget)
 
   if (!window)
   {
-    window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+    window = gtk_window_new ();
     gtk_window_set_display (GTK_WINDOW (window),
                             gtk_widget_get_display (do_widget));
     gtk_window_set_title (GTK_WINDOW (window), "Pickers");
@@ -23,7 +23,10 @@ do_pickers (GtkWidget *do_widget)
                       G_CALLBACK (gtk_widget_destroyed), &window);
 
     table = gtk_grid_new ();
-    g_object_set (table, "margin", 20, NULL);
+    gtk_widget_set_margin_start (table, 20);
+    gtk_widget_set_margin_end (table, 20);
+    gtk_widget_set_margin_top (table, 20);
+    gtk_widget_set_margin_bottom (table, 20);
     gtk_grid_set_row_spacing (GTK_GRID (table), 3);
     gtk_grid_set_column_spacing (GTK_GRID (table), 10);
     gtk_container_add (GTK_CONTAINER (window), table);
@@ -50,7 +53,6 @@ do_pickers (GtkWidget *do_widget)
     gtk_widget_set_hexpand (label, TRUE);
     picker = gtk_file_chooser_button_new ("Pick a File",
                                           GTK_FILE_CHOOSER_ACTION_OPEN);
-    gtk_file_chooser_set_local_only (GTK_FILE_CHOOSER (picker), FALSE);
     gtk_grid_attach (GTK_GRID (table), label, 0, 2, 1, 1);
     gtk_grid_attach (GTK_GRID (table), picker, 1, 2, 1, 1);
 

@@ -60,7 +60,7 @@
 #include "gtktextbufferprivate.h"
 #include "gtktexttag.h"
 #include "gtktexttagprivate.h"
-#include "gtktexttagtable.h"
+#include "gtktexttagtableprivate.h"
 #include "gtktextlayoutprivate.h"
 #include "gtktextiterprivate.h"
 #include "gtkdebug.h"
@@ -2491,6 +2491,13 @@ _gtk_text_btree_char_is_invisible (const GtkTextIter *iter)
 
   line = _gtk_text_iter_get_text_line (iter);
   tree = _gtk_text_iter_get_btree (iter);
+
+  /* Short-circuit if we've never seen a visibility tag within the
+   * tag table (meaning everything must be visible).
+   */
+  if G_LIKELY (!_gtk_text_tag_table_affects_visibility (tree->table))
+    return FALSE;
+
   byte_index = gtk_text_iter_get_line_index (iter);
 
   numTags = gtk_text_tag_table_get_size (tree->table);
@@ -2849,8 +2856,9 @@ _gtk_text_btree_set_mark (GtkTextBTree *tree,
   seg = real_set_mark (tree, existing_mark,
                        name, left_gravity, iter, should_exist,
                        TRUE);
+  g_assert (seg);
 
-  return seg ? seg->body.mark.obj : NULL;
+  return seg->body.mark.obj;
 }
 
 gboolean
@@ -3126,7 +3134,7 @@ _gtk_text_btree_last_could_contain_tag (GtkTextBTree *tree,
     {
       info = gtk_text_btree_get_existing_tag_info (tree, tag);
 
-      if (info->tag_root == NULL)
+      if (info == NULL || info->tag_root == NULL)
         return NULL;
 
       node = info->tag_root;
@@ -3135,7 +3143,6 @@ _gtk_text_btree_last_could_contain_tag (GtkTextBTree *tree,
 
       while (node->level > 0)
         {
-          g_assert (node != NULL); /* Failure probably means bad tag summaries. */
           last_node = NULL;
           node = node->children.node;
           while (node != NULL)
@@ -3146,6 +3153,7 @@ _gtk_text_btree_last_could_contain_tag (GtkTextBTree *tree,
             }
 
           node = last_node;
+          g_assert (node != NULL); /* Failure probably means bad tag summaries. */
         }
 
       g_assert (node != NULL); /* The tag summaries said some node had
@@ -3450,6 +3458,7 @@ ensure_end_iter_segment (GtkTextBTree *tree)
             last_with_chars = seg;
           seg = seg->next;
         }
+      g_assert (last_with_chars);
 
       tree->end_iter_segment = last_with_chars;
 
@@ -4455,10 +4464,6 @@ _gtk_text_line_next_could_contain_tag (GtkTextLine  *line,
 
   while (node->level > 0)
     {
-      g_assert (node != NULL); /* If this fails, it likely means an
-                                  incorrect tag summary led us on a
-                                  wild goose chase down this branch of
-                                  the tree. */
       node = node->children.node;
       while (node != NULL)
         {
@@ -4466,6 +4471,10 @@ _gtk_text_line_next_could_contain_tag (GtkTextLine  *line,
             break;
           node = node->next;
         }
+      g_assert (node != NULL); /* If this fails, it likely means an
+                                  incorrect tag summary led us on a
+                                  wild goose chase down this branch of
+                                  the tree. */
     }
 
   g_assert (node != NULL);

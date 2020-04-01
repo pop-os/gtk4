@@ -50,6 +50,7 @@ gtk_tests = [
   ['testgtk'],
   ['testheaderbar'],
   ['testheightforwidth'],
+  ['testhover'],
   ['testiconview'],
   ['testiconview-keynav'],
   ['testicontheme'],
@@ -124,6 +125,7 @@ gtk_tests = [
   ['testblur'],
   ['testtexture'],
   ['testwindowdrag'],
+  ['testinhibitshortcuts'],
   ['testtexthistory', ['../gtk/gtktexthistory.c']],
 ]
 
@@ -144,7 +146,7 @@ foreach t: gtk_tests
   test_srcs = ['@0@.c'.format(test_name), t.get(1, [])]
   executable(test_name, test_srcs,
              include_directories: [confinc, gdkinc],
-             c_args: test_args,
+             c_args: test_args + common_cflags,
              dependencies: [libgtk_dep, libm])
 endforeach
 

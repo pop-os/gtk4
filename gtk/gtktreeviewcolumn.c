@@ -24,6 +24,7 @@
 #include "gtkcellareabox.h"
 #include "gtkcellareacontext.h"
 #include "gtkcelllayout.h"
+#include "gtkdragsource.h"
 #include "gtkframe.h"
 #include "gtkimage.h"
 #include "gtkintl.h"
@@ -35,6 +36,7 @@
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
 #include "gtkgesturedrag.h"
+#include "gtkeventcontrollerfocus.h"
 #include "gtkeventcontrollerkey.h"
 
 #include "a11y/gtktreeviewaccessibleprivate.h"
@@ -831,8 +833,6 @@ gtk_tree_view_column_cell_layout_get_area (GtkCellLayout   *cell_layout)
 
 static void
 focus_in (GtkEventControllerKey *controller,
-          GdkCrossingMode        mode,
-          GdkNotifyType          detail,
           GtkTreeViewColumn     *column)
 {
   _gtk_tree_view_set_focus_column (GTK_TREE_VIEW (column->priv->tree_view), column);
@@ -865,8 +865,8 @@ gtk_tree_view_column_create_button (GtkTreeViewColumn *tree_column)
   gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_CAPTURE);
   gtk_widget_add_controller (priv->button, controller);
 
-  controller = gtk_event_controller_key_new ();
-  g_signal_connect (controller, "focus-in", G_CALLBACK (focus_in), tree_column);
+  controller = gtk_event_controller_focus_new ();
+  g_signal_connect (controller, "enter", G_CALLBACK (focus_in), tree_column);
   gtk_widget_add_controller (priv->button, controller);
 
   priv->frame = gtk_frame_new (NULL);
@@ -1299,11 +1299,9 @@ gtk_tree_view_column_remove_editable_callback (GtkCellArea     *area,
 void
 _gtk_tree_view_column_realize_button (GtkTreeViewColumn *column)
 {
-  GtkTreeViewColumnPrivate *priv = column->priv;
-
-  g_return_if_fail (GTK_IS_TREE_VIEW (priv->tree_view));
-  g_return_if_fail (gtk_widget_get_realized (priv->tree_view));
-  g_return_if_fail (priv->button != NULL);
+  g_return_if_fail (GTK_IS_TREE_VIEW (column->priv->tree_view));
+  g_return_if_fail (gtk_widget_get_realized (column->priv->tree_view));
+  g_return_if_fail (column->priv->button != NULL);
 
   gtk_tree_view_column_update_button (column);
 }

@@ -31,6 +31,8 @@
 
 #include "gtkcsstypesprivate.h"
 #include "gtktexthandleprivate.h"
+#include "gtkeventcontrollerprivate.h"
+#include "gtkwindowgroup.h"
 
 G_BEGIN_DECLS
 
@@ -66,6 +68,10 @@ void          _gtk_ensure_resources       (void);
 
 void          gtk_main_sync               (void);
 
+GtkWidget *   gtk_window_group_get_current_grab (GtkWindowGroup *window_group);
+void          gtk_grab_add                      (GtkWidget      *widget);
+void          gtk_grab_remove                   (GtkWidget      *widget);
+
 gboolean _gtk_boolean_handled_accumulator (GSignalInvocationHint *ihint,
                                            GValue                *return_accu,
                                            const GValue          *handler_return,
@@ -97,6 +103,11 @@ gboolean   gtk_propagate_event          (GtkWidget       *widget,
                                          GdkEvent        *event);
 void       gtk_main_do_event       (GdkEvent           *event);
 
+GtkWidget *gtk_get_event_widget         (GdkEvent  *event);
+
+void check_crossing_invariants (GtkWidget       *widget,
+                                GtkCrossingData *crossing);
+
 gdouble _gtk_get_slowdown (void);
 void    _gtk_set_slowdown (gdouble slowdown_factor);
 
@@ -104,6 +115,8 @@ char *gtk_get_portal_request_path (GDBusConnection  *connection,
                                    char            **token);
 char *gtk_get_portal_session_path (GDBusConnection  *connection,
                                    char            **token);
+guint gtk_get_portal_interface_version (GDBusConnection *connection,
+                                        const char      *interface_name);
 
 #define PORTAL_BUS_NAME "org.freedesktop.portal.Desktop"
 #define PORTAL_OBJECT_PATH "/org/freedesktop/portal/desktop"

@@ -2,6 +2,7 @@ testexecdir = join_paths(installed_test_bindir, 'css', 'parser')
 testdatadir = join_paths(installed_test_datadir, 'css')
 
 test_parser = executable('test-css-parser', 'test-css-parser.c',
+                         c_args: common_cflags,
                          install: get_option('install-tests'),
                          install_dir: testexecdir,
                          dependencies: libgtk_dep)
@@ -91,9 +92,6 @@ test_data = [
   'at-invalid-21.css',
   'at-invalid-21.errors',
   'at-invalid-21.ref.css',
-  'at-invalid-22.css',
-  'at-invalid-22.errors',
-  'at-invalid-22.ref.css',
   'at-valid-01.css',
   'at-valid-01.ref.css',
   'at-valid-02.css',
@@ -464,6 +462,7 @@ foreach testname : test_data
                  '-k',
                  join_paths(meson.current_source_dir(), testname),
                ],
+         protocol: 'tap',
          env: [ 'GIO_USE_VOLUME_MONITOR=unix',
                 'GSETTINGS_BACKEND=memory',
                 'GDK_DEBUG=default-settings',

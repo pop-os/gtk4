@@ -349,17 +349,17 @@ create_action_treeview (GActionGroup *group)
   GtkTreeIter iter;
   GtkTreeViewColumn *column;
   GtkCellRenderer *cell;
-  gchar **actions;
+  gchar **group_actions;
   gint i;
 
   store = gtk_list_store_new (2, G_TYPE_STRING, G_TYPE_STRING);
-  actions = g_action_group_list_actions (group);
-  for (i = 0; actions[i]; i++)
+  group_actions = g_action_group_list_actions (group);
+  for (i = 0; group_actions[i]; i++)
     {
       gtk_list_store_append (store, &iter);
-      gtk_list_store_set (store, &iter, 0, actions[i], -1);
+      gtk_list_store_set (store, &iter, 0, group_actions[i], -1);
     }
-  g_strfreev (actions);
+  g_strfreev (group_actions);
   g_object_set_data (G_OBJECT (store), "group", group);
 
   tv = gtk_tree_view_new ();
@@ -641,7 +641,7 @@ main (int argc, char *argv[])
        exit (1);
     }
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
   gtk_container_add (GTK_CONTAINER (window), box);

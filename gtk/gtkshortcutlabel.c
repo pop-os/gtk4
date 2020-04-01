@@ -22,8 +22,6 @@
 #include "gtkboxlayout.h"
 #include "gtklabel.h"
 #include "gtkframe.h"
-#include "gtkstylecontext.h"
-#include "gtkprivate.h"
 #include "gtkintl.h"
 
 /**
@@ -305,8 +303,7 @@ parse_combination (GtkShortcutLabel *self,
   accels = g_strsplit (str, "&", 0);
   for (k = 0; accels[k]; k++)
     {
-      gtk_accelerator_parse (accels[k], &key, &modifier);
-      if (key == 0 && modifier == 0)
+      if (!gtk_accelerator_parse (accels[k], &key, &modifier))
         {
           retval = FALSE;
           break;

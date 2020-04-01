@@ -23,7 +23,7 @@
 /* Don't copy this bad example; inline RGB data is always a better
  * idea than inline XPMs.
  */
-static char  *book_closed_xpm[] = {
+static const char *book_closed_xpm[] = {
 "16 16 6 1",
 "       c None s None",
 ".      c black",
@@ -132,7 +132,7 @@ typedef enum
   COLUMNS_LAST
 } ColumnsType;
 
-static gchar *column_type_names[] = {
+static const char *column_type_names[] = {
   "No columns",
   "One column",
   "Many columns"
@@ -459,6 +459,8 @@ set_columns_type (GtkTreeView *tree_view, ColumnsType type)
                                                       NULL);
 
       gtk_tree_view_insert_column (GTK_TREE_VIEW (tree_view), col, 0);
+      break;
+    case COLUMNS_LAST:
     default:
       break;
     }
@@ -632,7 +634,7 @@ columns_selected (GtkComboBox *combo_box, gpointer data)
     }
 }
 
-void
+static void
 on_row_activated (GtkTreeView       *tree_view,
                   GtkTreePath       *path,
                   GtkTreeViewColumn *column,
@@ -640,10 +642,6 @@ on_row_activated (GtkTreeView       *tree_view,
 {
   g_print ("Row activated\n");
 }
-
-static const char *row_targets[] = {
-  "GTK_TREE_MODEL_ROW"
-};
 
 static void
 quit_cb (GtkWidget *widget,
@@ -698,7 +696,7 @@ main (int    argc,
 
   run_automated_tests ();
   
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   gtk_window_set_default_size (GTK_WINDOW (window), 430, 400);
 
@@ -709,7 +707,7 @@ main (int    argc,
   tv = gtk_tree_view_new_with_model (models[0]);
   g_signal_connect (tv, "row-activated", G_CALLBACK (on_row_activated), NULL);
 
-  targets = gdk_content_formats_new (row_targets, G_N_ELEMENTS (row_targets));
+  targets = gdk_content_formats_new_for_gtype (GTK_TYPE_TREE_ROW_DATA);
   gtk_tree_view_enable_model_drag_source (GTK_TREE_VIEW (tv),
 					  GDK_BUTTON1_MASK,
                                           targets,
@@ -1023,8 +1021,8 @@ gtk_real_model_types_iter_next (GtkTreeModel  *tree_model,
 
       if (children[i] != G_TYPE_INVALID)
         {
-          g_free (children);
           iter->user_data = GINT_TO_POINTER (children[i]);
+          g_free (children);
           return TRUE;
         }
       else

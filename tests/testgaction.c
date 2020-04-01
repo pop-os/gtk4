@@ -4,26 +4,34 @@ GtkWidget *label;
 
 
 static void
-change_label_button ()
+change_label_button (GSimpleAction *action,
+                     GVariant      *parameter,
+                     gpointer       user_data)
 {
   gtk_label_set_label (GTK_LABEL (label), "Text set from button");
 }
 
 static void
-normal_menu_item ()
+normal_menu_item (GSimpleAction *action,
+                  GVariant      *parameter,
+                  gpointer       user_data)
 {
   gtk_label_set_label (GTK_LABEL (label), "Text set from normal menu item");
 }
 
 static void
-toggle_menu_item ()
+toggle_menu_item (GSimpleAction *action,
+                  GVariant      *parameter,
+                  gpointer       user_data)
 {
 
   gtk_label_set_label (GTK_LABEL (label), "Text set from toggle menu item");
 }
 
 static void
-submenu_item ()
+submenu_item (GSimpleAction *action,
+              GVariant      *parameter,
+              gpointer       user_data)
 {
   gtk_label_set_label (GTK_LABEL (label), "Text set from submenu item");
 }
@@ -98,7 +106,7 @@ static const char *menu_data =
 int main (int argc, char **argv)
 {
   gtk_init ();
-  GtkWidget *window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  GtkWidget *window = gtk_window_new ();
   GtkWidget *box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   GtkWidget *menubutton = gtk_menu_button_new ();
   GtkWidget *button1 = gtk_button_new_with_label ("Change Label Text");
@@ -125,7 +133,7 @@ int main (int argc, char **argv)
     GtkBuilder *builder = gtk_builder_new_from_string (menu_data, -1);
     menu_model = G_MENU_MODEL (gtk_builder_get_object (builder, "menu_model"));
 
-    menu = gtk_popover_menu_new_from_model (NULL, menu_model);
+    menu = gtk_popover_menu_new_from_model (menu_model);
 
   }
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (menubutton), menu);

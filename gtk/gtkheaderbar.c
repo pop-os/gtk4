@@ -346,9 +346,8 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
   else
     menu = NULL;
 
-  is_sovereign_window = (!gtk_window_get_modal (window) &&
-                          gtk_window_get_transient_for (window) == NULL &&
-                          gtk_window_get_type_hint (window) == GDK_SURFACE_TYPE_HINT_NORMAL);
+  is_sovereign_window = !gtk_window_get_modal (window) &&
+                         gtk_window_get_transient_for (window) == NULL;
 
   tokens = g_strsplit (layout_desc, ":", 2);
   if (tokens)
@@ -383,11 +382,11 @@ _gtk_header_bar_update_window_buttons (GtkHeaderBar *bar)
                   priv->titlebar_icon = button;
                   gtk_widget_add_css_class (button, "titlebutton");
                   gtk_widget_add_css_class (button, "icon");
-                  gtk_widget_set_size_request (button, 20, 20);
 
                   if (!_gtk_header_bar_update_window_icon (bar, window))
                     {
-                      gtk_widget_destroy (button);
+                      g_object_ref_sink (button);
+                      g_object_unref (button);
                       priv->titlebar_icon = NULL;
                       button = NULL;
                     }
@@ -802,7 +801,7 @@ gtk_header_bar_dispose (GObject *object)
 
   if (priv->label_sizing_box)
     {
-      gtk_widget_destroy (priv->label_sizing_box);
+      g_object_ref_sink (priv->label_sizing_box);
       g_clear_object (&priv->label_sizing_box);
     }
 
@@ -1084,7 +1083,7 @@ surface_state_changed (GtkWidget *widget)
   GtkHeaderBarPrivate *priv = gtk_header_bar_get_instance_private (bar);
   GdkSurfaceState changed, new_state;
 
-  new_state = gdk_surface_get_state (gtk_native_get_surface (gtk_widget_get_native (widget)));
+  new_state = gdk_toplevel_get_state (GDK_TOPLEVEL (gtk_native_get_surface (gtk_widget_get_native (widget))));
   changed = new_state ^ priv->state;
   priv->state = new_state;
 

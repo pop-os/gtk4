@@ -103,12 +103,15 @@ main (int argc, char **argv)
                                               GTK_STYLE_PROVIDER (provider),
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 120);
   top = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 120);
   bottom = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 120);
-  g_object_set (box, "margin", 120, NULL);
+  gtk_widget_set_margin_start (box, 120);
+  gtk_widget_set_margin_end (box, 120);
+  gtk_widget_set_margin_top (box, 120);
+  gtk_widget_set_margin_bottom (box, 120);
 
   w = gtk_button_new ();
   gtk_widget_set_valign (w, GTK_ALIGN_CENTER);

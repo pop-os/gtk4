@@ -44,6 +44,13 @@
 #define WL_SURFACE_HAS_BUFFER_SCALE 3
 #define WL_POINTER_HAS_FRAME 5
 
+/* the magic mime type we use for local DND operations.
+ * We offer it to every dnd operation, but will strip it out on the drop
+ * site unless we can prove it's a local DND - then we will use only
+ * this type
+ */
+#define GDK_WAYLAND_LOCAL_DND_MIME_TYPE "application/x-gtk-local-dnd"
+
 GdkKeymap *_gdk_wayland_keymap_new (GdkDisplay *display);
 void       _gdk_wayland_keymap_update_from_fd (GdkKeymap *keymap,
                                                uint32_t   format,
@@ -92,7 +99,6 @@ void            gdk_wayland_surface_attach_image           (GdkSurface          
                                                             cairo_surface_t      *cairo_surface,
                                                             const cairo_region_t *damage);
 
-void            _gdk_wayland_surface_register_dnd          (GdkSurface *surface);
 GdkDrag        *_gdk_wayland_surface_drag_begin            (GdkSurface *surface,
                                                             GdkDevice *device,
                                                             GdkContentProvider *content,
@@ -121,15 +127,6 @@ GdkSurface * _gdk_wayland_display_create_surface (GdkDisplay *display,
                                                   int         width,
                                                   int         height);
 
-gint        _gdk_wayland_display_text_property_to_utf8_list (GdkDisplay    *display,
-                                                             GdkAtom        encoding,
-                                                             gint           format,
-                                                             const guchar  *text,
-                                                             gint           length,
-                                                             gchar       ***list);
-gchar *     _gdk_wayland_display_utf8_to_string_target (GdkDisplay  *display,
-                                                        const gchar *str);
-
 void        _gdk_wayland_display_create_seat    (GdkWaylandDisplay *display,
                                                  guint32                  id,
                                                  struct wl_seat          *seat);
@@ -138,7 +135,7 @@ void        _gdk_wayland_display_remove_seat    (GdkWaylandDisplay       *displa
 
 GdkKeymap *_gdk_wayland_device_get_keymap (GdkDevice *device);
 uint32_t _gdk_wayland_device_get_implicit_grab_serial(GdkWaylandDevice *device,
-                                                      const GdkEvent   *event);
+                                                      GdkEvent   *event);
 uint32_t _gdk_wayland_seat_get_last_implicit_grab_serial (GdkWaylandSeat     *seat,
                                                           GdkEventSequence **seqence);
 struct wl_data_device * gdk_wayland_device_get_data_device (GdkDevice *gdk_device);
@@ -201,6 +198,8 @@ void gdk_wayland_surface_restore_shortcuts (GdkSurface *surface,
                                            GdkSeat   *gdk_seat);
 
 void gdk_wayland_surface_update_scale (GdkSurface *surface);
+
+GdkSurface * create_dnd_surface (GdkDisplay *display);
 
 
 #endif /* __GDK_PRIVATE_WAYLAND_H__ */

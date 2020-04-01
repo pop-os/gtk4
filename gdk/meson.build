@@ -35,17 +35,20 @@ gdk_public_sources = files([
   'gdkpango.c',
   'gdkpixbuf-drawable.c',
   'gdkpipeiostream.c',
-  'gdkproperty.c',
   'gdkrectangle.c',
   'gdkrgba.c',
   'gdkseat.c',
   'gdkseatdefault.c',
-  'gdkselection.c',
   'gdksnapshot.c',
   'gdktexture.c',
   'gdkvulkancontext.c',
   'gdksurface.c',
-  'gdkprofiler.c'
+  'gdkpopuplayout.c',
+  'gdkprofiler.c',
+  'gdkpopup.c',
+  'gdktoplevellayout.c',
+  'gdktoplevel.c',
+  'gdkdragsurface.c',
 ])
 
 gdk_public_headers = files([
@@ -81,7 +84,6 @@ gdk_public_headers = files([
   'gdkpaintable.h',
   'gdkpango.h',
   'gdkpixbuf.h',
-  'gdkproperty.h',
   'gdkrectangle.h',
   'gdkrgba.h',
   'gdkseat.h',
@@ -90,6 +92,11 @@ gdk_public_headers = files([
   'gdktypes.h',
   'gdkvulkancontext.h',
   'gdksurface.h',
+  'gdkpopuplayout.h',
+  'gdkpopup.h',
+  'gdktoplevellayout.h',
+  'gdktoplevel.h',
+  'gdkdragsurface.h',
 ])
 install_headers(gdk_public_headers, subdir: 'gtk-4.0/gdk/')
 

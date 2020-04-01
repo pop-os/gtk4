@@ -40,23 +40,19 @@ int main (int argc, char **argv)
 	GtkWidget *label;
 	GtkWidget *check;
 	GtkWidget *combo;
-	GtkAccelGroup *accel_group;
 	guint i;
 	guint row = 0;
 	GMenu *menu;
 
 	gtk_init ();
 
-	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	window = gtk_window_new ();
 	gtk_window_resize (GTK_WINDOW (window), 400, 300);
 
 	grid = gtk_grid_new ();
 	gtk_grid_set_row_spacing (GTK_GRID (grid), 12);
 	gtk_grid_set_column_spacing (GTK_GRID (grid), 12);
 	gtk_container_add (GTK_CONTAINER (window), grid);
-
-	accel_group = gtk_accel_group_new ();
-	gtk_window_add_accel_group (GTK_WINDOW (window), accel_group);
 
 	/* horizontal alignment */
 	label = gtk_label_new ("Horizontal Alignment:");
@@ -108,15 +104,15 @@ int main (int argc, char **argv)
 	/* Button with GMenuModel */
 	menu = g_menu_new ();
 	for (i = 5; i > 0; i--) {
-		char *label;
+		char *item_label;
                 GMenuItem *item;
-		label = g_strdup_printf ("Item _%d", i);
-                item = g_menu_item_new (label, NULL);
+		item_label = g_strdup_printf ("Item _%d", i);
+                item = g_menu_item_new (item_label, NULL);
                 if (i == 3)
                   g_menu_item_set_attribute (item, "icon", "s", "preferences-desktop-locale-symbolic");
 		g_menu_insert_item (menu, 0, item);
                 g_object_unref (item);
-		g_free (label);
+		g_free (item_label);
 	}
 
 	button = gtk_menu_button_new ();

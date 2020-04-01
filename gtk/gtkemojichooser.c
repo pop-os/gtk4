@@ -35,6 +35,7 @@
 #include "gtksearchentryprivate.h"
 #include "gtkstylecontext.h"
 #include "gtktext.h"
+#include "gtknative.h"
 #include "gdk/gdkprofilerprivate.h"
 
 /**
@@ -47,9 +48,112 @@
  *
  * GtkEmojiChooser emits the #GtkEmojiChooser:emoji-picked signal when an
  * Emoji is selected.
+ *
+ * # CSS nodes
+ * |[<!-- language="plain" -->
+ * popover
+ * ╰── box.emoji-toolbar
+ *     ├── button.iamge-button.emoji-section
+ *     ├── ...
+ *     ╰── button.image-button.emoji-section
+ * ]|
+ *
+ * Every #GtkEmojiChooser consists of a main node called popover.
+ * The contents of the popover are largely implementation defined
+ * and supposed to inherit general styles.
+ * The bottom toolbar used to switch between different emoji categories
+ * consists of buttons with the .emoji-section style class and gets the
+ * .emoji-toolbar style class itself.
+ *
  */
 
 #define BOX_SPACE 6
+
+GType gtk_emoji_chooser_child_get_type (void);
+
+#define GTK_TYPE_EMOJI_CHOOSER_CHILD (gtk_emoji_chooser_child_get_type ())
+
+typedef struct
+{
+  GtkFlowBoxChild parent;
+  GtkWidget *variations;
+} GtkEmojiChooserChild;
+
+typedef struct
+{
+  GtkFlowBoxChildClass parent_class;
+} GtkEmojiChooserChildClass;
+
+G_DEFINE_TYPE (GtkEmojiChooserChild, gtk_emoji_chooser_child, GTK_TYPE_FLOW_BOX_CHILD)
+
+static void
+gtk_emoji_chooser_child_init (GtkEmojiChooserChild *child)
+{
+}
+
+static void
+gtk_emoji_chooser_child_size_allocate (GtkWidget *widget,
+                                       int        width,
+                                       int        height,
+                                       int        baseline)
+{
+  GtkEmojiChooserChild *child = (GtkEmojiChooserChild *)widget;
+
+  GTK_WIDGET_CLASS (gtk_emoji_chooser_child_parent_class)->size_allocate (widget, width, height, baseline);
+  if (child->variations)
+    gtk_native_check_resize (GTK_NATIVE (child->variations));
+}
+
+static gboolean
+gtk_emoji_chooser_child_focus (GtkWidget        *widget,
+                               GtkDirectionType  direction)
+{
+  GtkEmojiChooserChild *child = (GtkEmojiChooserChild *)widget;
+
+  if (child->variations && gtk_widget_is_visible (child->variations))
+    {
+      if (gtk_widget_child_focus (child->variations, direction))
+        return TRUE;
+    }
+
+  return GTK_WIDGET_CLASS (gtk_emoji_chooser_child_parent_class)->focus (widget, direction);
+}
+
+static void show_variations (GtkEmojiChooser *chooser,
+                             GtkWidget       *child);
+
+static void
+gtk_emoji_chooser_child_popup_menu (GtkWidget  *widget,
+                                    const char *action_name,
+                                    GVariant   *paramters)
+{
+  GtkWidget *chooser;
+
+  chooser = gtk_widget_get_ancestor (widget, GTK_TYPE_EMOJI_CHOOSER);
+
+  show_variations (GTK_EMOJI_CHOOSER (chooser), widget);
+}
+
+static void
+gtk_emoji_chooser_child_class_init (GtkEmojiChooserChildClass *class)
+{
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
+  widget_class->size_allocate = gtk_emoji_chooser_child_size_allocate;
+  widget_class->focus = gtk_emoji_chooser_child_focus;
+
+  gtk_widget_class_install_action (widget_class, "menu.popup", NULL, gtk_emoji_chooser_child_popup_menu);
+
+  gtk_widget_class_add_binding_action (widget_class,
+                                       GDK_KEY_F10, GDK_SHIFT_MASK,
+                                       "menu.popup",
+                                       NULL);
+  gtk_widget_class_add_binding_action (widget_class,
+                                       GDK_KEY_Menu, 0,
+                                       "menu.popup",
+                                       NULL);
+
+  gtk_widget_class_set_css_name (widget_class, "emoji");
+}
 
 typedef struct {
   GtkWidget *box;
@@ -110,8 +214,8 @@ gtk_emoji_chooser_finalize (GObject *object)
   if (chooser->populate_idle)
     g_source_remove (chooser->populate_idle);
 
-  g_variant_unref (chooser->data);
-  g_object_unref (chooser->settings);
+  g_clear_pointer (&chooser->data, g_variant_unref);
+  g_clear_object (&chooser->settings);
 
   G_OBJECT_CLASS (gtk_emoji_chooser_parent_class)->finalize (object);
 }
@@ -193,13 +297,13 @@ add_recent_item (GtkEmojiChooser *chooser,
 
       if (modifier == modifier2 && g_variant_equal (item, item2))
         {
-          gtk_widget_destroy (GTK_WIDGET (l->data));
+          gtk_container_remove (GTK_CONTAINER (chooser->recent.box), l->data);
           i--;
           continue;
         }
       if (i >= MAX_RECENT)
         {
-          gtk_widget_destroy (GTK_WIDGET (l->data));
+          gtk_container_remove (GTK_CONTAINER (chooser->recent.box), l->data);
           continue;
         }
 
@@ -276,6 +380,7 @@ show_variations (GtkEmojiChooser *chooser,
   GVariant *emoji_data;
   GtkWidget *parent_popover;
   gunichar modifier;
+  GtkEmojiChooserChild *ch = (GtkEmojiChooserChild *)child;
 
   if (!child)
     return;
@@ -288,7 +393,9 @@ show_variations (GtkEmojiChooser *chooser,
     return;
 
   parent_popover = gtk_widget_get_ancestor (child, GTK_TYPE_POPOVER);
-  popover = gtk_popover_new (child);
+  popover = ch->variations = gtk_popover_new ();
+  gtk_popover_set_autohide (GTK_POPOVER (popover), TRUE);
+  gtk_widget_set_parent (popover, child);
   view = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_add_css_class (view, "view");
   box = gtk_flow_box_new ();
@@ -341,16 +448,6 @@ pressed_cb (GtkGesture *gesture,
   show_variations (chooser, child);
 }
 
-static gboolean
-popup_menu (GtkWidget *widget,
-            gpointer   data)
-{
-  GtkEmojiChooser *chooser = data;
-
-  show_variations (chooser, widget);
-  return TRUE;
-}
-
 static void
 add_emoji (GtkWidget    *box,
            gboolean      prepend,
@@ -396,19 +493,17 @@ add_emoji (GtkWidget    *box,
   if (pango_layout_get_unknown_glyphs_count (layout) > 0 ||
       rect.width >= 1.5 * chooser->emoji_max_width)
     {
-      gtk_widget_destroy (label);
+      g_object_ref_sink (label);
+      g_object_unref (label);
       return;
     }
 
-  child = g_object_new (GTK_TYPE_FLOW_BOX_CHILD, "css-name", "emoji", NULL);
+  child = g_object_new (GTK_TYPE_EMOJI_CHOOSER_CHILD, NULL);
   g_object_set_data_full (G_OBJECT (child), "emoji-data",
                           g_variant_ref (item),
                           (GDestroyNotify)g_variant_unref);
   if (modifier != 0)
     g_object_set_data (G_OBJECT (child), "modifier", GUINT_TO_POINTER (modifier));
-
-  if (chooser)
-    g_signal_connect (child, "popup-menu", G_CALLBACK (popup_menu), chooser);
 
   gtk_container_add (GTK_CONTAINER (child), label);
   gtk_flow_box_insert (GTK_FLOW_BOX (box), child, prepend ? 0 : -1);
@@ -465,8 +560,8 @@ populate_emoji_chooser (gpointer data)
       now = g_get_monotonic_time ();
       if (now > start + 8000)
         {
-          if (gdk_profiler_is_running ())
-            gdk_profiler_add_mark (start * 1000, (now - start) * 1000, "emojichooser", "populate");
+          if (GDK_PROFILER_IS_RUNNING)
+            gdk_profiler_add_mark (start, (now - start), "emojichooser", "populate");
           return G_SOURCE_CONTINUE;
         }
     }
@@ -476,11 +571,8 @@ populate_emoji_chooser (gpointer data)
   chooser->box = NULL;
   chooser->populate_idle = 0;
 
-  if (gdk_profiler_is_running ())
-    {
-      now = g_get_monotonic_time ();
-      gdk_profiler_add_mark (start * 1000, (now - start) * 1000, "emojichooser", "populate (finish)");
-    }
+  if (GDK_PROFILER_IS_RUNNING)
+    gdk_profiler_end_mark (start, "emojichooser", "populate (finish)");
 
   return G_SOURCE_REMOVE;
 }

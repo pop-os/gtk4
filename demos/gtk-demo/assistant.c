@@ -7,7 +7,7 @@
 
 #include <gtk/gtk.h>
 
-static GtkWidget *assistant = NULL;
+/*static GtkWidget *assistant = NULL;*/
 static GtkWidget *progress_bar = NULL;
 
 static gboolean
@@ -27,8 +27,7 @@ apply_changes_gradually (gpointer data)
   else
     {
       /* Close automatically once changes are fully applied. */
-      gtk_widget_destroy (assistant);
-      assistant = NULL;
+      gtk_widget_destroy (data);
       return G_SOURCE_REMOVE;
     }
 }
@@ -37,7 +36,7 @@ static void
 on_assistant_apply (GtkWidget *widget, gpointer data)
 {
   /* Start a timer to simulate changes taking a few seconds to apply. */
-  g_timeout_add (100, apply_changes_gradually, NULL);
+  g_timeout_add (100, apply_changes_gradually, widget);
 }
 
 static void
@@ -94,7 +93,10 @@ create_page1 (GtkWidget *assistant)
   GtkWidget *box, *label, *entry;
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
-  g_object_set (box, "margin", 12, NULL);
+  gtk_widget_set_margin_start (box, 12);
+  gtk_widget_set_margin_end (box, 12);
+  gtk_widget_set_margin_top (box, 12);
+  gtk_widget_set_margin_bottom (box, 12);
 
   label = gtk_label_new ("You must fill out this entry to continue:");
   gtk_container_add (GTK_CONTAINER (box), label);
@@ -117,7 +119,10 @@ create_page2 (GtkWidget *assistant)
   GtkWidget *box, *checkbutton;
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
-  g_object_set (box, "margin", 12, NULL);
+  gtk_widget_set_margin_start (box, 12);
+  gtk_widget_set_margin_end (box, 12);
+  gtk_widget_set_margin_top (box, 12);
+  gtk_widget_set_margin_bottom (box, 12);
 
   checkbutton = gtk_check_button_new_with_label ("This is optional data, you may continue "
                                                  "even if you do not check this");
@@ -167,6 +172,8 @@ create_page4 (GtkWidget *assistant)
 GtkWidget*
 do_assistant (GtkWidget *do_widget)
 {
+  static GtkWidget *assistant;
+
   if (!assistant)
     {
       assistant = gtk_assistant_new ();

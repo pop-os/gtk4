@@ -6,6 +6,7 @@
 typedef GtkApplication DemoApplication;
 typedef GtkApplicationClass DemoApplicationClass;
 
+static GType demo_application_get_type (void);
 G_DEFINE_TYPE (DemoApplication, demo_application, GTK_TYPE_APPLICATION)
 
 typedef struct {
@@ -25,6 +26,7 @@ typedef struct {
 } DemoApplicationWindow;
 typedef GtkApplicationWindowClass DemoApplicationWindowClass;
 
+static GType demo_application_window_get_type (void);
 G_DEFINE_TYPE (DemoApplicationWindow, demo_application_window, GTK_TYPE_APPLICATION_WINDOW)
 
 static void create_window (GApplication *app, const char *contents);
@@ -428,7 +430,7 @@ demo_application_window_init (DemoApplicationWindow *window)
 
   gtk_widget_init_template (GTK_WIDGET (window));
 
-  popover = gtk_popover_menu_new_from_model (window->menubutton, window->toolmenu);
+  popover = gtk_popover_menu_new_from_model (window->toolmenu);
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (window->menubutton), popover);
 
   g_action_map_add_action_entries (G_ACTION_MAP (window),
@@ -477,7 +479,7 @@ surface_state_changed (GtkWidget *widget)
   DemoApplicationWindow *window = (DemoApplicationWindow *)widget;
   GdkSurfaceState new_state;
 
-  new_state = gdk_surface_get_state (gtk_native_get_surface (GTK_NATIVE (widget)));
+  new_state = gdk_toplevel_get_state (GDK_TOPLEVEL (gtk_native_get_surface (GTK_NATIVE (widget))));
   window->maximized = (new_state & GDK_SURFACE_STATE_MAXIMIZED) != 0;
   window->fullscreen = (new_state & GDK_SURFACE_STATE_FULLSCREEN) != 0;
 }

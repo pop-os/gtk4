@@ -54,7 +54,7 @@ test_action (void)
     { "action", box_activate, NULL, NULL, NULL },
   };
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   button = gtk_button_new ();
 
@@ -207,7 +207,7 @@ test_overlap (void)
   GSimpleActionGroup *win_actions;
   GSimpleActionGroup *box_actions;
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   gtk_container_add (GTK_CONTAINER (window), box);
@@ -358,15 +358,16 @@ test_introspection (void)
     const char *params;
     const char *property;
   } expected[] = {
-    { GTK_TYPE_TEXT, "text.undo", NULL, NULL },
-    { GTK_TYPE_TEXT, "text.redo", NULL, NULL },
-    { GTK_TYPE_TEXT, "clipboard.cut", NULL, NULL },
-    { GTK_TYPE_TEXT, "clipboard.copy", NULL, NULL },
-    { GTK_TYPE_TEXT, "clipboard.paste", NULL, NULL },
-    { GTK_TYPE_TEXT, "selection.delete", NULL, NULL },
-    { GTK_TYPE_TEXT, "selection.select-all", NULL, NULL },
-    { GTK_TYPE_TEXT, "misc.insert-emoji", NULL, NULL },
     { GTK_TYPE_TEXT, "misc.toggle-visibility", NULL, "visibility" },
+    { GTK_TYPE_TEXT, "misc.insert-emoji", NULL, NULL },
+    { GTK_TYPE_TEXT, "selection.select-all", NULL, NULL },
+    { GTK_TYPE_TEXT, "selection.delete", NULL, NULL },
+    { GTK_TYPE_TEXT, "clipboard.paste", NULL, NULL },
+    { GTK_TYPE_TEXT, "clipboard.copy", NULL, NULL },
+    { GTK_TYPE_TEXT, "clipboard.cut", NULL, NULL },
+    { GTK_TYPE_TEXT, "menu.popup", NULL, NULL },
+    { GTK_TYPE_TEXT, "text.redo", NULL, NULL },
+    { GTK_TYPE_TEXT, "text.undo", NULL, NULL },
   };
 
   i = 0;
@@ -378,11 +379,9 @@ test_introspection (void)
                                         &property))
     {
       g_assert (expected[i].owner == owner);
-      g_assert (strcmp (expected[i].name, name) == 0);
-      g_assert ((expected[i].params == NULL && params == NULL) ||
-                strcmp (expected[i].params, g_variant_type_peek_string (params)) == 0);
-      g_assert ((expected[i].property == NULL && property == NULL) ||
-                strcmp (expected[i].property, property) == 0);
+      g_assert_cmpstr (expected[i].name, ==, name);
+      g_assert_cmpstr (expected[i].params, ==, params ? g_variant_type_peek_string (params) : NULL);
+      g_assert_cmpstr (expected[i].property, ==, property);
       i++;
     }
   g_assert (i == G_N_ELEMENTS (expected));

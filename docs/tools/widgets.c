@@ -41,7 +41,7 @@ new_widget_info (const char *name,
     }
   else
     {
-      info->window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      info->window = gtk_window_new ();
       info->include_decorations = FALSE;
       gtk_widget_show (widget);
       gtk_container_add (GTK_CONTAINER (info->window), widget);
@@ -152,7 +152,7 @@ create_menu_button (void)
   image = gtk_image_new ();
   gtk_image_set_from_icon_name (GTK_IMAGE (image), "emblem-system-symbolic");
   gtk_container_add (GTK_CONTAINER (widget), image);
-  menu = gtk_popover_new (NULL);
+  menu = gtk_popover_new ();
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (widget), menu);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 3);
@@ -281,25 +281,19 @@ create_accel_label (void)
 {
   WidgetInfo *info;
   GtkWidget *widget, *button, *box;
-  GtkAccelGroup *accel_group;
 
   widget = gtk_accel_label_new ("Accel Label");
 
   button = gtk_button_new_with_label ("Quit");
-  gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (widget), button);
   gtk_widget_hide (button);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add (GTK_CONTAINER (box), widget);
   gtk_container_add (GTK_CONTAINER (box), button);
 
-  gtk_accel_label_set_accel_widget (GTK_ACCEL_LABEL (widget), button);
-  accel_group = gtk_accel_group_new();
+  gtk_accel_label_set_accel (GTK_ACCEL_LABEL (widget), GDK_KEY_Q, GDK_CONTROL_MASK);
 
   info = new_widget_info ("accel-label", box, SMALL);
-
-  gtk_widget_add_accelerator (button, "activate", accel_group, GDK_KEY_Q, GDK_CONTROL_MASK,
-			      GTK_ACCEL_VISIBLE | GTK_ACCEL_LOCKED);
 
   return info;
 }
@@ -375,7 +369,7 @@ create_info_bar (void)
   widget = gtk_info_bar_new ();
   gtk_info_bar_set_show_close_button (GTK_INFO_BAR (widget), TRUE);
   gtk_info_bar_set_message_type (GTK_INFO_BAR (widget), GTK_MESSAGE_INFO);
-  gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (widget))),
+  gtk_container_add (GTK_CONTAINER (widget),
                      gtk_label_new ("Info Bar"));
 
   gtk_widget_set_halign (widget, GTK_ALIGN_FILL);
@@ -437,7 +431,13 @@ create_action_bar (void)
   button = gtk_button_new_from_icon_name ("call-start-symbolic");
   gtk_widget_show (button);
   gtk_container_add (GTK_CONTAINER (widget), button);
-  g_object_set (gtk_widget_get_parent (button), "margin", 6, "spacing", 6, NULL);
+  g_object_set (gtk_widget_get_parent (button),
+                "margin-start", 6,
+                "margin-end", 6,
+                "margin-top", 6,
+                "margin-bottom", 6,
+                "spacing", 6,
+                NULL);
 
   gtk_widget_show (widget);
 
@@ -593,6 +593,7 @@ create_file_button (void)
   GtkWidget *vbox2;
   GtkWidget *picker;
   char *path;
+  GFile *file;
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
   vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 3);
@@ -615,8 +616,10 @@ create_file_button (void)
 		  			GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
   gtk_widget_set_size_request (picker, 150, -1);
   path = g_build_filename (g_get_home_dir (), "Documents", NULL);
-  gtk_file_chooser_set_filename (GTK_FILE_CHOOSER (picker), path);
+  file = g_file_new_for_path (path);
+  gtk_file_chooser_set_file (GTK_FILE_CHOOSER (picker), file, NULL);
   g_free (path);
+  g_object_unref (file);
   gtk_widget_set_halign (picker, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (picker, GTK_ALIGN_CENTER);
   gtk_container_add (GTK_CONTAINER (vbox2), picker);
@@ -711,7 +714,7 @@ create_window (void)
   WidgetInfo *info;
   GtkWidget *widget;
 
-  widget = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  widget = gtk_window_new ();
   info = new_widget_info ("window", widget, MEDIUM);
   info->include_decorations = TRUE;
   gtk_window_set_title (GTK_WINDOW (info->window), "Window");
@@ -1016,7 +1019,7 @@ create_volume_button (void)
   GtkWidget *widget;
   GtkWidget *popup;
 
-  widget = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  widget = gtk_window_new ();
   gtk_widget_set_size_request (widget, 100, 250);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -1129,7 +1132,7 @@ create_headerbar (void)
   GtkWidget *view;
   GtkWidget *button;
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   view = gtk_text_view_new ();
   gtk_widget_show (view);
   gtk_widget_set_size_request (window, 220, 150);

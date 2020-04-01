@@ -58,7 +58,7 @@ apply_css (GtkWidget *widget, GtkStyleProvider *provider)
     gtk_container_forall (GTK_CONTAINER (widget), (GtkCallback) apply_css, provider);
 }
 
-GtkWidget *
+static GtkWidget *
 create_toolbar (void)
 {
   GtkWidget *toolbar;
@@ -91,7 +91,7 @@ do_css_shadows (GtkWidget *do_widget)
       GtkTextBuffer *text;
       GBytes *bytes;
 
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_title (GTK_WINDOW (window), "Shadows");
       gtk_window_set_transient_for (GTK_WINDOW (window), GTK_WINDOW (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window), 400, 300);

@@ -721,15 +721,21 @@ maybe_rename_property (Element *element, MyParserData *data)
   struct _Prop {
     const char *class;
     const char *property;
+    GType type;
     PropKind kind;
     const char *new_name;
+    const char *alt_names[3];
   } props[] = {
-    { "GtkPopover", "modal", PROP_KIND_OBJECT, "autohide" },
+    { "GtkPopover", "modal", GTK_TYPE_POPOVER, PROP_KIND_OBJECT, "autohide", { NULL, NULL, NULL } },
+    { "GtkWidget", "expand", GTK_TYPE_WIDGET, PROP_KIND_OBJECT, "hexpand", { "vexpand", NULL, NULL } },
+    { "GtkWidget", "margin", GTK_TYPE_WIDGET, PROP_KIND_OBJECT, "margin-left", { "margin-top", "margin-right", "margin-bottom" } },
+    { "GtkHeaderBar", "show-close-button", GTK_TYPE_HEADER_BAR, PROP_KIND_OBJECT, "show-title-buttons", { NULL, NULL, NULL } }
   };
-  char *canonical_name;
-  int i, k;
+  int i, k, l;
   PropKind kind;
   int prop_name_index = 0;
+  GType type;
+  char *canonical_name;
 
   kind = get_prop_kind (element);
 
@@ -747,18 +753,40 @@ maybe_rename_property (Element *element, MyParserData *data)
 
   if (property_name == NULL)
     return;
+ 
+  type = g_type_from_name (class_name);
 
   canonical_name = g_strdup (property_name);
   g_strdelimit (canonical_name, "_", '-');
-
+  
   for (k = 0; k < G_N_ELEMENTS (props); k++)
     {
-      if (strcmp (class_name, props[k].class) == 0 &&
+      if (g_type_is_a (type, props[k].type) &&
           strcmp (canonical_name, props[k].property) == 0 &&
           kind == props[k].kind)
         {
           g_free (element->attribute_values[prop_name_index]);
           element->attribute_values[prop_name_index] = g_strdup (props[k].new_name);
+          for (l = 0; l < 3 && props[k].alt_names[l]; l++)
+            {
+              Element *elt;
+              GList *sibling;
+
+              elt = g_new0 (Element, 1);
+              elt->parent = element->parent;
+              elt->element_name = g_strdup (element->element_name);
+              elt->attribute_names = g_strdupv ((char **) element->attribute_names);
+              elt->attribute_values = g_strdupv ((char **) element->attribute_values);
+              elt->data = g_strdup (element->data);
+
+              g_free (elt->attribute_values[prop_name_index]);
+              elt->attribute_values[prop_name_index] = g_strdup (props[k].alt_names[l]);
+
+              sibling = g_list_find (element->parent->children, element);
+              element->parent->children = g_list_insert_before (element->parent->children,
+                                                                sibling,
+                                                                elt);
+            }
           break;
         }
     }
@@ -1188,7 +1216,7 @@ rewrite_paned_child (Element *element,
               if (g_str_equal (elt2->element_name, "property") &&
                   has_attribute (elt2, "name", "resize"))
                 resize = elt2;
-              if (g_str_equal (elt2->element_name, "property") &&
+              else if (g_str_equal (elt2->element_name, "property") &&
                   has_attribute (elt2, "name", "shrink"))
                 shrink = elt2;
             }

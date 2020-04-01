@@ -53,7 +53,7 @@ do_infobar (GtkWidget *do_widget)
     {
       actions = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Info Bars");
@@ -61,7 +61,10 @@ do_infobar (GtkWidget *do_widget)
       g_signal_connect (window, "destroy", G_CALLBACK (gtk_widget_destroyed), &window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-      g_object_set (vbox, "margin", 8, NULL);
+      gtk_widget_set_margin_start (vbox, 8);
+      gtk_widget_set_margin_end (vbox, 8);
+      gtk_widget_set_margin_top (vbox, 8);
+      gtk_widget_set_margin_bottom (vbox, 8);
       gtk_container_add (GTK_CONTAINER (window), vbox);
 
       bar = gtk_info_bar_new ();
@@ -70,7 +73,7 @@ do_infobar (GtkWidget *do_widget)
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_INFO");
       gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
-      gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
+      gtk_container_add (GTK_CONTAINER (bar), label);
 
       button = gtk_toggle_button_new_with_label ("Message");
       g_object_bind_property (bar, "revealed", button, "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
@@ -82,7 +85,7 @@ do_infobar (GtkWidget *do_widget)
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_WARNING");
       gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
-      gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
+      gtk_container_add (GTK_CONTAINER (bar), label);
 
       button = gtk_toggle_button_new_with_label ("Warning");
       g_object_bind_property (bar, "revealed", button, "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
@@ -96,7 +99,7 @@ do_infobar (GtkWidget *do_widget)
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_QUESTION");
       gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
-      gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
+      gtk_container_add (GTK_CONTAINER (bar), label);
       gtk_info_bar_set_default_response (GTK_INFO_BAR (bar), GTK_RESPONSE_OK);
 
       button = gtk_toggle_button_new_with_label ("Question");
@@ -109,7 +112,7 @@ do_infobar (GtkWidget *do_widget)
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_ERROR");
       gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
-      gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
+      gtk_container_add (GTK_CONTAINER (bar), label);
 
       button = gtk_toggle_button_new_with_label ("Error");
       g_object_bind_property (bar, "revealed", button, "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
@@ -122,7 +125,7 @@ do_infobar (GtkWidget *do_widget)
       label = gtk_label_new ("This is an info bar with message type GTK_MESSAGE_OTHER");
       gtk_label_set_wrap (GTK_LABEL (label), TRUE);
       gtk_label_set_xalign (GTK_LABEL (label), 0);
-      gtk_container_add (GTK_CONTAINER (gtk_info_bar_get_content_area (GTK_INFO_BAR (bar))), label);
+      gtk_container_add (GTK_CONTAINER (bar), label);
 
       button = gtk_toggle_button_new_with_label ("Other");
       g_object_bind_property (bar, "revealed", button, "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
@@ -134,7 +137,10 @@ do_infobar (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), frame);
 
       vbox2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
-      g_object_set (vbox2, "margin", 8, NULL);
+      gtk_widget_set_margin_start (vbox2, 8);
+      gtk_widget_set_margin_end (vbox2, 8);
+      gtk_widget_set_margin_top (vbox2, 8);
+      gtk_widget_set_margin_bottom (vbox2, 8);
       gtk_container_add (GTK_CONTAINER (frame), vbox2);
 
       /* Standard message dialog */

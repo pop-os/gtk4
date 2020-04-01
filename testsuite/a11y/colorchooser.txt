@@ -4,9 +4,8 @@ window1
   name: Select a Color
   state: enabled sensitive showing visible
   toolkit: gtk
-  window-type: dialog
   <AtkComponent>
-  layer: window
+  layer: widget
   alpha: 1
   ___object_1___
     "filler"
@@ -1076,7 +1075,7 @@ window1
                   alpha: 1
                   <AtkValue>
                   minimum value: 0.000000
-                  maximum value: 100.000000
+                  maximum value: 360.000000
                   current value: 0.000000
             a_popup
               "filler"

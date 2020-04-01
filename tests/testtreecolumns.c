@@ -76,6 +76,19 @@ struct _ViewColumnModelClass
   GtkListStoreClass parent_class;
 };
 
+static void view_column_model_tree_model_init (GtkTreeModelIface *iface);
+static void view_column_model_drag_source_init (GtkTreeDragSourceIface *iface);
+static void view_column_model_drag_dest_init (GtkTreeDragDestIface *iface);
+
+
+static GType view_column_model_get_type (void);
+G_DEFINE_TYPE_WITH_CODE (ViewColumnModel, view_column_model, GTK_TYPE_LIST_STORE,
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_TREE_MODEL, view_column_model_tree_model_init)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_TREE_DRAG_SOURCE, view_column_model_drag_source_init)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_TREE_DRAG_DEST, view_column_model_drag_dest_init))
+
+
+
 static void view_column_model_init (ViewColumnModel *model)
 {
   model->stamp = g_random_int ();
@@ -157,11 +170,13 @@ view_column_model_get_value (GtkTreeModel *tree_model,
 			     gint          column,
 			     GValue       *value)
 {
+#ifndef G_DISABLE_CHECKS
   ViewColumnModel *view_model = (ViewColumnModel *)tree_model;
 
   g_return_if_fail (column < 2);
   g_return_if_fail (view_model->stamp == iter->stamp);
   g_return_if_fail (iter->user_data != NULL);
+#endif
 
   if (column == 0)
     {
@@ -179,10 +194,12 @@ static gboolean
 view_column_model_iter_next (GtkTreeModel  *tree_model,
 			     GtkTreeIter   *iter)
 {
+#ifndef G_DISABLE_CHECKS
   ViewColumnModel *view_model = (ViewColumnModel *)tree_model;
 
   g_return_val_if_fail (view_model->stamp == iter->stamp, FALSE);
   g_return_val_if_fail (iter->user_data != NULL, FALSE);
+#endif
 
   iter->user_data = ((GList *)iter->user_data)->next;
   return iter->user_data != NULL;
@@ -268,17 +285,11 @@ view_column_model_tree_model_init (GtkTreeModelIface *iface)
   iface->iter_parent = view_column_model_iter_parent;
 }
 
-static gboolean
-view_column_model_drag_data_get (GtkTreeDragSource   *drag_source,
-				 GtkTreePath         *path,
-				 GtkSelectionData    *selection_data)
+static GdkContentProvider *
+view_column_model_drag_data_get (GtkTreeDragSource *drag_source,
+				 GtkTreePath       *path)
 {
-  if (gtk_tree_set_row_drag_data (selection_data,
-				  GTK_TREE_MODEL (drag_source),
-				  path))
-    return TRUE;
-  else
-    return FALSE;
+  return gtk_tree_create_row_drag_content (GTK_TREE_MODEL (drag_source), path);
 }
 
 static gboolean
@@ -291,13 +302,13 @@ view_column_model_drag_data_delete (GtkTreeDragSource *drag_source,
 }
 
 static gboolean
-view_column_model_row_drop_possible (GtkTreeDragDest   *drag_dest,
-				     GtkTreePath       *dest_path,
-				     GtkSelectionData  *selection_data)
+view_column_model_row_drop_possible (GtkTreeDragDest *drag_dest,
+				     GtkTreePath     *dest_path,
+				     const GValue    *value)
 {
   GtkTreeModel *src_model;
   
-  if (gtk_tree_get_row_drag_data (selection_data,
+  if (gtk_tree_get_row_drag_data (value,
 				  &src_model,
 				  NULL))
     {
@@ -311,15 +322,15 @@ view_column_model_row_drop_possible (GtkTreeDragDest   *drag_dest,
 }
 
 static gboolean
-view_column_model_drag_data_received (GtkTreeDragDest   *drag_dest,
-				      GtkTreePath       *dest,
-				      GtkSelectionData  *selection_data)
+view_column_model_drag_data_received (GtkTreeDragDest *drag_dest,
+				      GtkTreePath     *dest,
+				      const GValue    *value)
 {
   GtkTreeModel *src_model;
   GtkTreePath *src_path = NULL;
   gboolean retval = FALSE;
   
-  if (gtk_tree_get_row_drag_data (selection_data,
+  if (gtk_tree_get_row_drag_data (value,
 				  &src_model,
 				  &src_path))
     {
@@ -369,11 +380,6 @@ static void
 view_column_model_class_init (ViewColumnModelClass *klass)
 {
 }
-
-G_DEFINE_TYPE_WITH_CODE (ViewColumnModel, view_column_model, GTK_TYPE_LIST_STORE,
-                         G_IMPLEMENT_INTERFACE (GTK_TYPE_TREE_MODEL, view_column_model_tree_model_init)
-                         G_IMPLEMENT_INTERFACE (GTK_TYPE_TREE_DRAG_SOURCE, view_column_model_drag_source_init)
-                         G_IMPLEMENT_INTERFACE (GTK_TYPE_TREE_DRAG_DEST, view_column_model_drag_dest_init))
 
 static void
 update_columns (GtkTreeView *view, ViewColumnModel *view_model)
@@ -703,10 +709,6 @@ selection_changed (GtkTreeSelection *selection, GtkWidget *button)
     gtk_widget_set_sensitive (button, FALSE);
 }
 
-static const char *row_targets[] = {
-  "GTK_TREE_MODEL_ROW"
-};
-
 static void
 quit_cb (GtkWidget *widget,
          gpointer   data)
@@ -755,7 +757,7 @@ main (int argc, char *argv[])
     }
 
   /* Set up the test windows. */
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done); 
   gtk_window_set_default_size (GTK_WINDOW (window), 300, 300);
   gtk_window_set_title (GTK_WINDOW (window), "Top Window");
@@ -764,7 +766,7 @@ main (int argc, char *argv[])
   gtk_container_add (GTK_CONTAINER (swindow), sample_tree_view_top);
   gtk_widget_show (window);
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done); 
   gtk_window_set_default_size (GTK_WINDOW (window), 300, 300);
   gtk_window_set_title (GTK_WINDOW (window), "Bottom Window");
@@ -774,7 +776,7 @@ main (int argc, char *argv[])
   gtk_widget_show (window);
 
   /* Set up the main window */
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   gtk_window_set_default_size (GTK_WINDOW (window), 500, 300);
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
@@ -874,7 +876,7 @@ main (int argc, char *argv[])
 
 
   /* Drag and Drop */
-  targets = gdk_content_formats_new (row_targets, G_N_ELEMENTS (row_targets));
+  targets = gdk_content_formats_new_for_gtype (GTK_TYPE_TREE_ROW_DATA);
   gtk_tree_view_enable_model_drag_source (GTK_TREE_VIEW (left_tree_view),
 					  GDK_BUTTON1_MASK,
                                           targets,

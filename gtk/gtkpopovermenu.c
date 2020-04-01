@@ -28,13 +28,14 @@
 #include "gtkmenutrackerprivate.h"
 #include "gtkpopoverprivate.h"
 #include "gtkwidgetprivate.h"
-#include "gtkeventcontrollerkey.h"
+#include "gtkeventcontrollerfocus.h"
 #include "gtkeventcontrollermotion.h"
 #include "gtkmain.h"
 #include "gtktypebuiltins.h"
-#include "gtkbindings.h"
 #include "gtkmodelbuttonprivate.h"
 #include "gtkpopovermenubar.h"
+#include "gtkshortcutmanager.h"
+#include "gtkshortcutcontroller.h"
 
 
 /**
@@ -64,8 +65,8 @@
  *
  * #GtkPopoverMenu is just a subclass of #GtkPopover that adds
  * custom content to it, therefore it has the same CSS nodes.
- * It is one of the cases that add a .menu style class to the
- * popover's contents node.
+ * It is one of the cases that add a .menu style class to
+ * the popover's main node.
  */
 
 typedef struct _GtkPopoverMenuClass GtkPopoverMenuClass;
@@ -148,6 +149,8 @@ gtk_popover_menu_set_active_item (GtkPopoverMenu *menu,
           gtk_widget_set_state_flags (menu->active_item, GTK_STATE_FLAG_SELECTED, FALSE);
           if (GTK_IS_MODEL_BUTTON (item))
             g_object_get (item, "popover", &popover, NULL);
+          else
+            popover = NULL;
 
           if (!popover || popover != menu->open_submenu)
             gtk_widget_grab_focus (menu->active_item);
@@ -166,14 +169,12 @@ visible_submenu_changed (GObject        *object,
 }
 
 static void
-focus_out (GtkEventControllerKey *controller,
-           GdkCrossingMode        mode,
-           GdkNotifyType          detail,
-           GtkPopoverMenu        *menu)
+focus_out (GtkEventController   *controller,
+           GtkPopoverMenu       *menu)
 {
   GtkWidget *new_focus = gtk_root_get_focus (gtk_widget_get_root (GTK_WIDGET (menu)));
 
-  if (!gtk_event_controller_key_contains_focus (controller) &&
+  if (!gtk_event_controller_focus_contains_focus (GTK_EVENT_CONTROLLER_FOCUS (controller)) &&
       new_focus != NULL)
     {
       if (menu->parent_menu &&
@@ -184,17 +185,15 @@ focus_out (GtkEventControllerKey *controller,
 }
 
 static void
-leave_cb (GtkEventController *controller,
-          GdkCrossingMode     mode,
-          GdkNotifyType       type,
-          gpointer            data)
+leave_cb (GtkEventController   *controller,
+          GdkCrossingMode       mode,
+          gpointer              data)
 {
   GtkWidget *target;
 
   target = gtk_event_controller_get_widget (controller);
 
-  if (!gtk_event_controller_motion_contains_pointer (GTK_EVENT_CONTROLLER_MOTION (controller)))
-    gtk_popover_menu_set_active_item (GTK_POPOVER_MENU (target), NULL);
+  gtk_popover_menu_set_active_item (GTK_POPOVER_MENU (target), NULL);
 }
 
 static void
@@ -202,6 +201,8 @@ gtk_popover_menu_init (GtkPopoverMenu *popover)
 {
   GtkWidget *stack;
   GtkEventController *controller;
+  GtkEventController **controllers;
+  guint n_controllers, i;
 
   stack = gtk_stack_new ();
   gtk_stack_set_vhomogeneous (GTK_STACK (stack), FALSE);
@@ -213,13 +214,25 @@ gtk_popover_menu_init (GtkPopoverMenu *popover)
 
   gtk_widget_add_css_class (GTK_WIDGET (popover), "menu");
 
-  controller = gtk_event_controller_key_new ();
-  g_signal_connect (controller, "focus-out", G_CALLBACK (focus_out), popover);
+  controller = gtk_event_controller_focus_new ();
+  g_signal_connect (controller, "leave", G_CALLBACK (focus_out), popover);
   gtk_widget_add_controller (GTK_WIDGET (popover), controller);
 
   controller = gtk_event_controller_motion_new ();
   g_signal_connect (controller, "leave", G_CALLBACK (leave_cb), popover);
   gtk_widget_add_controller (GTK_WIDGET (popover), controller);
+
+  controllers = gtk_widget_list_controllers (GTK_WIDGET (popover), GTK_PHASE_CAPTURE, &n_controllers);
+  for (i = 0; i < n_controllers; i ++)
+    {
+      controller = controllers[i];
+      if (GTK_IS_SHORTCUT_CONTROLLER (controller) &&
+          strcmp (gtk_event_controller_get_name (controller), "gtk-shortcut-manager-capture") == 0)
+        gtk_shortcut_controller_set_mnemonics_modifiers (GTK_SHORTCUT_CONTROLLER (controller), 0);
+    }
+  g_free (controllers);
+
+  gtk_popover_disable_auto_mnemonics (GTK_POPOVER (popover));
 }
 
 static void
@@ -364,37 +377,37 @@ gtk_popover_menu_focus (GtkWidget        *widget,
 
 
 static void
-add_tab_bindings (GtkBindingSet    *binding_set,
+add_tab_bindings (GtkWidgetClass   *widget_class,
                   GdkModifierType   modifiers,
                   GtkDirectionType  direction)
 {
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_Tab, modifiers,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_KP_Tab, modifiers,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_Tab, modifiers,
+                                       "move-focus",
+                                       "(i)", direction);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_KP_Tab, modifiers,
+                                       "move-focus",
+                                       "(i)", direction);
 }
 
 static void
-add_arrow_bindings (GtkBindingSet    *binding_set,
+add_arrow_bindings (GtkWidgetClass   *widget_class,
                     guint             keysym,
                     GtkDirectionType  direction)
 {
   guint keypad_keysym = keysym - GDK_KEY_Left + GDK_KEY_KP_Left;
  
-  gtk_binding_entry_add_signal (binding_set, keysym, 0,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
-  gtk_binding_entry_add_signal (binding_set, keysym, GDK_CONTROL_MASK,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
-  gtk_binding_entry_add_signal (binding_set, keypad_keysym, 0,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
-  gtk_binding_entry_add_signal (binding_set, keypad_keysym, GDK_CONTROL_MASK,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
+  gtk_widget_class_add_binding_signal (widget_class, keysym, 0,
+                                       "move-focus",
+                                       "(i)", direction);
+  gtk_widget_class_add_binding_signal (widget_class, keysym, GDK_CONTROL_MASK,
+                                       "move-focus",
+                                       "(i)", direction);
+  gtk_widget_class_add_binding_signal (widget_class, keypad_keysym, 0,
+                                       "move-focus",
+                                       "(i)", direction);
+  gtk_widget_class_add_binding_signal (widget_class, keypad_keysym, GDK_CONTROL_MASK,
+                                       "move-focus",
+                                       "(i)", direction);
 }
 
 static void
@@ -406,11 +419,19 @@ gtk_popover_menu_show (GtkWidget *widget)
 }
 
 static void
+gtk_popover_menu_move_focus (GtkWidget         *widget,
+                             GtkDirectionType  direction)
+{
+  gtk_popover_set_mnemonics_visible (GTK_POPOVER (widget), TRUE);
+
+  GTK_WIDGET_CLASS (gtk_popover_menu_parent_class)->move_focus (widget, direction);
+}
+
+static void
 gtk_popover_menu_class_init (GtkPopoverMenuClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
-  GtkBindingSet *binding_set;
 
   object_class->dispose = gtk_popover_menu_dispose;
   object_class->set_property = gtk_popover_menu_set_property;
@@ -420,6 +441,7 @@ gtk_popover_menu_class_init (GtkPopoverMenuClass *klass)
   widget_class->unmap = gtk_popover_menu_unmap;
   widget_class->focus = gtk_popover_menu_focus;
   widget_class->show = gtk_popover_menu_show;
+  widget_class->move_focus = gtk_popover_menu_move_focus;
 
   g_object_class_install_property (object_class,
                                    PROP_VISIBLE_SUBMENU,
@@ -437,47 +459,41 @@ gtk_popover_menu_class_init (GtkPopoverMenuClass *klass)
                                                         G_TYPE_MENU_MODEL,
                                                         G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS));
 
-  binding_set = gtk_binding_set_by_class (klass);
+  add_arrow_bindings (widget_class, GDK_KEY_Up, GTK_DIR_UP);
+  add_arrow_bindings (widget_class, GDK_KEY_Down, GTK_DIR_DOWN);
+  add_arrow_bindings (widget_class, GDK_KEY_Left, GTK_DIR_LEFT);
+  add_arrow_bindings (widget_class, GDK_KEY_Right, GTK_DIR_RIGHT);
 
-  add_arrow_bindings (binding_set, GDK_KEY_Up, GTK_DIR_UP);
-  add_arrow_bindings (binding_set, GDK_KEY_Down, GTK_DIR_DOWN);
-  add_arrow_bindings (binding_set, GDK_KEY_Left, GTK_DIR_LEFT);
-  add_arrow_bindings (binding_set, GDK_KEY_Right, GTK_DIR_RIGHT);
+  add_tab_bindings (widget_class, 0, GTK_DIR_TAB_FORWARD);
+  add_tab_bindings (widget_class, GDK_CONTROL_MASK, GTK_DIR_TAB_FORWARD);
+  add_tab_bindings (widget_class, GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
+  add_tab_bindings (widget_class, GDK_CONTROL_MASK | GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
 
-  add_tab_bindings (binding_set, 0, GTK_DIR_TAB_FORWARD);
-  add_tab_bindings (binding_set, GDK_CONTROL_MASK, GTK_DIR_TAB_FORWARD);
-  add_tab_bindings (binding_set, GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
-  add_tab_bindings (binding_set, GDK_CONTROL_MASK | GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
-
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_Return, 0,
-                                "activate-default", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_ISO_Enter, 0,
-                                "activate-default", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_KP_Enter, 0,
-                                "activate-default", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_space, 0,
-                                "activate-default", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_KP_Space, 0,
-                                "activate-default", 0);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_Return, 0,
+                                       "activate-default", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_ISO_Enter, 0,
+                                       "activate-default", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_KP_Enter, 0,
+                                       "activate-default", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_space, 0,
+                                       "activate-default", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_KP_Space, 0,
+                                       "activate-default", NULL);
 }
 
 /**
  * gtk_popover_menu_new:
- * @relative_to: (allow-none): #GtkWidget the popover is related to
  *
  * Creates a new popover menu.
  *
  * Returns: a new #GtkPopoverMenu
  */
 GtkWidget *
-gtk_popover_menu_new (GtkWidget *relative_to)
+gtk_popover_menu_new (void)
 {
   GtkWidget *popover;
 
-  g_return_val_if_fail (relative_to == NULL || GTK_IS_WIDGET (relative_to), NULL);
-
   popover = g_object_new (GTK_TYPE_POPOVER_MENU,
-                          "relative-to", relative_to,
                           "autohide", TRUE,
                           NULL);
 
@@ -524,11 +540,10 @@ gtk_popover_menu_add_submenu (GtkPopoverMenu *popover,
 
 /**
  * gtk_popover_menu_new_from_model:
- * @relative_to: (allow-none): #GtkWidget the popover is related to
  * @model: (allow-none): a #GMenuModel, or %NULL
  *
  * Creates a #GtkPopoverMenu and populates it according to
- * @model. The popover is pointed to the @relative_to widget.
+ * @model.
  *
  * The created buttons are connected to actions found in the
  * #GtkApplicationWindow to which the popover belongs - typically
@@ -545,27 +560,25 @@ gtk_popover_menu_add_submenu (GtkPopoverMenu *popover,
  * Returns: the new #GtkPopoverMenu
  */
 GtkWidget *
-gtk_popover_menu_new_from_model (GtkWidget  *relative_to,
-                                 GMenuModel *model)
+gtk_popover_menu_new_from_model (GMenuModel *model)
 
 {
-  return gtk_popover_menu_new_from_model_full (relative_to, model, 0);
+  return gtk_popover_menu_new_from_model_full (model, 0);
 }
 
 /**
  * gtk_popover_menu_new_from_model_full:
- * @relative_to: (allow-none): #GtkWidget the popover is related to
  * @model: a #GMenuModel
  * @flags: flags that affect how the menu is created
  *
  * Creates a #GtkPopoverMenu and populates it according to
- * @model. The popover is pointed to the @relative_to widget.
+ * @model.
  *
  * The created buttons are connected to actions found in the
- * action groups that are accessible from the @relative-to widget.
+ * action groups that are accessible from the parent widget.
  * This includes the #GtkApplicationWindow to which the popover
  * belongs. Actions can also be added using gtk_widget_insert_action_group()
- * on the @relative-to widget or on any of its parent widgets.
+ * on the parent widget or on any of its parent widgets.
  *
  * The only flag that is supported currently is
  * #GTK_POPOVER_MENU_NESTED, which makes GTK create traditional,
@@ -574,16 +587,14 @@ gtk_popover_menu_new_from_model (GtkWidget  *relative_to,
  * Returns: (transfer full): the new #GtkPopoverMenu
  */
 GtkWidget *
-gtk_popover_menu_new_from_model_full (GtkWidget           *relative_to,
-                                      GMenuModel          *model,
+gtk_popover_menu_new_from_model_full (GMenuModel          *model,
                                       GtkPopoverMenuFlags  flags)
 {
   GtkWidget *popover;
 
-  g_return_val_if_fail (relative_to == NULL || GTK_IS_WIDGET (relative_to), NULL);
   g_return_val_if_fail (model == NULL || G_IS_MENU_MODEL (model), NULL);
 
-  popover = gtk_popover_menu_new (relative_to);
+  popover = gtk_popover_menu_new ();
   GTK_POPOVER_MENU (popover)->flags = flags;
   gtk_popover_menu_set_menu_model (GTK_POPOVER_MENU (popover), model);
 
@@ -615,7 +626,7 @@ gtk_popover_menu_set_menu_model (GtkPopoverMenu *popover,
 
       stack = gtk_bin_get_child (GTK_BIN (popover));
       while ((child = gtk_widget_get_first_child (stack)))
-        gtk_widget_destroy (child);
+        gtk_container_remove (GTK_CONTAINER (stack), child);
 
       if (model)
         gtk_menu_section_box_new_toplevel (popover, model, popover->flags);

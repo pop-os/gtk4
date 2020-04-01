@@ -83,7 +83,7 @@ scrollable_policy (void)
   GtkWidget *window, *swindow, *hbox, *vbox, *frame, *cntl, *listbox;
   GtkWidget *viewport, *label, *expander, *widget, *popover;
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   hbox   = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2);
   vbox   = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
 
@@ -213,7 +213,7 @@ scrollable_policy (void)
   gtk_widget_show (window);
 
   /* Popover */
-  popover = gtk_popover_new (NULL);
+  popover = gtk_popover_new ();
 
   widget = gtk_menu_button_new ();
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (widget), popover);

@@ -20,7 +20,6 @@
 
 #include "gtkshortcutswindowprivate.h"
 
-#include "gtkbindings.h"
 #include "gtkbox.h"
 #include "gtkgrid.h"
 #include "gtkheaderbar.h"
@@ -352,7 +351,10 @@ gtk_shortcuts_window_add_section (GtkShortcutsWindow  *self,
                       NULL);
   g_object_set_data (G_OBJECT (row), "gtk-shortcuts-section", section);
   label = g_object_new (GTK_TYPE_LABEL,
-                        "margin", 6,
+                        "margin-start", 6,
+                        "margin-end", 6,
+                        "margin-top", 6,
+                        "margin-bottom", 6,
                         "label", title,
                         "xalign", 0.5f,
                         NULL);
@@ -771,7 +773,6 @@ gtk_shortcuts_window_class_init (GtkShortcutsWindowClass *klass)
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   GtkContainerClass *container_class = GTK_CONTAINER_CLASS (klass);
-  GtkBindingSet *binding_set = gtk_binding_set_by_class (klass);
 
   object_class->constructed = gtk_shortcuts_window_constructed;
   object_class->finalize = gtk_shortcuts_window_finalize;
@@ -853,8 +854,14 @@ gtk_shortcuts_window_class_init (GtkShortcutsWindowClass *klass)
                                  G_TYPE_NONE,
                                  0);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_Escape, 0, "close", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_f, GDK_CONTROL_MASK, "search", 0);
+  gtk_widget_class_add_binding_signal (widget_class,
+                                       GDK_KEY_Escape, 0,
+                                       "close",
+                                       NULL);
+  gtk_widget_class_add_binding_signal (widget_class,
+                                       GDK_KEY_f, GDK_CONTROL_MASK,
+                                       "search",
+                                       NULL);
 
   g_type_ensure (GTK_TYPE_SHORTCUTS_GROUP);
   g_type_ensure (GTK_TYPE_SHORTCUTS_SHORTCUT);
@@ -872,7 +879,6 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
   PangoAttrList *attributes;
 
   gtk_window_set_resizable (GTK_WINDOW (self), FALSE);
-  gtk_window_set_type_hint (GTK_WINDOW (self), GDK_SURFACE_TYPE_HINT_DIALOG);
 
   priv->keywords = g_hash_table_new_full (NULL, NULL, NULL, g_free);
   priv->search_items_hash = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
@@ -905,7 +911,8 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
                                          GTK_WIDGET (self));
 
   priv->stack = g_object_new (GTK_TYPE_STACK,
-                              "expand", TRUE,
+                              "hexpand", TRUE,
+                              "vexpand", TRUE,
                               "homogeneous", TRUE,
                               "transition-type", GTK_STACK_TRANSITION_TYPE_CROSSFADE,
                               NULL);
@@ -932,7 +939,6 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
   gtk_stack_add_named (priv->title_stack, GTK_WIDGET (priv->menu_button), "sections");
 
   priv->popover = g_object_new (GTK_TYPE_POPOVER,
-                                "relative-to", priv->menu_button,
                                 "position", GTK_POS_BOTTOM,
                                 NULL);
   gtk_menu_button_set_popover (priv->menu_button, GTK_WIDGET (priv->popover));
@@ -991,7 +997,10 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
 
   empty = g_object_new (GTK_TYPE_GRID,
                         "row-spacing", 12,
-                        "margin", 12,
+                        "margin-start", 12,
+                        "margin-end", 12,
+                        "margin-top", 12,
+                        "margin-bottom", 12,
                         "hexpand", TRUE,
                         "vexpand", TRUE,
                         "halign", GTK_ALIGN_CENTER,

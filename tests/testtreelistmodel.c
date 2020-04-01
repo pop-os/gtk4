@@ -61,16 +61,16 @@ start_enumerate (GListStore *store)
 static void
 got_files (GObject      *enumerate,
            GAsyncResult *res,
-           gpointer      store)
+           gpointer      user_data)
 {
   GList *l, *files;
-  GFile *file = g_object_get_data (store, "file");
+  GFile *file = g_object_get_data (user_data, "file");
   GPtrArray *array;
 
   files = g_file_enumerator_next_files_finish (G_FILE_ENUMERATOR (enumerate), res, NULL);
   if (files == NULL)
     {
-      g_object_unref (store);
+      g_object_unref (user_data);
       if (pending)
         {
           GListStore *store = pending->data;
@@ -94,7 +94,7 @@ got_files (GObject      *enumerate,
     }
   g_list_free (files);
 
-  g_list_store_splice (store, g_list_model_get_n_items (store), 0, array->pdata, array->len);
+  g_list_store_splice (user_data, g_list_model_get_n_items (user_data), 0, array->pdata, array->len);
   g_ptr_array_unref (array);
 
   g_file_enumerator_next_files_async (G_FILE_ENUMERATOR (enumerate),
@@ -102,7 +102,7 @@ got_files (GObject      *enumerate,
                                       G_PRIORITY_DEFAULT_IDLE,
                                       NULL,
                                       got_files,
-                                      store);
+                                      user_data);
 }
 
 static int
@@ -322,7 +322,7 @@ main (int argc, char *argv[])
 
   gtk_init ();
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
   gtk_window_set_default_size (GTK_WINDOW (win), 400, 600);
   g_signal_connect (win, "destroy", G_CALLBACK (quit_cb), &done);
 

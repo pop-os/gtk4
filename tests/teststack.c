@@ -49,58 +49,58 @@ toggle_transitions (GtkWidget *combo, gpointer data)
 }
 
 static void
-on_back_button_clicked (GtkButton *button, GtkStack *stack)
+on_back_button_clicked (GtkButton *button, gpointer user_data)
 {
   const gchar *seq[] = { "1", "2", "3" };
   const gchar *vis;
   gint i;
 
-  vis = gtk_stack_get_visible_child_name (stack);
+  vis = gtk_stack_get_visible_child_name (GTK_STACK (stack));
 
   for (i = 1; i < G_N_ELEMENTS (seq); i++)
     {
       if (g_strcmp0 (vis, seq[i]) == 0)
         {
-          gtk_stack_set_visible_child_full (stack, seq[i - 1], GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT);
+          gtk_stack_set_visible_child_full (GTK_STACK (stack), seq[i - 1], GTK_STACK_TRANSITION_TYPE_SLIDE_RIGHT);
           break;
         }
     }
 }
 
 static void
-on_forward_button_clicked (GtkButton *button, GtkStack *stack)
+on_forward_button_clicked (GtkButton *button, gpointer user_data)
 {
   const gchar *seq[] = { "1", "2", "3" };
   const gchar *vis;
   gint i;
 
-  vis = gtk_stack_get_visible_child_name (stack);
+  vis = gtk_stack_get_visible_child_name (GTK_STACK (stack));
 
   for (i = 0; i < G_N_ELEMENTS (seq) - 1; i++)
     {
       if (g_strcmp0 (vis, seq[i]) == 0)
         {
-          gtk_stack_set_visible_child_full (stack, seq[i + 1], GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT);
+          gtk_stack_set_visible_child_full (GTK_STACK (stack), seq[i + 1], GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT);
           break;
         }
     }
 }
 
 static void
-update_back_button_sensitivity (GtkStack *stack, GParamSpec *pspec, GtkWidget *button)
+update_back_button_sensitivity (GtkStack *_stack, GParamSpec *pspec, GtkWidget *button)
 {
   const gchar *vis;
 
-  vis = gtk_stack_get_visible_child_name (stack);
+  vis = gtk_stack_get_visible_child_name (GTK_STACK (stack));
   gtk_widget_set_sensitive (button, g_strcmp0 (vis, "1") != 0);
 }
 
 static void
-update_forward_button_sensitivity (GtkStack *stack, GParamSpec *pspec, GtkWidget *button)
+update_forward_button_sensitivity (GtkStack *_stack, GParamSpec *pspec, GtkWidget *button)
 {
   const gchar *vis;
 
-  vis = gtk_stack_get_visible_child_name (stack);
+  vis = gtk_stack_get_visible_child_name (GTK_STACK (stack));
   gtk_widget_set_sensitive (button, g_strcmp0 (vis, "3") != 0);
 }
 
@@ -122,7 +122,7 @@ main (gint argc,
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_widget_set_size_request (window, 300, 300);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);

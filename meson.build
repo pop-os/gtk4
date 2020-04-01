@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.98.0',
+        version: '3.98.2',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -27,7 +27,7 @@ else
 endif
 
 glib_req           = '>= @0@.@1@.@2@'.format(glib_major_req, glib_minor_req, glib_micro_req)
-pango_req          = '>= 1.44.0'
+pango_req          = '>= 1.44.4'
 fribidi_req        = '>= 0.19.7'
 atk_req            = '>= 2.15.1'
 cairo_req          = '>= 1.14.0'
@@ -230,6 +230,7 @@ if cc.get_id() == 'msvc'
   ]
   add_project_arguments(cc.get_supported_arguments(test_cflags), language: 'c')
 
+  add_languages('cpp')
   cxx = meson.get_compiler('cpp')
   if cxx.get_id() == 'msvc'
     add_project_arguments(cxx.get_supported_arguments(test_cflags), language: 'cpp')
@@ -237,17 +238,22 @@ if cc.get_id() == 'msvc'
 elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
   test_cflags = [
     '-fno-strict-aliasing',
+    '-Wno-typedef-redefinition',
     '-Wcast-align',
+    '-Wduplicated-branches',
+    '-Wduplicated-cond',
     '-Wformat=2',
     '-Wformat-nonliteral',
     '-Wformat-security',
     '-Wignored-qualifiers',
     '-Wimplicit-function-declaration',
     '-Wlogical-op',
+    '-Wmisleading-indentation',
     '-Wmissing-format-attribute',
     '-Wmissing-include-dirs',
     '-Wmissing-noreturn',
     '-Wnested-externs',
+    '-Wnull-dereference',
     '-Wold-style-definition',
     '-Wpointer-arith',
     '-Wshadow',
@@ -793,6 +799,13 @@ meson.add_install_script('build-aux/meson/post-install.py',
                          gtk_binary_version,
                          gtk_libdir,
                          gtk_datadir)
+
+if host_machine.system() != 'windows'
+  # Install Valgrind suppression files (except on Windows,
+  # as Valgrind is currently not supported on Windows)
+  install_data('gtk.supp', 'gtk64.supp',
+    install_dir : join_paths(gtk_datadir, 'gtk-4.0', 'valgrind'))
+endif
 
 summary = [
   '',

@@ -37,6 +37,7 @@ struct _MyTooltipClass
   GtkBinClass parent_class;
 };
 
+static GType my_tooltip_get_type (void);
 G_DEFINE_TYPE (MyTooltip, my_tooltip, GTK_TYPE_BIN)
 
 static void
@@ -296,7 +297,7 @@ main (int argc, char *argv[])
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (window), "Tooltips test");
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 
@@ -420,7 +421,7 @@ main (int argc, char *argv[])
   gtk_widget_set_halign (button, GTK_ALIGN_CENTER);
   gtk_menu_button_set_label (GTK_MENU_BUTTON (button), "Custom tooltip I");
   gtk_container_add (GTK_CONTAINER (box), button);
-  popover = gtk_popover_new (NULL);
+  popover = gtk_popover_new ();
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (button), popover);
   box2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add (GTK_CONTAINER (popover), box2);
@@ -428,7 +429,7 @@ main (int argc, char *argv[])
   button = gtk_label_new ("Hidden here");
   custom = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
   gtk_container_add (GTK_CONTAINER (custom), gtk_label_new ("See, custom"));
-  gtk_container_add (GTK_CONTAINER (custom), g_object_new (GTK_TYPE_SPINNER, "active", TRUE, NULL));
+  gtk_container_add (GTK_CONTAINER (custom), g_object_new (GTK_TYPE_SPINNER, "spinning", TRUE, NULL));
   g_object_ref_sink (custom);
   g_object_set (button, "has-tooltip", TRUE, NULL);
   gtk_container_add (GTK_CONTAINER (box2), button);
@@ -438,7 +439,7 @@ main (int argc, char *argv[])
   button = gtk_label_new ("Custom tooltip II");
   custom = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
   gtk_container_add (GTK_CONTAINER (custom), gtk_label_new ("See, custom too"));
-  gtk_container_add (GTK_CONTAINER (custom), g_object_new (GTK_TYPE_SPINNER, "active", TRUE, NULL));
+  gtk_container_add (GTK_CONTAINER (custom), g_object_new (GTK_TYPE_SPINNER, "spinning", TRUE, NULL));
   g_object_ref_sink (custom);
   g_object_set (button, "has-tooltip", TRUE, NULL);
   g_signal_connect (button, "query-tooltip",

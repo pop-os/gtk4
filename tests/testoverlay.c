@@ -41,11 +41,15 @@ test_nonzerox (void)
   GtkWidget *text;
   GtkWidget *child;
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (win), "Non-zero X");
 
   grid = gtk_grid_new ();
-  g_object_set (grid, "margin", 5, NULL);
+  gtk_widget_set_margin_start (grid, 5);
+  gtk_widget_set_margin_end (grid, 5);
+  gtk_widget_set_margin_top (grid, 5);
+  gtk_widget_set_margin_bottom (grid, 5);
+
   gtk_container_add (GTK_CONTAINER (win), grid);
   gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("Above"), 1, 0, 1, 1);
   gtk_grid_attach (GTK_GRID (grid), gtk_label_new ("Below"), 1, 2, 1, 1);
@@ -64,14 +68,21 @@ test_nonzerox (void)
   child = gtk_label_new ("I'm the overlay");
   gtk_widget_set_halign (child, GTK_ALIGN_START);
   gtk_widget_set_valign (child, GTK_ALIGN_START);
-  g_object_set (child, "margin", 3, NULL);
+  gtk_widget_set_margin_start (child, 3);
+  gtk_widget_set_margin_end (child, 3);
+  gtk_widget_set_margin_top (child, 3);
+  gtk_widget_set_margin_bottom (child, 3);
+
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), child);
 
   child = gtk_label_new ("No, I'm the overlay");
   gtk_widget_set_halign (child, GTK_ALIGN_END);
   gtk_widget_set_valign (child, GTK_ALIGN_END);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), child);
-  g_object_set (child, "margin", 3, NULL);
+  gtk_widget_set_margin_start (child, 3);
+  gtk_widget_set_margin_end (child, 3);
+  gtk_widget_set_margin_top (child, 3);
+  gtk_widget_set_margin_bottom (child, 3);
 
   return win;
 }
@@ -120,7 +131,7 @@ test_relative (void)
   GtkWidget *text;
   GtkWidget *child;
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (win), "Custom positioning");
 
   overlay = gtk_overlay_new ();
@@ -135,7 +146,10 @@ test_relative (void)
 
   text = gtk_text_view_new ();
   gtk_widget_set_size_request (text, 200, 200);
-  g_object_set (text, "margin", 5, NULL);
+  gtk_widget_set_margin_start (text, 5);
+  gtk_widget_set_margin_end (text, 5);
+  gtk_widget_set_margin_top (text, 5);
+  gtk_widget_set_margin_bottom (text, 5);
   gtk_widget_set_hexpand (text, TRUE);
   gtk_widget_set_vexpand (text, TRUE);
   gtk_grid_attach (GTK_GRID (grid), text, 1, 1, 1, 1);
@@ -146,13 +160,19 @@ test_relative (void)
   gtk_widget_set_halign (child, GTK_ALIGN_START);
   gtk_widget_set_valign (child, GTK_ALIGN_START);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), child);
-  g_object_set (child, "margin", 1, NULL);
+  gtk_widget_set_margin_start (child, 1);
+  gtk_widget_set_margin_end (child, 1);
+  gtk_widget_set_margin_top (child, 1);
+  gtk_widget_set_margin_bottom (child, 1);
 
   child = gtk_label_new ("Bottom right overlay");
   gtk_widget_set_halign (child, GTK_ALIGN_END);
   gtk_widget_set_valign (child, GTK_ALIGN_END);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), child);
-  g_object_set (child, "margin", 1, NULL);
+  gtk_widget_set_margin_start (child, 1);
+  gtk_widget_set_margin_end (child, 1);
+  gtk_widget_set_margin_top (child, 1);
+  gtk_widget_set_margin_bottom (child, 1);
 
   return win;
 }
@@ -166,7 +186,7 @@ test_fullwidth (void)
   GtkWidget *text;
   GtkWidget *child;
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (win), "Full-width");
 
   overlay = gtk_overlay_new ();
@@ -182,7 +202,10 @@ test_fullwidth (void)
   gtk_widget_set_halign (child, GTK_ALIGN_FILL);
   gtk_widget_set_valign (child, GTK_ALIGN_START);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), child);
-  g_object_set (child, "margin", 4, NULL);
+  gtk_widget_set_margin_start (child, 4);
+  gtk_widget_set_margin_end (child, 4);
+  gtk_widget_set_margin_top (child, 4);
+  gtk_widget_set_margin_bottom (child, 4);
 
   return win;
 }
@@ -200,7 +223,7 @@ test_scrolling (void)
   gchar *contents;
   gsize len;
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (win), "Scrolling");
 
   overlay = gtk_overlay_new ();
@@ -230,7 +253,10 @@ test_scrolling (void)
   gtk_widget_set_halign (child, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (child, GTK_ALIGN_END);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), child);
-  g_object_set (child, "margin", 4, NULL);
+  gtk_widget_set_margin_start (child, 4);
+  gtk_widget_set_margin_end (child, 4);
+  gtk_widget_set_margin_top (child, 4);
+  gtk_widget_set_margin_bottom (child, 4);
 
   return win;
 }
@@ -338,12 +364,12 @@ test_chase (void)
   GtkWidget *sw;
   GtkWidget *text;
   GtkWidget *child;
-  GtkTextBuffer *buffer;
+  GtkTextBuffer *text_buffer;
   gchar *contents;
   gsize len;
   GtkEventController *controller;
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (win), "Chase");
 
   overlay = gtk_overlay_new ();
@@ -355,15 +381,15 @@ test_chase (void)
   gtk_container_add (GTK_CONTAINER (overlay), sw);
 
   text = gtk_text_view_new ();
-  buffer = gtk_text_buffer_new (NULL);
+  text_buffer = gtk_text_buffer_new (NULL);
   if (!g_file_get_contents ("testoverlay.c", &contents, &len, NULL))
     {
       contents = g_strdup ("Text should go here...");
       len = strlen (contents);
     }
-  gtk_text_buffer_set_text (buffer, contents, len);
+  gtk_text_buffer_set_text (text_buffer, contents, len);
   g_free (contents);
-  gtk_text_view_set_buffer (GTK_TEXT_VIEW (text), buffer);
+  gtk_text_view_set_buffer (GTK_TEXT_VIEW (text), text_buffer);
 
   gtk_widget_set_hexpand (text, TRUE);
   gtk_widget_set_vexpand (text, TRUE);
@@ -373,7 +399,10 @@ test_chase (void)
   gtk_widget_set_halign (child, GTK_ALIGN_START);
   gtk_widget_set_valign (child, GTK_ALIGN_END);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), child);
-  g_object_set (child, "margin", 4, NULL);
+  gtk_widget_set_margin_start (child, 4);
+  gtk_widget_set_margin_end (child, 4);
+  gtk_widget_set_margin_top (child, 4);
+  gtk_widget_set_margin_bottom (child, 4);
 
   controller = gtk_event_controller_motion_new ();
   g_signal_connect (controller, "enter", G_CALLBACK (on_enter), overlay);
@@ -394,7 +423,7 @@ test_stacking (void)
   GtkWidget *check1;
   GtkWidget *check2;
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (win), "Stacking");
 
   grid = gtk_grid_new ();
@@ -439,7 +468,7 @@ test_input_stacking (void)
   GtkWidget *vbox;
   int i,j;
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (win), "Input Stacking");
 
   overlay = gtk_overlay_new ();

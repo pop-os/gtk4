@@ -20,12 +20,15 @@ start_resize (GtkGestureClick *gesture,
 
   surface = gtk_native_get_surface (gtk_widget_get_native (widget));
   event = gtk_get_current_event ();
-  gdk_event_get_button (event, &button);  
+  if (gdk_event_get_event_type (event) == GDK_BUTTON_PRESS)
+    button = gdk_button_event_get_button (event);  
+  else
+    button = 0;
   timestamp = gdk_event_get_time (event);
 
   gtk_widget_translate_coordinates (widget, GTK_WIDGET (gtk_widget_get_root (widget)),
                                     xx, yy, &xx, &yy);
-  gdk_surface_begin_resize_drag (surface, edge, button, xx, yy, timestamp);
+  gdk_surface_begin_resize_drag (surface, edge, gdk_event_get_device (event), button, xx, yy, timestamp);
 
   gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
 }
@@ -65,12 +68,15 @@ start_move (GtkGestureClick *gesture,
 
   surface = gtk_native_get_surface (gtk_widget_get_native (widget));
   event = gtk_get_current_event ();
-  gdk_event_get_button (event, &button);  
+  if (gdk_event_get_event_type (event) == GDK_BUTTON_PRESS)
+    button = gdk_button_event_get_button (event);  
+  else
+    button = 0;
   timestamp = gdk_event_get_time (event);
 
   gtk_widget_translate_coordinates (widget, GTK_WIDGET (gtk_widget_get_root (widget)),
                                     xx, yy, &xx, &yy);
-  gdk_surface_begin_move_drag (surface, button, xx, yy, timestamp);
+  gdk_surface_begin_move_drag (surface, gdk_event_get_device (event), button, xx, yy, timestamp);
   gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
 }
 
@@ -98,7 +104,7 @@ main (int argc, char *argv[])
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_titlebar (GTK_WINDOW (window), gtk_header_bar_new ());
 
   grid = gtk_grid_new ();

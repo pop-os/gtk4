@@ -16,7 +16,7 @@ static GtkWidget *frame;
 /* draw callback for the drawing area
  */
 static void
-draw_function (GtkDrawingArea *da,
+draw_function (GtkDrawingArea *drawing_area,
                cairo_t        *cr,
                int             width,
                int             height,
@@ -69,7 +69,7 @@ do_colorsel (GtkWidget *do_widget)
       color.green = 0;
       color.alpha = 1;
 
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Color Chooser");
@@ -79,7 +79,10 @@ do_colorsel (GtkWidget *do_widget)
                         G_CALLBACK (gtk_widget_destroyed), &window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
-      g_object_set (vbox, "margin", 12, NULL);
+      gtk_widget_set_margin_start (vbox, 12);
+      gtk_widget_set_margin_end (vbox, 12);
+      gtk_widget_set_margin_top (vbox, 12);
+      gtk_widget_set_margin_bottom (vbox, 12);
       gtk_container_add (GTK_CONTAINER (window), vbox);
 
       /*

@@ -1,12 +1,19 @@
 window1
-  "window"
+  "frame"
   index: 0
   state: enabled resizable sensitive showing visible
   toolkit: gtk
-  window-type: normal
   <AtkComponent>
-  layer: window
+  layer: widget
   alpha: 1
+  unnamed-GtkContainerAccessible-0
+    "panel"
+    parent: window1
+    state: enabled sensitive showing visible
+    toolkit: gtk
+    <AtkComponent>
+    layer: widget
+    alpha: 1
   notebook1
     "page tab list"
     parent: window1
@@ -17,8 +24,8 @@ window1
     layer: widget
     alpha: 1
     <AtkSelection>
-    selected children: unnamed-GtkNotebookPageAccessible-0
-    unnamed-GtkNotebookPageAccessible-0
+    selected children: unnamed-GtkNotebookPageAccessible-1
+    unnamed-GtkNotebookPageAccessible-1
       "page tab"
       parent: notebook1
       index: 0
@@ -42,7 +49,7 @@ window1
         <AtkAction>
         action 0 name: click
         action 0 description: Clicks the button
-    unnamed-GtkNotebookPageAccessible-1
+    unnamed-GtkNotebookPageAccessible-2
       "page tab"
       parent: notebook1
       index: 1

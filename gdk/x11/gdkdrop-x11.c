@@ -35,7 +35,6 @@
 #include "gdkdragprivate.h"
 #include "gdkinternals.h"
 #include "gdkintl.h"
-#include "gdkproperty.h"
 #include "gdkprivate-x11.h"
 #include "gdkscreen-x11.h"
 #include "gdkselectioninputstream-x11.h"
@@ -70,6 +69,7 @@ struct _GdkX11Drop
 
   guint xdnd_targets_set  : 1; /* Whether we've already set XdndTypeList */
   guint xdnd_have_actions : 1; /* Whether an XdndActionList was provided */
+  guint enter_emitted     : 1; /* Set after gdk_drop_emit_enter() */
 };
 
 struct _GdkX11DropClass
@@ -429,37 +429,6 @@ xdnd_source_surface_filter (GdkDisplay   *display,
   return FALSE;
 }
 
-static void
-xdnd_precache_atoms (GdkDisplay *display)
-{
-  GdkX11Display *display_x11 = GDK_X11_DISPLAY (display);
-
-  if (!display_x11->xdnd_atoms_precached)
-    {
-      static const gchar *const precache_atoms[] = {
-        "XdndActionAsk",
-        "XdndActionCopy",
-        "XdndActionLink",
-        "XdndActionList",
-        "XdndActionMove",
-        "XdndActionPrivate",
-        "XdndDrop",
-        "XdndEnter",
-        "XdndFinished",
-        "XdndLeave",
-        "XdndPosition",
-        "XdndSelection",
-        "XdndStatus",
-        "XdndTypeList"
-      };
-
-      _gdk_x11_precache_atoms (display,
-                               precache_atoms, G_N_ELEMENTS (precache_atoms));
-
-      display_x11->xdnd_atoms_precached = TRUE;
-    }
-}
-
 static gboolean
 xdnd_enter_filter (GdkSurface   *surface,
                    const XEvent *xevent)
@@ -489,8 +458,6 @@ xdnd_enter_filter (GdkSurface   *surface,
   display = gdk_surface_get_display (surface);
   display_x11 = GDK_X11_DISPLAY (display);
 
-  xdnd_precache_atoms (display);
-
   GDK_DISPLAY_NOTE (display, DND,
             g_message ("XdndEnter: source_window: %#lx, version: %#x",
                        source_window, version));
@@ -502,7 +469,12 @@ xdnd_enter_filter (GdkSurface   *surface,
       return TRUE;
     }
 
-  g_clear_object (&display_x11->current_drop);
+  if (display_x11->current_drop)
+    {
+      if (GDK_X11_DROP (display_x11->current_drop)->enter_emitted)
+        gdk_drop_emit_leave_event (display_x11->current_drop, FALSE, GDK_CURRENT_TIME);
+      g_clear_object (&display_x11->current_drop);
+    }
 
   seat = gdk_display_get_default_seat (display);
 
@@ -582,8 +554,6 @@ xdnd_enter_filter (GdkSurface   *surface,
 
   display_x11->current_drop = drop;
 
-  gdk_drop_emit_enter_event (drop, FALSE, GDK_CURRENT_TIME);
-
   gdk_content_formats_unref (content_formats);
 
   return TRUE;
@@ -604,12 +574,11 @@ xdnd_leave_filter (GdkSurface   *surface,
             g_message ("XdndLeave: source_window: %#lx",
                        source_window));
 
-  xdnd_precache_atoms (display);
-
   if ((display_x11->current_drop != NULL) &&
       (GDK_X11_DROP (display_x11->current_drop)->source_window == source_window))
     {
-      gdk_drop_emit_leave_event (display_x11->current_drop, FALSE, GDK_CURRENT_TIME);
+      if (GDK_X11_DROP (display_x11->current_drop)->enter_emitted)
+        gdk_drop_emit_leave_event (display_x11->current_drop, FALSE, GDK_CURRENT_TIME);
 
       g_clear_object (&display_x11->current_drop);
     }
@@ -639,15 +608,14 @@ xdnd_position_filter (GdkSurface   *surface,
             g_message ("XdndPosition: source_window: %#lx position: (%d, %d)  time: %d  action: %ld",
                        source_window, x_root, y_root, time, action));
 
-  xdnd_precache_atoms (display);
-
   drop = display_x11->current_drop;
   drop_x11 = GDK_X11_DROP (drop);
 
   if ((drop != NULL) &&
       (drop_x11->source_window == source_window))
     {
-      impl = GDK_X11_SURFACE (gdk_drop_get_surface (drop));
+      surface = gdk_drop_get_surface (drop);
+      impl = GDK_X11_SURFACE (surface);
 
       drop_x11->suggested_action = xdnd_action_from_atom (display, action);
       gdk_x11_drop_update_actions (drop_x11);
@@ -655,7 +623,15 @@ xdnd_position_filter (GdkSurface   *surface,
       drop_x11->last_x = x_root / impl->surface_scale;
       drop_x11->last_y = y_root / impl->surface_scale;
 
-      gdk_drop_emit_motion_event (drop, FALSE, drop_x11->last_x, drop_x11->last_y, time);
+      if (drop_x11->enter_emitted)
+        {
+          gdk_drop_emit_motion_event (drop, FALSE, drop_x11->last_x - surface->x, drop_x11->last_y - surface->y, time);
+        }
+      else
+        {
+          gdk_drop_emit_enter_event (drop, FALSE, drop_x11->last_x - surface->x, drop_x11->last_y - surface->y, time);
+          drop_x11->enter_emitted = TRUE;
+        }
     }
 
   return TRUE;
@@ -679,17 +655,16 @@ xdnd_drop_filter (GdkSurface   *surface,
             g_message ("XdndDrop: source_window: %#lx  time: %d",
                        source_window, time));
 
-  xdnd_precache_atoms (display);
-
   drop = display_x11->current_drop;
   drop_x11 = GDK_X11_DROP (drop);
 
   if ((drop != NULL) &&
       (drop_x11->source_window == source_window))
     {
-      gdk_x11_surface_set_user_time (gdk_drop_get_surface (drop), time);
+      GdkSurface *s = gdk_drop_get_surface (drop);
+      gdk_x11_surface_set_user_time (s, time);
 
-      gdk_drop_emit_drop_event (drop, FALSE, drop_x11->last_x, drop_x11->last_y, time);
+      gdk_drop_emit_drop_event (drop, FALSE, drop_x11->last_x - s->x, drop_x11->last_y - s->y, time);
     }
 
   return TRUE;
@@ -744,7 +719,8 @@ gdk_x11_drop_do_nothing (Window   window,
 
 static void
 gdk_x11_drop_status (GdkDrop       *drop,
-                     GdkDragAction  actions)
+                     GdkDragAction  actions,
+                     GdkDragAction  preferred)
 {
   GdkX11Drop *drop_x11 = GDK_X11_DROP (drop);
   GdkDragAction possible_actions, suggested_action;
@@ -757,14 +733,20 @@ gdk_x11_drop_status (GdkDrop       *drop,
 
   if (drop_x11->suggested_action != 0)
     suggested_action = drop_x11->suggested_action;
-  else if (possible_actions & GDK_ACTION_COPY)
-    suggested_action = GDK_ACTION_COPY;
-  else if (possible_actions & GDK_ACTION_MOVE)
-    suggested_action = GDK_ACTION_MOVE;
-  else if (possible_actions & GDK_ACTION_ASK)
-    suggested_action = GDK_ACTION_ASK;
   else
-    suggested_action = 0;
+    suggested_action = preferred & possible_actions;
+
+  if (suggested_action == 0 && possible_actions != 0)
+    {
+      if (possible_actions & GDK_ACTION_COPY)
+        suggested_action = GDK_ACTION_COPY;
+      else if (possible_actions & GDK_ACTION_MOVE)
+        suggested_action = GDK_ACTION_MOVE;
+      else if (possible_actions & GDK_ACTION_ASK)
+        suggested_action = GDK_ACTION_ASK;
+      else
+        suggested_action = 0;
+    }
 
   xev.xclient.type = ClientMessage;
   xev.xclient.message_type = gdk_x11_get_xatom_by_name_for_display (display, "XdndStatus");

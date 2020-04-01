@@ -22,21 +22,43 @@
 static void
 set_fullscreen_monitor_cb (GtkWidget *widget, gpointer user_data)
 {
-  GdkFullscreenMode mode = (GdkFullscreenMode) GPOINTER_TO_INT (user_data);
-  GdkSurface  *window;
+  GdkFullscreenMode mode = GPOINTER_TO_INT (user_data);
+  GdkDisplay *display;
+  GdkSurface *surface;
+  GdkMonitor *monitor;
+  GdkToplevelLayout *layout;
 
-  window = gtk_native_get_surface (gtk_widget_get_native (widget));
-  gdk_surface_set_fullscreen_mode (window, mode);
-  gdk_surface_fullscreen (window);
+  display = gtk_widget_get_display (widget);
+  surface = gtk_native_get_surface (gtk_widget_get_native (widget));
+  if (mode == GDK_FULLSCREEN_ON_CURRENT_MONITOR)
+    monitor = gdk_display_get_monitor_at_surface (display, surface);
+  else
+    monitor = NULL;
+  layout = gdk_toplevel_layout_new (0, 0);
+  gdk_toplevel_layout_set_resizable (layout, TRUE);
+  gdk_toplevel_layout_set_fullscreen (layout, TRUE, monitor);
+  gdk_toplevel_present (GDK_TOPLEVEL (surface),
+                        gdk_surface_get_width (surface),
+                        gdk_surface_get_height (surface),
+                        layout);
+  gdk_toplevel_layout_unref (layout);
 }
 
 static void
 remove_fullscreen_cb (GtkWidget *widget, gpointer user_data)
 {
-  GdkSurface  *window;
+  GdkSurface *surface;
+  GdkToplevelLayout *layout;
 
-  window = gtk_native_get_surface (gtk_widget_get_native (widget));
-  gdk_surface_unfullscreen (window);
+  surface = gtk_native_get_surface (gtk_widget_get_native (widget));
+  layout = gdk_toplevel_layout_new (0, 0);
+  gdk_toplevel_layout_set_resizable (layout, TRUE);
+  gdk_toplevel_layout_set_fullscreen (layout, FALSE, NULL);
+  gdk_toplevel_present (GDK_TOPLEVEL (surface),
+                        gdk_surface_get_width (surface),
+                        gdk_surface_get_height (surface),
+                        layout);
+  gdk_toplevel_layout_unref (layout);
 }
 
 int
@@ -46,7 +68,7 @@ main (int argc, char *argv[])
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
   gtk_widget_set_valign (vbox, GTK_ALIGN_CENTER);

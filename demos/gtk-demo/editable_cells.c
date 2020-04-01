@@ -275,6 +275,9 @@ cell_edited (GtkCellRendererText *cell,
                             g_array_index (articles, Item, i).product, -1);
       }
       break;
+
+    default:
+      g_assert_not_reached ();
     }
 
   gtk_tree_path_free (path);
@@ -345,7 +348,7 @@ do_editable_cells (GtkWidget *do_widget)
       GtkTreeModel *items_model;
       GtkTreeModel *numbers_model;
 
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Editable Cells");
@@ -353,7 +356,10 @@ do_editable_cells (GtkWidget *do_widget)
                         G_CALLBACK (gtk_widget_destroyed), &window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
-      g_object_set (vbox, "margin", 5, NULL);
+      gtk_widget_set_margin_start (vbox, 5);
+      gtk_widget_set_margin_end (vbox, 5);
+      gtk_widget_set_margin_top (vbox, 5);
+      gtk_widget_set_margin_bottom (vbox, 5);
       gtk_container_add (GTK_CONTAINER (window), vbox);
 
       gtk_container_add (GTK_CONTAINER (vbox),
