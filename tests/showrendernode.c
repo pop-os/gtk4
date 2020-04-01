@@ -162,7 +162,7 @@ main (int argc, char **argv)
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   nodeview = g_object_new (GTK_TYPE_NODE_VIEW, NULL);
 
   gtk_window_set_decorated (GTK_WINDOW (window), FALSE);
@@ -187,8 +187,8 @@ main (int argc, char **argv)
 
   if (write_to_filename != NULL)
     {
-      GdkSurface *window = gdk_surface_new_toplevel (gdk_display_get_default(), 10 , 10);
-      GskRenderer *renderer = gsk_renderer_new_for_surface (window);
+      GdkSurface *surface = gdk_surface_new_toplevel (gdk_display_get_default(), 10 , 10);
+      GskRenderer *renderer = gsk_renderer_new_for_surface (surface);
       GdkTexture *texture = gsk_renderer_render_texture (renderer, GTK_NODE_VIEW (nodeview)->node, NULL);
 
       g_message ("Writing .node file to .png using %s", G_OBJECT_TYPE_NAME (renderer));
@@ -201,7 +201,7 @@ main (int argc, char **argv)
 
       g_object_unref (texture);
       g_object_unref (renderer);
-      g_object_unref (window);
+      g_object_unref (surface);
     }
 
   if (compare_node)

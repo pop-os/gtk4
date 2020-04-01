@@ -44,7 +44,6 @@ struct _GdkDevice
 
   gchar *name;
   GdkInputSource source;
-  GdkInputMode mode;
   gboolean has_cursor;
   gint num_keys;
   GdkAxisFlags axis_flags;
@@ -89,8 +88,6 @@ struct _GdkDeviceClass
   void (* query_state)       (GdkDevice       *device,
                               GdkSurface       *surface,
                               GdkSurface      **child_surface,
-                              gdouble          *root_x,
-                              gdouble          *root_y,
                               gdouble          *win_x,
                               gdouble          *win_y,
                               GdkModifierType  *mask);
@@ -116,14 +113,14 @@ void  _gdk_device_set_associated_device (GdkDevice *device,
 
 void  _gdk_device_reset_axes (GdkDevice   *device);
 guint _gdk_device_add_axis   (GdkDevice   *device,
-                              GdkAtom      label_atom,
+                              const char  *label_atom,
                               GdkAxisUse   use,
                               gdouble      min_value,
                               gdouble      max_value,
                               gdouble      resolution);
 void _gdk_device_get_axis_info (GdkDevice  *device,
 				guint       index,
-				GdkAtom    *label_atom,
+				const char**label_atom,
 				GdkAxisUse *use,
 				gdouble    *min_value,
 				gdouble    *max_value,
@@ -163,8 +160,6 @@ void _gdk_device_remove_slave (GdkDevice *device,
 void _gdk_device_query_state                  (GdkDevice        *device,
                                                GdkSurface        *surface,
                                                GdkSurface       **child_surface,
-                                               gdouble          *root_x,
-                                               gdouble          *root_y,
                                                gdouble          *win_x,
                                                gdouble          *win_y,
                                                GdkModifierType  *mask);
@@ -179,8 +174,6 @@ void  gdk_device_set_seat  (GdkDevice *device,
 
 void           gdk_device_update_tool (GdkDevice     *device,
                                        GdkDeviceTool *tool);
-
-GdkInputMode gdk_device_get_input_mode (GdkDevice *device);
 
 G_END_DECLS
 

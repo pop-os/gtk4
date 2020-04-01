@@ -47,7 +47,6 @@ void gdk_broadway_surface_set_nodes (GdkSurface *surface,
                                      GArray *nodes,
                                      GPtrArray *node_textures);
 
-void     _gdk_broadway_surface_register_dnd       (GdkSurface      *surface);
 GdkDrag * _gdk_broadway_surface_drag_begin        (GdkSurface          *surface,
                                                    GdkDevice          *device,
                                                    GdkContentProvider *content,
@@ -68,7 +67,6 @@ void     _gdk_broadway_roundtrip_notify           (GdkSurface  *surface,
 void     _gdk_broadway_surface_grab_check_destroy (GdkSurface *surface);
 void     _gdk_broadway_surface_grab_check_unmap   (GdkSurface *surface,
                                                    gulong     serial);
-void     gdk_broadway_surface_update_popups       (GdkSurface *surface);
 
 void gdk_broadway_surface_move_resize (GdkSurface *surface,
                                        gint        x,
@@ -91,7 +89,6 @@ void _gdk_broadway_events_got_input      (GdkDisplay *display,
                                           BroadwayInputMsg *message);
 
 void _gdk_broadway_display_init_root_window (GdkDisplay *display);
-void _gdk_broadway_display_init_dnd (GdkDisplay *display);
 GdkDisplay * _gdk_broadway_display_open (const gchar *display_name);
 void _gdk_broadway_display_queue_events (GdkDisplay *display);
 GdkCursor*_gdk_broadway_display_get_cursor_for_name (GdkDisplay  *display,
@@ -115,14 +112,6 @@ GdkSurface * _gdk_broadway_display_create_surface (GdkDisplay     *display,
                                                    int             y,
                                                    int             width,
                                                    int             height);
-gint _gdk_broadway_display_text_property_to_utf8_list (GdkDisplay    *display,
-                                                       GdkAtom        encoding,
-                                                       gint           format,
-                                                       const guchar  *text,
-                                                       gint           length,
-                                                       gchar       ***list);
-gchar *_gdk_broadway_display_utf8_to_string_target (GdkDisplay  *display,
-                                                    const gchar *str);
 GdkKeymap* _gdk_broadway_display_get_keymap (GdkDisplay *display);
 void _gdk_broadway_display_consume_all_input (GdkDisplay *display);
 BroadwayInputMsg * _gdk_broadway_display_block_for_input (GdkDisplay *display,

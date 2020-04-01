@@ -12,6 +12,7 @@ typedef struct {
   GtkListBoxRowClass parent_class;
 } SelectableRowClass;
 
+static GType selectable_row_get_type (void);
 G_DEFINE_TYPE (SelectableRow, selectable_row, GTK_TYPE_LIST_BOX_ROW)
 
 static void
@@ -21,7 +22,10 @@ selectable_row_init (SelectableRow *row)
   row->revealer = gtk_revealer_new ();
   gtk_revealer_set_transition_type (GTK_REVEALER (row->revealer), GTK_REVEALER_TRANSITION_TYPE_SLIDE_RIGHT);
   row->check = gtk_check_button_new ();
-  g_object_set (row->check, "margin", 10, NULL);
+  gtk_widget_set_margin_start (row->check, 10);
+  gtk_widget_set_margin_end (row->check, 10);
+  gtk_widget_set_margin_top (row->check, 10);
+  gtk_widget_set_margin_bottom (row->check, 10);
 
   gtk_widget_show (row->box);
   gtk_widget_show (row->check);
@@ -31,7 +35,7 @@ selectable_row_init (SelectableRow *row)
   gtk_container_add (GTK_CONTAINER (row->revealer), row->check);
 }
 
-void
+static void
 selectable_row_add (SelectableRow *row, GtkWidget *child)
 {
   gtk_container_add (GTK_CONTAINER (row->box), child);
@@ -70,7 +74,7 @@ selectable_row_class_init (SelectableRowClass *class)
 {
 }
 
-GtkWidget *
+static GtkWidget *
 selectable_row_new (void)
 {
   return GTK_WIDGET (g_object_new (selectable_row_get_type (), NULL));

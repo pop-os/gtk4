@@ -248,15 +248,15 @@ static gboolean real_gtk_list_store_row_draggable (GtkTreeDragSource *drag_sourc
                                                    GtkTreePath       *path);
 static gboolean gtk_list_store_drag_data_delete   (GtkTreeDragSource *drag_source,
                                                    GtkTreePath       *path);
-static gboolean gtk_list_store_drag_data_get      (GtkTreeDragSource *drag_source,
-                                                   GtkTreePath       *path,
-                                                   GtkSelectionData  *selection_data);
+static GdkContentProvider *
+                gtk_list_store_drag_data_get      (GtkTreeDragSource *drag_source,
+                                                   GtkTreePath       *path);
 static gboolean gtk_list_store_drag_data_received (GtkTreeDragDest   *drag_dest,
                                                    GtkTreePath       *dest,
-                                                   GtkSelectionData  *selection_data);
+                                                   const GValue      *value);
 static gboolean gtk_list_store_row_drop_possible  (GtkTreeDragDest   *drag_dest,
                                                    GtkTreePath       *dest_path,
-						   GtkSelectionData  *selection_data);
+						   const GValue      *value);
 
 
 /* sortable */
@@ -1448,10 +1448,34 @@ gboolean
 gtk_list_store_iter_is_valid (GtkListStore *list_store,
                               GtkTreeIter  *iter)
 {
+  GtkListStorePrivate *priv;
+  GSequenceIter *seq_iter;
+
   g_return_val_if_fail (GTK_IS_LIST_STORE (list_store), FALSE);
   g_return_val_if_fail (iter != NULL, FALSE);
 
-  return iter_is_valid (iter, list_store);
+  /* can't use iter_is_valid() here, because iter might point
+   * to random memory.
+   *
+   * We MUST NOT dereference it.
+   */
+
+  priv = list_store->priv;
+
+  if (iter == NULL ||
+      iter->user_data == NULL ||
+      priv->stamp != iter->stamp)
+    return FALSE;
+
+  for (seq_iter = g_sequence_get_begin_iter (priv->seq);
+       !g_sequence_iter_is_end (seq_iter);
+       seq_iter = g_sequence_iter_next (seq_iter))
+    {
+      if (seq_iter == iter->user_data)
+        return TRUE;
+    }
+
+  return FALSE;
 }
 
 static gboolean real_gtk_list_store_row_draggable (GtkTreeDragSource *drag_source,
@@ -1476,35 +1500,22 @@ gtk_list_store_drag_data_delete (GtkTreeDragSource *drag_source,
   return FALSE;
 }
 
-static gboolean
+static GdkContentProvider *
 gtk_list_store_drag_data_get (GtkTreeDragSource *drag_source,
-                              GtkTreePath       *path,
-                              GtkSelectionData  *selection_data)
+                              GtkTreePath       *path)
 {
   /* Note that we don't need to handle the GTK_TREE_MODEL_ROW
    * target, because the default handler does it for us, but
    * we do anyway for the convenience of someone maybe overriding the
    * default handler.
    */
-
-  if (gtk_tree_set_row_drag_data (selection_data,
-				  GTK_TREE_MODEL (drag_source),
-				  path))
-    {
-      return TRUE;
-    }
-  else
-    {
-      /* FIXME handle text targets at least. */
-    }
-
-  return FALSE;
+  return gtk_tree_create_row_drag_content (GTK_TREE_MODEL (drag_source), path);
 }
 
 static gboolean
-gtk_list_store_drag_data_received (GtkTreeDragDest   *drag_dest,
-                                   GtkTreePath       *dest,
-                                   GtkSelectionData  *selection_data)
+gtk_list_store_drag_data_received (GtkTreeDragDest *drag_dest,
+                                   GtkTreePath     *dest,
+                                   const GValue    *value)
 {
   GtkTreeModel *tree_model = GTK_TREE_MODEL (drag_dest);
   GtkListStore *list_store = GTK_LIST_STORE (tree_model);
@@ -1513,7 +1524,7 @@ gtk_list_store_drag_data_received (GtkTreeDragDest   *drag_dest,
   GtkTreePath *src_path = NULL;
   gboolean retval = FALSE;
 
-  if (gtk_tree_get_row_drag_data (selection_data,
+  if (gtk_tree_get_row_drag_data (value,
 				  &src_model,
 				  &src_path) &&
       src_model == tree_model)
@@ -1611,7 +1622,7 @@ gtk_list_store_drag_data_received (GtkTreeDragDest   *drag_dest,
 static gboolean
 gtk_list_store_row_drop_possible (GtkTreeDragDest  *drag_dest,
                                   GtkTreePath      *dest_path,
-				  GtkSelectionData *selection_data)
+                                  const GValue     *value)
 {
   gint *indices;
   GtkTreeModel *src_model = NULL;
@@ -1622,7 +1633,7 @@ gtk_list_store_row_drop_possible (GtkTreeDragDest  *drag_dest,
   if (GTK_LIST_STORE_IS_SORTED (drag_dest))
     return FALSE;
 
-  if (!gtk_tree_get_row_drag_data (selection_data,
+  if (!gtk_tree_get_row_drag_data (value,
 				   &src_model,
 				   &src_path))
     goto out;

@@ -828,7 +828,7 @@ test_construct_only_property (void)
   const gchar buffer[] =
     "<interface>"
     "  <object class=\"GtkWindow\" id=\"window1\">"
-    "    <property name=\"type\">popup</property>"
+    "    <property name=\"css-name\">amazing</property>"
     "  </object>"
     "</interface>";
   const gchar buffer2[] =
@@ -839,12 +839,10 @@ test_construct_only_property (void)
     "  </object>"
     "</interface>";
   GObject *widget, *tagtable, *textbuffer;
-  GtkWindowType type;
   
   builder = builder_new_from_string (buffer, -1, NULL);
   widget = gtk_builder_get_object (builder, "window1");
-  g_object_get (widget, "type", &type, NULL);
-  g_assert (type == GTK_WINDOW_POPUP);
+  g_assert_cmpstr (gtk_widget_get_css_name (GTK_WIDGET (widget)), ==, "amazing");
 
   gtk_widget_destroy (GTK_WIDGET (widget));
   g_object_unref (builder);
@@ -977,17 +975,25 @@ test_children (void)
 }
 
 static void
-test_child_properties (void)
+test_layout_properties (void)
 {
   GtkBuilder * builder;
   const gchar buffer1[] =
     "<interface>"
-    "  <object class=\"GtkBox\" id=\"vbox1\">"
+    "  <object class=\"GtkGrid\" id=\"grid1\">"
     "    <child>"
-    "      <object class=\"GtkLabel\" id=\"label1\"/>"
+    "      <object class=\"GtkLabel\" id=\"label1\">"
+    "        <layout>"
+    "          <property name=\"left-attach\">1</property>"
+    "        </layout>"
+    "      </object>"
     "    </child>"
     "    <child>"
-    "      <object class=\"GtkLabel\" id=\"label2\"/>"
+    "      <object class=\"GtkLabel\" id=\"label2\">"
+    "        <layout>"
+    "          <property name=\"left-attach\">0</property>"
+    "        </layout>"
+    "      </object>"
     "    </child>"
     "  </object>"
     "</interface>";
@@ -995,8 +1001,8 @@ test_child_properties (void)
   GObject *label, *vbox;
 
   builder = builder_new_from_string (buffer1, -1, NULL);
-  vbox = gtk_builder_get_object (builder, "vbox1");
-  g_assert (GTK_IS_BOX (vbox));
+  vbox = gtk_builder_get_object (builder, "grid1");
+  g_assert (GTK_IS_GRID (vbox));
 
   label = gtk_builder_get_object (builder, "label1");
   g_assert (GTK_IS_LABEL (label));
@@ -1392,58 +1398,6 @@ test_message_dialog (void)
 }
 
 static void
-test_accelerators (void)
-{
-  GtkBuilder *builder;
-  const gchar *buffer =
-    "<interface>"
-    "  <object class=\"GtkWindow\" id=\"window1\">"
-    "    <child>"
-    "      <object class=\"GtkButton\" id=\"button1\">"
-    "        <accelerator key=\"q\" modifiers=\"GDK_CONTROL_MASK\" signal=\"clicked\"/>"
-    "      </object>"
-    "    </child>"
-    "  </object>"
-    "</interface>";
-  const gchar *buffer2 =
-    "<interface>"
-    "  <object class=\"GtkWindow\" id=\"window1\">"
-    "    <child>"
-    "      <object class=\"GtkTreeView\" id=\"treeview1\">"
-    "      </object>"
-    "    </child>"
-    "  </object>"
-    "</interface>";
-  GObject *window1;
-  GSList *accel_groups;
-  GObject *accel_group;
-  
-  builder = builder_new_from_string (buffer, -1, NULL);
-  window1 = gtk_builder_get_object (builder, "window1");
-  g_assert (window1);
-  g_assert (GTK_IS_WINDOW (window1));
-
-  accel_groups = gtk_accel_groups_from_object (window1);
-  g_assert (g_slist_length (accel_groups) == 1);
-  accel_group = g_slist_nth_data (accel_groups, 0);
-  g_assert (accel_group);
-
-  gtk_widget_destroy (GTK_WIDGET (window1));
-  g_object_unref (builder);
-
-  builder = builder_new_from_string (buffer2, -1, NULL);
-  window1 = gtk_builder_get_object (builder, "window1");
-  g_assert (window1);
-  g_assert (GTK_IS_WINDOW (window1));
-
-  accel_groups = gtk_accel_groups_from_object (window1);
-  g_assert_cmpint (g_slist_length (accel_groups), ==, 0);
-
-  gtk_widget_destroy (GTK_WIDGET (window1));
-  g_object_unref (builder);
-}
-
-static void
 test_widget (void)
 {
   const gchar *buffer =
@@ -1543,15 +1497,15 @@ test_widget (void)
 
   accessible = gtk_widget_get_accessible (GTK_WIDGET (label1));
   relation_set = atk_object_ref_relation_set (accessible);
-  g_return_if_fail (atk_relation_set_get_n_relations (relation_set) == 1);
+  g_assert_cmpint (atk_relation_set_get_n_relations (relation_set), ==, 1);
   relation = atk_relation_set_get_relation (relation_set, 0);
-  g_return_if_fail (relation != NULL);
-  g_return_if_fail (ATK_IS_RELATION (relation));
-  g_return_if_fail (atk_relation_get_relation_type (relation) != ATK_RELATION_LABELLED_BY);
+  g_assert (relation != NULL);
+  g_assert_true (ATK_IS_RELATION (relation));
+  g_assert_cmpint (atk_relation_get_relation_type (relation), !=, ATK_RELATION_LABELLED_BY);
   g_object_unref (relation_set);
 
   g_object_get (G_OBJECT (accessible), "accessible-name", &name, NULL);
-  g_return_if_fail (strcmp (name, "A Label") == 0);
+  g_assert_cmpstr (name, ==, "A Label");
   g_free (name);
   
   gtk_widget_destroy (GTK_WIDGET (window1));
@@ -1713,18 +1667,18 @@ test_value_from_string (void)
   g_error_free (error);
   error = NULL;
 
-  g_assert (gtk_builder_value_from_string_type (builder, GTK_TYPE_WINDOW_TYPE, "toplevel", &value, &error) == TRUE);
+  g_assert (gtk_builder_value_from_string_type (builder, GTK_TYPE_TEXT_DIRECTION, "rtl", &value, &error) == TRUE);
   g_assert (G_VALUE_HOLDS_ENUM (&value));
-  g_assert (g_value_get_enum (&value) == GTK_WINDOW_TOPLEVEL);
+  g_assert (g_value_get_enum (&value) == GTK_TEXT_DIR_RTL);
   g_value_unset (&value);
 
-  g_assert (gtk_builder_value_from_string_type (builder, GTK_TYPE_WINDOW_TYPE, "sliff", &value, &error) == FALSE);
+  g_assert (gtk_builder_value_from_string_type (builder, GTK_TYPE_TEXT_DIRECTION, "sliff", &value, &error) == FALSE);
   g_value_unset (&value);
   g_assert_error (error, GTK_BUILDER_ERROR, GTK_BUILDER_ERROR_INVALID_VALUE);
   g_error_free (error);
   error = NULL;
 
-  g_assert (gtk_builder_value_from_string_type (builder, GTK_TYPE_WINDOW_TYPE, "foobar", &value, &error) == FALSE);
+  g_assert (gtk_builder_value_from_string_type (builder, GTK_TYPE_TEXT_DIRECTION, "foobar", &value, &error) == FALSE);
   g_value_unset (&value);
   g_assert_error (error, GTK_BUILDER_ERROR, GTK_BUILDER_ERROR_INVALID_VALUE);
   g_error_free (error);
@@ -1928,8 +1882,8 @@ test_add_objects (void)
   GError *error;
   gint ret;
   GObject *obj;
-  gchar *objects[2] = {"mainbox", NULL};
-  gchar *objects2[3] = {"mainbox", "window2", NULL};
+  const gchar *objects[2] = {"mainbox", NULL};
+  const gchar *objects2[3] = {"mainbox", "window2", NULL};
   const gchar buffer[] =
     "<interface>"
     "  <object class=\"GtkWindow\" id=\"window\">"
@@ -2183,7 +2137,7 @@ test_expose_object (void)
     "  </object>"
     "</interface>";
 
-  menu = gtk_popover_new (NULL);
+  menu = gtk_popover_new ();
   builder = gtk_builder_new ();
   gtk_builder_expose_object (builder, "builder", G_OBJECT (builder));
   gtk_builder_expose_object (builder, "external_menu", G_OBJECT (menu));
@@ -2358,7 +2312,7 @@ my_gtk_grid_class_init (MyGtkGridClass *klass)
 }
 
 static void
-test_template ()
+test_template (void)
 {
   MyGtkGrid *my_gtk_grid;
 
@@ -2440,6 +2394,7 @@ test_file_filter (void)
   const gchar buffer[] =
     "<interface>"
     "  <object class='GtkFileFilter' id='filter1'>"
+    "    <property name='name'>Text and Images</property>"
     "    <mime-types>"
     "      <mime-type>text/plain</mime-type>"
     "      <mime-type>image/*</mime-type>"
@@ -2455,7 +2410,7 @@ test_file_filter (void)
   obj = gtk_builder_get_object (builder, "filter1");
   g_assert (GTK_IS_FILE_FILTER (obj));
   filter = GTK_FILE_FILTER (obj);
-  g_assert_cmpstr (gtk_file_filter_get_name (filter), ==, "filter1");
+  g_assert_cmpstr (gtk_file_filter_get_name (filter), ==, "Text and Images");
   g_assert (gtk_file_filter_get_needed (filter) & GTK_FILE_FILTER_MIME_TYPE);
   g_assert (gtk_file_filter_get_needed (filter) & GTK_FILE_FILTER_DISPLAY_NAME);
 
@@ -2471,6 +2426,74 @@ test_file_filter (void)
   g_object_unref (builder);
 }
 
+static void
+test_shortcuts (void)
+{
+  GtkBuilder *builder;
+  GObject *obj;
+
+  const char buffer[] = 
+    "<interface>"
+    "  <object class='GtkBox' id='box'>"
+    "    <child>"
+    "      <object class='GtkShortcutController' id='controller'>"
+    "        <property name='scope'>managed</property>"
+    "        <child>"
+    "          <object class='GtkShortcut'>"
+    "            <property name='trigger'>&lt;Control&gt;k</property>"
+    "            <property name='action'>activate</property>"
+    "          </object>"
+    "        </child>"
+    "      </object>"
+    "    </child>"
+    "  </object>"
+    "</interface>";
+
+  builder = builder_new_from_string (buffer, -1, NULL);
+  obj = gtk_builder_get_object (builder, "controller");
+  g_assert (GTK_IS_SHORTCUT_CONTROLLER (obj));
+  g_object_unref (builder);
+}
+
+static void
+test_transforms (void)
+{
+  GtkBuilder * builder;
+  const gchar buffer1[] =
+    "<interface>"
+    "  <object class=\"GtkFixed\" id=\"fixed1\">"
+    "    <child>"
+    "      <object class=\"GtkLabel\" id=\"label1\">"
+    "        <layout>"
+    "          <property name=\"transform\">rotateX(45.0)</property>"
+    "        </layout>"
+    "      </object>"
+    "    </child>"
+    "    <child>"
+    "      <object class=\"GtkLabel\" id=\"label2\">"
+    "        <layout>"
+    "          <property name=\"transform\">scale3d(1,2,3)translate3d(2,3,0)</property>"
+    "        </layout>"
+    "      </object>"
+    "    </child>"
+    "  </object>"
+    "</interface>";
+
+  GObject *label, *vbox;
+
+  builder = builder_new_from_string (buffer1, -1, NULL);
+  vbox = gtk_builder_get_object (builder, "fixed1");
+  g_assert (GTK_IS_FIXED (vbox));
+
+  label = gtk_builder_get_object (builder, "label1");
+  g_assert (GTK_IS_LABEL (label));
+
+  label = gtk_builder_get_object (builder, "label2");
+  g_assert (GTK_IS_LABEL (label));
+
+  g_object_unref (builder);
+}
+
 int
 main (int argc, char **argv)
 {
@@ -2481,7 +2504,7 @@ main (int argc, char **argv)
   g_test_add_func ("/Builder/Types", test_types);
   g_test_add_func ("/Builder/Construct-Only Properties", test_construct_only_property);
   g_test_add_func ("/Builder/Children", test_children);
-  g_test_add_func ("/Builder/Child Properties", test_child_properties);
+  g_test_add_func ("/Builder/Layout Properties", test_layout_properties);
   g_test_add_func ("/Builder/Object Properties", test_object_properties);
   g_test_add_func ("/Builder/Notebook", test_notebook);
   g_test_add_func ("/Builder/Domain", test_domain);
@@ -2498,7 +2521,6 @@ main (int argc, char **argv)
 #endif
   g_test_add_func ("/Builder/CellView", test_cell_view);
   g_test_add_func ("/Builder/Dialog", test_dialog);
-  g_test_add_func ("/Builder/Accelerators", test_accelerators);
   g_test_add_func ("/Builder/Widget", test_widget);
   g_test_add_func ("/Builder/Value From String", test_value_from_string);
   g_test_add_func ("/Builder/Reference Counting", test_reference_counting);
@@ -2516,6 +2538,8 @@ main (int argc, char **argv)
   g_test_add_func ("/Builder/Property Bindings", test_property_bindings);
   g_test_add_func ("/Builder/anaconda-signal", test_anaconda_signal);
   g_test_add_func ("/Builder/FileFilter", test_file_filter);
+  g_test_add_func ("/Builder/Shortcuts", test_shortcuts);
+  g_test_add_func ("/Builder/Transforms", test_transforms);
 
   return g_test_run();
 }

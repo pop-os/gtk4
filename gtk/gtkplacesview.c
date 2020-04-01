@@ -89,7 +89,6 @@ struct _GtkPlacesViewPrivate
 
   GtkPlacesViewRow              *row_for_action;
 
-  guint                          local_only : 1;
   guint                          should_open_location : 1;
   guint                          should_pulse_entry : 1;
   guint                          entry_pulse_timeout_id;
@@ -107,7 +106,15 @@ static void        mount_volume                                  (GtkPlacesView 
 static void        on_eject_button_clicked                       (GtkWidget        *widget,
                                                                   GtkPlacesViewRow *row);
 
-static gboolean    on_row_popup_menu                             (GtkPlacesViewRow *row);
+static gboolean on_row_popup_menu (GtkWidget *widget,
+                                   GVariant  *args,
+                                   gpointer   user_data);
+
+static void click_cb (GtkGesture *gesture,
+                      int         n_press,
+                      double      x,
+                      double      y,
+                      gpointer    user_data);
 
 static void        populate_servers                              (GtkPlacesView *view);
 
@@ -126,7 +133,6 @@ G_DEFINE_TYPE_WITH_PRIVATE (GtkPlacesView, gtk_places_view, GTK_TYPE_BOX)
 /* GtkPlacesView properties & signals */
 enum {
   PROP_0,
-  PROP_LOCAL_ONLY,
   PROP_OPEN_FLAGS,
   PROP_FETCHING_NETWORKS,
   PROP_LOADING,
@@ -449,10 +455,6 @@ gtk_places_view_get_property (GObject    *object,
 
   switch (prop_id)
     {
-    case PROP_LOCAL_ONLY:
-      g_value_set_boolean (value, gtk_places_view_get_local_only (self));
-      break;
-
     case PROP_LOADING:
       g_value_set_boolean (value, gtk_places_view_get_loading (self));
       break;
@@ -480,10 +482,6 @@ gtk_places_view_set_property (GObject      *object,
 
   switch (prop_id)
     {
-    case PROP_LOCAL_ONLY:
-      gtk_places_view_set_local_only (self, g_value_get_boolean (value));
-      break;
-
     case PROP_OPEN_FLAGS:
       gtk_places_view_set_open_flags (self, g_value_get_flags (value));
       break;
@@ -683,12 +681,28 @@ insert_row (GtkPlacesView *view,
             gboolean       is_network)
 {
   GtkPlacesViewPrivate *priv;
+  GtkEventController *controller;
+  GtkShortcutTrigger *trigger;
+  GtkShortcutAction *action;
+  GtkShortcut *shortcut;
+  GtkGesture *gesture;
 
   priv = gtk_places_view_get_instance_private (view);
 
   g_object_set_data (G_OBJECT (row), "is-network", GINT_TO_POINTER (is_network));
 
-  g_signal_connect (row, "popup-menu", G_CALLBACK (on_row_popup_menu), row);
+  controller = gtk_shortcut_controller_new ();
+  trigger = gtk_alternative_trigger_new (gtk_keyval_trigger_new (GDK_KEY_F10, GDK_SHIFT_MASK),
+                                         gtk_keyval_trigger_new (GDK_KEY_Menu, 0));
+  action = gtk_callback_action_new (on_row_popup_menu, row, NULL);
+  shortcut = gtk_shortcut_new (trigger, action);
+  gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller), shortcut);
+  gtk_widget_add_controller (GTK_WIDGET (row), controller);
+
+  gesture = gtk_gesture_click_new ();
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
+  g_signal_connect (gesture, "pressed", G_CALLBACK (click_cb), row);
+  gtk_widget_add_controller (row, GTK_EVENT_CONTROLLER (gesture));
 
   g_signal_connect (gtk_places_view_row_get_eject_button (GTK_PLACES_VIEW_ROW (row)),
                     "clicked",
@@ -1709,10 +1723,12 @@ get_menu_model (void)
   return G_MENU_MODEL (menu);
 }
 
-static void
-popup_menu (GtkPlacesViewRow *row,
-            GdkEventButton   *event)
+static gboolean
+on_row_popup_menu (GtkWidget *widget,
+                   GVariant  *args,
+                   gpointer   user_data)
 {
+  GtkPlacesViewRow *row = GTK_PLACES_VIEW_ROW (widget);
   GtkPlacesViewPrivate *priv;
   GtkWidget *view;
   GMount *mount;
@@ -1739,27 +1755,40 @@ popup_menu (GtkPlacesViewRow *row,
     {
       GMenuModel *model = get_menu_model ();
 
-      priv->popup_menu = gtk_popover_menu_new_from_model (GTK_WIDGET (view), model);
+      priv->popup_menu = gtk_popover_menu_new_from_model (model);
       gtk_popover_set_position (GTK_POPOVER (priv->popup_menu), GTK_POS_BOTTOM);
 
       gtk_popover_set_has_arrow (GTK_POPOVER (priv->popup_menu), FALSE);
-      gtk_widget_set_halign (priv->popup_menu, GTK_ALIGN_START);
+      gtk_widget_set_halign (priv->popup_menu, GTK_ALIGN_CENTER);
 
       g_object_unref (model);
     }
 
-  gtk_widget_set_halign (priv->popup_menu, GTK_ALIGN_CENTER);
-  gtk_popover_set_relative_to (GTK_POPOVER (priv->popup_menu), GTK_WIDGET (row));
+  if (priv->row_for_action)
+    g_object_set_data (G_OBJECT (priv->row_for_action), "menu", NULL);
+
+  g_object_ref (priv->popup_menu);
+  gtk_widget_unparent (priv->popup_menu);
+  gtk_widget_set_parent (priv->popup_menu, GTK_WIDGET (row));
+  g_object_unref (priv->popup_menu);
 
   priv->row_for_action = row;
+  if (priv->row_for_action)
+    g_object_set_data (G_OBJECT (priv->row_for_action), "menu", priv->popup_menu);
+
   gtk_popover_popup (GTK_POPOVER (priv->popup_menu));
+
+  return TRUE;
 }
 
-static gboolean
-on_row_popup_menu (GtkPlacesViewRow *row)
+static void
+click_cb (GtkGesture *gesture,
+          int         n_press,
+          double      x,
+          double      y,
+          gpointer    user_data)
 {
-  popup_menu (row, NULL);
-  return TRUE;
+  on_row_popup_menu (GTK_WIDGET (user_data), NULL, NULL);
 }
 
 static gboolean
@@ -1954,37 +1983,11 @@ on_listbox_row_activated (GtkPlacesView    *view,
 }
 
 static gboolean
-is_mount_locally_accessible (GMount *mount)
-{
-  GFile *base_file;
-  gchar *path;
-
-  if (mount == NULL)
-    return FALSE;
-
-  base_file = g_mount_get_root (mount);
-
-  if (base_file == NULL)
-    return FALSE;
-
-  path = g_file_get_path (base_file);
-  g_object_unref (base_file);
-
-  if (path == NULL)
-    return FALSE;
-
-  g_free (path);
-  return TRUE;
-}
-
-static gboolean
 listbox_filter_func (GtkListBoxRow *row,
                      gpointer       user_data)
 {
   GtkPlacesViewPrivate *priv;
-  gboolean is_network;
   gboolean is_placeholder;
-  gboolean is_local = FALSE;
   gboolean retval;
   gboolean searching;
   gchar *name;
@@ -1994,24 +1997,7 @@ listbox_filter_func (GtkListBoxRow *row,
   retval = FALSE;
   searching = priv->search_query && priv->search_query[0] != '\0';
 
-  is_network = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (row), "is-network"));
   is_placeholder = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (row), "is-placeholder"));
-
-  if (GTK_IS_PLACES_VIEW_ROW (row))
-    {
-      GtkPlacesViewRow *placesviewrow;
-      GMount *mount;
-
-      placesviewrow = GTK_PLACES_VIEW_ROW (row);
-      g_object_get(G_OBJECT (placesviewrow), "mount", &mount, NULL);
-
-      is_local = is_mount_locally_accessible (mount);
-
-      g_clear_object (&mount);
-    }
-
-  if (is_network && priv->local_only && !is_local)
-    return FALSE;
 
   if (is_placeholder && searching)
     return FALSE;
@@ -2103,7 +2089,7 @@ listbox_header_func (GtkListBoxRow *row,
           g_object_bind_property (GTK_PLACES_VIEW (user_data),
                                   "fetching-networks",
                                   network_header_spinner,
-                                  "active",
+                                  "spinning",
                                   G_BINDING_SYNC_CREATE);
 
           gtk_container_add (GTK_CONTAINER (header_name), label);
@@ -2297,13 +2283,6 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
                         G_TYPE_NONE, 2,
                         G_TYPE_STRING,
                         G_TYPE_STRING);
-
-  properties[PROP_LOCAL_ONLY] =
-          g_param_spec_boolean ("local-only",
-                                P_("Local Only"),
-                                P_("Whether the sidebar only includes local files"),
-                                FALSE,
-                                GTK_PARAM_READWRITE);
 
   properties[PROP_LOADING] =
           g_param_spec_boolean ("loading",
@@ -2605,56 +2584,5 @@ gtk_places_view_set_fetching_networks (GtkPlacesView *view,
     {
       priv->fetching_networks = fetching_networks;
       g_object_notify_by_pspec (G_OBJECT (view), properties [PROP_FETCHING_NETWORKS]);
-    }
-}
-
-/*
- * gtk_places_view_get_local_only:
- * @view: a #GtkPlacesView
- *
- * Returns %TRUE if only local volumes are shown, i.e. no networks
- * are displayed.
- *
- * Returns: %TRUE if only local volumes are shown, %FALSE otherwise.
- */
-gboolean
-gtk_places_view_get_local_only (GtkPlacesView *view)
-{
-  GtkPlacesViewPrivate *priv;
-
-  g_return_val_if_fail (GTK_IS_PLACES_VIEW (view), FALSE);
-
-  priv = gtk_places_view_get_instance_private (view);
-
-  return priv->local_only;
-}
-
-/*
- * gtk_places_view_set_local_only:
- * @view: a #GtkPlacesView
- * @local_only: %TRUE to hide remote locations, %FALSE to show.
- *
- * Sets the #GtkPlacesView::local-only property to @local_only.
- */
-void
-gtk_places_view_set_local_only (GtkPlacesView *view,
-                                gboolean       local_only)
-{
-  GtkPlacesViewPrivate *priv;
-
-  g_return_if_fail (GTK_IS_PLACES_VIEW (view));
-
-  priv = gtk_places_view_get_instance_private (view);
-
-  if (priv->local_only != local_only)
-    {
-      priv->local_only = local_only;
-
-      gtk_widget_set_visible (priv->actionbar, !local_only);
-      update_places (view);
-
-      update_view_mode (view);
-
-      g_object_notify_by_pspec (G_OBJECT (view), properties [PROP_LOCAL_ONLY]);
     }
 }

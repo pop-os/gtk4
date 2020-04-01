@@ -16,25 +16,29 @@
 #include "gtkstack.h"
 #include "gtklabel.h"
 #include "gtkintl.h"
+#include "gtkbinlayout.h"
 
 G_DEFINE_TYPE (GtkFileChooserErrorStack, gtk_file_chooser_error_stack, GTK_TYPE_WIDGET)
 
 static void
-gtk_file_chooser_error_stack_finalize (GObject *object)
+gtk_file_chooser_error_stack_dispose (GObject *object)
 {
   GtkFileChooserErrorStack *self = GTK_FILE_CHOOSER_ERROR_STACK (object);
 
   g_clear_pointer (&self->stack, gtk_widget_unparent);
 
-  G_OBJECT_CLASS (gtk_file_chooser_error_stack_parent_class)->finalize (object);
+  G_OBJECT_CLASS (gtk_file_chooser_error_stack_parent_class)->dispose (object);
 }
 
 static void
 gtk_file_chooser_error_stack_class_init (GtkFileChooserErrorStackClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
 
-  object_class->finalize = gtk_file_chooser_error_stack_finalize;
+  object_class->dispose = gtk_file_chooser_error_stack_dispose;
+
+  gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
 }
 
 static void

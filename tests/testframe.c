@@ -147,13 +147,16 @@ int main (int argc, char **argv)
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_default_size (GTK_WINDOW (window), 300, 300);
 
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 
   vbox = GTK_BOX (gtk_box_new (GTK_ORIENTATION_VERTICAL, 5));
-  g_object_set (vbox, "margin", 12, NULL);
+  gtk_widget_set_margin_start (GTK_WIDGET (vbox), 12);
+  gtk_widget_set_margin_end (GTK_WIDGET (vbox), 12);
+  gtk_widget_set_margin_top (GTK_WIDGET (vbox), 12);
+  gtk_widget_set_margin_bottom (GTK_WIDGET (vbox), 12);
   gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET (vbox));
 
   frame = GTK_FRAME (gtk_frame_new ("Test GtkFrame"));

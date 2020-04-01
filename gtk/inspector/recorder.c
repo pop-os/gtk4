@@ -1033,7 +1033,6 @@ render_node_save (GtkButton            *button,
   g_free (filename);
   gtk_dialog_set_default_response (GTK_DIALOG (dialog), GTK_RESPONSE_ACCEPT);
   gtk_window_set_modal (GTK_WINDOW (dialog), TRUE);
-  gtk_file_chooser_set_do_overwrite_confirmation (GTK_FILE_CHOOSER (dialog), TRUE);
   g_signal_connect (dialog, "response", G_CALLBACK (render_node_save_response), node);
   gtk_widget_show (dialog);
 }
@@ -1134,7 +1133,10 @@ gtk_inspector_recorder_recordings_list_create_widget (gpointer item,
       gtk_label_set_use_markup (GTK_LABEL (widget), TRUE);
     }
 
-  g_object_set (widget, "margin", 6, NULL); /* Seriously? g_object_set() needed for that? */
+  gtk_widget_set_margin_start (widget, 6);
+  gtk_widget_set_margin_end (widget, 6);
+  gtk_widget_set_margin_top (widget, 6);
+  gtk_widget_set_margin_bottom (widget, 6);
 
   return widget;
 }
@@ -1164,11 +1166,15 @@ node_property_activated (GtkTreeView *tv,
   if (texture == NULL || visible)
     return;
 
-  popover = gtk_popover_new (GTK_WIDGET (tv));
+  popover = gtk_popover_new ();
+  gtk_widget_set_parent (popover, GTK_WIDGET (tv));
   gtk_popover_set_pointing_to (GTK_POPOVER (popover), &rect);
 
   image = gtk_image_new_from_paintable (GDK_PAINTABLE (texture));
-  g_object_set (image, "margin", 20, NULL);
+  gtk_widget_set_margin_start (image, 20);
+  gtk_widget_set_margin_end (image, 20);
+  gtk_widget_set_margin_top (image, 20);
+  gtk_widget_set_margin_bottom (image, 20);
   gtk_container_add (GTK_CONTAINER (popover), image);
   gtk_popover_popup (GTK_POPOVER (popover));
 

@@ -1,29 +1,29 @@
-scss_files = files([
-  '_colors.scss',
-  '_common.scss',
-  '_drawing.scss',
+hc_scss_files = files([
+  '_colors-hc.scss',
 ])
 
-theme_variants = [
+hc_theme_variants = [
   'inverse',
 ]
 
-theme_deps += custom_target('HighContrast',
-                            input: 'gtk-contained.scss',
-                            output: 'gtk-contained.css',
-                            command: [
-                              sassc, sassc_opts, '@INPUT@', '@OUTPUT@',
-                            ],
-                            depend_files: scss_files,
-                            build_by_default: true)
+hc_theme_deps = [
+  custom_target('HighContrast theme',
+    input: 'HighContrast.scss',
+    output: 'HighContrast.css',
+    command: [
+      sassc, sassc_opts, '@INPUT@', '@OUTPUT@',
+    ],
+    depend_files: hc_scss_files,
+  )
+]
 
-foreach variant: theme_variants
-  theme_deps += custom_target('HighContrast-' + variant,
-                              input: 'gtk-contained-@0@.scss'.format(variant),
-                              output: 'gtk-contained-@0@.css'.format(variant),
-                              command: [
-                                sassc, sassc_opts, '@INPUT@', '@OUTPUT@',
-                              ],
-                              depend_files: scss_files,
-                              build_by_default: true)
+foreach variant: hc_theme_variants
+  hc_theme_deps += custom_target('HighContrast theme variant: ' + variant,
+    input: 'HighContrast-@0@.scss'.format(variant),
+    output: 'HighContrast-@0@.css'.format(variant),
+    command: [
+      sassc, sassc_opts, '@INPUT@', '@OUTPUT@',
+    ],
+    depend_files: hc_scss_files,
+  )
 endforeach

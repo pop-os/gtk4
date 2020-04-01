@@ -1,12 +1,19 @@
 window1
-  "window"
+  "frame"
   index: 0
   state: enabled resizable sensitive showing visible
   toolkit: gtk
-  window-type: normal
   <AtkComponent>
-  layer: window
+  layer: widget
   alpha: 1
+  unnamed-GtkContainerAccessible-0
+    "panel"
+    parent: window1
+    state: enabled sensitive showing visible
+    toolkit: gtk
+    <AtkComponent>
+    layer: widget
+    alpha: 1
   expander1
     "toggle button"
     parent: window1

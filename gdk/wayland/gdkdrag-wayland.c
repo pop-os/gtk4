@@ -20,7 +20,6 @@
 #include "gdkdragprivate.h"
 
 #include "gdkinternals.h"
-#include "gdkproperty.h"
 #include "gdkprivate-wayland.h"
 #include "gdkcontentformats.h"
 #include "gdkdisplay-wayland.h"
@@ -198,23 +197,6 @@ gdk_wayland_drag_class_init (GdkWaylandDragClass *klass)
   drag_class->cancel = gdk_wayland_drag_cancel;
 }
 
-void
-_gdk_wayland_surface_register_dnd (GdkSurface *surface)
-{
-}
-
-static GdkSurface *
-create_dnd_surface (GdkDisplay *display)
-{
-  GdkSurface *surface;
-
-  surface = gdk_surface_new_temp (display, &(GdkRectangle) { 0, 0, 100, 100 });
-
-  gdk_surface_set_type_hint (surface, GDK_SURFACE_TYPE_HINT_DND);
-  
-  return surface;
-}
-
 static inline GdkDragAction
 _wl_to_gdk_actions (uint32_t dnd_actions)
 {
@@ -358,6 +340,7 @@ gdk_wayland_drag_create_data_source (GdkDrag *drag)
             g_message ("create data source, mime types=%s", s);
             g_free (s);});
 
+  wl_data_source_offer (drag_wayland->data_source, GDK_WAYLAND_LOCAL_DND_MIME_TYPE);
   for (i = 0; i < n_mimetypes; i++)
     wl_data_source_offer (drag_wayland->data_source, mimetypes[i]);
 

@@ -40,7 +40,8 @@ struct _GdkDropClass {
   GObjectClass parent_class;
 
   void                  (* status)                              (GdkDrop                *self,
-                                                                 GdkDragAction           actions);
+                                                                 GdkDragAction           actions,
+                                                                 GdkDragAction           preferred);
   void                  (* finish)                              (GdkDrop                *self,
                                                                  GdkDragAction           action);
 
@@ -61,19 +62,21 @@ void                    gdk_drop_set_actions                    (GdkDrop        
 
 void                    gdk_drop_emit_enter_event               (GdkDrop                *self,
                                                                  gboolean                dont_queue,
+                                                                 double                  x,
+                                                                 double                  y,
                                                                  guint32                 time);
 void                    gdk_drop_emit_motion_event              (GdkDrop                *self,
                                                                  gboolean                dont_queue,
-                                                                 double                  x_root,
-                                                                 double                  y_root,
+                                                                 double                  x,
+                                                                 double                  y,
                                                                  guint32                 time);
 void                    gdk_drop_emit_leave_event               (GdkDrop                *self,
                                                                  gboolean                dont_queue,
                                                                  guint32                 time);
 void                    gdk_drop_emit_drop_event                (GdkDrop                *self,
                                                                  gboolean                dont_queue,
-                                                                 double                  x_root,
-                                                                 double                  y_root,
+                                                                 double                  x,
+                                                                 double                  y,
                                                                  guint32                 time);
 
 G_END_DECLS

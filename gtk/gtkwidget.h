@@ -33,6 +33,8 @@
 #include <gsk/gsk.h>
 #include <gtk/gtkaccelgroup.h>
 #include <gtk/gtkborder.h>
+#include <gtk/gtkshortcut.h>
+#include <gtk/gtkshortcutaction.h>
 #include <gtk/gtktypes.h>
 #include <atk/atk.h>
 
@@ -260,9 +262,6 @@ struct _GtkWidgetClass
   gboolean (* keynav_failed)            (GtkWidget           *widget,
                                          GtkDirectionType     direction);
 
-  /* Signals used only for keybindings */
-  gboolean (* popup_menu)          (GtkWidget          *widget);
-
   /* accessibility support
    */
   AtkObject *  (* get_accessible)     (GtkWidget       *widget);
@@ -374,33 +373,38 @@ GDK_AVAILABLE_IN_ALL
 GType                   gtk_widget_class_get_layout_manager_type        (GtkWidgetClass *widget_class);
 
 GDK_AVAILABLE_IN_ALL
-void       gtk_widget_add_accelerator     (GtkWidget           *widget,
-                                           const gchar         *accel_signal,
-                                           GtkAccelGroup       *accel_group,
-                                           guint                accel_key,
-                                           GdkModifierType      accel_mods,
-                                           GtkAccelFlags        accel_flags);
+void       gtk_widget_class_add_binding   (GtkWidgetClass      *widget_class,
+                                           guint                keyval,
+                                           GdkModifierType      mods,
+                                           GtkShortcutFunc      callback,
+                                           const gchar         *format_string,
+                                           ...);
 GDK_AVAILABLE_IN_ALL
-gboolean   gtk_widget_remove_accelerator  (GtkWidget           *widget,
-                                           GtkAccelGroup       *accel_group,
-                                           guint                accel_key,
-                                           GdkModifierType      accel_mods);
+void       gtk_widget_class_add_binding_signal
+                                          (GtkWidgetClass      *widget_class,
+                                           GdkModifierType      mods,
+                                           guint                keyval,
+                                           const gchar         *signal,
+                                           const gchar         *format_string,
+                                           ...);
 GDK_AVAILABLE_IN_ALL
-void       gtk_widget_set_accel_path      (GtkWidget           *widget,
-                                           const gchar         *accel_path,
-                                           GtkAccelGroup       *accel_group);
+void       gtk_widget_class_add_binding_action
+                                          (GtkWidgetClass      *widget_class,
+                                           GdkModifierType      mods,
+                                           guint                keyval,
+                                           const gchar         *action_name,
+                                           const gchar         *format_string,
+                                           ...);
 GDK_AVAILABLE_IN_ALL
-GList*     gtk_widget_list_accel_closures (GtkWidget           *widget);
+void       gtk_widget_class_add_shortcut  (GtkWidgetClass      *widget_class,
+                                           GtkShortcut         *shortcut);
+
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_can_activate_accel  (GtkWidget           *widget,
                                            guint                signal_id);
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_mnemonic_activate   (GtkWidget           *widget,
                                            gboolean             group_cycling);
-GDK_AVAILABLE_IN_ALL
-gboolean   gtk_widget_event               (GtkWidget           *widget,
-                                           GdkEvent            *event);
-
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_activate               (GtkWidget        *widget);
 
@@ -710,12 +714,6 @@ void             gtk_widget_set_default_direction (GtkTextDirection  dir);
 GDK_AVAILABLE_IN_ALL
 GtkTextDirection gtk_widget_get_default_direction (void);
 
-/* Counterpart to gdk_surface_input_shape_combine_region.
- */
-GDK_AVAILABLE_IN_ALL
-void         gtk_widget_input_shape_combine_region (GtkWidget *widget,
-                                                    cairo_region_t *region);
-
 GDK_AVAILABLE_IN_ALL
 void                    gtk_widget_set_cursor                   (GtkWidget              *widget,
                                                                  GdkCursor              *cursor);
@@ -971,6 +969,8 @@ void                    gtk_widget_snapshot_child       (GtkWidget   *widget,
 GDK_AVAILABLE_IN_ALL
 gboolean                gtk_widget_should_layout        (GtkWidget   *widget);
 GDK_AVAILABLE_IN_ALL
+const char *            gtk_widget_get_css_name         (GtkWidget   *self) G_GNUC_PURE;
+GDK_AVAILABLE_IN_ALL
 void                    gtk_widget_add_css_class        (GtkWidget   *widget,
                                                          const char  *css_class);
 GDK_AVAILABLE_IN_ALL
@@ -979,6 +979,11 @@ void                    gtk_widget_remove_css_class     (GtkWidget   *widget,
 GDK_AVAILABLE_IN_ALL
 gboolean                gtk_widget_has_css_class        (GtkWidget   *widget,
                                                          const char  *css_class);
+GDK_AVAILABLE_IN_ALL
+char **                 gtk_widget_get_css_classes      (GtkWidget   *widget);
+GDK_AVAILABLE_IN_ALL
+void                    gtk_widget_set_css_classes      (GtkWidget   *widget,
+                                                         const char **classes);
 
 
 

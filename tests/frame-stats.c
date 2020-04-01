@@ -1,6 +1,7 @@
 /* -*- mode: C; c-basic-offset: 2; indent-tabs-mode: nil; -*- */
 
 #include <gtk/gtk.h>
+#include <stdlib.h>
 
 #include "frame-stats.h"
 #include "variable.h"
@@ -129,7 +130,7 @@ on_frame_clock_after_paint (GdkFrameClock *frame_clock,
     }
 }
 
-void
+static void
 on_window_realize (GtkWidget  *window,
                    FrameStats *frame_stats)
 {
@@ -138,7 +139,7 @@ on_window_realize (GtkWidget  *window,
                     G_CALLBACK (on_frame_clock_after_paint), frame_stats);
 }
 
-void
+static void
 on_window_unrealize (GtkWidget  *window,
                      FrameStats *frame_stats)
 {
@@ -148,7 +149,7 @@ on_window_unrealize (GtkWidget  *window,
   frame_stats->frame_clock = NULL;
 }
 
-void
+static void
 on_window_destroy (GtkWidget  *window,
                    FrameStats *stats)
 {

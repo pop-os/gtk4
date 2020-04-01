@@ -26,8 +26,8 @@
 #define NUM_COLS       17 /* change this when adding columns */
 
 struct cell_params {
-  char *description;			/* 0 */
-  char *test;				/* 1 */
+  const char *description;			/* 0 */
+  const char *test;				/* 1 */
   int xpad;				/* 2 */
   int ypad;				/* 3 */
   double xalign;			/* 4 */
@@ -268,7 +268,7 @@ main (int argc, char **argv)
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   g_signal_connect (window, "destroy",
 		    G_CALLBACK (quit_cb), &done);
 

@@ -56,7 +56,6 @@ void            gtk_window_check_resize            (GtkWindow     *self);
 typedef void (*GtkWindowKeysForeachFunc) (GtkWindow      *window,
                                           guint           keyval,
                                           GdkModifierType modifiers,
-                                          gboolean        is_mnemonic,
                                           gpointer        data);
 
 gboolean gtk_window_emit_close_request (GtkWindow *window);
@@ -89,28 +88,6 @@ GtkWindowGroup *_gtk_window_get_window_group (GtkWindow *window);
 void            _gtk_window_set_window_group (GtkWindow      *window,
                                               GtkWindowGroup *group);
 
-/* Popovers */
-void    _gtk_window_add_popover          (GtkWindow                   *window,
-                                          GtkWidget                   *popover,
-                                          GtkWidget                   *popover_parent,
-                                          gboolean                     clamp_allocation);
-void    _gtk_window_remove_popover       (GtkWindow                   *window,
-                                          GtkWidget                   *popover);
-void    _gtk_window_set_popover_position (GtkWindow                   *window,
-                                          GtkWidget                   *popover,
-                                          GtkPositionType              pos,
-                                          const cairo_rectangle_int_t *rect);
-void    _gtk_window_get_popover_position (GtkWindow                   *window,
-                                          GtkWidget                   *popover,
-                                          GtkPositionType             *pos,
-                                          cairo_rectangle_int_t       *rect);
-void    _gtk_window_raise_popover        (GtkWindow                   *window,
-                                          GtkWidget                   *popover);
-
-GtkWidget * _gtk_window_get_popover_parent (GtkWindow *window,
-                                            GtkWidget *popover);
-gboolean    _gtk_window_is_popover_widget  (GtkWindow *window,
-                                            GtkWidget *popover);
 
 GdkPaintable *    gtk_window_get_icon_for_size (GtkWindow *window,
                                                 int        size);
@@ -160,6 +137,9 @@ GtkWidget *      gtk_window_pick_popover (GtkWindow   *window,
                                           double       x,
                                           double       y,
                                           GtkPickFlags flags);
+
+void             gtk_window_set_extra_input_region (GtkWindow      *window,
+                                                    cairo_region_t *region);
 
 G_END_DECLS
 

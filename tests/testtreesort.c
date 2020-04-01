@@ -68,26 +68,14 @@ enum
   NUM_COLUMNS
 };
 
-gboolean
-select_func (GtkTreeSelection  *selection,
-	     GtkTreeModel      *model,
-	     GtkTreePath       *path,
-	     gboolean           path_currently_selected,
-	     gpointer           data)
-{
-  if (gtk_tree_path_get_depth (path) > 1)
-    return TRUE;
-  return FALSE;
-}
-
 static void
 switch_search_method (GtkWidget *button,
 		      gpointer   tree_view)
 {
   if (!gtk_tree_view_get_search_entry (GTK_TREE_VIEW (tree_view)))
     {
-      gpointer data = g_object_get_data (tree_view, "my-search-entry");
-      gtk_tree_view_set_search_entry (GTK_TREE_VIEW (tree_view), GTK_EDITABLE (data));
+      gpointer search_entry = g_object_get_data (tree_view, "my-search-entry");
+      gtk_tree_view_set_search_entry (GTK_TREE_VIEW (tree_view), GTK_EDITABLE (search_entry));
     }
   else
     gtk_tree_view_set_search_entry (GTK_TREE_VIEW (tree_view), NULL);
@@ -95,9 +83,9 @@ switch_search_method (GtkWidget *button,
 
 static void
 quit_cb (GtkWidget *widget,
-         gpointer   data)
+         gpointer   user_data)
 {
-  gboolean *done = data;
+  gboolean *done = user_data;
 
   *done = TRUE;
 
@@ -130,7 +118,7 @@ main (int argc, char *argv[])
    * First window - Just a GtkTreeStore
    */
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (window), "Words, words, words - Window 1");
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
@@ -257,7 +245,7 @@ main (int argc, char *argv[])
 
   if (smodel)
     {
-      window2 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window2 = gtk_window_new ();
       gtk_window_set_title (GTK_WINDOW (window2), 
 			    "Words, words, words - window 2");
       g_signal_connect (window2, "destroy", G_CALLBACK (quit_cb), &done);
@@ -326,7 +314,7 @@ main (int argc, char *argv[])
   
   if (ssmodel)
     {
-      window3 = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window3 = gtk_window_new ();
       gtk_window_set_title (GTK_WINDOW (window3), 
 			    "Words, words, words - Window 3");
       g_signal_connect (window3, "destroy", G_CALLBACK (quit_cb), &done);

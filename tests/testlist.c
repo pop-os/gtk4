@@ -30,6 +30,7 @@ const char *css =
   "background-color: red;"
   "}";
 
+static GType row_get_type (void);
 G_DEFINE_TYPE (Row, row, GTK_TYPE_LIST_BOX_ROW)
 
 static void
@@ -42,7 +43,7 @@ row_class_init (RowClass *class)
 {
 }
 
-GtkWidget *
+static GtkWidget *
 row_new (const gchar* text, gint sort_id) {
   Row *row;
 
@@ -256,7 +257,7 @@ main (int argc, char *argv[])
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_container_add (GTK_CONTAINER (window), hbox);
 

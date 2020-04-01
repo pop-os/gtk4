@@ -419,14 +419,19 @@ test_type (gconstpointer data)
   if (g_type_is_a (type, GTK_TYPE_DRAG_ICON))
     return;
 
+  /* these assert in constructed */
+ if (g_type_is_a (type, GTK_TYPE_ALTERNATIVE_TRIGGER) ||
+     g_type_is_a (type, GTK_TYPE_SIGNAL_ACTION) ||
+     g_type_is_a (type, GTK_TYPE_NAMED_ACTION))
+    return;
+
   klass = g_type_class_ref (type);
 
   if (g_type_is_a (type, GTK_TYPE_SETTINGS))
     instance = G_OBJECT (g_object_ref (gtk_settings_get_default ()));
   else if (g_type_is_a (type, GDK_TYPE_SURFACE))
     {
-      instance = G_OBJECT (g_object_ref (gdk_surface_new_temp (display,
-                                                               &(GdkRectangle) { 0, 0, 100, 100 })));
+      instance = G_OBJECT (g_object_ref (gdk_surface_new_toplevel (display, 100, 100)));
     }
   else if (g_str_equal (g_type_name (type), "GdkX11Cursor"))
     instance = g_object_new (type, "display", display, NULL);
@@ -460,6 +465,24 @@ test_type (gconstpointer data)
                                NULL);
       g_object_unref (list_store);
     }
+  else if (g_type_is_a (type, GTK_TYPE_CALENDAR))
+    {
+      /* avoid day 30 and 31, since they don't exist in February */
+      instance = g_object_new (type,
+                               "year", 1984,
+                               "month", 10,
+                               "day", 05,
+                               NULL);
+    }
+  /* special casing for singletons */
+  else if (g_type_is_a (type, GTK_TYPE_NEVER_TRIGGER))
+    instance = (GObject *) g_object_ref (gtk_never_trigger_get ());
+  else if (g_type_is_a (type, GTK_TYPE_NOTHING_ACTION))
+    instance = (GObject *) g_object_ref (gtk_nothing_action_get ());
+  else if (g_type_is_a (type, GTK_TYPE_ACTIVATE_ACTION))
+    instance = (GObject *) g_object_ref (gtk_activate_action_get ());
+  else if (g_type_is_a (type, GTK_TYPE_MNEMONIC_ACTION))
+    instance = (GObject *) g_object_ref (gtk_mnemonic_action_get ());
   else
     instance = g_object_new (type, NULL);
 
@@ -493,15 +516,12 @@ test_type (gconstpointer data)
 
       /* These are special */
       if (g_type_is_a (pspec->owner_type, GTK_TYPE_WIDGET) &&
-	  (g_str_equal (pspec->name, "has-focus") ||
-	   g_str_equal (pspec->name, "has-default") ||
+          (g_str_equal (pspec->name, "has-focus") ||
+           g_str_equal (pspec->name, "has-default") ||
            g_str_equal (pspec->name, "is-focus") ||
-           g_str_equal (pspec->name, "margin") ||
            g_str_equal (pspec->name, "hexpand") ||
-           g_str_equal (pspec->name, "vexpand") ||
-           g_str_equal (pspec->name, "expand")
-            ))
-	continue;
+           g_str_equal (pspec->name, "vexpand")))
+        continue;
 
       if (pspec->owner_type == GTK_TYPE_ENTRY &&
           g_str_equal (pspec->name, "im-module"))

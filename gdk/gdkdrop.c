@@ -42,6 +42,13 @@ struct _GdkDropPrivate {
   GdkContentFormats *formats;
   GdkSurface *surface;
   GdkDragAction actions;
+
+  guint entered : 1;            /* TRUE if we got an enter event but not a leave event yet */
+  enum {
+    GDK_DROP_STATE_NONE,        /* pointer is dragging along */
+    GDK_DROP_STATE_DROPPING,    /* DROP_START has been sent */
+    GDK_DROP_STATE_FINISHED     /* gdk_drop_finish() has been called */
+  } state : 2;
 };
 
 enum {
@@ -68,7 +75,8 @@ G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GdkDrop, gdk_drop, G_TYPE_OBJECT)
 
 static void
 gdk_drop_default_status (GdkDrop       *self,
-                         GdkDragAction  actions)
+                         GdkDragAction  actions,
+                         GdkDragAction  preferred)
 {
 }
 
@@ -163,6 +171,23 @@ gdk_drop_read_local_finish (GdkDrop         *self,
 }
 
 static void
+gdk_drop_add_formats (GdkDrop           *self,
+                      GdkContentFormats *formats)
+{
+  GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
+
+  formats = gdk_content_formats_union_deserialize_gtypes (gdk_content_formats_ref (formats));
+
+  if (priv->formats)
+    {
+      formats = gdk_content_formats_union (formats, priv->formats);
+      gdk_content_formats_unref (priv->formats);
+    }
+
+  priv->formats = formats;
+}
+
+static void
 gdk_drop_set_property (GObject      *gobject,
                        guint         prop_id,
                        const GValue *value,
@@ -186,10 +211,12 @@ gdk_drop_set_property (GObject      *gobject,
 
     case PROP_DRAG:
       priv->drag = g_value_dup_object (value);
+      if (priv->drag)
+        gdk_drop_add_formats (self, gdk_drag_get_formats (priv->drag));
       break;
 
     case PROP_FORMATS:
-      priv->formats = g_value_dup_boxed (value);
+      gdk_drop_add_formats (self, g_value_get_boxed (value));
       g_assert (priv->formats != NULL);
       break;
 
@@ -252,6 +279,11 @@ gdk_drop_finalize (GObject *object)
 {
   GdkDrop *self = GDK_DROP (object);
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
+
+  /* someone forgot to send a LEAVE signal */
+  g_warn_if_fail (!priv->entered);
+  /* Should we emit finish() here if necessary?
+   * For now that's the backends' job */
 
   g_clear_object (&priv->device);
   g_clear_object (&priv->drag);
@@ -477,6 +509,7 @@ gdk_drop_set_actions (GdkDrop       *self,
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
 
   g_return_if_fail (GDK_IS_DROP (self));
+  g_return_if_fail (priv->state == GDK_DROP_STATE_NONE);
   g_return_if_fail ((actions & GDK_ACTION_ASK) == 0);
 
   if (priv->actions == actions)
@@ -513,12 +546,17 @@ gdk_drop_get_drag (GdkDrop *self)
  * @self: a #GdkDrop
  * @actions: Supported actions of the destination, or 0 to indicate
  *    that a drop will not be accepted
+ * @preferred: A unique action that's a member of @actions indicating the
+ *    preferred action.
  *
  * Selects all actions that are potentially supported by the destination.
  *
  * When calling this function, do not restrict the passed in actions to
  * the ones provided by gdk_drop_get_actions(). Those actions may
  * change in the future, even depending on the actions you provide here.
+ *
+ * The @preferred action is a hint to the drag'n'drop mechanism about which
+ * action to use when multiple actions are possible.
  *
  * This function should be called by drag destinations in response to
  * %GDK_DRAG_ENTER or %GDK_DRAG_MOTION events. If the destination does
@@ -527,11 +565,19 @@ gdk_drop_get_drag (GdkDrop *self)
  */
 void
 gdk_drop_status (GdkDrop       *self,
-                 GdkDragAction  actions)
+                 GdkDragAction  actions,
+                 GdkDragAction  preferred)
 {
-  g_return_if_fail (GDK_IS_DROP (self));
+#ifndef G_DISABLE_CHECKS
+  GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
+#endif
 
-  GDK_DROP_GET_CLASS (self)->status (self, actions);
+  g_return_if_fail (GDK_IS_DROP (self));
+  g_return_if_fail (priv->state != GDK_DROP_STATE_FINISHED);
+  g_return_if_fail (gdk_drag_action_is_unique (preferred));
+  g_return_if_fail ((preferred & actions) == preferred);
+
+  GDK_DROP_GET_CLASS (self)->status (self, actions, preferred);
 }
 
 /**
@@ -549,10 +595,15 @@ void
 gdk_drop_finish (GdkDrop       *self,
                  GdkDragAction  action)
 {
+  GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
+
   g_return_if_fail (GDK_IS_DROP (self));
+  g_return_if_fail (priv->state == GDK_DROP_STATE_DROPPING);
   g_return_if_fail (gdk_drag_action_is_unique (action));
 
   GDK_DROP_GET_CLASS (self)->finish (self, action);
+
+  priv->state = GDK_DROP_STATE_FINISHED;
 }
 
 static void
@@ -564,6 +615,8 @@ gdk_drop_read_internal (GdkDrop             *self,
                         gpointer             user_data)
 {
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
+
+  g_return_if_fail (priv->state != GDK_DROP_STATE_FINISHED);
 
   if (priv->drag)
     {
@@ -720,6 +773,8 @@ gdk_drop_read_value_internal (GdkDrop             *self,
   GValue *value;
   GTask *task;
  
+  g_return_if_fail (priv->state != GDK_DROP_STATE_FINISHED);
+
   task = g_task_new (self, cancellable, callback, user_data);
   g_task_set_priority (task, io_priority);
   g_task_set_source_tag (task, source_tag);
@@ -730,14 +785,11 @@ gdk_drop_read_value_internal (GdkDrop             *self,
   if (priv->drag)
     {
       GError *error = NULL;
-      GdkContentProvider *content;
       gboolean res;
 
-      g_object_get (priv->drag, "content", &content, NULL);
-
-      res = gdk_content_provider_get_value (content, value, &error);
-
-      g_object_unref (content);
+      res = gdk_content_provider_get_value (gdk_drag_get_content (priv->drag),
+                                            value,
+                                            &error);
 
       if (res)
         {
@@ -837,70 +889,6 @@ gdk_drop_read_value_finish (GdkDrop       *self,
   return g_task_propagate_pointer (G_TASK (result), error);
 }
 
-/**
- * gdk_drop_read_text_async:
- * @self: a #GdkDrop
- * @cancellable: (nullable): optional #GCancellable object, %NULL to ignore.
- * @callback: (scope async): callback to call when the request is satisfied
- * @user_data: (closure): the data to pass to callback function
- *
- * Asynchronously request the drag operation's contents converted to a string.
- * When the operation is finished @callback will be called. You can then
- * call gdk_drop_read_text_finish() to get the result.
- *
- * This is a simple wrapper around gdk_drop_read_value_async(). Use
- * that function or gdk_drop_read_async() directly if you need more
- * control over the operation.
- **/
-void
-gdk_drop_read_text_async (GdkDrop             *self,
-                          GCancellable        *cancellable,
-                          GAsyncReadyCallback  callback,
-                          gpointer             user_data)
-{
-  g_return_if_fail (GDK_IS_DROP (self));
-  g_return_if_fail (cancellable == NULL || G_IS_CANCELLABLE (cancellable));
-  g_return_if_fail (callback != NULL);
-
-  gdk_drop_read_value_internal (self,
-                                G_TYPE_STRING,
-                                gdk_drop_read_text_async,
-                                G_PRIORITY_DEFAULT,
-                                cancellable,
-                                callback,
-                                user_data);
-}
-
-/**
- * gdk_drop_read_text_finish:
- * @self: a #GdkDrop
- * @result: a #GAsyncResult
- * @error: a #GError location to store the error occurring, or %NULL to 
- * ignore.
- *
- * Finishes an asynchronous read started with
- * gdk_drop_read_text_async().
- *
- * Returns: (transfer full) (nullable): a new string or %NULL on error.
- **/
-char *
-gdk_drop_read_text_finish (GdkDrop       *self,
-                           GAsyncResult  *result,
-                           GError       **error)
-{
-  const GValue *value;
-
-  g_return_val_if_fail (g_task_is_valid (result, self), NULL);
-  g_return_val_if_fail (g_task_get_source_tag (G_TASK (result)) == gdk_drop_read_text_async, NULL);
-  g_return_val_if_fail (error == NULL || *error == NULL, NULL);
-
-  value = g_task_propagate_pointer (G_TASK (result), error);
-  if (!value)
-    return NULL;
-  
-  return g_value_dup_string (value);
-}
-
 static void
 gdk_drop_do_emit_event (GdkEvent *event,
                         gboolean  dont_queue)
@@ -908,7 +896,7 @@ gdk_drop_do_emit_event (GdkEvent *event,
   if (dont_queue)
     {
       _gdk_event_emit (event);
-      g_object_unref (event);
+      gdk_event_unref (event);
     }
   else
     {
@@ -918,16 +906,23 @@ gdk_drop_do_emit_event (GdkEvent *event,
 void
 gdk_drop_emit_enter_event (GdkDrop  *self,
                            gboolean  dont_queue,
+                           double    x,
+                           double    y,
                            guint32   time)
 {
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
   GdkEvent *event;
 
-  event = gdk_event_new (GDK_DRAG_ENTER);
-  event->any.surface = g_object_ref (priv->surface);
-  event->dnd.drop = g_object_ref (self);
-  event->dnd.time = time;
-  gdk_event_set_device (event, priv->device);
+  g_warn_if_fail (!priv->entered);
+
+  event = gdk_event_drag_new (GDK_DRAG_ENTER,
+                              priv->surface,
+                              priv->device,
+                              self,
+                              time,
+                              0, 0);
+
+  priv->entered = TRUE;
 
   gdk_drop_do_emit_event (event, dont_queue);
 }
@@ -935,25 +930,21 @@ gdk_drop_emit_enter_event (GdkDrop  *self,
 void
 gdk_drop_emit_motion_event (GdkDrop  *self,
                             gboolean  dont_queue,
-                            double    x_root,
-                            double    y_root,
+                            double    x,
+                            double    y,
                             guint32   time)
 {
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
   GdkEvent *event;
-  int x, y;
 
-  gdk_surface_get_origin (priv->surface, &x, &y);
+  g_warn_if_fail (priv->entered);
 
-  event = gdk_event_new (GDK_DRAG_MOTION);
-  event->any.surface = g_object_ref (priv->surface);
-  event->dnd.drop = g_object_ref (self);
-  event->dnd.time = time;
-  event->dnd.x_root = x_root;
-  event->dnd.y_root = y_root;
-  event->dnd.x = x_root - x;
-  event->dnd.y = y_root - y;
-  gdk_event_set_device (event, priv->device);
+  event = gdk_event_drag_new (GDK_DRAG_MOTION,
+                              priv->surface,
+                              priv->device,
+                              self,
+                              time,
+                              x, y);
 
   gdk_drop_do_emit_event (event, dont_queue);
 }
@@ -966,11 +957,16 @@ gdk_drop_emit_leave_event (GdkDrop  *self,
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
   GdkEvent *event;
 
-  event = gdk_event_new (GDK_DRAG_LEAVE);
-  event->any.surface = g_object_ref (priv->surface);
-  event->dnd.drop = g_object_ref (self);
-  event->dnd.time = time;
-  gdk_event_set_device (event, priv->device);
+  g_warn_if_fail (priv->entered);
+
+  event = gdk_event_drag_new (GDK_DRAG_LEAVE,
+                              priv->surface,
+                              priv->device,
+                              self,
+                              time,
+                              0, 0);
+
+  priv->entered = FALSE;
 
   gdk_drop_do_emit_event (event, dont_queue);
 }
@@ -978,53 +974,25 @@ gdk_drop_emit_leave_event (GdkDrop  *self,
 void
 gdk_drop_emit_drop_event (GdkDrop  *self,
                           gboolean  dont_queue,
-                          double    x_root,
-                          double    y_root,
+                          double    x,
+                          double    y,
                           guint32   time)
 {
   GdkDropPrivate *priv = gdk_drop_get_instance_private (self);
   GdkEvent *event;
-  int x, y;
 
-  gdk_surface_get_origin (priv->surface, &x, &y);
+  g_warn_if_fail (priv->entered);
+  g_warn_if_fail (priv->state == GDK_DROP_STATE_NONE);
 
-  event = gdk_event_new (GDK_DROP_START);
-  event->any.surface = g_object_ref (priv->surface);
-  event->dnd.drop = g_object_ref (self);
-  event->dnd.time = time;
-  event->dnd.x_root = x_root;
-  event->dnd.y_root = y_root;
-  event->dnd.x = x_root - x;
-  event->dnd.y = y_root - y;
-  gdk_event_set_device (event, priv->device);
+  event = gdk_event_drag_new (GDK_DROP_START,
+                              priv->surface,
+                              priv->device,
+                              self,
+                              time,
+                              x, y);
+
+  priv->state = GDK_DROP_STATE_DROPPING;
 
   gdk_drop_do_emit_event (event, dont_queue);
-}
-
-/**
- * gdk_drop_has_value:
- * @self: a #GdkDrop
- * @type: the type to check
- *
- * Returns whether calling gdk_drop_read_value_async() for @type
- * can succeed.
- *
- * Returns: %TRUE if the data can be deserialized to the given type
- */ 
-gboolean
-gdk_drop_has_value (GdkDrop *self,
-                    GType    type)
-{
-  GdkContentFormats *formats;
-  gboolean ret;
-
-  formats = gdk_content_formats_ref (gdk_drop_get_formats (self));
-  formats = gdk_content_formats_union_deserialize_gtypes (formats);
-
-  ret = gdk_content_formats_contain_gtype (formats, type);
-
-  gdk_content_formats_unref (formats);
-
-  return ret;
 }
 

@@ -35,6 +35,7 @@
 #include "gtkeventcontrollermotion.h"
 #include "gtkeventcontrollerkey.h"
 #include "gtknative.h"
+#include "gtkwindowprivate.h"
 
 static GtkWidget *
 find_widget_at_pointer (GdkDevice *device)
@@ -98,7 +99,7 @@ on_inspect_widget (GtkInspectorWindow *iw,
 {
   GtkWidget *widget;
 
-  gdk_surface_raise (gtk_native_get_surface (GTK_NATIVE (iw)));
+  gtk_window_present (GTK_WINDOW (iw));
 
   clear_flash (iw);
 
@@ -111,16 +112,7 @@ on_inspect_widget (GtkInspectorWindow *iw,
 static void
 reemphasize_window (GtkWidget *window)
 {
-  GdkDisplay *display;
-
-  display = gtk_widget_get_display (window);
-  if (gdk_display_is_composited (display))
-    {
-      gtk_widget_set_opacity (window, 1.0);
-      gtk_widget_input_shape_combine_region (window, NULL);
-    }
-  else
-    gdk_surface_raise (gtk_native_get_surface (GTK_NATIVE (window)));
+  gtk_window_present (GTK_WINDOW (window));
 }
 
 static gboolean handle_event (GtkInspectorWindow *iw, GdkEvent *event);
@@ -135,7 +127,7 @@ handle_event (GtkInspectorWindow *iw, GdkEvent *event)
       {
         guint keyval = 0;
 
-        gdk_event_get_keyval (event, &keyval);
+        keyval = gdk_key_event_get_keyval (event);
         if (keyval == GDK_KEY_Escape)
           {
             g_signal_handlers_disconnect_by_func (iw, handle_event, NULL);
@@ -189,22 +181,7 @@ void
 gtk_inspector_on_inspect (GtkWidget          *button,
                           GtkInspectorWindow *iw)
 {
-  GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (iw));
-
-  /* de-emphasize window */
-  if (gdk_display_is_composited (display))
-    {
-      cairo_rectangle_int_t rect;
-      cairo_region_t *region;
-
-      gtk_widget_set_opacity (GTK_WIDGET (iw), 0.3);
-      rect.x = rect.y = rect.width = rect.height = 0;
-      region = cairo_region_create_rectangle (&rect);
-      gtk_widget_input_shape_combine_region (GTK_WIDGET (iw), region);
-      cairo_region_destroy (region);
-    }
-  else
-    gdk_surface_lower (gtk_native_get_surface (GTK_NATIVE (iw)));
+  gtk_widget_hide (GTK_WIDGET (iw));
 
   g_signal_connect (iw, "event", G_CALLBACK (handle_event), NULL);
 }

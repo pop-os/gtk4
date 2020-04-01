@@ -100,14 +100,17 @@ test_type (gconstpointer data)
       g_str_equal (g_type_name (type), "GtkPlacesSidebar"))
     return;
  
+  if (g_type_is_a (type, GTK_TYPE_SHORTCUT_TRIGGER) ||
+      g_type_is_a (type, GTK_TYPE_SHORTCUT_ACTION))
+    return;
+
   klass = g_type_class_ref (type);
 
   if (g_type_is_a (type, GTK_TYPE_SETTINGS))
     instance = G_OBJECT (g_object_ref (gtk_settings_get_default ()));
   else if (g_type_is_a (type, GDK_TYPE_SURFACE))
     {
-      instance = G_OBJECT (g_object_ref (gdk_surface_new_temp (display,
-                                                                &(GdkRectangle) { 0, 0, 100, 100 })));
+      instance = G_OBJECT (g_object_ref (gdk_surface_new_toplevel (display, 100, 100)));
     }
   else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) ||
            g_type_is_a (type, GTK_TYPE_NO_SELECTION) ||
@@ -151,7 +154,8 @@ test_type (gconstpointer data)
 
       /* These are set in init() */
       if ((g_type_is_a (type, GDK_TYPE_CLIPBOARD) ||
-           g_type_is_a (type, GDK_TYPE_CONTENT_PROVIDER)) &&
+           g_type_is_a (type, GDK_TYPE_CONTENT_PROVIDER) ||
+           g_type_is_a (type, GTK_TYPE_DROP_TARGET)) &&
 	  strcmp (pspec->name, "formats") == 0)
 	continue;
 
@@ -324,6 +328,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
       if (g_type_is_a (type, GTK_TYPE_SETTINGS))
         continue;
 
+      if (g_type_is_a (type, GTK_TYPE_SHORTCUT) &&
+	  (strcmp (pspec->name, "action") == 0 ||
+           strcmp (pspec->name, "trigger") == 0))
+        continue;
+
       if (g_type_is_a (type, GTK_TYPE_SPIN_BUTTON) &&
           (strcmp (pspec->name, "adjustment") == 0))
         continue;
@@ -391,6 +400,10 @@ G_GNUC_END_IGNORE_DEPRECATIONS
       /* ... and GtkScrollbar wraps that property. */
       if (g_type_is_a (type, GTK_TYPE_SCROLLBAR) &&
           strcmp (pspec->name, "adjustment") == 0)
+        continue;
+
+      /* All the icontheme properties depend on the environment */
+      if (g_type_is_a (type, GTK_TYPE_ICON_THEME))
         continue;
 
       if (g_test_verbose ())

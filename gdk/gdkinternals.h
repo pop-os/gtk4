@@ -102,12 +102,6 @@ typedef enum
    */
   GDK_EVENT_PENDING = 1 << 0,
 
-  /* The following flag is set for:
-   * 1) touch events emulating pointer events
-   * 2) pointer events being emulated by a touch sequence.
-   */
-  GDK_EVENT_POINTER_EMULATED = 1 << 1,
-
   /* When we are ready to draw a frame, we pause event delivery,
    * mark all events in the queue with this flag, and deliver
    * only those events until we finish the frame.
@@ -123,12 +117,6 @@ typedef struct _GdkSurfacePaint GdkSurfacePaint;
 extern gint       _gdk_screen_number;
 
 GdkEvent* _gdk_event_unqueue (GdkDisplay *display);
-
-void     gdk_event_set_pointer_emulated (GdkEvent *event,
-                                         gboolean  emulated);
-
-void     gdk_event_set_scancode        (GdkEvent *event,
-                                        guint16 scancode);
 
 void   _gdk_event_emit               (GdkEvent   *event);
 GList* _gdk_event_queue_find_first   (GdkDisplay *display);
@@ -149,7 +137,7 @@ void    _gdk_event_queue_flush                     (GdkDisplay       *display);
 void   _gdk_event_button_generate    (GdkDisplay *display,
                                       GdkEvent   *event);
 
-void _gdk_windowing_event_data_copy (const GdkEvent *src,
+void _gdk_windowing_event_data_copy (GdkEvent       *src,
                                      GdkEvent       *dst);
 void _gdk_windowing_event_data_free (GdkEvent       *event);
 
@@ -193,7 +181,8 @@ void gdk_surface_get_unscaled_size (GdkSurface *surface,
                                     int *unscaled_width,
                                     int *unscaled_height);
 gboolean gdk_surface_handle_event (GdkEvent       *event);
-
+GdkSeat * gdk_surface_get_seat_from_event (GdkSurface *surface,
+                                           GdkEvent    *event);
 
 /*****************************************
  * Interfaces provided by windowing code *
@@ -267,15 +256,33 @@ void gdk_surface_get_geometry (GdkSurface *surface,
 
 GdkGLContext *gdk_surface_get_shared_data_gl_context (GdkSurface *surface);
 
+/*
+ * GdkSeatGrabPrepareFunc:
+ * @seat: the #GdkSeat being grabbed
+ * @surface: the #GdkSurface being grabbed
+ * @user_data: user data passed in gdk_seat_grab()
+ *
+ * Type of the callback used to set up @surface so it can be
+ * grabbed. A typical action would be ensuring the surface is
+ * visible, although there's room for other initialization
+ * actions.
+ */
+typedef void (* GdkSeatGrabPrepareFunc) (GdkSeat   *seat,
+                                         GdkSurface *surface,
+                                         gpointer   user_data);
+
 GdkGrabStatus  gdk_seat_grab             (GdkSeat                *seat,
                                           GdkSurface              *surface,
                                           GdkSeatCapabilities     capabilities,
                                           gboolean                owner_events,
                                           GdkCursor              *cursor,
-                                          const GdkEvent         *event,
+                                          GdkEvent               *event,
                                           GdkSeatGrabPrepareFunc  prepare_func,
                                           gpointer                prepare_func_data);
 void           gdk_seat_ungrab           (GdkSeat                *seat);
+GdkSurface *   gdk_surface_new_temp             (GdkDisplay    *display,
+                                                 const GdkRectangle *position);
+
 
 G_END_DECLS
 

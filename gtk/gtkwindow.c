@@ -28,7 +28,6 @@
 
 #include "gtkaccelgroupprivate.h"
 #include "gtkapplicationprivate.h"
-#include "gtkbindings.h"
 #include "gtkbox.h"
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
@@ -40,7 +39,8 @@
 #include "gtkcsscolorvalueprivate.h"
 #include "gtkcssshadowvalueprivate.h"
 #include "gtkcssstylepropertyprivate.h"
-#include "gtkdragdest.h"
+#include "gtkdroptargetasync.h"
+#include "gtkeventcontrollerfocus.h"
 #include "gtkeventcontrollerkey.h"
 #include "gtkeventcontrollermotion.h"
 #include "gtkgesturedrag.h"
@@ -49,11 +49,9 @@
 #include "gtkheaderbarprivate.h"
 #include "gtkicontheme.h"
 #include "gtkintl.h"
-#include "gtkkeyhash.h"
 #include "gtkmain.h"
 #include "gtkmarshalers.h"
 #include "gtkmessagedialog.h"
-#include "gtkmnemonichash.h"
 #include "gtkpointerfocusprivate.h"
 #include "gtkpopovermenuprivate.h"
 #include "gtkmodelbuttonprivate.h"
@@ -62,6 +60,10 @@
 #include "gtkroot.h"
 #include "gtknative.h"
 #include "gtksettings.h"
+#include "gtkshortcut.h"
+#include "gtkshortcutcontroller.h"
+#include "gtkshortcutmanager.h"
+#include "gtkshortcuttrigger.h"
 #include "gtksnapshot.h"
 #include "gtkstylecontextprivate.h"
 #include "gtktypebuiltins.h"
@@ -159,7 +161,7 @@
  * widget that is added as a titlebar child.
  */
 
-#define MENU_BAR_ACCEL "F10"
+#define MENU_BAR_ACCEL GDK_KEY_F10
 #define RESIZE_HANDLE_SIZE 20
 #define MNEMONICS_DELAY 300 /* ms */
 #define NO_CONTENT_CHILD_NAT 200
@@ -169,34 +171,16 @@
  * instead.
  */
 
-typedef struct _GtkWindowPopover GtkWindowPopover;
-
-struct _GtkWindowPopover
-{
-  GtkWidget *widget;
-  GtkWidget *parent;
-  GtkPositionType pos;
-  cairo_rectangle_int_t rect;
-  guint clamp_allocation : 1;
-};
-
 typedef struct
 {
-  GtkMnemonicHash       *mnemonic_hash;
-
   GtkWidget             *attach_widget;
   GtkWidget             *default_widget;
-  GtkWidget             *initial_focus;
   GtkWidget             *focus_widget;
   GtkWindow             *transient_parent;
   GtkWindowGeometryInfo *geometry_info;
   GtkWindowGroup        *group;
   GdkDisplay            *display;
   GtkApplication        *application;
-
-  GQueue                 popovers;
-
-  GdkModifierType        mnemonic_modifier;
 
   gchar   *startup_id;
   gchar   *title;
@@ -229,15 +213,11 @@ typedef struct
    */
   guint    need_default_size         : 1;
 
-  guint    above_initially           : 1;
-  guint    accept_focus              : 1;
-  guint    below_initially           : 1;
   guint    builder_visible           : 1;
   guint    configure_notify_received : 1;
   guint    decorated                 : 1;
   guint    deletable                 : 1;
   guint    destroy_with_parent       : 1;
-  guint    focus_on_map              : 1;
   guint    fullscreen_initially      : 1;
   guint    has_user_ref_count        : 1;
   guint    minimize_initially        : 1;
@@ -247,9 +227,7 @@ typedef struct
   guint    focus_visible             : 1;
   guint    modal                     : 1;
   guint    resizable                 : 1;
-  guint    stick_initially           : 1;
   guint    transient_parent_group    : 1;
-  guint    type                      : 4; /* GtkWindowType */
   guint    gravity                   : 5; /* GdkGravity */
   guint    csd_requested             : 1;
   guint    client_decorated          : 1; /* Decorations drawn client-side */
@@ -267,22 +245,20 @@ typedef struct
   GtkGesture *drag_gesture;
   GtkGesture *bubble_drag_gesture;
   GtkEventController *key_controller;
+  GtkEventController *application_shortcut_controller;
 
   GtkCssNode *decoration_node;
 
   GdkSurface  *surface;
   GskRenderer *renderer;
 
+  cairo_region_t *extra_input_region;
+
   GList *foci;
 
   GtkConstraintSolver *constraint_solver;
+  GdkToplevelLayout *layout;
 } GtkWindowPrivate;
-
-#ifdef GDK_WINDOWING_X11
-static const char *dnd_dest_targets [] = {
-  "application/x-rootwindow-drop"
-};
-#endif
 
 enum {
   SET_FOCUS,
@@ -297,9 +273,6 @@ enum {
 enum {
   PROP_0,
 
-  /* Construct */
-  PROP_TYPE,
-
   /* Normal Props */
   PROP_TITLE,
   PROP_RESIZABLE,
@@ -310,13 +283,9 @@ enum {
   PROP_HIDE_ON_CLOSE,
   PROP_ICON_NAME,
   PROP_DISPLAY,
-  PROP_TYPE_HINT,
-  PROP_ACCEPT_FOCUS,
-  PROP_FOCUS_ON_MAP,
   PROP_DECORATED,
   PROP_DELETABLE,
   PROP_TRANSIENT_FOR,
-  PROP_ATTACHED_TO,
   PROP_APPLICATION,
   PROP_DEFAULT_WIDGET,
 
@@ -487,8 +456,9 @@ static void     update_window_buttons                 (GtkWindow    *window);
 static void     get_shadow_width                      (GtkWindow    *window,
                                                        GtkBorder    *shadow_width);
 
-static GtkKeyHash *gtk_window_get_key_hash        (GtkWindow   *window);
-static void        gtk_window_free_key_hash       (GtkWindow   *window);
+static gboolean    gtk_window_activate_menubar        (GtkWidget    *widget,
+                                                       GVariant     *args,
+                                                       gpointer      unused);
 #ifdef GDK_WINDOWING_X11
 static void        gtk_window_on_theme_variant_changed (GtkSettings *settings,
                                                         GParamSpec  *pspec,
@@ -508,15 +478,18 @@ static void gtk_window_state_flags_changed (GtkWidget     *widget,
 					     GtkStateFlags  previous_state);
 static void _gtk_window_set_is_active (GtkWindow *window,
 			               gboolean   is_active);
+static void gtk_window_present_toplevel (GtkWindow *window);
+static void gtk_window_update_toplevel (GtkWindow *window);
+static GdkToplevelLayout * gtk_window_compute_layout (GtkWindow *window,
+                                                      int        min_width,
+                                                      int        min_height);
 
 static GListStore  *toplevel_list = NULL;
 static guint        window_signals[LAST_SIGNAL] = { 0 };
 static gchar       *default_icon_name = NULL;
 static gboolean     disable_startup_notification = FALSE;
 
-static GQuark       quark_gtk_window_key_hash = 0;
 static GQuark       quark_gtk_window_icon_info = 0;
-static GQuark       quark_gtk_buildable_accels = 0;
 
 static GtkBuildableIface *parent_buildable_iface;
 
@@ -539,20 +512,8 @@ static void     gtk_window_buildable_set_buildable_property (GtkBuildable       
                                                              GtkBuilder         *builder,
                                                              const gchar        *name,
                                                              const GValue       *value);
-static void     gtk_window_buildable_parser_finished        (GtkBuildable       *buildable,
-                                                             GtkBuilder         *builder);
-static gboolean gtk_window_buildable_custom_tag_start       (GtkBuildable       *buildable,
-                                                             GtkBuilder         *builder,
-                                                             GObject            *child,
-                                                             const gchar        *tagname,
-                                                             GtkBuildableParser *parser,
-                                                             gpointer           *data);
-static void     gtk_window_buildable_custom_finished        (GtkBuildable       *buildable,
-                                                             GtkBuilder         *builder,
-                                                             GObject            *child,
-                                                             const gchar        *tagname,
-                                                             gpointer            user_data);
 
+static void             gtk_window_shortcut_manager_interface_init      (GtkShortcutManagerInterface *iface);
 /* GtkRoot */
 static void             gtk_window_root_interface_init (GtkRootInterface *iface);
 static void             gtk_window_native_interface_init  (GtkNativeInterface  *iface);
@@ -573,41 +534,52 @@ G_DEFINE_TYPE_WITH_CODE (GtkWindow, gtk_window, GTK_TYPE_BIN,
 						gtk_window_buildable_interface_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_NATIVE,
 						gtk_window_native_interface_init)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_SHORTCUT_MANAGER,
+						gtk_window_shortcut_manager_interface_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_ROOT,
 						gtk_window_root_interface_init))
 
 static void
-add_tab_bindings (GtkBindingSet    *binding_set,
+add_tab_bindings (GtkWidgetClass   *widget_class,
 		  GdkModifierType   modifiers,
 		  GtkDirectionType  direction)
 {
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_Tab, modifiers,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_KP_Tab, modifiers,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
+  GtkShortcut *shortcut;
+
+  shortcut = gtk_shortcut_new_with_arguments (
+                 gtk_alternative_trigger_new (gtk_keyval_trigger_new (GDK_KEY_Tab, modifiers),
+                                              gtk_keyval_trigger_new (GDK_KEY_KP_Tab, modifiers)),
+                 gtk_signal_action_new ("move-focus"),
+                 "(i)", direction);
+
+  gtk_widget_class_add_shortcut (widget_class, shortcut);
+
+  g_object_unref (shortcut);
 }
 
 static void
-add_arrow_bindings (GtkBindingSet    *binding_set,
+add_arrow_bindings (GtkWidgetClass   *widget_class,
 		    guint             keysym,
 		    GtkDirectionType  direction)
 {
   guint keypad_keysym = keysym - GDK_KEY_Left + GDK_KEY_KP_Left;
   
-  gtk_binding_entry_add_signal (binding_set, keysym, 0,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
-  gtk_binding_entry_add_signal (binding_set, keysym, GDK_CONTROL_MASK,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
-  gtk_binding_entry_add_signal (binding_set, keypad_keysym, 0,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
-  gtk_binding_entry_add_signal (binding_set, keypad_keysym, GDK_CONTROL_MASK,
-                                "move-focus", 1,
-                                GTK_TYPE_DIRECTION_TYPE, direction);
+  gtk_widget_class_add_binding_signal (widget_class, keysym, 0,
+                                       "move-focus",
+                                       "(i)",
+                                       direction);
+  gtk_widget_class_add_binding_signal (widget_class, keysym, GDK_CONTROL_MASK,
+                                       "move-focus",
+                                       "(i)",
+                                       direction);
+  gtk_widget_class_add_binding_signal (widget_class, keypad_keysym, 0,
+                                       "move-focus",
+                                       "(i)",
+                                       direction);
+  gtk_widget_class_add_binding_signal (widget_class, keypad_keysym, GDK_CONTROL_MASK,
+                                       "move-focus",
+                                       "(i)",
+                                       direction);
 }
 
 static guint32
@@ -733,51 +705,14 @@ gtk_window_add (GtkContainer *container,
   GTK_CONTAINER_CLASS (gtk_window_parent_class)->add (container, child);
 }
 
-static void popover_get_rect (GtkWindowPopover      *popover,
-                              GtkWindow             *window,
-                              cairo_rectangle_int_t *rect);
-
-GtkWidget *
-gtk_window_pick_popover (GtkWindow    *window,
-                         double        x,
-                         double        y,
-                         GtkPickFlags  flags)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GList *popovers;
-
-  for (popovers = priv->popovers.tail; popovers; popovers = popovers->prev)
-    {
-      GtkWindowPopover *popover = popovers->data;
-      int dest_x, dest_y;
-      GtkWidget *picked;
-
-      gtk_widget_translate_coordinates (GTK_WIDGET (window), popover->widget,
-                                        x, y,
-                                        &dest_x, &dest_y);
-
-      picked = gtk_widget_pick (popover->widget, dest_x, dest_y, flags);
-      if (picked)
-        return picked;
-    }
-
-  return NULL;
-}
-
 static void
 gtk_window_class_init (GtkWindowClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
-  GtkWidgetClass *widget_class;
-  GtkContainerClass *container_class;
-  GtkBindingSet *binding_set;
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  GtkContainerClass *container_class = GTK_CONTAINER_CLASS (klass);
 
-  widget_class = (GtkWidgetClass*) klass;
-  container_class = (GtkContainerClass*) klass;
-  
-  quark_gtk_window_key_hash = g_quark_from_static_string ("gtk-window-key-hash");
   quark_gtk_window_icon_info = g_quark_from_static_string ("gtk-window-icon-info");
-  quark_gtk_buildable_accels = g_quark_from_static_string ("gtk-window-buildable-accels");
 
   if (toplevel_list == NULL)
     toplevel_list = g_list_store_new (GTK_TYPE_WIDGET);
@@ -813,14 +748,6 @@ gtk_window_class_init (GtkWindowClass *klass)
   klass->keys_changed = gtk_window_keys_changed;
   klass->enable_debugging = gtk_window_enable_debugging;
   klass->close_request = gtk_window_close_request;
-
-  window_props[PROP_TYPE] =
-      g_param_spec_enum ("type",
-                         P_("Window Type"),
-                         P_("The type of the window"),
-                         GTK_TYPE_WINDOW_TYPE,
-                         GTK_WINDOW_TOPLEVEL,
-                         GTK_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY);
 
   window_props[PROP_TITLE] =
       g_param_spec_string ("title",
@@ -943,38 +870,6 @@ gtk_window_class_init (GtkWindowClass *klass)
                             FALSE,
                             GTK_PARAM_READABLE);
 
-  window_props[PROP_TYPE_HINT] =
-      g_param_spec_enum ("type-hint",
-                         P_("Type hint"),
-                         P_("Hint to help the desktop environment understand what kind of window this is and how to treat it."),
-                         GDK_TYPE_SURFACE_TYPE_HINT,
-                         GDK_SURFACE_TYPE_HINT_NORMAL,
-                         GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
-
-  /**
-   * GtkWindow:accept-focus:
-   *
-   * Whether the window should receive the input focus.
-   */
-  window_props[PROP_ACCEPT_FOCUS] =
-      g_param_spec_boolean ("accept-focus",
-                            P_("Accept focus"),
-                            P_("TRUE if the window should receive the input focus."),
-                            TRUE,
-                            GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
-
-  /**
-   * GtkWindow:focus-on-map:
-   *
-   * Whether the window should receive the input focus when mapped.
-   */
-  window_props[PROP_FOCUS_ON_MAP] =
-      g_param_spec_boolean ("focus-on-map",
-                            P_("Focus on map"),
-                            P_("TRUE if the window should receive the input focus when mapped."),
-                            TRUE,
-                            GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
-
   /**
    * GtkWindow:decorated:
    *
@@ -1010,24 +905,6 @@ gtk_window_class_init (GtkWindowClass *klass)
                            P_("Transient for Window"),
                            P_("The transient parent of the dialog"),
                            GTK_TYPE_WINDOW,
-                           GTK_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_EXPLICIT_NOTIFY);
-
-  /**
-   * GtkWindow:attached-to:
-   *
-   * The widget to which this window is attached.
-   * See gtk_window_set_attached_to().
-   *
-   * Examples of places where specifying this relation is useful are
-   * for instance a #GtkMenu created by a #GtkComboBox, a completion
-   * popup window created by #GtkEntry or a typeahead search entry
-   * created by #GtkTreeView.
-   */
-  window_props[PROP_ATTACHED_TO] =
-      g_param_spec_object ("attached-to",
-                           P_("Attached to Widget"),
-                           P_("The widget where the window is attached"),
-                           GTK_TYPE_WIDGET,
                            GTK_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_EXPLICIT_NOTIFY);
 
   window_props[PROP_IS_MAXIMIZED] =
@@ -1174,38 +1051,35 @@ gtk_window_class_init (GtkWindowClass *klass)
   gtk_widget_class_install_action (widget_class, "default.activate", NULL,
                                    gtk_window_activate_default_activate);
 
-  binding_set = gtk_binding_set_by_class (klass);
-
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_space, 0,
-                                "activate-focus", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_KP_Space, 0,
-                                "activate-focus", 0);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_space, 0,
+                                       "activate-focus", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_KP_Space, 0,
+                                       "activate-focus", NULL);
   
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_Return, 0,
-                                "activate-default", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_ISO_Enter, 0,
-                                "activate-default", 0);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_KP_Enter, 0,
-                                "activate-default", 0);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_Return, 0,
+                                       "activate-default", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_ISO_Enter, 0,
+                                       "activate-default", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_KP_Enter, 0,
+                                       "activate-default", NULL);
 
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_I, GDK_CONTROL_MASK|GDK_SHIFT_MASK,
-                                "enable-debugging", 1,
-                                G_TYPE_BOOLEAN, FALSE);
-  gtk_binding_entry_add_signal (binding_set, GDK_KEY_D, GDK_CONTROL_MASK|GDK_SHIFT_MASK,
-                                "enable-debugging", 1,
-                                G_TYPE_BOOLEAN, TRUE);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_I, GDK_CONTROL_MASK|GDK_SHIFT_MASK,
+                                       "enable-debugging", "(b)", FALSE);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_D, GDK_CONTROL_MASK|GDK_SHIFT_MASK,
+                                       "enable-debugging", "(b)", TRUE);
 
-  add_arrow_bindings (binding_set, GDK_KEY_Up, GTK_DIR_UP);
-  add_arrow_bindings (binding_set, GDK_KEY_Down, GTK_DIR_DOWN);
-  add_arrow_bindings (binding_set, GDK_KEY_Left, GTK_DIR_LEFT);
-  add_arrow_bindings (binding_set, GDK_KEY_Right, GTK_DIR_RIGHT);
+  add_arrow_bindings (widget_class, GDK_KEY_Up, GTK_DIR_UP);
+  add_arrow_bindings (widget_class, GDK_KEY_Down, GTK_DIR_DOWN);
+  add_arrow_bindings (widget_class, GDK_KEY_Left, GTK_DIR_LEFT);
+  add_arrow_bindings (widget_class, GDK_KEY_Right, GTK_DIR_RIGHT);
 
-  add_tab_bindings (binding_set, 0, GTK_DIR_TAB_FORWARD);
-  add_tab_bindings (binding_set, GDK_CONTROL_MASK, GTK_DIR_TAB_FORWARD);
-  add_tab_bindings (binding_set, GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
-  add_tab_bindings (binding_set, GDK_CONTROL_MASK | GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
+  add_tab_bindings (widget_class, 0, GTK_DIR_TAB_FORWARD);
+  add_tab_bindings (widget_class, GDK_CONTROL_MASK, GTK_DIR_TAB_FORWARD);
+  add_tab_bindings (widget_class, GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
+  add_tab_bindings (widget_class, GDK_CONTROL_MASK | GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_WINDOW_ACCESSIBLE);
+  gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_FRAME);
   gtk_widget_class_set_css_name (widget_class, I_("window"));
 }
 
@@ -1273,18 +1147,9 @@ gtk_window_close (GtkWindow *window)
   g_object_unref (window);
 }
 
-static void
-popover_destroy (GtkWindowPopover *popover)
-{
-  if (popover->widget && _gtk_widget_get_parent (popover->widget))
-    gtk_widget_unparent (popover->widget);
-
-  g_free (popover);
-}
-
 static gboolean
 gtk_window_titlebar_action (GtkWindow      *window,
-                            const GdkEvent *event,
+                            GdkEvent       *event,
                             guint           button,
                             gint            n_press)
 {
@@ -1322,14 +1187,13 @@ gtk_window_titlebar_action (GtkWindow      *window,
        * properties are not met, apply the same to title bar actions for
        * consistency.
        */
-      if (gtk_window_get_resizable (window) &&
-          gtk_window_get_type_hint (window) == GDK_SURFACE_TYPE_HINT_NORMAL)
-            _gtk_window_toggle_maximized (window);
+      if (gtk_window_get_resizable (window))
+        _gtk_window_toggle_maximized (window);
     }
   else if (g_str_equal (action, "lower"))
-    gdk_surface_lower (priv->surface);
+    gdk_toplevel_lower (GDK_TOPLEVEL (priv->surface));
   else if (g_str_equal (action, "minimize"))
-    gdk_surface_minimize (priv->surface);
+    gdk_toplevel_minimize (GDK_TOPLEVEL (priv->surface));
   else if (g_str_equal (action, "menu"))
     gtk_window_do_popup (window, (GdkEventButton*) event);
   else
@@ -1354,7 +1218,7 @@ click_gesture_pressed_cb (GtkGestureClick *gesture,
   GtkWidget *event_widget, *widget;
   GdkEventSequence *sequence;
   GtkWindowRegion region;
-  const GdkEvent *event;
+  GdkEvent *event;
   guint button;
   gboolean window_drag = FALSE;
 
@@ -1401,7 +1265,7 @@ click_gesture_pressed_cb (GtkGestureClick *gesture,
   event_widget = gtk_get_event_widget ((GdkEvent *) event);
 
   if (region == GTK_WINDOW_REGION_TITLE)
-    gdk_surface_raise (priv->surface);
+    gtk_window_update_toplevel (window);
 
   switch (region)
     {
@@ -1441,13 +1305,13 @@ click_gesture_pressed_cb (GtkGestureClick *gesture,
           double tx, ty;
           gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
-          gdk_event_get_coords (event, &tx, &ty);
-          gdk_surface_begin_resize_drag_for_device (priv->surface,
-						    (GdkSurfaceEdge) region,
-						    gdk_event_get_device ((GdkEvent *) event),
-						    GDK_BUTTON_PRIMARY,
-						    tx, ty,
-						    gdk_event_get_time (event));
+          gdk_event_get_position (event, &tx, &ty);
+          gdk_surface_begin_resize_drag (priv->surface,
+                                         (GdkSurfaceEdge) region,
+                                         gdk_event_get_device ((GdkEvent *) event),
+                                         GDK_BUTTON_PRIMARY,
+                                         tx, ty,
+                                         gdk_event_get_time (event));
 
           gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
           gtk_event_controller_reset (GTK_EVENT_CONTROLLER (priv->drag_gesture));
@@ -1519,8 +1383,7 @@ drag_gesture_update_cb (GtkGestureDrag *gesture,
 
       if (gtk_event_controller_get_propagation_phase (GTK_EVENT_CONTROLLER (gesture)) == GTK_PHASE_CAPTURE)
         {
-          const GdkEvent *event = gtk_gesture_get_last_event (GTK_GESTURE (gesture), sequence);
-          GtkWidget *event_widget = gtk_get_event_target (event);
+          GtkWidget *event_widget = gtk_gesture_get_last_target (GTK_GESTURE (gesture), sequence);
 
           /* Check whether the target widget should be left alone at handling
            * the sequence, this is better done late to give room for gestures
@@ -1544,11 +1407,11 @@ drag_gesture_update_cb (GtkGestureDrag *gesture,
 
       gtk_gesture_drag_get_start_point (gesture, &start_x, &start_y);
 
-      gdk_surface_begin_move_drag_for_device (priv->surface,
-					      gtk_gesture_get_device (GTK_GESTURE (gesture)),
-					      gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture)),
-					      (int)start_x, (int)start_y,
-					      gtk_get_current_event_time ());
+      gdk_surface_begin_move_drag (priv->surface,
+                                   gtk_gesture_get_device (GTK_GESTURE (gesture)),
+                                   gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture)),
+                                   (int)start_x, (int)start_y,
+                                   gtk_get_current_event_time ());
 
       gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
       gtk_event_controller_reset (GTK_EVENT_CONTROLLER (priv->click_gesture));
@@ -1633,14 +1496,13 @@ edge_under_coordinates (GtkWindow     *window,
   gboolean supports_edge_constraints;
   guint constraints;
 
-  if (priv->type != GTK_WINDOW_TOPLEVEL ||
-      !priv->client_decorated ||
+  if (!priv->client_decorated ||
       !priv->resizable ||
       priv->fullscreen ||
       priv->maximized)
     return FALSE;
 
-  supports_edge_constraints = gdk_surface_supports_edge_constraints (priv->surface);
+  supports_edge_constraints = gdk_toplevel_supports_edge_constraints (GDK_TOPLEVEL (priv->surface));
   constraints = constraints_for_edge (edge);
 
   if (!supports_edge_constraints && priv->tiled)
@@ -1777,6 +1639,18 @@ gtk_window_activate_default_activate (GtkWidget  *widget,
   gtk_window_real_activate_default (GTK_WINDOW (widget));
 }
 
+static gboolean
+gtk_window_accept_rootwindow_drop (GtkDropTargetAsync *self,
+                                   GdkDrop            *drop,
+                                   double              x,
+                                   double              y,
+                                   gpointer            unused)
+{
+  gdk_drop_finish (drop, GDK_ACTION_MOVE);
+
+  return TRUE;
+}
+
 static void
 gtk_window_init (GtkWindow *window)
 {
@@ -1784,17 +1658,14 @@ gtk_window_init (GtkWindow *window)
   GtkWidget *widget;
   GtkCssNode *widget_node;
   GdkSeat *seat;
-  GtkEventController *motion_controller;
-#ifdef GDK_WINDOWING_X11
-  GdkContentFormats *targets;
-  GtkDropTarget *dest;
-#endif
+  GtkEventController *controller;
+  GtkDropTargetAsync *target;
+  GtkShortcut *shortcut;
 
   widget = GTK_WIDGET (window);
 
   priv->title = NULL;
   priv->geometry_info = NULL;
-  priv->type = GTK_WINDOW_TOPLEVEL;
   priv->focus_widget = NULL;
   priv->default_widget = NULL;
   priv->configure_request_count = 0;
@@ -1804,15 +1675,11 @@ gtk_window_init (GtkWindow *window)
   priv->modal = FALSE;
   priv->gravity = GDK_GRAVITY_NORTH_WEST;
   priv->decorated = TRUE;
-  priv->mnemonic_modifier = GDK_MOD1_MASK;
   priv->display = gdk_display_get_default ();
 
   priv->state = GDK_SURFACE_STATE_WITHDRAWN;
 
-  priv->accept_focus = TRUE;
-  priv->focus_on_map = TRUE;
   priv->deletable = TRUE;
-  priv->type_hint = GDK_SURFACE_TYPE_HINT_NORMAL;
   priv->startup_id = NULL;
   priv->initial_timestamp = GDK_CURRENT_TIME;
   priv->mnemonics_visible = FALSE;
@@ -1840,38 +1707,47 @@ gtk_window_init (GtkWindow *window)
 
   priv->scale = gtk_widget_get_scale_factor (widget);
 
-#ifdef GDK_WINDOWING_X11
-  targets = gdk_content_formats_new (dnd_dest_targets, G_N_ELEMENTS (dnd_dest_targets));
-  dest = gtk_drop_target_new (targets, GDK_ACTION_MOVE);
-  gdk_content_formats_unref (targets);
-  gtk_widget_add_controller (GTK_WIDGET (window), GTK_EVENT_CONTROLLER (dest));
-#endif
+  target = gtk_drop_target_async_new (gdk_content_formats_new ((const char*[1]) { "application/x-rootwindow-drop" }, 1),
+                                      GDK_ACTION_MOVE);
+  g_signal_connect (target, "drop", G_CALLBACK (gtk_window_accept_rootwindow_drop), NULL);
+  gtk_widget_add_controller (GTK_WIDGET (window), GTK_EVENT_CONTROLLER (target));
 
   seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
   g_signal_connect (seat, "device-removed",
                     G_CALLBACK (device_removed_cb), window);
 
-  motion_controller = gtk_event_controller_motion_new ();
-  gtk_event_controller_set_propagation_phase (motion_controller,
+  controller = gtk_event_controller_motion_new ();
+  gtk_event_controller_set_propagation_phase (controller,
                                               GTK_PHASE_CAPTURE);
-  g_signal_connect_swapped (motion_controller, "motion",
+  g_signal_connect_swapped (controller, "motion",
                             G_CALLBACK (gtk_window_capture_motion), window);
-  gtk_widget_add_controller (widget, motion_controller);
+  gtk_widget_add_controller (widget, controller);
 
   priv->key_controller = gtk_event_controller_key_new ();
   gtk_event_controller_set_propagation_phase (priv->key_controller, GTK_PHASE_CAPTURE);
-  g_signal_connect_swapped (priv->key_controller, "focus-in",
-                            G_CALLBACK (gtk_window_focus_in), window);
-  g_signal_connect_swapped (priv->key_controller, "focus-out",
-                            G_CALLBACK (gtk_window_focus_out), window);
   g_signal_connect_swapped (priv->key_controller, "key-pressed",
                             G_CALLBACK (gtk_window_key_pressed), window);
   g_signal_connect_swapped (priv->key_controller, "key-released",
                             G_CALLBACK (gtk_window_key_released), window);
   gtk_widget_add_controller (widget, priv->key_controller);
+  controller = gtk_event_controller_focus_new ();
+  g_signal_connect_swapped (controller, "enter",
+                            G_CALLBACK (gtk_window_focus_in), window);
+  g_signal_connect_swapped (controller, "leave",
+                            G_CALLBACK (gtk_window_focus_out), window);
+  gtk_widget_add_controller (widget, controller);
 
   /* Shared constraint solver */
   priv->constraint_solver = gtk_constraint_solver_new ();
+
+  controller = gtk_shortcut_controller_new ();
+  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_CAPTURE);
+
+  shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (MENU_BAR_ACCEL, 0),
+                               gtk_callback_action_new (gtk_window_activate_menubar, NULL, NULL));
+  gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller), shortcut);
+  gtk_event_controller_set_name (controller, "gtk-window-menubar-accel");
+  gtk_widget_add_controller (widget, controller);
 }
 
 static GtkGesture *
@@ -1897,24 +1773,21 @@ gtk_window_constructed (GObject *object)
 
   G_OBJECT_CLASS (gtk_window_parent_class)->constructed (object);
 
-  if (priv->type == GTK_WINDOW_TOPLEVEL)
-    {
-      priv->click_gesture = gtk_gesture_click_new ();
-      gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (priv->click_gesture), 0);
-      gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->click_gesture),
-                                                  GTK_PHASE_BUBBLE);
-      g_signal_connect (priv->click_gesture, "pressed",
-                        G_CALLBACK (click_gesture_pressed_cb), object);
-      gtk_widget_add_controller (GTK_WIDGET (object), GTK_EVENT_CONTROLLER (priv->click_gesture));
+  priv->click_gesture = gtk_gesture_click_new ();
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (priv->click_gesture), 0);
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->click_gesture),
+                                              GTK_PHASE_BUBBLE);
+  g_signal_connect (priv->click_gesture, "pressed",
+                    G_CALLBACK (click_gesture_pressed_cb), object);
+  gtk_widget_add_controller (GTK_WIDGET (object), GTK_EVENT_CONTROLLER (priv->click_gesture));
 
-      priv->drag_gesture = create_drag_gesture (window);
-      gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->drag_gesture),
-                                                  GTK_PHASE_CAPTURE);
+  priv->drag_gesture = create_drag_gesture (window);
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->drag_gesture),
+                                              GTK_PHASE_CAPTURE);
 
-      priv->bubble_drag_gesture = create_drag_gesture (window);
-      gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->bubble_drag_gesture),
-                                                  GTK_PHASE_BUBBLE);
-    }
+  priv->bubble_drag_gesture = create_drag_gesture (window);
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (priv->bubble_drag_gesture),
+                                              GTK_PHASE_BUBBLE);
 
   g_list_store_append (toplevel_list, window);
   g_object_unref (window);
@@ -1927,13 +1800,9 @@ gtk_window_set_property (GObject      *object,
 			 GParamSpec   *pspec)
 {
   GtkWindow  *window = GTK_WINDOW (object);
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
 
   switch (prop_id)
     {
-    case PROP_TYPE:
-      priv->type = g_value_get_enum (value);
-      break;
     case PROP_TITLE:
       gtk_window_set_title (window, g_value_get_string (value));
       break;
@@ -1968,18 +1837,6 @@ gtk_window_set_property (GObject      *object,
     case PROP_DISPLAY:
       gtk_window_set_display (window, g_value_get_object (value));
       break;
-    case PROP_TYPE_HINT:
-      gtk_window_set_type_hint (window,
-                                g_value_get_enum (value));
-      break;
-    case PROP_ACCEPT_FOCUS:
-      gtk_window_set_accept_focus (window,
-				   g_value_get_boolean (value));
-      break;
-    case PROP_FOCUS_ON_MAP:
-      gtk_window_set_focus_on_map (window,
-				   g_value_get_boolean (value));
-      break;
     case PROP_DECORATED:
       gtk_window_set_decorated (window, g_value_get_boolean (value));
       break;
@@ -1988,9 +1845,6 @@ gtk_window_set_property (GObject      *object,
       break;
     case PROP_TRANSIENT_FOR:
       gtk_window_set_transient_for (window, g_value_get_object (value));
-      break;
-    case PROP_ATTACHED_TO:
-      gtk_window_set_attached_to (window, g_value_get_object (value));
       break;
     case PROP_APPLICATION:
       gtk_window_set_application (window, g_value_get_object (value));
@@ -2025,9 +1879,6 @@ gtk_window_get_property (GObject      *object,
   switch (prop_id)
     {
       GtkWindowGeometryInfo *info;
-    case PROP_TYPE:
-      g_value_set_enum (value, priv->type);
-      break;
     case PROP_TITLE:
       g_value_set_string (value, priv->title);
       break;
@@ -2066,17 +1917,6 @@ gtk_window_get_property (GObject      *object,
     case PROP_IS_ACTIVE:
       g_value_set_boolean (value, priv->is_active);
       break;
-    case PROP_TYPE_HINT:
-      g_value_set_enum (value, priv->type_hint);
-      break;
-    case PROP_ACCEPT_FOCUS:
-      g_value_set_boolean (value,
-                           gtk_window_get_accept_focus (window));
-      break;
-    case PROP_FOCUS_ON_MAP:
-      g_value_set_boolean (value,
-                           gtk_window_get_focus_on_map (window));
-      break;
     case PROP_DECORATED:
       g_value_set_boolean (value, gtk_window_get_decorated (window));
       break;
@@ -2085,9 +1925,6 @@ gtk_window_get_property (GObject      *object,
       break;
     case PROP_TRANSIENT_FOR:
       g_value_set_object (value, gtk_window_get_transient_for (window));
-      break;
-    case PROP_ATTACHED_TO:
-      g_value_set_object (value, gtk_window_get_attached_to (window));
       break;
     case PROP_APPLICATION:
       g_value_set_object (value, gtk_window_get_application (window));
@@ -2118,9 +1955,6 @@ gtk_window_buildable_interface_init (GtkBuildableIface *iface)
 {
   parent_buildable_iface = g_type_interface_peek_parent (iface);
   iface->set_buildable_property = gtk_window_buildable_set_buildable_property;
-  iface->parser_finished = gtk_window_buildable_parser_finished;
-  iface->custom_tag_start = gtk_window_buildable_custom_tag_start;
-  iface->custom_finished = gtk_window_buildable_custom_finished;
   iface->add_child = gtk_window_buildable_add_child;
 }
 
@@ -2153,166 +1987,9 @@ gtk_window_buildable_set_buildable_property (GtkBuildable *buildable,
     g_object_set_property (G_OBJECT (buildable), name, value);
 }
 
-typedef struct {
-  gchar *name;
-  gint line;
-  gint col;
-} ItemData;
-
 static void
-item_data_free (gpointer data)
+gtk_window_shortcut_manager_interface_init (GtkShortcutManagerInterface *iface)
 {
-  ItemData *item_data = data;
-
-  g_free (item_data->name);
-  g_free (item_data);
-}
-
-static void
-item_list_free (gpointer data)
-{
-  GSList *list = data;
-
-  g_slist_free_full (list, item_data_free);
-}
-
-static void
-gtk_window_buildable_parser_finished (GtkBuildable *buildable,
-				      GtkBuilder   *builder)
-{
-  GtkWindow *window = GTK_WINDOW (buildable);
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GObject *object;
-  GSList *accels, *l;
-
-  if (priv->builder_visible)
-    gtk_widget_show (GTK_WIDGET (buildable));
-
-  accels = g_object_get_qdata (G_OBJECT (buildable), quark_gtk_buildable_accels);
-  for (l = accels; l; l = l->next)
-    {
-      ItemData *data = l->data;
-
-      object = _gtk_builder_lookup_object (builder, data->name, data->line, data->col);
-      if (!object)
-	continue;
-      gtk_window_add_accel_group (GTK_WINDOW (buildable), GTK_ACCEL_GROUP (object));
-    }
-
-  g_object_set_qdata (G_OBJECT (buildable), quark_gtk_buildable_accels, NULL);
-
-  parent_buildable_iface->parser_finished (buildable, builder);
-}
-
-typedef struct {
-  GObject *object;
-  GtkBuilder *builder;
-  GSList *items;
-} GSListSubParserData;
-
-static void
-window_start_element (GtkBuildableParseContext  *context,
-                      const gchar          *element_name,
-                      const gchar         **names,
-                      const gchar         **values,
-                      gpointer              user_data,
-                      GError              **error)
-{
-  GSListSubParserData *data = (GSListSubParserData*)user_data;
-
-  if (strcmp (element_name, "group") == 0)
-    {
-      const gchar *name;
-      ItemData *item_data;
-
-      if (!_gtk_builder_check_parent (data->builder, context, "accel-groups", error))
-        return;
-
-      if (!g_markup_collect_attributes (element_name, names, values, error,
-                                        G_MARKUP_COLLECT_STRING, "name", &name,
-                                        G_MARKUP_COLLECT_INVALID))
-        {
-          _gtk_builder_prefix_error (data->builder, context, error);
-          return;
-        }
-
-      item_data = g_new (ItemData, 1);
-      item_data->name = g_strdup (name);
-      gtk_buildable_parse_context_get_position (context, &item_data->line, &item_data->col);
-      data->items = g_slist_prepend (data->items, item_data);
-    }
-  else if (strcmp (element_name, "accel-groups") == 0)
-    {
-      if (!_gtk_builder_check_parent (data->builder, context, "object", error))
-        return;
-
-      if (!g_markup_collect_attributes (element_name, names, values, error,
-                                        G_MARKUP_COLLECT_INVALID, NULL, NULL,
-                                        G_MARKUP_COLLECT_INVALID))
-        _gtk_builder_prefix_error (data->builder, context, error);
-    }
-  else
-    {
-      _gtk_builder_error_unhandled_tag (data->builder, context,
-                                        "GtkWindow", element_name,
-                                        error);
-    }
-}
-
-static const GtkBuildableParser window_parser =
-  {
-    window_start_element
-  };
-
-static gboolean
-gtk_window_buildable_custom_tag_start (GtkBuildable       *buildable,
-                                       GtkBuilder         *builder,
-                                       GObject            *child,
-                                       const gchar        *tagname,
-                                       GtkBuildableParser *parser,
-                                       gpointer           *parser_data)
-{
-  if (parent_buildable_iface->custom_tag_start (buildable, builder, child,
-						tagname, parser, parser_data))
-    return TRUE;
-
-  if (strcmp (tagname, "accel-groups") == 0)
-    {
-      GSListSubParserData *data;
-
-      data = g_slice_new0 (GSListSubParserData);
-      data->items = NULL;
-      data->object = G_OBJECT (buildable);
-      data->builder = builder;
-
-      *parser = window_parser;
-      *parser_data = data;
-
-      return TRUE;
-    }
-
-  return FALSE;
-}
-
-static void
-gtk_window_buildable_custom_finished (GtkBuildable  *buildable,
-                                      GtkBuilder    *builder,
-                                      GObject       *child,
-                                      const gchar   *tagname,
-                                      gpointer       user_data)
-{
-  parent_buildable_iface->custom_finished (buildable, builder, child,
-					   tagname, user_data);
-
-  if (strcmp (tagname, "accel-groups") == 0)
-    {
-      GSListSubParserData *data = (GSListSubParserData*)user_data;
-
-      g_object_set_qdata_full (G_OBJECT (buildable), quark_gtk_buildable_accels,
-                               data->items, (GDestroyNotify) item_list_free);
-
-      g_slice_free (GSListSubParserData, data);
-    }
 }
 
 static GdkDisplay *
@@ -2390,20 +2067,12 @@ gtk_window_native_interface_init (GtkNativeInterface *iface)
 
 /**
  * gtk_window_new:
- * @type: type of window
  * 
  * Creates a new #GtkWindow, which is a toplevel window that can
- * contain other widgets. Nearly always, the type of the window should
- * be #GTK_WINDOW_TOPLEVEL. If you’re implementing something like a
- * popup menu from scratch (which is a bad idea, just use #GtkMenu),
- * you might use #GTK_WINDOW_POPUP. #GTK_WINDOW_POPUP is not for
- * dialogs, though in some other toolkits dialogs are called “popups”.
- * In GTK+, #GTK_WINDOW_POPUP means a pop-up menu or pop-up tooltip.
- * On X11, popup windows are not controlled by the
- * [window manager][gtk-X11-arch].
+ * contain other widgets.
  *
- * If you simply want an undecorated window (no window borders), use
- * gtk_window_set_decorated(), don’t use #GTK_WINDOW_POPUP.
+ * To get an undecorated window (no window borders), use
+ * gtk_window_set_decorated().
  *
  * All top-level windows created by gtk_window_new() are stored in
  * an internal top-level window list.  This list can be obtained from
@@ -2416,15 +2085,9 @@ gtk_window_native_interface_init (GtkNativeInterface *iface)
  * Returns: a new #GtkWindow.
  **/
 GtkWidget*
-gtk_window_new (GtkWindowType type)
+gtk_window_new (void)
 {
-  GtkWindow *window;
-
-  g_return_val_if_fail (type >= GTK_WINDOW_TOPLEVEL && type <= GTK_WINDOW_POPUP, NULL);
-
-  window = g_object_new (GTK_TYPE_WINDOW, "type", type, NULL);
-
-  return GTK_WIDGET (window);
+  return g_object_new (GTK_TYPE_WINDOW, NULL);
 }
 
 static void
@@ -2442,7 +2105,7 @@ gtk_window_set_title_internal (GtkWindow   *window,
   priv->title = new_title;
 
   if (_gtk_widget_get_realized (GTK_WIDGET (window)))
-    gdk_surface_set_title (priv->surface, new_title != NULL ? new_title : "");
+    gdk_toplevel_set_title (GDK_TOPLEVEL (priv->surface), new_title != NULL ? new_title : "");
 
   if (update_titlebar && GTK_IS_HEADER_BAR (priv->title_box))
     gtk_header_bar_set_title (GTK_HEADER_BAR (priv->title_box), new_title != NULL ? new_title : "");
@@ -2540,7 +2203,7 @@ gtk_window_set_startup_id (GtkWindow   *window,
 	gtk_window_present_with_time (window, timestamp);
       else
         {
-          gdk_surface_set_startup_id (priv->surface, priv->startup_id);
+          gdk_toplevel_set_startup_id (GDK_TOPLEVEL (priv->surface), priv->startup_id);
 
           /* If window is mapped, terminate the startup-notification too */
           if (_gtk_widget_get_mapped (widget) && !disable_startup_notification)
@@ -2661,174 +2324,6 @@ _gtk_window_notify_keys_changed (GtkWindow *window)
 }
 
 /**
- * gtk_window_add_accel_group:
- * @window: window to attach accelerator group to
- * @accel_group: a #GtkAccelGroup
- *
- * Associate @accel_group with @window, such that calling
- * gtk_accel_groups_activate() on @window will activate accelerators
- * in @accel_group.
- **/
-void
-gtk_window_add_accel_group (GtkWindow     *window,
-			    GtkAccelGroup *accel_group)
-{
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_IS_ACCEL_GROUP (accel_group));
-
-  _gtk_accel_group_attach (accel_group, G_OBJECT (window));
-  g_signal_connect_object (accel_group, "accel-changed",
-			   G_CALLBACK (_gtk_window_notify_keys_changed),
-			   window, G_CONNECT_SWAPPED);
-  _gtk_window_notify_keys_changed (window);
-}
-
-/**
- * gtk_window_remove_accel_group:
- * @window: a #GtkWindow
- * @accel_group: a #GtkAccelGroup
- *
- * Reverses the effects of gtk_window_add_accel_group().
- **/
-void
-gtk_window_remove_accel_group (GtkWindow     *window,
-			       GtkAccelGroup *accel_group)
-{
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_IS_ACCEL_GROUP (accel_group));
-
-  g_signal_handlers_disconnect_by_func (accel_group,
-					_gtk_window_notify_keys_changed,
-					window);
-  _gtk_accel_group_detach (accel_group, G_OBJECT (window));
-  _gtk_window_notify_keys_changed (window);
-}
-
-static GtkMnemonicHash *
-gtk_window_get_mnemonic_hash (GtkWindow *window,
-			      gboolean   create)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  if (!priv->mnemonic_hash && create)
-    priv->mnemonic_hash = _gtk_mnemonic_hash_new ();
-
-  return priv->mnemonic_hash;
-}
-
-/**
- * gtk_window_add_mnemonic:
- * @window: a #GtkWindow
- * @keyval: the mnemonic
- * @target: the widget that gets activated by the mnemonic
- *
- * Adds a mnemonic to this window.
- */
-void
-gtk_window_add_mnemonic (GtkWindow *window,
-			 guint      keyval,
-			 GtkWidget *target)
-{
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_IS_WIDGET (target));
-
-  _gtk_mnemonic_hash_add (gtk_window_get_mnemonic_hash (window, TRUE),
-			  keyval, target);
-  _gtk_window_notify_keys_changed (window);
-}
-
-/**
- * gtk_window_remove_mnemonic:
- * @window: a #GtkWindow
- * @keyval: the mnemonic
- * @target: the widget that gets activated by the mnemonic
- *
- * Removes a mnemonic from this window.
- */
-void
-gtk_window_remove_mnemonic (GtkWindow *window,
-			    guint      keyval,
-			    GtkWidget *target)
-{
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_IS_WIDGET (target));
-  
-  _gtk_mnemonic_hash_remove (gtk_window_get_mnemonic_hash (window, TRUE),
-			     keyval, target);
-  _gtk_window_notify_keys_changed (window);
-}
-
-/**
- * gtk_window_mnemonic_activate:
- * @window: a #GtkWindow
- * @keyval: the mnemonic
- * @modifier: the modifiers
- *
- * Activates the targets associated with the mnemonic.
- *
- * Returns: %TRUE if the activation is done.
- */
-gboolean
-gtk_window_mnemonic_activate (GtkWindow      *window,
-			      guint           keyval,
-			      GdkModifierType modifier)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), FALSE);
-
-  if (priv->mnemonic_modifier == (modifier & gtk_accelerator_get_default_mod_mask ()))
-      {
-	GtkMnemonicHash *mnemonic_hash = gtk_window_get_mnemonic_hash (window, FALSE);
-	if (mnemonic_hash)
-	  return _gtk_mnemonic_hash_activate (mnemonic_hash, keyval);
-      }
-
-  return FALSE;
-}
-
-/**
- * gtk_window_set_mnemonic_modifier:
- * @window: a #GtkWindow
- * @modifier: the modifier mask used to activate
- *               mnemonics on this window.
- *
- * Sets the mnemonic modifier for this window. 
- **/
-void
-gtk_window_set_mnemonic_modifier (GtkWindow      *window,
-				  GdkModifierType modifier)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail ((modifier & ~GDK_MODIFIER_MASK) == 0);
-
-  priv->mnemonic_modifier = modifier;
-  _gtk_window_notify_keys_changed (window);
-}
-
-/**
- * gtk_window_get_mnemonic_modifier:
- * @window: a #GtkWindow
- *
- * Returns the mnemonic modifier for this window. See
- * gtk_window_set_mnemonic_modifier().
- *
- * Returns: the modifier mask used to activate
- *               mnemonics on this window.
- **/
-GdkModifierType
-gtk_window_get_mnemonic_modifier (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), 0);
-
-  return priv->mnemonic_modifier;
-}
-
-/**
  * gtk_window_get_focus:
  * @window: a #GtkWindow
  * 
@@ -2848,10 +2343,7 @@ gtk_window_get_focus (GtkWindow *window)
 
   g_return_val_if_fail (GTK_IS_WINDOW (window), NULL);
 
-  if (priv->initial_focus)
-    return priv->initial_focus;
-  else
-    return priv->focus_widget;
+  return priv->focus_widget;
 }
 
 static void
@@ -2896,9 +2388,8 @@ gtk_window_set_modal (GtkWindow *window,
   priv->modal = modal;
   widget = GTK_WIDGET (window);
   
-  /* adjust desired modality state */
   if (_gtk_widget_get_realized (widget))
-    gdk_surface_set_modal_hint (priv->surface, priv->modal);
+    gdk_toplevel_set_modal (GDK_TOPLEVEL (priv->surface), modal);
 
   if (gtk_widget_get_visible (widget))
     {
@@ -3011,12 +2502,6 @@ gtk_window_dispose (GObject *object)
 
   G_OBJECT_CLASS (gtk_window_parent_class)->dispose (object);
   unset_titlebar (window);
-
-  while (!g_queue_is_empty (&priv->popovers))
-    {
-      GtkWindowPopover *popover = g_queue_pop_head (&priv->popovers);
-      popover_destroy (popover);
-    }
 }
 
 static void
@@ -3059,7 +2544,7 @@ gtk_window_transient_parent_realized (GtkWidget *parent,
   GtkWindowPrivate *priv = gtk_window_get_instance_private (GTK_WINDOW (window));
   GtkWindowPrivate *parent_priv = gtk_window_get_instance_private (GTK_WINDOW (parent));
   if (_gtk_widget_get_realized (window))
-    gdk_surface_set_transient_for (priv->surface, parent_priv->surface);
+    gdk_toplevel_set_transient_for (GDK_TOPLEVEL (priv->surface), parent_priv->surface);
 }
 
 static void
@@ -3068,7 +2553,7 @@ gtk_window_transient_parent_unrealized (GtkWidget *parent,
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (GTK_WINDOW (window));
   if (_gtk_widget_get_realized (window))
-    gdk_surface_set_transient_for (priv->surface, NULL);
+    gdk_toplevel_set_transient_for (GDK_TOPLEVEL (priv->surface), NULL);
 }
 
 static void
@@ -3082,7 +2567,7 @@ gtk_window_transient_parent_display_changed (GtkWindow	*parent,
 }
 
 static void       
-gtk_window_unset_transient_for  (GtkWindow *window)
+gtk_window_unset_transient_for (GtkWindow *window)
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
 
@@ -3129,11 +2614,6 @@ gtk_window_unset_transient_for  (GtkWindow *window)
  * gtk_window_set_transient_for() on your behalf.
  *
  * Passing %NULL for @parent unsets the current transient window.
- *
- * This function can also be used to attach a new
- * #GTK_WINDOW_POPUP to a #GTK_WINDOW_TOPLEVEL parent already mapped
- * on screen so that the #GTK_WINDOW_POPUP will be
- * positioned relative to the #GTK_WINDOW_TOPLEVEL surface.
  *
  * On Windows, this function puts the child window on top of the parent,
  * much as the window manager would have done on X.
@@ -3220,77 +2700,6 @@ gtk_window_get_transient_for (GtkWindow *window)
 }
 
 /**
- * gtk_window_set_attached_to:
- * @window: a #GtkWindow
- * @attach_widget: (allow-none): a #GtkWidget, or %NULL
- *
- * Marks @window as attached to @attach_widget. This creates a logical binding
- * between the window and the widget it belongs to, which is used by GTK+ to
- * propagate information such as styling or accessibility to @window as if it
- * was a children of @attach_widget.
- *
- * Examples of places where specifying this relation is useful are for instance
- * a #GtkMenu created by a #GtkComboBox, a completion popup window
- * created by #GtkEntry or a typeahead search entry created by #GtkTreeView.
- *
- * Note that this function should not be confused with
- * gtk_window_set_transient_for(), which specifies a window manager relation
- * between two toplevels instead.
- *
- * Passing %NULL for @attach_widget detaches the window.
- **/
-void
-gtk_window_set_attached_to (GtkWindow *window,
-                            GtkWidget *attach_widget)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_WIDGET (window) != attach_widget);
-
-  if (priv->attach_widget == attach_widget)
-    return;
-
-  remove_attach_widget (window);
-
-  priv->attach_widget = attach_widget;
-
-  if (priv->attach_widget)
-    {
-      _gtk_widget_add_attached_window (priv->attach_widget, window);
-    }
-
-  /* Update the style, as the widget path might change. */
-  if (priv->attach_widget)
-    gtk_css_node_set_parent (gtk_widget_get_css_node (GTK_WIDGET (window)),
-                             gtk_widget_get_css_node (priv->attach_widget));
-  else
-    gtk_css_node_set_parent (gtk_widget_get_css_node (GTK_WIDGET (window)), NULL);
-
-  g_object_notify_by_pspec (G_OBJECT (window), window_props[PROP_ATTACHED_TO]);
-}
-
-/**
- * gtk_window_get_attached_to:
- * @window: a #GtkWindow
- *
- * Fetches the attach widget for this window. See
- * gtk_window_set_attached_to().
- *
- * Returns: (nullable) (transfer none): the widget where the window
- * is attached, or %NULL if the window is not attached to any widget.
- **/
-GtkWidget *
-gtk_window_get_attached_to (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), NULL);
-
-  return priv->attach_widget;
-}
-
-/**
  * gtk_window_get_application:
  * @window: a #GtkWindow
  *
@@ -3320,6 +2729,9 @@ gtk_window_release_application (GtkWindow *window)
       /* steal reference into temp variable */
       application = priv->application;
       priv->application = NULL;
+      gtk_widget_remove_controller (GTK_WIDGET (window),
+                                    priv->application_shortcut_controller);
+      priv->application_shortcut_controller = NULL;
 
       gtk_application_remove_window (application, window);
       g_object_unref (application);
@@ -3360,9 +2772,18 @@ gtk_window_set_application (GtkWindow      *window,
 
       if (priv->application != NULL)
         {
+          GtkApplicationAccels *app_accels;
+
           g_object_ref (priv->application);
 
           gtk_application_add_window (priv->application, window);
+
+          app_accels = gtk_application_get_application_accels (priv->application);
+          priv->application_shortcut_controller = gtk_shortcut_controller_new_for_model (gtk_application_accels_get_shortcuts (app_accels));
+          gtk_event_controller_set_name (priv->application_shortcut_controller, "gtk-application-shortcuts");
+          gtk_event_controller_set_propagation_phase (priv->application_shortcut_controller, GTK_PHASE_CAPTURE);
+          gtk_shortcut_controller_set_scope (GTK_SHORTCUT_CONTROLLER (priv->application_shortcut_controller), GTK_SHORTCUT_SCOPE_GLOBAL);
+          gtk_widget_add_controller (GTK_WIDGET (window), priv->application_shortcut_controller);
         }
 
       _gtk_widget_update_parent_muxer (GTK_WIDGET (window));
@@ -3371,151 +2792,6 @@ gtk_window_set_application (GtkWindow      *window,
 
       g_object_notify_by_pspec (G_OBJECT (window), window_props[PROP_APPLICATION]);
     }
-}
-
-/**
- * gtk_window_set_type_hint:
- * @window: a #GtkWindow
- * @hint: the window type
- *
- * By setting the type hint for the window, you allow the window
- * manager to decorate and handle the window in a way which is
- * suitable to the function of the window in your application.
- *
- * This function should be called before the window becomes visible.
- *
- * gtk_dialog_new_with_buttons() and other convenience functions in GTK+
- * will sometimes call gtk_window_set_type_hint() on your behalf.
- **/
-void
-gtk_window_set_type_hint (GtkWindow          *window,
-			  GdkSurfaceTypeHint  hint)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-
-  if (priv->type_hint == hint)
-    return;
-
-  priv->type_hint = hint;
-
-  if (priv->surface)
-    gdk_surface_set_type_hint (priv->surface, hint);
-
-  g_object_notify_by_pspec (G_OBJECT (window), window_props[PROP_TYPE_HINT]);
-
-  update_window_buttons (window);
-}
-
-/**
- * gtk_window_get_type_hint:
- * @window: a #GtkWindow
- *
- * Gets the type hint for this window. See gtk_window_set_type_hint().
- *
- * Returns: the type hint for @window.
- **/
-GdkSurfaceTypeHint
-gtk_window_get_type_hint (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), GDK_SURFACE_TYPE_HINT_NORMAL);
-
-  return priv->type_hint;
-}
-
-/**
- * gtk_window_set_accept_focus:
- * @window: a #GtkWindow 
- * @setting: %TRUE to let this window receive input focus
- * 
- * Windows may set a hint asking the desktop environment not to receive
- * the input focus. This function sets this hint.
- **/
-void
-gtk_window_set_accept_focus (GtkWindow *window,
-			     gboolean   setting)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-
-  setting = setting != FALSE;
-
-  if (priv->accept_focus != setting)
-    {
-      priv->accept_focus = setting;
-      if (_gtk_widget_get_realized (GTK_WIDGET (window)))
-        gdk_surface_set_accept_focus (priv->surface, priv->accept_focus);
-      g_object_notify_by_pspec (G_OBJECT (window), window_props[PROP_ACCEPT_FOCUS]);
-    }
-}
-
-/**
- * gtk_window_get_accept_focus:
- * @window: a #GtkWindow
- * 
- * Gets the value set by gtk_window_set_accept_focus().
- * 
- * Returns: %TRUE if window should receive the input focus
- **/
-gboolean
-gtk_window_get_accept_focus (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), FALSE);
-
-  return priv->accept_focus;
-}
-
-/**
- * gtk_window_set_focus_on_map:
- * @window: a #GtkWindow 
- * @setting: %TRUE to let this window receive input focus on map
- * 
- * Windows may set a hint asking the desktop environment not to receive
- * the input focus when the window is mapped.  This function sets this
- * hint.
- **/
-void
-gtk_window_set_focus_on_map (GtkWindow *window,
-			     gboolean   setting)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-
-  setting = setting != FALSE;
-
-  if (priv->focus_on_map != setting)
-    {
-      priv->focus_on_map = setting;
-      if (_gtk_widget_get_realized (GTK_WIDGET (window)))
-        gdk_surface_set_focus_on_map (priv->surface, priv->focus_on_map);
-      g_object_notify_by_pspec (G_OBJECT (window), window_props[PROP_FOCUS_ON_MAP]);
-    }
-}
-
-/**
- * gtk_window_get_focus_on_map:
- * @window: a #GtkWindow
- * 
- * Gets the value set by gtk_window_set_focus_on_map().
- * 
- * Returns: %TRUE if window should receive the input focus when
- * mapped.
- **/
-gboolean
-gtk_window_get_focus_on_map (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), FALSE);
-
-  return priv->focus_on_map;
 }
 
 /**
@@ -3848,17 +3124,7 @@ gtk_window_set_decorated (GtkWindow *window,
   priv->decorated = setting;
 
   if (priv->surface)
-    {
-      if (priv->decorated)
-        {
-          if (priv->client_decorated)
-            gdk_surface_set_decorations (priv->surface, 0);
-          else
-            gdk_surface_set_decorations (priv->surface, GDK_DECOR_ALL);
-        }
-      else
-        gdk_surface_set_decorations (priv->surface, 0);
-    }
+    gdk_toplevel_set_decorated (GDK_TOPLEVEL (priv->surface), priv->decorated && !priv->client_decorated);
 
   update_window_buttons (window);
   gtk_widget_queue_resize (GTK_WIDGET (window));
@@ -3917,13 +3183,7 @@ gtk_window_set_deletable (GtkWindow *window,
   priv->deletable = setting;
 
   if (priv->surface)
-    {
-      if (priv->deletable)
-        gdk_surface_set_functions (priv->surface, GDK_FUNC_ALL);
-      else
-        gdk_surface_set_functions (priv->surface,
-				   GDK_FUNC_ALL | GDK_FUNC_CLOSE);
-    }
+    gdk_toplevel_set_deletable (GDK_TOPLEVEL (priv->surface), priv->deletable);
 
   update_window_buttons (window);
 
@@ -4083,10 +3343,6 @@ gtk_window_realize_icon (GtkWindow *window)
 
   g_return_if_fail (priv->surface != NULL);
 
-  /* no point setting an icon on override-redirect */
-  if (priv->type == GTK_WINDOW_POPUP)
-    return;
-
   info = ensure_icon_info (window);
 
   if (info->realized)
@@ -4113,7 +3369,7 @@ gtk_window_realize_icon (GtkWindow *window)
 
   info->realized = TRUE;
 
-  gdk_surface_set_icon_list (priv->surface, icon_list);
+  gdk_toplevel_set_icon_list (GDK_TOPLEVEL (priv->surface), icon_list);
   if (GTK_IS_HEADER_BAR (priv->title_box))
     _gtk_header_bar_update_window_icon (GTK_HEADER_BAR (priv->title_box), window);
 
@@ -4299,9 +3555,6 @@ gtk_window_update_csd_size (GtkWindow *window,
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
   GtkBorder window_border = { 0 };
   gint w, h;
-
-  if (priv->type != GTK_WINDOW_TOPLEVEL)
-    return;
 
   if (!priv->decorated ||
       priv->fullscreen)
@@ -4539,7 +3792,7 @@ gtk_window_resize (GtkWindow *window,
  * way that this code:
  *
  * |[<!-- language="C" -->
- *   GtkWindow *window = GTK_WINDOW (gtk_window_new (GTK_WINDOW_TOPLEVEL));
+ *   GtkWindow *window = GTK_WINDOW (gtk_window_new ());
  *   int width = 500;
  *   int height = 300;
  *   gtk_window_resize (window, width, height);
@@ -4675,8 +3928,6 @@ gtk_window_destroy (GtkWidget *widget)
   if (priv->group)
     gtk_window_group_remove_window (priv->group, window);
 
-   gtk_window_free_key_hash (window);
-
   GTK_WIDGET_CLASS (gtk_window_parent_class)->destroy (widget);
 }
 
@@ -4717,14 +3968,10 @@ gtk_window_finalize (GObject *object)
 {
   GtkWindow *window = GTK_WINDOW (object);
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GtkMnemonicHash *mnemonic_hash;
 
+  g_clear_pointer (&priv->extra_input_region, cairo_region_destroy);
   g_free (priv->title);
   gtk_window_release_application (window);
-
-  mnemonic_hash = gtk_window_get_mnemonic_hash (window, FALSE);
-  if (mnemonic_hash)
-    _gtk_mnemonic_hash_free (mnemonic_hash);
 
   if (priv->geometry_info)
     {
@@ -4843,9 +4090,6 @@ gtk_window_should_use_csd (GtkWindow *window)
   if (!priv->decorated)
     return FALSE;
 
-  if (priv->type == GTK_WINDOW_POPUP)
-    return FALSE;
-
   csd_env = g_getenv ("GTK_CSD");
 
 #ifdef GDK_WINDOWING_BROADWAY
@@ -4882,9 +4126,6 @@ create_decoration (GtkWidget *widget)
 
   gtk_window_enable_csd (window);
 
-  if (priv->type == GTK_WINDOW_POPUP)
-    return;
-
   if (priv->title_box == NULL)
     {
       priv->titlebar = create_titlebar (window);
@@ -4912,12 +4153,7 @@ gtk_window_show (GtkWidget *widget)
   gtk_widget_map (widget);
 
   if (!priv->focus_widget)
-    {
-      if (priv->initial_focus)
-        gtk_window_set_focus (window, priv->initial_focus);
-      else
-        gtk_window_move_focus (widget, GTK_DIR_TAB_FORWARD);
-    }
+    gtk_window_move_focus (widget, GTK_DIR_TAB_FORWARD);
   
   if (priv->modal)
     gtk_grab_add (widget);
@@ -4936,13 +4172,80 @@ gtk_window_hide (GtkWidget *widget)
     gtk_grab_remove (widget);
 }
 
+static GdkToplevelLayout *
+gtk_window_compute_layout (GtkWindow *window,
+                           int        min_width,
+                           int        min_height)
+{
+  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
+  GdkToplevelLayout *layout;
+
+  layout = gdk_toplevel_layout_new (min_width, min_height);
+
+  gdk_toplevel_layout_set_resizable (layout, priv->resizable);
+  gdk_toplevel_layout_set_maximized (layout, priv->maximize_initially);
+  gdk_toplevel_layout_set_fullscreen (layout,
+                                      priv->fullscreen_initially,
+                                      priv->initial_fullscreen_monitor);
+
+  return layout;
+}
+
+static void
+gtk_window_present_toplevel (GtkWindow *window)
+{
+  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
+  GdkRectangle request;
+  GdkGeometry geometry;
+  GdkSurfaceHints flags;
+
+  gtk_window_compute_configure_request (window, &request,
+                                        &geometry, &flags);
+
+  if (!(flags & GDK_HINT_MIN_SIZE))
+    geometry.min_width = geometry.min_height = 1;
+
+  if (!priv->layout)
+    priv->layout = gtk_window_compute_layout (window, geometry.min_width, geometry.min_height);
+
+  gdk_toplevel_present (GDK_TOPLEVEL (priv->surface),
+                        request.width,
+                        request.height,
+                        priv->layout);
+}
+
+static void
+gtk_window_update_toplevel (GtkWindow *window)
+{
+  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
+  
+  if (priv->surface && gdk_surface_get_mapped (priv->surface))
+    {
+      int min_width = 1;
+      int  min_height = 1;
+
+      if (priv->layout)
+        {
+          min_width = gdk_toplevel_layout_get_min_width (priv->layout);
+          min_height = gdk_toplevel_layout_get_min_height (priv->layout);
+        }
+
+      g_clear_pointer (&priv->layout, gdk_toplevel_layout_unref);
+      priv->layout = gtk_window_compute_layout (window, min_width, min_height);
+
+      gdk_toplevel_present (GDK_TOPLEVEL (priv->surface),
+                            gdk_surface_get_width (priv->surface),
+                            gdk_surface_get_height (priv->surface),
+                            priv->layout);
+    }
+}
+
 static void
 gtk_window_map (GtkWidget *widget)
 {
   GtkWidget *child;
   GtkWindow *window = GTK_WINDOW (widget);
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GdkSurface *surface;
 
   GTK_WIDGET_CLASS (gtk_window_parent_class)->map (widget);
 
@@ -4955,47 +4258,17 @@ gtk_window_map (GtkWidget *widget)
       gtk_widget_get_child_visible (priv->title_box))
     gtk_widget_map (priv->title_box);
 
-  surface = priv->surface;
-
-  if (priv->maximize_initially)
-    gdk_surface_maximize (surface);
-  else
-    gdk_surface_unmaximize (surface);
-
-  if (priv->stick_initially)
-    gdk_surface_stick (surface);
-  else
-    gdk_surface_unstick (surface);
+  gtk_window_present_toplevel (window);
 
   if (priv->minimize_initially)
-    gdk_surface_minimize (surface);
-  else
-    gdk_surface_unminimize (surface);
+    gdk_toplevel_minimize (GDK_TOPLEVEL (priv->surface));
 
-  if (priv->fullscreen_initially)
-    {
-      if (priv->initial_fullscreen_monitor)
-        gdk_surface_fullscreen_on_monitor (surface, priv->initial_fullscreen_monitor);
-      else
-        gdk_surface_fullscreen (surface);
-    }
-  else
-    gdk_surface_unfullscreen (surface);
-
-  gdk_surface_set_keep_above (surface, priv->above_initially);
-
-  gdk_surface_set_keep_below (surface, priv->below_initially);
-
-  if (priv->type == GTK_WINDOW_TOPLEVEL)
-    gtk_window_set_theme_variant (window);
+  gtk_window_set_theme_variant (window);
 
   /* No longer use the default settings */
   priv->need_default_size = FALSE;
 
-  gdk_surface_show (surface);
-
-  if (!disable_startup_notification &&
-      priv->type != GTK_WINDOW_POPUP)
+  if (!disable_startup_notification)
     {
       /* Do we have a custom startup-notification id? */
       if (priv->startup_id != NULL)
@@ -5041,12 +4314,9 @@ gtk_window_unmap (GtkWidget *widget)
     }
   priv->configure_notify_received = FALSE;
 
-  state = gdk_surface_get_state (priv->surface);
+  state = gdk_toplevel_get_state (GDK_TOPLEVEL (priv->surface));
   priv->minimize_initially = (state & GDK_SURFACE_STATE_MINIMIZED) != 0;
   priv->maximize_initially = (state & GDK_SURFACE_STATE_MAXIMIZED) != 0;
-  priv->stick_initially = (state & GDK_SURFACE_STATE_STICKY) != 0;
-  priv->above_initially = (state & GDK_SURFACE_STATE_ABOVE) != 0;
-  priv->below_initially = (state & GDK_SURFACE_STATE_BELOW) != 0;
 
   if (priv->title_box != NULL)
     gtk_widget_unmap (priv->title_box);
@@ -5154,116 +4424,6 @@ gtk_window_get_remembered_size (GtkWindow *window,
 }
 
 static void
-popover_get_rect (GtkWindowPopover      *popover,
-                  GtkWindow             *window,
-                  cairo_rectangle_int_t *rect)
-{
-  GtkAllocation win_alloc;
-  GtkRequisition req;
-  GtkBorder win_border;
-  gdouble min, max;
-
-  gtk_widget_get_preferred_size (popover->widget, NULL, &req);
-  gtk_widget_get_allocation (GTK_WIDGET (window), &win_alloc);
-
-  get_shadow_width (window, &win_border);
-  win_alloc.x += win_border.left;
-  win_alloc.y += win_border.top;
-  win_alloc.width -= win_border.left + win_border.right;
-  win_alloc.height -= win_border.top + win_border.bottom;
-
-  rect->width = req.width;
-  rect->height = req.height;
-
-  if (popover->pos == GTK_POS_LEFT || popover->pos == GTK_POS_RIGHT)
-    {
-      if (req.height < win_alloc.height &&
-          gtk_widget_get_vexpand (popover->widget))
-        {
-          rect->y = win_alloc.y;
-          rect->height = win_alloc.height;
-        }
-      else
-        {
-          min = 0;
-          max = win_alloc.y + win_alloc.height + win_border.bottom - req.height;
-
-          if (popover->clamp_allocation)
-            {
-              min += win_border.top;
-              max -= win_border.bottom;
-            }
-
-          rect->y = CLAMP (popover->rect.y + (popover->rect.height / 2) -
-                           (req.height / 2), min, max);
-        }
-
-      if ((popover->pos == GTK_POS_LEFT) ==
-          (gtk_widget_get_direction (popover->widget) == GTK_TEXT_DIR_LTR))
-        {
-          rect->x = popover->rect.x - req.width;
-
-          if (rect->x > win_alloc.x && gtk_widget_get_hexpand (popover->widget))
-            {
-              rect->x = win_alloc.x;
-              rect->width = popover->rect.x;
-            }
-        }
-      else
-        {
-          rect->x = popover->rect.x + popover->rect.width;
-
-          if (rect->x + rect->width < win_alloc.x + win_alloc.width &&
-              gtk_widget_get_hexpand (popover->widget))
-            rect->width = win_alloc.x + win_alloc.width - rect->x;
-        }
-    }
-  else if (popover->pos == GTK_POS_TOP || popover->pos == GTK_POS_BOTTOM)
-    {
-      if (req.width < win_alloc.width &&
-          gtk_widget_get_hexpand (popover->widget))
-        {
-          rect->x = win_alloc.x;
-          rect->width = win_alloc.width;
-        }
-      else
-        {
-          min = 0;
-          max = win_alloc.x + win_alloc.width + win_border.right - req.width;
-
-          if (popover->clamp_allocation)
-            {
-              min += win_border.left;
-              max -= win_border.right;
-            }
-
-          rect->x = CLAMP (popover->rect.x + (popover->rect.width / 2) -
-                           (req.width / 2), min, max);
-        }
-
-      if (popover->pos == GTK_POS_TOP)
-        {
-          rect->y = popover->rect.y - req.height;
-
-          if (rect->y > win_alloc.y &&
-              gtk_widget_get_vexpand (popover->widget))
-            {
-              rect->y = win_alloc.y;
-              rect->height = popover->rect.y;
-            }
-        }
-      else
-        {
-          rect->y = popover->rect.y + popover->rect.height;
-
-          if (rect->y + rect->height < win_alloc.y + win_alloc.height &&
-              gtk_widget_get_vexpand (popover->widget))
-            rect->height = win_alloc.y + win_alloc.height - rect->y;
-        }
-    }
-}
-
-static void
 check_scale_changed (GtkWindow *window)
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
@@ -5344,12 +4504,9 @@ get_shadow_width (GtkWindow *window,
   shadows = _gtk_style_context_peek_property (context, GTK_CSS_PROPERTY_BOX_SHADOW);
   gtk_css_shadow_value_get_extents (shadows, &border);
 
-  if (priv->type != GTK_WINDOW_POPUP)
-    {
-      /* ... and compare it to the margin size, which we use for resize grips */
-      gtk_style_context_get_margin (context, &margin);
-      max_borders (&border, &margin);
-    }
+  /* ... and compare it to the margin size, which we use for resize grips */
+  gtk_style_context_get_margin (context, &margin);
+  max_borders (&border, &margin);
 
   sum_borders (&d, &border);
   *shadow_width = d;
@@ -5385,8 +4542,7 @@ update_csd_shape (GtkWindow *window)
    * outside the border windows go through.
    */
 
-  if (priv->type != GTK_WINDOW_POPUP)
-    subtract_borders (&window_border, &border);
+  subtract_borders (&window_border, &border);
 
   rect.x = window_border.left;
   rect.y = window_border.top;
@@ -5396,9 +4552,24 @@ update_csd_shape (GtkWindow *window)
   if (rect.width > 0 && rect.height > 0)
     {
       cairo_region_t *region = cairo_region_create_rectangle (&rect);
-      gtk_widget_set_csd_input_shape (widget, region);
+
+      if (priv->extra_input_region)
+        cairo_region_intersect (region, priv->extra_input_region);
+
+      gdk_surface_set_input_region (priv->surface, region);
       cairo_region_destroy (region);
     }
+}
+
+void
+gtk_window_set_extra_input_region (GtkWindow      *window,
+                                   cairo_region_t *region)
+{
+  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
+
+  g_clear_pointer (&priv->extra_input_region, cairo_region_destroy);
+  priv->extra_input_region = cairo_region_copy (region);
+  update_csd_shape (window);
 }
 
 static void
@@ -5544,21 +4715,9 @@ gtk_window_realize (GtkWidget *widget)
 
   gtk_widget_get_allocation (widget, &allocation);
 
-  switch (priv->type)
-    {
-    case GTK_WINDOW_TOPLEVEL:
-      surface = gdk_surface_new_toplevel (gtk_widget_get_display (widget),
-                                          allocation.width,
-                                          allocation.height);
-      break;
-    case GTK_WINDOW_POPUP:
-      surface = gdk_surface_new_temp (gtk_widget_get_display (widget), &allocation);
-      break;
-    default:
-      g_error (G_STRLOC": Unknown window type %d!", priv->type);
-      break;
-    }
-
+  surface = gdk_surface_new_toplevel (gtk_widget_get_display (widget),
+                                      MAX (1, allocation.width),
+                                      MAX (1, allocation.height));
   priv->surface = surface;
   gdk_surface_set_widget (surface, widget);
 
@@ -5576,39 +4735,21 @@ gtk_window_realize (GtkWidget *widget)
       _gtk_widget_get_realized (GTK_WIDGET (priv->transient_parent)))
     {
       GtkWindowPrivate *parent_priv = gtk_window_get_instance_private (priv->transient_parent);
-      gdk_surface_set_transient_for (surface, parent_priv->surface);
+      gdk_toplevel_set_transient_for (GDK_TOPLEVEL (surface), parent_priv->surface);
     }
 
-  gdk_surface_set_type_hint (surface, priv->type_hint);
-
   if (priv->title)
-    gdk_surface_set_title (surface, priv->title);
+    gdk_toplevel_set_title (GDK_TOPLEVEL (surface), priv->title);
 
-  if (!priv->decorated || priv->client_decorated)
-    gdk_surface_set_decorations (surface, 0);
+  gdk_toplevel_set_decorated (GDK_TOPLEVEL (surface), priv->decorated && !priv->client_decorated);
+  gdk_toplevel_set_deletable (GDK_TOPLEVEL (surface), priv->deletable);
 
 #ifdef GDK_WINDOWING_WAYLAND
   if (priv->client_decorated && GDK_IS_WAYLAND_SURFACE (surface))
     gdk_wayland_surface_announce_csd (surface);
 #endif
 
-  if (!priv->deletable)
-    gdk_surface_set_functions (surface, GDK_FUNC_ALL | GDK_FUNC_CLOSE);
-
-  if (gtk_window_get_accept_focus (window))
-    gdk_surface_set_accept_focus (surface, TRUE);
-  else
-    gdk_surface_set_accept_focus (surface, FALSE);
-
-  if (gtk_window_get_focus_on_map (window))
-    gdk_surface_set_focus_on_map (surface, TRUE);
-  else
-    gdk_surface_set_focus_on_map (surface, FALSE);
-
-  if (priv->modal)
-    gdk_surface_set_modal_hint (surface, TRUE);
-  else
-    gdk_surface_set_modal_hint (surface, FALSE);
+  gdk_toplevel_set_modal (GDK_TOPLEVEL (surface), priv->modal);
 
   if (priv->startup_id)
     {
@@ -5621,7 +4762,7 @@ gtk_window_realize (GtkWidget *widget)
         }
 #endif
       if (!startup_id_is_fake (priv->startup_id))
-        gdk_surface_set_startup_id (surface, priv->startup_id);
+        gdk_toplevel_set_startup_id (GDK_TOPLEVEL (surface), priv->startup_id);
     }
 
 #ifdef GDK_WINDOWING_X11
@@ -5759,24 +4900,6 @@ update_window_style_classes (GtkWindow *window)
     gtk_widget_remove_css_class (widget, "fullscreen");
 }
 
-static void
-popover_size_allocate (GtkWindowPopover *popover,
-                       GtkWindow        *window)
-{
-  cairo_rectangle_int_t rect;
-
-  if (!gtk_widget_get_mapped (popover->widget))
-    return;
-
-#if 0
-  if (GTK_IS_POPOVER (popover->widget))
-    gtk_popover_update_position (GTK_POPOVER (popover->widget));
-#endif
-
-  popover_get_rect (popover, window, &rect);
-  gtk_widget_size_allocate (popover->widget, &rect, -1);
-}
-
 /* _gtk_window_set_allocation:
  * @window: a #GtkWindow
  * @allocation: the original allocation for the window
@@ -5806,7 +4929,6 @@ _gtk_window_set_allocation (GtkWindow           *window,
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
   GtkAllocation child_allocation;
   GtkBorder window_border = { 0 };
-  GList *link;
 
   g_assert (allocation_out != NULL);
 
@@ -5855,13 +4977,6 @@ _gtk_window_set_allocation (GtkWindow           *window,
     }
 
   *allocation_out = child_allocation;
-
-  for (link = priv->popovers.head; link; link = link->next)
-    {
-      GtkWindowPopover *popover = link->data;
-      popover_size_allocate (popover, window);
-    }
-
 }
 
 static void
@@ -5968,7 +5083,7 @@ surface_state_changed (GtkWidget *widget)
   GdkSurfaceState new_surface_state;
   GdkSurfaceState changed_mask;
 
-  new_surface_state = gdk_surface_get_state (priv->surface);
+  new_surface_state = gdk_toplevel_get_state (GDK_TOPLEVEL (priv->surface));
   changed_mask = new_surface_state ^ priv->state;
   priv->state = new_surface_state;
 
@@ -6041,8 +5156,6 @@ _gtk_window_query_nonaccels (GtkWindow      *window,
 			     guint           accel_key,
 			     GdkModifierType accel_mods)
 {
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
   g_return_val_if_fail (GTK_IS_WINDOW (window), FALSE);
 
   /* movement keys are considered locked accels */
@@ -6059,73 +5172,7 @@ _gtk_window_query_nonaccels (GtkWindow      *window,
 	  return TRUE;
     }
 
-  /* mnemonics are considered locked accels */
-  if (accel_mods == priv->mnemonic_modifier)
-    {
-      GtkMnemonicHash *mnemonic_hash = gtk_window_get_mnemonic_hash (window, FALSE);
-      if (mnemonic_hash && _gtk_mnemonic_hash_lookup (mnemonic_hash, accel_key))
-	return TRUE;
-    }
-
   return FALSE;
-}
-
-/**
- * gtk_window_propagate_key_event:
- * @window:  a #GtkWindow
- * @event:   a #GdkEventKey
- *
- * Propagate a key press or release event to the focus widget and
- * up the focus container chain until a widget handles @event.
- * This is normally called by the default ::key_press_event and
- * ::key_release_event handlers for toplevel windows,
- * however in some cases it may be useful to call this directly when
- * overriding the standard key handling for a toplevel window.
- *
- * Returns: %TRUE if a widget in the focus chain handled the event.
- */
-gboolean
-gtk_window_propagate_key_event (GtkWindow        *window,
-                                GdkEventKey      *event)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  gboolean handled = FALSE;
-  GtkWidget *widget, *focus;
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), FALSE);
-
-  widget = GTK_WIDGET (window);
-
-  focus = priv->focus_widget;
-  if (focus)
-    g_object_ref (focus);
-  
-  while (!handled &&
-         focus && focus != widget &&
-         gtk_widget_get_root (focus) == GTK_ROOT (widget))
-    {
-      GtkWidget *parent;
-      
-      if (gtk_widget_is_sensitive (focus))
-        {
-          handled = gtk_widget_event (focus, (GdkEvent*) event);
-          if (handled)
-            break;
-        }
-
-      parent = _gtk_widget_get_parent (focus);
-      if (parent)
-        g_object_ref (parent);
-      
-      g_object_unref (focus);
-      
-      focus = parent;
-    }
-  
-  if (focus)
-    g_object_unref (focus);
-
-  return handled;
 }
 
 static GtkWindowRegion
@@ -6173,9 +5220,6 @@ gtk_window_has_mnemonic_modifier_pressed (GtkWindow *window)
   GList *seats, *s;
   gboolean retval = FALSE;
 
-  if (!priv->mnemonic_modifier)
-    return FALSE;
-
   seats = gdk_display_list_seats (gtk_widget_get_display (GTK_WIDGET (window)));
 
   for (s = seats; s; s = s->next)
@@ -6184,7 +5228,7 @@ gtk_window_has_mnemonic_modifier_pressed (GtkWindow *window)
       GdkModifierType mask;
 
       gdk_device_get_state (dev, priv->surface, NULL, &mask);
-      if (priv->mnemonic_modifier == (mask & gtk_accelerator_get_default_mod_mask ()))
+      if ((mask & gtk_accelerator_get_default_mod_mask ()) == GDK_MOD1_MASK)
         {
           retval = TRUE;
           break;
@@ -6202,9 +5246,9 @@ gtk_window_focus_in (GtkWidget *widget)
   GtkWindow *window = GTK_WINDOW (widget);
 
   /* It appears spurious focus in events can occur when
-   *  the window is hidden. So we'll just check to see if
-   *  the window is visible before actually handling the
-   *  event
+   * the window is hidden. So we'll just check to see if
+   * the window is visible before actually handling the
+   * event
    */
   if (gtk_widget_get_visible (widget))
     {
@@ -6272,24 +5316,6 @@ gtk_window_key_released (GtkWidget       *widget,
   return FALSE;
 }
 
-static GtkWindowPopover *
-_gtk_window_has_popover (GtkWindow *window,
-                         GtkWidget *widget)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GList *link;
-
-  for (link = priv->popovers.head; link; link = link->next)
-    {
-      GtkWindowPopover *popover = link->data;
-
-      if (popover->widget == widget)
-        return popover;
-    }
-
-  return NULL;
-}
-
 static void
 gtk_window_remove (GtkContainer *container,
                    GtkWidget     *widget)
@@ -6299,8 +5325,6 @@ gtk_window_remove (GtkContainer *container,
 
   if (widget == priv->title_box)
     unset_titlebar (window);
-  else if (_gtk_window_has_popover (window, widget))
-    _gtk_window_remove_popover (window, widget);
   else
     GTK_CONTAINER_CLASS (gtk_window_parent_class)->remove (container, widget);
 }
@@ -6316,11 +5340,8 @@ gtk_window_check_resize (GtkWindow *self)
   else if (gtk_widget_get_visible (widget))
     gtk_window_move_resize (self);
 
-  if (gdk_profiler_is_running ())
-    {
-      gint64 after = g_get_monotonic_time ();
-      gdk_profiler_add_mark (before * 1000, (after - before) * 1000, "size allocation", "");
-    }
+  if (GDK_PROFILER_IS_RUNNING)
+    gdk_profiler_end_mark (before, "size allocation", "");
 }
 
 static void
@@ -6426,6 +5447,143 @@ gtk_window_move_focus (GtkWidget        *widget,
     gtk_window_set_focus (GTK_WINDOW (widget), NULL);
 }
 
+void
+check_crossing_invariants (GtkWidget *widget,
+                           GtkCrossingData *crossing)
+{
+#ifdef G_ENBABLE_DEBUG
+  if (crossing->old_target == NULL)
+    g_assert (crossing->old_descendent == NULL);
+  else if (crossing->old_descendent == NULL)
+    g_assert (crossing->old_target == widget || !gtk_widget_is_ancestor (crossing->old_target, widget));
+  else
+    {
+      g_assert (gtk_widget_get_parent (crossing->old_descendent) == widget);
+      g_assert (gtk_widget_is_ancestor (crossing->old_descendent, widget));
+      g_assert (crossing->old_target == crossing->old_descendent || gtk_widget_is_ancestor (crossing->old_target, crossing->old_descendent));
+    }
+  if (crossing->new_target == NULL)
+    g_assert (crossing->new_descendent == NULL);
+  else if (crossing->new_descendent == NULL)
+    g_assert (crossing->new_target == widget || !gtk_widget_is_ancestor (crossing->new_target, widget));
+  else
+    {
+      g_assert (gtk_widget_get_parent (crossing->new_descendent) == widget);
+      g_assert (gtk_widget_is_ancestor (crossing->new_descendent, widget));
+      g_assert (crossing->new_target == crossing->new_descendent || gtk_widget_is_ancestor (crossing->new_target, crossing->new_descendent));
+    }
+#endif
+}
+
+static void
+synthesize_focus_change_events (GtkWindow *window,
+                                GtkWidget *old_focus,
+                                GtkWidget *new_focus)
+{
+  GtkCrossingData crossing;
+  GtkWidget *ancestor;
+  GtkWidget *widget, *focus_child;
+  GList *list, *l;
+  GtkStateFlags flags;
+  GtkWidget *prev;
+  gboolean seen_ancestor;
+
+  if (old_focus && new_focus)
+    ancestor = gtk_widget_common_ancestor (old_focus, new_focus);
+  else
+    ancestor = NULL;
+
+  flags = GTK_STATE_FLAG_FOCUSED;
+  if (gtk_window_get_focus_visible (GTK_WINDOW (window)))
+    flags |= GTK_STATE_FLAG_FOCUS_VISIBLE;
+
+  crossing.type = GTK_CROSSING_FOCUS;
+  crossing.mode = GDK_CROSSING_NORMAL;
+  crossing.old_target = old_focus;
+  crossing.old_descendent = NULL;
+  crossing.new_target = new_focus;
+  crossing.new_descendent = NULL;
+
+  crossing.direction = GTK_CROSSING_OUT;
+
+  prev = NULL;
+  seen_ancestor = FALSE;
+  widget = old_focus;
+  while (widget)
+    {
+      crossing.old_descendent = prev;
+      if (seen_ancestor)
+        {
+          crossing.new_descendent = new_focus ? prev : NULL;
+        }
+      else if (widget == ancestor)
+        {
+          GtkWidget *w;
+
+          crossing.new_descendent = NULL;
+          for (w = new_focus; w != ancestor; w = gtk_widget_get_parent (w))
+            crossing.new_descendent = w;
+
+          seen_ancestor = TRUE;
+        }
+      else
+        {
+          crossing.new_descendent = NULL;
+        }
+      
+      check_crossing_invariants (widget, &crossing);
+      gtk_widget_handle_crossing (widget, &crossing, 0, 0);
+      gtk_widget_unset_state_flags (widget, flags);
+      gtk_widget_set_focus_child (widget, NULL);
+      prev = widget;
+      widget = gtk_widget_get_parent (widget);
+    }
+
+  list = NULL;
+  for (widget = new_focus; widget; widget = gtk_widget_get_parent (widget))
+    list = g_list_prepend (list, widget);
+
+  crossing.direction = GTK_CROSSING_IN;
+
+  seen_ancestor = FALSE;
+  for (l = list; l; l = l->next)
+    {
+      widget = l->data;
+      if (l->next)
+        focus_child = l->next->data;
+      else
+        focus_child = NULL;
+
+      crossing.new_descendent = focus_child;
+      if (seen_ancestor)
+        {
+          crossing.old_descendent = NULL;
+        }
+      else if (widget == ancestor)
+        {
+          GtkWidget *w;
+
+          crossing.old_descendent = NULL;
+          for (w = old_focus; w != ancestor; w = gtk_widget_get_parent (w))
+            {
+              crossing.old_descendent = w;
+            }
+
+          seen_ancestor = TRUE;
+        }
+      else
+        {
+          crossing.old_descendent = old_focus ? focus_child : NULL;
+        }
+      check_crossing_invariants (widget, &crossing);
+      gtk_widget_handle_crossing (widget, &crossing, 0, 0);
+      gtk_widget_set_state_flags (widget, flags, FALSE);
+      gtk_widget_set_focus_child (widget, focus_child);
+    }
+
+  g_list_free (list);
+}
+
 /**
  * gtk_window_set_focus:
  * @window: a #GtkWindow
@@ -6444,9 +5602,6 @@ gtk_window_set_focus (GtkWindow *window,
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
   GtkWidget *old_focus = NULL;
-  GdkSeat *seat;
-  GdkDevice *device;
-  GdkEvent *event;
 
   g_return_if_fail (GTK_IS_WINDOW (window));
 
@@ -6460,19 +5615,13 @@ gtk_window_set_focus (GtkWindow *window,
     old_focus = g_object_ref (priv->focus_widget);
   g_set_object (&priv->focus_widget, NULL);
 
-  seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (window)));
-  device = gdk_seat_get_keyboard (seat);
+  if (old_focus)
+    gtk_widget_set_has_focus (old_focus, FALSE);
 
-  event = gdk_event_new (GDK_FOCUS_CHANGE);
-  gdk_event_set_display (event, gtk_widget_get_display (GTK_WIDGET (window)));
-  gdk_event_set_device (event, device);
-  event->any.surface = priv->surface;
-  if (event->any.surface)
-    g_object_ref (event->any.surface);
+  synthesize_focus_change_events (window, old_focus, focus);
 
-  gtk_synthesize_crossing_events (GTK_ROOT (window), old_focus, focus, event, GDK_CROSSING_NORMAL);
-
-  g_object_unref (event);
+  if (focus)
+    gtk_widget_set_has_focus (focus, TRUE);
 
   g_set_object (&priv->focus_widget, focus);
 
@@ -6578,7 +5727,7 @@ gtk_window_get_state (GtkWindow *window)
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
 
   if (priv->surface)
-    return gdk_surface_get_state (priv->surface);
+    return gdk_toplevel_get_state (GDK_TOPLEVEL (priv->surface));
 
   return 0;
 }
@@ -6609,11 +5758,13 @@ move_window_clicked (GtkModelButton *button,
                      gpointer        user_data)
 {
   GtkWindow *window = GTK_WINDOW (user_data);
+  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
 
-  gtk_window_begin_move_drag (window,
-                              0, /* 0 means "use keyboard" */
-                              0, 0,
-                              GDK_CURRENT_TIME);
+  gdk_surface_begin_move_drag (priv->surface,
+                               NULL,
+                               0, /* 0 means "use keyboard" */
+                               0, 0,
+                               GDK_CURRENT_TIME);
 }
 
 static void
@@ -6621,9 +5772,11 @@ resize_window_clicked (GtkModelButton *button,
                        gpointer        user_data)
 {
   GtkWindow *window = GTK_WINDOW (user_data);
+  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
 
-  gtk_window_begin_resize_drag  (window,
+  gdk_surface_begin_resize_drag (priv->surface,
                                  0,
+                                 NULL,
                                  0, /* 0 means "use keyboard" */
                                  0, 0,
                                  GDK_CURRENT_TIME);
@@ -6647,15 +5800,7 @@ static void
 maximize_window_clicked (GtkModelButton *button,
                          gpointer        user_data)
 {
-  GtkWindow *window = GTK_WINDOW (user_data);
-  GdkSurfaceState state;
-
-  state = gtk_window_get_state (window);
-
-  if (state & GDK_SURFACE_STATE_MINIMIZED)
-    gtk_window_unminimize (window);
-
-  gtk_window_maximize (window);
+  gtk_window_maximize (GTK_WINDOW (user_data));
 }
 
 static void
@@ -6666,7 +5811,6 @@ ontop_window_clicked (GtkModelButton *button,
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
 
   gtk_popover_popdown (GTK_POPOVER (priv->popup_menu));
-  gtk_window_set_keep_above (window, !priv->above_initially);
 }
 
 static void
@@ -6696,7 +5840,8 @@ gtk_window_do_popup_fallback (GtkWindow      *window,
   minimized = (state & GDK_SURFACE_STATE_MINIMIZED) == GDK_SURFACE_STATE_MINIMIZED;
   maximized = priv->maximized && !minimized;
 
-  priv->popup_menu = gtk_popover_menu_new (priv->title_box);
+  priv->popup_menu = gtk_popover_menu_new ();
+  gtk_widget_set_parent (priv->popup_menu, priv->title_box);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_popover_menu_add_submenu (GTK_POPOVER_MENU (priv->popup_menu), box, "main");
@@ -6713,8 +5858,7 @@ gtk_window_do_popup_fallback (GtkWindow      *window,
    */
   if ((gtk_widget_is_visible (GTK_WIDGET (window)) &&
        !(maximized || minimized)) ||
-      (!minimized && !priv->resizable) ||
-      priv->type_hint != GDK_SURFACE_TYPE_HINT_NORMAL)
+      (!minimized && !priv->resizable))
     gtk_widget_set_sensitive (menuitem, FALSE);
   g_signal_connect (G_OBJECT (menuitem), "clicked",
                     G_CALLBACK (restore_window_clicked), window);
@@ -6741,8 +5885,7 @@ gtk_window_do_popup_fallback (GtkWindow      *window,
   menuitem = gtk_model_button_new ();
   g_object_set (menuitem, "text", _("Minimize"), NULL);
 
-  if (minimized ||
-      priv->type_hint != GDK_SURFACE_TYPE_HINT_NORMAL)
+  if (minimized)
     gtk_widget_set_sensitive (menuitem, FALSE);
   g_signal_connect (G_OBJECT (menuitem), "clicked",
                     G_CALLBACK (minimize_window_clicked), window);
@@ -6751,9 +5894,7 @@ gtk_window_do_popup_fallback (GtkWindow      *window,
   menuitem = gtk_model_button_new ();
   g_object_set (menuitem, "text", _("Maximize"), NULL);
 
-  if (maximized ||
-      !priv->resizable ||
-      priv->type_hint != GDK_SURFACE_TYPE_HINT_NORMAL)
+  if (maximized || !priv->resizable)
     gtk_widget_set_sensitive (menuitem, FALSE);
   g_signal_connect (G_OBJECT (menuitem), "clicked",
                     G_CALLBACK (maximize_window_clicked), window);
@@ -6766,7 +5907,6 @@ gtk_window_do_popup_fallback (GtkWindow      *window,
   g_object_set (menuitem,
                 "text", _("Always on Top"),
                 "role", GTK_BUTTON_ROLE_CHECK,
-                "active", priv->above_initially,
                 NULL);
 
   if (maximized)
@@ -6798,7 +5938,7 @@ gtk_window_do_popup (GtkWindow      *window,
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
 
-  if (!gdk_surface_show_window_menu (priv->surface, (GdkEvent *) event))
+  if (!gdk_toplevel_show_window_menu (GDK_TOPLEVEL (priv->surface), (GdkEvent *) event))
     gtk_window_do_popup_fallback (window, event);
 }
 
@@ -6984,6 +6124,13 @@ gtk_window_move_resize (GtkWindow *window)
   gtk_window_compute_configure_request (window, &new_request,
                                         &new_geometry, &new_flags);
 
+  if (!(new_flags & GDK_HINT_MIN_SIZE))
+    new_geometry.min_width = new_geometry.min_height = 1;
+
+  g_clear_pointer (&priv->layout, gdk_toplevel_layout_unref);
+  priv->layout = gtk_window_compute_layout (window, new_geometry.min_width, new_geometry.min_height);
+
+
   /* This check implies the invariant that we never set info->last
    * without setting the hints and sending off a configure request.
    *
@@ -7003,7 +6150,6 @@ gtk_window_move_resize (GtkWindow *window)
     hints_changed = TRUE;
 
 #if 0
-  if (priv->type == GTK_WINDOW_TOPLEVEL)
     {
       GtkAllocation alloc;
 
@@ -7063,13 +6209,6 @@ gtk_window_move_resize (GtkWindow *window)
       new_flags |= GDK_HINT_POS;
       hints_changed = TRUE;
     }
-
-  /* Set hints if necessary
-   */
-  if (hints_changed)
-    gdk_surface_set_geometry_hints (priv->surface,
-				    &new_geometry,
-				    new_flags);
 
   current_width = gdk_surface_get_width (priv->surface);
   current_height = gdk_surface_get_height (priv->surface);
@@ -7141,6 +6280,7 @@ gtk_window_move_resize (GtkWindow *window)
            * to postpone our configure request until later.
            */
 	  info->last = saved_last_info;
+          g_clear_pointer (&priv->layout, gdk_toplevel_layout_unref);
 	  gtk_widget_queue_resize (widget); /* might recurse for GTK_RESIZE_IMMEDIATE */
 	}
 
@@ -7164,54 +6304,39 @@ gtk_window_move_resize (GtkWindow *window)
        * we don't get the ConfigureNotify back, the resize queue will never be run.
        */
 
-      if (priv->type != GTK_WINDOW_POPUP)
-        {
-	  /* Increment the number of have-not-yet-received-notify requests.
-           * This is done before gdk_surface[_move]_resize(), because
-           * that call might be synchronous (depending on which GDK backend
-           * is being used), so any preparations for its effects must
-           * be done beforehand.
-           */
-	  priv->configure_request_count += 1;
+      /* Increment the number of have-not-yet-received-notify requests.
+       * This is done before gdk_surface[_move]_resize(), because
+       * that call might be synchronous (depending on which GDK backend
+       * is being used), so any preparations for its effects must
+       * be done beforehand.
+       */
+      priv->configure_request_count += 1;
 
-          gdk_surface_freeze_toplevel_updates (priv->surface);
+      gdk_surface_freeze_toplevel_updates (priv->surface);
 
-	  /* for GTK_RESIZE_QUEUE toplevels, we are now awaiting a new
-	   * configure event in response to our resizing request.
-	   * the configure event will cause a new resize with
-	   * ->configure_notify_received=TRUE.
-	   * until then, we want to
-	   * - discard expose events
-	   * - coalesce resizes for our children
-	   * - defer any window resizes until the configure event arrived
-	   * to achieve this, we queue a resize for the window, but remove its
-	   * resizing handler, so resizing will not be handled from the next
-	   * idle handler but when the configure event arrives.
-	   *
-	   * FIXME: we should also dequeue the pending redraws here, since
-	   * we handle those ourselves upon ->configure_notify_received==TRUE.
-	   */
-	}
+      /* for GTK_RESIZE_QUEUE toplevels, we are now awaiting a new
+       * configure event in response to our resizing request.
+       * the configure event will cause a new resize with
+       * ->configure_notify_received=TRUE.
+       * until then, we want to
+       * - discard expose events
+       * - coalesce resizes for our children
+       * - defer any window resizes until the configure event arrived
+       * to achieve this, we queue a resize for the window, but remove its
+       * resizing handler, so resizing will not be handled from the next
+       * idle handler but when the configure event arrives.
+       *
+       * FIXME: we should also dequeue the pending redraws here, since
+       * we handle those ourselves upon ->configure_notify_received==TRUE.
+       */
 
       /* Now send the configure request */
       if (configure_request_pos_changed)
         g_warning ("configure request position changed. This should not happen. Ignoring the position");
 
-      gdk_surface_resize (priv->surface,
-			  new_request.width, new_request.height);
-
-      if (priv->type == GTK_WINDOW_POPUP)
-        {
-          GtkAllocation allocation;
-
-	  /* Directly size allocate for override redirect (popup) windows. */
-          allocation.x = 0;
-	  allocation.y = 0;
-	  allocation.width = new_request.width;
-	  allocation.height = new_request.height;
-
-          gtk_widget_size_allocate (widget, &allocation, -1);
-	}
+      gdk_toplevel_present (GDK_TOPLEVEL (priv->surface),
+			    new_request.width, new_request.height,
+                            priv->layout);
     }
   else
     {
@@ -7425,7 +6550,6 @@ gtk_window_snapshot (GtkWidget   *widget,
   GtkStyleContext *context;
   GtkBorder window_border;
   gint title_height;
-  GList *l;
   int width, height;
   GtkWidget *child;
 
@@ -7504,12 +6628,6 @@ gtk_window_snapshot (GtkWidget   *widget,
       if (!GTK_IS_POPOVER (child))
         gtk_widget_snapshot_child (widget, child, snapshot);
     }
-
-  for (l = priv->popovers.head; l; l = l->next)
-    {
-      GtkWindowPopover *data = l->data;
-      gtk_widget_snapshot_child (widget, data->widget, snapshot);
-    }
 }
 
 /**
@@ -7569,7 +6687,7 @@ gtk_window_present_with_time (GtkWindow *window,
 
       g_assert (surface != NULL);
 
-      gdk_surface_show (surface);
+      gtk_window_present_toplevel (window);
 
       /* Translate a timestamp of GDK_CURRENT_TIME appropriately */
       if (timestamp == GDK_CURRENT_TIME)
@@ -7587,7 +6705,7 @@ gtk_window_present_with_time (GtkWindow *window,
 	    timestamp = gtk_get_current_event_time ();
         }
 
-      gdk_surface_focus (surface, timestamp);
+      gdk_toplevel_focus (GDK_TOPLEVEL (surface), timestamp);
     }
   else
     {
@@ -7625,7 +6743,7 @@ gtk_window_minimize (GtkWindow *window)
   priv->minimize_initially = TRUE;
 
   if (priv->surface)
-    gdk_surface_minimize (priv->surface);
+    gdk_toplevel_minimize (GDK_TOPLEVEL (priv->surface));
 }
 
 /**
@@ -7652,65 +6770,7 @@ gtk_window_unminimize (GtkWindow *window)
 
   priv->minimize_initially = FALSE;
 
-  if (priv->surface)
-    gdk_surface_unminimize (priv->surface);
-}
-
-/**
- * gtk_window_stick:
- * @window: a #GtkWindow
- *
- * Asks to stick @window, which means that it will appear on all user
- * desktops. Note that you shouldn’t assume the window is definitely
- * stuck afterward, because other entities (e.g. the user or
- * [window manager][gtk-X11-arch] could unstick it
- * again, and some window managers do not support sticking
- * windows. But normally the window will end up stuck. Just don't
- * write code that crashes if not.
- *
- * It’s permitted to call this function before showing a window.
- *
- * You can track result of this operation via the #GdkSurface:state
- * property.
- */
-void
-gtk_window_stick (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-
-  priv->stick_initially = TRUE;
-
-  if (priv->surface)
-    gdk_surface_stick (priv->surface);
-}
-
-/**
- * gtk_window_unstick:
- * @window: a #GtkWindow
- *
- * Asks to unstick @window, which means that it will appear on only
- * one of the user’s desktops. Note that you shouldn’t assume the
- * window is definitely unstuck afterward, because other entities
- * (e.g. the user or [window manager][gtk-X11-arch]) could
- * stick it again. But normally the window will
- * end up stuck. Just don’t write code that crashes if not.
- *
- * You can track result of this operation via the #GdkSurface:state
- * property.
- */
-void
-gtk_window_unstick (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-
-  priv->stick_initially = FALSE;
-
-  if (priv->surface)
-    gdk_surface_unstick (priv->surface);
+  gtk_window_update_toplevel (window);
 }
 
 /**
@@ -7742,8 +6802,7 @@ gtk_window_maximize (GtkWindow *window)
 
   priv->maximize_initially = TRUE;
 
-  if (priv->surface)
-    gdk_surface_maximize (priv->surface);
+  gtk_window_update_toplevel (window);
 }
 
 /**
@@ -7770,8 +6829,7 @@ gtk_window_unmaximize (GtkWindow *window)
 
   priv->maximize_initially = FALSE;
 
-  if (priv->surface)
-    gdk_surface_unmaximize (priv->surface);
+  gtk_window_update_toplevel (window);
 }
 
 /**
@@ -7797,8 +6855,7 @@ gtk_window_fullscreen (GtkWindow *window)
 
   priv->fullscreen_initially = TRUE;
 
-  if (priv->surface)
-    gdk_surface_fullscreen (priv->surface);
+  gtk_window_update_toplevel (window);
 }
 
 static void
@@ -7844,8 +6901,7 @@ gtk_window_fullscreen_on_monitor (GtkWindow  *window,
 
   priv->fullscreen_initially = TRUE;
 
-  if (priv->surface)
-    gdk_surface_fullscreen_on_monitor (priv->surface, monitor);
+  gtk_window_update_toplevel (window);
 }
 
 /**
@@ -7872,92 +6928,7 @@ gtk_window_unfullscreen (GtkWindow *window)
   unset_fullscreen_monitor (window);
   priv->fullscreen_initially = FALSE;
 
-  if (priv->surface)
-    gdk_surface_unfullscreen (priv->surface);
-}
-
-/**
- * gtk_window_set_keep_above:
- * @window: a #GtkWindow
- * @setting: whether to keep @window above other windows
- *
- * Asks to keep @window above, so that it stays on top. Note that
- * you shouldn’t assume the window is definitely above afterward,
- * because other entities (e.g. the user or
- * [window manager][gtk-X11-arch]) could not keep it above,
- * and not all window managers support keeping windows above. But
- * normally the window will end kept above. Just don’t write code
- * that crashes if not.
- *
- * It’s permitted to call this function before showing a window,
- * in which case the window will be kept above when it appears onscreen
- * initially.
- *
- * You can track iconification via the #GdkSurface::state property
- *
- * Note that, according to the
- * [Extended Window Manager Hints Specification](http://www.freedesktop.org/Standards/wm-spec),
- * the above state is mainly meant for user preferences and should not
- * be used by applications e.g. for drawing attention to their
- * dialogs.
- **/
-void
-gtk_window_set_keep_above (GtkWindow *window,
-			   gboolean   setting)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-
-  setting = setting != FALSE;
-
-  priv->above_initially = setting;
-  priv->below_initially &= !setting;
-
-  if (priv->surface)
-    gdk_surface_set_keep_above (priv->surface, setting);
-}
-
-/**
- * gtk_window_set_keep_below:
- * @window: a #GtkWindow
- * @setting: whether to keep @window below other windows
- *
- * Asks to keep @window below, so that it stays in bottom. Note that
- * you shouldn’t assume the window is definitely below afterward,
- * because other entities (e.g. the user or
- * [window manager][gtk-X11-arch]) could not keep it below,
- * and not all window managers support putting windows below. But
- * normally the window will be kept below. Just don’t write code
- * that crashes if not.
- *
- * It’s permitted to call this function before showing a window,
- * in which case the window will be kept below when it appears onscreen
- * initially.
- *
- * You can track iconification via the #GdkSurface::state property
- *
- * Note that, according to the
- * [Extended Window Manager Hints Specification](http://www.freedesktop.org/Standards/wm-spec),
- * the above state is mainly meant for user preferences and should not
- * be used by applications e.g. for drawing attention to their
- * dialogs.
- **/
-void
-gtk_window_set_keep_below (GtkWindow *window,
-			   gboolean   setting)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-
-  setting = setting != FALSE;
-
-  priv->below_initially = setting;
-  priv->above_initially &= !setting;
-
-  if (priv->surface)
-    gdk_surface_set_keep_below (priv->surface, setting);
+  gtk_window_update_toplevel (window);
 }
 
 /**
@@ -8009,60 +6980,6 @@ gtk_window_get_resizable (GtkWindow *window)
 }
 
 /**
- * gtk_window_begin_resize_drag:
- * @window: a #GtkWindow
- * @button: mouse button that initiated the drag
- * @edge: position of the resize control
- * @x: X position where the user clicked to initiate the drag, in window coordinates
- * @y: Y position where the user clicked to initiate the drag
- * @timestamp: timestamp from the click event that initiated the drag
- *
- * Starts resizing a window. This function is used if an application
- * has window resizing controls.
- */
-void
-gtk_window_begin_resize_drag (GtkWindow      *window,
-                              GdkSurfaceEdge  edge,
-                              gint            button,
-                              gint            x,
-                              gint            y,
-                              guint32         timestamp)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (gtk_widget_get_visible (GTK_WIDGET (window)));
-
-  gdk_surface_begin_resize_drag (priv->surface, edge, button, x, y, timestamp);
-}
-
-/**
- * gtk_window_begin_move_drag:
- * @window: a #GtkWindow
- * @button: mouse button that initiated the drag
- * @x: X position where the user clicked to initiate the drag, in window coordinates
- * @y: Y position where the user clicked to initiate the drag
- * @timestamp: timestamp from the click event that initiated the drag
- *
- * Starts moving a window. This function is used if an application has
- * window movement grips.
- */
-void
-gtk_window_begin_move_drag (GtkWindow *window,
-                            gint       button,
-                            gint       x,
-                            gint       y,
-                            guint32    timestamp)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (gtk_widget_get_visible (GTK_WIDGET (window)));
-
-  gdk_surface_begin_move_drag (priv->surface, button, x, y, timestamp);
-}
-
-/**
  * gtk_window_set_display:
  * @window: a #GtkWindow.
  * @display: a #GdkDisplay.
@@ -8100,7 +7017,6 @@ gtk_window_set_display (GtkWindow  *window,
   if (priv->transient_parent && gtk_widget_get_display (GTK_WIDGET (priv->transient_parent)) != display)
     gtk_window_set_transient_for (window, NULL);
 
-  gtk_window_free_key_hash (window);
 #ifdef GDK_WINDOWING_X11
   g_signal_handlers_disconnect_by_func (gtk_settings_get_for_display (priv->display),
                                         gtk_window_on_theme_variant_changed, window);
@@ -8145,10 +7061,7 @@ gtk_window_on_theme_variant_changed (GtkSettings *settings,
                                      GParamSpec  *pspec,
                                      GtkWindow   *window)
 {
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  if (priv->type == GTK_WINDOW_TOPLEVEL)
-    gtk_window_set_theme_variant (window);
+  gtk_window_set_theme_variant (window);
 }
 #endif
 
@@ -8238,306 +7151,47 @@ _gtk_window_set_window_group (GtkWindow      *window,
 }
 
 static gboolean
-gtk_window_activate_menubar (GtkWindow   *window,
-                             GdkEventKey *event)
+gtk_window_activate_menubar (GtkWidget *widget,
+                             GVariant  *args,
+                             gpointer   unused)
 {
+  GtkWindow *window = GTK_WINDOW (widget);
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  guint keyval = 0;
-  GdkModifierType mods = 0;
+  GList *tmp_menubars, *l;
+  GPtrArray *menubars;
+  GtkWidget *focus;
+  GtkWidget *first;
 
-  gtk_accelerator_parse (MENU_BAR_ACCEL, &keyval, &mods);
+  focus = gtk_window_get_focus (window);
 
-  if (keyval == 0)
-    {
-      g_warning ("Failed to parse menu bar accelerator '%s'", MENU_BAR_ACCEL);
-      return FALSE;
-    }
+  if (priv->title_box != NULL &&
+      (focus == NULL || !gtk_widget_is_ancestor (focus, priv->title_box)) &&
+      gtk_widget_child_focus (priv->title_box, GTK_DIR_TAB_FORWARD))
+    return TRUE;
 
-  /* FIXME this is wrong, needs to be in the global accel resolution
-   * thing, to properly consider i18n etc., but that probably requires
-   * AccelGroup changes etc.
-   */
-  if (event->keyval == keyval &&
-      ((event->state & gtk_accelerator_get_default_mod_mask ()) ==
-       (mods & gtk_accelerator_get_default_mod_mask ())))
-    {
-      GList *tmp_menubars, *l;
-      GPtrArray *menubars;
-      GtkWidget *focus;
-      GtkWidget *first;
+  tmp_menubars = gtk_popover_menu_bar_get_viewable_menu_bars (window);
+  if (tmp_menubars == NULL)
+    return FALSE;
 
-      focus = gtk_window_get_focus (window);
+  menubars = g_ptr_array_sized_new (g_list_length (tmp_menubars));;
+  for (l = tmp_menubars; l; l = l->next)
+    g_ptr_array_add (menubars, l->data);
 
-      if (priv->title_box != NULL &&
-          (focus == NULL || !gtk_widget_is_ancestor (focus, priv->title_box)) &&
-          gtk_widget_child_focus (priv->title_box, GTK_DIR_TAB_FORWARD))
-        return TRUE;
+  g_list_free (tmp_menubars);
 
-      tmp_menubars = gtk_popover_menu_bar_get_viewable_menu_bars (window);
-      if (tmp_menubars == NULL)
-        return FALSE;
+  gtk_widget_focus_sort (GTK_WIDGET (window), GTK_DIR_TAB_FORWARD, menubars);
 
-      menubars = g_ptr_array_sized_new (g_list_length (tmp_menubars));;
-      for (l = tmp_menubars; l; l = l->next)
-        g_ptr_array_add (menubars, l->data);
+  first = g_ptr_array_index (menubars, 0);
+  gtk_popover_menu_bar_select_first (GTK_POPOVER_MENU_BAR (first));
 
-      g_list_free (tmp_menubars);
+  g_ptr_array_free (menubars, TRUE);
 
-      gtk_widget_focus_sort (GTK_WIDGET (window), GTK_DIR_TAB_FORWARD, menubars);
-
-      first = g_ptr_array_index (menubars, 0);
-      gtk_popover_menu_bar_select_first (GTK_POPOVER_MENU_BAR (first));
-
-      g_ptr_array_free (menubars, TRUE);
-
-      return TRUE;
-    }
-  return FALSE;
-}
-
-static void
-gtk_window_mnemonic_hash_foreach (guint      keyval,
-				  GSList    *targets,
-				  gpointer   data)
-{
-  struct {
-    GtkWindow *window;
-    GtkWindowKeysForeachFunc func;
-    gpointer func_data;
-  } *info = data;
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (info->window);
-
-  (*info->func) (info->window, keyval, priv->mnemonic_modifier, TRUE, info->func_data);
-}
-
-static void
-_gtk_window_keys_foreach (GtkWindow                *window,
-			  GtkWindowKeysForeachFunc func,
-			  gpointer                 func_data)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GSList *groups;
-  GtkMnemonicHash *mnemonic_hash;
-
-  struct {
-    GtkWindow *window;
-    GtkWindowKeysForeachFunc func;
-    gpointer func_data;
-  } info;
-
-  info.window = window;
-  info.func = func;
-  info.func_data = func_data;
-
-  mnemonic_hash = gtk_window_get_mnemonic_hash (window, FALSE);
-  if (mnemonic_hash)
-    _gtk_mnemonic_hash_foreach (mnemonic_hash,
-				gtk_window_mnemonic_hash_foreach, &info);
-
-  groups = gtk_accel_groups_from_object (G_OBJECT (window));
-  while (groups)
-    {
-      GtkAccelGroup *group = groups->data;
-      gint i;
-
-      for (i = 0; i < group->priv->n_accels; i++)
-	{
-	  GtkAccelKey *key = &group->priv->priv_accels[i].key;
-	  
-	  if (key->accel_key)
-	    (*func) (window, key->accel_key, key->accel_mods, FALSE, func_data);
-	}
-      
-      groups = groups->next;
-    }
-
-  if (priv->application)
-    {
-      GtkApplicationAccels *app_accels;
-
-      app_accels = gtk_application_get_application_accels (priv->application);
-      gtk_application_accels_foreach_key (app_accels, window, func, func_data);
-    }
+  return TRUE;
 }
 
 static void
 gtk_window_keys_changed (GtkWindow *window)
 {
-  gtk_window_free_key_hash (window);
-  gtk_window_get_key_hash (window);
-}
-
-typedef struct _GtkWindowKeyEntry GtkWindowKeyEntry;
-
-struct _GtkWindowKeyEntry
-{
-  guint keyval;
-  guint modifiers;
-  guint is_mnemonic : 1;
-};
-
-static void 
-window_key_entry_destroy (gpointer data)
-{
-  g_slice_free (GtkWindowKeyEntry, data);
-}
-
-static void
-add_to_key_hash (GtkWindow      *window,
-		 guint           keyval,
-		 GdkModifierType modifiers,
-		 gboolean        is_mnemonic,
-		 gpointer        data)
-{
-  GtkKeyHash *key_hash = data;
-
-  GtkWindowKeyEntry *entry = g_slice_new (GtkWindowKeyEntry);
-
-  entry->keyval = keyval;
-  entry->modifiers = modifiers;
-  entry->is_mnemonic = is_mnemonic;
-
-  /* GtkAccelGroup stores lowercased accelerators. To deal
-   * with this, if <Shift> was specified, uppercase.
-   */
-  if (modifiers & GDK_SHIFT_MASK)
-    {
-      if (keyval == GDK_KEY_Tab)
-	keyval = GDK_KEY_ISO_Left_Tab;
-      else
-	keyval = gdk_keyval_to_upper (keyval);
-    }
-  
-  _gtk_key_hash_add_entry (key_hash, keyval, entry->modifiers, entry);
-}
-
-static GtkKeyHash *
-gtk_window_get_key_hash (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GtkKeyHash *key_hash = g_object_get_qdata (G_OBJECT (window), quark_gtk_window_key_hash);
-  
-  if (key_hash)
-    return key_hash;
-  
-  key_hash = _gtk_key_hash_new (gdk_display_get_keymap (priv->display),
-				(GDestroyNotify)window_key_entry_destroy);
-  _gtk_window_keys_foreach (window, add_to_key_hash, key_hash);
-  g_object_set_qdata (G_OBJECT (window), quark_gtk_window_key_hash, key_hash);
-
-  return key_hash;
-}
-
-static void
-gtk_window_free_key_hash (GtkWindow *window)
-{
-  GtkKeyHash *key_hash = g_object_get_qdata (G_OBJECT (window), quark_gtk_window_key_hash);
-  if (key_hash)
-    {
-      _gtk_key_hash_free (key_hash);
-      g_object_set_qdata (G_OBJECT (window), quark_gtk_window_key_hash, NULL);
-    }
-}
-
-/**
- * gtk_window_activate_key:
- * @window:  a #GtkWindow
- * @event:   a #GdkEventKey
- *
- * Activates mnemonics and accelerators for this #GtkWindow. This is normally
- * called by the default ::key_press_event handler for toplevel windows,
- * however in some cases it may be useful to call this directly when
- * overriding the standard key handling for a toplevel window.
- *
- * Returns: %TRUE if a mnemonic or accelerator was found and activated.
- */
-gboolean
-gtk_window_activate_key (GtkWindow   *window,
-			 GdkEventKey *event)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GtkKeyHash *key_hash;
-  GtkWindowKeyEntry *found_entry = NULL;
-  gboolean enable_accels;
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), FALSE);
-  g_return_val_if_fail (event != NULL, FALSE);
-
-  key_hash = gtk_window_get_key_hash (window);
-
-  if (key_hash)
-    {
-      GSList *tmp_list;
-      GSList *entries = _gtk_key_hash_lookup (key_hash,
-					      event->hardware_keycode,
-					      event->state,
-					      gtk_accelerator_get_default_mod_mask (),
-					      event->group);
-
-      g_object_get (gtk_widget_get_settings (GTK_WIDGET (window)),
-                    "gtk-enable-accels", &enable_accels,
-                    NULL);
-
-      for (tmp_list = entries; tmp_list; tmp_list = tmp_list->next)
-	{
-	  GtkWindowKeyEntry *entry = tmp_list->data;
-	  if (entry->is_mnemonic)
-            {
-              found_entry = entry;
-              break;
-            }
-          else 
-            {
-              if (enable_accels && !found_entry)
-                {
-	          found_entry = entry;
-                }
-            }
-	}
-
-      g_slist_free (entries);
-    }
-
-  if (found_entry)
-    {
-      if (found_entry->is_mnemonic)
-        {
-          return gtk_window_mnemonic_activate (window, found_entry->keyval,
-                                               found_entry->modifiers);
-        }
-      else
-        {
-          if (enable_accels)
-            {
-              if (gtk_accel_groups_activate (G_OBJECT (window), found_entry->keyval, found_entry->modifiers))
-                return TRUE;
-
-              if (priv->application)
-                {
-                  GtkWidget *focused_widget;
-                  GtkActionMuxer *muxer;
-                  GtkApplicationAccels *app_accels;
-
-                  focused_widget = gtk_window_get_focus (window);
-
-                  if (focused_widget)
-                    muxer = _gtk_widget_get_action_muxer (focused_widget, FALSE);
-                  else
-                    muxer = _gtk_widget_get_action_muxer (GTK_WIDGET (window), FALSE);
-
-                  if (muxer == NULL)
-                    return FALSE;
-
-                  app_accels = gtk_application_get_application_accels (priv->application);
-                  return gtk_application_accels_activate (app_accels,
-                                                          G_ACTION_GROUP (muxer),
-                                                          found_entry->keyval, found_entry->modifiers);
-                }
-            }
-        }
-    }
-
-  return gtk_window_activate_menubar (window, event);
 }
 
 /*
@@ -8582,24 +7236,6 @@ void
 gtk_window_set_auto_startup_notification (gboolean setting)
 {
   disable_startup_notification = !setting;
-}
-
-/**
- * gtk_window_get_window_type:
- * @window: a #GtkWindow
- *
- * Gets the type of the window. See #GtkWindowType.
- *
- * Returns: the type of the window
- **/
-GtkWindowType
-gtk_window_get_window_type (GtkWindow *window)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), GTK_WINDOW_TOPLEVEL);
-
-  return priv->type;
 }
 
 /**
@@ -8752,7 +7388,7 @@ ensure_state_flag_backdrop (GtkWidget *widget)
   GtkWindowPrivate *priv = gtk_window_get_instance_private (GTK_WINDOW (widget));
   gboolean surface_focused = TRUE;
 
-  surface_focused = gdk_surface_get_state (priv->surface) & GDK_SURFACE_STATE_FOCUSED;
+  surface_focused = gdk_toplevel_get_state (GDK_TOPLEVEL (priv->surface)) & GDK_SURFACE_STATE_FOCUSED;
 
   if (!surface_focused)
     gtk_widget_set_state_flags (widget, GTK_STATE_FLAG_BACKDROP, FALSE);
@@ -8765,187 +7401,6 @@ _gtk_window_get_shadow_width (GtkWindow *window,
                               GtkBorder *border)
 {
   get_shadow_width (window, border);
-}
-
-void
-_gtk_window_add_popover (GtkWindow *window,
-                         GtkWidget *popover,
-                         GtkWidget *parent,
-                         gboolean   clamp_allocation)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GtkWindowPopover *data;
-  AtkObject *accessible;
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_IS_WIDGET (popover));
-  g_return_if_fail (GTK_IS_WIDGET (parent));
-  g_return_if_fail (_gtk_widget_get_parent (popover) == NULL);
-  g_return_if_fail (gtk_widget_is_ancestor (parent, GTK_WIDGET (window)));
-
-  if (_gtk_window_has_popover (window, popover))
-    return;
-
-  data = g_new0 (GtkWindowPopover, 1);
-  data->widget = popover;
-  data->parent = parent;
-  data->clamp_allocation = !!clamp_allocation;
-  g_queue_push_head (&priv->popovers, data);
-
-  gtk_widget_set_parent (popover, GTK_WIDGET (window));
-
-  accessible = gtk_widget_get_accessible (GTK_WIDGET (window));
-  _gtk_container_accessible_add_child (GTK_CONTAINER_ACCESSIBLE (accessible),
-                                       gtk_widget_get_accessible (popover), -1);
-}
-
-void
-_gtk_window_remove_popover (GtkWindow *window,
-                            GtkWidget *popover)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GtkWindowPopover *data;
-  AtkObject *accessible;
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_IS_WIDGET (popover));
-
-  data = _gtk_window_has_popover (window, popover);
-
-  if (!data)
-    return;
-
-  g_object_ref (popover);
-  gtk_widget_unparent (popover);
-
-  g_queue_remove (&priv->popovers, data);
-
-  accessible = gtk_widget_get_accessible (GTK_WIDGET (window));
-  _gtk_container_accessible_remove_child (GTK_CONTAINER_ACCESSIBLE (accessible),
-                                          gtk_widget_get_accessible (popover), -1);
-  popover_destroy (data);
-  g_object_unref (popover);
-}
-
-void
-_gtk_window_set_popover_position (GtkWindow                   *window,
-                                  GtkWidget                   *popover,
-                                  GtkPositionType              pos,
-                                  const cairo_rectangle_int_t *rect)
-{
-  GtkWindowPopover *data;
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_IS_WIDGET (popover));
-
-  data = _gtk_window_has_popover (window, popover);
-
-  if (!data)
-    {
-      g_warning ("Widget %s(%p) is not a popover of window %s(%p)",
-                 gtk_widget_get_name (popover), popover,
-                 gtk_widget_get_name (GTK_WIDGET (window)), window);
-      return;
-    }
-
-  data->rect = *rect;
-  data->pos = pos;
-  gtk_widget_queue_resize (popover);
-}
-
-void
-_gtk_window_get_popover_position (GtkWindow             *window,
-                                  GtkWidget             *popover,
-                                  GtkPositionType       *pos,
-                                  cairo_rectangle_int_t *rect)
-{
-  GtkWindowPopover *data;
-
-  g_return_if_fail (GTK_IS_WINDOW (window));
-  g_return_if_fail (GTK_IS_WIDGET (popover));
-
-  data = _gtk_window_has_popover (window, popover);
-
-  if (!data)
-    {
-      g_warning ("Widget %s(%p) is not a popover of window %s(%p)",
-                 gtk_widget_get_name (popover), popover,
-                 gtk_widget_get_name (GTK_WIDGET (window)), window);
-      return;
-    }
-
-  if (pos)
-    *pos = data->pos;
-
-  if (rect)
-    *rect = data->rect;
-}
-
-/*<private>
- * _gtk_window_get_popover_parent:
- * @window: A #GtkWindow
- * @popover: A popover #GtkWidget
- *
- * Returns the conceptual parent of this popover, the real
- * parent will always be @window.
- *
- * Returns: (nullable): The conceptual parent widget, or %NULL.
- **/
-GtkWidget *
-_gtk_window_get_popover_parent (GtkWindow *window,
-                                GtkWidget *popover)
-{
-  GtkWindowPopover *data;
-
-  g_return_val_if_fail (GTK_IS_WINDOW (window), NULL);
-  g_return_val_if_fail (GTK_IS_WIDGET (popover), NULL);
-
-  data = _gtk_window_has_popover (window, popover);
-
-  if (data && data->parent)
-    return data->parent;
-
-  return NULL;
-}
-
-/*<private>
- * _gtk_window_is_popover_widget:
- * @window: A #GtkWindow
- * @possible_popover: A possible popover of @window
- *
- * Returns #TRUE if @possible_popover is a popover of @window.
- *
- * Returns: Whether the widget is a popover of @window
- **/
-gboolean
-_gtk_window_is_popover_widget (GtkWindow *window,
-                               GtkWidget *possible_popover)
-{
-  g_return_val_if_fail (GTK_IS_WINDOW (window), FALSE);
-  g_return_val_if_fail (GTK_IS_WIDGET (possible_popover), FALSE);
-
-  return _gtk_window_has_popover (window, possible_popover) != NULL;
-}
-
-void
-_gtk_window_raise_popover (GtkWindow *window,
-                           GtkWidget *widget)
-{
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GList *link;
-
-  for (link = priv->popovers.head; link; link = link->next)
-    {
-      GtkWindowPopover *popover = link->data;
-
-      if (popover->widget != widget)
-        continue;
-
-      g_queue_unlink (&priv->popovers, link);
-      g_queue_push_tail (&priv->popovers, link->data);
-      g_list_free (link);
-      break;
-    }
 }
 
 static void set_warn_again (gboolean warn);
@@ -9451,10 +7906,8 @@ gtk_window_maybe_update_cursor (GtkWindow *window,
         continue;
 
       group = gtk_window_get_group (window);
-      grab_widget = gtk_window_group_get_current_device_grab (group,
-                                                              focus->device);
-      if (!grab_widget)
-        grab_widget = gtk_window_group_get_current_grab (group);
+
+      grab_widget = gtk_window_group_get_current_grab (group);
       if (!grab_widget)
         grab_widget = gtk_pointer_focus_get_implicit_grab (focus);
 

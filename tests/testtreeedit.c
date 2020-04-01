@@ -204,6 +204,8 @@ create_control (GtkWidget *box, gint number, gint cntl, CallbackData *data)
       name = g_strdup_printf ("Fix size Cell #%d", number); 
       callback = G_CALLBACK (fixed_cell_toggled);
       break;
+    default:
+      g_assert_not_reached ();
     }
 
   checkbutton = gtk_check_button_new_with_label (name);
@@ -245,7 +247,7 @@ main (gint argc, gchar **argv)
   if (g_getenv ("RTL"))
     gtk_widget_set_default_direction (GTK_TEXT_DIR_RTL);
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (window), "GtkTreeView editing sample");
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 

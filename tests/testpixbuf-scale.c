@@ -9,7 +9,7 @@ int overall_alpha = 255;
 GdkPixbuf *pixbuf;
 GtkWidget *darea;
   
-void
+static void
 set_interp_type (GtkWidget *widget, gpointer data)
 {
   guint types[] = { GDK_INTERP_NEAREST,
@@ -21,7 +21,7 @@ set_interp_type (GtkWidget *widget, gpointer data)
   gtk_widget_queue_draw (darea);
 }
 
-void
+static void
 overall_changed_cb (GtkAdjustment *adjustment, gpointer data)
 {
   if (gtk_adjustment_get_value (adjustment) != overall_alpha)
@@ -32,7 +32,7 @@ overall_changed_cb (GtkAdjustment *adjustment, gpointer data)
 }
 
 static void
-draw_func (GtkDrawingArea *darea,
+draw_func (GtkDrawingArea *area,
            cairo_t        *cr,
            int             width,
            int             height,
@@ -99,7 +99,7 @@ main(int argc, char **argv)
         if (creator)
                 g_print ("%s was created by '%s'\n", argv[1], creator);
 
-	window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+	window = gtk_window_new ();
 	g_signal_connect (window, "destroy",
 			  G_CALLBACK (quit_cb), &done);
 	

@@ -109,7 +109,7 @@ gsk_gl_profiler_init (GskGLProfiler *self)
   glGenQueries (N_QUERIES, self->gl_queries);
 
   self->first_frame = TRUE;
-  self->has_timer = epoxy_has_gl_extension ("GL_ARB_timer_query");
+  self->has_timer = epoxy_gl_version () >= 33 || epoxy_has_gl_extension ("GL_ARB_timer_query");
 }
 
 GskGLProfiler *
@@ -171,5 +171,5 @@ gsk_gl_profiler_end_gpu_region (GskGLProfiler *profiler)
   else
     elapsed = 0;
 
-  return elapsed;
+  return elapsed / 1000; /* Convert to usec to match other profiler APIs */
 }

@@ -201,7 +201,10 @@ add_context (IconBrowserWindow *win,
   gtk_label_set_xalign (GTK_LABEL (row), 0);
   g_object_set_data (G_OBJECT (row), "context", c);
   gtk_widget_show (row);
-  g_object_set (row, "margin", 10, NULL);
+  gtk_widget_set_margin_start (row, 10);
+  gtk_widget_set_margin_end (row, 10);
+  gtk_widget_set_margin_top (row, 10);
+  gtk_widget_set_margin_bottom (row, 10);
 
   gtk_list_box_insert (GTK_LIST_BOX (win->context_list), row, -1);
 
@@ -380,6 +383,8 @@ get_image_paintable (GtkImage *image)
       if (icon == NULL)
         return NULL;
       return GDK_PAINTABLE (icon);
+    case GTK_IMAGE_GICON:
+    case GTK_IMAGE_EMPTY:
     default:
       g_warning ("Image storage type %d not handled",
                  gtk_image_get_storage_type (image));
@@ -406,47 +411,53 @@ drag_begin (GtkDragSource *source,
     }
 }
 
-static void
-get_texture (GValue   *value,
-             gpointer  data)
+static GdkContentProvider *
+drag_prepare_texture (GtkDragSource *source,
+                      double         x,
+                      double         y,
+                      GtkWidget     *widget)
 {
-  GdkPaintable *paintable = get_image_paintable (GTK_IMAGE (data));
+  GdkPaintable *paintable = get_image_paintable (GTK_IMAGE (widget));
 
-  if (GDK_IS_TEXTURE (paintable))
-    g_value_set_object (value, paintable);
+  if (!GDK_IS_TEXTURE (paintable))
+    return NULL;
+
+  return gdk_content_provider_new_typed (GDK_TYPE_TEXTURE, paintable);
 }
 
-static void
-get_file (GValue   *value,
-          gpointer  data)
+static GdkContentProvider *
+drag_prepare_file (GtkDragSource *source,
+                   double         x,
+                   double         y,
+                   GtkWidget     *widget)
 {
+  GdkContentProvider *content;
   GtkIconTheme *icon_theme;
   const char *name;
   GtkIconPaintable *info;
 
-  name = gtk_image_get_icon_name (GTK_IMAGE (data));
-  icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (data)));
+  name = gtk_image_get_icon_name (GTK_IMAGE (widget));
+  icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (widget));
 
   info = gtk_icon_theme_lookup_icon (icon_theme,
                                      name,
                                      NULL,
                                      32, 1,
-                                     gtk_widget_get_direction (GTK_WIDGET (data)),
+                                     gtk_widget_get_direction (widget),
                                      0);
-  g_value_take_object (value, gtk_icon_paintable_get_file (info));
+  content = gdk_content_provider_new_typed (G_TYPE_FILE,  gtk_icon_paintable_get_file (info));
   g_object_unref (info);
+
+  return content;
 }
 
 static void
 setup_image_dnd (GtkWidget *image)
 {
-  GdkContentProvider *content;
   GtkDragSource *source;
 
   source = gtk_drag_source_new ();
-  content = gdk_content_provider_new_with_callback (GDK_TYPE_TEXTURE, get_texture, image);
-  gtk_drag_source_set_content (source, content);
-  g_object_unref (content);
+  g_signal_connect (source, "prepare", G_CALLBACK (drag_prepare_texture), image);
   g_signal_connect (source, "drag-begin", G_CALLBACK (drag_begin), image);
   gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
 }
@@ -454,14 +465,10 @@ setup_image_dnd (GtkWidget *image)
 static void
 setup_scalable_image_dnd (GtkWidget *image)
 {
-  GdkContentProvider *content;
   GtkDragSource *source;
 
   source = gtk_drag_source_new ();
-  content = gdk_content_provider_new_with_callback (G_TYPE_FILE, get_file, image);
-  gtk_drag_source_set_content (source, content);
-  g_object_unref (content);
-
+  g_signal_connect (source, "prepare", G_CALLBACK (drag_prepare_file), image);
   g_signal_connect (source, "drag-begin", G_CALLBACK (drag_begin), image);
   gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
 }

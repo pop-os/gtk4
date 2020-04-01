@@ -397,6 +397,10 @@ node_should_be_filtered_out (GtkFileSystemModel *model, guint id)
   if (required & GTK_FILE_FILTER_MIME_TYPE)
     {
       const char *s = g_file_info_get_content_type (node->info);
+
+      if (!s)
+        s = g_file_info_get_attribute_string (node->info, G_FILE_ATTRIBUTE_STANDARD_FAST_CONTENT_TYPE);
+
       if (s)
 	{
 	  mime_type = g_content_type_get_mime_type (s);
@@ -867,6 +871,7 @@ gtk_file_system_model_set_sort_column_id (GtkTreeSortable  *sortable,
     {
       if (sort_column_id != GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID)
 	{
+#ifndef G_DISABLE_CHECKS
 	  GtkTreeDataSortHeader *header = NULL;
 
 	  header = _gtk_tree_data_list_get_header (model->sort_list, 
@@ -875,6 +880,7 @@ gtk_file_system_model_set_sort_column_id (GtkTreeSortable  *sortable,
 	  /* We want to make sure that we have a function */
 	  g_return_if_fail (header != NULL);
 	  g_return_if_fail (header->func != NULL);
+#endif
 	}
       else
 	{
@@ -965,29 +971,22 @@ drag_source_row_draggable (GtkTreeDragSource *drag_source,
   return ITER_INDEX (&iter) != 0;
 }
 
-static gboolean
+static GdkContentProvider *
 drag_source_drag_data_get (GtkTreeDragSource *drag_source,
-			   GtkTreePath       *path,
-			   GtkSelectionData  *selection_data)
+			   GtkTreePath       *path)
 {
   GtkFileSystemModel *model = GTK_FILE_SYSTEM_MODEL (drag_source);
   FileModelNode *node;
   GtkTreeIter iter;
-  char *uris[2]; 
 
   if (!gtk_file_system_model_get_iter (GTK_TREE_MODEL (model), &iter, path))
-    return FALSE;
+    return NULL;
 
   node = get_node (model, ITER_INDEX (&iter));
   if (node->file == NULL)
     return FALSE;
 
-  uris[0] = g_file_get_uri (node->file);
-  uris[1] = NULL;
-  gtk_selection_data_set_uris (selection_data, uris);
-  g_free (uris[0]);
-
-  return TRUE;
+  return gdk_content_provider_new_typed (G_TYPE_FILE, node->file);
 }
 
 static void

@@ -1030,8 +1030,6 @@ gdk_wayland_display_class_init (GdkWaylandDisplayClass *class)
   display_class->notify_startup_complete = gdk_wayland_display_notify_startup_complete;
   display_class->create_surface = _gdk_wayland_display_create_surface;
   display_class->get_keymap = _gdk_wayland_display_get_keymap;
-  display_class->text_property_to_utf8_list = _gdk_wayland_display_text_property_to_utf8_list;
-  display_class->utf8_to_string_target = _gdk_wayland_display_utf8_to_string_target;
 
   display_class->make_gl_context_current = gdk_wayland_display_make_gl_context_current;
 
@@ -1153,10 +1151,8 @@ _gdk_wayland_display_load_cursor_theme (GdkWaylandDisplay *display_wayland)
   gdk_wayland_display_set_cursor_theme (GDK_DISPLAY (display_wayland), name, size);
   g_value_unset (&v);
 
-  if (gdk_profiler_is_running ())
-    {
-      gdk_profiler_add_mark (before * 1000, (g_get_monotonic_time () - before) * 1000, "wayland", "load cursor theme");
-    }
+  if (GDK_PROFILER_IS_RUNNING)
+    gdk_profiler_end_mark (before, "wayland", "load cursor theme");
 
 }
 
@@ -1509,15 +1505,19 @@ update_xft_settings (GdkDisplay *display)
       TranslationEntry *entry;
 
       entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "antialiasing");
+      g_assert (entry);
       antialiasing = entry->fallback.i;
 
       entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "hinting");
+      g_assert (entry);
       hinting = entry->fallback.i;
 
       entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "rgba-order");
+      g_assert (entry);
       order = entry->fallback.i;
 
       entry = find_translation_entry_by_schema ("org.gnome.desktop.interface", "text-scaling-factor");
+      g_assert (entry);
       dpi = 96.0 * entry->fallback.i / 65536.0 * 1024; /* Xft wants 1/1024th of an inch */
     }
   else

@@ -15,7 +15,7 @@
 
 static GtkWidget *window = NULL;
 
-void
+static void
 copy_button_clicked (GtkWidget *button,
                      gpointer   user_data)
 {
@@ -31,7 +31,7 @@ copy_button_clicked (GtkWidget *button,
   gdk_clipboard_set_text (clipboard, gtk_editable_get_text (GTK_EDITABLE (entry)));
 }
 
-void
+static void
 paste_received (GObject      *source_object,
                 GAsyncResult *result,
                 gpointer      user_data)
@@ -75,7 +75,7 @@ paste_received (GObject      *source_object,
     }
 }
 
-void
+static void
 paste_button_clicked (GtkWidget *button,
                       gpointer   user_data)
 {
@@ -116,6 +116,9 @@ get_image_paintable (GtkImage *image)
       if (icon == NULL)
         return NULL;
       return GDK_PAINTABLE (icon);
+
+    case GTK_IMAGE_EMPTY:
+    case GTK_IMAGE_GICON:
     default:
       g_warning ("Image storage type %d not handled",
                  gtk_image_get_storage_type (image));
@@ -138,62 +141,31 @@ drag_begin (GtkDragSource *source,
     }
 }
 
-static void
-get_texture (GValue   *value,
-             gpointer  data)
-{
-  GdkPaintable *paintable = get_image_paintable (GTK_IMAGE (data));
-
-  if (GDK_IS_TEXTURE (paintable))
-    g_value_set_object (value, paintable);
-}
-
 static GdkContentProvider *
 prepare_drag (GtkDragSource *source,
               double         x,
               double         y,
               GtkWidget     *image)
 {
-  return gdk_content_provider_new_with_callback (GDK_TYPE_TEXTURE, get_texture, image);
-}
+  GdkPaintable *paintable = get_image_paintable (GTK_IMAGE (image));
 
-static void
-got_texture (GObject *source,
-             GAsyncResult *result,
-             gpointer data)
-{
-  GdkDrop *drop = GDK_DROP (source);
-  GtkWidget *image = data;
-  const GValue *value;
-  GError *error = NULL;
+  if (!GDK_IS_TEXTURE (paintable))
+    return NULL;
 
-  value = gdk_drop_read_value_finish (drop, result, &error);
-  if (value)
-    {
-      GdkTexture *texture = g_value_get_object (value);
-      gtk_image_set_from_paintable (GTK_IMAGE (image), GDK_PAINTABLE (texture));
-    }
-  else
-    {
-      g_print ("Failed to get data: %s\n", error->message);
-      g_error_free (error);
-    }
+  return gdk_content_provider_new_typed (GDK_TYPE_TEXTURE, paintable);
 }
 
 static gboolean
 drag_drop (GtkDropTarget *dest,
-           GdkDrop       *drop,
-           int            x,
-           int            y,
-           GtkWidget     *widget)
+           const GValue  *value,
+           double         x,
+           double         y,
+           GtkImage      *image)
 {
-  if (gdk_drop_has_value (drop, GDK_TYPE_TEXTURE))
-    {
-      gdk_drop_read_value_async (drop, GDK_TYPE_TEXTURE, G_PRIORITY_DEFAULT, NULL, got_texture, widget);
-      return TRUE;
-    }
+  GdkTexture *texture = g_value_get_object (value);
+  gtk_image_set_from_paintable (GTK_IMAGE (image), GDK_PAINTABLE (texture));
 
-  return FALSE;
+  return TRUE;
 }
 
 static void
@@ -253,7 +225,8 @@ pressed_cb (GtkGesture *gesture,
   item = g_menu_item_new (_("_Paste"), "clipboard.paste");
   g_menu_append_item (menu, item);
 
-  popover = gtk_popover_menu_new_from_model (image, G_MENU_MODEL (menu));
+  popover = gtk_popover_menu_new_from_model (G_MENU_MODEL (menu));
+  gtk_widget_set_parent (popover, image);
 
   gtk_popover_set_pointing_to (GTK_POPOVER (popover), &(GdkRectangle) { x, y, 1, 1});
   gtk_popover_popup (GTK_POPOVER (popover));
@@ -278,9 +251,8 @@ do_clipboard (GtkWidget *do_widget)
       GActionGroup *actions;
       GtkDragSource *source;
       GtkDropTarget *dest;
-      GdkContentFormats *formats;
 
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Clipboard");
@@ -289,7 +261,10 @@ do_clipboard (GtkWidget *do_widget)
                         G_CALLBACK (gtk_widget_destroyed), &window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-      g_object_set (vbox, "margin", 8, NULL);
+      gtk_widget_set_margin_start (vbox, 8);
+      gtk_widget_set_margin_end (vbox, 8);
+      gtk_widget_set_margin_top (vbox, 8);
+      gtk_widget_set_margin_bottom (vbox, 8);
 
       gtk_container_add (GTK_CONTAINER (window), vbox);
 
@@ -298,7 +273,10 @@ do_clipboard (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), label);
 
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
-      g_object_set (hbox, "margin", 8, NULL);
+      gtk_widget_set_margin_start (hbox, 8);
+      gtk_widget_set_margin_end (hbox, 8);
+      gtk_widget_set_margin_top (hbox, 8);
+      gtk_widget_set_margin_bottom (hbox, 8);
       gtk_container_add (GTK_CONTAINER (vbox), hbox);
 
       /* Create the first entry */
@@ -315,7 +293,10 @@ do_clipboard (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), label);
 
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
-      g_object_set (hbox, "margin", 8, NULL);
+      gtk_widget_set_margin_start (hbox, 8);
+      gtk_widget_set_margin_end (hbox, 8);
+      gtk_widget_set_margin_top (hbox, 8);
+      gtk_widget_set_margin_bottom (hbox, 8);
       gtk_container_add (GTK_CONTAINER (vbox), hbox);
 
       /* Create the second entry */
@@ -332,7 +313,10 @@ do_clipboard (GtkWidget *do_widget)
       gtk_container_add (GTK_CONTAINER (vbox), label);
 
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
-      g_object_set (hbox, "margin", 8, NULL);
+      gtk_widget_set_margin_start (hbox, 8);
+      gtk_widget_set_margin_end (hbox, 8);
+      gtk_widget_set_margin_top (hbox, 8);
+      gtk_widget_set_margin_bottom (hbox, 8);
       gtk_container_add (GTK_CONTAINER (vbox), hbox);
 
       /* Create the first image */
@@ -347,10 +331,8 @@ do_clipboard (GtkWidget *do_widget)
       gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
 
       /* accept drops on image */
-      formats = gdk_content_formats_new_for_gtype (GDK_TYPE_TEXTURE);
-      dest = gtk_drop_target_new (formats, GDK_ACTION_COPY);
-      gdk_content_formats_unref (formats);
-      g_signal_connect (dest, "drag-drop", G_CALLBACK (drag_drop), image);
+      dest = gtk_drop_target_new (GDK_TYPE_TEXTURE, GDK_ACTION_COPY);
+      g_signal_connect (dest, "drop", G_CALLBACK (drag_drop), image);
       gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (dest));
 
       /* context menu on image */
@@ -378,10 +360,8 @@ do_clipboard (GtkWidget *do_widget)
       gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
 
       /* accept drops on image */
-      formats = gdk_content_formats_new_for_gtype (GDK_TYPE_TEXTURE);
-      dest = gtk_drop_target_new (formats, GDK_ACTION_COPY);
-      gdk_content_formats_unref (formats);
-      g_signal_connect (dest, "drag-drop", G_CALLBACK (drag_drop), image);
+      dest = gtk_drop_target_new (GDK_TYPE_TEXTURE, GDK_ACTION_COPY);
+      g_signal_connect (dest, "drop", G_CALLBACK (drag_drop), image);
       gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (dest));
 
       /* context menu on image */

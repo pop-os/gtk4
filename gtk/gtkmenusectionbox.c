@@ -222,7 +222,8 @@ gtk_menu_section_box_remove_func (gint     position,
         gtk_container_remove (GTK_CONTAINER (stack), subbox);
     }
 
-  gtk_widget_destroy (g_list_nth_data (children, position));
+  gtk_container_remove (GTK_CONTAINER (box->item_box),
+                        g_list_nth_data (children, position));
   g_list_free (children);
 
   gtk_menu_section_box_schedule_separator_sync (box);
@@ -303,7 +304,7 @@ gtk_menu_section_box_insert_func (GtkMenuTrackerItem *item,
 
           model = _gtk_menu_tracker_item_get_link (item, G_MENU_LINK_SUBMENU);
 
-          submenu = gtk_popover_menu_new_from_model_full (NULL, model, box->flags);
+          submenu = gtk_popover_menu_new_from_model_full (model, box->flags);
           gtk_popover_set_has_arrow (GTK_POPOVER (submenu), FALSE);
           gtk_widget_set_valign (submenu, GTK_ALIGN_START);
 
@@ -408,10 +409,7 @@ gtk_menu_section_box_init (GtkMenuSectionBox *box)
   box->item_box = GTK_BOX (item_box);
   gtk_container_add (GTK_CONTAINER (box), item_box);
   gtk_widget_set_halign (GTK_WIDGET (item_box), GTK_ALIGN_FILL);
-
   gtk_widget_set_halign (GTK_WIDGET (box), GTK_ALIGN_FILL);
-  g_object_set (box, "margin", 0, NULL);
-
 }
 
 static void

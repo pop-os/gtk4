@@ -331,7 +331,7 @@ do_images (GtkWidget *do_widget)
 
   if (!window)
     {
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Images");
@@ -342,7 +342,10 @@ do_images (GtkWidget *do_widget)
                         G_CALLBACK (cleanup_callback), NULL);
 
       base_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
-      g_object_set (base_vbox, "margin", 16, NULL);
+      gtk_widget_set_margin_start (base_vbox, 16);
+      gtk_widget_set_margin_end (base_vbox, 16);
+      gtk_widget_set_margin_top (base_vbox, 16);
+      gtk_widget_set_margin_bottom (base_vbox, 16);
       gtk_container_add (GTK_CONTAINER (window), base_vbox);
 
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 16);

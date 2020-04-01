@@ -2,11 +2,13 @@ testexecdir = join_paths(installed_test_bindir, 'css', 'nodes')
 testdatadir = join_paths(installed_test_datadir, 'css')
 
 test_nodes = executable('test-css-nodes', 'test-css-nodes.c',
+                        c_args: common_cflags,
                         install: get_option('install-tests'),
                         install_dir: testexecdir,
                         dependencies: libgtk_dep)
 test('nodes', test_nodes,
      args: [ '--tap', '-k' ],
+     protocol: 'tap',
      env: [ 'GIO_USE_VOLUME_MONITOR=unix',
             'GSETTINGS_BACKEND=memory',
             'GDK_DEBUG=default-settings',

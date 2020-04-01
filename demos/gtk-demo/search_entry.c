@@ -185,13 +185,13 @@ text_changed (GObject *object,
               gpointer data)
 {
   GtkEntry *entry = GTK_ENTRY (object);
-  GActionMap *actions = data;
+  GActionMap *action_map = data;
   GAction *action;
   gboolean has_text;
 
   has_text = gtk_entry_get_text_length (entry) > 0;
 
-  action = g_action_map_lookup_action (actions, "clear");
+  action = g_action_map_lookup_action (action_map, "clear");
   g_simple_action_set_enabled (G_SIMPLE_ACTION (action), has_text);
 }
 
@@ -216,10 +216,17 @@ entry_add_to_context_menu (GtkEntry *entry)
   };
   GMenuModel *submenu;
   GMenuItem *item;
+  GAction *action;
+  GVariant *value;
 
   actions = g_simple_action_group_new ();
   g_action_map_add_action_entries (G_ACTION_MAP (actions), entries, G_N_ELEMENTS(entries), entry);
   gtk_widget_insert_action_group (GTK_WIDGET (entry), "search", G_ACTION_GROUP (actions));
+
+  action = g_action_map_lookup_action (G_ACTION_MAP (actions), "search-by");
+  value = g_variant_ref_sink (g_variant_new_string ("name"));
+  set_search_by (G_SIMPLE_ACTION (action), value, entry);
+  g_variant_unref (value);
 
   menu = g_menu_new ();
   item = g_menu_item_new (_("C_lear"), "search.clear");
@@ -250,7 +257,7 @@ do_search_entry (GtkWidget *do_widget)
 
   if (!window)
     {
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),  gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Search Entry");
       gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
@@ -258,7 +265,10 @@ do_search_entry (GtkWidget *do_widget)
                         G_CALLBACK (search_entry_destroyed), &window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
-      g_object_set (vbox, "margin", 5, NULL);
+      gtk_widget_set_margin_start (vbox, 5);
+      gtk_widget_set_margin_end (vbox, 5);
+      gtk_widget_set_margin_top (vbox, 5);
+      gtk_widget_set_margin_bottom (vbox, 5);
       gtk_container_add (GTK_CONTAINER (window), vbox);
 
       label = gtk_label_new (NULL);
@@ -294,10 +304,6 @@ do_search_entry (GtkWidget *do_widget)
       gtk_widget_show (cancel_button);
 
       /* Set up the search icon */
-      GVariant *value = g_variant_ref_sink (g_variant_new_string ("name"));
-      set_search_by (NULL, value, entry);
-      g_variant_unref (value);
-
       gtk_entry_set_icon_activatable (GTK_ENTRY (entry), GTK_ENTRY_ICON_PRIMARY, TRUE);
       gtk_entry_set_icon_sensitive (GTK_ENTRY (entry), GTK_ENTRY_ICON_PRIMARY, TRUE);
 

@@ -95,7 +95,10 @@ add_content (GtkWidget *dialog)
   GtkWidget *label;
 
   label = gtk_label_new ("content");
-  g_object_set (label, "margin", 50, NULL);
+  gtk_widget_set_margin_start (label, 50);
+  gtk_widget_set_margin_end (label, 50);
+  gtk_widget_set_margin_top (label, 50);
+  gtk_widget_set_margin_bottom (label, 50);
   gtk_widget_show (label);
 
   gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), label);
@@ -197,6 +200,7 @@ typedef struct {
   GtkDialogClass parent_class;
 } MyDialogClass;
 
+static GType my_dialog_get_type (void);
 G_DEFINE_TYPE (MyDialog, my_dialog, GTK_TYPE_DIALOG);
 
 static void
@@ -267,6 +271,7 @@ typedef struct {
   GtkDialogClass parent_class;
 } MyDialog2Class;
 
+static GType my_dialog2_get_type (void);
 G_DEFINE_TYPE (MyDialog2, my_dialog2, GTK_TYPE_DIALOG);
 
 static void
@@ -323,7 +328,7 @@ main (int argc, char *argv[])
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_default_size (GTK_WINDOW (window), 600, 400);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);

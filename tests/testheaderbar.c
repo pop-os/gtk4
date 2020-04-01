@@ -74,11 +74,11 @@ static gboolean done = FALSE;
 
 static void
 quit_cb (GtkWidget *widget,
-         gpointer   data)
+         gpointer   user_data)
 {
-  gboolean *done = data;
+  gboolean *is_done = user_data;
 
-  *done = TRUE;
+  *is_done = TRUE;
 
   g_main_context_wakeup (NULL);
 }
@@ -96,7 +96,10 @@ change_header (GtkButton *button, gpointer data)
       header = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
       gtk_style_context_add_class (gtk_widget_get_style_context (header), "titlebar");
       gtk_style_context_add_class (gtk_widget_get_style_context (header), "header-bar");
-      g_object_set (header, "margin", 10, NULL);
+      gtk_widget_set_margin_start (header, 10);
+      gtk_widget_set_margin_end (header, 10);
+      gtk_widget_set_margin_top (header, 10);
+      gtk_widget_set_margin_bottom (header, 10);
       label = gtk_label_new ("Label");
       gtk_container_add (GTK_CONTAINER (header), label);
       widget = gtk_level_bar_new ();
@@ -140,7 +143,7 @@ main (int argc, char *argv[])
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_style_context_add_class (gtk_widget_get_style_context (window), "main");
 
   provider = gtk_css_provider_new ();

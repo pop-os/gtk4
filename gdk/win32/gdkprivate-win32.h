@@ -236,7 +236,7 @@ gchar *_gdk_win32_rect_to_string       (const RECT  *rect);
 gchar *_gdk_win32_gdkrectangle_to_string (const GdkRectangle *rect);
 gchar *_gdk_win32_cairo_region_to_string (const cairo_region_t    *box);
 
-void   _gdk_win32_print_event            (const GdkEvent     *event);
+void   _gdk_win32_print_event            (GdkEvent     *event);
 
 #endif
 
@@ -294,10 +294,6 @@ GdkWin32Clipdrop *_win32_clipdrop;
 GThread          *_win32_main_thread;
 
 void _gdk_win32_dnd_do_dragdrop (void);
-void _gdk_win32_ole2_dnd_property_change (GdkAtom       type,
-                                          gint          format,
-                                          const guchar *data,
-                                          gint          nelements);
 
 typedef enum {
   GDK_WIN32_MODAL_OP_NONE = 0x0,
@@ -374,35 +370,6 @@ GList *_gdk_win32_display_list_devices (GdkDisplay *dpy);
 gboolean _gdk_win32_display_has_pending (GdkDisplay *display);
 void _gdk_win32_display_queue_events (GdkDisplay *display);
 
-gboolean _gdk_win32_selection_owner_set_for_display (GdkDisplay *display,
-                                                     GdkSurface  *owner,
-                                                     GdkAtom     selection,
-                                                     guint32     time,
-                                                     gboolean    send_event);
-void       _gdk_win32_display_send_selection_notify (GdkDisplay      *display,
-                                                     GdkSurface       *requestor,
-                                                     GdkAtom          selection,
-                                                     GdkAtom          target,
-                                                     GdkAtom          property,
-                                                     guint32          time);
-gint      _gdk_win32_display_get_selection_property (GdkDisplay *display,
-                                                     GdkSurface  *requestor,
-                                                     guchar    **data,
-                                                     GdkAtom    *ret_type,
-                                                     gint       *ret_format);
-void      _gdk_win32_display_convert_selection (GdkDisplay *display,
-                                                GdkSurface *requestor,
-                                                GdkAtom    selection,
-                                                GdkAtom    target,
-                                                guint32    time);
-gint      _gdk_win32_display_text_property_to_utf8_list (GdkDisplay    *display,
-                                                         GdkAtom        encoding,
-                                                         gint           format,
-                                                         const guchar  *text,
-                                                         gint           length,
-                                                         gchar       ***list);
-gchar     *_gdk_win32_display_utf8_to_string_target (GdkDisplay *display, const gchar *str);
-
 gboolean   _gdk_win32_keymap_has_altgr           (GdkWin32Keymap *keymap);
 guint8     _gdk_win32_keymap_get_active_group    (GdkWin32Keymap *keymap);
 guint8     _gdk_win32_keymap_get_rshift_scancode (GdkWin32Keymap *keymap);
@@ -460,6 +427,15 @@ gboolean _gdk_win32_surface_fill_min_max_info    (GdkSurface  *window,
                                                   MINMAXINFO *mmi);
 
 gboolean _gdk_win32_surface_lacks_wm_decorations (GdkSurface *window);
+
+void gdk_win32_surface_show (GdkSurface *surface,
+                             gboolean    already_mapped);
+void gdk_win32_surface_raise (GdkSurface *surface);
+void gdk_win32_surface_set_opacity (GdkSurface *surface,
+                                    double      opacity);
+void gdk_win32_surface_resize (GdkSurface *surface,
+                               int         width,
+                               int         height);
 
 BOOL WINAPI GtkShowWindow (GdkSurface *window,
                            int        cmd_show);

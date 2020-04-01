@@ -1,8 +1,13 @@
 #include <gtk/gtk.h>
 
-static const char *entries[] = {
-  "GTK_LIST_BOX_ROW"
-};
+static GdkContentProvider *
+prepare (GtkDragSource *source,
+         double         x,
+         double         y,
+         GtkWidget     *row)
+{
+  return gdk_content_provider_new_typed (GTK_TYPE_LIST_BOX_ROW, row);
+}
 
 static void
 drag_begin (GtkDragSource *source,
@@ -24,52 +29,37 @@ drag_begin (GtkDragSource *source,
   g_object_unref (paintable);
 }
 
-static void
-got_row (GObject      *src,
-         GAsyncResult *result,
-         gpointer      data)
+static gboolean
+drag_drop (GtkDropTarget *dest,
+           const GValue  *value,
+           double         x,
+           double         y,
+           gpointer       data)
 {
-  GtkDropTarget *dest = GTK_DROP_TARGET (src);
   GtkWidget *target = data;
-  GtkWidget *row;
   GtkWidget *source;
   int pos;
-  GtkSelectionData *selection_data;
 
-  selection_data = gtk_drop_target_read_selection_finish (dest, result, NULL);
+  source = g_value_get_object (value);
+  if (source == NULL)
+    return FALSE;
 
   pos = gtk_list_box_row_get_index (GTK_LIST_BOX_ROW (target));
-  row = (gpointer)* (gpointer*)gtk_selection_data_get_data (selection_data);
-  source = gtk_widget_get_ancestor (row, GTK_TYPE_LIST_BOX_ROW);
-
-  gtk_selection_data_free (selection_data);
-
   if (source == target)
-    return;
+    return FALSE;
 
   g_object_ref (source);
   gtk_container_remove (GTK_CONTAINER (gtk_widget_get_parent (source)), source);
   gtk_list_box_insert (GTK_LIST_BOX (gtk_widget_get_parent (target)), source, pos);
   g_object_unref (source);
-}
 
-static void
-drag_drop (GtkDropTarget    *dest,
-           GdkDrop          *drop,
-           int               x,
-           int               y,
-           gpointer          data)
-{
-  gtk_drop_target_read_selection (dest, "GTK_LIST_BOX_ROW", NULL, got_row, data);
+  return TRUE;
 }
 
 static GtkWidget *
 create_row (const gchar *text)
 {
   GtkWidget *row, *box, *label, *image;
-  GBytes *bytes;
-  GdkContentProvider *content;
-  GdkContentFormats *targets;
   GtkDragSource *source;
   GtkDropTarget *dest;
 
@@ -83,20 +73,15 @@ create_row (const gchar *text)
   gtk_container_add (GTK_CONTAINER (box), label);
   gtk_container_add (GTK_CONTAINER (box), image);
 
-  bytes = g_bytes_new (&row, sizeof (gpointer));
-  content = gdk_content_provider_new_for_bytes ("GTK_LIST_BOX_ROW", bytes);
   source = gtk_drag_source_new ();
-  gtk_drag_source_set_content (source, content);
   gtk_drag_source_set_actions (source, GDK_ACTION_MOVE);
   g_signal_connect (source, "drag-begin", G_CALLBACK (drag_begin), image);
+  g_signal_connect (source, "prepare", G_CALLBACK (prepare), row);
   gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
 
-  targets = gdk_content_formats_new (entries, 1);
-  dest = gtk_drop_target_new (targets, GDK_ACTION_MOVE);
-  g_signal_connect (dest, "drag-drop", G_CALLBACK (drag_drop), row);
+  dest = gtk_drop_target_new (GTK_TYPE_LIST_BOX_ROW, GDK_ACTION_MOVE);
+  g_signal_connect (dest, "drop", G_CALLBACK (drag_drop), row);
   gtk_widget_add_controller (GTK_WIDGET (row), GTK_EVENT_CONTROLLER (dest));
-
-  gdk_content_formats_unref (targets);
 
   return row;
 }
@@ -150,13 +135,16 @@ main (int argc, char *argv[])
   provider = gtk_css_provider_new ();
   gtk_css_provider_load_from_data (provider, css, -1);
   gtk_style_context_add_provider_for_display (gdk_display_get_default (), GTK_STYLE_PROVIDER (provider), 800);
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_default_size (GTK_WINDOW (window), -1, 300);
 
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
   gtk_container_add (GTK_CONTAINER (window), hbox);
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-  g_object_set (vbox, "margin", 12, NULL);
+  gtk_widget_set_margin_start (vbox, 12);
+  gtk_widget_set_margin_end (vbox, 12);
+  gtk_widget_set_margin_top (vbox, 12);
+  gtk_widget_set_margin_bottom (vbox, 12);
   gtk_container_add (GTK_CONTAINER (hbox), vbox);
 
   list = gtk_list_box_new ();

@@ -79,10 +79,13 @@ activate (GtkApplication *app,
   GtkWidget *button;
   GtkWidget *label;
 
-  win = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  win = gtk_window_new ();
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
-  g_object_set (box, "margin", 12, NULL);
+  gtk_widget_set_margin_start (box, 12);
+  gtk_widget_set_margin_end (box, 12);
+  gtk_widget_set_margin_top (box, 12);
+  gtk_widget_set_margin_bottom (box, 12);
   gtk_container_add (GTK_CONTAINER (win), box);
 
   grid = gtk_grid_new ();

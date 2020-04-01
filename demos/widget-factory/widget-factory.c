@@ -26,7 +26,7 @@
 #include <gtk/gtk.h>
 
 static void
-change_theme_state (GSimpleAction *action,
+change_dark_state (GSimpleAction *action,
                     GVariant      *state,
                     gpointer       user_data)
 {
@@ -35,6 +35,57 @@ change_theme_state (GSimpleAction *action,
   g_object_set (G_OBJECT (settings),
                 "gtk-application-prefer-dark-theme",
                 g_variant_get_boolean (state),
+                NULL);
+
+  g_simple_action_set_state (action, state);
+}
+
+static char *current_theme;
+static gboolean current_dark;
+
+static void
+change_theme_state (GSimpleAction *action,
+                    GVariant      *state,
+                    gpointer       user_data)
+{
+  GtkSettings *settings = gtk_settings_get_default ();
+  const char *s;
+  const char *theme;
+  gboolean prefer_dark = FALSE;
+
+  s = g_variant_get_string (state, NULL);
+
+  if (strcmp (s, "adwaita") == 0)
+    {
+      theme = "Adwaita";
+      prefer_dark = FALSE;
+    }
+  else if (strcmp (s, "adwaita-dark") == 0)
+    {
+      theme = "Adwaita";
+      prefer_dark = TRUE;
+    }
+  else if (strcmp (s, "highcontrast") == 0)
+    {
+      theme = "HighContrast";
+      prefer_dark = FALSE;
+    }
+  else if (strcmp (s, "highcontrast-inverse") == 0)
+    {
+      theme = "HighContrastInverse";
+      prefer_dark = FALSE;
+    }
+  else if (strcmp (s, "current") == 0)
+    {
+      theme = current_theme;
+      prefer_dark = current_dark;
+    }
+  else
+    return;
+
+  g_object_set (G_OBJECT (settings),
+                "gtk-theme-name", theme,
+                "gtk-application-prefer-dark-theme", prefer_dark,
                 NULL);
 
   g_simple_action_set_state (action, state);
@@ -796,7 +847,10 @@ overshot (GtkScrolledWindow *sw, GtkPositionType pos, GtkWidget *widget)
                 "halign", GTK_ALIGN_START,
                 "valign", GTK_ALIGN_CENTER,
                 "hexpand", TRUE,
-                "margin", 6,
+                "margin-start", 6,
+                "margin-end", 6,
+                "margin-top", 6,
+                "margin-bottom", 6,
                 "xalign", 0.0,
                 NULL);
   gtk_container_add (GTK_CONTAINER (row), label);
@@ -806,7 +860,10 @@ overshot (GtkScrolledWindow *sw, GtkPositionType pos, GtkWidget *widget)
                          "selectable", FALSE,
                          "halign", GTK_ALIGN_END,
                          "valign", GTK_ALIGN_CENTER,
-                         "margin", 6,
+                         "margin-start", 6,
+                         "margin-end", 6,
+                         "margin-top", 6,
+                         "margin-bottom", 6,
                          "height-request", 24,
                          NULL);
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
@@ -906,7 +963,10 @@ populate_colors (GtkWidget *widget, GtkWidget *chooser)
       g_object_set (label,
                     "halign", GTK_ALIGN_START,
                     "valign", GTK_ALIGN_CENTER,
-                    "margin", 6,
+                    "margin-start", 6,
+                    "margin-end", 6,
+                    "margin-top", 6,
+                    "margin-bottom", 6,
                     "hexpand", TRUE,
                     "xalign", 0.0,
                     NULL);
@@ -917,7 +977,10 @@ populate_colors (GtkWidget *widget, GtkWidget *chooser)
                              "selectable", FALSE,
                              "halign", GTK_ALIGN_END,
                              "valign", GTK_ALIGN_CENTER,
-                             "margin", 6,
+                             "margin-start", 6,
+                             "margin-end", 6,
+                             "margin-top", 6,
+                             "margin-bottom", 6,
                              "height-request", 24,
                              NULL);
       box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
@@ -1063,6 +1126,7 @@ typedef struct
 
 typedef GtkTextViewClass MyTextViewClass;
 
+static GType my_text_view_get_type (void);
 G_DEFINE_TYPE (MyTextView, my_text_view, GTK_TYPE_TEXT_VIEW)
 
 static void
@@ -1434,6 +1498,7 @@ struct _GTestPermissionClass
   GPermissionClass parent_class;
 };
 
+static GType g_test_permission_get_type (void);
 G_DEFINE_TYPE (GTestPermission, g_test_permission, G_TYPE_PERMISSION)
 
 static void
@@ -1472,7 +1537,7 @@ acquire_async (GPermission         *permission,
   g_object_unref (task);
 }
 
-gboolean
+static gboolean
 acquire_finish (GPermission   *permission,
                 GAsyncResult  *res,
                 GError       **error)
@@ -1501,7 +1566,7 @@ release_async (GPermission         *permission,
   g_object_unref (task);
 }
 
-gboolean
+static gboolean
 release_finish (GPermission   *permission,
                 GAsyncResult  *result,
                 GError       **error)
@@ -1630,9 +1695,10 @@ static void
 set_up_context_popover (GtkWidget *widget,
                         GMenuModel *model)
 {
-  GtkWidget *popover = gtk_popover_menu_new_from_model (widget, model);
+  GtkWidget *popover = gtk_popover_menu_new_from_model (model);
   GtkGesture *gesture;
 
+  gtk_widget_set_parent (popover, widget);
   gtk_popover_set_has_arrow (GTK_POPOVER (popover), FALSE);
   gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_SECONDARY);
@@ -1656,7 +1722,8 @@ activate (GApplication *app)
   GtkCssProvider *provider;
   GMenuModel *model;
   static GActionEntry win_entries[] = {
-    { "dark", NULL, NULL, "false", change_theme_state },
+    { "dark", NULL, NULL, "false", change_dark_state },
+    { "theme", NULL, "s", "'current'", change_theme_state }, 
     { "transition", NULL, NULL, "false", change_transition_state },
     { "search", activate_search, NULL, NULL, NULL },
     { "delete", activate_delete, NULL, NULL, NULL },
@@ -1687,6 +1754,11 @@ activate (GApplication *app)
   gint i;
   GPermission *permission;
   GAction *action;
+
+  g_object_get (gtk_settings_get_default (),
+                "gtk-theme-name", &current_theme,
+                "gtk-application-prefer-dark-theme", &current_dark,
+                NULL);
 
   g_type_ensure (my_text_view_get_type ());
 

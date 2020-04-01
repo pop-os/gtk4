@@ -41,6 +41,7 @@ a11y_state_tests = [
 
 a11y_dump_bin = executable('accessibility-dump',
   'accessibility-dump.c',
+  c_args: common_cflags,
   dependencies: libgtk_dep,
   install: get_option('install-tests'),
   install_dir: testexecdir,
@@ -51,6 +52,7 @@ foreach t: a11y_state_tests
   test (t + ' state',
     a11y_dump_bin,
     args: [ '--tap', '-k', ui_path ],
+    protocol: 'tap',
     env: [
       'GIO_USE_VOLUME_MONITOR=unix',
       'GSETTINGS_BACKEND=memory',
@@ -85,6 +87,7 @@ foreach t: a11y_tests
                     install_dir: testexecdir,
                     dependencies: libgtk_dep),
         args: [ '--tap', '-k', ],
+        protocol: 'tap',
         timeout: 120,
         env: [ 'GIO_USE_VOLUME_MONITOR=unix',
                'GSETTINGS_BACKEND=memory',

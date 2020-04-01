@@ -1,10 +1,5 @@
 #include <gtk/gtk.h>
 
-static const char *row_targets[] =
-{
-  "GTK_TREE_MODEL_ROW"
-};
-
 static void
 on_button_clicked (GtkWidget *widget, gpointer data)
 {
@@ -15,11 +10,11 @@ static gboolean done = FALSE;
 
 static void
 quit_cb (GtkWidget *widget,
-         gpointer   data)
+         gpointer   user_data)
 {
-  gboolean *done = data;
+  gboolean *is_done = user_data;
 
-  *done = TRUE;
+  *is_done = TRUE;
 
   g_main_context_wakeup (NULL);
 }
@@ -37,7 +32,7 @@ kinetic_scrolling (void)
   GdkContentFormats *targets;
   gint i;
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_default_size (GTK_WINDOW (window), 400, 400);
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 
@@ -61,16 +56,16 @@ kinetic_scrolling (void)
   button_grid = gtk_grid_new ();
   for (i = 0; i < 80; i++)
     {
-      gchar *label = g_strdup_printf ("Button number %d", i);
+      char *button_label = g_strdup_printf ("Button number %d", i);
 
-      button = gtk_button_new_with_label (label);
+      button = gtk_button_new_with_label (button_label);
       gtk_grid_attach (GTK_GRID (button_grid), button, 0, i, 1, 1);
       gtk_widget_set_hexpand (button, TRUE);
       gtk_widget_show (button);
       g_signal_connect (button, "clicked",
                         G_CALLBACK (on_button_clicked),
                         GINT_TO_POINTER (i));
-      g_free (label);
+      g_free (button_label);
     }
 
   swindow = gtk_scrolled_window_new (NULL, NULL);
@@ -83,7 +78,7 @@ kinetic_scrolling (void)
   gtk_widget_show (swindow);
 
   treeview = gtk_tree_view_new ();
-  targets = gdk_content_formats_new (row_targets, G_N_ELEMENTS (row_targets));
+  targets = gdk_content_formats_new_for_gtype (GTK_TYPE_TREE_ROW_DATA);
   gtk_tree_view_enable_model_drag_source (GTK_TREE_VIEW (treeview),
                                           GDK_BUTTON1_MASK,
                                           targets,
@@ -104,10 +99,10 @@ kinetic_scrolling (void)
   for (i = 0; i < 80; i++)
     {
       GtkTreeIter iter;
-      gchar *label = g_strdup_printf ("Row number %d", i);
+      gchar *iter_label = g_strdup_printf ("Row number %d", i);
 
       gtk_list_store_append (store, &iter);
-      gtk_list_store_set (store, &iter, 0, label, -1);
+      gtk_list_store_set (store, &iter, 0, iter_label, -1);
       g_free (label);
     }
   gtk_tree_view_set_model (GTK_TREE_VIEW (treeview), GTK_TREE_MODEL (store));

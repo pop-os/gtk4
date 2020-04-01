@@ -340,7 +340,8 @@ do_popup_menu (GtkWidget   *icon_list,
   if (!path)
     return;
 
-  menu = gtk_popover_new (icon_list);
+  menu = gtk_popover_new ();
+  gtk_widget_set_parent (menu, icon_list);
 
   data = g_new0 (ItemData, 1);
   data->icon_list = icon_view;
@@ -389,10 +390,6 @@ popup_menu_handler (GtkWidget *widget)
   return TRUE;
 }
 
-static const char *item_targets[] = {
-  "GTK_TREE_MODEL_ROW"
-};
-	
 gint
 main (gint argc, gchar **argv)
 {
@@ -416,7 +413,7 @@ main (gint argc, gchar **argv)
   if (g_getenv ("RTL"))
     gtk_widget_set_default_direction (GTK_TEXT_DIR_RTL);
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_default_size (GTK_WINDOW (window), 700, 400);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -506,7 +503,7 @@ main (gint argc, gchar **argv)
 #endif
   /* Allow DND between the icon view and the tree view */
   
-  targets = gdk_content_formats_new (item_targets, G_N_ELEMENTS (item_targets));
+  targets = gdk_content_formats_new_for_gtype (GTK_TYPE_TREE_ROW_DATA);
   gtk_icon_view_enable_model_drag_source (GTK_ICON_VIEW (icon_list),
 					  GDK_BUTTON1_MASK,
                                           targets,

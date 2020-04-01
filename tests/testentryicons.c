@@ -100,12 +100,11 @@ main (int argc, char **argv)
   GtkWidget *button4;
   GIcon *icon;
   GdkContentProvider *content;
-  GValue value = G_VALUE_INIT;
   gboolean done = FALSE;
 
   gtk_init ();
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_title (GTK_WINDOW (window), "Gtk Entry Icons Test");
 
   g_signal_connect (G_OBJECT (window), "destroy",
@@ -115,7 +114,10 @@ main (int argc, char **argv)
   gtk_container_add (GTK_CONTAINER (window), grid);
   gtk_grid_set_row_spacing (GTK_GRID (grid), 6);
   gtk_grid_set_column_spacing (GTK_GRID (grid), 6);
-  g_object_set (grid, "margin", 10, NULL);
+  gtk_widget_set_margin_start (grid, 10);
+  gtk_widget_set_margin_end (grid, 10);
+  gtk_widget_set_margin_top (grid, 10);
+  gtk_widget_set_margin_bottom (grid, 10);
 
   /*
    * Open File - Sets the icon using a GIcon
@@ -165,10 +167,7 @@ main (int argc, char **argv)
 				   GTK_ENTRY_ICON_PRIMARY,
 				   "Save a file");
  
-  g_value_init (&value, G_TYPE_STRING);
-  g_value_set_string (&value, "Amazing");
-  content = gdk_content_provider_new_for_value (&value);
-  g_value_unset (&value);
+  content = gdk_content_provider_new_typed (G_TYPE_STRING, "Amazing");
   gtk_entry_set_icon_drag_source (GTK_ENTRY (entry),
                                   GTK_ENTRY_ICON_PRIMARY,
                                   content, GDK_ACTION_COPY); 
@@ -278,7 +277,10 @@ main (int argc, char **argv)
   gtk_container_add (GTK_CONTAINER (box), entry);
   image = gtk_image_new_from_icon_name ("edit-find-symbolic");
   gtk_widget_set_cursor_from_name (image, "default");
-  g_object_set (image, "margin", 6, NULL);
+  gtk_widget_set_margin_start (image, 6);
+  gtk_widget_set_margin_end (image, 6);
+  gtk_widget_set_margin_top (image, 6);
+  gtk_widget_set_margin_bottom (image, 6);
   gtk_widget_set_tooltip_text (image, "Click me");
 
   GtkGesture *gesture;
@@ -287,7 +289,10 @@ main (int argc, char **argv)
   gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (gesture));
   gtk_container_add (GTK_CONTAINER (box), image);
   image = gtk_image_new_from_icon_name ("document-save-symbolic");
-  g_object_set (image, "margin", 6, NULL);
+  gtk_widget_set_margin_start (image, 6);
+  gtk_widget_set_margin_end (image, 6);
+  gtk_widget_set_margin_top (image, 6);
+  gtk_widget_set_margin_bottom (image, 6);
   gtk_container_add (GTK_CONTAINER (box), image);
   gtk_grid_attach (GTK_GRID (grid), box, 1, 7, 1, 1);
 

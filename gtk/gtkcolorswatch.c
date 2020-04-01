@@ -22,8 +22,8 @@
 #include "gtkbox.h"
 #include "gtkcolorchooserprivate.h"
 #include "gtkcssnodeprivate.h"
-#include "gtkdragdest.h"
 #include "gtkdragsource.h"
+#include "gtkdroptarget.h"
 #include "gtkgesturelongpress.h"
 #include "gtkgestureclick.h"
 #include "gtkgesturesingle.h"
@@ -89,25 +89,35 @@ swatch_snapshot (GtkWidget   *widget,
   GtkColorSwatchPrivate *priv = gtk_color_swatch_get_instance_private (swatch);
   const int width = gtk_widget_get_width (widget);
   const int height = gtk_widget_get_height (widget);
+  const GdkRGBA *color;
+
+  color = &priv->color;
+  if (priv->dest)
+    {
+      const GValue *value = gtk_drop_target_get_value (priv->dest);
+
+      if (value)
+        color = g_value_get_boxed (value);
+    }
 
   if (priv->has_color)
     {
-      if (priv->use_alpha && !gdk_rgba_is_opaque (&priv->color))
+      if (priv->use_alpha && !gdk_rgba_is_opaque (color))
         {
           _gtk_color_chooser_snapshot_checkered_pattern (snapshot, width, height);
 
           gtk_snapshot_append_color (snapshot,
-                                     &priv->color,
+                                     color,
                                      &GRAPHENE_RECT_INIT (0, 0, width, height));
         }
       else
         {
-          GdkRGBA color = priv->color;
+          GdkRGBA opaque = *color;
 
-          color.alpha = 1.0;
+          opaque.alpha = 1.0;
 
           gtk_snapshot_append_color (snapshot,
-                                     &color,
+                                     &opaque,
                                      &GRAPHENE_RECT_INIT (0, 0, width, height));
         }
     }
@@ -115,81 +125,47 @@ swatch_snapshot (GtkWidget   *widget,
   gtk_widget_snapshot_child (widget, priv->overlay_widget, snapshot);
 }
 
-static void
-gtk_color_swatch_drag_begin (GtkDragSource  *source,
-                             GdkDrag        *drag,
-                             GtkColorSwatch *swatch)
-{
-  GtkColorSwatchPrivate *priv = gtk_color_swatch_get_instance_private (swatch);
-  GtkSnapshot *snapshot;
-  GdkPaintable *paintable;
-
-  snapshot = gtk_snapshot_new ();
-  gtk_snapshot_append_color (snapshot, &priv->color, &GRAPHENE_RECT_INIT(0, 0, 48, 32));
-  paintable = gtk_snapshot_free_to_paintable (snapshot, NULL);
-
-  gtk_drag_source_set_icon (source, paintable, 0, 0);
-
-  g_object_unref (paintable);
-}
-
-static void
-got_color (GObject      *source,
-           GAsyncResult *result,
-           gpointer      data)
-{
-  GdkDrop *drop = GDK_DROP (source);
-  const GValue *value;
-
-  value = gdk_drop_read_value_finish (drop, result, NULL);
-  if (value)
-    {
-      GdkRGBA *color = g_value_get_boxed (value);
-      gtk_color_swatch_set_rgba (GTK_COLOR_SWATCH (data), color);
-      gdk_drop_finish (drop, GDK_ACTION_COPY);
-    }
-  else
-    gdk_drop_finish (drop, 0);
-}
-
 static gboolean
 swatch_drag_drop (GtkDropTarget  *dest,
-                  GdkDrop        *drop,
-                  int             x,
-                  int             y,
+                  const GValue   *value,
+                  double          x,
+                  double          y,
                   GtkColorSwatch *swatch)
-{
-  if (gdk_drop_has_value (drop, GDK_TYPE_RGBA))
-    {
-      gdk_drop_read_value_async (drop, GDK_TYPE_RGBA, G_PRIORITY_DEFAULT, NULL, got_color, swatch);
-      return TRUE;
-    }
 
-  return FALSE;
+{
+  gtk_color_swatch_set_rgba (swatch, g_value_get_boxed (value));
+
+  return TRUE;
 }
 
 static void
 activate_color (GtkColorSwatch *swatch)
 {
   GtkColorSwatchPrivate *priv = gtk_color_swatch_get_instance_private (swatch);
+  double red, green, blue, alpha;
+
+  red = priv->color.red;
+  green = priv->color.green;
+  blue = priv->color.blue;
+  alpha = priv->color.alpha;
+
   gtk_widget_activate_action (GTK_WIDGET (swatch),
-                              "color.select", "(dddd)",
-                              priv->color.red,
-                              priv->color.green,
-                              priv->color.blue,
-                              priv->color.alpha);
+                              "color.select", "(dddd)", red, green, blue, alpha);
 }
 
 static void
 customize_color (GtkColorSwatch *swatch)
 {
   GtkColorSwatchPrivate *priv = gtk_color_swatch_get_instance_private (swatch);
+  double red, green, blue, alpha;
+
+  red = priv->color.red;
+  green = priv->color.green;
+  blue = priv->color.blue;
+  alpha = priv->color.alpha;
+
   gtk_widget_activate_action (GTK_WIDGET (swatch),
-                              "color.customize", "(dddd)",
-                              priv->color.red,
-                              priv->color.green,
-                              priv->color.blue,
-                              priv->color.alpha);
+                              "color.customize", "(dddd)", red, green, blue, alpha);
 }
 
 static gboolean
@@ -227,17 +203,19 @@ gtk_color_swatch_get_menu_model (GtkColorSwatch *swatch)
   GtkColorSwatchPrivate *priv = gtk_color_swatch_get_instance_private (swatch);
   GMenu *menu, *section;
   GMenuItem *item;
+  double red, green, blue, alpha;
 
   menu = g_menu_new ();
+
+  red = priv->color.red;
+  green = priv->color.green;
+  blue = priv->color.blue;
+  alpha = priv->color.alpha;
 
   section = g_menu_new ();
   item = g_menu_item_new (_("Customize"), NULL);
   g_menu_item_set_action_and_target_value (item, "color.customize",
-                                           g_variant_new ("(dddd)",
-                                                          priv->color.red,
-                                                          priv->color.green,
-                                                          priv->color.blue,
-                                                          priv->color.alpha));
+                                           g_variant_new ("(dddd)", red, green, blue, alpha));
 
   g_menu_append_item (section, item);
   g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
@@ -256,7 +234,8 @@ do_popup (GtkColorSwatch *swatch)
   g_clear_pointer (&priv->popover, gtk_widget_unparent);
 
   model = gtk_color_swatch_get_menu_model (swatch);
-  priv->popover = gtk_popover_menu_new_from_model (GTK_WIDGET (swatch), model);
+  priv->popover = gtk_popover_menu_new_from_model (model);
+  gtk_widget_set_parent (priv->popover, GTK_WIDGET (swatch));
   g_object_unref (model);
 
   gtk_popover_popup (GTK_POPOVER (priv->popover));
@@ -369,13 +348,12 @@ gtk_color_swatch_measure (GtkWidget *widget,
   *natural = MAX (*natural, min);
 }
 
-
-
-static gboolean
-swatch_popup_menu (GtkWidget *widget)
+static void
+swatch_popup_menu (GtkWidget  *widget,
+                   const char *action_name,
+                   GVariant   *parameters)
 {
   do_popup (GTK_COLOR_SWATCH (widget));
-  return TRUE;
 }
 
 static void
@@ -501,7 +479,6 @@ gtk_color_swatch_class_init (GtkColorSwatchClass *class)
 
   widget_class->measure = gtk_color_swatch_measure;
   widget_class->snapshot = swatch_snapshot;
-  widget_class->popup_menu = swatch_popup_menu;
   widget_class->size_allocate = swatch_size_allocate;
   widget_class->state_flags_changed = swatch_state_flags_changed;
 
@@ -517,6 +494,17 @@ gtk_color_swatch_class_init (GtkColorSwatchClass *class)
   g_object_class_install_property (object_class, PROP_CAN_DROP,
       g_param_spec_boolean ("can-drop", P_("Can Drop"), P_("Whether the swatch should accept drops"),
                             FALSE, GTK_PARAM_READWRITE));
+
+  gtk_widget_class_install_action (widget_class, "menu.popup", NULL, swatch_popup_menu);
+
+  gtk_widget_class_add_binding_action (widget_class,
+                                       GDK_KEY_F10, GDK_SHIFT_MASK,
+                                       "menu.popup",
+                                       NULL);
+  gtk_widget_class_add_binding_action (widget_class,
+                                       GDK_KEY_Menu, 0,
+                                       "menu.popup",
+                                       NULL);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_COLOR_SWATCH_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("colorswatch"));
@@ -574,16 +562,15 @@ gtk_color_swatch_new (void)
   return (GtkWidget *) g_object_new (GTK_TYPE_COLOR_SWATCH, NULL);
 }
 
-static const char *dnd_targets[] = {
-  "application/x-color"
-};
-
-static void
-get_rgba_value (GValue   *value,
-                gpointer  data)
+static GdkContentProvider *
+gtk_color_swatch_drag_prepare (GtkDragSource  *source,
+                               double          x,
+                               double          y,
+                               GtkColorSwatch *swatch)
 {
-  GtkColorSwatchPrivate *priv = gtk_color_swatch_get_instance_private (GTK_COLOR_SWATCH (data));
-  g_value_set_boxed (value, &priv->color);
+  GtkColorSwatchPrivate *priv = gtk_color_swatch_get_instance_private (swatch);
+
+  return gdk_content_provider_new_typed (GDK_TYPE_RGBA, &priv->color);
 }
 
 void
@@ -594,14 +581,10 @@ gtk_color_swatch_set_rgba (GtkColorSwatch *swatch,
 
   if (!priv->has_color)
     {
-      GdkContentProvider *content;
       GtkDragSource *source;
 
       source = gtk_drag_source_new ();
-      content = gdk_content_provider_new_with_callback (GDK_TYPE_RGBA, get_rgba_value, swatch);
-      gtk_drag_source_set_content (source, content);
-      g_object_unref (content);
-      g_signal_connect (source, "drag-begin", G_CALLBACK (gtk_color_swatch_drag_begin), swatch);
+      g_signal_connect (source, "prepare", G_CALLBACK (gtk_color_swatch_drag_prepare), swatch);
 
       gtk_widget_add_controller (GTK_WIDGET (swatch), GTK_EVENT_CONTROLLER (source));
     }
@@ -618,7 +601,6 @@ gtk_color_swatch_set_rgba (GtkColorSwatch *swatch,
     {
       gtk_widget_add_css_class (GTK_WIDGET (swatch), "dark");
       gtk_widget_remove_css_class (GTK_WIDGET (swatch), "light");
-
     }
 
   gtk_widget_queue_draw (GTK_WIDGET (swatch));
@@ -671,13 +653,11 @@ gtk_color_swatch_set_can_drop (GtkColorSwatch *swatch,
 
   if (can_drop && !priv->dest)
     {
-      GdkContentFormats *targets;
-
-      targets = gdk_content_formats_new (dnd_targets, G_N_ELEMENTS (dnd_targets));
-      priv->dest = gtk_drop_target_new (targets, GDK_ACTION_COPY);
-      g_signal_connect (priv->dest, "drag-drop", G_CALLBACK (swatch_drag_drop), swatch);
+      priv->dest = gtk_drop_target_new (GDK_TYPE_RGBA, GDK_ACTION_COPY);
+      gtk_drop_target_set_preload (priv->dest, TRUE);
+      g_signal_connect (priv->dest, "drop", G_CALLBACK (swatch_drag_drop), swatch);
+      g_signal_connect_swapped (priv->dest, "notify::value", G_CALLBACK (gtk_widget_queue_draw), swatch);
       gtk_widget_add_controller (GTK_WIDGET (swatch), GTK_EVENT_CONTROLLER (priv->dest));
-      gdk_content_formats_unref (targets);
     }
   if (!can_drop && priv->dest)
     {

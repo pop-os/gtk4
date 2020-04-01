@@ -20,7 +20,7 @@ do_entry_undo (GtkWidget *do_widget)
 
   if (!window)
     {
-      window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Entry Undo");
@@ -29,7 +29,10 @@ do_entry_undo (GtkWidget *do_widget)
                         G_CALLBACK (gtk_widget_destroyed), &window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
-      g_object_set (vbox, "margin", 5, NULL);
+      gtk_widget_set_margin_start (vbox, 5);
+      gtk_widget_set_margin_end (vbox, 5);
+      gtk_widget_set_margin_top (vbox, 5);
+      gtk_widget_set_margin_bottom (vbox, 5);
       gtk_container_add (GTK_CONTAINER (window), vbox);
 
       label = gtk_label_new (NULL);

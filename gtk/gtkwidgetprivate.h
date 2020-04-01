@@ -30,7 +30,7 @@
 #include "gtkactionmuxerprivate.h"
 #include "gtkcontainer.h"
 #include "gtkcsstypesprivate.h"
-#include "gtkeventcontroller.h"
+#include "gtkeventcontrollerprivate.h"
 #include "gtklistlistmodelprivate.h"
 #include "gtkrootprivate.h"
 #include "gtksizerequestcacheprivate.h"
@@ -180,12 +180,6 @@ struct _GtkWidgetPrivate
 
   GSList *paintables;
 
-  /* The widget's surface or its parent surface if it does
-   * not have a surface. (Which will be indicated by the
-   * no_surface field being set).
-   */
-  GdkSurface *surface;
-
   GList *event_controllers;
 
   AtkObject *accessible;
@@ -205,6 +199,24 @@ struct _GtkWidgetPrivate
 
   /* Pointer cursor */
   GdkCursor *cursor;
+};
+
+typedef struct
+{
+  GBytes *data;
+  GSList *children;
+  GtkBuilderScope *scope;
+} GtkWidgetTemplate;
+
+struct _GtkWidgetClassPrivate
+{
+  GtkWidgetTemplate *template;
+  GListStore *shortcuts;
+  GType accessible_type;
+  AtkRole accessible_role;
+  GQuark css_name;
+  GType layout_manager_type;
+  GtkWidgetAction *actions;
 };
 
 void          gtk_widget_root               (GtkWidget *widget);
@@ -236,9 +248,6 @@ void         _gtk_widget_add_attached_window    (GtkWidget    *widget,
 void         _gtk_widget_remove_attached_window (GtkWidget    *widget,
                                                  GtkWindow    *window);
 
-const gchar*      _gtk_widget_get_accel_path               (GtkWidget *widget,
-                                                            gboolean  *locked);
-
 AtkObject *       _gtk_widget_peek_accessible              (GtkWidget *widget);
 
 void              _gtk_widget_set_has_default              (GtkWidget *widget,
@@ -259,24 +268,16 @@ GdkSurface *       _gtk_widget_get_device_surface          (GtkWidget *widget,
                                                             GdkDevice *device);
 GList *           _gtk_widget_list_devices                 (GtkWidget *widget);
 
-void              gtk_synthesize_crossing_events           (GtkRoot         *toplevel,
-                                                            GtkWidget       *from,
-                                                            GtkWidget       *to,
-                                                            GdkEvent        *event,
-                                                            GdkCrossingMode  mode);
-
 void              _gtk_widget_synthesize_crossing          (GtkWidget       *from,
                                                             GtkWidget       *to,
                                                             GdkDevice       *device,
                                                             GdkCrossingMode  mode);
 
-void              _gtk_widget_buildable_finish_accelerator (GtkWidget *widget,
-                                                            GtkWidget *toplevel,
-                                                            gpointer   user_data);
 GtkStyleContext * _gtk_widget_peek_style_context           (GtkWidget *widget);
 
 gboolean          _gtk_widget_captured_event               (GtkWidget *widget,
-                                                            GdkEvent  *event);
+                                                            GdkEvent  *event,
+                                                            GtkWidget *target);
 
 void              gtk_widget_css_changed                   (GtkWidget           *widget,
                                                             GtkCssStyleChange   *change);
@@ -290,12 +291,13 @@ gboolean          _gtk_widget_consumes_motion              (GtkWidget           
 
 gboolean          gtk_widget_has_tick_callback             (GtkWidget *widget);
 
-void              gtk_widget_set_csd_input_shape           (GtkWidget            *widget,
-                                                            const cairo_region_t *region);
-
 gboolean          gtk_widget_has_size_request              (GtkWidget *widget);
 
 void              gtk_widget_reset_controllers             (GtkWidget *widget);
+
+GtkEventController **gtk_widget_list_controllers           (GtkWidget           *widget,
+                                                            GtkPropagationPhase  phase,
+                                                            guint               *out_n_controllers);
 
 gboolean          gtk_widget_query_tooltip                 (GtkWidget  *widget,
                                                             gint        x,
@@ -309,12 +311,6 @@ void              gtk_widget_adjust_size_request           (GtkWidget      *widg
                                                             GtkOrientation  orientation,
                                                             gint           *minimum_size,
                                                             gint           *natural_size);
-void              gtk_widget_adjust_size_allocation        (GtkWidget         *widget,
-                                                            GtkOrientation     orientation,
-                                                            gint              *minimum_size,
-                                                            gint              *natural_size,
-                                                            gint              *allocated_pos,
-                                                            gint              *allocated_size);
 void              gtk_widget_adjust_baseline_request       (GtkWidget *widget,
                                                             gint      *minimum_baseline,
                                                             gint      *natural_baseline);
@@ -341,10 +337,19 @@ void              gtk_widget_cancel_event_sequence         (GtkWidget           
                                                             GtkGesture            *gesture,
                                                             GdkEventSequence      *sequence,
                                                             GtkEventSequenceState  state);
-
+gboolean          gtk_widget_event                         (GtkWidget           *widget,
+                                                            GdkEvent            *event,
+                                                            GtkWidget           *target);
 gboolean          gtk_widget_run_controllers               (GtkWidget           *widget,
-                                                            const GdkEvent      *event,
+                                                            GdkEvent            *event,
+                                                            GtkWidget           *target,
+                                                            double               x,
+                                                            double               y,
                                                             GtkPropagationPhase  phase);
+void              gtk_widget_handle_crossing               (GtkWidget             *widget,
+                                                            const GtkCrossingData *crossing,
+                                                            double                 x,
+                                                            double                 y);
 
 
 guint             gtk_widget_add_surface_transform_changed_callback (GtkWidget                          *widget,

@@ -221,9 +221,12 @@ open_cb (GtkWidget              *button,
                                         GTK_FILE_CHOOSER_ACTION_OPEN,
                                         "_Load",
                                         "_Cancel");
-
   gtk_native_dialog_set_modal (GTK_NATIVE_DIALOG (dialog), TRUE);
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), ".");
+
+  GFile *cwd = g_file_new_for_path (".");
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), cwd, NULL);
+  g_object_unref (cwd);
+
   g_signal_connect (dialog, "response", G_CALLBACK (open_response_cb), self);
   gtk_native_dialog_show (GTK_NATIVE_DIALOG (dialog));
 }
@@ -290,29 +293,37 @@ save_response_cb (GtkNativeDialog        *dialog,
   if (response == GTK_RESPONSE_ACCEPT)
     {
       GListModel *model;
-      char *text, *filename;
+      GFile *file;
+      char *text;
       GError *error = NULL;
 
       model = constraint_view_get_model (CONSTRAINT_VIEW (self->view));
       text = serialize_model (model);
-
-      filename = gtk_file_chooser_get_filename (GTK_FILE_CHOOSER (dialog));
-      if (!g_file_set_contents (filename, text, -1, &error))
+      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+      g_file_replace_contents (file, text, -1,
+                               NULL, FALSE,
+                               G_FILE_CREATE_NONE,
+                               NULL,
+                               NULL,
+                               &error);
+      if (error != NULL)
         {
-          GtkWidget *dialog;
+          GtkWidget *message_dialog;
 
-          dialog = gtk_message_dialog_new (GTK_WINDOW (gtk_widget_get_root (GTK_WIDGET (self))),
-                                           GTK_DIALOG_MODAL|GTK_DIALOG_DESTROY_WITH_PARENT,
-                                           GTK_MESSAGE_INFO,
-                                           GTK_BUTTONS_OK,
-                                           "Saving failed");
-          gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
+          message_dialog = gtk_message_dialog_new (GTK_WINDOW (gtk_widget_get_root (GTK_WIDGET (self))),
+                                                   GTK_DIALOG_MODAL|GTK_DIALOG_DESTROY_WITH_PARENT,
+                                                   GTK_MESSAGE_INFO,
+                                                   GTK_BUTTONS_OK,
+                                                   "Saving failed");
+          gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (message_dialog),
                                                     "%s", error->message);
-          g_signal_connect (dialog, "response", G_CALLBACK (gtk_widget_destroy), NULL);
-          gtk_widget_show (dialog);
+          g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_widget_destroy), NULL);
+          gtk_widget_show (message_dialog);
           g_error_free (error);
         }
-      g_free (filename);
+
+      g_free (text);
+      g_object_unref (file);
     }
 
   gtk_native_dialog_destroy (dialog);
@@ -329,9 +340,12 @@ save_cb (GtkWidget              *button,
                                         GTK_FILE_CHOOSER_ACTION_SAVE,
                                         "_Save",
                                         "_Cancel");
-
   gtk_native_dialog_set_modal (GTK_NATIVE_DIALOG (dialog), TRUE);
-  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), ".");
+
+  GFile *cwd = g_file_new_for_path (".");
+  gtk_file_chooser_set_current_folder (GTK_FILE_CHOOSER (dialog), cwd, NULL);
+  g_object_unref (cwd);
+
   g_signal_connect (dialog, "response", G_CALLBACK (save_response_cb), self);
   gtk_native_dialog_show (GTK_NATIVE_DIALOG (dialog));
 }
@@ -400,7 +414,7 @@ edit_constraint (ConstraintEditorWindow *win,
   ConstraintEditor *editor;
   GListModel *model;
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_transient_for (GTK_WINDOW (window), GTK_WINDOW (win));
   gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
   if (constraint)
@@ -440,7 +454,7 @@ edit_guide (ConstraintEditorWindow *win,
   GtkWidget *window;
   GuideEditor *editor;
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
   gtk_window_set_transient_for (GTK_WINDOW (window), GTK_WINDOW (win));
   gtk_window_set_title (GTK_WINDOW (window), "Edit Guide");
@@ -587,7 +601,10 @@ create_widget_func (gpointer item,
     g_object_bind_property (item, "name",
                             label, "label",
                             G_BINDING_DEFAULT);
-  g_object_set (label, "margin", 10, NULL);
+  gtk_widget_set_margin_start (label, 10);
+  gtk_widget_set_margin_end (label, 10);
+  gtk_widget_set_margin_top (label, 10);
+  gtk_widget_set_margin_bottom (label, 10);
   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
   gtk_widget_set_hexpand (label, TRUE);
   gtk_container_add (GTK_CONTAINER (row), box);

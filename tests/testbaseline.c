@@ -18,7 +18,7 @@
 
 #include <gtk/gtk.h>
 
-static char *baseline_pos_str[] = {
+static const char *baseline_pos_str[] = {
   "BASELINE_POSITION_TOP",
   "BASELINE_POSITION_CENTER",
   "BASELINE_POSITION_BOTTOM"
@@ -99,7 +99,7 @@ main (int    argc,
                                               GTK_STYLE_PROVIDER (provider),
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
   g_object_unref (provider);
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (quit_cb), &done);
 
   notebook = gtk_notebook_new ();
@@ -114,7 +114,7 @@ main (int    argc,
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
       gtk_container_add (GTK_CONTAINER (vbox), hbox);
 
-      char *aligns_names[] = { "FILL", "BASELINE" };
+      const char *aligns_names[] = { "FILL", "BASELINE" };
       GtkAlign aligns[] = { GTK_ALIGN_FILL, GTK_ALIGN_BASELINE};
 
       label = gtk_label_new (aligns_names[j]);
@@ -251,7 +251,7 @@ main (int    argc,
 
   for (j = 0; j < 4; j++)
     {
-      char *labels[] = { "Normal:", "Baseline (top):", "Baseline (center):", "Baseline (bottom):"};
+      const char *labels[] = { "Normal:", "Baseline (top):", "Baseline (center):", "Baseline (bottom):"};
       label = gtk_label_new (labels[j]);
 
       gtk_grid_attach (GTK_GRID (grid),

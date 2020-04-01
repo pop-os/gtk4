@@ -36,7 +36,7 @@ _gdk_device_virtual_set_active (GdkDevice *device,
 {
   GdkDeviceVirtual *virtual = GDK_DEVICE_VIRTUAL (device);
   int n_axes, i;
-  GdkAtom label_atom;
+  const char *label_atom;
   GdkAxisUse use;
   gdouble min_value, max_value, resolution;
 
@@ -116,8 +116,6 @@ static void
 gdk_device_virtual_query_state (GdkDevice        *device,
 				GdkSurface        *window,
 				GdkSurface       **child_window,
-				gdouble          *root_x,
-				gdouble          *root_y,
 				gdouble          *win_x,
 				gdouble          *win_y,
 				GdkModifierType  *mask)
@@ -126,7 +124,6 @@ gdk_device_virtual_query_state (GdkDevice        *device,
 
   _gdk_device_query_state (virtual->active_device,
 			   window, child_window,
-			   root_x, root_y,
 			   win_x, win_y,
 			   mask);
 }

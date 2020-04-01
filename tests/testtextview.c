@@ -11,6 +11,7 @@ typedef struct {
   GtkTextViewClass parent_class;
 } MyTextViewClass;
 
+static GType my_text_view_get_type (void);
 G_DEFINE_TYPE (MyTextView, my_text_view, GTK_TYPE_TEXT_VIEW);
 
 static void snapshot_background (GtkWidget *widget, GtkSnapshot *snapshot);
@@ -175,7 +176,7 @@ main (int argc, char **argv)
 
   gtk_init ();
 
-  window   = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window   = gtk_window_new ();
   sw       = gtk_scrolled_window_new (NULL, NULL);
   textview = g_object_new (my_text_view_get_type (), NULL);
   buffer   = gtk_text_view_get_buffer (GTK_TEXT_VIEW (textview));

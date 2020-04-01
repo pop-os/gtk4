@@ -120,13 +120,13 @@ void _gdk_x11_display_queue_events            (GdkDisplay *display);
 GdkAppLaunchContext *_gdk_x11_display_get_app_launch_context (GdkDisplay *display);
 
 gint        _gdk_x11_display_text_property_to_utf8_list (GdkDisplay     *display,
-                                                         GdkAtom         encoding,
+                                                         const char     *encoding,
                                                          gint            format,
                                                          const guchar   *text,
                                                          gint            length,
                                                          gchar        ***list);
-gchar *     _gdk_x11_display_utf8_to_string_target      (GdkDisplay     *displayt,
-                                                         const gchar    *str);
+char *      gdk_x11_utf8_to_string_target               (const char     *utf8_str,
+                                                         gboolean        return_latin1);
 
 void _gdk_x11_device_check_extension_events   (GdkDevice  *device);
 
@@ -161,12 +161,6 @@ gdouble  gdk_x11_device_xi2_get_last_axis_value (GdkX11DeviceXI2 *device,
 void     gdk_x11_device_xi2_store_axes          (GdkX11DeviceXI2 *device,
                                                  gdouble         *axes,
                                                  gint             n_axes);
-
-GdkAtom _gdk_x11_display_manager_atom_intern   (GdkDisplayManager *manager,
-                                                const gchar       *atom_name,
-                                                gboolean           copy_name);
-gchar * _gdk_x11_display_manager_get_atom_name (GdkDisplayManager *manager,
-                                                GdkAtom            atom);
 
 gboolean   _gdk_x11_display_supports_cursor_alpha   (GdkDisplay    *display);
 gboolean   _gdk_x11_display_supports_cursor_color   (GdkDisplay    *display);
@@ -212,11 +206,9 @@ gdk_surface_cache_get (GdkDisplay *display);
 
 GdkFilterReturn
 gdk_surface_cache_filter (const XEvent *xevent,
-                          GdkEvent     *event,
                           gpointer      data);
 GdkFilterReturn
 gdk_surface_cache_shape_filter (const XEvent *xevent,
-                                GdkEvent     *event,
                                 gpointer      data);
 
 void _gdk_x11_cursor_display_finalize (GdkDisplay *display);
@@ -231,6 +223,19 @@ GdkDrag        * _gdk_x11_surface_drag_begin (GdkSurface          *window,
                                               GdkDragAction       actions,
                                               gint                dx,
                                               gint                dy);
+
+void gdk_x11_surface_get_root_coords (GdkSurface *surface,
+                                      gint        x,
+                                      gint        y,
+                                      gint       *root_x,
+                                      gint       *root_y);
+
+void gdk_x11_surface_show (GdkSurface *surface,
+                           gboolean    already_mapped);
+void gdk_x11_surface_raise (GdkSurface *surface);
+void gdk_x11_surface_set_opacity (GdkSurface *surface,
+                                  double      opacity);
+gboolean gdk_x11_surface_supports_edge_constraints (GdkSurface *surface);
 
 GdkGrabStatus _gdk_x11_convert_grab_status (gint status);
 

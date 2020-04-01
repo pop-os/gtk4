@@ -42,7 +42,6 @@
 #include "gdkdropprivate.h"
 
 #include "gdkdrag.h"
-#include "gdkproperty.h"
 #include "gdkinternals.h"
 #include "gdkprivate-win32.h"
 #include "gdkwin32.h"
@@ -487,8 +486,7 @@ _gdk_win32_local_drop_target_dragenter (GdkDrag        *drag,
 
   source_actions = set_source_actions_helper (drop, *actions, grfKeyState);
 
-  gdk_drop_emit_enter_event (drop, TRUE, time_);
-  gdk_drop_emit_motion_event (drop, TRUE, x_root, y_root, time_);
+  gdk_drop_emit_enter_event (drop, TRUE, x_root, y_root, time_);
   drop_win32->last_key_state = grfKeyState;
   drop_win32->last_x = x_root;
   drop_win32->last_y = y_root;
@@ -559,8 +557,7 @@ idroptarget_dragenter (LPDROPTARGET This,
   set_data_object (&ctx->data_object, pDataObj);
   pt_x = pt.x / drop_win32->scale + _gdk_offset_x;
   pt_y = pt.y / drop_win32->scale + _gdk_offset_y;
-  gdk_drop_emit_enter_event (drop, TRUE, GDK_CURRENT_TIME);
-  gdk_drop_emit_motion_event (drop, TRUE, pt_x, pt_y, GDK_CURRENT_TIME);
+  gdk_drop_emit_enter_event (drop, TRUE, pt_x, pt_y, GDK_CURRENT_TIME);
   drop_win32->last_key_state = grfKeyState;
   drop_win32->last_x = pt_x;
   drop_win32->last_y = pt_y;
@@ -1062,7 +1059,8 @@ gdk_dropfiles_filter (GdkWin32Display *display,
 
 static void
 gdk_win32_drop_status (GdkDrop       *drop,
-                       GdkDragAction  actions)
+                       GdkDragAction  actions,
+                       GdkDragAction  preferred)
 {
   GdkWin32Drop *drop_win32 = GDK_WIN32_DROP (drop);
   GdkDrag *drag;
@@ -1070,10 +1068,11 @@ gdk_win32_drop_status (GdkDrop       *drop,
   g_return_if_fail (drop != NULL);
 
   GDK_NOTE (DND, g_print ("gdk_win32_drop_status: %s\n"
-                          " context=%p:{source_actions=%s}\n",
+                          " context=%p:{source_actions=%s, preferred=%s}\n",
                           _gdk_win32_drag_action_to_string (actions),
                           drop,
-                          _gdk_win32_drag_action_to_string (gdk_drop_get_actions (drop))));
+                          _gdk_win32_drag_action_to_string (gdk_drop_get_actions (drop)),
+                          _gdk_win32_drag_action_to_string (preferred)));
 
   drop_win32->actions = actions;
 

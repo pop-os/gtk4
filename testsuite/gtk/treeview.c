@@ -135,23 +135,23 @@ test_select_collapsed_row (void)
 
   /* Check that the parent is not selected. */
   gtk_tree_path_up (path);
-  g_return_if_fail (gtk_tree_selection_path_is_selected (selection, path) == FALSE);
+  g_assert_false (gtk_tree_selection_path_is_selected (selection, path));
 
   /* Nothing should be selected at this point. */
-  g_return_if_fail (gtk_tree_selection_count_selected_rows (selection) == 0);
+  g_assert_cmpint (gtk_tree_selection_count_selected_rows (selection), ==, 0);
 
   /* Check that selection really still works. */
   gtk_tree_view_set_cursor (GTK_TREE_VIEW (view), path, NULL, FALSE);
-  g_return_if_fail (gtk_tree_selection_path_is_selected (selection, path) == TRUE);
-  g_return_if_fail (gtk_tree_selection_count_selected_rows (selection) == 1);
+  g_assert_true (gtk_tree_selection_path_is_selected (selection, path));
+  g_assert_cmpint (gtk_tree_selection_count_selected_rows (selection), ==, 1);
 
   /* Expand and select child node now. */
   gtk_tree_path_append_index (path, 1);
   gtk_tree_view_expand_all (GTK_TREE_VIEW (view));
 
   gtk_tree_view_set_cursor (GTK_TREE_VIEW (view), path, NULL, FALSE);
-  g_return_if_fail (gtk_tree_selection_path_is_selected (selection, path) == TRUE);
-  g_return_if_fail (gtk_tree_selection_count_selected_rows (selection) == 1);
+  g_assert_true (gtk_tree_selection_path_is_selected (selection, path));
+  g_assert_cmpint (gtk_tree_selection_count_selected_rows (selection), ==, 1);
 
   gtk_tree_path_free (path);
 
@@ -193,7 +193,7 @@ test_row_separator_height (void)
   gtk_list_store_insert_with_values (store, &iter, 4, 0, "Row content", -1);
 
   /*window = gtk_invisible_new ();*/
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
 
   tree_view = gtk_tree_view_new_with_model (GTK_TREE_MODEL (store));
   gtk_tree_view_set_row_separator_func (GTK_TREE_VIEW (tree_view),

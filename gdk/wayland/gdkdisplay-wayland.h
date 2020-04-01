@@ -50,9 +50,6 @@
 
 G_BEGIN_DECLS
 
-#define GDK_WAYLAND_MAX_THEME_SCALE 3
-#define GDK_WAYLAND_THEME_SCALES_COUNT GDK_WAYLAND_MAX_THEME_SCALE
-
 #define GDK_ZWP_POINTER_GESTURES_V1_VERSION 1
 
 typedef struct _GdkWaylandSelection GdkWaylandSelection;
@@ -121,10 +118,10 @@ struct _GdkWaylandDisplay
   GHashTable *known_globals;
   GList *on_has_globals_closures;
 
-  /* Keep a list of orphaned dialogs (i.e. without parent) */
-  GList *orphan_dialogs;
+  GList *event_queues;
 
   GList *current_popups;
+  GList *current_grabbing_popups;
 
   struct wl_cursor_theme *cursor_theme;
   gchar *cursor_theme_name;

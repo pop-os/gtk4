@@ -267,17 +267,17 @@ gtk_focus_widget_class_init (GtkFocusWidgetClass *klass)
 
 static void
 quit_cb (GtkWidget *widget,
-         gpointer   data)
+         gpointer   user_data)
 {
-  gboolean *done = data;
+  gboolean *is_done = user_data;
 
-  *done = TRUE;
+  *is_done = TRUE;
 
   g_main_context_wakeup (NULL);
 }
 
 int
-main()
+main(int argc, char **argv)
 {
   GtkWidget *window;
   GtkWidget *widget;
@@ -292,7 +292,7 @@ main()
                                               GTK_STYLE_PROVIDER (provider),
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   widget = g_object_new (GTK_TYPE_FOCUS_WIDGET, NULL);
 
   gtk_window_set_decorated (GTK_WINDOW (window), FALSE);

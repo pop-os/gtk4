@@ -27,12 +27,12 @@ static GtkWidget *toplevel, *button, *box;
 static GtkWidget *sel_image, *sel_name;
 
 static void
-combo_changed_cb (GtkAppChooserButton *button,
+combo_changed_cb (GtkAppChooserButton *chooser_button,
                   gpointer             user_data)
 {
   GAppInfo *app_info;
 
-  app_info = gtk_app_chooser_get_app_info (GTK_APP_CHOOSER (button));
+  app_info = gtk_app_chooser_get_app_info (GTK_APP_CHOOSER (chooser_button));
 
   if (app_info == NULL)
     return;
@@ -80,7 +80,7 @@ main (int argc,
 
   gtk_init ();
 
-  toplevel = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  toplevel = gtk_window_new ();
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
   gtk_container_add (GTK_CONTAINER (toplevel), box);

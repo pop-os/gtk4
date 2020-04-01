@@ -1,12 +1,19 @@
 window1
-  "window"
+  "frame"
   index: 0
   state: enabled resizable sensitive showing visible
   toolkit: gtk
-  window-type: normal
   <AtkComponent>
-  layer: window
+  layer: widget
   alpha: 1
+  unnamed-GtkContainerAccessible-0
+    "panel"
+    parent: window1
+    state: enabled sensitive showing visible
+    toolkit: gtk
+    <AtkComponent>
+    layer: widget
+    alpha: 1
   paned1
     "split pane"
     parent: window1
@@ -18,7 +25,7 @@ window1
     alpha: 1
     <AtkValue>
     minimum value: 0.000000
-    maximum value: 60.000000
+    maximum value: 219.000000
     current value: 26.000000
     label1
       "label"

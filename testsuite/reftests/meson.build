@@ -27,10 +27,12 @@ tcdata.set('libexecdir', join_paths(get_option('prefix'), get_option('libexecdir
 #endforeach
 
 gtk_reftest = executable('gtk-reftest', 'gtk-reftest.c',
+  c_args: common_cflags,
   link_with : [libgtkreftestprivate, libreftest],
   dependencies : libgtk_dep)
 
 image_compare = executable('image-compare', 'image-compare.c',
+  c_args: common_cflags,
   link_with : [libgtkreftestprivate, libreftest],
   dependencies : libgtk_dep)
 # Installed data (TODO)
@@ -422,13 +424,11 @@ xfails = [
   'background-color-transparent.ui',
   'background-image-multiple.ui',
   'background-origin.ui',
-  'border-half-pixel.ui',
   'sizegroups-evolution-identity-page.ui',
   'textview-border-windows.ui',
   'window-show-contents-on-map.ui',
   # these depend on details of text layout
   'label-sizing.ui',
-  'label-wrap-justify.ui',
 ]
 
 foreach testname : testdata
@@ -436,10 +436,10 @@ foreach testname : testdata
     test('reftest ' + testname, gtk_reftest,
          args: [ '--tap',
                  '-k',
-                 '--verbose',
                  '-o', join_paths(meson.current_build_dir(), 'output'),
                  join_paths(meson.current_source_dir(), testname),
          ],
+         protocol: 'tap',
          env: [ 'GIO_USE_VOLUME_MONITOR=unix',
                 'GSETTINGS_BACKEND=memory',
                 'GSETTINGS_SCHEMA_DIR=@0@'.format(gtk_schema_build_dir),

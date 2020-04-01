@@ -94,6 +94,8 @@ populate_flowbox_focus (GtkFlowBox *flowbox)
           widget = gtk_label_new ("bla");
           sensitive = FALSE;
           break;
+        default:
+          g_assert_not_reached ();
         }
 
       gtk_container_add (GTK_CONTAINER (box), widget);
@@ -379,7 +381,7 @@ create_window (void)
   GtkWidget *window, *hbox, *vbox, *flowbox_cntl, *items_cntl;
   GtkWidget *flowbox, *widget, *expander, *swindow;
 
-  window = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  window = gtk_window_new ();
   hbox   = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
   vbox   = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
 

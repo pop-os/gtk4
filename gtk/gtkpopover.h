@@ -60,13 +60,7 @@ GDK_AVAILABLE_IN_ALL
 GType           gtk_popover_get_type (void) G_GNUC_CONST;
 
 GDK_AVAILABLE_IN_ALL
-GtkWidget *     gtk_popover_new             (GtkWidget    *relative_to);
-
-GDK_AVAILABLE_IN_ALL
-void            gtk_popover_set_relative_to (GtkPopover   *popover,
-                                             GtkWidget    *relative_to);
-GDK_AVAILABLE_IN_ALL
-GtkWidget *     gtk_popover_get_relative_to (GtkPopover   *popover);
+GtkWidget *     gtk_popover_new             (void);
 
 GDK_AVAILABLE_IN_ALL
 void            gtk_popover_set_pointing_to (GtkPopover         *popover,
@@ -91,6 +85,12 @@ void            gtk_popover_set_has_arrow   (GtkPopover         *popover,
                                              gboolean            has_arrow);
 GDK_AVAILABLE_IN_ALL
 gboolean        gtk_popover_get_has_arrow   (GtkPopover         *popover);
+
+GDK_AVAILABLE_IN_ALL
+void            gtk_popover_set_mnemonics_visible (GtkPopover   *popover,
+                                                   gboolean      mnemonics_visible);
+GDK_AVAILABLE_IN_ALL
+gboolean        gtk_popover_get_mnemonics_visible (GtkPopover   *popover);
 
 GDK_AVAILABLE_IN_ALL
 void            gtk_popover_popup (GtkPopover *popover);

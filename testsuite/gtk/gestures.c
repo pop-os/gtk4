@@ -44,30 +44,32 @@ point_press (PointState *point,
 
   if (point == &mouse_state)
     {
-      ev = gdk_event_new (GDK_BUTTON_PRESS);
-      ev->any.surface = g_object_ref (surface);
-      ev->button.time = GDK_CURRENT_TIME;
-      ev->button.x = point->x;
-      ev->button.y = point->y;
-      ev->button.button = button;
-      ev->button.state = point->state;
+      ev = gdk_event_button_new (GDK_BUTTON_PRESS,
+                                 surface,
+                                 device,
+                                 device,
+                                 NULL,
+                                 GDK_CURRENT_TIME,
+                                 point->x,
+                                 point->y,
+                                 button,
+                                 point->state);
 
       point->state |= GDK_BUTTON1_MASK << (button - 1);
     }
   else
     {
-      ev = gdk_event_new (GDK_TOUCH_BEGIN);
-      ev->any.surface = g_object_ref (surface);
-      ev->touch.time = GDK_CURRENT_TIME;
-      ev->touch.x = point->x;
-      ev->touch.y = point->y;
-      ev->touch.sequence = EVENT_SEQUENCE (point);
-
-      if (point == &touch_state[0])
-        ev->touch.emulating_pointer = TRUE;
+      ev = gdk_event_touch_new (GDK_TOUCH_BEGIN,
+                                EVENT_SEQUENCE (point),
+                                surface,
+                                device,
+                                device,
+                                GDK_CURRENT_TIME,
+                                point->state,
+                                point->x,
+                                point->y,
+                                point == &touch_state[0]);
     }
-
-  gdk_event_set_device (ev, device);
 
   inject_event (ev);
 
@@ -98,31 +100,31 @@ point_update (PointState *point,
 
   if (point == &mouse_state)
     {
-      ev = gdk_event_new (GDK_MOTION_NOTIFY);
-      ev->any.surface = g_object_ref (surface);
-      ev->button.time = GDK_CURRENT_TIME;
-      ev->motion.x = x;
-      ev->motion.y = y;
-      ev->motion.state = point->state;
+      ev = gdk_event_motion_new (surface,
+                                 device,
+                                 device,
+                                 NULL,
+                                 GDK_CURRENT_TIME,
+                                 point->state,
+                                 point->x,
+                                 point->y);
     }
   else
     {
       if (!point->widget || widget != point->widget)
         return;
 
-      ev = gdk_event_new (GDK_TOUCH_UPDATE);
-      ev->any.surface = g_object_ref (surface);
-      ev->touch.time = GDK_CURRENT_TIME;
-      ev->touch.x = x;
-      ev->touch.y = y;
-      ev->touch.sequence = EVENT_SEQUENCE (point);
-      ev->touch.state = 0;
-
-      if (point == &touch_state[0])
-        ev->touch.emulating_pointer = TRUE;
+      ev = gdk_event_touch_new (GDK_TOUCH_UPDATE,
+                                EVENT_SEQUENCE (point),
+                                surface,
+                                device,
+                                device,
+                                GDK_CURRENT_TIME,
+                                point->state,
+                                point->x,
+                                point->y,
+                                point == &touch_state[0]);
     }
-
-  gdk_event_set_device (ev, device);
 
   inject_event (ev);
 
@@ -155,30 +157,32 @@ point_release (PointState *point,
       if ((point->state & (GDK_BUTTON1_MASK << (button - 1))) == 0)
         return;
 
-      ev = gdk_event_new (GDK_BUTTON_RELEASE);
-      ev->any.surface = g_object_ref (surface);
-      ev->button.time = GDK_CURRENT_TIME;
-      ev->button.x = point->x;
-      ev->button.y = point->y;
-      ev->button.state = point->state;
+      ev = gdk_event_button_new (GDK_BUTTON_RELEASE,
+                                 surface,
+                                 device,
+                                 device,
+                                 NULL,
+                                 GDK_CURRENT_TIME,
+                                 point->x,
+                                 point->y,
+                                 button,
+                                 point->state);
 
       point->state &= ~(GDK_BUTTON1_MASK << (button - 1));
     }
   else
     {
-      ev = gdk_event_new (GDK_TOUCH_END);
-      ev->any.surface = g_object_ref (surface);
-      ev->touch.time = GDK_CURRENT_TIME;
-      ev->touch.x = point->x;
-      ev->touch.y = point->y;
-      ev->touch.sequence = EVENT_SEQUENCE (point);
-      ev->touch.state = point->state;
-
-      if (point == &touch_state[0])
-        ev->touch.emulating_pointer = TRUE;
+      ev = gdk_event_touch_new (GDK_TOUCH_END,
+                                EVENT_SEQUENCE (point),
+                                surface,
+                                device,
+                                device,
+                                GDK_CURRENT_TIME,
+                                point->state,
+                                point->x,
+                                point->y,
+                                point == &touch_state[0]);
     }
-
-  gdk_event_set_device (ev, device);
 
   inject_event (ev);
 
@@ -411,7 +415,7 @@ test_phases (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -463,7 +467,7 @@ test_mixed (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -522,7 +526,7 @@ test_early_exit (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -577,7 +581,7 @@ test_claim_capture (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -624,7 +628,7 @@ test_claim_target (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -671,7 +675,7 @@ test_claim_bubble (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -725,7 +729,7 @@ test_early_claim_capture (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -782,7 +786,7 @@ test_late_claim_capture (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -841,7 +845,7 @@ test_group (void)
   GtkGesture *g1, *g2;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -892,7 +896,7 @@ test_gestures_outside_grab (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -906,7 +910,7 @@ test_gestures_outside_grab (void)
 
   gtk_widget_show (A);
 
-  D = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  D = gtk_window_new ();
   gtk_widget_show (D);
 
   str = g_string_new ("");
@@ -952,7 +956,7 @@ test_gestures_inside_grab (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -1012,7 +1016,7 @@ test_multitouch_on_single (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -1063,7 +1067,7 @@ test_multitouch_activation (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
@@ -1139,7 +1143,7 @@ test_multitouch_interaction (void)
   GString *str;
   GtkAllocation allocation;
 
-  A = gtk_window_new (GTK_WINDOW_TOPLEVEL);
+  A = gtk_window_new ();
   gtk_widget_set_name (A, "A");
   B = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_name (B, "B");
