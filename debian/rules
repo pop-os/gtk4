@@ -200,6 +200,7 @@ endif
 
 override_dh_install:
 	rm -fv debian/install/udeb/usr/bin/gtk4-update-icon-cache
+	rm -frv debian/install/udeb/usr/share/gtk-4.0/valgrind
 	rm -frv debian/install/udeb/usr/share/metainfo
 	dh_install -p$(UDEB_PKG) --sourcedir=debian/install/udeb
 	dh_install --remaining-packages --sourcedir=debian/install/deb
