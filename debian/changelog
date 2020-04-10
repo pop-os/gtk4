@@ -1,8 +1,13 @@
-gtk+4.0 (3.98.2-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.98.2-1) experimental; urgency=medium
 
   * New upstream release
+  * Bump pango dependency as per meson.build
+  * Drop patch, applied upstream
+  * Install new valgrind suppressions files
+  * Add patch from git master to make valgrind suppressions work on Debian
+  * Update symbols file for ABI breaks and additions
 
- -- Simon McVittie <smcv@debian.org>  Wed, 01 Apr 2020 12:15:00 +0100
+ -- Simon McVittie <smcv@debian.org>  Fri, 10 Apr 2020 22:00:07 +0100
 
 gtk+4.0 (3.98.0-1) experimental; urgency=medium
 

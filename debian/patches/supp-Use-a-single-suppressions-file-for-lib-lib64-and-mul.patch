@@ -8,6 +8,7 @@ multilib directory lib64, this will cover Debian-style multiarch
 various others.
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
+Applied-upstream: 3.98.3, commit:9df7f0197d890307d80618736d4dd2d3a54a38de
 ---
  gtk.supp    |  54 +++++++------
  gtk64.supp  | 253 ------------------------------------------------------------
