@@ -18,6 +18,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_broadway_monitor_get_type@Base 3.98.3
  gdk_broadway_surface_get_type@Base 3.98.3
  gdk_button_event_get_button@Base 3.98.3
+ gdk_button_event_get_type@Base 3.98.3
  gdk_byte_order_get_type@Base 3.98.3
  gdk_cairo_context_cairo_create@Base 3.98.3
  gdk_cairo_context_get_type@Base 3.98.3
@@ -50,6 +51,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_clipboard_store_async@Base 3.98.3
  gdk_clipboard_store_finish@Base 3.98.3
  gdk_configure_event_get_size@Base 3.98.3
+ gdk_configure_event_get_type@Base 3.98.3
  gdk_content_deserialize_async@Base 3.98.3
  gdk_content_deserialize_finish@Base 3.98.3
  gdk_content_deserializer_get_cancellable@Base 3.98.3
@@ -120,7 +122,9 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_content_serializer_return_success@Base 3.98.3
  gdk_content_serializer_set_task_data@Base 3.98.3
  gdk_crossing_event_get_detail@Base 3.98.3
+ gdk_crossing_event_get_focus@Base 3.98.3
  gdk_crossing_event_get_mode@Base 3.98.3
+ gdk_crossing_event_get_type@Base 3.98.3
  gdk_crossing_mode_get_type@Base 3.98.3
  gdk_cursor_get_fallback@Base 3.98.3
  gdk_cursor_get_hotspot_x@Base 3.98.3
@@ -130,6 +134,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_cursor_get_type@Base 3.98.3
  gdk_cursor_new_from_name@Base 3.98.3
  gdk_cursor_new_from_texture@Base 3.98.3
+ gdk_delete_event_get_type@Base 3.98.3
  gdk_device_free_history@Base 3.98.3
  gdk_device_get_associated_device@Base 3.98.3
  gdk_device_get_axes@Base 3.98.3
@@ -137,24 +142,30 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_device_get_axis_names@Base 3.98.3
  gdk_device_get_axis_use@Base 3.98.3
  gdk_device_get_axis_value@Base 3.98.3
+ gdk_device_get_caps_lock_state@Base 3.98.3
  gdk_device_get_device_tool@Base 3.98.3
  gdk_device_get_device_type@Base 3.98.3
+ gdk_device_get_direction@Base 3.98.3
  gdk_device_get_display@Base 3.98.3
  gdk_device_get_has_cursor@Base 3.98.3
  gdk_device_get_history@Base 3.98.3
  gdk_device_get_key@Base 3.98.3
  gdk_device_get_last_event_surface@Base 3.98.3
+ gdk_device_get_modifier_state@Base 3.98.3
  gdk_device_get_n_axes@Base 3.98.3
  gdk_device_get_n_keys@Base 3.98.3
  gdk_device_get_name@Base 3.98.3
+ gdk_device_get_num_lock_state@Base 3.98.3
  gdk_device_get_num_touches@Base 3.98.3
  gdk_device_get_product_id@Base 3.98.3
+ gdk_device_get_scroll_lock_state@Base 3.98.3
  gdk_device_get_seat@Base 3.98.3
  gdk_device_get_source@Base 3.98.3
  gdk_device_get_state@Base 3.98.3
  gdk_device_get_surface_at_position@Base 3.98.3
  gdk_device_get_type@Base 3.98.3
  gdk_device_get_vendor_id@Base 3.98.3
+ gdk_device_has_bidi_layouts@Base 3.98.3
  gdk_device_list_slave_devices@Base 3.98.3
  gdk_device_pad_feature_get_type@Base 3.98.3
  gdk_device_pad_get_feature_group@Base 3.98.3
@@ -180,7 +191,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_display_get_default_group@Base 3.98.3
  gdk_display_get_default_seat@Base 3.98.3
  gdk_display_get_event@Base 3.98.3
- gdk_display_get_keymap@Base 3.98.3
  gdk_display_get_monitor@Base 3.98.3
  gdk_display_get_monitor_at_surface@Base 3.98.3
  gdk_display_get_n_monitors@Base 3.98.3
@@ -200,6 +210,8 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_display_manager_list_displays@Base 3.98.3
  gdk_display_manager_open_display@Base 3.98.3
  gdk_display_manager_set_default_display@Base 3.98.3
+ gdk_display_map_keycode@Base 3.98.3
+ gdk_display_map_keyval@Base 3.98.3
  gdk_display_notify_startup_complete@Base 3.98.3
  gdk_display_open@Base 3.98.3
  gdk_display_peek_event@Base 3.98.3
@@ -207,12 +219,13 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_display_supports_input_shapes@Base 3.98.3
  gdk_display_supports_shapes@Base 3.98.3
  gdk_display_sync@Base 3.98.3
+ gdk_dnd_event_get_drop@Base 3.98.3
+ gdk_dnd_event_get_type@Base 3.98.3
  gdk_drag_action_get_type@Base 3.98.3
  gdk_drag_action_is_unique@Base 3.98.3
  gdk_drag_begin@Base 3.98.3
  gdk_drag_cancel_reason_get_type@Base 3.98.3
  gdk_drag_drop_done@Base 3.98.3
- gdk_drag_event_get_drop@Base 3.98.3
  gdk_drag_get_actions@Base 3.98.3
  gdk_drag_get_content@Base 3.98.3
  gdk_drag_get_device@Base 3.98.3
@@ -253,7 +266,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_event_get_event_sequence@Base 3.98.3
  gdk_event_get_event_type@Base 3.98.3
  gdk_event_get_modifier_state@Base 3.98.3
- gdk_event_get_motion_history@Base 3.98.3
  gdk_event_get_pointer_emulated@Base 3.98.3
  gdk_event_get_position@Base 3.98.3
  gdk_event_get_source_device@Base 3.98.3
@@ -271,6 +283,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_events_get_distance@Base 3.98.3
  gdk_file_list_get_type@Base 3.98.3
  gdk_focus_event_get_in@Base 3.98.3
+ gdk_focus_event_get_type@Base 3.98.3
  gdk_frame_clock_begin_updating@Base 3.98.3
  gdk_frame_clock_end_updating@Base 3.98.3
  gdk_frame_clock_get_current_timings@Base 3.98.3
@@ -316,31 +329,21 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_gl_texture_new@Base 3.98.3
  gdk_gl_texture_release@Base 3.98.3
  gdk_grab_broken_event_get_grab_surface@Base 3.98.3
- gdk_grab_ownership_get_type@Base 3.98.3
- gdk_grab_status_get_type@Base 3.98.3
+ gdk_grab_broken_event_get_implicit@Base 3.98.3
+ gdk_grab_broken_event_get_type@Base 3.98.3
  gdk_gravity_get_type@Base 3.98.3
  gdk_input_source_get_type@Base 3.98.3
  gdk_intern_mime_type@Base 3.98.3
- gdk_key_event_get_group@Base 3.98.3
+ gdk_key_event_get_consumed_modifiers@Base 3.98.3
  gdk_key_event_get_keycode@Base 3.98.3
  gdk_key_event_get_keyval@Base 3.98.3
- gdk_key_event_get_scancode@Base 3.98.3
+ gdk_key_event_get_layout@Base 3.98.3
+ gdk_key_event_get_level@Base 3.98.3
+ gdk_key_event_get_match@Base 3.98.3
+ gdk_key_event_get_type@Base 3.98.3
  gdk_key_event_is_modifier@Base 3.98.3
- gdk_keymap_add_virtual_modifiers@Base 3.98.3
- gdk_keymap_get_caps_lock_state@Base 3.98.3
- gdk_keymap_get_direction@Base 3.98.3
- gdk_keymap_get_display@Base 3.98.3
- gdk_keymap_get_entries_for_keycode@Base 3.98.3
- gdk_keymap_get_entries_for_keyval@Base 3.98.3
- gdk_keymap_get_modifier_mask@Base 3.98.3
- gdk_keymap_get_modifier_state@Base 3.98.3
- gdk_keymap_get_num_lock_state@Base 3.98.3
- gdk_keymap_get_scroll_lock_state@Base 3.98.3
- gdk_keymap_get_type@Base 3.98.3
- gdk_keymap_have_bidi_layouts@Base 3.98.3
- gdk_keymap_lookup_key@Base 3.98.3
- gdk_keymap_map_virtual_modifiers@Base 3.98.3
- gdk_keymap_translate_keyboard_state@Base 3.98.3
+ gdk_key_event_matches@Base 3.98.3
+ gdk_key_match_get_type@Base 3.98.3
  gdk_keyval_convert_case@Base 3.98.3
  gdk_keyval_from_name@Base 3.98.3
  gdk_keyval_is_lower@Base 3.98.3
@@ -352,7 +355,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_memory_format_get_type@Base 3.98.3
  gdk_memory_texture_get_type@Base 3.98.3
  gdk_memory_texture_new@Base 3.98.3
- gdk_modifier_intent_get_type@Base 3.98.3
  gdk_modifier_type_get_type@Base 3.98.3
  gdk_monitor_get_connector@Base 3.98.3
  gdk_monitor_get_display@Base 3.98.3
@@ -367,10 +369,13 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_monitor_get_width_mm@Base 3.98.3
  gdk_monitor_get_workarea@Base 3.98.3
  gdk_monitor_is_valid@Base 3.98.3
+ gdk_motion_event_get_history@Base 3.98.3
+ gdk_motion_event_get_type@Base 3.98.3
  gdk_notify_type_get_type@Base 3.98.3
- gdk_pad_axis_event_get_value@Base 3.98.3
- gdk_pad_button_event_get_button@Base 3.98.3
+ gdk_pad_event_get_axis_value@Base 3.98.3
+ gdk_pad_event_get_button@Base 3.98.3
  gdk_pad_event_get_group_mode@Base 3.98.3
+ gdk_pad_event_get_type@Base 3.98.3
  gdk_paintable_compute_concrete_size@Base 3.98.3
  gdk_paintable_flags_get_type@Base 3.98.3
  gdk_paintable_get_current_image@Base 3.98.3
@@ -411,6 +416,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_popup_layout_set_surface_anchor@Base 3.98.3
  gdk_popup_layout_unref@Base 3.98.3
  gdk_popup_present@Base 3.98.3
+ gdk_proximity_event_get_type@Base 3.98.3
  gdk_rectangle_contains_point@Base 3.98.3
  gdk_rectangle_equal@Base 3.98.3
  gdk_rectangle_get_type@Base 3.98.3
@@ -428,6 +434,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_scroll_direction_get_type@Base 3.98.3
  gdk_scroll_event_get_deltas@Base 3.98.3
  gdk_scroll_event_get_direction@Base 3.98.3
+ gdk_scroll_event_get_type@Base 3.98.3
  gdk_scroll_event_is_stop@Base 3.98.3
  gdk_seat_capabilities_get_type@Base 3.98.3
  gdk_seat_get_capabilities@Base 3.98.3
@@ -463,7 +470,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_surface_get_type@Base 3.98.3
  gdk_surface_get_width@Base 3.98.3
  gdk_surface_hide@Base 3.98.3
- gdk_surface_hints_get_type@Base 3.98.3
  gdk_surface_is_destroyed@Base 3.98.3
  gdk_surface_is_viewable@Base 3.98.3
  gdk_surface_new_popup@Base 3.98.3
@@ -520,12 +526,14 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_toplevel_show_window_menu@Base 3.98.3
  gdk_toplevel_supports_edge_constraints@Base 3.98.3
  gdk_touch_event_get_emulating_pointer@Base 3.98.3
+ gdk_touch_event_get_type@Base 3.98.3
  gdk_touchpad_event_get_deltas@Base 3.98.3
  gdk_touchpad_event_get_gesture_phase@Base 3.98.3
  gdk_touchpad_event_get_n_fingers@Base 3.98.3
+ gdk_touchpad_event_get_pinch_angle_delta@Base 3.98.3
+ gdk_touchpad_event_get_pinch_scale@Base 3.98.3
+ gdk_touchpad_event_get_type@Base 3.98.3
  gdk_touchpad_gesture_phase_get_type@Base 3.98.3
- gdk_touchpad_pinch_event_get_angle_delta@Base 3.98.3
- gdk_touchpad_pinch_event_get_scale@Base 3.98.3
  gdk_unicode_to_keyval@Base 3.98.3
  (arch=linux-any)gdk_vulkan_context_get_device@Base 3.98.3
  (arch=linux-any)gdk_vulkan_context_get_draw_index@Base 3.98.3
@@ -603,9 +611,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_x11_get_xatom_by_name_for_display@Base 3.98.3
  gdk_x11_get_xatom_name_for_display@Base 3.98.3
  gdk_x11_gl_context_get_type@Base 3.98.3
- gdk_x11_keymap_get_group_for_state@Base 3.98.3
- gdk_x11_keymap_get_type@Base 3.98.3
- gdk_x11_keymap_key_is_modifier@Base 3.98.3
  gdk_x11_lookup_xdisplay@Base 3.98.3
  gdk_x11_monitor_get_output@Base 3.98.3
  gdk_x11_monitor_get_type@Base 3.98.3
@@ -639,10 +644,13 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_blend_node_get_blend_mode@Base 3.98.3
  gsk_blend_node_get_bottom_child@Base 3.98.3
  gsk_blend_node_get_top_child@Base 3.98.3
+ gsk_blend_node_get_type@Base 3.98.3
  gsk_blend_node_new@Base 3.98.3
  gsk_blur_node_get_child@Base 3.98.3
  gsk_blur_node_get_radius@Base 3.98.3
+ gsk_blur_node_get_type@Base 3.98.3
  gsk_blur_node_new@Base 3.98.3
+ gsk_border_node_get_type@Base 3.98.3
  gsk_border_node_new@Base 3.98.3
  gsk_border_node_peek_colors@Base 3.98.3
  gsk_border_node_peek_outline@Base 3.98.3
@@ -650,29 +658,36 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_broadway_renderer_get_type@Base 3.98.3
  gsk_broadway_renderer_new@Base 3.98.3
  gsk_cairo_node_get_draw_context@Base 3.98.3
+ gsk_cairo_node_get_type@Base 3.98.3
  gsk_cairo_node_new@Base 3.98.3
  gsk_cairo_node_peek_surface@Base 3.98.3
  gsk_cairo_renderer_get_type@Base 3.98.3
  gsk_cairo_renderer_new@Base 3.98.3
  gsk_clip_node_get_child@Base 3.98.3
+ gsk_clip_node_get_type@Base 3.98.3
  gsk_clip_node_new@Base 3.98.3
  gsk_clip_node_peek_clip@Base 3.98.3
  gsk_color_matrix_node_get_child@Base 3.98.3
+ gsk_color_matrix_node_get_type@Base 3.98.3
  gsk_color_matrix_node_new@Base 3.98.3
  gsk_color_matrix_node_peek_color_matrix@Base 3.98.3
  gsk_color_matrix_node_peek_color_offset@Base 3.98.3
+ gsk_color_node_get_type@Base 3.98.3
  gsk_color_node_new@Base 3.98.3
  gsk_color_node_peek_color@Base 3.98.3
  gsk_container_node_get_child@Base 3.98.3
  gsk_container_node_get_n_children@Base 3.98.3
+ gsk_container_node_get_type@Base 3.98.3
  gsk_container_node_new@Base 3.98.3
  gsk_corner_get_type@Base 3.98.3
  gsk_cross_fade_node_get_end_child@Base 3.98.3
  gsk_cross_fade_node_get_progress@Base 3.98.3
  gsk_cross_fade_node_get_start_child@Base 3.98.3
+ gsk_cross_fade_node_get_type@Base 3.98.3
  gsk_cross_fade_node_new@Base 3.98.3
  gsk_debug_node_get_child@Base 3.98.3
  gsk_debug_node_get_message@Base 3.98.3
+ gsk_debug_node_get_type@Base 3.98.3
  gsk_debug_node_new@Base 3.98.3
  gsk_gl_renderer_get_type@Base 3.98.3
  gsk_gl_renderer_new@Base 3.98.3
@@ -680,21 +695,25 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_inset_shadow_node_get_dx@Base 3.98.3
  gsk_inset_shadow_node_get_dy@Base 3.98.3
  gsk_inset_shadow_node_get_spread@Base 3.98.3
+ gsk_inset_shadow_node_get_type@Base 3.98.3
  gsk_inset_shadow_node_new@Base 3.98.3
  gsk_inset_shadow_node_peek_color@Base 3.98.3
  gsk_inset_shadow_node_peek_outline@Base 3.98.3
  gsk_linear_gradient_node_get_n_color_stops@Base 3.98.3
+ gsk_linear_gradient_node_get_type@Base 3.98.3
  gsk_linear_gradient_node_new@Base 3.98.3
  gsk_linear_gradient_node_peek_color_stops@Base 3.98.3
  gsk_linear_gradient_node_peek_end@Base 3.98.3
  gsk_linear_gradient_node_peek_start@Base 3.98.3
  gsk_opacity_node_get_child@Base 3.98.3
  gsk_opacity_node_get_opacity@Base 3.98.3
+ gsk_opacity_node_get_type@Base 3.98.3
  gsk_opacity_node_new@Base 3.98.3
  gsk_outset_shadow_node_get_blur_radius@Base 3.98.3
  gsk_outset_shadow_node_get_dx@Base 3.98.3
  gsk_outset_shadow_node_get_dy@Base 3.98.3
  gsk_outset_shadow_node_get_spread@Base 3.98.3
+ gsk_outset_shadow_node_get_type@Base 3.98.3
  gsk_outset_shadow_node_new@Base 3.98.3
  gsk_outset_shadow_node_peek_color@Base 3.98.3
  gsk_outset_shadow_node_peek_outline@Base 3.98.3
@@ -717,10 +736,13 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_renderer_render_texture@Base 3.98.3
  gsk_renderer_unrealize@Base 3.98.3
  gsk_repeat_node_get_child@Base 3.98.3
+ gsk_repeat_node_get_type@Base 3.98.3
  gsk_repeat_node_new@Base 3.98.3
  gsk_repeat_node_peek_child_bounds@Base 3.98.3
+ gsk_repeating_linear_gradient_node_get_type@Base 3.98.3
  gsk_repeating_linear_gradient_node_new@Base 3.98.3
  gsk_rounded_clip_node_get_child@Base 3.98.3
+ gsk_rounded_clip_node_get_type@Base 3.98.3
  gsk_rounded_clip_node_new@Base 3.98.3
  gsk_rounded_clip_node_peek_clip@Base 3.98.3
  gsk_rounded_rect_contains_point@Base 3.98.3
@@ -738,15 +760,18 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_serialization_error_quark@Base 3.98.3
  gsk_shadow_node_get_child@Base 3.98.3
  gsk_shadow_node_get_n_shadows@Base 3.98.3
+ gsk_shadow_node_get_type@Base 3.98.3
  gsk_shadow_node_new@Base 3.98.3
  gsk_shadow_node_peek_shadow@Base 3.98.3
  gsk_text_node_get_num_glyphs@Base 3.98.3
  gsk_text_node_get_offset@Base 3.98.3
+ gsk_text_node_get_type@Base 3.98.3
  gsk_text_node_new@Base 3.98.3
  gsk_text_node_peek_color@Base 3.98.3
  gsk_text_node_peek_font@Base 3.98.3
  gsk_text_node_peek_glyphs@Base 3.98.3
  gsk_texture_node_get_texture@Base 3.98.3
+ gsk_texture_node_get_type@Base 3.98.3
  gsk_texture_node_new@Base 3.98.3
  gsk_transform_category_get_type@Base 3.98.3
  gsk_transform_equal@Base 3.98.3
@@ -757,6 +782,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_transform_new@Base 3.98.3
  gsk_transform_node_get_child@Base 3.98.3
  gsk_transform_node_get_transform@Base 3.98.3
+ gsk_transform_node_get_type@Base 3.98.3
  gsk_transform_node_new@Base 3.98.3
  gsk_transform_parse@Base 3.98.3
  gsk_transform_perspective@Base 3.98.3
@@ -831,7 +857,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_accelerator_name_with_keycode@Base 3.98.3
  gtk_accelerator_parse@Base 3.98.3
  gtk_accelerator_parse_with_keycode@Base 3.98.3
- gtk_accelerator_set_default_mod_mask@Base 3.98.3
  gtk_accelerator_valid@Base 3.98.3
  gtk_accessible_get_type@Base 3.98.3
  gtk_accessible_get_widget@Base 3.98.3
@@ -878,12 +903,14 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_app_chooser_button_append_custom_item@Base 3.98.3
  gtk_app_chooser_button_append_separator@Base 3.98.3
  gtk_app_chooser_button_get_heading@Base 3.98.3
+ gtk_app_chooser_button_get_modal@Base 3.98.3
  gtk_app_chooser_button_get_show_default_item@Base 3.98.3
  gtk_app_chooser_button_get_show_dialog_item@Base 3.98.3
  gtk_app_chooser_button_get_type@Base 3.98.3
  gtk_app_chooser_button_new@Base 3.98.3
  gtk_app_chooser_button_set_active_custom_item@Base 3.98.3
  gtk_app_chooser_button_set_heading@Base 3.98.3
+ gtk_app_chooser_button_set_modal@Base 3.98.3
  gtk_app_chooser_button_set_show_default_item@Base 3.98.3
  gtk_app_chooser_button_set_show_dialog_item@Base 3.98.3
  gtk_app_chooser_dialog_get_heading@Base 3.98.3
@@ -938,9 +965,16 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_application_window_set_help_overlay@Base 3.98.3
  gtk_application_window_set_show_menubar@Base 3.98.3
  gtk_arrow_type_get_type@Base 3.98.3
+ gtk_aspect_frame_get_obey_child@Base 3.98.3
+ gtk_aspect_frame_get_ratio@Base 3.98.3
  gtk_aspect_frame_get_type@Base 3.98.3
+ gtk_aspect_frame_get_xalign@Base 3.98.3
+ gtk_aspect_frame_get_yalign@Base 3.98.3
  gtk_aspect_frame_new@Base 3.98.3
- gtk_aspect_frame_set@Base 3.98.3
+ gtk_aspect_frame_set_obey_child@Base 3.98.3
+ gtk_aspect_frame_set_ratio@Base 3.98.3
+ gtk_aspect_frame_set_xalign@Base 3.98.3
+ gtk_aspect_frame_set_yalign@Base 3.98.3
  gtk_assistant_add_action_widget@Base 3.98.3
  gtk_assistant_append_page@Base 3.98.3
  gtk_assistant_commit@Base 3.98.3
@@ -1049,18 +1083,18 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_builder_value_from_string@Base 3.98.3
  gtk_builder_value_from_string_type@Base 3.98.3
  gtk_button_accessible_get_type@Base 3.98.3
+ gtk_button_get_has_frame@Base 3.98.3
  gtk_button_get_icon_name@Base 3.98.3
  gtk_button_get_label@Base 3.98.3
- gtk_button_get_relief@Base 3.98.3
  gtk_button_get_type@Base 3.98.3
  gtk_button_get_use_underline@Base 3.98.3
  gtk_button_new@Base 3.98.3
  gtk_button_new_from_icon_name@Base 3.98.3
  gtk_button_new_with_label@Base 3.98.3
  gtk_button_new_with_mnemonic@Base 3.98.3
+ gtk_button_set_has_frame@Base 3.98.3
  gtk_button_set_icon_name@Base 3.98.3
  gtk_button_set_label@Base 3.98.3
- gtk_button_set_relief@Base 3.98.3
  gtk_button_set_use_underline@Base 3.98.3
  gtk_buttons_type_get_type@Base 3.98.3
  gtk_calendar_clear_marks@Base 3.98.3
@@ -1275,10 +1309,12 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_check_button_set_draw_indicator@Base 3.98.3
  gtk_check_button_set_inconsistent@Base 3.98.3
  gtk_check_version@Base 3.98.3
+ gtk_color_button_get_modal@Base 3.98.3
  gtk_color_button_get_title@Base 3.98.3
  gtk_color_button_get_type@Base 3.98.3
  gtk_color_button_new@Base 3.98.3
  gtk_color_button_new_with_rgba@Base 3.98.3
+ gtk_color_button_set_modal@Base 3.98.3
  gtk_color_button_set_title@Base 3.98.3
  gtk_color_chooser_add_palette@Base 3.98.3
  gtk_color_chooser_dialog_get_type@Base 3.98.3
@@ -1390,12 +1426,8 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_container_forall@Base 3.98.3
  gtk_container_foreach@Base 3.98.3
  gtk_container_get_children@Base 3.98.3
- gtk_container_get_focus_hadjustment@Base 3.98.3
- gtk_container_get_focus_vadjustment@Base 3.98.3
  gtk_container_get_type@Base 3.98.3
  gtk_container_remove@Base 3.98.3
- gtk_container_set_focus_hadjustment@Base 3.98.3
- gtk_container_set_focus_vadjustment@Base 3.98.3
  gtk_corner_type_get_type@Base 3.98.3
  gtk_crossing_data_get_type@Base 3.98.3
  gtk_css_parser_error_get_type@Base 3.98.3
@@ -1627,6 +1659,10 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_event_controller_focus_get_type@Base 3.98.3
  gtk_event_controller_focus_is_focus@Base 3.98.3
  gtk_event_controller_focus_new@Base 3.98.3
+ gtk_event_controller_get_current_event@Base 3.98.3
+ gtk_event_controller_get_current_event_device@Base 3.98.3
+ gtk_event_controller_get_current_event_state@Base 3.98.3
+ gtk_event_controller_get_current_event_time@Base 3.98.3
  gtk_event_controller_get_name@Base 3.98.3
  gtk_event_controller_get_propagation_limit@Base 3.98.3
  gtk_event_controller_get_propagation_phase@Base 3.98.3
@@ -1674,11 +1710,13 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_file_chooser_add_choice@Base 3.98.3
  gtk_file_chooser_add_filter@Base 3.98.3
  gtk_file_chooser_add_shortcut_folder@Base 3.98.3
+ gtk_file_chooser_button_get_modal@Base 3.98.3
  gtk_file_chooser_button_get_title@Base 3.98.3
  gtk_file_chooser_button_get_type@Base 3.98.3
  gtk_file_chooser_button_get_width_chars@Base 3.98.3
  gtk_file_chooser_button_new@Base 3.98.3
  gtk_file_chooser_button_new_with_dialog@Base 3.98.3
+ gtk_file_chooser_button_set_modal@Base 3.98.3
  gtk_file_chooser_button_set_title@Base 3.98.3
  gtk_file_chooser_button_set_width_chars@Base 3.98.3
  gtk_file_chooser_dialog_get_type@Base 3.98.3
@@ -1797,12 +1835,14 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_flow_box_set_vadjustment@Base 3.98.3
  gtk_flow_box_unselect_all@Base 3.98.3
  gtk_flow_box_unselect_child@Base 3.98.3
+ gtk_font_button_get_modal@Base 3.98.3
  gtk_font_button_get_title@Base 3.98.3
  gtk_font_button_get_type@Base 3.98.3
  gtk_font_button_get_use_font@Base 3.98.3
  gtk_font_button_get_use_size@Base 3.98.3
  gtk_font_button_new@Base 3.98.3
  gtk_font_button_new_with_font@Base 3.98.3
+ gtk_font_button_set_modal@Base 3.98.3
  gtk_font_button_set_title@Base 3.98.3
  gtk_font_button_set_use_font@Base 3.98.3
  gtk_font_button_set_use_size@Base 3.98.3
@@ -1835,13 +1875,11 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_frame_get_label@Base 3.98.3
  gtk_frame_get_label_align@Base 3.98.3
  gtk_frame_get_label_widget@Base 3.98.3
- gtk_frame_get_shadow_type@Base 3.98.3
  gtk_frame_get_type@Base 3.98.3
  gtk_frame_new@Base 3.98.3
  gtk_frame_set_label@Base 3.98.3
  gtk_frame_set_label_align@Base 3.98.3
  gtk_frame_set_label_widget@Base 3.98.3
- gtk_frame_set_shadow_type@Base 3.98.3
  gtk_gesture_click_get_area@Base 3.98.3
  gtk_gesture_click_get_type@Base 3.98.3
  gtk_gesture_click_new@Base 3.98.3
@@ -1901,10 +1939,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_gesture_zoom_get_type@Base 3.98.3
  gtk_gesture_zoom_new@Base 3.98.3
  gtk_get_binary_age@Base 3.98.3
- gtk_get_current_event@Base 3.98.3
- gtk_get_current_event_device@Base 3.98.3
- gtk_get_current_event_state@Base 3.98.3
- gtk_get_current_event_time@Base 3.98.3
  gtk_get_debug_flags@Base 3.98.3
  gtk_get_default_language@Base 3.98.3
  gtk_get_interface_age@Base 3.98.3
@@ -2173,7 +2207,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_label_get_selection_bounds@Base 3.98.3
  gtk_label_get_single_line_mode@Base 3.98.3
  gtk_label_get_text@Base 3.98.3
- gtk_label_get_track_visited_links@Base 3.98.3
  gtk_label_get_type@Base 3.98.3
  gtk_label_get_use_markup@Base 3.98.3
  gtk_label_get_use_underline@Base 3.98.3
@@ -2195,12 +2228,10 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_label_set_markup_with_mnemonic@Base 3.98.3
  gtk_label_set_max_width_chars@Base 3.98.3
  gtk_label_set_mnemonic_widget@Base 3.98.3
- gtk_label_set_pattern@Base 3.98.3
  gtk_label_set_selectable@Base 3.98.3
  gtk_label_set_single_line_mode@Base 3.98.3
  gtk_label_set_text@Base 3.98.3
  gtk_label_set_text_with_mnemonic@Base 3.98.3
- gtk_label_set_track_visited_links@Base 3.98.3
  gtk_label_set_use_markup@Base 3.98.3
  gtk_label_set_use_underline@Base 3.98.3
  gtk_label_set_width_chars@Base 3.98.3
@@ -2374,11 +2405,11 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_menu_button_accessible_get_type@Base 3.98.3
  gtk_menu_button_get_align_widget@Base 3.98.3
  gtk_menu_button_get_direction@Base 3.98.3
+ gtk_menu_button_get_has_frame@Base 3.98.3
  gtk_menu_button_get_icon_name@Base 3.98.3
  gtk_menu_button_get_label@Base 3.98.3
  gtk_menu_button_get_menu_model@Base 3.98.3
  gtk_menu_button_get_popover@Base 3.98.3
- gtk_menu_button_get_relief@Base 3.98.3
  gtk_menu_button_get_type@Base 3.98.3
  gtk_menu_button_get_use_underline@Base 3.98.3
  gtk_menu_button_new@Base 3.98.3
@@ -2387,11 +2418,11 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_menu_button_set_align_widget@Base 3.98.3
  gtk_menu_button_set_create_popup_func@Base 3.98.3
  gtk_menu_button_set_direction@Base 3.98.3
+ gtk_menu_button_set_has_frame@Base 3.98.3
  gtk_menu_button_set_icon_name@Base 3.98.3
  gtk_menu_button_set_label@Base 3.98.3
  gtk_menu_button_set_menu_model@Base 3.98.3
  gtk_menu_button_set_popover@Base 3.98.3
- gtk_menu_button_set_relief@Base 3.98.3
  gtk_menu_button_set_use_underline@Base 3.98.3
  gtk_menu_direction_type_get_type@Base 3.98.3
  gtk_message_dialog_format_secondary_markup@Base 3.98.3
@@ -3010,7 +3041,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_recent_manager_new@Base 3.98.3
  gtk_recent_manager_purge_items@Base 3.98.3
  gtk_recent_manager_remove_item@Base 3.98.3
- gtk_relief_style_get_type@Base 3.98.3
  gtk_render_activity@Base 3.98.3
  gtk_render_arrow@Base 3.98.3
  gtk_render_background@Base 3.98.3
@@ -3087,6 +3117,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_scrollable_set_hscroll_policy@Base 3.98.3
  gtk_scrollable_set_vadjustment@Base 3.98.3
  gtk_scrollable_set_vscroll_policy@Base 3.98.3
+ gtk_scrollbar_accessible_get_type@Base 3.98.3
  gtk_scrollbar_get_adjustment@Base 3.98.3
  gtk_scrollbar_get_type@Base 3.98.3
  gtk_scrollbar_new@Base 3.98.3
@@ -3094,6 +3125,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_scrolled_window_accessible_get_type@Base 3.98.3
  gtk_scrolled_window_get_capture_button_press@Base 3.98.3
  gtk_scrolled_window_get_hadjustment@Base 3.98.3
+ gtk_scrolled_window_get_has_frame@Base 3.98.3
  gtk_scrolled_window_get_hscrollbar@Base 3.98.3
  gtk_scrolled_window_get_kinetic_scrolling@Base 3.98.3
  gtk_scrolled_window_get_max_content_height@Base 3.98.3
@@ -3105,13 +3137,13 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_scrolled_window_get_policy@Base 3.98.3
  gtk_scrolled_window_get_propagate_natural_height@Base 3.98.3
  gtk_scrolled_window_get_propagate_natural_width@Base 3.98.3
- gtk_scrolled_window_get_shadow_type@Base 3.98.3
  gtk_scrolled_window_get_type@Base 3.98.3
  gtk_scrolled_window_get_vadjustment@Base 3.98.3
  gtk_scrolled_window_get_vscrollbar@Base 3.98.3
  gtk_scrolled_window_new@Base 3.98.3
  gtk_scrolled_window_set_capture_button_press@Base 3.98.3
  gtk_scrolled_window_set_hadjustment@Base 3.98.3
+ gtk_scrolled_window_set_has_frame@Base 3.98.3
  gtk_scrolled_window_set_kinetic_scrolling@Base 3.98.3
  gtk_scrolled_window_set_max_content_height@Base 3.98.3
  gtk_scrolled_window_set_max_content_width@Base 3.98.3
@@ -3122,7 +3154,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_scrolled_window_set_policy@Base 3.98.3
  gtk_scrolled_window_set_propagate_natural_height@Base 3.98.3
  gtk_scrolled_window_set_propagate_natural_width@Base 3.98.3
- gtk_scrolled_window_set_shadow_type@Base 3.98.3
  gtk_scrolled_window_set_vadjustment@Base 3.98.3
  gtk_scrolled_window_unset_placement@Base 3.98.3
  gtk_search_bar_connect_entry@Base 3.98.3
@@ -3157,10 +3188,10 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_settings_get_for_display@Base 3.98.3
  gtk_settings_get_type@Base 3.98.3
  gtk_settings_reset_property@Base 3.98.3
- gtk_shadow_type_get_type@Base 3.98.3
  gtk_shortcut_action_activate@Base 3.98.3
  gtk_shortcut_action_flags_get_type@Base 3.98.3
  gtk_shortcut_action_get_type@Base 3.98.3
+ gtk_shortcut_action_parse_string@Base 3.98.3
  gtk_shortcut_action_print@Base 3.98.3
  gtk_shortcut_action_to_string@Base 3.98.3
  gtk_shortcut_controller_add_shortcut@Base 3.98.3
@@ -3193,7 +3224,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_shortcut_trigger_equal@Base 3.98.3
  gtk_shortcut_trigger_get_type@Base 3.98.3
  gtk_shortcut_trigger_hash@Base 3.98.3
- gtk_shortcut_trigger_match_get_type@Base 3.98.3
  gtk_shortcut_trigger_parse_string@Base 3.98.3
  gtk_shortcut_trigger_print@Base 3.98.3
  gtk_shortcut_trigger_print_label@Base 3.98.3
@@ -3206,7 +3236,9 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_shortcuts_shortcut_get_type@Base 3.98.3
  gtk_shortcuts_window_get_type@Base 3.98.3
  gtk_show_about_dialog@Base 3.98.3
- gtk_show_uri_on_window@Base 3.98.3
+ gtk_show_uri@Base 3.98.3
+ gtk_show_uri_full@Base 3.98.3
+ gtk_show_uri_full_finish@Base 3.98.3
  gtk_signal_action_get_signal_name@Base 3.98.3
  gtk_signal_action_get_type@Base 3.98.3
  gtk_signal_action_new@Base 3.98.3
@@ -4066,10 +4098,10 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_video_set_loop@Base 3.98.3
  gtk_video_set_media_stream@Base 3.98.3
  gtk_video_set_resource@Base 3.98.3
- gtk_viewport_get_shadow_type@Base 3.98.3
+ gtk_viewport_get_scroll_to_focus@Base 3.98.3
  gtk_viewport_get_type@Base 3.98.3
  gtk_viewport_new@Base 3.98.3
- gtk_viewport_set_shadow_type@Base 3.98.3
+ gtk_viewport_set_scroll_to_focus@Base 3.98.3
  gtk_volume_button_get_type@Base 3.98.3
  gtk_volume_button_new@Base 3.98.3
  gtk_widget_accessible_get_type@Base 3.98.3
@@ -4147,7 +4179,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_widget_get_margin_end@Base 3.98.3
  gtk_widget_get_margin_start@Base 3.98.3
  gtk_widget_get_margin_top@Base 3.98.3
- gtk_widget_get_modifier_mask@Base 3.98.3
  gtk_widget_get_name@Base 3.98.3
  gtk_widget_get_native@Base 3.98.3
  gtk_widget_get_next_sibling@Base 3.98.3
