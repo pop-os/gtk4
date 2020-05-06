@@ -77,6 +77,7 @@ Copyright:
  2001 CodeFactory AB
  2010 Codethink Limited
  2007-2009 Cody Russell
+ 2012-2018 Collabora Ltd.
  2003-2007 Courtesy of Prevod.org team
  2003-2004 Dafydd Harries
  2010 Damyan Ivanov
@@ -146,7 +147,7 @@ Copyright:
  2005-2011 Ignacio Casal Quinteiro
  2005-2009 Ilkka Tuohela
  2005-2008 Imendio AB
- 2010 Intel Corporation
+ 2010-2013 Intel Corporation
  2002 Isam Bayazidi
  2010 Israt Jahan
  2002 Ivan Stojmirov
@@ -160,7 +161,7 @@ Copyright:
  2004 James M. Cape
  2005 Jamie McCracken
  2009 Jamy
- 2006-2013 Jan Arne Petersen
+ 2006-2016 Jan Arne Petersen
  (unknown) Javier Jardón
  2005 Jaydeep Bhusal
  2009 Jennie Petoumenou
@@ -185,7 +186,7 @@ Copyright:
  2005 Jyotshna Shrestha
  2003 KAMAGASAKO Masatoshi
  2003-2004 Kazuki IWAMOTO
- 2000 Keith Packard
+ 2000-2002 Keith Packard
  2000 Keld Simonsen
  2004 Kenan Hadžiavdić
  1999-2000 Kenneth Christiansen
@@ -195,6 +196,7 @@ Copyright:
  2002-2007 Kostas Papadimas
  2008-2009 Krishna Babu K
  2001-2010 Kristian Rietveld
+ 1991-1998 LCS/Telegraphics
  1999 Larry Ewing
  1998 Lars Hamann
  2004-2005 Laszlo Dvornik
@@ -316,6 +318,7 @@ Copyright:
  1998 Shawn T. Amundson
  2006 Shiva Pokharel
  2006 Shyam Krishna Bal
+ 2016-2020 Simon McVittie
  1999-2009 Simos Xenitellis
  2003-2004 Soeren Sandmann
  2000-2002 Softcatala
@@ -331,7 +334,7 @@ Copyright:
  2000 SuSE Linux Ltd
  2006 Subhransu Behera
  2002 Sun G11n
- 1996-2009 Sun Microsystems, Inc.
+ 1994-2009 Sun Microsystems, Inc.
  2007 Sunil Mohan Adapa
  2003 Swapnil Hajare
  2008-2010 Sweta Kothari
@@ -345,6 +348,7 @@ Copyright:
  2007-2010 The GNOME Project
  1997-2019 The GTK Team
  1986-1998 The Open Group
+ 1992-1994 The Regents of the University of California.
  2005-2010 Theppitak Karoonboonyanan
  2004 Thierry Vignaud
  1998-2006 Tim Janik
@@ -386,7 +390,7 @@ Copyright:
  2005 Арангел Ангов
  2017-2019 Руслан Ижбулатов (LRN)
  2000 辛立仁
-License: LGPL-2+ and LGPL-2.1+
+License: LGPL-2+ and LGPL-2.1+ and sun-permissive and lcs-telegraphics-permissive and X11R5-permissive and Expat
 
 License: LGPL-2+
  This library is free software; you can redistribute it and/or modify it
@@ -424,37 +428,9 @@ License: LGPL-2.1+
  .
  See /usr/share/common-licenses/LGPL-2.1 on your debian system.
 
-Files:
- gtk/gtk-text-input.xml
- gtk/text-input-unstable-v3.xml
-Copyright:
- 2012-2013 Intel Corporation
- 2015-2016 Jan Arne Petersen
- 2017-2018 Red Hat, Inc.
- 2018 Purism SPC
-License: X11R5-permissive
-
-Files:
- gdk/win32/wintab.h
- gdk/win32/pktdef.h
-Copyright:
- 1991-1998 LCS/Telegraphics
 License: lcs-telegraphics-permissive
  The text and information contained in this file may be freely used,
  copied, or distributed without compensation or licensing restrictions.
-
-Files:
- gtk/gtktexttag.*
- gtk/gtktextmark.*
- gtk/gtktextsegment.c
- gtk/gtktextchild.c
- gtk/gtktextchildprivate.h
- gtk/gtktextbtree.c
-Copyright:
- 1992-1994 The Regents of the University of California.
- 1994-1997 Sun Microsystems, Inc.
- 2000      Red Hat, Inc.
-License: sun-permissive
 
 License: sun-permissive
  This software is copyrighted by the Regents of the University of
@@ -496,27 +472,6 @@ License: sun-permissive
  foregoing, the authors grant the U.S. Government and others acting
  in its behalf permission to use and distribute the software in
  accordance with the terms specified in this license.
-
-Files:
- gtk/gtktextdisplay.*
- gtk/gtktextlayout.*
-Copyright:
- 1992-1994 The Regents of the University of California.
- 1994-1997 Sun Microsystems, Inc.
- 2000      Red Hat, Inc.
-License: LGPL-2+ or sun-permissive
-
-Files:
- debian/run-with-locales
- gdk/wayland/cursor/*
- gtk/inspector/logs.*
-Copyright:
- 2012-2018 Collabora Ltd.
- 2012 Intel Corporation
- 2002 Keith Packard
- 2018 Red Hat, Inc.
- 2016-2020 Simon McVittie
-License: Expat
 
 Files:
  gsk/gl/stb_rect_pack.*
