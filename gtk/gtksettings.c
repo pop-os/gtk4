@@ -25,7 +25,7 @@
 #include "gtkintl.h"
 #include "gtkprivate.h"
 #include "gtkscrolledwindow.h"
-#include "gtkstylecontext.h"
+#include "gtkstylecontextprivate.h"
 #include "gtkstyleproviderprivate.h"
 #include "gtktypebuiltins.h"
 #include "gtkversion.h"
@@ -74,14 +74,16 @@
  * On the X window system, this sharing is realized by an
  * [XSettings](http://www.freedesktop.org/wiki/Specifications/xsettings-spec)
  * manager that is usually part of the desktop environment, along with
- * utilities that let the user change these settings. In the absence of
- * an Xsettings manager, GTK reads default values for settings from
- * `settings.ini` files in
- * `/etc/gtk-4.0`, `$XDG_CONFIG_DIRS/gtk-4.0`
- * and `$XDG_CONFIG_HOME/gtk-4.0`.
- * These files must be valid key files (see #GKeyFile), and have
- * a section called Settings. Themes can also provide default values
- * for settings by installing a `settings.ini` file
+ * utilities that let the user change these settings.
+ *
+ * On Wayland, the settings are obtained either via a settings portal,
+ * or by reading desktop settings from DConf.
+ *
+ * In the absence of these sharing mechanisms, GTK reads default values for
+ * settings from `settings.ini` files in `/etc/gtk-4.0`, `$XDG_CONFIG_DIRS/gtk-4.0`
+ * and `$XDG_CONFIG_HOME/gtk-4.0`. These files must be valid key files (see
+ * #GKeyFile), and have a section called Settings. Themes can also provide
+ * default values for settings by installing a `settings.ini` file
  * next to their `gtk.css` file.
  *
  * Applications can override system-wide settings by setting the property
@@ -91,8 +93,7 @@
  *
  * There is one GtkSettings instance per display. It can be obtained with
  * gtk_settings_get_for_display(), but in many cases, it is more convenient
- * to use gtk_widget_get_settings(). gtk_settings_get_default() returns the
- * GtkSettings instance for the default display.
+ * to use gtk_widget_get_settings().
  */
 
 
@@ -144,6 +145,7 @@ enum {
   PROP_CURSOR_BLINK_TIME,
   PROP_CURSOR_BLINK_TIMEOUT,
   PROP_SPLIT_CURSOR,
+  PROP_CURSOR_ASPECT_RATIO,
   PROP_THEME_NAME,
   PROP_ICON_THEME_NAME,
   PROP_DND_DRAG_THRESHOLD,
@@ -383,6 +385,15 @@ gtk_settings_class_init (GtkSettingsClass *class)
                                                                    TRUE,
                                                                    GTK_PARAM_READWRITE));
   g_assert (result == PROP_SPLIT_CURSOR);
+
+  result = settings_install_property_parser (class,
+                                             g_param_spec_float ("gtk-cursor-aspect-ratio",
+                                                                 P_("Cursor Aspect Ratio"),
+                                                                 P_("The aspect ratio of the text caret"),
+                                                                 0.0, 1.0, 0.04,
+                                                                 GTK_PARAM_READWRITE));
+  g_assert (result == PROP_CURSOR_ASPECT_RATIO);
+
   result = settings_install_property_parser (class,
                                              g_param_spec_string ("gtk-theme-name",
                                                                    P_("Theme Name"),

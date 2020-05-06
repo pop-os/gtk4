@@ -33,6 +33,7 @@
 #include "gdksurfaceprivate.h"
 #include "gdkenumtypes.h"
 #include "gdkdragprivate.h"
+#include "gdkkeysprivate.h"
 
 G_BEGIN_DECLS
 
@@ -184,6 +185,11 @@ gboolean gdk_surface_handle_event (GdkEvent       *event);
 GdkSeat * gdk_surface_get_seat_from_event (GdkSurface *surface,
                                            GdkEvent    *event);
 
+void       gdk_surface_enter_monitor (GdkSurface *surface,
+                                      GdkMonitor *monitor);
+void       gdk_surface_leave_monitor (GdkSurface *surface,
+                                      GdkMonitor *monitor);
+
 /*****************************************
  * Interfaces provided by windowing code *
  *****************************************/
@@ -224,6 +230,45 @@ void gdk_synthesize_surface_state (GdkSurface     *surface,
                                    GdkSurfaceState unset_flags,
                                    GdkSurfaceState set_flags);
 
+/**
+ * GdkGrabStatus:
+ * @GDK_GRAB_SUCCESS: the resource was successfully grabbed.
+ * @GDK_GRAB_ALREADY_GRABBED: the resource is actively grabbed by another client.
+ * @GDK_GRAB_INVALID_TIME: the resource was grabbed more recently than the
+ *  specified time.
+ * @GDK_GRAB_NOT_VIEWABLE: the grab surface or the @confine_to surface are not
+ *  viewable.
+ * @GDK_GRAB_FROZEN: the resource is frozen by an active grab of another client.
+ * @GDK_GRAB_FAILED: the grab failed for some other reason
+ *
+ * Returned by gdk_device_grab() to indicate success or the reason for the
+ * failure of the grab attempt.
+ */
+typedef enum
+{
+  GDK_GRAB_SUCCESS         = 0,
+  GDK_GRAB_ALREADY_GRABBED = 1,
+  GDK_GRAB_INVALID_TIME    = 2,
+  GDK_GRAB_NOT_VIEWABLE    = 3,
+  GDK_GRAB_FROZEN          = 4,
+  GDK_GRAB_FAILED          = 5
+} GdkGrabStatus;
+
+/**
+ * GdkGrabOwnership:
+ * @GDK_OWNERSHIP_NONE: All other devices’ events are allowed.
+ * @GDK_OWNERSHIP_SURFACE: Other devices’ events are blocked for the grab surface.
+ * @GDK_OWNERSHIP_APPLICATION: Other devices’ events are blocked for the whole application.
+ *
+ * Defines how device grabs interact with other devices.
+ */
+typedef enum
+{
+  GDK_OWNERSHIP_NONE,
+  GDK_OWNERSHIP_SURFACE,
+  GDK_OWNERSHIP_APPLICATION
+} GdkGrabOwnership;
+
 GdkGrabStatus gdk_device_grab (GdkDevice        *device,
                                GdkSurface        *surface,
                                GdkGrabOwnership  grab_ownership,
@@ -256,6 +301,42 @@ void gdk_surface_get_geometry (GdkSurface *surface,
 
 GdkGLContext *gdk_surface_get_shared_data_gl_context (GdkSurface *surface);
 
+typedef enum
+{
+  GDK_HINT_POS         = 1 << 0,
+  GDK_HINT_MIN_SIZE    = 1 << 1,
+  GDK_HINT_MAX_SIZE    = 1 << 2,
+  GDK_HINT_BASE_SIZE   = 1 << 3,
+  GDK_HINT_ASPECT      = 1 << 4,
+  GDK_HINT_RESIZE_INC  = 1 << 5,
+  GDK_HINT_WIN_GRAVITY = 1 << 6,
+  GDK_HINT_USER_POS    = 1 << 7,
+  GDK_HINT_USER_SIZE   = 1 << 8
+} GdkSurfaceHints;
+
+struct _GdkGeometry
+{
+  gint min_width;
+  gint min_height;
+  gint max_width;
+  gint max_height;
+  gint base_width;
+  gint base_height;
+  gint width_inc;
+  gint height_inc;
+  gdouble min_aspect;
+  gdouble max_aspect;
+  GdkGravity win_gravity;
+};
+
+GDK_AVAILABLE_IN_ALL
+void       gdk_surface_constrain_size      (GdkGeometry    *geometry,
+                                            GdkSurfaceHints  flags,
+                                            gint            width,
+                                            gint            height,
+                                            gint           *new_width,
+                                            gint           *new_height);
+
 /*
  * GdkSeatGrabPrepareFunc:
  * @seat: the #GdkSeat being grabbed
@@ -283,6 +364,7 @@ void           gdk_seat_ungrab           (GdkSeat                *seat);
 GdkSurface *   gdk_surface_new_temp             (GdkDisplay    *display,
                                                  const GdkRectangle *position);
 
+GdkKeymap *  gdk_display_get_keymap  (GdkDisplay *display);
 
 G_END_DECLS
 

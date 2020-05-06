@@ -38,12 +38,15 @@
 #include "gdkkeysprivate.h"
 #include "gdkmarshalers.h"
 #include "xsettings-client.h"
+
+#include "gdkcairocontext-x11.h"
 #include "gdkclipboard-x11.h"
+#include "gdkglcontext-x11.h"
+#include "gdkkeys-x11.h"
 #include "gdkprivate-x11.h"
 #include "gdkscreen-x11.h"
-#include "gdkcairocontext-x11.h"
-#include "gdkglcontext-x11.h"
 #include "gdkvulkancontext-x11.h"
+
 #include "gdk-private.h"
 
 #include <glib.h>
@@ -796,7 +799,7 @@ gdk_x11_display_translate_event (GdkEventTranslator *translator,
 
       if (!is_substructure)
 	{
-          event = gdk_event_delete_new (surface);
+          event = gdk_delete_event_new (surface);
 
 	  if (surface && GDK_SURFACE_XID (surface) != x11_screen->xroot_window)
 	    gdk_surface_destroy_notify (surface);
@@ -915,10 +918,10 @@ gdk_x11_display_translate_event (GdkEventTranslator *translator,
 	xevent->xconfigure.event == xevent->xconfigure.window)
         {
           int x, y;
+          int c_w = (xevent->xconfigure.width + surface_impl->surface_scale - 1) / surface_impl->surface_scale;
+          int c_h = (xevent->xconfigure.height + surface_impl->surface_scale - 1) / surface_impl->surface_scale;
 
-          event = gdk_event_configure_new (surface,
-	                                   (xevent->xconfigure.width + surface_impl->surface_scale - 1) / surface_impl->surface_scale,
-	                                   (xevent->xconfigure.height + surface_impl->surface_scale - 1) / surface_impl->surface_scale);
+          event = gdk_configure_event_new (surface, c_w, c_h);
 
 	  if (!xevent->xconfigure.send_event &&
 	      !xevent->xconfigure.override_redirect &&
@@ -971,8 +974,7 @@ gdk_x11_display_translate_event (GdkEventTranslator *translator,
                 {
                   surface_impl->unscaled_width = xevent->xconfigure.width;
                   surface_impl->unscaled_height = xevent->xconfigure.height;
-                  surface->width = event->configure.width;
-                  surface->height = event->configure.height;
+                  gdk_configure_event_get_size (event, &surface->width, &surface->height);
 
                   _gdk_surface_update_size (surface);
                   _gdk_x11_surface_update_size (surface_impl);
@@ -987,6 +989,7 @@ gdk_x11_display_translate_event (GdkEventTranslator *translator,
 		}
 
               gdk_x11_surface_update_popups (surface);
+              gdk_x11_surface_enter_leave_monitors (surface);
 	    }
         }
       break;
@@ -1248,19 +1251,19 @@ _gdk_wm_protocols_filter (const XEvent  *xevent,
 
   if (atom == gdk_x11_get_xatom_by_name_for_display (display, "WM_DELETE_WINDOW"))
     {
-  /* The delete window request specifies a window
-   *  to delete. We don't actually destroy the
-   *  window because "it is only a request". (The
-   *  window might contain vital data that the
-   *  program does not want destroyed). Instead
-   *  the event is passed along to the program,
-   *  which should then destroy the window.
-   */
+      /* The delete window request specifies a window
+       *  to delete. We don't actually destroy the
+       *  window because "it is only a request". (The
+       *  window might contain vital data that the
+       *  program does not want destroyed). Instead
+       *  the event is passed along to the program,
+       *  which should then destroy the window.
+       */
       GDK_DISPLAY_NOTE (display, EVENTS,
 		g_message ("delete window:\t\twindow: %ld",
 			   xevent->xclient.window));
 
-      *event = gdk_event_delete_new (win);
+      *event = gdk_delete_event_new (win);
 
       gdk_x11_surface_set_user_time (win, xevent->xclient.data.l[1]);
 

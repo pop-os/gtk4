@@ -22,6 +22,7 @@
 #include "gtkboxlayout.h"
 #include "gtklabel.h"
 #include "gtkframe.h"
+#include "gtkwidgetprivate.h"
 #include "gtkintl.h"
 
 /**
@@ -137,16 +138,8 @@ get_labels (guint key, GdkModifierType modifier, guint *n_mods)
     labels[i++] = C_("keyboard label", "Shift");
   if (modifier & GDK_CONTROL_MASK)
     labels[i++] = C_("keyboard label", "Ctrl");
-  if (modifier & GDK_MOD1_MASK)
+  if (modifier & GDK_ALT_MASK)
     labels[i++] = C_("keyboard label", "Alt");
-  if (modifier & GDK_MOD2_MASK)
-    labels[i++] = "Mod2";
-  if (modifier & GDK_MOD3_MASK)
-    labels[i++] = "Mod3";
-  if (modifier & GDK_MOD4_MASK)
-    labels[i++] = "Mod4";
-  if (modifier & GDK_MOD5_MASK)
-    labels[i++] = "Mod5";
   if (modifier & GDK_SUPER_MASK)
     labels[i++] = C_("keyboard label", "Super");
   if (modifier & GDK_HYPER_MASK)
@@ -481,6 +474,9 @@ gtk_shortcut_label_class_init (GtkShortcutLabelClass *klass)
   object_class->finalize = gtk_shortcut_label_finalize;
   object_class->get_property = gtk_shortcut_label_get_property;
   object_class->set_property = gtk_shortcut_label_set_property;
+
+  widget_class->grab_focus = gtk_widget_grab_focus_none;
+  widget_class->focus = gtk_widget_focus_none;
 
   /**
    * GtkShortcutLabel:accelerator:

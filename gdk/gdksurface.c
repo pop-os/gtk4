@@ -76,6 +76,8 @@ enum {
   SIZE_CHANGED,
   RENDER,
   EVENT,
+  ENTER_MONITOR,
+  LEAVE_MONITOR,
   LAST_SIGNAL
 };
 
@@ -471,6 +473,9 @@ gdk_surface_class_init (GdkSurfaceClass *klass)
    * @height: the new height
    *
    * Emitted when the size of @surface is changed.
+   *
+   * Surface size is reported in ”application pixels”, not
+   * ”device pixels” (see gdk_surface_get_scale_factor()).
    */
   signals[SIZE_CHANGED] =
     g_signal_new (g_intern_static_string ("size-changed"),
@@ -525,13 +530,51 @@ gdk_surface_class_init (GdkSurfaceClass *klass)
                   0,
                   g_signal_accumulator_true_handled,
                   NULL,
-                  _gdk_marshal_BOOLEAN__BOXED,
+                  _gdk_marshal_BOOLEAN__POINTER,
                   G_TYPE_BOOLEAN,
                   1,
                   GDK_TYPE_EVENT);
   g_signal_set_va_marshaller (signals[EVENT],
                               G_OBJECT_CLASS_TYPE (object_class),
-                              _gdk_marshal_BOOLEAN__BOXEDv);
+                              _gdk_marshal_BOOLEAN__POINTERv);
+
+  /**
+   * GdkSurface::enter-montor:
+   * @surface: the #GdkSurface
+   * @monitor: the monitor
+   *
+   * Emitted when @surface starts being present on the monitor.
+   */ 
+  signals[ENTER_MONITOR] =
+    g_signal_new (g_intern_static_string ("enter-monitor"),
+                  G_OBJECT_CLASS_TYPE (object_class),
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL,
+                  NULL,
+                  NULL,
+                  G_TYPE_NONE,
+                  1,
+                  GDK_TYPE_MONITOR);
+
+  /**
+   * GdkSurface::leave-montor:
+   * @surface: the #GdkSurface
+   * @monitor: the monitor
+   *
+   * Emitted when @surface stops being present on the monitor.
+   */ 
+  signals[LEAVE_MONITOR] =
+    g_signal_new (g_intern_static_string ("leave-monitor"),
+                  G_OBJECT_CLASS_TYPE (object_class),
+                  G_SIGNAL_RUN_FIRST,
+                  0,
+                  NULL,
+                  NULL,
+                  NULL,
+                  G_TYPE_NONE,
+                  1,
+                  GDK_TYPE_MONITOR);
 }
 
 static void
@@ -1941,9 +1984,8 @@ gdk_surface_get_geometry (GdkSurface *surface,
  *
  * Returns the width of the given @surface.
  *
- * On the X11 platform the returned size is the size reported in the
- * most-recently-processed configure event, rather than the current
- * size on the X server.
+ * Surface size is reported in ”application pixels”, not
+ * ”device pixels” (see gdk_surface_get_scale_factor()).
  *
  * Returns: The width of @surface
  */
@@ -1961,9 +2003,8 @@ gdk_surface_get_width (GdkSurface *surface)
  *
  * Returns the height of the given @surface.
  *
- * On the X11 platform the returned size is the size reported in the
- * most-recently-processed configure event, rather than the current
- * size on the X server.
+ * Surface size is reported in ”application pixels”, not
+ * ”device pixels” (see gdk_surface_get_scale_factor()).
  *
  * Returns: The height of @surface
  */
@@ -2742,6 +2783,18 @@ gdk_synthesize_surface_state (GdkSurface     *surface,
   gdk_surface_set_state (surface, (surface->state | set_flags) & ~unset_flags);
 }
 
+static void
+hide_popup_chain (GdkSurface *surface)
+{
+  GdkSurface *parent;
+
+  gdk_surface_hide (surface);
+
+  parent = surface->parent;
+  if (parent->autohide)
+    hide_popup_chain (parent);
+}
+
 static gboolean
 check_autohide (GdkEvent *event)
 {
@@ -2771,7 +2824,7 @@ check_autohide (GdkEvent *event)
           if (grab_surface != gdk_event_get_surface (event) &&
               grab_surface->autohide)
             {
-              gdk_surface_hide (grab_surface);
+              hide_popup_chain (grab_surface);
               return TRUE;
             }
         }
@@ -2780,52 +2833,6 @@ check_autohide (GdkEvent *event)
     }
 
   return FALSE;
-}
-
-static gboolean
-is_keyboard_event (GdkEvent *event)
-{
-  switch ((guint) gdk_event_get_event_type (event))
-    {
-    case GDK_KEY_PRESS:
-    case GDK_KEY_RELEASE:
-    case GDK_FOCUS_CHANGE:
-      return TRUE;
-    default:;
-    }
-
-  return FALSE;
-}
-
-static GdkEvent *
-rewrite_event_for_toplevel (GdkEvent *event)
-{
-  GdkSurface *surface;
-
-  surface = gdk_event_get_surface (event);
-  if (!surface->parent)
-    return gdk_event_ref (event);
-
-  while (surface->parent)
-    surface = surface->parent;
-
-  if (gdk_event_get_event_type (event) == GDK_FOCUS_CHANGE)
-    return gdk_event_focus_new (surface,
-                                gdk_event_get_device (event),
-                                gdk_event_get_source_device (event),
-                                gdk_focus_event_get_in (event));
-  else
-    return gdk_event_key_new (gdk_event_get_event_type (event),
-                              surface,
-                              gdk_event_get_device (event),
-                              gdk_event_get_source_device (event),
-                              gdk_event_get_time (event),
-                              gdk_event_get_modifier_state (event),
-                              gdk_key_event_get_keyval (event),
-                              gdk_key_event_get_keycode (event),
-                              gdk_key_event_get_scancode (event),
-                              gdk_key_event_get_group (event),
-                              gdk_key_event_is_modifier (event));
 }
 
 static void
@@ -2845,7 +2852,7 @@ add_event_mark (GdkEvent *event,
   g_type_class_unref (class);
   kind = value ? value->value_nick : "event";
 
-  switch (event_type)
+  switch ((int) event_type)
     {
     case GDK_MOTION_NOTIFY:
       {
@@ -2874,13 +2881,13 @@ add_event_mark (GdkEvent *event,
     case GDK_KEY_PRESS:
     case GDK_KEY_RELEASE:
       {
-        message = g_strdup_printf ("%s {keyval=%u, state=0x%x, hardware_keycode=%u key_scancode=%u group=%u is_modifier=%u}",
+        message = g_strdup_printf ("%s {keyval=%u, state=0x%x, keycode=%u layout=%u level=%u is_modifier=%u}",
                                    kind,
                                    gdk_key_event_get_keyval (event),
                                    gdk_event_get_modifier_state (event),
                                    gdk_key_event_get_keycode (event),
-                                   gdk_key_event_get_scancode (event),
-                                   gdk_key_event_get_group (event),
+                                   gdk_key_event_get_layout (event),
+                                   gdk_key_event_get_level (event),
                                    gdk_key_event_is_modifier (event));
         break;
       }
@@ -2937,21 +2944,16 @@ gdk_surface_handle_event (GdkEvent *event)
 
   if (gdk_event_get_event_type (event) == GDK_CONFIGURE)
     {
+      int width, height;
+
+      gdk_configure_event_get_size (event, &width, &height);
       g_signal_emit (gdk_event_get_surface (event), signals[SIZE_CHANGED], 0,
-                     event->configure.width, event->configure.height);
+                     width, height);
       handled = TRUE;
     }
   else
     {
-      GdkEvent *emitted;
-
-      if (is_keyboard_event (event))
-        emitted = rewrite_event_for_toplevel (event);
-      else
-        emitted = gdk_event_ref (event);
-
-      g_signal_emit (gdk_event_get_surface (emitted), signals[EVENT], 0, emitted, &handled);
-      gdk_event_unref (emitted);
+      g_signal_emit (gdk_event_get_surface (event), signals[EVENT], 0, event, &handled);
     }
 
   if (GDK_PROFILER_IS_RUNNING)
@@ -3033,4 +3035,18 @@ gdk_surface_get_seat_from_event (GdkSurface *surface,
         return seat;
     }
   return gdk_display_get_default_seat (surface->display);
+}
+
+void
+gdk_surface_enter_monitor (GdkSurface *surface,
+                           GdkMonitor *monitor)
+{
+  g_signal_emit (surface, signals[ENTER_MONITOR], 0, monitor);
+}
+
+void
+gdk_surface_leave_monitor (GdkSurface *surface,
+                           GdkMonitor *monitor)
+{
+  g_signal_emit (surface, signals[LEAVE_MONITOR], 0, monitor);
 }

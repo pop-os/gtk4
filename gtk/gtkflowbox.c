@@ -76,9 +76,9 @@
 #include <config.h>
 
 #include "gtkflowbox.h"
+#include "gtkflowboxprivate.h"
 
 #include "gtkadjustment.h"
-#include "gtkcontainerprivate.h"
 #include "gtkcsscolorvalueprivate.h"
 #include "gtkcssnodeprivate.h"
 #include "gtkgesturedrag.h"
@@ -128,28 +128,6 @@ static void gtk_flow_box_set_accept_unpaired_release (GtkFlowBox *box,
                                                       gboolean    accept);
 
 static void gtk_flow_box_check_model_compat  (GtkFlowBox *box);
-
-static void
-get_current_selection_modifiers (GtkWidget *widget,
-                                 gboolean  *modify,
-                                 gboolean  *extend)
-{
-  GdkModifierType state = 0;
-  GdkModifierType mask;
-
-  *modify = FALSE;
-  *extend = FALSE;
-
-  if (gtk_get_current_event_state (&state))
-    {
-      mask = gtk_widget_get_modifier_mask (widget, GDK_MODIFIER_INTENT_MODIFY_SELECTION);
-      if ((state & mask) == mask)
-        *modify = TRUE;
-      mask = gtk_widget_get_modifier_mask (widget, GDK_MODIFIER_INTENT_EXTEND_SELECTION);
-      if ((state & mask) == mask)
-        *extend = TRUE;
-    }
-}
 
 static void
 path_from_horizontal_line_rects (cairo_t      *cr,
@@ -307,15 +285,8 @@ static void
 gtk_flow_box_child_set_focus (GtkFlowBoxChild *child)
 {
   GtkFlowBox *box = gtk_flow_box_child_get_box (child);
-  gboolean modify;
-  gboolean extend;
 
-  get_current_selection_modifiers (GTK_WIDGET (box), &modify, &extend);
-
-  if (modify)
-    gtk_flow_box_update_cursor (box, child);
-  else
-    gtk_flow_box_update_selection (box, child, FALSE, FALSE);
+  gtk_flow_box_update_selection (box, child, FALSE, FALSE);
 }
 
 /* GtkWidget implementation {{{2 */
@@ -455,7 +426,6 @@ gtk_flow_box_child_class_init (GtkFlowBoxChildClass *class)
 static void
 gtk_flow_box_child_init (GtkFlowBoxChild *child)
 {
-  gtk_widget_set_can_focus (GTK_WIDGET (child), TRUE);
 }
 
 /* Public API {{{2 */
@@ -613,7 +583,9 @@ struct _GtkFlowBoxClass
   void (*toggle_cursor_child)        (GtkFlowBox        *box);
   gboolean (*move_cursor)            (GtkFlowBox        *box,
                                       GtkMovementStep    step,
-                                      gint               count);
+                                      gint               count,
+                                      gboolean           extend,
+                                      gboolean           modify);
   void (*select_all)                 (GtkFlowBox        *box);
   void (*unselect_all)               (GtkFlowBox        *box);
 };
@@ -668,6 +640,8 @@ struct _GtkFlowBoxPrivate {
   GtkFlowBoxCreateWidgetFunc  create_widget_func;
   gpointer                    create_widget_func_data;
   GDestroyNotify              create_widget_func_data_destroy;
+
+  gboolean           disable_move_cursor;
 };
 
 #define BOX_PRIV(box) ((GtkFlowBoxPrivate*)gtk_flow_box_get_instance_private ((GtkFlowBox*)(box)))
@@ -2708,10 +2682,13 @@ gtk_flow_box_click_gesture_released (GtkGestureClick *gesture,
           GdkEventSequence *sequence;
           GdkInputSource source;
           GdkEvent *event;
+          GdkModifierType state;
           gboolean modify;
           gboolean extend;
 
-          get_current_selection_modifiers (GTK_WIDGET (box), &modify, &extend);
+          state = gtk_event_controller_get_current_event_state (GTK_EVENT_CONTROLLER (gesture));
+          modify = (state & GDK_CONTROL_MASK) != 0;
+          extend = (state & GDK_SHIFT_MASK) != 0;
 
           /* With touch, we default to modifying the selection.
            * You can still clear the selection and start over
@@ -2747,6 +2724,7 @@ gtk_flow_box_drag_gesture_begin (GtkGestureDrag *gesture,
                                  GtkWidget      *widget)
 {
   GtkFlowBoxPrivate *priv = BOX_PRIV (widget);
+  GdkModifierType state;
 
   if (priv->selection_mode != GTK_SELECTION_MULTIPLE)
     {
@@ -2757,7 +2735,10 @@ gtk_flow_box_drag_gesture_begin (GtkGestureDrag *gesture,
   priv->rubberband_select = FALSE;
   priv->rubberband_first = NULL;
   priv->rubberband_last = NULL;
-  get_current_selection_modifiers (widget, &priv->rubberband_modify, &priv->rubberband_extend);
+
+  state = gtk_event_controller_get_current_event_state (GTK_EVENT_CONTROLLER (gesture));
+  priv->rubberband_modify = (state & GDK_CONTROL_MASK) != 0;
+  priv->rubberband_extend = (state & GDK_SHIFT_MASK) != 0;
 }
 
 static void
@@ -2923,12 +2904,6 @@ gtk_flow_box_focus (GtkWidget        *widget,
   GSequenceIter *iter;
   GtkFlowBoxChild *next_focus_child;
 
-  /* Without "can-focus" flag fall back to the default behavior immediately */
-  if (!gtk_widget_get_can_focus (widget))
-    {
-      return GTK_WIDGET_CLASS (gtk_flow_box_parent_class)->focus (widget, direction);
-    }
-
   focus_child = gtk_widget_get_focus_child (widget);
   next_focus_child = NULL;
 
@@ -2992,35 +2967,22 @@ gtk_flow_box_add_move_binding (GtkWidgetClass  *widget_class,
                                GtkMovementStep  step,
                                gint             count)
 {
-  GdkDisplay *display;
-  GdkModifierType extend_mod_mask = GDK_SHIFT_MASK;
-  GdkModifierType modify_mod_mask = GDK_CONTROL_MASK;
-
-  display = gdk_display_get_default ();
-  if (display != NULL)
-    {
-      extend_mod_mask = gdk_keymap_get_modifier_mask (gdk_display_get_keymap (display),
-                                                      GDK_MODIFIER_INTENT_EXTEND_SELECTION);
-      modify_mod_mask = gdk_keymap_get_modifier_mask (gdk_display_get_keymap (display),
-                                                      GDK_MODIFIER_INTENT_MODIFY_SELECTION);
-    }
-
   gtk_widget_class_add_binding_signal (widget_class,
                                        keyval, modmask,
                                        "move-cursor",
-                                       "(ii)", step, count);
+                                       "(iibb)", step, count, FALSE, FALSE);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       keyval, modmask | extend_mod_mask,
+                                       keyval, modmask | GDK_SHIFT_MASK,
                                        "move-cursor",
-                                       "(ii)", step, count);
+                                       "(iibb)", step, count, TRUE, FALSE);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       keyval, modmask | modify_mod_mask,
+                                       keyval, modmask | GDK_CONTROL_MASK,
                                        "move-cursor",
-                                       "(ii)", step, count);
+                                       "(iibb)", step, count, FALSE, TRUE);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       keyval, modmask | extend_mod_mask | modify_mod_mask,
+                                       keyval, modmask | GDK_SHIFT_MASK | GDK_CONTROL_MASK,
                                        "move-cursor",
-                                       "(ii)", step, count);
+                                       "(iibb)", step, count, TRUE, TRUE);
 }
 
 static void
@@ -3045,14 +3007,22 @@ gtk_flow_box_toggle_cursor_child (GtkFlowBox *box)
     gtk_flow_box_select_and_activate (box, priv->cursor_child);
 }
 
+void
+gtk_flow_box_disable_move_cursor (GtkFlowBox *box)
+{
+  GtkFlowBoxPrivate *priv = BOX_PRIV (box);
+  
+  priv->disable_move_cursor = TRUE;
+}
+
 static gboolean
 gtk_flow_box_move_cursor (GtkFlowBox      *box,
                           GtkMovementStep  step,
-                          gint             count)
+                          gint             count,
+                          gboolean         extend,
+                          gboolean         modify)
 {
   GtkFlowBoxPrivate *priv = BOX_PRIV (box);
-  gboolean modify;
-  gboolean extend;
   GtkFlowBoxChild *child;
   GtkFlowBoxChild *prev;
   GtkFlowBoxChild *next;
@@ -3063,8 +3033,7 @@ gtk_flow_box_move_cursor (GtkFlowBox      *box,
   GtkAdjustment *adjustment;
   gboolean vertical;
 
-  /* Without "can-focus" flag fall back to the default behavior immediately */
-  if (!gtk_widget_get_can_focus (GTK_WIDGET (box)))
+  if (priv->disable_move_cursor)
     return FALSE;
 
   vertical = priv->orientation == GTK_ORIENTATION_VERTICAL;
@@ -3236,8 +3205,6 @@ gtk_flow_box_move_cursor (GtkFlowBox      *box,
           gtk_widget_child_focus (subchild, direction);
         }
     }
-
-  get_current_selection_modifiers (GTK_WIDGET (box), &modify, &extend);
 
   gtk_flow_box_update_cursor (box, child);
   if (!modify)
@@ -3587,6 +3554,8 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
    * @box: the #GtkFlowBox on which the signal is emitted
    * @step: the granularity fo the move, as a #GtkMovementStep
    * @count: the number of @step units to move
+   * @extend: whether to extend the selection
+   * @modify: whether to modify the selection
    *
    * The ::move-cursor signal is a
    * [keybinding signal][GtkBindingSignal]
@@ -3612,12 +3581,12 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
                                        G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
                                        G_STRUCT_OFFSET (GtkFlowBoxClass, move_cursor),
                                        NULL, NULL,
-                                       _gtk_marshal_BOOLEAN__ENUM_INT,
-                                       G_TYPE_BOOLEAN, 2,
-                                       GTK_TYPE_MOVEMENT_STEP, G_TYPE_INT);
+                                       _gtk_marshal_BOOLEAN__ENUM_INT_BOOLEAN_BOOLEAN,
+                                       G_TYPE_BOOLEAN, 4,
+                                       GTK_TYPE_MOVEMENT_STEP, G_TYPE_INT, G_TYPE_BOOLEAN, G_TYPE_BOOLEAN);
   g_signal_set_va_marshaller (signals[MOVE_CURSOR],
                               G_TYPE_FROM_CLASS (class),
-                              _gtk_marshal_BOOLEAN__ENUM_INTv);
+                              _gtk_marshal_BOOLEAN__ENUM_INT_BOOLEAN_BOOLEANv);
   /**
    * GtkFlowBox::select-all:
    * @box: the #GtkFlowBox on which the signal is emitted
@@ -3993,7 +3962,6 @@ gtk_flow_box_set_hadjustment (GtkFlowBox    *box,
   if (priv->hadjustment)
     g_object_unref (priv->hadjustment);
   priv->hadjustment = adjustment;
-  gtk_container_set_focus_hadjustment (GTK_CONTAINER (box), adjustment);
 }
 
 /**
@@ -4028,7 +3996,6 @@ gtk_flow_box_set_vadjustment (GtkFlowBox    *box,
   if (priv->vadjustment)
     g_object_unref (priv->vadjustment);
   priv->vadjustment = adjustment;
-  gtk_container_set_focus_vadjustment (GTK_CONTAINER (box), adjustment);
 }
 
 static void
@@ -4574,7 +4541,7 @@ gtk_flow_box_get_selection_mode (GtkFlowBox *box)
  * @child: a #GtkFlowBoxChild that may be filtered
  * @user_data: (closure): user data
  *
- * A function that will be called whenrever a child changes
+ * A function that will be called whenever a child changes
  * or is added. It lets you control if the child should be
  * visible or not.
  *

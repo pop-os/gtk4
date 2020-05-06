@@ -38,7 +38,7 @@
  * The URI bound to a GtkLinkButton can be set specifically using
  * gtk_link_button_set_uri(), and retrieved using gtk_link_button_get_uri().
  *
- * By default, GtkLinkButton calls gtk_show_uri_on_window() when the button is
+ * By default, GtkLinkButton calls gtk_show_uri() when the button is
  * clicked. This behaviour can be overridden by connecting to the
  * #GtkLinkButton::activate-link signal and returning %TRUE from the
  * signal handler.
@@ -209,7 +209,7 @@ gtk_link_button_class_init (GtkLinkButtonClass *klass)
    * The ::activate-link signal is emitted each time the #GtkLinkButton
    * has been clicked.
    *
-   * The default handler will call gtk_show_uri_on_window() with the URI stored inside
+   * The default handler will call gtk_show_uri() with the URI stored inside
    * the #GtkLinkButton:uri property.
    *
    * To override the default behavior, you can connect to the ::activate-link
@@ -228,9 +228,19 @@ gtk_link_button_class_init (GtkLinkButtonClass *klass)
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_LINK_BUTTON_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("button"));
 
+  /**
+   * GtkLinkButton|clipboard.copy:
+   *
+   * Copies the url to the clipboard.
+   */
   gtk_widget_class_install_action (widget_class, "clipboard.copy", NULL,
                                    gtk_link_button_activate_clipboard_copy);
 
+  /**
+   * GtkLinkButton|menu.popup:
+   *
+   * Opens the context menu. 
+   */
   gtk_widget_class_install_action (widget_class, "menu.popup", NULL, gtk_link_button_popup_menu);
 
   gtk_widget_class_add_binding_action (widget_class,
@@ -335,7 +345,7 @@ gtk_link_button_init (GtkLinkButton *link_button)
   GdkContentProvider *content;
   GtkDragSource *source;
 
-  gtk_button_set_relief (GTK_BUTTON (link_button), GTK_RELIEF_NONE);
+  gtk_button_set_has_frame (GTK_BUTTON (link_button), FALSE);
   gtk_widget_set_state_flags (GTK_WIDGET (link_button), GTK_STATE_FLAG_LINK, FALSE);
   gtk_widget_set_has_tooltip (GTK_WIDGET (link_button), TRUE);
 
@@ -485,22 +495,10 @@ gtk_link_button_activate_link (GtkLinkButton *link_button)
 {
   GtkLinkButtonPrivate *priv = gtk_link_button_get_instance_private (link_button);
   GtkWidget *toplevel;
-  GError *error;
 
   toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (link_button)));
 
-  error = NULL;
-  gtk_show_uri_on_window (GTK_WINDOW (toplevel), priv->uri, GDK_CURRENT_TIME, &error);
-  if (error)
-    {
-      g_warning ("Unable to show '%s': %s",
-                 priv->uri,
-                 error->message);
-      g_error_free (error);
-
-      return FALSE;
-    }
-
+  gtk_show_uri (GTK_WINDOW (toplevel), priv->uri, GDK_CURRENT_TIME);
   gtk_link_button_set_visited (link_button, TRUE);
 
   return TRUE;

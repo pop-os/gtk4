@@ -421,8 +421,6 @@ static void gtk_text_view_motion               (GtkEventController *controller,
                                                 gpointer            user_data);
 static void gtk_text_view_snapshot             (GtkWidget        *widget,
                                                 GtkSnapshot      *snapshot);
-static gboolean gtk_text_view_focus            (GtkWidget        *widget,
-                                                GtkDirectionType  direction);
 static void gtk_text_view_select_all           (GtkWidget        *widget,
                                                 gboolean          select);
 static gboolean get_middle_click_paste         (GtkTextView      *text_view);
@@ -823,7 +821,8 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
   widget_class->measure = gtk_text_view_measure;
   widget_class->size_allocate = gtk_text_view_size_allocate;
   widget_class->snapshot = gtk_text_view_snapshot;
-  widget_class->focus = gtk_text_view_focus;
+  widget_class->grab_focus = gtk_widget_grab_focus_self;
+  widget_class->focus = gtk_widget_focus_all;
 
   container_class->add = gtk_text_view_add;
   container_class->remove = gtk_text_view_remove;
@@ -1465,8 +1464,77 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
                   NULL,
                   G_TYPE_NONE, 0);
 
+  /*
+   * Actions
+   */
+
+  /**
+   * GtkTextView|clipboard.cut:
+   *
+   * Copies the contents to the clipboard and deletes it from the widget.
+   */
+  gtk_widget_class_install_action (widget_class, "clipboard.cut", NULL,
+                                   gtk_text_view_activate_clipboard_cut);
+
+  /**
+   * GtkTextView|clipboard.copy:
+   *
+   * Copies the contents to the clipboard.
+   */
+  gtk_widget_class_install_action (widget_class, "clipboard.copy", NULL,
+                                   gtk_text_view_activate_clipboard_copy);
+
+  /**
+   * GtkTextView|clipboard.paste:
+   *
+   * Inserts the contents of the clipboard into the widget.
+   */
+  gtk_widget_class_install_action (widget_class, "clipboard.paste", NULL,
+                                   gtk_text_view_activate_clipboard_paste);
+
+  /**
+   * GtkTextView|selection.delete:
+   *
+   * Deletes the current selection. 
+   */
+  gtk_widget_class_install_action (widget_class, "selection.delete", NULL,
+                                   gtk_text_view_activate_selection_delete);
+
+  /**
+   * GtkTextView|selection.select-all:
+   *
+   * Selects all of the widgets content.
+   */
+  gtk_widget_class_install_action (widget_class, "selection.select-all", NULL,
+                                   gtk_text_view_activate_selection_select_all);
+
+  /**
+   * GtkTextView|misc.insert-emoji:
+   *
+   * Opens the Emoji chooser.
+   */
+  gtk_widget_class_install_action (widget_class, "misc.insert-emoji", NULL,
+                                   gtk_text_view_activate_misc_insert_emoji);
+
+  /**
+   * GtkTextView|text.undo:
+   *
+   * Undoes the last change to the contents.
+   */
   gtk_widget_class_install_action (widget_class, "text.undo", NULL, gtk_text_view_real_undo);
+
+  /**
+   * GtkTextView|text.redo:
+   *
+   * Redoes the last change to the contents.
+   */
   gtk_widget_class_install_action (widget_class, "text.redo", NULL, gtk_text_view_real_redo);
+
+  /**
+   * GtkTextView|menu.popup:
+   *
+   * Opens the context menu. 
+   */
   gtk_widget_class_install_action (widget_class, "menu.popup", NULL, gtk_text_view_popup_menu);
 
   /*
@@ -1756,19 +1824,6 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
   quark_text_selection_data = g_quark_from_static_string ("gtk-text-view-text-selection-data");
   quark_gtk_signal = g_quark_from_static_string ("gtk-signal");
   quark_text_view_child = g_quark_from_static_string ("gtk-text-view-child");
-
-  gtk_widget_class_install_action (widget_class, "clipboard.cut", NULL,
-                                   gtk_text_view_activate_clipboard_cut);
-  gtk_widget_class_install_action (widget_class, "clipboard.copy", NULL,
-                                   gtk_text_view_activate_clipboard_copy);
-  gtk_widget_class_install_action (widget_class, "clipboard.paste", NULL,
-                                   gtk_text_view_activate_clipboard_paste);
-  gtk_widget_class_install_action (widget_class, "selection.delete", NULL,
-                                   gtk_text_view_activate_selection_delete);
-  gtk_widget_class_install_action (widget_class, "selection.select-all", NULL,
-                                   gtk_text_view_activate_selection_select_all);
-  gtk_widget_class_install_action (widget_class, "misc.insert-emoji", NULL,
-                                   gtk_text_view_activate_misc_insert_emoji);
 }
 
 static void
@@ -4299,7 +4354,7 @@ gtk_text_view_get_gutter (GtkTextView       *text_view,
 
   childp = find_child_for_window_type (text_view, win);
 
-  if (*childp != NULL)
+  if (childp != NULL && *childp != NULL)
     return GTK_WIDGET (*childp);
 
   return NULL;
@@ -4333,6 +4388,9 @@ gtk_text_view_set_gutter (GtkTextView       *text_view,
                     win == GTK_TEXT_WINDOW_BOTTOM);
 
   childp = find_child_for_window_type (text_view, win);
+  if (childp == NULL)
+    return;
+
   old_child = *childp;
 
   if ((GtkWidget *)old_child == widget)
@@ -5373,9 +5431,7 @@ gtk_text_view_click_gesture_pressed (GtkGestureClick *gesture,
 
       state = gdk_event_get_modifier_state (event);
 
-      if (state &
-          gtk_widget_get_modifier_mask (GTK_WIDGET (text_view),
-                                        GDK_MODIFIER_INTENT_EXTEND_SELECTION))
+      if (state & GDK_SHIFT_MASK)
         extends = TRUE;
 
       switch (n_press)
@@ -5456,8 +5512,9 @@ gtk_text_view_click_gesture_pressed (GtkGestureClick *gesture,
 }
 
 static void
-keymap_direction_changed (GdkKeymap   *keymap,
-			  GtkTextView *text_view)
+direction_changed (GdkDevice  *device,
+                   GParamSpec *pspec,
+                   GtkTextView *text_view)
 {
   gtk_text_view_check_keymap_direction (text_view);
 }
@@ -5467,6 +5524,8 @@ gtk_text_view_focus_in (GtkWidget *widget)
 {
   GtkTextView *text_view = GTK_TEXT_VIEW (widget);
   GtkTextViewPrivate *priv = text_view->priv;
+  GdkSeat *seat;
+  GdkDevice *keyboard;
 
   gtk_widget_queue_draw (widget);
 
@@ -5480,9 +5539,10 @@ gtk_text_view_focus_in (GtkWidget *widget)
       gtk_text_view_check_cursor_blink (text_view);
     }
 
-  g_signal_connect (gdk_display_get_keymap (gtk_widget_get_display (widget)),
-                    "direction-changed",
-                    G_CALLBACK (keymap_direction_changed), text_view);
+  seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
+  keyboard = gdk_seat_get_keyboard (seat);
+  g_signal_connect (keyboard, "notify::direction",
+                    G_CALLBACK (direction_changed), text_view);
   gtk_text_view_check_keymap_direction (text_view);
 
   if (priv->editable)
@@ -5497,6 +5557,8 @@ gtk_text_view_focus_out (GtkWidget *widget)
 {
   GtkTextView *text_view = GTK_TEXT_VIEW (widget);
   GtkTextViewPrivate *priv = text_view->priv;
+  GdkSeat *seat;
+  GdkDevice *keyboard;
 
   gtk_text_view_end_selection_drag (text_view);
 
@@ -5510,9 +5572,9 @@ gtk_text_view_focus_out (GtkWidget *widget)
       gtk_text_layout_set_cursor_visible (priv->layout, FALSE);
     }
 
-  g_signal_handlers_disconnect_by_func (gdk_display_get_keymap (gtk_widget_get_display (widget)),
-                                        keymap_direction_changed,
-                                        text_view);
+  seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
+  keyboard = gdk_seat_get_keyboard (seat);
+  g_signal_handlers_disconnect_by_func (keyboard, direction_changed, text_view);
   gtk_text_view_selection_bubble_popup_unset (text_view);
 
   text_view->priv->text_handles_enabled = FALSE;
@@ -5672,39 +5734,6 @@ gtk_text_view_snapshot (GtkWidget   *widget,
     {
       const AnchoredChild *vc = iter->data;
       gtk_widget_snapshot_child (widget, vc->widget, snapshot);
-    }
-}
-
-static gboolean
-gtk_text_view_focus (GtkWidget        *widget,
-                     GtkDirectionType  direction)
-{
-  gboolean result;
-
-  if (!gtk_widget_is_focus (widget) &&
-      gtk_widget_get_focus_child (widget) == NULL)
-    {
-      if (gtk_widget_get_can_focus (widget))
-        {
-          gtk_widget_grab_focus (widget);
-          return TRUE;
-        }
-
-      return FALSE;
-    }
-  else
-    {
-      gboolean can_focus;
-      /*
-       * Unset CAN_FOCUS flag so that gtk_container_focus() allows
-       * children to get the focus
-       */
-      can_focus = gtk_widget_get_can_focus (widget);
-      gtk_widget_set_can_focus (widget, FALSE);
-      result = GTK_WIDGET_CLASS (gtk_text_view_parent_class)->focus (widget, direction);
-      gtk_widget_set_can_focus (widget, can_focus);
-
-      return result;
     }
 }
 
@@ -7534,7 +7563,8 @@ gtk_text_view_check_keymap_direction (GtkTextView *text_view)
   if (priv->layout)
     {
       GtkSettings *settings = gtk_widget_get_settings (GTK_WIDGET (text_view));
-      GdkKeymap *keymap = gdk_display_get_keymap (gtk_widget_get_display (GTK_WIDGET (text_view)));
+      GdkSeat *seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (text_view)));
+      GdkDevice *keyboard = gdk_seat_get_keyboard (seat);
       GtkTextDirection new_cursor_dir;
       GtkTextDirection new_keyboard_dir;
       gboolean split_cursor;
@@ -7543,7 +7573,7 @@ gtk_text_view_check_keymap_direction (GtkTextView *text_view)
 		    "gtk-split-cursor", &split_cursor,
 		    NULL);
       
-      if (gdk_keymap_get_direction (keymap) == PANGO_DIRECTION_RTL)
+      if (gdk_device_get_direction (keyboard) == PANGO_DIRECTION_RTL)
 	new_keyboard_dir = GTK_TEXT_DIR_RTL;
       else
 	new_keyboard_dir  = GTK_TEXT_DIR_LTR;
@@ -8115,13 +8145,11 @@ gtk_text_view_value_changed (GtkAdjustment *adjustment,
   if (gtk_gesture_is_active (priv->drag_gesture))
     {
       GdkEvent *current_event;
-      current_event = gtk_get_current_event ();
+      current_event = gtk_event_controller_get_current_event (GTK_EVENT_CONTROLLER (priv->drag_gesture));
       if (current_event != NULL)
         {
           if (gdk_event_get_event_type (current_event) == GDK_SCROLL)
             move_mark_to_pointer_and_scroll (text_view, "insert");
-
-          gdk_event_unref (current_event);
         }
     }
 
@@ -8594,19 +8622,13 @@ gtk_text_view_get_menu_model (GtkTextView *text_view)
 }
 
 static void
-gtk_text_view_do_popup (GtkTextView    *text_view,
-                        GdkEvent       *event)
+gtk_text_view_do_popup (GtkTextView *text_view,
+                        GdkEvent    *trigger_event)
 {
   GtkTextViewPrivate *priv = text_view->priv;
-  GdkEvent *trigger_event;
 
   if (!gtk_widget_get_realized (GTK_WIDGET (text_view)))
     return;
-
-  if (event)
-    trigger_event = (GdkEvent *)event;
-  else
-    trigger_event = gtk_get_current_event ();
 
   gtk_text_view_update_clipboard_actions (text_view);
 
@@ -8682,9 +8704,6 @@ gtk_text_view_do_popup (GtkTextView    *text_view,
     }
 
   gtk_popover_popup (GTK_POPOVER (priv->popup_menu));
-
-  if (trigger_event && trigger_event != event)
-    gdk_event_unref (trigger_event);
 }
 
 static void

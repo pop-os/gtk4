@@ -1419,8 +1419,7 @@ do_popup_menu_for_process_tree_view (GtkWidget         *widget,
 
   menu = gtk_popover_new ();
   gtk_widget_set_parent (menu, widget);
-  gtk_style_context_add_class (gtk_widget_get_style_context (menu),
-                               GTK_STYLE_CLASS_CONTEXT_MENU);
+  gtk_widget_add_css_class (menu, GTK_STYLE_CLASS_CONTEXT_MENU);
 
   item = gtk_model_button_new ();
   g_object_set (item, "text", _("_End Process"), NULL);
@@ -1593,7 +1592,7 @@ create_show_processes_dialog (GtkMountOperation *op,
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_AUTOMATIC);
-  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled_window), GTK_SHADOW_IN);
+  gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolled_window), TRUE);
 
   gtk_container_add (GTK_CONTAINER (scrolled_window), tree_view);
   gtk_container_add (GTK_CONTAINER (vbox), scrolled_window);

@@ -45,7 +45,7 @@ typedef gboolean (*GtkSurfaceTransformChangedCallback) (GtkWidget               
                                                         const graphene_matrix_t *surface_transform,
                                                         gpointer                 user_data);
 
-#define GTK_STATE_FLAGS_BITS 14
+#define GTK_STATE_FLAGS_BITS 15
 
 typedef struct _GtkWidgetSurfaceTransformData
 {
@@ -266,7 +266,8 @@ void              _gtk_widget_set_device_surface           (GtkWidget *widget,
                                                             GdkSurface *pointer_window);
 GdkSurface *       _gtk_widget_get_device_surface          (GtkWidget *widget,
                                                             GdkDevice *device);
-GList *           _gtk_widget_list_devices                 (GtkWidget *widget);
+GdkDevice **       _gtk_widget_list_devices                 (GtkWidget *widget,
+                                                             guint     *out_n_devices);
 
 void              _gtk_widget_synthesize_crossing          (GtkWidget       *from,
                                                             GtkWidget       *to,
@@ -360,6 +361,21 @@ guint             gtk_widget_add_surface_transform_changed_callback (GtkWidget  
 void              gtk_widget_remove_surface_transform_changed_callback (GtkWidget *widget,
                                                                         guint      id);
 
+/* focus vfuncs for non-focusable non-containers */
+gboolean gtk_widget_grab_focus_none  (GtkWidget        *widget);
+gboolean gtk_widget_focus_none       (GtkWidget        *widget,
+                                      GtkDirectionType  direction);
+/* focus vfuncs for non-focusable containers with focusable children */
+gboolean gtk_widget_grab_focus_child (GtkWidget        *widget);
+gboolean gtk_widget_focus_child      (GtkWidget        *widget,
+                                      GtkDirectionType  direction);
+/* focus vfuncs for focusable widgets with children that don't receive focus */
+gboolean gtk_widget_grab_focus_self  (GtkWidget        *widget);
+gboolean gtk_widget_focus_self       (GtkWidget        *widget,
+                                      GtkDirectionType  direction);
+/* focus vfuncs for focusable widgets with children that receive focus */
+gboolean gtk_widget_focus_all        (GtkWidget        *widget,
+                                      GtkDirectionType  direction);
 
 /* inline getters */
 

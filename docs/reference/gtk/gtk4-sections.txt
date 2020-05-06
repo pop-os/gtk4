@@ -60,7 +60,6 @@ gtk_accelerator_get_label
 gtk_accelerator_parse_with_keycode
 gtk_accelerator_name_with_keycode
 gtk_accelerator_get_label_with_keycode
-gtk_accelerator_set_default_mod_mask
 gtk_accelerator_get_default_mod_mask
 </SECTION>
 
@@ -75,6 +74,8 @@ gtk_accel_label_get_accel
 gtk_accel_label_refetch
 gtk_accel_label_set_label
 gtk_accel_label_get_label
+gtk_accel_label_get_use_underline
+gtk_accel_label_set_use_underline
 <SUBSECTION Standard>
 GTK_ACCEL_LABEL
 GTK_IS_ACCEL_LABEL
@@ -181,6 +182,7 @@ GTK_ASSISTANT_GET_CLASS
 <SUBSECTION Private>
 GtkAssistantPrivate
 gtk_assistant_get_type
+gtk_assistant_page_get_type
 </SECTION>
 
 <SECTION>
@@ -188,7 +190,14 @@ gtk_assistant_get_type
 <TITLE>GtkAspectFrame</TITLE>
 GtkAspectFrame
 gtk_aspect_frame_new
-gtk_aspect_frame_set
+gtk_aspect_frame_set_xalign
+gtk_aspect_frame_get_xalign
+gtk_aspect_frame_set_yalign
+gtk_aspect_frame_get_yalign
+gtk_aspect_frame_set_ratio
+gtk_aspect_frame_get_ratio
+gtk_aspect_frame_set_obey_child
+gtk_aspect_frame_get_obey_child
 <SUBSECTION Standard>
 GTK_ASPECT_FRAME
 GTK_IS_ASPECT_FRAME
@@ -197,7 +206,6 @@ GTK_ASPECT_FRAME_CLASS
 GTK_IS_ASPECT_FRAME_CLASS
 GTK_ASPECT_FRAME_GET_CLASS
 <SUBSECTION Private>
-GtkAspectFramePrivate
 gtk_aspect_frame_get_type
 </SECTION>
 
@@ -521,8 +529,8 @@ gtk_button_new
 gtk_button_new_with_label
 gtk_button_new_with_mnemonic
 gtk_button_new_from_icon_name
-gtk_button_set_relief
-gtk_button_get_relief
+gtk_button_set_has_frame
+gtk_button_get_has_frame
 gtk_button_get_label
 gtk_button_set_label
 gtk_button_get_use_underline
@@ -554,6 +562,12 @@ gtk_calendar_mark_day
 gtk_calendar_unmark_day
 gtk_calendar_get_day_is_marked
 gtk_calendar_clear_marks
+gtk_calendar_get_show_day_names
+gtk_calendar_set_show_day_names
+gtk_calendar_get_show_heading
+gtk_calendar_set_show_heading
+gtk_calendar_get_show_week_numbers
+gtk_calendar_set_show_week_numbers
 
 <SUBSECTION>
 gtk_calendar_get_date
@@ -600,6 +614,8 @@ gtk_color_button_new
 gtk_color_button_new_with_rgba
 gtk_color_button_set_title
 gtk_color_button_get_title
+gtk_color_button_set_modal
+gtk_color_button_get_modal
 <SUBSECTION Standard>
 GTK_COLOR_BUTTON
 GTK_IS_COLOR_BUTTON
@@ -693,10 +709,6 @@ gtk_container_add
 gtk_container_remove
 gtk_container_foreach
 gtk_container_get_children
-gtk_container_get_focus_vadjustment
-gtk_container_set_focus_vadjustment
-gtk_container_get_focus_hadjustment
-gtk_container_set_focus_hadjustment
 gtk_container_child_type
 gtk_container_forall
 
@@ -1156,6 +1168,8 @@ gtk_file_chooser_button_get_title
 gtk_file_chooser_button_set_title
 gtk_file_chooser_button_get_width_chars
 gtk_file_chooser_button_set_width_chars
+gtk_file_chooser_button_get_modal
+gtk_file_chooser_button_set_modal
 
 <SUBSECTION Standard>
 GTK_FILE_CHOOSER_BUTTON
@@ -1270,6 +1284,8 @@ gtk_font_button_set_use_size
 gtk_font_button_get_use_size
 gtk_font_button_set_title
 gtk_font_button_get_title
+gtk_font_button_set_modal
+gtk_font_button_get_modal
 <SUBSECTION Standard>
 GTK_FONT_BUTTON
 GTK_IS_FONT_BUTTON
@@ -1367,13 +1383,11 @@ GtkFrame
 GtkFrameClass
 gtk_frame_new
 gtk_frame_set_label
-gtk_frame_set_label_widget
-gtk_frame_set_label_align
-gtk_frame_set_shadow_type
 gtk_frame_get_label
-gtk_frame_get_label_align
+gtk_frame_set_label_widget
 gtk_frame_get_label_widget
-gtk_frame_get_shadow_type
+gtk_frame_set_label_align
+gtk_frame_get_label_align
 <SUBSECTION Standard>
 GTK_FRAME
 GTK_IS_FRAME
@@ -1586,7 +1600,6 @@ gtk_label_set_text
 gtk_label_set_attributes
 gtk_label_set_markup
 gtk_label_set_markup_with_mnemonic
-gtk_label_set_pattern
 gtk_label_set_justify
 gtk_label_set_xalign
 gtk_label_set_yalign
@@ -1627,8 +1640,6 @@ gtk_label_set_use_markup
 gtk_label_set_use_underline
 gtk_label_set_single_line_mode
 gtk_label_get_current_uri
-gtk_label_set_track_visited_links
-gtk_label_get_track_visited_links
 gtk_label_set_extra_menu
 gtk_label_get_extra_menu
 
@@ -1707,8 +1718,10 @@ gtk_menu_button_set_icon_name
 gtk_menu_button_get_icon_name
 gtk_menu_button_set_label
 gtk_menu_button_get_label
-gtk_menu_button_set_relief
-gtk_menu_button_get_relief
+gtk_menu_button_set_has_frame
+gtk_menu_button_get_has_frame
+gtk_menu_button_get_use_underline
+gtk_menu_button_set_use_underline
 gtk_menu_button_popup
 gtk_menu_button_popdown
 GtkMenuButtonCreatePopupFunc
@@ -2200,8 +2213,8 @@ GtkCornerType
 gtk_scrolled_window_get_placement
 gtk_scrolled_window_set_placement
 gtk_scrolled_window_unset_placement
-gtk_scrolled_window_get_shadow_type
-gtk_scrolled_window_set_shadow_type
+gtk_scrolled_window_get_has_frame
+gtk_scrolled_window_set_has_frame
 gtk_scrolled_window_get_kinetic_scrolling
 gtk_scrolled_window_set_kinetic_scrolling
 gtk_scrolled_window_get_capture_button_press
@@ -3838,8 +3851,8 @@ gtk_list_store_get_type
 <TITLE>GtkViewport</TITLE>
 GtkViewport
 gtk_viewport_new
-gtk_viewport_set_shadow_type
-gtk_viewport_get_shadow_type
+gtk_viewport_set_scroll_to_focus
+gtk_viewport_get_scroll_to_focus
 <SUBSECTION Standard>
 GTK_VIEWPORT
 GTK_IS_VIEWPORT
@@ -3968,7 +3981,9 @@ gtk_widget_allocate
 gtk_widget_class_add_shortcut
 gtk_widget_class_add_binding
 gtk_widget_class_add_binding_signal
-gtk_widget_can_activate_accel
+gtk_widget_class_add_binding_action
+gtk_widget_class_set_layout_manager_type
+gtk_widget_class_get_layout_manager_type
 gtk_widget_activate
 gtk_widget_is_focus
 gtk_widget_grab_focus
@@ -4063,7 +4078,6 @@ gtk_widget_get_support_multidevice
 gtk_widget_get_realized
 gtk_widget_get_mapped
 gtk_widget_device_is_shadowed
-gtk_widget_get_modifier_mask
 gtk_widget_get_opacity
 gtk_widget_set_opacity
 gtk_widget_get_overflow
@@ -4289,12 +4303,6 @@ gtk_init_check
 <SUBSECTION>
 GTK_PRIORITY_RESIZE
 
-<SUBSECTION>
-gtk_get_current_event
-gtk_get_current_event_time
-gtk_get_current_event_state
-gtk_get_current_event_device
-
 <SUBSECTION Private>
 gtk_init_abi_check
 gtk_init_check_abi_check
@@ -4439,7 +4447,6 @@ gtk_style_context_get_margin
 gtk_style_context_lookup_color
 gtk_style_context_remove_provider
 gtk_style_context_remove_provider_for_display
-gtk_style_context_reset_widgets
 gtk_style_context_restore
 gtk_style_context_save
 gtk_style_context_add_class
@@ -4541,11 +4548,9 @@ GtkMovementStep
 GtkOrientation
 GtkPackType
 GtkPositionType
-GtkReliefStyle
 GtkScrollStep
 GtkScrollType
 GtkSelectionMode
-GtkShadowType
 GtkStateFlags
 GtkSortType
 GtkIconSize
@@ -5114,7 +5119,9 @@ gtk_mount_operation_set_parent
 gtk_mount_operation_get_parent
 gtk_mount_operation_set_display
 gtk_mount_operation_get_display
-gtk_show_uri_on_window
+gtk_show_uri_full
+gtk_show_uri_full_finish
+gtk_show_uri
 <SUBSECTION Standard>
 GTK_IS_MOUNT_OPERATION
 GTK_IS_MOUNT_OPERATION_CLASS
@@ -5344,6 +5351,8 @@ gtk_app_chooser_button_get_show_dialog_item
 gtk_app_chooser_button_set_show_dialog_item
 gtk_app_chooser_button_get_heading
 gtk_app_chooser_button_set_heading
+gtk_app_chooser_button_get_modal
+gtk_app_chooser_button_set_modal
 
 <SUBSECTION Standard>
 GTK_TYPE_APP_CHOOSER_BUTTON
@@ -5817,6 +5826,14 @@ gtk_event_controller_get_propagation_limit
 gtk_event_controller_set_propagation_limit
 gtk_event_controller_get_widget
 gtk_event_controller_reset
+gtk_event_controller_get_name
+gtk_event_controller_set_name
+
+<SUBSECTION>
+gtk_event_controller_get_current_event
+gtk_event_controller_get_current_event_device
+gtk_event_controller_get_current_event_state
+gtk_event_controller_get_current_event_time
 
 <SUBSECTION Standard>
 GTK_TYPE_EVENT_CONTROLLER
@@ -5958,11 +5975,8 @@ gtk_event_controller_motion_get_type
 <FILE>gtkshortcuttrigger</FILE>
 <TITLE>GtkShortcutTrigger</TITLE>
 GtkShortcutTrigger
-gtk_shortcut_trigger_ref
-gtk_shortcut_trigger_unref
-GtkShortcutTriggerType
-gtk_shortcut_trigger_get_trigger_type
-gtk_shortcut_trigger_parse_string
+GtkNeverTrigger
+
 gtk_shortcut_trigger_trigger
 gtk_shortcut_trigger_hash
 gtk_shortcut_trigger_equal
@@ -5971,15 +5985,28 @@ gtk_shortcut_trigger_to_string
 gtk_shortcut_trigger_print
 gtk_shortcut_trigger_to_label
 gtk_shortcut_trigger_print_label
+gtk_shortcut_trigger_parse_string
 
 <SUBSECTION>
+GtkKeyvalTrigger
 gtk_keyval_trigger_new
 gtk_keyval_trigger_get_modifiers
 gtk_keyval_trigger_get_keyval
 
 <SUBSECTION>
+GtkMnemonicTrigger
 gtk_mnemonic_trigger_new
 gtk_mnemonic_trigger_get_keyval
+
+<SUBSECTION>
+GtkAlternativeTrigger
+gtk_alternative_trigger_new
+gtk_alternative_trigger_get_first
+gtk_alternative_trigger_get_second
+
+<SUBSECTION>
+GtkNeverTrigger
+gtk_never_trigger_get
 
 <SUBSECTION Private>
 gtk_shortcut_trigger_get_type
@@ -5989,33 +6016,36 @@ gtk_shortcut_trigger_get_type
 <FILE>gtkshortcutaction</FILE>
 <TITLE>GtkShortcutAction</TITLE>
 GtkShortcutAction
-gtk_shortcut_action_ref
-gtk_shortcut_action_unref
-GtkShortcutActionType
-gtk_shortcut_action_get_action_type
 gtk_shortcut_action_to_string
 gtk_shortcut_action_print
+gtk_shortcut_action_parse_string
 gtk_shortcut_action_activate
 
 <SUBSECTION>
-gtk_nothing_action_new
+GtkNothingAction
+gtk_nothing_action_get
 
 <SUBSECTION>
+GtkCallbackAction
 gtk_callback_action_new
 
 <SUBSECTION>
-gtk_mnemonic_action_new
+GtkMnemonicAction
+gtk_mnemonic_action_get
 
 <SUBSECTION>
-gtk_activate_action_new
+GtkActivateAction
+gtk_activate_action_get
 
 <SUBSECTION>
+GtkSignalAction
 gtk_signal_action_new
 gtk_signal_action_get_signal_name
 
 <SUBSECTION>
+GtkNamedAction
 gtk_named_action_new
-gtk_named_action_get_name
+gtk_named_action_get_action_name
 
 <SUBSECTION Private>
 gtk_shortcut_action_get_type
@@ -6058,7 +6088,7 @@ GtkShortcutManagerInterface
 <TITLE>GtkShortcutController</TITLE>
 GtkShortcutController
 gtk_shortcut_controller_new
-gtk_shortcut_controller_new_with_model
+gtk_shortcut_controller_new_for_model
 GtkShortcutScope
 GtkShortcutManager
 GtkShortcutManagerInterface
@@ -6439,8 +6469,8 @@ GTK_SHORTCUTS_SHORTCUT_GET_CLASS
 GtkShortcutLabel
 gtk_shortcut_label_new
 gtk_shortcut_label_get_accelerator
-gtk_shortcut_label_get_disabled_text
 gtk_shortcut_label_set_accelerator
+gtk_shortcut_label_get_disabled_text
 gtk_shortcut_label_set_disabled_text
 
 <SUBSECTION Private>
@@ -6622,6 +6652,27 @@ gtk_box_layout_get_baseline_position
 <SUBSECTION Standard>
 GTK_TYPE_BOX_LAYOUT
 gtk_box_layout_get_type
+</SECTION>
+
+<SECTION>
+<FILE>gtkcenterlayout</FILE>
+GtkCenterLayout
+
+gtk_center_layout_new
+gtk_center_layout_set_orientation
+gtk_center_layout_get_orientation
+gtk_center_layout_set_baseline_position
+gtk_center_layout_get_baseline_position
+gtk_center_layout_set_start_widget
+gtk_center_layout_get_start_widget
+gtk_center_layout_set_center_widget
+gtk_center_layout_get_center_widget
+gtk_center_layout_set_end_widget
+gtk_center_layout_get_end_widget
+
+<SUBSECTION Standard>
+GTK_TYPE_CENTER_LAYOUT
+gtk_center_layout_get_type
 </SECTION>
 
 <SECTION>

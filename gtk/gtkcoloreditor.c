@@ -34,7 +34,6 @@
 #include "gtkadjustment.h"
 #include "gtklabel.h"
 #include "gtkspinbutton.h"
-#include "gtkstylecontext.h"
 #include "gtkeventcontrollerkey.h"
 #include "gtkroot.h"
 
@@ -562,10 +561,13 @@ gtk_color_editor_class_init (GtkColorEditorClass *class)
   gtk_widget_class_bind_template_callback (widget_class, entry_focus_changed);
   gtk_widget_class_bind_template_callback (widget_class, pick_color);
 
+  /**
+   * GtkColorEditor|color.edit:
+   * @component: the component to edit, "h", "sv" or "a"
+   *
+   * Opens the edit popup for one of the color components.
+   */ 
   gtk_widget_class_install_action (widget_class, "color.edit", "s", popup_edit);
-  gtk_widget_class_install_action (widget_class, "color.edit", "s", popup_edit);
-  gtk_widget_class_install_action (widget_class, "color.edit", "s", popup_edit);
-
 }
 
 static void

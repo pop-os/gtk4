@@ -186,22 +186,18 @@ struct _GtkWidget
  *   %FALSE, and just grabs the focus if @group_cycling is %TRUE.
  * @grab_focus: Causes @widget to have the keyboard focus for the
  *   #GtkWindow it’s inside.
- * @focus:
+ * @focus: Vfunc for gtk_widget_child_focus()
+ * @set_focus_child: Sets the focused child of a widget. Must chain up
  * @move_focus: Signal emitted when a change of focus is requested
  * @keynav_failed: Signal emitted if keyboard navigation fails.
- * @popup_menu: Signal emitted whenever a widget should pop up a
- *   context menu.
  * @get_accessible: Returns the accessible object that describes the
  *   widget to an assistive technology.
- * @can_activate_accel: Signal allows applications and derived widgets
- *   to override the default GtkWidget handling for determining whether
- *   an accelerator can be activated.
  * @query_tooltip: Signal emitted when “has-tooltip” is %TRUE and the
  *   hover timeout has expired with the cursor hovering “above”
  *   widget; or emitted when widget got focus in keyboard mode.
  * @compute_expand: Computes whether a container should give this
  *   widget extra space when possible.
- * @css_changed: Signal emitted when the CSS used by widget was changed. Widgets
+ * @css_changed: Vfunc called when the CSS used by widget was changed. Widgets
  *   should then discard their caches that depend on CSS and queue resizes or
  *   redraws accordingly. The default implementation will take care of this for
  *   all the default CSS properties, so implementations must chain up.
@@ -255,6 +251,8 @@ struct _GtkWidgetClass
   gboolean (* grab_focus)               (GtkWidget           *widget);
   gboolean (* focus)                    (GtkWidget           *widget,
                                          GtkDirectionType     direction);
+  void     (* set_focus_child)          (GtkWidget           *widget,
+                                         GtkWidget           *child);
 
   /* keyboard navigation */
   void     (* move_focus)               (GtkWidget           *widget,
@@ -265,10 +263,6 @@ struct _GtkWidgetClass
   /* accessibility support
    */
   AtkObject *  (* get_accessible)     (GtkWidget       *widget);
-
-  gboolean     (* can_activate_accel) (GtkWidget *widget,
-                                       guint      signal_id);
-
 
   gboolean     (* query_tooltip)      (GtkWidget  *widget,
                                        gint        x,
@@ -382,16 +376,16 @@ void       gtk_widget_class_add_binding   (GtkWidgetClass      *widget_class,
 GDK_AVAILABLE_IN_ALL
 void       gtk_widget_class_add_binding_signal
                                           (GtkWidgetClass      *widget_class,
-                                           GdkModifierType      mods,
                                            guint                keyval,
+                                           GdkModifierType      mods,
                                            const gchar         *signal,
                                            const gchar         *format_string,
                                            ...);
 GDK_AVAILABLE_IN_ALL
 void       gtk_widget_class_add_binding_action
                                           (GtkWidgetClass      *widget_class,
-                                           GdkModifierType      mods,
                                            guint                keyval,
+                                           GdkModifierType      mods,
                                            const gchar         *action_name,
                                            const gchar         *format_string,
                                            ...);
@@ -399,9 +393,6 @@ GDK_AVAILABLE_IN_ALL
 void       gtk_widget_class_add_shortcut  (GtkWidgetClass      *widget_class,
                                            GtkShortcut         *shortcut);
 
-GDK_AVAILABLE_IN_ALL
-gboolean   gtk_widget_can_activate_accel  (GtkWidget           *widget,
-                                           guint                signal_id);
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_mnemonic_activate   (GtkWidget           *widget,
                                            gboolean             group_cycling);
@@ -770,10 +761,6 @@ void              gtk_widget_class_set_css_name (GtkWidgetClass *widget_class,
                                                  const char     *name);
 GDK_AVAILABLE_IN_ALL
 const char *      gtk_widget_class_get_css_name (GtkWidgetClass *widget_class);
-
-GDK_AVAILABLE_IN_ALL
-GdkModifierType   gtk_widget_get_modifier_mask (GtkWidget         *widget,
-                                                GdkModifierIntent  intent);
 
 GDK_AVAILABLE_IN_ALL
 guint gtk_widget_add_tick_callback (GtkWidget       *widget,

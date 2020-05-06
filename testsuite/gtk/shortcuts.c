@@ -1,80 +1,36 @@
 #include <gtk/gtk.h>
 
-typedef struct _GdkEventAny GdkEventAny;
-typedef struct _GdkEventKey GdkEventKey;
-
-struct _GdkEventAny
-{
-  int ref_count;
-  GdkEventType type;
-  GdkSurface *surface;
-  guint32 time;
-  guint16 flags;
-  guint pointer_emulated  : 1;
-  guint touch_emulating   : 1;
-  guint scroll_is_stop    : 1;
-  guint key_is_modifier   : 1;
-  guint focus_in          : 1;
-  GdkDevice *device;
-  GdkDevice *source_device;
-};
-
-struct _GdkEventKey
-{
-  GdkEventAny any;
-  GdkModifierType state;
-  guint keyval;
-  guint16 hardware_keycode;
-  guint16 key_scancode;
-  guint8 group;
-};
-
-static GdkEvent * gdk_event_key_new     (GdkEventType     type,
-                                         GdkSurface      *surface,
-                                         GdkDevice       *device,
-                                         GdkDevice       *source_device,
-                                         guint32          time,
-                                         GdkModifierType  state,
-                                         guint            keyval,
-                                         guint16          keycode,
-                                         guint16          scancode,
-                                         guint8           group,
-                                         gboolean         is_modifier);
+#define GTK_COMPILATION
+#include "gdk/gdkeventsprivate.h"
 
 static GdkEvent *
-gdk_event_key_new (GdkEventType     type,
-                   GdkSurface      *surface,
-                   GdkDevice       *device,
-                   GdkDevice       *source_device,
-                   guint32          time,
-                   GdkModifierType  state,
-                   guint            keyval,
-                   guint16          keycode,
-                   guint16          scancode,
-                   guint8           group,
-                   gboolean         is_modifier)
+key_event_new (GdkEventType      event_type,
+               GdkSurface       *surface,
+               GdkDevice        *device,
+               GdkDevice        *source_device,
+               guint32           time_,
+               guint             keycode,
+               GdkModifierType   state,
+               gboolean          is_modifier,
+               GdkTranslatedKey *translated,
+               GdkTranslatedKey *no_lock)
 {
-  GdkEventKey *event;
+  GdkKeyEvent *key_event = (GdkKeyEvent *) g_type_create_instance (GDK_TYPE_KEY_EVENT);
+  GdkEvent *event = (GdkEvent *) key_event;
 
-  g_return_val_if_fail (type == GDK_KEY_PRESS ||
-                        type == GDK_KEY_RELEASE, NULL);
+  event->event_type = event_type;
+  event->surface = g_object_ref (surface);
+  event->device = g_object_ref (device);
+  event->source_device = g_object_ref (source_device);
+  event->time = time_;
 
-  event = g_new0 (GdkEventKey, 1);
+  key_event->keycode = keycode;
+  key_event->state = state;
+  key_event->key_is_modifier = is_modifier;
+  key_event->translated[0] = *translated;
+  key_event->translated[1] = *no_lock;
 
-  event->any.ref_count = 1;
-  event->any.type = type;
-  event->any.time = time;
-  event->any.surface = g_object_ref (surface);
-  event->any.device = g_object_ref (device);
-  event->any.source_device = g_object_ref (source_device);
-  event->state = state;
-  event->keyval = keyval;
-  event->hardware_keycode = keycode;
-  event->key_scancode = scancode;
-  event->group = group;
-  event->any.key_is_modifier = is_modifier;
-
-  return (GdkEvent *)event;
+  return event;
 }
 
 static void
@@ -171,7 +127,7 @@ test_trigger_parse_keyval (void)
     guint keyval;
     int trigger_type;
   } tests[] = {
-    { "<Primary><Alt>z", GDK_CONTROL_MASK | GDK_MOD1_MASK, 'z' },
+    { "<Primary><Alt>z", GDK_CONTROL_MASK | GDK_ALT_MASK, 'z' },
     { "<Control>U", GDK_CONTROL_MASK, 'u' },
     { "<Hyper>x", GDK_HYPER_MASK, 'x' },
     { "<Meta>y", GDK_META_MASK, 'y' },
@@ -340,14 +296,14 @@ test_trigger_trigger (void)
     guint keyval;
     GdkModifierType state;
     gboolean mnemonic;
-    GtkShortcutTriggerMatch result[4];
+    GdkKeyMatch result[4];
   } tests[] = {
-    { GDK_KEY_a, GDK_CONTROL_MASK, FALSE, { GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_EXACT, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_EXACT } }, 
-    { GDK_KEY_a, GDK_CONTROL_MASK, TRUE,  { GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_EXACT, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_EXACT } }, 
-    { GDK_KEY_a, GDK_SHIFT_MASK,   FALSE, { GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE } }, 
-    { GDK_KEY_a, GDK_SHIFT_MASK,   TRUE,  { GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE } }, 
-    { GDK_KEY_u, GDK_SHIFT_MASK,   FALSE, { GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE } }, 
-    { GDK_KEY_u, GDK_SHIFT_MASK,   TRUE,  { GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_NONE, GTK_SHORTCUT_TRIGGER_MATCH_EXACT, GTK_SHORTCUT_TRIGGER_MATCH_EXACT } }, 
+    { GDK_KEY_a, GDK_CONTROL_MASK, FALSE, { GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_EXACT, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_EXACT } }, 
+    { GDK_KEY_a, GDK_CONTROL_MASK, TRUE,  { GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_EXACT, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_EXACT } }, 
+    { GDK_KEY_a, GDK_SHIFT_MASK,   FALSE, { GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE } }, 
+    { GDK_KEY_a, GDK_SHIFT_MASK,   TRUE,  { GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE } }, 
+    { GDK_KEY_u, GDK_SHIFT_MASK,   FALSE, { GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE } }, 
+    { GDK_KEY_u, GDK_SHIFT_MASK,   TRUE,  { GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_NONE, GDK_KEY_MATCH_EXACT, GDK_KEY_MATCH_EXACT } }, 
   };
   int i, j;
 
@@ -365,24 +321,29 @@ test_trigger_trigger (void)
     {
       GdkKeymapKey *keys;
       int n_keys;
+      GdkTranslatedKey translated;
 
-      if (!gdk_keymap_get_entries_for_keyval (gdk_display_get_keymap (display),
-                                              tests[i].keyval, &keys, &n_keys))
+      if (!gdk_display_map_keyval (display, tests[i].keyval, &keys, &n_keys))
         continue;
 
-      event = gdk_event_key_new (GDK_KEY_PRESS,
-                                 surface,
-                                 device,
-                                 device,
-                                 GDK_CURRENT_TIME,
-                                 tests[i].state,
-                                 tests[i].keyval,
-                                 keys[0].keycode,
-                                 keys[0].keycode,
-                                 keys[0].group,
-                                 FALSE);
+      translated.keyval = tests[i].keyval;
+      translated.consumed = 0;
+      translated.layout = keys[0].group;
+      translated.level = keys[0].level;
+      event = key_event_new (GDK_KEY_PRESS,
+                             surface,
+                             device,
+                             device,
+                             GDK_CURRENT_TIME,
+                             keys[0].keycode,
+                             tests[i].state,
+                             FALSE,
+                             &translated,
+                             &translated);
       for (j = 0; j < 4; j++)
-        g_assert_cmpint (gtk_shortcut_trigger_trigger (trigger[j], event, tests[i].mnemonic), ==, tests[i].result[j]);
+        {
+          g_assert_cmpint (gtk_shortcut_trigger_trigger (trigger[j], event, tests[i].mnemonic), ==, tests[i].result[j]);
+        }
 
       gdk_event_unref (event);
     }
@@ -441,6 +402,32 @@ test_action_activate (void)
   g_object_unref (widget);
 }
 
+static void
+test_action_parse (void)
+{
+  GtkShortcutAction *action;
+
+  action = gtk_shortcut_action_parse_string ("nothing");
+  g_assert_true (GTK_IS_NOTHING_ACTION (action));
+  g_object_unref (action);
+
+  action = gtk_shortcut_action_parse_string ("activate");
+  g_assert_true (GTK_IS_ACTIVATE_ACTION (action));
+  g_object_unref (action);
+
+  action = gtk_shortcut_action_parse_string ("mnemonic-activate");
+  g_assert_true (GTK_IS_MNEMONIC_ACTION (action));
+  g_object_unref (action);
+
+  action = gtk_shortcut_action_parse_string ("action(win.dark)");
+  g_assert_true (GTK_IS_NAMED_ACTION (action));
+  g_object_unref (action);
+
+  action = gtk_shortcut_action_parse_string ("signal(frob)");
+  g_assert_true (GTK_IS_SIGNAL_ACTION (action));
+  g_object_unref (action);
+}
+
 int
 main (int argc, char *argv[])
 {
@@ -456,6 +443,7 @@ main (int argc, char *argv[])
   g_test_add_func ("/shortcuts/trigger/trigger", test_trigger_trigger);
   g_test_add_func ("/shortcuts/action/basic", test_action_basic);
   g_test_add_func ("/shortcuts/action/activate", test_action_activate);
+  g_test_add_func ("/shortcuts/action/parse", test_action_parse);
 
   return g_test_run ();
 }

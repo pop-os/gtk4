@@ -644,11 +644,11 @@ foreach p: proto_sources
   if wayland_enabled
     if proto_stability == 'stable'
       output_base = proto_name
-      input = '@0@.xml'.format(proto_name)
+      input = files('@0@.xml'.format(proto_name))
     else
       proto_version = p.get(2)
       output_base = '@0@-@1@-@2@'.format(proto_name, proto_stability, proto_version)
-      input = join_paths(proto_dir, '@0@/@1@/@2@.xml'.format(proto_stability, proto_name, output_base))
+      input = files(join_paths(wlproto_dir, '@0@/@1@/@2@.xml'.format(proto_stability, proto_name, output_base)))
     endif
 
     # wayland_scanner is defined in gdk/wayland/meson.build
@@ -987,6 +987,7 @@ endif
 # Library
 libgtk = library('gtk-4',
                  soversion: gtk_soversion,
+                 version: gtk_library_version,
                  sources: [typefuncs, gtk_sources, gtkmarshal_h, gtkprivatetypebuiltins_h],
                  c_args: gtk_cargs + common_cflags,
                  include_directories: [confinc, gdkinc, gskinc, gtkinc],
@@ -1044,7 +1045,7 @@ if build_gir
 
   if x11_enabled
     gdk_x11_gir = gnome.generate_gir(libgtk,
-                                     sources: gdk_x11_public_headers + gdk_x11_sources,
+                                     sources: gdk_x11_public_headers + gdk_x11_public_sources,
                                      namespace: 'GdkX11',
                                      nsversion: gtk_api_version,
                                      identifier_prefix: 'Gdk',

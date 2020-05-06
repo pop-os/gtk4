@@ -329,7 +329,6 @@ gtk_popover_menu_focus (GtkWidget        *widget,
     {
       if (GTK_POPOVER_MENU (widget)->open_submenu)
         {
-  g_print ("open submenu\n");
           if (gtk_widget_child_focus (GTK_POPOVER_MENU (widget)->open_submenu, direction))
             return TRUE;
           if (direction == GTK_DIR_LEFT)
@@ -602,7 +601,7 @@ gtk_popover_menu_new_from_model_full (GMenuModel          *model,
 }
 
 /**
- * gtk_popover_menu_set_model:
+ * gtk_popover_menu_set_menu_model:
  * @popover: a #GtkPopoverMenu
  * @model: (nullable): a #GtkMenuModel, or %NULL
  *

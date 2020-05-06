@@ -82,20 +82,6 @@ gboolean _gtk_single_string_accumulator   (GSignalInvocationHint *ihint,
                                            const GValue          *handler_return,
                                            gpointer               dummy);
 
-GdkModifierType _gtk_replace_virtual_modifiers (GdkKeymap       *keymap,
-                                                GdkModifierType  modifiers);
-GdkModifierType _gtk_get_primary_accel_mod     (void);
-
-gboolean _gtk_translate_keyboard_accel_state   (GdkKeymap       *keymap,
-                                                guint            hardware_keycode,
-                                                GdkModifierType  state,
-                                                GdkModifierType  accel_mask,
-                                                gint             group,
-                                                guint           *keyval,
-                                                gint            *effective_group,
-                                                gint            *level,
-                                                GdkModifierType *consumed_modifiers);
-
 gboolean         gtk_propagate_event_internal  (GtkWidget       *widget,
                                                 GdkEvent        *event,
                                                 GtkWidget       *topmost);
@@ -104,6 +90,8 @@ gboolean   gtk_propagate_event          (GtkWidget       *widget,
 void       gtk_main_do_event       (GdkEvent           *event);
 
 GtkWidget *gtk_get_event_widget         (GdkEvent  *event);
+
+guint32    gtk_get_current_event_time   (void);
 
 void check_crossing_invariants (GtkWidget       *widget,
                                 GtkCrossingData *crossing);

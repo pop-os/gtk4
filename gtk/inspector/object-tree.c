@@ -710,18 +710,14 @@ static void
 widget_mapped (GtkWidget     *widget,
                GtkListBoxRow *row)
 {
-  GtkStyleContext *context = gtk_widget_get_style_context (GTK_WIDGET (row));
-
-  gtk_style_context_remove_class (context, "dim-label");
+  gtk_widget_remove_css_class (GTK_WIDGET (row), "dim-label");
 }
 
 static void
 widget_unmapped (GtkWidget     *widget,
                  GtkListBoxRow *row)
 {
-  GtkStyleContext *context = gtk_widget_get_style_context (GTK_WIDGET (row));
-
-  gtk_style_context_add_class (context, "dim-label");
+  gtk_widget_add_css_class (GTK_WIDGET (row), "dim-label");
 }
 
 static gboolean
@@ -742,7 +738,7 @@ key_pressed (GtkEventController     *controller,
       gboolean search_started;
 
       search_started = gtk_search_bar_get_search_mode (GTK_SEARCH_BAR (wt->priv->search_bar));
-      default_accel = gtk_widget_get_modifier_mask (GTK_WIDGET (wt), GDK_MODIFIER_INTENT_PRIMARY_ACCELERATOR);
+      default_accel = GDK_CONTROL_MASK;
 
       if (search_started &&
           (keyval == GDK_KEY_Return ||
@@ -1024,7 +1020,7 @@ gtk_inspector_object_tree_create_list_widget (gpointer row_item,
       child = g_object_new (GTK_TYPE_BOX, "css-name", "expander", NULL);
 
       title = g_object_new (GTK_TYPE_TOGGLE_BUTTON, "css-name", "title", NULL);
-      gtk_button_set_relief (GTK_BUTTON (title), GTK_RELIEF_NONE);
+      gtk_button_set_has_frame (GTK_BUTTON (title), FALSE);
       g_object_bind_property (row_item, "expanded", title, "active", G_BINDING_BIDIRECTIONAL | G_BINDING_SYNC_CREATE);
       gtk_container_add (GTK_CONTAINER (child), title);
 

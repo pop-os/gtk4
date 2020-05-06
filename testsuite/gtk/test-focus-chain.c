@@ -86,6 +86,34 @@ done:
   return diff;
 }
 
+static void
+check_focus_states (GtkWidget *focus_widget)
+{
+  GtkStateFlags state;
+  GtkWidget *parent;
+
+  if (focus_widget == NULL)
+    return;
+
+  /* Check that we set :focus and :focus-within on the focus_widget,
+   * and :focus-within on its ancestors
+   */
+
+  state = gtk_widget_get_state_flags (focus_widget);
+  g_assert_true ((state & (GTK_STATE_FLAG_FOCUSED|GTK_STATE_FLAG_FOCUS_WITHIN)) ==
+                  (GTK_STATE_FLAG_FOCUSED|GTK_STATE_FLAG_FOCUS_WITHIN));
+
+  parent = gtk_widget_get_parent (focus_widget);
+  while (parent)
+    {
+      state = gtk_widget_get_state_flags (parent);
+      g_assert_true ((state & GTK_STATE_FLAG_FOCUS_WITHIN) == GTK_STATE_FLAG_FOCUS_WITHIN);
+      g_assert_true ((state & GTK_STATE_FLAG_FOCUSED) == 0);
+
+      parent = gtk_widget_get_parent (parent);
+    }
+}
+
 static char *
 generate_focus_chain (GtkWidget        *window,
                       GtkDirectionType  dir)
@@ -93,6 +121,7 @@ generate_focus_chain (GtkWidget        *window,
   char *first = NULL;
   char *last = NULL;
   char *name = NULL;
+  char *key = NULL;
   GString *output = g_string_new ("");
   GtkWidget *focus;
   int count = 0;
@@ -108,6 +137,8 @@ generate_focus_chain (GtkWidget        *window,
 
       focus = gtk_window_get_focus (GTK_WINDOW (window));
 
+      check_focus_states (focus);
+
       if (focus)
         {
           /* ui files can't put a name on the embedded text,
@@ -119,17 +150,22 @@ generate_focus_chain (GtkWidget        *window,
                                     gtk_widget_get_name (focus));
           else
             name = g_strdup (gtk_widget_get_name (focus));
+
+          key = g_strdup_printf ("%s %p", name, focus);
         }
       else
-        name = g_strdup ("NONE");
+        {
+          name = g_strdup ("NONE");
+          key = g_strdup (key);
+        }
 
-      if (first && g_str_equal (name, first))
+      if (first && g_str_equal (key, first))
         {
           g_string_append (output, "WRAP\n");
           break; /* cycle completed */
         }
 
-      if (last && g_str_equal (name, last))
+      if (last && g_str_equal (key, last))
         {
           g_string_append (output, "STOP\n");
           break; /* dead end */
@@ -139,10 +175,10 @@ generate_focus_chain (GtkWidget        *window,
       count++;
 
       if (!first)
-        first = g_strdup (name);
+        first = g_strdup (key);
 
       g_free (last);
-      last = g_strdup (name);
+      last = key;
 
       if (count == 100)
         {

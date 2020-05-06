@@ -90,7 +90,6 @@ struct _GtkInspectorGeneralPrivate
   GtkWidget *display_rgba;
   GtkWidget *display_composited;
   GtkSizeGroup *labels;
-  GtkAdjustment *focus_adjustment;
 
   GdkDisplay *display;
 };
@@ -549,6 +548,7 @@ populate_display (GdkDisplay *display, GtkInspectorGeneral *gen)
       gchar *value;
       GdkRectangle rect;
       gint scale;
+      char *scale_str = NULL;
       const char *manufacturer;
       const char *model;
       GdkMonitor *monitor;
@@ -568,13 +568,16 @@ populate_display (GdkDisplay *display, GtkInspectorGeneral *gen)
 
       gdk_monitor_get_geometry (monitor, &rect);
       scale = gdk_monitor_get_scale_factor (monitor);
+      if (scale != 1)
+        scale_str = g_strdup_printf (" @ %d", scale);
 
       value = g_strdup_printf ("%d × %d%s at %d, %d",
                                rect.width, rect.height,
-                               scale == 2 ? " @ 2" : "",
+                               scale_str ? scale_str : "",
                                rect.x, rect.y);
       add_label_row (gen, list, "Geometry", value, 10);
       g_free (value);
+      g_free (scale_str);
 
       value = g_strdup_printf ("%d × %d mm²",
                                gdk_monitor_get_width_mm (monitor),
@@ -812,7 +815,6 @@ static gboolean
 keynav_failed (GtkWidget *widget, GtkDirectionType direction, GtkInspectorGeneral *gen)
 {
   GtkWidget *next;
-  gdouble value, lower, upper, page;
 
   if (direction == GTK_DIR_DOWN && widget == gen->priv->version_box)
     next = gen->priv->env_box;
@@ -843,22 +845,6 @@ keynav_failed (GtkWidget *widget, GtkDirectionType direction, GtkInspectorGenera
       return TRUE;
     }
 
-  value = gtk_adjustment_get_value (gen->priv->focus_adjustment);
-  lower = gtk_adjustment_get_lower (gen->priv->focus_adjustment);
-  upper = gtk_adjustment_get_upper (gen->priv->focus_adjustment);
-  page  = gtk_adjustment_get_page_size (gen->priv->focus_adjustment);
-
-  if (direction == GTK_DIR_UP && value > lower)
-    {
-      gtk_adjustment_set_value (gen->priv->focus_adjustment, lower);
-      return TRUE;
-    }
-  else if (direction == GTK_DIR_DOWN && value < upper - page)
-    {
-      gtk_adjustment_set_value (gen->priv->focus_adjustment, upper - page);
-      return TRUE;
-    }
-
   return FALSE;
 }
 
@@ -868,10 +854,6 @@ gtk_inspector_general_constructed (GObject *object)
   GtkInspectorGeneral *gen = GTK_INSPECTOR_GENERAL (object);
 
   G_OBJECT_CLASS (gtk_inspector_general_parent_class)->constructed (object);
-
-  gen->priv->focus_adjustment = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (gen->priv->swin));
-  gtk_container_set_focus_vadjustment (GTK_CONTAINER (gen->priv->box),
-                                       gen->priv->focus_adjustment);
 
    g_signal_connect (gen->priv->version_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);
    g_signal_connect (gen->priv->env_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);

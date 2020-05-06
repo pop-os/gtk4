@@ -19,16 +19,6 @@
 
 #include <gdk/gdk.h>
 
-#ifdef GDK_WINDOWING_X11
-#include <gdk/x11/gdkx.h>
-#endif
-#ifdef GDK_WINDOWING_WAYLAND
-#include <wayland/gdkwayland.h>
-#endif
-#ifdef GDK_WINDOWING_WIN32
-#include <win32/gdkwin32.h>
-#endif
-
 #include <stdlib.h>
 #include <string.h>
 
@@ -44,6 +34,7 @@
 
 #include "gtkimcontextsimpleprivate.h"
 #include "gtkimcontextsimpleseqs.h"
+#include "gdk/gdkprofilerprivate.h"
 
 /**
  * SECTION:gtkimcontextsimple
@@ -120,8 +111,10 @@ static void     gtk_im_context_simple_get_preedit_string (GtkIMContext          
 							  gchar                   **str,
 							  PangoAttrList           **attrs,
 							  gint                     *cursor_pos);
-static void     gtk_im_context_simple_set_client_widget  (GtkIMContext             *context,
-                                                          GtkWidget                *widget);
+
+static void init_compose_table_async (GCancellable         *cancellable,
+                                      GAsyncReadyCallback   callback,
+                                      gpointer              user_data);
 
 G_DEFINE_TYPE_WITH_CODE (GtkIMContextSimple, gtk_im_context_simple, GTK_TYPE_IM_CONTEXT,
                          G_ADD_PRIVATE (GtkIMContextSimple)
@@ -140,8 +133,9 @@ gtk_im_context_simple_class_init (GtkIMContextSimpleClass *class)
   im_context_class->filter_keypress = gtk_im_context_simple_filter_keypress;
   im_context_class->reset = gtk_im_context_simple_reset;
   im_context_class->get_preedit_string = gtk_im_context_simple_get_preedit_string;
-  im_context_class->set_client_widget = gtk_im_context_simple_set_client_widget;
   gobject_class->finalize = gtk_im_context_simple_finalize;
+
+  init_compose_table_async (NULL, NULL, NULL);
 }
 
 static gchar*
@@ -149,7 +143,7 @@ get_x11_compose_file_dir (void)
 {
   gchar* compose_file_dir;
 
-#if defined (GDK_WINDOWING_X11)
+#if defined (X11_DATA_PREFIX)
   compose_file_dir = g_strdup (X11_DATA_PREFIX "/share/X11/locale");
 #else
   compose_file_dir = g_build_filename (_gtk_get_datadir (), "X11", "locale", NULL);
@@ -159,7 +153,7 @@ get_x11_compose_file_dir (void)
 }
 
 static void
-gtk_im_context_simple_init_compose_table (GtkIMContextSimple *im_context_simple)
+gtk_im_context_simple_init_compose_table (void)
 {
   gchar *path = NULL;
   const gchar *home;
@@ -173,7 +167,10 @@ gtk_im_context_simple_init_compose_table (GtkIMContextSimple *im_context_simple)
   path = g_build_filename (g_get_user_config_dir (), "gtk-4.0", "Compose", NULL);
   if (g_file_test (path, G_FILE_TEST_EXISTS))
     {
-      gtk_im_context_simple_add_compose_file (im_context_simple, path);
+      G_LOCK (global_tables);
+      global_tables = gtk_compose_table_list_add_file (global_tables, path);
+      G_UNLOCK (global_tables);
+
       g_free (path);
       return;
     }
@@ -187,7 +184,9 @@ gtk_im_context_simple_init_compose_table (GtkIMContextSimple *im_context_simple)
   path = g_build_filename (home, ".XCompose", NULL);
   if (g_file_test (path, G_FILE_TEST_EXISTS))
     {
-      gtk_im_context_simple_add_compose_file (im_context_simple, path);
+      G_LOCK (global_tables);
+      global_tables = gtk_compose_table_list_add_file (global_tables, path);
+      G_UNLOCK (global_tables);
       g_free (path);
       return;
     }
@@ -233,7 +232,11 @@ gtk_im_context_simple_init_compose_table (GtkIMContextSimple *im_context_simple)
   g_strfreev (langs);
 
   if (path != NULL)
-    gtk_im_context_simple_add_compose_file (im_context_simple, path);
+    {
+      G_LOCK (global_tables);
+      global_tables = gtk_compose_table_list_add_file (global_tables, path);
+      G_UNLOCK (global_tables);
+    }
   g_free (path);
   path = NULL;
 }
@@ -244,23 +247,24 @@ init_compose_table_thread_cb (GTask            *task,
                               gpointer          task_data,
                               GCancellable     *cancellable)
 {
+  guint64 before = g_get_monotonic_time ();
+
   if (g_task_return_error_if_cancelled (task))
     return;
 
-  g_return_if_fail (GTK_IS_IM_CONTEXT_SIMPLE (task_data));
+  gtk_im_context_simple_init_compose_table ();
 
-  gtk_im_context_simple_init_compose_table (GTK_IM_CONTEXT_SIMPLE (task_data));
+  if (GDK_PROFILER_IS_RUNNING)
+    gdk_profiler_end_mark (before, "im compose table load (thread)", NULL);
 }
 
 static void
-init_compose_table_async (GtkIMContextSimple   *im_context_simple,
-                          GCancellable         *cancellable,
+init_compose_table_async (GCancellable         *cancellable,
                           GAsyncReadyCallback   callback,
                           gpointer              user_data)
 {
   GTask *task = g_task_new (NULL, cancellable, callback, user_data);
   g_task_set_source_tag (task, init_compose_table_async);
-  g_task_set_task_data (task, g_object_ref (im_context_simple), g_object_unref);
   g_task_run_in_thread (task, init_compose_table_thread_cb);
   g_object_unref (task);
 }
@@ -428,124 +432,6 @@ check_table (GtkIMContextSimple    *context_simple,
  */
 #define IS_DEAD_KEY(k) \
     ((k) >= GDK_KEY_dead_grave && (k) <= (GDK_KEY_dead_dasia+1))
-
-#ifdef GDK_WINDOWING_WIN32
-
-/* On Windows, user expectation is that typing a dead accent followed
- * by space will input the corresponding spacing character. The X
- * compose tables are different for dead acute and diaeresis, which
- * when followed by space produce a plain ASCII apostrophe and double
- * quote respectively. So special-case those.
- */
-
-static gboolean
-check_win32_special_cases (GtkIMContextSimple    *context_simple,
-			   gint                   n_compose)
-{
-  GtkIMContextSimplePrivate *priv = context_simple->priv;
-  if (n_compose == 2 &&
-      priv->compose_buffer[1] == GDK_KEY_space)
-    {
-      gunichar value = 0;
-
-      switch (priv->compose_buffer[0])
-	{
-	case GDK_KEY_dead_acute:
-	  value = 0x00B4; break;
-	case GDK_KEY_dead_diaeresis:
-	  value = 0x00A8; break;
-        default:
-          break;
-	}
-      if (value > 0)
-	{
-	  gtk_im_context_simple_commit_char (GTK_IM_CONTEXT (context_simple), value);
-	  priv->compose_buffer[0] = 0;
-
-	  return TRUE;
-	}
-    }
-  return FALSE;
-}
-
-static void
-check_win32_special_case_after_compact_match (GtkIMContextSimple    *context_simple,
-					      gint                   n_compose,
-					      guint                  value)
-{
-  GtkIMContextSimplePrivate *priv = context_simple->priv;
-
-  /* On Windows user expectation is that typing two dead accents will input
-   * two corresponding spacing accents.
-   */
-  if (n_compose == 2 &&
-      priv->compose_buffer[0] == priv->compose_buffer[1] &&
-      IS_DEAD_KEY (priv->compose_buffer[0]))
-    {
-      gtk_im_context_simple_commit_char (GTK_IM_CONTEXT (context_simple), value);
-    }
-}
-
-#endif
-
-#ifdef GDK_WINDOWING_QUARTZ
-
-static gboolean
-check_quartz_special_cases (GtkIMContextSimple *context_simple,
-                            gint                n_compose)
-{
-  GtkIMContextSimplePrivate *priv = context_simple->priv;
-  guint value = 0;
-
-  if (n_compose == 2)
-    {
-      switch (priv->compose_buffer[0])
-        {
-        case GDK_KEY_dead_doubleacute:
-          switch (priv->compose_buffer[1])
-            {
-            case GDK_KEY_dead_doubleacute:
-            case GDK_KEY_space:
-              value = GDK_KEY_quotedbl; break;
-
-            case 'a': value = GDK_KEY_adiaeresis; break;
-            case 'A': value = GDK_KEY_Adiaeresis; break;
-            case 'e': value = GDK_KEY_ediaeresis; break;
-            case 'E': value = GDK_KEY_Ediaeresis; break;
-            case 'i': value = GDK_KEY_idiaeresis; break;
-            case 'I': value = GDK_KEY_Idiaeresis; break;
-            case 'o': value = GDK_KEY_odiaeresis; break;
-            case 'O': value = GDK_KEY_Odiaeresis; break;
-            case 'u': value = GDK_KEY_udiaeresis; break;
-            case 'U': value = GDK_KEY_Udiaeresis; break;
-            case 'y': value = GDK_KEY_ydiaeresis; break;
-            case 'Y': value = GDK_KEY_Ydiaeresis; break;
-            }
-          break;
-
-        case GDK_KEY_dead_acute:
-          switch (priv->compose_buffer[1])
-            {
-            case 'c': value = GDK_KEY_ccedilla; break;
-            case 'C': value = GDK_KEY_Ccedilla; break;
-            }
-          break;
-        }
-    }
-
-  if (value > 0)
-    {
-      gtk_im_context_simple_commit_char (GTK_IM_CONTEXT (context_simple),
-                                         gdk_keyval_to_unicode (value));
-      priv->compose_buffer[0] = 0;
-
-      return TRUE;
-    }
-
-  return FALSE;
-}
-
-#endif
 
 gboolean
 gtk_check_compact_table (const GtkComposeTableCompact  *table,
@@ -915,18 +801,21 @@ no_sequence_matches (GtkIMContextSimple *context_simple,
       
       for (i = 0; i < n_compose - len - 1; i++)
 	{
-          guint tmp_keyval = priv->compose_buffer[len + i];
-          GdkEvent *tmp_event = gdk_event_key_new (GDK_KEY_PRESS,
+          GdkTranslatedKey translated;
+          translated.keyval = priv->compose_buffer[len + i];
+          translated.consumed = 0;
+          translated.layout = 0;
+          translated.level = 0;
+          GdkEvent *tmp_event = gdk_key_event_new (GDK_KEY_PRESS,
                                                    gdk_event_get_surface (event),
                                                    gdk_event_get_device (event),
                                                    gdk_event_get_source_device (event),
                                                    gdk_event_get_time (event),
+                                                   priv->compose_buffer[len + i],
                                                    gdk_event_get_modifier_state (event),
-                                                   tmp_keyval,
-                                                   tmp_keyval,
-                                                   tmp_keyval,
-                                                   0,
-                                                   0);
+                                                   FALSE,
+                                                   &translated,
+                                                   &translated);
 	  
 	  gtk_im_context_filter_keypress (context, tmp_event);
 	  gdk_event_unref (tmp_event);
@@ -968,14 +857,12 @@ is_hex_keyval (guint keyval)
 static guint
 canonical_hex_keyval (GdkEvent *event)
 {
-  GdkSurface *surface = gdk_event_get_surface ((GdkEvent *) event);
-  GdkKeymap *keymap = gdk_display_get_keymap (gdk_surface_get_display (surface));
   guint keyval, event_keyval;
   guint *keyvals = NULL;
   gint n_vals = 0;
   gint i;
 
-  event_keyval = gdk_key_event_get_keyval ((GdkEvent *)event);
+  event_keyval = gdk_key_event_get_keyval (event);
 
   /* See if the keyval is already a hex digit */
   if (is_hex_keyval (event_keyval))
@@ -984,10 +871,10 @@ canonical_hex_keyval (GdkEvent *event)
   /* See if this key would have generated a hex keyval in
    * any other state, and return that hex keyval if so
    */
-  gdk_keymap_get_entries_for_keycode (keymap,
-                                      gdk_key_event_get_scancode ((GdkEvent *) event),
-				      NULL,
-				      &keyvals, &n_vals);
+  gdk_display_map_keycode (gdk_event_get_display (event),
+                           gdk_key_event_get_keycode (event),
+                           NULL,
+                           &keyvals, &n_vals);
 
   keyval = 0;
   i = 0;
@@ -1019,8 +906,6 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
   GtkIMContextSimple *context_simple = GTK_IM_CONTEXT_SIMPLE (context);
   GtkIMContextSimplePrivate *priv = context_simple->priv;
   GdkSurface *surface = gdk_event_get_surface ((GdkEvent *) event);
-  GdkDisplay *display = gdk_surface_get_display (surface);
-  GdkKeymap *keymap = gdk_display_get_keymap (display);
   GSList *tmp_list;
   int n_compose = 0;
   GdkModifierType hex_mod_mask;
@@ -1039,10 +924,10 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
   while (priv->compose_buffer[n_compose] != 0)
     n_compose++;
 
-  keyval = gdk_key_event_get_keyval ((GdkEvent *)event);
-  state = gdk_event_get_modifier_state ((GdkEvent *)event);
+  keyval = gdk_key_event_get_keyval (event);
+  state = gdk_event_get_modifier_state (event);
 
-  if (gdk_event_get_event_type ((GdkEvent *) event) == GDK_KEY_RELEASE)
+  if (gdk_event_get_event_type (event) == GDK_KEY_RELEASE)
     {
       if (priv->in_hex_sequence &&
           (keyval == GDK_KEY_Control_L || keyval == GDK_KEY_Control_R ||
@@ -1086,8 +971,7 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
     if (keyval == gtk_compose_ignore[i])
       return FALSE;
 
-  hex_mod_mask = gdk_keymap_get_modifier_mask (keymap, GDK_MODIFIER_INTENT_PRIMARY_ACCELERATOR);
-  hex_mod_mask |= GDK_SHIFT_MASK;
+  hex_mod_mask = GDK_CONTROL_MASK|GDK_SHIFT_MASK;
 
   if (priv->in_hex_sequence && priv->modifiers_dropped)
     have_hex_mods = TRUE;
@@ -1118,7 +1002,7 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
     {
       GdkModifierType no_text_input_mask;
 
-      no_text_input_mask = gdk_keymap_get_modifier_mask (keymap, GDK_MODIFIER_INTENT_NO_TEXT_INPUT);
+      no_text_input_mask = GDK_ALT_MASK|GDK_CONTROL_MASK;
 
       if (state & no_text_input_mask ||
 	  (priv->in_hex_sequence && priv->modifiers_dropped &&
@@ -1248,38 +1132,6 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
     {
       gboolean success = FALSE;
 
-#ifdef GDK_WINDOWING_WIN32
-      if (GDK_IS_WIN32_DISPLAY (display))
-        {
-          guint16  output[2];
-          gsize    output_size = 2;
-
-          switch (gdk_win32_keymap_check_compose (GDK_WIN32_KEYMAP (keymap),
-                                                  priv->compose_buffer,
-                                                  n_compose,
-                                                  output, &output_size))
-            {
-            case GDK_WIN32_KEYMAP_MATCH_NONE:
-              break;
-            case GDK_WIN32_KEYMAP_MATCH_EXACT:
-            case GDK_WIN32_KEYMAP_MATCH_PARTIAL:
-              for (i = 0; i < output_size; i++)
-                {
-                  output_char = gdk_keyval_to_unicode (output[i]);
-                  gtk_im_context_simple_commit_char (GTK_IM_CONTEXT (context_simple),
-                                                     output_char);
-                }
-              priv->compose_buffer[0] = 0;
-              return TRUE;
-            case GDK_WIN32_KEYMAP_MATCH_INCOMPLETE:
-              return TRUE;
-            default:
-              g_assert_not_reached ();
-              break;
-            }
-        }
-#endif
-
       G_LOCK (global_tables);
 
       tmp_list = global_tables;
@@ -1298,16 +1150,6 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
       if (success)
         return TRUE;
 
-#ifdef GDK_WINDOWING_WIN32
-      if (check_win32_special_cases (context_simple, n_compose))
-	return TRUE;
-#endif
-
-#ifdef GDK_WINDOWING_QUARTZ
-      if (check_quartz_special_cases (context_simple, n_compose))
-        return TRUE;
-#endif
-
       if (gtk_check_compact_table (&gtk_compose_table_compact,
                                    priv->compose_buffer,
                                    n_compose, &compose_finish,
@@ -1319,11 +1161,6 @@ gtk_im_context_simple_filter_keypress (GtkIMContext *context,
                 {
                   gtk_im_context_simple_commit_char (GTK_IM_CONTEXT (context_simple),
                                                      output_char);
-#ifdef G_OS_WIN32
-                  check_win32_special_case_after_compact_match (context_simple,
-                                                                n_compose,
-                                                                output_char);
-#endif
                   priv->compose_buffer[0] = 0;
                 }
             }
@@ -1425,30 +1262,6 @@ gtk_im_context_simple_get_preedit_string (GtkIMContext   *context,
 
   if (cursor_pos)
     *cursor_pos = len;
-}
-
-static void
-gtk_im_context_simple_set_client_widget  (GtkIMContext *context,
-                                          GtkWidget    *widget)
-{
-  GtkIMContextSimple *im_context_simple = GTK_IM_CONTEXT_SIMPLE (context);
-  gboolean run_compose_table = FALSE;
-
-  if (!widget)
-    return;
-
-  /* Load compose table for X11 or Wayland. */
-#ifdef GDK_WINDOWING_X11
-  if (GDK_IS_X11_DISPLAY (gtk_widget_get_display (widget)))
-    run_compose_table = TRUE;
-#endif
-#ifdef GDK_WINDOWING_WAYLAND
-  if (GDK_IS_WAYLAND_DISPLAY (gtk_widget_get_display (widget)))
-    run_compose_table = TRUE;
-#endif
-
-  if (run_compose_table)
-    init_compose_table_async (im_context_simple, NULL, NULL, NULL);
 }
 
 /**
