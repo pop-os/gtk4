@@ -29,13 +29,13 @@
 #include "gtkstatusbarprivate.h"
 
 #include "gtkbinlayout.h"
-#include "gtkframe.h"
 #include "gtklabel.h"
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
 #include "gtkintl.h"
 #include "gtkorientable.h"
 #include "gtktypebuiltins.h"
+#include "gtkwidgetprivate.h"
 #include "a11y/gtkstatusbaraccessible.h"
 
 /**
@@ -86,7 +86,6 @@ struct _GtkStatusbar
 {
   GtkWidget parent_instance;
 
-  GtkWidget     *frame;
   GtkWidget     *label;
   GtkWidget     *message_area;
 
@@ -137,7 +136,7 @@ gtk_statusbar_dispose (GObject *object)
 {
   GtkStatusbar *self = GTK_STATUSBAR (object);
 
-  g_clear_pointer (&self->frame, gtk_widget_unparent);
+  g_clear_pointer (&self->message_area, gtk_widget_unparent);
 
   G_OBJECT_CLASS (gtk_statusbar_parent_class)->dispose (object);
 }
@@ -151,6 +150,8 @@ gtk_statusbar_class_init (GtkStatusbarClass *class)
   object_class->dispose = gtk_statusbar_dispose;
 
   widget_class->destroy = gtk_statusbar_destroy;
+  widget_class->grab_focus = gtk_widget_grab_focus_none;
+  widget_class->focus = gtk_widget_focus_child;
 
   class->text_pushed = gtk_statusbar_update;
   class->text_popped = gtk_statusbar_update;
@@ -197,7 +198,6 @@ gtk_statusbar_class_init (GtkStatusbarClass *class)
    */
   gtk_widget_class_set_template_from_resource (widget_class, "/org/gtk/libgtk/ui/gtkstatusbar.ui");
   gtk_widget_class_bind_template_child_internal (widget_class, GtkStatusbar, message_area);
-  gtk_widget_class_bind_template_child (widget_class, GtkStatusbar, frame);
   gtk_widget_class_bind_template_child (widget_class, GtkStatusbar, label);
 
   gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_STATUSBAR_ACCESSIBLE);

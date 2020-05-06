@@ -392,19 +392,6 @@ typedef enum
 } GtkPositionType;
 
 /**
- * GtkReliefStyle:
- * @GTK_RELIEF_NORMAL: Draw a normal relief.
- * @GTK_RELIEF_NONE: No relief.
- *
- * Indicated the relief to be drawn around a #GtkButton.
- */
-typedef enum
-{
-  GTK_RELIEF_NORMAL,
-  GTK_RELIEF_NONE
-} GtkReliefStyle;
-
-/**
  * GtkScrollType:
  * @GTK_SCROLL_NONE: No scrolling.
  * @GTK_SCROLL_JUMP: Jump to new location.
@@ -469,29 +456,6 @@ typedef enum
   GTK_SELECTION_BROWSE,
   GTK_SELECTION_MULTIPLE
 } GtkSelectionMode;
-
-/**
- * GtkShadowType:
- * @GTK_SHADOW_NONE: No outline.
- * @GTK_SHADOW_IN: The outline is bevelled inwards.
- * @GTK_SHADOW_OUT: The outline is bevelled outwards like a button.
- * @GTK_SHADOW_ETCHED_IN: The outline has a sunken 3d appearance.
- * @GTK_SHADOW_ETCHED_OUT: The outline has a raised 3d appearance.
- *
- * Used to change the appearance of an outline typically provided by a #GtkFrame.
- *
- * Note that many themes do not differentiate the appearance of the
- * various shadow types: Either there is no visible shadow (@GTK_SHADOW_NONE),
- * or there is (any other value).
- */
-typedef enum
-{
-  GTK_SHADOW_NONE,
-  GTK_SHADOW_IN,
-  GTK_SHADOW_OUT,
-  GTK_SHADOW_ETCHED_IN,
-  GTK_SHADOW_ETCHED_OUT
-} GtkShadowType;
 
 /* Widget states */
 
@@ -736,6 +700,7 @@ typedef enum
  * @GTK_STATE_FLAG_CHECKED: Widget is checked
  * @GTK_STATE_FLAG_DROP_ACTIVE: Widget is highlighted as a drop target for DND
  * @GTK_STATE_FLAG_FOCUS_VISIBLE: Widget has the visible focus
+ * @GTK_STATE_FLAG_FOCUS_WITHIN: Widget contains the keyboard focus
  *
  * Describes a widget state. Widget states are used to match the widget
  * against CSS pseudo-classes. Note that GTK extends the regular CSS
@@ -757,7 +722,8 @@ typedef enum
   GTK_STATE_FLAG_VISITED       = 1 << 10,
   GTK_STATE_FLAG_CHECKED       = 1 << 11,
   GTK_STATE_FLAG_DROP_ACTIVE   = 1 << 12,
-  GTK_STATE_FLAG_FOCUS_VISIBLE = 1 << 13
+  GTK_STATE_FLAG_FOCUS_VISIBLE = 1 << 13,
+  GTK_STATE_FLAG_FOCUS_WITHIN  = 1 << 14
 } GtkStateFlags;
 
 /**

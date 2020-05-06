@@ -1,14 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface domain="gtk40">
-  <template class="GtkScaleButton" parent="GtkButton">
-    <property name="can-focus">1</property>
-    <property name="receives-default">1</property>
-    <property name="relief">none</property>
-    <property name="focus-on-click">0</property>
+  <template class="GtkScaleButton" parent="GtkWidget">
     <child>
-      <object class="GtkImage" id="image">
+      <object class="GtkToggleButton" id="button">
+        <property name="receives-default">1</property>
+        <property name="focus-on-click">0</property>
         <property name="icon-name">image-missing</property>
-        <property name="use-fallback">1</property>
+        <property name="has-frame">0</property>
       </object>
     </child>
   </template>
@@ -27,9 +25,8 @@
         <property name="spacing">4</property>
         <child>
           <object class="GtkButton" id="plus_button">
-            <property name="can-focus">1</property>
             <property name="receives-default">1</property>
-            <property name="relief">none</property>
+            <property name="has-frame">0</property>
             <property name="halign">center</property>
             <property name="valign">center</property>
             <property name="icon-name">list-add-symbolic</property>
@@ -39,7 +36,6 @@
         <child>
           <object class="GtkScale" id="scale">
             <property name="height-request">100</property>
-            <property name="can-focus">1</property>
             <property name="orientation">vertical</property>
             <property name="inverted">1</property>
             <property name="round-digits">1</property>
@@ -49,9 +45,8 @@
         </child>
         <child>
           <object class="GtkButton" id="minus_button">
-            <property name="can-focus">1</property>
             <property name="receives-default">1</property>
-            <property name="relief">none</property>
+            <property name="has-frame">0</property>
             <property name="halign">center</property>
             <property name="valign">center</property>
             <property name="icon-name">list-remove-symbolic</property>

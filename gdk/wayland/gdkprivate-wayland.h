@@ -163,6 +163,8 @@ guint32 gdk_wayland_display_get_output_scale (GdkWaylandDisplay *display_wayland
                                               struct wl_output  *output);
 struct wl_output *gdk_wayland_display_get_wl_output (GdkDisplay *display,
                                                      int         monitor_num);
+GdkMonitor *gdk_wayland_display_get_monitor_for_output (GdkDisplay       *display,
+                                                        struct wl_output *output);
 
 void _gdk_wayland_surface_set_grab_seat (GdkSurface      *surface,
                                         GdkSeat        *seat);
@@ -201,5 +203,7 @@ void gdk_wayland_surface_update_scale (GdkSurface *surface);
 
 GdkSurface * create_dnd_surface (GdkDisplay *display);
 
+GdkModifierType gdk_wayland_keymap_get_gdk_modifiers (GdkKeymap *keymap,
+                                                      guint32    mods);
 
 #endif /* __GDK_PRIVATE_WAYLAND_H__ */

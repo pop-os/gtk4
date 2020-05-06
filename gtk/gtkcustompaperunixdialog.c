@@ -1003,7 +1003,6 @@ populate_dialog (GtkCustomPaperUnixDialog *dialog)
   GtkTreeIter iter;
   GtkTreeSelection *selection;
   GtkUnit user_units;
-  GtkStyleContext *context;
 
   content_area = gtk_dialog_get_content_area (cpu_dialog);
   gtk_box_set_spacing (GTK_BOX (content_area), 2); /* 2 * 5 + 2 = 12 */
@@ -1023,8 +1022,7 @@ populate_dialog (GtkCustomPaperUnixDialog *dialog)
   scrolled = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled),
                                   GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
-  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (scrolled),
-                                       GTK_SHADOW_IN);
+  gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolled), TRUE);
   gtk_container_add (GTK_CONTAINER (vbox), scrolled);
   gtk_widget_show (scrolled);
 
@@ -1052,8 +1050,7 @@ populate_dialog (GtkCustomPaperUnixDialog *dialog)
 
   toolbar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
-  context = gtk_widget_get_style_context (toolbar);
-  gtk_style_context_add_class (context, "linked");
+  gtk_widget_add_css_class (toolbar, "linked");
 
   gtk_container_add (GTK_CONTAINER (vbox), toolbar);
 

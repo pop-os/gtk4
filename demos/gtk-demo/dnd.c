@@ -81,7 +81,7 @@ deserialize_widget (GtkDemoWidget *demo)
   else if (demo->type == GTK_TYPE_SPINNER)
     {
       widget = g_object_new (demo->type, "spinning", demo->active, NULL);
-      gtk_style_context_add_class (gtk_widget_get_style_context (widget), "demo");
+      gtk_widget_add_css_class (widget, "demo");
     }
   else
     {
@@ -114,7 +114,7 @@ new_spinner_cb (GtkWidget *button,
   GtkWidget *widget;
 
   widget = gtk_spinner_new ();
-  gtk_style_context_add_class (gtk_widget_get_style_context (widget), "demo");
+  gtk_widget_add_css_class (widget, "demo");
   gtk_spinner_start (GTK_SPINNER (widget));
   gtk_fixed_put (fixed, widget, pos_x, pos_y);
 
@@ -279,11 +279,11 @@ pressed_cb (GtkGesture *gesture,
       gtk_container_add (GTK_CONTAINER (menu), box);
 
       item = gtk_button_new_with_label ("New Label");
-      gtk_button_set_relief (GTK_BUTTON (item), GTK_RELIEF_NONE);
+      gtk_button_set_has_frame (GTK_BUTTON (item), FALSE);
       g_signal_connect (item, "clicked", G_CALLBACK (new_label_cb), widget);
       gtk_container_add (GTK_CONTAINER (box), item);
       item = gtk_button_new_with_label ("New Spinner");
-      gtk_button_set_relief (GTK_BUTTON (item), GTK_RELIEF_NONE);
+      gtk_button_set_has_frame (GTK_BUTTON (item), FALSE);
       g_signal_connect (item, "clicked", G_CALLBACK (new_spinner_cb), widget);
       gtk_container_add (GTK_CONTAINER (box), item);
 
@@ -291,7 +291,7 @@ pressed_cb (GtkGesture *gesture,
       gtk_container_add (GTK_CONTAINER (box), item);
 
       item = gtk_button_new_with_label ("Edit");
-      gtk_button_set_relief (GTK_BUTTON (item), GTK_RELIEF_NONE);
+      gtk_button_set_has_frame (GTK_BUTTON (item), FALSE);
       gtk_widget_set_sensitive (item, child != NULL && child != widget);
       g_signal_connect (item, "clicked", G_CALLBACK (edit_cb), child);
       gtk_container_add (GTK_CONTAINER (box), item);
@@ -300,24 +300,24 @@ pressed_cb (GtkGesture *gesture,
       gtk_container_add (GTK_CONTAINER (box), item);
 
       item = gtk_button_new_with_label ("Cut");
-      gtk_button_set_relief (GTK_BUTTON (item), GTK_RELIEF_NONE);
+      gtk_button_set_has_frame (GTK_BUTTON (item), FALSE);
       gtk_widget_set_sensitive (item, child != NULL && child != widget);
       g_signal_connect (item, "clicked", G_CALLBACK (cut_cb), child);
       gtk_container_add (GTK_CONTAINER (box), item);
       item = gtk_button_new_with_label ("Copy");
-      gtk_button_set_relief (GTK_BUTTON (item), GTK_RELIEF_NONE);
+      gtk_button_set_has_frame (GTK_BUTTON (item), FALSE);
       gtk_widget_set_sensitive (item, child != NULL && child != widget);
       g_signal_connect (item, "clicked", G_CALLBACK (copy_cb), child);
       gtk_container_add (GTK_CONTAINER (box), item);
       item = gtk_button_new_with_label ("Paste");
-      gtk_button_set_relief (GTK_BUTTON (item), GTK_RELIEF_NONE);
+      gtk_button_set_has_frame (GTK_BUTTON (item), FALSE);
       clipboard = gdk_display_get_clipboard (gdk_display_get_default ());
       gtk_widget_set_sensitive (item,
                                 gdk_content_formats_contain_gtype (gdk_clipboard_get_formats (clipboard), GTK_TYPE_DEMO_WIDGET));
       g_signal_connect (item, "clicked", G_CALLBACK (paste_cb), widget);
       gtk_container_add (GTK_CONTAINER (box), item);
       item = gtk_button_new_with_label ("Delete");
-      gtk_button_set_relief (GTK_BUTTON (item), GTK_RELIEF_NONE);
+      gtk_button_set_has_frame (GTK_BUTTON (item), FALSE);
       gtk_widget_set_sensitive (item, child != NULL && child != widget);
       g_signal_connect (item, "clicked", G_CALLBACK (delete_cb), child);
       gtk_container_add (GTK_CONTAINER (box), item);

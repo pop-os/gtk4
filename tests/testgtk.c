@@ -1043,7 +1043,6 @@ static void create_labels (GtkWidget *widget)
       label = gtk_label_new ("This label is underlined!\n"
 			     "This one is underlined (\343\201\223\343\202\223\343\201\253\343\201\241\343\201\257) in quite a funky fashion");
       gtk_label_set_justify (GTK_LABEL (label), GTK_JUSTIFY_LEFT);
-      gtk_label_set_pattern (GTK_LABEL (label), "_________________________ _ _________ _ _____ _ __ __  ___ ____ _____");
       gtk_container_add (GTK_CONTAINER (frame), label);
       gtk_container_add (GTK_CONTAINER (vbox), frame);
 
@@ -1992,10 +1991,7 @@ create_scrolled_windows (GtkWidget *widget)
       gtk_grid_set_row_spacing (GTK_GRID (grid), 10);
       gtk_grid_set_column_spacing (GTK_GRID (grid), 10);
       gtk_container_add (GTK_CONTAINER (scrolled_window), grid);
-      gtk_container_set_focus_hadjustment (GTK_CONTAINER (grid),
-					   gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (scrolled_window)));
-      gtk_container_set_focus_vadjustment (GTK_CONTAINER (grid),
-					   gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (scrolled_window)));
+      gtk_viewport_set_scroll_to_focus (GTK_VIEWPORT (gtk_widget_get_parent (grid)), TRUE);
       gtk_widget_show (grid);
 
       for (i = 0; i < 20; i++)
@@ -4230,7 +4226,6 @@ create_panes (GtkWidget *widget)
       gtk_paned_add1 (GTK_PANED (vpaned), hpaned);
 
       frame = gtk_frame_new (NULL);
-      gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_IN);
       gtk_widget_set_size_request (frame, 60, 60);
       gtk_paned_add1 (GTK_PANED (hpaned), frame);
       
@@ -4238,12 +4233,10 @@ create_panes (GtkWidget *widget)
       gtk_container_add (GTK_CONTAINER(frame), button);
 
       frame = gtk_frame_new (NULL);
-      gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_IN);
       gtk_widget_set_size_request (frame, 80, 60);
       gtk_paned_add2 (GTK_PANED (hpaned), frame);
 
       frame = gtk_frame_new (NULL);
-      gtk_frame_set_shadow_type (GTK_FRAME(frame), GTK_SHADOW_IN);
       gtk_widget_set_size_request (frame, 60, 80);
       gtk_paned_add2 (GTK_PANED (vpaned), frame);
 
@@ -4308,7 +4301,6 @@ paned_keyboard_window1 (GtkWidget *widget)
 
   frame1 = gtk_frame_new (NULL);
   gtk_paned_pack1 (GTK_PANED (hpaned1), frame1, FALSE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame1), GTK_SHADOW_IN);
 
   vbox1 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add (GTK_CONTAINER (frame1), vbox1);
@@ -4327,7 +4319,6 @@ paned_keyboard_window1 (GtkWidget *widget)
 
   frame2 = gtk_frame_new (NULL);
   gtk_paned_pack1 (GTK_PANED (vpaned1), frame2, FALSE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame2), GTK_SHADOW_IN);
 
   frame5 = gtk_frame_new (NULL);
   gtk_container_add (GTK_CONTAINER (frame2), frame5);
@@ -4343,7 +4334,6 @@ paned_keyboard_window1 (GtkWidget *widget)
 
   frame3 = gtk_frame_new (NULL);
   gtk_paned_pack2 (GTK_PANED (vpaned1), frame3, TRUE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame3), GTK_SHADOW_IN);
 
   frame4 = gtk_frame_new ("Buttons");
   gtk_container_add (GTK_CONTAINER (frame3), frame4);
@@ -4392,7 +4382,6 @@ paned_keyboard_window2 (GtkWidget *widget)
 
   frame6 = gtk_frame_new (NULL);
   gtk_paned_pack1 (GTK_PANED (hpaned2), frame6, FALSE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame6), GTK_SHADOW_IN);
 
   button13 = gtk_button_new_with_label ("button13");
   gtk_container_add (GTK_CONTAINER (frame6), button13);
@@ -4405,14 +4394,12 @@ paned_keyboard_window2 (GtkWidget *widget)
 
   frame7 = gtk_frame_new (NULL);
   gtk_paned_pack1 (GTK_PANED (vpaned2), frame7, FALSE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame7), GTK_SHADOW_IN);
 
   button12 = gtk_button_new_with_label ("button12");
   gtk_container_add (GTK_CONTAINER (frame7), button12);
 
   frame8 = gtk_frame_new (NULL);
   gtk_paned_pack2 (GTK_PANED (vpaned2), frame8, TRUE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame8), GTK_SHADOW_IN);
 
   button11 = gtk_button_new_with_label ("button11");
   gtk_container_add (GTK_CONTAINER (frame8), button11);
@@ -4460,7 +4447,6 @@ paned_keyboard_window3 (GtkWidget *widget)
 
   frame9 = gtk_frame_new (NULL);
   gtk_paned_pack1 (GTK_PANED (hpaned3), frame9, FALSE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame9), GTK_SHADOW_IN);
 
   button14 = gtk_button_new_with_label ("button14");
   gtk_container_add (GTK_CONTAINER (frame9), button14);
@@ -4470,7 +4456,6 @@ paned_keyboard_window3 (GtkWidget *widget)
 
   frame10 = gtk_frame_new (NULL);
   gtk_paned_pack1 (GTK_PANED (hpaned4), frame10, FALSE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame10), GTK_SHADOW_IN);
 
   button15 = gtk_button_new_with_label ("button15");
   gtk_container_add (GTK_CONTAINER (frame10), button15);
@@ -4480,14 +4465,12 @@ paned_keyboard_window3 (GtkWidget *widget)
 
   frame11 = gtk_frame_new (NULL);
   gtk_paned_pack1 (GTK_PANED (hpaned5), frame11, FALSE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame11), GTK_SHADOW_IN);
 
   button16 = gtk_button_new_with_label ("button16");
   gtk_container_add (GTK_CONTAINER (frame11), button16);
 
   frame12 = gtk_frame_new (NULL);
   gtk_paned_pack2 (GTK_PANED (hpaned5), frame12, TRUE, TRUE);
-  gtk_frame_set_shadow_type (GTK_FRAME (frame12), GTK_SHADOW_IN);
 
   button17 = gtk_button_new_with_label ("button17");
   gtk_container_add (GTK_CONTAINER (frame12), button17);
@@ -6088,6 +6071,7 @@ create_main_window (void)
 
   box2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   gtk_container_add (GTK_CONTAINER (scrolled_window), box2);
+  gtk_viewport_set_scroll_to_focus (GTK_VIEWPORT (gtk_widget_get_parent (box2)), TRUE);
   gtk_widget_show (box2);
 
   for (i = 0; i < nbuttons; i++)
@@ -6270,13 +6254,6 @@ main (int argc, char *argv[])
                                               GTK_STYLE_PROVIDER_PRIORITY_APPLICATION);
   g_object_unref (provider);
 
-  gtk_accelerator_set_default_mod_mask (GDK_SHIFT_MASK |
-					GDK_CONTROL_MASK |
-					GDK_MOD1_MASK | 
-					GDK_META_MASK |
-					GDK_SUPER_MASK |
-					GDK_HYPER_MASK |
-					GDK_MOD4_MASK);
   /*  benchmarking
    */
   for (i = 1; i < argc; i++)

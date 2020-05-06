@@ -769,7 +769,7 @@ static void gtk_notebook_popup_menu          (GtkWidget        *widget,
                                               const char       *action_name,
                                               GVariant         *parameters);
 static void gtk_notebook_motion              (GtkEventController *controller,
-                                              double              x,
+                                             double              x,
                                               double              y,
                                               gpointer            user_data);
 static void gtk_notebook_grab_notify         (GtkWidget          *widget,
@@ -780,6 +780,9 @@ static void gtk_notebook_direction_changed   (GtkWidget        *widget,
                                               GtkTextDirection  previous_direction);
 static gboolean gtk_notebook_focus           (GtkWidget        *widget,
                                               GtkDirectionType  direction);
+static gboolean gtk_notebook_grab_focus      (GtkWidget        *widget);
+static void     gtk_notebook_set_focus_child (GtkWidget        *widget,
+                                              GtkWidget        *child);
 
 /*** Drag and drop Methods ***/
 static void gtk_notebook_dnd_finished_cb     (GdkDrag          *drag,
@@ -802,8 +805,6 @@ static void gtk_notebook_add                 (GtkContainer     *container,
                                               GtkWidget        *widget);
 static void gtk_notebook_remove              (GtkContainer     *container,
                                               GtkWidget        *widget);
-static void gtk_notebook_set_focus_child     (GtkContainer     *container,
-                                              GtkWidget        *child);
 static GType gtk_notebook_child_type       (GtkContainer     *container);
 static void gtk_notebook_forall              (GtkContainer     *container,
                                               GtkCallback       callback,
@@ -968,11 +969,11 @@ add_reorder_bindings (GtkWidgetClass   *widget_class,
   guint keypad_keysym = keysym - GDK_KEY_Left + GDK_KEY_KP_Left;
 
   gtk_widget_class_add_binding_signal (widget_class,
-                                       keysym, GDK_MOD1_MASK,
+                                       keysym, GDK_ALT_MASK,
                                        "reorder_tab",
                                        "(ib)", direction, move_to_last);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       keypad_keysym, GDK_MOD1_MASK,
+                                       keypad_keysym, GDK_ALT_MASK,
                                        "reorder_tab",
                                        "(ib)", direction, move_to_last);
 }
@@ -1043,12 +1044,13 @@ gtk_notebook_class_init (GtkNotebookClass *class)
   widget_class->state_flags_changed = gtk_notebook_state_flags_changed;
   widget_class->direction_changed = gtk_notebook_direction_changed;
   widget_class->focus = gtk_notebook_focus;
+  widget_class->grab_focus = gtk_notebook_grab_focus;
+  widget_class->set_focus_child = gtk_notebook_set_focus_child;
   widget_class->compute_expand = gtk_notebook_compute_expand;
 
   container_class->add = gtk_notebook_add;
   container_class->remove = gtk_notebook_remove;
   container_class->forall = gtk_notebook_forall;
-  container_class->set_focus_child = gtk_notebook_set_focus_child;
   container_class->child_type = gtk_notebook_child_type;
 
   class->switch_page = gtk_notebook_real_switch_page;
@@ -1302,6 +1304,11 @@ gtk_notebook_class_init (GtkNotebookClass *class)
                               G_TYPE_FROM_CLASS (gobject_class),
                               _gtk_marshal_OBJECT__OBJECTv);
 
+  /**
+   * GtkNotebook|menu.popup:
+   *
+   * Opens the context menu. 
+   */
   gtk_widget_class_install_action (widget_class, "menu.popup", NULL, gtk_notebook_popup_menu);
 
   gtk_widget_class_add_binding_signal (widget_class,
@@ -1349,11 +1356,11 @@ gtk_notebook_class_init (GtkNotebookClass *class)
                                        "(i)", 1);
 
   gtk_widget_class_add_binding_signal (widget_class,
-                                       GDK_KEY_Page_Up, GDK_CONTROL_MASK | GDK_MOD1_MASK,
+                                       GDK_KEY_Page_Up, GDK_CONTROL_MASK | GDK_ALT_MASK,
                                        "change-current-page",
                                        "(i)", -1);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       GDK_KEY_Page_Down, GDK_CONTROL_MASK | GDK_MOD1_MASK,
+                                       GDK_KEY_Page_Down, GDK_CONTROL_MASK | GDK_ALT_MASK,
                                        "change-current-page",
                                        "(i)", 1);
 
@@ -1387,8 +1394,6 @@ gtk_notebook_init (GtkNotebook *notebook)
   GtkLayoutManager *layout;
   GtkDropTarget *dest;
 
-  gtk_widget_set_can_focus (GTK_WIDGET (notebook), TRUE);
-
   notebook->cur_page = NULL;
   notebook->children = NULL;
   notebook->first_tab = NULL;
@@ -1412,17 +1417,19 @@ gtk_notebook_init (GtkNotebook *notebook)
   notebook->has_scrolled = FALSE;
 
   notebook->header_widget = g_object_new (GTK_TYPE_BOX,
-                                      "css-name", "header",
-                                      NULL);
+                                          "css-name", "header",
+                                          NULL);
   gtk_widget_add_css_class (notebook->header_widget, GTK_STYLE_CLASS_TOP);
   gtk_widget_hide (notebook->header_widget);
   gtk_widget_set_parent (notebook->header_widget, GTK_WIDGET (notebook));
 
   notebook->tabs_widget = gtk_gizmo_new ("tabs",
-                                     gtk_notebook_measure_tabs,
-                                     gtk_notebook_allocate_tabs,
-                                     gtk_notebook_snapshot_tabs,
-                                     NULL);
+                                         gtk_notebook_measure_tabs,
+                                         gtk_notebook_allocate_tabs,
+                                         gtk_notebook_snapshot_tabs,
+                                         NULL,
+                                         (GtkGizmoFocusFunc)gtk_widget_focus_self,
+                                         (GtkGizmoGrabFocusFunc)gtk_widget_grab_focus_self);
   gtk_widget_set_hexpand (notebook->tabs_widget, TRUE);
   gtk_container_add (GTK_CONTAINER (notebook->header_widget), notebook->tabs_widget);
 
@@ -2870,8 +2877,7 @@ gtk_notebook_motion (GtkEventController *controller,
   if (!page)
     return;
 
-  if (!gtk_get_current_event_state (&state))
-    return;
+  state = gtk_event_controller_get_current_event_state (controller);
 
   if (!(state & GDK_BUTTON1_MASK) &&
       notebook->pressed_button != 0)
@@ -2898,7 +2904,7 @@ gtk_notebook_motion (GtkEventController *controller,
       notebook->detached_tab = notebook->cur_page;
 
       surface = gtk_native_get_surface (gtk_widget_get_native (GTK_WIDGET (notebook)));
-      device = gtk_get_current_event_device ();
+      device = gtk_event_controller_get_current_event_device (controller);
 
       content = gdk_content_provider_new_union ((GdkContentProvider *[2]) {
                                                   gtk_notebook_root_content_new (notebook),
@@ -3467,7 +3473,7 @@ focus_tabs_in (GtkNotebook *notebook)
   if (notebook->show_tabs && gtk_notebook_has_current_page (notebook))
     {
       gtk_widget_grab_focus (GTK_WIDGET (notebook));
-      gtk_notebook_set_focus_child (GTK_CONTAINER (notebook), NULL);
+      gtk_notebook_set_focus_child (GTK_WIDGET (notebook), NULL);
       gtk_notebook_switch_focus_tab (notebook,
                                      g_list_find (notebook->children,
                                                   notebook->cur_page));
@@ -3558,6 +3564,8 @@ gtk_notebook_focus (GtkWidget        *widget,
 
   widget_is_focus = gtk_widget_is_focus (widget);
   old_focus_child = gtk_widget_get_focus_child (widget);
+  if (old_focus_child)
+    old_focus_child = gtk_widget_get_focus_child (old_focus_child);
 
   effective_direction = get_effective_direction (notebook, direction);
 
@@ -3705,11 +3713,22 @@ gtk_notebook_focus (GtkWidget        *widget,
   return FALSE;
 }
 
-static void
-gtk_notebook_set_focus_child (GtkContainer *container,
-                              GtkWidget    *child)
+static gboolean
+gtk_notebook_grab_focus (GtkWidget *widget)
 {
-  GtkNotebook *notebook = GTK_NOTEBOOK (container);
+  GtkNotebook *notebook = GTK_NOTEBOOK (widget);
+
+  if (notebook->show_tabs)
+    return gtk_widget_grab_focus_self (widget);
+  else
+    return gtk_widget_grab_focus_child (widget);
+}
+
+static void
+gtk_notebook_set_focus_child (GtkWidget *widget,
+                              GtkWidget *child)
+{
+  GtkNotebook *notebook = GTK_NOTEBOOK (widget);
   GtkWidget *page_child;
   GtkWidget *toplevel;
 
@@ -3718,13 +3737,13 @@ gtk_notebook_set_focus_child (GtkContainer *container,
    * for future use if we switch to the page with a mnemonic.
    */
 
-  toplevel = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (container)));
+  toplevel = GTK_WIDGET (gtk_widget_get_root (widget));
   if (GTK_IS_WINDOW (toplevel))
     {
       page_child = gtk_window_get_focus (GTK_WINDOW (toplevel));
       while (page_child)
         {
-          if (gtk_widget_get_parent (page_child) == GTK_WIDGET (container))
+          if (gtk_widget_get_parent (page_child) == widget)
             {
               GList *list = gtk_notebook_find_child (notebook, page_child);
               if (list != NULL)
@@ -3768,7 +3787,7 @@ gtk_notebook_set_focus_child (GtkContainer *container,
   else
     notebook->child_has_focus = FALSE;
 
-  GTK_CONTAINER_CLASS (gtk_notebook_parent_class)->set_focus_child (container, child);
+  GTK_WIDGET_CLASS (gtk_notebook_parent_class)->set_focus_child (widget, child);
 }
 
 static void
@@ -3979,7 +3998,7 @@ gtk_notebook_insert_notebook_page (GtkNotebook *notebook,
   else
   sibling = notebook->arrow_widget[ARROW_RIGHT_AFTER];
 
-  page->tab_widget = gtk_gizmo_new ("tab", measure_tab, allocate_tab, NULL, NULL);
+  page->tab_widget = gtk_gizmo_new ("tab", measure_tab, allocate_tab, NULL, NULL, NULL, NULL);
   g_object_set_data (G_OBJECT (page->tab_widget), "notebook", notebook);
   gtk_widget_insert_before (page->tab_widget, notebook->tabs_widget, sibling);
   controller = gtk_drop_controller_motion_new ();
@@ -5526,7 +5545,7 @@ gtk_notebook_menu_item_create (GtkNotebook *notebook,
     }
 
   menu_item = gtk_button_new ();
-  gtk_button_set_relief (GTK_BUTTON (menu_item), GTK_RELIEF_NONE);
+  gtk_button_set_has_frame (GTK_BUTTON (menu_item), FALSE);
   gtk_container_add (GTK_CONTAINER (menu_item), page->menu_label);
   gtk_container_add (GTK_CONTAINER (notebook->menu_box), menu_item);
   g_signal_connect (menu_item, "clicked",
@@ -6083,8 +6102,6 @@ gtk_notebook_set_show_tabs (GtkNotebook *notebook,
 
   if (!show_tabs)
     {
-      gtk_widget_set_can_focus (GTK_WIDGET (notebook), FALSE);
-
       while (children)
         {
           page = children->data;
@@ -6102,7 +6119,6 @@ gtk_notebook_set_show_tabs (GtkNotebook *notebook,
     }
   else
     {
-      gtk_widget_set_can_focus (GTK_WIDGET (notebook), TRUE);
       gtk_notebook_update_labels (notebook);
       gtk_widget_show (notebook->header_widget);
     }

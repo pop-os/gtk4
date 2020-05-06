@@ -138,6 +138,30 @@
  *
  * For all the subnodes added to the text node in various situations,
  * see #GtkText.
+ *
+ * # GtkEntry as GtkBuildable
+ *
+ * The GtkEntry implementation of the GtkBuildable interface supports a
+ * custom <attributes> element, which supports any number of <attribute>
+ * elements. The <attribute> element has attributes named “name“, “value“,
+ * “start“ and “end“ and allows you to specify #PangoAttribute values for
+ * this label.
+ *
+ * An example of a UI definition fragment specifying Pango attributes:
+ * |[
+ * <object class="GtkEnry">
+ *   <attributes>
+ *     <attribute name="weight" value="PANGO_WEIGHT_BOLD"/>
+ *     <attribute name="background" value="red" start="5" end="10"/>
+ *   </attributes>
+ * </object>
+ * ]|
+ *
+ * The start and end attributes specify the range of characters to which the
+ * Pango attribute applies. If start and end are not specified, the attribute is
+ * applied to the whole text. Note that specifying ranges does not make much
+ * sense with translatable attributes. Use markup embedded in the translatable
+ * content instead.
  */
 
 #define MAX_ICONS 2
@@ -293,12 +317,85 @@ static void     gtk_entry_measure (GtkWidget           *widget,
                                    int                 *minimum_baseline,
                                    int                 *natural_baseline);
 
+static GtkBuildableIface *buildable_parent_iface = NULL;
+
+static void     gtk_entry_buildable_interface_init (GtkBuildableIface *iface);
+
 G_DEFINE_TYPE_WITH_CODE (GtkEntry, gtk_entry, GTK_TYPE_WIDGET,
                          G_ADD_PRIVATE (GtkEntry)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
+                                                gtk_entry_buildable_interface_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_EDITABLE,
                                                 gtk_entry_editable_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_CELL_EDITABLE,
                                                 gtk_entry_cell_editable_init))
+
+
+static const GtkBuildableParser pango_parser =
+{
+  gtk_pango_attribute_start_element,
+};
+
+static gboolean
+gtk_entry_buildable_custom_tag_start (GtkBuildable       *buildable,
+                                      GtkBuilder         *builder,
+                                      GObject            *child,
+                                      const gchar        *tagname,
+                                      GtkBuildableParser *parser,
+                                      gpointer           *data)
+{
+  if (buildable_parent_iface->custom_tag_start (buildable, builder, child,
+                                                tagname, parser, data))
+    return TRUE;
+
+  if (strcmp (tagname, "attributes") == 0)
+    {
+      GtkPangoAttributeParserData *parser_data;
+
+      parser_data = g_slice_new0 (GtkPangoAttributeParserData);
+      parser_data->builder = g_object_ref (builder);
+      parser_data->object = (GObject *) g_object_ref (buildable);
+      *parser = pango_parser;
+      *data = parser_data;
+      return TRUE;
+    }
+  return FALSE;
+}
+
+static void
+gtk_entry_buildable_custom_finished (GtkBuildable *buildable,
+                                     GtkBuilder   *builder,
+                                     GObject      *child,
+                                     const gchar  *tagname,
+                                     gpointer      user_data)
+{
+  GtkPangoAttributeParserData *data = user_data;
+
+  buildable_parent_iface->custom_finished (buildable, builder, child,
+                                           tagname, user_data);
+
+  if (strcmp (tagname, "attributes") == 0)
+    {
+      if (data->attrs)
+        {
+          gtk_entry_set_attributes (GTK_ENTRY (buildable), data->attrs);
+          pango_attr_list_unref (data->attrs);
+        }
+
+      g_object_unref (data->object);
+      g_object_unref (data->builder);
+      g_slice_free (GtkPangoAttributeParserData, data);
+    }
+}
+
+static void
+gtk_entry_buildable_interface_init (GtkBuildableIface *iface)
+{
+  buildable_parent_iface = g_type_interface_peek_parent (iface);
+
+  iface->custom_tag_start = gtk_entry_buildable_custom_tag_start;
+  iface->custom_finished = gtk_entry_buildable_custom_finished;
+}
 
 static gboolean
 gtk_entry_grab_focus (GtkWidget *widget)
@@ -340,6 +437,7 @@ gtk_entry_class_init (GtkEntryClass *class)
   widget_class->query_tooltip = gtk_entry_query_tooltip;
   widget_class->direction_changed = gtk_entry_direction_changed;
   widget_class->grab_focus = gtk_entry_grab_focus;
+  widget_class->focus = gtk_widget_focus_child;
   widget_class->mnemonic_activate = gtk_entry_mnemonic_activate;
   
   quark_entry_completion = g_quark_from_static_string ("gtk-entry-completion-key");

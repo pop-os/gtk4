@@ -58,10 +58,7 @@ struct _GtkContainer
  * @remove: Signal emitted when a widget is removed from container.
  * @forall: Invokes callback on each child of container. The callback handler
  *    may remove the child.
- * @set_focus_child: Sets the focused child of container.
  * @child_type: Returns the type of the children supported by the container.
- * @set_child_property: Set a property on a child of container.
- * @get_child_property: Get a property from a child of container.
  *
  * Base class for containers.
  */
@@ -78,8 +75,6 @@ struct _GtkContainerClass
   void    (*forall)    		(GtkContainer	 *container,
 				 GtkCallback	  callback,
 				 gpointer	  callback_data);
-  void    (*set_focus_child)	(GtkContainer	 *container,
-				 GtkWidget	 *child);
   GType   (*child_type)		(GtkContainer	 *container);
 
 
@@ -107,18 +102,6 @@ void     gtk_container_foreach      (GtkContainer       *container,
 				     gpointer            callback_data);
 GDK_AVAILABLE_IN_ALL
 GList*   gtk_container_get_children     (GtkContainer       *container);
-
-/* Widget-level methods */
-GDK_AVAILABLE_IN_ALL
-void   gtk_container_set_focus_vadjustment (GtkContainer     *container,
-					    GtkAdjustment    *adjustment);
-GDK_AVAILABLE_IN_ALL
-GtkAdjustment *gtk_container_get_focus_vadjustment (GtkContainer *container);
-GDK_AVAILABLE_IN_ALL
-void   gtk_container_set_focus_hadjustment (GtkContainer     *container,
-					    GtkAdjustment    *adjustment);
-GDK_AVAILABLE_IN_ALL
-GtkAdjustment *gtk_container_get_focus_hadjustment (GtkContainer *container);
 
 GDK_AVAILABLE_IN_ALL
 GType   gtk_container_child_type	   (GtkContainer     *container);

@@ -1502,7 +1502,7 @@ open_folder_cb (GSimpleAction *action,
       gchar *uri;
 
       uri = g_file_get_uri (file);
-      gtk_show_uri_on_window (GTK_WINDOW (toplevel), uri, gtk_get_current_event_time (), NULL);
+      gtk_show_uri (GTK_WINDOW (toplevel), uri, GDK_CURRENT_TIME);
       g_free (uri);
     }
 
@@ -2290,7 +2290,7 @@ save_widgets_create (GtkFileChooserWidget *impl)
     }
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
-  gtk_style_context_add_class (gtk_widget_get_style_context (vbox), "search-bar");
+  gtk_widget_add_css_class (vbox, "search-bar");
 
   impl->save_widgets_table = gtk_grid_new ();
   gtk_container_add (GTK_CONTAINER (vbox), impl->save_widgets_table);
@@ -6135,7 +6135,7 @@ gtk_file_chooser_widget_should_respond (GtkFileChooserEmbed *chooser_embed)
 
     file_list:
 
-      g_assert (impl->action >= GTK_FILE_CHOOSER_ACTION_OPEN && impl->action < GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
+      g_assert (impl->action >= GTK_FILE_CHOOSER_ACTION_OPEN && impl->action <= GTK_FILE_CHOOSER_ACTION_SELECT_FOLDER);
 
       if (impl->operation_mode == OPERATION_MODE_RECENT)
         {
@@ -7222,6 +7222,8 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
   widget_class->unroot = gtk_file_chooser_widget_unroot;
   widget_class->css_changed = gtk_file_chooser_widget_css_changed;
   widget_class->size_allocate = gtk_file_chooser_widget_size_allocate;
+  widget_class->grab_focus = gtk_widget_grab_focus_child;
+  widget_class->focus = gtk_widget_focus_child;
 
   /*
    * Signals
@@ -7500,29 +7502,29 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
                                        NULL);
 
   add_normal_and_shifted_binding (widget_class,
-                                  GDK_KEY_Up, GDK_MOD1_MASK,
+                                  GDK_KEY_Up, GDK_ALT_MASK,
                                   "up-folder");
   add_normal_and_shifted_binding (widget_class,
-                                  GDK_KEY_KP_Up, GDK_MOD1_MASK,
+                                  GDK_KEY_KP_Up, GDK_ALT_MASK,
                                   "up-folder");
 
   add_normal_and_shifted_binding (widget_class,
-                                  GDK_KEY_Down, GDK_MOD1_MASK,
+                                  GDK_KEY_Down, GDK_ALT_MASK,
                                   "down-folder");
   add_normal_and_shifted_binding (widget_class,
-                                  GDK_KEY_KP_Down, GDK_MOD1_MASK,
+                                  GDK_KEY_KP_Down, GDK_ALT_MASK,
                                   "down-folder");
 
   gtk_widget_class_add_binding_signal (widget_class,
-                                       GDK_KEY_Home, GDK_MOD1_MASK,
+                                       GDK_KEY_Home, GDK_ALT_MASK,
                                        "home-folder",
                                        NULL);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       GDK_KEY_KP_Home, GDK_MOD1_MASK,
+                                       GDK_KEY_KP_Home, GDK_ALT_MASK,
                                        "home-folder",
                                        NULL);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       GDK_KEY_d, GDK_MOD1_MASK,
+                                       GDK_KEY_d, GDK_ALT_MASK,
                                        "desktop-folder",
                                        NULL);
   gtk_widget_class_add_binding_signal (widget_class,
@@ -7530,7 +7532,7 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
                                        "show-hidden",
                                        NULL);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       GDK_KEY_s, GDK_MOD1_MASK,
+                                       GDK_KEY_s, GDK_ALT_MASK,
                                        "search-shortcut",
                                        NULL);
   gtk_widget_class_add_binding_signal (widget_class,
@@ -7538,11 +7540,11 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
                                        "search-shortcut",
                                        NULL);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       GDK_KEY_r, GDK_MOD1_MASK,
+                                       GDK_KEY_r, GDK_ALT_MASK,
                                        "recent-shortcut",
                                        NULL);
   gtk_widget_class_add_binding_signal (widget_class,
-                                       GDK_KEY_p, GDK_MOD1_MASK,
+                                       GDK_KEY_p, GDK_ALT_MASK,
                                        "places-shortcut",
                                        NULL);
   gtk_widget_class_add_binding (widget_class,
@@ -7564,7 +7566,7 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
 
   for (i = 0; i < G_N_ELEMENTS (quick_bookmark_keyvals); i++)
     gtk_widget_class_add_binding_signal (widget_class,
-                                         quick_bookmark_keyvals[i], GDK_MOD1_MASK,
+                                         quick_bookmark_keyvals[i], GDK_ALT_MASK,
                                          "quick-bookmark",
                                          "(i)", i);
 

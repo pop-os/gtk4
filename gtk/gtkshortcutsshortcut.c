@@ -25,6 +25,7 @@
 #include "gtkintl.h"
 #include "gtklabel.h"
 #include "gtkprivate.h"
+#include "gtkwidgetprivate.h"
 #include "gtkshortcutlabel.h"
 #include "gtkshortcutswindowprivate.h"
 #include "gtksizegroup.h"
@@ -547,6 +548,8 @@ gtk_shortcuts_shortcut_class_init (GtkShortcutsShortcutClass *klass)
   widget_class->measure = gtk_shortcuts_shortcut_measure;
   widget_class->snapshot = gtk_shortcuts_shortcut_snapshot;
   widget_class->size_allocate = gtk_shortcuts_shortcut_size_allocate;
+  widget_class->grab_focus = gtk_widget_grab_focus_none;
+  widget_class->focus = gtk_widget_focus_none;
 
   /**
    * GtkShortcutsShortcut:accelerator:
@@ -765,7 +768,6 @@ gtk_shortcuts_shortcut_init (GtkShortcutsShortcut *self)
                                  "visible", FALSE,
                                  "xalign", 0.0f,
                                  NULL);
-  gtk_style_context_add_class (gtk_widget_get_style_context (GTK_WIDGET (self->subtitle)),
-                               GTK_STYLE_CLASS_DIM_LABEL);
+  gtk_widget_add_css_class (GTK_WIDGET (self->subtitle), GTK_STYLE_CLASS_DIM_LABEL);
   gtk_container_add (GTK_CONTAINER (self->title_box), GTK_WIDGET (self->subtitle));
 }

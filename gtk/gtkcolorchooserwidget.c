@@ -30,6 +30,7 @@
 #include "gtksizegroup.h"
 #include "gtkstylecontext.h"
 #include "gtkboxlayout.h"
+#include "gtkwidgetprivate.h"
 
 #include "a11y/gtkcompositeaccessible.h"
 
@@ -709,6 +710,9 @@ gtk_color_chooser_widget_class_init (GtkColorChooserWidgetClass *class)
   object_class->set_property = gtk_color_chooser_widget_set_property;
   object_class->finalize = gtk_color_chooser_widget_finalize;
 
+  widget_class->grab_focus = gtk_widget_grab_focus_child;
+  widget_class->focus = gtk_widget_focus_child;
+
   g_object_class_override_property (object_class, PROP_RGBA, "rgba");
   g_object_class_override_property (object_class, PROP_USE_ALPHA, "use-alpha");
 
@@ -789,6 +793,9 @@ add_custom_color (GtkColorChooserWidget *cc,
   if (g_list_length (children) >= 9)
     {
       GtkWidget *last = gtk_widget_get_last_child (cc->custom);
+
+      if (last == (GtkWidget *)cc->current)
+        cc->current = NULL;
 
       gtk_container_remove (GTK_CONTAINER (cc->custom), last);
     }

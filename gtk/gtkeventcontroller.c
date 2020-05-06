@@ -59,6 +59,7 @@ struct _GtkEventControllerPrivate
   GtkPropagationLimit limit;
   char *name;
   GtkWidget *target;
+  GdkEvent *event;
 };
 
 G_DEFINE_ABSTRACT_TYPE_WITH_PRIVATE (GtkEventController, gtk_event_controller, G_TYPE_OBJECT)
@@ -337,13 +338,15 @@ gtk_event_controller_handle_event (GtkEventController *controller,
 
   controller_class = GTK_EVENT_CONTROLLER_GET_CLASS (controller);
 
-  priv->target = target;
+  priv->target = g_object_ref (target);
+  priv->event = gdk_event_ref (event);
 
   g_object_ref (controller);
   retval = controller_class->handle_event (controller, event, x, y);
   g_object_unref (controller);
 
-  priv->target = NULL;
+  g_clear_object (&priv->target);
+  g_clear_pointer (&priv->event, gdk_event_unref);
 
   return retval;
 }
@@ -473,6 +476,14 @@ gtk_event_controller_set_propagation_phase (GtkEventController  *controller,
   g_object_notify_by_pspec (G_OBJECT (controller), properties[PROP_PROPAGATION_PHASE]);
 }
 
+/**
+ * gtk_event_controller_get_propagation_limit:
+ * @controller: a #GtkEventController
+ *
+ * Gets the propagation limit of the event controller.
+ *
+ * Returns: the propagation limit
+ */
 GtkPropagationLimit
 gtk_event_controller_get_propagation_limit (GtkEventController *controller)
 {
@@ -484,6 +495,18 @@ gtk_event_controller_get_propagation_limit (GtkEventController *controller)
 
   return priv->limit;
 }
+
+/**
+ * gtk_event_controller_set_propagation_limit:
+ * @controller: a #GtkEventController
+ * @limit: the propagation limit
+ *
+ * Sets the event propagation limit on the event controller.
+ *
+ * If the limit is set to %@GTK_LIMIT_SAME_NATIVE, the controller
+ * won't handle events that are targeted at widgets on a different
+ * surface, such as popovers.
+ */
 void
 gtk_event_controller_set_propagation_limit (GtkEventController  *controller,
                                             GtkPropagationLimit  limit)
@@ -502,6 +525,12 @@ gtk_event_controller_set_propagation_limit (GtkEventController  *controller,
   g_object_notify_by_pspec (G_OBJECT (controller), properties[PROP_PROPAGATION_LIMIT]);
 }
 
+/**
+ * gtk_event_controller_get_name:
+ * @controller: a #GtkEventController
+ *
+ * Gets the name of @controller.
+ */
 const char *
 gtk_event_controller_get_name (GtkEventController *controller)
 {
@@ -512,6 +541,14 @@ gtk_event_controller_get_name (GtkEventController *controller)
   return priv->name;
 }
 
+/**
+ * gtk_event_controller_set_name:
+ * @controller: a #GtkEventController
+ * @name: a name for @controller
+ *
+ * Sets a name on the controller that can be used for
+ * debugging.
+ */
 void
 gtk_event_controller_set_name (GtkEventController *controller,
                                const char         *name)
@@ -530,6 +567,83 @@ gtk_event_controller_get_target (GtkEventController *controller)
   GtkEventControllerPrivate *priv = gtk_event_controller_get_instance_private (controller);
 
   return priv->target;
+}
+
+/**
+ * gtk_event_controller_get_current_event:
+ * @controller: a #GtkEventController
+ *
+ * Returns the event that is currently being handled by the
+ * controller, and %NULL at other times.
+ *
+ * Returns: (nullable) (transfer none): the event is current handled by @controller
+ */
+GdkEvent *
+gtk_event_controller_get_current_event (GtkEventController *controller)
+{
+  GtkEventControllerPrivate *priv = gtk_event_controller_get_instance_private (controller);
+
+  return priv->event;
+}
+
+/**
+ * gtk_event_controller_get_current_event_time:
+ * @controller: a #GtkEventController
+ *
+ * Returns the timestamp of the event that is currently being
+ * handled by the controller, and 0 otherwise.
+ *
+ * Returns: timestamp of the event is current handled by @controller
+ */
+guint32
+gtk_event_controller_get_current_event_time (GtkEventController *controller)
+{
+  GtkEventControllerPrivate *priv = gtk_event_controller_get_instance_private (controller);
+
+  if (priv->event)
+    return gdk_event_get_time (priv->event);
+
+  return 0;
+}
+
+/**
+ * gtk_event_controller_get_current_event_device:
+ * @controller: a #GtkEventController
+ *
+ * Returns the device of the event that is currently being
+ * handled by the controller, and %NULL otherwise.
+ *
+ * Returns: (nullable) (transfer none): device of the event is current handled by @controller
+ */
+GdkDevice *
+gtk_event_controller_get_current_event_device (GtkEventController *controller)
+{
+  GtkEventControllerPrivate *priv = gtk_event_controller_get_instance_private (controller);
+
+  if (priv->event)
+    return gdk_event_get_device (priv->event);
+
+  return NULL;
+}
+
+/**
+ * gtk_event_controller_get_current_event_state:
+ * @controller: a #GtkEventController
+ *
+ * Returns the modifier state of the event that is currently being
+ * handled by the controller, and 0 otherwise.
+ *
+ * Returns: modifier state of the event is current handled by @controller
+ */
+GdkModifierType
+gtk_event_controller_get_current_event_state (GtkEventController *controller)
+{
+  GtkEventControllerPrivate *priv = gtk_event_controller_get_instance_private (controller);
+
+  if (priv->event)
+    return gdk_event_get_modifier_state (priv->event);
+
+  return 0;
 }
 
 static GtkCrossingData *

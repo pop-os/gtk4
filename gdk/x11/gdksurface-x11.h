@@ -27,6 +27,7 @@
 
 #include "gdksurfaceprivate.h"
 #include "gdkx11surface.h"
+#include "gdkinternals.h"
 
 #include <X11/Xlib.h>
 
@@ -80,6 +81,8 @@ struct _GdkX11Surface
   int abs_y;
 
   guint64 map_time;
+
+  GList *surface_is_on_monitor;
 };
  
 struct _GdkX11SurfaceClass 

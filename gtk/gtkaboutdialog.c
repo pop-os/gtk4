@@ -77,7 +77,7 @@
  * All parts of the dialog are optional.
  *
  * About dialogs often contain links and email addresses. GtkAboutDialog
- * displays these as clickable links. By default, it calls gtk_show_uri_on_window()
+ * displays these as clickable links. By default, it calls gtk_show_uri()
  * when a user clicks one. The behaviour can be overridden with the
  * #GtkAboutDialog::activate-link signal.
  *
@@ -130,7 +130,10 @@ static const LicenseInfo gtk_license_info [] = {
   { N_("GNU Lesser General Public License, version 2.1 only"), "https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html" },
   { N_("GNU Lesser General Public License, version 3 only"), "https://www.gnu.org/licenses/lgpl-3.0.html" },
   { N_("GNU Affero General Public License, version 3 or later"), "https://www.gnu.org/licenses/agpl-3.0.html" },
-  { N_("GNU Affero General Public License, version 3 only"), "https://www.gnu.org/licenses/agpl-3.0.html" }
+  { N_("GNU Affero General Public License, version 3 only"), "https://www.gnu.org/licenses/agpl-3.0.html" },
+  { N_("BSD 3-Clause License"), "https://opensource.org/licenses/BSD-3-Clause" },
+  { N_("Apache License, Version 2.0"), "https://opensource.org/licenses/Apache-2.0" },
+  { N_("Mozilla Public License 2.0"), "https://opensource.org/licenses/MPL-2.0" }
 };
 
 typedef struct
@@ -342,7 +345,7 @@ gtk_about_dialog_class_init (GtkAboutDialogClass *klass)
    *
    * The signal which gets emitted to activate a URI.
    * Applications may connect to it to override the default behaviour,
-   * which is to call gtk_show_uri_on_window().
+   * which is to call gtk_show_uri().
    *
    * Returns: %TRUE if the link has been activated
    */
@@ -976,30 +979,7 @@ static gboolean
 gtk_about_dialog_activate_link (GtkAboutDialog *about,
                                 const gchar    *uri)
 {
-  GError *error = NULL;
-
-  if (!gtk_show_uri_on_window (GTK_WINDOW (about), uri, gtk_get_current_event_time (), &error))
-    {
-      GtkWidget *dialog;
-
-      dialog = gtk_message_dialog_new (GTK_WINDOW (about),
-                                       GTK_DIALOG_DESTROY_WITH_PARENT |
-                                       GTK_DIALOG_MODAL,
-                                       GTK_MESSAGE_ERROR,
-                                       GTK_BUTTONS_CLOSE,
-                                       "%s", _("Could not show link"));
-      gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
-                                                "%s", error->message);
-      g_error_free (error);
-
-      g_signal_connect (dialog, "response",
-                        G_CALLBACK (gtk_widget_destroy), NULL);
-
-      G_GNUC_BEGIN_IGNORE_DEPRECATIONS
-      gtk_window_present (GTK_WINDOW (dialog));
-      G_GNUC_END_IGNORE_DEPRECATIONS
-    }
-
+  gtk_show_uri (GTK_WINDOW (about), uri, GDK_CURRENT_TIME);
   return TRUE;
 }
 

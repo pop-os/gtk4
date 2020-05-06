@@ -33,7 +33,10 @@
 #include "gtkorientable.h"
 #include "gtkorientableprivate.h"
 #include "gtkprivate.h"
+#include "gtkwidgetprivate.h"
 #include "gtkboxlayout.h"
+
+#include "a11y/gtkscrollbaraccessible.h"
 
 
 /**
@@ -193,6 +196,9 @@ gtk_scrollbar_class_init (GtkScrollbarClass *class)
   object_class->set_property = gtk_scrollbar_set_property;
   object_class->dispose = gtk_scrollbar_dispose;
 
+  widget_class->focus = gtk_widget_focus_none;
+  widget_class->grab_focus = gtk_widget_grab_focus_none;
+
   props[PROP_ADJUSTMENT] =
       g_param_spec_object ("adjustment",
                            P_("Adjustment"),
@@ -204,7 +210,7 @@ gtk_scrollbar_class_init (GtkScrollbarClass *class)
 
   g_object_class_override_property (object_class, PROP_ORIENTATION, "orientation");
 
-  gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_SCROLL_BAR);
+  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_SCROLLBAR_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("scrollbar"));
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
 }
@@ -283,5 +289,8 @@ gtk_scrollbar_get_adjustment (GtkScrollbar  *self)
 
   g_return_val_if_fail (GTK_IS_SCROLLBAR (self), NULL);
 
-  return gtk_range_get_adjustment (GTK_RANGE (priv->range));
+  if (priv->range)
+    return gtk_range_get_adjustment (GTK_RANGE (priv->range));
+
+  return NULL;
 }

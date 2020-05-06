@@ -61,6 +61,9 @@ G_DEFINE_BOXED_TYPE (GdkToplevelLayout, gdk_toplevel_layout,
  * Used together with gdk_toplevel_present() to describe
  * how a toplevel surface should be placed and behave on-screen.
  *
+ * The size is in ”application pixels”, not
+ * ”device pixels” (see gdk_surface_get_scale_factor()).
+ *
  * Returns: (transfer full): newly created instance of #GdkToplevelLayout
  */
 GdkToplevelLayout *
@@ -293,7 +296,7 @@ gdk_toplevel_layout_get_fullscreen (GdkToplevelLayout *layout)
  * Returns the monitor that the layout is fullscreening
  * the surface on.
  *
- * Returns: (nullable): the monitor on which @layout fullscreens
+ * Returns: (nullable) (transfer none): the monitor on which @layout fullscreens
  */
 GdkMonitor *
 gdk_toplevel_layout_get_fullscreen_monitor (GdkToplevelLayout *layout)

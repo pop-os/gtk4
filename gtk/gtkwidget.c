@@ -31,7 +31,6 @@
 #include "gtkapplicationprivate.h"
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
-#include "gtkcontainerprivate.h"
 #include "gtkcssboxesprivate.h"
 #include "gtkcssfiltervalueprivate.h"
 #include "gtkcsstransformvalueprivate.h"
@@ -517,7 +516,6 @@ enum {
   PROP_SENSITIVE,
   PROP_CAN_FOCUS,
   PROP_HAS_FOCUS,
-  PROP_IS_FOCUS,
   PROP_CAN_TARGET,
   PROP_FOCUS_ON_CLICK,
   PROP_HAS_DEFAULT,
@@ -587,7 +585,6 @@ static void	gtk_widget_real_size_allocate    (GtkWidget         *widget,
 static void	gtk_widget_real_direction_changed(GtkWidget         *widget,
                                                   GtkTextDirection   previous_direction);
 
-static gboolean	gtk_widget_real_grab_focus	 (GtkWidget         *focus_widget);
 static gboolean gtk_widget_real_query_tooltip    (GtkWidget         *widget,
 						  gint               x,
 						  gint               y,
@@ -596,8 +593,8 @@ static gboolean gtk_widget_real_query_tooltip    (GtkWidget         *widget,
 static void     gtk_widget_real_css_changed      (GtkWidget         *widget,
                                                   GtkCssStyleChange *change);
 
-static gboolean		gtk_widget_real_focus			(GtkWidget        *widget,
-								 GtkDirectionType  direction);
+static void             gtk_widget_real_set_focus_child         (GtkWidget        *widget,
+                                                                 GtkWidget        *child);
 static void             gtk_widget_real_move_focus              (GtkWidget        *widget,
                                                                  GtkDirectionType  direction);
 static gboolean		gtk_widget_real_keynav_failed		(GtkWidget        *widget,
@@ -907,8 +904,9 @@ gtk_widget_class_init (GtkWidgetClass *klass)
   klass->grab_notify = gtk_widget_real_grab_notify;
   klass->snapshot = gtk_widget_real_snapshot;
   klass->mnemonic_activate = gtk_widget_real_mnemonic_activate;
-  klass->grab_focus = gtk_widget_real_grab_focus;
-  klass->focus = gtk_widget_real_focus;
+  klass->grab_focus = gtk_widget_grab_focus_self;
+  klass->focus = gtk_widget_focus_all;
+  klass->set_focus_child = gtk_widget_real_set_focus_child;
   klass->move_focus = gtk_widget_real_move_focus;
   klass->keynav_failed = gtk_widget_real_keynav_failed;
   klass->query_tooltip = gtk_widget_real_query_tooltip;
@@ -978,11 +976,17 @@ gtk_widget_class_init (GtkWidgetClass *klass)
                             TRUE,
                             GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * GtkWidget:can-focus:
+   *
+   * Whether the widget or any of its descendents can accept
+   * the input focus.
+   */
   widget_props[PROP_CAN_FOCUS] =
       g_param_spec_boolean ("can-focus",
                             P_("Can focus"),
                             P_("Whether the widget can accept the input focus"),
-                            FALSE,
+                            TRUE,
                             GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
   widget_props[PROP_HAS_FOCUS] =
@@ -990,14 +994,7 @@ gtk_widget_class_init (GtkWidgetClass *klass)
                             P_("Has focus"),
                             P_("Whether the widget has the input focus"),
                             FALSE,
-                            GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
-
-  widget_props[PROP_IS_FOCUS] =
-      g_param_spec_boolean ("is-focus",
-                            P_("Is focus"),
-                            P_("Whether the widget is the focus widget within the toplevel"),
-                            FALSE,
-                            GTK_PARAM_READWRITE);
+                            GTK_PARAM_READABLE|G_PARAM_EXPLICIT_NOTIFY);
 
   widget_props[PROP_CAN_TARGET] =
       g_param_spec_boolean ("can-target",
@@ -1012,9 +1009,6 @@ gtk_widget_class_init (GtkWidgetClass *klass)
    * Whether the widget should grab focus when it is clicked with the mouse.
    *
    * This property is only relevant for widgets that can take focus.
-   *
-   * Before 3.20, several widgets (GtkButton, GtkFileChooserButton,
-   * GtkComboBox) implemented this property individually.
    */
   widget_props[PROP_FOCUS_ON_CLICK] =
       g_param_spec_boolean ("focus-on-click",
@@ -1695,14 +1689,6 @@ gtk_widget_set_property (GObject         *object,
     case PROP_CAN_FOCUS:
       gtk_widget_set_can_focus (widget, g_value_get_boolean (value));
       break;
-    case PROP_HAS_FOCUS:
-      if (g_value_get_boolean (value))
-	gtk_widget_grab_focus (widget);
-      break;
-    case PROP_IS_FOCUS:
-      if (g_value_get_boolean (value))
-	gtk_widget_grab_focus (widget);
-      break;
     case PROP_CAN_TARGET:
       gtk_widget_set_can_target (widget, g_value_get_boolean (value));
       break;
@@ -1856,9 +1842,6 @@ gtk_widget_get_property (GObject         *object,
     case PROP_HAS_FOCUS:
       g_value_set_boolean (value, gtk_widget_has_focus (widget));
       break;
-    case PROP_IS_FOCUS:
-      g_value_set_boolean (value, gtk_widget_is_focus (widget));
-      break;
     case PROP_CAN_TARGET:
       g_value_set_boolean (value, gtk_widget_get_can_target (widget));
       break;
@@ -1982,7 +1965,7 @@ _gtk_widget_emulate_press (GtkWidget      *widget,
     case GDK_TOUCH_BEGIN:
     case GDK_TOUCH_UPDATE:
     case GDK_TOUCH_END:
-      press = gdk_event_touch_new (GDK_TOUCH_BEGIN,
+      press = gdk_touch_event_new (GDK_TOUCH_BEGIN,
                                    gdk_event_get_event_sequence (event),
                                    gdk_event_get_surface (event),
                                    gdk_event_get_device (event),
@@ -1995,7 +1978,7 @@ _gtk_widget_emulate_press (GtkWidget      *widget,
       break;
     case GDK_BUTTON_PRESS:
     case GDK_BUTTON_RELEASE:
-      press = gdk_event_button_new (GDK_BUTTON_PRESS,
+      press = gdk_button_event_new (GDK_BUTTON_PRESS,
                                     gdk_event_get_surface (event),
                                     gdk_event_get_device (event),
                                     gdk_event_get_source_device (event),
@@ -2021,7 +2004,7 @@ _gtk_widget_emulate_press (GtkWidget      *widget,
             button = 1;
           }
 
-        press = gdk_event_button_new (GDK_BUTTON_PRESS,
+        press = gdk_button_event_new (GDK_BUTTON_PRESS,
                                       gdk_event_get_surface (event),
                                       gdk_event_get_device (event),
                                       gdk_event_get_source_device (event),
@@ -2316,6 +2299,7 @@ gtk_widget_init (GTypeInstance *instance, gpointer g_class)
 #ifdef G_ENABLE_DEBUG
   priv->highlight_resize = FALSE;
 #endif
+  priv->can_focus = TRUE;
   priv->can_target = TRUE;
 
   switch (_gtk_widget_get_direction (widget))
@@ -3119,9 +3103,6 @@ gtk_widget_connect_frame_clock (GtkWidget *widget)
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
   GdkFrameClock *frame_clock;
 
-  if (GTK_IS_CONTAINER (widget) && GTK_IS_ROOT (widget))
-    gtk_container_start_idle_sizer (GTK_CONTAINER (widget));
-
   frame_clock = gtk_widget_get_frame_clock (widget);
 
   if (priv->tick_callbacks != NULL && !priv->clock_tick_id)
@@ -3139,9 +3120,6 @@ static void
 gtk_widget_disconnect_frame_clock (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  if (GTK_IS_CONTAINER (widget) && GTK_IS_ROOT (widget))
-    gtk_container_stop_idle_sizer (GTK_CONTAINER (widget));
 
   gtk_css_node_invalidate_frame_clock (priv->cssnode, FALSE);
 
@@ -4759,25 +4737,34 @@ gtk_widget_grab_focus (GtkWidget *widget)
   g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
 
   if (!gtk_widget_is_sensitive (widget) ||
+      !gtk_widget_get_can_focus (widget) ||
       widget->priv->root == NULL)
     return FALSE;
 
   return GTK_WIDGET_GET_CLASS (widget)->grab_focus (widget);
 }
 
-static gboolean
-gtk_widget_real_grab_focus (GtkWidget *focus_widget)
+gboolean
+gtk_widget_grab_focus_none (GtkWidget *widget)
 {
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (focus_widget);
+  return FALSE;
+}
+
+gboolean
+gtk_widget_grab_focus_self (GtkWidget *widget)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+
+  gtk_root_set_focus (priv->root, widget);
+  return TRUE;
+}
+
+gboolean
+gtk_widget_grab_focus_child (GtkWidget *widget)
+{
   GtkWidget *child;
 
-  if (priv->can_focus)
-    {
-      gtk_root_set_focus (priv->root, focus_widget);
-      return TRUE;
-    }
-
-  for (child = _gtk_widget_get_first_child (focus_widget);
+  for (child = _gtk_widget_get_first_child (widget);
        child != NULL;
        child = _gtk_widget_get_next_sibling (child))
     {
@@ -4896,20 +4883,11 @@ direction_is_forward (GtkDirectionType direction)
     }
 }
 
-static gboolean
-gtk_widget_real_focus (GtkWidget         *widget,
-                       GtkDirectionType   direction)
+gboolean
+gtk_widget_focus_all (GtkWidget        *widget,
+                      GtkDirectionType  direction)
 {
   GtkWidget *focus;
-
-  /* The easy case: not focusable. Just try the children */
-  if (!gtk_widget_get_can_focus (widget))
-    {
-      if (gtk_widget_focus_move (widget, direction))
-        return TRUE;
-
-      return FALSE;
-    }
 
   /* For focusable widgets, we want to focus the widget
    * before its children. We differentiate 3 cases:
@@ -4951,6 +4929,32 @@ gtk_widget_real_focus (GtkWidget         *widget,
 
   gtk_widget_grab_focus (widget);
   return TRUE;
+}
+
+gboolean
+gtk_widget_focus_self (GtkWidget         *widget,
+                       GtkDirectionType   direction)
+{
+  if (!gtk_widget_is_focus (widget))
+    {
+      gtk_widget_grab_focus (widget);
+      return TRUE;
+    }
+  return FALSE;
+}
+
+gboolean
+gtk_widget_focus_child (GtkWidget         *widget,
+                        GtkDirectionType   direction)
+{
+  return gtk_widget_focus_move (widget, direction);
+}
+
+gboolean
+gtk_widget_focus_none (GtkWidget        *widget,
+                       GtkDirectionType  direction)
+{
+  return FALSE;
 }
 
 static void
@@ -6677,7 +6681,8 @@ gtk_widget_child_focus (GtkWidget       *widget,
   g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
 
   if (!_gtk_widget_get_visible (widget) ||
-      !gtk_widget_is_sensitive (widget))
+      !gtk_widget_is_sensitive (widget) ||
+      !gtk_widget_get_can_focus (widget))
     return FALSE;
 
   /* Emit ::focus in any case, even if can-focus is FALSE,
@@ -7610,38 +7615,47 @@ _gtk_widget_get_device_surface (GtkWidget *widget,
  *
  * Returns the list of pointer #GdkDevices that are currently
  * on top of any surface belonging to @widget. Free the list
- * with g_list_free(), the elements are owned by GTK+ and must
+ * with g_free(), the elements are owned by GTK+ and must
  * not be freed.
  */
-GList *
-_gtk_widget_list_devices (GtkWidget *widget)
+GdkDevice **
+_gtk_widget_list_devices (GtkWidget *widget,
+                          guint     *out_n_devices)
 {
+  GPtrArray *result;
   GdkSeat *seat;
-  GList *result = NULL;
   GList *devices;
   GList *l;
   GdkDevice *device;
 
   g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
+  g_assert (out_n_devices);
 
   if (!_gtk_widget_get_mapped (widget))
-    return NULL;
+    {
+      *out_n_devices = 0;
+      return NULL;
+    }
 
+  result = g_ptr_array_new ();
   seat = gdk_display_get_default_seat (_gtk_widget_get_display (widget));
   device = gdk_seat_get_pointer (seat);
   if (is_my_surface (widget, gdk_device_get_last_event_surface (device)))
-    result = g_list_prepend (result, device);
+    {
+      g_ptr_array_add (result, device);
+    }
 
   devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL_POINTING);
   for (l = devices; l; l = l->next)
     {
       device = l->data;
       if (is_my_surface (widget, gdk_device_get_last_event_surface (device)))
-        result = g_list_prepend (result, device);
+        g_ptr_array_add (result, device);
     }
   g_list_free (devices);
 
-  return result;
+  *out_n_devices = result->len;
+  return (GdkDevice **)g_ptr_array_free (result, FALSE);
 }
 
 /*
@@ -7732,17 +7746,18 @@ gtk_widget_propagate_state (GtkWidget          *widget,
       if (!priv->shadowed &&
           (new_flags & GTK_STATE_FLAG_INSENSITIVE) != (old_flags & GTK_STATE_FLAG_INSENSITIVE))
         {
+          guint i, n_devices;
+          GdkDevice **devices;
           GList *event_surfaces = NULL;
-          GList *devices, *d;
 
-          devices = _gtk_widget_list_devices (widget);
+          devices = _gtk_widget_list_devices (widget, &n_devices);
 
-          for (d = devices; d; d = d->next)
+          for (i = 0; i < n_devices; i++)
             {
               GdkSurface *surface;
               GdkDevice *device;
 
-              device = d->data;
+              device = devices[i];
               surface = _gtk_widget_get_device_surface (widget, device);
 
               /* Do not propagate more than once to the
@@ -7753,17 +7768,17 @@ gtk_widget_propagate_state (GtkWidget          *widget,
                 continue;
 
               if (!gtk_widget_is_sensitive (widget))
-                _gtk_widget_synthesize_crossing (widget, NULL, d->data,
+                _gtk_widget_synthesize_crossing (widget, NULL, device,
                                                  GDK_CROSSING_STATE_CHANGED);
               else
-                _gtk_widget_synthesize_crossing (NULL, widget, d->data,
+                _gtk_widget_synthesize_crossing (NULL, widget, device,
                                                  GDK_CROSSING_STATE_CHANGED);
 
               event_surfaces = g_list_prepend (event_surfaces, surface);
             }
 
           g_list_free (event_surfaces);
-          g_list_free (devices);
+          g_free (devices);
         }
 
       if (!gtk_widget_is_sensitive (widget))
@@ -10422,9 +10437,9 @@ gtk_widget_set_alloc_needed (GtkWidget *widget)
       if (!priv->visible)
         break;
 
-      if (GTK_IS_ROOT (widget))
+      if (GTK_IS_WINDOW (widget))
         {
-          gtk_container_start_idle_sizer (GTK_CONTAINER (widget));
+          gtk_window_start_layout (GTK_WINDOW (widget));
           break;
         }
 
@@ -10660,32 +10675,6 @@ gtk_widget_get_style_context (GtkWidget *widget)
     }
 
   return priv->context;
-}
-
-/**
- * gtk_widget_get_modifier_mask:
- * @widget: a #GtkWidget
- * @intent: the use case for the modifier mask
- *
- * Returns the modifier mask the @widget’s windowing system backend
- * uses for a particular purpose.
- *
- * See gdk_keymap_get_modifier_mask().
- *
- * Returns: the modifier mask used for @intent.
- **/
-GdkModifierType
-gtk_widget_get_modifier_mask (GtkWidget         *widget,
-                              GdkModifierIntent  intent)
-{
-  GdkDisplay *display;
-
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), 0);
-
-  display = _gtk_widget_get_display (widget);
-
-  return gdk_keymap_get_modifier_mask (gdk_display_get_keymap (display),
-                                       intent);
 }
 
 static GtkActionMuxer *
@@ -12007,8 +11996,6 @@ void
 gtk_widget_set_focus_child (GtkWidget *widget,
                             GtkWidget *child)
 {
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
   g_return_if_fail (GTK_IS_WIDGET (widget));
 
   if (child != NULL)
@@ -12016,6 +12003,15 @@ gtk_widget_set_focus_child (GtkWidget *widget,
       g_return_if_fail (GTK_IS_WIDGET (child));
       g_return_if_fail (gtk_widget_get_parent (child) == widget);
     }
+
+  GTK_WIDGET_GET_CLASS (widget)->set_focus_child (widget, child);
+}
+
+static void
+gtk_widget_real_set_focus_child (GtkWidget *widget,
+                                 GtkWidget *child)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
   g_set_object (&priv->focus_child, child);
 }
@@ -12342,7 +12338,7 @@ gtk_widget_class_add_action (GtkWidgetClass  *widget_class,
   priv->actions = action;
 }
 
-/*
+/**
  * gtk_widget_class_install_action:
  * @widget_class: a #GtkWidgetClass
  * @action_name: a prefixed action name, such as "clipboard.paste"
@@ -12416,11 +12412,18 @@ determine_type (GParamSpec *pspec)
  * Installs an action called @action_name on @widget_class and binds its
  * state to the value of the @property_name property.
  *
- * This function will perform a few santity checks on the property selected via
- * @property_name. Namely, the property must exist, must be readable, writable and
- * must not be construct-only. There are also certain restrictions on the type of
- * the given property. If any of these conditions are not met, a critical
+ * This function will perform a few santity checks on the property selected
+ * via @property_name. Namely, the property must exist, must be readable,
+ * writable and must not be construct-only. There are also restrictions
+ * on the type of the given property, it must be boolean, int, unsigned int,
+ * double or string. If any of these conditions are not met, a critical
  * warning will be printed and no action will be added.
+ *
+ * The state type of the action matches the property type.
+ *
+ * If the property is boolean, the action will have no parameter and
+ * toggle the property value. Otherwise, the action will have a parameter
+ * of the same type as the property.
  */
 void
 gtk_widget_class_install_property_action (GtkWidgetClass *widget_class,

@@ -3061,7 +3061,7 @@ on_key_pressed (GtkEventControllerKey *controller,
         }
 
       if (keyval == GDK_KEY_Down &&
-          (state & modifiers) == GDK_MOD1_MASK)
+          (state & modifiers) == GDK_ALT_MASK)
         return eject_or_unmount_selection (sidebar);
 
       if ((keyval == GDK_KEY_Delete ||
@@ -3420,7 +3420,7 @@ on_row_released (GtkGestureClick *gesture,
                 NULL);
 
   button = gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture));
-  gtk_get_current_event_state (&state);
+  state = gtk_event_controller_get_current_event_state (GTK_EVENT_CONTROLLER (gesture));
 
   if (row)
     {
@@ -3768,7 +3768,7 @@ gtk_places_sidebar_init (GtkPlacesSidebar *sidebar)
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sidebar->swin),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_AUTOMATIC);
-  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (sidebar->swin), GTK_SHADOW_IN);
+  gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (sidebar->swin), TRUE);
 
   gtk_widget_add_css_class (GTK_WIDGET (sidebar), "sidebar");
 

@@ -38,10 +38,9 @@
             <property name="baseline-position">top</property>
             <child>
               <object class="GtkButton" id="button2">
-                <property name="can-focus">1</property>
                 <property name="receives-default">1</property>
                 <property name="valign">baseline</property>
-                <property name="relief">none</property>
+                <property name="has-frame">0</property>
                 <child>
                   <object class="GtkLabel" id="source_name">
                     <property name="valign">baseline</property>
@@ -109,9 +108,8 @@
             <child>
               <object class="GtkLinkButton" id="resent_by_button">
                 <property name="label" translatable="0">reshareer</property>
-                <property name="can-focus">1</property>
                 <property name="receives-default">1</property>
-                <property name="relief">none</property>
+                <property name="has-frame">0</property>
                 <property name="uri">http://www.gtk.org</property>
               </object>
             </child>
@@ -127,9 +125,8 @@
             <child>
               <object class="GtkButton" id="expand_button">
                 <property name="label" translatable="yes">Expand</property>
-                <property name="can-focus">1</property>
                 <property name="receives-default">1</property>
-                <property name="relief">none</property>
+                <property name="has-frame">0</property>
                 <signal name="clicked" handler="expand_clicked" swapped="yes"/>
               </object>
             </child>
@@ -140,35 +137,31 @@
                 <child>
                   <object class="GtkButton" id="reply-button">
                     <property name="label" translatable="yes">Reply</property>
-                    <property name="can-focus">1</property>
                     <property name="receives-default">1</property>
-                    <property name="relief">none</property>
+                    <property name="has-frame">0</property>
                   </object>
                 </child>
                 <child>
                   <object class="GtkButton" id="reshare-button">
                     <property name="label" translatable="yes">Reshare</property>
-                    <property name="can-focus">1</property>
                     <property name="receives-default">1</property>
-                    <property name="relief">none</property>
+                    <property name="has-frame">0</property>
                     <signal name="clicked" handler="reshare_clicked" swapped="yes"/>
                   </object>
                 </child>
                 <child>
                   <object class="GtkButton" id="favorite-buttton">
                     <property name="label" translatable="yes">Favorite</property>
-                    <property name="can-focus">1</property>
                     <property name="receives-default">1</property>
-                    <property name="relief">none</property>
+                    <property name="has-frame">0</property>
                     <signal name="clicked" handler="favorite_clicked" swapped="yes"/>
                   </object>
                 </child>
                 <child>
                   <object class="GtkMenuButton" id="more-button">
-                    <property name="can-focus">1</property>
                     <property name="receives-default">1</property>
                     <property name="menu-model">menu1</property>
-                    <property name="relief">none</property>
+                    <property name="has-frame">0</property>
                     <property name="label" translatable="yes">More...</property>
                   </object>
                 </child>
@@ -192,7 +185,6 @@
                     <property name="spacing">8</property>
                     <child>
                       <object class="GtkFrame" id="frame1">
-                        <property name="shadow-type">none</property>
                         <child>
                           <object class="GtkLabel" id="n_reshares_label">
                             <property name="label" translatable="0">&lt;b&gt;2&lt;/b&gt;
@@ -205,7 +197,6 @@ Reshares</property>
                     </child>
                     <child>
                       <object class="GtkFrame" id="frame2">
-                        <property name="shadow-type">none</property>
                         <child>
                           <object class="GtkLabel" id="n_favorites_label">
                             <property name="label" translatable="0">&lt;b&gt;2&lt;/b&gt;
@@ -231,9 +222,8 @@ FAVORITES</property>
                     <child>
                       <object class="GtkButton" id="button5">
                         <property name="label" translatable="yes">Details</property>
-                        <property name="can-focus">1</property>
                         <property name="receives-default">1</property>
-                        <property name="relief">none</property>
+                        <property name="has-frame">0</property>
                         <style>
                           <class name="dim-label"/>
                         </style>

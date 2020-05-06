@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.98.2',
+        version: '3.98.3',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -7,12 +7,12 @@ project('gtk', 'c',
           # https://github.com/mesonbuild/meson/issues/2289
           'c_std=gnu99',
         ],
-        meson_version : '>= 0.50.1',
+        meson_version : '>= 0.53',
         license: 'LGPLv2.1+')
 
 glib_major_req = 2
-glib_minor_req = 59
-glib_micro_req = 0
+glib_minor_req = 63
+glib_micro_req = 1
 
 if glib_minor_req.is_odd()
   glib_min_required = 'GLIB_VERSION_@0@_@1@'.format(glib_major_req, glib_minor_req - 1)
@@ -33,7 +33,7 @@ atk_req            = '>= 2.15.1'
 cairo_req          = '>= 1.14.0'
 gdk_pixbuf_req     = '>= 2.30.0'
 introspection_req  = '>= 1.39.0'
-wayland_proto_req  = '>= 1.14'
+wayland_proto_req  = '>= 1.20'
 wayland_req        = '>= 1.14.91'
 graphene_req       = '>= 1.9.1'
 epoxy_req          = '>= 1.4'
@@ -60,14 +60,17 @@ add_project_arguments('-DGTK_VERSION="@0@"'.format(meson.project_version()), lan
 
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
 
+# Use debug/optimization flags to determine whether to enable debug or disable
+# cast checks
 gtk_debug_cflags = []
-buildtype = get_option('buildtype')
-if buildtype.startswith('debug')
+debug = get_option('debug')
+optimization = get_option('optimization')
+if debug
   gtk_debug_cflags += '-DG_ENABLE_DEBUG'
-  if buildtype == 'debug'
+  if optimization in ['0', 'g']
     gtk_debug_cflags += '-DG_ENABLE_CONSISTENCY_CHECKS'
   endif
-elif buildtype == 'release'
+elif optimization in ['2', '3', 's']
   gtk_debug_cflags += '-DG_DISABLE_CAST_CHECKS'
 endif
 
@@ -82,15 +85,16 @@ gtk_binary_version = '4.0.0'
 
 gtk_binary_age = 100 * gtk_minor_version + gtk_micro_version
 
-gtk_soversion = '0.@0@.@1@'.format(gtk_binary_age - gtk_interface_age, gtk_interface_age)
+gtk_soversion = '0'
+gtk_library_version = '0.@0@.@1@'.format(gtk_binary_age - gtk_interface_age, gtk_interface_age)
 
 gtk_api_version = '4.0'
 
-x11_enabled            = get_option('x11-backend')
-wayland_enabled        = get_option('wayland-backend')
-broadway_enabled       = get_option('broadway-backend')
-quartz_enabled         = get_option('quartz-backend')
-win32_enabled          = get_option('win32-backend')
+x11_enabled      = get_option('x11-backend')
+wayland_enabled  = get_option('wayland-backend')
+broadway_enabled = get_option('broadway-backend')
+quartz_enabled   = get_option('quartz-backend')
+win32_enabled    = get_option('win32-backend')
 
 os_unix   = false
 os_linux  = false
@@ -466,9 +470,15 @@ atk_pkgs = ['atk']
 wayland_pkgs = []
 if wayland_enabled
   wlclientdep    = dependency('wayland-client', version:  wayland_req)
-  wlprotocolsdep = dependency('wayland-protocols', version: wayland_proto_req)
+  wlprotocolsdep = dependency('wayland-protocols', version: wayland_proto_req, required: false)
   wlegldep       = dependency('wayland-egl')
   backend_immodules += ['wayland']
+
+  if not wlprotocolsdep.found()
+    wlproto_dir = subproject('wayland-protocols').get_variable('wayland_protocols_srcdir')
+  else
+    wlproto_dir = wlprotocolsdep.get_pkgconfig_variable('pkgdatadir')
+  endif
 
   wayland_pkgs = [
     'wayland-client', wayland_req,
@@ -794,45 +804,47 @@ subdir('docs/tools')
 subdir('docs/reference')
 
 # Keep this in sync with post-install.sh expected arguments
-meson.add_install_script('build-aux/meson/post-install.py',
-                         gtk_api_version,
-                         gtk_binary_version,
-                         gtk_libdir,
-                         gtk_datadir)
+if not meson.is_cross_build()
+  meson.add_install_script('build-aux/meson/post-install.py',
+                           gtk_api_version,
+                           gtk_binary_version,
+                           gtk_libdir,
+                           gtk_datadir)
+else
+  message('Not executing post-install steps automatically when cross compiling')
+endif
 
 if host_machine.system() != 'windows'
   # Install Valgrind suppression files (except on Windows,
   # as Valgrind is currently not supported on Windows)
-  install_data('gtk.supp', 'gtk64.supp',
+  install_data('gtk.supp',
     install_dir : join_paths(gtk_datadir, 'gtk-4.0', 'valgrind'))
 endif
 
-summary = [
-  '',
-  '------',
-  'GTK @0@ (@1@)'.format(gtk_version, gtk_api_version),
-  '',
-  '  Display backends: @0@'.format(pkg_targets.strip()),
-  '    Print backends: @0@'.format(' '.join(print_backends)),
-  '    Media backends: @0@'.format(' '.join(media_backends)),
-  '    Vulkan support: @0@'.format(have_vulkan),
-  '     Cloud support: @0@'.format(get_option('cloudproviders')),
-  '    Colord support: @0@'.format(get_option('colord')),
-  '          Profiler: @0@'.format(get_option('profiler')),
-  '     Introspection: @0@'.format(get_option('introspection')),
-  '     Documentation: @0@'.format(get_option('gtk_doc')),
-  '         Man pages: @0@'.format(get_option('man-pages')),
-  '       Build tests: @0@'.format(get_option('build-tests')),
-  '     Install tests: @0@'.format(get_option('install-tests')),
-  '             Demos: @0@'.format(get_option('demos')),
-  '          Examples: @0@'.format(get_option('build-examples')),
-  'Directories:',
-  '            prefix: @0@'.format(gtk_prefix),
-  '        includedir: @0@'.format(gtk_includedir),
-  '            libdir: @0@'.format(gtk_libdir),
-  '           datadir: @0@'.format(gtk_datadir),
-  '------',
-  ''
-]
 
-message('\n'.join(summary))
+#### Summary ####
+
+summary('Display backends', pkg_targets.strip())
+summary('Print backends', print_backends)
+summary('Media backends', media_backends)
+summary('Vulkan support', have_vulkan)
+summary('Cloud support', get_option('cloudproviders'))
+summary('Profiler', get_option('profiler'))
+summary('Colord support', get_option('colord'))
+
+# Build
+summary('Debugging', get_option('debug'), section: 'Build')
+summary('Optimization', get_option('optimization'), section: 'Build')
+summary('Introspection', get_option('introspection'), section: 'Build')
+summary('Documentation', get_option('gtk_doc'), section: 'Build')
+summary('Man pages', get_option('man-pages'), section: 'Build')
+summary('Tests', get_option('build-tests'), section: 'Build')
+summary('Install tests', get_option('install-tests'), section: 'Build')
+summary('Demos', get_option('demos'), section: 'Build')
+summary('Examples', get_option('build-examples'), section: 'Build')
+
+# Directories
+summary('prefix', gtk_prefix, section: 'Directories')
+summary('includedir', gtk_includedir, section: 'Directories')
+summary('libdir', gtk_libdir, section: 'Directories')
+summary('datadir', gtk_datadir, section: 'Directories')

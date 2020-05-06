@@ -548,8 +548,6 @@ gtk_entry_completion_constructed (GObject *object)
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (priv->scrolled_window),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_AUTOMATIC);
-  gtk_scrolled_window_set_shadow_type (GTK_SCROLLED_WINDOW (priv->scrolled_window),
-                                       GTK_SHADOW_NONE);
 
   /* a nasty hack to get the completions treeview to size nicely */
   gtk_widget_set_size_request (gtk_scrolled_window_get_vscrollbar (GTK_SCROLLED_WINDOW (priv->scrolled_window)),
@@ -602,8 +600,6 @@ gtk_entry_completion_constructed (GObject *object)
   gtk_widget_add_controller (priv->popup_window, controller);
 
   popup_frame = gtk_frame_new (NULL);
-  gtk_frame_set_shadow_type (GTK_FRAME (popup_frame),
-                             GTK_SHADOW_ETCHED_IN);
   gtk_container_add (GTK_CONTAINER (priv->popup_window), popup_frame);
 
   priv->vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -2233,7 +2229,6 @@ gtk_entry_completion_changed (GtkWidget *widget,
                               gpointer   user_data)
 {
   GtkEntryCompletion *completion = GTK_ENTRY_COMPLETION (user_data);
-  GdkDevice *device;
 
   if (!completion->priv->popup_completion)
     return;
@@ -2256,14 +2251,6 @@ gtk_entry_completion_changed (GtkWidget *widget,
         _gtk_entry_completion_popdown (completion);
       return;
     }
-
-  device = gtk_get_current_event_device ();
-
-  if (device && gdk_device_get_source (device) == GDK_SOURCE_KEYBOARD)
-    device = gdk_device_get_associated_device (device);
-
-  if (device)
-    completion->priv->device = device;
 
   completion->priv->completion_timeout =
     g_timeout_add (COMPLETION_TIMEOUT,

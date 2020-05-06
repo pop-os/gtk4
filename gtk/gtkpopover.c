@@ -127,10 +127,6 @@
 #include "gtkroundedboxprivate.h"
 #include "gsk/gskroundedrectprivate.h"
 
-#ifdef GDK_WINDOWING_WAYLAND
-#include "wayland/gdkwayland.h"
-#endif
-
 #define MNEMONICS_DELAY 300 /* ms */
 
 #define TAIL_GAP_WIDTH  24
@@ -554,9 +550,9 @@ present_popup (GtkPopover *popover)
   layout = create_popup_layout (popover);
   gtk_widget_get_preferred_size (GTK_WIDGET (popover), NULL, &req);
   if (gdk_popup_present (GDK_POPUP (priv->surface),
-                                 MAX (req.width, 1),
-                                 MAX (req.height, 1),
-                                 layout))
+                         MAX (req.width, 1),
+                         MAX (req.height, 1),
+                         layout))
     update_popover_layout (popover, layout);
 }
 
@@ -600,7 +596,7 @@ gtk_popover_has_mnemonic_modifier_pressed (GtkPopover *popover)
       GdkModifierType mask;
 
       gdk_device_get_state (dev, priv->surface, NULL, &mask);
-      if ((mask & gtk_accelerator_get_default_mod_mask ()) == GDK_MOD1_MASK)
+      if ((mask & gtk_accelerator_get_default_mod_mask ()) == GDK_ALT_MASK)
         {
           retval = TRUE;
           break;
@@ -678,7 +674,7 @@ update_mnemonics_visible (GtkPopover      *popover,
     return;
 
   if ((keyval == GDK_KEY_Alt_L || keyval == GDK_KEY_Alt_R) &&
-      ((state & (gtk_accelerator_get_default_mod_mask ()) & ~(GDK_MOD1_MASK)) == 0))
+      ((state & (gtk_accelerator_get_default_mod_mask ()) & ~(GDK_ALT_MASK)) == 0))
     {
       if (visible)
         gtk_popover_schedule_mnemonics_visible (popover);
@@ -851,7 +847,9 @@ gtk_popover_init (GtkPopover *popover)
                            G_CALLBACK (node_style_changed_cb), popover, 0);
   g_object_unref (priv->arrow_node);
 
-  priv->contents_widget = gtk_gizmo_new ("contents", NULL, NULL, NULL, NULL);
+  priv->contents_widget = gtk_gizmo_new ("contents", NULL, NULL, NULL, NULL,
+                                         (GtkGizmoFocusFunc)gtk_widget_focus_child,
+                                         (GtkGizmoGrabFocusFunc)gtk_widget_grab_focus_child);
   gtk_widget_set_layout_manager (priv->contents_widget, gtk_bin_layout_new ());
   gtk_widget_set_parent (priv->contents_widget, GTK_WIDGET (popover));
 
@@ -922,12 +920,20 @@ gtk_popover_show (GtkWidget *widget)
     {
       if (!gtk_widget_get_focus_child (widget))
         gtk_widget_child_focus (widget, GTK_DIR_TAB_FORWARD);
+
+      gtk_grab_add (widget);
     }
 }
 
 static void
 gtk_popover_hide (GtkWidget *widget)
 {
+  GtkPopover *popover = GTK_POPOVER (widget);
+  GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
+
+  if (priv->autohide)
+    gtk_grab_remove (widget);
+
   gtk_popover_set_mnemonics_visible (GTK_POPOVER (widget), FALSE);
   _gtk_widget_set_visible_flag (widget, FALSE);
   gtk_widget_unmap (widget);
@@ -1743,12 +1749,29 @@ gtk_popover_class_init (GtkPopoverClass *klass)
   gtk_widget_class_set_css_name (widget_class, "popover");
 }
 
+/**
+ * gtk_popover_new:
+ *
+ * Creates a new popover.
+ *
+ * Returns: the new popover
+ */
 GtkWidget *
 gtk_popover_new (void)
 {
   return g_object_new (GTK_TYPE_POPOVER, NULL);
 }
 
+/**
+ * gtk_popover_set_default_widget:
+ * @popover: a #GtkPopover
+ * @widget: (allow-none): a child widget of @popover to set as
+ *     the default, or %NULL to unset the default widget for the popover
+ *
+ * The default widget is the widget that’s activated when the user
+ * presses Enter in a dialog (for example). This function sets or
+ * unsets the default widget for a #GtkPopover.
+ */
 void
 gtk_popover_set_default_widget (GtkPopover *popover,
                                 GtkWidget  *widget)
