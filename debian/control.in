@@ -52,7 +52,7 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                xauth <!nocheck>,
                xsltproc,
                xvfb <!nocheck>
-Build-Depends-Indep: gtk-doc-tools (>= 1.26),
+Build-Depends-Indep: gtk-doc-tools (>= 1.32+git20200421.gtk4),
                      libatk1.0-doc,
                      libcairo2-doc,
                      libglib2.0-doc,
