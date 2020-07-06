@@ -33,7 +33,7 @@ cat <<EOF > gtktest.c
 static gboolean
 do_quit (gpointer user_data)
 {
-    gtk_widget_destroy (user_data);
+    gtk_window_destroy (user_data);
     g_object_unref (user_data);
     return G_SOURCE_REMOVE;
 }
