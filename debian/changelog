@@ -1,6 +1,7 @@
 gtk+4.0 (3.98.4-1) UNRELEASED; urgency=medium
 
   * New upstream release
+    - Update d/copyright
     - Update build-dependencies according to meson.build
     - Remove "fake SONAME" mechanism.
       The library is now built as libgtk-4.so.0 (although the ABI is still
@@ -26,8 +27,6 @@ gtk+4.0 (3.98.4-1) UNRELEASED; urgency=medium
     to `ninja test` and are now for `meson test`.
   * Depend on fonts-cantarell for tests
   * Run build-time tests with a D-Bus session bus via dbus-run-session
-  * Cherry-pick some patches to fix the build
-  * New upstream release
 
  -- Simon McVittie <smcv@debian.org>  Mon, 06 Jul 2020 10:47:20 +0100
 
