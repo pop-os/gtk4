@@ -1,0 +1,25 @@
+From: Matthias Clasen <mclasen@redhat.com>
+Date: Mon, 18 May 2020 21:49:34 -0400
+Subject: testsuite: Remove obsolete test from list
+
+The test was removed in 97d0e8c6e07c08ae, but I neglected
+to remove the test files from meson.build.
+
+Fixes: #2760
+Origin: upstream, 3.98.5, commit:17dd32da883bb7cb67263d936b4d128be8b6be34
+---
+ testsuite/css/change/meson.build | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/testsuite/css/change/meson.build b/testsuite/css/change/meson.build
+index 9de4349..04204ed 100644
+--- a/testsuite/css/change/meson.build
++++ b/testsuite/css/change/meson.build
+@@ -23,7 +23,6 @@ test_data = [
+   'test2.css', 'test2.ui', 'test2.nodes',
+   'test3.css', 'test3.ui', 'test3.nodes',
+   'test4.css', 'test4.ui', 'test4.nodes',
+-  'test5.css', 'test5.ui', 'test5.nodes',
+ ]
+ 
+ if get_option('install-tests')

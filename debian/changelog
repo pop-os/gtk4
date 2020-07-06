@@ -27,6 +27,8 @@ gtk+4.0 (3.98.4-1) UNRELEASED; urgency=medium
     to `ninja test` and are now for `meson test`.
   * Depend on fonts-cantarell for tests
   * Run build-time tests with a D-Bus session bus via dbus-run-session
+  * d/p/testsuite-Remove-obsolete-test-from-list.patch:
+    Cherry-pick a patch from 3.98.5 to fix the build
 
  -- Simon McVittie <smcv@debian.org>  Mon, 06 Jul 2020 10:47:20 +0100
 
