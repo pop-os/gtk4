@@ -161,8 +161,6 @@ struct _GtkWidget
  * @grab_notify: Signal emitted when a widget becomes shadowed by a
  *   GTK+ grab (not a pointer or keyboard grab) on another widget, or
  *   when it becomes unshadowed due to a grab being removed.
- * @child_notify: Signal emitted for each child property that has
- *   changed on an object.
  * @get_request_mode: This allows a widget to tell its parent container whether
  *   it prefers to be allocated in %GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH or
  *   %GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT mode.
@@ -525,6 +523,9 @@ GDK_AVAILABLE_IN_ALL
 int                   gtk_widget_get_width              (GtkWidget     *widget);
 GDK_AVAILABLE_IN_ALL
 int                   gtk_widget_get_height             (GtkWidget     *widget);
+GDK_AVAILABLE_IN_ALL
+int                   gtk_widget_get_size               (GtkWidget     *widget,
+                                                         GtkOrientation orientation);
 
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_child_focus         (GtkWidget           *widget,
@@ -720,22 +721,22 @@ void   gtk_widget_remove_mnemonic_label (GtkWidget *widget,
                                          GtkWidget *label);
 
 GDK_AVAILABLE_IN_ALL
-void       gtk_widget_trigger_tooltip_query (GtkWidget   *widget);
+void            gtk_widget_trigger_tooltip_query        (GtkWidget   *widget);
 GDK_AVAILABLE_IN_ALL
-void       gtk_widget_set_tooltip_text      (GtkWidget   *widget,
-                                             const gchar *text);
+void            gtk_widget_set_tooltip_text             (GtkWidget   *widget,
+                                                         const char  *text);
 GDK_AVAILABLE_IN_ALL
-gchar *    gtk_widget_get_tooltip_text      (GtkWidget   *widget);
+const char *    gtk_widget_get_tooltip_text             (GtkWidget   *widget);
 GDK_AVAILABLE_IN_ALL
-void       gtk_widget_set_tooltip_markup    (GtkWidget   *widget,
-                                             const gchar *markup);
+void            gtk_widget_set_tooltip_markup           (GtkWidget   *widget,
+                                                         const char  *markup);
 GDK_AVAILABLE_IN_ALL
-gchar *    gtk_widget_get_tooltip_markup    (GtkWidget   *widget);
+const char *    gtk_widget_get_tooltip_markup           (GtkWidget   *widget);
 GDK_AVAILABLE_IN_ALL
-void       gtk_widget_set_has_tooltip       (GtkWidget   *widget,
-                                             gboolean     has_tooltip);
+void            gtk_widget_set_has_tooltip              (GtkWidget   *widget,
+                                                         gboolean     has_tooltip);
 GDK_AVAILABLE_IN_ALL
-gboolean   gtk_widget_get_has_tooltip       (GtkWidget   *widget);
+gboolean        gtk_widget_get_has_tooltip              (GtkWidget   *widget);
 
 GDK_AVAILABLE_IN_ALL
 GType           gtk_requisition_get_type (void) G_GNUC_CONST;

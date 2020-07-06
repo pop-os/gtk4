@@ -69,16 +69,6 @@ GDK_AVAILABLE_IN_ALL
 gboolean    gdk_display_supports_input_shapes (GdkDisplay    *display);
 
 GDK_AVAILABLE_IN_ALL
-GdkEvent* gdk_display_get_event  (GdkDisplay     *display);
-GDK_AVAILABLE_IN_ALL
-GdkEvent* gdk_display_peek_event (GdkDisplay     *display);
-GDK_AVAILABLE_IN_ALL
-void      gdk_display_put_event  (GdkDisplay     *display,
-                                  GdkEvent       *event);
-GDK_AVAILABLE_IN_ALL
-gboolean  gdk_display_has_pending (GdkDisplay  *display);
-
-GDK_AVAILABLE_IN_ALL
 GdkDisplay *gdk_display_get_default (void);
 
 GDK_AVAILABLE_IN_ALL
@@ -111,6 +101,10 @@ GdkMonitor * gdk_display_get_monitor_at_surface (GdkDisplay *display,
                                                 GdkSurface  *surface);
 
 GDK_AVAILABLE_IN_ALL
+void      gdk_display_put_event  (GdkDisplay     *display,
+                                  GdkEvent       *event);
+
+GDK_AVAILABLE_IN_ALL
 gboolean       gdk_display_map_keyval  (GdkDisplay    *display,
                                         guint          keyval,
                                         GdkKeymapKey **keys,
@@ -122,6 +116,16 @@ gboolean       gdk_display_map_keycode (GdkDisplay    *display,
                                         GdkKeymapKey **keys,
                                         guint        **keyvals,
                                         int           *n_entries);
+
+GDK_AVAILABLE_IN_ALL
+gboolean       gdk_display_translate_key (GdkDisplay      *display,
+                                          guint            keycode,
+                                          GdkModifierType  state,
+                                          int              group,
+                                          guint           *keyval,
+                                          int             *effective_group,
+                                          int             *level,
+                                          GdkModifierType *consumed);
 
 GDK_AVAILABLE_IN_ALL
 gboolean     gdk_display_get_setting (GdkDisplay *display,

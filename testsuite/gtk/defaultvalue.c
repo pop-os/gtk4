@@ -104,6 +104,9 @@ test_type (gconstpointer data)
       g_type_is_a (type, GTK_TYPE_SHORTCUT_ACTION))
     return;
 
+  if (g_type_is_a (type, GTK_TYPE_PROPERTY_SELECTION))
+    return;
+
   klass = g_type_class_ref (type);
 
   if (g_type_is_a (type, GTK_TYPE_SETTINGS))
@@ -114,7 +117,8 @@ test_type (gconstpointer data)
     }
   else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) ||
            g_type_is_a (type, GTK_TYPE_NO_SELECTION) ||
-           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION))
+           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION) ||
+           g_type_is_a (type, GTK_TYPE_MULTI_SELECTION))
     {
       GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
       instance = g_object_new (type,
@@ -239,6 +243,11 @@ test_type (gconstpointer data)
 	   strcmp (pspec->name, "rgba") == 0))
 	continue;
 
+      if (g_type_is_a (type, GTK_TYPE_COLUMN_VIEW) &&
+          (strcmp (pspec->name, "columns") == 0 ||
+	   strcmp (pspec->name, "sorter") == 0))
+	continue;
+
 G_GNUC_BEGIN_IGNORE_DEPRECATIONS
 
       if (g_type_is_a (type, GTK_TYPE_COMBO_BOX) &&
@@ -272,7 +281,8 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 
       if ((g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) ||
            g_type_is_a (type, GTK_TYPE_NO_SELECTION) ||
-           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION)) &&
+           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION) ||
+           g_type_is_a (type, GTK_TYPE_MULTI_SELECTION)) &&
           strcmp (pspec->name, "model") == 0)
         continue;
 
@@ -406,6 +416,10 @@ G_GNUC_END_IGNORE_DEPRECATIONS
           strcmp (pspec->name, "adjustment") == 0)
         continue;
 
+      if (g_type_is_a (type, GTK_TYPE_DROP_DOWN) &&
+          strcmp (pspec->name, "factory") == 0)
+        continue;
+
       /* All the icontheme properties depend on the environment */
       if (g_type_is_a (type, GTK_TYPE_ICON_THEME))
         continue;
@@ -455,7 +469,7 @@ main (int argc, char **argv)
   gint result;
   const char *display, *x_r_d;
 
-  /* These must be set before before gtk_test_init */
+  /* These must be set before gtk_test_init */
   g_setenv ("GIO_USE_VFS", "local", TRUE);
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
   g_setenv ("G_ENABLE_DIAGNOSTIC", "0", TRUE);

@@ -63,11 +63,6 @@
 #include <math.h>
 #include <string.h>
 
-/* this is in case rint() is not provided by the compiler, 
- * such as in the case of C89 compilers, like MSVC
- */
-#include "fallback-c89.c"
-
 /**
  * SECTION:gtklabel
  * @Short_description: A widget that displays a small to medium amount of text
@@ -439,7 +434,6 @@ static void gtk_label_motion            (GtkEventControllerMotion *controller,
                                          double                    y,
                                          gpointer                  data);
 static void gtk_label_leave             (GtkEventControllerMotion *controller,
-                                         GdkCrossingMode           mode,
                                          gpointer                  data);
 
 static gboolean gtk_label_grab_focus        (GtkWidget        *widget);
@@ -2239,7 +2233,7 @@ extract_mnemonic_keyval (const char      *text,
       p = g_utf8_next_char (p);
       c = g_utf8_get_char (p);
 
-      if (c != '_' && c != '0')
+      if (c != '_' && c != '\0')
         {
           const gsize byte_index = p - text - 1; /* Of the _ */
 
@@ -4287,7 +4281,6 @@ gtk_label_motion (GtkEventControllerMotion *controller,
 
 static void
 gtk_label_leave (GtkEventControllerMotion *controller,
-                 GdkCrossingMode           mode,
                  gpointer                  data)
 {
   GtkLabel *self = GTK_LABEL (data);

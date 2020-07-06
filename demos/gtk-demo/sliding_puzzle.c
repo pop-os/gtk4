@@ -11,6 +11,7 @@
 #include "puzzlepiece.h"
 #include "paintable.h"
 
+
 static GtkWidget *window = NULL;
 static GtkWidget *frame = NULL;
 static GtkWidget *choices = NULL;
@@ -240,6 +241,8 @@ puzzle_button_pressed (GtkGestureClick *gesture,
     {
       gtk_widget_error_bell (grid);
     }
+
+  check_solved (grid);
 }
 
 static void
@@ -280,6 +283,8 @@ start_puzzle (GdkPaintable *paintable)
   /* Add shortcuts so people can use the arrow
    * keys to move the puzzle */
   controller = gtk_shortcut_controller_new ();
+  gtk_shortcut_controller_set_scope (GTK_SHORTCUT_CONTROLLER (controller),
+                                     GTK_SHORTCUT_SCOPE_GLOBAL);
   add_move_binding (GTK_SHORTCUT_CONTROLLER (controller),
                     GDK_KEY_Left, GDK_KEY_KP_Left,
                     -1, 0);
@@ -340,11 +345,16 @@ reshuffle (void)
 {
   GtkWidget *grid;
 
-  grid = gtk_aspect_frame_get_child (GTK_ASPECT_FRAME (frame));
   if (solved)
-    start_puzzle (puzzle);
+    {
+      start_puzzle (puzzle);
+      grid = gtk_aspect_frame_get_child (GTK_ASPECT_FRAME (frame));
+    }
   else
-    shuffle_puzzle (grid);
+    {
+      grid = gtk_aspect_frame_get_child (GTK_ASPECT_FRAME (frame));
+      shuffle_puzzle (grid);
+    }
   gtk_widget_grab_focus (grid);
 }
 
@@ -387,8 +397,17 @@ add_choice (GtkWidget    *container,
   icon = gtk_image_new_from_paintable (paintable);
   gtk_image_set_icon_size (GTK_IMAGE (icon), GTK_ICON_SIZE_LARGE);
 
-  gtk_box_append (GTK_BOX (container), icon);
+  gtk_flow_box_insert (GTK_FLOW_BOX (container), icon, -1);
 }
+
+static void
+widget_destroyed (gpointer data,
+                  GObject *widget)
+{
+  if (data)
+    *(gpointer *) data = NULL;
+}
+
 
 GtkWidget *
 do_sliding_puzzle (GtkWidget *do_widget)
@@ -460,7 +479,7 @@ do_sliding_puzzle (GtkWidget *do_widget)
       gtk_window_set_title (GTK_WINDOW (window), "Sliding Puzzle");
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
       gtk_window_set_default_size (GTK_WINDOW (window), 400, 300);
-      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
+      g_object_weak_ref (G_OBJECT (window), widget_destroyed, &window);
 
       frame = gtk_aspect_frame_new (0.5, 0.5, (float) gdk_paintable_get_intrinsic_aspect_ratio (puzzle), FALSE);
       gtk_window_set_child (GTK_WINDOW (window), frame);

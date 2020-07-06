@@ -18,6 +18,7 @@
 #include "gskglshadowcacheprivate.h"
 #include "gskglnodesampleprivate.h"
 #include "gsktransform.h"
+#include "glutilsprivate.h"
 
 #include "gskprivate.h"
 
@@ -72,15 +73,6 @@ typedef enum
   CENTER_CHILD     = 1 << 4,
   NO_CACHE_PLZ     = 1 << 5,
 } OffscreenFlags;
-
-typedef struct
-{
-  int texture_id;
-  float x;
-  float y;
-  float x2;
-  float y2;
-} TextureRegion;
 
 static inline void
 init_full_texture_region (TextureRegion *r,
@@ -281,12 +273,14 @@ node_supports_transform (GskRenderNode *node)
       case GSK_OPACITY_NODE:
       case GSK_COLOR_MATRIX_NODE:
       case GSK_TEXTURE_NODE:
-      case GSK_TRANSFORM_NODE:
       case GSK_CROSS_FADE_NODE:
       case GSK_LINEAR_GRADIENT_NODE:
       case GSK_DEBUG_NODE:
       case GSK_TEXT_NODE:
         return TRUE;
+
+      case GSK_TRANSFORM_NODE:
+        return node_supports_transform (gsk_transform_node_get_child (node));
 
       default:
         return FALSE;
@@ -1165,57 +1159,112 @@ render_clipped_child (GskGLRenderer         *self,
                       GskRenderNode         *child)
 {
   graphene_rect_t transformed_clip;
-  graphene_rect_t intersection;
   GskRoundedRect child_clip;
 
   ops_transform_bounds_modelview (builder, clip, &transformed_clip);
 
-  /* Intersection might end up having rounded corners again */
-  if (!gsk_rounded_rect_is_rectilinear (builder->current_clip))
+  if (builder->clip_is_rectilinear)
+    goto trivial;
+
+  {
+    const GskRoundedRect *cur_clip = builder->current_clip;
+    int n_corners = 0;
+    bool corners[4];
+
+    /* Intersects with top left corner? */
+    n_corners += corners[0] = rounded_rect_has_corner (cur_clip, 0) &&
+                              graphene_rect_intersection (&transformed_clip,
+                                                          &rounded_rect_corner (cur_clip, 0), NULL);
+    /* top right? */
+    n_corners += corners[1] = rounded_rect_has_corner (cur_clip, 1) &&
+                              graphene_rect_intersection (&transformed_clip,
+                                                          &rounded_rect_corner (cur_clip, 1), NULL);
+    /* bottom right? */
+    n_corners += corners[2] = rounded_rect_has_corner (cur_clip, 2) &&
+                              graphene_rect_intersection (&transformed_clip,
+                                                          &rounded_rect_corner (cur_clip, 2), NULL);
+    /* bottom left */
+    n_corners += corners[3] = rounded_rect_has_corner (cur_clip, 3) &&
+                              graphene_rect_intersection (&transformed_clip,
+                                                          &rounded_rect_corner (cur_clip, 3), NULL);
+
+    if (n_corners == 0)
+      goto trivial;
+
+    if (corners[0] && !graphene_rect_contains_rect (&transformed_clip, &rounded_rect_corner (cur_clip, 0)))
+      goto rtt;
+    if (corners[1] && !graphene_rect_contains_rect (&transformed_clip, &rounded_rect_corner (cur_clip, 1)))
+      goto rtt;
+    if (corners[2] && !graphene_rect_contains_rect (&transformed_clip, &rounded_rect_corner (cur_clip, 2)))
+      goto rtt;
+    if (corners[3] && !graphene_rect_contains_rect (&transformed_clip, &rounded_rect_corner (cur_clip, 3)))
+      goto rtt;
+
+    /* We do intersect with at least one of the corners, but in such a way that the
+     * intersection between the two clips can still be represented by a single rounded
+     * rect in a trivial way. do that. */
     {
-      if (!rounded_inner_rect_contains_rect (builder->current_clip,
-                                             &transformed_clip))
+      GskRoundedRect real_intersection;
+
+      graphene_rect_intersection (&transformed_clip, &cur_clip->bounds, &real_intersection.bounds);
+
+      for (int i = 0; i < 4; i++)
         {
-          /* well fuck */
-          const float scale = ops_get_scale (builder);
-          gboolean is_offscreen;
-          TextureRegion region;
-          GskRoundedRect scaled_clip;
-
-          memset (&scaled_clip, 0, sizeof (GskRoundedRect));
-
-          scaled_clip.bounds.origin.x = clip->origin.x * scale;
-          scaled_clip.bounds.origin.y = clip->origin.y * scale;
-          scaled_clip.bounds.size.width = clip->size.width * scale;
-          scaled_clip.bounds.size.height = clip->size.height * scale;
-
-          ops_push_clip (builder, &scaled_clip);
-          if (!add_offscreen_ops (self, builder, &child->bounds,
-                                  child,
-                                  &region, &is_offscreen,
-                                  RESET_OPACITY | FORCE_OFFSCREEN))
-            g_assert_not_reached ();
-          ops_pop_clip (builder);
-
-
-          ops_set_program (builder, &self->programs->blit_program);
-          ops_set_texture (builder, region.texture_id);
-
-          load_offscreen_vertex_data (ops_draw (builder, NULL), child, builder);
-          return;
+          if (corners[i])
+            real_intersection.corner[i] = cur_clip->corner[i];
+          else
+            real_intersection.corner[i].width = real_intersection.corner[i].height = 0;
         }
-    }
 
-  /* Simple case: */
+      /* Draw with that new clip */
+      ops_push_clip (builder, &real_intersection);
+      gsk_gl_renderer_add_render_ops (self, child, builder);
+      ops_pop_clip (builder);
+    }
+    return;
+  }
+
+rtt:
+  {
+    /* well fuck */
+    const float scale = ops_get_scale (builder);
+    gboolean is_offscreen;
+    TextureRegion region;
+    GskRoundedRect scaled_clip;
+
+    memset (&scaled_clip, 0, sizeof (GskRoundedRect));
+
+    scaled_clip.bounds.origin.x = clip->origin.x * scale;
+    scaled_clip.bounds.origin.y = clip->origin.y * scale;
+    scaled_clip.bounds.size.width = clip->size.width * scale;
+    scaled_clip.bounds.size.height = clip->size.height * scale;
+
+    ops_push_clip (builder, &scaled_clip);
+    if (!add_offscreen_ops (self, builder, &child->bounds,
+                            child,
+                            &region, &is_offscreen,
+                            RESET_OPACITY | FORCE_OFFSCREEN))
+      g_assert_not_reached ();
+    ops_pop_clip (builder);
+
+    ops_set_program (builder, &self->programs->blit_program);
+    ops_set_texture (builder, region.texture_id);
+
+    load_offscreen_vertex_data (ops_draw (builder, NULL), child, builder);
+    return;
+  }
+
+
+trivial:
+  memset (&child_clip, 0, sizeof (GskRoundedRect));
   graphene_rect_intersection (&transformed_clip,
                               &builder->current_clip->bounds,
-                              &intersection);
-
-  gsk_rounded_rect_init_from_rect (&child_clip, &intersection, 0.0f);
+                              &child_clip.bounds);
 
   ops_push_clip (builder, &child_clip);
   gsk_gl_renderer_add_render_ops (self, child, builder);
   ops_pop_clip (builder);
+  return;
 }
 
 static inline void
@@ -1712,6 +1761,8 @@ render_unblurred_outset_shadow_node (GskGLRenderer   *self,
   load_vertex_data (ops_draw (builder, NULL), node, builder);
 }
 
+
+
 static GdkRGBA COLOR_WHITE = { 1, 1, 1, 1 };
 static inline void
 render_outset_shadow_node (GskGLRenderer   *self,
@@ -1723,12 +1774,12 @@ render_outset_shadow_node (GskGLRenderer   *self,
   const GdkRGBA *color = gsk_outset_shadow_node_peek_color (node);
   const float blur_radius = gsk_outset_shadow_node_get_blur_radius (node);
   const float blur_extra = blur_radius * 3; /* 3 Because we use that in the shader as well */
+  const int extra_blur_pixels = (int) ceilf(blur_extra / 2.0 * scale);
   const float spread = gsk_outset_shadow_node_get_spread (node);
   const float dx = gsk_outset_shadow_node_get_dx (node);
   const float dy = gsk_outset_shadow_node_get_dy (node);
   GskRoundedRect scaled_outline;
-  GskRoundedRect unscaled_outline;
-  float texture_width, texture_height;
+  int texture_width, texture_height;
   OpShadow *shadow;
   int blurred_texture_id;
   int cached_tid;
@@ -1740,21 +1791,19 @@ render_outset_shadow_node (GskGLRenderer   *self,
   gsk_rounded_rect_shrink_to_minimum (&scaled_outline);
   /* Increase by the spread */
   gsk_rounded_rect_shrink (&scaled_outline, -spread, -spread, -spread, -spread);
+  /* Grow bounds but don't grow corners */
+  graphene_rect_inset (&scaled_outline.bounds, - extra_blur_pixels, - extra_blur_pixels);
   /* For the center part, we add a few pixels */
   scaled_outline.bounds.size.width += SHADOW_EXTRA_SIZE;
   scaled_outline.bounds.size.height += SHADOW_EXTRA_SIZE;
 
-  texture_width  = ceil ((scaled_outline.bounds.size.width  + (blur_extra)) * scale);
-  texture_height = ceil ((scaled_outline.bounds.size.height + (blur_extra)) * scale);
+  texture_width  = (int)ceil ((scaled_outline.bounds.size.width  + blur_extra) * scale);
+  texture_height = (int)ceil ((scaled_outline.bounds.size.height + blur_extra) * scale);
 
-  /* Preserve this for usage later */
-  unscaled_outline = scaled_outline;
-
-  scaled_outline.bounds.origin.x = blur_extra / 2.0 * scale;
-  scaled_outline.bounds.origin.y = blur_extra / 2.0 * scale;
-  scaled_outline.bounds.size.width = texture_width - (blur_extra * scale);
-  scaled_outline.bounds.size.height = texture_height - (blur_extra * scale);
-
+  scaled_outline.bounds.origin.x = extra_blur_pixels;
+  scaled_outline.bounds.origin.y = extra_blur_pixels;
+  scaled_outline.bounds.size.width = texture_width - (extra_blur_pixels * 2);
+  scaled_outline.bounds.size.height = texture_height - (extra_blur_pixels * 2);
 
   for (int i = 0; i < 4; i ++)
     {
@@ -1782,6 +1831,7 @@ render_outset_shadow_node (GskGLRenderer   *self,
       gdk_gl_context_label_object_printf  (self->gl_context, GL_FRAMEBUFFER, render_target,
                                            "Outset Shadow FB Temp %d", render_target);
 
+      ops_set_program (builder, &self->programs->color_program);
       graphene_matrix_init_ortho (&item_proj,
                                   0, texture_width, 0, texture_height,
                                   ORTHO_NEAR_PLANE, ORTHO_FAR_PLANE);
@@ -1794,7 +1844,6 @@ render_outset_shadow_node (GskGLRenderer   *self,
       prev_viewport = ops_set_viewport (builder, &GRAPHENE_RECT_INIT (0, 0, texture_width, texture_height));
 
       /* Draw outline */
-      ops_set_program (builder, &self->programs->color_program);
       ops_push_clip (builder, &scaled_outline);
       ops_set_color (builder, &COLOR_WHITE);
       ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
@@ -1839,46 +1888,36 @@ render_outset_shadow_node (GskGLRenderer   *self,
   shadow->outline = transform_rect (self, builder, outline);
 
   {
-    const float min_x = builder->dx + outline->bounds.origin.x - spread - (blur_extra / 2.0) + dx;
-    const float min_y = builder->dy + outline->bounds.origin.y - spread - (blur_extra / 2.0) + dy;
-    const float max_x = min_x + outline->bounds.size.width  + (spread + (blur_extra / 2.0)) * 2;
-    const float max_y = min_y + outline->bounds.size.height + (spread + (blur_extra / 2.0)) * 2;
-    const float left_width = MAX (MAX (unscaled_outline.corner[GSK_CORNER_TOP_LEFT].width,
-                                       unscaled_outline.corner[GSK_CORNER_BOTTOM_LEFT].width),
-                                  blur_extra / 2.0);
-    const float top_height = MAX (MAX (unscaled_outline.corner[GSK_CORNER_TOP_LEFT].height,
-                                       unscaled_outline.corner[GSK_CORNER_TOP_RIGHT].height),
-                                  blur_extra / 2.0);
-    const float right_width = MAX (MAX (unscaled_outline.corner[GSK_CORNER_TOP_RIGHT].width,
-                                        unscaled_outline.corner[GSK_CORNER_BOTTOM_RIGHT].width),
-                                   blur_extra / 2.0);
-    const float bottom_height = MAX (MAX (unscaled_outline.corner[GSK_CORNER_BOTTOM_LEFT].height,
-                                          unscaled_outline.corner[GSK_CORNER_BOTTOM_RIGHT].height),
-                                     blur_extra / 2.0);
-    const float center_width = (max_x - min_x) - left_width - right_width;
-    const float center_height = (max_y - min_y) - top_height - bottom_height;
+    const float min_x = floorf (builder->dx + outline->bounds.origin.x - spread - (blur_extra / 2.0) + dx);
+    const float min_y = floorf (builder->dy + outline->bounds.origin.y - spread - (blur_extra / 2.0) + dy);
+    const float max_x = ceilf (builder->dx + outline->bounds.origin.x + outline->bounds.size.width +
+                               (blur_extra / 2.0) + dx + spread);
+    const float max_y = ceilf (builder->dy + outline->bounds.origin.y + outline->bounds.size.height +
+                               (blur_extra / 2.0) + dy + spread);
     float x1, x2, y1, y2, tx1, tx2, ty1, ty2;
+    cairo_rectangle_int_t slices[9];
+    TextureRegion tregs[9];
+
+    /* TODO: The slicing never changes and could just go into the cache */
+    nine_slice_rounded_rect (&scaled_outline, slices);
+    nine_slice_grow (slices, extra_blur_pixels);
+    nine_slice_to_texture_coords (slices, texture_width, texture_height, tregs);
 
     /* Our texture coordinates MUST be scaled, while the actual vertex coords
      * MUST NOT be scaled. */
 
     /* Top left */
-    if (top_height > 0 && left_width > 0)
+    if (slice_is_visible (&slices[NINE_SLICE_TOP_LEFT]))
       {
         x1 = min_x;
-        x2 = min_x + left_width;
+        x2 = min_x + (slices[NINE_SLICE_TOP_LEFT].width / scale);
         y1 = min_y;
-        y2 = min_y + top_height;
+        y2 = min_y + (slices[NINE_SLICE_TOP_LEFT].height / scale);
 
-        tx1 = 0;
-        tx2 = (left_width * scale) / texture_width;
-        ty1 = 1 - (top_height * scale / texture_height);
-        ty2 = 1;
-
-        g_assert_cmpfloat (x1, <=, x2);
-        g_assert_cmpfloat (y1, <=, y2);
-        g_assert_cmpfloat (tx1, <=, tx2);
-        g_assert_cmpfloat (ty1, <=, ty2);
+        tx1 = tregs[NINE_SLICE_TOP_LEFT].x;
+        tx2 = tregs[NINE_SLICE_TOP_LEFT].x2;
+        ty1 = tregs[NINE_SLICE_TOP_LEFT].y;
+        ty2 = tregs[NINE_SLICE_TOP_LEFT].y2;
 
         ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
           { { x1, y1 }, { tx1, ty2 }, },
@@ -1891,23 +1930,18 @@ render_outset_shadow_node (GskGLRenderer   *self,
         });
       }
 
-    /* Top side */
-    if (top_height > 0 && center_width > 0)
+    /* Top center */
+    if (slice_is_visible (&slices[NINE_SLICE_TOP_CENTER]))
       {
-        x1 = min_x + left_width;
-        x2 = x1 + center_width;
+        x1 = min_x + (slices[NINE_SLICE_TOP_LEFT].width / scale);
+        x2 = max_x - (slices[NINE_SLICE_TOP_RIGHT].width / scale);
         y1 = min_y;
-        y2 = min_y + top_height;
+        y2 = min_y + (slices[NINE_SLICE_TOP_CENTER].height / scale);
 
-        tx1 = left_width * scale / texture_width;
-        tx2 = 1.0 - (right_width * scale / texture_width);
-        ty1 = 1 - (top_height * scale / texture_height);
-        ty2 = 1;
-
-        g_assert_cmpfloat (x1, <=, x2);
-        g_assert_cmpfloat (y1, <=, y2);
-        g_assert_cmpfloat (tx1, <=, tx2);
-        g_assert_cmpfloat (ty1, <=, ty2);
+        tx1 = tregs[NINE_SLICE_TOP_CENTER].x;
+        tx2 = tregs[NINE_SLICE_TOP_CENTER].x2;
+        ty1 = tregs[NINE_SLICE_TOP_CENTER].y;
+        ty2 = tregs[NINE_SLICE_TOP_CENTER].y2;
 
         ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
           { { x1, y1 }, { tx1, ty2 }, },
@@ -1921,20 +1955,23 @@ render_outset_shadow_node (GskGLRenderer   *self,
       }
 
     /* Top right */
-    if (top_height > 0 && right_width > 0)
-    {
-      x1 = max_x - right_width;
-      x2 = max_x;
-      y1 = min_y;
-      y2 = min_y + top_height;
-      tx1 = 1 - (right_width * scale / texture_width);
-      tx2 = 1;
-      ty1 = 1 - (top_height * scale / texture_height);
-      ty2 = 1;
-      ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-        { { x1, y1 }, { tx1, ty2 }, },
-        { { x1, y2 }, { tx1, ty1 }, },
-        { { x2, y1 }, { tx2, ty2 }, },
+    if (slice_is_visible (&slices[NINE_SLICE_TOP_RIGHT]))
+      {
+        x1 = max_x - (slices[NINE_SLICE_TOP_RIGHT].width / scale);
+        x2 = max_x;
+        y1 = min_y;
+        y2 = min_y + (slices[NINE_SLICE_TOP_RIGHT].height / scale);
+
+        tx1 = tregs[NINE_SLICE_TOP_RIGHT].x;
+        tx2 = tregs[NINE_SLICE_TOP_RIGHT].x2;
+
+        ty1 = tregs[NINE_SLICE_TOP_RIGHT].y;
+        ty2 = tregs[NINE_SLICE_TOP_RIGHT].y2;
+
+        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
+          { { x1, y1 }, { tx1, ty2 }, },
+          { { x1, y2 }, { tx1, ty1 }, },
+          { { x2, y1 }, { tx2, ty2 }, },
 
           { { x2, y2 }, { tx2, ty1 }, },
           { { x1, y2 }, { tx1, ty1 }, },
@@ -1943,16 +1980,17 @@ render_outset_shadow_node (GskGLRenderer   *self,
       }
 
     /* Bottom right */
-    if (bottom_height > 0 && left_width > 0)
+    if (slice_is_visible (&slices[NINE_SLICE_BOTTOM_RIGHT]))
       {
-        x1 = max_x - right_width;
+        x1 = max_x - (slices[NINE_SLICE_BOTTOM_RIGHT].width / scale);
         x2 = max_x;
-        y1 = max_y - bottom_height;
+        y1 = max_y - (slices[NINE_SLICE_BOTTOM_RIGHT].height / scale);
         y2 = max_y;
-        tx1 = 1 - (right_width * scale / texture_width);
-        tx2 = 1;
-        ty1 = 0;
-        ty2 = (bottom_height * scale / texture_height);
+        tx1 = tregs[NINE_SLICE_BOTTOM_RIGHT].x;
+        tx2 = tregs[NINE_SLICE_BOTTOM_RIGHT].x2;
+        ty1 = tregs[NINE_SLICE_BOTTOM_RIGHT].y;
+        ty2 = tregs[NINE_SLICE_BOTTOM_RIGHT].y2;
+
         ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
           { { x1, y1 }, { tx1, ty2 }, },
           { { x1, y2 }, { tx1, ty1 }, },
@@ -1965,16 +2003,18 @@ render_outset_shadow_node (GskGLRenderer   *self,
       }
 
     /* Bottom left */
-    if (bottom_height > 0 && left_width > 0)
+    if (slice_is_visible (&slices[NINE_SLICE_BOTTOM_LEFT]))
       {
         x1 = min_x;
-        x2 = min_x + left_width;
-        y1 = max_y - bottom_height;
+        x2 = min_x + (slices[NINE_SLICE_BOTTOM_LEFT].width / scale);
+        y1 = max_y - (slices[NINE_SLICE_BOTTOM_LEFT].height / scale);
         y2 = max_y;
-        tx1 = 0;
-        tx2 = left_width * scale / texture_width;
-        ty1 = 0;
-        ty2 = bottom_height * scale / texture_height;
+
+        tx1 = tregs[NINE_SLICE_BOTTOM_LEFT].x;
+        tx2 = tregs[NINE_SLICE_BOTTOM_LEFT].x2;
+        ty1 = tregs[NINE_SLICE_BOTTOM_LEFT].y;
+        ty2 = tregs[NINE_SLICE_BOTTOM_LEFT].y2;
+
         ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
           { { x1, y1 }, { tx1, ty2 }, },
           { { x1, y2 }, { tx1, ty1 }, },
@@ -1987,21 +2027,16 @@ render_outset_shadow_node (GskGLRenderer   *self,
       }
 
     /* Left side */
-    if (left_width > 0)
+    if (slice_is_visible (&slices[NINE_SLICE_LEFT_CENTER]))
       {
         x1 = min_x;
-        x2 = min_x + left_width;
-        y1 = min_y + top_height;
-        y2 = y1 + center_height;
-        tx1 = 0;
-        tx2 = left_width * scale / texture_width;
-        ty1 = top_height * scale / texture_height;
-        ty2 = 1.0 - (bottom_height * scale / texture_height);
-
-        g_assert_cmpfloat (x1, <=, x2);
-        g_assert_cmpfloat (y1, <=, y2);
-        g_assert_cmpfloat (tx1, <=, tx2);
-        g_assert_cmpfloat (ty1, <=, ty2);
+        x2 = min_x + (slices[NINE_SLICE_LEFT_CENTER].width / scale);
+        y1 = min_y + (slices[NINE_SLICE_TOP_LEFT].height / scale);
+        y2 = max_y - (slices[NINE_SLICE_BOTTOM_LEFT].height / scale);
+        tx1 = tregs[NINE_SLICE_LEFT_CENTER].x;
+        tx2 = tregs[NINE_SLICE_LEFT_CENTER].x2;
+        ty1 = tregs[NINE_SLICE_LEFT_CENTER].y;
+        ty2 = tregs[NINE_SLICE_LEFT_CENTER].y2;
 
         ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
           { { x1, y1 }, { tx1, ty2 }, },
@@ -2015,16 +2050,19 @@ render_outset_shadow_node (GskGLRenderer   *self,
       }
 
     /* Right side */
-    if (right_width > 0)
+    if (slice_is_visible (&slices[NINE_SLICE_RIGHT_CENTER]))
       {
-        x1 = max_x - right_width;
+        x1 = max_x - (slices[NINE_SLICE_RIGHT_CENTER].width / scale);
         x2 = max_x;
-        y1 = min_y + top_height;
-        y2 = y1 + center_height;
-        tx1 = 1 - (right_width * scale / texture_width);
-        tx2 = 1;
-        ty1 = top_height * scale / texture_height;
-        ty2 = 1.0 - (bottom_height * scale / texture_height);
+        y1 = min_y + (slices[NINE_SLICE_TOP_RIGHT].height / scale);
+        y2 = max_y - (slices[NINE_SLICE_BOTTOM_RIGHT].height / scale);
+
+        tx1 = tregs[NINE_SLICE_RIGHT_CENTER].x;
+        tx2 = tregs[NINE_SLICE_RIGHT_CENTER].x2;
+
+        ty1 = tregs[NINE_SLICE_RIGHT_CENTER].y;
+        ty2 = tregs[NINE_SLICE_RIGHT_CENTER].y2;
+
         ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
           { { x1, y1 }, { tx1, ty2 }, },
           { { x1, y2 }, { tx1, ty1 }, },
@@ -2037,16 +2075,20 @@ render_outset_shadow_node (GskGLRenderer   *self,
       }
 
     /* Bottom side */
-    if (bottom_height > 0)
+    if (slice_is_visible (&slices[NINE_SLICE_BOTTOM_CENTER]))
       {
-        x1 = min_x + left_width;
-        x2 = max_x - right_width;
-        y1 = max_y - bottom_height;
+        x1 = min_x + (slices[NINE_SLICE_BOTTOM_LEFT].width / scale);
+        x2 = max_x - (slices[NINE_SLICE_BOTTOM_RIGHT].width / scale);
+        y1 = max_y - (slices[NINE_SLICE_BOTTOM_CENTER].height / scale);
         y2 = max_y;
-        tx1 = left_width * scale / texture_width;
-        tx2 = 1.0 - (right_width * scale / texture_width);
-        ty1 = 0;
-        ty2 = bottom_height * scale / texture_height;
+
+        tx1 = tregs[NINE_SLICE_BOTTOM_CENTER].x;
+        tx2 = tregs[NINE_SLICE_BOTTOM_CENTER].x2;
+
+        ty1 = tregs[NINE_SLICE_BOTTOM_CENTER].y;
+        ty2 = tregs[NINE_SLICE_BOTTOM_CENTER].y2;
+
+
         ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
           { { x1, y1 }, { tx1, ty2 }, },
           { { x1, y2 }, { tx1, ty1 }, },
@@ -2059,16 +2101,19 @@ render_outset_shadow_node (GskGLRenderer   *self,
       }
 
     /* Middle */
-    if (center_width > 0 && center_height > 0)
+    if (slice_is_visible (&slices[NINE_SLICE_CENTER]))
       {
-        x1 = min_x + left_width;
-        x2 = max_x - right_width;
-        y1 = min_y + top_height;
-        y2 = max_y - bottom_height;
-        tx1 = left_width * scale / texture_width;
-        tx2 = 1.0 - (right_width * scale / texture_width);
-        ty1 = top_height * scale / texture_height;
-        ty2 = 1.0 - (bottom_height * scale / texture_height);
+        x1 = min_x + (slices[NINE_SLICE_LEFT_CENTER].width / scale);
+        x2 = max_x - (slices[NINE_SLICE_RIGHT_CENTER].width / scale);
+        y1 = min_y + (slices[NINE_SLICE_TOP_CENTER].height / scale);
+        y2 = max_y - (slices[NINE_SLICE_BOTTOM_CENTER].height / scale);
+
+        tx1 = tregs[NINE_SLICE_CENTER].x;
+        tx2 = tregs[NINE_SLICE_CENTER].x2;
+
+        ty1 = tregs[NINE_SLICE_CENTER].y;
+        ty2 = tregs[NINE_SLICE_CENTER].y2;
+
         ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
           { { x1, y1 }, { tx1, ty2 }, },
           { { x1, y2 }, { tx1, ty1 }, },

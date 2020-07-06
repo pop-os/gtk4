@@ -73,8 +73,6 @@
 #include <cairo-gobject.h>
 #include <string.h>
 
-#include "fallback-c89.c"
-
 /**
  * SECTION:gtktext
  * @Short_description: A simple single-line text entry field
@@ -2944,6 +2942,8 @@ gtk_text_drag_gesture_update (GtkGestureDrag *gesture,
           text = _gtk_text_get_selected_text (self);
           gtk_text_get_pixel_ranges (self, &ranges, &n_ranges);
 
+          g_assert (n_ranges > 0);
+
           if (priv->editable)
             actions = GDK_ACTION_COPY|GDK_ACTION_MOVE;
           else
@@ -2968,7 +2968,7 @@ gtk_text_drag_gesture_update (GtkGestureDrag *gesture,
           priv->drag = drag;
 
           g_object_unref (drag);
-          
+
           g_free (ranges);
           g_free (text);
 
@@ -3486,6 +3486,7 @@ update_placeholder_visibility (GtkText *self)
 
   if (priv->placeholder)
     gtk_widget_set_child_visible (priv->placeholder,
+                                  priv->preedit_length == 0 &&
                                   gtk_entry_buffer_get_length (priv->buffer) == 0);
 }
 
@@ -3882,7 +3883,7 @@ gtk_text_delete_from_cursor (GtkText       *self,
         }
       else if (count > 0)
         {
-          /* Move to beginning of current word, or if not on a word, begining of next word */
+          /* Move to beginning of current word, or if not on a word, beginning of next word */
           start_pos = gtk_text_move_forward_word (self, start_pos, FALSE);
           start_pos = gtk_text_move_backward_word (self, start_pos, FALSE);
         }
@@ -4148,7 +4149,7 @@ gtk_text_commit_cb (GtkIMContext *context,
     }
 }
 
-static void 
+static void
 gtk_text_preedit_changed_cb (GtkIMContext *context,
                              GtkText      *self)
 {
@@ -4169,8 +4170,9 @@ gtk_text_preedit_changed_cb (GtkIMContext *context,
       cursor_pos = CLAMP (cursor_pos, 0, g_utf8_strlen (preedit_string, -1));
       priv->preedit_cursor = cursor_pos;
       g_free (preedit_string);
-    
+
       gtk_text_recompute (self);
+      update_placeholder_visibility (self);
     }
 }
 
@@ -4889,7 +4891,7 @@ gtk_text_adjust_scroll (GtkText *self)
       /* And make sure cursors are on screen. Note that the cursor is
        * actually drawn one pixel into the INNER_BORDER space on
        * the right, when the scroll is at the utmost right. This
-       * looks better to to me than confining the cursor inside the
+       * looks better to me than confining the cursor inside the
        * border entirely, though it means that the cursor gets one
        * pixel closer to the edge of the widget on the right than
        * on the left. This might need changing if one changed

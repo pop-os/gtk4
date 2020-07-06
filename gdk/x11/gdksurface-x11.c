@@ -106,6 +106,8 @@ static void     set_wm_name                       (GdkDisplay  *display,
 						   const gchar *name);
 static void     move_to_current_desktop           (GdkSurface *surface);
 static void     gdk_x11_toplevel_state_callback   (GdkSurface *surface);
+static gboolean gdk_x11_toplevel_event_callback   (GdkSurface *surface,
+                                                   GdkEvent   *gdk_event);
 
 /* Return whether time1 is considered later than time2 as far as xserver
  * time is concerned.  Accounts for wraparound.
@@ -148,6 +150,9 @@ _gdk_x11_surface_get_toplevel (GdkSurface *surface)
       impl->toplevel->have_focused = FALSE;
       g_signal_connect (surface, "notify::state",
                         G_CALLBACK (gdk_x11_toplevel_state_callback),
+                        NULL);
+      g_signal_connect (surface, "event",
+                        G_CALLBACK (gdk_x11_toplevel_event_callback),
                         NULL);
     }
 
@@ -355,6 +360,77 @@ gdk_x11_surface_begin_frame (GdkSurface *surface,
     }
 }
 
+static gboolean
+should_sync_frame_drawing (GdkSurface *surface)
+{
+  GdkX11Surface *impl = GDK_X11_SURFACE (surface);
+
+  /* disabled client side */
+  if (!impl->frame_sync_enabled)
+    return FALSE;
+
+  /* disabled compositor side */
+  if (!gdk_x11_screen_supports_net_wm_hint (GDK_SURFACE_SCREEN (surface),
+                                            g_intern_static_string ("_NET_WM_FRAME_DRAWN")))
+    return FALSE;
+
+  return TRUE;
+}
+
+static void
+sync_counter_for_end_frame (GdkSurface *surface)
+{
+  GdkX11Surface *impl = GDK_X11_SURFACE (surface);
+
+  g_assert (!impl->toplevel->in_frame);
+  g_assert (impl->toplevel->extended_update_counter != None);
+  g_assert ((impl->toplevel->current_counter_value % 2) == 0);
+
+  set_sync_counter (GDK_SURFACE_XDISPLAY (surface),
+                    impl->toplevel->extended_update_counter,
+                    impl->toplevel->current_counter_value);
+}
+
+static void
+maybe_sync_counter_for_end_frame (GdkSurface *surface)
+{
+  GdkX11Surface *impl = GDK_X11_SURFACE (surface);
+  gboolean frame_sync_negotiated = should_sync_frame_drawing (surface);
+  gboolean frame_done_painting = !impl->toplevel->frame_pending;
+
+#ifdef HAVE_XDAMAGE
+  frame_done_painting = !impl->toplevel->frame_still_painting && frame_sync_negotiated;
+#endif
+
+  if (!impl->toplevel->frame_pending)
+    {
+      if (!frame_sync_negotiated || frame_done_painting)
+        sync_counter_for_end_frame (surface);
+    }
+  else
+    {
+      if (frame_done_painting)
+        sync_counter_for_end_frame (surface);
+    }
+}
+
+#ifdef HAVE_XDAMAGE
+void
+_gdk_x11_surface_set_frame_still_painting (GdkSurface *surface,
+                                           gboolean    painting)
+{
+  GdkX11Surface *impl = GDK_X11_SURFACE (surface);
+
+  if (impl->toplevel->frame_still_painting == painting)
+    return;
+
+  impl->toplevel->frame_still_painting = painting;
+
+  if (!impl->toplevel->frame_still_painting)
+    maybe_sync_counter_for_end_frame (surface);
+}
+#endif
+
 static void
 gdk_x11_surface_end_frame (GdkSurface *surface)
 {
@@ -400,13 +476,9 @@ gdk_x11_surface_end_frame (GdkSurface *surface)
       else
         impl->toplevel->current_counter_value += 1;
 
-      set_sync_counter(GDK_SURFACE_XDISPLAY (surface),
-		       impl->toplevel->extended_update_counter,
-		       impl->toplevel->current_counter_value);
+      maybe_sync_counter_for_end_frame (surface);
 
-      if (impl->frame_sync_enabled &&
-          gdk_x11_screen_supports_net_wm_hint (GDK_SURFACE_SCREEN (surface),
-					       g_intern_static_string ("_NET_WM_FRAME_DRAWN")))
+      if (should_sync_frame_drawing (surface))
         {
           impl->toplevel->frame_pending = TRUE;
           gdk_surface_freeze_updates (surface);
@@ -448,6 +520,9 @@ gdk_x11_surface_finalize (GObject *object)
 
   g_signal_handlers_disconnect_by_func (GDK_SURFACE (impl),
                                         gdk_x11_toplevel_state_callback,
+                                        NULL);
+  g_signal_handlers_disconnect_by_func (GDK_SURFACE (impl),
+                                        gdk_x11_toplevel_event_callback,
                                         NULL);
 
   _gdk_x11_surface_grab_check_destroy (GDK_SURFACE (impl));
@@ -2249,7 +2324,7 @@ utf8_is_latin1 (const gchar *str)
 }
 
 /* Set the property to @utf8_str as STRING if the @utf8_str is fully
- * convertable to STRING, otherwise, set it as compound text
+ * convertible to STRING, otherwise, set it as compound text
  */
 static void
 set_text_property (GdkDisplay  *display,
@@ -3147,7 +3222,7 @@ gdk_x11_surface_apply_fullscreen_mode (GdkSurface *surface)
 	  /* FIXME: This is not part of the EWMH spec!
 	   *
 	   * There is no documented mechanism to remove the property
-	   * _NET_WM_FULLSCREEN_MONITORS once set, so we use use a set of
+	   * _NET_WM_FULLSCREEN_MONITORS once set, so we use a set of
 	   * invalid, largest possible value.
 	   *
 	   * When given values larger than actual possible monitor values, most
@@ -5031,6 +5106,29 @@ gdk_x11_toplevel_state_callback (GdkSurface *surface)
 
   if (surface->shortcuts_inhibited)
     gdk_x11_toplevel_restore_system_shortcuts (GDK_TOPLEVEL (surface));
+}
+
+static gboolean
+gdk_x11_toplevel_event_callback (GdkSurface *surface,
+                                 GdkEvent   *gdk_event)
+{
+  GdkSeat *gdk_seat;
+
+  if (!surface->shortcuts_inhibited)
+    return FALSE;
+
+  if (gdk_event_get_event_type (gdk_event) != GDK_GRAB_BROKEN)
+    return FALSE;
+
+  gdk_seat = gdk_surface_get_seat_from_event (surface, gdk_event);
+  if (gdk_seat != surface->current_shortcuts_inhibited_seat)
+    return FALSE;
+
+  surface->current_shortcuts_inhibited_seat = NULL;
+  surface->shortcuts_inhibited = FALSE;
+  g_object_notify (G_OBJECT (surface), "shortcuts-inhibited");
+
+  return FALSE;
 }
 
 static void

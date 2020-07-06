@@ -1,7 +1,17 @@
 # FIXME: $(no_undefined) ?
+
+reftest_cflags = []
+foreach flag: common_cflags
+  if flag not in ['-Werror=missing-prototypes', '-Werror=missing-declarations', '-fvisibility=hidden']
+    reftest_cflags += flag
+  endif
+endforeach
+
+
 libgtkreftestprivate = library('gtkreftestprivate',
   'reftest-compare.c', 'reftest-module.c', 'reftest-snapshot.c',
-  dependencies : libgtk_dep)
+  dependencies : libgtk_dep,
+  c_args: reftest_cflags)
 
 libreftest = library('reftest',
   [ 'expand-expander.c',
@@ -14,6 +24,7 @@ libreftest = library('reftest',
     'animation-direction.c',
   ],
   link_with: libgtkreftestprivate,
+  c_args: reftest_cflags,
   dependencies : libgtk_dep)
 
 tcdata = configuration_data()
@@ -376,9 +387,8 @@ testdata = [
   'sizegroups-basics.css',
   'sizegroups-basics.ui',
   'sizegroups-basics.ref.ui',
-  # this one triggers pango assertion in ci
-  #'sizegroups-evolution-identity-page.ui',
-  #'sizegroups-evolution-identity-page.ref.ui',
+  'sizegroups-evolution-identity-page.ui',
+  'sizegroups-evolution-identity-page.ref.ui',
   'sizegroups-get-preferred-null.ui',
   'sizegroups-get-preferred-null.ref.ui',
   'statusbar-remove-all.ref.ui',
@@ -422,9 +432,7 @@ testdata = [
 
 # These need to be fixed but the issue hasn't been tracked down.
 xfails = [
-  'background-origin.ui',
-  # see above
-  #'sizegroups-evolution-identity-page.ui',
+  'sizegroups-evolution-identity-page.ui',
   # these depend on details of text layout
   'label-sizing.ui',
 ]

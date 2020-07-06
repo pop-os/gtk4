@@ -1,5 +1,6 @@
 gtk_tests = [
   # testname, optional extra sources
+  ['testdropdown'],
   ['rendernode'],
   ['rendernode-create-tests'],
   ['overlayscroll'],
@@ -20,6 +21,7 @@ gtk_tests = [
   ['testcalendar'],
   ['testclipboard2'],
   ['testcombo'],
+  ['testcolumnview'],
   ['testcombochange'],
   ['testcellrenderertext'],
   ['testdialog'],
@@ -49,6 +51,8 @@ gtk_tests = [
   ['testlist2'],
   ['testlist3'],
   ['testlist4'],
+  ['testlistview'],
+  ['testlistview-animating'],
   ['testlevelbar'],
   ['testlockbutton'],
   ['testmenubutton'],
@@ -92,7 +96,6 @@ gtk_tests = [
   ['teststack'],
   ['testrevealer'],
   ['testrevealer2'],
-  ['testtreelistmodel'],
   ['testwindowsize'],
   ['testpopover'],
   ['listmodel'],

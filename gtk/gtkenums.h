@@ -107,10 +107,10 @@ typedef enum
  *
  * Whenever a container has some form of natural row it may align
  * children in that row along a common typographical baseline. If
- * the amount of verical space in the row is taller than the total
+ * the amount of vertical space in the row is taller than the total
  * requested height of the baseline-aligned children then it can use a
  * #GtkBaselinePosition to select where to put the baseline inside the
- * extra availible space.
+ * extra available space.
  */
 typedef enum
 {
@@ -126,7 +126,7 @@ typedef enum
  *   left/right of cursor if we’re in the middle of a word.
  * @GTK_DELETE_WORDS: Delete words.
  * @GTK_DELETE_DISPLAY_LINES: Delete display-lines. Display-lines
- *   refers to the visible lines, with respect to to the current line
+ *   refers to the visible lines, with respect to the current line
  *   breaks. As opposed to paragraphs, which are defined by line
  *   breaks in the input.
  * @GTK_DELETE_DISPLAY_LINE_ENDS: Delete only the portion of the
@@ -549,6 +549,39 @@ typedef enum
   GTK_NUMBER_UP_LAYOUT_BOTTOM_TO_TOP_LEFT_TO_RIGHT, /*< nick=btlr >*/
   GTK_NUMBER_UP_LAYOUT_BOTTOM_TO_TOP_RIGHT_TO_LEFT  /*< nick=btrl >*/
 } GtkNumberUpLayout;
+
+/**
+ * GtkOrdering:
+ * @GTK_ORDERING_SMALLER: the first value is smaller than the second
+ * @GTK_ORDERING_EQUAL: the two values are equal
+ * @GTK_ORDERING_LARGER: the first value is larger than the second
+ *
+ * Describes the way two values can be compared.
+ *
+ * These values can be used with a #GCompareFunc. However, a
+ * #GCompareFunc is allowed to return any integer values.  
+ * For converting such a value to a #GtkOrdering, use
+ * gtk_ordering_from_cmpfunc().
+ */
+typedef enum {
+  GTK_ORDERING_SMALLER = -1,
+  GTK_ORDERING_EQUAL = 0,
+  GTK_ORDERING_LARGER = 1
+} GtkOrdering;
+
+/**
+ * gtk_ordering_from_cmpfunc:
+ * @cmpfunc_result: Result of a comparison function
+ *
+ * Converts the result of a #GCompareFunc like strcmp() to a #GtkOrdering.
+ *
+ * Returns: the corresponding #GtkOrdering
+ **/
+static inline GtkOrdering
+gtk_ordering_from_cmpfunc (int cmpfunc_result)
+{
+  return (GtkOrdering) ((cmpfunc_result > 0) - (cmpfunc_result < 0));
+}
 
 /**
  * GtkPageOrientation:

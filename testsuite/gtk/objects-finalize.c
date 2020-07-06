@@ -71,7 +71,8 @@ test_finalize_object (gconstpointer data)
     }
   else if (g_type_is_a (test_type, GTK_TYPE_FILTER_LIST_MODEL) ||
            g_type_is_a (test_type, GTK_TYPE_NO_SELECTION) ||
-           g_type_is_a (test_type, GTK_TYPE_SINGLE_SELECTION))
+           g_type_is_a (test_type, GTK_TYPE_SINGLE_SELECTION) ||
+           g_type_is_a (test_type, GTK_TYPE_MULTI_SELECTION))
     {
       GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
       object = g_object_new (test_type,
@@ -79,9 +80,12 @@ test_finalize_object (gconstpointer data)
                              NULL);
       g_object_unref (list_store);
     }
-  else if (g_type_is_a (test_type, GTK_TYPE_LAYOUT_CHILD))
+  else if (g_type_is_a (test_type, GTK_TYPE_LAYOUT_CHILD) ||
+           g_type_is_a (test_type, GTK_TYPE_PROPERTY_SELECTION))
     {
-      g_test_skip ("Skipping GtkLayoutChild type");
+      char *msg = g_strdup_printf ("Skipping %s", g_type_name (test_type));
+      g_test_skip (msg);
+      g_free (msg);
       return;
     }
   else
@@ -130,7 +134,7 @@ main (int argc, char **argv)
   gint result;
   const char *display, *x_r_d;
 
-  /* These must be set before before gtk_test_init */
+  /* These must be set before gtk_test_init */
   g_setenv ("GIO_USE_VFS", "local", TRUE);
   g_setenv ("GSETTINGS_BACKEND", "memory", TRUE);
 

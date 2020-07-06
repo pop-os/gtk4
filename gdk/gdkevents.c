@@ -578,53 +578,6 @@ _gdk_event_queue_append (GdkDisplay *display,
 }
 
 /**
- * _gdk_event_queue_insert_after:
- * @display: a #GdkDisplay
- * @sibling: Append after this event.
- * @event: Event to append.
- *
- * Appends an event after the specified event, or if it isn’t in
- * the queue, onto the tail of the event queue.
- */
-void
-_gdk_event_queue_insert_after (GdkDisplay *display,
-                               GdkEvent   *sibling,
-                               GdkEvent   *event)
-{
-  GList *prev = g_queue_find (&display->queued_events, sibling);
-
-  if (prev)
-    g_queue_insert_after (&display->queued_events, prev, event);
-  else
-    g_queue_push_tail (&display->queued_events, event);
-}
-
-/**
- * _gdk_event_queue_insert_before:
- * @display: a #GdkDisplay
- * @sibling: Append before this event
- * @event: Event to prepend
- *
- * Prepends an event before the specified event, or if it isn’t in
- * the queue, onto the head of the event queue.
- *
- * Returns: the newly prepended list node.
- */
-void
-_gdk_event_queue_insert_before (GdkDisplay *display,
-				GdkEvent   *sibling,
-				GdkEvent   *event)
-{
-  GList *next = g_queue_find (&display->queued_events, sibling);
-
-  if (next)
-    g_queue_insert_before (&display->queued_events, next, event);
-  else
-    g_queue_push_head (&display->queued_events, event);
-}
-
-
-/**
  * _gdk_event_queue_remove_link:
  * @display: a #GdkDisplay
  * @node: node to remove
@@ -1466,6 +1419,32 @@ gdk_key_event_new (GdkEventType      type,
   return event;
 }
 
+/*< private >
+ * gdk_key_event_get_translated_key:
+ * @event: (type GdkKeyEvent): a key event
+ * @no_lock: whether the translated key should take the event
+ *   state into account
+ *
+ * Extracts the translated key from a key event.
+ *
+ * Returns: (transfer none): the translated key
+ */
+GdkTranslatedKey *
+gdk_key_event_get_translated_key (GdkEvent *event,
+                                  gboolean  no_lock)
+{
+  GdkKeyEvent *self = (GdkKeyEvent *) event;
+
+  g_return_val_if_fail (GDK_IS_EVENT (event), NULL);
+  g_return_val_if_fail (GDK_IS_EVENT_TYPE (event, GDK_KEY_PRESS) ||
+                        GDK_IS_EVENT_TYPE (event, GDK_KEY_RELEASE), NULL);
+
+  if (no_lock)
+    return &(self->translated[1]);
+
+  return &(self->translated[0]);
+}
+
 /**
  * gdk_key_event_get_keyval:
  * @event: (type GdkKeyEvent): a key event
@@ -2151,7 +2130,7 @@ gdk_focus_event_new (GdkSurface *surface,
 
 /**
  * gdk_focus_event_get_in:
- * @event: (type GdkScrollEvent): a focus change event
+ * @event: (type GdkFocusEvent): a focus change event
  *
  * Extracts whether this event is about focus entering or
  * leaving the surface.
@@ -2174,15 +2153,6 @@ gdk_focus_event_get_in (GdkEvent *event)
 /* {{{ GdkScrollEvent */
 
 static void
-gdk_scroll_event_init (GdkEvent *event)
-{
-  GdkScrollEvent *self = (GdkScrollEvent *) event;
-
-  self->x = NAN;
-  self->y = NAN;
-}
-
-static void
 gdk_scroll_event_finalize (GdkEvent *event)
 {
   GdkScrollEvent *self = (GdkScrollEvent *) event;
@@ -2200,19 +2170,6 @@ gdk_scroll_event_get_state (GdkEvent *event)
   return self->state;
 }
 
-static gboolean
-gdk_scroll_event_get_position (GdkEvent *event,
-                               double   *x,
-                               double   *y)
-{
-  GdkScrollEvent *self = (GdkScrollEvent *) event;
-
-  *x = self->x;
-  *y = self->y;
-
-  return TRUE;
-}
-
 static GdkDeviceTool *
 gdk_scroll_event_get_tool (GdkEvent *event)
 {
@@ -2223,10 +2180,10 @@ gdk_scroll_event_get_tool (GdkEvent *event)
 
 static const GdkEventTypeInfo gdk_scroll_event_info = {
   sizeof (GdkScrollEvent),
-  gdk_scroll_event_init,
+  NULL,
   gdk_scroll_event_finalize,
   gdk_scroll_event_get_state,
-  gdk_scroll_event_get_position,
+  NULL,
   NULL,
   gdk_scroll_event_get_tool,
   NULL,

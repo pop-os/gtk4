@@ -112,7 +112,6 @@ struct _GtkWidgetPrivate
   guint   valign              : 4;
 
   GtkOverflow overflow;
-  guint8 alpha;
   guint8 user_alpha;
 
 #ifdef G_ENABLE_CONSISTENCY_CHECKS
@@ -122,6 +121,7 @@ struct _GtkWidgetPrivate
 
   int width_request;
   int height_request;
+  void (* resize_func) (GtkWidget *);
   GtkBorder margin;
 
   /* Animations and other things to update on clock ticks */
@@ -193,6 +193,10 @@ struct _GtkWidgetPrivate
 
   /* Pointer cursor */
   GdkCursor *cursor;
+
+  /* Tooltip */
+  char *tooltip_markup;
+  char *tooltip_text;
 };
 
 typedef struct
@@ -364,6 +368,9 @@ gboolean gtk_widget_focus_child      (GtkWidget        *widget,
 gboolean gtk_widget_grab_focus_self  (GtkWidget        *widget);
 gboolean gtk_widget_focus_self       (GtkWidget        *widget,
                                       GtkDirectionType  direction);
+
+void    gtk_widget_update_orientation   (GtkWidget      *widget,
+                                         GtkOrientation  orientation);
 
 /* inline getters */
 

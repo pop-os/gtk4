@@ -49,7 +49,6 @@
 #include <cairo-win32.h>
 #include <dwmapi.h>
 #include <math.h>
-#include "fallback-c89.c"
 
 static void gdk_surface_win32_finalize (GObject *object);
 
@@ -2321,7 +2320,7 @@ stash_window (GdkSurface          *window,
     return;
 
   /* MSDN is very vague, but in practice rcNormalPosition is the same as GetWindowRect(),
-   * only with adjustments for toolbars (which creates rather weird coodinate space issues).
+   * only with adjustments for toolbars (which creates rather weird coordinate space issues).
    * We need to get monitor info and apply workarea vs monitorarea diff to turn
    * these into screen coordinates proper.
    */

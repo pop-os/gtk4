@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.98.4',
+        version: '3.98.5',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -27,7 +27,7 @@ else
 endif
 
 glib_req           = '>= @0@.@1@.@2@'.format(glib_major_req, glib_minor_req, glib_micro_req)
-pango_req          = '>= 1.44.4'
+pango_req          = '>= 1.45.0'
 fribidi_req        = '>= 0.19.7'
 atk_req            = '>= 2.15.1'
 cairo_req          = '>= 1.14.0'
@@ -191,16 +191,11 @@ check_functions = [
   'getresuid',
   'lstat',
   'mmap',
-  'nearbyint',
   'posix_fallocate',
   '_lock_file',
   'flockfile',
   'mkstemp',
   'mallinfo',
-  'round',
-  'rint',
-  'log2',
-  'exp2',
   'sincos',
   'sincosf',
 ]
@@ -210,9 +205,6 @@ foreach func : check_functions
     cdata.set('HAVE_' + func.underscorify().to_upper(), 1)
   endif
 endforeach
-
-cdata.set('HAVE_DECL_ISINF', cc.has_header_symbol('math.h', 'isinf'))
-cdata.set('HAVE_DECL_ISNAN', cc.has_header_symbol('math.h', 'isnan'))
 
 # Disable deprecation checks for all libraries we depend on on stable branches.
 # This is so newer versions of those libraries don't cause more warnings with
@@ -294,15 +286,19 @@ endif
 common_cflags = cc.get_supported_arguments(test_cflags)
 
 # Symbol visibility
+
+if os_win32
+  visibility_define = '__declspec(dllexport) extern'
+else
+  visibility_define = '__attribute__((visibility("default"))) extern'
+endif
+
 if get_option('default_library') != 'static'
+  cdata.set('_GDK_EXTERN', visibility_define)
   if os_win32
     cdata.set('DLL_EXPORT', true)
-    cdata.set('_GDK_EXTERN', '__declspec(dllexport) extern')
-    if cc.get_id() != 'msvc'
-      common_cflags += ['-fvisibility=hidden']
-    endif
-  else
-    cdata.set('_GDK_EXTERN', '__attribute__((visibility("default"))) extern')
+  endif
+  if cc.get_id() != 'msvc'
     common_cflags += ['-fvisibility=hidden']
   endif
 endif
@@ -352,10 +348,12 @@ fribidi_dep    = dependency('fribidi', version: fribidi_req,
 
 # Require PangoFT2 if on X11 or wayland
 require_pangoft2 = wayland_enabled or x11_enabled
-pangoft_dep    = dependency('pangoft2', required: false)
 
 if require_pangoft2
-  pangoft_dep    = dependency('pangoft2', fallback : ['pango', 'libpangoft2_dep'])
+  pangoft_dep    = dependency('pangoft2', version: pango_req,
+                              fallback : ['pango', 'libpangoft2_dep'])
+else
+  pangoft_dep    = dependency('pangoft2', required: false)
 endif
 
 if win32_enabled
@@ -363,7 +361,7 @@ if win32_enabled
   pangowin32_dep  = dependency('pangowin32')
 endif
 
-pangocairo_dep = dependency('pangocairo', version: cairo_req,
+pangocairo_dep = dependency('pangocairo', version: pango_req,
                             fallback : ['pango', 'libpangocairo_dep'])
 pixbuf_dep     = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_req,
                             fallback : ['gdk-pixbuf', 'gdkpixbuf_dep'])
@@ -384,6 +382,16 @@ if os_win32
 endif
 if os_unix
   platform_gio_dep = giounix_dep
+endif
+
+tracker3_enabled = get_option('tracker3')
+if tracker3_enabled
+  tracker3_dep = dependency('tracker-sparql-3.0', required: false)
+  if tracker3_dep.found()
+    cdata.set('HAVE_TRACKER3', tracker3_dep.found())
+  else
+    error('Tracker3 not found, but was explicitly requested.')
+  endif
 endif
 
 if iso_codes_dep.found()
@@ -497,6 +505,7 @@ if x11_enabled
   xi_dep         = dependency('xi')
   xext_dep       = dependency('xext')
   xcursor_dep    = dependency('xcursor', required: false)
+  xdamage_dep    = dependency('xdamage', required: false)
   xfixes_dep     = dependency('xfixes', required: false)
   xcomposite_dep = dependency('xcomposite', required: false)
   fontconfig_dep = dependency('fontconfig')
@@ -509,6 +518,9 @@ if x11_enabled
   if xcursor_dep.found()
     x11_pkgs += ['xcursor']
   endif
+  if xdamage_dep.found()
+    x11_pkgs += ['xdamage']
+  endif
   if xfixes_dep.found()
     x11_pkgs += ['xfixes']
   endif
@@ -519,6 +531,7 @@ if x11_enabled
   atk_pkgs += ['atk-bridge-2.0']
 
   cdata.set('HAVE_XCURSOR', xcursor_dep.found())
+  cdata.set('HAVE_XDAMAGE', xdamage_dep.found())
   cdata.set('HAVE_XCOMPOSITE', xcomposite_dep.found())
   cdata.set('HAVE_XFIXES', xfixes_dep.found())
 
@@ -770,10 +783,12 @@ pkg_install_dir = join_paths(get_option('libdir'), 'pkgconfig')
 pkgs = [ 'gtk4.pc' ]
 
 pkg_targets = ''
+display_backends = []
 foreach backend: [ 'broadway', 'quartz', 'wayland', 'win32', 'x11', ]
   if get_variable('@0@_enabled'.format(backend))
     pkgs += ['gtk4-@0@.pc'.format(backend)]
     pkg_targets += ' ' + backend
+    display_backends += [ backend ]
   endif
 endforeach
 pkgconf.set('GDK_BACKENDS', pkg_targets.strip())
@@ -819,7 +834,7 @@ endif
 
 #### Summary ####
 
-summary('Display backends', pkg_targets.strip())
+summary('Display backends', display_backends)
 summary('Print backends', print_backends)
 summary('Media backends', media_backends)
 summary('Vulkan support', have_vulkan)
