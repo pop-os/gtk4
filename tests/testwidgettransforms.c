@@ -162,7 +162,7 @@ gtk_transform_tester_snapshot (GtkWidget   *widget,
 
     for (x = 0; x < G_N_ELEMENTS (points); x ++)
       {
-        int px, py;
+        double px, py;
 
         gtk_widget_translate_coordinates (self->test_widget, widget,
                                           points[x].coords.x, points[x].coords.y,
@@ -321,7 +321,7 @@ main (int argc, char **argv)
   gtk_button_set_label (GTK_BUTTON (toggle_button), "Picking");
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (toggle_button), do_picking);
   g_signal_connect (toggle_button, "toggled", G_CALLBACK (toggled_cb), NULL);
-  gtk_container_add (GTK_CONTAINER (titlebar), toggle_button);
+  gtk_box_append (GTK_BOX (titlebar), toggle_button);
 
   test_widget = gtk_button_new ();
   gtk_widget_set_size_request (test_widget, TEST_WIDGET_MIN_SIZE, TEST_WIDGET_MIN_SIZE);
@@ -333,15 +333,15 @@ main (int argc, char **argv)
   gtk_widget_set_halign (test_child, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (test_child, GTK_ALIGN_CENTER);
   gtk_widget_set_size_request (test_child, TEST_WIDGET_MIN_SIZE / 2, TEST_WIDGET_MIN_SIZE / 2);
-  gtk_container_add (GTK_CONTAINER (test_widget), test_child);
+  gtk_box_append (GTK_BOX (test_widget), test_child);
 
 
   gtk_transform_tester_set_test_widget (GTK_TRANSFORM_TESTER (transform_tester), test_widget);
 
   gtk_widget_set_vexpand (transform_tester, TRUE);
-  gtk_container_add (GTK_CONTAINER (box), transform_tester);
-  gtk_container_add (GTK_CONTAINER (box), matrix_chooser);
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_box_append (GTK_BOX (box), transform_tester);
+  gtk_box_append (GTK_BOX (box), matrix_chooser);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   gtk_window_set_default_size ((GtkWindow *)window, 200, 200);
   g_signal_connect (window, "close-request", G_CALLBACK (quit_cb), &done);

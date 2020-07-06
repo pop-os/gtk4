@@ -250,14 +250,14 @@ static gboolean
 same_native (GtkWidget *widget,
              GtkWidget *target)
 {
-  GtkWidget *native;
-  GtkWidget *native2;
+  GtkNative *native;
+  GtkNative *native2;
 
   if (!widget || !target)
     return TRUE;
 
-  native = GTK_WIDGET (gtk_widget_get_native (widget));
-  native2 = GTK_WIDGET (gtk_widget_get_native (target));
+  native = gtk_widget_get_native (widget);
+  native2 = gtk_widget_get_native (target);
 
   return native == native2;
 }
@@ -407,7 +407,7 @@ gtk_event_controller_get_widget (GtkEventController *controller)
  * @controller: a #GtkEventController
  *
  * Resets the @controller to a clean state. Every interaction
- * the controller did through gtk_event_controll_handle_event()
+ * the controller did through gtk_event_controller_handle_event()
  * will be dropped at this point.
  **/
 void

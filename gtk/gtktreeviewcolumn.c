@@ -25,6 +25,7 @@
 #include "gtkcellareacontext.h"
 #include "gtkcelllayout.h"
 #include "gtkdragsource.h"
+#include "gtkframe.h"
 #include "gtkimage.h"
 #include "gtkintl.h"
 #include "gtklabel.h"
@@ -886,17 +887,17 @@ gtk_tree_view_column_create_button (GtkTreeViewColumn *tree_column)
 
   if (priv->xalign <= 0.5)
     {
-      gtk_container_add (GTK_CONTAINER (hbox), priv->frame);
-      gtk_container_add (GTK_CONTAINER (hbox), priv->arrow);
+      gtk_box_append (GTK_BOX (hbox), priv->frame);
+      gtk_box_append (GTK_BOX (hbox), priv->arrow);
     }
   else
     {
-      gtk_container_add (GTK_CONTAINER (hbox), priv->arrow);
-      gtk_container_add (GTK_CONTAINER (hbox), priv->frame);
+      gtk_box_append (GTK_BOX (hbox), priv->arrow);
+      gtk_box_append (GTK_BOX (hbox), priv->frame);
     }
 
-  gtk_container_add (GTK_CONTAINER (priv->frame), child);
-  gtk_container_add (GTK_CONTAINER (priv->button), hbox);
+  gtk_box_append (GTK_BOX (priv->frame), child);
+  gtk_button_set_child (GTK_BUTTON (priv->button), hbox);
 }
 
 static void 
@@ -916,7 +917,7 @@ gtk_tree_view_column_update_button (GtkTreeViewColumn *tree_column)
   else
     model = NULL;
 
-  hbox = gtk_bin_get_child (GTK_BIN (priv->button));
+  hbox = gtk_button_get_child (GTK_BUTTON (priv->button));
   frame = priv->frame;
   arrow = priv->arrow;
   current_child = gtk_widget_get_first_child (frame);
@@ -925,22 +926,19 @@ gtk_tree_view_column_update_button (GtkTreeViewColumn *tree_column)
   if (priv->child)
     {
       if (current_child != priv->child)
-	{
-          gtk_container_remove (GTK_CONTAINER (frame),
-				current_child);
-          gtk_container_add (GTK_CONTAINER (frame),
-			     priv->child);
-	}
+        {
+          gtk_box_remove (GTK_BOX (frame), current_child);
+          gtk_box_append (GTK_BOX (frame), priv->child);
+        }
     }
-  else 
+  else
     {
       if (current_child == NULL)
-	{
-	  current_child = gtk_label_new (NULL);
-	  gtk_widget_show (current_child);
-          gtk_container_add (GTK_CONTAINER (frame),
-			     current_child);
-	}
+        {
+          current_child = gtk_label_new (NULL);
+          gtk_widget_show (current_child);
+          gtk_box_append (GTK_BOX (frame), current_child);
+        }
 
       g_return_if_fail (GTK_IS_LABEL (current_child));
 
@@ -1024,11 +1022,11 @@ gtk_tree_view_column_update_button (GtkTreeViewColumn *tree_column)
   
   if (priv->reorderable || priv->clickable)
     {
-      gtk_widget_set_can_focus (priv->button, TRUE);
+      gtk_widget_set_focusable (priv->button, TRUE);
     }
   else
     {
-      gtk_widget_set_can_focus (priv->button, FALSE);
+      gtk_widget_set_focusable (priv->button, FALSE);
       if (gtk_widget_has_focus (priv->button))
 	{
           GtkRoot *root = gtk_widget_get_root (priv->tree_view);
@@ -1346,7 +1344,7 @@ _gtk_tree_view_column_unset_tree_view (GtkTreeViewColumn *column)
   if (priv->tree_view == NULL)
     return;
 
-  gtk_container_remove (GTK_CONTAINER (priv->tree_view), priv->button);
+  gtk_widget_unparent (priv->button);
 
   if (priv->property_changed_signal)
     {

@@ -157,9 +157,9 @@ create_text_view (GtkWidget *hbox,
   guint timeout;
 
   swindow = gtk_scrolled_window_new (NULL, NULL);
-  gtk_container_add (GTK_CONTAINER (hbox), swindow);
+  gtk_box_append (GTK_BOX (hbox), swindow);
   textview = gtk_text_view_new ();
-  gtk_container_add (GTK_CONTAINER (swindow), textview);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (swindow), textview);
 
   timeout = setup_scroll (GTK_TEXT_VIEW (textview), to_end);
 
@@ -182,13 +182,12 @@ do_textscroll (GtkWidget *do_widget)
 
       window = gtk_window_new ();
       gtk_window_set_title (GTK_WINDOW (window), "Automatic Scrolling");
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
       gtk_window_set_default_size (GTK_WINDOW (window), 600, 400);
 
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
       gtk_box_set_homogeneous (GTK_BOX (hbox), TRUE);
-      gtk_container_add (GTK_CONTAINER (window), hbox);
+      gtk_window_set_child (GTK_WINDOW (window), hbox);
 
       create_text_view (hbox, TRUE);
       create_text_view (hbox, FALSE);
@@ -197,7 +196,7 @@ do_textscroll (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

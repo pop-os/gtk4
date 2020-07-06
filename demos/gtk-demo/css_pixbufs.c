@@ -55,9 +55,13 @@ css_text_changed (GtkTextBuffer  *buffer,
 static void
 apply_css (GtkWidget *widget, GtkStyleProvider *provider)
 {
+  GtkWidget *child;
+
   gtk_style_context_add_provider (gtk_widget_get_style_context (widget), provider, G_MAXUINT);
-  if (GTK_IS_CONTAINER (widget))
-    gtk_container_forall (GTK_CONTAINER (widget), (GtkCallback) apply_css, provider);
+  for (child = gtk_widget_get_first_child (widget);
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child))
+    apply_css (child, provider);
 }
 
 GtkWidget *
@@ -76,15 +80,14 @@ do_css_pixbufs (GtkWidget *do_widget)
       gtk_window_set_title (GTK_WINDOW (window), "Animated Backgrounds");
       gtk_window_set_transient_for (GTK_WINDOW (window), GTK_WINDOW (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window), 400, 300);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       paned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
-      gtk_container_add (GTK_CONTAINER (window), paned);
+      gtk_window_set_child (GTK_WINDOW (window), paned);
 
       /* Need a filler so we get a handle */
       child = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-      gtk_container_add (GTK_CONTAINER (paned), child);
+      gtk_paned_set_start_child (GTK_PANED (paned), child);
 
       text = gtk_text_buffer_new (NULL);
       gtk_text_buffer_create_tag (text,
@@ -99,9 +102,9 @@ do_css_pixbufs (GtkWidget *do_widget)
       provider = GTK_STYLE_PROVIDER (gtk_css_provider_new ());
 
       container = gtk_scrolled_window_new (NULL, NULL);
-      gtk_container_add (GTK_CONTAINER (paned), container);
+      gtk_paned_set_end_child (GTK_PANED (paned), container);
       child = gtk_text_view_new_with_buffer (text);
-      gtk_container_add (GTK_CONTAINER (container), child);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (container), child);
       g_signal_connect (text, "changed",
                         G_CALLBACK (css_text_changed), provider);
 
@@ -120,7 +123,7 @@ do_css_pixbufs (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

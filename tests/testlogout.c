@@ -86,13 +86,13 @@ activate (GtkApplication *app,
   gtk_widget_set_margin_end (box, 12);
   gtk_widget_set_margin_top (box, 12);
   gtk_widget_set_margin_bottom (box, 12);
-  gtk_container_add (GTK_CONTAINER (win), box);
+  gtk_window_set_child (GTK_WINDOW (win), box);
 
   grid = gtk_grid_new ();
   gtk_grid_set_row_spacing (GTK_GRID (grid), 6);
   gtk_grid_set_column_spacing (GTK_GRID (grid), 6);
 
-  gtk_container_add (GTK_CONTAINER (box), grid);
+  gtk_box_append (GTK_BOX (box), grid);
 
   label = gtk_label_new ("Inhibitor");
   gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
@@ -121,7 +121,7 @@ activate (GtkApplication *app,
   gtk_grid_attach (GTK_GRID (grid), button, 2, 6, 1, 1);
 
   separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
-  gtk_container_add (GTK_CONTAINER (box), separator);
+  gtk_box_append (GTK_BOX (box), separator);
 
   grid = gtk_grid_new ();
   gtk_grid_set_row_spacing (GTK_GRID (grid), 6);
@@ -130,14 +130,6 @@ activate (GtkApplication *app,
   gtk_widget_show (win);
 
   gtk_application_add_window (app, GTK_WINDOW (win));
-}
-
-static void
-quit (GtkApplication *app,
-      gpointer        data)
-{
-  g_print ("Received quit\n");
-  gtk_widget_destroy (win);
 }
 
 int
@@ -150,8 +142,6 @@ main (int argc, char *argv[])
 
   g_signal_connect (app, "activate",
                     G_CALLBACK (activate), NULL);
-  g_signal_connect (app, "quit",
-                    G_CALLBACK (quit), NULL);
 
   g_application_run (G_APPLICATION (app), argc, argv);
 

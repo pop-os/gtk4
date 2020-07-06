@@ -23,7 +23,7 @@ activate (GtkApplication *app,
   grid = gtk_grid_new ();
 
   /* Pack the container in the window */
-  gtk_container_add (GTK_CONTAINER (window), grid);
+  gtk_window_set_child (GTK_WINDOW (window), grid);
 
   button = gtk_button_new_with_label ("Button 1");
   g_signal_connect (button, "clicked", G_CALLBACK (print_hello), NULL);
@@ -42,7 +42,7 @@ activate (GtkApplication *app,
   gtk_grid_attach (GTK_GRID (grid), button, 1, 0, 1, 1);
 
   button = gtk_button_new_with_label ("Quit");
-  g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
+  g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_destroy), window);
 
   /* Place the Quit button in the grid cell (0, 1), and make it
    * span 2 columns.

@@ -339,6 +339,7 @@ drawing_area_init (DrawingArea *area)
   gtk_widget_add_controller (GTK_WIDGET (area), GTK_EVENT_CONTROLLER (gesture));
 
   area->draw_color = (GdkRGBA) { 0, 0, 0, 1 };
+  area->brush_size = 1;
 }
 
 static GtkWidget *
@@ -388,10 +389,9 @@ do_paint (GtkWidget *toplevel)
       window = gtk_window_new ();
 
       draw_area = drawing_area_new ();
-      gtk_container_add (GTK_CONTAINER (window), draw_area);
+      gtk_window_set_child (GTK_WINDOW (window), draw_area);
 
       headerbar = gtk_header_bar_new ();
-      gtk_header_bar_set_title (GTK_HEADER_BAR (headerbar), "Paint");
       gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (headerbar), TRUE);
 
       colorbutton = gtk_color_button_new ();
@@ -404,16 +404,14 @@ do_paint (GtkWidget *toplevel)
 
       gtk_header_bar_pack_end (GTK_HEADER_BAR (headerbar), colorbutton);
       gtk_window_set_titlebar (GTK_WINDOW (window), headerbar);
-
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
-
+      gtk_window_set_title (GTK_WINDOW (window), "Paint");
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
     }
 
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

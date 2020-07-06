@@ -155,6 +155,7 @@ gtk_fps_overlay_snapshot (GtkInspectorOverlay *overlay,
   GtkFpsOverlay *self = GTK_FPS_OVERLAY (overlay);
   GtkFpsInfo *info;
   PangoLayout *layout;
+  PangoAttrList *attrs;
   gint64 now;
   double fps;
   char *fps_string;
@@ -203,7 +204,7 @@ gtk_fps_overlay_snapshot (GtkInspectorOverlay *overlay,
 
   if (GTK_IS_WINDOW (widget))
     {
-      GtkWidget *child = gtk_bin_get_child (GTK_BIN (widget));
+      GtkWidget *child = gtk_window_get_child (GTK_WINDOW (widget));
       if (!child ||
           !gtk_widget_compute_bounds (child, widget, &bounds))
         has_bounds = gtk_widget_compute_bounds (widget, widget, &bounds);
@@ -216,6 +217,10 @@ gtk_fps_overlay_snapshot (GtkInspectorOverlay *overlay,
     }
 
   layout = gtk_widget_create_pango_layout (widget, fps_string);
+  attrs = pango_attr_list_new ();
+  pango_attr_list_insert (attrs, pango_attr_font_features_new ("tnum=1"));
+  pango_layout_set_attributes (layout, attrs);
+  pango_attr_list_unref (attrs);
   pango_layout_get_pixel_size (layout, &width, &height);
 
   gtk_snapshot_save (snapshot);

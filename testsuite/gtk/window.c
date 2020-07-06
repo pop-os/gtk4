@@ -77,7 +77,7 @@ test_default_size (void)
 
   da = gtk_drawing_area_new ();
   gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (da), on_draw, NULL, NULL);
-  gtk_container_add (GTK_CONTAINER (window), da);
+  gtk_window_set_child (GTK_WINDOW (window), da);
 
   /* check that default size is unset initially */
   gtk_window_get_default_size (GTK_WINDOW (window), &w, &h);
@@ -144,7 +144,7 @@ test_default_size (void)
   g_assert_cmpint (w, ==, 300);
   g_assert_cmpint (h, ==, 300);
 
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
 }
 
 static void
@@ -165,7 +165,7 @@ test_resize (void)
 
   da = gtk_drawing_area_new ();
   gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (da), on_draw, NULL, NULL);
-  gtk_container_add (GTK_CONTAINER (window), da);
+  gtk_window_set_child (GTK_WINDOW (window), da);
 
   /* test that resize before show overrides default size */
   gtk_window_set_default_size (GTK_WINDOW (window), 500, 500);
@@ -207,7 +207,7 @@ test_resize (void)
   g_assert_cmpint (w, ==, 200);
   g_assert_cmpint (h, ==, 400);
 
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
 }
 
 static void
@@ -237,7 +237,7 @@ test_resize_popup (void)
   g_assert_cmpint (w, ==, 1);
   g_assert_cmpint (h, ==, 1);
 
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
 }
 
 static void
@@ -287,7 +287,7 @@ test_show_hide (void)
   g_assert_cmpint (w, ==, w1);
   g_assert_cmpint (h, ==, h1);
 
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
 }
 
 int

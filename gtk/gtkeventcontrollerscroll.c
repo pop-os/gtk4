@@ -41,7 +41,7 @@
  *
  * The controller can be set up to emit motion for either/both vertical
  * and horizontal scroll events through #GTK_EVENT_CONTROLLER_SCROLL_VERTICAL,
- * #GTK_EVENT_CONTROLLER_SCROLL_HORIZONTAL and #GTK_EVENT_CONTROLLER_SCROLL_BOTH.
+ * #GTK_EVENT_CONTROLLER_SCROLL_HORIZONTAL and #GTK_EVENT_CONTROLLER_SCROLL_BOTH_AXES.
  * If any axis is disabled, the respective #GtkEventControllerScroll::scroll
  * delta will be 0. Vertical scroll events will be translated to horizontal
  * motion for the devices incapable of horizontal scrolling.
@@ -329,12 +329,11 @@ gtk_event_controller_scroll_handle_event (GtkEventController *controller,
     }
 
   if (dx != 0 || dy != 0)
-    {
-      g_signal_emit (controller, signals[SCROLL], 0, dx, dy, &handled);
+    g_signal_emit (controller, signals[SCROLL], 0, dx, dy, &handled);
 
-      if (scroll->flags & GTK_EVENT_CONTROLLER_SCROLL_KINETIC)
-        scroll_history_push (scroll, dx, dy, gdk_event_get_time (event));
-    }
+  if (direction == GDK_SCROLL_SMOOTH &&
+      scroll->flags & GTK_EVENT_CONTROLLER_SCROLL_KINETIC)
+    scroll_history_push (scroll, dx, dy, gdk_event_get_time (event));
 
   if (scroll->active && gdk_scroll_event_is_stop (event))
     {

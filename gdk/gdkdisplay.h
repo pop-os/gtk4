@@ -65,6 +65,8 @@ GDK_AVAILABLE_IN_ALL
 gboolean    gdk_display_is_composited      (GdkDisplay  *display);
 GDK_AVAILABLE_IN_ALL
 gboolean    gdk_display_is_rgba            (GdkDisplay  *display);
+GDK_AVAILABLE_IN_ALL
+gboolean    gdk_display_supports_input_shapes (GdkDisplay    *display);
 
 GDK_AVAILABLE_IN_ALL
 GdkEvent* gdk_display_get_event  (GdkDisplay     *display);
@@ -88,10 +90,6 @@ GDK_AVAILABLE_IN_ALL
 GdkClipboard *          gdk_display_get_primary_clipboard       (GdkDisplay     *display);
 
 GDK_AVAILABLE_IN_ALL
-gboolean gdk_display_supports_shapes           (GdkDisplay    *display);
-GDK_AVAILABLE_IN_ALL
-gboolean gdk_display_supports_input_shapes     (GdkDisplay    *display);
-GDK_AVAILABLE_IN_ALL
 void     gdk_display_notify_startup_complete   (GdkDisplay    *display,
                                                 const gchar   *startup_id);
 GDK_AVAILABLE_IN_ALL
@@ -107,10 +105,7 @@ GDK_AVAILABLE_IN_ALL
 GList   * gdk_display_list_seats       (GdkDisplay *display);
 
 GDK_AVAILABLE_IN_ALL
-int          gdk_display_get_n_monitors        (GdkDisplay *display);
-GDK_AVAILABLE_IN_ALL
-GdkMonitor * gdk_display_get_monitor           (GdkDisplay *display,
-                                                int         monitor_num);
+GListModel * gdk_display_get_monitors          (GdkDisplay *self) G_GNUC_PURE;
 GDK_AVAILABLE_IN_ALL
 GdkMonitor * gdk_display_get_monitor_at_surface (GdkDisplay *display,
                                                 GdkSurface  *surface);

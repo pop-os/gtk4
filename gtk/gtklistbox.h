@@ -26,7 +26,7 @@
 #error "Only <gtk/gtk.h> can be included directly."
 #endif
 
-#include <gtk/gtkbin.h>
+#include <gtk/gtkwidget.h>
 
 G_BEGIN_DECLS
 
@@ -48,7 +48,7 @@ typedef struct _GtkListBoxRowClass   GtkListBoxRowClass;
 
 struct _GtkListBoxRow
 {
-  GtkBin parent_instance;
+  GtkWidget parent_instance;
 };
 
 /**
@@ -58,7 +58,7 @@ struct _GtkListBoxRow
  */
 struct _GtkListBoxRowClass
 {
-  GtkBinClass parent_class;
+  GtkWidgetClass parent_class;
 
   /*< public >*/
 
@@ -129,6 +129,13 @@ GDK_AVAILABLE_IN_ALL
 GType      gtk_list_box_row_get_type      (void) G_GNUC_CONST;
 GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_list_box_row_new           (void);
+
+GDK_AVAILABLE_IN_ALL
+void       gtk_list_box_row_set_child     (GtkListBoxRow *row,
+                                           GtkWidget      *child);
+GDK_AVAILABLE_IN_ALL
+GtkWidget *gtk_list_box_row_get_child     (GtkListBoxRow *row);
+
 GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_list_box_row_get_header    (GtkListBoxRow *row);
 GDK_AVAILABLE_IN_ALL
@@ -164,6 +171,9 @@ GDK_AVAILABLE_IN_ALL
 void           gtk_list_box_insert                       (GtkListBox                    *box,
                                                           GtkWidget                     *child,
                                                           gint                           position);
+GDK_AVAILABLE_IN_ALL
+void           gtk_list_box_remove                       (GtkListBox                    *box,
+                                                          GtkWidget                     *child);
 GDK_AVAILABLE_IN_ALL
 GtkListBoxRow* gtk_list_box_get_selected_row             (GtkListBox                    *box);
 GDK_AVAILABLE_IN_ALL

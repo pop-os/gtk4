@@ -180,7 +180,7 @@ typedef struct _GtkNotebookClass         GtkNotebookClass;
 
 struct _GtkNotebookClass
 {
-  GtkContainerClass parent_class;
+  GtkWidgetClass parent_class;
 
   void (* switch_page)       (GtkNotebook     *notebook,
                               GtkWidget       *page,
@@ -223,7 +223,7 @@ struct _GtkNotebookClass
 
 struct _GtkNotebook
 {
-  GtkContainer container;
+  GtkWidget container;
 
   GtkNotebookDragOperation   operation;
   GtkNotebookPage           *cur_page;
@@ -763,7 +763,6 @@ static void gtk_notebook_finalize            (GObject         *object);
 static void gtk_notebook_dispose             (GObject         *object);
 
 /*** GtkWidget Methods ***/
-static void gtk_notebook_destroy             (GtkWidget        *widget);
 static void gtk_notebook_unmap               (GtkWidget        *widget);
 static void gtk_notebook_popup_menu          (GtkWidget        *widget,
                                               const char       *action_name,
@@ -800,15 +799,8 @@ static gboolean gtk_notebook_drag_drop       (GtkDropTarget    *dest,
                                               double            y,
                                               GtkNotebook      *notebook);
 
-/*** GtkContainer Methods ***/
-static void gtk_notebook_add                 (GtkContainer     *container,
+static void gtk_notebook_remove              (GtkNotebook      *notebook,
                                               GtkWidget        *widget);
-static void gtk_notebook_remove              (GtkContainer     *container,
-                                              GtkWidget        *widget);
-static GType gtk_notebook_child_type       (GtkContainer     *container);
-static void gtk_notebook_forall              (GtkContainer     *container,
-                                              GtkCallback       callback,
-                                              gpointer          callback_data);
 
 /*** GtkNotebook Methods ***/
 static gint gtk_notebook_real_insert_page    (GtkNotebook      *notebook,
@@ -884,8 +876,7 @@ static void gtk_notebook_menu_item_create    (GtkNotebook      *notebook,
                                               GtkNotebookPage  *page);
 static void gtk_notebook_menu_item_recreate  (GtkNotebook      *notebook,
                                               GList            *list);
-static void gtk_notebook_menu_label_unparent (GtkWidget        *widget,
-                                              gpointer          data);
+static void gtk_notebook_menu_label_unparent (GtkWidget        *widget);
 
 static void gtk_notebook_update_tab_pos      (GtkNotebook      *notebook);
 
@@ -924,7 +915,7 @@ static void gtk_notebook_gesture_released (GtkGestureClick *gesture,
 
 static guint notebook_signals[LAST_SIGNAL] = { 0 };
 
-G_DEFINE_TYPE_WITH_CODE (GtkNotebook, gtk_notebook, GTK_TYPE_CONTAINER,
+G_DEFINE_TYPE_WITH_CODE (GtkNotebook, gtk_notebook, GTK_TYPE_WIDGET,
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
                                                 gtk_notebook_buildable_init))
 
@@ -1031,14 +1022,12 @@ gtk_notebook_class_init (GtkNotebookClass *class)
 {
   GObjectClass   *gobject_class = G_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
-  GtkContainerClass *container_class = GTK_CONTAINER_CLASS (class);
 
   gobject_class->set_property = gtk_notebook_set_property;
   gobject_class->get_property = gtk_notebook_get_property;
   gobject_class->finalize = gtk_notebook_finalize;
   gobject_class->dispose = gtk_notebook_dispose;
 
-  widget_class->destroy = gtk_notebook_destroy;
   widget_class->unmap = gtk_notebook_unmap;
   widget_class->grab_notify = gtk_notebook_grab_notify;
   widget_class->state_flags_changed = gtk_notebook_state_flags_changed;
@@ -1047,11 +1036,6 @@ gtk_notebook_class_init (GtkNotebookClass *class)
   widget_class->grab_focus = gtk_notebook_grab_focus;
   widget_class->set_focus_child = gtk_notebook_set_focus_child;
   widget_class->compute_expand = gtk_notebook_compute_expand;
-
-  container_class->add = gtk_notebook_add;
-  container_class->remove = gtk_notebook_remove;
-  container_class->forall = gtk_notebook_forall;
-  container_class->child_type = gtk_notebook_child_type;
 
   class->switch_page = gtk_notebook_real_switch_page;
   class->insert_page = gtk_notebook_real_insert_page;
@@ -1416,6 +1400,8 @@ gtk_notebook_init (GtkNotebook *notebook)
   notebook->detached_tab = NULL;
   notebook->has_scrolled = FALSE;
 
+  gtk_widget_set_focusable (GTK_WIDGET (notebook), TRUE);
+
   notebook->header_widget = g_object_new (GTK_TYPE_BOX,
                                           "css-name", "header",
                                           NULL);
@@ -1431,7 +1417,7 @@ gtk_notebook_init (GtkNotebook *notebook)
                                          (GtkGizmoFocusFunc)gtk_widget_focus_self,
                                          (GtkGizmoGrabFocusFunc)gtk_widget_grab_focus_self);
   gtk_widget_set_hexpand (notebook->tabs_widget, TRUE);
-  gtk_container_add (GTK_CONTAINER (notebook->header_widget), notebook->tabs_widget);
+  gtk_box_append (GTK_BOX (notebook->header_widget), notebook->tabs_widget);
 
   notebook->stack_widget = gtk_stack_new ();
   gtk_widget_set_hexpand (notebook->stack_widget, TRUE);
@@ -1887,7 +1873,6 @@ gtk_notebook_get_property (GObject         *object,
 
 /* Private GtkWidget Methods :
  *
- * gtk_notebook_destroy
  * gtk_notebook_map
  * gtk_notebook_unmap
  * gtk_notebook_snapshot
@@ -1899,16 +1884,6 @@ gtk_notebook_get_property (GObject         *object,
  * gtk_notebook_drag_drop
  * gtk_notebook_drag_data_get
  */
-static void
-gtk_notebook_destroy (GtkWidget *widget)
-{
-  GtkNotebook *notebook = GTK_NOTEBOOK (widget);
-
-  if (notebook->pages)
-    g_list_model_items_changed (G_LIST_MODEL (notebook->pages), 0, g_list_length (notebook->children), 0);
-
-  GTK_WIDGET_CLASS (gtk_notebook_parent_class)->destroy (widget);
-}
 
 static void
 gtk_notebook_finalize (GObject *object)
@@ -1927,12 +1902,15 @@ gtk_notebook_dispose (GObject *object)
   GtkNotebook *notebook = GTK_NOTEBOOK (object);
   GList *l = notebook->children;
 
+  if (notebook->pages)
+    g_list_model_items_changed (G_LIST_MODEL (notebook->pages), 0, g_list_length (notebook->children), 0);
+
   while (l != NULL)
     {
       GtkNotebookPage *page = l->data;
       l = l->next;
 
-      gtk_notebook_remove (GTK_CONTAINER (notebook), page->child);
+      gtk_notebook_remove (notebook, page->child);
     }
 
   G_OBJECT_CLASS (gtk_notebook_parent_class)->dispose (object);
@@ -2680,7 +2658,7 @@ tab_drag_end (GtkNotebook     *notebook,
   if (!NOTEBOOK_IS_TAB_LABEL_PARENT (notebook, page))
     {
       g_object_ref (page->tab_label);
-      gtk_container_remove (GTK_CONTAINER (gtk_widget_get_parent (page->tab_label)), page->tab_label);
+      gtk_box_remove (GTK_BOX (gtk_widget_get_parent (page->tab_label)), page->tab_label);
       gtk_widget_set_parent (page->tab_label, page->tab_widget);
       g_object_unref (page->tab_label);
     }
@@ -3345,7 +3323,7 @@ gtk_notebook_detach_tab (GtkNotebook *notebook,
                          GtkWidget   *child)
 {
   notebook->remove_in_detach = TRUE;
-  gtk_container_remove (GTK_CONTAINER (notebook), child);
+  gtk_notebook_remove (notebook, child);
   notebook->remove_in_detach = FALSE;
 }
 
@@ -3408,26 +3386,14 @@ do_detach_tab (GtkNotebook *from,
 
 /* Private GtkContainer Methods :
  *
- * gtk_notebook_add
  * gtk_notebook_remove
  * gtk_notebook_focus
  * gtk_notebook_set_focus_child
- * gtk_notebook_child_type
- * gtk_notebook_forall
  */
 static void
-gtk_notebook_add (GtkContainer *container,
-                  GtkWidget    *widget)
+gtk_notebook_remove (GtkNotebook *notebook,
+                     GtkWidget   *widget)
 {
-  gtk_notebook_insert_page_menu (GTK_NOTEBOOK (container), widget,
-                                 NULL, NULL, -1);
-}
-
-static void
-gtk_notebook_remove (GtkContainer *container,
-                     GtkWidget    *widget)
-{
-  GtkNotebook *notebook = GTK_NOTEBOOK (container);
   GtkNotebookPage *page;
   GList *children, *list;
   gint page_num = 0;
@@ -3790,31 +3756,6 @@ gtk_notebook_set_focus_child (GtkWidget *widget,
   GTK_WIDGET_CLASS (gtk_notebook_parent_class)->set_focus_child (widget, child);
 }
 
-static void
-gtk_notebook_forall (GtkContainer *container,
-                     GtkCallback   callback,
-                     gpointer      callback_data)
-{
-  GtkNotebook *notebook = GTK_NOTEBOOK (container);
-  GList *children;
-
-  children = notebook->children;
-  while (children)
-    {
-      GtkNotebookPage *page;
-
-      page = children->data;
-      children = children->next;
-      (* callback) (page->child, callback_data);
-    }
-}
-
-static GType
-gtk_notebook_child_type (GtkContainer     *container)
-{
-  return GTK_TYPE_WIDGET;
-}
-
 /* Private GtkNotebook Methods:
  *
  * gtk_notebook_real_insert_page
@@ -4012,7 +3953,7 @@ gtk_notebook_insert_notebook_page (GtkNotebook *notebook,
   if (notebook->menu)
     gtk_notebook_menu_item_create (notebook, page);
 
-  gtk_container_add (GTK_CONTAINER (notebook->stack_widget), page->child);
+  gtk_stack_add_named (GTK_STACK (notebook->stack_widget), page->child, NULL);
 
   if (page->tab_label)
     {
@@ -4167,7 +4108,7 @@ gtk_notebook_remove_tab_label (GtkNotebook     *notebook,
           /* we hit this condition during dnd of a detached tab */
           parent = gtk_widget_get_parent (page->tab_label);
           if (GTK_IS_WINDOW (parent))
-            gtk_container_remove (GTK_CONTAINER (parent), page->tab_label);
+            gtk_box_remove (GTK_BOX (parent), page->tab_label);
           else
             gtk_widget_unparent (page->tab_label);
         }
@@ -4229,7 +4170,7 @@ gtk_notebook_real_remove (GtkNotebook *notebook,
       gtk_widget_get_visible (GTK_WIDGET (notebook)))
     need_resize = TRUE;
 
-  gtk_container_remove (GTK_CONTAINER (notebook->stack_widget), page->child);
+  gtk_stack_remove (GTK_STACK (notebook->stack_widget), page->child);
 
   tab_label = page->tab_label;
   if (tab_label)
@@ -4237,7 +4178,7 @@ gtk_notebook_real_remove (GtkNotebook *notebook,
       g_object_ref (tab_label);
       gtk_notebook_remove_tab_label (notebook, page);
       if (destroying)
-        gtk_widget_destroy (tab_label);
+        gtk_widget_unparent (tab_label);
       g_object_unref (tab_label);
     }
 
@@ -4245,8 +4186,9 @@ gtk_notebook_real_remove (GtkNotebook *notebook,
     {
       GtkWidget *parent = gtk_widget_get_parent (page->menu_label);
 
-      gtk_notebook_menu_label_unparent (parent, NULL);
-      gtk_container_remove (GTK_CONTAINER (notebook->menu), parent);
+      if (parent)
+        gtk_notebook_menu_label_unparent (parent);
+      gtk_popover_set_child (GTK_POPOVER (notebook->menu), NULL);
 
       gtk_widget_queue_resize (notebook->menu);
     }
@@ -5546,8 +5488,8 @@ gtk_notebook_menu_item_create (GtkNotebook *notebook,
 
   menu_item = gtk_button_new ();
   gtk_button_set_has_frame (GTK_BUTTON (menu_item), FALSE);
-  gtk_container_add (GTK_CONTAINER (menu_item), page->menu_label);
-  gtk_container_add (GTK_CONTAINER (notebook->menu_box), menu_item);
+  gtk_button_set_child (GTK_BUTTON (menu_item), page->menu_label);
+  gtk_box_append (GTK_BOX (notebook->menu_box), menu_item);
   g_signal_connect (menu_item, "clicked",
                     G_CALLBACK (gtk_notebook_menu_switch_page), page);
   if (!gtk_widget_get_visible (page->child))
@@ -5561,17 +5503,15 @@ gtk_notebook_menu_item_recreate (GtkNotebook *notebook,
   GtkNotebookPage *page = list->data;
   GtkWidget *menu_item = gtk_widget_get_parent (page->menu_label);
 
-  gtk_container_remove (GTK_CONTAINER (menu_item), page->menu_label);
-  gtk_container_remove (GTK_CONTAINER (notebook->menu), menu_item);
+  gtk_box_remove (GTK_BOX (menu_item), page->menu_label);
+  gtk_widget_unparent (menu_item);
   gtk_notebook_menu_item_create (notebook, page);
 }
 
 static void
-gtk_notebook_menu_label_unparent (GtkWidget *widget,
-                                  gpointer  data)
+gtk_notebook_menu_label_unparent (GtkWidget *widget)
 {
-  gtk_widget_unparent (gtk_bin_get_child (GTK_BIN (widget)));
-  _gtk_bin_set_child (GTK_BIN (widget), NULL);
+  gtk_button_set_child (GTK_BUTTON (widget), NULL);
 }
 
 /* Public GtkNotebook Page Insert/Remove Methods :
@@ -5818,8 +5758,7 @@ gtk_notebook_remove_page (GtkNotebook *notebook,
     list = g_list_last (notebook->children);
 
   if (list)
-    gtk_container_remove (GTK_CONTAINER (notebook),
-                          ((GtkNotebookPage *) list->data)->child);
+    gtk_notebook_remove (notebook, ((GtkNotebookPage *) list->data)->child);
 }
 
 /* Public GtkNotebook Page Switch Methods :
@@ -6108,7 +6047,7 @@ gtk_notebook_set_show_tabs (GtkNotebook *notebook,
           children = children->next;
           if (page->default_tab)
             {
-              gtk_widget_destroy (page->tab_label);
+              gtk_widget_unparent (page->tab_label);
               page->tab_label = NULL;
             }
           else
@@ -6370,6 +6309,7 @@ gtk_notebook_popup_enable (GtkNotebook *notebook)
   gtk_widget_set_parent (notebook->menu, notebook->tabs_widget);
 
   notebook->menu_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+  g_object_ref_sink (notebook->menu_box);
   gtk_popover_menu_add_submenu (GTK_POPOVER_MENU (notebook->menu), notebook->menu_box, "main");
 
   for (list = gtk_notebook_search_page (notebook, NULL, STEP_NEXT, FALSE);
@@ -6391,14 +6331,17 @@ gtk_notebook_popup_enable (GtkNotebook *notebook)
 void
 gtk_notebook_popup_disable (GtkNotebook *notebook)
 {
+  GtkWidget *child;
+
   g_return_if_fail (GTK_IS_NOTEBOOK (notebook));
 
   if (!notebook->menu)
     return;
 
-  gtk_container_foreach (GTK_CONTAINER (notebook->menu_box),
-                         (GtkCallback) gtk_notebook_menu_label_unparent, NULL);
-  gtk_widget_destroy (notebook->menu);
+  for (child = gtk_widget_get_first_child (notebook->menu_box);
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child))
+    gtk_notebook_menu_label_unparent (child);
   notebook->menu = NULL;
   notebook->menu_box = NULL;
 
@@ -6634,8 +6577,7 @@ gtk_notebook_set_menu_label (GtkNotebook *notebook,
   if (page->menu_label)
     {
       if (notebook->menu)
-        gtk_container_remove (GTK_CONTAINER (notebook->menu),
-                              gtk_widget_get_parent (page->menu_label));
+        gtk_widget_unparent (gtk_widget_get_parent (page->menu_label));
 
       g_clear_object (&page->menu_label);
     }
@@ -7054,13 +6996,13 @@ gtk_notebook_set_action_widget (GtkNotebook *notebook,
   g_return_if_fail (!widget || gtk_widget_get_parent (widget) == NULL);
 
   if (notebook->action_widget[pack_type])
-    gtk_container_remove (GTK_CONTAINER (notebook->header_widget), notebook->action_widget[pack_type]);
+    gtk_box_remove (GTK_BOX (notebook->header_widget), notebook->action_widget[pack_type]);
 
   notebook->action_widget[pack_type] = widget;
 
   if (widget)
     {
-      gtk_container_add (GTK_CONTAINER (notebook->header_widget), widget);
+      gtk_box_append (GTK_BOX (notebook->header_widget), widget);
       if (pack_type == GTK_PACK_START)
         gtk_box_reorder_child_after (GTK_BOX (notebook->header_widget), widget, NULL);
       else
@@ -7190,7 +7132,8 @@ gtk_notebook_pages_new (GtkNotebook *notebook)
  * Returns a #GListModel that contains the pages of the notebook,
  * and can be used to keep an up-to-date view.
  * 
- * Returns: (transfer full): a #GListModel for the notebook's children
+ * Returns: (transfer full) (attributes element-type=GtkNotebookPage): a
+ *   #GListModel for the notebook's children
  */
 GListModel *
 gtk_notebook_get_pages (GtkNotebook *notebook)

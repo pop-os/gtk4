@@ -135,8 +135,6 @@ struct _GtkWidget
  * @activate_signal: The signal to emit when a widget of this class is
  *   activated, gtk_widget_activate() handles the emission.
  *   Implementation of this signal is optional.
- * @destroy: Signals that all holders of a reference to the widget
- *   should release the reference that they hold.
  * @show: Signal emitted when widget is shown
  * @hide: Signal emitted when widget is hidden.
  * @map: Signal emitted when widget is going to be mapped, that is
@@ -201,7 +199,8 @@ struct _GtkWidget
  *   should then discard their caches that depend on CSS and queue resizes or
  *   redraws accordingly. The default implementation will take care of this for
  *   all the default CSS properties, so implementations must chain up.
- * @snapshot: Vfunc for gtk_widget_snapshot().
+ * @system_setting_changed: Emitted when a system setting was changed. Must chain up.
+ * @snapshot: Vfunc called when a new snapshot of the widget has to be taken.
  * @contains: Vfunc for gtk_widget_contains().
  */
 struct _GtkWidgetClass
@@ -213,7 +212,6 @@ struct _GtkWidgetClass
   guint activate_signal;
 
   /* basics */
-  void (* destroy)             (GtkWidget        *widget);
   void (* show)                (GtkWidget        *widget);
   void (* hide)                (GtkWidget        *widget);
   void (* map)                 (GtkWidget        *widget);
@@ -277,6 +275,9 @@ struct _GtkWidgetClass
   void         (* css_changed)                 (GtkWidget            *widget,
                                                 GtkCssStyleChange    *change);
 
+  void         (* system_setting_changed)      (GtkWidget            *widget,
+                                                GtkSystemSetting      settings);
+
   void         (* snapshot)                    (GtkWidget            *widget,
                                                 GtkSnapshot          *snapshot);
 
@@ -298,11 +299,6 @@ GDK_AVAILABLE_IN_ALL
 GtkWidget* gtk_widget_new                 (GType                type,
                                            const gchar         *first_property_name,
                                            ...);
-GDK_AVAILABLE_IN_ALL
-void       gtk_widget_destroy             (GtkWidget           *widget);
-GDK_AVAILABLE_IN_ALL
-void       gtk_widget_destroyed           (GtkWidget           *widget,
-                                           GtkWidget          **widget_pointer);
 GDK_AVAILABLE_IN_ALL
 void       gtk_widget_unparent            (GtkWidget           *widget);
 GDK_AVAILABLE_IN_ALL
@@ -405,6 +401,11 @@ void       gtk_widget_set_can_focus       (GtkWidget           *widget,
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_get_can_focus       (GtkWidget           *widget);
 GDK_AVAILABLE_IN_ALL
+void       gtk_widget_set_focusable       (GtkWidget           *widget,
+                                           gboolean             focusable);
+GDK_AVAILABLE_IN_ALL
+gboolean   gtk_widget_get_focusable       (GtkWidget           *widget);
+GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_has_focus           (GtkWidget           *widget);
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_is_focus            (GtkWidget           *widget);
@@ -432,9 +433,6 @@ void      gtk_widget_set_receives_default (GtkWidget           *widget,
                                            gboolean             receives_default);
 GDK_AVAILABLE_IN_ALL
 gboolean  gtk_widget_get_receives_default (GtkWidget           *widget);
-
-GDK_AVAILABLE_IN_ALL
-gboolean   gtk_widget_has_grab            (GtkWidget           *widget);
 
 GDK_AVAILABLE_IN_ALL
 gboolean   gtk_widget_device_is_shadowed  (GtkWidget           *widget,
@@ -655,10 +653,10 @@ gboolean     gtk_widget_is_ancestor     (GtkWidget      *widget,
 GDK_AVAILABLE_IN_ALL
 gboolean     gtk_widget_translate_coordinates (GtkWidget  *src_widget,
                                                GtkWidget  *dest_widget,
-                                               gint        src_x,
-                                               gint        src_y,
-                                               gint       *dest_x,
-                                               gint       *dest_y);
+                                               double      src_x,
+                                               double      src_y,
+                                               double     *dest_x,
+                                               double     *dest_y);
 
 GDK_AVAILABLE_IN_ALL
 gboolean     gtk_widget_contains              (GtkWidget  *widget,
@@ -676,8 +674,6 @@ void         gtk_widget_add_controller        (GtkWidget          *widget,
 GDK_AVAILABLE_IN_ALL
 void         gtk_widget_remove_controller     (GtkWidget          *widget,
                                                GtkEventController *controller);
-GDK_AVAILABLE_IN_ALL
-void       gtk_widget_reset_style       (GtkWidget      *widget);
 
 GDK_AVAILABLE_IN_ALL
 PangoContext *gtk_widget_create_pango_context (GtkWidget   *widget);

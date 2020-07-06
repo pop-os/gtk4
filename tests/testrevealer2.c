@@ -34,17 +34,17 @@ on_activate (GApplication *app,
 
       /* content */
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_container_add (GTK_CONTAINER (window), hbox);
+      gtk_window_set_child (GTK_WINDOW (window), hbox);
 
       revealer = gtk_revealer_new ();
       gtk_revealer_set_transition_type (GTK_REVEALER (revealer),
                                         GTK_REVEALER_TRANSITION_TYPE_SLIDE_LEFT);
-      gtk_container_add (GTK_CONTAINER (hbox), revealer);
+      gtk_box_append (GTK_BOX (hbox), revealer);
 
       sidebar = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
       gtk_widget_set_size_request (sidebar, 150, -1);
       gtk_widget_add_css_class (sidebar, GTK_STYLE_CLASS_SIDEBAR);
-      gtk_container_add (GTK_CONTAINER (revealer), sidebar);
+      gtk_revealer_set_child (GTK_REVEALER (revealer), sidebar);
 
       img = gtk_image_new ();
       g_object_set (img, "icon-name", "face-smile-symbolic",
@@ -53,7 +53,7 @@ on_activate (GApplication *app,
                          "halign", GTK_ALIGN_CENTER,
                          "valign", GTK_ALIGN_CENTER,
                          NULL);
-      gtk_container_add (GTK_CONTAINER (hbox), img);
+      gtk_box_append (GTK_BOX (hbox), img);
 
       g_object_bind_property (sidebar_toggle, "active",
                               revealer, "reveal-child",

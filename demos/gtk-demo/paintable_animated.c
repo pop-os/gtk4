@@ -196,14 +196,14 @@ do_paintable_animated (GtkWidget *do_widget)
 
       nuclear = gtk_nuclear_animation_new ();
       image = gtk_image_new_from_paintable (nuclear);
-      gtk_container_add (GTK_CONTAINER (window), image);
+      gtk_window_set_child (GTK_WINDOW (window), image);
       g_object_unref (nuclear);
     }
 
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

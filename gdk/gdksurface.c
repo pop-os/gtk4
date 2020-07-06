@@ -148,11 +148,13 @@ get_monitor_for_rect (GdkDisplay         *display,
   GdkMonitor *monitor;
   GdkRectangle workarea;
   GdkRectangle intersection;
-  gint i;
+  GListModel *monitors;
+  guint i;
 
-  for (i = 0; i < gdk_display_get_n_monitors (display); i++)
+  monitors = gdk_display_get_monitors (display);
+  for (i = 0; i < g_list_model_get_n_items (monitors); i++)
     {
-      monitor = gdk_display_get_monitor (display, i);
+      monitor = g_list_model_get_item (monitors, i);
       gdk_monitor_get_workarea (monitor, &workarea);
 
       if (gdk_rectangle_intersect (&workarea, rect, &intersection))
@@ -163,6 +165,7 @@ get_monitor_for_rect (GdkDisplay         *display,
               best_monitor = monitor;
             }
         }
+      g_object_unref (monitor);
     }
 
   return best_monitor;
@@ -960,28 +963,6 @@ gdk_surface_get_mapped (GdkSurface *surface)
   return GDK_SURFACE_IS_MAPPED (surface);
 }
 
-/**
- * gdk_surface_is_viewable:
- * @surface: a #GdkSurface
- *
- * Check if the surface and all ancestors of the surface are
- * mapped. (This is not necessarily "viewable" in the X sense, since
- * we only check as far as we have GDK surface parents, not to the root
- * surface.)
- *
- * Returns: %TRUE if the surface is viewable
- **/
-gboolean
-gdk_surface_is_viewable (GdkSurface *surface)
-{
-  g_return_val_if_fail (GDK_IS_SURFACE (surface), FALSE);
-
-  if (surface->destroyed)
-    return FALSE;
-
-  return surface->viewable;
-}
-
 GdkGLContext *
 gdk_surface_get_shared_data_gl_context (GdkSurface *surface)
 {
@@ -1253,7 +1234,7 @@ gdk_surface_process_updates_internal (GdkSurface *surface)
       surface->active_update_area = surface->update_area;
       surface->update_area = NULL;
 
-      if (gdk_surface_is_viewable (surface))
+      if (GDK_SURFACE_IS_MAPPED (surface))
         {
           cairo_region_t *expose_region;
           gboolean handled;
@@ -1321,10 +1302,7 @@ gdk_surface_invalidate_rect (GdkSurface        *surface,
 
   g_return_if_fail (GDK_IS_SURFACE (surface));
 
-  if (GDK_SURFACE_DESTROYED (surface))
-    return;
-
-  if (!surface->viewable)
+  if (!GDK_SURFACE_IS_MAPPED (surface))
     return;
 
   if (!rect)
@@ -1400,10 +1378,10 @@ gdk_surface_invalidate_region (GdkSurface          *surface,
 
   g_return_if_fail (GDK_IS_SURFACE (surface));
 
-  if (GDK_SURFACE_DESTROYED (surface))
+  if (!GDK_SURFACE_IS_MAPPED (surface))
     return;
 
-  if (!surface->viewable || cairo_region_is_empty (region))
+  if (cairo_region_is_empty (region))
     return;
 
   r.x = 0;
@@ -1694,25 +1672,6 @@ gdk_surface_get_device_position (GdkSurface       *surface,
     *mask = tmp_mask;
 }
 
-/* Returns TRUE If the native surface was mapped or unmapped */
-static gboolean
-set_viewable (GdkSurface *w,
-              gboolean val)
-{
-  if (w->viewable == val)
-    return FALSE;
-
-  w->viewable = val;
-
-  return FALSE;
-}
-
-gboolean
-_gdk_surface_update_viewable (GdkSurface *surface)
-{
-  return set_viewable (surface, GDK_SURFACE_IS_MAPPED (surface));
-}
-
 /**
  * gdk_surface_hide:
  * @surface: a #GdkSurface
@@ -1746,10 +1705,14 @@ gdk_surface_hide (GdkSurface *surface)
       /* May need to break grabs on children */
       display = surface->display;
       seat = gdk_display_get_default_seat (display);
-
-      devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL);
-      devices = g_list_prepend (devices, gdk_seat_get_keyboard (seat));
-      devices = g_list_prepend (devices, gdk_seat_get_pointer (seat));
+      if (seat)
+        {
+          devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL);
+          devices = g_list_prepend (devices, gdk_seat_get_keyboard (seat));
+          devices = g_list_prepend (devices, gdk_seat_get_pointer (seat));
+        }
+      else
+        devices = NULL;
 
       for (d = devices; d; d = d->next)
         {
@@ -1910,7 +1873,7 @@ gdk_surface_get_device_cursor (GdkSurface *surface,
  * @cursor: a #GdkCursor
  *
  * Sets a specific #GdkCursor for a given device when it gets inside @surface.
- * Use gdk_cursor_new_fromm_name() or gdk_cursor_new_from_texture() to create
+ * Use gdk_cursor_new_from_name() or gdk_cursor_new_from_texture() to create
  * the cursor. To make the cursor invisible, use %GDK_BLANK_CURSOR. Passing
  * %NULL for the @cursor argument to gdk_surface_set_cursor() means that
  * @surface will use the cursor of its parent surface. Most surfaces should
@@ -2079,17 +2042,14 @@ gdk_surface_get_root_coords (GdkSurface *surface,
  * corresponds to an unset bit in the mask will be passed on the
  * surface below @surface.
  *
- * An input shape is typically used with RGBA surfaces.
+ * An input region is typically used with RGBA surfaces.
  * The alpha channel of the surface defines which pixels are
  * invisible and allows for nicely antialiased borders,
- * and the input shape controls where the surface is
+ * and the input region controls where the surface is
  * “clickable”.
  *
- * On the X11 platform, this requires version 1.1 of the
- * shape extension.
- *
- * On the Win32 platform, this functionality is not present and the
- * function does nothing.
+ * Use gdk_display_support_input_shapes() to find out if
+ * a particular backend supports input regions.
  */
 void
 gdk_surface_set_input_region (GdkSurface     *surface,
@@ -2293,9 +2253,29 @@ _gdk_windowing_got_event (GdkDisplay *display,
   else if (type == GDK_LEAVE_NOTIFY)
     _gdk_display_set_surface_under_pointer (display, device, NULL);
 
-  if (type == GDK_BUTTON_RELEASE ||
-      type == GDK_TOUCH_CANCEL ||
-      type == GDK_TOUCH_END)
+  if (type == GDK_BUTTON_PRESS)
+    {
+      GdkSurface *grab_surface;
+      gboolean owner_events;
+
+      if (!gdk_device_grab_info (display, device, &grab_surface, &owner_events))
+        {
+          _gdk_display_add_device_grab (display,
+                                        device,
+                                        event_surface,
+                                        GDK_OWNERSHIP_NONE,
+                                        FALSE,
+                                        GDK_ALL_EVENTS_MASK,
+                                        serial,
+                                        gdk_event_get_time (event),
+                                        TRUE);
+          _gdk_display_device_grab_update (display, device,
+                                           source_device, serial);
+        }
+    }
+  else if (type == GDK_BUTTON_RELEASE ||
+           type == GDK_TOUCH_CANCEL ||
+           type == GDK_TOUCH_END)
     {
       if (type == GDK_BUTTON_RELEASE ||
           gdk_event_get_pointer_emulated (event))
@@ -2376,71 +2356,6 @@ gdk_surface_create_similar_surface (GdkSurface *     surface,
   return similar_surface;
 }
 
-/**
- * gdk_surface_begin_resize_drag:
- * @surface: a toplevel #GdkSurface
- * @edge: the edge or corner from which the drag is started
- * @device: the device used for the operation
- * @button: the button being used to drag, or 0 for a keyboard-initiated drag
- * @x: surface X coordinate of mouse click that began the drag
- * @y: surface Y coordinate of mouse click that began the drag
- * @timestamp: timestamp of mouse click that began the drag (use gdk_event_get_time())
- *
- * Begins a surface resize operation (for a toplevel surface).
- * You might use this function to implement a “window resize grip,”
- */
-void
-gdk_surface_begin_resize_drag (GdkSurface     *surface,
-                               GdkSurfaceEdge  edge,
-                               GdkDevice      *device,
-                               gint            button,
-                               gint            x,
-                               gint            y,
-                               guint32         timestamp)
-{
-  if (device == NULL)
-    {
-      GdkSeat *seat = gdk_display_get_default_seat (surface->display);
-      if (button == 0)
-        device = gdk_seat_get_keyboard (seat);
-      else
-        device = gdk_seat_get_pointer (seat);
-    }
-
-  GDK_SURFACE_GET_CLASS (surface)->begin_resize_drag (surface, edge, device, button, x, y, timestamp);
-}
-
-/**
- * gdk_surface_begin_move_drag:
- * @surface: a toplevel #GdkSurface
- * @device: the device used for the operation
- * @button: the button being used to drag, or 0 for a keyboard-initiated drag
- * @x: surface X coordinate of mouse click that began the drag
- * @y: surface Y coordinate of mouse click that began the drag
- * @timestamp: timestamp of mouse click that began the drag
- *
- * Begins a surface move operation (for a toplevel surface).
- */
-void
-gdk_surface_begin_move_drag (GdkSurface *surface,
-                             GdkDevice  *device,
-                             gint        button,
-                             gint        x,
-                             gint        y,
-                             guint32     timestamp)
-{
-  if (device == NULL)
-    {
-      GdkSeat *seat = gdk_display_get_default_seat (surface->display);
-      if (button == 0)
-        device = gdk_seat_get_keyboard (seat);
-      else
-        device = gdk_seat_get_pointer (seat);
-    }
-
-  GDK_SURFACE_GET_CLASS (surface)->begin_move_drag (surface, device, button, x, y, timestamp);
-}
-
 /* This function is called when the XWindow is really gone.
  */
 void
@@ -2480,8 +2395,8 @@ gdk_drag_begin (GdkSurface          *surface,
                 GdkDevice          *device,
                 GdkContentProvider *content,
                 GdkDragAction       actions,
-                gint                dx,
-                gint                dy)
+                double              dx,
+                double              dy)
 {
   g_return_val_if_fail (GDK_IS_SURFACE (surface), NULL);
   g_return_val_if_fail (GDK_IS_DEVICE (device), NULL);
@@ -2674,7 +2589,7 @@ gdk_surface_get_unscaled_size (GdkSurface *surface,
  * GTK will update this property automatically if
  * the @surface background is opaque, as we know where the opaque regions
  * are. If your surface background is not opaque, please update this
- * property in your #GtkWidget:css-changed handler.
+ * property in your #GtkWidgetClass.css_changed() handler.
  */
 void
 gdk_surface_set_opaque_region (GdkSurface      *surface,
@@ -2762,8 +2677,6 @@ gdk_surface_set_state (GdkSurface      *surface,
 
   mapped = GDK_SURFACE_IS_MAPPED (surface);
   sticky = GDK_SURFACE_IS_STICKY (surface);
-
-  _gdk_surface_update_viewable (surface);
 
   if (GDK_IS_TOPLEVEL (surface))
     g_object_notify (G_OBJECT (surface), "state");
@@ -3027,7 +2940,6 @@ gdk_surface_get_seat_from_event (GdkSurface *surface,
       GdkDevice *device = gdk_event_get_device (event);
       GdkSeat *seat = NULL;
 
-      device = gdk_event_get_device (event);
       if (device)
         seat = gdk_device_get_seat (device);
 

@@ -16,15 +16,14 @@ show_message_dialog1 (GtkWindow *parent)
   gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (dialog),
                                             "Unhandled error message: SSH program unexpectedly exited");
 
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
 show_message_dialog1a (GtkWindow *parent)
 {
   GtkWidget *dialog;
-  GtkWidget *image;
 
   dialog = GTK_WIDGET (gtk_message_dialog_new (parent,
                                                GTK_DIALOG_MODAL|
@@ -34,11 +33,8 @@ show_message_dialog1a (GtkWindow *parent)
                                                GTK_BUTTONS_OK,
                                                "The system network services are not compatible with this version."));
 
-  image = gtk_image_new_from_icon_name ("computer-fail");
-  gtk_widget_show (image);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -60,8 +56,8 @@ show_message_dialog2 (GtkWindow *parent)
                           "Empty Wastebasket", GTK_RESPONSE_OK,
                           NULL);  
 
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -70,9 +66,8 @@ show_color_chooser (GtkWindow *parent)
   GtkWidget *dialog;
 
   dialog = gtk_color_chooser_dialog_new ("Builtin", parent);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -85,8 +80,8 @@ show_color_chooser_generic (GtkWindow *parent)
                          "transient-for", parent,
                          NULL);
 
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -99,9 +94,10 @@ add_content (GtkWidget *dialog)
   gtk_widget_set_margin_end (label, 50);
   gtk_widget_set_margin_top (label, 50);
   gtk_widget_set_margin_bottom (label, 50);
-  gtk_widget_show (label);
+  gtk_widget_set_hexpand (label, TRUE);
+  gtk_widget_set_vexpand (label, TRUE);
 
-  gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), label);
+  gtk_box_append (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), label);
 }
 
 static void
@@ -122,9 +118,8 @@ show_dialog (GtkWindow *parent)
                                         NULL);
 
   add_content (dialog);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -138,9 +133,8 @@ show_dialog_with_header (GtkWindow *parent)
                                         NULL);
 
   add_content (dialog);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -155,9 +149,8 @@ show_dialog_with_buttons (GtkWindow *parent)
                                         NULL);
 
   add_content (dialog);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -172,9 +165,8 @@ show_dialog_with_header_buttons (GtkWindow *parent)
                                         NULL);
 
   add_content (dialog);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -183,13 +175,11 @@ show_dialog_with_header_buttons2 (GtkWindow *parent)
   GtkBuilder *builder;
   GtkWidget *dialog;
 
-  builder = gtk_builder_new ();
-  gtk_builder_add_from_file (builder, "dialog.ui", NULL);
+  builder = gtk_builder_new_from_file ("dialog.ui");
   dialog = (GtkWidget *)gtk_builder_get_object (builder, "dialog");
   g_object_unref (builder);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 typedef struct {
@@ -235,9 +225,8 @@ show_dialog_from_template (GtkWindow *parent)
                          NULL);
 
   add_content (dialog);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -256,9 +245,8 @@ show_dialog_flex_template (GtkWindow *parent)
                          NULL);
 
   add_content (dialog);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 typedef struct {
@@ -309,9 +297,8 @@ show_dialog_from_template_with_header (GtkWindow *parent)
 
   add_buttons (dialog);
   add_content (dialog);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 int
@@ -334,97 +321,79 @@ main (int argc, char *argv[])
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
   gtk_widget_set_halign (vbox, GTK_ALIGN_FILL);
   gtk_widget_set_valign (vbox, GTK_ALIGN_CENTER);
-  gtk_widget_show (vbox);
-  gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_window_set_child (GTK_WINDOW (window), vbox);
   
   box = gtk_flow_box_new ();
   gtk_flow_box_set_selection_mode (GTK_FLOW_BOX (box), GTK_SELECTION_NONE);
   gtk_widget_set_hexpand (box, TRUE);
-  gtk_widget_show (box);
-  gtk_container_add (GTK_CONTAINER (vbox), box);
+  gtk_box_append (GTK_BOX (vbox), box);
 
   button = gtk_button_new_with_label ("Message dialog");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_message_dialog1), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Message with icon");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_message_dialog1a), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Confirmation dialog");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_message_dialog2), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Builtin");
   button = gtk_button_new_with_label ("Builtin");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_color_chooser), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Generic Builtin");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_color_chooser_generic), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Simple");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_dialog), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("With Header");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_dialog_with_header), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("With Buttons");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_dialog_with_buttons), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Header & Buttons");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_dialog_with_header_buttons), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Header & Buttons & Builder");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_dialog_with_header_buttons2), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Template");
   button = gtk_button_new_with_label ("Template");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_dialog_from_template), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Template With Header");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_dialog_from_template_with_header), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_button_new_with_label ("Flexible Template");
   g_signal_connect_swapped (button, "clicked", G_CALLBACK (show_dialog_flex_template), window);
-  gtk_widget_show (button);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_flow_box_insert (GTK_FLOW_BOX (box), button, -1);
 
   button = gtk_check_button_new_with_label ("Dialogs have headers");
   g_object_bind_property (gtk_settings_get_default (), "gtk-dialogs-use-header",
                           button, "active",
                           G_BINDING_BIDIRECTIONAL|G_BINDING_SYNC_CREATE);
-  gtk_widget_show (button);
   gtk_widget_set_halign (button, GTK_ALIGN_CENTER);
-  gtk_container_add (GTK_CONTAINER (vbox), button);
+  gtk_box_append (GTK_BOX (vbox), button);
 
   button = gtk_spinner_new ();
   gtk_spinner_start (GTK_SPINNER (button));
-  gtk_widget_show (button);
   gtk_widget_set_halign (button, GTK_ALIGN_CENTER);
-  gtk_container_add (GTK_CONTAINER (vbox), button);
+  gtk_box_append (GTK_BOX (vbox), button);
 
-  gtk_widget_show (window);
   while (TRUE)
     g_main_context_iteration (NULL, TRUE);
   

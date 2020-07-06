@@ -175,7 +175,6 @@ void       gdk_surface_invalidate_region  (GdkSurface           *surface,
                                            const cairo_region_t *region);
 void       _gdk_surface_clear_update_area (GdkSurface      *surface);
 void       _gdk_surface_update_size       (GdkSurface      *surface);
-gboolean   _gdk_surface_update_viewable   (GdkSurface      *surface);
 GdkGLContext * gdk_surface_get_paint_gl_context (GdkSurface *surface,
                                                  GError   **error);
 void gdk_surface_get_unscaled_size (GdkSurface *surface,
@@ -365,6 +364,21 @@ GdkSurface *   gdk_surface_new_temp             (GdkDisplay    *display,
                                                  const GdkRectangle *position);
 
 GdkKeymap *  gdk_display_get_keymap  (GdkDisplay *display);
+
+void gdk_surface_begin_resize_drag            (GdkSurface     *surface,
+                                               GdkSurfaceEdge  edge,
+                                               GdkDevice      *device,
+                                               gint            button,
+                                               gint            x,
+                                               gint            y,
+                                               guint32         timestamp);
+
+void gdk_surface_begin_move_drag              (GdkSurface     *surface,
+                                               GdkDevice      *device,
+                                               gint            button,
+                                               gint            x,
+                                               gint            y,
+                                               guint32         timestamp);
 
 G_END_DECLS
 

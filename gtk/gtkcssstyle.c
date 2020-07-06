@@ -103,8 +103,6 @@ gtk_css_style_get_value (GtkCssStyle *style,
       return style->core->dpi;
     case GTK_CSS_PROPERTY_FONT_SIZE:
       return style->core->font_size;
-    case GTK_CSS_PROPERTY_ICON_THEME:
-      return style->core->icon_theme;
     case GTK_CSS_PROPERTY_ICON_PALETTE:
       return style->core->icon_palette;
     case GTK_CSS_PROPERTY_BACKGROUND_COLOR:
@@ -295,8 +293,6 @@ gtk_css_style_get_section (GtkCssStyle *style,
 gboolean
 gtk_css_style_is_static (GtkCssStyle *style)
 {
-  gtk_internal_return_val_if_fail (GTK_IS_CSS_STYLE (style), TRUE);
-
   return GTK_CSS_STYLE_GET_CLASS (style)->is_static (style);
 }
 

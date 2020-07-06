@@ -80,16 +80,16 @@ main (int argc, char *argv[])
   surface = gtk_native_get_surface (gtk_widget_get_native (window));
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
-  gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_window_set_child (GTK_WINDOW (window), vbox);
 
   text_view = gtk_text_view_new ();
   gtk_widget_set_hexpand (text_view, TRUE);
   gtk_widget_set_vexpand (text_view, TRUE);
-  gtk_container_add (GTK_CONTAINER (vbox), text_view);
+  gtk_box_append (GTK_BOX (vbox), text_view);
 
   button = gtk_check_button_new_with_label ("Inhibit system keyboard shorcuts");
 
-  gtk_container_add (GTK_CONTAINER (vbox), button);
+  gtk_box_append (GTK_BOX (vbox), button);
   g_signal_connect (G_OBJECT (button), "toggled",
                     G_CALLBACK (on_button_toggle), surface);
 

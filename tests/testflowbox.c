@@ -48,13 +48,11 @@ populate_flowbox_simple (GtkFlowBox *flowbox)
 
       widget = gtk_label_new (text);
       frame  = gtk_frame_new (NULL);
-      gtk_widget_show (widget);
-      gtk_widget_show (frame);
 
-      gtk_container_add (GTK_CONTAINER (frame), widget);
+      gtk_frame_set_child (GTK_FRAME (frame), widget);
 
       g_object_set_data_full (G_OBJECT (frame), "id", (gpointer)g_strdup (text), g_free);
-      gtk_container_add (GTK_CONTAINER (flowbox), frame);
+      gtk_flow_box_insert (GTK_FLOW_BOX (flowbox), frame, -1);
 
       g_free (text);
     }
@@ -73,10 +71,10 @@ populate_flowbox_focus (GtkFlowBox *flowbox)
       frame = gtk_frame_new (NULL);
 
       box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
-      gtk_container_add (GTK_CONTAINER (frame), box);
+      gtk_frame_set_child (GTK_FRAME (frame), box);
 
       widget = gtk_label_new ("Label");
-      gtk_container_add (GTK_CONTAINER (box), widget);
+      gtk_box_append (GTK_BOX (box), widget);
 
       switch (i % 4)
         {
@@ -97,12 +95,12 @@ populate_flowbox_focus (GtkFlowBox *flowbox)
           g_assert_not_reached ();
         }
 
-      gtk_container_add (GTK_CONTAINER (box), widget);
+      gtk_box_append (GTK_BOX (box), widget);
 
       if (i % 5 == 0)
-        gtk_container_add (GTK_CONTAINER (box), gtk_switch_new ());
+        gtk_box_append (GTK_BOX (box), gtk_switch_new ());
 
-      gtk_container_add (GTK_CONTAINER (flowbox), frame);
+      gtk_flow_box_insert (GTK_FLOW_BOX (flowbox), frame, -1);
       if (!sensitive)
         gtk_widget_set_sensitive (gtk_widget_get_parent (frame), FALSE);
     }
@@ -117,8 +115,7 @@ populate_flowbox_buttons (GtkFlowBox *flowbox)
   for (i = 0; i < 50; i++)
     {
       widget = gtk_button_new_with_label ("Button");
-      gtk_widget_show (widget);
-      gtk_container_add (GTK_CONTAINER (flowbox), widget);
+      gtk_flow_box_insert (GTK_FLOW_BOX (flowbox), widget, -1);
       widget = gtk_widget_get_parent (widget);
       gtk_widget_set_can_focus (widget, FALSE);
     }
@@ -143,17 +140,15 @@ populate_flowbox_wrappy (GtkFlowBox *flowbox)
     {
       widget = gtk_label_new (strings[i]);
       frame  = gtk_frame_new (NULL);
-      gtk_widget_show (widget);
-      gtk_widget_show (frame);
 
-      gtk_container_add (GTK_CONTAINER (frame), widget);
+      gtk_frame_set_child (GTK_FRAME (frame), widget);
 
       gtk_label_set_wrap (GTK_LABEL (widget), TRUE);
       gtk_label_set_wrap_mode (GTK_LABEL (widget), PANGO_WRAP_WORD);
       gtk_label_set_width_chars (GTK_LABEL (widget), 10);
       g_object_set_data_full (G_OBJECT (frame), "id", (gpointer)g_strdup (strings[i]), g_free);
 
-      gtk_container_add (GTK_CONTAINER (flowbox), frame);
+      gtk_flow_box_insert (GTK_FLOW_BOX (flowbox), frame, -1);
     }
 }
 
@@ -177,11 +172,11 @@ populate_flowbox_images (GtkFlowBox *flowbox)
 
       label = gtk_label_new (text);
 
-      gtk_container_add (GTK_CONTAINER (widget), image);
-      gtk_container_add (GTK_CONTAINER (widget), label);
+      gtk_box_append (GTK_BOX (widget), image);
+      gtk_box_append (GTK_BOX (widget), label);
 
       g_object_set_data_full (G_OBJECT (widget), "id", (gpointer)g_strdup (text), g_free);
-      gtk_container_add (GTK_CONTAINER (flowbox), widget);
+      gtk_box_append (GTK_BOX (flowbox), widget);
 
       g_free (text);
     }
@@ -190,17 +185,10 @@ populate_flowbox_images (GtkFlowBox *flowbox)
 static void
 populate_items (GtkFlowBox *flowbox)
 {
-  GList *children, *l;
+  GtkWidget *child;
 
-  /* Remove all children first */
-  children = gtk_container_get_children (GTK_CONTAINER (flowbox));
-  for (l = children; l; l = l->next)
-    {
-      GtkWidget *child = l->data;
-
-      gtk_container_remove (GTK_CONTAINER (flowbox), child);
-    }
-  g_list_free (children);
+  while ((child = gtk_widget_get_first_child (GTK_WIDGET (flowbox))))
+    gtk_flow_box_remove (flowbox, child);
 
   if (items_type == SIMPLE_ITEMS)
     populate_flowbox_simple (flowbox);
@@ -304,7 +292,7 @@ on_child_activated (GtkFlowBox *self,
                     GtkWidget  *child)
 {
   const char *id;
-  id = g_object_get_data (G_OBJECT (gtk_bin_get_child (GTK_BIN (child))), "id");
+  id = g_object_get_data (G_OBJECT (gtk_flow_box_child_get_child (GTK_FLOW_BOX_CHILD (child))), "id");
   g_message ("Child activated %p: %s", child, id);
 }
 
@@ -316,7 +304,7 @@ selection_foreach (GtkFlowBox      *self,
   const char *id;
   GtkWidget *child;
 
-  child = gtk_bin_get_child (GTK_BIN (child_info));
+  child = gtk_flow_box_child_get_child (child_info);
   id = g_object_get_data (G_OBJECT (child), "id");
   g_message ("Child selected %p: %s", child, id);
 }
@@ -357,8 +345,8 @@ sort_func (GtkFlowBoxChild *a,
 {
   gchar *ida, *idb;
 
-  ida = (gchar *)g_object_get_data (G_OBJECT (gtk_bin_get_child (GTK_BIN (a))), "id");
-  idb = (gchar *)g_object_get_data (G_OBJECT (gtk_bin_get_child (GTK_BIN (b))), "id");
+  ida = (gchar *)g_object_get_data (G_OBJECT (gtk_flow_box_child_get_child (a)), "id");
+  idb = (gchar *)g_object_get_data (G_OBJECT (gtk_flow_box_child_get_child (b)), "id");
   return g_strcmp0 (ida, idb);
 }
 
@@ -384,18 +372,15 @@ create_window (void)
   hbox   = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
   vbox   = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
 
-  gtk_widget_show (vbox);
-  gtk_widget_show (hbox);
-  gtk_container_add (GTK_CONTAINER (window), hbox);
-  gtk_container_add (GTK_CONTAINER (hbox), vbox);
+  gtk_window_set_child (GTK_WINDOW (window), hbox);
+  gtk_box_append (GTK_BOX (hbox), vbox);
 
   swindow = gtk_scrolled_window_new (NULL, NULL);
   gtk_widget_set_hexpand (swindow, TRUE);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (swindow),
                                   GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
-  gtk_widget_show (swindow);
-  gtk_container_add (GTK_CONTAINER (hbox), swindow);
+  gtk_box_append (GTK_BOX (hbox), swindow);
 
   flowbox = gtk_flow_box_new ();
   gtk_widget_set_halign (flowbox, GTK_ALIGN_END);
@@ -406,8 +391,7 @@ create_window (void)
   gtk_flow_box_set_row_spacing (GTK_FLOW_BOX (flowbox), INITIAL_RSPACING);
   gtk_flow_box_set_min_children_per_line (GTK_FLOW_BOX (flowbox), INITIAL_MINIMUM_LENGTH);
   gtk_flow_box_set_max_children_per_line (GTK_FLOW_BOX (flowbox), INITIAL_MAXIMUM_LENGTH);
-  gtk_widget_show (flowbox);
-  gtk_container_add (GTK_CONTAINER (swindow), flowbox);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (swindow), flowbox);
 
   gtk_flow_box_set_hadjustment (GTK_FLOW_BOX (flowbox),
                                 gtk_scrolled_window_get_hadjustment (GTK_SCROLLED_WINDOW (swindow)));
@@ -421,17 +405,14 @@ create_window (void)
   expander = gtk_expander_new ("Flow Box controls");
   gtk_expander_set_expanded (GTK_EXPANDER (expander), TRUE);
   flowbox_cntl = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
-  gtk_widget_show (flowbox_cntl);
-  gtk_widget_show (expander);
-  gtk_container_add (GTK_CONTAINER (expander), flowbox_cntl);
-  gtk_container_add (GTK_CONTAINER (vbox), expander);
+  gtk_expander_set_child (GTK_EXPANDER (expander), flowbox_cntl);
+  gtk_box_append (GTK_BOX (vbox), expander);
 
   widget = gtk_check_button_new_with_label ("Homogeneous");
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), FALSE);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set whether the items should be displayed at the same size");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "toggled",
                     G_CALLBACK (homogeneous_toggled), flowbox);
@@ -441,8 +422,7 @@ create_window (void)
   g_object_bind_property (widget, "active",
                           flowbox, "activate-on-single-click",
                           G_BINDING_SYNC_CREATE);
-  gtk_widget_show (widget);
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   /* Add alignment controls */
   widget = gtk_combo_box_text_new ();
@@ -451,10 +431,9 @@ create_window (void)
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "End");
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "Center");
   gtk_combo_box_set_active (GTK_COMBO_BOX (widget), INITIAL_HALIGN);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the horizontal alignment policy");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (horizontal_alignment_changed), flowbox);
@@ -465,10 +444,9 @@ create_window (void)
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "End");
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "Center");
   gtk_combo_box_set_active (GTK_COMBO_BOX (widget), INITIAL_VALIGN);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the vertical alignment policy");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (vertical_alignment_changed), flowbox);
@@ -478,10 +456,9 @@ create_window (void)
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "Horizontal");
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "Vertical");
   gtk_combo_box_set_active (GTK_COMBO_BOX (widget), 0);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the flowbox orientation");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (orientation_changed), flowbox);
@@ -493,10 +470,9 @@ create_window (void)
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "Browse");
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "Multiple");
   gtk_combo_box_set_active (GTK_COMBO_BOX (widget), 1);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the selection mode");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (selection_mode_changed), flowbox);
@@ -504,10 +480,9 @@ create_window (void)
   /* Add minimum line length in items control */
   widget = gtk_spin_button_new_with_range (1, 10, 1);
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (widget), INITIAL_MINIMUM_LENGTH);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the minimum amount of items per line before wrapping");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (line_length_changed), flowbox);
@@ -517,10 +492,9 @@ create_window (void)
   /* Add natural line length in items control */
   widget = gtk_spin_button_new_with_range (1, 10, 1);
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (widget), INITIAL_MAXIMUM_LENGTH);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the natural amount of items per line ");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (max_line_length_changed), flowbox);
@@ -529,63 +503,57 @@ create_window (void)
 
   /* Add horizontal/vertical spacing controls */
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2);
-  gtk_widget_show (hbox);
 
   widget = gtk_label_new ("H Spacing");
-  gtk_container_add (GTK_CONTAINER (hbox), widget);
+  gtk_box_append (GTK_BOX (hbox), widget);
 
   widget = gtk_spin_button_new_with_range (0, 30, 1);
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (widget), INITIAL_CSPACING);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the horizontal spacing between children");
-  gtk_container_add (GTK_CONTAINER (hbox), widget);
+  gtk_box_append (GTK_BOX (hbox), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (spacing_changed), GINT_TO_POINTER (GTK_ORIENTATION_HORIZONTAL));
   g_signal_connect (G_OBJECT (widget), "value-changed",
                     G_CALLBACK (spacing_changed), GINT_TO_POINTER (GTK_ORIENTATION_HORIZONTAL));
 
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), hbox);
+  gtk_box_append (GTK_BOX (flowbox_cntl), hbox);
 
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 2);
-  gtk_widget_show (hbox);
 
   widget = gtk_label_new ("V Spacing");
-  gtk_container_add (GTK_CONTAINER (hbox), widget);
+  gtk_box_append (GTK_BOX (hbox), widget);
 
   widget = gtk_spin_button_new_with_range (0, 30, 1);
   gtk_spin_button_set_value (GTK_SPIN_BUTTON (widget), INITIAL_RSPACING);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the vertical spacing between children");
-  gtk_container_add (GTK_CONTAINER (hbox), widget);
+  gtk_box_append (GTK_BOX (hbox), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (spacing_changed), GINT_TO_POINTER (GTK_ORIENTATION_VERTICAL));
   g_signal_connect (G_OBJECT (widget), "value-changed",
                     G_CALLBACK (spacing_changed), GINT_TO_POINTER (GTK_ORIENTATION_VERTICAL));
 
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), hbox);
+  gtk_box_append (GTK_BOX (flowbox_cntl), hbox);
 
   /* filtering and sorting */
 
   widget = gtk_check_button_new_with_label ("Filter");
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), FALSE);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set whether some items should be filtered out");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "toggled",
                     G_CALLBACK (filter_toggled), flowbox);
 
   widget = gtk_check_button_new_with_label ("Sort");
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), FALSE);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set whether items should be sorted");
-  gtk_container_add (GTK_CONTAINER (flowbox_cntl), widget);
+  gtk_box_append (GTK_BOX (flowbox_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "toggled",
                     G_CALLBACK (sort_toggled), flowbox);
@@ -595,10 +563,8 @@ create_window (void)
   expander = gtk_expander_new ("Test item controls");
   gtk_expander_set_expanded (GTK_EXPANDER (expander), TRUE);
   items_cntl = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
-  gtk_widget_show (items_cntl);
-  gtk_widget_show (expander);
-  gtk_container_add (GTK_CONTAINER (expander), items_cntl);
-  gtk_container_add (GTK_CONTAINER (vbox), expander);
+  gtk_expander_set_child (GTK_EXPANDER (expander), items_cntl);
+  gtk_box_append (GTK_BOX (vbox), expander);
 
   /* Add Items control */
   widget = gtk_combo_box_text_new ();
@@ -608,10 +574,9 @@ create_window (void)
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "Images");
   gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (widget), "Buttons");
   gtk_combo_box_set_active (GTK_COMBO_BOX (widget), 0);
-  gtk_widget_show (widget);
 
   gtk_widget_set_tooltip_text (widget, "Set the item set to use");
-  gtk_container_add (GTK_CONTAINER (items_cntl), widget);
+  gtk_box_append (GTK_BOX (items_cntl), widget);
 
   g_signal_connect (G_OBJECT (widget), "changed",
                     G_CALLBACK (items_changed), flowbox);

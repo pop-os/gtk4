@@ -90,7 +90,7 @@ totem_time_to_string (gint64   usecs,
 	if (hour > 0 || force_hour) {
 		if (!remaining) {
 			/* hour:minutes:seconds */
-			/* Translators: This is a time format, like "-9:05:02" for 9
+			/* Translators: This is a time format, like "9:05:02" for 9
 			 * hours, 5 minutes, and 2 seconds. You may change ":" to
 			 * the separator that your locale uses or use "%Id" instead
 			 * of "%d" if your locale uses localized digits.
@@ -260,8 +260,6 @@ gtk_media_controls_class_init (GtkMediaControlsClass *klass)
 
   widget_class->measure = gtk_media_controls_measure;
   widget_class->size_allocate = gtk_media_controls_size_allocate;
-  widget_class->grab_focus = gtk_widget_grab_focus_none;
-  widget_class->focus = gtk_widget_focus_child;
 
   gobject_class->dispose = gtk_media_controls_dispose;
   gobject_class->get_property = gtk_media_controls_get_property;

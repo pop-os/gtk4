@@ -298,7 +298,7 @@ do_paintable_mediastream (GtkWidget *do_widget)
       gtk_media_stream_set_loop (GTK_MEDIA_STREAM (nuclear), TRUE);
 
       video = gtk_video_new_for_media_stream (nuclear);
-      gtk_container_add (GTK_CONTAINER (window), video);
+      gtk_window_set_child (GTK_WINDOW (window), video);
 
       g_object_unref (nuclear);
     }
@@ -306,7 +306,7 @@ do_paintable_mediastream (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

@@ -223,7 +223,7 @@
  * give every row its minimum or natural height or, if the model content
  * is expected to fit inside the layouting widget without scrolling, it
  * would make sense to calculate the allocation for each row at
- * #GtkWidget::size-allocate time using gtk_distribute_natural_allocation().
+ * the time the widget is allocated using gtk_distribute_natural_allocation().
  *
  * # Handling Events and Driving Keyboard Focus
  *
@@ -1043,7 +1043,7 @@ gtk_cell_area_real_event (GtkCellArea          *area,
           GtkCellRenderer *focus_renderer;
           GdkRectangle     alloc_area;
           double event_x, event_y;
-          int x, y;
+          double x, y;
           GtkNative *native;
 
           /* We may need some semantics to tell us the offset of the event

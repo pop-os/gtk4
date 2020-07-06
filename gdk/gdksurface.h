@@ -161,9 +161,6 @@ void          gdk_surface_set_input_region      (GdkSurface     *surface,
                                                  cairo_region_t *region);
 
 GDK_AVAILABLE_IN_ALL
-gboolean gdk_surface_is_viewable    (GdkSurface *surface);
-
-GDK_AVAILABLE_IN_ALL
 gboolean      gdk_surface_get_mapped   (GdkSurface *surface);
 
 GDK_AVAILABLE_IN_ALL
@@ -207,23 +204,6 @@ cairo_surface_t *
 
 GDK_AVAILABLE_IN_ALL
 void          gdk_surface_beep            (GdkSurface       *surface);
-
-GDK_AVAILABLE_IN_ALL
-void gdk_surface_begin_resize_drag            (GdkSurface     *surface,
-                                               GdkSurfaceEdge  edge,
-                                               GdkDevice      *device,
-                                               gint            button,
-                                               gint            x,
-                                               gint            y,
-                                               guint32         timestamp);
-
-GDK_AVAILABLE_IN_ALL
-void gdk_surface_begin_move_drag              (GdkSurface     *surface,
-                                               GdkDevice      *device,
-                                               gint            button,
-                                               gint            x,
-                                               gint            y,
-                                               guint32         timestamp);
 
 GDK_AVAILABLE_IN_ALL
 void       gdk_surface_queue_expose              (GdkSurface          *surface);

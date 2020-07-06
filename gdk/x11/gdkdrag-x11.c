@@ -665,12 +665,12 @@ is_pointer_within_shape (GdkDisplay    *display,
       cairo_region_t *input_shape;
 
       child->shape = NULL;
-      if (gdk_display_supports_shapes (display))
+      if (display_x11->have_shapes)
         child->shape = _gdk_x11_xwindow_get_shape (display_x11->xdisplay,
                                                    child->xid, 1,  ShapeBounding);
 #ifdef ShapeInput
       input_shape = NULL;
-      if (gdk_display_supports_input_shapes (display))
+      if (display_x11->have_input_shapes)
         input_shape = _gdk_x11_xwindow_get_shape (display_x11->xdisplay,
                                                   child->xid, 1, ShapeInput);
 
@@ -1985,8 +1985,8 @@ _gdk_x11_surface_drag_begin (GdkSurface         *surface,
                              GdkDevice          *device,
                              GdkContentProvider *content,
                              GdkDragAction       actions,
-                             gint                dx,
-                             gint                dy)
+                             double              dx,
+                             double              dy)
 {
   GdkX11Drag *x11_drag;
   GdkDrag *drag;
@@ -2013,8 +2013,8 @@ _gdk_x11_surface_drag_begin (GdkSurface         *surface,
   _gdk_device_query_state (device, surface, NULL, &px, &py, NULL);
 
   gdk_x11_surface_get_root_coords (surface,
-                                   round (px) + dx,
-                                   round (py) + dy,
+                                   round (px + dx),
+                                   round (py + dy),
                                    &x_root,
                                    &y_root);
 
@@ -2028,6 +2028,8 @@ _gdk_x11_surface_drag_begin (GdkSurface         *surface,
   x11_drag->ipc_surface = ipc_surface;
   if (gdk_x11_surface_get_group (surface))
     gdk_x11_surface_set_group (x11_drag->ipc_surface, surface);
+
+  gdk_synthesize_surface_state (x11_drag->ipc_surface, GDK_SURFACE_STATE_WITHDRAWN, 0);
   gdk_x11_surface_show (x11_drag->ipc_surface, FALSE);
 
   x11_drag->drag_surface = create_drag_surface (display);
@@ -2040,7 +2042,7 @@ _gdk_x11_surface_drag_begin (GdkSurface         *surface,
  
   move_drag_surface (drag, x_root, y_root);
 
-  x11_drag->timestamp = gdk_display_get_last_seen_time (display);
+  x11_drag->timestamp = gdk_x11_get_server_time (GDK_X11_DISPLAY (display)->leader_gdk_surface);
   xselection = gdk_x11_get_xatom_by_name_for_display (display, "XdndSelection");
   XSetSelectionOwner (GDK_DISPLAY_XDISPLAY (display),
                       xselection,

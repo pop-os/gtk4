@@ -37,7 +37,7 @@ do_overlay (GtkWidget *do_widget)
 
       overlay = gtk_overlay_new ();
       grid = gtk_grid_new ();
-      gtk_container_add (GTK_CONTAINER (overlay), grid);
+      gtk_overlay_set_child (GTK_OVERLAY (overlay), grid);
 
       entry = gtk_entry_new ();
 
@@ -66,7 +66,7 @@ do_overlay (GtkWidget *do_widget)
       gtk_widget_set_can_target (label, FALSE);
       gtk_widget_set_margin_top (label, 8);
       gtk_widget_set_margin_bottom (label, 8);
-      gtk_container_add (GTK_CONTAINER (vbox), label);
+      gtk_box_append (GTK_BOX (vbox), label);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
       gtk_overlay_add_overlay (GTK_OVERLAY (overlay), vbox);
@@ -76,18 +76,16 @@ do_overlay (GtkWidget *do_widget)
       gtk_entry_set_placeholder_text (GTK_ENTRY (entry), "Your Lucky Number");
       gtk_widget_set_margin_top (entry, 8);
       gtk_widget_set_margin_bottom (entry, 8);
-      gtk_container_add (GTK_CONTAINER (vbox), entry);
+      gtk_box_append (GTK_BOX (vbox), entry);
 
-      gtk_container_add (GTK_CONTAINER (window), overlay);
-
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      gtk_window_set_child (GTK_WINDOW (window), overlay);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
     }
 
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

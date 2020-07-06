@@ -53,7 +53,7 @@ create_faces (void)
       faces[i].face = gtk_frame_new (NULL);
       gtk_widget_set_size_request (faces[i].face, face_size, face_size);
       gtk_widget_add_css_class (faces[i].face, faces[i].css_class);
-      gtk_container_add (GTK_CONTAINER (fixed), faces[i].face);
+      gtk_fixed_put (GTK_FIXED (fixed), faces[i].face, 0, 0);
 
       /* Set up the transformation for each face */
       transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (w, h));
@@ -131,15 +131,15 @@ create_demo_window (GtkWidget *do_widget)
   g_signal_connect (window, "destroy", G_CALLBACK (close_window), NULL);
 
   sw = gtk_scrolled_window_new (NULL, NULL);
-  gtk_container_add (GTK_CONTAINER (window), sw);
+  gtk_window_set_child (GTK_WINDOW (window), sw);
 
   fixed = gtk_fixed_new ();
-  gtk_container_add (GTK_CONTAINER (sw), fixed);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), fixed);
   gtk_widget_set_halign (GTK_WIDGET (fixed), GTK_ALIGN_CENTER);
   gtk_widget_set_valign (GTK_WIDGET (fixed), GTK_ALIGN_CENTER);
 
   cube = create_faces ();
-  gtk_container_add (GTK_CONTAINER (fixed), cube);
+  gtk_fixed_put (GTK_FIXED (fixed), cube, 0, 0);
   gtk_widget_set_overflow (fixed, GTK_OVERFLOW_VISIBLE);
 
   provider = gtk_css_provider_new ();
@@ -161,7 +161,7 @@ do_fixed (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (demo_window))
     gtk_widget_show (demo_window);
   else
-    gtk_widget_destroy (demo_window);
+    gtk_window_destroy (GTK_WINDOW (demo_window));
 
   return demo_window;
 }

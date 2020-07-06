@@ -479,7 +479,7 @@ add_place (GtkPlacesSidebar            *sidebar,
                     G_CALLBACK (on_row_dragged), row);
   gtk_widget_add_controller (row, GTK_EVENT_CONTROLLER (gesture));
 
-  gtk_container_add (GTK_CONTAINER (sidebar->list_box), GTK_WIDGET (row));
+  gtk_list_box_insert (GTK_LIST_BOX (sidebar->list_box), GTK_WIDGET (row), -1);
 
   return row;
 }
@@ -687,15 +687,17 @@ file_is_shown (GtkPlacesSidebar *sidebar,
                GFile            *file)
 {
   gchar *uri;
-  GList *rows;
-  GList *l;
+  GtkWidget *row;
   gboolean found = FALSE;
 
-  rows = gtk_container_get_children (GTK_CONTAINER (sidebar->list_box));
-  l = rows;
-  while (l != NULL && !found)
+  for (row = gtk_widget_get_first_child (GTK_WIDGET (sidebar->list_box));
+       row != NULL && !found;
+       row = gtk_widget_get_next_sibling (row))
     {
-      g_object_get (l->data, "uri", &uri, NULL);
+      if (!GTK_IS_LIST_BOX_ROW (row))
+        continue;
+
+      g_object_get (row, "uri", &uri, NULL);
       if (uri)
         {
           GFile *other;
@@ -704,10 +706,7 @@ file_is_shown (GtkPlacesSidebar *sidebar,
           g_object_unref (other);
           g_free (uri);
         }
-      l = l->next;
     }
-
-  g_list_free (rows);
 
   return found;
 }
@@ -979,7 +978,7 @@ update_places (GtkPlacesSidebar *sidebar)
   gchar *tooltip;
   GList *network_mounts, *network_volumes;
   GIcon *new_bookmark_icon;
-  GList *children;
+  GtkWidget *child;
 #ifdef HAVE_CLOUDPROVIDERS
   GList *cloud_providers;
   GList *cloud_providers_accounts;
@@ -1002,10 +1001,8 @@ update_places (GtkPlacesSidebar *sidebar)
   /* Reset drag state, just in case we update the places while dragging or
    * ending a drag */
   stop_drop_feedback (sidebar);
-  children = gtk_container_get_children (GTK_CONTAINER (sidebar->list_box));
-  for (l = children; l; l = l->next)
-    gtk_container_remove (GTK_CONTAINER (sidebar->list_box), l->data);
-  g_list_free (children);
+  while ((child = gtk_widget_get_first_child (GTK_WIDGET (sidebar->list_box))))
+    gtk_list_box_remove (GTK_LIST_BOX (sidebar->list_box), child);
 
   network_mounts = network_volumes = NULL;
 
@@ -1575,19 +1572,21 @@ static void
 update_possible_drop_targets (GtkPlacesSidebar *sidebar,
                               const GValue     *value)
 {
-  GList *rows;
-  GList *l;
-  gboolean sensitive;
+  GtkWidget *row;
 
-  rows = gtk_container_get_children (GTK_CONTAINER (sidebar->list_box));
-
-  for (l = rows; l != NULL; l = l->next)
+  for (row = gtk_widget_get_first_child (GTK_WIDGET (sidebar->list_box));
+       row != NULL;
+       row = gtk_widget_get_next_sibling (row))
     {
-      sensitive = value == NULL || check_valid_drop_target (sidebar, GTK_SIDEBAR_ROW (l->data), value);
-      gtk_widget_set_sensitive (GTK_WIDGET (l->data), sensitive);
-    }
+      gboolean sensitive;
 
-  g_list_free (rows);
+      if (!GTK_IS_LIST_BOX_ROW (row))
+        continue;
+
+      sensitive = value == NULL ||
+                  check_valid_drop_target (sidebar, GTK_SIDEBAR_ROW (row), value);
+      gtk_widget_set_sensitive (row, sensitive);
+    }
 }
 
 static void
@@ -1626,7 +1625,7 @@ stop_drop_feedback (GtkPlacesSidebar *sidebar)
   if (sidebar->row_placeholder != NULL)
     {
       if (gtk_widget_get_parent (sidebar->row_placeholder) != NULL)
-        gtk_container_remove (GTK_CONTAINER (sidebar), sidebar->row_placeholder);
+        gtk_list_box_remove (GTK_LIST_BOX (sidebar), sidebar->row_placeholder);
       sidebar->row_placeholder = NULL;
     }
 
@@ -1683,15 +1682,10 @@ drag_motion_callback (GtkDropTarget    *target,
         }
 
       if (gtk_widget_get_parent (sidebar->row_placeholder) != NULL)
-        {
-          gtk_container_remove (GTK_CONTAINER (sidebar->list_box),
-                                sidebar->row_placeholder);
-        }
+        gtk_list_box_remove (GTK_LIST_BOX (sidebar->list_box), sidebar->row_placeholder);
 
       if (row != NULL)
         {
-          gint dest_y, dest_x;
-
           g_object_get (row, "order-index", &row_index, NULL);
           g_object_get (sidebar->row_placeholder, "order-index", &row_placeholder_index, NULL);
           /* We order the bookmarks sections based on the bookmark index that we
@@ -1707,9 +1701,9 @@ drag_motion_callback (GtkDropTarget    *target,
           row_placeholder_index = row_index;
           gtk_widget_translate_coordinates (GTK_WIDGET (sidebar), GTK_WIDGET (row),
 		                            x, y,
-		                            &dest_x, &dest_y);
+		                            &x, &y);
 
-          if (dest_y > sidebar->drag_row_height / 2 && row_index > 0)
+          if (y > sidebar->drag_row_height / 2 && row_index > 0)
             row_placeholder_index++;
         }
       else
@@ -1912,7 +1906,6 @@ dnd_finished_cb (GdkDrag          *drag,
  */
 static void
 drag_leave_callback (GtkDropTarget *dest,
-                     GdkDrop       *drop,
                      gpointer       user_data)
 {
   GtkPlacesSidebar *sidebar = GTK_PLACES_SIDEBAR (user_data);
@@ -2202,8 +2195,7 @@ rename_entry_changed (GtkEntry         *entry,
   gchar *uri;
   const gchar *new_name;
   gboolean found = FALSE;
-  GList *rows;
-  GList *l;
+  GtkWidget *row;
 
   new_name = gtk_editable_get_text (GTK_EDITABLE (sidebar->rename_entry));
 
@@ -2214,10 +2206,14 @@ rename_entry_changed (GtkEntry         *entry,
       return;
     }
 
-  rows = gtk_container_get_children (GTK_CONTAINER (sidebar->list_box));
-  for (l = rows; l && !found; l = l->next)
+  for (row = gtk_widget_get_first_child (GTK_WIDGET (sidebar->list_box));
+       row != NULL && !found;
+       row = gtk_widget_get_next_sibling (row))
     {
-      g_object_get (l->data,
+      if (!GTK_IS_LIST_BOX_ROW (row))
+        continue;
+
+      g_object_get (row,
                     "place-type", &type,
                     "uri", &uri,
                     "label", &name,
@@ -2231,7 +2227,6 @@ rename_entry_changed (GtkEntry         *entry,
       g_free (uri);
       g_free (name);
     }
-  g_list_free (rows);
 
   gtk_widget_set_sensitive (sidebar->rename_button, !found);
   gtk_label_set_label (GTK_LABEL (sidebar->rename_error),
@@ -2296,7 +2291,7 @@ create_rename_popover (GtkPlacesSidebar *sidebar)
   g_signal_connect (popover, "destroy", G_CALLBACK (on_rename_popover_destroy), sidebar);
   gtk_popover_set_position (GTK_POPOVER (popover), GTK_POS_RIGHT);
   grid = gtk_grid_new ();
-  gtk_container_add (GTK_CONTAINER (popover), grid);
+  gtk_popover_set_child (GTK_POPOVER (popover), grid);
   g_object_set (grid,
                 "margin-start", 10,
                 "margin-end", 10,
@@ -3462,8 +3457,8 @@ on_row_dragged (GtkGestureDrag *gesture,
 
   if (gtk_drag_check_threshold (GTK_WIDGET (row), 0, 0, x, y))
     {
-      gdouble start_x, start_y;
-      gint drag_x, drag_y;
+      double start_x, start_y;
+      double drag_x, drag_y;
       GdkContentProvider *content;
       GdkSurface *surface;
       GdkDevice *device;
@@ -3810,7 +3805,7 @@ gtk_places_sidebar_init (GtkPlacesSidebar *sidebar)
   sidebar->row_placeholder = NULL;
   sidebar->dragging_over = FALSE;
 
-  gtk_container_add (GTK_CONTAINER (sidebar->swin), sidebar->list_box);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sidebar->swin), sidebar->list_box);
 
   sidebar->hostname = g_strdup (_("Computer"));
   sidebar->hostnamed_cancellable = g_cancellable_new ();
@@ -4471,8 +4466,7 @@ void
 gtk_places_sidebar_set_location (GtkPlacesSidebar *sidebar,
                                  GFile            *location)
 {
-  GList *children;
-  GList *child;
+  GtkWidget *row;
   gchar *row_uri;
   gchar *uri;
   gboolean found = FALSE;
@@ -4492,14 +4486,18 @@ gtk_places_sidebar_set_location (GtkPlacesSidebar *sidebar,
 
   uri = g_file_get_uri (location);
 
-  children = gtk_container_get_children (GTK_CONTAINER (sidebar->list_box));
-  for (child = children; child != NULL && !found; child = child->next)
+  for (row = gtk_widget_get_first_child (GTK_WIDGET (sidebar->list_box));
+       row != NULL && !found;
+       row = gtk_widget_get_next_sibling (row))
     {
-      g_object_get (child->data, "uri", &row_uri, NULL);
+      if (!GTK_IS_LIST_BOX_ROW (row))
+        continue;
+
+      g_object_get (row, "uri", &row_uri, NULL);
       if (row_uri != NULL && g_strcmp0 (row_uri, uri) == 0)
         {
           gtk_list_box_select_row (GTK_LIST_BOX (sidebar->list_box),
-                                   GTK_LIST_BOX_ROW (child->data));
+                                   GTK_LIST_BOX_ROW (row));
           found = TRUE;
         }
 
@@ -4507,7 +4505,6 @@ gtk_places_sidebar_set_location (GtkPlacesSidebar *sidebar,
     }
 
   g_free (uri);
-  g_list_free (children);
 
  out:
   g_object_notify_by_pspec (G_OBJECT (sidebar), properties[PROP_LOCATION]);
@@ -4899,24 +4896,25 @@ GFile *
 gtk_places_sidebar_get_nth_bookmark (GtkPlacesSidebar *sidebar,
                                      gint              n)
 {
-  GList *rows;
-  GList *l;
+  GtkWidget *row;
   int k;
   GFile *file;
 
   g_return_val_if_fail (GTK_IS_PLACES_SIDEBAR (sidebar), NULL);
 
   file = NULL;
-  rows = gtk_container_get_children (GTK_CONTAINER (sidebar->list_box));
-  l = rows;
-
   k = 0;
-  while (l != NULL)
+  for (row = gtk_widget_get_first_child (GTK_WIDGET (sidebar->list_box));
+       row != NULL;
+       row = gtk_widget_get_next_sibling (row))
     {
       GtkPlacesSidebarPlaceType place_type;
       gchar *uri;
 
-      g_object_get (l->data,
+      if (!GTK_IS_LIST_BOX_ROW (row))
+        continue;
+
+      g_object_get (row,
                     "place-type", &place_type,
                     "uri", &uri,
                     NULL);
@@ -4931,10 +4929,7 @@ gtk_places_sidebar_get_nth_bookmark (GtkPlacesSidebar *sidebar,
           k++;
         }
       g_free (uri);
-      l = l->next;
     }
-
-  g_list_free (rows);
 
   return file;
 }

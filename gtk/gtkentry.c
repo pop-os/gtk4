@@ -439,7 +439,7 @@ gtk_entry_class_init (GtkEntryClass *class)
   widget_class->grab_focus = gtk_entry_grab_focus;
   widget_class->focus = gtk_widget_focus_child;
   widget_class->mnemonic_activate = gtk_entry_mnemonic_activate;
-  
+
   quark_entry_completion = g_quark_from_static_string ("gtk-entry-completion-key");
 
   entry_props[PROP_BUFFER] =
@@ -2799,7 +2799,7 @@ gtk_entry_get_icon_at_pos (GtkEntry *entry,
   for (i = 0; i < MAX_ICONS; i++)
     {
       EntryIconInfo *icon_info = priv->icons[i];
-      int icon_x, icon_y;
+      double icon_x, icon_y;
 
       if (icon_info == NULL)
         continue;

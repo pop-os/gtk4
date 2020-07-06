@@ -317,7 +317,7 @@ save_response_cb (GtkNativeDialog        *dialog,
                                                    "Saving failed");
           gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (message_dialog),
                                                     "%s", error->message);
-          g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_widget_destroy), NULL);
+          g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
           gtk_widget_show (message_dialog);
           g_error_free (error);
         }
@@ -403,7 +403,7 @@ constraint_editor_done (ConstraintEditor *editor,
 
   g_clear_object (&old_constraint);
 
-  gtk_widget_destroy (gtk_widget_get_ancestor (GTK_WIDGET (editor), GTK_TYPE_WINDOW));
+  gtk_window_destroy (GTK_WINDOW (gtk_widget_get_ancestor (GTK_WIDGET (editor), GTK_TYPE_WINDOW)));
 }
 
 static void
@@ -426,7 +426,7 @@ edit_constraint (ConstraintEditorWindow *win,
 
   editor = constraint_editor_new (model, constraint);
 
-  gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET (editor));
+  gtk_window_set_child (GTK_WINDOW (window), GTK_WIDGET (editor));
 
   g_signal_connect (editor, "done", G_CALLBACK (constraint_editor_done), win);
 
@@ -444,7 +444,7 @@ guide_editor_done (GuideEditor            *editor,
                    GtkConstraintGuide     *guide,
                    ConstraintEditorWindow *win)
 {
-  gtk_widget_destroy (gtk_widget_get_ancestor (GTK_WIDGET (editor), GTK_TYPE_WINDOW));
+  gtk_window_destroy (GTK_WINDOW (gtk_widget_get_ancestor (GTK_WIDGET (editor), GTK_TYPE_WINDOW)));
 }
 
 static void
@@ -460,7 +460,7 @@ edit_guide (ConstraintEditorWindow *win,
   gtk_window_set_title (GTK_WINDOW (window), "Edit Guide");
 
   editor = guide_editor_new (guide);
-  gtk_container_add (GTK_CONTAINER (window), GTK_WIDGET (editor));
+  gtk_window_set_child (GTK_WINDOW (window), GTK_WIDGET (editor));
 
   g_signal_connect (editor, "done", G_CALLBACK (guide_editor_done), win);
   gtk_widget_show (window);
@@ -607,8 +607,8 @@ create_widget_func (gpointer item,
   gtk_widget_set_margin_bottom (label, 10);
   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
   gtk_widget_set_hexpand (label, TRUE);
-  gtk_container_add (GTK_CONTAINER (row), box);
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), box);
+  gtk_box_append (GTK_BOX (box), label);
 
   if (GTK_IS_CONSTRAINT (item) || GTK_IS_CONSTRAINT_GUIDE (item))
     {
@@ -616,18 +616,18 @@ create_widget_func (gpointer item,
       gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
       g_signal_connect (button, "clicked", G_CALLBACK (row_edit), win);
       g_object_set_data (G_OBJECT (row), "edit", button);
-      gtk_container_add (GTK_CONTAINER (box), button);
+      gtk_box_append (GTK_BOX (box), button);
       button = gtk_button_new_from_icon_name ("edit-delete-symbolic");
       gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
       g_signal_connect (button, "clicked", G_CALLBACK (row_delete), win);
-      gtk_container_add (GTK_CONTAINER (box), button);
+      gtk_box_append (GTK_BOX (box), button);
     }
   else if (GTK_IS_WIDGET (item))
     {
       button = gtk_button_new_from_icon_name ("edit-delete-symbolic");
       gtk_button_set_has_frame (GTK_BUTTON (button), FALSE);
       g_signal_connect (button, "clicked", G_CALLBACK (row_delete), win);
-      gtk_container_add (GTK_CONTAINER (box), button);
+      gtk_box_append (GTK_BOX (box), button);
     }
 
   g_free (freeme);

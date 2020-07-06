@@ -51,15 +51,71 @@
  * GtkPopoverMenu is meant to be used primarily with menu models,
  * using gtk_popover_menu_new_from_model(). If you need to put other
  * widgets such as #GtkSpinButton or #GtkSwitch into a popover,
- * use a #GtkPopover.
+ * use a plain #GtkPopover.
  *
- * In addition to all the regular menu model features, this function
- * supports rendering sections in the model in a more compact form,
- * as a row of image buttons instead of menu items.
+ * ## Menu models
  *
- * To use this rendering, set the ”display-hint” attribute of the
- * section to ”horizontal-buttons” and set the icons of your items
- * with the ”verb-icon” attribute.
+ * The XML format understood by #GtkBuilder for #GMenuModel consists
+ * of a toplevel `<menu>` element, which contains one or more `<item>`
+ * elements. Each `<item>` element contains `<attribute>` and `<link>`
+ * elements with a mandatory name attribute. `<link>` elements have the
+ * same content model as `<menu>`. Instead of `<link name="submenu>` or
+ * `<link name="section">`, you can use `<submenu>` or `<section>`
+ * elements.
+ *
+ * |[<!--language: xml -->
+ * <menu id='app-menu'>
+ *   <section>
+ *     <item>
+ *       <attribute name='label' translatable='yes'>_New Window</attribute>
+ *       <attribute name='action'>app.new</attribute>
+ *     </item>
+ *     <item>
+ *       <attribute name='label' translatable='yes'>_About Sunny</attribute>
+ *       <attribute name='action'>app.about</attribute>
+ *     </item>
+ *     <item>
+ *       <attribute name='label' translatable='yes'>_Quit</attribute>
+ *       <attribute name='action'>app.quit</attribute>
+ *     </item>
+ *   </section>
+ * </menu>
+ * ]|
+ *
+ * Attribute values can be translated using gettext, like other #GtkBuilder
+ * content. `<attribute>` elements can be marked for translation with a
+ * `translatable="yes"` attribute. It is also possible to specify message
+ * context and translator comments, using the context and comments attributes.
+ * To make use of this, the #GtkBuilder must have been given the gettext
+ * domain to use.
+ *
+ * The following attributes are used when constructing menu items:
+ * - "label": a user-visible string to display
+ * - "action": the prefixed name of the action to trigger
+ * - "target": the parameter to use when activating the action
+ * - "icon" and "verb-icon": names of icons that may be displayed
+ * - "submenu-action": name of an action that may be used to determine
+ *      if a submenu can be opened
+ * - "hidden-when": a string used to determine when the item will be hidden.
+ *      Possible values include "action-disabled", "action-missing", "macos-menubar".
+ *      This is mainly useful for exported menus, see gtk_application_set_menubar().
+ *
+ * The following attributes are used when constructing sections:
+ * - "label": a user-visible string to use as section heading
+ * - "display-hint": a string used to determine special formatting for the section.
+ *     Possible values include "horizontal-buttons", "circular-buttons" and "inline-buttons". They all indicate that section should be
+ *     displayed as a horizontal row of buttons.
+ * - "text-direction": a string used to determine the #GtkTextDirection to use
+ *     when "display-hint" is set to "horizontal-buttons". Possible values
+ *     include "rtl", "ltr", and "none".
+ *
+ * The following attributes are used when constructing submenus:
+ * - "label": a user-visible string to display
+ * - "icon": icon name to display
+ *
+ * Menu items will also show accelerators, which are usually associated
+ * with actions via gtk_application_set_accels_for_action(),
+ * gtk_widget_class_add_binding_action() or gtk_shortcut_controller_add_shortcut().
  *
  * # CSS Nodes
  *
@@ -193,7 +249,8 @@ leave_cb (GtkEventController   *controller,
 
   target = gtk_event_controller_get_widget (controller);
 
-  gtk_popover_menu_set_active_item (GTK_POPOVER_MENU (target), NULL);
+  if (mode == GDK_CROSSING_NORMAL)
+    gtk_popover_menu_set_active_item (GTK_POPOVER_MENU (target), NULL);
 }
 
 static void
@@ -208,7 +265,7 @@ gtk_popover_menu_init (GtkPopoverMenu *popover)
   gtk_stack_set_vhomogeneous (GTK_STACK (stack), FALSE);
   gtk_stack_set_transition_type (GTK_STACK (stack), GTK_STACK_TRANSITION_TYPE_SLIDE_LEFT_RIGHT);
   gtk_stack_set_interpolate_size (GTK_STACK (stack), TRUE);
-  gtk_container_add (GTK_CONTAINER (popover), stack);
+  gtk_popover_set_child (GTK_POPOVER (popover), stack);
   g_signal_connect (stack, "notify::visible-child-name",
                     G_CALLBACK (visible_submenu_changed), popover);
 
@@ -271,9 +328,7 @@ gtk_popover_menu_get_property (GObject    *object,
                                GValue     *value,
                                GParamSpec *pspec)
 {
-  GtkWidget *stack;
-
-  stack = gtk_bin_get_child (GTK_BIN (object));
+  GtkWidget *stack = gtk_popover_get_child (GTK_POPOVER (object));
 
   switch (property_id)
     {
@@ -297,9 +352,7 @@ gtk_popover_menu_set_property (GObject      *object,
                                const GValue *value,
                                GParamSpec   *pspec)
 {
-  GtkWidget *stack;
-
-  stack = gtk_bin_get_child (GTK_BIN (object));
+  GtkWidget *stack = gtk_popover_get_child (GTK_POPOVER (object));
 
   switch (property_id)
     {
@@ -321,19 +374,28 @@ static gboolean
 gtk_popover_menu_focus (GtkWidget        *widget,
                         GtkDirectionType  direction)
 {
+  GtkPopoverMenu *menu = GTK_POPOVER_MENU (widget);
+
   if (gtk_widget_get_first_child (widget) == NULL)
     {
       return FALSE;
     }
   else
     {
-      if (GTK_POPOVER_MENU (widget)->open_submenu)
+      if (menu->open_submenu)
         {
-          if (gtk_widget_child_focus (GTK_POPOVER_MENU (widget)->open_submenu, direction))
+          if (gtk_widget_child_focus (menu->open_submenu, direction))
             return TRUE;
           if (direction == GTK_DIR_LEFT)
             {
-              gtk_widget_grab_focus (GTK_POPOVER_MENU (widget)->active_item);
+              if (menu->open_submenu)
+                {
+                  gtk_popover_popdown (GTK_POPOVER (menu->open_submenu));
+                  menu->open_submenu = NULL;
+                }
+
+              gtk_widget_grab_focus (menu->active_item);
+
               return TRUE;
             }
           return FALSE;
@@ -349,7 +411,7 @@ gtk_popover_menu_focus (GtkWidget        *widget,
            * we eat them.
            */
           if (gtk_widget_get_ancestor (widget, GTK_TYPE_POPOVER_MENU_BAR) ||
-              (gtk_popover_menu_get_parent_menu (GTK_POPOVER_MENU (widget)) &&
+              (gtk_popover_menu_get_parent_menu (menu) &&
                direction == GTK_DIR_LEFT))
             return FALSE;
           else
@@ -360,7 +422,7 @@ gtk_popover_menu_focus (GtkWidget        *widget,
           GtkWidget *p;
 
           /* cycle around */
-          for (p = gtk_window_get_focus (GTK_WINDOW (gtk_widget_get_root (widget)));
+          for (p = gtk_root_get_focus (gtk_widget_get_root (widget));
                p != widget;
                p = gtk_widget_get_parent (p))
             {
@@ -522,7 +584,7 @@ gtk_popover_menu_open_submenu (GtkPopoverMenu *popover,
 
   g_return_if_fail (GTK_IS_POPOVER_MENU (popover));
 
-  stack = gtk_bin_get_child (GTK_BIN (popover));
+  stack = gtk_popover_get_child (GTK_POPOVER (popover));
   gtk_stack_set_visible_child_name (GTK_STACK (stack), name);
 }
 
@@ -531,9 +593,7 @@ gtk_popover_menu_add_submenu (GtkPopoverMenu *popover,
                               GtkWidget      *submenu,
                               const char     *name)
 {
-  GtkWidget *stack;
-
-  stack = gtk_bin_get_child (GTK_BIN (popover));
+  GtkWidget *stack = gtk_popover_get_child (GTK_POPOVER (popover));
   gtk_stack_add_named (GTK_STACK (stack), submenu, name);
 }
 
@@ -603,7 +663,7 @@ gtk_popover_menu_new_from_model_full (GMenuModel          *model,
 /**
  * gtk_popover_menu_set_menu_model:
  * @popover: a #GtkPopoverMenu
- * @model: (nullable): a #GtkMenuModel, or %NULL
+ * @model: (nullable): a #GMenuModel, or %NULL
  *
  * Sets a new menu model on @popover.
  *
@@ -623,9 +683,9 @@ gtk_popover_menu_set_menu_model (GtkPopoverMenu *popover,
       GtkWidget *stack;
       GtkWidget *child;
 
-      stack = gtk_bin_get_child (GTK_BIN (popover));
+      stack = gtk_popover_get_child (GTK_POPOVER (popover));
       while ((child = gtk_widget_get_first_child (stack)))
-        gtk_container_remove (GTK_CONTAINER (stack), child);
+        gtk_stack_remove (GTK_STACK (stack), child);
 
       if (model)
         gtk_menu_section_box_new_toplevel (popover, model, popover->flags);

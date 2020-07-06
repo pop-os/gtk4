@@ -47,8 +47,10 @@
 #include "gtkmain.h"
 #include "gtksettingsprivate.h"
 #include "gtkstylecontextprivate.h"
+#include "gtkstyleproviderprivate.h"
 #include "gtkprivate.h"
 #include "gtksnapshot.h"
+#include "gtkwidgetprivate.h"
 #include "gdkpixbufutilsprivate.h"
 #include "gdk/gdktextureprivate.h"
 #include "gdk/gdkprofilerprivate.h"
@@ -328,9 +330,11 @@ struct _GtkIconTheme
 
   /* time when we last stat:ed for theme changes */
   glong last_stat_time;
-  GList *dir_mtimes;
+  GArray *dir_mtimes;
 
   gulong theme_changed_idle;
+
+  int serial;
 };
 
 struct _GtkIconThemeClass
@@ -549,9 +553,16 @@ gtk_icon_theme_ref_aquire (GtkIconThemeRef *ref)
 static void
 gtk_icon_theme_ref_release (GtkIconThemeRef *ref)
 {
-  if (ref->theme)
-    g_object_unref (ref->theme);
+  GtkIconTheme *theme;
+
+  /* Get a pointer to the theme, becuse when we unlock it could become NULLed by dispose, this pointer still owns a ref */
+  theme = ref->theme;
   g_mutex_unlock (&ref->lock);
+
+  /* Then unref outside the lock, because otherwis if this is the last ref the dispose handler would deadlock trying to NULL ref->theme */
+  if (theme)
+    g_object_unref (theme);
+
 }
 
 static void
@@ -1229,6 +1240,15 @@ pixbuf_supports_svg (void)
 }
 
 static void
+free_dir_mtime (IconThemeDirMtime *dir_mtime)
+{
+  if (dir_mtime->cache)
+    gtk_icon_cache_unref (dir_mtime->cache);
+
+  g_free (dir_mtime->dir);
+}
+
+static void
 gtk_icon_theme_init (GtkIconTheme *self)
 {
   const gchar * const *xdg_data_dirs;
@@ -1241,6 +1261,8 @@ gtk_icon_theme_init (GtkIconTheme *self)
                                             (GDestroyNotify)icon_uncached_cb);
 
   self->custom_theme = FALSE;
+  self->dir_mtimes = g_array_new (FALSE, TRUE, sizeof (IconThemeDirMtime));
+  g_array_set_clear_func (self->dir_mtimes, (GDestroyNotify)free_dir_mtime);
 
   xdg_data_dirs = g_get_system_data_dirs ();
   for (i = 0; xdg_data_dirs[i]; i++) ;
@@ -1272,16 +1294,6 @@ gtk_icon_theme_init (GtkIconTheme *self)
   self->pixbuf_supports_svg = pixbuf_supports_svg ();
 }
 
-static void
-free_dir_mtime (IconThemeDirMtime *dir_mtime)
-{
-  if (dir_mtime->cache)
-    gtk_icon_cache_unref (dir_mtime->cache);
-
-  g_free (dir_mtime->dir);
-  g_slice_free (IconThemeDirMtime, dir_mtime);
-}
-
 static gboolean
 theme_changed_idle__mainthread_unlocked (gpointer user_data)
 {
@@ -1308,7 +1320,9 @@ theme_changed_idle__mainthread_unlocked (gpointer user_data)
 
       if (display)
         {
-          gtk_style_context_reset_widgets (self->display);
+          GtkSettings *settings = gtk_settings_get_for_display (self->display);
+          gtk_style_provider_changed (GTK_STYLE_PROVIDER (settings));
+          gtk_system_setting_changed (display, GTK_SYSTEM_SETTING_ICON_THEME);
           g_object_unref (display);
         }
 
@@ -1344,7 +1358,6 @@ do_theme_change (GtkIconTheme *self)
   blow_themes (self);
 
   queue_theme_changed (self);
-
 }
 
 static void
@@ -1353,13 +1366,19 @@ blow_themes (GtkIconTheme *self)
   if (self->themes_valid)
     {
       g_list_free_full (self->themes, (GDestroyNotify) theme_destroy);
-      g_list_free_full (self->dir_mtimes, (GDestroyNotify) free_dir_mtime);
+      g_array_set_size (self->dir_mtimes, 0);
       g_hash_table_destroy (self->unthemed_icons);
     }
   self->themes = NULL;
   self->unthemed_icons = NULL;
-  self->dir_mtimes = NULL;
   self->themes_valid = FALSE;
+  self->serial++;
+}
+
+int
+gtk_icon_theme_get_serial (GtkIconTheme *self)
+{
+  return self->serial;
 }
 
 static void
@@ -1405,6 +1424,7 @@ gtk_icon_theme_finalize (GObject *object)
   g_strfreev (self->resource_path);
 
   blow_themes (self);
+  g_array_free (self->dir_mtimes, TRUE);
 
   gtk_icon_theme_ref_unref (self->ref);
 
@@ -1731,7 +1751,6 @@ insert_theme (GtkIconTheme *self,
   gchar *path;
   GKeyFile *theme_file;
   GError *error = NULL;
-  IconThemeDirMtime *dir_mtime;
   GStatBuf stat_buf;
 
   for (l = self->themes; l != NULL; l = l->next)
@@ -1743,22 +1762,23 @@ insert_theme (GtkIconTheme *self,
 
   for (i = 0; self->search_path[i]; i++)
     {
+      IconThemeDirMtime dir_mtime;
+
       path = g_build_filename (self->search_path[i], theme_name, NULL);
-      dir_mtime = g_slice_new (IconThemeDirMtime);
-      dir_mtime->cache = NULL;
-      dir_mtime->dir = path;
+      dir_mtime.cache = NULL;
+      dir_mtime.dir = path;
       if (g_stat (path, &stat_buf) == 0 && S_ISDIR (stat_buf.st_mode))
         {
-          dir_mtime->mtime = stat_buf.st_mtime;
-          dir_mtime->exists = TRUE;
+          dir_mtime.mtime = stat_buf.st_mtime;
+          dir_mtime.exists = TRUE;
         }
       else
         {
-          dir_mtime->mtime = 0;
-          dir_mtime->exists = FALSE;
+          dir_mtime.mtime = 0;
+          dir_mtime.exists = FALSE;
         }
 
-      self->dir_mtimes = g_list_prepend (self->dir_mtimes, dir_mtime);
+      g_array_insert_val (self->dir_mtimes, 0, dir_mtime);
     }
 
   theme_file = NULL;
@@ -1944,7 +1964,6 @@ load_themes (GtkIconTheme *self)
   gchar *dir;
   const gchar *file;
   GTimeVal tv;
-  IconThemeDirMtime *dir_mtime;
   GStatBuf stat_buf;
   int j;
 
@@ -1959,10 +1978,11 @@ load_themes (GtkIconTheme *self)
 
   for (base = 0; self->search_path[base]; base++)
     {
+      IconThemeDirMtime *dir_mtime;
       dir = self->search_path[base];
 
-      dir_mtime = g_slice_new (IconThemeDirMtime);
-      self->dir_mtimes = g_list_prepend (self->dir_mtimes, dir_mtime);
+      g_array_set_size (self->dir_mtimes, self->dir_mtimes->len + 1);
+      dir_mtime = &g_array_index (self->dir_mtimes, IconThemeDirMtime, self->dir_mtimes->len - 1);
 
       dir_mtime->dir = g_strdup (dir);
       dir_mtime->mtime = 0;
@@ -1987,7 +2007,6 @@ load_themes (GtkIconTheme *self)
 
       g_dir_close (gdir);
     }
-  self->dir_mtimes = g_list_reverse (self->dir_mtimes);
 
   for (j = 0; self->resource_path[j]; j++)
     {
@@ -2419,7 +2438,7 @@ load_icon_thread (GTask        *task,
  * @flags: flags modifying the behavior of the icon lookup
  *
  * Looks up a named icon for a desired size and window scale, returning a
- * #GtkIcon. The icon can then be rendered by using it as a #GdkPaintable,
+ * #GtkIconPaintable. The icon can then be rendered by using it as a #GdkPaintable,
  * or you can get information such as the filename and size.
  *
  * If the available @icon_name is not available and @fallbacks are provided,
@@ -2431,7 +2450,7 @@ load_icon_thread (GTask        *task,
  *
  * Note that you probably want to listen for icon theme changes and
  * update the icon. This is usually done by overriding the
- * #GtkWidget:css-changed function.
+ * #GtkWidgetClass.css-changed() function.
  *
  * Returns: (transfer full): a #GtkIconPaintable object
  *     containing the icon.
@@ -2728,15 +2747,14 @@ gtk_icon_theme_get_icon_names (GtkIconTheme *self)
 static gboolean
 rescan_themes (GtkIconTheme *self)
 {
-  IconThemeDirMtime *dir_mtime;
-  GList *d;
   gint stat_res;
   GStatBuf stat_buf;
   GTimeVal tv;
+  guint i;
 
-  for (d = self->dir_mtimes; d != NULL; d = d->next)
+  for (i = 0; i < self->dir_mtimes->len; i++)
     {
-      dir_mtime = d->data;
+      const IconThemeDirMtime *dir_mtime = &g_array_index (self->dir_mtimes, IconThemeDirMtime, i);
 
       stat_res = g_stat (dir_mtime->dir, &stat_buf);
 
@@ -3277,7 +3295,6 @@ theme_subdir_load (GtkIconTheme *self,
                    GKeyFile     *theme_file,
                    gchar        *subdir)
 {
-  GList *d;
   gchar *type_string;
   IconThemeDirType type;
   gint size;
@@ -3285,10 +3302,10 @@ theme_subdir_load (GtkIconTheme *self,
   gint max_size;
   gint threshold;
   GError *error = NULL;
-  IconThemeDirMtime *dir_mtime;
   guint32 dir_size_index;
   IconThemeDirSize *dir_size;
   gint scale;
+  guint i;
 
   size = g_key_file_get_integer (theme_file, subdir, "Size", &error);
   if (error)
@@ -3336,10 +3353,10 @@ theme_subdir_load (GtkIconTheme *self,
   dir_size_index = theme_ensure_dir_size (theme, type, size, min_size, max_size, threshold, scale);
   dir_size = &g_array_index (theme->dir_sizes, IconThemeDirSize, dir_size_index);
 
-  for (d = self->dir_mtimes; d; d = d->next)
+  for (i = 0; i < self->dir_mtimes->len; i++)
     {
+      IconThemeDirMtime *dir_mtime = &g_array_index (self->dir_mtimes, IconThemeDirMtime, i);
       gchar *full_dir;
-      dir_mtime = (IconThemeDirMtime *)d->data;
 
       if (!dir_mtime->exists)
         continue; /* directory doesn't exist */
@@ -3378,14 +3395,14 @@ theme_subdir_load (GtkIconTheme *self,
 
   if (strcmp (theme->name, FALLBACK_ICON_THEME) == 0)
     {
-      int i;
-      for (i = 0; self->resource_path[i]; i++)
+      int r;
+      for (r = 0; self->resource_path[r]; r++)
         {
           GHashTable *icons;
           gchar *full_dir;
 
           /* Force a trailing / here, to avoid extra copies in GResource */
-          full_dir = g_build_filename (self->resource_path[i], subdir, " ", NULL);
+          full_dir = g_build_filename (self->resource_path[r], subdir, " ", NULL);
           full_dir[strlen (full_dir) - 1] = '\0';
 
           icons = scan_resource_directory (self, full_dir, &theme->icons);
@@ -3405,7 +3422,7 @@ theme_subdir_load (GtkIconTheme *self,
 }
 
 /*
- * GtkIcon
+ * GtkIconPaintable
  */
 
 static void icon_paintable_init (GdkPaintableInterface *iface);
@@ -3600,7 +3617,7 @@ new_resource_file (const char *filename)
 
 /**
  * gtk_icon_paintable_get_file:
- * @self: a #GtkIcon
+ * @self: a #GtkIconPaintable
  *
  * Gets the #GFile that was used to load the icon, or %NULL if the icon was
  * not loaded from a file.
@@ -3624,13 +3641,13 @@ gtk_icon_paintable_get_file (GtkIconPaintable *icon)
 
 /**
  * gtk_icon_paintable_get_icon_name:
- * @self: a #GtkIcon
+ * @self: a #GtkIconPaintable
  *
  * Get the icon name being used for this icon.
  *
  * When an icon looked up in the icon theme was not available, the
  * icon theme may use fallback icons - either those specified to
- * gtk_icon_theme_lookup() or the always-available
+ * gtk_icon_theme_lookup_icon() or the always-available
  * "image-missing". The icon chosen is returned by this function.
  *
  * If the icon was created without an icon theme, this function returns %NULL.
@@ -3649,7 +3666,7 @@ gtk_icon_paintable_get_icon_name (GtkIconPaintable *icon)
 
 /**
  * gtk_icon_paintable_is_symbolic:
- * @self: a #GtkIcon
+ * @self: a #GtkIconPaintable
  *
  * Checks if the icon is symbolic or not. This currently uses only
  * the file name and not the file contents for determining this.
@@ -3881,7 +3898,7 @@ icon_paintable_snapshot (GdkPaintable *paintable,
 
 /**
  * gtk_icon_paintable_snapshot_with_colors:
- * @icon: a #GtkIcon
+ * @icon: a #GtkIconPaintable
  * @snapshot: a #GdkSnapshot to snapshot to
  * @width: width to snapshot in
  * @height: height to snapshot in
@@ -3994,7 +4011,7 @@ icon_paintable_init (GdkPaintableInterface *iface)
  * @scale: the desired scale
  *
  * Creates a #GtkIconPaintable for a file with a given size and scale
- * #GtkIcon. The icon can then be rendered by using it as a #GdkPaintable.
+ * #GtkIconPaintable. The icon can then be rendered by using it as a #GdkPaintable.
  *
  * Returns: (transfer full): a #GtkIconPaintable containing
  *     for the icon. Unref with g_object_unref()
@@ -4060,7 +4077,7 @@ gtk_icon_paintable_new_for_pixbuf (GtkIconTheme *icon_theme,
  * @flags: flags modifying the behavior of the icon lookup
  *
  * Looks up a icon for a desired size and window scale, returning a
- * #GtkIcon. The icon can then be rendered by using it as a #GdkPaintable,
+ * #GtkIconPaintable. The icon can then be rendered by using it as a #GdkPaintable,
  * or you can get information such as the filename and size.
  *
  * Returns: (transfer full): a #GtkIconPaintable containing

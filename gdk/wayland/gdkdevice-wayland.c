@@ -706,7 +706,6 @@ device_maybe_emit_ungrab_crossing (GdkDevice *device,
 
   if (grab)
     {
-      grab->serial_end = grab->serial_start;
       prev_focus = grab->surface;
       surface = grab->surface;
     }
@@ -1541,6 +1540,19 @@ pointer_handle_leave (void              *data,
 
   _gdk_wayland_display_update_serial (display_wayland, serial);
 
+  if (seat->pointer_info.button_modifiers != 0)
+    {
+      gulong display_serial;
+
+      display_serial = _gdk_display_get_next_serial (seat->display);
+      _gdk_display_end_device_grab (seat->display, seat->master_pointer,
+                                    display_serial, NULL, TRUE);
+      _gdk_display_device_grab_update (seat->display,
+                                       seat->master_pointer,
+                                       seat->pointer,
+                                       display_serial);
+    }
+
   event = gdk_crossing_event_new (GDK_LEAVE_NOTIFY,
                                   seat->pointer_info.focus,
                                   seat->master_pointer,
@@ -2313,6 +2325,22 @@ gdk_wayland_seat_remove_touch (GdkWaylandSeat *seat,
   g_hash_table_remove (seat->touches, GUINT_TO_POINTER (id));
 }
 
+void
+gdk_wayland_seat_clear_touchpoints (GdkWaylandSeat *seat,
+                                    GdkSurface     *surface)
+{
+  GHashTableIter iter;
+  GdkWaylandTouchData *touch;
+
+  g_hash_table_iter_init (&iter, seat->touches);
+
+  while (g_hash_table_iter_next (&iter, NULL, (gpointer *) &touch))
+    {
+      if (touch->surface == surface)
+        g_hash_table_iter_remove (&iter);
+    }
+}
+
 static void
 mimic_pointer_emulating_touch_info (GdkDevice           *device,
                                     GdkWaylandTouchData *touch)
@@ -2759,6 +2787,14 @@ _gdk_wayland_seat_remove_tablet (GdkWaylandSeat       *seat,
   gdk_seat_device_removed (GDK_SEAT (seat), tablet->stylus_device);
   gdk_seat_device_removed (GDK_SEAT (seat), tablet->eraser_device);
   gdk_seat_device_removed (GDK_SEAT (seat), tablet->master);
+
+  while (tablet->pads)
+    {
+      GdkWaylandTabletPadData *pad = tablet->pads->data;
+
+      pad->current_tablet = NULL;
+      tablet->pads = g_list_remove (tablet->pads, pad);
+    }
 
   zwp_tablet_v2_destroy (tablet->wp_tablet);
 

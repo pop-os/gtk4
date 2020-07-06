@@ -181,7 +181,7 @@ create_tree (gboolean rtl)
 
   treeview = gtk_tree_view_new_with_model (GTK_TREE_MODEL (list_store));
   gtk_widget_set_direction (treeview, rtl ? GTK_TEXT_DIR_RTL : GTK_TEXT_DIR_LTR);
-  gtk_container_add (GTK_CONTAINER (sw), treeview);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), treeview);
 
   /* Line number */
 
@@ -273,25 +273,25 @@ main (int argc, char **argv)
 		    G_CALLBACK (quit_cb), &done);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
-  gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_window_set_child (GTK_WINDOW (window), vbox);
 
   /* LTR */
 
   label = gtk_label_new ("Left to right");
-  gtk_container_add (GTK_CONTAINER (vbox), label);
+  gtk_box_append (GTK_BOX (vbox), label);
 
   tree = create_tree (FALSE);
   gtk_widget_set_vexpand (tree, TRUE);
-  gtk_container_add (GTK_CONTAINER (vbox), tree);
+  gtk_box_append (GTK_BOX (vbox), tree);
 
   /* RTL */
 
   label = gtk_label_new ("Right to left");
-  gtk_container_add (GTK_CONTAINER (vbox), label);
+  gtk_box_append (GTK_BOX (vbox), label);
 
   tree = create_tree (TRUE);
   gtk_widget_set_vexpand (tree, TRUE);
-  gtk_container_add (GTK_CONTAINER (vbox), tree);
+  gtk_box_append (GTK_BOX (vbox), tree);
 
   gtk_widget_show (window);
 

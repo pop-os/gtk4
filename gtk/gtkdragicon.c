@@ -27,6 +27,7 @@
 #include "gtkcsstypesprivate.h"
 #include "gtknativeprivate.h"
 #include "gtkpicture.h"
+#include "gtkcssboxesimplprivate.h"
 #include "gtkcssnumbervalueprivate.h"
 
 /* for the drag icons */
@@ -78,7 +79,7 @@ static GParamSpec *properties[LAST_ARG] = { NULL, };
 static void gtk_drag_icon_root_init   (GtkRootInterface *iface);
 static void gtk_drag_icon_native_init (GtkNativeInterface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GtkDragIcon, gtk_drag_icon, GTK_TYPE_CONTAINER,
+G_DEFINE_TYPE_WITH_CODE (GtkDragIcon, gtk_drag_icon, GTK_TYPE_WIDGET,
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_NATIVE,
                                                 gtk_drag_icon_native_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_ROOT,
@@ -119,18 +120,17 @@ gtk_drag_icon_native_get_renderer (GtkNative *native)
 
 static void
 gtk_drag_icon_native_get_surface_transform (GtkNative *native,
-                                            int       *x,
-                                            int       *y)
+                                            double    *x,
+                                            double    *y)
 {
-  GtkCssStyle *style;
+  GtkCssBoxes css_boxes;
+  const graphene_rect_t *margin_rect;
 
-  style = gtk_css_node_get_style (gtk_widget_get_css_node (GTK_WIDGET (native)));
-  *x  = _gtk_css_number_value_get (style->size->margin_left, 100) +
-        _gtk_css_number_value_get (style->border->border_left_width, 100) +
-        _gtk_css_number_value_get (style->size->padding_left, 100);
-  *y  = _gtk_css_number_value_get (style->size->margin_top, 100) +
-        _gtk_css_number_value_get (style->border->border_top_width, 100) +
-        _gtk_css_number_value_get (style->size->padding_top, 100);
+  gtk_css_boxes_init (&css_boxes, GTK_WIDGET (native));
+  margin_rect = gtk_css_boxes_get_margin_rect (&css_boxes);
+
+  *x = - margin_rect->origin.x;
+  *y = - margin_rect->origin.y;
 }
 
 static void
@@ -361,8 +361,6 @@ gtk_drag_icon_class_init (GtkDragIconClass *klass)
   widget_class->size_allocate = gtk_drag_icon_size_allocate;
   widget_class->show = gtk_drag_icon_show;
   widget_class->hide = gtk_drag_icon_hide;
-  widget_class->focus = gtk_widget_focus_none;
-  widget_class->grab_focus = gtk_widget_grab_focus_none;
 
   /**
    * GtkDragIcon:child:

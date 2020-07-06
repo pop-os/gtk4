@@ -354,7 +354,7 @@ create_axis_slider (int axis)
     }
 
   label = gtk_label_new (text);
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_box_append (GTK_BOX (box), label);
   gtk_widget_show (label);
 
   adj = gtk_adjustment_new (0.0, 0.0, 360.0, 1.0, 12.0, 0.0);
@@ -362,7 +362,7 @@ create_axis_slider (int axis)
                     G_CALLBACK (on_axis_value_change),
                     GINT_TO_POINTER (axis));
   slider = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adj);
-  gtk_container_add (GTK_CONTAINER (box), slider);
+  gtk_box_append (GTK_BOX (box), slider);
   gtk_widget_set_hexpand (slider, TRUE);
   gtk_widget_show (slider);
 
@@ -401,12 +401,12 @@ create_glarea_window (GtkWidget *do_widget)
   gtk_widget_set_margin_top (box, 12);
   gtk_widget_set_margin_bottom (box, 12);
   gtk_box_set_spacing (GTK_BOX (box), 6);
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   gl_area = gtk_gl_area_new ();
   gtk_widget_set_hexpand (gl_area, TRUE);
   gtk_widget_set_vexpand (gl_area, TRUE);
-  gtk_container_add (GTK_CONTAINER (box), gl_area);
+  gtk_box_append (GTK_BOX (box), gl_area);
 
   /* We need to initialize and free GL resources, so we use
    * the realize and unrealize signals on the widget
@@ -418,16 +418,16 @@ create_glarea_window (GtkWidget *do_widget)
   g_signal_connect (gl_area, "render", G_CALLBACK (render), NULL);
 
   controls = gtk_box_new (GTK_ORIENTATION_VERTICAL, FALSE);
-  gtk_container_add (GTK_CONTAINER (box), controls);
+  gtk_box_append (GTK_BOX (box), controls);
   gtk_widget_set_hexpand (controls, TRUE);
 
   for (i = 0; i < N_AXIS; i++)
-    gtk_container_add (GTK_CONTAINER (controls), create_axis_slider (i));
+    gtk_box_append (GTK_BOX (controls), create_axis_slider (i));
 
   button = gtk_button_new_with_label ("Quit");
   gtk_widget_set_hexpand (button, TRUE);
-  gtk_container_add (GTK_CONTAINER (box), button);
-  g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
+  gtk_box_append (GTK_BOX (box), button);
+  g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_destroy), window);
 
   return window;
 }
@@ -441,7 +441,7 @@ do_glarea (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (demo_window))
     gtk_widget_show (demo_window);
   else
-    gtk_widget_destroy (demo_window);
+    gtk_window_destroy (GTK_WINDOW (demo_window));
 
   return demo_window;
 }

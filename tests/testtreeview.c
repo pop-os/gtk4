@@ -362,9 +362,7 @@ set_columns_type (GtkTreeView *tree_view, ColumnsType type)
       image = gtk_image_new_from_pixbuf (pixbuf);
 
       g_object_unref (pixbuf);
-      
-      gtk_widget_show (image);
-      
+
       gtk_tree_view_column_set_widget (col, image);
       
       rend = gtk_cell_renderer_toggle_new ();
@@ -448,7 +446,7 @@ set_columns_type (GtkTreeView *tree_view, ColumnsType type)
       
 #endif
       
-      /* FALL THRU */
+      G_GNUC_FALLTHROUGH;
       
     case COLUMNS_ONE:
       rend = gtk_cell_renderer_text_new ();
@@ -702,7 +700,7 @@ main (int    argc,
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
 
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   tv = gtk_tree_view_new_with_model (models[0]);
   g_signal_connect (tv, "row-activated", G_CALLBACK (on_row_activated), NULL);
@@ -724,7 +722,7 @@ main (int    argc,
   for (i = 0; i < MODEL_LAST; i++)
       gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo_box), model_names[i]);
 
-  gtk_container_add (GTK_CONTAINER (box), combo_box);
+  gtk_box_append (GTK_BOX (box), combo_box);
   g_signal_connect (combo_box,
                     "changed",
                     G_CALLBACK (model_selected),
@@ -736,7 +734,7 @@ main (int    argc,
   for (i = 0; i < COLUMNS_LAST; i++)
       gtk_combo_box_text_append_text (GTK_COMBO_BOX_TEXT (combo_box), column_type_names[i]);
 
-  gtk_container_add (GTK_CONTAINER (box), combo_box);
+  gtk_box_append (GTK_BOX (box), combo_box);
 
   set_columns_type (GTK_TREE_VIEW (tv), COLUMNS_LOTS);
   gtk_combo_box_set_active (GTK_COMBO_BOX (combo_box), COLUMNS_LOTS);
@@ -753,9 +751,9 @@ main (int    argc,
                                   GTK_POLICY_AUTOMATIC,
                                   GTK_POLICY_AUTOMATIC);
   
-  gtk_container_add (GTK_CONTAINER (box), sw);
+  gtk_box_append (GTK_BOX (box), sw);
   
-  gtk_container_add (GTK_CONTAINER (sw), tv);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), tv);
   
   gtk_widget_show (window);
   

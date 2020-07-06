@@ -1327,7 +1327,6 @@ show_popup (GdkSurface *surface)
 {
   gdk_win32_surface_raise (surface);
   gdk_synthesize_surface_state (surface, GDK_SURFACE_STATE_WITHDRAWN, 0);
-  _gdk_surface_update_viewable (surface);
   show_window_internal (surface, FALSE, FALSE);
   gdk_surface_invalidate_rect (surface, NULL);
 }
@@ -2052,21 +2051,22 @@ static void
 calculate_aerosnap_regions (GdkW32DragMoveResizeContext *context)
 {
   GdkDisplay *display;
-  gint n_monitors, monitor_idx, other_monitor_idx;
+  GListModel *monitors;
+  gint monitor_idx, other_monitor_idx;
   GdkWin32Surface *impl = GDK_WIN32_SURFACE (context->window);
 #if defined(MORE_AEROSNAP_DEBUGGING)
   gint i;
 #endif
 
   display = gdk_display_get_default ();
-  n_monitors = gdk_display_get_n_monitors (display);
+  monitors = gdk_display_get_monitors (display);
 
 #define _M_UP 0
 #define _M_DOWN 1
 #define _M_LEFT 2
 #define _M_RIGHT 3
 
-  for (monitor_idx = 0; monitor_idx < n_monitors; monitor_idx++)
+  for (monitor_idx = 0; monitor_idx < g_list_model_get_n_items (monitors); monitor_idx++)
     {
       GdkRectangle wa;
       GdkRectangle geometry;
@@ -2077,12 +2077,13 @@ calculate_aerosnap_regions (GdkW32DragMoveResizeContext *context)
       gint thickness, trigger_thickness;
       GdkMonitor *monitor;
 
-      monitor = gdk_display_get_monitor (display, monitor_idx);
+      monitor = g_list_model_get_item (monitors, monitor_idx);
+      g_object_unref (monitors);
       gdk_monitor_get_workarea (monitor, &wa);
       gdk_monitor_get_geometry (monitor, &geometry);
 
       for (other_monitor_idx = 0;
-           other_monitor_idx < n_monitors &&
+           other_monitor_idx < g_list_model_get_n_items (monitors) &&
            (move_edge[_M_UP] || move_edge[_M_LEFT] ||
            move_edge[_M_RIGHT] || resize_edge[_M_DOWN]);
            other_monitor_idx++)
@@ -2093,7 +2094,8 @@ calculate_aerosnap_regions (GdkW32DragMoveResizeContext *context)
           if (other_monitor_idx == monitor_idx)
             continue;
 
-          other_monitor = gdk_display_get_monitor (display, other_monitor_idx);
+          other_monitor = g_list_model_get_item (monitors, other_monitor_idx);
+          g_object_unref (other_monitor);
           gdk_monitor_get_workarea (other_monitor, &other_wa);
 
           /* An edge triggers AeroSnap only if there are no
@@ -2473,6 +2475,7 @@ _gdk_win32_surface_handle_aerosnap (GdkSurface            *window,
 {
   GdkWin32Surface *impl;
   GdkDisplay *display;
+  GListModel *monitors;
   gint n_monitors;
   GdkSurfaceState surface_state = gdk_toplevel_get_state (GDK_TOPLEVEL (window));
   gboolean minimized = surface_state & GDK_SURFACE_STATE_MINIMIZED;
@@ -2482,7 +2485,8 @@ _gdk_win32_surface_handle_aerosnap (GdkSurface            *window,
 
   impl = GDK_WIN32_SURFACE (window);
   display = gdk_surface_get_display (window);
-  n_monitors = gdk_display_get_n_monitors (display);
+  monitors = gdk_display_get_monitors (display);
+  n_monitors = g_list_model_get_n_items (monitors);
   monitor = gdk_display_get_monitor_at_surface (display, window);
 
   if (minimized && maximized)
@@ -2528,10 +2532,15 @@ _gdk_win32_surface_handle_aerosnap (GdkSurface            *window,
 	}
       else if (impl->snap_state == GDK_WIN32_AEROSNAP_STATE_HALFLEFT)
 	{
+          GdkMonitor *other;
+
 	  unsnap (window, monitor);
-	  snap_right (window,
-	              monitor,
-	              (gdk_win32_display_get_primary_monitor (monitor->display) == monitor) ? monitor : gdk_display_get_monitor (display, n_monitors - 1));
+          if (gdk_win32_display_get_primary_monitor (monitor->display) == monitor)
+            other = g_object_ref (monitor);
+          else
+            other = g_list_model_get_item (monitors, n_monitors - 1);
+	  snap_right (window, monitor, other);
+          g_object_unref (other);
 	}
       else if (impl->snap_state == GDK_WIN32_AEROSNAP_STATE_HALFRIGHT)
 	{
@@ -2554,24 +2563,21 @@ _gdk_win32_surface_handle_aerosnap (GdkSurface            *window,
 	}
       else if (impl->snap_state == GDK_WIN32_AEROSNAP_STATE_HALFRIGHT)
 	{
+          GdkMonitor *other;
 	  gint i;
 
 	  unsnap (window, monitor);
-	  if (n_monitors == 1 ||
-	      monitor == gdk_display_get_monitor (display, n_monitors - 1))
-	    {
-	      snap_left (window, monitor, monitor);
-	    }
-	  else
-	    {
-	      for (i = 0; i < n_monitors; i++)
-	        {
-	          if (monitor == gdk_display_get_monitor (display, i))
-	            break;
-	        }
+          for (i = 0; i < n_monitors; i++)
+            {
+              other = g_list_model_get_item (monitors, i);
+              g_object_unref (other);
+              if (monitor == other)
+                break;
+            }
 
-	      snap_left (window, monitor, gdk_display_get_monitor (display, i + 1));
-	    }
+          other = g_list_model_get_item (monitors, (i + 1) % n_monitors);
+          snap_left (window, monitor, other);
+          g_object_unref (other);
 	}
       break;
     case GDK_WIN32_AEROSNAP_COMBO_SHIFTUP:
@@ -3120,18 +3126,19 @@ get_monitor_at_point (GdkDisplay *display,
                       int         x,
                       int         y)
 {
+  GListModel *monitors;
   GdkMonitor *nearest = NULL;
   int nearest_dist = G_MAXINT;
-  int n_monitors, i;
+  guint i;
 
-  n_monitors = gdk_display_get_n_monitors (display);
-  for (i = 0; i < n_monitors; i++)
+  monitors = gdk_display_get_monitors (display);
+  for (i = 0; i < g_list_model_get_n_items (monitors); i++)
     {
       GdkMonitor *monitor;
       GdkRectangle geometry;
       int dist_x, dist_y, dist;
 
-      monitor = gdk_display_get_monitor (display, i);
+      monitor = g_list_model_get_item (monitors, i);
       gdk_monitor_get_geometry (monitor, &geometry);
 
       if (x < geometry.x)
@@ -3175,6 +3182,8 @@ get_monitor_at_point (GdkDisplay *display,
           nearest_dist = dist;
           nearest = monitor;
         }
+
+      g_object_unref (monitor);
 
       if (nearest_dist == 0)
         break;
@@ -4135,17 +4144,16 @@ gdk_win32_surface_do_move_resize_drag (GdkSurface *window,
 }
 
 static void
-gdk_win32_surface_begin_resize_drag (GdkSurface     *window,
-                                    GdkSurfaceEdge  edge,
-                                    GdkDevice     *device,
-                                    gint           button,
-                                    gint           x,
-                                    gint           y,
-                                    guint32        timestamp)
+gdk_win32_toplevel_begin_resize (GdkToplevel    *toplevel,
+                                 GdkSurfaceEdge  edge,
+                                 GdkDevice      *device,
+                                 int             button,
+                                 double          x,
+                                 double          y,
+                                 guint32         timestamp)
 {
+  GdkSurface *window = GDK_SURFACE (toplevel);
   GdkWin32Surface *impl;
-
-  g_return_if_fail (GDK_IS_SURFACE (window));
 
   if (GDK_SURFACE_DESTROYED (window) ||
       IsIconic (GDK_SURFACE_HWND (window)))
@@ -4172,16 +4180,15 @@ gdk_win32_surface_begin_resize_drag (GdkSurface     *window,
 }
 
 static void
-gdk_win32_surface_begin_move_drag (GdkSurface *window,
-                                  GdkDevice *device,
-                                  gint       button,
-                                  gint       x,
-                                  gint       y,
-                                  guint32    timestamp)
+gdk_win32_toplevel_begin_move (GdkToplevel *toplevel,
+                               GdkDevice   *device,
+                               int          button,
+                               double       x,
+                               double       y,
+                               guint32      timestamp)
 {
+  GdkSurface *window = GDK_SURFACE (toplevel);
   GdkWin32Surface *impl;
-
-  g_return_if_fail (GDK_IS_SURFACE (window));
 
   if (GDK_SURFACE_DESTROYED (window) ||
       IsIconic (GDK_SURFACE_HWND (window)))
@@ -4700,8 +4707,6 @@ gdk_win32_surface_class_init (GdkWin32SurfaceClass *klass)
 
 
   impl_class->set_shadow_width = gdk_win32_surface_set_shadow_width;
-  impl_class->begin_resize_drag = gdk_win32_surface_begin_resize_drag;
-  impl_class->begin_move_drag = gdk_win32_surface_begin_move_drag;
   impl_class->destroy_notify = gdk_win32_surface_destroy_notify;
   impl_class->drag_begin = _gdk_win32_surface_drag_begin;
   impl_class->create_gl_context = _gdk_win32_surface_create_gl_context;
@@ -4990,15 +4995,10 @@ show_surface (GdkSurface *surface)
   if (!was_mapped)
     gdk_synthesize_surface_state (surface, GDK_SURFACE_STATE_WITHDRAWN, 0);
 
-  _gdk_surface_update_viewable (surface);
-
   gdk_win32_surface_show (surface, FALSE);
 
   if (!was_mapped)
-    {
-      if (gdk_surface_is_viewable (surface))
-        gdk_surface_invalidate_rect (surface, NULL);
-    }
+    gdk_surface_invalidate_rect (surface, NULL);
 }
 
 static gboolean
@@ -5085,6 +5085,8 @@ gdk_win32_toplevel_iface_init (GdkToplevelInterface *iface)
   iface->focus = gdk_win32_toplevel_focus;
   iface->show_window_menu = gdk_win32_toplevel_show_window_menu;
   iface->supports_edge_constraints = gdk_win32_toplevel_supports_edge_constraints;
+  iface->begin_resize = gdk_win32_toplevel_begin_resize;
+  iface->begin_move = gdk_win32_toplevel_begin_move;
 }
 
 typedef struct

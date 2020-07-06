@@ -125,7 +125,7 @@
 
 
 static void     gtk_print_unix_dialog_constructed  (GObject            *object);
-static void     gtk_print_unix_dialog_destroy      (GtkWidget          *widget);
+static void     gtk_print_unix_dialog_dispose      (GObject            *object);
 static void     gtk_print_unix_dialog_finalize     (GObject            *object);
 static void     gtk_print_unix_dialog_set_property (GObject            *object,
                                                     guint               prop_id,
@@ -150,7 +150,7 @@ static void     printer_status_cb                  (GtkPrintBackend    *backend,
                                                     GtkPrintUnixDialog *dialog);
 static void     update_collate_icon                (GtkToggleButton    *toggle_button,
                                                     GtkPrintUnixDialog *dialog);
-static gboolean error_dialogs                      (GtkPrintUnixDialog *print_dialog,
+static void     error_dialogs                      (GtkPrintUnixDialog *print_dialog,
 						    gint                print_dialog_response_id,
 						    gpointer            data);
 static void     emit_ok_response                   (GtkTreeView        *tree_view,
@@ -377,6 +377,8 @@ struct _GtkPrintUnixDialog
   gchar *format_for_printer;
 
   gint current_page;
+  GtkCssNode *collate_paper_node;
+  GtkCssNode *page_layout_paper_node;
 };
 
 struct _GtkPrintUnixDialogClass
@@ -412,10 +414,9 @@ gtk_print_unix_dialog_class_init (GtkPrintUnixDialogClass *class)
 
   object_class->constructed = gtk_print_unix_dialog_constructed;
   object_class->finalize = gtk_print_unix_dialog_finalize;
+  object_class->dispose = gtk_print_unix_dialog_dispose;
   object_class->set_property = gtk_print_unix_dialog_set_property;
   object_class->get_property = gtk_print_unix_dialog_get_property;
-
-  widget_class->destroy = gtk_print_unix_dialog_destroy;
 
   g_object_class_install_property (object_class,
                                    PROP_PAGE_SETUP,
@@ -603,31 +604,42 @@ set_busy_cursor (GtkPrintUnixDialog *dialog,
     gtk_widget_set_cursor (widget, NULL);
 }
 
+typedef struct {
+  GMainLoop *loop;
+  int response;
+} ConfirmationData;
+
+static void
+on_confirmation_dialog_response (GtkWidget *dialog,
+                                 int        response,
+                                 gpointer   user_data)
+{
+  ConfirmationData *data = user_data;
+
+  data->response = response;
+
+  g_main_loop_quit (data->loop);
+
+  gtk_window_destroy (GTK_WINDOW (dialog));
+}
+
 /* This function handles error messages before printing.
  */
-static gboolean
+static void
 error_dialogs (GtkPrintUnixDialog *dialog,
                gint                dialog_response_id,
                gpointer            data)
 {
-  GtkPrinterOption          *option = NULL;
-  GtkPrinter                *printer = NULL;
-  GtkWindow                 *toplevel = NULL;
-  GFile                     *file = NULL;
-  gchar                     *basename = NULL;
-  gchar                     *dirname = NULL;
-  int                        response;
-
   if (dialog != NULL && dialog_response_id == GTK_RESPONSE_OK)
     {
-      printer = gtk_print_unix_dialog_get_selected_printer (dialog);
+      GtkPrinter *printer = gtk_print_unix_dialog_get_selected_printer (dialog);
 
       if (printer != NULL)
         {
           if (dialog->request_details_tag || !gtk_printer_is_accepting_jobs (printer))
             {
               g_signal_stop_emission_by_name (dialog, "response");
-              return TRUE;
+              return;
             }
 
           /* Shows overwrite confirmation dialog in the case of printing
@@ -635,18 +647,22 @@ error_dialogs (GtkPrintUnixDialog *dialog,
            */
           if (gtk_printer_is_virtual (printer))
             {
-              option = gtk_printer_option_set_lookup (dialog->options,
-                                                      "gtk-main-page-custom-input");
+              GtkPrinterOption *option =
+                gtk_printer_option_set_lookup (dialog->options,
+                                               "gtk-main-page-custom-input");
 
               if (option != NULL &&
                   option->type == GTK_PRINTER_OPTION_TYPE_FILESAVE)
                 {
-                  file = g_file_new_for_uri (option->value);
+                  GFile *file = g_file_new_for_uri (option->value);
 
                   if (g_file_query_exists (file, NULL))
                     {
-                      GFile *parent;
                       GtkWidget *message_dialog;
+                      GtkWindow *toplevel;
+                      char *basename;
+                      char *dirname;
+                      GFile *parent;
 
                       toplevel = get_toplevel (GTK_WIDGET (dialog));
 
@@ -681,19 +697,29 @@ error_dialogs (GtkPrintUnixDialog *dialog,
                         gtk_window_group_add_window (gtk_window_get_group (toplevel),
                                                      GTK_WINDOW (message_dialog));
 
-                      response = gtk_dialog_run (GTK_DIALOG (message_dialog));
+                      gtk_window_present (GTK_WINDOW (message_dialog));
 
-                      gtk_widget_destroy (message_dialog);
+                      /* Block on the confirmation dialog until we have a response,
+                       * so that we can stop the "response" signal emission on the
+                       * print dialog
+                       */
+                      ConfirmationData cdata;
+
+                      cdata.loop = g_main_loop_new (NULL, FALSE);
+                      cdata.response = 0;
+
+                      g_signal_connect (message_dialog, "response",
+                                        G_CALLBACK (on_confirmation_dialog_response),
+                                        &cdata);
+
+                      g_main_loop_run (cdata.loop);
+                      g_main_loop_unref (cdata.loop);
 
                       g_free (dirname);
                       g_free (basename);
 
-                      if (response != GTK_RESPONSE_ACCEPT)
-                        {
-                          g_signal_stop_emission_by_name (dialog, "response");
-                          g_object_unref (file);
-                          return TRUE;
-                        }
+                      if (cdata.response != GTK_RESPONSE_ACCEPT)
+                        g_signal_stop_emission_by_name (dialog, "response");
                     }
 
                   g_object_unref (file);
@@ -701,7 +727,6 @@ error_dialogs (GtkPrintUnixDialog *dialog,
             }
         }
     }
-  return FALSE;
 }
 
 static void
@@ -800,6 +825,18 @@ gtk_print_unix_dialog_init (GtkPrintUnixDialog *dialog)
 
   gtk_css_node_set_name (gtk_widget_get_css_node (dialog->collate_image), g_quark_from_static_string ("drawing"));
   gtk_css_node_set_name (gtk_widget_get_css_node (dialog->page_layout_preview), g_quark_from_static_string ("drawing"));
+
+  dialog->collate_paper_node = gtk_css_node_new();
+  gtk_css_node_set_name (dialog->collate_paper_node, g_quark_from_static_string ("paper"));
+  gtk_css_node_set_parent (dialog->collate_paper_node,
+                           gtk_widget_get_css_node (dialog->collate_image));
+  g_object_unref (dialog->collate_paper_node);
+
+  dialog->page_layout_paper_node = gtk_css_node_new();
+  gtk_css_node_set_name (dialog->page_layout_paper_node, g_quark_from_static_string ("paper"));
+  gtk_css_node_set_parent (dialog->page_layout_paper_node,
+                           gtk_widget_get_css_node (dialog->page_layout_preview));
+  g_object_unref (dialog->page_layout_paper_node);
 }
 
 static void
@@ -817,7 +854,7 @@ gtk_print_unix_dialog_constructed (GObject *object)
        button = gtk_dialog_get_widget_for_response (GTK_DIALOG (object), GTK_RESPONSE_APPLY);
        g_object_ref (button);
        parent = gtk_widget_get_ancestor (button, GTK_TYPE_HEADER_BAR);
-       gtk_container_remove (GTK_CONTAINER (gtk_widget_get_parent (button)), button);
+       gtk_box_remove (GTK_BOX (gtk_widget_get_parent (button)), button);
        gtk_header_bar_pack_end (GTK_HEADER_BAR (parent), button);
        g_object_unref (button);
     }
@@ -826,14 +863,14 @@ gtk_print_unix_dialog_constructed (GObject *object)
 }
 
 static void
-gtk_print_unix_dialog_destroy (GtkWidget *widget)
+gtk_print_unix_dialog_dispose (GObject *object)
 {
-  GtkPrintUnixDialog *dialog = GTK_PRINT_UNIX_DIALOG (widget);
+  GtkPrintUnixDialog *dialog = GTK_PRINT_UNIX_DIALOG (object);
 
   /* Make sure we don't destroy custom widgets owned by the backends */
   clear_per_printer_ui (dialog);
 
-  GTK_WIDGET_CLASS (gtk_print_unix_dialog_parent_class)->destroy (widget);
+  G_OBJECT_CLASS (gtk_print_unix_dialog_parent_class)->dispose (object);
 }
 
 static void
@@ -1279,7 +1316,7 @@ static GtkWidget *
 wrap_in_frame (const gchar *label,
                GtkWidget   *child)
 {
-  GtkWidget *frame, *label_widget;
+  GtkWidget *box, *label_widget;
   gchar *bold_text;
 
   label_widget = gtk_label_new (NULL);
@@ -1291,18 +1328,16 @@ wrap_in_frame (const gchar *label,
   gtk_label_set_markup (GTK_LABEL (label_widget), bold_text);
   g_free (bold_text);
 
-  frame = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-  gtk_container_add (GTK_CONTAINER (frame), label_widget);
+  box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
+  gtk_box_append (GTK_BOX (box), label_widget);
 
   gtk_widget_set_margin_start (child, 12);
   gtk_widget_set_halign (child, GTK_ALIGN_FILL);
   gtk_widget_set_valign (child, GTK_ALIGN_FILL);
 
-  gtk_container_add (GTK_CONTAINER (frame), child);
+  gtk_box_append (GTK_BOX (box), child);
 
-  gtk_widget_show (frame);
-
-  return frame;
+  return box;
 }
 
 static gboolean
@@ -1342,28 +1377,30 @@ add_option_to_extension_point (GtkPrinterOption *option,
 
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
       gtk_widget_set_valign (hbox, GTK_ALIGN_BASELINE);
-      gtk_container_add (GTK_CONTAINER (hbox), label);
-      gtk_container_add (GTK_CONTAINER (hbox), widget);
+      gtk_box_append (GTK_BOX (hbox), label);
+      gtk_box_append (GTK_BOX (hbox), widget);
       gtk_widget_show (hbox);
 
-      gtk_container_add (GTK_CONTAINER (extension_point), hbox);
+      gtk_box_append (GTK_BOX (extension_point), hbox);
     }
   else
-    gtk_container_add (GTK_CONTAINER (extension_point), widget);
+    gtk_box_append (GTK_BOX (extension_point), widget);
 }
 
 static gint
 grid_rows (GtkGrid *table)
 {
   gint t0, t1, l, t, w, h;
-  GList *children, *c;
+  GtkWidget *c;
+  gboolean first;
 
-  children = gtk_container_get_children (GTK_CONTAINER (table));
   t0 = t1 = 0;
-  for (c = children; c; c = c->next)
+  for (c = gtk_widget_get_first_child (GTK_WIDGET (table)), first = TRUE;
+       c != NULL;
+       c  = gtk_widget_get_next_sibling (GTK_WIDGET (c)), first = FALSE)
     {
-      gtk_grid_query_child (table, c->data, &l, &t, &w, &h);
-      if (c == children)
+      gtk_grid_query_child (table, c, &l, &t, &w, &h);
+      if (first)
         {
           t0 = t;
           t1 = t + h;
@@ -1376,7 +1413,6 @@ grid_rows (GtkGrid *table)
             t1 = t + h;
         }
     }
-  g_list_free (children);
 
   return t1 - t0;
 }
@@ -1521,7 +1557,7 @@ update_dialog_from_settings (GtkPrintUnixDialog *dialog)
   GtkWidget *table, *frame;
   gboolean has_advanced, has_job;
   guint nrows;
-  GList *children;
+  GtkWidget *child;
 
   if (dialog->current_printer == NULL)
     {
@@ -1579,11 +1615,9 @@ update_dialog_from_settings (GtkPrintUnixDialog *dialog)
    * This keeps the file format radios from moving as the
    * filename changes.
    */
-  children = gtk_container_get_children (GTK_CONTAINER (dialog->extension_point));
-  l = g_list_last (children);
-  if (l && l != children)
-    gtk_widget_set_halign (GTK_WIDGET (l->data), GTK_ALIGN_END);
-  g_list_free (children);
+  child = gtk_widget_get_last_child (dialog->extension_point);
+  if (child && child != gtk_widget_get_first_child (dialog->extension_point))
+    gtk_widget_set_halign (child, GTK_ALIGN_END);
 
   /* Put the rest of the groups in the advanced page */
   groups = gtk_printer_option_set_get_groups (dialog->options);
@@ -1613,16 +1647,14 @@ update_dialog_from_settings (GtkPrintUnixDialog *dialog)
 
       nrows = grid_rows (GTK_GRID (table));
       if (nrows == 0)
-        gtk_widget_destroy (table);
+        {
+          g_object_unref (g_object_ref_sink (table));
+        }
       else
         {
           has_advanced = TRUE;
           frame = wrap_in_frame (group, table);
-          gtk_widget_show (table);
-          gtk_widget_show (frame);
-
-          gtk_container_add (GTK_CONTAINER (dialog->advanced_vbox),
-                              frame);
+          gtk_box_append (GTK_BOX (dialog->advanced_vbox), frame);
         }
     }
 
@@ -1930,35 +1962,23 @@ options_changed_cb (GtkPrintUnixDialog *dialog)
 }
 
 static void
-remove_custom_widget (GtkWidget    *widget,
-                      GtkContainer *container)
-{
-  gtk_container_remove (container, widget);
-}
-
-static void
-extension_point_clear_children (GtkContainer *container)
-{
-  gtk_container_foreach (container,
-                         (GtkCallback)remove_custom_widget,
-                         container);
-}
-
-static void
 clear_per_printer_ui (GtkPrintUnixDialog *dialog)
 {
+  GtkWidget *child;
+
   if (dialog->finishing_table == NULL)
     return;
 
-  gtk_container_foreach (GTK_CONTAINER (dialog->finishing_table),
-                         (GtkCallback)gtk_widget_destroy, NULL);
-  gtk_container_foreach (GTK_CONTAINER (dialog->image_quality_table),
-                         (GtkCallback)gtk_widget_destroy, NULL);
-  gtk_container_foreach (GTK_CONTAINER (dialog->color_table),
-                         (GtkCallback)gtk_widget_destroy, NULL);
-  gtk_container_foreach (GTK_CONTAINER (dialog->advanced_vbox),
-                         (GtkCallback)gtk_widget_destroy, NULL);
-  extension_point_clear_children (GTK_CONTAINER (dialog->extension_point));
+  while ((child = gtk_widget_get_first_child (dialog->finishing_table)))
+    gtk_grid_remove (GTK_GRID (dialog->finishing_table), child);
+  while ((child = gtk_widget_get_first_child (dialog->image_quality_table)))
+    gtk_grid_remove (GTK_GRID (dialog->image_quality_table), child);
+  while ((child = gtk_widget_get_first_child (dialog->color_table)))
+    gtk_grid_remove (GTK_GRID (dialog->color_table), child);
+  while ((child = gtk_widget_get_first_child (dialog->advanced_vbox)))
+    gtk_box_remove (GTK_BOX (dialog->advanced_vbox), child);
+  while ((child = gtk_widget_get_first_child (dialog->extension_point)))
+    gtk_box_remove (GTK_BOX (dialog->extension_point), child);
 }
 
 static void
@@ -2184,7 +2204,8 @@ update_collate_icon (GtkToggleButton    *toggle_button,
 }
 
 static void
-paint_page (GtkWidget  *widget,
+paint_page (GtkPrintUnixDialog *dialog,
+            GtkWidget  *widget,
             cairo_t    *cr,
             gint        x,
             gint        y,
@@ -2201,7 +2222,7 @@ paint_page (GtkWidget  *widget,
   text_y = 21;
 
   context = gtk_widget_get_style_context (widget);
-  gtk_style_context_save_named (context, "paper");
+  gtk_style_context_save_to_node (context, dialog->collate_paper_node);
 
   gtk_render_background (context, cr, x, y, width, height);
   gtk_render_frame (context, cr, x, y, width, height);
@@ -2260,16 +2281,16 @@ draw_collate (GtkDrawingArea *da,
 
   if (copies == 1)
     {
-      paint_page (widget, cr, x1 + p1, y, reverse ? "1" : "2", text_x);
-      paint_page (widget, cr, x1 + p2, y + 10, reverse ? "2" : "1", text_x);
+      paint_page (dialog, widget, cr, x1 + p1, y, reverse ? "1" : "2", text_x);
+      paint_page (dialog, widget, cr, x1 + p2, y + 10, reverse ? "2" : "1", text_x);
     }
   else
     {
-      paint_page (widget, cr, x1 + p1, y, collate == reverse ? "1" : "2", text_x);
-      paint_page (widget, cr, x1 + p2, y + 10, reverse ? "2" : "1", text_x);
+      paint_page (dialog, widget, cr, x1 + p1, y, collate == reverse ? "1" : "2", text_x);
+      paint_page (dialog, widget, cr, x1 + p2, y + 10, reverse ? "2" : "1", text_x);
 
-      paint_page (widget, cr, x2 + p1, y, reverse ? "1" : "2", text_x);
-      paint_page (widget, cr, x2 + p2, y + 10, collate == reverse ? "2" : "1", text_x);
+      paint_page (dialog, widget, cr, x2 + p1, y, reverse ? "1" : "2", text_x);
+      paint_page (dialog, widget, cr, x2 + p2, y + 10, collate == reverse ? "2" : "1", text_x);
     }
 }
 
@@ -2734,7 +2755,7 @@ draw_page (GtkDrawingArea *da,
     }
 
   context = gtk_widget_get_style_context (widget);
-  gtk_style_context_save_named (context, "paper");
+  gtk_style_context_save_to_node (context, dialog->page_layout_paper_node);
   gtk_style_context_get_color (context, &color);
 
   pos_x = (width - w) / 2;
@@ -2844,6 +2865,7 @@ draw_page (GtkDrawingArea *da,
         break;
     }
 
+  cairo_set_source_rgba (cr, color.red, color.green, color.blue, color.alpha);
   if (horizontal)
     for (y = start_y; y != end_y + dy; y += dy)
       {
@@ -3207,7 +3229,7 @@ custom_paper_dialog_response_cb (GtkDialog *custom_paper_dialog,
         }
     }
 
-  gtk_widget_destroy (GTK_WIDGET (custom_paper_dialog));
+  gtk_window_destroy (GTK_WINDOW (custom_paper_dialog));
 }
 
 static void

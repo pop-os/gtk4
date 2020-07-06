@@ -49,14 +49,15 @@
  * convenience widget; you could construct the equivalent of #GtkMessageDialog
  * from #GtkDialog without too much effort, but #GtkMessageDialog saves typing.
  *
- * The easiest way to do a modal message dialog is to use gtk_dialog_run(), though
- * you can also pass in the %GTK_DIALOG_MODAL flag, gtk_dialog_run() automatically
- * makes the dialog modal and waits for the user to respond to it. gtk_dialog_run()
- * returns when any dialog button is clicked.
+ * The easiest way to do a modal message dialog is to use the %GTK_DIALOG_MODAL
+ * flag, which will call gtk_window_set_modal() internally. The dialog will
+ * prevent interaction with the parent window until it's hidden or destroyed.
+ * You can use the #GtkDialog::response signal to know when the user dismissed
+ * the dialog.
  *
  * An example for using a modal dialog:
  * |[<!-- language="C" -->
- *  GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
+ *  GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT | GTK_DIALOG_MODAL;
  *  dialog = gtk_message_dialog_new (parent_window,
  *                                   flags,
  *                                   GTK_MESSAGE_ERROR,
@@ -64,13 +65,17 @@
  *                                   "Error reading “%s”: %s",
  *                                   filename,
  *                                   g_strerror (errno));
- *  gtk_dialog_run (GTK_DIALOG (dialog));
- *  gtk_widget_destroy (dialog);
+ *  // Destroy the dialog when the user responds to it
+ *  // (e.g. clicks a button)
+ *
+ *  g_signal_connect (dialog, "response",
+ *                    G_CALLBACK (gtk_window_destroy),
+ *                    NULL);
  * ]|
  *
- * You might do a non-modal #GtkMessageDialog as follows:
+ * You might do a non-modal #GtkMessageDialog simply by omitting the
+ * %GTK_DIALOG_MODAL flag:
  *
- * An example for a non-modal dialog:
  * |[<!-- language="C" -->
  *  GtkDialogFlags flags = GTK_DIALOG_DESTROY_WITH_PARENT;
  *  dialog = gtk_message_dialog_new (parent_window,
@@ -83,10 +88,9 @@
  *
  *  // Destroy the dialog when the user responds to it
  *  // (e.g. clicks a button)
- *
- *  g_signal_connect_swapped (dialog, "response",
- *                            G_CALLBACK (gtk_widget_destroy),
- *                            dialog);
+ *  g_signal_connect (dialog, "response",
+ *                    G_CALLBACK (gtk_window_destroy),
+ *                    NULL);
  * ]|
  *
  * # GtkMessageDialog as GtkBuildable
@@ -367,7 +371,7 @@ gtk_message_dialog_constructed (GObject *object)
       gtk_widget_set_halign (label, GTK_ALIGN_CENTER);
       gtk_widget_set_hexpand (label, TRUE);
       gtk_widget_add_css_class (label, "title");
-      gtk_container_add (GTK_CONTAINER (box), label);
+      gtk_box_append (GTK_BOX (box), label);
       g_signal_connect_object (dialog, "notify::title", G_CALLBACK (update_title), label, 0);
 
       gtk_window_set_titlebar (GTK_WINDOW (dialog), box);

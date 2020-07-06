@@ -364,14 +364,14 @@ main (int argc, char *argv[])
   gtk_window_set_title (GTK_WINDOW (window), "Card planning sheet");
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
-  gtk_container_add (GTK_CONTAINER (vbox), gtk_label_new ("Jonathan's Holiday Card Planning Sheet"));
-  gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_box_append (GTK_BOX (vbox), gtk_label_new ("Jonathan's Holiday Card Planning Sheet"));
+  gtk_window_set_child (GTK_WINDOW (window), vbox);
 
   scrolled_window = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolled_window), TRUE);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   gtk_widget_set_vexpand (scrolled_window, TRUE);
-  gtk_container_add (GTK_CONTAINER (vbox), scrolled_window);
+  gtk_box_append (GTK_BOX (vbox), scrolled_window);
 
   model = make_model ();
   tree_view = gtk_tree_view_new_with_model (model);
@@ -466,7 +466,7 @@ main (int argc, char *argv[])
   gtk_tree_view_column_set_fixed_width (GTK_TREE_VIEW_COLUMN (column), 50);
   gtk_tree_view_column_set_clickable (GTK_TREE_VIEW_COLUMN (column), TRUE);
 
-  gtk_container_add (GTK_CONTAINER (scrolled_window), tree_view);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), tree_view);
 
   g_signal_connect (tree_view, "realize",
 		    G_CALLBACK (gtk_tree_view_expand_all),
@@ -479,14 +479,14 @@ main (int argc, char *argv[])
   gtk_window_set_title (GTK_WINDOW (window), "Model");
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
-  gtk_container_add (GTK_CONTAINER (vbox), gtk_label_new ("The model revealed"));
-  gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_box_append (GTK_BOX (vbox), gtk_label_new ("The model revealed"));
+  gtk_window_set_child (GTK_WINDOW (window), vbox);
 
   scrolled_window = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolled_window), TRUE);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
   gtk_widget_set_vexpand (scrolled_window, TRUE);
-  gtk_container_add (GTK_CONTAINER (vbox), scrolled_window);
+  gtk_box_append (GTK_BOX (vbox), scrolled_window);
 
 
   tree_view = gtk_tree_view_new_with_model (model);
@@ -536,8 +536,7 @@ main (int argc, char *argv[])
 		    G_CALLBACK (gtk_tree_view_expand_all),
 		    NULL);
 			   
-  gtk_container_add (GTK_CONTAINER (scrolled_window), tree_view);
-
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), tree_view);
 
   gtk_window_set_default_size (GTK_WINDOW (window),
 			       650, 400);

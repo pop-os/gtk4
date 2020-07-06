@@ -26,7 +26,7 @@ apply_changes_gradually (gpointer data)
   else
     {
       /* Close automatically once changes are fully applied. */
-      gtk_widget_destroy (data);
+      gtk_window_destroy (GTK_WINDOW (data));
       return G_SOURCE_REMOVE;
     }
 }
@@ -41,7 +41,7 @@ on_assistant_apply (GtkWidget *widget, gpointer data)
 static void
 on_assistant_close_cancel (GtkWidget *widget, gpointer data)
 {
-  gtk_widget_destroy (widget);
+  gtk_window_destroy (GTK_WINDOW (widget));
 }
 
 static void
@@ -95,12 +95,12 @@ create_page1 (GtkWidget *assistant)
   gtk_widget_set_margin_bottom (box, 12);
 
   label = gtk_label_new ("You must fill out this entry to continue:");
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_box_append (GTK_BOX (box), label);
 
   entry = gtk_entry_new ();
   gtk_entry_set_activates_default (GTK_ENTRY (entry), TRUE);
   gtk_widget_set_valign (entry, GTK_ALIGN_CENTER);
-  gtk_container_add (GTK_CONTAINER (box), entry);
+  gtk_box_append (GTK_BOX (box), entry);
   g_signal_connect (G_OBJECT (entry), "changed",
                     G_CALLBACK (on_entry_changed), assistant);
 
@@ -123,7 +123,7 @@ create_page2 (GtkWidget *assistant)
   checkbutton = gtk_check_button_new_with_label ("This is optional data, you may continue "
                                                  "even if you do not check this");
   gtk_widget_set_valign (checkbutton, GTK_ALIGN_CENTER);
-  gtk_container_add (GTK_CONTAINER (box), checkbutton);
+  gtk_box_append (GTK_BOX (box), checkbutton);
 
   gtk_assistant_append_page (GTK_ASSISTANT (assistant), box);
   gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), box, TRUE);
@@ -178,8 +178,7 @@ do_assistant (GtkWidget *do_widget)
 
       gtk_window_set_display (GTK_WINDOW (assistant),
                               gtk_widget_get_display (do_widget));
-      g_signal_connect (assistant, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &assistant);
+      g_object_add_weak_pointer (G_OBJECT (assistant), (gpointer *)&assistant);
 
       create_page1 (assistant);
       create_page2 (assistant);
@@ -199,7 +198,7 @@ do_assistant (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (assistant))
     gtk_widget_show (assistant);
   else
-    gtk_widget_destroy (assistant);
+    gtk_window_destroy (GTK_WINDOW (assistant));
 
   return assistant;
 }

@@ -70,20 +70,21 @@ main (int argc, char *argv[])
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 20);
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   sw = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_AUTOMATIC);
 
-  gtk_container_add (GTK_CONTAINER (box), sw);
+  gtk_widget_set_hexpand (sw, TRUE);
+  gtk_box_append (GTK_BOX (box), sw);
 
   content = get_content ();
 
   tv = gtk_text_view_new ();
   gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (tv), GTK_WRAP_WORD);
-  gtk_container_add (GTK_CONTAINER (sw), tv);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), tv);
   gtk_text_buffer_set_text (gtk_text_view_get_buffer (GTK_TEXT_VIEW (tv)),
                             content, -1);
   g_free (content);
@@ -97,10 +98,10 @@ main (int argc, char *argv[])
   g_signal_connect (combo, "changed", G_CALLBACK (mode_changed), sw);
   gtk_combo_box_set_active (GTK_COMBO_BOX (combo), 1);
 
-  gtk_container_add (GTK_CONTAINER (box), combo);
+  gtk_box_append (GTK_BOX (box), combo);
 
   sb2 = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, adj);
-  gtk_container_add (GTK_CONTAINER (box), sb2);
+  gtk_box_append (GTK_BOX (box), sb2);
 
   gtk_widget_show (window);
 

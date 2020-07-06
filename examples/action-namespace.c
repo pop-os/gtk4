@@ -16,7 +16,7 @@ action_activated (GSimpleAction *action,
                                    g_action_get_name (G_ACTION (action)));
 
   g_signal_connect_swapped (dialog, "response",
-                            G_CALLBACK (gtk_widget_destroy), dialog);
+                            G_CALLBACK (gtk_window_destroy), dialog);
 
   gtk_widget_show (dialog);
 }
@@ -113,7 +113,7 @@ activate (GApplication *app,
   gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (button), G_MENU_MODEL (button_menu));
   gtk_widget_set_halign (GTK_WIDGET (button), GTK_ALIGN_CENTER);
   gtk_widget_set_valign (GTK_WIDGET (button), GTK_ALIGN_START);
-  gtk_container_add (GTK_CONTAINER (win), button);
+  gtk_window_set_child (GTK_WINDOW (window), button);
   gtk_widget_show (win);
 
   g_object_unref (button_menu);

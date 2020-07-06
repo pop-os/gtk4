@@ -26,16 +26,17 @@ main (int argc, char *argv[])
   gtk_window_set_default_size (GTK_WINDOW (win), 640, 480);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
-  gtk_container_add (GTK_CONTAINER (win), box);
+  gtk_window_set_child (GTK_WINDOW (win), box);
 
   sw = gtk_scrolled_window_new (NULL, NULL);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_EXTERNAL);
-  gtk_container_add (GTK_CONTAINER (box), sw);
+  gtk_widget_set_hexpand (sw, TRUE);
+  gtk_box_append (GTK_BOX (box), sw);
   tv = gtk_text_view_new ();
   fill_text_view (tv, "Left");
-  gtk_container_add (GTK_CONTAINER (sw), tv);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), tv);
 
   adj = gtk_scrolled_window_get_vadjustment (GTK_SCROLLED_WINDOW (sw));
 
@@ -43,23 +44,25 @@ main (int argc, char *argv[])
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_EXTERNAL);
-  gtk_container_add (GTK_CONTAINER (box), sw);
+  gtk_widget_set_hexpand (sw, TRUE);
+  gtk_box_append (GTK_BOX (box), sw);
   tv = gtk_text_view_new ();
   fill_text_view (tv, "Middle");
-  gtk_container_add (GTK_CONTAINER (sw), tv);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), tv);
 
   sw = gtk_scrolled_window_new (NULL, adj);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_EXTERNAL);
-  gtk_container_add (GTK_CONTAINER (box), sw);
+  gtk_widget_set_hexpand (sw, TRUE);
+  gtk_box_append (GTK_BOX (box), sw);
   tv = gtk_text_view_new ();
   fill_text_view (tv, "Right");
-  gtk_container_add (GTK_CONTAINER (sw), tv);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), tv);
 
   sb = gtk_scrollbar_new (GTK_ORIENTATION_VERTICAL, adj);
 
-  gtk_container_add (GTK_CONTAINER (box), sb);
+  gtk_box_append (GTK_BOX (box), sb);
 
   gtk_widget_show (win);
 

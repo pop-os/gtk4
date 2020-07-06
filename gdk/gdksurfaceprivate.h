@@ -71,7 +71,6 @@ struct _GdkSurface
   guint destroyed : 2;
 
   guint support_multidevice : 1;
-  guint viewable : 1; /* mapped and all parents mapped */
   guint in_update : 1;
   guint frame_clock_events_paused : 1;
   guint autohide : 1;
@@ -149,26 +148,13 @@ struct _GdkSurfaceClass
   /* optional */
   gboolean     (* beep)                 (GdkSurface       *surface);
 
-  void         (* begin_resize_drag)    (GdkSurface     *surface,
-                                         GdkSurfaceEdge  edge,
-                                         GdkDevice     *device,
-                                         gint           button,
-                                         gint           root_x,
-                                         gint           root_y,
-                                         guint32        timestamp);
-  void         (* begin_move_drag)      (GdkSurface *surface,
-                                         GdkDevice     *device,
-                                         gint       button,
-                                         gint       root_x,
-                                         gint       root_y,
-                                         guint32    timestamp);
   void         (* destroy_notify)       (GdkSurface *surface);
-  GdkDrag *    (* drag_begin)           (GdkSurface        *surface,
-                                         GdkDevice        *device,
-                                         GdkContentProvider*content,
-                                         GdkDragAction     actions,
-                                         gint              dx,
-                                         gint              dy);
+  GdkDrag *    (* drag_begin)           (GdkSurface         *surface,
+                                         GdkDevice          *device,
+                                         GdkContentProvider *content,
+                                         GdkDragAction       actions,
+                                         double              dx,
+                                         double              dy);
 
   gint         (* get_scale_factor)       (GdkSurface      *surface);
   void         (* get_unscaled_size)      (GdkSurface      *surface,

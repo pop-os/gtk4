@@ -15,7 +15,7 @@ static GtkWidget *window = NULL;
 static void
 response_cb (GtkDialog *dialog, gint response_id)
 {
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
   window = NULL;
 }
 
@@ -78,9 +78,9 @@ do_expander (GtkWidget *do_widget)
                                 "A second paragraph will contain even more "
                                 "innuendo, just to make you scroll down or "
                                 "resize the window. Do it already !", -1);
-      gtk_container_add (GTK_CONTAINER (sw), tv);
-      gtk_container_add (GTK_CONTAINER (expander), sw);
-      gtk_container_add (GTK_CONTAINER (area), expander);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), tv);
+      gtk_expander_set_child (GTK_EXPANDER (expander), sw);
+      gtk_box_append (GTK_BOX (area), expander);
       g_signal_connect (expander, "notify::expanded",
                         G_CALLBACK (expander_cb), window);
 
@@ -90,7 +90,7 @@ do_expander (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

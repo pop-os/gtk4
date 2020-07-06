@@ -27,6 +27,7 @@
 
 
 #include <gtk/gtktooltip.h>
+#include <gtk/gtknative.h>
 
 
 G_BEGIN_DECLS
@@ -41,6 +42,9 @@ GtkWidget * _gtk_widget_find_at_coords   (GdkSurface         *surface,
                                           gint                surface_y,
                                           gint               *widget_x,
                                           gint               *widget_y);
+
+void gtk_tooltip_maybe_allocate          (GtkNative          *native);
+void gtk_tooltip_unset_surface           (GtkNative          *native);
 
 G_END_DECLS
 

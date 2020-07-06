@@ -9,10 +9,10 @@ struct _ExampleAppWindow
 
   GSettings *settings;
   GtkWidget *stack;
+  GtkWidget *gears;
   GtkWidget *search;
   GtkWidget *searchbar;
   GtkWidget *searchentry;
-  GtkWidget *gears;
   GtkWidget *sidebar;
   GtkWidget *words;
 };
@@ -35,7 +35,7 @@ search_text_changed (GtkEntry         *entry,
     return;
 
   tab = gtk_stack_get_visible_child (GTK_STACK (win->stack));
-  view = gtk_bin_get_child (GTK_BIN (tab));
+  view = gtk_scrolled_window_get_child (GTK_SCROLLED_WINDOW (tab));
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));
 
   /* Very simple-minded search implementation */
@@ -67,15 +67,15 @@ update_words (ExampleAppWindow *win)
   GtkWidget *tab, *view, *row;
   GtkTextBuffer *buffer;
   GtkTextIter start, end;
-  GList *children, *l;
   gchar *word, *key;
+  GtkWidget *child;
 
   tab = gtk_stack_get_visible_child (GTK_STACK (win->stack));
 
   if (tab == NULL)
     return;
 
-  view = gtk_bin_get_child (GTK_BIN (tab));
+  view = gtk_scrolled_window_get_child (GTK_SCROLLED_WINDOW (tab));
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));
 
   strings = g_hash_table_new_full (g_str_hash, g_str_equal, g_free, NULL);
@@ -98,10 +98,8 @@ update_words (ExampleAppWindow *win)
     }
 
 done:
-  children = gtk_container_get_children (GTK_CONTAINER (win->words));
-  for (l = children; l; l = l->next)
-    gtk_container_remove (GTK_CONTAINER (win->words), GTK_WIDGET (l->data));
-  g_list_free (children);
+  while ((child = gtk_widget_get_first_child (win->words)))
+    gtk_list_box_remove (GTK_LIST_BOX (win->words), child);
 
   g_hash_table_iter_init (&iter, strings);
   while (g_hash_table_iter_next (&iter, (gpointer *)&key, NULL))
@@ -109,7 +107,7 @@ done:
       row = gtk_button_new_with_label (key);
       g_signal_connect (row, "clicked",
                         G_CALLBACK (find_word), win);
-      gtk_container_add (GTK_CONTAINER (win->words), row);
+      gtk_box_append (GTK_BOX (win->words), row);
     }
 
   g_hash_table_unref (strings);
@@ -143,6 +141,12 @@ example_app_window_init (ExampleAppWindow *win)
   GAction *action;
 
   gtk_widget_init_template (GTK_WIDGET (win));
+
+  builder = gtk_builder_new_from_resource ("/org/gtk/exampleapp/gears-menu.ui");
+  menu = G_MENU_MODEL (gtk_builder_get_object (builder, "menu"));
+  gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (win->gears), menu);
+  g_object_unref (builder);
+
   win->settings = g_settings_new ("org.gtk.exampleapp");
 
   g_settings_bind (win->settings, "transition",
@@ -159,11 +163,6 @@ example_app_window_init (ExampleAppWindow *win)
 
   g_signal_connect (win->sidebar, "notify::reveal-child",
                     G_CALLBACK (words_changed), win);
-
-  builder = gtk_builder_new_from_resource ("/org/gtk/exampleapp/gears-menu.ui");
-  menu = G_MENU_MODEL (gtk_builder_get_object (builder, "menu"));
-  gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (win->gears), menu);
-  g_object_unref (builder);
 
   action = g_settings_create_action (win->settings, "show-words");
   g_action_map_add_action (G_ACTION_MAP (win), action);
@@ -191,10 +190,10 @@ example_app_window_class_init (ExampleAppWindowClass *class)
                                                "/org/gtk/exampleapp/window.ui");
 
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), ExampleAppWindow, stack);
+  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), ExampleAppWindow, gears);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), ExampleAppWindow, search);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), ExampleAppWindow, searchbar);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), ExampleAppWindow, searchentry);
-  gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), ExampleAppWindow, gears);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), ExampleAppWindow, words);
   gtk_widget_class_bind_template_child (GTK_WIDGET_CLASS (class), ExampleAppWindow, sidebar);
 
@@ -229,7 +228,7 @@ example_app_window_open (ExampleAppWindow *win,
   view = gtk_text_view_new ();
   gtk_text_view_set_editable (GTK_TEXT_VIEW (view), FALSE);
   gtk_text_view_set_cursor_visible (GTK_TEXT_VIEW (view), FALSE);
-  gtk_container_add (GTK_CONTAINER (scrolled), view);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), view);
   gtk_stack_add_titled (GTK_STACK (win->stack), scrolled, basename, basename);
 
   buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));

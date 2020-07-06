@@ -352,17 +352,16 @@ do_editable_cells (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Editable Cells");
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
       gtk_widget_set_margin_start (vbox, 5);
       gtk_widget_set_margin_end (vbox, 5);
       gtk_widget_set_margin_top (vbox, 5);
       gtk_widget_set_margin_bottom (vbox, 5);
-      gtk_container_add (GTK_CONTAINER (window), vbox);
+      gtk_window_set_child (GTK_WINDOW (window), vbox);
 
-      gtk_container_add (GTK_CONTAINER (vbox),
+      gtk_box_append (GTK_BOX (vbox),
                           gtk_label_new ("Shopping list (you can edit the cells!)"));
 
       sw = gtk_scrolled_window_new (NULL, NULL);
@@ -370,7 +369,7 @@ do_editable_cells (GtkWidget *do_widget)
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
-      gtk_container_add (GTK_CONTAINER (vbox), sw);
+      gtk_box_append (GTK_BOX (vbox), sw);
 
       /* create models */
       items_model = create_items_model ();
@@ -387,22 +386,22 @@ do_editable_cells (GtkWidget *do_widget)
       g_object_unref (numbers_model);
       g_object_unref (items_model);
 
-      gtk_container_add (GTK_CONTAINER (sw), treeview);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), treeview);
 
       /* some buttons */
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 4);
       gtk_box_set_homogeneous (GTK_BOX (hbox), TRUE);
-      gtk_container_add (GTK_CONTAINER (vbox), hbox);
+      gtk_box_append (GTK_BOX (vbox), hbox);
 
       button = gtk_button_new_with_label ("Add item");
       g_signal_connect (button, "clicked",
                         G_CALLBACK (add_item), treeview);
-      gtk_container_add (GTK_CONTAINER (hbox), button);
+      gtk_box_append (GTK_BOX (hbox), button);
 
       button = gtk_button_new_with_label ("Remove item");
       g_signal_connect (button, "clicked",
                         G_CALLBACK (remove_item), treeview);
-      gtk_container_add (GTK_CONTAINER (hbox), button);
+      gtk_box_append (GTK_BOX (hbox), button);
 
       gtk_window_set_default_size (GTK_WINDOW (window), 320, 200);
     }
@@ -410,7 +409,7 @@ do_editable_cells (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

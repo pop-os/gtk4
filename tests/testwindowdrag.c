@@ -13,22 +13,20 @@ start_resize (GtkGestureClick *gesture,
   GdkEvent *event;
   guint button;
   guint32 timestamp;
-  int xx = x;
-  int yy = y;
 
   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
   surface = gtk_native_get_surface (gtk_widget_get_native (widget));
   event = gtk_event_controller_get_current_event (GTK_EVENT_CONTROLLER (gesture));
   if (gdk_event_get_event_type (event) == GDK_BUTTON_PRESS)
-    button = gdk_button_event_get_button (event);  
+    button = gdk_button_event_get_button (event);
   else
     button = 0;
   timestamp = gdk_event_get_time (event);
 
   gtk_widget_translate_coordinates (widget, GTK_WIDGET (gtk_widget_get_root (widget)),
-                                    xx, yy, &xx, &yy);
-  gdk_surface_begin_resize_drag (surface, edge, gdk_event_get_device (event), button, xx, yy, timestamp);
+                                    x, y, &x, &y);
+  gdk_toplevel_begin_resize (GDK_TOPLEVEL (surface), edge, gdk_event_get_device (event), button, x, y, timestamp);
 
   gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
 }
@@ -61,22 +59,20 @@ start_move (GtkGestureClick *gesture,
   GdkEvent *event;
   guint button;
   guint32 timestamp;
-  int xx = x;
-  int yy = y;
 
   gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
   surface = gtk_native_get_surface (gtk_widget_get_native (widget));
   event = gtk_event_controller_get_current_event (GTK_EVENT_CONTROLLER (gesture));
   if (gdk_event_get_event_type (event) == GDK_BUTTON_PRESS)
-    button = gdk_button_event_get_button (event);  
+    button = gdk_button_event_get_button (event);
   else
     button = 0;
   timestamp = gdk_event_get_time (event);
 
   gtk_widget_translate_coordinates (widget, GTK_WIDGET (gtk_widget_get_root (widget)),
-                                    xx, yy, &xx, &yy);
-  gdk_surface_begin_move_drag (surface, gdk_event_get_device (event), button, xx, yy, timestamp);
+                                    x, y, &x, &y);
+  gdk_toplevel_begin_move (GDK_TOPLEVEL (surface), gdk_event_get_device (event), button, x, y, timestamp);
   gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
 }
 
@@ -108,7 +104,7 @@ main (int argc, char *argv[])
   gtk_window_set_titlebar (GTK_WINDOW (window), gtk_header_bar_new ());
 
   grid = gtk_grid_new ();
-  gtk_container_add (GTK_CONTAINER (window), grid);
+  gtk_window_set_child (GTK_WINDOW (window), grid);
 
   gtk_grid_attach (GTK_GRID (grid),
                    resize_button (GDK_SURFACE_EDGE_NORTH_WEST), 

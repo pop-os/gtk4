@@ -732,7 +732,9 @@ maybe_rename_property (Element *element, MyParserData *data)
     { "GtkWidget", "margin", GTK_TYPE_WIDGET, PROP_KIND_OBJECT, "margin-bottom", { "margin-start", "margin-end", "margin-top" } },
     { "GtkWidget", "margin-left", GTK_TYPE_WIDGET, PROP_KIND_OBJECT, "margin-start", { NULL, NULL, NULL } },
     { "GtkWidget", "margin-right", GTK_TYPE_WIDGET, PROP_KIND_OBJECT, "margin-end", { NULL, NULL, NULL } },
-    { "GtkHeaderBar", "show-close-button", GTK_TYPE_HEADER_BAR, PROP_KIND_OBJECT, "show-title-buttons", { NULL, NULL, NULL } }
+    { "GtkHeaderBar", "show-close-button", GTK_TYPE_HEADER_BAR, PROP_KIND_OBJECT, "show-title-buttons", { NULL, NULL, NULL } },
+    { "GtkHeaderBar", "custom-title", GTK_TYPE_HEADER_BAR, PROP_KIND_OBJECT, "title-widget", { NULL, NULL, NULL } },
+    { "GtkStack", "homogeneous", GTK_TYPE_STACK, PROP_KIND_OBJECT, "hhomogeneous", { "vhomogeneous", NULL, NULL } }
   };
   int i, k, l;
   PropKind kind;
@@ -1489,6 +1491,56 @@ rewrite_grid_layout (Element *element,
     }
 }
 
+static void
+rewrite_bin_child (Element      *element,
+                   MyParserData *data)
+{
+  GList *l, *ll;
+  const char *class_name;
+  GType type;
+
+  for (l = element->children; l; l = l->next)
+    {
+      Element *child = l->data;
+      Element *object = NULL;
+
+      if (!g_str_equal (child->element_name, "child") ||
+          has_attribute (child, "type", NULL))
+        continue;
+
+      for (ll = child->children; ll; ll = ll->next)
+        {
+          Element *elem = ll->data;
+
+          if (!g_str_equal (elem->element_name, "object"))
+            continue;
+
+          class_name = get_attribute_value (elem, "class");
+          if (!class_name)
+            continue;
+
+          type = g_type_from_name (class_name);
+          if (!g_type_is_a (type, GTK_TYPE_WIDGET))
+            continue;
+
+          object = elem;
+        }
+
+      if (object)
+        {
+          g_free (child->element_name);
+          g_strfreev (child->attribute_names);
+          g_strfreev (child->attribute_values);
+          child->element_name = g_strdup ("property");
+          child->attribute_names = g_new0 (char *, 2);
+          child->attribute_names[0] = g_strdup ("name");
+          child->attribute_values = g_new0 (char *, 2);
+          child->attribute_values[0] = g_strdup ("child");
+          break;
+        }
+    }
+}
+
 /* returns TRUE to remove the element from the parent */
 static gboolean
 simplify_element (Element      *element,
@@ -1602,6 +1654,23 @@ rewrite_element (Element      *element,
   if (element_is_object_or_template (element) &&
       g_str_equal (get_class_name (element), "GtkFixed"))
     rewrite_layout_props (element, data);
+
+  if (element_is_object_or_template (element) &&
+      (g_str_equal (get_class_name (element), "GtkAspectFrame") ||
+       g_str_equal (get_class_name (element), "GtkComboBox") ||
+       g_str_equal (get_class_name (element), "GtkComboBoxText") ||
+       g_str_equal (get_class_name (element), "GtkFlowBoxChild") ||
+       g_str_equal (get_class_name (element), "GtkFrame") ||
+       g_str_equal (get_class_name (element), "GtkListBoxRow") ||
+       g_str_equal (get_class_name (element), "GtkOverlay") ||
+       g_str_equal (get_class_name (element), "GtkPopover") ||
+       g_str_equal (get_class_name (element), "GtkPopoverMenu") ||
+       g_str_equal (get_class_name (element), "GtkRevealer") ||
+       g_str_equal (get_class_name (element), "GtkScrolledWindow") ||
+       g_str_equal (get_class_name (element), "GtkSearchBar") ||
+       g_str_equal (get_class_name (element), "GtkViewport") ||
+       g_str_equal (get_class_name (element), "GtkWindow")))
+    rewrite_bin_child (element, data);
 
   if (g_str_equal (element->element_name, "property"))
     maybe_rename_property (element, data);

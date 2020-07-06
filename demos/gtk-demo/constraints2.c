@@ -22,23 +22,24 @@ struct _InteractiveGrid
 G_DEFINE_TYPE (InteractiveGrid, interactive_grid, GTK_TYPE_WIDGET)
 
 static void
-interactive_grid_destroy (GtkWidget *widget)
+interactive_grid_dispose (GObject *object)
 {
-  InteractiveGrid *self = INTERACTIVE_GRID (widget);
+  InteractiveGrid *self = INTERACTIVE_GRID (object);
 
-  g_clear_pointer (&self->button1, gtk_widget_destroy);
-  g_clear_pointer (&self->button2, gtk_widget_destroy);
-  g_clear_pointer (&self->button3, gtk_widget_destroy);
+  g_clear_pointer (&self->button1, gtk_widget_unparent);
+  g_clear_pointer (&self->button2, gtk_widget_unparent);
+  g_clear_pointer (&self->button3, gtk_widget_unparent);
 
-  GTK_WIDGET_CLASS (interactive_grid_parent_class)->destroy (widget);
+  G_OBJECT_CLASS (interactive_grid_parent_class)->dispose (object);
 }
 
 static void
 interactive_grid_class_init (InteractiveGridClass *klass)
 {
+  GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
 
-  widget_class->destroy = interactive_grid_destroy;
+  object_class->dispose = interactive_grid_dispose;
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_CONSTRAINT_LAYOUT);
 }
@@ -213,33 +214,32 @@ do_constraints2 (GtkWidget *do_widget)
 
      window = gtk_window_new ();
      gtk_window_set_display (GTK_WINDOW (window), gtk_widget_get_display (do_widget));
+     gtk_window_set_title (GTK_WINDOW (window), "Constraints");
 
      header = gtk_header_bar_new ();
-     gtk_header_bar_set_title (GTK_HEADER_BAR (header), "Constraints");
      gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), FALSE);
      gtk_window_set_titlebar (GTK_WINDOW (window), header);
-     g_signal_connect (window, "destroy",
-                       G_CALLBACK (gtk_widget_destroyed), &window);
+     g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
-     gtk_container_add (GTK_CONTAINER (window), box);
+     gtk_window_set_child (GTK_WINDOW (window), box);
 
      grid = g_object_new (interactive_grid_get_type (), NULL);
      gtk_widget_set_hexpand (grid, TRUE);
      gtk_widget_set_vexpand (grid, TRUE);
-     gtk_container_add (GTK_CONTAINER (box), grid);
+     gtk_box_append (GTK_BOX (box), grid);
 
      button = gtk_button_new_with_label ("Close");
-     gtk_container_add (GTK_CONTAINER (box), button);
+     gtk_box_append (GTK_BOX (box), button);
      gtk_widget_set_hexpand (grid, TRUE);
      g_signal_connect_swapped (button, "clicked",
-                               G_CALLBACK (gtk_widget_destroy), window);
+                               G_CALLBACK (gtk_window_destroy), window);
    }
 
  if (!gtk_widget_get_visible (window))
    gtk_widget_show (window);
  else
-   gtk_widget_destroy (window);
+   gtk_window_destroy (GTK_WINDOW (window));
 
  return window;
 }

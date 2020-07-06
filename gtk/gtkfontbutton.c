@@ -552,13 +552,13 @@ gtk_font_button_init (GtkFontButton *font_button)
   font_button->font_size_box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-  gtk_container_add (GTK_CONTAINER (box), font_button->font_label);
+  gtk_box_append (GTK_BOX (box), font_button->font_label);
 
-  gtk_container_add (GTK_CONTAINER (font_button->font_size_box), gtk_separator_new (GTK_ORIENTATION_VERTICAL));
-  gtk_container_add (GTK_CONTAINER (font_button->font_size_box), font_button->size_label);
-  gtk_container_add (GTK_CONTAINER (box), font_button->font_size_box);
+  gtk_box_append (GTK_BOX (font_button->font_size_box), gtk_separator_new (GTK_ORIENTATION_VERTICAL));
+  gtk_box_append (GTK_BOX (font_button->font_size_box), font_button->size_label);
+  gtk_box_append (GTK_BOX (box), font_button->font_size_box);
 
-  gtk_container_add (GTK_CONTAINER (font_button->button), box);
+  gtk_button_set_child (GTK_BUTTON (font_button->button), box);
   gtk_widget_set_parent (font_button->button, GTK_WIDGET (font_button));
 
   /* Initialize fields */
@@ -586,8 +586,8 @@ gtk_font_button_finalize (GObject *object)
 {
   GtkFontButton *font_button = GTK_FONT_BUTTON (object);
 
-  if (font_button->font_dialog != NULL) 
-    gtk_widget_destroy (font_button->font_dialog);
+  if (font_button->font_dialog != NULL)
+    gtk_window_destroy (GTK_WINDOW (font_button->font_dialog));
 
   g_free (font_button->title);
 

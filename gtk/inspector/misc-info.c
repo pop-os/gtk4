@@ -139,11 +139,8 @@ state_flags_changed (GtkWidget *w, GtkStateFlags old_flags, GtkInspectorMiscInfo
 }
 
 static void
-allocation_changed (GtkWidget    *w,
-                    int           width,
-                    int           height,
-                    int           baseline,
-                    GtkInspectorMiscInfo *sl)
+update_allocation (GtkWidget            *w,
+                   GtkInspectorMiscInfo *sl)
 {
   GtkAllocation alloc;
   gchar *size_label;
@@ -329,11 +326,14 @@ update_info (gpointer data)
 
   if (GTK_IS_WIDGET (sl->priv->object))
     {
+      GtkWidget *child;
       AtkObject *accessible;
       AtkRole role;
       GList *list, *l;
 
-      gtk_container_forall (GTK_CONTAINER (sl->priv->mnemonic_label), (GtkCallback)gtk_widget_destroy, NULL);
+       while ((child = gtk_widget_get_first_child (sl->priv->mnemonic_label)))
+         gtk_box_remove (GTK_BOX (sl->priv->mnemonic_label), child);
+
       list = gtk_widget_list_mnemonic_labels (GTK_WIDGET (sl->priv->object));
       for (l = list; l; l = l->next)
         {
@@ -343,7 +343,7 @@ update_info (gpointer data)
           button = gtk_button_new_with_label (tmp);
           g_free (tmp);
           gtk_widget_show (button);
-          gtk_container_add (GTK_CONTAINER (sl->priv->mnemonic_label), button);
+          gtk_box_append (GTK_BOX (sl->priv->mnemonic_label), button);
           g_object_set_data (G_OBJECT (button), "mnemonic-label", l->data);
           g_signal_connect (button, "clicked", G_CALLBACK (show_mnemonic_label), sl);
         }
@@ -419,7 +419,6 @@ gtk_inspector_misc_info_set_object (GtkInspectorMiscInfo *sl,
   if (sl->priv->object)
     {
       g_signal_handlers_disconnect_by_func (sl->priv->object, state_flags_changed, sl);
-      g_signal_handlers_disconnect_by_func (sl->priv->object, allocation_changed, sl);
       disconnect_each_other (sl->priv->object, G_OBJECT (sl));
       disconnect_each_other (sl, sl->priv->object);
       sl->priv->object = NULL;
@@ -452,8 +451,7 @@ gtk_inspector_misc_info_set_object (GtkInspectorMiscInfo *sl,
       g_signal_connect_object (object, "state-flags-changed", G_CALLBACK (state_flags_changed), sl, 0);
       state_flags_changed (GTK_WIDGET (sl->priv->object), 0, sl);
 
-      g_signal_connect_object (object, "size-allocate", G_CALLBACK (allocation_changed), sl, 0);
-      allocation_changed (GTK_WIDGET (sl->priv->object), 0, 0, -1, sl);
+      update_allocation (GTK_WIDGET (sl->priv->object), sl);
     }
   else
     {

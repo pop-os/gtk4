@@ -82,14 +82,14 @@ main (int argc, char *argv[])
   gtk_widget_insert_action_group (win, "top", G_ACTION_GROUP (actions));
 
   overlay = gtk_overlay_new ();
-  gtk_container_add (GTK_CONTAINER (win), overlay);
+  gtk_window_set_child (GTK_WINDOW (win), overlay);
 
   grid = gtk_grid_new ();
   gtk_widget_set_halign (grid, GTK_ALIGN_FILL);
   gtk_widget_set_valign (grid, GTK_ALIGN_FILL);
   gtk_grid_set_row_spacing (GTK_GRID (grid), 10);
   gtk_grid_set_column_spacing (GTK_GRID (grid), 10);
-  gtk_container_add (GTK_CONTAINER (overlay), grid);
+  gtk_overlay_set_child (GTK_OVERLAY (overlay), grid);
 
   label = gtk_label_new ("");
   gtk_widget_set_hexpand (label, TRUE);
@@ -106,11 +106,11 @@ main (int argc, char *argv[])
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
   button = gtk_menu_button_new ();
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_box_append (GTK_BOX (box), button);
   button1 = gtk_menu_button_new ();
-  gtk_container_add (GTK_CONTAINER (box), button1);
+  gtk_box_append (GTK_BOX (box), button1);
   button2 = gtk_menu_button_new ();
-  gtk_container_add (GTK_CONTAINER (box), button2);
+  gtk_box_append (GTK_BOX (box), button2);
 
   gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (button), model);
   popover = GTK_WIDGET (gtk_menu_button_get_popover (GTK_MENU_BUTTON (button)));

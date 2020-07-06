@@ -58,8 +58,8 @@ test_action (void)
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   button = gtk_button_new ();
 
-  gtk_container_add (GTK_CONTAINER (window), box);
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_window_set_child (GTK_WINDOW (window), box);
+  gtk_box_append (GTK_BOX (box), button);
 
   win_actions = g_simple_action_group_new ();
   g_action_map_add_action_entries (G_ACTION_MAP (win_actions),
@@ -99,7 +99,7 @@ test_action (void)
   g_assert_cmpint (win_activated, ==, 2);
   g_assert_cmpint (box_activated, ==, 1);
 
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
   g_object_unref (win_actions);
   g_object_unref (box_actions);
 }
@@ -160,7 +160,7 @@ test_text (void)
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   text = gtk_text_new ();
 
-  gtk_container_add (GTK_CONTAINER (box), text);
+  gtk_box_append (GTK_BOX (box), text);
 
   clipboard_actions = g_simple_action_group_new ();
   g_action_map_add_action_entries (G_ACTION_MAP (clipboard_actions),
@@ -185,7 +185,7 @@ test_text (void)
 
   g_assert_cmpint (visibility_changed, ==, 1);
 
-  gtk_widget_destroy (box);
+  g_object_unref (g_object_ref_sink (box));
   g_object_unref (clipboard_actions);
 }
 
@@ -210,7 +210,7 @@ test_overlap (void)
   window = gtk_window_new ();
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
 
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   win_actions = g_simple_action_group_new ();
   g_action_map_add_action_entries (G_ACTION_MAP (win_actions),
@@ -240,7 +240,7 @@ test_overlap (void)
   g_assert_cmpint (win_activated, ==, 1);
   g_assert_cmpint (box_activated, ==, 1);
 
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
   g_object_unref (win_actions);
   g_object_unref (box_actions);
 }
@@ -335,9 +335,11 @@ test_overlap2 (void)
   g_assert_cmpint (act1, ==, 0);
   g_assert_cmpint (act2, ==, 1);
 
-  gtk_widget_destroy (text);
   g_object_unref (group1);
   g_object_unref (group2);
+
+  gtk_widget_unparent (child);
+  g_object_unref (g_object_ref_sink (text));
 }
 
 /* Test that gtk_widget_class_query_action
@@ -423,7 +425,7 @@ test_enabled (void)
 
   g_assert_cmpint (toggled, ==, 1);
 
-  gtk_widget_destroy (text);
+  g_object_unref (g_object_ref_sink (text));
 }
 
 int

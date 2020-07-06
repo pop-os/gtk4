@@ -548,8 +548,6 @@ gtk_shortcuts_shortcut_class_init (GtkShortcutsShortcutClass *klass)
   widget_class->measure = gtk_shortcuts_shortcut_measure;
   widget_class->snapshot = gtk_shortcuts_shortcut_snapshot;
   widget_class->size_allocate = gtk_shortcuts_shortcut_size_allocate;
-  widget_class->grab_focus = gtk_widget_grab_focus_none;
-  widget_class->focus = gtk_widget_focus_none;
 
   /**
    * GtkShortcutsShortcut:accelerator:
@@ -713,7 +711,7 @@ gtk_shortcuts_shortcut_class_init (GtkShortcutsShortcutClass *klass)
    * of type %GTK_SHORTCUT_ACCELERATOR, then GTK+ will use
    * the accelerators that are associated with the action
    * via gtk_application_set_accels_for_action(), and setting
-   * #GtkShortcutsShortcut::accelerator is not necessary.
+   * #GtkShortcutsShortcut:accelerator is not necessary.
    */
   properties[PROP_ACTION_NAME] =
     g_param_spec_string ("action-name",
@@ -742,13 +740,13 @@ gtk_shortcuts_shortcut_init (GtkShortcutsShortcut *self)
                               "visible", FALSE,
                               "valign", GTK_ALIGN_CENTER,
                               NULL);
-  gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->image));
+  gtk_box_append (GTK_BOX (self->box), GTK_WIDGET (self->image));
 
   self->accelerator = g_object_new (GTK_TYPE_SHORTCUT_LABEL,
                                     "visible", TRUE,
                                     "valign", GTK_ALIGN_CENTER,
                                     NULL);
-  gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->accelerator));
+  gtk_box_append (GTK_BOX (self->box), GTK_WIDGET (self->accelerator));
 
   self->title_box = g_object_new (GTK_TYPE_BOX,
                                   "visible", TRUE,
@@ -756,18 +754,18 @@ gtk_shortcuts_shortcut_init (GtkShortcutsShortcut *self)
                                   "hexpand", TRUE,
                                   "orientation", GTK_ORIENTATION_VERTICAL,
                                   NULL);
-  gtk_container_add (GTK_CONTAINER (self->box), GTK_WIDGET (self->title_box));
+  gtk_box_append (GTK_BOX (self->box), GTK_WIDGET (self->title_box));
 
   self->title = g_object_new (GTK_TYPE_LABEL,
                               "visible", TRUE,
                               "xalign", 0.0f,
                               NULL);
-  gtk_container_add (GTK_CONTAINER (self->title_box), GTK_WIDGET (self->title));
+  gtk_box_append (GTK_BOX (self->title_box), GTK_WIDGET (self->title));
 
   self->subtitle = g_object_new (GTK_TYPE_LABEL,
                                  "visible", FALSE,
                                  "xalign", 0.0f,
                                  NULL);
   gtk_widget_add_css_class (GTK_WIDGET (self->subtitle), GTK_STYLE_CLASS_DIM_LABEL);
-  gtk_container_add (GTK_CONTAINER (self->title_box), GTK_WIDGET (self->subtitle));
+  gtk_box_append (GTK_BOX (self->title_box), GTK_WIDGET (self->subtitle));
 }

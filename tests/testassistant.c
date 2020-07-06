@@ -61,8 +61,8 @@ add_completion_test_page (GtkWidget   *assistant,
   page = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
   check = gtk_check_button_new_with_label ("Complete");
 
-  gtk_container_add (GTK_CONTAINER (page), gtk_label_new (text));
-  gtk_container_add (GTK_CONTAINER (page), check);
+  gtk_box_append (GTK_BOX (page), gtk_label_new (text));
+  gtk_box_append (GTK_BOX (page), check);
   
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check), complete);
 
@@ -164,13 +164,11 @@ create_simple_assistant (GtkWidget *widget)
 			G_CALLBACK (prepare_callback), NULL);
 
       page = get_test_page ("Page 1");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 1");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Page 2");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 2");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_CONFIRM);
@@ -181,7 +179,7 @@ create_simple_assistant (GtkWidget *widget)
     gtk_widget_show (assistant);
   else
     {
-      gtk_widget_destroy (assistant);
+      gtk_window_destroy (GTK_WINDOW (assistant));
       assistant = NULL;
     }
 }
@@ -208,12 +206,10 @@ create_anonymous_assistant (GtkWidget *widget)
 			G_CALLBACK (prepare_callback), NULL);
 
       page = get_test_page ("Page 1");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Page 2");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_CONFIRM);
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
@@ -223,7 +219,7 @@ create_anonymous_assistant (GtkWidget *widget)
     gtk_widget_show (assistant);
   else
     {
-      gtk_widget_destroy (assistant);
+      gtk_window_destroy (GTK_WINDOW (assistant));
       assistant = NULL;
     }
 }
@@ -263,7 +259,6 @@ create_generous_assistant (GtkWidget *widget)
 			G_CALLBACK (prepare_callback), NULL);
 
       page = get_test_page ("Introduction");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Introduction");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_INTRO);
@@ -275,14 +270,12 @@ create_generous_assistant (GtkWidget *widget)
       check = gtk_check_button_new_with_label ("Next page visible");
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check), TRUE);
       g_signal_connect (G_OBJECT (check), "toggled", 
-			G_CALLBACK (visible_cb), next);
-      gtk_widget_show (check);
-      gtk_container_add (GTK_CONTAINER (page), check);
+                        G_CALLBACK (visible_cb), next);
+      gtk_box_append (GTK_BOX (page), check);
       
       add_completion_test_page (assistant, "Even More Content", TRUE, TRUE);
 
       page = get_test_page ("Confirmation");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Confirmation");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_CONFIRM);
@@ -298,7 +291,6 @@ create_generous_assistant (GtkWidget *widget)
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_PROGRESS);
 
       page = gtk_check_button_new_with_label ("Summary complete");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Summary");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_SUMMARY);
@@ -318,7 +310,7 @@ create_generous_assistant (GtkWidget *widget)
     gtk_widget_show (assistant);
   else
     {
-      gtk_widget_destroy (assistant);
+      gtk_window_destroy (GTK_WINDOW (assistant));
       assistant = NULL;
     }
 }
@@ -377,13 +369,13 @@ create_nonlinear_assistant (GtkWidget *widget)
       page = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
 
       button = gtk_radio_button_new_with_label (NULL, "branch A");
-      gtk_container_add (GTK_CONTAINER (page), button);
+      gtk_box_append (GTK_BOX (page), button);
       g_signal_connect (G_OBJECT (button), "toggled", G_CALLBACK (select_branch), GINT_TO_POINTER ('A'));
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
 
       button = gtk_radio_button_new_with_label (gtk_radio_button_get_group (GTK_RADIO_BUTTON (button)),
 						"branch B");
-      gtk_container_add (GTK_CONTAINER (page), button);
+      gtk_box_append (GTK_BOX (page), button);
       g_signal_connect (G_OBJECT (button), "toggled", G_CALLBACK (select_branch), GINT_TO_POINTER ('B'));
 
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
@@ -391,19 +383,16 @@ create_nonlinear_assistant (GtkWidget *widget)
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Page 2A");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 2");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Page 2B");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 2");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Confirmation");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Confirmation");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_CONFIRM);
@@ -414,7 +403,7 @@ create_nonlinear_assistant (GtkWidget *widget)
     gtk_widget_show (assistant);
   else
     {
-      gtk_widget_destroy (assistant);
+      gtk_window_destroy (GTK_WINDOW (assistant));
       assistant = NULL;
     }
 }
@@ -475,32 +464,27 @@ create_looping_assistant (GtkWidget *widget)
 					   assistant, NULL);
 
       page = get_test_page ("Introduction");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Introduction");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_INTRO);
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Content");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Content");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("More content");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "More content");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = gtk_check_button_new_with_label ("Loop?");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Loop?");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
       
       page = get_test_page ("Confirmation");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Confirmation");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_CONFIRM);
@@ -511,7 +495,7 @@ create_looping_assistant (GtkWidget *widget)
     gtk_widget_show (assistant);
   else
     {
-      gtk_widget_destroy (assistant);
+      gtk_window_destroy (GTK_WINDOW (assistant));
       assistant = NULL;
     }
 }
@@ -540,7 +524,6 @@ create_full_featured_assistant (GtkWidget *widget)
 
       button = gtk_button_new_with_label ("_Stop");
       gtk_button_set_use_underline (GTK_BUTTON (button), TRUE);
-      gtk_widget_show (button);
       gtk_assistant_add_action_widget (GTK_ASSISTANT (assistant), button);
       g_signal_connect (button, "clicked",
                         G_CALLBACK (toggle_invisible), assistant);
@@ -555,7 +538,6 @@ create_full_featured_assistant (GtkWidget *widget)
 			G_CALLBACK (prepare_callback), NULL);
 
       page = get_test_page ("Page 1");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 1");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
@@ -566,13 +548,11 @@ create_full_featured_assistant (GtkWidget *widget)
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = gtk_file_chooser_widget_new (GTK_FILE_CHOOSER_ACTION_OPEN);
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Filechooser");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Page 3");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 3");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_CONFIRM);
@@ -583,7 +563,7 @@ create_full_featured_assistant (GtkWidget *widget)
     gtk_widget_show (assistant);
   else
     {
-      gtk_widget_destroy (assistant);
+      gtk_window_destroy (GTK_WINDOW (assistant));
       assistant = NULL;
     }
 }
@@ -603,7 +583,6 @@ flip_pages (GtkButton *button, GtkAssistant *assistant)
   gtk_assistant_remove_page (assistant, 1);
   gtk_assistant_insert_page (assistant, page, 2);
 
-  gtk_widget_show (page);
   gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, title);
   gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
@@ -626,7 +605,6 @@ create_page_flipping_assistant (GtkWidget *widget)
 
       button = gtk_button_new_with_label ("_Flip");
       gtk_button_set_use_underline (GTK_BUTTON (button), TRUE);
-      gtk_widget_show (button);
       gtk_assistant_add_action_widget (GTK_ASSISTANT (assistant), button);
       g_signal_connect (button, "clicked",
                         G_CALLBACK (flip_pages), assistant);
@@ -641,26 +619,23 @@ create_page_flipping_assistant (GtkWidget *widget)
 			G_CALLBACK (prepare_callback), NULL);
 
       page = get_test_page ("Page 1");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 1");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-      gtk_container_add (GTK_CONTAINER (page),
+      gtk_box_append (GTK_BOX (page),
                           get_test_page ("Page 2"));
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 2");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Page 3");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Page 3");
       gtk_assistant_set_page_complete (GTK_ASSISTANT (assistant), page, TRUE);
 
       page = get_test_page ("Summary");
-      gtk_widget_show (page);
       gtk_assistant_append_page (GTK_ASSISTANT (assistant), page);
       gtk_assistant_set_page_title (GTK_ASSISTANT (assistant), page, "Summary");
       gtk_assistant_set_page_type  (GTK_ASSISTANT (assistant), page, GTK_ASSISTANT_PAGE_SUMMARY);
@@ -671,7 +646,7 @@ create_page_flipping_assistant (GtkWidget *widget)
     gtk_widget_show (assistant);
   else
     {
-      gtk_widget_destroy (assistant);
+      gtk_window_destroy (GTK_WINDOW (assistant));
       assistant = NULL;
     }
 }
@@ -719,7 +694,7 @@ main (int argc, gchar *argv[])
   g_signal_connect (G_OBJECT (window), "destroy", G_CALLBACK (quit_cb), &done);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   for (i = 0; i < G_N_ELEMENTS (buttons); i++)
     {
@@ -729,7 +704,7 @@ main (int argc, gchar *argv[])
 	g_signal_connect (G_OBJECT (button), "clicked",
 			  G_CALLBACK (buttons[i].func), NULL);
 
-      gtk_container_add (GTK_CONTAINER (box), button);
+      gtk_box_append (GTK_BOX (box), button);
     }
 
   gtk_widget_show (window);

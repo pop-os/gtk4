@@ -112,13 +112,13 @@ create_widget_tree (void)
   widgets = g_slist_prepend (widgets, window);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   grid = gtk_grid_new ();
-  gtk_container_add (GTK_CONTAINER (box), grid);
+  gtk_box_append (GTK_BOX (box), grid);
 
   label = gtk_label_new ("Hello World");
-  gtk_container_add (GTK_CONTAINER (grid), label);
+  gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
 
   return label;
 }
@@ -126,7 +126,7 @@ create_widget_tree (void)
 static void
 destroy_widgets (void)
 {
-  g_slist_free_full (widgets, (GDestroyNotify) gtk_widget_destroy);
+  g_slist_free_full (widgets, (GDestroyNotify) gtk_window_destroy);
   widgets = NULL;
 }
 
@@ -214,11 +214,11 @@ test_change_property (void)
   assert_model (model, "GtkLabel GtkGrid GtkBox GtkWindow");
   assert_changes (model, "0+4");
 
-  gtk_container_remove (GTK_CONTAINER (parent), widget);
+  gtk_grid_remove (GTK_GRID (parent), widget);
   assert_model (model, "GtkLabel");
   assert_changes (model, "1-3");
 
-  gtk_container_add (GTK_CONTAINER (grandparent), widget);
+  gtk_box_append (GTK_BOX (grandparent), widget);
   assert_model (model, "GtkLabel GtkBox GtkWindow");
   assert_changes (model, "1+2");
 

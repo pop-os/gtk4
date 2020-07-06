@@ -37,6 +37,7 @@
 #include "gtkdialogprivate.h"
 #include "gtklabel.h"
 #include "gtkfilechooserentry.h"
+#include "gtkbox.h"
 
 #include <stdarg.h>
 
@@ -69,61 +70,86 @@
  * #GtkFileChooserDialog to select a file for opening:
  *
  * |[
- * GtkWidget *dialog;
- * GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
- * gint res;
+ * static void
+ * on_open_response (GtkDialog *dialog,
+ *                   int        response)
+ * {
+ *   if (response == GTK_RESPONSE_ACCEPT)
+ *     {
+ *       GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
  *
- * dialog = gtk_file_chooser_dialog_new ("Open File",
- *                                       parent_window,
- *                                       action,
- *                                       _("_Cancel"),
- *                                       GTK_RESPONSE_CANCEL,
- *                                       _("_Open"),
- *                                       GTK_RESPONSE_ACCEPT,
- *                                       NULL);
+ *       g_autoptr(GFile) file = gtk_file_chooser_get_file (chooser);
  *
- * res = gtk_dialog_run (GTK_DIALOG (dialog));
- * if (res == GTK_RESPONSE_ACCEPT)
- *   {
- *     GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
- *     g_autoptr(GFile) filen = gtk_file_chooser_get_file (chooser);
- *     open_file (file);
- *   }
+ *       open_file (file);
+ *     }
  *
- * gtk_widget_destroy (dialog);
+ *   gtk_window_destroy (GTK_WINDOW (dialog));
+ * }
+ *
+ *   // ...
+ *   GtkWidget *dialog;
+ *   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_OPEN;
+ *
+ *   dialog = gtk_file_chooser_dialog_new ("Open File",
+ *                                         parent_window,
+ *                                         action,
+ *                                         _("_Cancel"),
+ *                                         GTK_RESPONSE_CANCEL,
+ *                                         _("_Open"),
+ *                                         GTK_RESPONSE_ACCEPT,
+ *                                         NULL);
+ *
+ *   gtk_widget_show (dialog);
+ *
+ *   g_signal_connect (dialog, "response",
+ *                     G_CALLBACK (on_open_response),
+ *                     NULL);
  * ]|
  *
  * To use a dialog for saving, you can use this:
  *
  * |[
- * GtkWidget *dialog;
- * GtkFileChooser *chooser;
- * GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
- * gint res;
+ * static void
+ * on_save_response (GtkDialog *dialog,
+ *                   int        response)
+ * {
+ *   if (response == GTK_RESPONSE_ACCEPT)
+ *     {
+ *       GtkFileChooser *chooser = GTK_FILE_CHOOSER (dialog);
  *
- * dialog = gtk_file_chooser_dialog_new ("Save File",
- *                                       parent_window,
- *                                       action,
- *                                       _("_Cancel"),
- *                                       GTK_RESPONSE_CANCEL,
- *                                       _("_Save"),
- *                                       GTK_RESPONSE_ACCEPT,
- *                                       NULL);
- * chooser = GTK_FILE_CHOOSER (dialog);
+ *       g_autoptr(GFile) file = gtk_file_chooser_get_file (chooser);
  *
- * if (user_edited_a_new_document)
- *   gtk_file_chooser_set_current_name (chooser, _("Untitled document"));
- * else
- *   gtk_file_chooser_set_file (chooser, existing_filename);
+ *       save_to_file (file);
+ *     }
  *
- * res = gtk_dialog_run (GTK_DIALOG (dialog));
- * if (res == GTK_RESPONSE_ACCEPT)
- *   {
- *     g_autoptr(GFile) file = gtk_file_chooser_get_file (chooser);
- *     save_to_file (file);
- *   }
+ *   gtk_window_destroy (GTK_WINDOW (dialog));
+ * }
  *
- * gtk_widget_destroy (dialog);
+ *   // ...
+ *   GtkWidget *dialog;
+ *   GtkFileChooser *chooser;
+ *   GtkFileChooserAction action = GTK_FILE_CHOOSER_ACTION_SAVE;
+ *
+ *   dialog = gtk_file_chooser_dialog_new ("Save File",
+ *                                         parent_window,
+ *                                         action,
+ *                                         _("_Cancel"),
+ *                                         GTK_RESPONSE_CANCEL,
+ *                                         _("_Save"),
+ *                                         GTK_RESPONSE_ACCEPT,
+ *                                         NULL);
+ *   chooser = GTK_FILE_CHOOSER (dialog);
+ *
+ *   if (user_edited_a_new_document)
+ *     gtk_file_chooser_set_current_name (chooser, _("Untitled document"));
+ *   else
+ *     gtk_file_chooser_set_file (chooser, existing_filename);
+ *
+ *   gtk_widget_show (dialog);
+ *
+ *   g_signal_connect (dialog, "response",
+ *                     G_CALLBACK (on_save_response),
+ *                     NULL);
  * ]|
  *
  * ## Setting up a file chooser dialog ## {#gtkfilechooserdialog-setting-up}
@@ -220,6 +246,7 @@ struct _GtkFileChooserDialogPrivate
   gboolean has_entry;
 };
 
+static void     gtk_file_chooser_dialog_dispose      (GObject               *object);
 static void     gtk_file_chooser_dialog_set_property (GObject               *object,
                                                       guint                  prop_id,
                                                       const GValue          *value,
@@ -261,6 +288,7 @@ gtk_file_chooser_dialog_class_init (GtkFileChooserDialogClass *class)
   GObjectClass *gobject_class = G_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
 
+  gobject_class->dispose = gtk_file_chooser_dialog_dispose;
   gobject_class->set_property = gtk_file_chooser_dialog_set_property;
   gobject_class->get_property = gtk_file_chooser_dialog_get_property;
   gobject_class->notify = gtk_file_chooser_dialog_notify;
@@ -387,6 +415,16 @@ file_chooser_widget_response_requested (GtkWidget            *widget,
 }
 
 static void
+gtk_file_chooser_dialog_dispose (GObject *object)
+{
+  GtkFileChooserDialogPrivate *priv = gtk_file_chooser_dialog_get_instance_private (GTK_FILE_CHOOSER_DIALOG (object));
+
+  g_clear_pointer ((GtkWidget **)&priv->widget, gtk_widget_unparent);
+
+  G_OBJECT_CLASS (gtk_file_chooser_dialog_parent_class)->dispose (object);
+}
+
+static void
 gtk_file_chooser_dialog_set_property (GObject      *object,
                                       guint         prop_id,
                                       const GValue *value,
@@ -430,11 +468,25 @@ add_button (GtkWidget *button, gpointer data)
     gtk_size_group_add_widget (priv->buttons, button);
 }
 
+static gboolean
+translate_subtitle_to_visible (GBinding     *binding,
+                               const GValue *from_value,
+                               GValue       *to_value,
+                               gpointer      user_data)
+{
+  const char *subtitle = g_value_get_string (from_value);
+
+  g_value_set_boolean (to_value, subtitle != NULL);
+
+  return TRUE;
+}
+
 static void
 setup_search (GtkFileChooserDialog *dialog)
 {
   GtkFileChooserDialogPrivate *priv = gtk_file_chooser_dialog_get_instance_private (dialog);
   gboolean use_header;
+  GtkWidget *child;
 
   if (priv->search_setup)
     return;
@@ -446,6 +498,8 @@ setup_search (GtkFileChooserDialog *dialog)
     {
       GtkWidget *button;
       GtkWidget *header;
+      GtkWidget *box;
+      GtkWidget *label;
 
       button = gtk_toggle_button_new ();
       gtk_widget_set_focus_on_click (button, FALSE);
@@ -459,11 +513,47 @@ setup_search (GtkFileChooserDialog *dialog)
       g_object_bind_property (button, "active",
                               priv->widget, "search-mode",
                               G_BINDING_BIDIRECTIONAL);
-      g_object_bind_property (priv->widget, "subtitle",
-                              header, "subtitle",
-                              G_BINDING_SYNC_CREATE);
 
-      gtk_container_forall (GTK_CONTAINER (header), add_button, dialog);
+      if (!priv->has_entry)
+        {
+          box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+          gtk_widget_set_valign (box, GTK_ALIGN_CENTER);
+
+          label = gtk_label_new (NULL);
+          gtk_widget_set_halign (label, GTK_ALIGN_CENTER);
+          gtk_label_set_single_line_mode (GTK_LABEL (label), TRUE);
+          gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+          gtk_label_set_width_chars (GTK_LABEL (label), 5);
+          gtk_widget_add_css_class (label, GTK_STYLE_CLASS_TITLE);
+          gtk_widget_set_parent (label, box);
+
+          g_object_bind_property (dialog, "title",
+                                  label, "label",
+                                  G_BINDING_SYNC_CREATE);
+
+          label = gtk_label_new (NULL);
+          gtk_widget_set_halign (label, GTK_ALIGN_CENTER);
+          gtk_label_set_single_line_mode (GTK_LABEL (label), TRUE);
+          gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+          gtk_widget_add_css_class (label, GTK_STYLE_CLASS_SUBTITLE);
+          gtk_widget_set_parent (label, box);
+
+          g_object_bind_property (priv->widget, "subtitle",
+                                  label, "label",
+                                  G_BINDING_SYNC_CREATE);
+          g_object_bind_property_full (priv->widget, "subtitle",
+                                       label, "visible",
+                                       G_BINDING_SYNC_CREATE,
+                                       translate_subtitle_to_visible,
+                                       NULL, NULL, NULL);
+
+          gtk_header_bar_set_title_widget (GTK_HEADER_BAR (header), box);
+        }
+
+      for (child = gtk_widget_get_first_child (header);
+           child != NULL;
+           child = gtk_widget_get_next_sibling (child))
+        add_button (child, dialog);
     }
 }
 
@@ -500,15 +590,15 @@ setup_save_entry (GtkFileChooserDialog *dialog)
       g_object_set (label, "margin-start", 6, "margin-end", 6, NULL);
       g_object_set (entry, "margin-start", 6, "margin-end", 6, NULL);
       gtk_label_set_mnemonic_widget (GTK_LABEL (label), entry);
-      gtk_container_add (GTK_CONTAINER (box), label);
-      gtk_container_add (GTK_CONTAINER (box), entry);
+      gtk_box_append (GTK_BOX (box), label);
+      gtk_box_append (GTK_BOX (box), entry);
 
-      gtk_header_bar_set_custom_title (GTK_HEADER_BAR (header), box);
+      gtk_header_bar_set_title_widget (GTK_HEADER_BAR (header), box);
       gtk_file_chooser_widget_set_save_entry (GTK_FILE_CHOOSER_WIDGET (priv->widget), entry);
     }
   else if (!need_entry && priv->has_entry)
     {
-      gtk_header_bar_set_custom_title (GTK_HEADER_BAR (header), NULL);
+      gtk_header_bar_set_title_widget (GTK_HEADER_BAR (header), NULL);
       gtk_file_chooser_widget_set_save_entry (GTK_FILE_CHOOSER_WIDGET (priv->widget), NULL);
     }
 

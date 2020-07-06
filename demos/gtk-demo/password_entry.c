@@ -40,20 +40,19 @@ do_password_entry (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       header = gtk_header_bar_new ();
-      gtk_header_bar_set_title (GTK_HEADER_BAR (header), "Choose a Password");
       gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), FALSE);
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
+      gtk_window_set_title (GTK_WINDOW (window), "Choose a Password");
       gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
       gtk_window_set_deletable (GTK_WINDOW (window), FALSE);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
       gtk_widget_set_margin_start (box, 18);
       gtk_widget_set_margin_end (box, 18);
       gtk_widget_set_margin_top (box, 18);
       gtk_widget_set_margin_bottom (box, 18);
-      gtk_container_add (GTK_CONTAINER (window), box);
+      gtk_window_set_child (GTK_WINDOW (window), box);
 
       entry = gtk_password_entry_new ();
       gtk_password_entry_set_show_peek_icon (GTK_PASSWORD_ENTRY (entry), TRUE);
@@ -62,7 +61,7 @@ do_password_entry (GtkWidget *do_widget)
                     "activates-default", TRUE,
                     NULL);
       g_signal_connect (entry, "notify::text", G_CALLBACK (update_button), NULL);
-      gtk_container_add (GTK_CONTAINER (box), entry);
+      gtk_box_append (GTK_BOX (box), entry);
 
       entry2 = gtk_password_entry_new ();
       gtk_password_entry_set_show_peek_icon (GTK_PASSWORD_ENTRY (entry2), TRUE);
@@ -71,11 +70,11 @@ do_password_entry (GtkWidget *do_widget)
                     "activates-default", TRUE,
                     NULL);
       g_signal_connect (entry2, "notify::text", G_CALLBACK (update_button), NULL);
-      gtk_container_add (GTK_CONTAINER (box), entry2);
+      gtk_box_append (GTK_BOX (box), entry2);
 
       button = gtk_button_new_with_mnemonic ("_Done");
       gtk_widget_add_css_class (button, "suggested-action");
-      g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
+      g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_destroy), window);
       gtk_widget_set_sensitive (button, FALSE);
       gtk_header_bar_pack_end (GTK_HEADER_BAR (header), button);
 
@@ -85,7 +84,7 @@ do_password_entry (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

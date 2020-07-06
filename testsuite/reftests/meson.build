@@ -422,13 +422,9 @@ testdata = [
 
 # These need to be fixed but the issue hasn't been tracked down.
 xfails = [
-  'background-color-transparent.ui',
-  'background-image-multiple.ui',
   'background-origin.ui',
   # see above
   #'sizegroups-evolution-identity-page.ui',
-  'textview-border-windows.ui',
-  'window-show-contents-on-map.ui',
   # these depend on details of text layout
   'label-sizing.ui',
 ]
@@ -442,16 +438,11 @@ foreach testname : testdata
                  join_paths(meson.current_source_dir(), testname),
          ],
          protocol: 'tap',
-         env: [ 'GIO_USE_VOLUME_MONITOR=unix',
-                'GSETTINGS_BACKEND=memory',
-                'GSETTINGS_SCHEMA_DIR=@0@'.format(gtk_schema_build_dir),
-                'GTK_CSD=1',
-                'GDK_DEBUG=default-settings',
-                'G_ENABLE_DIAGNOSTIC=0',
+         env: [
+                'GSK_RENDERER=opengl',
                 'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
                 'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir()),
-                'GSK_RENDERER=opengl',
-                'REFTEST_MODULE_DIR=@0@'.format(meson.current_build_dir()),
+                'REFTEST_MODULE_DIR=@0@'.format(meson.current_build_dir())
               ],
          suite: 'reftest',
          should_fail: xfails.contains(testname))

@@ -72,7 +72,7 @@ window_creation_function (GtkNotebook *source_notebook,
   gtk_notebook_set_group_name (GTK_NOTEBOOK (notebook),
                                gtk_notebook_get_group_name (source_notebook));
 
-  gtk_container_add (GTK_CONTAINER (window), notebook);
+  gtk_window_set_child (GTK_WINDOW (window), notebook);
 
   gtk_window_set_default_size (GTK_WINDOW (window), 300, 300);
   gtk_widget_show (window);
@@ -96,7 +96,7 @@ remove_in_idle (gpointer data)
 
   tab_label = gtk_notebook_get_tab_label (GTK_NOTEBOOK (parent), child);
   g_print ("Removing tab: %s\n", gtk_label_get_text (GTK_LABEL (tab_label)));
-  gtk_container_remove (GTK_CONTAINER (parent), child);
+  gtk_box_remove (GTK_BOX (parent), child);
 
   return G_SOURCE_REMOVE;
 }
@@ -202,13 +202,13 @@ create_notebook_non_dragable_content (const char      **labels,
       /* Use GtkListBox since it bubbles up motion notify event, which can
        * experience more issues than GtkBox. */
       page = gtk_list_box_new ();
-      gtk_container_add (GTK_CONTAINER (page), button);
+      gtk_box_append (GTK_BOX (page), button);
 
       button = gtk_button_new_with_label ("row 2");
-      gtk_container_add (GTK_CONTAINER (page), button);
+      gtk_box_append (GTK_BOX (page), button);
 
       button = gtk_button_new_with_label ("third row");
-      gtk_container_add (GTK_CONTAINER (page), button);
+      gtk_box_append (GTK_BOX (page), button);
 
       title = gtk_label_new (*labels);
 
@@ -317,7 +317,7 @@ main (gint argc, gchar *argv[])
                    create_trash_button (),
                    1, 2, 1, 1);
 
-  gtk_container_add (GTK_CONTAINER (window), grid);
+  gtk_window_set_child (GTK_WINDOW (window), grid);
   gtk_window_set_default_size (GTK_WINDOW (window), 400, 400);
 
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);

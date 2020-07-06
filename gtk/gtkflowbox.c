@@ -79,6 +79,8 @@
 #include "gtkflowboxprivate.h"
 
 #include "gtkadjustment.h"
+#include "gtkbinlayout.h"
+#include "gtkbuildable.h"
 #include "gtkcsscolorvalueprivate.h"
 #include "gtkcssnodeprivate.h"
 #include "gtkgesturedrag.h"
@@ -99,7 +101,7 @@
 
 #include "a11y/gtkflowboxaccessibleprivate.h"
 #include "a11y/gtkflowboxchildaccessible.h"
-
+ 
 /* Forward declarations and utilities {{{1 */
 
 static void gtk_flow_box_update_cursor       (GtkFlowBox      *box,
@@ -256,16 +258,26 @@ enum {
 
 static guint child_signals[CHILD_LAST_SIGNAL] = { 0 };
 
+enum {
+  PROP_CHILD = 1
+};
+
 typedef struct _GtkFlowBoxChildPrivate GtkFlowBoxChildPrivate;
 struct _GtkFlowBoxChildPrivate
 {
+  GtkWidget     *child;
   GSequenceIter *iter;
   gboolean       selected;
 };
 
 #define CHILD_PRIV(child) ((GtkFlowBoxChildPrivate*)gtk_flow_box_child_get_instance_private ((GtkFlowBoxChild*)(child)))
 
-G_DEFINE_TYPE_WITH_PRIVATE (GtkFlowBoxChild, gtk_flow_box_child, GTK_TYPE_BIN)
+static void gtk_flow_box_child_buildable_iface_init (GtkBuildableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (GtkFlowBoxChild, gtk_flow_box_child, GTK_TYPE_WIDGET,
+                         G_ADD_PRIVATE (GtkFlowBoxChild)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
+                                                gtk_flow_box_child_buildable_iface_init))
 
 /* Internal API {{{2 */
 
@@ -291,14 +303,36 @@ gtk_flow_box_child_set_focus (GtkFlowBoxChild *child)
 
 /* GtkWidget implementation {{{2 */
 
+static GtkBuildableIface *parent_child_buildable_iface;
+
+static void
+gtk_flow_box_child_buildable_add_child (GtkBuildable *buildable,
+                                        GtkBuilder   *builder,
+                                        GObject      *child,
+                                        const gchar  *type)
+{
+  if (GTK_IS_WIDGET (child))
+    gtk_flow_box_child_set_child (GTK_FLOW_BOX_CHILD (buildable), GTK_WIDGET (child));
+  else
+    parent_child_buildable_iface->add_child (buildable, builder, child, type);
+}
+
+static void
+gtk_flow_box_child_buildable_iface_init (GtkBuildableIface *iface)
+{
+  parent_child_buildable_iface = g_type_interface_peek_parent (iface);
+
+  iface->add_child = gtk_flow_box_child_buildable_add_child;
+}
+
 static gboolean
 gtk_flow_box_child_focus (GtkWidget        *widget,
                           GtkDirectionType  direction)
 {
+  GtkFlowBoxChild *self = GTK_FLOW_BOX_CHILD (widget);
+  GtkFlowBoxChildPrivate *priv = CHILD_PRIV (self);
+  GtkWidget *child = priv->child;
   gboolean had_focus = FALSE;
-  GtkWidget *child;
-
-  child = gtk_bin_get_child (GTK_BIN (widget));
 
   /* Without "can-focus" flag try to pass the focus to the child immediately */
   if (!gtk_widget_get_can_focus (widget))
@@ -384,6 +418,77 @@ gtk_flow_box_child_get_request_mode (GtkWidget *widget)
     return GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH;
 }
 
+static void
+gtk_flow_box_child_dispose (GObject *object)
+{
+  GtkFlowBoxChild *self = GTK_FLOW_BOX_CHILD (object);
+  GtkFlowBoxChildPrivate *priv = CHILD_PRIV (self);
+
+  g_clear_pointer (&priv->child, gtk_widget_unparent);
+
+  G_OBJECT_CLASS (gtk_flow_box_child_parent_class)->dispose (object);
+}
+
+static void
+gtk_flow_box_child_get_property (GObject    *object,
+                                 guint       prop_id,
+                                 GValue     *value,
+                                 GParamSpec *pspec)
+{
+  GtkFlowBoxChild *self = GTK_FLOW_BOX_CHILD (object);
+
+  switch (prop_id)
+    {
+    case PROP_CHILD:
+      g_value_set_object (value, gtk_flow_box_child_get_child (self));
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+static void
+gtk_flow_box_child_set_property (GObject      *object,
+                                 guint         prop_id,
+                                 const GValue *value,
+                                 GParamSpec   *pspec)
+{
+  GtkFlowBoxChild *self = GTK_FLOW_BOX_CHILD (object);
+
+  switch (prop_id)
+    {
+    case PROP_CHILD:
+      gtk_flow_box_child_set_child (self, g_value_get_object (value));
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+static void
+gtk_flow_box_child_compute_expand (GtkWidget *widget,
+                                   gboolean  *hexpand,
+                                   gboolean  *vexpand)
+{
+  GtkFlowBoxChild *self = GTK_FLOW_BOX_CHILD (widget);
+  GtkFlowBoxChildPrivate *priv = CHILD_PRIV (self);
+
+  if (priv->child)
+    {
+      *hexpand = gtk_widget_compute_expand (priv->child, GTK_ORIENTATION_HORIZONTAL);
+      *vexpand = gtk_widget_compute_expand (priv->child, GTK_ORIENTATION_VERTICAL);
+    }
+  else
+    {
+      *hexpand = FALSE;
+      *vexpand = FALSE;
+    }
+}
+
 /* GObject implementation {{{2 */
 
 static void
@@ -392,10 +497,23 @@ gtk_flow_box_child_class_init (GtkFlowBoxChildClass *class)
   GObjectClass *object_class = G_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
 
+  object_class->dispose = gtk_flow_box_child_dispose;
+  object_class->get_property = gtk_flow_box_child_get_property;
+  object_class->set_property = gtk_flow_box_child_set_property;
+
   widget_class->get_request_mode = gtk_flow_box_child_get_request_mode;
+  widget_class->compute_expand = gtk_flow_box_child_compute_expand;
   widget_class->focus = gtk_flow_box_child_focus;
 
   class->activate = gtk_flow_box_child_activate;
+
+  g_object_class_install_property (object_class,
+                                   PROP_CHILD,
+                                   g_param_spec_object ("child",
+                                                        P_("Child"),
+                                                        P_("The child widget"),
+                                                        GTK_TYPE_WIDGET,
+                                                        GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY));
 
   /**
    * GtkFlowBoxChild::activate:
@@ -419,6 +537,7 @@ gtk_flow_box_child_class_init (GtkFlowBoxChildClass *class)
                   G_TYPE_NONE, 0);
   widget_class->activate_signal = child_signals[CHILD_ACTIVATE];
 
+  gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
   gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_LIST_ITEM);
   gtk_widget_class_set_css_name (widget_class, I_("flowboxchild"));
 }
@@ -426,6 +545,7 @@ gtk_flow_box_child_class_init (GtkFlowBoxChildClass *class)
 static void
 gtk_flow_box_child_init (GtkFlowBoxChild *child)
 {
+  gtk_widget_set_focusable (GTK_WIDGET (child), TRUE);
 }
 
 /* Public API {{{2 */
@@ -442,6 +562,43 @@ GtkWidget *
 gtk_flow_box_child_new (void)
 {
   return g_object_new (GTK_TYPE_FLOW_BOX_CHILD, NULL);
+}
+
+/**
+ * gtk_flow_box_child_set_child:
+ * @self: a #GtkFlowBoxChild
+ * @child: (allow-none): the child widget
+ *
+ * Sets the child widget of @self.
+ */
+void
+gtk_flow_box_child_set_child (GtkFlowBoxChild *self,
+                              GtkWidget       *child)
+{
+  GtkFlowBoxChildPrivate *priv = CHILD_PRIV (self);
+
+  g_clear_pointer (&priv->child, gtk_widget_unparent);
+
+  priv->child = child;
+  if (child)
+    gtk_widget_set_parent (child, GTK_WIDGET (self));
+  g_object_notify (G_OBJECT (self), "child");
+}
+
+/**
+ * gtk_flow_box_child_get_child:
+ * @self: a #GtkFlowBoxChild
+ *
+ * Gets the child widget of @self.
+ *
+ * Returns: (nullable) (transfer none): the child widget of @self
+ */
+GtkWidget *
+gtk_flow_box_child_get_child (GtkFlowBoxChild *self)
+{
+  GtkFlowBoxChildPrivate *priv = CHILD_PRIV (self);
+
+  return priv->child;
 }
 
 /**
@@ -569,12 +726,12 @@ typedef struct _GtkFlowBoxClass       GtkFlowBoxClass;
 
 struct _GtkFlowBox
 {
-  GtkContainer container;
+  GtkWidget container;
 };
 
 struct _GtkFlowBoxClass
 {
-  GtkContainerClass parent_class;
+  GtkWidgetClass parent_class;
 
   void (*child_activated)            (GtkFlowBox        *box,
                                       GtkFlowBoxChild   *child);
@@ -646,11 +803,15 @@ struct _GtkFlowBoxPrivate {
 
 #define BOX_PRIV(box) ((GtkFlowBoxPrivate*)gtk_flow_box_get_instance_private ((GtkFlowBox*)(box)))
 
-G_DEFINE_TYPE_WITH_CODE (GtkFlowBox, gtk_flow_box, GTK_TYPE_CONTAINER,
-                         G_ADD_PRIVATE (GtkFlowBox)
-                         G_IMPLEMENT_INTERFACE (GTK_TYPE_ORIENTABLE, NULL))
+static void gtk_flow_box_buildable_iface_init (GtkBuildableIface *iface);
 
-/*  Internal API, utilities {{{2 */
+G_DEFINE_TYPE_WITH_CODE (GtkFlowBox, gtk_flow_box, GTK_TYPE_WIDGET,
+                         G_ADD_PRIVATE (GtkFlowBox)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_ORIENTABLE, NULL)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
+                                                gtk_flow_box_buildable_iface_init))
+
+/*  Internal API, utilities {{{2 */ 
 
 #define ORIENTATION_ALIGN(box)                              \
   (BOX_PRIV(box)->orientation == GTK_ORIENTATION_HORIZONTAL \
@@ -735,7 +896,7 @@ gtk_flow_box_apply_sort (GtkFlowBox      *box,
     }
 }
 
-/* Selection utilities {{{3 */
+/* Sel ection utilities {{{3 */
 
 static gboolean
 gtk_flow_box_child_set_selected (GtkFlowBoxChild *child,
@@ -1400,7 +1561,28 @@ gtk_flow_box_size_allocate (GtkWidget *widget,
    */
   get_max_item_size (box, priv->orientation, &min_item_size, &nat_item_size);
   if (nat_item_size <= 0)
-    return;
+    {
+      child_allocation.x = 0;
+      child_allocation.y = 0;
+      child_allocation.width = 0;
+      child_allocation.height = 0;
+
+      for (iter = g_sequence_get_begin_iter (priv->children);
+           !g_sequence_iter_is_end (iter);
+           iter = g_sequence_iter_next (iter))
+        {
+          GtkWidget *child;
+
+          child = g_sequence_get (iter);
+
+          if (!child_is_visible (child))
+            continue;
+
+          gtk_widget_size_allocate (child, &child_allocation, -1);
+        }
+
+      return;
+    }
 
   /* By default flow at the natural item width */
   line_length = avail_size / (nat_item_size + item_spacing);
@@ -1914,6 +2096,8 @@ gtk_flow_box_measure (GtkWidget      *widget,
                 goto out_width;
 
               get_max_item_size (box, GTK_ORIENTATION_VERTICAL, &min_item_height, &nat_item_height);
+              if (nat_item_height <= 0)
+                goto out_width;
 
               /* By default flow at the natural item width */
               line_length = avail_size / (nat_item_height + priv->row_spacing);
@@ -2821,24 +3005,26 @@ gtk_flow_box_unmap (GtkWidget *widget)
   GTK_WIDGET_CLASS (gtk_flow_box_parent_class)->unmap (widget);
 }
 
-/* GtkContainer implementation {{{2 */
-
-static void
-gtk_flow_box_add (GtkContainer *container,
-                  GtkWidget    *child)
+/**
+ * gtk_flow_box_remove:
+ * @box: a #GtkFlowBox
+ * @widget: the child widget to remove
+ *
+ * Removes a child from @box.
+ */
+void
+gtk_flow_box_remove (GtkFlowBox *box,
+                     GtkWidget  *widget)
 {
-  gtk_flow_box_insert (GTK_FLOW_BOX (container), child, -1);
-}
-
-static void
-gtk_flow_box_remove (GtkContainer *container,
-                     GtkWidget    *widget)
-{
-  GtkFlowBox *box = GTK_FLOW_BOX (container);
   GtkFlowBoxPrivate *priv = BOX_PRIV (box);
   gboolean was_visible;
   gboolean was_selected;
   GtkFlowBoxChild *child;
+
+  g_return_if_fail (GTK_IS_FLOW_BOX (box));
+  g_return_if_fail (GTK_IS_WIDGET (widget));
+  g_return_if_fail (gtk_widget_get_parent (widget) == GTK_WIDGET (box) ||
+                    gtk_widget_get_parent (gtk_widget_get_parent (widget)) == GTK_WIDGET (box));
 
   if (GTK_IS_FLOW_BOX_CHILD (widget))
     child = GTK_FLOW_BOX_CHILD (widget);
@@ -2868,29 +3054,6 @@ gtk_flow_box_remove (GtkContainer *container,
 
   if (was_selected && !gtk_widget_in_destruction (GTK_WIDGET (box)))
     g_signal_emit (box, signals[SELECTED_CHILDREN_CHANGED], 0);
-}
-
-static void
-gtk_flow_box_forall (GtkContainer *container,
-                     GtkCallback   callback,
-                     gpointer      callback_target)
-{
-  GSequenceIter *iter;
-  GtkWidget *child;
-
-  iter = g_sequence_get_begin_iter (BOX_PRIV (container)->children);
-  while (!g_sequence_iter_is_end (iter))
-    {
-      child = g_sequence_get (iter);
-      iter = g_sequence_iter_next (iter);
-      callback (child, callback_target);
-    }
-}
-
-static GType
-gtk_flow_box_child_type (GtkContainer *container)
-{
-  return GTK_TYPE_FLOW_BOX_CHILD;
 }
 
 /* Keynav {{{2 */
@@ -3198,7 +3361,7 @@ gtk_flow_box_move_cursor (GtkFlowBox      *box,
     {
       GtkWidget *subchild;
 
-      subchild = gtk_bin_get_child (GTK_BIN (child));
+      subchild = gtk_flow_box_child_get_child (GTK_FLOW_BOX_CHILD (child));
       if (subchild)
         {
           GtkDirectionType direction = count < 0 ? GTK_DIR_TAB_BACKWARD : GTK_DIR_TAB_FORWARD;
@@ -3318,7 +3481,7 @@ gtk_flow_box_set_property (GObject      *object,
 }
 
 static void
-gtk_flow_box_finalize (GObject *obj)
+gtk_flow_box_dispose (GObject *obj)
 {
   GtkFlowBoxPrivate *priv = BOX_PRIV (obj);
 
@@ -3327,7 +3490,21 @@ gtk_flow_box_finalize (GObject *obj)
   if (priv->sort_destroy != NULL)
     priv->sort_destroy (priv->sort_data);
 
-  g_sequence_free (priv->children);
+  if (priv->children)
+    {
+      GSequenceIter *iter;
+      GtkWidget *child;
+
+      for (iter = g_sequence_get_begin_iter (priv->children);
+           !g_sequence_iter_is_end (iter);
+           iter = g_sequence_iter_next (iter))
+        {
+          child = g_sequence_get (iter);
+          gtk_widget_unparent (child);
+        }
+      g_clear_pointer (&priv->children, g_sequence_free);
+    }
+
   g_clear_object (&priv->hadjustment);
   g_clear_object (&priv->vadjustment);
 
@@ -3340,7 +3517,28 @@ gtk_flow_box_finalize (GObject *obj)
       g_clear_object (&priv->bound_model);
     }
 
-  G_OBJECT_CLASS (gtk_flow_box_parent_class)->finalize (obj);
+  G_OBJECT_CLASS (gtk_flow_box_parent_class)->dispose (obj);
+}
+
+static void
+gtk_flow_box_compute_expand (GtkWidget *widget,
+                             gboolean  *hexpand_p,
+                             gboolean  *vexpand_p)
+{
+  GtkWidget *w;
+  gboolean hexpand = FALSE;
+  gboolean vexpand = FALSE;
+
+  for (w = gtk_widget_get_first_child (widget);
+       w != NULL;
+       w = gtk_widget_get_next_sibling (w))
+    {
+      hexpand = hexpand || gtk_widget_compute_expand (w, GTK_ORIENTATION_HORIZONTAL);
+      vexpand = vexpand || gtk_widget_compute_expand (w, GTK_ORIENTATION_VERTICAL);
+    }
+
+  *hexpand_p = hexpand;
+  *vexpand_p = vexpand;
 }
 
 static void
@@ -3348,9 +3546,8 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
 {
   GObjectClass      *object_class = G_OBJECT_CLASS (class);
   GtkWidgetClass    *widget_class = GTK_WIDGET_CLASS (class);
-  GtkContainerClass *container_class = GTK_CONTAINER_CLASS (class);
 
-  object_class->finalize = gtk_flow_box_finalize;
+  object_class->dispose = gtk_flow_box_dispose;
   object_class->get_property = gtk_flow_box_get_property;
   object_class->set_property = gtk_flow_box_set_property;
 
@@ -3359,12 +3556,8 @@ gtk_flow_box_class_init (GtkFlowBoxClass *class)
   widget_class->focus = gtk_flow_box_focus;
   widget_class->snapshot = gtk_flow_box_snapshot;
   widget_class->get_request_mode = gtk_flow_box_get_request_mode;
+  widget_class->compute_expand = gtk_flow_box_compute_expand;
   widget_class->measure = gtk_flow_box_measure;
-
-  container_class->add = gtk_flow_box_add;
-  container_class->remove = gtk_flow_box_remove;
-  container_class->forall = gtk_flow_box_forall;
-  container_class->child_type = gtk_flow_box_child_type;
 
   class->activate_cursor_child = gtk_flow_box_activate_cursor_child;
   class->toggle_cursor_child = gtk_flow_box_toggle_cursor_child;
@@ -3755,7 +3948,7 @@ gtk_flow_box_bound_model_changed (GListModel *list,
       GtkFlowBoxChild *child;
 
       child = gtk_flow_box_get_child_at_index (box, position);
-      gtk_widget_destroy (GTK_WIDGET (child));
+      gtk_flow_box_remove (box, GTK_WIDGET (child));
     }
 
   for (i = 0; i < added; i++)
@@ -3785,7 +3978,30 @@ gtk_flow_box_bound_model_changed (GListModel *list,
     }
 }
 
- /* Public API {{{2 */
+/* Buildable implemenation {{{3 */
+
+static GtkBuildableIface *parent_buildable_iface;
+
+static void
+gtk_flow_box_buildable_add_child (GtkBuildable *buildable,
+                                  GtkBuilder   *builder,
+                                  GObject      *child,
+                                  const gchar  *type)
+{
+  if (GTK_IS_WIDGET (child))
+    gtk_flow_box_insert (GTK_FLOW_BOX (buildable), GTK_WIDGET (child), -1);
+  else
+    parent_buildable_iface->add_child (buildable, builder, child, type);
+}
+
+static void
+gtk_flow_box_buildable_iface_init (GtkBuildableIface *iface)
+{
+  parent_buildable_iface = g_type_interface_peek_parent (iface);
+
+  iface->add_child = gtk_flow_box_buildable_add_child;
+}
+  /* Public API {{{2 */
 
 /**
  * gtk_flow_box_new:
@@ -3853,8 +4069,7 @@ gtk_flow_box_insert (GtkFlowBox *box,
   else
     {
       child = GTK_FLOW_BOX_CHILD (gtk_flow_box_child_new ());
-      gtk_widget_show (GTK_WIDGET (child));
-      gtk_container_add (GTK_CONTAINER (child), widget);
+      gtk_flow_box_child_set_child (child, widget);
     }
 
   if (priv->sort_func != NULL)
@@ -4041,6 +4256,7 @@ gtk_flow_box_bind_model (GtkFlowBox                 *box,
                          GDestroyNotify              user_data_free_func)
 {
   GtkFlowBoxPrivate *priv = BOX_PRIV (box);
+  GtkWidget *child;
 
   g_return_if_fail (GTK_IS_FLOW_BOX (box));
   g_return_if_fail (model == NULL || G_IS_LIST_MODEL (model));
@@ -4055,7 +4271,8 @@ gtk_flow_box_bind_model (GtkFlowBox                 *box,
       g_clear_object (&priv->bound_model);
     }
 
-  gtk_flow_box_forall (GTK_CONTAINER (box), (GtkCallback) gtk_widget_destroy, NULL);
+  while ((child = gtk_widget_get_first_child (GTK_WIDGET (box))))
+    gtk_flow_box_remove (box, child);
 
   if (model == NULL)
     return;

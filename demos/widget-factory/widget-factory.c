@@ -40,9 +40,6 @@ change_dark_state (GSimpleAction *action,
   g_simple_action_set_state (action, state);
 }
 
-static char *current_theme;
-static gboolean current_dark;
-
 static void
 change_theme_state (GSimpleAction *action,
                     GVariant      *state,
@@ -52,6 +49,8 @@ change_theme_state (GSimpleAction *action,
   const char *s;
   const char *theme;
   gboolean prefer_dark = FALSE;
+
+  g_simple_action_set_state (action, state);
 
   s = g_variant_get_string (state, NULL);
 
@@ -77,8 +76,9 @@ change_theme_state (GSimpleAction *action,
     }
   else if (strcmp (s, "current") == 0)
     {
-      theme = current_theme;
-      prefer_dark = current_dark;
+      gtk_settings_reset_property (settings, "gtk-theme-name");
+      gtk_settings_reset_property (settings, "gtk-application-prefer-dark-theme");
+      return;
     }
   else
     return;
@@ -87,8 +87,6 @@ change_theme_state (GSimpleAction *action,
                 "gtk-theme-name", theme,
                 "gtk-application-prefer-dark-theme", prefer_dark,
                 NULL);
-
-  g_simple_action_set_state (action, state);
 }
 
 static GtkWidget *page_stack;
@@ -101,7 +99,7 @@ change_transition_state (GSimpleAction *action,
   GtkStackTransitionType transition;
 
   if (g_variant_get_boolean (state))
-    transition = GTK_STACK_TRANSITION_TYPE_ROTATE_LEFT_RIGHT;
+    transition = GTK_STACK_TRANSITION_TYPE_CROSSFADE;
   else
     transition = GTK_STACK_TRANSITION_TYPE_NONE;
 
@@ -267,6 +265,8 @@ activate_about (GSimpleAction *action,
                           glib_major_version,
                           glib_minor_version,
                           glib_micro_version);
+  g_string_append_printf (s, "\tPango\t%s\n",
+                          pango_version_string ());
   g_string_append_printf (s, "\tGTK\t%d.%d.%d\n",
                           gtk_get_major_version (),
                           gtk_get_minor_version (),
@@ -282,7 +282,7 @@ activate_about (GSimpleAction *action,
   gtk_show_about_dialog (GTK_WINDOW (gtk_application_get_active_window (app)),
                          "program-name", "GTK Widget Factory",
                          "version", version,
-                         "copyright", "© 1997—2019 The GTK Team",
+                         "copyright", "© 1997—2020 The GTK Team",
                          "license-type", GTK_LICENSE_LGPL_2_1,
                          "website", "http://www.gtk.org",
                          "comments", "Program to demonstrate GTK themes and widgets",
@@ -311,7 +311,7 @@ activate_quit (GSimpleAction *action,
       win = list->data;
       next = list->next;
 
-      gtk_widget_destroy (GTK_WIDGET (win));
+      gtk_window_destroy (GTK_WINDOW (win));
 
       list = next;
     }
@@ -323,6 +323,97 @@ activate_inspector (GSimpleAction *action,
                     gpointer       user_data)
 {
   gtk_window_set_interactive_debugging (TRUE);
+}
+
+static void
+print_operation_done (GtkPrintOperation       *op,
+                      GtkPrintOperationResult  res,
+                      gpointer                 data)
+{
+  GError *error = NULL;
+
+  switch (res)
+    {
+    case GTK_PRINT_OPERATION_RESULT_ERROR:
+      gtk_print_operation_get_error (op, &error);
+      g_print ("Printing failed: %s\n", error->message);
+      g_clear_error (&error);
+      break;
+    case GTK_PRINT_OPERATION_RESULT_APPLY:
+      break; 
+    case GTK_PRINT_OPERATION_RESULT_CANCEL:
+      g_print ("Printing was canceled\n");
+      break;
+    case GTK_PRINT_OPERATION_RESULT_IN_PROGRESS:
+      return;
+    default:
+      g_assert_not_reached ();
+      break;
+    }
+
+  g_object_unref (op);
+}
+
+static void
+print_operation_begin (GtkPrintOperation *op,
+                       GtkPrintContext   *context,
+                       gpointer           data)
+{
+  gtk_print_operation_set_n_pages (op, 1);
+}
+
+static void
+print_operation_page (GtkPrintOperation *op,
+                      GtkPrintContext   *context,
+                      int                page,
+                      gpointer           data)
+{
+  cairo_t *cr;
+  double width;
+  double aspect_ratio;
+  GdkSnapshot *snapshot;
+  GdkPaintable *paintable;
+  GskRenderNode *node;
+
+  g_print ("Save the trees!\n");
+
+  cr = gtk_print_context_get_cairo_context (context);
+  width = gtk_print_context_get_width (context);
+
+  snapshot = gtk_snapshot_new ();
+  paintable = gtk_widget_paintable_new (GTK_WIDGET (data));
+  aspect_ratio = gdk_paintable_get_intrinsic_aspect_ratio (paintable);
+  gdk_paintable_snapshot (paintable, snapshot, width, width / aspect_ratio);
+  node = gtk_snapshot_free_to_node (snapshot);
+
+  gsk_render_node_draw (node, cr);
+
+  gsk_render_node_unref (node);
+
+  g_object_unref (paintable);
+}
+
+static void
+activate_print (GSimpleAction *action,
+                GVariant      *parameter,
+                gpointer       user_data)
+{
+  GtkWindow *window = GTK_WINDOW (user_data);
+  GtkPrintOperation *op;
+  GtkPrintOperationResult res;
+
+  op = gtk_print_operation_new ();
+  gtk_print_operation_set_allow_async (op, TRUE);
+  g_signal_connect (op, "begin-print", G_CALLBACK (print_operation_begin), NULL);
+  g_signal_connect (op, "draw-page", G_CALLBACK (print_operation_page), window);
+  g_signal_connect (op, "done", G_CALLBACK (print_operation_done), NULL);
+
+  res = gtk_print_operation_run (op, GTK_PRINT_OPERATION_ACTION_PRINT_DIALOG, window, NULL);
+
+  if (res == GTK_PRINT_OPERATION_RESULT_IN_PROGRESS)
+    return;
+
+  print_operation_done (op, res, NULL);
 }
 
 static void
@@ -800,12 +891,12 @@ overshot (GtkScrolledWindow *sw, GtkPositionType pos, GtkWidget *widget)
     {
       if (silver)
         {
-          gtk_container_remove (GTK_CONTAINER (widget), silver);
+          gtk_list_box_remove (GTK_LIST_BOX (widget), silver);
           g_object_set_data (G_OBJECT (widget), "Silver", NULL);
         }
       if (gold)
         {
-          gtk_container_remove (GTK_CONTAINER (widget), gold);
+          gtk_list_box_remove (GTK_LIST_BOX (widget), gold);
           g_object_set_data (G_OBJECT (widget), "Gold", NULL);
         }
 
@@ -835,7 +926,7 @@ overshot (GtkScrolledWindow *sw, GtkPositionType pos, GtkWidget *widget)
                 "margin-bottom", 6,
                 "xalign", 0.0,
                 NULL);
-  gtk_container_add (GTK_CONTAINER (row), label);
+  gtk_box_append (GTK_BOX (row), label);
   gdk_rgba_parse (&rgba, color);
   swatch = g_object_new (g_type_from_name ("GtkColorSwatch"),
                          "rgba", &rgba,
@@ -850,8 +941,8 @@ overshot (GtkScrolledWindow *sw, GtkPositionType pos, GtkWidget *widget)
                          "height-request", 24,
                          NULL);
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-  gtk_container_add (GTK_CONTAINER (box), swatch);
-  gtk_container_add (GTK_CONTAINER (row), box);
+  gtk_box_append (GTK_BOX (box), swatch);
+  gtk_box_append (GTK_BOX (row), box);
   gtk_list_box_insert (GTK_LIST_BOX (widget), row, -1);
   row = gtk_widget_get_parent (row);
   gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
@@ -953,7 +1044,7 @@ populate_colors (GtkWidget *widget, GtkWidget *chooser)
                     "hexpand", TRUE,
                     "xalign", 0.0,
                     NULL);
-      gtk_container_add (GTK_CONTAINER (row), label);
+      gtk_box_append (GTK_BOX (row), label);
       gdk_rgba_parse (&rgba, colors[i].color);
       swatch = g_object_new (g_type_from_name ("GtkColorSwatch"),
                              "rgba", &rgba,
@@ -968,8 +1059,8 @@ populate_colors (GtkWidget *widget, GtkWidget *chooser)
                              "height-request", 24,
                              NULL);
       box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_container_add (GTK_CONTAINER (box), swatch);
-      gtk_container_add (GTK_CONTAINER (row), box);
+      gtk_box_append (GTK_BOX (box), swatch);
+      gtk_box_append (GTK_BOX (row), box);
       gtk_list_box_insert (GTK_LIST_BOX (widget), row, -1);
       row = gtk_widget_get_parent (row);
       gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
@@ -992,12 +1083,28 @@ typedef struct {
 } BackgroundData;
 
 static void
+add_background (GtkWidget  *flowbox,
+                const char *filename,
+                GdkPixbuf  *pixbuf,
+                gboolean    is_resource)
+{
+  GtkWidget *child;
+
+  child = gtk_picture_new_for_pixbuf (pixbuf);
+  gtk_widget_set_size_request (child, 110, 70);
+  gtk_flow_box_insert (GTK_FLOW_BOX (flowbox), child, -1);
+  child = gtk_widget_get_parent (child);
+  g_object_set_data_full (G_OBJECT (child), "filename", g_strdup (filename), g_free);
+  if (is_resource)
+    g_object_set_data (G_OBJECT (child), "is-resource", GINT_TO_POINTER (1));
+}
+
+static void
 background_loaded_cb (GObject      *source,
                       GAsyncResult *res,
                       gpointer      data)
 {
   BackgroundData *bd = data;
-  GtkWidget *child;
   GdkPixbuf *pixbuf;
   GError *error = NULL;
 
@@ -1009,11 +1116,9 @@ background_loaded_cb (GObject      *source,
       return;
     }
 
-  child = gtk_picture_new_for_pixbuf (pixbuf);
-  gtk_widget_set_size_request (child, 110, 70);
-  gtk_flow_box_insert (GTK_FLOW_BOX (bd->flowbox), child, -1);
-  child = gtk_widget_get_parent (child);
-  g_object_set_data_full (G_OBJECT (child), "filename", bd->filename, g_free);
+  add_background (bd->flowbox, bd->filename, pixbuf, FALSE);
+
+  g_free (bd->filename);
   g_free (bd);
 }
 
@@ -1030,6 +1135,10 @@ populate_flowbox (GtkWidget *flowbox)
   BackgroundData *bd;
   GdkPixbuf *pixbuf;
   GtkWidget *child;
+  int i;
+  const char *resources[] = {
+    "sunset.jpg", "snowy.jpg", "portland-rose.jpg"
+  };
 
   if (GPOINTER_TO_UINT (g_object_get_data (G_OBJECT (flowbox), "populated")))
     return;
@@ -1039,7 +1148,15 @@ populate_flowbox (GtkWidget *flowbox)
   pixbuf = gdk_pixbuf_new (GDK_COLORSPACE_RGB, FALSE, 8, 110, 70);
   gdk_pixbuf_fill (pixbuf, 0xffffffff);
   child = gtk_picture_new_for_pixbuf (pixbuf);
+  gtk_widget_add_css_class (child, "frame");
   gtk_flow_box_insert (GTK_FLOW_BOX (flowbox), child, -1);
+
+  for (i = 0; i < G_N_ELEMENTS (resources); i++)
+    {
+      filename = g_strconcat ("/org/gtk/WidgetFactory4/", resources[i], NULL);
+      pixbuf = gdk_pixbuf_new_from_resource_at_scale (filename, 110, 110, TRUE, NULL);
+      add_background (flowbox, filename, pixbuf, TRUE);
+    }
 
   location = "/usr/share/backgrounds/gnome";
   dir = g_dir_open (location, 0, &error);
@@ -1062,7 +1179,7 @@ populate_flowbox (GtkWidget *flowbox)
         {
           g_warning ("%s", error->message);
           g_clear_error (&error);
-          g_free (filename); 
+          g_free (filename);
         }
       else
         {
@@ -1078,6 +1195,7 @@ populate_flowbox (GtkWidget *flowbox)
     }
 
   g_dir_close (dir);
+
 }
 
 static void
@@ -1106,6 +1224,7 @@ typedef struct
 {
   GtkTextView tv;
   GdkTexture *texture;
+  GtkAdjustment *adjustment;
 } MyTextView;
 
 typedef GtkTextViewClass MyTextViewClass;
@@ -1124,10 +1243,16 @@ my_tv_snapshot_layer (GtkTextView      *widget,
                       GtkSnapshot      *snapshot)
 {
   MyTextView *tv = (MyTextView *)widget;
+  double opacity;
+  double scale;
+
+  opacity = gtk_adjustment_get_value (tv->adjustment) / 100.0;
 
   if (layer == GTK_TEXT_VIEW_LAYER_BELOW_TEXT && tv->texture)
     {
-      gtk_snapshot_push_opacity (snapshot, 0.333);
+      scale = gtk_widget_get_width (GTK_WIDGET (widget)) / (double)gdk_texture_get_width (tv->texture);
+      gtk_snapshot_push_opacity (snapshot, opacity);
+      gtk_snapshot_scale (snapshot, scale, scale);
       gtk_snapshot_append_texture (snapshot,
                                    tv->texture,
                                    &GRAPHENE_RECT_INIT(
@@ -1135,6 +1260,7 @@ my_tv_snapshot_layer (GtkTextView      *widget,
                                      gdk_texture_get_width (tv->texture),
                                      gdk_texture_get_height (tv->texture)
                                    ));
+      gtk_snapshot_scale (snapshot, 1/scale, 1/scale);
       gtk_snapshot_pop (snapshot);
     }
 }
@@ -1160,7 +1286,7 @@ my_text_view_class_init (MyTextViewClass *class)
 }
 
 static void
-my_text_view_set_background (MyTextView *tv, const gchar *filename)
+my_text_view_set_background (MyTextView *tv, const gchar *filename, gboolean is_resource)
 {
   GError *error = NULL;
   GFile *file;
@@ -1170,9 +1296,14 @@ my_text_view_set_background (MyTextView *tv, const gchar *filename)
   if (filename == NULL)
     return;
 
-  file = g_file_new_for_path (filename);
-  tv->texture = gdk_texture_new_from_file (file, &error);
-  g_object_unref (file);
+  if (is_resource)
+    tv->texture = gdk_texture_new_from_resource (filename);
+  else
+    {
+      file = g_file_new_for_path (filename);
+      tv->texture = gdk_texture_new_from_file (file, &error);
+      g_object_unref (file);
+    }
 
   if (error)
     {
@@ -1185,22 +1316,33 @@ my_text_view_set_background (MyTextView *tv, const gchar *filename)
 }
 
 static void
+value_changed (GtkAdjustment *adjustment, MyTextView *tv)
+{
+  gtk_widget_queue_draw (GTK_WIDGET (tv));
+}
+
+static void
+my_text_view_set_adjustment (MyTextView *tv, GtkAdjustment *adjustment)
+{
+  g_set_object (&tv->adjustment, adjustment);
+  g_signal_connect (tv->adjustment, "value-changed", G_CALLBACK (value_changed), tv);
+}
+
+static void
 close_selection_dialog (GtkWidget *dialog, gint response, GtkWidget *tv)
 {
   GtkWidget *box;
   GtkWidget *child;
   GList *children;
   const gchar *filename;
+  gboolean is_resource;
 
   gtk_widget_hide (dialog);
 
   if (response == GTK_RESPONSE_CANCEL)
     return;
 
-  box = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
-  children = gtk_container_get_children (GTK_CONTAINER (box));
-  box = children->data;
-  g_list_free (children);
+  box = gtk_widget_get_first_child (gtk_dialog_get_content_area (GTK_DIALOG (dialog)));
   g_assert (GTK_IS_FLOW_BOX (box));
   children = gtk_flow_box_get_selected_children (GTK_FLOW_BOX (box));
 
@@ -1209,10 +1351,11 @@ close_selection_dialog (GtkWidget *dialog, gint response, GtkWidget *tv)
 
   child = children->data;
   filename = (const gchar *)g_object_get_data (G_OBJECT (child), "filename");
+  is_resource = GPOINTER_TO_INT (g_object_get_data (G_OBJECT (child), "is-resource"));
 
   g_list_free (children);
 
-  my_text_view_set_background ((MyTextView *)tv, filename);
+  my_text_view_set_background ((MyTextView *)tv, filename, is_resource);
 }
 
 static void
@@ -1708,7 +1851,7 @@ activate (GApplication *app)
   static GActionEntry win_entries[] = {
     { "dark", NULL, NULL, "false", change_dark_state },
     { "theme", NULL, "s", "'current'", change_theme_state }, 
-    { "transition", NULL, NULL, "false", change_transition_state },
+    { "transition", NULL, NULL, "true", change_transition_state },
     { "search", activate_search, NULL, NULL, NULL },
     { "delete", activate_delete, NULL, NULL, NULL },
     { "busy", get_busy, NULL, NULL, NULL },
@@ -1716,6 +1859,7 @@ activate (GApplication *app)
     { "open", activate_open, NULL, NULL, NULL },
     { "record", activate_record, NULL, NULL, NULL },
     { "lock", activate_lock, NULL, NULL, NULL },
+    { "print", activate_print, NULL, NULL, NULL },
   };
   struct {
     const gchar *action_and_target;
@@ -1724,26 +1868,27 @@ activate (GApplication *app)
     { "app.about", { "F1", NULL } },
     { "app.quit", { "<Control>q", NULL } },
     { "app.open-in", { "<Control>n", NULL } },
-    { "app.cut", { "<Control>x", NULL } },
-    { "app.copy", { "<Control>c", NULL } },
-    { "app.paste", { "<Control>v", NULL } },
     { "win.dark", { "<Control>d", NULL } },
     { "win.search", { "<Control>s", NULL } },
-    { "win.delete", { "Delete", NULL } },
     { "win.background", { "<Control>b", NULL } },
     { "win.open", { "<Control>o", NULL } },
     { "win.record", { "<Control>r", NULL } },
     { "win.lock", { "<Control>l", NULL } },
   };
+  struct {
+    const gchar *action_and_target;
+    const gchar *accelerators[2];
+  } late_accels[] = {
+    { "app.cut", { "<Control>x", NULL } },
+    { "app.copy", { "<Control>c", NULL } },
+    { "app.paste", { "<Control>v", NULL } },
+    { "win.delete", { "Delete", NULL } },
+  };
   gint i;
   GPermission *permission;
   GAction *action;
   GError *error = NULL;
-
-  g_object_get (gtk_settings_get_default (),
-                "gtk-theme-name", &current_theme,
-                "gtk-application-prefer-dark-theme", &current_dark,
-                NULL);
+  GtkEventController *controller;
 
   g_type_ensure (my_text_view_get_type ());
 
@@ -1782,6 +1927,24 @@ activate (GApplication *app)
   g_action_map_add_action_entries (G_ACTION_MAP (window),
                                    win_entries, G_N_ELEMENTS (win_entries),
                                    window);
+
+  controller = gtk_shortcut_controller_new ();
+  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_BUBBLE);
+
+  for (i = 0; i < G_N_ELEMENTS (late_accels); i++)
+    {
+      guint key;
+      GdkModifierType mods;
+      GtkShortcutTrigger *trigger;
+      GtkShortcutAction *ac;
+
+      gtk_accelerator_parse (late_accels[i].accelerators[0], &key, &mods);
+      trigger = gtk_keyval_trigger_new (key, mods);
+      ac = gtk_named_action_new (late_accels[i].action_and_target);
+      gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller),
+                                            gtk_shortcut_new (trigger, ac));
+    }
+  gtk_widget_add_controller (GTK_WIDGET (window), controller);
 
   for (i = 0; i < G_N_ELEMENTS (accels); i++)
     gtk_application_set_accels_for_action (GTK_APPLICATION (app), accels[i].action_and_target, accels[i].accelerators);
@@ -1828,8 +1991,10 @@ activate (GApplication *app)
   widget2 = (GtkWidget *)gtk_builder_get_object (builder, "listboxrow3image");
   g_object_set_data (G_OBJECT (widget), "image", widget2);
 
-  widget = (GtkWidget *)gtk_builder_get_object (builder, "listboxrow4");
   widget2 = (GtkWidget *)gtk_builder_get_object (builder, "info_dialog");
+  widget = (GtkWidget *)gtk_builder_get_object (builder, "listboxrow7");
+  g_object_set_data (G_OBJECT (widget), "dialog", widget2);
+  widget = (GtkWidget *)gtk_builder_get_object (builder, "listboxrow8");
   g_object_set_data (G_OBJECT (widget), "dialog", widget2);
 
   widget = (GtkWidget *)gtk_builder_get_object (builder, "listboxrow5button");
@@ -1875,6 +2040,8 @@ activate (GApplication *app)
   g_object_set_data (G_OBJECT (window), "selection_dialog", dialog);
   widget = (GtkWidget *)gtk_builder_get_object (builder, "text3");
   g_signal_connect (dialog, "response", G_CALLBACK (close_selection_dialog), widget);
+  widget2 = (GtkWidget *)gtk_builder_get_object (builder, "opacity");
+  my_text_view_set_adjustment ((MyTextView *)widget, gtk_range_get_adjustment (GTK_RANGE (widget2)));
   widget = (GtkWidget *)gtk_builder_get_object (builder, "selection_dialog_button");
   g_signal_connect (widget, "clicked", G_CALLBACK (show_dialog), dialog);
 
@@ -2084,7 +2251,6 @@ main (int argc, char *argv[])
     { "water", NULL, NULL, "true", NULL },
     { "dessert", NULL, "s", "'bars'", NULL },
     { "pay", NULL, "s", NULL, NULL },
-    { "print", activate_action, NULL, NULL, NULL },
     { "share", activate_action, NULL, NULL, NULL },
     { "labels", activate_action, NULL, NULL, NULL },
     { "new", activate_action, NULL, NULL, NULL },

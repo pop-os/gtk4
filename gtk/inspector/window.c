@@ -62,6 +62,7 @@
 #include "gtklayoutmanager.h"
 #include "gtkcssprovider.h"
 #include "gtkstylecontext.h"
+#include "gtkwidgetprivate.h"
 
 
 enum {
@@ -383,17 +384,28 @@ gtk_inspector_window_get_property (GObject    *object,
     }
 }
 
+static gboolean
+gtk_inspector_window_enable_debugging (GtkWindow *window,
+                                       gboolean   toggle)
+{
+  return FALSE;
+}
+
 static void
 gtk_inspector_window_class_init (GtkInspectorWindowClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  GtkWindowClass *window_class = GTK_WINDOW_CLASS (klass);
 
   object_class->constructed = gtk_inspector_window_constructed;
   object_class->dispose = gtk_inspector_window_dispose;
   object_class->set_property = gtk_inspector_window_set_property;
   object_class->get_property = gtk_inspector_window_get_property;
+
   widget_class->realize = gtk_inspector_window_realize;
+
+  window_class->enable_debugging = gtk_inspector_window_enable_debugging;
 
   properties[PROP_INSPECTED_DISPLAY] =
       g_param_spec_object ("inspected-display", "Inspected display", "Inspected display",
@@ -597,10 +609,15 @@ gtk_inspector_prepare_render (GtkWidget            *widget,
       snapshot = gtk_snapshot_new ();
       gtk_snapshot_append_node (snapshot, node);
 
+      gtk_snapshot_save (snapshot);
+      gtk_snapshot_transform (snapshot, gtk_widget_get_transform (widget));
+
       for (l = iw->overlays; l; l = l->next)
         {
           gtk_inspector_overlay_snapshot (l->data, snapshot, node, widget);
         }
+
+      gtk_snapshot_restore (snapshot);
 
       gsk_render_node_unref (node);
       node = gtk_snapshot_free_to_node (snapshot);

@@ -76,6 +76,9 @@
  * menu, then it will automatically be included in the menubar or in the
  * windows client-side decorations.
  *
+ * See #GtkPopoverMenu for information about the XML language
+ * used by #GtkBuilder for menu models.
+ *
  * ## A GtkApplicationWindow with a menubar
  *
  * |[<!-- language="C" -->
@@ -101,48 +104,6 @@
  *
  * GtkWidget *window = gtk_application_window_new (app);
  * ]|
- *
- * ## Handling fallback yourself
- *
- * [A simple example](https://gitlab.gnome.org/GNOME/gtk/tree/master/examples/sunny.c)
- *
- * The XML format understood by #GtkBuilder for #GMenuModel consists
- * of a toplevel `<menu>` element, which contains one or more `<item>`
- * elements. Each `<item>` element contains `<attribute>` and `<link>`
- * elements with a mandatory name attribute. `<link>` elements have the
- * same content model as `<menu>`. Instead of `<link name="submenu>` or
- * `<link name="section">`, you can use `<submenu>` or `<section>`
- * elements.
- *
- * Attribute values can be translated using gettext, like other #GtkBuilder
- * content. `<attribute>` elements can be marked for translation with a
- * `translatable="yes"` attribute. It is also possible to specify message
- * context and translator comments, using the context and comments attributes.
- * To make use of this, the #GtkBuilder must have been given the gettext
- * domain to use.
- *
- * The following attributes are used when constructing menu items:
- * - "label": a user-visible string to display
- * - "action": the prefixed name of the action to trigger
- * - "target": the parameter to use when activating the action
- * - "icon" and "verb-icon": names of icons that may be displayed
- * - "submenu-action": name of an action that may be used to determine
- *      if a submenu can be opened
- * - "hidden-when": a string used to determine when the item will be hidden.
- *      Possible values include "action-disabled", "action-missing", "macos-menubar".
- *
- * The following attributes are used when constructing sections:
- * - "label": a user-visible string to use as section heading
- * - "display-hint": a string used to determine special formatting for the section.
- *     Possible values include "horizontal-buttons", "circular-buttons" and "inline-buttons". They all indicate that section should be
- *     displayed as a horizontal row of buttons.
- * - "text-direction": a string used to determine the #GtkTextDirection to use
- *     when "display-hint" is set to "horizontal-buttons". Possible values
- *     include "rtl", "ltr", and "none".
- *
- * The following attributes are used when constructing submenus:
- * - "label": a user-visible string to display
- * - "icon": icon name to display
  */
 
 typedef GSimpleActionGroupClass GtkApplicationWindowActionsClass;
@@ -311,13 +272,10 @@ gtk_application_window_update_shell_shows_app_menu (GtkApplicationWindow *window
 {
   GtkApplicationWindowPrivate *priv = gtk_application_window_get_instance_private (window);
   gboolean shown_by_shell;
-  gboolean shown_by_titlebar;
 
   g_object_get (settings, "gtk-shell-shows-app-menu", &shown_by_shell, NULL);
 
-  shown_by_titlebar = _gtk_window_titlebar_shows_app_menu (GTK_WINDOW (window));
-
-  if (shown_by_shell || shown_by_titlebar)
+  if (shown_by_shell)
     {
       /* the shell shows it, so don't show it locally */
       if (g_menu_model_get_n_items (G_MENU_MODEL (priv->app_menu_section)) != 0)
@@ -633,7 +591,7 @@ gtk_application_window_real_size_allocate (GtkWidget *widget,
 
       child_allocation.y += menubar_height;
       child_allocation.height -= menubar_height;
-      child = gtk_bin_get_child (GTK_BIN (window));
+      child = gtk_window_get_child (GTK_WINDOW (window));
       if (child != NULL && gtk_widget_get_visible (child))
         gtk_widget_size_allocate (child, &child_allocation, baseline);
     }
@@ -711,21 +669,6 @@ gtk_application_window_real_unmap (GtkWidget *widget)
 }
 
 static void
-gtk_application_window_real_forall_internal (GtkContainer *container,
-                                             GtkCallback   callback,
-                                             gpointer      user_data)
-{
-  GtkApplicationWindow *window = GTK_APPLICATION_WINDOW (container);
-  GtkApplicationWindowPrivate *priv = gtk_application_window_get_instance_private (window);
-
-  if (priv->menubar)
-    callback (priv->menubar, user_data);
-
-  GTK_CONTAINER_CLASS (gtk_application_window_parent_class)
-    ->forall (container, callback, user_data);
-}
-
-static void
 gtk_application_window_get_property (GObject    *object,
                                      guint       prop_id,
                                      GValue     *value,
@@ -781,7 +724,7 @@ gtk_application_window_dispose (GObject *object)
 
   if (priv->help_overlay)
     {
-      gtk_widget_destroy (GTK_WIDGET (priv->help_overlay));
+      gtk_window_destroy (GTK_WINDOW (priv->help_overlay));
       g_clear_object (&priv->help_overlay);
     }
 
@@ -824,11 +767,8 @@ gtk_application_window_init (GtkApplicationWindow *window)
 static void
 gtk_application_window_class_init (GtkApplicationWindowClass *class)
 {
-  GtkContainerClass *container_class = GTK_CONTAINER_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
   GObjectClass *object_class = G_OBJECT_CLASS (class);
-
-  container_class->forall = gtk_application_window_real_forall_internal;
 
   widget_class->measure = gtk_application_window_measure;
   widget_class->size_allocate = gtk_application_window_real_size_allocate;
@@ -857,7 +797,7 @@ gtk_application_window_class_init (GtkApplicationWindowClass *class)
                           P_("Show a menubar"),
                           P_("TRUE if the window should show a "
                              "menubar at the top of the window"),
-                          TRUE, G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+                          FALSE, G_PARAM_CONSTRUCT | G_PARAM_STATIC_STRINGS | G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
   g_object_class_install_properties (object_class, N_PROPS, gtk_application_window_properties);
 }
 
@@ -982,7 +922,7 @@ gtk_application_window_set_help_overlay (GtkApplicationWindow *window,
   g_return_if_fail (help_overlay == NULL || GTK_IS_SHORTCUTS_WINDOW (help_overlay));
 
   if (priv->help_overlay)
-    gtk_widget_destroy (GTK_WIDGET (priv->help_overlay));
+    gtk_window_destroy (GTK_WINDOW (priv->help_overlay));
   g_set_object (&priv->help_overlay, help_overlay);
 
   if (!priv->help_overlay)

@@ -48,6 +48,7 @@
 #include "gtkmessagedialog.h"
 #include "gtksettings.h"
 #include "gtklabel.h"
+#include "gtkbox.h"
 #include "gtkbutton.h"
 #include "gtkentry.h"
 #include "gtktogglebutton.h"
@@ -55,6 +56,7 @@
 #include "gtkdialogprivate.h"
 #include "gtksearchbar.h"
 #include "gtksizegroup.h"
+#include "gtkstylecontext.h"
 
 #include <string.h>
 #include <glib/gi18n-lib.h>
@@ -200,16 +202,18 @@ set_dialog_properties (GtkAppChooserDialog *self)
       unknown = g_content_type_is_unknown (self->content_type);
     }
 
+  title = g_strdup (_("Select Application"));
+  subtitle = NULL;
+  string = NULL;
+
   if (name != NULL)
     {
-      title = g_strdup (_("Select Application"));
       /* Translators: %s is a filename */
       subtitle = g_strdup_printf (_("Opening “%s”."), name);
       string = g_strdup_printf (_("No applications found for “%s”"), name);
     }
-  else
+  else if (self->content_type)
     {
-      title = g_strdup (_("Select Application"));
       /* Translators: %s is a file type description */
       subtitle = g_strdup_printf (_("Opening “%s” files."), 
                                   unknown ? self->content_type : description);
@@ -220,9 +224,32 @@ set_dialog_properties (GtkAppChooserDialog *self)
   g_object_get (self, "use-header-bar", &use_header, NULL); 
   if (use_header)
     {
+      GtkWidget *box, *label;
+
       header = gtk_dialog_get_header_bar (GTK_DIALOG (self));
-      gtk_header_bar_set_title (GTK_HEADER_BAR (header), title);
-      gtk_header_bar_set_subtitle (GTK_HEADER_BAR (header), subtitle);
+
+      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+      gtk_widget_set_valign (box, GTK_ALIGN_CENTER);
+
+      label = gtk_label_new (title);
+      gtk_widget_set_halign (label, GTK_ALIGN_CENTER);
+      gtk_label_set_single_line_mode (GTK_LABEL (label), TRUE);
+      gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+      gtk_label_set_width_chars (GTK_LABEL (label), 5);
+      gtk_widget_add_css_class (label, GTK_STYLE_CLASS_TITLE);
+      gtk_widget_set_parent (label, box);
+
+      if (subtitle)
+        {
+          label = gtk_label_new (subtitle);
+          gtk_widget_set_halign (label, GTK_ALIGN_CENTER);
+          gtk_label_set_single_line_mode (GTK_LABEL (label), TRUE);
+          gtk_label_set_ellipsize (GTK_LABEL (label), PANGO_ELLIPSIZE_END);
+          gtk_widget_add_css_class (label, GTK_STYLE_CLASS_SUBTITLE);
+          gtk_widget_set_parent (label, box);
+        }
+
+      gtk_header_bar_set_title_widget (GTK_HEADER_BAR (header), box);
     }
   else
     {
@@ -290,7 +317,7 @@ construct_appchooser_widget (GtkAppChooserDialog *self)
   /* Need to build the appchooser widget after, because of the content-type construct-only property */
   self->app_chooser_widget = gtk_app_chooser_widget_new (self->content_type);
   gtk_widget_set_vexpand (self->app_chooser_widget, TRUE);
-  gtk_container_add (GTK_CONTAINER (self->inner_box), self->app_chooser_widget);
+  gtk_box_append (GTK_BOX (self->inner_box), self->app_chooser_widget);
 
   g_signal_connect (self->app_chooser_widget, "application-selected",
                     G_CALLBACK (widget_application_selected_cb), self);
@@ -300,10 +327,10 @@ construct_appchooser_widget (GtkAppChooserDialog *self)
                     G_CALLBACK (widget_notify_for_button_cb), self);
 
   /* Add the custom button to the new appchooser */
-  gtk_container_add (GTK_CONTAINER (self->inner_box),
+  gtk_box_append (GTK_BOX (self->inner_box),
                      self->show_more_button);
 
-  gtk_container_add (GTK_CONTAINER (self->inner_box),
+  gtk_box_append (GTK_BOX (self->inner_box),
                      self->software_button);
 
   info = gtk_app_chooser_get_app_info (GTK_APP_CHOOSER (self->app_chooser_widget));
@@ -373,7 +400,7 @@ show_error_dialog (const gchar *primary,
   gtk_widget_show (message_dialog);
 
   g_signal_connect (message_dialog, "response",
-                    G_CALLBACK (gtk_widget_destroy), NULL);
+                    G_CALLBACK (gtk_window_destroy), NULL);
 }
 
 static void
@@ -431,7 +458,7 @@ setup_search (GtkAppChooserDialog *self)
       button = gtk_toggle_button_new ();
       gtk_widget_set_valign (button, GTK_ALIGN_CENTER);
       image = gtk_image_new_from_icon_name ("edit-find-symbolic");
-      gtk_container_add (GTK_CONTAINER (button), image);
+      gtk_button_set_child (GTK_BUTTON (button), image);
       gtk_widget_add_css_class (button, "image-button");
       gtk_widget_remove_css_class (button, "text-button");
 

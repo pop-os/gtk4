@@ -166,7 +166,7 @@ gtk_stack_sidebar_init (GtkStackSidebar *self)
 
   self->list = GTK_LIST_BOX (gtk_list_box_new ());
 
-  gtk_container_add (GTK_CONTAINER (sw), GTK_WIDGET (self->list));
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), GTK_WIDGET (self->list));
 
   gtk_list_box_set_header_func (self->list, update_header, self, NULL);
 
@@ -194,7 +194,7 @@ update_row (GtkStackSidebar *self,
                 "visible", &visible,
                 NULL);
 
-  item = gtk_bin_get_child (GTK_BIN (row));
+  item = gtk_list_box_row_get_child (GTK_LIST_BOX_ROW (row));
   gtk_label_set_text (GTK_LABEL (item), title);
 
   gtk_widget_set_visible (row, visible && title != NULL);
@@ -231,12 +231,12 @@ add_child (guint            position,
   gtk_widget_set_halign (item, GTK_ALIGN_START);
   gtk_widget_set_valign (item, GTK_ALIGN_CENTER);
   row = gtk_list_box_row_new ();
-  gtk_container_add (GTK_CONTAINER (row), item);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), item);
 
   page = g_list_model_get_item (G_LIST_MODEL (self->pages), position);
   update_row (self, page, row);
 
-  gtk_container_add (GTK_CONTAINER (self->list), row);
+  gtk_list_box_insert (GTK_LIST_BOX (self->list), row, -1);
 
   g_object_set_data (G_OBJECT (row), "child-index", GUINT_TO_POINTER (position));
   if (gtk_selection_model_is_selected (self->pages, position))
@@ -270,7 +270,7 @@ clear_sidebar (GtkStackSidebar *self)
   g_hash_table_iter_init (&iter, self->rows);
   while (g_hash_table_iter_next (&iter, (gpointer *)&page, (gpointer *)&row))
     {
-      gtk_container_remove (GTK_CONTAINER (self->list), row);
+      gtk_list_box_remove (GTK_LIST_BOX (self->list), row);
       g_hash_table_iter_remove (&iter);
       g_signal_handlers_disconnect_by_func (page, on_page_updated, self);
     }
@@ -389,9 +389,6 @@ gtk_stack_sidebar_class_init (GtkStackSidebarClass *klass)
   object_class->finalize = gtk_stack_sidebar_finalize;
   object_class->set_property = gtk_stack_sidebar_set_property;
   object_class->get_property = gtk_stack_sidebar_get_property;
-
-  widget_class->grab_focus = gtk_widget_grab_focus_none;
-  widget_class->focus = gtk_widget_focus_child;
 
   obj_properties[PROP_STACK] =
       g_param_spec_object (I_("stack"), P_("Stack"),

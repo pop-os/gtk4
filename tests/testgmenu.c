@@ -564,7 +564,7 @@ create_add_remove_buttons (GActionGroup *group,
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
 
   button = gtk_check_button_new_with_label ("Add Italic");
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_box_append (GTK_BOX (box), button);
 
   g_object_set_data  (G_OBJECT (button), "group", group);
   g_object_set_data  (G_OBJECT (button), "model", model);
@@ -573,7 +573,7 @@ create_add_remove_buttons (GActionGroup *group,
                     G_CALLBACK (toggle_italic), treeview);
 
   button = gtk_check_button_new_with_label ("Add Sumerian");
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_box_append (GTK_BOX (box), button);
 
   g_object_set_data  (G_OBJECT (button), "group", group);
   g_object_set_data  (G_OBJECT (button), "model", model);
@@ -582,7 +582,7 @@ create_add_remove_buttons (GActionGroup *group,
                     G_CALLBACK (toggle_sumerian), NULL);
 
   button = gtk_check_button_new_with_label ("Add Speed");
-  gtk_container_add (GTK_CONTAINER (box), button);
+  gtk_box_append (GTK_BOX (box), button);
 
   g_object_set_data  (G_OBJECT (button), "group", group);
   g_object_set_data  (G_OBJECT (button), "model", model);
@@ -644,7 +644,7 @@ main (int argc, char *argv[])
   window = gtk_window_new ();
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
-  gtk_container_add (GTK_CONTAINER (window), box);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   bus = g_bus_get_sync (G_BUS_TYPE_SESSION, NULL, NULL);
 
@@ -661,9 +661,9 @@ main (int argc, char *argv[])
       model = get_model ();
 
       tv = create_action_treeview (group);
-      gtk_container_add (GTK_CONTAINER (box), tv);
+      gtk_box_append (GTK_BOX (box), tv);
       buttons = create_add_remove_buttons (group, model, tv);
-      gtk_container_add (GTK_CONTAINER (box), buttons);
+      gtk_box_append (GTK_BOX (box), buttons);
     }
 
   if (do_export)
@@ -685,10 +685,10 @@ main (int argc, char *argv[])
   else
     {
       button = gtk_menu_button_new ();
-      gtk_button_set_label (GTK_BUTTON (button), "Click here");
+      gtk_menu_button_set_label (GTK_MENU_BUTTON (button), "Click here");
       gtk_menu_button_set_menu_model (GTK_MENU_BUTTON (button), model);
       gtk_widget_insert_action_group (button, "actions", group);
-      gtk_container_add (GTK_CONTAINER (box), button);
+      gtk_box_append (GTK_BOX (box), button);
     }
 
   gtk_widget_show (window);
