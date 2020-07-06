@@ -1,0 +1,2 @@
+vulkan-Update-error-codes-enum.patch
+Fix-build-issue-due-to-missing-VK_RESULT_RANGE_SIZE.patch
