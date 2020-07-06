@@ -1,4 +1,4 @@
-gtk+4.0 (3.98.3-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.98.4-1) UNRELEASED; urgency=medium
 
   * New upstream release
     - Update build-dependencies according to meson.build
@@ -27,8 +27,9 @@ gtk+4.0 (3.98.3-1) UNRELEASED; urgency=medium
   * Depend on fonts-cantarell for tests
   * Run build-time tests with a D-Bus session bus via dbus-run-session
   * Cherry-pick some patches to fix the build
+  * New upstream release
 
- -- Simon McVittie <smcv@debian.org>  Mon, 06 Jul 2020 10:24:36 +0100
+ -- Simon McVittie <smcv@debian.org>  Mon, 06 Jul 2020 10:47:20 +0100
 
 gtk+4.0 (3.98.2-1) experimental; urgency=medium
 
