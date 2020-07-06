@@ -1,8 +1,34 @@
 gtk+4.0 (3.98.3-1) UNRELEASED; urgency=medium
 
   * New upstream release
+    - Update build-dependencies according to meson.build
+    - Remove "fake SONAME" mechanism.
+      The library is now built as libgtk-4.so.0 (although the ABI is still
+      not yet stable).
+    - Bump minimum version for all symbols to 3.98.3 for the new SONAME
+    - Drop patch, applied upstream
+    - Update symbols file
+    - Build-Depend on a suitable snapshot of gtk-doc
+  * d/tests/build, d/tests/python3-gi: Suppress AT-SPI warnings.
+    We don't need a11y here, so use NO_AT_BRIDGE=1 to suppress the warning
+    about org.a11y.Bus being unavailable.
+  * d/copyright: Collapse most permissive licenses into Files: * stanza.
+    I'm not going to try to keep track of which files are under which
+    specific LGPL-compatible licenses.
+  * Depend on librsvg2-common for tests, to be able to load SVG icons
+    adwaita-icon-theme used to depend on this, but doesn't any more.
+  * Try to split out flaky and non-flaky tests.
+    Both sets are marked as flaky for now, but hopefully the less-flaky set
+    can be promoted to non-flaky to catch regressions when GTK 4 gets more
+    stable.
+  * Move to debhelper compat level 13.
+    Adjust dh_auto_test arguments accordingly: they were previously passed
+    to `ninja test` and are now for `meson test`.
+  * Depend on fonts-cantarell for tests
+  * Run build-time tests with a D-Bus session bus via dbus-run-session
+  * Cherry-pick some patches to fix the build
 
- -- Simon McVittie <smcv@debian.org>  Wed, 06 May 2020 09:10:15 +0100
+ -- Simon McVittie <smcv@debian.org>  Mon, 06 Jul 2020 10:24:36 +0100
 
 gtk+4.0 (3.98.2-1) experimental; urgency=medium
 
