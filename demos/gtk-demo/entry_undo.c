@@ -25,31 +25,30 @@ do_entry_undo (GtkWidget *do_widget)
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Entry Undo");
       gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
       gtk_widget_set_margin_start (vbox, 5);
       gtk_widget_set_margin_end (vbox, 5);
       gtk_widget_set_margin_top (vbox, 5);
       gtk_widget_set_margin_bottom (vbox, 5);
-      gtk_container_add (GTK_CONTAINER (window), vbox);
+      gtk_window_set_child (GTK_WINDOW (window), vbox);
 
       label = gtk_label_new (NULL);
       gtk_label_set_markup (GTK_LABEL (label),
                             "Use Primary+z or Primary+Shift+z to undo or redo changes");
-      gtk_container_add (GTK_CONTAINER (vbox), label);
+      gtk_box_append (GTK_BOX (vbox), label);
 
       /* Create our entry */
       entry = gtk_entry_new ();
       gtk_editable_set_enable_undo (GTK_EDITABLE (entry), TRUE);
-      gtk_container_add (GTK_CONTAINER (vbox), entry);
+      gtk_box_append (GTK_BOX (vbox), entry);
     }
 
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

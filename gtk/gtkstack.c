@@ -118,12 +118,12 @@
  */
 
 struct _GtkStack {
-  GtkContainer parent_instance;
+  GtkWidget parent_instance;
 };
 
 typedef struct _GtkStackClass GtkStackClass;
 struct _GtkStackClass {
-  GtkContainerClass parent_class;
+  GtkWidgetClass parent_class;
 };
 
 typedef struct {
@@ -157,13 +157,12 @@ typedef struct {
 
 static void gtk_stack_buildable_interface_init (GtkBuildableIface *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GtkStack, gtk_stack, GTK_TYPE_CONTAINER,
+G_DEFINE_TYPE_WITH_CODE (GtkStack, gtk_stack, GTK_TYPE_WIDGET,
                          G_ADD_PRIVATE (GtkStack)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
                                                 gtk_stack_buildable_interface_init))
 enum  {
   PROP_0,
-  PROP_HOMOGENEOUS,
   PROP_HHOMOGENEOUS,
   PROP_VHOMOGENEOUS,
   PROP_VISIBLE_CHILD,
@@ -185,6 +184,7 @@ enum
   CHILD_PROP_ICON_NAME,
   CHILD_PROP_NEEDS_ATTENTION,
   CHILD_PROP_VISIBLE,
+  CHILD_PROP_USE_UNDERLINE,
   LAST_CHILD_PROP
 };
 
@@ -196,9 +196,10 @@ struct _GtkStackPage
   char *name;
   char *title;
   char *icon_name;
-  gboolean needs_attention;
-  gboolean visible;
   GtkWidget *last_focus;
+  guint needs_attention : 1;
+  guint visible         : 1;
+  guint use_underline   : 1;
 };
 
 typedef struct _GtkStackPageClass GtkStackPageClass;
@@ -267,6 +268,10 @@ gtk_stack_page_get_property (GObject      *object,
 
     case CHILD_PROP_VISIBLE:
       g_value_set_boolean (value, gtk_stack_page_get_visible (info));
+      break;
+
+    case CHILD_PROP_USE_UNDERLINE:
+      g_value_set_boolean (value, info->use_underline);
       break;
 
     default:
@@ -349,6 +354,14 @@ gtk_stack_page_set_property (GObject      *object,
       gtk_stack_page_set_visible (info, g_value_get_boolean (value));
       break;
 
+    case CHILD_PROP_USE_UNDERLINE:
+      if (info->use_underline != g_value_get_boolean (value))
+        {
+          info->use_underline = g_value_get_boolean (value);
+          g_object_notify_by_pspec (object, pspec);
+        }
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
       break;
@@ -411,6 +424,13 @@ gtk_stack_page_class_init (GtkStackPageClass *class)
                          P_("Visible"),
                          P_("Whether this page is visible"),
                          TRUE,
+                         GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+
+  stack_child_props[CHILD_PROP_USE_UNDERLINE] =
+    g_param_spec_boolean ("use-underline",
+                         P_("Use underline"),
+                         P_("If set, an underline in the title indicates the next character should be used for the mnemonic accelerator key"),
+                         FALSE,
                          GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, LAST_CHILD_PROP, stack_child_props);
@@ -532,13 +552,12 @@ gtk_stack_pages_new (GtkStack *stack)
   return pages;
 }
 
-static void     gtk_stack_add                            (GtkContainer  *widget,
-                                                          GtkWidget     *child);
-static void     gtk_stack_remove                         (GtkContainer  *widget,
-                                                          GtkWidget     *child);
-static void     gtk_stack_forall                         (GtkContainer  *container,
-                                                          GtkCallback    callback,
-                                                          gpointer       callback_data);
+static GtkStackPage *gtk_stack_add_internal (GtkStack *stack,
+                                             GtkWidget  *child,
+                                             const char *name,
+                                             const char *title);
+
+static GtkSizeRequestMode gtk_stack_get_request_mode (GtkWidget *widget);
 static void     gtk_stack_compute_expand                 (GtkWidget     *widget,
                                                           gboolean      *hexpand,
                                                           gboolean      *vexpand);
@@ -571,6 +590,8 @@ static void     gtk_stack_unschedule_ticks               (GtkStack      *stack);
 static void     gtk_stack_add_page                       (GtkStack     *stack,
                                                           GtkStackPage *page);
 
+static GtkBuildableIface *parent_buildable_iface;
+
 static void
 gtk_stack_buildable_add_child (GtkBuildable *buildable,
                                GtkBuilder   *builder,
@@ -580,14 +601,16 @@ gtk_stack_buildable_add_child (GtkBuildable *buildable,
   if (GTK_IS_STACK_PAGE (child))
     gtk_stack_add_page (GTK_STACK (buildable), GTK_STACK_PAGE (child));
   else if (GTK_IS_WIDGET (child))
-    gtk_container_add (GTK_CONTAINER (buildable), GTK_WIDGET (child));
+    gtk_stack_add_internal (GTK_STACK (buildable), GTK_WIDGET (child), NULL, NULL);
   else
-    g_warning ("Can't add a child of type '%s' to '%s'", G_OBJECT_TYPE_NAME (child), G_OBJECT_TYPE_NAME (buildable));
+    parent_buildable_iface->add_child (buildable, builder, child, type);
 }
 
 static void
 gtk_stack_buildable_interface_init (GtkBuildableIface *iface)
 {
+  parent_buildable_iface = g_type_interface_peek_parent (iface);
+
   iface->add_child = gtk_stack_buildable_add_child;
 }
 
@@ -596,21 +619,17 @@ static void stack_remove (GtkStack  *stack,
                           gboolean   in_dispose);
 
 static void
-remove_child (GtkWidget *child, gpointer user_data)
-{
-  stack_remove (GTK_STACK (user_data), child, TRUE);
-}
-
-static void
 gtk_stack_dispose (GObject *obj)
 {
   GtkStack *stack = GTK_STACK (obj);
   GtkStackPrivate *priv = gtk_stack_get_instance_private (stack);
+  GtkWidget *child;
 
   if (priv->pages)
     g_list_model_items_changed (G_LIST_MODEL (priv->pages), 0, g_list_length (priv->children), 0);
 
-  gtk_container_foreach (GTK_CONTAINER (obj), remove_child, obj);
+  while ((child = gtk_widget_get_first_child (GTK_WIDGET (stack))))
+    stack_remove (stack, child, TRUE);
 
   G_OBJECT_CLASS (gtk_stack_parent_class)->dispose (obj);
 }
@@ -641,9 +660,6 @@ gtk_stack_get_property (GObject   *object,
 
   switch (property_id)
     {
-    case PROP_HOMOGENEOUS:
-      g_value_set_boolean (value, gtk_stack_get_homogeneous (stack));
-      break;
     case PROP_HHOMOGENEOUS:
       g_value_set_boolean (value, gtk_stack_get_hhomogeneous (stack));
       break;
@@ -687,9 +703,6 @@ gtk_stack_set_property (GObject     *object,
 
   switch (property_id)
     {
-    case PROP_HOMOGENEOUS:
-      gtk_stack_set_homogeneous (stack, g_value_get_boolean (value));
-      break;
     case PROP_HHOMOGENEOUS:
       gtk_stack_set_hhomogeneous (stack, g_value_get_boolean (value));
       break;
@@ -722,7 +735,6 @@ gtk_stack_class_init (GtkStackClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-  GtkContainerClass *container_class = GTK_CONTAINER_CLASS (klass);
 
   object_class->get_property = gtk_stack_get_property;
   object_class->set_property = gtk_stack_set_property;
@@ -733,15 +745,7 @@ gtk_stack_class_init (GtkStackClass *klass)
   widget_class->snapshot = gtk_stack_snapshot;
   widget_class->measure = gtk_stack_measure;
   widget_class->compute_expand = gtk_stack_compute_expand;
-
-  container_class->add = gtk_stack_add;
-  container_class->remove = gtk_stack_remove;
-  container_class->forall = gtk_stack_forall;
-
-  stack_props[PROP_HOMOGENEOUS] =
-      g_param_spec_boolean ("homogeneous", P_("Homogeneous"), P_("Homogeneous sizing"),
-                            TRUE,
-                            GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
+  widget_class->get_request_mode = gtk_stack_get_request_mode;
 
   /**
    * GtkStack:hhomogeneous:
@@ -1316,12 +1320,6 @@ stack_child_visibility_notify_cb (GObject    *obj,
     }
 }
 
-static GtkStackPage *
-gtk_stack_add_internal (GtkStack *stack,
-                        GtkWidget  *child,
-                        const char *name,
-                        const char *title);
-
 /**
  * gtk_stack_add_titled:
  * @stack: a #GtkStack
@@ -1368,15 +1366,6 @@ gtk_stack_add_named (GtkStack   *stack,
   g_return_val_if_fail (GTK_IS_WIDGET (child), NULL);
 
   return gtk_stack_add_internal (stack, child, name, NULL);
-}
-
-static void
-gtk_stack_add (GtkContainer *container,
-               GtkWidget    *child)
-{
-  GtkStack *stack = GTK_STACK (container);
-
-  gtk_stack_add_internal (stack, child, NULL, NULL);
 }
 
 static GtkStackPage *
@@ -1487,13 +1476,24 @@ stack_remove (GtkStack  *stack,
     gtk_widget_queue_resize (GTK_WIDGET (stack));
 }
 
-static void
-gtk_stack_remove (GtkContainer *container,
-                  GtkWidget    *child)
+/**
+ * gtk_stack_remove:
+ * @stack: a #GtkStack
+ * @child: the child to remove
+ *
+ * Removes a child widget from @stack.
+ */
+void
+gtk_stack_remove (GtkStack  *stack,
+                  GtkWidget *child)
 {
-  GtkStackPrivate *priv = gtk_stack_get_instance_private (GTK_STACK (container));
+  GtkStackPrivate *priv = gtk_stack_get_instance_private (stack);
   GList *l;
   guint position;
+
+  g_return_if_fail (GTK_IS_STACK (stack));
+  g_return_if_fail (GTK_IS_WIDGET (child));
+  g_return_if_fail (gtk_widget_get_parent (child) == GTK_WIDGET (stack));
 
   for (l = priv->children, position = 0; l; l = l->next, position++)
     {
@@ -1502,7 +1502,7 @@ gtk_stack_remove (GtkContainer *container,
         break;
     }
 
-  stack_remove (GTK_STACK (container), child, FALSE);
+  stack_remove (stack, child, FALSE);
 
   if (priv->pages)
     g_list_model_items_changed (G_LIST_MODEL (priv->pages), position, 1, 0);
@@ -1568,73 +1568,6 @@ GtkWidget *
 gtk_stack_page_get_child (GtkStackPage *page)
 {
   return page->widget;
-}
-
-/**
- * gtk_stack_set_homogeneous:
- * @stack: a #GtkStack
- * @homogeneous: %TRUE to make @stack homogeneous
- *
- * Sets the #GtkStack to be homogeneous or not. If it
- * is homogeneous, the #GtkStack will request the same
- * size for all its children. If it isn't, the stack
- * may change size when a different child becomes visible.
- *
- * Homogeneity can be controlled separately
- * for horizontal and vertical size, with the
- * #GtkStack:hhomogeneous and #GtkStack:vhomogeneous.
- */
-void
-gtk_stack_set_homogeneous (GtkStack *stack,
-                           gboolean  homogeneous)
-{
-  GtkStackPrivate *priv = gtk_stack_get_instance_private (stack);
-
-  g_return_if_fail (GTK_IS_STACK (stack));
-
-  homogeneous = !!homogeneous;
-
-  if ((priv->hhomogeneous && priv->vhomogeneous) == homogeneous)
-    return;
-
-  g_object_freeze_notify (G_OBJECT (stack));
-
-  if (priv->hhomogeneous != homogeneous)
-    {
-      priv->hhomogeneous = homogeneous;
-      g_object_notify_by_pspec (G_OBJECT (stack), stack_props[PROP_HHOMOGENEOUS]);
-    }
-
-  if (priv->vhomogeneous != homogeneous)
-    {
-      priv->vhomogeneous = homogeneous;
-      g_object_notify_by_pspec (G_OBJECT (stack), stack_props[PROP_VHOMOGENEOUS]);
-    }
-
-  if (gtk_widget_get_visible (GTK_WIDGET(stack)))
-    gtk_widget_queue_resize (GTK_WIDGET (stack));
-
-  g_object_notify_by_pspec (G_OBJECT (stack), stack_props[PROP_HOMOGENEOUS]);
-  g_object_thaw_notify (G_OBJECT (stack));
-}
-
-/**
- * gtk_stack_get_homogeneous:
- * @stack: a #GtkStack
- *
- * Gets whether @stack is homogeneous.
- * See gtk_stack_set_homogeneous().
- *
- * Returns: whether @stack is homogeneous.
- */
-gboolean
-gtk_stack_get_homogeneous (GtkStack *stack)
-{
-  GtkStackPrivate *priv = gtk_stack_get_instance_private (stack);
-
-  g_return_val_if_fail (GTK_IS_STACK (stack), FALSE);
-
-  return priv->hhomogeneous && priv->vhomogeneous;
 }
 
 /**
@@ -2052,26 +1985,6 @@ gtk_stack_set_visible_child_full (GtkStack               *stack,
 }
 
 static void
-gtk_stack_forall (GtkContainer *container,
-                  GtkCallback   callback,
-                  gpointer      callback_data)
-{
-  GtkStack *stack = GTK_STACK (container);
-  GtkStackPrivate *priv = gtk_stack_get_instance_private (stack);
-  GtkStackPage *child_info;
-  GList *l;
-
-  l = priv->children;
-  while (l)
-    {
-      child_info = l->data;
-      l = l->next;
-
-      (* callback) (child_info->widget, callback_data);
-    }
-}
-
-static void
 gtk_stack_compute_expand (GtkWidget *widget,
                           gboolean  *hexpand_p,
                           gboolean  *vexpand_p)
@@ -2104,6 +2017,40 @@ gtk_stack_compute_expand (GtkWidget *widget,
 
   *hexpand_p = hexpand;
   *vexpand_p = vexpand;
+}
+
+static GtkSizeRequestMode
+gtk_stack_get_request_mode (GtkWidget *widget)
+{
+  GtkWidget *w;
+  int wfh = 0, hfw = 0;
+
+  for (w = gtk_widget_get_first_child (widget);
+       w != NULL;
+       w = gtk_widget_get_next_sibling (w))
+    {
+      GtkSizeRequestMode mode = gtk_widget_get_request_mode (w);
+
+      switch (mode)
+        {
+        case GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH:
+          hfw ++;
+          break;
+        case GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT:
+          wfh ++;
+          break;
+        case GTK_SIZE_REQUEST_CONSTANT_SIZE:
+        default:
+          break;
+        }
+    }
+
+  if (hfw == 0 && wfh == 0)
+    return GTK_SIZE_REQUEST_CONSTANT_SIZE;
+  else
+    return wfh > hfw ?
+        GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT :
+        GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH;
 }
 
 static void

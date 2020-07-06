@@ -416,36 +416,6 @@ gtk_style_context_remove_provider (GtkStyleContext  *context,
 }
 
 /**
- * gtk_style_context_reset_widgets:
- * @display: a #GdkDisplay
- *
- * This function recomputes the styles for all widgets under a particular
- * #GdkDisplay. This is useful when some global parameter has changed that
- * affects the appearance of all widgets, because when a widget gets a new
- * style, it will both redraw and recompute any cached information about
- * its appearance. As an example, it is used when the color scheme changes
- * in the related #GtkSettings object.
- **/
-void
-gtk_style_context_reset_widgets (GdkDisplay *display)
-{
-  GList *list, *toplevels;
-
-  toplevels = gtk_window_list_toplevels ();
-  g_list_foreach (toplevels, (GFunc) g_object_ref, NULL);
-
-  for (list = toplevels; list; list = list->next)
-    {
-      if (gtk_widget_get_display (list->data) == display)
-        gtk_widget_reset_style (list->data);
-
-      g_object_unref (list->data);
-    }
-
-  g_list_free (toplevels);
-}
-
-/**
  * gtk_style_context_add_provider_for_display:
  * @display: a #GdkDisplay
  * @provider: a #GtkStyleProvider
@@ -499,42 +469,6 @@ gtk_style_context_remove_provider_for_display (GdkDisplay       *display,
 
   cascade = _gtk_settings_get_style_cascade (gtk_settings_get_for_display (display), 1);
   _gtk_style_cascade_remove_provider (cascade, provider);
-}
-
-/*
- * gtk_style_context_set_id:
- * @context: a #GtkStyleContext
- * @id: (allow-none): the id to use or %NULL for none.
- *
- * Sets the CSS ID to be used when obtaining style information.
- **/
-void
-gtk_style_context_set_id (GtkStyleContext *context,
-                          const char      *id)
-{
-  GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
-
-  g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
-
-  gtk_css_node_set_id (priv->cssnode, g_quark_from_string (id));
-}
-
-/*
- * gtk_style_context_get_id:
- * @context: a #GtkStyleContext
- *
- * Returns the CSS ID used when obtaining style information.
- *
- * Returns: (nullable): the ID or %NULL if no ID is set.
- **/
-const char *
-gtk_style_context_get_id (GtkStyleContext *context)
-{
-  GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
-
-  g_return_val_if_fail (GTK_IS_STYLE_CONTEXT (context), NULL);
-
-  return g_quark_to_string (gtk_css_node_get_id (priv->cssnode));
 }
 
 /**
@@ -657,29 +591,6 @@ gtk_style_context_save_to_node (GtkStyleContext *context,
   priv->cssnode = g_object_ref (node);
 }
 
-void
-gtk_style_context_save_named (GtkStyleContext *context,
-                              const char      *name)
-{
-  GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
-  GtkCssNode *cssnode;
-
-  /* Make sure we have the style existing. It is the
-   * parent of the new saved node after all.
-   */
-  if (!gtk_style_context_is_saved (context))
-    gtk_style_context_lookup_style (context);
-
-  cssnode = gtk_css_transient_node_new (priv->cssnode);
-  gtk_css_node_set_parent (cssnode, gtk_style_context_get_root (context));
-  if (name)
-    gtk_css_node_set_name (cssnode, g_quark_from_string (name));
-
-  gtk_style_context_save_to_node (context, cssnode);
-
-  g_object_unref (cssnode);
-}
-
 /**
  * gtk_style_context_save:
  * @context: a #GtkStyleContext
@@ -695,9 +606,23 @@ gtk_style_context_save_named (GtkStyleContext *context,
 void
 gtk_style_context_save (GtkStyleContext *context)
 {
+  GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
+  GtkCssNode *cssnode;
+
   g_return_if_fail (GTK_IS_STYLE_CONTEXT (context));
 
-  gtk_style_context_save_named (context, NULL);
+
+  /* Make sure we have the style existing. It is the
+   * parent of the new saved node after all.
+   */
+  if (!gtk_style_context_is_saved (context))
+    gtk_style_context_lookup_style (context);
+
+  cssnode = gtk_css_transient_node_new (priv->cssnode);
+  gtk_css_node_set_parent (cssnode, gtk_style_context_get_root (context));
+  gtk_style_context_save_to_node (context, cssnode);
+
+  g_object_unref (cssnode);
 }
 
 /**
@@ -809,34 +734,6 @@ gtk_style_context_has_class (GtkStyleContext *context,
     return FALSE;
 
   return gtk_css_node_has_class (priv->cssnode, class_quark);
-}
-
-/**
- * gtk_style_context_list_classes:
- * @context: a #GtkStyleContext
- *
- * Returns the list of classes currently defined in @context.
- *
- * Returns: (transfer container) (element-type utf8): a #GList of
- *          strings with the currently defined classes. The contents
- *          of the list are owned by GTK+, but you must free the list
- *          itself with g_list_free() when you are done with it.
- **/
-GList *
-gtk_style_context_list_classes (GtkStyleContext *context)
-{
-  GtkStyleContextPrivate *priv = gtk_style_context_get_instance_private (context);
-  GList *classes_list = NULL;
-  const GQuark *classes;
-  guint n_classes, i;
-
-  g_return_val_if_fail (GTK_IS_STYLE_CONTEXT (context), NULL);
-
-  classes = gtk_css_node_list_classes (priv->cssnode, &n_classes);
-  for (i = n_classes; i > 0; i--)
-    classes_list = g_list_prepend (classes_list, (gchar *)g_quark_to_string (classes[i - 1]));
-
-  return classes_list;
 }
 
 GtkCssValue *
@@ -1254,6 +1151,7 @@ gtk_render_insertion_cursor (GtkStyleContext *context,
   float aspect_ratio;
   PangoRectangle strong_pos, weak_pos;
   PangoRectangle *cursor1, *cursor2;
+  GdkSeat *seat;
   GdkDevice *keyboard;
   PangoDirection keyboard_direction;
   PangoDirection direction2;
@@ -1268,8 +1166,15 @@ gtk_render_insertion_cursor (GtkStyleContext *context,
                 "gtk-cursor-aspect-ratio", &aspect_ratio,
                 NULL);
 
-  keyboard = gdk_seat_get_keyboard (gdk_display_get_default_seat (priv->display));
-  keyboard_direction = gdk_device_get_direction (keyboard);
+  seat = gdk_display_get_default_seat (priv->display);
+  if (seat)
+    keyboard = gdk_seat_get_keyboard (seat);
+  else
+    keyboard = NULL;
+  if (keyboard)
+    keyboard_direction = gdk_device_get_direction (keyboard);
+  else
+    keyboard_direction = PANGO_DIRECTION_LTR;
 
   pango_layout_get_cursor_pos (layout, index, &strong_pos, &weak_pos);
 
@@ -1343,6 +1248,7 @@ gtk_snapshot_render_insertion_cursor (GtkSnapshot     *snapshot,
   float aspect_ratio;
   PangoRectangle strong_pos, weak_pos;
   PangoRectangle *cursor1, *cursor2;
+  GdkSeat *seat;
   GdkDevice *keyboard;
   PangoDirection keyboard_direction;
   PangoDirection direction2;
@@ -1357,8 +1263,15 @@ gtk_snapshot_render_insertion_cursor (GtkSnapshot     *snapshot,
                 "gtk-cursor-aspect-ratio", &aspect_ratio,
                 NULL);
 
-  keyboard = gdk_seat_get_keyboard (gdk_display_get_default_seat (priv->display));
-  keyboard_direction = gdk_device_get_direction (keyboard);
+  seat = gdk_display_get_default_seat (priv->display);
+  if (seat)
+    keyboard = gdk_seat_get_keyboard (seat);
+  else
+    keyboard = NULL;
+  if (keyboard)
+    keyboard_direction = gdk_device_get_direction (keyboard);
+  else
+    keyboard_direction = PANGO_DIRECTION_LTR;
 
   pango_layout_get_cursor_pos (layout, index, &strong_pos, &weak_pos);
 

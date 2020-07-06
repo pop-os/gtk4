@@ -56,21 +56,19 @@ show_dialog (void)
   gtk_window_set_resizable (GTK_WINDOW (dialog), resizable);
 
 
-  gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog))),
+  gtk_box_append (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))),
                       label);
-  gtk_widget_show (label);
 
   label = gtk_label_new ("? x ?");
-  //gtk_widget_show (label);
 
   gtk_dialog_add_action_widget (GTK_DIALOG (dialog), label, GTK_RESPONSE_HELP);
   gtk_widget_realize (dialog);
   g_signal_connect (gtk_native_get_surface (GTK_NATIVE (dialog)), "size-changed",
                     G_CALLBACK (size_changed_cb), label);
-
-  gtk_dialog_run (GTK_DIALOG (dialog));
-
-  gtk_widget_destroy (dialog);
+  g_signal_connect (dialog, "response",
+                    G_CALLBACK (gtk_window_destroy),
+                    NULL);
+  gtk_widget_show (dialog);
 }
 
 static void
@@ -87,7 +85,7 @@ create_window (void)
   grid = gtk_grid_new ();
   gtk_grid_set_row_spacing (GTK_GRID (grid), 12);
   gtk_grid_set_column_spacing (GTK_GRID (grid), 12);
-  gtk_container_add (GTK_CONTAINER (window), grid);
+  gtk_window_set_child (GTK_WINDOW (window), grid);
 
   label = gtk_label_new ("Width chars");
   gtk_widget_set_halign (label, GTK_ALIGN_START);
@@ -129,6 +127,16 @@ create_window (void)
   gtk_grid_attach (GTK_GRID (grid), button, 2, 4, 1, 1);
 
   gtk_widget_show (window);
+
+  GMainLoop *loop = g_main_loop_new (NULL, FALSE);
+
+  g_signal_connect_swapped (window, "destroy",
+                            G_CALLBACK (g_main_loop_quit),
+                            loop);
+
+  g_main_loop_run (loop);
+
+  g_main_loop_unref (loop);
 }
 
 int
@@ -137,9 +145,6 @@ main (int argc, char *argv[])
   gtk_init ();
 
   create_window ();
-
-  while (TRUE)
-    g_main_context_iteration (NULL, TRUE);
 
   return 0;
 }

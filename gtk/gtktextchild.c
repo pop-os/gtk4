@@ -236,7 +236,7 @@ child_segment_delete_func (GtkTextLineSegment *seg,
     {
       GtkWidget *child = tmp_list->data;
 
-      gtk_widget_destroy (child);
+      gtk_widget_unparent (child);
       
       tmp_list = tmp_list->next;
     }
@@ -432,26 +432,37 @@ gtk_text_child_anchor_finalize (GObject *obj)
  * @anchor: a #GtkTextChildAnchor
  * 
  * Gets a list of all widgets anchored at this child anchor.
- * The returned list should be freed with g_list_free().
  *
+ * The order in which the widgets are returned is not defined.
  *
- * Returns: (element-type GtkWidget) (transfer container): list of widgets anchored at @anchor
+ * Returns: (array length=out_len) (transfer container): an
+ *   array of widgets anchored at @anchor
  **/
-GList*
-gtk_text_child_anchor_get_widgets (GtkTextChildAnchor *anchor)
+GtkWidget **
+gtk_text_child_anchor_get_widgets (GtkTextChildAnchor *anchor,
+                                   guint              *out_len)
 {
   GtkTextLineSegment *seg = anchor->segment;
-  GList *list = NULL;
+  GPtrArray *arr;
   GSList *iter;
 
   CHECK_IN_BUFFER_RETURN (anchor, NULL);
-  
+
+  g_return_val_if_fail (out_len != NULL, NULL);
   g_return_val_if_fail (seg->type == &gtk_text_child_type, NULL);
 
   iter = seg->body.child.widgets;
+
+  if (!iter)
+    {
+      *out_len = 0;
+      return NULL;
+    }
+
+  arr = g_ptr_array_new ();
   while (iter != NULL)
     {
-      list = g_list_prepend (list, iter->data);
+      g_ptr_array_add (arr, iter->data);
 
       iter = iter->next;
     }
@@ -459,7 +470,8 @@ gtk_text_child_anchor_get_widgets (GtkTextChildAnchor *anchor)
   /* Order is not relevant, so we don't need to reverse the list
    * again.
    */
-  return list;
+  *out_len = arr->len;
+  return (GtkWidget **)g_ptr_array_free (arr, FALSE);
 }
 
 /**

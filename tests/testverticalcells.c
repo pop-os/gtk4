@@ -324,7 +324,7 @@ main (gint argc, gchar **argv)
   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolled_window), TRUE);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), 
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
-  gtk_container_add (GTK_CONTAINER (window), scrolled_window);
+  gtk_window_set_child (GTK_WINDOW (window), scrolled_window);
 
   tree_model = create_model ();
   tree_view = gtk_tree_view_new_with_model (tree_model);
@@ -334,7 +334,7 @@ main (gint argc, gchar **argv)
   column = gtk_tree_view_column_new ();
 
   renderer = gtk_cell_renderer_pixbuf_new ();
-  g_object_set (renderer, "stock-size", GTK_ICON_SIZE_LARGE, NULL);
+  g_object_set (renderer, "icon-size", GTK_ICON_SIZE_LARGE, NULL);
   gtk_tree_view_column_pack_start (column, renderer, TRUE);
   gtk_tree_view_column_set_attributes (column, renderer,
 				       "icon-name", ICON_COLUMN, NULL);
@@ -377,8 +377,8 @@ main (gint argc, gchar **argv)
 
   gtk_tree_view_expand_all (GTK_TREE_VIEW (tree_view));
 
-  gtk_container_add (GTK_CONTAINER (scrolled_window), tree_view);
-  
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), tree_view);
+
   gtk_window_set_default_size (GTK_WINDOW (window),
 			       800, 400);
 

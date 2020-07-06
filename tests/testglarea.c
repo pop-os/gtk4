@@ -374,19 +374,15 @@ create_axis_slider (int axis)
     }
 
   label = gtk_label_new (text);
-  gtk_container_add (GTK_CONTAINER (box), label);
-  gtk_widget_show (label);
+  gtk_box_append (GTK_BOX (box), label);
 
   adj = gtk_adjustment_new (0.0, 0.0, 360.0, 1.0, 12.0, 0.0);
   g_signal_connect (adj, "value-changed",
                     G_CALLBACK (on_axis_value_change),
                     GINT_TO_POINTER (axis));
   slider = gtk_scale_new (GTK_ORIENTATION_HORIZONTAL, adj);
-  gtk_container_add (GTK_CONTAINER (box), slider);
+  gtk_box_append (GTK_BOX (box), slider);
   gtk_widget_set_hexpand (slider, TRUE);
-  gtk_widget_show (slider);
-
-  gtk_widget_show (box);
 
   return box;
 }
@@ -421,32 +417,32 @@ main (int argc, char *argv[])
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, FALSE);
+  gtk_widget_set_margin_start (box, 12);
+  gtk_widget_set_margin_end (box, 12);
+  gtk_widget_set_margin_top (box, 12);
+  gtk_widget_set_margin_bottom (box, 12);
   gtk_box_set_spacing (GTK_BOX (box), 6);
-  gtk_container_add (GTK_CONTAINER (window), box);
-  gtk_widget_show (box);
+  gtk_window_set_child (GTK_WINDOW (window), box);
 
   gl_area = gtk_gl_area_new ();
   gtk_widget_set_hexpand (gl_area, TRUE);
   gtk_widget_set_vexpand (gl_area, TRUE);
-  gtk_container_add (GTK_CONTAINER (box), gl_area);
+  gtk_box_append (GTK_BOX (box), gl_area);
   g_signal_connect (gl_area, "realize", G_CALLBACK (realize), NULL);
   g_signal_connect (gl_area, "unrealize", G_CALLBACK (unrealize), NULL);
   g_signal_connect (gl_area, "render", G_CALLBACK (render), NULL);
-  gtk_widget_show (gl_area);
 
   controls = gtk_box_new (GTK_ORIENTATION_VERTICAL, FALSE);
-  gtk_container_add (GTK_CONTAINER (box), controls);
+  gtk_box_append (GTK_BOX (box), controls);
   gtk_widget_set_hexpand (controls, TRUE);
-  gtk_widget_show (controls);
 
   for (i = 0; i < N_AXIS; i++)
-    gtk_container_add (GTK_CONTAINER (controls), create_axis_slider (i));
+    gtk_box_append (GTK_BOX (controls), create_axis_slider (i));
 
   button = gtk_button_new_with_label ("Quit");
   gtk_widget_set_hexpand (button, TRUE);
-  gtk_container_add (GTK_CONTAINER (box), button);
-  g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
-  gtk_widget_show (button);
+  gtk_box_append (GTK_BOX (box), button);
+  g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_destroy), window);
 
   gtk_widget_show (window);
 

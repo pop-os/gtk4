@@ -95,6 +95,8 @@
 #include "gdk/gdk-private.h"
 #include "gsk/gskprivate.h"
 #include "gsk/gskrendernodeprivate.h"
+#include "gtkarrayimplprivate.h"
+#include "gtknativeprivate.h"
 
 #include <locale.h>
 
@@ -821,7 +823,7 @@ gtk_init_check (void)
  * toolkit and parses some standard command line options.
  *
  * If you are using #GtkApplication, you don't have to call gtk_init()
- * or gtk_init_check(); the #GtkApplication::startup handler
+ * or gtk_init_check(); the #GApplication::startup handler
  * does it for you.
  *
  * This function will terminate your program if it was unable to
@@ -1243,9 +1245,15 @@ rewrite_event_for_toplevel (GdkEvent *event)
 {
   GdkSurface *surface;
   GdkKeyEvent *key_event;
+  GdkEventType event_type;
 
   surface = gdk_event_get_surface (event);
   if (!surface->parent)
+    return NULL;
+
+  event_type = gdk_event_get_event_type (event);
+  if (event_type != GDK_KEY_PRESS &&
+      event_type != GDK_KEY_RELEASE)
     return NULL;
 
   while (surface->parent)
@@ -1273,8 +1281,10 @@ translate_event_coordinates (GdkEvent  *event,
                              GtkWidget *widget)
 {
   GtkWidget *event_widget;
+  GtkNative *native;
   graphene_point_t p;
   double event_x, event_y;
+  double native_x, native_y;
 
   *x = *y = 0;
 
@@ -1282,6 +1292,11 @@ translate_event_coordinates (GdkEvent  *event,
     return FALSE;
 
   event_widget = gtk_get_event_widget (event);
+  native = gtk_widget_get_native (event_widget);
+
+  gtk_native_get_surface_transform (GTK_NATIVE (native), &native_x, &native_y);
+  event_x -= native_x;
+  event_y -= native_y;
 
   if (!gtk_widget_compute_point (event_widget,
                                  widget,
@@ -1310,7 +1325,8 @@ gtk_synthesize_crossing_events (GtkRoot         *toplevel,
   double x, y;
   GtkWidget *prev;
   gboolean seen_ancestor;
-  GPtrArray *targets;
+  GtkArray target_array;
+  GtkWidget *stack_targets[16];
   int i;
 
   if (old_target == new_target)
@@ -1346,7 +1362,7 @@ gtk_synthesize_crossing_events (GtkRoot         *toplevel,
           GtkWidget *w;
 
           crossing.new_descendent = NULL;
-          for (w = new_target; w != ancestor; w = gtk_widget_get_parent (w))
+          for (w = new_target; w != ancestor; w = _gtk_widget_get_parent (w))
             crossing.new_descendent = w;
 
           seen_ancestor = TRUE;
@@ -1361,22 +1377,22 @@ gtk_synthesize_crossing_events (GtkRoot         *toplevel,
       if (crossing_type == GTK_CROSSING_POINTER)
         gtk_widget_unset_state_flags (widget, GTK_STATE_FLAG_PRELIGHT);
       prev = widget;
-      widget = gtk_widget_get_parent (widget);
+      widget = _gtk_widget_get_parent (widget);
     }
 
-  targets = g_ptr_array_new_full (16, NULL);
-  for (widget = new_target; widget; widget = gtk_widget_get_parent (widget))
-    g_ptr_array_add (targets, widget);
+  gtk_array_init (&target_array, (void**)stack_targets, 16);
+  for (widget = new_target; widget; widget = _gtk_widget_get_parent (widget))
+    gtk_array_add (&target_array, widget);
 
   crossing.direction = GTK_CROSSING_IN;
 
   seen_ancestor = FALSE;
-  for (i = (int)targets->len - 1; i >= 0; i--)
+  for (i = (int)target_array.len - 1; i >= 0; i--)
     {
-      widget = g_ptr_array_index (targets, i);
+      widget = gtk_array_index (&target_array, i);
 
-      if (i < (int)targets->len - 1)
-        crossing.new_descendent = g_ptr_array_index (targets, i + 1);
+      if (i < (int)target_array.len - 1)
+        crossing.new_descendent = gtk_array_index (&target_array, i + 1);
       else
         crossing.new_descendent = NULL;
 
@@ -1389,7 +1405,7 @@ gtk_synthesize_crossing_events (GtkRoot         *toplevel,
           GtkWidget *w;
 
           crossing.old_descendent = NULL;
-          for (w = old_target; w != ancestor; w = gtk_widget_get_parent (w))
+          for (w = old_target; w != ancestor; w = _gtk_widget_get_parent (w))
             crossing.old_descendent = w;
 
           seen_ancestor = TRUE;
@@ -1405,7 +1421,7 @@ gtk_synthesize_crossing_events (GtkRoot         *toplevel,
         gtk_widget_set_state_flags (widget, GTK_STATE_FLAG_PRELIGHT, FALSE);
     }
 
-  g_ptr_array_free (targets, TRUE);
+  gtk_array_free (&target_array, NULL);
 }
 
 static GtkWidget *
@@ -1416,7 +1432,8 @@ update_pointer_focus_state (GtkWindow *toplevel,
   GtkWidget *old_target = NULL;
   GdkEventSequence *sequence;
   GdkDevice *device;
-  gdouble x, y;
+  double x, y;
+  double nx, ny;
 
   device = gdk_event_get_device (event);
   sequence = gdk_event_get_event_sequence (event);
@@ -1425,6 +1442,10 @@ update_pointer_focus_state (GtkWindow *toplevel,
     return old_target;
 
   gdk_event_get_position (event, &x, &y);
+  gtk_native_get_surface_transform (GTK_NATIVE (toplevel), &nx, &ny);
+  x -= nx;
+  y -= ny;
+
   gtk_window_update_pointer_focus (toplevel, device, sequence,
                                    new_target, x, y);
 
@@ -1454,6 +1475,9 @@ is_pointing_event (GdkEvent *event)
     case GDK_DROP_START:
       return TRUE;
 
+    case GDK_GRAB_BROKEN:
+      return gdk_device_get_source (gdk_event_get_device (event)) != GDK_SOURCE_KEYBOARD;
+
     default:
       return FALSE;
     }
@@ -1468,6 +1492,8 @@ is_key_event (GdkEvent *event)
     case GDK_KEY_RELEASE:
       return TRUE;
       break;
+    case GDK_GRAB_BROKEN:
+      return gdk_device_get_source (gdk_event_get_device (event)) == GDK_SOURCE_KEYBOARD;
     default:
       return FALSE;
     }
@@ -1487,7 +1513,7 @@ set_widget_active_state (GtkWidget       *target,
       else
         gtk_widget_set_state_flags (w, GTK_STATE_FLAG_ACTIVE, FALSE);
 
-      w = gtk_widget_get_parent (w);
+      w = _gtk_widget_get_parent (w);
     }
 }
 
@@ -1498,7 +1524,8 @@ handle_pointing_event (GdkEvent *event)
   GtkWindow *toplevel;
   GdkEventSequence *sequence;
   GdkDevice *device;
-  gdouble x, y;
+  double x, y;
+  double native_x, native_y;
   GtkWidget *native;
   GdkEventType type;
 
@@ -1508,6 +1535,10 @@ handle_pointing_event (GdkEvent *event)
 
   toplevel = GTK_WINDOW (gtk_widget_get_root (event_widget));
   native = GTK_WIDGET (gtk_widget_get_native (event_widget));
+
+  gtk_native_get_surface_transform (GTK_NATIVE (native), &native_x, &native_y);
+  x -= native_x;
+  y -= native_y;
 
   type = gdk_event_get_event_type (event);
   sequence = gdk_event_get_event_sequence (event);
@@ -1542,7 +1573,7 @@ handle_pointing_event (GdkEvent *event)
       target = gtk_window_lookup_pointer_focus_implicit_grab (toplevel, device, sequence);
 
       if (!target)
-       target = gtk_widget_pick (native, x, y, GTK_PICK_DEFAULT);
+        target = gtk_widget_pick (native, x, y, GTK_PICK_DEFAULT);
 
       if (!target)
         target = GTK_WIDGET (native);
@@ -1588,8 +1619,7 @@ handle_pointing_event (GdkEvent *event)
 
       if (type == GDK_BUTTON_RELEASE)
         {
-          GtkWidget *new_target;
-          new_target = gtk_widget_pick (GTK_WIDGET (native), x, y, GTK_PICK_DEFAULT);
+          GtkWidget *new_target = gtk_widget_pick (native, x, y, GTK_PICK_DEFAULT);
           if (new_target == NULL)
             new_target = GTK_WIDGET (toplevel);
           gtk_synthesize_crossing_events (GTK_ROOT (toplevel), GTK_CROSSING_POINTER, target, new_target,
@@ -1603,6 +1633,12 @@ handle_pointing_event (GdkEvent *event)
     case GDK_SCROLL:
     case GDK_TOUCHPAD_PINCH:
     case GDK_TOUCHPAD_SWIPE:
+      break;
+    case GDK_GRAB_BROKEN:
+      target = gtk_window_lookup_effective_pointer_focus_widget (toplevel,
+                                                                 device,
+                                                                 sequence);
+      set_widget_active_state (target, TRUE);
       break;
     default:
       g_assert_not_reached ();
@@ -1714,15 +1750,14 @@ gtk_main_do_event (GdkEvent *event)
       if (!gtk_window_group_get_current_grab (window_group) ||
           GTK_WIDGET (gtk_widget_get_root (gtk_window_group_get_current_grab (window_group))) == target_widget)
         {
-          if (!GTK_IS_WINDOW (target_widget) ||
+          if (GTK_IS_WINDOW (target_widget) &&
               !gtk_window_emit_close_request (GTK_WINDOW (target_widget)))
-            gtk_widget_destroy (target_widget);
+            gtk_window_destroy (GTK_WINDOW (target_widget));
         }
       g_object_unref (target_widget);
       break;
 
     case GDK_FOCUS_CHANGE:
-    case GDK_GRAB_BROKEN:
       if (!_gtk_widget_captured_event (target_widget, event, target_widget))
         gtk_widget_event (target_widget, event, target_widget);
       break;
@@ -1746,6 +1781,7 @@ gtk_main_do_event (GdkEvent *event)
     case GDK_PAD_RING:
     case GDK_PAD_STRIP:
     case GDK_PAD_GROUP_MODE:
+    case GDK_GRAB_BROKEN:
       gtk_propagate_event (grab_widget, event);
       break;
 
@@ -2078,82 +2114,39 @@ gtk_get_event_widget (GdkEvent *event)
   return NULL;
 }
 
-static gboolean
-propagate_event_up (GtkWidget *widget,
-                    GdkEvent  *event,
-                    GtkWidget *topmost)
-{
-  gboolean handled_event = FALSE;
-  GtkWidget *target = widget;
-
-  /* Propagate event up the widget tree so that
-   * parents can see the button and motion
-   * events of the children.
-   */
-  while (TRUE)
-    {
-      GtkWidget *tmp;
-
-      g_object_ref (widget);
-
-      /* Scroll events are special cased here because it
-       * feels wrong when scrolling a GtkViewport, say,
-       * to have children of the viewport eat the scroll
-       * event
-       */
-      if (!gtk_widget_is_sensitive (widget))
-        handled_event = gdk_event_get_event_type (event) != GDK_SCROLL;
-      else if (gtk_widget_get_realized (widget))
-        handled_event = gtk_widget_event (widget, event, target);
-
-      handled_event |= !gtk_widget_get_realized (widget);
-
-      tmp = gtk_widget_get_parent (widget);
-      g_object_unref (widget);
-
-      if (widget == topmost)
-        break;
-
-      widget = tmp;
-
-      if (handled_event || !widget)
-        break;
-    }
-
-  return handled_event;
-}
-
-static gboolean
-propagate_event_down (GtkWidget *widget,
-                      GdkEvent  *event,
-                      GtkWidget *topmost)
+gboolean
+gtk_propagate_event_internal (GtkWidget *widget,
+                              GdkEvent  *event,
+                              GtkWidget *topmost)
 {
   gint handled_event = FALSE;
   GtkWidget *target = widget;
-  GPtrArray *widgets;
+  GtkArray widget_array;
+  GtkWidget *stack_widgets[16];
   int i;
 
-  widgets = g_ptr_array_new_full (16, g_object_unref);
-  g_ptr_array_add (widgets, g_object_ref (widget));
+  /* First, propagate event down */
+  gtk_array_init (&widget_array, (void**)stack_widgets, 16);
+  gtk_array_add (&widget_array, g_object_ref (widget));
 
   for (;;)
     {
-      widget = gtk_widget_get_parent (widget);
+      widget = _gtk_widget_get_parent (widget);
       if (!widget)
         break;
 
-      g_ptr_array_add (widgets, g_object_ref (widget));
+      gtk_array_add (&widget_array, g_object_ref (widget));
 
       if (widget == topmost)
         break;
     }
 
-  i = (int)widgets->len - 1;
+  i = widget_array.len - 1;
   for (;;)
     {
-      widget = g_ptr_array_index (widgets, i);
+      widget = gtk_array_index (&widget_array, i);
 
-      if (!gtk_widget_is_sensitive (widget))
+      if (!_gtk_widget_is_sensitive (widget))
         {
           /* stop propagating on SCROLL, but don't handle the event, so it
            * can propagate up again and reach its handling widget
@@ -2163,10 +2156,10 @@ propagate_event_down (GtkWidget *widget,
           else
             handled_event = TRUE;
         }
-      else if (gtk_widget_get_realized (widget))
+      else if (_gtk_widget_get_realized (widget))
         handled_event = _gtk_widget_captured_event (widget, event, target);
 
-      handled_event |= !gtk_widget_get_realized (widget);
+      handled_event |= !_gtk_widget_get_realized (widget);
 
       if (handled_event)
         break;
@@ -2177,24 +2170,36 @@ propagate_event_down (GtkWidget *widget,
       i--;
     }
 
-  g_ptr_array_free (widgets, TRUE);
+  /* If not yet handled, also propagate down */
+  if (!handled_event)
+    {
+      /* Propagate event up the widget tree so that
+       * parents can see the button and motion
+       * events of the children.
+       */
+      for (i = 0; i < widget_array.len; i++)
+        {
+          widget = gtk_array_index (&widget_array, i);
 
+          /* Scroll events are special cased here because it
+           * feels wrong when scrolling a GtkViewport, say,
+           * to have children of the viewport eat the scroll
+           * event
+           */
+          if (!_gtk_widget_is_sensitive (widget))
+            handled_event = gdk_event_get_event_type (event) != GDK_SCROLL;
+          else if (_gtk_widget_get_realized (widget))
+            handled_event = gtk_widget_event (widget, event, target);
+
+          handled_event |= !_gtk_widget_get_realized (widget);
+
+          if (handled_event)
+            break;
+        }
+    }
+
+  gtk_array_free (&widget_array, g_object_unref);
   return handled_event;
-}
-
-gboolean
-gtk_propagate_event_internal (GtkWidget *widget,
-                              GdkEvent  *event,
-                              GtkWidget *topmost)
-{
-  /* Propagate the event down and up */
-  if (propagate_event_down (widget, event, topmost))
-    return TRUE;
-
-  if (propagate_event_up (widget, event, topmost))
-    return TRUE;
-
-  return FALSE;
 }
 
 /**

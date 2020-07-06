@@ -102,6 +102,7 @@ struct _GdkDisplay
 #endif /* GDK_RENDERING_VULKAN */
   guint rgba : 1;
   guint composited : 1;
+  guint input_shapes : 1;
 
   GdkDebugFlags debug_flags;
 
@@ -123,9 +124,7 @@ struct _GdkDisplayClass
   gboolean                   (*has_pending)        (GdkDisplay *display);
   void                       (*queue_events)       (GdkDisplay *display);
   void                       (*make_default)       (GdkDisplay *display);
-  GdkSurface *                (*get_default_group)  (GdkDisplay *display);
-  gboolean                   (*supports_shapes)       (GdkDisplay *display);
-  gboolean                   (*supports_input_shapes) (GdkDisplay *display);
+  GdkSurface *               (*get_default_group)  (GdkDisplay *display);
 
   GdkAppLaunchContext *      (*get_app_launch_context) (GdkDisplay *display);
 
@@ -155,16 +154,12 @@ struct _GdkDisplayClass
 
   GdkSeat *              (*get_default_seat)           (GdkDisplay     *display);
 
-  int                    (*get_n_monitors)             (GdkDisplay     *display);
-  GdkMonitor *           (*get_monitor)                (GdkDisplay     *display,
-                                                        int             index);
-  GdkMonitor *           (*get_primary_monitor)        (GdkDisplay     *display);
-  GdkMonitor *           (*get_monitor_at_surface)      (GdkDisplay     *display,
+  GListModel *           (*get_monitors)               (GdkDisplay     *self);
+  GdkMonitor *           (*get_monitor_at_surface)     (GdkDisplay     *display,
                                                         GdkSurface      *surface);
   gboolean               (*get_setting)                (GdkDisplay     *display,
                                                         const char     *name,
                                                         GValue         *value);
-  guint32                (*get_last_seen_time)         (GdkDisplay     *display);
   void                   (*set_cursor_theme)           (GdkDisplay     *display,
                                                         const char     *name,
                                                         int             size);
@@ -237,15 +232,13 @@ void                gdk_display_set_rgba              (GdkDisplay       *display
                                                        gboolean          rgba);
 void                gdk_display_set_composited        (GdkDisplay       *display,
                                                        gboolean          composited);
+void                gdk_display_set_input_shapes      (GdkDisplay       *display,
+                                                       gboolean          input_shapes);
 
 void                gdk_display_add_seat              (GdkDisplay       *display,
                                                        GdkSeat          *seat);
 void                gdk_display_remove_seat           (GdkDisplay       *display,
                                                        GdkSeat          *seat);
-void                gdk_display_monitor_added         (GdkDisplay       *display,
-                                                       GdkMonitor       *monitor);
-void                gdk_display_monitor_removed       (GdkDisplay       *display,
-                                                       GdkMonitor       *monitor);
 void                gdk_display_emit_opened           (GdkDisplay       *display);
 
 void                gdk_display_setting_changed       (GdkDisplay       *display,

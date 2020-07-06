@@ -45,9 +45,8 @@ do_spinner (GtkWidget *do_widget)
     gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
 
     g_signal_connect (window, "response",
-                      G_CALLBACK (gtk_widget_destroy), NULL);
-    g_signal_connect (window, "destroy",
-                      G_CALLBACK (gtk_widget_destroyed), &window);
+                      G_CALLBACK (gtk_window_destroy), NULL);
+    g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
     content_area = gtk_dialog_get_content_area (GTK_DIALOG (window));
 
@@ -56,34 +55,34 @@ do_spinner (GtkWidget *do_widget)
     gtk_widget_set_margin_end (vbox, 5);
     gtk_widget_set_margin_top (vbox, 5);
     gtk_widget_set_margin_bottom (vbox, 5);
-    gtk_container_add (GTK_CONTAINER (content_area), vbox);
+    gtk_box_append (GTK_BOX (content_area), vbox);
 
     /* Sensitive */
     hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
     spinner = gtk_spinner_new ();
-    gtk_container_add (GTK_CONTAINER (hbox), spinner);
-    gtk_container_add (GTK_CONTAINER (hbox), gtk_entry_new ());
-    gtk_container_add (GTK_CONTAINER (vbox), hbox);
+    gtk_box_append (GTK_BOX (hbox), spinner);
+    gtk_box_append (GTK_BOX (hbox), gtk_entry_new ());
+    gtk_box_append (GTK_BOX (vbox), hbox);
     spinner_sensitive = spinner;
 
     /* Disabled */
     hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 5);
     spinner = gtk_spinner_new ();
-    gtk_container_add (GTK_CONTAINER (hbox), spinner);
-    gtk_container_add (GTK_CONTAINER (hbox), gtk_entry_new ());
-    gtk_container_add (GTK_CONTAINER (vbox), hbox);
+    gtk_box_append (GTK_BOX (hbox), spinner);
+    gtk_box_append (GTK_BOX (hbox), gtk_entry_new ());
+    gtk_box_append (GTK_BOX (vbox), hbox);
     spinner_unsensitive = spinner;
     gtk_widget_set_sensitive (hbox, FALSE);
 
     button = gtk_button_new_with_label (_("Play"));
     g_signal_connect (G_OBJECT (button), "clicked",
                       G_CALLBACK (on_play_clicked), spinner);
-    gtk_container_add (GTK_CONTAINER (vbox), button);
+    gtk_box_append (GTK_BOX (vbox), button);
 
     button = gtk_button_new_with_label (_("Stop"));
     g_signal_connect (G_OBJECT (button), "clicked",
                       G_CALLBACK (on_stop_clicked), spinner);
-    gtk_container_add (GTK_CONTAINER (vbox), button);
+    gtk_box_append (GTK_BOX (vbox), button);
 
     /* Start by default to test for:
      * https://bugzilla.gnome.org/show_bug.cgi?id=598496 */
@@ -93,7 +92,7 @@ do_spinner (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

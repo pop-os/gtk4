@@ -104,8 +104,9 @@
  * ]|
  *
  * It is also possible to show a #GtkAboutDialog like any other #GtkDialog,
- * e.g. using gtk_dialog_run(). In this case, you might need to know that
- * the “Close” button returns the #GTK_RESPONSE_CANCEL response id.
+ * and use the #GtkDialog::response signal to catch user responses. In this
+ * case, you might need to know that the “Close” button returns the
+ * %GTK_RESPONSE_CANCEL response id.
  */
 
 typedef struct
@@ -135,6 +136,9 @@ static const LicenseInfo gtk_license_info [] = {
   { N_("Apache License, Version 2.0"), "https://opensource.org/licenses/Apache-2.0" },
   { N_("Mozilla Public License 2.0"), "https://opensource.org/licenses/MPL-2.0" }
 };
+/* Keep this static assertion updated with the last element of the
+ * enumeration, and make sure it matches the last element of the array */
+G_STATIC_ASSERT (G_N_ELEMENTS (gtk_license_info) - 1 == GTK_LICENSE_MPL_2_0);
 
 typedef struct
 {
@@ -1316,7 +1320,7 @@ gtk_about_dialog_get_system_information (GtkAboutDialog *about)
  * dialog. If @system_information is %NULL, the system information
  * tab is hidden.
  *
- * See #GtkAboutdialog:system-information.
+ * See #GtkAboutDialog:system-information.
  */
 void
 gtk_about_dialog_set_system_information (GtkAboutDialog *about,
@@ -2345,7 +2349,7 @@ gtk_about_dialog_set_license_type (GtkAboutDialog *about,
 {
   g_return_if_fail (GTK_IS_ABOUT_DIALOG (about));
   g_return_if_fail (license_type >= GTK_LICENSE_UNKNOWN &&
-                    license_type <= GTK_LICENSE_AGPL_3_0_ONLY);
+                    license_type < G_N_ELEMENTS (gtk_license_info));
 
   if (about->license_type != license_type)
     {

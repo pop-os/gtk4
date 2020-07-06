@@ -24,6 +24,13 @@
 #include "gtkrendererpaintableprivate.h"
 
 #include "gsk/gskrendernodeparserprivate.h"
+#include "gsk/gl/gskglrenderer.h"
+#ifdef GDK_WINDOWING_BROADWAY
+#include "gsk/broadway/gskbroadwayrenderer.h"
+#endif
+#ifdef GDK_RENDERING_VULKAN
+#include "gsk/vulkan/gskvulkanrenderer.h"
+#endif
 
 #ifndef NODE_EDITOR_SOURCE_DIR
 #define NODE_EDITOR_SOURCE_DIR "." /* Fallback */
@@ -54,6 +61,8 @@ struct _NodeEditorWindow
   GtkWidget *renderer_listbox;
   GListStore *renderers;
   GdkPaintable *paintable;
+
+  GFileMonitor *file_monitor;
 
   GArray *errors;
 };
@@ -324,11 +333,10 @@ text_view_query_tooltip_cb (GtkWidget        *widget,
     }
 }
 
-gboolean
-node_editor_window_load (NodeEditorWindow *self,
-                         GFile            *file)
+static gboolean
+load_file_contents (NodeEditorWindow *self,
+                    GFile            *file)
 {
-  GtkTextIter end;
   GBytes *bytes;
 
   bytes = g_file_load_bytes (file, NULL, NULL, NULL);
@@ -341,13 +349,50 @@ node_editor_window_load (NodeEditorWindow *self,
       return FALSE;
     }
 
-  gtk_text_buffer_get_end_iter (self->text_buffer, &end);
-  gtk_text_buffer_insert (self->text_buffer,
-                          &end,
-                          g_bytes_get_data (bytes, NULL),
-                          g_bytes_get_size (bytes));
+  gtk_text_buffer_set_text (self->text_buffer,
+                            g_bytes_get_data (bytes, NULL),
+                            g_bytes_get_size (bytes));
 
   g_bytes_unref (bytes);
+
+  return TRUE;
+}
+
+static void
+file_changed_cb (GFileMonitor      *monitor,
+                 GFile             *file,
+                 GFile             *other_file,
+                 GFileMonitorEvent  event_type,
+                 gpointer           user_data)
+{
+  NodeEditorWindow *self = user_data;
+
+  if (event_type == G_FILE_MONITOR_EVENT_CHANGED)
+    load_file_contents (self, file);
+}
+
+gboolean
+node_editor_window_load (NodeEditorWindow *self,
+                         GFile            *file)
+{
+  GError *error = NULL;
+
+  if (!load_file_contents (self, file))
+    return FALSE;
+
+  g_clear_object (&self->file_monitor);
+  self->file_monitor = g_file_monitor_file (file, G_FILE_MONITOR_NONE, NULL, &error);
+
+
+  if (error)
+    {
+      g_warning ("couldn't monitor file: %s", error->message);
+      g_error_free (error);
+    }
+  else
+    {
+      g_signal_connect (self->file_monitor, "changed", G_CALLBACK (file_changed_cb), self);
+    }
 
   return TRUE;
 }
@@ -368,7 +413,7 @@ open_response_cb (GtkWidget        *dialog,
       g_object_unref (file);
     }
 
-  gtk_widget_destroy (dialog);
+  gtk_window_destroy (GTK_WINDOW (dialog));
 }
 
 static void
@@ -434,7 +479,7 @@ save_response_cb (GtkWidget        *dialog,
                                                    "Saving failed");
           gtk_message_dialog_format_secondary_text (GTK_MESSAGE_DIALOG (message_dialog),
                                                     "%s", error->message);
-          g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_widget_destroy), NULL);
+          g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
           gtk_widget_show (message_dialog);
           g_error_free (error);
         }
@@ -443,7 +488,7 @@ save_response_cb (GtkWidget        *dialog,
       g_object_unref (file);
     }
 
-  gtk_widget_destroy (dialog);
+  gtk_window_destroy (GTK_WINDOW (dialog));
 }
 
 static void
@@ -551,14 +596,14 @@ export_image_response_cb (GtkWidget  *dialog,
                                                    GTK_MESSAGE_INFO,
                                                    GTK_BUTTONS_OK,
                                                    "Exporting to image failed");
-          g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_widget_destroy), NULL);
+          g_signal_connect (message_dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
           gtk_widget_show (message_dialog);
         }
 
       g_object_unref (file);
     }
 
-  gtk_widget_destroy (dialog);
+  gtk_window_destroy (GTK_WINDOW (dialog));
   g_object_unref (texture);
 }
 
@@ -780,16 +825,16 @@ node_editor_window_create_renderer_widget (gpointer item,
   gtk_widget_set_size_request (box, 120, 90);
 
   label = gtk_label_new (g_object_get_data (G_OBJECT (paintable), "description"));
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_box_append (GTK_BOX (box), label);
 
   picture = gtk_picture_new_for_paintable (paintable);
   /* don't ever scale up, we want to be as accurate as possible */
   gtk_widget_set_halign (picture, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (picture, GTK_ALIGN_CENTER);
-  gtk_container_add (GTK_CONTAINER (box), picture);
+  gtk_box_append (GTK_BOX (box), picture);
 
   row = gtk_list_box_row_new ();
-  gtk_container_add (GTK_CONTAINER (row), box);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), box);
   gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
 
   return row;

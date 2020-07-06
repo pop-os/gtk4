@@ -12,6 +12,10 @@
   <gresource prefix="/builder">
     <file>demo.ui</file>
   </gresource>
+  <gresource prefix="/clipboard">
+    <file>demoimage.c</file>
+    <file>demoimage.h</file>
+  </gresource>
   <gresource prefix="/css_accordion">
     <file>css_accordion.css</file>
     <file>reset.css</file>
@@ -154,7 +158,6 @@
     <file>assistant.c</file>
     <file>builder.c</file>
     <file>clipboard.c</file>
-    <file>colorsel.c</file>
     <file>combobox.c</file>
     <file>constraints.c</file>
     <file>constraints2.c</file>
@@ -277,9 +280,6 @@
   <gresource prefix="/modelbutton">
     <file>modelbutton.ui</file>
   </gresource>
-  <gresource prefix="/dnd">
-    <file>dnd.css</file>
-  </gresource>
   <gresource prefix="/tagged_entry">
     <file>demotaggedentry.c</file>
     <file>demotaggedentry.h</file>
@@ -308,5 +308,8 @@
     <file>icons/16x16/emotes/face-laugh-symbolic.symbolic.png</file>
     <file>icons/16x16/status/battery-caution-charging-symbolic.symbolic.png</file>
     <file>icons/16x16/categories/applications-other.png</file>
+  </gresource>
+  <gresource prefix="/org/gtk/Demo4/gtk">
+    <file preprocess="xml-stripblanks">help-overlay.ui</file>
   </gresource>
 </gresources>

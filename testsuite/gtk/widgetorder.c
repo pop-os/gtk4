@@ -6,7 +6,7 @@ simple (void)
   GtkWidget *box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   GtkWidget *l = gtk_label_new ("");
 
-  gtk_container_add (GTK_CONTAINER (box), l);
+  gtk_box_append (GTK_BOX (box), l);
 
   g_assert (gtk_widget_get_parent (l) == box);
   g_assert (gtk_widget_get_prev_sibling (l) == NULL);
@@ -25,8 +25,8 @@ two (void)
   GtkWidget *l1 = gtk_label_new ("");
   GtkWidget *l2 = gtk_label_new ("");
 
-  gtk_container_add (GTK_CONTAINER (box), l1);
-  gtk_container_add (GTK_CONTAINER (box), l2);
+  gtk_box_append (GTK_BOX (box), l1);
+  gtk_box_append (GTK_BOX (box), l2);
 
   g_assert (gtk_widget_get_parent (l1) == box);
   g_assert (gtk_widget_get_prev_sibling (l1) == NULL);
@@ -545,7 +545,45 @@ no_loop (void)
   g_assert (gtk_widget_get_next_sibling (l2) == NULL);
 }
 
-int main (int argc, char **argv)
+static void
+reorder_refcount (void)
+{
+  GtkWidget *p = gtk_label_new ("");
+  GtkWidget *l1 = gtk_label_new ("");
+  GtkWidget *l2 = gtk_label_new ("");
+
+  g_assert (g_object_is_floating (l1));
+  g_assert (G_OBJECT (l1)->ref_count == 1);
+
+  gtk_widget_set_parent (l1, p);
+
+  g_assert (!g_object_is_floating (l1));
+  g_assert (G_OBJECT (l1)->ref_count == 1);
+
+  g_assert (g_object_is_floating (l2));
+  g_assert (G_OBJECT (l2)->ref_count == 1);
+
+  gtk_widget_set_parent (l2, p);
+
+  g_assert (!g_object_is_floating (l2));
+  g_assert (G_OBJECT (l2)->ref_count == 1);
+
+  g_assert (gtk_widget_get_next_sibling (l1) == l2);
+
+  gtk_widget_insert_before (l2, p, l1);
+
+  g_assert (gtk_widget_get_prev_sibling (l1) == l2);
+
+  g_assert (G_OBJECT (l1)->ref_count == 1);
+  g_assert (G_OBJECT (l2)->ref_count == 1);
+
+  gtk_widget_unparent (l1);
+  gtk_widget_unparent (l2);
+  g_object_unref (g_object_ref_sink (p));
+}
+
+int
+main (int argc, char **argv)
 {
   gtk_init ();
   g_test_init (&argc, &argv, NULL);
@@ -565,6 +603,7 @@ int main (int argc, char **argv)
   g_test_add_func ("/widgetorder/same-after", same_after);
   g_test_add_func ("/widgetorder/same-before", same_before);
   g_test_add_func ("/widgetorder/no-loop", no_loop);
+  g_test_add_func ("/widgetorder/reorder-refcount", reorder_refcount);
 
   return g_test_run ();
 }

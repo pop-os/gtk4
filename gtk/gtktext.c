@@ -313,7 +313,6 @@ static void   gtk_text_dispose              (GObject      *object);
 
 /* GtkWidget methods
  */
-static void   gtk_text_destroy              (GtkWidget        *widget);
 static void   gtk_text_realize              (GtkWidget        *widget);
 static void   gtk_text_unrealize            (GtkWidget        *widget);
 static void   gtk_text_unmap                (GtkWidget        *widget);
@@ -717,7 +716,6 @@ gtk_text_class_init (GtkTextClass *class)
   gobject_class->set_property = gtk_text_set_property;
   gobject_class->get_property = gtk_text_get_property;
 
-  widget_class->destroy = gtk_text_destroy;
   widget_class->unmap = gtk_text_unmap;
   widget_class->realize = gtk_text_realize;
   widget_class->unrealize = gtk_text_unrealize;
@@ -1824,7 +1822,7 @@ gtk_text_init (GtkText *self)
   int i;
   GtkDropTarget *target;
 
-  gtk_widget_set_can_focus (GTK_WIDGET (self), TRUE);
+  gtk_widget_set_focusable (GTK_WIDGET (self), TRUE);
   gtk_widget_set_overflow (GTK_WIDGET (self), GTK_OVERFLOW_HIDDEN);
 
   priv->editable = TRUE;
@@ -1917,10 +1915,13 @@ gtk_text_init (GtkText *self)
 }
 
 static void
-gtk_text_destroy (GtkWidget *widget)
+gtk_text_dispose (GObject *object)
 {
-  GtkText *self = GTK_TEXT (widget);
+  GtkText *self = GTK_TEXT (object);
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
+  GdkSeat *seat;
+  GdkDevice *keyboard = NULL;
+  GtkWidget *chooser;
 
   priv->current_pos = priv->selection_bound = 0;
   gtk_text_reset_im_context (self);
@@ -1928,26 +1929,12 @@ gtk_text_destroy (GtkWidget *widget)
 
   if (priv->blink_tick)
     {
-      gtk_widget_remove_tick_callback (widget, priv->blink_tick);
+      gtk_widget_remove_tick_callback (GTK_WIDGET (object), priv->blink_tick);
       priv->blink_tick = 0;
     }
 
   if (priv->magnifier)
     _gtk_magnifier_set_inspected (GTK_MAGNIFIER (priv->magnifier), NULL);
-
-  GTK_WIDGET_CLASS (gtk_text_parent_class)->destroy (widget);
-}
-
-static void
-gtk_text_dispose (GObject *object)
-{
-  GtkText *self = GTK_TEXT (object);
-  GtkTextPrivate *priv = gtk_text_get_instance_private (self);
-  GdkSeat *seat;
-  GdkDevice *keyboard;
-  GtkWidget *chooser;
-
-  priv->current_pos = 0;
 
   if (priv->buffer)
     {
@@ -1962,14 +1949,19 @@ gtk_text_dispose (GObject *object)
     gtk_widget_unparent (chooser);
 
   seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (object)));
-  keyboard = gdk_seat_get_keyboard (seat);
-  g_signal_handlers_disconnect_by_func (keyboard, direction_changed, self);
+  if (seat)
+    keyboard = gdk_seat_get_keyboard (seat);
+  if (keyboard)
+    g_signal_handlers_disconnect_by_func (keyboard, direction_changed, self);
 
   g_clear_pointer (&priv->selection_bubble, gtk_widget_unparent);
   g_clear_pointer (&priv->popup_menu, gtk_widget_unparent);
   g_clear_pointer ((GtkWidget **) &priv->text_handles[TEXT_HANDLE_CURSOR], gtk_widget_unparent);
   g_clear_pointer ((GtkWidget **) &priv->text_handles[TEXT_HANDLE_SELECTION_BOUND], gtk_widget_unparent);
   g_clear_object (&priv->extra_menu);
+
+  g_clear_pointer (&priv->magnifier_popover, gtk_widget_unparent);
+  g_clear_pointer (&priv->placeholder, gtk_widget_unparent);
 
   G_OBJECT_CLASS (gtk_text_parent_class)->dispose (object);
 }
@@ -1985,10 +1977,7 @@ gtk_text_finalize (GObject *object)
   g_clear_object (&priv->history);
   g_clear_object (&priv->cached_layout);
   g_clear_object (&priv->im_context);
-  g_clear_pointer (&priv->magnifier_popover, gtk_widget_destroy);
   g_free (priv->im_module);
-
-  g_clear_pointer (&priv->placeholder, gtk_widget_unparent);
 
   if (priv->tabs)
     pango_tab_array_free (priv->tabs);
@@ -2016,8 +2005,7 @@ gtk_text_ensure_magnifier (GtkText *self)
   gtk_widget_set_parent (priv->magnifier_popover, GTK_WIDGET (self));
   gtk_widget_add_css_class (priv->magnifier_popover, "magnifier");
   gtk_popover_set_autohide (GTK_POPOVER (priv->magnifier_popover), FALSE);
-  gtk_container_add (GTK_CONTAINER (priv->magnifier_popover),
-                     priv->magnifier);
+  gtk_popover_set_child (GTK_POPOVER (priv->magnifier_popover), priv->magnifier);
   gtk_widget_show (priv->magnifier);
 }
 
@@ -3143,22 +3131,24 @@ gtk_text_focus_in (GtkWidget *widget)
 {
   GtkText *self = GTK_TEXT (widget);
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
-  GdkSeat *seat;
-  GdkDevice *keyboard;
+  GdkSeat *seat = NULL;
+  GdkDevice *keyboard = NULL;
 
   gtk_widget_queue_draw (widget);
 
   seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
-  keyboard = gdk_seat_get_keyboard (seat);
+  if (seat)
+    keyboard = gdk_seat_get_keyboard (seat);
+  if (keyboard)
+    g_signal_connect (keyboard, "notify::direction",
+                      G_CALLBACK (direction_changed), self);
+
 
   if (priv->editable)
     {
       gtk_text_schedule_im_reset (self);
       gtk_im_context_focus_in (priv->im_context);
     }
-
-  g_signal_connect (keyboard, "notify::direction",
-                    G_CALLBACK (direction_changed), self);
 
   gtk_text_reset_blink_time (self);
   gtk_text_check_cursor_blink (self);
@@ -3169,8 +3159,8 @@ gtk_text_focus_out (GtkWidget *widget)
 {
   GtkText *self = GTK_TEXT (widget);
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
-  GdkSeat *seat;
-  GdkDevice *keyboard;
+  GdkSeat *seat = NULL;
+  GdkDevice *keyboard = NULL;
 
   gtk_text_selection_bubble_popup_unset (self);
 
@@ -3180,7 +3170,10 @@ gtk_text_focus_out (GtkWidget *widget)
   gtk_widget_queue_draw (widget);
 
   seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
-  keyboard = gdk_seat_get_keyboard (seat);
+  if (seat)
+    keyboard = gdk_seat_get_keyboard (seat);
+  if (keyboard)
+    g_signal_handlers_disconnect_by_func (keyboard, direction_changed, self);
 
   if (priv->editable)
     {
@@ -3189,8 +3182,6 @@ gtk_text_focus_out (GtkWidget *widget)
     }
 
   gtk_text_check_cursor_blink (self);
-
-  g_signal_handlers_disconnect_by_func (keyboard, direction_changed, self);
 }
 
 static gboolean
@@ -3670,15 +3661,21 @@ get_better_cursor_x (GtkText *self,
                      int      offset)
 {
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
-  GdkSeat *seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (self)));
-  GdkDevice *keyboard = gdk_seat_get_keyboard (seat);
-  PangoDirection direction = gdk_device_get_direction (keyboard);
+  GdkSeat *seat;
+  GdkDevice *keyboard = NULL;
+  PangoDirection direction = PANGO_DIRECTION_LTR;
   gboolean split_cursor;
   PangoLayout *layout = gtk_text_ensure_layout (self, TRUE);
   const char *text = pango_layout_get_text (layout);
   int index = g_utf8_offset_to_pointer (text, offset) - text;
   PangoRectangle strong_pos, weak_pos;
-  
+
+  seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (self)));
+  if (seat)
+    keyboard = gdk_seat_get_keyboard (seat);
+  if (keyboard)
+    direction = gdk_device_get_direction (keyboard);
+
   g_object_get (gtk_widget_get_settings (GTK_WIDGET (self)),
                 "gtk-split-cursor", &split_cursor,
                 NULL);
@@ -4391,11 +4388,19 @@ gtk_text_create_layout (GtkText  *self,
         {
           if (gtk_widget_has_focus (widget))
             {
-              GdkDisplay *display = gtk_widget_get_display (widget);
-              GdkSeat *seat = gdk_display_get_default_seat (display);
-              GdkDevice *keyboard = gdk_seat_get_keyboard (seat);
+              GdkDisplay *display;
+              GdkSeat *seat;
+              GdkDevice *keyboard = NULL;
+              PangoDirection direction = PANGO_DIRECTION_LTR;
 
-              if (gdk_device_get_direction (keyboard) == PANGO_DIRECTION_RTL)
+              display = gtk_widget_get_display (widget);
+              seat = gdk_display_get_default_seat (display);
+              if (seat)
+                keyboard = gdk_seat_get_keyboard (seat);
+              if (keyboard)
+                direction = gdk_device_get_direction (keyboard);
+
+              if (direction == PANGO_DIRECTION_RTL)
                 pango_dir = PANGO_DIRECTION_RTL;
               else
                 pango_dir = PANGO_DIRECTION_LTR;
@@ -4955,14 +4960,21 @@ gtk_text_move_visually (GtkText *self,
         strong = TRUE;
       else
         {
-          GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (self));
-          GdkSeat *seat = gdk_display_get_default_seat (display);
-          GdkDevice *keyboard = gdk_seat_get_keyboard (seat);
-          PangoDirection direction = gdk_device_get_direction (keyboard);
+          GdkDisplay *display;
+          GdkSeat *seat;
+          GdkDevice *keyboard = NULL;
+          PangoDirection direction = PANGO_DIRECTION_LTR;
+
+          display = gtk_widget_get_display (GTK_WIDGET (self));
+          seat = gdk_display_get_default_seat (display);
+          if (seat)
+            keyboard = gdk_seat_get_keyboard (seat);
+          if (keyboard)
+            direction = gdk_device_get_direction (keyboard);
 
           strong = direction == priv->resolved_dir;
         }
-      
+
       if (count > 0)
         {
           pango_layout_move_cursor_visually (layout, strong, index, 0, 1, &new_index, &new_trailing);
@@ -6016,11 +6028,11 @@ append_bubble_item (GtkText    *self,
   gtk_widget_set_focus_on_click (item, FALSE);
   image = gtk_image_new_from_icon_name (icon_name);
   gtk_widget_show (image);
-  gtk_container_add (GTK_CONTAINER (item), image);
+  gtk_button_set_child (GTK_BUTTON (item), image);
   gtk_widget_add_css_class (item, "image-button");
   gtk_actionable_set_action_name (GTK_ACTIONABLE (item), action_name);
   gtk_widget_show (GTK_WIDGET (item));
-  gtk_container_add (GTK_CONTAINER (toolbar), item);
+  gtk_box_append (GTK_BOX (toolbar), item);
 }
 
 static gboolean
@@ -6067,8 +6079,8 @@ gtk_text_selection_bubble_popup_show (gpointer user_data)
   gtk_widget_show (box);
   toolbar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_add_css_class (toolbar, "linked");
-  gtk_container_add (GTK_CONTAINER (priv->selection_bubble), box);
-  gtk_container_add (GTK_CONTAINER (box), toolbar);
+  gtk_popover_set_child (GTK_POPOVER (priv->selection_bubble), box);
+  gtk_box_append (GTK_BOX (box), toolbar);
 
   model = gtk_text_get_menu_model (self);
 

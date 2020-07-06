@@ -32,7 +32,7 @@
 
 #include <gtk/gtkapplication.h>
 #include <gtk/gtkaccelgroup.h>
-#include <gtk/gtkbin.h>
+#include <gtk/gtkwidget.h>
 
 G_BEGIN_DECLS
 
@@ -51,7 +51,7 @@ typedef struct _GtkWindowGroupPrivate GtkWindowGroupPrivate;
 
 struct _GtkWindow
 {
-  GtkBin parent_instance;
+  GtkWidget parent_instance;
 };
 
 /**
@@ -67,7 +67,7 @@ struct _GtkWindow
  */
 struct _GtkWindowClass
 {
-  GtkBinClass parent_class;
+  GtkWidgetClass parent_class;
 
   /*< public >*/
 
@@ -180,9 +180,6 @@ GDK_AVAILABLE_IN_ALL
 GListModel *gtk_window_get_toplevels (void);
 GDK_AVAILABLE_IN_ALL
 GList*     gtk_window_list_toplevels (void);
-GDK_AVAILABLE_IN_ALL
-void       gtk_window_set_has_user_ref_count (GtkWindow *window,
-                                              gboolean   setting);
 
 GDK_AVAILABLE_IN_ALL
 void     gtk_window_present            (GtkWindow *window);
@@ -240,6 +237,12 @@ void            gtk_window_set_application      (GtkWindow          *window,
                                                  GtkApplication     *application);
 
 GDK_AVAILABLE_IN_ALL
+void     gtk_window_set_child              (GtkWindow    *window,
+                                            GtkWidget    *child);
+GDK_AVAILABLE_IN_ALL
+GtkWidget *gtk_window_get_child            (GtkWindow    *window);
+
+GDK_AVAILABLE_IN_ALL
 void     gtk_window_set_titlebar           (GtkWindow    *window,
                                             GtkWidget    *titlebar);
 GDK_AVAILABLE_IN_ALL
@@ -247,6 +250,9 @@ GtkWidget *gtk_window_get_titlebar         (GtkWindow    *window);
 
 GDK_AVAILABLE_IN_ALL
 gboolean gtk_window_is_maximized           (GtkWindow    *window);
+
+GDK_AVAILABLE_IN_ALL
+void     gtk_window_destroy                (GtkWindow    *window);
 
 GDK_AVAILABLE_IN_ALL
 void     gtk_window_set_interactive_debugging (gboolean enable);

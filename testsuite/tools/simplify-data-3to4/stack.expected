@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <interface>
   <object class="GtkWindow" id="window1">
-    <child>
+    <property name="child">
       <object class="GtkBox" id="box1">
         <child>
           <object class="GtkStackSwitcher" id="stackswitcher1">
@@ -10,6 +10,8 @@
         </child>
         <child>
           <object class="GtkStack" id="stack1">
+            <property name="vhomogeneous">0</property>
+            <property name="hhomogeneous">0</property>
             <child>
               <object class="GtkStackPage">
                 <property name="name">page1</property>
@@ -37,6 +39,6 @@
           </object>
         </child>
       </object>
-    </child>
+    </property>
   </object>
 </interface>

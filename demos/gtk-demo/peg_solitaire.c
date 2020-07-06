@@ -276,17 +276,15 @@ do_peg_solitaire (GtkWidget *do_widget)
       g_signal_connect (restart, "clicked", G_CALLBACK (restart), NULL);
 
       header = gtk_header_bar_new ();
-      gtk_header_bar_set_title (GTK_HEADER_BAR (header), "Peg Solitaire");
       gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
       gtk_header_bar_pack_start (GTK_HEADER_BAR (header), restart);
       window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
-      gtk_window_set_title (GTK_WINDOW (window), "Sliding Puzzle");
+      gtk_window_set_title (GTK_WINDOW (window), "Peg Solitaire");
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
       gtk_window_set_default_size (GTK_WINDOW (window), 400, 300);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       grid = gtk_grid_new ();
       gtk_widget_set_halign (grid, GTK_ALIGN_CENTER);
@@ -295,7 +293,7 @@ do_peg_solitaire (GtkWidget *do_widget)
       gtk_grid_set_column_spacing (GTK_GRID (grid), 6);
       gtk_grid_set_row_homogeneous (GTK_GRID (grid), TRUE);
       gtk_grid_set_column_homogeneous (GTK_GRID (grid), TRUE);
-      gtk_container_add (GTK_CONTAINER (window), grid);
+      gtk_window_set_child (GTK_WINDOW (window), grid);
 
       for (x = 0; x < 7; x++)
         {
@@ -350,7 +348,7 @@ do_peg_solitaire (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

@@ -744,9 +744,15 @@ _gdk_wayland_display_create_surface (GdkDisplay     *display,
   g_object_ref (surface);
 
   /* More likely to be right than just assuming 1 */
-  if (display_wayland->compositor_version >= WL_SURFACE_HAS_BUFFER_SCALE &&
-      gdk_display_get_n_monitors (display) > 0)
-    impl->scale = gdk_monitor_get_scale_factor (gdk_display_get_monitor (display, 0));
+  if (display_wayland->compositor_version >= WL_SURFACE_HAS_BUFFER_SCALE)
+    {
+      GdkMonitor *monitor = g_list_model_get_item (gdk_display_get_monitors (display), 0);
+      if (monitor)
+        {
+          impl->scale = gdk_monitor_get_scale_factor (monitor);
+          g_object_unref (monitor);
+        }
+    }
 
   gdk_wayland_surface_set_title (surface, get_default_title ());
 
@@ -2683,6 +2689,16 @@ gdk_wayland_surface_hide_surface (GdkSurface *surface)
 static void
 gdk_wayland_surface_hide (GdkSurface *surface)
 {
+  GdkSeat *seat;
+
+  seat = gdk_display_get_default_seat (surface->display);
+  if (seat)
+    {
+      if (surface->autohide)
+        gdk_seat_ungrab (seat);
+
+      gdk_wayland_seat_clear_touchpoints (GDK_WAYLAND_SEAT (seat), surface);
+    }
   gdk_wayland_surface_hide_surface (surface);
   _gdk_surface_clear_update_area (surface);
 }
@@ -2915,28 +2931,34 @@ gdk_wayland_surface_present_popup (GdkSurface     *surface,
     {
       if (surface->autohide)
         {
-          GrabPrepareData data;
-          GdkGrabStatus result;
+          GdkSeat *seat;
 
-          data = (GrabPrepareData) {
-            .width = width,
-            .height = height,
-            .layout = layout,
-          };
-
-          result = gdk_seat_grab (gdk_display_get_default_seat (surface->display),
-                                  surface,
-                                  GDK_SEAT_CAPABILITY_ALL,
-                                  TRUE,
-                                  NULL, NULL,
-                                  show_grabbing_popup, &data);
-          if (result != GDK_GRAB_SUCCESS)
+          seat = gdk_display_get_default_seat (surface->display);
+          if (seat)
             {
-              const char *grab_status[] = {
-                "success", "already grabbed", "invalid time",
-                "not viewable", "frozen", "failed"
+              GrabPrepareData data;
+              GdkGrabStatus result;
+
+              data = (GrabPrepareData) {
+                .width = width,
+                .height = height,
+                .layout = layout,
               };
-              g_warning ("Grab failed: %s", grab_status[result]);
+
+              result = gdk_seat_grab (seat,
+                                      surface,
+                                      GDK_SEAT_CAPABILITY_ALL,
+                                      TRUE,
+                                      NULL, NULL,
+                                      show_grabbing_popup, &data);
+              if (result != GDK_GRAB_SUCCESS)
+                {
+                  const char *grab_status[] = {
+                    "success", "already grabbed", "invalid time",
+                    "not viewable", "frozen", "failed"
+                  };
+                  g_warning ("Grab failed: %s", grab_status[result]);
+                }
             }
         }
       else
@@ -3604,14 +3626,15 @@ gdk_wayland_surface_unfullscreen (GdkSurface *surface)
 }
 
 static void
-gdk_wayland_surface_begin_resize_drag (GdkSurface     *surface,
-                                       GdkSurfaceEdge  edge,
-                                       GdkDevice      *device,
-                                       gint            button,
-                                       gint            x,
-                                       gint            y,
-                                       guint32         timestamp)
+gdk_wayland_toplevel_begin_resize (GdkToplevel    *toplevel,
+                                   GdkSurfaceEdge  edge,
+                                   GdkDevice      *device,
+                                   int             button,
+                                   double          x,
+                                   double          y,
+                                   guint32         timestamp)
 {
+  GdkSurface *surface = GDK_SURFACE (toplevel);
   GdkWaylandSurface *impl;
   GdkWaylandDisplay *display_wayland;
   GdkEventSequence *sequence;
@@ -3656,7 +3679,7 @@ gdk_wayland_surface_begin_resize_drag (GdkSurface     *surface,
       break;
 
     default:
-      g_warning ("gdk_surface_begin_resize_drag: bad resize edge %d!", edge);
+      g_warning ("gdk_toplevel_begin_resize: bad resize edge %d!", edge);
       return;
     }
 
@@ -3687,21 +3710,17 @@ gdk_wayland_surface_begin_resize_drag (GdkSurface     *surface,
 
   if (sequence)
     gdk_wayland_device_unset_touch_grab (device, sequence);
-
-  /* This is needed since Wayland will absorb all the pointer events after the
-   * above function - FIXME: Is this always safe..?
-   */
-  gdk_seat_ungrab (gdk_device_get_seat (device));
 }
 
 static void
-gdk_wayland_surface_begin_move_drag (GdkSurface *surface,
-                                     GdkDevice  *device,
-                                     gint        button,
-                                     gint        x,
-                                     gint        y,
-                                     guint32     timestamp)
+gdk_wayland_toplevel_begin_move (GdkToplevel *toplevel,
+                                 GdkDevice   *device,
+                                 int          button,
+                                 double       x,
+                                 double       y,
+                                 guint32      timestamp)
 {
+  GdkSurface *surface = GDK_SURFACE (toplevel);
   GdkWaylandSurface *impl;
   GdkWaylandDisplay *display_wayland;
   GdkEventSequence *sequence;
@@ -3737,11 +3756,6 @@ gdk_wayland_surface_begin_move_drag (GdkSurface *surface,
 
   if (sequence)
     gdk_wayland_device_unset_touch_grab (device, sequence);
-
-  /* This is needed since Wayland will absorb all the pointer events after the
-   * above function - FIXME: Is this always safe..?
-   */
-  gdk_seat_ungrab (gdk_device_get_seat (device));
 }
 
 static void
@@ -3889,8 +3903,6 @@ gdk_wayland_surface_class_init (GdkWaylandSurfaceClass *klass)
   impl_class->destroy = gdk_wayland_surface_destroy;
   impl_class->beep = gdk_wayland_surface_beep;
 
-  impl_class->begin_resize_drag = gdk_wayland_surface_begin_resize_drag;
-  impl_class->begin_move_drag = gdk_wayland_surface_begin_move_drag;
   impl_class->destroy_notify = gdk_wayland_surface_destroy_notify;
   impl_class->drag_begin = _gdk_wayland_surface_drag_begin;
   impl_class->get_scale_factor = gdk_wayland_surface_get_scale_factor;
@@ -4605,15 +4617,10 @@ show_surface (GdkSurface *surface)
   if (!was_mapped)
     gdk_synthesize_surface_state (surface, GDK_SURFACE_STATE_WITHDRAWN, 0);
 
-  _gdk_surface_update_viewable (surface);
-
   gdk_wayland_surface_show (surface, FALSE);
 
   if (!was_mapped)
-    {
-      if (gdk_surface_is_viewable (surface))
-        gdk_surface_invalidate_rect (surface, NULL);
-    }
+    gdk_surface_invalidate_rect (surface, NULL);
 }
 
 static gboolean
@@ -4773,6 +4780,8 @@ gdk_wayland_toplevel_iface_init (GdkToplevelInterface *iface)
   iface->supports_edge_constraints = gdk_wayland_toplevel_supports_edge_constraints;
   iface->inhibit_system_shortcuts = gdk_wayland_toplevel_inhibit_system_shortcuts;
   iface->restore_system_shortcuts = gdk_wayland_toplevel_restore_system_shortcuts;
+  iface->begin_resize = gdk_wayland_toplevel_begin_resize;
+  iface->begin_move = gdk_wayland_toplevel_begin_move;
 }
 
 static void

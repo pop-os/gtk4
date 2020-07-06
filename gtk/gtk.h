@@ -46,7 +46,6 @@
 #include <gtk/gtkapplicationwindow.h>
 #include <gtk/gtkaspectframe.h>
 #include <gtk/gtkassistant.h>
-#include <gtk/gtkbin.h>
 #include <gtk/gtkbinlayout.h>
 #include <gtk/gtkborder.h>
 #include <gtk/gtkboxlayout.h>
@@ -83,7 +82,6 @@
 #include <gtk/gtkcomboboxtext.h>
 #include <gtk/gtkconstraintlayout.h>
 #include <gtk/gtkconstraint.h>
-#include <gtk/gtkcontainer.h>
 #include <gtk/gtkcssprovider.h>
 #include <gtk/gtkcustomlayout.h>
 #include <gtk/gtkdebug.h>
@@ -252,7 +250,9 @@
 #include <gtk/gtkwidget.h>
 #include <gtk/gtkwidgetpaintable.h>
 #include <gtk/gtkwindow.h>
+#include <gtk/gtkwindowcontrols.h>
 #include <gtk/gtkwindowgroup.h>
+#include <gtk/gtkwindowhandle.h>
 
 #include <gtk/gtk-autocleanups.h>
 

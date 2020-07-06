@@ -156,8 +156,10 @@ set_current_folder (GtkFileChooser *chooser,
 				       GTK_BUTTONS_CLOSE,
 				       "Could not set the folder to %s",
 				       name);
-      gtk_dialog_run (GTK_DIALOG (dialog));
-      gtk_widget_destroy (dialog);
+      gtk_widget_show (dialog);
+      g_signal_connect (dialog, "response",
+                        G_CALLBACK (gtk_window_destroy),
+                        NULL);
     }
   g_object_unref (file);
 }
@@ -191,8 +193,10 @@ set_filename (GtkFileChooser *chooser,
 				       GTK_BUTTONS_CLOSE,
 				       "Could not select %s",
 				       name);
-      gtk_dialog_run (GTK_DIALOG (dialog));
-      gtk_widget_destroy (dialog);
+      gtk_widget_show (dialog);
+      g_signal_connect (dialog, "response",
+                        G_CALLBACK (gtk_window_destroy),
+                        NULL);
     }
   g_object_unref (file);
 }
@@ -266,8 +270,7 @@ unmap_and_remap_cb (GtkButton *button,
 static void
 kill_dependent (GtkWindow *win, GtkWidget *dep)
 {
-  gtk_widget_destroy (dep);
-  g_object_unref (dep);
+  gtk_window_destroy (GTK_WINDOW (dep));
 }
 
 static void
@@ -452,59 +455,58 @@ main (int argc, char **argv)
   control_window = gtk_window_new ();
 
   vbbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  gtk_container_add (GTK_CONTAINER (control_window), vbbox);
+  gtk_window_set_child (GTK_WINDOW (control_window), vbbox);
 
   button = gtk_button_new_with_mnemonic ("_Select all");
   gtk_widget_set_sensitive (button, multiple);
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect_swapped (button, "clicked",
 			    G_CALLBACK (gtk_file_chooser_select_all), dialog);
   g_signal_connect (dialog, "notify::select-multiple",
 		    G_CALLBACK (notify_multiple_cb), button);
 
   button = gtk_button_new_with_mnemonic ("_Unselect all");
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect_swapped (button, "clicked",
 			    G_CALLBACK (gtk_file_chooser_unselect_all), dialog);
 
   button = gtk_button_new_with_label ("set_current_folder (\"/nonexistent\")");
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect (button, "clicked",
 		    G_CALLBACK (set_folder_nonexistent_cb), dialog);
 
   button = gtk_button_new_with_label ("set_current_folder (\"/usr/nonexistent\")");
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect (button, "clicked",
 		    G_CALLBACK (set_folder_existing_nonexistent_cb), dialog);
 
   button = gtk_button_new_with_label ("set_filename (\"/nonexistent\")");
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect (button, "clicked",
 		    G_CALLBACK (set_filename_nonexistent_cb), dialog);
 
   button = gtk_button_new_with_label ("set_filename (\"/usr/nonexistent\")");
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect (button, "clicked",
 		    G_CALLBACK (set_filename_existing_nonexistent_cb), dialog);
 
   button = gtk_button_new_with_label ("Get selection");
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect (button, "clicked",
 		    G_CALLBACK (get_selection_cb), dialog);
 
   button = gtk_button_new_with_label ("Get current name");
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect (button, "clicked",
 		    G_CALLBACK (get_current_name_cb), dialog);
 
   button = gtk_button_new_with_label ("Unmap and remap");
-  gtk_container_add (GTK_CONTAINER (vbbox), button);
+  gtk_box_append (GTK_BOX (vbbox), button);
   g_signal_connect (button, "clicked",
 		    G_CALLBACK (unmap_and_remap_cb), dialog);
 
   gtk_widget_show (control_window);
 
-  g_object_ref (control_window);
   g_signal_connect (dialog, "destroy",
 		    G_CALLBACK (kill_dependent), control_window);
 
@@ -514,7 +516,7 @@ main (int argc, char **argv)
   g_object_ref (dialog);
   while (!done)
     g_main_context_iteration (NULL, TRUE);
-  gtk_widget_destroy (dialog);
+  gtk_window_destroy (GTK_WINDOW (dialog));
   g_object_unref (dialog);
 
   return 0;

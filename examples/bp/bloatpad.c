@@ -188,12 +188,11 @@ text_buffer_changed_cb (GtkTextBuffer *buffer,
 
   if (old_n < 3 && n == 3)
     {
-      GNotification *n;
-      n = g_notification_new ("Three lines of text");
-      g_notification_set_body (n, "Keep up the good work!");
-      g_notification_add_button (n, "Start over", "app.clear-all");
-      g_application_send_notification (G_APPLICATION (app), "three-lines", n);
-      g_object_unref (n);
+      GNotification *notification = g_notification_new ("Three lines of text");
+      g_notification_set_body (notification, "Keep up the good work!");
+      g_notification_add_button (notification, "Start over", "app.clear-all");
+      g_application_send_notification (G_APPLICATION (app), "three-lines", notification);
+      g_object_unref (notification);
     }
 }
 
@@ -222,33 +221,33 @@ new_window (GApplication *app,
   gtk_window_set_title (GTK_WINDOW (window), "Bloatpad");
 
   grid = gtk_grid_new ();
-  gtk_container_add (GTK_CONTAINER (window), grid);
+  gtk_window_set_child (GTK_WINDOW (window), grid);
 
   toolbar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   button = gtk_toggle_button_new ();
   gtk_button_set_icon_name (GTK_BUTTON (button), "format-justify-left");
   gtk_actionable_set_detailed_action_name (GTK_ACTIONABLE (button), "win.justify::left");
-  gtk_container_add (GTK_CONTAINER (toolbar), button);
+  gtk_box_append (GTK_BOX (toolbar), button);
 
   button = gtk_toggle_button_new ();
   gtk_button_set_icon_name (GTK_BUTTON (button), "format-justify-center");
   gtk_actionable_set_detailed_action_name (GTK_ACTIONABLE (button), "win.justify::center");
-  gtk_container_add (GTK_CONTAINER (toolbar), button);
+  gtk_box_append (GTK_BOX (toolbar), button);
 
   button = gtk_toggle_button_new ();
   gtk_button_set_icon_name (GTK_BUTTON (button), "format-justify-right");
   gtk_actionable_set_detailed_action_name (GTK_ACTIONABLE (button), "win.justify::right");
-  gtk_container_add (GTK_CONTAINER (toolbar), button);
+  gtk_box_append (GTK_BOX (toolbar), button);
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
   gtk_widget_set_halign (box, GTK_ALIGN_END);
   label = gtk_label_new ("Fullscreen:");
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_box_append (GTK_BOX (box), label);
   sw = gtk_switch_new ();
   gtk_widget_set_valign (sw, GTK_ALIGN_CENTER);
   gtk_actionable_set_action_name (GTK_ACTIONABLE (sw), "win.fullscreen");
-  gtk_container_add (GTK_CONTAINER (box), sw);
-  gtk_container_add (GTK_CONTAINER (toolbar), box);
+  gtk_box_append (GTK_BOX (box), sw);
+  gtk_box_append (GTK_BOX (toolbar), box);
 
   gtk_grid_attach (GTK_GRID (grid), toolbar, 0, 0, 1, 1);
 
@@ -259,7 +258,7 @@ new_window (GApplication *app,
 
   g_object_set_data ((GObject*)window, "bloatpad-text", view);
 
-  gtk_container_add (GTK_CONTAINER (scrolled), view);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), view);
 
   gtk_grid_attach (GTK_GRID (grid), scrolled, 0, 1, 1, 1);
 
@@ -374,7 +373,7 @@ response (GtkDialog *dialog,
 
   if (response_id == GTK_RESPONSE_CLOSE)
     {
-      gtk_widget_destroy (GTK_WIDGET (dialog));
+      gtk_window_destroy (GTK_WINDOW (dialog));
       return;
     }
 
@@ -406,12 +405,12 @@ edit_accels (GSimpleAction *action,
   gtk_window_set_application (GTK_WINDOW (dialog), app);
   actions = gtk_application_list_action_descriptions (app);
   combo = gtk_combo_box_text_new ();
-  gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), combo);
+  gtk_box_append (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), combo);
   for (i = 0; actions[i]; i++)
     gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo), actions[i], actions[i]);
   g_signal_connect (combo, "changed", G_CALLBACK (combo_changed), dialog);
   entry = gtk_entry_new ();
-  gtk_container_add (GTK_CONTAINER (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), entry);
+  gtk_box_append (GTK_BOX (gtk_dialog_get_content_area (GTK_DIALOG (dialog))), entry);
   gtk_dialog_add_button (GTK_DIALOG (dialog), "Close", GTK_RESPONSE_CLOSE);
   gtk_dialog_add_button (GTK_DIALOG (dialog), "Set", GTK_RESPONSE_APPLY);
   g_signal_connect (dialog, "response", G_CALLBACK (response), dialog);
@@ -635,7 +634,7 @@ bloat_pad_class_init (BloatPadClass *class)
 
 }
 
-BloatPad *
+static BloatPad *
 bloat_pad_new (void)
 {
   BloatPad *bloat_pad;

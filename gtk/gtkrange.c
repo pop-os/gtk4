@@ -148,7 +148,7 @@ static void gtk_range_get_property   (GObject          *object,
                                       GValue           *value,
                                       GParamSpec       *pspec);
 static void gtk_range_finalize       (GObject          *object);
-static void gtk_range_destroy        (GtkWidget        *widget);
+static void gtk_range_dispose        (GObject          *object);
 static void gtk_range_measure        (GtkWidget      *widget,
                                       GtkOrientation  orientation,
                                       int             for_size,
@@ -271,8 +271,8 @@ gtk_range_class_init (GtkRangeClass *class)
   gobject_class->set_property = gtk_range_set_property;
   gobject_class->get_property = gtk_range_get_property;
   gobject_class->finalize = gtk_range_finalize;
+  gobject_class->dispose = gtk_range_dispose;
 
-  widget_class->destroy = gtk_range_destroy;
   widget_class->measure = gtk_range_measure;
   widget_class->snapshot = gtk_range_snapshot;
   widget_class->size_allocate = gtk_range_size_allocate;
@@ -1256,9 +1256,9 @@ gtk_range_get_fill_level (GtkRange *range)
 }
 
 static void
-gtk_range_destroy (GtkWidget *widget)
+gtk_range_dispose (GObject *object)
 {
-  GtkRange *range = GTK_RANGE (widget);
+  GtkRange *range = GTK_RANGE (object);
   GtkRangePrivate *priv = gtk_range_get_instance_private (range);
 
   gtk_range_remove_step_timer (range);
@@ -1284,7 +1284,7 @@ gtk_range_destroy (GtkWidget *widget)
       priv->n_marks = 0;
     }
 
-  GTK_WIDGET_CLASS (gtk_range_parent_class)->destroy (widget);
+  G_OBJECT_CLASS (gtk_range_parent_class)->dispose (object);
 }
 
 static void
@@ -1806,20 +1806,19 @@ update_initial_slider_position (GtkRange *range,
                                 double    y)
 {
   GtkRangePrivate *priv = gtk_range_get_instance_private (range);
-  int trough_x, trough_y;
 
   gtk_widget_translate_coordinates (GTK_WIDGET (range), priv->trough_widget,
-                                    x, y, &trough_x, &trough_y);
+                                    x, y, &x, &y);
 
   if (priv->orientation == GTK_ORIENTATION_HORIZONTAL)
     {
       priv->slide_initial_slider_position = MAX (0, priv->slider_x);
-      priv->slide_initial_coordinate_delta = trough_x - priv->slide_initial_slider_position;
+      priv->slide_initial_coordinate_delta = x - priv->slide_initial_slider_position;
     }
   else
     {
       priv->slide_initial_slider_position = MAX (0, priv->slider_y);
-      priv->slide_initial_coordinate_delta = trough_y - priv->slide_initial_slider_position;
+      priv->slide_initial_coordinate_delta = y - priv->slide_initial_slider_position;
     }
 }
 
@@ -1878,10 +1877,10 @@ gtk_range_click_gesture_pressed (GtkGestureClick *gesture,
 
   mouse_location = gtk_widget_pick (widget, x, y, 0);
 
-  /* For the purposes of this function, we ignore fill and highlight and
-   * handle them like the trough */
-  if (mouse_location == priv->fill_widget ||
-      mouse_location == priv->highlight_widget)
+  /* For the purposes of this function, we treat anything outside
+   * the slider like a click on the trough
+   */
+  if (mouse_location != priv->slider_widget)
     mouse_location = priv->trough_widget;
 
   if (mouse_location == priv->slider_widget)
@@ -1899,7 +1898,7 @@ gtk_range_click_gesture_pressed (GtkGestureClick *gesture,
             (!primary_warps && shift_pressed && button == GDK_BUTTON_PRIMARY) ||
             (!primary_warps && button == GDK_BUTTON_MIDDLE)))
     {
-      int slider_range_x, slider_range_y;
+      double slider_range_x, slider_range_y;
       graphene_rect_t slider_bounds;
 
       gtk_widget_translate_coordinates (priv->trough_widget, widget,
@@ -1993,9 +1992,10 @@ update_slider_position (GtkRange *range,
   gdouble mark_delta;
   gdouble zoom;
   gint i;
+  double x, y;
 
   gtk_widget_translate_coordinates (GTK_WIDGET (range), priv->trough_widget,
-                                    mouse_x, mouse_y, &mouse_x, &mouse_y);
+                                    mouse_x, mouse_y, &x, &y);
 
   if (priv->zoom &&
       gtk_widget_compute_bounds (priv->trough_widget, priv->trough_widget, &trough_bounds))
@@ -2028,15 +2028,15 @@ update_slider_position (GtkRange *range,
         zoom_divisor = zoom - 1.0;
 
       if (priv->orientation == GTK_ORIENTATION_VERTICAL)
-        priv->slide_initial_slider_position = (zoom * (mouse_y - priv->slide_initial_coordinate_delta) - slider_bounds.origin.y) / zoom_divisor;
+        priv->slide_initial_slider_position = (zoom * (y - priv->slide_initial_coordinate_delta) - slider_bounds.origin.y) / zoom_divisor;
       else
-        priv->slide_initial_slider_position = (zoom * (mouse_x - priv->slide_initial_coordinate_delta) - slider_bounds.origin.x) / zoom_divisor;
+        priv->slide_initial_slider_position = (zoom * (x - priv->slide_initial_coordinate_delta) - slider_bounds.origin.x) / zoom_divisor;
     }
 
   if (priv->orientation == GTK_ORIENTATION_VERTICAL)
-    delta = mouse_y - (priv->slide_initial_coordinate_delta + priv->slide_initial_slider_position);
+    delta = y - (priv->slide_initial_coordinate_delta + priv->slide_initial_slider_position);
   else
-    delta = mouse_x - (priv->slide_initial_coordinate_delta + priv->slide_initial_slider_position);
+    delta = x - (priv->slide_initial_coordinate_delta + priv->slide_initial_slider_position);
 
   c = priv->slide_initial_slider_position + zoom * delta;
 
@@ -2635,18 +2635,19 @@ gtk_range_calc_marks (GtkRange *range)
 {
   GtkRangePrivate *priv = gtk_range_get_instance_private (range);
   GdkRectangle slider;
+  double x, y;
   gint i;
 
   for (i = 0; i < priv->n_marks; i++)
     {
       gtk_range_compute_slider_position (range, priv->marks[i], &slider);
       gtk_widget_translate_coordinates (priv->trough_widget, GTK_WIDGET (range),
-                                        slider.x, slider.y, &slider.x, &slider.y);
+                                        slider.x, slider.y, &x, &y);
 
       if (priv->orientation == GTK_ORIENTATION_HORIZONTAL)
-        priv->mark_pos[i] = slider.x + slider.width / 2;
+        priv->mark_pos[i] = x + slider.width / 2;
       else
-        priv->mark_pos[i] = slider.y + slider.height / 2;
+        priv->mark_pos[i] = y + slider.height / 2;
     }
 }
 

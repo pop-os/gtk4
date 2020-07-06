@@ -5,7 +5,6 @@ demos = files([
   'assistant.c',
   'builder.c',
   'clipboard.c',
-  'colorsel.c',
   'combobox.c',
   'constraints.c',
   'constraints2.c',
@@ -90,6 +89,7 @@ extra_demo_sources = files(['main.c',
                             'gtkgears.c',
                             'puzzlepiece.c',
                             'bluroverlay.c',
+                            'demoimage.c',
                             'demotaggedentry.c'])
 
 if harfbuzz_dep.found() and pangoft_dep.found()

@@ -30,7 +30,6 @@
 
 #include "gtkmountoperationprivate.h"
 #include "gtkbox.h"
-#include "gtkcssiconthemevalueprivate.h"
 #include "gtkdbusgenerated.h"
 #include "gtkentry.h"
 #include "gtkbox.h"
@@ -220,6 +219,13 @@ gtk_mount_operation_init (GtkMountOperation *operation)
 }
 
 static void
+parent_destroyed (GtkWidget  *parent,
+                  gpointer  **pointer)
+{
+  *pointer = NULL;
+}
+
+static void
 gtk_mount_operation_finalize (GObject *object)
 {
   GtkMountOperation *operation = GTK_MOUNT_OPERATION (object);
@@ -231,7 +237,7 @@ gtk_mount_operation_finalize (GObject *object)
   if (priv->parent_window)
     {
       g_signal_handlers_disconnect_by_func (priv->parent_window,
-                                            gtk_widget_destroyed,
+                                            parent_destroyed,
                                             &priv->parent_window);
       g_object_unref (priv->parent_window);
     }
@@ -393,7 +399,7 @@ pw_dialog_got_response (GtkDialog         *dialog,
 
   priv->dialog = NULL;
   g_object_notify (G_OBJECT (op), "is-showing");
-  gtk_widget_destroy (GTK_WIDGET (dialog));
+  gtk_window_destroy (GTK_WINDOW (dialog));
   g_object_unref (op);
 }
 
@@ -606,17 +612,17 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
 
   /* Build contents */
   hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 12);
-  gtk_container_add (GTK_CONTAINER (content_area), hbox);
+  gtk_box_append (GTK_BOX (content_area), hbox);
 
   icon = gtk_image_new_from_icon_name ("dialog-password");
   gtk_image_set_icon_size (GTK_IMAGE (icon), GTK_ICON_SIZE_LARGE);
 
   gtk_widget_set_halign (icon, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (icon, GTK_ALIGN_START);
-  gtk_container_add (GTK_CONTAINER (hbox), icon);
+  gtk_box_append (GTK_BOX (hbox), icon);
 
   main_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 18);
-  gtk_container_add (GTK_CONTAINER (hbox), main_vbox);
+  gtk_box_append (GTK_BOX (hbox), main_vbox);
 
   secondary = strstr (message, "\n");
   if (secondary != NULL)
@@ -632,7 +638,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   gtk_widget_set_halign (label, GTK_ALIGN_START);
   gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
   gtk_label_set_wrap (GTK_LABEL (label), TRUE);
-  gtk_container_add (GTK_CONTAINER (main_vbox), GTK_WIDGET (label));
+  gtk_box_append (GTK_BOX (main_vbox), GTK_WIDGET (label));
   g_free (primary);
   attrs = pango_attr_list_new ();
   pango_attr_list_insert (attrs, pango_attr_weight_new (PANGO_WEIGHT_BOLD));
@@ -645,7 +651,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       gtk_widget_set_halign (label, GTK_ALIGN_START);
       gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
       gtk_label_set_wrap (GTK_LABEL (label), TRUE);
-      gtk_container_add (GTK_CONTAINER (main_vbox), GTK_WIDGET (label));
+      gtk_box_append (GTK_BOX (main_vbox), GTK_WIDGET (label));
     }
 
   grid = gtk_grid_new ();
@@ -653,7 +659,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   gtk_grid_set_row_spacing (GTK_GRID (grid), 12);
   gtk_grid_set_column_spacing (GTK_GRID (grid), 12);
   gtk_widget_set_margin_bottom (grid, 12);
-  gtk_container_add (GTK_CONTAINER (main_vbox), grid);
+  gtk_box_append (GTK_BOX (main_vbox), grid);
 
   can_anonymous = priv->ask_flags & G_ASK_PASSWORD_ANONYMOUS_SUPPORTED;
 
@@ -676,7 +682,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       gtk_grid_attach (GTK_GRID (grid), anon_box, 1, rows++, 1, 1);
 
       choice = gtk_radio_button_new_with_mnemonic (NULL, _("_Anonymous"));
-      gtk_container_add (GTK_CONTAINER (anon_box),
+      gtk_box_append (GTK_BOX (anon_box),
                           choice);
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (pw_dialog_anonymous_toggled), operation);
@@ -684,7 +690,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
 
       group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (choice));
       choice = gtk_radio_button_new_with_mnemonic (group, _("Registered U_ser"));
-      gtk_container_add (GTK_CONTAINER (anon_box),
+      gtk_box_append (GTK_BOX (anon_box),
                           choice);
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (pw_dialog_anonymous_toggled), operation);
@@ -718,10 +724,10 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       priv->user_widgets = g_list_prepend (priv->user_widgets, volume_type_box);
 
       priv->tcrypt_hidden_toggle = gtk_check_button_new_with_mnemonic (_("_Hidden"));
-      gtk_container_add (GTK_CONTAINER (volume_type_box), priv->tcrypt_hidden_toggle);
+      gtk_box_append (GTK_BOX (volume_type_box), priv->tcrypt_hidden_toggle);
 
       priv->tcrypt_system_toggle = gtk_check_button_new_with_mnemonic (_("_Windows system"));
-      gtk_container_add (GTK_CONTAINER (volume_type_box), priv->tcrypt_system_toggle);
+      gtk_box_append (GTK_BOX (volume_type_box), priv->tcrypt_system_toggle);
 
       priv->pim_entry = table_add_entry (operation, rows++, _("_PIM"), NULL, operation);
     }
@@ -746,7 +752,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       priv->user_widgets = g_list_prepend (priv->user_widgets, remember_box);
 
       label = gtk_label_new ("");
-      gtk_container_add (GTK_CONTAINER (remember_box), label);
+      gtk_box_append (GTK_BOX (remember_box), label);
 
       password_save = g_mount_operation_get_password_save (G_MOUNT_OPERATION (operation));
       priv->password_save = password_save;
@@ -758,7 +764,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
                          GINT_TO_POINTER (G_PASSWORD_SAVE_NEVER));
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (remember_button_toggled), operation);
-      gtk_container_add (GTK_CONTAINER (remember_box), choice);
+      gtk_box_append (GTK_BOX (remember_box), choice);
 
       group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (choice));
       choice = gtk_radio_button_new_with_mnemonic (group, _("Remember password until you _logout"));
@@ -768,7 +774,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
                          GINT_TO_POINTER (G_PASSWORD_SAVE_FOR_SESSION));
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (remember_button_toggled), operation);
-      gtk_container_add (GTK_CONTAINER (remember_box), choice);
+      gtk_box_append (GTK_BOX (remember_box), choice);
 
       group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (choice));
       choice = gtk_radio_button_new_with_mnemonic (group, _("Remember _forever"));
@@ -778,7 +784,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
                          GINT_TO_POINTER (G_PASSWORD_SAVE_PERMANENTLY));
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (remember_button_toggled), operation);
-      gtk_container_add (GTK_CONTAINER (remember_box), choice);
+      gtk_box_append (GTK_BOX (remember_box), choice);
     }
 
   g_signal_connect (G_OBJECT (dialog), "response",
@@ -922,7 +928,7 @@ question_dialog_button_clicked (GtkDialog       *dialog,
 
   priv->dialog = NULL;
   g_object_notify (G_OBJECT (operation), "is-showing");
-  gtk_widget_destroy (GTK_WIDGET (dialog));
+  gtk_window_destroy (GTK_WINDOW (dialog));
   g_object_unref (op);
 }
 
@@ -1077,7 +1083,7 @@ show_processes_button_clicked (GtkDialog       *dialog,
 
   priv->dialog = NULL;
   g_object_notify (G_OBJECT (operation), "is-showing");
-  gtk_widget_destroy (GTK_WIDGET (dialog));
+  gtk_window_destroy (GTK_WINDOW (dialog));
   g_object_unref (op);
 }
 
@@ -1206,9 +1212,7 @@ add_pid_to_process_list_store (GtkMountOperation              *mount_operation,
       GtkIconTheme *theme;
       GtkIconPaintable *icon;
 
-      theme = gtk_css_icon_theme_value_get_icon_theme
-        (_gtk_style_context_peek_property (gtk_widget_get_style_context (GTK_WIDGET (mount_operation->priv->dialog)),
-                                           GTK_CSS_PROPERTY_ICON_THEME));
+      theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (mount_operation->priv->dialog)));
       icon = gtk_icon_theme_lookup_icon (theme,
                                          "application-x-executable",
                                          NULL,
@@ -1340,6 +1344,18 @@ update_process_list_store (GtkMountOperation *mount_operation,
 }
 
 static void
+on_dialog_response (GtkDialog *dialog,
+                    int        response)
+{
+  /* GTK_RESPONSE_NONE means the dialog were programmatically destroy, e.g. that
+   * GTK_DIALOG_DESTROY_WITH_PARENT kicked in - so it would trigger a warning to
+   * destroy the dialog in that case
+   */
+  if (response != GTK_RESPONSE_NONE)
+    gtk_window_destroy (GTK_WINDOW (dialog));
+}
+
+static void
 on_end_process_activated (GtkModelButton *button,
                           gpointer user_data)
 {
@@ -1375,7 +1391,6 @@ on_end_process_activated (GtkModelButton *button,
   if (!_gtk_mount_operation_kill_process (pid_to_kill, &error))
     {
       GtkWidget *dialog;
-      gint response;
 
       /* Use GTK_DIALOG_DESTROY_WITH_PARENT here since the parent dialog can be
        * indeed be destroyed via the GMountOperation::abort signal... for example,
@@ -1392,14 +1407,8 @@ on_end_process_activated (GtkModelButton *button,
                                                 error->message);
 
       gtk_widget_show (dialog);
-      response = gtk_dialog_run (GTK_DIALOG (dialog));
 
-      /* GTK_RESPONSE_NONE means the dialog were programmatically destroy, e.g. that
-       * GTK_DIALOG_DESTROY_WITH_PARENT kicked in - so it would trigger a warning to
-       * destroy the dialog in that case
-       */
-      if (response != GTK_RESPONSE_NONE)
-        gtk_widget_destroy (dialog);
+      g_signal_connect (dialog, "response", G_CALLBACK (on_dialog_response), NULL);
 
       g_error_free (error);
     }
@@ -1426,7 +1435,7 @@ do_popup_menu_for_process_tree_view (GtkWidget         *widget,
   g_signal_connect (item, "clicked",
                     G_CALLBACK (on_end_process_activated),
                     op);
-  gtk_container_add (GTK_CONTAINER (menu), item);
+  gtk_box_append (GTK_BOX (menu), item);
 
   if (event && gdk_event_triggers_context_menu (event))
     {
@@ -1534,7 +1543,7 @@ create_show_processes_dialog (GtkMountOperation *op,
 
   content_area = gtk_dialog_get_content_area (GTK_DIALOG (dialog));
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
-  gtk_container_add (GTK_CONTAINER (content_area), vbox);
+  gtk_box_append (GTK_BOX (content_area), vbox);
 
   if (secondary != NULL)
     s = g_strdup_printf ("<big><b>%s</b></big>\n\n%s", primary, secondary);
@@ -1545,7 +1554,7 @@ create_show_processes_dialog (GtkMountOperation *op,
   label = gtk_label_new (NULL);
   gtk_label_set_markup (GTK_LABEL (label), s);
   g_free (s);
-  gtk_container_add (GTK_CONTAINER (vbox), label);
+  gtk_box_append (GTK_BOX (vbox), label);
 
   /* First count the items in the list then
    * add the buttons in reverse order
@@ -1594,8 +1603,8 @@ create_show_processes_dialog (GtkMountOperation *op,
                                   GTK_POLICY_AUTOMATIC);
   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolled_window), TRUE);
 
-  gtk_container_add (GTK_CONTAINER (scrolled_window), tree_view);
-  gtk_container_add (GTK_CONTAINER (vbox), scrolled_window);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), tree_view);
+  gtk_box_append (GTK_BOX (vbox), scrolled_window);
 
   controller = gtk_shortcut_controller_new ();
   trigger = gtk_alternative_trigger_new (gtk_keyval_trigger_new (GDK_KEY_F10, GDK_SHIFT_MASK),
@@ -1762,7 +1771,7 @@ gtk_mount_operation_aborted (GMountOperation *op)
 
   if (priv->dialog != NULL)
     {
-      gtk_widget_destroy (GTK_WIDGET (priv->dialog));
+      gtk_window_destroy (GTK_WINDOW (priv->dialog));
       priv->dialog = NULL;
       g_object_notify (G_OBJECT (op), "is-showing");
       g_object_unref (op);
@@ -1838,7 +1847,7 @@ gtk_mount_operation_set_parent (GtkMountOperation *op,
   if (priv->parent_window)
     {
       g_signal_handlers_disconnect_by_func (priv->parent_window,
-                                            gtk_widget_destroyed,
+                                            parent_destroyed,
                                             &priv->parent_window);
       g_object_unref (priv->parent_window);
     }
@@ -1847,8 +1856,7 @@ gtk_mount_operation_set_parent (GtkMountOperation *op,
     {
       g_object_ref (priv->parent_window);
       g_signal_connect (priv->parent_window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed),
-                        &priv->parent_window);
+                        G_CALLBACK (parent_destroyed), &priv->parent_window);
     }
 
   if (priv->dialog)
@@ -1876,7 +1884,7 @@ gtk_mount_operation_get_parent (GtkMountOperation *op)
 /**
  * gtk_mount_operation_set_display:
  * @op: a #GtkMountOperation
- * @display: a #Gdk
+ * @display: a #GdkDisplay
  *
  * Sets the display to show windows of the #GtkMountOperation on.
  */

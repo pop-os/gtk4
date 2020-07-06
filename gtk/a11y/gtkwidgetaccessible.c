@@ -54,28 +54,28 @@ notify_cb (GObject    *obj,
     klass->notify_gtk (obj, pspec);
 }
 
-/* Translate GtkWidget::size-allocate to AtkComponent::bounds-changed */
-static void
-size_allocate_cb (GtkWidget *widget,
-                  int        width,
-                  int        height)
+/*< private >
+ * gtk_widget_accessible_update_bounds:
+ * @self: a #GtkWidgetAccessible
+ *
+ * Updates the bounds of the widget's accessible implementation using
+ * the widget's allocation.
+ */
+void
+gtk_widget_accessible_update_bounds (GtkWidgetAccessible *self)
 {
-  AtkObject* accessible;
+  GtkAllocation alloc;
   AtkRectangle rect;
 
-  accessible = gtk_widget_get_accessible (widget);
-  if (ATK_IS_COMPONENT (accessible))
-    {
-      GtkAllocation alloc;
-      gtk_widget_get_allocation (widget, &alloc);
+  GtkWidget *widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (self));
+  gtk_widget_get_allocation (widget, &alloc);
 
-      rect.x = alloc.x;
-      rect.y = alloc.y;
-      rect.width = alloc.width;
-      rect.height = alloc.height;
+  rect.x = alloc.x;
+  rect.y = alloc.y;
+  rect.width = alloc.width;
+  rect.height = alloc.height;
 
-      g_signal_emit_by_name (accessible, "bounds-changed", &rect);
-    }
+  g_signal_emit_by_name (self, "bounds-changed", &rect);
 }
 
 /* Translate GtkWidget mapped state into AtkObject showing */
@@ -109,7 +109,6 @@ gtk_widget_accessible_initialize (AtkObject *obj,
   widget = GTK_WIDGET (data);
 
   g_signal_connect (widget, "notify", G_CALLBACK (notify_cb), NULL);
-  g_signal_connect (widget, "size-allocate", G_CALLBACK (size_allocate_cb), NULL);
   g_signal_connect (widget, "map", G_CALLBACK (map_cb), NULL);
   g_signal_connect (widget, "unmap", G_CALLBACK (map_cb), NULL);
 
@@ -301,7 +300,6 @@ takes_focus (GtkWidget *widget)
     return TRUE;
 
   if (GTK_IS_ACCEL_LABEL (widget) ||
-      GTK_IS_CONTAINER(widget) ||
       GTK_IS_DRAG_ICON (widget) ||
       GTK_IS_DRAWING_AREA (widget) ||
       GTK_IS_GL_AREA (widget) ||
@@ -400,7 +398,7 @@ gtk_widget_accessible_get_index_in_parent (AtkObject *accessible)
   GtkWidget *widget;
   GtkWidget *parent_widget;
   gint index;
-  GList *children;
+  GtkWidget *ch;
 
   widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (accessible));
 
@@ -437,24 +435,13 @@ gtk_widget_accessible_get_index_in_parent (AtkObject *accessible)
     }
 
   parent_widget = gtk_widget_get_parent (widget);
-  if (GTK_IS_CONTAINER (parent_widget))
+  for (ch = gtk_widget_get_first_child (parent_widget), index = 0;
+       ch != NULL;
+       ch = gtk_widget_get_next_sibling (ch), index++)
     {
-      children = gtk_container_get_children (GTK_CONTAINER (parent_widget));
-      index = g_list_index (children, widget);
-      g_list_free (children);
+      if (ch == widget)
+        break;
     }
-  else if (GTK_IS_WIDGET (parent_widget))
-    {
-      GtkWidget *child;
-
-      for (child = gtk_widget_get_first_child (parent_widget), index = 0; child; child = gtk_widget_get_next_sibling (child), index++)
-        {
-          if (child == widget)
-            break;
-        }
-    }
-  else
-    index = -1;
 
   return index;
 }

@@ -301,8 +301,6 @@ gtk_picture_class_init (GtkPictureClass *class)
   widget_class->snapshot = gtk_picture_snapshot;
   widget_class->get_request_mode = gtk_picture_get_request_mode;
   widget_class->measure = gtk_picture_measure;
-  widget_class->grab_focus = gtk_widget_grab_focus_none;
-  widget_class->focus = gtk_widget_focus_none;
 
   /**
    * GtkPicture:paintable:
@@ -454,7 +452,7 @@ gtk_picture_new_for_pixbuf (GdkPixbuf *pixbuf)
  * isn’t found or can’t be loaded, the resulting #GtkPicture be empty.
  *
  * If you need to detect failures to load the file, use
- * gdk_texture_new_for_file() to load the file yourself, then create
+ * gdk_texture_new_from_file() to load the file yourself, then create
  * the #GtkPicture from the texture.
  *
  * Returns: a new #GtkPicture

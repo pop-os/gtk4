@@ -58,12 +58,11 @@ do_markup (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window), 450, 450);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       stack = gtk_stack_new ();
       gtk_widget_show (stack);
-      gtk_container_add (GTK_CONTAINER (window), stack);
+      gtk_window_set_child (GTK_WINDOW (window), stack);
 
       show_source = gtk_check_button_new_with_label ("Source");
       gtk_widget_set_valign (show_source, GTK_ALIGN_CENTER);
@@ -86,7 +85,7 @@ do_markup (GtkWidget *do_widget)
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
-      gtk_container_add (GTK_CONTAINER (sw), view);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), view);
 
       gtk_stack_add_named (GTK_STACK (stack), sw, "formatted");
 
@@ -99,7 +98,7 @@ do_markup (GtkWidget *do_widget)
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
-      gtk_container_add (GTK_CONTAINER (sw), view2);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), view2);
 
       gtk_stack_add_named (GTK_STACK (stack), sw, "source");
 
@@ -126,7 +125,7 @@ do_markup (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

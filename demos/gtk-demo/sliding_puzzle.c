@@ -267,15 +267,10 @@ start_puzzle (GdkPaintable *paintable)
   guint x, y;
   float aspect_ratio;
 
-  /* Remove the old grid (if there is one) */
-  grid = gtk_bin_get_child (GTK_BIN (frame));
-  if (grid)
-    gtk_container_remove (GTK_CONTAINER (frame), grid);
-
   /* Create a new grid */
   grid = gtk_grid_new ();
   gtk_widget_set_can_focus (grid, TRUE);
-  gtk_container_add (GTK_CONTAINER (frame), grid);
+  gtk_aspect_frame_set_child (GTK_ASPECT_FRAME (frame), grid);
   aspect_ratio = gdk_paintable_get_intrinsic_aspect_ratio (paintable);
   if (aspect_ratio == 0.0)
     aspect_ratio = 1.0;
@@ -345,7 +340,7 @@ reshuffle (void)
 {
   GtkWidget *grid;
 
-  grid = gtk_bin_get_child (GTK_BIN (frame));
+  grid = gtk_aspect_frame_get_child (GTK_ASPECT_FRAME (frame));
   if (solved)
     start_puzzle (puzzle);
   else
@@ -372,13 +367,14 @@ reconfigure (void)
       child = selected->data;
       g_list_free (selected);
     }
-  image = gtk_bin_get_child (GTK_BIN (child));
+
+  image = gtk_flow_box_child_get_child (GTK_FLOW_BOX_CHILD (child));
   puzzle = gtk_image_get_paintable (GTK_IMAGE (image));
 
-  start_puzzle (puzzle); 
+  start_puzzle (puzzle);
   popover = gtk_widget_get_ancestor (size_spin, GTK_TYPE_POPOVER);
   gtk_popover_popdown (GTK_POPOVER (popover));
-  grid = gtk_bin_get_child (GTK_BIN (frame));
+  grid = gtk_aspect_frame_get_child (GTK_ASPECT_FRAME (frame));
   gtk_widget_grab_focus (grid);
 }
 
@@ -391,7 +387,7 @@ add_choice (GtkWidget    *container,
   icon = gtk_image_new_from_paintable (paintable);
   gtk_image_set_icon_size (GTK_IMAGE (icon), GTK_ICON_SIZE_LARGE);
 
-  gtk_container_add (GTK_CONTAINER (container), icon);
+  gtk_box_append (GTK_BOX (container), icon);
 }
 
 GtkWidget *
@@ -429,7 +425,7 @@ do_sliding_puzzle (GtkWidget *do_widget)
       gtk_media_stream_play (media);
       add_choice (choices, GDK_PAINTABLE (media));
       sw = gtk_scrolled_window_new (NULL, NULL);
-      gtk_container_add (GTK_CONTAINER (sw), choices);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), choices);
       gtk_grid_attach (GTK_GRID (tweaks), sw, 0, 0, 2, 1);
 
       label = gtk_label_new ("Size");
@@ -445,7 +441,7 @@ do_sliding_puzzle (GtkWidget *do_widget)
       g_signal_connect (apply, "clicked", G_CALLBACK (reconfigure), NULL);
 
       popover = gtk_popover_new ();
-      gtk_container_add (GTK_CONTAINER (popover), tweaks);
+      gtk_popover_set_child (GTK_POPOVER (popover), tweaks);
 
       tweak = gtk_menu_button_new ();
       gtk_menu_button_set_popover (GTK_MENU_BUTTON (tweak), popover);
@@ -464,11 +460,10 @@ do_sliding_puzzle (GtkWidget *do_widget)
       gtk_window_set_title (GTK_WINDOW (window), "Sliding Puzzle");
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
       gtk_window_set_default_size (GTK_WINDOW (window), 400, 300);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       frame = gtk_aspect_frame_new (0.5, 0.5, (float) gdk_paintable_get_intrinsic_aspect_ratio (puzzle), FALSE);
-      gtk_container_add (GTK_CONTAINER (window), frame);
+      gtk_window_set_child (GTK_WINDOW (window), frame);
 
       start_puzzle (puzzle);
     }
@@ -476,7 +471,7 @@ do_sliding_puzzle (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

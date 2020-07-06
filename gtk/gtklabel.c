@@ -140,7 +140,7 @@
  *   // Pressing Alt+H will activate this button
  *   GtkWidget *button = gtk_button_new ();
  *   GtkWidget *label = gtk_label_new_with_mnemonic ("_Hello");
- *   gtk_container_add (GTK_CONTAINER (button), label);
+ *   gtk_button_set_child (GTK_BUTTON (button), label);
  * ]|
  *
  * There’s a convenience function to create buttons with a mnemonic label
@@ -418,7 +418,7 @@ static void gtk_label_get_property      (GObject          *object,
 					 GValue           *value,
 					 GParamSpec       *pspec);
 static void gtk_label_finalize          (GObject          *object);
-static void gtk_label_destroy           (GtkWidget        *widget);
+static void gtk_label_dispose           (GObject          *object);
 static void gtk_label_size_allocate     (GtkWidget        *widget,
                                          int               width,
                                          int               height,
@@ -609,8 +609,8 @@ gtk_label_class_init (GtkLabelClass *class)
   gobject_class->set_property = gtk_label_set_property;
   gobject_class->get_property = gtk_label_get_property;
   gobject_class->finalize = gtk_label_finalize;
+  gobject_class->dispose = gtk_label_dispose;
 
-  widget_class->destroy = gtk_label_destroy;
   widget_class->size_allocate = gtk_label_size_allocate;
   widget_class->state_flags_changed = gtk_label_state_flags_changed;
   widget_class->css_changed = gtk_label_css_changed;
@@ -1838,8 +1838,6 @@ gtk_label_set_attributes (GtkLabel         *self,
   if (!attrs && !self->attrs)
     return;
 
-  if (attrs == self->attrs) g_error ("Z");
-
   if (attrs)
     pango_attr_list_ref (attrs);
 
@@ -2734,13 +2732,13 @@ gtk_label_get_wrap_mode (GtkLabel *self)
 }
 
 static void
-gtk_label_destroy (GtkWidget *widget)
+gtk_label_dispose (GObject *object)
 {
-  GtkLabel *self = GTK_LABEL (widget);
+  GtkLabel *self = GTK_LABEL (object);
 
   gtk_label_set_mnemonic_widget (self, NULL);
 
-  GTK_WIDGET_CLASS (gtk_label_parent_class)->destroy (widget);
+  G_OBJECT_CLASS (gtk_label_parent_class)->dispose (object);
 }
 
 static void
@@ -2852,7 +2850,10 @@ gtk_label_update_layout_attributes (GtkLabel      *self,
   PangoAttrList *attrs;
 
   if (self->layout == NULL)
-    return;
+    {
+      pango_attr_list_unref (style_attrs);
+      return;
+    }
 
   if (self->select_info && self->select_info->links)
     {
@@ -2913,8 +2914,7 @@ gtk_label_update_layout_attributes (GtkLabel      *self,
 
   pango_layout_set_attributes (self->layout, attrs);
 
-  if (attrs)
-    pango_attr_list_unref (attrs);
+  pango_attr_list_unref (attrs);
 }
 
 static void
@@ -3849,7 +3849,13 @@ gtk_label_focus (GtkWidget        *widget,
       int new_index = -1;
       int i;
 
+      if (info->n_links == 0)
+        goto out;
+
       focus_link = gtk_label_get_focus_link (self, &focus_link_index);
+
+      if (!focus_link)
+        goto out;
 
       switch (direction)
         {
@@ -4411,7 +4417,7 @@ gtk_label_ensure_select_info (GtkLabel *self)
     {
       self->select_info = g_new0 (GtkLabelSelectionInfo, 1);
 
-      gtk_widget_set_can_focus (GTK_WIDGET (self), TRUE);
+      gtk_widget_set_focusable (GTK_WIDGET (self), TRUE);
 
       self->select_info->drag_gesture = gtk_gesture_drag_new ();
       g_signal_connect (self->select_info->drag_gesture, "drag-begin",
@@ -4463,7 +4469,7 @@ gtk_label_clear_select_info (GtkLabel *self)
 
       gtk_widget_set_cursor (GTK_WIDGET (self), NULL);
 
-      gtk_widget_set_can_focus (GTK_WIDGET (self), FALSE);
+      gtk_widget_set_focusable (GTK_WIDGET (self), FALSE);
     }
 }
 
@@ -4931,25 +4937,37 @@ gtk_label_get_single_line_mode  (GtkLabel *self)
  */
 static void
 get_better_cursor (GtkLabel *self,
-		   gint      index,
-		   gint      *x,
-		   gint      *y)
+                   int      index,
+                   int      *x,
+                   int      *y)
 {
-  GdkSeat *seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (self)));
-  GdkDevice *device = gdk_seat_get_keyboard (seat);
-  PangoDirection keymap_direction = gdk_device_get_direction (device);
-  PangoDirection cursor_direction = get_cursor_direction (self);
+  GdkSeat *seat;
+  GdkDevice *keyboard;
+  PangoDirection keymap_direction;
+  PangoDirection cursor_direction;
   gboolean split_cursor;
   PangoRectangle strong_pos, weak_pos;
-  
+
+  seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (self)));
+  if (seat)
+    keyboard = gdk_seat_get_keyboard (seat);
+  else
+    keyboard = NULL;
+  if (keyboard)
+    keymap_direction = gdk_device_get_direction (keyboard);
+  else
+    keymap_direction = PANGO_DIRECTION_LTR;
+
+  cursor_direction = get_cursor_direction (self);
+
   g_object_get (gtk_widget_get_settings (GTK_WIDGET (self)),
-		"gtk-split-cursor", &split_cursor,
-		NULL);
+                "gtk-split-cursor", &split_cursor,
+                NULL);
 
   gtk_label_ensure_layout (self);
-  
+
   pango_layout_get_cursor_pos (self->layout, index,
-			       &strong_pos, &weak_pos);
+                               &strong_pos, &weak_pos);
 
   if (split_cursor)
     {
@@ -4959,15 +4977,15 @@ get_better_cursor (GtkLabel *self,
   else
     {
       if (keymap_direction == cursor_direction)
-	{
-	  *x = strong_pos.x / PANGO_SCALE;
-	  *y = strong_pos.y / PANGO_SCALE;
-	}
+        {
+          *x = strong_pos.x / PANGO_SCALE;
+          *y = strong_pos.y / PANGO_SCALE;
+        }
       else
-	{
-	  *x = weak_pos.x / PANGO_SCALE;
-	  *y = weak_pos.y / PANGO_SCALE;
-	}
+        {
+          *x = weak_pos.x / PANGO_SCALE;
+          *y = weak_pos.y / PANGO_SCALE;
+        }
     }
 }
 
@@ -5035,16 +5053,26 @@ gtk_label_move_visually (GtkLabel *self,
 		    NULL);
 
       if (split_cursor)
-	strong = TRUE;
+        strong = TRUE;
       else
-	{
-	  GdkSeat *seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (self)));
-          GdkDevice *device = gdk_seat_get_keyboard (seat);
-	  PangoDirection keymap_direction = gdk_device_get_direction (device);
+        {
+          GdkSeat *seat;
+          GdkDevice *keyboard;
+          PangoDirection keymap_direction;
 
-	  strong = keymap_direction == get_cursor_direction (self);
-	}
-      
+          seat = gdk_display_get_default_seat (gtk_widget_get_display (GTK_WIDGET (self)));
+          if (seat)
+            keyboard = gdk_seat_get_keyboard (seat);
+          else
+            keyboard = NULL;
+          if (keyboard)
+            keymap_direction = gdk_device_get_direction (keyboard);
+          else
+            keymap_direction = PANGO_DIRECTION_LTR;
+
+          strong = keymap_direction == get_cursor_direction (self);
+        }
+
       if (count > 0)
 	{
 	  pango_layout_move_cursor_visually (self->layout, strong, index, 0, 1, &new_index, &new_trailing);

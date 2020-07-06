@@ -42,7 +42,6 @@
 *  - #GtkSignalAction: a shortcut action that emits a given signal
 *  - #GtkActivateAction: a shortcut action that calls gtk_widget_activate()
 *  - #GtkNamedAction: a shortcut action that calls gtk_widget_activate_action()
-*  - #GtkGActionAction: a shortcut action that activates a given #GAction
 *  - #GtkNothingAction: a shortcut action that does nothing
 *
 * # GtkShortcutAction as GtkBuildable
@@ -267,7 +266,7 @@ struct _GtkNothingActionClass
 
 G_DEFINE_TYPE (GtkNothingAction, gtk_nothing_action, GTK_TYPE_SHORTCUT_ACTION)
 
-static void
+static void G_GNUC_NORETURN
 gtk_nothing_action_finalize (GObject *gobject)
 {
   g_assert_not_reached ();
@@ -439,7 +438,7 @@ struct _GtkActivateActionClass
 
 G_DEFINE_TYPE (GtkActivateAction, gtk_activate_action, GTK_TYPE_SHORTCUT_ACTION)
 
-static void
+static void G_GNUC_NORETURN
 gtk_activate_action_finalize (GObject *gobject)
 {
   g_assert_not_reached ();
@@ -514,7 +513,7 @@ struct _GtkMnemonicActionClass
 
 G_DEFINE_TYPE (GtkMnemonicAction, gtk_mnemonic_action, GTK_TYPE_SHORTCUT_ACTION)
 
-static void
+static void G_GNUC_NORETURN
 gtk_mnemonic_action_finalize (GObject *gobject)
 {
   g_assert_not_reached ();

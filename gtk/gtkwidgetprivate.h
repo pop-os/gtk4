@@ -28,7 +28,6 @@
 #include "gtkwidget.h"
 
 #include "gtkactionmuxerprivate.h"
-#include "gtkcontainer.h"
 #include "gtkcsstypesprivate.h"
 #include "gtkeventcontrollerprivate.h"
 #include "gtklistlistmodelprivate.h"
@@ -77,6 +76,7 @@ struct _GtkWidgetPrivate
   guint visible               : 1;
   guint sensitive             : 1;
   guint can_focus             : 1;
+  guint focusable             : 1;
   guint has_focus             : 1;
   guint focus_on_click        : 1;
   guint has_default           : 1;
@@ -144,12 +144,6 @@ struct _GtkWidgetPrivate
    */
   GtkRoot *root;
 
-  /* The list of attached windows to this widget.
-   * We keep a list in order to call reset_style to all of them,
-   * recursively.
-   */
-  GList *attached_windows;
-
   /* The style for the widget. The style contains the
    * colors the widget should be drawn in for each state
    * along with graphics contexts used to draw with and
@@ -180,7 +174,7 @@ struct _GtkWidgetPrivate
 
   GSList *paintables;
 
-  GList *event_controllers;
+  GPtrArray *controllers;
 
   AtkObject *accessible;
 
@@ -243,11 +237,6 @@ void         _gtk_widget_remove_sizegroup      (GtkWidget    *widget,
 						gpointer      group);
 GSList      *_gtk_widget_get_sizegroups        (GtkWidget    *widget);
 
-void         _gtk_widget_add_attached_window    (GtkWidget    *widget,
-                                                 GtkWindow    *window);
-void         _gtk_widget_remove_attached_window (GtkWidget    *widget,
-                                                 GtkWindow    *window);
-
 AtkObject *       _gtk_widget_peek_accessible              (GtkWidget *widget);
 
 void              _gtk_widget_set_has_default              (GtkWidget *widget,
@@ -255,6 +244,7 @@ void              _gtk_widget_set_has_default              (GtkWidget *widget,
 void              _gtk_widget_set_has_grab                 (GtkWidget *widget,
                                                             gboolean   has_grab);
 
+gboolean          gtk_widget_has_grab                      (GtkWidget *widget);
 void              _gtk_widget_grab_notify                  (GtkWidget *widget,
                                                             gboolean   was_grabbed);
 
@@ -282,13 +272,18 @@ gboolean          _gtk_widget_captured_event               (GtkWidget *widget,
 
 void              gtk_widget_css_changed                   (GtkWidget           *widget,
                                                             GtkCssStyleChange   *change);
+void              gtk_widget_system_setting_changed        (GtkWidget           *widget,
+                                                            GtkSystemSetting     setting);
+void              gtk_system_setting_changed               (GdkDisplay          *display,
+                                                            GtkSystemSetting     setting);
 
 void              _gtk_widget_update_parent_muxer          (GtkWidget    *widget);
 GtkActionMuxer *  _gtk_widget_get_action_muxer             (GtkWidget    *widget,
                                                             gboolean      create);
 
-gboolean          _gtk_widget_consumes_motion              (GtkWidget           *widget,
-                                                            GdkEventSequence    *sequence);
+gboolean          gtk_widget_consumes_motion               (GtkWidget        *widget,
+                                                            GtkWidget        *parent,
+                                                            GdkEventSequence *sequence);
 
 gboolean          gtk_widget_has_tick_callback             (GtkWidget *widget);
 
@@ -361,10 +356,6 @@ guint             gtk_widget_add_surface_transform_changed_callback (GtkWidget  
 void              gtk_widget_remove_surface_transform_changed_callback (GtkWidget *widget,
                                                                         guint      id);
 
-/* focus vfuncs for non-focusable non-containers */
-gboolean gtk_widget_grab_focus_none  (GtkWidget        *widget);
-gboolean gtk_widget_focus_none       (GtkWidget        *widget,
-                                      GtkDirectionType  direction);
 /* focus vfuncs for non-focusable containers with focusable children */
 gboolean gtk_widget_grab_focus_child (GtkWidget        *widget);
 gboolean gtk_widget_focus_child      (GtkWidget        *widget,
@@ -372,9 +363,6 @@ gboolean gtk_widget_focus_child      (GtkWidget        *widget,
 /* focus vfuncs for focusable widgets with children that don't receive focus */
 gboolean gtk_widget_grab_focus_self  (GtkWidget        *widget);
 gboolean gtk_widget_focus_self       (GtkWidget        *widget,
-                                      GtkDirectionType  direction);
-/* focus vfuncs for focusable widgets with children that receive focus */
-gboolean gtk_widget_focus_all        (GtkWidget        *widget,
                                       GtkDirectionType  direction);
 
 /* inline getters */
@@ -486,6 +474,12 @@ static inline gboolean
 _gtk_widget_is_sensitive (GtkWidget *widget)
 {
   return !(widget->priv->state_flags & GTK_STATE_FLAG_INSENSITIVE);
+}
+
+static inline GskTransform *
+gtk_widget_get_transform (GtkWidget *widget)
+{
+  return widget->priv->transform;
 }
 
 G_END_DECLS

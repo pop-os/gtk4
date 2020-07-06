@@ -741,7 +741,8 @@ gdk_wayland_display_finalize (GObject *object)
       display_wayland->cursor_theme = NULL;
     }
 
-  g_ptr_array_free (display_wayland->monitors, TRUE);
+  g_list_store_remove_all (display_wayland->monitors);
+  g_object_unref (display_wayland->monitors);
 
   if (display_wayland->settings)
     g_hash_table_destroy (display_wayland->settings);
@@ -847,18 +848,6 @@ gdk_wayland_display_get_default_group (GdkDisplay *display)
   return NULL;
 }
 
-static gboolean
-gdk_wayland_display_supports_shapes (GdkDisplay *display)
-{
-  return FALSE;
-}
-
-static gboolean
-gdk_wayland_display_supports_input_shapes (GdkDisplay *display)
-{
-  return TRUE;
-}
-
 static gulong
 gdk_wayland_display_get_next_serial (GdkDisplay *display)
 {
@@ -931,10 +920,13 @@ gdk_wayland_display_notify_startup_complete (GdkDisplay  *display,
 static GdkKeymap *
 _gdk_wayland_display_get_keymap (GdkDisplay *display)
 {
+  GdkSeat *seat;
   GdkDevice *core_keyboard = NULL;
   static GdkKeymap *tmp_keymap = NULL;
 
-  core_keyboard = gdk_seat_get_keyboard (gdk_display_get_default_seat (display));
+  seat = gdk_display_get_default_seat (display);
+  if (seat)
+    core_keyboard = gdk_seat_get_keyboard (seat);
 
   if (core_keyboard && tmp_keymap)
     {
@@ -951,24 +943,12 @@ _gdk_wayland_display_get_keymap (GdkDisplay *display)
   return tmp_keymap;
 }
 
-static int
-gdk_wayland_display_get_n_monitors (GdkDisplay *display)
+static GListModel *
+gdk_wayland_display_get_monitors (GdkDisplay *display)
 {
-  GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
+  GdkWaylandDisplay *self = GDK_WAYLAND_DISPLAY (display);
 
-  return display_wayland->monitors->len;
-}
-
-static GdkMonitor *
-gdk_wayland_display_get_monitor (GdkDisplay *display,
-                                 int         monitor_num)
-{
-  GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
-
-  if (monitor_num < 0 || monitor_num >= display_wayland->monitors->len)
-    return NULL;
-
-  return (GdkMonitor *)display_wayland->monitors->pdata[monitor_num];
+  return G_LIST_MODEL (self->monitors);
 }
 
 static GdkMonitor *
@@ -977,7 +957,7 @@ gdk_wayland_display_get_monitor_at_surface (GdkDisplay *display,
 {
   GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (display);
   struct wl_output *output;
-  int i;
+  guint i, n;
 
   g_return_val_if_fail (GDK_IS_WAYLAND_SURFACE (window), NULL);
 
@@ -985,9 +965,12 @@ gdk_wayland_display_get_monitor_at_surface (GdkDisplay *display,
   if (output == NULL)
     return NULL;
 
-  for (i = 0; i < display_wayland->monitors->len; i++)
+  n = g_list_model_get_n_items (G_LIST_MODEL (display_wayland->monitors));
+  for (i = 0; i < n; i++)
     {
-      GdkMonitor *monitor = display_wayland->monitors->pdata[i];
+      GdkMonitor *monitor = g_list_model_get_item (G_LIST_MODEL (display_wayland->monitors), i);
+
+      g_object_unref (monitor);
 
       if (gdk_wayland_monitor_get_wl_output (monitor) == output)
         return monitor;
@@ -1024,8 +1007,6 @@ gdk_wayland_display_class_init (GdkWaylandDisplayClass *class)
   display_class->has_pending = gdk_wayland_display_has_pending;
   display_class->queue_events = _gdk_wayland_display_queue_events;
   display_class->get_default_group = gdk_wayland_display_get_default_group;
-  display_class->supports_shapes = gdk_wayland_display_supports_shapes;
-  display_class->supports_input_shapes = gdk_wayland_display_supports_input_shapes;
   display_class->get_app_launch_context = _gdk_wayland_display_get_app_launch_context;
   display_class->get_next_serial = gdk_wayland_display_get_next_serial;
   display_class->get_startup_notification_id = gdk_wayland_display_get_startup_notification_id;
@@ -1035,8 +1016,7 @@ gdk_wayland_display_class_init (GdkWaylandDisplayClass *class)
 
   display_class->make_gl_context_current = gdk_wayland_display_make_gl_context_current;
 
-  display_class->get_n_monitors = gdk_wayland_display_get_n_monitors;
-  display_class->get_monitor = gdk_wayland_display_get_monitor;
+  display_class->get_monitors = gdk_wayland_display_get_monitors;
   display_class->get_monitor_at_surface = gdk_wayland_display_get_monitor_at_surface;
   display_class->get_setting = gdk_wayland_display_get_setting;
   display_class->set_cursor_theme = gdk_wayland_display_set_cursor_theme;
@@ -1047,7 +1027,7 @@ gdk_wayland_display_init (GdkWaylandDisplay *display)
 {
   display->xkb_context = xkb_context_new (0);
 
-  display->monitors = g_ptr_array_new_with_free_func (g_object_unref);
+  display->monitors = g_list_store_new (GDK_TYPE_MONITOR);
 }
 
 GList *
@@ -1287,13 +1267,13 @@ create_shm_pool (struct wl_shm  *shm,
   fd = open_shared_memory ();
 
   if (fd < 0)
-    return NULL;
+    goto fail;
 
   if (ftruncate (fd, size) < 0)
     {
       g_critical (G_STRLOC ": Truncating shared memory file failed: %m");
       close (fd);
-      return NULL;
+      goto fail;
     }
 
   data = mmap (NULL, size, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
@@ -1302,7 +1282,7 @@ create_shm_pool (struct wl_shm  *shm,
     {
       g_critical (G_STRLOC ": mmap'ping shared memory file failed: %m");
       close (fd);
-      return NULL;
+      goto fail;
     }
 
   pool = wl_shm_create_pool (shm, fd, size);
@@ -1313,6 +1293,11 @@ create_shm_pool (struct wl_shm  *shm,
   *buf_length = size;
 
   return pool;
+
+fail:
+  *data_out = NULL;
+  *buf_length = 0;
+  return NULL;
 }
 
 static void
@@ -2196,16 +2181,21 @@ update_scale (GdkDisplay *display)
 }
 
 static void
-gdk_wayland_display_init_xdg_output (GdkWaylandDisplay *display_wayland)
+gdk_wayland_display_init_xdg_output (GdkWaylandDisplay *self)
 {
-  int i;
+  guint i, n;
 
   GDK_NOTE (MISC,
             g_message ("init xdg-output support, %d monitor(s) already present",
-                       display_wayland->monitors->len));
+                       g_list_model_get_n_items (G_LIST_MODEL (self->monitors))));
 
-  for (i = 0; i < display_wayland->monitors->len; i++)
-    gdk_wayland_display_get_xdg_output (display_wayland->monitors->pdata[i]);
+  n = g_list_model_get_n_items (G_LIST_MODEL (self->monitors));
+  for (i = 0; i < n; i++)
+    {
+      GdkWaylandMonitor *monitor = g_list_model_get_item (G_LIST_MODEL (self->monitors), i);
+      gdk_wayland_display_get_xdg_output (monitor);
+      g_object_unref (monitor);
+    }
 }
 
 static gboolean
@@ -2246,8 +2236,10 @@ apply_monitor_change (GdkWaylandMonitor *monitor)
                        monitor->x, monitor->y,
                        monitor->width, monitor->height));
 
-  gdk_monitor_set_position (GDK_MONITOR (monitor), monitor->x, monitor->y);
-  gdk_monitor_set_size (GDK_MONITOR (monitor), monitor->width, monitor->height);
+  gdk_monitor_set_geometry (GDK_MONITOR (monitor),
+                            &(GdkRectangle) {
+                              monitor->x, monitor->y,
+                              monitor->width, monitor->height });
   gdk_monitor_set_connector (GDK_MONITOR (monitor), monitor->name);
   monitor->wl_output_done = FALSE;
   monitor->xdg_output_done = FALSE;
@@ -2481,9 +2473,6 @@ gdk_wayland_display_add_output (GdkWaylandDisplay *display_wayland,
   monitor->output = output;
   monitor->version = version;
 
-  g_ptr_array_add (display_wayland->monitors, monitor);
-  gdk_display_monitor_added (GDK_DISPLAY (display_wayland), GDK_MONITOR (monitor));
-
   wl_output_add_listener (output, &output_listener, monitor);
 
   GDK_NOTE (MISC,
@@ -2492,45 +2481,24 @@ gdk_wayland_display_add_output (GdkWaylandDisplay *display_wayland,
 
   if (display_has_xdg_output_support (display_wayland))
     gdk_wayland_display_get_xdg_output (monitor);
-}
 
-struct wl_output *
-gdk_wayland_display_get_wl_output (GdkDisplay *display,
-                                   gint        monitor_num)
-{
-  GdkWaylandMonitor *monitor;
+  g_list_store_append (display_wayland->monitors, monitor);
 
-  monitor = GDK_WAYLAND_DISPLAY (display)->monitors->pdata[monitor_num];
-
-  return monitor->output;
+  g_object_unref (monitor);
 }
 
 static GdkWaylandMonitor *
-get_monitor_for_id (GdkWaylandDisplay *display_wayland,
-                    guint32            id)
-{
-  int i;
-
-  for (i = 0; i < display_wayland->monitors->len; i++)
-    {
-      GdkWaylandMonitor *monitor = display_wayland->monitors->pdata[i];
-
-      if (monitor->id == id)
-        return monitor;
-    }
-
-  return NULL;
-}
-
-static GdkWaylandMonitor *
-get_monitor_for_output (GdkWaylandDisplay *display_wayland,
+get_monitor_for_output (GdkWaylandDisplay *self,
                         struct wl_output  *output)
 {
-  int i;
+  guint i, n;
 
-  for (i = 0; i < display_wayland->monitors->len; i++)
+  n = g_list_model_get_n_items (G_LIST_MODEL (self->monitors));
+  for (i = 0; i < n; i++)
     {
-      GdkWaylandMonitor *monitor = display_wayland->monitors->pdata[i];
+      GdkWaylandMonitor *monitor = g_list_model_get_item (G_LIST_MODEL (self->monitors), i);
+
+      g_object_unref (monitor);
 
       if (monitor->output == output)
         return monitor;
@@ -2547,18 +2515,23 @@ gdk_wayland_display_get_monitor_for_output (GdkDisplay       *display,
 }
 
 static void
-gdk_wayland_display_remove_output (GdkWaylandDisplay *display_wayland,
+gdk_wayland_display_remove_output (GdkWaylandDisplay *self,
                                    guint32            id)
 {
-  GdkWaylandMonitor *monitor;
+  guint i, n;
 
-  monitor = get_monitor_for_id (display_wayland, id);
-  if (monitor != NULL)
+  n = g_list_model_get_n_items (G_LIST_MODEL (self->monitors));
+  for (i = 0; i < n; i++)
     {
-      g_object_ref (monitor);
-      g_ptr_array_remove (display_wayland->monitors, monitor);
-      gdk_display_monitor_removed (GDK_DISPLAY (display_wayland), GDK_MONITOR (monitor));
-      update_scale (GDK_DISPLAY (display_wayland));
+      GdkWaylandMonitor *monitor = g_list_model_get_item (G_LIST_MODEL (self->monitors), i);
+
+      if (monitor->id == id)
+        {
+          g_list_store_remove (self->monitors, i);
+          gdk_monitor_invalidate (GDK_MONITOR (monitor));
+          update_scale (GDK_DISPLAY (self));
+        }
+
       g_object_unref (monitor);
     }
 }

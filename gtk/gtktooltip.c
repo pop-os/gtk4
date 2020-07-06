@@ -35,7 +35,7 @@
 #include "gtkwindowprivate.h"
 #include "gtkwidgetprivate.h"
 #include "gtkaccessible.h"
-#include "gtknative.h"
+#include "gtknativeprivate.h"
 
 /**
  * SECTION:gtktooltip
@@ -371,19 +371,26 @@ void
 gtk_tooltip_trigger_tooltip_query (GtkWidget *widget)
 {
   GdkDisplay *display;
-  double x, y;
-  GdkSurface *surface;
+  GdkSeat *seat;
   GdkDevice *device;
+  GdkSurface *surface;
+  double x, y;
   GtkWidget *toplevel;
-  int dx, dy;
 
   g_return_if_fail (GTK_IS_WIDGET (widget));
 
   display = gtk_widget_get_display (widget);
 
   /* Trigger logic as if the mouse moved */
-  device = gdk_seat_get_pointer (gdk_display_get_default_seat (display));
-  surface = gdk_device_get_surface_at_position (device, &x, &y);
+  seat = gdk_display_get_default_seat (display);
+  if (seat)
+    device = gdk_seat_get_pointer (seat);
+  else
+    device = NULL;
+  if (device)
+    surface = gdk_device_get_surface_at_position (device, &x, &y);
+  else
+    surface = NULL;
   if (!surface)
     return;
 
@@ -395,9 +402,9 @@ gtk_tooltip_trigger_tooltip_query (GtkWidget *widget)
   if (gtk_native_get_surface (GTK_NATIVE (toplevel)) != surface)
     return;
 
-  gtk_widget_translate_coordinates (toplevel, widget, round (x), round (y), &dx, &dy);
+  gtk_widget_translate_coordinates (toplevel, widget, x, y, &x, &y);
 
-  gtk_tooltip_handle_event_internal (GDK_MOTION_NOTIFY, surface, widget, dx, dy);
+  gtk_tooltip_handle_event_internal (GDK_MOTION_NOTIFY, surface, widget, x, y);
 }
 
 static void
@@ -418,6 +425,8 @@ _gtk_widget_find_at_coords (GdkSurface *surface,
 {
   GtkWidget *event_widget;
   GtkWidget *picked_widget;
+  double x, y;
+  double native_x, native_y;
 
   g_return_val_if_fail (GDK_IS_SURFACE (surface), NULL);
 
@@ -426,10 +435,17 @@ _gtk_widget_find_at_coords (GdkSurface *surface,
   if (!event_widget)
     return NULL;
 
-  picked_widget = gtk_widget_pick (event_widget, surface_x, surface_y, GTK_PICK_INSENSITIVE);
+  gtk_native_get_surface_transform (GTK_NATIVE (event_widget), &native_x, &native_y);
+  x = surface_x - native_x;
+  y = surface_y - native_y;
+
+  picked_widget = gtk_widget_pick (event_widget, x, y, GTK_PICK_INSENSITIVE);
 
   if (picked_widget != NULL)
-    gtk_widget_translate_coordinates (event_widget, picked_widget, surface_x, surface_y, widget_x, widget_y);
+    gtk_widget_translate_coordinates (event_widget, picked_widget, x, y, &x, &y);
+
+  *widget_x = x;
+  *widget_y = y;
 
   return picked_widget;
 }
@@ -540,15 +556,23 @@ gtk_tooltip_run_requery (GtkWidget  **widget,
 
       if (!return_value)
         {
-	  GtkWidget *parent = gtk_widget_get_parent (*widget);
+          GtkWidget *parent = gtk_widget_get_parent (*widget);
 
-	  if (parent)
-	    gtk_widget_translate_coordinates (*widget, parent, *x, *y, x, y);
+          if (parent)
+            {
+              double xx = *x;
+              double yy = *y;
 
-	  *widget = parent;
-	}
+              gtk_widget_translate_coordinates (*widget, parent, xx, yy, &xx, &yy);
+
+              *x = xx;
+              *y = yy;
+            }
+
+          *widget = parent;
+        }
       else
-	break;
+        break;
     }
   while (*widget);
 
@@ -575,17 +599,22 @@ gtk_tooltip_position (GtkTooltip *tooltip,
   int rect_anchor_dx = 0;
   int cursor_size;
   int anchor_rect_padding;
+  double native_x, native_y;
 
   gtk_widget_realize (GTK_WIDGET (tooltip->window));
 
   tooltip->tooltip_widget = new_tooltip_widget;
 
   toplevel = GTK_WIDGET (gtk_widget_get_native (new_tooltip_widget));
+  gtk_native_get_surface_transform (GTK_NATIVE (toplevel), &native_x, &native_y);
+
   if (gtk_widget_compute_bounds (new_tooltip_widget, toplevel, &anchor_bounds))
     {
       anchor_rect = (GdkRectangle) {
-        floorf (anchor_bounds.origin.x), floorf (anchor_bounds.origin.y),
-        ceilf (anchor_bounds.size.width), ceilf (anchor_bounds.size.height)
+        floorf (anchor_bounds.origin.x + native_x),
+        floorf (anchor_bounds.origin.y + native_y),
+        ceilf (anchor_bounds.size.width),
+        ceilf (anchor_bounds.size.height)
       };
     }
   else
@@ -673,6 +702,7 @@ gtk_tooltip_show_tooltip (GdkDisplay *display)
   gint x, y;
   GdkSurface *surface;
   GtkWidget *tooltip_widget;
+  GdkSeat *seat;
   GdkDevice *device;
   GtkTooltip *tooltip;
   gboolean return_value = FALSE;
@@ -684,9 +714,17 @@ gtk_tooltip_show_tooltip (GdkDisplay *display)
 
   surface = gtk_native_get_surface (GTK_NATIVE (tooltip->native));
 
-  device = gdk_seat_get_pointer (gdk_display_get_default_seat (display));
+  seat = gdk_display_get_default_seat (display);
+  if (seat)
+    device = gdk_seat_get_pointer (seat);
+  else
+    device = NULL;
 
-  gdk_surface_get_device_position (surface, device, &px, &py, NULL);
+  if (device)
+    gdk_surface_get_device_position (surface, device, &px, &py, NULL);
+  else
+    px = py = 0;
+
   x = round (px);
   y = round (py);
 
@@ -879,16 +917,21 @@ _gtk_tooltip_handle_event (GtkWidget *target,
 {
   GdkEventType event_type;
   GdkSurface *surface;
-  gdouble dx, dy;
+  double x, y;
+  double nx, ny;
+  GtkWidget *native;
 
   if (!tooltips_enabled (event))
     return;
 
   event_type = gdk_event_get_event_type (event);
   surface = gdk_event_get_surface (event);
-  gdk_event_get_position (event, &dx, &dy);
+  gdk_event_get_position (event, &x, &y);
+  native = GTK_WIDGET (gtk_widget_get_native (target));
 
-  gtk_tooltip_handle_event_internal (event_type, surface, target, dx, dy);
+  gtk_native_get_surface_transform (GTK_NATIVE (native), &nx, &ny);
+  gtk_widget_translate_coordinates (native, target, x - nx, y - ny, &x, &y);
+  gtk_tooltip_handle_event_internal (event_type, surface, target, x, y);
 }
 
 /* dx/dy must be in @target_widget's coordinates */
@@ -896,8 +939,8 @@ static void
 gtk_tooltip_handle_event_internal (GdkEventType   event_type,
                                    GdkSurface    *surface,
                                    GtkWidget     *target_widget,
-                                   gdouble       dx,
-                                   gdouble       dy)
+                                   double         dx,
+                                   double         dy)
 {
   int x = dx, y = dy;
   GdkDisplay *display;
@@ -977,3 +1020,30 @@ gtk_tooltip_handle_event_internal (GdkEventType   event_type,
 	break;
     }
 }
+
+void
+gtk_tooltip_maybe_allocate (GtkNative *native)
+{
+  GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (native));
+  GtkTooltip *tooltip;
+
+  tooltip = g_object_get_qdata (G_OBJECT (display), quark_current_tooltip);
+  if (!tooltip || GTK_NATIVE (tooltip->native) != native)
+    return;
+
+  gtk_native_check_resize (GTK_NATIVE (tooltip->window));
+}
+
+void
+gtk_tooltip_unset_surface (GtkNative *native)
+{
+  GdkDisplay *display = gtk_widget_get_display (GTK_WIDGET (native));
+  GtkTooltip *tooltip;
+
+  tooltip = g_object_get_qdata (G_OBJECT (display), quark_current_tooltip);
+  if (!tooltip || GTK_NATIVE (tooltip->native) != native)
+    return;
+
+  gtk_tooltip_set_surface (tooltip, NULL);
+}
+

@@ -161,7 +161,7 @@ create_menu_button (void)
   GtkWidget *w = gtk_menu_button_new ();
   GtkWidget *popover = gtk_popover_new ();
 
-  gtk_container_add (GTK_CONTAINER (popover), gtk_button_new_with_label ("Hey!"));
+  gtk_popover_set_child (GTK_POPOVER (popover), gtk_button_new_with_label ("Hey!"));
   gtk_popover_set_autohide (GTK_POPOVER (popover), FALSE);
   gtk_menu_button_set_popover (GTK_MENU_BUTTON (w), popover);
   g_signal_connect (w, "map", G_CALLBACK (mapped), NULL);
@@ -194,7 +194,7 @@ static void
 set_widget_type (GtkFishbowl *fishbowl,
                  int          widget_type_index)
 {
-  GtkWidget *window, *headerbar;
+  GtkWidget *window;
 
   if (widget_type_index == selected_widget_type)
     return;
@@ -205,9 +205,8 @@ set_widget_type (GtkFishbowl *fishbowl,
                                   widget_types[selected_widget_type].create_func);
 
   window = GTK_WIDGET (gtk_widget_get_root (GTK_WIDGET (fishbowl)));
-  headerbar = gtk_window_get_titlebar (GTK_WINDOW (window));
-  gtk_header_bar_set_title (GTK_HEADER_BAR (headerbar),
-                            widget_types[selected_widget_type].name);
+  gtk_window_set_title (GTK_WINDOW (window),
+                        widget_types[selected_widget_type].name);
 }
 
 void
@@ -274,15 +273,13 @@ do_fishbowl (GtkWidget *do_widget)
 
       builder = gtk_builder_new_from_resource ("/fishbowl/fishbowl.ui");
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
+
       bowl = GTK_WIDGET (gtk_builder_get_object (builder, "bowl"));
       selected_widget_type = -1;
       set_widget_type (GTK_FISHBOWL (bowl), 0);
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
 
       gtk_widget_realize (window);
       g_object_unref (builder);
@@ -291,7 +288,7 @@ do_fishbowl (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

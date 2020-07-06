@@ -104,22 +104,21 @@ do_sizegroup (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),  gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Size Groups");
       gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 5);
       gtk_widget_set_margin_start (vbox, 5);
       gtk_widget_set_margin_end (vbox, 5);
       gtk_widget_set_margin_top (vbox, 5);
       gtk_widget_set_margin_bottom (vbox, 5);
-      gtk_container_add (GTK_CONTAINER (window), vbox);
+      gtk_window_set_child (GTK_WINDOW (window), vbox);
 
       size_group = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
       g_object_set_data_full (G_OBJECT (window), "size-group", size_group, g_object_unref);
 
       /* Create one frame holding color options */
       frame = gtk_frame_new ("Color Options");
-      gtk_container_add (GTK_CONTAINER (vbox), frame);
+      gtk_box_append (GTK_BOX (vbox), frame);
 
       table = gtk_grid_new ();
       gtk_widget_set_margin_start (table, 5);
@@ -128,14 +127,14 @@ do_sizegroup (GtkWidget *do_widget)
       gtk_widget_set_margin_bottom (table, 5);
       gtk_grid_set_row_spacing (GTK_GRID (table), 5);
       gtk_grid_set_column_spacing (GTK_GRID (table), 10);
-      gtk_container_add (GTK_CONTAINER (frame), table);
+      gtk_frame_set_child (GTK_FRAME (frame), table);
 
       add_row (GTK_GRID (table), 0, size_group, "_Foreground", color_options);
       add_row (GTK_GRID (table), 1, size_group, "_Background", color_options);
 
       /* And another frame holding line style options */
       frame = gtk_frame_new ("Line Options");
-      gtk_container_add (GTK_CONTAINER (vbox), frame);
+      gtk_box_append (GTK_BOX (vbox), frame);
 
       table = gtk_grid_new ();
       gtk_widget_set_margin_start (table, 5);
@@ -144,14 +143,14 @@ do_sizegroup (GtkWidget *do_widget)
       gtk_widget_set_margin_bottom (table, 5);
       gtk_grid_set_row_spacing (GTK_GRID (table), 5);
       gtk_grid_set_column_spacing (GTK_GRID (table), 10);
-      gtk_container_add (GTK_CONTAINER (frame), table);
+      gtk_frame_set_child (GTK_FRAME (frame), table);
 
       add_row (GTK_GRID (table), 0, size_group, "_Dashing", dash_options);
       add_row (GTK_GRID (table), 1, size_group, "_Line ends", end_options);
 
       /* And a check button to turn grouping on and off */
       check_button = gtk_check_button_new_with_mnemonic ("_Enable grouping");
-      gtk_container_add (GTK_CONTAINER (vbox), check_button);
+      gtk_box_append (GTK_BOX (vbox), check_button);
 
       gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button), TRUE);
       g_signal_connect (check_button, "toggled",
@@ -161,7 +160,7 @@ do_sizegroup (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

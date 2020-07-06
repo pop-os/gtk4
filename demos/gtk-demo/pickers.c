@@ -18,9 +18,7 @@ do_pickers (GtkWidget *do_widget)
     gtk_window_set_display (GTK_WINDOW (window),
                             gtk_widget_get_display (do_widget));
     gtk_window_set_title (GTK_WINDOW (window), "Pickers");
-
-    g_signal_connect (window, "destroy",
-                      G_CALLBACK (gtk_widget_destroyed), &window);
+    g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
     table = gtk_grid_new ();
     gtk_widget_set_margin_start (table, 20);
@@ -29,7 +27,7 @@ do_pickers (GtkWidget *do_widget)
     gtk_widget_set_margin_bottom (table, 20);
     gtk_grid_set_row_spacing (GTK_GRID (table), 3);
     gtk_grid_set_column_spacing (GTK_GRID (table), 10);
-    gtk_container_add (GTK_CONTAINER (window), table);
+    gtk_window_set_child (GTK_WINDOW (window), table);
 
     label = gtk_label_new ("Color:");
     gtk_widget_set_halign (label, GTK_ALIGN_START);
@@ -77,7 +75,7 @@ do_pickers (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

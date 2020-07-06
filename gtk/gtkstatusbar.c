@@ -125,7 +125,8 @@ enum
 static void     gtk_statusbar_update            (GtkStatusbar      *statusbar,
 						 guint              context_id,
 						 const gchar       *text);
-static void     gtk_statusbar_destroy           (GtkWidget         *widget);
+
+static void     gtk_statusbar_msg_free          (GtkStatusbarMsg *msg);
 
 static guint              statusbar_signals[SIGNAL_LAST] = { 0 };
 
@@ -135,6 +136,12 @@ static void
 gtk_statusbar_dispose (GObject *object)
 {
   GtkStatusbar *self = GTK_STATUSBAR (object);
+
+  g_slist_free_full (self->messages, (GDestroyNotify) gtk_statusbar_msg_free);
+  self->messages = NULL;
+
+  g_slist_free_full (self->keys, g_free);
+  self->keys = NULL;
 
   g_clear_pointer (&self->message_area, gtk_widget_unparent);
 
@@ -148,10 +155,6 @@ gtk_statusbar_class_init (GtkStatusbarClass *class)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
 
   object_class->dispose = gtk_statusbar_dispose;
-
-  widget_class->destroy = gtk_statusbar_destroy;
-  widget_class->grab_focus = gtk_widget_grab_focus_none;
-  widget_class->focus = gtk_widget_focus_child;
 
   class->text_pushed = gtk_statusbar_update;
   class->text_popped = gtk_statusbar_update;
@@ -502,18 +505,4 @@ gtk_statusbar_get_message (GtkStatusbar *statusbar)
   g_return_val_if_fail (GTK_IS_STATUSBAR (statusbar), NULL);
 
   return gtk_label_get_label (GTK_LABEL (statusbar->label));
-}
-
-static void
-gtk_statusbar_destroy (GtkWidget *widget)
-{
-  GtkStatusbar *statusbar = GTK_STATUSBAR (widget);
-
-  g_slist_free_full (statusbar->messages, (GDestroyNotify) gtk_statusbar_msg_free);
-  statusbar->messages = NULL;
-
-  g_slist_free_full (statusbar->keys, g_free);
-  statusbar->keys = NULL;
-
-  GTK_WIDGET_CLASS (gtk_statusbar_parent_class)->destroy (widget);
 }

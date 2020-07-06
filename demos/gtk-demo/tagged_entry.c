@@ -67,39 +67,38 @@ do_tagged_entry (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       header = gtk_header_bar_new ();
-      gtk_header_bar_set_title (GTK_HEADER_BAR (header), "A tagged entry");
       gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), FALSE);
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
+      gtk_window_set_title (GTK_WINDOW (window), "A tagged entry");
       gtk_window_set_resizable (GTK_WINDOW (window), TRUE);
       gtk_window_set_deletable (GTK_WINDOW (window), FALSE);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 6);
       gtk_widget_set_margin_start (box, 18);
       gtk_widget_set_margin_end (box, 18);
       gtk_widget_set_margin_top (box, 18);
       gtk_widget_set_margin_bottom (box, 18);
-      gtk_container_add (GTK_CONTAINER (window), box);
+      gtk_window_set_child (GTK_WINDOW (window), box);
 
       entry = demo_tagged_entry_new ();
-      gtk_container_add (GTK_CONTAINER (box), entry);
+      gtk_box_append (GTK_BOX (box), entry);
 
       box2 = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
       gtk_widget_set_halign (box2, GTK_ALIGN_END);
-      gtk_container_add (GTK_CONTAINER (box), box2);
+      gtk_box_append (GTK_BOX (box), box2);
 
       button = gtk_button_new_with_mnemonic ("Add _Tag");
       g_signal_connect (button, "clicked", G_CALLBACK (add_tag), entry);
-      gtk_container_add (GTK_CONTAINER (box2), button);
+      gtk_box_append (GTK_BOX (box2), button);
 
       button = gtk_check_button_new_with_mnemonic ("_Spinner");
       g_signal_connect (button, "toggled", G_CALLBACK (toggle_spinner), entry);
-      gtk_container_add (GTK_CONTAINER (box2), button);
+      gtk_box_append (GTK_BOX (box2), button);
       
       button = gtk_button_new_with_mnemonic ("_Done");
       gtk_widget_add_css_class (button, "suggested-action");
-      g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_widget_destroy), window);
+      g_signal_connect_swapped (button, "clicked", G_CALLBACK (gtk_window_destroy), window);
       gtk_header_bar_pack_end (GTK_HEADER_BAR (header), button);
 
       gtk_window_set_default_widget (GTK_WINDOW (window), button);
@@ -108,7 +107,7 @@ do_tagged_entry (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

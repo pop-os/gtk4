@@ -17,7 +17,7 @@ static gchar *current_file = NULL;
 
 static GtkWidget *notebook;
 static GtkWidget *treeview;
-static GtkWidget *headerbar;
+static GtkWidget *toplevel;
 
 enum {
   NAME_COLUMN,
@@ -55,6 +55,8 @@ activate_about (GSimpleAction *action,
                           glib_major_version,
                           glib_minor_version,
                           glib_micro_version);
+  g_string_append_printf (s, "\tPango\t%s\n",
+                          pango_version_string ());
   g_string_append_printf (s, "\tGTK\t%d.%d.%d\n",
                           gtk_get_major_version (),
                           gtk_get_minor_version (),
@@ -70,7 +72,7 @@ activate_about (GSimpleAction *action,
   gtk_show_about_dialog (GTK_WINDOW (gtk_application_get_active_window (app)),
                          "program-name", "GTK Demo",
                          "version", version,
-                         "copyright", "© 1997—2019 The GTK Team",
+                         "copyright", "© 1997—2020 The GTK Team",
                          "license-type", GTK_LICENSE_LGPL_2_1,
                          "website", "http://www.gtk.org",
                          "comments", "Program to demonstrate GTK widgets",
@@ -99,7 +101,7 @@ activate_quit (GSimpleAction *action,
       win = list->data;
       next = list->next;
 
-      gtk_widget_destroy (GTK_WIDGET (win));
+      gtk_window_destroy (GTK_WINDOW (win));
 
       list = next;
     }
@@ -569,7 +571,7 @@ display_image (const char *resource)
   gtk_widget_set_halign (image, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (image, GTK_ALIGN_CENTER);
   sw = gtk_scrolled_window_new (NULL, NULL);
-  gtk_container_add (GTK_CONTAINER (sw), image);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), image);
 
   return sw;
 }
@@ -612,7 +614,7 @@ display_text (const char *resource)
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_AUTOMATIC,
                                   GTK_POLICY_AUTOMATIC);
-  gtk_container_add (GTK_CONTAINER (sw), textview);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), textview);
 
   return sw;
 }
@@ -913,7 +915,7 @@ selection_cb (GtkTreeSelection *selection,
   if (filename)
     load_file (name, filename);
 
-  gtk_header_bar_set_title (GTK_HEADER_BAR (headerbar), title);
+  gtk_window_set_title (GTK_WINDOW (toplevel), title);
 
   g_free (name);
   g_free (title);
@@ -1028,9 +1030,9 @@ activate (GApplication *app)
 
   info_view = (GtkWidget *)gtk_builder_get_object (builder, "info-textview");
   source_view = (GtkWidget *)gtk_builder_get_object (builder, "source-textview");
-  headerbar = (GtkWidget *)gtk_builder_get_object (builder, "headerbar");
   treeview = (GtkWidget *)gtk_builder_get_object (builder, "treeview");
   model = gtk_tree_view_get_model (GTK_TREE_VIEW (treeview));
+  toplevel = GTK_WIDGET (window);
 
   load_file (gtk_demos[0].name, gtk_demos[0].filename);
 
@@ -1184,6 +1186,14 @@ main (int argc, char **argv)
     { "quit", activate_quit, NULL, NULL, NULL },
     { "inspector", activate_inspector, NULL, NULL, NULL },
   };
+  struct {
+    const gchar *action_and_target;
+    const gchar *accelerators[2];
+  } accels[] = {
+    { "app.about", { "F1", NULL } },
+    { "app.quit", { "<Control>q", NULL } },
+  };
+  int i;
 
   /* Most code in gtk-demo is intended to be exemplary, but not
    * these few lines, which are just a hack so gtk-demo will work
@@ -1200,6 +1210,9 @@ main (int argc, char **argv)
   g_action_map_add_action_entries (G_ACTION_MAP (app),
                                    app_entries, G_N_ELEMENTS (app_entries),
                                    app);
+
+  for (i = 0; i < G_N_ELEMENTS (accels); i++)
+    gtk_application_set_accels_for_action (app, accels[i].action_and_target, accels[i].accelerators);
 
   g_application_add_main_option (G_APPLICATION (app), "version", 0, 0, G_OPTION_ARG_NONE, "Show program version", NULL);
   g_application_add_main_option (G_APPLICATION (app), "run", 0, 0, G_OPTION_ARG_STRING, "Run an example", "EXAMPLE");

@@ -234,7 +234,7 @@ main (int argc, char *argv[])
 
   window = gtk_window_new ();
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-  gtk_container_add (GTK_CONTAINER (window), vbox);
+  gtk_window_set_child (GTK_WINDOW (window), vbox);
 
   views.header1 = g_object_new (GTK_TYPE_LABEL,
                                 "label", "<b>Group 1</b>",
@@ -254,10 +254,10 @@ main (int argc, char *argv[])
   g_signal_connect (views.view1, "notify::has-focus", G_CALLBACK (focus_changed), &views);
   g_signal_connect (views.view2, "notify::has-focus", G_CALLBACK (focus_changed), &views);
 
-  gtk_container_add (GTK_CONTAINER (vbox), views.header1);
-  gtk_container_add (GTK_CONTAINER (vbox), views.view1);
-  gtk_container_add (GTK_CONTAINER (vbox), views.header2);
-  gtk_container_add (GTK_CONTAINER (vbox), views.view2);
+  gtk_box_append (GTK_BOX (vbox), views.header1);
+  gtk_box_append (GTK_BOX (vbox), views.view1);
+  gtk_box_append (GTK_BOX (vbox), views.header2);
+  gtk_box_append (GTK_BOX (vbox), views.view2);
 
   gtk_widget_show (window);
 

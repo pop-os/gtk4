@@ -52,23 +52,24 @@
  * GtkCssProvider is an object implementing the #GtkStyleProvider interface.
  * It is able to parse [CSS-like][css-overview] input in order to style widgets.
  *
- * An application can make GTK+ parse a specific CSS style sheet by calling
+ * An application can make GTK parse a specific CSS style sheet by calling
  * gtk_css_provider_load_from_file() or gtk_css_provider_load_from_resource()
  * and adding the provider with gtk_style_context_add_provider() or
  * gtk_style_context_add_provider_for_display().
 
- * In addition, certain files will be read when GTK+ is initialized. First, the
- * file `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` is loaded if it exists. Then, GTK+
+ * In addition, certain files will be read when GTK is initialized. First, the
+ * file `$XDG_CONFIG_HOME/gtk-4.0/gtk.css` is loaded if it exists. Then, GTK
  * loads the first existing file among
  * `XDG_DATA_HOME/themes/THEME/gtk-VERSION/gtk-VARIANT.css`,
  * `$HOME/.themes/THEME/gtk-VERSION/gtk-VARIANT.css`,
  * `$XDG_DATA_DIRS/themes/THEME/gtk-VERSION/gtk-VARIANT.css` and
- * `DATADIR/share/themes/THEME/gtk-VERSION/gtk-VARIANT.css`, where `THEME` is the name of
- * the current theme (see the #GtkSettings:gtk-theme-name setting),
- * VARIANT is the variant to load (see the #GtkSettings:gtk-application-prefer-dark-theme setting), `DATADIR`
- * is the prefix configured when GTK+ was compiled (unless overridden by the
- * `GTK_DATA_PREFIX` environment variable), and `VERSION` is the GTK+ version number.
- * If no file is found for the current version, GTK+ tries older versions all the
+ * `DATADIR/share/themes/THEME/gtk-VERSION/gtk-VARIANT.css`,
+ * where `THEME` is the name of the current theme (see the #GtkSettings:gtk-theme-name
+ * setting), VARIANT is the variant to load (see the
+ * #GtkSettings:gtk-application-prefer-dark-theme setting), `DATADIR`
+ * is the prefix configured when GTK was compiled (unless overridden by the
+ * `GTK_DATA_PREFIX` environment variable), and `VERSION` is the GTK version number.
+ * If no file is found for the current version, GTK tries older versions all the
  * way back to 4.0.
  */
 
@@ -391,8 +392,8 @@ gtk_css_provider_init (GtkCssProvider *css_provider)
 
 static void
 verify_tree_match_results (GtkCssProvider *provider,
-			   GtkCssNode     *node,
-			   GPtrArray      *tree_rules)
+                           GtkCssNode     *node,
+                           GtkArray       *tree_rules)
 {
 #ifdef VERIFY_TREE
   GtkCssProviderPrivate *priv = gtk_css_provider_get_instance_private (provider);
@@ -408,7 +409,7 @@ verify_tree_match_results (GtkCssProvider *provider,
 
       for (j = 0; j < tree_rules->len; j++)
 	{
-	  if (ruleset == tree_rules->pdata[j])
+	  if (ruleset == gtk_array_index (tree_rules, j))
 	    {
 	      found = TRUE;
 	      break;
@@ -458,19 +459,22 @@ gtk_css_style_provider_lookup (GtkStyleProvider             *provider,
   GtkCssRuleset *ruleset;
   guint j;
   int i;
-  GPtrArray *tree_rules;
+  GtkArray tree_rules_array;
+  GtkCssRuleset *rules_stack[32];
 
   if (_gtk_css_selector_tree_is_empty (priv->tree))
     return;
 
-  tree_rules = _gtk_css_selector_tree_match_all (priv->tree, filter, node);
-  if (tree_rules)
-    {
-      verify_tree_match_results (css_provider, node, tree_rules);
+  gtk_array_init (&tree_rules_array, (void**)rules_stack, 32);
+  _gtk_css_selector_tree_match_all (priv->tree, filter, node, &tree_rules_array);
 
-      for (i = tree_rules->len - 1; i >= 0; i--)
+  if (tree_rules_array.len > 0)
+    {
+      verify_tree_match_results (css_provider, node, &tree_rules_array);
+
+      for (i = tree_rules_array.len - 1; i >= 0; i--)
         {
-          ruleset = tree_rules->pdata[i];
+          ruleset = gtk_array_index (&tree_rules_array, i);
 
           if (ruleset->styles == NULL)
             continue;
@@ -490,7 +494,7 @@ gtk_css_style_provider_lookup (GtkStyleProvider             *provider,
             }
         }
 
-      g_ptr_array_free (tree_rules, TRUE);
+      gtk_array_free (&tree_rules_array, NULL);
     }
 
   if (change)

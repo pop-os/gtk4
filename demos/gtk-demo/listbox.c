@@ -351,24 +351,19 @@ do_listbox (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "List Box");
-      gtk_window_set_default_size (GTK_WINDOW (window),
-                                   400, 600);
-
-      /* NULL window variable when window is closed */
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed),
-                        &window);
+      gtk_window_set_default_size (GTK_WINDOW (window), 400, 600);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);
-      gtk_container_add (GTK_CONTAINER (window), vbox);
+      gtk_window_set_child (GTK_WINDOW (window), vbox);
       label = gtk_label_new ("Messages from GTK and friends");
-      gtk_container_add (GTK_CONTAINER (vbox), label);
+      gtk_box_append (GTK_BOX (vbox), label);
       scrolled = gtk_scrolled_window_new (NULL, NULL);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
       gtk_widget_set_vexpand (scrolled, TRUE);
-      gtk_container_add (GTK_CONTAINER (vbox), scrolled);
+      gtk_box_append (GTK_BOX (vbox), scrolled);
       listbox = gtk_list_box_new ();
-      gtk_container_add (GTK_CONTAINER (scrolled), listbox);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), listbox);
 
       gtk_list_box_set_sort_func (GTK_LIST_BOX (listbox), (GtkListBoxSortFunc)gtk_message_row_sort, listbox, NULL);
       gtk_list_box_set_activate_on_single_click (GTK_LIST_BOX (listbox), FALSE);
@@ -382,7 +377,7 @@ do_listbox (GtkWidget *do_widget)
           message = gtk_message_new (lines[i]);
           row = gtk_message_row_new (message);
           gtk_widget_show (GTK_WIDGET (row));
-          gtk_container_add (GTK_CONTAINER (listbox), GTK_WIDGET (row));
+          gtk_list_box_insert (GTK_LIST_BOX (listbox), GTK_WIDGET (row), -1);
         }
 
       g_strfreev (lines);
@@ -392,7 +387,7 @@ do_listbox (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

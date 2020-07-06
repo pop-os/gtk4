@@ -47,7 +47,7 @@ show_action_dialog (GSimpleAction *action)
                                     name);
 
   g_signal_connect (dialog, "response",
-                    G_CALLBACK (gtk_widget_destroy), NULL);
+                    G_CALLBACK (gtk_window_destroy), NULL);
 
   gtk_widget_show (dialog);
 }
@@ -120,7 +120,7 @@ open_response_cb (GtkNativeDialog *dialog,
                                                    "Error loading file: \"%s\"",
                                                    error->message);
           g_signal_connect (message_dialog, "response",
-                            G_CALLBACK (gtk_widget_destroy), NULL);
+                            G_CALLBACK (gtk_window_destroy), NULL);
           gtk_widget_show (message_dialog);
           g_error_free (error);
         }
@@ -234,7 +234,7 @@ activate_quit (GSimpleAction *action,
       win = list->data;
       next = list->next;
 
-      gtk_widget_destroy (GTK_WIDGET (win));
+      gtk_window_destroy (GTK_WINDOW (win));
 
       list = next;
     }
@@ -503,13 +503,13 @@ demo_application_window_unrealize (GtkWidget *widget)
 }
 
 static void
-demo_application_window_destroy (GtkWidget *widget)
+demo_application_window_dispose (GObject *object)
 {
-  DemoApplicationWindow *window = (DemoApplicationWindow *)widget;
+  DemoApplicationWindow *window = (DemoApplicationWindow *)object;
 
   demo_application_window_store_state (window);
 
-  GTK_WIDGET_CLASS (demo_application_window_parent_class)->destroy (widget);
+  G_OBJECT_CLASS (demo_application_window_parent_class)->dispose (object);
 }
 
 static void
@@ -519,11 +519,11 @@ demo_application_window_class_init (DemoApplicationWindowClass *class)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
 
   object_class->constructed = demo_application_window_constructed;
+  object_class->dispose = demo_application_window_dispose;
 
   widget_class->size_allocate = demo_application_window_size_allocate;
   widget_class->realize = demo_application_window_realize;
   widget_class->unrealize = demo_application_window_unrealize;
-  widget_class->destroy = demo_application_window_destroy;
 
   gtk_widget_class_set_template_from_resource (widget_class, "/application_demo/application.ui");
   gtk_widget_class_bind_template_child (widget_class, DemoApplicationWindow, message);

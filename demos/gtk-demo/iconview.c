@@ -228,7 +228,7 @@ home_clicked (GtkButton *item,
 
 static void close_window(void)
 {
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
   window = NULL;
 
   g_object_unref (file_pixbuf);
@@ -263,17 +263,17 @@ do_iconview (GtkWidget *do_widget)
       load_pixbufs ();
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-      gtk_container_add (GTK_CONTAINER (window), vbox);
+      gtk_window_set_child (GTK_WINDOW (window), vbox);
 
       tool_bar = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_container_add (GTK_CONTAINER (vbox), tool_bar);
+      gtk_box_append (GTK_BOX (vbox), tool_bar);
 
       up_button = gtk_button_new_with_mnemonic ("_Up");
       gtk_widget_set_sensitive (GTK_WIDGET (up_button), FALSE);
-      gtk_container_add (GTK_CONTAINER (tool_bar), up_button);
+      gtk_box_append (GTK_BOX (tool_bar), up_button);
 
       home_button = gtk_button_new_with_mnemonic ("_Home");
-      gtk_container_add (GTK_CONTAINER (tool_bar), home_button);
+      gtk_box_append (GTK_BOX (tool_bar), home_button);
 
 
       sw = gtk_scrolled_window_new (NULL, NULL);
@@ -283,7 +283,7 @@ do_iconview (GtkWidget *do_widget)
                                       GTK_POLICY_AUTOMATIC);
       gtk_widget_set_vexpand (sw, TRUE);
 
-      gtk_container_add (GTK_CONTAINER (vbox), sw);
+      gtk_box_append (GTK_BOX (vbox), sw);
 
       /* Create the store and fill it with the contents of '/' */
       parent = g_strdup ("/");
@@ -312,7 +312,7 @@ do_iconview (GtkWidget *do_widget)
       /* Connect to the "item-activated" signal */
       g_signal_connect (icon_view, "item-activated",
                         G_CALLBACK (item_activated), store);
-      gtk_container_add (GTK_CONTAINER (sw), icon_view);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), icon_view);
 
       gtk_widget_grab_focus (icon_view);
     }
@@ -320,7 +320,7 @@ do_iconview (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

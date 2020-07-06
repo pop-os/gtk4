@@ -32,6 +32,7 @@
 #include "gtkadjustment.h"
 #include "gtkbox.h"
 #include "gtkbinlayout.h"
+#include "gtkmediafileprivate.h"
 
 
 #ifdef GDK_WINDOWING_X11
@@ -67,6 +68,7 @@ struct _GtkInspectorGeneralPrivate
   GtkWidget *version_box;
   GtkWidget *env_box;
   GtkWidget *display_box;
+  GtkWidget *monitor_box;
   GtkWidget *gl_box;
   GtkWidget *vulkan_box;
   GtkWidget *device_box;
@@ -74,6 +76,7 @@ struct _GtkInspectorGeneralPrivate
   GtkWidget *gdk_backend;
   GtkWidget *gsk_renderer;
   GtkWidget *pango_fontmap;
+  GtkWidget *media_backend;
   GtkWidget *gl_version;
   GtkWidget *gl_vendor;
   GtkWidget *vk_device;
@@ -173,16 +176,16 @@ add_check_row (GtkInspectorGeneral *gen,
   gtk_widget_set_valign (label, GTK_ALIGN_BASELINE);
   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
   gtk_widget_set_hexpand (label, TRUE);
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_box_append (GTK_BOX (box), label);
 
   check = gtk_image_new_from_icon_name ("object-select-symbolic");
   gtk_widget_set_halign (check, GTK_ALIGN_END);
   gtk_widget_set_valign (check, GTK_ALIGN_BASELINE);
   gtk_widget_set_opacity (check, value ? 1.0 : 0.0);
-  gtk_container_add (GTK_CONTAINER (box), check);
+  gtk_box_append (GTK_BOX (box), check);
 
   row = gtk_list_box_row_new ();
-  gtk_container_add (GTK_CONTAINER (row), box);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), box);
   gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
 
   gtk_widget_set_hexpand (box, FALSE);
@@ -215,17 +218,17 @@ add_label_row (GtkInspectorGeneral *gen,
   gtk_widget_set_valign (label, GTK_ALIGN_BASELINE);
   gtk_label_set_xalign (GTK_LABEL (label), 0.0);
   gtk_widget_set_hexpand (label, TRUE);
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_box_append (GTK_BOX (box), label);
 
   label = gtk_label_new (value);
   gtk_label_set_selectable (GTK_LABEL (label), TRUE);
   gtk_widget_set_halign (label, GTK_ALIGN_END);
   gtk_widget_set_valign (label, GTK_ALIGN_BASELINE);
   gtk_label_set_xalign (GTK_LABEL (label), 1.0);
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_box_append (GTK_BOX (box), label);
 
   row = gtk_list_box_row_new ();
-  gtk_container_add (GTK_CONTAINER (row), box);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), box);
   gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
 
   gtk_widget_set_hexpand (box, FALSE);
@@ -513,15 +516,20 @@ translate_subpixel_layout (GdkSubpixelLayout subpixel)
 static void
 populate_display (GdkDisplay *display, GtkInspectorGeneral *gen)
 {
-  gint i;
   GList *children, *l;
   GtkWidget *child;
-  int n_monitors;
   GtkListBox *list;
 
   gtk_widget_show (gen->priv->display_composited);
   list = GTK_LIST_BOX (gen->priv->display_box);
-  children = gtk_container_get_children (GTK_CONTAINER (list));
+  children = NULL;
+  for (child = gtk_widget_get_first_child (GTK_WIDGET (list));
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child))
+    {
+      if (GTK_IS_LIST_BOX_ROW (child))
+        children = g_list_prepend (children, child);
+    }
   for (l = children; l; l = l->next)
     {
       child = l->data;
@@ -530,7 +538,7 @@ populate_display (GdkDisplay *display, GtkInspectorGeneral *gen)
           gtk_widget_is_ancestor (gen->priv->display_composited, child))
         continue;
 
-      gtk_widget_destroy (child);
+      gtk_list_box_remove (list, child);
     }
   g_list_free (children);
 
@@ -540,63 +548,69 @@ populate_display (GdkDisplay *display, GtkInspectorGeneral *gen)
                           gdk_display_is_rgba (display));
   gtk_widget_set_visible (gen->priv->display_composited,
                           gdk_display_is_composited (display));
+}
 
-  n_monitors = gdk_display_get_n_monitors (display);
-  for (i = 0; i < n_monitors; i++)
-    {
-      gchar *name;
-      gchar *value;
-      GdkRectangle rect;
-      gint scale;
-      char *scale_str = NULL;
-      const char *manufacturer;
-      const char *model;
-      GdkMonitor *monitor;
+static GtkWidget *
+populate_monitor (gpointer item,
+                  gpointer gen)
+{
+  GtkListBox *list;
+  GdkMonitor *monitor = item;
+  gchar *name;
+  gchar *value;
+  GdkRectangle rect;
+  gint scale;
+  char *scale_str = NULL;
+  const char *manufacturer;
+  const char *model;
 
-      monitor = gdk_display_get_monitor (display, i);
+  list = GTK_LIST_BOX (gtk_list_box_new ());
+  gtk_list_box_set_selection_mode (list, GTK_SELECTION_NONE);
 
-      name = g_strdup_printf ("Monitor %d", i);
-      manufacturer = gdk_monitor_get_manufacturer (monitor);
-      model = gdk_monitor_get_model (monitor);
-      value = g_strdup_printf ("%s%s%s",
-                               manufacturer ? manufacturer : "",
-                               manufacturer || model ? " " : "",
-                               model ? model : "");
-      add_label_row (gen, list, name, value, 0);
-      g_free (name);
-      g_free (value);
+  /* XXX: add monitor # here when porting to listview */ 
+  name = g_strdup_printf ("Monitor %d", 1);
+  manufacturer = gdk_monitor_get_manufacturer (monitor);
+  model = gdk_monitor_get_model (monitor);
+  value = g_strdup_printf ("%s%s%s",
+                           manufacturer ? manufacturer : "",
+                           manufacturer || model ? " " : "",
+                           model ? model : "");
+  add_label_row (gen, list, name, value, 0);
+  g_free (name);
+  g_free (value);
 
-      gdk_monitor_get_geometry (monitor, &rect);
-      scale = gdk_monitor_get_scale_factor (monitor);
-      if (scale != 1)
-        scale_str = g_strdup_printf (" @ %d", scale);
+  gdk_monitor_get_geometry (monitor, &rect);
+  scale = gdk_monitor_get_scale_factor (monitor);
+  if (scale != 1)
+    scale_str = g_strdup_printf (" @ %d", scale);
 
-      value = g_strdup_printf ("%d × %d%s at %d, %d",
-                               rect.width, rect.height,
-                               scale_str ? scale_str : "",
-                               rect.x, rect.y);
-      add_label_row (gen, list, "Geometry", value, 10);
-      g_free (value);
-      g_free (scale_str);
+  value = g_strdup_printf ("%d × %d%s at %d, %d",
+                           rect.width, rect.height,
+                           scale_str ? scale_str : "",
+                           rect.x, rect.y);
+  add_label_row (gen, list, "Geometry", value, 10);
+  g_free (value);
+  g_free (scale_str);
 
-      value = g_strdup_printf ("%d × %d mm²",
-                               gdk_monitor_get_width_mm (monitor),
-                               gdk_monitor_get_height_mm (monitor));
-      add_label_row (gen, list, "Size", value, 10);
-      g_free (value);
+  value = g_strdup_printf ("%d × %d mm²",
+                           gdk_monitor_get_width_mm (monitor),
+                           gdk_monitor_get_height_mm (monitor));
+  add_label_row (gen, list, "Size", value, 10);
+  g_free (value);
 
-      if (gdk_monitor_get_refresh_rate (monitor) != 0)
-        value = g_strdup_printf ("%.2f Hz",
-                                 0.001 * gdk_monitor_get_refresh_rate (monitor));
-      else
-        value = g_strdup ("unknown");
-      add_label_row (gen, list, "Refresh rate", value, 10);
-      g_free (value);
+  if (gdk_monitor_get_refresh_rate (monitor) != 0)
+    value = g_strdup_printf ("%.2f Hz",
+                             0.001 * gdk_monitor_get_refresh_rate (monitor));
+  else
+    value = g_strdup ("unknown");
+  add_label_row (gen, list, "Refresh rate", value, 10);
+  g_free (value);
 
-      value = g_strdup (translate_subpixel_layout (gdk_monitor_get_subpixel_layout (monitor)));
-      add_label_row (gen, list, "Subpixel layout", value, 10);
-      g_free (value);
-    }
+  value = g_strdup (translate_subpixel_layout (gdk_monitor_get_subpixel_layout (monitor)));
+  add_label_row (gen, list, "Subpixel layout", value, 10);
+  g_free (value);
+
+  return GTK_WIDGET (list);
 }
 
 static void
@@ -608,19 +622,13 @@ populate_display_notify_cb (GdkDisplay          *display,
 }
 
 static void
-populate_display_monitor_cb (GdkDisplay          *display,
-                             GdkMonitor          *monitor,
-                             GtkInspectorGeneral *gen)
-{
-  populate_display (display, gen);
-}
-
-static void
 init_display (GtkInspectorGeneral *gen)
 {
   g_signal_connect (gen->priv->display, "notify", G_CALLBACK (populate_display_notify_cb), gen);
-  g_signal_connect (gen->priv->display, "monitor-added", G_CALLBACK (populate_display_monitor_cb), gen);
-  g_signal_connect (gen->priv->display, "monitor-removed", G_CALLBACK (populate_display_monitor_cb), gen);
+  gtk_list_box_bind_model (GTK_LIST_BOX (gen->priv->monitor_box),
+                           gdk_display_get_monitors (gen->priv->display),
+                           populate_monitor,
+                           gen, NULL);
 
   populate_display (gen->priv->display, gen);
 }
@@ -644,6 +652,17 @@ init_pango (GtkInspectorGeneral *gen)
     name = type;
 
   gtk_label_set_label (GTK_LABEL (gen->priv->pango_fontmap), name);
+}
+
+static void
+init_media (GtkInspectorGeneral *gen)
+{
+  GIOExtension *e;
+  const char *name;
+
+  e = gtk_media_file_get_extension ();
+  name = g_io_extension_get_name (e);
+  gtk_label_set_label (GTK_LABEL (gen->priv->media_backend), name);
 }
 
 static void populate_seats (GtkInspectorGeneral *gen);
@@ -779,13 +798,12 @@ add_seat (GtkInspectorGeneral *gen,
 static void
 populate_seats (GtkInspectorGeneral *gen)
 {
+  GtkWidget *child;
   GList *list, *l;
   int i;
 
-  list = gtk_container_get_children (GTK_CONTAINER (gen->priv->device_box));
-  for (l = list; l; l = l->next)
-    gtk_widget_destroy (GTK_WIDGET (l->data));
-  g_list_free (list);
+  while ((child = gtk_widget_get_first_child (gen->priv->device_box)))
+    gtk_list_box_remove (GTK_LIST_BOX (gen->priv->device_box), child);
 
   list = gdk_display_list_seats (gen->priv->display);
 
@@ -821,6 +839,8 @@ keynav_failed (GtkWidget *widget, GtkDirectionType direction, GtkInspectorGenera
   else if (direction == GTK_DIR_DOWN && widget == gen->priv->env_box)
     next = gen->priv->display_box;
   else if (direction == GTK_DIR_DOWN && widget == gen->priv->display_box)
+    next = gen->priv->monitor_box;
+  else if (direction == GTK_DIR_DOWN && widget == gen->priv->monitor_box)
     next = gen->priv->gl_box;
   else if (direction == GTK_DIR_DOWN && widget == gen->priv->gl_box)
     next = gen->priv->vulkan_box;
@@ -831,6 +851,8 @@ keynav_failed (GtkWidget *widget, GtkDirectionType direction, GtkInspectorGenera
   else if (direction == GTK_DIR_UP && widget == gen->priv->vulkan_box)
     next = gen->priv->gl_box;
   else if (direction == GTK_DIR_UP && widget == gen->priv->gl_box)
+    next = gen->priv->monitor_box;
+  else if (direction == GTK_DIR_UP && widget == gen->priv->monitor_box)
     next = gen->priv->display_box;
   else if (direction == GTK_DIR_UP && widget == gen->priv->display_box)
     next = gen->priv->env_box;
@@ -858,6 +880,7 @@ gtk_inspector_general_constructed (GObject *object)
    g_signal_connect (gen->priv->version_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);
    g_signal_connect (gen->priv->env_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);
    g_signal_connect (gen->priv->display_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);
+   g_signal_connect (gen->priv->monitor_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);
    g_signal_connect (gen->priv->gl_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);
    g_signal_connect (gen->priv->vulkan_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);
    g_signal_connect (gen->priv->device_box, "keynav-failed", G_CALLBACK (keynav_failed), gen);
@@ -888,12 +911,14 @@ gtk_inspector_general_class_init (GtkInspectorGeneralClass *klass)
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, version_box);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, env_box);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, display_box);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, monitor_box);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, gl_box);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, vulkan_box);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, gtk_version);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, gdk_backend);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, gsk_renderer);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, pango_fontmap);
+  gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, media_backend);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, gl_version);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, gl_vendor);
   gtk_widget_class_bind_template_child_private (widget_class, GtkInspectorGeneral, vk_device);
@@ -925,6 +950,7 @@ gtk_inspector_general_set_display (GtkInspectorGeneral *gen,
   init_env (gen);
   init_display (gen);
   init_pango (gen);
+  init_media (gen);
   init_gl (gen);
   init_vulkan (gen);
   init_device (gen);

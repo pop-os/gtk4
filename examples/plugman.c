@@ -83,7 +83,7 @@ new_window (GApplication *app,
   gtk_window_set_title (GTK_WINDOW (window), "Plugman");
 
   grid = gtk_grid_new ();
-  gtk_container_add (GTK_CONTAINER (window), grid);
+  gtk_window_set_child (GTK_WINDOW (window), grid);
 
   scrolled = gtk_scrolled_window_new (NULL, NULL);
   gtk_widget_set_hexpand (scrolled, TRUE);
@@ -92,7 +92,7 @@ new_window (GApplication *app,
 
   g_object_set_data ((GObject*)window, "plugman-text", view);
 
-  gtk_container_add (GTK_CONTAINER (scrolled), view);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), view);
 
   gtk_grid_attach (GTK_GRID (grid), scrolled, 0, 0, 1, 1);
 
@@ -173,7 +173,7 @@ quit_app (GSimpleAction *action,
       win = list->data;
       next = list->next;
 
-      gtk_widget_destroy (GTK_WIDGET (win));
+      gtk_window_destroy (GTK_WINDOW (win));
 
       list = next;
     }
@@ -382,7 +382,7 @@ configure_plugins (GSimpleAction *action,
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check), plugin_enabled ("black"));
   g_signal_connect (check, "toggled", G_CALLBACK (enable_or_disable_plugin), (char *) "black");
 
-  g_signal_connect (dialog, "response", G_CALLBACK (gtk_widget_destroy), NULL);
+  g_signal_connect (dialog, "response", G_CALLBACK (gtk_window_destroy), NULL);
 
   gtk_window_present (GTK_WINDOW (dialog));
 

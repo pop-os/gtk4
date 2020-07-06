@@ -23,9 +23,7 @@ do_tabs (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_default_size (GTK_WINDOW (window), 450, 450);
-
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       view = gtk_text_view_new ();
       gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (view), GTK_WRAP_WORD);
@@ -46,14 +44,14 @@ do_tabs (GtkWidget *do_widget)
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
-      gtk_container_add (GTK_CONTAINER (window), sw);
-      gtk_container_add (GTK_CONTAINER (sw), view);
+      gtk_window_set_child (GTK_WINDOW (window), sw);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), view);
     }
 
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

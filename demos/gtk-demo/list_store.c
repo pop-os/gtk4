@@ -257,26 +257,24 @@ do_list_store (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "List Store");
-
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
       gtk_widget_set_margin_start (vbox, 8);
       gtk_widget_set_margin_end (vbox, 8);
       gtk_widget_set_margin_top (vbox, 8);
       gtk_widget_set_margin_bottom (vbox, 8);
-      gtk_container_add (GTK_CONTAINER (window), vbox);
+      gtk_window_set_child (GTK_WINDOW (window), vbox);
 
       label = gtk_label_new ("This is the bug list (note: not based on real data, it would be nice to have a nice ODBC interface to bugzilla or so, though).");
-      gtk_container_add (GTK_CONTAINER (vbox), label);
+      gtk_box_append (GTK_BOX (vbox), label);
 
       sw = gtk_scrolled_window_new (NULL, NULL);
       gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (sw), TRUE);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_NEVER,
                                       GTK_POLICY_AUTOMATIC);
-      gtk_container_add (GTK_CONTAINER (vbox), sw);
+      gtk_box_append (GTK_BOX (vbox), sw);
 
       /* create tree model */
       model = create_model ();
@@ -289,7 +287,7 @@ do_list_store (GtkWidget *do_widget)
 
       g_object_unref (model);
 
-      gtk_container_add (GTK_CONTAINER (sw), treeview);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), treeview);
 
       /* add columns to the tree view */
       add_columns (GTK_TREE_VIEW (treeview));
@@ -309,7 +307,7 @@ do_list_store (GtkWidget *do_widget)
     }
   else
     {
-      gtk_widget_destroy (window);
+      gtk_window_destroy (GTK_WINDOW (window));
       window = NULL;
       if (timeout != 0)
         {

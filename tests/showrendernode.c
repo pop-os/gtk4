@@ -69,14 +69,7 @@ gtk_node_view_snapshot (GtkWidget   *widget,
   GtkNodeView *self = GTK_NODE_VIEW (widget);
 
   if (self->node != NULL)
-    {
-      gtk_snapshot_push_clip (snapshot,
-                              &GRAPHENE_RECT_INIT (
-                                0, 0,
-                                gtk_widget_get_width (widget), gtk_widget_get_height (widget)));
-      gtk_snapshot_append_node (snapshot, self->node);
-      gtk_snapshot_pop (snapshot);
-    }
+    gtk_snapshot_append_node (snapshot, self->node);
 }
 
 static void
@@ -93,6 +86,7 @@ gtk_node_view_finalize (GObject *object)
 static void
 gtk_node_view_init (GtkNodeView *self)
 {
+  gtk_widget_set_overflow (GTK_WIDGET (self), GTK_OVERFLOW_HIDDEN);
 }
 
 static void
@@ -216,9 +210,9 @@ main (int argc, char **argv)
                                    gdk_texture_get_width (texture),
                                    gdk_texture_get_height (texture));
 
-      gtk_container_add (GTK_CONTAINER (box), nodeview);
-      gtk_container_add (GTK_CONTAINER (box), image);
-      gtk_container_add (GTK_CONTAINER (window), box);
+      gtk_box_append (GTK_BOX (box), nodeview);
+      gtk_box_append (GTK_BOX (box), image);
+      gtk_window_set_child (GTK_WINDOW (window), box);
 
       gsk_renderer_unrealize (renderer);
       g_object_unref (texture);
@@ -227,7 +221,7 @@ main (int argc, char **argv)
     }
   else
     {
-      gtk_container_add (GTK_CONTAINER (window), nodeview);
+      gtk_window_set_child (GTK_WINDOW (window), nodeview);
     }
 
   gsk_render_node_get_bounds (GTK_NODE_VIEW (nodeview)->node, &node_bounds);

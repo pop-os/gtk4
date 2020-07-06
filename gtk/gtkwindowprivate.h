@@ -64,15 +64,9 @@ gboolean gtk_window_configure    (GtkWindow         *window,
                                   guint              height);
 
 /* --- internal (GtkAcceleratable) --- */
-gboolean        _gtk_window_query_nonaccels     (GtkWindow      *window,
-                                                 guint           accel_key,
-                                                 GdkModifierType accel_mods);
-
 void            _gtk_window_schedule_mnemonics_visible (GtkWindow *window);
 
 void            _gtk_window_notify_keys_changed (GtkWindow *window);
-
-gboolean        _gtk_window_titlebar_shows_app_menu (GtkWindow *window);
 
 void            _gtk_window_get_shadow_width (GtkWindow *window,
                                               GtkBorder *border);
@@ -140,10 +134,6 @@ GtkWidget *      gtk_window_pick_popover (GtkWindow   *window,
 
 void             gtk_window_set_extra_input_region (GtkWindow      *window,
                                                     cairo_region_t *region);
-
-void             gtk_window_start_layout  (GtkWindow *window);
-void             gtk_window_stop_layout   (GtkWindow *window);
-void             gtk_window_queue_restyle (GtkWindow *window);
 
 
 G_END_DECLS

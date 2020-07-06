@@ -21,6 +21,7 @@
 #include "gtkshortcutswindowprivate.h"
 
 #include "gtkbox.h"
+#include "gtkbuildable.h"
 #include "gtkgrid.h"
 #include "gtkheaderbar.h"
 #include "gtkintl.h"
@@ -133,8 +134,13 @@ typedef struct
   guint              translatable : 1;
 } ViewsParserData;
 
+static void gtk_shortcuts_window_buildable_iface_init (GtkBuildableIface *iface);
 
-G_DEFINE_TYPE_WITH_PRIVATE (GtkShortcutsWindow, gtk_shortcuts_window, GTK_TYPE_WINDOW)
+
+G_DEFINE_TYPE_WITH_CODE (GtkShortcutsWindow, gtk_shortcuts_window, GTK_TYPE_WINDOW,
+                         G_ADD_PRIVATE (GtkShortcutsWindow)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
+                                                gtk_shortcuts_window_buildable_iface_init))
 
 
 enum {
@@ -154,17 +160,21 @@ static GParamSpec *properties[LAST_PROP];
 static guint signals[LAST_SIGNAL];
 
 
-static gint
-number_of_children (GtkContainer *container)
+static gboolean
+more_than_three_children (GtkWidget *widget)
 {
-  GList *children;
-  gint n;
+  GtkWidget *child;
+  int i;
 
-  children = gtk_container_get_children (container);
-  n = g_list_length (children);
-  g_list_free (children);
+  for (child = gtk_widget_get_first_child (widget), i = 0;
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child), i++)
+    {
+      if (i == 3)
+        return TRUE;
+    }
 
-  return n;
+  return FALSE;
 }
 
 static void
@@ -177,9 +187,9 @@ update_title_stack (GtkShortcutsWindow *self)
 
   if (GTK_IS_SHORTCUTS_SECTION (visible_child))
     {
-      if (number_of_children (GTK_CONTAINER (priv->stack)) > 3)
+      if (more_than_three_children (GTK_WIDGET (priv->stack)))
         {
-          gchar *title;
+          char *title;
 
           gtk_stack_set_visible_child_name (priv->title_stack, "sections");
           g_object_get (visible_child, "title", &title, NULL);
@@ -274,18 +284,23 @@ gtk_shortcuts_window_add_search_item (GtkWidget *child, gpointer data)
 
       g_hash_table_insert (priv->keywords, item, keywords);
       if (shortcut_type == GTK_SHORTCUT_ACCELERATOR)
-        gtk_container_add (GTK_CONTAINER (priv->search_shortcuts), item);
+        gtk_box_append (GTK_BOX (priv->search_shortcuts), item);
       else
-        gtk_container_add (GTK_CONTAINER (priv->search_gestures), item);
+        gtk_box_append (GTK_BOX (priv->search_gestures), item);
 
       g_free (title);
       g_free (accelerator);
       g_free (str);
       g_free (action_name);
     }
-  else if (GTK_IS_CONTAINER (child))
+  else
     {
-      gtk_container_foreach (GTK_CONTAINER (child), gtk_shortcuts_window_add_search_item, self);
+      GtkWidget *widget;
+
+      for (widget = gtk_widget_get_first_child (child);
+           widget != NULL;
+           widget = gtk_widget_get_next_sibling (widget))
+        gtk_shortcuts_window_add_search_item (widget, self);
     }
 }
 
@@ -327,8 +342,12 @@ gtk_shortcuts_window_add_section (GtkShortcutsWindow  *self,
   gchar *name;
   const gchar *visible_section;
   GtkWidget *label;
+  GtkWidget *child;
 
-  gtk_container_foreach (GTK_CONTAINER (section), gtk_shortcuts_window_add_search_item, self);
+  for (child = gtk_widget_get_first_child (GTK_WIDGET (section));
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child))
+    gtk_shortcuts_window_add_search_item (child, self);
 
   g_object_get (section,
                 "section-name", &name,
@@ -359,8 +378,8 @@ gtk_shortcuts_window_add_section (GtkShortcutsWindow  *self,
                         "xalign", 0.5f,
                         NULL);
   g_object_set_data (G_OBJECT (section), "gtk-shortcuts-title", label);
-  gtk_container_add (GTK_CONTAINER (row), GTK_WIDGET (label));
-  gtk_container_add (GTK_CONTAINER (priv->list_box), GTK_WIDGET (row));
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), GTK_WIDGET (label));
+  gtk_list_box_insert (GTK_LIST_BOX (priv->list_box), GTK_WIDGET (row), -1);
 
   update_title_stack (self);
 
@@ -368,62 +387,27 @@ gtk_shortcuts_window_add_section (GtkShortcutsWindow  *self,
   g_free (title);
 }
 
-static void
-gtk_shortcuts_window_add (GtkContainer *container,
-                          GtkWidget    *widget)
-{
-  GtkShortcutsWindow *self = (GtkShortcutsWindow *)container;
+static GtkBuildableIface *parent_buildable_iface;
 
-  if (GTK_IS_SHORTCUTS_SECTION (widget))
-    gtk_shortcuts_window_add_section (self, GTK_SHORTCUTS_SECTION (widget));
+static void
+gtk_shortcuts_window_buildable_add_child (GtkBuildable *buildable,
+                                          GtkBuilder   *builder,
+                                          GObject      *child,
+                                          const gchar  *type)
+{
+  if (GTK_IS_SHORTCUTS_SECTION (child))
+    gtk_shortcuts_window_add_section (GTK_SHORTCUTS_WINDOW (buildable),
+                                      GTK_SHORTCUTS_SECTION (child));
   else
-    g_warning ("Can't add children of type %s to %s",
-               G_OBJECT_TYPE_NAME (widget),
-               G_OBJECT_TYPE_NAME (container));
+    parent_buildable_iface->add_child (buildable, builder, child, type);
 }
 
 static void
-gtk_shortcuts_window_remove (GtkContainer *container,
-                             GtkWidget    *widget)
+gtk_shortcuts_window_buildable_iface_init (GtkBuildableIface *iface)
 {
-  GtkShortcutsWindow *self = (GtkShortcutsWindow *)container;
-  GtkShortcutsWindowPrivate *priv = gtk_shortcuts_window_get_instance_private (self);
+  parent_buildable_iface = g_type_interface_peek_parent (iface);
 
-  g_signal_handlers_disconnect_by_func (widget, section_notify_cb, self);
-
-  if (widget == (GtkWidget *)priv->header_bar ||
-      widget == (GtkWidget *)priv->main_box)
-    GTK_CONTAINER_CLASS (gtk_shortcuts_window_parent_class)->remove (container, widget);
-  else
-    gtk_container_remove (GTK_CONTAINER (priv->stack), widget);
-}
-
-static void
-gtk_shortcuts_window_forall (GtkContainer *container,
-                             GtkCallback   callback,
-                             gpointer      callback_data)
-{
-  GtkShortcutsWindow *self = (GtkShortcutsWindow *)container;
-  GtkShortcutsWindowPrivate *priv = gtk_shortcuts_window_get_instance_private (self);
-
-  if (priv->stack)
-    {
-      GList *children, *l;
-      GtkWidget *search;
-      GtkWidget *empty;
-
-      search = gtk_stack_get_child_by_name (GTK_STACK (priv->stack), "internal-search");
-      empty = gtk_stack_get_child_by_name (GTK_STACK (priv->stack), "no-search-results");
-      children = gtk_container_get_children (GTK_CONTAINER (priv->stack));
-      for (l = children; l; l = l->next)
-        {
-          GtkWidget *child = l->data;
-
-          if (child != search && child != empty)
-            callback (child, callback_data);
-        }
-      g_list_free (children);
-    }
+  iface->add_child = gtk_shortcuts_window_buildable_add_child;
 }
 
 static void
@@ -431,20 +415,18 @@ gtk_shortcuts_window_set_view_name (GtkShortcutsWindow *self,
                                     const gchar        *view_name)
 {
   GtkShortcutsWindowPrivate *priv = gtk_shortcuts_window_get_instance_private (self);
-  GList *sections, *l;
+  GtkWidget *section;
 
   g_free (priv->view_name);
   priv->view_name = g_strdup (view_name);
 
-  sections = gtk_container_get_children (GTK_CONTAINER (priv->stack));
-  for (l = sections; l; l = l->next)
+  for (section = gtk_widget_get_first_child (GTK_WIDGET (priv->stack));
+       section != NULL;
+       section = gtk_widget_get_next_sibling (section))
     {
-      GtkShortcutsSection *section = l->data;
-
       if (GTK_IS_SHORTCUTS_SECTION (section))
         g_object_set (section, "view-name", priv->view_name, NULL);
     }
-  g_list_free (sections);
 }
 
 static void
@@ -472,8 +454,15 @@ update_accels_cb (GtkWidget *widget,
 
   if (GTK_IS_SHORTCUTS_SHORTCUT (widget))
     gtk_shortcuts_shortcut_update_accel (GTK_SHORTCUTS_SHORTCUT (widget), priv->window);
-  else if (GTK_IS_CONTAINER (widget))
-    gtk_container_foreach (GTK_CONTAINER (widget), update_accels_cb, self);
+  else
+    {
+      GtkWidget *child;
+
+      for (child = gtk_widget_get_first_child (GTK_WIDGET (widget));
+           child != NULL;
+           child = gtk_widget_get_next_sibling (child ))
+        update_accels_cb (child, self);
+    }
 }
 
 static void
@@ -482,7 +471,14 @@ update_accels_for_actions (GtkShortcutsWindow *self)
   GtkShortcutsWindowPrivate *priv = gtk_shortcuts_window_get_instance_private (self);
 
   if (priv->window)
-    gtk_container_forall (GTK_CONTAINER (self), update_accels_cb, self);
+    {
+      GtkWidget *child;
+
+      for (child = gtk_widget_get_first_child (GTK_WIDGET (self));
+           child != NULL;
+           child = gtk_widget_get_next_sibling (child))
+        update_accels_cb (child, self);
+    }
 }
 
 static void
@@ -672,20 +668,9 @@ gtk_shortcuts_window_dispose (GObject *object)
 
   gtk_shortcuts_window_set_window (self, NULL);
 
-  if (priv->header_bar)
-    {
-      gtk_container_remove (GTK_CONTAINER (self), GTK_WIDGET (priv->header_bar));
-      priv->header_bar = NULL;
-      priv->popover = NULL;
-    }
-
-  if (priv->main_box)
-    {
-      gtk_container_remove (GTK_CONTAINER (self), GTK_WIDGET (priv->main_box));
-      priv->main_box = NULL;
-      priv->stack = NULL;
-      priv->search_bar = NULL;
-    }
+  priv->stack = NULL;
+  priv->search_bar = NULL;
+  priv->main_box = NULL;
 
   G_OBJECT_CLASS (gtk_shortcuts_window_parent_class)->dispose (object);
 }
@@ -761,18 +746,11 @@ gtk_shortcuts_window_unmap (GtkWidget *widget)
   GTK_WIDGET_CLASS (gtk_shortcuts_window_parent_class)->unmap (widget);
 }
 
-static GType
-gtk_shortcuts_window_child_type (GtkContainer *container)
-{
-  return GTK_TYPE_SHORTCUTS_SECTION;
-}
-
 static void
 gtk_shortcuts_window_class_init (GtkShortcutsWindowClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-  GtkContainerClass *container_class = GTK_CONTAINER_CLASS (klass);
 
   object_class->constructed = gtk_shortcuts_window_constructed;
   object_class->finalize = gtk_shortcuts_window_finalize;
@@ -781,10 +759,6 @@ gtk_shortcuts_window_class_init (GtkShortcutsWindowClass *klass)
   object_class->dispose = gtk_shortcuts_window_dispose;
 
   widget_class->unmap = gtk_shortcuts_window_unmap;
-  container_class->add = gtk_shortcuts_window_add;
-  container_class->remove = gtk_shortcuts_window_remove;
-  container_class->child_type = gtk_shortcuts_window_child_type;
-  container_class->forall = gtk_shortcuts_window_forall;
 
   klass->close = gtk_shortcuts_window_close;
   klass->search = gtk_shortcuts_window_search;
@@ -894,33 +868,33 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
   search_button = g_object_new (GTK_TYPE_TOGGLE_BUTTON,
                                 "icon-name", "edit-find-symbolic",
                                 NULL);
-  gtk_container_add (GTK_CONTAINER (priv->header_bar), search_button);
+  gtk_header_bar_pack_start (GTK_HEADER_BAR (priv->header_bar), search_button);
 
   priv->main_box = g_object_new (GTK_TYPE_BOX,
                            "orientation", GTK_ORIENTATION_VERTICAL,
                            NULL);
-  GTK_CONTAINER_CLASS (gtk_shortcuts_window_parent_class)->add (GTK_CONTAINER (self), GTK_WIDGET (priv->main_box));
+  gtk_window_set_child (GTK_WINDOW (self), priv->main_box);
 
-  priv->search_bar = g_object_new (GTK_TYPE_SEARCH_BAR,
-                                   NULL);
+  priv->search_bar = g_object_new (GTK_TYPE_SEARCH_BAR, NULL);
   g_object_bind_property (priv->search_bar, "search-mode-enabled",
                           search_button, "active",
                           G_BINDING_SYNC_CREATE | G_BINDING_BIDIRECTIONAL);
-  gtk_container_add (GTK_CONTAINER (priv->main_box), GTK_WIDGET (priv->search_bar));
+  gtk_box_append (GTK_BOX (priv->main_box), GTK_WIDGET (priv->search_bar));
   gtk_search_bar_set_key_capture_widget (GTK_SEARCH_BAR (priv->search_bar),
                                          GTK_WIDGET (self));
 
   priv->stack = g_object_new (GTK_TYPE_STACK,
                               "hexpand", TRUE,
                               "vexpand", TRUE,
-                              "homogeneous", TRUE,
+                              "hhomogeneous", TRUE,
+                              "vhomogeneous", TRUE,
                               "transition-type", GTK_STACK_TRANSITION_TYPE_CROSSFADE,
                               NULL);
-  gtk_container_add (GTK_CONTAINER (priv->main_box), GTK_WIDGET (priv->stack));
+  gtk_box_append (GTK_BOX (priv->main_box), GTK_WIDGET (priv->stack));
 
   priv->title_stack = g_object_new (GTK_TYPE_STACK,
                                     NULL);
-  gtk_header_bar_set_custom_title (priv->header_bar, GTK_WIDGET (priv->title_stack));
+  gtk_header_bar_set_title_widget (priv->header_bar, GTK_WIDGET (priv->title_stack));
 
   /* Translators: This is the window title for the shortcuts window in normal mode */
   label = gtk_label_new (_("Shortcuts"));
@@ -951,10 +925,11 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
                            G_CALLBACK (gtk_shortcuts_window__list_box__row_activated),
                            self,
                            G_CONNECT_SWAPPED);
-  gtk_container_add (GTK_CONTAINER (priv->popover), GTK_WIDGET (priv->list_box));
+  gtk_popover_set_child (GTK_POPOVER (priv->popover), GTK_WIDGET (priv->list_box));
 
   priv->search_entry = GTK_SEARCH_ENTRY (gtk_search_entry_new ());
-  gtk_container_add (GTK_CONTAINER (priv->search_bar), GTK_WIDGET (priv->search_entry));
+  gtk_search_bar_set_child (GTK_SEARCH_BAR (priv->search_bar), GTK_WIDGET (priv->search_entry));
+
   g_object_set (priv->search_entry,
                 /* Translators: This is placeholder text for the search entry in the shortcuts window */
                 "placeholder-text", _("Search Shortcuts"),
@@ -971,14 +946,13 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
                            self,
                            G_CONNECT_SWAPPED);
 
-  scroller = g_object_new (GTK_TYPE_SCROLLED_WINDOW,
-                           NULL);
+  scroller = gtk_scrolled_window_new (NULL, NULL);
   box = g_object_new (GTK_TYPE_BOX,
                       "halign", GTK_ALIGN_CENTER,
                       "orientation", GTK_ORIENTATION_VERTICAL,
                       NULL);
   gtk_widget_add_css_class (GTK_WIDGET (box), "shortcuts-search-results");
-  gtk_container_add (GTK_CONTAINER (scroller), GTK_WIDGET (box));
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scroller), GTK_WIDGET (box));
   gtk_stack_add_named (priv->stack, scroller, "internal-search");
 
   priv->search_shortcuts = g_object_new (GTK_TYPE_BOX,
@@ -986,14 +960,14 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
                                          "spacing", 6,
                                          "orientation", GTK_ORIENTATION_VERTICAL,
                                          NULL);
-  gtk_container_add (GTK_CONTAINER (box), GTK_WIDGET (priv->search_shortcuts));
+  gtk_box_append (GTK_BOX (box), GTK_WIDGET (priv->search_shortcuts));
 
   priv->search_gestures = g_object_new (GTK_TYPE_BOX,
                                         "halign", GTK_ALIGN_CENTER,
                                         "spacing", 6,
                                         "orientation", GTK_ORIENTATION_VERTICAL,
                                         NULL);
-  gtk_container_add (GTK_CONTAINER (box), GTK_WIDGET (priv->search_gestures));
+  gtk_box_append (GTK_BOX (box), GTK_WIDGET (priv->search_gestures));
 
   empty = g_object_new (GTK_TYPE_GRID,
                         "row-spacing", 12,

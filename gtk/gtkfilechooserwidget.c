@@ -361,6 +361,7 @@ struct _GtkFileChooserWidget
   guint create_folders : 1;
   guint auto_selecting_first_row : 1;
   guint starting_search : 1;
+  guint browse_files_interaction_frozen : 1;
 };
 
 struct _GtkFileChooserWidgetClass
@@ -764,9 +765,11 @@ error_message (GtkFileChooserWidget *impl,
     gtk_window_group_add_window (gtk_window_get_group (parent),
                                  GTK_WINDOW (dialog));
 
-  gtk_dialog_run (GTK_DIALOG (dialog));
-  gtk_widget_destroy (dialog);
+  gtk_window_present (GTK_WINDOW (dialog));
 
+  g_signal_connect (dialog, "response",
+                    G_CALLBACK (gtk_window_destroy),
+                    NULL);
 }
 
 /* Shows a simple error dialog relative to a path.  Frees the GError as well. */
@@ -1230,14 +1233,40 @@ add_to_shortcuts_cb (GSimpleAction *action,
                                        impl);
 }
 
-static gboolean
+typedef struct {
+  GtkFileChooserWidget *impl;
+  GFile *file;
+} ConfirmDeleteData;
+
+static void
+on_confirm_delete_response (GtkWidget *dialog,
+                            int        response,
+                            gpointer   user_data)
+{
+  ConfirmDeleteData *data = user_data;
+
+  gtk_window_destroy (GTK_WINDOW (dialog));
+
+  if (response == GTK_RESPONSE_ACCEPT)
+    {
+      GError *error = NULL;
+
+      if (!g_file_delete (data->file, NULL, &error))
+        error_deleting_file (data->impl, data->file, error);
+    }
+
+  g_free (data);
+}
+
+static void
 confirm_delete (GtkFileChooserWidget *impl,
+                GFile                *file,
                 GFileInfo            *info)
 {
   GtkWindow *toplevel;
   GtkWidget *dialog;
-  gint response;
-  const gchar *name;
+  const char *name;
+  ConfirmDeleteData *data;
 
   name = g_file_info_get_display_name (info);
 
@@ -1258,11 +1287,15 @@ confirm_delete (GtkFileChooserWidget *impl,
   if (gtk_window_has_group (toplevel))
     gtk_window_group_add_window (gtk_window_get_group (toplevel), GTK_WINDOW (dialog));
 
-  response = gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_widget_show (dialog);
 
-  gtk_widget_destroy (dialog);
+  data = g_new (ConfirmDeleteData, 1);
+  data->impl = impl;
+  data->file = file;
 
-  return (response == GTK_RESPONSE_ACCEPT);
+  g_signal_connect (dialog, "response",
+                    G_CALLBACK (on_confirm_delete_response),
+                    data);
 }
 
 static void
@@ -1274,16 +1307,11 @@ delete_selected_cb (GtkTreeModel *model,
   GtkFileChooserWidget *impl = data;
   GFile *file;
   GFileInfo *info;
-  GError *error = NULL;
 
   file = _gtk_file_system_model_get_file (GTK_FILE_SYSTEM_MODEL (model), iter);
   info = _gtk_file_system_model_get_info (GTK_FILE_SYSTEM_MODEL (model), iter);
 
-  if (confirm_delete (impl, info))
-    {
-      if (!g_file_delete (file, NULL, &error))
-        error_deleting_file (impl, file, error);
-    }
+  confirm_delete (impl, file, info);
 }
 
 static void
@@ -1400,6 +1428,7 @@ rename_selected_cb (GtkTreeModel *model,
   GtkFileChooserWidget *impl = data;
   GdkRectangle rect;
   gchar *filename;
+  double x, y;
 
   gtk_tree_model_get (model, iter,
                       MODEL_COL_FILE, &impl->rename_file_source_file,
@@ -1414,7 +1443,9 @@ rename_selected_cb (GtkTreeModel *model,
   gtk_widget_translate_coordinates (impl->browse_files_tree_view,
                                     GTK_WIDGET (impl),
                                     rect.x, rect.y,
-                                    &rect.x, &rect.y);
+                                    &x, &y);
+  rect.x = x;
+  rect.y = y;
 
   filename = g_file_get_basename (impl->rename_file_source_file);
   gtk_editable_set_text (GTK_EDITABLE (impl->rename_file_name_entry), filename);
@@ -1981,9 +2012,10 @@ file_list_show_popover (GtkFileChooserWidget *impl,
       gtk_widget_translate_coordinates (impl->browse_files_tree_view,
                                         GTK_WIDGET (impl),
                                         rect.x, rect.y,
-                                        &rect.x, &rect.y);
+                                        &x, &y);
 
       rect.x = CLAMP (x - 20, 0, bounds.size.width - 40);
+      rect.y = y;
       rect.width = 40;
 
       g_list_free_full (list, (GDestroyNotify) gtk_tree_path_free);
@@ -2029,6 +2061,33 @@ files_list_clicked (GtkGesture           *gesture,
   list_popup_menu_cb (NULL, NULL, impl);
 }
 
+static void
+files_list_restrict_clicking (GtkGestureClick      *gesture,
+                              int                   n_press,
+                              double                x,
+                              double                y,
+                              GtkFileChooserWidget *impl)
+{
+  if (impl->browse_files_interaction_frozen)
+    gtk_event_controller_reset (GTK_EVENT_CONTROLLER (gesture));
+}
+
+static gboolean
+files_list_restrict_key_presses (GtkEventControllerKey *controller,
+                                 guint                  keyval,
+                                 guint                  keycode,
+                                 GdkModifierType        state,
+                                 GtkFileChooserWidget  *impl)
+{
+  if (impl->browse_files_interaction_frozen)
+    {
+      gtk_event_controller_reset (GTK_EVENT_CONTROLLER (controller));
+      return GDK_EVENT_STOP;
+    }
+
+  return GDK_EVENT_PROPAGATE;
+}
+
 /* Callback used when a button is pressed on the file list.  We trap button 3 to
  * bring up a popup menu.
  */
@@ -2058,15 +2117,14 @@ click_cb (GtkGesture           *gesture,
           GtkFileChooserWidget *impl)
 {
   PopoverData *pd;
-  int xx, yy;
 
   pd = g_new (PopoverData, 1);
   pd->impl = impl;
   gtk_widget_translate_coordinates (impl->browse_files_tree_view,
                                     GTK_WIDGET (impl),
-                                    x, y, &xx, &yy);
-  pd->x = xx;
-  pd->y = yy;
+                                    x, y, &x, &y);
+  pd->x = x;
+  pd->y = y;
 
   g_idle_add (file_list_show_popover_in_idle, pd);
 }
@@ -2293,7 +2351,7 @@ save_widgets_create (GtkFileChooserWidget *impl)
   gtk_widget_add_css_class (vbox, "search-bar");
 
   impl->save_widgets_table = gtk_grid_new ();
-  gtk_container_add (GTK_CONTAINER (vbox), impl->save_widgets_table);
+  gtk_box_append (GTK_BOX (vbox), impl->save_widgets_table);
   gtk_grid_set_row_spacing (GTK_GRID (impl->save_widgets_table), 12);
   gtk_grid_set_column_spacing (GTK_GRID (impl->save_widgets_table), 12);
 
@@ -2332,7 +2390,7 @@ save_widgets_destroy (GtkFileChooserWidget *impl)
   if (impl->save_widgets == NULL)
     return;
 
-  gtk_widget_destroy (impl->save_widgets);
+  gtk_box_remove (GTK_BOX (impl->box), impl->save_widgets);
   impl->save_widgets = NULL;
   impl->save_widgets_table = NULL;
   impl->location_entry = NULL;
@@ -2344,13 +2402,7 @@ save_widgets_destroy (GtkFileChooserWidget *impl)
 static void
 location_switch_to_path_bar (GtkFileChooserWidget *impl)
 {
-  if (impl->location_entry)
-    {
-      gtk_container_remove (GTK_CONTAINER (gtk_widget_get_parent (impl->location_entry)),
-                            impl->location_entry);
-      impl->location_entry = NULL;
-    }
-
+  g_clear_pointer (&impl->location_entry, gtk_widget_unparent);
   gtk_stack_set_visible_child_name (GTK_STACK (impl->browse_header_stack), "pathbar");
 }
 
@@ -2372,7 +2424,7 @@ location_switch_to_filename_entry (GtkFileChooserWidget *impl)
   if (!impl->location_entry)
     {
       location_entry_create (impl);
-      gtk_container_add (GTK_CONTAINER (impl->location_entry_box), impl->location_entry);
+      gtk_box_append (GTK_BOX (impl->location_entry_box), impl->location_entry);
     }
 
   _gtk_file_chooser_entry_set_base_folder (GTK_FILE_CHOOSER_ENTRY (impl->location_entry), impl->current_folder);
@@ -2513,14 +2565,14 @@ set_extra_widget (GtkFileChooserWidget *impl,
 
   if (impl->extra_widget)
     {
-      gtk_container_remove (GTK_CONTAINER (impl->extra_align), impl->extra_widget);
+      gtk_box_remove (GTK_BOX (impl->extra_align), impl->extra_widget);
       g_object_unref (impl->extra_widget);
     }
 
   impl->extra_widget = extra_widget;
   if (impl->extra_widget)
     {
-      gtk_container_add (GTK_CONTAINER (impl->extra_align), impl->extra_widget);
+      gtk_box_append (GTK_BOX (impl->extra_align), impl->extra_widget);
       gtk_widget_show (impl->extra_align);
     }
   else
@@ -3063,7 +3115,7 @@ gtk_file_chooser_widget_dispose (GObject *object)
   cancel_all_operations (impl);
 
   g_clear_pointer (&impl->rename_file_popover, gtk_widget_unparent);
-  g_clear_pointer (&impl->browse_files_popover, gtk_widget_destroy);
+  g_clear_pointer (&impl->browse_files_popover, gtk_widget_unparent);
   g_clear_object (&impl->extra_widget);
   g_clear_pointer (&impl->bookmarks_manager, _gtk_bookmarks_manager_free);
 
@@ -3272,7 +3324,7 @@ settings_load (GtkFileChooserWidget *impl)
   update_time_renderer_visible (impl);
   if (sidebar_width < 0)
     {
-      GtkWidget *sidebar = gtk_paned_get_child1 (GTK_PANED (impl->browse_widgets_hpaned));
+      GtkWidget *sidebar = gtk_paned_get_start_child (GTK_PANED (impl->browse_widgets_hpaned));
 
       gtk_widget_measure (sidebar, GTK_ORIENTATION_HORIZONTAL, -1,
                           NULL, &sidebar_width, NULL, NULL);
@@ -3437,6 +3489,8 @@ gtk_file_chooser_widget_map (GtkWidget *widget)
   GtkFileChooserWidget *impl = GTK_FILE_CHOOSER_WIDGET (widget);
 
   profile_start ("start", NULL);
+
+  impl->browse_files_interaction_frozen = FALSE;
 
   GTK_WIDGET_CLASS (gtk_file_chooser_widget_parent_class)->map (widget);
 
@@ -4327,7 +4381,7 @@ get_category_from_content_type (const char *content_type)
         {
           if (strcmp (mime_type_map[i].icon_name, icon_name) == 0)
             {
-              basic_type = g_strdup (gettext (mime_type_map[i].display_name));
+              basic_type = g_strdup (_(mime_type_map[i].display_name));
               break;
             }
         }
@@ -5692,17 +5746,43 @@ add_custom_button_to_dialog (GtkDialog   *dialog,
   gtk_dialog_add_action_widget (GTK_DIALOG (dialog), button, response_id);
 }
 
-/* Presents an overwrite confirmation dialog; returns whether we should accept
- * the filename.
+/* Every time we request a response explicitly, we need to save the selection to
+ * the recently-used list, as requesting a response means, “the dialog is confirmed”.
  */
-static gboolean
+static void
+request_response_and_add_to_recent_list (GtkFileChooserWidget *impl)
+{
+  g_signal_emit_by_name (impl, "response-requested");
+  add_selection_to_recent_list (impl);
+}
+
+static void
+on_confirm_overwrite_response (GtkWidget *dialog,
+                               int        response,
+                               gpointer   user_data)
+{
+  GtkFileChooserWidget *impl = user_data;
+
+  if (response == GTK_RESPONSE_ACCEPT)
+    {
+      /* Dialog is now going to be closed, so prevent any button/key presses to
+       * file list (will be restablished on next map()). Fixes data loss bug #2288 */
+      impl->browse_files_interaction_frozen = TRUE;
+
+      request_response_and_add_to_recent_list (impl);
+    }
+
+  gtk_window_destroy (GTK_WINDOW (dialog));
+}
+
+/* Presents an overwrite confirmation dialog */
+static void
 confirm_dialog_should_accept_filename (GtkFileChooserWidget *impl,
                                        const gchar           *file_part,
                                        const gchar           *folder_display_name)
 {
   GtkWindow *toplevel;
   GtkWidget *dialog;
-  int response;
 
   toplevel = get_toplevel (GTK_WIDGET (impl));
 
@@ -5724,11 +5804,11 @@ confirm_dialog_should_accept_filename (GtkFileChooserWidget *impl,
   if (gtk_window_has_group (toplevel))
     gtk_window_group_add_window (gtk_window_get_group (toplevel), GTK_WINDOW (dialog));
 
-  response = gtk_dialog_run (GTK_DIALOG (dialog));
+  gtk_window_present (GTK_WINDOW (dialog));
 
-  gtk_widget_destroy (dialog);
-
-  return (response == GTK_RESPONSE_ACCEPT);
+  g_signal_connect (dialog, "response",
+                    G_CALLBACK (on_confirm_overwrite_response),
+                    impl);
 }
 
 struct GetDisplayNameData
@@ -5737,16 +5817,6 @@ struct GetDisplayNameData
   gchar *file_part;
 };
 
-/* Every time we request a response explicitly, we need to save the selection to
- * the recently-used list, as requesting a response means, “the dialog is confirmed”.
- */
-static void
-request_response_and_add_to_recent_list (GtkFileChooserWidget *impl)
-{
-  g_signal_emit_by_name (impl, "response-requested");
-  add_selection_to_recent_list (impl);
-}
-
 static void
 confirmation_confirm_get_info_cb (GCancellable *cancellable,
                                   GFileInfo    *info,
@@ -5754,7 +5824,6 @@ confirmation_confirm_get_info_cb (GCancellable *cancellable,
                                   gpointer      user_data)
 {
   gboolean cancelled = g_cancellable_is_cancelled (cancellable);
-  gboolean should_respond = FALSE;
   struct GetDisplayNameData *data = user_data;
 
   if (cancellable != data->impl->should_respond_get_info_cancellable)
@@ -5766,14 +5835,12 @@ confirmation_confirm_get_info_cb (GCancellable *cancellable,
     goto out;
 
   if (error)
-    /* Huh?  Did the folder disappear?  Let the caller deal with it */
-    should_respond = TRUE;
-  else
-    should_respond = confirm_dialog_should_accept_filename (data->impl, data->file_part, g_file_info_get_display_name (info));
+    goto out;
+
+  confirm_dialog_should_accept_filename (data->impl, data->file_part,
+                                         g_file_info_get_display_name (info));
 
   set_busy_cursor (data->impl, FALSE);
-  if (should_respond)
-    request_response_and_add_to_recent_list (data->impl);
 
 out:
   g_object_unref (data->impl);
@@ -7658,6 +7725,26 @@ gtk_file_chooser_widget_class_init (GtkFileChooserWidgetClass *class)
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
 }
 
+static gboolean
+captured_key (GtkEventControllerKey *controller,
+              guint                  keyval,
+              guint                  keycode,
+              GdkModifierType        state,
+              gpointer               data)
+{
+  GtkFileChooserWidget *impl = data;
+  gboolean handled;
+
+  if (impl->operation_mode == OPERATION_MODE_SEARCH)
+    return GDK_EVENT_PROPAGATE;
+
+  handled = gtk_event_controller_key_forward (controller, GTK_WIDGET (impl->search_entry));
+  if (handled == GDK_EVENT_STOP)
+    operation_mode_set (impl, OPERATION_MODE_SEARCH);
+
+  return handled;
+}
+
 static void
 post_process_ui (GtkFileChooserWidget *impl)
 {
@@ -7735,6 +7822,12 @@ post_process_ui (GtkFileChooserWidget *impl)
 
   gtk_search_entry_set_key_capture_widget (GTK_SEARCH_ENTRY (impl->search_entry), impl->search_entry);
 
+  controller = gtk_event_controller_key_new ();
+  g_signal_connect (controller, "key-pressed", G_CALLBACK (captured_key), impl);
+  g_signal_connect (controller, "key-released", G_CALLBACK (captured_key), impl);
+  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_CAPTURE);
+  gtk_widget_add_controller (GTK_WIDGET (impl), controller);
+
   gtk_widget_set_parent (impl->rename_file_popover, GTK_WIDGET (impl));
 
   gesture = gtk_gesture_click_new ();
@@ -7749,6 +7842,20 @@ post_process_ui (GtkFileChooserWidget *impl)
   shortcut = gtk_shortcut_new (trigger, action);
   gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller), shortcut);
   gtk_widget_add_controller (GTK_WIDGET (impl->browse_files_tree_view), controller);
+
+  /* Add ability to restrict interaction on file list (click and key_press events),
+   * needed to prevent data loss bug #2288 */
+  gesture = gtk_gesture_click_new ();
+  gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), 0);
+  gtk_gesture_single_set_exclusive (GTK_GESTURE_SINGLE (gesture), TRUE);
+  gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture), GTK_PHASE_CAPTURE);
+  g_signal_connect (gesture, "pressed", G_CALLBACK (files_list_restrict_clicking), impl);
+  gtk_widget_add_controller (impl->browse_files_tree_view, GTK_EVENT_CONTROLLER (gesture));
+
+  controller = gtk_event_controller_key_new ();
+  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_CAPTURE);
+  g_signal_connect (controller, "key-pressed", G_CALLBACK (files_list_restrict_key_presses), impl);
+  gtk_widget_add_controller (impl->browse_files_tree_view, controller);
 }
 
 void
@@ -7872,11 +7979,11 @@ gtk_file_chooser_widget_add_choice (GtkFileChooser  *chooser,
       int i;
 
       box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
-      gtk_container_add (GTK_CONTAINER (box), gtk_label_new (label));
+      gtk_box_append (GTK_BOX (box), gtk_label_new (label));
 
       combo = gtk_combo_box_text_new ();
       g_hash_table_insert (impl->choices, g_strdup (id), combo);
-      gtk_container_add (GTK_CONTAINER (box), combo);
+      gtk_box_append (GTK_BOX (box), combo);
 
       for (i = 0; options[i]; i++)
         gtk_combo_box_text_append (GTK_COMBO_BOX_TEXT (combo),
@@ -7894,7 +8001,7 @@ gtk_file_chooser_widget_add_choice (GtkFileChooser  *chooser,
       widget = check;
     }
 
-  gtk_container_add (GTK_CONTAINER (impl->choice_box), widget);
+  gtk_box_append (GTK_BOX (impl->choice_box), widget);
 }
 
 static void
@@ -7909,7 +8016,7 @@ gtk_file_chooser_widget_remove_choice (GtkFileChooser  *chooser,
 
   widget = (GtkWidget *)g_hash_table_lookup (impl->choices, id);
   g_hash_table_remove (impl->choices, id);
-  gtk_container_remove (GTK_CONTAINER (impl->choice_box), widget);
+  gtk_box_remove (GTK_BOX (impl->choice_box), widget);
 
   if (g_hash_table_size (impl->choices) == 0)
     {

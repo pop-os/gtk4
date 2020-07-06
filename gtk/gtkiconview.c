@@ -144,7 +144,6 @@ static void             gtk_icon_view_get_property              (GObject        
 								 GValue             *value,
 								 GParamSpec         *pspec);
 /* GtkWidget vfuncs */
-static void             gtk_icon_view_destroy                   (GtkWidget          *widget);
 static GtkSizeRequestMode gtk_icon_view_get_request_mode        (GtkWidget          *widget);
 static void gtk_icon_view_measure (GtkWidget *widget,
                                    GtkOrientation  orientation,
@@ -182,12 +181,8 @@ static gboolean         gtk_icon_view_key_pressed               (GtkEventControl
                                                                  GdkModifierType        state,
                                                                  GtkWidget             *widget);
 
-/* GtkContainer vfuncs */
-static void             gtk_icon_view_remove                    (GtkContainer       *container,
-								 GtkWidget          *widget);
-static void             gtk_icon_view_forall                    (GtkContainer       *container,
-								 GtkCallback         callback,
-								 gpointer            callback_data);
+static void             gtk_icon_view_remove                    (GtkIconView        *icon_view,
+                                                                 GtkWidget          *widget);
 
 /* GtkIconView vfuncs */
 static void             gtk_icon_view_real_select_all           (GtkIconView        *icon_view);
@@ -327,7 +322,7 @@ static void     gtk_icon_view_buildable_custom_tag_end   (GtkBuildable       *bu
 
 static guint icon_view_signals[LAST_SIGNAL] = { 0 };
 
-G_DEFINE_TYPE_WITH_CODE (GtkIconView, gtk_icon_view, GTK_TYPE_CONTAINER,
+G_DEFINE_TYPE_WITH_CODE (GtkIconView, gtk_icon_view, GTK_TYPE_WIDGET,
                          G_ADD_PRIVATE (GtkIconView)
 			 G_IMPLEMENT_INTERFACE (GTK_TYPE_CELL_LAYOUT,
 						gtk_icon_view_cell_layout_init)
@@ -340,23 +335,18 @@ gtk_icon_view_class_init (GtkIconViewClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
-  GtkContainerClass *container_class = GTK_CONTAINER_CLASS (klass);
 
   gobject_class->constructed = gtk_icon_view_constructed;
   gobject_class->dispose = gtk_icon_view_dispose;
   gobject_class->set_property = gtk_icon_view_set_property;
   gobject_class->get_property = gtk_icon_view_get_property;
 
-  widget_class->destroy = gtk_icon_view_destroy;
   widget_class->get_request_mode = gtk_icon_view_get_request_mode;
   widget_class->measure = gtk_icon_view_measure;
   widget_class->size_allocate = gtk_icon_view_size_allocate;
   widget_class->snapshot = gtk_icon_view_snapshot;
   widget_class->focus = gtk_widget_focus_self;
   widget_class->grab_focus = gtk_widget_grab_focus_self;
-
-  container_class->remove = gtk_icon_view_remove;
-  container_class->forall = gtk_icon_view_forall;
 
   klass->select_all = gtk_icon_view_real_select_all;
   klass->unselect_all = gtk_icon_view_real_unselect_all;
@@ -952,6 +942,7 @@ gtk_icon_view_init (GtkIconView *icon_view)
   icon_view->priv->mouse_y = -1;
 
   gtk_widget_set_overflow (GTK_WIDGET (icon_view), GTK_OVERFLOW_HIDDEN);
+  gtk_widget_set_focusable (GTK_WIDGET (icon_view), TRUE);
 
   icon_view->priv->item_orientation = GTK_ORIENTATION_VERTICAL;
 
@@ -1009,6 +1000,28 @@ gtk_icon_view_dispose (GObject *object)
 
   icon_view = GTK_ICON_VIEW (object);
   priv      = icon_view->priv;
+
+  gtk_icon_view_set_model (icon_view, NULL);
+
+  if (icon_view->priv->scroll_to_path != NULL)
+    {
+      gtk_tree_row_reference_free (icon_view->priv->scroll_to_path);
+      icon_view->priv->scroll_to_path = NULL;
+    }
+
+  remove_scroll_timeout (icon_view);
+
+  if (icon_view->priv->hadjustment != NULL)
+    {
+      g_object_unref (icon_view->priv->hadjustment);
+      icon_view->priv->hadjustment = NULL;
+    }
+
+  if (icon_view->priv->vadjustment != NULL)
+    {
+      g_object_unref (icon_view->priv->vadjustment);
+      icon_view->priv->vadjustment = NULL;
+    }
 
   if (priv->cell_area_context)
     {
@@ -1239,35 +1252,6 @@ gtk_icon_view_get_property (GObject      *object,
 }
 
 /* GtkWidget methods */
-static void
-gtk_icon_view_destroy (GtkWidget *widget)
-{
-  GtkIconView *icon_view = GTK_ICON_VIEW (widget);
-
-  gtk_icon_view_set_model (icon_view, NULL);
-
-  if (icon_view->priv->scroll_to_path != NULL)
-    {
-      gtk_tree_row_reference_free (icon_view->priv->scroll_to_path);
-      icon_view->priv->scroll_to_path = NULL;
-    }
-
-  remove_scroll_timeout (icon_view);
-
-  if (icon_view->priv->hadjustment != NULL)
-    {
-      g_object_unref (icon_view->priv->hadjustment);
-      icon_view->priv->hadjustment = NULL;
-    }
-
-  if (icon_view->priv->vadjustment != NULL)
-    {
-      g_object_unref (icon_view->priv->vadjustment);
-      icon_view->priv->vadjustment = NULL;
-    }
-
-  GTK_WIDGET_CLASS (gtk_icon_view_parent_class)->destroy (widget);
-}
 
 static gint
 gtk_icon_view_get_n_items (GtkIconView *icon_view)
@@ -1912,15 +1896,12 @@ gtk_icon_view_leave(GtkEventController   *controller,
 }
 
 static void
-gtk_icon_view_remove (GtkContainer *container,
-		      GtkWidget    *widget)
+gtk_icon_view_remove (GtkIconView *icon_view,
+                      GtkWidget   *widget)
 {
-  GtkIconView *icon_view;
   GtkIconViewChild *child = NULL;
   GList *tmp_list;
 
-  icon_view = GTK_ICON_VIEW (container);
-  
   tmp_list = icon_view->priv->children;
   while (tmp_list)
     {
@@ -1936,27 +1917,6 @@ gtk_icon_view_remove (GtkContainer *container,
 	}
 
       tmp_list = tmp_list->next;
-    }
-}
-
-static void
-gtk_icon_view_forall (GtkContainer *container,
-		      GtkCallback   callback,
-		      gpointer      callback_data)
-{
-  GtkIconView *icon_view;
-  GtkIconViewChild *child = NULL;
-  GList *tmp_list;
-
-  icon_view = GTK_ICON_VIEW (container);
-
-  tmp_list = icon_view->priv->children;
-  while (tmp_list)
-    {
-      child = tmp_list->data;
-      tmp_list = tmp_list->next;
-
-      (* callback) (child->widget, callback_data);
     }
 }
 
@@ -2005,17 +1965,16 @@ gtk_icon_view_add_editable (GtkCellArea            *area,
 
 static void
 gtk_icon_view_remove_editable (GtkCellArea            *area,
-			       GtkCellRenderer        *renderer,
-			       GtkCellEditable        *editable,
-			       GtkIconView            *icon_view)
+                               GtkCellRenderer        *renderer,
+                               GtkCellEditable        *editable,
+                               GtkIconView            *icon_view)
 {
   GtkTreePath *path;
 
   if (gtk_widget_has_focus (GTK_WIDGET (editable)))
     gtk_widget_grab_focus (GTK_WIDGET (icon_view));
-  
-  gtk_container_remove (GTK_CONTAINER (icon_view),
-			GTK_WIDGET (editable));  
+
+  gtk_icon_view_remove (icon_view, GTK_WIDGET (editable));
 
   path = gtk_tree_path_new_from_string (gtk_cell_area_get_current_path_string (area));
   gtk_icon_view_queue_draw_path (icon_view, path);

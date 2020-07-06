@@ -12,7 +12,7 @@ quit_activate (GSimpleAction *action,
 {
   GtkWidget *window = user_data;
 
-  gtk_widget_destroy (window);
+  gtk_window_destroy (GTK_WINDOW (window));
 }
 
 static void
@@ -26,8 +26,10 @@ about_activate (GSimpleAction *action,
 
   builder = g_object_get_data (G_OBJECT (window), "builder");
   about_dlg = GTK_WIDGET (gtk_builder_get_object (builder, "aboutdialog1"));
-  gtk_dialog_run (GTK_DIALOG (about_dlg));
-  gtk_widget_hide (about_dlg);
+  gtk_window_set_transient_for (GTK_WINDOW (about_dlg), GTK_WINDOW (window));
+  gtk_window_set_hide_on_close (GTK_WINDOW (about_dlg), TRUE);
+  g_signal_connect (about_dlg, "response", G_CALLBACK (gtk_widget_hide), NULL);
+  gtk_widget_show (about_dlg);
 }
 
 static void
@@ -74,8 +76,7 @@ do_builder (GtkWidget *do_widget)
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window1"));
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
       actions = (GActionGroup*)g_simple_action_group_new ();
       g_action_map_add_action_entries (G_ACTION_MAP (actions),
                                        win_entries, G_N_ELEMENTS (win_entries),
@@ -88,7 +89,7 @@ do_builder (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

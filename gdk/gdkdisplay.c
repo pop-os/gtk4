@@ -71,6 +71,7 @@ enum
   PROP_0,
   PROP_COMPOSITED,
   PROP_RGBA,
+  PROP_INPUT_SHAPES,
   LAST_PROP
 };
 
@@ -81,8 +82,6 @@ enum {
   CLOSED,
   SEAT_ADDED,
   SEAT_REMOVED,
-  MONITOR_ADDED,
-  MONITOR_REMOVED,
   SETTING_CHANGED,
   LAST_SIGNAL
 };
@@ -113,6 +112,10 @@ gdk_display_get_property (GObject    *object,
 
     case PROP_RGBA:
       g_value_set_boolean (value, gdk_display_is_rgba (display));
+      break;
+
+    case PROP_INPUT_SHAPES:
+      g_value_set_boolean (value, gdk_display_supports_input_shapes (display));
       break;
 
     default:
@@ -195,6 +198,19 @@ gdk_display_class_init (GdkDisplayClass *class)
                           TRUE,
                           G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
+  /**
+   * GdkDisplay:input-shapes:
+   *
+   * %TRUE if the display supports input shapes. See
+   * gdk_display_supports_input_shapes() for details.
+   */
+  props[PROP_INPUT_SHAPES] =
+    g_param_spec_boolean ("input-shapes",
+                          P_("Input shapes"),
+                          P_("Input shapes"),
+                          TRUE,
+                          G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
   /**
@@ -265,38 +281,6 @@ gdk_display_class_init (GdkDisplayClass *class)
 		  G_TYPE_NONE, 1, GDK_TYPE_SEAT);
 
   /**
-   * GdkDisplay::monitor-added:
-   * @display: the objedct on which the signal is emitted
-   * @monitor: the monitor that was just added
-   *
-   * The ::monitor-added signal is emitted whenever a monitor is
-   * added.
-   */
-  signals[MONITOR_ADDED] =
-    g_signal_new (g_intern_static_string ("monitor-added"),
-		  G_OBJECT_CLASS_TYPE (object_class),
-		  G_SIGNAL_RUN_LAST,
-		  0, NULL, NULL,
-                  NULL,
-		  G_TYPE_NONE, 1, GDK_TYPE_MONITOR);
-
-  /**
-   * GdkDisplay::monitor-removed:
-   * @display: the object on which the signal is emitted
-   * @monitor: the monitor that was just removed
-   *
-   * The ::monitor-removed signal is emitted whenever a monitor is
-   * removed.
-   */
-  signals[MONITOR_REMOVED] =
-    g_signal_new (g_intern_static_string ("monitor-removed"),
-		  G_OBJECT_CLASS_TYPE (object_class),
-		  G_SIGNAL_RUN_LAST,
-		  0, NULL, NULL,
-                  NULL,
-		  G_TYPE_NONE, 1, GDK_TYPE_MONITOR);
-
-  /**
    * GdkDisplay::setting-changed:
    * @display: the object on which the signal is emitted
    * @setting: the name of the setting that changed
@@ -356,6 +340,7 @@ gdk_display_init (GdkDisplay *display)
 
   display->composited = TRUE;
   display->rgba = TRUE;
+  display->input_shapes = TRUE;
 }
 
 static void
@@ -1129,23 +1114,6 @@ gdk_display_get_primary_clipboard (GdkDisplay *display)
 }
 
 /**
- * gdk_display_supports_shapes:
- * @display: a #GdkDisplay
- *
- * Returns %TRUE if gdk_surface_shape_combine_mask() can
- * be used to create shaped windows on @display.
- *
- * Returns: %TRUE if shaped windows are supported
- */
-gboolean
-gdk_display_supports_shapes (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
-
-  return GDK_DISPLAY_GET_CLASS (display)->supports_shapes (display);
-}
-
-/**
  * gdk_display_supports_input_shapes:
  * @display: a #GdkDisplay
  *
@@ -1159,7 +1127,21 @@ gdk_display_supports_input_shapes (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
 
-  return GDK_DISPLAY_GET_CLASS (display)->supports_input_shapes (display);
+  return display->input_shapes;
+}
+
+void
+gdk_display_set_input_shapes (GdkDisplay *display,
+                              gboolean    input_shapes)
+{
+  g_return_if_fail (GDK_IS_DISPLAY (display));
+
+  if (display->input_shapes == input_shapes)
+    return;
+
+  display->input_shapes = input_shapes;
+
+  g_object_notify_by_pspec (G_OBJECT (display), props[PROP_INPUT_SHAPES]);
 }
 
 static GdkAppLaunchContext *
@@ -1497,7 +1479,10 @@ gdk_display_remove_seat (GdkDisplay *display,
  *
  * Returns the default #GdkSeat for this display.
  *
- * Returns: (transfer none): the default seat.
+ * Note that a display may not have a seat. In this case,
+ * this function will return %NULL.
+ *
+ * Returns: (transfer none) (nullable): the default seat.
  **/
 GdkSeat *
 gdk_display_get_default_seat (GdkDisplay *display)
@@ -1529,44 +1514,25 @@ gdk_display_list_seats (GdkDisplay *display)
 }
 
 /**
- * gdk_display_get_n_monitors:
- * @display: a #GdkDisplay
+ * gdk_display_get_monitors:
+ * @self: a #GdkDisplay
  *
- * Gets the number of monitors that belong to @display.
+ * Gets the list of monitors associated with this display.
  *
- * The returned number is valid until the next emission of the
- * #GdkDisplay::monitor-added or #GdkDisplay::monitor-removed signal.
+ * Subsequent calls to this function will always return the same list for the
+ * same display.
  *
- * Returns: the number of monitors
+ * You can listen to the GListModel::items-changed signal on this list
+ * to monitor changes to the monitor of this display.
+ *
+ * Returns: (transfer none): a #GListModel of #GdkMonitor
  */
-int
-gdk_display_get_n_monitors (GdkDisplay *display)
+GListModel *
+gdk_display_get_monitors (GdkDisplay *self)
 {
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), 0);
+  g_return_val_if_fail (GDK_IS_DISPLAY (self), NULL);
 
-  if (GDK_DISPLAY_GET_CLASS (display)->get_n_monitors == NULL)
-    return 1;
-
-  return GDK_DISPLAY_GET_CLASS (display)->get_n_monitors (display);
-}
-
-/**
- * gdk_display_get_monitor:
- * @display: a #GdkDisplay
- * @monitor_num: number of the monitor
- *
- * Gets a monitor associated with this display.
- *
- * Returns: (nullable) (transfer none): the #GdkMonitor, or %NULL if
- *    @monitor_num is not a valid monitor number
- */
-GdkMonitor *
-gdk_display_get_monitor (GdkDisplay *display,
-                         gint        monitor_num)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  return GDK_DISPLAY_GET_CLASS (display)->get_monitor (display, monitor_num);
+  return GDK_DISPLAY_GET_CLASS (self)->get_monitors (self);
 }
 
 /**
@@ -1585,7 +1551,8 @@ gdk_display_get_monitor_at_surface (GdkDisplay *display,
                                    GdkSurface  *surface)
 {
   GdkRectangle win;
-  int n_monitors, i;
+  GListModel *monitors;
+  guint i;
   int area = 0;
   GdkMonitor *best = NULL;
   GdkDisplayClass *class;
@@ -1605,14 +1572,14 @@ gdk_display_get_monitor_at_surface (GdkDisplay *display,
   gdk_surface_get_geometry (surface, &win.x, &win.y, &win.width, &win.height);
   gdk_surface_get_origin (surface, &win.x, &win.y);
 
-  n_monitors = gdk_display_get_n_monitors (display);
-  for (i = 0; i < n_monitors; i++)
+  monitors = gdk_display_get_monitors (display);
+  for (i = 0; i < g_list_model_get_n_items (monitors); i++)
     {
       GdkMonitor *monitor;
       GdkRectangle mon, intersect;
       int overlap;
 
-      monitor = gdk_display_get_monitor (display, i);
+      monitor = g_list_model_get_item (monitors, i);
       gdk_monitor_get_geometry (monitor, &mon);
       gdk_rectangle_intersect (&win, &mon, &intersect);
       overlap = intersect.width *intersect.height;
@@ -1621,24 +1588,10 @@ gdk_display_get_monitor_at_surface (GdkDisplay *display,
           area = overlap;
           best = monitor;
         }
+      g_object_unref (monitor);
     }
 
   return best;
-}
-
-void
-gdk_display_monitor_added (GdkDisplay *display,
-                           GdkMonitor *monitor)
-{
-  g_signal_emit (display, signals[MONITOR_ADDED], 0, monitor);
-}
-
-void
-gdk_display_monitor_removed (GdkDisplay *display,
-                             GdkMonitor *monitor)
-{
-  g_signal_emit (display, signals[MONITOR_REMOVED], 0, monitor);
-  gdk_monitor_invalidate (monitor);
 }
 
 void
@@ -1676,17 +1629,6 @@ gdk_display_setting_changed (GdkDisplay       *display,
                              const char       *name)
 {
   g_signal_emit (display, signals[SETTING_CHANGED], 0, name);
-}
-
-guint32
-gdk_display_get_last_seen_time (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), GDK_CURRENT_TIME);
-
-  if (GDK_DISPLAY_GET_CLASS (display)->get_last_seen_time)
-    return GDK_DISPLAY_GET_CLASS (display)->get_last_seen_time (display);
-
-  return GDK_CURRENT_TIME;
 }
 
 void

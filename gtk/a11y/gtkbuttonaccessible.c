@@ -26,7 +26,7 @@
 static void atk_action_interface_init (AtkActionIface *iface);
 static void atk_image_interface_init  (AtkImageIface  *iface);
 
-G_DEFINE_TYPE_WITH_CODE (GtkButtonAccessible, gtk_button_accessible, GTK_TYPE_CONTAINER_ACCESSIBLE,
+G_DEFINE_TYPE_WITH_CODE (GtkButtonAccessible, gtk_button_accessible, GTK_TYPE_WIDGET_ACCESSIBLE,
                          G_IMPLEMENT_INTERFACE (ATK_TYPE_ACTION, atk_action_interface_init)
                          G_IMPLEMENT_INTERFACE (ATK_TYPE_IMAGE, atk_image_interface_init))
 
@@ -60,7 +60,7 @@ get_image_from_button (GtkWidget *button)
 {
   GtkWidget *image;
 
-  image = gtk_bin_get_child (GTK_BIN (button));
+  image = gtk_button_get_child (GTK_BUTTON (button));
   if (GTK_IS_IMAGE (image))
     return image;
 
@@ -68,30 +68,25 @@ get_image_from_button (GtkWidget *button)
 }
 
 static GtkWidget *
-find_label_child (GtkContainer *container)
+find_label_child (GtkWidget *widget)
 {
-  GList *children, *tmp_list;
   GtkWidget *child;
 
-  children = gtk_container_get_children (container);
-
-  child = NULL;
-  for (tmp_list = children; tmp_list != NULL; tmp_list = tmp_list->next)
+  for (child = gtk_widget_get_first_child (widget);
+       child != NULL;
+       child = gtk_widget_get_next_sibling (widget))
     {
-      if (GTK_IS_LABEL (tmp_list->data))
+      if (GTK_IS_LABEL (child))
+        return child;
+      else
         {
-          child = GTK_WIDGET (tmp_list->data);
-          break;
-        }
-      else if (GTK_IS_CONTAINER (tmp_list->data))
-        {
-          child = find_label_child (GTK_CONTAINER (tmp_list->data));
-          if (child)
-            break;
+          GtkWidget *w = find_label_child (child);
+          if (w)
+            return w;
         }
     }
-  g_list_free (children);
-  return child;
+
+  return NULL;
 }
 
 static GtkWidget *
@@ -99,12 +94,10 @@ get_label_from_button (GtkWidget *button)
 {
   GtkWidget *child;
 
-  child = gtk_bin_get_child (GTK_BIN (button));
+  child = gtk_button_get_child (GTK_BUTTON (button));
 
-  if (GTK_IS_CONTAINER (child))
-    child = find_label_child (GTK_CONTAINER (child));
-  else if (!GTK_IS_LABEL (child))
-    child = NULL;
+  if (!GTK_IS_LABEL (child))
+    child = find_label_child (child);
 
   return child;
 }
@@ -200,7 +193,6 @@ static void
 gtk_button_accessible_class_init (GtkButtonAccessibleClass *klass)
 {
   AtkObjectClass *class = ATK_OBJECT_CLASS (klass);
-  GtkContainerAccessibleClass *container_class = (GtkContainerAccessibleClass*)klass;
   GtkWidgetAccessibleClass *widget_class = (GtkWidgetAccessibleClass*)klass;
 
   class->get_name = gtk_button_accessible_get_name;
@@ -210,9 +202,6 @@ gtk_button_accessible_class_init (GtkButtonAccessibleClass *klass)
   class->initialize = gtk_button_accessible_initialize;
 
   widget_class->notify_gtk = gtk_button_accessible_notify_gtk;
-
-  container_class->add_gtk = NULL;
-  container_class->remove_gtk = NULL;
 }
 
 static void

@@ -269,27 +269,27 @@ do_search_entry (GtkWidget *do_widget)
       gtk_widget_set_margin_end (vbox, 5);
       gtk_widget_set_margin_top (vbox, 5);
       gtk_widget_set_margin_bottom (vbox, 5);
-      gtk_container_add (GTK_CONTAINER (window), vbox);
+      gtk_window_set_child (GTK_WINDOW (window), vbox);
 
       label = gtk_label_new (NULL);
       gtk_label_set_markup (GTK_LABEL (label), "Search entry demo");
-      gtk_container_add (GTK_CONTAINER (vbox), label);
+      gtk_box_append (GTK_BOX (vbox), label);
 
       hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
-      gtk_container_add (GTK_CONTAINER (vbox), hbox);
+      gtk_box_append (GTK_BOX (vbox), hbox);
 
       /* Create our entry */
       entry = gtk_entry_new ();
       gtk_entry_set_icon_from_icon_name (GTK_ENTRY (entry),
                                          GTK_ENTRY_ICON_PRIMARY,
                                          "edit-find-symbolic");
-      gtk_container_add (GTK_CONTAINER (hbox), entry);
+      gtk_box_append (GTK_BOX (hbox), entry);
 
       /* Create the find and cancel buttons */
       notebook = gtk_notebook_new ();
       gtk_notebook_set_show_tabs (GTK_NOTEBOOK (notebook), FALSE);
       gtk_notebook_set_show_border (GTK_NOTEBOOK (notebook), FALSE);
-      gtk_container_add (GTK_CONTAINER (hbox), notebook);
+      gtk_box_append (GTK_BOX (hbox), notebook);
 
       find_button = gtk_button_new_with_label ("Find");
       g_signal_connect (find_button, "clicked",
@@ -319,7 +319,7 @@ do_search_entry (GtkWidget *do_widget)
   else
     {
       g_clear_object (&actions);
-      gtk_widget_destroy (window);
+      gtk_window_destroy (GTK_WINDOW (window));
     }
 
   return window;

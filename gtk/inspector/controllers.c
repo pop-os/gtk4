@@ -80,7 +80,7 @@ gtk_inspector_controllers_init (GtkInspectorControllers *sl)
                 "margin-top", 60,
                 "margin-bottom", 30,
                 NULL);
-  gtk_container_add (GTK_CONTAINER (sw), box);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), box);
   gtk_widget_set_hexpand (box, TRUE);
   gtk_widget_set_vexpand (box, TRUE);
 
@@ -89,9 +89,9 @@ gtk_inspector_controllers_init (GtkInspectorControllers *sl)
   gtk_widget_set_halign (sl->priv->listbox, GTK_ALIGN_CENTER);
   g_signal_connect (sl->priv->listbox, "row-activated", G_CALLBACK (row_activated), sl);
   gtk_list_box_set_selection_mode (GTK_LIST_BOX (sl->priv->listbox), GTK_SELECTION_NONE);
-  gtk_container_add (GTK_CONTAINER (box), sl->priv->listbox);
+  gtk_box_append (GTK_BOX (box), sl->priv->listbox);
 
-  gtk_container_add (GTK_CONTAINER (sl), sw);
+  gtk_box_append (GTK_BOX (sl), sw);
 }
 
 static void
@@ -122,14 +122,14 @@ create_controller_widget (gpointer item,
   row = gtk_list_box_row_new ();
   gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 40);
-  gtk_container_add (GTK_CONTAINER (row), box);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), box);
   gtk_widget_set_margin_start (box, 10);
   gtk_widget_set_margin_end (box, 10);
   gtk_widget_set_margin_top (box, 10);
   gtk_widget_set_margin_bottom (box, 10);
   label = gtk_label_new (G_OBJECT_TYPE_NAME (controller));
   g_object_set (label, "xalign", 0.0, NULL);
-  gtk_container_add (GTK_CONTAINER (box), label);
+  gtk_box_append (GTK_BOX (box), label);
   gtk_size_group_add_widget (sl->priv->sizegroup, label);
   gtk_widget_set_halign (label, GTK_ALIGN_START);
   gtk_widget_set_valign (label, GTK_ALIGN_BASELINE);
@@ -140,7 +140,7 @@ create_controller_widget (gpointer item,
   gtk_combo_box_text_insert_text (GTK_COMBO_BOX_TEXT (combo), GTK_PHASE_BUBBLE, C_("event phase", "Bubble"));
   gtk_combo_box_text_insert_text (GTK_COMBO_BOX_TEXT (combo), GTK_PHASE_TARGET, C_("event phase", "Target"));
   gtk_combo_box_set_active (GTK_COMBO_BOX (combo), gtk_event_controller_get_propagation_phase (controller));
-  gtk_container_add (GTK_CONTAINER (box), combo);
+  gtk_box_append (GTK_BOX (box), combo);
   gtk_widget_set_halign (label, GTK_ALIGN_END);
   gtk_widget_set_valign (label, GTK_ALIGN_BASELINE);
 

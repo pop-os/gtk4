@@ -1047,8 +1047,8 @@ make_directory_button (GtkPathBar  *path_bar,
       button_data->image = gtk_image_new ();
       button_data->label = gtk_label_new (NULL);
       child = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-      gtk_container_add (GTK_CONTAINER (child), button_data->image);
-      gtk_container_add (GTK_CONTAINER (child), button_data->label);
+      gtk_box_append (GTK_BOX (child), button_data->image);
+      gtk_box_append (GTK_BOX (child), button_data->label);
       break;
     case NORMAL_BUTTON:
     default:
@@ -1061,7 +1061,7 @@ make_directory_button (GtkPathBar  *path_bar,
   button_data->file = g_object_ref (file);
   button_data->file_is_hidden = file_is_hidden;
 
-  gtk_container_add (GTK_CONTAINER (button_data->button), child);
+  gtk_button_set_child (GTK_BUTTON (button_data->button), child);
 
   gtk_path_bar_update_button_appearance (path_bar, button_data, current_dir);
 

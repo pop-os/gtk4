@@ -86,7 +86,7 @@ gdk_broadway_surface_finalize (GObject *object)
 
   broadway_display = GDK_BROADWAY_DISPLAY (gdk_surface_get_display (GDK_SURFACE (impl)));
 
-  g_hash_table_remove (broadway_display->id_ht, GINT_TO_POINTER(impl->id));
+  g_hash_table_remove (broadway_display->id_ht, GINT_TO_POINTER (impl->id));
 
   if (impl->cursor)
     g_object_unref (impl->cursor);
@@ -99,7 +99,8 @@ gdk_broadway_surface_finalize (GObject *object)
 static gboolean
 thaw_updates_cb (GdkSurface *surface)
 {
-  gdk_surface_thaw_updates (surface);
+  if (!GDK_SURFACE_DESTROYED (surface))
+    gdk_surface_thaw_updates (surface);
   g_object_unref (surface);
   return G_SOURCE_REMOVE;
 }
@@ -271,6 +272,8 @@ _gdk_broadway_display_create_surface (GdkDisplay     *display,
                                                surface->height);
   g_hash_table_insert (broadway_display->id_ht, GINT_TO_POINTER(impl->id), surface);
 
+  g_object_ref (surface);
+
   if (!surface->parent)
     broadway_display->toplevels = g_list_prepend (broadway_display->toplevels, impl);
 
@@ -320,7 +323,6 @@ _gdk_broadway_surface_destroy (GdkSurface *surface,
   g_hash_table_remove (broadway_display->id_ht, GINT_TO_POINTER (impl->id));
 
   _gdk_broadway_server_destroy_surface (broadway_display->server, impl->id);
-
 }
 
 void
@@ -585,7 +587,6 @@ static void
 show_popup (GdkSurface *surface)
 {
   gdk_synthesize_surface_state (surface, GDK_SURFACE_STATE_WITHDRAWN, 0);
-  _gdk_surface_update_viewable (surface);
   gdk_broadway_surface_show (surface, FALSE);
   gdk_surface_invalidate_rect (surface, NULL);
 }
@@ -777,7 +778,6 @@ gdk_broadway_surface_maximize (GdkSurface *surface)
 {
   GdkBroadwaySurface *impl;
   GdkDisplay *display;
-  GdkMonitor *monitor;
   GdkRectangle geom;
 
   if (GDK_SURFACE_DESTROYED (surface))
@@ -798,8 +798,7 @@ gdk_broadway_surface_maximize (GdkSurface *surface)
   impl->pre_maximize_height = surface->height;
 
   display = gdk_surface_get_display (surface);
-  monitor = gdk_display_get_monitor (display, 0);
-  gdk_monitor_get_geometry (monitor, &geom);
+  gdk_monitor_get_geometry (GDK_BROADWAY_DISPLAY (display)->monitor, &geom);
 
   gdk_broadway_surface_move_resize (surface,
                                     geom.x, geom.y,
@@ -1193,18 +1192,17 @@ calculate_unmoving_origin (MoveResizeData *mv_resize)
 }
 
 static void
-gdk_broadway_surface_begin_resize_drag (GdkSurface     *surface,
-                                        GdkSurfaceEdge  edge,
-                                        GdkDevice     *device,
-                                        gint           button,
-                                        gint           x,
-                                        gint           y,
-                                        guint32        timestamp)
+gdk_broadway_toplevel_begin_resize (GdkToplevel    *toplevel,
+                                    GdkSurfaceEdge  edge,
+                                    GdkDevice      *device,
+                                    int             button,
+                                    double          x,
+                                    double          y,
+                                    guint32         timestamp)
 {
+  GdkSurface *surface = GDK_SURFACE (toplevel);
+  GdkBroadwaySurface *impl = GDK_BROADWAY_SURFACE (surface);
   MoveResizeData *mv_resize;
-  GdkBroadwaySurface *impl;
-
-  impl = GDK_BROADWAY_SURFACE (surface);
 
   if (GDK_SURFACE_DESTROYED (surface))
     return;
@@ -1236,17 +1234,16 @@ gdk_broadway_surface_begin_resize_drag (GdkSurface     *surface,
 }
 
 static void
-gdk_broadway_surface_begin_move_drag (GdkSurface *surface,
-                                      GdkDevice *device,
-                                      gint       button,
-                                      gint       x,
-                                      gint       y,
-                                      guint32    timestamp)
+gdk_broadway_toplevel_begin_move (GdkToplevel *toplevel,
+                                  GdkDevice   *device,
+                                  int          button,
+                                  double       x,
+                                  double       y,
+                                  guint32      timestamp)
 {
+  GdkSurface *surface = GDK_SURFACE (toplevel);
+  GdkBroadwaySurface *impl = GDK_BROADWAY_SURFACE (surface);
   MoveResizeData *mv_resize;
-  GdkBroadwaySurface *impl;
-
-  impl = GDK_BROADWAY_SURFACE (surface);
 
   if (GDK_SURFACE_DESTROYED (surface))
     return;
@@ -1282,15 +1279,6 @@ gdk_broadway_surface_beep (GdkSurface *surface)
   return FALSE;
 }
 
-guint32
-gdk_broadway_get_last_seen_time (GdkSurface  *surface)
-{
-  GdkDisplay *display;
-
-  display = gdk_surface_get_display (surface);
-  return _gdk_broadway_server_get_last_seen_time (GDK_BROADWAY_DISPLAY (display)->server);
-}
-
 static void
 gdk_broadway_surface_class_init (GdkBroadwaySurfaceClass *klass)
 {
@@ -1307,8 +1295,6 @@ gdk_broadway_surface_class_init (GdkBroadwaySurfaceClass *klass)
   impl_class->set_input_region = gdk_broadway_surface_set_input_region;
   impl_class->destroy = _gdk_broadway_surface_destroy;
   impl_class->beep = gdk_broadway_surface_beep;
-  impl_class->begin_resize_drag = gdk_broadway_surface_begin_resize_drag;
-  impl_class->begin_move_drag = gdk_broadway_surface_begin_move_drag;
   impl_class->destroy_notify = gdk_broadway_surface_destroy_notify;
   impl_class->drag_begin = _gdk_broadway_surface_drag_begin;
   impl_class->get_scale_factor = gdk_broadway_surface_get_scale_factor;
@@ -1578,15 +1564,10 @@ show_surface (GdkSurface *surface)
   if (!was_mapped)
     gdk_synthesize_surface_state (surface, GDK_SURFACE_STATE_WITHDRAWN, 0);
 
-  _gdk_surface_update_viewable (surface);
-
   gdk_broadway_surface_show (surface, FALSE);
 
   if (!was_mapped)
-    {
-      if (gdk_surface_is_viewable (surface))
-        gdk_surface_invalidate_rect (surface, NULL);
-    }
+    gdk_surface_invalidate_rect (surface, NULL);
 }
 
 static gboolean
@@ -1663,6 +1644,8 @@ gdk_broadway_toplevel_iface_init (GdkToplevelInterface *iface)
   iface->lower = gdk_broadway_toplevel_lower;
   iface->focus = gdk_broadway_toplevel_focus;
   iface->show_window_menu = gdk_broadway_toplevel_show_window_menu;
+  iface->begin_resize = gdk_broadway_toplevel_begin_resize;
+  iface->begin_move = gdk_broadway_toplevel_begin_move;
 }
 
 typedef struct

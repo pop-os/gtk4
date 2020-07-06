@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.98.3',
+        version: '3.98.4',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -497,7 +497,6 @@ if x11_enabled
   xi_dep         = dependency('xi')
   xext_dep       = dependency('xext')
   xcursor_dep    = dependency('xcursor', required: false)
-  xdamage_dep    = dependency('xdamage', required: false)
   xfixes_dep     = dependency('xfixes', required: false)
   xcomposite_dep = dependency('xcomposite', required: false)
   fontconfig_dep = dependency('fontconfig')
@@ -516,13 +515,9 @@ if x11_enabled
   if xcomposite_dep.found()
     x11_pkgs += ['xcomposite']
   endif
-  if xdamage_dep.found()
-    x11_pkgs += ['xdamage']
-  endif
 
   atk_pkgs += ['atk-bridge-2.0']
 
-  cdata.set('HAVE_XDAMAGE', xdamage_dep.found())
   cdata.set('HAVE_XCURSOR', xcursor_dep.found())
   cdata.set('HAVE_XCOMPOSITE', xcomposite_dep.found())
   cdata.set('HAVE_XFIXES', xfixes_dep.found())
@@ -720,8 +715,8 @@ pkgconf = configuration_data()
 
 pkgconf.set('prefix', get_option('prefix'))
 pkgconf.set('exec_prefix', '${prefix}')
-pkgconf.set('libdir', '${prefix}/@0@'.format(get_option('libdir')))
-pkgconf.set('includedir', '${prefix}/@0@'.format(get_option('includedir')))
+pkgconf.set('libdir', '${prefix}' / get_option('libdir'))
+pkgconf.set('includedir', '${prefix}' / get_option('includedir'))
 pkgconf.set('GTK_API_VERSION', gtk_api_version)
 pkgconf.set('VERSION', meson.project_version())
 pkgconf.set('GTK_BINARY_VERSION', gtk_binary_version)

@@ -297,13 +297,13 @@
       <xi:include href="xml/gtksnapshot.xml" />
       <xi:include href="xml/gtktooltip.xml" />
       <xi:include href="xml/gtkwidgetpaintable.xml" />
+      <xi:include href="xml/gtkwindowcontrols.xml" />
+      <xi:include href="xml/gtkwindowhandle.xml" />
     </chapter>
 
     <chapter id="AbstractObjects">
       <title>Abstract Base Classes</title>
       <xi:include href="xml/gtkwidget.xml" />
-      <xi:include href="xml/gtkcontainer.xml" />
-      <xi:include href="xml/gtkbin.xml" />
       <xi:include href="xml/gtkrange.xml" />
       <xi:include href="xml/gtkimcontext.xml" />
       <xi:include href="xml/gtknativedialog.xml" />
@@ -360,6 +360,7 @@
       <xi:include href="xml/gtkdragicon.xml"/>
       <xi:include href="xml/gtkdroptarget.xml"/>
       <xi:include href="xml/gtkdroptargetasync.xml"/>
+      <xi:include href="xml/gtkdropcontrollermotion.xml"/>
     </chapter>
 
   </part>

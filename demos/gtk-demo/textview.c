@@ -477,16 +477,13 @@ do_textview (GtkWidget *do_widget)
       window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
-      gtk_window_set_default_size (GTK_WINDOW (window),
-                                   450, 450);
-
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      gtk_window_set_default_size (GTK_WINDOW (window), 450, 450);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       gtk_window_set_title (GTK_WINDOW (window), "Multiple Views");
 
       vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
-      gtk_container_add (GTK_CONTAINER (window), vpaned);
+      gtk_window_set_child (GTK_WINDOW (window), vpaned);
 
       /* For convenience, we just use the autocreated buffer from
        * the first text view; you could also create the buffer
@@ -501,17 +498,21 @@ do_textview (GtkWidget *do_widget)
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
-      gtk_paned_add1 (GTK_PANED (vpaned), sw);
+      gtk_paned_set_start_child (GTK_PANED (vpaned), sw);
+      gtk_paned_set_resize_start_child (GTK_PANED (vpaned), FALSE);
+      gtk_paned_set_shrink_start_child (GTK_PANED (vpaned), TRUE);
 
-      gtk_container_add (GTK_CONTAINER (sw), view1);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), view1);
 
       sw = gtk_scrolled_window_new (NULL, NULL);
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
-      gtk_paned_add2 (GTK_PANED (vpaned), sw);
+      gtk_paned_set_end_child (GTK_PANED (vpaned), sw);
+      gtk_paned_set_resize_end_child (GTK_PANED (vpaned), TRUE);
+      gtk_paned_set_shrink_end_child (GTK_PANED (vpaned), TRUE);
 
-      gtk_container_add (GTK_CONTAINER (sw), view2);
+      gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), view2);
 
       create_tags (buffer);
       insert_text (GTK_TEXT_VIEW (view1));
@@ -526,7 +527,7 @@ do_textview (GtkWidget *do_widget)
     }
   else
     {
-      gtk_widget_destroy (window);
+      gtk_window_destroy (GTK_WINDOW (window));
       window = NULL;
     }
 
@@ -547,7 +548,7 @@ recursive_attach_view (int                 depth,
 
   /* Frame is to add a black border around each child view */
   frame = gtk_frame_new (NULL);
-  gtk_container_add (GTK_CONTAINER (frame), child_view);
+  gtk_frame_set_child (GTK_FRAME (frame), child_view);
 
   gtk_text_view_add_child_at_anchor (view, frame, anchor);
 
@@ -594,8 +595,8 @@ easter_egg_callback (GtkWidget *button,
                                   GTK_POLICY_AUTOMATIC,
                                   GTK_POLICY_AUTOMATIC);
 
-  gtk_container_add (GTK_CONTAINER (window), sw);
-  gtk_container_add (GTK_CONTAINER (sw), view);
+  gtk_window_set_child (GTK_WINDOW (window), sw);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), view);
 
   window_ptr = &window;
   g_object_add_weak_pointer (G_OBJECT (window), window_ptr);

@@ -66,9 +66,9 @@ populate_icons (void)
   hincrement = 0;
 
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow),
-		                  GTK_POLICY_NEVER,
-		                  GTK_POLICY_AUTOMATIC);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow), grid);
+                                  GTK_POLICY_NEVER,
+                                  GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolledwindow), grid);
 }
 
 static char *content;
@@ -102,9 +102,9 @@ populate_text (gboolean hilight)
   hincrement = 0;
 
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow),
-		                  GTK_POLICY_NEVER,
-		                  GTK_POLICY_AUTOMATIC);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow), textview);
+                                  GTK_POLICY_NEVER,
+                                  GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolledwindow), textview);
 }
 
 static void
@@ -126,9 +126,9 @@ populate_image (void)
   hincrement = 5;
 
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolledwindow),
-		                  GTK_POLICY_AUTOMATIC,
-		                  GTK_POLICY_AUTOMATIC);
-  gtk_container_add (GTK_CONTAINER (scrolledwindow), image);
+                                  GTK_POLICY_AUTOMATIC,
+                                  GTK_POLICY_AUTOMATIC);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolledwindow), image);
 }
 
 static void
@@ -137,9 +137,8 @@ set_widget_type (int type)
   if (tick_cb)
     gtk_widget_remove_tick_callback (window, tick_cb);
 
-  if (gtk_bin_get_child (GTK_BIN (scrolledwindow)))
-    gtk_container_remove (GTK_CONTAINER (scrolledwindow),
-                          gtk_bin_get_child (GTK_BIN (scrolledwindow)));
+  if (gtk_scrolled_window_get_child (GTK_SCROLLED_WINDOW (scrolledwindow)))
+    gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolledwindow), NULL);
 
   selected = type;
 
@@ -210,23 +209,23 @@ do_iconscroll (GtkWidget *do_widget)
 
       builder = gtk_builder_new_from_resource ("/iconscroll/iconscroll.ui");
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+
       scrolledwindow = GTK_WIDGET (gtk_builder_get_object (builder, "scrolledwindow"));
       gtk_widget_realize (window);
       hadjustment = GTK_ADJUSTMENT (gtk_builder_get_object (builder, "hadjustment"));
       vadjustment = GTK_ADJUSTMENT (gtk_builder_get_object (builder, "vadjustment"));
       set_widget_type (0);
+
+      g_object_unref (builder);
     }
 
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

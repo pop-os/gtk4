@@ -183,7 +183,14 @@ struct _GtkModelButton
   guint iconic : 1;
 };
 
-typedef GtkWidgetClass GtkModelButtonClass;
+typedef struct _GtkModelButtonClass GtkModelButtonClass;
+
+struct _GtkModelButtonClass
+{
+  GtkWidgetClass parent_class;
+
+  void (* clicked) (GtkModelButton *button);
+};
 
 static void gtk_model_button_actionable_iface_init (GtkActionableInterface *iface);
 G_DEFINE_TYPE_WITH_CODE (GtkModelButton, gtk_model_button, GTK_TYPE_WIDGET,
@@ -502,7 +509,7 @@ update_node_name (GtkModelButton *self)
       gtk_widget_set_valign (self->start_indicator, GTK_ALIGN_CENTER);
       update_start_indicator (self);
 
-      gtk_container_add (GTK_CONTAINER (self->start_box), self->start_indicator);
+      gtk_box_append (GTK_BOX (self->start_box), self->start_indicator);
     }
   else if (start_name)
     {
@@ -510,7 +517,7 @@ update_node_name (GtkModelButton *self)
     }
   else if (self->start_indicator)
     {
-      gtk_container_remove (GTK_CONTAINER (self->start_box), self->start_indicator);
+      gtk_box_remove (GTK_BOX (self->start_box), self->start_indicator);
       self->start_indicator = NULL;
     }
 
@@ -692,7 +699,7 @@ gtk_model_button_set_iconic (GtkModelButton *self,
     {
       if (self->start_indicator)
         {
-          gtk_container_remove (GTK_CONTAINER (self->start_box), self->start_indicator);
+          gtk_box_remove (GTK_BOX (self->start_box), self->start_indicator);
           self->start_indicator = NULL;
         }
       g_clear_pointer (&self->end_indicator, gtk_widget_unparent);
@@ -932,13 +939,13 @@ gtk_model_button_set_property (GObject      *object,
 }
 
 static void
-gtk_model_button_destroy (GtkWidget *widget)
+gtk_model_button_dispose (GObject  *object)
 {
-  GtkModelButton *model_button = GTK_MODEL_BUTTON (widget);
+  GtkModelButton *model_button = GTK_MODEL_BUTTON (object);
 
   g_clear_pointer (&model_button->menu_name, g_free);
 
-  GTK_WIDGET_CLASS (gtk_model_button_parent_class)->destroy (widget);
+  G_OBJECT_CLASS (gtk_model_button_parent_class)->dispose (object);
 }
 
 static void
@@ -968,11 +975,7 @@ close_menu (GtkModelButton *self)
 }
 
 static void
-gtk_model_button_clicked (GtkGestureClick *gesture,
-                          guint            n_press,
-                          double           x,
-                          double           y,
-                          GtkModelButton  *self)
+gtk_model_button_clicked (GtkModelButton *self)
 {
   if (self->menu_name != NULL)
     {
@@ -993,8 +996,6 @@ gtk_model_button_clicked (GtkGestureClick *gesture,
     {
       close_menu (self);
     }
-
-  g_signal_emit (self, signals[SIGNAL_CLICKED], 0);
 
   if (self->action_helper)
     gtk_action_helper_activate (self->action_helper);
@@ -1084,15 +1085,17 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
   GObjectClass *object_class = G_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
 
+  object_class->dispose = gtk_model_button_dispose;
   object_class->finalize = gtk_model_button_finalize;
   object_class->get_property = gtk_model_button_get_property;
   object_class->set_property = gtk_model_button_set_property;
 
-  widget_class->destroy = gtk_model_button_destroy;
   widget_class->state_flags_changed = gtk_model_button_state_flags_changed;
   widget_class->direction_changed = gtk_model_button_direction_changed;
   widget_class->focus = gtk_model_button_focus;
   widget_class->get_accessible = gtk_model_button_get_accessible;
+
+  class->clicked = gtk_model_button_clicked;
 
   /**
    * GtkModelButton:role:
@@ -1221,7 +1224,7 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
   signals[SIGNAL_CLICKED] = g_signal_new (I_("clicked"),
                                           G_OBJECT_CLASS_TYPE (object_class),
                                           G_SIGNAL_RUN_FIRST | G_SIGNAL_ACTION,
-                                          0,
+                                          G_STRUCT_OFFSET (GtkModelButtonClass, clicked),
                                           NULL, NULL,
                                           NULL,
                                           G_TYPE_NONE, 0);
@@ -1366,12 +1369,18 @@ focus_in_cb (GtkEventController   *controller,
 }
 
 static void
+emit_clicked (GtkModelButton *button)
+{
+  g_signal_emit (button, signals[SIGNAL_CLICKED], 0);
+}
+
+static void
 gtk_model_button_init (GtkModelButton *self)
 {
   GtkEventController *controller;
   GtkGesture *gesture;
 
-  gtk_widget_set_can_focus (GTK_WIDGET (self), TRUE);
+  gtk_widget_set_focusable (GTK_WIDGET (self), TRUE);
 
   self->role = GTK_BUTTON_ROLE_NORMAL;
   self->label = gtk_label_new ("");
@@ -1398,7 +1407,7 @@ gtk_model_button_init (GtkModelButton *self)
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (gesture), FALSE);
   gtk_gesture_single_set_exclusive (GTK_GESTURE_SINGLE (gesture), TRUE);
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), GDK_BUTTON_PRIMARY);
-  g_signal_connect (gesture, "released", G_CALLBACK (gtk_model_button_clicked), self);
+  g_signal_connect_swapped (gesture, "released", G_CALLBACK (emit_clicked), self);
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture), GTK_PHASE_CAPTURE);
   gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (gesture));
 }

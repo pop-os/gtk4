@@ -180,16 +180,15 @@ do_rotated_text (GtkWidget *do_widget)
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Rotated Text");
       gtk_window_set_default_size (GTK_WINDOW (window), 4 * RADIUS, 2 * RADIUS);
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
       gtk_box_set_homogeneous (GTK_BOX (box), TRUE);
-      gtk_container_add (GTK_CONTAINER (window), box);
+      gtk_window_set_child (GTK_WINDOW (window), box);
 
       /* Add a drawing area */
       drawing_area = gtk_drawing_area_new ();
-      gtk_container_add (GTK_CONTAINER (box), drawing_area);
+      gtk_box_append (GTK_BOX (box), drawing_area);
       gtk_widget_add_css_class (drawing_area, GTK_STYLE_CLASS_VIEW);
 
       gtk_drawing_area_set_draw_func (GTK_DRAWING_AREA (drawing_area),
@@ -198,7 +197,7 @@ do_rotated_text (GtkWidget *do_widget)
 
       /* And a label */
       label = gtk_label_new (text);
-      gtk_container_add (GTK_CONTAINER (box), label);
+      gtk_box_append (GTK_BOX (box), label);
 
       /* Set up fancy stuff on the label */
       layout = gtk_label_get_layout (GTK_LABEL (label));
@@ -213,7 +212,7 @@ do_rotated_text (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

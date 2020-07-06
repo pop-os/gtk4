@@ -56,16 +56,14 @@ do_shortcut_triggers (GtkWidget *do_widget)
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Shortcuts");
-
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (gtk_widget_destroyed), &window);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
       list = gtk_list_box_new ();
       gtk_widget_set_margin_top (list, 6);
       gtk_widget_set_margin_bottom (list, 6);
       gtk_widget_set_margin_start (list, 6);
       gtk_widget_set_margin_end (list, 6);
-      gtk_container_add (GTK_CONTAINER (window), list);
+      gtk_window_set_child (GTK_WINDOW (window), list);
 
       for (i = 0; i < G_N_ELEMENTS (shortcuts); i++)
         {
@@ -73,7 +71,7 @@ do_shortcut_triggers (GtkWidget *do_widget)
           GtkWidget *row;
 
           row = gtk_label_new (shortcuts[i].description);
-          gtk_container_add (GTK_CONTAINER (list), row);
+          gtk_list_box_insert (GTK_LIST_BOX (list), row, -1);
 
           controller = gtk_shortcut_controller_new ();
           gtk_shortcut_controller_set_scope (GTK_SHORTCUT_CONTROLLER (controller), GTK_SHORTCUT_SCOPE_GLOBAL);
@@ -88,7 +86,7 @@ do_shortcut_triggers (GtkWidget *do_widget)
   if (!gtk_widget_get_visible (window))
     gtk_widget_show (window);
   else
-    gtk_widget_destroy (window);
+    gtk_window_destroy (GTK_WINDOW (window));
 
   return window;
 }

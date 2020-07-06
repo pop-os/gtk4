@@ -56,10 +56,6 @@
  * various common properties on the dialog, as well as show and hide
  * it and get a #GtkNativeDialog::response signal when the user finished
  * with the dialog.
- *
- * There is also a gtk_native_dialog_run() helper that makes it easy
- * to run any native dialog in a modal way with a recursive mainloop,
- * similar to gtk_dialog_run().
  */
 
 typedef struct _GtkNativeDialogPrivate GtkNativeDialogPrivate;
@@ -168,11 +164,20 @@ gtk_native_dialog_get_property (GObject    *object,
     }
 }
 
+static void parent_destroyed (GtkWidget       *parent,
+                              GtkNativeDialog *self);
+
 static void
 gtk_native_dialog_dispose (GObject *object)
 {
   GtkNativeDialog *self = GTK_NATIVE_DIALOG (object);
   GtkNativeDialogPrivate *priv = gtk_native_dialog_get_instance_private (self);
+
+  if (priv->transient_for)
+    {
+      g_signal_handlers_disconnect_by_func (priv->transient_for, parent_destroyed, self);
+      priv->transient_for = NULL;
+    }
 
   if (priv->visible)
     gtk_native_dialog_hide (self);
@@ -486,6 +491,15 @@ gtk_native_dialog_get_title (GtkNativeDialog *self)
   return priv->title;
 }
 
+static void
+parent_destroyed (GtkWidget       *parent,
+                  GtkNativeDialog *self)
+{
+  GtkNativeDialogPrivate *priv = gtk_native_dialog_get_instance_private (self);
+
+  priv->transient_for = NULL;
+}
+
 /**
  * gtk_native_dialog_set_transient_for:
  * @self: a #GtkNativeDialog
@@ -501,14 +515,24 @@ gtk_native_dialog_get_title (GtkNativeDialog *self)
  */
 void
 gtk_native_dialog_set_transient_for (GtkNativeDialog *self,
-                                     GtkWindow *parent)
+                                     GtkWindow       *parent)
 {
   GtkNativeDialogPrivate *priv = gtk_native_dialog_get_instance_private (self);
 
   g_return_if_fail (GTK_IS_NATIVE_DIALOG (self));
 
-  if (g_set_object (&priv->transient_for, parent))
-    g_object_notify_by_pspec (G_OBJECT (self), native_props[PROP_TRANSIENT_FOR]);
+  if (parent == priv->transient_for)
+    return;
+
+  if (priv->transient_for)
+    g_signal_handlers_disconnect_by_func (priv->transient_for, parent_destroyed, self);
+
+  priv->transient_for = parent;
+
+  if (parent)
+    g_signal_connect (parent, "destroy", G_CALLBACK (parent_destroyed), self);
+
+  g_object_notify_by_pspec (G_OBJECT (self), native_props[PROP_TRANSIENT_FOR]);
 }
 
 /**
@@ -529,97 +553,4 @@ gtk_native_dialog_get_transient_for (GtkNativeDialog *self)
   g_return_val_if_fail (GTK_IS_NATIVE_DIALOG (self), NULL);
 
   return priv->transient_for;
-}
-
-static void
-run_response_cb (GtkNativeDialog *self,
-                 gint response_id,
-                 gpointer data)
-{
-  GtkNativeDialogPrivate *priv = gtk_native_dialog_get_instance_private (self);
-
-  priv->run_response_id = response_id;
-  if (priv->run_loop && g_main_loop_is_running (priv->run_loop))
-    g_main_loop_quit (priv->run_loop);
-}
-
-/**
- * gtk_native_dialog_run:
- * @self: a #GtkNativeDialog
- *
- * Blocks in a recursive main loop until @self emits the
- * #GtkNativeDialog::response signal. It then returns the response ID
- * from the ::response signal emission.
- *
- * Before entering the recursive main loop, gtk_native_dialog_run()
- * calls gtk_native_dialog_show() on the dialog for you.
- *
- * After gtk_native_dialog_run() returns, then dialog will be hidden.
- *
- * Typical usage of this function might be:
- * |[<!-- language="C" -->
- *   gint result = gtk_native_dialog_run (GTK_NATIVE_DIALOG (dialog));
- *   switch (result)
- *     {
- *       case GTK_RESPONSE_ACCEPT:
- *          do_application_specific_something ();
- *          break;
- *       default:
- *          do_nothing_since_dialog_was_cancelled ();
- *          break;
- *     }
- *   g_object_unref (dialog);
- * ]|
- *
- * Note that even though the recursive main loop gives the effect of a
- * modal dialog (it prevents the user from interacting with other
- * windows in the same window group while the dialog is run), callbacks
- * such as timeouts, IO channel watches, DND drops, etc, will
- * be triggered during a gtk_native_dialog_run() call.
- *
- * Returns: response ID
- **/
-gint
-gtk_native_dialog_run (GtkNativeDialog *self)
-{
-  GtkNativeDialogPrivate *priv = gtk_native_dialog_get_instance_private (self);
-  gboolean was_modal;
-  guint response_handler;
-
-  g_return_val_if_fail (GTK_IS_NATIVE_DIALOG (self), -1);
-  g_return_val_if_fail (!priv->visible, -1);
-  g_return_val_if_fail (priv->run_loop == NULL, -1);
-
-  if (priv->visible || priv->run_loop != NULL)
-    return -1;
-
-  g_object_ref (self);
-
-  priv->run_response_id = GTK_RESPONSE_NONE;
-  priv->run_loop = g_main_loop_new (NULL, FALSE);
-
-  was_modal = priv->modal;
-  gtk_native_dialog_set_modal (self, TRUE);
-
-  response_handler =
-    g_signal_connect (self,
-                      "response",
-                      G_CALLBACK (run_response_cb),
-                      NULL);
-
-  gtk_native_dialog_show (self);
-
-  g_main_loop_run (priv->run_loop);
-
-  g_signal_handler_disconnect (self, response_handler);
-
-  g_main_loop_unref (priv->run_loop);
-  priv->run_loop = NULL;
-
-  if (!was_modal)
-    gtk_native_dialog_set_modal (self, FALSE);
-
-  g_object_unref (self);
-
-  return priv->run_response_id;
 }

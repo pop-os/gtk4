@@ -2331,6 +2331,28 @@ gsk_color_matrix_node_draw (GskRenderNode *node,
   cairo_pattern_destroy (pattern);
 }
 
+static void
+gsk_color_matrix_node_diff (GskRenderNode  *node1,
+                            GskRenderNode  *node2,
+                            cairo_region_t *region)
+{
+  GskColorMatrixNode *self1 = (GskColorMatrixNode *) node1;
+  GskColorMatrixNode *self2 = (GskColorMatrixNode *) node2;
+
+  if (!graphene_vec4_equal (&self1->color_offset, &self2->color_offset))
+    goto nope;
+
+  if (!graphene_matrix_equal_fast (&self1->color_matrix, &self2->color_matrix))
+    goto nope;
+
+  gsk_render_node_diff (self1->child, self2->child, region);
+  return;
+
+nope:
+  gsk_render_node_diff_impossible (node1, node2, region);
+  return;
+}
+
 /**
  * gsk_color_matrix_node_new: 
  * @child: The node to draw
@@ -3021,6 +3043,7 @@ gsk_shadow_node_get_child (GskRenderNode *node)
 /**
  * gsk_shadow_node_peek_shadow:
  * @node: (type GskShadowNode): a shadow #GskRenderNode
+ * @i: the given index
  *
  * Retrieves the shadow data at the given index @i.
  *
@@ -4310,7 +4333,7 @@ gsk_render_node_init_types_once (void)
       gsk_color_matrix_node_finalize,
       gsk_color_matrix_node_draw,
       NULL,
-      NULL,
+      gsk_color_matrix_node_diff,
     };
 
     GType node_type = gsk_render_node_type_register_static (I_("GskColorMatrixNode"), &node_info);

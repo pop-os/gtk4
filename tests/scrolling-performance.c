@@ -37,16 +37,13 @@ create_widget_factory_content (void)
 
   g_type_ensure (my_text_view_get_type ());
   builder = gtk_builder_new ();
-  gtk_builder_add_from_file (builder,
-                             "../demos/widget-factory/widget-factory.ui",
-                             &error);
+  gtk_builder_add_from_file (builder, "./testsuite/gtk/focus-chain/widget-factory.ui", &error);
   if (error != NULL)
     g_error ("Failed to create widgets: %s", error->message);
 
   result = GTK_WIDGET (gtk_builder_get_object (builder, "box1"));
   g_object_ref (result);
-  gtk_container_remove (GTK_CONTAINER (gtk_widget_get_parent (result)),
-                        result);
+  gtk_window_set_child (GTK_WINDOW (gtk_widget_get_parent (result)), NULL);
   g_object_unref (builder);
 
   return result;
@@ -132,13 +129,13 @@ main (int argc, char **argv)
   gtk_window_set_default_size (GTK_WINDOW (window), 800, 600);
 
   scrolled_window = gtk_scrolled_window_new (NULL, NULL);
-  gtk_container_add (GTK_CONTAINER (window), scrolled_window);
+  gtk_window_set_child (GTK_WINDOW (window), scrolled_window);
 
   viewport = gtk_viewport_new (NULL, NULL);
-  gtk_container_add (GTK_CONTAINER (scrolled_window), viewport);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled_window), viewport);
 
   grid = gtk_grid_new ();
-  gtk_container_add (GTK_CONTAINER (viewport), grid);
+  gtk_viewport_set_child (GTK_VIEWPORT (viewport), grid);
 
   for (i = 0; i < 4; i++)
     {

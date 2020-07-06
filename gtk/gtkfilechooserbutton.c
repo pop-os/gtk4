@@ -36,7 +36,6 @@
 #include "gtkcellrenderertext.h"
 #include "gtkcellrendererpixbuf.h"
 #include "gtkcombobox.h"
-#include "gtkcssiconthemevalueprivate.h"
 #include "gtkdroptarget.h"
 #include "gtkicontheme.h"
 #include "gtkimage.h"
@@ -255,6 +254,7 @@ static gboolean gtk_file_chooser_button_remove_shortcut_folder  (GtkFileChooser 
 
 /* GObject Functions */
 static void     gtk_file_chooser_button_constructed        (GObject          *object);
+static void     gtk_file_chooser_button_dispose            (GObject          *object);
 static void     gtk_file_chooser_button_set_property       (GObject          *object,
 							    guint             param_id,
 							    const GValue     *value,
@@ -266,15 +266,12 @@ static void     gtk_file_chooser_button_get_property       (GObject          *ob
 static void     gtk_file_chooser_button_finalize           (GObject          *object);
 
 /* GtkWidget Functions */
-static void     gtk_file_chooser_button_destroy            (GtkWidget        *widget);
 static void     gtk_file_chooser_button_show               (GtkWidget        *widget);
 static void     gtk_file_chooser_button_hide               (GtkWidget        *widget);
 static void     gtk_file_chooser_button_root               (GtkWidget *widget);
 static void     gtk_file_chooser_button_map                (GtkWidget        *widget);
 static gboolean gtk_file_chooser_button_mnemonic_activate  (GtkWidget        *widget,
 							    gboolean          group_cycling);
-static void     gtk_file_chooser_button_css_changed             (GtkWidget              *widget,
-                                                                 GtkCssStyleChange      *change);
 static void     gtk_file_chooser_button_state_flags_changed     (GtkWidget       *widget,
                                                                  GtkStateFlags    previous_state);
 
@@ -463,12 +460,11 @@ gtk_file_chooser_button_class_init (GtkFileChooserButtonClass * class)
   gobject_class->set_property = gtk_file_chooser_button_set_property;
   gobject_class->get_property = gtk_file_chooser_button_get_property;
   gobject_class->finalize = gtk_file_chooser_button_finalize;
+  gobject_class->dispose = gtk_file_chooser_button_dispose;
 
-  widget_class->destroy = gtk_file_chooser_button_destroy;
   widget_class->show = gtk_file_chooser_button_show;
   widget_class->hide = gtk_file_chooser_button_hide;
   widget_class->map = gtk_file_chooser_button_map;
-  widget_class->css_changed = gtk_file_chooser_button_css_changed;
   widget_class->root = gtk_file_chooser_button_root;
   widget_class->mnemonic_activate = gtk_file_chooser_button_mnemonic_activate;
   widget_class->state_flags_changed = gtk_file_chooser_button_state_flags_changed;
@@ -560,12 +556,12 @@ gtk_file_chooser_button_init (GtkFileChooserButton *button)
   icon = gtk_image_new_from_icon_name ("document-open-symbolic");
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
   gtk_widget_set_valign (button->image, GTK_ALIGN_BASELINE);
-  gtk_container_add (GTK_CONTAINER (box), button->image);
+  gtk_box_append (GTK_BOX (box), button->image);
   gtk_widget_set_valign (button->label, GTK_ALIGN_BASELINE);
-  gtk_container_add (GTK_CONTAINER (box), button->label);
+  gtk_box_append (GTK_BOX (box), button->label);
   gtk_widget_set_valign (icon, GTK_ALIGN_BASELINE);
-  gtk_container_add (GTK_CONTAINER (box), icon);
-  gtk_container_add (GTK_CONTAINER (button->button), box);
+  gtk_box_append (GTK_BOX (box), icon);
+  gtk_button_set_child (GTK_BUTTON (button->button), box);
 
   gtk_widget_set_parent (button->button, GTK_WIDGET (button));
 
@@ -1087,9 +1083,9 @@ gtk_file_chooser_button_state_flags_changed (GtkWidget     *widget,
 }
 
 static void
-gtk_file_chooser_button_destroy (GtkWidget *widget)
+gtk_file_chooser_button_dispose (GObject *object)
 {
-  GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (widget);
+  GtkFileChooserButton *button = GTK_FILE_CHOOSER_BUTTON (object);
   GSList *l;
 
   if (button->model)
@@ -1098,7 +1094,7 @@ gtk_file_chooser_button_destroy (GtkWidget *widget)
       g_clear_object (&button->model);
     }
 
-  g_clear_pointer (&button->dialog, gtk_widget_destroy);
+  g_clear_pointer ((GtkWindow **)&button->dialog, gtk_window_destroy);
 
   if (button->native)
     gtk_native_dialog_destroy (GTK_NATIVE_DIALOG (button->native));
@@ -1130,7 +1126,7 @@ gtk_file_chooser_button_destroy (GtkWidget *widget)
 
   g_clear_pointer (&button->bookmarks_manager, _gtk_bookmarks_manager_free);
 
-  GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->destroy (widget);
+  G_OBJECT_CLASS (gtk_file_chooser_button_parent_class)->dispose (object);
 }
 
 static void
@@ -1345,18 +1341,6 @@ change_icon_theme (GtkFileChooserButton *button)
   g_object_set (button->icon_cell,
 		"width", width,
 		NULL);
-}
-
-static void
-gtk_file_chooser_button_css_changed (GtkWidget         *widget,
-                                     GtkCssStyleChange *change)
-{
-  GTK_WIDGET_CLASS (gtk_file_chooser_button_parent_class)->css_changed (widget, change);
-
-  /* We need to update the icon surface, but only in case
-   * the icon theme really changed. */
-  if (!change || gtk_css_style_change_changes_property (change, GTK_CSS_PROPERTY_ICON_THEME))
-    change_icon_theme (GTK_FILE_CHOOSER_BUTTON (widget));
 }
 
 static void
