@@ -425,6 +425,10 @@ test_type (gconstpointer data)
      g_type_is_a (type, GTK_TYPE_NAMED_ACTION))
     return;
 
+  /* needs special item type in underlying model */
+  if (g_type_is_a (type, GTK_TYPE_PROPERTY_SELECTION))
+    return;
+
   klass = g_type_class_ref (type);
 
   if (g_type_is_a (type, GTK_TYPE_SETTINGS))
@@ -457,7 +461,8 @@ test_type (gconstpointer data)
     }
   else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) ||
            g_type_is_a (type, GTK_TYPE_NO_SELECTION) ||
-           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION))
+           g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION) ||
+           g_type_is_a (type, GTK_TYPE_MULTI_SELECTION))
     {
       GListStore *list_store = g_list_store_new (G_TYPE_OBJECT);
       instance = g_object_new (type,
@@ -645,6 +650,11 @@ test_type (gconstpointer data)
        if (g_type_is_a (type, GTK_TYPE_SINGLE_SELECTION) &&
            (g_str_equal (pspec->name, "selected") ||
             g_str_equal (pspec->name, "selected-item")))
+         continue;
+
+       /* can't select items without an underlying, populated model */
+       if (g_type_is_a (type, GTK_TYPE_DROP_DOWN) &&
+           g_str_equal (pspec->name, "selected"))
          continue;
 
        /* can't set position without a notebook */

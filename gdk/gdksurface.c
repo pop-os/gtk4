@@ -47,9 +47,6 @@
 
 #include <epoxy/gl.h>
 
-/* for the use of round() */
-#include "fallback-c89.c"
-
 #ifdef GDK_WINDOWING_WAYLAND
 #include "wayland/gdkwayland.h"
 #endif
@@ -380,6 +377,64 @@ gdk_surface_layout_popup_helper (GdkSurface     *surface,
   *out_final_rect = final_rect;
 }
 
+/* Since GdkEvent is a GTypeInstance, GValue can only store it as a pointer,
+ * and GClosure does not know how to handle its memory management. To avoid
+ * the event going away in the middle of the signal emission, we provide a
+ * marshaller that keeps the event alive for the duration of the closure.
+ */
+static void
+gdk_surface_event_marshaller (GClosure     *closure,
+                              GValue       *return_value,
+                              guint         n_param_values,
+                              const GValue *param_values,
+                              gpointer      invocation_hint,
+                              gpointer      marshal_data)
+{
+  GdkEvent *event = g_value_get_pointer (&param_values[1]);
+
+  gdk_event_ref (event);
+
+  _gdk_marshal_BOOLEAN__POINTER (closure,
+                                 return_value,
+                                 n_param_values,
+                                 param_values,
+                                 invocation_hint,
+                                 marshal_data);
+
+
+  gdk_event_unref (event);
+}
+
+static void
+gdk_surface_event_marshallerv (GClosure *closure,
+                               GValue   *return_value,
+                               gpointer  instance,
+                               va_list   args,
+                               gpointer  marshal_data,
+                               int       n_params,
+                               GType    *param_types)
+{
+  va_list args_copy;
+  GdkEvent *event;
+
+  G_VA_COPY (args_copy, args);
+  event = va_arg (args_copy, gpointer);
+
+  gdk_event_ref (event);
+
+  _gdk_marshal_BOOLEAN__POINTERv (closure,
+                                  return_value,
+                                  instance,
+                                  args,
+                                  marshal_data,
+                                  n_params,
+                                  param_types);
+
+  gdk_event_unref (event);
+
+  va_end (args_copy);
+}
+
 static void
 gdk_surface_init (GdkSurface *surface)
 {
@@ -520,7 +575,7 @@ gdk_surface_class_init (GdkSurfaceClass *klass)
   /**
    * GdkSurface::event:
    * @surface: the #GdkSurface
-   * @event: an input event
+   * @event: (type Gdk.Event): an input event
    *
    * Emitted when GDK receives an input event for @surface.
    *
@@ -533,16 +588,16 @@ gdk_surface_class_init (GdkSurfaceClass *klass)
                   0,
                   g_signal_accumulator_true_handled,
                   NULL,
-                  _gdk_marshal_BOOLEAN__POINTER,
+                  gdk_surface_event_marshaller,
                   G_TYPE_BOOLEAN,
                   1,
-                  GDK_TYPE_EVENT);
+                  G_TYPE_POINTER);
   g_signal_set_va_marshaller (signals[EVENT],
                               G_OBJECT_CLASS_TYPE (object_class),
-                              _gdk_marshal_BOOLEAN__POINTERv);
+                              gdk_surface_event_marshallerv);
 
   /**
-   * GdkSurface::enter-montor:
+   * GdkSurface::enter-monitor:
    * @surface: the #GdkSurface
    * @monitor: the monitor
    *
@@ -561,7 +616,7 @@ gdk_surface_class_init (GdkSurfaceClass *klass)
                   GDK_TYPE_MONITOR);
 
   /**
-   * GdkSurface::leave-montor:
+   * GdkSurface::leave-monitor:
    * @surface: the #GdkSurface
    * @monitor: the monitor
    *
@@ -2060,6 +2115,9 @@ gdk_surface_set_input_region (GdkSurface     *surface,
   if (GDK_SURFACE_DESTROYED (surface))
     return;
 
+  if (cairo_region_equal (surface->input_region, region))
+    return;
+
   if (surface->input_region)
     cairo_region_destroy (surface->input_region);
 
@@ -2509,7 +2567,7 @@ gdk_surface_get_frame_clock (GdkSurface *surface)
  * gdk_surface_get_scale_factor:
  * @surface: surface to get scale factor for
  *
- * Returns the internal scale factor that maps from surface coordiantes
+ * Returns the internal scale factor that maps from surface coordinates
  * to the actual device pixels. On traditional systems this is 1, but
  * on very high density outputs this can be a higher value (often 2).
  *
@@ -2643,6 +2701,12 @@ gdk_surface_set_shadow_width (GdkSurface *surface,
   g_return_if_fail (GDK_IS_SURFACE (surface));
   g_return_if_fail (!GDK_SURFACE_DESTROYED (surface));
   g_return_if_fail (left >= 0 && right >= 0 && top >= 0 && bottom >= 0);
+
+  if (surface->shadow_left == left &&
+      surface->shadow_right == right &&
+      surface->shadow_top == top &&
+      surface->shadow_bottom == bottom)
+    return;
 
   surface->shadow_top = top;
   surface->shadow_left = left;

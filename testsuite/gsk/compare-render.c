@@ -18,19 +18,19 @@ get_output_dir (void)
 
   if (arg_output_dir)
     {
-      GFile *file = g_file_new_for_commandline_arg (arg_output_dir);
+      GFile *arg_file = g_file_new_for_commandline_arg (arg_output_dir);
       const char *subdir;
 
       subdir = g_getenv ("TEST_OUTPUT_SUBDIR");
       if (subdir)
         {
-          GFile *child = g_file_get_child (file, subdir);
-          g_object_unref (file);
-          file = child;
+          GFile *child = g_file_get_child (arg_file, subdir);
+          g_object_unref (arg_file);
+          arg_file = child;
         }
 
-      output_dir = g_file_get_path (file);
-      g_object_unref (file);
+      output_dir = g_file_get_path (arg_file);
+      g_object_unref (arg_file);
     }
   else
     {
@@ -60,7 +60,7 @@ get_output_dir (void)
   return output_dir;
 }
 
-char *
+static char *
 file_replace_extension (const char *old_file,
                         const char *old_ext,
                         const char *new_ext)
@@ -166,6 +166,8 @@ main (int argc, char **argv)
       return 1;
     }
 
+  g_option_context_free (context);
+
   gtk_init ();
 
   node_file = argv[1];
@@ -180,7 +182,6 @@ main (int argc, char **argv)
   /* Load the render node from the given .node file */
   {
     GBytes *bytes;
-    GError *error = NULL;
     gsize len;
     char *contents;
 
@@ -237,6 +238,8 @@ main (int argc, char **argv)
   cairo_surface_destroy (reference_surface);
   cairo_surface_destroy (rendered_surface);
   g_object_unref (texture);
+
+  gsk_render_node_unref (node);
 
   return success ? 0 : 1;
 }

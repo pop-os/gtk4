@@ -26,9 +26,6 @@
 #include "gdkintl.h"
 #include "gdkkeysprivate.h"
 
-/* for the use of round() */
-#include "fallback-c89.c"
-
 /**
  * SECTION:gdkdevice
  * @Short_description: Object representing an input device
@@ -628,7 +625,7 @@ gdk_device_get_surface_at_position (GdkDevice *device,
   g_return_val_if_fail (gdk_device_get_device_type (device) != GDK_DEVICE_TYPE_SLAVE ||
                         gdk_display_device_is_grabbed (gdk_device_get_display (device), device), NULL);
 
-  surface = _gdk_device_surface_at_position (device, &tmp_x, &tmp_y, NULL, FALSE);
+  surface = _gdk_device_surface_at_position (device, &tmp_x, &tmp_y, NULL);
 
   if (win_x)
     *win_x = tmp_x;
@@ -641,7 +638,7 @@ gdk_device_get_surface_at_position (GdkDevice *device,
 /**
  * gdk_device_get_history: (skip)
  * @device: a #GdkDevice
- * @surface: the surface with respect to which which the event coordinates will be reported
+ * @surface: the surface with respect to which the event coordinates will be reported
  * @start: starting timestamp for range of events to return
  * @stop: ending timestamp for the range of events to return
  * @events: (array length=n_events) (out) (transfer full) (optional):
@@ -1588,17 +1585,15 @@ _gdk_device_query_state (GdkDevice        *device,
 }
 
 GdkSurface *
-_gdk_device_surface_at_position (GdkDevice        *device,
-                                gdouble          *win_x,
-                                gdouble          *win_y,
-                                GdkModifierType  *mask,
-                                gboolean          get_toplevel)
+_gdk_device_surface_at_position (GdkDevice       *device,
+                                 gdouble         *win_x,
+                                 gdouble         *win_y,
+                                 GdkModifierType *mask)
 {
   return GDK_DEVICE_GET_CLASS (device)->surface_at_position (device,
-                                                            win_x,
-                                                            win_y,
-                                                            mask,
-                                                            get_toplevel);
+                                                             win_x,
+                                                             win_y,
+                                                             mask);
 }
 
 /**
@@ -1780,6 +1775,15 @@ gdk_device_get_device_tool (GdkDevice *device)
   return device->last_tool;
 }
 
+/**
+ * gdk_device_get_caps_lock_state:
+ * @device: a #GdkDevice
+ *
+ * Retrieves whether the Caps Lock modifier of the
+ * keyboard is locked, if @device is a keyboard device.
+ *
+ * Returns: %TRUE if Caps Lock is on for @device
+ */
 gboolean
 gdk_device_get_caps_lock_state (GdkDevice *device)
 {
@@ -1791,6 +1795,15 @@ gdk_device_get_caps_lock_state (GdkDevice *device)
   return FALSE;
 }
 
+/**
+ * gdk_device_get_num_lock_state:
+ * @device: a #GdkDevice
+ *
+ * Retrieves whether the Num Lock modifier of the
+ * keyboard is locked, if @device is a keyboard device.
+ *
+ * Returns: %TRUE if Num Lock is on for @device
+ */
 gboolean
 gdk_device_get_num_lock_state (GdkDevice *device)
 {
@@ -1802,6 +1815,15 @@ gdk_device_get_num_lock_state (GdkDevice *device)
   return FALSE;
 }
 
+/**
+ * gdk_device_get_scroll_lock_state:
+ * @device: a #GdkDevice
+ *
+ * Retrieves whether the Scroll Lock modifier of the
+ * keyboard is locked, if @device is a keyboard device.
+ *
+ * Returns: %TRUE if Scroll Lock is on for @device
+ */
 gboolean
 gdk_device_get_scroll_lock_state (GdkDevice *device)
 {
@@ -1813,6 +1835,15 @@ gdk_device_get_scroll_lock_state (GdkDevice *device)
   return FALSE;
 }
 
+/**
+ * gdk_device_get_modifier_state:
+ * @device: a #GdkDevice
+ *
+ * Retrieves the current modifier state of the keyboard,
+ * if @device is a keyboard device.
+ *
+ * Returns: the current modifier state
+ */
 GdkModifierType
 gdk_device_get_modifier_state (GdkDevice *device)
 {
@@ -1824,6 +1855,20 @@ gdk_device_get_modifier_state (GdkDevice *device)
   return 0;
 }
 
+/**
+ * gdk_device_get_direction:
+ * @device: a #GdkDevice
+ *
+ * Returns the direction of effective layout of the keyboard,
+ * if @device is a keyboard device.
+ *
+ * The direction of a layout is the direction of the majority
+ * of its symbols. See pango_unichar_direction().
+ *
+ * Returns: %PANGO_DIRECTION_LTR or %PANGO_DIRECTION_RTL
+ *   if it can determine the direction. %PANGO_DIRECTION_NEUTRAL
+ *   otherwise
+ */
 PangoDirection
 gdk_device_get_direction (GdkDevice *device)
 {
@@ -1835,6 +1880,17 @@ gdk_device_get_direction (GdkDevice *device)
   return PANGO_DIRECTION_NEUTRAL;
 }
 
+/**
+ * gdk_device_has_bidi_layouts:
+ * @device: a #GdkDevice
+ *
+ * Determines if keyboard layouts for both right-to-left and
+ * left-to-right languages are in use on the keyboard, if
+ * @device is a keyboard device.
+ *
+ * Returns: %TRUE if there are layouts with both directions,
+ *     %FALSE otherwise
+ */
 gboolean
 gdk_device_has_bidi_layouts (GdkDevice *device)
 {

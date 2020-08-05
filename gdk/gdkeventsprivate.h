@@ -225,8 +225,6 @@ struct _GdkScrollEvent
 {
   GdkEvent parent_instance;
 
-  double x;
-  double y;
   GdkModifierType state;
   GdkScrollDirection direction;
   double delta_x;
@@ -611,6 +609,9 @@ GdkEvent * gdk_grab_broken_event_new    (GdkSurface      *surface,
                                          GdkDevice       *source_device,
                                          GdkSurface      *grab_surface,
                                          gboolean         implicit);
+
+GdkTranslatedKey *      gdk_key_event_get_translated_key        (GdkEvent *event,
+                                                                 gboolean  no_lock);
 
 G_END_DECLS
 

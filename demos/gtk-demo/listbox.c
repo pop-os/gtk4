@@ -236,7 +236,6 @@ reshare_clicked (GtkMessageRow *row,
 
   priv->message->n_reshares++;
   gtk_message_row_update (row);
-
 }
 
 static void
@@ -255,11 +254,12 @@ gtk_message_row_state_flags_changed (GtkWidget    *widget,
 {
   GtkMessageRowPrivate *priv = GTK_MESSAGE_ROW (widget)->priv;
   GtkStateFlags flags;
+  gboolean visible;
 
   flags = gtk_widget_get_state_flags (widget);
 
-  gtk_widget_set_visible (priv->extra_buttons_box,
-                          flags & (GTK_STATE_FLAG_PRELIGHT | GTK_STATE_FLAG_SELECTED));
+  visible = flags & (GTK_STATE_FLAG_PRELIGHT | GTK_STATE_FLAG_SELECTED) ? TRUE : FALSE;
+  gtk_widget_set_visible (priv->extra_buttons_box, visible);
 
   GTK_WIDGET_CLASS (gtk_message_row_parent_class)->state_flags_changed (widget, previous_state_flags);
 }

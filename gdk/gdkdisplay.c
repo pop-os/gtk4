@@ -38,9 +38,6 @@
 #include <math.h>
 #include <glib.h>
 
-/* for the use of round() */
-#include "fallback-c89.c"
-
 /**
  * SECTION:gdkdisplay
  * @Short_description: Controls a set of monitors and their associated input devices
@@ -175,7 +172,7 @@ gdk_display_class_init (GdkDisplayClass *class)
   /**
    * GdkDisplay:composited:
    *
-   * %TRUE if the display properly composits the alpha channel.
+   * %TRUE if the display properly composites the alpha channel.
    * See gdk_display_is_composited() for details.
    */
   props[PROP_COMPOSITED] =
@@ -466,10 +463,13 @@ gdk_display_peek_event (GdkDisplay *display)
  *
  * Appends the given event onto the front of the event
  * queue for @display.
+ *
+ * This function is only useful in very special situations
+ * and should not be used by applications.
  **/
 void
-gdk_display_put_event (GdkDisplay     *display,
-		       GdkEvent       *event)
+gdk_display_put_event (GdkDisplay *display,
+                       GdkEvent   *event)
 {
   g_return_if_fail (GDK_IS_DISPLAY (display));
   g_return_if_fail (event != NULL);
@@ -589,7 +589,7 @@ get_current_toplevel (GdkDisplay      *display,
   gdouble x, y;
   GdkModifierType state;
 
-  pointer_surface = _gdk_device_surface_at_position (device, &x, &y, &state, TRUE);
+  pointer_surface = _gdk_device_surface_at_position (device, &x, &y, &state);
 
   if (pointer_surface != NULL &&
       GDK_SURFACE_DESTROYED (pointer_surface))
@@ -1724,4 +1724,55 @@ gdk_display_map_keycode (GdkDisplay    *display,
                                              keys,
                                              keyvals,
                                              n_entries);
+}
+
+/**
+ * gdk_display_translate_key:
+ * @display: a #GdkDisplay
+ * @keycode: a keycode
+ * @state: a modifier state
+ * @group: active keyboard group
+ * @keyval: (out) (optional): return location for keyval, or %NULL
+ * @effective_group: (out) (optional): return location for effective
+ *     group, or %NULL
+ * @level: (out) (optional): return location for level, or %NULL
+ * @consumed: (out) (optional): return location for modifiers
+ *     that were used to determine the group or level, or %NULL
+ *
+ * Translates the contents of a #GdkEventKey (ie @keycode, @state, and @group)
+ * into a keyval, effective group, and level. Modifiers that affected the
+ * translation and are thus unavailable for application use are returned in
+ * @consumed_modifiers.
+ *
+ * The @effective_group is the group that was actually used for the translation;
+ * some keys such as Enter are not affected by the active keyboard group.
+ * The @level is derived from @state.
+ *
+ * @consumed_modifiers gives modifiers that should be masked outfrom @state
+ * when comparing this key press to a keyboard shortcut. For instance, on a US
+ * keyboard, the `plus` symbol is shifted, so when comparing a key press to a
+ * `<Control>plus` accelerator `<Shift>` should be masked out.
+ *
+ * This function should rarely be needed, since #GdkEventKey already contains
+ * the translated keyval. It is exported for the benefit of virtualized test
+ * environments.
+ *
+ * Returns: %TRUE if there was a keyval bound to keycode/state/group.
+ */
+gboolean
+gdk_display_translate_key (GdkDisplay      *display,
+                           guint            keycode,
+                           GdkModifierType  state,
+                           int              group,
+                           guint           *keyval,
+                           int             *effective_group,
+                           int             *level,
+                           GdkModifierType *consumed)
+{
+  return gdk_keymap_translate_keyboard_state (gdk_display_get_keymap (display),
+                                              keycode, state, group,
+                                              keyval,
+                                              effective_group,
+                                              level,
+                                              consumed);
 }

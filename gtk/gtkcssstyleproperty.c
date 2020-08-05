@@ -30,11 +30,6 @@
 #include "gtkprivatetypebuiltins.h"
 #include "gtkprivate.h"
 
-/* this is in case round() is not provided by the compiler, 
- * such as in the case of C89 compilers, like MSVC
- */
-#include "fallback-c89.c"
-
 enum {
   PROP_0,
   PROP_ANIMATED,
@@ -343,7 +338,7 @@ _gtk_css_style_property_get_id (GtkCssStyleProperty *property)
  * @property: the property
  *
  * Queries the initial value of the given @property. See the
- * [CSS Documentation](http://www.w3.org/TR/css3-cascade/#intial)
+ * [CSS Documentation](http://www.w3.org/TR/css3-cascade/#initial)
  * for an explanation of this concept.
  *
  * Returns: (transfer none): the initial value. The value will never change.

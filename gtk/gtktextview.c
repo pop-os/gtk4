@@ -1109,7 +1109,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    *
    * The default bindings for this signal come in two variants,
    * the variant with the Shift modifier extends the selection,
-   * the variant without the Shift modifer does not.
+   * the variant without the Shift modifier does not.
    * There are too many key combinations to list them all here.
    * - Arrow keys move by individual characters/lines
    * - Ctrl-arrow key combinations move by words/paragraphs
@@ -1220,7 +1220,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * The default bindings for this signal are
    * Delete for deleting a character, Ctrl-Delete for 
    * deleting a word and Ctrl-Backspace for deleting a word 
-   * backwords.
+   * backwards.
    */
   signals[DELETE_FROM_CURSOR] =
     g_signal_new (I_("delete-from-cursor"),
@@ -3766,6 +3766,13 @@ gtk_text_view_dispose (GObject *object)
   GtkTextViewPrivate *priv = text_view->priv;
   GtkWidget *child;
 
+  child = g_object_get_data (object, "gtk-emoji-chooser");
+  if (child)
+    {
+      gtk_widget_unparent (child);
+      g_object_set_data (object, "gtk-emoji-chooser", NULL);
+    }
+
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (text_view))))
     gtk_text_view_remove (text_view, child);
 
@@ -5729,6 +5736,14 @@ gtk_text_view_snapshot (GtkWidget   *widget,
       gtk_widget_snapshot_child (widget, vc->widget, snapshot);
     }
 }
+
+/**
+ * gtk_text_view_remove:
+ * @text_view: a #GtkTextView
+ * @child: the child to remove
+ *
+ * Removes a child widget from @text_view.
+ */
 
 void
 gtk_text_view_remove (GtkTextView *text_view,

@@ -163,7 +163,6 @@ static void             gtk_icon_view_motion                    (GtkEventControl
                                                                  double              y,
                                                                  gpointer            user_data);
 static void             gtk_icon_view_leave                     (GtkEventController   *controller,
-                                                                 GdkCrossingMode       mode,
                                                                  gpointer              user_data);
 static void             gtk_icon_view_button_press              (GtkGestureClick *gesture,
                                                                  int                   n_press,
@@ -1878,9 +1877,8 @@ gtk_icon_view_motion (GtkEventController *controller,
 }
 
 static void
-gtk_icon_view_leave(GtkEventController   *controller,
-                    GdkCrossingMode       mode,
-                    gpointer              user_data)
+gtk_icon_view_leave (GtkEventController *controller,
+                     gpointer            user_data)
 {
   GtkIconView *icon_view;
   GtkIconViewPrivate *priv;
@@ -2685,12 +2683,18 @@ static void
 gtk_icon_view_adjustment_changed (GtkAdjustment *adjustment,
                                   GtkIconView   *icon_view)
 {
-  if (gtk_widget_get_realized (GTK_WIDGET (icon_view)))
+  GtkWidget *widget = GTK_WIDGET (icon_view);
+
+  if (gtk_widget_get_realized (widget))
     {
+      GtkIconViewAccessible *accessible =
+        GTK_ICON_VIEW_ACCESSIBLE (_gtk_widget_peek_accessible (GTK_WIDGET (icon_view)));
+
       if (icon_view->priv->doing_rubberband)
         gtk_icon_view_update_rubberband (icon_view);
 
-      _gtk_icon_view_accessible_adjustment_changed (icon_view);
+      if (accessible != NULL)
+        gtk_icon_view_accessible_adjustment_changed (accessible);
     }
 
   gtk_widget_queue_draw (GTK_WIDGET (icon_view));
@@ -4709,6 +4713,14 @@ gtk_icon_view_set_model (GtkIconView *icon_view,
 
       gtk_icon_view_build_items (icon_view);
     }
+
+  {
+    GtkIconViewAccessible *accessible =
+      GTK_ICON_VIEW_ACCESSIBLE (_gtk_widget_peek_accessible (GTK_WIDGET (icon_view)));
+
+    if (accessible != NULL)
+      gtk_icon_view_accessible_update_model (accessible, icon_view->priv->model);
+  }
 
   g_object_notify (G_OBJECT (icon_view), "model");  
 

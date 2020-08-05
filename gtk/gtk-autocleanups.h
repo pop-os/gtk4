@@ -21,7 +21,6 @@
 
 #ifndef __GI_SCANNER__
 
-G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkAccessible, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkActionBar, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkActionable, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkAdjustment, g_object_unref)
@@ -91,6 +90,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkGestureSingle, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkGestureSwipe, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkGestureZoom, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkGrid, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkGridView, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkHeaderBar, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkIMContext, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkIMContextSimple, g_object_unref)
@@ -103,6 +103,7 @@ G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkInfoBar, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkLevelBar, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkLinkButton, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkListStore, g_object_unref)
+G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkListView, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkLockButton, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkMenuButton, g_object_unref)
 G_DEFINE_AUTOPTR_CLEANUP_FUNC(GtkMessageDialog, g_object_unref)

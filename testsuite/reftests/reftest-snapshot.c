@@ -211,9 +211,6 @@ reftest_uninhibit_snapshot (void)
 {
   g_assert (inhibit_count > 0);
   inhibit_count--;
-
-  if (inhibit_count == 0)
-    g_idle_add (quit_when_idle, loop);
 }
 
 static void
@@ -225,6 +222,8 @@ draw_paintable (GdkPaintable *paintable,
   cairo_surface_t *surface;
   cairo_t *cr;
 
+  if (inhibit_count > 0)
+    return;
 
   snapshot = gtk_snapshot_new ();
   gdk_paintable_snapshot (paintable,
@@ -248,10 +247,11 @@ draw_paintable (GdkPaintable *paintable,
   cairo_destroy (cr);
   gsk_render_node_unref (node);
 
-  reftest_uninhibit_snapshot ();
   g_signal_handlers_disconnect_by_func (paintable, draw_paintable, out_surface);
 
   *(cairo_surface_t **) out_surface = surface;
+
+  g_idle_add (quit_when_idle, loop);
 }
 
 static cairo_surface_t *
@@ -269,7 +269,6 @@ snapshot_widget (GtkWidget *widget)
    * We also use an inhibit mechanism, to give module functions a chance
    * to delay the snapshot.
    */
-  reftest_inhibit_snapshot ();
   paintable = gtk_widget_paintable_new (widget);
   g_signal_connect (paintable, "invalidate-contents", G_CALLBACK (draw_paintable), &surface);
   g_main_loop_run (loop);

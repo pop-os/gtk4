@@ -38,14 +38,18 @@
  * #GtkSingleSelection, so you will only need to implement this interface if you want
  * detailed control about how selections should be handled.
  *
- * A #GtkSelectionModel supports a single boolean per row indicating if a row is selected
+ * A #GtkSelectionModel supports a single boolean per item indicating if an item is selected
  * or not. This can be queried via gtk_selection_model_is_selected(). When the selected
- * state of one or more rows changes, the model will emit the
+ * state of one or more items changes, the model will emit the
  * #GtkSelectionModel::selection-changed signal by calling the
  * gtk_selection_model_selection_changed() function. The positions given in that signal
- * may have their selection state changed, though that is not a requirement.  
+ * may have their selection state changed, though that is not a requirement.
  * If new items added to the model via the #GListModel::items-changed signal are selected
  * or not is up to the implementation.
+ *
+ * Note that items added via #GListModel::items-changed may already be selected
+ * and no #GtkSelectionModel::selection-changed will be emitted for them. So to
+ * track which items are selected, it is necessary to listen to both signals.
  *
  * Additionally, the interface can expose functionality to select and unselect items.
  * If these functions are implemented, GTK's list widgets will allow users to select and
@@ -110,6 +114,22 @@ gtk_selection_model_default_unselect_range (GtkSelectionModel *model,
 }
 
 static gboolean
+gtk_selection_model_default_select_callback (GtkSelectionModel    *model,
+                                             GtkSelectionCallback  callback,
+                                             gpointer              data)
+{
+  return FALSE;
+}
+
+static gboolean
+gtk_selection_model_default_unselect_callback (GtkSelectionModel    *model,
+                                               GtkSelectionCallback  callback,
+                                               gpointer              data)
+{
+  return FALSE;
+}
+
+static gboolean
 gtk_selection_model_default_select_all (GtkSelectionModel *model)
 {
   return gtk_selection_model_select_range (model, 0, g_list_model_get_n_items (G_LIST_MODEL (model)), FALSE);
@@ -138,20 +158,22 @@ gtk_selection_model_default_query_range (GtkSelectionModel *model,
   else
     {
       *n_items = 1;
-      *selected = gtk_selection_model_is_selected (model, position);  
+      *selected = gtk_selection_model_is_selected (model, position);
     }
 }
 
 static void
 gtk_selection_model_default_init (GtkSelectionModelInterface *iface)
 {
-  iface->is_selected = gtk_selection_model_default_is_selected; 
-  iface->select_item = gtk_selection_model_default_select_item; 
-  iface->unselect_item = gtk_selection_model_default_unselect_item; 
-  iface->select_range = gtk_selection_model_default_select_range; 
-  iface->unselect_range = gtk_selection_model_default_unselect_range; 
-  iface->select_all = gtk_selection_model_default_select_all; 
-  iface->unselect_all = gtk_selection_model_default_unselect_all; 
+  iface->is_selected = gtk_selection_model_default_is_selected;
+  iface->select_item = gtk_selection_model_default_select_item;
+  iface->unselect_item = gtk_selection_model_default_unselect_item;
+  iface->select_range = gtk_selection_model_default_select_range;
+  iface->unselect_range = gtk_selection_model_default_unselect_range;
+  iface->select_all = gtk_selection_model_default_select_all;
+  iface->unselect_all = gtk_selection_model_default_unselect_all;
+  iface->select_callback = gtk_selection_model_default_select_callback;
+  iface->unselect_callback = gtk_selection_model_default_unselect_callback;
   iface->query_range = gtk_selection_model_default_query_range;
 
   /**
@@ -318,6 +340,44 @@ gtk_selection_model_unselect_all (GtkSelectionModel *model)
 
   iface = GTK_SELECTION_MODEL_GET_IFACE (model);
   return iface->unselect_all (model);
+}
+
+/**
+ * gtk_selection_model_select_callback:
+ * @model: a #GtkSelectionModel
+ * @callback: a #GtkSelectionCallback to determine items to select
+ * @data: data to pass to @callback
+ *
+ * Requests to select all items for which @callback returns
+ * @selected as TRUE.
+ */
+gboolean
+gtk_selection_model_select_callback (GtkSelectionModel    *model,
+                                     GtkSelectionCallback  callback,
+                                     gpointer              data)
+{
+  g_return_val_if_fail (GTK_IS_SELECTION_MODEL (model), FALSE);
+
+  return GTK_SELECTION_MODEL_GET_IFACE (model)->select_callback (model, callback, data);
+}
+
+/**
+ * gtk_selection_model_unselect_callback:
+ * @model: a #GtkSelectionModel
+ * @callback: a #GtkSelectionCallback to determine items to select
+ * @data: data to pass to @callback
+ *
+ * Requests to unselect all items for which @callback returns
+ * @selected as TRUE.
+ */
+gboolean
+gtk_selection_model_unselect_callback (GtkSelectionModel    *model,
+                                       GtkSelectionCallback  callback,
+                                       gpointer              data)
+{
+  g_return_val_if_fail (GTK_IS_SELECTION_MODEL (model), FALSE);
+
+  return GTK_SELECTION_MODEL_GET_IFACE (model)->unselect_callback (model, callback, data);
 }
 
 /**

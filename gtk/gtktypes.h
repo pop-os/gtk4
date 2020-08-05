@@ -41,6 +41,8 @@ typedef struct _GtkCssStyleChange      GtkCssStyleChange;
 typedef struct _GtkEventController     GtkEventController;
 typedef struct _GtkGesture             GtkGesture;
 typedef struct _GtkLayoutManager       GtkLayoutManager;
+typedef struct _GtkListItem            GtkListItem;
+typedef struct _GtkListItemFactory     GtkListItemFactory;
 typedef struct _GtkNative              GtkNative;
 typedef struct _GtkRequisition	       GtkRequisition;
 typedef struct _GtkRoot  	       GtkRoot;
@@ -59,7 +61,7 @@ typedef struct _GtkWindow              GtkWindow;
  *
  * The value used to refer to a guaranteed invalid position in a #GListModel. This
  * value may be returned from some functions, others may accept it as input.
- * Its interpretion may differ for different functions.
+ * Its interpretation may differ for different functions.
  *
  * Refer to each function's documentation for if this value is allowed and what it
  * does.

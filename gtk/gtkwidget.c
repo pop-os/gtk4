@@ -31,6 +31,7 @@
 #include "gtkapplicationprivate.h"
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
+#include "gtkconstraint.h"
 #include "gtkcssboxesprivate.h"
 #include "gtkcssfiltervalueprivate.h"
 #include "gtkcsstransformvalueprivate.h"
@@ -48,12 +49,12 @@
 #include "gtklayoutmanagerprivate.h"
 #include "gtkmain.h"
 #include "gtkmarshalers.h"
+#include "gtknativeprivate.h"
 #include "gtkpopover.h"
 #include "gtkprivate.h"
 #include "gtkrenderbackgroundprivate.h"
 #include "gtkrenderborderprivate.h"
 #include "gtkrootprivate.h"
-#include "gtknativeprivate.h"
 #include "gtkscrollable.h"
 #include "gtksettingsprivate.h"
 #include "gtkshortcut.h"
@@ -71,8 +72,6 @@
 #include "gtkwidgetpaintableprivate.h"
 #include "gtkwindowgroup.h"
 #include "gtkwindowprivate.h"
-#include "gtknativeprivate.h"
-#include "gtkconstraint.h"
 
 #include "a11y/gtkwidgetaccessibleprivate.h"
 #include "inspector/window.h"
@@ -89,9 +88,6 @@
 #include <math.h>
 #include <stdarg.h>
 #include <string.h>
-
-/* for the use of round() */
-#include "fallback-c89.c"
 
 /**
  * SECTION:gtkwidget
@@ -616,8 +612,6 @@ static PangoContext*	gtk_widget_peek_pango_context		(GtkWidget	  *widget);
 static void     	gtk_widget_update_pango_context		(GtkWidget	  *widget);
 static void             gtk_widget_propagate_state              (GtkWidget          *widget,
                                                                  const GtkStateData *data);
-static void             gtk_widget_update_alpha                 (GtkWidget        *widget);
-
 static gboolean		gtk_widget_real_mnemonic_activate	(GtkWidget	  *widget,
 								 gboolean	   group_cycling);
 static void             gtk_widget_real_measure                 (GtkWidget        *widget,
@@ -686,7 +680,6 @@ GtkTextDirection gtk_default_direction = GTK_TEXT_DIR_LTR;
 
 static GQuark		quark_pango_context = 0;
 static GQuark		quark_mnemonic_labels = 0;
-static GQuark		quark_tooltip_markup = 0;
 static GQuark           quark_size_groups = 0;
 static GQuark           quark_auto_children = 0;
 static GQuark           quark_action_muxer = 0;
@@ -904,7 +897,6 @@ gtk_widget_class_init (GtkWidgetClass *klass)
 
   quark_pango_context = g_quark_from_static_string ("gtk-pango-context");
   quark_mnemonic_labels = g_quark_from_static_string ("gtk-mnemonic-labels");
-  quark_tooltip_markup = g_quark_from_static_string ("gtk-tooltip-markup");
   quark_size_groups = g_quark_from_static_string ("gtk-widget-size-groups");
   quark_auto_children = g_quark_from_static_string ("gtk-widget-auto-children");
   quark_action_muxer = g_quark_from_static_string ("gtk-widget-action-muxer");
@@ -944,7 +936,7 @@ gtk_widget_class_init (GtkWidgetClass *klass)
   klass->system_setting_changed = gtk_widget_real_system_setting_changed;
 
   /* Accessibility support */
-  klass->priv->accessible_type = GTK_TYPE_ACCESSIBLE;
+  klass->priv->accessible_type = GTK_TYPE_WIDGET_ACCESSIBLE;
   klass->priv->accessible_role = ATK_ROLE_INVALID;
   klass->get_accessible = gtk_widget_real_get_accessible;
 
@@ -1121,7 +1113,7 @@ gtk_widget_class_init (GtkWidgetClass *klass)
                            P_("Tooltip Text"),
                            P_("The contents of the tooltip for this widget"),
                            NULL,
-                           GTK_PARAM_READWRITE);
+                           GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkWidget:tooltip-markup:
@@ -1143,7 +1135,7 @@ gtk_widget_class_init (GtkWidgetClass *klass)
                            P_("Tooltip markup"),
                            P_("The contents of the tooltip for this widget"),
                            NULL,
-                           GTK_PARAM_READWRITE);
+                           GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkWidget:halign:
@@ -1666,7 +1658,6 @@ gtk_widget_class_init (GtkWidgetClass *klass)
                               G_TYPE_FROM_CLASS (klass),
                               _gtk_marshal_BOOLEAN__INT_INT_BOOLEAN_OBJECTv);
 
-  gtk_widget_class_set_accessible_type (klass, GTK_TYPE_WIDGET_ACCESSIBLE);
   gtk_widget_class_set_css_name (klass, I_("widget"));
 }
 
@@ -1689,9 +1680,6 @@ gtk_widget_set_property (GObject         *object,
 
   switch (prop_id)
     {
-      gchar *tooltip_markup;
-      const gchar *tooltip_text;
-
     case PROP_NAME:
       gtk_widget_set_name (widget, g_value_get_string (value));
       break;
@@ -1729,41 +1717,10 @@ gtk_widget_set_property (GObject         *object,
       gtk_widget_set_has_tooltip (widget, g_value_get_boolean (value));
       break;
     case PROP_TOOLTIP_MARKUP:
-      tooltip_markup = g_value_dup_string (value);
-
-      /* Treat an empty string as a NULL string,
-       * because an empty string would be useless for a tooltip:
-       */
-      if (tooltip_markup && (strlen (tooltip_markup) == 0))
-        {
-	  g_free (tooltip_markup);
-          tooltip_markup = NULL;
-        }
-
-      g_object_set_qdata_full (object, quark_tooltip_markup,
-			       tooltip_markup, g_free);
-
-      gtk_widget_set_has_tooltip (widget, tooltip_markup != NULL);
-      if (_gtk_widget_get_visible (widget))
-        gtk_widget_trigger_tooltip_query (widget);
+      gtk_widget_set_tooltip_markup (widget, g_value_get_string (value));
       break;
     case PROP_TOOLTIP_TEXT:
-      tooltip_text = g_value_get_string (value);
-
-      /* Treat an empty string as a NULL string,
-       * because an empty string would be useless for a tooltip:
-       */
-      if (tooltip_text && (strlen (tooltip_text) == 0))
-        tooltip_text = NULL;
-
-      tooltip_markup = tooltip_text ? g_markup_escape_text (tooltip_text, -1) : NULL;
-
-      g_object_set_qdata_full (object, quark_tooltip_markup,
-                               tooltip_markup, g_free);
-
-      gtk_widget_set_has_tooltip (widget, tooltip_markup != NULL);
-      if (_gtk_widget_get_visible (widget))
-        gtk_widget_trigger_tooltip_query (widget);
+      gtk_widget_set_tooltip_text (widget, g_value_get_string (value));
       break;
     case PROP_HALIGN:
       gtk_widget_set_halign (widget, g_value_get_enum (value));
@@ -1888,18 +1845,10 @@ gtk_widget_get_property (GObject         *object,
       g_value_set_boolean (value, gtk_widget_get_has_tooltip (widget));
       break;
     case PROP_TOOLTIP_TEXT:
-      {
-        gchar *escaped = g_object_get_qdata (object, quark_tooltip_markup);
-        gchar *text = NULL;
-
-        if (escaped && !pango_parse_markup (escaped, -1, 0, NULL, &text, NULL, NULL))
-          g_assert (NULL == text); /* text should still be NULL in case of markup errors */
-
-        g_value_take_string (value, text);
-      }
+      g_value_set_string (value, gtk_widget_get_tooltip_text (widget));
       break;
     case PROP_TOOLTIP_MARKUP:
-      g_value_set_string (value, g_object_get_qdata (object, quark_tooltip_markup));
+      g_value_set_string (value, gtk_widget_get_tooltip_markup (widget));
       break;
     case PROP_HALIGN:
       g_value_set_enum (value, gtk_widget_get_halign (widget));
@@ -2318,7 +2267,6 @@ gtk_widget_init (GTypeInstance *instance, gpointer g_class)
   priv->child_visible = TRUE;
   priv->name = NULL;
   priv->user_alpha = 255;
-  priv->alpha = 255;
   priv->parent = NULL;
   priv->first_child = NULL;
   priv->last_child = NULL;
@@ -2686,6 +2634,9 @@ gtk_widget_show (GtkWidget *widget)
       g_signal_emit (widget, widget_signals[SHOW], 0);
       g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_VISIBLE]);
 
+      if (priv->accessible != NULL)
+        gtk_widget_accessible_notify_visible (GTK_WIDGET_ACCESSIBLE (priv->accessible));
+
       gtk_widget_pop_verify_invariants (widget);
       g_object_unref (widget);
     }
@@ -2746,6 +2697,9 @@ gtk_widget_hide (GtkWidget *widget)
       g_signal_emit (widget, widget_signals[HIDE], 0);
       g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_VISIBLE]);
 
+      if (priv->accessible != NULL)
+        gtk_widget_accessible_notify_visible (GTK_WIDGET_ACCESSIBLE (priv->accessible));
+
       parent = gtk_widget_get_parent (widget);
       if (parent)
 	gtk_widget_queue_resize (parent);
@@ -2805,10 +2759,15 @@ gtk_widget_map (GtkWidget *widget)
 
   if (!_gtk_widget_get_mapped (widget))
     {
+      GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+
       gtk_widget_push_verify_invariants (widget);
 
       if (!_gtk_widget_get_realized (widget))
         gtk_widget_realize (widget);
+
+      if (priv->accessible != NULL)
+        gtk_widget_accessible_notify_showing (GTK_WIDGET_ACCESSIBLE (priv->accessible));
 
       g_signal_emit (widget, widget_signals[MAP], 0);
 
@@ -2834,6 +2793,8 @@ gtk_widget_unmap (GtkWidget *widget)
 
   if (_gtk_widget_get_mapped (widget))
     {
+      GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+
       g_object_ref (widget);
       gtk_widget_push_verify_invariants (widget);
 
@@ -2841,6 +2802,9 @@ gtk_widget_unmap (GtkWidget *widget)
       _gtk_tooltip_hide (widget);
 
       g_signal_emit (widget, widget_signals[UNMAP], 0);
+
+      if (priv->accessible != NULL)
+        gtk_widget_accessible_notify_showing (GTK_WIDGET_ACCESSIBLE (priv->accessible));
 
       update_cursor_on_state_change (widget);
 
@@ -3399,8 +3363,6 @@ gtk_widget_realize (GtkWidget *widget)
       gdk_surface_set_support_multidevice (surface, TRUE);
     }
 
-  gtk_widget_update_alpha (widget);
-
   if (priv->context)
     gtk_style_context_set_scale (priv->context, gtk_widget_get_scale_factor (widget));
   else
@@ -3554,6 +3516,9 @@ gtk_widget_queue_resize_internal (GtkWidget *widget)
 
   priv->resize_needed = TRUE;
   gtk_widget_set_alloc_needed (widget);
+
+  if (priv->resize_func)
+    priv->resize_func (widget);
 
   groups = _gtk_widget_get_sizegroups (widget);
 
@@ -4134,7 +4099,7 @@ gtk_widget_translate_coordinates (GtkWidget  *src_widget,
  *     @target's coordinate system
  *
  * Translates the given @point in @widget's coordinates to coordinates
- * relative to @target’s coodinate system. In order to perform this
+ * relative to @target’s coordinate system. In order to perform this
  * operation, both widgets must share a common root.
  *
  * Returns: %TRUE if the point could be determined, %FALSE on failure.
@@ -4713,13 +4678,15 @@ gtk_widget_real_query_tooltip (GtkWidget  *widget,
 			       gboolean    keyboard_tip,
 			       GtkTooltip *tooltip)
 {
-  gchar *tooltip_markup;
+  const char *tooltip_markup;
   gboolean has_tooltip;
 
-  tooltip_markup = g_object_get_qdata (G_OBJECT (widget), quark_tooltip_markup);
   has_tooltip = gtk_widget_get_has_tooltip (widget);
+  tooltip_markup = gtk_widget_get_tooltip_markup (widget);
+  if (tooltip_markup == NULL)
+    tooltip_markup = gtk_widget_get_tooltip_text (widget);
 
-  if (has_tooltip && tooltip_markup)
+  if (has_tooltip && tooltip_markup != NULL)
     {
       gtk_tooltip_set_markup (tooltip, tooltip_markup);
       return TRUE;
@@ -4759,8 +4726,6 @@ gtk_widget_real_css_changed (GtkWidget         *widget,
                              GtkCssStyleChange *change)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  gtk_widget_update_alpha (widget);
 
   if (change)
     {
@@ -5728,6 +5693,9 @@ gtk_widget_set_sensitive (GtkWidget *widget,
       update_cursor_on_state_change (widget);
     }
 
+  if (priv->accessible != NULL)
+    gtk_widget_accessible_notify_sensitive (GTK_WIDGET_ACCESSIBLE (priv->accessible));
+
   g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_SENSITIVE]);
 }
 
@@ -5881,7 +5849,7 @@ gtk_widget_reposition_after (GtkWidget *widget,
   if (parent->priv->children_observer)
     {
       if (prev_previous)
-        g_warning ("oops");
+        gtk_list_list_model_item_moved (parent->priv->children_observer, widget, prev_previous);
       else
         gtk_list_list_model_item_added (parent->priv->children_observer, widget);
     }
@@ -7355,6 +7323,8 @@ gtk_widget_finalize (GObject *object)
   gtk_grab_remove (widget);
 
   g_free (priv->name);
+  g_free (priv->tooltip_markup);
+  g_free (priv->tooltip_text);
 
   g_clear_object (&priv->accessible);
   g_clear_pointer (&priv->transform, gsk_transform_unref);
@@ -7981,44 +7951,26 @@ gtk_widget_real_get_accessible (GtkWidget *widget)
     {
       GtkWidgetClass *widget_class;
       GtkWidgetClassPrivate *priv;
-      AtkObjectFactory *factory;
-      AtkRegistry *default_registry;
 
       widget_class = GTK_WIDGET_GET_CLASS (widget);
       priv = widget_class->priv;
 
-      if (priv->accessible_type == GTK_TYPE_ACCESSIBLE)
-        {
-          default_registry = atk_get_default_registry ();
-          factory = atk_registry_get_factory (default_registry,
-                                              G_TYPE_FROM_INSTANCE (widget));
-          accessible = atk_object_factory_create_accessible (factory, G_OBJECT (widget));
+      accessible = g_object_new (priv->accessible_type,
+                                 "widget", widget,
+                                 NULL);
+      if (priv->accessible_role != ATK_ROLE_INVALID)
+        atk_object_set_role (accessible, priv->accessible_role);
 
-          if (priv->accessible_role != ATK_ROLE_INVALID)
-            atk_object_set_role (accessible, priv->accessible_role);
+      widget->priv->accessible = accessible;
 
-          widget->priv->accessible = accessible;
-        }
-      else
-        {
-          accessible = g_object_new (priv->accessible_type,
-                                     "widget", widget,
-                                     NULL);
-          if (priv->accessible_role != ATK_ROLE_INVALID)
-            atk_object_set_role (accessible, priv->accessible_role);
+      atk_object_initialize (accessible, widget);
 
-          widget->priv->accessible = accessible;
-
-          atk_object_initialize (accessible, widget);
-
-          /* Set the role again, since we don't want a role set
-           * in some parent initialize() function to override
-           * our own.
-           */
-          if (priv->accessible_role != ATK_ROLE_INVALID)
-            atk_object_set_role (accessible, priv->accessible_role);
-        }
-
+      /* Set the role again, since we don't want a role set
+       * in some parent initialize() function to override
+       * our own.
+       */
+      if (priv->accessible_role != ATK_ROLE_INVALID)
+        atk_object_set_role (accessible, priv->accessible_role);
     }
 
   return accessible;
@@ -9657,21 +9609,60 @@ gtk_widget_trigger_tooltip_query (GtkWidget *widget)
 /**
  * gtk_widget_set_tooltip_text:
  * @widget: a #GtkWidget
- * @text: (allow-none): the contents of the tooltip for @widget
+ * @text: (nullable): the contents of the tooltip for @widget
  *
- * Sets @text as the contents of the tooltip. This function will take
- * care of setting #GtkWidget:has-tooltip to %TRUE and of the default
- * handler for the #GtkWidget::query-tooltip signal.
+ * Sets @text as the contents of the tooltip.
  *
- * See also the #GtkWidget:tooltip-text property and gtk_tooltip_set_text().
+ * If @text contains any markup, it will be escaped.
+ *
+ * This function will take care of setting #GtkWidget:has-tooltip
+ * as a side effect, and of the default handler for the
+ * #GtkWidget::query-tooltip signal.
+ *
+ * See also the #GtkWidget:tooltip-text property and
+ * gtk_tooltip_set_text().
  */
 void
-gtk_widget_set_tooltip_text (GtkWidget   *widget,
-                             const gchar *text)
+gtk_widget_set_tooltip_text (GtkWidget  *widget,
+                             const char *text)
 {
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+  GObject *object = G_OBJECT (widget);
+  char *tooltip_text, *tooltip_markup;
+
   g_return_if_fail (GTK_IS_WIDGET (widget));
 
-  g_object_set (G_OBJECT (widget), "tooltip-text", text, NULL);
+  g_object_freeze_notify (object);
+
+  /* Treat an empty string as a NULL string,
+   * because an empty string would be useless for a tooltip:
+   */
+  if (text != NULL && *text == '\0')
+    {
+      tooltip_text = NULL;
+      tooltip_markup = NULL;
+    }
+  else
+    {
+      tooltip_text = g_strdup (text);
+      tooltip_markup = text != NULL ? g_markup_escape_text (text, -1) : NULL;
+    }
+
+  g_clear_pointer (&priv->tooltip_markup, g_free);
+  g_clear_pointer (&priv->tooltip_text, g_free);
+
+  priv->tooltip_text = tooltip_text;
+  priv->tooltip_markup = tooltip_markup;
+
+  gtk_widget_set_has_tooltip (widget, priv->tooltip_text != NULL);
+  if (_gtk_widget_get_visible (widget))
+    gtk_widget_trigger_tooltip_query (widget);
+
+  g_object_notify_by_pspec (object, widget_props[PROP_TOOLTIP_TEXT]);
+  g_object_notify_by_pspec (object, widget_props[PROP_TOOLTIP_MARKUP]);
+  g_object_notify_by_pspec (object, widget_props[PROP_HAS_TOOLTIP]);
+
+  g_object_thaw_notify (object);
 }
 
 /**
@@ -9680,63 +9671,99 @@ gtk_widget_set_tooltip_text (GtkWidget   *widget,
  *
  * Gets the contents of the tooltip for @widget.
  *
- * Returns: (nullable): the tooltip text, or %NULL. You should free the
- *   returned string with g_free() when done.
+ * If the @widget's tooltip was set using gtk_widget_set_tooltip_markup(),
+ * this function will return the escaped text.
+ *
+ * Returns: (nullable): the tooltip text
  */
-gchar *
+const char *
 gtk_widget_get_tooltip_text (GtkWidget *widget)
 {
-  gchar *text = NULL;
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
   g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
 
-  g_object_get (G_OBJECT (widget), "tooltip-text", &text, NULL);
-
-  return text;
+  return priv->tooltip_text;
 }
 
 /**
  * gtk_widget_set_tooltip_markup:
  * @widget: a #GtkWidget
- * @markup: (allow-none): the contents of the tooltip for @widget, or %NULL
+ * @markup: (nullable): the contents of the tooltip for @widget
  *
  * Sets @markup as the contents of the tooltip, which is marked up with
- *  the [Pango text markup language][PangoMarkupFormat].
+ * the [Pango text markup language][PangoMarkupFormat].
  *
- * This function will take care of setting #GtkWidget:has-tooltip to %TRUE
- * and of the default handler for the #GtkWidget::query-tooltip signal.
+ * This function will take care of setting the #GtkWidget:has-tooltip as
+ * a side effect, and of the default handler for the #GtkWidget::query-tooltip signal.
  *
  * See also the #GtkWidget:tooltip-markup property and
  * gtk_tooltip_set_markup().
  */
 void
-gtk_widget_set_tooltip_markup (GtkWidget   *widget,
-                               const gchar *markup)
+gtk_widget_set_tooltip_markup (GtkWidget  *widget,
+                               const char *markup)
 {
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+  GObject *object = G_OBJECT (widget);
+  char *tooltip_markup;
+
   g_return_if_fail (GTK_IS_WIDGET (widget));
 
-  g_object_set (G_OBJECT (widget), "tooltip-markup", markup, NULL);
+  g_object_freeze_notify (object);
+
+  /* Treat an empty string as a NULL string,
+   * because an empty string would be useless for a tooltip:
+   */
+  if (markup != NULL && *markup == '\0')
+    tooltip_markup = NULL;
+  else
+    tooltip_markup = g_strdup (markup);
+
+  g_clear_pointer (&priv->tooltip_text, g_free);
+  g_clear_pointer (&priv->tooltip_markup, g_free);
+
+  priv->tooltip_markup = tooltip_markup;
+
+  /* Store the tooltip without markup, as we might end up using
+   * it for widget descriptions in the accessibility layer
+   */
+  if (priv->tooltip_markup != NULL)
+    {
+      pango_parse_markup (priv->tooltip_markup, -1, 0, NULL,
+                          &priv->tooltip_text,
+                          NULL,
+                          NULL);
+    }
+
+  gtk_widget_set_has_tooltip (widget, tooltip_markup != NULL);
+  if (_gtk_widget_get_visible (widget))
+    gtk_widget_trigger_tooltip_query (widget);
+
+  g_object_notify_by_pspec (object, widget_props[PROP_TOOLTIP_TEXT]);
+  g_object_notify_by_pspec (object, widget_props[PROP_TOOLTIP_MARKUP]);
+  g_object_notify_by_pspec (object, widget_props[PROP_HAS_TOOLTIP]);
+
+  g_object_thaw_notify (object);
 }
 
 /**
  * gtk_widget_get_tooltip_markup:
  * @widget: a #GtkWidget
  *
- * Gets the contents of the tooltip for @widget.
+ * Gets the contents of the tooltip for @widget set using
+ * gtk_widget_set_tooltip_markup().
  *
- * Returns: (nullable): the tooltip text, or %NULL. You should free the
- *   returned string with g_free() when done.
+ * Returns: (nullable): the tooltip text
  */
-gchar *
+const char *
 gtk_widget_get_tooltip_markup (GtkWidget *widget)
 {
-  gchar *text = NULL;
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
   g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
 
-  g_object_get (G_OBJECT (widget), "tooltip-markup", &text, NULL);
-
-  return text;
+  return priv->tooltip_markup;
 }
 
 /**
@@ -9760,6 +9787,9 @@ gtk_widget_set_has_tooltip (GtkWidget *widget,
   if (priv->has_tooltip != has_tooltip)
     {
       priv->has_tooltip = has_tooltip;
+
+      if (priv->accessible != NULL)
+        gtk_widget_accessible_notify_tooltip (GTK_WIDGET_ACCESSIBLE (priv->accessible));
 
       g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_HAS_TOOLTIP]);
     }
@@ -10237,35 +10267,6 @@ gtk_widget_set_support_multidevice (GtkWidget *widget,
     }
 }
 
-/* There are multiple alpha related sources. First of all the user can specify alpha
- * in gtk_widget_set_opacity, secondly we can get it from the CSS opacity. These two
- * are multiplied together to form the total alpha. Secondly, the user can specify
- * an opacity group for a widget, which means we must essentially handle it as having alpha.
- */
-
-static void
-gtk_widget_update_alpha (GtkWidget *widget)
-{
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  GtkCssStyle *style;
-  gdouble opacity;
-  guint8 alpha;
-
-  style = gtk_css_node_get_style (priv->cssnode);
-
-  opacity = _gtk_css_number_value_get (style->other->opacity, 100);
-  opacity = CLAMP (opacity, 0.0, 1.0);
-
-  alpha = round (priv->user_alpha * opacity);
-
-  if (alpha == priv->alpha)
-    return;
-
-  priv->alpha = alpha;
-
-  gtk_widget_queue_draw (widget);
-}
-
 /**
  * gtk_widget_set_opacity:
  * @widget: a #GtkWidget
@@ -10303,7 +10304,7 @@ gtk_widget_set_opacity (GtkWidget *widget,
 
   priv->user_alpha = alpha;
 
-  gtk_widget_update_alpha (widget);
+  gtk_widget_queue_draw (widget);
 
   g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_OPACITY]);
 }
@@ -10386,6 +10387,10 @@ gtk_widget_set_has_focus (GtkWidget *widget,
     return;
 
   priv->has_focus = has_focus;
+
+  if (priv->accessible != NULL)
+    gtk_widget_accessible_notify_focus (GTK_WIDGET_ACCESSIBLE (priv->accessible));
+
   g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_HAS_FOCUS]);
 }
 
@@ -10718,6 +10723,7 @@ void
 _gtk_widget_update_parent_muxer (GtkWidget *widget)
 {
   GtkActionMuxer *muxer;
+  GtkWidget *child;
 
   muxer = (GtkActionMuxer*)g_object_get_qdata (G_OBJECT (widget), quark_action_muxer);
   if (muxer == NULL)
@@ -10725,6 +10731,10 @@ _gtk_widget_update_parent_muxer (GtkWidget *widget)
 
   gtk_action_muxer_set_parent (muxer,
                                gtk_widget_get_parent_muxer (widget, FALSE));
+  for (child = gtk_widget_get_first_child (widget);
+       child != NULL;
+       child = gtk_widget_get_next_sibling (child))
+    _gtk_widget_update_parent_muxer (child);
 }
 
 GtkActionMuxer *
@@ -10959,7 +10969,7 @@ gtk_widget_init_template (GtkWidget *widget)
    * will validate that the template is created for the correct GType and assert that
    * there is no infinite recursion.
    */
-  if (!gtk_builder_extend_with_template  (builder, widget, class_type,
+  if (!gtk_builder_extend_with_template  (builder, G_OBJECT (widget), class_type,
 					  (const gchar *)g_bytes_get_data (template->data, NULL),
 					  g_bytes_get_size (template->data),
 					  &error))
@@ -11559,9 +11569,14 @@ gtk_widget_create_render_node (GtkWidget   *widget,
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
   GtkCssBoxes boxes;
   GtkCssValue *filter_value;
-  double opacity;
+  double css_opacity, opacity;
+  GtkCssStyle *style;
 
-  opacity = priv->alpha / 255.0;
+  style = gtk_css_node_get_style (priv->cssnode);
+
+  css_opacity = _gtk_css_number_value_get (style->other->opacity, 100);
+  opacity = CLAMP (css_opacity, 0.0, 1.0) * priv->user_alpha / 255.0;
+
   if (opacity <= 0.0)
     return NULL;
 
@@ -11579,11 +11594,8 @@ gtk_widget_create_render_node (GtkWidget   *widget,
   if (opacity < 1.0)
     gtk_snapshot_push_opacity (snapshot, opacity);
 
-  if (!GTK_IS_WINDOW (widget))
-    {
-      gtk_css_style_snapshot_background (&boxes, snapshot);
-      gtk_css_style_snapshot_border (&boxes, snapshot);
-    }
+  gtk_css_style_snapshot_background (&boxes, snapshot);
+  gtk_css_style_snapshot_border (&boxes, snapshot);
 
   if (priv->overflow == GTK_OVERFLOW_HIDDEN)
     {
@@ -11834,6 +11846,8 @@ gtk_widget_observe_controllers (GtkWidget *widget)
  * gtk_widget_get_first_child:
  * @widget: a #GtkWidget
  *
+ * Returns the widgets first child.
+ *
  * Returns: (transfer none) (nullable): The widget's first child
  */
 GtkWidget *
@@ -11849,6 +11863,8 @@ gtk_widget_get_first_child (GtkWidget *widget)
 /**
  * gtk_widget_get_last_child:
  * @widget: a #GtkWidget
+ *
+ * Returns the widgets last child.
  *
  * Returns: (transfer none) (nullable): The widget's last child
  */
@@ -11866,6 +11882,8 @@ gtk_widget_get_last_child (GtkWidget *widget)
  * gtk_widget_get_next_sibling:
  * @widget: a #GtkWidget
  *
+ * Returns the widgets next sibling.
+ *
  * Returns: (transfer none) (nullable): The widget's next sibling
  */
 GtkWidget *
@@ -11881,6 +11899,8 @@ gtk_widget_get_next_sibling (GtkWidget *widget)
 /**
  * gtk_widget_get_prev_sibling:
  * @widget: a #GtkWidget
+ *
+ * Returns the widgets previous sibling.
  *
  * Returns: (transfer none) (nullable): The widget's previous sibling
  */
@@ -12255,6 +12275,31 @@ gtk_widget_get_height (GtkWidget *widget)
   g_return_val_if_fail (GTK_IS_WIDGET (widget), 0);
 
   return priv->height;
+}
+
+/**
+ * gtk_widget_get_size:
+ * @widget: a #GtkWidget
+ * @orientation: the orientation to query
+ *
+ * Returns the content width or height of the widget, depending on @orientation.
+ * This is equivalent to calling gtk_widget_get_width() for %GTK_ORIENTATION_HORIZONTAL
+ * or gtk_widget_get_height() for %GTK_ORIENTATION_VERTICAL, but can be used when
+ * writing orientation-independent code, such as when implementing #GtkOrientable
+ * widgets.
+ *
+ * Returns: The size of @widget in @orientation.
+ */
+int
+gtk_widget_get_size (GtkWidget      *widget,
+                     GtkOrientation  orientation)
+{
+  g_return_val_if_fail (GTK_IS_WIDGET (widget), 0);
+
+  if (orientation == GTK_ORIENTATION_HORIZONTAL)
+    return gtk_widget_get_width (widget);
+  else
+    return gtk_widget_get_height (widget);
 }
 
 /**
@@ -12752,4 +12797,35 @@ gtk_widget_set_css_classes (GtkWidget   *widget,
 
   gtk_css_node_set_classes (priv->cssnode, classes);
   g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_CSS_CLASSES]);
+}
+
+/*< private >
+ * gtk_widget_update_orientation:
+ * @widget: a #GtkWidget implementing #GtkOrientable
+ * @orientation: the orientation
+ *
+ * Update the internal state associated to the given @orientation of a
+ * #GtkWidget.
+ */
+void
+gtk_widget_update_orientation (GtkWidget      *widget,
+                               GtkOrientation  orientation)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+
+  g_return_if_fail (GTK_IS_WIDGET (widget));
+
+  if (orientation == GTK_ORIENTATION_HORIZONTAL)
+    {
+      gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_HORIZONTAL);
+      gtk_widget_remove_css_class (widget, GTK_STYLE_CLASS_VERTICAL);
+    }
+  else
+    {
+      gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_VERTICAL);
+      gtk_widget_remove_css_class (widget, GTK_STYLE_CLASS_HORIZONTAL);
+    }
+
+  if (priv->accessible != NULL)
+    gtk_widget_accessible_notify_orientation (GTK_WIDGET_ACCESSIBLE (priv->accessible));
 }

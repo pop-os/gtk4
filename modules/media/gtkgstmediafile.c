@@ -96,6 +96,7 @@ gtk_gst_media_file_paintable_init (GdkPaintableInterface *iface)
 G_DEFINE_TYPE_EXTENDED (GtkGstMediaFile, gtk_gst_media_file, GTK_TYPE_MEDIA_FILE, 0,
                         G_IMPLEMENT_INTERFACE (GDK_TYPE_PAINTABLE,
                                                gtk_gst_media_file_paintable_init))
+
 void
 g_io_module_load (GIOModule *module)
 {
@@ -107,6 +108,7 @@ g_io_module_load (GIOModule *module)
                                   10);
 }
 
+G_GNUC_NORETURN
 void
 g_io_module_unload (GIOModule *module)
 {
@@ -117,7 +119,7 @@ char **
 g_io_module_query (void)
 {
   char *eps[] = {
-    GTK_MEDIA_FILE_EXTENSION_POINT_NAME,
+    (char *) GTK_MEDIA_FILE_EXTENSION_POINT_NAME,
     NULL
   };
 

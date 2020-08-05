@@ -170,6 +170,7 @@ static const GDebugKey gtk_debug_keys[] = {
   { "builder", GTK_DEBUG_BUILDER },
   { "size-request", GTK_DEBUG_SIZE_REQUEST },
   { "no-css-cache", GTK_DEBUG_NO_CSS_CACHE },
+  { "shortcuts", GTK_DEBUG_SHORTCUTS },
   { "interactive", GTK_DEBUG_INTERACTIVE },
   { "touchscreen", GTK_DEBUG_TOUCHSCREEN },
   { "actions", GTK_DEBUG_ACTIONS },
@@ -941,7 +942,7 @@ gtk_is_initialized (void)
  * GTK sets the default text direction according to the locale
  * during gtk_init(), and you should normally use
  * gtk_widget_get_direction() or gtk_widget_get_default_direction()
- * to obtain the current direcion.
+ * to obtain the current direction.
  *
  * This function is only needed rare cases when the locale is
  * changed after GTK has already been initialized. In this case,
@@ -1244,8 +1245,8 @@ static GdkEvent *
 rewrite_event_for_toplevel (GdkEvent *event)
 {
   GdkSurface *surface;
-  GdkKeyEvent *key_event;
   GdkEventType event_type;
+  GdkTranslatedKey *key, *key_no_lock;
 
   surface = gdk_event_get_surface (event);
   if (!surface->parent)
@@ -1259,9 +1260,9 @@ rewrite_event_for_toplevel (GdkEvent *event)
   while (surface->parent)
     surface = surface->parent;
 
-  key_event = (GdkKeyEvent *) event;
+  key = gdk_key_event_get_translated_key (event, FALSE);
+  key_no_lock = gdk_key_event_get_translated_key (event, TRUE);
 
-  /* FIXME: Avoid direct access to the translated[] field */
   return gdk_key_event_new (gdk_event_get_event_type (event),
                             surface,
                             gdk_event_get_device (event),
@@ -1270,8 +1271,7 @@ rewrite_event_for_toplevel (GdkEvent *event)
                             gdk_key_event_get_keycode (event),
                             gdk_event_get_modifier_state (event),
                             gdk_key_event_is_modifier (event),
-                            &key_event->translated[0],
-                            &key_event->translated[1]);
+                            key, key_no_lock);
 }
 
 static gboolean
@@ -1733,6 +1733,8 @@ gtk_main_do_event (GdkEvent *event)
        gtk_widget_is_ancestor (target_widget, grab_widget)))
     grab_widget = target_widget;
 
+  g_object_ref (target_widget);
+
   /* Not all events get sent to the grabbing widget.
    * The delete, destroy, expose, focus change and resize
    * events still get sent to the event widget because
@@ -1746,7 +1748,6 @@ gtk_main_do_event (GdkEvent *event)
   switch ((guint)gdk_event_get_event_type (event))
     {
     case GDK_DELETE:
-      g_object_ref (target_widget);
       if (!gtk_window_group_get_current_grab (window_group) ||
           GTK_WIDGET (gtk_widget_get_root (gtk_window_group_get_current_grab (window_group))) == target_widget)
         {
@@ -1754,7 +1755,6 @@ gtk_main_do_event (GdkEvent *event)
               !gtk_window_emit_close_request (GTK_WINDOW (target_widget)))
             gtk_window_destroy (GTK_WINDOW (target_widget));
         }
-      g_object_unref (target_widget);
       break;
 
     case GDK_FOCUS_CHANGE:
@@ -1809,6 +1809,8 @@ gtk_main_do_event (GdkEvent *event)
     }
 
   _gtk_tooltip_handle_event (target_widget, event);
+
+  g_object_unref (target_widget);
 
  cleanup:
   tmp_list = current_events;
