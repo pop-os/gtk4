@@ -14,8 +14,6 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                gnome-pkg-tools (>= 0.11),
                gobject-introspection (>= 1.41.3),
                gsettings-desktop-schemas <!nocheck>,
-               libatk-bridge2.0-dev,
-               libatk1.0-dev (>= 2.15.1),
                libcairo2-dev (>= 1.14.0),
                libcolord-dev (>= 0.1.9),
                libcups2-dev (>= 2.0),
@@ -54,7 +52,6 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                xsltproc,
                xvfb <!nocheck>
 Build-Depends-Indep: gtk-doc-tools (>= 1.32+git20200421.gtk4),
-                     libatk1.0-doc,
                      libcairo2-doc,
                      libglib2.0-doc,
                      libpango1.0-doc,
@@ -149,8 +146,6 @@ Section: libdevel
 Architecture: any
 Multi-Arch: same
 Depends: gir1.2-gtk-4.0 (= ${binary:Version}),
-         libatk-bridge2.0-dev,
-         libatk1.0-dev (>= 2.15.1),
          libcairo2-dev (>= 1.14.0),
          libegl1-mesa-dev [linux-any],
          libepoxy-dev (>= 1.0),
@@ -191,8 +186,7 @@ Section: doc
 Architecture: all
 Multi-Arch: foreign
 Depends: ${misc:Depends}
-Recommends: libatk1.0-doc,
-            libglib2.0-doc,
+Recommends: libglib2.0-doc,
             libpango1.0-doc
 Suggests: devhelp
 Description: documentation for the GTK graphical user interface library
