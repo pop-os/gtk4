@@ -39,6 +39,13 @@
 #include <dwmapi.h>
 
 #include "gdkwin32langnotification.h"
+#ifdef GDK_WIN32_ENABLE_EGL
+# include <epoxy/egl.h>
+#endif
+
+#ifndef IMAGE_FILE_MACHINE_ARM64
+# define IMAGE_FILE_MACHINE_ARM64 0xAA64
+#endif
 
 static int debug_indent = 0;
 
@@ -187,7 +194,7 @@ void
 _gdk_win32_display_init_monitors (GdkWin32Display *win32_display)
 {
   GPtrArray *new_monitors;
-  gint i;
+  int i;
   GdkWin32Monitor *primary_to_move = NULL;
 
   for (i = 0; i < g_list_model_get_n_items (win32_display->monitors); i++)
@@ -227,8 +234,8 @@ _gdk_win32_display_init_monitors (GdkWin32Display *win32_display)
         primary_to_move = w32_ex_monitor;
 
       gdk_monitor_get_geometry (m, &geometry);
-      gdk_monitor_get_workarea (m, &workarea);
-      gdk_monitor_get_workarea (ex_monitor, &ex_workarea);
+      gdk_win32_monitor_get_workarea (m, &workarea);
+      gdk_win32_monitor_get_workarea (ex_monitor, &ex_workarea);
 
       if (memcmp (&workarea, &ex_workarea, sizeof (GdkRectangle)) != 0)
         {
@@ -339,11 +346,11 @@ _gdk_win32_display_init_monitors (GdkWin32Display *win32_display)
  */
 void
 gdk_win32_display_set_cursor_theme (GdkDisplay  *display,
-                                    const gchar *name,
-                                    gint         size)
+                                    const char *name,
+                                    int          size)
 {
-  gint cursor_size;
-  gint w, h;
+  int cursor_size;
+  int w, h;
   Win32CursorTheme *theme;
   GdkWin32Display *win32_display = GDK_WIN32_DISPLAY (display);
 
@@ -492,7 +499,7 @@ register_display_change_notification (GdkDisplay *display)
 }
 
 GdkDisplay *
-_gdk_win32_display_open (const gchar *display_name)
+_gdk_win32_display_open (const char *display_name)
 {
   GdkWin32Display *win32_display;
 
@@ -548,7 +555,7 @@ _gdk_win32_display_open (const gchar *display_name)
 
 G_DEFINE_TYPE (GdkWin32Display, gdk_win32_display, GDK_TYPE_DISPLAY)
 
-static const gchar *
+static const char *
 gdk_win32_display_get_name (GdkDisplay *display)
 {
   HDESK hdesk = GetThreadDesktop (GetCurrentThreadId ());
@@ -612,16 +619,6 @@ gdk_win32_display_get_name (GdkDisplay *display)
   return display_name_cache;
 }
 
-static GdkSurface *
-gdk_win32_display_get_default_group (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  g_warning ("gdk_display_get_default_group not yet implemented");
-
-  return NULL;
-}
-
 static void
 gdk_win32_display_beep (GdkDisplay *display)
 {
@@ -650,6 +647,14 @@ static void
 gdk_win32_display_dispose (GObject *object)
 {
   GdkWin32Display *display_win32 = GDK_WIN32_DISPLAY (object);
+
+#ifdef GDK_WIN32_ENABLE_EGL
+  if (display_win32->egl_disp != EGL_NO_DISPLAY)
+    {
+      eglTerminate (display_win32->egl_disp);
+      display_win32->egl_disp = EGL_NO_DISPLAY;
+    }
+#endif
 
   if (display_win32->hwnd != NULL)
     {
@@ -880,13 +885,48 @@ _gdk_win32_enable_hidpi (GdkWin32Display *display)
 }
 
 static void
+_gdk_win32_check_on_arm64 (GdkWin32Display *display)
+{
+  static gsize checked = 0;
+
+  if (g_once_init_enter (&checked))
+    {
+      HMODULE kernel32 = LoadLibraryW (L"kernel32.dll");
+
+      if (kernel32 != NULL)
+        {
+          display->cpu_funcs.isWow64Process2 =
+            (funcIsWow64Process2) GetProcAddress (kernel32, "IsWow64Process2");
+
+          if (display->cpu_funcs.isWow64Process2 != NULL)
+            {
+              USHORT proc_cpu = 0;
+              USHORT native_cpu = 0;
+
+              display->cpu_funcs.isWow64Process2 (GetCurrentProcess (),
+                                                  &proc_cpu,
+                                                  &native_cpu);
+
+              if (native_cpu == IMAGE_FILE_MACHINE_ARM64)
+                display->running_on_arm64 = TRUE;
+            }
+
+          FreeLibrary (kernel32);
+        }
+
+      g_once_init_leave (&checked, 1);
+    }
+}
+
+static void
 gdk_win32_display_init (GdkWin32Display *display)
 {
-  const gchar *scale_str = g_getenv ("GDK_SCALE");
+  const char *scale_str = g_getenv ("GDK_SCALE");
 
   display->monitors = G_LIST_MODEL (g_list_store_new (GDK_TYPE_MONITOR));
 
   _gdk_win32_enable_hidpi (display);
+  _gdk_win32_check_on_arm64 (display);
 
   /* if we have DPI awareness, set up fixed scale if set */
   if (display->dpi_aware_type != PROCESS_DPI_UNAWARE &&
@@ -927,7 +967,7 @@ gdk_win32_display_check_composited (GdkWin32Display *display)
 
 static void
 gdk_win32_display_notify_startup_complete (GdkDisplay  *display,
-                                           const gchar *startup_id)
+                                           const char *startup_id)
 {
   /* nothing */
 }
@@ -957,7 +997,7 @@ guint
 _gdk_win32_display_get_monitor_scale_factor (GdkWin32Display *win32_display,
                                              HMONITOR         hmonitor,
                                              HWND             hwnd,
-                                             gint            *dpi)
+                                             int             *dpi)
 {
   gboolean is_scale_acquired = FALSE;
   gboolean use_dpi_for_monitor = FALSE;
@@ -1038,7 +1078,7 @@ _gdk_win32_display_get_monitor_scale_factor (GdkWin32Display *win32_display,
 
 static gboolean
 gdk_win32_display_get_setting (GdkDisplay  *display,
-                               const gchar *name,
+                               const char *name,
                                GValue      *value)
 {
   return _gdk_win32_get_setting (name, value);
@@ -1061,7 +1101,6 @@ gdk_win32_display_class_init (GdkWin32DisplayClass *klass)
   display_class->flush = gdk_win32_display_flush;
   display_class->has_pending = _gdk_win32_display_has_pending;
   display_class->queue_events = _gdk_win32_display_queue_events;
-  display_class->get_default_group = gdk_win32_display_get_default_group;
 
   //? display_class->get_app_launch_context = _gdk_win32_display_get_app_launch_context;
 

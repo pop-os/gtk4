@@ -25,7 +25,7 @@
 #include "gtkcelllayout.h"
 #include "gtkcellrenderertext.h"
 #include "gtkentryprivate.h"
-#include "gtkfilesystemmodel.h"
+#include "gtkfilechooserutils.h"
 #include "gtklabel.h"
 #include "gtkmain.h"
 #include "gtksizerequest.h"
@@ -33,6 +33,7 @@
 #include "gtkintl.h"
 #include "gtkmarshalers.h"
 #include "gtkfilefilterprivate.h"
+#include "gtkfilter.h"
 #include "gtkeventcontrollerfocus.h"
 
 typedef struct _GtkFileChooserEntryClass GtkFileChooserEntryClass;
@@ -54,8 +55,8 @@ struct _GtkFileChooserEntry
 
   GFile *base_folder;
   GFile *current_folder_file;
-  gchar *dir_part;
-  gchar *file_part;
+  char *dir_part;
+  char *file_part;
 
   GtkTreeModel *completion_store;
   GtkFileFilter *current_filter;
@@ -91,14 +92,14 @@ static gboolean gtk_file_chooser_entry_tab_handler    (GtkEventControllerKey *ke
                                                        GtkFileChooserEntry   *chooser_entry);
 
 #ifdef G_OS_WIN32
-static gint     insert_text_callback      (GtkFileChooserEntry *widget,
-					   const gchar         *new_text,
-					   gint                 new_text_length,
-					   gint                *position,
+static int      insert_text_callback      (GtkFileChooserEntry *widget,
+					   const char          *new_text,
+					   int                  new_text_length,
+					   int                 *position,
 					   gpointer             user_data);
 static void     delete_text_callback      (GtkFileChooserEntry *widget,
-					   gint                 start_pos,
-					   gint                 end_pos,
+					   int                  start_pos,
+					   int                  end_pos,
 					   gpointer             user_data);
 #endif
 
@@ -183,7 +184,7 @@ _gtk_file_chooser_entry_class_init (GtkFileChooserEntryClass *class)
 
 static gboolean
 match_func (GtkEntryCompletion *compl,
-            const gchar        *key,
+            const char         *key,
             GtkTreeIter        *iter,
             gpointer            user_data)
 {
@@ -194,65 +195,22 @@ match_func (GtkEntryCompletion *compl,
    * current file filter (e.g. just jpg files) here. */
   if (chooser_entry->current_filter != NULL)
     {
-      char *mime_type = NULL;
-      gboolean matches;
       GFile *file;
-      GFileInfo *file_info;
-      GtkFileFilterInfo filter_info;
-      GtkFileFilterFlags needed_flags;
+      GFileInfo *info;
 
       file = _gtk_file_system_model_get_file (GTK_FILE_SYSTEM_MODEL (chooser_entry->completion_store),
                                               iter);
-      file_info = _gtk_file_system_model_get_info (GTK_FILE_SYSTEM_MODEL (chooser_entry->completion_store),
-                                                   iter);
+      info = _gtk_file_system_model_get_info (GTK_FILE_SYSTEM_MODEL (chooser_entry->completion_store),
+                                              iter);
 
       /* We always allow navigating into subfolders, so don't ever filter directories */
-      if (g_file_info_get_file_type (file_info) != G_FILE_TYPE_REGULAR)
+      if (g_file_info_get_file_type (info) != G_FILE_TYPE_REGULAR)
         return TRUE;
 
-      needed_flags = gtk_file_filter_get_needed (chooser_entry->current_filter);
+      if (!g_file_info_has_attribute (info, "standard::file"))
+        g_file_info_set_attribute_object (info, "standard::file", G_OBJECT (file));
 
-      filter_info.display_name = g_file_info_get_display_name (file_info);
-      filter_info.contains = GTK_FILE_FILTER_DISPLAY_NAME;
-
-      if (needed_flags & GTK_FILE_FILTER_MIME_TYPE)
-        {
-          const char *s = g_file_info_get_content_type (file_info);
-          if (s != NULL)
-            {
-              mime_type = g_content_type_get_mime_type (s);
-              if (mime_type != NULL)
-                {
-                  filter_info.mime_type = mime_type;
-                  filter_info.contains |= GTK_FILE_FILTER_MIME_TYPE;
-                }
-            }
-        }
-
-      if (needed_flags & GTK_FILE_FILTER_FILENAME)
-        {
-          const char *path = g_file_get_path (file);
-          if (path != NULL)
-            {
-              filter_info.filename = path;
-              filter_info.contains |= GTK_FILE_FILTER_FILENAME;
-            }
-        }
-
-      if (needed_flags & GTK_FILE_FILTER_URI)
-        {
-          const char *uri = g_file_get_uri (file);
-          if (uri)
-            {
-              filter_info.uri = uri;
-              filter_info.contains |= GTK_FILE_FILTER_URI;
-            }
-        }
-
-      matches = gtk_file_filter_filter (chooser_entry->current_filter, &filter_info);
-
-      g_free (mime_type);
-      return matches;
+      return gtk_filter_match (GTK_FILTER (chooser_entry->current_filter), info);
     }
 
   return TRUE;
@@ -357,7 +315,7 @@ match_selected_callback (GtkEntryCompletion  *completion,
                          GtkFileChooserEntry *chooser_entry)
 {
   char *path;
-  gint pos;
+  int pos;
 
   gtk_tree_model_get (model, iter,
                       FULL_PATH_COLUMN, &path,
@@ -417,7 +375,7 @@ has_uri_scheme (const char *str)
 
 static GFile *
 gtk_file_chooser_get_file_for_text (GtkFileChooserEntry *chooser_entry,
-                                    const gchar         *str)
+                                    const char          *str)
 {
   GFile *file;
 
@@ -522,7 +480,7 @@ gtk_file_chooser_entry_tab_handler (GtkEventControllerKey *key,
                                     GtkFileChooserEntry   *chooser_entry)
 {
   GtkEditable *editable = GTK_EDITABLE (chooser_entry);
-  gint start, end;
+  int start, end;
 
   if (keyval == GDK_KEY_Escape &&
       chooser_entry->eat_escape)
@@ -772,15 +730,15 @@ refresh_current_folder_and_file_part (GtkFileChooserEntry *chooser_entry)
 }
 
 #ifdef G_OS_WIN32
-static gint
+static int
 insert_text_callback (GtkFileChooserEntry *chooser_entry,
-		      const gchar	  *new_text,
-		      gint       	   new_text_length,
-		      gint       	  *position,
+		      const char          *new_text,
+		      int        	   new_text_length,
+		      int        	  *position,
 		      gpointer   	   user_data)
 {
-  const gchar *colon = memchr (new_text, ':', new_text_length);
-  gint i;
+  const char *colon = memchr (new_text, ':', new_text_length);
+  int i;
 
   /* Disallow these characters altogether */
   for (i = 0; i < new_text_length; i++)
@@ -815,8 +773,8 @@ insert_text_callback (GtkFileChooserEntry *chooser_entry,
 
 static void
 delete_text_callback (GtkFileChooserEntry *chooser_entry,
-		      gint                 start_pos,
-		      gint                 end_pos,
+		      int                  start_pos,
+		      int                  end_pos,
 		      gpointer             user_data)
 {
   /* If deleting a drive letter, delete the colon, too */
@@ -926,7 +884,7 @@ _gtk_file_chooser_entry_get_current_folder (GtkFileChooserEntry *chooser_entry)
  * Returns: the entered filename - this value is owned by the
  *  chooser entry and must not be modified or freed.
  **/
-const gchar *
+const char *
 _gtk_file_chooser_entry_get_file_part (GtkFileChooserEntry *chooser_entry)
 {
   const char *last_slash, *text;
@@ -1036,7 +994,7 @@ _gtk_file_chooser_entry_get_is_folder (GtkFileChooserEntry *chooser_entry,
 void
 _gtk_file_chooser_entry_select_filename (GtkFileChooserEntry *chooser_entry)
 {
-  const gchar *str, *ext;
+  const char *str, *ext;
   glong len = -1;
 
   if (chooser_entry->action == GTK_FILE_CHOOSER_ACTION_SAVE)
@@ -1048,7 +1006,7 @@ _gtk_file_chooser_entry_select_filename (GtkFileChooserEntry *chooser_entry)
        len = g_utf8_pointer_to_offset (str, ext);
     }
 
-  gtk_editable_select_region (GTK_EDITABLE (chooser_entry), 0, (gint) len);
+  gtk_editable_select_region (GTK_EDITABLE (chooser_entry), 0, (int) len);
 }
 
 void

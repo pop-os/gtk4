@@ -106,6 +106,10 @@
  * GtkExpander has three CSS nodes, the main node with the name expander,
  * a subnode with name title and node below it with name arrow. The arrow of an
  * expander that is showing its child gets the :checked pseudoclass added to it.
+ *
+ * # Accessibility
+ *
+ * GtkExpander uses the #GTK_ACCESSIBLE_ROLE_BUTTON role.
  */
 
 #include "config.h"
@@ -125,8 +129,6 @@
 #include "gtkprivate.h"
 #include "gtkstylecontextprivate.h"
 #include "gtkwidgetprivate.h"
-
-#include "a11y/gtkexpanderaccessibleprivate.h"
 
 #include <string.h>
 
@@ -197,7 +199,7 @@ static void gtk_expander_buildable_init           (GtkBuildableIface *iface);
 static void gtk_expander_buildable_add_child      (GtkBuildable *buildable,
                                                    GtkBuilder   *builder,
                                                    GObject      *child,
-                                                   const gchar  *type);
+                                                   const char   *type);
 
 
 /* GtkWidget      */
@@ -211,9 +213,9 @@ static void gtk_expander_measure (GtkWidget      *widget,
 
 /* Gestures */
 static void     gesture_click_released_cb (GtkGestureClick *gesture,
-                                           gint             n_press,
-                                           gdouble          x,
-                                           gdouble          y,
+                                           int              n_press,
+                                           double           x,
+                                           double           y,
                                            GtkExpander     *expander);
 
 G_DEFINE_TYPE_WITH_CODE (GtkExpander, gtk_expander, GTK_TYPE_WIDGET,
@@ -231,7 +233,7 @@ expand_timeout (gpointer data)
   return FALSE;
 }
 
-static gboolean
+static void
 gtk_expander_drag_enter (GtkDropControllerMotion *motion,
                          double                   x,
                          double                   y,
@@ -242,8 +244,6 @@ gtk_expander_drag_enter (GtkDropControllerMotion *motion,
       expander->expand_timer = g_timeout_add (TIMEOUT_EXPAND, (GSourceFunc) expand_timeout, expander);
       g_source_set_name_by_id (expander->expand_timer, "[gtk] expand_timeout");
     }
-
-  return TRUE;
 }
 
 static void
@@ -377,8 +377,8 @@ gtk_expander_class_init (GtkExpanderClass *klass)
                   NULL,
                   G_TYPE_NONE, 0);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_EXPANDER_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("expander-widget"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_BUTTON);
 }
 
 static void
@@ -425,6 +425,10 @@ gtk_expander_init (GtkExpander *expander)
   gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
                                               GTK_PHASE_BUBBLE);
   gtk_widget_add_controller (GTK_WIDGET (expander->title_widget), GTK_EVENT_CONTROLLER (gesture));
+
+  gtk_accessible_update_state (GTK_ACCESSIBLE (expander),
+                               GTK_ACCESSIBLE_STATE_EXPANDED, FALSE,
+                               -1);
 }
 
 static GtkBuildableIface *parent_buildable_iface;
@@ -433,7 +437,7 @@ static void
 gtk_expander_buildable_add_child (GtkBuildable  *buildable,
                                   GtkBuilder    *builder,
                                   GObject       *child,
-                                  const gchar   *type)
+                                  const char    *type)
 {
   if (g_strcmp0 (type, "label") == 0)
     gtk_expander_set_label_widget (GTK_EXPANDER (buildable), GTK_WIDGET (child));
@@ -567,9 +571,9 @@ gtk_expander_size_allocate (GtkWidget *widget,
 
 static void
 gesture_click_released_cb (GtkGestureClick *gesture,
-                           gint             n_press,
-                           gdouble          x,
-                           gdouble          y,
+                           int              n_press,
+                           double           x,
+                           double           y,
                            GtkExpander     *expander)
 {
   gtk_widget_activate (GTK_WIDGET (expander));
@@ -808,7 +812,7 @@ gtk_expander_measure (GtkWidget      *widget,
  * Returns: a new #GtkExpander widget.
  */
 GtkWidget *
-gtk_expander_new (const gchar *label)
+gtk_expander_new (const char *label)
 {
   return g_object_new (GTK_TYPE_EXPANDER, "label", label, NULL);
 }
@@ -828,7 +832,7 @@ gtk_expander_new (const gchar *label)
  * Returns: a new #GtkExpander widget.
  */
 GtkWidget *
-gtk_expander_new_with_mnemonic (const gchar *label)
+gtk_expander_new_with_mnemonic (const char *label)
 {
   return g_object_new (GTK_TYPE_EXPANDER,
                        "label", label,
@@ -882,13 +886,9 @@ gtk_expander_set_expanded (GtkExpander *expander,
       gtk_expander_resize_toplevel (expander);
     }
 
-  {
-    AtkObject *accessible = _gtk_widget_peek_accessible (GTK_WIDGET (expander));
-
-    if (accessible != NULL)
-      gtk_expander_accessible_update_state (GTK_EXPANDER_ACCESSIBLE (accessible),
-                                            expander->expanded);
-  }
+  gtk_accessible_update_state (GTK_ACCESSIBLE (expander),
+                               GTK_ACCESSIBLE_STATE_EXPANDED, expanded,
+                               -1);
 
   g_object_notify (G_OBJECT (expander), "expanded");
 }
@@ -923,7 +923,7 @@ gtk_expander_get_expanded (GtkExpander *expander)
  */
 void
 gtk_expander_set_label (GtkExpander *expander,
-                        const gchar *label)
+                        const char *label)
 {
   g_return_if_fail (GTK_IS_EXPANDER (expander));
 
@@ -942,13 +942,6 @@ gtk_expander_set_label (GtkExpander *expander,
 
       gtk_expander_set_label_widget (expander, child);
     }
-
-  {
-    AtkObject *accessible = _gtk_widget_peek_accessible (GTK_WIDGET (expander));
-
-    if (accessible != NULL)
-      gtk_expander_accessible_update_label (GTK_EXPANDER_ACCESSIBLE (accessible));
-  }
 
   g_object_notify (G_OBJECT (expander), "label");
 }
@@ -972,7 +965,7 @@ gtk_expander_set_label (GtkExpander *expander,
  * Returns: (nullable): The text of the label widget. This string is owned
  *     by the widget and must not be modified or freed.
  */
-const gchar *
+const char *
 gtk_expander_get_label (GtkExpander *expander)
 {
   g_return_val_if_fail (GTK_IS_EXPANDER (expander), NULL);
@@ -1184,6 +1177,8 @@ void
 gtk_expander_set_child (GtkExpander *expander,
                         GtkWidget   *child)
 {
+  GList *list = NULL;
+
   g_return_if_fail (GTK_IS_EXPANDER (expander));
   g_return_if_fail (child == NULL || GTK_IS_WIDGET (child));
 
@@ -1207,6 +1202,13 @@ gtk_expander_set_child (GtkExpander *expander,
           g_object_ref (expander->child);
         }
     }
+
+  if (expander->child)
+    list = g_list_append (list, expander->child);
+  gtk_accessible_update_relation (GTK_ACCESSIBLE (expander),
+                                  GTK_ACCESSIBLE_RELATION_CONTROLS, list,
+                                  -1);
+  g_list_free (list);
 
   g_object_notify (G_OBJECT (expander), "child");
 }

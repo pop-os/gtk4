@@ -1103,7 +1103,7 @@ gdk_clipboard_write_async (GdkClipboard        *clipboard,
       return;
     }
 
-  mime_formats = gdk_content_formats_new ((const gchar *[2]) { mime_type, NULL }, 1);
+  mime_formats = gdk_content_formats_new ((const char *[2]) { mime_type, NULL }, 1);
   mime_formats = gdk_content_formats_union_serialize_gtypes (mime_formats);
   gtype = gdk_content_formats_match_gtype (formats, mime_formats);
   if (gtype != G_TYPE_INVALID)
@@ -1290,7 +1290,7 @@ gdk_clipboard_set_valist (GdkClipboard *clipboard,
       g_warning ("%s: %s", G_STRLOC, error);
       g_free (error);
       /* we purposely leak the value here, it might not be
-       * in a sane state if an error condition occoured
+       * in a sane state if an error condition occurred
        */
       return;
     }

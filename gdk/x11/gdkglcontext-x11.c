@@ -184,7 +184,7 @@ gdk_x11_gl_context_end_frame (GdkDrawContext *draw_context,
   gdk_x11_surface_pre_damage (surface);
 
 #ifdef HAVE_XDAMAGE
-  if (context_x11->xdamage != 0)
+  if (context_x11->xdamage != 0 && _gdk_x11_surface_syncs_frames (surface))
     {
       g_assert (context_x11->frame_fence == 0);
 
@@ -582,13 +582,69 @@ create_legacy_context (GdkDisplay   *display,
 }
 
 #ifdef HAVE_XDAMAGE
+static void
+finish_frame (GdkGLContext *context)
+{
+  GdkX11GLContext *context_x11 = GDK_X11_GL_CONTEXT (context);
+  GdkSurface *surface = gdk_gl_context_get_surface (context);
+
+  if (context_x11->xdamage == 0)
+    return;
+
+  if (context_x11->frame_fence == 0)
+    return;
+
+  glDeleteSync (context_x11->frame_fence);
+  context_x11->frame_fence = 0;
+  _gdk_x11_surface_set_frame_still_painting (surface, FALSE);
+}
+
+static void
+bind_context_for_frame_fence (GdkGLContext *context)
+{
+  GdkGLContext *current_context;
+  GdkX11GLContext *current_context_x11;
+  GLXContext current_glx_context = NULL;
+  gboolean needs_binding = TRUE;
+
+  /* We don't care if the passed context is the current context,
+   * necessarily, but we do care that *some* context that can
+   * see the sync object is bound.
+   *
+   * If no context is bound at all, the GL dispatch layer will
+   * make glClientWaitSync() silently return 0.
+   */
+  current_glx_context = glXGetCurrentContext ();
+
+  if (current_glx_context == NULL)
+    goto out;
+
+  current_context = gdk_gl_context_get_current ();
+
+  if (current_context == NULL)
+    goto out;
+
+  current_context_x11 = GDK_X11_GL_CONTEXT (current_context);
+
+  /* If the GLX context was changed out from under GDK, then
+   * that context may not be one that is able to see the
+   * created fence object.
+   */
+  if (current_context_x11->glx_context != current_glx_context)
+    goto out;
+
+  needs_binding = FALSE;
+out:
+  if (needs_binding)
+    gdk_gl_context_make_current (context);
+}
+
 static gboolean
 on_gl_surface_xevent (GdkGLContext   *context,
                       XEvent         *xevent,
                       GdkX11Display  *display_x11)
 {
   GdkX11GLContext *context_x11 = GDK_X11_GL_CONTEXT (context);
-  GdkSurface *surface = gdk_gl_context_get_surface (context);
   XDamageNotifyEvent *damage_xevent;
 
   if (!context_x11->is_attached)
@@ -605,6 +661,8 @@ on_gl_surface_xevent (GdkGLContext   *context,
   if (context_x11->frame_fence)
     {
       GLenum wait_result;
+
+      bind_context_for_frame_fence (context);
 
       wait_result = glClientWaitSync (context_x11->frame_fence, 0, 0);
 
@@ -633,9 +691,7 @@ on_gl_surface_xevent (GdkGLContext   *context,
           case GL_WAIT_FAILED:
             if (wait_result == GL_WAIT_FAILED)
               g_warning ("failed to wait on GL fence associated with last swap buffers call");
-            glDeleteSync (context_x11->frame_fence);
-            context_x11->frame_fence = 0;
-            _gdk_x11_surface_set_frame_still_painting (surface, FALSE);
+            finish_frame (context);
             break;
 
           /* We assume that if the fence hasn't been signaled, that this
@@ -648,11 +704,26 @@ on_gl_surface_xevent (GdkGLContext   *context,
           case GL_TIMEOUT_EXPIRED:
             break;
           default:
-            g_assert_not_reached ();
+            g_error ("glClientWaitSync returned unexpected result: %x", (guint) wait_result);
         }
     }
 
   return FALSE;
+}
+
+static void
+on_surface_state_changed (GdkGLContext *context)
+{
+  GdkSurface *surface = gdk_gl_context_get_surface (context);
+
+  if ((surface->state & GDK_SURFACE_STATE_WITHDRAWN) == 0)
+    return;
+
+  /* If we're about to withdraw the surface, then we don't care if the frame is
+   * still getting rendered by the GPU. The compositor is going to remove the surface
+   * from the scene anyway, so wrap up the frame.
+   */
+  finish_frame (context);
 }
 #endif
 
@@ -836,13 +907,23 @@ gdk_x11_gl_context_realize (GdkGLContext  *context,
                                             gdk_x11_surface_get_xid (surface),
                                             XDamageReportRawRectangles);
       if (gdk_x11_display_error_trap_pop (display))
-        context_x11->xdamage = 0;
+        {
+          context_x11->xdamage = 0;
+        }
       else
-        g_signal_connect_object (G_OBJECT (display),
-                                 "xevent",
-                                 G_CALLBACK (on_gl_surface_xevent),
-                                 context,
-                                 G_CONNECT_SWAPPED);
+        {
+          g_signal_connect_object (G_OBJECT (display),
+                                   "xevent",
+                                   G_CALLBACK (on_gl_surface_xevent),
+                                   context,
+                                   G_CONNECT_SWAPPED);
+          g_signal_connect_object (G_OBJECT (surface),
+                                   "notify::state",
+                                   G_CALLBACK (on_surface_state_changed),
+                                   context,
+                                   G_CONNECT_SWAPPED);
+
+        }
     }
 #endif
 
@@ -1197,7 +1278,7 @@ get_cached_gl_visuals (GdkDisplay *display, int *system, int *rgba)
 {
   gboolean found;
   Atom type_return;
-  gint format_return;
+  int format_return;
   gulong nitems_return;
   gulong bytes_after_return;
   guchar *data = NULL;
@@ -1440,8 +1521,8 @@ gdk_x11_display_make_gl_context_current (GdkDisplay   *display,
  */
 gboolean
 gdk_x11_display_get_glx_version (GdkDisplay *display,
-                                 gint       *major,
-                                 gint       *minor)
+                                 int        *major,
+                                 int        *minor)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), FALSE);
 

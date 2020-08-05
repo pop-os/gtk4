@@ -159,7 +159,7 @@ gtk_shortcut_action_activate (GtkShortcutAction      *self,
   g_return_val_if_fail (GTK_IS_SHORTCUT_ACTION (self), FALSE);
   g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
 
-  GTK_NOTE (SHORTCUTS, {
+  GTK_NOTE (KEYBINDINGS, {
             char *act = gtk_shortcut_action_to_string (self);
             g_print ("Shortcut action activate on %s: %s\n", G_OBJECT_TYPE_NAME (widget), act);
             g_free (act);
@@ -1040,8 +1040,8 @@ check_parameter_type (GVariant           *args,
 
       if (!g_variant_is_of_type (args, parameter_type))
         {
-          gchar *typestr = g_variant_type_dup_string (parameter_type);
-          gchar *targetstr = g_variant_print (args, TRUE);
+          char *typestr = g_variant_type_dup_string (parameter_type);
+          char *targetstr = g_variant_print (args, TRUE);
           g_warning ("Trying to invoke action with target '%s',"
                      " but action expects parameter with type '%s'", targetstr, typestr);
           g_free (targetstr);
@@ -1053,7 +1053,7 @@ check_parameter_type (GVariant           *args,
     {
       if (parameter_type != NULL)
         {
-          gchar *typestr = g_variant_type_dup_string (parameter_type);
+          char *typestr = g_variant_type_dup_string (parameter_type);
           g_warning ("Trying to invoke action without arguments,"
                      " but action expects parameter with type '%s'", typestr);
           g_free (typestr);
@@ -1072,14 +1072,16 @@ gtk_named_action_activate (GtkShortcutAction      *action,
 {
   GtkNamedAction *self = GTK_NAMED_ACTION (action);
   const GVariantType *parameter_type;
-  GActionGroup *action_group;
+  GtkActionMuxer *muxer;
   gboolean enabled;
 
-  action_group = G_ACTION_GROUP (_gtk_widget_get_action_muxer (widget, FALSE));
-  if (action_group == NULL)
+  muxer = _gtk_widget_get_action_muxer (widget, FALSE);
+  if (muxer == NULL)
     return FALSE;
 
-  if (!g_action_group_query_action (action_group, self->name, &enabled, &parameter_type, NULL, NULL, NULL))
+  if (!gtk_action_muxer_query_action (muxer, self->name,
+                                      &enabled, &parameter_type,
+                                      NULL, NULL, NULL))
     return FALSE;
 
   if (!enabled)
@@ -1095,7 +1097,7 @@ gtk_named_action_activate (GtkShortcutAction      *action,
   if (!check_parameter_type (args, parameter_type))
     return FALSE;
 
-  g_action_group_activate_action (action_group, self->name, args);
+  gtk_action_muxer_activate_action (muxer, self->name, args);
 
   return TRUE;
 }

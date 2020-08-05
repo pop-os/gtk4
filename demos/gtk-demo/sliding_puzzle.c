@@ -1,4 +1,4 @@
-/* Sliding puzzle
+/* Sliding Puzzle
  *
  * This demo demonstrates how to use gestures and paintables to create a
  * small sliding puzzle game.
@@ -443,7 +443,7 @@ do_sliding_puzzle (GtkWidget *do_widget)
       gtk_media_stream_set_muted (media, TRUE);
       gtk_media_stream_play (media);
       add_choice (choices, GDK_PAINTABLE (media));
-      sw = gtk_scrolled_window_new (NULL, NULL);
+      sw = gtk_scrolled_window_new ();
       gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), choices);
       gtk_grid_attach (GTK_GRID (tweaks), sw, 0, 0, 2, 1);
 
@@ -470,7 +470,6 @@ do_sliding_puzzle (GtkWidget *do_widget)
       g_signal_connect (restart, "clicked", G_CALLBACK (reshuffle), NULL);
 
       header = gtk_header_bar_new ();
-      gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
       gtk_header_bar_pack_start (GTK_HEADER_BAR (header), restart);
       gtk_header_bar_pack_end (GTK_HEADER_BAR (header), tweak);
       window = gtk_window_new ();

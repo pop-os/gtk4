@@ -249,7 +249,7 @@ new_model (GListStore *store, gboolean autoselect, gboolean can_unselect)
   GtkSelectionModel *result;
   GString *changes;
 
-  result = GTK_SELECTION_MODEL (gtk_single_selection_new (G_LIST_MODEL (store)));
+  result = GTK_SELECTION_MODEL (gtk_single_selection_new (g_object_ref (G_LIST_MODEL (store))));
 
   /* We want to return an empty selection unless autoselect is true,
    * so undo the initial selection due to autoselect defaulting to TRUE.
@@ -593,28 +593,30 @@ test_persistence (void)
 }
 
 static void
-check_query_range (GtkSelectionModel *selection)
+check_get_selection (GtkSelectionModel *selection)
 {
-  guint i, j;
-  guint position, n_items;
-  gboolean selected;
+  GtkBitset *set;
+  guint i, n_items;
 
-  /* check that range always contains position, and has uniform selection */
-  for (i = 0; i < g_list_model_get_n_items (G_LIST_MODEL (selection)); i++)
-    {
-      gtk_selection_model_query_range (selection, i, &position, &n_items, &selected);
-      g_assert_cmpint (position, <=, i);
-      g_assert_cmpint (i, <, position + n_items);
-      for (j = position; j < position + n_items; j++)
-        g_assert_true (selected == gtk_selection_model_is_selected (selection, j));
-    }
+  set = gtk_selection_model_get_selection (selection);
   
-  /* check that out-of-range returns the correct invalid values */
-  i = MIN (i, g_random_int ());
-  gtk_selection_model_query_range (selection, i, &position, &n_items, &selected);
-  g_assert_cmpint (position, ==, i);
-  g_assert_cmpint (n_items, ==, 0);
-  g_assert_true (!selected);
+  n_items = g_list_model_get_n_items (G_LIST_MODEL (selection));
+  if (n_items == 0)
+    {
+      g_assert_true (gtk_bitset_is_empty (set));
+    }
+  else
+    {
+      for (i = 0; i < n_items; i++)
+        {
+          g_assert_cmpint (gtk_bitset_contains (set, i), ==, gtk_selection_model_is_selected (selection, i));
+        }
+      
+      /* check that out-of-range has no bits set */
+      g_assert_cmpint (gtk_bitset_get_maximum (set), <, g_list_model_get_n_items (G_LIST_MODEL (selection)));
+    }
+
+  gtk_bitset_unref (set);
 }
 
 static void
@@ -625,20 +627,71 @@ test_query_range (void)
   
   store = new_store (1, 5, 1);
   selection = new_model (store, TRUE, TRUE);
-  check_query_range (selection);
+  check_get_selection (selection);
 
   gtk_selection_model_unselect_item (selection, 0);
-  check_query_range (selection);
+  check_get_selection (selection);
 
   gtk_selection_model_select_item (selection, 2,  TRUE);
-  check_query_range (selection);
+  check_get_selection (selection);
 
   gtk_selection_model_select_item (selection, 4, TRUE);
-  check_query_range (selection);
+  check_get_selection (selection);
 
   ignore_selection_changes (selection);
 
   g_object_unref (store);
+  g_object_unref (selection);
+}
+
+static void
+test_set_model (void)
+{
+  GtkSelectionModel *selection;
+  GListStore *store;
+  GListModel *m1, *m2;
+  
+  store = new_store (1, 5, 1);
+  m1 = G_LIST_MODEL (store);
+  m2 = G_LIST_MODEL (gtk_slice_list_model_new (g_object_ref (m1), 0, 3));
+  selection = new_model (store, TRUE, TRUE);
+  assert_selection (selection, "1");
+  assert_selection_changes (selection, "");
+
+  /* we retain the selected item across model changes */
+  gtk_single_selection_set_model (GTK_SINGLE_SELECTION (selection), m2);
+  assert_changes (selection, "0-5+3");
+  assert_selection (selection, "1");
+  assert_selection_changes (selection, "");
+
+  gtk_single_selection_set_model (GTK_SINGLE_SELECTION (selection), NULL);
+  assert_changes (selection, "0-3");
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  gtk_single_selection_set_autoselect (GTK_SINGLE_SELECTION (selection), FALSE);
+  gtk_single_selection_set_model (GTK_SINGLE_SELECTION (selection), m2);
+  assert_changes (selection, "0+3");
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  /* we retain no selected item across model changes */
+  gtk_single_selection_set_model (GTK_SINGLE_SELECTION (selection), m1);
+  assert_changes (selection, "0-3+5");
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  gtk_single_selection_set_selected (GTK_SINGLE_SELECTION (selection), 4);
+  assert_selection (selection, "5");
+  assert_selection_changes (selection, "4:1");
+
+  gtk_single_selection_set_model (GTK_SINGLE_SELECTION (selection), m2);
+  assert_changes (selection, "0-5+3");
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  g_object_unref (m2);
+  g_object_unref (m1);
   g_object_unref (selection);
 }
 
@@ -660,6 +713,7 @@ main (int argc, char *argv[])
   g_test_add_func ("/singleselection/persistence", test_persistence);
   g_test_add_func ("/singleselection/query-range", test_query_range);
   g_test_add_func ("/singleselection/changes", test_changes);
+  g_test_add_func ("/singleselection/set-model", test_set_model);
 
   return g_test_run ();
 }

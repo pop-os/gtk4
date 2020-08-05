@@ -25,7 +25,6 @@
 #include "gtkcolorutils.h"
 #include "gtkorientable.h"
 #include "gtkrangeprivate.h"
-#include "gtkaccessible.h"
 #include "gtkprivate.h"
 #include "gtkintl.h"
 #include "gtksnapshot.h"
@@ -50,8 +49,8 @@ enum
 };
 
 static void hold_action (GtkGestureLongPress *gesture,
-                         gdouble              x,
-                         gdouble              y,
+                         double               x,
+                         double               y,
                          GtkWidget           *scale);
 
 static void click_action (GtkGestureClick *gesture,
@@ -84,12 +83,12 @@ gtk_color_scale_snapshot_trough (GtkColorScale  *scale,
       if (!priv->hue_texture)
         {
           GdkTexture *texture;
-          gint stride;
+          int stride;
           GBytes *bytes;
           guchar *data, *p;
-          gdouble h;
+          double h;
           float r, g, b;
-          gdouble f;
+          double f;
           int hue_x, hue_y;
 
           stride = width * 3;
@@ -224,19 +223,8 @@ scale_set_type (GtkColorScale     *scale,
                 GtkColorScaleType  type)
 {
   GtkColorScalePrivate *priv = gtk_color_scale_get_instance_private (scale);
-  AtkObject *atk_obj;
 
   priv->type = type;
-
-  atk_obj = gtk_widget_get_accessible (GTK_WIDGET (scale));
-  if (GTK_IS_ACCESSIBLE (atk_obj))
-    {
-      if (type == GTK_COLOR_SCALE_HUE)
-        atk_object_set_name (atk_obj, C_("Color channel", "Hue"));
-      else if (type == GTK_COLOR_SCALE_ALPHA)
-        atk_object_set_name (atk_obj, C_("Color channel", "Alpha"));
-      atk_object_set_role (atk_obj, ATK_ROLE_COLOR_CHOOSER);
-    }
 }
 
 static void
@@ -260,8 +248,8 @@ scale_set_property (GObject      *object,
 
 static void
 hold_action (GtkGestureLongPress *gesture,
-             gdouble              x,
-             gdouble              y,
+             double               x,
+             double               y,
              GtkWidget           *scale)
 {
   gtk_widget_activate_action (scale,

@@ -62,6 +62,16 @@ create_list_model_for_directory (gpointer file)
   return G_LIST_MODEL (create_directory_list (file));
 }
 
+static GListModel *
+create_recent_files_list (void)
+{
+  GtkBookmarkList *dir;
+
+  dir = gtk_bookmark_list_new (NULL, "*");
+
+  return G_LIST_MODEL (dir);
+}
+
 #if 0
 typedef struct _RowData RowData;
 struct _RowData
@@ -119,7 +129,7 @@ row_data_update_info (RowData   *data,
 static void
 copy_attribute (GFileInfo   *to,
                 GFileInfo   *from,
-                const gchar *attribute)
+                const char *attribute)
 {
   GFileAttributeType type;
   gpointer value;
@@ -557,6 +567,7 @@ struct {
   { "owner (real)",      G_FILE_ATTRIBUTE_OWNER_USER_REAL, SIMPLE_STRING_FACTORY (G_FILE_ATTRIBUTE_OWNER_USER_REAL, "string") },
   { "group",             G_FILE_ATTRIBUTE_OWNER_GROUP, SIMPLE_STRING_FACTORY (G_FILE_ATTRIBUTE_OWNER_GROUP, "string") },
   { "Preview icon",      G_FILE_ATTRIBUTE_PREVIEW_ICON, ICON_FACTORY (G_FILE_ATTRIBUTE_PREVIEW_ICON) },
+  { "Private",           "recent::private", BOOLEAN_FACTORY ("recent::private") },
 };
 
 #if 0
@@ -698,7 +709,7 @@ main (int argc, char *argv[])
   search_entry = gtk_search_entry_new ();
   gtk_box_append (GTK_BOX (vbox), search_entry);
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_widget_set_hexpand (sw, TRUE);
   gtk_widget_set_vexpand (sw, TRUE);
   gtk_search_entry_set_key_capture_widget (GTK_SEARCH_ENTRY (search_entry), sw);
@@ -717,17 +728,29 @@ main (int argc, char *argv[])
   g_object_unref (builder);
 
   if (argc > 1)
-    root = g_file_new_for_commandline_arg (argv[1]);
+    {
+      if (g_strcmp0 (argv[1], "--recent") == 0)
+        {
+          dirmodel = create_recent_files_list ();
+        }
+      else
+        {
+          root = g_file_new_for_commandline_arg (argv[1]);
+          dirmodel = create_list_model_for_directory (root);
+          g_object_unref (root);
+        }
+    }
   else
-    root = g_file_new_for_path (g_get_current_dir ());
-  dirmodel = create_list_model_for_directory (root);
-  tree = gtk_tree_list_model_new (FALSE,
-                                  dirmodel,
+    {
+      root = g_file_new_for_path (g_get_current_dir ());
+      dirmodel = create_list_model_for_directory (root);
+      g_object_unref (root);
+    }
+  tree = gtk_tree_list_model_new (dirmodel,
+                                  FALSE,
                                   TRUE,
                                   create_list_model_for_file_info,
                                   NULL, NULL);
-  g_object_unref (dirmodel);
-  g_object_unref (root);
 
   sorter = gtk_tree_list_row_sorter_new (g_object_ref (gtk_column_view_get_sorter (GTK_COLUMN_VIEW (view))));
   sort = gtk_sort_list_model_new (G_LIST_MODEL (tree), sorter);
@@ -735,7 +758,6 @@ main (int argc, char *argv[])
   custom_filter = gtk_custom_filter_new (match_file, g_object_ref (search_entry), g_object_unref);
   filter = gtk_filter_list_model_new (G_LIST_MODEL (sort), custom_filter);
   g_signal_connect (search_entry, "search-changed", G_CALLBACK (search_changed_cb), custom_filter);
-  g_object_unref (custom_filter);
 
   gtk_column_view_set_model (GTK_COLUMN_VIEW (view), G_LIST_MODEL (filter));
 
@@ -747,12 +769,10 @@ main (int argc, char *argv[])
   gtk_box_append (GTK_BOX (vbox), statusbar);
 
   g_object_unref (filter);
-  g_object_unref (sort);
-  g_object_unref (tree);
 
   list = gtk_list_view_new_with_factory (
+             g_object_ref (gtk_column_view_get_columns (GTK_COLUMN_VIEW (view))),
              gtk_builder_list_item_factory_new_from_bytes (scope, g_bytes_new_static (factory_ui, strlen (factory_ui))));
-  gtk_list_view_set_model (GTK_LIST_VIEW (list), gtk_column_view_get_columns (GTK_COLUMN_VIEW (view)));
   gtk_box_append (GTK_BOX (hbox), list);
 
   g_object_unref (scope);
@@ -762,7 +782,6 @@ main (int argc, char *argv[])
   toplevels = gtk_window_get_toplevels ();
   while (g_list_model_get_n_items (toplevels))
     g_main_context_iteration (NULL, TRUE);
-
 
   return 0;
 }

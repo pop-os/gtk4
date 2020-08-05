@@ -137,10 +137,12 @@ get_display_for_surface (GdkSurface *primary,
 }
 
 static GdkMonitor *
-get_monitor_for_rect (GdkDisplay         *display,
-                      const GdkRectangle *rect)
+get_monitor_for_rect (GdkDisplay          *display,
+                      const GdkRectangle  *rect,
+                      void               (*get_bounds) (GdkMonitor   *monitor,
+                                                        GdkRectangle *bounds))
 {
-  gint biggest_area = G_MININT;
+  int biggest_area = G_MININT;
   GdkMonitor *best_monitor = NULL;
   GdkMonitor *monitor;
   GdkRectangle workarea;
@@ -152,7 +154,7 @@ get_monitor_for_rect (GdkDisplay         *display,
   for (i = 0; i < g_list_model_get_n_items (monitors); i++)
     {
       monitor = g_list_model_get_item (monitors, i);
-      gdk_monitor_get_workarea (monitor, &workarea);
+      get_bounds (monitor, &workarea);
 
       if (gdk_rectangle_intersect (&workarea, rect, &intersection))
         {
@@ -168,7 +170,7 @@ get_monitor_for_rect (GdkDisplay         *display,
   return best_monitor;
 }
 
-static gint
+static int
 get_anchor_x_sign (GdkGravity anchor)
 {
   switch (anchor)
@@ -192,7 +194,7 @@ get_anchor_x_sign (GdkGravity anchor)
     }
 }
 
-static gint
+static int
 get_anchor_y_sign (GdkGravity anchor)
 {
   switch (anchor)
@@ -216,20 +218,20 @@ get_anchor_y_sign (GdkGravity anchor)
     }
 }
 
-static gint
-maybe_flip_position (gint      bounds_pos,
-                     gint      bounds_size,
-                     gint      rect_pos,
-                     gint      rect_size,
-                     gint      surface_size,
-                     gint      rect_sign,
-                     gint      surface_sign,
-                     gint      offset,
+static int
+maybe_flip_position (int       bounds_pos,
+                     int       bounds_size,
+                     int       rect_pos,
+                     int       rect_size,
+                     int       surface_size,
+                     int       rect_sign,
+                     int       surface_sign,
+                     int       offset,
                      gboolean  flip,
                      gboolean *flipped)
 {
-  gint primary;
-  gint secondary;
+  int primary;
+  int secondary;
 
   *flipped = FALSE;
   primary = rect_pos + (1 + rect_sign) * rect_size / 2 + offset - (1 + surface_sign) * surface_size / 2;
@@ -247,16 +249,35 @@ maybe_flip_position (gint      bounds_pos,
   return primary;
 }
 
+GdkMonitor *
+gdk_surface_get_layout_monitor (GdkSurface      *surface,
+                                GdkPopupLayout  *layout,
+                                void           (*get_bounds) (GdkMonitor   *monitor,
+                                                              GdkRectangle *bounds))
+{
+  GdkDisplay *display;
+  GdkRectangle root_rect;
+
+  root_rect = *gdk_popup_layout_get_anchor_rect (layout);
+  gdk_surface_get_root_coords (surface->parent,
+                               root_rect.x,
+                               root_rect.y,
+                               &root_rect.x,
+                               &root_rect.y);
+
+  display = get_display_for_surface (surface, surface->transient_for);
+  return get_monitor_for_rect (display, &root_rect, get_bounds);
+}
+
 void
 gdk_surface_layout_popup_helper (GdkSurface     *surface,
                                  int             width,
                                  int             height,
+                                 GdkMonitor     *monitor,
+                                 GdkRectangle   *bounds,
                                  GdkPopupLayout *layout,
                                  GdkRectangle   *out_final_rect)
 {
-  GdkDisplay *display;
-  GdkMonitor *monitor;
-  GdkRectangle bounds;
   GdkRectangle root_rect;
   GdkGravity rect_anchor;
   GdkGravity surface_anchor;
@@ -277,10 +298,6 @@ gdk_surface_layout_popup_helper (GdkSurface     *surface,
                                &root_rect.x,
                                &root_rect.y);
 
-  display = get_display_for_surface (surface, surface->transient_for);
-  monitor = get_monitor_for_rect (display, &root_rect);
-  gdk_monitor_get_workarea (monitor, &bounds);
-
   rect_anchor = gdk_popup_layout_get_rect_anchor (layout);
   surface_anchor = gdk_popup_layout_get_surface_anchor (layout);
   gdk_popup_layout_get_offset (layout, &rect_anchor_dx, &rect_anchor_dy);
@@ -288,8 +305,8 @@ gdk_surface_layout_popup_helper (GdkSurface     *surface,
 
   final_rect.width = width - surface->shadow_left - surface->shadow_right;
   final_rect.height = height - surface->shadow_top - surface->shadow_bottom;
-  final_rect.x = maybe_flip_position (bounds.x,
-                                      bounds.width,
+  final_rect.x = maybe_flip_position (bounds->x,
+                                      bounds->width,
                                       root_rect.x,
                                       root_rect.width,
                                       final_rect.width,
@@ -298,8 +315,8 @@ gdk_surface_layout_popup_helper (GdkSurface     *surface,
                                       rect_anchor_dx,
                                       anchor_hints & GDK_ANCHOR_FLIP_X,
                                       &flipped_x);
-  final_rect.y = maybe_flip_position (bounds.y,
-                                      bounds.height,
+  final_rect.y = maybe_flip_position (bounds->y,
+                                      bounds->height,
                                       root_rect.y,
                                       root_rect.height,
                                       final_rect.height,
@@ -311,44 +328,44 @@ gdk_surface_layout_popup_helper (GdkSurface     *surface,
 
   if (anchor_hints & GDK_ANCHOR_SLIDE_X)
     {
-      if (final_rect.x + final_rect.width > bounds.x + bounds.width)
-        final_rect.x = bounds.x + bounds.width - final_rect.width;
+      if (final_rect.x + final_rect.width > bounds->x + bounds->width)
+        final_rect.x = bounds->x + bounds->width - final_rect.width;
 
-      if (final_rect.x < bounds.x)
-        final_rect.x = bounds.x;
+      if (final_rect.x < bounds->x)
+        final_rect.x = bounds->x;
     }
 
   if (anchor_hints & GDK_ANCHOR_SLIDE_Y)
     {
-      if (final_rect.y + final_rect.height > bounds.y + bounds.height)
-        final_rect.y = bounds.y + bounds.height - final_rect.height;
+      if (final_rect.y + final_rect.height > bounds->y + bounds->height)
+        final_rect.y = bounds->y + bounds->height - final_rect.height;
 
-      if (final_rect.y < bounds.y)
-        final_rect.y = bounds.y;
+      if (final_rect.y < bounds->y)
+        final_rect.y = bounds->y;
     }
 
   if (anchor_hints & GDK_ANCHOR_RESIZE_X)
     {
-      if (final_rect.x < bounds.x)
+      if (final_rect.x < bounds->x)
         {
-          final_rect.width -= bounds.x - final_rect.x;
-          final_rect.x = bounds.x;
+          final_rect.width -= bounds->x - final_rect.x;
+          final_rect.x = bounds->x;
         }
 
-      if (final_rect.x + final_rect.width > bounds.x + bounds.width)
-        final_rect.width = bounds.x + bounds.width - final_rect.x;
+      if (final_rect.x + final_rect.width > bounds->x + bounds->width)
+        final_rect.width = bounds->x + bounds->width - final_rect.x;
     }
 
   if (anchor_hints & GDK_ANCHOR_RESIZE_Y)
     {
-      if (final_rect.y < bounds.y)
+      if (final_rect.y < bounds->y)
         {
-          final_rect.height -= bounds.y - final_rect.y;
-          final_rect.y = bounds.y;
+          final_rect.height -= bounds->y - final_rect.y;
+          final_rect.y = bounds->y;
         }
 
-      if (final_rect.y + final_rect.height > bounds.y + bounds.height)
-        final_rect.height = bounds.y + bounds.height - final_rect.y;
+      if (final_rect.y + final_rect.height > bounds->y + bounds->height)
+        final_rect.height = bounds->y + bounds->height - final_rect.y;
     }
 
   final_rect.x -= surface->shadow_left;
@@ -784,8 +801,8 @@ gdk_surface_new (GdkDisplay     *display,
  **/
 GdkSurface *
 gdk_surface_new_toplevel (GdkDisplay *display,
-                          gint        width,
-                          gint        height)
+                          int         width,
+                          int         height)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
@@ -1338,15 +1355,15 @@ gdk_surface_paint_on_clock (GdkFrameClock *clock,
   g_object_unref (surface);
 }
 
-/**
+/*
  * gdk_surface_invalidate_rect:
  * @surface: a #GdkSurface
  * @rect: (allow-none): rectangle to invalidate or %NULL to invalidate the whole
  *      surface
  *
- * A convenience wrapper around gdk_surface_invalidate_region() which
- * invalidates a rectangular region. See
- * gdk_surface_invalidate_region() for details.
+ * A convenience wrapper around gdk_surface_invalidate_region()
+ * which invalidates a rectangular region.
+ * See gdk_surface_invalidate_region() for details.
  **/
 void
 gdk_surface_invalidate_rect (GdkSurface        *surface,
@@ -1389,19 +1406,17 @@ impl_surface_add_update_area (GdkSurface     *impl_surface,
 }
 
 /**
- * gdk_surface_queue_expose:
+ * gdk_surface_queue_render:
  * @surface: a #GdkSurface
  *
- * Forces an expose event for @surface to be scheduled.
- *
- * If the invalid area of @surface is empty, an expose event will
- * still be emitted. Its invalid region will be empty.
+ * Forces a #GdkSurface::render signal emission for @surface
+ * to be scheduled.
  *
  * This function is useful for implementations that track invalid
  * regions on their own.
  **/
 void
-gdk_surface_queue_expose (GdkSurface *surface)
+gdk_surface_queue_render (GdkSurface *surface)
 {
   cairo_region_t *region;
 
@@ -1412,17 +1427,17 @@ gdk_surface_queue_expose (GdkSurface *surface)
   cairo_region_destroy (region);
 }
 
-/**
+/*
  * gdk_surface_invalidate_region:
  * @surface: a #GdkSurface
  * @region: a #cairo_region_t
  *
- * Adds @region to the update area for @surface. The update area is the
- * region that needs to be redrawn, or “dirty region.”
+ * Adds @region to the update area for @surface. The update area is
+ * the region that needs to be redrawn, or “dirty region.”
  *
- * GDK will process all updates whenever the frame clock schedules a redraw,
- * so there’s no need to do forces redraws manually, you just need to
- * invalidate regions that you know should be redrawn.
+ * GDK will process all updates whenever the frame clock schedules a
+ * redraw, so there’s no need to do forces redraws manually, you just
+ * need to invalidate regions that you know should be redrawn.
  **/
 void
 gdk_surface_invalidate_region (GdkSurface          *surface,
@@ -1452,12 +1467,12 @@ gdk_surface_invalidate_region (GdkSurface          *surface,
   cairo_region_destroy (visible_region);
 }
 
-/**
+/*
  * _gdk_surface_clear_update_area:
  * @surface: a #GdkSurface.
  *
- * Internal function to clear the update area for a surface. This
- * is called when the surface is hidden or destroyed.
+ * Internal function to clear the update area for a surface.
+ * This is called when the surface is hidden or destroyed.
  **/
 void
 _gdk_surface_clear_update_area (GdkSurface *surface)
@@ -1473,15 +1488,15 @@ _gdk_surface_clear_update_area (GdkSurface *surface)
     }
 }
 
-/**
+/*
  * gdk_surface_freeze_updates:
  * @surface: a #GdkSurface
  *
  * Temporarily freezes a surface such that it won’t receive expose
  * events.  The surface will begin receiving expose events again when
  * gdk_surface_thaw_updates() is called. If gdk_surface_freeze_updates()
- * has been called more than once, gdk_surface_thaw_updates() must be called
- * an equal number of times to begin processing exposes.
+ * has been called more than once, gdk_surface_thaw_updates() must be
+ * called an equal number of times to begin processing exposes.
  **/
 void
 gdk_surface_freeze_updates (GdkSurface *surface)
@@ -1493,7 +1508,7 @@ gdk_surface_freeze_updates (GdkSurface *surface)
     _gdk_frame_clock_uninhibit_freeze (surface->frame_clock);
 }
 
-/**
+/*
  * gdk_surface_thaw_updates:
  * @surface: a #GdkSurface
  *
@@ -1556,10 +1571,10 @@ gdk_surface_thaw_toplevel_updates (GdkSurface *surface)
 void
 gdk_surface_constrain_size (GdkGeometry    *geometry,
                             GdkSurfaceHints  flags,
-                            gint            width,
-                            gint            height,
-                            gint           *new_width,
-                            gint           *new_height)
+                            int             width,
+                            int             height,
+                            int            *new_width,
+                            int            *new_height)
 {
   /* This routine is partially borrowed from fvwm.
    *
@@ -1569,35 +1584,13 @@ gdk_surface_constrain_size (GdkGeometry    *geometry,
    *
    * which in turn borrows parts of the algorithm from uwm
    */
-  gint min_width = 0;
-  gint min_height = 0;
-  gint base_width = 0;
-  gint base_height = 0;
-  gint xinc = 1;
-  gint yinc = 1;
-  gint max_width = G_MAXINT;
-  gint max_height = G_MAXINT;
+  int min_width = 0;
+  int min_height = 0;
+  int max_width = G_MAXINT;
+  int max_height = G_MAXINT;
 
-#define FLOOR(value, base)      ( ((gint) ((value) / (base))) * (base) )
-
-  if ((flags & GDK_HINT_BASE_SIZE) && (flags & GDK_HINT_MIN_SIZE))
+  if (flags & GDK_HINT_MIN_SIZE)
     {
-      base_width = geometry->base_width;
-      base_height = geometry->base_height;
-      min_width = geometry->min_width;
-      min_height = geometry->min_height;
-    }
-  else if (flags & GDK_HINT_BASE_SIZE)
-    {
-      base_width = geometry->base_width;
-      base_height = geometry->base_height;
-      min_width = geometry->base_width;
-      min_height = geometry->base_height;
-    }
-  else if (flags & GDK_HINT_MIN_SIZE)
-    {
-      base_width = geometry->min_width;
-      base_height = geometry->min_height;
       min_width = geometry->min_width;
       min_height = geometry->min_height;
     }
@@ -1608,79 +1601,10 @@ gdk_surface_constrain_size (GdkGeometry    *geometry,
       max_height = geometry->max_height;
     }
 
-  if (flags & GDK_HINT_RESIZE_INC)
-    {
-      xinc = MAX (xinc, geometry->width_inc);
-      yinc = MAX (yinc, geometry->height_inc);
-    }
-
   /* clamp width and height to min and max values
    */
   width = CLAMP (width, min_width, max_width);
   height = CLAMP (height, min_height, max_height);
-
-  /* shrink to base + N * inc
-   */
-  width = base_width + FLOOR (width - base_width, xinc);
-  height = base_height + FLOOR (height - base_height, yinc);
-
-  /* constrain aspect ratio, according to:
-   *
-   *                width
-   * min_aspect <= -------- <= max_aspect
-   *                height
-   */
-
-  if (flags & GDK_HINT_ASPECT &&
-      geometry->min_aspect > 0 &&
-      geometry->max_aspect > 0)
-    {
-      gint delta;
-
-      if (flags & GDK_HINT_BASE_SIZE)
-        {
-          width -= base_width;
-          height -= base_height;
-          min_width -= base_width;
-          min_height -= base_height;
-          max_width -= base_width;
-          max_height -= base_height;
-        }
-
-      if (geometry->min_aspect * height > width)
-        {
-          delta = FLOOR (height - width / geometry->min_aspect, yinc);
-          if (height - delta >= min_height)
-            height -= delta;
-          else
-            {
-              delta = FLOOR (height * geometry->min_aspect - width, xinc);
-              if (width + delta <= max_width)
-                width += delta;
-            }
-        }
-
-      if (geometry->max_aspect * height < width)
-        {
-          delta = FLOOR (width - height * geometry->max_aspect, xinc);
-          if (width - delta >= min_width)
-            width -= delta;
-          else
-            {
-              delta = FLOOR (width / geometry->max_aspect - height, yinc);
-              if (height + delta <= max_height)
-                height += delta;
-            }
-        }
-
-      if (flags & GDK_HINT_BASE_SIZE)
-        {
-          width += base_width;
-          height += base_height;
-        }
-    }
-
-#undef FLOOR
 
   *new_width = width;
   *new_height = height;
@@ -1705,7 +1629,7 @@ gdk_surface_get_device_position (GdkSurface       *surface,
                                  double          *y,
                                  GdkModifierType *mask)
 {
-  gdouble tmp_x, tmp_y;
+  double tmp_x, tmp_y;
   GdkModifierType tmp_mask;
 
   g_return_if_fail (GDK_IS_SURFACE (surface));
@@ -1762,7 +1686,7 @@ gdk_surface_hide (GdkSurface *surface)
       seat = gdk_display_get_default_seat (display);
       if (seat)
         {
-          devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL);
+          devices = gdk_seat_get_devices (seat, GDK_SEAT_CAPABILITY_ALL);
           devices = g_list_prepend (devices, gdk_seat_get_keyboard (seat));
           devices = g_list_prepend (devices, gdk_seat_get_pointer (seat));
         }
@@ -1880,10 +1804,10 @@ gdk_surface_set_cursor (GdkSurface *surface,
           device = gdk_seat_get_pointer (s->data);
           gdk_surface_set_cursor_internal (surface, device, surface->cursor);
 
-          devices = gdk_seat_get_slaves (s->data, GDK_SEAT_CAPABILITY_TABLET_STYLUS);
+          devices = gdk_seat_get_devices (s->data, GDK_SEAT_CAPABILITY_TABLET_STYLUS);
           for (d = devices; d; d = d->next)
             {
-              device = gdk_device_get_associated_device (d->data);
+              device = d->data;
               gdk_surface_set_cursor_internal (surface, device, surface->cursor);
             }
           g_list_free (devices);
@@ -1897,7 +1821,7 @@ gdk_surface_set_cursor (GdkSurface *surface,
 /**
  * gdk_surface_get_device_cursor:
  * @surface: a #GdkSurface.
- * @device: a master, pointer #GdkDevice.
+ * @device: a logical, pointer #GdkDevice.
  *
  * Retrieves a #GdkCursor pointer for the @device currently set on the
  * specified #GdkSurface, or %NULL.  If the return value is %NULL then
@@ -1916,7 +1840,6 @@ gdk_surface_get_device_cursor (GdkSurface *surface,
   g_return_val_if_fail (GDK_IS_SURFACE (surface), NULL);
   g_return_val_if_fail (GDK_IS_DEVICE (device), NULL);
   g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, NULL);
-  g_return_val_if_fail (gdk_device_get_device_type (device) == GDK_DEVICE_TYPE_MASTER, NULL);
 
   return g_hash_table_lookup (surface->device_cursor, device);
 }
@@ -1924,7 +1847,7 @@ gdk_surface_get_device_cursor (GdkSurface *surface,
 /**
  * gdk_surface_set_device_cursor:
  * @surface: a #GdkSurface
- * @device: a master, pointer #GdkDevice
+ * @device: a logical, pointer #GdkDevice
  * @cursor: a #GdkCursor
  *
  * Sets a specific #GdkCursor for a given device when it gets inside @surface.
@@ -1942,7 +1865,6 @@ gdk_surface_set_device_cursor (GdkSurface *surface,
   g_return_if_fail (GDK_IS_SURFACE (surface));
   g_return_if_fail (GDK_IS_DEVICE (device));
   g_return_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD);
-  g_return_if_fail (gdk_device_get_device_type (device) == GDK_DEVICE_TYPE_MASTER);
 
   if (!cursor)
     g_hash_table_remove (surface->device_cursor, device);
@@ -1983,10 +1905,10 @@ gdk_surface_set_device_cursor (GdkSurface *surface,
  */
 void
 gdk_surface_get_geometry (GdkSurface *surface,
-                          gint      *x,
-                          gint      *y,
-                          gint      *width,
-                          gint      *height)
+                          int       *x,
+                          int       *y,
+                          int       *width,
+                          int       *height)
 {
   g_return_if_fail (GDK_IS_SURFACE (surface));
 
@@ -2047,8 +1969,8 @@ gdk_surface_get_height (GdkSurface *surface)
  */
 void
 gdk_surface_get_origin (GdkSurface *surface,
-                        gint       *x,
-                        gint       *y)
+                        int        *x,
+                        int        *y)
 {
   g_return_if_fail (GDK_IS_SURFACE (surface));
 
@@ -2070,10 +1992,10 @@ gdk_surface_get_origin (GdkSurface *surface,
  */
 void
 gdk_surface_get_root_coords (GdkSurface *surface,
-                             gint       x,
-                             gint       y,
-                             gint      *root_x,
-                             gint      *root_y)
+                             int        x,
+                             int        y,
+                             int       *root_x,
+                             int       *root_y)
 {
   g_return_if_fail (GDK_IS_SURFACE (surface));
 
@@ -2186,53 +2108,6 @@ gdk_surface_beep (GdkSurface *surface)
   gdk_display_beep (surface->display);
 }
 
-/**
- * gdk_surface_set_support_multidevice:
- * @surface: a #GdkSurface.
- * @support_multidevice: %TRUE to enable multidevice support in @surface.
- *
- * This function will enable multidevice features in @surface.
- *
- * Multidevice aware surfaces will need to handle properly multiple,
- * per device enter/leave events, device grabs and grab ownerships.
- **/
-void
-gdk_surface_set_support_multidevice (GdkSurface *surface,
-                                     gboolean   support_multidevice)
-{
-  g_return_if_fail (GDK_IS_SURFACE (surface));
-
-  if (GDK_SURFACE_DESTROYED (surface))
-    return;
-
-  if (surface->support_multidevice == support_multidevice)
-    return;
-
-  surface->support_multidevice = support_multidevice;
-
-  /* FIXME: What to do if called when some pointers are inside the surface ? */
-}
-
-/**
- * gdk_surface_get_support_multidevice:
- * @surface: a #GdkSurface.
- *
- * Returns %TRUE if the surface is aware of the existence of multiple
- * devices.
- *
- * Returns: %TRUE if the surface handles multidevice features.
- **/
-gboolean
-gdk_surface_get_support_multidevice (GdkSurface *surface)
-{
-  g_return_val_if_fail (GDK_IS_SURFACE (surface), FALSE);
-
-  if (GDK_SURFACE_DESTROYED (surface))
-    return FALSE;
-
-  return surface->support_multidevice;
-}
-
 void
 _gdk_display_set_surface_under_pointer (GdkDisplay *display,
                                         GdkDevice  *device,
@@ -2269,13 +2144,12 @@ _gdk_windowing_got_event (GdkDisplay *display,
   gboolean unlink_event = FALSE;
   GdkDeviceGrabInfo *button_release_grab;
   GdkPointerSurfaceInfo *pointer_info = NULL;
-  GdkDevice *device, *source_device;
+  GdkDevice *device;
   GdkEventType type;
 
   _gdk_display_update_last_event (display, event);
 
   device = gdk_event_get_device (event);
-  source_device = gdk_event_get_source_device (event);
 
   if (device)
     {
@@ -2283,22 +2157,10 @@ _gdk_windowing_got_event (GdkDisplay *display,
           gdk_device_get_source (device) != GDK_SOURCE_TABLET_PAD)
         {
           pointer_info = _gdk_display_get_pointer_info (display, device);
-
-          if (source_device != pointer_info->last_slave &&
-              gdk_device_get_device_type (source_device) == GDK_DEVICE_TYPE_SLAVE)
-            pointer_info->last_slave = source_device;
-          else if (pointer_info->last_slave)
-            source_device = pointer_info->last_slave;
+          pointer_info->last_physical_device = device;
         }
 
-      _gdk_display_device_grab_update (display, device, source_device, serial);
-
-      if (!_gdk_display_check_grab_ownership (display, device, serial))
-        {
-          /* Device events are blocked by another device grab */
-          unlink_event = TRUE;
-          goto out;
-        }
+      _gdk_display_device_grab_update (display, device, serial);
     }
 
   event_surface = gdk_event_get_surface (event);
@@ -2321,14 +2183,12 @@ _gdk_windowing_got_event (GdkDisplay *display,
           _gdk_display_add_device_grab (display,
                                         device,
                                         event_surface,
-                                        GDK_OWNERSHIP_NONE,
                                         FALSE,
                                         GDK_ALL_EVENTS_MASK,
                                         serial,
                                         gdk_event_get_time (event),
                                         TRUE);
-          _gdk_display_device_grab_update (display, device,
-                                           source_device, serial);
+          _gdk_display_device_grab_update (display, device, serial);
         }
     }
   else if (type == GDK_BUTTON_RELEASE ||
@@ -2347,7 +2207,7 @@ _gdk_windowing_got_event (GdkDisplay *display,
             {
               button_release_grab->serial_end = serial;
               button_release_grab->implicit_ungrab = FALSE;
-              _gdk_display_device_grab_update (display, device, source_device, serial);
+              _gdk_display_device_grab_update (display, device, serial);
             }
         }
     }
@@ -2366,6 +2226,7 @@ _gdk_windowing_got_event (GdkDisplay *display,
    * candidate it queues up flushing the event queue.
    */
   _gdk_event_queue_handle_motion_compression (display);
+  gdk_event_queue_handle_scroll_compression (display);
 }
 
 /**
@@ -2582,7 +2443,7 @@ gdk_surface_get_frame_clock (GdkSurface *surface)
  *
  * Returns: the scale factor
  */
-gint
+int
 gdk_surface_get_scale_factor (GdkSurface *surface)
 {
   GdkSurfaceClass *class;
@@ -2608,7 +2469,7 @@ gdk_surface_get_unscaled_size (GdkSurface *surface,
                                int *unscaled_height)
 {
   GdkSurfaceClass *class;
-  gint scale;
+  int scale;
 
   g_return_if_fail (GDK_IS_SURFACE (surface));
 
@@ -2691,10 +2552,10 @@ gdk_surface_set_opaque_region (GdkSurface      *surface,
  */
 void
 gdk_surface_set_shadow_width (GdkSurface *surface,
-                              gint       left,
-                              gint       right,
-                              gint       top,
-                              gint       bottom)
+                              int        left,
+                              int        right,
+                              int        top,
+                              int        bottom)
 {
   GdkSurfaceClass *class;
 
@@ -2817,8 +2678,8 @@ add_event_mark (GdkEvent *event,
                 gint64    time,
                 guint64   duration)
 {
-  gchar *message = NULL;
-  const gchar *kind;
+  char *message = NULL;
+  const char *kind;
   GEnumClass *class;
   GEnumValue *value;
   GdkEventType event_type;
@@ -3001,11 +2862,9 @@ gdk_surface_get_seat_from_event (GdkSurface *surface,
 {
   if (event)
     {
-      GdkDevice *device = gdk_event_get_device (event);
       GdkSeat *seat = NULL;
 
-      if (device)
-        seat = gdk_device_get_seat (device);
+      seat = gdk_event_get_seat (event);
 
       if (seat)
         return seat;

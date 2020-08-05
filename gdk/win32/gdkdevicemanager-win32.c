@@ -44,7 +44,7 @@
 
 static GList     *wintab_contexts = NULL;
 static GdkSurface *wintab_window = NULL;
-extern gint       _gdk_input_ignore_core;
+extern int        _gdk_input_ignore_core;
 
 typedef UINT (WINAPI *t_WTInfoA) (UINT a, UINT b, LPVOID c);
 typedef UINT (WINAPI *t_WTInfoW) (UINT a, UINT b, LPVOID c);
@@ -74,13 +74,12 @@ static GdkDevice *
 create_pointer (GdkDeviceManagerWin32 *device_manager,
 		GType g_type,
 		const char *name,
-		GdkDeviceType type)
+                gboolean has_cursor)
 {
   return g_object_new (g_type,
                        "name", name,
-                       "type", type,
                        "source", GDK_SOURCE_MOUSE,
-                       "has-cursor", type == GDK_DEVICE_TYPE_MASTER,
+                       "has-cursor", has_cursor,
                        "display", _gdk_display,
                        NULL);
 }
@@ -88,12 +87,10 @@ create_pointer (GdkDeviceManagerWin32 *device_manager,
 static GdkDevice *
 create_keyboard (GdkDeviceManagerWin32 *device_manager,
 		 GType g_type,
-		 const char *name,
-		 GdkDeviceType type)
+		 const char *name)
 {
   return g_object_new (g_type,
                        "name", name,
-                       "type", type,
                        "source", GDK_SOURCE_KEYBOARD,
                        "has-cursor", FALSE,
                        "display", _gdk_display,
@@ -360,7 +357,7 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
   UINT devix, cursorix;
   int i, num_axes = 0;
   wchar_t devname[100], csrname[100];
-  gchar *devname_utf8, *csrname_utf8, *device_name;
+  char *devname_utf8, *csrname_utf8, *device_name;
   BOOL defcontext_done;
   HMODULE wintab32;
   char *wintab32_dll_path;
@@ -555,7 +552,6 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
 
           device = g_object_new (GDK_TYPE_DEVICE_WINTAB,
                                  "name", device_name,
-                                 "type", GDK_DEVICE_TYPE_FLOATING,
                                  "source", GDK_SOURCE_PEN,
                                  "has-cursor", lc.lcOptions & CXO_SYSTEM,
                                  "display", display,
@@ -565,7 +561,7 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
 	  if (device->sends_core)
 	    {
 	      _gdk_device_set_associated_device (device_manager->system_pointer, GDK_DEVICE (device));
-	      _gdk_device_add_slave (device_manager->core_pointer, GDK_DEVICE (device));
+	      _gdk_device_add_physical_device (device_manager->core_pointer, GDK_DEVICE (device));
 	    }
 
           g_free (csrname_utf8);
@@ -577,7 +573,6 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
           if (device->pktdata & PK_X)
             {
               _gdk_device_add_axis (GDK_DEVICE (device),
-                                    NULL,
                                     GDK_AXIS_X,
                                     axis_x.axMin,
                                     axis_x.axMax,
@@ -588,7 +583,6 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
           if (device->pktdata & PK_Y)
             {
               _gdk_device_add_axis (GDK_DEVICE (device),
-                                    NULL,
                                     GDK_AXIS_Y,
                                     axis_y.axMin,
                                     axis_y.axMax,
@@ -600,7 +594,6 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
           if (device->pktdata & PK_NORMAL_PRESSURE)
             {
               _gdk_device_add_axis (GDK_DEVICE (device),
-                                    NULL,
                                     GDK_AXIS_PRESSURE,
                                     axis_npressure.axMin,
                                     axis_npressure.axMax,
@@ -617,14 +610,12 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
                * we convert to x and y tilt in the -1000..1000 range
                */
               _gdk_device_add_axis (GDK_DEVICE (device),
-                                    NULL,
                                     GDK_AXIS_XTILT,
                                     -1000,
                                     1000,
                                     1000);
 
               _gdk_device_add_axis (GDK_DEVICE (device),
-                                    NULL,
                                     GDK_AXIS_YTILT,
                                     -1000,
                                     1000,
@@ -632,7 +623,7 @@ wintab_init_check (GdkDeviceManagerWin32 *device_manager)
               num_axes += 2;
             }
 
-          device->last_axis_data = g_new (gint, num_axes);
+          device->last_axis_data = g_new (int, num_axes);
 
           GDK_NOTE (INPUT, g_print ("device: (%u) %s axes: %d\n",
                                     cursorix,
@@ -698,40 +689,38 @@ gdk_device_manager_win32_constructed (GObject *object)
     create_pointer (device_manager,
 		    GDK_TYPE_DEVICE_VIRTUAL,
 		    "Virtual Core Pointer",
-		    GDK_DEVICE_TYPE_MASTER);
+                    TRUE);
   device_manager->system_pointer =
     create_pointer (device_manager,
 		    GDK_TYPE_DEVICE_WIN32,
 		    "System Aggregated Pointer",
-		    GDK_DEVICE_TYPE_SLAVE);
+                    FALSE);
   _gdk_device_virtual_set_active (device_manager->core_pointer,
 				  device_manager->system_pointer);
   _gdk_device_set_associated_device (device_manager->system_pointer, device_manager->core_pointer);
-  _gdk_device_add_slave (device_manager->core_pointer, device_manager->system_pointer);
+  _gdk_device_add_physical_device (device_manager->core_pointer, device_manager->system_pointer);
 
   device_manager->core_keyboard =
     create_keyboard (device_manager,
 		     GDK_TYPE_DEVICE_VIRTUAL,
-		     "Virtual Core Keyboard",
-		     GDK_DEVICE_TYPE_MASTER);
+		     "Virtual Core Keyboard");
   device_manager->system_keyboard =
     create_keyboard (device_manager,
 		    GDK_TYPE_DEVICE_WIN32,
-		     "System Aggregated Keyboard",
-		     GDK_DEVICE_TYPE_SLAVE);
+		     "System Aggregated Keyboard");
   _gdk_device_virtual_set_active (device_manager->core_keyboard,
 				  device_manager->system_keyboard);
   _gdk_device_set_associated_device (device_manager->system_keyboard, device_manager->core_keyboard);
-  _gdk_device_add_slave (device_manager->core_keyboard, device_manager->system_keyboard);
+  _gdk_device_add_physical_device (device_manager->core_keyboard, device_manager->system_keyboard);
 
   _gdk_device_set_associated_device (device_manager->core_pointer, device_manager->core_keyboard);
   _gdk_device_set_associated_device (device_manager->core_keyboard, device_manager->core_pointer);
 
-  seat = gdk_seat_default_new_for_master_pair (device_manager->core_pointer,
-                                               device_manager->core_keyboard);
+  seat = gdk_seat_default_new_for_logical_pair (device_manager->core_pointer,
+                                                device_manager->core_keyboard);
   gdk_display_add_seat (_gdk_display, seat);
-  gdk_seat_default_add_slave (GDK_SEAT_DEFAULT (seat), device_manager->system_pointer);
-  gdk_seat_default_add_slave (GDK_SEAT_DEFAULT (seat), device_manager->system_keyboard);
+  gdk_seat_default_add_physical_device (GDK_SEAT_DEFAULT (seat), device_manager->system_pointer);
+  gdk_seat_default_add_physical_device (GDK_SEAT_DEFAULT (seat), device_manager->system_keyboard);
   g_object_unref (seat);
 
   /* Only call Wintab init stuff after the default display
@@ -783,7 +772,7 @@ _gdk_input_set_tablet_active (void)
 }
 
 static void
-decode_tilt (gint   *axis_data,
+decode_tilt (int    *axis_data,
              AXIS   *axes,
              PACKET *packet)
 {
@@ -883,12 +872,12 @@ gdk_input_other_event (GdkDisplay *display,
   GdkEvent *event;
 
   PACKET packet;
-  gint num_axes;
+  int num_axes;
   double x, y;
   guint translated_buttons, button_diff, button_mask;
 
   GdkEventType event_type;
-  int event_button;
+  int event_button = 0;
   GdkModifierType event_state;
   double event_x, event_y;
   double *axes;
@@ -1049,7 +1038,7 @@ gdk_input_other_event (GdkDisplay *display,
       if (event_type == GDK_BUTTON_PRESS ||
           event_type == GDK_BUTTON_RELEASE)
         {
-          axes = g_new (gdouble, num_axes);
+          axes = g_new (double, GDK_AXIS_LAST);
 
           _gdk_device_wintab_translate_axes (source_device,
                                              window,
@@ -1066,7 +1055,6 @@ gdk_input_other_event (GdkDisplay *display,
           event = gdk_button_event_new (event_type,
                                         window,
                                         device_manager->core_pointer,
-                                        GDK_DEVICE (source_device),
                                         NULL,
                                         _gdk_win32_get_next_tick (msg->time),
                                         event_state,
@@ -1085,7 +1073,7 @@ gdk_input_other_event (GdkDisplay *display,
         }
       else
         {
-          axes = g_new (gdouble, num_axes);
+          axes = g_new (double, GDK_AXIS_LAST);
           _gdk_device_wintab_translate_axes (source_device,
                                              window,
                                              axes,
@@ -1100,7 +1088,6 @@ gdk_input_other_event (GdkDisplay *display,
 
           event = gdk_motion_event_new (window,
                                         device_manager->core_pointer,
-                                        GDK_DEVICE (source_device),
                                         NULL,
                                         _gdk_win32_get_next_tick (msg->time),
                                         event_state,

@@ -146,12 +146,12 @@ struct _PointData
 {
   GdkEvent *event;
   GtkWidget *target;
-  gdouble widget_x;
-  gdouble widget_y;
+  double widget_x;
+  double widget_y;
 
   /* Acummulators for touchpad events */
-  gdouble accum_dx;
-  gdouble accum_dy;
+  double accum_dx;
+  double accum_dy;
 
   guint press_handled : 1;
   guint state : 2;
@@ -611,7 +611,7 @@ gtk_gesture_handle_event (GtkEventController *controller,
   GdkModifierType state;
   GtkWidget *target;
 
-  source_device = gdk_event_get_source_device (event);
+  source_device = gdk_event_get_device (event);
 
   if (!source_device)
     return FALSE;
@@ -895,7 +895,7 @@ gtk_gesture_init (GtkGesture *gesture)
  * gtk_gesture_get_device:
  * @gesture: a #GtkGesture
  *
- * Returns the master #GdkDevice that is currently operating
+ * Returns the logical #GdkDevice that is currently operating
  * on @gesture, or %NULL if the gesture is not being interacted.
  *
  * Returns: (nullable) (transfer none): a #GdkDevice, or %NULL
@@ -1209,8 +1209,8 @@ gtk_gesture_get_last_target (GtkGesture        *gesture,
 gboolean
 gtk_gesture_get_point (GtkGesture       *gesture,
                        GdkEventSequence *sequence,
-                       gdouble          *x,
-                       gdouble          *y)
+                       double           *x,
+                       double           *y)
 {
   GtkGesturePrivate *priv;
   PointData *data;
@@ -1276,7 +1276,7 @@ gtk_gesture_get_bounding_box (GtkGesture   *gesture,
                               GdkRectangle *rect)
 {
   GtkGesturePrivate *priv;
-  gdouble x1, y1, x2, y2;
+  double x1, y1, x2, y2;
   GHashTableIter iter;
   guint n_points = 0;
   PointData *data;
@@ -1336,8 +1336,8 @@ gtk_gesture_get_bounding_box (GtkGesture   *gesture,
  **/
 gboolean
 gtk_gesture_get_bounding_box_center (GtkGesture *gesture,
-                                     gdouble    *x,
-                                     gdouble    *y)
+                                     double     *x,
+                                     double     *y)
 {
   GdkEvent *last_event;
   GdkRectangle rect;

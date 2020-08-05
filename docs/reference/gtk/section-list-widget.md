@@ -4,8 +4,8 @@ GTK provides powerful widgets to display and edit lists of data. This document
 gives an overview over the concepts and how they work together to allow
 developers to implement lists.
 
-Lists are intended to be used whenever developers want to display lists of
-objects in roughly the same way.
+Lists are intended to be used whenever developers want to display many objects
+in roughly the same way.
 
 Lists are perfectly fine to be used for very short list of only 2 or 3 elements,
 but generally scale fine to millions of items. Of course, the larger the list
@@ -32,8 +32,8 @@ be provided in 3 ways or combinations thereof:
    specific data, like #GtkDirectoryList. And there are models like #GListStore
    that allow building lists manually.
 
- * Wrapping list models exists like #GtkFilterListModel or #GtkSortListModel
-   that modify or adapt or combine other models.
+ * Wrapping list models like #GtkFilterListModel or #GtkSortListModel
+   modify, adapt or combine other models.
 
  * Last but not least, developers are encouraged to create their own #GListModel
    implementations. The interface is kept deliberately small to make this easy.
@@ -44,8 +44,9 @@ multiple different models at once.
 The elements in a model are called **_items_**. All items are #GObjects.
 
 Every item in a model has a **_position_** which is the unsigned integer that
-describes where in the model the item is located. This position can of course
-change as items are added or removed from the model.
+describes where in the model the item is located. The first item in a model is
+at position 0. The position of an item can of course change as other items are
+added or removed from the model.
 
 It is important to be aware of the difference between items and positions
 because the mapping from position to item is not permanent, so developers
@@ -80,7 +81,7 @@ The behavior of selection models - ie which items they allow selecting and
 what effect this has on other items - is completely up to the selection model.
 As such, single-selections, multi-selections or sharing selection state between
 different selection models and/or views is possible. The selection state of an
-item is exposed in the listitem via the GtkListItem:selected property.
+item is exposed in the listitem via the #GtkListItem:selected property.
 
 Views and listitems also support activation. Activation means that double
 clicking or pressing enter while inside a focused row will cause the view
@@ -121,6 +122,32 @@ your performance suffers, you should be aware of this. Views also allow tuning
 the number of listitems they create such as with gtk_grid_view_set_max_columns(),
 and developers running into performance problems should definitely study the
 tradeoffs of those and experiment with them.
+
+## Choosing the right model {#model-choosing}
+
+GTK offers a wide variety of wrapping models which change or supplement an
+existing model (or models) in some way. But when it comes to storing your
+actual data, there are only a few ready-made choices available: #GListStore
+and #GtkStringList.
+
+GListStore is backed by a balanced tree and has performance characteristics
+that are expected for that data structure. It works reasonably well for dataset
+sizes in the 1,000,000 range, and can handle insertions and deletions. It uses
+a cached iter to make linear access to the items fast.
+
+GtkStringList is not a general store - it can only handle strings. It is
+backed by an dynamically allocated array and has performance characteristics
+that are expected for that data structure. GtkStringList is a good fit for any
+place where you would otherwise use `char*[]` and works best if the dataset
+is not very dynamic.
+
+If these models don't fit your use case or scalability requirements, you
+should make a custom #GListModel. It is a small interface and not very hard
+to implement.
+
+For asymptotic performance comparisons between tree- and array-based
+implementations, see this
+[article](https://en.wikipedia.org/wiki/Dynamic_array#Performance).
 
 ## Displaying trees {#displaying-trees}
 
@@ -182,7 +209,7 @@ transitioning code for easy lookup:
 | #GtkTreeModel       | #GListModel                         |
 | #GtkTreePath        | #guint position, #GtkTreeListRow    |
 | #GtkTreeIter        | #guint position                     |
-| GtkTreeRowReference | #GObject item                       |
+| #GtkTreeRowReference | #GObject item                       |
 | #GtkListStore       | #GListStore                         |
 | #GtkTreeStore       | #GtkTreeListModel, #GtkTreeExpander |
 | #GtkTreeSelection   | #GtkSelectionModel                  |

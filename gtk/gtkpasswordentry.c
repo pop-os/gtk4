@@ -22,7 +22,6 @@
 
 #include "gtkpasswordentryprivate.h"
 
-#include "gtkaccessible.h"
 #include "gtktextprivate.h"
 #include "gtkeditable.h"
 #include "gtkgestureclick.h"
@@ -34,8 +33,6 @@
 #include "gtkmarshalers.h"
 #include "gtkstylecontext.h"
 #include "gtkeventcontrollerkey.h"
-
-#include "a11y/gtkpasswordentryaccessibleprivate.h"
 
 /**
  * SECTION:gtkpasswordentry
@@ -50,6 +47,24 @@
  *
  * GtkPasswordEntry provides only minimal API and should be used with the
  * #GtkEditable API.
+ *
+ * # CSS Nodes
+ *
+ * |[<!-- language="plain" -->
+ * entry.password
+ * ╰── text
+ *     ├── image.caps-lock-indicator
+ *     ┊
+ * ]|
+ *
+ * GtkPasswordEntry has a single CSS node with name entry that carries
+ * a .passwordstyle class. The text Css node below it has a child with
+ * name image and style class .caps-lock-indicator for the Caps Lock
+ * icon, and possibly other children.
+ *
+ * # Accessibility
+ *
+ * GtkPasswordEntry uses the #GTK_ACCESSIBLE_ROLE_TEXT_BOX role.
  */
 
 typedef struct {
@@ -116,11 +131,6 @@ gtk_password_entry_toggle_peek (GtkPasswordEntry *entry)
 
   visibility = gtk_text_get_visibility (GTK_TEXT (priv->entry));
   gtk_text_set_visibility (GTK_TEXT (priv->entry), !visibility);
-
-  /* Update the accessible object to reflect the change of visibility */
-  GtkAccessible *accessible = GTK_ACCESSIBLE (_gtk_widget_peek_accessible (GTK_WIDGET (entry)));
-  if (accessible != NULL)
-    gtk_password_entry_accessible_update_visibility (GTK_PASSWORD_ENTRY_ACCESSIBLE (accessible));
 }
 
 static void
@@ -216,14 +226,27 @@ gtk_password_entry_set_property (GObject      *object,
 {
   GtkPasswordEntry *entry = GTK_PASSWORD_ENTRY (object);
   GtkPasswordEntryPrivate *priv = gtk_password_entry_get_instance_private (entry);
+  const char *text;
 
   if (gtk_editable_delegate_set_property (object, prop_id, value, pspec))
-    return;
+    {
+      if (prop_id == NUM_PROPERTIES + GTK_EDITABLE_PROP_EDITABLE)
+        {
+          gtk_accessible_update_property (GTK_ACCESSIBLE (entry),
+                                          GTK_ACCESSIBLE_PROPERTY_READ_ONLY, !g_value_get_boolean (value),
+                                          -1);
+        }
+      return;
+    }
 
   switch (prop_id)
     {
     case PROP_PLACEHOLDER_TEXT:
-      gtk_text_set_placeholder_text (GTK_TEXT (priv->entry), g_value_get_string (value));
+      text = g_value_get_string (value);
+      gtk_text_set_placeholder_text (GTK_TEXT (priv->entry), text);
+      gtk_accessible_update_property (GTK_ACCESSIBLE (entry),
+                                      GTK_ACCESSIBLE_PROPERTY_PLACEHOLDER, text,
+                                      -1);
       break;
 
     case PROP_ACTIVATES_DEFAULT:
@@ -378,6 +401,7 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
   widget_class->size_allocate = gtk_password_entry_size_allocate;
   widget_class->mnemonic_activate = gtk_password_entry_mnemonic_activate;
   widget_class->grab_focus = gtk_widget_grab_focus_child;
+  widget_class->focus = gtk_widget_focus_child;
 
   props[PROP_PLACEHOLDER_TEXT] =
       g_param_spec_string ("placeholder-text",
@@ -416,8 +440,8 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
   g_object_class_install_properties (object_class, NUM_PROPERTIES, props);
   gtk_editable_install_properties (object_class, NUM_PROPERTIES);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_PASSWORD_ENTRY_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("entry"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_TEXT_BOX);
 }
 
 static GtkEditable *

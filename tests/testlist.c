@@ -9,7 +9,7 @@ struct _Row
 {
   GtkListBoxRow parent_instance;
   GtkWidget *label;
-  gint sort_id;
+  int sort_id;
 };
 
 struct _RowClass
@@ -44,7 +44,7 @@ row_class_init (RowClass *class)
 }
 
 static GtkWidget *
-row_new (const gchar* text, gint sort_id) {
+row_new (const char * text, int sort_id) {
   Row *row;
 
   row = g_object_new (row_get_type (), NULL);
@@ -282,7 +282,7 @@ main (int argc, char *argv[])
   g_signal_connect (check, "toggled", G_CALLBACK (single_click_clicked), list);
   gtk_box_append (GTK_BOX (vbox), check);
 
-  scrolled = gtk_scrolled_window_new (NULL, NULL);
+  scrolled = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (scrolled), list);
   gtk_box_append (GTK_BOX (hbox), scrolled);

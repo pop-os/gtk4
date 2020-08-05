@@ -9,8 +9,8 @@
 #endif
 
 static void
-setup_list_item (GtkListItem *list_item,
-                 gpointer     unused)
+setup_list_item (GtkSignalListItemFactory *factory,
+                 GtkListItem              *list_item)
 {
   GtkWidget *label = gtk_label_new ("");
 
@@ -18,8 +18,8 @@ setup_list_item (GtkListItem *list_item,
 }
 
 static void
-bind_list_item (GtkListItem *list_item,
-                gpointer     unused)
+bind_list_item (GtkSignalListItemFactory *factory,
+                GtkListItem              *list_item)
 {
   GtkWidget *label;
   gpointer item;
@@ -118,6 +118,7 @@ main (int   argc,
   GtkSortListModel *sort;
   GtkSorter *sorter;
   guint i;
+  GtkListItemFactory *factory;
 
   gtk_init ();
 
@@ -126,7 +127,6 @@ main (int   argc,
     add (store);
   sorter = gtk_numeric_sorter_new (gtk_cclosure_expression_new (G_TYPE_UINT, NULL, 0, NULL, (GCallback)get_number, NULL, NULL));
   sort = gtk_sort_list_model_new (G_LIST_MODEL (store), sorter);
-  g_object_unref (sorter);
 
   win = gtk_window_new ();
   gtk_window_set_default_size (GTK_WINDOW (win), 400, 600);
@@ -140,15 +140,16 @@ main (int   argc,
   label = gtk_label_new ("GtkListView");
   gtk_box_append (GTK_BOX (vbox), label);
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_widget_set_hexpand (sw, TRUE);
   gtk_widget_set_vexpand (sw, TRUE);
   gtk_box_append (GTK_BOX (vbox), sw);
 
-  listview = gtk_list_view_new_with_factory (
-    gtk_functions_list_item_factory_new (setup_list_item,
-                                         bind_list_item,
-                                         NULL, NULL));
+  factory = gtk_signal_list_item_factory_new ();
+  g_signal_connect (factory, "setup", G_CALLBACK (setup_list_item), NULL);
+  g_signal_connect (factory, "bind", G_CALLBACK (bind_list_item), NULL);
+  listview = gtk_list_view_new_with_factory (NULL, factory);
+
   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), listview);
 
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 4);
@@ -157,7 +158,7 @@ main (int   argc,
   label = gtk_label_new ("GtkListBox");
   gtk_box_append (GTK_BOX (vbox), label);
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_widget_set_hexpand (sw, TRUE);
   gtk_widget_set_vexpand (sw, TRUE);
   gtk_box_append (GTK_BOX (vbox), sw);
@@ -179,8 +180,6 @@ main (int   argc,
   toplevels = gtk_window_get_toplevels ();
   while (g_list_model_get_n_items (toplevels))
     g_main_context_iteration (NULL, TRUE);
-
-  g_object_unref (store);
 
   return 0;
 }

@@ -20,7 +20,6 @@
 #include "config.h"
 #include "gtkfilechooserutils.h"
 #include "gtkfilechooser.h"
-#include "gtkfilesystem.h"
 #include "gtktypebuiltins.h"
 #include "gtkintl.h"
 
@@ -30,8 +29,8 @@ static gboolean       delegate_set_current_folder     (GtkFileChooser    *choose
 						       GError           **error);
 static GFile *        delegate_get_current_folder     (GtkFileChooser    *chooser);
 static void           delegate_set_current_name       (GtkFileChooser    *chooser,
-						       const gchar       *name);
-static gchar *        delegate_get_current_name       (GtkFileChooser    *chooser);
+						       const char        *name);
+static char *        delegate_get_current_name       (GtkFileChooser    *chooser);
 static gboolean       delegate_select_file            (GtkFileChooser    *chooser,
 						       GFile             *file,
 						       GError           **error);
@@ -39,28 +38,21 @@ static void           delegate_unselect_file          (GtkFileChooser    *choose
 						       GFile             *file);
 static void           delegate_select_all             (GtkFileChooser    *chooser);
 static void           delegate_unselect_all           (GtkFileChooser    *chooser);
-static GSList *       delegate_get_files              (GtkFileChooser    *chooser);
-static GtkFileSystem *delegate_get_file_system        (GtkFileChooser    *chooser);
+static GListModel *   delegate_get_files              (GtkFileChooser    *chooser);
 static void           delegate_add_filter             (GtkFileChooser    *chooser,
 						       GtkFileFilter     *filter);
 static void           delegate_remove_filter          (GtkFileChooser    *chooser,
 						       GtkFileFilter     *filter);
-static GSList *       delegate_list_filters           (GtkFileChooser    *chooser);
+static GListModel *   delegate_get_filters            (GtkFileChooser    *chooser);
 static gboolean       delegate_add_shortcut_folder    (GtkFileChooser    *chooser,
 						       GFile             *file,
 						       GError           **error);
 static gboolean       delegate_remove_shortcut_folder (GtkFileChooser    *chooser,
 						       GFile             *file,
 						       GError           **error);
-static GSList *       delegate_list_shortcut_folders  (GtkFileChooser    *chooser);
+static GListModel *   delegate_get_shortcut_folders   (GtkFileChooser    *chooser);
 static void           delegate_notify                 (GObject           *object,
 						       GParamSpec        *pspec,
-						       gpointer           data);
-static void           delegate_current_folder_changed (GtkFileChooser    *chooser,
-						       gpointer           data);
-static void           delegate_selection_changed      (GtkFileChooser    *chooser,
-						       gpointer           data);
-static void           delegate_file_activated         (GtkFileChooser    *chooser,
 						       gpointer           data);
 
 static void           delegate_add_choice             (GtkFileChooser  *chooser,
@@ -92,17 +84,23 @@ void
 _gtk_file_chooser_install_properties (GObjectClass *klass)
 {
   g_object_class_override_property (klass,
-				    GTK_FILE_CHOOSER_PROP_ACTION,
-				    "action");
+                                    GTK_FILE_CHOOSER_PROP_ACTION,
+                                    "action");
   g_object_class_override_property (klass,
-				    GTK_FILE_CHOOSER_PROP_FILTER,
-				    "filter");
+                                    GTK_FILE_CHOOSER_PROP_FILTER,
+                                    "filter");
   g_object_class_override_property (klass,
-				    GTK_FILE_CHOOSER_PROP_SELECT_MULTIPLE,
-				    "select-multiple");
+                                    GTK_FILE_CHOOSER_PROP_SELECT_MULTIPLE,
+                                    "select-multiple");
   g_object_class_override_property (klass,
-				    GTK_FILE_CHOOSER_PROP_CREATE_FOLDERS,
-				    "create-folders");
+                                    GTK_FILE_CHOOSER_PROP_CREATE_FOLDERS,
+                                    "create-folders");
+  g_object_class_override_property (klass,
+                                    GTK_FILE_CHOOSER_PROP_FILTERS,
+                                    "filters");
+  g_object_class_override_property (klass,
+                                    GTK_FILE_CHOOSER_PROP_SHORTCUT_FOLDERS,
+                                    "shortcut-folders");
 }
 
 /**
@@ -128,13 +126,12 @@ _gtk_file_chooser_delegate_iface_init (GtkFileChooserIface *iface)
   iface->select_all = delegate_select_all;
   iface->unselect_all = delegate_unselect_all;
   iface->get_files = delegate_get_files;
-  iface->get_file_system = delegate_get_file_system;
   iface->add_filter = delegate_add_filter;
   iface->remove_filter = delegate_remove_filter;
-  iface->list_filters = delegate_list_filters;
+  iface->get_filters = delegate_get_filters;
   iface->add_shortcut_folder = delegate_add_shortcut_folder;
   iface->remove_shortcut_folder = delegate_remove_shortcut_folder;
-  iface->list_shortcut_folders = delegate_list_shortcut_folders;
+  iface->get_shortcut_folders = delegate_get_shortcut_folders;
   iface->add_choice = delegate_add_choice;
   iface->remove_choice = delegate_remove_choice;
   iface->set_choice = delegate_set_choice;
@@ -162,12 +159,6 @@ _gtk_file_chooser_set_delegate (GtkFileChooser *receiver,
   g_object_set_data (G_OBJECT (receiver), I_("gtk-file-chooser-delegate"), delegate);
   g_signal_connect (delegate, "notify",
 		    G_CALLBACK (delegate_notify), receiver);
-  g_signal_connect (delegate, "current-folder-changed",
-		    G_CALLBACK (delegate_current_folder_changed), receiver);
-  g_signal_connect (delegate, "selection-changed",
-		    G_CALLBACK (delegate_selection_changed), receiver);
-  g_signal_connect (delegate, "file-activated",
-		    G_CALLBACK (delegate_file_activated), receiver);
 }
 
 GQuark
@@ -215,16 +206,10 @@ delegate_unselect_all (GtkFileChooser *chooser)
   gtk_file_chooser_unselect_all (get_delegate (chooser));
 }
 
-static GSList *
+static GListModel *
 delegate_get_files (GtkFileChooser *chooser)
 {
   return gtk_file_chooser_get_files (get_delegate (chooser));
-}
-
-static GtkFileSystem *
-delegate_get_file_system (GtkFileChooser *chooser)
-{
-  return _gtk_file_chooser_get_file_system (get_delegate (chooser));
 }
 
 static void
@@ -241,10 +226,10 @@ delegate_remove_filter (GtkFileChooser *chooser,
   gtk_file_chooser_remove_filter (get_delegate (chooser), filter);
 }
 
-static GSList *
-delegate_list_filters (GtkFileChooser *chooser)
+static GListModel *
+delegate_get_filters (GtkFileChooser *chooser)
 {
-  return gtk_file_chooser_list_filters (get_delegate (chooser));
+  return gtk_file_chooser_get_filters (get_delegate (chooser));
 }
 
 static gboolean
@@ -263,10 +248,10 @@ delegate_remove_shortcut_folder (GtkFileChooser  *chooser,
   return gtk_file_chooser_remove_shortcut_folder (get_delegate (chooser), file, error);
 }
 
-static GSList *
-delegate_list_shortcut_folders (GtkFileChooser *chooser)
+static GListModel *
+delegate_get_shortcut_folders (GtkFileChooser *chooser)
 {
-  return gtk_file_chooser_list_shortcut_folders (get_delegate (chooser));
+  return gtk_file_chooser_get_shortcut_folders (get_delegate (chooser));
 }
 
 static gboolean
@@ -285,12 +270,12 @@ delegate_get_current_folder (GtkFileChooser *chooser)
 
 static void
 delegate_set_current_name (GtkFileChooser *chooser,
-			   const gchar    *name)
+			   const char     *name)
 {
   gtk_file_chooser_set_current_name (get_delegate (chooser), name);
 }
 
-static gchar *
+static char *
 delegate_get_current_name (GtkFileChooser *chooser)
 {
   return gtk_file_chooser_get_current_name (get_delegate (chooser));
@@ -307,27 +292,6 @@ delegate_notify (GObject    *object,
 				 gtk_file_chooser_get_type ());
   if (g_object_interface_find_property (iface, pspec->name))
     g_object_notify (data, pspec->name);
-}
-
-static void
-delegate_selection_changed (GtkFileChooser *chooser,
-			    gpointer        data)
-{
-  g_signal_emit_by_name (data, "selection-changed");
-}
-
-static void
-delegate_current_folder_changed (GtkFileChooser *chooser,
-				 gpointer        data)
-{
-  g_signal_emit_by_name (data, "current-folder-changed");
-}
-
-static void
-delegate_file_activated (GtkFileChooser    *chooser,
-			 gpointer           data)
-{
-  g_signal_emit_by_name (data, "file-activated");
 }
 
 GSettings *
@@ -357,11 +321,11 @@ _gtk_file_chooser_get_settings_for_widget (GtkWidget *widget)
   return settings;
 }
 
-gchar *
+char *
 _gtk_file_chooser_label_for_file (GFile *file)
 {
-  const gchar *path, *start, *end, *p;
-  gchar *uri, *host, *label;
+  const char *path, *start, *end, *p;
+  char *uri, *host, *label;
 
   uri = g_file_get_uri (file);
 
@@ -437,4 +401,77 @@ delegate_get_choice (GtkFileChooser  *chooser,
                      const char      *id)
 {
   return gtk_file_chooser_get_choice (get_delegate (chooser), id);
+}
+
+gboolean
+_gtk_file_info_consider_as_directory (GFileInfo *info)
+{
+  GFileType type = g_file_info_get_file_type (info);
+
+  return (type == G_FILE_TYPE_DIRECTORY ||
+          type == G_FILE_TYPE_MOUNTABLE ||
+          type == G_FILE_TYPE_SHORTCUT);
+}
+
+gboolean
+_gtk_file_has_native_path (GFile *file)
+{
+  char *local_file_path;
+  gboolean has_native_path;
+
+  /* Don't use g_file_is_native(), as we want to support FUSE paths if available */
+  local_file_path = g_file_get_path (file);
+  has_native_path = (local_file_path != NULL);
+  g_free (local_file_path);
+
+  return has_native_path;
+}
+
+gboolean
+_gtk_file_consider_as_remote (GFile *file)
+{
+  GFileInfo *info;
+  gboolean is_remote;
+
+  info = g_file_query_filesystem_info (file, G_FILE_ATTRIBUTE_FILESYSTEM_REMOTE, NULL, NULL);
+  if (info)
+    {
+      is_remote = g_file_info_get_attribute_boolean (info, G_FILE_ATTRIBUTE_FILESYSTEM_REMOTE);
+
+      g_object_unref (info);
+    }
+  else
+    is_remote = FALSE;
+
+  return is_remote;
+}
+
+GIcon *
+_gtk_file_info_get_icon (GFileInfo *info,
+                         int        icon_size,
+                         int        scale)
+{
+  GIcon *icon;
+  GdkPixbuf *pixbuf;
+  const char *thumbnail_path;
+
+  thumbnail_path = g_file_info_get_attribute_byte_string (info, G_FILE_ATTRIBUTE_THUMBNAIL_PATH);
+
+  if (thumbnail_path)
+    {
+      pixbuf = gdk_pixbuf_new_from_file_at_size (thumbnail_path,
+                                                 icon_size*scale, icon_size*scale,
+                                                 NULL);
+
+      if (pixbuf != NULL)
+        return G_ICON (pixbuf);
+    }
+
+  icon = g_file_info_get_icon (info);
+  if (icon)
+    return g_object_ref (icon);
+
+  /* Use general fallback for all files without icon */
+  icon = g_themed_icon_new ("text-x-generic");
+  return icon;
 }

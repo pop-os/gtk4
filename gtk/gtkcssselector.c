@@ -24,7 +24,6 @@
 
 #include "gtkcssprovider.h"
 #include "gtkstylecontextprivate.h"
-#include "gtkarrayimplprivate.h"
 
 #include <errno.h>
 #if defined(_MSC_VER) && _MSC_VER >= 1500
@@ -152,14 +151,14 @@ gtk_css_selector_tree_get_matches (const GtkCssSelectorTree *tree)
 }
 
 static void
-gtk_array_insert_sorted (GtkArray *array,
-                         gpointer  data)
+gtk_css_selector_matches_insert_sorted (GtkCssSelectorMatches *matches,
+                                        gpointer               data)
 {
   guint i;
 
-  for (i = 0; i < array->len; i++)
+  for (i = 0; i < gtk_css_selector_matches_get_size (matches); i++)
     {
-      gpointer elem = gtk_array_index (array, i);
+      gpointer elem = gtk_css_selector_matches_get (matches, i);
 
       if (data == elem)
         return;
@@ -168,7 +167,7 @@ gtk_array_insert_sorted (GtkArray *array,
         break;
     }
 
-  gtk_array_insert (array, i, data);
+  gtk_css_selector_matches_splice (matches, i, 0, (gpointer[1]) { data }, 1);
 }
 
 static inline gboolean
@@ -983,7 +982,7 @@ string_has_number (const char *string,
 static gboolean
 parse_plus_b (GtkCssParser *parser,
               gboolean      negate,
-              gint         *b)
+              int          *b)
 {
   const GtkCssToken *token;
   gboolean has_seen_sign;
@@ -1040,9 +1039,9 @@ parse_plus_b (GtkCssParser *parser,
 
 static gboolean
 parse_n_plus_b (GtkCssParser *parser,
-                gint          before,
-                gint         *a,
-                gint         *b)
+                int           before,
+                int          *a,
+                int          *b)
 {
   const GtkCssToken *token;
 
@@ -1081,9 +1080,9 @@ parse_n_plus_b (GtkCssParser *parser,
                 
 static gboolean
 parse_a_n_plus_b (GtkCssParser *parser,
-                  gint          seen_sign,
-                  gint         *a,
-                  gint         *b)
+                  int           seen_sign,
+                  int          *a,
+                  int          *b)
 {
   const GtkCssToken *token;
 
@@ -1198,7 +1197,7 @@ parse_a_n_plus_b_arg (GtkCssParser *parser,
                       guint         arg,
                       gpointer      data)
 {
-  gint *ab = data;
+  int *ab = data;
 
   if (!parse_a_n_plus_b (parser, FALSE, &ab[0], &ab[1]))
     return 0;
@@ -1328,7 +1327,7 @@ gtk_css_selector_parse_selector_pseudo_class (GtkCssParser   *parser,
     {
       if (gtk_css_token_is_function (token, "nth-child"))
         {
-          gint ab[2];
+          int ab[2];
 
           if (!gtk_css_parser_consume_function (parser, 1, 1, parse_a_n_plus_b_arg, ab))
             {
@@ -1346,7 +1345,7 @@ gtk_css_selector_parse_selector_pseudo_class (GtkCssParser   *parser,
         }
       else if (gtk_css_token_is_function (token, "nth-last-child"))
         {
-          gint ab[2];
+          int ab[2];
 
           if (!gtk_css_parser_consume_function (parser, 1, 1, parse_a_n_plus_b_arg, ab))
             {
@@ -1877,7 +1876,7 @@ gtk_css_selector_tree_get_change (const GtkCssSelectorTree     *tree,
 
 static void
 gtk_css_selector_tree_found_match (const GtkCssSelectorTree  *tree,
-                                   GtkArray                  *results)
+                                   GtkCssSelectorMatches     *results)
 {
   int i;
   gpointer *matches;
@@ -1887,7 +1886,7 @@ gtk_css_selector_tree_found_match (const GtkCssSelectorTree  *tree,
     return;
 
   for (i = 0; matches[i] != NULL; i++)
-    gtk_array_insert_sorted (results, matches[i]);
+    gtk_css_selector_matches_insert_sorted (results, matches[i]);
 }
 
 static gboolean
@@ -1895,7 +1894,7 @@ gtk_css_selector_tree_match (const GtkCssSelectorTree      *tree,
                              const GtkCountingBloomFilter  *filter,
                              gboolean                       match_filter,
                              GtkCssNode                    *node,
-                             GtkArray                      *results)
+                             GtkCssSelectorMatches         *results)
 {
   const GtkCssSelectorTree *prev;
   GtkCssNode *child;
@@ -1932,7 +1931,7 @@ void
 _gtk_css_selector_tree_match_all (const GtkCssSelectorTree     *tree,
                                   const GtkCountingBloomFilter *filter,
                                   GtkCssNode                   *node,
-                                  GtkArray                     *out_tree_rules)
+                                  GtkCssSelectorMatches        *out_tree_rules)
 {
   const GtkCssSelectorTree *iter;
 
@@ -2106,6 +2105,7 @@ subdivide_infos (GByteArray                 *array,
                  guint                       n_infos,
                  gint32                      parent_offset)
 {
+  const GtkCssSelector *max_selector = NULL;
   GtkCssSelectorRuleSetInfo **matched_infos;
   guint n_matched = 0;
   GtkCssSelectorRuleSetInfo **remaining_infos;
@@ -2113,12 +2113,10 @@ subdivide_infos (GByteArray                 *array,
   GHashTable *ht;
   gint32 tree_offset;
   GtkCssSelectorTree *tree;
-  GtkCssSelector max_selector;
   GHashTableIter iter;
   guint max_count;
   gpointer key, value;
-  void *exact_matches_stack[8];
-  GtkArray exact_matches_array;
+  GtkCssSelectorMatches exact_matches;
   gint32 res;
   guint i;
 
@@ -2143,35 +2141,35 @@ subdivide_infos (GByteArray                 *array,
     {
       GtkCssSelector *selector = key;
       if (GPOINTER_TO_UINT (value) > max_count ||
-	  (GPOINTER_TO_UINT (value) == max_count &&
-	  gtk_css_selector_compare_one (selector, &max_selector) < 0))
-	{
-	  max_count = GPOINTER_TO_UINT (value);
-	  max_selector = *selector;
-	}
+          (GPOINTER_TO_UINT (value) == max_count &&
+           gtk_css_selector_compare_one (selector, max_selector) < 0))
+        {
+          max_count = GPOINTER_TO_UINT (value);
+          max_selector = selector;
+        }
     }
 
   tree = alloc_tree (array, &tree_offset);
   tree->parent_offset = parent_offset;
-  tree->selector = max_selector;
+  tree->selector = *max_selector;
 
   /* Allocate maximum for both of them */
   /* TODO: Potentially dangerous? */
   matched_infos = g_alloca (sizeof (GtkCssSelectorRuleSetInfo *) * n_infos);
   remaining_infos = g_alloca (sizeof (GtkCssSelectorRuleSetInfo *) * n_infos);
 
-  gtk_array_init (&exact_matches_array, (void**)exact_matches_stack, 8);
+  gtk_css_selector_matches_init (&exact_matches);
   for (i = 0; i < n_infos; i++)
     {
       GtkCssSelectorRuleSetInfo *info = infos[i];
 
-      if (gtk_css_selectors_has_initial_selector (info->current_selector, &max_selector))
+      if (gtk_css_selectors_has_initial_selector (info->current_selector, max_selector))
 	{
-	  info->current_selector = gtk_css_selectors_skip_initial_selector (info->current_selector, &max_selector);
+	  info->current_selector = gtk_css_selectors_skip_initial_selector (info->current_selector, max_selector);
 	  if (info->current_selector == NULL)
 	    {
 	      /* Matches current node */
-              gtk_array_add (&exact_matches_array, info->match);
+              gtk_css_selector_matches_append (&exact_matches, info->match);
 	      if (info->selector_match != NULL)
 		*info->selector_match = GUINT_TO_POINTER (tree_offset);
 	    }
@@ -2188,17 +2186,16 @@ subdivide_infos (GByteArray                 *array,
 	}
     }
 
-  if (exact_matches_array.len > 0)
+  if (!gtk_css_selector_matches_is_empty (&exact_matches))
     {
-      gtk_array_add (&exact_matches_array, NULL); /* Null terminate */
+      gtk_css_selector_matches_append (&exact_matches, NULL); /* Null terminate */
       res = array->len;
-      g_byte_array_append (array, (guint8 *)gtk_array_get_data (&exact_matches_array),
-                           exact_matches_array.len * sizeof (gpointer));
-
-      gtk_array_free (&exact_matches_array, NULL);
+      g_byte_array_append (array, (guint8 *) gtk_css_selector_matches_get_data (&exact_matches),
+                           gtk_css_selector_matches_get_size (&exact_matches) * sizeof (gpointer));
     }
   else
     res = GTK_CSS_SELECTOR_TREE_EMPTY_OFFSET;
+  gtk_css_selector_matches_clear (&exact_matches);
   get_tree (array, tree_offset)->matches_offset = res;
 
   res = subdivide_infos (array, matched_infos, n_matched, tree_offset);

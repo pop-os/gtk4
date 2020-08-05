@@ -23,10 +23,12 @@
 
 #include "gtkintl.h"
 #include "gtkcheckbutton.h"
-#include "gtkcelllayout.h"
-#include "gtkcellrenderertext.h"
-#include "gtkcombobox.h"
+#include "gtkdropdown.h"
+#include "gtklistitem.h"
+#include "gtksignallistitemfactory.h"
+#include "gtkentry.h"
 #include "gtkfilechooserdialog.h"
+#include "gtkfilechooserprivate.h"
 #include "gtkimage.h"
 #include "gtklabel.h"
 #include "gtkliststore.h"
@@ -35,6 +37,7 @@
 #include "gtktogglebutton.h"
 #include "gtkorientable.h"
 #include "gtkprivate.h"
+#include "gtkstringlist.h"
 
 #include "gtkprinteroptionwidget.h"
 
@@ -51,7 +54,7 @@ static void deconstruct_widgets (GtkPrinterOptionWidget *widget);
 static void construct_widgets   (GtkPrinterOptionWidget *widget);
 static void update_widgets      (GtkPrinterOptionWidget *widget);
 
-static gchar *trim_long_filename (const gchar *filename);
+static char *trim_long_filename (const char *filename);
 
 struct GtkPrinterOptionWidgetPrivate
 {
@@ -263,167 +266,356 @@ gtk_printer_option_widget_set_source (GtkPrinterOptionWidget *widget,
   g_object_notify (G_OBJECT (widget), "source");
 }
 
-enum {
-  NAME_COLUMN,
-  VALUE_COLUMN,
-  N_COLUMNS
+#define GTK_TYPE_STRING_PAIR (gtk_string_pair_get_type ())
+G_DECLARE_FINAL_TYPE (GtkStringPair, gtk_string_pair, GTK, STRING_PAIR, GObject)
+
+struct _GtkStringPair {
+  GObject parent_instance;
+  char *id;
+  char *string;
 };
+
+enum {
+  PROP_ID = 1,
+  PROP_STRING,
+  PROP_NUM_PROPERTIES
+};
+
+G_DEFINE_TYPE (GtkStringPair, gtk_string_pair, G_TYPE_OBJECT);
+
+static void
+gtk_string_pair_init (GtkStringPair *pair)
+{
+}
+
+static void
+gtk_string_pair_finalize (GObject *object)
+{
+  GtkStringPair *pair = GTK_STRING_PAIR (object);
+
+  g_free (pair->id);
+  g_free (pair->string);
+
+  G_OBJECT_CLASS (gtk_string_pair_parent_class)->finalize (object);
+}
+
+static void
+gtk_string_pair_set_property (GObject      *object,
+                              guint         property_id,
+                              const GValue *value,
+                              GParamSpec   *pspec)
+{
+  GtkStringPair *pair = GTK_STRING_PAIR (object);
+
+  switch (property_id)
+    {
+    case PROP_STRING:
+      g_free (pair->string);
+      pair->string = g_value_dup_string (value);
+      break;
+
+    case PROP_ID:
+      g_free (pair->id);
+      pair->id = g_value_dup_string (value);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+      break;
+    }
+}
+
+static void
+gtk_string_pair_get_property (GObject      *object,
+                              guint         property_id,
+                              GValue       *value,
+                              GParamSpec   *pspec)
+{
+  GtkStringPair *pair = GTK_STRING_PAIR (object);
+
+  switch (property_id)
+    {
+    case PROP_STRING:
+      g_value_set_string (value, pair->string);
+      break;
+
+    case PROP_ID:
+      g_value_set_string (value, pair->id);
+      break;
+
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
+      break;
+    }
+}
+
+static void
+gtk_string_pair_class_init (GtkStringPairClass *class)
+{
+  GObjectClass *object_class = G_OBJECT_CLASS (class);
+  GParamSpec *pspec;
+
+  object_class->finalize = gtk_string_pair_finalize;
+  object_class->set_property = gtk_string_pair_set_property;
+  object_class->get_property = gtk_string_pair_get_property;
+
+  pspec = g_param_spec_string ("string", "String", "String",
+                               NULL,
+                               G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_property (object_class, PROP_STRING, pspec);
+
+  pspec = g_param_spec_string ("id", "ID", "ID",
+                               NULL,
+                               G_PARAM_READWRITE | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_property (object_class, PROP_ID, pspec);
+}
+
+static GtkStringPair *
+gtk_string_pair_new (const char *id,
+                     const char *string)
+{
+  return g_object_new (GTK_TYPE_STRING_PAIR,
+                       "id", id,
+                       "string", string,
+                       NULL);
+}
+
+static const char *
+gtk_string_pair_get_string (GtkStringPair *pair)
+{
+  return pair->string;
+}
+
+static const char *
+gtk_string_pair_get_id (GtkStringPair *pair)
+{
+  return pair->id;
+}
 
 static void
 combo_box_set_model (GtkWidget *combo_box)
 {
-  GtkListStore *store;
+  GListStore *store;
 
-  store = gtk_list_store_new (N_COLUMNS, G_TYPE_STRING, G_TYPE_STRING);
-  gtk_combo_box_set_model (GTK_COMBO_BOX (combo_box), GTK_TREE_MODEL (store));
+  store = g_list_store_new (GTK_TYPE_STRING_PAIR);
+  gtk_drop_down_set_model (GTK_DROP_DOWN (combo_box), G_LIST_MODEL (store));
   g_object_unref (store);
+}
+
+static void
+setup_no_item (GtkSignalListItemFactory *factory,
+               GtkListItem              *item)
+{
+}
+
+static void
+setup_list_item (GtkSignalListItemFactory *factory,
+                 GtkListItem              *item)
+{
+  GtkWidget *label;
+
+  label = gtk_label_new ("");
+  gtk_widget_set_halign (label, GTK_ALIGN_START);
+  gtk_list_item_set_child (item, label);
+}
+
+static void
+bind_list_item (GtkSignalListItemFactory *factory,
+                GtkListItem              *item)
+{
+  GtkStringPair *pair;
+  GtkWidget *label;
+
+  pair = gtk_list_item_get_item (item);
+  label = gtk_list_item_get_child (item);
+
+  gtk_label_set_text (GTK_LABEL (label), gtk_string_pair_get_string (pair));
 }
 
 static void
 combo_box_set_view (GtkWidget *combo_box)
 {
-  GtkCellRenderer *cell;
+  GtkListItemFactory *factory;
 
-  cell = gtk_cell_renderer_text_new ();
-  gtk_cell_layout_pack_start (GTK_CELL_LAYOUT (combo_box), cell, TRUE);
-  gtk_cell_layout_set_attributes (GTK_CELL_LAYOUT (combo_box), cell,
-                                  "text", NAME_COLUMN,
-                                   NULL);
+  factory = gtk_signal_list_item_factory_new ();
+  g_signal_connect (factory, "setup", G_CALLBACK (setup_list_item), NULL);
+  g_signal_connect (factory, "bind", G_CALLBACK (bind_list_item), NULL);
+  gtk_drop_down_set_factory (GTK_DROP_DOWN (combo_box), factory);
+  g_object_unref (factory);
+}
+
+static void
+selected_changed (GtkDropDown *dropdown,
+                  GParamSpec *pspec,
+                  gpointer data)
+{
+  GListModel *model;
+  guint selected;
+  GtkStringPair *pair;
+  GtkWidget *entry = data;
+
+  model = gtk_drop_down_get_model (dropdown);
+  selected = gtk_drop_down_get_selected (dropdown);
+
+  pair = g_list_model_get_item (model, selected);
+  if (pair)
+    {
+      gtk_editable_set_text (GTK_EDITABLE (entry), gtk_string_pair_get_string (pair));
+      g_object_unref (pair);
+    }
+  else
+    gtk_editable_set_text (GTK_EDITABLE (entry), "");
+
 }
 
 static GtkWidget *
 combo_box_entry_new (void)
 {
-  GtkWidget *combo_box;
-  combo_box = g_object_new (GTK_TYPE_COMBO_BOX, "has-entry", TRUE, NULL);
+  GtkWidget *hbox, *entry, *button;
+  GtkListItemFactory *factory;
 
-  combo_box_set_model (combo_box);
+  hbox = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
+  gtk_widget_add_css_class (hbox, "linked");
 
-  gtk_combo_box_set_entry_text_column (GTK_COMBO_BOX (combo_box), NAME_COLUMN);
+  entry = gtk_entry_new ();
+  button = gtk_drop_down_new (NULL, NULL);
+  combo_box_set_model (button);
 
-  return combo_box;
+  factory = gtk_signal_list_item_factory_new ();
+  g_signal_connect (factory, "setup", G_CALLBACK (setup_no_item), NULL);
+  gtk_drop_down_set_factory (GTK_DROP_DOWN (button), factory);
+  g_object_unref (factory);
+
+  factory = gtk_signal_list_item_factory_new ();
+  g_signal_connect (factory, "setup", G_CALLBACK (setup_list_item), NULL);
+  g_signal_connect (factory, "bind", G_CALLBACK (bind_list_item), NULL);
+  gtk_drop_down_set_list_factory (GTK_DROP_DOWN (button), factory);
+  g_object_unref (factory);
+
+  g_signal_connect (button, "notify::selected", G_CALLBACK (selected_changed), entry);
+
+  gtk_box_append (GTK_BOX (hbox), entry);
+  gtk_box_append (GTK_BOX (hbox), button);
+
+  return hbox;
 }
 
 static GtkWidget *
 combo_box_new (void)
 {
   GtkWidget *combo_box;
-  combo_box = gtk_combo_box_new ();
+
+  combo_box = gtk_drop_down_new (NULL, NULL);
 
   combo_box_set_model (combo_box);
   combo_box_set_view (combo_box);
 
   return combo_box;
 }
-  
+
 static void
 combo_box_append (GtkWidget   *combo,
-		  const gchar *display_text,
-		  const gchar *value)
+                  const char *display_text,
+                  const char *value)
 {
-  GtkTreeModel *model;
-  GtkListStore *store;
-  GtkTreeIter iter;
-  
-  model = gtk_combo_box_get_model (GTK_COMBO_BOX (combo));
-  store = GTK_LIST_STORE (model);
+  GtkWidget *dropdown;
+  GListModel *model;
+  GtkStringPair *object;
 
-  gtk_list_store_append (store, &iter);
-  gtk_list_store_set (store, &iter,
-		      NAME_COLUMN, display_text,
-		      VALUE_COLUMN, value,
-		      -1);
-}
+  if (GTK_IS_DROP_DOWN (combo))
+    dropdown = combo;
+  else
+    dropdown = gtk_widget_get_last_child (combo);
 
-struct ComboSet {
-  GtkComboBox *combo;
-  const gchar *value;
-};
+  model = gtk_drop_down_get_model (GTK_DROP_DOWN (dropdown));
 
-static gboolean
-set_cb (GtkTreeModel *model, 
-	GtkTreePath  *path, 
-	GtkTreeIter  *iter, 
-	gpointer      data)
-{
-  struct ComboSet *set_data = data;
-  gboolean found;
-  char *value;
-  
-  gtk_tree_model_get (model, iter, VALUE_COLUMN, &value, -1);
-  found = (strcmp (value, set_data->value) == 0);
-  g_free (value);
-  
-  if (found)
-    gtk_combo_box_set_active_iter (set_data->combo, iter);
-
-  return found;
+  object = gtk_string_pair_new (value, display_text);
+  g_list_store_append (G_LIST_STORE (model), object);
+  g_object_unref (object);
 }
 
 static void
 combo_box_set (GtkWidget   *combo,
-	       const gchar *value)
+               const char *value)
 {
-  GtkTreeModel *model;
-  struct ComboSet set_data;
-  
-  model = gtk_combo_box_get_model (GTK_COMBO_BOX (combo));
+  GtkWidget *dropdown;
+  GListModel *model;
+  guint i;
 
-  set_data.combo = GTK_COMBO_BOX (combo);
-  set_data.value = value;
-  gtk_tree_model_foreach (model, set_cb, &set_data);
+  if (GTK_IS_DROP_DOWN (combo))
+    dropdown = combo;
+  else
+    dropdown = gtk_widget_get_last_child (combo);
+
+  model = gtk_drop_down_get_model (GTK_DROP_DOWN (dropdown));
+
+  for (i = 0; i < g_list_model_get_n_items (model); i++)
+    {
+      GtkStringPair *item = g_list_model_get_item (model, i);
+      if (strcmp (value, gtk_string_pair_get_id (item)) == 0)
+        {
+          gtk_drop_down_set_selected (GTK_DROP_DOWN (dropdown), i);
+          g_object_unref (item);
+          break;
+        }
+      g_object_unref (item);
+    }
 }
 
-static gchar *
+static char *
 combo_box_get (GtkWidget *combo, gboolean *custom)
 {
-  GtkTreeModel *model;
-  gchar *value;
-  GtkTreeIter iter;
+  GtkWidget *dropdown;
+  GListModel *model;
+  guint selected;
+  gpointer item;
+  const char *id;
+  const char *string;
 
-  model = gtk_combo_box_get_model (GTK_COMBO_BOX (combo));
+  if (GTK_IS_DROP_DOWN (combo))
+    dropdown = combo;
+  else
+    dropdown = gtk_widget_get_last_child (combo);
 
-  value = NULL;
-  if (gtk_combo_box_get_active_iter (GTK_COMBO_BOX (combo), &iter))
+  model = gtk_drop_down_get_model (GTK_DROP_DOWN (dropdown));
+  selected = gtk_drop_down_get_selected (GTK_DROP_DOWN (dropdown));
+  item = g_list_model_get_item (model, selected);
+  if (item)
     {
-      gtk_tree_model_get (model, &iter, VALUE_COLUMN, &value, -1);
-      *custom = FALSE;
+      id = gtk_string_pair_get_id (item);
+      string = gtk_string_pair_get_string (item);
+      g_object_unref (item);
     }
   else
     {
-      if (gtk_combo_box_get_has_entry (GTK_COMBO_BOX (combo)))
-        {
-          value = g_strdup (gtk_editable_get_text (GTK_EDITABLE (gtk_combo_box_get_child (GTK_COMBO_BOX (combo)))));
-          *custom = TRUE;
-        }
-
-      if (!value || !gtk_tree_model_get_iter_first (model, &iter))
-        return value;
-
-      /* If the user entered an item from the dropdown list manually, return
-       * the non-custom option instead. */
-      do
-        {
-          gchar *val, *name;
-          gtk_tree_model_get (model, &iter, VALUE_COLUMN, &val,
-                                            NAME_COLUMN, &name, -1);
-          if (g_str_equal (value, name))
-            {
-              *custom = FALSE;
-              g_free (name);
-              g_free (value);
-              return val;
-            }
-
-          g_free (val);
-          g_free (name);
-        }
-      while (gtk_tree_model_iter_next (model, &iter));
+      id = "";
+      string = NULL;
     }
 
-  return value;
-}
+  if (dropdown == combo) // no entry
+    {
+      *custom = FALSE;
+      return g_strdup (id);
+    }
+  else
+    {
+      const char *text;
 
+      text = gtk_editable_get_text (GTK_EDITABLE (gtk_widget_get_first_child (combo)));
+      if (g_strcmp0 (text, string) == 0)
+        {
+          *custom = FALSE;
+          return g_strdup (id);
+        }
+      else
+        {
+          *custom = TRUE;
+          return g_strdup (text);
+        }
+    }
+}
 
 static void
 deconstruct_widgets (GtkPrinterOptionWidget *widget)
@@ -453,7 +645,7 @@ check_toggled_cb (GtkToggleButton        *toggle_button,
 
 static void
 dialog_response_callback (GtkDialog              *dialog,
-                          gint                    response_id,
+                          int                     response_id,
                           GtkPrinterOptionWidget *widget)
 {
   GtkPrinterOptionWidgetPrivate *priv = widget->priv;
@@ -548,13 +740,13 @@ filesave_choose_cb (GtkWidget              *button,
   gtk_window_present (GTK_WINDOW (dialog));
 }
 
-static gchar *
-filter_numeric (const gchar *val,
+static char *
+filter_numeric (const char *val,
                 gboolean     allow_neg,
 		gboolean     allow_dec,
                 gboolean    *changed_out)
 {
-  gchar *filtered_val;
+  char *filtered_val;
   int i, j;
   int len = strlen (val);
   gboolean dec_set = FALSE;
@@ -594,17 +786,18 @@ filter_numeric (const gchar *val,
 
 static void
 combo_changed_cb (GtkWidget              *combo,
+                  GParamSpec             *pspec,
 		  GtkPrinterOptionWidget *widget)
 {
   GtkPrinterOptionWidgetPrivate *priv = widget->priv;
-  gchar *value;
-  gchar *filtered_val = NULL;
+  char *value;
+  char *filtered_val = NULL;
   gboolean changed;
   gboolean custom = TRUE;
 
   g_signal_handler_block (priv->source, priv->source_changed_handler);
   
-  value = combo_box_get (combo, &custom);
+  value = combo_box_get (priv->combo, &custom);
 
   /* Handle constraints if the user entered a custom value. */
   if (custom)
@@ -639,12 +832,9 @@ combo_changed_cb (GtkWidget              *combo,
 
       if (changed)
         {
-          GtkEntry *entry;
-	  
-	  entry = GTK_ENTRY (gtk_combo_box_get_child (GTK_COMBO_BOX (combo)));
-
+          GtkWidget *entry = gtk_widget_get_first_child (priv->combo);
           gtk_editable_set_text (GTK_EDITABLE (entry), filtered_val);
-	}
+        }
       value = filtered_val;
     }
 
@@ -660,7 +850,7 @@ entry_changed_cb (GtkWidget              *entry,
 		  GtkPrinterOptionWidget *widget)
 {
   GtkPrinterOptionWidgetPrivate *priv = widget->priv;
-  const gchar *value;
+  const char *value;
   
   g_signal_handler_block (priv->source, priv->source_changed_handler);
   value = gtk_editable_get_text (GTK_EDITABLE (entry));
@@ -676,7 +866,7 @@ radio_changed_cb (GtkWidget              *button,
 		  GtkPrinterOptionWidget *widget)
 {
   GtkPrinterOptionWidgetPrivate *priv = widget->priv;
-  gchar *value;
+  char *value;
   
   g_signal_handler_block (priv->source, priv->source_changed_handler);
   value = g_object_get_data (G_OBJECT (button), "value");
@@ -688,9 +878,9 @@ radio_changed_cb (GtkWidget              *button,
 
 static void
 select_maybe (GtkWidget   *widget, 
-	      const gchar *value)
+	      const char *value)
 {
-  gchar *v = g_object_get_data (G_OBJECT (widget), "value");
+  char *v = g_object_get_data (G_OBJECT (widget), "value");
       
   if (strcmp (value, v) == 0)
     gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), TRUE);
@@ -698,7 +888,7 @@ select_maybe (GtkWidget   *widget,
 
 static void
 alternative_set (GtkWidget   *box,
-                 const gchar *value)
+                 const char *value)
 {
   GtkWidget *child;
 
@@ -710,8 +900,8 @@ alternative_set (GtkWidget   *box,
 
 static GSList *
 alternative_append (GtkWidget              *box,
-		    const gchar            *label,
-                    const gchar            *value,
+		    const char             *label,
+                    const char             *value,
 		    GtkPrinterOptionWidget *widget,
 		    GSList                 *group)
 {
@@ -746,9 +936,11 @@ construct_widgets (GtkPrinterOptionWidget *widget)
 
   if (source == NULL)
     {
-      priv->combo = combo_box_new ();
-      combo_box_append (priv->combo,_("Not available"), "None");
-      gtk_combo_box_set_active (GTK_COMBO_BOX (priv->combo), 0);
+      const char * strings[2];
+      strings[0] = _("Not available");
+      strings[1] = NULL;
+      priv->combo = gtk_drop_down_new_from_strings (strings);
+      gtk_drop_down_set_selected (GTK_DROP_DOWN (priv->combo), 0);
       gtk_widget_set_sensitive (GTK_WIDGET (widget), FALSE);
       gtk_widget_show (priv->combo);
       gtk_box_append (GTK_BOX (widget), priv->combo);
@@ -770,20 +962,17 @@ construct_widgets (GtkPrinterOptionWidget *widget)
       if (source->type == GTK_PRINTER_OPTION_TYPE_PICKONE)
         {
           priv->combo = combo_box_new ();
-	}
+        }
       else
         {
           priv->combo = combo_box_entry_new ();
 
           if (source->type == GTK_PRINTER_OPTION_TYPE_PICKONE_PASSWORD ||
-	      source->type == GTK_PRINTER_OPTION_TYPE_PICKONE_PASSCODE)
-	    {
-              GtkEntry *entry;
-
-	      entry = GTK_ENTRY (gtk_combo_box_get_child (GTK_COMBO_BOX (priv->combo)));
-
-              gtk_entry_set_visibility (entry, FALSE); 
-	    }
+              source->type == GTK_PRINTER_OPTION_TYPE_PICKONE_PASSCODE)
+            {
+              GtkWidget *entry = gtk_widget_get_first_child (priv->combo);
+              gtk_entry_set_visibility (GTK_ENTRY (entry), FALSE);
+            }
         }
 
       for (i = 0; i < source->num_choices; i++)
@@ -792,7 +981,10 @@ construct_widgets (GtkPrinterOptionWidget *widget)
                           source->choices[i]);
       gtk_widget_show (priv->combo);
       gtk_box_append (GTK_BOX (widget), priv->combo);
-      g_signal_connect (priv->combo, "changed", G_CALLBACK (combo_changed_cb), widget);
+      if (GTK_IS_DROP_DOWN (priv->combo))
+        g_signal_connect (priv->combo, "notify::selected", G_CALLBACK (combo_changed_cb),widget);
+      else
+        g_signal_connect (gtk_widget_get_last_child (priv->combo), "notify::selected",G_CALLBACK (combo_changed_cb), widget);
 
       text = g_strdup_printf ("%s:", source->display_text);
       priv->label = gtk_label_new_with_mnemonic (text);
@@ -879,17 +1071,17 @@ construct_widgets (GtkPrinterOptionWidget *widget)
  * If the filename exceeds FILENAME_LENGTH_MAX, then trim it and replace
  * the first three letters with three dots.
  */
-static gchar *
-trim_long_filename (const gchar *filename)
+static char *
+trim_long_filename (const char *filename)
 {
-  const gchar *home;
-  gint len, offset;
-  gchar *result;
+  const char *home;
+  int len, offset;
+  char *result;
 
   home = g_get_home_dir ();
   if (g_str_has_prefix (filename, home))
     {
-      gchar *homeless_filename;
+      char *homeless_filename;
 
       offset = g_utf8_strlen (home, -1);
       len = g_utf8_strlen (filename, -1);
@@ -903,7 +1095,7 @@ trim_long_filename (const gchar *filename)
   len = g_utf8_strlen (result, -1);
   if (len > FILENAME_LENGTH_MAX)
     {
-      gchar *suffix;
+      char *suffix;
 
       suffix = g_utf8_substring (result, len - FILENAME_LENGTH_MAX, len);
       g_free (result);
@@ -951,9 +1143,7 @@ update_widgets (GtkPrinterOptionWidget *widget)
     case GTK_PRINTER_OPTION_TYPE_PICKONE_INT:
     case GTK_PRINTER_OPTION_TYPE_PICKONE_STRING:
       {
-        GtkEntry *entry;
-
-        entry = GTK_ENTRY (gtk_combo_box_get_child (GTK_COMBO_BOX (priv->combo)));
+        GtkWidget *entry = gtk_widget_get_first_child (priv->combo);
         if (gtk_printer_option_has_choice (source, source->value))
           combo_box_set (priv->combo, source->value);
         else
@@ -963,8 +1153,8 @@ update_widgets (GtkPrinterOptionWidget *widget)
       }
     case GTK_PRINTER_OPTION_TYPE_FILESAVE:
       {
-        gchar *text;
-        gchar *filename;
+        char *text;
+        char *filename;
 
         filename = g_filename_from_uri (source->value, NULL, NULL);
         if (filename != NULL)
@@ -972,7 +1162,7 @@ update_widgets (GtkPrinterOptionWidget *widget)
             text = g_filename_to_utf8 (filename, -1, NULL, NULL, NULL);
             if (text != NULL)
               {
-                gchar *short_filename;
+                char *short_filename;
 
                 short_filename = trim_long_filename (text);
                 gtk_button_set_label (GTK_BUTTON (priv->button), short_filename);
@@ -1011,7 +1201,7 @@ gtk_printer_option_widget_get_external_label (GtkPrinterOptionWidget  *widget)
   return widget->priv->label;
 }
 
-const gchar *
+const char *
 gtk_printer_option_widget_get_value (GtkPrinterOptionWidget *widget)
 {
   GtkPrinterOptionWidgetPrivate *priv = widget->priv;

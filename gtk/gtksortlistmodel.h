@@ -41,9 +41,6 @@ GDK_AVAILABLE_IN_ALL
 GtkSortListModel *      gtk_sort_list_model_new                 (GListModel            *model,
                                                                  GtkSorter             *sorter);
 GDK_AVAILABLE_IN_ALL
-GtkSortListModel *      gtk_sort_list_model_new_for_type        (GType                  item_type);
-
-GDK_AVAILABLE_IN_ALL
 void                    gtk_sort_list_model_set_sorter          (GtkSortListModel       *self,
                                                                  GtkSorter              *sorter);
 GDK_AVAILABLE_IN_ALL
@@ -54,6 +51,15 @@ void                    gtk_sort_list_model_set_model           (GtkSortListMode
                                                                  GListModel             *model);
 GDK_AVAILABLE_IN_ALL
 GListModel *            gtk_sort_list_model_get_model           (GtkSortListModel       *self);
+
+GDK_AVAILABLE_IN_ALL
+void                    gtk_sort_list_model_set_incremental     (GtkSortListModel       *self,
+                                                                 gboolean                incremental);
+GDK_AVAILABLE_IN_ALL
+gboolean                gtk_sort_list_model_get_incremental     (GtkSortListModel       *self);
+
+GDK_AVAILABLE_IN_ALL
+guint                   gtk_sort_list_model_get_pending         (GtkSortListModel       *self);
 
 G_END_DECLS
 

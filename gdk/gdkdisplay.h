@@ -41,10 +41,10 @@ G_BEGIN_DECLS
 GDK_AVAILABLE_IN_ALL
 GType       gdk_display_get_type (void) G_GNUC_CONST;
 GDK_AVAILABLE_IN_ALL
-GdkDisplay *gdk_display_open                (const gchar *display_name);
+GdkDisplay *gdk_display_open                (const char *display_name);
 
 GDK_AVAILABLE_IN_ALL
-const gchar * gdk_display_get_name         (GdkDisplay *display);
+const char * gdk_display_get_name         (GdkDisplay *display);
 
 GDK_AVAILABLE_IN_ALL
 gboolean    gdk_display_device_is_grabbed  (GdkDisplay  *display,
@@ -72,18 +72,15 @@ GDK_AVAILABLE_IN_ALL
 GdkDisplay *gdk_display_get_default (void);
 
 GDK_AVAILABLE_IN_ALL
-GdkSurface *gdk_display_get_default_group       (GdkDisplay *display); 
-
-GDK_AVAILABLE_IN_ALL
 GdkClipboard *          gdk_display_get_clipboard               (GdkDisplay     *display);
 GDK_AVAILABLE_IN_ALL
 GdkClipboard *          gdk_display_get_primary_clipboard       (GdkDisplay     *display);
 
 GDK_AVAILABLE_IN_ALL
 void     gdk_display_notify_startup_complete   (GdkDisplay    *display,
-                                                const gchar   *startup_id);
+                                                const char    *startup_id);
 GDK_AVAILABLE_IN_ALL
-const gchar * gdk_display_get_startup_notification_id (GdkDisplay *display);
+const char * gdk_display_get_startup_notification_id (GdkDisplay *display);
 
 GDK_AVAILABLE_IN_ALL
 GdkAppLaunchContext *gdk_display_get_app_launch_context (GdkDisplay *display);

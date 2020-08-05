@@ -28,8 +28,6 @@
 #include "gtkfilechooserwidget.h"
 #include "gtkfilechooserwidgetprivate.h"
 #include "gtkfilechooserutils.h"
-#include "gtkfilechooserembed.h"
-#include "gtkfilesystem.h"
 #include "gtksizerequest.h"
 #include "gtktypebuiltins.h"
 #include "gtkintl.h"
@@ -39,7 +37,6 @@
 #include "gtkheaderbar.h"
 #include "gtklabel.h"
 #include "gtkmain.h"
-#include "gtkfilechooserentry.h"
 #include "gtkfilefilterprivate.h"
 #include "gtkwindowprivate.h"
 
@@ -90,10 +87,10 @@ filechooser_portal_data_free (FilechooserPortalData *data)
 
 static void
 response_cb (GDBusConnection  *connection,
-             const gchar      *sender_name,
-             const gchar      *object_path,
-             const gchar      *interface_name,
-             const gchar      *signal_name,
+             const char       *sender_name,
+             const char       *object_path,
+             const char       *interface_name,
+             const char       *signal_name,
              GVariant         *parameters,
              gpointer          user_data)
 {
@@ -105,6 +102,7 @@ response_cb (GDBusConnection  *connection,
   int i;
   GVariant *response_data;
   GVariant *choices = NULL;
+  GVariant *current_filter = NULL;
 
   g_variant_get (parameters, "(u@a{sv})", &portal_response, &response_data);
   g_variant_lookup (response_data, "uris", "^a&s", &uris);
@@ -120,6 +118,41 @@ response_cb (GDBusConnection  *connection,
           gtk_file_chooser_set_choice (GTK_FILE_CHOOSER (self), id, selected);
         }
       g_variant_unref (choices);
+    }
+
+  current_filter = g_variant_lookup_value (response_data, "current_filter", G_VARIANT_TYPE ("(sa(us))"));
+  if (current_filter)
+    {
+      GtkFileFilter *filter = gtk_file_filter_new_from_gvariant (current_filter);
+      const char *current_filter_name = gtk_file_filter_get_name (filter);
+
+      /* Try to find  the given filter in the list of filters.
+       * Since filters are compared by pointer value, using the passed
+       * filter would otherwise not match in a comparison, even if
+       * a filter in the list of filters has been selected.
+       * We'll use the heuristic that if two filters have the same name,
+       * they must be the same.
+       * If there is no match, just set the filter as it was retrieved.
+       */
+      GtkFileFilter *filter_to_select = filter;
+      GListModel *filters;
+      guint j, n;
+
+      filters = gtk_file_chooser_get_filters (GTK_FILE_CHOOSER (self));
+      n = g_list_model_get_n_items (filters);
+      for (j = 0; j < n; j++)
+        {
+          GtkFileFilter *f = g_list_model_get_item (filters, j);
+          if (g_strcmp0 (gtk_file_filter_get_name (f), current_filter_name) == 0)
+            {
+              filter_to_select = f;
+              break;
+            }
+          g_object_unref (f);
+        }
+      g_object_unref (filters);
+      gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (self), filter_to_select);
+      g_object_unref (filter_to_select);
     }
 
   g_slist_free_full (self->custom_files, g_object_unref);
@@ -235,17 +268,20 @@ open_file_msg_cb (GObject *source_object,
 static GVariant *
 get_filters (GtkFileChooser *self)
 {
-  GSList *list, *l;
+  GListModel *filters;
+  guint n, i;
   GVariantBuilder builder;
 
   g_variant_builder_init (&builder, G_VARIANT_TYPE ("a(sa(us))"));
-  list = gtk_file_chooser_list_filters (self);
-  for (l = list; l; l = l->next)
+  filters = gtk_file_chooser_get_filters (self);
+  n = g_list_model_get_n_items (filters);
+  for (i = 0; i < n; i++)
     {
-      GtkFileFilter *filter = l->data;
+      GtkFileFilter *filter = g_list_model_get_item (filters, i);
       g_variant_builder_add (&builder, "@(sa(us))", gtk_file_filter_to_gvariant (filter));
+      g_object_unref (filter);
     }
-  g_slist_free (list);
+  g_object_unref (filters);
 
   return g_variant_builder_end (&builder);
 }
@@ -346,7 +382,7 @@ show_portal_file_chooser (GtkFileChooserNative *self,
                            g_variant_new_string (GTK_FILE_CHOOSER_NATIVE (self)->current_name));
   if (self->current_folder)
     {
-      gchar *path;
+      char *path;
 
       path = g_file_get_path (GTK_FILE_CHOOSER_NATIVE (self)->current_folder);
       g_variant_builder_add (&opt_builder, "{sv}", "current_folder",
@@ -355,7 +391,7 @@ show_portal_file_chooser (GtkFileChooserNative *self,
     }
   if (self->current_file)
     {
-      gchar *path;
+      char *path;
 
       path = g_file_get_path (GTK_FILE_CHOOSER_NATIVE (self)->current_file);
       g_variant_builder_add (&opt_builder, "{sv}", "current_file",

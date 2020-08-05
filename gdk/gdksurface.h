@@ -186,7 +186,7 @@ gboolean gdk_surface_translate_coordinates (GdkSurface *from,
                                             double     *y);
 
 GDK_AVAILABLE_IN_ALL
-gint          gdk_surface_get_scale_factor  (GdkSurface     *surface);
+int           gdk_surface_get_scale_factor  (GdkSurface     *surface);
 
 GDK_AVAILABLE_IN_ALL
 void          gdk_surface_get_device_position (GdkSurface      *surface,
@@ -206,18 +206,7 @@ GDK_AVAILABLE_IN_ALL
 void          gdk_surface_beep            (GdkSurface       *surface);
 
 GDK_AVAILABLE_IN_ALL
-void       gdk_surface_queue_expose              (GdkSurface          *surface);
-
-GDK_AVAILABLE_IN_ALL
-void       gdk_surface_freeze_updates      (GdkSurface    *surface);
-GDK_AVAILABLE_IN_ALL
-void       gdk_surface_thaw_updates        (GdkSurface    *surface);
-
-GDK_AVAILABLE_IN_ALL
-void       gdk_surface_set_support_multidevice (GdkSurface *surface,
-                                                gboolean   support_multidevice);
-GDK_AVAILABLE_IN_ALL
-gboolean   gdk_surface_get_support_multidevice (GdkSurface *surface);
+void       gdk_surface_queue_render       (GdkSurface       *surface);
 
 GDK_AVAILABLE_IN_ALL
 GdkFrameClock* gdk_surface_get_frame_clock      (GdkSurface     *surface);
@@ -228,10 +217,10 @@ void       gdk_surface_set_opaque_region        (GdkSurface      *surface,
 
 GDK_AVAILABLE_IN_ALL
 void       gdk_surface_set_shadow_width         (GdkSurface      *surface,
-                                                 gint            left,
-                                                 gint            right,
-                                                 gint            top,
-                                                 gint            bottom);
+                                                 int             left,
+                                                 int             right,
+                                                 int             top,
+                                                 int             bottom);
 
 GDK_AVAILABLE_IN_ALL
 GdkCairoContext *gdk_surface_create_cairo_context(GdkSurface    *surface);

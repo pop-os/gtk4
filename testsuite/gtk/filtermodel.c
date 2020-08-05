@@ -50,7 +50,7 @@ create_tree_store_set_values (GtkTreeStore *store,
                               gboolean      visible)
 {
   GtkTreePath *path;
-  gchar *path_string;
+  char *path_string;
 
   path = gtk_tree_model_get_path (GTK_TREE_MODEL (store), iter);
   path_string = gtk_tree_path_to_string (path);
@@ -525,7 +525,7 @@ check_filter_model_recurse (FilterTest  *fixture,
       if (visible)
         {
           GtkTreePath *tmp;
-          gchar *filter_str, *store_str;
+          char *filter_str, *store_str;
 
           g_assert_true (filter_has_next);
 
@@ -607,7 +607,7 @@ check_filter_model_with_root (FilterTest  *fixture,
 
 static void
 check_level_length (GtkTreeModelFilter *filter,
-                    const gchar        *level,
+                    const char         *level,
                     const int           expected_length)
 {
   if (!level)
@@ -633,7 +633,7 @@ check_level_length (GtkTreeModelFilter *filter,
 
 static void
 set_path_visibility (FilterTest  *fixture,
-                     const gchar *path,
+                     const char *path,
                      gboolean     visible)
 {
   GtkTreeIter store_iter;
@@ -648,7 +648,7 @@ set_path_visibility (FilterTest  *fixture,
 #if 0
 static void
 insert_path_with_visibility (FilterTest  *fixture,
-                             const gchar *path_string,
+                             const char *path_string,
                              gboolean     visible)
 {
   int position;
@@ -4644,7 +4644,7 @@ specific_append_after_collapse_visible_func (GtkTreeModel *model,
                                              GtkTreeIter  *iter,
                                              gpointer      data)
 {
-  gint number;
+  int number;
   gboolean hide_negative_numbers;
 
   gtk_tree_model_get (model, iter, 1, &number, -1);
@@ -4746,7 +4746,7 @@ specific_append_after_collapse (void)
 }
 
 
-static gint
+static int
 specific_sort_filter_remove_node_compare_func (GtkTreeModel  *model,
                                                GtkTreeIter   *iter1,
                                                GtkTreeIter   *iter2,
@@ -5971,6 +5971,7 @@ specific_bug_346800 (void)
   columns[1] = G_TYPE_BOOLEAN;
   store = gtk_tree_store_newv (2, columns);
   model = GTK_TREE_MODEL (store);
+  GList *junk = NULL;
 
   /*http://bugzilla.gnome.org/show_bug.cgi?id=346800 */
 
@@ -5981,14 +5982,14 @@ specific_bug_346800 (void)
     {
       /* allocate random amounts of junk, otherwise the filter model's arrays can expand without moving */
 
-      g_malloc (138);
+      junk = g_list_append (junk, g_malloc (138));
       gtk_tree_store_append (store, &node_iters[i], NULL);
       gtk_tree_store_set (store, &node_iters[i],
                           0, "something",
                           1, ((i%6) == 0) ? FALSE : TRUE,
                           -1);
 
-      g_malloc (47);
+      junk = g_list_append (junk, g_malloc (47));
       gtk_tree_store_append (store, &child_iters[i], &node_iters[i]);
       gtk_tree_store_set (store, &child_iters[i],
                           0, "something else",
@@ -6007,6 +6008,8 @@ specific_bug_346800 (void)
           gtk_tree_model_filter_refilter (filter);
         }
     }
+
+  g_list_free_full (junk, g_free);
 }
 
 static gboolean
@@ -6181,7 +6184,7 @@ specific_bug_621076_visible_func (GtkTreeModel *model,
                                   gpointer      data)
 {
   gboolean visible = FALSE;
-  gchar *str = NULL;
+  char *str = NULL;
 
   gtk_tree_model_get (model, iter, 0, &str, -1);
   if (str != NULL && g_str_has_prefix (str, "visible"))
@@ -6477,7 +6480,7 @@ specific_bug_657353_visible_func (GtkTreeModel *model,
                                   GtkTreeIter  *iter,
                                   gpointer      data)
 {
-  gchar *str;
+  char *str;
   gboolean ret = FALSE;
 
   gtk_tree_model_get (model, iter, 0, &str, -1);

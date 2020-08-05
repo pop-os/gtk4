@@ -20,6 +20,7 @@
 
 #include "gtkwindowhandle.h"
 
+#include "gtkactionmuxerprivate.h"
 #include "gtkbinlayout.h"
 #include "gtkbox.h"
 #include "gtkbuildable.h"
@@ -28,11 +29,12 @@
 #include "gtkgestureprivate.h"
 #include "gtkintl.h"
 #include "gtkmodelbuttonprivate.h"
-#include "gtknativeprivate.h"
+#include "gtknative.h"
 #include "gtkpopovermenuprivate.h"
 #include "gtkprivate.h"
 #include "gtkseparator.h"
 #include "gtkwidgetprivate.h"
+
 
 /**
  * SECTION:gtkwindowhandle
@@ -155,6 +157,7 @@ do_popup_fallback (GtkWindowHandle *self,
 {
   GdkRectangle rect = { 0, 0, 1, 1 };
   GdkDevice *device;
+  GdkSeat *seat;
   GtkWidget *box, *menuitem;
   GtkWindow *window;
   gboolean maximized, resizable, deletable;
@@ -184,9 +187,10 @@ do_popup_fallback (GtkWindowHandle *self,
 
 
   device = gdk_event_get_device (event);
+  seat = gdk_event_get_seat (event);
 
-  if (device && gdk_device_get_source (device) == GDK_SOURCE_KEYBOARD)
-    device = gdk_device_get_associated_device (device);
+  if (device == gdk_seat_get_keyboard (seat))
+    device = gdk_seat_get_pointer (seat);
 
   if (device)
     {
@@ -263,12 +267,11 @@ static gboolean
 perform_titlebar_action (GtkWindowHandle *self,
                          GdkEvent        *event,
                          guint            button,
-                         gint             n_press)
+                         int              n_press)
 {
   GtkSettings *settings;
-  gchar *action = NULL;
+  char *action = NULL;
   gboolean retval = TRUE;
-  GtkActionMuxer *context;
 
   settings = gtk_widget_get_settings (GTK_WIDGET (self));
   switch (button)
@@ -287,23 +290,21 @@ perform_titlebar_action (GtkWindowHandle *self,
       break;
     }
 
-  context = _gtk_widget_get_action_muxer (GTK_WIDGET (self), TRUE);
-
   if (action == NULL)
     retval = FALSE;
   else if (g_str_equal (action, "none"))
     retval = FALSE;
     /* treat all maximization variants the same */
   else if (g_str_has_prefix (action, "toggle-maximize"))
-    g_action_group_activate_action (G_ACTION_GROUP (context),
-                                    "window.toggle-maximized",
-                                    NULL);
+    gtk_widget_activate_action (GTK_WIDGET (self),
+                                "window.toggle-maximized",
+                                NULL);
   else if (g_str_equal (action, "lower"))
     lower_window (self);
   else if (g_str_equal (action, "minimize"))
-    g_action_group_activate_action (G_ACTION_GROUP (context),
-                                    "window.minimize",
-                                    NULL);
+    gtk_widget_activate_action (GTK_WIDGET (self),
+                                "window.minimize",
+                                NULL);
   else if (g_str_equal (action, "menu"))
     do_popup (self, event);
   else
@@ -328,13 +329,11 @@ click_gesture_pressed_cb (GtkGestureClick *gesture,
   GdkEventSequence *sequence;
   GdkEvent *event;
   guint button;
-  GtkRoot *root;
 
   widget = GTK_WIDGET (self);
   sequence = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
   button = gtk_gesture_single_get_current_button (GTK_GESTURE_SINGLE (gesture));
   event = gtk_gesture_get_last_event (GTK_GESTURE (gesture), sequence);
-  root = gtk_widget_get_root (widget);
 
   if (!event)
     return;
@@ -353,11 +352,11 @@ click_gesture_pressed_cb (GtkGestureClick *gesture,
     {
     case GDK_BUTTON_PRIMARY:
       if (n_press == 2)
-        perform_titlebar_action (self, event, button, n_press);
-
-      if (gtk_widget_has_grab (GTK_WIDGET (root)))
-        gtk_gesture_set_sequence_state (GTK_GESTURE (gesture),
-                                        sequence, GTK_EVENT_SEQUENCE_CLAIMED);
+        {
+          perform_titlebar_action (self, event, button, n_press);
+          gtk_gesture_set_sequence_state (GTK_GESTURE (gesture),
+                                          sequence, GTK_EVENT_SEQUENCE_CLAIMED);
+        }
       break;
 
     case GDK_BUTTON_SECONDARY:
@@ -420,7 +419,6 @@ drag_gesture_update_cb (GtkGestureDrag  *gesture,
            * widget from doing anything.
            */
           if (event_widget != GTK_WIDGET (self) &&
-              !gtk_widget_has_grab (event_widget) &&
               gtk_widget_consumes_motion (event_widget, GTK_WIDGET (self), sequence))
             {
               gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_DENIED);
@@ -580,7 +578,7 @@ static void
 gtk_window_handle_buildable_add_child (GtkBuildable *buildable,
                                        GtkBuilder   *builder,
                                        GObject      *child,
-                                       const gchar  *type)
+                                       const char   *type)
 {
   if (GTK_IS_WIDGET (child))
     gtk_window_handle_set_child (GTK_WINDOW_HANDLE (buildable), GTK_WIDGET (child));

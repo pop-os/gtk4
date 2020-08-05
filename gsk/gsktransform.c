@@ -93,6 +93,10 @@ G_DEFINE_BOXED_TYPE (GskTransform, gsk_transform,
 
 static gboolean
 gsk_transform_is_identity (GskTransform *self);
+static GskTransform *
+gsk_transform_matrix_with_category (GskTransform           *next,
+                                    const graphene_matrix_t*matrix,
+                                    GskTransformCategory    category);
 
 static inline gboolean
 gsk_transform_has_class (GskTransform            *self,
@@ -106,7 +110,7 @@ gsk_transform_has_class (GskTransform            *self,
  * @transform_class: class structure for this self
  * @category: The category of this transform. Will be used to initialize
  *     the result's category together with &next's category
- * @next: (transfer full): Next matrix to multiply with or %NULL if none
+ * @next: (transfer full): Next transform to multiply with or %NULL if none
  *
  * Returns: (transfer full): the newly created #GskTransform
  */
@@ -123,7 +127,8 @@ gsk_transform_alloc (const GskTransformClass *transform_class,
 
   self->transform_class = transform_class;
   self->category = next ? MIN (category, next->category) : category;
-  self->next = gsk_transform_is_identity (next) ? NULL : next;
+  self->next = gsk_transform_is_identity (next) ? NULL : gsk_transform_ref (next);
+  g_clear_pointer (&next, gsk_transform_unref);
 
   return self;
 }
@@ -447,7 +452,7 @@ static const GskTransformClass GSK_TRANSFORM_TRANSFORM_CLASS =
   gsk_matrix_transform_equal,
 };
 
-GskTransform *
+static GskTransform *
 gsk_transform_matrix_with_category (GskTransform            *next,
                                     const graphene_matrix_t *matrix,
                                     GskTransformCategory     category)
@@ -466,7 +471,7 @@ gsk_transform_matrix_with_category (GskTransform            *next,
  *
  * Multiplies @next with the given @matrix.
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_matrix (GskTransform            *next,
@@ -570,7 +575,9 @@ gsk_translate_transform_equal (GskTransform *first_transform,
   GskTranslateTransform *first = (GskTranslateTransform *) first_transform;
   GskTranslateTransform *second = (GskTranslateTransform *) second_transform;
 
-  return graphene_point3d_equal (&first->point, &second->point);
+  return G_APPROX_VALUE (first->point.x, second->point.x, FLT_EPSILON) &&
+         G_APPROX_VALUE (first->point.y, second->point.y, FLT_EPSILON) &&
+         G_APPROX_VALUE (first->point.z, second->point.z, FLT_EPSILON);
 }
 
 static void
@@ -613,11 +620,11 @@ static const GskTransformClass GSK_TRANSLATE_TRANSFORM_CLASS =
 /**
  * gsk_transform_translate:
  * @next: (allow-none) (transfer full): the next transform
- * @point: the point to translate the matrix by
+ * @point: the point to translate the transform by
  *
  * Translates @next in 2dimensional space by @point.
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_translate (GskTransform           *next,
@@ -633,11 +640,11 @@ gsk_transform_translate (GskTransform           *next,
 /**
  * gsk_transform_translate_3d:
  * @next: (allow-none) (transfer full): the next transform
- * @point: the point to translate the matrix by
+ * @point: the point to translate the transform by
  *
  * Translates @next by @point.
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_translate_3d (GskTransform             *next,
@@ -852,7 +859,7 @@ normalize_angle (float angle)
  *
  * Rotates @next @angle degrees in 2D - or in 3Dspeak, around the z axis.
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_rotate (GskTransform *next,
@@ -979,7 +986,7 @@ static const GskTransformClass GSK_ROTATE3D_TRANSFORM_CLASS =
  *
  * For a rotation in 2D space, use gsk_transform_rotate().
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_rotate_3d (GskTransform          *next,
@@ -1151,7 +1158,7 @@ static const GskTransformClass GSK_SCALE_TRANSFORM_CLASS =
  * Scales @next in 2-dimensional space by the given factors.
  * Use gsk_transform_scale_3d() to scale in all 3 dimensions.
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_scale (GskTransform *next,
@@ -1170,7 +1177,7 @@ gsk_transform_scale (GskTransform *next,
  *
  * Scales @next by the given factors.
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_scale_3d (GskTransform *next,
@@ -1303,7 +1310,7 @@ static const GskTransformClass GSK_PERSPECTIVE_TRANSFORM_CLASS =
  * those with negative Z values towards the origin. Points
  * on the z=0 plane are unchanged.
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_perspective (GskTransform *next,
@@ -1532,7 +1539,7 @@ gsk_transform_to_2d (GskTransform *self,
  * Converts a #GskTransform to 2D affine transformation
  * factors.
  * @self must be a 2D transformation. If you are not
- * sure, use gsk_transform_get_category() >= 
+ * sure, use gsk_transform_get_category() >=
  * %GSK_TRANSFORM_CATEGORY_2D_AFFINE to check.
  */
 void
@@ -1542,15 +1549,8 @@ gsk_transform_to_affine (GskTransform *self,
                          float        *out_dx,
                          float        *out_dy)
 {
-  if (self == NULL ||
-      self->category < GSK_TRANSFORM_CATEGORY_2D_AFFINE)
+  if (self == NULL)
     {
-      if (self != NULL)
-        {
-          char *s = gsk_transform_to_string (self);
-          g_warning ("Given transform \"%s\" is not an affine 2D transform.", s);
-          g_free (s);
-        }
       *out_scale_x = 1.0f;
       *out_scale_y = 1.0f;
       *out_dx = 0.0f;
@@ -1558,9 +1558,32 @@ gsk_transform_to_affine (GskTransform *self,
       return;
     }
 
-  gsk_transform_to_affine (self->next,
-                           out_scale_x, out_scale_y,
-                           out_dx, out_dy);
+  if (G_UNLIKELY (self->category < GSK_TRANSFORM_CATEGORY_2D_AFFINE))
+    {
+      char *s = gsk_transform_to_string (self);
+      g_warning ("Given transform \"%s\" is not an affine 2D transform.", s);
+      g_free (s);
+
+      *out_scale_x = 1.0f;
+      *out_scale_y = 1.0f;
+      *out_dx = 0.0f;
+      *out_dy = 0.0f;
+      return;
+    }
+
+  if (self->next != NULL)
+    {
+      gsk_transform_to_affine (self->next,
+                               out_scale_x, out_scale_y,
+                               out_dx, out_dy);
+    }
+  else
+    {
+      *out_scale_x = 1.0f;
+      *out_scale_y = 1.0f;
+      *out_dx = 0.0f;
+      *out_dy = 0.0f;
+    }
 
   self->transform_class->apply_affine (self,
                                        out_scale_x, out_scale_y,
@@ -1585,22 +1608,34 @@ gsk_transform_to_translate (GskTransform *self,
                             float        *out_dx,
                             float        *out_dy)
 {
-  if (self == NULL ||
-      self->category < GSK_TRANSFORM_CATEGORY_2D_TRANSLATE)
+  if (self == NULL)
     {
-      if (self != NULL)
-        {
-          char *s = gsk_transform_to_string (self);
-          g_warning ("Given transform \"%s\" is not a 2D translation.", s);
-          g_free (s);
-        }
       *out_dx = 0.0f;
       *out_dy = 0.0f;
       return;
     }
 
-  gsk_transform_to_translate (self->next,
-                              out_dx, out_dy);
+  if (G_UNLIKELY (self->category < GSK_TRANSFORM_CATEGORY_2D_TRANSLATE))
+    {
+      char *s = gsk_transform_to_string (self);
+      g_warning ("Given transform \"%s\" is not an affine 2D translation.", s);
+      g_free (s);
+
+      *out_dx = 0.0f;
+      *out_dy = 0.0f;
+      return;
+    }
+
+  if (self->next != NULL)
+    {
+      gsk_transform_to_translate (self->next,
+                                  out_dx, out_dy);
+    }
+  else
+    {
+      *out_dx = 0.0f;
+      *out_dy = 0.0f;
+    }
 
   self->transform_class->apply_translate (self,
                                           out_dx, out_dy);
@@ -1613,7 +1648,7 @@ gsk_transform_to_translate (GskTransform *self,
  *
  * Applies all the operations from @other to @next. 
  *
- * Returns: The new matrix
+ * Returns: The new transform
  **/
 GskTransform *
 gsk_transform_transform (GskTransform *next,
@@ -1621,6 +1656,9 @@ gsk_transform_transform (GskTransform *next,
 {
   if (other == NULL)
     return next;
+
+  if (next == NULL)
+    return gsk_transform_ref (other);
 
   if (gsk_transform_is_identity (next))
     {
@@ -1669,14 +1707,12 @@ gsk_transform_invert (GskTransform *self)
 
 /**
  * gsk_transform_equal:
- * @first: the first matrix
- * @second: the second matrix
+ * @first: the first transform
+ * @second: the second transform
  *
- * Checks two matrices for equality. Note that matrices need to be literally
- * identical in their operations, it is not enough that they return the
- * same result in gsk_transform_to_matrix().
+ * Checks two transforms for equality.
  *
- * Returns: %TRUE if the two matrices can be proven to be equal
+ * Returns: %TRUE if the two transforms peform the same operation.
  **/
 gboolean
 gsk_transform_equal (GskTransform *first,
@@ -1720,10 +1756,10 @@ gsk_transform_get_category (GskTransform *self)
 /*
  * gsk_transform_new: (constructor):
  *
- * Creates a new identity matrix. This function is meant to be used by language
- * bindings. For C code, this equivalent to using %NULL.
+ * Creates a new identity transform. This function is meant to be used by language
+ * bindings. For C code, this is equivalent to using %NULL.
  *
- * Returns: A new identity matrix
+ * Returns: A new identity transform
  **/
 GskTransform *
 gsk_transform_new (void)

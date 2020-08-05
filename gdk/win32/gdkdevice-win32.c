@@ -29,34 +29,6 @@
 
 G_DEFINE_TYPE (GdkDeviceWin32, gdk_device_win32, GDK_TYPE_DEVICE)
 
-static gboolean
-gdk_device_win32_get_history (GdkDevice      *device,
-                              GdkSurface      *window,
-                              guint32         start,
-                              guint32         stop,
-                              GdkTimeCoord ***events,
-                              gint           *n_events)
-{
-  return FALSE;
-}
-
-static void
-gdk_device_win32_get_state (GdkDevice       *device,
-                            GdkSurface       *window,
-                            gdouble         *axes,
-                            GdkModifierType *mask)
-{
-  double x, y;
-
-  gdk_surface_get_device_position (window, device, &x, &y, mask);
-
-  if (axes)
-    {
-      axes[0] = round (x);
-      axes[1] = round (y);
-    }
-}
-
 static void
 gdk_device_win32_set_surface_cursor (GdkDevice *device,
                                     GdkSurface *window,
@@ -100,7 +72,7 @@ gdk_device_win32_query_state (GdkDevice        *device,
 {
   POINT point;
   HWND hwnd, hwndc;
-  gint scale;
+  int scale;
 
   if (window)
     {
@@ -158,7 +130,7 @@ gdk_device_win32_grab (GdkDevice    *device,
                        GdkCursor    *cursor,
                        guint32       time_)
 {
-  /* No support for grabbing the slave atm */
+  /* No support for grabbing physical devices atm */
   return GDK_GRAB_NOT_VIEWABLE;
 }
 
@@ -177,8 +149,8 @@ screen_to_client (HWND hwnd, POINT screen_pt, POINT *client_pt)
 
 GdkSurface *
 _gdk_device_win32_surface_at_position (GdkDevice       *device,
-                                       gdouble         *win_x,
-                                       gdouble         *win_y,
+                                       double          *win_x,
+                                       double          *win_y,
                                        GdkModifierType *mask)
 {
   GdkSurface *window = NULL;
@@ -235,8 +207,6 @@ gdk_device_win32_class_init (GdkDeviceWin32Class *klass)
 {
   GdkDeviceClass *device_class = GDK_DEVICE_CLASS (klass);
 
-  device_class->get_history = gdk_device_win32_get_history;
-  device_class->get_state = gdk_device_win32_get_state;
   device_class->set_surface_cursor = gdk_device_win32_set_surface_cursor;
   device_class->query_state = gdk_device_win32_query_state;
   device_class->grab = gdk_device_win32_grab;
@@ -251,6 +221,6 @@ gdk_device_win32_init (GdkDeviceWin32 *device_win32)
 
   device = GDK_DEVICE (device_win32);
 
-  _gdk_device_add_axis (device, NULL, GDK_AXIS_X, 0, 0, 1);
-  _gdk_device_add_axis (device, NULL, GDK_AXIS_Y, 0, 0, 1);
+  _gdk_device_add_axis (device, GDK_AXIS_X, 0, 0, 1);
+  _gdk_device_add_axis (device, GDK_AXIS_Y, 0, 0, 1);
 }

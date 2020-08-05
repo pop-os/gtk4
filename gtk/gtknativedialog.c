@@ -27,8 +27,6 @@
 #include "gtkfilechooserwidget.h"
 #include "gtkfilechooserwidgetprivate.h"
 #include "gtkfilechooserutils.h"
-#include "gtkfilechooserembed.h"
-#include "gtkfilesystem.h"
 #include "gtksizerequest.h"
 #include "gtktypebuiltins.h"
 #include "gtkintl.h"
@@ -37,7 +35,6 @@
 #include "gtkstylecontext.h"
 #include "gtkheaderbar.h"
 #include "gtklabel.h"
-#include "gtkfilechooserentry.h"
 
 /**
  * SECTION:gtknativedialog
@@ -69,7 +66,7 @@ struct _GtkNativeDialogPrivate
   guint modal : 1;
 
   /* Run state */
-  gint run_response_id;
+  int run_response_id;
   GMainLoop *run_loop; /* Non-NULL when in run */
 };
 

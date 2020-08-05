@@ -31,36 +31,25 @@ G_BEGIN_DECLS
 #define GDK_DEVICE_GET_CLASS(o) (G_TYPE_INSTANCE_GET_CLASS ((o), GDK_TYPE_DEVICE, GdkDeviceClass))
 
 typedef struct _GdkDeviceClass GdkDeviceClass;
-typedef struct _GdkDeviceKey GdkDeviceKey;
-
-struct _GdkDeviceKey
-{
-  guint keyval;
-  GdkModifierType modifiers;
-};
 
 struct _GdkDevice
 {
   GObject parent_instance;
 
-  gchar *name;
+  char *name;
   GdkInputSource source;
   gboolean has_cursor;
-  gint num_keys;
-  GdkAxisFlags axis_flags;
-  GdkDeviceKey *keys;
   GdkDisplay *display;
-  /* Paired master for master,
-   * associated master for slaves
+  /* The paired logical device for logical devices,
+   * or the associated logical device for physical ones
    */
   GdkDevice *associated;
-  GList *slaves;
-  GdkDeviceType type;
+  GList *physical_devices;
   GArray *axes;
   guint num_touches;
 
-  gchar *vendor_id;
-  gchar *product_id;
+  char *vendor_id;
+  char *product_id;
 
   GdkSeat *seat;
   GdkDeviceTool *last_tool;
@@ -70,16 +59,9 @@ struct _GdkDeviceClass
 {
   GObjectClass parent_class;
 
-  gboolean (* get_history)   (GdkDevice      *device,
-                              GdkSurface      *surface,
-                              guint32         start,
-                              guint32         stop,
-                              GdkTimeCoord ***events,
-                              gint           *n_events);
-
   void (* get_state)         (GdkDevice       *device,
                               GdkSurface       *surface,
-                              gdouble         *axes,
+                              double          *axes,
                               GdkModifierType *mask);
 
   void (* set_surface_cursor)(GdkDevice *device,
@@ -89,8 +71,8 @@ struct _GdkDeviceClass
   void (* query_state)       (GdkDevice       *device,
                               GdkSurface       *surface,
                               GdkSurface      **child_surface,
-                              gdouble          *win_x,
-                              gdouble          *win_y,
+                              double           *win_x,
+                              double           *win_y,
                               GdkModifierType  *mask);
   GdkGrabStatus (* grab)     (GdkDevice        *device,
                               GdkSurface        *surface,
@@ -113,59 +95,57 @@ void  _gdk_device_set_associated_device (GdkDevice *device,
 
 void  _gdk_device_reset_axes (GdkDevice   *device);
 guint _gdk_device_add_axis   (GdkDevice   *device,
-                              const char  *label_atom,
                               GdkAxisUse   use,
-                              gdouble      min_value,
-                              gdouble      max_value,
-                              gdouble      resolution);
+                              double       min_value,
+                              double       max_value,
+                              double       resolution);
 void _gdk_device_get_axis_info (GdkDevice  *device,
-				guint       index,
-				const char**label_atom,
-				GdkAxisUse *use,
-				gdouble    *min_value,
-				gdouble    *max_value,
-				gdouble    *resolution);
-
-void _gdk_device_set_keys    (GdkDevice   *device,
-                              guint        num_keys);
+                                guint       index,
+                                GdkAxisUse *use,
+                                double     *min_value,
+                                double     *max_value,
+                                double     *resolution);
 
 gboolean   _gdk_device_translate_surface_coord (GdkDevice *device,
                                                 GdkSurface *surface,
                                                 guint      index,
-                                                gdouble    value,
-                                                gdouble   *axis_value);
+                                                double     value,
+                                                double    *axis_value);
 
 gboolean   _gdk_device_translate_screen_coord (GdkDevice *device,
                                                GdkSurface *surface,
-                                               gdouble    surface_root_x,
-                                               gdouble    surface_root_y,
-                                               gdouble    screen_width,
-                                               gdouble    screen_height,
+                                               double     surface_root_x,
+                                               double     surface_root_y,
+                                               double     screen_width,
+                                               double     screen_height,
                                                guint      index,
-                                               gdouble    value,
-                                               gdouble   *axis_value);
+                                               double     value,
+                                               double    *axis_value);
 
 gboolean   _gdk_device_translate_axis         (GdkDevice *device,
                                                guint      index,
-                                               gdouble    value,
-                                               gdouble   *axis_value);
+                                               double     value,
+                                               double    *axis_value);
 
 GdkTimeCoord ** _gdk_device_allocate_history  (GdkDevice *device,
-                                               gint       n_events);
+                                               int        n_events);
 
-void _gdk_device_add_slave (GdkDevice *device,
-                            GdkDevice *slave);
-void _gdk_device_remove_slave (GdkDevice *device,
-                               GdkDevice *slave);
+GList * gdk_device_list_physical_devices        (GdkDevice *device);
+
+void    _gdk_device_add_physical_device         (GdkDevice *device,
+                                                 GdkDevice *physical);
+void    _gdk_device_remove_physical_device      (GdkDevice *device,
+                                                 GdkDevice *physical);
+
 void _gdk_device_query_state                  (GdkDevice        *device,
                                                GdkSurface        *surface,
                                                GdkSurface       **child_surface,
-                                               gdouble          *win_x,
-                                               gdouble          *win_y,
+                                               double           *win_x,
+                                               double           *win_y,
                                                GdkModifierType  *mask);
 GdkSurface * _gdk_device_surface_at_position  (GdkDevice        *device,
-                                               gdouble          *win_x,
-                                               gdouble          *win_y,
+                                               double           *win_x,
+                                               double           *win_y,
                                                GdkModifierType  *mask);
 
 void  gdk_device_set_seat  (GdkDevice *device,

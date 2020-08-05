@@ -111,7 +111,7 @@ static GdkEvent * gdk_x11_display_translate_event (GdkEventTranslator *translato
 
 static void gdk_internal_connection_watch (Display  *display,
 					   XPointer  arg,
-					   gint      fd,
+					   int       fd,
 					   gboolean  opening,
 					   XPointer *watch_data);
 
@@ -119,8 +119,8 @@ typedef struct _GdkEventTypeX11 GdkEventTypeX11;
 
 struct _GdkEventTypeX11
 {
-  gint base;
-  gint n_events;
+  int base;
+  int n_events;
 };
 
 /* Note that we never *directly* use WM_LOCALE_NAME, WM_PROTOCOLS,
@@ -441,7 +441,7 @@ gdk_check_wm_desktop_changed (GdkSurface *surface)
   GdkDisplay *display = GDK_SURFACE_DISPLAY (surface);
 
   Atom type;
-  gint format;
+  int format;
   gulong nitems;
   gulong bytes_after;
   guchar *data;
@@ -477,7 +477,7 @@ gdk_check_wm_state_changed (GdkSurface *surface)
   GdkX11Screen *screen = GDK_SURFACE_SCREEN (surface);
 
   Atom type;
-  gint format;
+  int format;
   gulong nitems;
   gulong bytes_after;
   guchar *data;
@@ -542,7 +542,7 @@ gdk_check_edge_constraints_changed (GdkSurface *surface)
   GdkDisplay *display = GDK_SURFACE_DISPLAY (surface);
 
   Atom type;
-  gint format;
+  int format;
   gulong nitems;
   gulong bytes_after;
   guchar *data;
@@ -923,8 +923,8 @@ gdk_x11_display_translate_event (GdkEventTranslator *translator,
 	      !xevent->xconfigure.override_redirect &&
 	      !GDK_SURFACE_DESTROYED (surface))
 	    {
-	      gint tx = 0;
-	      gint ty = 0;
+	      int tx = 0;
+	      int ty = 0;
 	      Window child_window = 0;
 
               x = y = 0;
@@ -1184,7 +1184,7 @@ _gdk_wm_protocols_filter (const XEvent  *xevent,
           if (timings)
             timings->drawn_time = frame_drawn_time;
 
-          if (surface_impl->toplevel->frame_pending)
+          if (!surface_impl->toplevel->frame_still_painting && surface_impl->toplevel->frame_pending)
             {
               surface_impl->toplevel->frame_pending = FALSE;
               gdk_surface_thaw_updates (win);
@@ -1331,7 +1331,7 @@ gdk_event_init (GdkDisplay *display)
 
 static void
 set_sm_client_id (GdkDisplay  *display,
-                  const gchar *sm_client_id)
+                  const char *sm_client_id)
 {
   GdkX11Display *display_x11 = GDK_X11_DISPLAY (display);
 
@@ -1350,7 +1350,7 @@ set_sm_client_id (GdkDisplay  *display,
 
 void
 gdk_display_setup_window_visual (GdkDisplay *display,
-                                 gint        depth,
+                                 int         depth,
                                  Visual     *visual,
                                  Colormap    colormap,
                                  gboolean    rgba)
@@ -1377,16 +1377,16 @@ gdk_display_setup_window_visual (GdkDisplay *display,
  *     %NULL on error.
  **/
 GdkDisplay *
-gdk_x11_display_open (const gchar *display_name)
+gdk_x11_display_open (const char *display_name)
 {
   Display *xdisplay;
   GdkDisplay *display;
   GdkX11Display *display_x11;
-  gint argc;
-  gchar *argv[1];
+  int argc;
+  char *argv[1];
   XClassHint *class_hint;
-  gint ignore;
-  gint maj, min;
+  int ignore;
+  int maj, min;
   char *cm_name;
 
   XInitThreads ();
@@ -1549,8 +1549,8 @@ gdk_x11_display_open (const gchar *display_name)
   
 #ifdef HAVE_XKB
   {
-    gint xkb_major = XkbMajorVersion;
-    gint xkb_minor = XkbMinorVersion;
+    int xkb_major = XkbMajorVersion;
+    int xkb_minor = XkbMinorVersion;
     if (XkbLibraryVersion (&xkb_major, &xkb_minor))
       {
         xkb_major = XkbMajorVersion;
@@ -1665,7 +1665,7 @@ typedef struct _GdkInternalConnection GdkInternalConnection;
 
 struct _GdkInternalConnection
 {
-  gint	         fd;
+  int	         fd;
   GSource	*source;
   Display	*display;
 };
@@ -1723,7 +1723,7 @@ gdk_remove_connection_handler (GdkInternalConnection *connection)
 static void
 gdk_internal_connection_watch (Display  *display,
 			       XPointer  arg,
-			       gint      fd,
+			       int       fd,
 			       gboolean  opening,
 			       XPointer *watch_data)
 {
@@ -1733,10 +1733,10 @@ gdk_internal_connection_watch (Display  *display,
     gdk_remove_connection_handler ((GdkInternalConnection *)*watch_data);
 }
 
-static const gchar *
+static const char *
 gdk_x11_display_get_name (GdkDisplay *display)
 {
-  return (gchar *) DisplayString (GDK_X11_DISPLAY (display)->xdisplay);
+  return (char *) DisplayString (GDK_X11_DISPLAY (display)->xdisplay);
 }
 
 gboolean
@@ -1760,13 +1760,9 @@ device_grab_update_callback (GdkDisplay *display,
                              gpointer    data,
                              gulong      serial)
 {
-  GdkPointerSurfaceInfo *pointer_info;
   GdkDevice *device = data;
 
-  pointer_info = _gdk_display_get_pointer_info (display, device);
-  _gdk_display_device_grab_update (display, device,
-                                   pointer_info->last_slave ? pointer_info->last_slave : device,
-                                   serial);
+  _gdk_display_device_grab_update (display, device, serial);
 }
 
 #define XSERVER_TIME_IS_LATER(time1, time2)                        \
@@ -1777,7 +1773,7 @@ device_grab_update_callback (GdkDisplay *display,
 void
 _gdk_x11_display_update_grab_info (GdkDisplay *display,
                                    GdkDevice  *device,
-                                   gint        status)
+                                   int         status)
 {
   if (status == GrabSuccess)
     _gdk_x11_roundtrip_async (display, device_grab_update_callback, device);
@@ -1833,7 +1829,18 @@ gdk_x11_display_has_pending (GdkDisplay *display)
   return XPending (GDK_DISPLAY_XDISPLAY (display));
 }
 
-static GdkSurface *
+/**
+ * gdk_x11_display_get_default_group:
+ * @display: a #GdkDisplay
+ *
+ * Returns the default group leader surface for all toplevel surfaces
+ * on @display. This surface is implicitly created by GDK.
+ * See gdk_surface_set_group().
+ *
+ * Returns: (transfer none): The default group leader surface
+ * for @display
+ */
+GdkSurface *
 gdk_x11_display_get_default_group (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
@@ -2091,7 +2098,7 @@ static void
 gdk_x11_display_make_default (GdkDisplay *display)
 {
   GdkX11Display *display_x11 = GDK_X11_DISPLAY (display);
-  const gchar *startup_id;
+  const char *startup_id;
 
   g_free (display_x11->startup_notification_id);
   display_x11->startup_notification_id = NULL;
@@ -2255,9 +2262,9 @@ gdk_x11_display_broadcast_startup_message (GdkDisplay *display,
 
 static void
 gdk_x11_display_notify_startup_complete (GdkDisplay  *display,
-                                         const gchar *startup_id)
+                                         const char *startup_id)
 {
-  gchar *free_this = NULL;
+  char *free_this = NULL;
 
   if (startup_id == NULL)
     {
@@ -2327,7 +2334,7 @@ gdk_x11_display_get_user_time (GdkDisplay *display)
  * 
  * Returns: the startup notification ID for @display
  */
-const gchar *
+const char *
 gdk_x11_display_get_startup_notification_id (GdkDisplay *display)
 {
   return GDK_X11_DISPLAY (display)->startup_notification_id;
@@ -2355,10 +2362,10 @@ gdk_x11_display_get_startup_notification_id (GdkDisplay *display)
  **/
 void
 gdk_x11_display_set_startup_notification_id (GdkDisplay  *display,
-                                             const gchar *startup_id)
+                                             const char *startup_id)
 {
   GdkX11Display *display_x11;
-  gchar *time_str;
+  char *time_str;
 
   display_x11 = GDK_X11_DISPLAY (display);
 
@@ -2374,7 +2381,7 @@ gdk_x11_display_set_startup_notification_id (GdkDisplay  *display,
       if (time_str != NULL)
         {
           gulong retval;
-          gchar *end;
+          char *end;
           errno = 0;
 
           /* Skip past the "_TIME" part */
@@ -2461,8 +2468,8 @@ _gdk_x11_display_error_event (GdkDisplay  *display,
 
   if (!ignore)
     {
-      gchar buf[64];
-      gchar *msg;
+      char buf[64];
+      char *msg;
 
       XGetErrorText (display_x11->xdisplay, error->error_code, buf, 63);
 
@@ -2559,7 +2566,7 @@ gdk_x11_display_error_trap_push (GdkDisplay *display)
     g_slist_prepend (display_x11->error_traps, trap);
 }
 
-static gint
+static int
 gdk_x11_display_error_trap_pop_internal (GdkDisplay *display,
                                          gboolean    need_code)
 {
@@ -2647,7 +2654,7 @@ gdk_x11_display_error_trap_pop_internal (GdkDisplay *display,
  */
 void
 gdk_x11_display_set_surface_scale (GdkDisplay *display,
-                                  gint        scale)
+                                  int         scale)
 {
   GdkX11Screen *x11_screen;
   gboolean need_reread_settings = FALSE;
@@ -2692,7 +2699,7 @@ gdk_x11_display_set_surface_scale (GdkDisplay *display,
  *
  * Returns: X error code or 0 on success
  */
-gint
+int
 gdk_x11_display_error_trap_pop (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_X11_DISPLAY (display), Success);
@@ -2733,7 +2740,7 @@ gdk_x11_display_error_trap_pop_ignored (GdkDisplay *display)
  * session management and the Inter-Client Communication Conventions Manual
  */
 void
-gdk_x11_set_sm_client_id (const gchar *sm_client_id)
+gdk_x11_set_sm_client_id (const char *sm_client_id)
 {
  GSList *displays, *l;
 
@@ -2891,7 +2898,7 @@ gdk_x11_display_get_window_colormap (GdkX11Display *display)
 
 static gboolean
 gdk_x11_display_get_setting (GdkDisplay  *display,
-                             const gchar *name,
+                             const char *name,
                              GValue      *value)
 {
   return gdk_x11_screen_get_setting (GDK_X11_DISPLAY (display)->screen, name, value);
@@ -2941,7 +2948,6 @@ gdk_x11_display_class_init (GdkX11DisplayClass * class)
   display_class->make_default = gdk_x11_display_make_default;
   display_class->has_pending = gdk_x11_display_has_pending;
   display_class->queue_events = _gdk_x11_display_queue_events;
-  display_class->get_default_group = gdk_x11_display_get_default_group;
   display_class->get_app_launch_context = _gdk_x11_display_get_app_launch_context;
 
   display_class->get_next_serial = gdk_x11_display_get_next_serial;

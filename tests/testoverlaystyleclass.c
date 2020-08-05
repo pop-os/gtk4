@@ -27,7 +27,7 @@ main (int argc, char *argv[])
 {
   GtkWidget *win, *overlay, *grid, *main_child, *child, *label, *sw;
   GtkCssProvider *provider;
-  gchar *str;
+  char *str;
 
   gtk_init ();
 
@@ -53,7 +53,7 @@ main (int argc, char *argv[])
   gtk_grid_attach (GTK_GRID (grid), label, 0, 0, 1, 1);
 
   overlay = gtk_overlay_new ();
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_ALWAYS,
                                   GTK_POLICY_ALWAYS);

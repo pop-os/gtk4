@@ -34,8 +34,7 @@
 #include "gtktooltipwindowprivate.h"
 #include "gtkwindowprivate.h"
 #include "gtkwidgetprivate.h"
-#include "gtkaccessible.h"
-#include "gtknativeprivate.h"
+#include "gtknative.h"
 
 /**
  * SECTION:gtktooltip
@@ -136,8 +135,8 @@ static void       gtk_tooltip_set_surface          (GtkTooltip      *tooltip,
 static void       gtk_tooltip_handle_event_internal (GdkEventType   event_type,
                                                      GdkSurface    *surface,
                                                      GtkWidget     *target_widget,
-                                                     gdouble       dx,
-                                                     gdouble       dy);
+                                                     double        dx,
+                                                     double        dy);
 
 static GQuark quark_current_tooltip;
 
@@ -222,7 +221,7 @@ gtk_tooltip_dispose (GObject *object)
  */
 void
 gtk_tooltip_set_markup (GtkTooltip  *tooltip,
-			const gchar *markup)
+			const char *markup)
 {
   g_return_if_fail (GTK_IS_TOOLTIP (tooltip));
 
@@ -239,7 +238,7 @@ gtk_tooltip_set_markup (GtkTooltip  *tooltip,
  */
 void
 gtk_tooltip_set_text (GtkTooltip  *tooltip,
-                      const gchar *text)
+                      const char *text)
 {
   g_return_if_fail (GTK_IS_TOOLTIP (tooltip));
 
@@ -275,7 +274,7 @@ gtk_tooltip_set_icon (GtkTooltip   *tooltip,
  */
 void
 gtk_tooltip_set_icon_from_icon_name (GtkTooltip  *tooltip,
-				     const gchar *icon_name)
+				     const char *icon_name)
 {
   g_return_if_fail (GTK_IS_TOOLTIP (tooltip));
 
@@ -418,10 +417,10 @@ gtk_tooltip_window_hide (GtkWidget *widget,
 
 GtkWidget *
 _gtk_widget_find_at_coords (GdkSurface *surface,
-                            gint       surface_x,
-                            gint       surface_y,
-                            gint      *widget_x,
-                            gint      *widget_y)
+                            int        surface_x,
+                            int        surface_y,
+                            int       *widget_x,
+                            int       *widget_y)
 {
   GtkWidget *event_widget;
   GtkWidget *picked_widget;
@@ -450,7 +449,7 @@ _gtk_widget_find_at_coords (GdkSurface *surface,
   return picked_widget;
 }
 
-static gint
+static int
 tooltip_browse_mode_expired (gpointer data)
 {
   GtkTooltip *tooltip;
@@ -531,8 +530,8 @@ gtk_tooltip_set_surface (GtkTooltip *tooltip,
 static gboolean
 gtk_tooltip_run_requery (GtkWidget  **widget,
 			 GtkTooltip  *tooltip,
-			 gint        *x,
-			 gint        *y)
+			 int         *x,
+			 int         *y)
 {
   gboolean has_tooltip = FALSE;
   gboolean return_value = FALSE;
@@ -655,7 +654,7 @@ gtk_tooltip_position (GtkTooltip *tooltip,
        * If the anchor rectangle is too tall (meaning if we'd be constrained
        * and flip, it'd flip too far away), rely only on the pointer position
        * to position the tooltip. The approximate pointer cursorrectangle is
-       * used as an anchor rectantgle.
+       * used as an anchor rectangle.
        *
        * If the anchor rectangle isn't to tall, make sure the tooltip isn't too
        * far away from the pointer position.
@@ -699,7 +698,7 @@ static void
 gtk_tooltip_show_tooltip (GdkDisplay *display)
 {
   double px, py;
-  gint x, y;
+  int x, y;
   GdkSurface *surface;
   GtkWidget *tooltip_widget;
   GdkSeat *seat;
@@ -801,7 +800,7 @@ gtk_tooltip_hide_tooltip (GtkTooltip *tooltip)
     gtk_widget_hide (tooltip->window);
 }
 
-static gint
+static int
 tooltip_popup_timeout (gpointer data)
 {
   GdkDisplay *display;
@@ -898,7 +897,7 @@ tooltips_enabled (GdkEvent *event)
         GDK_BUTTON5_MASK)) != 0)
     return FALSE;
 
-  source_device = gdk_event_get_source_device (event);
+  source_device = gdk_event_get_device (event);
 
   if (!source_device)
     return FALSE;

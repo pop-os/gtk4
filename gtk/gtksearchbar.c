@@ -119,6 +119,7 @@ enum {
   PROP_SEARCH_MODE_ENABLED,
   PROP_SHOW_CLOSE_BUTTON,
   PROP_CHILD,
+  PROP_KEY_CAPTURE_WIDGET,
   LAST_PROPERTY
 };
 
@@ -130,7 +131,7 @@ static void
 gtk_search_bar_buildable_add_child (GtkBuildable *buildable,
                                     GtkBuilder   *builder,
                                     GObject      *child,
-                                    const gchar  *type)
+                                    const char   *type)
 {
   if (GTK_IS_WIDGET (child))
     gtk_search_bar_set_child (GTK_SEARCH_BAR (buildable), GTK_WIDGET (child));
@@ -206,6 +207,9 @@ gtk_search_bar_set_property (GObject      *object,
     case PROP_CHILD:
       gtk_search_bar_set_child (bar, g_value_get_object (value));
       break;
+    case PROP_KEY_CAPTURE_WIDGET:
+      gtk_search_bar_set_key_capture_widget (bar, g_value_get_object (value));
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -230,6 +234,9 @@ gtk_search_bar_get_property (GObject    *object,
       break;
     case PROP_CHILD:
       g_value_set_object (value, gtk_search_bar_get_child (bar));
+      break;
+    case PROP_KEY_CAPTURE_WIDGET:
+      g_value_set_object (value, gtk_search_bar_get_key_capture_widget (bar));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -287,6 +294,7 @@ gtk_search_bar_class_init (GtkSearchBarClass *klass)
   object_class->get_property = gtk_search_bar_get_property;
 
   widget_class->compute_expand = gtk_search_bar_compute_expand;
+  widget_class->focus = gtk_widget_focus_child;
 
   /**
    * GtkSearchBar:search-mode-enabled:
@@ -317,6 +325,13 @@ gtk_search_bar_class_init (GtkSearchBarClass *klass)
                                                   P_("The child widget"),
                                                   GTK_TYPE_WIDGET,
                                                   GTK_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_EXPLICIT_NOTIFY);
+
+  widget_props[PROP_KEY_CAPTURE_WIDGET]
+      = g_param_spec_object ("key-capture-widget",
+                             P_("Key Capture Widget"),
+                             P_("Key Capture Widget"),
+                             GTK_TYPE_WIDGET,
+                             GTK_PARAM_READWRITE|G_PARAM_CONSTRUCT|G_PARAM_EXPLICIT_NOTIFY);
 
   g_object_class_install_properties (object_class, LAST_PROPERTY, widget_props);
 
@@ -610,6 +625,8 @@ gtk_search_bar_set_key_capture_widget (GtkSearchBar *bar,
                         G_CALLBACK (capture_widget_key_handled), bar);
       gtk_widget_add_controller (widget, bar->capture_widget_controller);
     }
+
+  g_object_notify_by_pspec (G_OBJECT (bar), widget_props[PROP_KEY_CAPTURE_WIDGET]);
 }
 
 /**

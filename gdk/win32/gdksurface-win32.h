@@ -34,6 +34,10 @@
 
 #include <windows.h>
 
+#ifdef GDK_WIN32_ENABLE_EGL
+# include <epoxy/egl.h>
+#endif
+
 G_BEGIN_DECLS
 
 typedef enum
@@ -79,10 +83,10 @@ typedef enum _GdkWin32AeroSnapState GdkWin32AeroSnapState;
 
 struct _GdkRectangleDouble
 {
-  gdouble x;
-  gdouble y;
-  gdouble width;
-  gdouble height;
+  double x;
+  double y;
+  double width;
+  double height;
 };
 
 typedef struct _GdkRectangleDouble GdkRectangleDouble;
@@ -117,14 +121,14 @@ struct _GdkW32DragMoveResizeContext
    * The op will be canceled only when *this* button
    * is released.
    */
-  gint               button;
+  int                button;
 
   /* Initial cursor position when the operation began.
    * Current cursor position is subtracted from it to find how far
    * to move window border(s).
    */
-  gint               start_root_x;
-  gint               start_root_y;
+  int                start_root_x;
+  int                start_root_y;
 
   /* Initial window rectangle (position and size).
    * The window is resized/moved relative to this (see start_root_*).
@@ -135,7 +139,7 @@ struct _GdkW32DragMoveResizeContext
   guint32            timestamp;
 
   /* TRUE if during the next redraw we should call SetWindowPos() to push
-   * the window size and poistion to the native window.
+   * the window size and position to the native window.
    */
   gboolean           native_move_resize_pending;
 
@@ -153,8 +157,8 @@ struct _GdkW32DragMoveResizeContext
 
   /* Used to draw the indicator */
   cairo_surface_t   *indicator_surface;
-  gint               indicator_surface_width;
-  gint               indicator_surface_height;
+  int                indicator_surface_width;
+  int                indicator_surface_height;
 
   /* Size/position of shape_indicator */
   GdkRectangle       indicator_window_rect;
@@ -240,7 +244,7 @@ struct _GdkWin32Surface
   wchar_t leading_surrogate_keyup;
 
   /* Window size hints */
-  gint hint_flags;
+  int hint_flags;
   GdkGeometry hints;
 
   /* Non-NULL for any window that is registered as a drop target.
@@ -256,18 +260,18 @@ struct _GdkWin32Surface
 
   GdkSurface *transient_owner;
   GSList    *transient_children;
-  gint       num_transients;
+  int        num_transients;
   gboolean   changing_state;
 
-  gint initial_x;
-  gint initial_y;
+  int initial_x;
+  int initial_y;
 
   /* left/right/top/bottom width of the shadow/resize-grip around the window */
   RECT margins;
 
   /* left+right and top+bottom from @margins */
-  gint margins_x;
-  gint margins_y;
+  int margins_x;
+  int margins_y;
 
   /* Set to TRUE when GTK tells us that margins are 0 everywhere.
    * We don't actually set margins to 0, we just set this bit.
@@ -304,14 +308,14 @@ struct _GdkWin32Surface
    * does not provide a way to query its size,
    * so we have to remember it ourselves.
    */
-  gint             dib_width;
-  gint             dib_height;
+  int              dib_width;
+  int              dib_height;
 
   /* If the client wants uniformly-transparent window,
    * we remember the opacity value here and apply it
    * during UpdateLayredWindow() call, for layered windows.
    */
-  gdouble          layered_opacity;
+  double           layered_opacity;
 
   HDC              hdc;
   int              hdc_count;
@@ -348,9 +352,15 @@ struct _GdkWin32Surface
   LONG_PTR temp_styles;
 
   /* scale of window on HiDPI */
-  gint surface_scale;
-  gint unscaled_width;
-  gint unscaled_height;
+  int surface_scale;
+  int unscaled_width;
+  int unscaled_height;
+
+#ifdef GDK_WIN32_ENABLE_EGL
+  EGLSurface egl_surface;
+  EGLSurface egl_dummy_surface;
+  guint egl_force_redraw_all : 1;
+#endif
 };
 
 struct _GdkWin32SurfaceClass
@@ -362,10 +372,10 @@ GType _gdk_win32_surface_get_type (void);
 
 void  _gdk_win32_surface_update_style_bits   (GdkSurface *window);
 
-gint  _gdk_win32_surface_get_scale_factor    (GdkSurface *window);
+int   _gdk_win32_surface_get_scale_factor    (GdkSurface *window);
 
 void  _gdk_win32_get_window_client_area_rect (GdkSurface *window,
-                                              gint        scale,
+                                              int         scale,
                                               RECT       *rect);
 void  _gdk_win32_update_layered_window_from_cache (GdkSurface *window,
                                                    RECT       *client_rect,
@@ -374,23 +384,29 @@ void  _gdk_win32_update_layered_window_from_cache (GdkSurface *window,
                                                    gboolean    do_paint);
 
 void gdk_win32_surface_move (GdkSurface *surface,
-                             gint        x,
-                             gint        y);
+                             int         x,
+                             int         y);
 
 void gdk_win32_surface_move_resize (GdkSurface *window,
-                                    gint        x,
-                                    gint        y,
-                                    gint        width,
-                                    gint        height);
+                                    int         x,
+                                    int         y,
+                                    int         width,
+                                    int         height);
 
 void
 gdk_win32_surface_get_queued_window_rect (GdkSurface *surface,
-                                          gint        scale,
+                                          int         scale,
                                           RECT       *return_window_rect);
 
 void
 gdk_win32_surface_apply_queued_move_resize (GdkSurface *surface,
                                             RECT        window_rect);
+
+#ifdef GDK_WIN32_ENABLE_EGL
+EGLSurface _gdk_win32_surface_get_egl_surface (GdkSurface *surface,
+                                               EGLConfig   config,
+                                               gboolean    is_dummy);
+#endif
 
 G_END_DECLS
 

@@ -137,8 +137,41 @@ use gtk_button_new_from_icon_name().
 
 ### Stop using GtkWidget event signals
 
-Event controllers and #GtkGestures replace event signals in GTK 4.
-They have been backported to GTK 3.x so you can prepare for this change.
+Event controllers and gestures replace event signals in GTK 4.
+
+Most of them have been backported to GTK 3.x so you can prepare
+for this change.
+
+| Signal | Event controller |
+| --- | --- |
+| ::event | #GtkEventControllerLegacy |
+| ::event-after | #GtkEventControllerLegacy |
+| ::button-press-event | #GtkGestureClick |
+| ::button-release-event | #GtkGestureClick |
+| ::touch-event | various touch gestures |
+| ::scroll-event | #GtkEventControllerScroll |
+| ::motion-notify-event | #GtkEventControllerMotion |
+| ::delete-event | - |
+| ::key-press-event | #GtkEventControllerKey |
+| ::key-release-event | #GtkEventControllerKey |
+| ::enter-notify-event | #GtkEventControllerMotion |
+| ::leave-notify-event | #GtkEventControllerMotion |
+| ::configure-event | replaced by #GdkSurface::size-changed |
+| ::focus-in-event | #GtkEventControllerFocus |
+| ::focus-out-event | #GtkEventControllerFocus |
+| ::map-event | replaced by #GdkSurface:mapped |
+| ::unmap-event | replaced by #GdkSurface:mapped |
+| ::property-notify-event | replaced by #GdkClipboard |
+| ::selection-clear-event | replaced by #GdkClipboard |
+| ::selection-request-event | replaced by #GdkClipboard |
+| ::selection-notify-event | replaced by #GdkClipboard |
+| Drag-and-Drop signals | #GtkDragSource, #GtkDropTarget |
+| ::proximity-in-event | #GtkGestureStylus |
+| ::proximity-out-event | #GtkGestureStylus |
+| ::visibility-notify-event | - |
+| ::window-state-event | replaced by #GdkToplevel:state |
+| ::damage-event | - |
+| ::grab-broken-event | - |
 
 ### Set a proper application ID
 
@@ -170,7 +203,7 @@ in GTK 3, you can prepare for the switch by using gtk_widget_destroy()
 only on toplevel windows, and replace all other uses with
 gtk_container_remove() or g_object_unref().
 
-### Reduce the use of generic container APIs</title>
+### Reduce the use of generic container APIs
 
 GTK 4 removes gtk_container_add() and gtk_container_remove(). While there
 is not always a replacement for gtk_container_remove() in GTK 3, you can
@@ -276,10 +309,9 @@ use the #GtkWindow:modal property of the dialog.
 ### Adapt to coordinate API changes
 
 A number of coordinate APIs in GTK 3 had _double variants: 
-gdk_device_get_position(), gdk_device_get_surface_at_position(),
-gdk_surface_get_device_position(). These have been changed to use
-doubles, and the _double variants have been removed. Update your
-code accordingly.
+gdk_device_get_surface_at_position(), gdk_surface_get_device_position().
+These have been changed to use doubles, and the _double variants
+have been removed. Update your code accordingly.
 
 Any APIs that deal with global (or root) coordinates have been
 removed in GTK 4, since not all backends support them. You should
@@ -411,6 +443,7 @@ and gtk_box_append(). You can also reorder box children as necessary.
 The gtk_header_bar_set_show_close_button() function has been renamed to
 the more accurate name gtk_header_bar_set_show_title_buttons(). The
 corresponding getter and the property itself have also been renamed.
+ The default value of the property is now %TRUE instead of %FALSE.
 
 The gtk_header_bar_set_custom_title() function has been renamed to
 the more accurate name gtk_header_bar_set_title_widget(). The
@@ -456,6 +489,11 @@ as property. GtkNotebook and GtkAssistant are similar.
 
 gtk4-builder-tool can help with this conversion, with the --3to4 option
 of the simplify command.
+
+### Adapt to GtkScrolledWindow API changes
+
+The constructor for GtkScrolledWindow no longer takes the adjustments
+as arguments - these were almost always %NULL.
 
 ### Adapt to GtkBin removal
 
@@ -524,6 +562,26 @@ they will have to be converted either to layout properties provided
 by a layout manager (if they are layout-related), or handled in some
 other way. One possibility is to use child meta objects, as seen with
 GtkAssistantPage, GtkStackPage and the like.
+
+The replacements for gtk_container_add() are:
+
+| Widget | Replacement |
+| ------ | ----------- |
+| GtkActionBar    | gtk_action_bar_pack_start(), gtk_action_bar_pack_end() |
+| GtkBox          | gtk_box_append() |
+| GtkExpander     | gtk_expander_set_child() |
+| GtkFixed        | gtk_fixed_put() |
+| GtkFlowBox      | gtk_flow_box_insert() |
+| GtkGrid         | gtk_grid_attach() |
+| GtkHeaderBar    | gtk_header_bar_pack_start(), gtk_header_bar_pack_end() |
+| GtkIconView     | - |
+| GtkInfoBar      | gtk_info_bar_add_child() |
+| GtkListBox      | gtk_list_box_insert() |
+| GtkNotebook     | gtk_notebook_append_page() |
+| GtkPaned        | gtk_paned_set_start_child(), gtk_paned_set_end_child() |
+| GtkStack        | gtk_stack_add_named() |
+| GtkTextView     | gtk_text_view_add_child_at_anchor(), gtk_text_view_add_overlay() |
+| GtkTreeView     | - |
 
 ### Stop using GtkContainer::border-width
 
@@ -638,7 +696,7 @@ nodes.
 
 If you are using a #GtkDrawingArea for custom drawing, you need to switch
 to using gtk_drawing_area_set_draw_func() to set a draw function instead
-of connnecting a handler to the #GtkWidget::draw signal.
+of connecting a handler to the #GtkWidget::draw signal.
 
 ### Stop using APIs to query GdkSurfaces
 
@@ -715,6 +773,14 @@ Observing widget contents and widget size is now done by using the
 Instead of a monitor number, #GdkMonitor is now used throughout. 
 gdk_display_get_monitors() returns the list of monitors that can be queried
 or observed for monitors to pass to APIs like gtk_window_fullscreen_on_monitor().
+
+### Adapt to monitor API changes
+
+The gdk_monitor_get_workarea() API is gone. Individual backends can still
+provide this information, for example with gdk_x11_monitor_get_workarea().
+
+If you use this information, your code should check which backend is in
+use and then call the appropriate backend API.
 
 ### Adapt to cursor API changes
 
@@ -940,3 +1006,18 @@ You can replace calls to <function>gtk_dialog_run()</function>
 by specifying that the #GtkDialog must be modal using
 gtk_window_set_modal() or the %GTK_DIALOG_MODAL flag, and
 connecting to the #GtkDialog::response signal.
+
+## Changes to consider after the switch
+
+GTK 4 has a number of new features that you may want to take
+advantage of once the dust has settled over the initial migration.
+
+### Consider porting to the new list widgets
+
+In GTK 2 and 3, GtkTreeModel and GtkCellRenderer and widgets using
+these were the primary way of displaying data and lists. GTK 4 brings
+a new family of widgets for this purpose that uses list models instead
+of tree models, and widgets instead of cell renderers.
+
+To learn more about the new list widgets, you can read the [List Widget
+Overview](#ListWidget).

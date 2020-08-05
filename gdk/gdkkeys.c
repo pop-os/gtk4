@@ -452,7 +452,7 @@ gdk_keymap_have_bidi_layouts (GdkKeymap *keymap)
  * gdk_keymap_get_caps_lock_state:
  * @keymap: a #GdkKeymap
  *
- * Returns whether the Caps Lock modifer is locked.
+ * Returns whether the Caps Lock modifier is locked.
  *
  * Returns: %TRUE if Caps Lock is on
  */
@@ -468,7 +468,7 @@ gdk_keymap_get_caps_lock_state (GdkKeymap *keymap)
  * gdk_keymap_get_num_lock_state:
  * @keymap: a #GdkKeymap
  *
- * Returns whether the Num Lock modifer is locked.
+ * Returns whether the Num Lock modifier is locked.
  *
  * Returns: %TRUE if Num Lock is on
  */
@@ -484,7 +484,7 @@ gdk_keymap_get_num_lock_state (GdkKeymap *keymap)
  * gdk_keymap_get_scroll_lock_state:
  * @keymap: a #GdkKeymap
  *
- * Returns whether the Scroll Lock modifer is locked.
+ * Returns whether the Scroll Lock modifier is locked.
  *
  * Returns: %TRUE if Scroll Lock is on
  */
@@ -541,7 +541,7 @@ gboolean
 gdk_keymap_get_entries_for_keyval (GdkKeymap     *keymap,
                                    guint          keyval,
                                    GdkKeymapKey **keys,
-                                   gint          *n_keys)
+                                   int           *n_keys)
 {
   GArray *array;
 
@@ -621,7 +621,7 @@ gdk_keymap_get_entries_for_keycode (GdkKeymap     *keymap,
                                     guint          hardware_keycode,
                                     GdkKeymapKey **keys,
                                     guint        **keyvals,
-                                    gint          *n_entries)
+                                    int           *n_entries)
 {
   g_return_val_if_fail (GDK_IS_KEYMAP (keymap), FALSE);
   g_return_val_if_fail (n_entries != NULL, FALSE);
@@ -723,10 +723,10 @@ gboolean
 gdk_keymap_translate_keyboard_state (GdkKeymap       *keymap,
                                      guint            hardware_keycode,
                                      GdkModifierType  state,
-                                     gint             group,
+                                     int              group,
                                      guint           *keyval,
-                                     gint            *effective_group,
-                                     gint            *level,
+                                     int             *effective_group,
+                                     int             *level,
                                      GdkModifierType *consumed_modifiers)
 {
   g_return_val_if_fail (GDK_IS_KEYMAP (keymap), FALSE);
@@ -757,7 +757,7 @@ gdk_keymap_translate_keyboard_state (GdkKeymap       *keymap,
  *     of the key, or %NULL if @keyval is not a valid key. The string
  *     should not be modified.
  */
-const gchar *
+const char *
 gdk_keyval_name (guint keyval)
 {
   return _gdk_keyval_name (keyval);
@@ -777,7 +777,7 @@ gdk_keyval_name (guint keyval)
  *     if the key name is not a valid key
  */
 guint
-gdk_keyval_from_name (const gchar *keyval_name)
+gdk_keyval_from_name (const char *keyval_name)
 {
   return _gdk_keyval_from_name (keyval_name);
 }

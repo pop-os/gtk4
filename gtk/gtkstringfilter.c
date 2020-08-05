@@ -27,7 +27,7 @@
 /**
  * SECTION:gtkstringfilter
  * @Title: GtkStringFilter
- * @Short_description: Filtering by string
+ * @Short_description: Filtering by strings
  *
  * GtkStringFilter determines whether to include items by looking
  * at strings and comparing them to a fixed search term. The strings
@@ -110,9 +110,9 @@ gtk_string_filter_match (GtkFilter *filter,
       !gtk_expression_evaluate (self->expression, item, &value))
     return FALSE;
   s = g_value_get_string (&value);
-  if (s == NULL)
-    return FALSE;
   prepared = gtk_string_filter_prepare (self, s);
+  if (prepared == NULL)
+    return FALSE;
 
   switch (self->match_mode)
     {
@@ -303,6 +303,8 @@ gtk_string_filter_init (GtkStringFilter *self)
 
 /**
  * gtk_string_filter_new:
+ * @expression: (transfer full) (nullable): The expression to evaluate
+ *     or %NULL for none
  *
  * Creates a new string filter.
  *
@@ -312,9 +314,17 @@ gtk_string_filter_init (GtkStringFilter *self)
  * Returns: a new #GtkStringFilter
  **/
 GtkFilter *
-gtk_string_filter_new (void)
+gtk_string_filter_new (GtkExpression *expression)
 {
-  return g_object_new (GTK_TYPE_STRING_FILTER, NULL);
+  GtkFilter *result;
+
+  result = g_object_new (GTK_TYPE_STRING_FILTER,
+                         "expression", expression,
+                         NULL);
+
+  g_clear_pointer (&expression, gtk_expression_unref);
+
+  return result;
 }
 
 /**
@@ -484,7 +494,7 @@ gtk_string_filter_get_match_mode (GtkStringFilter *self)
  * @self: a #GtkStringFilter
  * @mode: the new match mode
  *
- * Sets the match mode fot the filter.
+ * Sets the match mode for the filter.
  */
 void
 gtk_string_filter_set_match_mode (GtkStringFilter *self,

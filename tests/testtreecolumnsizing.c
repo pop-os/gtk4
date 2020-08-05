@@ -48,7 +48,7 @@ create_model (void)
 
   for (i = 0; i < N_ROWS; i++)
     {
-      gchar *str;
+      char *str;
 
       str = g_strdup_printf ("Row %d", i);
       gtk_list_store_insert_with_values (store, NULL, i,
@@ -94,7 +94,7 @@ static void
 combo_box_changed (GtkComboBox *combo_box,
                    gpointer     user_data)
 {
-  gchar *str;
+  char *str;
   GList *list;
   GList *columns;
 
@@ -205,7 +205,7 @@ main (int argc, char **argv)
   gtk_box_append (GTK_BOX (vbox), combo_box);
 
   /* Scrolled window and tree view */
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_AUTOMATIC,
                                   GTK_POLICY_AUTOMATIC);

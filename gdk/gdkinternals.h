@@ -123,6 +123,7 @@ GList* _gdk_event_queue_append       (GdkDisplay *display,
                                       GdkEvent   *event);
 
 void    _gdk_event_queue_handle_motion_compression (GdkDisplay *display);
+void    gdk_event_queue_handle_scroll_compression  (GdkDisplay *display);
 void    _gdk_event_queue_flush                     (GdkDisplay       *display);
 
 gboolean        _gdk_cairo_surface_extents       (cairo_surface_t *surface,
@@ -187,8 +188,8 @@ void _gdk_synthesize_crossing_events (GdkDisplay                 *display,
                                       GdkDevice                  *device,
                                       GdkDevice                  *source_device,
                                       GdkCrossingMode             mode,
-                                      gdouble                     toplevel_x,
-                                      gdouble                     toplevel_y,
+                                      double                      toplevel_x,
+                                      double                      toplevel_y,
                                       GdkModifierType             mask,
                                       guint32                     time_,
                                       GdkEvent                   *event_in_queue,
@@ -228,21 +229,6 @@ typedef enum
   GDK_GRAB_FAILED          = 5
 } GdkGrabStatus;
 
-/**
- * GdkGrabOwnership:
- * @GDK_OWNERSHIP_NONE: All other devices’ events are allowed.
- * @GDK_OWNERSHIP_SURFACE: Other devices’ events are blocked for the grab surface.
- * @GDK_OWNERSHIP_APPLICATION: Other devices’ events are blocked for the whole application.
- *
- * Defines how device grabs interact with other devices.
- */
-typedef enum
-{
-  GDK_OWNERSHIP_NONE,
-  GDK_OWNERSHIP_SURFACE,
-  GDK_OWNERSHIP_APPLICATION
-} GdkGrabOwnership;
-
 typedef enum
 {
   GDK_EXPOSURE_MASK             = 1 << 1,
@@ -273,7 +259,6 @@ typedef enum
 
 GdkGrabStatus gdk_device_grab (GdkDevice        *device,
                                GdkSurface        *surface,
-                               GdkGrabOwnership  grab_ownership,
                                gboolean          owner_events,
                                GdkEventMask      event_mask,
                                GdkCursor        *cursor,
@@ -283,37 +268,36 @@ void gdk_device_ungrab        (GdkDevice        *device,
 void gdk_device_get_position  (GdkDevice        *device,
                                double           *x,
                                double           *y);
-
+int gdk_device_get_n_axes     (GdkDevice       *device);
+gboolean gdk_device_get_axis  (GdkDevice         *device,
+			       double            *axes,
+			       GdkAxisUse         use,
+			       double            *value);
+GdkAxisUse gdk_device_get_axis_use  (GdkDevice         *device,
+				     guint              index_);
 
 void gdk_surface_get_root_coords (GdkSurface *surface,
-                                  gint        x,
-                                  gint        y,
-                                  gint       *root_x,
-                                  gint       *root_y);
+                                  int         x,
+                                  int         y,
+                                  int        *root_x,
+                                  int        *root_y);
 void gdk_surface_get_origin      (GdkSurface *surface,
-                                  gint       *x,
-                                  gint       *y);
+                                  int        *x,
+                                  int        *y);
 
 
 void gdk_surface_get_geometry (GdkSurface *surface,
-                               gint       *x,
-                               gint       *y,
-                               gint       *width,
-                               gint       *height);
+                               int        *x,
+                               int        *y,
+                               int        *width,
+                               int        *height);
 
 GdkGLContext *gdk_surface_get_shared_data_gl_context (GdkSurface *surface);
 
 typedef enum
 {
-  GDK_HINT_POS         = 1 << 0,
   GDK_HINT_MIN_SIZE    = 1 << 1,
   GDK_HINT_MAX_SIZE    = 1 << 2,
-  GDK_HINT_BASE_SIZE   = 1 << 3,
-  GDK_HINT_ASPECT      = 1 << 4,
-  GDK_HINT_RESIZE_INC  = 1 << 5,
-  GDK_HINT_WIN_GRAVITY = 1 << 6,
-  GDK_HINT_USER_POS    = 1 << 7,
-  GDK_HINT_USER_SIZE   = 1 << 8
 } GdkSurfaceHints;
 
 typedef enum
@@ -338,26 +322,19 @@ typedef struct _GdkGeometry GdkGeometry;
 
 struct _GdkGeometry
 {
-  gint min_width;
-  gint min_height;
-  gint max_width;
-  gint max_height;
-  gint base_width;
-  gint base_height;
-  gint width_inc;
-  gint height_inc;
-  gdouble min_aspect;
-  gdouble max_aspect;
-  GdkGravity win_gravity;
+  int min_width;
+  int min_height;
+  int max_width;
+  int max_height;
 };
 
 GDK_AVAILABLE_IN_ALL
 void       gdk_surface_constrain_size      (GdkGeometry    *geometry,
                                             GdkSurfaceHints  flags,
-                                            gint            width,
-                                            gint            height,
-                                            gint           *new_width,
-                                            gint           *new_height);
+                                            int             width,
+                                            int             height,
+                                            int            *new_width,
+                                            int            *new_height);
 
 /*
  * GdkSeatGrabPrepareFunc:
@@ -391,17 +368,21 @@ GdkKeymap *  gdk_display_get_keymap  (GdkDisplay *display);
 void gdk_surface_begin_resize_drag            (GdkSurface     *surface,
                                                GdkSurfaceEdge  edge,
                                                GdkDevice      *device,
-                                               gint            button,
-                                               gint            x,
-                                               gint            y,
+                                               int             button,
+                                               int             x,
+                                               int             y,
                                                guint32         timestamp);
 
 void gdk_surface_begin_move_drag              (GdkSurface     *surface,
                                                GdkDevice      *device,
-                                               gint            button,
-                                               gint            x,
-                                               gint            y,
+                                               int             button,
+                                               int             x,
+                                               int             y,
                                                guint32         timestamp);
+
+void       gdk_surface_freeze_updates      (GdkSurface    *surface);
+void       gdk_surface_thaw_updates        (GdkSurface    *surface);
+
 
 G_END_DECLS
 

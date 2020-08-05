@@ -32,7 +32,9 @@ typedef enum {
   GTK_FILE_CHOOSER_PROP_FILTER,
   GTK_FILE_CHOOSER_PROP_SELECT_MULTIPLE,
   GTK_FILE_CHOOSER_PROP_CREATE_FOLDERS,
-  GTK_FILE_CHOOSER_PROP_LAST                   = GTK_FILE_CHOOSER_PROP_CREATE_FOLDERS
+  GTK_FILE_CHOOSER_PROP_FILTERS,
+  GTK_FILE_CHOOSER_PROP_SHORTCUT_FOLDERS,
+  GTK_FILE_CHOOSER_PROP_LAST                   = GTK_FILE_CHOOSER_PROP_SHORTCUT_FOLDERS
 } GtkFileChooserProp;
 
 void _gtk_file_chooser_install_properties (GObjectClass *klass);
@@ -45,7 +47,14 @@ GQuark _gtk_file_chooser_delegate_get_quark (void) G_GNUC_CONST;
 
 GSettings *_gtk_file_chooser_get_settings_for_widget (GtkWidget *widget);
 
-gchar * _gtk_file_chooser_label_for_file (GFile *file);
+char * _gtk_file_chooser_label_for_file (GFile *file);
+
+gboolean        _gtk_file_info_consider_as_directory (GFileInfo *info);
+gboolean        _gtk_file_has_native_path (GFile *file);
+gboolean        _gtk_file_consider_as_remote (GFile *file);
+GIcon *               _gtk_file_info_get_icon    (GFileInfo *info,
+                                                  int        icon_size,
+                                                  int        scale);
 
 G_END_DECLS
 

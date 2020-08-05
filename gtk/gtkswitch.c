@@ -47,6 +47,10 @@
  *
  * GtkSwitch has four css nodes, the main node with the name switch and subnodes
  * for the slider and the on and off labels. Neither of them is using any style classes.
+ *
+ * # Accessibility
+ *
+ * GtkSwitch uses the #GTK_ACCESSIBLE_ROLE_SWITCH role.
  */
 
 #include "config.h"
@@ -69,8 +73,6 @@
 #include "gtkstylecontextprivate.h"
 #include "gtkwidgetprivate.h"
 
-#include "a11y/gtkswitchaccessible.h"
-
 typedef struct _GtkSwitchClass   GtkSwitchClass;
 
 /**
@@ -90,10 +92,11 @@ struct _GtkSwitch
 
   double handle_pos;
   guint tick_id;
-  GtkProgressTracker tracker;
 
   guint state                 : 1;
   guint is_active             : 1;
+
+  GtkProgressTracker tracker;
 
   GtkWidget *on_image;
   GtkWidget *off_image;
@@ -195,17 +198,15 @@ gtk_switch_begin_toggle_animation (GtkSwitch *self)
 
 static void
 gtk_switch_click_gesture_pressed (GtkGestureClick *gesture,
-                                  gint             n_press,
-                                  gdouble          x,
-                                  gdouble          y,
+                                  int              n_press,
+                                  double           x,
+                                  double           y,
                                   GtkSwitch       *self)
 {
   graphene_rect_t switch_bounds;
 
   if (!gtk_widget_compute_bounds (GTK_WIDGET (self), GTK_WIDGET (self), &switch_bounds))
     return;
-
-  gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
   /* If the press didn't happen in the draggable handle,
    * cancel the pan gesture right away
@@ -217,9 +218,9 @@ gtk_switch_click_gesture_pressed (GtkGestureClick *gesture,
 
 static void
 gtk_switch_click_gesture_released (GtkGestureClick *gesture,
-                                   gint             n_press,
-                                   gdouble          x,
-                                   gdouble          y,
+                                   int              n_press,
+                                   double           x,
+                                   double           y,
                                    GtkSwitch       *self)
 {
   GdkEventSequence *sequence;
@@ -228,13 +229,16 @@ gtk_switch_click_gesture_released (GtkGestureClick *gesture,
 
   if (gtk_widget_contains (GTK_WIDGET (self), x, y) &&
       gtk_gesture_handles_sequence (GTK_GESTURE (gesture), sequence))
-    gtk_switch_begin_toggle_animation (self);
+    {
+      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
+      gtk_switch_begin_toggle_animation (self);
+    }
 }
 
 static void
 gtk_switch_pan_gesture_pan (GtkGesturePan   *gesture,
                             GtkPanDirection  direction,
-                            gdouble          offset,
+                            double           offset,
                             GtkSwitch       *self)
 {
   GtkWidget *widget = GTK_WIDGET (self);
@@ -260,8 +264,8 @@ gtk_switch_pan_gesture_pan (GtkGesturePan   *gesture,
 
 static void
 gtk_switch_pan_gesture_drag_end (GtkGestureDrag *gesture,
-                                 gdouble         x,
-                                 gdouble         y,
+                                 double          x,
+                                 double          y,
                                  GtkSwitch      *self)
 {
   GdkEventSequence *sequence;
@@ -302,7 +306,7 @@ gtk_switch_measure (GtkWidget      *widget,
                     int            *natural_baseline)
 {
   GtkSwitch *self = GTK_SWITCH (widget);
-  gint slider_minimum, slider_natural;
+  int slider_minimum, slider_natural;
   int on_nat, off_nat;
 
   gtk_widget_measure (self->slider, orientation, -1,
@@ -363,7 +367,7 @@ gtk_switch_allocate (GtkWidget *widget,
 
 static void
 gtk_switch_set_action_name (GtkActionable *actionable,
-                            const gchar   *action_name)
+                            const char    *action_name)
 {
   GtkSwitch *self = GTK_SWITCH (actionable);
 
@@ -385,7 +389,7 @@ gtk_switch_set_action_target_value (GtkActionable *actionable,
   gtk_action_helper_set_action_target_value (self->action_helper, action_target);
 }
 
-static const gchar *
+static const char *
 gtk_switch_get_action_name (GtkActionable *actionable)
 {
   GtkSwitch *self = GTK_SWITCH (actionable);
@@ -605,10 +609,9 @@ gtk_switch_class_init (GtkSwitchClass *klass)
   g_object_class_override_property (gobject_class, PROP_ACTION_NAME, "action-name");
   g_object_class_override_property (gobject_class, PROP_ACTION_TARGET, "action-target");
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_SWITCH_ACCESSIBLE);
-  gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_TOGGLE_BUTTON);
-
   gtk_widget_class_set_css_name (widget_class, I_("switch"));
+
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_SWITCH);
 }
 
 static void
@@ -656,6 +659,10 @@ gtk_switch_init (GtkSwitch *self)
 
   self->slider = gtk_gizmo_new ("slider", NULL, NULL, NULL, NULL, NULL, NULL);
   gtk_widget_set_parent (self->slider, GTK_WIDGET (self));
+
+  gtk_accessible_update_state (GTK_ACCESSIBLE (self),
+                               GTK_ACCESSIBLE_STATE_CHECKED, FALSE,
+                               -1);
 }
 
 /**
@@ -690,7 +697,6 @@ gtk_switch_set_active (GtkSwitch *self,
 
   if (self->is_active != is_active)
     {
-      AtkObject *accessible;
       gboolean handled;
 
       self->is_active = is_active;
@@ -704,8 +710,9 @@ gtk_switch_set_active (GtkSwitch *self,
 
       g_object_notify_by_pspec (G_OBJECT (self), switch_props[PROP_ACTIVE]);
 
-      accessible = gtk_widget_get_accessible (GTK_WIDGET (self));
-      atk_object_notify_state_change (accessible, ATK_STATE_CHECKED, self->is_active);
+      gtk_accessible_update_state (GTK_ACCESSIBLE (self),
+                                   GTK_ACCESSIBLE_STATE_CHECKED, is_active,
+                                   -1);
 
       gtk_widget_queue_allocate (GTK_WIDGET (self));
     }

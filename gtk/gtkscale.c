@@ -43,8 +43,6 @@
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
 
-#include "a11y/gtkscaleaccessible.h"
-
 #include <math.h>
 #include <stdlib.h>
 
@@ -79,22 +77,23 @@
  *
  * |[<!-- language="plain" -->
  * scale[.fine-tune][.marks-before][.marks-after]
+ * ├── [value][.top][.right][.bottom][.left]
  * ├── marks.top
  * │   ├── mark
  * │   ┊    ├── [label]
  * │   ┊    ╰── indicator
  * ┊   ┊
  * │   ╰── mark
- * ├── [value][.top][.right][.bottom][.left]
- * ├── trough
- * │   ├── [fill]
- * │   ├── [highlight]
- * │   ╰── slider
- * ╰── marks.bottom
- *     ├── mark
- *     ┊    ├── indicator
- *     ┊    ╰── [label]
- *     ╰── mark
+ * ├── marks.bottom
+ * │   ├── mark
+ * │   ┊    ├── indicator
+ * │   ┊    ╰── [label]
+ * ┊   ┊
+ * │   ╰── mark
+ * ╰── trough
+ *     ├── [fill]
+ *     ├── [highlight]
+ *     ╰── slider
  * ]|
  *
  * GtkScale has a main CSS node with name scale and a subnode for its contents,
@@ -126,6 +125,10 @@
  * If the scale is displaying the value (see #GtkScale:draw-value), there is
  * subnode with name value. This node will get the .top or .bottom style classes
  * similar to the marks node.
+ *
+ * # Accessibility
+ *
+ * GtkScale uses the #GTK_ACCESSIBLE_ROLE_SLIDER role.
  */
 
 
@@ -146,25 +149,25 @@ struct _GtkScalePrivate
   GtkWidget    *top_marks_widget;
   GtkWidget    *bottom_marks_widget;
 
-  gint          digits;
+  int           digits;
+
+  guint         draw_value : 1;
+  guint         value_pos  : 2;
 
   GtkScaleFormatValueFunc format_value_func;
   gpointer format_value_func_user_data;
   GDestroyNotify format_value_func_destroy_notify;
-
-  guint         draw_value : 1;
-  guint         value_pos  : 2;
 };
 
 struct _GtkScaleMark
 {
-  gdouble          value;
+  double           value;
   int              stop_position;
-  gchar           *markup;
+  GtkPositionType  position; /* always GTK_POS_TOP or GTK_POS_BOTTOM */
+  char            *markup;
   GtkWidget       *label_widget;
   GtkWidget       *indicator_widget;
   GtkWidget       *widget;
-  GtkPositionType  position; /* always GTK_POS_TOP or GTK_POS_BOTTOM */
 };
 
 enum {
@@ -197,25 +200,23 @@ static void     gtk_scale_measure (GtkWidget      *widget,
 static void     gtk_scale_get_range_border        (GtkRange       *range,
                                                    GtkBorder      *border);
 static void     gtk_scale_finalize                (GObject        *object);
-static void     gtk_scale_snapshot                (GtkWidget      *widget,
-                                                   GtkSnapshot    *snapshot);
 static void     gtk_scale_real_get_layout_offsets (GtkScale       *scale,
-                                                   gint           *x,
-                                                   gint           *y);
+                                                   int            *x,
+                                                   int            *y);
 static void     gtk_scale_buildable_interface_init   (GtkBuildableIface  *iface);
 static gboolean gtk_scale_buildable_custom_tag_start (GtkBuildable       *buildable,
                                                       GtkBuilder         *builder,
                                                       GObject            *child,
-                                                      const gchar        *tagname,
+                                                      const char         *tagname,
                                                       GtkBuildableParser *parser,
                                                       gpointer           *data);
 static void     gtk_scale_buildable_custom_finished  (GtkBuildable       *buildable,
                                                       GtkBuilder         *builder,
                                                       GObject            *child,
-                                                      const gchar        *tagname,
+                                                      const char         *tagname,
                                                       gpointer            user_data);
-static gchar  * gtk_scale_format_value               (GtkScale           *scale,
-                                                      gdouble             value);
+static char   * gtk_scale_format_value               (GtkScale           *scale,
+                                                      double              value);
 
 
 G_DEFINE_TYPE_WITH_CODE (GtkScale, gtk_scale, GTK_TYPE_RANGE,
@@ -223,11 +224,11 @@ G_DEFINE_TYPE_WITH_CODE (GtkScale, gtk_scale, GTK_TYPE_RANGE,
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
                                                 gtk_scale_buildable_interface_init))
 
-static gint
+static int
 compare_marks (gconstpointer a, gconstpointer b, gpointer data)
 {
   gboolean inverted = GPOINTER_TO_INT (data);
-  gint val;
+  int val;
   const GtkScaleMark *ma, *mb;
 
   val = inverted ? -1 : 1;
@@ -288,15 +289,15 @@ gtk_scale_notify (GObject    *object,
     {
       GtkScaleMark *mark;
       GSList *m;
-      gint i, n;
-      gdouble *values;
+      int i, n;
+      double *values;
 
       priv->marks = g_slist_sort_with_data (priv->marks,
                                             compare_marks,
                                             GINT_TO_POINTER (gtk_range_get_inverted (GTK_RANGE (scale))));
 
       n = g_slist_length (priv->marks);
-      values = g_new (gdouble, n);
+      values = g_new (double, n);
       for (m = priv->marks, i = 0; m; m = m->next, i++)
         {
           mark = m->data;
@@ -661,7 +662,6 @@ gtk_scale_class_init (GtkScaleClass *class)
   gobject_class->notify = gtk_scale_notify;
   gobject_class->finalize = gtk_scale_finalize;
 
-  widget_class->snapshot = gtk_scale_snapshot;
   widget_class->size_allocate = gtk_scale_size_allocate;
   widget_class->measure = gtk_scale_measure;
   widget_class->grab_focus = gtk_widget_grab_focus_self;
@@ -819,8 +819,9 @@ gtk_scale_class_init (GtkScaleClass *class)
   add_slider_binding (binding_set, GDK_KEY_KP_End, 0,
                       GTK_SCROLL_END);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_SCALE_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("scale"));
+
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_SLIDER);
 }
 
 static void
@@ -947,12 +948,12 @@ gtk_scale_new (GtkOrientation  orientation,
  */
 GtkWidget *
 gtk_scale_new_with_range (GtkOrientation orientation,
-                          gdouble        min,
-                          gdouble        max,
-                          gdouble        step)
+                          double         min,
+                          double         max,
+                          double         step)
 {
   GtkAdjustment *adj;
-  gint digits;
+  int digits;
 
   g_return_val_if_fail (min < max, NULL);
   g_return_val_if_fail (step != 0.0, NULL);
@@ -965,7 +966,7 @@ gtk_scale_new_with_range (GtkOrientation orientation,
     }
   else
     {
-      digits = abs ((gint) floor (log10 (fabs (step))));
+      digits = abs ((int) floor (log10 (fabs (step))));
       if (digits > 5)
         digits = 5;
     }
@@ -996,7 +997,7 @@ gtk_scale_new_with_range (GtkOrientation orientation,
  */
 void
 gtk_scale_set_digits (GtkScale *scale,
-		      gint      digits)
+		      int       digits)
 {
   GtkScalePrivate *priv = gtk_scale_get_instance_private (scale);
   GtkRange *range;
@@ -1027,7 +1028,7 @@ gtk_scale_set_digits (GtkScale *scale,
  *
  * Returns: the number of decimal places that are displayed
  */
-gint
+int
 gtk_scale_get_digits (GtkScale *scale)
 {
   GtkScalePrivate *priv = gtk_scale_get_instance_private (scale);
@@ -1093,14 +1094,9 @@ gtk_scale_set_draw_value (GtkScale *scale,
                                              "css-name", "value",
                                              "label", txt,
                                              NULL);
-
           g_free (txt);
 
-          if (priv->value_pos == GTK_POS_TOP || priv->value_pos == GTK_POS_LEFT)
-            gtk_widget_insert_after (priv->value_widget, GTK_WIDGET (scale), NULL);
-          else
-            gtk_widget_insert_before (priv->value_widget, GTK_WIDGET (scale), NULL);
-
+          gtk_widget_insert_after (priv->value_widget, GTK_WIDGET (scale), NULL);
           gtk_range_set_round_digits (GTK_RANGE (scale), priv->digits);
           update_value_position (scale);
           update_label_request (scale);
@@ -1321,11 +1317,11 @@ gtk_scale_get_range_border (GtkRange  *range,
 static void
 gtk_scale_measure_mark (GtkGizmo       *gizmo,
                         GtkOrientation  orientation,
-                        gint            for_size,
-                        gint           *minimum,
-                        gint           *natural,
-                        gint           *minimum_baseline,
-                        gint           *natural_baseline)
+                        int             for_size,
+                        int            *minimum,
+                        int            *natural,
+                        int            *minimum_baseline,
+                        int            *natural_baseline)
 {
   GtkScaleMark *mark = g_object_get_data (G_OBJECT (gizmo), "mark");
 
@@ -1350,11 +1346,11 @@ gtk_scale_measure_mark (GtkGizmo       *gizmo,
 static void
 gtk_scale_measure_marks (GtkGizmo       *gizmo,
                          GtkOrientation  orientation,
-                         gint            for_size,
-                         gint           *minimum,
-                         gint           *natural,
-                         gint           *minimum_baseline,
-                         gint           *natural_baseline)
+                         int             for_size,
+                         int            *minimum,
+                         int            *natural,
+                         int            *minimum_baseline,
+                         int            *natural_baseline)
 {
   GtkWidget *widget = GTK_WIDGET (gizmo);
   GtkScale *scale = GTK_SCALE (gtk_widget_get_parent (widget));;
@@ -1470,28 +1466,9 @@ gtk_scale_measure (GtkWidget      *widget,
 }
 
 static void
-gtk_scale_snapshot (GtkWidget   *widget,
-                    GtkSnapshot *snapshot)
-{
-  GtkScale *scale = GTK_SCALE (widget);
-  GtkScalePrivate *priv = gtk_scale_get_instance_private (scale);
-
-  if (priv->top_marks_widget)
-    gtk_widget_snapshot_child (widget, priv->top_marks_widget, snapshot);
-
-  if (priv->bottom_marks_widget)
-    gtk_widget_snapshot_child (widget, priv->bottom_marks_widget, snapshot);
-
-  if (priv->value_widget)
-    gtk_widget_snapshot_child (widget, priv->value_widget, snapshot);
-
-  GTK_WIDGET_CLASS (gtk_scale_parent_class)->snapshot (widget, snapshot);
-}
-
-static void
 gtk_scale_real_get_layout_offsets (GtkScale *scale,
-                                   gint     *x,
-                                   gint     *y)
+                                   int      *x,
+                                   int      *y)
 {
   GtkScalePrivate *priv = gtk_scale_get_instance_private (scale);
   graphene_rect_t value_bounds;
@@ -1510,13 +1487,13 @@ gtk_scale_real_get_layout_offsets (GtkScale *scale,
   *y = value_bounds.origin.y;
 }
 
-static gchar *
-weed_out_neg_zero (gchar *str,
-                   gint   digits)
+static char *
+weed_out_neg_zero (char *str,
+                   int    digits)
 {
   if (str[0] == '-')
     {
-      gchar neg_zero[8];
+      char neg_zero[8];
       g_snprintf (neg_zero, 8, "%0.*f", digits, -0.0);
       if (strcmp (neg_zero, str) == 0)
         memmove (str, str + 1, strlen (str));
@@ -1597,11 +1574,11 @@ gtk_scale_get_layout (GtkScale *scale)
  */
 void 
 gtk_scale_get_layout_offsets (GtkScale *scale,
-                              gint     *x,
-                              gint     *y)
+                              int      *x,
+                              int      *y)
 {
-  gint local_x = 0; 
-  gint local_y = 0;
+  int local_x = 0; 
+  int local_y = 0;
 
   g_return_if_fail (GTK_IS_SCALE (scale));
 
@@ -1680,16 +1657,16 @@ gtk_scale_clear_marks (GtkScale *scale)
  */
 void
 gtk_scale_add_mark (GtkScale        *scale,
-                    gdouble          value,
+                    double           value,
                     GtkPositionType  position,
-                    const gchar     *markup)
+                    const char      *markup)
 {
   GtkWidget *widget;
   GtkScalePrivate *priv = gtk_scale_get_instance_private (scale);
   GtkScaleMark *mark;
   GSList *m;
-  gdouble *values;
-  gint n, i;
+  double *values;
+  int n, i;
   GtkWidget *marks_widget;
 
   g_return_if_fail (GTK_IS_SCALE (scale));
@@ -1722,9 +1699,7 @@ gtk_scale_add_mark (GtkScale        *scale,
 
           gtk_widget_insert_after (priv->top_marks_widget,
                                    GTK_WIDGET (scale),
-                                   (priv->value_widget &&
-                                    (priv->value_pos == GTK_POS_TOP || priv->value_pos == GTK_POS_LEFT)) ?
-                                     priv->value_widget : NULL);
+                                   priv->value_widget);
           gtk_widget_add_css_class (priv->top_marks_widget, GTK_STYLE_CLASS_TOP);
         }
       marks_widget = priv->top_marks_widget;
@@ -1742,9 +1717,7 @@ gtk_scale_add_mark (GtkScale        *scale,
 
           gtk_widget_insert_before (priv->bottom_marks_widget,
                                     GTK_WIDGET (scale),
-                                    (priv->value_widget &&
-                                     (priv->value_pos == GTK_POS_BOTTOM || priv->value_pos == GTK_POS_RIGHT)) ?
-                                      priv->value_widget: NULL);
+                                    gtk_range_get_trough_widget (GTK_RANGE (scale)));
           gtk_widget_add_css_class (priv->bottom_marks_widget, GTK_STYLE_CLASS_BOTTOM);
         }
       marks_widget = priv->bottom_marks_widget;
@@ -1788,7 +1761,7 @@ gtk_scale_add_mark (GtkScale        *scale,
     }
 
   n = g_slist_length (priv->marks);
-  values = g_new (gdouble, n);
+  values = g_new (double, n);
   for (m = priv->marks, i = 0; m; m = m->next, i++)
     {
       mark = m->data;
@@ -1827,10 +1800,10 @@ typedef struct
 
 typedef struct
 {
-  gdouble value;
+  double value;
   GtkPositionType position;
   GString *markup;
-  gchar *context;
+  char *context;
   gboolean translatable;
 } MarkData;
 
@@ -1844,9 +1817,9 @@ mark_data_free (MarkData *data)
 
 static void
 marks_start_element (GtkBuildableParseContext *context,
-                     const gchar              *element_name,
-                     const gchar             **names,
-                     const gchar             **values,
+                     const char               *element_name,
+                     const char              **names,
+                     const char              **values,
                      gpointer                  user_data,
                      GError                  **error)
 {
@@ -1864,11 +1837,11 @@ marks_start_element (GtkBuildableParseContext *context,
     }
   else if (strcmp (element_name, "mark") == 0)
     {
-      const gchar *value_str;
-      gdouble value = 0;
-      const gchar *position_str = NULL;
+      const char *value_str;
+      double value = 0;
+      const char *position_str = NULL;
       GtkPositionType position = GTK_POS_BOTTOM;
-      const gchar *msg_context = NULL;
+      const char *msg_context = NULL;
       gboolean translatable = FALSE;
       MarkData *mark;
 
@@ -1935,7 +1908,7 @@ marks_start_element (GtkBuildableParseContext *context,
 
 static void
 marks_text (GtkBuildableParseContext  *context,
-            const gchar               *text,
+            const char                *text,
             gsize                      text_len,
             gpointer                   user_data,
             GError                   **error)
@@ -1962,7 +1935,7 @@ static gboolean
 gtk_scale_buildable_custom_tag_start (GtkBuildable       *buildable,
                                       GtkBuilder         *builder,
                                       GObject            *child,
-                                      const gchar        *tagname,
+                                      const char         *tagname,
                                       GtkBuildableParser *parser,
                                       gpointer           *parser_data)
 {
@@ -1992,7 +1965,7 @@ static void
 gtk_scale_buildable_custom_finished (GtkBuildable *buildable,
                                      GtkBuilder   *builder,
                                      GObject      *child,
-                                     const gchar  *tagname,
+                                     const char   *tagname,
                                      gpointer      user_data)
 {
   GtkScale *scale = GTK_SCALE (buildable);
@@ -2001,7 +1974,7 @@ gtk_scale_buildable_custom_finished (GtkBuildable *buildable,
   if (strcmp (tagname, "marks") == 0)
     {
       GSList *m;
-      const gchar *markup;
+      const char *markup;
 
       marks_data = (MarksSubparserData *)user_data;
 

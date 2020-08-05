@@ -492,7 +492,6 @@ generate_grab_broken_event (GdkDisplay *display,
 
       event = gdk_grab_broken_event_new (surface,
                                          device,
-                                         device,
                                          grab_surface,
                                          implicit);
 
@@ -521,7 +520,6 @@ GdkDeviceGrabInfo *
 _gdk_display_add_device_grab (GdkDisplay       *display,
                               GdkDevice        *device,
                               GdkSurface        *surface,
-                              GdkGrabOwnership  grab_ownership,
                               gboolean          owner_events,
                               GdkEventMask      event_mask,
                               unsigned long     serial_start,
@@ -540,7 +538,6 @@ _gdk_display_add_device_grab (GdkDisplay       *display,
   info->event_mask = event_mask;
   info->time = time;
   info->implicit = implicit;
-  info->ownership = grab_ownership;
 
   grabs = g_hash_table_lookup (display->device_grabs, device);
 
@@ -586,7 +583,7 @@ get_current_toplevel (GdkDisplay      *display,
 		      GdkModifierType *state_out)
 {
   GdkSurface *pointer_surface;
-  gdouble x, y;
+  double x, y;
   GdkModifierType state;
 
   pointer_surface = _gdk_device_surface_at_position (device, &x, &y, &state);
@@ -605,7 +602,6 @@ get_current_toplevel (GdkDisplay      *display,
 static void
 switch_to_pointer_grab (GdkDisplay        *display,
                         GdkDevice         *device,
-                        GdkDevice         *source_device,
 			GdkDeviceGrabInfo *grab,
 			GdkDeviceGrabInfo *last_grab,
 			guint32            time,
@@ -643,12 +639,7 @@ switch_to_pointer_grab (GdkDisplay        *display,
       if (grab == NULL /* ungrab */ ||
 	  (!last_grab->owner_events && grab->owner_events) /* switched to owner_events */ )
 	{
-          /* Ungrabbed slave devices don't have a position by
-           * itself, rather depend on its master pointer, so
-           * it doesn't make sense to track any position for
-           * these after the grab
-           */
-          if (grab || gdk_device_get_device_type (device) != GDK_DEVICE_TYPE_SLAVE)
+          if (grab)
             new_toplevel = get_current_toplevel (display, device, &x, &y, &state);
 
 	  if (new_toplevel)
@@ -682,7 +673,6 @@ _gdk_display_update_last_event (GdkDisplay     *display,
 void
 _gdk_display_device_grab_update (GdkDisplay *display,
                                  GdkDevice  *device,
-                                 GdkDevice  *source_device,
                                  gulong      current_serial)
 {
   GdkDeviceGrabInfo *current_grab, *next_grab;
@@ -707,7 +697,7 @@ _gdk_display_device_grab_update (GdkDisplay *display,
 	  if (!current_grab->activated)
             {
               if (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD)
-                switch_to_pointer_grab (display, device, source_device, current_grab, NULL, time, current_serial);
+                switch_to_pointer_grab (display, device, current_grab, NULL, time, current_serial);
             }
 
 	  break;
@@ -735,7 +725,7 @@ _gdk_display_device_grab_update (GdkDisplay *display,
       g_hash_table_insert (display->device_grabs, device, grabs);
 
       if (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD)
-        switch_to_pointer_grab (display, device, source_device,
+        switch_to_pointer_grab (display, device,
                                 next_grab, current_grab,
                                 time, current_serial);
 
@@ -816,69 +806,20 @@ _gdk_display_end_device_grab (GdkDisplay *display,
   return FALSE;
 }
 
-/* Returns TRUE if device events are not blocked by any grab */
-gboolean
-_gdk_display_check_grab_ownership (GdkDisplay *display,
-                                   GdkDevice  *device,
-                                   gulong      serial)
-{
-  GHashTableIter iter;
-  gpointer key, value;
-  GdkGrabOwnership higher_ownership, device_ownership;
-  gboolean device_is_keyboard;
-
-  g_hash_table_iter_init (&iter, display->device_grabs);
-  higher_ownership = device_ownership = GDK_OWNERSHIP_NONE;
-  device_is_keyboard = (gdk_device_get_source (device) == GDK_SOURCE_KEYBOARD);
-
-  while (g_hash_table_iter_next (&iter, &key, &value))
-    {
-      GdkDeviceGrabInfo *grab;
-      GdkDevice *dev;
-      GList *grabs;
-
-      dev = key;
-      grabs = value;
-      grabs = grab_list_find (grabs, serial);
-
-      if (!grabs)
-        continue;
-
-      /* Discard device if it's not of the same type */
-      if ((device_is_keyboard && gdk_device_get_source (dev) != GDK_SOURCE_KEYBOARD) ||
-          (!device_is_keyboard && gdk_device_get_source (dev) == GDK_SOURCE_KEYBOARD))
-        continue;
-
-      grab = grabs->data;
-
-      if (dev == device)
-        device_ownership = grab->ownership;
-      else
-        {
-          if (grab->ownership > higher_ownership)
-            higher_ownership = grab->ownership;
-        }
-    }
-
-  if (higher_ownership > device_ownership)
-    {
-      /* There's a higher priority ownership
-       * going on for other device(s)
-       */
-      return FALSE;
-    }
-
-  return TRUE;
-}
-
 GdkPointerSurfaceInfo *
 _gdk_display_get_pointer_info (GdkDisplay *display,
                                GdkDevice  *device)
 {
   GdkPointerSurfaceInfo *info;
+  GdkSeat *seat;
 
-  if (device && gdk_device_get_source (device) == GDK_SOURCE_KEYBOARD)
-    device = gdk_device_get_associated_device (device);
+  if (device)
+    {
+      seat = gdk_device_get_seat (device);
+
+      if (device == gdk_seat_get_keyboard (seat))
+        device = gdk_seat_get_pointer (seat);
+    }
 
   if (G_UNLIKELY (!device))
     return NULL;
@@ -988,7 +929,7 @@ gdk_display_device_is_grabbed (GdkDisplay *display,
  * Returns: a string representing the display name. This string is owned
  * by GDK and should not be modified or freed.
  */
-const gchar *
+const char *
 gdk_display_get_name (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
@@ -1055,25 +996,6 @@ gdk_display_flush (GdkDisplay *display)
 }
 
 /**
- * gdk_display_get_default_group:
- * @display: a #GdkDisplay
- *
- * Returns the default group leader surface for all toplevel surfaces
- * on @display. This surface is implicitly created by GDK.
- * See gdk_surface_set_group().
- *
- * Returns: (transfer none): The default group leader surface
- * for @display
- **/
-GdkSurface *
-gdk_display_get_default_group (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  return GDK_DISPLAY_GET_CLASS (display)->get_default_group (display);
-}
-
-/**
  * gdk_display_get_clipboard:
  * @display: a #GdkDisplay
  *
@@ -1117,8 +1039,10 @@ gdk_display_get_primary_clipboard (GdkDisplay *display)
  * gdk_display_supports_input_shapes:
  * @display: a #GdkDisplay
  *
- * Returns %TRUE if gdk_surface_input_shape_combine_mask() can
+ * Returns %TRUE if gdk_surface_set_input_region() can
  * be used to modify the input shape of surfaces on @display.
+ *
+ * On modern displays, this value is always %TRUE.
  *
  * Returns: %TRUE if surfaces with modified input shape are supported
  */
@@ -1184,7 +1108,7 @@ gdk_display_get_app_launch_context (GdkDisplay *display)
  *     display could not be opened
  */
 GdkDisplay *
-gdk_display_open (const gchar *display_name)
+gdk_display_open (const char *display_name)
 {
   return gdk_display_manager_open_display (gdk_display_manager_get (),
                                            display_name);
@@ -1229,7 +1153,7 @@ _gdk_display_get_next_serial (GdkDisplay *display)
  */
 void
 gdk_display_notify_startup_complete (GdkDisplay  *display,
-                                     const gchar *startup_id)
+                                     const char *startup_id)
 {
   g_return_if_fail (GDK_IS_DISPLAY (display));
 
@@ -1245,7 +1169,7 @@ gdk_display_notify_startup_complete (GdkDisplay  *display,
  *
  * Returns: the startup notification ID for @display, or %NULL
  */
-const gchar *
+const char *
 gdk_display_get_startup_notification_id (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);

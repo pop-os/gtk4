@@ -23,16 +23,6 @@
 #include "gdksurfaceprivate.h"
 #include "gdkprivate-broadway.h"
 
-static gboolean gdk_broadway_device_get_history (GdkDevice      *device,
-                                                 GdkSurface      *surface,
-                                                 guint32         start,
-                                                 guint32         stop,
-                                                 GdkTimeCoord ***events,
-                                                 gint           *n_events);
-static void gdk_broadway_device_get_state (GdkDevice       *device,
-                                           GdkSurface       *surface,
-                                           gdouble         *axes,
-                                           GdkModifierType *mask);
 static void gdk_broadway_device_set_surface_cursor (GdkDevice *device,
                                                     GdkSurface *surface,
                                                     GdkCursor *cursor);
@@ -52,8 +42,8 @@ static GdkGrabStatus gdk_broadway_device_grab   (GdkDevice     *device,
 static void          gdk_broadway_device_ungrab (GdkDevice     *device,
                                                  guint32        time_);
 static GdkSurface * gdk_broadway_device_surface_at_position (GdkDevice       *device,
-                                                             gdouble         *win_x,
-                                                             gdouble         *win_y,
+                                                             double          *win_x,
+                                                             double          *win_y,
                                                              GdkModifierType *mask);
 
 
@@ -64,8 +54,6 @@ gdk_broadway_device_class_init (GdkBroadwayDeviceClass *klass)
 {
   GdkDeviceClass *device_class = GDK_DEVICE_CLASS (klass);
 
-  device_class->get_history = gdk_broadway_device_get_history;
-  device_class->get_state = gdk_broadway_device_get_state;
   device_class->set_surface_cursor = gdk_broadway_device_set_surface_cursor;
   device_class->query_state = gdk_broadway_device_query_state;
   device_class->grab = gdk_broadway_device_grab;
@@ -80,36 +68,8 @@ gdk_broadway_device_init (GdkBroadwayDevice *device_core)
 
   device = GDK_DEVICE (device_core);
 
-  _gdk_device_add_axis (device, NULL, GDK_AXIS_X, 0, 0, 1);
-  _gdk_device_add_axis (device, NULL, GDK_AXIS_Y, 0, 0, 1);
-}
-
-static gboolean
-gdk_broadway_device_get_history (GdkDevice      *device,
-                                 GdkSurface      *surface,
-                                 guint32         start,
-                                 guint32         stop,
-                                 GdkTimeCoord ***events,
-                                 gint           *n_events)
-{
-  return FALSE;
-}
-
-static void
-gdk_broadway_device_get_state (GdkDevice       *device,
-                               GdkSurface       *surface,
-                               gdouble         *axes,
-                               GdkModifierType *mask)
-{
-  gdouble x, y;
-
-  gdk_surface_get_device_position (surface, device, &x, &y, mask);
-
-  if (axes)
-    {
-      axes[0] = x;
-      axes[1] = y;
-    }
+  _gdk_device_add_axis (device, GDK_AXIS_X, 0, 0, 1);
+  _gdk_device_add_axis (device, GDK_AXIS_Y, 0, 0, 1);
 }
 
 static void
@@ -175,7 +135,7 @@ _gdk_broadway_surface_grab_check_unmap (GdkSurface *surface,
 
   seat = gdk_display_get_default_seat (display);
 
-  devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL);
+  devices = gdk_seat_get_devices (seat, GDK_SEAT_CAPABILITY_ALL);
   devices = g_list_prepend (devices, gdk_seat_get_keyboard (seat));
   devices = g_list_prepend (devices, gdk_seat_get_pointer (seat));
 
@@ -289,8 +249,8 @@ gdk_broadway_device_ungrab (GdkDevice *device,
 
 static GdkSurface *
 gdk_broadway_device_surface_at_position (GdkDevice       *device,
-                                         gdouble         *win_x,
-                                         gdouble         *win_y,
+                                         double          *win_x,
+                                         double          *win_y,
                                          GdkModifierType *mask)
 {
   GdkSurface *surface = NULL;

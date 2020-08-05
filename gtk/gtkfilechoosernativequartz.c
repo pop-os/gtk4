@@ -28,8 +28,6 @@
 #include "gtkfilechooserwidget.h"
 #include "gtkfilechooserwidgetprivate.h"
 #include "gtkfilechooserutils.h"
-#include "gtkfilechooserembed.h"
-#include "gtkfilesystem.h"
 #include "gtksizerequest.h"
 #include "gtktypebuiltins.h"
 #include "gtkintl.h"
@@ -38,7 +36,6 @@
 #include "gtkstylecontext.h"
 #include "gtkheaderbar.h"
 #include "gtklabel.h"
-#include "gtkfilechooserentry.h"
 #include "gtkfilefilterprivate.h"
 
 #include "quartz/gdkquartz.h"
@@ -100,9 +97,10 @@ typedef struct {
   else
     [data->panel setAllowedFileTypes:filter];
 
-  GSList *filters = gtk_file_chooser_list_filters (GTK_FILE_CHOOSER (data->self));
-  data->self->current_filter = g_slist_nth_data (filters, selected_index);
-  g_slist_free (filters);
+  GListModel *filters = gtk_file_chooser_get_filters (GTK_FILE_CHOOSER (data->self));
+  data->self->current_filter = g_list_model_get_item (filters, selected_index);
+  g_object_unref (data->self->current_filter);
+  g_object_unref (filters);
   g_object_notify (G_OBJECT (data->self), "filter");
 }
 @end
@@ -127,7 +125,7 @@ chooser_get_files (FileChooserQuartzData *data)
   if (!data->save)
     {
       NSArray *urls;
-      gint i;
+      int i;
 
       urls = [(NSOpenPanel *)data->panel URLs];
 
@@ -161,7 +159,7 @@ chooser_set_current_folder (FileChooserQuartzData *data,
 
   if (folder != NULL)
     {
-      gchar *uri;
+      char *uri;
 
       uri = g_file_get_uri (folder);
       [data->panel setDirectoryURL:[NSURL URLWithString:[NSString stringWithUTF8String:uri]]];
@@ -171,7 +169,7 @@ chooser_set_current_folder (FileChooserQuartzData *data,
 
 static void
 chooser_set_current_name (FileChooserQuartzData *data,
-                          const gchar           *name)
+                          const char            *name)
 {
 
   if (name != NULL)
@@ -276,7 +274,7 @@ filechooser_quartz_launch (FileChooserQuartzData *data)
   if (data->current_file)
     {
       GFile *folder;
-      gchar *name;
+      char *name;
 
       folder = g_file_get_parent (data->current_file);
       name = g_file_get_basename (data->current_file);
@@ -308,13 +306,28 @@ filechooser_quartz_launch (FileChooserQuartzData *data)
 
       if (data->self->current_filter)
         {
-          GSList *filters = gtk_file_chooser_list_filters (GTK_FILE_CHOOSER (data->self));
-	  gint current_filter_index = g_slist_index (filters, data->self->current_filter);
-	  g_slist_free (filters);
+          GListModel *filters;
+          guint i, n;
+          guint current_filter_index = GTK_INVALID_LIST_POSITION;
 
-	  if (current_filter_index >= 0)
+          filters = gtk_file_chooser_get_filters (GTK_FILE_CHOOSER (data->self));
+          n = g_list_model_get_n_items (filters);
+          for (i = 0; i < n; i++)
+            {
+              gpointer item = g_list_model_get_item (filters, i);
+              if (item == data->self->current_filter)
+                {
+                  g_object_unref (item);
+                  current_filter_index = i;
+                  break;
+                }
+              g_object_unref (item);
+            }
+          g_object_unref (filters);
+
+          if (current_filter_index != GTK_INVALID_LIST_POSITION)
             [data->filter_combo_box selectItemAtIndex:current_filter_index];
-	  else
+          else
             [data->filter_combo_box selectItemAtIndex:0];
         }
       else
@@ -379,11 +392,11 @@ filechooser_quartz_launch (FileChooserQuartzData *data)
   return TRUE;
 }
 
-static gchar *
-strip_mnemonic (const gchar *s)
+static char *
+strip_mnemonic (const char *s)
 {
-  gchar *escaped;
-  gchar *ret = NULL;
+  char *escaped;
+  char *ret = NULL;
 
   if (s == NULL)
     return NULL;
@@ -438,15 +451,15 @@ gtk_file_chooser_native_quartz_show (GtkFileChooserNative *self)
   GtkWindow *transient_for;
   GtkFileChooserAction action;
 
-  GSList *filters, *l;
-  int n_filters, i;
+  GListModel *filters;
+  guint n_filters, i;
   char *message = NULL;
 
   data = g_new0 (FileChooserQuartzData, 1);
 
   // examine filters!
-  filters = gtk_file_chooser_list_filters (GTK_FILE_CHOOSER (self));
-  n_filters = g_slist_length (filters);
+  filters = gtk_file_chooser_get_filters (GTK_FILE_CHOOSER (self));
+  n_filters = g_list_model_get_n_items (filters);
   if (n_filters > 0)
     {
       data->filters = [NSMutableArray arrayWithCapacity:n_filters];
@@ -454,13 +467,17 @@ gtk_file_chooser_native_quartz_show (GtkFileChooserNative *self)
       data->filter_names = [NSMutableArray arrayWithCapacity:n_filters];
       [data->filter_names retain];
 
-      for (l = filters, i = 0; l != NULL; l = l->next, i++)
+      for (i = 0; i < n; i++)
         {
-          if (!file_filter_to_quartz (l->data, data->filters, data->filter_names))
+          GtkFileFilter *filter = g_list_model_get_item (filters, i);
+          if (!file_filter_to_quartz (filter, data->filters, data->filter_names))
             {
               filechooser_quartz_data_free (data);
+              g_object_unref (filter);
+              g_object_unref (filters);
               return FALSE;
             }
+          g_object_unref (filter);
         }
       self->current_filter = gtk_file_chooser_get_filter (GTK_FILE_CHOOSER (self));
     }
@@ -468,6 +485,8 @@ gtk_file_chooser_native_quartz_show (GtkFileChooserNative *self)
     {
       self->current_filter = NULL;
     }
+  g_object_unref (filters);
+
   self->mode_data = data;
   data->self = g_object_ref (self);
 

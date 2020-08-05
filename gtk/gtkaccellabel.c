@@ -128,8 +128,6 @@ gtk_accel_label_class_init (GtkAccelLabelClass *class)
   gobject_class->set_property = gtk_accel_label_set_property;
   gobject_class->get_property = gtk_accel_label_get_property;
 
-  gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_ACCEL_LABEL);
-
   props[PROP_LABEL] =
     g_param_spec_string ("label",
                          P_("Label"),
@@ -216,7 +214,7 @@ gtk_accel_label_init (GtkAccelLabel *accel_label)
  * Returns: a new #GtkAccelLabel.
  */
 GtkWidget *
-gtk_accel_label_new (const gchar *string)
+gtk_accel_label_new (const char *string)
 {
   return g_object_new (GTK_TYPE_ACCEL_LABEL,
                        "label", string,

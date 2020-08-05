@@ -30,8 +30,6 @@
 #include "gtksnapshot.h"
 #include "gtkwidgetprivate.h"
 
-#include "a11y/gtkpictureaccessibleprivate.h"
-
 /**
  * SECTION:gtkpicture
  * @Short_description: A widget displaying a #GdkPaintable
@@ -61,6 +59,10 @@
  * # CSS nodes
  *
  * GtkPicture has a single CSS node with the name picture.
+ *
+ * # Accessibility
+ *
+ * GtkImage uses the #GTK_ACCESSIBLE_ROLE_IMG role.
  */
 
 enum
@@ -284,6 +286,7 @@ gtk_picture_dispose (GObject *object)
   gtk_picture_set_paintable (self, NULL);
 
   g_clear_object (&self->file);
+  g_clear_pointer (&self->alternative_text, g_free);
 
   G_OBJECT_CLASS (gtk_picture_parent_class)->dispose (object);
 };
@@ -365,8 +368,8 @@ gtk_picture_class_init (GtkPictureClass *class)
 
   g_object_class_install_properties (gobject_class, NUM_PROPERTIES, properties);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_PICTURE_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("picture"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_IMG);
 }
 
 static void
@@ -540,13 +543,13 @@ gtk_picture_new_for_resource (const char *resource_path)
 }
 
 typedef struct {
-  gint scale_factor;
+  int scale_factor;
 } LoaderData;
 
 static void
 on_loader_size_prepared (GdkPixbufLoader *loader,
-			 gint             width,
-			 gint             height,
+			 int              width,
+			 int              height,
 			 gpointer         user_data)
 {
   LoaderData *loader_data = user_data;
@@ -567,7 +570,7 @@ on_loader_size_prepared (GdkPixbufLoader *loader,
 
 static GdkPaintable *
 load_scalable_with_loader (GFile *file,
-                           gint   scale_factor)
+                           int    scale_factor)
 {
   GdkPixbufLoader *loader;
   GBytes *bytes;

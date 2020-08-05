@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.98.5',
+        version: '3.99.0',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -29,7 +29,6 @@ endif
 glib_req           = '>= @0@.@1@.@2@'.format(glib_major_req, glib_minor_req, glib_micro_req)
 pango_req          = '>= 1.45.0'
 fribidi_req        = '>= 0.19.7'
-atk_req            = '>= 2.15.1'
 cairo_req          = '>= 1.14.0'
 gdk_pixbuf_req     = '>= 2.30.0'
 introspection_req  = '>= 1.39.0'
@@ -37,7 +36,7 @@ wayland_proto_req  = '>= 1.20'
 wayland_req        = '>= 1.14.91'
 graphene_req       = '>= 1.9.1'
 epoxy_req          = '>= 1.4'
-cloudproviders_req = '>= 0.2.5'
+cloudproviders_req = '>= 0.3.1'
 xkbcommon_req      = '>= 0.2.0'
 
 gnome = import('gnome')
@@ -93,6 +92,7 @@ gtk_api_version = '4.0'
 x11_enabled      = get_option('x11-backend')
 wayland_enabled  = get_option('wayland-backend')
 broadway_enabled = get_option('broadway-backend')
+macos_enabled    = get_option('macos-backend')
 quartz_enabled   = get_option('quartz-backend')
 win32_enabled    = get_option('win32-backend')
 
@@ -118,6 +118,7 @@ if os_darwin
   wayland_enabled = false
 else
   quartz_enabled = false
+  macos_enabled = false
 endif
 
 if os_win32
@@ -206,11 +207,23 @@ foreach func : check_functions
   endif
 endforeach
 
+# Check for __uint128_t (gcc) by checking for 128-bit division
+uint128_t_src = '''int main() {
+static __uint128_t v1 = 100;
+static __uint128_t v2 = 10;
+static __uint128_t u;
+u = v1 / v2;
+}'''
+if cc.compiles(uint128_t_src, name : '__uint128_t available')
+  cdata.set('HAVE_UINT128_T', 1)
+endif
+
 # Disable deprecation checks for all libraries we depend on on stable branches.
 # This is so newer versions of those libraries don't cause more warnings with
 # a stable GTK version.
-# We don't ever want to turn off deprecation warnings for master however, because
-# that's where we get rid of deprecated API we use.
+#
+# We don't ever want to turn off deprecation warnings for development cycles,
+# however, because that's where we get rid of deprecated API we use.
 if gtk_minor_version.is_even()
   cdata.set('GLIB_DISABLE_DEPRECATION_WARNINGS', 1)
 endif
@@ -234,6 +247,8 @@ if cc.get_id() == 'msvc'
 elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
   test_cflags = [
     '-fno-strict-aliasing',
+    '-Wno-c++11-extensions',
+    '-Wno-missing-include-dirs',
     '-Wno-typedef-redefinition',
     '-Wcast-align',
     '-Wduplicated-branches',
@@ -313,11 +328,6 @@ if os_unix and not os_darwin
   endforeach
 endif
 
-# Maintain compatibility with autotools
-if os_darwin
-  common_ldflags += [ '-compatibility_version 1', '-current_version 1.0', ]
-endif
-
 confinc = include_directories('.')
 gdkinc = include_directories('gdk')
 gskinc = include_directories('gsk')
@@ -367,7 +377,6 @@ pixbuf_dep     = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_req,
                             fallback : ['gdk-pixbuf', 'gdkpixbuf_dep'])
 epoxy_dep      = dependency('epoxy', version: epoxy_req,
                             fallback: ['libepoxy', 'libepoxy_dep'])
-atk_dep        = dependency('atk', version: atk_req)
 harfbuzz_dep   = dependency('harfbuzz', version: '>= 0.9', required: false)
 xkbdep         = dependency('xkbcommon', version: xkbcommon_req, required: wayland_enabled)
 graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
@@ -375,7 +384,6 @@ graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
 iso_codes_dep  = dependency('iso-codes', required: false)
 
 fontconfig_dep = [] # only used in x11 backend
-atkbridge_dep  = [] # only used in x11 backend
 
 if os_win32
   platform_gio_dep = giowin32_dep
@@ -473,8 +481,6 @@ cdata.set('HAVE_CAIRO_SCRIPT_INTERPRETER', cairo_csi_dep.found())
 cdata.set('HAVE_HARFBUZZ', harfbuzz_dep.found())
 cdata.set('HAVE_PANGOFT', pangoft_dep.found())
 
-atk_pkgs = ['atk']
-
 wayland_pkgs = []
 if wayland_enabled
   wlclientdep    = dependency('wayland-client', version:  wayland_req)
@@ -509,7 +515,6 @@ if x11_enabled
   xfixes_dep     = dependency('xfixes', required: false)
   xcomposite_dep = dependency('xcomposite', required: false)
   fontconfig_dep = dependency('fontconfig')
-  atkbridge_dep  = dependency('atk-bridge-2.0', version: atk_req)
 
   backend_immodules += ['xim']
 
@@ -527,8 +532,6 @@ if x11_enabled
   if xcomposite_dep.found()
     x11_pkgs += ['xcomposite']
   endif
-
-  atk_pkgs += ['atk-bridge-2.0']
 
   cdata.set('HAVE_XCURSOR', xcursor_dep.found())
   cdata.set('HAVE_XDAMAGE', xdamage_dep.found())
@@ -604,6 +607,22 @@ if win32_enabled
   endif
   pc_gdk_extra_libs += ['-lwinmm', '-ldwmapi', '-lsetupapi', '-lcfgmgr32']
   backend_immodules += ['ime']
+
+  # Check whether libepoxy is built with EGL support on Windows
+  win32_has_egl = cc.links(
+     '''
+     #include <epoxy/egl.h>
+	 
+     int main(int argc, char *argv[])
+     {
+       EGLDisplay disp = EGL_NO_DISPLAY;
+
+       return epoxy_egl_version (disp);
+     } 
+     ''',
+     dependencies : epoxy_dep,
+     name : 'libepoxy supports EGL on Windows'
+    )
 endif
 
 # Check for bind_textdomain_codeset, including -lintl if GLib brings it in by
@@ -666,7 +685,15 @@ endif
 
 cloudproviders_enabled = get_option('cloudproviders')
 if cloudproviders_enabled
-  cloudproviders_dep = dependency('cloudproviders', required: true)
+  cloudproviders_dep = dependency('cloudproviders',
+    version: cloudproviders_req,
+    fallback: [
+      'libcloudproviders',
+      'libcloudproviders_dep',
+    ],
+    default_options: [
+      'vapigen=false',
+    ])
   if cloudproviders_dep.found()
     cdata.set('HAVE_CLOUDPROVIDERS', cloudproviders_dep.found())
   else
@@ -676,7 +703,20 @@ endif
 
 profiler_enabled = get_option('profiler')
 if profiler_enabled
-  profiler_dep = dependency('sysprof-capture-3', static: true, required: true)
+  # libsysprof-capture support
+  profiler_dep = dependency('sysprof-capture-4',
+    required: true,
+    default_options: [
+      'enable_examples=false',
+      'enable_gtk=false',
+      'enable_tests=false',
+      'enable_tools=false',
+      'libsysprof=false',
+      'with_sysprofd=none',
+      'help=false',
+    ],
+    fallback: ['sysprof', 'libsysprof_capture_dep'],
+  )
   if profiler_dep.found()
     cdata.set('HAVE_SYSPROF_CAPTURE', profiler_dep.found())
   else
@@ -756,8 +796,7 @@ pkgconf.set('GDK_PACKAGES', gdk_packages)
 pkgconf.set('GSK_PACKAGES',
             ' '.join([ 'graphene-gobject-1.0', graphene_req ]))
 pkgconf.set('GTK_PACKAGES',
-            ' '.join([ 'atk', atk_req,
-                       'gio-2.0', glib_req ]))
+            ' '.join([ 'gio-2.0', glib_req ]))
 
 # Requires.private
 pc_gdk_extra_libs += cairo_libs
@@ -768,7 +807,7 @@ pkgconf.set('GDK_PRIVATE_PACKAGES',
                        'epoxy', epoxy_req ] + x11_pkgs + wayland_pkgs + cairo_backends))
 pkgconf.set('GSK_PRIVATE_PACKAGES', '') # all already in GDK_PRIVATE_PACKAGES
 pangoft2_pkgs = (wayland_enabled or x11_enabled) ? ['pangoft2'] : []
-pkgconf.set('GTK_PRIVATE_PACKAGES', ' '.join(atk_pkgs + pangoft2_pkgs))
+pkgconf.set('GTK_PRIVATE_PACKAGES', ' '.join(pangoft2_pkgs))
 
 pkgconf.set('GDK_EXTRA_LIBS', ' '.join(pc_gdk_extra_libs))
 pkgconf.set('GSK_EXTRA_LIBS', '')
@@ -784,7 +823,7 @@ pkgs = [ 'gtk4.pc' ]
 
 pkg_targets = ''
 display_backends = []
-foreach backend: [ 'broadway', 'quartz', 'wayland', 'win32', 'x11', ]
+foreach backend: [ 'broadway', 'quartz', 'macos', 'wayland', 'win32', 'x11', ]
   if get_variable('@0@_enabled'.format(backend))
     pkgs += ['gtk4-@0@.pc'.format(backend)]
     pkg_targets += ' ' + backend

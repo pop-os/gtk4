@@ -130,9 +130,9 @@ gdk_rgba_is_opaque (const GdkRGBA *rgba)
  *    rgb() or rgba() specification.
  */
 static gboolean
-parse_rgb_value (const gchar  *str,
-                 gchar       **endp,
-                 gdouble      *number)
+parse_rgb_value (const char   *str,
+                 char        **endp,
+                 double       *number)
 {
   const char *p;
 
@@ -183,12 +183,12 @@ parse_rgb_value (const gchar  *str,
  */
 gboolean
 gdk_rgba_parse (GdkRGBA     *rgba,
-                const gchar *spec)
+                const char *spec)
 {
   gboolean has_alpha;
-  gdouble r, g, b, a;
-  gchar *str = (gchar *) spec;
-  gchar *p;
+  double r, g, b, a;
+  char *str = (char *) spec;
+  char *p;
 
   g_return_val_if_fail (spec != NULL, FALSE);
 
@@ -354,7 +354,7 @@ gdk_rgba_equal (gconstpointer p1,
  *
  * Returns a textual specification of @rgba in the form
  * `rgb(r,g,b)` or
- * `rgba(r g,b,a)`,
+ * `rgba(r,g,b,a)`,
  * where “r”, “g”, “b” and “a” represent the red, green,
  * blue and alpha values respectively. “r”, “g”, and “b” are
  * represented as integers in the range 0 to 255, and “a”
@@ -370,7 +370,7 @@ gdk_rgba_equal (gconstpointer p1,
  *
  * Returns: A newly allocated text string
  */
-gchar *
+char *
 gdk_rgba_to_string (const GdkRGBA *rgba)
 {
   if (rgba->alpha > 0.999)
@@ -382,7 +382,7 @@ gdk_rgba_to_string (const GdkRGBA *rgba)
     }
   else
     {
-      gchar alpha[G_ASCII_DTOSTR_BUF_SIZE];
+      char alpha[G_ASCII_DTOSTR_BUF_SIZE];
 
       g_ascii_formatd (alpha, G_ASCII_DTOSTR_BUF_SIZE, "%g", CLAMP (rgba->alpha, 0, 1));
 

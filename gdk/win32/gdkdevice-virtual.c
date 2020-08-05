@@ -32,13 +32,12 @@ G_DEFINE_TYPE (GdkDeviceVirtual, gdk_device_virtual, GDK_TYPE_DEVICE)
 
 void
 _gdk_device_virtual_set_active (GdkDevice *device,
-				GdkDevice *new_active)
+                                GdkDevice *new_active)
 {
   GdkDeviceVirtual *virtual = GDK_DEVICE_VIRTUAL (device);
   int n_axes, i;
-  const char *label_atom;
   GdkAxisUse use;
-  gdouble min_value, max_value, resolution;
+  double min_value, max_value, resolution;
 
   if (virtual->active_device == new_active)
     return;
@@ -50,42 +49,14 @@ _gdk_device_virtual_set_active (GdkDevice *device,
       _gdk_device_reset_axes (device);
       n_axes = gdk_device_get_n_axes (new_active);
       for (i = 0; i < n_axes; i++)
-	{
-	  _gdk_device_get_axis_info (new_active, i,
-				     &label_atom, &use,
-				     &min_value, &max_value, &resolution);
-	  _gdk_device_add_axis (device,
-				label_atom, use,
-				min_value, max_value, resolution);
-	}
+        {
+          _gdk_device_get_axis_info (new_active, i, &use,
+                                     &min_value, &max_value, &resolution);
+          _gdk_device_add_axis (device, use, min_value, max_value, resolution);
+        }
     }
 
   g_signal_emit_by_name (G_OBJECT (device), "changed");
-}
-
-static gboolean
-gdk_device_virtual_get_history (GdkDevice      *device,
-				GdkSurface      *window,
-				guint32         start,
-				guint32         stop,
-				GdkTimeCoord ***events,
-				gint           *n_events)
-{
-  /* History is only per slave device */
-  return FALSE;
-}
-
-static void
-gdk_device_virtual_get_state (GdkDevice       *device,
-			      GdkSurface       *window,
-			      gdouble         *axes,
-			      GdkModifierType *mask)
-{
-  GdkDeviceVirtual *virtual = GDK_DEVICE_VIRTUAL (device);
-  GdkDevice *active = virtual->active_device;
-
-  GDK_DEVICE_GET_CLASS (active)->get_state (active,
-					    window, axes, mask);
 }
 
 static void
@@ -116,8 +87,8 @@ static void
 gdk_device_virtual_query_state (GdkDevice        *device,
 				GdkSurface        *window,
 				GdkSurface       **child_window,
-				gdouble          *win_x,
-				gdouble          *win_y,
+				double           *win_x,
+				double           *win_y,
 				GdkModifierType  *mask)
 {
   GdkDeviceVirtual *virtual = GDK_DEVICE_VIRTUAL (device);
@@ -180,7 +151,7 @@ gdk_device_virtual_ungrab (GdkDevice *device,
       ReleaseCapture ();
     }
 
-  _gdk_display_device_grab_update (display, device, device, 0);
+  _gdk_display_device_grab_update (display, device, 0);
 }
 
 static void
@@ -188,8 +159,6 @@ gdk_device_virtual_class_init (GdkDeviceVirtualClass *klass)
 {
   GdkDeviceClass *device_class = GDK_DEVICE_CLASS (klass);
 
-  device_class->get_history = gdk_device_virtual_get_history;
-  device_class->get_state = gdk_device_virtual_get_state;
   device_class->set_surface_cursor = gdk_device_virtual_set_surface_cursor;
   device_class->query_state = gdk_device_virtual_query_state;
   device_class->grab = gdk_device_virtual_grab;

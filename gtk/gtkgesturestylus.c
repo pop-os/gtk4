@@ -188,7 +188,7 @@ gesture_get_current_event (GtkGestureStylus *gesture)
 gboolean
 gtk_gesture_stylus_get_axis (GtkGestureStylus *gesture,
 			     GdkAxisUse        axis,
-			     gdouble          *value)
+			     double           *value)
 {
   GdkEvent *event;
 
@@ -219,11 +219,11 @@ gtk_gesture_stylus_get_axis (GtkGestureStylus *gesture,
 gboolean
 gtk_gesture_stylus_get_axes (GtkGestureStylus  *gesture,
 			     GdkAxisUse         axes[],
-			     gdouble          **values)
+			     double           **values)
 {
   GdkEvent *event;
   GArray *array;
-  gint i = 0;
+  int i = 0;
 
   g_return_val_if_fail (GTK_IS_GESTURE_STYLUS (gesture), FALSE);
   g_return_val_if_fail (values != NULL, FALSE);
@@ -232,11 +232,11 @@ gtk_gesture_stylus_get_axes (GtkGestureStylus  *gesture,
   if (!event)
     return FALSE;
 
-  array = g_array_new (TRUE, FALSE, sizeof (gdouble));
+  array = g_array_new (TRUE, FALSE, sizeof (double));
 
   while (axes[i] != GDK_AXIS_IGNORE)
     {
-      gdouble value;
+      double value;
 
       if (axes[i] >= GDK_AXIS_LAST)
         {
@@ -252,7 +252,7 @@ gtk_gesture_stylus_get_axes (GtkGestureStylus  *gesture,
       i++;
     }
 
-  *values = (gdouble *) g_array_free (array, FALSE);
+  *values = (double *) g_array_free (array, FALSE);
   return TRUE;
 }
 
@@ -278,8 +278,8 @@ gtk_gesture_stylus_get_axes (GtkGestureStylus  *gesture,
  **/
 gboolean
 gtk_gesture_stylus_get_backlog (GtkGestureStylus  *gesture,
-				GdkTimeCoord     **backlog,
-				guint             *n_elems)
+                                GdkTimeCoord     **backlog,
+                                guint             *n_elems)
 {
   GdkEvent *event;
   GArray *backlog_array;
@@ -292,7 +292,7 @@ gtk_gesture_stylus_get_backlog (GtkGestureStylus  *gesture,
   event = gesture_get_current_event (gesture);
 
   if (event && GDK_IS_EVENT_TYPE (event, GDK_MOTION_NOTIFY))
-    history = gdk_motion_event_get_history (event, &n_coords);
+    history = gdk_event_get_history (event, &n_coords);
 
   if (!history)
     return FALSE;

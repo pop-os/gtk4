@@ -105,6 +105,9 @@
     <file>zoom_in_cursor.png</file>
     <file>zoom_out_cursor.png</file>
   </gresource>
+  <gresource prefix="/dnd">
+    <file>dnd.css</file>
+  </gresource>
   <gresource prefix="/fishbowl">
     <file>fishbowl.ui</file>
     <file>gtkfishbowl.c</file>
@@ -137,6 +140,7 @@
   </gresource>
   <gresource prefix="/listview_colors">
     <file compressed="true">color.names.txt</file>
+    <file>listview_colors.css</file>
   </gresource>
   <gresource prefix="/shortcuts">
     <file>shortcuts.ui</file>
@@ -222,6 +226,7 @@
     <file>listview_minesweeper.c</file>
     <file>listview_settings.c</file>
     <file>listview_weather.c</file>
+    <file>listview_words.c</file>
     <file>list_store.c</file>
     <file>markup.c</file>
     <file>modelbutton.c</file>
@@ -296,6 +301,7 @@
   </gresource>
   <gresource prefix="/transparent">
     <file>portland-rose.jpg</file>
+    <file>bluroverlay.h</file>
     <file>bluroverlay.c</file>
   </gresource>
   <gresource prefix="/markup">

@@ -27,7 +27,7 @@
 
 
 static gboolean gdk_event_source_prepare  (GSource     *source,
-                                           gint        *timeout);
+                                           int         *timeout);
 static gboolean gdk_event_source_check    (GSource     *source);
 static gboolean gdk_event_source_dispatch (GSource     *source,
                                            GSourceFunc  callback,
@@ -117,7 +117,6 @@ handle_focus_change (GdkEvent *event)
 
       focus_event = gdk_focus_event_new (gdk_event_get_surface (event),
                                          gdk_event_get_device (event),
-                                         gdk_event_get_source_device (event),
                                          focus_in);
       gdk_display_put_event (gdk_event_get_display (event), focus_event);
       gdk_event_unref (focus_event);
@@ -130,7 +129,7 @@ create_synth_crossing_event (GdkEventType     evtype,
                              GdkEvent        *real_event)
 {
   GdkEvent *event;
-  gdouble x, y;
+  double x, y;
 
   g_assert (evtype == GDK_ENTER_NOTIFY || evtype == GDK_LEAVE_NOTIFY);
 
@@ -138,7 +137,6 @@ create_synth_crossing_event (GdkEventType     evtype,
   event = gdk_crossing_event_new (evtype,
                                   gdk_event_get_surface (real_event),
                                   gdk_event_get_device (real_event),
-                                  gdk_event_get_source_device (real_event),
                                   gdk_event_get_time (real_event),
                                   gdk_event_get_modifier_state (real_event),
                                   x, y,
@@ -152,9 +150,8 @@ static void
 handle_touch_synthetic_crossing (GdkEvent *event)
 {
   GdkEventType evtype = gdk_event_get_event_type (event);
-  GdkDevice *device = gdk_event_get_device (event);
   GdkEvent *crossing = NULL;
-  GdkSeat *seat = gdk_device_get_seat (device);
+  GdkSeat *seat = gdk_event_get_seat (event);
   gboolean needs_enter, set_needs_enter = FALSE;
 
   if (quark_needs_enter == 0)
@@ -208,7 +205,7 @@ handle_touch_synthetic_crossing (GdkEvent *event)
 
   if (crossing)
     {
-      gdk_display_put_event (gdk_device_get_display (device), crossing);
+      gdk_display_put_event (gdk_seat_get_display (seat), crossing);
       gdk_event_unref (crossing);
     }
 }
@@ -341,7 +338,7 @@ gdk_check_xpending (GdkDisplay *display)
 
 static gboolean
 gdk_event_source_prepare (GSource *source,
-                          gint    *timeout)
+                          int     *timeout)
 {
   GdkDisplay *display = ((GdkEventSource*) source)->display;
   gboolean retval;
@@ -489,7 +486,7 @@ gdk_x11_event_source_select_events (GdkEventSource *source,
 {
   unsigned int xmask = extra_x_mask;
   GList *list;
-  gint i;
+  int i;
 
   list = source->translators;
 

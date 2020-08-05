@@ -49,6 +49,10 @@
  * #GtkLockButton, #GtkColorButton or #GtkFontButton use style classes such as
  * .toggle, .popup, .scale, .lock, .color on the button node
  * to differentiate themselves from a plain GtkButton.
+ *
+ * # Accessibility
+ *
+ * GtkButton uses the #GTK_ACCESSIBLE_ROLE_BUTTON role.
  */
 
 #include "config.h"
@@ -70,8 +74,6 @@
 #include "gtkstylecontext.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
-
-#include "a11y/gtkbuttonaccessible.h"
 
 #include <string.h>
 
@@ -140,8 +142,6 @@ static void gtk_button_finish_activate (GtkButton         *button,
 
 static void gtk_button_state_flags_changed (GtkWidget     *widget,
                                             GtkStateFlags  previous_state);
-static void gtk_button_grab_notify     (GtkWidget             *widget,
-					gboolean               was_grabbed);
 static void gtk_button_do_release      (GtkButton             *button,
                                         gboolean               emit_clicked);
 static void gtk_button_set_child_type (GtkButton *button, guint child_type);
@@ -212,7 +212,6 @@ gtk_button_class_init (GtkButtonClass *klass)
 
   widget_class->unrealize = gtk_button_unrealize;
   widget_class->state_flags_changed = gtk_button_state_flags_changed;
-  widget_class->grab_notify = gtk_button_grab_notify;
   widget_class->unmap = gtk_button_unmap;
   widget_class->compute_expand = gtk_button_compute_expand;
   widget_class->get_request_mode = gtk_button_get_request_mode;
@@ -295,15 +294,27 @@ gtk_button_class_init (GtkButtonClass *klass)
   widget_class->activate_signal = button_signals[ACTIVATE];
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_BUTTON_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("button"));
+
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_space, 0,
+                                       "activate", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_KP_Space, 0,
+                                       "activate", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_Return, 0,
+                                       "activate", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_ISO_Enter, 0,
+                                       "activate", NULL);
+  gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_KP_Enter, 0,
+                                       "activate", NULL);
+
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_BUTTON);
 }
 
 static void
 click_pressed_cb (GtkGestureClick *gesture,
                   guint            n_press,
-                  gdouble          x,
-                  gdouble          y,
+                  double           x,
+                  double           y,
                   GtkWidget       *widget)
 {
   GtkButton *button = GTK_BUTTON (widget);
@@ -345,8 +356,8 @@ touch_release_in_button (GtkGestureClick *gesture,
 static void
 click_released_cb (GtkGestureClick *gesture,
                    guint            n_press,
-                   gdouble          x,
-                   gdouble          y,
+                   double           x,
+                   double           y,
                    GtkWidget       *widget)
 {
   GtkButton *button = GTK_BUTTON (widget);
@@ -369,6 +380,11 @@ click_gesture_cancel_cb (GtkGesture       *gesture,
                          GdkEventSequence *sequence,
                          GtkButton        *button)
 {
+  GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
+
+  if (priv->activate_timeout)
+    gtk_button_finish_activate (button, FALSE);
+
   gtk_button_do_release (button, FALSE);
 }
 
@@ -457,7 +473,7 @@ gtk_button_dispose (GObject *object)
 
 static void
 gtk_button_set_action_name (GtkActionable *actionable,
-                            const gchar   *action_name)
+                            const char    *action_name)
 {
   GtkButton *button = GTK_BUTTON (actionable);
   GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
@@ -560,7 +576,7 @@ gtk_button_get_property (GObject         *object,
     }
 }
 
-static const gchar *
+static const char *
 gtk_button_get_action_name (GtkActionable *actionable)
 {
   GtkButton *button = GTK_BUTTON (actionable);
@@ -593,7 +609,7 @@ static void
 gtk_button_buildable_add_child (GtkBuildable *buildable,
                                 GtkBuilder   *builder,
                                 GObject      *child,
-                                const gchar  *type)
+                                const char   *type)
 {
   if (GTK_IS_WIDGET (child))
     gtk_button_set_child (GTK_BUTTON (buildable), GTK_WIDGET (child));
@@ -633,7 +649,7 @@ gtk_button_new (void)
  * Returns: The newly created #GtkButton widget.
  */
 GtkWidget*
-gtk_button_new_with_label (const gchar *label)
+gtk_button_new_with_label (const char *label)
 {
   return g_object_new (GTK_TYPE_BUTTON, "label", label, NULL);
 }
@@ -651,7 +667,7 @@ gtk_button_new_with_label (const gchar *label)
  * Returns: a new #GtkButton displaying the themed icon
  */
 GtkWidget*
-gtk_button_new_from_icon_name (const gchar *icon_name)
+gtk_button_new_from_icon_name (const char *icon_name)
 {
   GtkWidget *button;
 
@@ -677,7 +693,7 @@ gtk_button_new_from_icon_name (const gchar *icon_name)
  * Returns: a new #GtkButton
  */
 GtkWidget*
-gtk_button_new_with_mnemonic (const gchar *label)
+gtk_button_new_with_mnemonic (const char *label)
 {
   return g_object_new (GTK_TYPE_BUTTON, "label", label, "use-underline", TRUE,  NULL);
 }
@@ -811,7 +827,7 @@ gtk_button_finish_activate (GtkButton *button,
  */
 void
 gtk_button_set_label (GtkButton   *button,
-                      const gchar *label)
+                      const char *label)
 {
   GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
   GtkWidget *child;
@@ -837,13 +853,9 @@ gtk_button_set_label (GtkButton   *button,
   gtk_label_set_label (GTK_LABEL (priv->child), label);
   gtk_button_set_child_type (button, LABEL_CHILD);
 
-  {
-    GtkButtonAccessible *accessible =
-      GTK_BUTTON_ACCESSIBLE (_gtk_widget_peek_accessible (GTK_WIDGET (button)));
-
-    if (accessible != NULL)
-      gtk_button_accessible_update_label (accessible);
-  }
+  gtk_accessible_update_property (GTK_ACCESSIBLE (button),
+                                  GTK_ACCESSIBLE_PROPERTY_LABEL, label,
+                                  -1);
 
   g_object_notify_by_pspec (G_OBJECT (button), props[PROP_LABEL]);
 }
@@ -861,7 +873,7 @@ gtk_button_set_label (GtkButton   *button,
  * Returns: (nullable): The text of the label widget. This string is owned
  * by the widget and must not be modified or freed.
  */
-const gchar *
+const char *
 gtk_button_get_label (GtkButton *button)
 {
   GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
@@ -935,22 +947,6 @@ gtk_button_state_flags_changed (GtkWidget     *widget,
     gtk_button_do_release (button, FALSE);
 }
 
-static void
-gtk_button_grab_notify (GtkWidget *widget,
-                        gboolean   was_grabbed)
-{
-  GtkButton *button = GTK_BUTTON (widget);
-  GtkButtonPrivate *priv = gtk_button_get_instance_private (button);
-
-  GTK_WIDGET_CLASS (gtk_button_parent_class)->grab_notify (widget, was_grabbed);
-
-  if (was_grabbed && priv->activate_timeout)
-    gtk_button_finish_activate (button, FALSE);
-
-  if (!was_grabbed)
-    gtk_button_do_release (button, FALSE);
-}
-
 /**
  * gtk_button_set_icon_name:
  * @button: A #GtkButton
@@ -973,6 +969,7 @@ gtk_button_set_icon_name (GtkButton  *button,
     {
       GtkWidget *child = gtk_image_new_from_icon_name (icon_name);
       gtk_button_set_child (GTK_BUTTON (button), child);
+      gtk_widget_set_valign (child, GTK_ALIGN_CENTER);
       gtk_widget_remove_css_class (GTK_WIDGET (button), "text-button");
       gtk_widget_add_css_class (GTK_WIDGET (button), "image-button");
     }

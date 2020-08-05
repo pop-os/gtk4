@@ -36,7 +36,6 @@
 #include "gtkorientable.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
-#include "a11y/gtkstatusbaraccessible.h"
 
 /**
  * SECTION:gtkstatusbar
@@ -102,15 +101,15 @@ struct _GtkStatusbarClass
 
   void  (*text_pushed)  (GtkStatusbar   *statusbar,
                          guint           context_id,
-                         const gchar    *text);
+                         const char     *text);
   void  (*text_popped)  (GtkStatusbar   *statusbar,
                          guint           context_id,
-                         const gchar    *text);
+                         const char     *text);
 };
 
 struct _GtkStatusbarMsg
 {
-  gchar *text;
+  char *text;
   guint context_id;
   guint message_id;
 };
@@ -124,7 +123,7 @@ enum
 
 static void     gtk_statusbar_update            (GtkStatusbar      *statusbar,
 						 guint              context_id,
-						 const gchar       *text);
+						 const char        *text);
 
 static void     gtk_statusbar_msg_free          (GtkStatusbarMsg *msg);
 
@@ -203,7 +202,6 @@ gtk_statusbar_class_init (GtkStatusbarClass *class)
   gtk_widget_class_bind_template_child_internal (widget_class, GtkStatusbar, message_area);
   gtk_widget_class_bind_template_child (widget_class, GtkStatusbar, label);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_STATUSBAR_ACCESSIBLE);
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
   gtk_widget_class_set_css_name (widget_class, I_("statusbar"));
 }
@@ -235,7 +233,7 @@ gtk_statusbar_new (void)
 static void
 gtk_statusbar_update (GtkStatusbar *statusbar,
 		      guint	    context_id,
-		      const gchar  *text)
+		      const char   *text)
 {
   g_return_if_fail (GTK_IS_STATUSBAR (statusbar));
 
@@ -259,9 +257,9 @@ gtk_statusbar_update (GtkStatusbar *statusbar,
  */
 guint
 gtk_statusbar_get_context_id (GtkStatusbar *statusbar,
-			      const gchar  *context_description)
+			      const char   *context_description)
 {
-  gchar *string;
+  char *string;
   guint id;
   
   g_return_val_if_fail (GTK_IS_STATUSBAR (statusbar), 0);
@@ -286,7 +284,7 @@ gtk_statusbar_get_context_id (GtkStatusbar *statusbar,
 static GtkStatusbarMsg *
 gtk_statusbar_msg_create (GtkStatusbar *statusbar,
 		          guint         context_id,
-		          const gchar  *text)
+		          const char   *text)
 {
   GtkStatusbarMsg *msg;
 
@@ -320,7 +318,7 @@ gtk_statusbar_msg_free (GtkStatusbarMsg *msg)
 guint
 gtk_statusbar_push (GtkStatusbar *statusbar,
 		    guint	  context_id,
-		    const gchar  *text)
+		    const char   *text)
 {
   GtkStatusbarMsg *msg;
 

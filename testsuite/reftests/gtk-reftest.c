@@ -78,6 +78,7 @@ parse_command_line (int *argc, char ***argv)
       g_print ("option parsing failed: %s\n", error->message);
       return FALSE;
     }
+  g_option_context_free (context);
 
   for (i = 0; i < *argc; i++)
     {
@@ -325,6 +326,8 @@ test_ui_file (GFile *file)
     }
 
   remove_extra_css (provider);
+
+  g_free (ui_file);
 }
 
 static int
@@ -357,7 +360,7 @@ add_test_for_file (GFile *file)
 
   if (g_file_query_file_type (file, 0, NULL) != G_FILE_TYPE_DIRECTORY)
     {
-      g_test_add_vtable (g_file_get_path (file),
+      g_test_add_vtable (g_file_peek_path (file),
                          0,
                          g_object_ref (file),
                          NULL,

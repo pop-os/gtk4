@@ -38,14 +38,19 @@ set_color (CanvasItem *item,
   char *str;
   GtkStyleContext *context;
   GtkCssProvider *provider;
+  const char *old_class;
 
   str = gdk_rgba_to_string (color);
-  css = g_strdup_printf ("* { background: %s; padding: 10px; margin: 1px; }", str);
+  css = g_strdup_printf ("* { background: %s; }", str);
 
   context = gtk_widget_get_style_context (item->label);
   provider = g_object_get_data (G_OBJECT (context), "style-provider");
   if (provider)
     gtk_style_context_remove_provider (context, GTK_STYLE_PROVIDER (provider));
+
+  old_class = (const char *)g_object_get_data (G_OBJECT (item->label), "css-class");
+  if (old_class)
+    gtk_widget_remove_css_class (item->label, old_class);
 
   provider = gtk_css_provider_new ();
   gtk_css_provider_load_from_data (provider, css, -1);
@@ -54,6 +59,27 @@ set_color (CanvasItem *item,
 
   g_free (str);
   g_free (css);
+}
+
+static void
+set_css (CanvasItem *item,
+         const char *class)
+{
+  GtkStyleContext *context;
+  GtkCssProvider *provider;
+  const char *old_class;
+
+  context = gtk_widget_get_style_context (item->label);
+  provider = g_object_get_data (G_OBJECT (context), "style-provider");
+  if (provider)
+    gtk_style_context_remove_provider (context, GTK_STYLE_PROVIDER (provider));
+
+  old_class = (const char *)g_object_get_data (G_OBJECT (item->label), "css-class");
+  if (old_class)
+    gtk_widget_remove_css_class (item->label, old_class);
+
+  g_object_set_data_full (G_OBJECT (item->label), "css-class", g_strdup (class), g_free);
+  gtk_widget_add_css_class (item->label, class);
 }
 
 static gboolean
@@ -65,7 +91,10 @@ item_drag_drop (GtkDropTarget *dest,
   GtkWidget *label = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (dest));
   CanvasItem *item = CANVAS_ITEM (gtk_widget_get_parent (gtk_widget_get_parent (label)));
 
-  set_color (item, g_value_get_boxed (value));
+  if (G_VALUE_TYPE (value) == GDK_TYPE_RGBA)
+    set_color (item, g_value_get_boxed (value));
+  else if (G_VALUE_TYPE (value) == G_TYPE_STRING)
+    set_css (item, g_value_get_string (value));
 
   return TRUE;
 }
@@ -132,11 +161,13 @@ canvas_item_init (CanvasItem *item)
   GdkRGBA rgba;
   GtkDropTarget *dest;
   GtkGesture *gesture;
+  GType types[2] = { GDK_TYPE_RGBA, G_TYPE_STRING };
 
   n_items++;
 
   text = g_strdup_printf ("Item %d", n_items);
   item->label = gtk_label_new (text);
+  gtk_widget_add_css_class (item->label, "canvasitem");
   g_free (text);
 
   item->fixed = gtk_fixed_new ();
@@ -154,7 +185,8 @@ canvas_item_init (CanvasItem *item)
 
   item->angle = 0;
 
-  dest = gtk_drop_target_new (GDK_TYPE_RGBA, GDK_ACTION_COPY);
+  dest = gtk_drop_target_new (G_TYPE_INVALID, GDK_ACTION_COPY);
+  gtk_drop_target_set_gtypes (dest, types, G_N_ELEMENTS (types));
   g_signal_connect (dest, "drop", G_CALLBACK (item_drag_drop), NULL);
   gtk_widget_add_controller (GTK_WIDGET (item->label), GTK_EVENT_CONTROLLER (dest));
 
@@ -529,6 +561,119 @@ canvas_new (void)
   return canvas;
 }
 
+static GdkContentProvider *
+css_drag_prepare (GtkDragSource *source,
+                  double         x,
+                  double         y,
+                  GtkWidget     *button)
+{
+  const char *class;
+  GdkPaintable *paintable;
+
+  class = (const char *)g_object_get_data (G_OBJECT (button), "css-class");
+
+  paintable = gtk_widget_paintable_new (button);
+  gtk_drag_source_set_icon (source, paintable, 0, 0);
+  g_object_unref (paintable);
+
+  return gdk_content_provider_new_typed (G_TYPE_STRING, class);
+}
+
+static GtkWidget *
+css_button_new (const char *class)
+{
+  GtkWidget *button;
+  GtkDragSource *source;
+
+  button = gtk_image_new ();
+  gtk_widget_set_size_request (button, 48, 32);
+  gtk_widget_add_css_class (button, class);
+  g_object_set_data (G_OBJECT (button), "css-class", (gpointer)class);
+
+  source = gtk_drag_source_new ();
+  g_signal_connect (source, "prepare", G_CALLBACK (css_drag_prepare), button);
+  gtk_widget_add_controller (button, GTK_EVENT_CONTROLLER (source));
+
+  return button;
+}
+
+typedef struct
+{
+  GtkWidget parent_instance;
+  GdkRGBA color;
+} ColorSwatch;
+
+typedef struct
+{
+  GtkWidgetClass parent_class;
+} ColorSwatchClass;
+
+G_DEFINE_TYPE (ColorSwatch, color_swatch, GTK_TYPE_WIDGET)
+
+static GdkContentProvider *
+color_swatch_drag_prepare (GtkDragSource  *source,
+                           double          x,
+                           double          y,
+                           ColorSwatch    *swatch)
+{
+  return gdk_content_provider_new_typed (GDK_TYPE_RGBA, &swatch->color);
+}
+
+static void
+color_swatch_init (ColorSwatch *swatch)
+{
+  GtkDragSource *source = gtk_drag_source_new ();
+  g_signal_connect (source, "prepare", G_CALLBACK (color_swatch_drag_prepare), swatch);
+  gtk_widget_add_controller (GTK_WIDGET (swatch), GTK_EVENT_CONTROLLER (source));
+}
+
+static void
+color_swatch_snapshot (GtkWidget   *widget,
+                       GtkSnapshot *snapshot)
+{
+  ColorSwatch *swatch = (ColorSwatch *)widget;
+  float w = gtk_widget_get_width (widget);
+  float h = gtk_widget_get_height (widget);
+
+  gtk_snapshot_append_color (snapshot, &swatch->color,
+                             &GRAPHENE_RECT_INIT(0, 0, w, h));
+}
+
+void
+color_swatch_measure (GtkWidget      *widget,
+                      GtkOrientation  orientation,
+                      int             for_size,
+                      int            *minimum_size,
+                      int            *natural_size,
+                      int            *minimum_baseline,
+                      int            *natural_baseline)
+{
+  if (orientation == GTK_ORIENTATION_HORIZONTAL)
+    *minimum_size = *natural_size = 48;
+  else
+    *minimum_size = *natural_size = 32;
+}
+
+static void
+color_swatch_class_init (ColorSwatchClass *class)
+{
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
+
+  widget_class->snapshot = color_swatch_snapshot;
+  widget_class->measure = color_swatch_measure;
+  gtk_widget_class_set_css_name (widget_class, "colorswatch");
+}
+
+static GtkWidget *
+color_swatch_new (const char *color)
+{
+  ColorSwatch *swatch = g_object_new (color_swatch_get_type (), NULL);
+
+  gdk_rgba_parse (&swatch->color, color);
+
+  return GTK_WIDGET (swatch);
+}
+
 static GtkWidget *window = NULL;
 
 GtkWidget *
@@ -548,9 +693,17 @@ do_dnd (GtkWidget *do_widget)
       };
       int i;
       int x, y;
+      GtkCssProvider *provider;
 
       button = gtk_color_button_new ();
       g_object_unref (g_object_ref_sink (button));
+
+      provider = gtk_css_provider_new ();
+      gtk_css_provider_load_from_resource (provider, "/dnd/dnd.css");
+      gtk_style_context_add_provider_for_display (gdk_display_get_default (),
+                                                  GTK_STYLE_PROVIDER (provider),
+                                                  800);
+      g_object_unref (provider);
 
       window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
@@ -583,7 +736,7 @@ do_dnd (GtkWidget *do_widget)
           y += 100;
         }
 
-      sw = gtk_scrolled_window_new (NULL, NULL);
+      sw = gtk_scrolled_window_new ();
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_NEVER);
@@ -594,18 +747,11 @@ do_dnd (GtkWidget *do_widget)
       gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), box3);
 
       for (i = 0; colors[i]; i++)
-        {
-          GdkRGBA rgba;
-          GtkWidget *swatch;
+        gtk_box_append (GTK_BOX (box3), color_swatch_new (colors[i]));
 
-          gdk_rgba_parse (&rgba, colors[i]);
-
-          swatch = g_object_new (g_type_from_name ("GtkColorSwatch"),
-                                 "rgba", &rgba,
-                                 "selectable", FALSE,
-                                 NULL);
-          gtk_box_append (GTK_BOX (box3), swatch);
-        }
+      gtk_box_append (GTK_BOX (box3), css_button_new ("rainbow1"));
+      gtk_box_append (GTK_BOX (box3), css_button_new ("rainbow2"));
+      gtk_box_append (GTK_BOX (box3), css_button_new ("rainbow3"));
     }
 
   if (!gtk_widget_get_visible (window))

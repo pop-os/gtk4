@@ -47,8 +47,8 @@ typedef struct _GtkGestureClickPrivate GtkGestureClickPrivate;
 struct _GtkGestureClickPrivate
 {
   GdkDevice *current_device;
-  gdouble initial_press_x;
-  gdouble initial_press_y;
+  double initial_press_x;
+  double initial_press_y;
   guint double_click_timeout_id;
   guint n_presses;
   guint n_release;
@@ -193,7 +193,7 @@ gtk_gesture_click_begin (GtkGesture       *gesture,
   GdkEvent *event;
   GdkEventType event_type;
   GdkDevice *device;
-  gdouble x, y;
+  double x, y;
 
   if (!gtk_gesture_handles_sequence (gesture, sequence))
     return;
@@ -202,7 +202,7 @@ gtk_gesture_click_begin (GtkGesture       *gesture,
   priv = gtk_gesture_click_get_instance_private (click);
   event = gtk_gesture_get_last_event (gesture, sequence);
   current = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
-  device = gdk_event_get_source_device (event);
+  device = gdk_event_get_device (event);
   event_type = gdk_event_get_event_type (event);
 
   if (event_type == GDK_BUTTON_PRESS)
@@ -250,7 +250,7 @@ gtk_gesture_click_update (GtkGesture       *gesture,
 {
   GtkGestureClick *click;
   GdkEventSequence *current;
-  gdouble x, y;
+  double x, y;
 
   click = GTK_GESTURE_CLICK (gesture);
   current = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
@@ -267,7 +267,7 @@ gtk_gesture_click_end (GtkGesture       *gesture,
   GtkGestureClick *click;
   GtkGestureClickPrivate *priv;
   GdkEventSequence *current;
-  gdouble x, y;
+  double x, y;
   gboolean interpreted;
   GtkEventSequenceState state;
 

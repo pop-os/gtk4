@@ -74,7 +74,14 @@ GDK_AVAILABLE_IN_ALL
 gboolean                 gdk_wayland_surface_set_transient_for_exported (GdkSurface *surface,
                                                                          char      *parent_handle_str);
 
+GDK_AVAILABLE_IN_ALL
+void                     gdk_wayland_surface_set_application_id (GdkSurface *surface,
+                                                                 const char *application_id);
+
 void gdk_wayland_surface_announce_csd                        (GdkSurface *surface);
+
+gboolean gdk_wayland_surface_inhibit_idle                    (GdkSurface *surface);
+void gdk_wayland_surface_uninhibit_idle                      (GdkSurface *surface);
 
 G_END_DECLS
 

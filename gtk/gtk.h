@@ -46,7 +46,11 @@
 #include <gtk/gtkapplicationwindow.h>
 #include <gtk/gtkaspectframe.h>
 #include <gtk/gtkassistant.h>
+#include <gtk/gtkatcontext.h>
 #include <gtk/gtkbinlayout.h>
+#include <gtk/gtkbitset.h>
+#include <gtk/gtkbookmarklist.h>
+#include <gtk/gtkboolfilter.h>
 #include <gtk/gtkborder.h>
 #include <gtk/gtkboxlayout.h>
 #include <gtk/gtkbox.h>
@@ -99,6 +103,7 @@
 #include <gtk/gtkdroptargetasync.h>
 #include <gtk/gtkdropdown.h>
 #include <gtk/gtkeditable.h>
+#include <gtk/gtkeditablelabel.h>
 #include <gtk/gtkemojichooser.h>
 #include <gtk/gtkentry.h>
 #include <gtk/gtkentrybuffer.h>
@@ -130,7 +135,6 @@
 #include <gtk/gtkfontchooserdialog.h>
 #include <gtk/gtkfontchooserwidget.h>
 #include <gtk/gtkframe.h>
-#include <gtk/gtkfunctionslistitemfactory.h>
 #include <gtk/gtkgesture.h>
 #include <gtk/gtkgestureclick.h>
 #include <gtk/gtkgesturedrag.h>
@@ -198,7 +202,6 @@
 #include <gtk/gtkprintoperationpreview.h>
 #include <gtk/gtkprintsettings.h>
 #include <gtk/gtkprogressbar.h>
-#include <gtk/gtkpropertyselection.h>
 #include <gtk/gtkradiobutton.h>
 #include <gtk/gtkrange.h>
 #include <gtk/gtkrecentmanager.h>
@@ -212,6 +215,7 @@
 #include <gtk/gtkscrolledwindow.h>
 #include <gtk/gtksearchbar.h>
 #include <gtk/gtksearchentry.h>
+#include <gtk/gtkselectionfiltermodel.h>
 #include <gtk/gtkselectionmodel.h>
 #include <gtk/gtkseparator.h>
 #include <gtk/gtksettings.h>
@@ -241,6 +245,7 @@
 #include <gtk/gtkstackswitcher.h>
 #include <gtk/gtkstatusbar.h>
 #include <gtk/gtkstringfilter.h>
+#include <gtk/gtkstringlist.h>
 #include <gtk/gtkstringsorter.h>
 #include <gtk/gtkstylecontext.h>
 #include <gtk/gtkstyleprovider.h>
@@ -255,6 +260,7 @@
 #include <gtk/gtktextview.h>
 #include <gtk/gtktogglebutton.h>
 #include <gtk/gtktooltip.h>
+#include <gtk/gtktestatcontext.h>
 #include <gtk/gtktestutils.h>
 #include <gtk/gtktreednd.h>
 #include <gtk/gtktreeexpander.h>

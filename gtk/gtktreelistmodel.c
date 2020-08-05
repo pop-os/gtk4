@@ -533,16 +533,6 @@ gtk_tree_list_model_expand_node (GtkTreeListModel *self,
   if (model == NULL)
     return 0;
   
-  if (!g_type_is_a (g_list_model_get_item_type (model), g_list_model_get_item_type (self->root_node.model)))
-    {
-      g_critical ("The GtkTreeListModelCreateModelFunc for %p returned a model with item type \"%s\" "
-                  "but \"%s\" is required.",
-                  self,
-                  g_type_name (g_list_model_get_item_type (model)),
-                  g_type_name (g_list_model_get_item_type (self->root_node.model)));
-      return 0;
-    }
-
   gtk_tree_list_model_init_node (self, node, model);
 
   tree_node_mark_dirty (node);
@@ -576,7 +566,7 @@ gtk_tree_list_model_get_item_type (GListModel *list)
   GtkTreeListModel *self = GTK_TREE_LIST_MODEL (list);
 
   if (self->passthrough)
-    return g_list_model_get_item_type (self->root_node.model);
+    return G_TYPE_OBJECT;
   else
     return GTK_TYPE_TREE_LIST_ROW;
 }
@@ -744,8 +734,8 @@ gtk_tree_list_model_init (GtkTreeListModel *self)
 
 /**
  * gtk_tree_list_model_new:
+ * @root: (transfer full): The #GListModel to use as root
  * @passthrough: %TRUE to pass through items from the models
- * @root: The #GListModel to use as root
  * @autoexpand: %TRUE to set the autoexpand property and expand the @root model
  * @create_func: Function to call to create the #GListModel for the children
  *     of an item
@@ -753,12 +743,12 @@ gtk_tree_list_model_init (GtkTreeListModel *self)
  * @user_destroy: Function to call to free @user_data
  *
  * Creates a new empty #GtkTreeListModel displaying @root with all rows collapsed.
- * 
- * Returns: a newly created #GtkTreeListModel. 
+ *
+ * Returns: a newly created #GtkTreeListModel.
  **/
 GtkTreeListModel *
-gtk_tree_list_model_new (gboolean                         passthrough,
-                         GListModel                      *root,
+gtk_tree_list_model_new (GListModel                      *root,
+                         gboolean                         passthrough,
                          gboolean                         autoexpand,
                          GtkTreeListModelCreateModelFunc  create_func,
                          gpointer                         user_data,
@@ -778,7 +768,7 @@ gtk_tree_list_model_new (gboolean                         passthrough,
   self->user_data = user_data;
   self->user_destroy = user_destroy;
 
-  gtk_tree_list_model_init_node (self, &self->root_node, g_object_ref (root));
+  gtk_tree_list_model_init_node (self, &self->root_node, root);
 
   return self;
 }

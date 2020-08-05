@@ -101,7 +101,7 @@ _gdk_x11_surfaceing_init (void)
 }
 
 GdkGrabStatus
-_gdk_x11_convert_grab_status (gint status)
+_gdk_x11_convert_grab_status (int status)
 {
   switch (status)
     {
@@ -141,7 +141,7 @@ _gdk_x11_surface_grab_check_unmap (GdkSurface *surface,
 
   seat = gdk_display_get_default_seat (display);
 
-  devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL);
+  devices = gdk_seat_get_devices (seat, GDK_SEAT_CAPABILITY_ALL);
   devices = g_list_prepend (devices, gdk_seat_get_keyboard (seat));
   devices = g_list_prepend (devices, gdk_seat_get_pointer (seat));
 
@@ -169,7 +169,7 @@ _gdk_x11_surface_grab_check_destroy (GdkSurface *surface)
 
   seat = gdk_display_get_default_seat (display);
 
-  devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL);
+  devices = gdk_seat_get_devices (seat, GDK_SEAT_CAPABILITY_ALL);
   devices = g_list_prepend (devices, gdk_seat_get_keyboard (seat));
   devices = g_list_prepend (devices, gdk_seat_get_pointer (seat));
 
@@ -200,7 +200,7 @@ _gdk_x11_surface_grab_check_destroy (GdkSurface *surface)
  *   The X I/O error handling routine.
  *
  * Arguments:
- *   "display" is the X display the error orignated from.
+ *   "display" is the X display the error originated from.
  *
  * Results:
  *   An X I/O error basically means we lost our connection
@@ -323,7 +323,7 @@ _gdk_x11_error_handler_pop  (void)
     }
 }
 
-gint
+int
 _gdk_x11_display_send_xevent (GdkDisplay *display,
                               Window      window,
                               gboolean    propagate,
@@ -348,15 +348,15 @@ _gdk_x11_display_send_xevent (GdkDisplay *display,
 
 void
 _gdk_x11_region_get_xrectangles (const cairo_region_t *region,
-                                 gint             x_offset,
-                                 gint             y_offset,
-                                 gint             scale,
+                                 int              x_offset,
+                                 int              y_offset,
+                                 int              scale,
                                  XRectangle     **rects,
-                                 gint            *n_rects)
+                                 int             *n_rects)
 {
   XRectangle *rectangles;
   cairo_rectangle_int_t box;
-  gint i, n;
+  int i, n;
   
   n = cairo_region_num_rectangles (region);
   rectangles = g_new (XRectangle, n);

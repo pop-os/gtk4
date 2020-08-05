@@ -24,10 +24,10 @@ content_width_changed (GtkSpinButton *spin_button,
                        gpointer       data)
 {
   GtkScrolledWindow *swindow = data;
-  gdouble value;
+  double value;
 
   value = gtk_spin_button_get_value (spin_button);
-  gtk_scrolled_window_set_min_content_width (swindow, (gint)value);
+  gtk_scrolled_window_set_min_content_width (swindow, (int)value);
 }
 
 static void
@@ -35,10 +35,10 @@ content_height_changed (GtkSpinButton *spin_button,
                         gpointer       data)
 {
   GtkScrolledWindow *swindow = data;
-  gdouble value;
+  double value;
 
   value = gtk_spin_button_get_value (spin_button);
-  gtk_scrolled_window_set_min_content_height (swindow, (gint)value);
+  gtk_scrolled_window_set_min_content_height (swindow, (int)value);
 }
 
 static void
@@ -90,7 +90,7 @@ scrollable_policy (void)
   gtk_widget_set_hexpand (frame, TRUE);
   gtk_box_append (GTK_BOX (hbox), frame);
 
-  swindow = gtk_scrolled_window_new (NULL, NULL);
+  swindow = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (swindow),
                                   GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 
@@ -207,7 +207,7 @@ scrollable_policy (void)
   gtk_popover_set_child (GTK_POPOVER (popover), vbox);
 
   /* Popover's scrolled window */
-  swindow = gtk_scrolled_window_new (NULL, NULL);
+  swindow = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (swindow),
                                   GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);
 

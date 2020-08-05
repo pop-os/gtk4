@@ -26,16 +26,15 @@
 
 #include "gtktogglebutton.h"
 
+#include "gtkaccessible.h"
 #include "gtkbuttonprivate.h"
+#include "gtkenums.h"
 #include "gtkintl.h"
 #include "gtklabel.h"
 #include "gtkmain.h"
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
 #include "gtkstylecontext.h"
-
-#include "a11y/gtktogglebuttonaccessible.h"
-
 
 /**
  * SECTION:gtktogglebutton
@@ -181,7 +180,6 @@ gtk_toggle_button_class_init (GtkToggleButtonClass *class)
 		  NULL,
 		  G_TYPE_NONE, 0);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_TOGGLE_BUTTON_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("button"));
 }
 
@@ -218,7 +216,7 @@ gtk_toggle_button_new (void)
  * Returns: a new toggle button.
  */
 GtkWidget*
-gtk_toggle_button_new_with_label (const gchar *label)
+gtk_toggle_button_new_with_label (const char *label)
 {
   return g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", label, NULL);
 }
@@ -235,7 +233,7 @@ gtk_toggle_button_new_with_label (const gchar *label)
  * Returns: a new #GtkToggleButton
  */
 GtkWidget*
-gtk_toggle_button_new_with_mnemonic (const gchar *label)
+gtk_toggle_button_new_with_mnemonic (const char *label)
 {
   return g_object_new (GTK_TYPE_TOGGLE_BUTTON, 
 		       "label", label, 
@@ -314,6 +312,10 @@ gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
     gtk_widget_set_state_flags (GTK_WIDGET (toggle_button), GTK_STATE_FLAG_CHECKED, FALSE);
   else
     gtk_widget_unset_state_flags (GTK_WIDGET (toggle_button), GTK_STATE_FLAG_CHECKED);
+
+  gtk_accessible_update_state (GTK_ACCESSIBLE (toggle_button),
+                               GTK_ACCESSIBLE_STATE_PRESSED, is_active,
+                               -1);
 
   gtk_toggle_button_toggled (toggle_button);
 

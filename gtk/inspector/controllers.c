@@ -19,10 +19,10 @@
 #include <glib/gi18n-lib.h>
 
 #include "controllers.h"
-#include "object-tree.h"
 
 #include "gtkbinlayout.h"
 #include "gtkdropdown.h"
+#include "gtkbox.h"
 #include "gtkcustomsorter.h"
 #include "gtkflattenlistmodel.h"
 #include "gtkframe.h"
@@ -37,6 +37,7 @@
 #include "gtkstack.h"
 #include "gtkstylecontext.h"
 #include "gtkwidgetprivate.h"
+#include "window.h"
 
 struct _GtkInspectorControllers
 {
@@ -45,18 +46,11 @@ struct _GtkInspectorControllers
   GtkWidget *listbox;
   GtkPropertyLookupListModel *model;
   GtkSizeGroup *sizegroup;
-  GtkInspectorObjectTree *object_tree;
 };
 
 struct _GtkInspectorControllersClass
 {
   GtkWidgetClass parent_class;
-};
-
-enum
-{
-  PROP_0,
-  PROP_OBJECT_TREE
 };
 
 G_DEFINE_TYPE (GtkInspectorControllers, gtk_inspector_controllers, GTK_TYPE_WIDGET)
@@ -66,10 +60,14 @@ row_activated (GtkListBox              *box,
                GtkListBoxRow           *row,
                GtkInspectorControllers *self)
 {
+  GtkInspectorWindow *iw;
   GObject *controller;
-  
+
+  iw = GTK_INSPECTOR_WINDOW (gtk_widget_get_ancestor (GTK_WIDGET (self), GTK_TYPE_INSPECTOR_WINDOW));
+
   controller = G_OBJECT (g_object_get_data (G_OBJECT (row), "controller"));
-  gtk_inspector_object_tree_select_object (self->object_tree, controller);
+
+  gtk_inspector_window_push_object (iw, controller, CHILD_KIND_CONTROLLER, 0);
 }
 
 static void
@@ -79,7 +77,7 @@ gtk_inspector_controllers_init (GtkInspectorControllers *self)
 
   self->sizegroup = gtk_size_group_new (GTK_SIZE_GROUP_HORIZONTAL);
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
 
   box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
   g_object_set (box,
@@ -130,7 +128,7 @@ create_controller_widget (gpointer item,
   const char *phases[5];
 
   row = gtk_list_box_row_new ();
-  gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), FALSE);
+  gtk_list_box_row_set_activatable (GTK_LIST_BOX_ROW (row), TRUE);
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 40);
   gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (row), box);
   gtk_widget_set_margin_start (box, 10);
@@ -150,8 +148,7 @@ create_controller_widget (gpointer item,
   phases[3] = C_("event phase", "Target");
   phases[4] = NULL;
 
-  dropdown = gtk_drop_down_new ();
-  gtk_drop_down_set_from_strings (GTK_DROP_DOWN (dropdown), phases);
+  dropdown = gtk_drop_down_new_from_strings (phases);
   gtk_drop_down_set_selected (GTK_DROP_DOWN (dropdown), gtk_event_controller_get_propagation_phase (controller));
   gtk_box_append (GTK_BOX (box), dropdown);
   gtk_widget_set_halign (label, GTK_ALIGN_END);
@@ -245,14 +242,12 @@ gtk_inspector_controllers_set_object (GtkInspectorControllers *self,
   self->model = gtk_property_lookup_list_model_new (GTK_TYPE_WIDGET, "parent");
   gtk_property_lookup_list_model_set_object (self->model, object);
 
-  map_model = gtk_map_list_model_new (G_TYPE_LIST_MODEL, G_LIST_MODEL (self->model), map_to_controllers, NULL, NULL);
-  g_object_unref (self->model);
+  map_model = gtk_map_list_model_new (G_LIST_MODEL (self->model), map_to_controllers, NULL, NULL);
 
-  flatten_model = gtk_flatten_list_model_new (GTK_TYPE_EVENT_CONTROLLER, G_LIST_MODEL (map_model));
+  flatten_model = gtk_flatten_list_model_new (G_LIST_MODEL (map_model));
 
   sorter = gtk_custom_sorter_new (compare_controllers, NULL, NULL);
   sort_model = gtk_sort_list_model_new (G_LIST_MODEL (flatten_model), sorter);
-  g_object_unref (sorter);
 
   gtk_list_box_bind_model (GTK_LIST_BOX (self->listbox),
                            G_LIST_MODEL (sort_model),
@@ -261,48 +256,6 @@ gtk_inspector_controllers_set_object (GtkInspectorControllers *self,
                            NULL);
 
   g_object_unref (sort_model);
-  g_object_unref (flatten_model);
-  g_object_unref (map_model);
-}
-
-static void
-gtk_inspector_controllers_get_property (GObject    *object,
-                                        guint       param_id,
-                                        GValue     *value,
-                                        GParamSpec *pspec)
-{
-  GtkInspectorControllers *self = GTK_INSPECTOR_CONTROLLERS (object);
-
-  switch (param_id)
-    {
-      case PROP_OBJECT_TREE:
-        g_value_take_object (value, self->object_tree);
-        break;
-
-      default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, param_id, pspec);
-        break;
-    }
-}
-
-static void
-gtk_inspector_controllers_set_property (GObject      *object,
-                                        guint         param_id,
-                                        const GValue *value,
-                                        GParamSpec   *pspec)
-{
-  GtkInspectorControllers *self = GTK_INSPECTOR_CONTROLLERS (object);
-
-  switch (param_id)
-    {
-      case PROP_OBJECT_TREE:
-        self->object_tree = g_value_get_object (value);
-        break;
-
-      default:
-        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, param_id, pspec);
-        break;
-    }
 }
 
 static void
@@ -321,13 +274,7 @@ gtk_inspector_controllers_class_init (GtkInspectorControllersClass *klass)
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
 
-  object_class->get_property = gtk_inspector_controllers_get_property;
-  object_class->set_property = gtk_inspector_controllers_set_property;
   object_class->dispose= gtk_inspector_controllers_dispose;
-
-  g_object_class_install_property (object_class, PROP_OBJECT_TREE,
-      g_param_spec_object ("object-tree", "Widget Tree", "Widget tree",
-                           GTK_TYPE_WIDGET, G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY));
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BIN_LAYOUT);
 }

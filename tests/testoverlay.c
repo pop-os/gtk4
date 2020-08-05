@@ -220,7 +220,7 @@ test_scrolling (void)
   GtkWidget *text;
   GtkWidget *child;
   GtkTextBuffer *buffer;
-  gchar *contents;
+  char *contents;
   gsize len;
 
   win = gtk_window_new ();
@@ -229,7 +229,7 @@ test_scrolling (void)
   overlay = gtk_overlay_new ();
   gtk_window_set_child (GTK_WINDOW (win), overlay);
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_min_content_width (GTK_SCROLLED_WINDOW (sw), 200);
   gtk_scrolled_window_set_min_content_height (GTK_SCROLLED_WINDOW (sw), 200);
   gtk_overlay_set_child (GTK_OVERLAY (overlay), sw);
@@ -261,7 +261,7 @@ test_scrolling (void)
   return win;
 }
 
-static const gchar *buffer =
+static const char *buffer =
 "<interface>"
 "  <object class='GtkWindow' id='window'>"
 "    <property name='title'>GtkBuilder support</property>"
@@ -368,7 +368,7 @@ test_chase (void)
   GtkWidget *text;
   GtkWidget *child;
   GtkTextBuffer *text_buffer;
-  gchar *contents;
+  char *contents;
   gsize len;
   GtkEventController *controller;
 
@@ -378,7 +378,7 @@ test_chase (void)
   overlay = gtk_overlay_new ();
   gtk_window_set_child (GTK_WINDOW (win), overlay);
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_min_content_width (GTK_SCROLLED_WINDOW (sw), 200);
   gtk_scrolled_window_set_min_content_height (GTK_SCROLLED_WINDOW (sw), 200);
   gtk_overlay_set_child (GTK_OVERLAY (overlay), sw);

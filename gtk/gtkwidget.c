@@ -27,7 +27,8 @@
 #include "gtkwidgetprivate.h"
 
 #include "gtkaccelgroupprivate.h"
-#include "gtkaccessible.h"
+#include "gtkaccessibleprivate.h"
+#include "gtkactionobserverprivate.h"
 #include "gtkapplicationprivate.h"
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
@@ -49,7 +50,7 @@
 #include "gtklayoutmanagerprivate.h"
 #include "gtkmain.h"
 #include "gtkmarshalers.h"
-#include "gtknativeprivate.h"
+#include "gtknative.h"
 #include "gtkpopover.h"
 #include "gtkprivate.h"
 #include "gtkrenderbackgroundprivate.h"
@@ -73,7 +74,6 @@
 #include "gtkwindowgroup.h"
 #include "gtkwindowprivate.h"
 
-#include "a11y/gtkwidgetaccessibleprivate.h"
 #include "inspector/window.h"
 
 #include "gdk/gdkeventsprivate.h"
@@ -258,29 +258,6 @@
  * |[
  * <object class="GtkButton">
  *   <accelerator key="q" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
- * </object>
- * ]|
- *
- * In addition to accelerators, GtkWidget also support a custom <accessible>
- * element, which supports actions and relations. Properties on the accessible
- * implementation of an object can be set by accessing the internal child
- * “accessible” of a #GtkWidget.
- *
- * An example of a UI definition fragment specifying an accessible:
- * |[
- * <object class="GtkLabel" id="label1"/>
- *   <property name="label">I am a Label for a Button</property>
- * </object>
- * <object class="GtkButton" id="button1">
- *   <accessibility>
- *     <action action_name="click" translatable="yes">Click the button.</action>
- *     <relation target="label1" type="labelled-by"/>
- *   </accessibility>
- *   <child internal-child="accessible">
- *     <object class="AtkObject" id="a11y-button1">
- *       <property name="accessible-name">Clickable Button</property>
- *     </object>
- *   </child>
  * </object>
  * ]|
  *
@@ -472,13 +449,13 @@
                                             GTK_STATE_FLAG_ACTIVE)
 
 typedef struct {
-  gchar               *name;           /* Name of the template automatic child */
+  char                *name;           /* Name of the template automatic child */
   gboolean             internal_child; /* Whether the automatic widget should be exported as an <internal-child> */
   gssize               offset;         /* Instance private data offset where to set the automatic child (or 0) */
 } AutomaticChildClass;
 
 typedef struct {
-  gchar     *callback_name;
+  char      *callback_name;
   GCallback  callback_symbol;
 } CallbackSymbol;
 
@@ -492,7 +469,6 @@ enum {
   UNREALIZE,
   STATE_FLAGS_CHANGED,
   DIRECTION_CHANGED,
-  GRAB_NOTIFY,
   MNEMONIC_ACTIVATE,
   MOVE_FOCUS,
   KEYNAV_FAILED,
@@ -536,7 +512,10 @@ enum {
   PROP_CSS_NAME,
   PROP_CSS_CLASSES,
   PROP_LAYOUT_MANAGER,
-  NUM_PROPERTIES
+  NUM_PROPERTIES,
+
+  /* GtkAccessible */
+  PROP_ACCESSIBLE_ROLE
 };
 
 static GParamSpec *widget_props[NUM_PROPERTIES] = { NULL, };
@@ -548,7 +527,7 @@ struct _GtkStateData
   guint         flags_to_set;
   guint         flags_to_unset;
 
-  gint          old_scale_factor;
+  int           old_scale_factor;
 };
 
 /* --- prototypes --- */
@@ -584,8 +563,8 @@ static void	gtk_widget_real_direction_changed(GtkWidget         *widget,
                                                   GtkTextDirection   previous_direction);
 
 static gboolean gtk_widget_real_query_tooltip    (GtkWidget         *widget,
-						  gint               x,
-						  gint               y,
+						  int                x,
+						  int                y,
 						  gboolean           keyboard_tip,
 						  GtkTooltip        *tooltip);
 static void     gtk_widget_real_css_changed      (GtkWidget         *widget,
@@ -623,32 +602,31 @@ static void             gtk_widget_real_measure                 (GtkWidget      
                                                                  int              *natural_baseline);
 static void             gtk_widget_real_state_flags_changed     (GtkWidget        *widget,
                                                                  GtkStateFlags     old_state);
-static AtkObject*	gtk_widget_real_get_accessible		(GtkWidget	  *widget);
-static void		gtk_widget_accessible_interface_init	(AtkImplementorIface *iface);
-static AtkObject*	gtk_widget_ref_accessible		(AtkImplementor *implementor);
+
+static void             gtk_widget_accessible_interface_init    (GtkAccessibleInterface *iface);
 
 static void             gtk_widget_buildable_interface_init     (GtkBuildableIface  *iface);
 static void             gtk_widget_buildable_set_name           (GtkBuildable       *buildable,
-                                                                 const gchar        *name);
-static const gchar *    gtk_widget_buildable_get_name           (GtkBuildable       *buildable);
+                                                                 const char         *name);
+static const char *    gtk_widget_buildable_get_name           (GtkBuildable       *buildable);
 static GObject *        gtk_widget_buildable_get_internal_child (GtkBuildable       *buildable,
                                                                  GtkBuilder         *builder,
-                                                                 const gchar        *childname);
+                                                                 const char         *childname);
 static gboolean         gtk_widget_buildable_custom_tag_start   (GtkBuildable       *buildable,
                                                                  GtkBuilder         *builder,
                                                                  GObject            *child,
-                                                                 const gchar        *tagname,
+                                                                 const char         *tagname,
                                                                  GtkBuildableParser *parser,
                                                                  gpointer           *data);
 static void             gtk_widget_buildable_custom_tag_end     (GtkBuildable       *buildable,
                                                                  GtkBuilder         *builder,
                                                                  GObject            *child,
-                                                                 const gchar        *tagname,
+                                                                 const char         *tagname,
                                                                  gpointer            data);
 static void             gtk_widget_buildable_custom_finished    (GtkBuildable       *buildable,
                                                                  GtkBuilder         *builder,
                                                                  GObject            *child,
-                                                                 const gchar        *tagname,
+                                                                 const char         *tagname,
                                                                  gpointer            data);
 static void             gtk_widget_buildable_parser_finished    (GtkBuildable       *buildable,
                                                                  GtkBuilder         *builder);
@@ -659,8 +637,8 @@ static GtkSizeRequestMode gtk_widget_real_get_request_mode      (GtkWidget      
 static void                  template_data_free                 (GtkWidgetTemplate*template_data);
 
 static void gtk_widget_set_usize_internal (GtkWidget          *widget,
-					   gint                width,
-					   gint                height);
+					   int                 width,
+					   int                 height);
 
 static gboolean event_surface_is_still_viewable (GdkEvent *event);
 
@@ -673,7 +651,7 @@ static void gtk_widget_queue_compute_expand (GtkWidget *widget);
 
 
 /* --- variables --- */
-static gint             GtkWidget_private_offset = 0;
+static int              GtkWidget_private_offset = 0;
 static gpointer         gtk_widget_parent_class = NULL;
 static guint            widget_signals[LAST_SIGNAL] = { 0 };
 GtkTextDirection gtk_default_direction = GTK_TEXT_DIR_LTR;
@@ -708,11 +686,11 @@ gtk_widget_get_type (void)
 	NULL,		/* value_table */
       };
 
-      const GInterfaceInfo accessibility_info =
+      const GInterfaceInfo accessible_info =
       {
-	(GInterfaceInitFunc) gtk_widget_accessible_interface_init,
-	(GInterfaceFinalizeFunc) NULL,
-	NULL /* interface data */
+        (GInterfaceInitFunc) gtk_widget_accessible_interface_init,
+        (GInterfaceFinalizeFunc) NULL,
+        NULL,
       };
 
       const GInterfaceInfo buildable_info =
@@ -737,12 +715,12 @@ gtk_widget_get_type (void)
       GtkWidget_private_offset =
         g_type_add_instance_private (widget_type, sizeof (GtkWidgetPrivate));
 
-      g_type_add_interface_static (widget_type, ATK_TYPE_IMPLEMENTOR,
-                                   &accessibility_info) ;
+      g_type_add_interface_static (widget_type, GTK_TYPE_ACCESSIBLE,
+                                   &accessible_info);
       g_type_add_interface_static (widget_type, GTK_TYPE_BUILDABLE,
-                                   &buildable_info) ;
+                                   &buildable_info);
       g_type_add_interface_static (widget_type, GTK_TYPE_CONSTRAINT_TARGET,
-                                   &constraint_target_info) ;
+                                   &constraint_target_info);
     }
 
   return widget_type;
@@ -771,16 +749,18 @@ gtk_widget_base_class_init (gpointer g_class)
   else
     {
       GListModel *parent_shortcuts = G_LIST_MODEL (priv->shortcuts);
-      guint i;
+      guint i, p;
 
       priv->shortcuts = g_list_store_new (GTK_TYPE_SHORTCUT);
-      for (i = 0; i < g_list_model_get_n_items (parent_shortcuts); i++)
+      for (i = 0, p = g_list_model_get_n_items (parent_shortcuts); i < p; i++)
         {
           GtkShortcut *shortcut = g_list_model_get_item (parent_shortcuts, i);
           g_list_store_append (priv->shortcuts, shortcut);
           g_object_unref (shortcut);
         }
     }
+
+  priv->accessible_role = GTK_ACCESSIBLE_ROLE_WIDGET;
 }
 
 static void
@@ -797,8 +777,8 @@ gtk_widget_real_snapshot (GtkWidget   *widget,
 
 static gboolean
 gtk_widget_real_contains (GtkWidget *widget,
-                          gdouble    x,
-                          gdouble    y)
+                          double     x,
+                          double     y)
 {
   GtkCssBoxes boxes;
 
@@ -808,26 +788,28 @@ gtk_widget_real_contains (GtkWidget *widget,
                                           &GRAPHENE_POINT_INIT (x, y));
 }
 
-static void
-gtk_widget_real_grab_notify (GtkWidget *widget,
-                             gboolean   was_grabbed)
+/**
+ * _gtk_widget_grab_notify:
+ * @widget: a #GtkWidget
+ * @was_grabbed: whether a grab is now in effect
+ *
+ * Emits the #GtkWidget::grab-notify signal on @widget.
+ **/
+void
+_gtk_widget_grab_notify (GtkWidget *widget,
+			 gboolean   was_grabbed)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
   int i;
 
   if (!priv->controllers)
     return;
+  if (was_grabbed)
+    return;
 
   for (i = (int)priv->controllers->len - 1; i >= 0; i--)
     {
       GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
-      GdkDevice *device = NULL;
-
-      if (GTK_IS_GESTURE (controller))
-        device = gtk_gesture_get_device (GTK_GESTURE (controller));
-
-      if (!device || !gtk_widget_device_is_shadowed (widget, device))
-        continue;
 
       gtk_event_controller_reset (controller);
     }
@@ -923,7 +905,6 @@ gtk_widget_class_init (GtkWidgetClass *klass)
   klass->measure = gtk_widget_real_measure;
   klass->state_flags_changed = gtk_widget_real_state_flags_changed;
   klass->direction_changed = gtk_widget_real_direction_changed;
-  klass->grab_notify = gtk_widget_real_grab_notify;
   klass->snapshot = gtk_widget_real_snapshot;
   klass->mnemonic_activate = gtk_widget_real_mnemonic_activate;
   klass->grab_focus = gtk_widget_grab_focus_self;
@@ -934,12 +915,6 @@ gtk_widget_class_init (GtkWidgetClass *klass)
   klass->query_tooltip = gtk_widget_real_query_tooltip;
   klass->css_changed = gtk_widget_real_css_changed;
   klass->system_setting_changed = gtk_widget_real_system_setting_changed;
-
-  /* Accessibility support */
-  klass->priv->accessible_type = GTK_TYPE_WIDGET_ACCESSIBLE;
-  klass->priv->accessible_role = ATK_ROLE_INVALID;
-  klass->get_accessible = gtk_widget_real_get_accessible;
-
   klass->contains = gtk_widget_real_contains;
 
   widget_props[PROP_NAME] =
@@ -1363,6 +1338,8 @@ gtk_widget_class_init (GtkWidgetClass *klass)
 
   g_object_class_install_properties (gobject_class, NUM_PROPERTIES, widget_props);
 
+  g_object_class_override_property (gobject_class, PROP_ACCESSIBLE_ROLE, "accessible-role");
+
   /**
    * GtkWidget::destroy:
    * @object: the object which received the signal
@@ -1526,31 +1503,6 @@ gtk_widget_class_init (GtkWidgetClass *klass)
 		  NULL,
 		  G_TYPE_NONE, 1,
 		  GTK_TYPE_TEXT_DIRECTION);
-
-  /**
-   * GtkWidget::grab-notify:
-   * @widget: the object which received the signal
-   * @was_grabbed: %FALSE if the widget becomes shadowed, %TRUE
-   *               if it becomes unshadowed
-   *
-   * The ::grab-notify signal is emitted when a widget becomes
-   * shadowed by a GTK+ grab (not a pointer or keyboard grab) on
-   * another widget, or when it becomes unshadowed due to a grab
-   * being removed.
-   *
-   * A widget is shadowed by a gtk_grab_add() when the topmost
-   * grab widget in the grab stack of its window group is not
-   * its ancestor.
-   */
-  widget_signals[GRAB_NOTIFY] =
-    g_signal_new (I_("grab-notify"),
-		  G_TYPE_FROM_CLASS (gobject_class),
-		  G_SIGNAL_RUN_FIRST,
-                  G_STRUCT_OFFSET (GtkWidgetClass, grab_notify),
-		  NULL, NULL,
-		  NULL,
-		  G_TYPE_NONE, 1,
-		  G_TYPE_BOOLEAN);
 
   /**
    * GtkWidget::mnemonic-activate:
@@ -1768,6 +1720,21 @@ gtk_widget_set_property (GObject         *object,
     case PROP_LAYOUT_MANAGER:
       gtk_widget_set_layout_manager (widget, g_value_dup_object (value));
       break;
+    case PROP_ACCESSIBLE_ROLE:
+      if (priv->at_context == NULL)
+        {
+          priv->accessible_role = g_value_get_enum (value);
+          g_object_notify_by_pspec (object, pspec);
+        }
+      else
+        {
+          char *role_str = g_enum_to_string (GTK_TYPE_ACCESSIBLE_ROLE, priv->accessible_role);
+          g_critical ("Widget of type “%s” already has an accessible role of type “%s”",
+                      G_OBJECT_TYPE_NAME (object),
+                      role_str);
+          g_free (role_str);
+        }
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1898,6 +1865,16 @@ gtk_widget_get_property (GObject         *object,
     case PROP_LAYOUT_MANAGER:
       g_value_set_object (value, gtk_widget_get_layout_manager (widget));
       break;
+    case PROP_ACCESSIBLE_ROLE:
+      {
+        GtkAccessibleRole role = priv->accessible_role;
+
+        if (priv->accessible_role == GTK_ACCESSIBLE_ROLE_WIDGET)
+          role = gtk_widget_class_get_accessible_role (GTK_WIDGET_GET_CLASS (widget));
+
+        g_value_set_enum (value, role);
+      }
+      break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -1911,7 +1888,7 @@ _gtk_widget_emulate_press (GtkWidget      *widget,
 {
   GtkWidget *next_child, *parent;
   GdkEvent *press;
-  gdouble x, y;
+  double x, y;
   graphene_point_t p;
 
   if (event_widget == widget)
@@ -1945,7 +1922,6 @@ _gtk_widget_emulate_press (GtkWidget      *widget,
                                    gdk_event_get_event_sequence (event),
                                    gdk_event_get_surface (event),
                                    gdk_event_get_device (event),
-                                   gdk_event_get_source_device (event),
                                    gdk_event_get_time (event),
                                    gdk_event_get_modifier_state (event),
                                    p.x, p.y,
@@ -1957,7 +1933,6 @@ _gtk_widget_emulate_press (GtkWidget      *widget,
       press = gdk_button_event_new (GDK_BUTTON_PRESS,
                                     gdk_event_get_surface (event),
                                     gdk_event_get_device (event),
-                                    gdk_event_get_source_device (event),
                                     gdk_event_get_device_tool (event),
                                     gdk_event_get_time (event),
                                     gdk_event_get_modifier_state (event),
@@ -1983,7 +1958,6 @@ _gtk_widget_emulate_press (GtkWidget      *widget,
         press = gdk_button_event_new (GDK_BUTTON_PRESS,
                                       gdk_event_get_surface (event),
                                       gdk_event_get_device (event),
-                                      gdk_event_get_source_device (event),
                                       gdk_event_get_device_tool (event),
                                       gdk_event_get_time (event),
                                       gdk_event_get_modifier_state (event),
@@ -2121,7 +2095,7 @@ gtk_widget_needs_press_emulation (GtkWidget        *widget,
   return !sequence_press_handled;
 }
 
-static gint
+static int
 _gtk_widget_set_sequence_state_internal (GtkWidget             *widget,
                                          GdkEventSequence      *sequence,
                                          GtkEventSequenceState  state,
@@ -2133,7 +2107,7 @@ _gtk_widget_set_sequence_state_internal (GtkWidget             *widget,
   GtkWidget *target;
   GList *group = NULL;
   GdkEventSequence *seq;
-  gint n_handled = 0;
+  int n_handled = 0;
   guint i;
 
   if (state != GTK_EVENT_SEQUENCE_CLAIMED &&
@@ -2178,8 +2152,7 @@ _gtk_widget_set_sequence_state_internal (GtkWidget             *widget,
           /* If a group is provided, ensure only gestures pertaining to the group
            * get a "claimed" state, all other claiming gestures must deny the sequence.
            */
-          if (gesture_state == GTK_EVENT_SEQUENCE_CLAIMED &&
-              gtk_gesture_get_sequence_state (gesture, sequence) == GTK_EVENT_SEQUENCE_CLAIMED)
+          if (state == GTK_EVENT_SEQUENCE_CLAIMED)
             gesture_state = GTK_EVENT_SEQUENCE_DENIED;
           else
             continue;
@@ -2280,9 +2253,6 @@ gtk_widget_init (GTypeInstance *instance, gpointer g_class)
   priv->alloc_needed_on_child = TRUE;
   priv->draw_needed = TRUE;
   priv->focus_on_click = TRUE;
-#ifdef G_ENABLE_DEBUG
-  priv->highlight_resize = FALSE;
-#endif
   priv->can_focus = TRUE;
   priv->focusable = FALSE;
   priv->can_target = TRUE;
@@ -2314,6 +2284,8 @@ gtk_widget_init (GTypeInstance *instance, gpointer g_class)
 
   priv->halign = GTK_ALIGN_FILL;
   priv->valign = GTK_ALIGN_FILL;
+
+  priv->accessible_role = GTK_ACCESSIBLE_ROLE_WIDGET;
 
   priv->width_request = -1;
   priv->height_request = -1;
@@ -2362,7 +2334,7 @@ gtk_widget_init (GTypeInstance *instance, gpointer g_class)
  **/
 GtkWidget*
 gtk_widget_new (GType        type,
-		const gchar *first_property_name,
+		const char *first_property_name,
 		...)
 {
   GtkWidget *widget;
@@ -2634,8 +2606,9 @@ gtk_widget_show (GtkWidget *widget)
       g_signal_emit (widget, widget_signals[SHOW], 0);
       g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_VISIBLE]);
 
-      if (priv->accessible != NULL)
-        gtk_widget_accessible_notify_visible (GTK_WIDGET_ACCESSIBLE (priv->accessible));
+      gtk_accessible_update_state (GTK_ACCESSIBLE (widget),
+                                   GTK_ACCESSIBLE_STATE_HIDDEN, FALSE,
+                                   -1);
 
       gtk_widget_pop_verify_invariants (widget);
       g_object_unref (widget);
@@ -2697,8 +2670,9 @@ gtk_widget_hide (GtkWidget *widget)
       g_signal_emit (widget, widget_signals[HIDE], 0);
       g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_VISIBLE]);
 
-      if (priv->accessible != NULL)
-        gtk_widget_accessible_notify_visible (GTK_WIDGET_ACCESSIBLE (priv->accessible));
+      gtk_accessible_update_state (GTK_ACCESSIBLE (widget),
+                                   GTK_ACCESSIBLE_STATE_HIDDEN, TRUE,
+                                   -1);
 
       parent = gtk_widget_get_parent (widget);
       if (parent)
@@ -2759,15 +2733,10 @@ gtk_widget_map (GtkWidget *widget)
 
   if (!_gtk_widget_get_mapped (widget))
     {
-      GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
       gtk_widget_push_verify_invariants (widget);
 
       if (!_gtk_widget_get_realized (widget))
         gtk_widget_realize (widget);
-
-      if (priv->accessible != NULL)
-        gtk_widget_accessible_notify_showing (GTK_WIDGET_ACCESSIBLE (priv->accessible));
 
       g_signal_emit (widget, widget_signals[MAP], 0);
 
@@ -2793,8 +2762,6 @@ gtk_widget_unmap (GtkWidget *widget)
 
   if (_gtk_widget_get_mapped (widget))
     {
-      GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
       g_object_ref (widget);
       gtk_widget_push_verify_invariants (widget);
 
@@ -2802,9 +2769,6 @@ gtk_widget_unmap (GtkWidget *widget)
       _gtk_tooltip_hide (widget);
 
       g_signal_emit (widget, widget_signals[UNMAP], 0);
-
-      if (priv->accessible != NULL)
-        gtk_widget_accessible_notify_showing (GTK_WIDGET_ACCESSIBLE (priv->accessible));
 
       update_cursor_on_state_change (widget);
 
@@ -3356,13 +3320,6 @@ gtk_widget_realize (GtkWidget *widget)
 
   g_signal_emit (widget, widget_signals[REALIZE], 0);
 
-  if (priv->multidevice)
-    {
-      GdkSurface *surface = gtk_widget_get_surface (widget);
-
-      gdk_surface_set_support_multidevice (surface, TRUE);
-    }
-
   if (priv->context)
     gtk_style_context_set_scale (priv->context, gtk_widget_get_scale_factor (widget));
   else
@@ -3461,7 +3418,7 @@ gtk_widget_queue_draw (GtkWidget *widget)
       priv->draw_needed = TRUE;
       g_clear_pointer (&priv->render_node, gsk_render_node_unref);
       if (GTK_IS_NATIVE (widget) && _gtk_widget_get_realized (widget))
-        gdk_surface_queue_expose (gtk_native_get_surface (GTK_NATIVE (widget)));
+        gdk_surface_queue_render (gtk_native_get_surface (GTK_NATIVE (widget)));
     }
 }
 
@@ -3617,7 +3574,7 @@ gtk_widget_get_frame_clock (GtkWidget *widget)
     }
 }
 
-static gint
+static int
 get_number (GtkCssValue *value)
 {
   double d = _gtk_css_number_value_get (value, 100);
@@ -3707,9 +3664,9 @@ effective_align (GtkAlign         align,
 
 static void
 adjust_for_align (GtkAlign  align,
-                  gint      natural_size,
-                  gint     *allocated_pos,
-                  gint     *allocated_size)
+                  int       natural_size,
+                  int      *allocated_pos,
+                  int      *allocated_size)
 {
   switch (align)
     {
@@ -3744,8 +3701,8 @@ gtk_widget_adjust_size_allocation (GtkWidget     *widget,
                                    GtkAllocation *allocation)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  gint natural_width, natural_height;
-  gint min_width, min_height;
+  int natural_width, natural_height;
+  int min_width, min_height;
 
   if (priv->halign == GTK_ALIGN_FILL && priv->valign == GTK_ALIGN_FILL)
     return;
@@ -3844,12 +3801,6 @@ gtk_widget_allocate (GtkWidget    *widget,
     }
 
 #ifdef G_ENABLE_DEBUG
-  if (GTK_DISPLAY_DEBUG_CHECK (_gtk_widget_get_display (widget), RESIZE))
-    {
-      priv->highlight_resize = TRUE;
-      gtk_widget_queue_draw (widget);
-    }
-
   if (gtk_widget_get_resize_needed (widget))
     {
       g_warning ("Allocating size to %s %p without calling gtk_widget_measure(). "
@@ -3880,7 +3831,6 @@ gtk_widget_allocate (GtkWidget    *widget,
 
   gtk_widget_adjust_size_allocation (widget, &adjusted);
 
-  size_changed = (priv->width != adjusted.width) || (priv->height != adjusted.height);
 
   if (adjusted.width < 0 || adjusted.height < 0)
     {
@@ -3913,6 +3863,8 @@ gtk_widget_allocate (GtkWidget    *widget,
       transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (adjusted.width / 2, adjusted.height / 2));
       transform = gsk_transform_transform (transform, css_transform);
       transform = gsk_transform_translate (transform, &GRAPHENE_POINT_INIT (- adjusted.width / 2, - adjusted.height / 2));
+
+      gsk_transform_unref (css_transform);
     }
 
   adjusted.x += border.left + padding.left;
@@ -3929,15 +3881,16 @@ gtk_widget_allocate (GtkWidget    *widget,
   if (priv->surface_transform_data)
     sync_widget_surface_transform (widget);
 
-  if (!alloc_needed && !size_changed && !baseline_changed)
-    goto skip_allocate;
-
   /* Since gtk_widget_measure does it for us, we can be sure here that
    * the given alloaction is large enough for the css margin/bordder/padding */
   adjusted.width -= border.left + padding.left +
                     border.right + padding.right;
   adjusted.height -= border.top + padding.top +
                      border.bottom + padding.bottom;
+  size_changed = (priv->width != adjusted.width) || (priv->height != adjusted.height);
+
+  if (!alloc_needed && !size_changed && !baseline_changed)
+    goto skip_allocate;
 
   priv->width = adjusted.width;
   priv->height = adjusted.height;
@@ -3974,9 +3927,6 @@ gtk_widget_allocate (GtkWidget    *widget,
 
   gtk_widget_update_paintables (widget);
 
-  if (priv->accessible != NULL)
-    gtk_widget_accessible_update_bounds (GTK_WIDGET_ACCESSIBLE (priv->accessible));
-
 skip_allocate:
   if (size_changed || baseline_changed)
     gtk_widget_queue_draw (widget);
@@ -4008,8 +3958,8 @@ gtk_widget_common_ancestor (GtkWidget *widget_a,
 {
   GtkWidget *parent_a;
   GtkWidget *parent_b;
-  gint depth_a = 0;
-  gint depth_b = 0;
+  int depth_a = 0;
+  int depth_b = 0;
 
   parent_a = widget_a;
   while (parent_a->priv->parent)
@@ -4161,7 +4111,7 @@ gtk_widget_class_add_binding (GtkWidgetClass  *widget_class,
                               guint            keyval,
                               GdkModifierType  mods,
                               GtkShortcutFunc  func,
-                              const gchar     *format_string,
+                              const char      *format_string,
                               ...)
 {
   GtkShortcut *shortcut;
@@ -4207,8 +4157,8 @@ void
 gtk_widget_class_add_binding_signal (GtkWidgetClass  *widget_class,
                                      guint            keyval,
                                      GdkModifierType  mods,
-                                     const gchar     *signal,
-                                     const gchar     *format_string,
+                                     const char      *signal,
+                                     const char      *format_string,
                                      ...)
 {
   GtkShortcut *shortcut;
@@ -4256,8 +4206,8 @@ void
 gtk_widget_class_add_binding_action (GtkWidgetClass  *widget_class,
                                      guint            keyval,
                                      GdkModifierType  mods,
-                                     const gchar     *action_name,
-                                     const gchar     *format_string,
+                                     const char      *action_name,
+                                     const char      *format_string,
                                      ...)
 {
   GtkShortcut *shortcut;
@@ -4401,6 +4351,22 @@ gtk_widget_run_controllers (GtkWidget           *widget,
 
               is_gesture = GTK_IS_GESTURE (controller);
               this_handled = gtk_event_controller_handle_event (controller, event, target, x, y);
+
+#ifdef G_ENABLE_DEBUG
+              if (GTK_DEBUG_CHECK (KEYBINDINGS))
+                {
+                  GdkEventType type = gdk_event_get_event_type (event);
+                  if (this_handled &&
+                      (type == GDK_KEY_PRESS || type == GDK_KEY_RELEASE))
+                    {
+                      g_message ("key %s (keyval %d) handled at widget %s by controller %s",
+                                 type == GDK_KEY_PRESS ? "press" : "release",
+                                 gdk_key_event_get_keyval (event),
+                                 G_OBJECT_TYPE_NAME (widget),
+                                 gtk_event_controller_get_name (controller));
+                    }
+                }
+#endif
 
               handled |= this_handled;
 
@@ -4600,20 +4566,6 @@ gtk_widget_activate (GtkWidget *widget)
 }
 
 /**
- * _gtk_widget_grab_notify:
- * @widget: a #GtkWidget
- * @was_grabbed: whether a grab is now in effect
- *
- * Emits the #GtkWidget::grab-notify signal on @widget.
- **/
-void
-_gtk_widget_grab_notify (GtkWidget *widget,
-			 gboolean   was_grabbed)
-{
-  g_signal_emit (widget, widget_signals[GRAB_NOTIFY], 0, was_grabbed);
-}
-
-/**
  * gtk_widget_grab_focus:
  * @widget: a #GtkWidget
  *
@@ -4673,8 +4625,8 @@ gtk_widget_grab_focus_child (GtkWidget *widget)
 
 static gboolean
 gtk_widget_real_query_tooltip (GtkWidget  *widget,
-			       gint        x,
-			       gint        y,
+			       int         x,
+			       int         y,
 			       gboolean    keyboard_tip,
 			       GtkTooltip *tooltip)
 {
@@ -4697,8 +4649,8 @@ gtk_widget_real_query_tooltip (GtkWidget  *widget,
 
 gboolean
 gtk_widget_query_tooltip (GtkWidget  *widget,
-                          gint        x,
-                          gint        y,
+                          int         x,
+                          int         y,
                           gboolean    keyboard_mode,
                           GtkTooltip *tooltip)
 {
@@ -4743,7 +4695,7 @@ gtk_widget_real_css_changed (GtkWidget         *widget,
             }
           else if (gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TRANSFORM))
             {
-                gtk_widget_queue_allocate (widget);
+              gtk_widget_queue_allocate (priv->parent);
             }
           else if (gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_REDRAW) ||
                    (has_text && gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TEXT_CONTENT)))
@@ -5264,48 +5216,6 @@ _gtk_widget_set_has_grab (GtkWidget *widget,
 }
 
 /**
- * gtk_widget_device_is_shadowed:
- * @widget: a #GtkWidget
- * @device: a #GdkDevice
- *
- * Returns %TRUE if @device has been shadowed by a GTK+
- * device grab on another widget, so it would stop sending
- * events to @widget. This may be used in the
- * #GtkWidget::grab-notify signal to check for specific
- * devices. See gtk_device_grab_add().
- *
- * Returns: %TRUE if there is an ongoing grab on @device
- *          by another #GtkWidget than @widget.
- **/
-gboolean
-gtk_widget_device_is_shadowed (GtkWidget *widget,
-                               GdkDevice *device)
-{
-  GtkWindowGroup *group;
-  GtkWidget *grab_widget;
-  GtkRoot *root;
-
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
-
-  if (!_gtk_widget_get_realized (widget))
-    return TRUE;
-
-  root = _gtk_widget_get_root (widget);
-
-  if (GTK_IS_WINDOW (root))
-    group = gtk_window_get_group (GTK_WINDOW (root));
-  else
-    group = gtk_window_get_group (NULL);
-
-  grab_widget = gtk_window_group_get_current_grab (group);
-  if (grab_widget && widget != grab_widget &&
-      !gtk_widget_is_ancestor (widget, grab_widget))
-    return TRUE;
-
-  return FALSE;
-}
-
-/**
  * gtk_widget_set_name:
  * @widget: a #GtkWidget
  * @name: name for the widget
@@ -5322,7 +5232,7 @@ gtk_widget_device_is_shadowed (GtkWidget *widget,
  */
 void
 gtk_widget_set_name (GtkWidget	 *widget,
-		     const gchar *name)
+		     const char *name)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
@@ -5346,7 +5256,7 @@ gtk_widget_set_name (GtkWidget	 *widget,
  * Returns: name of the widget. This string is owned by GTK+ and
  * should not be modified or freed
  **/
-const gchar*
+const char *
 gtk_widget_get_name (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
@@ -5670,6 +5580,10 @@ gtk_widget_set_sensitive (GtkWidget *widget,
         }
     }
 
+  gtk_accessible_update_state (GTK_ACCESSIBLE (widget),
+                               GTK_ACCESSIBLE_STATE_DISABLED, !sensitive,
+                               -1);
+
   if (priv->parent == NULL
       || gtk_widget_is_sensitive (priv->parent))
     {
@@ -5692,9 +5606,6 @@ gtk_widget_set_sensitive (GtkWidget *widget,
       gtk_widget_propagate_state (widget, &data);
       update_cursor_on_state_change (widget);
     }
-
-  if (priv->accessible != NULL)
-    gtk_widget_accessible_notify_sensitive (GTK_WIDGET_ACCESSIBLE (priv->accessible));
 
   g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_SENSITIVE]);
 }
@@ -6406,7 +6317,7 @@ gtk_widget_create_pango_context (GtkWidget *widget)
  **/
 PangoLayout *
 gtk_widget_create_pango_layout (GtkWidget   *widget,
-				const gchar *text)
+				const char *text)
 {
   PangoLayout *layout;
   PangoContext *context;
@@ -6541,7 +6452,7 @@ _gtk_widget_scale_changed (GtkWidget *widget)
  *
  * Returns: the scale factor for @widget
  */
-gint
+int
 gtk_widget_get_scale_factor (GtkWidget *widget)
 {
   GtkRoot *root;
@@ -6734,8 +6645,8 @@ gtk_widget_error_bell (GtkWidget *widget)
 
 static void
 gtk_widget_set_usize_internal (GtkWidget          *widget,
-			       gint                width,
-			       gint                height)
+			       int                 width,
+			       int                 height)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
   gboolean changed = FALSE;
@@ -6802,8 +6713,8 @@ gtk_widget_set_usize_internal (GtkWidget          *widget,
  **/
 void
 gtk_widget_set_size_request (GtkWidget *widget,
-                             gint       width,
-                             gint       height)
+                             int        width,
+                             int        height)
 {
   g_return_if_fail (GTK_IS_WIDGET (widget));
   g_return_if_fail (width >= -1);
@@ -6829,8 +6740,8 @@ gtk_widget_set_size_request (GtkWidget *widget,
  **/
 void
 gtk_widget_get_size_request (GtkWidget *widget,
-                             gint      *width,
-                             gint      *height)
+                             int       *width,
+                             int       *height)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
@@ -7132,6 +7043,8 @@ gtk_widget_dispose (GObject *object)
     gtk_layout_manager_set_widget (priv->layout_manager, NULL);
   g_clear_object (&priv->layout_manager);
 
+  g_clear_object (&priv->at_context);
+
   priv->visible = FALSE;
   if (_gtk_widget_get_realized (widget))
     gtk_widget_unrealize (widget);
@@ -7181,9 +7094,7 @@ finalize_assertion_weak_ref (gpointer data,
 static void
 gtk_widget_real_destroy (GtkWidget *object)
 {
-  /* gtk_object_destroy() will already hold a refcount on object */
   GtkWidget *widget = GTK_WIDGET (object);
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
   if (g_object_get_qdata (G_OBJECT (widget), quark_auto_children))
     {
@@ -7290,13 +7201,6 @@ gtk_widget_real_destroy (GtkWidget *object)
 	}
     }
 
-  if (priv->accessible)
-    {
-      gtk_accessible_set_widget (GTK_ACCESSIBLE (priv->accessible), NULL);
-      g_object_unref (priv->accessible);
-      priv->accessible = NULL;
-    }
-
   /* Callers of add_mnemonic_label() should disconnect on ::destroy */
   g_object_set_qdata (G_OBJECT (widget), quark_mnemonic_labels, NULL);
 
@@ -7326,7 +7230,6 @@ gtk_widget_finalize (GObject *object)
   g_free (priv->tooltip_markup);
   g_free (priv->tooltip_text);
 
-  g_clear_object (&priv->accessible);
   g_clear_pointer (&priv->transform, gsk_transform_unref);
   g_clear_pointer (&priv->allocated_transform, gsk_transform_unref);
 
@@ -7448,14 +7351,14 @@ static void
 gtk_widget_real_realize (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  GdkFrameClock *frame_clock;
 
   priv->realized = TRUE;
 
   /* Connect frame clock */
-  frame_clock = gtk_widget_get_frame_clock (widget);
   if (priv->tick_callbacks != NULL && !priv->clock_tick_id)
     {
+      GdkFrameClock *frame_clock = gtk_widget_get_frame_clock (widget);
+
       priv->clock_tick_id = g_signal_connect (frame_clock, "update",
                                               G_CALLBACK (gtk_widget_on_frame_clock_update),
                                               widget);
@@ -7506,8 +7409,8 @@ gtk_widget_real_unrealize (GtkWidget *widget)
 void
 gtk_widget_adjust_size_request (GtkWidget      *widget,
                                 GtkOrientation  orientation,
-                                gint           *minimum_size,
-                                gint           *natural_size)
+                                int            *minimum_size,
+                                int            *natural_size)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
@@ -7536,8 +7439,8 @@ gtk_widget_adjust_size_request (GtkWidget      *widget,
 
 void
 gtk_widget_adjust_baseline_request (GtkWidget *widget,
-                                    gint      *minimum_baseline,
-                                    gint      *natural_baseline)
+                                    int       *minimum_baseline,
+                                    int       *natural_baseline)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
@@ -7554,48 +7457,12 @@ gtk_widget_adjust_baseline_request (GtkWidget *widget,
     }
 }
 
-static gboolean
-is_my_surface (GtkWidget *widget,
-	       GdkSurface *surface)
-{
-  if (!surface)
-    return FALSE;
-
-  return gdk_surface_get_widget (surface) == widget;
-}
-
-/*
- * _gtk_widget_get_device_surface:
- * @widget: a #GtkWidget
- * @device: a #GdkDevice
- *
- * Returns: (nullable): the surface of @widget that @device is in, or %NULL
- */
-GdkSurface *
-_gtk_widget_get_device_surface (GtkWidget *widget,
-				GdkDevice *device)
-{
-  GdkSurface *surface;
-
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
-  g_return_val_if_fail (GDK_IS_DEVICE (device), NULL);
-
-  if (gdk_device_get_source (device) == GDK_SOURCE_KEYBOARD)
-    return NULL;
-
-  surface = gdk_device_get_last_event_surface (device);
-  if (surface && is_my_surface (widget, surface))
-    return surface;
-  else
-    return NULL;
-}
-
 /*
  * _gtk_widget_list_devices:
  * @widget: a #GtkWidget
  *
  * Returns the list of pointer #GdkDevices that are currently
- * on top of any surface belonging to @widget. Free the list
+ * on top of @widget. Free the list
  * with g_free(), the elements are owned by GTK+ and must
  * not be freed.
  */
@@ -7603,11 +7470,7 @@ GdkDevice **
 _gtk_widget_list_devices (GtkWidget *widget,
                           guint     *out_n_devices)
 {
-  GPtrArray *result;
-  GdkSeat *seat;
-  GList *devices;
-  GList *l;
-  GdkDevice *device;
+  GtkRoot *root;
 
   g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
   g_assert (out_n_devices);
@@ -7618,29 +7481,15 @@ _gtk_widget_list_devices (GtkWidget *widget,
       return NULL;
     }
 
-  seat = gdk_display_get_default_seat (_gtk_widget_get_display (widget));
-  if (!seat)
+  root = gtk_widget_get_root (widget);
+  if (!root)
     {
       *out_n_devices = 0;
       return NULL;
     }
-  device = gdk_seat_get_pointer (seat);
 
-  result = g_ptr_array_new ();
-  if (is_my_surface (widget, gdk_device_get_last_event_surface (device)))
-    g_ptr_array_add (result, device);
-
-  devices = gdk_seat_get_slaves (seat, GDK_SEAT_CAPABILITY_ALL_POINTING);
-  for (l = devices; l; l = l->next)
-    {
-      device = l->data;
-      if (is_my_surface (widget, gdk_device_get_last_event_surface (device)))
-        g_ptr_array_add (result, device);
-    }
-  g_list_free (devices);
-
-  *out_n_devices = result->len;
-  return (GdkDevice **)g_ptr_array_free (result, FALSE);
+  return gtk_window_get_foci_on_widget (GTK_WINDOW (root),
+                                        widget, out_n_devices);
 }
 
 /*
@@ -7664,27 +7513,24 @@ _gtk_widget_synthesize_crossing (GtkWidget       *from,
   g_return_if_fail (from != NULL || to != NULL);
 
   crossing.type = GTK_CROSSING_POINTER;
-  crossing.old_target = from;
-  crossing.new_target = to;
   crossing.mode = mode;
+  crossing.old_target = from;
+  crossing.old_descendent = NULL;
+  crossing.new_target = to;
+  crossing.new_descendent = NULL;
 
   if (from)
     {
       crossing.direction = GTK_CROSSING_OUT;
 
-      from_surface = _gtk_widget_get_device_surface (from, device);
-      if (!from_surface)
-        from_surface = gtk_widget_get_surface (from);
-
+      from_surface = gtk_widget_get_surface (from);
       gdk_surface_get_device_position (from_surface, device, &x, &y, NULL);
       gtk_widget_handle_crossing (from, &crossing, x, y);
     }
 
   if (to)
     {
-      to_surface = _gtk_widget_get_device_surface (to, device);
-      if (!to_surface)
-        to_surface = gtk_widget_get_surface (to);
+      to_surface = gtk_widget_get_surface (to);
 
       crossing.direction = GTK_CROSSING_IN;
       gdk_surface_get_device_position (to_surface, device, &x, &y, NULL);
@@ -7700,7 +7546,7 @@ gtk_widget_propagate_state (GtkWidget          *widget,
   GtkStateFlags new_flags, old_flags = priv->state_flags;
   GtkStateData child_data;
   GtkWidget *child;
-  gint new_scale_factor = gtk_widget_get_scale_factor (widget);
+  int new_scale_factor = gtk_widget_get_scale_factor (widget);
 
   priv->state_flags |= data->flags_to_set;
   priv->state_flags &= ~(data->flags_to_unset);
@@ -7719,7 +7565,17 @@ gtk_widget_propagate_state (GtkWidget          *widget,
 
   if (old_flags != new_flags)
     {
+      GtkWindowGroup *window_group;
+      GtkRoot *root;
+      GtkWidget *grab;
+      gboolean shadowed;
+
       g_object_ref (widget);
+
+      root = gtk_widget_get_root (widget);
+      window_group = gtk_window_get_group (GTK_WINDOW (root));
+      grab = gtk_window_group_get_current_grab (window_group);
+      shadowed = grab && grab != widget && !gtk_widget_is_ancestor (widget, grab);
 
       if (!gtk_widget_is_sensitive (widget) && gtk_widget_has_grab (widget))
         gtk_grab_remove (widget);
@@ -7728,29 +7584,19 @@ gtk_widget_propagate_state (GtkWidget          *widget,
 
       g_signal_emit (widget, widget_signals[STATE_FLAGS_CHANGED], 0, old_flags);
 
-      if (!priv->shadowed &&
+      if (!shadowed &&
           (new_flags & GTK_STATE_FLAG_INSENSITIVE) != (old_flags & GTK_STATE_FLAG_INSENSITIVE))
         {
           guint i, n_devices;
           GdkDevice **devices;
-          GList *event_surfaces = NULL;
 
           devices = _gtk_widget_list_devices (widget, &n_devices);
 
           for (i = 0; i < n_devices; i++)
             {
-              GdkSurface *surface;
               GdkDevice *device;
 
               device = devices[i];
-              surface = _gtk_widget_get_device_surface (widget, device);
-
-              /* Do not propagate more than once to the
-               * same surface if non-multidevice aware.
-               */
-              if (!gdk_surface_get_support_multidevice (surface) &&
-                  g_list_find (event_surfaces, surface))
-                continue;
 
               if (!gtk_widget_is_sensitive (widget))
                 _gtk_widget_synthesize_crossing (widget, NULL, device,
@@ -7758,11 +7604,8 @@ gtk_widget_propagate_state (GtkWidget          *widget,
               else
                 _gtk_widget_synthesize_crossing (NULL, widget, device,
                                                  GDK_CROSSING_STATE_CHANGED);
-
-              event_surfaces = g_list_prepend (event_surfaces, surface);
             }
 
-          g_list_free (event_surfaces);
           g_free (devices);
         }
 
@@ -7832,170 +7675,6 @@ gtk_requisition_free (GtkRequisition *requisition)
 G_DEFINE_BOXED_TYPE (GtkRequisition, gtk_requisition,
                      gtk_requisition_copy,
                      gtk_requisition_free)
-
-/**
- * gtk_widget_class_set_accessible_type:
- * @widget_class: class to set the accessible type for
- * @type: The object type that implements the accessible for @widget_class
- *
- * Sets the type to be used for creating accessibles for widgets of
- * @widget_class. The given @type must be a subtype of the type used for
- * accessibles of the parent class.
- *
- * This function should only be called from class init functions of widgets.
- **/
-void
-gtk_widget_class_set_accessible_type (GtkWidgetClass *widget_class,
-                                      GType           type)
-{
-  GtkWidgetClassPrivate *priv;
-
-  g_return_if_fail (GTK_IS_WIDGET_CLASS (widget_class));
-  g_return_if_fail (g_type_is_a (type, widget_class->priv->accessible_type));
-
-  priv = widget_class->priv;
-
-  priv->accessible_type = type;
-  /* reset this - honoring the type's role is better. */
-  priv->accessible_role = ATK_ROLE_INVALID;
-}
-
-/**
- * gtk_widget_class_set_accessible_role:
- * @widget_class: class to set the accessible role for
- * @role: The role to use for accessibles created for @widget_class
- *
- * Sets the default #AtkRole to be set on accessibles created for
- * widgets of @widget_class. Accessibles may decide to not honor this
- * setting if their role reporting is more refined. Calls to 
- * gtk_widget_class_set_accessible_type() will reset this value.
- *
- * In cases where you want more fine-grained control over the role of
- * accessibles created for @widget_class, you should provide your own
- * accessible type and use gtk_widget_class_set_accessible_type()
- * instead.
- *
- * If @role is #ATK_ROLE_INVALID, the default role will not be changed
- * and the accessible’s default role will be used instead.
- *
- * This function should only be called from class init functions of widgets.
- **/
-void
-gtk_widget_class_set_accessible_role (GtkWidgetClass *widget_class,
-                                      AtkRole         role)
-{
-  GtkWidgetClassPrivate *priv;
-
-  g_return_if_fail (GTK_IS_WIDGET_CLASS (widget_class));
-
-  priv = widget_class->priv;
-
-  priv->accessible_role = role;
-}
-
-/**
- * _gtk_widget_peek_accessible:
- * @widget: a #GtkWidget
- *
- * Gets the accessible for @widget, if it has been created yet.
- * Otherwise, this function returns %NULL. If the @widget’s implementation
- * does not use the default way to create accessibles, %NULL will always be
- * returned.
- *
- * Returns: (nullable): the accessible for @widget or %NULL if none has been
- *     created yet.
- **/
-AtkObject *
-_gtk_widget_peek_accessible (GtkWidget *widget)
-{
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  return priv->accessible;
-}
-
-/**
- * gtk_widget_get_accessible:
- * @widget: a #GtkWidget
- *
- * Returns the accessible object that describes the widget to an
- * assistive technology.
- *
- * If accessibility support is not available, this #AtkObject
- * instance may be a no-op. Likewise, if no class-specific #AtkObject
- * implementation is available for the widget instance in question,
- * it will inherit an #AtkObject implementation from the first ancestor
- * class for which such an implementation is defined.
- *
- * The documentation of the
- * [ATK](http://developer.gnome.org/atk/stable/)
- * library contains more information about accessible objects and their uses.
- *
- * Returns: (transfer none): the #AtkObject associated with @widget
- */
-AtkObject*
-gtk_widget_get_accessible (GtkWidget *widget)
-{
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
-
-  return GTK_WIDGET_GET_CLASS (widget)->get_accessible (widget);
-}
-
-static AtkObject*
-gtk_widget_real_get_accessible (GtkWidget *widget)
-{
-  AtkObject* accessible;
-
-  accessible = widget->priv->accessible;
-
-  if (!accessible)
-    {
-      GtkWidgetClass *widget_class;
-      GtkWidgetClassPrivate *priv;
-
-      widget_class = GTK_WIDGET_GET_CLASS (widget);
-      priv = widget_class->priv;
-
-      accessible = g_object_new (priv->accessible_type,
-                                 "widget", widget,
-                                 NULL);
-      if (priv->accessible_role != ATK_ROLE_INVALID)
-        atk_object_set_role (accessible, priv->accessible_role);
-
-      widget->priv->accessible = accessible;
-
-      atk_object_initialize (accessible, widget);
-
-      /* Set the role again, since we don't want a role set
-       * in some parent initialize() function to override
-       * our own.
-       */
-      if (priv->accessible_role != ATK_ROLE_INVALID)
-        atk_object_set_role (accessible, priv->accessible_role);
-    }
-
-  return accessible;
-}
-
-/*
- * Initialize an AtkImplementorIface instance’s virtual pointers as
- * appropriate to this implementor’s class (GtkWidget).
- */
-static void
-gtk_widget_accessible_interface_init (AtkImplementorIface *iface)
-{
-  iface->ref_accessible = gtk_widget_ref_accessible;
-}
-
-static AtkObject*
-gtk_widget_ref_accessible (AtkImplementor *implementor)
-{
-  AtkObject *accessible;
-
-  accessible = gtk_widget_get_accessible (GTK_WIDGET (implementor));
-  if (accessible)
-    g_object_ref (accessible);
-  return accessible;
-}
 
 /*
  * Expand flag management
@@ -8135,8 +7814,8 @@ gtk_widget_set_expand (GtkWidget     *widget,
                        gboolean       expand)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  gint expand_prop;
-  gint expand_set_prop;
+  int expand_prop;
+  int expand_set_prop;
 
   g_return_if_fail (GTK_IS_WIDGET (widget));
 
@@ -8181,7 +7860,7 @@ gtk_widget_set_expand_set (GtkWidget      *widget,
                            gboolean        set)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  gint prop;
+  int prop;
 
   set = set != FALSE;
 
@@ -8417,16 +8096,57 @@ gtk_widget_set_vexpand_set (GtkWidget      *widget,
 }
 
 /*
+ * GtkAccessible implementation
+ */
+
+static GtkATContext *
+gtk_widget_accessible_get_at_context (GtkAccessible *accessible)
+{
+  GtkWidget *self = GTK_WIDGET (accessible);
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (self);
+
+  if (priv->at_context == NULL)
+    {
+      GtkWidgetClass *widget_class = GTK_WIDGET_GET_CLASS (self);
+      GtkWidgetClassPrivate *class_priv = widget_class->priv;
+      GtkAccessibleRole role;
+
+      /* Widgets have two options to set the accessible role: either they
+       * define it in their class_init() function, and the role applies to
+       * all instances; or an instance is created with the :accessible-role
+       * property (from GtkAccessible) set to anything other than the default
+       * GTK_ACCESSIBLE_ROLE_WIDGET value.
+       *
+       * In either case, the accessible role cannot be set post-construction.
+       */
+      if (priv->accessible_role != GTK_ACCESSIBLE_ROLE_WIDGET)
+        role = priv->accessible_role;
+      else
+        role = class_priv->accessible_role;
+
+      priv->accessible_role = role;
+      priv->at_context = gtk_at_context_create (role, accessible);
+    }
+
+  return priv->at_context;
+}
+
+static void
+gtk_widget_accessible_interface_init (GtkAccessibleInterface *iface)
+{
+  iface->get_at_context = gtk_widget_accessible_get_at_context;
+}
+
+/*
  * GtkBuildable implementation
  */
-static GQuark		 quark_builder_atk_relations = 0;
 static GQuark            quark_builder_set_name = 0;
 
 static void
 gtk_widget_buildable_add_child (GtkBuildable  *buildable,
                                 GtkBuilder    *builder,
                                 GObject       *child,
-                                const gchar   *type)
+                                const char    *type)
 {
   if (type != NULL)
     {
@@ -8450,7 +8170,6 @@ gtk_widget_buildable_add_child (GtkBuildable  *buildable,
 static void
 gtk_widget_buildable_interface_init (GtkBuildableIface *iface)
 {
-  quark_builder_atk_relations = g_quark_from_static_string ("gtk-builder-atk-relations");
   quark_builder_set_name = g_quark_from_static_string ("gtk-builder-set-name");
 
   iface->set_name = gtk_widget_buildable_set_name;
@@ -8465,13 +8184,13 @@ gtk_widget_buildable_interface_init (GtkBuildableIface *iface)
 
 static void
 gtk_widget_buildable_set_name (GtkBuildable *buildable,
-			       const gchar  *name)
+			       const char   *name)
 {
   g_object_set_qdata_full (G_OBJECT (buildable), quark_builder_set_name,
                            g_strdup (name), g_free);
 }
 
-static const gchar *
+static const char *
 gtk_widget_buildable_get_name (GtkBuildable *buildable)
 {
   return g_object_get_qdata (G_OBJECT (buildable), quark_builder_set_name);
@@ -8480,14 +8199,11 @@ gtk_widget_buildable_get_name (GtkBuildable *buildable)
 static GObject *
 gtk_widget_buildable_get_internal_child (GtkBuildable *buildable,
 					 GtkBuilder   *builder,
-					 const gchar  *childname)
+					 const char   *childname)
 {
   GtkWidgetClass *class;
   GSList *l;
   GType internal_child_type = 0;
-
-  if (strcmp (childname, "accessible") == 0)
-    return G_OBJECT (gtk_widget_get_accessible (GTK_WIDGET (buildable)));
 
   /* Find a widget type which has declared an automated child as internal by
    * the name 'childname', if any.
@@ -8520,241 +8236,11 @@ gtk_widget_buildable_get_internal_child (GtkBuildable *buildable,
   return NULL;
 }
 
-typedef struct
-{
-  gchar *action_name;
-  GString *description;
-  gchar *context;
-  gboolean translatable;
-} AtkActionData;
-
-typedef struct
-{
-  gchar *target;
-  AtkRelationType type;
-  gint line;
-  gint col;
-} AtkRelationData;
-
-static void
-free_action (AtkActionData *data, gpointer user_data)
-{
-  g_free (data->action_name);
-  g_string_free (data->description, TRUE);
-  g_free (data->context);
-  g_slice_free (AtkActionData, data);
-}
-
-static void
-free_relation (AtkRelationData *data, gpointer user_data)
-{
-  g_free (data->target);
-  g_slice_free (AtkRelationData, data);
-}
-
 static void
 gtk_widget_buildable_parser_finished (GtkBuildable *buildable,
 				      GtkBuilder   *builder)
 {
-  GSList *atk_relations;
-
-  atk_relations = g_object_get_qdata (G_OBJECT (buildable),
-				      quark_builder_atk_relations);
-  if (atk_relations)
-    {
-      AtkObject *accessible;
-      AtkRelationSet *relation_set;
-      GSList *l;
-      GObject *target;
-      AtkObject *target_accessible;
-
-      accessible = gtk_widget_get_accessible (GTK_WIDGET (buildable));
-      relation_set = atk_object_ref_relation_set (accessible);
-
-      for (l = atk_relations; l; l = l->next)
-	{
-	  AtkRelationData *relation = (AtkRelationData*)l->data;
-
-	  target = _gtk_builder_lookup_object (builder, relation->target, relation->line, relation->col);
-	  if (!target)
-	    continue;
-	  target_accessible = gtk_widget_get_accessible (GTK_WIDGET (target));
-	  g_assert (target_accessible != NULL);
-
-	  atk_relation_set_add_relation_by_type (relation_set, relation->type, target_accessible);
-	}
-      g_object_unref (relation_set);
-
-      g_slist_free_full (atk_relations, (GDestroyNotify) free_relation);
-      g_object_steal_qdata (G_OBJECT (buildable), quark_builder_atk_relations);
-    }
 }
-
-typedef struct
-{
-  GtkBuilder *builder;
-  GSList *actions;
-  GSList *relations;
-  AtkRole role;
-} AccessibilitySubParserData;
-
-static void
-accessibility_start_element (GtkBuildableParseContext  *context,
-                             const gchar               *element_name,
-                             const gchar              **names,
-                             const gchar              **values,
-                             gpointer                   user_data,
-                             GError                   **error)
-{
-  AccessibilitySubParserData *data = (AccessibilitySubParserData*)user_data;
-
-  if (strcmp (element_name, "relation") == 0)
-    {
-      gchar *target = NULL;
-      gchar *type = NULL;
-      AtkRelationData *relation;
-      AtkRelationType relation_type;
-
-      if (!_gtk_builder_check_parent (data->builder, context, "accessibility", error))
-        return;
-
-      if (!g_markup_collect_attributes (element_name, names, values, error,
-                                        G_MARKUP_COLLECT_STRING, "target", &target,
-                                        G_MARKUP_COLLECT_STRING, "type", &type,
-                                        G_MARKUP_COLLECT_INVALID))
-        {
-          _gtk_builder_prefix_error (data->builder, context, error);
-          return;
-        }
-
-      relation_type = atk_relation_type_for_name (type);
-      if (relation_type == ATK_RELATION_NULL)
-        {
-          g_set_error (error,
-                       GTK_BUILDER_ERROR,
-                       GTK_BUILDER_ERROR_INVALID_VALUE,
-                       "No such relation type: '%s'", type);
-          _gtk_builder_prefix_error (data->builder, context, error);
-          return;
-        }
-
-      relation = g_slice_new (AtkRelationData);
-      relation->target = g_strdup (target);
-      relation->type = relation_type;
-
-      data->relations = g_slist_prepend (data->relations, relation);
-    }
-  else if (strcmp (element_name, "action") == 0)
-    {
-      const gchar *action_name;
-      const gchar *description = NULL;
-      const gchar *msg_context = NULL;
-      gboolean translatable = FALSE;
-      AtkActionData *action;
-
-      if (!_gtk_builder_check_parent (data->builder, context, "accessibility", error))
-        return;
-
-      if (!g_markup_collect_attributes (element_name, names, values, error,
-                                        G_MARKUP_COLLECT_STRING, "action_name", &action_name,
-                                        G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, "description", &description,
-                                        G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, "comments", NULL,
-                                        G_MARKUP_COLLECT_STRING|G_MARKUP_COLLECT_OPTIONAL, "context", &msg_context,
-                                        G_MARKUP_COLLECT_BOOLEAN|G_MARKUP_COLLECT_OPTIONAL, "translatable", &translatable,
-                                        G_MARKUP_COLLECT_INVALID))
-        {
-          _gtk_builder_prefix_error (data->builder, context, error);
-          return;
-        }
-
-      action = g_slice_new (AtkActionData);
-      action->action_name = g_strdup (action_name);
-      action->description = g_string_new (description);
-      action->context = g_strdup (msg_context);
-      action->translatable = translatable;
-
-      data->actions = g_slist_prepend (data->actions, action);
-    }
-  else if (strcmp (element_name, "role") == 0)
-    {
-      const gchar *type;
-      AtkRole role;
-
-      if (!_gtk_builder_check_parent (data->builder, context, "accessibility", error))
-        return;
-
-      if (data->role != ATK_ROLE_INVALID)
-        {
-          g_set_error (error,
-                       GTK_BUILDER_ERROR,
-                       GTK_BUILDER_ERROR_INVALID_VALUE,
-                       "Duplicate accessibility role definition");
-          _gtk_builder_prefix_error (data->builder, context, error);
-          return;
-        }
-
-      if (!g_markup_collect_attributes (element_name, names, values, error,
-                                        G_MARKUP_COLLECT_STRING, "type", &type,
-                                        G_MARKUP_COLLECT_INVALID))
-        {
-          _gtk_builder_prefix_error (data->builder, context, error);
-          return;
-        }
-
-      role = atk_role_for_name (type);
-      if (role == ATK_ROLE_INVALID)
-        {
-          g_set_error (error,
-                       GTK_BUILDER_ERROR,
-                       GTK_BUILDER_ERROR_INVALID_VALUE,
-                       "No such role type: '%s'", type);
-          _gtk_builder_prefix_error (data->builder, context, error);
-          return;
-        }
-
-      data->role = role;
-    }
-  else if (strcmp (element_name, "accessibility") == 0)
-    {
-      if (!_gtk_builder_check_parent (data->builder, context, "object", error))
-        return;
-
-      if (!g_markup_collect_attributes (element_name, names, values, error,
-                                        G_MARKUP_COLLECT_INVALID, NULL, NULL,
-                                        G_MARKUP_COLLECT_INVALID))
-        _gtk_builder_prefix_error (data->builder, context, error);
-    }
-  else
-    {
-      _gtk_builder_error_unhandled_tag (data->builder, context,
-                                        "GtkWidget", element_name,
-                                        error);
-    }
-}
-
-static void
-accessibility_text (GtkBuildableParseContext  *context,
-                    const gchar               *text,
-                    gsize                      text_len,
-                    gpointer                   user_data,
-                    GError                   **error)
-{
-  AccessibilitySubParserData *data = (AccessibilitySubParserData*)user_data;
-
-  if (strcmp (gtk_buildable_parse_context_get_element (context), "action") == 0)
-    {
-      AtkActionData *action = data->actions->data;
-
-      g_string_append_len (action->description, text, text_len);
-    }
-}
-
-static const GtkBuildableParser accessibility_parser =
-  {
-    accessibility_start_element,
-    NULL,
-    accessibility_text,
-  };
 
 typedef struct
 {
@@ -8764,9 +8250,9 @@ typedef struct
 
 static void
 style_start_element (GtkBuildableParseContext  *context,
-                     const gchar               *element_name,
-                     const gchar              **names,
-                     const gchar              **values,
+                     const char                *element_name,
+                     const char               **names,
+                     const char               **values,
                      gpointer                   user_data,
                      GError                   **error)
 {
@@ -8774,7 +8260,7 @@ style_start_element (GtkBuildableParseContext  *context,
 
   if (strcmp (element_name, "class") == 0)
     {
-      const gchar *name;
+      const char *name;
 
       if (!_gtk_builder_check_parent (data->builder, context, "style", error))
         return;
@@ -8847,9 +8333,9 @@ layout_property_info_free (gpointer data)
 
 static void
 layout_start_element (GtkBuildableParseContext  *context,
-                      const gchar               *element_name,
-                      const gchar              **names,
-                      const gchar              **values,
+                      const char                *element_name,
+                      const char               **names,
+                      const char               **values,
                       gpointer                   user_data,
                       GError                   **error)
 {
@@ -8903,7 +8389,7 @@ layout_start_element (GtkBuildableParseContext  *context,
 
 static void
 layout_text (GtkBuildableParseContext  *context,
-             const gchar               *text,
+             const char                *text,
              gsize                      text_len,
              gpointer                   user_data,
              GError                   **error)
@@ -8955,23 +8441,10 @@ static gboolean
 gtk_widget_buildable_custom_tag_start (GtkBuildable       *buildable,
                                        GtkBuilder         *builder,
                                        GObject            *child,
-                                       const gchar        *tagname,
+                                       const char         *tagname,
                                        GtkBuildableParser *parser,
                                        gpointer           *parser_data)
 {
-  if (strcmp (tagname, "accessibility") == 0)
-    {
-      AccessibilitySubParserData *data;
-
-      data = g_slice_new0 (AccessibilitySubParserData);
-      data->builder = builder;
-
-      *parser = accessibility_parser;
-      *parser_data = data;
-
-      return TRUE;
-    }
-
   if (strcmp (tagname, "style") == 0)
     {
       StyleParserData *data;
@@ -9006,7 +8479,7 @@ static void
 gtk_widget_buildable_custom_tag_end (GtkBuildable  *buildable,
                                      GtkBuilder    *builder,
                                      GObject       *child,
-                                     const gchar   *tagname,
+                                     const char    *tagname,
                                      gpointer       data)
 {
 }
@@ -9081,72 +8554,10 @@ static void
 gtk_widget_buildable_custom_finished (GtkBuildable *buildable,
                                       GtkBuilder   *builder,
                                       GObject      *child,
-                                      const gchar  *tagname,
+                                      const char   *tagname,
                                       gpointer      user_data)
 {
-  if (strcmp (tagname, "accessibility") == 0)
-    {
-      AccessibilitySubParserData *a11y_data;
-
-      a11y_data = (AccessibilitySubParserData*)user_data;
-
-      if (a11y_data->actions)
-	{
-	  AtkObject *accessible;
-	  AtkAction *action;
-	  gint i, n_actions;
-	  GSList *l;
-
-	  accessible = gtk_widget_get_accessible (GTK_WIDGET (buildable));
-
-          if (ATK_IS_ACTION (accessible))
-            {
-	      action = ATK_ACTION (accessible);
-	      n_actions = atk_action_get_n_actions (action);
-
-	      for (l = a11y_data->actions; l; l = l->next)
-	        {
-	          AtkActionData *action_data = (AtkActionData*)l->data;
-
-	          for (i = 0; i < n_actions; i++)
-		    if (strcmp (atk_action_get_name (action, i),
-		  	        action_data->action_name) == 0)
-		      break;
-
-	          if (i < n_actions)
-                    {
-                      const gchar *description;
-
-                      if (action_data->translatable && action_data->description->len)
-                        description = _gtk_builder_parser_translate (gtk_builder_get_translation_domain (builder),
-                                                                     action_data->context,
-                                                                     action_data->description->str);
-                      else
-                        description = action_data->description->str;
-
-		      atk_action_set_description (action, i, description);
-                    }
-                }
-	    }
-          else
-            g_warning ("accessibility action on a widget that does not implement AtkAction");
-
-	  g_slist_free_full (a11y_data->actions, (GDestroyNotify) free_action);
-	}
-
-      if (a11y_data->relations)
-	g_object_set_qdata (G_OBJECT (buildable), quark_builder_atk_relations,
-			    a11y_data->relations);
-
-      if (a11y_data->role != ATK_ROLE_INVALID)
-        {
-          AtkObject *accessible = gtk_widget_get_accessible (GTK_WIDGET (buildable));
-          atk_object_set_role (accessible, a11y_data->role);
-        }
-
-      g_slice_free (AccessibilitySubParserData, a11y_data);
-    }
-  else if (strcmp (tagname, "style") == 0)
+  if (strcmp (tagname, "style") == 0)
     {
       StyleParserData *style_data = (StyleParserData *)user_data;
       GSList *l;
@@ -9295,7 +8706,7 @@ gtk_widget_set_valign (GtkWidget *widget,
  *
  * Returns: The start margin of @widget
  */
-gint
+int
 gtk_widget_get_margin_start (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
@@ -9315,7 +8726,7 @@ gtk_widget_get_margin_start (GtkWidget *widget)
  */
 void
 gtk_widget_set_margin_start (GtkWidget *widget,
-                             gint       margin)
+                             int        margin)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
@@ -9340,7 +8751,7 @@ gtk_widget_set_margin_start (GtkWidget *widget,
  *
  * Returns: The end margin of @widget
  */
-gint
+int
 gtk_widget_get_margin_end (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
@@ -9360,7 +8771,7 @@ gtk_widget_get_margin_end (GtkWidget *widget)
  */
 void
 gtk_widget_set_margin_end (GtkWidget *widget,
-                           gint       margin)
+                           int        margin)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
@@ -9385,7 +8796,7 @@ gtk_widget_set_margin_end (GtkWidget *widget,
  *
  * Returns: The top margin of @widget
  */
-gint
+int
 gtk_widget_get_margin_top (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
@@ -9405,7 +8816,7 @@ gtk_widget_get_margin_top (GtkWidget *widget)
  */
 void
 gtk_widget_set_margin_top (GtkWidget *widget,
-                           gint       margin)
+                           int        margin)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
@@ -9428,7 +8839,7 @@ gtk_widget_set_margin_top (GtkWidget *widget,
  *
  * Returns: The bottom margin of @widget
  */
-gint
+int
 gtk_widget_get_margin_bottom (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
@@ -9448,7 +8859,7 @@ gtk_widget_get_margin_bottom (GtkWidget *widget)
  */
 void
 gtk_widget_set_margin_bottom (GtkWidget *widget,
-                              gint       margin)
+                              int        margin)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
@@ -9562,6 +8973,10 @@ gtk_widget_add_mnemonic_label (GtkWidget *widget,
 
   g_object_set_qdata_full (G_OBJECT (widget), quark_mnemonic_labels,
 			   new_list, (GDestroyNotify) g_slist_free);
+
+  gtk_accessible_update_relation (GTK_ACCESSIBLE (widget),
+                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, new_list,
+                                  -1);
 }
 
 /**
@@ -9590,6 +9005,19 @@ gtk_widget_remove_mnemonic_label (GtkWidget *widget,
   if (new_list)
     g_object_set_qdata_full (G_OBJECT (widget), quark_mnemonic_labels,
 			     new_list, (GDestroyNotify) g_slist_free);
+
+  if (new_list != NULL && new_list->data != NULL)
+    {
+      gtk_accessible_update_relation (GTK_ACCESSIBLE (widget),
+                                      GTK_ACCESSIBLE_RELATION_LABELLED_BY, new_list,
+                                      -1);
+    }
+  else
+    {
+      gtk_accessible_update_relation (GTK_ACCESSIBLE (widget),
+                                      GTK_ACCESSIBLE_RELATION_LABELLED_BY, NULL,
+                                      -1);
+    }
 }
 
 /**
@@ -9788,9 +9216,6 @@ gtk_widget_set_has_tooltip (GtkWidget *widget,
     {
       priv->has_tooltip = has_tooltip;
 
-      if (priv->accessible != NULL)
-        gtk_widget_accessible_notify_tooltip (GTK_WIDGET_ACCESSIBLE (priv->accessible));
-
       g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_HAS_TOOLTIP]);
     }
 }
@@ -9874,8 +9299,8 @@ gtk_widget_get_allocation (GtkWidget     *widget,
  **/
 gboolean
 gtk_widget_contains (GtkWidget  *widget,
-                     gdouble     x,
-                     gdouble     y)
+                     double      x,
+                     double      y)
 {
   g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
 
@@ -9906,8 +9331,8 @@ gtk_widget_can_be_picked (GtkWidget    *widget,
 
 static GtkWidget *
 gtk_widget_do_pick (GtkWidget    *widget,
-                    gdouble       x,
-                    gdouble       y,
+                    double        x,
+                    double        y,
                     GtkPickFlags  flags)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
@@ -10013,8 +9438,8 @@ gtk_widget_do_pick (GtkWidget    *widget,
  **/
 GtkWidget *
 gtk_widget_pick (GtkWidget    *widget,
-                 gdouble       x,
-                 gdouble       y,
+                 double        x,
+                 double        y,
                  GtkPickFlags  flags)
 {
   g_return_val_if_fail (GTK_IS_WIDGET (widget), NULL);
@@ -10220,54 +9645,6 @@ gtk_widget_get_allocated_baseline (GtkWidget *widget)
 }
 
 /**
- * gtk_widget_get_support_multidevice:
- * @widget: a #GtkWidget
- *
- * Returns %TRUE if @widget is multiple pointer aware. See
- * gtk_widget_set_support_multidevice() for more information.
- *
- * Returns: %TRUE if @widget is multidevice aware.
- **/
-gboolean
-gtk_widget_get_support_multidevice (GtkWidget *widget)
-{
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
-
-  return priv->multidevice;
-}
-
-/**
- * gtk_widget_set_support_multidevice:
- * @widget: a #GtkWidget
- * @support_multidevice: %TRUE to support input from multiple devices.
- *
- * Enables or disables multiple pointer awareness. If this setting is %TRUE,
- * @widget will start receiving multiple, per device enter/leave events. Note
- * that if custom #GdkSurfaces are created in #GtkWidget::realize,
- * gdk_surface_set_support_multidevice() will have to be called manually on them.
- **/
-void
-gtk_widget_set_support_multidevice (GtkWidget *widget,
-                                    gboolean   support_multidevice)
-{
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  g_return_if_fail (GTK_IS_WIDGET (widget));
-
-  priv->multidevice = (support_multidevice == TRUE);
-
-  if (_gtk_widget_get_realized (widget))
-    {
-      GdkSurface *surface = gtk_widget_get_surface (widget);
-
-      if (surface)
-        gdk_surface_set_support_multidevice (surface, support_multidevice);
-    }
-}
-
-/**
  * gtk_widget_set_opacity:
  * @widget: a #GtkWidget
  * @opacity: desired opacity, between 0 and 1
@@ -10288,7 +9665,7 @@ gtk_widget_set_support_multidevice (GtkWidget *widget,
  **/
 void
 gtk_widget_set_opacity (GtkWidget *widget,
-                        gdouble    opacity)
+                        double     opacity)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
   guint8 alpha;
@@ -10318,7 +9695,7 @@ gtk_widget_set_opacity (GtkWidget *widget,
  *
  * Returns: the requested opacity for this widget.
  **/
-gdouble
+double
 gtk_widget_get_opacity (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
@@ -10388,9 +9765,6 @@ gtk_widget_set_has_focus (GtkWidget *widget,
 
   priv->has_focus = has_focus;
 
-  if (priv->accessible != NULL)
-    gtk_widget_accessible_notify_focus (GTK_WIDGET_ACCESSIBLE (priv->accessible));
-
   g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_HAS_FOCUS]);
 }
 
@@ -10410,23 +9784,6 @@ gtk_widget_in_destruction (GtkWidget *widget)
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
 
   return priv->in_destruction;
-}
-
-gboolean
-_gtk_widget_get_shadowed (GtkWidget *widget)
-{
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  return priv->shadowed;
-}
-
-void
-_gtk_widget_set_shadowed (GtkWidget *widget,
-                          gboolean   shadowed)
-{
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  priv->shadowed = shadowed;
 }
 
 gboolean
@@ -10784,7 +10141,7 @@ _gtk_widget_get_action_muxer (GtkWidget *widget,
  */
 void
 gtk_widget_insert_action_group (GtkWidget    *widget,
-                                const gchar  *name,
+                                const char   *name,
                                 GActionGroup *group)
 {
   GtkActionMuxer *muxer;
@@ -10804,7 +10161,7 @@ gtk_widget_insert_action_group (GtkWidget    *widget,
  *                 GtkBuilder automated templates               *
  ****************************************************************/
 static AutomaticChildClass *
-template_child_class_new (const gchar *name,
+template_child_class_new (const char *name,
                           gboolean     internal_child,
                           gssize       offset)
 {
@@ -10970,7 +10327,7 @@ gtk_widget_init_template (GtkWidget *widget)
    * there is no infinite recursion.
    */
   if (!gtk_builder_extend_with_template  (builder, G_OBJECT (widget), class_type,
-					  (const gchar *)g_bytes_get_data (template->data, NULL),
+					  (const char *)g_bytes_get_data (template->data, NULL),
 					  g_bytes_get_size (template->data),
 					  &error))
     {
@@ -11066,7 +10423,7 @@ gtk_widget_class_set_template (GtkWidgetClass    *widget_class,
  */
 void
 gtk_widget_class_set_template_from_resource (GtkWidgetClass    *widget_class,
-					     const gchar       *resource_name)
+					     const char        *resource_name)
 {
   GError *error = NULL;
   GBytes *bytes = NULL;
@@ -11111,7 +10468,7 @@ gtk_widget_class_set_template_from_resource (GtkWidgetClass    *widget_class,
  */
 void
 gtk_widget_class_bind_template_callback_full (GtkWidgetClass *widget_class,
-                                              const gchar    *callback_name,
+                                              const char     *callback_name,
                                               GCallback       callback_symbol)
 {
   GtkWidgetTemplate *template;
@@ -11194,7 +10551,7 @@ gtk_widget_class_set_template_scope (GtkWidgetClass  *widget_class,
  */
 void
 gtk_widget_class_bind_template_child_full (GtkWidgetClass *widget_class,
-                                           const gchar    *name,
+                                           const char     *name,
                                            gboolean        internal_child,
                                            gssize          struct_offset)
 {
@@ -11232,7 +10589,7 @@ gtk_widget_class_bind_template_child_full (GtkWidgetClass *widget_class,
 GObject *
 gtk_widget_get_template_child (GtkWidget   *widget,
                                GType        widget_type,
-                               const gchar *name)
+                               const char *name)
 {
   GHashTable *auto_child_hash;
   GObject *ret = NULL;
@@ -11280,10 +10637,10 @@ gtk_widget_activate_action_variant (GtkWidget  *widget,
   if (muxer == NULL)
     return FALSE;
 
-  if (!g_action_group_has_action (G_ACTION_GROUP (muxer), name))
+  if (!gtk_action_muxer_has_action (muxer, name))
     return FALSE;
 
-  g_action_group_activate_action (G_ACTION_GROUP (muxer), name, args);
+  gtk_action_muxer_activate_action (muxer, name, args);
 
   return TRUE;
 }
@@ -11408,6 +10765,23 @@ gtk_widget_add_controller (GtkWidget          *widget,
     priv->controllers = g_ptr_array_new ();
 
   g_ptr_array_add (priv->controllers, controller);
+
+  if (priv->controller_observer)
+    gtk_list_list_model_item_added_at (priv->controller_observer, priv->controllers->len - 1);
+}
+
+void
+gtk_widget_prepend_controller (GtkWidget          *widget,
+                               GtkEventController *controller)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+
+  GTK_EVENT_CONTROLLER_GET_CLASS (controller)->set_widget (controller, widget);
+
+  if (G_UNLIKELY (!priv->controllers))
+    priv->controllers = g_ptr_array_new ();
+
+  g_ptr_array_insert (priv->controllers, 0, controller);
 
   if (priv->controller_observer)
     gtk_list_list_model_item_added_at (priv->controller_observer, 0);
@@ -11535,32 +10909,6 @@ gtk_widget_list_controllers (GtkWidget           *widget,
   return (GtkEventController **)g_ptr_array_free (controllers, FALSE);
 }
 
-static inline void
-gtk_widget_maybe_add_debug_render_nodes (GtkWidget   *widget,
-                                         GtkSnapshot *snapshot)
-{
-#ifdef G_ENABLE_DEBUG
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  GdkDisplay *display = _gtk_widget_get_display (widget);
-
-  if (GTK_DISPLAY_DEBUG_CHECK (display, RESIZE) && priv->highlight_resize)
-    {
-      GdkRGBA blue = {0, 0, 1, 0.2};
-      graphene_rect_t bounds;
-
-      graphene_rect_init (&bounds,
-                          0, 0,
-                          priv->width, priv->height);
-
-      gtk_snapshot_append_color (snapshot,
-                                 &blue,
-                                 &bounds);
-      priv->highlight_resize = FALSE;
-      gtk_widget_queue_draw (widget);
-    }
-#endif
-}
-
 static GskRenderNode *
 gtk_widget_create_render_node (GtkWidget   *widget,
                                GtkSnapshot *snapshot)
@@ -11587,9 +10935,8 @@ gtk_widget_create_render_node (GtkWidget   *widget,
                            "RenderNode for %s %p",
                            G_OBJECT_TYPE_NAME (widget), widget);
 
-  filter_value = gtk_css_node_get_style (priv->cssnode)->other->filter;
-  if (filter_value)
-    gtk_css_filter_value_push_snapshot (filter_value, snapshot);
+  filter_value = style->other->filter;
+  gtk_css_filter_value_push_snapshot (filter_value, snapshot);
 
   if (opacity < 1.0)
     gtk_snapshot_push_opacity (snapshot, opacity);
@@ -11615,13 +10962,41 @@ gtk_widget_create_render_node (GtkWidget   *widget,
 
   gtk_css_filter_value_pop_snapshot (filter_value, snapshot);
 
-#ifdef G_ENABLE_DEBUG
-  gtk_widget_maybe_add_debug_render_nodes (widget, snapshot);
-#endif
-
   gtk_snapshot_pop (snapshot);
 
   return gtk_snapshot_pop_collect (snapshot);
+}
+
+static void
+gtk_widget_do_snapshot (GtkWidget *widget,
+                        GtkSnapshot *snapshot)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+  GskRenderNode *render_node;
+
+  if (!priv->draw_needed)
+    return;
+
+  g_assert (priv->mapped);
+
+  if (_gtk_widget_get_alloc_needed (widget))
+    {
+      g_warning ("Trying to snapshot %s %p without a current allocation", gtk_widget_get_name (widget), widget);
+      return;
+    }
+
+  gtk_widget_push_paintables (widget);
+
+  render_node = gtk_widget_create_render_node (widget, snapshot);
+  /* This can happen when nested drawing happens and a widget contains itself
+   * or when we replace a clipped area */
+  g_clear_pointer (&priv->render_node, gsk_render_node_unref);
+  priv->render_node = render_node;
+
+  priv->draw_needed = FALSE;
+
+  gtk_widget_pop_paintables (widget);
+  gtk_widget_update_paintables (widget);
 }
 
 void
@@ -11633,29 +11008,7 @@ gtk_widget_snapshot (GtkWidget   *widget,
   if (!_gtk_widget_get_mapped (widget))
     return;
 
-  if (_gtk_widget_get_alloc_needed (widget))
-    {
-      g_warning ("Trying to snapshot %s %p without a current allocation", gtk_widget_get_name (widget), widget);
-      return;
-    }
-
-  if (priv->draw_needed)
-    {
-      GskRenderNode *render_node;
-
-      gtk_widget_push_paintables (widget);
-
-      render_node = gtk_widget_create_render_node (widget, snapshot);
-      /* This can happen when nested drawing happens and a widget contains itself
-       * or when we replace a clipped area */
-      g_clear_pointer (&priv->render_node, gsk_render_node_unref);
-      priv->render_node = render_node;
-
-      priv->draw_needed = FALSE;
-
-      gtk_widget_pop_paintables (widget);
-      gtk_widget_update_paintables (widget);
-    }
+  gtk_widget_do_snapshot (widget, snapshot);
 
   if (priv->render_node)
     gtk_snapshot_append_node (snapshot, priv->render_node);
@@ -11743,8 +11096,7 @@ gtk_widget_observe_children (GtkWidget *widget)
   if (priv->children_observer)
     return g_object_ref (G_LIST_MODEL (priv->children_observer));
 
-  priv->children_observer = gtk_list_list_model_new (GTK_TYPE_WIDGET,
-                                                     (gpointer) gtk_widget_get_first_child,
+  priv->children_observer = gtk_list_list_model_new ((gpointer) gtk_widget_get_first_child,
                                                      (gpointer) gtk_widget_get_next_sibling,
                                                      (gpointer) gtk_widget_get_prev_sibling,
                                                      (gpointer) gtk_widget_get_last_child,
@@ -11830,14 +11182,13 @@ gtk_widget_observe_controllers (GtkWidget *widget)
   if (priv->controller_observer)
     return g_object_ref (G_LIST_MODEL (priv->controller_observer));
 
-  priv->controller_observer = gtk_list_list_model_new (GTK_TYPE_EVENT_CONTROLLER,
-                                                      gtk_widget_controller_list_get_first,
-                                                      gtk_widget_controller_list_get_next,
-                                                      gtk_widget_controller_list_get_prev,
-                                                      NULL,
-                                                      (gpointer) g_object_ref,
-                                                      widget,
-                                                      gtk_widget_controller_observer_destroyed);
+  priv->controller_observer = gtk_list_list_model_new (gtk_widget_controller_list_get_first,
+                                                       gtk_widget_controller_list_get_next,
+                                                       gtk_widget_controller_list_get_prev,
+                                                       NULL,
+                                                       (gpointer) g_object_ref,
+                                                       widget,
+                                                       gtk_widget_controller_observer_destroyed);
 
   return G_LIST_MODEL (priv->controller_observer);
 }
@@ -12035,24 +11386,28 @@ gtk_widget_snapshot_child (GtkWidget   *widget,
   g_return_if_fail (_gtk_widget_get_parent (child) == widget);
   g_return_if_fail (snapshot != NULL);
 
+  if (!_gtk_widget_get_mapped (child))
+    return;
+
   if (GTK_IS_NATIVE (child))
     return;
 
-  if (!_gtk_widget_get_mapped (child))
+  gtk_widget_do_snapshot (child, snapshot);
+
+  if (!priv->render_node)
     return;
 
   if (priv->transform)
     {
-      gtk_snapshot_save (snapshot);
-      gtk_snapshot_transform (snapshot, priv->transform);
+      GskRenderNode *transform_node = gsk_transform_node_new (priv->render_node,
+                                                              priv->transform);
 
-      gtk_widget_snapshot (child, snapshot);
-
-      gtk_snapshot_restore (snapshot);
+      gtk_snapshot_append_node (snapshot, transform_node);
+      gsk_render_node_unref (transform_node);
     }
   else
     {
-      gtk_widget_snapshot (child, snapshot);
+      gtk_snapshot_append_node (snapshot, priv->render_node);
     }
 }
 
@@ -12811,8 +12166,6 @@ void
 gtk_widget_update_orientation (GtkWidget      *widget,
                                GtkOrientation  orientation)
 {
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
   g_return_if_fail (GTK_IS_WIDGET (widget));
 
   if (orientation == GTK_ORIENTATION_HORIZONTAL)
@@ -12825,7 +12178,50 @@ gtk_widget_update_orientation (GtkWidget      *widget,
       gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_VERTICAL);
       gtk_widget_remove_css_class (widget, GTK_STYLE_CLASS_HORIZONTAL);
     }
+}
 
-  if (priv->accessible != NULL)
-    gtk_widget_accessible_notify_orientation (GTK_WIDGET_ACCESSIBLE (priv->accessible));
+/**
+ * gtk_widget_class_set_accessible_role:
+ * @widget_class: a #GtkWidgetClass
+ * @accessible_role: the #GtkAccessibleRole used by the @widget_class
+ *
+ * Sets the accessible role used by the given #GtkWidget class.
+ *
+ * Different accessible roles have different states, and are rendered
+ * differently by assistive technologies.
+ */
+void
+gtk_widget_class_set_accessible_role (GtkWidgetClass    *widget_class,
+                                      GtkAccessibleRole  accessible_role)
+{
+  GtkWidgetClassPrivate *priv;
+
+  g_return_if_fail (GTK_IS_WIDGET_CLASS (widget_class));
+
+  priv = widget_class->priv;
+  priv->accessible_role = accessible_role;
+}
+
+/**
+ * gtk_widget_class_get_accessible_role:
+ * @widget_class: a #GtkWidgetClass
+ *
+ * Retrieves the accessible role used by the given #GtkWidget class.
+ *
+ * Different accessible roles have different states, and are rendered
+ * differently by assistive technologies.
+ *
+ * See also: gtk_accessible_get_accessible_role()
+ *
+ * Returns: the accessible role for the widget class
+ */
+GtkAccessibleRole
+gtk_widget_class_get_accessible_role (GtkWidgetClass *widget_class)
+{
+  GtkWidgetClassPrivate *priv;
+
+  g_return_val_if_fail (GTK_IS_WIDGET_CLASS (widget_class), GTK_ACCESSIBLE_ROLE_WIDGET);
+
+  priv = widget_class->priv;
+  return priv->accessible_role;
 }
