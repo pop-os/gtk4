@@ -1,4 +1,4 @@
-gtk+4.0 (3.98.5-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.99.0-1) UNRELEASED; urgency=medium
 
   * New upstream release
     - Update d/copyright
@@ -29,8 +29,9 @@ gtk+4.0 (3.98.5-1) UNRELEASED; urgency=medium
   * Run build-time tests with a D-Bus session bus via dbus-run-session
   * d/p/testsuite-Remove-obsolete-test-from-list.patch:
     Cherry-pick a patch from 3.98.5 to fix the build
+  * New upstream release
 
- -- Simon McVittie <smcv@debian.org>  Mon, 06 Jul 2020 10:47:20 +0100
+ -- Simon McVittie <smcv@debian.org>  Wed, 05 Aug 2020 23:19:42 +0100
 
 gtk+4.0 (3.98.2-1) experimental; urgency=medium
 
