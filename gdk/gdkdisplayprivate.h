@@ -45,7 +45,6 @@ typedef struct
   gulong serial_end; /* exclusive, i.e. not active on serial_end */
   guint event_mask;
   guint32 time;
-  GdkGrabOwnership ownership;
 
   guint activated : 1;
   guint implicit_ungrab : 1;
@@ -63,10 +62,10 @@ typedef struct
 typedef struct
 {
   GdkSurface *surface_under_pointer;   /* surface that last got a normal enter event */
-  gdouble toplevel_x, toplevel_y;
+  double toplevel_x, toplevel_y;
   guint32 state;
   guint32 button;
-  GdkDevice *last_slave;
+  GdkDevice *last_physical_device;
 } GdkPointerSurfaceInfo;
 
 struct _GdkDisplay
@@ -117,22 +116,21 @@ struct _GdkDisplayClass
   GType vk_context_type;      /* type for GdkVulkanContext, must be set if vk_extension_name != NULL */
   const char *vk_extension_name; /* Name of required windowing vulkan extension or %NULL (default) if Vulkan isn't supported */
 
-  const gchar *              (*get_name)           (GdkDisplay *display);
+  const char *              (*get_name)           (GdkDisplay *display);
   void                       (*beep)               (GdkDisplay *display);
   void                       (*sync)               (GdkDisplay *display);
   void                       (*flush)              (GdkDisplay *display);
   gboolean                   (*has_pending)        (GdkDisplay *display);
   void                       (*queue_events)       (GdkDisplay *display);
   void                       (*make_default)       (GdkDisplay *display);
-  GdkSurface *               (*get_default_group)  (GdkDisplay *display);
 
   GdkAppLaunchContext *      (*get_app_launch_context) (GdkDisplay *display);
 
   gulong                     (*get_next_serial) (GdkDisplay *display);
 
   void                       (*notify_startup_complete) (GdkDisplay  *display,
-                                                         const gchar *startup_id);
-  const gchar *              (*get_startup_notification_id) (GdkDisplay  *display);
+                                                         const char *startup_id);
+  const char *              (*get_startup_notification_id) (GdkDisplay  *display);
 
   void                       (*event_data_copy) (GdkDisplay     *display,
                                                  GdkEvent       *event,
@@ -180,14 +178,12 @@ void                _gdk_display_update_last_event    (GdkDisplay     *display,
                                                        GdkEvent       *event);
 void                _gdk_display_device_grab_update   (GdkDisplay *display,
                                                        GdkDevice  *device,
-                                                       GdkDevice  *source_device,
                                                        gulong      current_serial);
 GdkDeviceGrabInfo * _gdk_display_get_last_device_grab (GdkDisplay *display,
                                                        GdkDevice  *device);
 GdkDeviceGrabInfo * _gdk_display_add_device_grab      (GdkDisplay       *display,
                                                        GdkDevice        *device,
                                                        GdkSurface        *surface,
-                                                       GdkGrabOwnership  grab_ownership,
                                                        gboolean          owner_events,
                                                        GdkEventMask      event_mask,
                                                        gulong            serial_start,
@@ -201,9 +197,6 @@ gboolean            _gdk_display_end_device_grab      (GdkDisplay       *display
                                                        gulong            serial,
                                                        GdkSurface        *if_child,
                                                        gboolean          implicit);
-gboolean            _gdk_display_check_grab_ownership (GdkDisplay       *display,
-                                                       GdkDevice        *device,
-                                                       gulong            serial);
 GdkPointerSurfaceInfo * _gdk_display_get_pointer_info  (GdkDisplay       *display,
                                                        GdkDevice        *device);
 void                _gdk_display_pointer_info_foreach (GdkDisplay       *display,

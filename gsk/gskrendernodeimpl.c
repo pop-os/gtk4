@@ -104,7 +104,7 @@ gsk_color_node_peek_color (GskRenderNode *node)
 }
 
 /**
- * gsk_color_node_new: 
+ * gsk_color_node_new:
  * @rgba: a #GdkRGBA specifying a color
  * @bounds: the rectangle to render the color into
  *
@@ -216,7 +216,7 @@ gsk_linear_gradient_node_diff (GskRenderNode  *node1,
 
       return;
     }
-  
+
   gsk_render_node_diff_impossible (node1, node2, region);
 }
 
@@ -392,6 +392,7 @@ struct _GskBorderNode
 {
   GskRenderNode render_node;
 
+  bool uniform: 1;
   GskRoundedRect outline;
   float border_width[4];
   GdkRGBA border_color[4];
@@ -541,6 +542,12 @@ gsk_border_node_diff (GskRenderNode  *node1,
   GskBorderNode *self1 = (GskBorderNode *) node1;
   GskBorderNode *self2 = (GskBorderNode *) node2;
 
+  if (self1->uniform &&
+      self2->uniform &&
+      gdk_rgba_equal (&self1->border_color[0], &self2->border_color[0]) &&
+      self1->border_width[0] == self2->border_width[0])
+    return;
+
   if (gsk_rounded_rect_equal (&self1->outline, &self2->outline) &&
       gdk_rgba_equal (&self1->border_color[0], &self2->border_color[0]) &&
       gdk_rgba_equal (&self1->border_color[1], &self2->border_color[1]) &&
@@ -620,9 +627,9 @@ gsk_border_node_peek_colors (GskRenderNode *node)
  * Returns: (transfer full) (type GskBorderNode): A new #GskRenderNode
  */
 GskRenderNode *
-gsk_border_node_new (const GskRoundedRect     *outline,
-                     const float               border_width[4],
-                     const GdkRGBA             border_color[4])
+gsk_border_node_new (const GskRoundedRect *outline,
+                     const float           border_width[4],
+                     const GdkRGBA         border_color[4])
 {
   GskBorderNode *self;
   GskRenderNode *node;
@@ -638,9 +645,27 @@ gsk_border_node_new (const GskRoundedRect     *outline,
   memcpy (self->border_width, border_width, sizeof (self->border_width));
   memcpy (self->border_color, border_color, sizeof (self->border_color));
 
+  if (border_width[0] == border_width[1] &&
+      border_width[0] == border_width[2] &&
+      border_width[0] == border_width[3] &&
+      gdk_rgba_equal (&border_color[0], &border_color[1]) &&
+      gdk_rgba_equal (&border_color[0], &border_color[2]) &&
+      gdk_rgba_equal (&border_color[0], &border_color[3]))
+    self->uniform = TRUE;
+  else
+    self->uniform = FALSE;
+
+
   graphene_rect_init_from_rect (&node->bounds, &self->outline.bounds);
 
   return node;
+}
+
+/* Private */
+bool
+gsk_border_node_get_uniform (GskRenderNode *self)
+{
+  return  ((GskBorderNode *)self)->uniform;
 }
 
 /*** GSK_TEXTURE_NODE ***/
@@ -985,7 +1010,7 @@ draw_shadow_side (cairo_t               *cr,
                   cairo_rectangle_int_t *drawn_rect)
 {
   GskBlurFlags blur_flags = GSK_BLUR_REPEAT;
-  gdouble clip_radius;
+  double clip_radius;
   int x1, x2, y1, y2;
 
   clip_radius = gsk_cairo_blur_compute_pixels (radius);
@@ -1163,7 +1188,7 @@ gsk_inset_shadow_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_inset_shadow_node_new: 
+ * gsk_inset_shadow_node_new:
  * @outline: outline of the region containing the shadow
  * @color: color of the shadow
  * @dx: horizontal offset of shadow
@@ -1465,7 +1490,7 @@ gsk_outset_shadow_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_outset_shadow_node_new: 
+ * gsk_outset_shadow_node_new:
  * @outline: outline of the region surrounded by shadow
  * @color: color of the shadow
  * @dx: horizontal offset of shadow
@@ -1672,7 +1697,7 @@ gsk_cairo_node_peek_surface (GskRenderNode *node)
 }
 
 /**
- * gsk_cairo_node_new: 
+ * gsk_cairo_node_new:
  * @bounds: the rectangle to render to
  *
  * Creates a #GskRenderNode that will render a cairo surface
@@ -1982,7 +2007,7 @@ gsk_transform_node_draw (GskRenderNode *node,
                             ctm.xy, ctm.yy,
                             ctm.x0, ctm.y0));
   cairo_transform (cr, &ctm);
-  
+
   gsk_render_node_draw (self->child, cr);
 }
 
@@ -2062,7 +2087,7 @@ gsk_transform_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_transform_node_new: 
+ * gsk_transform_node_new:
  * @child: The node to transform
  * @transform: (transfer none): The transform to apply
  *
@@ -2188,7 +2213,7 @@ gsk_opacity_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_opacity_node_new: 
+ * gsk_opacity_node_new:
  * @child: The node to draw
  * @opacity: The opacity to apply
  *
@@ -2380,7 +2405,7 @@ nope:
 }
 
 /**
- * gsk_color_matrix_node_new: 
+ * gsk_color_matrix_node_new:
  * @child: The node to draw
  * @color_matrix: The matrix to apply
  * @color_offset: Values to add to the color
@@ -2533,7 +2558,7 @@ gsk_repeat_node_draw (GskRenderNode *node,
 }
 
 /**
- * gsk_repeat_node_new: 
+ * gsk_repeat_node_new:
  * @bounds: The bounds of the area to be painted
  * @child: The child to repeat
  * @child_bounds: (allow-none): The area of the child to repeat or %NULL to
@@ -2670,7 +2695,7 @@ gsk_clip_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_clip_node_new: 
+ * gsk_clip_node_new:
  * @child: The node to draw
  * @clip: The clip to apply
  *
@@ -2800,7 +2825,7 @@ gsk_rounded_clip_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_rounded_clip_node_new: 
+ * gsk_rounded_clip_node_new:
  * @child: The node to draw
  * @clip: The clip to apply
  *
@@ -3013,7 +3038,7 @@ gsk_shadow_node_get_bounds (GskShadowNode *self,
 }
 
 /**
- * gsk_shadow_node_new: 
+ * gsk_shadow_node_new:
  * @child: The node to draw
  * @shadows: (array length=n_shadows): The shadows to apply
  * @n_shadows: number of entries in the @shadows array
@@ -3210,7 +3235,7 @@ gsk_blend_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_blend_node_new: 
+ * gsk_blend_node_new:
  * @bottom: The bottom node to be drawn
  * @top: The node to be blended onto the @bottom node
  * @blend_mode: The blend mode to use
@@ -3359,7 +3384,7 @@ gsk_cross_fade_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_cross_fade_node_new: 
+ * gsk_cross_fade_node_new:
  * @start: The start node to be drawn
  * @end: The node to be cross_fadeed onto the @start node
  * @progress: How far the fade has progressed from start to end. The value will
@@ -3549,7 +3574,7 @@ font_has_color_glyphs (const PangoFont *font)
 }
 
 /**
- * gsk_text_node_new: 
+ * gsk_text_node_new:
  * @font: the #PangoFont containing the glyphs
  * @glyphs: the #PangoGlyphString to render
  * @color: the foreground color to render with
@@ -3740,8 +3765,8 @@ blur_once (cairo_surface_t *src,
 {
   int width, height, src_rowstride, dest_rowstride, n_channels;
   guchar *p_src, *p_dest, *c1, *c2;
-  gint x, y, i, i1, i2, width_minus_1, height_minus_1, radius_plus_1;
-  gint r, g, b, a;
+  int x, y, i, i1, i2, width_minus_1, height_minus_1, radius_plus_1;
+  int r, g, b, a;
   guchar *p_dest_row, *p_dest_col;
 
   width = cairo_image_surface_get_width (src);
@@ -3953,7 +3978,7 @@ gsk_blur_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_blur_node_new: 
+ * gsk_blur_node_new:
  * @child: the child node to blur
  * @radius: the blur radius
  *
@@ -4076,9 +4101,9 @@ gsk_debug_node_diff (GskRenderNode  *node1,
 }
 
 /**
- * gsk_debug_node_new: 
+ * gsk_debug_node_new:
  * @child: The child to add debug info for
- * @message: (transfer full): The debug message 
+ * @message: (transfer full): The debug message
  *
  * Creates a #GskRenderNode that will add debug information about
  * the given @child.

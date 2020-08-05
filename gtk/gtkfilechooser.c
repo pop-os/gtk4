@@ -79,75 +79,6 @@ G_DEFINE_INTERFACE (GtkFileChooser, gtk_file_chooser, G_TYPE_OBJECT);
 static void
 gtk_file_chooser_default_init (GtkFileChooserInterface *iface)
 {
-  GType iface_type = G_TYPE_FROM_INTERFACE (iface);
-
-  /**
-   * GtkFileChooser::current-folder-changed:
-   * @chooser: the object which received the signal.
-   *
-   * This signal is emitted when the current folder in a #GtkFileChooser
-   * changes.  This can happen due to the user performing some action that
-   * changes folders, such as selecting a bookmark or visiting a folder on the
-   * file list.  It can also happen as a result of calling a function to
-   * explicitly change the current folder in a file chooser.
-   *
-   * Normally you do not need to connect to this signal, unless you need to keep
-   * track of which folder a file chooser is showing.
-   *
-   * See also:  gtk_file_chooser_set_current_folder(),
-   * gtk_file_chooser_get_current_folder(),
-   */
-  g_signal_new (I_("current-folder-changed"),
-                iface_type,
-                G_SIGNAL_RUN_LAST,
-                G_STRUCT_OFFSET (GtkFileChooserIface, current_folder_changed),
-                NULL, NULL,
-                NULL,
-                G_TYPE_NONE, 0);
-
-  /**
-   * GtkFileChooser::selection-changed:
-   * @chooser: the object which received the signal.
-   *
-   * This signal is emitted when there is a change in the set of selected files
-   * in a #GtkFileChooser.  This can happen when the user modifies the selection
-   * with the mouse or the keyboard, or when explicitly calling functions to
-   * change the selection.
-   *
-   * Normally you do not need to connect to this signal, as it is easier to wait
-   * for the file chooser to finish running, and then to get the list of
-   * selected files using the functions mentioned below.
-   */
-  g_signal_new (I_("selection-changed"),
-                iface_type,
-                G_SIGNAL_RUN_LAST,
-                G_STRUCT_OFFSET (GtkFileChooserIface, selection_changed),
-                NULL, NULL,
-                NULL,
-                G_TYPE_NONE, 0);
-
-  /**
-   * GtkFileChooser::file-activated:
-   * @chooser: the object which received the signal.
-   *
-   * This signal is emitted when the user "activates" a file in the file
-   * chooser.  This can happen by double-clicking on a file in the file list, or
-   * by pressing `Enter`.
-   *
-   * Normally you do not need to connect to this signal.  It is used internally
-   * by #GtkFileChooserDialog to know when to activate the default button in the
-   * dialog.
-   *
-   * See also: gtk_file_chooser_get_file(), gtk_file_chooser_get_files()
-   */
-  g_signal_new (I_("file-activated"),
-                iface_type,
-                G_SIGNAL_RUN_LAST,
-                G_STRUCT_OFFSET (GtkFileChooserIface, file_activated),
-                NULL, NULL,
-                NULL,
-                G_TYPE_NONE, 0);
-
   g_object_interface_install_property (iface,
                                        g_param_spec_enum ("action",
                                                           P_("Action"),
@@ -167,6 +98,38 @@ gtk_file_chooser_default_init (GtkFileChooserInterface *iface)
                                                              P_("Whether to allow multiple files to be selected"),
                                                              FALSE,
                                                              GTK_PARAM_READWRITE));
+
+  /**
+   * GtkFileChooser:filters:
+   *
+   * A #GListModel containing the filters that have been
+   * added with gtk_file_chooser_add_filter().
+   *
+   * The returned object should not be modified. It may
+   * or may not be updated for later changes.
+   */
+  g_object_interface_install_property (iface,
+                                       g_param_spec_object ("filters",
+                                                          P_("Filters"),
+                                                          P_("List model of filters"),
+                                                          G_TYPE_LIST_MODEL,
+                                                          GTK_PARAM_READABLE));
+
+  /**
+   * GtkFileChooser:shortcut-folders:
+   *
+   * A #GListModel containing the shortcut folders that have been
+   * added with gtk_file_chooser_add_shortcut().
+   *
+   * The returned object should not be modified. It may
+   * or may not be updated for later changes.
+   */
+  g_object_interface_install_property (iface,
+                                       g_param_spec_object ("shortcut-folders",
+                                                          P_("Shortcut Folders"),
+                                                          P_("List model of shortcut folders"),
+                                                          G_TYPE_LIST_MODEL,
+                                                          GTK_PARAM_READABLE));
 
   /**
    * GtkFileChooser:create-folders:
@@ -334,7 +297,7 @@ gtk_file_chooser_get_create_folders (GtkFileChooser *chooser)
  **/
 void
 gtk_file_chooser_set_current_name  (GtkFileChooser *chooser,
-                                    const gchar    *name)
+                                    const char     *name)
 {
   g_return_if_fail (GTK_IS_FILE_CHOOSER (chooser));
   g_return_if_fail (name != NULL);
@@ -357,7 +320,7 @@ gtk_file_chooser_set_current_name  (GtkFileChooser *chooser,
  * whatever the contents of the entry are.  Note also that this string is in
  * UTF-8 encoding, which is not necessarily the system’s encoding for filenames.
  **/
-gchar *
+char *
 gtk_file_chooser_get_current_name (GtkFileChooser *chooser)
 {
   g_return_val_if_fail (GTK_IS_FILE_CHOOSER (chooser), NULL);
@@ -476,16 +439,15 @@ gtk_file_chooser_unselect_file (GtkFileChooser *chooser,
 /**
  * gtk_file_chooser_get_files:
  * @chooser: a #GtkFileChooser
- * 
- * Lists all the selected files and subfolders in the current folder of @chooser
- * as #GFile.
  *
- * Returns: (element-type GFile) (transfer full): a list
- *   containing a #GFile for each selected file and subfolder in the
- *   current folder.  Free the returned list with g_slist_free(), and
- *   the files with g_object_unref().
- **/
-GSList *
+ * Lists all the selected files and subfolders in the current folder
+ * of @chooser as #GFile.
+ *
+ * Returns: (transfer full): a list model containing a #GFile for each
+ *     selected file and subfolder in the current folder. Free the returned
+ *     list with g_object_unref().
+ */
+GListModel *
 gtk_file_chooser_get_files (GtkFileChooser *chooser)
 {
   g_return_val_if_fail (GTK_IS_FILE_CHOOSER (chooser), NULL);
@@ -565,39 +527,17 @@ gtk_file_chooser_set_file (GtkFileChooser  *chooser,
 GFile *
 gtk_file_chooser_get_file (GtkFileChooser *chooser)
 {
-  GSList *list;
+  GListModel *list;
   GFile *result = NULL;
-  
+
   g_return_val_if_fail (GTK_IS_FILE_CHOOSER (chooser), NULL);
 
   list = gtk_file_chooser_get_files (chooser);
-  if (list)
-    {
-      result = list->data;
-      list = g_slist_delete_link (list, list);
-
-      g_slist_free_full (list, g_object_unref);
-    }
+  if (g_list_model_get_n_items (list) > 0)
+    result = g_list_model_get_item (list, 0);
+  g_object_unref (list);
 
   return result;
-}
-
-/*< private >
- * _gtk_file_chooser_get_file_system:
- * @chooser: a #GtkFileChooser
- * 
- * Gets the #GtkFileSystem of @chooser; this is an internal
- * implementation detail, used for conversion between paths
- * and filenames and URIs.
- * 
- * Returns: the file system for @chooser.
- **/
-GtkFileSystem *
-_gtk_file_chooser_get_file_system (GtkFileChooser *chooser)
-{
-  g_return_val_if_fail (GTK_IS_FILE_CHOOSER (chooser), NULL);
-
-  return GTK_FILE_CHOOSER_GET_IFACE (chooser)->get_file_system (chooser);
 }
 
 /**
@@ -682,23 +622,24 @@ gtk_file_chooser_remove_filter (GtkFileChooser *chooser,
 }
 
 /**
- * gtk_file_chooser_list_filters:
+ * gtk_file_chooser_get_filters:
  * @chooser: a #GtkFileChooser
  * 
- * Lists the current set of user-selectable filters; see
+ * Gets the current set of user-selectable filters, as a list model; see
  * gtk_file_chooser_add_filter(), gtk_file_chooser_remove_filter().
  *
- * Returns: (element-type GtkFileFilter) (transfer container): a
- *  #GSList containing the current set of user selectable filters. The
- *  contents of the list are owned by GTK+, but you must free the list
- *  itself with g_slist_free() when you are done with it.
+ * You should not modify the returned list model. Future changes to
+ * @chooser may or may not affect the returned model.
+ *
+ * Returns: (transfer full): a #GListModel containing the current set
+ *     of user-selectable filters.
  **/
-GSList *
-gtk_file_chooser_list_filters  (GtkFileChooser *chooser)
+GListModel *
+gtk_file_chooser_get_filters (GtkFileChooser *chooser)
 {
   g_return_val_if_fail (GTK_IS_FILE_CHOOSER (chooser), NULL);
 
-  return GTK_FILE_CHOOSER_GET_IFACE (chooser)->list_filters (chooser);
+  return GTK_FILE_CHOOSER_GET_IFACE (chooser)->get_filters (chooser);
 }
 
 /**
@@ -750,21 +691,23 @@ gtk_file_chooser_get_filter (GtkFileChooser *chooser)
 }
 
 /**
- * gtk_file_chooser_list_shortcut_folders:
+ * gtk_file_chooser_get_shortcut_folders:
  * @chooser: a #GtkFileChooser
  * 
  * Queries the list of shortcut folders in the file chooser, as set by
  * gtk_file_chooser_add_shortcut_folder().
  *
- * Returns: (nullable) (element-type Gio.File) (transfer full): A list
- * of folder filenames, or %NULL if there are no shortcut folders.
+ * You should not modify the returned list model. Future changes to
+ * @chooser may or may not affect the returned model.
+ *
+ * Returns: (transfer full): A list model of #GFiles
  */
-GSList *
-gtk_file_chooser_list_shortcut_folders (GtkFileChooser *chooser)
+GListModel *
+gtk_file_chooser_get_shortcut_folders (GtkFileChooser *chooser)
 {
   g_return_val_if_fail (GTK_IS_FILE_CHOOSER (chooser), NULL);
 
-  return GTK_FILE_CHOOSER_GET_IFACE (chooser)->list_shortcut_folders (chooser);
+  return GTK_FILE_CHOOSER_GET_IFACE (chooser)->get_shortcut_folders (chooser);
 }
 
 /**

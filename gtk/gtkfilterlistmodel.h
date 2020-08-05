@@ -39,8 +39,6 @@ G_DECLARE_FINAL_TYPE (GtkFilterListModel, gtk_filter_list_model, GTK, FILTER_LIS
 GDK_AVAILABLE_IN_ALL
 GtkFilterListModel *    gtk_filter_list_model_new               (GListModel             *model,
                                                                  GtkFilter              *filter);
-GDK_AVAILABLE_IN_ALL
-GtkFilterListModel *    gtk_filter_list_model_new_for_type      (GType                   item_type);
 
 GDK_AVAILABLE_IN_ALL
 void                    gtk_filter_list_model_set_filter        (GtkFilterListModel     *self,
@@ -52,6 +50,14 @@ void                    gtk_filter_list_model_set_model         (GtkFilterListMo
                                                                  GListModel             *model);
 GDK_AVAILABLE_IN_ALL
 GListModel *            gtk_filter_list_model_get_model         (GtkFilterListModel     *self);
+GDK_AVAILABLE_IN_ALL
+void                    gtk_filter_list_model_set_incremental   (GtkFilterListModel     *self,
+                                                                 gboolean                incremental);
+GDK_AVAILABLE_IN_ALL
+gboolean                gtk_filter_list_model_get_incremental   (GtkFilterListModel     *self);
+GDK_AVAILABLE_IN_ALL
+guint                   gtk_filter_list_model_get_pending       (GtkFilterListModel     *self);
+
 
 G_END_DECLS
 

@@ -32,7 +32,6 @@
 #include "gtkmarshalers.h"
 #include "gtkprivate.h"
 #include "gtkintl.h"
-#include "a11y/gtkradiobuttonaccessible.h"
 #include "gtkstylecontextprivate.h"
 
 /**
@@ -70,27 +69,6 @@
  * The group list does not need to be freed, as each #GtkRadioButton will remove
  * itself and its list item when it is destroyed.
  *
- * # CSS nodes
- *
- * |[<!-- language="plain" -->
- * radiobutton
- * ├── radio
- * ╰── <child>
- * ]|
- *
- * A GtkRadioButton with indicator (see gtk_check_button_set_draw_indicator())) has a
- * main CSS node with name radiobutton and a subnode with name radio.
- *
- * |[<!-- language="plain" -->
- * button.radio
- * ├── radio
- * ╰── <child>
- * ]|
- *
- * A GtkRadioButton without indicator changes the name of its main node
- * to button and adds a .radio style class to it. The subnode is invisible
- * in this case.
- *
  * ## How to create a group of two radio buttons.
  *
  * |[<!-- language="C" -->
@@ -125,6 +103,31 @@
  * selected button.
  * Inside the #GtkToggleButton::toggled handler, gtk_toggle_button_get_active()
  * can be used to determine if the button has been selected or deselected.
+ *
+ * # CSS nodes
+ *
+ * |[<!-- language="plain" -->
+ * radiobutton
+ * ├── radio
+ * ╰── <child>
+ * ]|
+ *
+ * A GtkRadioButton with indicator (see gtk_check_button_set_draw_indicator())) has a
+ * main CSS node with name radiobutton and a subnode with name radio.
+ *
+ * |[<!-- language="plain" -->
+ * button.radio
+ * ├── radio
+ * ╰── <child>
+ * ]|
+ *
+ * A GtkRadioButton without indicator changes the name of its main node
+ * to button and adds a .radio style class to it. The subnode is invisible
+ * in this case.
+ *
+ * # Accessibility
+ *
+ * GtkRadioButton uses the #GTK_ACCESSIBLE_ROLE_RADIO role.
  */
 
 typedef struct _GtkRadioButtonClass         GtkRadioButtonClass;
@@ -229,8 +232,8 @@ gtk_radio_button_class_init (GtkRadioButtonClass *class)
                                          NULL,
                                          G_TYPE_NONE, 0);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_RADIO_BUTTON_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("radiobutton"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_RADIO);
 }
 
 static void
@@ -464,7 +467,7 @@ gtk_radio_button_new (GSList *group)
  */
 GtkWidget*
 gtk_radio_button_new_with_label (GSList      *group,
-				 const gchar *label)
+				 const char *label)
 {
   GtkWidget *radio_button;
 
@@ -493,7 +496,7 @@ gtk_radio_button_new_with_label (GSList      *group,
  */
 GtkWidget*
 gtk_radio_button_new_with_mnemonic (GSList      *group,
-				    const gchar *label)
+				    const char *label)
 {
   GtkWidget *radio_button;
 
@@ -539,7 +542,7 @@ gtk_radio_button_new_from_widget (GtkRadioButton *radio_group_member)
  */
 GtkWidget*
 gtk_radio_button_new_with_label_from_widget (GtkRadioButton *radio_group_member,
-					     const gchar    *label)
+					     const char     *label)
 {
   GSList *l = NULL;
   if (radio_group_member)
@@ -561,7 +564,7 @@ gtk_radio_button_new_with_label_from_widget (GtkRadioButton *radio_group_member,
  **/
 GtkWidget*
 gtk_radio_button_new_with_mnemonic_from_widget (GtkRadioButton *radio_group_member,
-					        const gchar    *label)
+					        const char     *label)
 {
   GSList *l = NULL;
   if (radio_group_member)

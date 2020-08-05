@@ -21,24 +21,18 @@
 
 #include "gtkmultiselection.h"
 
+#include "gtkbitset.h"
 #include "gtkintl.h"
 #include "gtkselectionmodel.h"
-#include "gtkset.h"
 
 /**
  * SECTION:gtkmultiselection
- * @Short_description: A selection model that allows selecting a multiple items
+ * @Short_description: A selection model that allows selecting multiple items
  * @Title: GtkMultiSelection
  * @see_also: #GtkSelectionModel
  *
  * GtkMultiSelection is an implementation of the #GtkSelectionModel interface
  * that allows selecting multiple elements.
- *
- * Note that due to the way the selection is stored, newly added items are
- * always unselected, even if they were just removed from the model, and were
- * selected before. In particular this means that changing the sort order of
- * an underlying sort model will clear the selection. In other words, the
- * selection is *not persistent*.
  */
 
 struct _GtkMultiSelection
@@ -47,7 +41,8 @@ struct _GtkMultiSelection
 
   GListModel *model;
 
-  GtkSet *selected;
+  GtkBitset *selected;
+  GHashTable *items; /* item => position */
 };
 
 struct _GtkMultiSelectionClass
@@ -67,15 +62,16 @@ static GParamSpec *properties[N_PROPS] = { NULL, };
 static GType
 gtk_multi_selection_get_item_type (GListModel *list)
 {
-  GtkMultiSelection *self = GTK_MULTI_SELECTION (list);
-
-  return g_list_model_get_item_type (self->model);
+  return G_TYPE_OBJECT;
 }
 
 static guint
 gtk_multi_selection_get_n_items (GListModel *list)
 {
   GtkMultiSelection *self = GTK_MULTI_SELECTION (list);
+
+  if (self->model == NULL)
+    return 0;
 
   return g_list_model_get_n_items (self->model);
 }
@@ -85,6 +81,9 @@ gtk_multi_selection_get_item (GListModel *list,
                               guint       position)
 {
   GtkMultiSelection *self = GTK_MULTI_SELECTION (list);
+
+  if (self->model == NULL)
+    return NULL;
 
   return g_list_model_get_item (self->model, position);
 }
@@ -103,117 +102,93 @@ gtk_multi_selection_is_selected (GtkSelectionModel *model,
 {
   GtkMultiSelection *self = GTK_MULTI_SELECTION (model);
 
-  return gtk_set_contains (self->selected, position);
+  return gtk_bitset_contains (self->selected, position);
 }
 
-static gboolean
-gtk_multi_selection_select_range (GtkSelectionModel *model,
-                                  guint              position,
-                                  guint              n_items,
-                                  gboolean           exclusive)
+static GtkBitset *
+gtk_multi_selection_get_selection_in_range (GtkSelectionModel *model,
+                                            guint              pos,
+                                            guint              n_items)
 {
   GtkMultiSelection *self = GTK_MULTI_SELECTION (model);
-  guint min = G_MAXUINT;
-  guint max = 0;
 
-  if (exclusive)
+  return gtk_bitset_ref (self->selected);
+}
+
+static void
+gtk_multi_selection_toggle_selection (GtkMultiSelection *self,
+                                      GtkBitset         *changes)
+{
+  GListModel *model = G_LIST_MODEL (self);
+  GtkBitsetIter change_iter, selected_iter;
+  GtkBitset *selected;
+  guint change_pos, selected_pos;
+  gboolean more;
+
+  gtk_bitset_difference (self->selected, changes);
+
+  selected = gtk_bitset_copy (changes);
+  gtk_bitset_intersect (selected, self->selected);
+
+  if (!gtk_bitset_iter_init_first (&selected_iter, selected, &selected_pos))
+    selected_pos = G_MAXUINT;
+
+  for (more = gtk_bitset_iter_init_first (&change_iter, changes, &change_pos);
+       more;
+       more = gtk_bitset_iter_next (&change_iter, &change_pos))
     {
-      min = gtk_set_get_min (self->selected);
-      max = gtk_set_get_max (self->selected);
-      gtk_set_remove_all (self->selected);
-    }
+      gpointer item = g_list_model_get_item (model, change_pos);
 
-  gtk_set_add_range (self->selected, position, n_items);
-
-  min = MIN (position, min);
-  max = MAX (max, position + n_items - 1);
-
-  gtk_selection_model_selection_changed (model, min, max - min + 1);
-
-  return TRUE;
-}
-
-static gboolean
-gtk_multi_selection_unselect_range (GtkSelectionModel *model,
-                                    guint              position,
-                                    guint              n_items)
-{
-  GtkMultiSelection *self = GTK_MULTI_SELECTION (model);
-
-  gtk_set_remove_range (self->selected, position, n_items);
-  gtk_selection_model_selection_changed (model, position, n_items);
-
-  return TRUE;
-}
-
-static gboolean
-gtk_multi_selection_select_item (GtkSelectionModel *model,
-                                 guint              position,
-                                 gboolean           exclusive)
-{
-  return gtk_multi_selection_select_range (model, position, 1, exclusive);
-}
-
-static gboolean
-gtk_multi_selection_unselect_item (GtkSelectionModel *model,
-                                   guint              position)
-{
-  return gtk_multi_selection_unselect_range (model, position, 1);
-}
-
-static gboolean
-gtk_multi_selection_select_all (GtkSelectionModel *model)
-{
-  return gtk_multi_selection_select_range (model, 0, g_list_model_get_n_items (G_LIST_MODEL (model)), FALSE);
-}
-
-static gboolean
-gtk_multi_selection_unselect_all (GtkSelectionModel *model)
-{
-  return gtk_multi_selection_unselect_range (model, 0, g_list_model_get_n_items (G_LIST_MODEL (model)));
-}
-
-static gboolean
-gtk_multi_selection_add_or_remove (GtkSelectionModel    *model,
-                                   gboolean              add,
-                                   GtkSelectionCallback  callback,
-                                   gpointer              data)
-{
-  GtkMultiSelection *self = GTK_MULTI_SELECTION (model);
-  guint pos, start, n_items;
-  gboolean in;
-  guint min, max;
-  guint n;
-
-  n = g_list_model_get_n_items (G_LIST_MODEL (self));
-
-  min = G_MAXUINT;
-  max = 0;
-
-  for (pos = 0; pos < n; pos = start + n_items)
-    {
-      callback (pos, &start, &n_items, &in, data);
-
-      if (n_items == 0)
-        break;
-
-      g_assert (start <= pos && pos < start + n_items);
-
-      if (in)
+      if (change_pos < selected_pos)
         {
-          if (start < min)
-            min = start;
-          if (start + n_items - 1 > max)
-            max = start + n_items - 1;
-
-          if (add)
-            gtk_set_add_range (self->selected, start, n_items);
-          else
-            gtk_set_remove_range (self->selected, start, n_items);
+          g_hash_table_remove (self->items, item);
+          g_object_unref (item);
         }
+      else
+        {
+          g_assert (change_pos == selected_pos);
 
-      pos = start + n_items;
+          g_hash_table_insert (self->items, item, GUINT_TO_POINTER (change_pos));
+
+          if (!gtk_bitset_iter_next (&selected_iter, &selected_pos))
+            selected_pos = G_MAXUINT;
+        }
     }
+
+  gtk_bitset_unref (selected);
+}
+
+static gboolean
+gtk_multi_selection_set_selection (GtkSelectionModel *model,
+                                   GtkBitset         *selected,
+                                   GtkBitset         *mask)
+{
+  GtkMultiSelection *self = GTK_MULTI_SELECTION (model);
+  GtkBitset *changes;
+  guint min, max, n_items;
+
+  /* changes = (self->selected XOR selected) AND mask
+   * But doing it this way avoids looking at all values outside the mask
+   */
+  changes = gtk_bitset_copy (selected);
+  gtk_bitset_difference (changes, self->selected);
+  gtk_bitset_intersect (changes, mask);
+
+  min = gtk_bitset_get_minimum (changes);
+  max = gtk_bitset_get_maximum (changes);
+
+  /* sanity check */
+  n_items = self->model ? g_list_model_get_n_items (self->model) : 0;
+  if (max >= n_items)
+    {
+      gtk_bitset_remove_range_closed (changes, n_items, max);
+      max = gtk_bitset_get_maximum (changes);
+    }
+
+  /* actually do the change */
+  gtk_multi_selection_toggle_selection (self, changes);
+
+  gtk_bitset_unref (changes);
 
   if (min <= max)
     gtk_selection_model_selection_changed (model, min, max - min + 1);
@@ -221,48 +196,12 @@ gtk_multi_selection_add_or_remove (GtkSelectionModel    *model,
   return TRUE;
 }
 
-static gboolean
-gtk_multi_selection_select_callback (GtkSelectionModel    *model,
-                                     GtkSelectionCallback  callback,
-                                     gpointer              data)
-{
-  return gtk_multi_selection_add_or_remove (model, TRUE, callback, data);
-}
-
-static gboolean
-gtk_multi_selection_unselect_callback (GtkSelectionModel    *model,
-                                       GtkSelectionCallback  callback,
-                                       gpointer              data)
-{
-  return gtk_multi_selection_add_or_remove (model, FALSE, callback, data);
-}
-
-static void
-gtk_multi_selection_query_range (GtkSelectionModel *model,
-                                 guint              position,
-                                 guint             *start_range,
-                                 guint             *n_items,
-                                 gboolean          *selected)
-{
-  GtkMultiSelection *self = GTK_MULTI_SELECTION (model);
-  guint upper_bound = g_list_model_get_n_items (self->model);
-
-  gtk_set_find_range (self->selected, position, upper_bound, start_range, n_items, selected);
-}
-
 static void
 gtk_multi_selection_selection_model_init (GtkSelectionModelInterface *iface)
 {
   iface->is_selected = gtk_multi_selection_is_selected;
-  iface->select_item = gtk_multi_selection_select_item;
-  iface->unselect_item = gtk_multi_selection_unselect_item;
-  iface->select_range = gtk_multi_selection_select_range;
-  iface->unselect_range = gtk_multi_selection_unselect_range;
-  iface->select_all = gtk_multi_selection_select_all;
-  iface->unselect_all = gtk_multi_selection_unselect_all;
-  iface->select_callback = gtk_multi_selection_select_callback;
-  iface->unselect_callback = gtk_multi_selection_unselect_callback;
-  iface->query_range = gtk_multi_selection_query_range;
+  iface->get_selection_in_range = gtk_multi_selection_get_selection_in_range;
+  iface->set_selection = gtk_multi_selection_set_selection;
 }
 
 G_DEFINE_TYPE_EXTENDED (GtkMultiSelection, gtk_multi_selection, G_TYPE_OBJECT, 0,
@@ -278,8 +217,57 @@ gtk_multi_selection_items_changed_cb (GListModel        *model,
                                       guint              added,
                                       GtkMultiSelection *self)
 {
-  gtk_set_remove_range (self->selected, position, removed);
-  gtk_set_shift (self->selected, position, (int)added - (int)removed);
+  GHashTableIter iter;
+  gpointer item, pos_pointer;
+  GHashTable *pending = NULL;
+  guint i;
+
+  gtk_bitset_splice (self->selected, position, removed, added);
+
+  g_hash_table_iter_init (&iter, self->items);
+  while (g_hash_table_iter_next (&iter, &item, &pos_pointer))
+    {
+      guint pos = GPOINTER_TO_UINT (pos_pointer);
+
+      if (pos < position)
+        continue;
+      else if (pos >= position + removed)
+        g_hash_table_iter_replace (&iter, GUINT_TO_POINTER (pos - removed + added));
+      else /* if pos is in the removed range */
+        {
+          if (added == 0)
+            {
+              g_hash_table_iter_remove (&iter);
+            }
+          else
+            {
+              g_hash_table_iter_steal (&iter);
+              if (pending == NULL)
+                pending = g_hash_table_new_full (NULL, NULL, g_object_unref, NULL);
+              g_hash_table_add (pending, item);
+            }
+        }
+    }
+
+  for (i = position; pending != NULL && i < position + added; i++)
+    {
+      item = g_list_model_get_item (model, i);
+      if (g_hash_table_contains (pending, item))
+        {
+          gtk_bitset_add (self->selected, i);
+          g_hash_table_insert (self->items, item, GUINT_TO_POINTER (i));
+          g_hash_table_remove (pending, item);
+          if (g_hash_table_size (pending) == 0)
+            g_clear_pointer (&pending, g_hash_table_unref);
+        }
+      else
+        {
+          g_object_unref (item);
+        }
+    }
+
+  g_clear_pointer (&pending, g_hash_table_unref);
+
   g_list_model_items_changed (G_LIST_MODEL (self), position, removed, added);
 }
 
@@ -297,9 +285,9 @@ gtk_multi_selection_clear_model (GtkMultiSelection *self)
 
 static void
 gtk_multi_selection_set_property (GObject      *object,
-                                   guint         prop_id,
-                                   const GValue *value,
-                                   GParamSpec   *pspec)
+                                  guint         prop_id,
+                                  const GValue *value,
+                                  GParamSpec   *pspec)
 
 {
   GtkMultiSelection *self = GTK_MULTI_SELECTION (object);
@@ -307,12 +295,7 @@ gtk_multi_selection_set_property (GObject      *object,
   switch (prop_id)
     {
     case PROP_MODEL:
-      self->model = g_value_dup_object (value);
-      g_warn_if_fail (self->model != NULL);
-      g_signal_connect (self->model,
-                        "items-changed",
-                        G_CALLBACK (gtk_multi_selection_items_changed_cb),
-                        self);
+      gtk_multi_selection_set_model (self, g_value_get_object (value));
       break;
 
     default:
@@ -323,9 +306,9 @@ gtk_multi_selection_set_property (GObject      *object,
 
 static void
 gtk_multi_selection_get_property (GObject    *object,
-                                   guint       prop_id,
-                                   GValue     *value,
-                                   GParamSpec *pspec)
+                                  guint       prop_id,
+                                  GValue     *value,
+                                  GParamSpec *pspec)
 {
   GtkMultiSelection *self = GTK_MULTI_SELECTION (object);
 
@@ -348,7 +331,8 @@ gtk_multi_selection_dispose (GObject *object)
 
   gtk_multi_selection_clear_model (self);
 
-  g_clear_pointer (&self->selected, gtk_set_free);
+  g_clear_pointer (&self->selected, gtk_bitset_unref);
+  g_clear_pointer (&self->items, g_hash_table_unref);
 
   G_OBJECT_CLASS (gtk_multi_selection_parent_class)->dispose (object);
 }
@@ -372,7 +356,7 @@ gtk_multi_selection_class_init (GtkMultiSelectionClass *klass)
                          P_("Model"),
                          P_("List managed by this selection"),
                          G_TYPE_LIST_MODEL,
-                         G_PARAM_READWRITE | G_PARAM_CONSTRUCT_ONLY | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
+                         G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
 
   g_object_class_install_properties (gobject_class, N_PROPS, properties);
 }
@@ -380,23 +364,93 @@ gtk_multi_selection_class_init (GtkMultiSelectionClass *klass)
 static void
 gtk_multi_selection_init (GtkMultiSelection *self)
 {
-  self->selected = gtk_set_new ();
+  self->selected = gtk_bitset_new_empty ();
+  self->items = g_hash_table_new_full (NULL, NULL, g_object_unref, NULL);
 }
 
 /**
  * gtk_multi_selection_new:
- * @model: (transfer none): the #GListModel to manage
+ * @model: (allow-none) (transfer full): the #GListModel to manage, or %NULL
  *
  * Creates a new selection to handle @model.
  *
- * Returns: (transfer full) (type GtkMultiSelection): a new #GtkMultiSelection
+ * Returns: (transfer full): a new #GtkMultiSelection
  **/
-GListModel *
+GtkMultiSelection *
 gtk_multi_selection_new (GListModel *model)
 {
+  GtkMultiSelection *self;
+
   g_return_val_if_fail (G_IS_LIST_MODEL (model), NULL);
 
-  return g_object_new (GTK_TYPE_MULTI_SELECTION,
+  self = g_object_new (GTK_TYPE_MULTI_SELECTION,
                        "model", model,
                        NULL);
+
+  /* consume the reference */
+  g_clear_object (&model);
+
+  return self;
+}
+
+/**
+ * gtk_multi_selection_get_model:
+ * @self: a #GtkMultiSelection
+ *
+ * Returns the underlying model of @self.
+ *
+ * Returns: (transfer none): the underlying model
+ */
+GListModel *
+gtk_multi_selection_get_model (GtkMultiSelection *self)
+{
+  g_return_val_if_fail (GTK_IS_MULTI_SELECTION (self), NULL);
+
+  return self->model;
+}
+
+/**
+ * gtk_multi_selection_set_model:
+ * @self: a #GtkMultiSelection
+ * @model: (allow-none): A #GListModel to wrap
+ *
+ * Sets the model that @self should wrap. If @model is %NULL, @self
+ * will be empty.
+ **/
+void
+gtk_multi_selection_set_model (GtkMultiSelection *self,
+                               GListModel        *model)
+{
+  guint n_items_before;
+
+  g_return_if_fail (GTK_IS_MULTI_SELECTION (self));
+  g_return_if_fail (model == NULL || G_IS_LIST_MODEL (model));
+
+  if (self->model == model)
+    return;
+
+  n_items_before = self->model ? g_list_model_get_n_items (self->model) : 0;
+  gtk_multi_selection_clear_model (self);
+
+  if (model)
+    {
+      self->model = g_object_ref (model);
+      g_signal_connect (self->model,
+                        "items-changed",
+                        G_CALLBACK (gtk_multi_selection_items_changed_cb),
+                        self);
+      gtk_multi_selection_items_changed_cb (self->model,
+                                            0,
+                                            n_items_before,
+                                            g_list_model_get_n_items (model),
+                                            self);
+    }
+  else
+    {
+      gtk_bitset_remove_all (self->selected);
+      g_hash_table_remove_all (self->items);
+      g_list_model_items_changed (G_LIST_MODEL (self), 0, n_items_before, 0);
+    }
+
+  g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_MODEL]);
 }

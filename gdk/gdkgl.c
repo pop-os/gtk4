@@ -334,6 +334,7 @@ gdk_cairo_draw_from_gl (cairo_t              *cr,
   cairo_region_t *clip_region;
   GdkGLContextPaintData *paint_data;
   int major, minor, version;
+  gboolean es_use_bgra = FALSE;
 
   paint_context = gdk_surface_get_paint_gl_context (surface, NULL);
   if (paint_context == NULL)
@@ -343,12 +344,13 @@ gdk_cairo_draw_from_gl (cairo_t              *cr,
     }
 
   clip_region = gdk_cairo_region_from_clip (cr);
+  es_use_bgra = gdk_gl_context_use_es_bgra (paint_context);
 
   gdk_gl_context_make_current (paint_context);
   paint_data = gdk_gl_context_get_paint_data (paint_context);
 
   if (paint_data->tmp_framebuffer == 0)
-    glGenFramebuffersEXT (1, &paint_data->tmp_framebuffer);
+    glGenFramebuffers (1, &paint_data->tmp_framebuffer);
 
   if (source_type == GL_RENDERBUFFER)
     {
@@ -390,19 +392,19 @@ gdk_cairo_draw_from_gl (cairo_t              *cr,
   cairo_surface_set_device_scale (image, buffer_scale, buffer_scale);
 
   framebuffer = paint_data->tmp_framebuffer;
-  glBindFramebufferEXT (GL_FRAMEBUFFER_EXT, framebuffer);
+  glBindFramebuffer (GL_FRAMEBUFFER, framebuffer);
 
   if (source_type == GL_RENDERBUFFER)
     {
       /* Create a framebuffer with the source renderbuffer and
          make it the current target for reads */
-      glFramebufferRenderbufferEXT (GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-                                    GL_RENDERBUFFER_EXT, source);
+      glFramebufferRenderbuffer (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                 GL_RENDERBUFFER, source);
     }
   else
     {
-      glFramebufferTexture2DEXT (GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT,
-                                 GL_TEXTURE_2D, source, 0);
+      glFramebufferTexture2D (GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                              GL_TEXTURE_2D, source, 0);
     }
 
   glPixelStorei (GL_PACK_ALIGNMENT, 4);
@@ -413,12 +415,12 @@ gdk_cairo_draw_from_gl (cairo_t              *cr,
     glReadPixels (x, y, width, height, GL_BGRA, GL_UNSIGNED_INT_8_8_8_8_REV,
                   cairo_image_surface_get_data (image));
   else
-    glReadPixels (x, y, width, height, GL_RGBA, GL_UNSIGNED_BYTE,
+    glReadPixels (x, y, width, height, es_use_bgra ? GL_BGRA : GL_RGBA, GL_UNSIGNED_BYTE,
                   cairo_image_surface_get_data (image));
 
   glPixelStorei (GL_PACK_ROW_LENGTH, 0);
 
-  glBindFramebufferEXT (GL_FRAMEBUFFER_EXT, 0);
+  glBindFramebuffer (GL_FRAMEBUFFER, 0);
 
   cairo_surface_mark_dirty (image);
 

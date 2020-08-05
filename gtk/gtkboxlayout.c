@@ -28,7 +28,6 @@
 #include "gtkstylecontextprivate.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
-#include "gtknative.h"
 
 /**
  * SECTION:gtkboxlayout
@@ -163,8 +162,8 @@ gtk_box_layout_get_property (GObject    *gobject,
 static void
 count_expand_children (GtkWidget *widget,
                        GtkOrientation orientation,
-                       gint *visible_children,
-                       gint *expand_children)
+                       int *visible_children,
+                       int *expand_children)
 {
   GtkWidget *child;
 
@@ -184,13 +183,13 @@ count_expand_children (GtkWidget *widget,
     }
 }
 
-static gint
+static int
 get_spacing (GtkBoxLayout *self,
              GtkCssNode   *node)
 {
   GtkCssStyle *style = gtk_css_node_get_style (node);
   GtkCssValue *border_spacing;
-  gint css_spacing;
+  int css_spacing;
 
   border_spacing = style->size->border_spacing;
   if (self->orientation == GTK_ORIENTATION_HORIZONTAL)
@@ -250,10 +249,8 @@ gtk_box_layout_compute_size (GtkBoxLayout *self,
       required_nat += (n_visible_children - 1) * spacing;
     }
 
-  if (minimum != NULL)
-    *minimum = required_min;
-  if (natural != NULL)
-    *natural = required_nat;
+  *minimum = required_min;
+  *natural = required_nat;
 }
 
 static void
@@ -420,15 +417,10 @@ gtk_box_layout_compute_opposite_size (GtkBoxLayout *self,
         }
     }
 
-  if (minimum != NULL)
-    *minimum = computed_minimum;
-  if (natural != NULL)
-    *natural = MAX (computed_natural, computed_natural_below + computed_natural_above);
-
-  if (min_baseline != NULL)
-    *min_baseline = computed_minimum_baseline;
-  if (nat_baseline != NULL)
-    *nat_baseline = computed_natural_baseline;
+  *minimum = computed_minimum;
+  *natural = MAX (computed_natural, computed_natural_below + computed_natural_above);
+  *min_baseline = computed_minimum_baseline;
+  *nat_baseline = computed_natural_baseline;
 }
 
 static void
@@ -465,22 +457,22 @@ gtk_box_layout_allocate (GtkLayoutManager *layout_manager,
 {
   GtkBoxLayout *self = GTK_BOX_LAYOUT (layout_manager);
   GtkWidget *child;
-  gint nvis_children;
-  gint nexpand_children;
+  int nvis_children;
+  int nexpand_children;
   GtkTextDirection direction;
   GtkAllocation child_allocation;
   GtkRequestedSize *sizes;
-  gint child_minimum_baseline, child_natural_baseline;
-  gint minimum_above, natural_above;
-  gint minimum_below, natural_below;
+  int child_minimum_baseline, child_natural_baseline;
+  int minimum_above, natural_above;
+  int minimum_below, natural_below;
   gboolean have_baseline;
-  gint extra_space;
-  gint children_minimum_size = 0;
-  gint size_given_to_child;
-  gint n_extra_widgets = 0; /* Number of widgets that receive 1 extra px */
-  gint x = 0, y = 0, i;
-  gint child_size;
-  gint spacing;
+  int extra_space;
+  int children_minimum_size = 0;
+  int size_given_to_child;
+  int n_extra_widgets = 0; /* Number of widgets that receive 1 extra px */
+  int x = 0, y = 0, i;
+  int child_size;
+  int spacing;
 
   count_expand_children (widget, self->orientation, &nvis_children, &nexpand_children);
 

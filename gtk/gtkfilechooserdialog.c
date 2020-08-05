@@ -25,8 +25,6 @@
 #include "gtkfilechooserwidget.h"
 #include "gtkfilechooserwidgetprivate.h"
 #include "gtkfilechooserutils.h"
-#include "gtkfilechooserembed.h"
-#include "gtkfilesystem.h"
 #include "gtksizerequest.h"
 #include "gtktypebuiltins.h"
 #include "gtkintl.h"
@@ -265,15 +263,12 @@ static void     gtk_file_chooser_dialog_size_allocate (GtkWidget            *wid
                                                        int                   width,
                                                        int                   height,
                                                        int                    baseline);
-static void     file_chooser_widget_file_activated   (GtkFileChooser        *chooser,
-                                                      GtkFileChooserDialog  *dialog);
-static void     file_chooser_widget_response_requested (GtkWidget            *widget,
-                                                        GtkFileChooserDialog *dialog);
-static void     file_chooser_widget_selection_changed (GtkWidget            *widget,
-                                                        GtkFileChooserDialog *dialog);
+static void     gtk_file_chooser_dialog_activate_response (GtkWidget        *widget,
+                                                           const char       *action_name,
+                                                           GVariant         *parameters);
 
 static void response_cb (GtkDialog *dialog,
-                         gint       response_id);
+                         int        response_id);
 
 static void setup_save_entry (GtkFileChooserDialog *dialog);
 
@@ -298,8 +293,6 @@ gtk_file_chooser_dialog_class_init (GtkFileChooserDialogClass *class)
   widget_class->unmap = gtk_file_chooser_dialog_unmap;
   widget_class->size_allocate = gtk_file_chooser_dialog_size_allocate;
 
-  gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_FILE_CHOOSER);
-
   _gtk_file_chooser_install_properties (gobject_class);
 
   /* Bind class to template
@@ -310,9 +303,13 @@ gtk_file_chooser_dialog_class_init (GtkFileChooserDialogClass *class)
   gtk_widget_class_bind_template_child_private (widget_class, GtkFileChooserDialog, widget);
   gtk_widget_class_bind_template_child_private (widget_class, GtkFileChooserDialog, buttons);
   gtk_widget_class_bind_template_callback (widget_class, response_cb);
-  gtk_widget_class_bind_template_callback (widget_class, file_chooser_widget_file_activated);
-  gtk_widget_class_bind_template_callback (widget_class, file_chooser_widget_response_requested);
-  gtk_widget_class_bind_template_callback (widget_class, file_chooser_widget_selection_changed);
+
+  /**
+   * GtkFileChooserDialog|response.activate:
+   *
+   * Activate the default response of the dialog.
+   */
+  gtk_widget_class_install_action (widget_class, "response.activate", NULL, gtk_file_chooser_dialog_activate_response);
 }
 
 static void
@@ -333,13 +330,13 @@ static GtkWidget *
 get_accept_action_widget (GtkDialog *dialog,
                           gboolean   sensitive_only)
 {
-  gint response[] = {
+  int response[] = {
     GTK_RESPONSE_ACCEPT,
     GTK_RESPONSE_OK,
     GTK_RESPONSE_YES,
     GTK_RESPONSE_APPLY
   };
-  gint i;
+  int i;
   GtkWidget *widget;
 
   for (i = 0; i < G_N_ELEMENTS (response); i++)
@@ -359,7 +356,7 @@ get_accept_action_widget (GtkDialog *dialog,
 }
 
 static gboolean
-is_accept_response_id (gint response_id)
+is_accept_response_id (int response_id)
 {
   return (response_id == GTK_RESPONSE_ACCEPT ||
           response_id == GTK_RESPONSE_OK ||
@@ -367,38 +364,12 @@ is_accept_response_id (gint response_id)
           response_id == GTK_RESPONSE_APPLY);
 }
 
-/* Callback used when the user activates a file in the file chooser widget */
 static void
-file_chooser_widget_file_activated (GtkFileChooser       *chooser,
-                                    GtkFileChooserDialog *dialog)
+gtk_file_chooser_dialog_activate_response (GtkWidget  *widget,
+                                           const char *action_name,
+                                           GVariant   *parameters)
 {
-  gtk_widget_activate_default (GTK_WIDGET (chooser));
-}
-
-static void
-file_chooser_widget_selection_changed (GtkWidget            *widget,
-                                       GtkFileChooserDialog *dialog)
-{
-  GtkFileChooserDialogPrivate *priv = gtk_file_chooser_dialog_get_instance_private (dialog);
-  GtkWidget *button;
-  GSList *files;
-  gboolean sensitive;
-
-  button = get_accept_action_widget (GTK_DIALOG (dialog), FALSE);
-  if (button == NULL)
-    return;
-
-  files = gtk_file_chooser_get_files (GTK_FILE_CHOOSER (priv->widget));
-  sensitive = (files != NULL);
-  gtk_widget_set_sensitive (button, sensitive);
-
-  g_slist_free_full (files, g_object_unref);
-}
-
-static void
-file_chooser_widget_response_requested (GtkWidget            *widget,
-                                        GtkFileChooserDialog *dialog)
-{
+  GtkFileChooserDialog *dialog = GTK_FILE_CHOOSER_DIALOG (widget);
   GtkFileChooserDialogPrivate *priv = gtk_file_chooser_dialog_get_instance_private (dialog);
   GtkWidget *button;
 
@@ -620,7 +591,7 @@ gtk_file_chooser_dialog_realize (GtkWidget *widget)
 {
   GtkFileChooserDialog *dialog = GTK_FILE_CHOOSER_DIALOG (widget);
   GSettings *settings;
-  gint width, height;
+  int width, height;
 
   settings = _gtk_file_chooser_get_settings_for_widget (widget);
   g_settings_get (settings, SETTINGS_KEY_WINDOW_SIZE, "(ii)", &width, &height);
@@ -641,7 +612,7 @@ gtk_file_chooser_dialog_map (GtkWidget *widget)
   setup_save_entry (dialog);
   ensure_default_response (dialog);
 
-  _gtk_file_chooser_embed_initial_focus (GTK_FILE_CHOOSER_EMBED (priv->widget));
+  gtk_file_chooser_widget_initial_focus (GTK_FILE_CHOOSER_WIDGET (priv->widget));
 
   GTK_WIDGET_CLASS (gtk_file_chooser_dialog_parent_class)->map (widget);
 }
@@ -698,14 +669,14 @@ gtk_file_chooser_dialog_size_allocate (GtkWidget *widget,
  */
 static void
 response_cb (GtkDialog *dialog,
-             gint       response_id)
+             int        response_id)
 {
   GtkFileChooserDialogPrivate *priv = gtk_file_chooser_dialog_get_instance_private (GTK_FILE_CHOOSER_DIALOG (dialog));
 
   /* Act only on response IDs we recognize */
   if (is_accept_response_id (response_id) &&
       !priv->response_requested &&
-      !_gtk_file_chooser_embed_should_respond (GTK_FILE_CHOOSER_EMBED (priv->widget)))
+      !gtk_file_chooser_widget_should_respond (GTK_FILE_CHOOSER_WIDGET (priv->widget)))
     {
       g_signal_stop_emission_by_name (dialog, "response");
     }
@@ -714,15 +685,15 @@ response_cb (GtkDialog *dialog,
 }
 
 static GtkWidget *
-gtk_file_chooser_dialog_new_valist (const gchar          *title,
+gtk_file_chooser_dialog_new_valist (const char           *title,
                                     GtkWindow            *parent,
                                     GtkFileChooserAction  action,
-                                    const gchar          *first_button_text,
+                                    const char           *first_button_text,
                                     va_list               varargs)
 {
   GtkWidget *result;
   const char *button_text = first_button_text;
-  gint response_id;
+  int response_id;
 
   result = g_object_new (GTK_TYPE_FILE_CHOOSER_DIALOG,
                          "title", title,
@@ -734,9 +705,9 @@ gtk_file_chooser_dialog_new_valist (const gchar          *title,
 
   while (button_text)
     {
-      response_id = va_arg (varargs, gint);
+      response_id = va_arg (varargs, int);
       gtk_dialog_add_button (GTK_DIALOG (result), button_text, response_id);
-      button_text = va_arg (varargs, const gchar *);
+      button_text = va_arg (varargs, const char *);
     }
 
   return result;
@@ -756,10 +727,10 @@ gtk_file_chooser_dialog_new_valist (const gchar          *title,
  * Returns: a new #GtkFileChooserDialog
  **/
 GtkWidget *
-gtk_file_chooser_dialog_new (const gchar          *title,
+gtk_file_chooser_dialog_new (const char           *title,
                              GtkWindow            *parent,
                              GtkFileChooserAction  action,
-                             const gchar          *first_button_text,
+                             const char           *first_button_text,
                              ...)
 {
   GtkWidget *result;

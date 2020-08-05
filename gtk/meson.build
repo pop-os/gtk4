@@ -1,5 +1,4 @@
 subdir('deprecated')
-subdir('a11y')
 subdir('inspector')
 
 gtk_cargs = [
@@ -17,6 +16,9 @@ gtk_private_sources = files([
   'fnmatch.c',
   'tools/gdkpixbufutils.c',
   'gsettings-mapping.c',
+  'gtkaccessibleattributeset.c',
+  'gtkaccessiblevalue.c',
+  'gtkaccessiblevaluestatic.c',
   'gtkactionhelper.c',
   'gtkactionmuxer.c',
   'gtkactionobservable.c',
@@ -27,6 +29,7 @@ gtk_private_sources = files([
   'gtkbookmarksmanager.c',
   'gtkbuilder-menus.c',
   'gtkbuilderprecompile.c',
+  'gtkbuiltinicon.c',
   'gtkcellareaboxcontext.c',
   'gtkcoloreditor.c',
   'gtkcolorplane.c',
@@ -100,17 +103,14 @@ gtk_private_sources = files([
   'gtkcssvalue.c',
   'gtkcsswidgetnode.c',
   'gtkdrop.c',
-  'gtkfilechooserembed.c',
   'gtkfilechooserentry.c',
   'gtkfilechoosererrorstack.c',
   'gtkfilechoosernativeportal.c',
   'gtkfilechooserutils.c',
-  'gtkfilesystem.c',
   'gtkfilesystemmodel.c',
   'gtkgizmo.c',
   'gtkgladecatalog.c',
   'gtkhsla.c',
-  'gtkbuiltinicon.c',
   'gtkiconcache.c',
   'tools/gtkiconcachevalidator.c',
   'gtkiconhelper.c',
@@ -134,14 +134,15 @@ gtk_private_sources = files([
   'gtkscaler.c',
   'gtksearchengine.c',
   'gtksearchenginemodel.c',
-  'gtkset.c',
   'gtksizerequestcache.c',
+  'gtksortkeys.c',
   'gtkstyleanimation.c',
   'gtkstylecascade.c',
   'gtkstyleproperty.c',
   'gtktextbtree.c',
   'gtktexthistory.c',
   'gtktextviewchild.c',
+  'gtktimsort.c',
   'gtktrashmonitor.c',
   'gtktreedatalist.c',
 ])
@@ -163,7 +164,11 @@ gtk_public_sources = files([
   'gtkapplicationwindow.c',
   'gtkaspectframe.c',
   'gtkassistant.c',
+  'gtkatcontext.c',
   'gtkbinlayout.c',
+  'gtkbitset.c',
+  'gtkboolfilter.c',
+  'gtkbookmarklist.c',
   'gtkborder.c',
   'gtkboxlayout.c',
   'gtkbox.c',
@@ -220,6 +225,7 @@ gtk_public_sources = files([
   'gtkdroptargetasync.c',
   'gtkdropdown.c',
   'gtkeditable.c',
+  'gtkeditablelabel.c',
   'gtkemojichooser.c',
   'gtkemojicompletion.c',
   'gtkentry.c',
@@ -251,7 +257,6 @@ gtk_public_sources = files([
   'gtkfontchooserutils.c',
   'gtkfontchooserwidget.c',
   'gtkframe.c',
-  'gtkfunctionslistitemfactory.c',
   'gtkgesture.c',
   'gtkgesturedrag.c',
   'gtkgesturelongpress.c',
@@ -327,7 +332,6 @@ gtk_public_sources = files([
   'gtkprintsettings.c',
   'gtkprogressbar.c',
   'gtkpropertylookuplistmodel.c',
-  'gtkpropertyselection.c',
   'gtkradiobutton.c',
   'gtkrange.c',
   'gtktreerbtree.c',
@@ -348,6 +352,7 @@ gtk_public_sources = files([
   'gtkscrolledwindow.c',
   'gtksearchbar.c',
   'gtksearchentry.c',
+  'gtkselectionfiltermodel.c',
   'gtkselectionmodel.c',
   'gtkseparator.c',
   'gtksettings.c',
@@ -378,10 +383,12 @@ gtk_public_sources = files([
   'gtkstackswitcher.c',
   'gtkstatusbar.c',
   'gtkstringfilter.c',
+  'gtkstringlist.c',
   'gtkstringsorter.c',
   'gtkstylecontext.c',
   'gtkstyleprovider.c',
   'gtkswitch.c',
+  'gtktestatcontext.c',
   'gtktestutils.c',
   'gtktext.c',
   'gtktextattributes.c',
@@ -447,7 +454,11 @@ gtk_public_headers = files([
   'gtkapplicationwindow.h',
   'gtkaspectframe.h',
   'gtkassistant.h',
+  'gtkatcontext.h',
   'gtkbinlayout.h',
+  'gtkbitset.h',
+  'gtkbookmarklist.h',
+  'gtkboolfilter.h',
   'gtkborder.h',
   'gtkbox.h',
   'gtkboxlayout.h',
@@ -502,6 +513,7 @@ gtk_public_headers = files([
   'gtkdroptargetasync.h',
   'gtkdropdown.h',
   'gtkeditable.h',
+  'gtkeditablelabel.h',
   'gtkemojichooser.h',
   'gtkentry.h',
   'gtkentrybuffer.h',
@@ -532,7 +544,6 @@ gtk_public_headers = files([
   'gtkfontchooserdialog.h',
   'gtkfontchooserwidget.h',
   'gtkframe.h',
-  'gtkfunctionslistitemfactory.h',
   'gtkgesture.h',
   'gtkgesturedrag.h',
   'gtkgesturelongpress.h',
@@ -601,7 +612,6 @@ gtk_public_headers = files([
   'gtkprintoperationpreview.h',
   'gtkprintsettings.h',
   'gtkprogressbar.h',
-  'gtkpropertyselection.h',
   'gtkradiobutton.h',
   'gtkrange.h',
   'gtkrecentmanager.h',
@@ -615,6 +625,7 @@ gtk_public_headers = files([
   'gtkscrolledwindow.h',
   'gtksearchbar.h',
   'gtksearchentry.h',
+  'gtkselectionfiltermodel.h',
   'gtkselectionmodel.h',
   'gtkseparator.h',
   'gtksettings.h',
@@ -644,10 +655,12 @@ gtk_public_headers = files([
   'gtkstackswitcher.h',
   'gtkstatusbar.h',
   'gtkstringfilter.h',
+  'gtkstringlist.h',
   'gtkstringsorter.h',
   'gtkstylecontext.h',
   'gtkstyleprovider.h',
   'gtkswitch.h',
+  'gtktestatcontext.h',
   'gtktestutils.h',
   'gtktext.h',
   'gtktextbuffer.h',
@@ -681,7 +694,6 @@ gtk_public_headers = files([
   'gtkwindowcontrols.h',
   'gtkwindowgroup.h',
   'gtkwindowhandle.h',
-  'gtk-a11y.h',
   'gtk-autocleanups.h',
   'gtk.h',
 ])
@@ -877,7 +889,7 @@ gtkmarshalers = gnome.genmarshal('gtkmarshalers',
 gtkmarshal_h = gtkmarshalers[1]
 
 gtktypebuiltins = gnome.mkenums('gtktypebuiltins',
-                                sources: gtk_public_headers + gtk_deprecated_headers + a11y_headers,
+                                sources: gtk_public_headers + gtk_deprecated_headers,
                                 c_template: 'gtktypebuiltins.c.template',
                                 h_template: 'gtktypebuiltins.h.template',
                                 install_dir: join_paths(gtk_includedir, 'gtk-4.0/gtk'),
@@ -937,7 +949,6 @@ gtk_sources += [
   gtk_dbus_src,
   gtk_deprecated_sources,
   inspector_sources,
-  a11y_sources,
   gtkresources,
   gtkmarshalers,
   gtkprivatetypebuiltins,
@@ -956,7 +967,6 @@ gtk_deps = [
   cairo_dep,
   fontconfig_dep,
   pixbuf_dep,
-  atk_dep,
   epoxy_dep,
   libm,
   graphene_dep,
@@ -1007,8 +1017,6 @@ if win32_enabled
 
   win32res = import('windows').compile_resources(gtkwin32rc, include_directories : win32rcinc)
   gtk_sources += win32res
-else
-  gtk_deps += [ atkbridge_dep, ]
 endif
 
 # So we don't add these twice
@@ -1050,6 +1058,12 @@ if cc.has_header('langinfo.h')
   endforeach
 endif
 
+# Maintain compatibility with autotools
+gtk_ldflags = []
+if os_darwin
+  gtk_ldflags += [ '-compatibility_version 1', '-current_version 1.0', ]
+endif
+
 # Library
 libgtk = library('gtk-4',
                  soversion: gtk_soversion,
@@ -1059,7 +1073,7 @@ libgtk = library('gtk-4',
                  include_directories: [confinc, gdkinc, gskinc, gtkinc],
                  dependencies: gtk_deps + [libgtk_css_dep, libgdk_dep, libgsk_dep],
                  link_with: [libgtk_css, libgdk, libgsk, ],
-                 link_args: common_ldflags,
+                 link_args: common_ldflags + gtk_ldflags,
                  install: true)
 
 gtk_dep_sources = [gtkversion, gtktypebuiltins_h]
@@ -1152,8 +1166,6 @@ if build_gir
     gtk_css_public_sources,
     gtk_deprecated_headers,
     gtk_deprecated_sources,
-    a11y_headers,
-    a11y_sources,
     gtktypebuiltins_h,
     gtkversion,
   ]
@@ -1173,13 +1185,12 @@ if build_gir
                                identifier_prefix: 'Gtk',
                                symbol_prefix: 'gtk',
                                export_packages: 'gtk4',
-                               includes: [ gdk_gir[0], gsk_gir[0], 'Atk-1.0', ],
+                               includes: [ gdk_gir[0], gsk_gir[0], ],
                                header: 'gtk/gtk.h',
                                install: true,
                                dependencies: gsk_gir_dep,
                                extra_args: gir_args + [
                                  '-DGTK_COMPILATION',
-                                 '--c-include=gtk/gtk-a11y.h',
                                ])
   gtk_dep_sources += gtk_gir
 endif

@@ -21,6 +21,7 @@
 
 #include "gtklistview.h"
 
+#include "gtkbitset.h"
 #include "gtkintl.h"
 #include "gtklistbaseprivate.h"
 #include "gtklistitemmanagerprivate.h"
@@ -101,17 +102,15 @@
  *
  * ...
  *
+ *   model = create_application_list ();
+ *
  *   factory = gtk_signal_list_item_factory_new ();
  *   g_signal_connect (factory, "setup", G_CALLBACK (setup_listitem_cb), NULL);
  *   g_signal_connect (factory, "bind", G_CALLBACK (bind_listitem_cb), NULL);
  *
- *   list = gtk_list_view_new_with_factory (factory);
+ *   list = gtk_list_view_new_with_factory (model, factory);
  *
  *   g_signal_connect (list, "activate", G_CALLBACK (activate_cb), NULL);
- *
- *   model = create_application_list ();
- *   gtk_list_view_set_model (GTK_LIST_VIEW (list), model);
- *   g_object_unref (model);
  *
  *   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), list);
  * ]|
@@ -374,6 +373,36 @@ gtk_list_view_get_allocation_across (GtkListBase *base,
   return TRUE;
 }
 
+static GtkBitset *
+gtk_list_view_get_items_in_rect (GtkListBase                 *base,
+                                 const cairo_rectangle_int_t *rect)
+{
+  GtkListView *self = GTK_LIST_VIEW (base);
+  guint first, last, n_items;
+  GtkBitset *result;
+  ListRow *row;
+
+  result = gtk_bitset_new_empty ();
+
+  n_items = gtk_list_base_get_n_items (base);
+  if (n_items == 0)
+    return result;
+
+  row = gtk_list_view_get_row_at_y (self, rect->y, NULL);
+  if (row)
+    first = gtk_list_item_manager_get_item_position (self->item_manager, row);
+  else
+    first = rect->y < 0 ? 0 : n_items - 1;
+  row = gtk_list_view_get_row_at_y (self, rect->y + rect->height, NULL);
+  if (row)
+    last = gtk_list_item_manager_get_item_position (self->item_manager, row);
+  else
+    last = rect->y < 0 ? 0 : n_items - 1;
+
+  gtk_bitset_add_range_closed (result, first, last);
+  return result;
+}
+
 static guint
 gtk_list_view_move_focus_along (GtkListBase *base,
                                 guint        pos,
@@ -554,43 +583,6 @@ gtk_list_view_measure (GtkWidget      *widget,
 }
 
 static void
-gtk_list_view_size_allocate_child (GtkListView *self,
-                                   GtkWidget   *child,
-                                   int          x,
-                                   int          y,
-                                   int          width,
-                                   int          height)
-{
-  GtkAllocation child_allocation;
-
-  if (gtk_list_base_get_orientation (GTK_LIST_BASE (self)) == GTK_ORIENTATION_VERTICAL)
-    {
-      child_allocation.x = x;
-      child_allocation.y = y;
-      child_allocation.width = width;
-      child_allocation.height = height;
-    }
-  else if (_gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_LTR)
-    {
-      child_allocation.x = y;
-      child_allocation.y = x;
-      child_allocation.width = height;
-      child_allocation.height = width;
-    }
-  else
-    {
-      int mirror_point = gtk_widget_get_width (GTK_WIDGET (self));
-
-      child_allocation.x = mirror_point - y - height; 
-      child_allocation.y = x;
-      child_allocation.width = height;
-      child_allocation.height = width;
-    }
-
-  gtk_widget_size_allocate (child, &child_allocation, -1);
-}
-
-static void
 gtk_list_view_size_allocate (GtkWidget *widget,
                              int        width,
                              int        height,
@@ -603,8 +595,6 @@ gtk_list_view_size_allocate (GtkWidget *widget,
   int x, y;
   GtkOrientation orientation, opposite_orientation;
   GtkScrollablePolicy scroll_policy;
-
-  gtk_list_base_allocate_rubberband (GTK_LIST_BASE (self));
 
   orientation = gtk_list_base_get_orientation (GTK_LIST_BASE (self));
   opposite_orientation = OPPOSITE_ORIENTATION (orientation);
@@ -685,7 +675,7 @@ gtk_list_view_size_allocate (GtkWidget *widget,
     {
       if (row->parent.widget)
         {
-          gtk_list_view_size_allocate_child (self,
+          gtk_list_base_size_allocate_child (GTK_LIST_BASE (self),
                                              row->parent.widget,
                                              x,
                                              y,
@@ -695,6 +685,8 @@ gtk_list_view_size_allocate (GtkWidget *widget,
 
       y += row->height * row->parent.n_items;
     }
+
+  gtk_list_base_allocate_rubberband (GTK_LIST_BASE (self));
 }
 
 static void
@@ -810,6 +802,7 @@ gtk_list_view_class_init (GtkListViewClass *klass)
   list_base_class->list_item_augment_func = list_row_augment;
   list_base_class->get_allocation_along = gtk_list_view_get_allocation_along;
   list_base_class->get_allocation_across = gtk_list_view_get_allocation_across;
+  list_base_class->get_items_in_rect = gtk_list_view_get_items_in_rect;
   list_base_class->get_position_from_allocation = gtk_list_view_get_position_from_allocation;
   list_base_class->move_focus_along = gtk_list_view_move_focus_along;
   list_base_class->move_focus_across = gtk_list_view_move_focus_across;
@@ -930,56 +923,72 @@ gtk_list_view_init (GtkListView *self)
   gtk_list_base_set_anchor_max_widgets (GTK_LIST_BASE (self),
                                         GTK_LIST_VIEW_MAX_LIST_ITEMS,
                                         GTK_LIST_VIEW_EXTRA_ITEMS);
+
+  gtk_widget_add_css_class (GTK_WIDGET (self), "view");
 }
 
 /**
  * gtk_list_view_new:
+ * @model: (allow-none) (transfer full): the model to use, or %NULL
  *
- * Creates a new empty #GtkListView.
+ * Creates a new #GtkListView.
  *
- * You most likely want to call gtk_list_view_set_factory() to
- * set up a way to map its items to widgets and gtk_list_view_set_model()
- * to set a model to provide items next.
+ * You most likely want to call gtk_list_view_set_factory()
+ * to set up a way to map its items to widgets.
  *
  * Returns: a new #GtkListView
  **/
 GtkWidget *
-gtk_list_view_new (void)
+gtk_list_view_new (GListModel *model)
 {
-  return g_object_new (GTK_TYPE_LIST_VIEW, NULL);
+  GtkWidget *result;
+
+  g_return_val_if_fail (model == NULL || G_IS_LIST_MODEL (model), NULL);
+
+  result = g_object_new (GTK_TYPE_LIST_VIEW,
+                         "model", model,
+                         NULL);
+
+  /* consume the reference */
+  g_clear_object (&model);
+
+  return result;
 }
 
 /**
  * gtk_list_view_new_with_factory:
- * @factory: (transfer full): The factory to populate items with
+ * @model: (allow-none) (transfer full): the model to use, or %NULL
+ * @factory: (allow-none) (transfer full): The factory to populate items with, or %NULL
  *
  * Creates a new #GtkListView that uses the given @factory for
  * mapping items to widgets.
  *
- * You most likely want to call gtk_list_view_set_model() to set
- * a model next.
- *
  * The function takes ownership of the
  * argument, so you can write code like
  * ```
- *   list_view = gtk_list_view_new_with_factory (
- *     gtk_builder_list_item_factory_newfrom_resource ("/resource.ui"));
+ *   list_view = gtk_list_view_new_with_factory (create_model (),
+ *     gtk_builder_list_item_factory_new_from_resource ("/resource.ui"));
  * ```
  *
  * Returns: a new #GtkListView using the given @factory
  **/
 GtkWidget *
-gtk_list_view_new_with_factory (GtkListItemFactory *factory)
+gtk_list_view_new_with_factory (GListModel         *model,
+                                GtkListItemFactory *factory)
 {
   GtkWidget *result;
 
-  g_return_val_if_fail (GTK_IS_LIST_ITEM_FACTORY (factory), NULL);
+  g_return_val_if_fail (model == NULL || G_IS_LIST_MODEL (model), NULL);
+  g_return_val_if_fail (factory == NULL || GTK_IS_LIST_ITEM_FACTORY (factory), NULL);
 
   result = g_object_new (GTK_TYPE_LIST_VIEW,
+                         "model", model,
                          "factory", factory,
                          NULL);
 
-  g_object_unref (factory);
+  /* consume the references */
+  g_clear_object (&model);
+  g_clear_object (&factory);
 
   return result;
 }

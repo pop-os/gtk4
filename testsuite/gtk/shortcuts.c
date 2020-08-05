@@ -21,7 +21,6 @@ key_event_new (GdkEventType      event_type,
   event->event_type = event_type;
   event->surface = g_object_ref (surface);
   event->device = g_object_ref (device);
-  event->source_device = g_object_ref (source_device);
   event->time = time_;
 
   key_event->keycode = keycode;
@@ -354,6 +353,8 @@ test_trigger_trigger (void)
         }
 
       gdk_event_unref (event);
+
+      g_free (keys);
     }
 
   gdk_surface_destroy (surface);

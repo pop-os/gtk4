@@ -40,8 +40,6 @@
 #include "gtkeventcontrollerkey.h"
 #include "gtknative.h"
 
-#include "a11y/gtkcolorswatchaccessibleprivate.h"
-
 /*
  * GtkColorSwatch has two CSS nodes, the main one named colorswatch
  * and a subnode named overlay. The main node gets the .light or .dark
@@ -59,8 +57,7 @@ struct _GtkColorSwatch
   GtkWidget parent_instance;
 
   GdkRGBA color;
-  gdouble radius[4];
-  gchar *icon;
+  char *icon;
   guint    has_color        : 1;
   guint    use_alpha        : 1;
   guint    selectable       : 1;
@@ -270,8 +267,8 @@ swatch_primary_action (GtkColorSwatch *swatch)
 
 static void
 hold_action (GtkGestureLongPress *gesture,
-             gdouble              x,
-             gdouble              y,
+             double               x,
+             double               y,
              GtkColorSwatch      *swatch)
 {
   do_popup (swatch);
@@ -280,9 +277,9 @@ hold_action (GtkGestureLongPress *gesture,
 
 static void
 tap_action (GtkGestureClick *gesture,
-            gint             n_press,
-            gdouble          x,
-            gdouble          y,
+            int              n_press,
+            double           x,
+            double           y,
             GtkColorSwatch  *swatch)
 {
   guint button;
@@ -331,7 +328,7 @@ gtk_color_swatch_measure (GtkWidget *widget,
                           int            *natural_baseline)
 {
   GtkColorSwatch *swatch = GTK_COLOR_SWATCH (widget);
-  gint w, h, min;
+  int w, h, min;
 
   gtk_widget_measure (swatch->overlay_widget,
                       orientation,
@@ -507,7 +504,6 @@ gtk_color_swatch_class_init (GtkColorSwatchClass *class)
                                        "menu.popup",
                                        NULL);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_COLOR_SWATCH_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("colorswatch"));
 }
 
@@ -627,7 +623,7 @@ gtk_color_swatch_get_rgba (GtkColorSwatch *swatch,
 
 void
 gtk_color_swatch_set_icon (GtkColorSwatch *swatch,
-                           const gchar    *icon)
+                           const char     *icon)
 {
   swatch->icon = g_strdup (icon);
   update_icon (swatch);

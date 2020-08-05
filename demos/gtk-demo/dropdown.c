@@ -9,6 +9,7 @@
  * display the selected item differently from the presentation
  * in the popup.
  */
+
 #include <gtk/gtk.h>
 
 
@@ -91,7 +92,7 @@ strings_setup_item_full (GtkSignalListItemFactory *factory,
   gtk_label_set_xalign (GTK_LABEL (title), 0.0);
   description = gtk_label_new ("");
   gtk_label_set_xalign (GTK_LABEL (description), 0.0);
-  gtk_style_context_add_class (gtk_widget_get_style_context (description), "dim-label");
+  gtk_widget_add_css_class (description, "dim-label");
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 10);
   box2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 2);
@@ -242,7 +243,7 @@ do_dropdown (GtkWidget *do_widget)
       window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
-      gtk_window_set_title (GTK_WINDOW (window), "Drop Down");
+      gtk_window_set_title (GTK_WINDOW (window), "Drop Downs");
       gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
@@ -253,7 +254,7 @@ do_dropdown (GtkWidget *do_widget)
       gtk_widget_set_margin_bottom (box, 10);
       gtk_window_set_child (GTK_WINDOW (window), box);
 
-      button = gtk_drop_down_new ();
+      button = gtk_drop_down_new (NULL, NULL);
 
       model = G_LIST_MODEL (pango_cairo_font_map_get_default ());
       gtk_drop_down_set_model (GTK_DROP_DOWN (button), model);

@@ -51,7 +51,6 @@ create_headerbar_as_titlebar (GtkApplication *app)
   gtk_window_set_title (GTK_WINDOW (window), "Headerbar as titlebar");
 
   header = gtk_header_bar_new ();
-  gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
   gtk_window_set_titlebar (GTK_WINDOW (window), header);
 
   label = gtk_label_new ("This window has a headerbar set as a titlebar");
@@ -74,7 +73,6 @@ create_headerbar_inside_window (GtkApplication *app)
   gtk_window_set_child (GTK_WINDOW (window), box);
 
   header = gtk_header_bar_new ();
-  gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
   gtk_box_append (GTK_BOX (box), header);
 
   label = gtk_label_new ("This window has a headerbar inside the window and no titlebar");
@@ -98,12 +96,11 @@ create_headerbar_overlay (GtkApplication *app)
   gtk_window_set_child (GTK_WINDOW (window), overlay);
 
   header = gtk_header_bar_new ();
-  gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
   gtk_widget_set_valign (header, GTK_ALIGN_START);
   gtk_overlay_add_overlay (GTK_OVERLAY (overlay), header);
   load_css (header, "headerbar { background: alpha(shade(@theme_bg_color, .9), .8); }");
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
   gtk_widget_set_size_request (sw, 300, 250);
   gtk_overlay_set_child (GTK_OVERLAY (overlay), sw);
@@ -150,7 +147,6 @@ create_hiding_headerbar (GtkApplication *app)
   gtk_box_append (GTK_BOX (box), revealer);
 
   header = gtk_header_bar_new ();
-  gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
   gtk_revealer_set_child (GTK_REVEALER (revealer), header);
 
   label = gtk_label_new ("This window's headerbar can be shown and hidden with animation");
@@ -222,8 +218,8 @@ split_decorations (GtkSettings *settings,
                    GtkBuilder  *builder)
 {
   GtkWidget *sheader, *mheader;
-  gchar *layout, *p1, *p2;
-  gchar **p;
+  char *layout, *p1, *p2;
+  char **p;
 
   sheader = (GtkWidget *)gtk_builder_get_object (builder, "sidebar-header");
   mheader = (GtkWidget *)gtk_builder_get_object (builder, "main-header");
@@ -363,7 +359,7 @@ create_stacked_headerbar (GtkApplication *app)
 
 /* technorama */
 
-static const gchar css[] =
+static const char css[] =
  ".main.background { "
  " background-image: linear-gradient(to bottom, red, blue);"
  " border-width: 0px; "
@@ -509,7 +505,7 @@ create_technorama (GtkApplication *app)
 }
 
 struct {
-  const gchar *name;
+  const char *name;
   void (*cb) (GtkApplication *app);
 } buttons[] =
 {

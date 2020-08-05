@@ -29,7 +29,6 @@
 
 #include "gtksearchentryprivate.h"
 
-#include "gtkaccessible.h"
 #include "gtkeditable.h"
 #include "gtkboxlayout.h"
 #include "gtkgestureclick.h"
@@ -40,7 +39,7 @@
 #include "gtkmarshalers.h"
 #include "gtkstylecontext.h"
 #include "gtkeventcontrollerkey.h"
-#include "a11y/gtksearchentryaccessible.h"
+#include "gtkwidgetprivate.h"
 
 
 /**
@@ -48,16 +47,13 @@
  * @Short_description: An entry which shows a search icon
  * @Title: GtkSearchEntry
  *
- * #GtkSearchEntry is a subclass of #GtkEntry that has been
- * tailored for use as a search entry.
+ * #GtkSearchEntry is an entry widget that has been tailored for use
+ * as a search entry. The main aPI for interacting with a GtkSearchEntry
+ * as entry is the #GtkEditable interface.
  *
  * It will show an inactive symbolic “find” icon when the search
  * entry is empty, and a symbolic “clear” icon when there is text.
  * Clicking on the “clear” icon will empty the search entry.
- *
- * Note that the search/clear icon is shown using a secondary
- * icon, and thus does not work if you are using the secondary
- * icon position for some other purpose.
  *
  * To make filtering appear more reactive, it is a good idea to
  * not react to every change in the entry text immediately, but
@@ -73,6 +69,20 @@
  * placed inside a #GtkSearchBar. If that is not the case,
  * you can use gtk_search_entry_set_key_capture_widget() to let it
  * capture key input from another widget.
+ *
+ * # CSS Nodes
+ *
+ * |[<!-- language="plain" -->
+ * entry.search
+ * ╰── text
+ * ]|
+ *
+ * GtkSearchEntry has a single CSS node with name entry that carries
+ * a .sarch style class, and the text node is a child of that.
+ *
+ * # Accessibility
+ *
+ * GtkSearchEntry uses the #GTK_ACCESSIBLE_ROLE_SEARCH_BOX role.
  */
 
 enum {
@@ -170,14 +180,28 @@ gtk_search_entry_set_property (GObject      *object,
                                GParamSpec   *pspec)
 {
   GtkSearchEntry *entry = GTK_SEARCH_ENTRY (object);
+  const char *text;
 
   if (gtk_editable_delegate_set_property (object, prop_id, value, pspec))
-    return;
+    {
+      if (prop_id == NUM_PROPERTIES + GTK_EDITABLE_PROP_EDITABLE)
+        {
+          gtk_accessible_update_property (GTK_ACCESSIBLE (entry),
+                                          GTK_ACCESSIBLE_PROPERTY_READ_ONLY, !g_value_get_boolean (value),
+                                          -1);
+        }
+
+      return;
+    }
 
   switch (prop_id)
     {
     case PROP_PLACEHOLDER_TEXT:
-      gtk_text_set_placeholder_text (GTK_TEXT (entry->entry), g_value_get_string (value));
+      text = g_value_get_string (value);
+      gtk_text_set_placeholder_text (GTK_TEXT (entry->entry), text);
+      gtk_accessible_update_property (GTK_ACCESSIBLE (entry),
+                                      GTK_ACCESSIBLE_PROPERTY_PLACEHOLDER, text,
+                                      -1);
       break;
 
     case PROP_ACTIVATES_DEFAULT:
@@ -249,6 +273,7 @@ gtk_search_entry_class_init (GtkSearchEntryClass *klass)
   object_class->set_property = gtk_search_entry_set_property;
 
   widget_class->grab_focus = gtk_search_entry_grab_focus;
+  widget_class->focus = gtk_widget_focus_child;
   widget_class->mnemonic_activate = gtk_search_entry_mnemonic_activate;
 
   klass->stop_search = gtk_search_entry_stop_search;
@@ -388,9 +413,9 @@ gtk_search_entry_class_init (GtkSearchEntryClass *klass)
                                        "stop-search",
                                        NULL);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_SEARCH_ENTRY_ACCESSIBLE);
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
   gtk_widget_class_set_css_name (widget_class, I_("entry"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_SEARCH_BOX);
 }
 
 static GtkEditable *

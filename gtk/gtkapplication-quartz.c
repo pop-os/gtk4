@@ -50,7 +50,7 @@ typedef struct
   GMenu *combined;
 
   GSList *inhibitors;
-  gint quit_inhibit;
+  int quit_inhibit;
   guint next_cookie;
   NSObject *delegate;
 } GtkApplicationImplQuartz;
@@ -64,6 +64,7 @@ G_DEFINE_TYPE (GtkApplicationImplQuartz, gtk_application_impl_quartz, GTK_TYPE_A
 
 - (id)initWithImpl:(GtkApplicationImplQuartz*)impl;
 - (NSApplicationTerminateReply) applicationShouldTerminate:(NSApplication *)sender;
+- (void)application:(NSApplication *)theApplication openFiles:(NSArray *)filenames;
 @end
 
 @implementation GtkApplicationQuartzDelegate
@@ -83,6 +84,35 @@ G_DEFINE_TYPE (GtkApplicationImplQuartz, gtk_application_impl_quartz, GTK_TYPE_A
    * Just let the OS show the generic message...
    */
   return quartz->quit_inhibit == 0 ? NSTerminateNow : NSTerminateCancel;
+}
+
+-(void)application:(NSApplication *)theApplication openFiles:(NSArray *)filenames
+{
+  GFile **files;
+  int i;
+  GApplicationFlags flags;
+
+  flags = g_application_get_flags (G_APPLICATION (quartz->impl.application));
+
+  if (~flags & G_APPLICATION_HANDLES_OPEN)
+    {
+      [theApplication replyToOpenOrPrint:NSApplicationDelegateReplyFailure];
+      return;
+    }
+
+  files = g_new (GFile *, [filenames count]);
+
+  for (i = 0; i < [filenames count]; i++)
+    files[i] = g_file_new_for_path ([(NSString *)[filenames objectAtIndex:i] UTF8String]);
+
+  g_application_open (G_APPLICATION (quartz->impl.application), files, [filenames count], "");
+
+  for (i = 0; i < [filenames count]; i++)
+    g_object_unref (files[i]);
+
+  g_free (files);
+
+  [theApplication replyToOpenOrPrint:NSApplicationDelegateReplySuccess];
 }
 @end
 
@@ -124,10 +154,10 @@ gtk_application_impl_quartz_startup (GtkApplicationImpl *impl,
   GtkApplicationImplQuartz *quartz = (GtkApplicationImplQuartz *) impl;
   GSimpleActionGroup *gtkinternal;
   GMenuModel *app_menu;
-  const gchar *pref_accel[] = {"<Control>comma", NULL};
-  const gchar *hide_others_accel[] = {"<Control><Alt>h", NULL};
-  const gchar *hide_accel[] = {"<Control>h", NULL};
-  const gchar *quit_accel[] = {"<Control>q", NULL};
+  const char *pref_accel[] = {"<Control>comma", NULL};
+  const char *hide_others_accel[] = {"<Control><Alt>h", NULL};
+  const char *hide_accel[] = {"<Control>h", NULL};
+  const char *quit_accel[] = {"<Control>q", NULL};
 
   if (register_session)
     {
@@ -249,7 +279,7 @@ static guint
 gtk_application_impl_quartz_inhibit (GtkApplicationImpl         *impl,
                                      GtkWindow                  *window,
                                      GtkApplicationInhibitFlags  flags,
-                                     const gchar                *reason)
+                                     const char                 *reason)
 {
   GtkApplicationImplQuartz *quartz = (GtkApplicationImplQuartz *) impl;
   GtkApplicationQuartzInhibitor *inhibitor;
@@ -295,6 +325,13 @@ gtk_application_impl_quartz_uninhibit (GtkApplicationImpl *impl,
 static void
 gtk_application_impl_quartz_init (GtkApplicationImplQuartz *quartz)
 {
+  /* This is required so that Cocoa is not going to parse the
+     command line arguments by itself and generate OpenFile events.
+     We already parse the command line ourselves, so this is needed
+     to prevent opening files twice, etc. */
+  [[NSUserDefaults standardUserDefaults] setObject:@"NO"
+                                            forKey:@"NSTreatUnknownArgumentsAsOpen"];
+
   quartz->combined = g_menu_new ();
 }
 

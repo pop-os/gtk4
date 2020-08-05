@@ -46,7 +46,7 @@ static const char *words[] =
 static void
 initialize_model (void)
 {
-  gint i;
+  int i;
   GtkTreeIter iter;
 
   model = (GtkTreeModel *) gtk_list_store_new (NUM_COLUMNS, G_TYPE_STRING);
@@ -63,7 +63,7 @@ initialize_model (void)
 static void
 futz_row (void)
 {
-  gint i;
+  int i;
   GtkTreePath *path;
   GtkTreeIter iter;
   GtkTreeIter iter2;
@@ -110,7 +110,7 @@ futz_row (void)
 static gboolean
 futz (void)
 {
-  gint i;
+  int i;
 
   for (i = 0; i < 15; i++)
     futz_row ();
@@ -150,7 +150,7 @@ main (int argc, char *argv[])
   vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
   gtk_box_append (GTK_BOX (vbox), gtk_label_new ("Incremental Reflow Test"));
   gtk_window_set_child (GTK_WINDOW (window), vbox);
-  scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+  scrolled_window = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),
 				  GTK_POLICY_AUTOMATIC,
 				  GTK_POLICY_AUTOMATIC);

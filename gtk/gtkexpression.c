@@ -1,3 +1,4 @@
+
 /*
  * Copyright © 2019 Benjamin Otte
  *
@@ -28,18 +29,50 @@
  * @Short_description: Expressions to values
  * @Title: GtkExpression
  *
- * GtkExpression provides a way to describe references to #GValues.
+ * GtkExpression provides a way to describe references to values.
  *
- * An expression needs to be "evaluated" to obtain the value that it currently refers
- * to. An evaluation always happens in the context of a current object called `this`
- * (it mirrors the behavior of object-oriented languages), which may or may not
- * influence the result of the evaluation. Use gtk_expression_evaluate() for
- * evaluating an expression.
+ * An important aspect of expressions is that the value can be obtained
+ * from a source that is several steps away. For example, an expression
+ * may describe ‘the value of property A of @object1, which is itself the
+ * value of a property of @object2’. And @object1 may not even exist yet
+ * at the time that the expression is created. This is contrast to GObject
+ * property bindings, which can only create direct connections between
+ * the properties of two objects that must both exist for the duration
+ * of the binding.
+ *
+ * An expression needs to be "evaluated" to obtain the value that it currently
+ * refers to. An evaluation always happens in the context of a current object
+ * called `this` (it mirrors the behavior of object-oriented languages),
+ * which may or may not influence the result of the evaluation. Use
+ * gtk_expression_evaluate() for evaluating an expression.
  *
  * Various methods for defining expressions exist, from simple constants via
  * gtk_constant_expression_new() to looking up properties in a #GObject (even
- * recursively) via gtk_property_expression_new() or providing custom functions to
- * transform and combine expressions via gtk_closure_expression_new().
+ * recursively) via gtk_property_expression_new() or providing custom functions
+ * to transform and combine expressions via gtk_closure_expression_new().
+ *
+ * Here is an example of a complex expression:
+ * |[
+ *   color_expr = gtk_property_expression_new (GTK_TYPE_LIST_ITEM,
+ *                                             NULL, "item");
+ *   expression = gtk_property_expression_new (GTK_TYPE_COLOR,
+ *                                             color_expr, "name");
+ * ]|
+ *
+ * when evaluated with `this` being a GtkListItem, it will obtain the
+ * "item" property from the GtkListItem, and then obtain the "name" property
+ * from the resulting object (which is assumed to be of type GTK_TYPE_COLOR).
+ *
+ * A more concise way to describe this would be
+ * |[
+ *   this->item->name
+ * ]|
+ *
+ * The most likely place where you will encounter expressions is in the context
+ * of list models and list widgets using them. For example, #GtkDropDown is
+ * evaluating a GtkExpression to obtain strings from the items in its model
+ * that it can then use to match against the contents of its search entry.
+ * #GtkStringFilter is using a GtkExpression for similar reasons.
  *
  * By default, expressions are not paying attention to changes and evaluation is
  * just a snapshot of the current state at a given time. To get informed about
@@ -94,11 +127,11 @@
  * attribute to specify the object type, and a `name` attribute to specify the property
  * to look up. The content of <lookup> can either be an element specfiying the expression
  * to use the object, or a string that specifies the name of the object to use.
- * 
+ *
  * Example:
  * |[
  *   <lookup name='search'>string_filter</lookup>
- * |]
+ * ]|
  *
  * To create a constant expression, use the <constant> element. If the type attribute
  * is specified, the element content is interpreted as a value of that type. Otherwise,
@@ -286,7 +319,7 @@ value_expression_collect_value (GValue      *value,
   return NULL;
 }
 
-static gchar *
+static char *
 value_expression_lcopy_value (const GValue *value,
                               guint         n_collect_values,
                               GTypeCValue  *collect_values,
@@ -443,7 +476,7 @@ param_expression_validate (GParamSpec *pspec,
   return changed;
 }
 
-static gint
+static int
 param_expression_values_cmp (GParamSpec   *pspec,
                              const GValue *value1,
                              const GValue *value2)
@@ -822,6 +855,24 @@ gtk_constant_expression_new_for_value (const GValue *value)
   return result;
 }
 
+/**
+ * gtk_constant_expression_get_value:
+ * @expression: (type GtkConstantExpression): a constant #GtkExpression
+ *
+ * Gets the value that a constant expression evaluates to.
+ *
+ * Returns: (transfer none): the value
+ */
+const GValue *
+gtk_constant_expression_get_value (GtkExpression *expression)
+{
+  GtkConstantExpression *self = (GtkConstantExpression *) expression;
+
+  g_return_val_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (expression, GTK_TYPE_CONSTANT_EXPRESSION), NULL);
+
+  return &self->value;
+}
+
 /* }}} */
 
 /* {{{ GtkObjectExpression */
@@ -967,6 +1018,24 @@ gtk_object_expression_new (GObject *object)
   g_object_weak_ref (object, gtk_object_expression_weak_ref_cb, self);
 
   return result;
+}
+
+/**
+ * gtk_object_expression_get_object:
+ * @expression: (type GtkObjectExpression): an object #GtkExpression
+ *
+ * Gets the object that the expression evaluates to.
+ *
+ * Returns: (transfer none): the object, or %NULL
+ */
+GObject *
+gtk_object_expression_get_object (GtkExpression *expression)
+{
+  GtkObjectExpression *self = (GtkObjectExpression *) expression;
+
+  g_return_val_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (expression, GTK_TYPE_OBJECT_EXPRESSION), NULL);
+
+  return self->object;
 }
 
 /* }}} */
@@ -1274,6 +1343,44 @@ gtk_property_expression_new_for_pspec (GtkExpression *expression,
   return result;
 }
 
+/**
+ * gtk_property_expression_get_expression:
+ * @expression: (type GtkPropertyExpression): a property #GtkExpression
+ *
+ * Gets the expression specifying the object of
+ * a property expression.
+ *
+ * Returns: (transfer none): the object expression
+ */
+GtkExpression *
+gtk_property_expression_get_expression (GtkExpression *expression)
+{
+  GtkPropertyExpression *self = (GtkPropertyExpression *) expression;
+
+  g_return_val_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (expression, GTK_TYPE_PROPERTY_EXPRESSION), NULL);
+
+  return self->expr;
+}
+
+/**
+ * gtk_property_expression_get_pspec:
+ * @expression: (type GtkPropertyExpression): a property #GtkExpression
+ *
+ * Gets the #GParamSpec specifying the property of
+ * a property expression.
+ *
+ * Returns: (transfer none): the #GParamSpec
+ */
+GParamSpec *
+gtk_property_expression_get_pspec (GtkExpression *expression)
+{
+  GtkPropertyExpression *self = (GtkPropertyExpression *) expression;
+
+  g_return_val_if_fail (G_TYPE_CHECK_INSTANCE_TYPE (expression, GTK_TYPE_PROPERTY_EXPRESSION), NULL);
+
+  return self->pspec;
+}
+
 /* }}} */
 
 /* {{{ GtkClosureExpression */
@@ -1537,12 +1644,12 @@ GTK_DEFINE_EXPRESSION_TYPE (GtkCClosureExpression,
 /**
  * gtk_cclosure_expression_new:
  * @value_type: the type of the value that this expression evaluates to
- * @marshal: (scope call): marshaller used for creating a closure
+ * @marshal: (scope call) (nullable): marshaller used for creating a closure
  * @n_params: the number of params needed for evaluating @closure
  * @params: (array length=n_params) (transfer full): expressions for each parameter
  * @callback_func: (scope notified) (closure user_data) (destroy user_destroy): callback used for creating a closure
- * @user_data: user data used for creating a closure
- * @user_destroy: destroy notify for @user_data
+ * @user_data: (nullable): user data used for creating a closure
+ * @user_destroy: (nullable): destroy notify for @user_data
  *
  * This function is a variant of gtk_closure_expression_new() that
  * creates a #GClosure by calling gtk_cclosure_new() with the given
@@ -1961,7 +2068,7 @@ gtk_expression_bind_notify (gpointer data)
  * @self: (transfer full): a #GtkExpression
  * @target: (transfer none) (type GObject): the target object to bind to
  * @property: name of the property on @target to bind to
- * @this_: (transfer none) (type GObject): the this argument for
+ * @this_: (transfer none) (type GObject) (nullable): the this argument for
  *     the evaluation of @self
  *
  * Bind @target's property named @property to @self.
@@ -1992,6 +2099,8 @@ gtk_expression_bind (GtkExpression *self,
   g_return_val_if_fail (GTK_IS_EXPRESSION (self), NULL);
   g_return_val_if_fail (G_IS_OBJECT (target), NULL);
   g_return_val_if_fail (property != NULL, NULL);
+  g_return_val_if_fail (this_ == NULL || G_IS_OBJECT (this_), NULL);
+
   pspec = g_object_class_find_property (G_OBJECT_GET_CLASS (target), property);
   if (G_UNLIKELY (pspec == NULL))
     {

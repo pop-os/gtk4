@@ -34,10 +34,10 @@ struct _GdkDeviceManagerWin32
 {
   GObject parent_object;
   GdkDisplay *display;
-  /* Master Devices */
+  /* Logical Devices */
   GdkDevice *core_pointer;
   GdkDevice *core_keyboard;
-  /* Fake slave devices */
+  /* Fake physical devices */
   GdkDevice *system_pointer;
   GdkDevice *system_keyboard;
   GList *wintab_devices;
@@ -46,7 +46,7 @@ struct _GdkDeviceManagerWin32
    * of our context (WT_PROXIMITY). Bumped down when we either
    * receive a WT_PACKET, or a WT_CSRCHANGE.
    */
-  gint dev_entered_proximity;
+  int dev_entered_proximity;
 };
 
 struct _GdkDeviceManagerWin32Class

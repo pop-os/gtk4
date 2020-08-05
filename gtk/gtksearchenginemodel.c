@@ -28,8 +28,6 @@
 
 #include <string.h>
 
-#define BATCH_SIZE 500
-
 struct _GtkSearchEngineModel
 {
   GtkSearchEngine parent;
@@ -37,7 +35,6 @@ struct _GtkSearchEngineModel
   GtkFileSystemModel *model;
   GtkQuery *query;
 
-  gboolean query_finished;
   guint idle;
 };
 
@@ -63,7 +60,7 @@ static gboolean
 info_matches_query (GtkQuery  *query,
                     GFileInfo *info)
 {
-  const gchar *display_name;
+  const char *display_name;
 
   display_name = g_file_info_get_display_name (info);
   if (display_name == NULL)

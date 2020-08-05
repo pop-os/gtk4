@@ -11,7 +11,7 @@
  * A GtkNoSelectionModel is used to make sure no item in the list can be
  * selected. All other interactions with the items is still possible.
  *
- * The dataset used here has 70000 items.
+ * The dataset used here has 70 000 items.
  */
 
 #include <gtk/gtk.h>
@@ -70,7 +70,6 @@ gtk_weather_info_new (GDateTime      *timestamp,
     {
       result->temperature = copy_from->temperature;
       result->weather_type = copy_from->weather_type;
-      g_object_unref (copy_from);
     }
 
   return result;
@@ -78,13 +77,13 @@ gtk_weather_info_new (GDateTime      *timestamp,
 
 static GDateTime *
 parse_timestamp (const char *string,
-                 GTimeZone  *_timezone)
+                 GTimeZone  *_tz)
 {
   char *with_seconds;
   GDateTime *result;
 
   with_seconds = g_strconcat (string, ":00", NULL);
-  result = g_date_time_new_from_iso8601 (with_seconds, _timezone);
+  result = g_date_time_new_from_iso8601 (with_seconds, _tz);
   g_free (with_seconds);
 
   return result;
@@ -161,6 +160,7 @@ create_weather_model (void)
   timestamp = g_date_time_new (utc, 2011, 1, 1, 0, 0, 0);
   info = gtk_weather_info_new (timestamp, NULL);
   g_list_store_append (store, info);
+  g_object_unref (info);
 
   for (i = 0; lines[i] != NULL && *lines[i]; i++)
     {
@@ -176,6 +176,7 @@ create_weather_model (void)
           timestamp = new_timestamp;
           info = gtk_weather_info_new (timestamp, info);
           g_list_store_append (store, info);
+          g_object_unref (info);
         }
 
       info->temperature = parse_temperature (fields[1], info->temperature);
@@ -184,6 +185,7 @@ create_weather_model (void)
       g_strfreev (fields);
     }
 
+  g_date_time_unref (timestamp);
   g_strfreev (lines);
   g_bytes_unref (data);
   g_time_zone_unref (utc);
@@ -192,8 +194,8 @@ create_weather_model (void)
 }
 
 static void
-setup_widget (GtkListItem *list_item,
-              gpointer     unused)
+setup_widget (GtkSignalListItemFactory *factory,
+              GtkListItem              *list_item)
 {
   GtkWidget *box, *child;
 
@@ -216,8 +218,8 @@ setup_widget (GtkListItem *list_item,
 }
 
 static void
-bind_widget (GtkListItem *list_item,
-             gpointer     unused)
+bind_widget (GtkSignalListItemFactory *factory,
+             GtkListItem              *list_item)
 {
   GtkWidget *box, *child;
   GtkWeatherInfo *info;
@@ -279,19 +281,16 @@ GtkWidget *
 create_weather_view (void)
 {
   GtkWidget *listview;
-  GListModel *model, *selection;
+  GListModel *model;
+  GtkListItemFactory *factory;
 
-  listview = gtk_list_view_new_with_factory (
-  gtk_functions_list_item_factory_new (setup_widget,
-                                       bind_widget,
-                                       NULL, NULL));
+  factory = gtk_signal_list_item_factory_new ();
+  g_signal_connect (factory, "setup", G_CALLBACK (setup_widget), NULL);
+  g_signal_connect (factory, "bind", G_CALLBACK (bind_widget), NULL);
+  model = G_LIST_MODEL (gtk_no_selection_new (create_weather_model ()));
+  listview = gtk_list_view_new_with_factory (model, factory);
   gtk_orientable_set_orientation (GTK_ORIENTABLE (listview), GTK_ORIENTATION_HORIZONTAL);
   gtk_list_view_set_show_separators (GTK_LIST_VIEW (listview), TRUE);
-  model = create_weather_model ();
-  selection = G_LIST_MODEL (gtk_no_selection_new (model));
-  gtk_list_view_set_model (GTK_LIST_VIEW (listview), selection);
-  g_object_unref (selection);
-  g_object_unref (model);
 
   return listview;
 }
@@ -311,7 +310,7 @@ do_listview_weather (GtkWidget *do_widget)
       gtk_window_set_title (GTK_WINDOW (window), "Weather");
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *) &window);
 
-      sw = gtk_scrolled_window_new (NULL, NULL);
+      sw = gtk_scrolled_window_new ();
       gtk_window_set_child (GTK_WINDOW (window), sw);
       listview = create_weather_view ();
       gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), listview);

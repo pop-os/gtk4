@@ -13,11 +13,12 @@
 static GtkWidget *info_view;
 static GtkWidget *source_view;
 
-static gchar *current_file = NULL;
+static char *current_file = NULL;
 
 static GtkWidget *notebook;
 static GtkSingleSelection *selection;
 static GtkWidget *toplevel;
+static char **search_needle;
 
 typedef struct _GtkDemo GtkDemo;
 struct _GtkDemo
@@ -133,14 +134,14 @@ gtk_demo_run (GtkDemo   *self,
     }
   return TRUE;
 }
-              
+
 static void
 activate_about (GSimpleAction *action,
                 GVariant      *parameter,
                 gpointer       user_data)
 {
   GtkApplication *app = user_data;
-  const gchar *authors[] = {
+  const char *authors[] = {
     "The GTK Team",
     NULL
   };
@@ -251,11 +252,9 @@ static const char *types[] =
   "static",
   "const ",
   "void",
-  "gint",
   " int ",
   " char ",
-  "gchar ",
-  "gfloat",
+  "char ",
   "float",
   "double",
   "gint8",
@@ -271,8 +270,6 @@ static const char *types[] =
   "gshort",
   "gushort",
   "gulong",
-  "gdouble",
-  "gldouble",
   "gpointer",
   "NULL",
   "GList",
@@ -384,14 +381,14 @@ static const char *control[] =
   NULL
 };
 void
-parse_chars (gchar       *text,
-             gchar      **end_ptr,
-             gint        *state,
+parse_chars (char        *text,
+             char       **end_ptr,
+             int         *state,
              const char **tag,
              gboolean     start)
 {
-  gint i;
-  gchar *next_token;
+  int i;
+  char *next_token;
 
   /* Handle comments first */
   if (*state == STATE_IN_COMMENT)
@@ -461,7 +458,7 @@ parse_chars (gchar       *text,
   /* check for string */
   if (text[0] == '"')
     {
-      gint maybe_escape = FALSE;
+      int maybe_escape = FALSE;
 
       *end_ptr = text + 1;
       *tag = "string";
@@ -524,9 +521,9 @@ void
 fontify (GtkTextBuffer *source_buffer)
 {
   GtkTextIter start_iter, next_iter, tmp_iter;
-  gint state;
-  gchar *text;
-  gchar *start_ptr, *end_ptr;
+  int state;
+  char *text;
+  char *start_ptr, *end_ptr;
   const char *tag;
 
   gtk_text_buffer_create_tag (source_buffer, "source",
@@ -599,10 +596,10 @@ display_image (const char *resource)
 {
   GtkWidget *sw, *image;
 
-  image = gtk_image_new_from_resource (resource);
+  image = gtk_picture_new_for_resource (resource);
   gtk_widget_set_halign (image, GTK_ALIGN_CENTER);
   gtk_widget_set_valign (image, GTK_ALIGN_CENTER);
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), image);
 
   return sw;
@@ -642,7 +639,7 @@ display_text (const char *resource)
 
   g_bytes_unref (bytes);
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_AUTOMATIC,
                                   GTK_POLICY_AUTOMATIC);
@@ -694,10 +691,10 @@ static struct {
 };
 
 static void
-add_data_tab (const gchar *demoname)
+add_data_tab (const char *demoname)
 {
-  gchar *resource_dir, *resource_name;
-  gchar **resources;
+  char *resource_dir, *resource_name;
+  char **resources;
   GtkWidget *widget, *label;
   guint i, j;
 
@@ -741,15 +738,15 @@ add_data_tab (const gchar *demoname)
 static void
 remove_data_tabs (void)
 {
-  gint i;
+  int i;
 
   for (i = gtk_notebook_get_n_pages (GTK_NOTEBOOK (notebook)) - 1; i > 1; i--)
     gtk_notebook_remove_page (GTK_NOTEBOOK (notebook), i);
 }
 
 void
-load_file (const gchar *demoname,
-           const gchar *filename)
+load_file (const char *demoname,
+           const char *filename)
 {
   GtkTextBuffer *info_buffer, *source_buffer;
   GtkTextIter start, end;
@@ -757,9 +754,9 @@ load_file (const gchar *demoname,
   GError *err = NULL;
   int state = 0;
   gboolean in_para = 0;
-  gchar **lines;
+  char **lines;
   GBytes *bytes;
-  gint i;
+  int i;
 
   if (!g_strcmp0 (current_file, filename))
     return;
@@ -799,9 +796,9 @@ load_file (const gchar *demoname,
   gtk_text_buffer_get_iter_at_offset (info_buffer, &start, 0);
   for (i = 0; lines[i] != NULL; i++)
     {
-      gchar *p;
-      gchar *q;
-      gchar *r;
+      char *p;
+      char *q;
+      char *r;
 
       /* Make sure \r is stripped at the end for the poor windows people */
       lines[i] = g_strchomp (lines[i]);
@@ -945,12 +942,101 @@ selection_cb (GtkSingleSelection *sel,
               gpointer            user_data)
 {
   GtkTreeListRow *row = gtk_single_selection_get_selected_item (sel);
-  GtkDemo *demo = gtk_tree_list_row_get_item (row);
+  GtkDemo *demo;
+
+  gtk_widget_set_sensitive (GTK_WIDGET (notebook), !!row);
+
+  if (!row)
+    {
+      gtk_window_set_title (GTK_WINDOW (toplevel), "No match");
+
+      return;
+    }
+
+  demo = gtk_tree_list_row_get_item (row);
 
   if (demo->filename)
     load_file (demo->name, demo->filename);
 
   gtk_window_set_title (GTK_WINDOW (toplevel), demo->title);
+}
+
+static gboolean
+filter_demo (GtkDemo *demo)
+{
+  int i;
+
+  /* Show only if the name maches every needle */
+  for (i = 0; search_needle[i]; i++)
+    {
+      if (!demo->title)
+        return FALSE;
+
+      if (g_str_match_string (search_needle[i], demo->title, TRUE))
+        continue;
+
+      return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+demo_filter_by_name (GtkTreeListRow     *row,
+                     GtkFilterListModel *model)
+{
+  GListModel *children;
+  GtkDemo *demo;
+  guint i, n;
+
+  /* Show all items if search is empty */
+  if (!search_needle || !search_needle[0] || !*search_needle[0])
+    return TRUE;
+
+  g_assert (GTK_IS_TREE_LIST_ROW (row));
+  g_assert (GTK_IS_FILTER_LIST_MODEL (model));
+
+  children = gtk_tree_list_row_get_children (row);
+  if (children)
+    {
+      n = g_list_model_get_n_items (children);
+      for (i = 0; i < n; i++)
+        {
+          demo = g_list_model_get_item (children, i);
+          g_assert (GTK_IS_DEMO (demo));
+
+          if (filter_demo (demo))
+            {
+              g_object_unref (demo);
+              return TRUE;
+            }
+          g_object_unref (demo);
+        }
+    }
+
+  demo = gtk_tree_list_row_get_item (row);
+  g_assert (GTK_IS_DEMO (demo));
+
+  return filter_demo (demo);
+}
+
+static void
+demo_search_changed_cb (GtkSearchEntry *entry,
+                        GtkFilter      *filter)
+{
+  const char *text;
+
+  g_assert (GTK_IS_SEARCH_ENTRY (entry));
+  g_assert (GTK_IS_FILTER (filter));
+
+  text = gtk_editable_get_text (GTK_EDITABLE (entry));
+
+  g_clear_pointer (&search_needle, g_strfreev);
+
+  if (text && *text)
+    search_needle = g_strsplit (text, " ", 0);
+
+  gtk_filter_changed (filter, GTK_FILTER_CHANGE_DIFFERENT);
 }
 
 static GListModel *
@@ -1008,12 +1094,24 @@ get_child_model (gpointer item,
 }
 
 static void
+clear_search (GtkSearchBar *bar)
+{
+  if (!gtk_search_bar_get_search_mode (bar))
+    {
+      GtkWidget *entry = gtk_search_bar_get_child (GTK_SEARCH_BAR (bar));
+      gtk_editable_set_text (GTK_EDITABLE (entry), "");
+    }
+}
+
+static void
 activate (GApplication *app)
 {
   GtkBuilder *builder;
   GListModel *listmodel;
   GtkTreeListModel *treemodel;
-  GtkWidget *window, *listview;
+  GtkWidget *window, *listview, *search_entry, *search_bar;
+  GtkFilterListModel *filter_model;
+  GtkFilter *filter;
 
   static GActionEntry win_entries[] = {
     { "run", activate_run, NULL, NULL, NULL }
@@ -1034,20 +1132,28 @@ activate (GApplication *app)
   toplevel = GTK_WIDGET (window);
   listview = GTK_WIDGET (gtk_builder_get_object (builder, "listview"));
   g_signal_connect (listview, "activate", G_CALLBACK (activate_cb), window);
-
-  load_file (gtk_demos[0].name, gtk_demos[0].filename);
+  search_bar = GTK_WIDGET (gtk_builder_get_object (builder, "searchbar"));
+  g_signal_connect (search_bar, "notify::search-mode-enabled", G_CALLBACK (clear_search), NULL);
 
   listmodel = create_demo_model ();
-  treemodel = gtk_tree_list_model_new (FALSE,
-                                       G_LIST_MODEL (listmodel),
+  treemodel = gtk_tree_list_model_new (G_LIST_MODEL (listmodel),
                                        FALSE,
+                                       TRUE,
                                        get_child_model,
                                        NULL,
                                        NULL);
-  selection = gtk_single_selection_new (G_LIST_MODEL (treemodel));
+  filter_model = gtk_filter_list_model_new (G_LIST_MODEL (treemodel), NULL);
+  filter = gtk_custom_filter_new ((GtkCustomFilterFunc)demo_filter_by_name, filter_model, NULL);
+  gtk_filter_list_model_set_filter (filter_model, filter);
+  g_object_unref (filter);
+  search_entry = GTK_WIDGET (gtk_builder_get_object (builder, "search-entry"));
+  g_signal_connect (search_entry, "search-changed", G_CALLBACK (demo_search_changed_cb), filter);
+
+  selection = gtk_single_selection_new (G_LIST_MODEL (filter_model));
   g_signal_connect (selection, "notify::selected-item", G_CALLBACK (selection_cb), NULL);
-  gtk_list_view_set_model (GTK_LIST_VIEW (listview),
-                           G_LIST_MODEL (selection));
+  gtk_list_view_set_model (GTK_LIST_VIEW (listview), G_LIST_MODEL (selection));
+
+  selection_cb (selection, NULL, NULL);
 
   g_object_unref (builder);
 }
@@ -1081,12 +1187,12 @@ list_demos (void)
     }
 }
 
-static gint
+static int
 command_line (GApplication            *app,
               GApplicationCommandLine *cmdline)
 {
   GVariantDict *options;
-  const gchar *name = NULL;
+  const char *name = NULL;
   gboolean autoquit = FALSE;
   gboolean list = FALSE;
   DemoData *d, *c;
@@ -1140,7 +1246,6 @@ out:
       demo = (func) (window);
 
       gtk_window_set_transient_for (GTK_WINDOW (demo), GTK_WINDOW (window));
-      gtk_window_set_modal (GTK_WINDOW (demo), TRUE);
 
       g_signal_connect_swapped (G_OBJECT (demo), "destroy", G_CALLBACK (g_application_quit), app);
     }
@@ -1156,7 +1261,7 @@ out:
 static void
 print_version (void)
 {
-  g_print ("gtk3-demo %d.%d.%d\n",
+  g_print ("gtk4-demo %d.%d.%d\n",
            gtk_get_major_version (),
            gtk_get_minor_version (),
            gtk_get_micro_version ());
@@ -1190,23 +1295,13 @@ main (int argc, char **argv)
     { "inspector", activate_inspector, NULL, NULL, NULL },
   };
   struct {
-    const gchar *action_and_target;
-    const gchar *accelerators[2];
+    const char *action_and_target;
+    const char *accelerators[2];
   } accels[] = {
     { "app.about", { "F1", NULL } },
     { "app.quit", { "<Control>q", NULL } },
   };
   int i;
-
-  /* Most code in gtk-demo is intended to be exemplary, but not
-   * these few lines, which are just a hack so gtk-demo will work
-   * in the GTK tree without installing it.
-   */
-  if (g_file_test ("../../modules/input/immodules.cache", G_FILE_TEST_EXISTS))
-    {
-      g_setenv ("GTK_IM_MODULE_FILE", "../../modules/input/immodules.cache", TRUE);
-    }
-  /* -- End of hack -- */
 
   app = gtk_application_new ("org.gtk.Demo4", G_APPLICATION_NON_UNIQUE|G_APPLICATION_HANDLES_COMMAND_LINE);
 

@@ -81,7 +81,6 @@ gdk_display_close
 gdk_display_is_closed
 gdk_display_is_rgba
 gdk_display_is_composited
-gdk_display_get_default_group
 gdk_display_supports_input_shapes
 gdk_display_get_app_launch_context
 gdk_display_notify_startup_complete
@@ -190,9 +189,7 @@ gdk_surface_create_vulkan_context
 gdk_surface_create_cairo_context
 
 <SUBSECTION>
-gdk_surface_queue_expose
-gdk_surface_freeze_updates
-gdk_surface_thaw_updates
+gdk_surface_queue_render
 gdk_surface_get_frame_clock
 
 <SUBSECTION>
@@ -207,8 +204,6 @@ GdkModifierType
 GDK_MODIFIER_MASK
 
 <SUBSECTION>
-gdk_surface_get_support_multidevice
-gdk_surface_set_support_multidevice
 gdk_surface_get_device_cursor
 gdk_surface_set_device_cursor
 
@@ -357,18 +352,8 @@ gdk_device_get_name
 gdk_device_get_vendor_id
 gdk_device_get_product_id
 gdk_device_get_source
-gdk_device_set_key
-gdk_device_get_key
-gdk_device_set_axis_use
-gdk_device_get_axis_use
-gdk_device_get_associated_device
-gdk_device_list_slave_devices
-gdk_device_get_device_type
 gdk_device_get_display
 gdk_device_get_has_cursor
-gdk_device_get_n_axes
-gdk_device_get_n_keys
-gdk_device_get_axes
 gdk_device_get_seat
 gdk_device_get_num_touches
 gdk_device_get_device_tool
@@ -380,20 +365,14 @@ gdk_device_get_scroll_lock_state
 gdk_device_has_bidi_layouts
 
 <SUBSECTION>
-gdk_device_get_state
 gdk_device_get_surface_at_position
-gdk_device_get_history
-gdk_device_free_history
 GdkTimeCoord
-gdk_device_get_axis
-gdk_device_get_axis_names
-gdk_device_get_axis_value
-gdk_device_get_last_event_surface
 
 <SUBSECTION>
 gdk_device_tool_get_serial
 gdk_device_tool_get_tool_type
 gdk_device_tool_get_hardware_id
+gdk_device_tool_get_axes
 
 <SUBSECTION Standard>
 GDK_TYPE_AXIS_USE
@@ -449,8 +428,8 @@ gdk_seat_get_display
 gdk_seat_get_capabilities
 gdk_seat_get_pointer
 gdk_seat_get_keyboard
-gdk_seat_get_slaves
-gdk_seat_get_master_pointers
+gdk_seat_get_devices
+gdk_seat_get_tools
 
 <SUBSECTION Standard>
 GDK_SEAT
@@ -490,16 +469,17 @@ gdk_event_unref
 gdk_event_get_event_type
 gdk_event_get_surface
 gdk_event_get_device
-gdk_event_get_source_device
 gdk_event_get_device_tool
 gdk_event_get_time
 gdk_event_get_display
+gdk_event_get_seat
 GdkEventSequence
 gdk_event_get_event_sequence
 gdk_event_get_modifier_state
 gdk_event_get_position
 gdk_event_get_axes
 gdk_event_get_axis
+gdk_event_get_history
 gdk_event_get_pointer_emulated
 gdk_event_triggers_context_menu
 gdk_button_event_get_button
@@ -531,7 +511,6 @@ gdk_touchpad_event_get_pinch_scale
 gdk_pad_event_get_axis_value
 gdk_pad_event_get_button
 gdk_pad_event_get_group_mode
-gdk_motion_event_get_history
 
 <SUBSECTION>
 gdk_events_get_angle
@@ -834,6 +813,7 @@ gdk_x11_display_get_xrootwindow
 gdk_x11_display_get_xcursor
 gdk_x11_display_grab
 gdk_x11_display_ungrab
+gdk_x11_display_get_default_group
 gdk_x11_display_error_trap_push
 gdk_x11_display_error_trap_pop
 gdk_x11_display_error_trap_pop_ignored
@@ -1141,7 +1121,6 @@ GDK_TYPE_GL_PROFILE
 GdkMonitor
 gdk_monitor_get_display
 gdk_monitor_get_geometry
-gdk_monitor_get_workarea
 gdk_monitor_get_width_mm
 gdk_monitor_get_height_mm
 gdk_monitor_get_manufacturer

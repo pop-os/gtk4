@@ -32,7 +32,6 @@
 #include <stdlib.h>
 
 #include "gtkinfobar.h"
-#include "gtkaccessible.h"
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
 #include "gtkbox.h"
@@ -157,7 +156,7 @@ struct _GtkInfoBarClass
 {
   GtkWidgetClass parent_class;
 
-  void (* response) (GtkInfoBar *info_bar, gint response_id);
+  void (* response) (GtkInfoBar *info_bar, int response_id);
   void (* close)    (GtkInfoBar *info_bar);
 };
 
@@ -191,13 +190,13 @@ static void     gtk_info_bar_buildable_interface_init   (GtkBuildableIface  *ifa
 static gboolean gtk_info_bar_buildable_custom_tag_start (GtkBuildable       *buildable,
                                                          GtkBuilder         *builder,
                                                          GObject            *child,
-                                                         const gchar        *tagname,
+                                                         const char         *tagname,
                                                          GtkBuildableParser *parser,
                                                          gpointer           *data);
 static void     gtk_info_bar_buildable_custom_finished  (GtkBuildable       *buildable,
                                                          GtkBuilder         *builder,
                                                          GObject            *child,
-                                                         const gchar        *tagname,
+                                                         const char         *tagname,
                                                          gpointer            user_data);
 static void      gtk_info_bar_buildable_add_child       (GtkBuildable *buildable,
                                                          GtkBuilder   *builder,
@@ -293,12 +292,12 @@ clear_response_data (GtkWidget *widget)
 
   data = get_response_data (widget, FALSE);
   g_signal_handler_disconnect (widget, data->handler_id);
-  g_object_set_data (G_OBJECT (widget), "gtk-info-bar-reponse-data", NULL);
+  g_object_set_data (G_OBJECT (widget), "gtk-info-bar-response-data", NULL);
 }
 
 static GtkWidget *
 find_button (GtkInfoBar *info_bar,
-             gint        response_id)
+             int         response_id)
 {
   GtkWidget *child;
 
@@ -439,8 +438,8 @@ close_button_clicked_cb (GtkWidget  *button,
 static void
 click_released_cb (GtkGestureClick *gesture,
                    guint            n_press,
-                   gdouble          x,
-                   gdouble          y,
+                   double           x,
+                   double           y,
                    GtkInfoBar      *info_bar)
 {
   if (info_bar->default_response && info_bar->default_response_sensitive)
@@ -501,7 +500,7 @@ gtk_info_bar_buildable_interface_init (GtkBuildableIface *iface)
   iface->custom_finished = gtk_info_bar_buildable_custom_finished;
 }
 
-static gint
+static int
 get_response_for_widget (GtkInfoBar *info_bar,
                          GtkWidget  *widget)
 {
@@ -518,7 +517,7 @@ static void
 action_widget_activated (GtkWidget  *widget,
                          GtkInfoBar *info_bar)
 {
-  gint response_id;
+  int response_id;
 
   response_id = get_response_for_widget (info_bar, widget);
   gtk_info_bar_response (info_bar, response_id);
@@ -538,7 +537,7 @@ action_widget_activated (GtkWidget  *widget,
 void
 gtk_info_bar_add_action_widget (GtkInfoBar *info_bar,
                                 GtkWidget  *child,
-                                gint        response_id)
+                                int         response_id)
 {
   ResponseData *ad;
   guint signal_id;
@@ -609,8 +608,8 @@ gtk_info_bar_remove_action_widget (GtkInfoBar *info_bar,
  */
 GtkWidget*
 gtk_info_bar_add_button (GtkInfoBar  *info_bar,
-                         const gchar *button_text,
-                         gint         response_id)
+                         const char *button_text,
+                         int          response_id)
 {
   GtkWidget *button;
 
@@ -629,11 +628,11 @@ gtk_info_bar_add_button (GtkInfoBar  *info_bar,
 
 static void
 add_buttons_valist (GtkInfoBar  *info_bar,
-                    const gchar *first_button_text,
+                    const char *first_button_text,
                     va_list      args)
 {
-  const gchar* text;
-  gint response_id;
+  const char * text;
+  int response_id;
 
   g_return_if_fail (GTK_IS_INFO_BAR (info_bar));
 
@@ -641,13 +640,13 @@ add_buttons_valist (GtkInfoBar  *info_bar,
     return;
 
   text = first_button_text;
-  response_id = va_arg (args, gint);
+  response_id = va_arg (args, int);
 
   while (text != NULL)
     {
       gtk_info_bar_add_button (info_bar, text, response_id);
 
-      text = va_arg (args, gchar*);
+      text = va_arg (args, char *);
       if (text == NULL)
         break;
 
@@ -669,7 +668,7 @@ add_buttons_valist (GtkInfoBar  *info_bar,
  */
 void
 gtk_info_bar_add_buttons (GtkInfoBar  *info_bar,
-                          const gchar *first_button_text,
+                          const char *first_button_text,
                           ...)
 {
   va_list args;
@@ -708,7 +707,7 @@ gtk_info_bar_new (void)
  * Returns: a new #GtkInfoBar
  */
 GtkWidget*
-gtk_info_bar_new_with_buttons (const gchar *first_button_text,
+gtk_info_bar_new_with_buttons (const char *first_button_text,
                                ...)
 {
   GtkInfoBar *info_bar;
@@ -749,7 +748,7 @@ update_default_response (GtkInfoBar *info_bar,
  */
 void
 gtk_info_bar_set_response_sensitive (GtkInfoBar *info_bar,
-                                     gint        response_id,
+                                     int         response_id,
                                      gboolean    setting)
 {
   GtkWidget *child;
@@ -784,7 +783,7 @@ gtk_info_bar_set_response_sensitive (GtkInfoBar *info_bar,
  */
 void
 gtk_info_bar_set_default_response (GtkInfoBar *info_bar,
-                                   gint        response_id)
+                                   int         response_id)
 {
   GtkWidget *child;
   GtkWidget *window;
@@ -820,7 +819,7 @@ gtk_info_bar_set_default_response (GtkInfoBar *info_bar,
  */
 void
 gtk_info_bar_response (GtkInfoBar *info_bar,
-                       gint        response_id)
+                       int         response_id)
 {
   g_return_if_fail (GTK_IS_INFO_BAR (info_bar));
 
@@ -829,10 +828,10 @@ gtk_info_bar_response (GtkInfoBar *info_bar,
 
 typedef struct
 {
-  gchar *name;
-  gint response_id;
-  gint line;
-  gint col;
+  char *name;
+  int response_id;
+  int line;
+  int col;
 } ActionWidgetInfo;
 
 typedef struct
@@ -840,11 +839,11 @@ typedef struct
   GtkInfoBar *info_bar;
   GtkBuilder *builder;
   GSList *items;
-  gint response_id;
+  int response_id;
   gboolean is_text;
   GString *string;
-  gint line;
-  gint col;
+  int line;
+  int col;
 } SubParserData;
 
 static void
@@ -858,9 +857,9 @@ action_widget_info_free (gpointer data)
 
 static void
 parser_start_element (GtkBuildableParseContext  *context,
-                      const gchar               *element_name,
-                      const gchar              **names,
-                      const gchar              **values,
+                      const char                *element_name,
+                      const char               **names,
+                      const char               **values,
                       gpointer                   user_data,
                       GError                   **error)
 {
@@ -868,7 +867,7 @@ parser_start_element (GtkBuildableParseContext  *context,
 
   if (strcmp (element_name, "action-widget") == 0)
     {
-      const gchar *response;
+      const char *response;
       GValue gvalue = G_VALUE_INIT;
 
       if (!_gtk_builder_check_parent (data->builder, context, "action-widgets", error))
@@ -913,7 +912,7 @@ parser_start_element (GtkBuildableParseContext  *context,
 
 static void
 parser_text_element (GtkBuildableParseContext  *context,
-                     const gchar               *text,
+                     const char                *text,
                      gsize                      text_len,
                      gpointer                   user_data,
                      GError                   **error)
@@ -926,7 +925,7 @@ parser_text_element (GtkBuildableParseContext  *context,
 
 static void
 parser_end_element (GtkBuildableParseContext  *context,
-                    const gchar               *element_name,
+                    const char                *element_name,
                     gpointer                   user_data,
                     GError                   **error)
 {
@@ -958,7 +957,7 @@ gboolean
 gtk_info_bar_buildable_custom_tag_start (GtkBuildable       *buildable,
                                          GtkBuilder         *builder,
                                          GObject            *child,
-                                         const gchar        *tagname,
+                                         const char         *tagname,
                                          GtkBuildableParser *parser,
                                          gpointer           *parser_data)
 {
@@ -988,7 +987,7 @@ static void
 gtk_info_bar_buildable_custom_finished (GtkBuildable *buildable,
                                         GtkBuilder   *builder,
                                         GObject      *child,
-                                        const gchar  *tagname,
+                                        const char   *tagname,
                                         gpointer      user_data)
 {
   GtkInfoBar *info_bar = GTK_INFO_BAR (buildable);
@@ -1072,7 +1071,6 @@ gtk_info_bar_set_message_type (GtkInfoBar     *info_bar,
 
   if (info_bar->message_type != message_type)
     {
-      AtkObject *atk_obj;
       const char *type_class[] = {
         GTK_STYLE_CLASS_INFO,
         GTK_STYLE_CLASS_WARNING,
@@ -1087,43 +1085,6 @@ gtk_info_bar_set_message_type (GtkInfoBar     *info_bar,
       info_bar->message_type = message_type;
 
       gtk_widget_queue_draw (GTK_WIDGET (info_bar));
-
-      atk_obj = gtk_widget_get_accessible (GTK_WIDGET (info_bar));
-      if (GTK_IS_ACCESSIBLE (atk_obj))
-        {
-          const char *name = NULL;
-
-          atk_object_set_role (atk_obj, ATK_ROLE_INFO_BAR);
-
-          switch (message_type)
-            {
-            case GTK_MESSAGE_INFO:
-              name = _("Information");
-              break;
-
-            case GTK_MESSAGE_QUESTION:
-              name = _("Question");
-              break;
-
-            case GTK_MESSAGE_WARNING:
-              name = _("Warning");
-              break;
-
-            case GTK_MESSAGE_ERROR:
-              name = _("Error");
-              break;
-
-            case GTK_MESSAGE_OTHER:
-              break;
-
-            default:
-              g_warning ("Unknown GtkMessageType %u", message_type);
-              break;
-            }
-
-          if (name)
-            atk_object_set_name (atk_obj, name);
-        }
 
       if (type_class[info_bar->message_type])
         gtk_widget_add_css_class (GTK_WIDGET (info_bar), type_class[info_bar->message_type]);

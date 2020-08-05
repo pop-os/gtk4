@@ -23,7 +23,15 @@
 
 #include "gtkbuildable.h"
 #include "gtkintl.h"
+#include "gtksorterprivate.h"
 #include "gtktypebuiltins.h"
+
+#define GDK_ARRAY_TYPE_NAME GtkSorters
+#define GDK_ARRAY_NAME gtk_sorters
+#define GDK_ARRAY_ELEMENT_TYPE GtkSorter *
+#define GDK_ARRAY_FREE_FUNC g_object_unref
+
+#include "gdk/gdkarrayimpl.c"
 
 /**
  * SECTION:gtkmultisorter
@@ -38,8 +46,143 @@ struct _GtkMultiSorter
 {
   GtkSorter parent_instance;
 
-  GSequence *sorters;
+  GtkSorters sorters;
 };
+
+typedef struct _GtkMultiSortKey GtkMultiSortKey;
+typedef struct _GtkMultiSortKeys GtkMultiSortKeys;
+
+struct _GtkMultiSortKey
+{
+  gsize offset;
+  GtkSortKeys *keys;
+};
+
+struct _GtkMultiSortKeys
+{
+  GtkSortKeys parent_keys;
+
+  guint n_keys;
+  GtkMultiSortKey keys[];
+};
+
+static void
+gtk_multi_sort_keys_free (GtkSortKeys *keys)
+{
+  GtkMultiSortKeys *self = (GtkMultiSortKeys *) keys;
+  gsize i;
+
+  for (i = 0; i < self->n_keys; i++)
+    gtk_sort_keys_unref (self->keys[i].keys);
+
+  g_slice_free1 (sizeof (GtkMultiSortKeys) + self->n_keys * sizeof (GtkMultiSortKey), self);
+}
+
+static int
+gtk_multi_sort_keys_compare (gconstpointer a,
+                             gconstpointer b,
+                             gpointer      data)
+{
+  GtkMultiSortKeys *self = (GtkMultiSortKeys *) data;
+  gsize i;
+
+  for (i = 0; i < self->n_keys; i++)
+    {
+      GtkOrdering result = gtk_sort_keys_compare (self->keys[i].keys,
+                                                  ((const char *) a) + self->keys[i].offset,
+                                                  ((const char *) b) + self->keys[i].offset);
+      if (result != GTK_ORDERING_EQUAL)
+        return result;
+    }
+
+  return GTK_ORDERING_EQUAL;
+}
+
+static gboolean
+gtk_multi_sort_keys_is_compatible (GtkSortKeys *keys,
+                                   GtkSortKeys *other)
+{
+  GtkMultiSortKeys *self = (GtkMultiSortKeys *) keys;
+  GtkMultiSortKeys *compare = (GtkMultiSortKeys *) other;
+  gsize i;
+
+  if (keys->klass != other->klass)
+    return FALSE;
+
+  if (self->n_keys != compare->n_keys)
+    return FALSE;
+
+  for (i = 0; i < self->n_keys; i++)
+    {
+      if (!gtk_sort_keys_is_compatible (self->keys[i].keys, compare->keys[i].keys))
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
+static void
+gtk_multi_sort_keys_init_key (GtkSortKeys *keys,
+                              gpointer     item,
+                              gpointer     key_memory)
+{
+  GtkMultiSortKeys *self = (GtkMultiSortKeys *) keys;
+  char *key = (char *) key_memory;
+  gsize i;
+
+  for (i = 0; i < self->n_keys; i++)
+    gtk_sort_keys_init_key (self->keys[i].keys, item, key + self->keys[i].offset);
+}
+
+static void
+gtk_multi_sort_keys_clear_key (GtkSortKeys *keys,
+                               gpointer     key_memory)
+{
+  GtkMultiSortKeys *self = (GtkMultiSortKeys *) keys;
+  char *key = (char *) key_memory;
+  gsize i;
+
+  for (i = 0; i < self->n_keys; i++)
+    gtk_sort_keys_clear_key (self->keys[i].keys, key + self->keys[i].offset);
+}
+
+static const GtkSortKeysClass GTK_MULTI_SORT_KEYS_CLASS =
+{
+  gtk_multi_sort_keys_free,
+  gtk_multi_sort_keys_compare,
+  gtk_multi_sort_keys_is_compatible,
+  gtk_multi_sort_keys_init_key,
+  gtk_multi_sort_keys_clear_key,
+};
+
+static GtkSortKeys *
+gtk_multi_sort_keys_new (GtkMultiSorter *self)
+{
+  GtkMultiSortKeys *result;
+  GtkSortKeys *keys;
+  gsize i;
+
+  if (gtk_sorters_get_size (&self->sorters) == 0)
+    return gtk_sort_keys_new_equal ();
+  else if (gtk_sorters_get_size (&self->sorters) == 1)
+    return gtk_sorter_get_keys (gtk_sorters_get (&self->sorters, 0));
+
+  keys = gtk_sort_keys_alloc (&GTK_MULTI_SORT_KEYS_CLASS,
+                              sizeof (GtkMultiSortKeys) + gtk_sorters_get_size (&self->sorters) * sizeof (GtkMultiSortKey),
+                              0, 1);
+  result = (GtkMultiSortKeys *) keys;
+
+  result->n_keys = gtk_sorters_get_size (&self->sorters);
+  for (i = 0; i < result->n_keys; i++)
+    {
+      result->keys[i].keys = gtk_sorter_get_keys (gtk_sorters_get (&self->sorters, i));
+      result->keys[i].offset = GTK_SORT_KEYS_ALIGN (keys->key_size, gtk_sort_keys_get_key_align (result->keys[i].keys));
+      keys->key_size = result->keys[i].offset + gtk_sort_keys_get_key_size (result->keys[i].keys);
+      keys->key_align = MAX (keys->key_align, gtk_sort_keys_get_key_align (result->keys[i].keys));
+    }
+
+  return keys;
+}
 
 static GType
 gtk_multi_sorter_get_item_type (GListModel *list)
@@ -52,7 +195,7 @@ gtk_multi_sorter_get_n_items (GListModel *list)
 {
   GtkMultiSorter *self = GTK_MULTI_SORTER (list);
 
-  return g_sequence_get_length (self->sorters);
+  return gtk_sorters_get_size (&self->sorters);
 }
 
 static gpointer
@@ -60,14 +203,11 @@ gtk_multi_sorter_get_item (GListModel *list,
                            guint       position)
 {
   GtkMultiSorter *self = GTK_MULTI_SORTER (list);
-  GSequenceIter *iter;
 
-  iter = g_sequence_get_iter_at_pos (self->sorters, position);
-
-  if (g_sequence_iter_is_end (iter))
-    return NULL;
+  if (position < gtk_sorters_get_size (&self->sorters))
+    return g_object_ref (gtk_sorters_get (&self->sorters, position));
   else
-    return g_object_ref (g_sequence_get (iter));
+    return NULL;
 }
 
 static void
@@ -84,7 +224,7 @@ static void
 gtk_multi_sorter_buildable_add_child (GtkBuildable *buildable,
                                       GtkBuilder   *builder,
                                       GObject      *child,
-                                      const gchar  *type)
+                                      const char   *type)
 {
   if (GTK_IS_SORTER (child))
     gtk_multi_sorter_append (GTK_MULTI_SORTER (buildable), g_object_ref (GTK_SORTER (child)));
@@ -111,13 +251,11 @@ gtk_multi_sorter_compare (GtkSorter *sorter,
 {
   GtkMultiSorter *self = GTK_MULTI_SORTER (sorter);
   GtkOrdering result = GTK_ORDERING_EQUAL;
-  GSequenceIter *iter;
+  guint i;
 
-  for (iter = g_sequence_get_begin_iter (self->sorters);
-       !g_sequence_iter_is_end (iter);
-       iter = g_sequence_iter_next (iter))
+  for (i = 0; i < gtk_sorters_get_size (&self->sorters); i++)
     {
-      GtkSorter *child = g_sequence_get (iter);
+      GtkSorter *child = gtk_sorters_get (&self->sorters, i);
 
       result = gtk_sorter_compare (child, item1, item2);
       if (result != GTK_ORDERING_EQUAL)
@@ -132,13 +270,11 @@ gtk_multi_sorter_get_order (GtkSorter *sorter)
 {
   GtkMultiSorter *self = GTK_MULTI_SORTER (sorter);
   GtkSorterOrder result = GTK_SORTER_ORDER_NONE;
-  GSequenceIter *iter;
+  guint i;
 
-  for (iter = g_sequence_get_begin_iter (self->sorters);
-       !g_sequence_iter_is_end (iter);
-       iter = g_sequence_iter_next (iter))
+  for (i = 0; i < gtk_sorters_get_size (&self->sorters); i++)
     {
-      GtkSorter *child = g_sequence_get (iter);
+      GtkSorter *child = gtk_sorters_get (&self->sorters, i);
       GtkSorterOrder child_order;
 
       child_order = gtk_sorter_get_order (child);
@@ -166,12 +302,14 @@ gtk_multi_sorter_changed_cb (GtkSorter       *sorter,
                              GtkMultiSorter  *self)
 {
   /* Using an enum on purpose, so gcc complains about this case if
-   * new values are added to the enum */
+   * new values are added to the enum
+   */
   switch (change)
   {
     case GTK_SORTER_CHANGE_INVERTED:
-      /* This could do a lot better with change handling, in particular in cases where self->n_sorters == 1
-       * or if sorter == self->sorters[0] */
+      /* This could do a lot better with change handling, in particular in
+       * cases where self->n_sorters == 1 or if sorter == self->sorters[0]
+       */
       change = GTK_SORTER_CHANGE_DIFFERENT;
       break;
 
@@ -184,40 +322,25 @@ gtk_multi_sorter_changed_cb (GtkSorter       *sorter,
       g_assert_not_reached ();
       change = GTK_SORTER_CHANGE_DIFFERENT;
   }
-  gtk_sorter_changed (GTK_SORTER (self), change);
-}
-
-static void
-gtk_multi_sorter_remove_iter (GtkMultiSorter *self,
-                              GSequenceIter  *iter)
-{
-  GtkSorter *sorter;
-
-  sorter = g_sequence_get (iter);
-  g_signal_handlers_disconnect_by_func (sorter, gtk_multi_sorter_changed_cb, self);
-  g_object_unref (sorter);
-  g_sequence_remove (iter);
+  gtk_sorter_changed_with_keys (GTK_SORTER (self),
+                                change,
+                                gtk_multi_sort_keys_new (self));
 }
 
 static void
 gtk_multi_sorter_dispose (GObject *object)
 {
   GtkMultiSorter *self = GTK_MULTI_SORTER (object);
+  guint i;
 
-  while (!g_sequence_is_empty (self->sorters))
-    gtk_multi_sorter_remove_iter (self, g_sequence_get_begin_iter (self->sorters));
+  for (i = 0; i < gtk_sorters_get_size (&self->sorters); i++)
+    {
+      GtkSorter *sorter = gtk_sorters_get (&self->sorters, i);
+      g_signal_handlers_disconnect_by_func (sorter, gtk_multi_sorter_changed_cb, self);
+    }
+  gtk_sorters_clear (&self->sorters);
 
   G_OBJECT_CLASS (gtk_multi_sorter_parent_class)->dispose (object);
-}
-
-static void
-gtk_multi_sorter_finalize (GObject *object)
-{
-  GtkMultiSorter *self = GTK_MULTI_SORTER (object);
-
-  g_sequence_free (self->sorters);
-
-  G_OBJECT_CLASS (gtk_multi_sorter_parent_class)->finalize (object);
 }
 
 static void
@@ -230,13 +353,16 @@ gtk_multi_sorter_class_init (GtkMultiSorterClass *class)
   sorter_class->get_order = gtk_multi_sorter_get_order;
 
   object_class->dispose = gtk_multi_sorter_dispose;
-  object_class->finalize = gtk_multi_sorter_finalize;
 }
 
 static void
 gtk_multi_sorter_init (GtkMultiSorter *self)
 {
-  self->sorters = g_sequence_new (NULL);
+  gtk_sorters_init (&self->sorters);
+
+  gtk_sorter_changed_with_keys (GTK_SORTER (self),
+                                GTK_SORTER_CHANGE_DIFFERENT,
+                                gtk_multi_sort_keys_new (self));
 }
 
 /**
@@ -274,9 +400,11 @@ gtk_multi_sorter_append (GtkMultiSorter *self,
   g_return_if_fail (GTK_IS_SORTER (sorter));
 
   g_signal_connect (sorter, "changed", G_CALLBACK (gtk_multi_sorter_changed_cb), self);
-  g_sequence_append (self->sorters, sorter);
+  gtk_sorters_append (&self->sorters, sorter);
 
-  gtk_sorter_changed (GTK_SORTER (self), GTK_SORTER_CHANGE_MORE_STRICT);
+  gtk_sorter_changed_with_keys (GTK_SORTER (self),
+                                GTK_SORTER_CHANGE_MORE_STRICT,
+                                gtk_multi_sort_keys_new (self));
 }
 
 /**
@@ -293,18 +421,21 @@ void
 gtk_multi_sorter_remove (GtkMultiSorter *self,
                          guint           position)
 {
-  GSequenceIter *iter;
   guint length;
+  GtkSorter *sorter;
 
   g_return_if_fail (GTK_IS_MULTI_SORTER (self));
 
-  length = g_sequence_get_length (self->sorters);
+  length = gtk_sorters_get_size (&self->sorters);
   if (position >= length)
     return;
 
-  iter = g_sequence_get_iter_at_pos (self->sorters, position);
-  gtk_multi_sorter_remove_iter (self, iter);
+  sorter = gtk_sorters_get (&self->sorters, position);
+  g_signal_handlers_disconnect_by_func (sorter, gtk_multi_sorter_changed_cb, self);
+  gtk_sorters_splice (&self->sorters, position, 1, NULL, 0);
 
-  gtk_sorter_changed (GTK_SORTER (self), GTK_SORTER_CHANGE_LESS_STRICT);
+  gtk_sorter_changed_with_keys (GTK_SORTER (self),
+                                GTK_SORTER_CHANGE_LESS_STRICT,
+                                gtk_multi_sort_keys_new (self));
 }
 

@@ -37,7 +37,7 @@
 
 
 #define TREE_TEXT_SCALE 0.8
-#define TREE_CHECKBOX_SIZE (gint)(0.8 * 13)
+#define TREE_CHECKBOX_SIZE (int)(0.8 * 13)
 
 typedef struct
 {
@@ -64,28 +64,36 @@ typedef struct
   GtkWidget *widget_recorder;
   GtkWidget *object_hierarchy;
   GtkWidget *size_groups;
-  GtkWidget *data_list;
+  GtkWidget *tree_data;
+  GtkWidget *list_data;
   GtkWidget *actions;
   GtkWidget *shortcuts;
   GtkWidget *menu;
   GtkWidget *misc_info;
   GtkWidget *controllers;
   GtkWidget *magnifier;
+  GtkWidget *a11y;
   GtkWidget *sidebar_revealer;
   GtkWidget *css_editor;
   GtkWidget *visual;
   GtkWidget *general;
   GtkWidget *logs;
 
-  GtkWidget *selected_widget;
+  GtkWidget *go_up_button;
+  GtkWidget *go_down_button;
+  GtkWidget *go_previous_button;
+  GtkWidget *list_position_label;
+  GtkWidget *go_next_button;
 
   GList *extra_pages;
 
   GdkSeat *grab_seat;
 
   GtkInspectorOverlay *flash_overlay;
-  gint flash_count;
-  gint flash_cnx;
+  int flash_count;
+  int flash_cnx;
+
+  GArray *objects;
 
   GList *overlays;
 
@@ -118,6 +126,29 @@ void                    gtk_inspector_window_remove_overlay                     
 void                    gtk_inspector_window_select_widget_under_pointer        (GtkInspectorWindow     *iw);
 GdkDisplay *            gtk_inspector_window_get_inspected_display              (GtkInspectorWindow     *iw);
 
+typedef enum
+{
+  CHILD_KIND_WIDGET,
+  CHILD_KIND_CONTROLLER,
+  CHILD_KIND_PROPERTY,
+  CHILD_KIND_LISTITEM,
+  CHILD_KIND_OTHER
+} ChildKind;
+
+void                    gtk_inspector_window_push_object     (GtkInspectorWindow *iw,
+                                                              GObject            *object,
+                                                              ChildKind           kind,
+                                                              guint               position);
+void                    gtk_inspector_window_pop_object      (GtkInspectorWindow *iw);
+void                    gtk_inspector_window_set_object      (GtkInspectorWindow *iw,
+                                                              GObject            *object,
+                                                              ChildKind           kind,
+                                                              guint               position);
+void                    gtk_inspector_window_replace_object  (GtkInspectorWindow *iw,
+                                                              GObject            *object,
+                                                              ChildKind           kind,
+                                                              guint               position);
+
 gboolean                gtk_inspector_is_recording                              (GtkWidget              *widget);
 GskRenderNode *         gtk_inspector_prepare_render                            (GtkWidget              *widget,
                                                                                  GskRenderer            *renderer,
@@ -125,7 +156,6 @@ GskRenderNode *         gtk_inspector_prepare_render                            
                                                                                  const cairo_region_t   *region,
                                                                                  GskRenderNode          *node);
 gboolean                gtk_inspector_handle_event                              (GdkEvent               *event);
-                                                                                
 
 G_END_DECLS
 

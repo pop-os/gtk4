@@ -35,7 +35,7 @@
             <attribute name="target">highcontrast-inverse</attribute>
           </item>
         </section>
-      </submenu> 
+      </submenu>
       <item>
         <attribute name="label" translatable="yes">Transition Pages</attribute>
         <attribute name="action">win.transition</attribute>
@@ -436,7 +436,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
     <property name="title">GTK Widget Factory</property>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="headerbar1">
-        <property name="show-title-buttons">1</property>
         <child type="title">
           <object class="GtkStackSwitcher" id="stack_switcher">
             <property name="stack">toplevel_stack</property>
@@ -791,11 +790,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkSeparator" id="separator1">
-                            <property name="orientation">vertical</property>
-                          </object>
-                        </child>
-                        <child>
                           <object class="GtkBox" id="box19">
                             <property name="orientation">vertical</property>
                             <property name="spacing">10</property>
@@ -888,11 +882,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                 <property name="halign">center</property>
                               </object>
                             </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator" id="separator2">
-                            <property name="orientation">vertical</property>
                           </object>
                         </child>
                         <child>
@@ -1044,11 +1033,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkSeparator" id="separator3">
-                            <property name="orientation">vertical</property>
-                          </object>
-                        </child>
-                        <child>
                           <object class="GtkBox" id="box26">
                             <property name="orientation">vertical</property>
                             <property name="spacing">10</property>
@@ -1144,11 +1128,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                 </child>
                               </object>
                             </child>
-                          </object>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator" id="separator4">
-                            <property name="orientation">vertical</property>
                           </object>
                         </child>
                         <child>
@@ -1249,9 +1228,6 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                           </object>
                         </child>
                       </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparator" id="separator5"/>
                     </child>
                     <child>
                       <object class="GtkBox" id="box5">
@@ -1570,9 +1546,6 @@ microphone-sensitivity-medium-symbolic</property>
                               </object>
                             </child>
                             <child>
-                              <object class="GtkSeparator"/>
-                            </child>
-                            <child>
                               <object class="GtkFrame" id="page2frame1">
                                 <child>
                                   <object class="GtkBox">
@@ -1639,9 +1612,6 @@ microphone-sensitivity-medium-symbolic</property>
                                   </object>
                                 </child>
                               </object>
-                            </child>
-                            <child>
-                              <object class="GtkSeparator"/>
                             </child>
                             <child>
                               <object class="GtkScrolledWindow">
@@ -1900,11 +1870,6 @@ microphone-sensitivity-medium-symbolic</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkSeparator">
-                            <property name="orientation">vertical</property>
-                          </object>
-                        </child>
-                        <child>
                           <object class="GtkBox">
                             <property name="orientation">vertical</property>
                             <property name="spacing">10</property>
@@ -1981,9 +1946,6 @@ microphone-sensitivity-medium-symbolic</property>
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkSeparator"/>
-                                    </child>
-                                    <child>
                                       <object class="GtkScrolledWindow">
                                         <property name="vexpand">1</property>
                                         <child>
@@ -2006,9 +1968,6 @@ microphone-sensitivity-medium-symbolic</property>
                                   </object>
                                 </child>
                               </object>
-                            </child>
-                            <child>
-                              <object class="GtkSeparator"/>
                             </child>
                             <child>
                               <object class="GtkBox">
@@ -2071,11 +2030,6 @@ microphone-sensitivity-medium-symbolic</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkSeparator">
-                            <property name="orientation">vertical</property>
-                          </object>
-                        </child>
-                        <child>
                           <object class="GtkBox" id="filler2">
                             <property name="orientation">vertical</property>
                             <property name="spacing">10</property>
@@ -2083,9 +2037,6 @@ microphone-sensitivity-medium-symbolic</property>
                               <object class="GtkCalendar">
                                 <property name="halign">center</property>
                               </object>
-                            </child>
-                            <child>
-                              <object class="GtkSeparator"/>
                             </child>
                             <child>
                               <object class="GtkExpander" id="expander1">
@@ -2262,9 +2213,6 @@ microphone-sensitivity-medium-symbolic</property>
                           </object>
                         </child>
                         <child>
-                          <object class="GtkSeparator"/>
-                        </child>
-                        <child>
                           <object class="GtkScrolledWindow">
                             <property name="hscrollbar-policy">never</property>
                             <property name="vexpand">1</property>
@@ -2277,11 +2225,6 @@ microphone-sensitivity-medium-symbolic</property>
                             </child>
                           </object>
                         </child>
-                      </object>
-                    </child>
-                    <child>
-                      <object class="GtkSeparator">
-                        <property name="orientation">vertical</property>
                       </object>
                     </child>
                     <child>
@@ -2372,9 +2315,6 @@ microphone-sensitivity-medium-symbolic</property>
                               </object>
                             </child>
                           </object>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator"/>
                         </child>
                         <child>
                           <object class="GtkFrame">
@@ -2854,11 +2794,6 @@ microphone-sensitivity-medium-symbolic</property>
                       </object>
                     </child>
                     <child>
-                      <object class="GtkSeparator">
-                        <property name="orientation">vertical</property>
-                      </object>
-                    </child>
-                    <child>
                       <object class="GtkBox">
                         <property name="orientation">vertical</property>
                         <property name="spacing">10</property>
@@ -2883,9 +2818,6 @@ microphone-sensitivity-medium-symbolic</property>
                               <class name="linked"/>
                             </style>
                           </object>
-                        </child>
-                        <child>
-                          <object class="GtkSeparator"/>
                         </child>
                         <child>
                           <object class="GtkNotebook">
@@ -3030,9 +2962,6 @@ bad things might happen.</property>
             <property name="margin-top">20</property>
             <property name="margin-bottom">20</property>
             <property name="label" translatable="yes">To free the princess, you have to slay the dragon.</property>
-            <accessibility>
-              <role type="static"/>
-            </accessibility>
           </object>
         </child>
       </object>
@@ -3232,9 +3161,6 @@ bad things might happen.</property>
           <object class="GtkLabel" id="title_label">
             <property name="label">Title:</property>
             <property name="xalign">1</property>
-            <accessibility>
-              <relation type="label-for" target="open_popover_entry"/>
-            </accessibility>
           </object>
         </child>
         <child>
@@ -3242,9 +3168,6 @@ bad things might happen.</property>
             <property name="valign">start</property>
             <property name="label">Description:</property>
             <property name="xalign">1</property>
-            <accessibility>
-              <relation type="label-for" target="open_popover_textview"/>
-            </accessibility>
             <layout>
               <property name="top-attach">1</property>
             </layout>
@@ -3260,9 +3183,6 @@ bad things might happen.</property>
             <property name="max-content-width">100</property>
             <child>
               <object class="GtkTextView" id="open_popover_textview">
-                <accessibility>
-                  <relation type="labelled-by" target="description_label"/>
-                </accessibility>
               </object>
             </child>
             <layout>
@@ -3275,9 +3195,6 @@ bad things might happen.</property>
         <child>
           <object class="GtkEntry" id="open_popover_entry">
             <property name="activates-default">1</property>
-            <accessibility>
-              <relation type="labelled-by" target="title_label"/>
-            </accessibility>
             <layout>
               <property name="left-attach">1</property>
               <property name="column-span">2</property>
@@ -3358,9 +3275,6 @@ bad things might happen.</property>
     <child>
       <object class="GtkLabel">
         <property name="label">No updates at this time</property>
-        <accessibility>
-          <role type="static"/>
-        </accessibility>
       </object>
     </child>
   </object>
@@ -3369,9 +3283,6 @@ bad things might happen.</property>
     <child>
       <object class="GtkLabel">
         <property name="label">You&apos;re in too deep!</property>
-        <accessibility>
-          <role type="static"/>
-        </accessibility>
       </object>
     </child>
   </object>

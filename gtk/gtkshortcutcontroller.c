@@ -50,7 +50,7 @@
  *         <property name='scope'>managed</property>
  *         <child>
  *           <object class='GtkShortcut'>
- *             <property name='trigger'>&lt;Control&gt;k</property>
+ *             <property name='trigger'>&amp;lt;Control&amp;gt;k</property>
  *             <property name='action'>activate</property>
  *           </object>
  *         </child>
@@ -58,6 +58,11 @@
  *     </child>
  *   </object>
  * ]|
+ *
+ * This example creates a #GtkActivateAction for triggering the `activate`
+ * signal of the GtkButton. See gtk_shortcut_action_parse_string() for the syntax
+ * for other kinds of #GtkShortcutAction. See gtk_shortcut_trigger_parse_string()
+ * to learn more about the syntax for triggers.
  **/
 
 #include "config.h"
@@ -74,6 +79,7 @@
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
 #include "gtknative.h"
+#include "gtkdebug.h"
 
 #include <gdk/gdk.h>
 
@@ -109,7 +115,7 @@ static GParamSpec *properties[N_PROPS] = { NULL, };
 static GType
 gtk_shortcut_controller_list_model_get_item_type (GListModel *list)
 {
-  return GTK_TYPE_SHORTCUT;
+  return G_TYPE_OBJECT;
 }
 
 static guint
@@ -141,7 +147,7 @@ static void
 gtk_shortcut_controller_buildable_add_child (GtkBuildable  *buildable,
                                              GtkBuilder    *builder,
                                              GObject       *child,
-                                             const gchar   *type)
+                                             const char    *type)
 {
   if (type != NULL)
     {
@@ -197,12 +203,6 @@ gtk_shortcut_controller_set_property (GObject      *object,
     case PROP_MODEL:
       {
         GListModel *model = g_value_get_object (value);
-        if (model && g_list_model_get_item_type (model) != GTK_TYPE_SHORTCUT)
-          {
-            g_warning ("Setting a model with type '%s' on a shortcut controller that requires 'GtkShortcut'",
-                       g_type_name (g_list_model_get_item_type (model)));
-            model = NULL;
-          }
         if (model == NULL)
           {
             self->shortcuts = G_LIST_MODEL (g_list_store_new (GTK_TYPE_SHORTCUT));
@@ -308,6 +308,11 @@ gtk_shortcut_controller_run_controllers (GtkEventController *controller,
 
       index = (self->last_activated + 1 + i) % g_list_model_get_n_items (self->shortcuts);
       shortcut = g_list_model_get_item (self->shortcuts, index);
+      if (!GTK_IS_SHORTCUT (shortcut))
+        {
+          g_object_unref (shortcut);
+          continue;
+        }
 
       switch (gtk_shortcut_trigger_trigger (gtk_shortcut_get_trigger (shortcut), event, enable_mnemonics))
         {
@@ -369,6 +374,18 @@ gtk_shortcut_controller_run_controllers (GtkEventController *controller,
       data->index = index;
       data->widget = widget;
     }
+
+#ifdef G_ENABLE_DEBUG
+  if (GTK_DEBUG_CHECK (KEYBINDINGS))
+    {
+      g_message ("Found %u shortcuts triggered %s by %s %u %u",
+                 shortcuts ? shortcuts->len : 0,
+                 has_exact ? "exactly" : "approximately",
+                 gdk_event_get_event_type (event) == GDK_KEY_PRESS ? "key press" : "key release",
+                 gdk_key_event_get_keyval (event),
+                 gdk_event_get_modifier_state (event));
+    }
+#endif
 
   if (!shortcuts)
     return retval;
@@ -464,14 +481,15 @@ gtk_shortcut_controller_set_widget (GtkEventController *controller,
                                     GtkWidget          *widget)
 {
   GtkShortcutController *self = GTK_SHORTCUT_CONTROLLER (controller);
-  int i;
+  guint i, p;
 
   GTK_EVENT_CONTROLLER_CLASS (gtk_shortcut_controller_parent_class)->set_widget (controller, widget);
 
-  for (i = 0; i < g_list_model_get_n_items (G_LIST_MODEL (controller)); i++)
+  for (i = 0, p = g_list_model_get_n_items (G_LIST_MODEL (controller)); i < p; i++)
     {
       GtkShortcut *shortcut = g_list_model_get_item (G_LIST_MODEL (controller), i);
-      update_accel (shortcut, widget, TRUE);
+      if (GTK_IS_SHORTCUT (shortcut))
+        update_accel (shortcut, widget, TRUE);
       g_object_unref (shortcut);
     }
 
@@ -493,7 +511,8 @@ gtk_shortcut_controller_unset_widget (GtkEventController *controller)
   for (i = 0; i < g_list_model_get_n_items (G_LIST_MODEL (controller)); i++)
     {
       GtkShortcut *shortcut = g_list_model_get_item (G_LIST_MODEL (controller), i);
-      update_accel (shortcut, widget, FALSE);
+      if (GTK_IS_SHORTCUT (shortcut))
+        update_accel (shortcut, widget, FALSE);
       g_object_unref (shortcut);
     }
 #endif
@@ -523,7 +542,7 @@ gtk_shortcut_controller_class_init (GtkShortcutControllerClass *klass)
    */
   properties[PROP_MNEMONICS_MODIFIERS] =
       g_param_spec_flags ("mnemonic-modifiers",
-                          P_("Mnemonic modifers"),
+                          P_("Mnemonic modifiers"),
                           P_("The modifiers to be pressed to allow mnemonics activation"),
                           GDK_TYPE_MODIFIER_TYPE,
                           GDK_ALT_MASK,
@@ -684,7 +703,6 @@ GtkEventController *
 gtk_shortcut_controller_new_for_model (GListModel *model)
 {
   g_return_val_if_fail (G_IS_LIST_MODEL (model), NULL);
-  g_return_val_if_fail (g_list_model_get_item_type (model) == GTK_TYPE_SHORTCUT, NULL);
 
   return g_object_new (GTK_TYPE_SHORTCUT_CONTROLLER,
                        "model", model,

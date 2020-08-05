@@ -25,12 +25,12 @@
 typedef struct _TreeEntry TreeEntry;
 
 struct _TreeEntry {
-  const gchar *icon;
-  const gchar *info;
-  const gchar *description;
-  const gchar *fine_print;
-  const gchar *fine_print_color;
-  gint progress;
+  const char *icon;
+  const char *info;
+  const char *description;
+  const char *fine_print;
+  const char *fine_print_color;
+  int progress;
   TreeEntry *entries;
 };
 
@@ -249,7 +249,7 @@ populate_model (GtkTreeStore *model,
 		TreeEntry    *entries)
 {
   GtkTreeIter iter;
-  gint        i;
+  int         i;
 
   for (i = 0; entries[i].info != NULL; i++)
     {
@@ -272,7 +272,7 @@ static GtkTreeModel *
 create_model (void)
 {
   GtkTreeStore *model;
-  gint          i;
+  int           i;
 
   model = gtk_tree_store_new (NUM_COLUMNS,
 			      G_TYPE_STRING,
@@ -299,8 +299,8 @@ quit_cb (GtkWidget *widget,
   g_main_context_wakeup (NULL);
 }
 
-gint
-main (gint argc, gchar **argv)
+int
+main (int argc, char **argv)
 {
   GtkWidget *window;
   GtkWidget *scrolled_window;
@@ -320,7 +320,7 @@ main (gint argc, gchar **argv)
   gtk_window_set_title (GTK_WINDOW (window), "Vertical cells in GtkTreeViewColumn example");
   g_signal_connect (window, "destroy", G_CALLBACK (quit_cb), &done);
 
-  scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+  scrolled_window = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (scrolled_window), TRUE);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window), 
 				  GTK_POLICY_AUTOMATIC, GTK_POLICY_AUTOMATIC);

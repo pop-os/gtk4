@@ -9,20 +9,23 @@ diff = find_program('diff', required: true)
 common_env = [
   'GIO_USE_VOLUME_MONITOR=unix',
   'GSETTINGS_BACKEND=memory',
-  'GDK_DEBUG=default-settings',
   'GTK_CSD=1',
   'G_ENABLE_DIAGNOSTIC=0',
   'GSETTINGS_SCHEMA_DIR=@0@'.format(gtk_schema_build_dir),
 ]
 
+if get_option('debug')
+  common_env += [ 'GDK_DEBUG=default-settings' ]
+endif
+
 add_test_setup ('x11',
-                is_default: true,
                 env: common_env + [
                      'GDK_BACKEND=x11',
                      'TEST_OUTPUT_SUBDIR=x11',
                      ])
 
 add_test_setup ('wayland',
+                is_default: true,
                 env: common_env + [
                       'GDK_BACKEND=wayland',
                       'TEST_OUTPUT_SUBDIR=wayland',
@@ -39,6 +42,6 @@ subdir('gdk')
 subdir('gsk')
 subdir('gtk')
 subdir('css')
-#subdir('a11y')
+subdir('a11y')
 subdir('tools')
 subdir('reftests')

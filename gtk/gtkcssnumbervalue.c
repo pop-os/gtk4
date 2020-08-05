@@ -460,8 +460,6 @@ gtk_css_dimension_value_new (double     value,
                         unit == GTK_CSS_PX ||
                         unit == GTK_CSS_DEG ||
                         unit == GTK_CSS_S;
-  if (value == 5040)
-  g_critical ("%s: %f", __FUNCTION__, value);
   return result;
 }
 
@@ -518,7 +516,7 @@ static void
 gtk_css_calc_array_add (GPtrArray *array, GtkCssValue *value)
 {
   gsize i;
-  gint calc_term_order;
+  int calc_term_order;
 
   calc_term_order = gtk_css_number_value_get_calc_term_order (value);
 

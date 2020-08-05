@@ -30,7 +30,7 @@ void gdk_display_set_cursor_theme          (GdkDisplay   *display,
 gboolean gdk_running_in_sandbox (void);
 gboolean gdk_should_use_portal (void);
 
-const gchar *   gdk_get_startup_notification_id (void);
+const char *   gdk_get_startup_notification_id (void);
 
 PangoDirection gdk_unichar_direction (gunichar    ch);
 PangoDirection gdk_find_base_dir     (const char *text,
@@ -39,5 +39,16 @@ PangoDirection gdk_find_base_dir     (const char *text,
 void           gdk_surface_set_widget (GdkSurface *surface,
                                        gpointer    widget);
 gpointer       gdk_surface_get_widget (GdkSurface *surface);
+
+typedef struct
+{
+  const char *key;
+  guint value;
+  const char *help;
+} GdkDebugKey;
+
+guint gdk_parse_debug_var (const char        *variable,
+                           const GdkDebugKey *keys,
+                           guint              nkeys);
 
 #endif /* __GDK__PRIVATE_H__ */

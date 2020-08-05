@@ -21,6 +21,7 @@
 
 #include "gtkgridview.h"
 
+#include "gtkbitset.h"
 #include "gtkintl.h"
 #include "gtklistbaseprivate.h"
 #include "gtklistitemfactory.h"
@@ -44,7 +45,7 @@
 /**
  * SECTION:gtkgridview
  * @title: GtkGridView
- * @short_description: A widget for displaying lists in a grid
+ * @short_description: A widget for displaying grids
  * @see_also: #GListModel, #GtkListView, #GtkColumnView
  *
  * GtkGridView is a widget to present a view into a large dynamic grid of items.
@@ -90,8 +91,8 @@ struct _GtkGridView
   guint max_columns;
   /* set in size_allocate */
   guint n_columns;
-  double column_width;
   int unknown_row_height;
+  double column_width;
 };
 
 struct _GtkGridViewClass
@@ -269,7 +270,18 @@ gtk_grid_view_get_cell_at_y (GtkGridView *self,
       /* skip remaining items at end of row */
       if (pos % self->n_columns)
         {
-          skip = pos - pos % self->n_columns;
+          skip = self->n_columns - pos % self->n_columns;
+          if (n_items <= skip)
+            {
+              g_warning ("ran out of items");
+              if (position)
+                *position = 0;
+              if (offset)
+                *offset = 0;
+              if (size)
+                *size = 0;
+              return NULL;
+            }
           n_items -= skip;
           pos += skip;
         }
@@ -439,6 +451,36 @@ gtk_grid_view_get_position_from_allocation (GtkListBase           *base,
     }
 
   return TRUE;
+}
+
+static GtkBitset *
+gtk_grid_view_get_items_in_rect (GtkListBase        *base,
+                                 const GdkRectangle *rect)
+{
+  GtkGridView *self = GTK_GRID_VIEW (base);
+  guint first_row, last_row, first_column, last_column, n_items;
+  GtkBitset *result;
+
+  result = gtk_bitset_new_empty ();
+
+  n_items = gtk_list_base_get_n_items (base);
+  if (n_items == 0)
+    return result;
+
+  first_column = floor (rect->x / self->column_width);
+  last_column = floor ((rect->x + rect->width) / self->column_width);
+  if (!gtk_grid_view_get_cell_at_y (self, rect->y, &first_row, NULL, NULL))
+    first_row = rect->y < 0 ? 0 : n_items - 1;
+  if (!gtk_grid_view_get_cell_at_y (self, rect->y + rect->height, &last_row, NULL, NULL))
+    last_row = rect->y < 0 ? 0 : n_items - 1;
+
+  gtk_bitset_add_rectangle (result,
+                            first_row + first_column,
+                            last_column - first_column + 1,
+                            (last_row - first_row) / self->n_columns + 1,
+                            self->n_columns);
+
+  return result;
 }
 
 static guint
@@ -676,43 +718,6 @@ cell_set_size (Cell  *cell,
   gtk_rb_tree_node_mark_dirty (cell);
 }
 
-static void
-gtk_grid_view_size_allocate_child (GtkGridView *self,
-                                   GtkWidget   *child,
-                                   int          x,
-                                   int          y,
-                                   int          width,
-                                   int          height)
-{
-  GtkAllocation child_allocation;
-
-  if (gtk_list_base_get_orientation (GTK_LIST_BASE (self)) == GTK_ORIENTATION_VERTICAL)
-    {
-      child_allocation.x = x;
-      child_allocation.y = y;
-      child_allocation.width = width;
-      child_allocation.height = height;
-    }
-  else if (_gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_LTR)
-    {
-      child_allocation.x = y;
-      child_allocation.y = x;
-      child_allocation.width = height;
-      child_allocation.height = width;
-    }
-  else
-    {
-      int mirror_point = gtk_widget_get_width (GTK_WIDGET (self));
-
-      child_allocation.x = mirror_point - y - height; 
-      child_allocation.y = x;
-      child_allocation.width = height;
-      child_allocation.height = width;
-    }
-
-  gtk_widget_size_allocate (child, &child_allocation, -1);
-}
-
 static int
 gtk_grid_view_compute_total_height (GtkGridView *self)
 {
@@ -741,8 +746,6 @@ gtk_grid_view_size_allocate (GtkWidget *widget,
   gboolean known;
   int x, y;
   guint i;
-
-  gtk_list_base_allocate_rubberband (GTK_LIST_BASE (widget));
 
   orientation = gtk_list_base_get_orientation (GTK_LIST_BASE (self));
   scroll_policy = gtk_list_base_get_scroll_policy (GTK_LIST_BASE (self), orientation);
@@ -862,7 +865,7 @@ gtk_grid_view_size_allocate (GtkWidget *widget,
         {
           row_height += cell->size;
 
-          gtk_grid_view_size_allocate_child (self,
+          gtk_list_base_size_allocate_child (GTK_LIST_BASE (self),
                                              cell->parent.widget,
                                              x + ceil (self->column_width * i),
                                              y,
@@ -903,6 +906,8 @@ gtk_grid_view_size_allocate (GtkWidget *widget,
             }
         }
     }
+
+  gtk_list_base_allocate_rubberband (GTK_LIST_BASE (widget));
 }
 
 static void
@@ -1026,6 +1031,7 @@ gtk_grid_view_class_init (GtkGridViewClass *klass)
   list_base_class->list_item_augment_func = cell_augment;
   list_base_class->get_allocation_along = gtk_grid_view_get_allocation_along;
   list_base_class->get_allocation_across = gtk_grid_view_get_allocation_across;
+  list_base_class->get_items_in_rect = gtk_grid_view_get_items_in_rect;
   list_base_class->get_position_from_allocation = gtk_grid_view_get_position_from_allocation;
   list_base_class->move_focus_along = gtk_grid_view_move_focus_along;
   list_base_class->move_focus_across = gtk_grid_view_move_focus_across;
@@ -1165,56 +1171,71 @@ gtk_grid_view_init (GtkGridView *self)
   gtk_list_base_set_anchor_max_widgets (GTK_LIST_BASE (self),
                                         self->max_columns * GTK_GRID_VIEW_MAX_VISIBLE_ROWS,
                                         self->max_columns);
+
+  gtk_widget_add_css_class (GTK_WIDGET (self), "view");
 }
 
 /**
  * gtk_grid_view_new:
+ * @model: (allow-none) (transfer full): the model to use, or %NULL
  *
- * Creates a new empty #GtkGridView.
+ * Creates a new #GtkGridView.
  *
  * You most likely want to call gtk_grid_view_set_factory() to
- * set up a way to map its items to widgets and gtk_grid_view_set_model()
- * to set a model to provide items next.
+ * set up a way to map its items to widgets next.
  *
  * Returns: a new #GtkGridView
  **/
 GtkWidget *
-gtk_grid_view_new (void)
+gtk_grid_view_new (GListModel *model)
 {
-  return g_object_new (GTK_TYPE_GRID_VIEW, NULL);
+  GtkWidget *result;
+
+  g_return_val_if_fail (model == NULL || G_IS_LIST_MODEL (model), NULL);
+
+  result = g_object_new (GTK_TYPE_GRID_VIEW,
+                         "model", model,
+                         NULL);
+
+  /* consume the reference */
+  g_clear_object (&model);
+
+  return result;
 }
 
 /**
  * gtk_grid_view_new_with_factory:
- * @factory: (transfer full): The factory to populate items with
+ * @model: (allow-none) (transfer full): the model to use, or %NULL
+ * @factory: (allow-none) (transfer full): The factory to populate items with, or %NULL
  *
  * Creates a new #GtkGridView that uses the given @factory for
  * mapping items to widgets.
  *
- * You most likely want to call gtk_grid_view_set_model() to set
- * a model next.
- *
  * The function takes ownership of the
  * argument, so you can write code like
  * ```
- *   grid_view = gtk_grid_view_new_with_factory (
- *     gtk_builder_list_item_factory_newfrom_resource ("/resource.ui"));
+ *   grid_view = gtk_grid_view_new_with_factory (create_model (),
+ *     gtk_builder_list_item_factory_new_from_resource ("/resource.ui"));
  * ```
  *
  * Returns: a new #GtkGridView using the given @factory
  **/
 GtkWidget *
-gtk_grid_view_new_with_factory (GtkListItemFactory *factory)
+gtk_grid_view_new_with_factory (GListModel         *model,
+                                GtkListItemFactory *factory)
 {
   GtkWidget *result;
 
   g_return_val_if_fail (GTK_IS_LIST_ITEM_FACTORY (factory), NULL);
 
   result = g_object_new (GTK_TYPE_GRID_VIEW,
+                         "model", model,
                          "factory", factory,
                          NULL);
 
-  g_object_unref (factory);
+  /* consume the references */
+  g_clear_object (&model);
+  g_clear_object (&factory);
 
   return result;
 }

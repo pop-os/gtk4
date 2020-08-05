@@ -28,6 +28,7 @@
 #include "gtkcolumnviewlayoutprivate.h"
 #include "gtkcolumnviewsorterprivate.h"
 #include "gtkcssnodeprivate.h"
+#include "gtkdropcontrollermotion.h"
 #include "gtkintl.h"
 #include "gtklistview.h"
 #include "gtkmain.h"
@@ -59,7 +60,7 @@
  * GtkColumnView allows the user to select items according to the selection
  * characteristics of the model. If the provided model is not a #GtkSelectionModel,
  * GtkColumnView will wrap it in a #GtkSingleSelection. For models that allow
- * multiple selected items, it is possible to turn on _rubberband selection_,
+ * multiple selected items, it is possible to turn on *rubberband selection*,
  * using #GtkColumnView:enable-rubberband.
  *
  * The column view supports sorting that can be customized by the user by
@@ -117,21 +118,21 @@ struct _GtkColumnView
 
   GtkAdjustment *hadjustment;
 
-  gboolean reorderable;
-  gboolean show_column_separators;
+  guint reorderable : 1;
+  guint show_column_separators : 1;
+  guint in_column_resize : 1;
+  guint in_column_reorder : 1;
 
-  gboolean in_column_resize;
-  gboolean in_column_reorder;
   int drag_pos;
   int drag_x;
   int drag_offset;
   int drag_column_x;
 
-  GtkGesture *drag_gesture;
-
   guint autoscroll_id;
   double autoscroll_x;
   double autoscroll_delta;
+
+  GtkGesture *drag_gesture;
 };
 
 struct _GtkColumnViewClass
@@ -169,7 +170,7 @@ static void
 gtk_column_view_buildable_add_child (GtkBuildable  *buildable,
                                      GtkBuilder    *builder,
                                      GObject       *child,
-                                     const gchar   *type)
+                                     const char    *type)
 {
   if (GTK_IS_COLUMN_VIEW_COLUMN (child))
     {
@@ -778,6 +779,37 @@ remove_autoscroll (GtkColumnView *self)
     }
 }
 
+#define SCROLL_EDGE_SIZE 30
+
+static void
+update_autoscroll (GtkColumnView *self,
+                   double         x)
+{
+  double width;
+  double delta;
+  double vx, vy;
+
+  /* x is in header coordinates */
+  gtk_widget_translate_coordinates (self->header, GTK_WIDGET (self), x, 0, &vx, &vy);
+  width = gtk_widget_get_width (GTK_WIDGET (self));
+
+  if (vx < SCROLL_EDGE_SIZE)
+    delta = - (SCROLL_EDGE_SIZE - vx)/3.0;
+  else if (width - vx < SCROLL_EDGE_SIZE)
+    delta = (SCROLL_EDGE_SIZE - (width - vx))/3.0;
+  else
+    delta = 0;
+
+  if (gtk_widget_get_direction (GTK_WIDGET (self)) == GTK_TEXT_DIR_RTL)
+    delta = - delta;
+
+  if (delta != 0)
+    add_autoscroll (self, x, delta);
+  else
+    remove_autoscroll (self);
+}
+
+
 #define DRAG_WIDTH 6
 
 static gboolean
@@ -908,7 +940,7 @@ header_drag_end (GtkGestureDrag *gesture,
 
       column = g_list_model_get_item (G_LIST_MODEL (self->columns), self->drag_pos);
       header = gtk_column_view_column_get_header (column);
-      gtk_style_context_remove_class (gtk_widget_get_style_context (header), "dnd");
+      gtk_widget_remove_css_class (header, "dnd");
 
       sequence = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
       if (!gtk_gesture_handles_sequence (GTK_GESTURE (gesture), sequence))
@@ -968,8 +1000,6 @@ update_column_reorder (GtkColumnView *self,
   g_object_unref (column);
 }
 
-#define SCROLL_EDGE_SIZE 15
-
 static void
 header_drag_update (GtkGestureDrag *gesture,
                     double          offset_x,
@@ -997,7 +1027,7 @@ header_drag_update (GtkGestureDrag *gesture,
           header = gtk_column_view_column_get_header (column);
 
           gtk_widget_insert_after (header, self->header, gtk_widget_get_last_child (self->header));
-          gtk_style_context_add_class (gtk_widget_get_style_context (header), "dnd");
+          gtk_widget_add_css_class (header, "dnd");
 
           gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
           if (!gtk_widget_has_focus (GTK_WIDGET (self)))
@@ -1018,20 +1048,7 @@ header_drag_update (GtkGestureDrag *gesture,
     update_column_reorder (self, x);
 
   if (self->in_column_resize || self->in_column_reorder)
-    {
-      double value, page_size, upper;
-
-      value = gtk_adjustment_get_value (self->hadjustment);
-      page_size = gtk_adjustment_get_page_size (self->hadjustment);
-      upper = gtk_adjustment_get_upper (self->hadjustment);
-
-      if (x - value < SCROLL_EDGE_SIZE && value > 0)
-        add_autoscroll (self, x, - (SCROLL_EDGE_SIZE - (x - value))/3.0);
-      else if (value + page_size - x < SCROLL_EDGE_SIZE && value + page_size < upper)
-        add_autoscroll (self, x, (SCROLL_EDGE_SIZE - (value + page_size - x))/3.0);
-      else
-        remove_autoscroll (self);
-    }
+    update_autoscroll (self, x);
 }
 
 static void
@@ -1087,6 +1104,29 @@ header_key_pressed (GtkEventControllerKey *controller,
 }
 
 static void
+gtk_column_view_drag_motion (GtkDropControllerMotion *motion,
+                             double                   x,
+                             double                   y,
+                             gpointer                 unused)
+{
+  GtkWidget *widget = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (motion));
+  GtkColumnView *self = GTK_COLUMN_VIEW (widget);
+  double hx, hy;
+
+  gtk_widget_translate_coordinates (widget, self->header, x, 0, &hx, &hy);
+  update_autoscroll (GTK_COLUMN_VIEW (widget), hx);
+}
+
+static void
+gtk_column_view_drag_leave (GtkDropControllerMotion *motion,
+                            gpointer                 unused)
+{
+  GtkWidget *widget = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (motion));
+
+  remove_autoscroll (GTK_COLUMN_VIEW (widget));
+}
+
+static void
 gtk_column_view_init (GtkColumnView *self)
 {
   GtkEventController *controller;
@@ -1114,9 +1154,14 @@ gtk_column_view_init (GtkColumnView *self)
   g_signal_connect (controller, "key-pressed", G_CALLBACK (header_key_pressed), self);
   gtk_widget_add_controller (GTK_WIDGET (self), controller);
 
+  controller = gtk_drop_controller_motion_new ();
+  g_signal_connect (controller, "motion", G_CALLBACK (gtk_column_view_drag_motion), NULL);
+  g_signal_connect (controller, "leave", G_CALLBACK (gtk_column_view_drag_leave), NULL);
+  gtk_widget_add_controller (GTK_WIDGET (self), controller);
+
   self->sorter = gtk_column_view_sorter_new ();
   self->factory = gtk_column_list_item_factory_new (self);
-  self->listview = GTK_LIST_VIEW (gtk_list_view_new_with_factory (
+  self->listview = GTK_LIST_VIEW (gtk_list_view_new_with_factory (NULL,
         GTK_LIST_ITEM_FACTORY (g_object_ref (self->factory))));
   gtk_widget_set_hexpand (GTK_WIDGET (self->listview), TRUE);
   gtk_widget_set_vexpand (GTK_WIDGET (self->listview), TRUE);
@@ -1134,19 +1179,30 @@ gtk_column_view_init (GtkColumnView *self)
 
 /**
  * gtk_column_view_new:
+ * @model: (allow-none) (transfer full): the list model to use, or %NULL
  *
- * Creates a new empty #GtkColumnView.
+ * Creates a new #GtkColumnView.
  *
- * You most likely want to call gtk_column_view_set_factory() to
- * set up a way to map its items to widgets and gtk_column_view_set_model()
- * to set a model to provide items next.
+ * You most likely want to call gtk_column_view_append_column() to
+ * add columns next.
  *
  * Returns: a new #GtkColumnView
  **/
 GtkWidget *
-gtk_column_view_new (void)
+gtk_column_view_new (GListModel *model)
 {
-  return g_object_new (GTK_TYPE_COLUMN_VIEW, NULL);
+  GtkWidget *result;
+
+  g_return_val_if_fail (model == NULL || G_IS_LIST_MODEL (model), NULL);
+
+  result = g_object_new (GTK_TYPE_COLUMN_VIEW,
+                         "model", model,
+                         NULL);
+
+  /* consume the reference */
+  g_clear_object (&model);
+
+  return result;
 }
 
 /**
@@ -1196,7 +1252,7 @@ gtk_column_view_set_model (GtkColumnView *self,
  *
  * Gets the list of columns in this column view. This list is constant over
  * the lifetime of @self and can be used to monitor changes to the columns
- * of @self by connecting to the GListModel:items-changed signal.
+ * of @self by connecting to the #GListModel:items-changed signal.
  *
  * Returns: (transfer none): The list managing the columns
  **/
@@ -1218,7 +1274,7 @@ gtk_column_view_get_columns (GtkColumnView *self)
  */
 void
 gtk_column_view_set_show_row_separators (GtkColumnView *self,
-                                         gboolean     show_row_separators)
+                                         gboolean       show_row_separators)
 {
   g_return_if_fail (GTK_IS_COLUMN_VIEW (self));
 
@@ -1257,7 +1313,7 @@ gtk_column_view_get_show_row_separators (GtkColumnView *self)
  */
 void
 gtk_column_view_set_show_column_separators (GtkColumnView *self,
-                                            gboolean     show_column_separators)
+                                            gboolean       show_column_separators)
 {
   g_return_if_fail (GTK_IS_COLUMN_VIEW (self));
 
@@ -1441,16 +1497,25 @@ gtk_column_view_get_list_view (GtkColumnView *self)
  * gtk_column_view_get_sorter:
  * @self: a #GtkColumnView
  *
- * Returns the sorter associated with users sorting choices in
- * the column view.
+ * Returns a special sorter that reflects the users sorting
+ * choices in the column view.
  *
  * To allow users to customizable sorting by clicking on column
- * headers, this sorter needs to be set on the sort
- * model(s) underneath the model that is displayed
- * by the view.
+ * headers, this sorter needs to be set on the sort model underneath
+ * the model that is displayed by the view.
  *
- * See gtk_column_view_column_get_sorter() for setting up
+ * See gtk_column_view_column_set_sorter() for setting up
  * per-column sorting.
+ *
+ * Here is an example:
+ * |[
+ *   gtk_column_view_column_set_sorter (column, sorter);
+ *   gtk_column_view_append_column (view, column);
+ *   sorter = g_object_ref (gtk_column_view_get_sorter (view)));
+ *   model = gtk_sort_list_model_new (store, sorter);
+ *   selection = gtk_no_selection_new (model);
+ *   gtk_column_view_set_model (view, selection);
+ * ]|
  *
  * Returns: (transfer none): the #GtkSorter of @self
  */

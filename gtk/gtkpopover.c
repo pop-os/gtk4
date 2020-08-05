@@ -122,7 +122,7 @@
 #include "gtkbuildable.h"
 #include "gtktooltipprivate.h"
 #include "gtkcssboxesimplprivate.h"
-#include "gtknativeprivate.h"
+#include "gtknative.h"
 
 #include "gtkrender.h"
 #include "gtkstylecontextprivate.h"
@@ -602,7 +602,6 @@ close_menu (GtkPopover *popover)
 static gboolean
 gtk_popover_has_mnemonic_modifier_pressed (GtkPopover *popover)
 {
-  GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
   GList *seats, *s;
   gboolean retval = FALSE;
 
@@ -610,10 +609,10 @@ gtk_popover_has_mnemonic_modifier_pressed (GtkPopover *popover)
 
   for (s = seats; s; s = s->next)
     {
-      GdkDevice *dev = gdk_seat_get_pointer (s->data);
+      GdkDevice *dev = gdk_seat_get_keyboard (s->data);
       GdkModifierType mask;
 
-      gdk_device_get_state (dev, priv->surface, NULL, &mask);
+      mask = gdk_device_get_modifier_state (dev);
       if ((mask & gtk_accelerator_get_default_mod_mask ()) == GDK_ALT_MASK)
         {
           retval = TRUE;
@@ -1050,20 +1049,20 @@ gtk_popover_finalize (GObject *object)
 
 static void
 gtk_popover_get_gap_coords (GtkPopover *popover,
-                            gint       *initial_x_out,
-                            gint       *initial_y_out,
-                            gint       *tip_x_out,
-                            gint       *tip_y_out,
-                            gint       *final_x_out,
-                            gint       *final_y_out)
+                            int        *initial_x_out,
+                            int        *initial_y_out,
+                            int        *tip_x_out,
+                            int        *tip_y_out,
+                            int        *final_x_out,
+                            int        *final_y_out)
 {
   GtkWidget *widget = GTK_WIDGET (popover);
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
   GdkRectangle rect = { 0 };
-  gint base, tip, tip_pos;
-  gint initial_x, initial_y;
-  gint tip_x, tip_y;
-  gint final_x, final_y;
+  int base, tip, tip_pos;
+  int initial_x, initial_y;
+  int tip_x, tip_y;
+  int final_x, final_y;
   GtkPositionType pos;
   int border_top, border_right, border_bottom;
   int border_radius;
@@ -1176,9 +1175,9 @@ gtk_popover_apply_tail_path (GtkPopover *popover,
                              cairo_t    *cr)
 {
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
-  gint initial_x, initial_y;
-  gint tip_x, tip_y;
-  gint final_x, final_y;
+  int initial_x, initial_y;
+  int tip_x, tip_y;
+  int final_x, final_y;
   GtkBorder border;
   GtkWidget *parent;
 
@@ -1252,7 +1251,7 @@ gtk_popover_update_shape (GtkPopover *popover)
     gdk_surface_set_input_region (priv->surface, NULL);
 }
 
-static gint
+static int
 get_border_radius (GtkWidget *widget)
 {
   GtkCssStyle *style;
@@ -1261,13 +1260,13 @@ get_border_radius (GtkWidget *widget)
   return round (_gtk_css_number_value_get (style->border->border_top_left_radius, 100));
 }
 
-static gint
+static int
 get_minimal_size (GtkPopover     *popover,
                   GtkOrientation  orientation)
 {
   GtkPopoverPrivate *priv = gtk_popover_get_instance_private (popover);
   GtkPositionType pos;
-  gint minimal_size;
+  int minimal_size;
   int tail_gap_width = priv->has_arrow ? TAIL_GAP_WIDTH : 0;
 
   minimal_size = 2 * get_border_radius (GTK_WIDGET (popover));
@@ -1831,7 +1830,7 @@ static void
 gtk_popover_buildable_add_child (GtkBuildable *buildable,
                                  GtkBuilder   *builder,
                                  GObject      *child,
-                                 const gchar  *type)
+                                 const char   *type)
 {
   if (GTK_IS_WIDGET (child))
     gtk_popover_set_child (GTK_POPOVER (buildable), GTK_WIDGET (child));

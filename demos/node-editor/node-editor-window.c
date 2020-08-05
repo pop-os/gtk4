@@ -80,7 +80,7 @@ text_view_error_free (TextViewError *e)
   g_free (e->message);
 }
 
-static gchar *
+static char *
 get_current_text (GtkTextBuffer *buffer)
 {
   GtkTextIter start, end;
@@ -288,14 +288,14 @@ text_view_query_tooltip_cb (GtkWidget        *widget,
 
   if (keyboard_tip)
     {
-      gint offset;
+      int offset;
 
       g_object_get (self->text_buffer, "cursor-position", &offset, NULL);
       gtk_text_buffer_get_iter_at_offset (self->text_buffer, &iter, offset);
     }
   else
     {
-      gint bx, by, trailing;
+      int bx, by, trailing;
 
       gtk_text_view_window_to_buffer_coords (GTK_TEXT_VIEW (self->text_view), GTK_TEXT_WINDOW_TEXT,
                                              x, y, &bx, &by);
@@ -399,7 +399,7 @@ node_editor_window_load (NodeEditorWindow *self,
 
 static void
 open_response_cb (GtkWidget        *dialog,
-                  gint              response,
+                  int               response,
                   NodeEditorWindow *self)
 {
   gtk_widget_hide (dialog);
@@ -448,7 +448,7 @@ open_cb (GtkWidget        *button,
 
 static void
 save_response_cb (GtkWidget        *dialog,
-                  gint              response,
+                  int               response,
                   NodeEditorWindow *self)
 {
   gtk_widget_hide (dialog);
@@ -577,7 +577,7 @@ create_cairo_texture (NodeEditorWindow *self)
 
 static void
 export_image_response_cb (GtkWidget  *dialog,
-                          gint        response,
+                          int         response,
                           GdkTexture *texture)
 {
   gtk_widget_hide (dialog);
@@ -825,6 +825,7 @@ node_editor_window_create_renderer_widget (gpointer item,
   gtk_widget_set_size_request (box, 120, 90);
 
   label = gtk_label_new (g_object_get_data (G_OBJECT (paintable), "description"));
+  gtk_widget_add_css_class (label, "title-4");
   gtk_box_append (GTK_BOX (box), label);
 
   picture = gtk_picture_new_for_paintable (paintable);

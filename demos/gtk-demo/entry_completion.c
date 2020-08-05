@@ -1,4 +1,4 @@
-/* Entry/Entry Completion
+/* Entry/Completion
  *
  * GtkEntryCompletion provides a mechanism for adding support for
  * completion in GtkEntry.
@@ -12,22 +12,48 @@
 static GtkTreeModel *
 create_completion_model (void)
 {
+  const char *strings[] = {
+    "GNOME",
+    "gnominious",
+    "Gnomonic projection",
+    "Gnosophy",
+    "total",
+    "totally",
+    "toto",
+    "tottery",
+    "totterer",
+    "Totten trust",
+    "Tottenham hotspurs",
+    "totipotent",
+    "totipotency",
+    "totemism",
+    "totem pole",
+    "Totara",
+    "totalizer",
+    "totalizator",
+    "totalitarianism",
+    "total parenteral nutrition",
+    "total eclipse",
+    "Totipresence",
+    "Totipalmi",
+    "zombie",
+    "aæx",
+    "aæy",
+    "aæz",
+    NULL
+  };
+  int i;
   GtkListStore *store;
   GtkTreeIter iter;
 
   store = gtk_list_store_new (1, G_TYPE_STRING);
 
-  /* Append one word */
-  gtk_list_store_append (store, &iter);
-  gtk_list_store_set (store, &iter, 0, "GNOME", -1);
-
-  /* Append another word */
-  gtk_list_store_append (store, &iter);
-  gtk_list_store_set (store, &iter, 0, "total", -1);
-
-  /* And another word */
-  gtk_list_store_append (store, &iter);
-  gtk_list_store_set (store, &iter, 0, "totally", -1);
+  for (i = 0; strings[i]; i++)
+    {
+      /* Append one word */
+      gtk_list_store_append (store, &iter);
+      gtk_list_store_set (store, &iter, 0, strings[i], -1);
+    }
 
   return GTK_TREE_MODEL (store);
 }
@@ -48,7 +74,7 @@ do_entry_completion (GtkWidget *do_widget)
       window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
-      gtk_window_set_title (GTK_WINDOW (window), "Entry Completion");
+      gtk_window_set_title (GTK_WINDOW (window), "Completion");
       gtk_window_set_resizable (GTK_WINDOW (window), FALSE);
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
@@ -60,7 +86,7 @@ do_entry_completion (GtkWidget *do_widget)
       gtk_window_set_child (GTK_WINDOW (window), vbox);
 
       label = gtk_label_new (NULL);
-      gtk_label_set_markup (GTK_LABEL (label), "Completion demo, try writing <b>total</b> or <b>gnome</b> for example.");
+      gtk_label_set_markup (GTK_LABEL (label), "Try writing <b>total</b> or <b>gnome</b> for example.");
       gtk_box_append (GTK_BOX (vbox), label);
 
       /* Create our entry */
@@ -81,6 +107,9 @@ do_entry_completion (GtkWidget *do_widget)
 
       /* Use model column 0 as the text column */
       gtk_entry_completion_set_text_column (completion, 0);
+
+      gtk_entry_completion_set_inline_completion (completion, TRUE);
+      gtk_entry_completion_set_inline_selection (completion, TRUE);
     }
 
   if (!gtk_widget_get_visible (window))

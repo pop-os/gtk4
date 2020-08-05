@@ -22,6 +22,7 @@
 #include <glib-object.h>
 #include "gdkdisplay.h"
 #include "gdkdevice.h"
+#include "gdkdevicetoolprivate.h"
 #include "gdkseatprivate.h"
 #include "gdkdeviceprivate.h"
 #include "gdkintl.h"
@@ -323,35 +324,35 @@ gdk_seat_ungrab (GdkSeat *seat)
 }
 
 /**
- * gdk_seat_get_slaves:
+ * gdk_seat_get_devices:
  * @seat: a #GdkSeat
  * @capabilities: capabilities to get devices for
  *
- * Returns the slave devices that match the given capabilities.
+ * Returns the devices that match the given capabilities.
  *
  * Returns: (transfer container) (element-type GdkDevice): A list of #GdkDevices.
  *          The list must be freed with g_list_free(), the elements are owned
  *          by GDK and must not be freed.
  **/
 GList *
-gdk_seat_get_slaves (GdkSeat             *seat,
-                     GdkSeatCapabilities  capabilities)
+gdk_seat_get_devices (GdkSeat             *seat,
+                      GdkSeatCapabilities  capabilities)
 {
   GdkSeatClass *seat_class;
 
   g_return_val_if_fail (GDK_IS_SEAT (seat), NULL);
 
   seat_class = GDK_SEAT_GET_CLASS (seat);
-  return seat_class->get_slaves (seat, capabilities);
+  return seat_class->get_devices (seat, capabilities);
 }
 
 /**
  * gdk_seat_get_pointer:
  * @seat: a #GdkSeat
  *
- * Returns the master device that routes pointer events.
+ * Returns the logical device that routes pointer events.
  *
- * Returns: (transfer none) (nullable): a master #GdkDevice with pointer
+ * Returns: (transfer none) (nullable): a logical #GdkDevice with pointer
  *          capabilities. This object is owned by GTK and must not be freed.
  **/
 GdkDevice *
@@ -362,16 +363,16 @@ gdk_seat_get_pointer (GdkSeat *seat)
   g_return_val_if_fail (GDK_IS_SEAT (seat), NULL);
 
   seat_class = GDK_SEAT_GET_CLASS (seat);
-  return seat_class->get_master (seat, GDK_SEAT_CAPABILITY_POINTER);
+  return seat_class->get_logical_device (seat, GDK_SEAT_CAPABILITY_POINTER);
 }
 
 /**
  * gdk_seat_get_keyboard:
  * @seat: a #GdkSeat
  *
- * Returns the master device that routes keyboard events.
+ * Returns the logical device that routes keyboard events.
  *
- * Returns: (transfer none) (nullable): a master #GdkDevice with keyboard
+ * Returns: (transfer none) (nullable): a logical #GdkDevice with keyboard
  *          capabilities. This object is owned by GTK and must not be freed.
  **/
 GdkDevice *
@@ -382,7 +383,7 @@ gdk_seat_get_keyboard (GdkSeat *seat)
   g_return_val_if_fail (GDK_IS_SEAT (seat), NULL);
 
   seat_class = GDK_SEAT_GET_CLASS (seat);
-  return seat_class->get_master (seat, GDK_SEAT_CAPABILITY_KEYBOARD);
+  return seat_class->get_logical_device (seat, GDK_SEAT_CAPABILITY_KEYBOARD);
 }
 
 void
@@ -439,34 +440,44 @@ gdk_seat_get_tool (GdkSeat *seat,
                    guint64  serial,
                    guint64  hw_id)
 {
+  GdkDeviceTool *match = NULL;
+  GList *tools, *l;
+
+  tools = gdk_seat_get_tools (seat);
+
+  for (l = tools; l; l = l->next)
+    {
+      GdkDeviceTool *tool = l->data;
+
+      if (tool->serial == serial && tool->hw_id == hw_id)
+        {
+          match = tool;
+          break;
+        }
+    }
+
+  g_list_free (tools);
+
+  return match;
+}
+
+/**
+ * gdk_seat_get_tools:
+ * @seat: A #GdkSeat
+ *
+ * Returns all #GdkDeviceTools that are known to the
+ * application.
+ *
+ * Returns: (transfer container) (element-type Gdk.DeviceTool): A list of tools. Free with
+ * g_list_free().
+ **/
+GList *
+gdk_seat_get_tools (GdkSeat *seat)
+{
   GdkSeatClass *seat_class;
 
   g_return_val_if_fail (GDK_IS_SEAT (seat), NULL);
 
   seat_class = GDK_SEAT_GET_CLASS (seat);
-  return seat_class->get_tool (seat, serial, hw_id);
-}
-
-/**
- * gdk_seat_get_master_pointers:
- * @seat: The #GdkSeat
- * @capabilities: Queried capabilities
- *
- * Returns all master pointers with the given capabilities driven by this @seat.
- * On most backends this function will return a list with a single element (meaning
- * that all input devices drive the same onscreen cursor).
- *
- * In other backends where there can possibly be multiple foci (eg. wayland),
- * this function will return all master #GdkDevices that represent these.
- *
- * Returns: (transfer container) (element-type GdkDevice): A list
- * of master pointing devices
- */
-GList *
-gdk_seat_get_master_pointers (GdkSeat             *seat,
-                              GdkSeatCapabilities  capabilities)
-{
-  g_return_val_if_fail (GDK_IS_SEAT (seat), NULL);
-
-  return GDK_SEAT_GET_CLASS (seat)->get_master_pointers (seat, capabilities);
+  return seat_class->get_tools (seat);
 }

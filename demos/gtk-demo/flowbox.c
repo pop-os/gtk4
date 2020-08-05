@@ -1,9 +1,8 @@
 /* Flow Box
  *
  * GtkFlowBox allows flexible and responsive grids which reflow
- * as needed and support sorting and filtering.
- *
- * The children of a GtkFlowBox are regular widgets
+ * as needed and support sorting and filtering. The children of
+ * a GtkFlowBox are regular widgets
  *
  * The dataset used here has 665 colors.
  */
@@ -30,7 +29,7 @@ draw_color (GtkDrawingArea *drawingarea,
 }
 
 static GtkWidget *
-color_swatch_new (const gchar *color)
+color_swatch_new (const char *color)
 {
   GtkWidget *button, *area;
 
@@ -49,7 +48,7 @@ do_flowbox (GtkWidget *do_widget)
 {
   static GtkWidget *window = NULL;
   GtkWidget *scrolled, *flowbox;
-  const gchar *colors[] = {
+  const char *colors[] = {
     "AliceBlue",
     "AntiqueWhite",
     "AntiqueWhite1",
@@ -717,7 +716,7 @@ do_flowbox (GtkWidget *do_widget)
     "YellowGreen",
     NULL
   };
-  gint i;
+  int i;
 
   if (!window)
     {
@@ -728,7 +727,7 @@ do_flowbox (GtkWidget *do_widget)
       gtk_window_set_default_size (GTK_WINDOW (window), 400, 600);
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
-      scrolled = gtk_scrolled_window_new (NULL, NULL);
+      scrolled = gtk_scrolled_window_new ();
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled), GTK_POLICY_NEVER, GTK_POLICY_AUTOMATIC);
       flowbox = gtk_flow_box_new ();
       gtk_widget_set_valign (flowbox, GTK_ALIGN_START);

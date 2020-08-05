@@ -36,8 +36,6 @@
 #include "gtkcssstylepropertyprivate.h"
 #include "gtklabel.h"
 
-#include "a11y/gtkframeaccessible.h"
-
 /**
  * SECTION:gtkframe
  * @Short_description: A widget with a decorative frame and optional label
@@ -87,7 +85,7 @@ typedef struct
   GtkWidget *child;
 
   guint has_frame : 1;
-  gfloat label_xalign;
+  float label_xalign;
 } GtkFramePrivate;
 
 enum {
@@ -125,14 +123,14 @@ static void gtk_frame_buildable_init                (GtkBuildableIface *iface);
 static void gtk_frame_buildable_add_child           (GtkBuildable *buildable,
                                                      GtkBuilder   *builder,
                                                      GObject      *child,
-                                                     const gchar  *type);
+                                                     const char   *type);
 static void     gtk_frame_measure (GtkWidget           *widget,
                                    GtkOrientation       orientation,
-                                   gint                 for_size,
-                                   gint                *minimum_size,
-                                   gint                *natural_size,
-                                   gint                *minimum_baseline,
-                                   gint                *natural_baseline);
+                                   int                  for_size,
+                                   int                 *minimum_size,
+                                   int                 *natural_size,
+                                   int                 *minimum_baseline,
+                                   int                 *natural_baseline);
 static void     gtk_frame_compute_expand (GtkWidget *widget,
                                           gboolean  *hexpand,
                                           gboolean  *vexpand);
@@ -194,7 +192,6 @@ gtk_frame_class_init (GtkFrameClass *class)
 
   g_object_class_install_properties (gobject_class, LAST_PROP, frame_props);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_FRAME_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("frame"));
 }
 
@@ -212,7 +209,7 @@ static void
 gtk_frame_buildable_add_child (GtkBuildable *buildable,
                                GtkBuilder   *builder,
                                GObject      *child,
-                               const gchar  *type)
+                               const char   *type)
 {
   if (type && strcmp (type, "label") == 0)
     gtk_frame_set_label_widget (GTK_FRAME (buildable), GTK_WIDGET (child));
@@ -313,7 +310,7 @@ gtk_frame_get_property (GObject         *object,
  * Returns: a new #GtkFrame widget
  **/
 GtkWidget*
-gtk_frame_new (const gchar *label)
+gtk_frame_new (const char *label)
 {
   return g_object_new (GTK_TYPE_FRAME, "label", label, NULL);
 }
@@ -328,7 +325,7 @@ gtk_frame_new (const gchar *label)
  **/
 void
 gtk_frame_set_label (GtkFrame *frame,
-                     const gchar *label)
+                     const char *label)
 {
   g_return_if_fail (GTK_IS_FRAME (frame));
 
@@ -352,7 +349,7 @@ gtk_frame_set_label (GtkFrame *frame,
  *               a #GtkLabel. This string is owned by GTK+ and
  *               must not be modified or freed.
  **/
-const gchar *
+const char *
 gtk_frame_get_label (GtkFrame *frame)
 {
   GtkFramePrivate *priv = gtk_frame_get_instance_private (frame);
@@ -443,7 +440,7 @@ gtk_frame_get_label_widget (GtkFrame *frame)
  **/
 void
 gtk_frame_set_label_align (GtkFrame *frame,
-                           gfloat    xalign)
+                           float     xalign)
 {
   GtkFramePrivate *priv = gtk_frame_get_instance_private (frame);
 
@@ -465,7 +462,7 @@ gtk_frame_set_label_align (GtkFrame *frame,
  * Retrieves the X alignment of the frame’s label. See
  * gtk_frame_set_label_align().
  **/
-gfloat
+float
 gtk_frame_get_label_align (GtkFrame *frame)
 {
   GtkFramePrivate *priv = gtk_frame_get_instance_private (frame);
@@ -533,14 +530,14 @@ gtk_frame_real_compute_child_allocation (GtkFrame      *frame,
 {
   GtkFramePrivate *priv = gtk_frame_get_instance_private (frame);
   int frame_width, frame_height;
-  gint height;
+  int height;
 
   frame_width = gtk_widget_get_width (GTK_WIDGET (frame));
   frame_height = gtk_widget_get_height (GTK_WIDGET (frame));
 
   if (priv->label_widget)
     {
-      gint nat_width, width;
+      int nat_width, width;
 
       gtk_widget_measure (priv->label_widget, GTK_ORIENTATION_HORIZONTAL, -1,
                           NULL, &nat_width, NULL, NULL);
@@ -560,11 +557,11 @@ gtk_frame_real_compute_child_allocation (GtkFrame      *frame,
 static void
 gtk_frame_measure (GtkWidget      *widget,
                    GtkOrientation  orientation,
-                   gint            for_size,
-                   gint            *minimum,
-                   gint            *natural,
-                   gint            *minimum_baseline,
-                   gint            *natural_baseline)
+                   int             for_size,
+                   int             *minimum,
+                   int             *natural,
+                   int             *minimum_baseline,
+                   int             *natural_baseline)
 {
   GtkFrame *frame = GTK_FRAME (widget);
   GtkFramePrivate *priv = gtk_frame_get_instance_private (frame);

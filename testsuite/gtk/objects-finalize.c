@@ -80,12 +80,14 @@ test_finalize_object (gconstpointer data)
                              NULL);
       g_object_unref (list_store);
     }
-  else if (g_type_is_a (test_type, GTK_TYPE_LAYOUT_CHILD) ||
-           g_type_is_a (test_type, GTK_TYPE_PROPERTY_SELECTION))
+  else if (g_type_is_a (test_type, GTK_TYPE_LAYOUT_CHILD))
     {
+#if 0
+      // See https://github.com/mesonbuild/meson/issues/7515
       char *msg = g_strdup_printf ("Skipping %s", g_type_name (test_type));
       g_test_skip (msg);
       g_free (msg);
+#endif
       return;
     }
   else
@@ -130,8 +132,7 @@ main (int argc, char **argv)
 {
   const GType *all_types;
   guint n_types = 0, i;
-  GTestDBus *bus;
-  gint result;
+  int result;
   const char *display, *x_r_d;
 
   /* These must be set before gtk_test_init */
@@ -141,12 +142,6 @@ main (int argc, char **argv)
   /* g_test_dbus_up() helpfully clears these, so we have to re-set it */
   display = g_getenv ("DISPLAY");
   x_r_d = g_getenv ("XDG_RUNTIME_DIR");
-
-  /* Create one test bus for all tests, as we have a lot of very small
-   * and quick tests.
-   */
-  bus = g_test_dbus_new (G_TEST_DBUS_NONE);
-  g_test_dbus_up (bus);
 
   if (display)
     g_setenv ("DISPLAY", display, TRUE);
@@ -179,7 +174,7 @@ main (int argc, char **argv)
           !g_type_is_a (all_types[i], GTK_TYPE_SHORTCUT_TRIGGER) &&
           !g_type_is_a (all_types[i], GTK_TYPE_SHORTCUT_ACTION))
 	{
-	  gchar *test_path = g_strdup_printf ("/FinalizeObject/%s", g_type_name (all_types[i]));
+	  char *test_path = g_strdup_printf ("/FinalizeObject/%s", g_type_name (all_types[i]));
 
 	  g_test_add_data_func (test_path, GSIZE_TO_POINTER (all_types[i]), test_finalize_object);
 
@@ -188,9 +183,6 @@ main (int argc, char **argv)
     }
 
   result = g_test_run();
-
-  g_test_dbus_down (bus);
-  g_object_unref (bus);
 
   return result;
 }

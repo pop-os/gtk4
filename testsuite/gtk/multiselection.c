@@ -29,8 +29,11 @@ get (GListModel *model,
      guint       position)
 {
   GObject *object = g_list_model_get_item (model, position);
+  guint ret;
   g_assert (object != NULL);
-  return GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
+  ret = GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
+  g_object_unref (object);
+  return ret;
 }
 
 static char *
@@ -250,7 +253,7 @@ new_model (GListStore *store)
   GtkSelectionModel *result;
   GString *changes;
 
-  result = GTK_SELECTION_MODEL (gtk_multi_selection_new (G_LIST_MODEL (store)));
+  result = GTK_SELECTION_MODEL (gtk_multi_selection_new (g_object_ref (G_LIST_MODEL (store))));
 
   changes = g_string_new ("");
   g_object_set_qdata_full (G_OBJECT(result), changes_quark, changes, free_changes);
@@ -259,6 +262,21 @@ new_model (GListStore *store)
   changes = g_string_new ("");
   g_object_set_qdata_full (G_OBJECT(result), selection_quark, changes, free_changes);
   g_signal_connect (result, "selection-changed", G_CALLBACK (selection_changed), changes);
+
+  return result;
+}
+
+static GtkSelectionFilterModel *
+new_filter_model (GtkSelectionModel *model)
+{
+  GtkSelectionFilterModel *result;
+  GString *changes;
+
+  result = gtk_selection_filter_model_new (model);
+
+  changes = g_string_new ("");
+  g_object_set_qdata_full (G_OBJECT(result), changes_quark, changes, free_changes);
+  g_signal_connect (result, "items-changed", G_CALLBACK (items_changed), changes);
 
   return result;
 }
@@ -291,7 +309,8 @@ test_changes (void)
 {
   GtkSelectionModel *selection;
   GListStore *store;
-  
+  gboolean ret;
+
   store = new_store (1, 5, 1);
   selection = new_model (store);
   assert_model (selection, "1 2 3 4 5");
@@ -315,6 +334,17 @@ test_changes (void)
   assert_model (selection, "1 2 3 97");
   assert_changes (selection, "3-2+1");
   assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  ret = gtk_selection_model_select_range (selection, 1, 2, FALSE);
+  g_assert_true (ret);
+  assert_selection (selection, "2 3");
+  assert_selection_changes (selection, "1:2");
+
+  insert (store, 2, 22);
+  assert_model (selection, "1 2 22 3 97");
+  assert_changes (selection, "+2");
+  assert_selection (selection, "2 3");
   assert_selection_changes (selection, "");
 
   g_object_unref (store);
@@ -396,7 +426,7 @@ test_select_range (void)
   ret = gtk_selection_model_select_range (selection, 3, 2, FALSE);
   g_assert_true (ret);
   assert_selection (selection, "3 4 5");
-  assert_selection_changes (selection, "3:2");
+  assert_selection_changes (selection, "4:1");
 
   ret = gtk_selection_model_select_range (selection, 0, 1, TRUE);
   g_assert_true (ret);
@@ -408,7 +438,7 @@ test_select_range (void)
 }
 
 /* Test that removing and readding items
- * clears the selected state.
+ * doesn't clear the selected state.
  */
 static void
 test_readd (void)
@@ -432,62 +462,19 @@ test_readd (void)
 
   g_list_model_items_changed (G_LIST_MODEL (store), 1, 3, 3);
   assert_changes (selection, "1-3+3");
-  assert_selection (selection, "");
+  assert_selection (selection, "3 4");
 
   g_object_unref (store);
   g_object_unref (selection);
 }
 
-typedef struct {
-  guint start;
-  guint n;
-  gboolean in;
-} SelectionData;
-
 static void
-select_some (guint position,
-             guint *start,
-             guint *n,
-             gboolean *selected,
-             gpointer data)
-{
-  SelectionData *sdata = data;
-  guint i;
-
-  for (i = 0; sdata[i].n != 0; i++)
-    {
-      if (sdata[i].start <= position &&
-          position < sdata[i].start + sdata[i].n)
-        break;
-    }
-
-  *start = sdata[i].start;
-  *n = sdata[i].n;
-  *selected = sdata[i].in;
-}
-
-static void
-test_callback (void)
+test_set_selection (void)
 {
   GtkSelectionModel *selection;
   gboolean ret;
   GListStore *store;
-  SelectionData data[] = {
-    { 0, 2, FALSE },
-    { 2, 3, TRUE },
-    { 5, 2, FALSE },
-    { 6, 3, TRUE },
-    { 9, 1, FALSE },
-    { 0, 0, FALSE }
-  };
-
-  SelectionData more_data[] = {
-    { 0, 3, FALSE },
-    { 3, 1, TRUE },
-    { 4, 3, FALSE },
-    { 7, 1, TRUE },
-    { 0, 0, FALSE }
-  };
+  GtkBitset *selected, *mask;
 
   store = new_store (1, 10, 1);
 
@@ -496,17 +483,190 @@ test_callback (void)
   assert_selection (selection, "");
   assert_selection_changes (selection, "");
 
-  ret = gtk_selection_model_select_callback (selection, select_some, data);
+  selected = gtk_bitset_new_empty ();
+  gtk_bitset_add_range (selected, 2, 3);
+  gtk_bitset_add_range (selected, 6, 3);
+  mask = gtk_bitset_new_empty ();
+  gtk_bitset_add_range (mask, 0, 100); /* too big on purpose */
+  ret = gtk_selection_model_set_selection (selection, selected, mask);
   g_assert_true (ret);
+  gtk_bitset_unref (selected);
+  gtk_bitset_unref (mask);
   assert_selection (selection, "3 4 5 7 8 9");
   assert_selection_changes (selection, "2:7");
 
-  ret = gtk_selection_model_unselect_callback (selection, select_some, more_data);
+  selected = gtk_bitset_new_empty ();
+  mask = gtk_bitset_new_empty ();
+  gtk_bitset_add (mask, 3);
+  gtk_bitset_add (mask, 7);
+  ret = gtk_selection_model_set_selection (selection, selected, mask);
   g_assert_true (ret);
+  gtk_bitset_unref (selected);
+  gtk_bitset_unref (mask);
   assert_selection (selection, "3 5 7 9");
   assert_selection_changes (selection, "3:5");
 
   g_object_unref (store);
+  g_object_unref (selection);
+}
+
+static void
+test_selection_filter (void)
+{
+  GtkSelectionModel *selection;
+  GtkSelectionFilterModel *filter;
+  GListStore *store;
+  gboolean ret;
+
+  store = new_store (1, 5, 1);
+  selection = new_model (store);
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  filter = new_filter_model (selection);
+  assert_model (filter, "");
+  assert_changes (filter, "");
+
+  ret = gtk_selection_model_select_item (selection, 3, FALSE);
+  g_assert_true (ret);
+  assert_selection (selection, "4");
+  assert_selection_changes (selection, "3:1");
+  assert_model (filter, "4");
+  assert_changes (filter, "+0");
+
+  ret = gtk_selection_model_unselect_item (selection, 3);
+  g_assert_true (ret);
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "3:1");
+  assert_model (filter, "");
+  assert_changes (filter, "-0");
+
+  ret = gtk_selection_model_select_item (selection, 1, FALSE);
+  g_assert_true (ret);
+  assert_selection (selection, "2");
+  assert_selection_changes (selection, "1:1");
+  assert_model (filter, "2");
+  assert_changes (filter, "+0");
+
+  ret = gtk_selection_model_select_item (selection, 0, FALSE);
+  g_assert_true (ret);
+  assert_selection (selection, "1 2");
+  assert_selection_changes (selection, "0:1");
+  assert_model (filter, "1 2");
+  assert_changes (filter, "+0");
+
+  ret = gtk_selection_model_unselect_item (selection, 0);
+  g_assert_true (ret);
+  assert_selection (selection, "2");
+  assert_selection_changes (selection, "0:1");
+  assert_model (filter, "2");
+  assert_changes (filter, "-0");
+
+  ret = gtk_selection_model_select_range (selection, 3, 2, FALSE);
+  g_assert_true (ret);
+  assert_selection (selection, "2 4 5");
+  assert_selection_changes (selection, "3:2");
+  assert_model (filter, "2 4 5");
+  assert_changes (filter, "1+2");
+
+  ret = gtk_selection_model_unselect_range (selection, 3, 2);
+  g_assert_true (ret);
+  assert_selection (selection, "2");
+  assert_selection_changes (selection, "3:2");
+  assert_model (filter, "2");
+  assert_changes (filter, "1-2");
+
+  ret = gtk_selection_model_select_all (selection);
+  g_assert_true (ret);
+  assert_selection (selection, "1 2 3 4 5");
+  assert_selection_changes (selection, "0:5");
+  assert_model (filter, "1 2 3 4 5");
+  assert_changes (filter, "0-1+5");
+
+  ret = gtk_selection_model_unselect_all (selection);
+  g_assert_true (ret);
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "0:5");
+  assert_model (filter, "");
+  assert_changes (filter, "0-5");
+
+  ret = gtk_selection_model_select_range (selection, 1, 3, FALSE);
+  g_assert_true (ret);
+  assert_selection (selection, "2 3 4");
+  assert_selection_changes (selection, "1:3");
+  assert_model (filter, "2 3 4");
+  assert_changes (filter, "0+3");
+
+  insert (store, 2, 22);
+  assert_model (selection, "1 2 22 3 4 5");
+  assert_changes (selection, "+2");
+  assert_selection (selection, "2 3 4");
+  assert_selection_changes (selection, "");
+  assert_model (filter, "2 3 4");
+  assert_changes (filter, "");
+
+  g_list_store_remove (store, 2);
+  assert_model (selection, "1 2 3 4 5");
+  assert_changes (selection, "-2");
+  assert_selection (selection, "2 3 4");
+  assert_selection_changes (selection, "");
+  assert_model (filter, "2 3 4");
+  assert_changes (filter, "");
+
+  g_object_unref (store);
+  g_object_unref (selection);
+  g_object_unref (filter);
+}
+
+static void
+test_set_model (void)
+{
+  GtkSelectionModel *selection;
+  GListStore *store;
+  GListModel *m1, *m2;
+  gboolean ret;
+  
+  store = new_store (1, 5, 1);
+  m1 = G_LIST_MODEL (store);
+  m2 = G_LIST_MODEL (gtk_slice_list_model_new (g_object_ref (m1), 0, 3));
+  selection = new_model (store);
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  ret = gtk_selection_model_select_range (selection, 1, 3, FALSE);
+  g_assert_true (ret);
+  assert_selection (selection, "2 3 4");
+  assert_selection_changes (selection, "1:3");
+
+  /* we retain the selected item across model changes */
+  gtk_multi_selection_set_model (GTK_MULTI_SELECTION (selection), m2);
+  assert_changes (selection, "0-5+3");
+  assert_selection (selection, "2 3");
+  assert_selection_changes (selection, "");
+
+  gtk_multi_selection_set_model (GTK_MULTI_SELECTION (selection), NULL);
+  assert_changes (selection, "0-3");
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  gtk_multi_selection_set_model (GTK_MULTI_SELECTION (selection), m2);
+  assert_changes (selection, "0+3");
+  assert_selection (selection, "");
+  assert_selection_changes (selection, "");
+
+  ret = gtk_selection_model_select_all (selection);
+  g_assert_true (ret);
+  assert_selection (selection, "1 2 3");
+  assert_selection_changes (selection, "0:3");
+
+  /* we retain no selected item across model changes */
+  gtk_multi_selection_set_model (GTK_MULTI_SELECTION (selection), m1);
+  assert_changes (selection, "0-3+5");
+  assert_selection (selection, "1 2 3");
+  assert_selection_changes (selection, "");
+
+  g_object_unref (m2);
+  g_object_unref (m1);
   g_object_unref (selection);
 }
 
@@ -528,7 +688,9 @@ main (int argc, char *argv[])
   g_test_add_func ("/multiselection/selection", test_selection);
   g_test_add_func ("/multiselection/select-range", test_select_range);
   g_test_add_func ("/multiselection/readd", test_readd);
-  g_test_add_func ("/multiselection/callback", test_callback);
+  g_test_add_func ("/multiselection/set_selection", test_set_selection);
+  g_test_add_func ("/multiselection/selection-filter", test_selection_filter);
+  g_test_add_func ("/multiselection/set-model", test_set_model);
 
   return g_test_run ();
 }

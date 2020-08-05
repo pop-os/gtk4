@@ -345,10 +345,10 @@ GDK_AVAILABLE_IN_ALL
 GdkSurface *            gdk_event_get_surface           (GdkEvent *event);
 
 GDK_AVAILABLE_IN_ALL
-GdkDevice *             gdk_event_get_device            (GdkEvent *event);
+GdkSeat *               gdk_event_get_seat              (GdkEvent *event);
 
 GDK_AVAILABLE_IN_ALL
-GdkDevice *             gdk_event_get_source_device     (GdkEvent *event);
+GdkDevice *             gdk_event_get_device            (GdkEvent *event);
 
 GDK_AVAILABLE_IN_ALL
 GdkDeviceTool *         gdk_event_get_device_tool       (GdkEvent *event);
@@ -378,6 +378,9 @@ gboolean                gdk_event_get_axis              (GdkEvent   *event,
                                                          GdkAxisUse  axis_use,
                                                          double     *value);
 GDK_AVAILABLE_IN_ALL
+GdkTimeCoord *          gdk_event_get_history           (GdkEvent *event,
+                                                         guint    *out_n_coords);
+GDK_AVAILABLE_IN_ALL
 gboolean                gdk_event_get_pointer_emulated (GdkEvent *event);
 
 GDK_AVAILABLE_IN_ALL
@@ -392,6 +395,7 @@ GDK_AVAILABLE_IN_ALL
 void                    gdk_scroll_event_get_deltas     (GdkEvent *event,
                                                          double   *delta_x,
                                                          double   *delta_y);
+
 GDK_AVAILABLE_IN_ALL
 gboolean                gdk_scroll_event_is_stop        (GdkEvent *event);
 GDK_AVAILABLE_IN_ALL
@@ -470,9 +474,6 @@ gboolean                gdk_grab_broken_event_get_implicit     (GdkEvent *event)
 
 GDK_AVAILABLE_IN_ALL
 GType                   gdk_motion_event_get_type       (void) G_GNUC_CONST;
-GDK_AVAILABLE_IN_ALL
-GdkTimeCoord *          gdk_motion_event_get_history    (GdkEvent *event,
-                                                         guint    *out_n_coords);
 
 GDK_AVAILABLE_IN_ALL
 GType                   gdk_delete_event_get_type       (void) G_GNUC_CONST;

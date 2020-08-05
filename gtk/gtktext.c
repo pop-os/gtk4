@@ -60,15 +60,11 @@
 #include "gtktexthistoryprivate.h"
 #include "gtktextutil.h"
 #include "gtktooltip.h"
-#include "gtktreeselection.h"
-#include "gtktreeview.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
 #include "gtkwindow.h"
 #include "gtknative.h"
 #include "gtkactionmuxerprivate.h"
-
-#include "a11y/gtktextaccessible.h"
 
 #include <cairo-gobject.h>
 #include <string.h>
@@ -983,7 +979,7 @@ gtk_text_class_init (GtkTextClass *class)
    *
    * The default bindings for this signal come in two variants,
    * the variant with the Shift modifier extends the selection,
-   * the variant without the Shift modifer does not.
+   * the variant without the Shift modifier does not.
    * There are too many key combinations to list them all here.
    * - Arrow keys move by individual characters/lines
    * - Ctrl-arrow key combinations move by words/paragraphs
@@ -1482,8 +1478,6 @@ gtk_text_class_init (GtkTextClass *class)
                                        GDK_KEY_z, GDK_CONTROL_MASK | GDK_SHIFT_MASK,
                                        "text.redo", NULL);
 
-
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_TEXT_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("text"));
 }
 
@@ -1872,6 +1866,7 @@ gtk_text_init (GtkText *self)
   gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (priv->drag_gesture));
 
   gesture = gtk_gesture_click_new ();
+  gtk_event_controller_set_name (GTK_EVENT_CONTROLLER (gesture), "gtk-text-click-gesture");
   g_signal_connect (gesture, "pressed",
                     G_CALLBACK (gtk_text_click_gesture_pressed), self);
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (gesture), 0);
@@ -1879,11 +1874,14 @@ gtk_text_init (GtkText *self)
   gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (gesture));
 
   controller = gtk_event_controller_motion_new ();
+  gtk_event_controller_set_name (controller, "gtk-text-motion-controller");
   g_signal_connect (controller, "motion",
                     G_CALLBACK (gtk_text_motion_controller_motion), self);
   gtk_widget_add_controller (GTK_WIDGET (self), controller);
 
   priv->key_controller = gtk_event_controller_key_new ();
+  gtk_event_controller_set_propagation_phase (priv->key_controller, GTK_PHASE_TARGET);
+  gtk_event_controller_set_name (priv->key_controller, "gtk-text-key-controller");
   g_signal_connect (priv->key_controller, "key-pressed",
                     G_CALLBACK (gtk_text_key_controller_key_pressed), self);
   g_signal_connect_swapped (priv->key_controller, "im-update",
@@ -1891,7 +1889,9 @@ gtk_text_init (GtkText *self)
   gtk_event_controller_key_set_im_context (GTK_EVENT_CONTROLLER_KEY (priv->key_controller),
                                            priv->im_context);
   gtk_widget_add_controller (GTK_WIDGET (self), priv->key_controller);
+
   controller = gtk_event_controller_focus_new ();
+  gtk_event_controller_set_name (controller, "gtk-text-focus-controller");
   g_signal_connect_swapped (controller, "enter",
                             G_CALLBACK (gtk_text_focus_in), self);
   g_signal_connect_swapped (controller, "leave",
@@ -2623,6 +2623,7 @@ gtk_text_do_popup (GtkText *self,
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
 
   gtk_text_update_clipboard_actions (self);
+  gtk_text_update_emoji_action (self);
 
   if (!priv->popup_menu)
     {
@@ -2669,8 +2670,6 @@ gtk_text_click_gesture_pressed (GtkGestureClick *gesture,
   current = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
   event = gtk_gesture_get_last_event (GTK_GESTURE (gesture), current);
 
-  gtk_gesture_set_sequence_state (GTK_GESTURE (gesture), current,
-                                  GTK_EVENT_SEQUENCE_CLAIMED);
   gesture_get_current_point_in_layout (GTK_GESTURE_SINGLE (gesture), self, &x, &y);
   gtk_text_reset_blink_time (self);
 
@@ -2678,6 +2677,7 @@ gtk_text_click_gesture_pressed (GtkGestureClick *gesture,
     {
       priv->in_click = TRUE;
       gtk_widget_grab_focus (widget);
+      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
       priv->in_click = FALSE;
     }
 
@@ -2686,6 +2686,7 @@ gtk_text_click_gesture_pressed (GtkGestureClick *gesture,
   if (gdk_event_triggers_context_menu (event))
     {
       gtk_text_do_popup (self, widget_x, widget_y);
+      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
     }
   else if (n_press == 1 && button == GDK_BUTTON_MIDDLE &&
            get_middle_click_paste (self))
@@ -2699,6 +2700,8 @@ gtk_text_click_gesture_pressed (GtkGestureClick *gesture,
         {
           gtk_widget_error_bell (widget);
         }
+
+      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
     }
   else if (button == GDK_BUTTON_PRIMARY)
     {
@@ -2711,7 +2714,7 @@ gtk_text_click_gesture_pressed (GtkGestureClick *gesture,
       sel_end = priv->current_pos;
       have_selection = sel_start != sel_end;
 
-      source = gdk_event_get_source_device (event);
+      source = gdk_event_get_device (event);
       is_touchscreen = gtk_simulate_touchscreen () ||
                        gdk_device_get_source (source) == GDK_SOURCE_TOUCHSCREEN;
 
@@ -2817,9 +2820,6 @@ gtk_text_click_gesture_pressed (GtkGestureClick *gesture,
           else
             gtk_text_set_positions (self, end, start);
         }
-
-      gtk_gesture_set_state (priv->drag_gesture,
-                             GTK_EVENT_SEQUENCE_CLAIMED);
 
       gtk_text_update_handles (self);
     }
@@ -2991,7 +2991,7 @@ gtk_text_drag_gesture_update (GtkGestureDrag *gesture,
       else
         tmp_pos = gtk_text_find_position (self, x);
 
-      source = gdk_event_get_source_device (event);
+      source = gdk_event_get_device (event);
       input_source = gdk_device_get_source (source);
 
       if (priv->select_words)
@@ -3190,11 +3190,15 @@ gtk_text_grab_focus (GtkWidget *widget)
   GtkText *self = GTK_TEXT (widget);
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
   gboolean select_on_focus;
+  GtkWidget *prev_focus;
+
+  prev_focus = gtk_root_get_focus (gtk_widget_get_root (widget));
 
   if (!GTK_WIDGET_CLASS (gtk_text_parent_class)->grab_focus (GTK_WIDGET (self)))
     return FALSE;
 
-  if (priv->editable && !priv->in_click)
+  if (priv->editable && !priv->in_click &&
+      !(prev_focus && gtk_widget_is_ancestor (prev_focus, widget)))
     {
       g_object_get (gtk_widget_get_settings (widget),
                     "gtk-entry-select-on-focus",
@@ -4017,7 +4021,11 @@ gtk_text_copy_clipboard (GtkText *self)
           return;
         }
 
-      str = gtk_text_get_display_text (self, priv->selection_bound, priv->current_pos);
+      if (priv->selection_bound < priv->current_pos)
+        str = gtk_text_get_display_text (self, priv->selection_bound, priv->current_pos);
+      else
+        str = gtk_text_get_display_text (self, priv->current_pos, priv->selection_bound);
+
       gdk_clipboard_set_text (gtk_widget_get_clipboard (GTK_WIDGET (self)), str);
       g_free (str);
     }
@@ -4193,7 +4201,7 @@ gtk_text_retrieve_surrounding_cb (GtkIMContext *context,
 }
 
 static gboolean
-gtk_text_delete_surrounding_cb (GtkIMContext *slave,
+gtk_text_delete_surrounding_cb (GtkIMContext *context,
                                 int           offset,
                                 int           n_chars,
                                 GtkText      *self)
@@ -4351,6 +4359,8 @@ gtk_text_create_layout (GtkText  *self,
 
   tmp_attrs = gtk_css_style_get_pango_attributes (gtk_css_node_get_style (gtk_widget_get_css_node (widget)));
   tmp_attrs = _gtk_pango_attr_list_merge (tmp_attrs, priv->attrs);
+  if (!tmp_attrs)
+    tmp_attrs = pango_attr_list_new ();
 
   display_text = gtk_text_get_display_text (self, 0, -1);
 
@@ -4371,10 +4381,7 @@ gtk_text_create_layout (GtkText  *self,
       pos = g_utf8_offset_to_pointer (display_text, priv->current_pos) - display_text;
       g_string_insert (tmp_string, pos, preedit_string);
       pango_layout_set_text (layout, tmp_string->str, tmp_string->len);
-      if (tmp_attrs)
-        pango_attr_list_splice (tmp_attrs, preedit_attrs, pos, preedit_length);
-      else
-        tmp_attrs = pango_attr_list_ref (preedit_attrs);
+      pango_attr_list_splice (tmp_attrs, preedit_attrs, pos, preedit_length);
       g_string_free (tmp_string, TRUE);
     }
   else
@@ -5391,6 +5398,9 @@ gtk_text_set_editable (GtkText  *self,
       gtk_event_controller_key_set_im_context (GTK_EVENT_CONTROLLER_KEY (priv->key_controller),
                                                is_editable ? priv->im_context : NULL);
 
+      gtk_text_update_clipboard_actions (self);
+      gtk_text_update_emoji_action (self);
+
       g_object_notify (G_OBJECT (self), "editable");
     }
 }
@@ -5903,7 +5913,10 @@ gtk_text_update_clipboard_actions (GtkText *self)
 static void
 gtk_text_update_emoji_action (GtkText *self)
 {
+  GtkTextPrivate *priv = gtk_text_get_instance_private (self);
+
   gtk_widget_action_set_enabled (GTK_WIDGET (self), "misc.insert-emoji",
+                                 priv->editable &&
                                  (gtk_text_get_input_hints (self) & GTK_INPUT_HINT_NO_EMOJI) == 0);
 }
 
@@ -5998,6 +6011,7 @@ append_bubble_item (GtkText    *self,
   const char *icon_name;
   const char *action_name;
   GMenuModel *link;
+  gboolean enabled;
 
   link = g_menu_model_get_item_link (model, index, "section");
   if (link)
@@ -6023,7 +6037,9 @@ append_bubble_item (GtkText    *self,
   g_variant_unref (att);
 
   muxer = _gtk_widget_get_action_muxer (GTK_WIDGET (self), FALSE);
-  if (!g_action_group_get_action_enabled (G_ACTION_GROUP (muxer), action_name))
+  if (!gtk_action_muxer_query_action (muxer, action_name, &enabled,
+                                      NULL, NULL, NULL, NULL) ||
+      !enabled)
     return;
 
   item = gtk_button_new ();

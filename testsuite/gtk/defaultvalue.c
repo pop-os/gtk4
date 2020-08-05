@@ -104,9 +104,6 @@ test_type (gconstpointer data)
       g_type_is_a (type, GTK_TYPE_SHORTCUT_ACTION))
     return;
 
-  if (g_type_is_a (type, GTK_TYPE_PROPERTY_SELECTION))
-    return;
-
   klass = g_type_class_ref (type);
 
   if (g_type_is_a (type, GTK_TYPE_SETTINGS))
@@ -146,6 +143,11 @@ test_type (gconstpointer data)
 
       if ((pspec->flags & G_PARAM_READABLE) == 0)
 	continue;
+
+      /* This is set via class_init, and we have a11y tests to verify it */
+      if (g_type_is_a (type, GTK_TYPE_ACCESSIBLE) &&
+          strcmp (pspec->name, "accessible-role") == 0)
+        continue;
 
       /* This is set via construct property */
       if (g_type_is_a (type, GTK_TYPE_BUILDER) &&
@@ -198,8 +200,7 @@ test_type (gconstpointer data)
 	continue;
 
       if (g_type_is_a (type, GDK_TYPE_MONITOR) &&
-          (strcmp (pspec->name, "geometry") == 0 ||
-           strcmp (pspec->name, "workarea") == 0))
+          (strcmp (pspec->name, "geometry") == 0))
         continue;
 
       if (g_type_is_a (type, GTK_TYPE_ABOUT_DIALOG) &&
@@ -390,7 +391,7 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 	continue;
 
       if (g_type_is_a (type, GTK_TYPE_WIDGET) &&
-	  (strcmp (pspec->name, "name") == 0 ||
+          (strcmp (pspec->name, "name") == 0 ||
 	   strcmp (pspec->name, "display") == 0 ||
 	   strcmp (pspec->name, "style") == 0))
 	continue;
@@ -418,6 +419,11 @@ G_GNUC_END_IGNORE_DEPRECATIONS
 
       if (g_type_is_a (type, GTK_TYPE_DROP_DOWN) &&
           strcmp (pspec->name, "factory") == 0)
+        continue;
+
+      if (g_type_is_a (type, GTK_TYPE_BOOKMARK_LIST) &&
+          (strcmp (pspec->name, "filename") == 0 ||
+           strcmp (pspec->name, "loading") == 0))
         continue;
 
       /* All the icontheme properties depend on the environment */
@@ -464,9 +470,6 @@ main (int argc, char **argv)
 {
   const GType *otypes;
   guint i;
-  GTestDBus *bus;
-  GMainLoop *loop;
-  gint result;
   const char *display, *x_r_d;
 
   /* These must be set before gtk_test_init */
@@ -477,12 +480,6 @@ main (int argc, char **argv)
   /* g_test_dbus_up() helpfully clears these, so we have to re-set it */
   display = g_getenv ("DISPLAY");
   x_r_d = g_getenv ("XDG_RUNTIME_DIR");
-
-  /* Create one test bus for all tests, as we have a lot of very small
-   * and quick tests.
-   */
-  bus = g_test_dbus_new (G_TEST_DBUS_NONE);
-  g_test_dbus_up (bus);
 
   if (display)
     g_setenv ("DISPLAY", display, TRUE);
@@ -497,7 +494,7 @@ main (int argc, char **argv)
   otypes = gtk_test_list_all_types (NULL);
   for (i = 0; otypes[i]; i++)
     {
-      gchar *testname;
+      char *testname;
 
       if (otypes[i] == GTK_TYPE_FILE_CHOOSER_NATIVE)
         continue;
@@ -510,18 +507,5 @@ main (int argc, char **argv)
       g_free (testname);
     }
 
-  result = g_test_run();
-
-  /* Work around the annoying issue that g_test_dbus_down is giving
-   * us an "Error while sending AddMatch" that comes out of an idle
-   */
-  loop = g_main_loop_new (NULL, FALSE);
-  g_timeout_add (1000, (GSourceFunc)g_main_loop_quit, loop);
-  g_main_loop_run (loop);
-  g_main_loop_unref (loop);
-
-  g_test_dbus_down (bus);
-  g_object_unref (bus);
-
-  return result;
+  return g_test_run();
 }

@@ -51,6 +51,7 @@
 #include "gdkmonitorprivate.h"
 #include "gdkwin32.h"
 #include "gdkkeysyms.h"
+#include "gdkglcontext-win32.h"
 #include "gdkdevicemanager-win32.h"
 #include "gdkdisplay-win32.h"
 #include "gdkdeviceprivate.h"
@@ -100,9 +101,9 @@
 #define SYNAPSIS_ICON_WINDOW_CLASS "SynTrackCursorWindowClass"
 
 static gboolean gdk_event_translate (MSG        *msg,
-				     gint       *ret_valp);
+				     int        *ret_valp);
 static gboolean gdk_event_prepare  (GSource     *source,
-				    gint        *timeout);
+				    int         *timeout);
 static gboolean gdk_event_check    (GSource     *source);
 static gboolean gdk_event_dispatch (GSource     *source,
 				    GSourceFunc  callback,
@@ -111,7 +112,7 @@ static gboolean gdk_event_dispatch (GSource     *source,
 /* Private variable declarations
  */
 
-extern gint       _gdk_input_ignore_core;
+extern int        _gdk_input_ignore_core;
 
 typedef struct
 {
@@ -139,8 +140,8 @@ static GdkSurface *implicit_grab_surface = NULL;
 
 static GdkSurface *mouse_window = NULL;
 static GdkSurface *mouse_window_ignored_leave = NULL;
-static gint current_x, current_y;
-static gint current_root_x, current_root_y;
+static int current_x, current_y;
+static int current_root_x, current_root_y;
 
 static UINT got_gdk_events_message;
 static HWND modal_win32_dialog = NULL;
@@ -201,13 +202,11 @@ generate_focus_event (GdkDeviceManagerWin32 *device_manager,
                       gboolean          in)
 {
   GdkDevice *device;
-  GdkDevice *source_device;
   GdkEvent *event;
 
   device = GDK_DEVICE_MANAGER_WIN32 (device_manager)->core_keyboard;
-  source_device = GDK_DEVICE_MANAGER_WIN32 (device_manager)->system_keyboard;
 
-  event = gdk_focus_event_new (window, device, source_device, in);
+  event = gdk_focus_event_new (window, device, in);
 
   _gdk_win32_append_event (event);
 }
@@ -220,22 +219,14 @@ generate_grab_broken_event (GdkDeviceManagerWin32 *device_manager,
 {
   GdkEvent *event;
   GdkDevice *device;
-  GdkDevice *source_device;
 
   if (keyboard)
-    {
-      device = device_manager->core_keyboard;
-      source_device = device_manager->system_keyboard;
-    }
+    device = device_manager->core_keyboard;
   else
-    {
-      device = device_manager->core_pointer;
-      source_device = device_manager->system_pointer;
-    }
+    device = device_manager->core_pointer;
 
   event = gdk_grab_broken_event_new (window,
                                      device,
-                                     source_device,
                                      grab_window,
                                      FALSE);
 
@@ -250,7 +241,7 @@ inner_window_procedure (HWND   hwnd,
 {
   MSG msg;
   DWORD pos;
-  gint ret_val = 0;
+  int ret_val = 0;
 
   msg.hwnd = hwnd;
   msg.message = message;
@@ -287,7 +278,7 @@ _gdk_win32_surface_procedure (HWND   hwnd,
 {
   LRESULT retval;
 
-  GDK_NOTE (EVENTS, g_print ("%s%*s%s %p %#x %#lx",
+  GDK_NOTE (EVENTS, g_print ("%s%*s%s %p %#" G_GINTPTR_MODIFIER "x %#" G_GINTPTR_MODIFIER "x",
 			     (debug_indent > 0 ? "\n" : ""),
 			     debug_indent, "",
 			     _gdk_win32_message_to_string (message), hwnd,
@@ -687,10 +678,10 @@ get_active_group (void)
   return _gdk_win32_keymap_get_active_group (keymap);
 }
 
-static gint
+static int
 build_pointer_event_state (MSG *msg)
 {
-  gint state;
+  int state;
 
   state = 0;
 
@@ -912,7 +903,7 @@ _gdk_win32_append_event (GdkEvent *event)
 static GdkWin32MessageFilterReturn
 apply_message_filters (GdkDisplay *display,
                        MSG        *msg,
-                       gint       *ret_valp,
+                       int        *ret_valp,
                        GList     **filters)
 {
   GdkWin32MessageFilterReturn result = GDK_WIN32_MESSAGE_FILTER_CONTINUE;
@@ -1079,7 +1070,6 @@ send_crossing_event (GdkDisplay                 *display,
   event = gdk_crossing_event_new (type,
                                   window,
                                   device_manager->core_pointer,
-                                  device_manager->system_pointer,
                                   _gdk_win32_get_next_tick (time_),
                                   mask,
                                   pt.x / impl->surface_scale,
@@ -1324,7 +1314,7 @@ _gdk_win32_hrgn_to_region (HRGN  hrgn,
   RGNDATA *rgndata;
   RECT *rects;
   cairo_region_t *result;
-  gint nbytes;
+  int nbytes;
   guint i;
 
   if ((nbytes = GetRegionData (hrgn, 0, NULL)) == 0)
@@ -1359,17 +1349,6 @@ _gdk_win32_hrgn_to_region (HRGN  hrgn,
   g_free (rgndata);
 
   return result;
-}
-
-static void
-adjust_drag (LONG *drag,
-	     LONG  curr,
-	     gint  inc)
-{
-  if (*drag > curr)
-    *drag = curr + ((*drag + inc/2 - curr) / inc) * inc;
-  else
-    *drag = curr - ((curr - *drag + inc/2) / inc) * inc;
 }
 
 static void
@@ -1482,7 +1461,7 @@ handle_nchittest (HWND hwnd,
                   GdkSurface *window,
                   gint16 screen_x,
                   gint16 screen_y,
-                  gint *ret_valp)
+                  int *ret_valp)
 {
   RECT rect;
   GdkWin32Surface *impl;
@@ -1569,7 +1548,7 @@ handle_dpi_changed (GdkSurface *window,
 
 static void
 generate_button_event (GdkEventType      type,
-                       gint              button,
+                       int               button,
                        GdkSurface        *window,
                        MSG              *msg)
 {
@@ -1588,7 +1567,6 @@ generate_button_event (GdkEventType      type,
   event = gdk_button_event_new (type,
                                 window,
                                 device_manager->core_pointer,
-                                device_manager->system_pointer,
                                 NULL,
                                 _gdk_win32_get_next_tick (msg->time),
                                 build_pointer_event_state (msg),
@@ -1820,7 +1798,7 @@ ensure_stacking_on_activate_app (MSG       *msg,
 }
 
 static gboolean
-handle_wm_sysmenu (GdkSurface *window, MSG *msg, gint *ret_valp)
+handle_wm_sysmenu (GdkSurface *window, MSG *msg, int *ret_valp)
 {
   GdkWin32Surface *impl;
   LONG_PTR style, tmp_style;
@@ -1876,7 +1854,7 @@ handle_wm_sysmenu (GdkSurface *window, MSG *msg, gint *ret_valp)
    * FALSE later) or set *ret_valp to 0 and return TRUE.
    */
   tmp_style = style | additional_styles;
-  GDK_NOTE (EVENTS, g_print (" Handling WM_SYSMENU: style 0x%lx -> 0x%lx\n", style, tmp_style));
+  GDK_NOTE (EVENTS, g_print (" Handling WM_SYSMENU: style 0x%" G_GINTPTR_MODIFIER "x -> 0x%" G_GINTPTR_MODIFIER "x\n", style, tmp_style));
   impl->have_temp_styles = TRUE;
   impl->temp_styles = additional_styles;
   SetWindowLongPtr (msg->hwnd, GWL_STYLE, tmp_style);
@@ -1886,7 +1864,7 @@ handle_wm_sysmenu (GdkSurface *window, MSG *msg, gint *ret_valp)
   tmp_style = GetWindowLongPtr (msg->hwnd, GWL_STYLE);
   style = tmp_style & ~additional_styles;
 
-  GDK_NOTE (EVENTS, g_print (" Handling WM_SYSMENU: style 0x%lx <- 0x%lx\n", style, tmp_style));
+  GDK_NOTE (EVENTS, g_print (" Handling WM_SYSMENU: style 0x%" G_GINTPTR_MODIFIER "x <- 0x%" G_GINTPTR_MODIFIER "x\n", style, tmp_style));
   SetWindowLongPtr (msg->hwnd, GWL_STYLE, style);
   impl->have_temp_styles = FALSE;
 
@@ -2006,10 +1984,10 @@ _gdk_win32_surface_fill_min_max_info (GdkSurface  *window,
 			     GDK_BUTTON5_MASK)
 
 static gboolean
-gdk_event_translate (MSG  *msg,
-		     gint *ret_valp)
+gdk_event_translate (MSG *msg,
+		     int *ret_valp)
 {
-  RECT rect, *drag, orig_drag;
+  RECT rect;
   POINT point;
   MINMAXINFO *mmi;
   HWND hwnd;
@@ -2021,7 +1999,7 @@ gdk_event_translate (MSG  *msg,
   GdkEvent *event;
 
   wchar_t wbuf[100];
-  gint ccount;
+  int ccount;
 
   GdkDisplay *display;
   GdkSurface *window = NULL;
@@ -2036,9 +2014,9 @@ gdk_event_translate (MSG  *msg,
   GdkDeviceGrabInfo *pointer_grab = NULL;
   GdkSurface *grab_window = NULL;
 
-  gint button;
+  int button;
 
-  gchar buf[256];
+  char buf[256];
   gboolean return_val = FALSE;
 
   int i;
@@ -2132,7 +2110,6 @@ gdk_event_translate (MSG  *msg,
       event = gdk_key_event_new (GDK_KEY_PRESS,
                                  window,
                                  device_manager_win32->core_keyboard,
-                                 device_manager_win32->system_keyboard,
                                  _gdk_win32_get_next_tick (msg->time),
                                  0,
                                  0,
@@ -2308,7 +2285,7 @@ gdk_event_translate (MSG  *msg,
     {
       if (both_shift_pressed[0] != 0 && both_shift_pressed[1] != 0)
         {
-          gint tmp_retval;
+          int tmp_retval;
           MSG fake_release = *msg;
           int pressed_shift = msg->lParam & 0xffffff;
 
@@ -2337,7 +2314,6 @@ gdk_event_translate (MSG  *msg,
                                    : GDK_KEY_RELEASE,
                                  window,
                                  device_manager_win32->core_keyboard,
-                                 device_manager_win32->system_keyboard,
                                  _gdk_win32_get_next_tick (msg->time),
                                  state,
                                  keycode,
@@ -2412,7 +2388,6 @@ gdk_event_translate (MSG  *msg,
           event = gdk_key_event_new (GDK_KEY_PRESS,
                                      window,
                                      device_manager_win32->core_keyboard,
-                                     device_manager_win32->system_keyboard,
                                      _gdk_win32_get_next_tick (msg->time),
                                      build_key_event_state (key_state),
                                      0,
@@ -2426,7 +2401,6 @@ gdk_event_translate (MSG  *msg,
           event = gdk_key_event_new (GDK_KEY_RELEASE,
                                      window,
                                      device_manager_win32->core_keyboard,
-                                     device_manager_win32->system_keyboard,
                                      _gdk_win32_get_next_tick (msg->time),
                                      build_key_event_state (key_state),
                                      0,
@@ -2508,7 +2482,7 @@ gdk_event_translate (MSG  *msg,
 
       if (pointer_grab == NULL && implicit_grab_surface != NULL)
 	{
-	  gint state = build_pointer_event_state (msg);
+	  int state = build_pointer_event_state (msg);
 
 	  /* We keep the implicit grab until no buttons at all are held down */
 	  if ((state & GDK_ANY_BUTTON_MASK & ~(GDK_BUTTON1_MASK << (button - 1))) == 0)
@@ -2639,7 +2613,6 @@ gdk_event_translate (MSG  *msg,
 
 	  event = gdk_motion_event_new (window,
 	                                device_manager_win32->core_pointer,
-	                                device_manager_win32->system_pointer,
                                         NULL,
                                         _gdk_win32_get_next_tick (msg->time),
 	                                build_pointer_event_state (msg),
@@ -2755,9 +2728,9 @@ gdk_event_translate (MSG  *msg,
       delta_x = delta_y = 0.0;
 
       if (msg->message == WM_MOUSEWHEEL)
-        delta_y = (double) GET_WHEEL_DELTA_WPARAM (msg->wParam) / (gdouble) WHEEL_DELTA;
+        delta_y = (double) GET_WHEEL_DELTA_WPARAM (msg->wParam) / (double) WHEEL_DELTA;
       else if (msg->message == WM_MOUSEHWHEEL)
-        delta_x = (double) GET_WHEEL_DELTA_WPARAM (msg->wParam) / (gdouble) WHEEL_DELTA;
+        delta_x = (double) GET_WHEEL_DELTA_WPARAM (msg->wParam) / (double) WHEEL_DELTA;
       /* Positive delta scrolls up, not down,
          see API documentation for WM_MOUSEWHEEL message.
        */
@@ -2765,7 +2738,6 @@ gdk_event_translate (MSG  *msg,
 
       event = gdk_scroll_event_new (window,
                                     device_manager_win32->core_pointer,
-                                    device_manager_win32->system_pointer,
                                     NULL,
                                     _gdk_win32_get_next_tick (msg->time),
                                     build_pointer_event_state (msg),
@@ -2788,7 +2760,6 @@ gdk_event_translate (MSG  *msg,
 
       event = gdk_scroll_event_new_discrete (window,
                                              device_manager_win32->core_pointer,
-                                             device_manager_win32->system_pointer,
                                              NULL,
                                              _gdk_win32_get_next_tick (msg->time),
                                              build_pointer_event_state (msg),
@@ -2964,7 +2935,11 @@ gdk_event_translate (MSG  *msg,
 	{
 	case SC_MINIMIZE:
 	case SC_RESTORE:
-	  do_show_window (window, msg->wParam == SC_MINIMIZE ? TRUE : FALSE);
+          do_show_window (window, msg->wParam == SC_MINIMIZE ? TRUE : FALSE);
+
+          if (msg->wParam == SC_RESTORE)
+            _gdk_win32_surface_invalidate_egl_framebuffer (window);
+
 	  break;
         case SC_MAXIMIZE:
           impl = GDK_WIN32_SURFACE (window);
@@ -3177,7 +3152,6 @@ gdk_event_translate (MSG  *msg,
 
     case WM_SIZING:
       GetWindowRect (GDK_SURFACE_HWND (window), &rect);
-      drag = (RECT *) msg->lParam;
       GDK_NOTE (EVENTS, g_print (" %s curr:%s drag:%s",
 				 (msg->wParam == WMSZ_BOTTOM ? "BOTTOM" :
 				  (msg->wParam == WMSZ_BOTTOMLEFT ? "BOTTOMLEFT" :
@@ -3190,205 +3164,10 @@ gdk_event_translate (MSG  *msg,
 					(msg->wParam == WMSZ_BOTTOMRIGHT ? "BOTTOMRIGHT" :
 					 "???")))))))),
 				 _gdk_win32_rect_to_string (&rect),
-				 _gdk_win32_rect_to_string (drag)));
+				 _gdk_win32_rect_to_string ((RECT *) msg->lParam)));
 
       impl = GDK_WIN32_SURFACE (window);
-      orig_drag = *drag;
-      if (impl->hint_flags & GDK_HINT_RESIZE_INC)
-	{
-	  GDK_NOTE (EVENTS, g_print (" (RESIZE_INC)"));
-	  if (impl->hint_flags & GDK_HINT_BASE_SIZE)
-	    {
-	      /* Resize in increments relative to the base size */
-	      rect.left = rect.top = 0;
-	      rect.right = impl->hints.base_width * impl->surface_scale;
-	      rect.bottom = impl->hints.base_height * impl->surface_scale;
-	      _gdk_win32_adjust_client_rect (window, &rect);
-	      point.x = rect.left;
-	      point.y = rect.top;
-	      ClientToScreen (GDK_SURFACE_HWND (window), &point);
-	      rect.left = point.x;
-	      rect.top = point.y;
-	      point.x = rect.right;
-	      point.y = rect.bottom;
-	      ClientToScreen (GDK_SURFACE_HWND (window), &point);
-	      rect.right = point.x;
-	      rect.bottom = point.y;
 
-	      GDK_NOTE (EVENTS, g_print (" (also BASE_SIZE, using %s)",
-					 _gdk_win32_rect_to_string (&rect)));
-	    }
-
-	  switch (msg->wParam)
-	    {
-	    case WMSZ_BOTTOM:
-	      if (drag->bottom == rect.bottom)
-		break;
-        adjust_drag (&drag->bottom, rect.bottom, impl->hints.height_inc * impl->surface_scale);
-	      break;
-
-	    case WMSZ_BOTTOMLEFT:
-	      if (drag->bottom == rect.bottom && drag->left == rect.left)
-		break;
-	      adjust_drag (&drag->bottom, rect.bottom, impl->hints.height_inc * impl->surface_scale);
-	      adjust_drag (&drag->left, rect.left, impl->hints.width_inc * impl->surface_scale);
-	      break;
-
-	    case WMSZ_LEFT:
-	      if (drag->left == rect.left)
-		break;
-	      adjust_drag (&drag->left, rect.left, impl->hints.width_inc * impl->surface_scale);
-	      break;
-
-	    case WMSZ_TOPLEFT:
-	      if (drag->top == rect.top && drag->left == rect.left)
-		break;
-	      adjust_drag (&drag->top, rect.top, impl->hints.height_inc * impl->surface_scale);
-	      adjust_drag (&drag->left, rect.left, impl->hints.width_inc * impl->surface_scale);
-	      break;
-
-	    case WMSZ_TOP:
-	      if (drag->top == rect.top)
-		break;
-	      adjust_drag (&drag->top, rect.top, impl->hints.height_inc * impl->surface_scale);
-	      break;
-
-	    case WMSZ_TOPRIGHT:
-	      if (drag->top == rect.top && drag->right == rect.right)
-		break;
-	      adjust_drag (&drag->top, rect.top, impl->hints.height_inc * impl->surface_scale);
-	      adjust_drag (&drag->right, rect.right, impl->hints.width_inc * impl->surface_scale);
-	      break;
-
-	    case WMSZ_RIGHT:
-	      if (drag->right == rect.right)
-		break;
-	      adjust_drag (&drag->right, rect.right, impl->hints.width_inc * impl->surface_scale);
-	      break;
-
-	    case WMSZ_BOTTOMRIGHT:
-	      if (drag->bottom == rect.bottom && drag->right == rect.right)
-		break;
-	      adjust_drag (&drag->bottom, rect.bottom, impl->hints.height_inc * impl->surface_scale);
-	      adjust_drag (&drag->right, rect.right, impl->hints.width_inc * impl->surface_scale);
-	      break;
-	    }
-
-	  if (drag->bottom != orig_drag.bottom || drag->left != orig_drag.left ||
-	      drag->top != orig_drag.top || drag->right != orig_drag.right)
-	    {
-	      *ret_valp = TRUE;
-	      return_val = TRUE;
-	      GDK_NOTE (EVENTS, g_print (" (handled RESIZE_INC: %s)",
-					 _gdk_win32_rect_to_string (drag)));
-	    }
-	}
-
-      /* WM_GETMINMAXINFO handles min_size and max_size hints? */
-
-      if (impl->hint_flags & GDK_HINT_ASPECT)
-	{
-	  RECT decorated_rect;
-	  RECT undecorated_drag;
-	  int decoration_width, decoration_height;
-	  gdouble drag_aspect;
-	  int drag_width, drag_height, new_width, new_height;
-
-	  GetClientRect (GDK_SURFACE_HWND (window), &rect);
-	  decorated_rect = rect;
-	  _gdk_win32_adjust_client_rect (window, &decorated_rect);
-
-	  /* Set undecorated_drag to the client area being dragged
-	   * out, in screen coordinates.
-	   */
-	  undecorated_drag = *drag;
-	  undecorated_drag.left -= decorated_rect.left - rect.left;
-	  undecorated_drag.right -= decorated_rect.right - rect.right;
-	  undecorated_drag.top -= decorated_rect.top - rect.top;
-	  undecorated_drag.bottom -= decorated_rect.bottom - rect.bottom;
-
-	  decoration_width = (decorated_rect.right - decorated_rect.left) - (rect.right - rect.left);
-	  decoration_height = (decorated_rect.bottom - decorated_rect.top) - (rect.bottom - rect.top);
-
-	  drag_width = undecorated_drag.right - undecorated_drag.left;
-	  drag_height = undecorated_drag.bottom - undecorated_drag.top;
-
-	  drag_aspect = (gdouble) drag_width / drag_height;
-
-	  GDK_NOTE (EVENTS, g_print (" (ASPECT:%g--%g curr: %g)",
-				     impl->hints.min_aspect, impl->hints.max_aspect, drag_aspect));
-
-	  if (drag_aspect < impl->hints.min_aspect)
-	    {
-	      /* Aspect is getting too narrow */
-	      switch (msg->wParam)
-		{
-		case WMSZ_BOTTOM:
-		case WMSZ_TOP:
-		  /* User drags top or bottom edge outward. Keep height, increase width. */
-		  new_width = impl->hints.min_aspect * drag_height;
-		  drag->left -= (new_width - drag_width) / 2;
-		  drag->right = drag->left + new_width + decoration_width;
-		  break;
-		case WMSZ_BOTTOMLEFT:
-		case WMSZ_BOTTOMRIGHT:
-		  /* User drags bottom-left or bottom-right corner down. Adjust height. */
-		  new_height = drag_width / impl->hints.min_aspect;
-		  drag->bottom = drag->top + new_height + decoration_height;
-		  break;
-		case WMSZ_LEFT:
-		case WMSZ_RIGHT:
-		  /* User drags left or right edge inward. Decrease height */
-		  new_height = drag_width / impl->hints.min_aspect;
-		  drag->top += (drag_height - new_height) / 2;
-		  drag->bottom = drag->top + new_height + decoration_height;
-		  break;
-		case WMSZ_TOPLEFT:
-		case WMSZ_TOPRIGHT:
-		  /* User drags top-left or top-right corner up. Adjust height. */
-		  new_height = drag_width / impl->hints.min_aspect;
-		  drag->top = drag->bottom - new_height - decoration_height;
-		}
-	    }
-	  else if (drag_aspect > impl->hints.max_aspect)
-	    {
-	      /* Aspect is getting too wide */
-	      switch (msg->wParam)
-		{
-		case WMSZ_BOTTOM:
-		case WMSZ_TOP:
-		  /* User drags top or bottom edge inward. Decrease width. */
-		  new_width = impl->hints.max_aspect * drag_height;
-		  drag->left += (drag_width - new_width) / 2;
-		  drag->right = drag->left + new_width + decoration_width;
-		  break;
-		case WMSZ_BOTTOMLEFT:
-		case WMSZ_TOPLEFT:
-		  /* User drags bottom-left or top-left corner left. Adjust width. */
-		  new_width = impl->hints.max_aspect * drag_height;
-		  drag->left = drag->right - new_width - decoration_width;
-		  break;
-		case WMSZ_BOTTOMRIGHT:
-		case WMSZ_TOPRIGHT:
-		  /* User drags bottom-right or top-right corner right. Adjust width. */
-		  new_width = impl->hints.max_aspect * drag_height;
-		  drag->right = drag->left + new_width + decoration_width;
-		  break;
-		case WMSZ_LEFT:
-		case WMSZ_RIGHT:
-		  /* User drags left or right edge outward. Increase height. */
-		  new_height = drag_width / impl->hints.max_aspect;
-		  drag->top -= (new_height - drag_height) / 2;
-		  drag->bottom = drag->top + new_height + decoration_height;
-		  break;
-		}
-	    }
-
-	  *ret_valp = TRUE;
-	  return_val = TRUE;
-	  GDK_NOTE (EVENTS, g_print (" (handled ASPECT: %s)",
-				     _gdk_win32_rect_to_string (drag)));
-	}
       break;
 
     case WM_GETMINMAXINFO:
@@ -3602,7 +3381,7 @@ _gdk_win32_display_queue_events (GdkDisplay *display)
 
 static gboolean
 gdk_event_prepare (GSource *source,
-		   gint    *timeout)
+		   int     *timeout)
 {
   GdkWin32EventSource *event_source = (GdkWin32EventSource *)source;
   gboolean retval;

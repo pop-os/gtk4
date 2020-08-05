@@ -51,7 +51,7 @@ GDK_AVAILABLE_IN_ALL
 GType           gtk_column_view_get_type                        (void) G_GNUC_CONST;
 
 GDK_AVAILABLE_IN_ALL
-GtkWidget *     gtk_column_view_new                             (void);
+GtkWidget *     gtk_column_view_new                             (GListModel             *model);
 
 GDK_AVAILABLE_IN_ALL
 GListModel *    gtk_column_view_get_columns                     (GtkColumnView          *self);
@@ -105,6 +105,7 @@ void            gtk_column_view_set_reorderable                 (GtkColumnView  
 GDK_AVAILABLE_IN_ALL
 gboolean        gtk_column_view_get_reorderable                 (GtkColumnView          *self);
 
+GDK_AVAILABLE_IN_ALL
 void            gtk_column_view_set_enable_rubberband           (GtkColumnView          *self,
                                                                  gboolean                enable_rubberband);
 GDK_AVAILABLE_IN_ALL

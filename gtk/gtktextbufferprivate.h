@@ -29,26 +29,10 @@ GtkTextBTree*   _gtk_text_buffer_get_btree             (GtkTextBuffer      *buff
 
 const PangoLogAttr* _gtk_text_buffer_get_line_log_attrs (GtkTextBuffer     *buffer,
                                                          const GtkTextIter *anywhere_in_line,
-                                                         gint              *char_len);
+                                                         int               *char_len);
 
 void _gtk_text_buffer_notify_will_remove_tag (GtkTextBuffer *buffer,
                                               GtkTextTag    *tag);
-
-void _gtk_text_buffer_get_text_before (GtkTextBuffer   *buffer,
-                                       AtkTextBoundary  boundary_type,
-                                       GtkTextIter     *position,
-                                       GtkTextIter     *start,
-                                       GtkTextIter     *end);
-void _gtk_text_buffer_get_text_at     (GtkTextBuffer   *buffer,
-                                       AtkTextBoundary  boundary_type,
-                                       GtkTextIter     *position,
-                                       GtkTextIter     *start,
-                                       GtkTextIter     *end);
-void _gtk_text_buffer_get_text_after  (GtkTextBuffer   *buffer,
-                                       AtkTextBoundary  boundary_type,
-                                       GtkTextIter     *position,
-                                       GtkTextIter     *start,
-                                       GtkTextIter     *end);
 
 G_END_DECLS
 

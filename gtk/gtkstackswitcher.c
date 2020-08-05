@@ -33,8 +33,6 @@
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
 
-#include "a11y/gtkcompositeaccessible.h"
-
 /**
  * SECTION:gtkstackswitcher
  * @Short_description: A controller for GtkStack
@@ -122,8 +120,8 @@ on_button_toggled (GtkWidget        *button,
 
 static void
 rebuild_child (GtkWidget   *self,
-               const gchar *icon_name,
-               const gchar *title,
+               const char *icon_name,
+               const char *title,
                gboolean     use_underline)
 {
   GtkWidget *button_child;
@@ -162,8 +160,8 @@ update_button (GtkStackSwitcher *self,
                GtkStackPage     *page,
                GtkWidget        *button)
 {
-  gchar *title;
-  gchar *icon_name;
+  char *title;
+  char *icon_name;
   gboolean needs_attention;
   gboolean visible;
   gboolean use_underline;
@@ -502,7 +500,6 @@ gtk_stack_switcher_class_init (GtkStackSwitcherClass *class)
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
   gtk_widget_class_set_css_name (widget_class, I_("stackswitcher"));
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_COMPOSITE_ACCESSIBLE);
 }
 
 /**

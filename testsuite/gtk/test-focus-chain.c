@@ -190,6 +190,7 @@ generate_focus_chain (GtkWidget        *window,
     }
 
   g_free (name);
+  g_free (key);
   g_free (first);
   g_free (last);
 
@@ -304,6 +305,7 @@ main (int argc, char **argv)
       g_error ("Option parsing failed: %s\n", error->message);
       return 1;
     }
+  g_option_context_free (context);
 
   gtk_init ();
 

@@ -32,6 +32,7 @@
 #include "gtkswitch.h"
 #include "gtkwidgetprivate.h"
 #include "gtkstack.h"
+#include "gtkstringlist.h"
 
 
 typedef struct {
@@ -196,7 +197,7 @@ add_widget (GtkInspectorSizeGroups *sl,
 {
   GtkWidget *row;
   GtkWidget *label;
-  gchar *text;
+  char *text;
 
   row = g_object_new (size_group_row_get_type (), "widget", widget, NULL);
   text = g_strdup_printf ("%p (%s)", widget, g_type_name_from_instance ((GTypeInstance*)widget));
@@ -246,8 +247,7 @@ add_size_group (GtkInspectorSizeGroups *sl,
   gtk_widget_set_valign (label, GTK_ALIGN_BASELINE);
   gtk_box_append (GTK_BOX (box2), label);
 
-  dropdown = gtk_drop_down_new ();
-  gtk_drop_down_set_from_strings (GTK_DROP_DOWN (dropdown), modes);
+  dropdown = gtk_drop_down_new_from_strings (modes);
   g_object_set (dropdown, "margin", 10, NULL);
   gtk_widget_set_halign (dropdown, GTK_ALIGN_END);
   gtk_widget_set_valign (dropdown, GTK_ALIGN_BASELINE);

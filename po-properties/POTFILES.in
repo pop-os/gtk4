@@ -21,7 +21,9 @@ gdk/gdkseat.c
 gdk/gdksurface.c
 gdk/gdktoplevel.c
 gdk/keyname-table.h
-gdk/quartz/gdkglcontext-quartz.c
+gdk/macos/gdkmacosclipboard.c
+gdk/macos/gdkmacosdrag.c
+gdk/macos/gdkmacosglcontext.c
 gdk/wayland/gdkclipboard-wayland.c
 gdk/wayland/gdkdrag-wayland.c
 gdk/wayland/gdkdrop-wayland.c
@@ -44,22 +46,6 @@ gdk/x11/gdkmain-x11.c
 gdk/x11/gdkselectioninputstream-x11.c
 gdk/x11/gdktextlistconverter-x11.c
 gsk/gskrendernodeimpl.c
-gtk/a11y/gtkbooleancellaccessible.c
-gtk/a11y/gtkbuttonaccessible.c
-gtk/a11y/gtkcellaccessible.c
-gtk/a11y/gtkcolorswatchaccessible.c
-gtk/a11y/gtkcomboboxaccessible.c
-gtk/a11y/gtkentryaccessible.c
-gtk/a11y/gtkexpanderaccessible.c
-gtk/a11y/gtkimageaccessible.c
-gtk/a11y/gtkmenubuttonaccessible.c
-gtk/a11y/gtkpasswordentryaccessible.c
-gtk/a11y/gtkrenderercellaccessible.c
-gtk/a11y/gtkscalebuttonaccessible.c
-gtk/a11y/gtksearchentryaccessible.c
-gtk/a11y/gtkspinneraccessible.c
-gtk/a11y/gtkswitchaccessible.c
-gtk/a11y/gtktextaccessible.c
 gtk/css/gtkcssdataurl.c
 gtk/gtkaboutdialog.c
 gtk/gtkaccelgroup.c
@@ -78,7 +64,9 @@ gtk/gtkapplication-quartz.c
 gtk/gtkapplicationwindow.c
 gtk/gtkaspectframe.c
 gtk/gtkassistant.c
+gtk/gtkbookmarklist.c
 gtk/gtkbookmarksmanager.c
+gtk/gtkboolfilter.c
 gtk/gtkbox.c
 gtk/gtkboxlayout.c
 gtk/gtkbuildable.c
@@ -135,6 +123,7 @@ gtk/gtkdropdown.c
 gtk/gtkdroptargetasync.c
 gtk/gtkdroptarget.c
 gtk/gtkeditable.c
+gtk/gtkeditablelabel.c
 gtk/gtkentrybuffer.c
 gtk/gtkentry.c
 gtk/gtkentrycompletion.c
@@ -148,7 +137,6 @@ gtk/gtkexpander.c
 gtk/gtkfilechooserbutton.c
 gtk/gtkfilechooser.c
 gtk/gtkfilechooserdialog.c
-gtk/gtkfilechooserembed.c
 gtk/gtkfilechooserentry.c
 gtk/gtkfilechoosererrorstack.c
 gtk/gtkfilechoosernative.c
@@ -156,7 +144,6 @@ gtk/gtkfilechoosernativequartz.c
 gtk/gtkfilechooserutils.c
 gtk/gtkfilechooserwidget.c
 gtk/gtkfilefilter.c
-gtk/gtkfilesystem.c
 gtk/gtkfilesystemmodel.c
 gtk/gtkfilter.c
 gtk/gtkfilterlistmodel.c
@@ -266,6 +253,7 @@ gtk/gtkscrolledwindow.c
 gtk/gtksearchbar.c
 gtk/gtksearchengine.c
 gtk/gtksearchentry.c
+gtk/gtkselectionfiltermodel.c
 gtk/gtkseparator.c
 gtk/gtksettings.c
 gtk/gtkshortcutaction.c

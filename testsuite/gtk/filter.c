@@ -28,8 +28,11 @@ get (GListModel *model,
      guint       position)
 {
   GObject *object = g_list_model_get_item (model, position);
+  guint ret;
   g_assert (object != NULL);
-  return GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
+  ret = GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
+  g_object_unref (object);
+  return ret;
 }
 
 static char *
@@ -186,7 +189,7 @@ new_model (guint      size,
 {
   GtkFilterListModel *result;
 
-  result = gtk_filter_list_model_new (G_LIST_MODEL (new_store (1, size, 1)), filter);
+  result = gtk_filter_list_model_new (g_object_ref (G_LIST_MODEL (new_store (1, size, 1))), g_object_ref (filter));
 
   return result;
 }
@@ -249,16 +252,13 @@ test_string_simple (void)
 {
   GtkFilterListModel *model;
   GtkFilter *filter;
-  GtkExpression *expr;
 
-  expr = gtk_cclosure_expression_new (G_TYPE_STRING,
-                                      NULL,
-                                      0, NULL,
-                                      G_CALLBACK (get_string),
-                                      NULL, NULL);
-
-  filter = gtk_string_filter_new ();
-  gtk_string_filter_set_expression (GTK_STRING_FILTER (filter), expr);
+  filter = gtk_string_filter_new (
+               gtk_cclosure_expression_new (G_TYPE_STRING,
+                                            NULL,
+                                            0, NULL,
+                                            G_CALLBACK (get_string),
+                                            NULL, NULL));
 
   model = new_model (20, filter);
   assert_model (model, "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20");
@@ -268,7 +268,6 @@ test_string_simple (void)
 
   g_object_unref (model);
   g_object_unref (filter);
-  gtk_expression_unref (expr);
 }
 
 static void
@@ -276,16 +275,13 @@ test_string_properties (void)
 {
   GtkFilterListModel *model;
   GtkFilter *filter;
-  GtkExpression *expr;
 
-  expr = gtk_cclosure_expression_new (G_TYPE_STRING,
-                                      NULL,
-                                      0, NULL,
-                                      G_CALLBACK (get_spelled_out),
-                                      NULL, NULL);
-
-  filter = gtk_string_filter_new ();
-  gtk_string_filter_set_expression (GTK_STRING_FILTER (filter), expr);
+  filter = gtk_string_filter_new (
+               gtk_cclosure_expression_new (G_TYPE_STRING,
+                                            NULL,
+                                            0, NULL,
+                                            G_CALLBACK (get_spelled_out),
+                                            NULL, NULL));
 
   model = new_model (1000, filter);
   gtk_string_filter_set_search (GTK_STRING_FILTER (filter), "thirte");
@@ -311,7 +307,50 @@ test_string_properties (void)
 
   g_object_unref (model);
   g_object_unref (filter);
+}
+
+static void
+test_bool_simple (void)
+{
+  GtkFilterListModel *model;
+  GtkExpression *expr;
+  GtkFilter *filter;
+
+  filter = gtk_bool_filter_new (
+               gtk_cclosure_expression_new (G_TYPE_BOOLEAN,
+                                            NULL,
+                                            0, NULL,
+                                            G_CALLBACK (divisible_by),
+                                            GUINT_TO_POINTER (3), NULL));
+  model = new_model (20, filter);
+  assert_model (model, "3 6 9 12 15 18");
+
+  gtk_bool_filter_set_invert (GTK_BOOL_FILTER (filter), TRUE);
+  assert_model (model, "1 2 4 5 7 8 10 11 13 14 16 17 19 20");
+
+  gtk_bool_filter_set_invert (GTK_BOOL_FILTER (filter), FALSE);
+  assert_model (model, "3 6 9 12 15 18");
+
+  expr = gtk_cclosure_expression_new (G_TYPE_BOOLEAN,
+                                      NULL,
+                                      0, NULL,
+                                      G_CALLBACK (divisible_by),
+                                      GUINT_TO_POINTER (5), NULL);
+  gtk_bool_filter_set_expression (GTK_BOOL_FILTER (filter), expr);
   gtk_expression_unref (expr);
+  assert_model (model, "5 10 15 20");
+
+  gtk_bool_filter_set_invert (GTK_BOOL_FILTER (filter), TRUE);
+  assert_model (model, "1 2 3 4 6 7 8 9 11 12 13 14 16 17 18 19");
+
+  gtk_bool_filter_set_expression (GTK_BOOL_FILTER (filter), NULL);
+  assert_model (model, "");
+
+  gtk_bool_filter_set_invert (GTK_BOOL_FILTER (filter), FALSE);
+  assert_model (model, "");
+
+  g_object_unref (filter);
+  g_object_unref (model);
 }
 
 static void
@@ -348,6 +387,7 @@ main (int argc, char *argv[])
   g_test_add_func ("/filter/any/simple", test_any_simple);
   g_test_add_func ("/filter/string/simple", test_string_simple);
   g_test_add_func ("/filter/string/properties", test_string_properties);
+  g_test_add_func ("/filter/bool/simple", test_bool_simple);
   g_test_add_func ("/filter/every/dispose", test_every_dispose);
 
   return g_test_run ();

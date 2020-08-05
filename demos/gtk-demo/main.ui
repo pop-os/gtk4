@@ -16,15 +16,6 @@
       </item>
     </section>
   </menu>
-  <object class="GtkTreeStore" id="treestore">
-    <columns>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gchararray"/>
-      <column type="gpointer"/>
-      <column type="gint"/>
-    </columns>
-  </object>
   <object class="GtkApplicationWindow" id="window">
     <style>
       <class name="devel"/>
@@ -33,7 +24,6 @@
     <property name="default-height">600</property>
     <child type="titlebar">
       <object class="GtkHeaderBar" id="headerbar">
-        <property name="show-title-buttons">1</property>
         <child>
           <object class="GtkButton">
             <property name="valign">center</property>
@@ -65,12 +55,29 @@
             <property name="hscrollbar-policy">never</property>
             <property name="min-content-width">150</property>
             <child>
-              <object class="GtkListView" id="listview">
-                <property name="factory">
-                  <object class="GtkBuilderListItemFactory">
-                    <property name="resource">/ui/main-listitem.ui</property>
+              <object class="GtkBox">
+                <property name="width-request">220</property>
+                <property name="orientation">vertical</property>
+
+                <child>
+                  <object class="GtkSearchBar" id="searchbar">
+                    <property name="key-capture-widget">window</property>
+                    <child>
+                      <object class="GtkSearchEntry" id="search-entry"/>
+                    </child>
                   </object>
-                </property>
+                </child>
+
+                <child>
+                  <object class="GtkListView" id="listview">
+                    <property name="factory">
+                      <object class="GtkBuilderListItemFactory">
+                        <property name="resource">/ui/main-listitem.ui</property>
+                      </object>
+                    </property>
+                  </object>
+                </child>
+
               </object>
             </child>
           </object>

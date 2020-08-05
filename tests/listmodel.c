@@ -13,8 +13,8 @@ typedef struct
 {
   GObject parent;
 
-  gchar *label;
-  gint id;
+  char *label;
+  int id;
 } MyObject;
 
 typedef struct
@@ -115,10 +115,10 @@ create_widget (gpointer item,
   return label;
 }
 
-static gint
+static int
 compare_items (gconstpointer a, gconstpointer b, gpointer data)
 {
-  gint id_a, id_b;
+  int id_a, id_b;
 
   g_object_get ((gpointer)a, "id", &id_a, NULL);
   g_object_get ((gpointer)b, "id", &id_b, NULL);
@@ -129,10 +129,10 @@ compare_items (gconstpointer a, gconstpointer b, gpointer data)
 static void
 add_some (GtkButton *button, GListStore *store)
 {
-  gint n, i;
+  int n, i;
   guint n_items;
   GObject *obj;
-  gchar *label;
+  char *label;
 
   for (n = 0; n < 50; n++)
     {
@@ -152,7 +152,7 @@ add_some (GtkButton *button, GListStore *store)
 static void
 remove_some (GtkButton *button, GListStore *store)
 {
-  gint n, i;
+  int n, i;
   guint n_items;
 
   for (n = 0; n < 50; n++)
@@ -170,7 +170,7 @@ main (int argc, char *argv[])
 {
   GtkWidget *window, *grid, *sw, *box, *button;
   GListStore *store;
-  gint i;
+  int i;
 
   gtk_init ();
 
@@ -178,7 +178,7 @@ main (int argc, char *argv[])
   for (i = 0; i < 100; i++)
     {
       MyObject *obj;
-      gchar *label;
+      char *label;
 
       label = g_strdup_printf ("item %d", i);
       obj = g_object_new (my_object_get_type (),
@@ -193,7 +193,7 @@ main (int argc, char *argv[])
   window = gtk_window_new ();
   grid = gtk_grid_new ();
   gtk_window_set_child (GTK_WINDOW (window), grid);
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_AUTOMATIC,
                                   GTK_POLICY_AUTOMATIC);
@@ -205,7 +205,7 @@ main (int argc, char *argv[])
   gtk_list_box_bind_model (GTK_LIST_BOX (box), G_LIST_MODEL (store), create_widget, NULL, NULL);
   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), box);
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_AUTOMATIC,
                                   GTK_POLICY_AUTOMATIC);

@@ -26,13 +26,6 @@ GArray *contents;
 
 static char next_value = 'A';
 
-static void
-test_init (void)
-{
-  if (g_file_test ("../modules/input/immodules.cache", G_FILE_TEST_EXISTS))
-    g_setenv ("GTK_IM_MODULE_FILE", "../modules/input/immodules.cache", TRUE);
-}
-
 G_GNUC_PRINTF (1, 2) static void
 combochange_log (const char *fmt,
                  ...)
@@ -122,8 +115,8 @@ static void
 on_reorder (void)
 {
   GArray *new_contents;
-  gint *shuffle_array;
-  gint i;
+  int *shuffle_array;
+  int i;
 
   shuffle_array = g_new (int, contents->len);
   
@@ -132,8 +125,8 @@ on_reorder (void)
 
   for (i = 0; i + 1 < contents->len; i++)
     {
-      gint pos = g_random_int_range (i, contents->len);
-      gint tmp;
+      int pos = g_random_int_range (i, contents->len);
+      int tmp;
 
       tmp = shuffle_array[i];
       shuffle_array[i] = shuffle_array[pos];
@@ -157,7 +150,7 @@ on_reorder (void)
 static int n_animations = 0;
 static int timer = 0;
 
-static gint
+static int
 animation_timer (gpointer data)
 {
   switch (g_random_int_range (0, 3)) 
@@ -200,8 +193,6 @@ main (int argc, char **argv)
   GtkWidget *combo;
   GtkCellRenderer *cell_renderer;
 
-  test_init ();
-
   gtk_init ();
 
   model = gtk_list_store_new (1, G_TYPE_STRING);
@@ -227,7 +218,7 @@ main (int argc, char **argv)
   gtk_widget_set_margin_start (combo, 12);
   gtk_box_append (GTK_BOX (combo_vbox), combo);
 
-  scrolled_window = gtk_scrolled_window_new (NULL, NULL);
+  scrolled_window = gtk_scrolled_window_new ();
   gtk_widget_set_hexpand (scrolled_window, TRUE);
   gtk_box_append (GTK_BOX (hbox), scrolled_window);
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (scrolled_window),

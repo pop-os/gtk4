@@ -4,7 +4,7 @@
  * GtkTextBuffer. You can enable or disable undo support using
  * gtk_text_buffer_set_enable_undo().
  *
- * Use Primary+Z to undo and Primary+Shift+Z or Primary+Y to
+ * Use Control+z to undo and Control+Shift+z or Control+y to
  * redo previously undone operations.
  */
 
@@ -29,7 +29,7 @@ do_textundo (GtkWidget *do_widget)
       gtk_window_set_default_size (GTK_WINDOW (window), 450, 450);
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
-      gtk_window_set_title (GTK_WINDOW (window), "TextView Undo");
+      gtk_window_set_title (GTK_WINDOW (window), "Undo and Redo");
 
       view = gtk_text_view_new ();
       gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (view), GTK_WRAP_WORD);
@@ -46,7 +46,7 @@ do_textundo (GtkWidget *do_widget)
                               -1);
       gtk_text_buffer_end_irreversible_action (buffer);
 
-      sw = gtk_scrolled_window_new (NULL, NULL);
+      sw = gtk_scrolled_window_new ();
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);

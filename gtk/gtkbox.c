@@ -278,7 +278,6 @@ gtk_box_class_init (GtkBoxClass *class)
   g_object_class_install_properties (object_class, LAST_PROP, props);
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
-  gtk_widget_class_set_accessible_role (widget_class, ATK_ROLE_FILLER);
   gtk_widget_class_set_css_name (widget_class, I_("box"));
 }
 static void
@@ -296,7 +295,7 @@ static void
 gtk_box_buildable_add_child (GtkBuildable *buildable,
                              GtkBuilder   *builder,
                              GObject      *child,
-                             const gchar  *type)
+                             const char   *type)
 {
   if (GTK_IS_WIDGET (child))
     gtk_box_append (GTK_BOX (buildable), GTK_WIDGET (child));
@@ -323,7 +322,7 @@ gtk_box_buildable_iface_init (GtkBuildableIface *iface)
  **/
 GtkWidget*
 gtk_box_new (GtkOrientation orientation,
-             gint           spacing)
+             int            spacing)
 {
   return g_object_new (GTK_TYPE_BOX,
                        "orientation", orientation,
@@ -390,7 +389,7 @@ gtk_box_get_homogeneous (GtkBox *box)
  */
 void
 gtk_box_set_spacing (GtkBox *box,
-		     gint    spacing)
+		     int     spacing)
 {
   GtkBoxLayout *box_layout;
 
@@ -412,7 +411,7 @@ gtk_box_set_spacing (GtkBox *box,
  *
  * Returns: spacing between children
  **/
-gint
+int
 gtk_box_get_spacing (GtkBox *box)
 {
   GtkLayoutManager *box_layout;

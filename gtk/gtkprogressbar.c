@@ -39,8 +39,6 @@
 #include "gtkstylecontextprivate.h"
 #include "gtkwidgetprivate.h"
 
-#include "a11y/gtkprogressbaraccessibleprivate.h"
-
 #include <string.h>
 
 /**
@@ -87,6 +85,10 @@
  * .right, .top or .bottom added when the progress 'touches' the corresponding
  * end of the GtkProgressBar. The .osd class on the progressbar node is for use
  * in overlays like the one Epiphany has for page loading progress.
+ *
+ * # Accessibility
+ *
+ * GtkProgressBar uses the #GTK_ACCESSIBLE_ROLE_PROGRESS_BAR role.
  */
 
 typedef struct _GtkProgressBarClass         GtkProgressBarClass;
@@ -95,14 +97,14 @@ struct _GtkProgressBar
 {
   GtkWidget parent_instance;
 
-  gchar         *text;
+  char          *text;
 
   GtkWidget     *label;
   GtkWidget     *trough_widget;
   GtkWidget     *progress_widget;
 
-  gdouble        fraction;
-  gdouble        pulse_fraction;
+  double         fraction;
+  double         pulse_fraction;
 
   double         activity_pos;
   guint          activity_blocks;
@@ -113,7 +115,7 @@ struct _GtkProgressBar
   GtkProgressTracker tracker;
   gint64             pulse1;
   gint64             pulse2;
-  gdouble            last_iteration;
+  double             last_iteration;
 
   guint          activity_dir  : 1;
   guint          activity_mode : 1;
@@ -152,6 +154,7 @@ static void gtk_progress_bar_get_property         (GObject        *object,
 static void     gtk_progress_bar_act_mode_enter   (GtkProgressBar *progress);
 static void     gtk_progress_bar_act_mode_leave   (GtkProgressBar *progress);
 static void     gtk_progress_bar_finalize         (GObject        *object);
+static void     gtk_progress_bar_dispose          (GObject        *object);
 static void     gtk_progress_bar_set_orientation  (GtkProgressBar *progress,
                                                    GtkOrientation  orientation);
 static void     gtk_progress_bar_direction_changed (GtkWidget        *widget,
@@ -171,6 +174,7 @@ gtk_progress_bar_class_init (GtkProgressBarClass *class)
 
   gobject_class->set_property = gtk_progress_bar_set_property;
   gobject_class->get_property = gtk_progress_bar_get_property;
+  gobject_class->dispose = gtk_progress_bar_dispose;
   gobject_class->finalize = gtk_progress_bar_finalize;
 
   widget_class->direction_changed = gtk_progress_bar_direction_changed;
@@ -250,9 +254,9 @@ gtk_progress_bar_class_init (GtkProgressBarClass *class)
 
   g_object_class_install_properties (gobject_class, NUM_PROPERTIES, progress_props);
 
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_PROGRESS_BAR_ACCESSIBLE);
   gtk_widget_class_set_css_name (widget_class, I_("progressbar"));
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_PROGRESS_BAR);
 }
 
 static void
@@ -458,6 +462,12 @@ gtk_progress_bar_init (GtkProgressBar *pbar)
   pbar->orientation = GTK_ORIENTATION_VERTICAL; /* Just to force an update... */
   gtk_progress_bar_set_orientation (pbar, GTK_ORIENTATION_HORIZONTAL);
   gtk_widget_update_orientation (GTK_WIDGET (pbar), pbar->orientation);
+
+  gtk_accessible_update_property (GTK_ACCESSIBLE (pbar),
+                                  GTK_ACCESSIBLE_PROPERTY_VALUE_MAX, 1.0,
+                                  GTK_ACCESSIBLE_PROPERTY_VALUE_MIN, 0.0,
+                                  GTK_ACCESSIBLE_PROPERTY_VALUE_NOW, 0.0,
+                                  -1);
 }
 
 static void
@@ -554,24 +564,31 @@ gtk_progress_bar_new (void)
 }
 
 static void
-gtk_progress_bar_finalize (GObject *object)
+gtk_progress_bar_dispose (GObject *object)
 {
   GtkProgressBar *pbar = GTK_PROGRESS_BAR (object);
 
   if (pbar->activity_mode)
     gtk_progress_bar_act_mode_leave (pbar);
 
-  g_free (pbar->text);
-
   g_clear_pointer (&pbar->label, gtk_widget_unparent);
+  g_clear_pointer (&pbar->progress_widget, gtk_widget_unparent);
+  g_clear_pointer (&pbar->trough_widget, gtk_widget_unparent);
 
-  gtk_widget_unparent (pbar->progress_widget);
-  gtk_widget_unparent (pbar->trough_widget);
+  G_OBJECT_CLASS (gtk_progress_bar_parent_class)->dispose (object);
+}
+
+static void
+gtk_progress_bar_finalize (GObject *object)
+{
+  GtkProgressBar *pbar = GTK_PROGRESS_BAR (object);
+
+  g_free (pbar->text);
 
   G_OBJECT_CLASS (gtk_progress_bar_parent_class)->finalize (object);
 }
 
-static gchar *
+static char *
 get_current_text (GtkProgressBar *pbar)
 {
   if (pbar->text)
@@ -587,7 +604,7 @@ tick_cb (GtkWidget     *widget,
 {
   GtkProgressBar *pbar = GTK_PROGRESS_BAR (widget);
   gint64 frame_time;
-  gdouble iteration, pulse_iterations, current_iterations, fraction;
+  double iteration, pulse_iterations, current_iterations, fraction;
 
   if (pbar->pulse2 == 0 && pbar->pulse1 == 0)
     return G_SOURCE_CONTINUE;
@@ -645,6 +662,9 @@ gtk_progress_bar_act_mode_enter (GtkProgressBar *pbar)
   gboolean inverted;
 
   gtk_widget_add_css_class (pbar->progress_widget, GTK_STYLE_CLASS_PULSE);
+  gtk_accessible_update_state (GTK_ACCESSIBLE (pbar),
+                               GTK_ACCESSIBLE_STATE_BUSY, TRUE,
+                               -1);
 
   inverted = pbar->inverted;
   if (gtk_widget_get_direction (widget) == GTK_TEXT_DIR_RTL)
@@ -682,6 +702,9 @@ gtk_progress_bar_act_mode_leave (GtkProgressBar *pbar)
     gtk_widget_remove_tick_callback (GTK_WIDGET (pbar), pbar->tick_id);
   pbar->tick_id = 0;
 
+  gtk_accessible_update_state (GTK_ACCESSIBLE (pbar),
+                               GTK_ACCESSIBLE_STATE_BUSY, FALSE,
+                               -1);
   gtk_widget_remove_css_class (pbar->progress_widget, GTK_STYLE_CLASS_PULSE);
   update_node_classes (pbar);
 }
@@ -714,31 +737,42 @@ gtk_progress_bar_set_activity_mode (GtkProgressBar *pbar,
  */
 void
 gtk_progress_bar_set_fraction (GtkProgressBar *pbar,
-                               gdouble         fraction)
+                               double          fraction)
 {
+  char *text = NULL;
+
   g_return_if_fail (GTK_IS_PROGRESS_BAR (pbar));
 
   pbar->fraction = CLAMP (fraction, 0.0, 1.0);
 
   if (pbar->label)
     {
-      char *text = get_current_text (pbar);
+      text = get_current_text (pbar);
       gtk_label_set_label (GTK_LABEL (pbar->label), text);
-
-      g_free (text);
     }
 
   gtk_progress_bar_set_activity_mode (pbar, FALSE);
   gtk_widget_queue_allocate (pbar->trough_widget);
   update_fraction_classes (pbar);
 
-  {
-    AtkObject *accessible =
-      _gtk_widget_peek_accessible (GTK_WIDGET (pbar));
+  gtk_accessible_update_property (GTK_ACCESSIBLE (pbar),
+                                  GTK_ACCESSIBLE_PROPERTY_VALUE_MAX, 1.0,
+                                  GTK_ACCESSIBLE_PROPERTY_VALUE_MIN, 0.0,
+                                  GTK_ACCESSIBLE_PROPERTY_VALUE_NOW, fraction,
+                                  -1);
 
-    if (accessible != NULL)
-      gtk_progress_bar_accessible_update_value (GTK_PROGRESS_BAR_ACCESSIBLE (accessible));
-  }
+  if (text != NULL)
+    {
+      gtk_accessible_update_property (GTK_ACCESSIBLE (pbar),
+                                      GTK_ACCESSIBLE_PROPERTY_VALUE_TEXT, text,
+                                      -1);
+    }
+  else
+    {
+      gtk_accessible_reset_property (GTK_ACCESSIBLE (pbar), GTK_ACCESSIBLE_PROPERTY_VALUE_TEXT);
+    }
+
+  g_free (text);
 
   g_object_notify_by_pspec (G_OBJECT (pbar), progress_props[PROP_FRACTION]);
 }
@@ -792,7 +826,7 @@ gtk_progress_bar_pulse (GtkProgressBar *pbar)
  */
 void
 gtk_progress_bar_set_text (GtkProgressBar *pbar,
-                           const gchar    *text)
+                           const char     *text)
 {
   g_return_if_fail (GTK_IS_PROGRESS_BAR (pbar));
 
@@ -884,7 +918,7 @@ gtk_progress_bar_get_show_text (GtkProgressBar *pbar)
  */
 void
 gtk_progress_bar_set_pulse_step (GtkProgressBar *pbar,
-                                 gdouble         fraction)
+                                 double          fraction)
 {
   g_return_if_fail (GTK_IS_PROGRESS_BAR (pbar));
 
@@ -975,7 +1009,7 @@ gtk_progress_bar_set_inverted (GtkProgressBar *pbar,
  * Returns: (nullable): text, or %NULL; this string is owned by the widget
  * and should not be modified or freed.
  */
-const gchar*
+const char *
 gtk_progress_bar_get_text (GtkProgressBar *pbar)
 {
   g_return_val_if_fail (GTK_IS_PROGRESS_BAR (pbar), NULL);
@@ -991,7 +1025,7 @@ gtk_progress_bar_get_text (GtkProgressBar *pbar)
  *
  * Returns: a fraction from 0.0 to 1.0
  */
-gdouble
+double
 gtk_progress_bar_get_fraction (GtkProgressBar *pbar)
 {
   g_return_val_if_fail (GTK_IS_PROGRESS_BAR (pbar), 0);
@@ -1007,7 +1041,7 @@ gtk_progress_bar_get_fraction (GtkProgressBar *pbar)
  *
  * Returns: a fraction from 0.0 to 1.0
  */
-gdouble
+double
 gtk_progress_bar_get_pulse_step (GtkProgressBar *pbar)
 {
   g_return_val_if_fail (GTK_IS_PROGRESS_BAR (pbar), 0);

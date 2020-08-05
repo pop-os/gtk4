@@ -68,6 +68,7 @@ struct _GdkContentDeserializer
   GValue value;
   GInputStream *stream;
   int priority;
+  gboolean returned;
   GCancellable *cancellable;
   gpointer user_data;
   GAsyncReadyCallback callback;
@@ -77,7 +78,6 @@ struct _GdkContentDeserializer
   GDestroyNotify task_notify;
 
   GError *error;
-  gboolean returned;
 };
 
 struct _GdkContentDeserializerClass
@@ -835,7 +835,7 @@ init (void)
   for (f = formats; f; f = f->next)
     {
       GdkPixbufFormat *fmt = f->data;
-      gchar *name; 
+      char *name; 
  
       name = gdk_pixbuf_format_get_name (fmt);
       if (g_str_equal (name, "png"))
@@ -854,7 +854,7 @@ init (void)
   for (f = formats; f; f = f->next)
     {
       GdkPixbufFormat *fmt = f->data;
-      gchar **mimes, **m;
+      char **mimes, **m;
 
       mimes = gdk_pixbuf_format_get_mime_types (fmt);
       for (m = mimes; *m; m++)
@@ -875,7 +875,7 @@ init (void)
 
   g_slist_free (formats);
 
-#ifdef G_OS_UNIX
+#if defined(G_OS_UNIX) && !defined(__APPLE__)
   file_transfer_portal_register ();
 #endif
 

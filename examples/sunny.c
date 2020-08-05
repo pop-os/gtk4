@@ -15,13 +15,12 @@ new_window (GApplication *app,
   gtk_window_set_icon_name (GTK_WINDOW (window), "sunny");
 
   header = gtk_header_bar_new ();
-  gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
   gtk_window_set_titlebar (GTK_WINDOW (window), header);
 
   overlay = gtk_overlay_new ();
   gtk_window_set_child (GTK_WINDOW (window), overlay);
 
-  scrolled = gtk_scrolled_window_new (NULL, NULL);
+  scrolled = gtk_scrolled_window_new ();
   gtk_widget_set_hexpand (scrolled, TRUE);
   gtk_widget_set_vexpand (scrolled, TRUE);
   view = gtk_text_view_new ();
@@ -31,7 +30,7 @@ new_window (GApplication *app,
 
   if (file != NULL)
     {
-      gchar *contents;
+      char *contents;
       gsize length;
 
       if (g_file_load_contents (file, NULL, &contents, &length, NULL, NULL))
@@ -56,10 +55,10 @@ activate (GApplication *application)
 static void
 open (GApplication  *application,
       GFile        **files,
-      gint           n_files,
-      const gchar   *hint)
+      int            n_files,
+      const char    *hint)
 {
-  gint i;
+  int i;
 
   for (i = 0; i < n_files; i++)
     new_window (application, files[i]);

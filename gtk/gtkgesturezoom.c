@@ -45,7 +45,7 @@ enum {
 
 struct _GtkGestureZoomPrivate
 {
-  gdouble initial_distance;
+  double initial_distance;
 };
 
 static guint signals[LAST_SIGNAL] = { 0 };
@@ -74,13 +74,13 @@ gtk_gesture_zoom_constructor (GType                  type,
 
 static gboolean
 _gtk_gesture_zoom_get_distance (GtkGestureZoom *zoom,
-                                gdouble        *distance)
+                                double         *distance)
 {
   GdkEvent *last_event;
-  gdouble x1, y1, x2, y2;
+  double x1, y1, x2, y2;
   GtkGesture *gesture;
   GList *sequences = NULL;
-  gdouble dx, dy;
+  double dx, dy;
   GdkTouchpadGesturePhase phase;
   gboolean retval = FALSE;
 
@@ -94,15 +94,15 @@ _gtk_gesture_zoom_get_distance (GtkGestureZoom *zoom,
     goto out;
 
   last_event = gtk_gesture_get_last_event (gesture, sequences->data);
-  phase = gdk_touchpad_event_get_gesture_phase (last_event);
 
-  if (gdk_event_get_event_type (last_event) == GDK_TOUCHPAD_PINCH &&
-      (phase == GDK_TOUCHPAD_GESTURE_PHASE_BEGIN ||
-       phase == GDK_TOUCHPAD_GESTURE_PHASE_UPDATE ||
-       phase == GDK_TOUCHPAD_GESTURE_PHASE_END))
+  if (gdk_event_get_event_type (last_event) == GDK_TOUCHPAD_PINCH)
     {
       double scale;
+
       /* Touchpad pinch */
+      phase = gdk_touchpad_event_get_gesture_phase (last_event);
+      if (phase == GDK_TOUCHPAD_GESTURE_PHASE_CANCEL)
+        goto out;
 
       scale = gdk_touchpad_event_get_pinch_scale (last_event);
       *distance = scale;
@@ -131,7 +131,7 @@ static gboolean
 _gtk_gesture_zoom_check_emit (GtkGestureZoom *gesture)
 {
   GtkGestureZoomPrivate *priv;
-  gdouble distance, zoom;
+  double distance, zoom;
 
   if (!_gtk_gesture_zoom_get_distance (gesture, &distance))
     return FALSE;
@@ -241,11 +241,11 @@ gtk_gesture_zoom_new (void)
  *
  * Returns: the scale delta
  **/
-gdouble
+double
 gtk_gesture_zoom_get_scale_delta (GtkGestureZoom *gesture)
 {
   GtkGestureZoomPrivate *priv;
-  gdouble distance;
+  double distance;
 
   g_return_val_if_fail (GTK_IS_GESTURE_ZOOM (gesture), 1.0);
 

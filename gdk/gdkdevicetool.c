@@ -209,3 +209,19 @@ gdk_device_tool_get_tool_type (GdkDeviceTool *tool)
 
   return tool->type;
 }
+
+/**
+ * gdk_device_tool_get_axes:
+ * @tool: a #GdkDeviceTool
+ *
+ * Gets the axes of the tool.
+ *
+ * Returns: the axes of @tool
+ */
+GdkAxisFlags
+gdk_device_tool_get_axes (GdkDeviceTool *tool)
+{
+  g_return_val_if_fail (tool != NULL, 0);
+
+  return tool->tool_axes;
+}

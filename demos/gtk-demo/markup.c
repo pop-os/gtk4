@@ -21,7 +21,7 @@ source_toggled (GtkToggleButton *button)
     {
       GtkTextBuffer *buffer;
       GtkTextIter start, end;
-      gchar *markup;
+      char *markup;
 
       buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view2));
       gtk_text_buffer_get_bounds (buffer, &start, &end);
@@ -50,7 +50,7 @@ do_markup (GtkWidget *do_widget)
       GtkTextBuffer *buffer;
       GtkTextIter iter;
       GBytes *bytes;
-      const gchar *markup;
+      const char *markup;
       GtkWidget *header;
       GtkWidget *show_source;
 
@@ -69,7 +69,6 @@ do_markup (GtkWidget *do_widget)
       g_signal_connect (show_source, "toggled", G_CALLBACK (source_toggled), stack);
 
       header = gtk_header_bar_new ();
-      gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
       gtk_header_bar_pack_start (GTK_HEADER_BAR (header), show_source);
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
 
@@ -81,7 +80,7 @@ do_markup (GtkWidget *do_widget)
       gtk_text_view_set_left_margin (GTK_TEXT_VIEW (view), 10);
       gtk_text_view_set_right_margin (GTK_TEXT_VIEW (view), 10);
 
-      sw = gtk_scrolled_window_new (NULL, NULL);
+      sw = gtk_scrolled_window_new ();
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
@@ -94,7 +93,7 @@ do_markup (GtkWidget *do_widget)
       gtk_text_view_set_left_margin (GTK_TEXT_VIEW (view2), 10);
       gtk_text_view_set_right_margin (GTK_TEXT_VIEW (view2), 10);
 
-      sw = gtk_scrolled_window_new (NULL, NULL);
+      sw = gtk_scrolled_window_new ();
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                       GTK_POLICY_AUTOMATIC,
                                       GTK_POLICY_AUTOMATIC);
@@ -103,7 +102,7 @@ do_markup (GtkWidget *do_widget)
       gtk_stack_add_named (GTK_STACK (stack), sw, "source");
 
       bytes = g_resources_lookup_data ("/markup/markup.txt", 0, NULL);
-      markup = (const gchar *)g_bytes_get_data (bytes, NULL);
+      markup = (const char *)g_bytes_get_data (bytes, NULL);
 
       buffer = gtk_text_view_get_buffer (GTK_TEXT_VIEW (view));
       gtk_text_buffer_get_start_iter (buffer, &iter);

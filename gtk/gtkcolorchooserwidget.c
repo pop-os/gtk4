@@ -32,8 +32,6 @@
 #include "gtkboxlayout.h"
 #include "gtkwidgetprivate.h"
 
-#include "a11y/gtkcompositeaccessible.h"
-
 #include <math.h>
 
 /**
@@ -265,31 +263,6 @@ update_from_editor (GtkColorEditor        *editor,
 
 /* UI construction {{{1 */
 
-static guint
-scale_round (gdouble value, gdouble scale)
-{
-  value = floor (value * scale + 0.5);
-  value = MAX (value, 0);
-  value = MIN (value, scale);
-  return (guint)value;
-}
-
-static gchar *
-accessible_color_name (GdkRGBA *color)
-{
-  if (color->alpha < 1.0)
-    return g_strdup_printf (_("Red %d%%, Green %d%%, Blue %d%%, Alpha %d%%"),
-                            scale_round (color->red, 100),
-                            scale_round (color->green, 100),
-                            scale_round (color->blue, 100),
-                            scale_round (color->alpha, 100));
-  else
-    return g_strdup_printf (_("Red %d%%, Green %d%%, Blue %d%%"),
-                            scale_round (color->red, 100),
-                            scale_round (color->green, 100),
-                            scale_round (color->blue, 100));
-}
-
 static void
 remove_palette (GtkColorChooserWidget *cc)
 {
@@ -319,17 +292,16 @@ remove_palette (GtkColorChooserWidget *cc)
 static void
 add_palette (GtkColorChooserWidget  *cc,
              GtkOrientation          orientation,
-             gint                    colors_per_line,
-             gint                    n_colors,
+             int                     colors_per_line,
+             int                     n_colors,
              GdkRGBA                *colors,
-             const gchar           **names)
+             const char            **names)
 {
   GtkWidget *grid;
   GtkWidget *p;
-  AtkObject *atk_obj;
-  gint line, pos;
-  gint i;
-  gint left, right;
+  int line, pos;
+  int i;
+  int left, right;
 
   if (colors == NULL)
     {
@@ -355,22 +327,6 @@ add_palette (GtkColorChooserWidget  *cc,
   for (i = 0; i < n_colors; i++)
     {
       p = gtk_color_swatch_new ();
-      atk_obj = gtk_widget_get_accessible (p);
-      if (names)
-        {
-          atk_object_set_name (atk_obj,
-                               g_dpgettext2 (GETTEXT_PACKAGE, "Color name", names[i]));
-        }
-      else
-        {
-          gchar *text, *name;
-
-          name = accessible_color_name (&colors[i]);
-          text = g_strdup_printf (_("Color: %s"), name);
-          atk_object_set_name (atk_obj, text);
-          g_free (text);
-          g_free (name);
-        }
       gtk_color_swatch_set_rgba (GTK_COLOR_SWATCH (p), &colors[i]);
       connect_swatch_signals (p, cc);
 
@@ -411,7 +367,7 @@ remove_default_palette (GtkColorChooserWidget *cc)
 static void
 add_default_palette (GtkColorChooserWidget *cc)
 {
-  const gchar *default_colors[9][3] = {
+  const char *default_colors[9][3] = {
     { "#ef2929", "#cc0000", "#a40000" }, /* Scarlet Red */
     { "#fcaf3e", "#f57900", "#ce5c00" }, /* Orange */
     { "#fce94f", "#edd400", "#c4a000" }, /* Butter */
@@ -422,7 +378,7 @@ add_default_palette (GtkColorChooserWidget *cc)
     { "#888a85", "#555753", "#2e3436" }, /* Aluminum 1 */
     { "#eeeeec", "#d3d7cf", "#babdb6" }  /* Aluminum 2 */
   };
-  const gchar *color_names[] = {
+  const char *color_names[] = {
     NC_("Color name", "Light Scarlet Red"),
     NC_("Color name", "Scarlet Red"),
     NC_("Color name", "Dark Scarlet Red"),
@@ -451,7 +407,7 @@ add_default_palette (GtkColorChooserWidget *cc)
     NC_("Color name", "Aluminum 2"),
     NC_("Color name", "Dark Aluminum 2")
   };
-  const gchar *default_grays[9] = {
+  const char *default_grays[9] = {
     "#000000", /* black */
     "#2e3436", /* very dark gray */
     "#555753", /* darker gray */
@@ -462,7 +418,7 @@ add_default_palette (GtkColorChooserWidget *cc)
     "#f3f3f3", /* very light gray */
     "#ffffff"  /* white */
   };
-  const gchar *gray_names[] = {
+  const char *gray_names[] = {
     NC_("Color name", "Black"),
     NC_("Color name", "Very Dark Gray"),
     NC_("Color name", "Darker Gray"),
@@ -474,7 +430,7 @@ add_default_palette (GtkColorChooserWidget *cc)
     NC_("Color name", "White")
   };
   GdkRGBA colors[9*3];
-  gint i, j;
+  int i, j;
 
   for (i = 0; i < 9; i++)
     for (j = 0; j < 3; j++)
@@ -537,14 +493,12 @@ gtk_color_chooser_widget_init (GtkColorChooserWidget *cc)
   GtkWidget *p;
   GtkWidget *button;
   GtkWidget *label;
-  gint i;
+  int i;
   double color[4];
   GdkRGBA rgba;
   GVariant *variant;
   GVariantIter iter;
   gboolean selected;
-  AtkObject *atk_obj;
-  gchar *text, *name;
 
   cc->use_alpha = TRUE;
 
@@ -564,9 +518,6 @@ gtk_color_chooser_widget_init (GtkColorChooserWidget *cc)
 
   cc->button = button = gtk_color_swatch_new ();
   gtk_widget_set_name (button, "add-color-button");
-  atk_obj = gtk_widget_get_accessible (button);
-  atk_object_set_name (atk_obj, _("Custom color"));
-  atk_object_set_description (atk_obj, _("Create a custom color"));
   connect_button_signals (button, cc);
   gtk_color_swatch_set_icon (GTK_COLOR_SWATCH (button), "list-add-symbolic");
   gtk_color_swatch_set_selectable (GTK_COLOR_SWATCH (button), FALSE);
@@ -589,12 +540,6 @@ gtk_color_chooser_widget_init (GtkColorChooserWidget *cc)
 
       gtk_color_swatch_set_rgba (GTK_COLOR_SWATCH (p), &rgba);
       gtk_color_swatch_set_can_drop (GTK_COLOR_SWATCH (p), TRUE);
-      atk_obj = gtk_widget_get_accessible (p);
-      name = accessible_color_name (&rgba);
-      text = g_strdup_printf (_("Custom color %d: %s"), i, name);
-      atk_object_set_name (atk_obj, text);
-      g_free (text);
-      g_free (name);
       connect_custom_signals (p, cc);
       gtk_box_append (GTK_BOX (box), p);
 
@@ -753,8 +698,6 @@ gtk_color_chooser_widget_class_init (GtkColorChooserWidgetClass *class)
    */
   gtk_widget_class_install_action (widget_class, "color.customize", "(dddd)",
                                    gtk_color_chooser_widget_activate_color_customize);
-
-  gtk_widget_class_set_accessible_type (widget_class, GTK_TYPE_COMPOSITE_ACCESSIBLE);
 }
 
 /* GtkColorChooser implementation {{{1 */
@@ -856,8 +799,8 @@ gtk_color_chooser_widget_set_rgba (GtkColorChooser *chooser,
 static void
 gtk_color_chooser_widget_add_palette (GtkColorChooser *chooser,
                                       GtkOrientation   orientation,
-                                      gint             colors_per_line,
-                                      gint             n_colors,
+                                      int              colors_per_line,
+                                      int              n_colors,
                                       GdkRGBA         *colors)
 {
   GtkColorChooserWidget *cc = GTK_COLOR_CHOOSER_WIDGET (chooser);

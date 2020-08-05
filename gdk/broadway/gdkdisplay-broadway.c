@@ -119,7 +119,6 @@ create_core_pointer (GdkDisplay *display)
 {
   return g_object_new (GDK_TYPE_BROADWAY_DEVICE,
                        "name", "Core Pointer",
-                       "type", GDK_DEVICE_TYPE_MASTER,
                        "source", GDK_SOURCE_MOUSE,
                        "has-cursor", TRUE,
                        "display", display,
@@ -131,7 +130,6 @@ create_core_keyboard (GdkDisplay *display)
 {
   return g_object_new (GDK_TYPE_BROADWAY_DEVICE,
                        "name", "Core Keyboard",
-                       "type", GDK_DEVICE_TYPE_MASTER,
                        "source", GDK_SOURCE_KEYBOARD,
                        "has-cursor", FALSE,
                        "display", display,
@@ -143,7 +141,6 @@ create_pointer (GdkDisplay *display)
 {
   return g_object_new (GDK_TYPE_BROADWAY_DEVICE,
                        "name", "Pointer",
-                       "type", GDK_DEVICE_TYPE_SLAVE,
                        "source", GDK_SOURCE_MOUSE,
                        "has-cursor", TRUE,
                        "display", display,
@@ -155,7 +152,6 @@ create_keyboard (GdkDisplay *display)
 {
   return g_object_new (GDK_TYPE_BROADWAY_DEVICE,
                        "name", "Keyboard",
-                       "type", GDK_DEVICE_TYPE_SLAVE,
                        "source", GDK_SOURCE_KEYBOARD,
                        "has-cursor", FALSE,
                        "display", display,
@@ -167,7 +163,6 @@ create_touchscreen (GdkDisplay *display)
 {
   return g_object_new (GDK_TYPE_BROADWAY_DEVICE,
                        "name", "Touchscreen",
-                       "type", GDK_DEVICE_TYPE_SLAVE,
                        "source", GDK_SOURCE_TOUCHSCREEN,
                        "has-cursor", FALSE,
                        "display", display,
@@ -175,7 +170,7 @@ create_touchscreen (GdkDisplay *display)
 }
 
 GdkDisplay *
-_gdk_broadway_display_open (const gchar *display_name)
+_gdk_broadway_display_open (const char *display_name)
 {
   GdkDisplay *display;
   GdkBroadwayDisplay *broadway_display;
@@ -196,15 +191,15 @@ _gdk_broadway_display_open (const gchar *display_name)
   _gdk_device_set_associated_device (broadway_display->pointer, broadway_display->core_pointer);
   _gdk_device_set_associated_device (broadway_display->keyboard, broadway_display->core_keyboard);
   _gdk_device_set_associated_device (broadway_display->touchscreen, broadway_display->core_pointer);
-  _gdk_device_add_slave (broadway_display->core_pointer, broadway_display->touchscreen);
+  _gdk_device_add_physical_device (broadway_display->core_pointer, broadway_display->touchscreen);
 
-  seat = gdk_seat_default_new_for_master_pair (broadway_display->core_pointer,
-                                               broadway_display->core_keyboard);
+  seat = gdk_seat_default_new_for_logical_pair (broadway_display->core_pointer,
+                                                broadway_display->core_keyboard);
 
   gdk_display_add_seat (display, seat);
-  gdk_seat_default_add_slave (GDK_SEAT_DEFAULT (seat), broadway_display->pointer);
-  gdk_seat_default_add_slave (GDK_SEAT_DEFAULT (seat), broadway_display->keyboard);
-  gdk_seat_default_add_slave (GDK_SEAT_DEFAULT (seat), broadway_display->touchscreen);
+  gdk_seat_default_add_physical_device (GDK_SEAT_DEFAULT (seat), broadway_display->pointer);
+  gdk_seat_default_add_physical_device (GDK_SEAT_DEFAULT (seat), broadway_display->keyboard);
+  gdk_seat_default_add_physical_device (GDK_SEAT_DEFAULT (seat), broadway_display->touchscreen);
   g_object_unref (seat);
 
   gdk_event_init (display);
@@ -225,12 +220,12 @@ _gdk_broadway_display_open (const gchar *display_name)
   return display;
 }
 
-static const gchar *
+static const char *
 gdk_broadway_display_get_name (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
-  return (gchar *) "Broadway";
+  return (char *) "Broadway";
 }
 
 static void
@@ -263,14 +258,6 @@ static gboolean
 gdk_broadway_display_has_pending (GdkDisplay *display)
 {
   return FALSE;
-}
-
-static GdkSurface *
-gdk_broadway_display_get_default_group (GdkDisplay *display)
-{
-  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
-
-  return NULL;
 }
 
 static void
@@ -311,7 +298,7 @@ gdk_broadway_display_finalize (GObject *object)
 
 static void
 gdk_broadway_display_notify_startup_complete (GdkDisplay  *display,
-					      const gchar *startup_id)
+					      const char *startup_id)
 {
 }
 
@@ -441,7 +428,6 @@ gdk_broadway_display_class_init (GdkBroadwayDisplayClass * class)
   display_class->flush = gdk_broadway_display_flush;
   display_class->has_pending = gdk_broadway_display_has_pending;
   display_class->queue_events = _gdk_broadway_display_queue_events;
-  display_class->get_default_group = gdk_broadway_display_get_default_group;
 
   display_class->get_next_serial = gdk_broadway_display_get_next_serial;
   display_class->notify_startup_complete = gdk_broadway_display_notify_startup_complete;

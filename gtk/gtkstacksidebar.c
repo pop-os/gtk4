@@ -157,7 +157,7 @@ gtk_stack_sidebar_init (GtkStackSidebar *self)
 {
   GtkWidget *sw;
 
-  sw = gtk_scrolled_window_new (NULL, NULL);
+  sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_AUTOMATIC);
@@ -184,7 +184,7 @@ update_row (GtkStackSidebar *self,
             GtkWidget       *row)
 {
   GtkWidget *item;
-  gchar *title;
+  char *title;
   gboolean needs_attention;
   gboolean visible;
 

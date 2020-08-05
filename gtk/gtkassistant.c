@@ -84,9 +84,6 @@
 #include "gtkstylecontext.h"
 #include "gtktypebuiltins.h"
 
-#include "a11y/gtkwindowaccessible.h"
-
-
 typedef struct _GtkAssistantPageClass   GtkAssistantPageClass;
 
 struct _GtkAssistantPage
@@ -96,7 +93,7 @@ struct _GtkAssistantPage
   guint      complete     : 1;
   guint      complete_set : 1;
 
-  gchar *title;
+  char *title;
 
   GtkWidget *page;
   GtkWidget *regular_title;
@@ -125,7 +122,7 @@ struct _GtkAssistant
   GtkWidget *content;
   GtkWidget *action_area;
   GtkWidget *headerbar;
-  gint use_header_bar;
+  int use_header_bar;
   gboolean constructed;
 
   GList     *pages;
@@ -141,7 +138,7 @@ struct _GtkAssistant
 
   GListModel *model;
 
-  gint extra_buttons;
+  int extra_buttons;
 
   guint committed : 1;
 };
@@ -178,13 +175,13 @@ static void     gtk_assistant_buildable_add_child        (GtkBuildable       *bu
 static gboolean gtk_assistant_buildable_custom_tag_start (GtkBuildable       *buildable,
                                                           GtkBuilder         *builder,
                                                           GObject            *child,
-                                                          const gchar        *tagname,
+                                                          const char         *tagname,
                                                           GtkBuildableParser *parser,
                                                           gpointer           *data);
 static void     gtk_assistant_buildable_custom_finished  (GtkBuildable       *buildable,
                                                           GtkBuilder         *builder,
                                                           GObject            *child,
-                                                          const gchar        *tagname,
+                                                          const char         *tagname,
                                                           gpointer            user_data);
 
 static GList*   find_page                                (GtkAssistant       *assistant,
@@ -204,9 +201,7 @@ static void     on_assistant_last                        (GtkWidget          *wi
 
 static int        gtk_assistant_add_page                 (GtkAssistant     *assistant,
                                                           GtkAssistantPage *page_info,
-                                                          gint              position);
-
-GType             _gtk_assistant_accessible_get_type     (void);
+                                                          int               position);
 
 enum
 {
@@ -320,7 +315,7 @@ G_DEFINE_TYPE_WITH_CODE (GtkAssistant, gtk_assistant, GTK_TYPE_WINDOW,
 
 static void
 set_use_header_bar (GtkAssistant *assistant,
-                    gint          use_header_bar)
+                    int           use_header_bar)
 {
   if (use_header_bar == -1)
     return;
@@ -487,8 +482,6 @@ gtk_assistant_class_init (GtkAssistantClass *class)
   widget_class->map = gtk_assistant_map;
   widget_class->unmap = gtk_assistant_unmap;
 
-  gtk_widget_class_set_accessible_type (widget_class, _gtk_assistant_accessible_get_type ());
-
   window_class->close_request = gtk_assistant_close_request;
 
   /**
@@ -633,8 +626,8 @@ gtk_assistant_class_init (GtkAssistantClass *class)
   gtk_widget_class_bind_template_callback (widget_class, on_assistant_last);
 }
 
-static gint
-default_forward_function (gint current_page, gpointer data)
+static int
+default_forward_function (int current_page, gpointer data)
 {
   GtkAssistant *assistant = GTK_ASSISTANT (data);
   GtkAssistantPage *page_info;
@@ -663,7 +656,7 @@ static gboolean
 last_button_visible (GtkAssistant *assistant, GtkAssistantPage *page)
 {
   GtkAssistantPage *page_info;
-  gint count, page_num, n_pages;
+  int count, page_num, n_pages;
 
   if (page == NULL)
     return FALSE;
@@ -703,7 +696,7 @@ update_actions_size (GtkAssistant *assistant)
 {
   GList *l;
   GtkAssistantPage *page;
-  gint buttons, page_buttons;
+  int buttons, page_buttons;
 
   if (!assistant->current_page)
     return;
@@ -749,7 +742,7 @@ compute_last_button_state (GtkAssistant *assistant)
 static void
 compute_progress_state (GtkAssistant *assistant)
 {
-  gint page_num, n_pages;
+  int page_num, n_pages;
 
   n_pages = gtk_assistant_get_n_pages (assistant);
   page_num = gtk_assistant_get_current_page (assistant);
@@ -919,7 +912,7 @@ update_title_state (GtkAssistant *assistant)
 
 static void
 set_current_page (GtkAssistant *assistant,
-                  gint          page_num)
+                  int           page_num)
 {
   assistant->current_page = (GtkAssistantPage *)g_list_nth_data (assistant->pages, page_num);
 
@@ -942,7 +935,7 @@ set_current_page (GtkAssistant *assistant,
   if (!gtk_widget_child_focus (assistant->current_page->page, GTK_DIR_TAB_FORWARD))
     {
       GtkWidget *button[6];
-      gint i;
+      int i;
 
       /* find the best button to focus */
       button[0] = assistant->apply;
@@ -963,11 +956,11 @@ set_current_page (GtkAssistant *assistant,
     }
 }
 
-static gint
+static int
 compute_next_step (GtkAssistant *assistant)
 {
   GtkAssistantPage *page_info;
-  gint current_page, n_pages, next_page;
+  int current_page, n_pages, next_page;
 
   current_page = gtk_assistant_get_current_page (assistant);
   page_info = assistant->current_page;
@@ -1348,7 +1341,7 @@ gtk_assistant_map (GtkWidget *widget)
   GtkAssistant *assistant = GTK_ASSISTANT (widget);
   GList *page_node;
   GtkAssistantPage *page;
-  gint page_num;
+  int page_num;
 
   /* if there's no default page, pick the first one */
   page = NULL;
@@ -1430,7 +1423,7 @@ gtk_assistant_new (void)
  *     page in the @assistant, or -1 if the @assistant has no pages,
  *     or no current page.
  */
-gint
+int
 gtk_assistant_get_current_page (GtkAssistant *assistant)
 {
   g_return_val_if_fail (GTK_IS_ASSISTANT (assistant), -1);
@@ -1457,7 +1450,7 @@ gtk_assistant_get_current_page (GtkAssistant *assistant)
  */
 void
 gtk_assistant_set_current_page (GtkAssistant *assistant,
-                                gint          page_num)
+                                int           page_num)
 {
   GtkAssistantPage *page;
 
@@ -1555,7 +1548,7 @@ gtk_assistant_previous_page (GtkAssistant *assistant)
  *
  * Returns: the number of pages in the @assistant
  */
-gint
+int
 gtk_assistant_get_n_pages (GtkAssistant *assistant)
 {
   g_return_val_if_fail (GTK_IS_ASSISTANT (assistant), 0);
@@ -1576,7 +1569,7 @@ gtk_assistant_get_n_pages (GtkAssistant *assistant)
  */
 GtkWidget*
 gtk_assistant_get_nth_page (GtkAssistant *assistant,
-                            gint          page_num)
+                            int           page_num)
 {
   GtkAssistantPage *page;
   GList *elem;
@@ -1606,7 +1599,7 @@ gtk_assistant_get_nth_page (GtkAssistant *assistant,
  *
  * Returns: the index (starting at 0) of the inserted page
  */
-gint
+int
 gtk_assistant_prepend_page (GtkAssistant *assistant,
                             GtkWidget    *page)
 {
@@ -1625,7 +1618,7 @@ gtk_assistant_prepend_page (GtkAssistant *assistant,
  *
  * Returns: the index (starting at 0) of the inserted page
  */
-gint
+int
 gtk_assistant_append_page (GtkAssistant *assistant,
                            GtkWidget    *page)
 {
@@ -1646,10 +1639,10 @@ gtk_assistant_append_page (GtkAssistant *assistant,
  *
  * Returns: the index (starting from 0) of the inserted page
  */
-gint
+int
 gtk_assistant_insert_page (GtkAssistant *assistant,
                            GtkWidget    *page,
-                           gint          position)
+                           int           position)
 {
   GtkAssistantPage *page_info;
 
@@ -1668,9 +1661,9 @@ gtk_assistant_insert_page (GtkAssistant *assistant,
 static int
 gtk_assistant_add_page (GtkAssistant *assistant,
                         GtkAssistantPage *page_info,
-                        gint position)
+                        int position)
 {
-  gint n_pages;
+  int n_pages;
   GtkWidget *sibling;
   char *name;
 
@@ -1743,7 +1736,7 @@ gtk_assistant_add_page (GtkAssistant *assistant,
  */
 void
 gtk_assistant_remove_page (GtkAssistant *assistant,
-                           gint          page_num)
+                           int           page_num)
 {
   GtkWidget *page;
 
@@ -1881,7 +1874,7 @@ gtk_assistant_remove_action_widget (GtkAssistant *assistant,
 void
 gtk_assistant_set_page_title (GtkAssistant *assistant,
                               GtkWidget    *page,
-                              const gchar  *title)
+                              const char   *title)
 {
   GtkAssistantPage *page_info;
   GList *child;
@@ -1907,7 +1900,7 @@ gtk_assistant_set_page_title (GtkAssistant *assistant,
  *
  * Returns: the title for @page
  */
-const gchar*
+const char *
 gtk_assistant_get_page_title (GtkAssistant *assistant,
                               GtkWidget    *page)
 {
@@ -2092,89 +2085,6 @@ gtk_assistant_commit (GtkAssistant *assistant)
   update_buttons_state (assistant);
 }
 
-/* accessible implementation */
-
-/* dummy typedefs */
-typedef GtkWindowAccessible      GtkAssistantAccessible;
-typedef GtkWindowAccessibleClass GtkAssistantAccessibleClass;
-
-G_DEFINE_TYPE (GtkAssistantAccessible, _gtk_assistant_accessible, GTK_TYPE_WINDOW_ACCESSIBLE);
-
-static gint
-gtk_assistant_accessible_get_n_children (AtkObject *accessible)
-{
-  GtkWidget *widget;
-  GtkAssistant *assistant;
-
-  widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (accessible));
-  if (widget == NULL)
-    return 0;
-
-  assistant = GTK_ASSISTANT (widget);
-  return g_list_length (assistant->pages) + 2;
-}
-
-static AtkObject *
-gtk_assistant_accessible_ref_child (AtkObject *accessible,
-                                    gint       index)
-{
-  GtkAssistant *assistant;
-  GtkWidget *widget, *child;
-  gint n_pages;
-  AtkObject *obj;
-  const gchar *title;
-
-  widget = gtk_accessible_get_widget (GTK_ACCESSIBLE (accessible));
-  if (widget == NULL)
-    return NULL;
-
-  assistant = GTK_ASSISTANT (widget);
-  n_pages = g_list_length (assistant->pages);
-
-  if (index < 0)
-    return NULL;
-  else if (index < n_pages)
-    {
-      GtkAssistantPage *page = g_list_nth_data (assistant->pages, index);
-
-      child = page->page;
-      title = gtk_assistant_get_page_title (assistant, child);
-    }
-  else if (index == n_pages)
-    {
-      child = assistant->action_area;
-      title = NULL;
-    }
-  else if (index == n_pages + 1)
-    {
-      child = assistant->headerbar;
-      title = NULL;
-    }
-  else
-    return NULL;
-
-  obj = gtk_widget_get_accessible (child);
-
-  if (title)
-    atk_object_set_name (obj, title);
-
-  return g_object_ref (obj);
-}
-
-static void
-_gtk_assistant_accessible_class_init (GtkAssistantAccessibleClass *klass)
-{
-  AtkObjectClass *atk_class = ATK_OBJECT_CLASS (klass);
-
-  atk_class->get_n_children = gtk_assistant_accessible_get_n_children;
-  atk_class->ref_child = gtk_assistant_accessible_ref_child;
-}
-
-static void
-_gtk_assistant_accessible_init (GtkAssistantAccessible *self)
-{
-}
-
 /* buildable implementation */
 
 static GtkBuildableIface *parent_buildable_iface;
@@ -2211,7 +2121,7 @@ gboolean
 gtk_assistant_buildable_custom_tag_start (GtkBuildable  *buildable,
                                           GtkBuilder    *builder,
                                           GObject       *child,
-                                          const gchar   *tagname,
+                                          const char    *tagname,
                                           GtkBuildableParser *parser,
                                           gpointer      *data)
 {
@@ -2223,7 +2133,7 @@ static void
 gtk_assistant_buildable_custom_finished (GtkBuildable *buildable,
                                          GtkBuilder   *builder,
                                          GObject      *child,
-                                         const gchar  *tagname,
+                                         const char   *tagname,
                                          gpointer      user_data)
 {
   parent_buildable_iface->custom_finished (buildable, builder, child,
