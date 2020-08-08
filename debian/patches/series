@@ -1,3 +1,5 @@
 testsuite-Fix-installed-tests.patch
 installed-tests-Fix-the-icontheme-test.patch
 cups-Don-t-emit-a-warning-if-we-can-t-talk-to-avahi.patch
+roaring.-ch-Add-attribution-and-licensing-information.patch
+Include-a-copy-of-the-Apache-license.patch
