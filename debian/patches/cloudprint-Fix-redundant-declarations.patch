@@ -1,0 +1,26 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Sat, 8 Aug 2020 14:19:14 +0100
+Subject: cloudprint: Fix redundant declarations
+
+This is the equivalent of 72c72d0b, but for the cloudprint backend.
+
+Signed-off-by: Simon McVittie <smcv@debian.org>
+Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/2414
+Applied-upstream: 3.99.1
+---
+ modules/printbackends/gtkprintbackendcloudprint.c | 2 --
+ 1 file changed, 2 deletions(-)
+
+diff --git a/modules/printbackends/gtkprintbackendcloudprint.c b/modules/printbackends/gtkprintbackendcloudprint.c
+index f99bcca..f347fc4 100644
+--- a/modules/printbackends/gtkprintbackendcloudprint.c
++++ b/modules/printbackends/gtkprintbackendcloudprint.c
+@@ -71,8 +71,6 @@ struct
+ } typedef TGOAAccount;
+ 
+ static GObjectClass *backend_parent_class;
+-static void                 gtk_print_backend_cloudprint_class_init      (GtkPrintBackendCloudprintClass *class);
+-static void                 gtk_print_backend_cloudprint_init            (GtkPrintBackendCloudprint      *impl);
+ static void                 gtk_print_backend_cloudprint_finalize	 (GObject *object);
+ static void                 cloudprint_printer_get_settings_from_options (GtkPrinter           *printer,
+ 									  GtkPrinterOptionSet  *options,
