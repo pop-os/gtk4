@@ -1,0 +1,24 @@
+From: Matthias Clasen <mclasen@redhat.com>
+Date: Sat, 1 Aug 2020 22:30:06 -0400
+Subject: installed-tests: Fix the icontheme test
+
+We forgot to install some of the icons, causing
+the test to fail.
+
+Origin: upstream, 3.99.1
+---
+ testsuite/gtk/meson.build | 1 +
+ 1 file changed, 1 insertion(+)
+
+diff --git a/testsuite/gtk/meson.build b/testsuite/gtk/meson.build
+index 286c8f3..929d9ca 100644
+--- a/testsuite/gtk/meson.build
++++ b/testsuite/gtk/meson.build
+@@ -271,6 +271,7 @@ if get_option('install-tests')
+   endforeach
+ 
+   install_subdir('icons', install_dir: testexecdir)
++  install_subdir('icons2', install_dir: testexecdir)
+   install_subdir('ui', install_dir: testexecdir)
+ 
+ endif

@@ -1,0 +1,26 @@
+From: Matthias Clasen <mclasen@redhat.com>
+Date: Sat, 1 Aug 2020 21:23:34 -0400
+Subject: testsuite: Fix installed tests
+
+This broken recently, when we converted the tests
+array to a dictionary.
+
+Fixes: #2966
+Origin: upstream, 3.99.1
+---
+ testsuite/gtk/meson.build | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/testsuite/gtk/meson.build b/testsuite/gtk/meson.build
+index 1238882..286c8f3 100644
+--- a/testsuite/gtk/meson.build
++++ b/testsuite/gtk/meson.build
+@@ -260,7 +260,7 @@ endforeach
+ 
+ if get_option('install-tests')
+   foreach t : tests
+-    test_name = t.get(0)
++    test_name = t.get('name')
+     conf = configuration_data()
+     conf.set('testexecdir', testexecdir)
+     conf.set('test', test_name)
