@@ -11,6 +11,10 @@ export GIO_USE_VOLUME_MONITOR=unix
 
 export XDG_RUNTIME_DIR="$AUTOPKGTEST_TMP"
 
+# We don't test under Wayland yet, because we don't have a Wayland
+# equivalent of xvfb-run
+export GDK_BACKEND=x11
+
 tests=$(gnome-desktop-testing-runner -l gtk-4.0 |
     cut -f1 -d' ' |
     grep -v '^gtk-4.0/a11y/children.test$' |

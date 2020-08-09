@@ -11,6 +11,10 @@ export GIO_USE_VOLUME_MONITOR=unix
 
 export XDG_RUNTIME_DIR="$AUTOPKGTEST_TMP"
 
+# We don't test under Wayland yet, because we don't have a Wayland
+# equivalent of xvfb-run
+export GDK_BACKEND=x11
+
 exec dbus-run-session -- \
 xvfb-run -a -s "-screen 0 1024x768x24" \
 debian/run-with-locales \

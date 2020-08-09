@@ -11,6 +11,10 @@ set -e
 set -u
 set -x
 
+# We don't test under Wayland yet, because we don't have a Wayland
+# equivalent of xvfb-run
+export GDK_BACKEND=x11
+
 WORKDIR=$(mktemp -d)
 cleanup () {
     rm -fr "$WORKDIR"
