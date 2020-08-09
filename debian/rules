@@ -188,6 +188,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		--no-parallel \
 		--builddirectory=debian/build/deb \
 		-- \
+		--setup=x11 \
 		|| true
 endif
 
