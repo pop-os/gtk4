@@ -85,6 +85,7 @@ configure_flags_deb = \
 	-Dmedia=none \
 	-Dprint-backends=all \
 	-Dx11-backend=true \
+	-Dxinerama=yes \
 	${NULL}
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
