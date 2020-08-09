@@ -183,6 +183,7 @@ Description: development files for the GTK library
  needed for building GTK applications.
 
 Package: @DOC_PKG@
+Build-Profiles: <!nodoc>
 Section: doc
 Architecture: all
 Multi-Arch: foreign
