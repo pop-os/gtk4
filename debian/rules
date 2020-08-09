@@ -106,6 +106,16 @@ else
 configure_flags_deb += -Dgtk_doc=true
 endif
 
+ifeq ($(filter %-examples,$(built_binaries)),)
+configure_flags_deb += -Dbuild-examples=false
+configure_flags_deb += -Ddemos=false
+configure_flags_deb += -Dinstall-tests=false
+else
+configure_flags_deb += -Dbuild-examples=true
+configure_flags_deb += -Ddemos=true
+configure_flags_deb += -Dinstall-tests=true
+endif
+
 configure_flags_udeb = \
 	-Dbroadway-backend=false \
 	-Dbuild-examples=false \

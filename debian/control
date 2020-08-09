@@ -201,6 +201,7 @@ Description: documentation for the GTK graphical user interface library
  in /usr/share/doc/libgtk-4-doc/ .
 
 Package: gtk-4-examples
+Build-Profiles: <!noinsttest>
 Section: x11
 Architecture: any
 Depends: gtk-3-examples,
