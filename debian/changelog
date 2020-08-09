@@ -3,35 +3,60 @@ gtk+4.0 (3.99.0-1) UNRELEASED; urgency=medium
   * New upstream release
     - Update d/copyright
     - Update build-dependencies according to meson.build
+      + Remove ATK dependencies
     - Remove "fake SONAME" mechanism.
       The library is now built as libgtk-4.so.0 (although the ABI is still
       not yet stable).
-    - Bump minimum version for all symbols to 3.98.3 for the new SONAME
+    - Bump minimum version for all symbols to 3.99.0 for the new SONAME and
+      numerous ABI breaks
     - Drop patch, applied upstream
     - Update symbols file
-    - Build-Depend on a suitable snapshot of gtk-doc
+    - Build-Depend on a suitable snapshot of gtk-doc from experimental
+    - Install more example files
   * d/tests/build, d/tests/python3-gi: Suppress AT-SPI warnings.
     We don't need a11y here, so use NO_AT_BRIDGE=1 to suppress the warning
     about org.a11y.Bus being unavailable.
   * d/copyright: Collapse most permissive licenses into Files: * stanza.
     I'm not going to try to keep track of which files are under which
-    specific LGPL-compatible licenses.
-  * Depend on librsvg2-common for tests, to be able to load SVG icons
+    specific LGPL-compatible licenses; please see the source code if this
+    information is needed.
+  * Depend on librsvg2-common for tests, to be able to load SVG icons.
     adwaita-icon-theme used to depend on this, but doesn't any more.
   * Try to split out flaky and non-flaky tests.
     Both sets are marked as flaky for now, but hopefully the less-flaky set
     can be promoted to non-flaky to catch regressions when GTK 4 gets more
     stable.
+  * Run the build-time tests under X11 for now.
+    We don't have an equivalent of xvfb-run for Wayland yet.
   * Move to debhelper compat level 13.
     Adjust dh_auto_test arguments accordingly: they were previously passed
     to `ninja test` and are now for `meson test`.
   * Depend on fonts-cantarell for tests
   * Run build-time tests with a D-Bus session bus via dbus-run-session
-  * d/p/testsuite-Remove-obsolete-test-from-list.patch:
-    Cherry-pick a patch from 3.98.5 to fix the build
-  * New upstream release
+  * d/p/testsuite-Fix-installed-tests.patch,
+    d/p/installed-tests-Fix-the-icontheme-test.patch,
+    d/p/cups-Don-t-emit-a-warning-if-we-can-t-talk-to-avahi.patch,
+    d/p/cloudprint-Fix-redundant-declarations.patch:
+    Add patches from upstream for some tests/warnings fixes
+  * d/p/roaring.-ch-Add-attribution-and-licensing-information.patch,
+    d/p/Include-a-copy-of-the-Apache-license.patch:
+    Add proposed patches to add copyright/licensing info for code adapted
+    from libroaring (src:croaring in Debian).
+  * d/rules: Rely on debhelper 13 to reset HOME, etc.
+  * d/rules: Stop setting VERBOSE, it was only relevant with Autotools
+  * d/rules: Explicitly enable Xinerama for non-udeb build
+  * d/rules: Disable examples, demos, installed tests for udeb build
+  * d/control.in: Annotate -doc package with <!nodoc>
+  * d/control.in, d/rules: Don't build demos, examples, installed-tests 
+    under <!noinsttest>
+  * d/rules: Disable GObject-Introspection for udeb build
+  * d/rules: Explicitly build documentation during build step.
+    By default this is only done during the install step, because gtk-doc
+    is relatively slow and cannot tell Meson how its dependency tree looks.
+    However, for GTK that breaks some dependency tracking, leading to
+    required Docbook files not being generated from their Markdown source.
 
- -- Simon McVittie <smcv@debian.org>  Wed, 05 Aug 2020 23:19:42 +0100
+ -- Simon McVittie <smcv@debian.org>  Sun, 09 Aug 2020 14:33:46 +0100
 
 gtk+4.0 (3.98.2-1) experimental; urgency=medium
 
