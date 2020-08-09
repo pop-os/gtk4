@@ -1,5 +1,6 @@
-gtk+4.0 (3.99.0-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.99.0-1) experimental; urgency=medium
 
+  * Team upload
   * New upstream release
     - Update d/copyright
     - Update build-dependencies according to meson.build
@@ -56,7 +57,7 @@ gtk+4.0 (3.99.0-1) UNRELEASED; urgency=medium
     However, for GTK that breaks some dependency tracking, leading to
     required Docbook files not being generated from their Markdown source.
 
- -- Simon McVittie <smcv@debian.org>  Sun, 09 Aug 2020 14:33:46 +0100
+ -- Simon McVittie <smcv@debian.org>  Sun, 09 Aug 2020 14:49:14 +0100
 
 gtk+4.0 (3.98.2-1) experimental; urgency=medium
 
