@@ -397,6 +397,28 @@ Copyright:
  2000 辛立仁
 License: LGPL-2+ and LGPL-2.1+ and sun-permissive and lcs-telegraphics-permissive and X11R5-permissive and Expat and BSD-3-clause-Google and Apache-2.0
 
+Files: gtk-doc-for-gtk4/*
+Copyright:
+ 1996 X Consortium
+ 1998-2001 Damon Chaplin
+ 1998 Michael Zucchi
+ 1998 Owen Taylor
+ 2003 James Henstridge
+ 2007 David Necas (Yeti)
+ 2007 David Nečas
+ 2007-2018 Stefan Sauer
+ 2008 Andrew Collier
+ 2009 Rich Wareham
+ 2015 Christoph Reiter
+ 2015 Lautsprecher Teufel GmbH
+License: GPL-2+ and autoconf-archive
+Comment:
+ Taken from the gtk-doc git repository, gtk-doc-for-gtk4 branch. GTK 4
+ introduces a new object feature, "actions", which need to be documented
+ as a first-class feature alongside signals and properties; the branch
+ implementing this has not yet been merged into the master branch
+ of gtk-doc, so we bundle a suitably branched copy here for now.
+
 License: LGPL-2+
  This library is free software; you can redistribute it and/or modify it
  under the terms of the GNU Lesser General Public License as published by the
@@ -508,6 +530,12 @@ License: Apache-2.0
  On Debian systems, a copy of the Apache License version 2.0
  can be found in /usr/share/common-licenses/Apache-2.0.
 
+License: autoconf-archive
+ Copying and distribution of this file, with or without modification, are
+ permitted in any medium without royalty provided the copyright notice
+ and this notice are preserved. This file is offered as-is, without any
+ warranty.
+
 License: BSD-3-clause-Google
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are
@@ -553,6 +581,20 @@ License: Expat
  LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.
+
+License: GPL-2+
+ This program is free software: you can redistribute it and/or modify
+ it under the terms of the GNU General Public License as published by
+ the Free Software Foundation, either version 3 of the License, or
+ (at your option) any later version.
+ .
+ This program is distributed in the hope that it will be useful,
+ but WITHOUT ANY WARRANTY; without even the implied warranty of
+ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ GNU General Public License for more details.
+ .
+ Please see /usr/share/common-licenses/GPL-2 on a Debian system for the full
+ text.
 
 License: unlicense
  Public Domain (www.unlicense.org)
