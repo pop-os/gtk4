@@ -1,0 +1,28 @@
+= gtk-doc-1.X =
+This document attempts to reverse engineer some design decisions in 
+gtk-doc-1.X.
+
+== sgml-ids ==
+When creating SGML IDS, we append ":CAPS" to all
+all-caps identifiers to prevent name clashes (SGML ids are case-insensitive).
+(It basically never is the case that mixed-case identifiers would collide.)
+
+Unfortunately we create ambiguous ids. The document structure ids are e.g.
+GtkWidget.{top_of_page,synopsis,object-hierarchy,...}
+and that is ambiguous with eventual structure member of the same name.
+
+cd tests
+find . -name "*.xml" -exec grep -o "id=\"[a-zA-Z_:.\-]*\"" {} \; | sort | uniq
+
+== section-ids ==
+gtk-doc differentiates between plain-sections and gobject-sections:
++---------+----------------+
+| type    | section-id     |
++---------+----------------+
+| plain   | $module-$title |
+| gobject | $title         |
++---------+----------------+
+
+- links to #GtkWidget would go to $title
+- linking to the struct would need #GtkWidget-struct
+

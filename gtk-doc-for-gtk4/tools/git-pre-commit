@@ -1,0 +1,27 @@
+#!/bin/sh
+# git hook to ensure code style
+# cp tools/git-pre-commit .git/hooks/pre-commit
+#
+# TODO:
+# pylint -r n -f parseable $files
+
+which >/dev/null pep8 || (echo "please install pep8"; exit )
+which >/dev/null autopep8 || (echo "please install autopep8"; exit )
+which >/dev/null pyflakes || (echo "please install pyflakes"; exit )
+
+files=$(git diff --name-only --staged --diff-filter=ACMRTUXB | egrep "*.py$")
+
+if test -n "$files"; then
+  pep8 --max-line-length=120 $files
+  res=$?
+  if [ $res -ne 0 ]; then
+    echo
+    autopep8 --max-line-length=120 --diff $files
+    echo
+    echo "To fix run: autopep8 --max-line-length=120 -i $files"
+  else
+    pyflakes $files
+    res=$?
+  fi
+  exit $res
+fi
