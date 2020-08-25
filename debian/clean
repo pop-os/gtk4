@@ -1,2 +1,3 @@
 gtk/gtkdbusgenerated.h
 gtk/gtkdbusgenerated.c
+subprojects/gtk-doc
