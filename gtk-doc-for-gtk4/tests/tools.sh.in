@@ -1,0 +1,46 @@
+#!/bin/sh
+
+suite="tools"
+
+failed=0
+tested=0
+
+echo "Running suite(s): gtk-doc-$suite";
+
+# we use 'which' here as we override the path in TEST_ENVIRONMENT
+
+
+# test shell scripts
+for file in gtkdocize; do
+  sh -n `which $file`
+  if test $? != 0 ; then failed=`expr $failed + 1`; fi
+  tested=`expr $tested + 1`
+done
+
+
+# test xsl files
+for file in $ABS_TOP_SRCDIR/*.xsl; do
+  xmllint --noout --noent $file
+  if test $? != 0 ; then failed=`expr $failed + 1`; fi
+  tested=`expr $tested + 1`
+done
+
+
+# test python scripts
+# TODO: also test the module files
+for file in gtkdoc-check gtkdoc-depscan gtkdoc-fixxref gtkdoc-mkdb gtkdoc-mkhtml gtkdoc-mkhtml2 gtkdoc-mkman gtkdoc-mkpdf gtkdoc-rebase gtkdoc-scangobj; do
+    fullfile=`which $file`
+    @PYTHON@ -m py_compile $fullfile
+    if test $? != 0 ; then failed=`expr $failed + 1`; fi
+    tested=`expr $tested + 1`
+done
+
+
+# summary
+successes=`expr $tested - $failed`
+
+rate=`expr 100 \* $successes / $tested`;
+echo "$rate %: Checks $tested, Failures: $failed"
+
+test $failed = 0
+exit $?

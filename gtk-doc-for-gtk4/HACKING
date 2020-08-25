@@ -1,0 +1,129 @@
+Testing
+=======
+
+jhbuild --no-interact build 2>&1 | tee build.log
+grep "gtkdoc-* line" build.log
+
+jhbuild buildone --no-net glib
+
+Since 1.23 we do have a snapshot feature to check the stability of the generated
+xml/html. Simply run "make snapshot" under tests. Then make changes and run
+"make check". The tests/sanity.sh will check for delta. If you want to inspect
+what delta a change created, you can git checkout a revision before the change,
+"make snapshot", go back to head and "make check", the sanity.sh test will now
+fail and show the delta.
+
+Releasing
+=========
+
+http://live.gnome.org/MaintainersCorner/Releasing
+
+'''shell
+export OLD_VER=1.31
+export NEW_VER=1.32
+export OLD_VER_TAG=$(echo ${OLD_VER} | tr '.' '_')
+export NEW_VER_TAG=$(echo ${NEW_VER} | tr '.' '_')
+export GNOME_USER=...
+```
+
+- bump release date in:
+  help/manual/C/index.docbook
+- bump version in (x.y.1 -> x.y+1)
+  configure.ac meson.build
+
+- update NEWS
+  # ./bugzilla.py general ${NEW_VER} gtk-doc >RELNOTES.txt
+  git log --summary --format=short GTK_DOC_${OLD_VER_TAG}.. >ChangeLog-${NEW_VER}
+  grep "Author:" ChangeLog-${NEW_VER} | sed 's/Author:\(.*\)\ <.*>/\1/' | sort | uniq >RELNOTES.txt
+  and then copy to NEWS
+
+```shell
+# commit
+git add configure.ac meson.build NEWS help/manual/C/index.docbook
+git commit -m"release: update news and date in manual"
+git push
+
+# dist
+TAR_OPTIONS="--owner=root --group=root" make distcheck
+
+# tag
+git tag -a GTK_DOC_${NEW_VER_TAG} -m"release: ${NEW_VER}"
+git push origin GTK_DOC_${NEW_VER_TAG}
+
+# release
+scp gtk-doc-${NEW_VER}.tar.xz ${GNOME_USER}@master.gnome.org:
+scp NEWS ${GNOME_USER}@master.gnome.org:gtk-doc-${NEW_VER}.news
+scp ChangeLog-${NEW_VER} ${GNOME_USER}@master.gnome.org:gtk-doc-${NEW_VER}.changes
+ssh ${GNOME_USER}@master.gnome.org "ftpadmin install gtk-doc-${NEW_VER}.tar.xz"
+```
+
+- bump versions in:
+  configure.ac meson.build help/manual/C/index.docbook NEWS
+
+``'shell
+# commit
+git add configure.ac meson.build NEWS help/manual/C/index.docbook
+git commit -m"release: bump versions and back to development"
+git push
+```
+
+- update web-pages (gtk-web/gtk-doc)
+  git add gtk-doc/news.php
+  git commit -m"gtk-doc: new release (${NEW_VER})"
+  git push
+
+- if we want a icon on the newsfeed, we should copy a icon like on
+  http://ftp.acc.umu.se/pub/GNOME/sources/rhythmbox/rhythmbox.png
+  e.g. /usr/share/icons/hicolor/48x48/apps/devhelp.png
+
+Optimizing & Meassuring
+=======================
+
+cd tests/gobject/docs/html
+time xsltproc --nonet --xinclude --stringparam gtkdoc.bookname "tester" --stringparam gtkdoc.version "1.12" ../../../../gtk-doc.xsl ../tester-docs.xml
+~ 1.1 sec.
+time saxon ../tester-docs.xml ../../../../gtk-doc.xsl gtkdoc.bookname="tester" gtkdoc.version="1.12"
+~ 53 sec.
+time xsltproc --nonet --xinclude --stringparam gtkdoc.bookname "tester" --stringparam gtkdoc.version "1.12" /usr/share/yelp-xsl/xslt/docbook/html/db2html.xsl ../tester-docs.xml
+~ 0.7 sec
+
+cd /your/project/docs/html
+time xsltproc --nonet --xinclude --stringparam gtkdoc.bookname "foo" --stringparam gtkdoc.version "1.12" /usr/share/gtk-doc/data/gtk-doc.xsl ../buzztrax-core-docs.xml
+real  0m6.633s  user	0m6.464s  sys	0m0.128s
+real	0m6.459s  user	0m6.384s  sys	0m0.068s
+
+time xsltproc --nonet --xinclude --stringparam gtkdoc.bookname "buzztrax-core" --stringparam gtkdoc.version "1.12"  /usr/share/yelp-xsl/xslt/docbook/html/db2html.xsl ../buzztrax-core-docs.xml
+real	0m3.312s  user	0m3.224s  sys	0m0.076s
+real	0m3.549s  user	0m3.464s  sys	0m0.076s
+
+
+xsltproc --profile data.xsl data.xml 2>report.txt
+cat report.txt | gprof2dot.py -e 0.01 -n 0.01 | dot -Tpng -o report.png
+
+one can now use "GTKDOC_PROFILE=1 make" to run this during gtkdoc-mkhtml. It
+still needs a change in gprof2dot.py
+https://bugzilla.gnome.org/show_bug.cgi?id=612186#c3
+
+Performance tips:
+* uses keys when we have slow xpath selects
+  http://www.xml.com/pub/a/2002/02/06/key-lookups.html
+
+Troubles with parsing regexps
+=============================
+Test regexps online:
+http://www.solmetra.com/scripts/regex/index.php
+
+Test Coverage
+=============
+sudo apt-get install python3-coverage
+PYTHONPATH=$PWD python3-coverage run tests/scan.py
+python3-coverage html --include="gtkdoc/*.py"
+
+or
+
+cd test; make coverage
+
+Find Dead Code
+==============
+sudo pip3 install vulture
+PYTHONPATH=$PWD vulture gtkdoc/*.py gtkdoc-*.in

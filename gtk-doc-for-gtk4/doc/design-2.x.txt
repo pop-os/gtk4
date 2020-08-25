@@ -1,0 +1,173 @@
+= gtk-doc-2.X =
+This documents purpose is to collect what needs to be changed for a potential
+gtk-doc-2.X.
+
+== name ==
+Its not about Gtk. Its about C APIs with GObject support. But it is probably not
+worth it.
+g-doc, gapi-doc, gnome-api-doc, ...
+
+== remove and deprecate =
+- tree_index and object_index are still named *.sgml
+- in the makefiles
+  sgml-build.stamp -> db-build.stamp
+  sgml.stamp -> db.stamp
+
+== design fixes ==
+=== proper xml-id namespaces ===
+We need proper xml-id namespaces for document structure and symbols to avoid
+clashes e.g. between GtkWidget as a section and as a struct. Normal symbols
+should only be mangled to be a valid xml-id. Document structure ids should
+contain a prefix.
+
+These are the rules regarding id-attributes:
+
+http://www.w3.org/TR/html4/types.html#type-id:
+"ID and NAME tokens must begin with a letter ([A-Za-z]) and may be followed by
+ any number of letters, digits ([0-9]), hyphens ("-"), underscores ("_"), colons
+ (":"), and periods (".")."
+
+http://www.w3.org/TR/xml-id/#id-avn
+"Attributes of type ID are subject to additional normalization rules: removing
+ leading and trailing space characters and replacing sequences of spaces with a
+ single space."
+
+http://www.w3.org/TR/xml11/#NT-Name
+http://www.w3.org/TR/REC-xml/#NT-Name
+
+So we could easily use "DOC:" as a prefix for document structure ids.
+In 1.x we add :CAPS as a suffix to avoid clashes between lower and uppercase
+constructs. XML-IDs are not case insensitive, so we don't need that.
+
+If the ID contain a ':' xml processors believe it is using a namespace.
+
+=== less files to maintain ===
+- one needs to maintain $module-docs.xml
+- in most cases $module-sections.txt need manual maintenance
+  - we could have a "Section:" tag for non-section comments to add them to a non
+    default section
+  - we could have a "Private_Symbols:" tag in section to list symbols that
+    should be in private subsection
+- the $module.types file need manual maintenance if one need special includes
+  - can we make the scanner smarter?
+
+=== srcdir != builddir builds ===
+- all tools get a search path
+  - it contains builddir:srcdir if those are different or just one of them if
+    they are the same
+  - all files we read are checked through the path
+  - all files are written based on the first entry
+
+=== build dependencies ===
+
+=== error/warning reporting ===
+- don't fail the build on doc-issues, instead fail the tests
+- all diagnostic output from the tools run during build in gcc style
+- instead of having -{undocumented,undeclared,unused}.txt have just one file
+  'doc-module.log'
+  - contains all the build diagnostics as well
+  - summary as 'INFO' level
+- gtkdoc-check will scan that file for 'ERROR'/'WARNING' lines
+  - depending on the CHECK_OPTIONS and the found lines if will fail certain
+    tests
+
+- TODO
+  - recheck all output and check whether we need Warnings/Errors or just
+    Warnings and flags to silence them
+  - Do we need a way to suppress false positives?
+
+=== docbook -> markdown ===
+The main performance culprit is the use of docbook (tools). Also writing docbook
+in source comments is cumbersome. Finally the docbook toolchain is a heavy
+dependency and harms portability. We already support lots of markdown, so we'd
+like to have a pure markdown based workflow.
+
+For that we'd like to provide a migration path:
+- convert existing docbook files to markdown (e.g. using pandoc)
+- convert/identify comments using docbook to markdown
+
+Next we would replace gtkdoc-mkdb+gtkdoc-fixxref with gtkdoc-mkhtml2. This would
+output html directly.
+
+We could change gtkdoc-mkpdf to use wkhtmltopdf/htmldoc. For man-pages we
+can use https://rtomayko.github.io/ronn/ronn.1.html.
+The devhelp2 files would be output directly from gtkdoc-mkhtml2.
+
+We can enable this new toolchain via the configure flavors option (needs support
+for cmake, meson, ...).
+
+These would be the steps to do this:
+1.) [in progress] write the docbook comment migation tool:
+see tools: tools/db2md.py
+At the same time improve the amount of markdown we handle:
+* or _: <emphasis>
+** or __: <empahsis role="strong">
+but be careful with already existing '*' and '_' chars (check warnings in
+tools/db2md.py).
+
+2.) [unassigned] create the plumbing for the new tool chain
+Add the new makefile flavour to run gtkdoc-mkhtml2 instead. Add --flavour
+options for gtkdocize. Create a stub  gtkdoc-mkhtml2 tool.
+
+3.) [in progress] refactor gtkdoc/mkdb.py to extract reusable code
+- gtkdoc/md_to_db.py
+  - only have the parse there
+
+4.) [unassigned] write gtkdoc/mkhtml2.py
+- select a template engine (e.g. jinja)
+- create templates from the current html for the various page types (refentry,
+  index, ...).
+- we won't need content_files and expand_content_files in Makefile.am, as
+  mkhtml2 would read $(DOC_MODULE)-docs.md (rename to index.md?) and find local
+  links in there
+- convert all hand-written md files starting from the main-doc to html
+
+Open Issues:
+wkhtmltopdf html/*.html tester2.pdf
+Error: This version of wkhtmltopdf is build against an unpatched version of QT, and does not support more then one input document.
+
+htmldoc --book --outfile tester2.pdf html/*.html
+- need to pass html files in the logical order
+- unicode issues (passing --charset utf-8 fails)
+- --link seems to create bad links (opens file-browser)
+- no css rendering :/
+
+pandoc -r docbook -w markdown_github -o tester-docs.md tester-docs.xml
+- pandoc has no xi:include support
+- if we pipe it through xmllint we convert everything.
+xmllint --noent --xinclude tester-docs.xml | pandoc -r docbook -w markdown -o tester-docs.md
+- the index.md would need to represent the structure the docbook chunker would
+  create
+
+gdbus-codegen:
+- add an option to generate markdown comments
+
+gstreamer plugindocs:
+- generate markdown formatted files
+
+=== only drop docbook-xsl ===
+Since the processing with docbook-xsl is what is slow, we could also consider to
+keep the whole gtkdoc-mkdb and have 2 codepaths in gtkdoc-mkhtml. The new code-
+path would real the docbook with element-tree, replicate the chunking that
+docbook-xsl does and use a templating system to generate the html files
+(e.g. jinja).
+
+This is probably easier to achieve, but has less potential in the long run (e.g.
+incremental doc updates).
+
+On the plus side, we can do rarely used output-formats (like pdf, man) the way
+we do them right now.
+
+These would be the steps to do this:
+1.) [done] write a the chunker
+- standalone tool to load the docbook xml and chunk it (just touch the resulting
+  *.html files) until we produce the same
+
+2.) [unassigned] transform some docbook to html
+- evaluate template engines
+  - jinja2:
+    - we can use the block syntax to handle nesting
+- we need to warn when not handling certain docbook
+
+3.) [unassigned] integrate this into the gtkdoc library
+- add an option to gtkgoc-mkhtml (e.g. --engine={xslt,builtin} or just --noxlst)
