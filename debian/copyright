@@ -418,6 +418,8 @@ Comment:
  as a first-class feature alongside signals and properties; the branch
  implementing this has not yet been merged into the master branch
  of gtk-doc, so we bundle a suitably branched copy here for now.
+ .
+ See debian/README.source for more details.
 
 License: LGPL-2+
  This library is free software; you can redistribute it and/or modify it
