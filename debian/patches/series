@@ -4,3 +4,4 @@ cups-Don-t-emit-a-warning-if-we-can-t-talk-to-avahi.patch
 cloudprint-Fix-redundant-declarations.patch
 roaring.-ch-Add-attribution-and-licensing-information.patch
 Include-a-copy-of-the-Apache-license.patch
+docs-Don-t-build-Yelp-manual-for-bundled-gtk-doc-subproje.patch
