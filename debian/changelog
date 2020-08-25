@@ -1,3 +1,20 @@
+gtk+4.0 (3.99.0-2) experimental; urgency=medium
+
+  * Team upload
+  * Bundle a copy of gtk-doc from the gtk-doc-for-gtk4 branch.
+    Until support for GTK 4 actions is merged into gtk-doc git master,
+    including a suitable copy of gtk-doc in this source package lets us
+    build it without experimental's gtk-doc having to be the GTK 4 version.
+    It's currently version GTK_DOC_1_32-57-g3651bf3 from the
+    gtk-doc-for-gtk4 branch.
+    - Add dependencies of gtk-doc-tools to Build-Depends-Indep
+    - Add patch to skip Yelp manual for bundled gtk-doc
+    - Don't try to install files from the bundled gtk-doc
+    - d/copyright: Add copyright information for bundled gtk-doc
+  * d/copyright: Update copyright information for AppStream data
+
+ -- Simon McVittie <smcv@debian.org>  Tue, 25 Aug 2020 12:45:30 +0100
+
 gtk+4.0 (3.99.0-1) experimental; urgency=medium
 
   * Team upload
