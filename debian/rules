@@ -142,7 +142,6 @@ override_dh_clean: debian/control
 override_dh_auto_build: $(call dh_subst_files,$(all_binaries))
 
 override_dh_auto_configure: debian/control
-	ln -fns ../gtk-doc-for-gtk4 subprojects/gtk-doc
 	dh_auto_configure \
 		--builddirectory=debian/build/deb \
 		-- \
