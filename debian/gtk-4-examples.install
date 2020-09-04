@@ -13,7 +13,6 @@ usr/share/icons/hicolor/*/*/org.gtk.Demo4*
 usr/share/icons/hicolor/*/*/org.gtk.IconBrowser4*
 usr/share/icons/hicolor/*/*/org.gtk.PrintEditor4*
 usr/share/icons/hicolor/*/*/org.gtk.WidgetFactory4*
-usr/share/icons/hicolor/*/*/org.gtk.gtk4.NodeEditor*
 usr/share/installed-tests/gtk-4.0
 usr/share/man/*/gtk4-demo-application.*
 usr/share/man/*/gtk4-demo.*
