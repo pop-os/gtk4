@@ -79,24 +79,26 @@ configure_flags_common = \
 
 configure_flags_deb = \
 	-Dbroadway-backend=true \
-	-Dinstall-tests=true \
+	-Dcloudproviders=disabled \
 	-Dintrospection=true \
 	-Dman-pages=true \
 	-Dmedia=none \
 	-Dprint-backends=all \
 	-Dx11-backend=true \
-	-Dxinerama=yes \
+	-Dxinerama=enabled \
 	${NULL}
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
-configure_flags_deb += -Dcolord=yes
+configure_flags_deb += -Dcolord=enabled
 else
-configure_flags_deb += -Dcolord=no
+configure_flags_deb += -Dcolord=disabled
 endif
 
 ifeq (linux,$(DEB_HOST_ARCH_OS))
+configure_flags_deb += -Dvulkan=enabled
 configure_flags_deb += -Dwayland-backend=true
 else
+configure_flags_deb += -Dvulkan=disabled
 configure_flags_deb += -Dwayland-backend=false
 endif
 
@@ -119,13 +121,15 @@ endif
 configure_flags_udeb = \
 	-Dbroadway-backend=false \
 	-Dbuild-examples=false \
+	-Dcloudproviders=disabled \
 	-Ddemos=false \
 	-Dinstall-tests=false \
 	-Dwayland-backend=false \
 	-Dx11-backend=true \
+	-Dxinerama=disabled \
 	-Dintrospection=false \
 	-Dprint-backends=none \
-	-Dcolord=no \
+	-Dcolord=disabled \
 	-Dmedia=none
 
 %:
