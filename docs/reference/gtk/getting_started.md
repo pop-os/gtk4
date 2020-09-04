@@ -75,7 +75,7 @@ functions, types and macros required by GTK applications.
 
 Even if GTK installs multiple header files, only the top-level `gtk/gtk.h`
 header can be directly included by third-party code. The compiler will abort
-with an error if any othe header is directly included.
+with an error if any other header is directly included.
 
 In a GTK application, the purpose of the main() function is to create a
 GtkApplication object and run it. In this example a GtkApplication pointer
@@ -205,7 +205,7 @@ variable is created to store a GtkBox, which is GTK's way of controlling
 the size and layout of buttons.
 
 The GtkBox is created with gtk_box_new() which takes a GtkOrientation
-enum as parameter. The buttons which this box will contain can either be layed
+enum as parameter. The buttons which this box will contain can either be laid
 out horizontally or vertically. This does not matter in this particular case,
 as we are dealing with only one button. After initializing box with the newly
 created GtkBox, the code adds the box widget to the window widget using
@@ -649,8 +649,8 @@ Create a new file with the following content named `builder.ui`.
           <object id="button1" class="GtkButton">
             <property name="label">Button 1</property>
             <layout>
-              <property name="left-attach">0</property>
-              <property name="top-attach">0</property>
+              <property name="column">0</property>
+              <property name="row">0</property>
             </layout>
           </object>
         </child>
@@ -658,8 +658,8 @@ Create a new file with the following content named `builder.ui`.
           <object id="button2" class="GtkButton">
             <property name="label">Button 2</property>
             <layout>
-              <property name="left-attach">1</property>
-              <property name="top-attach">0</property>
+              <property name="column">1</property>
+              <property name="row">0</property>
             </layout>
           </object>
         </child>
@@ -667,8 +667,8 @@ Create a new file with the following content named `builder.ui`.
           <object id="quit" class="GtkButton">
             <property name="label">Quit</property>
             <layout>
-              <property name="left-attach">0</property>
-              <property name="top-attach">1</property>
+              <property name="column">0</property>
+              <property name="row">1</property>
               <property name="column-span">2</property>
             </layout>
           </object>
@@ -732,7 +732,7 @@ GtkSearchBar, GtkListBox, and more.
 
 The full, buildable sources for these examples can be found in the `examples/`
 directory of the GTK source distribution, or
-[online](https://gitlab.gnome.org/GNOME/gtk/blob/master/examples in the GTK git
+[online](https://gitlab.gnome.org/GNOME/gtk/blob/master/examples) in the GTK git
 repository. You can build each example separately by using make with the
 `Makefile.example` file. For more information, see the `README` included in the
 examples directory.
@@ -976,6 +976,10 @@ into the application together with the other source files. To do so, we use the
 glib-compile-resources exampleapp.gresource.xml --target=resources.c --generate-source
 ```
 
+The gnome module of the meson build system provides the
+[gnome.compile_resources()](https://mesonbuild.com/Gnome-module.html#gnomecompile_resources)
+method for this task.
+
 Our application now looks like this:
 
 ![The application](getting-started-app2.png)
@@ -1037,7 +1041,7 @@ example_app_window_open (ExampleAppWindow *win,
 
   basename = g_file_get_basename (file);
 
-  scrolled = gtk_scrolled_window_new (NULL, NULL);
+  scrolled = gtk_scrolled_window_new ();
   gtk_widget_set_hexpand (scrolled, TRUE);
   gtk_widget_set_vexpand (scrolled, TRUE);
   view = gtk_text_view_new ();
@@ -1204,7 +1208,9 @@ a schema that describes our settings:
 Before we can make use of this schema in our application, we need to compile
 it into the binary form that GSettings expects. GIO provides
 [macros](https://developer.gnome.org/gio/2.36/ch31s06.html) to do this in
-autotools-based projects.
+autotools-based projects, and the gnome module of the meson build system
+provides the [gnome.compile_schemas()](https://mesonbuild.com/Gnome-module.html#gnomecompile_schemas)
+method for this task.
 
 Next, we need to connect our settings to the widgets that they are supposed
 to control. One convenient way to do this is to use GSettings bind
@@ -1266,16 +1272,16 @@ Lets start with the template.
                 <property name="mnemonic-widget">font</property>
                 <property name="xalign">1</property>
                 <layout>
-                  <property name="left-attach">0</property>
-                  <property name="top-attach">0</property>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
                 </layout>
               </object>
             </child>
             <child>
               <object class="GtkFontButton" id="font">
                 <layout>
-                  <property name="left-attach">1</property>
-                  <property name="top-attach">0</property>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
                 </layout>
               </object>
             </child>
@@ -1286,8 +1292,8 @@ Lets start with the template.
                 <property name="mnemonic-widget">transition</property>
                 <property name="xalign">1</property>
                 <layout>
-                  <property name="left-attach">0</property>
-                  <property name="top-attach">1</property>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
                 </layout>
               </object>
             </child>
@@ -1299,8 +1305,8 @@ Lets start with the template.
                   <item translatable="yes" id="slide-left-right">Slide</item>
                 </items>
                 <layout>
-                  <property name="left-attach">1</property>
-                  <property name="top-attach">1</property>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
                 </layout>
               </object>
             </child>

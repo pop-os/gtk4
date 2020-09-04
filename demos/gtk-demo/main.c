@@ -9,6 +9,7 @@
 #include <glib/gstdio.h>
 
 #include "demos.h"
+#include "fontify.h"
 
 static GtkWidget *info_view;
 static GtkWidget *source_view;
@@ -146,10 +147,16 @@ activate_about (GSimpleAction *action,
     NULL
   };
   char *version;
+  char *os_name;
+  char *os_version;
   GString *s;
 
   s = g_string_new ("");
 
+  os_name = g_get_os_info (G_OS_INFO_KEY_NAME);
+  os_version = g_get_os_info (G_OS_INFO_KEY_VERSION_ID);
+  if (os_name && os_version)
+    g_string_append_printf (s, "OS\t%s %s\n\n", os_name, os_version);
   g_string_append (s, "System libraries\n");
   g_string_append_printf (s, "\tGLib\t%d.%d.%d\n",
                           glib_major_version,
@@ -184,6 +191,8 @@ activate_about (GSimpleAction *action,
 
   g_string_free (s, TRUE);
   g_free (version);
+  g_free (os_name);
+  g_free (os_version);
 }
 
 static void
@@ -226,373 +235,10 @@ activate_run (GSimpleAction *action,
   gtk_demo_run (demo, window);
 }
 
-/* Stupid syntax highlighting.
- *
- * No regex was used in the making of this highlighting.
- * It should only work for simple cases.  This is good, as
- * that's all we should have in the demos.
- */
-/* This code should not be used elsewhere, except perhaps as an example of how
- * to iterate through a text buffer.
- */
-enum {
-  STATE_NORMAL,
-  STATE_IN_COMMENT
-};
-
-static const char *tokens[] =
-{
-  "/*",
-  "\"",
-  NULL
-};
-
-static const char *types[] =
-{
-  "static",
-  "const ",
-  "void",
-  " int ",
-  " char ",
-  "char ",
-  "float",
-  "double",
-  "gint8",
-  "gint16",
-  "gint32",
-  "guint",
-  "guint8",
-  "guint16",
-  "guint32",
-  "guchar",
-  "glong",
-  "gboolean" ,
-  "gshort",
-  "gushort",
-  "gulong",
-  "gpointer",
-  "NULL",
-  "GList",
-  "GSList",
-  "FALSE",
-  "TRUE",
-  "FILE ",
-  "GtkColorSelection ",
-  "GtkWidget ",
-  "GtkButton ",
-  "GdkColor ",
-  "GdkRectangle ",
-  "GdkEventExpose ",
-  "GdkGC ",
-  "GdkPixbufLoader ",
-  "GdkPixbuf ",
-  "GError",
-  "size_t",
-  "GtkAboutDialog ",
-  "GtkAction ",
-  "GtkActionEntry ",
-  "GtkRadioActionEntry ",
-  "GtkIconFactory ",
-  "GtkTextBuffer ",
-  "GtkStatusbar ",
-  "GtkTextIter ",
-  "GtkTextMark ",
-  "GdkEventWindowState ",
-  "GtkActionGroup ",
-  "GtkUIManager ",
-  "GtkRadioAction ",
-  "GtkActionClass ",
-  "GtkToggleActionEntry ",
-  "GtkAssistant ",
-  "GtkBuilder ",
-  "GtkSizeGroup ",
-  "GtkTreeModel ",
-  "GtkTreeSelection ",
-  "GdkDisplay ",
-  "GdkScreen ",
-  "GdkSurface ",
-  "GdkEventButton ",
-  "GdkCursor ",
-  "GtkTreeIter ",
-  "GtkTreeViewColumn ",
-  "GdkDisplayManager ",
-  "GdkClipboard ",
-  "GtkIconSize ",
-  "GtkImage ",
-  "GdkDragContext ",
-  "GtkSelectionData ",
-  "GtkDialog ",
-  "GtkMenuItem ",
-  "GtkListStore ",
-  "GtkCellLayout ",
-  "GtkCellRenderer ",
-  "GtkTreePath ",
-  "GtkTreeStore ",
-  "GtkEntry ",
-  "GtkEditable ",
-  "GtkEditableInterface ",
-  "GdkPixmap ",
-  "GdkEventConfigure ",
-  "GdkEventMotion ",
-  "GdkModifierType ",
-  "GtkEntryCompletion ",
-  "GtkToolItem ",
-  "GDir ",
-  "GtkIconView ",
-  "GtkCellRendererText ",
-  "GtkContainer ",
-  "GtkPaned ",
-  "GtkPrintOperation ",
-  "GtkPrintContext ",
-  "cairo_t ",
-  "PangoLayout "
-  "PangoFontDescription ",
-  "PangoRenderer ",
-  "PangoMatrix ",
-  "PangoContext ",
-  "PangoLayout ",
-  "GtkToggleButton ",
-  "GString ",
-  "GtkIconSize ",
-  "GtkTreeView ",
-  "GtkTextTag ",
-  "GdkEvent ",
-  "GdkEventKey ",
-  "GtkTextView ",
-  "GdkBitmap ",
-  "GtkTextChildAnchor ",
-  "GArray ",
-  "GtkCellEditable ",
-  "GtkCellRendererToggle ",
-  NULL
-};
-
-static const char *control[] =
-{
-  " if ",
-  " while ",
-  " else",
-  " do ",
-  " for ",
-  "?",
-  ":",
-  "return ",
-  "goto ",
-  NULL
-};
-void
-parse_chars (char        *text,
-             char       **end_ptr,
-             int         *state,
-             const char **tag,
-             gboolean     start)
-{
-  int i;
-  char *next_token;
-
-  /* Handle comments first */
-  if (*state == STATE_IN_COMMENT)
-    {
-      *end_ptr = strstr (text, "*/");
-      if (*end_ptr)
-        {
-          *end_ptr += 2;
-          *state = STATE_NORMAL;
-          *tag = "comment";
-        }
-      return;
-    }
-
-  *tag = NULL;
-  *end_ptr = NULL;
-
-  /* check for comment */
-  if (!strncmp (text, "/*", 2))
-    {
-      *end_ptr = strstr (text, "*/");
-      if (*end_ptr)
-        *end_ptr += 2;
-      else
-        *state = STATE_IN_COMMENT;
-      *tag = "comment";
-      return;
-    }
-
-  /* check for preprocessor defines */
-  if (*text == '#' && start)
-    {
-      *end_ptr = NULL;
-      *tag = "preprocessor";
-      return;
-    }
-
-  /* functions */
-  if (start && * text != '\t' && *text != ' ' && *text != '{' && *text != '}')
-    {
-      if (strstr (text, "("))
-        {
-          *end_ptr = strstr (text, "(");
-          *tag = "function";
-          return;
-        }
-    }
-  /* check for types */
-  for (i = 0; types[i] != NULL; i++)
-    if (!strncmp (text, types[i], strlen (types[i])) ||
-        (start && types[i][0] == ' ' && !strncmp (text, types[i] + 1, strlen (types[i]) - 1)))
-      {
-        *end_ptr = text + strlen (types[i]);
-        *tag = "type";
-        return;
-      }
-
-  /* check for control */
-  for (i = 0; control[i] != NULL; i++)
-    if (!strncmp (text, control[i], strlen (control[i])))
-      {
-        *end_ptr = text + strlen (control[i]);
-        *tag = "control";
-        return;
-      }
-
-  /* check for string */
-  if (text[0] == '"')
-    {
-      int maybe_escape = FALSE;
-
-      *end_ptr = text + 1;
-      *tag = "string";
-      while (**end_ptr != '\000')
-        {
-          if (**end_ptr == '\"' && !maybe_escape)
-            {
-              *end_ptr += 1;
-              return;
-            }
-          if (**end_ptr == '\\')
-            maybe_escape = TRUE;
-          else
-            maybe_escape = FALSE;
-          *end_ptr += 1;
-        }
-      return;
-    }
-
-  /* not at the start of a tag.  Find the next one. */
-  for (i = 0; tokens[i] != NULL; i++)
-    {
-      next_token = strstr (text, tokens[i]);
-      if (next_token)
-        {
-          if (*end_ptr)
-            *end_ptr = (*end_ptr<next_token)?*end_ptr:next_token;
-          else
-            *end_ptr = next_token;
-        }
-    }
-
-  for (i = 0; types[i] != NULL; i++)
-    {
-      next_token = strstr (text, types[i]);
-      if (next_token)
-        {
-          if (*end_ptr)
-            *end_ptr = (*end_ptr<next_token)?*end_ptr:next_token;
-          else
-            *end_ptr = next_token;
-        }
-    }
-
-  for (i = 0; control[i] != NULL; i++)
-    {
-      next_token = strstr (text, control[i]);
-      if (next_token)
-        {
-          if (*end_ptr)
-            *end_ptr = (*end_ptr<next_token)?*end_ptr:next_token;
-          else
-            *end_ptr = next_token;
-        }
-    }
-}
-
-/* While not as cool as c-mode, this will do as a quick attempt at highlighting */
-void
-fontify (GtkTextBuffer *source_buffer)
-{
-  GtkTextIter start_iter, next_iter, tmp_iter;
-  int state;
-  char *text;
-  char *start_ptr, *end_ptr;
-  const char *tag;
-
-  gtk_text_buffer_create_tag (source_buffer, "source",
-                              "font", "monospace",
-                              NULL);
-  gtk_text_buffer_create_tag (source_buffer, "comment",
-                              "foreground", "DodgerBlue",
-                              NULL);
-  gtk_text_buffer_create_tag (source_buffer, "type",
-                              "foreground", "ForestGreen",
-                              NULL);
-  gtk_text_buffer_create_tag (source_buffer, "string",
-                              "foreground", "RosyBrown",
-                              "weight", PANGO_WEIGHT_BOLD,
-                              NULL);
-  gtk_text_buffer_create_tag (source_buffer, "control",
-                              "foreground", "purple",
-                              NULL);
-  gtk_text_buffer_create_tag (source_buffer, "preprocessor",
-                              "style", PANGO_STYLE_OBLIQUE,
-                              "foreground", "burlywood4",
-                              NULL);
-  gtk_text_buffer_create_tag (source_buffer, "function",
-                              "weight", PANGO_WEIGHT_BOLD,
-                              "foreground", "DarkGoldenrod4",
-                              NULL);
-
-  gtk_text_buffer_get_bounds (source_buffer, &start_iter, &tmp_iter);
-  gtk_text_buffer_apply_tag_by_name (source_buffer, "source", &start_iter, &tmp_iter);
-
-  state = STATE_NORMAL;
-
-  gtk_text_buffer_get_iter_at_offset (source_buffer, &start_iter, 0);
-
-  next_iter = start_iter;
-  while (gtk_text_iter_forward_line (&next_iter))
-    {
-      gboolean start = TRUE;
-      start_ptr = text = gtk_text_iter_get_text (&start_iter, &next_iter);
-
-      do
-        {
-          parse_chars (start_ptr, &end_ptr, &state, &tag, start);
-
-          start = FALSE;
-          if (end_ptr)
-            {
-              tmp_iter = start_iter;
-              gtk_text_iter_forward_chars (&tmp_iter, end_ptr - start_ptr);
-            }
-          else
-            {
-              tmp_iter = next_iter;
-            }
-          if (tag)
-            gtk_text_buffer_apply_tag_by_name (source_buffer, tag, &start_iter, &tmp_iter);
-
-          start_iter = tmp_iter;
-          start_ptr = end_ptr;
-        }
-      while (end_ptr);
-
-      g_free (text);
-      start_iter = next_iter;
-    }
-}
-
 static GtkWidget *
-display_image (const char *resource)
+display_image (const char  *format,
+               const char  *resource,
+               char       **label)
 {
   GtkWidget *sw, *image;
 
@@ -606,11 +252,62 @@ display_image (const char *resource)
 }
 
 static GtkWidget *
-display_text (const char *resource)
+display_images (const char  *format,
+                const char  *resource_dir,
+                char       **label)
+{
+  char **resources;
+  GtkWidget *grid;
+  GtkWidget *sw;
+  GtkWidget *widget;
+  guint i;
+
+  resources = g_resources_enumerate_children (resource_dir, 0, NULL);
+  if (resources == NULL)
+    return NULL;
+
+  sw = gtk_scrolled_window_new ();
+  gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
+                                  GTK_POLICY_NEVER,
+                                  GTK_POLICY_AUTOMATIC);
+  grid = gtk_flow_box_new ();
+  gtk_flow_box_set_selection_mode (GTK_FLOW_BOX (grid), GTK_SELECTION_NONE);
+  gtk_widget_set_valign (grid, GTK_ALIGN_START);
+  gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (sw), grid);
+
+  for (i = 0; resources[i]; i++)
+    {
+      char *resource_name;
+      GtkWidget *box;
+
+      resource_name = g_strconcat (resource_dir, "/", resources[i], NULL);
+
+      widget = display_image (NULL, resource_name, NULL);
+      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+      gtk_box_append (GTK_BOX (box), widget);
+      gtk_box_append (GTK_BOX (box), gtk_label_new (resources[i]));
+      gtk_flow_box_insert (GTK_FLOW_BOX (grid), box, -1);
+
+      g_free (resource_name);
+    }
+
+  g_strfreev (resources);
+
+  *label = g_strdup ("Images");
+
+  return sw;
+}
+
+static GtkWidget *
+display_text (const char  *format,
+              const char  *resource,
+              char       **label)
 {
   GtkTextBuffer *buffer;
   GtkWidget *textview, *sw;
   GBytes *bytes;
+  const char *text;
+  gsize len;
 
   bytes = g_resources_lookup_data (resource, 0, NULL);
   g_assert (bytes);
@@ -630,14 +327,17 @@ display_text (const char *resource)
   gtk_text_view_set_wrap_mode (GTK_TEXT_VIEW (textview), GTK_WRAP_WORD);
   gtk_text_view_set_pixels_above_lines (GTK_TEXT_VIEW (textview), 2);
   gtk_text_view_set_pixels_below_lines (GTK_TEXT_VIEW (textview), 2);
+  gtk_text_view_set_monospace (GTK_TEXT_VIEW (textview), TRUE);
 
   buffer = gtk_text_buffer_new (NULL);
-  gtk_text_buffer_set_text (buffer, g_bytes_get_data (bytes, NULL), g_bytes_get_size (bytes));
-  if (g_str_has_suffix (resource, ".c"))
-    fontify (buffer);
-  gtk_text_view_set_buffer (GTK_TEXT_VIEW (textview), buffer);
 
-  g_bytes_unref (bytes);
+  text = g_bytes_unref_to_data (bytes, &len);
+  gtk_text_buffer_set_text (buffer, text, len);
+
+  if (format)
+    fontify (format, buffer);
+
+  gtk_text_view_set_buffer (GTK_TEXT_VIEW (textview), buffer);
 
   sw = gtk_scrolled_window_new ();
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),
@@ -649,7 +349,9 @@ display_text (const char *resource)
 }
 
 static GtkWidget *
-display_video (const char *resource)
+display_video (const char  *format,
+               const char  *resource,
+               char       **label)
 {
   GtkWidget *video;
 
@@ -676,18 +378,22 @@ display_nothing (const char *resource)
 
 static struct {
   const char *extension;
-  GtkWidget * (* display_func) (const char *resource);
+  const char *format;
+  GtkWidget * (* display_func) (const char  *format,
+                                const char  *resource,
+                                char       **label);
 } display_funcs[] = {
-  { ".gif", display_image },
-  { ".jpg", display_image },
-  { ".png", display_image },
-  { ".c", display_text },
-  { ".css", display_text },
-  { ".glsl", display_text },
-  { ".h", display_text },
-  { ".txt", display_text },
-  { ".ui", display_text },
-  { ".webm", display_video }
+  { ".gif", NULL, display_image },
+  { ".jpg", NULL, display_image },
+  { ".png", NULL, display_image },
+  { ".c", "c", display_text },
+  { ".css", "css", display_text },
+  { ".glsl", NULL, display_text },
+  { ".h", "c", display_text },
+  { ".txt", NULL, display_text },
+  { ".ui", "xml", display_text },
+  { ".webm", NULL, display_video },
+  { "images/", NULL, display_images }
 };
 
 static void
@@ -697,6 +403,7 @@ add_data_tab (const char *demoname)
   char **resources;
   GtkWidget *widget, *label;
   guint i, j;
+  char *label_string;
 
   resource_dir = g_strconcat ("/", demoname, NULL);
   resources = g_resources_enumerate_children (resource_dir, 0, NULL);
@@ -710,18 +417,22 @@ add_data_tab (const char *demoname)
     {
       resource_name = g_strconcat (resource_dir, "/", resources[i], NULL);
 
-      for (j = 0; j < G_N_ELEMENTS(display_funcs); j++)
+      for (j = 0; j < G_N_ELEMENTS (display_funcs); j++)
         {
           if (g_str_has_suffix (resource_name, display_funcs[j].extension))
             break;
         }
 
-      if (j < G_N_ELEMENTS(display_funcs))
-        widget = display_funcs[j].display_func (resource_name);
+      label_string = NULL;
+
+      if (j < G_N_ELEMENTS (display_funcs))
+        widget = display_funcs[j].display_func (display_funcs[j].format,
+                                                resource_name,
+                                                &label_string);
       else
         widget = display_nothing (resource_name);
 
-      label = gtk_label_new (resources[i]);
+      label = gtk_label_new (label_string ? label_string : resources[i]);
       gtk_widget_show (label);
       gtk_notebook_append_page (GTK_NOTEBOOK (notebook), widget, label);
       g_object_set (gtk_notebook_get_page (GTK_NOTEBOOK (notebook), widget),
@@ -729,6 +440,7 @@ add_data_tab (const char *demoname)
                     NULL);
 
       g_free (resource_name);
+      g_free (label_string);
     }
 
   g_strfreev (resources);
@@ -912,7 +624,7 @@ load_file (const char *demoname,
 
   g_strfreev (lines);
 
-  fontify (source_buffer);
+  fontify ("c", source_buffer);
 
   gtk_text_buffer_end_irreversible_action (source_buffer);
   gtk_text_view_set_buffer (GTK_TEXT_VIEW (source_view), source_buffer);
@@ -928,7 +640,8 @@ activate_cb (GtkWidget *widget,
              guint      position,
              gpointer   window)
 {
-  GtkTreeListRow *row = g_list_model_get_item (gtk_list_view_get_model (GTK_LIST_VIEW (widget)), position);
+  GListModel *model = G_LIST_MODEL (gtk_list_view_get_model (GTK_LIST_VIEW (widget)));
+  GtkTreeListRow *row = g_list_model_get_item (model, position);
   GtkDemo *demo = gtk_tree_list_row_get_item (row);
 
   gtk_demo_run (demo, window);
@@ -966,7 +679,7 @@ filter_demo (GtkDemo *demo)
 {
   int i;
 
-  /* Show only if the name maches every needle */
+  /* Show only if the name matches every needle */
   for (i = 0; search_needle[i]; i++)
     {
       if (!demo->title)
@@ -988,6 +701,7 @@ demo_filter_by_name (GtkTreeListRow     *row,
   GListModel *children;
   GtkDemo *demo;
   guint i, n;
+  GtkTreeListRow *parent;
 
   /* Show all items if search is empty */
   if (!search_needle || !search_needle[0] || !*search_needle[0])
@@ -996,6 +710,17 @@ demo_filter_by_name (GtkTreeListRow     *row,
   g_assert (GTK_IS_TREE_LIST_ROW (row));
   g_assert (GTK_IS_FILTER_LIST_MODEL (model));
 
+  /* Show a row if itself of any parent matches */
+  for (parent = row; parent; parent = gtk_tree_list_row_get_parent (parent))
+    {
+      demo = gtk_tree_list_row_get_item (parent);
+      g_assert (GTK_IS_DEMO (demo));
+
+      if (filter_demo (demo))
+        return TRUE;
+    }
+
+  /* Show a row if any child matches */
   children = gtk_tree_list_row_get_children (row);
   if (children)
     {
@@ -1014,10 +739,7 @@ demo_filter_by_name (GtkTreeListRow     *row,
         }
     }
 
-  demo = gtk_tree_list_row_get_item (row);
-  g_assert (GTK_IS_DEMO (demo));
-
-  return filter_demo (demo);
+  return FALSE;
 }
 
 static void
@@ -1151,9 +873,10 @@ activate (GApplication *app)
 
   selection = gtk_single_selection_new (G_LIST_MODEL (filter_model));
   g_signal_connect (selection, "notify::selected-item", G_CALLBACK (selection_cb), NULL);
-  gtk_list_view_set_model (GTK_LIST_VIEW (listview), G_LIST_MODEL (selection));
+  gtk_list_view_set_model (GTK_LIST_VIEW (listview), GTK_SELECTION_MODEL (selection));
 
   selection_cb (selection, NULL, NULL);
+  g_object_unref (selection);
 
   g_object_unref (builder);
 }

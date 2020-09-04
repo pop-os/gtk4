@@ -23,13 +23,13 @@ demos/gtk-demo/font-features.ui
 demos/gtk-demo/fontrendering.ui
 demos/gtk-demo/iconview.c
 demos/gtk-demo/infobar.c
+demos/gtk-demo/listbox2.ui
 demos/gtk-demo/listbox.ui
 demos/gtk-demo/listview_filebrowser.ui
 demos/gtk-demo/listview_minesweeper.ui
 demos/gtk-demo/listview_settings.ui
 demos/gtk-demo/main.ui
 demos/gtk-demo/menus.ui
-demos/gtk-demo/modelbutton.ui
 demos/gtk-demo/offscreen_window2.c
 demos/gtk-demo/paint.c
 demos/gtk-demo/popover.ui
@@ -51,6 +51,7 @@ demos/gtk-demo/theming.ui
 demos/icon-browser/window.ui
 demos/node-editor/help-window.ui
 demos/node-editor/node-editor-window.ui
+demos/print-editor/print-editor.c
 demos/widget-factory/menus.ui
 demos/widget-factory/widget-factory.c
 demos/widget-factory/widget-factory.ui
@@ -159,6 +160,8 @@ testsuite/reftests/border-image-url.ref.ui
 testsuite/reftests/border-image-url-scaled.ref.ui
 testsuite/reftests/border-image-url-scaled.ui
 testsuite/reftests/border-image-url.ui
+testsuite/reftests/boxlayout-invisible-child.ref.ui
+testsuite/reftests/boxlayout-invisible-child.ui
 testsuite/reftests/box-order.ref.ui
 testsuite/reftests/box-order.ui
 testsuite/reftests/box-packing.ui
@@ -172,6 +175,10 @@ testsuite/reftests/box-shadow-with-blend-mode.ref.ui
 testsuite/reftests/box-shadow-with-blend-mode.ui
 testsuite/reftests/button-wrapping.ref.ui
 testsuite/reftests/button-wrapping.ui
+testsuite/reftests/centerlayout-invisible-child.ref.ui
+testsuite/reftests/centerlayout-invisible-child.ui
+testsuite/reftests/centerlayout-minsize.ref.ui
+testsuite/reftests/centerlayout-minsize.ui
 testsuite/reftests/css-em-label-size.ref.ui
 testsuite/reftests/css-em-label-size.ui
 testsuite/reftests/css-match-import.ref.ui
@@ -199,6 +206,8 @@ testsuite/reftests/fixed-widget-stacking.ui
 testsuite/reftests/font-sizes-names.ref.ui
 testsuite/reftests/font-sizes-names.ui
 testsuite/reftests/grid-empty-with-spacing.ui
+testsuite/reftests/gridlayout-invisible-child.ref.ui
+testsuite/reftests/gridlayout-invisible-child.ui
 testsuite/reftests/grid-wfh.ref.ui
 testsuite/reftests/grid-wfh.ui
 testsuite/reftests/icon-style-basics.ref.ui
@@ -301,6 +310,7 @@ testsuite/reftests/window-height-for-width.ui
 testsuite/reftests/window-show-contents-on-map.ref.ui
 testsuite/reftests/window-show-contents-on-map.ui
 testsuite/tools/simplify-data-3to4/assistant.ui
+testsuite/tools/simplify-data-3to4/box.ui
 testsuite/tools/simplify-data-3to4/grid.ui
 testsuite/tools/simplify-data-3to4/notebook.ui
 testsuite/tools/simplify-data-3to4/office-runner.ui

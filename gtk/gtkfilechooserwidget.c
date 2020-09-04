@@ -1336,7 +1336,7 @@ rename_file_rename_clicked (GtkButton            *button,
             error_dialog (impl, _("The file could not be renamed"), error);
           else
             {
-              /* Rename succeded, save renamed file so it will
+              /* Rename succeeded, save renamed file so it will
                * be revealed by our "row-changed" handler */
               impl->renamed_file = g_object_ref (child);
             }
@@ -5088,11 +5088,18 @@ gtk_file_chooser_widget_set_current_name (GtkFileChooser *chooser,
                                           const char     *name)
 {
   GtkFileChooserWidget *impl = GTK_FILE_CHOOSER_WIDGET (chooser);
+  GtkEntryCompletion *completion;
 
   g_return_if_fail (impl->action == GTK_FILE_CHOOSER_ACTION_SAVE);
 
   pending_select_files_free (impl);
+
+  completion = gtk_entry_get_completion (GTK_ENTRY (impl->location_entry));
+  gtk_entry_completion_set_popup_completion (completion, FALSE);
+
   gtk_editable_set_text (GTK_EDITABLE (impl->location_entry), name);
+
+  gtk_entry_completion_set_popup_completion (completion, TRUE);
 }
 
 static char *
@@ -7994,8 +8001,8 @@ gtk_file_chooser_widget_set_choice (GtkFileChooser  *chooser,
             }
         }
     }
-  else if (GTK_IS_TOGGLE_BUTTON (widget))
-    gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (widget), g_str_equal (option, "true"));
+  else if (GTK_IS_CHECK_BUTTON (widget))
+    gtk_check_button_set_active (GTK_CHECK_BUTTON (widget), g_str_equal (option, "true"));
 }
 
 static const char *
@@ -8017,8 +8024,8 @@ gtk_file_chooser_widget_get_choice (GtkFileChooser  *chooser,
       return NULL;
     }
 
-  else if (GTK_IS_TOGGLE_BUTTON (widget))
-    return gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (widget)) ? "true" : "false";
+  else if (GTK_IS_CHECK_BUTTON (widget))
+    return gtk_check_button_get_active (GTK_CHECK_BUTTON (widget)) ? "true" : "false";
 
   return NULL;
 }

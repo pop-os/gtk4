@@ -40,7 +40,7 @@
  * SECTION:gtktogglebutton
  * @Short_description: Create buttons which retain their state
  * @Title: GtkToggleButton
- * @See_also: #GtkButton, #GtkCheckButton, #GtkCheckMenuItem
+ * @See_also: #GtkButton, #GtkCheckButton
  *
  * A #GtkToggleButton is a #GtkButton which will remain “pressed-in” when
  * clicked. Clicking again will cause the toggle button to return to its
@@ -101,6 +101,9 @@
 typedef struct _GtkToggleButtonPrivate       GtkToggleButtonPrivate;
 struct _GtkToggleButtonPrivate
 {
+  GtkToggleButton *group_next;
+  GtkToggleButton *group_prev;
+
   guint active         : 1;
 };
 
@@ -112,40 +115,137 @@ enum {
 enum {
   PROP_0,
   PROP_ACTIVE,
+  PROP_GROUP,
   NUM_PROPERTIES
 };
 
+static guint toggle_button_signals[LAST_SIGNAL] = { 0 };
 static GParamSpec *toggle_button_props[NUM_PROPERTIES] = { NULL, };
-
-static gboolean gtk_toggle_button_mnemonic_activate  (GtkWidget            *widget,
-                                                      gboolean              group_cycling);
-static void gtk_toggle_button_clicked       (GtkButton            *button);
-static void gtk_toggle_button_set_property  (GObject              *object,
-					     guint                 prop_id,
-					     const GValue         *value,
-					     GParamSpec           *pspec);
-static void gtk_toggle_button_get_property  (GObject              *object,
-					     guint                 prop_id,
-					     GValue               *value,
-					     GParamSpec           *pspec);
-
-
-static guint                toggle_button_signals[LAST_SIGNAL] = { 0 };
 
 G_DEFINE_TYPE_WITH_CODE (GtkToggleButton, gtk_toggle_button, GTK_TYPE_BUTTON,
                          G_ADD_PRIVATE (GtkToggleButton))
 
 static void
+gtk_toggle_button_set_property (GObject      *object,
+                                guint         prop_id,
+                                const GValue *value,
+                                GParamSpec   *pspec)
+{
+  GtkToggleButton *tb = GTK_TOGGLE_BUTTON (object);
+
+  switch (prop_id)
+    {
+    case PROP_ACTIVE:
+      gtk_toggle_button_set_active (tb, g_value_get_boolean (value));
+      break;
+    case PROP_GROUP:
+      gtk_toggle_button_set_group (GTK_TOGGLE_BUTTON (object), g_value_get_object (value));
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+static void
+gtk_toggle_button_get_property (GObject      *object,
+                                guint         prop_id,
+                                GValue       *value,
+                                GParamSpec   *pspec)
+{
+  GtkToggleButton *tb = GTK_TOGGLE_BUTTON (object);
+  GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (tb);
+
+  switch (prop_id)
+    {
+    case PROP_ACTIVE:
+      g_value_set_boolean (value, priv->active);
+      break;
+    default:
+      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
+      break;
+    }
+}
+
+static gboolean
+gtk_toggle_button_mnemonic_activate (GtkWidget *widget,
+                                     gboolean   group_cycling)
+{
+  /*
+   * We override the standard implementation in
+   * gtk_widget_real_mnemonic_activate() in order to focus the widget even
+   * if there is no mnemonic conflict.
+   */
+  if (gtk_widget_get_can_focus (widget))
+    gtk_widget_grab_focus (widget);
+
+  if (!group_cycling)
+    gtk_widget_activate (widget);
+
+  return TRUE;
+}
+
+static void
+gtk_toggle_button_clicked (GtkButton *button)
+{
+  GtkToggleButton *toggle_button = GTK_TOGGLE_BUTTON (button);
+  GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (toggle_button);
+
+  gtk_toggle_button_set_active (toggle_button, !priv->active);
+}
+
+static void
+gtk_toggle_button_dispose (GObject *object)
+{
+  GtkToggleButton *toggle_button = GTK_TOGGLE_BUTTON (object);
+
+  gtk_toggle_button_set_group (toggle_button, NULL);
+
+  G_OBJECT_CLASS (gtk_toggle_button_parent_class)->dispose (object);
+}
+
+static GtkToggleButton *
+get_group_next (GtkToggleButton *self)
+{
+  return ((GtkToggleButtonPrivate *)gtk_toggle_button_get_instance_private (self))->group_next;
+}
+
+static GtkToggleButton *
+get_group_prev (GtkToggleButton *self)
+{
+  return ((GtkToggleButtonPrivate *)gtk_toggle_button_get_instance_private (self))->group_prev;
+}
+
+static GtkToggleButton *
+get_group_first (GtkToggleButton *self)
+{
+  GtkToggleButton *group_first = NULL;
+  GtkToggleButton *iter;
+
+  /* Find first in group */
+  iter = self;
+  while (iter)
+    {
+      group_first = iter;
+
+      iter = get_group_prev (iter);
+      if (!iter)
+        break;
+    }
+
+  g_assert (group_first);
+
+  return group_first;
+}
+
+static void
 gtk_toggle_button_class_init (GtkToggleButtonClass *class)
 {
-  GObjectClass *gobject_class;
-  GtkWidgetClass *widget_class;
-  GtkButtonClass *button_class;
+  GObjectClass *gobject_class = G_OBJECT_CLASS (class);
+  GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
+  GtkButtonClass *button_class = GTK_BUTTON_CLASS (class);
 
-  gobject_class = G_OBJECT_CLASS (class);
-  widget_class = (GtkWidgetClass*) class;
-  button_class = (GtkButtonClass*) class;
-
+  gobject_class->dispose = gtk_toggle_button_dispose;
   gobject_class->set_property = gtk_toggle_button_set_property;
   gobject_class->get_property = gtk_toggle_button_get_property;
 
@@ -162,6 +262,13 @@ gtk_toggle_button_class_init (GtkToggleButtonClass *class)
                             FALSE,
                             GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
+  toggle_button_props[PROP_GROUP] =
+      g_param_spec_object ("group",
+                           P_("Group"),
+                           P_("The toggle button whose group this widget belongs to."),
+                           GTK_TYPE_TOGGLE_BUTTON,
+                           GTK_PARAM_WRITABLE);
+
   g_object_class_install_properties (gobject_class, NUM_PROPERTIES, toggle_button_props);
 
   /**
@@ -173,12 +280,12 @@ gtk_toggle_button_class_init (GtkToggleButtonClass *class)
    */
   toggle_button_signals[TOGGLED] =
     g_signal_new (I_("toggled"),
-		  G_OBJECT_CLASS_TYPE (gobject_class),
-		  G_SIGNAL_RUN_FIRST,
-		  G_STRUCT_OFFSET (GtkToggleButtonClass, toggled),
-		  NULL, NULL,
-		  NULL,
-		  G_TYPE_NONE, 0);
+                  G_OBJECT_CLASS_TYPE (gobject_class),
+                  G_SIGNAL_RUN_FIRST,
+                  G_STRUCT_OFFSET (GtkToggleButtonClass, toggled),
+                  NULL, NULL,
+                  NULL,
+                  G_TYPE_NONE, 0);
 
   gtk_widget_class_set_css_name (widget_class, I_("button"));
 }
@@ -201,7 +308,7 @@ gtk_toggle_button_init (GtkToggleButton *toggle_button)
  *
  * Returns: a new toggle button.
  */
-GtkWidget*
+GtkWidget *
 gtk_toggle_button_new (void)
 {
   return g_object_new (GTK_TYPE_TOGGLE_BUTTON, NULL);
@@ -215,7 +322,7 @@ gtk_toggle_button_new (void)
  *
  * Returns: a new toggle button.
  */
-GtkWidget*
+GtkWidget *
 gtk_toggle_button_new_with_label (const char *label)
 {
   return g_object_new (GTK_TYPE_TOGGLE_BUTTON, "label", label, NULL);
@@ -232,54 +339,13 @@ gtk_toggle_button_new_with_label (const char *label)
  *
  * Returns: a new #GtkToggleButton
  */
-GtkWidget*
+GtkWidget *
 gtk_toggle_button_new_with_mnemonic (const char *label)
 {
-  return g_object_new (GTK_TYPE_TOGGLE_BUTTON, 
-		       "label", label, 
-		       "use-underline", TRUE, 
-		       NULL);
-}
-
-static void
-gtk_toggle_button_set_property (GObject      *object,
-				guint         prop_id,
-				const GValue *value,
-				GParamSpec   *pspec)
-{
-  GtkToggleButton *tb;
-
-  tb = GTK_TOGGLE_BUTTON (object);
-
-  switch (prop_id)
-    {
-    case PROP_ACTIVE:
-      gtk_toggle_button_set_active (tb, g_value_get_boolean (value));
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-      break;
-    }
-}
-
-static void
-gtk_toggle_button_get_property (GObject      *object,
-				guint         prop_id,
-				GValue       *value,
-				GParamSpec   *pspec)
-{
-  GtkToggleButton *tb = GTK_TOGGLE_BUTTON (object);
-  GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (tb);
-
-  switch (prop_id)
-    {
-    case PROP_ACTIVE:
-      g_value_set_boolean (value, priv->active);
-      break;
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-      break;
-    }
+  return g_object_new (GTK_TYPE_TOGGLE_BUTTON,
+                       "label", label,
+                       "use-underline", TRUE,
+                       NULL);
 }
 
 /**
@@ -295,7 +361,7 @@ gtk_toggle_button_get_property (GObject      *object,
  */
 void
 gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
-			      gboolean         is_active)
+                              gboolean         is_active)
 {
   GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (toggle_button);
 
@@ -305,6 +371,21 @@ gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
 
   if (priv->active == is_active)
     return;
+
+  if (is_active && (priv->group_prev || priv->group_next))
+    {
+      GtkToggleButton *group_first = NULL;
+      GtkToggleButton *iter;
+
+      group_first = get_group_first (toggle_button);
+      g_assert (group_first);
+
+      /* Set all buttons in group to !active */
+      for (iter = group_first; iter; iter = get_group_next (iter))
+        gtk_toggle_button_set_active (iter, FALSE);
+
+      /* ... and the next code block will set this one to active */
+    }
 
   priv->active = is_active;
 
@@ -357,33 +438,63 @@ gtk_toggle_button_toggled (GtkToggleButton *toggle_button)
   g_signal_emit (toggle_button, toggle_button_signals[TOGGLED], 0);
 }
 
-static gboolean
-gtk_toggle_button_mnemonic_activate (GtkWidget *widget,
-                                     gboolean   group_cycling)
+/**
+ * gtk_toggle_button_set_group:
+ * @self: a #GtkToggleButton
+ * @group: (nullable) (transfer none): another #GtkToggleButton to
+ *   form a group with
+ *
+ * Adds @self to the group of @group. In a group of multiple toggle buttons,
+ * only one button can be active at a time.
+ *
+ * Note that the same effect can be achieved via the #GtkActionable
+ * api, by using the same action with parameter type and state type 's'
+ * for all buttons in the group, and giving each button its own target
+ * value.
+
+ */
+void
+gtk_toggle_button_set_group (GtkToggleButton *self,
+                             GtkToggleButton *group)
 {
-  /*
-   * We override the standard implementation in 
-   * gtk_widget_real_mnemonic_activate() in order to focus the widget even
-   * if there is no mnemonic conflict.
-   */
-  if (gtk_widget_get_can_focus (widget))
-    gtk_widget_grab_focus (widget);
+  GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (self);
+  GtkToggleButtonPrivate *group_priv = gtk_toggle_button_get_instance_private (group);
 
-  if (!group_cycling)
-    gtk_widget_activate (widget);
+  g_return_if_fail (GTK_IS_TOGGLE_BUTTON (self));
 
-  return TRUE;
+  if (!group)
+    {
+      if (priv->group_prev)
+        {
+          GtkToggleButtonPrivate *p = gtk_toggle_button_get_instance_private (priv->group_prev);
+          p->group_next = priv->group_next;
+        }
+      if (priv->group_next)
+        {
+          GtkToggleButtonPrivate *p = gtk_toggle_button_get_instance_private (priv->group_next);
+          p->group_prev = priv->group_prev;
+        }
+
+      priv->group_next = NULL;
+      priv->group_prev = NULL;
+      g_object_notify_by_pspec (G_OBJECT (self), toggle_button_props[PROP_GROUP]);
+      return;
+    }
+
+  if (priv->group_next == group)
+    return;
+
+  priv->group_prev = NULL;
+  if (group_priv->group_prev)
+    {
+      GtkToggleButtonPrivate *prev = gtk_toggle_button_get_instance_private (group_priv->group_prev);
+
+      prev->group_next = self;
+      priv->group_prev = group_priv->group_prev;
+    }
+
+  group_priv->group_prev = self;
+  priv->group_next = group;
+
+  g_object_notify_by_pspec (G_OBJECT (self), toggle_button_props[PROP_GROUP]);
 }
-
-static void
-gtk_toggle_button_clicked (GtkButton *button)
-{
-  GtkToggleButton *toggle_button = GTK_TOGGLE_BUTTON (button);
-  GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (toggle_button);
-
-  gtk_toggle_button_set_active (toggle_button, !priv->active);
-
-  if (GTK_BUTTON_CLASS (gtk_toggle_button_parent_class)->clicked)
-    GTK_BUTTON_CLASS (gtk_toggle_button_parent_class)->clicked (button);
-}
-

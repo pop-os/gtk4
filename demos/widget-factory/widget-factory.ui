@@ -639,8 +639,8 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                   <object class="GtkCheckButton" id="checkbutton2">
                                     <property name="label" translatable="yes">checkbutton</property>
                                     <layout>
-                                      <property name="left-attach">0</property>
-                                      <property name="top-attach">1</property>
+                                      <property name="column">0</property>
+                                      <property name="row">1</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -649,8 +649,8 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="label" translatable="yes">checkbutton</property>
                                     <property name="inconsistent">1</property>
                                     <layout>
-                                      <property name="left-attach">0</property>
-                                      <property name="top-attach">2</property>
+                                      <property name="column">0</property>
+                                      <property name="row">2</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -660,8 +660,8 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="sensitive">0</property>
                                     <property name="active">1</property>
                                     <layout>
-                                      <property name="left-attach">0</property>
-                                      <property name="top-attach">3</property>
+                                      <property name="column">0</property>
+                                      <property name="row">3</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -670,8 +670,8 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="label" translatable="yes">checkbutton</property>
                                     <property name="sensitive">0</property>
                                     <layout>
-                                      <property name="left-attach">0</property>
-                                      <property name="top-attach">4</property>
+                                      <property name="column">0</property>
+                                      <property name="row">4</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -681,72 +681,73 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="sensitive">0</property>
                                     <property name="inconsistent">1</property>
                                     <layout>
-                                      <property name="left-attach">0</property>
-                                      <property name="top-attach">5</property>
+                                      <property name="column">0</property>
+                                      <property name="row">5</property>
                                     </layout>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton1">
+                                  <object class="GtkCheckButton" id="radiobutton1">
                                     <property name="label" translatable="yes">radiobutton</property>
                                     <property name="active">1</property>
                                     <layout>
-                                      <property name="left-attach">0</property>
-                                      <property name="left-attach">1</property>
+                                      <property name="column">1</property>
+                                      <property name="row">0</property>
                                     </layout>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton2">
+                                  <object class="GtkCheckButton">
                                     <property name="label" translatable="yes">radiobutton</property>
                                     <property name="group">radiobutton1</property>
                                     <layout>
-                                      <property name="left-attach">1</property>
-                                      <property name="top-attach">1</property>
+                                      <property name="column">1</property>
+                                      <property name="row">1</property>
                                     </layout>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton3">
+                                  <object class="GtkCheckButton" id="radiobutton3">
                                     <property name="label" translatable="yes">radiobutton</property>
                                     <property name="inconsistent">1</property>
                                     <property name="group">radiobutton1</property>
                                     <layout>
-                                      <property name="left-attach">1</property>
-                                      <property name="top-attach">2</property>
+                                      <property name="column">1</property>
+                                      <property name="row">2</property>
                                     </layout>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton4">
+                                  <object class="GtkCheckButton" id="radiobutton4">
                                     <property name="label" translatable="yes">radiobutton</property>
                                     <property name="sensitive">0</property>
+                                    <property name="active">1</property>
                                     <layout>
-                                      <property name="left-attach">1</property>
-                                      <property name="top-attach">3</property>
+                                      <property name="column">1</property>
+                                      <property name="row">3</property>
                                     </layout>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton5">
+                                  <object class="GtkCheckButton" id="radiobutton5">
                                     <property name="label" translatable="yes">radiobutton</property>
                                     <property name="sensitive">0</property>
-                                    <property name="group">radiobutton3</property>
+                                    <property name="group">radiobutton4</property>
                                     <layout>
-                                      <property name="left-attach">1</property>
-                                      <property name="top-attach">4</property>
+                                      <property name="column">1</property>
+                                      <property name="row">4</property>
                                     </layout>
                                   </object>
                                 </child>
                                 <child>
-                                  <object class="GtkRadioButton" id="radiobutton6">
+                                  <object class="GtkCheckButton" id="radiobutton6">
                                     <property name="label" translatable="yes">radiobutton</property>
                                     <property name="sensitive">0</property>
                                     <property name="inconsistent">1</property>
-                                    <property name="group">radiobutton3</property>
+                                    <property name="group">radiobutton4</property>
                                     <layout>
-                                      <property name="left-attach">1</property>
-                                      <property name="top-attach">5</property>
+                                      <property name="column">1</property>
+                                      <property name="row">5</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -754,15 +755,15 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                   <object class="GtkSpinner" id="spinner1">
                                     <property name="spinning">1</property>
                                     <layout>
-                                      <property name="left-attach">2</property>
+                                      <property name="column">2</property>
                                     </layout>
                                   </object>
                                 </child>
                                 <child>
                                   <object class="GtkSpinner" id="spinner2">
                                     <layout>
-                                      <property name="left-attach">2</property>
-                                      <property name="top-attach">1</property>
+                                      <property name="column">2</property>
+                                      <property name="row">1</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -771,8 +772,8 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                     <property name="spinning">1</property>
                                     <property name="sensitive">0</property>
                                     <layout>
-                                      <property name="left-attach">2</property>
-                                      <property name="top-attach">3</property>
+                                      <property name="column">2</property>
+                                      <property name="row">3</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -780,8 +781,8 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                   <object class="GtkSpinner" id="spinner4">
                                     <property name="sensitive">0</property>
                                     <layout>
-                                      <property name="left-attach">2</property>
-                                      <property name="top-attach">4</property>
+                                      <property name="column">2</property>
+                                      <property name="row">4</property>
                                     </layout>
                                   </object>
                                 </child>
@@ -1519,8 +1520,8 @@ Suspendisse feugiat quam quis dolor accumsan cursus.</property>
                                         <property name="value">.5</property>
                                         <property name="halign">center</property>
                                         <layout>
-                                          <property name="left-attach">0</property>
-                                          <property name="top-attach">0</property>
+                                          <property name="column">0</property>
+                                          <property name="row">0</property>
                                         </layout>
                                       </object>
                                     </child>
@@ -1536,8 +1537,8 @@ microphone-sensitivity-medium-symbolic</property>
                                         <property name="halign">center</property>
                                         <signal name="value-changed" handler="on_scale_button_value_changed" swapped="no"/>
                                         <layout>
-                                          <property name="left-attach">0</property>
-                                          <property name="top-attach">1</property>
+                                          <property name="column">0</property>
+                                          <property name="row">1</property>
                                         </layout>
                                       </object>
                                     </child>
@@ -1624,6 +1625,9 @@ microphone-sensitivity-medium-symbolic</property>
                                   <object class="GtkListBox" id="listbox">
                                     <property name="selection-mode">none</property>
                                     <property name="show-separators">1</property>
+                                    <style>
+                                      <class name="rich-list"/>
+                                    </style>
                                     <child type="placeholder">
                                       <object class="GtkLabel">
                                         <property name="label">No rows found</property>
@@ -1640,10 +1644,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="label" translatable="yes">Row 1</property>
                                                 <property name="halign">start</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-start">6</property>
-                                                <property name="margin-end">6</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
                                                 <property name="hexpand">1</property>
                                               </object>
                                             </child>
@@ -1651,10 +1651,6 @@ microphone-sensitivity-medium-symbolic</property>
                                               <object class="GtkSwitch" id="listboxrow1switch">
                                                 <property name="halign">end</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
-                                                <property name="margin-start">12</property>
-                                                <property name="margin-end">12</property>
                                               </object>
                                             </child>
                                           </object>
@@ -1671,10 +1667,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="label" translatable="yes">Row 2</property>
                                                 <property name="halign">start</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-start">6</property>
-                                                <property name="margin-end">6</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
                                                 <property name="hexpand">1</property>
                                               </object>
                                             </child>
@@ -1682,10 +1674,6 @@ microphone-sensitivity-medium-symbolic</property>
                                               <object class="GtkScale" id="opacity">
                                                 <property name="halign">end</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
-                                                <property name="margin-start">12</property>
-                                                <property name="margin-end">12</property>
                                                 <property name="draw-value">0</property>
                                                 <property name="width-request">150</property>
                                                 <property name="adjustment">adjustment1</property>
@@ -1704,10 +1692,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="label" translatable="yes">Row 3</property>
                                                 <property name="halign">start</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-start">6</property>
-                                                <property name="margin-end">6</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
                                                 <property name="hexpand">1</property>
                                               </object>
                                             </child>
@@ -1716,10 +1700,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="icon-name">object-select-symbolic</property>
                                                 <property name="halign">end</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
-                                                <property name="margin-start">12</property>
-                                                <property name="margin-end">12</property>
                                                 <property name="opacity">0</property>
                                               </object>
                                             </child>
@@ -1737,10 +1717,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="label" translatable="yes">Row 4</property>
                                                 <property name="halign">start</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-start">6</property>
-                                                <property name="margin-end">6</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
                                                 <property name="hexpand">1</property>
                                               </object>
                                             </child>
@@ -1750,10 +1726,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="hexpand">1</property>
                                                 <property name="halign">end</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
-                                                <property name="margin-start">12</property>
-                                                <property name="margin-end">12</property>
                                               </object>
                                             </child>
                                           </object>
@@ -1770,10 +1742,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="label" translatable="yes">Row 5</property>
                                                 <property name="halign">start</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-start">6</property>
-                                                <property name="margin-end">6</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
                                                 <property name="hexpand">1</property>
                                               </object>
                                             </child>
@@ -1781,10 +1749,6 @@ microphone-sensitivity-medium-symbolic</property>
                                               <object class="GtkButton" id="listboxrow5button">
                                                 <property name="halign">end</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
-                                                <property name="margin-start">12</property>
-                                                <property name="margin-end">12</property>
                                                 <property name="icon-name">appointment-soon-symbolic</property>
                                               </object>
                                             </child>
@@ -1802,10 +1766,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="label" translatable="yes">Row 6</property>
                                                 <property name="halign">start</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-start">6</property>
-                                                <property name="margin-end">6</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
                                                 <property name="hexpand">1</property>
                                               </object>
                                             </child>
@@ -1813,10 +1773,6 @@ microphone-sensitivity-medium-symbolic</property>
                                               <object class="GtkCheckButton">
                                                 <property name="halign">end</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
-                                                <property name="margin-start">12</property>
-                                                <property name="margin-end">12</property>
                                               </object>
                                             </child>
                                           </object>
@@ -1832,10 +1788,6 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="label" translatable="yes">Row 7</property>
                                                 <property name="halign">start</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-start">6</property>
-                                                <property name="margin-end">6</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
                                                 <property name="hexpand">1</property>
                                               </object>
                                             </child>
@@ -1852,10 +1804,7 @@ microphone-sensitivity-medium-symbolic</property>
                                                 <property name="label" translatable="yes">Row 8</property>
                                                 <property name="halign">start</property>
                                                 <property name="valign">center</property>
-                                                <property name="margin-start">6</property>
-                                                <property name="margin-end">6</property>
-                                                <property name="margin-top">6</property>
-                                                <property name="margin-bottom">6</property>
+
                                                 <property name="hexpand">1</property>
                                               </object>
                                             </child>
@@ -2279,16 +2228,14 @@ microphone-sensitivity-medium-symbolic</property>
                                       <class name="linked"/>
                                     </style>
                                     <child>
-                                      <object class="GtkRadioButton" id="grid_button">
-                                        <property name="draw-indicator">0</property>
+                                      <object class="GtkToggleButton" id="grid_button">
                                         <property name="active">1</property>
                                         <property name="icon-name">view-grid-symbolic</property>
                                       </object>
                                     </child>
                                     <child>
-                                      <object class="GtkRadioButton" id="list_button">
+                                      <object class="GtkToggleButton" id="list_button">
                                         <property name="active">1</property>
-                                        <property name="draw-indicator">0</property>
                                         <property name="group">grid_button</property>
                                         <property name="icon-name">view-list-symbolic</property>
                                       </object>
@@ -2812,6 +2759,7 @@ microphone-sensitivity-medium-symbolic</property>
                                 <property name="hexpand">1</property>
                                 <property name="show-emoji-icon">1</property>
                                 <property name="placeholder-text" translatable="yes">Age…</property>
+                                <signal name="notify::text" handler="age_entry_changed"/>
                               </object>
                             </child>
                             <style>
@@ -2940,6 +2888,7 @@ bad things might happen.</property>
         <property name="use-underline">1</property>
       </object>
     </child>
+
     <action-widgets>
       <action-widget response="cancel">cancel_info_dialog</action-widget>
       <action-widget response="ok">doit_info_dialog</action-widget>
@@ -3011,8 +2960,8 @@ bad things might happen.</property>
                   <class name="dim-label"/>
                 </style>
                 <layout>
-                  <property name="left-attach">0</property>
-                  <property name="top-attach">0</property>
+                  <property name="column">0</property>
+                  <property name="row">0</property>
                 </layout>
               </object>
             </child>
@@ -3020,8 +2969,9 @@ bad things might happen.</property>
               <object class="GtkEntry" id="details_entry">
                 <property name="valign">baseline</property>
                 <layout>
-                  <property name="left-attach">1</property>
-                  <property name="top-attach">0</property>
+                  <property name="column">1</property>
+                  <property name="row">0</property>
+                  <property name="column-span">2</property>
                 </layout>
               </object>
             </child>
@@ -3036,17 +2986,19 @@ bad things might happen.</property>
                   <class name="dim-label"/>
                 </style>
                 <layout>
-                  <property name="left-attach">0</property>
-                  <property name="top-attach">1</property>
+                  <property name="column">0</property>
+                  <property name="row">1</property>
                 </layout>
               </object>
             </child>
             <child>
               <object class="GtkEntry" id="more_details_entry">
                 <property name="valign">baseline</property>
+                <signal name="notify::text" handler="validate_more_details" object="details_entry" swapped="no"/>
                 <layout>
-                  <property name="left-attach">1</property>
-                  <property name="top-attach">1</property>
+                  <property name="column">1</property>
+                  <property name="row">1</property>
+                  <property name="column-span">2</property>
                 </layout>
               </object>
             </child>
@@ -3061,8 +3013,8 @@ bad things might happen.</property>
                   <class name="dim-label"/>
                 </style>
                 <layout>
-                  <property name="left-attach">0</property>
-                  <property name="top-attach">2</property>
+                  <property name="column">0</property>
+                  <property name="row">2</property>
                 </layout>
               </object>
             </child>
@@ -3071,9 +3023,11 @@ bad things might happen.</property>
                 <property name="valign">baseline</property>
                 <property name="draw-value">0</property>
                 <property name="adjustment">adjustment1</property>
+                <signal name="value-changed" handler="level_scale_value_changed"/>
                 <layout>
-                  <property name="left-attach">1</property>
-                  <property name="top-attach">2</property>
+                  <property name="column">1</property>
+                  <property name="row">2</property>
+                  <property name="column-span">2</property>
                 </layout>
               </object>
             </child>
@@ -3088,8 +3042,8 @@ bad things might happen.</property>
                   <class name="dim-label"/>
                 </style>
                 <layout>
-                  <property name="left-attach">0</property>
-                  <property name="top-attach">3</property>
+                  <property name="column">0</property>
+                  <property name="row">3</property>
                 </layout>
               </object>
             </child>
@@ -3097,9 +3051,25 @@ bad things might happen.</property>
               <object class="GtkSwitch" id="mode_switch">
                 <property name="halign">start</property>
                 <property name="valign">baseline</property>
+                <signal name="state-set" handler="mode_switch_state_set"/>
                 <layout>
-                  <property name="left-attach">1</property>
-                  <property name="top-attach">3</property>
+                  <property name="column">1</property>
+                  <property name="row">3</property>
+                </layout>
+              </object>
+            </child>
+            <child>
+              <object class="GtkLabel" id="error_label">
+                <property name="visible">0</property>
+                <property name="halign">start</property>
+                <property name="valign">baseline</property>
+                <property name="label">Level too low</property>
+                <style>
+                  <class name="error"/>
+                </style>
+                <layout>
+                  <property name="column">2</property>
+                  <property name="row">3</property>
                 </layout>
               </object>
             </child>
@@ -3169,7 +3139,8 @@ bad things might happen.</property>
             <property name="label">Description:</property>
             <property name="xalign">1</property>
             <layout>
-              <property name="top-attach">1</property>
+              <property name="row">1</property>
+              <property name="column">0</property>
             </layout>
           </object>
         </child>
@@ -3186,8 +3157,8 @@ bad things might happen.</property>
               </object>
             </child>
             <layout>
-              <property name="left-attach">1</property>
-              <property name="top-attach">1</property>
+              <property name="column">1</property>
+              <property name="row">1</property>
               <property name="column-span">2</property>
             </layout>
           </object>
@@ -3196,7 +3167,8 @@ bad things might happen.</property>
           <object class="GtkEntry" id="open_popover_entry">
             <property name="activates-default">1</property>
             <layout>
-              <property name="left-attach">1</property>
+              <property name="row">0</property>
+              <property name="column">1</property>
               <property name="column-span">2</property>
             </layout>
           </object>
@@ -3215,8 +3187,8 @@ bad things might happen.</property>
               </object>
             </child>
             <layout>
-              <property name="left-attach">1</property>
-              <property name="top-attach">2</property>
+              <property name="column">1</property>
+              <property name="row">2</property>
               <property name="column-span">2</property>
             </layout>
           </object>
@@ -3228,8 +3200,8 @@ bad things might happen.</property>
             <property name="menu-model">gear_menu</property>
             <property name="tooltip-text">This is a menu button</property>
             <layout>
-              <property name="left-attach">1</property>
-              <property name="top-attach">3</property>
+              <property name="column">1</property>
+              <property name="row">3</property>
             </layout>
           </object>
         </child>
@@ -3242,8 +3214,8 @@ bad things might happen.</property>
               <class name="suggested-action"/>
             </style>
             <layout>
-              <property name="left-attach">2</property>
-              <property name="top-attach">3</property>
+              <property name="column">2</property>
+              <property name="row">3</property>
             </layout>
           </object>
         </child>

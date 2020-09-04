@@ -61,10 +61,6 @@ create_pane_options (GtkPaned    *paned,
   child2 = gtk_paned_get_end_child (paned);
 
   frame = gtk_frame_new (frame_label);
-  gtk_widget_set_margin_start (frame, 4);
-  gtk_widget_set_margin_end (frame, 4);
-  gtk_widget_set_margin_top (frame, 4);
-  gtk_widget_set_margin_bottom (frame, 4);
 
   table = gtk_grid_new ();
   gtk_frame_set_child (GTK_FRAME (frame), table);
@@ -79,7 +75,7 @@ create_pane_options (GtkPaned    *paned,
 
   check_button = gtk_check_button_new_with_mnemonic ("_Shrink");
   gtk_grid_attach (GTK_GRID (table), check_button, 0, 2, 1, 1);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button), TRUE);
+  gtk_check_button_set_active (GTK_CHECK_BUTTON (check_button), TRUE);
   g_signal_connect (check_button, "toggled",
                     G_CALLBACK (toggle_shrink), child1);
 
@@ -88,13 +84,13 @@ create_pane_options (GtkPaned    *paned,
 
   check_button = gtk_check_button_new_with_mnemonic ("_Resize");
   gtk_grid_attach (GTK_GRID (table), check_button, 1, 1, 1, 1);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button), TRUE);
+  gtk_check_button_set_active (GTK_CHECK_BUTTON (check_button), TRUE);
   g_signal_connect (check_button, "toggled",
                     G_CALLBACK (toggle_resize), child2);
 
   check_button = gtk_check_button_new_with_mnemonic ("_Shrink");
   gtk_grid_attach (GTK_GRID (table), check_button, 1, 2, 1, 1);
-  gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (check_button), TRUE);
+  gtk_check_button_set_active (GTK_CHECK_BUTTON (check_button), TRUE);
   g_signal_connect (check_button, "toggled",
                     G_CALLBACK (toggle_shrink), child2);
 
@@ -110,6 +106,7 @@ do_panes (GtkWidget *do_widget)
   GtkWidget *vpaned;
   GtkWidget *button;
   GtkWidget *vbox;
+  GtkWidget *box;
 
   if (!window)
     {
@@ -120,33 +117,42 @@ do_panes (GtkWidget *do_widget)
 
       gtk_window_set_title (GTK_WINDOW (window), "Paned Widgets");
 
-      vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+      vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
+      gtk_widget_set_margin_start (vbox, 8);
+      gtk_widget_set_margin_end (vbox, 8);
+      gtk_widget_set_margin_top (vbox, 8);
+      gtk_widget_set_margin_bottom (vbox, 8);
       gtk_window_set_child (GTK_WINDOW (window), vbox);
 
+      frame = gtk_frame_new (NULL);
+      gtk_box_append (GTK_BOX (vbox), frame);
+
       vpaned = gtk_paned_new (GTK_ORIENTATION_VERTICAL);
-      gtk_widget_set_margin_start (vpaned, 5);
-      gtk_widget_set_margin_end (vpaned, 5);
-      gtk_widget_set_margin_top (vpaned, 5);
-      gtk_widget_set_margin_bottom (vpaned, 5);
-      gtk_box_append (GTK_BOX (vbox), vpaned);
+      gtk_frame_set_child (GTK_FRAME (frame), vpaned);
 
       hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
       gtk_paned_set_start_child (GTK_PANED (vpaned), hpaned);
 
-      frame = gtk_frame_new (NULL);
-      gtk_widget_set_size_request (frame, 60, 60);
-      gtk_paned_set_start_child (GTK_PANED (hpaned), frame);
+      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+      gtk_widget_set_size_request (box, 60, 60);
+      gtk_paned_set_start_child (GTK_PANED (hpaned), box);
 
       button = gtk_button_new_with_mnemonic ("_Hi there");
-      gtk_frame_set_child (GTK_FRAME (frame), button);
+      gtk_widget_set_margin_start (button, 4);
+      gtk_widget_set_margin_end (button, 4);
+      gtk_widget_set_margin_top (button, 4);
+      gtk_widget_set_margin_bottom (button, 4);
+      gtk_widget_set_hexpand (button, TRUE);
+      gtk_widget_set_vexpand (button, TRUE);
+      gtk_box_append (GTK_BOX (box), button);
 
-      frame = gtk_frame_new (NULL);
-      gtk_widget_set_size_request (frame, 80, 60);
-      gtk_paned_set_end_child (GTK_PANED (hpaned), frame);
+      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+      gtk_widget_set_size_request (box, 80, 60);
+      gtk_paned_set_end_child (GTK_PANED (hpaned), box);
 
-      frame = gtk_frame_new (NULL);
-      gtk_widget_set_size_request (frame, 60, 80);
-      gtk_paned_set_end_child (GTK_PANED (vpaned), frame);
+      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
+      gtk_widget_set_size_request (box, 60, 80);
+      gtk_paned_set_end_child (GTK_PANED (vpaned), box);
 
       /* Now create toggle buttons to control sizing */
 

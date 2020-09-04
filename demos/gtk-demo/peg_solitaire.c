@@ -4,9 +4,8 @@
  *
  */
 
+#include "config.h"
 #include <gtk/gtk.h>
-
-static GtkWidget *window = NULL;
 
 /* Create an object for the pegs that get moved around in the game.
  *
@@ -56,11 +55,25 @@ solitaire_peg_get_flags (GdkPaintable *paintable)
   return GDK_PAINTABLE_STATIC_CONTENTS | GDK_PAINTABLE_STATIC_SIZE;
 }
 
+static int
+solitaire_peg_get_intrinsic_width (GdkPaintable *paintable)
+{
+  return 32;
+}
+
+static int
+solitaire_peg_get_intrinsic_height (GdkPaintable *paintable)
+{
+  return 32;
+}
+
 static void
 solitaire_peg_paintable_init (GdkPaintableInterface *iface)
 {
   iface->snapshot = solitaire_peg_snapshot;
   iface->get_flags = solitaire_peg_get_flags;
+  iface->get_intrinsic_width = solitaire_peg_get_intrinsic_width;
+  iface->get_intrinsic_height = solitaire_peg_get_intrinsic_height;
 }
 
 /* When defining the GType, we need to implement the GdkPaintable interface */
@@ -102,6 +115,95 @@ solitaire_peg_new (void)
 {
   return g_object_new (SOLITAIRE_TYPE_PEG, NULL);
 }
+
+/*** Helper for finding a win ***/
+
+static void
+ended (GObject *object)
+{
+  g_object_unref (object);
+}
+
+static void
+celebrate (gboolean win)
+{
+  char *path;
+  GtkMediaStream *stream;
+
+  if (win)
+    path = g_build_filename (GTK_DATADIR, "sounds", "freedesktop", "stereo", "complete.oga", NULL);
+  else
+    path = g_build_filename (GTK_DATADIR, "sounds", "freedesktop", "stereo", "dialog-error.oga", NULL);
+  stream = gtk_media_file_new_for_filename (path);
+  gtk_media_stream_set_volume (stream, 1.0);
+  gtk_media_stream_play (stream);
+
+  g_signal_connect (stream, "notify::ended", G_CALLBACK (ended), NULL);
+  g_free (path);
+}
+
+static int
+check_move (GtkGrid *grid,
+            int      x,
+            int      y,
+            int      dx,
+            int      dy)
+{
+  GtkWidget *image;
+  /* We have a peg at x, y.
+   * Check if we can move the peg to x + 2*dx, y + 2*dy
+   */
+  image = gtk_grid_get_child_at (grid, x + dx, y + dy);
+  if (!GTK_IS_IMAGE (image) ||
+      !SOLITAIRE_IS_PEG (gtk_image_get_paintable (GTK_IMAGE (image))))
+    return 0;
+
+  image = gtk_grid_get_child_at (grid, x + 2*dx, y + 2*dy);
+  if (!GTK_IMAGE (image) ||
+      SOLITAIRE_IS_PEG (gtk_image_get_paintable (GTK_IMAGE (image))))
+    return 0;
+
+  return 1;
+}
+
+static void
+check_for_end (GtkGrid *grid)
+{
+  GtkWidget *image;
+  int x, y;
+  int pegs;
+  int moves;
+
+  pegs = 0;
+  moves = 0;
+  for (x = 0; x < 7; x++)
+    {
+      for (y = 0; y < 7; y++)
+        {
+          image = gtk_grid_get_child_at (grid, x, y);
+          if (GTK_IS_IMAGE (image) &&
+              SOLITAIRE_IS_PEG (gtk_image_get_paintable (GTK_IMAGE (image))))
+            {
+              pegs++;
+              moves += check_move (grid, x, y, 1, 0);
+              moves += check_move (grid, x, y, -1, 0);
+              moves += check_move (grid, x, y, 0, 1);
+              moves += check_move (grid, x, y, 0, -1);
+            }
+
+          if (pegs > 1 && moves > 0)
+            break;
+        }
+    }
+
+  image = gtk_grid_get_child_at (grid, 3, 3);
+  if (pegs == 1 &&
+      SOLITAIRE_IS_PEG (gtk_image_get_paintable (GTK_IMAGE (image))))
+    celebrate (TRUE);
+  else if (moves == 0)
+    celebrate (FALSE);
+}
+
 
 /*** DRAG AND DROP ***/
 
@@ -154,7 +256,7 @@ drag_begin (GtkDragSource *source,
   gtk_image_clear (GTK_IMAGE (image));
 }
 
-/* Thie is called once a drag operation has ended (successfully or not).
+/* This is called once a drag operation has ended (successfully or not).
  * We want to undo what we did in drag_begin() above and react
  * to a potential move of the peg.
  */
@@ -255,29 +357,120 @@ drop_drop (GtkDropTarget *target,
   solitaire_peg_set_position (peg, image_x, image_y);
   gtk_image_set_from_paintable (GTK_IMAGE (image), GDK_PAINTABLE (peg));
 
+  /* Maybe we have something to celebrate */
+  check_for_end (grid);
+
   /* Success! */
   return TRUE;
+}
+
+static void
+create_board (GtkWidget *window)
+{
+  GtkWidget *grid;
+  GtkWidget *image;
+  int x, y;
+  GtkDragSource *source;
+  GtkDropTarget *target;
+  GtkCssProvider *provider;
+  const char css[] =
+    ".solitaire-field {"
+    "  border: 1px solid lightgray;"
+    "}";
+
+  provider = gtk_css_provider_new ();
+  gtk_css_provider_load_from_data (provider, css, -1);
+
+  grid = gtk_grid_new ();
+  gtk_widget_set_halign (grid, GTK_ALIGN_CENTER);
+  gtk_widget_set_valign (grid, GTK_ALIGN_CENTER);
+  gtk_grid_set_row_spacing (GTK_GRID (grid), 6);
+  gtk_grid_set_column_spacing (GTK_GRID (grid), 6);
+  gtk_grid_set_row_homogeneous (GTK_GRID (grid), TRUE);
+  gtk_grid_set_column_homogeneous (GTK_GRID (grid), TRUE);
+  gtk_window_set_child (GTK_WINDOW (window), grid);
+
+  for (x = 0; x < 7; x++)
+    {
+      for (y = 0; y < 7; y++)
+        {
+          if ((x < 2 || x >= 5) && (y < 2 || y >= 5))
+            continue;
+
+          image = gtk_image_new ();
+          gtk_style_context_add_provider (gtk_widget_get_style_context (image),
+                                          GTK_STYLE_PROVIDER (provider),
+                                          800);
+          gtk_widget_add_css_class (image, "solitaire-field");
+          gtk_image_set_icon_size (GTK_IMAGE (image), GTK_ICON_SIZE_LARGE);
+          if (x != 3 || y != 3)
+            {
+              SolitairePeg *peg = solitaire_peg_new ();
+              solitaire_peg_set_position (peg, x, y);
+              gtk_image_set_from_paintable (GTK_IMAGE (image), GDK_PAINTABLE (peg));
+            }
+
+          gtk_grid_attach (GTK_GRID (grid), image, x, y, 1, 1);
+
+          /* Set up the drag source.
+           * This is rather straightforward: Set the supported actions
+           * (in our case, pegs can only be moved) and connect all the
+           * relevant signals.
+           * And because all drag'n'drop handling is done via event controllers,
+           * we need to add the controller to the widget.
+           */
+          source = gtk_drag_source_new ();
+          gtk_drag_source_set_actions (source, GDK_ACTION_MOVE);
+          g_signal_connect (source, "prepare", G_CALLBACK (drag_prepare), image);
+          g_signal_connect (source, "drag-begin", G_CALLBACK (drag_begin), image);
+          g_signal_connect (source, "drag-end", G_CALLBACK (drag_end), image);
+          gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
+
+          /* Set up the drop target.
+           * This is more involved, because the game logic goes here.
+           */
+
+          /* First we specify the data we accept: pegs.
+           * And we only want moves.
+           */
+          target = gtk_drop_target_new (SOLITAIRE_TYPE_PEG, GDK_ACTION_MOVE);
+          /* Then we connect our signals.
+           */
+          g_signal_connect (target, "accept", G_CALLBACK (drop_accept), image);
+          g_signal_connect (target, "drop", G_CALLBACK (drop_drop), image);
+          /* Finally, like above, we add it to the widget.
+           */
+          gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (target));
+        }
+    }
+
+  g_object_unref (provider);
+}
+
+static void
+restart_game (GtkButton *button,
+              GtkWidget *window)
+{
+  create_board (window);
 }
 
 GtkWidget *
 do_peg_solitaire (GtkWidget *do_widget)
 {
+  static GtkWidget *window = NULL;
+
   if (!window)
     {
       GtkWidget *header;
       GtkWidget *restart;
-      GtkWidget *grid;
-      GtkWidget *image;
-      int x, y;
-      GtkDragSource *source;
-      GtkDropTarget *target;
+
+      window = gtk_window_new ();
 
       restart = gtk_button_new_from_icon_name ("view-refresh-symbolic");
-      g_signal_connect (restart, "clicked", G_CALLBACK (restart), NULL);
+      g_signal_connect (restart, "clicked", G_CALLBACK (restart_game), window);
 
       header = gtk_header_bar_new ();
       gtk_header_bar_pack_start (GTK_HEADER_BAR (header), restart);
-      window = gtk_window_new ();
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
       gtk_window_set_title (GTK_WINDOW (window), "Peg Solitaire");
@@ -285,63 +478,7 @@ do_peg_solitaire (GtkWidget *do_widget)
       gtk_window_set_default_size (GTK_WINDOW (window), 400, 300);
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
-      grid = gtk_grid_new ();
-      gtk_widget_set_halign (grid, GTK_ALIGN_CENTER);
-      gtk_widget_set_valign (grid, GTK_ALIGN_CENTER);
-      gtk_grid_set_row_spacing (GTK_GRID (grid), 6);
-      gtk_grid_set_column_spacing (GTK_GRID (grid), 6);
-      gtk_grid_set_row_homogeneous (GTK_GRID (grid), TRUE);
-      gtk_grid_set_column_homogeneous (GTK_GRID (grid), TRUE);
-      gtk_window_set_child (GTK_WINDOW (window), grid);
-
-      for (x = 0; x < 7; x++)
-        {
-          for (y = 0; y < 7; y++)
-            {
-              if ((x < 2 || x >= 5) && (y < 2 || y >= 5))
-                continue;
-
-              image = gtk_image_new ();
-              if (x != 3 || y != 3)
-                {
-                  SolitairePeg *peg = solitaire_peg_new ();
-                  solitaire_peg_set_position (peg, x, y);
-                  gtk_image_set_from_paintable (GTK_IMAGE (image), GDK_PAINTABLE (peg));
-                }
-
-              gtk_grid_attach (GTK_GRID (grid), image, x, y, 1, 1);
-
-              /* Set up the drag source.
-               * This is rather straightforward: Set the supported actions
-               * (in our case, pegs can only be moved) and connect all the
-               * relevant signals.
-               * And because all drag'n'drop handling is done via event controllers,
-               * we need to add the controller to the widget.
-               */
-              source = gtk_drag_source_new ();
-              gtk_drag_source_set_actions (source, GDK_ACTION_MOVE);
-              g_signal_connect (source, "prepare", G_CALLBACK (drag_prepare), image);
-              g_signal_connect (source, "drag-begin", G_CALLBACK (drag_begin), image);
-              g_signal_connect (source, "drag-end", G_CALLBACK (drag_end), image);
-              gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (source));
-
-              /* Set up the drop target.
-               * This is more involved, because the game logic goes here.
-               */
-
-              /* First we specify the data we accept: pegs.
-               * And we only want moves.
-               */
-              target = gtk_drop_target_new (SOLITAIRE_TYPE_PEG, GDK_ACTION_MOVE);
-              /* Then we connect our signals.
-               */
-              g_signal_connect (target, "accept", G_CALLBACK (drop_accept), image);
-              g_signal_connect (target, "drop", G_CALLBACK (drop_drop), image);
-              /* Finally, like above, we add it to the widget.
-               */
-              gtk_widget_add_controller (image, GTK_EVENT_CONTROLLER (target));
-            }
-        }
+      create_board (window);
     }
 
   if (!gtk_widget_get_visible (window))

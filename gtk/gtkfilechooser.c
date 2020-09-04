@@ -119,7 +119,7 @@ gtk_file_chooser_default_init (GtkFileChooserInterface *iface)
    * GtkFileChooser:shortcut-folders:
    *
    * A #GListModel containing the shortcut folders that have been
-   * added with gtk_file_chooser_add_shortcut().
+   * added with gtk_file_chooser_add_shortcut_folder().
    *
    * The returned object should not be modified. It may
    * or may not be updated for later changes.
@@ -244,7 +244,7 @@ gtk_file_chooser_get_select_multiple (GtkFileChooser *chooser)
  * @chooser: a #GtkFileChooser
  * @create_folders: %TRUE if the Create Folder button should be displayed
  * 
- * Sets whether file choser will offer to create new folders.
+ * Sets whether file chooser will offer to create new folders.
  * This is only relevant if the action is not set to be 
  * %GTK_FILE_CHOOSER_ACTION_OPEN.
  **/
@@ -261,7 +261,7 @@ gtk_file_chooser_set_create_folders (GtkFileChooser *chooser,
  * gtk_file_chooser_get_create_folders:
  * @chooser: a #GtkFileChooser
  * 
- * Gets whether file choser will offer to create new folders.
+ * Gets whether file chooser will offer to create new folders.
  * See gtk_file_chooser_set_create_folders().
  * 
  * Returns: %TRUE if the Create Folder button should be displayed.
@@ -328,12 +328,6 @@ gtk_file_chooser_get_current_name (GtkFileChooser *chooser)
   return GTK_FILE_CHOOSER_GET_IFACE (chooser)->get_current_name (chooser);
 }
 
-/**
- * gtk_file_chooser_select_all:
- * @chooser: a #GtkFileChooser
- * 
- * Selects all the files in the current folder of a file chooser.
- **/
 void
 gtk_file_chooser_select_all (GtkFileChooser *chooser)
 {
@@ -342,12 +336,6 @@ gtk_file_chooser_select_all (GtkFileChooser *chooser)
   GTK_FILE_CHOOSER_GET_IFACE (chooser)->select_all (chooser);
 }
 
-/**
- * gtk_file_chooser_unselect_all:
- * @chooser: a #GtkFileChooser
- * 
- * Unselects all the files in the current folder of a file chooser.
- **/
 void
 gtk_file_chooser_unselect_all (GtkFileChooser *chooser)
 {
@@ -396,16 +384,6 @@ gtk_file_chooser_get_current_folder (GtkFileChooser *chooser)
   return GTK_FILE_CHOOSER_GET_IFACE (chooser)->get_current_folder (chooser);
 }
 
-/**
- * gtk_file_chooser_select_file:
- * @chooser: a #GtkFileChooser
- * @file: the file to select
- * @error: (allow-none): location to store error, or %NULL
- * 
- * Selects the file referred to by @file.
- *
- * Returns: Not useful.
- **/
 gboolean
 gtk_file_chooser_select_file (GtkFileChooser  *chooser,
                               GFile           *file,
@@ -418,14 +396,6 @@ gtk_file_chooser_select_file (GtkFileChooser  *chooser,
   return GTK_FILE_CHOOSER_GET_IFACE (chooser)->select_file (chooser, file, error);
 }
 
-/**
- * gtk_file_chooser_unselect_file:
- * @chooser: a #GtkFileChooser
- * @file: a #GFile
- * 
- * Unselects the file referred to by @file. If the file is not in the current
- * directory, does not exist, or is otherwise not currently selected, does nothing.
- **/
 void
 gtk_file_chooser_unselect_file (GtkFileChooser *chooser,
                                 GFile          *file)
@@ -467,9 +437,7 @@ gtk_file_chooser_get_files (GtkFileChooser *chooser)
  * will also appear in the dialog’s file name entry.
  *
  * If the file name isn’t in the current folder of @chooser, then the current
- * folder of @chooser will be changed to the folder containing @filename. This
- * is equivalent to a sequence of gtk_file_chooser_unselect_all() followed by
- * gtk_file_chooser_select_filename().
+ * folder of @chooser will be changed to the folder containing @filename.
  *
  * Note that the file must exist, or nothing will be done except
  * for the directory change.
@@ -482,17 +450,26 @@ gtk_file_chooser_get_files (GtkFileChooser *chooser)
  * file and is saving it for the first time, do not call this function.
  * Instead, use something similar to this:
  * |[<!-- language="C" -->
- * if (document_is_new)
- *   {
- *     // the user just created a new document
- *     gtk_file_chooser_set_current_folder (chooser, default_file_for_saving);
- *     gtk_file_chooser_set_current_name (chooser, "Untitled document");
- *   }
- * else
- *   {
- *     // the user edited an existing document
- *     gtk_file_chooser_set_file (chooser, existing_file);
- *   }
+ * static void
+ * prepare_file_chooser (GtkFileChooser *chooser,
+ *                       GFile          *existing_file)
+ * {
+ *   gboolean document_is_new = (existing_file == NULL);
+ *
+ *   if (document_is_new)
+ *     {
+ *       GFile *default_file_for_saving = g_file_new_for_path ("./out.txt");
+ *       // the user just created a new document
+ *       gtk_file_chooser_set_current_folder (chooser, default_file_for_saving, NULL);
+ *       gtk_file_chooser_set_current_name (chooser, "Untitled document");
+ *       g_object_unref (default_file_for_saving);
+ *     }
+ *   else
+ *     {
+ *       // the user edited an existing document
+ *       gtk_file_chooser_set_file (chooser, existing_file, NULL);
+ *     }
+ * }
  * ]|
  *
  * Returns: Not useful.

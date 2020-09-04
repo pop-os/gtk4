@@ -5,6 +5,10 @@
  * It demonstrates how to implement support for trees with GtkListView.
  * It also shows how to set up sorting and filtering for columns in a
  * GtkColumnView.
+ *
+ * It also demonstrates different styles of list. The tree on the left
+ * uses the ­.navigation-sidebar style class, the list on the right uses
+ * the ­.data-table style class.
  */
 
 #include <gtk/gtk.h>
@@ -358,6 +362,8 @@ do_listview_settings (GtkWidget *do_widget)
 
       builder = gtk_builder_new ();
       gtk_builder_set_scope (builder, scope);
+      g_object_unref (scope);
+
       gtk_builder_add_from_resource (builder, "/listview_settings/listview_settings.ui", NULL);
 
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
@@ -407,7 +413,7 @@ do_listview_settings (GtkWidget *do_widget)
                                    transform_settings_to_keys,
                                    NULL,
                                    columnview, NULL);
-      gtk_list_view_set_model (GTK_LIST_VIEW (listview), G_LIST_MODEL (selection));
+      gtk_list_view_set_model (GTK_LIST_VIEW (listview), GTK_SELECTION_MODEL (selection));
       g_object_unref (selection);
 
       name_column = GTK_COLUMN_VIEW_COLUMN (gtk_builder_get_object (builder, "name_column"));

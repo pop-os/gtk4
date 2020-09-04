@@ -795,7 +795,8 @@ gdk_x11_display_translate_event (GdkEventTranslator *translator,
 
       if (!is_substructure)
 	{
-          event = gdk_delete_event_new (surface);
+          if (surface)
+            event = gdk_delete_event_new (surface);
 
 	  if (surface && GDK_SURFACE_XID (surface) != x11_screen->xroot_window)
 	    gdk_surface_destroy_notify (surface);
@@ -841,8 +842,7 @@ gdk_x11_display_translate_event (GdkEventTranslator *translator,
 
           _gdk_x11_surface_grab_check_unmap (surface, xevent->xany.serial);
 
-          if (GDK_PROFILER_IS_RUNNING)
-            gdk_profiler_add_markf (g_get_monotonic_time (), 0, "unmapped window", "0x%lx", GDK_SURFACE_XID (surface));
+          gdk_profiler_add_markf (GDK_PROFILER_CURRENT_TIME, 0, "unmapped window", "0x%lx", GDK_SURFACE_XID (surface));
         }
 
       break;
@@ -1831,11 +1831,11 @@ gdk_x11_display_has_pending (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_default_group:
- * @display: a #GdkDisplay
+ * @display: (type GdkX11Display): a #GdkDisplay
  *
  * Returns the default group leader surface for all toplevel surfaces
  * on @display. This surface is implicitly created by GDK.
- * See gdk_surface_set_group().
+ * See gdk_x11_surface_set_group().
  *
  * Returns: (transfer none): The default group leader surface
  * for @display
@@ -2358,7 +2358,7 @@ gdk_x11_display_get_startup_notification_id (GdkDisplay *display)
  *
  * The startup ID is also what is used to signal that the startup is
  * complete (for example, when opening a window or when calling
- * gdk_notify_startup_complete()).
+ * gdk_display_notify_startup_complete()).
  **/
 void
 gdk_x11_display_set_startup_notification_id (GdkDisplay  *display,
@@ -2541,8 +2541,6 @@ delete_outdated_error_traps (GdkX11Display *display_x11)
  * the application. Use gdk_x11_display_error_trap_pop() or
  * gdk_x11_display_error_trap_pop_ignored()to lift a trap pushed
  * with this function.
- *
- * See also gdk_error_trap_push() to push a trap on all displays.
  */
 void
 gdk_x11_display_error_trap_push (GdkDisplay *display)
@@ -2694,9 +2692,6 @@ gdk_x11_display_set_surface_scale (GdkDisplay *display,
  * If you don’t need to use the return value,
  * gdk_x11_display_error_trap_pop_ignored() would be more efficient.
  *
- * See gdk_error_trap_pop() for the all-displays-at-once
- * equivalent.
- *
  * Returns: X error code or 0 on success
  */
 int
@@ -2715,9 +2710,6 @@ gdk_x11_display_error_trap_pop (GdkDisplay *display)
  * Does not block to see if an error occurred; merely records the
  * range of requests to ignore errors for, and ignores those errors
  * if they arrive asynchronously.
- *
- * See gdk_error_trap_pop_ignored() for the all-displays-at-once
- * equivalent.
  */
 void
 gdk_x11_display_error_trap_pop_ignored (GdkDisplay *display)
@@ -2773,7 +2765,7 @@ gdk_x11_display_get_max_request_size (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_screen:
- * @display: a #GdkX11Display
+ * @display: (type GdkX11Display): a #GdkX11Display
  *
  * Retrieves the #GdkX11Screen of the @display.
  *
@@ -2845,7 +2837,7 @@ gdk_x11_display_get_monitors (GdkDisplay *display)
 
 /**
  * gdk_x11_display_get_primary_monitor:
- * @self: a #GdkDisplay
+ * @display: (type GdkX11Display): a #GdkDisplay
  *
  * Gets the primary monitor for the display.
  *
@@ -2866,15 +2858,14 @@ gdk_x11_display_get_primary_monitor (GdkDisplay *display)
   GdkX11Display *self = GDK_X11_DISPLAY (display);
   GdkMonitor *monitor;
 
-  if (0 <= self->primary_monitor)
-    return NULL;
-
   monitor = g_list_model_get_item (G_LIST_MODEL (self->monitors), self->primary_monitor);
   if (monitor == NULL)
-    return NULL;
+    monitor = g_list_model_get_item (G_LIST_MODEL (self->monitors), 0);
 
   /* because g_list_model_get_item() returns a ref */
-  g_object_unref (monitor);
+  if (monitor)
+    g_object_unref (monitor);
+
   return monitor;
 }
 
@@ -2968,7 +2959,7 @@ gdk_x11_display_class_init (GdkX11DisplayClass * class)
 
   /**
    * GdkX11Display::xevent:
-   * @display: the object on which the signal is emitted
+   * @display: (type GdkX11Display): the object on which the signal is emitted
    * @xevent: a pointer to the XEvent to process
    *
    * The ::xevent signal is a low level signal that is emitted

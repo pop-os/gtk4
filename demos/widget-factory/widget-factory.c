@@ -255,11 +255,22 @@ activate_about (GSimpleAction *action,
     "Cosimo Cecchi",
     NULL
   };
+  const char *maintainers[] = {
+    "The GTK Team",
+    NULL
+  };
   char *version;
+  char *os_name;
+  char *os_version;
   GString *s;
+  GtkWidget *dialog;
 
   s = g_string_new ("");
 
+  os_name = g_get_os_info (G_OS_INFO_KEY_NAME);
+  os_version = g_get_os_info (G_OS_INFO_KEY_VERSION_ID);
+  if (os_name && os_version)
+    g_string_append_printf (s, "OS\t%s %s\n\n", os_name, os_version);
   g_string_append (s, "System libraries\n");
   g_string_append_printf (s, "\tGLib\t%d.%d.%d\n",
                           glib_major_version,
@@ -279,7 +290,8 @@ activate_about (GSimpleAction *action,
                              gtk_get_minor_version (),
                              gtk_get_micro_version ());
 
-  gtk_show_about_dialog (GTK_WINDOW (gtk_application_get_active_window (app)),
+  dialog = g_object_new (GTK_TYPE_ABOUT_DIALOG,
+                         "transient-for", gtk_application_get_active_window (app),
                          "program-name", "GTK Widget Factory",
                          "version", version,
                          "copyright", "© 1997—2020 The GTK Team",
@@ -292,8 +304,15 @@ activate_about (GSimpleAction *action,
                          "system-information", s->str,
                          NULL);
 
+  gtk_about_dialog_add_credit_section (GTK_ABOUT_DIALOG (dialog),
+                                       _("Maintained by"), maintainers);
+
+  gtk_window_present (GTK_WINDOW (dialog));
+
   g_string_free (s, TRUE);
   g_free (version);
+  g_free (os_name);
+  g_free (os_version);
 }
 
 static void
@@ -1835,6 +1854,91 @@ set_up_context_popover (GtkWidget *widget,
 }
 
 static void
+age_entry_changed (GtkEntry   *entry,
+                   GParamSpec *pspec,
+                   gpointer    data)
+{
+  const char *text;
+  guint64 age;
+  GError *error = NULL;
+
+  text = gtk_editable_get_text (GTK_EDITABLE (entry));
+
+  if (strlen (text) > 0 &&
+      !g_ascii_string_to_unsigned (text, 10, 16, 666, &age, &error))
+    {
+      gtk_widget_set_tooltip_text (GTK_WIDGET (entry), error->message);
+      gtk_widget_add_css_class (GTK_WIDGET (entry), "error");
+      g_error_free (error);
+    }
+  else
+    {
+      gtk_widget_set_tooltip_text (GTK_WIDGET (entry), "");
+      gtk_widget_remove_css_class (GTK_WIDGET (entry), "error");
+    }
+}
+
+static void
+validate_more_details (GtkEntry   *entry,
+                       GParamSpec *pspec,
+                       GtkEntry   *details)
+{
+  if (strlen (gtk_editable_get_text (GTK_EDITABLE (entry))) > 0 &&
+      strlen (gtk_editable_get_text (GTK_EDITABLE (details))) == 0)
+    {
+      gtk_widget_set_tooltip_text (GTK_WIDGET (entry), "Must have details first");
+      gtk_widget_add_css_class (GTK_WIDGET (entry), "error");
+    }
+  else
+    {
+      gtk_widget_set_tooltip_text (GTK_WIDGET (entry), "");
+      gtk_widget_remove_css_class (GTK_WIDGET (entry), "error");
+    }
+}
+
+static gboolean
+mode_switch_state_set (GtkSwitch *sw, gboolean state)
+{
+  GtkWidget *dialog = gtk_widget_get_ancestor (GTK_WIDGET (sw), GTK_TYPE_DIALOG);
+  GtkWidget *scale = GTK_WIDGET (g_object_get_data (G_OBJECT (dialog), "level_scale"));
+  GtkWidget *label = GTK_WIDGET (g_object_get_data (G_OBJECT (dialog), "error_label"));
+
+  if (!state ||
+      (gtk_range_get_value (GTK_RANGE (scale)) > 50))
+    {
+      gtk_widget_hide (label);
+      gtk_switch_set_state (sw, state);
+    }
+  else
+    {
+      gtk_widget_show (label);
+    }
+
+  return TRUE;
+}
+
+static void
+level_scale_value_changed (GtkRange *range)
+{
+  GtkWidget *dialog = gtk_widget_get_ancestor (GTK_WIDGET (range), GTK_TYPE_DIALOG);
+  GtkWidget *sw = GTK_WIDGET (g_object_get_data (G_OBJECT (dialog), "mode_switch"));
+  GtkWidget *label = GTK_WIDGET (g_object_get_data (G_OBJECT (dialog), "error_label"));
+
+  if (gtk_switch_get_active (GTK_SWITCH (sw)) &&
+      !gtk_switch_get_state (GTK_SWITCH (sw)) &&
+      (gtk_range_get_value (range) > 50))
+    {
+      gtk_widget_hide (label);
+      gtk_switch_set_state (GTK_SWITCH (sw), TRUE);
+    }
+  else if (gtk_switch_get_state (GTK_SWITCH (sw)) &&
+          (gtk_range_get_value (range) <= 50))
+    {
+      gtk_switch_set_state (GTK_SWITCH (sw), FALSE);
+    }
+}
+
+static void
 activate (GApplication *app)
 {
   GtkBuilder *builder;
@@ -1914,6 +2018,10 @@ activate (GApplication *app)
           "decrease_icon_size", (GCallback)decrease_icon_size,
           "reset_icon_size", (GCallback)reset_icon_size,
           "osd_frame_pressed", (GCallback)osd_frame_pressed,
+          "age_entry_changed", (GCallback)age_entry_changed,
+          "validate_more_details", (GCallback)validate_more_details,
+          "mode_switch_state_set", (GCallback)mode_switch_state_set,
+          "level_scale_value_changed", (GCallback)level_scale_value_changed,
           NULL);
   gtk_builder_set_scope (builder, scope);
   g_object_unref (scope);
@@ -2036,6 +2144,13 @@ activate (GApplication *app)
   g_signal_connect (widget, "clicked", G_CALLBACK (show_dialog), dialog);
   widget = (GtkWidget *)gtk_builder_get_object (builder, "circular_button");
   g_signal_connect (widget, "clicked", G_CALLBACK (show_dialog), dialog);
+
+  widget = (GtkWidget *)gtk_builder_get_object (builder, "level_scale");
+  g_object_set_data (G_OBJECT (dialog), "level_scale", widget);
+  widget = (GtkWidget *)gtk_builder_get_object (builder, "mode_switch");
+  g_object_set_data (G_OBJECT (dialog), "mode_switch", widget);
+  widget = (GtkWidget *)gtk_builder_get_object (builder, "error_label");
+  g_object_set_data (G_OBJECT (dialog), "error_label", widget);
 
   dialog = (GtkWidget *)gtk_builder_get_object (builder, "selection_dialog");
   g_object_set_data (G_OBJECT (window), "selection_dialog", dialog);

@@ -104,25 +104,6 @@ _gdk_win32_gl_context_dispose (GObject *gobject)
   G_OBJECT_CLASS (gdk_win32_gl_context_parent_class)->dispose (gobject);
 }
 
-static void
-gdk_gl_blit_region (GdkSurface *surface, cairo_region_t *region)
-{
-  int n_rects, i;
-  int scale = gdk_surface_get_scale_factor (surface);
-  int wh = gdk_surface_get_height (surface);
-  cairo_rectangle_int_t rect;
-
-  n_rects = cairo_region_num_rectangles (region);
-  for (i = 0; i < n_rects; i++)
-    {
-      cairo_region_get_rectangle (region, i, &rect);
-      glScissor (rect.x * scale, (wh - rect.y - rect.height) * scale, rect.width * scale, rect.height * scale);
-      glBlitFramebuffer (rect.x * scale, (wh - rect.y - rect.height) * scale, (rect.x + rect.width) * scale, (wh - rect.y) * scale,
-                         rect.x * scale, (wh - rect.y - rect.height) * scale, (rect.x + rect.width) * scale, (wh - rect.y) * scale,
-                         GL_COLOR_BUFFER_BIT, GL_NEAREST);
-    }
-}
-
 #ifdef GDK_WIN32_ENABLE_EGL
 static gboolean
 _get_is_egl_force_redraw (GdkSurface *surface)
@@ -188,24 +169,7 @@ gdk_win32_gl_context_end_frame (GdkDrawContext *draw_context,
             }
         }
 
-      if (cairo_region_contains_rectangle (painted, &whole_window) == CAIRO_REGION_OVERLAP_IN)
-        SwapBuffers (context_win32->gl_hdc);
-      else if (gdk_gl_context_has_framebuffer_blit (context))
-        {
-          glDrawBuffer(GL_FRONT);
-          glReadBuffer(GL_BACK);
-          gdk_gl_blit_region (surface, painted);
-          glDrawBuffer(GL_BACK);
-          glFlush();
-
-          if (gdk_gl_context_has_frame_terminator (context))
-            glFrameTerminatorGREMEDY ();
-        }
-      else
-        {
-          g_warning ("Need to swap whole buffer even thouigh not everything was redrawn. Expect artifacts.");
-          SwapBuffers (context_win32->gl_hdc);
-        }
+      SwapBuffers (context_win32->gl_hdc);
     }
 #ifdef GDK_WIN32_ENABLE_EGL
   else
@@ -224,15 +188,7 @@ gdk_win32_gl_context_end_frame (GdkDrawContext *draw_context,
           _reset_egl_force_redraw (surface);
         }
 
-      if (cairo_region_contains_rectangle (painted, &whole_window) == CAIRO_REGION_OVERLAP_IN || force_egl_redraw_all)
-        eglSwapBuffers (display->egl_disp, egl_surface);
-      else if (gdk_gl_context_has_framebuffer_blit (context))
-        gdk_gl_blit_region (surface, painted);
-      else
-        {
-          g_warning ("Need to swap whole buffer even thouigh not everything was redrawn. Expect artifacts.");
-          eglSwapBuffers (display->egl_disp, egl_surface);
-        }
+      eglSwapBuffers (display->egl_disp, egl_surface);
     }
 #endif
 }
@@ -243,41 +199,12 @@ gdk_win32_gl_context_begin_frame (GdkDrawContext *draw_context,
 {
   GdkGLContext *context = GDK_GL_CONTEXT (draw_context);
   GdkSurface *surface;
-  GdkWin32Surface *impl;
-  RECT queued_window_rect;
 
   surface = gdk_gl_context_get_surface (context);
-  impl = GDK_WIN32_SURFACE (surface);
 
-  gdk_win32_surface_get_queued_window_rect (surface,
-                                            gdk_surface_get_scale_factor (surface),
-                                            &queued_window_rect);
-
-  /* Apply queued resizes GL windows before painting them
-   *  (we paint on the window DC directly, it must have the right size).
-   * Due to some poorly-understood issue delayed
-   * resizing of double-buffered windows can produce weird
-   * artefacts, so these are also resized before we paint.
-   */
-  if (impl->drag_move_resize_context.native_move_resize_pending)
-    {
-      impl->drag_move_resize_context.native_move_resize_pending = FALSE;
-      gdk_win32_surface_apply_queued_move_resize (surface, queued_window_rect);
-    }
+  gdk_win32_surface_handle_queued_move_resize (draw_context);
 
   GDK_DRAW_CONTEXT_CLASS (gdk_win32_gl_context_parent_class)->begin_frame (draw_context, update_area);
-  if (gdk_gl_context_get_shared_context (context))
-    return;
-
-  if (gdk_gl_context_has_framebuffer_blit (context))
-    return;
-
-  /* If nothing else is known, repaint everything so that the back
-     buffer is fully up-to-date for the swapbuffer */
-  cairo_region_union_rectangle (update_area, &(GdkRectangle) {
-                                                 0, 0,
-                                                 gdk_surface_get_width (surface),
-                                                 gdk_surface_get_height (surface) });
 }
 
 typedef struct
@@ -937,6 +864,7 @@ gdk_win32_gl_context_realize (GdkGLContext *context,
                               GError **error)
 {
   GdkGLContext *share = gdk_gl_context_get_shared_context (context);
+  GdkGLContext *shared_data_context;
   GdkWin32GLContext *context_win32 = GDK_WIN32_GL_CONTEXT (context);
 
   gboolean debug_bit, compat_bit, legacy_bit;
@@ -955,6 +883,7 @@ gdk_win32_gl_context_realize (GdkGLContext *context,
   gdk_gl_context_get_required_version (context, &major, &minor);
   debug_bit = gdk_gl_context_get_debug_enabled (context);
   compat_bit = gdk_gl_context_get_forward_compatible (context);
+  shared_data_context = gdk_surface_get_shared_data_gl_context (surface);
 
   /*
    * A legacy context cannot be shared with core profile ones, so this means we
@@ -1004,7 +933,7 @@ gdk_win32_gl_context_realize (GdkGLContext *context,
                           legacy_bit ? "yes" : "no"));
 
       hglrc = _create_gl_context (context_win32->gl_hdc,
-                                  share,
+                                  share ? share : shared_data_context,
                                   flags,
                                   major,
                                   minor,
@@ -1046,7 +975,7 @@ gdk_win32_gl_context_realize (GdkGLContext *context,
 
       ctx = _create_egl_context (win32_display->egl_disp,
                                  context_win32->egl_config,
-                                 share,
+                                 share ? share : shared_data_context,
                                  flags,
                                  major,
                                  minor,

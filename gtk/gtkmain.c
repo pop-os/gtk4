@@ -623,6 +623,9 @@ do_pre_parse_initialization (void)
       slowdown = g_ascii_strtod (env_string, NULL);
       _gtk_set_slowdown (slowdown);
     }
+
+  /* Trigger fontconfig initialization early */
+  pango_cairo_font_map_get_default ();
 }
 
 static void
@@ -1227,7 +1230,7 @@ rewrite_event_for_grabs (GdkEvent *event)
     }
 
   event_widget = gtk_get_event_widget (event);
-  grab_widget = gtk_native_get_for_surface (grab_surface);
+  grab_widget = GTK_WIDGET (gtk_native_get_for_surface (grab_surface));
 
   if (grab_widget &&
       gtk_main_get_window_group (grab_widget) != gtk_main_get_window_group (event_widget))
@@ -1332,9 +1335,9 @@ gtk_synthesize_crossing_events (GtkRoot         *toplevel,
 
   crossing.type = crossing_type;
   crossing.mode = mode;
-  crossing.old_target = old_target;
+  crossing.old_target = old_target ? g_object_ref (old_target) : NULL;
   crossing.old_descendent = NULL;
-  crossing.new_target = new_target;
+  crossing.new_target = new_target ? g_object_ref (new_target) : NULL;
   crossing.new_descendent = NULL;
   crossing.drop = drop;
 
@@ -1413,6 +1416,9 @@ gtk_synthesize_crossing_events (GtkRoot         *toplevel,
       if (crossing_type == GTK_CROSSING_POINTER)
         gtk_widget_set_state_flags (widget, GTK_STATE_FLAG_PRELIGHT, FALSE);
     }
+
+  g_clear_object (&crossing.old_target);
+  g_clear_object (&crossing.new_target);
 
   gtk_widget_stack_clear (&target_array);
 }
@@ -1990,7 +1996,7 @@ gtk_get_event_widget (GdkEvent *event)
 
   surface = gdk_event_get_surface (event);
   if (surface && !gdk_surface_is_destroyed (surface))
-    return gtk_native_get_for_surface (surface);
+    return GTK_WIDGET (gtk_native_get_for_surface (surface));
 
   return NULL;
 }

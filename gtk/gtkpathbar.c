@@ -210,12 +210,14 @@ gtk_path_bar_init (GtkPathBar *path_bar)
   const char *home;
 
   path_bar->up_slider_button = gtk_button_new_from_icon_name ("pan-start-symbolic");
+  gtk_widget_add_css_class (path_bar->up_slider_button, "slider-button");
   gtk_widget_set_parent (path_bar->up_slider_button, GTK_WIDGET (path_bar));
 
   path_bar->down_slider_button = gtk_button_new_from_icon_name ("pan-end-symbolic");
+  gtk_widget_add_css_class (path_bar->down_slider_button, "slider-button");
   gtk_widget_set_parent (path_bar->down_slider_button, GTK_WIDGET (path_bar));
 
-  /* GtkBuilder wont let us connect 'swapped' without specifying the signal's
+  /* GtkBuilder won't let us connect 'swapped' without specifying the signal's
    * user data in the .ui file
    */
   g_signal_connect_swapped (path_bar->up_slider_button, "clicked",
@@ -223,7 +225,7 @@ gtk_path_bar_init (GtkPathBar *path_bar)
   g_signal_connect_swapped (path_bar->down_slider_button, "clicked",
 			    G_CALLBACK (gtk_path_bar_scroll_down), path_bar);
 
-  gtk_widget_add_css_class (GTK_WIDGET (path_bar), GTK_STYLE_CLASS_LINKED);
+  gtk_widget_add_css_class (GTK_WIDGET (path_bar), "linked");
 
   path_bar->get_info_cancellable = NULL;
   path_bar->cancellables = NULL;

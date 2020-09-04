@@ -1448,7 +1448,7 @@ update_icon_style (GtkWidget            *widget,
   GtkEntry *entry = GTK_ENTRY (widget);
   GtkEntryPrivate *priv = gtk_entry_get_instance_private (entry);
   EntryIconInfo *icon_info = priv->icons[icon_pos];
-  const char *sides[2] = { GTK_STYLE_CLASS_LEFT, GTK_STYLE_CLASS_RIGHT };
+  const char *sides[2] = { "left", "right" };
 
   if (icon_info == NULL)
     return;
@@ -2321,9 +2321,9 @@ gtk_entry_set_has_frame (GtkEntry *entry,
     return;
 
   if (setting)
-    gtk_widget_remove_css_class (GTK_WIDGET (entry), GTK_STYLE_CLASS_FLAT);
+    gtk_widget_remove_css_class (GTK_WIDGET (entry), "flat");
   else
-    gtk_widget_add_css_class (GTK_WIDGET (entry), GTK_STYLE_CLASS_FLAT);
+    gtk_widget_add_css_class (GTK_WIDGET (entry), "flat");
 
   g_object_notify_by_pspec (G_OBJECT (entry), entry_props[PROP_HAS_FRAME]);
 }
@@ -2341,7 +2341,7 @@ gtk_entry_get_has_frame (GtkEntry *entry)
 {
   g_return_val_if_fail (GTK_IS_ENTRY (entry), FALSE);
 
-  return !gtk_widget_has_css_class (GTK_WIDGET (entry), GTK_STYLE_CLASS_FRAME);
+  return !gtk_widget_has_css_class (GTK_WIDGET (entry), "flat");
 }
 
 /**
@@ -2834,19 +2834,8 @@ gtk_entry_get_icon_at_pos (GtkEntry *entry,
  * @provider: a #GdkContentProvider
  * @actions: a bitmask of the allowed drag actions
  *
- * Sets up the icon at the given position so that GTK+ will start a drag
+ * Sets up the icon at the given position so that GTK will start a drag
  * operation when the user clicks and drags the icon.
- *
- * To handle the drag operation, you need to connect to the usual
- * #GtkWidget::drag-data-get (or possibly #GtkWidget::drag-data-delete)
- * signal, and use gtk_entry_get_current_icon_drag_source() in
- * your signal handler to find out if the drag was started from
- * an icon.
- *
- * By default, GTK+ uses the icon as the drag icon. You can use the 
- * #GtkWidget::drag-begin signal to set a different icon. Note that you 
- * have to use g_signal_connect_after() to ensure that your signal handler
- * gets executed after the default handler.
  */
 void
 gtk_entry_set_icon_drag_source (GtkEntry             *entry,
@@ -2873,9 +2862,6 @@ gtk_entry_set_icon_drag_source (GtkEntry             *entry,
  *
  * Returns the index of the icon which is the source of the current
  * DND operation, or -1.
- *
- * This function is meant to be used in a #GtkWidget::drag-data-get
- * callback.
  *
  * Returns: index of the icon which is the source of the current
  *          DND operation, or -1.

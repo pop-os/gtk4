@@ -642,7 +642,8 @@ find_iter_at_at_y (GtkTextLineDisplayCache *cache,
  * gtk_text_line_display_cache_invalidate_y_range:
  * @cache: a GtkTextLineDisplayCache
  * @y: the starting Y position
- * @old_height: the height to invalidate
+ * @old_height: the old height of the range
+ * @new_height: the new height of the range
  * @cursors_only: if only cursors should be invalidated
  *
  * Remove all GtkTextLineDisplay that fall into the range starting
@@ -653,6 +654,7 @@ gtk_text_line_display_cache_invalidate_y_range (GtkTextLineDisplayCache *cache,
                                                 GtkTextLayout           *layout,
                                                 int                      y,
                                                 int                      old_height,
+                                                int                      new_height,
                                                 gboolean                 cursors_only)
 {
   GSequenceIter *iter;
@@ -662,6 +664,16 @@ gtk_text_line_display_cache_invalidate_y_range (GtkTextLineDisplayCache *cache,
   g_assert (layout != NULL);
 
   STAT_INC (cache->inval_by_y_range);
+
+  /* A common pattern is to invalidate the whole buffer using y==0 and
+   * old_height==new_height. So special case that instead of walking through
+   * each display item one at a time.
+   */
+  if (y < 0 || (y == 0 && old_height == new_height))
+    {
+      gtk_text_line_display_cache_invalidate (cache);
+      return;
+    }
 
   btree = _gtk_text_buffer_get_btree (layout->buffer);
   iter = find_iter_at_at_y (cache, layout, y);

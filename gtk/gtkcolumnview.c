@@ -80,7 +80,7 @@
  * # CSS nodes
  *
  * |[<!-- language="plain" -->
- * columnview[.column-separators]
+ * columnview[.column-separators][.rich-list][.navigation-sidebar][.data-table]
  * ├── header
  * │   ├── <column header>
  * ┊   ┊
@@ -101,6 +101,10 @@
  * #GtkColumnView:show-row-separators is set, it will be passed on to the
  * list view, causing its CSS node to carry the .separators style class.
  * For rubberband selection, a node with name rubberband is used.
+ *
+ * The main columnview node may also carry style classes to select
+ * the style of [list presentation](ListContainers.html#list-styles):
+ * .rich-list, .navigation-sidebar or .data-table.
  */
 
 struct _GtkColumnView
@@ -628,7 +632,7 @@ gtk_column_view_class_init (GtkColumnViewClass *klass)
     g_param_spec_object ("model",
                          P_("Model"),
                          P_("Model for the items displayed"),
-                         G_TYPE_LIST_MODEL,
+                         GTK_TYPE_SELECTION_MODEL,
                          G_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY | G_PARAM_STATIC_STRINGS);
 
   /**
@@ -1161,7 +1165,7 @@ gtk_column_view_init (GtkColumnView *self)
 
   self->sorter = gtk_column_view_sorter_new ();
   self->factory = gtk_column_list_item_factory_new (self);
-  self->listview = GTK_LIST_VIEW (gtk_list_view_new_with_factory (NULL,
+  self->listview = GTK_LIST_VIEW (gtk_list_view_new (NULL,
         GTK_LIST_ITEM_FACTORY (g_object_ref (self->factory))));
   gtk_widget_set_hexpand (GTK_WIDGET (self->listview), TRUE);
   gtk_widget_set_vexpand (GTK_WIDGET (self->listview), TRUE);
@@ -1189,11 +1193,11 @@ gtk_column_view_init (GtkColumnView *self)
  * Returns: a new #GtkColumnView
  **/
 GtkWidget *
-gtk_column_view_new (GListModel *model)
+gtk_column_view_new (GtkSelectionModel *model)
 {
   GtkWidget *result;
 
-  g_return_val_if_fail (model == NULL || G_IS_LIST_MODEL (model), NULL);
+  g_return_val_if_fail (model == NULL || GTK_IS_SELECTION_MODEL (model), NULL);
 
   result = g_object_new (GTK_TYPE_COLUMN_VIEW,
                          "model", model,
@@ -1213,7 +1217,7 @@ gtk_column_view_new (GListModel *model)
  *
  * Returns: (nullable) (transfer none): The model in use
  **/
-GListModel *
+GtkSelectionModel *
 gtk_column_view_get_model (GtkColumnView *self)
 {
   g_return_val_if_fail (GTK_IS_COLUMN_VIEW (self), NULL);
@@ -1226,17 +1230,14 @@ gtk_column_view_get_model (GtkColumnView *self)
  * @self: a #GtkColumnView
  * @model: (allow-none) (transfer none): the model to use or %NULL for none
  *
- * Sets the #GListModel to use.
- *
- * If the @model is a #GtkSelectionModel, it is used for managing the selection.
- * Otherwise, @self creates a #GtkSingleSelection for the selection.
+ * Sets the #GtkSelectionModel to use.
  **/
 void
-gtk_column_view_set_model (GtkColumnView *self,
-                           GListModel  *model)
+gtk_column_view_set_model (GtkColumnView     *self,
+                           GtkSelectionModel *model)
 {
   g_return_if_fail (GTK_IS_COLUMN_VIEW (self));
-  g_return_if_fail (model == NULL || G_IS_LIST_MODEL (model));
+  g_return_if_fail (model == NULL || GTK_IS_SELECTION_MODEL (model));
 
   if (gtk_list_view_get_model (self->listview) == model)
     return;

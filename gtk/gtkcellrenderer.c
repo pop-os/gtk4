@@ -50,7 +50,7 @@
  * There are a number of rules that must be followed when writing a new
  * #GtkCellRenderer.  First and foremost, it’s important that a certain set
  * of properties will always yield a cell renderer of the same size,
- * barring a #GtkStyle change.  The #GtkCellRenderer also has a number of
+ * barring a style change. The #GtkCellRenderer also has a number of
  * generic properties that are expected to be honored by all children.
  *
  * Beyond merely rendering a cell, cell renderers can optionally
@@ -713,7 +713,7 @@ gtk_cell_renderer_snapshot (GtkCellRenderer      *cell,
   context = gtk_widget_get_style_context (widget);
 
   gtk_style_context_save (context);
-  gtk_style_context_add_class (context, GTK_STYLE_CLASS_CELL);
+  gtk_style_context_add_class (context, "cell");
 
   state = gtk_cell_renderer_get_state (cell, widget, flags);
   gtk_style_context_set_state (context, state);
@@ -826,7 +826,7 @@ gtk_cell_renderer_start_editing (GtkCellRenderer      *cell,
   if (editable == NULL)
     return NULL;
 
-  gtk_widget_add_css_class (GTK_WIDGET (editable), GTK_STYLE_CLASS_CELL);
+  gtk_widget_add_css_class (GTK_WIDGET (editable), "cell");
 
   g_signal_emit (cell, 
 		 cell_renderer_signals[EDITING_STARTED], 0,
@@ -1378,7 +1378,7 @@ gtk_cell_renderer_get_request_mode (GtkCellRenderer *cell)
  * @minimum_size: (out) (allow-none): location to store the minimum size, or %NULL
  * @natural_size: (out) (allow-none): location to store the natural size, or %NULL
  *
- * Retreives a renderer’s natural size when rendered to @widget.
+ * Retrieves a renderer’s natural size when rendered to @widget.
  */
 void
 gtk_cell_renderer_get_preferred_width (GtkCellRenderer *cell,
@@ -1424,7 +1424,7 @@ gtk_cell_renderer_get_preferred_width (GtkCellRenderer *cell,
  * @minimum_size: (out) (allow-none): location to store the minimum size, or %NULL
  * @natural_size: (out) (allow-none): location to store the natural size, or %NULL
  *
- * Retreives a renderer’s natural size when rendered to @widget.
+ * Retrieves a renderer’s natural size when rendered to @widget.
  */
 void
 gtk_cell_renderer_get_preferred_height (GtkCellRenderer *cell,
@@ -1471,7 +1471,7 @@ gtk_cell_renderer_get_preferred_height (GtkCellRenderer *cell,
  * @minimum_width: (out) (allow-none): location for storing the minimum size, or %NULL
  * @natural_width: (out) (allow-none): location for storing the preferred size, or %NULL
  *
- * Retreives a cell renderers’s minimum and natural width if it were rendered to 
+ * Retrieves a cell renderers’s minimum and natural width if it were rendered to 
  * @widget with the specified @height.
  */
 void
@@ -1519,7 +1519,7 @@ gtk_cell_renderer_get_preferred_width_for_height (GtkCellRenderer *cell,
  * @minimum_height: (out) (allow-none): location for storing the minimum size, or %NULL
  * @natural_height: (out) (allow-none): location for storing the preferred size, or %NULL
  *
- * Retreives a cell renderers’s minimum and natural height if it were rendered to 
+ * Retrieves a cell renderers’s minimum and natural height if it were rendered to 
  * @widget with the specified @width.
  */
 void

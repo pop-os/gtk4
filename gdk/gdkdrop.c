@@ -287,6 +287,8 @@ gdk_drop_finalize (GObject *object)
 
   g_clear_object (&priv->device);
   g_clear_object (&priv->drag);
+  g_clear_object (&priv->surface);
+  g_clear_pointer (&priv->formats, gdk_content_formats_unref);
 
   G_OBJECT_CLASS (gdk_drop_parent_class)->finalize (object);
 }
@@ -482,7 +484,7 @@ gdk_drop_get_surface (GdkDrop *self)
  * returns %FALSE for the result - gdk_drop_finish() must choose
  * the action to use when accepting the drop. This will only
  * happen if you passed %GDK_ACTION_ASK as one of the possible
- * actions in gdk_drag_status(). %GDK_ACTION_ASK itself will not
+ * actions in gdk_drop_status(). %GDK_ACTION_ASK itself will not
  * be included in the actions returned by this function.
  *
  * This value may change over the lifetime of the #GdkDrop both

@@ -21,7 +21,7 @@
 
 #include "gtkbitset.h"
 
-#include "roaring.c"
+#include "roaring/roaring.c"
 
 /**
  * SECTION:gtkbitset
@@ -194,9 +194,9 @@ gtk_bitset_get_maximum (const GtkBitset *self)
 
 /**
  * gtk_bitset_get_size:
- * @self: a #GtkBitSet
+ * @self: a #GtkBitset
  *
- * Gets the number of values that were added to the set.  
+ * Gets the number of values that were added to the set.
  * For example, if the set is empty, 0 is returned.
  *
  * Note that this function returns a #guint64, because when all values are
@@ -215,7 +215,7 @@ gtk_bitset_get_size (const GtkBitset *self)
 
 /**
  * gtk_bitset_get_size_in_range:
- * @self: a #GtkBitSet
+ * @self: a #GtkBitset
  * @first: the first element to include
  * @last: the last element to include
  *
@@ -436,7 +436,7 @@ gtk_bitset_remove_range (GtkBitset *self,
  * @last: last value to add
  *
  * Adds the closed range [@first, @last], so @first, @last and all
- * values inbetween. @first must be smaller than @last.
+ * values in between. @first must be smaller than @last.
  **/
 void
 gtk_bitset_add_range_closed (GtkBitset *self,
@@ -456,7 +456,7 @@ gtk_bitset_add_range_closed (GtkBitset *self,
  * @last: last value to remove
  *
  * Removes the closed range [@first, @last], so @first, @last and all
- * values inbetween. @first must be smaller than @last.
+ * values in between. @first must be smaller than @last.
  **/
 void
 gtk_bitset_remove_range_closed (GtkBitset *self,

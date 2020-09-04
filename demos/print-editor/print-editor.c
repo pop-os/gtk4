@@ -1,6 +1,7 @@
 #include <config.h>
 #include <math.h>
 #include <pango/pangocairo.h>
+#include <glib/gi18n.h>
 #include <gtk/gtk.h>
 
 static GtkWidget *main_window;
@@ -597,8 +598,28 @@ activate_about (GSimpleAction *action,
   char *setting;
   char **backends;
   int i;
+  char *os_name;
+  char *os_version;
+  const char *authors[] = {
+    "Alexander Larsson",
+    NULL
+  };
+  const char *artists[] = {
+    "Jakub Steiner",
+    NULL
+  };
+  const char *maintainers[] = {
+    "The GTK Team",
+    NULL
+  };
+  GtkWidget *dialog;
 
-  sysinfo = g_string_new ("System libraries\n");
+  os_name = g_get_os_info (G_OS_INFO_KEY_NAME);
+  os_version = g_get_os_info (G_OS_INFO_KEY_VERSION_ID);
+  sysinfo = g_string_new ("");
+  if (os_name && os_version)
+    g_string_append_printf (sysinfo, "OS\t%s %s\n\n", os_name, os_version);
+  g_string_append (sysinfo, "System libraries\n");
   g_string_append_printf (sysinfo, "\tGLib\t%d.%d.%d\n",
                           glib_major_version,
                           glib_minor_version,
@@ -614,8 +635,9 @@ activate_about (GSimpleAction *action,
 
   g_object_get (gtk_settings_get_default (), "gtk-print-backends", &setting, NULL);
   backends = g_strsplit (setting, ",", -1);
+  g_string_append (sysinfo, "\t");
   for (i = 0; backends[i]; i++)
-    g_string_append_printf (sysinfo, "\t%s\n", backends[i]);
+    g_string_append_printf (sysinfo, "%s ", backends[i]);
   g_strfreev (backends);
   g_free (setting);
 
@@ -625,21 +647,30 @@ activate_about (GSimpleAction *action,
                              gtk_get_minor_version (),
                              gtk_get_micro_version ());
 
-  gtk_show_about_dialog (GTK_WINDOW (main_window),
+  dialog = g_object_new (GTK_TYPE_ABOUT_DIALOG,
+                         "transient-for", main_window,
                          "program-name", "GTK Print Editor",
                          "version", version,
                          "copyright", "© 2006-2020 Red Hat, Inc",
                          "license-type", GTK_LICENSE_LGPL_2_1,
                          "website", "http://www.gtk.org",
                          "comments", "Program to demonstrate GTK printing",
-                         "authors", (const char *[]){ "Alexander Larsson", NULL },
+                         "authors", authors,
                          "logo-icon-name", "org.gtk.PrintEditor4.Devel",
                          "title", "About GTK Print Editor",
                          "system-information", sysinfo->str,
                          NULL);
+  gtk_about_dialog_add_credit_section (GTK_ABOUT_DIALOG (dialog),
+                                       _("Artwork by"), artists);
+  gtk_about_dialog_add_credit_section (GTK_ABOUT_DIALOG (dialog),
+                                       _("Maintained by"), maintainers);
+
+  gtk_window_present (GTK_WINDOW (dialog));
 
   g_string_free (sysinfo, TRUE);
   g_free (version);
+  g_free (os_name);
+  g_free (os_version);
 }
 
 static void

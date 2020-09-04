@@ -2010,9 +2010,9 @@ end_element (GtkBuildableParseContext  *context,
     {
       RequiresInfo *req_info = state_pop_info (data, RequiresInfo);
 
-      /* TODO: Allow third party widget developers to check thier
+      /* TODO: Allow third party widget developers to check their
        * required versions, possibly throw a signal allowing them
-       * to check thier library versions here.
+       * to check their library versions here.
        */
       if (!strcmp (req_info->library, "gtk+"))
         {
@@ -2168,7 +2168,7 @@ _gtk_builder_parser_parse_buffer (GtkBuilder   *builder,
   const char * domain;
   ParserData data;
   GSList *l;
-  gint64 before = g_get_monotonic_time ();
+  gint64 before = GDK_PROFILER_CURRENT_TIME;
 
   /* Store the original domain so that interface domain attribute can be
    * applied for the builder and the original domain can be restored after
@@ -2246,8 +2246,10 @@ _gtk_builder_parser_parse_buffer (GtkBuilder   *builder,
 
   if (GDK_PROFILER_IS_RUNNING)
     {
-      guint64 after = g_get_monotonic_time ();
-      if (after - before > 500)
-        gdk_profiler_add_mark (before, after - before, "builder load", filename);
+      guint64 after = GDK_PROFILER_CURRENT_TIME;
+      if (after - before > 500000) /* half a millisecond */
+        {
+          gdk_profiler_add_mark (before, after - before, "builder load", filename);
+        }
     }
 }

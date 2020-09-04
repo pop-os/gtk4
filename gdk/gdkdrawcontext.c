@@ -35,7 +35,7 @@
  * rendering methods, such as #GdkGLContext or #GdkVulkanContext. It provides
  * shared functionality between those contexts.
  *
- * You will always interact with one of those s.ubclasses.
+ * You will always interact with one of those subclasses.
  *
  * A GdkDrawContext is always associated with a single toplevel surface.
  */
@@ -161,7 +161,7 @@ gdk_draw_context_class_init (GdkDrawContextClass *klass)
   /**
    * GdkDrawContext:surface:
    *
-   * The #GdkSurface the gl context is bound to.
+   * The #GdkSurface the context is bound to.
    */
   pspecs[PROP_SURFACE] =
     g_param_spec_object ("surface",
@@ -175,17 +175,13 @@ gdk_draw_context_class_init (GdkDrawContextClass *klass)
   g_object_class_install_properties (gobject_class, LAST_PROP, pspecs);
 }
 
-#ifdef G_ENABLE_DEBUG
 static guint pixels_counter;
-#endif
 
 static void
 gdk_draw_context_init (GdkDrawContext *self)
 {
-#ifdef G_ENABLE_DEBUG
   if (pixels_counter == 0)
     pixels_counter = gdk_profiler_define_int_counter ("frame pixels", "Pixels drawn per frame");
-#endif
 }
 
 /**
@@ -312,7 +308,7 @@ gdk_draw_context_begin_frame (GdkDrawContext       *context,
       else
         {
           g_critical ("The surface %p is already being drawn by %s %p. "
-                      "You cannot draw s surface wih multiple contexts at the same time.",
+                      "You cannot draw a surface with multiple contexts at the same time.",
                       priv->surface,
                       G_OBJECT_TYPE_NAME (priv->surface->paint_context), priv->surface->paint_context);
         }
@@ -325,7 +321,7 @@ gdk_draw_context_begin_frame (GdkDrawContext       *context,
   GDK_DRAW_CONTEXT_GET_CLASS (context)->begin_frame (context, priv->frame_region);
 }
 
-#ifdef G_ENABLE_DEBUG
+#ifdef HAVE_SYSPROF
 static gint64
 region_get_pixels (cairo_region_t *region)
 {
@@ -383,12 +379,7 @@ gdk_draw_context_end_frame (GdkDrawContext *context)
 
   GDK_DRAW_CONTEXT_GET_CLASS (context)->end_frame (context, priv->frame_region);
 
-#ifdef G_ENABLE_DEBUG
-  if (GDK_PROFILER_IS_RUNNING)
-    gdk_profiler_set_int_counter (pixels_counter,
-                                  g_get_monotonic_time (),
-                                  region_get_pixels (priv->frame_region));
-#endif
+  gdk_profiler_set_int_counter (pixels_counter, region_get_pixels (priv->frame_region));
 
   g_clear_pointer (&priv->frame_region, cairo_region_destroy);
   g_clear_object (&priv->surface->paint_context);
@@ -404,7 +395,7 @@ gdk_draw_context_end_frame (GdkDrawContext *context)
  * a union of the region passed to that function and the area of the surface
  * that the @context determined needs to be repainted.
  *
- * If @context is not inbetween calls to gdk_draw_context_begin_frame() and
+ * If @context is not in between calls to gdk_draw_context_begin_frame() and
  * gdk_draw_context_end_frame(), %NULL will be returned.
  *
  * Returns: (transfer none) (nullable): a Cairo region or %NULL if not drawing

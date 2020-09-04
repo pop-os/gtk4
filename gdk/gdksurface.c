@@ -84,6 +84,8 @@ enum {
   PROP_DISPLAY,
   PROP_FRAME_CLOCK,
   PROP_MAPPED,
+  PROP_WIDTH,
+  PROP_HEIGHT,
   LAST_PROP
 };
 
@@ -264,6 +266,9 @@ gdk_surface_get_layout_monitor (GdkSurface      *surface,
                                root_rect.y,
                                &root_rect.x,
                                &root_rect.y);
+
+  root_rect.width = MAX (1, root_rect.width);
+  root_rect.height = MAX (1, root_rect.height);
 
   display = get_display_for_surface (surface, surface->transient_for);
   return get_monitor_for_rect (display, &root_rect, get_bounds);
@@ -519,27 +524,21 @@ gdk_surface_class_init (GdkSurfaceClass *klass)
                             FALSE,
                             G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
-  g_object_class_install_properties (object_class, LAST_PROP, properties);
+  properties[PROP_WIDTH] =
+      g_param_spec_int ("width",
+                        P_("Width"),
+                        P_("Width"),
+                        0, G_MAXINT, 0,
+                        G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
 
-  /**
-   * GdkSurface::popup-layout-changed
-   * @surface: the #GdkSurface that was laid out
-   *
-   * Emitted when the layout of a popup @surface has changed, e.g. if the popup
-   * layout was reactive and after the parent moved causing the popover to end
-   * up partially off-screen.
-   *
-   */
-  signals[POPUP_LAYOUT_CHANGED] =
-    g_signal_new (g_intern_static_string ("popup-layout-changed"),
-                  G_OBJECT_CLASS_TYPE (object_class),
-                  G_SIGNAL_RUN_FIRST,
-                  0,
-                  NULL,
-                  NULL,
-                  NULL,
-                  G_TYPE_NONE,
-                  0);
+  properties[PROP_HEIGHT] =
+      g_param_spec_int ("height",
+                        P_("Height"),
+                        P_("Height"),
+                        0, G_MAXINT, 0,
+                        G_PARAM_READABLE | G_PARAM_STATIC_STRINGS);
+
+  g_object_class_install_properties (object_class, LAST_PROP, properties);
 
   /**
    * GdkSurface::size-changed:
@@ -759,6 +758,14 @@ gdk_surface_get_property (GObject    *object,
       g_value_set_boolean (value, GDK_SURFACE_IS_MAPPED (surface));
       break;
 
+    case PROP_WIDTH:
+      g_value_set_int (value, surface->width);
+      break;
+
+    case PROP_HEIGHT:
+      g_value_set_int (value, surface->height);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
@@ -772,6 +779,9 @@ _gdk_surface_update_size (GdkSurface *surface)
 
   for (l = surface->draw_contexts; l; l = l->next)
     gdk_draw_context_surface_resized (l->data);
+
+  g_object_notify (G_OBJECT (surface), "width");
+  g_object_notify (G_OBJECT (surface), "height");
 }
 
 static GdkSurface *
@@ -792,22 +802,18 @@ gdk_surface_new (GdkDisplay     *display,
 /**
  * gdk_surface_new_toplevel: (constructor)
  * @display: the display to create the surface on
- * @width: width of new surface
- * @height: height of new surface
  *
  * Creates a new toplevel surface.
  *
  * Returns: (transfer full): the new #GdkSurface
  **/
 GdkSurface *
-gdk_surface_new_toplevel (GdkDisplay *display,
-                          int         width,
-                          int         height)
+gdk_surface_new_toplevel (GdkDisplay *display)
 {
   g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
   return gdk_surface_new (display, GDK_SURFACE_TOPLEVEL,
-                          NULL, 0, 0, width, height);
+                          NULL, 0, 0, 0, 0);
 }
 
 /**
@@ -840,8 +846,8 @@ gdk_surface_new_temp (GdkDisplay         *display,
  *
  * Create a new popup surface.
  *
- * The surface will be attached to @parent and can be positioned relative to it
- * using gdk_surface_show_popup() or later using gdk_surface_layout_popup().
+ * The surface will be attached to @parent and can be positioned
+ * relative to it using gdk_popup_present().
  *
  * Returns: (transfer full): a new #GdkSurface
  */
@@ -1022,8 +1028,8 @@ gdk_surface_is_destroyed (GdkSurface *surface)
  * gdk_surface_get_mapped:
  * @surface: a #GdkSurface
  *
- * Checks whether the surface has been mapped (with gdk_surface_show() or
- * gdk_surface_show_unraised()).
+ * Checks whether the surface has been mapped (with gdk_toplevel_present()
+ * or gdk_popup_present()).
  *
  * Returns: %TRUE if the surface is mapped
  **/
@@ -1556,7 +1562,7 @@ gdk_surface_thaw_toplevel_updates (GdkSurface *surface)
 
 }
 
-/**
+/*
  * gdk_surface_constrain_size:
  * @geometry: a #GdkGeometry structure
  * @flags: a mask indicating what portions of @geometry are set
@@ -1621,8 +1627,10 @@ gdk_surface_constrain_size (GdkGeometry    *geometry,
  * Obtains the current device position in doubles and modifier state.
  * The position is given in coordinates relative to the upper left
  * corner of @surface.
+ *
+ * Return: %TRUE if the device is over the surface
  **/
-void
+gboolean
 gdk_surface_get_device_position (GdkSurface       *surface,
                                  GdkDevice       *device,
                                  double          *x,
@@ -1631,17 +1639,20 @@ gdk_surface_get_device_position (GdkSurface       *surface,
 {
   double tmp_x, tmp_y;
   GdkModifierType tmp_mask;
+  gboolean ret;
 
-  g_return_if_fail (GDK_IS_SURFACE (surface));
-  g_return_if_fail (GDK_IS_DEVICE (device));
-  g_return_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD);
+  g_return_val_if_fail (GDK_IS_SURFACE (surface), FALSE);
+  g_return_val_if_fail (GDK_IS_DEVICE (device), FALSE);
+  g_return_val_if_fail (gdk_device_get_source (device) != GDK_SOURCE_KEYBOARD, FALSE);
 
-  tmp_x = tmp_y = 0;
+  tmp_x = 0;
+  tmp_y = 0;
   tmp_mask = 0;
-  GDK_SURFACE_GET_CLASS (surface)->get_device_state (surface,
-                                                     device,
-                                                     &tmp_x, &tmp_y,
-                                                     &tmp_mask);
+
+  ret = GDK_SURFACE_GET_CLASS (surface)->get_device_state (surface,
+                                                           device,
+                                                           &tmp_x, &tmp_y,
+                                                           &tmp_mask);
 
   if (x)
     *x = tmp_x;
@@ -1649,6 +1660,8 @@ gdk_surface_get_device_position (GdkSurface       *surface,
     *y = tmp_y;
   if (mask)
     *mask = tmp_mask;
+
+  return ret;
 }
 
 /**
@@ -2025,7 +2038,7 @@ gdk_surface_get_root_coords (GdkSurface *surface,
  * and the input region controls where the surface is
  * “clickable”.
  *
- * Use gdk_display_support_input_shapes() to find out if
+ * Use gdk_display_supports_input_shapes() to find out if
  * a particular backend supports input regions.
  */
 void
@@ -2326,12 +2339,50 @@ gdk_drag_begin (GdkSurface          *surface,
 }
 
 static void
+gdk_surface_ensure_motion (GdkSurface *surface)
+{
+  GdkDisplay *display;
+  GdkSeat *seat;
+  GdkDevice *device;
+  GdkEvent *event;
+  double x, y;
+  GdkModifierType state;
+
+  if (!surface->request_motion)
+    return;
+
+  surface->request_motion = FALSE;
+
+  display = gdk_surface_get_display (surface);
+  seat = gdk_display_get_default_seat (display);
+  if (!seat)
+    return;
+
+  device = gdk_seat_get_pointer (seat);
+
+  if (!gdk_surface_get_device_position (surface, device, &x, &y, &state))
+    return;
+
+  event = gdk_motion_event_new (surface,
+                                device,
+                                NULL,
+                                GDK_CURRENT_TIME,
+                                state,
+                                x, y,
+                                NULL);
+
+  gdk_surface_handle_event (event);
+  gdk_event_unref (event);
+}
+
+static void
 gdk_surface_flush_events (GdkFrameClock *clock,
                           void          *data)
 {
   GdkSurface *surface = GDK_SURFACE (data);
 
   _gdk_event_queue_flush (surface->display);
+  gdk_surface_ensure_motion (surface);
   _gdk_display_pause_events (surface->display);
 
   gdk_frame_clock_request_phase (clock, GDK_FRAME_CLOCK_PHASE_RESUME_EVENTS);
@@ -2673,11 +2724,12 @@ check_autohide (GdkEvent *event)
   return FALSE;
 }
 
-static void
+static inline void
 add_event_mark (GdkEvent *event,
                 gint64    time,
-                guint64   duration)
+                gint64    end_time)
 {
+#ifdef HAVE_SYSPROF
   char *message = NULL;
   const char *kind;
   GEnumClass *class;
@@ -2766,15 +2818,16 @@ add_event_mark (GdkEvent *event,
       break;
     }
 
-  gdk_profiler_add_mark (time, duration, "event", message ? message : kind);
+  gdk_profiler_add_mark (time, end_time - time, "event", message ? message : kind);
 
   g_free (message);
+#endif
 }
 
 gboolean
 gdk_surface_handle_event (GdkEvent *event)
 {
-  gint64 begin_time = g_get_monotonic_time ();
+  gint64 begin_time = GDK_PROFILER_CURRENT_TIME;
   gboolean handled = FALSE;
 
   if (check_autohide (event))
@@ -2791,13 +2844,39 @@ gdk_surface_handle_event (GdkEvent *event)
     }
   else
     {
-      g_signal_emit (gdk_event_get_surface (event), signals[EVENT], 0, event, &handled);
+      GdkSurface *surface = gdk_event_get_surface (event);
+
+      if (gdk_event_get_event_type (event) == GDK_MOTION_NOTIFY)
+        surface->request_motion = FALSE;
+
+      g_signal_emit (surface, signals[EVENT], 0, event, &handled);
     }
 
   if (GDK_PROFILER_IS_RUNNING)
-    add_event_mark (event, begin_time, g_get_monotonic_time () - begin_time);
+    add_event_mark (event, begin_time, GDK_PROFILER_CURRENT_TIME);
 
   return handled;
+}
+
+/*
+ * gdk_surface_request_motion:
+ * @surface: a #GdkSurface
+ *
+ * Request that the next frame cycle should deliver a motion
+ * event for @surface if the pointer is over it, regardless
+ * whether the pointer has moved or not. This is used by GTK
+ * after moving widgets around.
+ */
+void
+gdk_surface_request_motion (GdkSurface *surface)
+{
+  GdkFrameClock *frame_clock;
+
+  surface->request_motion = TRUE;
+
+  frame_clock = gdk_surface_get_frame_clock (surface);
+  if (frame_clock)
+    gdk_frame_clock_request_phase (frame_clock, GDK_FRAME_CLOCK_PHASE_FLUSH_EVENTS);
 }
 
 /**

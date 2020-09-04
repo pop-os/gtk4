@@ -32,6 +32,7 @@
 #include "gtkadjustment.h"
 #include "gtkbox.h"
 #include "gtkbutton.h"
+#include "gtkbuttonprivate.h"
 #include "gtkcssstylepropertyprivate.h"
 #include "gtkeditable.h"
 #include "gtkcelleditable.h"
@@ -86,9 +87,9 @@
  * properties.
  *
  * Note that GtkSpinButton will by default make its entry large enough to
- * accomodate the lower and upper bounds of the adjustment. If this is
+ * accommodate the lower and upper bounds of the adjustment. If this is
  * not desired, the automatic sizing can be turned off by explicitly
- * setting #GtkSpinButton::width-chars to a value != -1.
+ * setting #GtkEditable::width-chars to a value != -1.
  *
  * ## Using a GtkSpinButton to get an integer
  *
@@ -776,9 +777,9 @@ swipe_gesture_update (GtkGesture       *gesture,
 
 static gboolean
 scroll_controller_scroll (GtkEventControllerScroll *Scroll,
-			  double                    dx,
-			  double                    dy,
-			  GtkWidget                *widget)
+                          double                    dx,
+                          double                    dy,
+                          GtkWidget                *widget)
 {
   GtkSpinButton *spin = GTK_SPIN_BUTTON (widget);
 
@@ -851,6 +852,8 @@ button_pressed_cb (GtkGestureClick *gesture,
         start_spinning (spin_button, pressed_button, gtk_adjustment_get_step_increment (spin_button->adjustment));
       else if (button == GDK_BUTTON_MIDDLE)
         start_spinning (spin_button, pressed_button, gtk_adjustment_get_page_increment (spin_button->adjustment));
+
+      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
     }
   else
     {
@@ -964,6 +967,8 @@ gtk_spin_button_init (GtkSpinButton *spin_button)
   g_signal_connect (gesture, "released", G_CALLBACK (button_released_cb), spin_button);
   g_signal_connect (gesture, "cancel", G_CALLBACK (button_cancel_cb), spin_button);
   gtk_widget_add_controller (GTK_WIDGET (spin_button->down_button), GTK_EVENT_CONTROLLER (gesture));
+  gtk_gesture_group (gtk_button_get_gesture (GTK_BUTTON (spin_button->down_button)),
+		     gesture);
 
   spin_button->up_button = gtk_button_new_from_icon_name ("value-increase-symbolic");
   gtk_widget_add_css_class (spin_button->up_button, "up");
@@ -979,6 +984,8 @@ gtk_spin_button_init (GtkSpinButton *spin_button)
   g_signal_connect (gesture, "released", G_CALLBACK (button_released_cb), spin_button);
   g_signal_connect (gesture, "cancel", G_CALLBACK (button_cancel_cb), spin_button);
   gtk_widget_add_controller (GTK_WIDGET (spin_button->up_button), GTK_EVENT_CONTROLLER (gesture));
+  gtk_gesture_group (gtk_button_get_gesture (GTK_BUTTON (spin_button->up_button)),
+		     gesture);
 
   gtk_spin_button_set_adjustment (spin_button, NULL);
 
@@ -1445,7 +1452,7 @@ gtk_spin_button_insert_text (GtkEditable *editable,
        * I don't know if the positive sign always gets bogusly set to
        * a digit when the above Registry value is corrupted as
        * described. (In my test case, it got set to "8", and in the
-       * bug report above it presumably was set ot "0".) Probably it
+       * bug report above it presumably was set to "0".) Probably it
        * might get set to almost anything? So how to distinguish a
        * bogus value from some correct one for some locale? That is
        * probably hard, but at least we should filter out the

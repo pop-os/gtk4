@@ -46,6 +46,9 @@
  * the top edge of the frame. The horizontal position of the label can
  * be controlled with gtk_frame_set_label_align().
  *
+ * GtkFrame clips its child. You can use this to add rounded corners to
+ * widgets, but be aware that it also cuts off shadows.
+ *
  * # GtkFrame as GtkBuildable
  *
  * The GtkFrame implementation of the GtkBuildable interface supports
@@ -224,6 +227,8 @@ gtk_frame_init (GtkFrame *frame)
 {
   GtkFramePrivate *priv = gtk_frame_get_instance_private (frame);
 
+  gtk_widget_set_overflow (GTK_WIDGET (frame), GTK_OVERFLOW_HIDDEN);
+
   priv->label_widget = NULL;
   priv->has_frame = TRUE;
   priv->label_xalign = 0.0;
@@ -345,7 +350,7 @@ gtk_frame_set_label (GtkFrame *frame,
  * to gtk_frame_new().)
  * 
  * Returns: (nullable): the text in the label, or %NULL if there
- *               was no label widget or the lable widget was not
+ *               was no label widget or the label widget was not
  *               a #GtkLabel. This string is owned by GTK+ and
  *               must not be modified or freed.
  **/

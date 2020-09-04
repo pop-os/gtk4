@@ -153,6 +153,30 @@ click_done (GtkGesture *gesture)
     gtk_widget_insert_after (item, canvas, last_child);
 }
 
+static gboolean
+theme_is_dark (void)
+{
+  GtkSettings *settings;
+  char *theme;
+  gboolean prefer_dark;
+  gboolean dark;
+
+  settings = gtk_settings_get_default ();
+  g_object_get (settings,
+                "gtk-theme-name", &theme,
+                "gtk-application-prefer-dark-theme", &prefer_dark,
+                NULL);
+
+  if ((strcmp (theme, "Adwaita") == 0 && prefer_dark) || strcmp (theme, "HighContrastInverse") == 0)
+    dark = TRUE;
+  else
+    dark = FALSE;
+
+  g_free (theme);
+
+  return dark;
+}
+
 static void
 canvas_item_init (CanvasItem *item)
 {
@@ -180,7 +204,11 @@ canvas_item_init (CanvasItem *item)
   gtk_widget_set_name (item->label, id);
   g_free (id);
 
-  gdk_rgba_parse (&rgba, "yellow");
+  if (theme_is_dark ())
+    gdk_rgba_parse (&rgba, "blue");
+  else
+    gdk_rgba_parse (&rgba, "yellow");
+
   set_color (item, &rgba);
 
   item->angle = 0;
@@ -538,7 +566,6 @@ canvas_new (void)
   canvas = gtk_fixed_new ();
   gtk_widget_set_hexpand (canvas, TRUE);
   gtk_widget_set_vexpand (canvas, TRUE);
-  gtk_widget_add_css_class (canvas, "frame");
 
   source = gtk_drag_source_new ();
   gtk_drag_source_set_actions (source, GDK_ACTION_MOVE);
@@ -735,6 +762,8 @@ do_dnd (GtkWidget *do_widget)
           x += 150;
           y += 100;
         }
+
+      gtk_box_append (GTK_BOX (box), gtk_separator_new (GTK_ORIENTATION_HORIZONTAL));
 
       sw = gtk_scrolled_window_new ();
       gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sw),

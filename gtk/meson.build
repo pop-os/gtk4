@@ -142,7 +142,7 @@ gtk_private_sources = files([
   'gtktextbtree.c',
   'gtktexthistory.c',
   'gtktextviewchild.c',
-  'gtktimsort.c',
+  'timsort/gtktimsort.c',
   'gtktrashmonitor.c',
   'gtktreedatalist.c',
 ])
@@ -151,7 +151,6 @@ gtk_private_sources = files([
 gtk_public_sources = files([
   'gtkaboutdialog.c',
   'gtkaccelgroup.c',
-  'gtkaccellabel.c',
   'gtkaccessible.c',
   'gtkactionable.c',
   'gtkactionbar.c',
@@ -332,7 +331,6 @@ gtk_public_sources = files([
   'gtkprintsettings.c',
   'gtkprogressbar.c',
   'gtkpropertylookuplistmodel.c',
-  'gtkradiobutton.c',
   'gtkrange.c',
   'gtktreerbtree.c',
   'gtkrecentmanager.c',
@@ -441,7 +439,6 @@ gtk_private_type_headers = files([
 gtk_public_headers = files([
   'gtkaboutdialog.h',
   'gtkaccelgroup.h',
-  'gtkaccellabel.h',
   'gtkaccessible.h',
   'gtkactionable.h',
   'gtkactionbar.h',
@@ -612,7 +609,6 @@ gtk_public_headers = files([
   'gtkprintoperationpreview.h',
   'gtkprintsettings.h',
   'gtkprogressbar.h',
-  'gtkradiobutton.h',
   'gtkrange.h',
   'gtkrecentmanager.h',
   'gtkrender.h',
@@ -743,7 +739,7 @@ foreach p: proto_sources
   endif
 endforeach
 
-if os_unix and tracker3_enabled
+if os_unix and tracker3_dep.found()
   gtk_sources += 'gtksearchenginetracker3.c'
 endif
 
@@ -1025,11 +1021,9 @@ if x11_enabled or wayland_enabled
   gtk_deps += pangoft_dep
 endif
 
-if cloudproviders_enabled
-  gtk_deps += cloudproviders_dep
-endif
+gtk_deps += cloudproviders_dep
 
-if os_unix and tracker3_enabled
+if os_unix
   gtk_deps += tracker3_dep
 endif
 

@@ -51,7 +51,7 @@
 #include "gtkpointerfocusprivate.h"
 #include "gtkprivate.h"
 #include "gtkroot.h"
-#include "gtknative.h"
+#include "gtknativeprivate.h"
 #include "gtksettings.h"
 #include "gtkshortcut.h"
 #include "gtkshortcutcontroller.h"
@@ -106,24 +106,6 @@
  *
  * # GtkWindow as GtkBuildable
  *
- * The GtkWindow implementation of the #GtkBuildable interface supports a
- * custom <accel-groups> element, which supports any number of <group>
- * elements representing the #GtkAccelGroup objects you want to add to
- * your window (synonymous with gtk_window_add_accel_group().
- *
- * An example of a UI definition fragment with accel groups:
- * |[
- * <object class="GtkWindow">
- *   <accel-groups>
- *     <group name="accelgroup1"/>
- *   </accel-groups>
- * </object>
- * 
- * ...
- * 
- * <object class="GtkAccelGroup" id="accelgroup1"/>
- * ]|
- * 
  * The GtkWindow implementation of the #GtkBuildable interface supports
  * setting a child as the titlebar by specifying “titlebar” as the “type”
  * attribute of a <child> element.
@@ -132,8 +114,8 @@
  *
  * |[<!-- language="plain" -->
  * window.background
- * ├── <titlebar child>.titlebar [.default-decoration]
- * ╰── <child>
+ * ├── <child>
+ * ╰── <titlebar child>.titlebar [.default-decoration]
  * ]|
  *
  * GtkWindow has a main CSS node with name window and style class .background.
@@ -471,9 +453,7 @@ static void _gtk_window_set_is_active (GtkWindow *window,
 			               gboolean   is_active);
 static void gtk_window_present_toplevel (GtkWindow *window);
 static void gtk_window_update_toplevel (GtkWindow *window);
-static GdkToplevelLayout * gtk_window_compute_layout (GtkWindow *window,
-                                                      int        min_width,
-                                                      int        min_height);
+static GdkToplevelLayout * gtk_window_compute_layout (GtkWindow *window);
 
 static void gtk_window_release_application (GtkWindow *window);
 
@@ -1511,7 +1491,7 @@ gtk_window_init (GtkWindow *window)
                     G_CALLBACK (gtk_window_on_theme_variant_changed), window);
 #endif
 
-  gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_BACKGROUND);
+  gtk_widget_add_css_class (widget, "background");
 
   priv->scale = gtk_widget_get_scale_factor (widget);
 
@@ -1893,15 +1873,16 @@ static void
 gtk_window_native_check_resize (GtkNative *native)
 {
   GtkWidget *widget = GTK_WIDGET (native);
-  gint64 before = g_get_monotonic_time ();
+  gint64 before G_GNUC_UNUSED;
+
+  before = GDK_PROFILER_CURRENT_TIME;
 
   if (!_gtk_widget_get_alloc_needed (widget))
     gtk_widget_ensure_allocate (widget);
   else if (gtk_widget_get_visible (widget))
     gtk_window_move_resize (GTK_WINDOW (native));
 
-  if (GDK_PROFILER_IS_RUNNING)
-    gdk_profiler_end_mark (before, "size allocation", "");
+  gdk_profiler_end_mark (before, "size allocation", "");
 }
 
 static void
@@ -2122,8 +2103,9 @@ gtk_window_set_default_widget (GtkWindow *window,
  * gtk_window_get_default_widget:
  * @window: a #GtkWindow
  *
- * Returns the default widget for @window. See
- * gtk_window_set_default() for more details.
+ * Returns the default widget for @window.
+ *
+ * See gtk_window_set_default_widget() for more details.
  *
  * Returns: (nullable) (transfer none): the default widget, or %NULL
  * if there is none.
@@ -2765,7 +2747,7 @@ gtk_window_enable_csd (GtkWindow *window)
 
   /* We need a visual with alpha for client shadows */
   if (priv->use_client_shadow)
-    gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_CSD);
+    gtk_widget_add_css_class (widget, "csd");
   else
     gtk_widget_add_css_class (widget, "solid-csd");
 
@@ -2815,7 +2797,7 @@ gtk_window_set_titlebar (GtkWindow *window,
   if (titlebar == NULL)
     {
       priv->client_decorated = FALSE;
-      gtk_widget_remove_css_class (widget, GTK_STYLE_CLASS_CSD);
+      gtk_widget_remove_css_class (widget, "csd");
 
       goto out;
     }
@@ -2824,9 +2806,9 @@ gtk_window_set_titlebar (GtkWindow *window,
 
   gtk_window_enable_csd (window);
   priv->title_box = titlebar;
-  gtk_widget_insert_after (priv->title_box, widget, NULL);
+  gtk_widget_insert_before (priv->title_box, widget, NULL);
 
-  gtk_widget_add_css_class (titlebar, GTK_STYLE_CLASS_TITLEBAR);
+  gtk_widget_add_css_class (titlebar, "titlebar");
 
 out:
   if (was_mapped)
@@ -3252,9 +3234,8 @@ gtk_window_get_icon_name (GtkWindow *window)
  * gtk_window_set_default_icon_name:
  * @name: the name of the themed icon
  *
- * Sets an icon to be used as fallback for windows that haven't
- * had gtk_window_set_icon_list() called on them from a named
- * themed icon, see gtk_window_set_icon_name().
+ * Sets an icon to be used as fallback for windows that
+ * haven't had gtk_window_set_icon_name() called on them.
  **/
 void
 gtk_window_set_default_icon_name (const char *name)
@@ -3568,7 +3549,7 @@ gtk_window_resize (GtkWindow *window,
  * excluding the widgets used in client side decorations; there is,
  * however, no guarantee that the result will be completely accurate
  * because client side decoration may include widgets that depend on
- * the user preferences and that may not be visibile at the time you
+ * the user preferences and that may not be visible at the time you
  * call this function.
  *
  * The dimensions returned by this function are suitable for being
@@ -3588,20 +3569,6 @@ gtk_window_resize (GtkWindow *window,
  *   // ...
  * }
  * ]|
- *
- * If you are getting a window size in order to position the window
- * on the screen, don't. You should, instead, simply let the window
- * manager place windows. Also, if you set the transient parent of
- * dialogs with gtk_window_set_transient_for() window managers will
- * often center the dialog over its parent window. It's much preferred
- * to let the window manager handle these cases rather than doing it
- * yourself, because all apps will behave consistently and according to
- * user or system preferences, if the window manager handles it. Also,
- * the window manager can take into account the size of the window
- * decorations and border that it may add, and of which GTK+ has no
- * knowledge. Additionally, positioning windows in global screen coordinates
- * may not be allowed by the windowing system. For more information,
- * see: gtk_window_set_position().
  */
 void
 gtk_window_get_size (GtkWindow *window,
@@ -3839,14 +3806,12 @@ gtk_window_hide (GtkWidget *widget)
 }
 
 static GdkToplevelLayout *
-gtk_window_compute_layout (GtkWindow *window,
-                           int        min_width,
-                           int        min_height)
+gtk_window_compute_layout (GtkWindow *window)
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
   GdkToplevelLayout *layout;
 
-  layout = gdk_toplevel_layout_new (min_width, min_height);
+  layout = gdk_toplevel_layout_new ();
 
   gdk_toplevel_layout_set_resizable (layout, priv->resizable);
   gdk_toplevel_layout_set_maximized (layout, priv->maximize_initially);
@@ -3861,23 +3826,11 @@ static void
 gtk_window_present_toplevel (GtkWindow *window)
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GdkRectangle request;
-  GdkGeometry geometry;
-  GdkSurfaceHints flags;
-
-  gtk_window_compute_configure_request (window, &request,
-                                        &geometry, &flags);
-
-  if (!(flags & GDK_HINT_MIN_SIZE))
-    geometry.min_width = geometry.min_height = 1;
 
   if (!priv->layout)
-    priv->layout = gtk_window_compute_layout (window, geometry.min_width, geometry.min_height);
+    priv->layout = gtk_window_compute_layout (window);
 
-  gdk_toplevel_present (GDK_TOPLEVEL (priv->surface),
-                        request.width,
-                        request.height,
-                        priv->layout);
+  gdk_toplevel_present (GDK_TOPLEVEL (priv->surface), priv->layout);
 }
 
 static void
@@ -3887,22 +3840,10 @@ gtk_window_update_toplevel (GtkWindow *window)
   
   if (priv->surface && gdk_surface_get_mapped (priv->surface))
     {
-      int min_width = 1;
-      int  min_height = 1;
-
-      if (priv->layout)
-        {
-          min_width = gdk_toplevel_layout_get_min_width (priv->layout);
-          min_height = gdk_toplevel_layout_get_min_height (priv->layout);
-        }
-
       g_clear_pointer (&priv->layout, gdk_toplevel_layout_unref);
-      priv->layout = gtk_window_compute_layout (window, min_width, min_height);
+      priv->layout = gtk_window_compute_layout (window);
 
-      gdk_toplevel_present (GDK_TOPLEVEL (priv->surface),
-                            gdk_surface_get_width (priv->surface),
-                            gdk_surface_get_height (priv->surface),
-                            priv->layout);
+      gdk_toplevel_present (GDK_TOPLEVEL (priv->surface), priv->layout);
     }
 }
 
@@ -3929,9 +3870,6 @@ gtk_window_map (GtkWidget *widget)
     gdk_toplevel_minimize (GDK_TOPLEVEL (priv->surface));
 
   gtk_window_set_theme_variant (window);
-
-  /* No longer use the default settings */
-  priv->need_default_size = FALSE;
 
   if (!disable_startup_notification)
     {
@@ -4014,7 +3952,7 @@ gtk_window_guess_default_size (GtkWindow *window,
   GtkWidget *widget;
   GdkSurface *surface;
   GdkDisplay *display;
-  GdkMonitor *monitor;
+  GdkMonitor *monitor = NULL;
   GdkRectangle geometry;
   int minimum, natural;
 
@@ -4025,21 +3963,22 @@ gtk_window_guess_default_size (GtkWindow *window,
   if (surface)
     {
       monitor = gdk_display_get_monitor_at_surface (display, surface);
+      if (monitor)
+        g_object_ref (monitor);
+    }
+
+  if (!monitor)
+    monitor = g_list_model_get_item (gdk_display_get_monitors (display), 0);
+
+  if (monitor)
+    {
       gdk_monitor_get_geometry (monitor, &geometry);
+      g_object_unref (monitor);
     }
   else
     {
-      monitor = g_list_model_get_item (gdk_display_get_monitors (display), 0);
-      if (monitor)
-        {
-          gdk_monitor_get_geometry (monitor, &geometry);
-          g_object_unref (monitor);
-        }
-      else
-        {
-          geometry.width = G_MAXINT;
-          geometry.height = G_MAXINT;
-        }
+      geometry.width = G_MAXINT;
+      geometry.height = G_MAXINT;
     }
 
   *width = geometry.width;
@@ -4078,18 +4017,10 @@ gtk_window_get_remembered_size (GtkWindow *window,
                                 int       *width,
                                 int       *height)
 {
-  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
   GtkWindowGeometryInfo *info;
 
   *width = 0;
   *height = 0;
-
-  if (priv->surface)
-    {
-      *width = gdk_surface_get_width (priv->surface);
-      *height = gdk_surface_get_height (priv->surface);
-      return;
-    }
 
   info = gtk_window_get_geometry_info (window, FALSE);
   if (info)
@@ -4286,13 +4217,149 @@ update_realized_window_properties (GtkWindow *window)
 }
 
 static void
+gtk_window_compute_default_size (GtkWindow *window,
+                                 int        max_width,
+                                 int        max_height,
+                                 int       *width,
+                                 int       *height)
+{
+  GtkWidget *widget = GTK_WIDGET (window);
+
+  *width = max_width;
+  *height = max_height;
+  if (gtk_widget_get_request_mode (widget) == GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT)
+    {
+      int minimum, natural;
+
+      gtk_widget_measure (widget, GTK_ORIENTATION_VERTICAL, -1,
+                          &minimum, &natural,
+                          NULL, NULL);
+      *height = MAX (minimum, MIN (*height, natural));
+
+      gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL,
+                          *height,
+                          &minimum, &natural,
+                          NULL, NULL);
+      *width = MAX (minimum, MIN (*width, natural));
+    }
+  else /* GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH or CONSTANT_SIZE */
+    {
+      int minimum, natural;
+
+      gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, -1,
+                          &minimum, &natural,
+                          NULL, NULL);
+      *width = MAX (minimum, MIN (*width, natural));
+
+      gtk_widget_measure (widget, GTK_ORIENTATION_VERTICAL,
+                          *width,
+                          &minimum, &natural,
+                          NULL, NULL);
+      *height = MAX (minimum, MIN (*height, natural));
+    }
+}
+
+static void
+toplevel_compute_size (GdkToplevel     *toplevel,
+                       GdkToplevelSize *size,
+                       GtkWidget       *widget)
+{
+  GtkWindow *window = GTK_WINDOW (widget);
+  GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
+  GtkWindowGeometryInfo *info;
+  int width, height;
+  GtkBorder shadow;
+  int bounds_width, bounds_height;
+  int default_width, default_height;
+  int min_width, min_height;
+
+  info = gtk_window_get_geometry_info (window, FALSE);
+
+  gdk_toplevel_size_get_bounds (size, &bounds_width, &bounds_height);
+
+  gtk_window_compute_default_size (window,
+                                   bounds_width, bounds_height,
+                                   &default_width, &default_height);
+
+  if (priv->need_default_size)
+    {
+      int remembered_width;
+      int remembered_height;
+
+      /* No longer use the default settings */
+      priv->need_default_size = FALSE;
+
+      gtk_window_get_remembered_size (window,
+                                      &remembered_width, &remembered_height);
+      width = MAX (default_width, remembered_width);
+      height = MAX (default_height, remembered_height);
+
+      /* Override with default size */
+      if (info)
+        {
+          /* Take width of shadows/headerbar into account. We want to set the
+           * default size of the content area and not the window area.
+           */
+          int default_width_csd = info->default_width;
+          int default_height_csd = info->default_height;
+          gtk_window_update_csd_size (window,
+                                      &default_width_csd, &default_height_csd,
+                                      INCLUDE_CSD_SIZE);
+
+          if (info->default_width > 0)
+            width = min_width = default_width_csd;
+          if (info->default_height > 0)
+            height = min_height = default_height_csd;
+        }
+    }
+  else
+    {
+      /* Default to keeping current size */
+      gtk_window_get_remembered_size (window, &width, &height);
+    }
+
+  /* Override any size with gtk_window_resize() values */
+  if (priv->maximized || priv->fullscreen)
+    {
+      /* Unless we are maximized or fullscreen */
+      gtk_window_get_remembered_size (window, &width, &height);
+    }
+  else if (info)
+    {
+      int resize_width_csd = info->resize_width;
+      int resize_height_csd = info->resize_height;
+      gtk_window_update_csd_size (window,
+                                  &resize_width_csd, &resize_height_csd,
+                                  INCLUDE_CSD_SIZE);
+
+      if (info->resize_width > 0)
+        width = resize_width_csd;
+      if (info->resize_height > 0)
+        height = resize_height_csd;
+    }
+
+  /* Don't ever request zero width or height, it's not supported by
+     gdk. The size allocation code will round it to 1 anyway but if
+     we do it then the value returned from this function will is
+     not comparable to the size allocation read from the GtkWindow. */
+  width = MAX (width, 1);
+  height = MAX (height, 1);
+
+  gdk_toplevel_size_set_size (size, width, height);
+
+  get_shadow_width (window, &shadow);
+
+  min_width = MIN (default_width + shadow.left + shadow.right, width);
+  min_height = MIN (default_height + shadow.top + shadow.bottom, height);
+  gdk_toplevel_size_set_min_size (size, min_width, min_height);
+}
+
+static void
 gtk_window_realize (GtkWidget *widget)
 {
   GtkWindow *window = GTK_WINDOW (widget);
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GtkAllocation allocation;
   GdkSurface *surface;
-  GtkBorder shadow;
 
   /* Create default title bar */
   if (!priv->client_decorated && gtk_window_should_use_csd (window))
@@ -4305,10 +4372,10 @@ gtk_window_realize (GtkWidget *widget)
             if (priv->title_box == NULL)
               {
                 priv->titlebar = gtk_header_bar_new ();
-                gtk_widget_add_css_class (priv->titlebar, GTK_STYLE_CLASS_TITLEBAR);
+                gtk_widget_add_css_class (priv->titlebar, "titlebar");
                 gtk_widget_add_css_class (priv->titlebar, "default-decoration");
 
-                gtk_widget_insert_after (priv->titlebar, widget, NULL);
+                gtk_widget_insert_before (priv->titlebar, widget, NULL);
                 priv->title_box = priv->titlebar;
               }
 
@@ -4316,32 +4383,7 @@ gtk_window_realize (GtkWidget *widget)
         }
     }
 
-  get_shadow_width (window, &shadow);
-
-  /* ensure widget tree is properly size allocated */
-  if (_gtk_widget_get_alloc_needed (widget))
-    {
-      GdkRectangle request;
-
-      gtk_window_compute_configure_request (window, &request, NULL, NULL);
-
-      allocation.x = shadow.left;
-      allocation.y = shadow.top;
-      allocation.width = request.width - shadow.left - shadow.right;
-      allocation.height = request.height - shadow.top - shadow.bottom;
-
-      gtk_widget_size_allocate (widget, &allocation, -1);
-
-      gtk_widget_queue_resize (widget);
-
-      g_return_if_fail (!_gtk_widget_get_realized (widget));
-    }
-
-  gtk_widget_get_allocation (widget, &allocation);
-
-  surface = gdk_surface_new_toplevel (gtk_widget_get_display (widget),
-                                      MAX (1, allocation.width + shadow.left + shadow.right),
-                                      MAX (1, allocation.height + shadow.top + shadow.bottom));
+  surface = gdk_surface_new_toplevel (gtk_widget_get_display (widget));
   priv->surface = surface;
   gdk_surface_set_widget (surface, widget);
 
@@ -4349,6 +4391,7 @@ gtk_window_realize (GtkWidget *widget)
   g_signal_connect_swapped (surface, "size-changed", G_CALLBACK (surface_size_changed), widget);
   g_signal_connect (surface, "render", G_CALLBACK (surface_render), widget);
   g_signal_connect (surface, "event", G_CALLBACK (surface_event), widget);
+  g_signal_connect (surface, "compute-size", G_CALLBACK (toplevel_compute_size), widget);
 
   GTK_WIDGET_CLASS (gtk_window_parent_class)->realize (widget);
 
@@ -5384,7 +5427,7 @@ gtk_window_move_resize (GtkWindow *window)
     new_geometry.min_width = new_geometry.min_height = 1;
 
   g_clear_pointer (&priv->layout, gdk_toplevel_layout_unref);
-  priv->layout = gtk_window_compute_layout (window, new_geometry.min_width, new_geometry.min_height);
+  priv->layout = gtk_window_compute_layout (window);
 
   /* This check implies the invariant that we never set info->last
    * without setting the hints and sending off a configure request.
@@ -5581,9 +5624,7 @@ gtk_window_move_resize (GtkWindow *window)
       if (configure_request_pos_changed)
         g_warning ("configure request position changed. This should not happen. Ignoring the position");
 
-      gdk_toplevel_present (GDK_TOPLEVEL (priv->surface),
-                            new_request.width, new_request.height,
-                            priv->layout);
+      gdk_toplevel_present (GDK_TOPLEVEL (priv->surface), priv->layout);
     }
   else
     {
@@ -6342,11 +6383,12 @@ _gtk_window_set_is_active (GtkWindow *window,
  * gtk_window_set_auto_startup_notification:
  * @setting: %TRUE to automatically do startup notification
  *
- * By default, after showing the first #GtkWindow, GTK+ calls 
- * gdk_notify_startup_complete().  Call this function to disable 
- * the automatic startup notification. You might do this if your 
- * first window is a splash screen, and you want to delay notification 
- * until after your real main window has been shown, for example.
+ * By default, after showing the first #GtkWindow, GTK calls
+ * gdk_display_notify_startup_complete(). Call this function to
+ * disable the automatic startup notification. You might do this
+ * if your first window is a splash screen, and you want to delay
+ * notification until after your real main window has been shown,
+ * for example.
  *
  * In that example, you would disable startup notification
  * temporarily, show your splash screen, then re-enable it so that
@@ -6549,7 +6591,7 @@ warn_response (GtkDialog *dialog,
   display = gtk_inspector_window_get_inspected_display (GTK_INSPECTOR_WINDOW (inspector_window));
 
   check = g_object_get_data (G_OBJECT (dialog), "check");
-  remember = gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (check));
+  remember = gtk_check_button_get_active (GTK_CHECK_BUTTON (check));
 
   gtk_window_destroy (GTK_WINDOW (dialog));
   g_object_set_data (G_OBJECT (inspector_window), "warning_dialog", NULL);
@@ -7084,7 +7126,7 @@ gtk_window_set_child (GtkWindow *window,
   if (child)
     {
       priv->child = child;
-      gtk_widget_set_parent (child, GTK_WIDGET (window));
+      gtk_widget_insert_before (child, GTK_WIDGET (window), priv->title_box);
     }
 
   g_object_notify_by_pspec (G_OBJECT (window), window_props[PROP_CHILD]);

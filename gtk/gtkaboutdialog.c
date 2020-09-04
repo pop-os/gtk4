@@ -95,7 +95,10 @@
  * set the title property explicitly when constructing a GtkAboutDialog,
  * as shown in the following example:
  * |[<!-- language="C" -->
- * GdkTexture *example_logo = gdk_texture_new_from_file ("./logo.png", NULL);
+ * GFile *logo_file = g_file_new_for_path ("./logo.png");
+ * GdkTexture *example_logo = gdk_texture_new_from_file (logo_file, NULL);
+ * g_object_unref (logo_file);
+ *
  * gtk_show_about_dialog (NULL,
  *                        "program-name", "ExampleCode",
  *                        "logo", example_logo,
@@ -564,7 +567,7 @@ gtk_about_dialog_class_init (GtkAboutDialogClass *klass)
    * GtkAboutDialog:logo:
    *
    * A logo for the about box. If it is %NULL, the default window icon
-   * set with gtk_window_set_default_icon() will be used.
+   * set with gtk_window_set_default_icon_name() will be used.
    */
   props[PROP_LOGO] =
     g_param_spec_object ("logo",
@@ -2316,9 +2319,7 @@ gtk_show_about_dialog (GtkWindow   *parent,
 
     }
 
-  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   gtk_window_present (GTK_WINDOW (dialog));
-  G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 /**

@@ -54,13 +54,13 @@ void            gtk_snapshot_pop                        (GdkSnapshot            
  * always produce the same output for the same snapshot.
  *
  * A #GdkPaintable may change its contents, meaning that it will now produce a
- * different output with the same snpashot. Once that happens, it will call
+ * different output with the same snapshot. Once that happens, it will call
  * gdk_paintable_invalidate_contents() which will emit the
- * #GdkPaintable::invalidate-contents signal.  
- * If a paintable is known to never change its contents, it will set the
- * %GDK_PAINTABLE_STATIC_CONTENTS flag. If a consumer cannot deal with changing
- * contents, it may call gdk_paintable_get_static_image() which will return a
- * static paintable and use that.
+ * #GdkPaintable::invalidate-contents signal. If a paintable is known to never
+ * change its contents, it will set the %GDK_PAINTABLE_STATIC_CONTENTS flag.
+ * If a consumer cannot deal with changing contents, it may call
+ * gdk_paintable_get_current_image() which will return a static paintable and
+ * use that.
  *
  * A paintable can report an intrinsic (or preferred) size or aspect ratio it
  * wishes to be rendered at, though it doesn't have to. Consumers of the interface

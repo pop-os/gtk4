@@ -19,13 +19,7 @@ static GtkWidget *show_extents = NULL;
 
 static PangoContext *context;
 
-static int scale = 10;
-
-static void
-on_destroy (gpointer data)
-{
-  window = NULL;
-}
+static int scale = 9;
 
 static void
 update_image (void)
@@ -65,7 +59,7 @@ update_image (void)
     hintstyle = CAIRO_HINT_STYLE_DEFAULT;
   cairo_font_options_set_hint_style (fopt, hintstyle);
 
-  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (hint_metrics)))
+  if (gtk_check_button_get_active (GTK_CHECK_BUTTON (hint_metrics)))
     hintmetrics = CAIRO_HINT_METRICS_ON;
   else
     hintmetrics = CAIRO_HINT_METRICS_OFF;
@@ -113,7 +107,7 @@ update_image (void)
       cr = cairo_create (surface);
       cairo_set_line_width (cr, 1);
 
-      if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (show_grid)))
+      if (gtk_check_button_get_active (GTK_CHECK_BUTTON (show_grid)))
         {
           int i;
           cairo_set_source_rgba (cr, 0.2, 0, 0, 0.2);
@@ -131,7 +125,7 @@ update_image (void)
             }
         }
 
-      if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (show_extents)))
+      if (gtk_check_button_get_active (GTK_CHECK_BUTTON (show_extents)))
         {
           cairo_set_source_rgba (cr, 0, 0, 1, 1);
 
@@ -251,9 +245,7 @@ do_fontrendering (GtkWidget *do_widget)
       window = GTK_WIDGET (gtk_builder_get_object (builder, "window"));
       gtk_window_set_display (GTK_WINDOW (window),
                               gtk_widget_get_display (do_widget));
-      g_signal_connect (window, "destroy",
-                        G_CALLBACK (on_destroy), NULL);
-      g_object_set_data_full (G_OBJECT (window), "builder", builder, g_object_unref);
+      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
       font_button = GTK_WIDGET (gtk_builder_get_object (builder, "font_button"));
       up_button = GTK_WIDGET (gtk_builder_get_object (builder, "up_button"));
       down_button = GTK_WIDGET (gtk_builder_get_object (builder, "down_button"));
@@ -276,6 +268,8 @@ do_fontrendering (GtkWidget *do_widget)
       g_signal_connect (show_extents, "notify::active", G_CALLBACK (update_image), NULL);
 
       update_image ();
+
+      g_object_unref (builder);
     }
 
   if (!gtk_widget_get_visible (window))

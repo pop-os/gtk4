@@ -272,6 +272,7 @@ gtk_color_button_init (GtkColorButton *button)
 
   button->swatch = gtk_color_swatch_new ();
   gtk_widget_set_can_focus (button->swatch, FALSE);
+  gtk_widget_remove_css_class (button->swatch, "activatable");
   g_object_set (button->swatch, "has-menu", FALSE, NULL);
   layout = gtk_widget_create_pango_layout (GTK_WIDGET (button), "Black");
   pango_layout_get_pixel_extents (layout, NULL, &rect);
@@ -434,9 +435,7 @@ gtk_color_button_clicked (GtkButton *b,
 
   gtk_color_chooser_set_rgba (GTK_COLOR_CHOOSER (button->cs_dialog), &button->rgba);
 
-  G_GNUC_BEGIN_IGNORE_DEPRECATIONS
   gtk_window_present (GTK_WINDOW (button->cs_dialog));
-  G_GNUC_END_IGNORE_DEPRECATIONS
 }
 
 static void

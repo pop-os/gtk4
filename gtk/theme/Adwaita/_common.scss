@@ -42,7 +42,7 @@ dnd {
    These wildcard seems unavoidable, need to investigate.
    Wildcards are bad and troublesome, use them with care,
    or better, just don't.
-   Everytime a wildcard is used a kitten dies, painfully.
+   Every time a wildcard is used a kitten dies, painfully.
 */
 
 spinner:disabled,
@@ -178,6 +178,10 @@ label {
     > selection { @extend %selected_items_disabled; }
   }
 
+  &.error {
+   color: $error_color;
+   &:disabled { color: transparentize($error_color,0.5); }
+  }
 }
 
 .dim-label {
@@ -387,6 +391,13 @@ entry {
 
   .linked:not(.vertical) > &:drop(active) + &,
   .linked:not(.vertical) > &:drop(active) + button,
+  .linked:not(.vertical) > &:drop(active) + menubutton > button,
+  .linked:not(.vertical) > &:drop(active) + dropdown > button,
+  .linked:not(.vertical) > &:drop(active) + colorbutton > button,
+  .linked:not(.vertical) > &:drop(active) + fontbutton > button,
+  .linked:not(.vertical) > &:drop(active) + filechooserbutton > button,
+  .linked:not(.vertical) > &:drop(active) + filechooserbutton > combobox > box > button.combo,
+  .linked:not(.vertical) > &:drop(active) + appchooserbutton > combobox > box > button.combo,
   .linked:not(.vertical) > &:drop(active) + combobox > box > button.combo { border-left-color: $drop_target_color; }
 
   // Vertically linked entries
@@ -411,9 +422,18 @@ entry {
       + %entry,
       + entry,
       + button,
+      + menubutton > button,
+      + dropdown > button,
+      + colorbutton > button,
+      + fontbutton > button,
+      + filechooserbutton > button,
+      + filechooserbutton > combobox > box > button.combo,
+      + appchooserbutton > combobox > box > button.combo,
       + combobox > box > button.combo { border-top-color: $drop_target_color; }
     }
   }
+
+  &.error { color: $error_color; }
 }
 
 treeview entry {
@@ -469,7 +489,7 @@ button {
     @at-root %button_basic_flat,
     &.flat {
       @include button(undecorated);
-      // to avoid adiacent buttons borders clashing when transitioning, the transition on the normal state is set
+      // to avoid adjacent buttons borders clashing when transitioning, the transition on the normal state is set
       // to none, while it's added back in the hover state, so the button decoration will fade in on hover, but
       // it won't fade out when the pointer leave the button allocation area. To make the transition more evident
       // in this case the duration is increased.
@@ -745,7 +765,10 @@ button {
 
   .linked.vertical > & { @extend %linked_vertical; }
 
-  &.circular { // The Bloody Circul Button
+  &.circular { // force circular button shape
+    min-width: 32px;
+    min-height: 32px;
+    padding: 0;
     border-radius: 9999px;
 
     label { padding: 0; }
@@ -753,7 +776,7 @@ button {
 }
 
 %needs_attention {
-  // the dot is drawn by using two radial gradient, the first one is the actuall dot, the other
+  // the dot is drawn by using two radial gradient, the first one is the actual dot, the other
   // simulates the shadow labels and icons normally have in buttons.
   animation: needs_attention 150ms ease-in;
 
@@ -824,6 +847,31 @@ button {
               0 1px transparentize(white, 1);
   text-shadow: none;
   -gtk-icon-shadow: none;
+}
+
+.linked:not(.vertical) > menubutton,
+.linked:not(.vertical) > dropdown,
+.linked:not(.vertical) > colorbutton,
+.linked:not(.vertical) > fontbutton,
+.linked:not(.vertical) > filechooserbutton {
+  &:dir(ltr) {
+    &:not(:first-child) > button { @extend %linked_not_left; }
+    &:not(:last-child) > button { @extend %linked_not_right; }
+  }
+
+  &:dir(rtl) {
+    &:not(:first-child) > button { @extend %linked_not_right; }
+    &:not(:last-child) > button { @extend %linked_not_left; }
+  }
+}
+
+.linked.vertical > menubutton,
+.linked.vertical > dropdown,
+.linked.vertical > colorbutton,
+.linked.vertical > fontbutton,
+.linked.vertical > filechooserbutton {
+  &:not(:first-child) > button { @extend %linked_not_top; }
+  &:not(:last-child) > button { @extend %linked_not_bottom; }
 }
 
 /* menu buttons */
@@ -1154,6 +1202,10 @@ spinbutton {
  **************/
 dropdown > popover.menu.background > contents { padding: 0; } //allow search entries with no margin
 
+dropdown > button > box {
+  border-spacing: 6px;
+}
+
 dropdown,
 combobox {
   arrow {
@@ -1214,6 +1266,8 @@ combobox {
 // work, special case needed. See
 // https://bugzilla.gnome.org/show_bug.cgi?id=733979
 
+.linked:not(.vertical) > filechooserbutton > combobox,
+.linked:not(.vertical) > appchooserbutton > combobox,
 .linked:not(.vertical) > combobox {
   &:dir(ltr) {
     &:not(:first-child) > box > button.combo { @extend %linked_not_left; }
@@ -1226,6 +1280,8 @@ combobox {
   }
 }
 
+.linked.vertical > filechooserbutton > combobox,
+.linked.vertical > appchooserbutton > combobox,
 .linked.vertical > combobox {
   &:not(:first-child) > box > button.combo { @extend %linked_not_top; }
   &:not(:last-child) > box > button.combo { @extend %linked_not_bottom; }
@@ -1237,14 +1293,13 @@ combobox {
  ************/
 %toolbar {
   padding: 4px;
+  border-spacing: 4px;
   background-color: $bg_color;
 }
 
 .toolbar,
 toolbar {
   @extend %toolbar;
-
-  padding: 4px 3px 3px 4px;
 
   // on OSD
   .osd & { background-color: transparent; }
@@ -1263,21 +1318,19 @@ toolbar {
   }
 
   // toolbar separators
-  &.horizontal separator { margin: 0 7px 1px 6px; }
-  &.vertical separator { margin: 6px 1px 7px 0; }
+  &.horizontal > separator { margin: 4px 0; }
+  &.vertical > separator { margin: 0 4px; }
 }
 
 //searchbar & location-bar
-searchbar {
-  padding: 0px;
-  >revealer>box {
-    padding: 6px;
-    @extend %toolbar;
+searchbar > revealer > box {
+  padding: 6px;
+  border-spacing: 6px;
+  @extend %toolbar;
 
-    @extend %darkbar;
+  @extend %darkbar;
 
-    border-width: 0 0 1px;
-  }
+  border-width: 0 0 1px;
 }
 
 %darkbar {
@@ -1349,11 +1402,6 @@ headerbar {
     box-shadow: inset 0 1px $top_hilight;
 
     transition: $backdrop_transition;
-  }
-
-  box.start,
-  box.end {
-    border-spacing: 6px;
   }
 
   .title {
@@ -1431,7 +1479,13 @@ headerbar {
 }
 
 headerbar {
-  border-spacing: 6px;
+  > windowhandle > box {
+    &,
+    > box.start,
+    > box.end {
+      border-spacing: 6px;
+    }
+  }
 
   // add vertical margins to common widget on the headerbar to avoid them spanning the whole height
   entry,
@@ -1736,6 +1790,10 @@ popover.background {
     background-clip: padding-box;
     border: 1px solid $_popover_border;
     box-shadow: 0 1px 2px transparentize(black, 0.7);
+  }
+
+  &:backdrop {
+    background-color: transparent;
   }
 
   > contents {
@@ -2211,8 +2269,7 @@ switch {
   }
 }
 
-checkbutton,
-radiobutton {
+checkbutton {
   border-spacing: 4px;
   border-radius: $button_radius;
   transition: $focus_transition;
@@ -2651,7 +2708,7 @@ scale {
       }
 
       > trough > slider {
-        &:dir(ltr), &:dir(rtl) { // specificity bumb
+        &:dir(ltr), &:dir(rtl) { // specificity bump
           &:hover, &:backdrop, &:disabled, &:backdrop:disabled, & {
             margin-bottom: -15px;
             margin-top: 6px;
@@ -2944,25 +3001,24 @@ window.dialog.print {
  **********/
 frame,
 .frame {
-  box-shadow: none;
-  margin: 0;
-  padding: 0;
-  border-radius: 0;
   border: 1px solid $borders_color;
-
-  &.flat { border-style: none; }
 }
 
-actionbar > revealer >  box {
+frame {
+  border-radius: $window_radius;
+
+  > label {
+    margin: 4px;
+  }
+}
+
+actionbar > revealer > box {
   padding: 6px;
+  border-spacing: 6px;
   border-top: 1px solid $borders_color;
 }
 
 scrolledwindow {
-  > viewport.frame { // avoid double borders when viewport inside scrolled window
-    border-style: none;
-  }
-
   // This is used when content is touch-dragged past boundaries.
   // draws a box on top of the content, the size changes programmatically.
   > overshoot {
@@ -3011,7 +3067,7 @@ separator {
  * Lists *
  *********/
 listview,
-list {
+list  {
   color: $text_color;
   background-color: $base_color;
   border-color: $borders_color;
@@ -3027,12 +3083,21 @@ list {
   > row.expander .row-header { padding: 2px; }
 
   &.horizontal row.separator:not(:first-child),
-  &.separators.horizontal row:not(:first-child) {
+  &.separators.horizontal > row:not(:first-child) {
     border-left: 1px solid $borders_color;
   }
   &:not(.horizontal) row.separator:not(:first-child),
-  &.separators:not(.horizontal) row:not(:first-child) {
+  &.separators:not(.horizontal) > row:not(:first-child) {
     border-top: 1px solid $borders_color;
+  }
+}
+
+.rich-list { /* rich lists usually containing other widgets than just labels/text */
+  & > row {
+    padding: 6px;
+    & > box {
+      margin: 12px;
+    }
   }
 }
 
@@ -3065,15 +3130,51 @@ row {
   }
 }
 
+/********************************************************
+ * Data Tables                                          *
+ * treeview like tables with individual focusable cells *
+ * https://gitlab.gnome.org/GNOME/gtk/-/issues/2929     *
+ ********************************************************/
+
+  .data-table row:not(:selected) cell editablelabel:not(.editing):focus-within {
+    outline: 2px solid $focus_border_color;
+  }
+
+  .data-table row:not(:selected) cell editablelabel.editing:focus-within {
+    outline: 2px solid $selected_bg_color;
+  }
+
+  .data-table row:not(:selected) cell editablelabel.editing text selection {
+    color: $selected_fg_color;
+    background-color: $selected_bg_color;
+  }
+
+/*******************************************************
+ * Rich Lists                                          *
+ * Large list usually containing lots of widgets       *
+ * https://gitlab.gnome.org/GNOME/gtk/-/issues/3073    *
+ *******************************************************/
+
+
+.rich-list { /* rich lists usually containing other widgets than just labels/text */
+  & > row {
+    padding: 8px 12px;
+    min-height: 32px; /* should be tall even when only containing a label */
+
+    & > box {
+      border-spacing: 12px;
+    }
+  }
+}
 
 /*********************
  * App Notifications *
  *********************/
-.app-notification,
-.app-notification.frame {
+.app-notification {
   @extend %osd;
 
   padding: 10px;
+  border-spacing: 10px;
   border-radius: 0 0 5px 5px;
   background-color: $osd_bg_color;
   background-image: linear-gradient(to bottom, transparentize(black, 0.8),
@@ -3306,8 +3407,21 @@ row image.sidebar-icon { opacity: $_placesidebar_icons_opacity; } // dim the sid
                                                                   // see bug #786613 for details 
                                                                   // on this oddity
 
-placessidebar {
-  > scrolledwindow.frame { border-style: none; }
+/* this should be more generic, only using .navigation-sidebar
+   https://gitlab.gnome.org/GNOME/gtk/-/issues/2929
+*/
+placessidebar, .navigation-sidebar {
+  list {
+    padding: 4px 0;
+
+    > row {
+      margin: 1px 0;
+    }
+
+    > separator {
+      margin: 4px 0;
+    }
+  }
 
   row {
     // Needs overriding of the GtkListBoxRow padding
@@ -3322,7 +3436,7 @@ placessidebar {
       background-color: desaturate($selected_bg_color,100%);
       color: $selected_fg_color;
 
-      &:focus {
+      &:focus-visible:focus-within {
         outline-width: 0;
         color: $selected_fg_color;
         background-color: $selected_bg_color;
@@ -3331,6 +3445,11 @@ placessidebar {
         color: $fg_color;
         background-color: $menu_selected_color;
       }
+    }
+
+    &:hover {
+      color: $fg_color;
+      background-color: $menu_selected_color;
     }
 
     &:disabled { color: $insensitive_fg_color; }
@@ -3411,7 +3530,7 @@ paned {
     -gtk-icon-source: none; // defeats the ugly default handle decoration
     border-style: none; // just to be sure
     background-color: transparent;
-    // workaround, using background istead of a border since the border will get rendered twice (?)
+    // workaround, using background instead of a border since the border will get rendered twice (?)
     background-image: image($borders_color);
     background-size: 1px 1px;
 
@@ -3513,16 +3632,20 @@ tooltip {
     // see https://bugzilla.gnome.org/show_bug.cgi?id=736155 for details.
     background-color: transparentize(black, 0.2);
     background-clip: padding-box;
-    border: 1px solid $tooltip_borders_color; // this suble border is meant to
+    border: 1px solid $tooltip_borders_color; // this subtle border is meant to
                                               // not make the tooltip melt with
                                               // very dark backgrounds
     color: white;
   }
 
-  padding: 4px;
+  padding: 10px;
   border-radius: 5px;
   box-shadow: none; // otherwise it gets inherited by windowframe.csd
   text-shadow: 0 1px black;
+
+  > box {
+    border-spacing: 6px;
+  }
 }
 
 
@@ -3590,24 +3713,22 @@ colorswatch {
   }
 
   &.dark {
-
-
     > overlay {
       color: white;
+    }
 
-      &:hover { border-color: if($variant == 'light', transparentize(black, 0.2), $borders_color); }
-
+    &.activatable:hover > overlay {
+      border-color: if($variant == 'light', transparentize(black, 0.2), $borders_color);
     }
   }
 
   &.light {
-
-
     > overlay {
       color: black;
+    }
 
-      &:hover { border-color: if($variant == 'light', transparentize(black, 0.5), $borders_color); }
-
+    &.activatable:hover > overlay {
+      border-color: if($variant == 'light', transparentize(black, 0.5), $borders_color);
     }
   }
 
@@ -3629,11 +3750,11 @@ colorswatch {
 
   > overlay {
     border: 1px solid if($variant == 'light', transparentize(black, 0.7), $borders_color);
+  }
 
-    &:hover {
-      box-shadow: inset 0 1px transparentize(white, 0.6),
-                  inset 0 -1px transparentize(black, 0.8);
-    }
+  &.activatable:hover > overlay {
+    box-shadow: inset 0 1px transparentize(white, 0.6),
+                inset 0 -1px transparentize(black, 0.8);
   }
 
   &#add-color-button {
@@ -3643,8 +3764,10 @@ colorswatch {
 
     > overlay {
       @include button(normal);
+    }
 
-      &:hover { @include button(hover); }
+    &.activatable:hover > overlay {
+      @include button(hover);
     }
   }
 
@@ -3736,7 +3859,7 @@ window {
   &.solid-csd {
     margin: 0;
     padding: 0;
-    border: solid 14px $borders_color;
+    border: solid 1px $borders_color;
     border-radius: 0;
     box-shadow: inset 0 0 0 3px $headerbar_color, inset 0 1px $top_hilight;
 

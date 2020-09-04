@@ -66,7 +66,7 @@ the target widget for event propagation is window's current focus
 widget (see gtk_window_get_focus()).
 
 For pointer events, the target widget is determined by picking
-the widget at the events coordinates (see gtk_window_pick()).
+the widget at the events coordinates (see gtk_widget_pick()).
 
 In the first phase (the “capture” phase) the event is delivered to
 each widget from the top-most (the top-level #GtkWindow or grab widget)
@@ -128,7 +128,7 @@ Mnmemonics
    They are used in places where a label is associated with a control,
    and are indicated by underlining the letter in the label. As a special
    case, inside menus (i.e. inside #GtkPopoverMenu), mnemonics can be
-   trigered without the modifier.
+   triggered without the modifier.
 Key bindings
  : Key bindings are specific to individual widgets, such as Ctrl-C or
    Ctrl-V in an entry copy to or paste from the clipboard. They are only

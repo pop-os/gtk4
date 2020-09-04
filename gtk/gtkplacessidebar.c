@@ -61,7 +61,6 @@
 #include "gtknative.h"
 #include "gtkdragsource.h"
 #include "gtkdragicon.h"
-#include "gtkwidgetpaintable.h"
 #include "gtkstylecontext.h"
 
 /*< private >
@@ -395,14 +394,11 @@ list_box_header_func (GtkListBoxRow *row,
   else
     {
       before_section_type = SECTION_INVALID;
-      gtk_widget_set_margin_top (GTK_WIDGET (row), 4);
     }
 
   if (before && before_section_type != row_section_type)
     {
       separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
-      gtk_widget_set_margin_top (separator, 4);
-      gtk_widget_set_margin_bottom (separator, 4);
       gtk_list_box_row_set_header (row, separator);
     }
 }
@@ -1636,7 +1632,7 @@ stop_drop_feedback (GtkPlacesSidebar *sidebar)
   if (sidebar->row_placeholder != NULL)
     {
       if (gtk_widget_get_parent (sidebar->row_placeholder) != NULL)
-        gtk_list_box_remove (GTK_LIST_BOX (sidebar), sidebar->row_placeholder);
+        gtk_list_box_remove (GTK_LIST_BOX (sidebar->list_box), sidebar->row_placeholder);
       sidebar->row_placeholder = NULL;
     }
 
@@ -1846,7 +1842,7 @@ drag_drop_callback (GtkDropTarget    *target,
 
   if (G_VALUE_HOLDS (value, GTK_TYPE_SIDEBAR_ROW))
     {
-      GtkWidget **source_row;
+      GtkWidget *source_row;
       /* A bookmark got reordered */
       if (target_section_type != SECTION_BOOKMARKS)
         goto out;
@@ -1856,7 +1852,7 @@ drag_drop_callback (GtkDropTarget    *target,
       if (sidebar->row_placeholder != NULL)
         g_object_get (sidebar->row_placeholder, "order-index", &target_order_index, NULL);
 
-      reorder_bookmarks (sidebar, GTK_SIDEBAR_ROW (*source_row), target_order_index);
+      reorder_bookmarks (sidebar, GTK_SIDEBAR_ROW (source_row), target_order_index);
       result = TRUE;
     }
   else if (G_VALUE_HOLDS (value, GDK_TYPE_FILE_LIST))
@@ -1897,6 +1893,14 @@ dnd_finished_cb (GdkDrag          *drag,
   stop_drop_feedback (sidebar);
 }
 
+static void
+dnd_cancel_cb (GdkDrag             *drag,
+               GdkDragCancelReason  reason,
+               GtkPlacesSidebar    *sidebar)
+{
+  stop_drop_feedback (sidebar);
+}
+
 /* This functions is called every time the drag source leaves
  * the sidebar widget.
  * The problem is that, we start showing hints for drop when the source
@@ -1911,7 +1915,7 @@ dnd_finished_cb (GdkDrag          *drag,
  * is also not true, since when the drag comes from a different widget than the
  * sidebar, when the drag stops the last drag signal we receive is drag-leave.
  * So here what we will do is restore the state of the sidebar as if no drag
- * is being done (and if the application didnt request for permanent hints with
+ * is being done (and if the application didn't request for permanent hints with
  * gtk_places_sidebar_show_drop_hints) and we will free the drag data next time
  * we build new drag data in drag_data_received.
  */
@@ -3475,7 +3479,6 @@ on_row_dragged (GtkGestureDrag *gesture,
       GdkDevice *device;
       GtkAllocation allocation;
       GtkWidget *drag_widget;
-      GdkPaintable *paintable;
       GdkDrag *drag;
 
       gtk_gesture_drag_get_start_point (gesture, &start_x, &start_y);
@@ -3496,22 +3499,17 @@ on_row_dragged (GtkGestureDrag *gesture,
       g_object_unref (content);
 
       g_signal_connect (drag, "dnd-finished", G_CALLBACK (dnd_finished_cb), sidebar);
+      g_signal_connect (drag, "cancel", G_CALLBACK (dnd_cancel_cb), sidebar);
 
       gtk_widget_get_allocation (sidebar->drag_row, &allocation);
       gtk_widget_hide (sidebar->drag_row);
 
       drag_widget = GTK_WIDGET (gtk_sidebar_row_clone (GTK_SIDEBAR_ROW (sidebar->drag_row)));
-      g_object_ref_sink (drag_widget);
       sidebar->drag_row_height = allocation.height;
       gtk_widget_set_size_request (drag_widget, allocation.width, allocation.height);
-
       gtk_widget_set_opacity (drag_widget, 0.8);
 
-      paintable = gtk_widget_paintable_new (drag_widget);
-      gtk_drag_icon_set_from_paintable (drag, paintable, sidebar->drag_row_x, sidebar->drag_row_y);
-      g_object_unref (paintable);
-
-      g_object_set_data_full (G_OBJECT (drag), "row-widget", drag_widget, (GDestroyNotify)g_object_unref);
+      gtk_drag_icon_set_child (GTK_DRAG_ICON (gtk_drag_icon_get_for_drag (drag)), drag_widget);
 
       g_object_unref (drag);
     }
@@ -3776,12 +3774,12 @@ gtk_places_sidebar_init (GtkPlacesSidebar *sidebar)
   gtk_scrolled_window_set_policy (GTK_SCROLLED_WINDOW (sidebar->swin),
                                   GTK_POLICY_NEVER,
                                   GTK_POLICY_AUTOMATIC);
-  gtk_scrolled_window_set_has_frame (GTK_SCROLLED_WINDOW (sidebar->swin), TRUE);
 
   gtk_widget_add_css_class (GTK_WIDGET (sidebar), "sidebar");
 
   /* list box */
   sidebar->list_box = gtk_list_box_new ();
+  gtk_widget_add_css_class (sidebar->list_box, "navigation-sidebar");
 
   gtk_list_box_set_header_func (GTK_LIST_BOX (sidebar->list_box),
                                 list_box_header_func, sidebar, NULL);

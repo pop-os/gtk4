@@ -33,7 +33,6 @@
 
 #include <gtk/gtkaboutdialog.h>
 #include <gtk/gtkaccelgroup.h>
-#include <gtk/gtkaccellabel.h>
 #include <gtk/gtkaccessible.h>
 #include <gtk/gtkactionable.h>
 #include <gtk/gtkactionbar.h>
@@ -202,7 +201,6 @@
 #include <gtk/gtkprintoperationpreview.h>
 #include <gtk/gtkprintsettings.h>
 #include <gtk/gtkprogressbar.h>
-#include <gtk/gtkradiobutton.h>
 #include <gtk/gtkrange.h>
 #include <gtk/gtkrecentmanager.h>
 #include <gtk/gtkrender.h>

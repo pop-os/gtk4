@@ -42,6 +42,13 @@
  * @see_also: #GtkColumnView
  *
  * GtkColumnViewColumn represents the columns being added to #GtkColumnView.
+ *
+ * Columns have a title, and can optionally have a header menu set
+ * with gtk_column_view_column_set_header_menu().
+ *
+ * A sorter can be associated with a column using
+ * gtk_column_view_column_set_sorter(), to let users influence sorting by
+ * clicking on the column header.
  */
 
 struct _GtkColumnViewColumn
@@ -353,7 +360,7 @@ gtk_column_view_column_init (GtkColumnViewColumn *self)
  *
  * Creates a new #GtkColumnViewColumn.
  *
- * You most likely want to call gtk_column_add_column() next.
+ * You most likely want to call gtk_column_view_add_column() next.
  *
  * Returns: a new #GtkColumnViewColumn
  **/
@@ -690,7 +697,7 @@ gtk_column_view_column_set_factory (GtkColumnViewColumn *self,
  * @title: (nullable): Title to use for this column
  *
  * Sets the title of this column. The title is displayed in the header of a
- * #GtkColumnView for this column and is therefor user-facing text that should
+ * #GtkColumnView for this column and is therefore user-facing text that should
  * be translated.
  */
 void
@@ -756,6 +763,9 @@ gtk_column_view_column_remove_from_sorter (GtkColumnViewColumn *self)
  *
  * This sorter can be made active by clicking on the column
  * header, or by calling gtk_column_view_sort_by_column().
+ *
+ * See gtk_column_view_get_sorter() for the necessary steps
+ * for setting up customizable sorting for #GtkColumnView.
  */
 void
 gtk_column_view_column_set_sorter (GtkColumnViewColumn *self,

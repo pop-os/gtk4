@@ -490,6 +490,17 @@ as property. GtkNotebook and GtkAssistant are similar.
 gtk4-builder-tool can help with this conversion, with the --3to4 option
 of the simplify command.
 
+### Adapt to button class hierarchy changes
+
+#GtkCheckButton is no longer derived from #GtkToggleButton. Call
+gtk_check_button_set_active() instead of gtk_toggle_button_set_active().
+
+#GtkRadioButton has been removed, and its grouping functionality has
+been added to #GtkCheckButton and #GtkToggleButton. Use grouped
+check buttons for traditional radio groups, and used grouped toggle
+buttons for view switchers. The new API to set up groups of buttons
+is gtk_check_button_set_group() and gtk_toggle_button_set_group().
+
 ### Adapt to GtkScrolledWindow API changes
 
 The constructor for GtkScrolledWindow no longer takes the adjustments
@@ -533,7 +544,7 @@ adding children with <child> in ui files.
 The abstract base class GtkContainer for general containers has been
 removed. The former subclasses are now derived directly from GtkWidget,
 and have class-specific add() and remove() functions.
-The most noticable change is the use of gtk_box_append() or gtk_box_prepend()
+The most noticeable change is the use of gtk_box_append() or gtk_box_prepend()
 instead of gtk_container_add() for adding children to GtkBox, and the change
 to use container-specific remove functions, such as gtk_stack_remove() instead
 of gtk_container_remove(). Adding a child in a ui file with <child> still works.
@@ -671,7 +682,7 @@ gradients, just use those.
 
 GTK now supports a more versatile -gtk-icon-filter instead. Replace
 -gtk-icon-effect: dim; with -gtk-icon-filter: opacity(0.5); and
--gtk-icon-effect: hilight; with -gtk-icon-filter: brightness(1.2);.
+-gtk-icon-effect: highlight; with -gtk-icon-filter: brightness(1.2);.
 
 ### Don't use -gtk-icon-theme in your CSS
 
@@ -701,7 +712,7 @@ of connecting a handler to the #GtkWidget::draw signal.
 ### Stop using APIs to query GdkSurfaces
 
 A number of APIs for querying special-purpose windows have been removed,
-since these windows are no longer publically available:
+since these windows are no longer publicly available:
 gtk_tree_view_get_bin_window(), gtk_viewport_get_bin_window(),
 gtk_viewport_get_view_window().
 

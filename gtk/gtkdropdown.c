@@ -58,13 +58,11 @@
  *
  * The options are given to GtkDropDown in the form of #GListModel,
  * and how the individual options are represented is determined by
- * a #GtkListItemFactory. The default factory displays simple strings,
- * and expects to obtain these from the model by evaluating an expression
- * that has to be provided via gtk_drop_down_set_expression().
+ * a #GtkListItemFactory. The default factory displays simple strings.
  *
  * GtkDropDown knows how to obtain strings from the items in a
  * #GtkStringList; for other models, you have to provide an expression
- * to find the strings.
+ * to find the strings via gtk_drop_down_set_expression().
  *
  * GtkDropDown can optionally allow search in the popup, which is
  * useful if the list of options is long. To enable the search entry,
@@ -83,9 +81,9 @@ struct _GtkDropDown
   GtkListItemFactory *factory;
   GtkListItemFactory *list_factory;
   GListModel *model;
-  GListModel *selection;
+  GtkSelectionModel *selection;
   GListModel *filter_model;
-  GListModel *popup_selection;
+  GtkSelectionModel *popup_selection;
 
   GtkWidget *popup;
   GtkWidget *button;
@@ -692,19 +690,19 @@ gtk_drop_down_set_model (GtkDropDown *self,
   else
     {
       GListModel *filter_model;
-      GListModel *selection;
+      GtkSelectionModel *selection;
 
       filter_model = G_LIST_MODEL (gtk_filter_list_model_new (g_object_ref (model), NULL));
       g_set_object (&self->filter_model, filter_model);
 
       update_filter (self);
 
-      selection = G_LIST_MODEL (gtk_single_selection_new (filter_model));
+      selection = GTK_SELECTION_MODEL (gtk_single_selection_new (filter_model));
       g_set_object (&self->popup_selection, selection);
       gtk_list_view_set_model (GTK_LIST_VIEW (self->popup_list), selection);
       g_object_unref (selection);
 
-      selection = G_LIST_MODEL (gtk_single_selection_new (g_object_ref (model)));
+      selection = GTK_SELECTION_MODEL (gtk_single_selection_new (g_object_ref (model)));
       g_set_object (&self->selection, selection);
       g_object_unref (selection);
 

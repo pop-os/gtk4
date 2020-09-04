@@ -564,11 +564,11 @@ _gdk_event_queue_append (GdkDisplay *display,
   return g_queue_peek_tail_link (&display->queued_events);
 }
 
-/**
+/*
  * _gdk_event_queue_remove_link:
  * @display: a #GdkDisplay
  * @node: node to remove
- * 
+ *
  * Removes a specified list node from the event queue.
  **/
 void
@@ -578,13 +578,13 @@ _gdk_event_queue_remove_link (GdkDisplay *display,
   g_queue_unlink (&display->queued_events, node);
 }
 
-/**
+/*
  * _gdk_event_unqueue:
  * @display: a #GdkDisplay
- * 
+ *
  * Removes and returns the first event from the event
  * queue that is not still being filled in.
- * 
+ *
  * Returns: (nullable): the event, or %NULL. Ownership is transferred
  * to the caller.
  **/
@@ -702,6 +702,8 @@ gdk_event_queue_handle_scroll_compression (GdkDisplay *display)
 
       g_queue_delete_link (&display->queued_events, scrolls);
       g_queue_push_tail (&display->queued_events, event);
+
+      gdk_event_unref (old_event);
     }
 
   if (g_queue_get_length (&display->queued_events) == 1 &&
@@ -945,9 +947,9 @@ gdk_event_get_axis (GdkEvent   *event,
  * gdk_event_triggers_context_menu:
  * @event: a #GdkEvent, currently only button events are meaningful values
  *
- * This function returns whether a #GdkEventButton should trigger a
- * context menu, according to platform conventions. The right mouse
- * button always triggers context menus.
+ * This function returns whether a #GdkEvent should trigger a
+ * context menu, according to platform conventions. The right
+ * mouse button always triggers context menus.
  *
  * This function should always be used instead of simply checking for
  * event->button == %GDK_BUTTON_SECONDARY.
