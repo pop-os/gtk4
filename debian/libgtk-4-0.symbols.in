@@ -421,7 +421,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_snapshot_get_type@Base 3.99.0
  gdk_subpixel_layout_get_type@Base 3.99.0
  gdk_surface_beep@Base 3.99.0
- gdk_surface_constrain_size@Base 3.99.0
  gdk_surface_create_cairo_context@Base 3.99.0
  gdk_surface_create_gl_context@Base 3.99.0
  gdk_surface_create_similar_surface@Base 3.99.0
@@ -443,6 +442,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_surface_new_popup@Base 3.99.0
  gdk_surface_new_toplevel@Base 3.99.0
  gdk_surface_queue_render@Base 3.99.0
+ gdk_surface_request_motion@Base 3.99.1
  gdk_surface_set_cursor@Base 3.99.0
  gdk_surface_set_device_cursor@Base 3.99.0
  gdk_surface_set_input_region@Base 3.99.0
@@ -469,8 +469,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_toplevel_layout_get_fullscreen@Base 3.99.0
  gdk_toplevel_layout_get_fullscreen_monitor@Base 3.99.0
  gdk_toplevel_layout_get_maximized@Base 3.99.0
- gdk_toplevel_layout_get_min_height@Base 3.99.0
- gdk_toplevel_layout_get_min_width@Base 3.99.0
  gdk_toplevel_layout_get_resizable@Base 3.99.0
  gdk_toplevel_layout_get_type@Base 3.99.0
  gdk_toplevel_layout_new@Base 3.99.0
@@ -491,6 +489,10 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_toplevel_set_title@Base 3.99.0
  gdk_toplevel_set_transient_for@Base 3.99.0
  gdk_toplevel_show_window_menu@Base 3.99.0
+ gdk_toplevel_size_get_bounds@Base 3.99.1
+ gdk_toplevel_size_get_type@Base 3.99.1
+ gdk_toplevel_size_set_min_size@Base 3.99.1
+ gdk_toplevel_size_set_size@Base 3.99.1
  gdk_toplevel_supports_edge_constraints@Base 3.99.0
  gdk_touch_event_get_emulating_pointer@Base 3.99.0
  gdk_touch_event_get_type@Base 3.99.0
@@ -809,16 +811,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_about_dialog_set_website@Base 3.99.0
  gtk_about_dialog_set_website_label@Base 3.99.0
  gtk_about_dialog_set_wrap_license@Base 3.99.0
- gtk_accel_label_get_accel@Base 3.99.0
- gtk_accel_label_get_accel_width@Base 3.99.0
- gtk_accel_label_get_label@Base 3.99.0
- gtk_accel_label_get_type@Base 3.99.0
- gtk_accel_label_get_use_underline@Base 3.99.0
- gtk_accel_label_new@Base 3.99.0
- gtk_accel_label_refetch@Base 3.99.0
- gtk_accel_label_set_accel@Base 3.99.0
- gtk_accel_label_set_label@Base 3.99.0
- gtk_accel_label_set_use_underline@Base 3.99.0
  gtk_accelerator_get_default_mod_mask@Base 3.99.0
  gtk_accelerator_get_label@Base 3.99.0
  gtk_accelerator_get_label_with_keycode@Base 3.99.0
@@ -1336,14 +1328,19 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_center_layout_set_end_widget@Base 3.99.0
  gtk_center_layout_set_orientation@Base 3.99.0
  gtk_center_layout_set_start_widget@Base 3.99.0
- gtk_check_button_get_draw_indicator@Base 3.99.0
+ gtk_check_button_get_active@Base 3.99.1
  gtk_check_button_get_inconsistent@Base 3.99.0
+ gtk_check_button_get_label@Base 3.99.1
  gtk_check_button_get_type@Base 3.99.0
+ gtk_check_button_get_use_underline@Base 3.99.1
  gtk_check_button_new@Base 3.99.0
  gtk_check_button_new_with_label@Base 3.99.0
  gtk_check_button_new_with_mnemonic@Base 3.99.0
- gtk_check_button_set_draw_indicator@Base 3.99.0
+ gtk_check_button_set_active@Base 3.99.1
+ gtk_check_button_set_group@Base 3.99.1
  gtk_check_button_set_inconsistent@Base 3.99.0
+ gtk_check_button_set_label@Base 3.99.1
+ gtk_check_button_set_use_underline@Base 3.99.1
  gtk_check_version@Base 3.99.0
  gtk_closure_expression_get_type@Base 3.99.0
  gtk_closure_expression_new@Base 3.99.0
@@ -2095,15 +2092,15 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_grid_insert_column@Base 3.99.0
  gtk_grid_insert_next_to@Base 3.99.0
  gtk_grid_insert_row@Base 3.99.0
+ gtk_grid_layout_child_get_column@Base 3.99.1
  gtk_grid_layout_child_get_column_span@Base 3.99.0
- gtk_grid_layout_child_get_left_attach@Base 3.99.0
+ gtk_grid_layout_child_get_row@Base 3.99.1
  gtk_grid_layout_child_get_row_span@Base 3.99.0
- gtk_grid_layout_child_get_top_attach@Base 3.99.0
  gtk_grid_layout_child_get_type@Base 3.99.0
+ gtk_grid_layout_child_set_column@Base 3.99.1
  gtk_grid_layout_child_set_column_span@Base 3.99.0
- gtk_grid_layout_child_set_left_attach@Base 3.99.0
+ gtk_grid_layout_child_set_row@Base 3.99.1
  gtk_grid_layout_child_set_row_span@Base 3.99.0
- gtk_grid_layout_child_set_top_attach@Base 3.99.0
  gtk_grid_layout_get_baseline_row@Base 3.99.0
  gtk_grid_layout_get_column_homogeneous@Base 3.99.0
  gtk_grid_layout_get_column_spacing@Base 3.99.0
@@ -2137,7 +2134,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_grid_view_get_single_click_activate@Base 3.99.0
  gtk_grid_view_get_type@Base 3.99.0
  gtk_grid_view_new@Base 3.99.0
- gtk_grid_view_new_with_factory@Base 3.99.0
  gtk_grid_view_set_enable_rubberband@Base 3.99.0
  gtk_grid_view_set_factory@Base 3.99.0
  gtk_grid_view_set_max_columns@Base 3.99.0
@@ -2403,6 +2399,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_link_button_set_uri@Base 3.99.0
  gtk_link_button_set_visited@Base 3.99.0
  gtk_list_base_get_type@Base 3.99.0
+ gtk_list_box_append@Base 3.99.1
  gtk_list_box_bind_model@Base 3.99.0
  gtk_list_box_drag_highlight_row@Base 3.99.0
  gtk_list_box_drag_unhighlight_row@Base 3.99.0
@@ -2488,7 +2485,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_list_view_get_single_click_activate@Base 3.99.0
  gtk_list_view_get_type@Base 3.99.0
  gtk_list_view_new@Base 3.99.0
- gtk_list_view_new_with_factory@Base 3.99.0
  gtk_list_view_set_enable_rubberband@Base 3.99.0
  gtk_list_view_set_factory@Base 3.99.0
  gtk_list_view_set_model@Base 3.99.0
@@ -2839,6 +2835,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_popover_get_child@Base 3.99.0
  gtk_popover_get_has_arrow@Base 3.99.0
  gtk_popover_get_mnemonics_visible@Base 3.99.0
+ gtk_popover_get_offset@Base 3.99.1
  gtk_popover_get_pointing_to@Base 3.99.0
  gtk_popover_get_position@Base 3.99.0
  gtk_popover_get_type@Base 3.99.0
@@ -2860,6 +2857,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_popover_set_default_widget@Base 3.99.0
  gtk_popover_set_has_arrow@Base 3.99.0
  gtk_popover_set_mnemonics_visible@Base 3.99.0
+ gtk_popover_set_offset@Base 3.99.1
  gtk_popover_set_pointing_to@Base 3.99.0
  gtk_popover_set_position@Base 3.99.0
  gtk_position_type_get_type@Base 3.99.0
@@ -3149,16 +3147,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_property_expression_get_type@Base 3.99.0
  gtk_property_expression_new@Base 3.99.0
  gtk_property_expression_new_for_pspec@Base 3.99.0
- gtk_radio_button_get_group@Base 3.99.0
- gtk_radio_button_get_type@Base 3.99.0
- gtk_radio_button_join_group@Base 3.99.0
- gtk_radio_button_new@Base 3.99.0
- gtk_radio_button_new_from_widget@Base 3.99.0
- gtk_radio_button_new_with_label@Base 3.99.0
- gtk_radio_button_new_with_label_from_widget@Base 3.99.0
- gtk_radio_button_new_with_mnemonic@Base 3.99.0
- gtk_radio_button_new_with_mnemonic_from_widget@Base 3.99.0
- gtk_radio_button_set_group@Base 3.99.0
  gtk_range_get_adjustment@Base 3.99.0
  gtk_range_get_fill_level@Base 3.99.0
  gtk_range_get_flippable@Base 3.99.0
@@ -3983,6 +3971,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_toggle_button_new_with_label@Base 3.99.0
  gtk_toggle_button_new_with_mnemonic@Base 3.99.0
  gtk_toggle_button_set_active@Base 3.99.0
+ gtk_toggle_button_set_group@Base 3.99.1
  gtk_toggle_button_toggled@Base 3.99.0
  gtk_tooltip_get_type@Base 3.99.0
  gtk_tooltip_set_custom@Base 3.99.0
