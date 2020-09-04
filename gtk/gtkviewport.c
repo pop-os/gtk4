@@ -49,14 +49,6 @@
  * capabilities. Use GtkViewport to scroll child widgets such as
  * #GtkGrid, #GtkBox, and so on.
  *
- * If a widget has native scrolling abilities, such as #GtkTextView,
- * #GtkTreeView or #GtkIconView, it can be added to a #GtkScrolledWindow
- * with gtk_container_add(). If a widget does not, you must first add the
- * widget to a #GtkViewport, then add the viewport to the scrolled window.
- * gtk_container_add() does this automatically if a child that does not
- * implement #GtkScrollable is added to a #GtkScrolledWindow, so you can
- * ignore the presence of the viewport.
- *
  * The GtkViewport will start scrolling content only if allocated less
  * than the child widget’s minimum size in a given orientation.
  *
@@ -483,7 +475,6 @@ gtk_viewport_init (GtkViewport *viewport)
   viewport->hadjustment = NULL;
   viewport->vadjustment = NULL;
 
-  gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_FRAME);
   viewport_set_adjustment (viewport, GTK_ORIENTATION_HORIZONTAL, NULL);
   viewport_set_adjustment (viewport, GTK_ORIENTATION_VERTICAL, NULL);
 }

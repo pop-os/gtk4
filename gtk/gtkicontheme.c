@@ -231,7 +231,7 @@ gtk_string_set_add (GtkStringSet *set,
  * All private functions that take a GtkIconTheme (or one of its
  * private data types (like IconThemeDir, UnthemedIcon, etc) arg are
  * expected to be called with the icon theme lock held, unless the
- * funcion has a _unlocked suffix. Any similar function that must be
+ * function has a _unlocked suffix. Any similar function that must be
  * called on the main thread, will have a _mainthread suffix.
  *
  * So the rules for such functions are:
@@ -332,7 +332,7 @@ struct _GtkIconTheme
   GtkSettings *display_settings;
 
   /* time when we last stat:ed for theme changes */
-  glong last_stat_time;
+  gint64 last_stat_time;
   GArray *dir_mtimes;
 
   gulong theme_changed_idle;
@@ -1395,7 +1395,7 @@ gtk_icon_theme_dispose (GObject *object)
    * we finalize on a thread and on the main thread some display or
    * setting signal is emitted.
    *
-   * It is possible that before we aquire the lock this happens
+   * It is possible that before we acquire the lock this happens
    * and the other thread refs the icon theme for some reason, but
    * this is ok as it is allowed to resurrect objects in dispose
    * (but not in finalize).
@@ -1966,7 +1966,6 @@ load_themes (GtkIconTheme *self)
   int base;
   char *dir;
   const char *file;
-  GTimeVal tv;
   GStatBuf stat_buf;
   int j;
 
@@ -2029,8 +2028,7 @@ load_themes (GtkIconTheme *self)
 
   self->themes_valid = TRUE;
 
-  g_get_current_time (&tv);
-  self->last_stat_time = tv.tv_sec;
+  self->last_stat_time = g_get_monotonic_time ();
 
   GTK_DISPLAY_NOTE (self->display, ICONTHEME, {
     GList *l;
@@ -2051,14 +2049,13 @@ static gboolean
 ensure_valid_themes (GtkIconTheme *self,
                      gboolean      non_blocking)
 {
-  GTimeVal tv;
   gboolean was_valid = self->themes_valid;
 
   if (self->themes_valid)
     {
-      g_get_current_time (&tv);
+      gint64 now = g_get_monotonic_time ();
 
-      if (ABS (tv.tv_sec - self->last_stat_time) > 5)
+      if ((now - self->last_stat_time) / G_USEC_PER_SEC > 5)
         {
           if (non_blocking)
             return FALSE;
@@ -2073,16 +2070,16 @@ ensure_valid_themes (GtkIconTheme *self,
 
   if (!self->themes_valid)
     {
-      gint64 before;
+      gint64 before G_GNUC_UNUSED;
+
       if (non_blocking)
         return FALSE;
 
-       before = g_get_monotonic_time ();
+       before = GDK_PROFILER_CURRENT_TIME;
 
       load_themes (self);
 
-      if (GDK_PROFILER_IS_RUNNING)
-        gdk_profiler_end_mark (before, "icon theme load", self->current_theme);
+      gdk_profiler_end_mark (before, "icon theme load", self->current_theme);
 
       if (was_valid)
         queue_theme_changed (self);
@@ -2749,7 +2746,6 @@ rescan_themes (GtkIconTheme *self)
 {
   int stat_res;
   GStatBuf stat_buf;
-  GTimeVal tv;
   guint i;
 
   for (i = 0; i < self->dir_mtimes->len; i++)
@@ -2771,8 +2767,7 @@ rescan_themes (GtkIconTheme *self)
       return TRUE;
     }
 
-  g_get_current_time (&tv);
-  self->last_stat_time = tv.tv_sec;
+  self->last_stat_time = g_get_monotonic_time ();
 
   return FALSE;
 }
@@ -3725,7 +3720,7 @@ icon_ensure_texture__locked (GtkIconPaintable *icon,
   if (icon->texture)
     return;
 
-  before = g_get_monotonic_time ();
+  before = GDK_PROFILER_CURRENT_TIME;
 
   /* This is the natural pixel size for the requested icon size + scale in this directory.
    * We precalculate this so we can use it as a rasterization size for svgs.
@@ -3830,11 +3825,13 @@ icon_ensure_texture__locked (GtkIconPaintable *icon,
 
   if (GDK_PROFILER_IS_RUNNING)
     {
-      guint64 end = g_get_monotonic_time ();
+      gint64 end = GDK_PROFILER_CURRENT_TIME;
       /* Don't report quick (< 0.5 msec) parses */
-      if (end - before > 500 || !in_thread)
-        gdk_profiler_add_markf (before, (end - before), in_thread ?  "icon load (thread)" : "icon load" ,
-                                "%s size %d@%d", icon->filename, icon->desired_size, icon->desired_scale);
+      if (end - before > 500000 || !in_thread)
+        {
+          gdk_profiler_add_markf (before, (end - before), in_thread ?  "icon load (thread)" : "icon load" ,
+                                  "%s size %d@%d", icon->filename, icon->desired_size, icon->desired_scale);
+        }
     }
 }
 

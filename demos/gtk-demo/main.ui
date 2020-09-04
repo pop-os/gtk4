@@ -70,6 +70,9 @@
 
                 <child>
                   <object class="GtkListView" id="listview">
+                    <style>
+                      <class name="navigation-sidebar"/>
+                    </style>
                     <property name="factory">
                       <object class="GtkBuilderListItemFactory">
                         <property name="resource">/ui/main-listitem.ui</property>
@@ -134,6 +137,10 @@
                         <property name="bottom-margin">20</property>
                         <property name="editable">0</property>
                         <property name="cursor-visible">0</property>
+                        <property name="monospace">1</property>
+                        <property name="wrap-mode">word</property>
+                        <property name="pixels-above-lines">2</property>
+                        <property name="pixels-below-lines">2</property>
                       </object>
                     </child>
                   </object>

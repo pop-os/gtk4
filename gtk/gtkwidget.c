@@ -82,8 +82,6 @@
 #include "gsk/gskrendererprivate.h"
 
 #include <cairo-gobject.h>
-#include <gobject/gobjectnotifyqueue.c>
-#include <gobject/gvaluecollector.h>
 #include <locale.h>
 #include <math.h>
 #include <stdarg.h>
@@ -120,8 +118,9 @@
  * itself or its child widgets, the #GtkWidgetClass.get_request_mode()
  * virtual function must be implemented as well and return the widget's
  * preferred request mode. The default implementation of this virtual function
- * returns %GTK_SIZE_REQUEST_CONSTANT_SIZE, which means that the widget will only ever
- * get -1 passed as the for_size value to its #GtkWidgetClass.measure() implementation.
+ * returns %GTK_SIZE_REQUEST_CONSTANT_SIZE, which means that the widget will
+ * only ever get -1 passed as the for_size value to its #GtkWidgetClass.measure()
+ * implementation.
  *
  * The geometry management system will query a widget hierarchy in
  * only one orientation at a time. When widgets are initially queried
@@ -131,18 +130,17 @@
  * For example, when queried in the normal
  * %GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH mode:
  * First, the default minimum and natural width for each widget
- * in the interface will be computed using gtk_widget_measure() with an orientation
- * of %GTK_ORIENTATION_HORIZONTAL and a for_size of -1.
+ * in the interface will be computed using gtk_widget_measure() with an
+ * orientation of %GTK_ORIENTATION_HORIZONTAL and a for_size of -1.
  * Because the preferred widths for each widget depend on the preferred
  * widths of their children, this information propagates up the hierarchy,
  * and finally a minimum and natural width is determined for the entire
  * toplevel. Next, the toplevel will use the minimum width to query for the
  * minimum height contextual to that width using gtk_widget_measure() with an
  * orientation of %GTK_ORIENTATION_VERTICAL and a for_size of the just computed
- * width. This will also be a highly recursive operation.
- * The minimum height for the minimum width is normally
- * used to set the minimum size constraint on the toplevel
- * (unless gtk_window_set_geometry_hints() is explicitly used instead).
+ * width. This will also be a highly recursive operation. The minimum height
+ * for the minimum width is normally used to set the minimum size constraint
+ * on the toplevel.
  *
  * After the toplevel window has initially requested its size in both
  * dimensions it can go on to allocate itself a reasonable size (or a size
@@ -270,8 +268,8 @@
  *     <object class="GtkLabel" id="label1">
  *       <property name="label">Description</property>
  *       <layout>
- *         <property name="left-attach">0</property>
- *         <property name="top-attach">0</property>
+ *         <property name="column">0</property>
+ *         <property name="row">0</property>
  *         <property name="row-span">1</property>
  *         <property name="col-span">1</property>
  *       </layout>
@@ -280,8 +278,8 @@
  *   <child>
  *     <object class="GtkEntry" id="description_entry">
  *       <layout>
- *         <property name="left-attach">1</property>
- *         <property name="top-attach">0</property>
+ *         <property name="column">1</property>
+ *         <property name="row">0</property>
  *         <property name="row-span">1</property>
  *         <property name="col-span">1</property>
  *       </layout>
@@ -800,16 +798,14 @@ _gtk_widget_grab_notify (GtkWidget *widget,
 			 gboolean   was_grabbed)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  int i;
+  GList *l;
 
-  if (!priv->controllers)
-    return;
   if (was_grabbed)
     return;
 
-  for (i = (int)priv->controllers->len - 1; i >= 0; i--)
+  for (l = g_list_last (priv->event_controllers); l; l = l->prev)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GtkEventController *controller = l->data;
 
       gtk_event_controller_reset (controller);
     }
@@ -819,19 +815,14 @@ static void
 gtk_widget_real_root (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  guint i;
+  GList *l;
 
   gtk_widget_forall (widget, (GtkCallback) gtk_widget_root, NULL);
 
-  if (!priv->controllers)
-    return;
-
-  for (i = 0; i < priv->controllers->len; i++)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
-
-      if (GTK_IS_SHORTCUT_CONTROLLER (controller))
-        gtk_shortcut_controller_root (GTK_SHORTCUT_CONTROLLER (controller));
+      if (GTK_IS_SHORTCUT_CONTROLLER (l->data))
+        gtk_shortcut_controller_root (GTK_SHORTCUT_CONTROLLER (l->data));
     }
 }
 
@@ -839,17 +830,12 @@ static void
 gtk_widget_real_unroot (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  guint i;
+  GList *l;
 
-  if (priv->controllers)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      for (i = 0; i < priv->controllers->len; i++)
-        {
-          GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
-
-          if (GTK_IS_SHORTCUT_CONTROLLER (controller))
-            gtk_shortcut_controller_unroot (GTK_SHORTCUT_CONTROLLER (controller));
-        }
+      if (GTK_IS_SHORTCUT_CONTROLLER (l->data))
+        gtk_shortcut_controller_unroot (GTK_SHORTCUT_CONTROLLER (l->data));
     }
 
   gtk_widget_forall (widget, (GtkCallback) gtk_widget_unroot, NULL);
@@ -1990,15 +1976,13 @@ _gtk_widget_get_last_event (GtkWidget         *widget,
                             GtkWidget        **target)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+  GtkEventController *controller;
   GdkEvent *event;
-  guint i;
+  GList *l;
 
-  if (!priv->controllers)
-    goto out;
-
-  for (i = 0; i < priv->controllers->len; i++)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      controller = l->data;
 
       if (!GTK_IS_GESTURE (controller))
         continue;
@@ -2011,7 +1995,6 @@ _gtk_widget_get_last_event (GtkWidget         *widget,
         }
     }
 
-out:
   *target = NULL;
   return NULL;
 }
@@ -2039,13 +2022,14 @@ _gtk_widget_get_emulating_sequence (GtkWidget         *widget,
            gdk_touch_event_get_emulating_pointer (last_event))
         return TRUE;
     }
-  else if (priv->controllers)
+  else
     {
-      guint i;
+      GList *l;
+
       /* For a NULL(pointer) sequence, find the pointer emulating one */
-      for (i = 0; i < priv->controllers->len; i++)
+      for (l = priv->event_controllers; l; l = l->next)
         {
-          GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+          GtkEventController *controller = l->data;
 
           if (!GTK_IS_GESTURE (controller))
             continue;
@@ -2065,17 +2049,14 @@ gtk_widget_needs_press_emulation (GtkWidget        *widget,
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
   gboolean sequence_press_handled = FALSE;
-  guint i;
-
-  if (!priv->controllers)
-    return FALSE;
+  GList *l;
 
   /* Check whether there is any remaining gesture in
    * the capture phase that handled the press event
    */
-  for (i = 0; i < priv->controllers->len; i++)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GtkEventController *controller = l->data;
       GtkPropagationPhase phase;
       GtkGesture *gesture;
 
@@ -2105,13 +2086,11 @@ _gtk_widget_set_sequence_state_internal (GtkWidget             *widget,
   gboolean emulates_pointer, sequence_handled = FALSE;
   GdkEvent *mimic_event;
   GtkWidget *target;
-  GList *group = NULL;
+  GList *group = NULL, *l;
   GdkEventSequence *seq;
   int n_handled = 0;
-  guint i;
 
-  if (state != GTK_EVENT_SEQUENCE_CLAIMED &&
-      (!priv->controllers || priv->controllers->len == 0))
+  if (!priv->event_controllers && state != GTK_EVENT_SEQUENCE_CLAIMED)
     return TRUE;
 
   if (emitter)
@@ -2120,14 +2099,15 @@ _gtk_widget_set_sequence_state_internal (GtkWidget             *widget,
   emulates_pointer = _gtk_widget_get_emulating_sequence (widget, sequence, &seq);
   mimic_event = _gtk_widget_get_last_event (widget, seq, &target);
 
-  for (i = 0; i < priv->controllers->len; i++)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GtkEventController *controller;
       GtkEventSequenceState gesture_state;
       GtkGesture *gesture;
       gboolean retval;
 
       seq = sequence;
+      controller = l->data;
       gesture_state = state;
 
       if (!GTK_IS_GESTURE (controller))
@@ -2194,19 +2174,17 @@ _gtk_widget_cancel_sequence (GtkWidget        *widget,
   gboolean emulates_pointer;
   gboolean handled = FALSE;
   GdkEventSequence *seq;
-  guint i;
-
-  if (!priv->controllers)
-    return FALSE;
+  GList *l;
 
   emulates_pointer = _gtk_widget_get_emulating_sequence (widget, sequence, &seq);
 
-  for (i = 0; i < priv->controllers->len; i++)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GtkEventController *controller;
       GtkGesture *gesture;
 
       seq = sequence;
+      controller = l->data;
 
       if (!GTK_IS_GESTURE (controller))
         continue;
@@ -4072,7 +4050,7 @@ gtk_widget_compute_point (GtkWidget              *widget,
       return FALSE;
     }
 
-  graphene_matrix_transform_point (&transform, point, out_point);
+  gsk_matrix_transform_point (&transform, point, out_point);
 
   return TRUE;
 }
@@ -4315,28 +4293,28 @@ gtk_widget_run_controllers (GtkWidget           *widget,
                             GtkWidget           *target,
                             double               x,
                             double               y,
-			    GtkPropagationPhase  phase)
+                            GtkPropagationPhase  phase)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+  GtkEventController *controller;
   gboolean handled = FALSE;
-  guint i;
-
-  if (!priv->controllers)
-    return FALSE;
+  GList *l;
 
   g_object_ref (widget);
 
-  for (i = 0; i < priv->controllers->len; i++)
+  l = priv->event_controllers;
+  while (l != NULL)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GList *next = l->next;
 
       if (!WIDGET_REALIZED_FOR_EVENT (widget, event))
         break;
 
+      controller = l->data;
+
       if (controller == NULL)
         {
-          g_ptr_array_remove_index (priv->controllers, i);
-          i--; /* Need to check this index again */
+          priv->event_controllers = g_list_delete_link (priv->event_controllers, l);
         }
       else
         {
@@ -4378,6 +4356,8 @@ gtk_widget_run_controllers (GtkWidget           *widget,
                 break;
             }
         }
+
+      l = next;
     }
 
   g_object_unref (widget);
@@ -4392,18 +4372,33 @@ gtk_widget_handle_crossing (GtkWidget             *widget,
                             double                 y)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  guint i;
-
-  if (!priv->controllers)
-    return;
+  GList *l;
 
   g_object_ref (widget);
 
-  for (i = 0; i < priv->controllers->len; i++)
+  if (crossing->old_target)
+    g_object_ref (crossing->old_target);
+  if (crossing->new_target)
+    g_object_ref (crossing->new_target);
+  if (crossing->old_descendent)
+    g_object_ref (crossing->old_descendent);
+  if (crossing->new_descendent)
+    g_object_ref (crossing->new_descendent);
+
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GtkEventController *controller = l->data;
       gtk_event_controller_handle_crossing (controller, crossing, x, y);
     }
+
+  if (crossing->old_target)
+    g_object_unref (crossing->old_target);
+  if (crossing->new_target)
+    g_object_unref (crossing->new_target);
+  if (crossing->old_descendent)
+    g_object_unref (crossing->old_descendent);
+  if (crossing->new_descendent)
+    g_object_unref (crossing->new_descendent);
 
   g_object_unref (widget);
 }
@@ -4697,8 +4692,9 @@ gtk_widget_real_css_changed (GtkWidget         *widget,
             {
               gtk_widget_queue_allocate (priv->parent);
             }
-          else if (gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_REDRAW) ||
-                   (has_text && gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TEXT_CONTENT)))
+
+          if (gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_REDRAW) ||
+              (has_text && gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TEXT_CONTENT)))
             {
               gtk_widget_queue_draw (widget);
             }
@@ -5132,9 +5128,9 @@ _gtk_widget_set_has_default (GtkWidget *widget,
   priv->has_default = has_default;
 
   if (has_default)
-    gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_DEFAULT);
+    gtk_widget_add_css_class (widget, "default");
   else
-    gtk_widget_remove_css_class (widget, GTK_STYLE_CLASS_DEFAULT);
+    gtk_widget_remove_css_class (widget, "default");
 }
 
 /**
@@ -5308,15 +5304,8 @@ gtk_widget_update_state_flags (GtkWidget     *widget,
  * values in the current widget state (insensitive, prelighted, etc.).
  *
  * This function accepts the values %GTK_STATE_FLAG_DIR_LTR and
- * %GTK_STATE_FLAG_DIR_RTL but ignores them. If you want to set the widget's
- * direction, use gtk_widget_set_direction().
- *
- * It is worth mentioning that any other state than %GTK_STATE_FLAG_INSENSITIVE,
- * will be propagated down to all non-internal children if @widget is a
- * #GtkContainer, while %GTK_STATE_FLAG_INSENSITIVE itself will be propagated
- * down to all #GtkContainer children by different means than turning on the
- * state flag down the hierarchy, both gtk_widget_get_state_flags() and
- * gtk_widget_is_sensitive() will make use of these.
+ * %GTK_STATE_FLAG_DIR_RTL but ignores them. If you want to set
+ * the widget's direction, use gtk_widget_set_direction().
  **/
 void
 gtk_widget_set_state_flags (GtkWidget     *widget,
@@ -5556,10 +5545,10 @@ gtk_widget_get_mapped (GtkWidget *widget)
  **/
 void
 gtk_widget_set_sensitive (GtkWidget *widget,
-			  gboolean   sensitive)
+                          gboolean   sensitive)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  guint i;
+  GList *l;
 
   g_return_if_fail (GTK_IS_WIDGET (widget));
 
@@ -5570,14 +5559,11 @@ gtk_widget_set_sensitive (GtkWidget *widget,
 
   priv->sensitive = sensitive;
 
-  if (priv->controllers)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      for (i = 0; i < priv->controllers->len; i++)
-        {
-          GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GtkEventController *controller = l->data;
 
-          gtk_event_controller_reset (controller);
-        }
+      gtk_event_controller_reset (controller);
     }
 
   gtk_accessible_update_state (GTK_ACCESSIBLE (widget),
@@ -6525,11 +6511,11 @@ gtk_widget_get_display (GtkWidget *widget)
  * gtk_widget_child_focus() is called by widgets as the user moves
  * around the window using keyboard shortcuts. @direction indicates
  * what kind of motion is taking place (up, down, left, right, tab
- * forward, tab backward). gtk_widget_child_focus() emits the
- * #GtkWidget::focus signal; widgets override the default handler
- * for this signal in order to implement appropriate focus behavior.
+ * forward, tab backward). gtk_widget_child_focus() calls the
+ * #GtkWidgetClass.focus() vfunc; widgets override this vfunc
+ * in order to implement appropriate focus behavior.
  *
- * The default ::focus handler for a widget should return %TRUE if
+ * The default focus() vfunc for a widget should return %TRUE if
  * moving in @direction left the focus on a focusable location inside
  * that widget, and %FALSE if moving in @direction moved the focus
  * outside the widget. If returning %TRUE, widgets normally
@@ -7211,18 +7197,11 @@ gtk_widget_real_destroy (GtkWidget *object)
 }
 
 static void
-gtk_widget_unset_controller (GtkWidget          *widget,
-                             GtkEventController *controller)
-{
-  GTK_EVENT_CONTROLLER_GET_CLASS (controller)->unset_widget (controller);
-  g_object_unref (controller);
-}
-
-static void
 gtk_widget_finalize (GObject *object)
 {
   GtkWidget *widget = GTK_WIDGET (object);
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+  GList *l;
 
   gtk_grab_remove (widget);
 
@@ -7240,17 +7219,18 @@ gtk_widget_finalize (GObject *object)
 
   _gtk_size_request_cache_free (&priv->requests);
 
-  if (priv->controllers)
+  l = priv->event_controllers;
+  while (l)
     {
-      guint i;
-      for (i = 0; i < priv->controllers->len; i++)
-        {
-          GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GList *next = l->next;
+      GtkEventController *controller = l->data;
 
-          gtk_widget_unset_controller (widget, controller);
-        }
-      g_ptr_array_free (priv->controllers, TRUE);
+      if (controller)
+        gtk_widget_remove_controller (widget, controller);
+
+      l = next;
     }
+  g_assert (priv->event_controllers == NULL);
 
   if (_gtk_widget_get_first_child (widget) != NULL)
     {
@@ -9024,9 +9004,8 @@ gtk_widget_remove_mnemonic_label (GtkWidget *widget,
  * gtk_widget_trigger_tooltip_query:
  * @widget: a #GtkWidget
  *
- * Triggers a tooltip query on the display where the toplevel of @widget
- * is located. See gtk_tooltip_trigger_tooltip_query() for more
- * information.
+ * Triggers a tooltip query on the display where the toplevel
+ * of @widget is located.
  */
 void
 gtk_widget_trigger_tooltip_query (GtkWidget *widget)
@@ -9246,17 +9225,19 @@ gtk_widget_get_has_tooltip (GtkWidget *widget)
  *
  * Retrieves the widget’s allocation.
  *
- * Note, when implementing a #GtkContainer: a widget’s allocation will
- * be its “adjusted” allocation, that is, the widget’s parent
- * container typically calls gtk_widget_size_allocate() with an
- * allocation, and that allocation is then adjusted (to handle margin
+ * Note, when implementing a layout container: a widget’s allocation
+ * will be its “adjusted” allocation, that is, the widget’s parent
+ * typically calls gtk_widget_size_allocate() with an allocation,
+ * and that allocation is then adjusted (to handle margin
  * and alignment for example) before assignment to the widget.
  * gtk_widget_get_allocation() returns the adjusted allocation that
  * was actually assigned to the widget. The adjusted allocation is
  * guaranteed to be completely contained within the
- * gtk_widget_size_allocate() allocation, however. So a #GtkContainer
- * is guaranteed that its children stay inside the assigned bounds,
- * but not that they have exactly the bounds the container assigned.
+ * gtk_widget_size_allocate() allocation, however.
+ *
+ * So a layout container is guaranteed that its children stay inside
+ * the assigned bounds, but not that they have exactly the bounds the
+ * container assigned.
  */
 void
 gtk_widget_get_allocation (GtkWidget     *widget,
@@ -9431,7 +9412,7 @@ gtk_widget_do_pick (GtkWidget    *widget,
  * Widgets are however free to customize their picking algorithm.
  *
  * This function is used on the toplevel to determine the widget below
- * the mouse cursor for purposes of hover hilighting and delivering events.
+ * the mouse cursor for purposes of hover highlighting and delivering events.
  *
  * Returns: (nullable) (transfer none): The widget descendant at the given
  *     coordinate or %NULL if none.
@@ -9566,9 +9547,9 @@ gtk_widget_compute_bounds (GtkWidget       *widget,
     }
 
   gtk_css_boxes_init (&boxes, widget);
-  graphene_matrix_transform_bounds (&transform,
-                                    gtk_css_boxes_get_border_rect (&boxes),
-                                    out_bounds);
+  gsk_matrix_transform_bounds (&transform,
+                               gtk_css_boxes_get_border_rect (&boxes),
+                               out_bounds);
 
   return TRUE;
 }
@@ -9620,7 +9601,7 @@ gtk_widget_get_allocated_height (GtkWidget *widget)
  * Returns the baseline that has currently been allocated to @widget.
  * This function is intended to be used when implementing handlers
  * for the #GtkWidgetClass.snapshot() function, and when allocating child
- * widgets in #GtkWidget::size_allocate.
+ * widgets in #GtkWidgetClass.size_allocate().
  *
  * Returns: the baseline of the @widget, or -1 if none
  **/
@@ -10761,27 +10742,7 @@ gtk_widget_add_controller (GtkWidget          *widget,
 
   GTK_EVENT_CONTROLLER_GET_CLASS (controller)->set_widget (controller, widget);
 
-  if (G_UNLIKELY (!priv->controllers))
-    priv->controllers = g_ptr_array_new ();
-
-  g_ptr_array_add (priv->controllers, controller);
-
-  if (priv->controller_observer)
-    gtk_list_list_model_item_added_at (priv->controller_observer, priv->controllers->len - 1);
-}
-
-void
-gtk_widget_prepend_controller (GtkWidget          *widget,
-                               GtkEventController *controller)
-{
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  GTK_EVENT_CONTROLLER_GET_CLASS (controller)->set_widget (controller, widget);
-
-  if (G_UNLIKELY (!priv->controllers))
-    priv->controllers = g_ptr_array_new ();
-
-  g_ptr_array_insert (priv->controllers, 0, controller);
+  priv->event_controllers = g_list_prepend (priv->event_controllers, controller);
 
   if (priv->controller_observer)
     gtk_list_list_model_item_added_at (priv->controller_observer, 0);
@@ -10803,28 +10764,21 @@ gtk_widget_remove_controller (GtkWidget          *widget,
                               GtkEventController *controller)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+  GList *before, *list;
 
   g_return_if_fail (GTK_IS_WIDGET (widget));
   g_return_if_fail (GTK_IS_EVENT_CONTROLLER (controller));
   g_return_if_fail (gtk_event_controller_get_widget (controller) == widget);
 
+  GTK_EVENT_CONTROLLER_GET_CLASS (controller)->unset_widget (controller);
+
+  list = g_list_find (priv->event_controllers, controller);
+  before = list->prev;
+  priv->event_controllers = g_list_delete_link (priv->event_controllers, list);
+  g_object_unref (controller);
+
   if (priv->controller_observer)
-    {
-      /* Here we care about the index */
-      guint index;
-
-      g_ptr_array_find (priv->controllers, controller, &index);
-
-      gtk_list_list_model_item_removed_at (priv->controller_observer, index);
-      g_ptr_array_remove_index_fast (priv->controllers, index);
-    }
-  else
-    {
-      /* XXX _fast really possible? */
-      g_ptr_array_remove_fast (priv->controllers, controller);
-    }
-
-  gtk_widget_unset_controller (widget, controller);
+    gtk_list_list_model_item_removed (priv->controller_observer, before);
 }
 
 gboolean
@@ -10836,14 +10790,11 @@ gtk_widget_consumes_motion (GtkWidget        *widget,
 
   while (widget != NULL && widget != parent)
     {
-      guint i;
+      GList *l;
 
-      if (!priv->controllers)
-        goto next;
-
-      for (i = 0; i < priv->controllers->len; i++)
+      for (l = priv->event_controllers; l; l = l->next)
         {
-          GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+          GtkEventController *controller = l->data;
 
           if (controller == NULL ||
               !GTK_IS_GESTURE (controller))
@@ -10856,7 +10807,6 @@ gtk_widget_consumes_motion (GtkWidget        *widget,
             return TRUE;
         }
 
-next:
       widget = priv->parent;
       priv = gtk_widget_get_instance_private (widget);
     }
@@ -10868,15 +10818,12 @@ void
 gtk_widget_reset_controllers (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  guint i;
-
-  if (!priv->controllers)
-    return;
+  GList *l;
 
   /* Reset all controllers */
-  for (i = 0; i < priv->controllers->len; i++)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GtkEventController *controller = l->data;
 
       if (controller == NULL)
         continue;
@@ -10892,13 +10839,13 @@ gtk_widget_list_controllers (GtkWidget           *widget,
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
   GPtrArray *controllers = g_ptr_array_new ();
-  guint i;
+  GList *l;
 
   g_assert (out_n_controllers);
 
-  for (i = 0; i < priv->controllers->len; i++)
+  for (l = priv->event_controllers; l; l = l->next)
     {
-      GtkEventController *controller = g_ptr_array_index (priv->controllers, i);
+      GtkEventController *controller = l->data;
 
       if (gtk_event_controller_get_propagation_phase (controller) == phase)
         g_ptr_array_add (controllers, controller);
@@ -11023,8 +10970,11 @@ gtk_widget_render (GtkWidget            *widget,
   GskRenderer *renderer;
   GskRenderNode *root;
   double x, y;
-  gint64 before_snapshot = g_get_monotonic_time ();
-  gint64 before_render = 0;
+  gint64 before_snapshot G_GNUC_UNUSED;
+  gint64 before_render G_GNUC_UNUSED;
+
+  before_snapshot = GDK_PROFILER_CURRENT_TIME;
+  before_render = 0;
 
   if (!GTK_IS_NATIVE (widget))
     return;
@@ -11041,7 +10991,7 @@ gtk_widget_render (GtkWidget            *widget,
 
   if (GDK_PROFILER_IS_RUNNING)
     {
-      before_render = g_get_monotonic_time ();
+      before_render = GDK_PROFILER_CURRENT_TIME;
       gdk_profiler_add_mark (before_snapshot, (before_render - before_snapshot), "widget snapshot", "");
     }
 
@@ -11057,8 +11007,7 @@ gtk_widget_render (GtkWidget            *widget,
 
       gsk_render_node_unref (root);
 
-      if (GDK_PROFILER_IS_RUNNING)
-        gdk_profiler_end_mark (before_render, "widget render", "");
+      gdk_profiler_end_mark (before_render, "widget render", "");
     }
 }
 
@@ -11118,42 +11067,28 @@ gtk_widget_controller_observer_destroyed (gpointer widget)
 static gpointer
 gtk_widget_controller_list_get_first (gpointer widget)
 {
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-
-  if (priv->controllers)
-    return g_ptr_array_index (priv->controllers, 0);
-
-  return NULL;
+  return GTK_WIDGET (widget)->priv->event_controllers;
 }
 
 static gpointer
 gtk_widget_controller_list_get_next (gpointer item,
                                      gpointer widget)
 {
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  guint index;
-
-  g_ptr_array_find (priv->controllers, item, &index);
-
-  if (index + 1 <= priv->controllers->len - 1)
-    return g_ptr_array_index (priv->controllers, index + 1);
-
-  return NULL;
+  return g_list_next (item);
 }
 
 static gpointer
 gtk_widget_controller_list_get_prev (gpointer item,
                                      gpointer widget)
 {
-  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  guint index;
+  return g_list_previous (item);
+}
 
-  g_ptr_array_find (priv->controllers, item, &index);
-
-  if (index >= 0)
-    return g_ptr_array_index (priv->controllers, index - 1);
-
-  return NULL;
+static gpointer
+gtk_widget_controller_list_get_item (gpointer item,
+                                      gpointer widget)
+{
+  return g_object_ref (((GList *) item)->data);
 }
 
 /**
@@ -11186,7 +11121,7 @@ gtk_widget_observe_controllers (GtkWidget *widget)
                                                        gtk_widget_controller_list_get_next,
                                                        gtk_widget_controller_list_get_prev,
                                                        NULL,
-                                                       (gpointer) g_object_ref,
+                                                       gtk_widget_controller_list_get_item,
                                                        widget,
                                                        gtk_widget_controller_observer_destroyed);
 
@@ -12170,13 +12105,13 @@ gtk_widget_update_orientation (GtkWidget      *widget,
 
   if (orientation == GTK_ORIENTATION_HORIZONTAL)
     {
-      gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_HORIZONTAL);
-      gtk_widget_remove_css_class (widget, GTK_STYLE_CLASS_VERTICAL);
+      gtk_widget_add_css_class (widget, "horizontal");
+      gtk_widget_remove_css_class (widget, "vertical");
     }
   else
     {
-      gtk_widget_add_css_class (widget, GTK_STYLE_CLASS_VERTICAL);
-      gtk_widget_remove_css_class (widget, GTK_STYLE_CLASS_HORIZONTAL);
+      gtk_widget_add_css_class (widget, "vertical");
+      gtk_widget_remove_css_class (widget, "horizontal");
     }
 }
 

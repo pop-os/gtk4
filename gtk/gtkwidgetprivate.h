@@ -171,7 +171,7 @@ struct _GtkWidgetPrivate
 
   GSList *paintables;
 
-  GPtrArray *controllers;
+  GList *event_controllers;
 
   /* Widget tree */
   GtkWidget *parent;
@@ -306,6 +306,9 @@ void              gtk_widget_adjust_baseline_request       (GtkWidget *widget,
                                                             int       *minimum_baseline,
                                                             int       *natural_baseline);
 
+typedef void    (*GtkCallback)     (GtkWidget        *widget,
+                                    gpointer          data);
+
 void              gtk_widget_forall                        (GtkWidget            *widget,
                                                             GtkCallback           callback,
                                                             gpointer              user_data);
@@ -337,9 +340,6 @@ gboolean          gtk_widget_run_controllers               (GtkWidget           
                                                             double               x,
                                                             double               y,
                                                             GtkPropagationPhase  phase);
-
-void              gtk_widget_prepend_controller            (GtkWidget             *widget,
-                                                            GtkEventController    *controller);
 void              gtk_widget_handle_crossing               (GtkWidget             *widget,
                                                             const GtkCrossingData *crossing,
                                                             double                 x,

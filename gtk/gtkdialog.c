@@ -389,10 +389,10 @@ update_suggested_action (GtkDialog *dialog,
 
   if (priv->use_header_bar)
     {
-      if (gtk_widget_has_css_class (child, GTK_STYLE_CLASS_DEFAULT))
-        gtk_widget_add_css_class (child, GTK_STYLE_CLASS_SUGGESTED_ACTION);
+      if (gtk_widget_has_css_class (child, "default"))
+        gtk_widget_add_css_class (child, "suggested-action");
       else
-        gtk_widget_remove_css_class (child, GTK_STYLE_CLASS_SUGGESTED_ACTION);
+        gtk_widget_remove_css_class (child, "suggested-action");
     }
 }
 
@@ -730,7 +730,7 @@ gtk_dialog_new_empty (const char      *title,
  *
  * Here’s a simple example:
  * |[<!-- language="C" -->
- *  GtkWidget *main_app_window; // Window the dialog should show up on
+ *  GtkWindow *main_app_window; // Window the dialog should show up on
  *  GtkWidget *dialog;
  *  GtkDialogFlags flags = GTK_DIALOG_MODAL | GTK_DIALOG_DESTROY_WITH_PARENT;
  *  dialog = gtk_dialog_new_with_buttons ("My dialog",

@@ -49,7 +49,6 @@ gsk/gskrendernodeimpl.c
 gtk/css/gtkcssdataurl.c
 gtk/gtkaboutdialog.c
 gtk/gtkaccelgroup.c
-gtk/gtkaccellabel.c
 gtk/gtkaccessible.c
 gtk/gtkactionable.c
 gtk/gtkactionbar.c
@@ -60,6 +59,7 @@ gtk/gtkappchooser.c
 gtk/gtkappchooserdialog.c
 gtk/gtkappchooserwidget.c
 gtk/gtkapplication.c
+gtk/gtkapplication-dbus.c
 gtk/gtkapplication-quartz.c
 gtk/gtkapplicationwindow.c
 gtk/gtkaspectframe.c

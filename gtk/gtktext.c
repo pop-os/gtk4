@@ -309,6 +309,7 @@ static void   gtk_text_dispose              (GObject      *object);
  */
 static void   gtk_text_realize              (GtkWidget        *widget);
 static void   gtk_text_unrealize            (GtkWidget        *widget);
+static void   gtk_text_map                  (GtkWidget        *widget);
 static void   gtk_text_unmap                (GtkWidget        *widget);
 static void   gtk_text_measure              (GtkWidget        *widget,
                                              GtkOrientation    orientation,
@@ -325,6 +326,9 @@ static void   gtk_text_snapshot             (GtkWidget        *widget,
                                              GtkSnapshot      *snapshot);
 static void   gtk_text_focus_in             (GtkWidget            *widget);
 static void   gtk_text_focus_out            (GtkWidget            *widget);
+static void   gtk_text_focus_changed        (GtkEventControllerFocus *focus,
+                                             GParamSpec              *pspec,
+                                             GtkWidget               *widget);
 static gboolean gtk_text_grab_focus         (GtkWidget        *widget);
 static void   gtk_text_css_changed          (GtkWidget        *widget,
                                              GtkCssStyleChange *change);
@@ -710,6 +714,7 @@ gtk_text_class_init (GtkTextClass *class)
   gobject_class->set_property = gtk_text_set_property;
   gobject_class->get_property = gtk_text_get_property;
 
+  widget_class->map = gtk_text_map;
   widget_class->unmap = gtk_text_unmap;
   widget_class->realize = gtk_text_realize;
   widget_class->unrealize = gtk_text_unrealize;
@@ -1892,10 +1897,8 @@ gtk_text_init (GtkText *self)
 
   controller = gtk_event_controller_focus_new ();
   gtk_event_controller_set_name (controller, "gtk-text-focus-controller");
-  g_signal_connect_swapped (controller, "enter",
-                            G_CALLBACK (gtk_text_focus_in), self);
-  g_signal_connect_swapped (controller, "leave",
-                            G_CALLBACK (gtk_text_focus_out), self);
+  g_signal_connect (controller, "notify::is-focus",
+                    G_CALLBACK (gtk_text_focus_changed), self);
   gtk_widget_add_controller (GTK_WIDGET (self), controller);
 
   widget_node = gtk_widget_get_css_node (GTK_WIDGET (self));
@@ -1903,7 +1906,7 @@ gtk_text_init (GtkText *self)
     {
       priv->undershoot_node[i] = gtk_css_node_new ();
       gtk_css_node_set_name (priv->undershoot_node[i], g_quark_from_static_string ("undershoot"));
-      gtk_css_node_add_class (priv->undershoot_node[i], g_quark_from_static_string (i == 0 ? GTK_STYLE_CLASS_LEFT : GTK_STYLE_CLASS_RIGHT));
+      gtk_css_node_add_class (priv->undershoot_node[i], g_quark_from_static_string (i == 0 ? "left" : "right"));
       gtk_css_node_set_parent (priv->undershoot_node[i], widget_node);
       gtk_css_node_set_state (priv->undershoot_node[i], gtk_css_node_get_state (widget_node) & ~GTK_STATE_FLAG_DROP_ACTIVE);
       g_object_unref (priv->undershoot_node[i]);
@@ -2129,6 +2132,16 @@ gtk_text_get_display_text (GtkText *self,
 
       return g_string_free (str, FALSE);
     }
+}
+
+static void
+gtk_text_map (GtkWidget *widget)
+{
+  GtkText *self = GTK_TEXT (widget);
+
+  GTK_WIDGET_CLASS (gtk_text_parent_class)->map (widget);
+
+  gtk_text_recompute (self);
 }
 
 static void
@@ -3184,6 +3197,17 @@ gtk_text_focus_out (GtkWidget *widget)
   gtk_text_check_cursor_blink (self);
 }
 
+static void
+gtk_text_focus_changed (GtkEventControllerFocus *controller,
+                        GParamSpec              *pspec,
+                        GtkWidget               *widget)
+{
+  if (gtk_event_controller_focus_is_focus (controller))
+    gtk_text_focus_in (widget);
+  else
+    gtk_text_focus_out (widget);
+}
+
 static gboolean
 gtk_text_grab_focus (GtkWidget *widget)
 {
@@ -3284,8 +3308,6 @@ static void
 gtk_text_root (GtkWidget *widget)
 {
   GTK_WIDGET_CLASS (gtk_text_parent_class)->root (widget);
-
-  gtk_text_recompute (GTK_TEXT (widget));
 }
 
 /* GtkEditable method implementations
@@ -3431,7 +3453,7 @@ gtk_text_update_cached_style_values (GtkText *self)
 {
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
 
-  if (!priv->invisible_char_set)
+  if (!priv->visible && !priv->invisible_char_set)
     {
       gunichar ch = find_invisible_char (GTK_WIDGET (self));
 
@@ -4329,15 +4351,15 @@ static void
 gtk_text_recompute (GtkText *self)
 {
   gtk_text_reset_layout (self);
-  gtk_text_check_cursor_blink (self);
-
-  gtk_text_adjust_scroll (self);
-
-  update_im_cursor_location (self);
-
-  gtk_text_update_handles (self);
-
   gtk_widget_queue_draw (GTK_WIDGET (self));
+
+  if (!gtk_widget_get_mapped (GTK_WIDGET (self)))
+    return;
+
+  gtk_text_check_cursor_blink (self);
+  gtk_text_adjust_scroll (self);
+  update_im_cursor_location (self);
+  gtk_text_update_handles (self);
 }
 
 static PangoLayout *
@@ -5383,11 +5405,11 @@ gtk_text_set_editable (GtkText  *self,
           priv->preedit_length = 0;
           priv->preedit_cursor = 0;
 
-          gtk_widget_remove_css_class (GTK_WIDGET (self), GTK_STYLE_CLASS_READ_ONLY);
+          gtk_widget_remove_css_class (GTK_WIDGET (self), "read-only");
         }
       else
         {
-          gtk_widget_add_css_class (GTK_WIDGET (self), GTK_STYLE_CLASS_READ_ONLY);
+          gtk_widget_add_css_class (GTK_WIDGET (self), "read-only");
         }
 
       priv->editable = is_editable;
@@ -5540,11 +5562,13 @@ gtk_text_set_invisible_char (GtkText  *self,
  * @self: a #GtkText
  *
  * Retrieves the character displayed in place of the real characters
- * for entries with visibility set to false.
- * See gtk_text_set_invisible_char().
+ * for entries with visibility set to false. Note that GTK does not
+ * compute this value unless it needs it, so the value returned by
+ * this function is not very useful unless it has been explicitly
+ * set with gtk_text_set_invisible_char()
  *
- * Returns: the current invisible char, or 0, if the self does not
- *               show invisible text at all. 
+ * Returns: the current invisible char, or 0, if @text does not
+ *               show invisible text at all.
  **/
 gunichar
 gtk_text_get_invisible_char (GtkText *self)
@@ -6083,7 +6107,7 @@ gtk_text_selection_bubble_popup_show (gpointer user_data)
 
   priv->selection_bubble = gtk_popover_new ();
   gtk_widget_set_parent (priv->selection_bubble, GTK_WIDGET (self));
-  gtk_widget_add_css_class (priv->selection_bubble, GTK_STYLE_CLASS_TOUCH_SELECTION);
+  gtk_widget_add_css_class (priv->selection_bubble, "touch-selection");
   gtk_popover_set_position (GTK_POPOVER (priv->selection_bubble), GTK_POS_BOTTOM);
   gtk_popover_set_autohide (GTK_POPOVER (priv->selection_bubble), FALSE);
   g_signal_connect (priv->selection_bubble, "notify::visible",
@@ -6801,6 +6825,7 @@ gtk_text_insert_emoji (GtkText *self)
 
       gtk_widget_set_parent (chooser, GTK_WIDGET (self));
       g_signal_connect (chooser, "emoji-picked", G_CALLBACK (emoji_picked), self);
+      g_signal_connect_swapped (chooser, "hide", G_CALLBACK (gtk_widget_grab_focus), self);
     }
 
   gtk_popover_popup (GTK_POPOVER (chooser));

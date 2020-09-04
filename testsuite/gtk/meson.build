@@ -104,7 +104,7 @@ tests = [
   { 'name': 'theme-validate' },
   {
     'name': 'timsort',
-    'sources': ['timsort.c', '../../gtk/gtktimsort.c'],
+    'sources': ['timsort.c', '../../gtk/timsort/gtktimsort.c'],
   },
   { 'name': 'tooltips' },
   { 'name': 'treelistmodel' },
@@ -260,7 +260,7 @@ endforeach
 
 if get_option('install-tests')
   foreach t : tests
-    test_name = t.get(0)
+    test_name = t.get('name')
     conf = configuration_data()
     conf.set('testexecdir', testexecdir)
     conf.set('test', test_name)
@@ -271,6 +271,7 @@ if get_option('install-tests')
   endforeach
 
   install_subdir('icons', install_dir: testexecdir)
+  install_subdir('icons2', install_dir: testexecdir)
   install_subdir('ui', install_dir: testexecdir)
 
 endif

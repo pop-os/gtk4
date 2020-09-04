@@ -55,7 +55,8 @@
  * button in it).
  *
  * Although a #GtkListBox must have only #GtkListBoxRow children you can
- * add any kind of widget to it via gtk_container_add(), and a #GtkListBoxRow
+ * add any kind of widget to it via gtk_list_box_prepend(),
+ * gtk_list_box_append() and gtk_list_box_insert() and a #GtkListBoxRow
  * widget will automatically be inserted between the list and the widget.
  *
  * #GtkListBoxRows can be marked as activatable or selectable. If a row
@@ -74,14 +75,18 @@
  * # CSS nodes
  *
  * |[<!-- language="plain" -->
- * list[.separators]
+ * list[.separators][.rich-list][.navigation-sidebar]
  * ╰── row[.activatable]
  * ]|
  *
- * GtkListBox uses a single CSS node named list. It may carry the .separators style
- * class, when the #GtkListBox:show-separators property is set. Each GtkListBoxRow uses
- * a single CSS node named row. The row nodes get the .activatable
- * style class added when appropriate.
+ * GtkListBox uses a single CSS node named list. It may carry the .separators
+ * style class, when the #GtkListBox:show-separators property is set. Each
+ * GtkListBoxRow uses a single CSS node named row. The row nodes get the
+ * .activatable style class added when appropriate.
+ *
+ * The main list node may also carry style classes to select
+ * the style of [list presentation](ListContainers.html#list-styles):
+ * .rich-list, .navigation-sidebar or .data-table.
  */
 
 typedef struct _GtkListBoxClass   GtkListBoxClass;
@@ -535,7 +540,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
 
   /**
    * GtkListBox::selected-rows-changed:
-   * @box: the #GtkListBox on wich the signal is emitted
+   * @box: the #GtkListBox on which the signal is emitted
    *
    * The ::selected-rows-changed signal is emitted when the
    * set of selected rows changes.
@@ -2574,8 +2579,7 @@ gtk_list_box_size_allocate (GtkWidget *widget,
  * @child: the #GtkWidget to add
  *
  * Prepend a widget to the list. If a sort function is set, the widget will
- * actually be inserted at the calculated position and this function has the
- * same effect of gtk_container_add().
+ * actually be inserted at the calculated position.
  */
 void
 gtk_list_box_prepend (GtkListBox *box,
@@ -2585,14 +2589,28 @@ gtk_list_box_prepend (GtkListBox *box,
 }
 
 /**
+ * gtk_list_box_append:
+ * @box: a #GtkListBox
+ * @child: the #GtkWidget to add
+ *
+ * Append a widget to the list. If a sort function is set, the widget will
+ * actually be inserted at the calculated position.
+ */
+void
+gtk_list_box_append (GtkListBox *box,
+                     GtkWidget  *child)
+{
+  gtk_list_box_insert (box, child, -1);
+}
+
+/**
  * gtk_list_box_insert:
  * @box: a #GtkListBox
  * @child: the #GtkWidget to add
  * @position: the position to insert @child in
  *
  * Insert the @child into the @box at @position. If a sort function is
- * set, the widget will actually be inserted at the calculated position and
- * this function has the same effect of gtk_container_add().
+ * set, the widget will actually be inserted at the calculated position.
  *
  * If @position is -1, or larger than the total number of items in the
  * @box, then the @child will be appended to the end.
@@ -2676,8 +2694,9 @@ gtk_list_box_drag_unhighlight_row (GtkListBox *box)
  * @row: a #GtkListBoxRow
  *
  * This is a helper function for implementing DnD onto a #GtkListBox.
- * The passed in @row will be highlighted via gtk_drag_highlight(),
- * and any previously highlighted row will be unhighlighted.
+ * The passed in @row will be highlighted by setting the
+ * #GTK_STATE_FLAG_DROP_ACTIVE state and any previously highlighted
+ * row will be unhighlighted.
  *
  * The row will also be unhighlighted when the widget gets
  * a drag leave event.
@@ -3562,7 +3581,7 @@ gtk_list_box_check_model_compat (GtkListBox *box)
  * If @model is %NULL, @box is left empty.
  *
  * It is undefined to add or remove widgets directly (for example, with
- * gtk_list_box_insert() or gtk_container_add()) while @box is bound to a
+ * gtk_list_box_insert()) while @box is bound to a
  * model.
  *
  * Note that using a model is incompatible with the filtering and sorting

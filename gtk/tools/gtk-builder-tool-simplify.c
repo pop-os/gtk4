@@ -187,8 +187,8 @@ needs_explicit_setting (GParamSpec *pspec,
     { "GtkRadioButton", "draw-indicator", PROP_KIND_OBJECT },
     { "GtkWidget", "hexpand", PROP_KIND_OBJECT },
     { "GtkWidget", "vexpand", PROP_KIND_OBJECT },
-    { "GtkGridLayoutChild", "top-attach", PROP_KIND_LAYOUT },
-    { "GtkGridLayoutChild", "left-attach", PROP_KIND_LAYOUT },
+    { "GtkGridLayoutChild", "row", PROP_KIND_LAYOUT },
+    { "GtkGridLayoutChild", "column", PROP_KIND_LAYOUT },
   };
   gboolean found;
   int k;
@@ -231,8 +231,8 @@ keep_for_rewrite (const char *class_name,
     { "GtkPaned", "shrink", PROP_KIND_PACKING },
     { "GtkOverlay", "measure", PROP_KIND_PACKING },
     { "GtkOverlay", "clip-overlay", PROP_KIND_PACKING },
-    { "GtkGrid", "left-attach", PROP_KIND_PACKING },
-    { "GtkGrid", "top-attach", PROP_KIND_PACKING },
+    { "GtkGrid", "column", PROP_KIND_PACKING },
+    { "GtkGrid", "row", PROP_KIND_PACKING },
     { "GtkGrid", "width", PROP_KIND_PACKING },
     { "GtkGrid", "height", PROP_KIND_PACKING },
     { "GtkStack", "name", PROP_KIND_PACKING },
@@ -1434,21 +1434,21 @@ rewrite_grid_layout_prop (Element *element,
                           const char *old_value,
                           const char *new_value)
 {
-  char *canonical_name;
-
-  canonical_name = g_strdup (old_value);
-  g_strdelimit (canonical_name, "_", '-');
-
   if (g_str_equal (element->element_name, "property"))
     {
+      char *canonical_name;
+
+      canonical_name = g_strdup (old_value);
+      g_strdelimit (canonical_name, "_", '-');
+
       if (has_attribute (element, attr_name, old_value) ||
           has_attribute (element, attr_name, canonical_name))
         {
           set_attribute_value (element, attr_name, new_value);
         }
-    }
 
-  g_free (canonical_name);
+      g_free (canonical_name);
+    }
 }
 
 static void
@@ -1460,6 +1460,8 @@ rewrite_grid_layout (Element *element,
     const char *old_value;
     const char *new_value;
   } props[] = {
+    { "name", "left_attach", "column", },
+    { "name", "top_attach", "row", },
     { "name", "width", "column-span", },
     { "name", "height", "row-span", },
   };
@@ -1512,6 +1514,160 @@ rewrite_grid_layout (Element *element,
     }
 }
 
+
+static Element *
+write_box_prop (Element *element,
+                Element *parent,
+                const char *name,
+                const char *value)
+{
+
+  if (element)
+    g_free (element->data);
+  else
+    {
+      element = g_new0 (Element, 1);
+      element->parent = parent;
+      element->element_name = g_strdup ("property");
+      element->attribute_names = g_new0 (char *, 2);
+      element->attribute_names[0] = g_strdup ("name");
+      element->attribute_values = g_new0 (char *, 2);
+      element->attribute_values[0] = g_strdup (name);
+      parent->children = g_list_prepend (parent->children, element);
+    }
+  element->data = g_strdup (value);
+  return element;
+}
+
+static void
+rewrite_box (Element *element,
+             MyParserData *data)
+{
+  GList *l, *ll;
+  GtkOrientation orientation = GTK_ORIENTATION_HORIZONTAL;
+
+  if (g_str_equal (get_class_name (element), "GtkVBox"))
+    write_box_prop (NULL, element, "orientation", "vertical");
+
+  if (!g_str_equal (get_class_name (element), "GtkBox"))
+    set_attribute_value (element, "class", "GtkBox");
+
+  for (l = element->children; l; l = l->next)
+    {
+      Element *child = l->data;
+
+      if (g_str_equal (child->element_name, "property"))
+        {
+          if (has_attribute (child, "name", "orientation"))
+            {
+              GValue value = G_VALUE_INIT;
+
+              if (gtk_builder_value_from_string_type (data->builder,
+                                                      GTK_TYPE_ORIENTATION,
+                                                      child->data,
+                                                      &value,
+                                                      NULL))
+                orientation = g_value_get_enum (&value);
+            }
+        }
+    }
+
+  for (l = element->children; l; l = l->next)
+    {
+      Element *child = l->data;
+      if (g_str_equal (child->element_name, "child"))
+        {
+          Element *object = NULL;
+          Element *packing = NULL;
+
+          for (ll = child->children; ll; ll = ll->next)
+            {
+              Element *elt2 = ll->data;
+
+              if (g_str_equal (elt2->element_name, "object"))
+                object = elt2;
+
+              if (g_str_equal (elt2->element_name, "packing"))
+                packing = elt2;
+            }
+
+          if (object && packing)
+            {
+              Element *halign = NULL;
+              Element *hexpand = NULL;
+              Element *valign = NULL;
+              Element *vexpand = NULL;
+
+              gboolean expand = FALSE;
+              gboolean fill = TRUE;
+
+              for (ll = object->children; ll; ll = ll->next)
+                {
+                  Element *elt = ll->data;
+                  if (g_str_equal (elt->element_name, "property"))
+                    {
+                      if (has_attribute (elt, "name", "halign"))
+                        halign = elt;
+                      else if (has_attribute (elt, "name", "hexpand"))
+                        hexpand = elt;
+                      else if (has_attribute (elt, "name", "valign"))
+                        valign = elt;
+                      else if (has_attribute (elt, "name", "vexpand"))
+                        vexpand = elt;
+                    }
+                }
+
+              for (ll = packing->children; ll; ll = ll->next)
+                {
+                  Element *elt = ll->data;
+
+                  if (has_attribute (elt, "name", "expand"))
+                    {
+                      GValue value = G_VALUE_INIT;
+
+                      if (gtk_builder_value_from_string_type (data->builder,
+                                                              G_TYPE_BOOLEAN,
+                                                              elt->data,
+                                                              &value,
+                                                              NULL))
+                        expand = g_value_get_boolean (&value);
+                    }
+
+                  if (has_attribute (elt, "name", "fill"))
+                    {
+                      GValue value = G_VALUE_INIT;
+
+                      if (gtk_builder_value_from_string_type (data->builder,
+                                                              G_TYPE_BOOLEAN,
+                                                              elt->data,
+                                                              &value,
+                                                              NULL))
+                        fill = g_value_get_boolean (&value);
+                    }
+                }
+
+              if (orientation == GTK_ORIENTATION_HORIZONTAL)
+                {
+                  if (expand)
+                    hexpand = write_box_prop (hexpand, object, "hexpand", "1");
+                  if (!fill)
+                    halign = write_box_prop (halign, object, "halign", "center");
+                }
+              else if (orientation == GTK_ORIENTATION_VERTICAL)
+                {
+                  if (expand)
+                    vexpand = write_box_prop (vexpand, object, "vexpand", "1");
+                  if (!fill)
+                    valign = write_box_prop (valign, object, "valign", "center");
+                }
+
+              child->children = g_list_remove (child->children, packing);
+              free_element (packing);
+            }
+        }
+    }
+}
+
 static void
 rewrite_bin_child (Element      *element,
                    MyParserData *data)
@@ -1557,6 +1713,58 @@ rewrite_bin_child (Element      *element,
           child->attribute_names[0] = g_strdup ("name");
           child->attribute_values = g_new0 (char *, 2);
           child->attribute_values[0] = g_strdup ("child");
+          break;
+        }
+    }
+}
+
+static gboolean
+remove_boolean_prop (Element      *element,
+                     MyParserData *data,
+                     const char   *prop_name,
+                     gboolean     *value)
+{
+  GList *l;
+
+  for (l = element->children; l; l = l->next)
+    {
+      Element *child = l->data;
+
+      if (g_str_equal (child->element_name, "property") &&
+          has_attribute (child, "name", prop_name))
+        {
+          *value = strcmp (canonical_boolean_value (data, child->data), "1") == 0;
+          element->children = g_list_remove (element->children, child);
+          free_element (child);
+          return TRUE;
+        }
+    }
+
+  return FALSE;
+}
+
+static void
+rewrite_radio_button (Element      *element,
+                      MyParserData *data)
+{
+  int i;
+  gboolean draw_indicator = TRUE;
+  const char *new_class;
+
+  if (!remove_boolean_prop (element, data, "draw-indicator", &draw_indicator))
+    remove_boolean_prop (element, data, "draw_indicator", &draw_indicator);
+
+  if (draw_indicator)
+    new_class = "GtkCheckButton";
+  else
+    new_class = "GtkToggleButton";
+
+  for (i = 0; element->attribute_names[i]; i++)
+    {
+      if (strcmp (element->attribute_names[i], "class") == 0)
+        {
+          g_free (element->attribute_values[i]);
+          element->attribute_values[i] = g_strdup (new_class);
           break;
         }
     }
@@ -1681,6 +1889,12 @@ rewrite_element (Element      *element,
     rewrite_grid_layout (element, data);
 
   if (element_is_object_or_template (element) &&
+      (g_str_equal (get_class_name (element), "GtkHBox") ||
+       g_str_equal (get_class_name (element), "GtkVBox") ||
+       g_str_equal (get_class_name (element), "GtkBox")))
+    rewrite_box (element, data);
+
+  if (element_is_object_or_template (element) &&
       g_str_equal (get_class_name (element), "GtkFixed"))
     rewrite_layout_props (element, data);
 
@@ -1700,6 +1914,10 @@ rewrite_element (Element      *element,
        g_str_equal (get_class_name (element), "GtkViewport") ||
        g_str_equal (get_class_name (element), "GtkWindow")))
     rewrite_bin_child (element, data);
+
+  if (element_is_object_or_template (element) &&
+      g_str_equal (get_class_name (element), "GtkRadioButton"))
+    rewrite_radio_button (element, data);
 
   if (g_str_equal (element->element_name, "property"))
     maybe_rename_property (element, data);

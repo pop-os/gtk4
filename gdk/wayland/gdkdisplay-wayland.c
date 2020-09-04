@@ -755,6 +755,8 @@ gdk_wayland_display_finalize (GObject *object)
 
   g_clear_object (&display_wayland->settings_portal);
 
+  wl_display_disconnect (display_wayland->wl_display);
+
   G_OBJECT_CLASS (gdk_wayland_display_parent_class)->finalize (object);
 }
 
@@ -881,7 +883,7 @@ gdk_wayland_display_get_startup_notification_id (GdkDisplay  *display)
  *
  * The startup ID is also what is used to signal that the startup is
  * complete (for example, when opening a window or when calling
- * gdk_notify_startup_complete()).
+ * gdk_display_notify_startup_complete()).
  **/
 void
 gdk_wayland_display_set_startup_notification_id (GdkDisplay *display,
@@ -1109,7 +1111,9 @@ _gdk_wayland_display_load_cursor_theme (GdkWaylandDisplay *display_wayland)
   guint size;
   const char *name;
   GValue v = G_VALUE_INIT;
-  gint64 before = g_get_monotonic_time ();
+  gint64 before G_GNUC_UNUSED;
+
+  before = GDK_PROFILER_CURRENT_TIME;
 
   g_assert (display_wayland);
   g_assert (display_wayland->shm);
@@ -1130,8 +1134,7 @@ _gdk_wayland_display_load_cursor_theme (GdkWaylandDisplay *display_wayland)
   gdk_wayland_display_set_cursor_theme (GDK_DISPLAY (display_wayland), name, size);
   g_value_unset (&v);
 
-  if (GDK_PROFILER_IS_RUNNING)
-    gdk_profiler_end_mark (before, "wayland", "load cursor theme");
+  gdk_profiler_end_mark (before, "wayland", "load cursor theme");
 
 }
 
@@ -1488,17 +1491,35 @@ update_xft_settings (GdkDisplay *display)
     {
       TranslationEntry *entry;
 
-      entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "antialiasing");
+      entry = find_translation_entry_by_schema ("org.gnome.desktop.interface", "font-antialiasing");
       g_assert (entry);
-      antialiasing = entry->fallback.i;
 
-      entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "hinting");
-      g_assert (entry);
-      hinting = entry->fallback.i;
+      if (entry->valid)
+        {
+          antialiasing = entry->fallback.i;
 
-      entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "rgba-order");
-      g_assert (entry);
-      order = entry->fallback.i;
+          entry = find_translation_entry_by_schema ("org.gnome.desktop.interface", "font-hinting");
+          g_assert (entry);
+          hinting = entry->fallback.i;
+
+          entry = find_translation_entry_by_schema ("org.gnome.desktop.interface", "font-rgba-order");
+          g_assert (entry);
+          order = entry->fallback.i;
+        }
+      else
+        {
+          entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "antialiasing");
+          g_assert (entry);
+          antialiasing = entry->fallback.i;
+
+          entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "hinting");
+          g_assert (entry);
+          hinting = entry->fallback.i;
+
+          entry = find_translation_entry_by_schema ("org.gnome.settings-daemon.plugins.xsettings", "rgba-order");
+          g_assert (entry);
+          order = entry->fallback.i;
+        }
 
       entry = find_translation_entry_by_schema ("org.gnome.desktop.interface", "text-scaling-factor");
       g_assert (entry);
@@ -1506,11 +1527,27 @@ update_xft_settings (GdkDisplay *display)
     }
   else
     {
-      settings = g_hash_table_lookup (display_wayland->settings,
-                                      "org.gnome.settings-daemon.plugins.xsettings");
+      GSettingsSchemaSource *source;
+      GSettingsSchema *schema;
 
-      if (settings)
+      source = g_settings_schema_source_get_default ();
+      schema = g_settings_schema_source_lookup (source,
+                                                "org.gnome.desktop.interface",
+                                                FALSE);
+
+      if (schema && g_settings_schema_has_key (schema, "font-antialiasing"))
         {
+          settings = g_hash_table_lookup (display_wayland->settings,
+                                          "org.gnome.desktop.interface");
+          antialiasing = g_settings_get_enum (settings, "font-antialiasing");
+          hinting = g_settings_get_enum (settings, "font-hinting");
+          order = g_settings_get_enum (settings, "font-rgba-order");
+        }
+      else if (g_hash_table_contains (display_wayland->settings,
+                                      "org.gnome.settings-daemon.plugins.xsettings"))
+        {
+          settings = g_hash_table_lookup (display_wayland->settings,
+                                          "org.gnome.settings-daemon.plugins.xsettings");
           antialiasing = g_settings_get_enum (settings, "antialiasing");
           hinting = g_settings_get_enum (settings, "hinting");
           order = g_settings_get_enum (settings, "rgba-order");
@@ -1521,6 +1558,9 @@ update_xft_settings (GdkDisplay *display)
           hinting = GSD_FONT_HINTING_MEDIUM;
           order = GSD_FONT_RGBA_ORDER_RGB;
         }
+
+      if (schema)
+        g_settings_schema_unref (schema);
 
       dpi = get_dpi_from_gsettings (display_wayland) * 1024;
     }
@@ -1626,6 +1666,8 @@ static TranslationEntry translations[] = {
   { FALSE, "org.gnome.desktop.interface", "enable-animations", "gtk-enable-animations", G_TYPE_BOOLEAN, { .b = TRUE } },
   { FALSE, "org.gnome.desktop.interface", "gtk-enable-primary-paste", "gtk-enable-primary-paste", G_TYPE_BOOLEAN, { .b = TRUE } },
   { FALSE, "org.gnome.desktop.interface", "overlay-scrolling", "gtk-overlay-scrolling", G_TYPE_BOOLEAN, { .b = TRUE } },
+  { FALSE, "org.gnome.desktop.peripherals.mouse", "double-click", "gtk-double-click-time", G_TYPE_INT, { .i = 400 } },
+  { FALSE, "org.gnome.desktop.peripherals.mouse", "drag-threshold", "gtk-dnd-drag-threshold", G_TYPE_INT, {.i = 8 } },
   { FALSE, "org.gnome.settings-daemon.peripherals.mouse", "double-click", "gtk-double-click-time", G_TYPE_INT, { .i = 400 } },
   { FALSE, "org.gnome.settings-daemon.peripherals.mouse", "drag-threshold", "gtk-dnd-drag-threshold", G_TYPE_INT, {.i = 8 } },
   { FALSE, "org.gnome.desktop.sound", "theme-name", "gtk-sound-theme-name", G_TYPE_STRING, { .s = "freedesktop" } },
@@ -1634,6 +1676,10 @@ static TranslationEntry translations[] = {
   { FALSE, "org.gnome.desktop.privacy", "recent-files-max-age", "gtk-recent-files-max-age", G_TYPE_INT, { .i = 30 } },
   { FALSE, "org.gnome.desktop.privacy", "remember-recent-files",    "gtk-recent-files-enabled", G_TYPE_BOOLEAN, { .b = TRUE } },
   { FALSE, "org.gnome.desktop.wm.preferences", "button-layout",    "gtk-decoration-layout", G_TYPE_STRING, { .s = "menu:close" } },
+  { FALSE, "org.gnome.desktop.interface", "font-antialiasing", "gtk-xft-antialias", G_TYPE_NONE, { .i = 0 } },
+  { FALSE, "org.gnome.desktop.interface", "font-hinting", "gtk-xft-hinting", G_TYPE_NONE, { .i = 0 } },
+  { FALSE, "org.gnome.desktop.interface", "font-hinting", "gtk-xft-hintstyle", G_TYPE_NONE, { .i = 0 } },
+  { FALSE, "org.gnome.desktop.interface", "font-rgba-order", "gtk-xft-rgba", G_TYPE_NONE, { .i = 0 } },
   { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "antialiasing", "gtk-xft-antialias", G_TYPE_NONE, { .i = 0 } },
   { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "hinting", "gtk-xft-hinting", G_TYPE_NONE, { .i = 0 } },
   { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "hinting", "gtk-xft-hintstyle", G_TYPE_NONE, { .i = 0 } },
@@ -1731,11 +1777,14 @@ apply_portal_setting (TranslationEntry *entry,
           entry->fallback.i = g_variant_get_int32 (value);
           break;
         }
-      if (strcmp (entry->key, "antialiasing") == 0)
+      if (strcmp (entry->key, "antialiasing") == 0 ||
+          strcmp (entry->key, "font-antialiasing") == 0)
         entry->fallback.i = get_antialiasing (g_variant_get_string (value, NULL));
-      else if (strcmp (entry->key, "hinting") == 0)
+      else if (strcmp (entry->key, "hinting") == 0 ||
+               strcmp (entry->key, "font-hinting") == 0)
         entry->fallback.i = get_hinting (g_variant_get_string (value, NULL));
-      else if (strcmp (entry->key, "rgba-order") == 0)
+      else if (strcmp (entry->key, "rgba-order") == 0 ||
+               strcmp (entry->key, "font-rgba-order") == 0)
         entry->fallback.i = get_order (g_variant_get_string (value, NULL));
       else if (strcmp (entry->key, "text-scaling-factor") == 0)
         entry->fallback.i = (int) (g_variant_get_double (value) * 65536.0);

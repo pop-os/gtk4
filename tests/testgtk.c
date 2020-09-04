@@ -124,21 +124,26 @@ build_alpha_widgets (void)
   GtkWidget *hbox;
   GtkWidget *label;
   GtkWidget *entry;
+  GtkWidget *group;
 
   grid = gtk_grid_new ();
   gtk_widget_set_vexpand (grid, TRUE);
 
-  radio_button = gtk_radio_button_new_with_label (NULL, "Red");
+  radio_button = gtk_check_button_new_with_label ("Red");
   gtk_widget_set_hexpand (radio_button, TRUE);
   gtk_grid_attach (GTK_GRID (grid), radio_button, 0, 0, 1, 1);
+  group = radio_button;
 
-  radio_button = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio_button), "Green");
+  radio_button = gtk_check_button_new_with_label ("Green");
   gtk_widget_set_hexpand (radio_button, TRUE);
   gtk_grid_attach (GTK_GRID (grid), radio_button, 0, 1, 1, 1);
+  gtk_check_button_set_group (GTK_CHECK_BUTTON (radio_button), GTK_CHECK_BUTTON (group));
 
-  radio_button = gtk_radio_button_new_with_label_from_widget (GTK_RADIO_BUTTON (radio_button), "Blue"),
+  radio_button = gtk_check_button_new_with_label ("Blue"),
   gtk_widget_set_hexpand (radio_button, TRUE);
   gtk_grid_attach (GTK_GRID (grid), radio_button, 0, 2, 1, 1);
+  gtk_check_button_set_group (GTK_CHECK_BUTTON (radio_button), GTK_CHECK_BUTTON (group));
+  gtk_check_button_set_active (GTK_CHECK_BUTTON (group), TRUE);
 
   check_button = gtk_check_button_new_with_label ("Sedentary"),
   gtk_widget_set_hexpand (check_button, TRUE);
@@ -391,7 +396,7 @@ create_toggle_buttons (GtkWidget *widget)
 }
 
 static GtkWidget *
-create_widget_grid (GType widget_type)
+create_widget_grid (gboolean group)
 {
   GtkWidget *grid;
   GtkWidget *group_widget = NULL;
@@ -424,14 +429,13 @@ create_widget_grid (GType widget_type)
 	    }
 	  else
 	    {
-	      widget = g_object_new (widget_type, NULL);
-	      
-	      if (g_type_is_a (widget_type, GTK_TYPE_RADIO_BUTTON))
+	      widget = gtk_check_button_new ();
+              if (group)
 		{
 		  if (!group_widget)
 		    group_widget = widget;
 		  else
-		    g_object_set (widget, "group", group_widget, NULL);
+                    gtk_check_button_set_group (GTK_CHECK_BUTTON (widget), GTK_CHECK_BUTTON (group_widget));
 		}
 	    }
 	  
@@ -498,7 +502,7 @@ create_check_buttons (GtkWidget *widget)
       separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
       gtk_box_append (GTK_BOX (box1), separator);
 
-      table = create_widget_grid (GTK_TYPE_CHECK_BUTTON);
+      table = create_widget_grid (FALSE);
       gtk_widget_set_vexpand (table, TRUE);
       gtk_box_append (GTK_BOX (box2), table);
     }
@@ -509,10 +513,6 @@ create_check_buttons (GtkWidget *widget)
     gtk_window_destroy (GTK_WINDOW (window));
 }
 
-/*
- * GtkRadioButton
- */
-
 static void
 create_radio_buttons (GtkWidget *widget)
 {
@@ -522,6 +522,7 @@ create_radio_buttons (GtkWidget *widget)
   GtkWidget *button;
   GtkWidget *separator;
   GtkWidget *table;
+  GtkWidget *group;
 
   if (!window)
     {
@@ -543,23 +544,21 @@ create_radio_buttons (GtkWidget *widget)
       box2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
       gtk_box_append (GTK_BOX (box1), box2);
 
-      button = gtk_radio_button_new_with_label (NULL, "button1");
+      button = gtk_check_button_new_with_label ("button1");
+      gtk_box_append (GTK_BOX (box2), button);
+      group = button;
+
+      button = gtk_check_button_new_with_label ("button2");
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (button), TRUE);
+      gtk_check_button_set_group (GTK_CHECK_BUTTON (button), GTK_CHECK_BUTTON (group));
       gtk_box_append (GTK_BOX (box2), button);
 
-      button = gtk_radio_button_new_with_label (
-	         gtk_radio_button_get_group (GTK_RADIO_BUTTON (button)),
-		 "button2");
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
+      button = gtk_check_button_new_with_label ("button3");
+      gtk_check_button_set_group (GTK_CHECK_BUTTON (button), GTK_CHECK_BUTTON (group));
       gtk_box_append (GTK_BOX (box2), button);
 
-      button = gtk_radio_button_new_with_label (
-                 gtk_radio_button_get_group (GTK_RADIO_BUTTON (button)),
-		 "button3");
-      gtk_box_append (GTK_BOX (box2), button);
-
-      button = gtk_radio_button_new_with_label (
-                 gtk_radio_button_get_group (GTK_RADIO_BUTTON (button)),
-		 "inconsistent");
+      button = gtk_check_button_new_with_label ("inconsistent");
+      gtk_check_button_set_group (GTK_CHECK_BUTTON (button), GTK_CHECK_BUTTON (group));
       gtk_check_button_set_inconsistent (GTK_CHECK_BUTTON (button), TRUE);
       gtk_box_append (GTK_BOX (box2), button);
 
@@ -569,24 +568,23 @@ create_radio_buttons (GtkWidget *widget)
       box2 = gtk_box_new (GTK_ORIENTATION_VERTICAL, 10);
       gtk_box_append (GTK_BOX (box1), box2);
 
-      button = gtk_radio_button_new_with_label (NULL, "button4");
+      button = gtk_check_button_new_with_label ("button4");
+      gtk_box_append (GTK_BOX (box2), button);
+      group = button;
+
+      button = gtk_check_button_new_with_label ("button5");
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (button), TRUE);
+      gtk_check_button_set_group (GTK_CHECK_BUTTON (button), GTK_CHECK_BUTTON (group));
       gtk_box_append (GTK_BOX (box2), button);
 
-      button = gtk_radio_button_new_with_label (
-	         gtk_radio_button_get_group (GTK_RADIO_BUTTON (button)),
-		 "button5");
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (button), TRUE);
-      gtk_box_append (GTK_BOX (box2), button);
-
-      button = gtk_radio_button_new_with_label (
-                 gtk_radio_button_get_group (GTK_RADIO_BUTTON (button)),
-		 "button6");
+      button = gtk_check_button_new_with_label ("button6");
+      gtk_check_button_set_group (GTK_CHECK_BUTTON (button), GTK_CHECK_BUTTON (group));
       gtk_box_append (GTK_BOX (box2), button);
 
       separator = gtk_separator_new (GTK_ORIENTATION_HORIZONTAL);
       gtk_box_append (GTK_BOX (box1), separator);
 
-      table = create_widget_grid (GTK_TYPE_RADIO_BUTTON);
+      table = create_widget_grid (TRUE);
       gtk_box_append (GTK_BOX (box1), table);
     }
 
@@ -1575,105 +1573,6 @@ create_listbox (GtkWidget *widget)
   else
     gtk_window_destroy (GTK_WINDOW (window));
 }
-
-
-static GtkWidget *
-accel_button_new (const char *text,
-                  const char *accel)
-{
-  guint keyval;
-  GdkModifierType modifiers;
-  GtkWidget *button;
-  GtkWidget *label;
-  GtkEventController *controller;
-  GtkShortcut *shortcut;
-
-  if (!gtk_accelerator_parse (accel, &keyval, &modifiers))
-    {
-      g_assert_not_reached ();
-    }
-
-  button = gtk_button_new ();
-  controller = gtk_shortcut_controller_new ();
-  gtk_shortcut_controller_set_scope (GTK_SHORTCUT_CONTROLLER (controller), GTK_SHORTCUT_SCOPE_GLOBAL);
-  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_CAPTURE);
-  shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (keyval, modifiers),
-                               g_object_ref (gtk_activate_action_get ()));
-  gtk_shortcut_controller_add_shortcut (GTK_SHORTCUT_CONTROLLER (controller), shortcut);
-  gtk_widget_add_controller (button, controller);
-
-  label = gtk_accel_label_new (text);
-  gtk_accel_label_set_accel (GTK_ACCEL_LABEL (label), keyval, modifiers);
-  gtk_button_set_child (GTK_BUTTON (button), label);
-
-  return button;
-}
-
-static void
-create_key_lookup (GtkWidget *widget)
-{
-  static GtkWidget *window = NULL;
-
-  if (!window)
-    {
-      GtkWidget *box;
-      GtkWidget *button;
-      GtkWidget *content_area;
-
-      window = gtk_dialog_new_with_buttons ("Key Lookup", NULL, 0,
-					    "_Close", GTK_RESPONSE_CLOSE,
-					    NULL);
-
-      gtk_window_set_display (GTK_WINDOW (window),
-			      gtk_widget_get_display (widget));
-
-      /* We have to expand it so the accel labels will draw their labels
-       */
-      gtk_window_set_default_size (GTK_WINDOW (window), 300, -1);
-
-      content_area = gtk_dialog_get_content_area (GTK_DIALOG (window));
-
-      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
-      gtk_widget_set_hexpand (box, TRUE);
-      gtk_widget_set_vexpand (box, TRUE);
-      gtk_box_append (GTK_BOX (content_area), box);
-
-      button = gtk_button_new_with_mnemonic ("Button 1 (_a)");
-      gtk_box_append (GTK_BOX (box), button);
-      button = gtk_button_new_with_mnemonic ("Button 2 (_A)");
-      gtk_box_append (GTK_BOX (box), button);
-      button = gtk_button_new_with_mnemonic ("Button 3 (_\321\204)");
-      gtk_box_append (GTK_BOX (box), button);
-      button = gtk_button_new_with_mnemonic ("Button 4 (_\320\244)");
-      gtk_box_append (GTK_BOX (box), button);
-      button = gtk_button_new_with_mnemonic ("Button 6 (_b)");
-      gtk_box_append (GTK_BOX (box), button);
-      button = accel_button_new ("Button 7", "<Alt><Shift>b");
-      gtk_box_append (GTK_BOX (box), button);
-      button = accel_button_new ("Button 8", "<Alt>d");
-      gtk_box_append (GTK_BOX (box), button);
-      button = accel_button_new ("Button 9", "<Alt>Cyrillic_ve");
-      gtk_box_append (GTK_BOX (box), button);
-      button = gtk_button_new_with_mnemonic ("Button 10 (_1)");
-      gtk_box_append (GTK_BOX (box), button);
-      button = gtk_button_new_with_mnemonic ("Button 11 (_!)");
-      gtk_box_append (GTK_BOX (box), button);
-      button = accel_button_new ("Button 12", "<Super>a");
-      gtk_box_append (GTK_BOX (box), button);
-      button = accel_button_new ("Button 13", "<Hyper>a");
-      gtk_box_append (GTK_BOX (box), button);
-      button = accel_button_new ("Button 14", "<Meta>a");
-      gtk_box_append (GTK_BOX (box), button);
-
-      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
-      g_signal_connect (window, "response", G_CALLBACK (gtk_window_destroy), NULL);
-
-      gtk_widget_show (window);
-    }
-  else
-    gtk_window_destroy (GTK_WINDOW (window));
-}
-
 
 /*
  create_modal_window
@@ -5872,7 +5771,6 @@ struct {
   { "flipping", create_flipping },
   { "font selection", create_font_selection },
   { "image", create_image },
-  { "key lookup", create_key_lookup },
   { "labels", create_labels },
   { "listbox", create_listbox },
   { "message dialog", create_message_dialog },
@@ -6029,7 +5927,7 @@ bench_iteration (GtkWidget *widget, void (* fn) (GtkWidget *widget))
 static void
 do_real_bench (GtkWidget *widget, void (* fn) (GtkWidget *widget), const char *name, int num)
 {
-  GTimeVal tv0, tv1;
+  gint64 t0, t1;
   double dt_first;
   double dt;
   int n;
@@ -6041,19 +5939,17 @@ do_real_bench (GtkWidget *widget, void (* fn) (GtkWidget *widget), const char *n
     printed_headers = TRUE;
   }
 
-  g_get_current_time (&tv0);
-  bench_iteration (widget, fn); 
-  g_get_current_time (&tv1);
+  t0 = g_get_monotonic_time ();
+  bench_iteration (widget, fn);
+  t1 = g_get_monotonic_time ();
 
-  dt_first = ((double)tv1.tv_sec - tv0.tv_sec) * 1000.0
-	+ (tv1.tv_usec - tv0.tv_usec) / 1000.0;
+  dt_first = ((double)(t1 - t0)) / 1000.0;
 
-  g_get_current_time (&tv0);
+  t0 = g_get_monotonic_time ();
   for (n = 0; n < num - 1; n++)
-    bench_iteration (widget, fn); 
-  g_get_current_time (&tv1);
-  dt = ((double)tv1.tv_sec - tv0.tv_sec) * 1000.0
-	+ (tv1.tv_usec - tv0.tv_usec) / 1000.0;
+    bench_iteration (widget, fn);
+  t1 = g_get_monotonic_time ();
+  dt = ((double)(t1 - t0)) / 1000.0;
 
   g_print ("%s %5d ", pad (name, 20), num);
   if (num > 1)

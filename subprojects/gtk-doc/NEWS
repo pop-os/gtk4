@@ -1,0 +1,1076 @@
+GTK-Doc 1.32.1  (Aug 15 2019)
+===============
+
+Dev version
+
+This version does not generate object_index.sgml if the library contains no
+gobjects.
+
+
+GTK-Doc 1.32  (Aug 15 2019)
+===============
+
+Hotfix release.
+
+Contributors
+
+ Michael Catanzaro
+ Stefan Sauer
+
+GTK-Doc 1.31  (Aug 5 2019)
+===============
+
+Nonmaintainer release to fix "Wrong permissions for style CSS file" (#84)
+
+Contributors
+
+ Daniel Mustieles
+ Matthias Clasen
+ Michael Catanzaro
+ Nelson Benítez León
+ Stefan Sauer
+ Ting-Wei Lan
+ Xavier Claessens
+
+GTK-Doc 1.30  (May 08 2019)
+===============
+
+GTK-Doc is now using python-pygments to do the syntax highlighing. It is not
+depending on highligh or source-highligh anymore.
+
+This version ships with a new expermiental gtkdoc-mkhtml2 toolchain replacing
+gktdoc-mkhtml+gtkdoc-fixxref.
+
+Contributors
+
+ Aleksander Morgado
+ Anders Jonsson
+ Andre Klapper
+ Bastien Nocera
+ Christian Kirbach
+ Corentin Noël
+ Daniel Mustieles
+ Emmanuele Bassi
+ Ignacio Casal Quinteiro
+ Lubomir Rintel
+ Marco Trevisan (Treviño)
+ Marek Cernocky
+ Mario Blättermann
+ Mathieu Bridon
+ Michael Catanzaro
+ Nicola Fontana
+ Philip Withnall
+ Piotr Drąg
+ Rafael Fontenelle
+ Stefan Sauer
+ Ting-Wei Lan
+ Руслан Ижбулатов
+
+GTK-Doc 1.29  (Aug 28 2018)
+===============
+
+GTK-Doc now requires python-3.X. It does not requires python-six anymore.
+
+Note that this is a nonmaintainer release and that tests are known to be broken.
+
+ Changes
+
+ o 674163 : html-build.stamp rule broken for out-of-tree builds with absolute paths
+ o 795744 : Too much escaped string - &quot;  &amp; lt;child &gt;  &quot; in description of &quot; GtkOverlay as GtkBuildable &quot; section
+ o 796011 : Crash in ScanDirectory caused by overlooked use of renamed `dir` variable
+ o 796012 : Several places in rebase.py incorrectly use `match.groups(1)` instead of `match.group(1)`, one causes a crash
+
+ Contributors
+
+ Adam Williamson
+ Anders Jonsson
+ Daniel Mustieles
+ David D
+ LRN
+ Marek Cernocky
+ Martin Blanchard
+ Michael Biebl
+ Michael Catanzaro
+ Rafael Fontenelle
+ Sebastian Geiger
+ Stefan Sauer
+ Tim Sabsch
+
+
+GTK-Doc 1.28  (Mar 24 2018)
+==============
+
+Bug fixes.
+
+ Changes
+
+ o 791928 : gtk-doc doesn't understand 'stability: Obsolete'
+ o 792148 : cmake: Installed GtkDocConfig.cmake has incorrect bindir path
+ o 792661 : use pygments to do syntax highlighting
+ o 793599 : Please run testsuite with V=0
+ o 794051 : rebase: fix on-line location extraction from devhelp files
+ o 794182 : private_header regex is broken
+
+ Contributors
+
+ Anders Jonsson
+ Arnaud Rebillout
+ Behdad Esfahbod
+ Bruce Mitchener
+ Daniel Mustieles
+ Marek Černocký
+ Rafael Fontenelle
+ Stefan Sauer
+ Tim-Philipp Müller
+ Tim Sabsch
+
+
+GTK-Doc 1.27  (Dec 07 2017)
+==============
+
+Finetune the python port.
+
+ Changes
+
+ o 773879 : scangobj: Do not generate unused parameters
+ o 786174 : Several test failures on Arch Linux
+ o 787495 : gtkdoc-fixxref crashes when running vim for syntax highlighting
+ o 787768 : Aborts when glib2.0-dev is not installed
+ o 787862 : Always open files in text mode and always use utf-8
+ o 788473 : fixxref crashes if a .devhelp2.gz file is found
+ o 789531 : Don't depend on the system shell
+ o 790022 : mkdb: Add support for (not optional) annotation
+ o 791131 : gtk-doc and python3: fixxref failures
+
+ Contributors
+
+ Alban Browaeys
+ Anders Jonsson
+ Christian Kirbach
+ Christoph Reiter
+ Daniel Mustieles
+ gkrithi8
+ Jan Alexander Steffens (heftig)
+ Marek Cernocky
+ Michael Catanzaro
+ Pavel Grunt
+ Philip Withnall
+ Rafael Fontenelle
+ Simon McVittie
+ Stefan Sauer
+ Will Thompson
+
+GTK-Doc 1.26  (Aug 11 2017)
+============
+
+Remove tmpl support (gtkdoc-mktmpl). Port all tools from bash/perl to python.
+
+ Changes
+
+ o 773879 : scangobj: Do not generate unused parameters
+ o 780789 : Convert gtkdoc-scan from Perl to Python
+ o 752126 : Add support for inline program documentation
+ o 753052 : _() causes element a: validity error : ID idx already defined
+ o 758137 : GtkLabel and GtkShortcutsShortcut notes on escaping character entities don't render properly
+ o 764407 : Broken links to structs in function definitions
+ o 764543 : /usr/bin/gtkdoc-mkpdf always exits with an error
+ o 768675 : make check fails on master
+ o 769125 : gtkdoc-mkhtml/pdf fails on spaces in search path
+ o 769341 : gtkdoc-mkdb line 3966 triggers "Negative repeat count does nothing" warnings
+ o 771255 : "Symbol name not found at the start of comment block" warning with "attributes" annotation.
+ o 773151 : configure: Lower perl dependency to 5.16.0
+ o 774168 : gobject introspection annotations and gtk-doc parser do not agree
+ o 774812 : Error messages from xsltproc are hidden by gtkdoc-mkhtml
+ o 778144 : Allow disabling introspection for ancillary property mechanisms
+ o 779566 : Replace shell executables with Python
+
+ Contributors
+
+ Anders Jonsson
+ Bernhard M. Wiedemann
+ Carlos Garcia Campos
+ Christian Kirbach
+ Daniel Mustieles
+ Emmanuele Bassi
+ Ernestas Kulik
+ HorimotoYasuhiro
+ Jussi Pakkanen
+ Kalev Lember
+ Marek Černocký
+ Mario Blättermann
+ Marius Vlad
+ Marvin Schmidt
+ Nirbheek Chauhan
+ Philip Withnall
+ Rafael Fontenelle
+ Sam Thursfield
+ Sebastian Rasmussen
+ Simon Josefsson
+ Stefan Sauer
+ Thomas Wood
+ Ting-Wei Lan
+ Tom Tryfonidis
+ Víctor Manuel Jáquez Leal
+
+GTK-Doc 1.25  (Mar 21 2016)
+==============
+
+ Changes
+
+ o 763465 :  &ndash;  &nbsp; released version of gtk-doc no longer understands cross-reference data in gtk+
+ o 742404 : unify index.sgml and *.devhelp2 + change gtkdoc-fixxref to use *.devhelp2
+ o 743182 : Automatically support PACKAGE variables as XML entities
+ o 744061 : Skip standard g_iface, parent_instance and parent_class struct members
+ o 751479 : help: Document the Stability tag for documentation comments
+ o 751777 : gtk-doc -sections.txt file documentation is a bit confusing
+ o 751783 : Creating master xml document documentation is a bit lacking
+ o 751906 : help: Fix incorrect example syntax for embedded images
+ o 752795 : documentation is not rebuilt when only content of doc comments change
+ o 753145 : gtkdoc-mkhtml fails on spaces in file names
+ o 753348 : gtkdocize does not handle -flat flavours
+ o 756297 : Add CMake module
+ o 756368 : gtkdocize mistakenly parses options from comments in configure.ac
+ o 756519 : `make check' fails - Sequence (?R...) not recognized in regex
+ o 756684 : Support (not nullable) annotation
+ o 756998 : Support |[ &lt; !-- language= &quot; plain &quot; -- &gt; ]|
+ o 758996 : gtkdoc-mkdb: ensure macros appear in the correct section
+ o 759017 : autogenerated ids in return and parameter blocks
+
+ Contributors
+
+ Christian Kirbach
+ Daniel Mustieles
+ Dimitris Spingos
+ Florian Brosch
+ Igor Gnatenko
+ Matthias Clasen
+ Philip Withnall
+ Quentin Glidic
+ Rafael Fontenelle
+ Sam Thursfield
+ Stefan Sauer
+ Thomas Wood
+ Tom Tryfonidis
+ Xavier Claessens
+
+GTK-Doc 1.24  (May 29 2015)
+============
+
+ This is another quick bugfix release for a regression, see bug #749591
+
+ Changes
+
+ o 749591 : gtk-doc 1.23 no longer includes xml namespace in .devhelp2 files
+ o 749706 : .gitignore files should not be under version control
+ o 749816 : Support syntax highlighting of different languages (patch included)
+ o 749901 : Strip common indent when highlighting with vim
+
+ Contributors
+
+ Daniel Mustieles
+ Dexter Chua
+ Michael Catanzaro
+ Peter De Wachter
+ Stefan Sauer
+
+GTK-Doc 1.23  (May 17 2015)
+============
+
+ This is a quick bugfix release for a regression, see bug #749142.
+
+ Changes
+
+ o 749142 : Can't build totem-pl-parser from master using gtk-doc 1.22
+ o 749210 : mkman: Use full URL to refer to the docbook manpages stylesheet
+
+ Contributors
+
+ Emanuele Aina
+ Stefan Sauer
+
+GTK-Doc 1.22    (May 07 2015)
+============
+
+ Important notice - starting with the next release these long deprecated
+ features will be removed - you'll now see a warning if you actually use these
+ features. Please write to gtk-doc-list@gnome.org and tell us your concerns:
+ o gtkdoc-mktmpl - please move all the comments into the sources.
+ o generating html via sgml tools (jade/openjade), using xsltproc and
+   docbook-xslt is pretty common and preferred since version 1.6
+
+ Changes
+
+ o 727778 :  &ndash;  &nbsp; gtk-doc doesn't understand annotations for GList-contained types
+ o 729911 : Using #TypeName inshort_description makes &quot; - &quot; in HTML index disappear
+ o 732689 : strange result on a generated html page
+ o 734689 :  &quot; Specific - &gt; General &quot; document title format
+ o 736073 : Regression: problems with enum constants
+ o 736725 : Documentation consists mostly of empty space
+ o 741305 : Scanner issue with enum containing value ='{'
+ o 741763 : Example Makefile.am improvements
+ o 741941 : Last function argument missing in docs (possibly due to macro in code)
+ o 743879 : special case G_DECLARE_*_TYPE
+ o 743967 : Make build results reproducible
+ o 744075 : Missing struct members if forward declared in another header
+ o 744368 : gtkdoc-depscan doesn't handle unicode in .devhelp2 files correctly
+ o 746118 : gtkdoc-scan: fix regex for get_type() functions
+ o 746120 : Expand annotation recognition on symbol lines
+ o 746121 : gtkdoc-mkdb: don't warn on 'deprecated entities'
+ o 747207 : Typos in documentation
+ o 747298 : Test still tries to check gtkdoc-scanobj
+ o 748456 : xsl: Enable ToC generation on empty &lt; toc/ &gt; elements
+
+ Contributors
+
+ Anders Jonsson
+ Andre Klapper
+ Daniel Mustieles
+ David King
+ Dominique Leuenberger
+ Efstathios Iosifidis
+ Emanuele Aina
+ Fran Diéguez
+ Maria  Mavridou
+ Marvin Schmidt
+ Olav Vitters
+ Philip Withnall
+ Rafael Ferreira
+ Ryan Lortie
+ Stefan Sauer
+ Tom Tryfonidis
+ Xavier Claessens
+
+GTK-Doc 1.21    (Jul 17 2014)
+============
+
+ Important notice - starting with the next release these long deprecated
+ features will be removed, please write to gtk-doc-list@gnome.org and tell us
+ your concerns:
+ o gtkdoc-mktmpl - please move all the comments into the sources.
+ o generating html via sgml tools (jade/openjade), using xsltproc and
+   docbook-xslt is pretty common and preferred since version 1.6
+
+ Changes
+
+ o 170860 : gtk-doc should have definitions for stability
+ o 644111 : one cannot specify against which libs gtkdoc-fixxref should resolve links (problematic with multiple versions)
+ o 657444 :  &quot; enum foo { ... } &quot; ; not recognized
+ o 671519 : Self-test relies on nonportable (GNU enhanced) 'date' command
+ o 678094 : the word &quot; returns &quot; in a function description can be parsed as the &quot; Returns: &quot; section
+ o 722621 : gtk-doc tarball was created with 32bit uid/gid, unusable with mingw/msys tar
+ o 724739 : Self-test fail: gtkdoc-mkdb misusing perl datatype
+ o 725505 : new syntax highlighting for code is weird
+ o 725663 : configure: non POSIX test usage
+ o 730658 : Deprecation warning for non-deprecated type GParamFlags
+ o 730777 : Add support for nullable and optional annotations
+
+ Contributors
+
+ Christophe Fergeau
+ Damon Chaplin
+ Daniel Macks
+ Daniel Mustieles
+ Emmanuele Bassi
+ maria thukididu
+ Naohiro Aota
+ Philip Withnall
+ Rafael Ferreira
+ Stefan Sauer
+ Thomas Wood
+ William Jon McCann
+
+GTK-Doc 1.20    (Feb 16 2014)
+============
+
+ Important notice - starting with the next release these long deprecated
+ features will be removed, please write to gtk-doc-list@gnome.org and tell us
+ your concerns:
+ o gtkdoc-scanobj (only used for gtkobject)
+ o return values need to be documented using "Returns:". We will remove the
+   heuristic that turns a paragraph starting with "Returns " into return docs.
+ o gtkdoc-mktmpl - please move all the comments into the sources.
+ o generating html via sgml tools (jade/openjade), using xsltproc and
+   docbook-xslt is pretty common and preferred since version 1.6
+
+ Changes
+
+ o 605537 : Returns: listed among parameters
+ o 624001 : Support attribute-based method to deprecate symbols
+ o 662424 : Class hierarchy about interfaces not generated by default
+ o 665926 : should not have to document object structures
+ o 666509 : Specifying --enable-gtk-doc should not be required to build source packages
+ o 669417 : Duplicate IDs generated for unions registered as boxed types
+ o 671519 : Self-test relies on nonportable (GNU enhanced) 'date' command
+ o 692367 : gtkdocize should take a srcdir argument
+ o 696570 : style updates
+ o 697940 : Race condition between setup-build.stamp and scan-build.stamp
+ o 701259 : /bin/bash: -chmod: command not found
+ o 701638 : Support automake parallel test harness (fix error with GTKDOC_CHECK)
+ o 706404 : Minor bug in gtkdoc-mkdb
+ o 706438 : Empty lines added at the beginning and at the end of a programlisting
+ o 707426 : master is broken in picking up flavour from configure.ac
+ o 707717 : Support &quot; Deprecated: X.Y &quot;
+ o 708268 : New *-insensitive.png files are not distributes
+ o 710478 : gtkdoc-mkdb: Don't complain about annotations with hyphen
+ o 711111 : gtkdoc-mkdb: sort entries in the glossary
+ o 711598 : gtkdoc-scan doesn't ignore decorators containing parentheses
+ o 719644 : docs: make yelp usage conditional in manual
+ o 719645 : configure: emit message when looking for yelp
+ o 720061 : make: create subdirectories of the content_files to the  builddir
+ o 721228 : configure: search for xml catalog in XDG_DATA_DIRS
+ o 722479 : cp -u is not portable
+ o 723118 : Mark |[ blocks as CDATA
+ o 723288 : Fix MarkDown support
+ o 723417 : New MarkDown parser
+ o 723696 : Add support for blockquote
+ o 723812 : Add support for reference links
+ o 723913 : List in markdown: &lt; p &gt; inside the last element of a &lt; ul &gt; list
+ o 723991 : Improve the display of the synopsis
+ o 724002 : gtkdoc-scan: Fix use of uninitialised value in trace logging
+
+ Contributors
+
+ Alban Browaeys
+ Alexander Kanavin
+ Carlos Garcia Campos
+ Christian Kirbach
+ Daniel Mustieles
+ David King
+ David Nečas
+ Dieter Verfaillie
+ Dimitris Spingos
+ Hib Eris
+ Matthias Clasen
+ Philip Chimento
+ Philip Withnall
+ Rafael Ferreira
+ Rico Tzschichholz
+ Ryan Lortie
+ Sebastian Rasmussen
+ Sébastien Wilmet
+ Stefan Sauer
+ Stef Walter
+ William Jon McCann
+ Zbigniew Jędrzejewski-Szmek
+
+GTK-Doc 1.19    (Jun 05 2013)
+============
+
+ Changes
+
+ o 652740 : Warnings during expansion of content files
+ o 660436 : Warning for skip annotations on function parameters
+ o 661853 : allow EXTRA_DIST to be predefined
+ o 668228 : several of the tests use syntax not compatible with traditional Bourne shells
+ o 670724 : gtk-doc.make: double recursion when maintainer-clean
+ o 670767 : generated file gnome-doc-utils.m4 is in version control
+ o 670796 : (patch) Show commands when building documentation with make
+ o 671519 : Self-test relies on nonportable (GNU enhanced) 'date' command
+ o 671960 : make dist fails without html/*
+ o 672710 : Use new documentation infrastructure
+ o 676685 : Allow to order functions without using $MODULE-sections.txt
+ o 685365 : (PATCH) Fix contents of warning message, should be &quot; -sections.txt &quot; not &quot; -section.txt &quot;
+ o 686148 : [patch] suggested parameters for gtkdoc-scangobj
+ o 687685 : 'g_type_init' is deprecated
+ o 688204 : undocumented enum values missing in indexes
+ o 688423 : Add support for &quot; transfer floating &quot; introspection annotation
+ o 689209 : Automake complains about trailing space after backslash.
+ o 690438 : Small improvements
+ o 696930 : Incorrect allowed value for a property
+ o 700981 : make: copy the files with their relative path included
+
+ Contributors
+
+ Alban Browaeys
+ Aleksander Morgado
+ Alexandre Franke
+ Bruno Brouard
+ Colin Walters
+ Daiki Ueno
+ Daniel Mustieles
+ David King
+ David Nečas
+ Dieter Verfaillie
+ Dimitris Spingos
+ dmustieles
+ Henrik Stokseth
+ Hib Eris
+ Javier Jardón
+ Jens Georg
+ Jiro Matsuzawa
+ Krzesimir Nowak
+ Mario Blättermann
+ Martin Pitt
+ Matthias Clasen
+ Murray Cumming
+ Piotr Drąg
+ Ryan Lortie
+ Sébastien Wilmet
+ Simon Josefsson
+ Stefan Sauer
+ Stef Walter
+ Takao Fujiwara
+ Tim Mooney
+ Tom Tryfonidis
+ 黄世海
+
+
+GTK-Doc 1.18    (Sep 14 2011)
+============
+
+ o gtk-doc supports a subset of markdown (headings and lists) - see
+   http://git.gnome.org/browse/gtk-doc/tree/tests/gobject/src/gobject.c
+ o gtk-doc does not generate old devhelp files any more. This cuts down doc
+   generation time and works for devhelp >=0.11 (was released in 2005).
+ o changes for out-of-source dir build caused breakage for projects using
+   DOC_SOURCE_DIR with a relative path (to builddir). It is recommended to use
+   DOC_SOURCE_DIR=$(top_srcdir)/src/xxx.
+
+ Changes
+
+ o 590927 : Support AM_SILENT_RULES for doc-build steps
+ o 617121 : /* &lt; private &gt; */ declarations in enums are still displayed
+ o 627758 : A way to ignore a symbol
+ o 639145 : shorthand syntax for headings
+ o 644291 : Enum parser breaks on assignment of ')'
+ o 646870 : HTML_IMAGES no longer in EXTRA_DIST
+ o 648289 : gtkdoc-mkdb doesn't compile.
+ o 648331 : Specify compatible options for 'highlight' consistently.
+ o 649269 : gtkdoc-scanobj should set some of its own CFLAGS/LDFLAGS
+ o 650407 : Buildings docs while distchecking produces thousands of “No declaration found” warnings, then fails.
+ o 652746 : Documentation of plain boxed structs broken
+ o 652764 : Update autotools config a bit
+ o 655711 : summarize depscan output by package
+ o 656453 : Performance improvements (PATCH)
+ o 656658 : gtk-doc.make: install target doesn't install docs when building in a separate directory
+ o 656773 : gtk-doc fails to find a symbol declared as 'char* const'
+ o 656946 : gtk-doc unable to handle 'extern short int'
+ o 657377 : srcdir!=builddir builds discard contents of tmpl
+
+ Contributors
+
+ Bakaoukas Nikolaos
+ Claude Paroz
+ Daniel Mustieles
+ David Necas
+ David Nečas
+ Javier Jardón
+ Jorge González
+ Mario Blättermann
+ Matthias Clasen
+ Michał Górny
+ Shaun McCance
+ Stefan Sauer (Kost)
+ Will Thompson
+ Yaakov Selkowitz
+
+
+GTK-Doc 1.17    (Feb 16 2011)
+============
+
+ Changes
+
+ o 127049 : building reference documentation fails when builddir != srcdir
+ o 640241 : non-srcdir builds busted
+
+ Contributors
+
+ Daniel Mustieles
+ Javier Jardón
+ Stefan Kost
+
+GTK-Doc 1.16    (Jan 14 2011)
+============
+
+ o gtkdoc-check can do more checks, one might need to update Makefile.am from
+   the examples/Makefile.am
+
+ Changes
+
+ o 625776 : serialise doubles and floats always with a decimal dot
+ o 627269 : link to signalflags docs from signal descriptions
+ o 467488 : GTK+ man pages request
+ o 481811 : Inline function bodies are confused with declarations
+ o 501107 : EXTRA_DIST automake warnings
+ o 512565 : add GTK_DOC_IGNORE
+ o 518427 : documentation best pratices needed
+ o 597937 : Function pointers as parameters to other functions are parsed improperly
+ o 612028 : gtkdoc-fixxref should call /usr/bin/vim -n -e -u NONE -T xterm
+ o 617478 : Tooltip is a nuisance
+ o 618379 : Navigation is hiding anchors title
+ o 620249 : invalid xml for object_index with (n_objects % 3) == 0
+ o 621931 : support GType and GVariant types
+ o 622971 : List of typos in the GTK-doc manual
+ o 623777 : G_TYPE_STRV in signals generate wrong docs
+ o 623968 : gtkdoc-mkdb generates invalid xml from sgml in inline comments
+ o 624199 : parser picks up contents of large macros
+ o 624200 : 'const' confuses the parser
+ o 627223 : gtkdoc-fixxref vim highlight fails on xhtml suffix
+ o 627920 : `make check` rule to list xml files missing from DOC_MAIN_SGML_FILE
+ o 628611 : gtk-doc &gt; = 1.13 creates automagic dependencies on syntax highlighters
+ o 628794 : Issue in gtkdoc-mkman.in
+ o 630288 : Fix 'scope notified' annotation
+ o 631336 : remove lists of gtk+ signal args in gtkdoc-scanobj and -scangobj
+ o 632587 : gtkdoc-scanner fails to identify (closure) annotation
+ o 638330 : const in parameter list is ignored
+ o 638831 : Support GTK+ 3 cell properties
+
+ Contributors
+
+ Bruno Brouard
+ Christian Persch
+ Claude Paroz
+ Gilles Dartiguelongue
+ Javier Jardón
+ Jorge González
+ Maarten Bosmans
+ Mario Blättermann
+ Matej Urbančič
+ Matthias Clasen
+ Pablo Castellano
+ P. F. Chimento
+ Philip Withnall
+ Rodrigo Aliste
+ Simón Pena
+ Stefan Kost
+ Tim-Philipp Müller
+ Vasilis Tsivikis
+
+GTK-Doc 1.15    (May 21 2010)
+============
+
+ Changes
+
+ o 614496 : Support for multiple DOC_SOURCE_DIR directories
+ o 615550 : gtk-doc fails to recognize (scope ...) and (skip) annotations
+
+ Contributors
+
+ Andreas Rottmann
+ Jorge González
+ Nicola Fontana
+ Nikos Bakaoukas
+ Stefan Kost
+
+GTK-Doc 1.14    (Mar 28 2010)
+============
+
+ Changes
+
+ o 593282 : Append &quot; _struct &quot; prefix to every struct name
+ o 599514 : sane support for per-page images
+ o 604892 : checks fail
+ o 613611 : parameter descriptions with annotations truncated at first \n
+ o 115531 : add short description to index entries
+ o 165425 : gtk-doc fails to parse unions
+ o 512155 : gets confused by multiline typedef
+ o 568711 : undocumented enum values are not reported
+ o 590602 : secondly running gtkdoc-mkdb will generate DOCTYPE missing XML files
+ o 590625 : $(DOC_MODULE)-overrides.txt is required by &quot; make dist &quot;
+ o 591975 : Section_Id always embeds a trailing newline
+ o 604885 : Fix the use of gtkdocize --flavour option
+ o 604992 : gtkdoc-fixxref broken link warning is broken for functions
+ o 604995 : Syntax error in gtkdoc-mkman
+ o 604998 : Check for syntax errors in the test suite
+ o 605052 : put class structs to the generated section file
+ o 605211 : Many build failures with gtk-doc 1.13
+ o 605281 : Add &quot; Since &quot; and &quot; Deprecated &quot; tag to function example
+ o 605285 : Add &lt; keycap &gt; and &lt; keycombo &gt; example
+ o 605289 : Some documentation improvements
+ o 605452 : Added more info to &quot; Documenting symbols &quot; sectio
+ o 605564 : Env var equivalent to --flavour=no-tmpl
+ o 606661 : XInclude error while gnerating documentation
+ o 607445 : gtk-doc does not support long double as returned value type
+ o 607531 : Execute system() calls in subshells to ease debugging
+ o 609062 : [All-langs] [gtk-doc] Translated *.po files not available within ~/po directory
+ o 609194 : sort interface implementers
+ o 610255 : Self-test failure in git as of 2010-02-17: FAIL: gobject.sh
+ o 610257 : Patch to make GTK-DOC notice functions/variables with 'signed' prototypes
+ o 611848 : gtk-doc produces invalid DocBook markup if the SECTION ends with a tag that cannot be nested inside &lt; para &gt;
+
+ Contributors
+
+ Bruno Brouard
+ David Nečas
+ Emilio Pozuelo Monfort
+ Francisco Javier F. Serrador
+ Javier Jardón
+ Jorge González
+ Loïc Minier
+ Mario Blättermann
+ Marios Zindilis
+ Nicola Fontana
+ Philip Chimento
+ Runa Bhattacharjee
+ Ryan Lortie
+ Simon Josefsson
+ Simon McVittie
+ Stefan Kost
+ Sweta Kothari
+ Vincent Untz
+ Felix Iyadurai
+ krishnababu k
+
+GTK-Doc 1.13    (Dec 18 2009)
+============
+
+ o 604891 : gtk-doc tarball does not build
+
+ Contributors
+
+ Stefan Kost
+
+GTK-Doc 1.12    (Dec 18 2009)
+============
+
+ Changes
+
+ o 591450 : Build related fixes
+ o 466535 : generate documentation as pdf
+ o 502191 : acronym support
+ o 532395 : inline function parsing problems (e.g. in glib api docs)
+ o 536928 : have syntax highlghted and xrefs source code samples
+ o 562064 : index generation trouble
+ o 562310 : glib 2.18.3: /bin/sh: line 1: gtkdoc-rebase: command not found
+ o 562655 : doesn't produce deprecation note for signals
+ o 565126 : linking to struct members
+ o 565835 : Three spelling errors in gtk-doc-manual
+ o 566911 : add support for --help and --version to remaining tools
+ o 567132 : Take FOO_GET_INTERFACE as standard
+ o 568702 : gtkdoc-mkhtml no longer works when symlinked
+ o 568706 : gtkdoc-scan: use CamelCase id for interfaces
+ o 568708 : gtkdoc-scan should try not to scan files twice
+ o 568714 : Perl errors when syntax highlighting is not available
+ o 568732 : missing long descriptions undetected
+ o 568734 : configure check for gtk-doc prints that gtk-doc cannot be built
+ o 569339 : abbreviation are not expanded at the start of text
+ o 572396 : Fix to use shave + gtk-doc + libtool 1.x
+ o 572612 : Mistakenly substitute -1 with G_MAXULONG in x86_64
+ o 572967 : use g_strerror
+ o 574654 : --ignore-decorators does not ignore trailing stuff
+ o 575574 : Be more friendly for files with a space in their name
+ o 575623 : Update FSF address
+ o 575711 :  &lt; table &gt; element mismatch in highlighted code
+ o 576313 : implicit declarations in testsuite ?
+ o 577059 : Gnome-doc support can't be disabled
+ o 577774 : Test suite run even when built with --disable-gtk-doc
+ o 580206 : gcc warnings in &lt; module &gt; -scan.c
+ o 580300 : gtkdoc-scan picks up _get_type functions it should not
+ o 580622 : xml dir is both part of distclean and dist rules
+ o 581237 : gtk-doc uses wrong gtkdoc-check in &quot; make check &quot; phase
+ o 584952 :  &quot; uninitialized value in concatenation &quot; gtkdoc-mkdb line 938
+ o 587103 : return values of function-like macros
+ o 587196 : Typo in a string
+ o 589426 : Python is a required dependency
+ o 591789 : master FTBFS with automake 1.11
+ o 594224 : Please fix manual about inlined SECTION comments (and show warnings when invalid)
+ o 596730 : Signed vs. unsigned comparison in gtkdoc-scangobj.in causing compile errors
+ o 596731 : autogen.sh doesn't recognize automake-1.11
+ o 602026 : Warn if non-existing function gets referenced
+ o 602518 : Doesn't support &quot; long int &quot; return type
+ o 604798 : tests/fail.sh and tests/tools.sh.in use bashisms
+
+ Contributors
+
+ Claude Paroz
+ Dan Williams
+ Daniel Mustieles
+ Daniel Nylander
+ H. Habighorst
+ Jannis Pohlmann
+ Javier Jardón
+ Jennie Petoumenou
+ Jorge González
+ Mario Blättermann
+ Nicola Fontana
+ Philip Chimento
+ Philip Withnall
+ Simos Xenitellis
+ Stefan Kost
+ Sven Herzberg
+
+
+GTK-Doc 1.11    (Nov 16 2008)
+============
+
+ Changes
+
+ o 531572 : one-page generation option
+ o 448879 : Use a footer when generating HTML documentation
+ o 311857 : xsltproc very slow generating index for gtk-docs.sgml
+ o 335239 : Using gnome-doc-utils for gtk-doc documentation
+ o 460753 : enable vpath build in gtkdoc-mkhtml
+ o 473342 : Warn about repeated symbols in sections
+ o 487727 : DocBook XML DTD version
+ o 523669 : make check: Element publisher content does not follow the...
+ o 530758 : gtk-doc should not expand XML tags and their attributes
+ o 533262 : no-template mode scans different source files
+ o 534627 : gtk-doc uses non-standard HTML element
+ o 542137 : No declaration found for: gsf_output_*
+ o 543855 : Fix for Bug 460753 (enable vpath build in gtkdoc-mkhtml) ...
+ o 544172 : Fails to parse return value of 'char const *'
+ o 552822 : Add rules to create $(REPORT_FILES)
+ o 553407 : Example Makefile.am uses obsolete INCLUDES instead of AM_...
+ o 554718 : gtk-doc needs to allow versioned TARGET_DIR
+ o 554833 : Be more careful with &quot; struct _ &lt; struct_name &gt;  &quot;
+ o 558082 : evince docs build fails with GTK_DISABLE_SINGLE_INCLUDES
+ o 559281 : Correct check for existence of gtkdoc-rebase
+
+ Contributors
+
+ Behdad Esfahbod
+ Christian Persch
+ David Nečas
+ Felix Riemann
+ Jeffrey Stedfast
+ Marc-Andre Lureau
+ Matthew Barnes
+ Peter Kjellerstedt
+ Sebastian Dröge
+ Simon Josefsson
+ Stefan Kost
+
+
+GTK-Doc 1.10    (Mar 20 2008)
+============
+
+ Changes
+
+ o 460753 : enable vpath build in gtkdoc-mkhtml
+ o 503119 : Add dependency on content_files to SGML target
+ o 127049 : building reference documentation fails when builddir != s...
+ o 481811 : Inline function bodies are confused with declarations
+ o 448879 : Use a footer when generating HTML documentation
+ o 492005 : Deprecation guard warnings for properties and signals
+ o 498521 : Inconsistent compiler flags passed in gtk-doc.make
+ o 365913 : gtk-doc output is not predictable
+ o 446648 : gtk-doc does not handle forward typedef'd enums
+ o 468278 : Display proper types for properties
+ o 497367 : don't use US-ASCII for output encoding
+ o 501066 : Missing quotes around gtkdoc-rebase check cause a warning
+ o 508897 : [PATCH] Fix build when gtk-doc is not installed
+ o 509539 : Building documentation aborts when no .types file is present
+ o 512154 : Struct member type attributes are limited to one token
+ o 513318 : gtk-doc.el doesn't work fine with emacs22
+
+ Contributors
+
+ Benjamin Otte
+ Carlos Garnacho
+ Damon Chaplin
+ David Nečas
+ Frederic Peters
+ Joe Marcus Clarke
+ Kouhei Sutou
+ Loïc Minier
+ Mathias Hasselmann
+ Petteri Räty
+ Rouslan Solomakhin
+ Stefan Kost
+ Sven Herzberg
+ Yeti
+
+
+GTK-Doc 1.9     (Sep 30 2007)
+===========
+
+ Changes
+
+ o 419308 : unsynced regexps for parameter parsing
+ o 449618 : Top navigation bar is in the way
+ o 453717 : fixxref logic to determine absolute path's is flawed
+ o 457173 : unit tests for gtk-doc
+ o 465920 : Use gtkdoc-rebase
+ o 467773 : default master doc should have proper extension
+ o 141869 : Poor error generated when faced with a type declared as '...
+ o 156643 : Avoid make error in gtk-doc.make
+ o 322035 : wrong macro parsing
+ o 323938 : gtk-doc.m4 check is silent
+ o 324535 : gtk-doc doesn't handle deprecation inside enumerations
+ o 355352 : If you don't have an instantiatable type for a gtypeinter...
+ o 379466 : Improve C parser to handle TYPE\nVARIABLE in function pro...
+ o 380824 : docs are truncated if line begins with '* returns '
+ o 383456 : ' make check ' test for 100% documentation
+ o 411739 : Gtk-doc fails to handle ' struct tm * function_name (); '
+ o 415388 : Please clean -undocumented.txt files
+ o 418027 : gtkdoc-mkdb does not handle #ifdef in enum {}
+ o 419997 : parameter name trouble
+ o 428596 : Warnings with gtk-doc.m4 macros
+ o 434134 : fixxrefs like sed for installing pregenerated docs
+ o 436565 : Report undeclared symbols into a file
+ o 445596 : Impossible to link a page with an anchor
+ o 445693 : Does not understand ' unsigned long ' as a type
+ o 450338 : Make gtk-doc.m4 fail when needed gtk-doc is not installed
+ o 454916 : gtk-doc should permit generation of URI-based cross-refer...
+ o 457077 : add --no-implicit-returns to gtkdoc-mkdb
+ o 459225 : Accept automake-1.10 in autogen.sh
+ o 459725 : ' jhbuild build gtk-doc ' fails on make
+ o 460127 : parsing nested union/structs confuses public/private state
+ o 465365 : [PATCH] gtk-doc does not compile
+ o 466559 : [CSS] styling <hr />;
+ o 471014 : G_CONST_RETURN * G_CONST_RETURN * function not picked up
+ o 477532 : function variables
+ o 479913 : gtk-doc.notmpl.make is not distributed
+ o 479923 : distclean test output properly
+
+ Contributors
+
+ Benjamin Otte
+ Damon Chaplin
+ David Nečas
+ Frederic Peters
+ Loic Minier
+ Petteri Räty
+ Rouslan Solomakhin
+ Stefan Kost
+ Sven Herzberg
+ Yeti
+
+
+GTK-Doc 1.8     (Feb 16 2007)
+===========
+
+ o Made it easier to include example code in the source code comment blocks.
+   "|[ ... ]|" can be used to delineate example code (it just gets converted
+   to "<informalexample><programlisting>"), and most of the text in example
+   code is left as it is. The only thing that is still expanded is
+   '#' to allow links to a symbol's documentation, e.g. '#GtkWidget'.
+ o Made the field widths wider for the HTML output, so it looks a bit nicer.
+ o Added a '--rebuild-sections' option to gtkdoc-scan to automatically rebuild
+   the MODULE-sections.txt file. This only works if all the header files are
+   organized neatly and functions don't need rearranging in the docs.
+ o Added a '--rebuild-types' option to gtkdoc-scan to automatically rebuild
+   the MODULE.types file, so you don't need to add new types manually.
+ o Leave CDATA sections as they are, in the extra XML content files and within
+   source code comment blocks.
+ o Allow the section id and #include's to be set within the "SECTION:" comment
+   block, using "@Section_ID:xxx" and "@Include:".
+ o Added "--default-includes" option to specify the default #include's (for
+   people who are using --rebuild-sections and so can't specify it in
+   MODULE-sections.txt).
+ o Added a '--query-child-properties' argument to help document child
+   properties of arbitrary GObjects (used by things like canvas widgets).
+ o Fixed documentation of signals of interfaces.
+
+
+GTK-Doc 1.7     (Jul 29 2006)
+===========
+
+ o Fixed bug that resulted in empty "@:" lines in the templates.
+ o Fixed a few bugs with the XSL code.
+ o Supported a few more variations of C syntax.
+ o Remove the internally-used '-struct' suffix from links to widget structs.
+ o Fixed a few missing build dependencies.
+ o Added a new "C-x4s" binding to the emacs lisp code, to insert a blank
+   section header in the source code.
+ o Fixed bug that ignored inline section header docs with '-' in their names.
+ o Added a 'make docs' target that can be used to build the docs even when
+   gtk-doc has been disabled at configure time.
+
+
+GTK-Doc 1.6     (Apr 9 2006)
+===========
+
+ o Removed the hard dependency on openjade or jade, since XML is used mainly
+   now rather than SGML.
+ o Install the .pc file in $(datadir) rather than $(libdir) since gtk-doc is
+   architecture-independant.
+ o Added "--ignore-decorators" option to ignore a list of declarators in
+   function declarations.
+ o Support '#Object::signal'/'#Object:property' to link to signals/properties
+ o Fixed missing index terms.
+
+
+GTK-Doc 1.5     (Mar 7 2006)
+===========
+
+ o Output the new version of devhelp2 information, but still generate the old
+   devhelp files so older versions of DevHelp still work OK.
+ o Fixed the initial creation of the *-sections.txt file so the object
+   hierarchy, signals and properties all work automatically.
+ o Show information about signal flags (run first/last).
+ o Support a --source-suffixes argument specifying which source files to scan.
+ o Support other root object types besides GObject and GInterface.
+ o Use a fixed navigation bar for the generated documentation.
+ o New documentation from Stefan Kost.
+ o Handle more variations of C syntax.
+
+
+GTK-Doc 1.4     (Jul 3 2005)
+===========
+
+ o Support section documentation (title, short description, long description
+   and 'see also') within the source code. I think everything can now be
+   documented within the source code.
+ o Support Stable/Unstable/Private stability levels for everything.
+
+
+GTK-Doc 1.3     (Jan 9 2005)
+===========
+
+ o Use the new style.css stylesheet instead of hard-wiring the styles.
+ o Updated the documentation and example build files.
+ o Added support for a gallery of widget images.
+ o Output default values for widget properties and allowed ranges.
+ o Only underline links in the docs when the mouse hovers over them.
+ o Added support for placing the parameter table anywhere within the function
+   documentation (using the "<!--PARAMETERS-->" marker).
+ o Handle more variations of C syntax.
+
+
+GTK-Doc 1.2     (Feb 16 2004)
+===========
+
+ o Added widget signals and properties to undocumented output and statistics.
+ o Added support for an index of all symbols.
+ o Emit "Since:" information for signals and properties.
+ o Added derived subclasses and interfaces to the widget hierarchies.
+ o Added .cat SGML catalog file.
+ o Support properties on interfaces.
+ o Added "--help" options to the scripts.
+
+
+GTK-Doc 1.1     (Apr 18 2003)
+===========
+
+ o Add a gtk-doc.m4 macro that allows packages to provide consistent
+   checking for gtk-doc.
+ o Check to make sure that the XML catalog actually contains entries
+   for the DocBook XML DTD and XSLT stylesheets.  Please consult the
+   README file if your system's XML catalog isn't set up.
+ o Add infrastructure for including the standard gtk-doc makefile
+   glue, so that maintainers of packages don't need to worry about
+   keeping it up to date.  See glib head for an example of its use.
+ o Some updates to the devhelp contents file generation, as suggested
+   by Hallski.
+ o Fix some bugs in the DocBook XML codepath that were preventing
+   inter-module cross references from being resolved.
+ o Fix some bugs in extraction of object property documentation.
+
+
+GTK-Doc 1.0	(Jan 20 2003)
+===========
+
+ o Added support for "Since:" and "Deprecated:" tags, and look for deprecated
+   guard macros in header files.
+ o Support /*< public >*/ and /*< private >*/ markers for all structs.
+ o New "--ignore-files" option for gtkdoc-mkdb, to ignore files or directories.
+ o Used the "sgml-raw" output type with openjade, to avoid problems with Lynx.
+ o Added .pc pkg-config file which can be used to check the gtk-doc version.
+
+
+GTK-Doc 0.10	(Nov 14 2002)
+============
+
+ o --output-format option to select whether SGML or XML is generated.
+ o Use openjade or jade when converting SGML to HTML.
+ o Use xsltproc to convert XML to HTML, with a new look.
+ o In XML mode, support XIncludes as an alternative to entities.
+ o In XML mode, create .devhelp files.
+ o List interfaces in the object hierarchy.
+ o Create docs for signals on interfaces.
+ o Generate links between interface and their implementations and
+   prerequisites.
+ o Create docs for child and style properties.
+ o Use blurbs for property documentation.
+ o Allow inline documentation for signals and properties.

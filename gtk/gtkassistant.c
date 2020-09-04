@@ -27,15 +27,15 @@
  * @Title: GtkAssistant
  *
  * A #GtkAssistant is a widget used to represent a generally complex
- * operation splitted in several steps, guiding the user through its
- * pages and controlling the page flow to collect the necessary data.
+ * operation split up into several steps. Each step consists of one or more
+ * pages. GtkAssistant guides the user through the pages, and controls 
+ * the page flow to collect the data needed for the operation.
  *
- * The design of GtkAssistant is that it controls what buttons to show
- * and to make sensitive, based on what it knows about the page sequence
- * and the [type][GtkAssistantPageType] of each page,
- * in addition to state information like the page
+ * GtkAssistant handles which buttons to show and to make sensitive based 
+ * on page sequence knowledge and the [type][GtkAssistantPageType] 
+ * of each page in addition to state information like the 
  * [completion][gtk-assistant-set-page-complete]
- * and [committed][gtk-assistant-commit] status.
+ * and [committed][gtk-assistant-commit] page statuses.
  *
  * If you have a case that doesn’t quite fit in #GtkAssistants way of
  * handling buttons, you can use the #GTK_ASSISTANT_PAGE_CUSTOM page
@@ -416,7 +416,7 @@ add_action_widgets (GtkAssistant *assistant)
           if (has_default)
             {
               gtk_window_set_default_widget (GTK_WINDOW (assistant), child);
-              gtk_widget_add_css_class (child, GTK_STYLE_CLASS_SUGGESTED_ACTION);
+              gtk_widget_add_css_class (child, "suggested-action");
             }
         }
       g_list_free (children);
@@ -1676,7 +1676,7 @@ gtk_assistant_add_page (GtkAssistant *assistant,
   gtk_widget_show (page_info->regular_title);
   gtk_widget_hide (page_info->current_title);
 
-  gtk_widget_add_css_class (page_info->current_title, GTK_STYLE_CLASS_HIGHLIGHT);
+  gtk_widget_add_css_class (page_info->current_title, "highlight");
 
   gtk_size_group_add_widget (assistant->title_size_group, page_info->regular_title);
   gtk_size_group_add_widget (assistant->title_size_group, page_info->current_title);

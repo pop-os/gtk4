@@ -272,7 +272,7 @@ start_puzzle (GdkPaintable *paintable)
 
   /* Create a new grid */
   grid = gtk_grid_new ();
-  gtk_widget_set_can_focus (grid, TRUE);
+  gtk_widget_set_focusable (grid, TRUE);
   gtk_aspect_frame_set_child (GTK_ASPECT_FRAME (frame), grid);
   aspect_ratio = gdk_paintable_get_intrinsic_aspect_ratio (paintable);
   if (aspect_ratio == 0.0)
@@ -284,7 +284,7 @@ start_puzzle (GdkPaintable *paintable)
    * keys to move the puzzle */
   controller = gtk_shortcut_controller_new ();
   gtk_shortcut_controller_set_scope (GTK_SHORTCUT_CONTROLLER (controller),
-                                     GTK_SHORTCUT_SCOPE_GLOBAL);
+                                     GTK_SHORTCUT_SCOPE_LOCAL);
   add_move_binding (GTK_SHORTCUT_CONTROLLER (controller),
                     GDK_KEY_Left, GDK_KEY_KP_Left,
                     -1, 0);
@@ -435,7 +435,7 @@ do_sliding_puzzle (GtkWidget *do_widget)
       gtk_widget_set_margin_bottom (tweaks, 10);
 
       choices = gtk_flow_box_new ();
-      gtk_widget_add_css_class (choices, GTK_STYLE_CLASS_VIEW);
+      gtk_widget_add_css_class (choices, "view");
       add_choice (choices, puzzle);
       add_choice (choices, gtk_nuclear_animation_new ());
       media = gtk_media_file_new_for_resource ("/images/gtk-logo.webm");

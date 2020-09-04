@@ -156,7 +156,7 @@
  * drag window) in response to this, as all the functions
  * that GDK could perform here are already handled by the
  * OS driving the DnD process via DoDragDrop() call.
- * The LOCAL protocol, on the other hande, does a lot,
+ * The LOCAL protocol, on the other hand, does a lot,
  * similar to what X11 backend does with XDND - it sends
  * GDK_DRAG_LEAVE and GDK_DRAG_ENTER, emits GDK_DRAG_MOTION.
  *
@@ -205,6 +205,7 @@
 #include "gdk/gdkdragprivate.h"
 #include "gdkwin32dnd-private.h"
 #include "gdkdisplay-win32.h"
+#include "gdkdevice-win32.h"
 #include "gdkdeviceprivate.h"
 #include "gdkhdataoutputstream-win32.h"
 
@@ -831,7 +832,7 @@ gdk_drag_new (GdkDisplay         *display,
 static enum_formats *enum_formats_new (GArray *formats);
 
 /* Finds a GdkDrag object that corresponds to a DnD operation
- * which is currently targetting the dest_window
+ * which is currently targeting the dest_window
  * Does not give a reference.
  */
 GdkDrag *
@@ -1730,7 +1731,7 @@ _gdk_win32_surface_drag_begin (GdkSurface         *surface,
 
   GDK_NOTE (DND, g_print ("_gdk_win32_surface_drag_begin\n"));
 
-  gdk_device_get_position (device, &px, &py);
+  _gdk_device_win32_query_state (device, NULL, NULL, &px, &py, NULL);
   x_root = round (px + dx);
   y_root = round (py + dy);
 
@@ -1826,7 +1827,7 @@ find_window_enum_proc (HWND   hwnd,
     return TRUE;
 }
 
-/* Finds the HWND under cursor. Local DnD protcol
+/* Finds the HWND under cursor. Local DnD protocol
  * uses this function, since local protocol is implemented
  * entirely in GDK and cannot rely on the OS to notify
  * drop targets about drags that move over them.
@@ -2440,7 +2441,7 @@ gdk_dnd_handle_key_event (GdkDrag  *drag,
   /* The state is not yet updated in the event, so we need
    * to query it here.
    */
-  _gdk_device_query_state (pointer, NULL, NULL, NULL, NULL, &state);
+  _gdk_device_win32_query_state (pointer, NULL, NULL, NULL, NULL, &state);
 
   if (dx != 0 || dy != 0)
     {

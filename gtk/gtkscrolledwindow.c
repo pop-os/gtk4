@@ -68,12 +68,12 @@
  * Widgets with native scrolling support, i.e. those whose classes implement the
  * #GtkScrollable interface, are added directly. For other types of widget, the
  * class #GtkViewport acts as an adaptor, giving scrollability to other widgets.
- * GtkScrolledWindow’s implementation of gtk_container_add() intelligently
+ * gtk_scrolled_window_set_child() intelligently
  * accounts for whether or not the added child is a #GtkScrollable. If it isn’t,
  * #GtkScrolledWindow wraps the child in a #GtkViewport and adds that for you.
  * Therefore, you can just add any child widget and not worry about the details.
  *
- * If gtk_container_add() has added a #GtkViewport for you, you can remove
+ * If gtk_scrolled_window_set_child() has added a #GtkViewport for you, you can remove
  * both your added child widget from the #GtkViewport, and the #GtkViewport
  * from the GtkScrolledWindow, like this:
  *
@@ -118,7 +118,7 @@
  * the content is pulled beyond the end, and this situation can be
  * captured with the #GtkScrolledWindow::edge-overshot signal.
  *
- * If no mouse device is present, the scrollbars will overlayed as
+ * If no mouse device is present, the scrollbars will overlaid as
  * narrow, auto-hiding indicators over the content. If traditional
  * scrollbars are desired although no mouse is present, this behaviour
  * can be turned off with the #GtkScrolledWindow:overlay-scrolling
@@ -497,13 +497,13 @@ update_scrollbar_positions (GtkScrolledWindow *scrolled_window)
       if (priv->window_placement == GTK_CORNER_TOP_LEFT ||
           priv->window_placement == GTK_CORNER_TOP_RIGHT)
         {
-          gtk_widget_add_css_class (priv->hscrollbar, GTK_STYLE_CLASS_BOTTOM);
-          gtk_widget_remove_css_class (priv->hscrollbar, GTK_STYLE_CLASS_TOP);
+          gtk_widget_add_css_class (priv->hscrollbar, "bottom");
+          gtk_widget_remove_css_class (priv->hscrollbar, "top");
         }
       else
         {
-          gtk_widget_add_css_class (priv->hscrollbar, GTK_STYLE_CLASS_TOP);
-          gtk_widget_remove_css_class (priv->hscrollbar, GTK_STYLE_CLASS_BOTTOM);
+          gtk_widget_add_css_class (priv->hscrollbar, "top");
+          gtk_widget_remove_css_class (priv->hscrollbar, "bottom");
         }
     }
 
@@ -517,13 +517,13 @@ update_scrollbar_positions (GtkScrolledWindow *scrolled_window)
           (priv->window_placement == GTK_CORNER_TOP_LEFT ||
            priv->window_placement == GTK_CORNER_BOTTOM_LEFT)))
         {
-          gtk_widget_add_css_class (priv->vscrollbar, GTK_STYLE_CLASS_RIGHT);
-          gtk_widget_remove_css_class (priv->vscrollbar, GTK_STYLE_CLASS_LEFT);
+          gtk_widget_add_css_class (priv->vscrollbar, "right");
+          gtk_widget_remove_css_class (priv->vscrollbar, "left");
         }
       else
         {
-          gtk_widget_add_css_class (priv->vscrollbar, GTK_STYLE_CLASS_LEFT);
-          gtk_widget_remove_css_class (priv->vscrollbar, GTK_STYLE_CLASS_RIGHT);
+          gtk_widget_add_css_class (priv->vscrollbar, "left");
+          gtk_widget_remove_css_class (priv->vscrollbar, "right");
         }
     }
 }
@@ -682,7 +682,7 @@ gtk_scrolled_window_class_init (GtkScrolledWindowClass *class)
    *
    * Whether overlay scrolling is enabled or not. If it is, the
    * scrollbars are only added as traditional widgets when a mouse
-   * is present. Otherwise, they are overlayed on top of the content,
+   * is present. Otherwise, they are overlaid on top of the content,
    * as narrow indicators.
    *
    * Note that overlay scrolling can also be globally disabled, with
@@ -1955,10 +1955,10 @@ gtk_scrolled_window_init (GtkScrolledWindow *scrolled_window)
   GtkEventController *controller;
   GtkCssNode *widget_node;
   GQuark classes[4] = {
-    g_quark_from_static_string (GTK_STYLE_CLASS_LEFT),
-    g_quark_from_static_string (GTK_STYLE_CLASS_RIGHT),
-    g_quark_from_static_string (GTK_STYLE_CLASS_TOP),
-    g_quark_from_static_string (GTK_STYLE_CLASS_BOTTOM),
+    g_quark_from_static_string ("left"),
+    g_quark_from_static_string ("right"),
+    g_quark_from_static_string ("top"),
+    g_quark_from_static_string ("bottom"),
   };
   int i;
 
@@ -2467,9 +2467,9 @@ gtk_scrolled_window_set_has_frame (GtkScrolledWindow *scrolled_window,
   priv->has_frame = has_frame;
 
   if (has_frame)
-    gtk_widget_add_css_class (GTK_WIDGET (scrolled_window), GTK_STYLE_CLASS_FRAME);
+    gtk_widget_add_css_class (GTK_WIDGET (scrolled_window), "frame");
   else
-    gtk_widget_remove_css_class (GTK_WIDGET (scrolled_window), GTK_STYLE_CLASS_FRAME);
+    gtk_widget_remove_css_class (GTK_WIDGET (scrolled_window), "frame");
 
   g_object_notify_by_pspec (G_OBJECT (scrolled_window), properties[PROP_HAS_FRAME]);
 }
@@ -2559,9 +2559,8 @@ gtk_scrolled_window_get_kinetic_scrolling (GtkScrolledWindow *scrolled_window)
  * then later replayed if it is meant to go to the child widget.
  *
  * This should be enabled if any child widgets perform non-reversible
- * actions on button press events. If they don't, and additionally handle
- * #GtkWidget::grab-broken-event, it might be better to set @capture_button_press
- * to %FALSE.
+ * actions on button press events. If they don't, it might be better to
+ * set @capture_button_press to %FALSE.
  *
  * This setting only has an effect if kinetic scrolling is enabled.
  */
@@ -4195,7 +4194,10 @@ gtk_scrolled_window_set_child (GtkScrolledWindow *scrolled_window,
                     NULL);
     }
 
-  list = g_list_append (NULL, priv->child);
+  if (priv->child)
+    list = g_list_append (NULL, priv->child);
+  else
+    list = NULL;
   gtk_accessible_update_relation (GTK_ACCESSIBLE (priv->hscrollbar),
                                   GTK_ACCESSIBLE_RELATION_CONTROLS, list,
                                   -1);

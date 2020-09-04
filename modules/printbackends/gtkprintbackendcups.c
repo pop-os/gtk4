@@ -647,7 +647,9 @@ add_cups_options (const char *key,
                           custom_value = TRUE;
                           break;
 
+#if CUPS_VERSION_MAJOR == 2 && CUPS_VERSION_MINOR >= 3
                         case PPD_CUSTOM_UNKNOWN:
+#endif
                         default :
                           custom_value = FALSE;
                         }
@@ -2900,7 +2902,7 @@ find_printer_by_uuid (GtkPrintBackendCups *backend,
 }
 
 /*
- *  Create new GtkPrinter from informations included in TXT records.
+ *  Create new GtkPrinter from information included in TXT records.
  */
 static void
 create_cups_printer_from_avahi_data (AvahiConnectionTestData *data)
@@ -3169,8 +3171,8 @@ avahi_service_resolver_cb (GObject      *source_object,
       if (data->resource_path != NULL)
         {
           if (data->got_printer_type &&
-              (g_strcmp0 (data->resource_path, "printers/") == 0 ||
-               g_strcmp0 (data->resource_path, "classes/") == 0))
+              (g_str_has_prefix (data->resource_path, "printers/") ||
+               g_str_has_prefix (data->resource_path, "classes/")))
             {
               /* This is a CUPS printer advertised via Avahi */
               printer_name = g_strrstr (data->resource_path, "/");
@@ -3413,7 +3415,7 @@ avahi_create_browsers (GObject      *source_object,
   if (!dbus_connection)
     {
       if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("Couldn't connect to D-Bus system bus, %s", error->message);
+        g_message ("Couldn't connect to D-Bus system bus, avahi printers will not be available: %s", error->message);
 
       g_error_free (error);
       return;

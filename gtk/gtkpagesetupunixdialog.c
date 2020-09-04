@@ -26,8 +26,7 @@
 
 #include "gtkbutton.h"
 #include "gtkscrolledwindow.h"
-#include "gtktogglebutton.h"
-#include "gtkradiobutton.h"
+#include "gtkcheckbutton.h"
 #include "gtklabel.h"
 #include "gtkgrid.h"
 #include "gtkcelllayout.h"
@@ -50,7 +49,7 @@
  * which don’t provide a native page setup dialog, like Unix. It can
  * be used very much like any other GTK dialog, at the cost of
  * the portability offered by the
- * [high-level printing API][gtk3-High-level-Printing-API]
+ * [high-level printing API][gtk4-High-level-Printing-API]
  */
 
 typedef struct _GtkPageSetupUnixDialogClass    GtkPageSetupUnixDialogClass;
@@ -80,6 +79,8 @@ struct _GtkPageSetupUnixDialog
   GtkPrinter *request_details_printer;
 
   GtkPrintSettings *print_settings;
+
+  gboolean internal_change;
 
   /* Save last setup so we can re-set it after selecting manage custom sizes */
   GtkPageSetup *last_setup;
@@ -273,6 +274,7 @@ gtk_page_setup_unix_dialog_init (GtkPageSetupUnixDialog *dialog)
   GtkFilter *filter;
   GtkPageSetup *page_setup;
 
+  dialog->internal_change = TRUE;
   dialog->print_backends = NULL;
 
   gtk_widget_init_template (GTK_WIDGET (dialog));
@@ -337,6 +339,7 @@ gtk_page_setup_unix_dialog_init (GtkPageSetupUnixDialog *dialog)
   /* Load data */
   gtk_print_load_custom_papers (dialog->custom_paper_list);
   load_print_backends (dialog);
+  dialog->internal_change = FALSE;
 }
 
 static void
@@ -638,11 +641,19 @@ custom_paper_dialog_response_cb (GtkDialog *custom_paper_dialog,
                                  gpointer   user_data)
 {
   GtkPageSetupUnixDialog *dialog = GTK_PAGE_SETUP_UNIX_DIALOG (user_data);
+  GtkPageSetup *last_page_setup;
 
+  dialog->internal_change = TRUE;
   gtk_print_load_custom_papers (dialog->custom_paper_list);
-
-  /* Update printer page list */
   printer_changed_callback (GTK_DROP_DOWN (dialog->printer_combo), NULL, dialog);
+  dialog->internal_change = FALSE;
+
+  if (dialog->last_setup)
+    last_page_setup = g_object_ref (dialog->last_setup);
+  else
+    last_page_setup = gtk_page_setup_new (); /* "good" default */
+  set_paper_size (dialog, last_page_setup, FALSE, TRUE);
+  g_object_unref (last_page_setup);
 
   gtk_window_destroy (GTK_WINDOW (custom_paper_dialog));
 }
@@ -659,6 +670,9 @@ paper_size_changed (GtkDropDown            *combo_box,
   char *top, *bottom, *left, *right;
   GtkLabel *label;
   const char *unit_str;
+
+  if (dialog->internal_change)
+    return;
 
   label = GTK_LABEL (dialog->paper_size_label);
 
@@ -686,9 +700,7 @@ paper_size_changed (GtkDropDown            *combo_box,
           /* And show the custom paper dialog */
           custom_paper_dialog = _gtk_custom_paper_unix_dialog_new (GTK_WINDOW (dialog), NULL);
           g_signal_connect (custom_paper_dialog, "response", G_CALLBACK (custom_paper_dialog_response_cb), dialog);
-          G_GNUC_BEGIN_IGNORE_DEPRECATIONS
           gtk_window_present (GTK_WINDOW (custom_paper_dialog));
-          G_GNUC_END_IGNORE_DEPRECATIONS
 
           return;
         }
@@ -782,11 +794,11 @@ gtk_page_setup_unix_dialog_new (const char *title,
 static GtkPageOrientation
 get_orientation (GtkPageSetupUnixDialog *dialog)
 {
-  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->portrait_radio)))
+  if (gtk_check_button_get_active (GTK_CHECK_BUTTON (dialog->portrait_radio)))
     return GTK_PAGE_ORIENTATION_PORTRAIT;
-  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->landscape_radio)))
+  if (gtk_check_button_get_active (GTK_CHECK_BUTTON (dialog->landscape_radio)))
     return GTK_PAGE_ORIENTATION_LANDSCAPE;
-  if (gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (dialog->reverse_landscape_radio)))
+  if (gtk_check_button_get_active (GTK_CHECK_BUTTON (dialog->reverse_landscape_radio)))
     return GTK_PAGE_ORIENTATION_REVERSE_LANDSCAPE;
   return GTK_PAGE_ORIENTATION_REVERSE_PORTRAIT;
 }
@@ -798,16 +810,16 @@ set_orientation (GtkPageSetupUnixDialog *dialog,
   switch (orientation)
     {
     case GTK_PAGE_ORIENTATION_REVERSE_PORTRAIT:
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (dialog->reverse_portrait_radio), TRUE);
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (dialog->reverse_portrait_radio), TRUE);
       break;
     case GTK_PAGE_ORIENTATION_PORTRAIT:
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (dialog->portrait_radio), TRUE);
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (dialog->portrait_radio), TRUE);
       break;
     case GTK_PAGE_ORIENTATION_LANDSCAPE:
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (dialog->landscape_radio), TRUE);
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (dialog->landscape_radio), TRUE);
       break;
     case GTK_PAGE_ORIENTATION_REVERSE_LANDSCAPE:
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (dialog->reverse_landscape_radio), TRUE);
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (dialog->reverse_landscape_radio), TRUE);
       break;
     default:
       break;
@@ -857,32 +869,25 @@ static gboolean
 set_active_printer (GtkPageSetupUnixDialog *dialog,
                     const char             *printer_name)
 {
-  GtkTreeModel *model;
-  GtkTreeIter iter;
+  guint i, n;
   GtkPrinter *printer;
 
-  model = GTK_TREE_MODEL (dialog->printer_list);
+  if (!printer_name)
+    return FALSE;
 
-  if (gtk_tree_model_get_iter_first (model, &iter))
+  for (i = 0, n = g_list_model_get_n_items (dialog->printer_list); i < n; i++)
     {
-      do
+      printer = g_list_model_get_item (dialog->printer_list, i);
+
+      if (strcmp (gtk_printer_get_name (printer), printer_name) == 0)
         {
-          gtk_tree_model_get (GTK_TREE_MODEL (dialog->printer_list), &iter,
-                              PRINTER_LIST_COL_PRINTER, &printer, -1);
-          if (printer == NULL)
-            continue;
-
-          if (strcmp (gtk_printer_get_name (printer), printer_name) == 0)
-            {
-              gtk_combo_box_set_active_iter (GTK_COMBO_BOX (dialog->printer_combo),
-                                             &iter);
-              g_object_unref (printer);
-              return TRUE;
-            }
-
+          gtk_drop_down_set_selected (GTK_DROP_DOWN (dialog->printer_combo), i);
           g_object_unref (printer);
 
-        } while (gtk_tree_model_iter_next (model, &iter));
+          return TRUE;
+        }
+
+      g_object_unref (printer);
     }
 
   return FALSE;

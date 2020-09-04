@@ -184,7 +184,7 @@ gtk_tree_list_row_sort_keys_compare (gconstpointer a,
       if (result == GTK_ORDERING_EQUAL)
         {
           /* We must break ties here because if a ever gets a child,
-           * it would need to go right inbetween a and b. */
+           * it would need to go right in between a and b. */
           GtkTreeListRowCacheKey *cachea = cache_key_from_key (self, keysa[i]);
           GtkTreeListRowCacheKey *cacheb = cache_key_from_key (self, keysb[i]);
           if (gtk_tree_list_row_get_position (cachea->row) < gtk_tree_list_row_get_position (cacheb->row))
@@ -354,7 +354,7 @@ gtk_tree_list_row_sort_keys_new (GtkTreeListRowSorter *self)
                               sizeof (gpointer[MAX_KEY_DEPTH]));
 
   if (self->sorter)
-    result->sort_keys = gtk_sort_keys_ref (gtk_sorter_get_keys (self->sorter));
+    result->sort_keys = gtk_sorter_get_keys (self->sorter);
   result->cached_keys = g_hash_table_new (NULL, NULL);
 
   return (GtkSortKeys *) result;
@@ -422,7 +422,7 @@ gtk_tree_list_row_sorter_compare (GtkSorter *sorter,
                 result = gtk_sorter_compare (self->sorter, obj1, obj2);
 
               /* We must break ties here because if r1 ever gets a child,
-               * it would need to go right inbetween r1 and r2. */
+               * it would need to go right in between r1 and r2. */
               if (result == GTK_ORDERING_EQUAL)
                 {
                   if (gtk_tree_list_row_get_position (r1) < gtk_tree_list_row_get_position (r2))

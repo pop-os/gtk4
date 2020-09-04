@@ -26,7 +26,6 @@
 
 #include "gdkversionmacros.h"
 
-#include "gdkprofilerprivate.h"
 #include "gdkinternals.h"
 #include "gdkintl.h"
 
@@ -304,11 +303,6 @@ gdk_pre_parse (void)
     g_warning ("GDK_DEBUG set but ignored because GTK isn't built with G_ENABLE_DEBUG");
 #endif  /* G_ENABLE_DEBUG */
 
-  if (g_getenv ("GTK_TRACE_FD"))
-    gdk_profiler_start (atoi (g_getenv ("GTK_TRACE_FD")));
-  else if (g_getenv ("GTK_TRACE"))
-    gdk_profiler_start (-1);
-
 #ifndef G_HAS_CONSTRUCTORS
   stash_desktop_startup_notification_id ();
 #endif
@@ -319,9 +313,8 @@ gdk_pre_parse (void)
  *
  * Opens the default display specified by command line arguments or
  * environment variables, sets it as the default display, and returns
- * it. gdk_parse_args() must have been called first. If the default
- * display has previously been set, simply returns that. An internal
- * function that should not be used by applications.
+ * it. If the default display has previously been set, simply returns
+ * that. An internal function that should not be used by applications.
  *
  * Returns: (nullable) (transfer none): the default display, if it
  *   could be opened, otherwise %NULL.

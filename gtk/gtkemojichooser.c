@@ -571,9 +571,9 @@ populate_emoji_chooser (gpointer data)
 {
   GtkEmojiChooser *chooser = data;
   GVariant *item;
-  guint64 start, now;
+  gint64 start, now;
 
-  start = g_get_monotonic_time ();
+  start = GDK_PROFILER_CURRENT_TIME;
 
   if (!chooser->data)
     {
@@ -614,11 +614,10 @@ populate_emoji_chooser (gpointer data)
       add_emoji (chooser->box, FALSE, item, 0, chooser);
       g_variant_unref (item);
 
-      now = g_get_monotonic_time ();
-      if (now > start + 8000)
+      now = GDK_PROFILER_CURRENT_TIME;
+      if (now > start + 2000000) /* 2 ms */
         {
-          if (GDK_PROFILER_IS_RUNNING)
-            gdk_profiler_add_mark (start, (now - start), "emojichooser", "populate");
+          gdk_profiler_add_mark (start, (now - start), "emojichooser", "populate");
           return G_SOURCE_CONTINUE;
         }
     }
@@ -628,8 +627,7 @@ populate_emoji_chooser (gpointer data)
   chooser->box = NULL;
   chooser->populate_idle = 0;
 
-  if (GDK_PROFILER_IS_RUNNING)
-    gdk_profiler_end_mark (start, "emojichooser", "populate (finish)");
+  gdk_profiler_end_mark (start, "emojichooser", "populate (finish)");
 
   return G_SOURCE_REMOVE;
 }
@@ -1002,6 +1000,16 @@ keynav_failed (GtkWidget        *box,
 }
 
 static void
+gtk_emoji_chooser_map (GtkWidget *widget)
+{
+  GtkEmojiChooser *chooser = GTK_EMOJI_CHOOSER (widget);
+
+  GTK_WIDGET_CLASS (gtk_emoji_chooser_parent_class)->map (widget);
+
+  gtk_widget_grab_focus (chooser->search_entry);
+}
+
+static void
 gtk_emoji_chooser_class_init (GtkEmojiChooserClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
@@ -1009,6 +1017,7 @@ gtk_emoji_chooser_class_init (GtkEmojiChooserClass *klass)
 
   object_class->finalize = gtk_emoji_chooser_finalize;
   widget_class->show = gtk_emoji_chooser_show;
+  widget_class->map = gtk_emoji_chooser_map;
 
   /**
    * GtkEmojiChooser::emoji-picked:

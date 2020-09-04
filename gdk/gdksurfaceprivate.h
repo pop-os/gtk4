@@ -72,6 +72,7 @@ struct _GdkSurface
   guint frame_clock_events_paused : 1;
   guint autohide : 1;
   guint shortcuts_inhibited : 1;
+  guint request_motion : 1;
 
   struct {
     GdkGravity surface_anchor;
@@ -108,25 +109,23 @@ struct _GdkSurfaceClass
   GObjectClass parent_class;
 
   cairo_surface_t *
-               (* ref_cairo_surface)    (GdkSurface       *surface);
-
-  void         (* hide)                 (GdkSurface       *surface);
-  void         (* get_geometry)         (GdkSurface       *surface,
+               (* ref_cairo_surface)    (GdkSurface      *surface);
+  void         (* hide)                 (GdkSurface      *surface);
+  void         (* get_geometry)         (GdkSurface      *surface,
                                          int             *x,
                                          int             *y,
                                          int             *width,
                                          int             *height);
-  void         (* get_root_coords)      (GdkSurface       *surface,
+  void         (* get_root_coords)      (GdkSurface      *surface,
                                          int              x,
                                          int              y,
                                          int             *root_x,
                                          int             *root_y);
-  gboolean     (* get_device_state)     (GdkSurface       *surface,
+  gboolean     (* get_device_state)     (GdkSurface      *surface,
                                          GdkDevice       *device,
                                          double          *x,
                                          double          *y,
                                          GdkModifierType *mask);
-
   void         (* set_input_region)     (GdkSurface      *surface,
                                          cairo_region_t  *shape_region);
 
@@ -170,6 +169,11 @@ struct _GdkSurfaceClass
                                            GdkGLContext   *share,
                                            GError        **error);
 };
+
+#define GDK_SURFACE_DESTROYED(d) (((GdkSurface *)(d))->destroyed)
+
+#define GDK_SURFACE_IS_MAPPED(surface) (((surface)->state & GDK_SURFACE_STATE_WITHDRAWN) == 0)
+
 
 void gdk_surface_set_state (GdkSurface      *surface,
                             GdkSurfaceState  new_state);
@@ -246,6 +250,86 @@ gdk_gravity_flip_vertically (GdkGravity anchor)
 
   g_assert_not_reached ();
 }
+
+void       _gdk_surface_destroy           (GdkSurface      *surface,
+                                           gboolean        foreign_destroy);
+void       gdk_surface_invalidate_rect    (GdkSurface           *surface,
+                                           const GdkRectangle   *rect);
+void       gdk_surface_invalidate_region  (GdkSurface           *surface,
+                                           const cairo_region_t *region);
+void       _gdk_surface_clear_update_area (GdkSurface      *surface);
+void       _gdk_surface_update_size       (GdkSurface      *surface);
+
+GdkGLContext * gdk_surface_get_paint_gl_context (GdkSurface *surface,
+                                                 GError   **error);
+GdkGLContext * gdk_surface_get_shared_data_gl_context (GdkSurface *surface);
+
+void gdk_surface_get_unscaled_size (GdkSurface *surface,
+                                    int *unscaled_width,
+                                    int *unscaled_height);
+gboolean gdk_surface_handle_event (GdkEvent       *event);
+GdkSeat * gdk_surface_get_seat_from_event (GdkSurface *surface,
+                                           GdkEvent    *event);
+
+void       gdk_surface_enter_monitor (GdkSurface *surface,
+                                      GdkMonitor *monitor);
+void       gdk_surface_leave_monitor (GdkSurface *surface,
+                                      GdkMonitor *monitor);
+
+GdkSurface *   gdk_surface_new_temp             (GdkDisplay    *display,
+                                                 const GdkRectangle *position);
+
+void gdk_surface_destroy_notify       (GdkSurface *surface);
+
+void gdk_synthesize_surface_state (GdkSurface     *surface,
+                                   GdkSurfaceState unset_flags,
+                                   GdkSurfaceState set_flags);
+
+void gdk_surface_get_root_coords (GdkSurface *surface,
+                                  int         x,
+                                  int         y,
+                                  int        *root_x,
+                                  int        *root_y);
+void gdk_surface_get_origin      (GdkSurface *surface,
+                                  int        *x,
+                                  int        *y);
+
+
+void gdk_surface_get_geometry (GdkSurface *surface,
+                               int        *x,
+                               int        *y,
+                               int        *width,
+                               int        *height);
+
+void       gdk_surface_freeze_updates      (GdkSurface    *surface);
+void       gdk_surface_thaw_updates        (GdkSurface    *surface);
+
+
+typedef enum
+{
+  GDK_HINT_MIN_SIZE    = 1 << 1,
+  GDK_HINT_MAX_SIZE    = 1 << 2,
+} GdkSurfaceHints;
+
+typedef struct _GdkGeometry GdkGeometry;
+
+struct _GdkGeometry
+{
+  int min_width;
+  int min_height;
+  int max_width;
+  int max_height;
+};
+
+void       gdk_surface_constrain_size      (GdkGeometry    *geometry,
+                                            GdkSurfaceHints  flags,
+                                            int             width,
+                                            int             height,
+                                            int            *new_width,
+                                            int            *new_height);
+
+GDK_AVAILABLE_IN_ALL
+void           gdk_surface_request_motion (GdkSurface *surface);
 
 G_END_DECLS
 

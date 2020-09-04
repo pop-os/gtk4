@@ -1,5 +1,6 @@
 gtk_tests = [
   # testname, optional extra sources
+  ['testtransform'],
   ['testdropdown'],
   ['rendernode'],
   ['rendernode-create-tests'],
@@ -136,7 +137,16 @@ foreach t: gtk_tests
              dependencies: [libgtk_dep, libm])
 endforeach
 
-if get_option('profiler')
+if profiler_enabled
   executable('testperf', 'testperf.c',
-              dependencies: [profiler_dep, platform_gio_dep, libm])
+              dependencies: [libsysprof_dep, platform_gio_dep, libm])
+endif
+
+librsvg = dependency('librsvg-2.0', version: '>= 2.46.0', required: false)
+
+if librsvg.found()
+  executable('testsvg', 'testsvg.c',
+             include_directories: [confinc, gdkinc],
+             c_args: test_args + common_cflags,
+             dependencies: [libgtk_dep, librsvg, libm])
 endif

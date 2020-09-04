@@ -62,19 +62,6 @@
  *
  *   Return %TRUE from your query-tooltip handler. This causes the tooltip to be
  *   show. If you return %FALSE, it will not be shown.
- *
- * In the probably rare case where you want to have even more control over the
- * tooltip that is about to be shown, you can set your own #GtkWindow which
- * will be used as tooltip window.  This works as follows:
- * 
- * - Set #GtkWidget:has-tooltip and connect to #GtkWidget::query-tooltip as before.
- *   Use gtk_widget_set_tooltip_window() to set a #GtkWindow created by you as
- *   tooltip window.
- *
- * - In the #GtkWidget::query-tooltip callback you can access your window using
- *   gtk_widget_get_tooltip_window() and manipulate as you wish. The semantics of
- *   the return value are exactly as before, return %TRUE to show the window,
- *   %FALSE to not show it.
  */
 
 
@@ -357,7 +344,7 @@ gtk_tooltip_set_tip_area (GtkTooltip         *tooltip,
     }
 }
 
-/**
+/*
  * gtk_tooltip_trigger_tooltip_query:
  * @display: a #GdkDisplay
  *
@@ -429,7 +416,7 @@ _gtk_widget_find_at_coords (GdkSurface *surface,
 
   g_return_val_if_fail (GDK_IS_SURFACE (surface), NULL);
 
-  event_widget = gtk_native_get_for_surface (surface);
+  event_widget = GTK_WIDGET (gtk_native_get_for_surface (surface));
 
   if (!event_widget)
     return NULL;
@@ -503,7 +490,7 @@ gtk_tooltip_set_surface (GtkTooltip *tooltip,
   GtkWidget *native;
 
   if (surface)
-    native = gtk_native_get_for_surface (surface);
+    native = GTK_WIDGET (gtk_native_get_for_surface (surface));
   else
     native = NULL;
 

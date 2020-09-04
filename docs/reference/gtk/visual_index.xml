@@ -9,9 +9,6 @@
     <link linkend="GtkLabel">
       <inlinegraphic fileref="label.png" format="PNG"></inlinegraphic>
     </link>
-    <link linkend="GtkAccelLabel">
-      <inlinegraphic fileref="accel-label.png" format="PNG"></inlinegraphic>
-    </link>
     <link linkend="GtkSpinner">
       <inlinegraphic fileref="spinner.png" format="PNG"></inlinegraphic>
     </link>
@@ -44,6 +41,15 @@
     </link>
     <link linkend="GtkGLArea">
       <inlinegraphic fileref="glarea.png" format="PNG"></inlinegraphic>
+    </link>
+    <link linkend="GtkPicture">
+      <inlinegraphic fileref="picture.png" format="PNG"></inlinegraphic>
+    </link>
+    <link linkend="GtkVideo">
+      <inlinegraphic fileref="video.png" format="PNG"></inlinegraphic>
+    </link>
+    <link linkend="GtkMediaControls">
+      <inlinegraphic fileref="media-controls.png" format="PNG"></inlinegraphic>
     </link>
   </para>
 </section>
@@ -96,11 +102,11 @@
    <link linkend="GtkVolumeButton">
       <inlinegraphic fileref="volumebutton.png" format="PNG"></inlinegraphic>
     </link>
-    <link linkend="GtkRadioButton">
-      <inlinegraphic fileref="radio-group.png" format="PNG"></inlinegraphic>
-    </link>
     <link linkend="GtkFileChooserButton">
       <inlinegraphic fileref="file-button.png" format="PNG"></inlinegraphic>
+    </link>
+    <link linkend="GtkDropDown">
+      <inlinegraphic fileref="drop-down.png" format="PNG"></inlinegraphic>
     </link>
   </para>
 </section>
@@ -113,6 +119,12 @@
     </link>
     <link linkend="GtkSearchEntry">
       <inlinegraphic fileref="search-entry.png" format="PNG"></inlinegraphic>
+    </link>
+    <link linkend="GtkPasswordEntry">
+      <inlinegraphic fileref="password-entry.png" format="PNG"></inlinegraphic>
+    </link>
+    <link linkend="GtkEditableLabel">
+      <inlinegraphic fileref="editable-label.png" format="PNG"></inlinegraphic>
     </link>
   </para>
 </section>
@@ -161,9 +173,6 @@
     </link>
     <link linkend="GtkPaned">
       <inlinegraphic fileref="panes.png" format="PNG"></inlinegraphic>
-    </link>
-    <link linkend="GtkPlacesSidebar">
-      <inlinegraphic fileref="placessidebar.png" format="PNG"></inlinegraphic>
     </link>
   </para>
 </section>

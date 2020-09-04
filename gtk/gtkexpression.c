@@ -81,7 +81,7 @@
  * have changed. gtk_expression_watch() starts watching an expression, and
  * gtk_expression_watch_unwatch() stops.
  *
- * Watches can be created for automatically updating the propery of an object,
+ * Watches can be created for automatically updating the property of an object,
  * similar to GObject's #GBinding mechanism, by using gtk_expression_bind().
  *
  * # GtkExpression in GObject properties
@@ -146,7 +146,7 @@
  * To create a closure expression, use the <closure> element. The `type` and `function`
  * attributes specify what function to use for the closure, the content of the element
  * contains the expressions for the parameters.
- * 
+ *
  * Example:
  * |[
  *   <closure type='gchararray' function='combine_args_somehow'>
@@ -1652,7 +1652,7 @@ GTK_DEFINE_EXPRESSION_TYPE (GtkCClosureExpression,
  * @user_destroy: (nullable): destroy notify for @user_data
  *
  * This function is a variant of gtk_closure_expression_new() that
- * creates a #GClosure by calling gtk_cclosure_new() with the given
+ * creates a #GClosure by calling g_cclosure_new() with the given
  * @callback_func, @user_data and @user_destroy.
  *
  * Returns: a new #GtkExpression

@@ -101,7 +101,7 @@
  * exceedingly large amount of rows. The #GtkCellLayout widget in
  * that case would calculate the required width of the rows in an
  * idle or timeout source (see g_timeout_add()) and when the widget
- * is requested its actual width in #GtkWidgetClass.get_preferred_width()
+ * is requested its actual width in #GtkWidgetClass.measure()
  * it can simply consult the width accumulated so far in the
  * #GtkCellAreaContext object.
  *
@@ -177,7 +177,7 @@
  * synchronously. The reasoning here is that any layouting widget is
  * at least capable of synchronously calculating enough height to fill
  * the screen height (or scrolled window height) in response to a single
- * call to #GtkWidgetClass.get_preferred_height_for_width(). Returning
+ * call to #GtkWidgetClass.measure(). Returning
  * a perfect height for width that is larger than the screen area is
  * inconsequential since after the layouting receives an allocation
  * from a scrolled window it simply continues to drive the scrollbar
@@ -186,9 +186,9 @@
  *
  * # Rendering Areas
  *
- * Once area sizes have been aquired at least for the rows in the
+ * Once area sizes have been acquired at least for the rows in the
  * visible area of the layouting widget they can be rendered at
- * #GtkWidgetClass.draw() time.
+ * #GtkWidgetClass.snapshot() time.
  *
  * A crude example of how to render all the rows at the root level
  * runs as follows:
@@ -318,15 +318,13 @@
  *
  * # Cell Properties
  *
- * The #GtkCellArea introduces cell properties for #GtkCellRenderers
- * in very much the same way that #GtkContainer introduces
- * [child properties][child-properties]
- * for #GtkWidgets. This provides some general interfaces for defining
- * the relationship cell areas have with their cells. For instance in a
- * #GtkCellAreaBox a cell might “expand” and receive extra space when
- * the area is allocated more than its full natural request, or a cell
- * might be configured to “align” with adjacent rows which were requested
- * and rendered with the same #GtkCellAreaContext.
+ * The #GtkCellArea introduces cell properties for #GtkCellRenderers.
+ * This provides some general interfaces for defining the relationship
+ * cell areas have with their cells. For instance in a #GtkCellAreaBox
+ * a cell might “expand” and receive extra space when the area is allocated
+ * more than its full natural request, or a cell might be configured to “align”
+ * with adjacent rows which were requested and rendered with the same
+ * #GtkCellAreaContext.
  *
  * Use gtk_cell_area_class_install_cell_property() to install cell
  * properties for a cell area class and gtk_cell_area_class_find_cell_property()
@@ -1332,7 +1330,7 @@ gtk_cell_area_real_get_preferred_height_for_width (GtkCellArea        *area,
                                                    int                *minimum_height,
                                                    int                *natural_height)
 {
-  /* If the area doesnt do height-for-width, fallback on base preferred height */
+  /* If the area doesn't do height-for-width, fallback on base preferred height */
   GTK_CELL_AREA_GET_CLASS (area)->get_preferred_height (area, context, widget, minimum_height, natural_height);
 }
 
@@ -1344,7 +1342,7 @@ gtk_cell_area_real_get_preferred_width_for_height (GtkCellArea        *area,
                                                    int                *minimum_width,
                                                    int                *natural_width)
 {
-  /* If the area doesnt do width-for-height, fallback on base preferred width */
+  /* If the area doesn't do width-for-height, fallback on base preferred width */
   GTK_CELL_AREA_GET_CLASS (area)->get_preferred_width (area, context, widget, minimum_width, natural_width);
 }
 

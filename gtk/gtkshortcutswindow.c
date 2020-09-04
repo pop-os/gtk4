@@ -740,8 +740,8 @@ gtk_shortcuts_window_unmap (GtkWidget *widget)
   GtkShortcutsWindow *self = (GtkShortcutsWindow *)widget;
   GtkShortcutsWindowPrivate *priv = gtk_shortcuts_window_get_instance_private (self);
 
-  if (priv->search_bar)
-    gtk_search_bar_set_search_mode (priv->search_bar, FALSE);
+  gtk_search_bar_set_search_mode (priv->search_bar, FALSE);
+  gtk_editable_set_text (GTK_EDITABLE (priv->search_entry), "");
 
   GTK_WIDGET_CLASS (gtk_shortcuts_window_parent_class)->unmap (widget);
 }
@@ -896,12 +896,12 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
 
   /* Translators: This is the window title for the shortcuts window in normal mode */
   label = gtk_label_new (_("Shortcuts"));
-  gtk_widget_add_css_class (label, GTK_STYLE_CLASS_TITLE);
+  gtk_widget_add_css_class (label, "title");
   gtk_stack_add_named (priv->title_stack, label, "title");
 
   /* Translators: This is the window title for the shortcuts window in search mode */
   label = gtk_label_new (_("Search Results"));
-  gtk_widget_add_css_class (label, GTK_STYLE_CLASS_TITLE);
+  gtk_widget_add_css_class (label, "title");
   gtk_stack_add_named (priv->title_stack, label, "search");
 
   priv->menu_button = g_object_new (GTK_TYPE_MENU_BUTTON,
@@ -978,7 +978,7 @@ gtk_shortcuts_window_init (GtkShortcutsWindow *self)
                         "halign", GTK_ALIGN_CENTER,
                         "valign", GTK_ALIGN_CENTER,
                         NULL);
-  gtk_widget_add_css_class (empty, GTK_STYLE_CLASS_DIM_LABEL);
+  gtk_widget_add_css_class (empty, "dim-label");
   gtk_grid_attach (GTK_GRID (empty),
                    g_object_new (GTK_TYPE_IMAGE,
                                  "icon-name", "edit-find-symbolic",

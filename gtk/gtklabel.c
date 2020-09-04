@@ -31,6 +31,7 @@
 #include "gtkcssnodeprivate.h"
 #include "gtkcssstylepropertyprivate.h"
 #include "gtkeventcontrollermotion.h"
+#include "gtkeventcontrollerfocus.h"
 #include "gtkgesturedrag.h"
 #include "gtkgestureclick.h"
 #include "gtkgesturesingle.h"
@@ -81,7 +82,7 @@
  *
  * GtkLabel has a single CSS node with the name label. A wide variety
  * of style classes may be applied to labels, such as .title, .subtitle,
- * .dim-label, etc. In the #GtkShortcutsWindow, labels are used wth the
+ * .dim-label, etc. In the #GtkShortcutsWindow, labels are used with the
  * .keycap style class.
  *
  * If the label has a selection, it gets a subnode with name selection.
@@ -359,6 +360,7 @@ struct _GtkLabelSelectionInfo
   GtkGesture *drag_gesture;
   GtkGesture *click_gesture;
   GtkEventController *motion_controller;
+  GtkEventController *focus_controller;
 
   int drag_start_x;
   int drag_start_y;
@@ -776,7 +778,7 @@ gtk_label_class_init (GtkLabelClass *class)
   /**
    * GtkLabel:xalign:
    *
-   * The xalign property determines the horizontal aligment of the label text
+   * The xalign property determines the horizontal alignment of the label text
    * inside the labels size allocation. Compare this to #GtkWidget:halign,
    * which determines how the labels size allocation is positioned in the
    * space available for the label.
@@ -792,7 +794,7 @@ gtk_label_class_init (GtkLabelClass *class)
   /**
    * GtkLabel:yalign:
    *
-   * The yalign property determines the vertical aligment of the label text
+   * The yalign property determines the vertical alignment of the label text
    * inside the labels size allocation. Compare this to #GtkWidget:valign,
    * which determines how the labels size allocation is positioned in the
    * space available for the label.
@@ -2780,7 +2782,6 @@ gtk_label_get_measuring_layout (GtkLabel    *self,
                                 PangoLayout *existing_layout,
                                 int          width)
 {
-  PangoRectangle rect;
   PangoLayout *copy;
 
   if (existing_layout != NULL)
@@ -2818,13 +2819,17 @@ gtk_label_get_measuring_layout (GtkLabel    *self,
    * can just return the current layout, because for measuring purposes, it will be
    * identical.
    */
-  pango_layout_get_extents (self->layout, NULL, &rect);
-  if ((width == -1 || rect.width <= width) &&
-      !pango_layout_is_wrapped (self->layout) &&
+  if (!pango_layout_is_wrapped (self->layout) &&
       !pango_layout_is_ellipsized (self->layout))
     {
-      g_object_ref (self->layout);
-      return self->layout;
+      PangoRectangle rect;
+
+      if (width == -1)
+        return g_object_ref (self->layout);
+
+      pango_layout_get_extents (self->layout, NULL, &rect);
+      if (rect.width <= width)
+        return g_object_ref (self->layout);
     }
 
   copy = pango_layout_copy (self->layout);
@@ -3710,9 +3715,12 @@ gtk_label_grab_focus (GtkWidget *widget)
 {
   GtkLabel *self = GTK_LABEL (widget);
   gboolean select_on_focus;
+  GtkWidget *prev_focus;
 
   if (self->select_info == NULL)
     return FALSE;
+
+  prev_focus = gtk_root_get_focus (gtk_widget_get_root (widget));
 
   if (!GTK_WIDGET_CLASS (gtk_label_parent_class)->grab_focus (widget))
     return FALSE;
@@ -3724,12 +3732,14 @@ gtk_label_grab_focus (GtkWidget *widget)
                     &select_on_focus,
                     NULL);
 
-      if (select_on_focus && !self->in_click)
+      if (select_on_focus && !self->in_click &&
+          !(prev_focus && gtk_widget_is_ancestor (prev_focus, widget)))
         gtk_label_select_region (self, 0, -1);
     }
   else
     {
-      if (self->select_info->links && !self->in_click)
+      if (self->select_info->links && !self->in_click &&
+          !(prev_focus && gtk_widget_is_ancestor (prev_focus, widget)))
         {
           guint i;
 
@@ -4399,6 +4409,13 @@ gtk_label_content_init (GtkLabelContent *content)
 }
 
 static void
+focus_change (GtkEventControllerFocus *controller,
+              GtkLabel                *self)
+{
+  gtk_widget_queue_draw (GTK_WIDGET (self));
+}
+
+static void
 gtk_label_ensure_select_info (GtkLabel *self)
 {
   if (self->select_info == NULL)
@@ -4431,6 +4448,13 @@ gtk_label_ensure_select_info (GtkLabel *self)
                         G_CALLBACK (gtk_label_leave), self);
       gtk_widget_add_controller (GTK_WIDGET (self), self->select_info->motion_controller);
 
+      self->select_info->focus_controller = gtk_event_controller_focus_new ();
+      g_signal_connect (self->select_info->focus_controller, "enter",
+                        G_CALLBACK (focus_change), self);
+      g_signal_connect (self->select_info->focus_controller, "leave",
+                        G_CALLBACK (focus_change), self);
+      gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (self->select_info->focus_controller));
+
       self->select_info->provider = g_object_new (GTK_TYPE_LABEL_CONTENT, NULL);
       GTK_LABEL_CONTENT (self->select_info->provider)->label = self;
 
@@ -4449,6 +4473,7 @@ gtk_label_clear_select_info (GtkLabel *self)
       gtk_widget_remove_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (self->select_info->drag_gesture));
       gtk_widget_remove_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (self->select_info->click_gesture));
       gtk_widget_remove_controller (GTK_WIDGET (self), self->select_info->motion_controller);
+      gtk_widget_remove_controller (GTK_WIDGET (self), self->select_info->focus_controller);
       GTK_LABEL_CONTENT (self->select_info->provider)->label = NULL;
       g_object_unref (self->select_info->provider);
 
@@ -5373,9 +5398,12 @@ gtk_label_update_actions (GtkLabel *self)
       link = gtk_label_get_focus_link (self, NULL);
     }
 
+  gtk_widget_action_set_enabled (widget, "clipboard.cut", FALSE);
   gtk_widget_action_set_enabled (widget, "clipboard.copy", has_selection);
+  gtk_widget_action_set_enabled (widget, "clipboard.paste", FALSE);
   gtk_widget_action_set_enabled (widget, "selection.select-all",
                                  gtk_label_get_selectable (self));
+  gtk_widget_action_set_enabled (widget, "selection.delete", FALSE);
   gtk_widget_action_set_enabled (widget, "link.open", !has_selection && link);
   gtk_widget_action_set_enabled (widget, "link.copy", !has_selection && link);
 }

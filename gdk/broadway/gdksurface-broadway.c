@@ -30,6 +30,7 @@
 #include "gdkbroadwaydisplay.h"
 #include "gdkdeviceprivate.h"
 #include "gdkdisplay-broadway.h"
+#include "gdkdevice-broadway.h"
 #include "gdkdisplay.h"
 #include "gdkdragsurfaceprivate.h"
 #include "gdkeventsource.h"
@@ -41,6 +42,7 @@
 #include "gdktextureprivate.h"
 #include "gdktoplevelprivate.h"
 
+#include <graphene.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -126,7 +128,7 @@ _gdk_broadway_roundtrip_notify (GdkSurface  *surface,
   if (timings)
     {
       timings->refresh_interval = 33333; /* default to 1/30th of a second */
-      // This isn't quite right, since we've done a rountrip back too, can we do better?
+      // This isn't quite right, since we've done a roundtrip back too, can we do better?
       timings->presentation_time = g_get_monotonic_time ();
       timings->complete = TRUE;
 
@@ -748,17 +750,14 @@ gdk_broadway_surface_get_device_state (GdkSurface      *surface,
                                        double          *y,
                                        GdkModifierType *mask)
 {
-  GdkSurface *child;
-
   g_return_val_if_fail (surface == NULL || GDK_IS_SURFACE (surface), FALSE);
 
   if (GDK_SURFACE_DESTROYED (surface))
     return FALSE;
 
-  GDK_DEVICE_GET_CLASS (device)->query_state (device, surface,
-                                              &child,
-                                              x, y, mask);
-  return child != NULL;
+  gdk_broadway_device_query_state (device, surface, x, y, mask);
+
+  return *x >= 0 && *y >= 0 && *x < surface->width && *y < surface->height;
 }
 
 static void
@@ -1524,20 +1523,45 @@ show_surface (GdkSurface *surface)
 
 static gboolean
 gdk_broadway_toplevel_present (GdkToplevel       *toplevel,
-                               int                width,
-                               int                height,
                                GdkToplevelLayout *layout)
 {
   GdkSurface *surface = GDK_SURFACE (toplevel);
+  GdkDisplay *display = gdk_surface_get_display (surface);
+  GdkMonitor *monitor;
+  GdkToplevelSize size;
+  int bounds_width, bounds_height;
+  int width, height;
   GdkGeometry geometry;
   GdkSurfaceHints mask;
 
   gdk_broadway_surface_unminimize (surface);
 
+  monitor = gdk_display_get_monitor_at_surface (display, surface);
+  if (monitor)
+    {
+      GdkRectangle monitor_geometry;
+
+      gdk_monitor_get_geometry (monitor, &monitor_geometry);
+      bounds_width = monitor_geometry.width;
+      bounds_height = monitor_geometry.height;
+    }
+  else
+    {
+      bounds_width = G_MAXINT;
+      bounds_height = G_MAXINT;
+    }
+
+  gdk_toplevel_size_init (&size, bounds_width, bounds_height);
+  gdk_toplevel_notify_compute_size (toplevel, &size);
+  g_warn_if_fail (size.width > 0);
+  g_warn_if_fail (size.height > 0);
+  width = size.width;
+  height = size.height;
+
   if (gdk_toplevel_layout_get_resizable (layout))
     {
-      geometry.min_width = gdk_toplevel_layout_get_min_width (layout);
-      geometry.min_height = gdk_toplevel_layout_get_min_height (layout);
+      geometry.min_width = size.min_width;
+      geometry.min_height = size.min_height;
       mask = GDK_HINT_MIN_SIZE;
     }
   else

@@ -51,6 +51,8 @@
     <file>cssview.css</file>
     <file>reset.css</file>
     <file>background.jpg</file>
+  </gresource>
+  <gresource prefix="/css_pixbufs/images">
     <file>apple-red.png</file>
     <file>gnome-applets.png</file>
     <file>gnome-calendar.png</file>
@@ -67,6 +69,8 @@
   </gresource>
   <gresource prefix="/cursors">
     <file>cursors.ui</file>
+  </gresource>
+  <gresource prefix="/cursors/images">
     <file>alias_cursor.png</file>
     <file>all_scroll_cursor.png</file>
     <file>cell_cursor.png</file>
@@ -124,6 +128,24 @@
     <file>gnome-fs-directory.png</file>
     <file>gnome-fs-regular.png</file>
   </gresource>
+  <gresource prefix="/layoutmanager">
+    <file>demolayout.h</file>
+    <file>demolayout.c</file>
+    <file>demowidget.h</file>
+    <file>demowidget.c</file>
+    <file>demochild.h</file>
+    <file>demochild.c</file>
+  </gresource>
+  <gresource prefix="/layoutmanager2">
+    <file>demo2layout.h</file>
+    <file>demo2layout.c</file>
+    <file>demo2widget.h</file>
+    <file>demo2widget.c</file>
+    <file>four_point_transform.h</file>
+    <file>four_point_transform.c</file>
+    <file>singular_value_decomposition.h</file>
+    <file>singular_value_decomposition.c</file>
+  </gresource>
   <gresource prefix="/listview_filebrowser">
     <file>listview_filebrowser.ui</file>
     <file>listview_filebrowser.css</file>
@@ -164,17 +186,6 @@
     <file>alphatest.png</file>
     <file>floppybuddy.gif</file>
     <file>gtk-logo.webm</file>
-  </gresource>
-  <gresource prefix="/pixbufs">
-    <file>apple-red.png</file>
-    <file>background.jpg</file>
-    <file>gnome-applets.png</file>
-    <file>gnome-calendar.png</file>
-    <file>gnome-foot.png</file>
-    <file>gnome-gmush.png</file>
-    <file>gnome-gimp.png</file>
-    <file>gnome-gsame.png</file>
-    <file>gnu-keys.png</file>
   </gresource>
   <gresource prefix="/sources">
     <file>application_demo.c</file>
@@ -217,8 +228,11 @@
     <file>iconview_edit.c</file>
     <file>images.c</file>
     <file>infobar.c</file>
+    <file>layoutmanager.c</file>
+    <file>layoutmanager2.c</file>
     <file>links.c</file>
     <file>listbox.c</file>
+    <file>listbox2.c</file>
     <file>listview_applauncher.c</file>
     <file>listview_colors.c</file>
     <file>listview_clocks.c</file>
@@ -229,7 +243,6 @@
     <file>listview_words.c</file>
     <file>list_store.c</file>
     <file>markup.c</file>
-    <file>modelbutton.c</file>
     <file>overlay.c</file>
     <file>overlay2.c</file>
     <file>paint.c</file>
@@ -241,7 +254,6 @@
     <file>password_entry.c</file>
     <file>peg_solitaire.c</file>
     <file>pickers.c</file>
-    <file>pixbufs.c</file>
     <file>printing.c</file>
     <file>revealer.c</file>
     <file>rotated_text.c</file>
@@ -279,6 +291,9 @@
     <file>messages.txt</file>
     <file>apple-red.png</file>
   </gresource>
+  <gresource prefix="/listbox2">
+    <file>listbox2.ui</file>
+  </gresource>
   <gresource prefix="/glarea">
     <file>glarea-gl.fs.glsl</file>
     <file>glarea-gl.vs.glsl</file>
@@ -309,9 +324,6 @@
   </gresource>
   <gresource prefix="/scale">
     <file>scale.ui</file>
-  </gresource>
-  <gresource prefix="/modelbutton">
-    <file>modelbutton.ui</file>
   </gresource>
   <gresource prefix="/tagged_entry">
     <file>demotaggedentry.c</file>

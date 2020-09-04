@@ -51,6 +51,8 @@
 
 #include "gtksizerequest.h"
 
+#include "gtkbuildable.h"
+
 #include "gtkwidgetprivate.h"
 #include "gtkprivate.h"
 #include "gtkintl.h"
@@ -110,11 +112,16 @@ static void gtk_aspect_frame_compute_expand (GtkWidget     *widget,
 static GtkSizeRequestMode
             gtk_aspect_frame_get_request_mode (GtkWidget *widget);
 
+static void gtk_aspect_frame_buildable_init (GtkBuildableIface *iface);
 
 #define MAX_RATIO 10000.0
 #define MIN_RATIO 0.0001
 
-G_DEFINE_TYPE (GtkAspectFrame, gtk_aspect_frame, GTK_TYPE_WIDGET)
+
+G_DEFINE_TYPE_WITH_CODE (GtkAspectFrame, gtk_aspect_frame, GTK_TYPE_WIDGET,
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
+                                                gtk_aspect_frame_buildable_init))
+
 
 static void
 gtk_aspect_frame_class_init (GtkAspectFrameClass *class)
@@ -251,6 +258,28 @@ gtk_aspect_frame_get_property (GObject         *object,
        G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
       break;
     }
+}
+
+static GtkBuildableIface *parent_buildable_iface;
+
+static void
+gtk_aspect_frame_buildable_add_child (GtkBuildable *buildable,
+                                      GtkBuilder   *builder,
+                                      GObject      *child,
+                                      const char   *type)
+{
+  if (GTK_IS_WIDGET (child))
+    gtk_aspect_frame_set_child (GTK_ASPECT_FRAME (buildable), GTK_WIDGET (child));
+  else
+    parent_buildable_iface->add_child (buildable, builder, child, type);
+}
+
+static void
+gtk_aspect_frame_buildable_init (GtkBuildableIface *iface)
+{
+  parent_buildable_iface = g_type_interface_peek_parent (iface);
+
+  iface->add_child = gtk_aspect_frame_buildable_add_child;
 }
 
 /**
@@ -417,7 +446,7 @@ gtk_aspect_frame_get_ratio (GtkAspectFrame *self)
  * @obey_child: If %TRUE, @ratio is ignored, and the aspect
  *    ratio is taken from the requistion of the child.
  *
- * Sets whether the aspect ratio of the childs size
+ * Sets whether the aspect ratio of the child's size
  * request should override the set aspect ratio of
  * the #GtkAspectFrame.
  */
@@ -441,10 +470,10 @@ gtk_aspect_frame_set_obey_child (GtkAspectFrame *self,
  * gtk_aspect_frame_get_obey_child:
  * @self: a #GtkAspectFrame
  *
- * Returns whether the childs size request should override
+ * Returns whether the child's size request should override
  * the set aspect ratio of the #GtkAspectFrame.
  *
- * Returns: whether to obey the childs size request
+ * Returns: whether to obey the child's size request
  */
 gboolean
 gtk_aspect_frame_get_obey_child (GtkAspectFrame *self)

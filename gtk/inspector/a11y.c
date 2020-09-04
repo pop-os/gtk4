@@ -315,7 +315,7 @@ update_attributes (GtkInspectorA11y *sl)
 
   filter_model = gtk_filter_list_model_new (G_LIST_MODEL (store), filter);
   selection = gtk_no_selection_new (G_LIST_MODEL (filter_model));
-  gtk_column_view_set_model (GTK_COLUMN_VIEW (sl->attributes), G_LIST_MODEL (selection));
+  gtk_column_view_set_model (GTK_COLUMN_VIEW (sl->attributes), GTK_SELECTION_MODEL (selection));
   g_object_unref (selection);
 
   if (g_list_model_get_n_items (G_LIST_MODEL (filter_model)) > 0)
@@ -390,7 +390,8 @@ gtk_inspector_a11y_set_object (GtkInspectorA11y *sl,
   GtkWidget *stack;
   GtkStackPage *page;
   GtkATContext *context;
-  if (sl->object)
+
+  if (sl->object && GTK_IS_ACCESSIBLE (sl->object))
     {
       context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (sl->object));
       g_signal_handlers_disconnect_by_func (context, refresh_all, sl);
@@ -426,7 +427,7 @@ dispose (GObject *o)
 {
   GtkInspectorA11y *sl = GTK_INSPECTOR_A11Y (o);
 
-  if (sl->object)
+  if (sl->object && GTK_IS_ACCESSIBLE (sl->object))
     {
       GtkATContext *context;
 

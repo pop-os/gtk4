@@ -544,8 +544,9 @@ gsk_border_node_diff (GskRenderNode  *node1,
 
   if (self1->uniform &&
       self2->uniform &&
-      gdk_rgba_equal (&self1->border_color[0], &self2->border_color[0]) &&
-      self1->border_width[0] == self2->border_width[0])
+      self1->border_width[0] == self2->border_width[0] &&
+      gsk_rounded_rect_equal (&self1->outline, &self2->outline) &&
+      gdk_rgba_equal (&self1->border_color[0], &self2->border_color[0]))
     return;
 
   if (gsk_rounded_rect_equal (&self1->outline, &self2->outline) &&
@@ -803,13 +804,13 @@ has_empty_clip (cairo_t *cr)
 }
 
 static void
-draw_shadow (cairo_t             *cr,
-             gboolean             inset,
-             const GskRoundedRect*box,
-             const GskRoundedRect*clip_box,
-             float                radius,
-             const GdkRGBA       *color,
-	     GskBlurFlags         blur_flags)
+draw_shadow (cairo_t              *cr,
+             gboolean              inset,
+             const GskRoundedRect *box,
+             const GskRoundedRect *clip_box,
+             float                 radius,
+             const GdkRGBA        *color,
+             GskBlurFlags          blur_flags)
 {
   cairo_t *shadow_cr;
 
@@ -1112,7 +1113,7 @@ gsk_inset_shadow_node_draw (GskRenderNode *node,
       /* For the blurred case we divide the rendering into 9 parts,
        * 4 of the corners, 4 for the horizonat/vertical lines and
        * one for the interior. We make the non-interior parts
-       * large enought to fit the full radius of the blur, so that
+       * large enough to fit the full radius of the blur, so that
        * the interior part can be drawn solidly.
        */
 
@@ -1128,31 +1129,31 @@ gsk_inset_shadow_node_draw (GskRenderNode *node,
 
       /* First do the corners of box */
       for (i = 0; i < 4; i++)
-	{
-	  cairo_save (cr);
+        {
+          cairo_save (cr);
           /* Always clip with remaining to ensure we never draw any area twice */
           gdk_cairo_region (cr, remaining);
           cairo_clip (cr);
-	  draw_shadow_corner (cr, TRUE, &box, &clip_box, self->blur_radius, &self->color, i, &r);
-	  cairo_restore (cr);
+          draw_shadow_corner (cr, TRUE, &box, &clip_box, self->blur_radius, &self->color, i, &r);
+          cairo_restore (cr);
 
-	  /* We drew the region, remove it from remaining */
-	  cairo_region_subtract_rectangle (remaining, &r);
-	}
+          /* We drew the region, remove it from remaining */
+          cairo_region_subtract_rectangle (remaining, &r);
+        }
 
       /* Then the sides */
       for (i = 0; i < 4; i++)
-	{
-	  cairo_save (cr);
+        {
+          cairo_save (cr);
           /* Always clip with remaining to ensure we never draw any area twice */
           gdk_cairo_region (cr, remaining);
           cairo_clip (cr);
-	  draw_shadow_side (cr, TRUE, &box, &clip_box, self->blur_radius, &self->color, i, &r);
-	  cairo_restore (cr);
+          draw_shadow_side (cr, TRUE, &box, &clip_box, self->blur_radius, &self->color, i, &r);
+          cairo_restore (cr);
 
-	  /* We drew the region, remove it from remaining */
-	  cairo_region_subtract_rectangle (remaining, &r);
-	}
+          /* We drew the region, remove it from remaining */
+          cairo_region_subtract_rectangle (remaining, &r);
+        }
 
       /* Then the rest, which needs no blurring */
 
@@ -1415,7 +1416,7 @@ gsk_outset_shadow_node_draw (GskRenderNode *node,
       /* For the blurred case we divide the rendering into 9 parts,
        * 4 of the corners, 4 for the horizonat/vertical lines and
        * one for the interior. We make the non-interior parts
-       * large enought to fit the full radius of the blur, so that
+       * large enough to fit the full radius of the blur, so that
        * the interior part can be drawn solidly.
        */
 
@@ -1430,31 +1431,31 @@ gsk_outset_shadow_node_draw (GskRenderNode *node,
 
       /* First do the corners of box */
       for (i = 0; i < 4; i++)
-	{
-	  cairo_save (cr);
+        {
+          cairo_save (cr);
           /* Always clip with remaining to ensure we never draw any area twice */
           gdk_cairo_region (cr, remaining);
           cairo_clip (cr);
-	  draw_shadow_corner (cr, FALSE, &box, &clip_box, self->blur_radius, &self->color, i, &r);
-	  cairo_restore (cr);
+          draw_shadow_corner (cr, FALSE, &box, &clip_box, self->blur_radius, &self->color, i, &r);
+          cairo_restore (cr);
 
-	  /* We drew the region, remove it from remaining */
-	  cairo_region_subtract_rectangle (remaining, &r);
-	}
+          /* We drew the region, remove it from remaining */
+          cairo_region_subtract_rectangle (remaining, &r);
+        }
 
       /* Then the sides */
       for (i = 0; i < 4; i++)
-	{
-	  cairo_save (cr);
+        {
+          cairo_save (cr);
           /* Always clip with remaining to ensure we never draw any area twice */
           gdk_cairo_region (cr, remaining);
           cairo_clip (cr);
-	  draw_shadow_side (cr, FALSE, &box, &clip_box, self->blur_radius, &self->color, i, &r);
-	  cairo_restore (cr);
+          draw_shadow_side (cr, FALSE, &box, &clip_box, self->blur_radius, &self->color, i, &r);
+          cairo_restore (cr);
 
-	  /* We drew the region, remove it from remaining */
-	  cairo_region_subtract_rectangle (remaining, &r);
-	}
+          /* We drew the region, remove it from remaining */
+          cairo_region_subtract_rectangle (remaining, &r);
+        }
 
       /* Then the rest, which needs no blurring */
 
@@ -1660,9 +1661,12 @@ static void
 gsk_cairo_node_finalize (GskRenderNode *node)
 {
   GskCairoNode *self = (GskCairoNode *) node;
+  GskRenderNodeClass *parent_class = g_type_class_peek (g_type_parent (GSK_TYPE_CAIRO_NODE));
 
   if (self->surface)
     cairo_surface_destroy (self->surface);
+
+  parent_class->finalize (node);
 }
 
 static void
@@ -3643,7 +3647,7 @@ gsk_text_node_peek_color (GskRenderNode *node)
 
 /**
  * gsk_text_node_peek_font:
- * @node: The #GskRenderNode
+ * @node: (type GskTextNode): The #GskRenderNode
  *
  * Returns the font used by the text @node.
  *

@@ -31,13 +31,12 @@
  *
  * The number of touches that a #GtkGesture need to be recognized is controlled
  * by the #GtkGesture:n-points property, if a gesture is keeping track of less
- * or more than that number of sequences, it won't check wether the gesture
+ * or more than that number of sequences, it won't check whether the gesture
  * is recognized.
  *
- * As soon as the gesture has the expected number of touches, the gesture will
- * run the #GtkGesture::check signal regularly on input events until the gesture
- * is recognized, the criteria to consider a gesture as "recognized" is left to
- * #GtkGesture subclasses.
+ * As soon as the gesture has the expected number of touches, it will check
+ * regularly if it is recognized, the criteria to consider a gesture as
+ * "recognized" is left to #GtkGesture subclasses.
  *
  * A recognized gesture will then emit the following signals:
  * - #GtkGesture::begin when the gesture is recognized.
@@ -46,17 +45,12 @@
  *
  * ## Event propagation
  *
- * In order to receive events, a gesture needs to either set a propagation phase
- * through gtk_event_controller_set_propagation_phase(), or feed those manually
- * through gtk_event_controller_handle_event().
+ * In order to receive events, a gesture needs to set a propagation phase
+ * through gtk_event_controller_set_propagation_phase().
  *
  * In the capture phase, events are propagated from the toplevel down to the
  * target widget, and gestures that are attached to containers above the widget
  * get a chance to interact with the event before it reaches the target.
- *
- * After the capture phase, GTK+ emits the traditional #GtkWidget::event signal.
- * Gestures with the %GTK_PHASE_TARGET phase are fed events from the default
- * #GtkWidget::event handlers.
  *
  * In the bubble phase, events are propagated up from the target widget to the
  * toplevel, and gestures that are attached to containers above the widget get
@@ -769,11 +763,10 @@ gtk_gesture_class_init (GtkGestureClass *klass)
   /**
    * GtkGesture::begin:
    * @gesture: the object which received the signal
-   * @sequence: the #GdkEventSequence that made the gesture to be recognized
+   * @sequence: (nullable): the #GdkEventSequence that made the gesture to be recognized
    *
    * This signal is emitted when the gesture is recognized. This means the
-   * number of touch sequences matches #GtkGesture:n-points, and the #GtkGesture::check
-   * handler(s) returned #TRUE.
+   * number of touch sequences matches #GtkGesture:n-points.
    *
    * Note: These conditions may also happen when an extra touch (eg. a third touch
    * on a 2-touches gesture) is lifted, in that situation @sequence won't pertain
@@ -789,12 +782,11 @@ gtk_gesture_class_init (GtkGestureClass *klass)
   /**
    * GtkGesture::end:
    * @gesture: the object which received the signal
-   * @sequence: the #GdkEventSequence that made gesture recognition to finish
+   * @sequence: (nullable): the #GdkEventSequence that made gesture recognition to finish
    *
    * This signal is emitted when @gesture either stopped recognizing the event
-   * sequences as something to be handled (the #GtkGesture::check handler returned
-   * %FALSE), or the number of touch sequences became higher or lower than
-   * #GtkGesture:n-points.
+   * sequences as something to be handled, or the number of touch sequences became
+   * higher or lower than #GtkGesture:n-points.
    *
    * Note: @sequence might not pertain to the group of sequences that were
    * previously triggering recognition on @gesture (ie. a just pressed touch
@@ -811,7 +803,7 @@ gtk_gesture_class_init (GtkGestureClass *klass)
   /**
    * GtkGesture::update:
    * @gesture: the object which received the signal
-   * @sequence: the #GdkEventSequence that was updated
+   * @sequence: (nullable): the #GdkEventSequence that was updated
    *
    * This signal is emitted whenever an event is handled while the gesture is
    * recognized. @sequence is guaranteed to pertain to the set of active touches.
@@ -826,7 +818,7 @@ gtk_gesture_class_init (GtkGestureClass *klass)
   /**
    * GtkGesture::cancel:
    * @gesture: the object which received the signal
-   * @sequence: the #GdkEventSequence that was cancelled
+   * @sequence: (nullable): the #GdkEventSequence that was cancelled
    *
    * This signal is emitted whenever a sequence is cancelled. This usually
    * happens on active touches when gtk_event_controller_reset() is called
@@ -845,7 +837,7 @@ gtk_gesture_class_init (GtkGestureClass *klass)
   /**
    * GtkGesture::sequence-state-changed:
    * @gesture: the object which received the signal
-   * @sequence: the #GdkEventSequence that was cancelled
+   * @sequence: (nullable): the #GdkEventSequence that was cancelled
    * @state: the new sequence state
    *
    * This signal is emitted whenever a sequence state changes. See
@@ -1021,6 +1013,10 @@ gtk_gesture_set_sequence_state (GtkGesture            *gesture,
   if (state == GTK_EVENT_SEQUENCE_NONE &&
       data->state != GTK_EVENT_SEQUENCE_NONE)
     return FALSE;
+
+  if (state == GTK_EVENT_SEQUENCE_DENIED &&
+      data->state == GTK_EVENT_SEQUENCE_CLAIMED)
+    _gtk_gesture_cancel_sequence (gesture, sequence);
 
   data->state = state;
   gtk_widget_cancel_event_sequence (gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture)),
@@ -1383,8 +1379,7 @@ gtk_gesture_is_active (GtkGesture *gesture)
  *
  * Returns %TRUE if the gesture is currently recognized.
  * A gesture is recognized if there are as many interacting
- * touch sequences as required by @gesture, and #GtkGesture::check
- * returned %TRUE for the sequences being currently interpreted.
+ * touch sequences as required by @gesture.
  *
  * Returns: %TRUE if gesture is recognized
  **/

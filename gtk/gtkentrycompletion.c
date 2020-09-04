@@ -67,7 +67,6 @@
 
 #include "gtkintl.h"
 #include "gtkcellrenderertext.h"
-#include "gtkframe.h"
 #include "gtktreeselection.h"
 #include "gtktreeview.h"
 #include "gtkscrolledwindow.h"
@@ -464,7 +463,6 @@ gtk_entry_completion_constructed (GObject *object)
 {
   GtkEntryCompletion        *completion = GTK_ENTRY_COMPLETION (object);
   GtkTreeSelection          *sel;
-  GtkWidget                 *popup_frame;
   GtkEventController        *controller;
 
   G_OBJECT_CLASS (gtk_entry_completion_parent_class)->constructed (object);
@@ -526,14 +524,11 @@ gtk_entry_completion_constructed (GObject *object)
                             completion);
   gtk_widget_add_controller (completion->popup_window, controller);
 
-  popup_frame = gtk_frame_new (NULL);
-  gtk_popover_set_child (GTK_POPOVER (completion->popup_window), popup_frame);
-
   gtk_scrolled_window_set_child (GTK_SCROLLED_WINDOW (completion->scrolled_window),
                                  completion->tree_view);
   gtk_widget_set_hexpand (completion->scrolled_window, TRUE);
   gtk_widget_set_vexpand (completion->scrolled_window, TRUE);
-  gtk_frame_set_child (GTK_FRAME (popup_frame), completion->scrolled_window);
+  gtk_popover_set_child (GTK_POPOVER (completion->popup_window), completion->scrolled_window);
 }
 
 
@@ -2046,7 +2041,7 @@ connect_completion_signals (GtkEntryCompletion *completion)
   gtk_event_controller_set_name (controller, "gtk-entry-completion");
   g_signal_connect (controller, "key-pressed",
                     G_CALLBACK (gtk_entry_completion_key_pressed), completion);
-  gtk_widget_prepend_controller (GTK_WIDGET (text), controller);
+  gtk_widget_add_controller (GTK_WIDGET (text), controller);
   controller = completion->entry_focus_controller = gtk_event_controller_focus_new ();
   gtk_event_controller_set_name (controller, "gtk-entry-completion");
   g_signal_connect_swapped (controller, "leave", G_CALLBACK (text_focus_out), completion);

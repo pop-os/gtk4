@@ -38,8 +38,11 @@ demos = files([
   'iconview_edit.c',
   'images.c',
   'infobar.c',
+  'layoutmanager.c',
+  'layoutmanager2.c',
   'links.c',
   'listbox.c',
+  'listbox2.c',
   'flowbox.c',
   'list_store.c',
   'listview_applauncher.c',
@@ -51,7 +54,6 @@ demos = files([
   'listview_weather.c',
   'listview_words.c',
   'markup.c',
-  'modelbutton.c',
   'overlay.c',
   'overlay2.c',
   'paint.c',
@@ -62,7 +64,6 @@ demos = files([
   'password_entry.c',
   'peg_solitaire.c',
   'pickers.c',
-  'pixbufs.c',
   'printing.c',
   'revealer.c',
   'rotated_text.c',
@@ -93,13 +94,21 @@ demos = files([
 gtkdemo_deps = [ libgtk_dep, ]
 
 extra_demo_sources = files(['main.c',
+                            'fontify.c',
                             'gtkfishbowl.c',
                             'fontplane.c',
                             'gtkgears.c',
                             'puzzlepiece.c',
                             'bluroverlay.c',
                             'demoimage.c',
-                            'demotaggedentry.c'])
+                            'demotaggedentry.c',
+                            'demochild.c',
+                            'demolayout.c',
+                            'demowidget.c',
+                            'demo2layout.c',
+                            'singular_value_decomposition.c',
+                            'four_point_transform.c',
+                            'demo2widget.c'])
 
 if harfbuzz_dep.found() and pangoft_dep.found()
   demos += files('font_features.c')

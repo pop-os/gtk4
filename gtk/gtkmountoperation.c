@@ -38,7 +38,7 @@
 #include "gtkmessagedialog.h"
 #include "gtkmountoperation.h"
 #include "gtkprivate.h"
-#include "gtkradiobutton.h"
+#include "gtkcheckbutton.h"
 #include "gtkgrid.h"
 #include "gtkwindow.h"
 #include "gtktreeview.h"
@@ -83,7 +83,7 @@
  * gtk_show_uri_on_window() is a convenient way to launch applications for URIs.
  *
  * Another object that is worth mentioning in this context is
- * #GdkAppLaunchContext, which provides visual feedback when lauching
+ * #GdkAppLaunchContext, which provides visual feedback when launching
  * applications.
  */
 
@@ -322,12 +322,12 @@ gtk_mount_operation_proxy_finish (GtkMountOperation     *op,
 }
 
 static void
-remember_button_toggled (GtkToggleButton   *button,
+remember_button_toggled (GtkCheckButton    *button,
                          GtkMountOperation *operation)
 {
   GtkMountOperationPrivate *priv = operation->priv;
 
-  if (gtk_toggle_button_get_active (button))
+  if (gtk_check_button_get_active (button))
     {
       gpointer data;
 
@@ -384,10 +384,10 @@ pw_dialog_got_response (GtkDialog         *dialog,
             }
         }
 
-      if (priv->tcrypt_hidden_toggle && gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->tcrypt_hidden_toggle)))
+      if (priv->tcrypt_hidden_toggle && gtk_check_button_get_active (GTK_CHECK_BUTTON (priv->tcrypt_hidden_toggle)))
         g_mount_operation_set_is_tcrypt_hidden_volume (op, TRUE);
 
-      if (priv->tcrypt_system_toggle && gtk_toggle_button_get_active (GTK_TOGGLE_BUTTON (priv->tcrypt_system_toggle)))
+      if (priv->tcrypt_system_toggle && gtk_check_button_get_active (GTK_CHECK_BUTTON (priv->tcrypt_system_toggle)))
         g_mount_operation_set_is_tcrypt_system_volume (op, TRUE);
 
       if (priv->ask_flags & G_ASK_PASSWORD_SAVING_SUPPORTED)
@@ -576,7 +576,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   gboolean   can_anonymous;
   guint      rows;
   char *primary;
-  const char *secondary;
+  const char *secondary = NULL;
   PangoAttrList *attrs;
   gboolean use_header;
 
@@ -625,17 +625,14 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
   main_vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 18);
   gtk_box_append (GTK_BOX (hbox), main_vbox);
 
-  secondary = strstr (message, "\n");
-  if (secondary != NULL)
+  primary = strstr (message, "\n");
+  if (primary)
     {
-      primary = g_strndup (message, secondary - message + 1);
-    }
-  else
-    {
-      primary = g_strdup (message);
+      secondary = primary + 1;
+      primary = g_strndup (message, primary - message);
     }
 
-  label = gtk_label_new (primary);
+  label = gtk_label_new (primary != NULL ? primary : message);
   gtk_widget_set_halign (label, GTK_ALIGN_START);
   gtk_widget_set_valign (label, GTK_ALIGN_CENTER);
   gtk_label_set_wrap (GTK_LABEL (label), TRUE);
@@ -671,7 +668,6 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
     {
       GtkWidget *anon_box;
       GtkWidget *choice;
-      GSList    *group;
 
       label = gtk_label_new (_("Connect As"));
       gtk_widget_set_halign (label, GTK_ALIGN_END);
@@ -682,17 +678,15 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       anon_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
       gtk_grid_attach (GTK_GRID (grid), anon_box, 1, rows++, 1, 1);
 
-      choice = gtk_radio_button_new_with_mnemonic (NULL, _("_Anonymous"));
-      gtk_box_append (GTK_BOX (anon_box),
-                          choice);
+      choice = gtk_check_button_new_with_mnemonic (_("_Anonymous"));
+      gtk_box_append (GTK_BOX (anon_box), choice);
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (pw_dialog_anonymous_toggled), operation);
       priv->anonymous_toggle = choice;
 
-      group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (choice));
-      choice = gtk_radio_button_new_with_mnemonic (group, _("Registered U_ser"));
-      gtk_box_append (GTK_BOX (anon_box),
-                          choice);
+      choice = gtk_check_button_new_with_mnemonic (_("Registered U_ser"));
+      gtk_check_button_set_group (GTK_CHECK_BUTTON (choice), GTK_CHECK_BUTTON (priv->anonymous_toggle));
+      gtk_box_append (GTK_BOX (anon_box), choice);
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (pw_dialog_anonymous_toggled), operation);
     }
@@ -745,7 +739,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
     {
       GtkWidget    *remember_box;
       GtkWidget    *choice;
-      GSList       *group;
+      GtkWidget    *group;
       GPasswordSave password_save;
 
       remember_box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 0);
@@ -758,29 +752,31 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       password_save = g_mount_operation_get_password_save (G_MOUNT_OPERATION (operation));
       priv->password_save = password_save;
 
-      choice = gtk_radio_button_new_with_mnemonic (NULL, _("Forget password _immediately"));
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (choice),
-                                    password_save == G_PASSWORD_SAVE_NEVER);
+      choice = gtk_check_button_new_with_mnemonic (_("Forget password _immediately"));
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (choice),
+                                   password_save == G_PASSWORD_SAVE_NEVER);
       g_object_set_data (G_OBJECT (choice), "password-save",
                          GINT_TO_POINTER (G_PASSWORD_SAVE_NEVER));
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (remember_button_toggled), operation);
       gtk_box_append (GTK_BOX (remember_box), choice);
+      group = choice;
 
-      group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (choice));
-      choice = gtk_radio_button_new_with_mnemonic (group, _("Remember password until you _logout"));
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (choice),
-                                    password_save == G_PASSWORD_SAVE_FOR_SESSION);
+      choice = gtk_check_button_new_with_mnemonic (_("Remember password until you _logout"));
+      gtk_check_button_set_group (GTK_CHECK_BUTTON (choice), GTK_CHECK_BUTTON (group));
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (choice),
+                                   password_save == G_PASSWORD_SAVE_FOR_SESSION);
       g_object_set_data (G_OBJECT (choice), "password-save",
                          GINT_TO_POINTER (G_PASSWORD_SAVE_FOR_SESSION));
       g_signal_connect (choice, "toggled",
                         G_CALLBACK (remember_button_toggled), operation);
       gtk_box_append (GTK_BOX (remember_box), choice);
+      group = choice;
 
-      group = gtk_radio_button_get_group (GTK_RADIO_BUTTON (choice));
-      choice = gtk_radio_button_new_with_mnemonic (group, _("Remember _forever"));
-      gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (choice),
-                                    password_save == G_PASSWORD_SAVE_PERMANENTLY);
+      choice = gtk_check_button_new_with_mnemonic (_("Remember _forever"));
+      gtk_check_button_set_group (GTK_CHECK_BUTTON (choice), GTK_CHECK_BUTTON (group));
+      gtk_check_button_set_active (GTK_CHECK_BUTTON (choice),
+                                   password_save == G_PASSWORD_SAVE_PERMANENTLY);
       g_object_set_data (G_OBJECT (choice), "password-save",
                          GINT_TO_POINTER (G_PASSWORD_SAVE_PERMANENTLY));
       g_signal_connect (choice, "toggled",
@@ -796,7 +792,7 @@ gtk_mount_operation_ask_password_do_gtk (GtkMountOperation *operation,
       /* The anonymous option will be active by default,
        * ensure the toggled signal is emitted for it.
        */
-      gtk_toggle_button_toggled (GTK_TOGGLE_BUTTON (priv->anonymous_toggle));
+      g_signal_emit_by_name (priv->anonymous_toggle, "toggled");
     }
   else if (! pw_dialog_input_is_valid (operation))
     gtk_dialog_set_response_sensitive (dialog, GTK_RESPONSE_OK, FALSE);
@@ -1429,7 +1425,7 @@ do_popup_menu_for_process_tree_view (GtkWidget         *widget,
 
   menu = gtk_popover_new ();
   gtk_widget_set_parent (menu, widget);
-  gtk_widget_add_css_class (menu, GTK_STYLE_CLASS_CONTEXT_MENU);
+  gtk_widget_add_css_class (menu, "context-menu");
 
   item = gtk_model_button_new ();
   g_object_set (item, "text", _("_End Process"), NULL);

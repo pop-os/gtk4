@@ -73,7 +73,7 @@
  * - The sibling ordering in the CSS node tree is supposed to correspond
  *   to the visible order of content: top-to-bottom and left-to-right.
  *   Reorder your nodes to maintain this correlation. In particular for
- *   horizontally layed out widgets, this will require listening to
+ *   horizontally laid out widgets, this will require listening to
  *   ::direction-changed.
  * - The draw function should just use gtk_style_context_save_to_node() to
  *   'switch' to the right node, not make any other changes to the style
@@ -1364,7 +1364,9 @@ gtk_css_node_validate (GtkCssNode *cssnode)
 {
   GtkCountingBloomFilter filter = GTK_COUNTING_BLOOM_FILTER_INIT;
   gint64 timestamp;
-  gint64 before = g_get_monotonic_time ();
+  gint64 before G_GNUC_UNUSED;
+
+  before = GDK_PROFILER_CURRENT_TIME;
 
   g_assert (cssnode->parent == NULL);
 
@@ -1374,10 +1376,9 @@ gtk_css_node_validate (GtkCssNode *cssnode)
 
   if (GDK_PROFILER_IS_RUNNING)
     {
-      gint64 after = g_get_monotonic_time ();
-      gdk_profiler_add_mark (before, (after - before), "css validation", "");
-      gdk_profiler_set_int_counter (invalidated_nodes_counter, after, invalidated_nodes);
-      gdk_profiler_set_int_counter (created_styles_counter, after, created_styles);
+      gdk_profiler_end_mark (before,  "css validation", "");
+      gdk_profiler_set_int_counter (invalidated_nodes_counter, invalidated_nodes);
+      gdk_profiler_set_int_counter (created_styles_counter, created_styles);
       invalidated_nodes = 0;
       created_styles = 0;
     }
