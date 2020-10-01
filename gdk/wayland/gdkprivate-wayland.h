@@ -39,7 +39,6 @@
 #include <xkbcommon/xkbcommon.h>
 
 #include "gdkinternals.h"
-#include "wayland/gtk-primary-selection-client-protocol.h"
 
 #define WL_SURFACE_HAS_BUFFER_SCALE 3
 #define WL_POINTER_HAS_FRAME 5
@@ -94,6 +93,8 @@ guint      _gdk_wayland_cursor_get_next_image_index (GdkWaylandDisplay *display,
                                                      guint             *next_image_delay);
 
 void       gdk_wayland_surface_sync (GdkSurface *surface);
+void       gdk_wayland_surface_commit (GdkSurface *surface);
+void       gdk_wayland_surface_notify_committed (GdkSurface *surface);
 void       gdk_wayland_surface_request_frame (GdkSurface *surface);
 void            gdk_wayland_surface_attach_image           (GdkSurface           *surface,
                                                             cairo_surface_t      *cairo_surface,

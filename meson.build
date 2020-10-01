@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.99.1',
+        version: '3.99.2',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -16,18 +16,14 @@ glib_micro_req = 0
 
 if glib_minor_req.is_odd()
   glib_min_required = 'GLIB_VERSION_@0@_@1@'.format(glib_major_req, glib_minor_req - 1)
-else
-  glib_min_required = 'GLIB_VERSION_@0@_@1@'.format(glib_major_req, glib_minor_req)
-endif
-
-if glib_minor_req.is_odd()
   glib_max_allowed = 'GLIB_VERSION_@0@_@1@'.format(glib_major_req, glib_minor_req + 1)
 else
+  glib_min_required = 'GLIB_VERSION_@0@_@1@'.format(glib_major_req, glib_minor_req)
   glib_max_allowed = 'GLIB_VERSION_@0@_@1@'.format(glib_major_req, glib_minor_req)
 endif
 
 glib_req           = '>= @0@.@1@.@2@'.format(glib_major_req, glib_minor_req, glib_micro_req)
-pango_req          = '>= 1.45.5'
+pango_req          = '>= 1.47.0' # keep this in sync with .gitlab-ci/test-msys.sh
 fribidi_req        = '>= 0.19.7'
 cairo_req          = '>= 1.14.0'
 gdk_pixbuf_req     = '>= 2.30.0'
@@ -217,6 +213,11 @@ if cc.compiles(uint128_t_src, name : '__uint128_t available')
   cdata.set('HAVE_UINT128_T', 1)
 endif
 
+# Check for mlock
+if cc.has_function('mlock', prefix: '#include <sys/mman.h>')
+  cdata.set('HAVE_MLOCK', 1)
+endif
+
 # Disable deprecation checks for all libraries we depend on on stable branches.
 # This is so newer versions of those libraries don't cause more warnings with
 # a stable GTK version.
@@ -381,6 +382,11 @@ xkbdep         = dependency('xkbcommon', version: xkbcommon_req, required: wayla
 graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
                             fallback: ['graphene', 'graphene_dep'])
 iso_codes_dep  = dependency('iso-codes', required: false)
+
+gtk_doc_dep    = dependency('gtk-doc', version: '>=1.99',
+                            fallback: ['gtk-doc', 'dummy_dep'],
+                            default_options: ['tests=false', 'yelp_manual=false'],
+                            required: get_option('gtk_doc'))
 
 fontconfig_dep = [] # only used in x11 backend
 
@@ -648,23 +654,16 @@ if os_unix
 endif
 
 # Check for Vulkan support
+# Uses meson's custom vulkan dependency searching. Set the VULKAN_SDK env var
+# to use a custom path for the Vulkan SDK. Bugs that are found with it should
+# be reported upstream and fixed.
 vulkan_dep = dependency('vulkan', required: get_option('vulkan'))
 if vulkan_dep.found()
   have_vulkan = true
-  vulkan_pkg_found = true
+  vulkan_pkg_found = vulkan_dep.type_name() == 'pkgconfig'
 else
   have_vulkan = false
   vulkan_pkg_found = false
-  if cc.get_id() == 'msvc'
-    vulkan_libname = 'vulkan-1'
-  else
-    vulkan_libname = 'vulkan'
-  endif
-  vulkan_dep = cc.find_library(vulkan_libname, required: false)
-  if vulkan_dep.found() and cc.has_function('vkCreateInstance', dependencies: vulkan_dep) and cc.has_header('vulkan/vulkan.h')
-    have_vulkan = true
-    pc_gdk_extra_libs += ['-l@0@'.format(vulkan_libname)]
-  endif
 endif
 
 cloudproviders_dep = dependency('cloudproviders',
@@ -679,35 +678,41 @@ cloudproviders_dep = dependency('cloudproviders',
   ])
 cdata.set('HAVE_CLOUDPROVIDERS', cloudproviders_dep.found())
 
-profiler_enabled = get_option('sysprof').enabled()
 # libsysprof-capture support
-libsysprof_capture_dep = dependency('sysprof-capture-4',
-  required: get_option('sysprof'),
-  default_options: [
-    'enable_examples=false',
-    'enable_gtk=false',
-    'enable_tests=false',
-    'enable_tools=false',
-    'libsysprof=true',
-    'with_sysprofd=none',
-    'help=false',
-  ],
-  fallback: ['sysprof', 'libsysprof_capture_dep'],
-)
-cdata.set('HAVE_SYSPROF', libsysprof_capture_dep.found())
-libsysprof_dep = dependency('sysprof-4',
-  required: false,
-  default_options: [
-    'enable_examples=false',
-    'enable_gtk=false',
-    'enable_tests=false',
-    'enable_tools=false',
-    'libsysprof=true',
-    'with_sysprofd=none',
-    'help=false',
-  ],
-  fallback: ['sysprof', 'libsysprof_dep'],
-)
+if not get_option('sysprof').disabled()
+  libsysprof_capture_dep = dependency('sysprof-capture-4',
+    required: get_option('sysprof'),
+    default_options: [
+      'enable_examples=false',
+      'enable_gtk=false',
+      'enable_tests=false',
+      'enable_tools=false',
+      'libsysprof=true',
+      'with_sysprofd=none',
+      'help=false',
+    ],
+    fallback: ['sysprof', 'libsysprof_capture_dep'],
+  )
+  cdata.set('HAVE_SYSPROF', libsysprof_capture_dep.found())
+  libsysprof_dep = dependency('sysprof-4',
+    required: false,
+    default_options: [
+      'enable_examples=false',
+      'enable_gtk=false',
+      'enable_tests=false',
+      'enable_tools=false',
+      'libsysprof=true',
+      'with_sysprofd=none',
+      'help=false',
+    ],
+    fallback: ['sysprof', 'libsysprof_dep'],
+  )
+  profiler_enabled = true
+else
+  libsysprof_capture_dep = disabler()
+  libsysprof_dep = disabler()
+  profiler_enabled = false
+endif
 
 graphene_dep_type = graphene_dep.type_name()
 if graphene_dep_type == 'pkgconfig'

@@ -92,19 +92,19 @@
  * @Short_description: Base class for all widgets
  * @Title: GtkWidget
  *
- * GtkWidget is the base class all widgets in GTK+ derive from. It manages the
+ * GtkWidget is the base class all widgets in GTK derive from. It manages the
  * widget lifecycle, states and style.
  *
  * # Height-for-width Geometry Management # {#geometry-management}
  *
- * GTK+ uses a height-for-width (and width-for-height) geometry management
+ * GTK uses a height-for-width (and width-for-height) geometry management
  * system. Height-for-width means that a widget can change how much
  * vertical space it needs, depending on the amount of horizontal space
  * that it is given (and similar for width-for-height). The most common
  * example is a label that reflows to fill up the available width, wraps
  * to fewer lines, and therefore needs less height.
  *
- * Height-for-width geometry management is implemented in GTK+ by way
+ * Height-for-width geometry management is implemented in GTK by way
  * of two virtual methods:
  *
  * - #GtkWidgetClass.get_request_mode()
@@ -223,7 +223,7 @@
  * as well as its CSS style.
  * If a widget used the wrappers inside its virtual method implementations,
  * then the adjustments (such as widget margins) would be applied
- * twice. GTK+ therefore does not allow this and will warn if you try
+ * twice. GTK therefore does not allow this and will warn if you try
  * to do it.
  *
  * Of course if you are getting the size request for
@@ -231,7 +231,7 @@
  * Otherwise, you would not properly consider widget margins,
  * #GtkSizeGroup, and so forth.
  *
- * GTK+ also supports baseline vertical alignment of widgets. This
+ * GTK also supports baseline vertical alignment of widgets. This
  * means that widgets are positioned such that the typographical baseline of
  * widgets in the same row are aligned. This happens if a widget supports baselines,
  * has a vertical alignment of %GTK_ALIGN_BASELINE, and is inside a widget
@@ -604,9 +604,9 @@ static void             gtk_widget_real_state_flags_changed     (GtkWidget      
 static void             gtk_widget_accessible_interface_init    (GtkAccessibleInterface *iface);
 
 static void             gtk_widget_buildable_interface_init     (GtkBuildableIface  *iface);
-static void             gtk_widget_buildable_set_name           (GtkBuildable       *buildable,
-                                                                 const char         *name);
-static const char *    gtk_widget_buildable_get_name           (GtkBuildable       *buildable);
+static void             gtk_widget_buildable_set_id             (GtkBuildable       *buildable,
+                                                                 const char         *id);
+static const char *    gtk_widget_buildable_get_id             (GtkBuildable       *buildable);
 static GObject *        gtk_widget_buildable_get_internal_child (GtkBuildable       *buildable,
                                                                  GtkBuilder         *builder,
                                                                  const char         *childname);
@@ -965,6 +965,9 @@ gtk_widget_class_init (GtkWidgetClass *klass)
    *
    * Whether the widget or any of its descendents can accept
    * the input focus.
+   *
+   * This property is meant to be set by widget implementations,
+   * typically in their instance init function.
    */
   widget_props[PROP_CAN_FOCUS] =
       g_param_spec_boolean ("can-focus",
@@ -1262,6 +1265,9 @@ gtk_widget_class_init (GtkWidgetClass *klass)
    * GtkWidget:overflow:
    *
    * How content outside the widget's content area is treated.
+   *
+   * This property is meant to be set by widget implementations,
+   * typically in their instance init function.
    */
   widget_props[PROP_OVERFLOW] =
       g_param_spec_enum ("overflow",
@@ -1289,6 +1295,9 @@ gtk_widget_class_init (GtkWidgetClass *klass)
    * GtkWidget:css-name:
    *
    * The name of this widget in the CSS tree.
+   *
+   * This property is meant to be set by widget implementations,
+   * typically in their instance init function.
    */
   widget_props[PROP_CSS_NAME] =
       g_param_spec_string ("css-name",
@@ -1314,6 +1323,9 @@ gtk_widget_class_init (GtkWidgetClass *klass)
    *
    * The #GtkLayoutManager instance to use to compute the preferred size
    * of the widget, and allocate its children.
+   *
+   * This property is meant to be set by widget implementations,
+   * typically in their instance init function.
    */
   widget_props[PROP_LAYOUT_MANAGER] =
     g_param_spec_object ("layout-manager",
@@ -2294,39 +2306,6 @@ gtk_widget_init (GTypeInstance *instance, gpointer g_class)
     }
 }
 
-/**
- * gtk_widget_new:
- * @type: type ID of the widget to create
- * @first_property_name: name of first property to set
- * @...: value of first property, followed by more properties,
- *     %NULL-terminated
- *
- * This is a convenience function for creating a widget and setting
- * its properties in one go. For example you might write:
- * `gtk_widget_new (GTK_TYPE_LABEL, "label", "Hello World", "xalign",
- * 0.0, NULL)` to create a left-aligned label. Equivalent to
- * g_object_new(), but returns a widget so you don’t have to
- * cast the object yourself.
- *
- * Returns: a new #GtkWidget of type @widget_type
- **/
-GtkWidget*
-gtk_widget_new (GType        type,
-		const char *first_property_name,
-		...)
-{
-  GtkWidget *widget;
-  va_list var_args;
-
-  g_return_val_if_fail (g_type_is_a (type, GTK_TYPE_WIDGET), NULL);
-
-  va_start (var_args, first_property_name);
-  widget = (GtkWidget *)g_object_new_valist (type, first_property_name, var_args);
-  va_end (var_args);
-
-  return widget;
-}
-
 void
 gtk_widget_root (GtkWidget *widget)
 {
@@ -2402,8 +2381,8 @@ gtk_widget_unroot (GtkWidget *widget)
  * @widget: a #GtkWidget
  *
  * This function is only for use in widget implementations.
- * Should be called by parent widgets to dissociate @widget
- * from the parent.
+ * It should be called by parent widgets to dissociate @widget
+ * from the parent, typically in dispose.
  **/
 void
 gtk_widget_unparent (GtkWidget *widget)
@@ -3784,6 +3763,28 @@ gtk_widget_allocate (GtkWidget    *widget,
       g_warning ("Allocating size to %s %p without calling gtk_widget_measure(). "
                  "How does the code know the size to allocate?",
                  gtk_widget_get_name (widget), widget);
+    }
+  if (!GTK_IS_SCROLLABLE (widget))
+    {
+      int min;
+      gtk_widget_measure (widget, GTK_ORIENTATION_VERTICAL, width, &min, NULL, NULL, NULL);
+      if (min > height)
+        {
+          g_critical ("Allocation height too small. Tried to allocate %dx%d, but %s %p needs "
+                      "at least %dx%d.",
+                      width, height,
+                      gtk_widget_get_name (widget), widget,
+                      width, min);
+        }
+      gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, height, &min, NULL, NULL, NULL);
+      if (min > width)
+        {
+          g_critical ("Allocation width too small. Tried to allocate %dx%d, but %s %p needs "
+                      "at least %dx%d.",
+                      width, height,
+                      gtk_widget_get_name (widget), widget,
+                      min, height);
+        }
     }
 #endif /* G_ENABLE_DEBUG */
 
@@ -5249,7 +5250,7 @@ gtk_widget_set_name (GtkWidget	 *widget,
  * Retrieves the name of a widget. See gtk_widget_set_name() for the
  * significance of widget names.
  *
- * Returns: name of the widget. This string is owned by GTK+ and
+ * Returns: name of the widget. This string is owned by GTK and
  * should not be modified or freed
  **/
 const char *
@@ -5796,6 +5797,7 @@ gtk_widget_reposition_after (GtkWidget *widget,
  *
  * This function is useful only when implementing subclasses of
  * #GtkWidget.
+ *
  * Sets @parent as the parent widget of @widget, and takes care of
  * some details such as updating the state and style of the child
  * to reflect its new location and resizing the parent. The opposite
@@ -6220,8 +6222,12 @@ gtk_widget_set_font_map_recurse (GtkWidget *widget, gpointer user_data)
  * @font_map: (allow-none): a #PangoFontMap, or %NULL to unset any previously
  *     set font map
  *
- * Sets the font map to use for Pango rendering. When not set, the widget
- * will inherit the font map from its parent.
+ * Sets the font map to use for Pango rendering. The font map is the
+ * object that is used to look up fonts. Setting a custom font map
+ * can be useful in special situations, e.g. when you need to add
+ * application-specific fonts to the set of available fonts.
+ *
+ * When not set, the widget will inherit the font map from its parent.
  */
 void
 gtk_widget_set_font_map (GtkWidget    *widget,
@@ -7443,7 +7449,7 @@ gtk_widget_adjust_baseline_request (GtkWidget *widget,
  *
  * Returns the list of pointer #GdkDevices that are currently
  * on top of @widget. Free the list
- * with g_free(), the elements are owned by GTK+ and must
+ * with g_free(), the elements are owned by GTK and must
  * not be freed.
  */
 GdkDevice **
@@ -7478,7 +7484,7 @@ _gtk_widget_list_devices (GtkWidget *widget,
  * @to: the #GtkWidget the virtual pointer is moving to.
  * @mode: the #GdkCrossingMode to place on the synthesized events.
  *
- * Generate crossing event(s) on widget state (sensitivity) or GTK+ grab change.
+ * Generate crossing event(s) on widget state (sensitivity) or GTK grab change.
  */
 void
 _gtk_widget_synthesize_crossing (GtkWidget       *from,
@@ -8120,7 +8126,7 @@ gtk_widget_accessible_interface_init (GtkAccessibleInterface *iface)
 /*
  * GtkBuildable implementation
  */
-static GQuark            quark_builder_set_name = 0;
+static GQuark            quark_builder_set_id = 0;
 
 static void
 gtk_widget_buildable_add_child (GtkBuildable  *buildable,
@@ -8150,10 +8156,10 @@ gtk_widget_buildable_add_child (GtkBuildable  *buildable,
 static void
 gtk_widget_buildable_interface_init (GtkBuildableIface *iface)
 {
-  quark_builder_set_name = g_quark_from_static_string ("gtk-builder-set-name");
+  quark_builder_set_id = g_quark_from_static_string ("gtk-builder-set-id");
 
-  iface->set_name = gtk_widget_buildable_set_name;
-  iface->get_name = gtk_widget_buildable_get_name;
+  iface->set_id = gtk_widget_buildable_set_id;
+  iface->get_id = gtk_widget_buildable_get_id;
   iface->get_internal_child = gtk_widget_buildable_get_internal_child;
   iface->parser_finished = gtk_widget_buildable_parser_finished;
   iface->custom_tag_start = gtk_widget_buildable_custom_tag_start;
@@ -8163,17 +8169,17 @@ gtk_widget_buildable_interface_init (GtkBuildableIface *iface)
 }
 
 static void
-gtk_widget_buildable_set_name (GtkBuildable *buildable,
-			       const char   *name)
+gtk_widget_buildable_set_id (GtkBuildable *buildable,
+			       const char   *id)
 {
-  g_object_set_qdata_full (G_OBJECT (buildable), quark_builder_set_name,
-                           g_strdup (name), g_free);
+  g_object_set_qdata_full (G_OBJECT (buildable), quark_builder_set_id,
+                           g_strdup (id), g_free);
 }
 
 static const char *
-gtk_widget_buildable_get_name (GtkBuildable *buildable)
+gtk_widget_buildable_get_id (GtkBuildable *buildable)
 {
-  return g_object_get_qdata (G_OBJECT (buildable), quark_builder_set_name);
+  return g_object_get_qdata (G_OBJECT (buildable), quark_builder_set_id);
 }
 
 static GObject *
@@ -10414,7 +10420,7 @@ gtk_widget_class_set_template_from_resource (GtkWidgetClass    *widget_class,
   g_return_if_fail (resource_name && resource_name[0]);
 
   /* This is a hack, because class initializers now access resources
-   * and GIR/gtk-doc initializes classes without initializing GTK+,
+   * and GIR/gtk-doc initializes classes without initializing GTK,
    * we ensure that our base resources are registered here and
    * avoid warnings which building GIRs/documentation.
    */
@@ -11134,6 +11140,8 @@ gtk_widget_observe_controllers (GtkWidget *widget)
  *
  * Returns the widgets first child.
  *
+ * This API is primarily meant for widget implementations.
+ *
  * Returns: (transfer none) (nullable): The widget's first child
  */
 GtkWidget *
@@ -11151,6 +11159,8 @@ gtk_widget_get_first_child (GtkWidget *widget)
  * @widget: a #GtkWidget
  *
  * Returns the widgets last child.
+ *
+ * This API is primarily meant for widget implementations.
  *
  * Returns: (transfer none) (nullable): The widget's last child
  */
@@ -11170,6 +11180,8 @@ gtk_widget_get_last_child (GtkWidget *widget)
  *
  * Returns the widgets next sibling.
  *
+ * This API is primarily meant for widget implementations.
+ *
  * Returns: (transfer none) (nullable): The widget's next sibling
  */
 GtkWidget *
@@ -11187,6 +11199,8 @@ gtk_widget_get_next_sibling (GtkWidget *widget)
  * @widget: a #GtkWidget
  *
  * Returns the widgets previous sibling.
+ *
+ * This API is primarily meant for widget implementations.
  *
  * Returns: (transfer none) (nullable): The widget's previous sibling
  */
@@ -11207,12 +11221,18 @@ gtk_widget_get_prev_sibling (GtkWidget *widget)
  * @previous_sibling: (nullable): the new previous sibling of @widget or %NULL
  *
  * Inserts @widget into the child widget list of @parent.
- * It will be placed after @previous_sibling, or at the beginning if @previous_sibling is %NULL.
  *
- * After calling this function, gtk_widget_get_prev_sibling(widget) will return @previous_sibling.
+ * It will be placed after @previous_sibling, or at the beginning if
+ * @previous_sibling is %NULL.
  *
- * If @parent is already set as the parent widget of @widget, this function can also be used
- * to reorder @widget in the child widget list of @parent.
+ * After calling this function, gtk_widget_get_prev_sibling(widget) will
+ * return @previous_sibling.
+ *
+ * If @parent is already set as the parent widget of @widget, this function
+ * can also be used to reorder @widget in the child widget list of @parent.
+ *
+ * This API is primarily meant for widget implementations; if you are
+ * just using a widget, you *must* use its own API for adding children.
  */
 void
 gtk_widget_insert_after (GtkWidget *widget,
@@ -11243,12 +11263,18 @@ gtk_widget_insert_after (GtkWidget *widget,
  * @next_sibling: (nullable): the new next sibling of @widget or %NULL
  *
  * Inserts @widget into the child widget list of @parent.
- * It will be placed before @next_sibling, or at the end if @next_sibling is %NULL.
  *
- * After calling this function, gtk_widget_get_next_sibling(widget) will return @next_sibling.
+ * It will be placed before @next_sibling, or at the end if
+ * @next_sibling is %NULL.
  *
- * If @parent is already set as the parent widget of @widget, this function can also be used
- * to reorder @widget in the child widget list of @parent.
+ * After calling this function, gtk_widget_get_next_sibling(widget)
+ * will return @next_sibling.
+ *
+ * If @parent is already set as the parent widget of @widget, this function
+ * can also be used to reorder @widget in the child widget list of @parent.
+ *
+ * This API is primarily meant for widget implementations; if you are
+ * just using a widget, you *must* use its own API for adding children.
  */
 void
 gtk_widget_insert_before (GtkWidget *widget,

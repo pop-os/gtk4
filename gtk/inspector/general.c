@@ -171,12 +171,7 @@ add_check_row (GtkInspectorGeneral *gen,
   GtkWidget *row, *box, *label, *check;
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 40);
-  g_object_set (box,
-                "margin-start", 10 + indent,
-                "margin-end", 10,
-                "margin-top", 10,
-                "margin-bottom", 10,
-                NULL);
+  g_object_set (box, "margin-start", indent, NULL);
 
   label = gtk_label_new (name);
   gtk_widget_set_halign (label, GTK_ALIGN_START);
@@ -213,12 +208,7 @@ add_label_row (GtkInspectorGeneral *gen,
   GtkWidget *row;
 
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 40);
-  g_object_set (box,
-                "margin-start", 10 + indent,
-                "margin-end", 10,
-                "margin-top", 10,
-                "margin-bottom", 10,
-                NULL);
+  g_object_set (box, "margin-start", indent, NULL);
 
   label = gtk_label_new (name);
   gtk_widget_set_halign (label, GTK_ALIGN_START);
@@ -572,6 +562,7 @@ populate_monitor (gpointer item,
   const char *model;
 
   list = GTK_LIST_BOX (gtk_list_box_new ());
+  gtk_widget_add_css_class (GTK_WIDGET (list), "rich-list");
   gtk_list_box_set_selection_mode (list, GTK_SELECTION_NONE);
 
   /* XXX: add monitor # here when porting to listview */ 
@@ -818,6 +809,13 @@ add_seat (GtkInspectorGeneral *gen,
 }
 
 static void
+disconnect_seat (GtkInspectorGeneral *gen,
+                 GdkSeat             *seat)
+{
+  g_signal_handlers_disconnect_by_func (seat, G_CALLBACK (populate_seats), gen);
+}
+
+static void
 populate_seats (GtkInspectorGeneral *gen)
 {
   GtkWidget *child;
@@ -836,10 +834,27 @@ populate_seats (GtkInspectorGeneral *gen)
 }
 
 static void
+seat_added (GdkDisplay          *display,
+            GdkSeat             *seat,
+            GtkInspectorGeneral *gen)
+{
+  populate_seats (gen);
+}
+
+static void
+seat_removed (GdkDisplay          *display,
+              GdkSeat             *seat,
+              GtkInspectorGeneral *gen)
+{
+  disconnect_seat (gen, seat);
+  populate_seats (gen);
+}
+
+static void
 init_device (GtkInspectorGeneral *gen)
 {
-  g_signal_connect_swapped (gen->display, "seat-added", G_CALLBACK (populate_seats), gen);
-  g_signal_connect_swapped (gen->display, "seat-removed", G_CALLBACK (populate_seats), gen);
+  g_signal_connect (gen->display, "seat-added", G_CALLBACK (seat_added), gen);
+  g_signal_connect (gen->display, "seat-removed", G_CALLBACK (seat_removed), gen);
 
   populate_seats (gen);
 }
@@ -911,8 +926,17 @@ static void
 gtk_inspector_general_dispose (GObject *object)
 {
   GtkInspectorGeneral *gen = GTK_INSPECTOR_GENERAL (object);
+  GList *list, *l;
 
   g_clear_pointer (&gen->swin, gtk_widget_unparent);
+
+  g_signal_handlers_disconnect_by_func (gen->display, G_CALLBACK (seat_added), gen);
+  g_signal_handlers_disconnect_by_func (gen->display, G_CALLBACK (seat_removed), gen);
+
+  list = gdk_display_list_seats (gen->display);
+  for (l = list; l; l = l->next)
+    disconnect_seat (gen, GDK_SEAT (l->data));
+  g_list_free (list);
 
   G_OBJECT_CLASS (gtk_inspector_general_parent_class)->dispose (object);
 }

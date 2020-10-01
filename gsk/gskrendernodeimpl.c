@@ -226,6 +226,8 @@ gsk_linear_gradient_node_diff (GskRenderNode  *node1,
  * @start: the point at which the linear gradient will begin
  * @end: the point at which the linear gradient will finish
  * @color_stops: (array length=n_color_stops): a pointer to an array of #GskColorStop defining the gradient
+ *   The offsets of all color steps must be increasing. The first stop's offset must be >= 0 and the last
+ *   stop's offset must be <= 1.
  * @n_color_stops: the number of elements in @color_stops
  *
  * Creates a #GskRenderNode that will create a linear gradient from the given
@@ -274,6 +276,8 @@ gsk_linear_gradient_node_new (const graphene_rect_t  *bounds,
  * @start: the point at which the linear gradient will begin
  * @end: the point at which the linear gradient will finish
  * @color_stops: (array length=n_color_stops): a pointer to an array of #GskColorStop defining the gradient
+ *   The offsets of all color steps must be increasing. The first stop's offset must be >= 0 and the last
+ *   stop's offset must be <= 1.
  * @n_color_stops: the number of elements in @color_stops
  *
  * Creates a #GskRenderNode that will create a repeating linear gradient
@@ -384,6 +388,357 @@ gsk_linear_gradient_node_peek_color_stops (GskRenderNode *node,
     *n_stops = self->n_stops;
 
   return self->stops;
+}
+
+/*** GSK_RADIAL_GRADIENT_NODE ***/
+
+struct _GskRadialGradientNode
+{
+  GskRenderNode render_node;
+
+  graphene_point_t center;
+
+  float hradius;
+  float vradius;
+  float start;
+  float end;
+
+  gsize n_stops;
+  GskColorStop *stops;
+};
+
+static void
+gsk_radial_gradient_node_finalize (GskRenderNode *node)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+  GskRenderNodeClass *parent_class = g_type_class_peek (g_type_parent (GSK_TYPE_RADIAL_GRADIENT_NODE));
+
+  g_free (self->stops);
+
+  parent_class->finalize (node);
+}
+
+static void
+gsk_radial_gradient_node_draw (GskRenderNode *node,
+                               cairo_t       *cr)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+  cairo_pattern_t *pattern;
+  gsize i;
+
+  pattern = cairo_pattern_create_radial (0, 0, self->hradius * self->start,
+                                         0, 0, self->hradius * self->end);
+
+  if (self->hradius != self->vradius)
+    {
+      cairo_matrix_t matrix;
+
+      cairo_matrix_init_scale (&matrix, 1.0, self->hradius / self->vradius);
+      cairo_pattern_set_matrix (pattern, &matrix);
+    }
+
+  if (gsk_render_node_get_node_type (node) == GSK_REPEATING_RADIAL_GRADIENT_NODE)
+    cairo_pattern_set_extend (pattern, CAIRO_EXTEND_REPEAT);
+  else
+    cairo_pattern_set_extend (pattern, CAIRO_EXTEND_PAD);
+
+  for (i = 0; i < self->n_stops; i++)
+    cairo_pattern_add_color_stop_rgba (pattern,
+                                       self->stops[i].offset,
+                                       self->stops[i].color.red,
+                                       self->stops[i].color.green,
+                                       self->stops[i].color.blue,
+                                       self->stops[i].color.alpha);
+
+  gsk_cairo_rectangle (cr, &node->bounds);
+  cairo_translate (cr, self->center.x, self->center.y);
+  cairo_set_source (cr, pattern);
+  cairo_fill (cr);
+
+  cairo_pattern_destroy (pattern);
+}
+
+static void
+gsk_radial_gradient_node_diff (GskRenderNode  *node1,
+                               GskRenderNode  *node2,
+                               cairo_region_t *region)
+{
+  GskRadialGradientNode *self1 = (GskRadialGradientNode *) node1;
+  GskRadialGradientNode *self2 = (GskRadialGradientNode *) node2;
+
+  if (graphene_point_equal (&self1->center, &self2->center) &&
+      self1->hradius == self2->hradius &&
+      self1->vradius == self2->vradius &&
+      self1->start == self2->start &&
+      self1->end == self2->end &&
+      self1->n_stops == self2->n_stops)
+    {
+      gsize i;
+
+      for (i = 0; i < self1->n_stops; i++)
+        {
+          GskColorStop *stop1 = &self1->stops[i];
+          GskColorStop *stop2 = &self2->stops[i];
+
+          if (stop1->offset == stop2->offset &&
+              gdk_rgba_equal (&stop1->color, &stop2->color))
+            continue;
+
+          gsk_render_node_diff_impossible (node1, node2, region);
+          return;
+        }
+
+      return;
+    }
+
+  gsk_render_node_diff_impossible (node1, node2, region);
+}
+
+/**
+ * gsk_radial_gradient_node_new:
+ * @bounds: the bounds of the node
+ * @center: the center of the gradient
+ * @hradius: the horizontal radius
+ * @vradius: the vertical radius
+ * @start: a percentage >= 0 that defines the start of the gradient around @center
+ * @end: a percentage >= 0 that defines the end of the gradient around @center
+ * @color_stops: (array length=n_color_stops): a pointer to an array of #GskColorStop defining the gradient
+ *   The offsets of all color steps must be increasing. The first stop's offset must be >= 0 and the last
+ *   stop's offset must be <= 1.
+ * @n_color_stops: the number of elements in @color_stops
+ *
+ * Creates a #GskRenderNode that draws a radial gradient. The radial gradient
+ * starts around @center. The size of the gradient is dictated by @hradius
+ * in horizontal orientation and by @vradius in vertial orientation.
+ *
+ * Returns: (transfer full) (type GskRadialGradientNode): A new #GskRenderNode
+ */
+GskRenderNode *
+gsk_radial_gradient_node_new (const graphene_rect_t  *bounds,
+                              const graphene_point_t *center,
+                              float                   hradius,
+                              float                   vradius,
+                              float                   start,
+                              float                   end,
+                              const GskColorStop     *color_stops,
+                              gsize                   n_color_stops)
+{
+  GskRadialGradientNode *self;
+  GskRenderNode *node;
+  gsize i;
+
+  g_return_val_if_fail (bounds != NULL, NULL);
+  g_return_val_if_fail (center != NULL, NULL);
+  g_return_val_if_fail (hradius > 0., NULL);
+  g_return_val_if_fail (vradius > 0., NULL);
+  g_return_val_if_fail (start >= 0., NULL);
+  g_return_val_if_fail (end >= 0., NULL);
+  g_return_val_if_fail (end > start, NULL);
+  g_return_val_if_fail (color_stops != NULL, NULL);
+  g_return_val_if_fail (n_color_stops >= 2, NULL);
+  g_return_val_if_fail (color_stops[0].offset >= 0, NULL);
+  for (i = 1; i < n_color_stops; i++)
+    g_return_val_if_fail (color_stops[i].offset >= color_stops[i - 1].offset, NULL);
+  g_return_val_if_fail (color_stops[n_color_stops - 1].offset <= 1, NULL);
+
+  self = gsk_render_node_alloc (GSK_RADIAL_GRADIENT_NODE);
+  node = (GskRenderNode *) self;
+
+  graphene_rect_init_from_rect (&node->bounds, bounds);
+  graphene_point_init_from_point (&self->center, center);
+
+  self->hradius = hradius;
+  self->vradius = vradius;
+  self->start = start;
+  self->end = end;
+
+  self->n_stops = n_color_stops;
+  self->stops = g_malloc_n (n_color_stops, sizeof (GskColorStop));
+  memcpy (self->stops, color_stops, n_color_stops * sizeof (GskColorStop));
+
+  return node;
+}
+
+/**
+ * gsk_repeating_radial_gradient_node_new:
+ * @bounds: the bounds of the node
+ * @center: the center of the gradient
+ * @hradius: the horizontal radius
+ * @vradius: the vertical radius
+ * @start: a percentage >= 0 that defines the start of the gradient around @center
+ * @end: a percentage >= 0 that defines the end of the gradient around @center
+ * @color_stops: (array length=n_color_stops): a pointer to an array of #GskColorStop defining the gradient
+ *   The offsets of all color steps must be increasing. The first stop's offset must be >= 0 and the last
+ *   stop's offset must be <= 1.
+ * @n_color_stops: the number of elements in @color_stops
+ *
+ * Creates a #GskRenderNode that draws a repeating radial gradient. The radial gradient
+ * starts around @center. The size of the gradient is dictated by @hradius
+ * in horizontal orientation and by @vradius in vertial orientation.
+ *
+ * Returns: (transfer full) (type GskRepeatingRadialGradientNode): A new #GskRenderNode
+ */
+GskRenderNode *
+gsk_repeating_radial_gradient_node_new (const graphene_rect_t  *bounds,
+                                        const graphene_point_t *center,
+                                        float                   hradius,
+                                        float                   vradius,
+                                        float                   start,
+                                        float                   end,
+                                        const GskColorStop     *color_stops,
+                                        gsize                   n_color_stops)
+{
+  GskRadialGradientNode *self;
+  GskRenderNode *node;
+  gsize i;
+
+  g_return_val_if_fail (bounds != NULL, NULL);
+  g_return_val_if_fail (center != NULL, NULL);
+  g_return_val_if_fail (hradius > 0., NULL);
+  g_return_val_if_fail (vradius > 0., NULL);
+  g_return_val_if_fail (start >= 0., NULL);
+  g_return_val_if_fail (end >= 0., NULL);
+  g_return_val_if_fail (end > start, NULL);
+  g_return_val_if_fail (color_stops != NULL, NULL);
+  g_return_val_if_fail (n_color_stops >= 2, NULL);
+  g_return_val_if_fail (color_stops[0].offset >= 0, NULL);
+  for (i = 1; i < n_color_stops; i++)
+    g_return_val_if_fail (color_stops[i].offset >= color_stops[i - 1].offset, NULL);
+  g_return_val_if_fail (color_stops[n_color_stops - 1].offset <= 1, NULL);
+
+  self = gsk_render_node_alloc (GSK_REPEATING_RADIAL_GRADIENT_NODE);
+  node = (GskRenderNode *) self;
+
+  graphene_rect_init_from_rect (&node->bounds, bounds);
+  graphene_point_init_from_point (&self->center, center);
+
+  self->hradius = hradius;
+  self->vradius = vradius;
+  self->start = start;
+  self->end = end;
+
+  self->n_stops = n_color_stops;
+  self->stops = g_malloc_n (n_color_stops, sizeof (GskColorStop));
+  memcpy (self->stops, color_stops, n_color_stops * sizeof (GskColorStop));
+
+  return node;
+}
+
+/**
+ * gsk_radial_gradient_node_get_n_color_stops:
+ * @node: (type GskRadialGradientNode): a #GskRenderNode for a radial gradient
+ *
+ * Retrieves the number of color stops in the gradient.
+ *
+ * Returns: the number of color stops
+ */
+gsize
+gsk_radial_gradient_node_get_n_color_stops (GskRenderNode *node)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+
+  return self->n_stops;
+}
+
+/**
+ * gsk_radial_gradient_node_peek_color_stops:
+ * @node: (type GskRadialGradientNode): a #GskRenderNode for a radial gradient
+ * @n_stops: (out) (optional): the number of color stops in the returned array
+ *
+ * Retrieves the color stops in the gradient.
+ *
+ * Returns: (array length=n_stops): the color stops in the gradient
+ */
+const GskColorStop *
+gsk_radial_gradient_node_peek_color_stops (GskRenderNode *node,
+                                           gsize         *n_stops)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+
+  if (n_stops != NULL)
+    *n_stops = self->n_stops;
+
+  return self->stops;
+}
+
+/**
+ * gsk_radial_gradient_node_peek_center:
+ * @node: (type GskRadialGradientNode): a #GskRenderNode for a radial gradient
+ *
+ * Retrieves the center pointer for the gradient.
+ *
+ * Returns: the center point for the gradient
+ */
+const graphene_point_t *
+gsk_radial_gradient_node_peek_center (GskRenderNode *node)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+
+  return &self->center;
+}
+
+/**
+ * gsk_radial_gradient_node_get_hradius:
+ * @node: (type GskRadialGradientNode): a #GskRenderNode for a radial gradient
+ *
+ * Retrieves the horizonal radius for the gradient.
+ *
+ * Returns: the horizontal radius for the gradient
+ */
+float
+gsk_radial_gradient_node_get_hradius (GskRenderNode *node)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+
+  return self->hradius;
+}
+
+/**
+ * gsk_radial_gradient_node_get_vradius:
+ * @node: (type GskRadialGradientNode): a #GskRenderNode for a radial gradient
+ *
+ * Retrieves the vertical radius for the gradient.
+ *
+ * Returns: the vertical radius for the gradient
+ */
+float
+gsk_radial_gradient_node_get_vradius (GskRenderNode *node)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+
+  return self->vradius;
+}
+
+/**
+ * gsk_radial_gradient_node_get_start:
+ * @node: (type GskRadialGradientNode): a #GskRenderNode for a radial gradient
+ *
+ * Retrieves the start value for the gradient.
+ *
+ * Returns: the start value for the gradient
+ */
+float
+gsk_radial_gradient_node_get_start (GskRenderNode *node)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+
+  return self->start;
+}
+
+/**
+ * gsk_radial_gradient_node_get_end:
+ * @node: (type GskRadialGradientNode): a #GskRenderNode for a radial gradient
+ *
+ * Retrieves the end value for the gradient.
+ *
+ * Returns: the end value for the gradient
+ */
+float
+gsk_radial_gradient_node_get_end (GskRenderNode *node)
+{
+  GskRadialGradientNode *self = (GskRadialGradientNode *) node;
+
+  return self->end;
 }
 
 /*** GSK_BORDER_NODE ***/
@@ -4172,6 +4527,209 @@ gsk_debug_node_get_message (GskRenderNode *node)
   return self->message;
 }
 
+/*** GSK_GL_SHADER_NODE ***/
+
+struct _GskGLShaderNode
+{
+  GskRenderNode render_node;
+
+  GskGLShader *shader;
+  GBytes *args;
+  GskRenderNode **children;
+  guint n_children;
+};
+
+static void
+gsk_gl_shader_node_finalize (GskRenderNode *node)
+{
+  GskGLShaderNode *self = (GskGLShaderNode *) node;
+  GskRenderNodeClass *parent_class = g_type_class_peek (g_type_parent (GSK_TYPE_GL_SHADER_NODE));
+
+  for (guint i = 0; i < self->n_children; i++)
+    gsk_render_node_unref (self->children[i]);
+  g_free (self->children);
+
+  g_bytes_unref (self->args);
+
+  g_object_unref (self->shader);
+
+  parent_class->finalize (node);
+}
+
+static void
+gsk_gl_shader_node_draw (GskRenderNode *node,
+                         cairo_t       *cr)
+{
+  cairo_set_source_rgb (cr, 255 / 255., 105 / 255., 180 / 255.);
+  gsk_cairo_rectangle (cr, &node->bounds);
+  cairo_fill (cr);
+}
+
+static void
+gsk_gl_shader_node_diff (GskRenderNode  *node1,
+                         GskRenderNode  *node2,
+                         cairo_region_t *region)
+{
+  GskGLShaderNode *self1 = (GskGLShaderNode *) node1;
+  GskGLShaderNode *self2 = (GskGLShaderNode *) node2;
+
+  if (graphene_rect_equal (&node1->bounds, &node2->bounds) &&
+      self1->shader == self2->shader &&
+      g_bytes_compare (self1->args, self2->args) == 0 &&
+      self1->n_children == self2->n_children)
+    {
+      cairo_region_t *child_region = cairo_region_create();
+      for (guint i = 0; i < self1->n_children; i++)
+        gsk_render_node_diff (self1->children[i], self2->children[i], child_region);
+      if (!cairo_region_is_empty (child_region))
+        gsk_render_node_diff_impossible (node1, node2, region);
+      cairo_region_destroy (child_region);
+    }
+  else
+    {
+      gsk_render_node_diff_impossible (node1, node2, region);
+    }
+}
+
+/**
+ * gsk_gl_shader_node_new:
+ * @shader: the #GskGLShader
+ * @bounds: the rectangle to render the shader into
+ * @args: Arguments for the uniforms
+ * @children: (array length=n_children): array of child nodes, these will
+ *     be rendered to textures and used as input.
+ * @n_children: Length of @children (currenly the GL backend supports
+ *     up to 4 children)
+ *
+ * Creates a #GskRenderNode that will render the given @shader into the
+ * area given by @bounds. The @args is a block of data to use for uniform
+ * input, as per types and offsets defined by the @shader. Normally this
+ * is generated by gsk_gl_shader_format_args() or #GskGLShaderArgBuilder.
+ *
+ * See #GskGLShader for details about how the shader should be written.
+ *
+ * All the children will be rendered into textures (if they aren't already
+ * #GskTextureNodes, which will be used directly). These textures will be
+ * sent as input to the shader.
+ *
+ * If the renderer doesn't support GL shaders, or if there is any problem
+ * when compiling the shader, then the node will draw pink. You should use
+ * gsk_gl_shader_compile() to ensure the @shader will work for the
+ * renderer before using it.
+ *
+ * Returns: (transfer full) (type GskGLShaderNode): A new #GskRenderNode
+ */
+GskRenderNode *
+gsk_gl_shader_node_new (GskGLShader           *shader,
+                        const graphene_rect_t *bounds,
+                        GBytes                *args,
+                        GskRenderNode        **children,
+                        guint                  n_children)
+{
+  GskGLShaderNode *self;
+  GskRenderNode *node;
+
+  g_return_val_if_fail (GSK_IS_GL_SHADER (shader), NULL);
+  g_return_val_if_fail (bounds != NULL, NULL);
+  g_return_val_if_fail ((args == NULL && gsk_gl_shader_get_n_uniforms (shader) == 0) ||
+                        (args != NULL && g_bytes_get_size (args) == gsk_gl_shader_get_args_size (shader)), NULL);
+  g_return_val_if_fail ((children == NULL && n_children == 0) ||
+                        (children != NULL && n_children == gsk_gl_shader_get_n_textures (shader)), NULL);
+
+  self = gsk_render_node_alloc (GSK_GL_SHADER_NODE);
+  node = (GskRenderNode *) self;
+
+  graphene_rect_init_from_rect (&node->bounds, bounds);
+  self->shader = g_object_ref (shader);
+
+  self->args = g_bytes_ref (args);
+
+  self->n_children = n_children;
+  if (n_children > 0)
+    {
+      self->children = g_malloc_n (n_children, sizeof (GskRenderNode *));
+      for (guint i = 0; i < n_children; i++)
+        self->children[i] = gsk_render_node_ref (children[i]);
+    }
+
+  return node;
+}
+
+/**
+ * gsk_gl_shader_node_get_n_children:
+ * @node: (type GskGLShaderNode): a #GskRenderNode for a gl shader
+ *
+ * Returns the number of children
+ *
+ * Returns: The number of children
+ */
+guint
+gsk_gl_shader_node_get_n_children (GskRenderNode *node)
+{
+  GskGLShaderNode *self = (GskGLShaderNode *) node;
+
+  g_return_val_if_fail (GSK_IS_RENDER_NODE_TYPE (node, GSK_GL_SHADER_NODE), 0);
+
+  return self->n_children;
+}
+
+/**
+ * gsk_gl_shader_node_get_child:
+ * @node: (type GskGLShaderNode): a #GskRenderNode for a gl shader
+ * @idx: the position of the child to get
+ *
+ * Gets one of the children.
+ *
+ * Returns: (transfer none): the @idx'th child of @node
+ */
+GskRenderNode *
+gsk_gl_shader_node_get_child (GskRenderNode *node,
+                              guint          idx)
+{
+  GskGLShaderNode *self = (GskGLShaderNode *) node;
+
+  g_return_val_if_fail (GSK_IS_RENDER_NODE_TYPE (node, GSK_GL_SHADER_NODE), NULL);
+  g_return_val_if_fail (idx < self->n_children, NULL);
+
+  return self->children[idx];
+}
+
+/**
+ * gsk_gl_shader_node_get_shader:
+ * @node: (type GskGLShaderNode): a #GskRenderNode for a gl shader
+ *
+ * Gets shader code for the node.
+ *
+ * Returns: (transfer none): the #GskGLShader shader
+ */
+GskGLShader *
+gsk_gl_shader_node_get_shader (GskRenderNode *node)
+{
+  GskGLShaderNode *self = (GskGLShaderNode *) node;
+
+  g_return_val_if_fail (GSK_IS_RENDER_NODE_TYPE (node, GSK_GL_SHADER_NODE), 0);
+
+  return self->shader;
+}
+
+/**
+ * gsk_gl_shader_node_get_args:
+ * @node: (type GskGLShaderNode): a #GskRenderNode for a gl shader
+ *
+ * Gets args for the node.
+ *
+ * Returns: (transfer none): A #GBytes with the uniform arguments
+ */
+GBytes *
+gsk_gl_shader_node_get_args (GskRenderNode *node)
+{
+  GskGLShaderNode *self = (GskGLShaderNode *) node;
+
+  g_return_val_if_fail (GSK_IS_RENDER_NODE_TYPE (node, GSK_GL_SHADER_NODE), NULL);
+
+  return self->args;
+}
+
 GType gsk_render_node_types[GSK_RENDER_NODE_TYPE_N_TYPES];
 
 #ifndef I_
@@ -4191,6 +4749,8 @@ GSK_DEFINE_RENDER_NODE_TYPE (gsk_cairo_node, GSK_CAIRO_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_color_node, GSK_COLOR_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_linear_gradient_node, GSK_LINEAR_GRADIENT_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_repeating_linear_gradient_node, GSK_REPEATING_LINEAR_GRADIENT_NODE)
+GSK_DEFINE_RENDER_NODE_TYPE (gsk_radial_gradient_node, GSK_RADIAL_GRADIENT_NODE)
+GSK_DEFINE_RENDER_NODE_TYPE (gsk_repeating_radial_gradient_node, GSK_REPEATING_RADIAL_GRADIENT_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_border_node, GSK_BORDER_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_texture_node, GSK_TEXTURE_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_inset_shadow_node, GSK_INSET_SHADOW_NODE)
@@ -4206,6 +4766,7 @@ GSK_DEFINE_RENDER_NODE_TYPE (gsk_blend_node, GSK_BLEND_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_cross_fade_node, GSK_CROSS_FADE_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_text_node, GSK_TEXT_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_blur_node, GSK_BLUR_NODE)
+GSK_DEFINE_RENDER_NODE_TYPE (gsk_gl_shader_node, GSK_GL_SHADER_NODE)
 GSK_DEFINE_RENDER_NODE_TYPE (gsk_debug_node, GSK_DEBUG_NODE)
 
 static void
@@ -4289,6 +4850,38 @@ gsk_render_node_init_types_once (void)
 
     GType node_type = gsk_render_node_type_register_static (I_("GskRepeatingLinearGradientNode"), &node_info);
     gsk_render_node_types[GSK_REPEATING_LINEAR_GRADIENT_NODE] = node_type;
+  }
+
+  {
+    const GskRenderNodeTypeInfo node_info =
+    {
+      GSK_RADIAL_GRADIENT_NODE,
+      sizeof (GskRadialGradientNode),
+      NULL,
+      gsk_radial_gradient_node_finalize,
+      gsk_radial_gradient_node_draw,
+      NULL,
+      gsk_radial_gradient_node_diff,
+    };
+
+    GType node_type = gsk_render_node_type_register_static (I_("GskRadialGradientNode"), &node_info);
+    gsk_render_node_types[GSK_RADIAL_GRADIENT_NODE] = node_type;
+  }
+
+  {
+    const GskRenderNodeTypeInfo node_info =
+    {
+      GSK_REPEATING_RADIAL_GRADIENT_NODE,
+      sizeof (GskRadialGradientNode),
+      NULL,
+      gsk_radial_gradient_node_finalize,
+      gsk_radial_gradient_node_draw,
+      NULL,
+      gsk_radial_gradient_node_diff,
+    };
+
+    GType node_type = gsk_render_node_type_register_static (I_("GskRepeatingRadialGradientNode"), &node_info);
+    gsk_render_node_types[GSK_REPEATING_RADIAL_GRADIENT_NODE] = node_type;
   }
 
   {
@@ -4529,6 +5122,22 @@ gsk_render_node_init_types_once (void)
 
     GType node_type = gsk_render_node_type_register_static (I_("GskBlurNode"), &node_info);
     gsk_render_node_types[GSK_BLUR_NODE] = node_type;
+  }
+
+  {
+    const GskRenderNodeTypeInfo node_info =
+    {
+      GSK_GL_SHADER_NODE,
+      sizeof (GskGLShaderNode),
+      NULL,
+      gsk_gl_shader_node_finalize,
+      gsk_gl_shader_node_draw,
+      NULL,
+      gsk_gl_shader_node_diff,
+    };
+
+    GType node_type = gsk_render_node_type_register_static (I_("GskGLShaderNode"), &node_info);
+    gsk_render_node_types[GSK_GL_SHADER_NODE] = node_type;
   }
 
   {

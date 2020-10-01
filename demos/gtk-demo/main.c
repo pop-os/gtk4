@@ -1,3 +1,17 @@
+/* GTK Demo
+ *
+ * GTK Demo is a collection of useful examples to demonstrate
+ * GTK widgets and features. It is a useful example in itself.
+ *
+ * You can select examples in the sidebar or search for them by
+ * typing a search term. Double-clicking or hitting the “Run” button
+ * will run the demo. The source code and other resources used in the
+ * demo are shown in this area.
+ *
+ * You can also use the GTK Inspector, available from the menu on the
+ * top right, to poke at the running demos, and see how they are put
+ * together.
+ */
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -28,6 +42,7 @@ struct _GtkDemo
 
   const char *name;
   const char *title;
+  const char **keywords;
   const char *filename;
   GDoDemoFunc func;
   GListModel *children_model;
@@ -38,6 +53,7 @@ enum {
   PROP_FILENAME,
   PROP_NAME,
   PROP_TITLE,
+  PROP_KEYWORDS,
 
   N_PROPS
 };
@@ -70,6 +86,10 @@ gtk_demo_get_property (GObject    *object,
       g_value_set_string (value, self->title);
       break;
 
+    case PROP_KEYWORDS:
+      g_value_set_boxed (value, self->keywords);
+      break;
+
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, property_id, pspec);
       break;
@@ -98,6 +118,12 @@ static void gtk_demo_class_init (GtkDemoClass *klass)
     g_param_spec_string ("title",
                          "title",
                          "title",
+                         NULL,
+                         G_PARAM_READABLE);
+  properties[PROP_KEYWORDS] =
+    g_param_spec_string ("keywords",
+                         "keywords",
+                         "keywords",
                          NULL,
                          G_PARAM_READABLE);
 
@@ -315,12 +341,10 @@ display_text (const char  *format,
   g_assert (g_utf8_validate (g_bytes_get_data (bytes, NULL), g_bytes_get_size (bytes), NULL));
 
   textview = gtk_text_view_new ();
-  g_object_set (textview,
-                "left-margin", 20,
-                "right-margin", 20,
-                "top-margin", 20,
-                "bottom-margin", 20,
-                NULL);
+  gtk_text_view_set_left_margin (GTK_TEXT_VIEW (textview), 20);
+  gtk_text_view_set_right_margin (GTK_TEXT_VIEW (textview), 20);
+  gtk_text_view_set_top_margin (GTK_TEXT_VIEW (textview), 20);
+  gtk_text_view_set_bottom_margin (GTK_TEXT_VIEW (textview), 20);
   gtk_text_view_set_editable (GTK_TEXT_VIEW (textview), FALSE);
   gtk_text_view_set_cursor_visible (GTK_TEXT_VIEW (textview), FALSE);
   /* Make it a bit nicer for text. */
@@ -581,6 +605,9 @@ load_file (const char *demoname,
               while (g_ascii_isspace (*(p + len - 1)))
                 len--;
 
+              if (*p == '#')
+                break;
+
               if (len > 0)
                 {
                   if (in_para)
@@ -656,6 +683,7 @@ selection_cb (GtkSingleSelection *sel,
 {
   GtkTreeListRow *row = gtk_single_selection_get_selected_item (sel);
   GtkDemo *demo;
+  GAction *action;
 
   gtk_widget_set_sensitive (GTK_WIDGET (notebook), !!row);
 
@@ -670,6 +698,9 @@ selection_cb (GtkSingleSelection *sel,
 
   if (demo->filename)
     load_file (demo->name, demo->filename);
+
+  action = g_action_map_lookup_action (G_ACTION_MAP (toplevel), "run");
+  g_simple_action_set_enabled (G_SIMPLE_ACTION (action), demo->func != NULL);
 
   gtk_window_set_title (GTK_WINDOW (toplevel), demo->title);
 }
@@ -688,6 +719,21 @@ filter_demo (GtkDemo *demo)
       if (g_str_match_string (search_needle[i], demo->title, TRUE))
         continue;
 
+      if (demo->keywords)
+        {
+          int j;
+          gboolean found = FALSE;
+
+          for (j = 0; !found && demo->keywords[j]; j++)
+            {
+              if (strstr (demo->keywords[j], search_needle[i]))
+                found = TRUE;
+            }
+
+          if (found)
+            continue;
+        }
+
       return FALSE;
     }
 
@@ -695,9 +741,11 @@ filter_demo (GtkDemo *demo)
 }
 
 static gboolean
-demo_filter_by_name (GtkTreeListRow     *row,
-                     GtkFilterListModel *model)
+demo_filter_by_name (gpointer item,
+                     gpointer user_data)
 {
+  GtkTreeListRow *row = item;
+  GtkFilterListModel *model = user_data;
   GListModel *children;
   GtkDemo *demo;
   guint i, n;
@@ -756,7 +804,7 @@ demo_search_changed_cb (GtkSearchEntry *entry,
   g_clear_pointer (&search_needle, g_strfreev);
 
   if (text && *text)
-    search_needle = g_strsplit (text, " ", 0);
+    search_needle = g_str_tokenize_and_fold (text, NULL, NULL);
 
   gtk_filter_changed (filter, GTK_FILTER_CHANGE_DIFFERENT);
 }
@@ -766,14 +814,25 @@ create_demo_model (void)
 {
   GListStore *store = g_list_store_new (GTK_TYPE_DEMO);
   DemoData *demo = gtk_demos;
+  GtkDemo *d;
+
+  d = GTK_DEMO (g_object_new (GTK_TYPE_DEMO, NULL));
+  d->name = "main";
+  d->title = "GTK Demo";
+  d->keywords = NULL;
+  d->filename = "main.c";
+  d->func = NULL;
+
+  g_list_store_append (store, d);
 
   while (demo->title)
     {
-      GtkDemo *d = GTK_DEMO (g_object_new (GTK_TYPE_DEMO, NULL));
+      d = GTK_DEMO (g_object_new (GTK_TYPE_DEMO, NULL));
       DemoData *children = demo->children;
 
       d->name = demo->name;
       d->title = demo->title;
+      d->keywords = demo->keywords;
       d->filename = demo->filename;
       d->func = demo->func;
 
@@ -789,6 +848,7 @@ create_demo_model (void)
 
               child->name = children->name;
               child->title = children->title;
+              child->keywords = children->keywords;
               child->filename = children->filename;
               child->func = children->func;
 
@@ -834,18 +894,16 @@ activate (GApplication *app)
   GtkWidget *window, *listview, *search_entry, *search_bar;
   GtkFilterListModel *filter_model;
   GtkFilter *filter;
-
-  static GActionEntry win_entries[] = {
-    { "run", activate_run, NULL, NULL, NULL }
-  };
+  GSimpleAction *action;
 
   builder = gtk_builder_new_from_resource ("/ui/main.ui");
 
   window = (GtkWidget *)gtk_builder_get_object (builder, "window");
   gtk_application_add_window (GTK_APPLICATION (app), GTK_WINDOW (window));
-  g_action_map_add_action_entries (G_ACTION_MAP (window),
-                                   win_entries, G_N_ELEMENTS (win_entries),
-                                   window);
+
+  action = g_simple_action_new ("run", NULL);
+  g_signal_connect (action, "activate", G_CALLBACK (activate_run), window);
+  g_action_map_add_action (G_ACTION_MAP (window), G_ACTION (action));
 
   notebook = GTK_WIDGET (gtk_builder_get_object (builder, "notebook"));
 
@@ -865,9 +923,10 @@ activate (GApplication *app)
                                        NULL,
                                        NULL);
   filter_model = gtk_filter_list_model_new (G_LIST_MODEL (treemodel), NULL);
-  filter = gtk_custom_filter_new ((GtkCustomFilterFunc)demo_filter_by_name, filter_model, NULL);
+  filter = GTK_FILTER (gtk_custom_filter_new (demo_filter_by_name, filter_model, NULL));
   gtk_filter_list_model_set_filter (filter_model, filter);
   g_object_unref (filter);
+
   search_entry = GTK_WIDGET (gtk_builder_get_object (builder, "search-entry"));
   g_signal_connect (search_entry, "search-changed", G_CALLBACK (demo_search_changed_cb), filter);
 

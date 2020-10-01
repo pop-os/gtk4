@@ -1,4 +1,5 @@
 /* Lists/Settings
+ * #Keywords: GtkListItemFactory, GListModel
  *
  * This demo shows a settings viewer for GSettings.
  *
@@ -247,7 +248,7 @@ transform_settings_to_keys (GBinding     *binding,
   sort_model = gtk_sort_list_model_new (G_LIST_MODEL (store),
                                         g_object_ref (gtk_column_view_get_sorter (GTK_COLUMN_VIEW (data))));
 
-  filter = gtk_string_filter_new (gtk_property_expression_new (SETTINGS_TYPE_KEY, NULL, "name"));
+  filter = GTK_FILTER (gtk_string_filter_new (gtk_property_expression_new (SETTINGS_TYPE_KEY, NULL, "name")));
   g_set_object (&current_filter, filter);
   filter_model = gtk_filter_list_model_new (G_LIST_MODEL (sort_model), filter);
 
@@ -417,7 +418,7 @@ do_listview_settings (GtkWidget *do_widget)
       g_object_unref (selection);
 
       name_column = GTK_COLUMN_VIEW_COLUMN (gtk_builder_get_object (builder, "name_column"));
-      sorter = gtk_string_sorter_new (gtk_property_expression_new (SETTINGS_TYPE_KEY, NULL, "name"));
+      sorter = GTK_SORTER (gtk_string_sorter_new (gtk_property_expression_new (SETTINGS_TYPE_KEY, NULL, "name")));
       gtk_column_view_column_set_sorter (name_column, sorter);
       g_object_unref (sorter);
 

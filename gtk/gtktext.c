@@ -949,7 +949,7 @@ gtk_text_class_init (GtkTextClass *class)
   
   /**
    * GtkText::activate:
-   * @self: The self on which the signal is emitted
+   * @self: The widget on which the signal is emitted
    *
    * The ::activate signal is emitted when the user hits
    * the Enter key.
@@ -2911,6 +2911,16 @@ dnd_finished_cb (GdkDrag *drag,
 }
 
 static void
+dnd_cancel_cb (GdkDrag             *drag,
+               GdkDragCancelReason  reason,
+               GtkText             *self)
+{
+  GtkTextPrivate *priv = gtk_text_get_instance_private (self);
+
+  priv->drag = NULL;
+}
+
+static void
 gtk_text_drag_gesture_update (GtkGestureDrag *gesture,
                               double          offset_x,
                               double          offset_y,
@@ -2973,9 +2983,12 @@ gtk_text_drag_gesture_update (GtkGestureDrag *gesture,
           g_object_unref (content);
 
           g_signal_connect (drag, "dnd-finished", G_CALLBACK (dnd_finished_cb), self);
+          g_signal_connect (drag, "cancel", G_CALLBACK (dnd_cancel_cb), self);
 
           paintable = gtk_text_util_create_drag_icon (widget, text, -1);
-          gtk_drag_icon_set_from_paintable (drag, paintable, ranges[0], 0);
+          gtk_drag_icon_set_from_paintable (drag, paintable,
+                                            (priv->drag_start_x - ranges[0]),
+                                            priv->drag_start_y);
           g_clear_object (&paintable);
 
           priv->drag = drag;
@@ -2986,6 +2999,9 @@ gtk_text_drag_gesture_update (GtkGestureDrag *gesture,
           g_free (text);
 
           priv->in_drag = FALSE;
+
+          /* Deny the gesture so we don't get further updates */
+          gtk_gesture_set_state (priv->drag_gesture, GTK_EVENT_SEQUENCE_DENIED);
         }
     }
   else
@@ -2994,6 +3010,8 @@ gtk_text_drag_gesture_update (GtkGestureDrag *gesture,
       GdkDevice *source;
       guint length;
       int tmp_pos;
+
+      gtk_gesture_set_state (GTK_GESTURE (gesture), GTK_EVENT_SEQUENCE_CLAIMED);
 
       length = gtk_entry_buffer_get_length (get_buffer (self));
 
@@ -6825,7 +6843,7 @@ gtk_text_insert_emoji (GtkText *self)
 
       gtk_widget_set_parent (chooser, GTK_WIDGET (self));
       g_signal_connect (chooser, "emoji-picked", G_CALLBACK (emoji_picked), self);
-      g_signal_connect_swapped (chooser, "hide", G_CALLBACK (gtk_widget_grab_focus), self);
+      g_signal_connect_swapped (chooser, "hide", G_CALLBACK (gtk_text_grab_focus_without_selecting), self);
     }
 
   gtk_popover_popup (GTK_POPOVER (chooser));

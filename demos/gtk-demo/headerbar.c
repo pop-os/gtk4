@@ -1,4 +1,5 @@
 /* Header Bar
+ * #Keywords: GtkWindowHandle, GtkWindowControls
  *
  * GtkHeaderBar is a container that is suitable for implementing
  * window titlebars. One of its features is that it can position
@@ -48,6 +49,7 @@ do_headerbar (GtkWidget *do_widget)
       gtk_box_append (GTK_BOX (box), button);
 
       gtk_header_bar_pack_start (GTK_HEADER_BAR (header), box);
+      gtk_header_bar_pack_start (GTK_HEADER_BAR (header), gtk_switch_new ());
 
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
 

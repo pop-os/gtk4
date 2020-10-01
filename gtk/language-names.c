@@ -85,6 +85,15 @@ languages_parse_start_tag (GMarkupParseContext  *ctx,
   const char *ccode_id;
   const char *lang_name;
   char *display_name;
+  const char *long_names[] = {
+    "Dogri",
+    "Greek, Modern",
+    "Interlingua",
+    "Konkani",
+    "Tonga",
+    "Turkish, Ottoman",
+  };
+  int i;
 
   if (!(g_str_equal (element_name, "iso_639_entry") ||
         g_str_equal (element_name, "iso_639_3_entry")) ||
@@ -151,6 +160,14 @@ languages_parse_start_tag (GMarkupParseContext  *ctx,
 
   display_name = get_display_name (lang_name);
 
+  /* Fix up some egregious names */
+  for (i = 0; i < G_N_ELEMENTS (long_names); i++)
+    {
+      if (g_str_has_prefix (display_name, long_names[i]))
+        display_name[strlen (long_names[i]) + 1] = '\0';
+    }
+
+
   if (ccode != NULL)
     g_hash_table_insert (language_map,
                          pango_language_from_string (ccode),
@@ -179,9 +196,9 @@ languages_variant_init (const char *variant)
 {
   gboolean res;
   gsize    buf_len;
-  char *buf = NULL;
-  char *filename = NULL;
-  GError *error = NULL;
+  char *buf;
+  char *filename;
+  GError *error;
 
   bindtextdomain (variant, ISO_CODES_LOCALESDIR);
   bind_textdomain_codeset (variant, "UTF-8");
@@ -196,16 +213,20 @@ languages_variant_init (const char *variant)
 
       ctx = g_markup_parse_context_new (&parser, 0, NULL, NULL);
 
-      g_free (error);
-      error = NULL;
       res = g_markup_parse_context_parse (ctx, buf, buf_len, &error);
       g_free (ctx);
 
       if (!res)
-        g_warning ("Failed to parse '%s': %s\n", filename, error->message);
+        {
+          g_warning ("Failed to parse '%s': %s\n", filename, error->message);
+          g_error_free (error);
+        }
     }
   else
-    g_warning ("Failed to load '%s': %s\n", filename, error->message);
+    {
+      g_warning ("Failed to load '%s': %s\n", filename, error->message);
+      g_error_free (error);
+    }
 
   g_free (filename);
   g_free (buf);

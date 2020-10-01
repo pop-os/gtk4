@@ -60,7 +60,7 @@ get_current_program_state (RenderOpBuilder *builder)
   if (!builder->current_program)
     return NULL;
 
-  return &builder->programs->state[builder->current_program->index];
+  return &builder->current_program->state;
 }
 
 void
@@ -218,10 +218,10 @@ ops_free (RenderOpBuilder *builder)
 
 void
 ops_set_program (RenderOpBuilder *builder,
-                 const Program   *program)
+                 Program   *program)
 {
   OpProgram *op;
-  ProgramState *program_state;
+  ProgramState *program_state = NULL;
 
   if (builder->current_program == program)
     return;
@@ -231,7 +231,7 @@ ops_set_program (RenderOpBuilder *builder,
 
   builder->current_program = program;
 
-  program_state = &builder->programs->state[program->index];
+  program_state = &program->state;
 
   if (memcmp (&builder->current_projection, &program_state->projection, sizeof (graphene_matrix_t)) != 0)
     {
@@ -558,6 +558,18 @@ ops_set_texture (RenderOpBuilder *builder,
   builder->current_texture = texture_id;
 }
 
+void
+ops_set_extra_texture (RenderOpBuilder *builder,
+                       int              texture_id,
+                       int              idx)
+{
+  OpExtraTexture *op;
+
+  op = ops_begin (builder, OP_CHANGE_EXTRA_SOURCE_TEXTURE);
+  op->texture_id = texture_id;
+  op->idx = idx;
+}
+
 int
 ops_set_render_target (RenderOpBuilder *builder,
                        int              render_target_id)
@@ -619,6 +631,43 @@ ops_set_color (RenderOpBuilder *builder,
 
   op = ops_begin (builder, OP_CHANGE_COLOR);
   op->rgba = color;
+}
+
+void
+ops_set_gl_shader_args (RenderOpBuilder       *builder,
+                        GskGLShader           *shader,
+                        float                  width,
+                        float                  height,
+                        const guchar          *uniform_data)
+{
+  ProgramState *current_program_state = get_current_program_state (builder);
+  OpGLShader *op;
+  gsize args_size = gsk_gl_shader_get_args_size (shader);
+
+  if (current_program_state)
+    {
+      if (current_program_state->gl_shader.width == width &&
+          current_program_state->gl_shader.height == height &&
+          current_program_state->gl_shader.uniform_data_len == args_size &&
+          memcmp (current_program_state->gl_shader.uniform_data, uniform_data, args_size) == 0)
+        return;
+
+      current_program_state->gl_shader.width = width;
+      current_program_state->gl_shader.height = height;
+      if (args_size > sizeof (current_program_state->gl_shader.uniform_data))
+        current_program_state->gl_shader.uniform_data_len = 0;
+      else
+        {
+          current_program_state->gl_shader.uniform_data_len = args_size;
+          memcpy (current_program_state->gl_shader.uniform_data, uniform_data, args_size);
+        }
+    }
+
+  op = ops_begin (builder, OP_CHANGE_GL_SHADER_ARGS);
+  op->shader = shader;
+  op->size[0] = width;
+  op->size[1] = height;
+  op->uniform_data = uniform_data;
 }
 
 void
@@ -909,7 +958,7 @@ ops_set_linear_gradient (RenderOpBuilder     *self,
 {
   ProgramState *current_program_state = get_current_program_state (self);
   OpLinearGradient *op;
-  const guint real_n_color_stops = MIN (MAX_GRADIENT_STOPS, n_color_stops);
+  const guint real_n_color_stops = MIN (GL_MAX_GRADIENT_STOPS, n_color_stops);
 
   g_assert (current_program_state);
 
@@ -959,4 +1008,33 @@ ops_set_linear_gradient (RenderOpBuilder     *self,
   op->start_point[1] = start_y;
   op->end_point[0] = end_x;
   op->end_point[1] = end_y;
+}
+
+void
+ops_set_radial_gradient (RenderOpBuilder    *self,
+                         guint               n_color_stops,
+                         const GskColorStop *color_stops,
+                         float               center_x,
+                         float               center_y,
+                         float               start,
+                         float               end,
+                         float               hradius,
+                         float               vradius)
+{
+  const guint real_n_color_stops = MIN (GL_MAX_GRADIENT_STOPS, n_color_stops);
+  OpRadialGradient *op;
+
+  /* TODO: State tracking? */
+
+  op = ops_begin (self, OP_CHANGE_RADIAL_GRADIENT);
+  op->n_color_stops.value = real_n_color_stops;
+  op->n_color_stops.send = true;
+  op->color_stops.value = color_stops;
+  op->color_stops.send = true;
+  op->center[0] = center_x;
+  op->center[1] = center_y;
+  op->radius[0] = hradius;
+  op->radius[1] = vradius;
+  op->start = start;
+  op->end = end;
 }

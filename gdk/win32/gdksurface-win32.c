@@ -45,6 +45,7 @@
 #include "gdkwin32cursor.h"
 #include "gdkglcontext-win32.h"
 #include "gdkdisplay-win32.h"
+#include "gdkdevice-win32.h"
 #include "gdkcairocontext-win32.h"
 
 #include <cairo-win32.h>
@@ -191,8 +192,6 @@ gdk_surface_win32_finalize (GObject *object)
       GDI_CALL (DestroyIcon, (surface->hicon_small));
       surface->hicon_small = NULL;
     }
-
-  g_free (surface->decorations);
 
   if (surface->cache_surface)
     {
@@ -803,21 +802,21 @@ show_window_internal (GdkSurface *window,
    */
   if (!unminimize &&
       !already_mapped &&
-      (window->state & GDK_SURFACE_STATE_MINIMIZED))
+      (window->state & GDK_TOPLEVEL_STATE_MINIMIZED))
     {
       GtkShowWindow (window, SW_SHOWMINNOACTIVE);
       return;
     }
 
   /* If asked to just show an iconified window, do nothing. */
-  if (!unminimize && (window->state & GDK_SURFACE_STATE_MINIMIZED))
+  if (!unminimize && (window->state & GDK_TOPLEVEL_STATE_MINIMIZED))
     return;
 
   /* If asked to unminimize an already noniconified window, do
    * nothing. (Especially, don't cause the window to rise and
    * activate. There are different calls for that.)
    */
-  if (unminimize && !(window->state & GDK_SURFACE_STATE_MINIMIZED))
+  if (unminimize && !(window->state & GDK_TOPLEVEL_STATE_MINIMIZED))
     return;
 
   /* If asked to show (but not raise) a window that is already
@@ -964,15 +963,15 @@ show_window_internal (GdkSurface *window,
     }
 
 
-  if (window->state & GDK_SURFACE_STATE_FULLSCREEN)
+  if (window->state & GDK_TOPLEVEL_STATE_FULLSCREEN)
     {
       gdk_win32_surface_fullscreen (window);
     }
-  else if (window->state & GDK_SURFACE_STATE_MAXIMIZED)
+  else if (window->state & GDK_TOPLEVEL_STATE_MAXIMIZED)
     {
       GtkShowWindow (window, SW_MAXIMIZE);
     }
-  else if (window->state & GDK_SURFACE_STATE_MINIMIZED)
+  else if (window->state & GDK_TOPLEVEL_STATE_MINIMIZED)
     {
       GtkShowWindow (window, SW_RESTORE);
     }
@@ -994,13 +993,13 @@ show_window_internal (GdkSurface *window,
 
   /* Sync STATE_ABOVE to TOPMOST */
   if (!GDK_IS_DRAG_SURFACE (window) &&
-      (((window->state & GDK_SURFACE_STATE_ABOVE) &&
+      (((window->state & GDK_TOPLEVEL_STATE_ABOVE) &&
 	!(exstyle & WS_EX_TOPMOST)) ||
-       (!(window->state & GDK_SURFACE_STATE_ABOVE) &&
+       (!(window->state & GDK_TOPLEVEL_STATE_ABOVE) &&
 	(exstyle & WS_EX_TOPMOST))))
     {
       API_CALL (SetWindowPos, (GDK_SURFACE_HWND (window),
-			       (window->state & GDK_SURFACE_STATE_ABOVE)?HWND_TOPMOST:HWND_NOTOPMOST,
+			       (window->state & GDK_TOPLEVEL_STATE_ABOVE)?HWND_TOPMOST:HWND_NOTOPMOST,
 			       0, 0, 0, 0,
 			       SWP_NOSIZE | SWP_NOMOVE | SWP_NOACTIVATE | SWP_NOOWNERZORDER));
     }
@@ -1026,7 +1025,7 @@ gdk_win32_surface_hide (GdkSurface *window)
   if (GDK_SURFACE_IS_MAPPED (window))
     gdk_synthesize_surface_state (window,
 				 0,
-				 GDK_SURFACE_STATE_WITHDRAWN);
+				 GDK_TOPLEVEL_STATE_WITHDRAWN);
 
   _gdk_surface_clear_update_area (window);
 
@@ -1063,7 +1062,7 @@ gdk_win32_surface_do_move (GdkSurface *window,
   GDK_NOTE (MISC, g_print ("gdk_win32_surface_move: %p: %+d%+d\n",
                            GDK_SURFACE_HWND (window), x, y));
 
-  if (window->state & GDK_SURFACE_STATE_FULLSCREEN)
+  if (window->state & GDK_TOPLEVEL_STATE_FULLSCREEN)
     return;
 
   impl = GDK_WIN32_SURFACE (window);
@@ -1102,7 +1101,7 @@ gdk_win32_surface_resize (GdkSurface *window,
   GDK_NOTE (MISC, g_print ("gdk_win32_surface_resize: %p: %dx%d\n",
                            GDK_SURFACE_HWND (window), width, height));
 
-  if (window->state & GDK_SURFACE_STATE_FULLSCREEN)
+  if (window->state & GDK_TOPLEVEL_STATE_FULLSCREEN)
     return;
 
   get_outer_rect (window, width, height, &outer_rect);
@@ -1142,7 +1141,7 @@ gdk_win32_surface_do_move_resize (GdkSurface *window,
   if (height < 1)
     height = 1;
 
-  if (window->state & GDK_SURFACE_STATE_FULLSCREEN)
+  if (window->state & GDK_TOPLEVEL_STATE_FULLSCREEN)
     return;
 
   GDK_NOTE (MISC, g_print ("gdk_win32_surface_move_resize: %p: %dx%d@%+d%+d\n",
@@ -1275,7 +1274,7 @@ static void
 show_popup (GdkSurface *surface)
 {
   gdk_win32_surface_raise (surface);
-  gdk_synthesize_surface_state (surface, GDK_SURFACE_STATE_WITHDRAWN, 0);
+  gdk_synthesize_surface_state (surface, GDK_TOPLEVEL_STATE_WITHDRAWN, 0);
   show_window_internal (surface, FALSE, FALSE);
   gdk_surface_invalidate_rect (surface, NULL);
 }
@@ -1380,9 +1379,11 @@ get_effective_window_decorations (GdkSurface       *window,
   *decoration = 0;
 
   if (!GDK_IS_TOPLEVEL (window))
-    {
-      return FALSE;
-    }
+    return FALSE;
+
+  /* we want to apply the "no decorations", if decorations are disabled */
+  if (!GDK_WIN32_SURFACE (window)->decorate_all)
+    return TRUE;
 
   if ((impl->hint_flags & GDK_HINT_MIN_SIZE) &&
       (impl->hint_flags & GDK_HINT_MAX_SIZE) &&
@@ -1778,8 +1779,7 @@ _gdk_win32_surface_lacks_wm_decorations (GdkSurface *window)
    * even though GdkWMDecoration docs indicate that 0 does NOT mean
    * "no decorations".
    */
-  if (impl->decorations &&
-      *impl->decorations == 0)
+  if (!impl->decorate_all)
     return TRUE;
 
   if (GDK_SURFACE_HWND (window) == 0)
@@ -1827,7 +1827,7 @@ _gdk_win32_surface_update_style_bits (GdkSurface *window)
   HWND insert_after;
   UINT flags;
 
-  if (window->state & GDK_SURFACE_STATE_FULLSCREEN)
+  if (window->state & GDK_TOPLEVEL_STATE_FULLSCREEN)
     return;
 
   old_style = GetWindowLong (GDK_SURFACE_HWND (window), GWL_STYLE);
@@ -1879,6 +1879,7 @@ _gdk_win32_surface_update_style_bits (GdkSurface *window)
   if (get_effective_window_decorations (window, &decorations))
     {
       all = (decorations & GDK_DECOR_ALL);
+
       /* Keep this in sync with the test in _gdk_win32_surface_lacks_wm_decorations() */
       update_single_bit (&new_style, all, decorations & GDK_DECOR_BORDER, WS_BORDER);
       update_single_bit (&new_style, all, decorations & GDK_DECOR_RESIZEH, WS_THICKFRAME);
@@ -2393,9 +2394,9 @@ _gdk_win32_surface_handle_aerosnap (GdkSurface            *window,
   GdkDisplay *display;
   GListModel *monitors;
   int n_monitors;
-  GdkSurfaceState surface_state = gdk_toplevel_get_state (GDK_TOPLEVEL (window));
-  gboolean minimized = surface_state & GDK_SURFACE_STATE_MINIMIZED;
-  gboolean maximized = surface_state & GDK_SURFACE_STATE_MAXIMIZED;
+  GdkToplevelState surface_state = gdk_toplevel_get_state (GDK_TOPLEVEL (window));
+  gboolean minimized = surface_state & GDK_TOPLEVEL_STATE_MINIMIZED;
+  gboolean maximized = surface_state & GDK_TOPLEVEL_STATE_MAXIMIZED;
   gboolean halfsnapped;
   GdkMonitor *monitor;
 
@@ -3431,7 +3432,7 @@ setup_drag_move_resize_context (GdkSurface                   *window,
   const char *cursor_name;
   GdkSurface *pointer_window;
   GdkWin32Surface *impl = GDK_WIN32_SURFACE (window);
-  gboolean maximized = gdk_toplevel_get_state (GDK_TOPLEVEL (window)) & GDK_SURFACE_STATE_MAXIMIZED;
+  gboolean maximized = gdk_toplevel_get_state (GDK_TOPLEVEL (window)) & GDK_TOPLEVEL_STATE_MAXIMIZED;
   int root_x, root_y;
 
   gdk_win32_surface_get_root_coords (window, x, y, &root_x, &root_y);
@@ -4161,7 +4162,7 @@ gdk_win32_surface_minimize (GdkSurface *window)
     {
       gdk_synthesize_surface_state (window,
                                     0,
-                                    GDK_SURFACE_STATE_MINIMIZED);
+                                    GDK_TOPLEVEL_STATE_MINIMIZED);
     }
 }
 
@@ -4183,7 +4184,7 @@ gdk_win32_surface_maximize (GdkSurface *window)
   else
     gdk_synthesize_surface_state (window,
 				 0,
-				 GDK_SURFACE_STATE_MAXIMIZED);
+				 GDK_TOPLEVEL_STATE_MAXIMIZED);
 }
 
 static void
@@ -4204,7 +4205,7 @@ gdk_win32_surface_unmaximize (GdkSurface *window)
     GtkShowWindow (window, SW_RESTORE);
   else
     gdk_synthesize_surface_state (window,
-				 GDK_SURFACE_STATE_MAXIMIZED,
+				 GDK_TOPLEVEL_STATE_MAXIMIZED,
 				 0);
 }
 
@@ -4249,7 +4250,7 @@ gdk_win32_surface_fullscreen (GdkSurface *window)
       fi->style = GetWindowLong (GDK_SURFACE_HWND (window), GWL_STYLE);
 
       /* Send state change before configure event */
-      gdk_synthesize_surface_state (window, 0, GDK_SURFACE_STATE_FULLSCREEN);
+      gdk_synthesize_surface_state (window, 0, GDK_TOPLEVEL_STATE_FULLSCREEN);
 
       SetWindowLong (GDK_SURFACE_HWND (window), GWL_STYLE,
                      (fi->style & ~WS_OVERLAPPEDWINDOW) | WS_POPUP);
@@ -4272,7 +4273,7 @@ gdk_win32_surface_unfullscreen (GdkSurface *window)
     {
       GdkWin32Surface *impl = GDK_WIN32_SURFACE (window);
 
-      gdk_synthesize_surface_state (window, GDK_SURFACE_STATE_FULLSCREEN, 0);
+      gdk_synthesize_surface_state (window, GDK_TOPLEVEL_STATE_FULLSCREEN, 0);
 
       impl->hint_flags = fi->hint_flags;
       SetWindowLong (GDK_SURFACE_HWND (window), GWL_STYLE, fi->style);
@@ -4301,9 +4302,9 @@ gdk_win32_surface_focus (GdkSurface *window,
 			   GDK_SURFACE_HWND (window),
 			   _gdk_win32_surface_state_to_string (window->state)));
 
-  if (window->state & GDK_SURFACE_STATE_MAXIMIZED)
+  if (window->state & GDK_TOPLEVEL_STATE_MAXIMIZED)
     GtkShowWindow (window, SW_SHOWMAXIMIZED);
-  else if (window->state & GDK_SURFACE_STATE_MINIMIZED)
+  else if (window->state & GDK_TOPLEVEL_STATE_MINIMIZED)
     GtkShowWindow (window, SW_RESTORE);
   else if (!IsWindowVisible (GDK_SURFACE_HWND (window)))
     GtkShowWindow (window, SW_SHOWNORMAL);
@@ -4828,6 +4829,7 @@ gdk_win32_toplevel_set_property (GObject      *object,
       break;
 
     case LAST_PROP + GDK_TOPLEVEL_PROP_DECORATED:
+      GDK_WIN32_SURFACE (surface)->decorate_all = g_value_get_boolean (value);
       _gdk_win32_surface_update_style_bits (surface);
       g_object_notify_by_pspec (G_OBJECT (surface), pspec);
       break;
@@ -4881,10 +4883,7 @@ gdk_win32_toplevel_get_property (GObject    *object,
       break;
 
     case LAST_PROP + GDK_TOPLEVEL_PROP_DECORATED:
-      {
-        GdkWMDecoration decorations = GDK_DECOR_ALL;
-        g_value_set_boolean (value, get_effective_window_decorations (surface, &decorations));
-      }
+      g_value_set_boolean (value, GDK_WIN32_SURFACE (surface)->decorate_all);
       break;
 
     case LAST_PROP + GDK_TOPLEVEL_PROP_DELETABLE:
@@ -4926,7 +4925,7 @@ show_surface (GdkSurface *surface)
   was_mapped = GDK_SURFACE_IS_MAPPED (surface);
 
   if (!was_mapped)
-    gdk_synthesize_surface_state (surface, GDK_SURFACE_STATE_WITHDRAWN, 0);
+    gdk_synthesize_surface_state (surface, GDK_TOPLEVEL_STATE_WITHDRAWN, 0);
 
   gdk_win32_surface_show (surface, FALSE);
 

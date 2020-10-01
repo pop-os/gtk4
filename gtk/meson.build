@@ -121,6 +121,7 @@ gtk_private_sources = files([
   'gtkmenutrackeritem.c',
   'gtkpango.c',
   'gskpango.c',
+  'gtkpasswordentrybuffer.c',
   'gtkpathbar.c',
   'gtkplacessidebar.c',
   'gtkplacesview.c',
@@ -134,6 +135,7 @@ gtk_private_sources = files([
   'gtkscaler.c',
   'gtksearchengine.c',
   'gtksearchenginemodel.c',
+  'gtksecurememory.c',
   'gtksizerequestcache.c',
   'gtksortkeys.c',
   'gtkstyleanimation.c',
@@ -419,6 +421,7 @@ gtk_public_sources = files([
   'gtktreestore.c',
   'gtktreeview.c',
   'gtktreeviewcolumn.c',
+  'gtkversion.c',
   'gtkvideo.c',
   'gtkviewport.c',
   'gtkvolumebutton.c',
@@ -998,6 +1001,7 @@ if win32_enabled
 
   gtk_deps += [cc.find_library('advapi32'),
                cc.find_library('comctl32'),
+               cc.find_library('crypt32'), # For CryptProtectMemory()
                cc.find_library('dwmapi'),
                cc.find_library('imm32'),
                cc.find_library('setupapi'),

@@ -1,6 +1,6 @@
 #include "config.h"
 
-#include "gskglrenderer.h"
+#include "gskglrendererprivate.h"
 
 #include "gskdebugprivate.h"
 #include "gskenums.h"
@@ -19,6 +19,7 @@
 #include "gskglnodesampleprivate.h"
 #include "gsktransform.h"
 #include "glutilsprivate.h"
+#include "gskglshaderprivate.h"
 
 #include "gskprivate.h"
 
@@ -64,6 +65,11 @@
                               glGetUniformLocation(program_ptr->id, "u_" #uniform_basename);\
               }G_STMT_END
 
+static Program *gsk_gl_renderer_lookup_custom_program (GskGLRenderer  *self,
+                                                       GskGLShader *shader);
+static Program *gsk_gl_renderer_create_custom_program (GskGLRenderer  *self,
+                                                       GskGLShader *shader);
+
 typedef enum
 {
   FORCE_OFFSCREEN  = 1 << 0,
@@ -71,6 +77,7 @@ typedef enum
   RESET_OPACITY    = 1 << 2,
   DUMP_FRAMEBUFFER = 1 << 3,
   NO_CACHE_PLZ     = 1 << 5,
+  LINEAR_FILTER    = 1 << 6,
 } OffscreenFlags;
 
 static inline void
@@ -127,6 +134,12 @@ print_render_node_tree (GskRenderNode *root, int level)
       case GSK_SHADOW_NODE:
         g_print ("%*s Shadow\n", level * INDENT, " ");
         print_render_node_tree (gsk_shadow_node_get_child (root), level + 1);
+        break;
+
+      case GSK_GL_SHADER_NODE:
+        g_print ("%*s GL Shader\n", level * INDENT, " ");
+        for (i = 0; i < gsk_gl_shader_node_get_n_children (root); i++)
+          print_render_node_tree (gsk_gl_shader_node_get_child (root, i), level + 1);
         break;
 
       case GSK_TEXTURE_NODE:
@@ -494,6 +507,40 @@ struct _GskGLRendererClass
 
 G_DEFINE_TYPE (GskGLRenderer, gsk_gl_renderer, GSK_TYPE_RENDERER)
 
+static void
+init_shader_builder (GskGLRenderer       *self,
+                     GskGLShaderBuilder  *shader_builder)
+{
+#ifdef G_ENABLE_DEBUG
+  if (GSK_RENDERER_DEBUG_CHECK (GSK_RENDERER (self), SHADERS))
+    shader_builder->debugging = TRUE;
+#endif
+
+  if (gdk_gl_context_get_use_es (self->gl_context))
+    {
+      gsk_gl_shader_builder_set_glsl_version (shader_builder, SHADER_VERSION_GLES);
+      shader_builder->gles = TRUE;
+    }
+  else if (gdk_gl_context_is_legacy (self->gl_context))
+    {
+      int maj, min;
+
+      gdk_gl_context_get_version (self->gl_context, &maj, &min);
+
+      if (maj == 3)
+        gsk_gl_shader_builder_set_glsl_version (shader_builder, SHADER_VERSION_GL3_LEGACY);
+      else
+        gsk_gl_shader_builder_set_glsl_version (shader_builder, SHADER_VERSION_GL2_LEGACY);
+
+      shader_builder->legacy = TRUE;
+        }
+  else
+    {
+      gsk_gl_shader_builder_set_glsl_version (shader_builder, SHADER_VERSION_GL3);
+      shader_builder->gl3 = TRUE;
+    }
+}
+
 static void G_GNUC_UNUSED
 add_rect_ops (RenderOpBuilder       *builder,
               const graphene_rect_t *r)
@@ -563,6 +610,7 @@ render_fallback_node (GskGLRenderer   *self,
                       GskRenderNode   *node,
                       RenderOpBuilder *builder)
 {
+  GdkTexture *texture;
   const float scale = ops_get_scale (builder);
   const int surface_width = ceilf (node->bounds.size.width * scale);
   const int surface_height = ceilf (node->bounds.size.height * scale);
@@ -571,12 +619,17 @@ render_fallback_node (GskGLRenderer   *self,
   cairo_t *cr;
   int cached_id;
   int texture_id;
+  GskTextureKey key;
 
   if (surface_width <= 0 ||
       surface_height <= 0)
     return;
 
-  cached_id = gsk_gl_driver_get_texture_for_pointer (self->gl_driver, node);
+  key.pointer = node;
+  key.scale = scale;
+  key.filter = GL_NEAREST;
+
+  cached_id = gsk_gl_driver_get_texture_for_key (self->gl_driver, &key);
 
   if (cached_id != 0)
     {
@@ -639,15 +692,18 @@ render_fallback_node (GskGLRenderer   *self,
 #endif
   cairo_destroy (cr);
 
+
   /* Upload the Cairo surface to a GL texture */
   texture_id = gsk_gl_driver_create_texture (self->gl_driver,
                                              surface_width,
                                              surface_height);
   gsk_gl_driver_bind_source_texture (self->gl_driver, texture_id);
-  gsk_gl_driver_init_texture_with_surface (self->gl_driver,
-                                           texture_id,
-                                           surface,
-                                           GL_NEAREST, GL_NEAREST);
+
+  texture = gdk_texture_new_for_surface (surface);
+  gsk_gl_driver_init_texture (self->gl_driver,
+                              texture_id,
+                              texture,
+                              GL_NEAREST, GL_NEAREST);
 
   if (gdk_gl_context_has_debug (self->gl_context))
     gdk_gl_context_label_object_printf  (self->gl_context, GL_TEXTURE, texture_id,
@@ -655,10 +711,11 @@ render_fallback_node (GskGLRenderer   *self,
                                          g_type_name_from_instance ((GTypeInstance *) node),
                                          texture_id);
 
+  g_object_unref (texture);
   cairo_surface_destroy (surface);
   cairo_surface_destroy (rendered_surface);
 
-  gsk_gl_driver_set_texture_for_pointer (self->gl_driver, node, texture_id);
+  gsk_gl_driver_set_texture_for_key (self->gl_driver, &key, texture_id);
 
   ops_set_program (builder, &self->programs->blit_program);
   ops_set_texture (builder, texture_id);
@@ -1000,6 +1057,210 @@ render_texture_node (GskGLRenderer       *self,
     }
 }
 
+static Program *
+compile_glshader (GskGLRenderer  *self,
+                  GskGLShader    *shader,
+                  GError        **error)
+{
+  GskGLShaderBuilder shader_builder;
+  const char *shader_source;
+  gsize shader_source_len;
+  int n_uniforms;
+  const GskGLUniform *uniforms;
+  GBytes *bytes;
+  int n_required_textures = gsk_gl_shader_get_n_textures (shader);
+  int program_id;
+  Program *program;
+
+  bytes = gsk_gl_shader_get_source (shader);
+  shader_source = g_bytes_get_data (bytes, &shader_source_len);
+  uniforms = gsk_gl_shader_get_uniforms (shader, &n_uniforms);
+
+  if (n_uniforms > G_N_ELEMENTS (program->glshader.args_locations))
+    {
+      g_set_error (error, GDK_GL_ERROR, GDK_GL_ERROR_UNSUPPORTED_FORMAT,
+                   "GLShaderNode supports max %d custom uniforms", (int)G_N_ELEMENTS (program->glshader.args_locations));
+      return NULL;
+    }
+
+  if (n_required_textures > G_N_ELEMENTS (program->glshader.texture_locations))
+    {
+      g_set_error (error, GDK_GL_ERROR, GDK_GL_ERROR_UNSUPPORTED_FORMAT,
+                   "GLShaderNode supports max %d texture sources", (int)(G_N_ELEMENTS (program->glshader.texture_locations)));
+      return NULL;
+    }
+
+  gsk_gl_shader_builder_init (&shader_builder,
+                              "/org/gtk/libgsk/glsl/preamble.glsl",
+                              "/org/gtk/libgsk/glsl/preamble.vs.glsl",
+                              "/org/gtk/libgsk/glsl/preamble.fs.glsl");
+
+  init_shader_builder (self, &shader_builder);
+  program_id = gsk_gl_shader_builder_create_program (&shader_builder,
+                                                     "/org/gtk/libgsk/glsl/custom.glsl",
+                                                     shader_source, shader_source_len,
+                                                     error);
+  gsk_gl_shader_builder_finish (&shader_builder);
+
+  if (program_id  < 0)
+    return NULL;
+
+  program = gsk_gl_renderer_create_custom_program (self, shader);
+
+  program->id = program_id;
+  INIT_COMMON_UNIFORM_LOCATION (program, alpha);
+  INIT_COMMON_UNIFORM_LOCATION (program, clip_rect);
+  INIT_COMMON_UNIFORM_LOCATION (program, viewport);
+  INIT_COMMON_UNIFORM_LOCATION (program, projection);
+  INIT_COMMON_UNIFORM_LOCATION (program, modelview);
+  program->glshader.size_location = glGetUniformLocation(program->id, "u_size");
+  program->glshader.texture_locations[0] = glGetUniformLocation(program->id, "u_texture1");
+  program->glshader.texture_locations[1] = glGetUniformLocation(program->id, "u_texture2");
+  program->glshader.texture_locations[2] = glGetUniformLocation(program->id, "u_texture3");
+  program->glshader.texture_locations[3] = glGetUniformLocation(program->id, "u_texture4");
+
+  /* We use u_textue1 for the texture 0 in the glshaders, so alias it here so we can use the regular setters */
+  program->source_location = program->glshader.texture_locations[0];
+
+  for (int i = 0; i < G_N_ELEMENTS (program->glshader.args_locations); i++)
+    {
+      if (i < n_uniforms)
+        {
+          program->glshader.args_locations[i] = glGetUniformLocation(program->id, uniforms[i].name);
+          /* This isn't necessary a hard error, you might declare uniforms that are not actually
+             always used, for instance if you have an "API" in uniforms for multiple shaders. */
+          if (program->glshader.args_locations[i] == -1)
+            g_debug ("Declared uniform `%s` not found in GskGLShader", uniforms[i].name);
+        }
+      else
+        program->glshader.args_locations[i] = -1;
+    }
+
+  return program;
+}
+
+gboolean
+gsk_gl_render_try_compile_gl_shader (GskGLRenderer    *self,
+                                     GskGLShader      *shader,
+                                     GError          **error)
+{
+  Program *program;
+
+  gdk_gl_context_make_current (self->gl_context);
+
+  /* Maybe we tried to compile it already? */
+  program = gsk_gl_renderer_lookup_custom_program (self, shader);
+  if (program != NULL)
+    {
+      if (program->id > 0)
+        return TRUE;
+      else
+        {
+          g_propagate_error (error, g_error_copy (program->glshader.compile_error));
+          return FALSE;
+        }
+    }
+
+  program = compile_glshader (self, shader, error);
+  return program != NULL;
+}
+
+static inline void
+render_gl_shader_node (GskGLRenderer       *self,
+                       GskRenderNode       *node,
+                       RenderOpBuilder     *builder)
+{
+  GskGLShader *shader = gsk_gl_shader_node_get_shader (node);
+  Program *program = gsk_gl_renderer_lookup_custom_program (self, shader);
+  int n_children = gsk_gl_shader_node_get_n_children (node);
+
+  if (program == NULL)
+    {
+      GError *error = NULL;
+
+      program = compile_glshader (self, shader, &error);
+      if (program == NULL)
+        {
+          /* We create the program anyway (in a failed state), so that any compiler warnings or other are only reported once */
+          program = gsk_gl_renderer_create_custom_program (self, shader);
+          program->id = -1;
+          program->glshader.compile_error = error;
+
+          g_warning ("Failed to compile gl shader: %s", error->message);
+        }
+    }
+
+  if (program->id >= 0 && n_children <= G_N_ELEMENTS (program->glshader.texture_locations))
+    {
+      GBytes *args;
+      TextureRegion regions[4];
+      gboolean is_offscreen[4];
+      for (guint i = 0; i < n_children; i++)
+        {
+          GskRenderNode *child = gsk_gl_shader_node_get_child (node, i);
+          if (!add_offscreen_ops (self, builder,
+                                  &node->bounds,
+                                  child,
+                                  &regions[i], &is_offscreen[i],
+                                  FORCE_OFFSCREEN | RESET_CLIP | RESET_OPACITY))
+            return;
+        }
+
+      args = gsk_gl_shader_node_get_args (node);
+      ops_set_program (builder, program);
+
+      ops_set_gl_shader_args (builder, shader, node->bounds.size.width, node->bounds.size.height, g_bytes_get_data (args, NULL));
+      for (guint i = 0; i < n_children; i++)
+        {
+          if (i == 0)
+            ops_set_texture (builder, regions[i].texture_id);
+          else
+            ops_set_extra_texture (builder, regions[i].texture_id, i);
+        }
+
+      load_offscreen_vertex_data (ops_draw (builder, NULL), node, builder);
+    }
+  else
+    {
+      static GdkRGBA pink = { 255 / 255., 105 / 255., 180 / 255., 1.0 };
+      ops_set_program (builder, &self->programs->color_program);
+      ops_set_color (builder, &pink);
+      load_vertex_data (ops_draw (builder, NULL), node, builder);
+    }
+}
+
+/* Returns TRUE is applying transform to bounds
+ * yields an axis-aligned rectangle
+ */
+static gboolean
+result_is_axis_aligned (GskTransform          *transform,
+                        const graphene_rect_t *bounds)
+{
+  graphene_matrix_t m;
+  graphene_quad_t q;
+  graphene_rect_t b;
+  graphene_point_t b1, b2;
+  const graphene_point_t *p;
+  int i;
+
+  gsk_transform_to_matrix (transform, &m);
+  gsk_matrix_transform_rect (&m, bounds, &q);
+  graphene_quad_bounds (&q, &b);
+  graphene_rect_get_top_left (&b, &b1);
+  graphene_rect_get_bottom_right (&b, &b2);
+
+  for (i = 0; i < 4; i++)
+    {
+      p = graphene_quad_get_point (&q, i);
+      if (fabs (p->x - b1.x) > FLT_EPSILON && fabs (p->x - b2.x) > FLT_EPSILON)
+        return FALSE;
+      if (fabs (p->y - b1.y) > FLT_EPSILON && fabs (p->y - b2.y) > FLT_EPSILON)
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
 static inline void
 render_transform_node (GskGLRenderer   *self,
                        GskRenderNode   *node,
@@ -1035,11 +1296,10 @@ render_transform_node (GskGLRenderer   *self,
       }
     break;
 
-    case GSK_TRANSFORM_CATEGORY_UNKNOWN:
-    case GSK_TRANSFORM_CATEGORY_ANY:
-    case GSK_TRANSFORM_CATEGORY_3D:
     case GSK_TRANSFORM_CATEGORY_2D:
-    default:
+    case GSK_TRANSFORM_CATEGORY_3D:
+    case GSK_TRANSFORM_CATEGORY_ANY:
+    case GSK_TRANSFORM_CATEGORY_UNKNOWN:
       {
         TextureRegion region;
         gboolean is_offscreen;
@@ -1050,29 +1310,42 @@ render_transform_node (GskGLRenderer   *self,
             gsk_gl_renderer_add_render_ops (self, child, builder);
             ops_pop_modelview (builder);
           }
-        else if (add_offscreen_ops (self, builder,
+        else
+          {
+            int filter_flag = 0;
+
+            if (!result_is_axis_aligned (node_transform, &child->bounds))
+              filter_flag = LINEAR_FILTER;
+
+            if (add_offscreen_ops (self, builder,
                                    &child->bounds,
                                    child,
                                    &region, &is_offscreen,
-                                   RESET_CLIP | RESET_OPACITY))
-          {
-            /* For non-trivial transforms, we draw everything on a texture and then
-             * draw the texture transformed. */
-            /* TODO: We should compute a modelview containing only the "non-trivial"
-             *       part (e.g. the rotation) and use that. We want to keep the scale
-             *       for the texture.
-             */
-            ops_push_modelview (builder, node_transform);
-            ops_set_texture (builder, region.texture_id);
-            ops_set_program (builder, &self->programs->blit_program);
+                                   RESET_CLIP | RESET_OPACITY | filter_flag))
+              {
+                /* For non-trivial transforms, we draw everything on a texture and then
+                 * draw the texture transformed. */
+                /* TODO: We should compute a modelview containing only the "non-trivial"
+                 *       part (e.g. the rotation) and use that. We want to keep the scale
+                 *       for the texture.
+                 */
+                ops_push_modelview (builder, node_transform);
+                ops_set_texture (builder, region.texture_id);
+                ops_set_program (builder, &self->programs->blit_program);
 
-            load_vertex_data_with_region (ops_draw (builder, NULL),
-                                          child, builder,
-                                          &region,
-                                          is_offscreen);
-            ops_pop_modelview (builder);
+                load_vertex_data_with_region (ops_draw (builder, NULL),
+                                              child, builder,
+                                              &region,
+                                              is_offscreen);
+                ops_pop_modelview (builder);
+              }
           }
       }
+      break;
+
+    default:
+      g_assert_not_reached ();
+      break;
     }
 }
 
@@ -1125,21 +1398,63 @@ render_linear_gradient_node (GskGLRenderer   *self,
                              GskRenderNode   *node,
                              RenderOpBuilder *builder)
 {
-  const int n_color_stops = MIN (8, gsk_linear_gradient_node_get_n_color_stops (node));
-  const GskColorStop *stops = gsk_linear_gradient_node_peek_color_stops (node, NULL);
-  const graphene_point_t *start = gsk_linear_gradient_node_peek_start (node);
-  const graphene_point_t *end = gsk_linear_gradient_node_peek_end (node);
+  const int n_color_stops = gsk_linear_gradient_node_get_n_color_stops (node);
 
-  ops_set_program (builder, &self->programs->linear_gradient_program);
-  ops_set_linear_gradient (builder,
-                           n_color_stops,
-                           stops,
-                           builder->dx + start->x,
-                           builder->dy + start->y,
-                           builder->dx + end->x,
-                           builder->dy + end->y);
+  if (n_color_stops < GL_MAX_GRADIENT_STOPS)
+    {
+      const GskColorStop *stops = gsk_linear_gradient_node_peek_color_stops (node, NULL);
+      const graphene_point_t *start = gsk_linear_gradient_node_peek_start (node);
+      const graphene_point_t *end = gsk_linear_gradient_node_peek_end (node);
 
-  load_vertex_data (ops_draw (builder, NULL), node, builder);
+      ops_set_program (builder, &self->programs->linear_gradient_program);
+      ops_set_linear_gradient (builder,
+                               n_color_stops,
+                               stops,
+                               builder->dx + start->x,
+                               builder->dy + start->y,
+                               builder->dx + end->x,
+                               builder->dy + end->y);
+
+      load_vertex_data (ops_draw (builder, NULL), node, builder);
+    }
+  else
+    {
+      render_fallback_node (self, node, builder);
+    }
+}
+
+static inline void
+render_radial_gradient_node (GskGLRenderer   *self,
+                             GskRenderNode   *node,
+                             RenderOpBuilder *builder)
+{
+  const int n_color_stops = gsk_radial_gradient_node_get_n_color_stops (node);
+
+  if (n_color_stops < GL_MAX_GRADIENT_STOPS)
+    {
+      const GskColorStop *stops = gsk_radial_gradient_node_peek_color_stops (node, NULL);
+      const graphene_point_t *center = gsk_radial_gradient_node_peek_center (node);
+      const float start = gsk_radial_gradient_node_get_start (node);
+      const float end = gsk_radial_gradient_node_get_end (node);
+      const float hradius = gsk_radial_gradient_node_get_hradius (node);
+      const float vradius = gsk_radial_gradient_node_get_vradius (node);
+
+      ops_set_program (builder, &self->programs->radial_gradient_program);
+      ops_set_radial_gradient (builder,
+                               n_color_stops,
+                               stops,
+                               builder->dx + center->x,
+                               builder->dy + center->y,
+                               start, end,
+                               hradius * builder->scale_x,
+                               vradius * builder->scale_y);
+
+      load_vertex_data (ops_draw (builder, NULL), node, builder);
+    }
+  else
+    {
+      render_fallback_node (self, node, builder);
+    }
 }
 
 static inline gboolean
@@ -1256,17 +1571,18 @@ render_clipped_child (GskGLRenderer         *self,
   else
     {
       /* well fuck */
-      const float scale = ops_get_scale (builder);
+      const float scale_x = builder->scale_x;
+      const float scale_y = builder->scale_y;
       gboolean is_offscreen;
       TextureRegion region;
       GskRoundedRect scaled_clip;
 
       memset (&scaled_clip, 0, sizeof (GskRoundedRect));
 
-      scaled_clip.bounds.origin.x = clip->origin.x * scale;
-      scaled_clip.bounds.origin.y = clip->origin.y * scale;
-      scaled_clip.bounds.size.width = clip->size.width * scale;
-      scaled_clip.bounds.size.height = clip->size.height * scale;
+      scaled_clip.bounds.origin.x = clip->origin.x * scale_x;
+      scaled_clip.bounds.origin.y = clip->origin.y * scale_y;
+      scaled_clip.bounds.size.width = clip->size.width * scale_x;
+      scaled_clip.bounds.size.height = clip->size.height * scale_y;
 
       ops_push_clip (builder, &scaled_clip);
       if (!add_offscreen_ops (self, builder, &child->bounds,
@@ -1299,7 +1615,8 @@ render_rounded_clip_node (GskGLRenderer       *self,
                           GskRenderNode       *node,
                           RenderOpBuilder     *builder)
 {
-  const float scale = ops_get_scale (builder);
+  const float scale_x = builder->scale_x;
+  const float scale_y = builder->scale_y;
   const GskRoundedRect *clip = gsk_rounded_clip_node_peek_clip (node);
   GskRenderNode *child = gsk_rounded_clip_node_get_child (node);
   GskRoundedRect transformed_clip;
@@ -1312,8 +1629,8 @@ render_rounded_clip_node (GskGLRenderer       *self,
   ops_transform_bounds_modelview (builder, &clip->bounds, &transformed_clip.bounds);
   for (i = 0; i < 4; i ++)
     {
-      transformed_clip.corner[i].width = clip->corner[i].width * scale;
-      transformed_clip.corner[i].height = clip->corner[i].height * scale;
+      transformed_clip.corner[i].width = clip->corner[i].width * scale_x;
+      transformed_clip.corner[i].height = clip->corner[i].height * scale_y;
     }
 
   if (builder->clip_is_rectilinear)
@@ -1371,16 +1688,16 @@ render_rounded_clip_node (GskGLRenderer       *self,
        *
        *       We do, however, apply the scale factor to the child clip of course.
        */
-      scaled_clip.bounds.origin.x = clip->bounds.origin.x * scale;
-      scaled_clip.bounds.origin.y = clip->bounds.origin.y * scale;
-      scaled_clip.bounds.size.width = clip->bounds.size.width * scale;
-      scaled_clip.bounds.size.height = clip->bounds.size.height * scale;
+      scaled_clip.bounds.origin.x = clip->bounds.origin.x * scale_x;
+      scaled_clip.bounds.origin.y = clip->bounds.origin.y * scale_y;
+      scaled_clip.bounds.size.width = clip->bounds.size.width * scale_x;
+      scaled_clip.bounds.size.height = clip->bounds.size.height * scale_y;
 
       /* Increase corner radius size by scale factor */
       for (i = 0; i < 4; i ++)
         {
-          scaled_clip.corner[i].width = clip->corner[i].width * scale;
-          scaled_clip.corner[i].height = clip->corner[i].height * scale;
+          scaled_clip.corner[i].width = clip->corner[i].width * scale_x;
+          scaled_clip.corner[i].height = clip->corner[i].height * scale_y;
         }
 
       ops_push_clip (builder, &scaled_clip);
@@ -1451,10 +1768,12 @@ blur_texture (GskGLRenderer       *self,
 
   gsk_gl_driver_create_render_target (self->gl_driver,
                                       texture_to_blur_width, texture_to_blur_height,
+                                      GL_NEAREST, GL_NEAREST,
                                       &pass1_texture_id, &pass1_render_target);
 
   gsk_gl_driver_create_render_target (self->gl_driver,
                                       texture_to_blur_width, texture_to_blur_height,
+                                      GL_NEAREST, GL_NEAREST,
                                       &pass2_texture_id, &pass2_render_target);
 
   graphene_matrix_init_ortho (&item_proj,
@@ -1591,6 +1910,7 @@ render_blur_node (GskGLRenderer   *self,
   const float blur_radius = gsk_blur_node_get_radius (node);
   GskRenderNode *child = gsk_blur_node_get_child (node);
   TextureRegion blurred_region;
+  GskTextureKey key;
 
   if (node_is_invisible (child))
     return;
@@ -1601,7 +1921,10 @@ render_blur_node (GskGLRenderer   *self,
       return;
     }
 
-  blurred_region.texture_id = gsk_gl_driver_get_texture_for_pointer (self->gl_driver, node);
+  key.pointer = node;
+  key.scale = ops_get_scale (builder);
+  key.filter = GL_NEAREST;
+  blurred_region.texture_id = gsk_gl_driver_get_texture_for_key (self->gl_driver, &key);
   if (blurred_region.texture_id == 0)
     blur_node (self, child, builder, blur_radius, 0, &blurred_region, NULL);
 
@@ -1613,7 +1936,7 @@ render_blur_node (GskGLRenderer   *self,
   load_offscreen_vertex_data (ops_draw (builder, NULL), node, builder); /* Render result to screen */
 
   /* Add to cache for the blur node */
-  gsk_gl_driver_set_texture_for_pointer (self->gl_driver, node, blurred_region.texture_id);
+  gsk_gl_driver_set_texture_for_key (self->gl_driver, &key, blurred_region.texture_id);
 }
 
 static inline void
@@ -1651,13 +1974,17 @@ render_inset_shadow_node (GskGLRenderer   *self,
   float texture_width;
   float texture_height;
   int blurred_texture_id;
+  GskTextureKey key;
 
   g_assert (blur_radius > 0);
 
   texture_width = ceilf ((node_outline->bounds.size.width + blur_extra) * scale);
   texture_height = ceilf ((node_outline->bounds.size.height + blur_extra) * scale);
 
-  blurred_texture_id = gsk_gl_driver_get_texture_for_pointer (self->gl_driver, node);
+  key.pointer = node;
+  key.scale = scale;
+  key.filter = GL_NEAREST;
+  blurred_texture_id = gsk_gl_driver_get_texture_for_key (self->gl_driver, &key);
   if (blurred_texture_id == 0)
     {
       const float spread = gsk_inset_shadow_node_get_spread (node) + (blur_extra / 2.0);
@@ -1696,6 +2023,7 @@ render_inset_shadow_node (GskGLRenderer   *self,
 
       gsk_gl_driver_create_render_target (self->gl_driver,
                                           texture_width, texture_height,
+                                          GL_NEAREST, GL_NEAREST,
                                           &texture_id, &render_target);
 
       graphene_matrix_init_ortho (&item_proj,
@@ -1752,7 +2080,7 @@ render_inset_shadow_node (GskGLRenderer   *self,
     const float ty1 = blur_extra / 2.0 * scale / texture_height;
     const float ty2 = 1.0 - ty1;
 
-    gsk_gl_driver_set_texture_for_pointer (self->gl_driver, node, blurred_texture_id);
+    gsk_gl_driver_set_texture_for_key (self->gl_driver, &key, blurred_texture_id);
 
     if (needs_clip)
       {
@@ -1869,7 +2197,9 @@ render_outset_shadow_node (GskGLRenderer   *self,
       graphene_rect_t prev_viewport;
       graphene_matrix_t item_proj;
 
-      gsk_gl_driver_create_render_target (self->gl_driver, texture_width, texture_height,
+      gsk_gl_driver_create_render_target (self->gl_driver,
+                                          texture_width, texture_height,
+                                          GL_NEAREST, GL_NEAREST,
                                           &texture_id, &render_target);
       if (gdk_gl_context_has_debug (self->gl_context))
         {
@@ -2583,6 +2913,17 @@ apply_source_texture_op (const Program   *program,
 }
 
 static inline void
+apply_source_extra_texture_op (const Program        *program,
+                               const OpExtraTexture *op)
+{
+  g_assert(op->texture_id != 0);
+  OP_PRINT (" -> New extra texture %d: %d", op->idx, op->texture_id);
+  glUniform1i (program->glshader.texture_locations[op->idx], op->idx);
+  glActiveTexture (GL_TEXTURE0 + op->idx);
+  glBindTexture (GL_TEXTURE_2D, op->texture_id);
+}
+
+static inline void
 apply_color_matrix_op (const Program       *program,
                        const OpColorMatrix *op)
 {
@@ -2699,12 +3040,76 @@ apply_linear_gradient_op (const Program          *program,
 }
 
 static inline void
+apply_radial_gradient_op (const Program          *program,
+                          const OpRadialGradient *op)
+{
+  OP_PRINT (" -> Radial gradient");
+  if (op->n_color_stops.send)
+    glUniform1i (program->radial_gradient.num_color_stops_location, op->n_color_stops.value);
+
+  if (op->color_stops.send)
+    glUniform1fv (program->radial_gradient.color_stops_location,
+                  op->n_color_stops.value * 5,
+                  (float *)op->color_stops.value);
+
+  glUniform1f (program->radial_gradient.start_location, op->start);
+  glUniform1f (program->radial_gradient.end_location, op->end);
+  glUniform2f (program->radial_gradient.radius_location, op->radius[0], op->radius[1]);
+  glUniform2f (program->radial_gradient.center_location, op->center[0], op->center[1]);
+}
+
+static inline void
 apply_border_op (const Program  *program,
                  const OpBorder *op)
 {
   OP_PRINT (" -> Border Outline");
 
   glUniform4fv (program->border.outline_rect_location, 3, (float *)&op->outline.bounds);
+}
+
+static inline void
+apply_gl_shader_args_op (const Program  *program,
+                         const OpGLShader *op)
+{
+  int n_uniforms, i;
+  const GskGLUniform *uniforms;
+
+  OP_PRINT (" -> GL Shader Args");
+
+  glUniform2fv (program->glshader.size_location, 1, op->size);
+
+  uniforms = gsk_gl_shader_get_uniforms (op->shader, &n_uniforms);
+  for (i = 0; i < n_uniforms; i++)
+    {
+      const GskGLUniform *u = &uniforms[i];
+      const guchar *data = op->uniform_data + u->offset;
+
+      switch (u->type)
+        {
+        default:
+        case GSK_GL_UNIFORM_TYPE_NONE:
+          break;
+        case GSK_GL_UNIFORM_TYPE_FLOAT:
+          glUniform1fv (program->glshader.args_locations[i], 1, (const float *)data);
+          break;
+        case GSK_GL_UNIFORM_TYPE_INT:
+          glUniform1iv (program->glshader.args_locations[i], 1, (const gint32 *)data);
+          break;
+        case GSK_GL_UNIFORM_TYPE_UINT:
+        case GSK_GL_UNIFORM_TYPE_BOOL:
+          glUniform1uiv (program->glshader.args_locations[i], 1, (const guint32 *) data);
+          break;
+        case GSK_GL_UNIFORM_TYPE_VEC2:
+          glUniform2fv (program->glshader.args_locations[i], 1, (const float *)data);
+          break;
+        case GSK_GL_UNIFORM_TYPE_VEC3:
+          glUniform3fv (program->glshader.args_locations[i], 1, (const float *)data);
+          break;
+        case GSK_GL_UNIFORM_TYPE_VEC4:
+          glUniform4fv (program->glshader.args_locations[i], 1, (const float *)data);
+          break;
+        }
+    }
 }
 
 static inline void
@@ -2778,6 +3183,32 @@ gsk_gl_renderer_dispose (GObject *gobject)
   G_OBJECT_CLASS (gsk_gl_renderer_parent_class)->dispose (gobject);
 }
 
+static void
+program_init (Program *program)
+{
+  program->index = -1;
+  program->state.opacity = 1.0f;
+}
+
+static void
+program_finalize (Program *program)
+{
+  if (program->id > 0)
+    glDeleteProgram (program->id);
+  if (program->index == -1 &&
+      program->glshader.compile_error != NULL)
+    g_error_free (program->glshader.compile_error);
+
+  gsk_transform_unref (program->state.modelview);
+}
+
+static void
+program_free (Program *program)
+{
+  program_finalize (program);
+  g_free (program);
+}
+
 static GskGLRendererPrograms *
 gsk_gl_renderer_programs_new (void)
 {
@@ -2787,9 +3218,11 @@ gsk_gl_renderer_programs_new (void)
   programs = g_new0 (GskGLRendererPrograms, 1);
   programs->ref_count = 1;
   for (i = 0; i < GL_N_PROGRAMS; i ++)
-    {
-      programs->state[i].opacity = 1.0f;
-    }
+    program_init (&programs->programs[i]);
+
+  /* We use direct hash for performance, not string hash on the source, because we assume each caller
+   * reuses a single GskGLShader for all uses and different callers will use different source content. */
+  programs->custom_programs = g_hash_table_new_full (g_direct_hash, g_direct_equal, (GDestroyNotify)g_object_unref, (GDestroyNotify)program_free);
 
   return programs;
 }
@@ -2810,13 +3243,31 @@ gsk_gl_renderer_programs_unref (GskGLRendererPrograms *programs)
   if (programs->ref_count == 0)
     {
       for (i = 0; i < GL_N_PROGRAMS; i ++)
-        {
-          if (programs->programs[i].id > 0)
-            glDeleteProgram (programs->programs[i].id);
-          gsk_transform_unref (programs->state[i].modelview);
-        }
+        program_finalize (&programs->programs[i]);
+
+      g_hash_table_destroy (programs->custom_programs);
       g_free (programs);
     }
+}
+
+static Program *
+gsk_gl_renderer_lookup_custom_program (GskGLRenderer  *self,
+                                       GskGLShader *shader)
+{
+  return g_hash_table_lookup (self->programs->custom_programs, shader);
+}
+
+static Program *
+gsk_gl_renderer_create_custom_program (GskGLRenderer  *self,
+                                       GskGLShader *shader)
+{
+  Program *program = g_new0 (Program, 1);
+
+  program_init (program);
+
+  g_hash_table_insert (self->programs->custom_programs, g_object_ref (shader), program);
+
+  return program;
 }
 
 static GskGLRendererPrograms *
@@ -2840,6 +3291,7 @@ gsk_gl_renderer_create_programs (GskGLRenderer  *self,
     { "/org/gtk/libgsk/glsl/cross_fade.glsl",                "cross fade" },
     { "/org/gtk/libgsk/glsl/inset_shadow.glsl",              "inset shadow" },
     { "/org/gtk/libgsk/glsl/linear_gradient.glsl",           "linear gradient" },
+    { "/org/gtk/libgsk/glsl/radial_gradient.glsl",           "radial gradient" },
     { "/org/gtk/libgsk/glsl/outset_shadow.glsl",             "outset shadow" },
     { "/org/gtk/libgsk/glsl/repeat.glsl",                    "repeat" },
     { "/org/gtk/libgsk/glsl/unblurred_outset_shadow.glsl",   "unblurred_outset shadow" },
@@ -2852,35 +3304,7 @@ gsk_gl_renderer_create_programs (GskGLRenderer  *self,
 
   g_assert (G_N_ELEMENTS (program_definitions) == GL_N_PROGRAMS);
 
-#ifdef G_ENABLE_DEBUG
-  if (GSK_RENDERER_DEBUG_CHECK (GSK_RENDERER (self), SHADERS))
-    shader_builder.debugging = TRUE;
-#endif
-
-  if (gdk_gl_context_get_use_es (self->gl_context))
-    {
-
-      gsk_gl_shader_builder_set_glsl_version (&shader_builder, SHADER_VERSION_GLES);
-      shader_builder.gles = TRUE;
-    }
-  else if (gdk_gl_context_is_legacy (self->gl_context))
-    {
-      int maj, min;
-
-      gdk_gl_context_get_version (self->gl_context, &maj, &min);
-
-      if (maj == 3)
-        gsk_gl_shader_builder_set_glsl_version (&shader_builder, SHADER_VERSION_GL3_LEGACY);
-      else
-        gsk_gl_shader_builder_set_glsl_version (&shader_builder, SHADER_VERSION_GL2_LEGACY);
-
-      shader_builder.legacy = TRUE;
-    }
-  else
-    {
-      gsk_gl_shader_builder_set_glsl_version (&shader_builder, SHADER_VERSION_GL3);
-      shader_builder.gl3 = TRUE;
-    }
+  init_shader_builder (self, &shader_builder);
 
   programs = gsk_gl_renderer_programs_new ();
 
@@ -2891,7 +3315,7 @@ gsk_gl_renderer_create_programs (GskGLRenderer  *self,
       prog->index = i;
       prog->id = gsk_gl_shader_builder_create_program (&shader_builder,
                                                        program_definitions[i].resource_path,
-                                                       error);
+                                                       NULL, 0, error);
       if (prog->id < 0)
         {
           g_clear_pointer (&programs, gsk_gl_renderer_programs_unref);
@@ -2920,6 +3344,14 @@ gsk_gl_renderer_create_programs (GskGLRenderer  *self,
   INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, num_color_stops);
   INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, start_point);
   INIT_PROGRAM_UNIFORM_LOCATION (linear_gradient, end_point);
+
+  /* radial gradient */
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, color_stops);
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, num_color_stops);
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, center);
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, start);
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, end);
+  INIT_PROGRAM_UNIFORM_LOCATION (radial_gradient, radius);
 
   /* blur */
   INIT_PROGRAM_UNIFORM_LOCATION (blur, blur_radius);
@@ -2971,6 +3403,10 @@ gsk_gl_renderer_create_programs (GskGLRenderer  *self,
 
 out:
   gsk_gl_shader_builder_finish (&shader_builder);
+
+  if (error && !(*error) && !programs)
+    g_set_error (error, GDK_GL_ERROR, GDK_GL_ERROR_COMPILATION_FAILED,
+                 "Failed to compile all shader programs"); /* Probably, eh. */
 
   return programs;
 }
@@ -3265,6 +3701,10 @@ gsk_gl_renderer_add_render_ops (GskGLRenderer   *self,
       render_linear_gradient_node (self, node, builder);
     break;
 
+    case GSK_RADIAL_GRADIENT_NODE:
+      render_radial_gradient_node (self, node, builder);
+    break;
+
     case GSK_CLIP_NODE:
       render_clip_node (self, node, builder);
     break;
@@ -3320,7 +3760,12 @@ gsk_gl_renderer_add_render_ops (GskGLRenderer   *self,
       render_repeat_node (self, node, builder);
     break;
 
+    case GSK_GL_SHADER_NODE:
+      render_gl_shader_node (self, node, builder);
+    break;
+
     case GSK_REPEATING_LINEAR_GRADIENT_NODE:
+    case GSK_REPEATING_RADIAL_GRADIENT_NODE:
     case GSK_CAIRO_NODE:
     default:
       {
@@ -3349,6 +3794,9 @@ add_offscreen_ops (GskGLRenderer         *self,
   float prev_opacity = 1.0;
   int texture_id = 0;
   int max_texture_size;
+  int filter;
+  GskTextureKey key;
+  int cached_id;
 
   if (node_is_invisible (child_node))
     {
@@ -3370,18 +3818,24 @@ add_offscreen_ops (GskGLRenderer         *self,
       return TRUE;
     }
 
-  /* Check if we've already cached the drawn texture. */
-  {
-    const int cached_id = gsk_gl_driver_get_texture_for_pointer (self->gl_driver, child_node);
+  if (flags & LINEAR_FILTER)
+    filter = GL_LINEAR;
+  else
+    filter = GL_NEAREST;
 
-    if (cached_id != 0)
-      {
-        init_full_texture_region (texture_region_out, cached_id);
-        /* We didn't render it offscreen, but hand out an offscreen texture id */
-        *is_offscreen = TRUE;
-        return TRUE;
-      }
-  }
+  /* Check if we've already cached the drawn texture. */
+  key.pointer = child_node;
+  key.scale = ops_get_scale (builder);
+  key.filter = filter;
+  cached_id = gsk_gl_driver_get_texture_for_key (self->gl_driver, &key);
+
+  if (cached_id != 0)
+    {
+      init_full_texture_region (texture_region_out, cached_id);
+      /* We didn't render it offscreen, but hand out an offscreen texture id */
+      *is_offscreen = TRUE;
+      return TRUE;
+    }
 
   scale = ops_get_scale (builder);
   width = bounds->size.width;
@@ -3401,7 +3855,10 @@ add_offscreen_ops (GskGLRenderer         *self,
   width  = ceilf (width * scale);
   height = ceilf (height * scale);
 
-  gsk_gl_driver_create_render_target (self->gl_driver, width, height, &texture_id, &render_target);
+  gsk_gl_driver_create_render_target (self->gl_driver,
+                                      width, height,
+                                      filter, filter,
+                                      &texture_id, &render_target);
   if (gdk_gl_context_has_debug (self->gl_context))
     {
       gdk_gl_context_label_object_printf (self->gl_context, GL_TEXTURE, texture_id,
@@ -3476,7 +3933,7 @@ add_offscreen_ops (GskGLRenderer         *self,
   init_full_texture_region (texture_region_out, texture_id);
 
   if ((flags & NO_CACHE_PLZ) == 0)
-    gsk_gl_driver_set_texture_for_pointer (self->gl_driver, child_node, texture_id);
+    gsk_gl_driver_set_texture_for_key (self->gl_driver, &key, texture_id);
 
   return TRUE;
 }
@@ -3589,6 +4046,10 @@ gsk_gl_renderer_render_ops (GskGLRenderer *self)
           apply_source_texture_op (program, ptr);
           break;
 
+        case OP_CHANGE_EXTRA_SOURCE_TEXTURE:
+          apply_source_extra_texture_op (program, ptr);
+          break;
+
         case OP_CHANGE_CROSS_FADE:
           g_assert (program == &self->programs->cross_fade_program);
           apply_cross_fade_op (program, ptr);
@@ -3601,6 +4062,10 @@ gsk_gl_renderer_render_ops (GskGLRenderer *self)
 
         case OP_CHANGE_LINEAR_GRADIENT:
           apply_linear_gradient_op (program, ptr);
+          break;
+
+        case OP_CHANGE_RADIAL_GRADIENT:
+          apply_radial_gradient_op (program, ptr);
           break;
 
         case OP_CHANGE_BLUR:
@@ -3629,6 +4094,10 @@ gsk_gl_renderer_render_ops (GskGLRenderer *self)
 
         case OP_CHANGE_REPEAT:
           apply_repeat_op (program, ptr);
+          break;
+
+        case OP_CHANGE_GL_SHADER_ARGS:
+          apply_gl_shader_args_op (program, ptr);
           break;
 
         case OP_DRAW:

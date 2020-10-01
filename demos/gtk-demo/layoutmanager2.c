@@ -1,4 +1,5 @@
 /* Layout Manager/Transformation
+ * #Keywords: GtkLayoutManager, GskTransform
  *
  * This demo shows how to use transforms in a nontrivial
  * way with a custom layout manager. The layout manager places
@@ -115,7 +116,7 @@ do_layoutmanager2 (GtkWidget *parent)
         "media-playback-pause-symbolic",
         "media-playback-start-symbolic",
         "media-playback-stop-symbolic",
-        "media-record-symbolic"
+        "media-record-symbolic",
         "media-seek-backward-symbolic",
         "media-seek-forward-symbolic",
         "media-skip-backward-symbolic",
