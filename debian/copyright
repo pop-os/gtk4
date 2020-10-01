@@ -395,7 +395,7 @@ Copyright:
  2005 Арангел Ангов
  2017-2019 Руслан Ижбулатов (LRN)
  2000 辛立仁
-License: LGPL-2+ and LGPL-2.1+ and sun-permissive and lcs-telegraphics-permissive and X11R5-permissive and Expat and BSD-3-clause-Google and Apache-2.0
+License: LGPL-2+ and LGPL-2.1+ and sun-permissive and lcs-telegraphics-permissive and X11R5-permissive and Expat and BSD-3-clause-Google and Apache-2.0 and CC0-1.0
 
 Files: gtk-doc-for-gtk4/*
 Copyright:
@@ -566,6 +566,10 @@ License: BSD-3-clause-Google
  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+License: CC0-1.0
+ On Debian systems, a copy of the Creative Commons Zero license, version 1.0
+ can be found in /usr/share/common-licenses/CC0-1.0.
 
 License: Expat
  Permission is hereby granted, free of charge, to any person obtaining a copy

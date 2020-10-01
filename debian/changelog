@@ -9,6 +9,7 @@ gtk+4.0 (3.99.2-1) UNRELEASED; urgency=medium
       d/p/Require-gtk-doc-1.33.patch:
       Add patches from upstream to build with system gtk-doc again
   * d/control.in: Update dependencies
+  * d/copyright: Mention CC0-1.0
   * Drop other patches, applied upstream
   * d/rules: Update Meson build options
   * Stop installing NodeEditor icons.
