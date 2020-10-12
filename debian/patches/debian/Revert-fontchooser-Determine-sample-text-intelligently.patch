@@ -1,0 +1,211 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Mon, 12 Oct 2020 10:50:18 +0100
+Subject: Revert "fontchooser: Determine sample text intelligently"
+
+Debian doesn't have the Pango 1.47 development branch yet.
+
+This reverts commit 69d5dc7c9a3f704ba9d423035864382fea390d67.
+
+Forwarded: not-needed
+---
+ gtk/gtkfontchooserwidget.c | 137 +--------------------------------------------
+ meson.build                |   2 +-
+ 2 files changed, 2 insertions(+), 137 deletions(-)
+
+diff --git a/gtk/gtkfontchooserwidget.c b/gtk/gtkfontchooserwidget.c
+index 254752f..293e64e 100644
+--- a/gtk/gtkfontchooserwidget.c
++++ b/gtk/gtkfontchooserwidget.c
+@@ -65,9 +65,6 @@
+ #include "gtkstringsorter.h"
+ 
+ #include <hb-ot.h>
+-#if defined(HAVE_PANGOFT) && defined(HAVE_HARFBUZZ)
+-#include <pango/pangofc-font.h>
+-#endif
+ 
+ #include "language-names.h"
+ #include "script-names.h"
+@@ -119,7 +116,6 @@ struct _GtkFontChooserWidget
+   GtkWidget       *font_name_label;
+   char            *preview_text;
+   gboolean         show_preview_entry;
+-  gboolean         preview_text_set;
+ 
+   GtkWidget *size_label;
+   GtkWidget *size_spin;
+@@ -232,7 +228,6 @@ gtk_font_chooser_widget_set_property (GObject         *object,
+       break;
+     case GTK_FONT_CHOOSER_PROP_PREVIEW_TEXT:
+       gtk_font_chooser_widget_set_preview_text (fontchooser, g_value_get_string (value));
+-      fontchooser->preview_text_set = TRUE;
+       break;
+     case GTK_FONT_CHOOSER_PROP_SHOW_PREVIEW_ENTRY:
+       gtk_font_chooser_widget_set_show_preview_entry (fontchooser, g_value_get_boolean (value));
+@@ -545,130 +540,6 @@ resize_by_scroll_cb (GtkEventControllerScroll *controller,
+                             gtk_adjustment_get_step_increment (adj) * dx);
+ }
+ 
+-static void
+-maybe_update_preview_text (GtkFontChooserWidget *self,
+-                           PangoFontFace        *face,
+-                           PangoFontDescription *desc)
+-{
+-#if defined(HAVE_PANGOFT) && defined(HAVE_HARFBUZZ)
+-  PangoContext *context;
+-  PangoFont *font;
+-  const char *sample;
+-
+-  /* If the user has typed text into the entry, we don't touch it */
+-  if (self->preview_text_set)
+-    return;
+-
+-  if (self->filter_by_language && self->filter_language)
+-    {
+-      sample = pango_language_get_sample_string (self->filter_language);
+-      gtk_font_chooser_widget_set_preview_text (self, sample);
+-      return;
+-    }
+-
+-  /* We do the work only once, and cache the result on the PangoFontFace */
+-  sample = (const char *)g_object_get_data (G_OBJECT (face), "gtk-sample-text");
+-  if (sample)
+-    {
+-      gtk_font_chooser_widget_set_preview_text (self, sample);
+-      return;
+-    }
+-
+-  context = gtk_widget_get_pango_context (GTK_WIDGET (self));
+-  font = pango_context_load_font (context, desc);
+-
+-  if (PANGO_IS_FC_FONT (font))
+-    {
+-      PangoLanguage **languages;
+-      GHashTable *langs = NULL;
+-      PangoLanguage *default_lang;
+-      PangoLanguage *alt_default = NULL;
+-      PangoLanguage *lang = NULL;
+-      int i;
+-      const char *p;
+-
+-      default_lang = pango_language_get_default ();
+-      p = pango_language_to_string (default_lang);
+-
+-      /* The default language tends to be of the form en-us.
+-       * Since fontconfig languages just have the language part,
+-       * and we want to use direct pointer comparisons, we need
+-       * an PangoLanguage for the shortened default language.
+-       */
+-      if (strchr (p, '-'))
+-        {
+-          char q[10];
+-          for (i = 0; p[i] != '-' && i < 9; i++)
+-            q[i] = p[i];
+-          q[i] = '\0';
+-          alt_default = pango_language_from_string (q);
+-        }
+-
+-      languages = pango_fc_font_get_languages (PANGO_FC_FONT (font));
+-
+-      /* If the font supports the default language, just use it. */
+-      for (i = 0; languages[i]; i++)
+-        {
+-          if (languages[i] == default_lang || languages[i] == alt_default)
+-            {
+-              lang = default_lang;
+-              goto found;
+-            }
+-        }
+-
+-      /* Otherwise, we make a list of representative languages */
+-      langs = g_hash_table_new (NULL, NULL);
+-
+-      for (i = 0; languages[i]; i++)
+-        {
+-          const PangoScript *scripts;
+-          int num, j;
+-
+-          scripts = pango_language_get_scripts (languages[i], &num);
+-          for (j = 0; j < num; j++)
+-            {
+-              lang = pango_script_get_sample_language (scripts[j]);
+-              if (lang)
+-                g_hash_table_add (langs, lang);
+-            }
+-        }
+-
+-      /* ... and compare it to the users default and preferred languages */
+-      if (g_hash_table_contains (langs, default_lang) ||
+-          g_hash_table_contains (langs, alt_default))
+-        {
+-          lang = default_lang;
+-        }
+-      else
+-        {
+-          PangoLanguage **preferred;
+-
+-          preferred = pango_language_get_preferred ();
+-          if (preferred)
+-            {
+-              for (i = 0; preferred[i]; i++)
+-                {
+-                  if (g_hash_table_contains (langs, preferred[i]))
+-                    {
+-                      lang = preferred[i];
+-                      break;
+-                    }
+-                }
+-            }
+-        }
+-      g_hash_table_unref (langs);
+-
+-found:
+-      sample = pango_language_get_sample_string (lang);
+-      gtk_font_chooser_widget_set_preview_text (self, sample);
+-      g_object_set_data (G_OBJECT (face), "gtk-sample-text", (gpointer)sample);
+-    }
+-
+-  g_object_unref (font);
+-#endif
+-}
+-
+-
+ static void
+ selection_changed_cb (GtkSingleSelection   *selection,
+                       GParamSpec           *pspec,
+@@ -689,11 +560,8 @@ selection_changed_cb (GtkSingleSelection   *selection,
+       desc = pango_font_face_describe (face);
+       pango_font_description_set_variations (self->font_desc, NULL);
+       gtk_font_chooser_widget_merge_font_desc (self, desc);
+-      g_simple_action_set_enabled (G_SIMPLE_ACTION (self->tweak_action), TRUE);
+-
+-      maybe_update_preview_text (self, face, desc);
+-
+       pango_font_description_free (desc);
++      g_simple_action_set_enabled (G_SIMPLE_ACTION (self->tweak_action), TRUE);
+     }
+   else
+     {
+@@ -2374,9 +2242,6 @@ static void
+ gtk_font_chooser_widget_set_preview_text (GtkFontChooserWidget *fontchooser,
+                                           const char           *text)
+ {
+-  if (fontchooser->preview_text == text)
+-    return;
+-
+   g_free (fontchooser->preview_text);
+   fontchooser->preview_text = g_strdup (text);
+ 
+diff --git a/meson.build b/meson.build
+index fa39070..b16fafb 100644
+--- a/meson.build
++++ b/meson.build
+@@ -23,7 +23,7 @@ else
+ endif
+ 
+ glib_req           = '>= @0@.@1@.@2@'.format(glib_major_req, glib_minor_req, glib_micro_req)
+-pango_req          = '>= 1.47.0' # keep this in sync with .gitlab-ci/test-msys.sh
++pango_req          = '>= 1.45.5'
+ fribidi_req        = '>= 0.19.7'
+ cairo_req          = '>= 1.14.0'
+ gdk_pixbuf_req     = '>= 2.30.0'

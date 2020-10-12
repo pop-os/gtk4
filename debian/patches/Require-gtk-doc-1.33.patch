@@ -11,10 +11,10 @@ Origin: upstream, 3.99.3, commit:ffb51b6888f9b199f31434cfeca89203130471c7
  1 file changed, 1 insertion(+), 1 deletion(-)
 
 diff --git a/meson.build b/meson.build
-index 019b608..4476488 100644
+index 127671a..fa39070 100644
 --- a/meson.build
 +++ b/meson.build
-@@ -382,7 +382,7 @@ graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
+@@ -383,7 +383,7 @@ graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
                              fallback: ['graphene', 'graphene_dep'])
  iso_codes_dep  = dependency('iso-codes', required: false)
  

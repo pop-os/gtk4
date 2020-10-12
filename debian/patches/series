@@ -1,1 +1,2 @@
 Require-gtk-doc-1.33.patch
+debian/Revert-fontchooser-Determine-sample-text-intelligently.patch
