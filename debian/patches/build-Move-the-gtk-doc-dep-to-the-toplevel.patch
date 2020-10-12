@@ -1,0 +1,52 @@
+From: Matthias Clasen <mclasen@redhat.com>
+Date: Fri, 4 Sep 2020 09:52:37 -0400
+Subject: build: Move the gtk-doc dep to the toplevel
+
+We want to include the gtk-doc subproject in release
+tarballs, using --include-subprojects, but that only
+works if we've actually built the subproject. And
+enabling gtk-doc for dist builds is problematic -
+it tends to break meson dist.
+
+So declare the gtk-doc dependency independent of
+-Dgtk_doc, and use --force-fallback-for for it.
+
+Origin: upstream, 3.99.2, commit:a8eae7afaa8560b8aa949b2de14f4da0027af42b
+---
+ docs/reference/meson.build | 6 ------
+ meson.build                | 5 +++++
+ 2 files changed, 5 insertions(+), 6 deletions(-)
+
+diff --git a/docs/reference/meson.build b/docs/reference/meson.build
+index 905af97..7652501 100644
+--- a/docs/reference/meson.build
++++ b/docs/reference/meson.build
+@@ -3,12 +3,6 @@ if get_option('gtk_doc')
+     error('Building the GTK documentation requires Meson 0.52.0')
+   endif
+ 
+-  # Use gtk-doc as a sub-project from the gtk-doc-for-gtk4 branch
+-  # for the time being
+-  dependency('gtk-doc', version: '>=1.99',
+-    fallback: ['gtk-doc', 'dummy_dep'],
+-    default_options: ['tests=false', 'yelp_manual=false'])
+-
+   glib_prefix = dependency('glib-2.0').get_pkgconfig_variable('prefix')
+   glib_docpath = join_paths(glib_prefix, 'share', 'gtk-doc', 'html')
+ 
+diff --git a/meson.build b/meson.build
+index 5ad8508..019b608 100644
+--- a/meson.build
++++ b/meson.build
+@@ -382,6 +382,11 @@ graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
+                             fallback: ['graphene', 'graphene_dep'])
+ iso_codes_dep  = dependency('iso-codes', required: false)
+ 
++gtk_doc_dep    = dependency('gtk-doc', version: '>=1.99',
++                            fallback: ['gtk-doc', 'dummy_dep'],
++                            default_options: ['tests=false', 'yelp_manual=false'],
++                            required: get_option('gtk_doc'))
++
+ fontconfig_dep = [] # only used in x11 backend
+ 
+ if os_win32
