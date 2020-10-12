@@ -1,4 +1,4 @@
-gtk+4.0 (3.99.1-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.99.2-1) UNRELEASED; urgency=medium
 
   * New upstream release
   * Build with system copy of gtk-doc
