@@ -1192,7 +1192,7 @@ gtk_tree_store_set (GtkTreeStore *tree_store,
 /**
  * gtk_tree_store_remove:
  * @tree_store: A #GtkTreeStore
- * @iter: A valid #GtkTreeIter
+ * @iter: (inout): A valid #GtkTreeIter
  * 
  * Removes @iter from @tree_store.  After being removed, @iter is set to the
  * next valid row at that level, or invalidated if it previously pointed to the
@@ -3389,7 +3389,7 @@ tree_model_end_element (GtkBuildableParseContext  *context,
             {
               g_warning ("Unknown type %s specified in treemodel %s",
                          (const char *)l->data,
-                         gtk_buildable_get_name (GTK_BUILDABLE (data->object)));
+                         gtk_buildable_get_buildable_id (GTK_BUILDABLE (data->object)));
               continue;
             }
           types[i] = type;

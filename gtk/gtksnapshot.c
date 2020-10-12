@@ -92,6 +92,18 @@ struct _GtkSnapshotState {
       graphene_rect_t bounds;
     } clip;
     struct {
+      GskGLShader *shader;
+      GBytes *args;
+      graphene_rect_t bounds;
+      GskRenderNode **nodes;
+      GskRenderNode *internal_nodes[4];
+    } glshader;
+    struct {
+      graphene_rect_t bounds;
+      int node_idx;
+      int n_children;
+    } glshader_texture;
+    struct {
       GskRoundedRect bounds;
     } rounded_clip;
     struct {
@@ -120,6 +132,8 @@ static void gtk_snapshot_state_clear (GtkSnapshotState *state);
 #define GDK_ARRAY_ELEMENT_TYPE GtkSnapshotState
 #define GDK_ARRAY_FREE_FUNC gtk_snapshot_state_clear
 #define GDK_ARRAY_BY_VALUE 1
+#define GDK_ARRAY_PREALLOC 16
+#define GDK_ARRAY_NO_MEMSET 1
 #include "gdk/gdkarrayimpl.c"
 
 /* This is a nasty little hack. We typedef GtkSnapshot to the fake object GdkSnapshot
@@ -228,6 +242,18 @@ gtk_snapshot_get_previous_state (const GtkSnapshot *snapshot)
   g_assert (size > 1);
 
   return gtk_snapshot_states_get (&snapshot->state_stack, size - 2);
+}
+
+/* n == 0 => current, n == 1, previous, etc */
+static GtkSnapshotState *
+gtk_snapshot_get_nth_previous_state (const GtkSnapshot *snapshot,
+                                     int n)
+{
+  gsize size = gtk_snapshot_states_get_size (&snapshot->state_stack);
+
+  g_assert (size > n);
+
+  return gtk_snapshot_states_get (&snapshot->state_stack, size - (1 + n));
 }
 
 static void
@@ -697,9 +723,22 @@ gtk_snapshot_ensure_affine (GtkSnapshot *snapshot,
     {
       gtk_snapshot_autopush_transform (snapshot);
       state = gtk_snapshot_get_current_state (snapshot);
+      gsk_transform_to_affine (state->transform, scale_x, scale_y, dx, dy);
     }
-  
-  gsk_transform_to_affine (state->transform, scale_x, scale_y, dx, dy);
+  else if (gsk_transform_get_category (state->transform) == GSK_TRANSFORM_CATEGORY_2D_AFFINE)
+    {
+      gsk_transform_to_affine (state->transform, scale_x, scale_y, dx, dy);
+      if (*scale_x < 0.0 || *scale_y < 0.0)
+        {
+          gtk_snapshot_autopush_transform (snapshot);
+          state = gtk_snapshot_get_current_state (snapshot);
+          gsk_transform_to_affine (state->transform, scale_x, scale_y, dx, dy);
+        }
+    }
+  else
+    {
+      gsk_transform_to_affine (state->transform, scale_x, scale_y, dx, dy);
+    }
 }
 
 static void
@@ -810,6 +849,149 @@ gtk_snapshot_push_clip (GtkSnapshot           *snapshot,
                                    gtk_snapshot_collect_clip);
 
   gtk_graphene_rect_scale_affine (bounds, scale_x, scale_y, dx, dy, &state->data.clip.bounds);
+}
+
+static GskRenderNode *
+gtk_snapshot_collect_gl_shader (GtkSnapshot      *snapshot,
+                                GtkSnapshotState *state,
+                                GskRenderNode   **collected_nodes,
+                                guint             n_collected_nodes)
+{
+  GskRenderNode *shader_node = NULL;
+  GskRenderNode **nodes;
+  int n_children;
+
+  n_children = gsk_gl_shader_get_n_textures (state->data.glshader.shader);
+  shader_node = NULL;
+
+  if (n_collected_nodes != 0)
+    g_warning ("Unexpected children when poping gl shader.");
+
+  if (state->data.glshader.nodes)
+    nodes = state->data.glshader.nodes;
+  else
+    nodes = &state->data.glshader.internal_nodes[0];
+
+  if (state->data.glshader.bounds.size.width != 0 &&
+      state->data.glshader.bounds.size.height != 0)
+    shader_node = gsk_gl_shader_node_new (state->data.glshader.shader,
+                                          &state->data.glshader.bounds,
+                                          state->data.glshader.args,
+                                          nodes, n_children);
+
+  g_object_unref (state->data.glshader.shader);
+  g_bytes_unref (state->data.glshader.args);
+
+  for (guint i = 0; i  < n_children; i++)
+    gsk_render_node_unref (nodes[i]);
+
+  g_free (state->data.glshader.nodes);
+
+  return shader_node;
+}
+
+static GskRenderNode *
+gtk_snapshot_collect_gl_shader_texture (GtkSnapshot      *snapshot,
+                                        GtkSnapshotState *state,
+                                        GskRenderNode   **nodes,
+                                        guint             n_nodes)
+{
+  GskRenderNode *child_node;
+  GdkRGBA transparent = { 0, 0, 0, 0 };
+  int n_children, node_idx;
+  GtkSnapshotState *glshader_state;
+  GskRenderNode **out_nodes;
+
+  child_node = gtk_snapshot_collect_default (snapshot, state, nodes, n_nodes);
+
+  if (child_node == NULL)
+    child_node = gsk_color_node_new (&transparent, &state->data.glshader_texture.bounds);
+
+  n_children = state->data.glshader_texture.n_children;
+  node_idx = state->data.glshader_texture.node_idx;
+
+  glshader_state = gtk_snapshot_get_nth_previous_state (snapshot, n_children - node_idx);
+  g_assert (glshader_state->collect_func == gtk_snapshot_collect_gl_shader);
+
+  if (glshader_state->data.glshader.nodes)
+    out_nodes = glshader_state->data.glshader.nodes;
+  else
+    out_nodes = &glshader_state->data.glshader.internal_nodes[0];
+
+  out_nodes[node_idx] = child_node;
+
+  return NULL;
+}
+
+/**
+ * gtk_snapshot_push_gl_shader:
+ * @snapshot: a #GtkSnapshot
+ * @shader: The code to run
+ * @bounds: the rectangle to render into
+ * @take_args: (transfer full): Data block with arguments for the shader.
+ *
+ * Push a #GskGLShaderNode with a specific #GskGLShader and a set of uniform values
+ * to use while rendering. Additionally this takes a list of @n_children other nodes
+ * which will be passed to the #GskGLShaderNode.
+ *
+ * The @take_args argument is a block of data to use for uniform
+ * arguments, as per types and offsets defined by the @shader. Normally this is
+ * generated by gsk_gl_shader_format_args() or #GskGLShaderArgBuilder.
+ * The snapshotter takes ownership of @take_args, so the caller should not free it
+ * after this.
+ *
+ * If the renderer doesn't support GL shaders, or if there is any problem when
+ * compiling the shader, then the node will draw pink. You should use
+ * gsk_gl_shader_compile() to ensure the @shader will work for the renderer
+ * before using it.
+ *
+ * If the shader requires textures (see gsk_gl_shader_get_n_textures()), then it is
+ * expected that you call gtk_snapshot_gl_shader_pop_texture() the number of times that are
+ * required. Each of these calls will generate a node that is added as a child to the gl shader
+ * node, which in turn will render these offscreen and pass as a texture to the shader.
+ *
+ * Once all textures (if any) are pop:ed, you must call the regular gtk_snapshot_pop().
+ *
+ * If you want to use pre-existing textures as input to the shader rather than
+ * rendering new ones, use gtk_snapshot_append_texture() to push a texture node. These
+ * will be used directly rather than being re-rendered.
+ *
+ * For details on how to write shaders, see #GskGLShader.
+ */
+void
+gtk_snapshot_push_gl_shader (GtkSnapshot           *snapshot,
+                             GskGLShader           *shader,
+                             const graphene_rect_t *bounds,
+                             GBytes                *take_args)
+{
+  GtkSnapshotState *state;
+  float scale_x, scale_y, dx, dy;
+  graphene_rect_t transformed_bounds;
+  int n_children = gsk_gl_shader_get_n_textures (shader);
+
+  gtk_snapshot_ensure_affine (snapshot, &scale_x, &scale_y, &dx, &dy);
+
+  state = gtk_snapshot_push_state (snapshot,
+                                   gtk_snapshot_get_current_state (snapshot)->transform,
+                                   gtk_snapshot_collect_gl_shader);
+  gtk_graphene_rect_scale_affine (bounds, scale_x, scale_y, dx, dy, &transformed_bounds);
+  state->data.glshader.bounds = transformed_bounds;
+  state->data.glshader.shader = g_object_ref (shader);
+  state->data.glshader.args = take_args; /* Takes ownership */
+  if (n_children <= G_N_ELEMENTS (state->data.glshader.internal_nodes))
+    state->data.glshader.nodes = NULL;
+  else
+    state->data.glshader.nodes = g_new (GskRenderNode *, n_children);
+
+  for (int i = 0; i  < n_children; i++)
+    {
+      state = gtk_snapshot_push_state (snapshot,
+                                       gtk_snapshot_get_current_state (snapshot)->transform,
+                                       gtk_snapshot_collect_gl_shader_texture);
+      state->data.glshader_texture.bounds = transformed_bounds;
+      state->data.glshader_texture.node_idx = n_children - 1 - i;/* We pop in reverse order */
+      state->data.glshader_texture.n_children = n_children;
+    }
 }
 
 static GskRenderNode *
@@ -1312,13 +1494,45 @@ gtk_snapshot_to_paintable (GtkSnapshot           *snapshot,
 void
 gtk_snapshot_pop (GtkSnapshot *snapshot)
 {
+  GtkSnapshotState *state = gtk_snapshot_get_current_state (snapshot);
   GskRenderNode *node;
+
+  if (state->collect_func == gtk_snapshot_collect_gl_shader_texture)
+    g_warning ("Not enough calls to gtk_snapshot_gl_shader_pop_texture().");
 
   node = gtk_snapshot_pop_internal (snapshot);
 
   if (node)
     gtk_snapshot_append_node_internal (snapshot, node);
 }
+
+/**
+ * gtk_snapshot_gl_shader_pop_texture:
+ * @snapshot: a #GtkSnapshot
+ *
+ * Removes the top element from the stack of render nodes and
+ * adds it to the nearest GskGLShaderNode below it. This must be called the
+ * same number of times as the number of textures is needed for the
+ * shader in gtk_snapshot_push_gl_shader().
+ */
+void
+gtk_snapshot_gl_shader_pop_texture (GtkSnapshot *snapshot)
+{
+  GtkSnapshotState *state = gtk_snapshot_get_current_state (snapshot);
+  GskRenderNode *node;
+
+  if (state->collect_func != gtk_snapshot_collect_gl_shader_texture)
+    {
+      g_warning ("Too many calls to gtk_snapshot_gl_shader_pop_texture().");
+      return;
+    }
+
+  g_assert (state->collect_func == gtk_snapshot_collect_gl_shader_texture);
+
+  node = gtk_snapshot_pop_internal (snapshot);
+  g_assert (node == NULL);
+}
+
 
 /**
  * gtk_snapshot_save:
@@ -1961,6 +2175,110 @@ gtk_snapshot_append_repeating_linear_gradient (GtkSnapshot            *snapshot,
   node = gsk_repeating_linear_gradient_node_new (&real_bounds,
                                                  &real_start_point,
                                                  &real_end_point,
+                                                 stops,
+                                                 n_stops);
+
+  gtk_snapshot_append_node_internal (snapshot, node);
+}
+
+/**
+ * gtk_snapshot_append_radial_gradient:
+ * @snapshot: a #GtkSnapshot
+ * @bounds: the rectangle to render the readial gradient into
+ * @center: the center point for the radial gradient
+ * @hradius: the horizontal radius
+ * @vradius: the vertical radius
+ * @start: the start position (on the horizontal axis)
+ * @end: the end position (on the horizontal axis)
+ * @stops: (array length=n_stops): a pointer to an array of #GskColorStop defining the gradient
+ * @n_stops: the number of elements in @stops
+ *
+ * Appends a radial gradient node with the given stops to @snapshot.
+ */
+void
+gtk_snapshot_append_radial_gradient (GtkSnapshot            *snapshot,
+                                     const graphene_rect_t  *bounds,
+                                     const graphene_point_t *center,
+                                     float                   hradius,
+                                     float                   vradius,
+                                     float                   start,
+                                     float                   end,
+                                     const GskColorStop     *stops,
+                                     gsize                   n_stops)
+{
+  GskRenderNode *node;
+  graphene_rect_t real_bounds;
+  graphene_point_t real_center;
+  float scale_x, scale_y, dx, dy;
+
+  g_return_if_fail (snapshot != NULL);
+  g_return_if_fail (center != NULL);
+  g_return_if_fail (stops != NULL);
+  g_return_if_fail (n_stops > 1);
+
+  gtk_snapshot_ensure_affine (snapshot, &scale_x, &scale_y, &dx, &dy);
+  gtk_graphene_rect_scale_affine (bounds, scale_x, scale_y, dx, dy, &real_bounds);
+  real_center.x = scale_x * center->x + dx;
+  real_center.y = scale_y * center->y + dy;
+
+  node = gsk_radial_gradient_node_new (&real_bounds,
+                                       &real_center,
+                                       hradius * scale_x,
+                                       vradius * scale_y,
+                                       start,
+                                       end,
+                                       stops,
+                                       n_stops);
+
+  gtk_snapshot_append_node_internal (snapshot, node);
+}
+
+/**
+ * gtk_snapshot_append_repeating_radial_gradient:
+ * @snapshot: a #GtkSnapshot
+ * @bounds: the rectangle to render the readial gradient into
+ * @center: the center point for the radial gradient
+ * @hradius: the horizontal radius
+ * @vradius: the vertical radius
+ * @start: the start position (on the horizontal axis)
+ * @end: the end position (on the horizontal axis)
+ * @stops: (array length=n_stops): a pointer to an array of #GskColorStop defining the gradient
+ * @n_stops: the number of elements in @stops
+ *
+ * Appends a repeating radial gradient node with the given stops to @snapshot.
+ */
+void
+gtk_snapshot_append_repeating_radial_gradient (GtkSnapshot            *snapshot,
+                                               const graphene_rect_t  *bounds,
+                                               const graphene_point_t *center,
+                                               float                   hradius,
+                                               float                   vradius,
+                                               float                   start,
+                                               float                   end,
+                                               const GskColorStop     *stops,
+                                               gsize                   n_stops)
+{
+  GskRenderNode *node;
+  graphene_rect_t real_bounds;
+  graphene_point_t real_center;
+  float scale_x, scale_y, dx, dy;
+
+  g_return_if_fail (snapshot != NULL);
+  g_return_if_fail (center != NULL);
+  g_return_if_fail (stops != NULL);
+  g_return_if_fail (n_stops > 1);
+
+  gtk_snapshot_ensure_affine (snapshot, &scale_x, &scale_y, &dx, &dy);
+  gtk_graphene_rect_scale_affine (bounds, scale_x, scale_y, dx, dy, &real_bounds);
+  real_center.x = scale_x * center->x + dx;
+  real_center.y = scale_y * center->y + dy;
+
+  node = gsk_repeating_radial_gradient_node_new (&real_bounds,
+                                                 &real_center,
+                                                 hradius * scale_x,
+                                                 vradius * scale_y,
+                                                 start,
+                                                 end,
                                                  stops,
                                                  n_stops);
 

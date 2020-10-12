@@ -4080,7 +4080,9 @@ gtk_icon_view_new_with_model (GtkTreeModel *model)
  * @icon_view: A #GtkIconView.
  * @x: The x position to be identified
  * @y: The y position to be identified
- * 
+ *
+ * Gets the path for the icon at the given position.
+ *
  * Returns: (nullable) (transfer full): The #GtkTreePath corresponding
  * to the icon or %NULL if no icon exists at that position.
  **/
@@ -4112,7 +4114,9 @@ gtk_icon_view_get_path_at_pos (GtkIconView *icon_view,
  * @path: (out) (allow-none): Return location for the path, or %NULL
  * @cell: (out) (allow-none) (transfer none): Return location for the renderer
  *   responsible for the cell at (@x, @y), or %NULL
- * 
+ *
+ * Gets the path and cell for the icon at the given position.
+ *
  * Returns: %TRUE if an item exists at the specified position
  **/
 gboolean 
@@ -5662,8 +5666,8 @@ check_model_dnd (GtkTreeModel *model,
                  "g_signal_stop_emission_by_name() in your signal handler to prevent "
                  "the default handler from running. Look at the source code "
                  "for the default handler in gtkiconview.c to get an idea what "
-                 "your handler should do. (gtkiconview.c is in the GTK+ source "
-                 "code.) If you're using GTK+ from a language other than C, "
+                 "your handler should do. (gtkiconview.c is in the GTK source "
+                 "code.) If you're using GTK from a language other than C, "
                  "there may be a more natural way to override default handlers, e.g. via derivation.",
                  signal, g_type_name (required_iface), signal);
       return FALSE;

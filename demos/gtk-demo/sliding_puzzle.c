@@ -1,8 +1,8 @@
 /* Sliding Puzzle
+ * #Keywords: GdkPaintable, GdkGesture, game
  *
  * This demo demonstrates how to use gestures and paintables to create a
  * small sliding puzzle game.
- *
  */
 
 #include <gtk/gtk.h>
@@ -437,7 +437,7 @@ do_sliding_puzzle (GtkWidget *do_widget)
       choices = gtk_flow_box_new ();
       gtk_widget_add_css_class (choices, "view");
       add_choice (choices, puzzle);
-      add_choice (choices, gtk_nuclear_animation_new ());
+      add_choice (choices, gtk_nuclear_animation_new (TRUE));
       media = gtk_media_file_new_for_resource ("/images/gtk-logo.webm");
       gtk_media_stream_set_loop (media, TRUE);
       gtk_media_stream_set_muted (media, TRUE);

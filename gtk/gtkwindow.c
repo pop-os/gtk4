@@ -191,7 +191,7 @@ typedef struct
   GdkMonitor *initial_fullscreen_monitor;
   guint      edge_constraints;
 
-  GdkSurfaceState state;
+  GdkToplevelState state;
 
   /* The following flags are initially TRUE (before a window is mapped).
    * They cause us to compute a configure request that involves
@@ -786,7 +786,7 @@ gtk_window_class_init (GtkWindowClass *klass)
    *
    * Whether mnemonics are currently visible in this window.
    *
-   * This property is maintained by GTK+ based on user input,
+   * This property is maintained by GTK based on user input,
    * and should not be set by applications.
    */
   window_props[PROP_MNEMONICS_VISIBLE] =
@@ -801,7 +801,7 @@ gtk_window_class_init (GtkWindowClass *klass)
    *
    * Whether 'focus rectangles' are currently visible in this window.
    *
-   * This property is maintained by GTK+ based on user input
+   * This property is maintained by GTK based on user input
    * and should not be set by applications.
    */
   window_props[PROP_FOCUS_VISIBLE] =
@@ -1164,21 +1164,21 @@ constraints_for_edge (GdkSurfaceEdge edge)
   switch (edge)
     {
     case GDK_SURFACE_EDGE_NORTH_WEST:
-      return GDK_SURFACE_STATE_LEFT_RESIZABLE | GDK_SURFACE_STATE_TOP_RESIZABLE;
+      return GDK_TOPLEVEL_STATE_LEFT_RESIZABLE | GDK_TOPLEVEL_STATE_TOP_RESIZABLE;
     case GDK_SURFACE_EDGE_NORTH:
-      return GDK_SURFACE_STATE_TOP_RESIZABLE;
+      return GDK_TOPLEVEL_STATE_TOP_RESIZABLE;
     case GDK_SURFACE_EDGE_NORTH_EAST:
-      return GDK_SURFACE_STATE_RIGHT_RESIZABLE | GDK_SURFACE_STATE_TOP_RESIZABLE;
+      return GDK_TOPLEVEL_STATE_RIGHT_RESIZABLE | GDK_TOPLEVEL_STATE_TOP_RESIZABLE;
     case GDK_SURFACE_EDGE_WEST:
-      return GDK_SURFACE_STATE_LEFT_RESIZABLE;
+      return GDK_TOPLEVEL_STATE_LEFT_RESIZABLE;
     case GDK_SURFACE_EDGE_EAST:
-      return GDK_SURFACE_STATE_RIGHT_RESIZABLE;
+      return GDK_TOPLEVEL_STATE_RIGHT_RESIZABLE;
     case GDK_SURFACE_EDGE_SOUTH_WEST:
-      return GDK_SURFACE_STATE_LEFT_RESIZABLE | GDK_SURFACE_STATE_BOTTOM_RESIZABLE;
+      return GDK_TOPLEVEL_STATE_LEFT_RESIZABLE | GDK_TOPLEVEL_STATE_BOTTOM_RESIZABLE;
     case GDK_SURFACE_EDGE_SOUTH:
-      return GDK_SURFACE_STATE_BOTTOM_RESIZABLE;
+      return GDK_TOPLEVEL_STATE_BOTTOM_RESIZABLE;
     case GDK_SURFACE_EDGE_SOUTH_EAST:
-      return GDK_SURFACE_STATE_RIGHT_RESIZABLE | GDK_SURFACE_STATE_BOTTOM_RESIZABLE;
+      return GDK_TOPLEVEL_STATE_RIGHT_RESIZABLE | GDK_TOPLEVEL_STATE_BOTTOM_RESIZABLE;
     default:
       g_warn_if_reached ();
       return 0;
@@ -1474,7 +1474,7 @@ gtk_window_init (GtkWindow *window)
   priv->decorated = TRUE;
   priv->display = gdk_display_get_default ();
 
-  priv->state = GDK_SURFACE_STATE_WITHDRAWN;
+  priv->state = GDK_TOPLEVEL_STATE_WITHDRAWN;
 
   priv->deletable = TRUE;
   priv->startup_id = NULL;
@@ -1996,7 +1996,7 @@ gtk_window_get_title (GtkWindow *window)
  * function before calling gtk_window_present() or any equivalent
  * function generating a window map event.
  *
- * This function is only useful on X11, not with other GTK+ targets.
+ * This function is only useful on X11, not with other GTK targets.
  **/
 void
 gtk_window_set_startup_id (GtkWindow   *window,
@@ -2411,7 +2411,7 @@ gtk_window_unset_transient_for (GtkWindow *window)
  * [window managers][gtk-X11-arch] to e.g. keep the
  * dialog on top of the main window, or center the dialog over the
  * main window. gtk_dialog_new_with_buttons() and other convenience
- * functions in GTK+ will sometimes call
+ * functions in GTK will sometimes call
  * gtk_window_set_transient_for() on your behalf.
  *
  * Passing %NULL for @parent unsets the current transient window.
@@ -2764,7 +2764,7 @@ gtk_window_enable_csd (GtkWindow *window)
  * A typical widget used here is #GtkHeaderBar, as it provides various features
  * expected of a titlebar while allowing the addition of child widgets to it.
  *
- * If you set a custom titlebar, GTK+ will do its best to convince
+ * If you set a custom titlebar, GTK will do its best to convince
  * the window manager not to put its own titlebar on the window.
  * Depending on the system, this function may not work for a window
  * that is already visible, so you set the titlebar before calling
@@ -2845,9 +2845,9 @@ gtk_window_get_titlebar (GtkWindow *window)
  *
  * By default, windows are decorated with a title bar, resize
  * controls, etc.  Some [window managers][gtk-X11-arch]
- * allow GTK+ to disable these decorations, creating a
+ * allow GTK to disable these decorations, creating a
  * borderless window. If you set the decorated property to %FALSE
- * using this function, GTK+ will do its best to convince the window
+ * using this function, GTK will do its best to convince the window
  * manager not to decorate the window. Depending on the system, this
  * function may not have any effect when called on a window that is
  * already visible, so you should call it before calling gtk_widget_show().
@@ -2905,9 +2905,9 @@ gtk_window_get_decorated (GtkWindow *window)
  * @setting: %TRUE to decorate the window as deletable
  *
  * By default, windows have a close button in the window frame. Some 
- * [window managers][gtk-X11-arch] allow GTK+ to 
+ * [window managers][gtk-X11-arch] allow GTK to 
  * disable this button. If you set the deletable property to %FALSE
- * using this function, GTK+ will do its best to convince the window
+ * using this function, GTK will do its best to convince the window
  * manager not to show a close button. Depending on the system, this
  * function may not have any effect when called on a window that is
  * already visible, so you should call it before calling gtk_widget_show().
@@ -3272,7 +3272,7 @@ gtk_window_set_default_icon_name (const char *name)
  *
  * Returns the fallback icon name for windows that has been set
  * with gtk_window_set_default_icon_name(). The returned
- * string is owned by GTK+ and should not be modified. It
+ * string is owned by GTK and should not be modified. It
  * is only valid until the next call to
  * gtk_window_set_default_icon_name().
  *
@@ -3476,7 +3476,7 @@ gtk_window_get_default_size (GtkWindow *window,
  *
  * Windows may not be resized smaller than 1 by 1 pixels.
  * 
- * When using client side decorations, GTK+ will do its best to adjust
+ * When using client side decorations, GTK will do its best to adjust
  * the given size so that the resulting window size matches the
  * requested size without the title bar, borders and shadows added for
  * the client side decorations, but there is no guarantee that the
@@ -3521,7 +3521,7 @@ gtk_window_resize (GtkWindow *window,
  *
  * Obtains the current size of @window.
  *
- * If @window is not visible on screen, this function return the size GTK+
+ * If @window is not visible on screen, this function return the size GTK
  * will suggest to the [window manager][gtk-X11-arch] for the initial window
  * size (but this is not reliably the same as the size the window manager
  * will actually select). See: gtk_window_set_default_size().
@@ -3529,7 +3529,7 @@ gtk_window_resize (GtkWindow *window,
  * Depending on the windowing system and the window manager constraints,
  * the size returned by this function may not match the size set using
  * gtk_window_resize(); additionally, since gtk_window_resize() may be
- * implemented as an asynchronous operation, GTK+ cannot guarantee in any
+ * implemented as an asynchronous operation, GTK cannot guarantee in any
  * way that this code:
  *
  * |[<!-- language="C" -->
@@ -3905,7 +3905,7 @@ gtk_window_unmap (GtkWidget *widget)
   GtkWindow *window = GTK_WINDOW (widget);
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
   GtkWidget *child = priv->child;
-  GdkSurfaceState state;
+  GdkToplevelState state;
 
   GTK_WIDGET_CLASS (gtk_window_parent_class)->unmap (widget);
   gdk_surface_hide (priv->surface);
@@ -3918,8 +3918,8 @@ gtk_window_unmap (GtkWidget *widget)
   priv->configure_notify_received = FALSE;
 
   state = gdk_toplevel_get_state (GDK_TOPLEVEL (priv->surface));
-  priv->minimize_initially = (state & GDK_SURFACE_STATE_MINIMIZED) != 0;
-  priv->maximize_initially = (state & GDK_SURFACE_STATE_MAXIMIZED) != 0;
+  priv->minimize_initially = (state & GDK_TOPLEVEL_STATE_MINIMIZED) != 0;
+  priv->maximize_initially = (state & GDK_TOPLEVEL_STATE_MAXIMIZED) != 0;
 
   if (priv->title_box != NULL)
     gtk_widget_unmap (priv->title_box);
@@ -4387,6 +4387,9 @@ gtk_window_realize (GtkWidget *widget)
   priv->surface = surface;
   gdk_surface_set_widget (surface, widget);
 
+  if (priv->renderer == NULL)
+    priv->renderer = gsk_renderer_new_for_surface (surface);
+
   g_signal_connect_swapped (surface, "notify::state", G_CALLBACK (surface_state_changed), widget);
   g_signal_connect_swapped (surface, "size-changed", G_CALLBACK (surface_size_changed), widget);
   g_signal_connect (surface, "render", G_CALLBACK (surface_render), widget);
@@ -4396,9 +4399,6 @@ gtk_window_realize (GtkWidget *widget)
   GTK_WIDGET_CLASS (gtk_window_parent_class)->realize (widget);
 
   gtk_root_start_layout (GTK_ROOT (window));
-
-  if (priv->renderer == NULL)
-    priv->renderer = gsk_renderer_new_for_surface (surface);
 
   if (priv->transient_parent &&
       _gtk_widget_get_realized (GTK_WIDGET (priv->transient_parent)))
@@ -4415,7 +4415,7 @@ gtk_window_realize (GtkWidget *widget)
 
 #ifdef GDK_WINDOWING_WAYLAND
   if (priv->client_decorated && GDK_IS_WAYLAND_SURFACE (surface))
-    gdk_wayland_surface_announce_csd (surface);
+    gdk_wayland_toplevel_announce_csd (GDK_TOPLEVEL (surface));
 #endif
 
   gdk_toplevel_set_modal (GDK_TOPLEVEL (surface), priv->modal);
@@ -4528,22 +4528,22 @@ update_window_style_classes (GtkWindow *window)
     }
   else
     {
-      if (edge_constraints & GDK_SURFACE_STATE_TOP_TILED)
+      if (edge_constraints & GDK_TOPLEVEL_STATE_TOP_TILED)
         gtk_widget_add_css_class (widget, "tiled-top");
       else
         gtk_widget_remove_css_class (widget, "tiled-top");
 
-      if (edge_constraints & GDK_SURFACE_STATE_RIGHT_TILED)
+      if (edge_constraints & GDK_TOPLEVEL_STATE_RIGHT_TILED)
         gtk_widget_add_css_class (widget, "tiled-right");
       else
         gtk_widget_remove_css_class (widget, "tiled-right");
 
-      if (edge_constraints & GDK_SURFACE_STATE_BOTTOM_TILED)
+      if (edge_constraints & GDK_TOPLEVEL_STATE_BOTTOM_TILED)
         gtk_widget_add_css_class (widget, "tiled-bottom");
       else
         gtk_widget_remove_css_class (widget, "tiled-bottom");
 
-      if (edge_constraints & GDK_SURFACE_STATE_LEFT_TILED)
+      if (edge_constraints & GDK_TOPLEVEL_STATE_LEFT_TILED)
         gtk_widget_add_css_class (widget, "tiled-left");
       else
         gtk_widget_remove_css_class (widget, "tiled-left");
@@ -4656,20 +4656,20 @@ gtk_window_size_allocate (GtkWidget *widget,
 
 static void
 update_edge_constraints (GtkWindow      *window,
-                         GdkSurfaceState  state)
+                         GdkToplevelState  state)
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
 
-  priv->edge_constraints = (state & GDK_SURFACE_STATE_TOP_TILED) |
-                           (state & GDK_SURFACE_STATE_TOP_RESIZABLE) |
-                           (state & GDK_SURFACE_STATE_RIGHT_TILED) |
-                           (state & GDK_SURFACE_STATE_RIGHT_RESIZABLE) |
-                           (state & GDK_SURFACE_STATE_BOTTOM_TILED) |
-                           (state & GDK_SURFACE_STATE_BOTTOM_RESIZABLE) |
-                           (state & GDK_SURFACE_STATE_LEFT_TILED) |
-                           (state & GDK_SURFACE_STATE_LEFT_RESIZABLE);
+  priv->edge_constraints = (state & GDK_TOPLEVEL_STATE_TOP_TILED) |
+                           (state & GDK_TOPLEVEL_STATE_TOP_RESIZABLE) |
+                           (state & GDK_TOPLEVEL_STATE_RIGHT_TILED) |
+                           (state & GDK_TOPLEVEL_STATE_RIGHT_RESIZABLE) |
+                           (state & GDK_TOPLEVEL_STATE_BOTTOM_TILED) |
+                           (state & GDK_TOPLEVEL_STATE_BOTTOM_RESIZABLE) |
+                           (state & GDK_TOPLEVEL_STATE_LEFT_TILED) |
+                           (state & GDK_TOPLEVEL_STATE_LEFT_RESIZABLE);
 
-  priv->tiled = (state & GDK_SURFACE_STATE_TILED) ? 1 : 0;
+  priv->tiled = (state & GDK_TOPLEVEL_STATE_TILED) ? 1 : 0;
 }
 
 static void
@@ -4677,16 +4677,16 @@ surface_state_changed (GtkWidget *widget)
 {
   GtkWindow *window = GTK_WINDOW (widget);
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
-  GdkSurfaceState new_surface_state;
-  GdkSurfaceState changed_mask;
+  GdkToplevelState new_surface_state;
+  GdkToplevelState changed_mask;
 
   new_surface_state = gdk_toplevel_get_state (GDK_TOPLEVEL (priv->surface));
   changed_mask = new_surface_state ^ priv->state;
   priv->state = new_surface_state;
 
-  if (changed_mask & GDK_SURFACE_STATE_FOCUSED)
+  if (changed_mask & GDK_TOPLEVEL_STATE_FOCUSED)
     {
-      gboolean focused = new_surface_state & GDK_SURFACE_STATE_FOCUSED;
+      gboolean focused = new_surface_state & GDK_TOPLEVEL_STATE_FOCUSED;
 
       ensure_state_flag_backdrop (widget);
 
@@ -4694,25 +4694,25 @@ surface_state_changed (GtkWidget *widget)
         gtk_window_set_mnemonics_visible (window, FALSE);
     }
 
-  if (changed_mask & GDK_SURFACE_STATE_FULLSCREEN)
-    priv->fullscreen = (new_surface_state & GDK_SURFACE_STATE_FULLSCREEN) ? TRUE : FALSE;
+  if (changed_mask & GDK_TOPLEVEL_STATE_FULLSCREEN)
+    priv->fullscreen = (new_surface_state & GDK_TOPLEVEL_STATE_FULLSCREEN) ? TRUE : FALSE;
 
-  if (changed_mask & GDK_SURFACE_STATE_MAXIMIZED)
+  if (changed_mask & GDK_TOPLEVEL_STATE_MAXIMIZED)
     {
-      priv->maximized = (new_surface_state & GDK_SURFACE_STATE_MAXIMIZED) ? TRUE : FALSE;
+      priv->maximized = (new_surface_state & GDK_TOPLEVEL_STATE_MAXIMIZED) ? TRUE : FALSE;
       g_object_notify_by_pspec (G_OBJECT (widget), window_props[PROP_IS_MAXIMIZED]);
     }
 
   update_edge_constraints (window, new_surface_state);
 
-  if (changed_mask & (GDK_SURFACE_STATE_FULLSCREEN |
-                      GDK_SURFACE_STATE_MAXIMIZED |
-                      GDK_SURFACE_STATE_TILED |
-                      GDK_SURFACE_STATE_TOP_TILED |
-                      GDK_SURFACE_STATE_RIGHT_TILED |
-                      GDK_SURFACE_STATE_BOTTOM_TILED |
-                      GDK_SURFACE_STATE_LEFT_TILED |
-                      GDK_SURFACE_STATE_MINIMIZED))
+  if (changed_mask & (GDK_TOPLEVEL_STATE_FULLSCREEN |
+                      GDK_TOPLEVEL_STATE_MAXIMIZED |
+                      GDK_TOPLEVEL_STATE_TILED |
+                      GDK_TOPLEVEL_STATE_TOP_TILED |
+                      GDK_TOPLEVEL_STATE_RIGHT_TILED |
+                      GDK_TOPLEVEL_STATE_BOTTOM_TILED |
+                      GDK_TOPLEVEL_STATE_LEFT_TILED |
+                      GDK_TOPLEVEL_STATE_MINIMIZED))
     {
       update_window_style_classes (window);
       update_window_actions (window);
@@ -5384,7 +5384,7 @@ gtk_window_move_resize (GtkWindow *window)
    * or gtk_window_move().
    *
    * If the configure request has changed, we send off a new one.  To
-   * ensure GTK+ invariants are maintained (resize queue does what it
+   * ensure GTK invariants are maintained (resize queue does what it
    * should), we go ahead and size_allocate the requested size in this
    * function.
    *
@@ -6563,7 +6563,7 @@ ensure_state_flag_backdrop (GtkWidget *widget)
   GtkWindowPrivate *priv = gtk_window_get_instance_private (GTK_WINDOW (widget));
   gboolean surface_focused = TRUE;
 
-  surface_focused = gdk_toplevel_get_state (GDK_TOPLEVEL (priv->surface)) & GDK_SURFACE_STATE_FOCUSED;
+  surface_focused = gdk_toplevel_get_state (GDK_TOPLEVEL (priv->surface)) & GDK_TOPLEVEL_STATE_FOCUSED;
 
   if (!surface_focused)
     gtk_widget_set_state_flags (widget, GTK_STATE_FLAG_BACKDROP, FALSE);
@@ -6749,9 +6749,9 @@ typedef struct {
 } WaylandSurfaceHandleExportedData;
 
 static void
-wayland_surface_handle_exported (GdkSurface  *window,
-				 const char *wayland_handle_str,
-				 gpointer    user_data)
+wayland_surface_handle_exported (GdkToplevel *toplevel,
+				 const char  *wayland_handle_str,
+				 gpointer     user_data)
 {
   WaylandSurfaceHandleExportedData *data = user_data;
   char *handle_str;
@@ -6792,10 +6792,10 @@ gtk_window_export_handle (GtkWindow               *window,
       data->callback = callback;
       data->user_data = user_data;
 
-      if (!gdk_wayland_surface_export_handle (priv->surface,
-					      wayland_surface_handle_exported,
-					      data,
-					      g_free))
+      if (!gdk_wayland_toplevel_export_handle (GDK_TOPLEVEL (priv->surface),
+					       wayland_surface_handle_exported,
+					       data,
+					       g_free))
         {
           g_free (data);
           return FALSE;
@@ -6821,7 +6821,7 @@ gtk_window_unexport_handle (GtkWindow *window)
 #ifdef GDK_WINDOWING_WAYLAND
   if (GDK_IS_WAYLAND_DISPLAY (gtk_widget_get_display (GTK_WIDGET (window))))
     {
-      gdk_wayland_surface_unexport_handle (priv->surface);
+      gdk_wayland_toplevel_unexport_handle (GDK_TOPLEVEL (priv->surface));
       return;
     }
 #endif
@@ -7015,16 +7015,18 @@ update_cursor (GtkWindow *toplevel,
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (toplevel);
   GdkCursor *cursor = NULL;
+  GtkNative *native;
   GdkSurface *surface;
 
-  surface = gtk_native_get_surface (gtk_widget_get_native (target));
+  native = gtk_widget_get_native (target);
+  surface = gtk_native_get_surface (native);
 
   if (grab_widget && !gtk_widget_is_ancestor (target, grab_widget) && target != grab_widget)
     {
       /* Outside the grab widget, cursor stays to whatever the grab
        * widget says.
        */
-      if (gtk_native_get_surface (gtk_widget_get_native (grab_widget)) == surface)
+      if (gtk_widget_get_native (grab_widget) == native)
         cursor = gtk_widget_get_cursor (grab_widget);
       else
         cursor = NULL;
@@ -7037,7 +7039,7 @@ update_cursor (GtkWindow *toplevel,
       while (target)
         {
           /* Don't inherit cursors across surfaces */
-          if (surface != gtk_native_get_surface (gtk_widget_get_native (target)))
+          if (native != gtk_widget_get_native (target))
             break;
 
           if (target == GTK_WIDGET (toplevel) && priv->resize_cursor != NULL)

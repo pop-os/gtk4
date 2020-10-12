@@ -1793,10 +1793,11 @@ gsk_transform_transform_bounds (GskTransform          *self,
         float dx, dy;
 
         gsk_transform_to_translate (self, &dx, &dy);
-        out_rect->origin.x = rect->origin.x + dx;
-        out_rect->origin.y = rect->origin.y + dy;
-        out_rect->size.width = rect->size.width;
-        out_rect->size.height = rect->size.height;
+        graphene_rect_init (out_rect,
+                            rect->origin.x + dx,
+                            rect->origin.y + dy,
+                            rect->size.width,
+                            rect->size.height);
       }
     break;
 
@@ -1806,10 +1807,11 @@ gsk_transform_transform_bounds (GskTransform          *self,
 
         gsk_transform_to_affine (self, &scale_x, &scale_y, &dx, &dy);
 
-        out_rect->origin.x = (rect->origin.x * scale_x) + dx;
-        out_rect->origin.y = (rect->origin.y * scale_y) + dy;
-        out_rect->size.width = rect->size.width * scale_x;
-        out_rect->size.height = rect->size.height * scale_y;
+        graphene_rect_init (out_rect,
+                            (rect->origin.x * scale_x) + dx,
+                            (rect->origin.y * scale_y) + dy,
+                            rect->size.width * scale_x,
+                            rect->size.height * scale_y);
       }
     break;
 
@@ -2204,13 +2206,11 @@ gsk_matrix_transform_point3d (const graphene_matrix_t  *m,
 }
 
 void
-gsk_matrix_transform_bounds (const graphene_matrix_t *m,
-                             const graphene_rect_t   *r,
-                             graphene_rect_t         *res)
+gsk_matrix_transform_rect (const graphene_matrix_t *m,
+                           const graphene_rect_t   *r,
+                           graphene_quad_t         *res)
 {
   graphene_point_t ret[4];
-  float min_x, min_y;
-  float max_x, max_y;
   graphene_rect_t rr;
 
   graphene_rect_normalize_r (r, &rr);
@@ -2233,12 +2233,15 @@ gsk_matrix_transform_bounds (const graphene_matrix_t *m,
 
 #undef TRANSFORM_POINT
 
-  /* FIXME: graphene doesn't export a fast way to do this */
-  min_x = MIN (MIN (ret[0].x, ret[1].x), MIN (ret[2].x, ret[3].x));
-  min_y = MIN (MIN (ret[0].y, ret[1].y), MIN (ret[2].y, ret[3].y));
+  graphene_quad_init (res, &ret[0], &ret[1], &ret[2], &ret[3]);
+}
+void
+gsk_matrix_transform_bounds (const graphene_matrix_t *m,
+                             const graphene_rect_t   *r,
+                             graphene_rect_t         *res)
+{
+  graphene_quad_t q;
 
-  max_x = MAX (MAX (ret[0].x, ret[1].x), MAX (ret[2].x, ret[3].x));
-  max_y = MAX (MAX (ret[0].y, ret[1].y), MAX (ret[2].y, ret[3].y));
-
-  graphene_rect_init (res, min_x, min_y, max_x - min_x, max_y - min_y);
+  gsk_matrix_transform_rect (m, r, &q);
+  graphene_quad_bounds (&q, res);
 }

@@ -64,31 +64,6 @@ gtk_accelerator_get_default_mod_mask
 </SECTION>
 
 <SECTION>
-<FILE>gtkaccellabel</FILE>
-<TITLE>GtkAccelLabel</TITLE>
-GtkAccelLabel
-gtk_accel_label_new
-gtk_accel_label_get_accel_width
-gtk_accel_label_set_accel
-gtk_accel_label_get_accel
-gtk_accel_label_refetch
-gtk_accel_label_set_label
-gtk_accel_label_get_label
-gtk_accel_label_get_use_underline
-gtk_accel_label_set_use_underline
-<SUBSECTION Standard>
-GTK_ACCEL_LABEL
-GTK_IS_ACCEL_LABEL
-GTK_TYPE_ACCEL_LABEL
-GTK_ACCEL_LABEL_CLASS
-GTK_IS_ACCEL_LABEL_CLASS
-GTK_ACCEL_LABEL_GET_CLASS
-<SUBSECTION Private>
-GtkAccelLabelPrivate
-gtk_accel_label_get_type
-</SECTION>
-
-<SECTION>
 <FILE>gtkadjustment</FILE>
 <TITLE>GtkAdjustment</TITLE>
 GtkAdjustment
@@ -580,7 +555,6 @@ gtk_column_view_get_type
 <TITLE>GtkColumnViewColumn</TITLE>
 GtkColumnViewColumn
 gtk_column_view_column_new
-gtk_column_view_column_new_with_factory
 gtk_column_view_column_get_column_view
 gtk_column_view_column_set_factory
 gtk_column_view_column_get_factory
@@ -643,16 +617,7 @@ gtk_grid_view_get_type
 GtkBuildable
 GtkBuildableIface
 GtkBuildableParser
-gtk_buildable_set_name
-gtk_buildable_get_name
-gtk_buildable_add_child
-gtk_buildable_set_buildable_property
-gtk_buildable_construct_child
-gtk_buildable_custom_tag_start
-gtk_buildable_custom_tag_end
-gtk_buildable_custom_finished
-gtk_buildable_parser_finished
-gtk_buildable_get_internal_child
+gtk_buildable_get_buildable_id
 <SUBSECTION Standard>
 GTK_BUILDABLE
 GTK_IS_BUILDABLE
@@ -809,8 +774,13 @@ GtkCheckButton
 gtk_check_button_new
 gtk_check_button_new_with_label
 gtk_check_button_new_with_mnemonic
-gtk_check_button_get_draw_indicator
-gtk_check_button_set_draw_indicator
+gtk_check_button_get_label
+gtk_check_button_set_label
+gtk_check_button_get_use_underline
+gtk_check_button_set_use_underline
+gtk_check_button_set_group
+gtk_check_button_get_active
+gtk_check_button_set_active
 gtk_check_button_get_inconsistent
 gtk_check_button_set_inconsistent
 <SUBSECTION Standard>
@@ -2511,8 +2481,6 @@ gtk_scrolled_window_get_has_frame
 gtk_scrolled_window_set_has_frame
 gtk_scrolled_window_get_kinetic_scrolling
 gtk_scrolled_window_set_kinetic_scrolling
-gtk_scrolled_window_get_capture_button_press
-gtk_scrolled_window_set_capture_button_press
 gtk_scrolled_window_get_overlay_scrolling
 gtk_scrolled_window_set_overlay_scrolling
 gtk_scrolled_window_get_min_content_width
@@ -3031,6 +2999,7 @@ gtk_text_iter_get_slice
 gtk_text_iter_get_text
 gtk_text_iter_get_visible_slice
 gtk_text_iter_get_visible_text
+gtk_text_iter_get_paintable
 gtk_text_iter_get_marks
 gtk_text_iter_get_toggled_tags
 gtk_text_iter_get_child_anchor
@@ -4330,6 +4299,7 @@ gtk_snapshot_push_blend
 gtk_snapshot_push_blur
 gtk_snapshot_push_shadow
 gtk_snapshot_push_debug
+gtk_snapshot_push_gl_shader
 gtk_snapshot_pop
 gtk_snapshot_save
 gtk_snapshot_restore
@@ -4387,7 +4357,6 @@ GtkWidget
 GtkWidgetClass
 GtkRequisition
 GtkAllocation
-gtk_widget_new
 gtk_widget_in_destruction
 gtk_widget_unparent
 gtk_widget_show
@@ -4443,6 +4412,7 @@ gtk_widget_set_cursor
 gtk_widget_set_cursor_from_name
 gtk_widget_mnemonic_activate
 gtk_widget_class_set_accessible_role
+gtk_widget_class_get_accessible_role
 gtk_widget_child_focus
 gtk_widget_get_child_visible
 gtk_widget_get_parent
@@ -4765,9 +4735,15 @@ gtk_get_default_language
 gtk_get_locale_direction
 gtk_init
 gtk_init_check
+gtk_is_initialized
 
 <SUBSECTION>
 GTK_PRIORITY_RESIZE
+
+<SUBSECTION>
+GtkDebugFlags
+gtk_get_debug_flags
+gtk_set_debug_flags
 
 <SUBSECTION Private>
 gtk_init_abi_check
@@ -5639,6 +5615,7 @@ gtk_grid_attach
 gtk_grid_attach_next_to
 gtk_grid_remove
 gtk_grid_get_child_at
+gtk_grid_query_child
 gtk_grid_insert_row
 gtk_grid_insert_column
 gtk_grid_remove_row
@@ -5986,6 +5963,7 @@ gtk_stack_page_set_icon_name
 gtk_stack_page_get_child
 GtkStack
 gtk_stack_new
+gtk_stack_add_child
 gtk_stack_add_named
 gtk_stack_add_titled
 gtk_stack_remove

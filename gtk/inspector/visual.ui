@@ -53,10 +53,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="theme_label">
@@ -81,10 +77,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="dark_label">
@@ -97,7 +89,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="dark_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                   </object>
                                 </child>
@@ -110,10 +102,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="cursor_label">
@@ -139,10 +127,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="cursor_size_label">
@@ -172,10 +156,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="icon_label">
@@ -201,10 +181,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="font_label">
@@ -230,10 +206,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">20</property>
                                 <child>
                                   <object class="GtkLabel" id="font_scale_label">
@@ -271,10 +243,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="direction_label">
@@ -309,10 +277,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="hidpi_label">
@@ -339,10 +303,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="animation_label">
@@ -355,7 +315,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="animation_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                   </object>
                                 </child>
@@ -368,10 +328,6 @@
                             <property name="activatable">0</property>
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">20</property>
                                 <child>
                                   <object class="GtkLabel" id="slowdown_label">
@@ -422,10 +378,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="fps_label">
@@ -438,7 +390,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="fps_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                     <signal name="notify::active" handler="fps_activate"/>
                                   </object>
@@ -451,10 +403,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="updates_label">
@@ -467,7 +415,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="updates_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                     <signal name="notify::active" handler="updates_activate"/>
                                   </object>
@@ -480,10 +428,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="fallback_label">
@@ -496,7 +440,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="fallback_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                     <signal name="notify::active" handler="fallback_activate"/>
                                   </object>
@@ -509,10 +453,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="baselines_label">
@@ -525,7 +465,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="baselines_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                     <signal name="notify::active" handler="baselines_activate"/>
                                   </object>
@@ -538,10 +478,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="layout_label">
@@ -554,7 +490,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="layout_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                     <signal name="notify::active" handler="layout_activate"/>
                                   </object>
@@ -567,10 +503,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="focus_label">
@@ -583,7 +515,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="focus_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                     <signal name="notify::active" handler="focus_activate"/>
                                   </object>
@@ -610,10 +542,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="touchscreen_label">
@@ -626,7 +554,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="touchscreen_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                   </object>
                                 </child>
@@ -638,10 +566,6 @@
                           <object class="GtkListBoxRow">
                             <child>
                               <object class="GtkBox">
-                                <property name="margin-start">10</property>
-                                <property name="margin-end">10</property>
-                                <property name="margin-top">10</property>
-                                <property name="margin-bottom">10</property>
                                 <property name="spacing">40</property>
                                 <child>
                                   <object class="GtkLabel" id="software_gl_label">
@@ -654,7 +578,7 @@
                                 <child>
                                   <object class="GtkSwitch" id="software_gl_switch">
                                     <property name="halign">end</property>
-                                    <property name="valign">baseline</property>
+                                    <property name="valign">center</property>
                                     <property name="hexpand">1</property>
                                     <signal name="notify::active" handler="software_gl_activate"/>
                                   </object>

@@ -13,8 +13,8 @@
 #include "opbuffer.h"
 
 #define GL_N_VERTICES 6
-#define GL_N_PROGRAMS 13
-#define MAX_GRADIENT_STOPS 8
+#define GL_N_PROGRAMS 14
+#define GL_MAX_GRADIENT_STOPS 6
 
 typedef struct
 {
@@ -31,9 +31,66 @@ typedef struct
   OpsMatrixMetadata metadata;
 } MatrixStackEntry;
 
+typedef struct
+{
+  GskTransform *modelview;
+  GskRoundedRect clip;
+  graphene_matrix_t projection;
+  int source_texture;
+  graphene_rect_t viewport;
+  float opacity;
+  /* Per-program state */
+  union {
+    GdkRGBA color;
+    struct {
+      graphene_matrix_t matrix;
+      graphene_vec4_t offset;
+    } color_matrix;
+    struct {
+      float widths[4];
+      GdkRGBA color;
+      GskRoundedRect outline;
+    } border;
+    struct {
+      GskRoundedRect outline;
+      float dx;
+      float dy;
+      float spread;
+      GdkRGBA color;
+    } inset_shadow;
+    struct {
+      GskRoundedRect outline;
+      float dx;
+      float dy;
+      float spread;
+      GdkRGBA color;
+    } unblurred_outset_shadow;
+    struct {
+      int n_color_stops;
+      GskColorStop color_stops[GL_MAX_GRADIENT_STOPS];
+      float start_point[2];
+      float end_point[2];
+    } linear_gradient;
+    struct {
+      int n_color_stops;
+      GskColorStop color_stops[GL_MAX_GRADIENT_STOPS];
+      float center[2];
+      float start;
+      float end;
+      float radius[2]; /* h/v */
+    } radial_gradient;
+    struct {
+      float width;
+      float height;
+      gint uniform_data_len;
+      guchar uniform_data[32];
+    } gl_shader;
+  };
+} ProgramState;
+
 struct _Program
 {
-  int index;        /* Into the renderer's program array */
+  int index;        /* Into the renderer's program array -1 for custom */
 
   int id;
   /* Common locations (gl_common)*/
@@ -62,6 +119,14 @@ struct _Program
       int start_point_location;
       int end_point_location;
     } linear_gradient;
+    struct {
+      int num_color_stops_location;
+      int color_stops_location;
+      int center_location;
+      int start_location;
+      int end_location;
+      int radius_location;
+    } radial_gradient;
     struct {
       int blur_radius_location;
       int blur_size_location;
@@ -100,51 +165,15 @@ struct _Program
       int child_bounds_location;
       int texture_rect_location;
     } repeat;
+    struct {
+      int size_location;
+      int args_locations[8];
+      int texture_locations[4];
+      GError *compile_error;
+    } glshader;
   };
+  ProgramState state;
 };
-
-typedef struct
-{
-  GskTransform *modelview;
-  GskRoundedRect clip;
-  graphene_matrix_t projection;
-  int source_texture;
-  graphene_rect_t viewport;
-  float opacity;
-  /* Per-program state */
-  union {
-    GdkRGBA color;
-    struct {
-      graphene_matrix_t matrix;
-      graphene_vec4_t offset;
-    } color_matrix;
-    struct {
-      float widths[4];
-      GdkRGBA color;
-      GskRoundedRect outline;
-    } border;
-    struct {
-      GskRoundedRect outline;
-      float dx;
-      float dy;
-      float spread;
-      GdkRGBA color;
-    } inset_shadow;
-    struct {
-      GskRoundedRect outline;
-      float dx;
-      float dy;
-      float spread;
-      GdkRGBA color;
-    } unblurred_outset_shadow;
-    struct {
-      int n_color_stops;
-      GskColorStop color_stops[MAX_GRADIENT_STOPS];
-      float start_point[2];
-      float end_point[2];
-    } linear_gradient;
-  };
-} ProgramState;
 
 typedef struct {
   int ref_count;
@@ -161,18 +190,19 @@ typedef struct {
       Program cross_fade_program;
       Program inset_shadow_program;
       Program linear_gradient_program;
+      Program radial_gradient_program;
       Program outset_shadow_program;
       Program repeat_program;
       Program unblurred_outset_shadow_program;
     };
   };
-  ProgramState state[GL_N_PROGRAMS];
+  GHashTable *custom_programs; /* GskGLShader -> Program* */
 } GskGLRendererPrograms;
 
 typedef struct
 {
   GskGLRendererPrograms *programs;
-  const Program *current_program;
+  Program *current_program;
   int current_render_target;
   int current_texture;
 
@@ -219,7 +249,7 @@ void              ops_pop_modelview      (RenderOpBuilder         *builder);
 float             ops_get_scale          (const RenderOpBuilder   *builder);
 
 void              ops_set_program        (RenderOpBuilder         *builder,
-                                          const Program           *program);
+                                          Program                 *program);
 
 void              ops_push_clip          (RenderOpBuilder         *builder,
                                           const GskRoundedRect    *clip);
@@ -238,6 +268,9 @@ graphene_rect_t   ops_set_viewport       (RenderOpBuilder         *builder,
 
 void              ops_set_texture        (RenderOpBuilder         *builder,
                                           int                      texture_id);
+void              ops_set_extra_texture  (RenderOpBuilder         *builder,
+                                          int                      texture_id,
+                                          int                      idx);
 
 int               ops_set_render_target  (RenderOpBuilder         *builder,
                                           int                      render_target_id);
@@ -264,6 +297,11 @@ void              ops_set_inset_shadow   (RenderOpBuilder         *self,
                                           const GdkRGBA           *color,
                                           float                    dx,
                                           float                    dy);
+void              ops_set_gl_shader_args (RenderOpBuilder         *builder,
+                                          GskGLShader             *shader,
+                                          float                    width,
+                                          float                    height,
+                                          const guchar            *uniform_data);
 void              ops_set_unblurred_outset_shadow   (RenderOpBuilder         *self,
                                                      const GskRoundedRect     outline,
                                                      float                    spread,
@@ -278,6 +316,15 @@ void              ops_set_linear_gradient (RenderOpBuilder     *self,
                                            float                start_y,
                                            float                end_x,
                                            float                end_y);
+void              ops_set_radial_gradient (RenderOpBuilder        *self,
+                                           guint                   n_color_stops,
+                                           const GskColorStop     *color_stops,
+                                           float                   center_x,
+                                           float                   center_y,
+                                           float                   start,
+                                           float                   end,
+                                           float                   hradius,
+                                           float                   vradius);
 
 GskQuadVertex *   ops_draw               (RenderOpBuilder        *builder,
                                           const GskQuadVertex     vertex_data[GL_N_VERTICES]);

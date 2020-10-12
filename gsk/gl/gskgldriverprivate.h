@@ -21,6 +21,11 @@ typedef struct {
   guint texture_id;
 } TextureSlice;
 
+typedef struct {
+  gpointer pointer;
+  float scale;
+  int filter;
+} GskTextureKey;
 
 GskGLDriver *   gsk_gl_driver_new                       (GdkGLContext    *context);
 GdkGLContext   *gsk_gl_driver_get_gl_context            (GskGLDriver     *driver);
@@ -34,10 +39,10 @@ int             gsk_gl_driver_get_texture_for_texture   (GskGLDriver     *driver
                                                          GdkTexture      *texture,
                                                          int              min_filter,
                                                          int              mag_filter);
-int             gsk_gl_driver_get_texture_for_pointer   (GskGLDriver     *driver,
-                                                         gpointer         pointer);
-void            gsk_gl_driver_set_texture_for_pointer   (GskGLDriver     *driver,
-                                                         gpointer         pointer,
+int             gsk_gl_driver_get_texture_for_key       (GskGLDriver     *driver,
+                                                         GskTextureKey   *key);
+void            gsk_gl_driver_set_texture_for_key       (GskGLDriver     *driver,
+                                                         GskTextureKey   *key,
                                                          int              texture_id);
 int             gsk_gl_driver_create_texture            (GskGLDriver     *driver,
                                                          float            width,
@@ -45,6 +50,8 @@ int             gsk_gl_driver_create_texture            (GskGLDriver     *driver
 void            gsk_gl_driver_create_render_target      (GskGLDriver     *driver,
                                                          int              width,
                                                          int              height,
+                                                         int              min_filter,
+                                                         int              mag_filter,
                                                          int             *out_texture_id,
                                                          int             *out_render_target_id);
 void            gsk_gl_driver_mark_texture_permanent    (GskGLDriver     *self,
@@ -56,9 +63,9 @@ void            gsk_gl_driver_init_texture_empty        (GskGLDriver     *driver
                                                          int              texture_id,
                                                          int              min_filter,
                                                          int              max_filter);
-void            gsk_gl_driver_init_texture_with_surface (GskGLDriver     *driver,
+void            gsk_gl_driver_init_texture              (GskGLDriver     *driver,
                                                          int              texture_id,
-                                                         cairo_surface_t *surface,
+                                                         GdkTexture      *texture,
                                                          int              min_filter,
                                                          int              mag_filter);
 

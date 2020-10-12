@@ -824,9 +824,9 @@ clear_node (gpointer inout_node)
 static GskRenderNode *
 parse_container_node (GtkCssParser *parser)
 {
-  GskRenderNode *node;
   GPtrArray *nodes;
   const GtkCssToken *token;
+  GskRenderNode *node;
 
   nodes = g_ptr_array_new_with_free_func ((GDestroyNotify) gsk_render_node_unref);
 
@@ -1013,6 +1013,63 @@ parse_repeating_linear_gradient_node (GtkCssParser *parser)
 }
 
 static GskRenderNode *
+parse_radial_gradient_node_internal (GtkCssParser *parser,
+                                     gboolean      repeating)
+{
+  graphene_rect_t bounds = GRAPHENE_RECT_INIT (0, 0, 50, 50);
+  graphene_point_t center = GRAPHENE_POINT_INIT (25, 25);
+  double hradius = 25.0;
+  double vradius = 25.0;
+  double start = 0;
+  double end = 1.0;
+  GArray *stops = NULL;
+  const Declaration declarations[] = {
+    { "bounds", parse_rect, NULL, &bounds },
+    { "center", parse_point, NULL, &center },
+    { "hradius", parse_double, NULL, &hradius },
+    { "vradius", parse_double, NULL, &vradius },
+    { "start", parse_double, NULL, &start },
+    { "end", parse_double, NULL, &end },
+    { "stops", parse_stops, clear_stops, &stops },
+  };
+  GskRenderNode *result;
+
+  parse_declarations (parser, declarations, G_N_ELEMENTS(declarations));
+  if (stops == NULL)
+    {
+      GskColorStop from = { 0.0, GDK_RGBA("AAFF00") };
+      GskColorStop to = { 1.0, GDK_RGBA("FF00CC") };
+
+      stops = g_array_new (FALSE, FALSE, sizeof (GskColorStop));
+      g_array_append_val (stops, from);
+      g_array_append_val (stops, to);
+    }
+
+  if (repeating)
+    result = gsk_repeating_radial_gradient_node_new (&bounds, &center, hradius, vradius, start, end,
+                                                     (GskColorStop *) stops->data, stops->len);
+  else
+    result = gsk_radial_gradient_node_new (&bounds, &center, hradius, vradius, start, end,
+                                           (GskColorStop *) stops->data, stops->len);
+
+  g_array_free (stops, TRUE);
+
+  return result;
+}
+
+static GskRenderNode *
+parse_radial_gradient_node (GtkCssParser *parser)
+{
+  return parse_radial_gradient_node_internal (parser, FALSE);
+}
+
+static GskRenderNode *
+parse_repeating_radial_gradient_node (GtkCssParser *parser)
+{
+  return parse_radial_gradient_node_internal (parser, TRUE);
+}
+
+static GskRenderNode *
 parse_inset_shadow_node (GtkCssParser *parser)
 {
   GskRoundedRect outline = GSK_ROUNDED_RECT_INIT (0, 0, 50, 50);
@@ -1030,6 +1087,209 @@ parse_inset_shadow_node (GtkCssParser *parser)
   parse_declarations (parser, declarations, G_N_ELEMENTS(declarations));
 
   return gsk_inset_shadow_node_new (&outline, &color, dx, dy, spread, blur);
+}
+
+typedef union {
+    gint32 i;
+    double v[4];
+} UniformValue;
+
+typedef struct {
+  GskGLShader *shader;
+  GskShaderArgsBuilder *args;
+} ShaderInfo;
+
+static void
+clear_shader_info (gpointer data)
+{
+  ShaderInfo *info = data;
+  g_clear_object (&info->shader);
+  g_clear_pointer (&info->args, gsk_shader_args_builder_unref);
+}
+
+static gboolean
+parse_shader (GtkCssParser *parser,
+              gpointer      out_shader_info)
+{
+  ShaderInfo *shader_info = out_shader_info;
+  char *sourcecode = NULL;
+  GBytes *bytes;
+  GskGLShader *shader;
+
+  if (!parse_string (parser, &sourcecode))
+    return FALSE;
+
+  bytes = g_bytes_new_take (sourcecode, strlen (sourcecode));
+  shader = gsk_gl_shader_new_from_bytes (bytes);
+  g_bytes_unref (bytes);
+
+  shader_info->shader = shader;
+
+  return TRUE;
+}
+
+static gboolean
+parse_uniform_value (GtkCssParser *parser,
+                     int           idx,
+                     ShaderInfo   *shader_info)
+{
+  switch (gsk_gl_shader_get_uniform_type (shader_info->shader, idx))
+    {
+    case GSK_GL_UNIFORM_TYPE_FLOAT:
+      {
+        double f;
+        if (!gtk_css_parser_consume_number (parser, &f))
+          return FALSE;
+        gsk_shader_args_builder_set_float (shader_info->args, idx, f);
+      }
+      break;
+
+    case GSK_GL_UNIFORM_TYPE_INT:
+      {
+        int i;
+        if (!gtk_css_parser_consume_integer (parser, &i))
+          return FALSE;
+        gsk_shader_args_builder_set_int (shader_info->args, idx, i);
+      }
+      break;
+
+    case GSK_GL_UNIFORM_TYPE_UINT:
+      {
+        int i;
+        if (!gtk_css_parser_consume_integer (parser, &i) || i < 0)
+          return FALSE;
+        gsk_shader_args_builder_set_uint (shader_info->args, idx, i);
+      }
+      break;
+
+    case GSK_GL_UNIFORM_TYPE_BOOL:
+      {
+        int i;
+        if (!gtk_css_parser_consume_integer (parser, &i) || (i != 0 && i != 1))
+          return FALSE;
+        gsk_shader_args_builder_set_bool (shader_info->args, idx, i);
+      }
+      break;
+
+    case GSK_GL_UNIFORM_TYPE_VEC2:
+      {
+        double f0, f1;
+        graphene_vec2_t v;
+        if (!gtk_css_parser_consume_number (parser, &f0) ||
+            !gtk_css_parser_consume_number (parser, &f1))
+          return FALSE;
+        graphene_vec2_init (&v, f0, f1);
+        gsk_shader_args_builder_set_vec2 (shader_info->args, idx, &v);
+      }
+      break;
+
+    case GSK_GL_UNIFORM_TYPE_VEC3:
+      {
+        double f0, f1, f2;
+        graphene_vec3_t v;
+        if (!gtk_css_parser_consume_number (parser, &f0) ||
+            !gtk_css_parser_consume_number (parser, &f1) ||
+            !gtk_css_parser_consume_number (parser, &f2))
+          return FALSE;
+        graphene_vec3_init (&v, f0, f1, f2);
+        gsk_shader_args_builder_set_vec3 (shader_info->args, idx, &v);
+      }
+      break;
+
+    case GSK_GL_UNIFORM_TYPE_VEC4:
+      {
+        double f0, f1, f2, f3;
+        graphene_vec4_t v;
+        if (!gtk_css_parser_consume_number (parser, &f0) ||
+            !gtk_css_parser_consume_number (parser, &f1) ||
+            !gtk_css_parser_consume_number (parser, &f2) ||
+            !gtk_css_parser_consume_number (parser, &f3))
+          return FALSE;
+        graphene_vec4_init (&v, f0, f1, f2, f3);
+        gsk_shader_args_builder_set_vec4 (shader_info->args, idx, &v);
+      }
+      break;
+
+    case GSK_GL_UNIFORM_TYPE_NONE:
+    default:
+      g_assert_not_reached ();
+      break;
+    }
+
+  if (idx < gsk_gl_shader_get_n_uniforms (shader_info->shader))
+    {
+      if (!gtk_css_parser_try_token (parser, GTK_CSS_TOKEN_COMMA))
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
+static gboolean
+parse_shader_args (GtkCssParser *parser, gpointer data)
+{
+  ShaderInfo *shader_info = data;
+  int n_uniforms;
+  int i;
+
+  shader_info->args = gsk_shader_args_builder_new (shader_info->shader, NULL);
+  n_uniforms = gsk_gl_shader_get_n_uniforms (shader_info->shader);
+
+  for (i = 0; i < n_uniforms; i++)
+    {
+      if (!parse_uniform_value (parser, i, shader_info))
+        return FALSE;
+    }
+
+  return TRUE;
+}
+
+static GskRenderNode *
+parse_glshader_node (GtkCssParser *parser)
+{
+  graphene_rect_t bounds = GRAPHENE_RECT_INIT (0, 0, 50, 50);
+  GskRenderNode *child[4] = { NULL, };
+  ShaderInfo shader_info = {
+    NULL,
+    NULL,
+  };
+  const Declaration declarations[] = {
+    { "bounds", parse_rect, NULL, &bounds },
+    { "sourcecode", parse_shader, NULL, &shader_info },
+    { "args", parse_shader_args, clear_shader_info, &shader_info },
+    { "child1", parse_node, clear_node, &child[0] },
+    { "child2", parse_node, clear_node, &child[1] },
+    { "child3", parse_node, clear_node, &child[2] },
+    { "child4", parse_node, clear_node, &child[3] },
+  };
+  GskGLShader *shader;
+  GskRenderNode *node;
+  GBytes *args = NULL;
+  int len, i;
+
+  parse_declarations (parser, declarations, G_N_ELEMENTS(declarations));
+
+  for (len = 0; len < 4; len++)
+    {
+      if (child[len] == NULL)
+        break;
+    }
+
+  shader = shader_info.shader;
+  args = gsk_shader_args_builder_free_to_args (shader_info.args);
+
+  node = gsk_gl_shader_node_new (shader, &bounds, args, child, len);
+
+  g_bytes_unref (args);
+  g_object_unref (shader);
+
+  for (i = 0; i < 4; i++)
+    {
+      if (child[i])
+        gsk_render_node_unref (child[i]);
+    }
+
+  return node;
 }
 
 static GskRenderNode *
@@ -1535,15 +1795,18 @@ parse_node (GtkCssParser *parser,
     { "debug", parse_debug_node },
     { "inset-shadow", parse_inset_shadow_node },
     { "linear-gradient", parse_linear_gradient_node },
+    { "radial-gradient", parse_radial_gradient_node },
     { "opacity", parse_opacity_node },
     { "outset-shadow", parse_outset_shadow_node },
     { "repeat", parse_repeat_node },
     { "repeating-linear-gradient", parse_repeating_linear_gradient_node },
+    { "repeating-radial-gradient", parse_repeating_radial_gradient_node },
     { "rounded-clip", parse_rounded_clip_node },
     { "shadow", parse_shadow_node },
     { "text", parse_text_node },
     { "texture", parse_texture_node },
     { "transform", parse_transform_node },
+    { "glshader", parse_glshader_node },
   };
   GskRenderNode **node_p = out_node;
   guint i;
@@ -1856,6 +2119,18 @@ append_point_param (Printer                *p,
 }
 
 static void
+append_string_param (Printer    *p,
+                     const char *param_name,
+                     const char *value)
+{
+  _indent (p);
+  g_string_append_printf (p->str, "%s: ", param_name);
+  _gtk_css_print_string (p->str, value);
+  g_string_append_c (p->str, ';');
+  g_string_append_c (p->str, '\n');
+}
+
+static void
 append_vec4_param (Printer               *p,
                    const char            *param_name,
                    const graphene_vec4_t *value)
@@ -1985,6 +2260,42 @@ render_node_print (Printer       *p,
         append_rect_param (p, "bounds", &node->bounds);
         append_point_param (p, "end", gsk_linear_gradient_node_peek_end (node));
         append_point_param (p, "start", gsk_linear_gradient_node_peek_start (node));
+
+        _indent (p);
+        g_string_append (p->str, "stops: ");
+        for (i = 0; i < n_stops; i ++)
+          {
+            if (i > 0)
+              g_string_append (p->str, ", ");
+
+            string_append_double (p->str, stops[i].offset);
+            g_string_append_c (p->str, ' ');
+            append_rgba (p->str, &stops[i].color);
+          }
+        g_string_append (p->str, ";\n");
+
+        end_node (p);
+      }
+      break;
+
+    case GSK_REPEATING_RADIAL_GRADIENT_NODE:
+    case GSK_RADIAL_GRADIENT_NODE:
+      {
+        const gsize n_stops = gsk_radial_gradient_node_get_n_color_stops (node);
+        const GskColorStop *stops = gsk_radial_gradient_node_peek_color_stops (node, NULL);
+        gsize i;
+
+        if (gsk_render_node_get_node_type (node) == GSK_REPEATING_RADIAL_GRADIENT_NODE)
+          start_node (p, "repeating-radial-gradient");
+        else
+          start_node (p, "radial-gradient");
+
+        append_rect_param (p, "bounds", &node->bounds);
+        append_point_param (p, "center", gsk_radial_gradient_node_peek_center (node));
+        append_float_param (p, "hradius", gsk_radial_gradient_node_get_hradius (node), 0.0f);
+        append_float_param (p, "vradius", gsk_radial_gradient_node_get_vradius (node), 0.0f);
+        append_float_param (p, "start", gsk_radial_gradient_node_get_start (node), 0.0f);
+        append_float_param (p, "end", gsk_radial_gradient_node_get_end (node), 1.0f);
 
         _indent (p);
         g_string_append (p->str, "stops: ");
@@ -2346,6 +2657,124 @@ render_node_print (Printer       *p,
       }
       break;
 
+    case GSK_GL_SHADER_NODE:
+      {
+        GskGLShader *shader = gsk_gl_shader_node_get_shader (node);
+        GBytes *args = gsk_gl_shader_node_get_args (node);
+
+        start_node (p, "glshader");
+
+        append_rect_param (p, "bounds", &node->bounds);
+
+        GBytes *bytes = gsk_gl_shader_get_source (shader);
+        /* Ensure we are zero-terminated */
+        char *sourcecode = g_strndup (g_bytes_get_data (bytes, NULL), g_bytes_get_size (bytes));
+        append_string_param (p, "sourcecode", sourcecode);
+        g_free (sourcecode);
+
+        if (gsk_gl_shader_get_n_uniforms (shader) > 0)
+          {
+            GString *data = g_string_new ("");
+
+            for (guint i = 0; i < gsk_gl_shader_get_n_uniforms (shader); i++)
+              {
+                if (i > 0)
+                  g_string_append (data, ", ");
+
+                switch (gsk_gl_shader_get_uniform_type (shader, i))
+                  {
+                  case GSK_GL_UNIFORM_TYPE_NONE:
+                  default:
+                    g_assert_not_reached ();
+                    break;
+
+                  case GSK_GL_UNIFORM_TYPE_FLOAT:
+                    {
+                      float value = gsk_gl_shader_get_arg_float (shader, args, i);
+                      string_append_double (data, value);
+                    }
+                    break;
+
+                  case GSK_GL_UNIFORM_TYPE_INT:
+                    {
+                      gint32 value = gsk_gl_shader_get_arg_int (shader, args, i);
+                      g_string_append_printf (data, "%d", value);
+                    }
+                    break;
+
+                  case GSK_GL_UNIFORM_TYPE_UINT:
+                    {
+                      guint32 value = gsk_gl_shader_get_arg_uint (shader, args, i);
+                      g_string_append_printf (data, "%u", value);
+                    }
+                    break;
+
+                  case GSK_GL_UNIFORM_TYPE_BOOL:
+                    {
+                      gboolean value = gsk_gl_shader_get_arg_bool (shader, args, i);
+                      g_string_append_printf (data, "%d", value);
+                    }
+                    break;
+
+                  case GSK_GL_UNIFORM_TYPE_VEC2:
+                    {
+                      graphene_vec2_t value;
+                      gsk_gl_shader_get_arg_vec2 (shader, args, i,
+                                                  &value);
+                      string_append_double (data, graphene_vec2_get_x (&value));
+                      g_string_append (data, " ");
+                      string_append_double (data, graphene_vec2_get_y (&value));
+                    }
+                    break;
+
+                  case GSK_GL_UNIFORM_TYPE_VEC3:
+                    {
+                      graphene_vec3_t value;
+                      gsk_gl_shader_get_arg_vec3 (shader, args, i,
+                                                  &value);
+                      string_append_double (data, graphene_vec3_get_x (&value));
+                      g_string_append (data, " ");
+                      string_append_double (data, graphene_vec3_get_y (&value));
+                      g_string_append (data, " ");
+                      string_append_double (data, graphene_vec3_get_z (&value));
+                    }
+                    break;
+
+                  case GSK_GL_UNIFORM_TYPE_VEC4:
+                    {
+                      graphene_vec4_t value;
+                      gsk_gl_shader_get_arg_vec4 (shader, args, i,
+                                                  &value);
+                      string_append_double (data, graphene_vec4_get_x (&value));
+                      g_string_append (data, " ");
+                      string_append_double (data, graphene_vec4_get_y (&value));
+                      g_string_append (data, " ");
+                      string_append_double (data, graphene_vec4_get_z (&value));
+                      g_string_append (data, " ");
+                      string_append_double (data, graphene_vec4_get_w (&value));
+                    }
+                    break;
+                  }
+              }
+            _indent (p);
+            g_string_append_printf (p->str, "args: %s;\n", data->str);
+            g_string_free (data, TRUE);
+          }
+
+        for (guint i = 0; i < gsk_gl_shader_node_get_n_children (node); i ++)
+          {
+            GskRenderNode *child = gsk_gl_shader_node_get_child (node, i);
+            char *name;
+
+            name = g_strdup_printf ("child%d", i + 1);
+            append_node_param (p, name, child);
+            g_free (name);
+          }
+
+        end_node (p);
+      }
+      break;
+
     case GSK_REPEAT_NODE:
       {
         GskRenderNode *child = gsk_repeat_node_get_child (node);
@@ -2460,10 +2889,10 @@ render_node_print (Printer       *p,
  *
  * Serializes the @node for later deserialization via
  * gsk_render_node_deserialize(). No guarantees are made about the format
- * used other than that the same version of GTK+ will be able to deserialize
+ * used other than that the same version of GTK will be able to deserialize
  * the result of a call to gsk_render_node_serialize() and
  * gsk_render_node_deserialize() will correctly reject files it cannot open
- * that were created with previous versions of GTK+.
+ * that were created with previous versions of GTK.
  *
  * The intended use of this functions is testing, benchmarking and debugging.
  * The format is not meant as a permanent storage format.

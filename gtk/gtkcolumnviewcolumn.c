@@ -357,25 +357,7 @@ gtk_column_view_column_init (GtkColumnViewColumn *self)
 /**
  * gtk_column_view_column_new:
  * @title: (nullable): Title to use for this column
- *
- * Creates a new #GtkColumnViewColumn.
- *
- * You most likely want to call gtk_column_view_add_column() next.
- *
- * Returns: a new #GtkColumnViewColumn
- **/
-GtkColumnViewColumn *
-gtk_column_view_column_new (const char *title)
-{
-  return g_object_new (GTK_TYPE_COLUMN_VIEW_COLUMN,
-                       "title", title,
-                       NULL);
-}
-
-/**
- * gtk_column_view_column_new_with_factory:
- * @title: (nullable): Title to use for this column
- * @factory: (transfer full): The factory to populate items with
+ * @factory: (transfer full) (nullable): The factory to populate items with
  *
  * Creates a new #GtkColumnViewColumn that uses the given @factory for
  * mapping items to widgets.
@@ -385,15 +367,15 @@ gtk_column_view_column_new (const char *title)
  * The function takes ownership of the
  * argument, so you can write code like
  * ```
- *   column = gtk_column_view_column_new_with_factory (_("Name"),
+ *   column = gtk_column_view_column_new (_("Name"),
  *     gtk_builder_list_item_factory_new_from_resource ("/name.ui"));
  * ```
  *
  * Returns: a new #GtkColumnViewColumn using the given @factory
  **/
 GtkColumnViewColumn *
-gtk_column_view_column_new_with_factory (const char         *title,
-                                         GtkListItemFactory *factory)
+gtk_column_view_column_new (const char         *title,
+                            GtkListItemFactory *factory)
 {
   GtkColumnViewColumn *result;
 
@@ -404,7 +386,7 @@ gtk_column_view_column_new_with_factory (const char         *title,
                          "title", title,
                          NULL);
 
-  g_object_unref (factory);
+  g_clear_object (&factory);
 
   return result;
 }
@@ -994,8 +976,6 @@ void
 gtk_column_view_column_set_fixed_width (GtkColumnViewColumn *self,
                                         int                  fixed_width)
 {
-  GtkOverflow overflow;
-
   g_return_if_fail (GTK_IS_COLUMN_VIEW_COLUMN (self));
   g_return_if_fail (fixed_width >= -1);
 
@@ -1003,22 +983,6 @@ gtk_column_view_column_set_fixed_width (GtkColumnViewColumn *self,
     return;
 
   self->fixed_width = fixed_width;
-
-  if (fixed_width > -1)
-    overflow = GTK_OVERFLOW_HIDDEN;
-  else
-    overflow = GTK_OVERFLOW_VISIBLE;
-
-  if (self->header &&
-      overflow != gtk_widget_get_overflow (GTK_WIDGET (self->header)))
-    {
-      GtkColumnViewCell *cell;
-
-      gtk_widget_set_overflow (GTK_WIDGET (self->header), overflow);
-
-      for (cell = self->first_cell; cell; cell = gtk_column_view_cell_get_next (cell))
-        gtk_widget_set_overflow (GTK_WIDGET (cell), overflow);
-    }
 
   gtk_column_view_column_queue_resize (self);
 

@@ -1,7 +1,7 @@
 // VERTEX_SHADER
 uniform vec2 u_start_point;
 uniform vec2 u_end_point;
-uniform float u_color_stops[8 * 5];
+uniform float u_color_stops[6 * 5];
 uniform int u_num_color_stops;
 
 _OUT_ vec2 startPoint;
@@ -25,10 +25,10 @@ void main() {
 
   for (int i = 0; i < u_num_color_stops; i ++) {
     color_offsets[i] = u_color_stops[(i * 5) + 0];
-    color_stops[i].r = u_color_stops[(i * 5) + 1];
-    color_stops[i].g = u_color_stops[(i * 5) + 2];
-    color_stops[i].b = u_color_stops[(i * 5) + 3];
-    color_stops[i].a = u_color_stops[(i * 5) + 4];
+    color_stops[i] = gsk_premultiply(vec4(u_color_stops[(i * 5) + 1],
+                                          u_color_stops[(i * 5) + 2],
+                                          u_color_stops[(i * 5) + 3],
+                                          u_color_stops[(i * 5) + 4]));
   }
 }
 
@@ -49,7 +49,7 @@ _IN_ float color_offsets[8];
 
 void main() {
   // Position relative to startPoint
-  vec2 pos = get_frag_coord() - startPoint;
+  vec2 pos = gsk_get_frag_coord() - startPoint;
 
   // Current pixel, projected onto the line between the start point and the end point
   // The projection will be relative to the start point!
@@ -66,8 +66,5 @@ void main() {
     }
   }
 
-  /* Pre-multiply */
-  color.rgb *= color.a;
-
-  setOutputColor(color * u_alpha);
+  gskSetOutputColor(color * u_alpha);
 }

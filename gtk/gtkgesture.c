@@ -660,7 +660,7 @@ gtk_gesture_handle_event (GtkEventController *controller,
            (event_type == GDK_TOUCHPAD_SWIPE && phase == GDK_TOUCHPAD_GESTURE_PHASE_END) ||
            (event_type == GDK_TOUCHPAD_PINCH && phase == GDK_TOUCHPAD_GESTURE_PHASE_END))
     {
-      gboolean was_claimed;
+      gboolean was_claimed = FALSE;
 
       if (_gtk_gesture_update_point (gesture, event, target, x, y, FALSE))
         {
@@ -668,11 +668,11 @@ gtk_gesture_handle_event (GtkEventController *controller,
               _gtk_gesture_check_recognized (gesture, sequence))
             g_signal_emit (gesture, signals[UPDATE], 0, sequence);
 
+          was_claimed =
+            gtk_gesture_get_sequence_state (gesture, sequence) == GTK_EVENT_SEQUENCE_CLAIMED;
+
           _gtk_gesture_remove_point (gesture, event);
         }
-
-      was_claimed =
-        gtk_gesture_get_sequence_state (gesture, sequence) == GTK_EVENT_SEQUENCE_CLAIMED;
 
       return was_claimed && was_recognized;
     }
@@ -1073,7 +1073,7 @@ gtk_gesture_set_state (GtkGesture            *gesture,
  * by @gesture.
  *
  * Returns: (transfer container) (element-type GdkEventSequence): A list
- *          of #GdkEventSequences, the list elements are owned by GTK+
+ *          of #GdkEventSequences, the list elements are owned by GTK
  *          and must not be freed or modified, the list itself must be deleted
  *          through g_list_free()
  **/

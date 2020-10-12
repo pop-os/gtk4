@@ -2322,6 +2322,7 @@ save_widgets_create (GtkFileChooserWidget *impl)
     {
       location_entry_disconnect (impl);
       impl->location_entry = impl->external_entry;
+      g_object_add_weak_pointer (G_OBJECT (impl->external_entry), (gpointer *)&impl->location_entry);
       location_entry_setup (impl);
 
       g_signal_connect_after (gtk_entry_get_key_controller (GTK_ENTRY (impl->external_entry)),
@@ -5452,7 +5453,10 @@ gtk_file_chooser_widget_get_files (GtkFileChooser *chooser)
         return NULL;
 
       if (info.file_from_entry)
-        g_list_store_append (info.result, info.file_from_entry);
+        {
+          g_list_store_append (info.result, info.file_from_entry);
+          g_object_unref (info.file_from_entry);
+        }
       else if (!file_list_seen)
         goto file_list;
       else
@@ -6855,7 +6859,7 @@ set_current_filter (GtkFileChooserWidget *impl,
       if (filter)
         {
           if (!g_list_store_find (impl->filters, filter, &filter_index))
-            return;
+            filter_index = GTK_INVALID_LIST_POSITION;
         }
       else
         {
@@ -7849,7 +7853,7 @@ gtk_file_chooser_widget_init (GtkFileChooserWidget *impl)
   impl->auto_selecting_first_row = FALSE;
   impl->renamed_file = NULL;
 
-  /* Ensure GTK+ private types used by the template
+  /* Ensure private types used by the template
    * definition before calling gtk_widget_init_template()
    */
   g_type_ensure (GTK_TYPE_PATH_BAR);
@@ -7929,7 +7933,9 @@ gtk_file_chooser_widget_add_choice (GtkFileChooser  *chooser,
       box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 6);
       gtk_box_append (GTK_BOX (box), gtk_label_new (label));
 
-      combo = gtk_drop_down_new_from_strings ((const char * const *)options);
+      combo = gtk_drop_down_new_from_strings ((const char * const *)option_labels);
+      g_object_set_data_full (G_OBJECT (combo), "options",
+                              g_strdupv ((char **)options), (GDestroyNotify)g_strfreev);
       g_hash_table_insert (impl->choices, g_strdup (id), combo);
       gtk_box_append (GTK_BOX (box), combo);
 
@@ -7984,19 +7990,20 @@ gtk_file_chooser_widget_set_choice (GtkFileChooser  *chooser,
 
   widget = (GtkWidget *)g_hash_table_lookup (impl->choices, id);
 
-  if (GTK_IS_DROP_DOWN (widget))
+  if (GTK_IS_BOX (widget))
     {
-      guint i, n;
-      GListModel *model;
+      guint i;
+      const char **choices;
+      GtkWidget *dropdown;
 
-      model = gtk_drop_down_get_model (GTK_DROP_DOWN (widget));
-      n = g_list_model_get_n_items (model);
-      for (i = 0; i < n; i++)
+      dropdown = gtk_widget_get_last_child (widget);
+
+      choices = (const char **) g_object_get_data (G_OBJECT (dropdown), "choices");
+      for (i = 0; choices[i]; i++)
         {
-          const char *string = gtk_string_list_get_string (GTK_STRING_LIST (model), i);
-          if (strcmp (string, option) == 0)
+          if (strcmp (option, choices[i]) == 0)
             {
-              gtk_drop_down_set_selected (GTK_DROP_DOWN (widget), i);
+              gtk_drop_down_set_selected (GTK_DROP_DOWN (dropdown), i);
               break;
             }
         }
