@@ -1,8 +1,21 @@
 gtk+4.0 (3.99.1-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * Build with system copy of gtk-doc
+    - d/gbp.conf: Stop adding gtk-doc as a second orig tarball
+    - d/rules: Don't symlink gtk-doc into subprojects
+    - d/clean: Remove bundled copy of gtk-doc from subprojects
+    - d/p/build-Move-the-gtk-doc-dep-to-the-toplevel.patch,
+      d/p/Require-gtk-doc-1.33.patch:
+      Add patches from upstream to build with system gtk-doc again
+  * d/control.in: Update dependencies
+  * Drop other patches, applied upstream
+  * d/rules: Update Meson build options
+  * Stop installing NodeEditor icons.
+    They're embedded in the executable via GResource now.
+  * d/libgtk-4-0.symbols.in: Update
 
- -- Simon McVittie <smcv@debian.org>  Fri, 04 Sep 2020 12:10:05 +0100
+ -- Simon McVittie <smcv@debian.org>  Mon, 12 Oct 2020 10:41:11 +0100
 
 gtk+4.0 (3.99.0-2) experimental; urgency=medium
 
