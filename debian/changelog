@@ -5,9 +5,8 @@ gtk+4.0 (3.99.2-1) UNRELEASED; urgency=medium
     - d/gbp.conf: Stop adding gtk-doc as a second orig tarball
     - d/rules: Don't symlink gtk-doc into subprojects
     - d/clean: Remove bundled copy of gtk-doc from subprojects
-    - d/p/build-Move-the-gtk-doc-dep-to-the-toplevel.patch,
-      d/p/Require-gtk-doc-1.33.patch:
-      Add patches from upstream to build with system gtk-doc again
+    - d/p/Require-gtk-doc-1.33.patch:
+      Add patch from upstream to build with system gtk-doc again
   * d/control.in: Update dependencies
   * d/copyright: Mention CC0-1.0
   * Drop other patches, applied upstream
@@ -15,8 +14,11 @@ gtk+4.0 (3.99.2-1) UNRELEASED; urgency=medium
   * Stop installing NodeEditor icons.
     They're embedded in the executable via GResource now.
   * d/libgtk-4-0.symbols.in: Update
+  * d/p/debian/Revert-fontchooser-Determine-sample-text-intelligently.patch:
+    Revert automatic choice of preview text for font-chooser.
+    This requires Pango 1.47, which we don't have in Debian yet.
 
- -- Simon McVittie <smcv@debian.org>  Mon, 12 Oct 2020 10:41:11 +0100
+ -- Simon McVittie <smcv@debian.org>  Mon, 12 Oct 2020 10:51:44 +0100
 
 gtk+4.0 (3.99.0-2) experimental; urgency=medium
 
