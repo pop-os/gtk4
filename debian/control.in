@@ -52,14 +52,10 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                xauth <!nocheck>,
                xsltproc,
                xvfb <!nocheck>
-Build-Depends-Indep: docbook-to-man,
-                     libcairo2-doc,
+Build-Depends-Indep: libcairo2-doc,
                      libglib2.0-doc,
                      libpango1.0-doc,
                      pandoc,
-                     python3:any,
-                     python3-lxml,
-                     python3-pygments,
 Rules-Requires-Root: no
 Standards-Version: 4.5.0
 Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
