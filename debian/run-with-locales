@@ -84,7 +84,15 @@ generate () {
         return
     fi
 
-    charset=$(sed -ne "s/^$locale //p" /usr/share/i18n/SUPPORTED)
+    case "$locale" in
+        (*.utf8)
+            charset="UTF-8"
+            ;;
+
+        (*)
+            charset=$(sed -ne "s/^$locale //p" /usr/share/i18n/SUPPORTED)
+            ;;
+    esac
 
     if [ -z "$charset" ]; then
         echo "$me: $locale not found in /usr/share/i18n/SUPPORTED" >&2
