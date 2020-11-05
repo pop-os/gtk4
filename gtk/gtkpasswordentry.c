@@ -22,6 +22,7 @@
 
 #include "gtkpasswordentryprivate.h"
 
+#include "gtkaccessibleprivate.h"
 #include "gtktextprivate.h"
 #include "gtkeditable.h"
 #include "gtkeventcontrollerkey.h"
@@ -32,7 +33,6 @@
 #include "gtkmarshalers.h"
 #include "gtkpasswordentrybufferprivate.h"
 #include "gtkprivate.h"
-#include "gtkstylecontext.h"
 #include "gtkwidgetprivate.h"
 
 /**
@@ -105,8 +105,10 @@ enum {
 static GParamSpec *props[NUM_PROPERTIES] = { NULL, };
 
 static void gtk_password_entry_editable_init (GtkEditableInterface *iface);
+static void gtk_password_entry_accessible_init (GtkAccessibleInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GtkPasswordEntry, gtk_password_entry, GTK_TYPE_WIDGET,
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_ACCESSIBLE, gtk_password_entry_accessible_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_EDITABLE, gtk_password_entry_editable_init))
 
 static void
@@ -133,8 +135,14 @@ focus_changed (GtkWidget *widget)
   if (entry->keyboard)
     caps_lock_state_changed (entry->keyboard, NULL, widget);
 }
- 
-static void
+
+/*< private >
+ * gtk_password_entry_toggle_peek:
+ * @entry: a #GtkPasswordEntry
+ *
+ * Toggles the text visibility.
+ */
+void
 gtk_password_entry_toggle_peek (GtkPasswordEntry *entry)
 {
   gboolean visibility;
@@ -485,6 +493,31 @@ static void
 gtk_password_entry_editable_init (GtkEditableInterface *iface)
 {
   iface->get_delegate = gtk_password_entry_get_delegate;
+}
+
+static gboolean
+gtk_password_entry_accessible_get_platform_state (GtkAccessible              *self,
+                                                  GtkAccessiblePlatformState  state)
+{
+  GtkPasswordEntry *entry = GTK_PASSWORD_ENTRY (self);
+
+  switch (state)
+    {
+    case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSABLE:
+      return gtk_widget_get_focusable (GTK_WIDGET (entry->entry));
+    case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSED:
+      return gtk_widget_has_focus (GTK_WIDGET (entry->entry));
+    default:
+      g_assert_not_reached ();
+    }
+}
+
+static void
+gtk_password_entry_accessible_init (GtkAccessibleInterface *iface)
+{
+  GtkAccessibleInterface *parent_iface = g_type_interface_peek_parent (iface);
+  iface->get_at_context = parent_iface->get_at_context;
+  iface->get_platform_state = gtk_password_entry_accessible_get_platform_state;
 }
 
 GtkText *

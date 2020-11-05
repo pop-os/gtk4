@@ -866,6 +866,8 @@ typedef enum
  * @GTK_INPUT_HINT_VERTICAL_WRITING: The text is vertical
  * @GTK_INPUT_HINT_EMOJI: Suggest offering Emoji support
  * @GTK_INPUT_HINT_NO_EMOJI: Suggest not offering Emoji support
+ * @GTK_INPUT_HINT_PRIVATE: Request that the input method should not
+ *    update personalized data (like typing history)
  *
  * Describes hints that might be taken into account by input methods
  * or applications. Note that input methods may already tailor their
@@ -890,7 +892,8 @@ typedef enum
   GTK_INPUT_HINT_INHIBIT_OSK         = 1 << 7,
   GTK_INPUT_HINT_VERTICAL_WRITING    = 1 << 8,
   GTK_INPUT_HINT_EMOJI               = 1 << 9,
-  GTK_INPUT_HINT_NO_EMOJI            = 1 << 10
+  GTK_INPUT_HINT_NO_EMOJI            = 1 << 10,
+  GTK_INPUT_HINT_PRIVATE             = 1 << 11,
 } GtkInputHints;
 
 /**
@@ -1158,7 +1161,7 @@ typedef enum {
  * @GTK_ACCESSIBLE_ROLE_CELL: Unused
  * @GTK_ACCESSIBLE_ROLE_CHECKBOX: A checkable input element that has
  *   three possible values: `true`, `false`, or `mixed`
- * @GTK_ACCESSIBLE_ROLE_COLUMN_HEADER: Unused
+ * @GTK_ACCESSIBLE_ROLE_COLUMN_HEADER: A header in a columned list.
  * @GTK_ACCESSIBLE_ROLE_COMBO_BOX: An input that controls another element,
  *   such as a list or a grid, that can dynamically pop up to help the user
  *   set the value of the input
@@ -1172,8 +1175,8 @@ typedef enum {
  * @GTK_ACCESSIBLE_ROLE_FEED: Unused
  * @GTK_ACCESSIBLE_ROLE_FORM: Unused
  * @GTK_ACCESSIBLE_ROLE_GENERIC: Unused
- * @GTK_ACCESSIBLE_ROLE_GRID: Unused
- * @GTK_ACCESSIBLE_ROLE_GRID_CELL: Unused
+ * @GTK_ACCESSIBLE_ROLE_GRID: A grid of items.
+ * @GTK_ACCESSIBLE_ROLE_GRID_CELL: An item in a grid or tree grid.
  * @GTK_ACCESSIBLE_ROLE_GROUP: Unused
  * @GTK_ACCESSIBLE_ROLE_HEADING: Unused
  * @GTK_ACCESSIBLE_ROLE_IMG: An image.
@@ -1182,9 +1185,9 @@ typedef enum {
  * @GTK_ACCESSIBLE_ROLE_LANDMARK: Unused
  * @GTK_ACCESSIBLE_ROLE_LEGEND: Unused
  * @GTK_ACCESSIBLE_ROLE_LINK: Unused
- * @GTK_ACCESSIBLE_ROLE_LIST: Unused
- * @GTK_ACCESSIBLE_ROLE_LIST_BOX: Unused
- * @GTK_ACCESSIBLE_ROLE_LIST_ITEM: Unused
+ * @GTK_ACCESSIBLE_ROLE_LIST: A list of items.
+ * @GTK_ACCESSIBLE_ROLE_LIST_BOX: Unused.
+ * @GTK_ACCESSIBLE_ROLE_LIST_ITEM: An item in a list.
  * @GTK_ACCESSIBLE_ROLE_LOG: Unused
  * @GTK_ACCESSIBLE_ROLE_MAIN: Unused
  * @GTK_ACCESSIBLE_ROLE_MARQUEE: Unused
@@ -1207,7 +1210,7 @@ typedef enum {
  * @GTK_ACCESSIBLE_ROLE_RADIO_GROUP: Unused
  * @GTK_ACCESSIBLE_ROLE_RANGE: Unused
  * @GTK_ACCESSIBLE_ROLE_REGION: Unused
- * @GTK_ACCESSIBLE_ROLE_ROW: Unused
+ * @GTK_ACCESSIBLE_ROLE_ROW: A row in a columned list.
  * @GTK_ACCESSIBLE_ROLE_ROW_GROUP: Unused
  * @GTK_ACCESSIBLE_ROLE_ROW_HEADER: Unused
  * @GTK_ACCESSIBLE_ROLE_SCROLLBAR: A graphical object that controls the scrolling
@@ -1229,10 +1232,10 @@ typedef enum {
  * @GTK_ACCESSIBLE_ROLE_STRUCTURE: Unused
  * @GTK_ACCESSIBLE_ROLE_SWITCH: A type of checkbox that represents on/off values,
  *    as opposed to checked/unchecked values.
- * @GTK_ACCESSIBLE_ROLE_TAB: Unused
+ * @GTK_ACCESSIBLE_ROLE_TAB: An item in a list of tab used for switching pages.
  * @GTK_ACCESSIBLE_ROLE_TABLE: Unused
- * @GTK_ACCESSIBLE_ROLE_TAB_LIST: Unused
- * @GTK_ACCESSIBLE_ROLE_TAB_PANEL: Unused
+ * @GTK_ACCESSIBLE_ROLE_TAB_LIST: A list of tabs for switching pages.
+ * @GTK_ACCESSIBLE_ROLE_TAB_PANEL: A page in a notebook or stack.
  * @GTK_ACCESSIBLE_ROLE_TEXT_BOX: A type of input that allows free-form text
  *    as its value.
  * @GTK_ACCESSIBLE_ROLE_TIME: Unused
@@ -1240,7 +1243,7 @@ typedef enum {
  * @GTK_ACCESSIBLE_ROLE_TOOLBAR: Unused
  * @GTK_ACCESSIBLE_ROLE_TOOLTIP: Unused
  * @GTK_ACCESSIBLE_ROLE_TREE: Unused
- * @GTK_ACCESSIBLE_ROLE_TREE_GRID: Unused
+ * @GTK_ACCESSIBLE_ROLE_TREE_GRID: A treeview-like, columned list.
  * @GTK_ACCESSIBLE_ROLE_TREE_ITEM: Unused
  * @GTK_ACCESSIBLE_ROLE_WIDGET: An interactive component of a graphical user
  *    interface. This is the role that GTK uses by default for widgets.

@@ -28,6 +28,7 @@
 #import "GdkMacosWindow.h"
 
 #include "gdkmacosdisplay-private.h"
+#include "gdkmacosmonitor-private.h"
 #include "gdkmacossurface-private.h"
 #include "gdkmacospopupsurface-private.h"
 #include "gdkmacostoplevelsurface-private.h"
@@ -125,8 +126,6 @@
       GdkDisplay *display = gdk_surface_get_display (GDK_SURFACE (gdk_surface));
       double time = ((double)[event timestamp]) * 1000.0;
 
-      _gdk_macos_display_break_all_grabs (GDK_MACOS_DISPLAY (display), time);
-
       inManualMove = NO;
       inManualResize = NO;
       inMove = NO;
@@ -138,6 +137,8 @@
        * TODO: Can we improve grab breaking to fix this?
        */
       _gdk_macos_display_send_button_event ([self gdkDisplay], event);
+
+      _gdk_macos_display_break_all_grabs (GDK_MACOS_DISPLAY (display), time);
 
       break;
     }
@@ -352,7 +353,7 @@
   monitor = _gdk_macos_display_get_monitor_at_display_coords ([self gdkDisplay],
                                                               currentLocation.x,
                                                               currentLocation.y);
-  gdk_macos_monitor_get_geometry (monitor, &geometry);
+  gdk_monitor_get_geometry (monitor, &geometry);
   gdk_macos_monitor_get_workarea (monitor, &workarea);
   _edge_snapping_set_monitor (&self->snapping, &geometry, &workarea);
 

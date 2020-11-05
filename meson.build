@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.99.2',
+        version: '3.99.3',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -7,7 +7,7 @@ project('gtk', 'c',
           # https://github.com/mesonbuild/meson/issues/2289
           'c_std=gnu99',
         ],
-        meson_version : '>= 0.53',
+        meson_version : '>= 0.54',
         license: 'LGPLv2.1+')
 
 glib_major_req = 2
@@ -34,6 +34,7 @@ graphene_req       = '>= 1.9.1'
 epoxy_req          = '>= 1.4'
 cloudproviders_req = '>= 0.3.1'
 xkbcommon_req      = '>= 0.2.0'
+sysprof_req        = '>= 3.38.0'
 
 gnome = import('gnome')
 
@@ -112,7 +113,6 @@ os_unix = not os_win32
 if os_darwin
   wayland_enabled = false
 else
-  quartz_enabled = false
   macos_enabled = false
 endif
 
@@ -250,7 +250,6 @@ elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     '-Wno-c++11-extensions',
     '-Wno-missing-include-dirs',
     '-Wno-typedef-redefinition',
-    '-Wcast-align',
     '-Wduplicated-branches',
     '-Wduplicated-cond',
     '-Wformat=2',
@@ -294,6 +293,10 @@ elif cc.get_id() == 'gcc' or cc.get_id() == 'clang'
     '-Werror=vla',
     '-Werror=write-strings',
   ]
+
+  if cc.get_id() == 'gcc'
+    test_cflags += ['-Wcast-align'] # This warns too much on clang
+  endif
 else
   test_cflags = []
 endif
@@ -383,7 +386,7 @@ graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
                             fallback: ['graphene', 'graphene_dep'])
 iso_codes_dep  = dependency('iso-codes', required: false)
 
-gtk_doc_dep    = dependency('gtk-doc', version: '>=1.99',
+gtk_doc_dep    = dependency('gtk-doc', version: '>=1.33',
                             fallback: ['gtk-doc', 'dummy_dep'],
                             default_options: ['tests=false', 'yelp_manual=false'],
                             required: get_option('gtk_doc'))
@@ -417,7 +420,7 @@ pc_gdk_extra_libs = []
 cairo_backends = []
 foreach backend: [ ['cairo-xlib', cairo_req, x11_enabled],
                    ['cairo-win32', cairo_req, win32_enabled],
-                   ['cairo-quartz', cairo_req, quartz_enabled],
+                   ['cairo-quartz', cairo_req, macos_enabled],
                    ['cairo', cairo_req, broadway_enabled or wayland_enabled], ]
  backend_enabled = backend.get(2)
  cairo_backend_req = backend.get(1)
@@ -590,7 +593,7 @@ if broadway_enabled
   backend_immodules += ['broadway']
 endif
 
-if quartz_enabled
+if macos_enabled
   pc_gdk_extra_libs += ['-framework Cocoa', '-framework Carbon']
   backend_immodules += ['quartz']
 endif
@@ -610,20 +613,10 @@ if win32_enabled
   backend_immodules += ['ime']
 
   # Check whether libepoxy is built with EGL support on Windows
-  win32_has_egl = cc.links(
-     '''
-     #include <epoxy/egl.h>
-	 
-     int main(int argc, char *argv[])
-     {
-       EGLDisplay disp = EGL_NO_DISPLAY;
-
-       return epoxy_egl_version (disp);
-     } 
-     ''',
-     dependencies : epoxy_dep,
-     name : 'libepoxy supports EGL on Windows'
-    )
+  win32_has_egl = epoxy_dep.get_variable(
+    pkgconfig: 'epoxy_has_egl',
+    internal: 'epoxy_has_egl',
+    default_value: '0') == '1'
 endif
 
 # Check for bind_textdomain_codeset, including -lintl if GLib brings it in by
@@ -680,7 +673,7 @@ cdata.set('HAVE_CLOUDPROVIDERS', cloudproviders_dep.found())
 
 # libsysprof-capture support
 if not get_option('sysprof').disabled()
-  libsysprof_capture_dep = dependency('sysprof-capture-4',
+  libsysprof_capture_dep = dependency('sysprof-capture-4', version: sysprof_req,
     required: get_option('sysprof'),
     default_options: [
       'enable_examples=false',
@@ -813,7 +806,7 @@ pkgs = [ 'gtk4.pc' ]
 
 pkg_targets = ''
 display_backends = []
-foreach backend: [ 'broadway', 'quartz', 'macos', 'wayland', 'win32', 'x11', ]
+foreach backend: [ 'broadway', 'macos', 'wayland', 'win32', 'x11', ]
   if get_variable('@0@_enabled'.format(backend))
     pkgs += ['gtk4-@0@.pc'.format(backend)]
     pkg_targets += ' ' + backend
@@ -876,7 +869,7 @@ summary('Tracker support', tracker3_dep.found(), section: 'Features')
 # Build
 summary('Debugging', get_option('debug'), section: 'Build')
 summary('Optimization', get_option('optimization'), section: 'Build')
-summary('Introspection', get_option('introspection'), section: 'Build')
+summary('Introspection', build_gir, section: 'Build')
 summary('Documentation', get_option('gtk_doc'), section: 'Build')
 summary('Man pages', get_option('man-pages'), section: 'Build')
 summary('Tests', get_option('build-tests'), section: 'Build')

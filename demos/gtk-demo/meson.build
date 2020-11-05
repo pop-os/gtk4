@@ -121,13 +121,20 @@ extra_demo_sources = files(['main.c',
                             'demo3widget.c'])
 
 if harfbuzz_dep.found() and pangoft_dep.found()
-  demos += files('font_features.c')
-  extra_demo_sources += files(['script-names.c', 'language-names.c'])
+  demos += files(['font_features.c', 'listview_ucd.c'])
+  extra_demo_sources += files(['script-names.c', 'language-names.c', 'unicode-names.c'])
   gtkdemo_deps += [ harfbuzz_dep, epoxy_dep ]
 endif
 
 if os_unix
   demos += files('pagesetup.c')
+endif
+
+librsvg_dep = dependency('librsvg-2.0', version: '>= 2.46.0', required: false)
+
+if librsvg_dep.found()
+  demos += files('paintable_svg.c')
+  gtkdemo_deps += [ librsvg_dep ]
 endif
 
 gtkdemo_args = [ '-DGDK_DISABLE_DEPRECATED', '-DGTK_DISABLE_DEPRECATED', ]
