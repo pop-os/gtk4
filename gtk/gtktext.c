@@ -27,7 +27,6 @@
 #include "gtkadjustment.h"
 #include "gtkbox.h"
 #include "gtkbutton.h"
-#include "gtkcssnodeprivate.h"
 #include "gtkdebug.h"
 #include "gtkdragicon.h"
 #include "gtkdragsource.h"
@@ -123,6 +122,12 @@
  * CSS nodes with name cursor-handle. They get the .top or .bottom style class
  * depending on where they are shown in relation to the selection. If there is
  * just a single handle for the text cursor, it gets the style class .insertion-cursor.
+ *
+ * # Accessibility
+ *
+ * GtkText uses the #GTK_ACCESSIBLE_ROLE_NONE role, which causes it to be skipped
+ * for accessibility. This is because GtkText is expected to be used as a delegate
+ * for a #GtkEditable implementation that will be represented to accessibility.
  */
 
 #define NAT_ENTRY_WIDTH  150
@@ -324,8 +329,6 @@ static void   gtk_text_size_allocate        (GtkWidget        *widget,
                                              int               baseline);
 static void   gtk_text_snapshot             (GtkWidget        *widget,
                                              GtkSnapshot      *snapshot);
-static void   gtk_text_focus_in             (GtkWidget            *widget);
-static void   gtk_text_focus_out            (GtkWidget            *widget);
 static void   gtk_text_focus_changed        (GtkEventControllerFocus *focus,
                                              GParamSpec              *pspec,
                                              GtkWidget               *widget);
@@ -336,7 +339,6 @@ static void   gtk_text_direction_changed    (GtkWidget        *widget,
                                              GtkTextDirection  previous_dir);
 static void   gtk_text_state_flags_changed  (GtkWidget        *widget,
                                              GtkStateFlags     previous_state);
-static void   gtk_text_root                 (GtkWidget        *widget);
 
 static gboolean gtk_text_drag_drop          (GtkDropTarget    *dest,
                                              const GValue     *value,
@@ -723,7 +725,6 @@ gtk_text_class_init (GtkTextClass *class)
   widget_class->css_changed = gtk_text_css_changed;
   widget_class->direction_changed = gtk_text_direction_changed;
   widget_class->state_flags_changed = gtk_text_state_flags_changed;
-  widget_class->root = gtk_text_root;
   widget_class->mnemonic_activate = gtk_text_mnemonic_activate;
 
   class->move_cursor = gtk_text_move_cursor;
@@ -3148,72 +3149,53 @@ gtk_text_key_controller_key_pressed (GtkEventControllerKey *controller,
 }
 
 static void
-gtk_text_focus_in (GtkWidget *widget)
-{
-  GtkText *self = GTK_TEXT (widget);
-  GtkTextPrivate *priv = gtk_text_get_instance_private (self);
-  GdkSeat *seat = NULL;
-  GdkDevice *keyboard = NULL;
-
-  gtk_widget_queue_draw (widget);
-
-  seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
-  if (seat)
-    keyboard = gdk_seat_get_keyboard (seat);
-  if (keyboard)
-    g_signal_connect (keyboard, "notify::direction",
-                      G_CALLBACK (direction_changed), self);
-
-
-  if (priv->editable)
-    {
-      gtk_text_schedule_im_reset (self);
-      gtk_im_context_focus_in (priv->im_context);
-    }
-
-  gtk_text_reset_blink_time (self);
-  gtk_text_check_cursor_blink (self);
-}
-
-static void
-gtk_text_focus_out (GtkWidget *widget)
-{
-  GtkText *self = GTK_TEXT (widget);
-  GtkTextPrivate *priv = gtk_text_get_instance_private (self);
-  GdkSeat *seat = NULL;
-  GdkDevice *keyboard = NULL;
-
-  gtk_text_selection_bubble_popup_unset (self);
-
-  priv->text_handles_enabled = FALSE;
-  gtk_text_update_handles (self);
-
-  gtk_widget_queue_draw (widget);
-
-  seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
-  if (seat)
-    keyboard = gdk_seat_get_keyboard (seat);
-  if (keyboard)
-    g_signal_handlers_disconnect_by_func (keyboard, direction_changed, self);
-
-  if (priv->editable)
-    {
-      gtk_text_schedule_im_reset (self);
-      gtk_im_context_focus_out (priv->im_context);
-    }
-
-  gtk_text_check_cursor_blink (self);
-}
-
-static void
 gtk_text_focus_changed (GtkEventControllerFocus *controller,
                         GParamSpec              *pspec,
                         GtkWidget               *widget)
 {
+  GtkText *self = GTK_TEXT (widget);
+  GtkTextPrivate *priv = gtk_text_get_instance_private (self);
+  GdkSeat *seat = NULL;
+  GdkDevice *keyboard = NULL;
+
+  seat = gdk_display_get_default_seat (gtk_widget_get_display (widget));
+  if (seat)
+    keyboard = gdk_seat_get_keyboard (seat);
+
+  gtk_widget_queue_draw (widget);
+
   if (gtk_event_controller_focus_is_focus (controller))
-    gtk_text_focus_in (widget);
-  else
-    gtk_text_focus_out (widget);
+    {
+      if (keyboard)
+        g_signal_connect (keyboard, "notify::direction",
+                          G_CALLBACK (direction_changed), self);
+
+      if (priv->editable)
+        {
+          gtk_text_schedule_im_reset (self);
+          gtk_im_context_focus_in (priv->im_context);
+        }
+
+      gtk_text_reset_blink_time (self);
+    }
+  else /* Focus out */
+    {
+      gtk_text_selection_bubble_popup_unset (self);
+
+      priv->text_handles_enabled = FALSE;
+      gtk_text_update_handles (self);
+
+      if (keyboard)
+        g_signal_handlers_disconnect_by_func (keyboard, direction_changed, self);
+
+      if (priv->editable)
+        {
+          gtk_text_schedule_im_reset (self);
+          gtk_im_context_focus_out (priv->im_context);
+        }
+    }
+
+  gtk_text_check_cursor_blink (self);
 }
 
 static gboolean
@@ -3223,14 +3205,15 @@ gtk_text_grab_focus (GtkWidget *widget)
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
   gboolean select_on_focus;
   GtkWidget *prev_focus;
+  gboolean prev_focus_was_child;
 
   prev_focus = gtk_root_get_focus (gtk_widget_get_root (widget));
+  prev_focus_was_child = prev_focus && gtk_widget_is_ancestor (prev_focus, widget);
 
   if (!GTK_WIDGET_CLASS (gtk_text_parent_class)->grab_focus (GTK_WIDGET (self)))
     return FALSE;
 
-  if (priv->editable && !priv->in_click &&
-      !(prev_focus && gtk_widget_is_ancestor (prev_focus, widget)))
+  if (priv->editable && !priv->in_click && !prev_focus_was_child)
     {
       g_object_get (gtk_widget_get_settings (widget),
                     "gtk-entry-select-on-focus",
@@ -3251,7 +3234,7 @@ gtk_text_grab_focus (GtkWidget *widget)
  * Causes @self to have keyboard focus.
  *
  * It behaves like gtk_widget_grab_focus(),
- * except that it doesn't select the contents of the self.
+ * except that it doesn't select the contents of @self.
  * You only want to call this on some special entries
  * which the user usually doesn't want to replace all text in,
  * such as search-as-you-type entries.
@@ -3310,12 +3293,6 @@ gtk_text_state_flags_changed (GtkWidget     *widget,
   gtk_css_node_set_state (priv->undershoot_node[1], state);
 
   gtk_text_update_cached_style_values (self);
-}
-
-static void
-gtk_text_root (GtkWidget *widget)
-{
-  GTK_WIDGET_CLASS (gtk_text_parent_class)->root (widget);
 }
 
 /* GtkEditable method implementations
@@ -3483,11 +3460,13 @@ gtk_text_css_changed (GtkWidget         *widget,
 
   gtk_text_update_cached_style_values (self);
 
-  if (change == NULL ||
-      gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TEXT |
+  if (gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TEXT |
                                             GTK_CSS_AFFECTS_BACKGROUND |
                                             GTK_CSS_AFFECTS_CONTENT))
-    gtk_widget_queue_draw (GTK_WIDGET (self));
+    gtk_widget_queue_draw (widget);
+
+  if (gtk_css_style_change_affects (change, GTK_CSS_AFFECTS_TEXT_ATTRS))
+    gtk_text_recompute (self);
 }
 
 static void

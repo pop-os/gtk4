@@ -33,13 +33,14 @@
 #include "gtkatspitextprivate.h"
 #include "gtkatspiutilsprivate.h"
 #include "gtkatspivalueprivate.h"
-
+#include "gtkatspicomponentprivate.h"
 #include "a11y/atspi/atspi-accessible.h"
 #include "a11y/atspi/atspi-action.h"
 #include "a11y/atspi/atspi-editabletext.h"
 #include "a11y/atspi/atspi-text.h"
 #include "a11y/atspi/atspi-value.h"
 #include "a11y/atspi/atspi-selection.h"
+#include "a11y/atspi/atspi-component.h"
 
 #include "gtkdebug.h"
 #include "gtkeditable.h"
@@ -306,10 +307,7 @@ collect_relations (GtkAtSpiContext *self,
   GtkAccessibleValue *value;
   GList *list, *l;
   GtkATContext *target_ctx;
-  const char *unique_name;
   int i;
-
-  unique_name = g_dbus_connection_get_unique_name (self->connection);
 
   for (i = 0; i < G_N_ELEMENTS (map); i++)
     {
@@ -324,16 +322,18 @@ collect_relations (GtkAtSpiContext *self,
       for (l = list; l; l = l->next)
         {
           target_ctx = gtk_accessible_get_at_context (GTK_ACCESSIBLE (l->data));
-          g_variant_builder_add (&b, "(so)",
-                                 unique_name,
-                                 GTK_AT_SPI_CONTEXT (target_ctx)->context_path);
+
+          /* Realize the ATContext of the target, so we can ask for its ref */
+          gtk_at_context_realize (target_ctx);
+
+          g_variant_builder_add (&b, "@(so)",
+                                 gtk_at_spi_context_to_ref (GTK_AT_SPI_CONTEXT (target_ctx)));
         }
 
       g_variant_builder_add (builder, "(ua(so))", map[i].s, &b);
     }
 }
 /* }}} */
-
 /* {{{ Accessible implementation */
 static int
 get_index_in_parent (GtkWidget *widget)
@@ -347,11 +347,11 @@ get_index_in_parent (GtkWidget *widget)
        child;
        child = gtk_widget_get_next_sibling (child))
     {
-      if (!gtk_accessible_should_present (GTK_ACCESSIBLE (child)))
-        continue;
-
       if (child == widget)
         return idx;
+
+      if (!gtk_accessible_should_present (GTK_ACCESSIBLE (child)))
+        continue;
 
       idx++;
     }
@@ -374,16 +374,76 @@ get_index_in_toplevels (GtkWidget *widget)
 
       g_object_unref (window);
 
-      if (!gtk_widget_get_visible (window))
-        continue;
-
       if (window == widget)
         return idx;
+
+      if (!gtk_accessible_should_present (GTK_ACCESSIBLE (window)))
+        continue;
 
       idx += 1;
     }
 
   return -1;
+}
+
+static GVariant *
+get_parent_context_ref (GtkAccessible *accessible)
+{
+  GVariant *res = NULL;
+
+  if (GTK_IS_WIDGET (accessible))
+    {
+      GtkWidget *widget = GTK_WIDGET (accessible);
+      GtkWidget *parent = gtk_widget_get_parent (widget);
+
+      if (parent == NULL)
+        {
+          GtkATContext *context = gtk_accessible_get_at_context (accessible);
+          GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (context);
+
+          res = gtk_at_spi_root_to_ref (self->root);
+        }
+      else if (GTK_IS_STACK (parent))
+        {
+          GtkStackPage *page =
+            gtk_stack_get_page (GTK_STACK (parent), widget);
+          GtkATContext *parent_context =
+            gtk_accessible_get_at_context (GTK_ACCESSIBLE (page));
+
+          if (parent_context != NULL)
+            res = gtk_at_spi_context_to_ref (GTK_AT_SPI_CONTEXT (parent_context));
+        }
+      else
+        {
+          GtkATContext *parent_context =
+            gtk_accessible_get_at_context (GTK_ACCESSIBLE (parent));
+
+          if (parent_context != NULL)
+            {
+              /* XXX: This realize() is needed otherwise opening a GtkPopover will
+               * emit a warning when getting the context's reference
+               */
+              gtk_at_context_realize (parent_context);
+
+              res = gtk_at_spi_context_to_ref (GTK_AT_SPI_CONTEXT (parent_context));
+            }
+        }
+    }
+  else if (GTK_IS_STACK_PAGE (accessible))
+    {
+      GtkWidget *parent =
+        gtk_widget_get_parent (gtk_stack_page_get_child (GTK_STACK_PAGE (accessible)));
+      GtkATContext *parent_context =
+        gtk_accessible_get_at_context (GTK_ACCESSIBLE (parent));
+
+      if (parent_context != NULL)
+        res = gtk_at_spi_context_to_ref (GTK_AT_SPI_CONTEXT (parent_context));
+    }
+
+  if (res == NULL)
+    res = gtk_at_spi_null_ref ();
+
+  return res;
 }
 
 static void
@@ -454,15 +514,29 @@ handle_accessible_method (GDBusConnection       *connection,
     }
   else if (g_strcmp0 (method_name, "GetChildAtIndex") == 0)
     {
-      GtkWidget *child = NULL;
+      GtkATContext *context = NULL;
+      GtkAccessible *accessible;
       int idx, real_idx = 0;
 
       g_variant_get (parameters, "(i)", &idx);
 
-      GtkAccessible *accessible = gtk_at_context_get_accessible (GTK_AT_CONTEXT (self));
-      if (GTK_IS_WIDGET (accessible))
+      accessible = gtk_at_context_get_accessible (GTK_AT_CONTEXT (self));
+
+      if (GTK_IS_STACK_PAGE (accessible))
+        {
+          if (idx == 0)
+            {
+              GtkWidget *child;
+
+              child = gtk_stack_page_get_child (GTK_STACK_PAGE (accessible));
+              if (gtk_accessible_should_present (GTK_ACCESSIBLE (child)))
+                context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (child));
+            }
+        }
+      else if (GTK_IS_WIDGET (accessible))
         {
           GtkWidget *widget = GTK_WIDGET (accessible);
+          GtkWidget *child;
 
           real_idx = 0;
           for (child = gtk_widget_get_first_child (widget);
@@ -477,18 +551,17 @@ handle_accessible_method (GDBusConnection       *connection,
 
               real_idx += 1;
             }
-        }
-      else if (GTK_IS_STACK_PAGE (accessible))
-        {
-          if (idx == 0)
+
+          if (child)
             {
-              child = gtk_stack_page_get_child (GTK_STACK_PAGE (accessible));
-              if (!gtk_accessible_should_present (GTK_ACCESSIBLE (child)))
-                child = NULL;
+              if (GTK_IS_STACK (accessible))
+                context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (gtk_stack_get_page (GTK_STACK (accessible), child)));
+              else
+                context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (child));
             }
         }
 
-      if (child == NULL)
+      if (context == NULL)
         {
           g_dbus_method_invocation_return_error (invocation,
                                                  G_IO_ERROR,
@@ -497,12 +570,12 @@ handle_accessible_method (GDBusConnection       *connection,
           return;
         }
 
-      GtkATContext *context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (child));
+      /* Realize the child ATContext in order to get its ref */
+      gtk_at_context_realize (context);
 
-      const char *name = g_dbus_connection_get_unique_name (self->connection);
-      const char *path = gtk_at_spi_context_get_context_path (GTK_AT_SPI_CONTEXT (context));
+      GVariant *ref = gtk_at_spi_context_to_ref (GTK_AT_SPI_CONTEXT (context));
 
-      g_dbus_method_invocation_return_value (invocation, g_variant_new ("((so))", name, path));
+      g_dbus_method_invocation_return_value (invocation, g_variant_new ("(@(so))", ref));
     }
   else if (g_strcmp0 (method_name, "GetChildren") == 0)
     {
@@ -523,10 +596,13 @@ handle_accessible_method (GDBusConnection       *connection,
 
               GtkATContext *context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (child));
 
-              const char *name = g_dbus_connection_get_unique_name (self->connection);
-              const char *path = gtk_at_spi_context_get_context_path (GTK_AT_SPI_CONTEXT (context));
+              /* Realize the child ATContext in order to get its ref */
+              gtk_at_context_realize (context);
 
-              g_variant_builder_add (&builder, "(so)", name, path);
+              GVariant *ref = gtk_at_spi_context_to_ref (GTK_AT_SPI_CONTEXT (context));
+
+              if (ref != NULL)
+                g_variant_builder_add (&builder, "@(so)", ref);
             }
         }
       else if (GTK_IS_STACK_PAGE (accessible))
@@ -536,9 +612,14 @@ handle_accessible_method (GDBusConnection       *connection,
           if (gtk_accessible_should_present (GTK_ACCESSIBLE (child)))
             {
               GtkATContext *context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (child));
-              const char *name = g_dbus_connection_get_unique_name (self->connection);
-              const char *path = gtk_at_spi_context_get_context_path (GTK_AT_SPI_CONTEXT (context));
-              g_variant_builder_add (&builder, "(so)", name, path);
+
+              /* Realize the child ATContext in order to get its ref */
+              gtk_at_context_realize (context);
+
+              GVariant *ref = gtk_at_spi_context_to_ref (GTK_AT_SPI_CONTEXT (context));
+
+              if (ref != NULL)
+                g_variant_builder_add (&builder, "@(so)", ref);
             }
         }
 
@@ -566,7 +647,7 @@ handle_accessible_method (GDBusConnection       *connection,
   else if (g_strcmp0 (method_name, "GetRelationSet") == 0)
     {
       GVariantBuilder builder = G_VARIANT_BUILDER_INIT (G_VARIANT_TYPE ("a(ua(so))"));
-       collect_relations (self, &builder);
+      collect_relations (self, &builder);
       g_dbus_method_invocation_return_value (invocation, g_variant_new ("(a(ua(so)))", &builder));
     }
   else if (g_strcmp0 (method_name, "GetInterfaces") == 0)
@@ -592,22 +673,14 @@ handle_accessible_get_property (GDBusConnection       *connection,
 
   if (g_strcmp0 (property_name, "Name") == 0)
     {
-      if (GTK_IS_WIDGET (accessible))
-        res = g_variant_new_string (gtk_widget_get_name (GTK_WIDGET (accessible)));
-      else if (GTK_IS_STACK_PAGE (accessible))
-        {
-          const char *name = gtk_stack_page_get_name (GTK_STACK_PAGE (accessible));
-          if (name == NULL)
-             name = G_OBJECT_TYPE_NAME (accessible);
-          res = g_variant_new_string (name);
-        }
-      else
-        res = g_variant_new_string (G_OBJECT_TYPE_NAME (accessible));
+      char *label = gtk_at_context_get_name (GTK_AT_CONTEXT (self));
+      res = g_variant_new_string (label ? label : "");
+      g_free (label);
     }
   else if (g_strcmp0 (property_name, "Description") == 0)
     {
-      char *label = gtk_at_context_get_label (GTK_AT_CONTEXT (self));
-      res = g_variant_new_string (label);
+      char *label = gtk_at_context_get_description (GTK_AT_CONTEXT (self));
+      res = g_variant_new_string (label ? label : "");
       g_free (label);
     }
   else if (g_strcmp0 (property_name, "Locale") == 0)
@@ -615,53 +688,7 @@ handle_accessible_get_property (GDBusConnection       *connection,
   else if (g_strcmp0 (property_name, "AccessibleId") == 0)
     res = g_variant_new_string ("");
   else if (g_strcmp0 (property_name, "Parent") == 0)
-    {
-      if (GTK_IS_WIDGET (accessible))
-        {
-          GtkWidget *parent = gtk_widget_get_parent (GTK_WIDGET (accessible));
-
-          if (parent == NULL)
-            {
-              res = gtk_at_spi_root_to_ref (self->root);
-            }
-          else if (GTK_IS_STACK (parent))
-            {
-              GtkStackPage *page =
-                gtk_stack_get_page (GTK_STACK (parent), GTK_WIDGET (accessible));
-              GtkATContext *parent_context =
-                gtk_accessible_get_at_context (GTK_ACCESSIBLE (page));
-
-              if (parent_context != NULL)
-                res = g_variant_new ("(so)",
-                                     g_dbus_connection_get_unique_name (self->connection),
-                                     GTK_AT_SPI_CONTEXT (parent_context)->context_path);
-            }
-          else
-            {
-              GtkATContext *parent_context =
-                gtk_accessible_get_at_context (GTK_ACCESSIBLE (parent));
-
-              if (parent_context != NULL)
-                res = g_variant_new ("(so)",
-                                     g_dbus_connection_get_unique_name (self->connection),
-                                     GTK_AT_SPI_CONTEXT (parent_context)->context_path);
-            }
-        }
-      else if (GTK_IS_STACK_PAGE (accessible))
-        {
-          GtkWidget *parent = gtk_widget_get_parent (gtk_stack_page_get_child (GTK_STACK_PAGE (accessible)));
-          GtkATContext *parent_context =
-            gtk_accessible_get_at_context (GTK_ACCESSIBLE (parent));
-
-          if (parent_context != NULL)
-            res = g_variant_new ("(so)",
-                                 g_dbus_connection_get_unique_name (self->connection),
-                                 GTK_AT_SPI_CONTEXT (parent_context)->context_path);
-        }
-
-      if (res == NULL)
-        res = gtk_at_spi_null_ref ();
-    }
+    res = get_parent_context_ref (accessible);
   else if (g_strcmp0 (property_name, "ChildCount") == 0)
     {
       int n_children = 0;
@@ -700,7 +727,6 @@ static const GDBusInterfaceVTable accessible_vtable = {
   NULL,
 };
 /* }}} */
-
 /* {{{ Change notification */
 static void
 emit_text_changed (GtkAtSpiContext *self,
@@ -709,6 +735,9 @@ emit_text_changed (GtkAtSpiContext *self,
                    int              end,
                    const char      *text)
 {
+  if (self->connection == NULL)
+    return;
+
   g_dbus_connection_emit_signal (self->connection,
                                  NULL,
                                  self->context_path,
@@ -724,20 +753,36 @@ emit_text_selection_changed (GtkAtSpiContext *self,
                              const char      *kind,
                              int              cursor_position)
 {
-  g_dbus_connection_emit_signal (self->connection,
-                                 NULL,
-                                 self->context_path,
-                                 "org.a11y.atspi.Event.Object",
-                                 "TextChanged",
-                                 g_variant_new ("(siiva{sv})",
-                                                kind, cursor_position, 0, g_variant_new_string (""), NULL),
+  if (self->connection == NULL)
+    return;
+
+  if (strcmp (kind, "text-caret-moved") == 0)
+    g_dbus_connection_emit_signal (self->connection,
+                                   NULL,
+                                   self->context_path,
+                                   "org.a11y.atspi.Event.Object",
+                                   "TextCaretMoved",
+                                   g_variant_new ("(siiva{sv})",
+                                                  "", cursor_position, 0, g_variant_new_string (""), NULL),
                                  NULL);
+  else
+    g_dbus_connection_emit_signal (self->connection,
+                                   NULL,
+                                   self->context_path,
+                                   "org.a11y.atspi.Event.Object",
+                                   "TextSelectionChanged",
+                                   g_variant_new ("(siiva{sv})",
+                                                  "", 0, 0, g_variant_new_string (""), NULL),
+                                   NULL);
 }
 
 static void
 emit_selection_changed (GtkAtSpiContext *self,
                         const char      *kind)
 {
+  if (self->connection == NULL)
+    return;
+
   g_dbus_connection_emit_signal (self->connection,
                                  NULL,
                                  self->context_path,
@@ -753,6 +798,9 @@ emit_state_changed (GtkAtSpiContext *self,
                     const char      *name,
                     gboolean         enabled)
 {
+  if (self->connection == NULL)
+    return;
+
   g_dbus_connection_emit_signal (self->connection,
                                  NULL,
                                  self->context_path,
@@ -764,10 +812,28 @@ emit_state_changed (GtkAtSpiContext *self,
 }
 
 static void
+emit_defunct (GtkAtSpiContext *self)
+{
+  if (self->connection == NULL)
+    return;
+
+  g_dbus_connection_emit_signal (self->connection,
+                                 NULL,
+                                 self->context_path,
+                                 "org.a11y.atspi.Event.Object",
+                                 "StateChanged",
+                                 g_variant_new ("(siiva{sv})", "defunct", TRUE, 0, g_variant_new_string ("0"), NULL),
+                                 NULL);
+}
+
+static void
 emit_property_changed (GtkAtSpiContext *self,
                        const char      *name,
                        GVariant        *value)
 {
+  if (self->connection == NULL)
+    return;
+
   g_dbus_connection_emit_signal (self->connection,
                                  NULL,
                                  self->context_path,
@@ -779,21 +845,91 @@ emit_property_changed (GtkAtSpiContext *self,
 }
 
 static void
+emit_bounds_changed (GtkAtSpiContext *self,
+                     int              x,
+                     int              y,
+                     int              width,
+                     int              height)
+{
+  if (self->connection == NULL)
+    return;
+
+  g_dbus_connection_emit_signal (self->connection,
+                                 NULL,
+                                 self->context_path,
+                                 "org.a11y.atspi.Event.Object",
+                                 "BoundsChanged",
+                                 g_variant_new ("(siiva{sv})",
+                                                "", 0, 0, g_variant_new ("(iiii)", x, y, width, height), NULL),
+                                 NULL);
+}
+
+static void
+emit_children_changed (GtkAtSpiContext         *self,
+                       GtkAtSpiContext         *child_context,
+                       int                      idx,
+                       GtkAccessibleChildState  state)
+{
+  /* If we don't have a connection on either contexts, we cannot emit a signal */
+  if (self->connection == NULL || child_context->connection == NULL)
+    return;
+
+  GVariant *context_ref = gtk_at_spi_context_to_ref (self);
+  GVariant *child_ref = gtk_at_spi_context_to_ref (child_context);
+
+  gtk_at_spi_emit_children_changed (self->connection,
+                                    self->context_path,
+                                    state,
+                                    idx,
+                                    child_ref,
+                                    context_ref);
+}
+
+static void
 gtk_at_spi_context_state_change (GtkATContext                *ctx,
                                  GtkAccessibleStateChange     changed_states,
                                  GtkAccessiblePropertyChange  changed_properties,
                                  GtkAccessibleRelationChange  changed_relations,
-                                 GtkAccessiblePlatformChange  changed_platform,
                                  GtkAccessibleAttributeSet   *states,
                                  GtkAccessibleAttributeSet   *properties,
                                  GtkAccessibleAttributeSet   *relations)
 {
   GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (ctx);
-  GtkWidget *widget = GTK_WIDGET (gtk_at_context_get_accessible (ctx));
+  GtkAccessible *accessible = gtk_at_context_get_accessible (ctx);
   GtkAccessibleValue *value;
 
-  if (!gtk_widget_get_realized (widget))
+  if (GTK_IS_WIDGET (accessible) && !gtk_widget_get_realized (GTK_WIDGET (accessible)))
     return;
+
+  if (changed_states & GTK_ACCESSIBLE_STATE_CHANGE_HIDDEN)
+    {
+      GtkWidget *parent;
+      GtkATContext *context;
+      GtkAccessibleChildChange change;
+
+      value = gtk_accessible_attribute_set_get_value (states, GTK_ACCESSIBLE_STATE_HIDDEN);
+      if (gtk_boolean_accessible_value_get (value))
+        change = GTK_ACCESSIBLE_CHILD_CHANGE_REMOVED;
+      else
+        change = GTK_ACCESSIBLE_CHILD_CHANGE_ADDED;
+
+      if (GTK_IS_ROOT (accessible))
+        {
+          gtk_at_spi_root_child_changed (self->root, change, accessible);
+        }
+      else
+        {
+          if (GTK_IS_WIDGET (accessible))
+            parent = gtk_widget_get_parent (GTK_WIDGET (accessible));
+          else if (GTK_IS_STACK_PAGE (accessible))
+            parent = gtk_widget_get_parent (gtk_stack_page_get_child (GTK_STACK_PAGE (accessible)));
+          else
+            g_assert_not_reached ();
+
+          context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (parent));
+          gtk_at_context_child_changed (context, change, accessible);
+        }
+    }
 
   if (changed_states & GTK_ACCESSIBLE_STATE_CHANGE_BUSY)
     {
@@ -818,6 +954,7 @@ gtk_at_spi_context_state_change (GtkATContext                *ctx,
         case GTK_ACCESSIBLE_TRISTATE_FALSE:
           emit_state_changed (self, "checked", FALSE);
           emit_state_changed (self, "indeterminate", FALSE);
+          break;
         default:
           break;
         }
@@ -853,6 +990,7 @@ gtk_at_spi_context_state_change (GtkATContext                *ctx,
           break;
         case GTK_ACCESSIBLE_INVALID_FALSE:
           emit_state_changed (self, "invalid", FALSE);
+          break;
         default:
           break;
         }
@@ -874,6 +1012,7 @@ gtk_at_spi_context_state_change (GtkATContext                *ctx,
         case GTK_ACCESSIBLE_TRISTATE_FALSE:
           emit_state_changed (self, "pressed", FALSE);
           emit_state_changed (self, "indeterminate", FALSE);
+          break;
         default:
           break;
         }
@@ -932,10 +1071,33 @@ gtk_at_spi_context_state_change (GtkATContext                *ctx,
 
   if (changed_properties & GTK_ACCESSIBLE_PROPERTY_CHANGE_LABEL)
     {
-      char *label = gtk_at_context_get_label (GTK_AT_CONTEXT (self));
+      char *label = gtk_at_context_get_name (GTK_AT_CONTEXT (self));
+      GVariant *v = g_variant_new_take_string (label);
+      emit_property_changed (self, "accessible-name", v);
+    }
+
+  if (changed_properties & GTK_ACCESSIBLE_PROPERTY_CHANGE_DESCRIPTION)
+    {
+      char *label = gtk_at_context_get_description (GTK_AT_CONTEXT (self));
       GVariant *v = g_variant_new_take_string (label);
       emit_property_changed (self, "accessible-description", v);
     }
+}
+
+static void
+gtk_at_spi_context_platform_change (GtkATContext                *ctx,
+                                    GtkAccessiblePlatformChange  changed_platform)
+{
+  GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (ctx);
+  GtkAccessible *accessible = gtk_at_context_get_accessible (ctx);
+  GtkWidget *widget;
+
+  if (!GTK_IS_WIDGET (accessible))
+    return;
+
+  widget = GTK_WIDGET (accessible);
+  if (!gtk_widget_get_realized (widget))
+    return;
 
   if (changed_platform & GTK_ACCESSIBLE_PLATFORM_CHANGE_FOCUSABLE)
     {
@@ -951,8 +1113,152 @@ gtk_at_spi_context_state_change (GtkATContext                *ctx,
       emit_state_changed (self, "focused", state);
     }
 }
-/* }}} */
 
+static void
+gtk_at_spi_context_bounds_change (GtkATContext *ctx)
+{
+  GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (ctx);
+  GtkAccessible *accessible = gtk_at_context_get_accessible (ctx);
+  GtkWidget *widget;
+  GtkWidget *parent;
+  double x, y;
+  int width, height;
+
+  if (!GTK_IS_WIDGET (accessible))
+    return;
+
+  widget = GTK_WIDGET (accessible);
+  if (!gtk_widget_get_realized (widget))
+    return;
+
+  parent = gtk_widget_get_parent (widget);
+
+  if (parent)
+    gtk_widget_translate_coordinates (widget, parent, 0., 0., &x, &y);
+  else
+    x = y = 0.;
+
+  width = gtk_widget_get_width (widget);
+  height = gtk_widget_get_height (widget);
+
+  emit_bounds_changed (self, (int)x, (int)y, width, height);
+}
+
+static void
+gtk_at_spi_context_child_change (GtkATContext             *ctx,
+                                 GtkAccessibleChildChange  change,
+                                 GtkAccessible            *child)
+{
+  GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (ctx);
+  GtkAccessible *accessible = gtk_at_context_get_accessible (ctx);
+  GtkATContext *child_context = gtk_accessible_get_at_context (child);
+  GtkWidget *parent_widget;
+  GtkWidget *child_widget;
+  int idx = 0;
+
+  if (!GTK_IS_WIDGET (accessible))
+    return;
+
+  if (child_context == NULL)
+    return;
+
+  /* handle the stack page special case */
+  if (GTK_IS_WIDGET (child) &&
+      GTK_IS_STACK (gtk_widget_get_parent (GTK_WIDGET (child))))
+    {
+      GtkWidget *stack;
+      GtkStackPage *page;
+      GListModel *pages;
+
+      stack = gtk_widget_get_parent (GTK_WIDGET (child));
+      page = gtk_stack_get_page (GTK_STACK (stack), GTK_WIDGET (child));
+      pages = G_LIST_MODEL (gtk_stack_get_pages (GTK_STACK (stack)));
+      idx = 0;
+      for (guint i = 0; i < g_list_model_get_n_items (pages); i++)
+        {
+          GtkStackPage *item = g_list_model_get_item (pages, i);
+
+          g_object_unref (item);
+
+          if (!gtk_accessible_should_present (GTK_ACCESSIBLE (item)))
+            continue;
+
+          if (item == page)
+            break;
+
+          idx++;
+        }
+      g_object_unref (pages);
+
+      if (change & GTK_ACCESSIBLE_CHILD_CHANGE_ADDED)
+        {
+          emit_children_changed (GTK_AT_SPI_CONTEXT (gtk_accessible_get_at_context (GTK_ACCESSIBLE (stack))),
+                                 GTK_AT_SPI_CONTEXT (gtk_accessible_get_at_context (GTK_ACCESSIBLE (page))),
+                                 idx,
+                                 GTK_ACCESSIBLE_CHILD_STATE_ADDED);
+
+          emit_children_changed (GTK_AT_SPI_CONTEXT (gtk_accessible_get_at_context (GTK_ACCESSIBLE (page))),
+                                 GTK_AT_SPI_CONTEXT (gtk_accessible_get_at_context (child)),
+                                 0,
+                                 GTK_ACCESSIBLE_CHILD_STATE_ADDED);
+        }
+
+      if (change & GTK_ACCESSIBLE_CHILD_CHANGE_REMOVED)
+        {
+          emit_children_changed (GTK_AT_SPI_CONTEXT (gtk_accessible_get_at_context (GTK_ACCESSIBLE (page))),
+                                 GTK_AT_SPI_CONTEXT (gtk_accessible_get_at_context (child)),
+                                 0,
+                                 GTK_ACCESSIBLE_CHILD_STATE_REMOVED);
+          emit_children_changed (GTK_AT_SPI_CONTEXT (gtk_accessible_get_at_context (GTK_ACCESSIBLE (stack))),
+                                 GTK_AT_SPI_CONTEXT (gtk_accessible_get_at_context (GTK_ACCESSIBLE (page))),
+                                 idx,
+                                 GTK_ACCESSIBLE_CHILD_STATE_REMOVED);
+
+        }
+
+      return;
+    }
+
+  parent_widget = GTK_WIDGET (accessible);
+
+  if (GTK_IS_STACK_PAGE (child))
+    child_widget = gtk_stack_page_get_child (GTK_STACK_PAGE (child));
+  else
+    child_widget = GTK_WIDGET (child);
+
+  if (gtk_widget_get_parent (child_widget) != parent_widget)
+    {
+      idx = 0;
+    }
+  else
+    {
+      for (GtkWidget *iter = gtk_widget_get_first_child (parent_widget);
+           iter != NULL;
+           iter = gtk_widget_get_next_sibling (iter))
+        {
+          if (!gtk_accessible_should_present (GTK_ACCESSIBLE (iter)))
+            continue;
+
+          if (iter == child_widget)
+            break;
+
+          idx += 1;
+        }
+    }
+
+  if (change & GTK_ACCESSIBLE_CHILD_CHANGE_ADDED)
+    emit_children_changed (self,
+                           GTK_AT_SPI_CONTEXT (child_context),
+                           idx,
+                           GTK_ACCESSIBLE_CHILD_STATE_ADDED);
+  else if (change & GTK_ACCESSIBLE_CHILD_CHANGE_REMOVED)
+    emit_children_changed (self,
+                           GTK_AT_SPI_CONTEXT (child_context),
+                           idx,
+                           GTK_ACCESSIBLE_CHILD_STATE_REMOVED);
+}
+/* }}} */
+/* {{{ D-Bus Registration */
 static void
 gtk_at_spi_context_register_object (GtkAtSpiContext *self)
 {
@@ -970,6 +1276,21 @@ gtk_at_spi_context_register_object (GtkAtSpiContext *self)
                                          NULL,
                                          NULL);
   self->n_registered_objects++;
+
+  vtable = gtk_atspi_get_component_vtable (accessible);
+  if (vtable)
+    {
+      g_variant_builder_add (&interfaces, "s", atspi_component_interface.name);
+      self->registration_ids[self->n_registered_objects] =
+          g_dbus_connection_register_object (self->connection,
+                                             self->context_path,
+                                             (GDBusInterfaceInfo *) &atspi_component_interface,
+                                             vtable,
+                                             self,
+                                             NULL,
+                                             NULL);
+      self->n_registered_objects++;
+    }
 
   vtable = gtk_atspi_get_text_vtable (accessible);
   if (vtable)
@@ -1050,6 +1371,10 @@ gtk_at_spi_context_register_object (GtkAtSpiContext *self)
     }
 
   self->interfaces = g_variant_ref_sink (g_variant_builder_end (&interfaces));
+
+  GTK_NOTE (A11Y, g_message ("Registered %d interfaces on object path '%s'",
+                             self->n_registered_objects,
+                             self->context_path));
 }
 
 static void
@@ -1063,24 +1388,14 @@ gtk_at_spi_context_unregister_object (GtkAtSpiContext *self)
       self->registration_ids[self->n_registered_objects] = 0;
     }
 }
-
-static void
-gtk_at_spi_context_dispose (GObject *gobject)
-{
-  GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (gobject);
-  GtkAccessible *accessible = gtk_at_context_get_accessible (GTK_AT_CONTEXT (self));
-
-  gtk_at_spi_context_unregister_object (self);
-  gtk_atspi_disconnect_text_signals (accessible);
-  gtk_atspi_disconnect_selection_signals (accessible);
-
-  G_OBJECT_CLASS (gtk_at_spi_context_parent_class)->dispose (gobject);
-}
-
+/* }}} */
+/* {{{ GObject boilerplate */
 static void
 gtk_at_spi_context_finalize (GObject *gobject)
 {
   GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (gobject);
+
+  gtk_at_spi_context_unregister_object (self);
 
   g_free (self->bus_address);
   g_free (self->context_path);
@@ -1131,28 +1446,9 @@ static void
 gtk_at_spi_context_constructed (GObject *gobject)
 {
   GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (gobject);
-  GdkDisplay *display;
+  GdkDisplay *display = gtk_at_context_get_display (GTK_AT_CONTEXT (self));
 
   g_assert (self->bus_address);
-
-  /* Every GTK application has a single root AT-SPI object, which
-   * handles all the global state, including the cache of accessible
-   * objects. We use the GdkDisplay to store it, so it's guaranteed
-   * to be unique per-display connection
-   */
-  display = gtk_at_context_get_display (GTK_AT_CONTEXT (self));
-  self->root =
-    g_object_get_data (G_OBJECT (display), "-gtk-atspi-root");
-
-  if (self->root == NULL)
-    {
-      self->root = gtk_at_spi_root_new (self->bus_address);
-      g_object_set_data_full (G_OBJECT (display), "-gtk-atspi-root",
-                              self->root,
-                              g_object_unref);
-    }
-
-  self->connection = gtk_at_spi_root_get_connection (self->root);
 
   /* We use the application's object path to build the path of each
    * accessible object exposed on the accessibility bus; the path is
@@ -1193,7 +1489,39 @@ gtk_at_spi_context_constructed (GObject *gobject)
   g_free (base_path);
   g_free (uuid);
 
-  GtkAccessible *accessible = gtk_at_context_get_accessible (GTK_AT_CONTEXT (self));
+  /* Every GTK application has a single root AT-SPI object, which
+   * handles all the global state, including the cache of accessible
+   * objects. We use the GdkDisplay to store it, so it's guaranteed
+   * to be unique per-display connection
+   */
+  self->root =
+    g_object_get_data (G_OBJECT (display), "-gtk-atspi-root");
+
+  if (self->root == NULL)
+    {
+      self->root = gtk_at_spi_root_new (self->bus_address);
+      g_object_set_data_full (G_OBJECT (display), "-gtk-atspi-root",
+                              self->root,
+                              g_object_unref);
+    }
+
+  G_OBJECT_CLASS (gtk_at_spi_context_parent_class)->constructed (gobject);
+}
+
+static void
+gtk_at_spi_context_realize (GtkATContext *context)
+{
+  GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (context);
+
+  self->connection = gtk_at_spi_root_get_connection (self->root);
+  if (self->connection == NULL)
+    return;
+
+  GtkAccessible *accessible = gtk_at_context_get_accessible (context);
+  GTK_NOTE (A11Y, g_message ("Realizing ATSPI context at '%s' for accessible '%s'",
+                             self->context_path,
+                             G_OBJECT_TYPE_NAME (accessible)));
+
   gtk_atspi_connect_text_signals (accessible,
                                   (GtkAtspiTextChangedCallback *)emit_text_changed,
                                   (GtkAtspiTextSelectionCallback *)emit_text_selection_changed,
@@ -1203,7 +1531,25 @@ gtk_at_spi_context_constructed (GObject *gobject)
                                        self);
   gtk_at_spi_context_register_object (self);
 
-  G_OBJECT_CLASS (gtk_at_spi_context_parent_class)->constructed (gobject);
+  gtk_at_spi_root_queue_register (self->root);
+}
+
+static void
+gtk_at_spi_context_unrealize (GtkATContext *context)
+{
+  GtkAtSpiContext *self = GTK_AT_SPI_CONTEXT (context);
+  GtkAccessible *accessible = gtk_at_context_get_accessible (context);
+
+  GTK_NOTE (A11Y, g_message ("Unrealizing ATSPI context at '%s' for accessible '%s'",
+                             self->context_path,
+                             G_OBJECT_TYPE_NAME (accessible)));
+
+  /* Notify ATs that the accessible object is going away */
+  emit_defunct (self);
+
+  gtk_atspi_disconnect_text_signals (accessible);
+  gtk_atspi_disconnect_selection_signals (accessible);
+  gtk_at_spi_context_unregister_object (self);
 }
 
 static void
@@ -1216,9 +1562,13 @@ gtk_at_spi_context_class_init (GtkAtSpiContextClass *klass)
   gobject_class->set_property = gtk_at_spi_context_set_property;
   gobject_class->get_property = gtk_at_spi_context_get_property;
   gobject_class->finalize = gtk_at_spi_context_finalize;
-  gobject_class->dispose = gtk_at_spi_context_dispose;
 
+  context_class->realize = gtk_at_spi_context_realize;
+  context_class->unrealize = gtk_at_spi_context_unrealize;
   context_class->state_change = gtk_at_spi_context_state_change;
+  context_class->platform_change = gtk_at_spi_context_platform_change;
+  context_class->bounds_change = gtk_at_spi_context_bounds_change;
+  context_class->child_change = gtk_at_spi_context_child_change;
 
   obj_props[PROP_BUS_ADDRESS] =
     g_param_spec_string ("bus-address", NULL, NULL,
@@ -1234,7 +1584,8 @@ static void
 gtk_at_spi_context_init (GtkAtSpiContext *self)
 {
 }
-
+/* }}} */
+/* {{{ Bus address discovery */
 #ifdef GDK_WINDOWING_X11
 static char *
 get_bus_address_x11 (GdkDisplay *display)
@@ -1380,7 +1731,8 @@ get_bus_address (GdkDisplay *display)
 out:
   return bus_address;
 }
-
+/* }}} */
+/* {{{ API */
 GtkATContext *
 gtk_at_spi_create_context (GtkAccessibleRole  accessible_role,
                            GtkAccessible     *accessible,
@@ -1438,5 +1790,6 @@ gtk_at_spi_context_to_ref (GtkAtSpiContext *self)
   const char *name = g_dbus_connection_get_unique_name (self->connection);
   return g_variant_new ("(so)", name, self->context_path);
 }
+/* }}} */
 
 /* vim:set foldmethod=marker expandtab: */

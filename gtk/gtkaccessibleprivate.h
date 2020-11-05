@@ -40,11 +40,17 @@ GtkATContext *  gtk_accessible_get_at_context   (GtkAccessible *self);
 const char *    gtk_accessible_role_to_name     (GtkAccessibleRole  role,
                                                  const char        *domain);
 
+gboolean        gtk_accessible_should_present   (GtkAccessible     *self);
+
 void            gtk_accessible_platform_changed (GtkAccessible                *self,
                                                  GtkAccessiblePlatformChange   change);
 gboolean        gtk_accessible_get_platform_state (GtkAccessible              *self,
                                                    GtkAccessiblePlatformState  state);
 
-gboolean        gtk_accessible_should_present   (GtkAccessible     *self);
+void            gtk_accessible_bounds_changed   (GtkAccessible *self);
+
+void            gtk_accessible_update_children  (GtkAccessible           *self,
+                                                 GtkAccessible           *child,
+                                                 GtkAccessibleChildState  state);
 
 G_END_DECLS

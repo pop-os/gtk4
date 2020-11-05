@@ -80,6 +80,16 @@ gtk_at_context_finalize (GObject *gobject)
 }
 
 static void
+gtk_at_context_dispose (GObject *gobject)
+{
+  GtkATContext *self = GTK_AT_CONTEXT (gobject);
+
+  gtk_at_context_unrealize (self);
+
+  G_OBJECT_CLASS (gtk_at_context_parent_class)->dispose (gobject);
+}
+
+static void
 gtk_at_context_set_property (GObject      *gobject,
                              guint         prop_id,
                              const GValue *value,
@@ -90,7 +100,10 @@ gtk_at_context_set_property (GObject      *gobject,
   switch (prop_id)
     {
     case PROP_ACCESSIBLE_ROLE:
-      self->accessible_role = g_value_get_enum (value);
+      if (!self->realized)
+        self->accessible_role = g_value_get_enum (value);
+      else
+        g_critical ("The accessible role cannot be set on a realized AT context");
       break;
 
     case PROP_ACCESSIBLE:
@@ -138,10 +151,37 @@ gtk_at_context_real_state_change (GtkATContext                *self,
                                   GtkAccessibleStateChange     changed_states,
                                   GtkAccessiblePropertyChange  changed_properties,
                                   GtkAccessibleRelationChange  changed_relations,
-                                  GtkAccessiblePlatformChange  changed_platform,
                                   GtkAccessibleAttributeSet   *states,
                                   GtkAccessibleAttributeSet   *properties,
                                   GtkAccessibleAttributeSet   *relations)
+{
+}
+
+static void
+gtk_at_context_real_platform_change (GtkATContext                *self,
+                                     GtkAccessiblePlatformChange  change)
+{
+}
+
+static void
+gtk_at_context_real_bounds_change (GtkATContext *self)
+{
+}
+
+static void
+gtk_at_context_real_child_change (GtkATContext             *self,
+                                  GtkAccessibleChildChange  change,
+                                  GtkAccessible            *child)
+{
+}
+
+static void
+gtk_at_context_real_realize (GtkATContext *self)
+{
+}
+
+static void
+gtk_at_context_real_unrealize (GtkATContext *self)
 {
 }
 
@@ -152,9 +192,15 @@ gtk_at_context_class_init (GtkATContextClass *klass)
 
   gobject_class->set_property = gtk_at_context_set_property;
   gobject_class->get_property = gtk_at_context_get_property;
+  gobject_class->dispose = gtk_at_context_dispose;
   gobject_class->finalize = gtk_at_context_finalize;
 
+  klass->realize = gtk_at_context_real_realize;
+  klass->unrealize = gtk_at_context_real_unrealize;
   klass->state_change = gtk_at_context_real_state_change;
+  klass->platform_change = gtk_at_context_real_platform_change;
+  klass->bounds_change = gtk_at_context_real_bounds_change;
+  klass->child_change = gtk_at_context_real_child_change;
 
   /**
    * GtkATContext:accessible-role:
@@ -171,7 +217,7 @@ gtk_at_context_class_init (GtkATContextClass *klass)
                        GTK_TYPE_ACCESSIBLE_ROLE,
                        GTK_ACCESSIBLE_ROLE_NONE,
                        G_PARAM_READWRITE |
-                       G_PARAM_CONSTRUCT_ONLY |
+                       G_PARAM_CONSTRUCT |
                        G_PARAM_STATIC_STRINGS);
 
   /**
@@ -491,6 +537,36 @@ gtk_at_context_create (GtkAccessibleRole  accessible_role,
   return res;
 }
 
+gboolean
+gtk_at_context_is_realized (GtkATContext *self)
+{
+  return self->realized;
+}
+
+void
+gtk_at_context_realize (GtkATContext *self)
+{
+  if (self->realized)
+    return;
+
+  GTK_NOTE (A11Y, g_message ("Realizing AT context '%s'", G_OBJECT_TYPE_NAME (self)));
+  GTK_AT_CONTEXT_GET_CLASS (self)->realize (self);
+
+  self->realized = TRUE;
+}
+
+void
+gtk_at_context_unrealize (GtkATContext *self)
+{
+  if (!self->realized)
+    return;
+
+  GTK_NOTE (A11Y, g_message ("Unrealizing AT context '%s'", G_OBJECT_TYPE_NAME (self)));
+  GTK_AT_CONTEXT_GET_CLASS (self)->unrealize (self);
+
+  self->realized = FALSE;
+}
+
 /*< private >
  * gtk_at_context_update:
  * @self: a #GtkATContext
@@ -503,11 +579,13 @@ gtk_at_context_update (GtkATContext *self)
 {
   g_return_if_fail (GTK_IS_AT_CONTEXT (self));
 
+  if (!self->realized)
+    return;
+
   /* There's no point in notifying of state changes if there weren't any */
   if (self->updated_properties == 0 &&
       self->updated_relations == 0 &&
-      self->updated_states == 0 &&
-      self->updated_platform == 0)
+      self->updated_states == 0)
     return;
 
   GtkAccessibleStateChange changed_states =
@@ -519,14 +597,12 @@ gtk_at_context_update (GtkATContext *self)
 
   GTK_AT_CONTEXT_GET_CLASS (self)->state_change (self,
                                                  changed_states, changed_properties, changed_relations,
-                                                 self->updated_platform,
                                                  self->states, self->properties, self->relations);
   g_signal_emit (self, obj_signals[STATE_CHANGE], 0);
 
   self->updated_properties = 0;
   self->updated_relations = 0;
   self->updated_states = 0;
-  self->updated_platform = 0;
 }
 
 /*< private >
@@ -730,47 +806,34 @@ gtk_at_context_get_accessible_relation (GtkATContext          *self,
   return gtk_accessible_attribute_set_get_value (self->relations, relation);
 }
 
-/*< private >
- * gtk_at_context_get_label:
- * @self: a #GtkATContext
- *
- * Retrieves the accessible label of the #GtkATContext.
- *
- * This is a convenience function meant to be used by #GtkATContext implementations.
- *
- * Returns: (transfer full): the label of the #GtkATContext
- */
-char *
-gtk_at_context_get_label (GtkATContext *self)
+/* See the WAI-ARIA § 4.3, "Accessible Name and Description Computation" */
+static void
+gtk_at_context_get_name_accumulate (GtkATContext *self,
+                                    GPtrArray    *names,
+                                    gboolean      recurse)
 {
-  g_return_val_if_fail (GTK_IS_AT_CONTEXT (self), NULL);
-
   GtkAccessibleValue *value = NULL;
-
-  if (gtk_accessible_attribute_set_contains (self->states, GTK_ACCESSIBLE_STATE_HIDDEN))
-    {
-      value = gtk_accessible_attribute_set_get_value (self->states, GTK_ACCESSIBLE_STATE_HIDDEN);
-
-      if (gtk_boolean_accessible_value_get (value))
-        return g_strdup ("");
-    }
 
   if (gtk_accessible_attribute_set_contains (self->properties, GTK_ACCESSIBLE_PROPERTY_LABEL))
     {
       value = gtk_accessible_attribute_set_get_value (self->properties, GTK_ACCESSIBLE_PROPERTY_LABEL);
 
-      return g_strdup (gtk_string_accessible_value_get (value));
+      g_ptr_array_add (names, (char *) gtk_string_accessible_value_get (value));
     }
 
-  if (gtk_accessible_attribute_set_contains (self->relations, GTK_ACCESSIBLE_RELATION_LABELLED_BY))
+  if (recurse && gtk_accessible_attribute_set_contains (self->relations, GTK_ACCESSIBLE_RELATION_LABELLED_BY))
     {
       value = gtk_accessible_attribute_set_get_value (self->relations, GTK_ACCESSIBLE_RELATION_LABELLED_BY);
 
       GList *list = gtk_reference_list_accessible_value_get (value);
-      GtkAccessible *rel = GTK_ACCESSIBLE (list->data);
-      GtkATContext *rel_context = gtk_accessible_get_at_context (rel);
 
-      return gtk_at_context_get_label (rel_context);
+      for (GList *l = list; l != NULL; l = l->next)
+        {
+          GtkAccessible *rel = GTK_ACCESSIBLE (l->data);
+          GtkATContext *rel_context = gtk_accessible_get_at_context (rel);
+
+          gtk_at_context_get_name_accumulate (rel_context, names, FALSE);
+        }
     }
 
   GtkAccessibleRole role = gtk_at_context_get_accessible_role (self);
@@ -784,6 +847,7 @@ gtk_at_context_get_label (GtkATContext *self)
           GTK_ACCESSIBLE_PROPERTY_VALUE_NOW,
         };
 
+        value = NULL;
         for (int i = 0; i < G_N_ELEMENTS (range_attrs); i++)
           {
             if (gtk_accessible_attribute_set_contains (self->properties, range_attrs[i]))
@@ -794,7 +858,7 @@ gtk_at_context_get_label (GtkATContext *self)
           }
 
         if (value != NULL)
-          return g_strdup (gtk_string_accessible_value_get (value));
+          g_ptr_array_add (names, (char *) gtk_string_accessible_value_get (value));
       }
       break;
 
@@ -802,18 +866,200 @@ gtk_at_context_get_label (GtkATContext *self)
       break;
     }
 
-  GEnumClass *enum_class = g_type_class_peek (GTK_TYPE_ACCESSIBLE_ROLE);
-  GEnumValue *enum_value = g_enum_get_value (enum_class, role);
+  /* If there is no label or labelled-by attribute, hidden elements
+   * have no name
+   */
+  if (gtk_accessible_attribute_set_contains (self->states, GTK_ACCESSIBLE_STATE_HIDDEN))
+    {
+      value = gtk_accessible_attribute_set_get_value (self->states, GTK_ACCESSIBLE_STATE_HIDDEN);
 
-  if (enum_value != NULL)
-    return g_strdup (enum_value->value_nick);
+      if (gtk_boolean_accessible_value_get (value))
+        return;
+    }
 
-  return g_strdup ("widget");
+  /* This fallback is in place only for unlabelled elements */
+  if (names->len != 0)
+    return;
+
+  if (self->accessible)
+    g_ptr_array_add (names, (char *)G_OBJECT_TYPE_NAME (self->accessible));
+}
+
+static void
+gtk_at_context_get_description_accumulate (GtkATContext *self,
+                                           GPtrArray    *labels,
+                                           gboolean      recurse)
+{
+  GtkAccessibleValue *value = NULL;
+
+  if (gtk_accessible_attribute_set_contains (self->properties, GTK_ACCESSIBLE_PROPERTY_DESCRIPTION))
+    {
+      value = gtk_accessible_attribute_set_get_value (self->properties, GTK_ACCESSIBLE_PROPERTY_DESCRIPTION);
+
+      g_ptr_array_add (labels, (char *) gtk_string_accessible_value_get (value));
+    }
+
+  if (recurse && gtk_accessible_attribute_set_contains (self->relations, GTK_ACCESSIBLE_RELATION_DESCRIBED_BY))
+    {
+      value = gtk_accessible_attribute_set_get_value (self->relations, GTK_ACCESSIBLE_RELATION_DESCRIBED_BY);
+
+      GList *list = gtk_reference_list_accessible_value_get (value);
+
+      for (GList *l = list; l != NULL; l = l->data)
+        {
+          GtkAccessible *rel = GTK_ACCESSIBLE (l->data);
+          GtkATContext *rel_context = gtk_accessible_get_at_context (rel);
+
+          gtk_at_context_get_description_accumulate (rel_context, labels, FALSE);
+        }
+    }
+
+  GtkAccessibleRole role = gtk_at_context_get_accessible_role (self);
+
+  switch ((int) role)
+    {
+    case GTK_ACCESSIBLE_ROLE_RANGE:
+      {
+        int range_attrs[] = {
+          GTK_ACCESSIBLE_PROPERTY_VALUE_TEXT,
+          GTK_ACCESSIBLE_PROPERTY_VALUE_NOW,
+        };
+
+        value = NULL;
+        for (int i = 0; i < G_N_ELEMENTS (range_attrs); i++)
+          {
+            if (gtk_accessible_attribute_set_contains (self->properties, range_attrs[i]))
+              {
+                value = gtk_accessible_attribute_set_get_value (self->properties, range_attrs[i]);
+                break;
+              }
+          }
+
+        if (value != NULL)
+          g_ptr_array_add (labels, (char *) gtk_string_accessible_value_get (value));
+      }
+      break;
+
+    default:
+      break;
+    }
+
+  /* If there is no description or described-by attribute, hidden elements
+   * have no description
+   */
+  if (gtk_accessible_attribute_set_contains (self->states, GTK_ACCESSIBLE_STATE_HIDDEN))
+    {
+      value = gtk_accessible_attribute_set_get_value (self->states, GTK_ACCESSIBLE_STATE_HIDDEN);
+
+      if (gtk_boolean_accessible_value_get (value))
+        return;
+    }
+}
+
+/*< private >
+ * gtk_at_context_get_name:
+ * @self: a #GtkATContext
+ *
+ * Retrieves the accessible name of the #GtkATContext.
+ *
+ * This is a convenience function meant to be used by #GtkATContext implementations.
+ *
+ * Returns: (transfer full): the label of the #GtkATContext
+ */
+char *
+gtk_at_context_get_name (GtkATContext *self)
+{
+  g_return_val_if_fail (GTK_IS_AT_CONTEXT (self), NULL);
+
+  GPtrArray *names = g_ptr_array_new ();
+
+  gtk_at_context_get_name_accumulate (self, names, TRUE);
+
+  if (names->len == 0)
+    {
+      g_ptr_array_unref (names);
+      return g_strdup ("");
+    }
+
+  GString *res = g_string_new ("");
+  g_string_append (res, g_ptr_array_index (names, 0));
+
+  for (guint i = 1; i < names->len; i++)
+    {
+      g_string_append (res, " ");
+      g_string_append (res, g_ptr_array_index (names, i));
+    }
+
+  g_ptr_array_unref (names);
+
+  return g_string_free (res, FALSE);
+}
+
+/*< private >
+ * gtk_at_context_get_description:
+ * @self: a #GtkATContext
+ *
+ * Retrieves the accessible description of the #GtkATContext.
+ *
+ * This is a convenience function meant to be used by #GtkATContext implementations.
+ *
+ * Returns: (transfer full): the label of the #GtkATContext
+ */
+char *
+gtk_at_context_get_description (GtkATContext *self)
+{
+  g_return_val_if_fail (GTK_IS_AT_CONTEXT (self), NULL);
+
+  GPtrArray *names = g_ptr_array_new ();
+
+  gtk_at_context_get_description_accumulate (self, names, TRUE);
+
+  if (names->len == 0)
+    {
+      g_ptr_array_unref (names);
+      return g_strdup ("");
+    }
+
+  GString *res = g_string_new ("");
+  g_string_append (res, g_ptr_array_index (names, 0));
+
+  for (guint i = 1; i < names->len; i++)
+    {
+      g_string_append (res, " ");
+      g_string_append (res, g_ptr_array_index (names, i));
+    }
+
+  g_ptr_array_unref (names);
+
+  return g_string_free (res, FALSE);
 }
 
 void
 gtk_at_context_platform_changed (GtkATContext                *self,
                                  GtkAccessiblePlatformChange  change)
 {
-  self->updated_platform |= change;
+  if (!self->realized)
+    return;
+
+  GTK_AT_CONTEXT_GET_CLASS (self)->platform_change (self, change);
+}
+
+void
+gtk_at_context_bounds_changed (GtkATContext *self)
+{
+  if (!self->realized)
+    return;
+
+  GTK_AT_CONTEXT_GET_CLASS (self)->bounds_change (self);
+}
+
+void
+gtk_at_context_child_changed (GtkATContext             *self,
+                              GtkAccessibleChildChange  change,
+                              GtkAccessible            *child)
+{
+  if (!self->realized)
+    return;
+
+  GTK_AT_CONTEXT_GET_CLASS (self)->child_change (self, change, child);
 }

@@ -54,9 +54,16 @@ Each role name is part of the #GtkAccessibleRole enumeration.
 | `GRID_CELL` | An item in a grid | #GtkFlowBoxChild, #GtkGridView, #GtkColumnView |
 | `IMG` | An image | #GtkImage, #GtkPicture |
 | `LABEL` | A visible name or caption for a user interface component | #GtkLabel |
+| `LINK` | A clickable hyperlink | #GtkLinkButton |
 | `LIST` | A list of items | #GtkListBox |
 | `LIST_ITEM` | An item in a list | #GtkListBoxRow |
+| `MENU` | A menu | #GtkPopoverMenu |
+| `MENU_BAR` | A menubar | #GtkPopoverMenuBar |
+| `MENU_ITEM` | A menu item | Items in #GtkPopoverMenu |
+| `MENU_ITEM_CHECKBOX` | Check menu item | Items in #GtkPopoverMenu |
+| `MENU_ITEM_RADIO` | Radio menu item | Items in #GtkPopoverMenu |
 | `METER` | Represents a value within a known range | #GtkLevelBar |
+| `NONE` | Not represented in the accessibility tree | the slider of a #GtkScale |
 | `PROGRESS_BAR` | An element that display progress | #GtkProgressBar |
 | `RADIO` | A checkable input in a group of radio roles | #GtkCheckButton |
 | `ROW` | A row in a columned list | #GtkColumnView |
@@ -106,9 +113,9 @@ for instance:
 See the [WAI-ARIA](https://www.w3.org/WAI/PF/aria/appendices#quickref) list
 of attributes for additional information.
 
-#### List of accessible properties
+#### List of accessible states
 
-Each state name is part of the #GtkAccessibleProperty enumeration.
+Each state name is part of the #GtkAccessibleState enumeration.
 
 | State name | ARIA attribute | Value type | Notes |
 |------------|----------------|------------|-------|
@@ -121,9 +128,9 @@ Each state name is part of the #GtkAccessibleProperty enumeration.
 | %GTK_ACCESSIBLE_STATE_PRESSED | “aria-pressed” | #GtkAccessibleTristate | Indicates the current state of a #GtkToggleButton |
 | %GTK_ACCESSIBLE_STATE_SELECTED | “aria-selected” | boolean or undefined | Set when a widget is selected |
 
-#### List of accessible relations
+#### List of accessible properties
 
-Each state name is part of the #GtkAccessibleRelation enumeration.
+Each property name is part of the #GtkAccessibleProperty enumeration.
 
 | State name | ARIA attribute | Value type |
 |------------|----------------|------------|
@@ -147,9 +154,9 @@ Each state name is part of the #GtkAccessibleRelation enumeration.
 | %GTK_ACCESSIBLE_PROPERTY_VALUE_NOW | “aria-valuenow” | double |
 | %GTK_ACCESSIBLE_PROPERTY_VALUE_TEXT | “aria-valuetext” | translatable string |
 
-#### List of accessible states
+#### List of accessible relations
 
-Each state name is part of the #GtkAccessibleState enumeration.
+Each relation name is part of the #GtkAccessibleRelation enumeration.
 
 | State name | ARIA attribute | Value type |
 |------------|----------------|------------|
@@ -183,7 +190,7 @@ with a form to fill out, you should ensure that:
  * each text entry widget in the form has the `GTK_ACCESSIBLE_RELATION_LABELLED_BY`
    relation pointing to the label widget that describes it
 
-Another example: if you create a tool bar containing buttons with only icons,
+Another example: if you create a toolbar containing buttons with only icons,
 you should ensure that:
 
  * the container has a `GTK_ACCESSIBLE_ROLE_TOOLBAR` role
@@ -192,7 +199,7 @@ you should ensure that:
    "Paste", "Add layer", or "Remove"
 
 GTK will try to fill in some information by using ancillary UI control
-property, for instance the accessible label will be taken from the label or
+properties, for instance the accessible label will be taken from the label or
 placeholder text used by the UI control, or from its tooltip, if the
 `GTK_ACCESSIBLE_PROPERTY_LABEL` property or the `GTK_ACCESSIBLE_RELATION_LABELLED_BY`
 relation are unset. Nevertheless, it is good practice and project hygiene
@@ -220,3 +227,113 @@ which acts as a proxy to the specific platform's accessibility API:
 
 Additionally, an ad hoc accessibility backend is available for the GTK
 testsuite, to ensure reproducibility of issues in the CI pipeline.
+
+## Authoring practices {#authoring-practices}
+
+The authoring practices are aimed at application developers, as well as
+developers of GUI elements based on GTK.
+
+Functionally, #GtkAccessible roles, states, properties, and relations are
+analogous to a CSS for assistive technologies. For screen reader users, for
+instance, the various accessible attributes control the rendering of their
+non-visual experience. Incorrect roles and attributes may result in a
+completely inaccessible user interface.
+
+### A role is a promise
+
+The following code:
+
+```c
+gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_BUTTON);
+```
+
+is a promise that the widget being created will provide the same keyboard
+interactions expected for a button. An accessible role of a button will not
+turn automatically any widget into a #GtkButton; but if your widget behaves
+like a button, using the %GTK_ACCESSIBLE_ROLE_BUTTON will allow any
+assistive technology to handle it like they would a #GtkButton.
+
+### Attributes can both hide and enhance
+
+Accessible attributes can be used to override the content of a UI element,
+for instance:
+
+```c
+gtk_label_set_text (GTK_LABEL (label), "Some text");
+gtk_accessible_update_property (GTK_ACCESSIBLE (label),
+				GTK_ACCESSIBLE_PROPERTY_LABEL,
+				"Assistive technologies users will perceive "
+				"this text, not the contents of the label",
+				-1);
+```
+
+In the example above, the "label" property will override the contents of the
+label widget.
+
+The attributes can also enhance the UI:
+
+```c
+gtk_button_set_label (GTK_BUTTON (button), "Download");
+gtk_box_append (GTK_BOX (button), button);
+
+gtk_label_set_text (GTK_LABEL (label), "Final report.pdf");
+gtk_box_append (GTK_BOX (box), label);
+
+gtk_accessible_update_relation (GTK_ACCESSIBLE (button),
+				GTK_ACCESSIBLE_RELATION_LABELLED_BY,
+				g_list_append (NULL, label),
+				-1);
+```
+
+In the example above, an assistive technology will read the button's
+accessible label as "Download Final report.pdf".
+
+The power of hiding and enhancing can be a double-edged sword, as it can
+lead to inadvertently overriding the accessible semantics of existing
+widgets.
+
+## Design patterns and custom widgets
+
+When creating custom widgets, following established patterns can help
+ensuring that the widgets work well for users of accessible technologies
+as well.
+
+### Custom entries
+
+For custom entries, it is highly recommended that you implement the
+#GtkEditable interface by using a #GtkText widget as delegate. If you
+do this, GTK will make your widgets text editing functionality accessible
+in the same way as a #GtkSpinButton or #GtkSearchEntry.
+
+### Tab-based UI
+
+If you make a tab-based interface, you should consider using #GtkStack
+as the core, and just make a custom tab widget to control the active
+stack page. When doing so, the following extra steps will ensure that
+your tabs are accessible in the same way as #GtkStackSwitcher or #GtkNotebook:
+
+- Give your tab container the role %GTK_ACCESSIBLE_ROLE_TAB_LIST
+- Give your tab widgets the role %GTK_ACCESSIBLE_ROLE_TAB
+- Set up the %GTK_ACCESSIBLE_RELATION_CONTROLS relation between each
+  tab and the #GtkStackPage object for its page
+- Set the %GTK_ACCESSIBLE_PROPERTY_SELECTED property on each tab, with
+  the active tab getting the value %TRUE, all others %FALSE
+
+To allow changing the active tab via accessible technologies, you can
+export actions. Since the accessibility interfaces only support actions
+without parameters, you can either provide `previous-tab` and `next-tab`
+actions on the tab container that let users step through the tabs one-by-one,
+or add a `activate-tab` action on each tab.
+
+### Value controls
+
+A value control (ie a widget that controls a one-dimensional quantity
+that can be represented by a #GtkAdjustment) can be represented to
+accessible technologies by setting the %GTK_ACCESSIBLE_PROPERTY_VALUE_MIN,
+%GTK_ACCESSIBLE_PROPERTY_VALUE_MAX, and %GTK_ACCESSIBLE_PROPERTY_VALUE_NOW
+properties.
+
+To allow changing the value via accessible technologies, you can export
+actions.  Since the accessibility interfaces only support actions
+without parameters, you should provide actions such as `increase-value`
+and `decrease-value`.

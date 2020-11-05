@@ -17,6 +17,7 @@
 #include <glib/gstdio.h>
 #include <stdio.h>
 #include <errno.h>
+#include "pixbufpaintable.h"
 
 static GtkWidget *window = NULL;
 static GdkPixbufLoader *pixbuf_loader = NULL;
@@ -56,6 +57,7 @@ progressive_updated_callback (GdkPixbufLoader *loader,
   picture = GTK_WIDGET (data);
 
   pixbuf = gdk_pixbuf_loader_get_pixbuf (loader);
+  gtk_picture_set_pixbuf (GTK_PICTURE (picture), NULL);
   gtk_picture_set_pixbuf (GTK_PICTURE (picture), pixbuf);
 }
 
@@ -262,7 +264,7 @@ start_progressive_loading (GtkWidget *picture)
    * The timeout simply simulates a slow data source by inserting
    * pauses in the reading process.
    */
-  load_timeout = g_timeout_add (1500, progressive_timeout, picture);
+  load_timeout = g_timeout_add (300, progressive_timeout, picture);
   g_source_set_name_by_id (load_timeout, "[gtk] progressive_timeout");
 }
 
@@ -345,9 +347,8 @@ do_images (GtkWidget *do_widget)
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
       gtk_box_append (GTK_BOX (hbox), vbox);
 
-      label = gtk_label_new (NULL);
-      gtk_label_set_markup (GTK_LABEL (label),
-                            "<u>Image loaded from a file</u>");
+      label = gtk_label_new ("Image from a resource");
+      gtk_widget_add_css_class (label, "heading");
       gtk_box_append (GTK_BOX (vbox), label);
 
       frame = gtk_frame_new (NULL);
@@ -355,7 +356,7 @@ do_images (GtkWidget *do_widget)
       gtk_widget_set_valign (frame, GTK_ALIGN_CENTER);
       gtk_box_append (GTK_BOX (vbox), frame);
 
-      image = gtk_image_new_from_icon_name ("gtk3-demo");
+      image = gtk_image_new_from_resource ("/images/org.gtk.Demo4.svg");
       gtk_image_set_icon_size (GTK_IMAGE (image), GTK_ICON_SIZE_LARGE);
 
       gtk_frame_set_child (GTK_FRAME (frame), image);
@@ -363,9 +364,8 @@ do_images (GtkWidget *do_widget)
 
       /* Animation */
 
-      label = gtk_label_new (NULL);
-      gtk_label_set_markup (GTK_LABEL (label),
-                            "<u>Animation loaded from a file</u>");
+      label = gtk_label_new ("Animation from a resource");
+      gtk_widget_add_css_class (label, "heading");
       gtk_box_append (GTK_BOX (vbox), label);
 
       frame = gtk_frame_new (NULL);
@@ -373,15 +373,16 @@ do_images (GtkWidget *do_widget)
       gtk_widget_set_valign (frame, GTK_ALIGN_CENTER);
       gtk_box_append (GTK_BOX (vbox), frame);
 
-      picture = gtk_picture_new_for_resource ("/images/floppybuddy.gif");
+      paintable = pixbuf_paintable_new_from_resource ("/images/floppybuddy.gif");
+      picture = gtk_picture_new_for_paintable (paintable);
+      g_object_unref (paintable);
 
       gtk_frame_set_child (GTK_FRAME (frame), picture);
 
       /* Symbolic icon */
 
-      label = gtk_label_new (NULL);
-      gtk_label_set_markup (GTK_LABEL (label),
-                            "<u>Symbolic themed icon</u>");
+      label = gtk_label_new ("Symbolic themed icon");
+      gtk_widget_add_css_class (label, "heading");
       gtk_box_append (GTK_BOX (vbox), label);
 
       frame = gtk_frame_new (NULL);
@@ -400,9 +401,8 @@ do_images (GtkWidget *do_widget)
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
       gtk_box_append (GTK_BOX (hbox), vbox);
 
-      label = gtk_label_new (NULL);
-      gtk_label_set_markup (GTK_LABEL (label),
-                            "<u>Progressive image loading</u>");
+      label = gtk_label_new ("Progressive image loading");
+      gtk_widget_add_css_class (label, "heading");
       gtk_box_append (GTK_BOX (vbox), label);
 
       frame = gtk_frame_new (NULL);
@@ -414,6 +414,7 @@ do_images (GtkWidget *do_widget)
        * will create the pixbuf and fill it in.
        */
       picture = gtk_picture_new ();
+      gtk_picture_set_alternative_text (GTK_PICTURE (picture), "A slowly loading image");
       gtk_frame_set_child (GTK_FRAME (frame), picture);
 
       start_progressive_loading (picture);
@@ -422,9 +423,8 @@ do_images (GtkWidget *do_widget)
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
       gtk_box_append (GTK_BOX (hbox), vbox);
 
-      label = gtk_label_new (NULL);
-      gtk_label_set_markup (GTK_LABEL (label),
-                            "<u>Displaying video</u>");
+      label = gtk_label_new ("Displaying video");
+      gtk_widget_add_css_class (label, "heading");
       gtk_box_append (GTK_BOX (vbox), label);
 
       frame = gtk_frame_new (NULL);
@@ -440,9 +440,8 @@ do_images (GtkWidget *do_widget)
       vbox = gtk_box_new (GTK_ORIENTATION_VERTICAL, 8);
       gtk_box_append (GTK_BOX (hbox), vbox);
 
-      label = gtk_label_new (NULL);
-      gtk_label_set_markup (GTK_LABEL (label),
-                            "<u>GtkWidgetPaintable</u>");
+      label = gtk_label_new ("GtkWidgetPaintable");
+      gtk_widget_add_css_class (label, "heading");
       gtk_box_append (GTK_BOX (vbox), label);
 
       paintable = gtk_widget_paintable_new (do_widget);

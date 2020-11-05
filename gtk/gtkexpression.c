@@ -1026,7 +1026,7 @@ gtk_object_expression_new (GObject *object)
  *
  * Gets the object that the expression evaluates to.
  *
- * Returns: (transfer none): the object, or %NULL
+ * Returns: (transfer none) (nullable): the object, or %NULL
  */
 GObject *
 gtk_object_expression_get_object (GtkExpression *expression)
@@ -1283,13 +1283,13 @@ gtk_property_expression_new (GType          this_type,
 {
   GParamSpec *pspec;
 
-  if (g_type_is_a (this_type, G_TYPE_OBJECT))
+  if (g_type_fundamental (this_type) == G_TYPE_OBJECT)
     {
       GObjectClass *class = g_type_class_ref (this_type);
       pspec = g_object_class_find_property (class, property_name);
       g_type_class_unref (class);
     }
-  else if (g_type_is_a (this_type, G_TYPE_INTERFACE))
+  else if (g_type_fundamental (this_type) == G_TYPE_INTERFACE)
     {
       GTypeInterface *iface = g_type_default_interface_ref (this_type);
       pspec = g_object_interface_find_property (iface, property_name);

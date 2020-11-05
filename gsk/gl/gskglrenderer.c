@@ -344,16 +344,16 @@ node_supports_transform (GskRenderNode *node)
 }
 
 static inline void
-load_vertex_data_with_region (GskQuadVertex        vertex_data[GL_N_VERTICES],
-                              GskRenderNode       *node,
-                              RenderOpBuilder     *builder,
-                              const TextureRegion *r,
-                              gboolean             flip_y)
+load_vertex_data_with_region (GskQuadVertex          vertex_data[GL_N_VERTICES],
+                              const graphene_rect_t *bounds,
+                              RenderOpBuilder       *builder,
+                              const TextureRegion   *r,
+                              gboolean               flip_y)
 {
-  const float min_x = builder->dx + node->bounds.origin.x;
-  const float min_y = builder->dy + node->bounds.origin.y;
-  const float max_x = min_x + node->bounds.size.width;
-  const float max_y = min_y + node->bounds.size.height;
+  const float min_x = builder->dx + bounds->origin.x;
+  const float min_y = builder->dy + bounds->origin.y;
+  const float max_x = min_x + bounds->size.width;
+  const float max_y = min_y + bounds->size.height;
   const float y1 = flip_y ? r->y2 : r->y;
   const float y2 = flip_y ? r->y  : r->y2;
 
@@ -388,15 +388,18 @@ load_vertex_data_with_region (GskQuadVertex        vertex_data[GL_N_VERTICES],
   vertex_data[5].uv[1] = y1;
 }
 
-static void
-load_vertex_data (GskQuadVertex    vertex_data[GL_N_VERTICES],
-                  GskRenderNode   *node,
-                  RenderOpBuilder *builder)
+static inline void
+load_float_vertex_data (GskQuadVertex    vertex_data[GL_N_VERTICES],
+                        RenderOpBuilder *builder,
+                        float            x,
+                        float            y,
+                        float            width,
+                        float            height)
 {
-  const float min_x = builder->dx + node->bounds.origin.x;
-  const float min_y = builder->dy + node->bounds.origin.y;
-  const float max_x = min_x + node->bounds.size.width;
-  const float max_y = min_y + node->bounds.size.height;
+  const float min_x = builder->dx + x;
+  const float min_y = builder->dy + y;
+  const float max_x = min_x + width;
+  const float max_y = min_y + height;
 
   vertex_data[0].position[0] = min_x;
   vertex_data[0].position[1] = min_y;
@@ -427,6 +430,16 @@ load_vertex_data (GskQuadVertex    vertex_data[GL_N_VERTICES],
   vertex_data[5].position[1] = min_y;
   vertex_data[5].uv[0] = 1;
   vertex_data[5].uv[1] = 0;
+}
+
+static void
+load_vertex_data (GskQuadVertex          vertex_data[GL_N_VERTICES],
+                  const graphene_rect_t *bounds,
+                  RenderOpBuilder       *builder)
+{
+  load_float_vertex_data (vertex_data, builder,
+                          bounds->origin.x, bounds->origin.y,
+                          bounds->size.width, bounds->size.height);
 }
 
 static void
@@ -481,6 +494,7 @@ load_offscreen_vertex_data (GskQuadVertex    vertex_data[GL_N_VERTICES],
                     min_x, min_y,
                     max_x, max_y);
 }
+
 
 static void gsk_gl_renderer_setup_render_mode (GskGLRenderer   *self);
 static gboolean add_offscreen_ops             (GskGLRenderer   *self,
@@ -567,28 +581,7 @@ init_shader_builder (GskGLRenderer       *self,
     }
 }
 
-static void G_GNUC_UNUSED
-add_rect_ops (RenderOpBuilder       *builder,
-              const graphene_rect_t *r)
-{
-  const float min_x = r->origin.x;
-  const float min_y = r->origin.y;
-  const float max_x = min_x + r->size.width;
-  const float max_y = min_y + r->size.height;
-
-  ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-    { { min_x, min_y }, { 0, 1 }, },
-    { { min_x, max_y }, { 0, 0 }, },
-    { { max_x, min_y }, { 1, 1 }, },
-
-    { { max_x, max_y }, { 1, 0 }, },
-    { { min_x, max_y }, { 0, 0 }, },
-    { { max_x, min_y }, { 1, 1 }, },
-  });
-}
-
 static GdkRGBA BLACK = {0, 0, 0, 1};
-
 static void G_GNUC_UNUSED
 add_rect_outline_ops (GskGLRenderer         *self,
                       RenderOpBuilder       *builder,
@@ -597,19 +590,20 @@ add_rect_outline_ops (GskGLRenderer         *self,
   ops_set_program (builder, &self->programs->color_program);
   ops_set_color (builder, &BLACK);
 
-  add_rect_ops (builder,
-                &GRAPHENE_RECT_INIT (rect->origin.x, rect->origin.y,
-                                     1, rect->size.height));
-  add_rect_ops (builder,
-                &GRAPHENE_RECT_INIT (rect->origin.x, rect->origin.y,
-                                     rect->size.width, 1));
-  add_rect_ops (builder,
-                &GRAPHENE_RECT_INIT (rect->origin.x + rect->size.width - 1, rect->origin.y,
-                                     1, rect->size.height));
-
-  add_rect_ops (builder,
-                &GRAPHENE_RECT_INIT (rect->origin.x, rect->origin.y + rect->size.height - 1,
-                                     rect->size.width, 1));
+  load_vertex_data (ops_draw (builder, NULL),
+                    &GRAPHENE_RECT_INIT (rect->origin.x, rect->origin.y, 1, rect->size.height),
+                    builder);
+  load_vertex_data (ops_draw (builder, NULL),
+                    &GRAPHENE_RECT_INIT (rect->origin.x, rect->origin.y, rect->size.width, 1),
+                    builder);
+  load_vertex_data (ops_draw (builder, NULL),
+                    &GRAPHENE_RECT_INIT (rect->origin.x + rect->size.width - 1,rect->origin.y,
+                                         1, rect->size.height),
+                    builder);
+  load_vertex_data (ops_draw (builder, NULL),
+                    &GRAPHENE_RECT_INIT (rect->origin.x, rect->origin.y + rect->size.height - 1,
+                                         rect->size.width, 1),
+                    builder);
 }
 
 static inline GskRoundedRect
@@ -782,8 +776,7 @@ render_text_node (GskGLRenderer   *self,
   lookup.data.font = (PangoFont *)font;
   lookup.data.scale = (guint) (text_scale * 1024);
 
-  /* We use one quad per character, unlike the other nodes which
-   * use at most one quad altogether */
+  /* We use one quad per character */
   for (i = 0; i < num_glyphs; i++)
     {
       const PangoGlyphInfo *gi = &glyphs[i];
@@ -856,7 +849,7 @@ render_border_node (GskGLRenderer   *self,
       ops_set_inset_shadow (builder, transform_rect (self, builder, rounded_outline),
                             widths[0], &colors[0], 0, 0);
 
-      load_vertex_data (ops_draw (builder, NULL), node, builder);
+      load_vertex_data (ops_draw (builder, NULL), &node->bounds, builder);
       return;
     }
 
@@ -983,7 +976,7 @@ render_color_node (GskGLRenderer   *self,
 {
   ops_set_program (builder, &self->programs->color_program);
   ops_set_color (builder, gsk_color_node_peek_color (node));
-  load_vertex_data (ops_draw (builder, NULL), node, builder);
+  load_vertex_data (ops_draw (builder, NULL), &node->bounds, builder);
 }
 
 static inline void
@@ -1078,7 +1071,7 @@ render_texture_node (GskGLRenderer       *self,
       ops_set_texture (builder, r.texture_id);
 
       load_vertex_data_with_region (ops_draw (builder, NULL),
-                                    node, builder,
+                                    &node->bounds, builder,
                                     &r,
                                     FALSE);
     }
@@ -1252,11 +1245,11 @@ render_gl_shader_node (GskGLRenderer       *self,
       static GdkRGBA pink = { 255 / 255., 105 / 255., 180 / 255., 1.0 };
       ops_set_program (builder, &self->programs->color_program);
       ops_set_color (builder, &pink);
-      load_vertex_data (ops_draw (builder, NULL), node, builder);
+      load_vertex_data (ops_draw (builder, NULL), &node->bounds, builder);
     }
 }
 
-/* Returns TRUE is applying transform to bounds
+/* Returns TRUE if applying @transform to @bounds
  * yields an axis-aligned rectangle
  */
 static gboolean
@@ -1361,7 +1354,7 @@ render_transform_node (GskGLRenderer   *self,
                 ops_set_program (builder, &self->programs->blit_program);
 
                 load_vertex_data_with_region (ops_draw (builder, NULL),
-                                              child, builder,
+                                              &child->bounds, builder,
                                               &region,
                                               is_offscreen);
                 ops_pop_modelview (builder);
@@ -1407,7 +1400,7 @@ render_opacity_node (GskGLRenderer   *self,
           ops_set_texture (builder, region.texture_id);
 
           load_vertex_data_with_region (ops_draw (builder, NULL),
-                                        node, builder,
+                                        &node->bounds, builder,
                                         &region,
                                         is_offscreen);
         }
@@ -1446,7 +1439,7 @@ render_linear_gradient_node (GskGLRenderer   *self,
                                builder->dx + end->x,
                                builder->dy + end->y);
 
-      load_vertex_data (ops_draw (builder, NULL), node, builder);
+      load_vertex_data (ops_draw (builder, NULL), &node->bounds, builder);
     }
   else
     {
@@ -1480,7 +1473,7 @@ render_radial_gradient_node (GskGLRenderer   *self,
                                hradius * builder->scale_x,
                                vradius * builder->scale_y);
 
-      load_vertex_data (ops_draw (builder, NULL), node, builder);
+      load_vertex_data (ops_draw (builder, NULL), &node->bounds, builder);
     }
   else
     {
@@ -1774,7 +1767,7 @@ render_color_matrix_node (GskGLRenderer       *self,
   ops_set_texture (builder, region.texture_id);
 
   load_vertex_data_with_region (ops_draw (builder, NULL),
-                                node, builder,
+                                &node->bounds, builder,
                                 &region,
                                 is_offscreen);
 }
@@ -1834,16 +1827,10 @@ blur_texture (GskGLRenderer       *self,
   op->dir[1] = 0;
   ops_set_texture (builder, region->texture_id);
 
-  ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-    { { 0,                                            }, { region->x,  region->y2 }, },
-    { { 0,                     texture_to_blur_height }, { region->x,  region->y }, },
-    { { texture_to_blur_width,                        }, { region->x2, region->y2 }, },
-
-    { { texture_to_blur_width, texture_to_blur_height }, { region->x2, region->y }, },
-    { { 0,                     texture_to_blur_height }, { region->x,  region->y }, },
-    { { texture_to_blur_width,                        }, { region->x2, region->y2 }, },
-  });
-
+  load_vertex_data_with_region (ops_draw (builder, NULL),
+                                &GRAPHENE_RECT_INIT (0, 0, texture_to_blur_width, texture_to_blur_height),
+                                builder, region,
+                                FALSE);
 #if 0
   {
     static int k;
@@ -1862,15 +1849,10 @@ blur_texture (GskGLRenderer       *self,
   ops_set_texture (builder, pass1_texture_id);
   ops_set_render_target (builder, pass2_render_target);
   ops_begin (builder, OP_CLEAR);
-  ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) { /* render pass 2 */
-    { { 0,                                            }, { 0, 1 }, },
-    { { 0,                     texture_to_blur_height }, { 0, 0 }, },
-    { { texture_to_blur_width,                        }, { 1, 1 }, },
-
-    { { texture_to_blur_width, texture_to_blur_height }, { 1, 0 }, },
-    { { 0,                     texture_to_blur_height }, { 0, 0 }, },
-    { { texture_to_blur_width,                        }, { 1, 1 }, },
-  });
+  load_vertex_data_with_region (ops_draw (builder, NULL), /* render pass 2 */
+                                &GRAPHENE_RECT_INIT (0, 0, texture_to_blur_width, texture_to_blur_height),
+                                builder, region,
+                                FALSE);
 
 #if 0
   {
@@ -1914,22 +1896,25 @@ blur_node (GskGLRenderer   *self,
   texture_width  = ceilf ((node->bounds.size.width  + blur_extra));
   texture_height = ceilf ((node->bounds.size.height + blur_extra));
 
-  if (!add_offscreen_ops (self, builder,
-                          &GRAPHENE_RECT_INIT (node->bounds.origin.x - (blur_extra / 2.0),
-                                               node->bounds.origin.y - (blur_extra  /2.0),
-                                               texture_width, texture_height),
-                          node,
-                          &region, &is_offscreen,
-                          RESET_CLIP | RESET_OPACITY | FORCE_OFFSCREEN | extra_flags))
-    g_assert_not_reached ();
+  /* Only blur this if the out region has no texture id yet */
+  if (out_region->texture_id == 0)
+    {
+      if (!add_offscreen_ops (self, builder,
+                              &GRAPHENE_RECT_INIT (node->bounds.origin.x - (blur_extra / 2.0),
+                                                   node->bounds.origin.y - (blur_extra / 2.0),
+                                                   texture_width, texture_height),
+                              node,
+                              &region, &is_offscreen,
+                              RESET_CLIP | RESET_OPACITY | FORCE_OFFSCREEN | extra_flags))
+        g_assert_not_reached ();
 
-  blurred_texture_id = blur_texture (self, builder,
-                                     &region,
-                                     texture_width * scale_x, texture_height * scale_y,
-                                     blur_radius * scale_x,
-                                     blur_radius * scale_y);
-
-  init_full_texture_region (out_region, blurred_texture_id);
+      blurred_texture_id = blur_texture (self, builder,
+                                         &region,
+                                         texture_width * scale_x, texture_height * scale_y,
+                                         blur_radius * scale_x,
+                                         blur_radius * scale_y);
+      init_full_texture_region (out_region, blurred_texture_id);
+    }
 
   if (out_vertex_data)
     {
@@ -1949,6 +1934,7 @@ render_blur_node (GskGLRenderer   *self,
   GskRenderNode *child = gsk_blur_node_get_child (node);
   TextureRegion blurred_region;
   GskTextureKey key;
+  float min_x, max_x, min_y, max_y;
 
   if (node_is_invisible (child))
     return;
@@ -1964,15 +1950,16 @@ render_blur_node (GskGLRenderer   *self,
   key.scale = ops_get_scale (builder);
   key.filter = GL_NEAREST;
   blurred_region.texture_id = gsk_gl_driver_get_texture_for_key (self->gl_driver, &key);
-  if (blurred_region.texture_id == 0)
-    blur_node (self, child, builder, blur_radius, 0, &blurred_region, NULL);
+  blur_node (self, child, builder, blur_radius, 0, &blurred_region,
+             (float*[4]){&min_x, &max_x, &min_y, &max_y});
 
   g_assert (blurred_region.texture_id != 0);
 
   /* Draw the result */
   ops_set_program (builder, &self->programs->blit_program);
   ops_set_texture (builder, blurred_region.texture_id);
-  load_offscreen_vertex_data (ops_draw (builder, NULL), node, builder); /* Render result to screen */
+  fill_vertex_data (ops_draw (builder, NULL), min_x, min_y, max_x, max_y);
+
 
   /* Add to cache for the blur node */
   gsk_gl_driver_set_texture_for_key (self->gl_driver, &key, blurred_region.texture_id);
@@ -1996,7 +1983,7 @@ render_unblurred_inset_shadow_node (GskGLRenderer   *self,
                         gsk_inset_shadow_node_peek_color (node),
                         dx, dy);
 
-  load_vertex_data (ops_draw (builder, NULL), node, builder);
+  load_vertex_data (ops_draw (builder, NULL), &node->bounds, builder);
 }
 
 static inline void
@@ -2085,15 +2072,8 @@ render_inset_shadow_node (GskGLRenderer   *self,
                             gsk_inset_shadow_node_peek_color (node),
                             dx * scale_x, dy * scale_y);
 
-      ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-        { { 0,             0              }, { 0, 1 }, },
-        { { 0,             texture_height }, { 0, 0 }, },
-        { { texture_width, 0              }, { 1, 1 }, },
-
-        { { texture_width, texture_height }, { 1, 0 }, },
-        { { 0,             texture_height }, { 0, 0 }, },
-        { { texture_width, 0              }, { 1, 1 }, },
-      });
+      load_float_vertex_data (ops_draw (builder, NULL), builder,
+                              0, 0, texture_width, texture_height);
 
       ops_set_render_target (builder, prev_render_target);
       ops_set_viewport (builder, &prev_viewport);
@@ -2133,7 +2113,7 @@ render_inset_shadow_node (GskGLRenderer   *self,
     ops_set_texture (builder, blurred_texture_id);
 
     load_vertex_data_with_region (ops_draw (builder, NULL),
-                                  node, builder,
+                                  &node->bounds, builder,
                                   &(TextureRegion) { 0, tx1, ty1, tx2, ty2 },
                                   TRUE);
 
@@ -2143,15 +2123,30 @@ render_inset_shadow_node (GskGLRenderer   *self,
 
 }
 
+/* Spread *grows* the outline. The offset moves the shadow and leaves the
+ * inner rect where it was */
 static inline void
 render_unblurred_outset_shadow_node (GskGLRenderer   *self,
                                      GskRenderNode   *node,
                                      RenderOpBuilder *builder)
 {
   const GskRoundedRect *outline = gsk_outset_shadow_node_peek_outline (node);
+  const float x = node->bounds.origin.x;
+  const float y = node->bounds.origin.y;
+  const float w = node->bounds.size.width;
+  const float h = node->bounds.size.height;
   const float spread = gsk_outset_shadow_node_get_spread (node);
   const float dx = gsk_outset_shadow_node_get_dx (node);
   const float dy = gsk_outset_shadow_node_get_dy (node);
+  const float edge_sizes[] = { // Top, right, bottom, left
+    spread - dy, spread + dx, spread + dy, spread - dx
+  };
+  const float corner_sizes[][2] = { // top left, top right, bottom right, bottom left
+    { outline->corner[0].width + spread - dx, outline->corner[0].height + spread - dy },
+    { outline->corner[1].width + spread + dx, outline->corner[1].height + spread - dy },
+    { outline->corner[2].width + spread + dx, outline->corner[2].height + spread + dy },
+    { outline->corner[3].width + spread - dx, outline->corner[3].height + spread + dy },
+  };
 
   ops_set_program (builder, &self->programs->unblurred_outset_shadow_program);
   ops_set_unblurred_outset_shadow (builder, transform_rect (self, builder, outline),
@@ -2159,7 +2154,40 @@ render_unblurred_outset_shadow_node (GskGLRenderer   *self,
                                    gsk_outset_shadow_node_peek_color (node),
                                    dx, dy);
 
-  load_vertex_data (ops_draw (builder, NULL), node, builder);
+  /* Corners... */
+  if (corner_sizes[0][0] > 0 && corner_sizes[0][1] > 0) /* Top left */
+      load_float_vertex_data (ops_draw (builder, NULL), builder,
+                              x, y,
+                              corner_sizes[0][0], corner_sizes[0][1]);
+  if (corner_sizes[1][0] > 0 && corner_sizes[1][1] > 0) /* Top right */
+      load_float_vertex_data (ops_draw (builder, NULL), builder,
+                              x + w - corner_sizes[1][0], y,
+                              corner_sizes[1][0], corner_sizes[1][1]);
+  if (corner_sizes[2][0] > 0 && corner_sizes[2][1] > 0) /* Bottom right */
+      load_float_vertex_data (ops_draw (builder, NULL), builder,
+                              x + w - corner_sizes[2][0], y + h - corner_sizes[2][1],
+                              corner_sizes[2][0], corner_sizes[2][1]);
+  if (corner_sizes[3][0] > 0 && corner_sizes[3][1] > 0) /* Bottom left */
+      load_float_vertex_data (ops_draw (builder, NULL), builder,
+                              x, y + h - corner_sizes[3][1],
+                              corner_sizes[3][0], corner_sizes[3][1]);
+  /* Edges... */;
+  if (edge_sizes[0] > 0) /* Top */
+    load_float_vertex_data (ops_draw (builder, NULL), builder,
+                            x + corner_sizes[0][0], y,
+                            w - corner_sizes[0][0] - corner_sizes[1][0], edge_sizes[0]);
+  if (edge_sizes[1] > 0) /* Right */
+    load_float_vertex_data (ops_draw (builder, NULL), builder,
+                            x + w - edge_sizes[1], y + corner_sizes[1][1],
+                            edge_sizes[1], h - corner_sizes[1][1] - corner_sizes[2][1]);
+  if (edge_sizes[2] > 0) /* Bottom */
+    load_float_vertex_data (ops_draw (builder, NULL), builder,
+                            x + corner_sizes[3][0], y + h - edge_sizes[2],
+                            w - corner_sizes[3][0] - corner_sizes[2][0], edge_sizes[2]);
+  if (edge_sizes[3] > 0) /* Left */
+    load_float_vertex_data (ops_draw (builder, NULL), builder,
+                            x, y + corner_sizes[0][1],
+                            edge_sizes[3], h - corner_sizes[0][1] - corner_sizes[3][1]);
 }
 
 
@@ -2264,15 +2292,8 @@ render_outset_shadow_node (GskGLRenderer   *self,
       /* Draw outline */
       ops_push_clip (builder, &scaled_outline);
       ops_set_color (builder, &COLOR_WHITE);
-      ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-        { { 0,                            }, { 0, 1 }, },
-        { { 0,             texture_height }, { 0, 0 }, },
-        { { texture_width,                }, { 1, 1 }, },
-
-        { { texture_width, texture_height }, { 1, 0 }, },
-        { { 0,             texture_height }, { 0, 0 }, },
-        { { texture_width,                }, { 1, 1 }, },
-      });
+      load_float_vertex_data (ops_draw (builder, NULL), builder,
+                              0, 0, texture_width, texture_height);
 
       ops_pop_clip (builder);
       ops_set_viewport (builder, &prev_viewport);
@@ -2302,9 +2323,8 @@ render_outset_shadow_node (GskGLRenderer   *self,
 
   if (!do_slicing)
     {
-      const float min_x = floorf (builder->dx + outline->bounds.origin.x - spread - (blur_extra / 2.0) + dx);
-      const float min_y = floorf (builder->dy + outline->bounds.origin.y - spread - (blur_extra / 2.0) + dy);
-      float x1, x2, y1, y2, tx1, tx2, ty1, ty2;
+      const float min_x = floorf (outline->bounds.origin.x - spread - (blur_extra / 2.0) + dx);
+      const float min_y = floorf (outline->bounds.origin.y - spread - (blur_extra / 2.0) + dy);
 
       ops_set_program (builder, &self->programs->outset_shadow_program);
       ops_set_color (builder, color);
@@ -2314,23 +2334,13 @@ render_outset_shadow_node (GskGLRenderer   *self,
       shadow->outline.value = transform_rect (self, builder, outline);
       shadow->outline.send = TRUE;
 
-      tx1 = 0; tx2 = 1;
-      ty1 = 0; ty2 = 1;
-
-      x1 = min_x;
-      x2 = min_x + texture_width / scale_x;
-      y1 = min_y;
-      y2 = min_y + texture_height / scale_y;
-
-      ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-        { { x1, y1 }, { tx1, ty2 }, },
-        { { x1, y2 }, { tx1, ty1 }, },
-        { { x2, y1 }, { tx2, ty2 }, },
-
-        { { x2, y2 }, { tx2, ty1 }, },
-        { { x1, y2 }, { tx1, ty1 }, },
-        { { x2, y1 }, { tx2, ty2 }, },
-      });
+      load_vertex_data_with_region (ops_draw (builder, NULL),
+                                    &GRAPHENE_RECT_INIT (
+                                      min_x, min_y,
+                                      texture_width / scale_x, texture_height / scale_y
+                                    ), builder,
+                                    &(TextureRegion) { 0, 0, 0, 1, 1 },
+                                    FALSE);
       return;
     }
 
@@ -2344,13 +2354,12 @@ render_outset_shadow_node (GskGLRenderer   *self,
   shadow->outline.send = TRUE;
 
   {
-    const float min_x = floorf (builder->dx + outline->bounds.origin.x - spread - (blur_extra / 2.0) + dx);
-    const float min_y = floorf (builder->dy + outline->bounds.origin.y - spread - (blur_extra / 2.0) + dy);
-    const float max_x = ceilf (builder->dx + outline->bounds.origin.x + outline->bounds.size.width +
+    const float min_x = floorf (outline->bounds.origin.x - spread - (blur_extra / 2.0) + dx);
+    const float min_y = floorf (outline->bounds.origin.y - spread - (blur_extra / 2.0) + dy);
+    const float max_x = ceilf (outline->bounds.origin.x + outline->bounds.size.width +
                                (blur_extra / 2.0) + dx + spread);
-    const float max_y = ceilf (builder->dy + outline->bounds.origin.y + outline->bounds.size.height +
+    const float max_y = ceilf (outline->bounds.origin.y + outline->bounds.size.height +
                                (blur_extra / 2.0) + dy + spread);
-    float x1, x2, y1, y2, tx1, tx2, ty1, ty2;
     cairo_rectangle_int_t slices[9];
     TextureRegion tregs[9];
 
@@ -2365,222 +2374,138 @@ render_outset_shadow_node (GskGLRenderer   *self,
     /* Top left */
     if (slice_is_visible (&slices[NINE_SLICE_TOP_LEFT]))
       {
-        x1 = min_x;
-        x2 = min_x + (slices[NINE_SLICE_TOP_LEFT].width / scale_x);
-        y1 = min_y;
-        y2 = min_y + (slices[NINE_SLICE_TOP_LEFT].height / scale_y);
-
-        tx1 = tregs[NINE_SLICE_TOP_LEFT].x;
-        tx2 = tregs[NINE_SLICE_TOP_LEFT].x2;
-        ty1 = tregs[NINE_SLICE_TOP_LEFT].y;
-        ty2 = tregs[NINE_SLICE_TOP_LEFT].y2;
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        min_x, min_y,
+                                        slices[NINE_SLICE_TOP_LEFT].width / scale_x,
+                                        slices[NINE_SLICE_TOP_LEFT].height / scale_y
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_TOP_LEFT], TRUE);
       }
 
     /* Top center */
     if (slice_is_visible (&slices[NINE_SLICE_TOP_CENTER]))
       {
-        x1 = min_x + (slices[NINE_SLICE_TOP_LEFT].width / scale_x);
-        x2 = max_x - (slices[NINE_SLICE_TOP_RIGHT].width / scale_y);
-        y1 = min_y;
-        y2 = min_y + (slices[NINE_SLICE_TOP_CENTER].height / scale_y);
-
-        tx1 = tregs[NINE_SLICE_TOP_CENTER].x;
-        tx2 = tregs[NINE_SLICE_TOP_CENTER].x2;
-        ty1 = tregs[NINE_SLICE_TOP_CENTER].y;
-        ty2 = tregs[NINE_SLICE_TOP_CENTER].y2;
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        const float width = (max_x - min_x) - (slices[NINE_SLICE_TOP_LEFT].width / scale_x +
+                                               slices[NINE_SLICE_TOP_RIGHT].width / scale_x);
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        min_x + (slices[NINE_SLICE_TOP_LEFT].width / scale_x),
+                                        min_y,
+                                        width,
+                                        slices[NINE_SLICE_TOP_CENTER].height / scale_y
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_TOP_CENTER], TRUE);
       }
-
     /* Top right */
     if (slice_is_visible (&slices[NINE_SLICE_TOP_RIGHT]))
       {
-        x1 = max_x - (slices[NINE_SLICE_TOP_RIGHT].width / scale_x);
-        x2 = max_x;
-        y1 = min_y;
-        y2 = min_y + (slices[NINE_SLICE_TOP_RIGHT].height / scale_y);
-
-        tx1 = tregs[NINE_SLICE_TOP_RIGHT].x;
-        tx2 = tregs[NINE_SLICE_TOP_RIGHT].x2;
-
-        ty1 = tregs[NINE_SLICE_TOP_RIGHT].y;
-        ty2 = tregs[NINE_SLICE_TOP_RIGHT].y2;
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        max_x - (slices[NINE_SLICE_TOP_RIGHT].width / scale_x),
+                                        min_y,
+                                        slices[NINE_SLICE_TOP_RIGHT].width / scale_x,
+                                        slices[NINE_SLICE_TOP_RIGHT].height / scale_y
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_TOP_RIGHT], TRUE);
       }
 
     /* Bottom right */
     if (slice_is_visible (&slices[NINE_SLICE_BOTTOM_RIGHT]))
       {
-        x1 = max_x - (slices[NINE_SLICE_BOTTOM_RIGHT].width / scale_x);
-        x2 = max_x;
-        y1 = max_y - (slices[NINE_SLICE_BOTTOM_RIGHT].height / scale_y);
-        y2 = max_y;
-        tx1 = tregs[NINE_SLICE_BOTTOM_RIGHT].x;
-        tx2 = tregs[NINE_SLICE_BOTTOM_RIGHT].x2;
-        ty1 = tregs[NINE_SLICE_BOTTOM_RIGHT].y;
-        ty2 = tregs[NINE_SLICE_BOTTOM_RIGHT].y2;
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        max_x - (slices[NINE_SLICE_BOTTOM_RIGHT].width / scale_x),
+                                        max_y - (slices[NINE_SLICE_BOTTOM_RIGHT].height / scale_y),
+                                        slices[NINE_SLICE_BOTTOM_RIGHT].width / scale_x,
+                                        slices[NINE_SLICE_BOTTOM_RIGHT].height / scale_y
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_BOTTOM_RIGHT], TRUE);
       }
 
     /* Bottom left */
     if (slice_is_visible (&slices[NINE_SLICE_BOTTOM_LEFT]))
       {
-        x1 = min_x;
-        x2 = min_x + (slices[NINE_SLICE_BOTTOM_LEFT].width / scale_x);
-        y1 = max_y - (slices[NINE_SLICE_BOTTOM_LEFT].height / scale_y);
-        y2 = max_y;
-
-        tx1 = tregs[NINE_SLICE_BOTTOM_LEFT].x;
-        tx2 = tregs[NINE_SLICE_BOTTOM_LEFT].x2;
-        ty1 = tregs[NINE_SLICE_BOTTOM_LEFT].y;
-        ty2 = tregs[NINE_SLICE_BOTTOM_LEFT].y2;
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        min_x,
+                                        max_y - (slices[NINE_SLICE_BOTTOM_LEFT].height / scale_y),
+                                        slices[NINE_SLICE_BOTTOM_LEFT].width / scale_x,
+                                        slices[NINE_SLICE_BOTTOM_LEFT].height / scale_y
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_BOTTOM_LEFT], TRUE);
       }
 
     /* Left side */
     if (slice_is_visible (&slices[NINE_SLICE_LEFT_CENTER]))
       {
-        x1 = min_x;
-        x2 = min_x + (slices[NINE_SLICE_LEFT_CENTER].width / scale_x);
-        y1 = min_y + (slices[NINE_SLICE_TOP_LEFT].height / scale_x);
-        y2 = max_y - (slices[NINE_SLICE_BOTTOM_LEFT].height / scale_y);
-        tx1 = tregs[NINE_SLICE_LEFT_CENTER].x;
-        tx2 = tregs[NINE_SLICE_LEFT_CENTER].x2;
-        ty1 = tregs[NINE_SLICE_LEFT_CENTER].y;
-        ty2 = tregs[NINE_SLICE_LEFT_CENTER].y2;
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        const float height = (max_y - min_y) - (slices[NINE_SLICE_TOP_LEFT].height / scale_y +
+                                                slices[NINE_SLICE_BOTTOM_LEFT].height / scale_y);
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        min_x,
+                                        min_y + (slices[NINE_SLICE_TOP_LEFT].height / scale_y),
+                                        slices[NINE_SLICE_LEFT_CENTER].width / scale_x,
+                                        height
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_LEFT_CENTER], TRUE);
       }
 
     /* Right side */
     if (slice_is_visible (&slices[NINE_SLICE_RIGHT_CENTER]))
       {
-        x1 = max_x - (slices[NINE_SLICE_RIGHT_CENTER].width / scale_x);
-        x2 = max_x;
-        y1 = min_y + (slices[NINE_SLICE_TOP_RIGHT].height / scale_y);
-        y2 = max_y - (slices[NINE_SLICE_BOTTOM_RIGHT].height / scale_y);
-
-        tx1 = tregs[NINE_SLICE_RIGHT_CENTER].x;
-        tx2 = tregs[NINE_SLICE_RIGHT_CENTER].x2;
-
-        ty1 = tregs[NINE_SLICE_RIGHT_CENTER].y;
-        ty2 = tregs[NINE_SLICE_RIGHT_CENTER].y2;
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        const float height = (max_y - min_y) - (slices[NINE_SLICE_TOP_RIGHT].height / scale_y +
+                                                slices[NINE_SLICE_BOTTOM_RIGHT].height / scale_y);
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        max_x - (slices[NINE_SLICE_RIGHT_CENTER].width / scale_x),
+                                        min_y + (slices[NINE_SLICE_TOP_LEFT].height / scale_y),
+                                        slices[NINE_SLICE_RIGHT_CENTER].width / scale_x,
+                                        height
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_RIGHT_CENTER], TRUE);
       }
 
     /* Bottom side */
     if (slice_is_visible (&slices[NINE_SLICE_BOTTOM_CENTER]))
       {
-        x1 = min_x + (slices[NINE_SLICE_BOTTOM_LEFT].width / scale_x);
-        x2 = max_x - (slices[NINE_SLICE_BOTTOM_RIGHT].width / scale_x);
-        y1 = max_y - (slices[NINE_SLICE_BOTTOM_CENTER].height / scale_y);
-        y2 = max_y;
-
-        tx1 = tregs[NINE_SLICE_BOTTOM_CENTER].x;
-        tx2 = tregs[NINE_SLICE_BOTTOM_CENTER].x2;
-
-        ty1 = tregs[NINE_SLICE_BOTTOM_CENTER].y;
-        ty2 = tregs[NINE_SLICE_BOTTOM_CENTER].y2;
-
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        const float width = (max_x - min_x) - (slices[NINE_SLICE_BOTTOM_LEFT].width / scale_x +
+                                               slices[NINE_SLICE_BOTTOM_RIGHT].width / scale_x);
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        min_x + (slices[NINE_SLICE_BOTTOM_LEFT].width / scale_x),
+                                        max_y - (slices[NINE_SLICE_BOTTOM_CENTER].height / scale_y),
+                                        width,
+                                        slices[NINE_SLICE_BOTTOM_CENTER].height / scale_y
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_BOTTOM_CENTER], TRUE);
       }
 
     /* Middle */
     if (slice_is_visible (&slices[NINE_SLICE_CENTER]))
       {
-        x1 = min_x + (slices[NINE_SLICE_LEFT_CENTER].width / scale_x);
-        x2 = max_x - (slices[NINE_SLICE_RIGHT_CENTER].width / scale_x);
-        y1 = min_y + (slices[NINE_SLICE_TOP_CENTER].height / scale_y);
-        y2 = max_y - (slices[NINE_SLICE_BOTTOM_CENTER].height / scale_y);
+        const float width = (max_x - min_x) - (slices[NINE_SLICE_LEFT_CENTER].width / scale_x +
+                                               slices[NINE_SLICE_RIGHT_CENTER].width / scale_x);
+        const float height = (max_y - min_y) - (slices[NINE_SLICE_TOP_CENTER].height / scale_y +
+                                                slices[NINE_SLICE_BOTTOM_CENTER].height / scale_y);
 
-        tx1 = tregs[NINE_SLICE_CENTER].x;
-        tx2 = tregs[NINE_SLICE_CENTER].x2;
-
-        ty1 = tregs[NINE_SLICE_CENTER].y;
-        ty2 = tregs[NINE_SLICE_CENTER].y2;
-
-        ops_draw (builder, (GskQuadVertex[GL_N_VERTICES]) {
-          { { x1, y1 }, { tx1, ty2 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-
-          { { x2, y2 }, { tx2, ty1 }, },
-          { { x1, y2 }, { tx1, ty1 }, },
-          { { x2, y1 }, { tx2, ty2 }, },
-        });
+        load_vertex_data_with_region (ops_draw (builder, NULL),
+                                      &GRAPHENE_RECT_INIT (
+                                        min_x + (slices[NINE_SLICE_LEFT_CENTER].width / scale_x),
+                                        min_y + (slices[NINE_SLICE_TOP_CENTER].height / scale_y),
+                                        width, height
+                                      ),
+                                      builder,
+                                      &tregs[NINE_SLICE_CENTER], TRUE);
       }
-
   }
 }
 
@@ -2609,10 +2534,7 @@ render_shadow_node (GskGLRenderer   *self,
       const float dy = shadow->dy;
       TextureRegion region;
       gboolean is_offscreen;
-      float min_x;
-      float min_y;
-      float max_x;
-      float max_y;
+      graphene_rect_t bounds;
 
       if (shadow->radius == 0 &&
           gsk_render_node_get_node_type (shadow_child) == GSK_TEXT_NODE)
@@ -2631,8 +2553,18 @@ render_shadow_node (GskGLRenderer   *self,
 
       if (shadow->radius > 0)
         {
+          float min_x;
+          float min_y;
+          float max_x;
+          float max_y;
+
+          region.texture_id = 0;
           blur_node (self, shadow_child, builder, shadow->radius, NO_CACHE_PLZ, &region,
                      (float*[4]){&min_x, &max_x, &min_y, &max_y});
+          bounds.origin.x = min_x - builder->dx;
+          bounds.origin.y = min_y - builder->dy;
+          bounds.size.width = max_x - min_x;
+          bounds.size.height = max_y - min_y;
           is_offscreen = TRUE;
         }
       else if (dx == 0 && dy == 0)
@@ -2647,43 +2579,19 @@ render_shadow_node (GskGLRenderer   *self,
                                   RESET_CLIP | RESET_OPACITY | NO_CACHE_PLZ))
             g_assert_not_reached ();
 
-          min_x = builder->dx + shadow_child->bounds.origin.x;
-          min_y = builder->dy + shadow_child->bounds.origin.y;
-          max_x = min_x + shadow_child->bounds.size.width;
-          max_y = min_y + shadow_child->bounds.size.height;
+          bounds = shadow_child->bounds;
         }
 
       ops_set_program (builder, &self->programs->coloring_program);
       ops_set_color (builder, &shadow->color);
       ops_set_texture (builder, region.texture_id);
-      if (is_offscreen)
-        {
-          const GskQuadVertex offscreen_vertex_data[GL_N_VERTICES] = {
-            { { dx + min_x, dy + min_y }, { region.x,  region.y2 }, },
-            { { dx + min_x, dy + max_y }, { region.x,  region.y }, },
-            { { dx + max_x, dy + min_y }, { region.x2, region.y2 }, },
 
-            { { dx + max_x, dy + max_y }, { region.x2, region.y }, },
-            { { dx + min_x, dy + max_y }, { region.x,  region.y }, },
-            { { dx + max_x, dy + min_y }, { region.x2, region.y2 }, },
-          };
-
-          ops_draw (builder, offscreen_vertex_data);
-        }
-      else
-        {
-          const GskQuadVertex onscreen_vertex_data[GL_N_VERTICES] = {
-            { { dx + min_x, dy + min_y }, { region.x,  region.y }, },
-            { { dx + min_x, dy + max_y }, { region.x,  region.y2 }, },
-            { { dx + max_x, dy + min_y }, { region.x2, region.y }, },
-
-            { { dx + max_x, dy + max_y }, { region.x2, region.y2 }, },
-            { { dx + min_x, dy + max_y }, { region.x,  region.y2 }, },
-            { { dx + max_x, dy + min_y }, { region.x2, region.y }, },
-          };
-
-          ops_draw (builder, onscreen_vertex_data);
-        }
+      ops_offset (builder, dx, dy);
+      load_vertex_data_with_region (ops_draw (builder, NULL),
+                                    &bounds, builder,
+                                    &region,
+                                    is_offscreen);
+      ops_offset (builder, -dx, -dy);
     }
 
   /* Now draw the child normally */
@@ -2782,7 +2690,7 @@ render_blend_node (GskGLRenderer   *self,
                           FORCE_OFFSCREEN | RESET_CLIP))
     {
       load_vertex_data_with_region (ops_draw (builder, NULL),
-                                    node,
+                                    &node->bounds,
                                     builder,
                                     &bottom_region,
                                     TRUE);
@@ -2861,7 +2769,7 @@ render_repeat_node (GskGLRenderer   *self,
     }
 
   load_vertex_data_with_region (ops_draw (builder, NULL),
-                                node, builder,
+                                &node->bounds, builder,
                                 &region,
                                 is_offscreen);
 }
@@ -4410,16 +4318,8 @@ gsk_gl_renderer_render_texture (GskRenderer           *renderer,
     graphene_matrix_scale (&m, 1, -1, 1); /* Undo the scale init_projection_matrix() does again */
     ops_set_projection (&self->op_builder, &m);
 
-    ops_draw (&self->op_builder, (GskQuadVertex[GL_N_VERTICES]) {
-      { { 0,     0      }, { 0, 1 }, },
-      { { 0,     height }, { 0, 0 }, },
-      { { width, 0      }, { 1, 1 }, },
-
-      { { width, height }, { 1, 0 }, },
-      { { 0,     height }, { 0, 0 }, },
-      { { width, 0      }, { 1, 1 }, },
-    });
-
+    fill_vertex_data (ops_draw (&self->op_builder, NULL),
+                      0, 0, width, height);
     ops_pop_clip (&self->op_builder);
     gsk_gl_renderer_render_ops (self);
 

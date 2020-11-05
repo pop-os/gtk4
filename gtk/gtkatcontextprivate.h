@@ -90,6 +90,16 @@ typedef enum {
   GTK_ACCESSIBLE_PLATFORM_CHANGE_FOCUSED   = 1 << GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSED,
 } GtkAccessiblePlatformChange;
 
+typedef enum {
+  GTK_ACCESSIBLE_CHILD_STATE_ADDED,
+  GTK_ACCESSIBLE_CHILD_STATE_REMOVED
+} GtkAccessibleChildState;
+
+typedef enum {
+  GTK_ACCESSIBLE_CHILD_CHANGE_ADDED   = 1 << GTK_ACCESSIBLE_CHILD_STATE_ADDED,
+  GTK_ACCESSIBLE_CHILD_CHANGE_REMOVED = 1 << GTK_ACCESSIBLE_CHILD_STATE_REMOVED
+} GtkAccessibleChildChange;
+
 struct _GtkATContext
 {
   GObject parent_instance;
@@ -106,6 +116,8 @@ struct _GtkATContext
   GtkAccessiblePropertyChange updated_properties;
   GtkAccessibleRelationChange updated_relations;
   GtkAccessiblePlatformChange updated_platform;
+
+  guint realized : 1;
 };
 
 struct _GtkATContextClass
@@ -116,13 +128,28 @@ struct _GtkATContextClass
                          GtkAccessibleStateChange     changed_states,
                          GtkAccessiblePropertyChange  changed_properties,
                          GtkAccessibleRelationChange  changed_relations,
-                         GtkAccessiblePlatformChange  changed_platform,
                          GtkAccessibleAttributeSet   *states,
                          GtkAccessibleAttributeSet   *properties,
                          GtkAccessibleAttributeSet   *relations);
+
+  void (* platform_change) (GtkATContext                *self,
+                            GtkAccessiblePlatformChange  changed_platform);
+
+  void (* bounds_change) (GtkATContext                *self);
+
+  void (* child_change) (GtkATContext             *self,
+                         GtkAccessibleChildChange  changed_child,
+                         GtkAccessible            *child);
+
+  void (* realize)       (GtkATContext *self);
+  void (* unrealize)     (GtkATContext *self);
 };
 
 GdkDisplay *            gtk_at_context_get_display              (GtkATContext          *self);
+
+void                    gtk_at_context_realize                  (GtkATContext          *self);
+void                    gtk_at_context_unrealize                (GtkATContext          *self);
+gboolean                gtk_at_context_is_realized              (GtkATContext          *self);
 
 void                    gtk_at_context_update                   (GtkATContext          *self);
 
@@ -148,10 +175,15 @@ gboolean                gtk_at_context_has_accessible_relation  (GtkATContext   
 GtkAccessibleValue *    gtk_at_context_get_accessible_relation  (GtkATContext          *self,
                                                                  GtkAccessibleRelation  relation);
 
-char *                  gtk_at_context_get_label                (GtkATContext          *self);
+char *                  gtk_at_context_get_name                 (GtkATContext          *self);
+char *                  gtk_at_context_get_description          (GtkATContext          *self);
 
 void                    gtk_at_context_platform_changed         (GtkATContext                *self,
                                                                  GtkAccessiblePlatformChange  change);
+void                    gtk_at_context_bounds_changed           (GtkATContext                *self);
+void                    gtk_at_context_child_changed            (GtkATContext                *self,
+                                                                 GtkAccessibleChildChange     change,
+                                                                 GtkAccessible               *child);
 
 const char *    gtk_accessible_property_get_attribute_name      (GtkAccessibleProperty property);
 const char *    gtk_accessible_relation_get_attribute_name      (GtkAccessibleRelation relation);

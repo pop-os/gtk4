@@ -28,7 +28,6 @@
 
 #include "gtkbuildable.h"
 #include "gtkbuilderprivate.h"
-#include "gtkcssnodeprivate.h"
 #include "gtkcssstylepropertyprivate.h"
 #include "gtkeventcontrollermotion.h"
 #include "gtkeventcontrollerfocus.h"
@@ -1696,6 +1695,10 @@ gtk_label_set_text_internal (GtkLabel *self,
   g_free (self->text);
   self->text = str;
 
+  gtk_accessible_update_property (GTK_ACCESSIBLE (self),
+                                  GTK_ACCESSIBLE_PROPERTY_LABEL, str,
+                                  -1);
+
   gtk_label_select_region_index (self, 0, 0);
 }
 
@@ -2334,7 +2337,10 @@ no_uline:
           char *text_for_accel;
 
           if (!pango_parse_markup (str_for_display, -1, 0, NULL, &text_for_accel, NULL, &error))
-            goto error_set;
+            {
+              g_free (new_text);
+              goto error_set;
+            }
 
           extract_mnemonic_keyval (text_for_accel,
                                    NULL,
