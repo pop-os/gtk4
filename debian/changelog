@@ -1,4 +1,4 @@
-gtk+4.0 (3.99.3-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.99.4-1) UNRELEASED; urgency=medium
 
   * New upstream release
   * Build with system copy of gtk-doc
@@ -18,8 +18,9 @@ gtk+4.0 (3.99.3-1) UNRELEASED; urgency=medium
   * d/tests/run-with-locales: Move from d/run-with-locales.
     This makes tab-completion for d/rules work better.
   * New upstream release
+  * New upstream release
 
- -- Simon McVittie <smcv@debian.org>  Thu, 05 Nov 2020 18:54:07 +0000
+ -- Simon McVittie <smcv@debian.org>  Thu, 05 Nov 2020 18:55:01 +0000
 
 gtk+4.0 (3.99.0-2) experimental; urgency=medium
 
