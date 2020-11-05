@@ -14,13 +14,11 @@ gtk+4.0 (3.99.2-1) UNRELEASED; urgency=medium
   * Stop installing NodeEditor icons.
     They're embedded in the executable via GResource now.
   * d/libgtk-4-0.symbols.in: Update
-  * d/p/debian/Revert-fontchooser-Determine-sample-text-intelligently.patch,
-    d/p/debian/Partially-revert-fontchooser-Add-user-filtering.patch:
-    In the font-chooser, revert automatic choice of preview text, and
-    filtering by the font's supported language.
-    These require Pango 1.47, which we don't have in Debian yet.
+  * run-with-locales: Normalize utf8 to UTF-8 without using SUPPORTED file
+  * d/tests/run-with-locales: Move from d/run-with-locales.
+    This makes tab-completion for d/rules work better.
 
- -- Simon McVittie <smcv@debian.org>  Mon, 12 Oct 2020 10:51:44 +0100
+ -- Simon McVittie <smcv@debian.org>  Thu, 05 Nov 2020 18:11:11 +0000
 
 gtk+4.0 (3.99.0-2) experimental; urgency=medium
 
