@@ -33,7 +33,6 @@
 #include "gtkfilterlistmodel.h"
 #include "gtkstringfilter.h"
 #include "gtkmultifilter.h"
-#include "gtkstylecontext.h"
 #include "gtkwidgetprivate.h"
 #include "gtknative.h"
 #include "gtktogglebutton.h"
@@ -72,6 +71,10 @@
  *
  * GtkDropDown has a single CSS node with name dropdown,
  * with the button and popover nodes as children.
+ *
+ * # Accessibility
+ *
+ * GtkDropDown uses the #GTK_ACCESSIBLE_ROLE_COMBO_BOX role.
  */
 
 struct _GtkDropDown
@@ -526,6 +529,7 @@ gtk_drop_down_class_init (GtkDropDownClass *klass)
   gtk_widget_class_bind_template_callback (widget_class, search_stop);
 
   gtk_widget_class_set_css_name (widget_class, I_("dropdown"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_COMBO_BOX);
 }
 
 static void

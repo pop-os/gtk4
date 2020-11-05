@@ -29,6 +29,9 @@
 
 #include "gtkspinbutton.h"
 
+#include "gtkspinbuttonprivate.h"
+
+#include "gtkaccessibleprivate.h"
 #include "gtkadjustment.h"
 #include "gtkbox.h"
 #include "gtkbutton.h"
@@ -305,12 +308,15 @@ static void gtk_spin_button_default_output (GtkSpinButton      *spin_button);
 
 static void gtk_spin_button_update_width_chars (GtkSpinButton *spin_button);
 
+static void gtk_spin_button_accessible_init (GtkAccessibleInterface *iface);
 
 static guint spinbutton_signals[LAST_SIGNAL] = {0};
 static GParamSpec *spinbutton_props[NUM_SPINBUTTON_PROPS] = {NULL, };
 
 G_DEFINE_TYPE_WITH_CODE (GtkSpinButton, gtk_spin_button, GTK_TYPE_WIDGET,
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_ORIENTABLE, NULL)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_ACCESSIBLE,
+                                                gtk_spin_button_accessible_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_EDITABLE,
                                                 gtk_spin_button_editable_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_CELL_EDITABLE,
@@ -570,6 +576,31 @@ gtk_spin_button_editable_init (GtkEditableInterface *iface)
 {
   iface->get_delegate = gtk_spin_button_get_delegate;
   iface->insert_text = gtk_spin_button_insert_text;
+}
+
+static gboolean
+gtk_spin_button_accessible_get_platform_state (GtkAccessible              *self,
+                                               GtkAccessiblePlatformState  state)
+{
+  GtkSpinButton *spin_button = GTK_SPIN_BUTTON (self);
+
+  switch (state)
+    {
+    case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSABLE:
+      return gtk_widget_get_focusable (spin_button->entry);
+    case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSED:
+      return gtk_widget_has_focus (spin_button->entry);
+    default:
+      g_assert_not_reached ();
+    }
+}
+
+static void
+gtk_spin_button_accessible_init (GtkAccessibleInterface *iface)
+{
+  GtkAccessibleInterface *parent_iface = g_type_interface_peek_parent (iface);
+  iface->get_at_context = parent_iface->get_at_context;
+  iface->get_platform_state = gtk_spin_button_accessible_get_platform_state;
 }
 
 static void
@@ -953,7 +984,10 @@ gtk_spin_button_init (GtkSpinButton *spin_button)
   g_signal_connect (spin_button->entry, "activate", G_CALLBACK (gtk_spin_button_activate), spin_button);
   gtk_widget_set_parent (spin_button->entry, GTK_WIDGET (spin_button));
 
-  spin_button->down_button = gtk_button_new_from_icon_name ("value-decrease-symbolic");
+  spin_button->down_button = g_object_new (GTK_TYPE_BUTTON,
+                                           "accessible-role", GTK_ACCESSIBLE_ROLE_NONE,
+                                           "icon-name", "value-decrease-symbolic",
+                                           NULL);
   gtk_widget_add_css_class (spin_button->down_button, "down");
   gtk_widget_set_can_focus (spin_button->down_button, FALSE);
   gtk_widget_set_parent (spin_button->down_button, GTK_WIDGET (spin_button));
@@ -967,10 +1001,12 @@ gtk_spin_button_init (GtkSpinButton *spin_button)
   g_signal_connect (gesture, "released", G_CALLBACK (button_released_cb), spin_button);
   g_signal_connect (gesture, "cancel", G_CALLBACK (button_cancel_cb), spin_button);
   gtk_widget_add_controller (GTK_WIDGET (spin_button->down_button), GTK_EVENT_CONTROLLER (gesture));
-  gtk_gesture_group (gtk_button_get_gesture (GTK_BUTTON (spin_button->down_button)),
-		     gesture);
+  gtk_gesture_group (gtk_button_get_gesture (GTK_BUTTON (spin_button->down_button)), gesture);
 
-  spin_button->up_button = gtk_button_new_from_icon_name ("value-increase-symbolic");
+  spin_button->up_button = g_object_new (GTK_TYPE_BUTTON,
+                                         "accessible-role", GTK_ACCESSIBLE_ROLE_NONE,
+                                         "icon-name", "value-increase-symbolic",
+                                         NULL);
   gtk_widget_add_css_class (spin_button->up_button, "up");
   gtk_widget_set_can_focus (spin_button->up_button, FALSE);
   gtk_widget_set_parent (spin_button->up_button, GTK_WIDGET (spin_button));
@@ -2148,6 +2184,45 @@ gtk_spin_button_get_snap_to_ticks (GtkSpinButton *spin_button)
 }
 
 /**
+ * gtk_spin_button_set_climb_rate:
+ * @spin_button: a #GtkSpinButton
+ * @climb_rate: the rate of acceleration, must be >= 0
+ *
+ * Sets the acceleration rate for repeated changes when you
+ * hold down a button or key.
+ */
+void
+gtk_spin_button_set_climb_rate (GtkSpinButton  *spin_button,
+                                double          climb_rate)
+{
+  g_return_if_fail (GTK_IS_SPIN_BUTTON (spin_button));
+  g_return_if_fail (0.0 <= climb_rate);
+
+  if (spin_button->climb_rate == climb_rate)
+    return;
+
+  spin_button->climb_rate = climb_rate;
+
+  g_object_notify_by_pspec (G_OBJECT (spin_button), spinbutton_props[PROP_CLIMB_RATE]);
+}
+
+/**
+ * gtk_spin_button_get_climb_rate:
+ * @spin_button: a #GtkSpinButton
+ *
+ * Returns the acceleration rate for repeated changes.
+ *
+ * Returns: the acceleration rate
+ */
+double
+gtk_spin_button_get_climb_rate (GtkSpinButton  *spin_button)
+{
+  g_return_val_if_fail (GTK_IS_SPIN_BUTTON (spin_button), 0.0);
+
+  return spin_button->climb_rate;
+}
+
+/**
  * gtk_spin_button_spin:
  * @spin_button: a #GtkSpinButton
  * @direction: a #GtkSpinType indicating the direction to spin
@@ -2271,3 +2346,10 @@ gtk_spin_button_update (GtkSpinButton *spin_button)
   else
     gtk_spin_button_set_value (spin_button, val);
 }
+
+GtkText *
+gtk_spin_button_get_text_widget (GtkSpinButton *spin_button)
+{
+  return GTK_TEXT (spin_button->entry);
+}
+

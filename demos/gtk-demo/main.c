@@ -391,7 +391,7 @@ display_nothing (const char *resource)
   GtkWidget *widget;
   char *str;
 
-  str = g_strdup_printf ("The lazy GTK developers forgot to add a way to display the resource '%s'", resource);
+  str = g_strdup_printf ("The contents of the resource at '%s' cannot be displayed", resource);
   widget = gtk_label_new (str);
   gtk_label_set_wrap (GTK_LABEL (widget), TRUE);
 
@@ -410,6 +410,7 @@ static struct {
   { ".gif", NULL, display_image },
   { ".jpg", NULL, display_image },
   { ".png", NULL, display_image },
+  { ".svg", NULL, display_image },
   { ".c", "c", display_text },
   { ".css", "css", display_text },
   { ".glsl", NULL, display_text },

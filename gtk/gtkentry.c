@@ -30,6 +30,7 @@
 
 #include "gtkentryprivate.h"
 
+#include "gtkaccessibleprivate.h"
 #include "gtkadjustment.h"
 #include "gtkbox.h"
 #include "gtkbutton.h"
@@ -320,9 +321,12 @@ static void     gtk_entry_measure (GtkWidget           *widget,
 static GtkBuildableIface *buildable_parent_iface = NULL;
 
 static void     gtk_entry_buildable_interface_init (GtkBuildableIface *iface);
+static void     gtk_entry_accessible_interface_init (GtkAccessibleInterface *iface);
 
 G_DEFINE_TYPE_WITH_CODE (GtkEntry, gtk_entry, GTK_TYPE_WIDGET,
                          G_ADD_PRIVATE (GtkEntry)
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_ACCESSIBLE,
+                                                gtk_entry_accessible_interface_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
                                                 gtk_entry_buildable_interface_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_EDITABLE,
@@ -330,6 +334,37 @@ G_DEFINE_TYPE_WITH_CODE (GtkEntry, gtk_entry, GTK_TYPE_WIDGET,
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_CELL_EDITABLE,
                                                 gtk_entry_cell_editable_init))
 
+/* Implement the GtkAccessible interface, in order to obtain focus
+ * state from the #GtkText widget that we are wrapping. The GtkText
+ * widget is ignored for accessibility purposes (it has role NONE),
+ * and any a11y text functionality is implemented for GtkEntry and
+ * similar wrappers (GtkPasswordEntry, GtkSpinButton, etc).
+ */
+static gboolean
+gtk_entry_accessible_get_platform_state (GtkAccessible              *self,
+                                         GtkAccessiblePlatformState  state)
+{
+  GtkEntry *entry = GTK_ENTRY (self);
+  GtkEntryPrivate *priv = gtk_entry_get_instance_private (entry);
+
+  switch (state)
+    {
+    case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSABLE:
+      return gtk_widget_get_focusable (GTK_WIDGET (priv->text));
+    case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSED:
+      return gtk_widget_has_focus (GTK_WIDGET (priv->text));
+    default:
+      g_assert_not_reached ();
+    }
+}
+
+static void
+gtk_entry_accessible_interface_init (GtkAccessibleInterface *iface)
+{
+  GtkAccessibleInterface *parent_iface = g_type_interface_peek_parent (iface);
+  iface->get_at_context = parent_iface->get_at_context;
+  iface->get_platform_state = gtk_entry_accessible_get_platform_state;
+}
 
 static const GtkBuildableParser pango_parser =
 {
@@ -3687,4 +3722,37 @@ gtk_entry_get_extra_menu (GtkEntry *entry)
   g_return_val_if_fail (GTK_IS_ENTRY (entry), NULL);
 
   return gtk_text_get_extra_menu (GTK_TEXT (priv->text));
+}
+
+/*< private >
+ * gtk_entry_activate_icon:
+ * @entry: a #GtkEntry
+ * @pos: the icon position
+ *
+ * Emits the #GtkEntry::icon-press and #GtkEntry::icon-release signals on
+ * the @entry icon at the given @pos, if the icon is set and activatable.
+ *
+ * Returns: %TRUE if the signal was emitted
+ */
+gboolean
+gtk_entry_activate_icon (GtkEntry             *entry,
+                         GtkEntryIconPosition  pos)
+{
+  GtkEntryPrivate *priv = gtk_entry_get_instance_private (entry);
+  EntryIconInfo *icon_info;
+
+  g_return_val_if_fail (GTK_IS_ENTRY (entry), FALSE);
+
+  icon_info = priv->icons[pos];
+
+  if (icon_info != NULL &&
+      gtk_image_get_storage_type (GTK_IMAGE (icon_info->widget)) != GTK_IMAGE_EMPTY &&
+      !icon_info->nonactivatable)
+    {
+      g_signal_emit (entry, signals[ICON_PRESS], 0, pos);
+      g_signal_emit (entry, signals[ICON_RELEASE], 0, pos);
+      return TRUE;
+    }
+
+  return FALSE;
 }

@@ -809,6 +809,9 @@ _gtk_widget_grab_notify (GtkWidget *widget,
 
       gtk_event_controller_reset (controller);
     }
+
+  if (GTK_IS_NATIVE (widget))
+    gtk_widget_hide (widget);
 }
 
 static void
@@ -1250,8 +1253,6 @@ gtk_widget_class_init (GtkWidgetClass *klass)
    *
    * The requested opacity of the widget. See gtk_widget_set_opacity() for
    * more details about window opacity.
-   *
-   * Before 3.8 this was only available in GtkWindow
    */
   widget_props[PROP_OPACITY] =
       g_param_spec_double ("opacity",
@@ -4947,6 +4948,9 @@ gtk_widget_set_focusable (GtkWidget *widget,
   priv->focusable = focusable;
 
   gtk_widget_queue_resize (widget);
+
+  gtk_accessible_platform_changed (GTK_ACCESSIBLE (widget), GTK_ACCESSIBLE_PLATFORM_CHANGE_FOCUSABLE);
+
   g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_FOCUSABLE]);
 }
 
@@ -7452,7 +7456,7 @@ gtk_widget_adjust_baseline_request (GtkWidget *widget,
  * with g_free(), the elements are owned by GTK and must
  * not be freed.
  */
-GdkDevice **
+static GdkDevice **
 _gtk_widget_list_devices (GtkWidget *widget,
                           guint     *out_n_devices)
 {
@@ -8091,10 +8095,14 @@ gtk_widget_accessible_get_at_context (GtkAccessible *accessible)
   GtkWidget *self = GTK_WIDGET (accessible);
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (self);
 
+  if (priv->in_destruction)
+    return NULL;
+
   if (priv->at_context == NULL)
     {
       GtkWidgetClass *widget_class = GTK_WIDGET_GET_CLASS (self);
       GtkWidgetClassPrivate *class_priv = widget_class->priv;
+      GdkDisplay *display = _gtk_widget_get_display (self);
       GtkAccessibleRole role;
 
       /* Widgets have two options to set the accessible role: either they
@@ -8111,16 +8119,32 @@ gtk_widget_accessible_get_at_context (GtkAccessible *accessible)
         role = class_priv->accessible_role;
 
       priv->accessible_role = role;
-      priv->at_context = gtk_at_context_create (role, accessible);
+      priv->at_context = gtk_at_context_create (role, accessible, display);
     }
 
   return priv->at_context;
+}
+
+static gboolean
+gtk_widget_accessible_get_platform_state (GtkAccessible              *self,
+                                          GtkAccessiblePlatformState  state)
+{
+  switch (state)
+    {
+    case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSABLE:
+      return gtk_widget_get_focusable (GTK_WIDGET (self));
+    case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSED:
+      return gtk_widget_has_focus (GTK_WIDGET (self));
+    default:
+      g_assert_not_reached ();
+    }
 }
 
 static void
 gtk_widget_accessible_interface_init (GtkAccessibleInterface *iface)
 {
   iface->get_at_context = gtk_widget_accessible_get_at_context;
+  iface->get_platform_state = gtk_widget_accessible_get_platform_state;
 }
 
 /*
@@ -9636,20 +9660,28 @@ gtk_widget_get_allocated_baseline (GtkWidget *widget)
  * @widget: a #GtkWidget
  * @opacity: desired opacity, between 0 and 1
  *
- * Request the @widget to be rendered partially transparent,
- * with opacity 0 being fully transparent and 1 fully opaque. (Opacity values
- * are clamped to the [0,1] range.).
- * This works on both toplevel widget, and child widgets, although there
- * are some limitations:
+ * Request the @widget to be rendered partially transparent, with
+ * opacity 0 being fully transparent and 1 fully opaque. (Opacity
+ * values are clamped to the [0,1] range).
  *
- * For toplevel widgets this depends on the capabilities of the windowing
- * system. On X11 this has any effect only on X displays with a compositing manager
- * running. See gdk_display_is_composited(). On Windows it should work
- * always, although setting a window’s opacity after the window has been
- * shown causes it to flicker once on Windows.
+ * Opacity works on both toplevel widgets and child widgets, although
+ * there are some limitations: For toplevel widgets, applying opacity
+ * depends on the capabilities of the windowing system. On X11, this
+ * has any effect only on X displays with a compositing manager,
+ * see gdk_display_is_composited(). On Windows and Wayland it should
+ * always work, although setting a window’s opacity after the window
+ * has been shown may cause some flicker.
  *
- * For child widgets it doesn’t work if any affected widget has a native window.
- **/
+ * Note that the opacity is inherited through inclusion — if you set
+ * a toplevel to be partially translucent, all of its content will
+ * appear translucent, since it is ultimatively rendered on that
+ * toplevel. The opacity value itself is not inherited by child
+ * widgets (since that would make widgets deeper in the hierarchy
+ * progressively more translucent). As a consequence, #GtkPopovers
+ * and other #GtkNative widgets with their own surface will use their
+ * own opacity value, and thus by default appear non-translucent,
+ * even if they are attached to a toplevel that is translucent.
+ */
 void
 gtk_widget_set_opacity (GtkWidget *widget,
                         double     opacity)
@@ -9751,6 +9783,8 @@ gtk_widget_set_has_focus (GtkWidget *widget,
     return;
 
   priv->has_focus = has_focus;
+
+  gtk_accessible_platform_changed (GTK_ACCESSIBLE (widget), GTK_ACCESSIBLE_PLATFORM_CHANGE_FOCUSED);
 
   g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_HAS_FOCUS]);
 }
@@ -12139,6 +12173,10 @@ gtk_widget_update_orientation (GtkWidget      *widget,
       gtk_widget_add_css_class (widget, "vertical");
       gtk_widget_remove_css_class (widget, "horizontal");
     }
+
+  gtk_accessible_update_property (GTK_ACCESSIBLE (widget),
+                                  GTK_ACCESSIBLE_PROPERTY_ORIENTATION, orientation,
+                                  -1);
 }
 
 /**

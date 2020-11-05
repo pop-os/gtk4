@@ -138,12 +138,15 @@
     <file>gtkshaderstack.h</file>
     <file>gtkshaderbin.h</file>
     <file>gtkshaderbin.c</file>
-    <file>fire.glsl</file>
-    <file>transition1.glsl</file>
-    <file>transition2.glsl</file>
-    <file>transition3.glsl</file>
-    <file>transition4.glsl</file>
+    <file>gskshaderpaintable.h</file>
+    <file>gskshaderpaintable.c</file>
+    <file>wind.glsl</file>
+    <file>radial.glsl</file>
+    <file>crosswarp.glsl</file>
+    <file>kaleidoscope.glsl</file>
     <file>cogs2.glsl</file>
+    <file>ripple.glsl</file>
+    <file>background.glsl</file>
   </gresource>
   <gresource prefix="/iconscroll">
     <file>iconscroll.ui</file>
@@ -181,6 +184,9 @@
   <gresource prefix="/listview_settings">
     <file>listview_settings.ui</file>
   </gresource>
+  <gresource prefix="/listview_ucd_data/">
+    <file>ucdnames.data</file>
+  </gresource>
   <gresource prefix="/listview_weather">
     <file compressed="true">listview_weather.txt</file>
   </gresource>
@@ -197,6 +203,9 @@
     <file>demo3widget.c</file>
     <file>demo3widget.h</file>
     <file>demo3widget.ui</file>
+  </gresource>
+  <gresource prefix="/paintable_svg">
+    <file>org.gtk.gtk4.NodeEditor.Devel.svg</file>
   </gresource>
   <gresource prefix="/shortcuts">
     <file>shortcuts.ui</file>
@@ -278,6 +287,7 @@
     <file>listview_filebrowser.c</file>
     <file>listview_minesweeper.c</file>
     <file>listview_settings.c</file>
+    <file>listview_ucd.c</file>
     <file>listview_weather.c</file>
     <file>listview_words.c</file>
     <file>list_store.c</file>
@@ -292,6 +302,7 @@
     <file>paintable_animated.c</file>
     <file>paintable_emblem.c</file>
     <file>paintable_mediastream.c</file>
+    <file>paintable_svg.c</file>
     <file>panes.c</file>
     <file>password_entry.c</file>
     <file>peg_solitaire.c</file>

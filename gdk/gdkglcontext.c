@@ -864,7 +864,6 @@ gdk_gl_context_get_use_es (GdkGLContext *context)
   return priv->use_es > 0;
 }
 
-#ifdef G_ENABLE_CONSISTENCY_CHECKS
 static void
 gl_debug_message_callback (GLenum        source,
                            GLenum        type,
@@ -955,7 +954,6 @@ gl_debug_message_callback (GLenum        source,
   g_warning ("OPENGL:\n    Source: %s\n    Type: %s\n    Severity: %s\n    Message: %s",
              message_source, message_type, message_severity, message);
 }
-#endif
 
 /**
  * gdk_gl_context_realize:
@@ -1008,15 +1006,22 @@ gdk_gl_context_check_extensions (GdkGLContext *context)
   priv->has_debug_output = epoxy_has_gl_extension ("GL_ARB_debug_output") ||
                            epoxy_has_gl_extension ("GL_KHR_debug");
 
-#ifdef G_ENABLE_CONSISTENCY_CHECKS
-  if (priv->has_debug_output)
+#ifdef G_ENABLE_DEBUG
+  display = gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context));
+  gl_debug = GDK_DISPLAY_DEBUG_CHECK (display, GL_DEBUG);
+#endif
+
+  if (priv->has_debug_output
+#ifndef G_ENABLE_CONSISTENCY_CHECKS
+      && gl_debug
+#endif
+      )
     {
       gdk_gl_context_make_current (context);
       glEnable (GL_DEBUG_OUTPUT);
       glEnable (GL_DEBUG_OUTPUT_SYNCHRONOUS);
       glDebugMessageCallback (gl_debug_message_callback, NULL);
     }
-#endif
 
   if (priv->use_es)
     {
@@ -1038,11 +1043,6 @@ gdk_gl_context_check_extensions (GdkGLContext *context)
       if (priv->gl_version < 32)
         priv->is_legacy = TRUE;
     }
-
-#ifdef G_ENABLE_DEBUG
-  display = gdk_draw_context_get_display (GDK_DRAW_CONTEXT (context));
-  gl_debug = GDK_DISPLAY_DEBUG_CHECK (display, GL_DEBUG);
-#endif
 
   if (priv->has_khr_debug && gl_debug)
     {

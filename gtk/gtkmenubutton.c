@@ -119,7 +119,6 @@
 #include "gtkpopover.h"
 #include "gtkpopovermenu.h"
 #include "gtkprivate.h"
-#include "gtkstylecontext.h"
 #include "gtktypebuiltins.h"
 #include "gtklabel.h"
 #include "gtkbox.h"
@@ -914,13 +913,6 @@ gtk_menu_button_popdown (GtkMenuButton *menu_button)
   g_return_if_fail (GTK_IS_MENU_BUTTON (menu_button));
 
   gtk_toggle_button_set_active (GTK_TOGGLE_BUTTON (menu_button->button), FALSE);
-}
-
-void
-gtk_menu_button_add_child (GtkMenuButton *menu_button,
-                           GtkWidget     *new_child)
-{
-  gtk_button_set_child (GTK_BUTTON (menu_button->button), new_child);
 }
 
 /**

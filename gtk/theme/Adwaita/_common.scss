@@ -710,42 +710,18 @@ button {
     // padding added too.
 
     > label {
-      padding-left: 6px;  // label padding
-      padding-right: 6px; //
+      padding: 0 6px;
+      margin: 0 -6px;
     }
 
     > image {
-      padding-left: 6px;   // image padding
-      padding-right: 6px;  //
-      padding-top: 3px;    //
-      padding-bottom: 3px; //
-    }
-
-    &.text-button {
-      // compensate text-button paddings
-      padding-left: 10px;
-      padding-right: 10px;
-    }
-
-    &.image-button {
-      // we want image buttons to have a 1:1 aspect ratio, so compensation
-      // of the padding added to the GtkImage is needed
-      padding-left: 2px;
-      padding-right: 2px;
+      padding: 3px 6px;
+      margin: -3px -6px;
     }
 
     &.needs-attention {
       > label,
       > image { @extend %needs_attention; }
-
-      &:active,
-      &:checked {
-        > label,
-        > image {
-          animation: none;
-          background-image: none;
-        }
-      }
     }
   }
 
@@ -1342,6 +1318,45 @@ searchbar > revealer > box {
     transition: $backdrop_transition;
   }
 }
+
+/**************
+ * GtkInfoBar *
+ **************/
+infobar {
+  > revealer > box {
+    padding: 8px;
+    border-spacing: 12px;
+  }
+
+  &.action:hover > revealer > box {
+      background-color: if($variant == 'light', desaturate(lighten(invert($selected_bg_color), 47%), 30%),
+                        desaturate(darken(invert($selected_bg_color), 42%), 70%));
+  }
+
+  &.info,
+  &.question,
+  &.warning,
+  &.error {
+    > revealer > box {
+      border-bottom: 1px solid lighten($borders_color, 5%);
+      background-color: if($variant == 'light', desaturate(lighten(invert($selected_bg_color), 45%), 30%),
+                        desaturate(darken(invert($selected_bg_color), 40%), 70%));
+    }
+  }
+}
+
+   //close button for info and searchbar (#3215)
+
+   infobar .close,
+   searchbar .close {
+      @include button(undecorated);
+      min-width: 16px;
+      min-height: 16px;
+      padding: 4px;
+      border-radius: 50%;
+
+      &:hover { @include button(hover); }
+   }
 
 
 /*****************
@@ -3445,10 +3460,11 @@ separator.sidebar {
         outline-width: 0;
         color: $selected_fg_color;
         background-color: $selected_bg_color;
+        &:hover { background-color: darken($selected_bg_color,10%); }
       }
       &:hover:not(:last-child) { /* FIXME: dirty specificity bump */
-        color: $fg_color;
-        background-color: $menu_selected_color;
+        color: $selected_fg_color;
+        background-color: darken(desaturate($selected_bg_color,100%),10%);
       }
     }
 
@@ -3621,33 +3637,6 @@ video {
   }
   background: black;
 }
-
-/**************
- * GtkInfoBar *
- **************/
-infobar {
-  > revealer > box {
-    padding: 8px;
-    border-spacing: 12px;
-  }
-
-  &.action:hover > revealer > box {
-      background-color: if($variant == 'light', desaturate(lighten(invert($selected_bg_color), 47%), 30%),
-                        desaturate(darken(invert($selected_bg_color), 42%), 70%));
-  }
-
-  &.info,
-  &.question,
-  &.warning,
-  &.error {
-    > revealer > box {
-      border-bottom: 1px solid lighten($borders_color, 5%);
-      background-color: if($variant == 'light', desaturate(lighten(invert($selected_bg_color), 45%), 30%), 
-                        desaturate(darken(invert($selected_bg_color), 40%), 70%));
-    }
-  }
-}
-
 
 /************
  * Tooltips *

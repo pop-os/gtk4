@@ -1542,9 +1542,12 @@ gtk_icon_theme_add_search_path (GtkIconTheme *self,
  *
  * The resources are considered as part of the hicolor icon theme
  * and must be located in subdirectories that are defined in the
- * hicolor icon theme, such as `@path/16x16/actions/run.png`.
+ * hicolor icon theme, such as `@path/16x16/actions/run.png`
+ * or `@path/scalable/actions/run.svg`.
+ *
  * Icons that are directly placed in the resource path instead
- * of a subdirectory are also considered as ultimate fallback.
+ * of a subdirectory are also considered as ultimate fallback,
+ * but they are treated like unthemed icons.
  */
 void
 gtk_icon_theme_set_resource_path (GtkIconTheme       *self,
@@ -3667,6 +3670,9 @@ gtk_icon_paintable_get_icon_name (GtkIconPaintable *icon)
  * the file name and not the file contents for determining this.
  * This behaviour may change in the future.
  *
+ * Note that to render a symbolic #GtkIconPaintable properly (with
+ * recoloring), you have to set its icon name on a #GtkImage.
+ *
  * Returns: %TRUE if the icon is symbolic, %FALSE otherwise
  */
 gboolean
@@ -4133,3 +4139,21 @@ gtk_icon_theme_lookup_by_gicon (GtkIconTheme       *self,
 
   return icon;
 }
+
+/**
+ * gtk_icon_theme_get_display:
+ * @self: a #GtkIconTheme
+ *
+ * Returns the display that the GtkIconTheme object was
+ * created for.
+ *
+ * Returns: (nullable) (transfer none): the display of @icon_theme
+ */
+GdkDisplay *
+gtk_icon_theme_get_display (GtkIconTheme *self)
+{
+  g_return_val_if_fail (GTK_IS_ICON_THEME (self), NULL);
+
+  return self->display;
+}
+

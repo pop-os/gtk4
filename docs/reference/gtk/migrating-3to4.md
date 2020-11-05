@@ -220,6 +220,18 @@ replace many uses of gtk_container_add() with equivalent container-specific
 APIs such as gtk_box_pack_start() or gtk_grid_attach(), and thereby reduce
 the amount of work you have to do at the time of the switch.
 
+### Review your use of icon resources
+
+When using icons as resources, the behavior of GTK 4 is different in one
+respect: Icons that are directly in $APP_ID/icons/ are treated as unthemed
+icons, which also means that symbolic icons are not recolored. If you want
+your icon resources to have icon theme semantics, they need to be placed
+into theme subdirectories such as $APP_ID/icons/16x16/actions or
+$APP_ID/icons/scalable/status.
+
+This location works fine in GTK 3 too, so you can prepare for this change
+before switching to GTK 4.
+
 ## Changes that need to be done at the time of the switch
 
 This section outlines porting tasks that you need to tackle when
@@ -265,15 +277,22 @@ with surfaces, you may have to change it to call the API in these
 interfaces, depending on whether the surface you are dealing with
 is a toplevel or a popup.
 
-As part of this reorganization, X11-only concepts such as sticky or
-keep-below have been removed. If you need to use them on your X11 windows,
-you will have to set the corresponding X11 properties (as specified in the
-EWMH) yourself. Subsurfaces are only supported with the Wayland backend,
-using gdk_wayland_surface_new_subsurface(). Native and foreign subwindows
-are no longer supported. These concepts were complicating the code and
-could not be supported across backends.
+As part of this reorganization, X11-only concepts such as sticky,
+keep-below, urgency, skip-taskbar or window groups have either been
+removed or moved to X11 backend api. If you need to use them on your
+X11 windows, you will have to use those backend apis or set the
+corresponding X11 properties (as specified in the EWMH) yourself.
 
-gdk_window_reparent() is no longer available.
+Subsurfaces are only supported with the Wayland backend, using
+gdk_wayland_surface_new_subsurface(). Native and foreign subwindows
+are no longer supported. These concepts were complicating the code
+and could not be supported across backends.
+
+A number of GdkWindow APIs are no longer available. This includes
+gdk_window_reparent(), gdk_window_set_geometry_hints(), gdk_window_raise(),
+gdk_window_restack(), gdk_window_move(), gdk_window_resize(). If
+you need to manually control the position or stacking of your X11
+windows, you you will have to use Xlib apis.
 
 A number of minor API cleanups have happened in GdkSurface
 as well. For example, gdk_surface_input_shape_combine_region()
@@ -286,9 +305,9 @@ gdk_toplevel_begin_resize().
 The %GDK_TOPLEVEL_STATE_ICONIFIED value of the #GdkSurfaceState enumeration
 is now %GDK_TOPLEVEL_STATE_MINIMIZED in the #GdkToplevelState enumeration.
 
-The #GdkWindow functions <function>gdk_window_iconify()</function>
-and <function>gdk_window_deiconify()</function> have been renamed to
-gdk_toplevel_minimize() and gdk_toplevel_present(), respectively.
+The #GdkWindow functions gdk_window_iconify() and gdk_window_deiconify()
+have been renamed to gdk_toplevel_minimize() and gdk_toplevel_present(),
+respectively.
 
 The behavior of the minimization and unminimization operations have
 not been changed, and they still require support from the underlying
@@ -446,6 +465,17 @@ GtkButtonBox has been removed. Use a GtkBox instead.
 
 The GtkBox pack-start and -end methods have been replaced by gtk_box_prepend()
 and gtk_box_append(). You can also reorder box children as necessary.
+
+### Adapt to GtkWindow API changes
+
+Following the GdkSurface changes, a number of GtkWindow APIs that were
+X11-specific have been removed. This includes gtk_window_set_geometry_hints(),
+gtk_window_set_gravity(), gtk_window_move(), gtk_window_parse_geometry(),
+gtk_window_set_keep_above(), gtk_window_set_keep_below(),
+gtk_window_begin_resize_drag(), gtk_window_begin_move_drag().
+Most likely, you should just stop using them. In some cases, you can
+fall back to using the underlying #GdkToplevel APIS (for example,
+gdk_toplevel_begin_resize()).
 
 ### Adapt to GtkHeaderBar and GtkActionBar API changes
 
@@ -879,6 +909,15 @@ gtk_search_entry_handle_event() has been dropped and replaced by
 gtk_search_entry_set_key_capture_widget() and
 gtk_event_controller_key_forward().
 
+### Adapt to GtkScale changes
+
+The default value of #GtkScale:draw-value has been changed to %FALSE.
+If you want your scales to draw values, you will have to set this
+property explicitly now.
+
+gtk4-builder-tool can help with this conversion, with the --3to4 option
+of the simplify command.
+
 ### Stop using gtk_window_activate_default()
 
 The handling of default widgets has been changed, and activating
@@ -998,6 +1037,14 @@ of a #GtkIconInfo. It always returns a paintable in the requested size, and
 never fails. A number of no-longer-relevant lookup flags and API variants
 have been removed.
 
+Note that while GTK 4 is moving towards #GdkPaintable as a primary API
+for paintable content, it is meant to be a 'pure' content producer, therefore
+a #GtkIconPaintable for a symbolic icon will *not* get recolored depending
+on the context it is rendered it. To properly render a symbolic icon that
+is provided in the form of a #GtkIconPaintable (this can be checked with
+gtk_icon_paintable_is_symbolic()), you have to call
+gtk_icon_paintable_get_icon_name() and set the icon name on a #GtkImage.
+
 ### Update to GtkFileChooser API changes
 
 GtkFileChooser moved to a GFile-based API. If you need to convert a
@@ -1047,6 +1094,11 @@ All the GtkBuildable API was made private, except for the
 getter function to retrieve the buildable ID. If you are
 using gtk_buildable_get_name() you should replace it with
 gtk_buildable_get_buildable_id().
+
+### Adapt to GtkAboutDialog API changes
+
+GtkAboutDialog now directly derives from GtkWindow, the GtkDialog API can no
+longer be used on it.
 
 ## Changes to consider after the switch
 

@@ -88,6 +88,8 @@
 
 #ifdef GDK_WINDOWING_WAYLAND
 #include "wayland/gdkwayland.h"
+#include "wayland/gdkdisplay-wayland.h"
+#include "wayland/gdksurface-wayland.h"
 #endif
 
 #ifdef GDK_WINDOWING_BROADWAY
@@ -226,7 +228,6 @@ typedef struct
   guint    in_emit_close_request     : 1;
 
   GtkGesture *click_gesture;
-  GtkEventController *key_controller;
   GtkEventController *application_shortcut_controller;
 
   GdkSurface  *surface;
@@ -1512,13 +1513,13 @@ gtk_window_init (GtkWindow *window)
                             G_CALLBACK (gtk_window_capture_motion), window);
   gtk_widget_add_controller (widget, controller);
 
-  priv->key_controller = gtk_event_controller_key_new ();
-  gtk_event_controller_set_propagation_phase (priv->key_controller, GTK_PHASE_CAPTURE);
-  g_signal_connect_swapped (priv->key_controller, "key-pressed",
+  controller = gtk_event_controller_key_new ();
+  gtk_event_controller_set_propagation_phase (controller, GTK_PHASE_CAPTURE);
+  g_signal_connect_swapped (controller, "key-pressed",
                             G_CALLBACK (gtk_window_key_pressed), window);
-  g_signal_connect_swapped (priv->key_controller, "key-released",
+  g_signal_connect_swapped (controller, "key-released",
                             G_CALLBACK (gtk_window_key_released), window);
-  gtk_widget_add_controller (widget, priv->key_controller);
+  gtk_widget_add_controller (widget, controller);
 
   controller = gtk_event_controller_legacy_new ();
   gtk_event_controller_set_name (controller, "gtk-window-toplevel-focus");
@@ -4220,13 +4221,13 @@ static void
 gtk_window_compute_default_size (GtkWindow *window,
                                  int        max_width,
                                  int        max_height,
-                                 int       *width,
-                                 int       *height)
+                                 int       *min_width,
+                                 int       *min_height,
+                                 int       *nat_width,
+                                 int       *nat_height)
 {
   GtkWidget *widget = GTK_WIDGET (window);
 
-  *width = max_width;
-  *height = max_height;
   if (gtk_widget_get_request_mode (widget) == GTK_SIZE_REQUEST_WIDTH_FOR_HEIGHT)
     {
       int minimum, natural;
@@ -4234,13 +4235,15 @@ gtk_window_compute_default_size (GtkWindow *window,
       gtk_widget_measure (widget, GTK_ORIENTATION_VERTICAL, -1,
                           &minimum, &natural,
                           NULL, NULL);
-      *height = MAX (minimum, MIN (*height, natural));
+      *min_height = minimum;
+      *nat_height = MAX (minimum, MIN (max_height, natural));
 
       gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL,
-                          *height,
+                          *nat_height,
                           &minimum, &natural,
                           NULL, NULL);
-      *width = MAX (minimum, MIN (*width, natural));
+      *min_width = minimum;
+      *nat_width = MAX (minimum, MIN (max_width, natural));
     }
   else /* GTK_SIZE_REQUEST_HEIGHT_FOR_WIDTH or CONSTANT_SIZE */
     {
@@ -4249,13 +4252,15 @@ gtk_window_compute_default_size (GtkWindow *window,
       gtk_widget_measure (widget, GTK_ORIENTATION_HORIZONTAL, -1,
                           &minimum, &natural,
                           NULL, NULL);
-      *width = MAX (minimum, MIN (*width, natural));
+      *min_width = minimum;
+      *nat_width = MAX (minimum, MIN (max_width, natural));
 
       gtk_widget_measure (widget, GTK_ORIENTATION_VERTICAL,
-                          *width,
+                          *nat_width,
                           &minimum, &natural,
                           NULL, NULL);
-      *height = MAX (minimum, MIN (*height, natural));
+      *min_height = minimum;
+      *nat_height = MAX (minimum, MIN (max_height, natural));
     }
 }
 
@@ -4270,8 +4275,8 @@ toplevel_compute_size (GdkToplevel     *toplevel,
   int width, height;
   GtkBorder shadow;
   int bounds_width, bounds_height;
-  int default_width, default_height;
   int min_width, min_height;
+  int nat_width, nat_height;
 
   info = gtk_window_get_geometry_info (window, FALSE);
 
@@ -4279,7 +4284,8 @@ toplevel_compute_size (GdkToplevel     *toplevel,
 
   gtk_window_compute_default_size (window,
                                    bounds_width, bounds_height,
-                                   &default_width, &default_height);
+                                   &min_width, &min_height,
+                                   &nat_width, &nat_height);
 
   if (priv->need_default_size)
     {
@@ -4291,8 +4297,8 @@ toplevel_compute_size (GdkToplevel     *toplevel,
 
       gtk_window_get_remembered_size (window,
                                       &remembered_width, &remembered_height);
-      width = MAX (default_width, remembered_width);
-      height = MAX (default_height, remembered_height);
+      width = MAX (nat_width, remembered_width);
+      height = MAX (nat_height, remembered_height);
 
       /* Override with default size */
       if (info)
@@ -4307,9 +4313,9 @@ toplevel_compute_size (GdkToplevel     *toplevel,
                                       INCLUDE_CSD_SIZE);
 
           if (info->default_width > 0)
-            width = min_width = default_width_csd;
+            width = default_width_csd;
           if (info->default_height > 0)
-            height = min_height = default_height_csd;
+            height = default_height_csd;
         }
     }
   else
@@ -4349,8 +4355,9 @@ toplevel_compute_size (GdkToplevel     *toplevel,
 
   get_shadow_width (window, &shadow);
 
-  min_width = MIN (default_width + shadow.left + shadow.right, width);
-  min_height = MIN (default_height + shadow.top + shadow.bottom, height);
+  min_width = MIN (min_width + shadow.left + shadow.right, width);
+  min_height = MIN (min_height + shadow.top + shadow.bottom, height);
+
   gdk_toplevel_size_set_min_size (size, min_width, min_height);
 }
 
@@ -4728,6 +4735,22 @@ surface_size_changed (GtkWidget *widget,
   GtkWindowPrivate *priv = gtk_window_get_instance_private (GTK_WINDOW (widget));
 
   check_scale_changed (GTK_WINDOW (widget));
+
+  if (!(priv->state & (GDK_TOPLEVEL_STATE_FULLSCREEN |
+                       GDK_TOPLEVEL_STATE_MAXIMIZED |
+                       GDK_TOPLEVEL_STATE_TILED |
+                       GDK_TOPLEVEL_STATE_TOP_TILED |
+                       GDK_TOPLEVEL_STATE_RIGHT_TILED |
+                       GDK_TOPLEVEL_STATE_BOTTOM_TILED |
+                       GDK_TOPLEVEL_STATE_LEFT_TILED |
+                       GDK_TOPLEVEL_STATE_MINIMIZED)))
+    {
+      GtkWindowGeometryInfo *info;
+
+      info = gtk_window_get_geometry_info (GTK_WINDOW (widget), TRUE);
+      info->last.configure_request.width = width;
+      info->last.configure_request.height = height;
+    }
 
   /* priv->configure_request_count incremented for each
    * configure request, and decremented to a min of 0 for
@@ -5190,55 +5213,52 @@ gtk_window_css_changed (GtkWidget         *widget,
     }
 }
 
-/**
+/*
  * _gtk_window_unset_focus_and_default:
  * @window: a #GtkWindow
  * @widget: a widget inside of @window
- * 
+ *
  * Checks whether the focus and default widgets of @window are
  * @widget or a descendent of @widget, and if so, unset them.
- **/
+ */
 void
 _gtk_window_unset_focus_and_default (GtkWindow *window,
-				     GtkWidget *widget)
+                                     GtkWidget *widget)
 
 {
   GtkWindowPrivate *priv = gtk_window_get_instance_private (window);
   GtkWidget *child;
   GtkWidget *parent;
+  GtkWidget *focus;
 
   g_object_ref (window);
   g_object_ref (widget);
 
-  parent = _gtk_widget_get_parent (widget);
-  if (gtk_widget_get_focus_child (parent) == widget)
+  focus = priv->focus_widget;
+  if (focus && (focus == widget || gtk_widget_is_ancestor (focus, widget)))
     {
-      child = priv->focus_widget;
-      
-      while (child && child != widget)
-        child = _gtk_widget_get_parent (child);
+      parent = _gtk_widget_get_parent (widget);
 
-      if (child == widget)
+      while (parent)
         {
-          GtkWidget *new_focus;
+          if (_gtk_widget_get_visible (parent))
+            {
+              if (gtk_widget_grab_focus (parent))
+                break;
+            }
 
-          if (GTK_IS_NATIVE (widget))
-            new_focus = gtk_widget_get_parent (widget);
-          else
-            new_focus = NULL;
-
-	  gtk_window_set_focus (GTK_WINDOW (window), new_focus);
+          parent = gtk_widget_get_parent (parent);
         }
     }
-      
+
   child = priv->default_widget;
-      
+
   while (child && child != widget)
     child = _gtk_widget_get_parent (child);
 
   if (child == widget)
     gtk_window_set_default_widget (window, NULL);
-  
+
   g_object_unref (widget);
   g_object_unref (window);
 }
@@ -5490,7 +5510,6 @@ gtk_window_move_resize (GtkWindow *window)
   info->last.geometry = new_geometry;
   info->last.flags = new_flags;
   info->last.configure_request = new_request;
-
   /* need to set PPosition so the WM will look at our position,
    * but we don't want to count PPosition coming and going as a hints
    * change for future iterations. So we saved info->last prior to

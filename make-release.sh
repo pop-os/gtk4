@@ -10,18 +10,18 @@ if [ -d ${release_build_dir} ]; then
 fi
 
 # we include gtk-doc since we need the gtk-doc-for-gtk4 branch
-meson setup --force-fallback-for gtk-doc ${release_build_dir} || exit
+meson setup ${release_build_dir} || exit
 
 # make the release tarball
-meson dist -C${release_build_dir} --include-subprojects || exit
+meson dist -C${release_build_dir} || exit
 
 # now build the docs
 meson configure -Dgtk_doc=true ${release_build_dir} || exit
 ninja -C${release_build_dir} gdk4-doc gsk4-doc gtk4-doc || exit
 
-tar cf ${release_build_dir}/meson-dist/gdk-docs-${version}.tar.xz ${release_build_dir}/docs/reference/gdk
-tar cf ${release_build_dir}/meson-dist/gsk-docs-${version}.tar.xz ${release_build_dir}/docs/reference/gsk
-tar cf ${release_build_dir}/meson-dist/gtk-docs-${version}.tar.xz ${release_build_dir}/docs/reference/gtk
+tar cf ${release_build_dir}/meson-dist/gdk-docs-${version}.tar.xz -C${release_build_dir} docs/reference/gdk
+tar cf ${release_build_dir}/meson-dist/gsk-docs-${version}.tar.xz -C${release_build_dir} docs/reference/gsk
+tar cf ${release_build_dir}/meson-dist/gtk-docs-${version}.tar.xz -C${release_build_dir} docs/reference/gtk
 
 echo -e "\n\nGTK ${version} release on branch ${branch} in ./${release_build_dir}/:\n"
 

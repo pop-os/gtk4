@@ -115,7 +115,8 @@ next:
               break;
             }
         }
-      while (g_unichar_isalnum (g_utf8_get_char (p)) || *p == '_');
+      while (p > text &&
+             (g_unichar_isalnum (g_utf8_get_char (p)) || *p == '_' || *p == ' '));
 
       if (found_candidate)
         n_matches = populate_completion (completion, p, 0);
@@ -474,7 +475,7 @@ add_emoji_variation (GtkWidget *box,
   if (modifier != 0)
     g_object_set_data (G_OBJECT (child), "modifier", GUINT_TO_POINTER (modifier));
 
-  gtk_box_append (GTK_BOX (child), label);
+  gtk_flow_box_child_set_child (GTK_FLOW_BOX_CHILD (child), label);
   gtk_flow_box_insert (GTK_FLOW_BOX (box), child, -1);
 }
 
@@ -488,7 +489,7 @@ add_emoji (GtkWidget          *list,
   GtkWidget *box;
   PangoAttrList *attrs;
   char text[64];
-  const char *shortname;
+  const char *name;
   GtkWidget *stack;
   gunichar modifier;
 
@@ -504,7 +505,7 @@ add_emoji (GtkWidget          *list,
   child = g_object_new (GTK_TYPE_LIST_BOX_ROW, "css-name", "emoji-completion-row", NULL);
   gtk_widget_set_focus_on_click (child, FALSE);
   box = gtk_box_new (GTK_ORIENTATION_HORIZONTAL, 0);
-  gtk_box_append (GTK_BOX (child), box);
+  gtk_list_box_row_set_child (GTK_LIST_BOX_ROW (child), box);
   gtk_box_append (GTK_BOX (box), label);
   g_object_set_data (G_OBJECT (child), "base", label);
 
@@ -515,8 +516,8 @@ add_emoji (GtkWidget          *list,
   gtk_box_append (GTK_BOX (box), stack);
   g_object_set_data (G_OBJECT (child), "stack", stack);
 
-  g_variant_get_child (emoji_data, 2, "&s", &shortname);
-  label = gtk_label_new (shortname);
+  g_variant_get_child (emoji_data, 1, "&s", &name);
+  label = gtk_label_new (name);
   gtk_label_set_xalign (GTK_LABEL (label), 0);
 
   gtk_stack_add_named (GTK_STACK (stack), label, "text");
@@ -572,10 +573,11 @@ populate_completion (GtkEmojiCompletion *completion,
   g_variant_iter_init (&iter, completion->data);
   while ((item = g_variant_iter_next_value (&iter)))
     {
-      const char *shortname;
+      const char *name;
 
-      g_variant_get_child (item, 2, "&s", &shortname);
-      if (g_str_has_prefix (shortname, text))
+      g_variant_get_child (item, 1, "&s", &name);
+
+      if (g_str_has_prefix (name, text + 1))
         {
           n_matches++;
 
@@ -622,8 +624,8 @@ gtk_emoji_completion_init (GtkEmojiCompletion *completion)
 
   gtk_widget_init_template (GTK_WIDGET (completion));
 
-  bytes = g_resources_lookup_data ("/org/gtk/libgtk/emoji/emoji.data", 0, NULL);
-  completion->data = g_variant_ref_sink (g_variant_new_from_bytes (G_VARIANT_TYPE ("a(auss)"), bytes, TRUE));
+  bytes = get_emoji_data ();
+  completion->data = g_variant_ref_sink (g_variant_new_from_bytes (G_VARIANT_TYPE ("a(ausasu)"), bytes, TRUE));
 
   g_bytes_unref (bytes);
 

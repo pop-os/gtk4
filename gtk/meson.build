@@ -1,3 +1,4 @@
+subdir('a11y')
 subdir('deprecated')
 subdir('inspector')
 
@@ -82,7 +83,6 @@ gtk_private_sources = files([
   'gtkcssnodestylecache.c',
   'gtkcssnumbervalue.c',
   'gtkcsspalettevalue.c',
-  'gtkcssparser.c',
   'gtkcsspositionvalue.c',
   'gtkcssrepeatvalue.c',
   'gtkcssselector.c',
@@ -807,21 +807,21 @@ if win32_enabled
   gtk_sources += ['gtkmountoperation-stub.c']
 endif
 
-if quartz_enabled
+if macos_enabled
   gtk_sources += files([
     'gtksearchenginequartz.c',
     'gtkmountoperation-stub.c',
     'gtkapplication-quartz.c',
     'gtkapplication-quartz-menu.c',
     'gtkfilechoosernativequartz.c',
+    'gtkimcontextquartz.c',
     'gtkquartz.c',
   ])
-  gtk_sources += ['gtkimcontextquartz.c']
 
   gtk_cargs += ['-xobjective-c']  # FIXME? maybe add_languages() instead?
 endif
 
-if not (x11_enabled or win32_enabled or quartz_enabled)
+if not (x11_enabled or win32_enabled or macos_enabled)
   gtk_sources += ['gtkmountoperation-stub.c', ]
 endif
 
@@ -861,6 +861,23 @@ gtkresources = gnome.compile_resources('gtkresources',
   c_name: '_gtk',
   extra_args: '--manual-register',
 )
+
+foreach lang : [ 'de', 'fr', 'es', 'zh' ]
+  conf = configuration_data()
+  conf.set('lang', lang)
+  resxml = configure_file(input: 'emoji/gresource.xml.in',
+                          output: lang + '.gresource.xml',
+                          configuration: conf
+  )
+
+  gnome.compile_resources(lang,
+    resxml,
+    source_dir: 'emoji',
+    gresource_bundle: true,
+    install: true,
+    install_dir: join_paths(gtk_datadir, 'gtk-4.0', 'emoji')
+  )
+endforeach
 
 gtk_x11_sources = files([
   'gtkapplication-x11.c',
@@ -945,6 +962,7 @@ gtk_gen_headers = [
 ]
 
 gtk_sources += [
+  gtk_a11y_src,
   gtk_dbus_src,
   gtk_deprecated_sources,
   inspector_sources,
@@ -1025,6 +1043,14 @@ if x11_enabled or wayland_enabled
   gtk_deps += pangoft_dep
 endif
 
+if macos_enabled
+  gtk_macos_frameworks = [
+    'AppKit',
+    'Foundation',
+  ]
+  gtk_deps += [dependency('appleframeworks', modules: gtk_macos_frameworks)]
+endif
+
 gtk_deps += cloudproviders_dep
 
 if os_unix
@@ -1075,8 +1101,11 @@ libgtk = library('gtk-4',
                  install: true)
 
 gtk_dep_sources = [gtkversion, gtktypebuiltins_h]
+
 # Introspection
-build_gir = get_option('introspection')
+gir = find_program('g-ir-scanner', required : get_option('introspection'))
+build_gir = gir.found() and (not meson.is_cross_build() or get_option('introspection').enabled())
+
 if build_gir
   gir_args = [
     '-DGTK_COMPILATION',
@@ -1136,6 +1165,23 @@ if build_gir
                                      extra_args: gir_args,
     )
     gtk_dep_sources += gdk_x11_gir
+  endif
+
+  if wayland_enabled
+    gdk_wayland_gir = gnome.generate_gir(libgtk,
+                                         sources: gdk_wayland_public_headers + gdk_wayland_sources,
+                                         namespace: 'GdkWayland',
+                                         nsversion: gtk_api_version,
+                                         identifier_prefix: 'Gdk',
+                                         symbol_prefix: 'gdk',
+                                         export_packages: 'gtk4-wayland',
+                                         includes: [ gdk_gir[0], ],
+                                         install: true,
+                                         dependencies: gdk_gir_dep,
+                                         header: 'gdk/gdkwayland.h',
+                                         extra_args: gir_args,
+    )
+    gtk_dep_sources += gdk_wayland_gir
   endif
 
   gsk_gir_inc = [ gdk_gir[0] ]
