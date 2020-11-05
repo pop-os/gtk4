@@ -35,6 +35,7 @@
 #include "gtkpopovermenubar.h"
 #include "gtkshortcutmanager.h"
 #include "gtkshortcutcontroller.h"
+#include "gtkbuildable.h"
 
 
 /**
@@ -98,6 +99,9 @@
  * - "hidden-when": a string used to determine when the item will be hidden.
  *      Possible values include "action-disabled", "action-missing", "macos-menubar".
  *      This is mainly useful for exported menus, see gtk_application_set_menubar().
+ * - "custom": a string used to match against the ID of a custom child added
+ *      with gtk_popover_menu_add_child(), gtk_popover_menu_bar_add_child(), or
+ *      in the ui file with `<child type="ID">`.
  *
  * The following attributes are used when constructing sections:
  * - "label": a user-visible string to use as section heading
@@ -122,6 +126,12 @@
  * custom content to it, therefore it has the same CSS nodes.
  * It is one of the cases that add a .menu style class to
  * the popover's main node.
+ *
+ * # Accessibility
+ *
+ * GtkPopoverMenu uses the #GTK_ACCESSIBLE_ROLE_MENU role, and its
+ * items use the #GTK_ACCESSIBLE_ROLE_MENU_ITEM, #GTK_ACCESSIBLE_ROLE_MENU_ITEM_CHECKBOX or #GTK_ACCESSIBLE_ROLE_MENU_ITEM_RADIO roles, depending on the
+ * action they are connected to.
  */
 
 typedef struct _GtkPopoverMenuClass GtkPopoverMenuClass;
@@ -147,7 +157,11 @@ enum {
   PROP_MENU_MODEL
 };
 
-G_DEFINE_TYPE (GtkPopoverMenu, gtk_popover_menu, GTK_TYPE_POPOVER)
+static void gtk_popover_menu_buildable_iface_init (GtkBuildableIface *iface);
+
+G_DEFINE_TYPE_WITH_CODE (GtkPopoverMenu, gtk_popover_menu, GTK_TYPE_POPOVER,
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_BUILDABLE,
+                                                gtk_popover_menu_buildable_iface_init))
 
 GtkWidget *
 gtk_popover_menu_get_parent_menu (GtkPopoverMenu *menu)
@@ -295,6 +309,7 @@ gtk_popover_menu_init (GtkPopoverMenu *popover)
   g_free (controllers);
 
   gtk_popover_disable_auto_mnemonics (GTK_POPOVER (popover));
+  gtk_popover_set_cascade_popdown (GTK_POPOVER (popover), TRUE);
 }
 
 static void
@@ -494,6 +509,16 @@ gtk_popover_menu_move_focus (GtkWidget         *widget,
 }
 
 static void
+gtk_popover_menu_root (GtkWidget *widget)
+{
+  GTK_WIDGET_CLASS (gtk_popover_menu_parent_class)->root (widget);
+
+  gtk_accessible_update_property (GTK_ACCESSIBLE (widget),
+                                  GTK_ACCESSIBLE_PROPERTY_ORIENTATION, GTK_ORIENTATION_VERTICAL,
+                                  -1);
+}
+
+static void
 gtk_popover_menu_class_init (GtkPopoverMenuClass *klass)
 {
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
@@ -503,6 +528,7 @@ gtk_popover_menu_class_init (GtkPopoverMenuClass *klass)
   object_class->set_property = gtk_popover_menu_set_property;
   object_class->get_property = gtk_popover_menu_get_property;
 
+  widget_class->root = gtk_popover_menu_root;
   widget_class->map = gtk_popover_menu_map;
   widget_class->unmap = gtk_popover_menu_unmap;
   widget_class->focus = gtk_popover_menu_focus;
@@ -545,6 +571,33 @@ gtk_popover_menu_class_init (GtkPopoverMenuClass *klass)
                                        "activate-default", NULL);
   gtk_widget_class_add_binding_signal (widget_class, GDK_KEY_KP_Space, 0,
                                        "activate-default", NULL);
+
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_MENU);
+}
+
+static GtkBuildableIface *parent_buildable_iface;
+
+static void
+gtk_popover_menu_buildable_add_child (GtkBuildable *buildable,
+                                      GtkBuilder   *builder,
+                                      GObject      *child,
+                                      const char   *type)
+{
+  if (GTK_IS_WIDGET (child))
+    {
+      if (!gtk_popover_menu_add_child (GTK_POPOVER_MENU (buildable), GTK_WIDGET (child), type))
+        g_warning ("No such custom attribute: %s", type);
+    }
+  else
+    parent_buildable_iface->add_child (buildable, builder, child, type);
+}
+
+static void
+gtk_popover_menu_buildable_iface_init (GtkBuildableIface *iface)
+{
+  parent_buildable_iface = g_type_interface_peek_parent (iface);
+
+  iface->add_child = gtk_popover_menu_buildable_add_child;
 }
 
 /**
@@ -713,4 +766,51 @@ gtk_popover_menu_get_menu_model (GtkPopoverMenu *popover)
   g_return_val_if_fail (GTK_IS_POPOVER_MENU (popover), NULL);
 
   return popover->model;
+}
+
+/**
+ * gtk_popover_menu_add_child:
+ * @popover: a #GtkPopoverMenu
+ * @child: the #GtkWidget to add
+ * @id: the ID to insert @child at
+ *
+ * Adds a custom widget to a generated menu.
+ *
+ * For this to work, the menu model of @popover must have an
+ * item with a `custom` attribute that matches @id.
+ *
+ * Returns: %TRUE if @id was found and the widget added
+ */
+gboolean
+gtk_popover_menu_add_child (GtkPopoverMenu *popover,
+                            GtkWidget      *child,
+                            const char     *id)
+{
+
+  g_return_val_if_fail (GTK_IS_POPOVER_MENU (popover), FALSE);
+  g_return_val_if_fail (GTK_IS_WIDGET (child), FALSE);
+  g_return_val_if_fail (id != NULL, FALSE);
+
+  return gtk_menu_section_box_add_custom (popover, child, id);
+}
+
+/**
+ * gtk_popover_menu_remove_child:
+ * @popover: a #GtkPopoverMenu
+ * @child: the #GtkWidget to remove
+ *
+ * Removes a widget that has previously been added with
+ * gtk_popover_menu_add_child().
+ *
+ * Returns: %TRUE if the widget was removed
+ */
+gboolean
+gtk_popover_menu_remove_child (GtkPopoverMenu *popover,
+                               GtkWidget      *child)
+{
+
+  g_return_val_if_fail (GTK_IS_POPOVER_MENU (popover), FALSE);
+  g_return_val_if_fail (GTK_IS_WIDGET (child), FALSE);
+
+  return gtk_menu_section_box_remove_custom (popover, child);
 }

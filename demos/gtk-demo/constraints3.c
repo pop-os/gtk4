@@ -2,6 +2,10 @@
  *
  * GtkConstraintLayout allows defining constraints using a
  * compact syntax called Visual Format Language, or VFL.
+ *
+ * A typical example of a VFL specification looks like this:
+ *
+ * H:|-[button1(==button2)]-12-[button2]-|
  */
 
 #include <glib/gi18n.h>
@@ -134,7 +138,8 @@ do_constraints3 (GtkWidget *do_widget)
 
      window = gtk_window_new ();
      gtk_window_set_display (GTK_WINDOW (window), gtk_widget_get_display (do_widget));
-     gtk_window_set_title (GTK_WINDOW (window), "Constraints");
+     gtk_window_set_title (GTK_WINDOW (window), "Constraints — VFL");
+     gtk_window_set_default_size (GTK_WINDOW (window), 260, -1);
      g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
      box = gtk_box_new (GTK_ORIENTATION_VERTICAL, 12);

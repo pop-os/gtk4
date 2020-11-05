@@ -1,3 +1,89 @@
+Overview of Changes in 3.99.4
+=============================
+
+* GtkColumnView:
+ - Improve column resizing
+ - Make double-click reset column widths
+ - Move header outside of scrollbars
+
+* GtkSearchEntry:
+ - Add an icon
+
+* GtkDropDown:
+ - Polish the appearance
+
+* GtkColorChooser:
+ - Accessibility improvements
+
+* GtkPopoverMenu:
+ - Add accessibility support
+ - Allow custom items. This adds new API:
+   gtk_popover_menu_add/remove_child
+   gtk_popover_menu_bar_add/remove_child
+
+* GtkTextView:
+ - Fix rendering and positioning of anchored children
+ - Fix positioning of touch handles
+
+* Constraints:
+ - Fix loading constraints from ui files
+
+* Media support:
+ - Use cubic instead of linear volume
+
+* Accessibility:
+ - Implement Component for all widgets
+ - Implement Text and EditableText for all editables
+ - Rework accessible name/description computation
+ - Add documentation for app and widget developers
+ - Handle HIDDEN state changes by adding/removing elements
+ - Support setting accessibility attributes in ui files
+ - Make window controls accessible
+
+* Introspection:
+ - Add some missing annotations
+
+* gdk:
+ - Deliver events on flush
+ - Drop the unused GdkPoint struct from the API
+ - Improve popup autohide behavior
+
+* Demos:
+ - Add another constraints demo
+ - Tweak various demos to improve consistency
+ - Small accessibility improvements
+
+* Tools:
+ - Improve gtk4-builder-tool handling of various
+   widgets when converting ui files from GTK 3
+
+* Documentation:
+ - Use GtkApplication in all examples
+ - Improve and expand the widget gallery
+
+* Testsuite:
+ - Improve coverage of GDK
+ - Improve coverage of gtk4-builder-tool
+
+* Build:
+ - Fix the build with cups 2.2.12
+ - Make cloudprint support build without warnings
+
+* Broadway:
+ - Support modifiers for scroll events
+
+* Windows:
+ - Improve IME support
+
+* OS X:
+ - Fix various input issues
+ - Make GtkGLArea work (with the cairo backend)
+
+* Translation updates:
+ German
+ Polish
+
+
 Overview of Changes in 3.99.3
 =============================
 

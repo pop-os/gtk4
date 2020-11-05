@@ -9,6 +9,7 @@ demos = files([
   'constraints.c',
   'constraints2.c',
   'constraints3.c',
+  'constraints4.c',
   'css_accordion.c',
   'css_basics.c',
   'css_blendmodes.c',
@@ -118,7 +119,8 @@ extra_demo_sources = files(['main.c',
                             'singular_value_decomposition.c',
                             'four_point_transform.c',
                             'demo2widget.c',
-                            'demo3widget.c'])
+                            'demo3widget.c',
+                            'pixbufpaintable.c'])
 
 if harfbuzz_dep.found() and pangoft_dep.found()
   demos += files(['font_features.c', 'listview_ucd.c'])

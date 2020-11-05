@@ -239,6 +239,39 @@ you get to the point that you actually build your application against
 GTK 4. Making it possible to prepare for these in GTK 3 would
 have been either impossible or impractical.
 
+### Larger changes
+
+Some of the larger themes of GTK 4 development are hard to cover in the form
+of checklist items, so we mention them separately up-front.
+
+#### Subclassing
+
+Compared to previous versions, GTK 4 emphasizes composition and delegation
+over subclassing. As a consequence, many widgets can no longer be subclassed.
+In most cases, you should look deriving your widget directly from GtkWidget
+and use complex widgets as child widgets instead of deriving from them.
+
+#### Life-cycle handling
+
+Widgets in GTK 4 are treated like any other objects - their parent widget
+holds a reference on them, and GTK holds a reference on toplevel windows.
+gtk_window_destroy() will drop the reference on the toplevel window, and
+cause the whole widget hierarchy to be finalized unless there are other
+references that keep widgets alive.
+
+The #GtkWidget::destroy signal is emitted when a widget is disposed, and
+therefore can no longer be used to break reference cycles. A typical sign
+of a reference cycle involving a toplevel window is when closing the window
+does not make the application quit.
+
+A good rule to follow is: If you set a widget pointer with
+gtk_widget_class_bind_template_child() in class_init(), you need to
+unparent it in dispose(). The slight complication here is that you need
+to respect the widget hierarchy while doing so. Ie if you set both `field1`
+and `field2`, but `field1` is an ancestor of `field2`, then you only need
+to unparent `field1` — doing so will remove the the entire subtree below
+`field1`, including `field2`.
+
 ### Stop using GdkScreen
 
 The GdkScreen object has been removed in GTK 4. Most of its APIs already
@@ -1047,12 +1080,12 @@ gtk_icon_paintable_get_icon_name() and set the icon name on a #GtkImage.
 
 ### Update to GtkFileChooser API changes
 
-GtkFileChooser moved to a GFile-based API. If you need to convert a
-path or a URI, use g_file_new_for_path(), g_file_new_for_commandline_arg(),
-or g_file_new_for_uri(); similarly, if you need to get a path or a URI
-from a GFile, use g_file_get_path(), or g_file_get_uri(). With the
-removal or path and URI-based functions, the "local-only" property has
-been removed; GFile can be used to access non-local as well as local
+GtkFileChooser moved to a GFile-based API. If you need to convert a path
+or a URI, use g_file_new_for_path(), g_file_new_for_commandline_arg(),
+or g_file_new_for_uri(); similarly, if you need to get a path, name or URI
+from a GFile, use g_file_get_path(), g_file_get_basename() or g_file_get_uri().
+With the removal or path and URI-based functions, the "local-only" property
+has been removed; GFile can be used to access non-local as well as local
 resources.
 
 The GTK_FILE_CHOOSER_ACTION_CREATE_FOLDER action has been removed. Use

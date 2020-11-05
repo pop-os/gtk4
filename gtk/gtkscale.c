@@ -839,7 +839,7 @@ gtk_scale_init (GtkScale *scale)
 
   _gtk_range_set_has_origin (range, TRUE);
 
-  gtk_range_set_round_digits (range, priv->digits);
+  gtk_range_set_round_digits (range, -1);
 
   gtk_range_set_flippable (range, TRUE);
 }
@@ -1698,12 +1698,13 @@ gtk_scale_add_mark (GtkScale        *scale,
     {
       if (!priv->top_marks_widget)
         {
-          priv->top_marks_widget = gtk_gizmo_new ("marks",
-                                                  gtk_scale_measure_marks,
-                                                  gtk_scale_allocate_marks,
-                                                  NULL,
-                                                  NULL,
-                                                  NULL, NULL);
+          priv->top_marks_widget = gtk_gizmo_new_with_role ("marks",
+                                                            GTK_ACCESSIBLE_ROLE_NONE,
+                                                            gtk_scale_measure_marks,
+                                                            gtk_scale_allocate_marks,
+                                                            NULL,
+                                                            NULL,
+                                                            NULL, NULL);
 
           gtk_widget_insert_after (priv->top_marks_widget,
                                    GTK_WIDGET (scale),
@@ -1716,12 +1717,13 @@ gtk_scale_add_mark (GtkScale        *scale,
     {
       if (!priv->bottom_marks_widget)
         {
-          priv->bottom_marks_widget = gtk_gizmo_new ("marks",
-                                                     gtk_scale_measure_marks,
-                                                     gtk_scale_allocate_marks,
-                                                     NULL,
-                                                     NULL,
-                                                     NULL, NULL);
+          priv->bottom_marks_widget = gtk_gizmo_new_with_role ("marks",
+                                                               GTK_ACCESSIBLE_ROLE_NONE,
+                                                               gtk_scale_measure_marks,
+                                                               gtk_scale_allocate_marks,
+                                                               NULL,
+                                                               NULL,
+                                                               NULL, NULL);
 
           gtk_widget_insert_before (priv->bottom_marks_widget,
                                     GTK_WIDGET (scale),

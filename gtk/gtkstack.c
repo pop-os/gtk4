@@ -84,7 +84,7 @@
  * # Accessibility
  *
  * GtkStack uses the #GTK_ACCESSIBLE_ROLE_TAB_PANEL for the stack
- * pages.
+ * pages, which are the accessible parent objects of the child widgets.
  */
 
 /**
@@ -1304,6 +1304,10 @@ update_child_visible (GtkStack     *stack,
       gtk_widget_set_child_visible (priv->last_visible_child->widget, FALSE);
       priv->last_visible_child = NULL;
     }
+
+  gtk_accessible_update_state (GTK_ACCESSIBLE (child_info),
+                               GTK_ACCESSIBLE_STATE_HIDDEN, !visible,
+                               -1);
 }
 
 static void
@@ -1467,28 +1471,23 @@ stack_remove (GtkStack  *stack,
   if (child_info == NULL)
     return;
 
-  priv->children = g_list_remove (priv->children, child_info);
-  
   g_signal_handlers_disconnect_by_func (child,
                                         stack_child_visibility_notify_cb,
                                         stack);
 
   was_visible = gtk_widget_get_visible (child);
 
-  g_clear_object (&child_info->widget);
-
   if (priv->visible_child == child_info)
-    {
-      if (in_dispose)
-        priv->visible_child = NULL;
-      else
-        set_visible_child (stack, NULL, priv->transition_type, priv->transition_duration);
-    }
+    priv->visible_child = NULL;
 
   if (priv->last_visible_child == child_info)
     priv->last_visible_child = NULL;
 
   gtk_widget_unparent (child);
+
+  g_clear_object (&child_info->widget);
+
+  priv->children = g_list_remove (priv->children, child_info);
 
   g_object_unref (child_info);
 
@@ -2165,6 +2164,9 @@ gtk_stack_snapshot_cube (GtkWidget   *widget,
   GtkStack *stack = GTK_STACK (widget);
   GtkStackPrivate *priv = gtk_stack_get_instance_private (stack);
   double progress = gtk_progress_tracker_get_progress (&priv->tracker, FALSE);
+
+  g_assert (priv->active_transition_type == GTK_STACK_TRANSITION_TYPE_ROTATE_RIGHT ||
+            priv->active_transition_type == GTK_STACK_TRANSITION_TYPE_ROTATE_LEFT);
 
   if (priv->active_transition_type == GTK_STACK_TRANSITION_TYPE_ROTATE_RIGHT)
     progress = 1 - progress;

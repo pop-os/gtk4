@@ -700,6 +700,33 @@ gtk_accessible_get_platform_state (GtkAccessible              *self,
 }
 
 /*<private>
+ * gtk_accessible_bounds_changed:
+ * @self: a #GtkAccessible
+ *
+ * This function can be used to inform ATs that an
+ * accessibles bounds (ie its screen extents) have
+ * changed.
+ *
+ * Note that the bounds are not included in this API.
+ * AT backends should use widget API to obtain them.
+ */
+void
+gtk_accessible_bounds_changed (GtkAccessible *self)
+{
+  GtkATContext *context;
+
+  if (GTK_IS_WIDGET (self) &&
+      gtk_widget_get_root (GTK_WIDGET (self)) == NULL)
+    return;
+
+  context = gtk_accessible_get_at_context (self);
+  if (context == NULL)
+    return;
+
+  gtk_at_context_bounds_changed (context);
+}
+
+/*<private>
  * gtk_accessible_should_present:
  * @self: a #GtkAccessible
  *
@@ -715,12 +742,49 @@ gtk_accessible_get_platform_state (GtkAccessible              *self,
 gboolean
 gtk_accessible_should_present (GtkAccessible *self)
 {
+  GtkATContext *context;
+
   if (GTK_IS_WIDGET (self) &&
       !gtk_widget_get_visible (GTK_WIDGET (self)))
     return FALSE;
 
-  if (gtk_accessible_get_accessible_role (self) == GTK_ACCESSIBLE_ROLE_NONE)
+  if (gtk_accessible_get_accessible_role (self) == GTK_ACCESSIBLE_ROLE_NONE ||
+      gtk_accessible_get_accessible_role (self) == GTK_ACCESSIBLE_ROLE_PRESENTATION)
     return FALSE;
 
+  context = gtk_accessible_get_at_context (self);
+  if (gtk_at_context_has_accessible_state (context, GTK_ACCESSIBLE_STATE_HIDDEN))
+    {
+      GtkAccessibleValue *value;
+
+      value = gtk_at_context_get_accessible_state (context, GTK_ACCESSIBLE_STATE_HIDDEN);
+      if (gtk_boolean_accessible_value_get (value))
+        return FALSE;
+    }
+
   return TRUE;
+}
+
+void
+gtk_accessible_update_children (GtkAccessible           *self,
+                                GtkAccessible           *child,
+                                GtkAccessibleChildState  state)
+{
+  GtkATContext *context;
+
+  if (GTK_IS_WIDGET (self) &&
+      gtk_widget_get_root (GTK_WIDGET (self)) == NULL)
+    return;
+
+  context = gtk_accessible_get_at_context (self);
+
+  /* propagate changes up from ignored widgets */
+  if (gtk_accessible_get_accessible_role (self) == GTK_ACCESSIBLE_ROLE_NONE)
+    context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (gtk_widget_get_parent (GTK_WIDGET (self))));
+
+  if (context == NULL)
+    return;
+
+  gtk_at_context_child_changed (context, 1 << state, child);
+  gtk_at_context_update (context);
 }

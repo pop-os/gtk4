@@ -55,10 +55,17 @@
  * SECTION:gdksurface
  * @Short_description: Onscreen display areas in the target window system
  * @Title: Surfaces
+ * @See_also: #GdkToplevel, #GdkPopup
  *
  * A #GdkSurface is a (usually) rectangular region on the screen.
- * It’s a low-level object, used to implement high-level objects such as
- * #GtkWindow on the GTK level.
+ * It’s a low-level object, used to implement high-level objects
+ * such as #GtkWindow or #GtkDialog in GTK.
+ *
+ * The surfaces you see in practice are either #GdkToplevel or
+ * #GdkPopup, and those interfaces provide much of the required
+ * API to interact with these surfaces. Other, more specialized
+ * surface types exist, but you will rarely interact with them
+ * directly.
  */
 
 /**
@@ -2051,6 +2058,9 @@ update_cursor (GdkDisplay *display,
   GdkDeviceGrabInfo *grab;
   GdkCursor *cursor;
 
+  g_assert (display);
+  g_assert (device);
+
   pointer_info = _gdk_display_get_pointer_info (display, device);
   pointer_surface = pointer_info->surface_under_pointer;
 
@@ -2649,18 +2659,6 @@ gdk_synthesize_surface_state (GdkSurface       *surface,
   gdk_surface_set_state (surface, (surface->state | set_flags) & ~unset_flags);
 }
 
-static void
-hide_popup_chain (GdkSurface *surface)
-{
-  GdkSurface *parent;
-
-  gdk_surface_hide (surface);
-
-  parent = surface->parent;
-  if (parent->autohide)
-    hide_popup_chain (parent);
-}
-
 static gboolean
 check_autohide (GdkEvent *event)
 {
@@ -2687,10 +2685,23 @@ check_autohide (GdkEvent *event)
       device = gdk_event_get_device (event);
       if (gdk_device_grab_info (display, device, &grab_surface, NULL))
         {
-          if (grab_surface != gdk_event_get_surface (event) &&
+          GdkSurface *event_surface;
+
+          event_surface = gdk_event_get_surface (event);
+
+          if (grab_surface != event_surface &&
+              grab_surface != event_surface->parent &&
               grab_surface->autohide)
             {
-              hide_popup_chain (grab_surface);
+              GdkSurface *surface = grab_surface;
+
+              do
+                {
+                  gdk_surface_hide (surface);
+                  surface = surface->parent;
+                }
+              while (surface->autohide && surface != event_surface);
+
               return TRUE;
             }
         }

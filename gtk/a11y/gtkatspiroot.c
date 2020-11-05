@@ -61,6 +61,7 @@ struct _GtkAtSpiRoot
   char *desktop_path;
 
   gint32 application_id;
+  guint register_id;
 
   GtkAtSpiCache *cache;
 
@@ -82,6 +83,8 @@ static void
 gtk_at_spi_root_finalize (GObject *gobject)
 {
   GtkAtSpiRoot *self = GTK_AT_SPI_ROOT (gobject);
+
+  g_clear_handle_id (&self->register_id, g_source_remove);
 
   g_free (self->bus_address);
   g_free (self->desktop_name);
@@ -405,6 +408,65 @@ static const GDBusInterfaceVTable root_accessible_vtable = {
   NULL,
 };
 
+void
+gtk_at_spi_root_child_changed (GtkAtSpiRoot             *self,
+                               GtkAccessibleChildChange  change,
+                               GtkAccessible            *child)
+{
+  guint n, i;
+  int idx = 0;
+  GVariant *window_ref;
+  GtkAccessibleChildState state;
+
+  if (!self->toplevels)
+    return;
+
+  for (i = 0, n = g_list_model_get_n_items (self->toplevels); i < n; i++)
+    {
+      GtkAccessible *item = g_list_model_get_item (self->toplevels, i);
+
+      g_object_unref (item);
+
+      if (item == child)
+        break;
+
+      if (!gtk_accessible_should_present (item))
+        continue;
+
+      idx++;
+    }
+
+  if (child == NULL)
+    {
+      window_ref = gtk_at_spi_null_ref ();
+    }
+  else
+    {
+      GtkATContext *context = gtk_accessible_get_at_context (child);
+
+      window_ref = gtk_at_spi_context_to_ref (GTK_AT_SPI_CONTEXT (context));
+    }
+
+  switch (change)
+    {
+    case GTK_ACCESSIBLE_CHILD_CHANGE_ADDED:
+      state = GTK_ACCESSIBLE_CHILD_STATE_ADDED;
+      break;
+    case GTK_ACCESSIBLE_CHILD_CHANGE_REMOVED:
+      state = GTK_ACCESSIBLE_CHILD_STATE_REMOVED;
+      break;
+    default:
+      g_assert_not_reached ();
+    }
+
+  gtk_at_spi_emit_children_changed (self->connection,
+                                    self->root_path,
+                                    state,
+                                    idx,
+                                    gtk_at_spi_root_to_ref (self),
+                                    window_ref);
+}
+
 static void
 on_registration_reply (GObject      *gobject,
                        GAsyncResult *result,
@@ -437,13 +499,15 @@ on_registration_reply (GObject      *gobject,
   /* Register the cache object */
   self->cache = gtk_at_spi_cache_new (self->connection, ATSPI_CACHE_PATH);
 
-  /* Monitor the top levels */
   self->toplevels = gtk_window_get_toplevels ();
 }
 
-static void
-gtk_at_spi_root_register (GtkAtSpiRoot *self)
+static gboolean
+root_register (gpointer data)
 {
+  GtkAtSpiRoot *self = data;
+  const char *unique_name;
+
   /* Register the root element; every application has a single root, so we only
    * need to do this once.
    *
@@ -466,6 +530,8 @@ gtk_at_spi_root_register (GtkAtSpiRoot *self)
   self->atspi_version = ATSPI_VERSION;
   self->root_path = ATSPI_ROOT_PATH;
 
+  unique_name = g_dbus_connection_get_unique_name (self->connection);
+
   g_dbus_connection_register_object (self->connection,
                                      self->root_path,
                                      (GDBusInterfaceInfo *) &atspi_application_interface,
@@ -482,7 +548,7 @@ gtk_at_spi_root_register (GtkAtSpiRoot *self)
                                      NULL);
 
   GTK_NOTE (A11Y, g_message ("Registering (%s, %s) on the a11y bus",
-                             g_dbus_connection_get_unique_name (self->connection),
+                             unique_name,
                              self->root_path));
 
   g_dbus_connection_call (self->connection,
@@ -490,15 +556,37 @@ gtk_at_spi_root_register (GtkAtSpiRoot *self)
                           ATSPI_ROOT_PATH,
                           "org.a11y.atspi.Socket",
                           "Embed",
-                          g_variant_new ("((so))",
-                            g_dbus_connection_get_unique_name (self->connection),
-                            self->root_path
-                          ),
+                          g_variant_new ("((so))", unique_name, self->root_path),
                           G_VARIANT_TYPE ("((so))"),
                           G_DBUS_CALL_FLAGS_NONE, -1,
                           NULL,
                           on_registration_reply,
                           self);
+
+  self->register_id = 0;
+
+  return G_SOURCE_REMOVE;
+}
+
+/*< private >
+ * gtk_at_spi_root_queue_register:
+ * @self: a #GtkAtSpiRoot
+ *
+ * Queues the registration of the root object on the AT-SPI bus.
+ */
+void
+gtk_at_spi_root_queue_register (GtkAtSpiRoot *self)
+{
+  /* Ignore multiple registration requests while one is already in flight */
+  if (self->register_id != 0)
+    return;
+
+  /* The cache is only available once the registration succeeds */
+  if (self->cache != NULL)
+    return;
+
+  self->register_id = g_idle_add (root_register, self);
+  g_source_set_name_by_id (self->register_id, "[gtk] ATSPI root registration");
 }
 
 static void
@@ -524,8 +612,6 @@ gtk_at_spi_root_constructed (GObject *gobject)
       g_error_free (error);
       goto out;
     }
-
-  gtk_at_spi_root_register (self);
 
 out:
   G_OBJECT_CLASS (gtk_at_spi_root_parent_class)->constructed (gobject);
