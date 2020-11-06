@@ -1,15 +1,14 @@
-gtk+4.0 (3.99.4-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.99.4-1) experimental; urgency=medium
 
+  * Team upload
   * New upstream release
   * Build with system copy of gtk-doc
     - d/gbp.conf: Stop adding gtk-doc as a second orig tarball
     - d/rules: Don't symlink gtk-doc into subprojects
-    - d/clean: Remove bundled copy of gtk-doc from subprojects
-    - d/p/Require-gtk-doc-1.33.patch:
-      Add patch from upstream to build with system gtk-doc again
+    - Remove references to bundled gtk-doc
   * d/control.in: Update dependencies
   * d/copyright: Mention CC0-1.0
-  * Drop other patches, applied upstream
+  * Drop patches, applied upstream
   * d/rules: Update Meson build options
   * Stop installing NodeEditor icons.
     They're embedded in the executable via GResource now.
@@ -17,10 +16,12 @@ gtk+4.0 (3.99.4-1) UNRELEASED; urgency=medium
   * run-with-locales: Normalize utf8 to UTF-8 without using SUPPORTED file
   * d/tests/run-with-locales: Move from d/run-with-locales.
     This makes tab-completion for d/rules work better.
-  * New upstream release
-  * New upstream release
+  * d/rules: Change introspection from true to enabled.
+    Similarly, change it from false to disabled for the udeb.
+    It's now a feature flag, rather than a boolean.
+  * d/libgtk-4-common.install.in: Install emoji data files
 
- -- Simon McVittie <smcv@debian.org>  Thu, 05 Nov 2020 18:55:01 +0000
+ -- Simon McVittie <smcv@debian.org>  Fri, 06 Nov 2020 22:56:34 +0000
 
 gtk+4.0 (3.99.0-2) experimental; urgency=medium
 
