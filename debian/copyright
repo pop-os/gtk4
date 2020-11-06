@@ -397,30 +397,6 @@ Copyright:
  2000 辛立仁
 License: LGPL-2+ and LGPL-2.1+ and sun-permissive and lcs-telegraphics-permissive and X11R5-permissive and Expat and BSD-3-clause-Google and Apache-2.0 and CC0-1.0
 
-Files: gtk-doc-for-gtk4/*
-Copyright:
- 1996 X Consortium
- 1998-2001 Damon Chaplin
- 1998 Michael Zucchi
- 1998 Owen Taylor
- 2003 James Henstridge
- 2007 David Necas (Yeti)
- 2007 David Nečas
- 2007-2018 Stefan Sauer
- 2008 Andrew Collier
- 2009 Rich Wareham
- 2015 Christoph Reiter
- 2015 Lautsprecher Teufel GmbH
-License: GPL-2+ and autoconf-archive
-Comment:
- Taken from the gtk-doc git repository, gtk-doc-for-gtk4 branch. GTK 4
- introduces a new object feature, "actions", which need to be documented
- as a first-class feature alongside signals and properties; the branch
- implementing this has not yet been merged into the master branch
- of gtk-doc, so we bundle a suitably branched copy here for now.
- .
- See debian/README.source for more details.
-
 License: LGPL-2+
  This library is free software; you can redistribute it and/or modify it
  under the terms of the GNU Lesser General Public License as published by the

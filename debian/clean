@@ -1,4 +1,2 @@
-gtk-doc-for-gtk4/
 gtk/gtkdbusgenerated.c
 gtk/gtkdbusgenerated.h
-subprojects/gtk-doc/
