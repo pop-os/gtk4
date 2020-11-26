@@ -89,7 +89,7 @@ Description: GTK graphical user interface library
 
 Package: libgtk-4-0-udeb
 Build-Profiles: <!noudeb>
-XC-Package-Type: udeb
+Package-Type: udeb
 Section: debian-installer
 Architecture: any
 Depends: ${misc:Depends},
