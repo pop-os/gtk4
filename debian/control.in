@@ -61,7 +61,7 @@ Rules-Requires-Root: no
 Standards-Version: 4.5.0
 Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
 Vcs-Git: https://salsa.debian.org/gnome-team/gtk4.git
-Homepage: http://www.gtk.org/
+Homepage: https://www.gtk.org/
 
 Package: @SHARED_PKG@
 Architecture: any
