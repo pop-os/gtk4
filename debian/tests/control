@@ -8,9 +8,9 @@ Depends: dbus, gir1.2-gtk-4.0, python3-gi, xauth, xvfb
 Restrictions: flaky, superficial
 
 Tests: installed-tests
-Depends: dbus (>= 1.8), gnome-desktop-testing (>= 2018.1-1~), gtk-4-examples, locales | locales-all, librsvg2-common, xauth, xvfb
+Depends: dbus (>= 1.8), gnome-desktop-testing (>= 2018.1-1~), gtk-4-examples, iso-codes, locales | locales-all, librsvg2-common, xauth, xvfb
 Restrictions: allow-stderr, flaky
 
 Tests: installed-tests-flaky
-Depends: dbus (>= 1.8), gnome-desktop-testing (>= 2018.1-1~), gtk-4-examples, locales | locales-all, librsvg2-common, xauth, xvfb
+Depends: dbus (>= 1.8), gnome-desktop-testing (>= 2018.1-1~), gtk-4-examples, iso-codes, locales | locales-all, librsvg2-common, xauth, xvfb
 Restrictions: allow-stderr, flaky

@@ -14,6 +14,7 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                gnome-pkg-tools (>= 0.11),
                gobject-introspection (>= 1.41.3),
                gsettings-desktop-schemas <!nocheck>,
+               iso-codes <!nocheck>,
                libcairo2-dev (>= 1.14.0),
                libcolord-dev (>= 0.1.9),
                libcups2-dev (>= 2.0),
@@ -73,7 +74,8 @@ Depends: adwaita-icon-theme,
          ${shlibs:Depends},
          @COMMON_PKG@ (>= ${source:Version})
 Provides: @GTK_BINVER_DEP@
-Recommends: @BIN_PKG@
+Recommends: @BIN_PKG@,
+            iso-codes
 Suggests: gvfs,
           librsvg2-common
 Breaks: gnome-themes-standard (<< 3.6),
