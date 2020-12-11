@@ -510,12 +510,6 @@ License: Apache-2.0
  On Debian systems, a copy of the Apache License version 2.0
  can be found in /usr/share/common-licenses/Apache-2.0.
 
-License: autoconf-archive
- Copying and distribution of this file, with or without modification, are
- permitted in any medium without royalty provided the copyright notice
- and this notice are preserved. This file is offered as-is, without any
- warranty.
-
 License: BSD-3-clause-Google
  Redistribution and use in source and binary forms, with or without
  modification, are permitted provided that the following conditions are
