@@ -102,12 +102,11 @@ text_buffer_remove_all_tags (GtkTextBuffer *buffer)
 }
 
 static void
-deserialize_error_func (const GtkCssSection *section,
-                        const GError        *error,
-                        gpointer             user_data)
+deserialize_error_func (const GskParseLocation *start_location,
+                        const GskParseLocation *end_location,
+                        const GError           *error,
+                        gpointer                user_data)
 {
-  const GtkCssLocation *start_location = gtk_css_section_get_start_location (section);
-  const GtkCssLocation *end_location = gtk_css_section_get_end_location (section);
   NodeEditorWindow *self = user_data;
   GtkTextIter start_iter, end_iter;
   TextViewError text_view_error;
@@ -466,7 +465,7 @@ save_response_cb (GtkWidget        *dialog,
       text = get_current_text (self->text_buffer);
 
       file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
-      g_file_replace_contents (file, text, -1,
+      g_file_replace_contents (file, text, strlen (text),
                                NULL, FALSE,
                                G_FILE_CREATE_NONE,
                                NULL,

@@ -47,7 +47,7 @@
 #include "gtkshortcut.h"
 #include "gtkaccessibleprivate.h"
 
-/**
+/*< private >
  * SECTION:gtkmodelbutton
  * @Short_description: A button that uses a GAction as model
  * @Title: GtkModelButton
@@ -176,11 +176,10 @@ struct _GtkModelButton
   guint open_timeout;
   GtkEventController *controller;
 
-  GtkATContext *at_context;
-
   guint active : 1;
   guint centered : 1;
   guint iconic : 1;
+  guint keep_open : 1;
 };
 
 typedef struct _GtkModelButtonClass GtkModelButtonClass;
@@ -194,10 +193,7 @@ struct _GtkModelButtonClass
 
 static void gtk_model_button_actionable_iface_init (GtkActionableInterface *iface);
 
-static void gtk_model_button_accessible_iface_init (GtkAccessibleInterface *iface);
-
 G_DEFINE_TYPE_WITH_CODE (GtkModelButton, gtk_model_button, GTK_TYPE_WIDGET,
-                         G_IMPLEMENT_INTERFACE (GTK_TYPE_ACCESSIBLE, gtk_model_button_accessible_iface_init)
                          G_IMPLEMENT_INTERFACE (GTK_TYPE_ACTIONABLE, gtk_model_button_actionable_iface_init))
 
 GType
@@ -302,11 +298,20 @@ gtk_model_button_actionable_iface_init (GtkActionableInterface *iface)
   iface->set_action_target_value = gtk_model_button_set_action_target_value;
 }
 
-static GtkATContext *
-create_at_context (GtkModelButton *button)
+static void
+update_at_context (GtkModelButton *button)
 {
-  GdkDisplay *display = _gtk_widget_get_display (GTK_WIDGET (button));
   GtkAccessibleRole role;
+  GtkATContext *context;
+  gboolean was_realized;
+
+  context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (button));
+  if (context == NULL)
+    return;
+
+  was_realized = gtk_at_context_is_realized (context);
+
+  gtk_at_context_unrealize (context);
 
   switch (button->role)
     {
@@ -323,27 +328,10 @@ create_at_context (GtkModelButton *button)
       break;
     }
 
-  return gtk_at_context_create (role, GTK_ACCESSIBLE (button), display);
-}
+  gtk_at_context_set_accessible_role (context, role);
 
-static GtkATContext *
-gtk_model_button_get_at_context (GtkAccessible *accessible)
-{
-  GtkModelButton *button = GTK_MODEL_BUTTON (accessible);
-
-  if (button->at_context == NULL)
-    button->at_context = create_at_context (button);
-
-  return button->at_context;
-}
-
-static void
-gtk_model_button_accessible_iface_init (GtkAccessibleInterface *iface)
-{
-  GtkAccessibleInterface *parent_iface = g_type_interface_peek_parent (iface);
-
-  iface->get_at_context = gtk_model_button_get_at_context;
-  iface->get_platform_state = parent_iface->get_platform_state;
+  if (was_realized)
+    gtk_at_context_realize (context);
 }
 
 static void
@@ -582,7 +570,7 @@ update_accessible_properties (GtkModelButton *button)
 
   if (button->popover)
     gtk_accessible_update_relation (GTK_ACCESSIBLE (button),
-                                    GTK_ACCESSIBLE_RELATION_CONTROLS, g_list_append (NULL, button->popover),
+                                    GTK_ACCESSIBLE_RELATION_CONTROLS, button->popover, NULL,
                                     -1);
   else
     gtk_accessible_reset_relation (GTK_ACCESSIBLE (button),
@@ -596,6 +584,10 @@ update_accessible_properties (GtkModelButton *button)
   else
     gtk_accessible_reset_state (GTK_ACCESSIBLE (button),
                                 GTK_ACCESSIBLE_STATE_CHECKED);
+
+  gtk_accessible_update_relation (GTK_ACCESSIBLE (button),
+                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, button->label, NULL,
+                                  -1);
 }
 
 static void
@@ -621,8 +613,7 @@ gtk_model_button_set_role (GtkModelButton *self,
   update_node_name (self);
   gtk_model_button_update_state (self);
 
-  g_set_object (&self->at_context, create_at_context (self));
-
+  update_at_context (self);
   update_accessible_properties (self);
 
   g_object_notify_by_pspec (G_OBJECT (self), properties[PROP_ROLE]);
@@ -658,7 +649,10 @@ gtk_model_button_set_icon (GtkModelButton *self,
 {
   if (!self->image && icon)
     {
-      self->image = gtk_image_new_from_gicon (icon);
+      self->image = g_object_new (GTK_TYPE_IMAGE,
+                                  "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
+                                  "gicon", icon,
+                                  NULL);
       gtk_widget_insert_before (self->image, GTK_WIDGET (self), self->label);
     }
   else if (self->image && !icon)
@@ -683,7 +677,7 @@ gtk_model_button_set_text (GtkModelButton *button,
   update_visibility (button);
 
   gtk_accessible_update_relation (GTK_ACCESSIBLE (button),
-                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, g_list_append (NULL, button->label),
+                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, button->label, NULL,
                                   -1);
 
   g_object_notify_by_pspec (G_OBJECT (button), properties[PROP_TEXT]);
@@ -1020,8 +1014,6 @@ gtk_model_button_dispose (GObject *object)
 
   g_clear_pointer (&model_button->menu_name, g_free);
 
-  g_clear_object (&model_button->at_context);
-
   G_OBJECT_CLASS (gtk_model_button_parent_class)->dispose (object);
 }
 
@@ -1053,7 +1045,7 @@ gtk_model_button_clicked (GtkModelButton *self)
       gtk_popover_menu_set_open_submenu (menu, submenu);
       gtk_popover_menu_set_parent_menu (GTK_POPOVER_MENU (submenu), GTK_WIDGET (menu));
     }
-  else if (self->role == GTK_BUTTON_ROLE_NORMAL)
+  else if (!self->keep_open)
     {
       GtkWidget *popover;
 
@@ -1064,6 +1056,20 @@ gtk_model_button_clicked (GtkModelButton *self)
 
   if (self->action_helper)
     gtk_action_helper_activate (self->action_helper);
+}
+
+static gboolean
+toggle_cb (GtkWidget *widget,
+           GVariant  *args,
+           gpointer   user_data)
+{
+  GtkModelButton *self = GTK_MODEL_BUTTON (widget);
+
+  self->keep_open = self->role != GTK_BUTTON_ROLE_NORMAL;
+  g_signal_emit (widget, signals[SIGNAL_CLICKED], 0);
+  self->keep_open = FALSE;
+
+  return TRUE;
 }
 
 static void
@@ -1137,6 +1143,14 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (class);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (class);
+  GtkShortcutAction *action;
+  guint activate_keyvals[] = {
+    GDK_KEY_Return, GDK_KEY_ISO_Enter, GDK_KEY_KP_Enter
+  };
+  guint toggle_keyvals[] = {
+    GDK_KEY_space, GDK_KEY_KP_Space
+  };
+  int i;
 
   object_class->dispose = gtk_model_button_dispose;
   object_class->finalize = gtk_model_button_finalize;
@@ -1281,31 +1295,34 @@ gtk_model_button_class_init (GtkModelButtonClass *class)
                                           NULL,
                                           G_TYPE_NONE, 0);
 
-  widget_class->activate_signal = signals[SIGNAL_CLICKED];
-
+  gtk_widget_class_set_activate_signal (widget_class, signals[SIGNAL_CLICKED]);
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
   gtk_widget_class_set_css_name (widget_class, I_("modelbutton"));
   gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_MENU_ITEM);
-}
 
-static void
-close_submenus (GtkPopover *popover)
-{
-  GtkPopoverMenu *menu;
-
-  if (GTK_IS_POPOVER_MENU (popover))
+  action = gtk_signal_action_new ("clicked");
+  for (i = 0; i < G_N_ELEMENTS (activate_keyvals); i++)
     {
-      GtkWidget *submenu;
+      GtkShortcut *shortcut;
 
-      menu = GTK_POPOVER_MENU (popover);
-      submenu = gtk_popover_menu_get_open_submenu (menu);
-      if (submenu)
-        {
-          close_submenus (GTK_POPOVER (submenu));
-          gtk_popover_popdown (GTK_POPOVER (submenu));
-          gtk_popover_menu_set_open_submenu (menu, NULL);
-        }
+      shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (activate_keyvals[i], 0),
+                                   g_object_ref (action));
+      gtk_widget_class_add_shortcut (widget_class, shortcut);
+      g_object_unref (shortcut);
     }
+  g_object_unref (action);
+
+  action = gtk_callback_action_new (toggle_cb, NULL, NULL);
+  for (i = 0; i < G_N_ELEMENTS (toggle_keyvals); i++)
+    {
+      GtkShortcut *shortcut;
+
+      shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (toggle_keyvals[i], 0),
+                                   g_object_ref (action));
+      gtk_widget_class_add_shortcut (widget_class, shortcut);
+      g_object_unref (shortcut);
+    }
+  g_object_unref (action);
 }
 
 static gboolean
@@ -1325,7 +1342,7 @@ open_submenu (gpointer data)
           GtkWidget *submenu = button->popover;
 
           if (gtk_popover_menu_get_open_submenu (GTK_POPOVER_MENU (popover)) != submenu)
-            close_submenus (popover);
+            gtk_popover_menu_close_submenus (GTK_POPOVER_MENU (popover));
 
           gtk_popover_popup (GTK_POPOVER (submenu));
           gtk_popover_menu_set_open_submenu (GTK_POPOVER_MENU (popover), submenu);
@@ -1369,18 +1386,16 @@ pointer_cb (GObject    *object,
             GParamSpec *pspec,
             gpointer    data)
 {
+  GtkWidget *target = GTK_WIDGET (data);
+  GtkWidget *popover;
   gboolean contains;
 
   contains = gtk_event_controller_motion_contains_pointer (GTK_EVENT_CONTROLLER_MOTION (object));
 
+  popover = gtk_widget_get_ancestor (target, GTK_TYPE_POPOVER_MENU);
+
   if (contains)
     {
-      GtkWidget *target;
-      GtkWidget *popover;
-
-      target = GTK_WIDGET (data);
-      popover = gtk_widget_get_ancestor (target, GTK_TYPE_POPOVER_MENU);
-
       if (popover)
         {
           if (gtk_popover_menu_get_open_submenu (GTK_POPOVER_MENU (popover)) != NULL)
@@ -1394,6 +1409,7 @@ pointer_cb (GObject    *object,
       GtkModelButton *button = data;
 
       stop_open (button);
+      gtk_popover_menu_set_active_item (GTK_POPOVER_MENU (popover), NULL);
     }
 }
 

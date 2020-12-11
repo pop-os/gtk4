@@ -1,9 +1,6 @@
 fs = import('fs')
 
 private_headers = [
-  'imm-extra.h',
-  'gtkbitmaskprivateimpl.h',
-  'gdkpixbufutilsprivate.h',
   'gtkaccelgroupprivate.h',
   'gtkaccelmapprivate.h',
   'gtkaccessibleattributesetprivate.h',
@@ -21,6 +18,7 @@ private_headers = [
   'gtkapplicationprivate.h',
   'gtkatcontextprivate.h',
   'gtkbindingsprivate.h',
+  'gtkbitmaskprivateimpl.h',
   'gtkbitmaskprivate.h',
   'gtkbuilderprivate.h',
   'gtkbuilderscopeprivate.h',
@@ -146,6 +144,7 @@ private_headers = [
   'gtkimageprivate.h',
   'gtkimcontextsimpleprivate.h',
   'gtkimmoduleprivate.h',
+  'gtkintl.h',
   'gtkkineticscrollingprivate.h',
   'gtklabelprivate.h',
   'gtklistbaseprivate.h',
@@ -165,6 +164,7 @@ private_headers = [
   'gtknativedialogprivate.h',
   'gtknomediafileprivate.h',
   'gtkpango.h',
+  'gdkpixbufutilsprivate.h',
   'gtkplacessidebarprivate.h',
   'gtkplacesviewprivate.h',
   'gtkplacesviewrowprivate.h',
@@ -183,6 +183,10 @@ private_headers = [
   'gtkrendernodepaintableprivate.h',
   'gtkroundedboxprivate.h',
   'gtkscalerprivate.h',
+  'gtksearchengine.h',
+  'gtksearchenginemodel.h',
+  'gtksearchenginequartz.h',
+  'gtksearchenginetracker3.h',
   'gtksearchentryprivate.h',
   'gtksettingsprivate.h',
   'gtkshortcutcontrollerprivate.h',
@@ -222,8 +226,15 @@ private_headers = [
   'gtkwin32drawprivate.h',
   'gtkwin32themeprivate.h',
   'gtkwindowprivate.h',
-  'gtk-text-input-client-protocol.h',
-  'roaring.h',
+
+  'gtkdbusgenerated.h',
+  'imm-extra.h',
+  'text-input-unstable-v3-client-protocol.h',
+
+  'a11y',
+  'inspector',
+  'roaring',
+  'timsort',
 ]
 
 images = [
@@ -471,6 +482,7 @@ if get_option('gtk_doc')
                ],
                mkdb_args: [
                  '--default-includes=gtk/gtk.h',
+                 '--ignore-files=' + ' '.join(private_headers),
                ],
                fixxref_args: [
                  '--html-dir=@0@'.format(docpath),

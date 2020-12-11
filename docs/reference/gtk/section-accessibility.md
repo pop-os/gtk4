@@ -165,19 +165,23 @@ Each relation name is part of the #GtkAccessibleRelation enumeration.
 | %GTK_ACCESSIBLE_RELATION_COL_INDEX | “aria-colindex” | integer |
 | %GTK_ACCESSIBLE_RELATION_COL_INDEX_TEXT | “aria-colindextext” | translatable string |
 | %GTK_ACCESSIBLE_RELATION_COL_SPAN | “aria-colspan” | integer |
-| %GTK_ACCESSIBLE_RELATION_CONTROLS | “aria-controls” | a #GList of #GtkAccessible |
-| %GTK_ACCESSIBLE_RELATION_DESCRIBED_BY | “aria-describedby” | a #GList of #GtkAccessible |
-| %GTK_ACCESSIBLE_RELATION_DETAILS | “aria-details” | a #GList of #GtkAccessible |
+| %GTK_ACCESSIBLE_RELATION_CONTROLS | “aria-controls” | a list of #GtkAccessible |
+| %GTK_ACCESSIBLE_RELATION_DESCRIBED_BY | “aria-describedby” | a list of #GtkAccessible |
+| %GTK_ACCESSIBLE_RELATION_DETAILS | “aria-details” | a list of #GtkAccessible |
 | %GTK_ACCESSIBLE_RELATION_ERROR_MESSAGE | “aria-errormessage” | #GtkAccessible |
-| %GTK_ACCESSIBLE_RELATION_FLOW_TO | “aria-flowto” | a #GList of #GtkAccessible |
-| %GTK_ACCESSIBLE_RELATION_LABELLED_BY | “aria-labelledby” | a #GList of #GtkAccessible |
-| %GTK_ACCESSIBLE_RELATION_OWNS | “aria-owns” | a #GList of #GtkAccessible |
+| %GTK_ACCESSIBLE_RELATION_FLOW_TO | “aria-flowto” | a list of #GtkAccessible |
+| %GTK_ACCESSIBLE_RELATION_LABELLED_BY | “aria-labelledby” | a list of #GtkAccessible |
+| %GTK_ACCESSIBLE_RELATION_OWNS | “aria-owns” | a list of #GtkAccessible |
 | %GTK_ACCESSIBLE_RELATION_POS_IN_SET | “aria-posinset” | integer |
 | %GTK_ACCESSIBLE_RELATION_ROW_COUNT | “aria-rowcount” | integer |
 | %GTK_ACCESSIBLE_RELATION_ROW_INDEX | “aria-rowindex” | integer |
 | %GTK_ACCESSIBLE_RELATION_ROW_INDEX_TEXT | “aria-rowindextext” | translatable string |
 | %GTK_ACCESSIBLE_RELATION_ROW_SPAN | “aria-rowspan” | integer |
 | %GTK_ACCESSIBLE_RELATION_SET_SIZE | “aria-setsize” | integer |
+
+*Note*: When using gtk_accessible_update_relation() with a relation that
+requires a list of #GtkAccessible instances, you should pass every
+accessible object separately, followed by %NULL. 
 
 ## Application development rules
 
@@ -292,11 +296,35 @@ The power of hiding and enhancing can be a double-edged sword, as it can
 lead to inadvertently overriding the accessible semantics of existing
 widgets.
 
+## Hiding UI elements from the accessible tree
+
+The accessibility API is mainly used to express semantics useful for
+assistive technologies, but it can also be used to hide elements. The
+canonical way to do so is to use the %GTK_ACCESSIBLE_ROLE_PRESENTATION,
+which declares that a UI element is purely meant for presentation purposes,
+and as such it has no meaningful impact on the accessibility of the
+interface.
+
+A "presentation" role should not be confused with the
+%GTK_ACCESSIBLE_STATE_HIDDEN state; the "hidden" state is transient, and is
+typically controlled by showing and hiding a widget using the #GtkWidget
+API.
+
 ## Design patterns and custom widgets
 
 When creating custom widgets, following established patterns can help
 ensuring that the widgets work well for users of accessible technologies
 as well.
+
+### Buttons
+
+A button is a widget that enables users to trigger an action. While it is
+recommended you use #GtkButton for anything that looks and behaves like a
+button, it is possible to apply a button behavior to UI elements like images
+by using a #GtkGestureClick gesture. When doing so, you should:
+
+  - Give your widget the role %GTK_ACCESSIBLE_ROLE_BUTTON
+  - Install an action with no parameters, which will activate the widget
 
 ### Custom entries
 

@@ -282,9 +282,10 @@ gtk_button_class_init (GtkButtonClass *klass)
                   NULL, NULL,
                   NULL,
                   G_TYPE_NONE, 0);
-  widget_class->activate_signal = button_signals[ACTIVATE];
-  activate_action = gtk_signal_action_new ("activate");
 
+  gtk_widget_class_set_activate_signal (widget_class, button_signals[ACTIVATE]);
+
+  activate_action = gtk_signal_action_new ("activate");
   for (guint i = 0; i < G_N_ELEMENTS (activate_keyvals); i++)
     {
       GtkShortcut *activate_shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (activate_keyvals[i], 0),
@@ -405,7 +406,6 @@ gtk_button_init (GtkButton *button)
 
   priv->gesture = gtk_gesture_click_new ();
   gtk_gesture_single_set_touch_only (GTK_GESTURE_SINGLE (priv->gesture), FALSE);
-  gtk_gesture_single_set_exclusive (GTK_GESTURE_SINGLE (priv->gesture), TRUE);
   gtk_gesture_single_set_button (GTK_GESTURE_SINGLE (priv->gesture), GDK_BUTTON_PRIMARY);
   g_signal_connect (priv->gesture, "pressed", G_CALLBACK (click_pressed_cb), button);
   g_signal_connect (priv->gesture, "released", G_CALLBACK (click_released_cb), button);
@@ -927,7 +927,10 @@ gtk_button_set_icon_name (GtkButton  *button,
 
   if (priv->child_type != ICON_CHILD || priv->child == NULL)
     {
-      GtkWidget *child = gtk_image_new_from_icon_name (icon_name);
+      GtkWidget *child = g_object_new (GTK_TYPE_IMAGE,
+                                       "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
+                                       "icon-name", icon_name,
+                                       NULL);
       gtk_button_set_child (GTK_BUTTON (button), child);
       gtk_widget_set_valign (child, GTK_ALIGN_CENTER);
       gtk_widget_remove_css_class (GTK_WIDGET (button), "text-button");
@@ -939,8 +942,7 @@ gtk_button_set_icon_name (GtkButton  *button,
     }
 
   gtk_accessible_update_relation (GTK_ACCESSIBLE (button),
-                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY,
-                                    g_list_append (NULL, priv->child),
+                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, priv->child, NULL,
                                   -1);
 
   gtk_button_set_child_type (button, ICON_CHILD);

@@ -21,8 +21,10 @@
 #include "config.h"
 
 #include "gtkatspiutilsprivate.h"
+
 #include "gtkenums.h"
 #include "gtkpasswordentry.h"
+#include "gtkscrolledwindow.h"
 
 /*< private >
  * gtk_accessible_role_to_atspi_role:
@@ -80,7 +82,7 @@ gtk_accessible_role_to_atspi_role (GtkAccessibleRole role)
       break;
 
     case GTK_ACCESSIBLE_ROLE_FORM:
-      break;
+      return ATSPI_ROLE_FORM;
 
     case GTK_ACCESSIBLE_ROLE_GENERIC:
       break;
@@ -92,10 +94,10 @@ gtk_accessible_role_to_atspi_role (GtkAccessibleRole role)
       return ATSPI_ROLE_TABLE_CELL;
 
     case GTK_ACCESSIBLE_ROLE_GROUP:
-      break;
+      return ATSPI_ROLE_PANEL;
 
     case GTK_ACCESSIBLE_ROLE_HEADING:
-      break;
+      return ATSPI_ROLE_HEADING;
 
     case GTK_ACCESSIBLE_ROLE_IMG:
       return ATSPI_ROLE_IMAGE;
@@ -110,7 +112,7 @@ gtk_accessible_role_to_atspi_role (GtkAccessibleRole role)
       break;
 
     case GTK_ACCESSIBLE_ROLE_LEGEND:
-      break;
+      return ATSPI_ROLE_LABEL;
 
     case GTK_ACCESSIBLE_ROLE_LINK:
       return ATSPI_ROLE_LINK;
@@ -134,7 +136,7 @@ gtk_accessible_role_to_atspi_role (GtkAccessibleRole role)
       return ATSPI_ROLE_MARQUEE;
 
     case GTK_ACCESSIBLE_ROLE_MATH:
-      return ATSPI_ROLE_MATH;;
+      return ATSPI_ROLE_MATH;
 
     case GTK_ACCESSIBLE_ROLE_METER:
       return ATSPI_ROLE_LEVEL_BAR;
@@ -167,7 +169,7 @@ gtk_accessible_role_to_atspi_role (GtkAccessibleRole role)
       return ATSPI_ROLE_OPTION_PANE;
 
     case GTK_ACCESSIBLE_ROLE_PRESENTATION:
-      return ATSPI_ROLE_DOCUMENT_PRESENTATION;
+      return ATSPI_ROLE_SECTION;
 
     case GTK_ACCESSIBLE_ROLE_PROGRESS_BAR:
       return ATSPI_ROLE_PROGRESS_BAR;
@@ -269,7 +271,7 @@ gtk_accessible_role_to_atspi_role (GtkAccessibleRole role)
       return ATSPI_ROLE_FILLER;
 
     case GTK_ACCESSIBLE_ROLE_WINDOW:
-      return ATSPI_ROLE_WINDOW;
+      return ATSPI_ROLE_FRAME;
 
     default:
       break;
@@ -294,8 +296,13 @@ gtk_atspi_role_for_context (GtkATContext *context)
   GtkAccessible *accessible = gtk_at_context_get_accessible (context);
   GtkAccessibleRole role = gtk_at_context_get_accessible_role (context);
 
+  /* ARIA does not have a "password entry" role, so we need to fudge it here */
   if (GTK_IS_PASSWORD_ENTRY (accessible))
     return ATSPI_ROLE_PASSWORD_TEXT;
+
+  /* ARIA does not have a "scroll area" role */
+  if (GTK_IS_SCROLLED_WINDOW (accessible))
+    return ATSPI_ROLE_SCROLL_PANE;
 
   return gtk_accessible_role_to_atspi_role (role);
 }

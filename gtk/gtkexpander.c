@@ -292,6 +292,7 @@ gtk_expander_class_init (GtkExpanderClass *klass)
 {
   GObjectClass *gobject_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  guint activate_signal;
 
   gobject_class->dispose = gtk_expander_dispose;
   gobject_class->set_property = gtk_expander_set_property;
@@ -368,7 +369,7 @@ gtk_expander_class_init (GtkExpanderClass *klass)
                                                         GTK_TYPE_WIDGET,
                                                         GTK_PARAM_READWRITE));
 
-  widget_class->activate_signal =
+  activate_signal =
     g_signal_new (I_("activate"),
                   G_TYPE_FROM_CLASS (gobject_class),
                   G_SIGNAL_RUN_LAST | G_SIGNAL_ACTION,
@@ -377,6 +378,7 @@ gtk_expander_class_init (GtkExpanderClass *klass)
                   NULL,
                   G_TYPE_NONE, 0);
 
+  gtk_widget_class_set_activate_signal (widget_class, activate_signal);
   gtk_widget_class_set_css_name (widget_class, I_("expander-widget"));
   gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_BUTTON);
 }
@@ -725,23 +727,7 @@ gtk_expander_resize_toplevel (GtkExpander *expander)
 
       if (GTK_IS_WINDOW (toplevel) &&
           gtk_widget_get_realized (toplevel))
-        {
-          int toplevel_width, toplevel_height;
-          int child_height;
-
-          gtk_widget_measure (child, GTK_ORIENTATION_VERTICAL, -1,
-                              &child_height, NULL, NULL, NULL);
-          gtk_window_get_size (GTK_WINDOW (toplevel), &toplevel_width, &toplevel_height);
-
-          if (expander->expanded)
-            toplevel_height += child_height;
-          else
-            toplevel_height -= child_height;
-
-          gtk_window_resize (GTK_WINDOW (toplevel),
-                             toplevel_width,
-                             toplevel_height);
-        }
+        gtk_widget_queue_resize (GTK_WIDGET (expander));
     }
 }
 
@@ -1177,8 +1163,6 @@ void
 gtk_expander_set_child (GtkExpander *expander,
                         GtkWidget   *child)
 {
-  GList *list = NULL;
-
   g_return_if_fail (GTK_IS_EXPANDER (expander));
   g_return_if_fail (child == NULL || GTK_IS_WIDGET (child));
 
@@ -1201,14 +1185,16 @@ gtk_expander_set_child (GtkExpander *expander,
             g_object_ref_sink (expander->child);
           g_object_ref (expander->child);
         }
-    }
 
-  if (expander->child)
-    list = g_list_append (list, expander->child);
-  gtk_accessible_update_relation (GTK_ACCESSIBLE (expander),
-                                  GTK_ACCESSIBLE_RELATION_CONTROLS, list,
-                                  -1);
-  g_list_free (list);
+      gtk_accessible_update_relation (GTK_ACCESSIBLE (expander),
+                                      GTK_ACCESSIBLE_RELATION_CONTROLS, expander->child, NULL,
+                                      -1);
+    }
+  else
+    {
+      gtk_accessible_reset_relation (GTK_ACCESSIBLE (expander),
+                                     GTK_ACCESSIBLE_RELATION_CONTROLS);
+    }
 
   g_object_notify (G_OBJECT (expander), "child");
 }

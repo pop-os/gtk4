@@ -1333,7 +1333,7 @@ gtk_tree_view_class_init (GtkTreeViewClass *class)
    * @modify: whether to modify the selection
    *
    * The #GtkTreeView::move-cursor signal is a [keybinding
-   * signal][GtkBindingSignal] which gets emitted when the user
+   * signal][GtkSignalAction] which gets emitted when the user
    * presses one of the cursor keys.
    *
    * Applications should not connect to it, but may emit it with
@@ -2654,7 +2654,7 @@ gtk_tree_view_size_allocate (GtkWidget *widget,
     }
 
   if (priv->search_popover)
-    gtk_native_check_resize (GTK_NATIVE (priv->search_popover));
+    gtk_popover_present (GTK_POPOVER (priv->search_popover));
 }
 
 /* Grabs the focus and unsets the GTK_TREE_VIEW_DRAW_KEYFOCUS flag */
@@ -11067,10 +11067,11 @@ gtk_tree_view_set_expander_column (GtkTreeView       *tree_view,
  * gtk_tree_view_get_expander_column:
  * @tree_view: A #GtkTreeView
  *
- * Returns the column that is the current expander column.
+ * Returns the column that is the current expander column,
+ * or %NULL if none has been set.
  * This column has the expander arrow drawn next to it.
  *
- * Returns: (transfer none): The expander column.
+ * Returns: (transfer none) (nullable): The expander column.
  **/
 GtkTreeViewColumn *
 gtk_tree_view_get_expander_column (GtkTreeView *tree_view)
@@ -13178,7 +13179,7 @@ gtk_treeview_snapshot_border (GtkSnapshot           *snapshot,
  * Creates a #cairo_surface_t representation of the row at @path.  
  * This image is used for a drag icon.
  *
- * Returns: (transfer full): a newly-allocated surface of the drag icon.
+ * Returns: (transfer full) (nullable): a newly-allocated surface of the drag icon.
  **/
 GdkPaintable *
 gtk_tree_view_create_row_drag_icon (GtkTreeView  *tree_view,
@@ -13481,7 +13482,7 @@ gtk_tree_view_set_search_equal_func (GtkTreeView                *tree_view,
  * entry for @tree_view.  In case the built-in entry is being used, %NULL
  * will be returned.
  *
- * Returns: (transfer none): the entry currently in use as search entry.
+ * Returns: (transfer none) (nullable): the entry currently in use as search entry.
  */
 GtkEditable *
 gtk_tree_view_get_search_entry (GtkTreeView *tree_view)
@@ -14676,8 +14677,8 @@ gtk_tree_view_set_tooltip_cell (GtkTreeView       *tree_view,
 /**
  * gtk_tree_view_get_tooltip_context:
  * @tree_view: a #GtkTreeView
- * @x: (inout): the x coordinate (relative to widget coordinates)
- * @y: (inout): the y coordinate (relative to widget coordinates)
+ * @x: the x coordinate (relative to widget coordinates)
+ * @y: the y coordinate (relative to widget coordinates)
  * @keyboard_tip: whether this is a keyboard tooltip or not
  * @model: (out) (optional) (nullable) (transfer none): a pointer to
  *         receive a #GtkTreeModel or %NULL
@@ -14700,8 +14701,8 @@ gtk_tree_view_set_tooltip_cell (GtkTreeView       *tree_view,
  */
 gboolean
 gtk_tree_view_get_tooltip_context (GtkTreeView   *tree_view,
-				   int           *x,
-				   int           *y,
+				   int            x,
+				   int            y,
 				   gboolean       keyboard_tip,
 				   GtkTreeModel **model,
 				   GtkTreePath  **path,
@@ -14710,8 +14711,6 @@ gtk_tree_view_get_tooltip_context (GtkTreeView   *tree_view,
   GtkTreePath *tmppath = NULL;
 
   g_return_val_if_fail (GTK_IS_TREE_VIEW (tree_view), FALSE);
-  g_return_val_if_fail (x != NULL, FALSE);
-  g_return_val_if_fail (y != NULL, FALSE);
 
   if (keyboard_tip)
     {
@@ -14722,10 +14721,12 @@ gtk_tree_view_get_tooltip_context (GtkTreeView   *tree_view,
     }
   else
     {
-      gtk_tree_view_convert_widget_to_bin_window_coords (tree_view, *x, *y,
-							  x, y);
+      int rel_x, rel_y;
 
-      if (!gtk_tree_view_get_path_at_pos (tree_view, *x, *y,
+      gtk_tree_view_convert_widget_to_bin_window_coords (tree_view, x, y,
+                                                         &rel_x, &rel_y);
+
+      if (!gtk_tree_view_get_path_at_pos (tree_view, rel_x, rel_y,
 					  &tmppath, NULL, NULL, NULL))
 	return FALSE;
     }
@@ -14762,7 +14763,7 @@ gtk_tree_view_set_tooltip_query_cb (GtkWidget  *widget,
   GtkTreeViewPrivate *priv = gtk_tree_view_get_instance_private (tree_view);
 
   if (!gtk_tree_view_get_tooltip_context (GTK_TREE_VIEW (widget),
-					  &x, &y,
+					  x, y,
 					  keyboard_tip,
 					  &model, &path, &iter))
     return FALSE;

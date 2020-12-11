@@ -1094,7 +1094,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @extend_selection: %TRUE if the move should extend the selection
    *  
    * The ::move-cursor signal is a 
-   * [keybinding signal][GtkBindingSignal] 
+   * [keybinding signal][GtkSignalAction] 
    * which gets emitted when the user initiates a cursor movement. 
    * If the cursor is not visible in @text_view, this signal causes
    * the viewport to be moved instead.
@@ -1135,7 +1135,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @count: the number of @step units to move
    *
    * The ::move-viewport signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which can be bound to key combinations to allow the user
    * to move the viewport, i.e. change what part of the text view
    * is visible in a containing scrolled window.
@@ -1161,7 +1161,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @text_view: the object which received the signal
    *
    * The ::set-anchor signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted when the user initiates setting the "anchor" 
    * mark. The "anchor" mark gets placed at the same position as the
    * "insert" mark.
@@ -1183,7 +1183,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @string: the string to insert
    *
    * The ::insert-at-cursor signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted when the user initiates the insertion of a 
    * fixed string at the cursor.
    *
@@ -1206,7 +1206,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @count: the number of @type units to delete
    *
    * The ::delete-from-cursor signal is a 
-   * [keybinding signal][GtkBindingSignal] 
+   * [keybinding signal][GtkSignalAction] 
    * which gets emitted when the user initiates a text deletion.
    *
    * If the @type is %GTK_DELETE_CHARS, GTK+ deletes the selection
@@ -1237,7 +1237,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @text_view: the object which received the signal
    *
    * The ::backspace signal is a 
-   * [keybinding signal][GtkBindingSignal] 
+   * [keybinding signal][GtkSignalAction] 
    * which gets emitted when the user asks for it.
    * 
    * The default bindings for this signal are
@@ -1257,7 +1257,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @text_view: the object which received the signal
    *
    * The ::cut-clipboard signal is a 
-   * [keybinding signal][GtkBindingSignal] 
+   * [keybinding signal][GtkSignalAction] 
    * which gets emitted to cut the selection to the clipboard.
    * 
    * The default bindings for this signal are
@@ -1277,7 +1277,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @text_view: the object which received the signal
    *
    * The ::copy-clipboard signal is a 
-   * [keybinding signal][GtkBindingSignal] 
+   * [keybinding signal][GtkSignalAction] 
    * which gets emitted to copy the selection to the clipboard.
    * 
    * The default bindings for this signal are
@@ -1297,7 +1297,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @text_view: the object which received the signal
    *
    * The ::paste-clipboard signal is a 
-   * [keybinding signal][GtkBindingSignal] 
+   * [keybinding signal][GtkSignalAction] 
    * which gets emitted to paste the contents of the clipboard 
    * into the text view.
    * 
@@ -1318,7 +1318,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @text_view: the object which received the signal
    *
    * The ::toggle-overwrite signal is a 
-   * [keybinding signal][GtkBindingSignal] 
+   * [keybinding signal][GtkSignalAction] 
    * which gets emitted to toggle the overwrite mode of the text view.
    * 
    * The default bindings for this signal is Insert.
@@ -1338,7 +1338,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @select: %TRUE to select, %FALSE to unselect
    *
    * The ::select-all signal is a 
-   * [keybinding signal][GtkBindingSignal] 
+   * [keybinding signal][GtkSignalAction] 
    * which gets emitted to select or unselect the complete
    * contents of the text view.
    *
@@ -1359,7 +1359,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @text_view: the object which received the signal
    *
    * The ::toggle-cursor-visible signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to toggle the #GtkTextView:cursor-visible
    * property.
    *
@@ -1431,7 +1431,7 @@ gtk_text_view_class_init (GtkTextViewClass *klass)
    * @text_view: the object which received the signal
    *
    * The ::insert-emoji signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to present the Emoji chooser for the @text_view.
    *
    * The default bindings for this signal are Ctrl-. and Ctrl-;
@@ -4528,22 +4528,22 @@ gtk_text_view_size_allocate (GtkWidget *widget,
 
   chooser = g_object_get_data (G_OBJECT (text_view), "gtk-emoji-chooser");
   if (chooser)
-    gtk_native_check_resize (GTK_NATIVE (chooser));
+    gtk_popover_present (GTK_POPOVER (chooser));
 
   if (priv->magnifier_popover)
-    gtk_native_check_resize (GTK_NATIVE (priv->magnifier_popover));
+    gtk_popover_present (GTK_POPOVER (priv->magnifier_popover));
 
   if (priv->popup_menu)
-    gtk_native_check_resize (GTK_NATIVE (priv->popup_menu));
+    gtk_popover_present (GTK_POPOVER (priv->popup_menu));
 
   if (priv->text_handles[TEXT_HANDLE_CURSOR])
-    gtk_native_check_resize (GTK_NATIVE (priv->text_handles[TEXT_HANDLE_CURSOR]));
+    gtk_text_handle_present (priv->text_handles[TEXT_HANDLE_CURSOR]);
 
   if (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND])
-    gtk_native_check_resize (GTK_NATIVE (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND]));
+    gtk_text_handle_present (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND]);
 
   if (priv->selection_bubble)
-    gtk_native_check_resize (GTK_NATIVE (priv->selection_bubble));
+    gtk_popover_present (GTK_POPOVER (priv->selection_bubble));
 }
 
 static void
@@ -5116,7 +5116,7 @@ gtk_text_view_handle_dragged (GtkTextHandle *handle,
       *old_iter = iter;
 
       if (handle == priv->text_handles[TEXT_HANDLE_CURSOR] &&
-          !gtk_widget_is_visible (GTK_WIDGET (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND])))
+          gtk_text_handle_get_role (priv->text_handles[TEXT_HANDLE_CURSOR]) == GTK_TEXT_HANDLE_ROLE_CURSOR)
         gtk_text_buffer_place_cursor (buffer, &cursor);
       else
         gtk_text_buffer_select_range (buffer, &cursor, &bound);
@@ -5217,7 +5217,6 @@ gtk_text_view_update_handles (GtkTextView *text_view)
                                              &cursor);
           gtk_text_handle_set_role (priv->text_handles[TEXT_HANDLE_CURSOR],
                                     GTK_TEXT_HANDLE_ROLE_CURSOR);
-          gtk_widget_show (GTK_WIDGET (priv->text_handles[TEXT_HANDLE_CURSOR]));
         }
       else if (gtk_text_iter_compare (&cursor, &bound) != 0)
         {
@@ -5227,14 +5226,12 @@ gtk_text_view_update_handles (GtkTextView *text_view)
                                              &cursor);
           gtk_text_handle_set_role (priv->text_handles[TEXT_HANDLE_CURSOR],
                                     GTK_TEXT_HANDLE_ROLE_SELECTION_START);
-          gtk_widget_show (GTK_WIDGET (priv->text_handles[TEXT_HANDLE_CURSOR]));
 
           gtk_text_view_set_handle_position (text_view,
                                              priv->text_handles[TEXT_HANDLE_SELECTION_BOUND],
                                              &bound);
           gtk_text_handle_set_role (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND],
                                     GTK_TEXT_HANDLE_ROLE_SELECTION_END);
-          gtk_widget_show (GTK_WIDGET (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND]));
         }
       else
         {
@@ -5473,10 +5470,7 @@ gtk_text_view_click_gesture_pressed (GtkGestureClick *gesture,
                 gtk_text_view_selection_bubble_popup_unset (text_view);
 
                 if (is_touchscreen)
-                  {
-                    gtk_text_buffer_place_cursor (get_buffer (text_view), &iter);
-                    priv->handle_place_time = g_get_monotonic_time ();
-                  }
+                  priv->handle_place_time = g_get_monotonic_time ();
                 else
                   gtk_text_view_start_selection_drag (text_view, &iter,
                                                       SELECT_CHARACTERS, extends);
@@ -7344,11 +7338,6 @@ gtk_text_view_drag_gesture_end (GtkGestureDrag *gesture,
   priv = text_view->priv;
   sequence = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
 
-  if (!drag_gesture_get_text_surface_coords (gesture, text_view,
-                                             &start_x, &start_y, &x, &y))
-    return;
-
-
   clicked_in_selection =
     g_object_get_qdata (G_OBJECT (gesture), quark_text_selection_data) == NULL;
   g_object_set_qdata (G_OBJECT (gesture), quark_text_selection_data, NULL);
@@ -7363,6 +7352,10 @@ gtk_text_view_drag_gesture_end (GtkGestureDrag *gesture,
   if (priv->magnifier_popover)
     gtk_widget_hide (priv->magnifier_popover);
 
+  if (!drag_gesture_get_text_surface_coords (gesture, text_view,
+                                             &start_x, &start_y, &x, &y))
+    return;
+
   /* Check whether the drag was cancelled rather than finished */
   if (!gtk_gesture_handles_sequence (GTK_GESTURE (gesture), sequence))
     return;
@@ -7372,7 +7365,7 @@ gtk_text_view_drag_gesture_end (GtkGestureDrag *gesture,
   is_touchscreen = gtk_simulate_touchscreen () ||
     gdk_device_get_source (device) == GDK_SOURCE_TOUCHSCREEN;
 
-  if (!is_touchscreen && clicked_in_selection &&
+  if ((is_touchscreen || clicked_in_selection) &&
       !gtk_drag_check_threshold (GTK_WIDGET (text_view), start_x, start_y, x, y))
     {
       GtkTextIter iter;
@@ -9296,11 +9289,11 @@ gtk_text_view_move_overlay (GtkTextView *text_view,
 {
   g_return_if_fail (GTK_IS_TEXT_VIEW (text_view));
   g_return_if_fail (GTK_IS_WIDGET (child));
-  g_return_if_fail (gtk_widget_get_parent (child) == GTK_WIDGET (text_view));
+  g_return_if_fail (text_view->priv->center_child != NULL);
+  g_return_if_fail (gtk_widget_get_parent (child) == (GtkWidget *)text_view->priv->center_child);
 
-  if (text_view->priv->center_child == NULL)
-    gtk_text_view_child_move_overlay (text_view->priv->center_child,
-                                      child, xpos, ypos);
+  gtk_text_view_child_move_overlay (text_view->priv->center_child,
+                                    child, xpos, ypos);
 }
 
 
@@ -9686,7 +9679,8 @@ gtk_text_view_insert_emoji (GtkTextView *text_view)
  * @model: (allow-none): a #GMenuModel
  *
  * Sets a menu model to add when constructing
- * the context menu for @text_view.
+ * the context menu for @text_view. You can pass
+ * %NULL to remove a previously set extra menu.
  */
 void
 gtk_text_view_set_extra_menu (GtkTextView *text_view,
@@ -9707,9 +9701,10 @@ gtk_text_view_set_extra_menu (GtkTextView *text_view,
  * gtk_text_view_get_extra_menu:
  * @text_view: a #GtkTextView
  *
- * Gets the menu model set with gtk_text_view_set_extra_menu().
+ * Gets the menu model set with gtk_text_view_set_extra_menu()
+ * or %NULL if none has been set.
  *
- * Returns: (transfer none): (nullable): the menu model
+ * Returns: (transfer none): the menu model
  */
 GMenuModel *
 gtk_text_view_get_extra_menu (GtkTextView *text_view)

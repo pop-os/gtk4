@@ -439,8 +439,6 @@ testdata = [
   'window-default-size.ui',
   'window-height-for-width.ref.ui',
   'window-height-for-width.ui',
-  'window-show-contents-on-map.ref.ui',
-  'window-show-contents-on-map.ui',
 ]
 
 # These need to be fixed but the issue hasn't been tracked down.
@@ -451,7 +449,7 @@ xfails = [
 ]
 
 reftest_env = environment()
-reftest_env.set('GTK_TEST_ACCESSIBLE', '1')
+reftest_env.set('GTK_A11Y', 'test')
 reftest_env.set('GSK_RENDERER', 'opengl')
 reftest_env.set('G_TEST_SRCDIR', meson.current_source_dir())
 reftest_env.set('G_TEST_BUILDDIR', meson.current_build_dir())

@@ -29,17 +29,6 @@
 #include "gdkmacostoplevelsurface-private.h"
 #include "gdkmacosutils-private.h"
 
-struct _GdkMacosToplevelSurface
-{
-  GdkMacosSurface parent_instance;
-  guint           decorated : 1;
-};
-
-struct _GdkMacosToplevelSurfaceClass
-{
-  GdkMacosSurfaceClass parent_instance;
-};
-
 static void
 _gdk_macos_toplevel_surface_fullscreen (GdkMacosToplevelSurface *self)
 {
@@ -111,6 +100,8 @@ _gdk_macos_toplevel_surface_present (GdkToplevel       *toplevel,
   g_assert (GDK_IS_MACOS_TOPLEVEL_SURFACE (self));
   g_assert (GDK_IS_MACOS_WINDOW (nswindow));
 
+  _gdk_macos_toplevel_surface_attach_to_parent (self);
+
   style_mask = [nswindow styleMask];
 
   monitor = gdk_display_get_monitor_at_surface (display, surface);
@@ -164,6 +155,15 @@ _gdk_macos_toplevel_surface_present (GdkToplevel       *toplevel,
   if (style_mask != [nswindow styleMask])
     [nswindow setStyleMask:style_mask];
 
+  if (size.shadow.is_valid)
+    {
+      _gdk_macos_surface_set_shadow_width (surface,
+                                           size.shadow.left,
+                                           size.shadow.right,
+                                           size.shadow.top,
+                                           size.shadow.bottom);
+    }
+
   _gdk_macos_surface_set_geometry_hints (GDK_MACOS_SURFACE (self), &geometry, mask);
   gdk_surface_constrain_size (&geometry, mask, width, height, &width, &height);
   _gdk_macos_surface_resize (GDK_MACOS_SURFACE (self), width, height);
@@ -185,6 +185,8 @@ _gdk_macos_toplevel_surface_present (GdkToplevel       *toplevel,
     }
   else
     {
+      [nswindow setAnimationBehavior:NSWindowAnimationBehaviorDocumentWindow];
+
       if (!self->decorated &&
           !GDK_MACOS_SURFACE (self)->did_initial_present &&
           GDK_SURFACE (self)->x == 0 &&

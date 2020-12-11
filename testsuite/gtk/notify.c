@@ -401,8 +401,7 @@ test_type (gconstpointer data)
     return;
 
   /* These leak their GDBusConnections */
-  if (g_type_is_a (type, GTK_TYPE_FILE_CHOOSER_BUTTON) ||
-      g_type_is_a (type, GTK_TYPE_FILE_CHOOSER_DIALOG) ||
+  if (g_type_is_a (type, GTK_TYPE_FILE_CHOOSER_DIALOG) ||
       g_type_is_a (type, GTK_TYPE_FILE_CHOOSER_WIDGET) ||
       g_type_is_a (type, GTK_TYPE_FILE_CHOOSER_NATIVE))
     return;
@@ -453,6 +452,12 @@ test_type (gconstpointer data)
                                "formats", formats,
                                NULL);
       gdk_content_formats_unref (formats);
+    }
+  else if (g_type_is_a (type, GSK_TYPE_GL_SHADER))
+    {
+      GBytes *bytes = g_bytes_new_static ("", 0);
+      instance = g_object_new (type, "source", bytes, NULL);
+      g_bytes_unref (bytes);
     }
   else if (g_type_is_a (type, GTK_TYPE_FILTER_LIST_MODEL) ||
            g_type_is_a (type, GTK_TYPE_NO_SELECTION) ||
@@ -519,7 +524,8 @@ test_type (gconstpointer data)
            g_str_equal (pspec->name, "has-default") ||
            g_str_equal (pspec->name, "is-focus") ||
            g_str_equal (pspec->name, "hexpand") ||
-           g_str_equal (pspec->name, "vexpand")))
+           g_str_equal (pspec->name, "vexpand") ||
+           g_str_equal (pspec->name, "visible")))
         continue;
 
       if (g_type_is_a (type, GTK_TYPE_ACCESSIBLE) &&

@@ -107,7 +107,9 @@ The `plain` build type provided by Meson should only be used when
 packaging GTK, and it's expected that packagers will provide their
 own compiler flags when building GTK. See the previous section for
 the list of environment variables to be used to define compiler and
-linker flags.
+linker flags. Note that with the plain build type, you are also
+responsible for controlling the debugging features of GTK with
+`-DG_ENABLE_DEBUG` and `-DG_DISABLE_CAST_CHECKS`.
 
 ## Dependencies {#dependencies}
 
@@ -159,7 +161,8 @@ Other libraries are maintained separately.
   fonts and matching them against font names.
 - [Cairo](https://www.cairographics.org) is a graphics library that
   supports vector graphics and image compositing. Both Pango and GTK
-  use Cairo for drawing.
+  use Cairo for drawing. Note that we also need the auxiliary cairo-gobject
+  library.
 - [libepoxy](https://github.com/anholt/libepoxy) is a library that
   abstracts the differences between different OpenGL libraries. GTK
   uses it for cross-platform GL support and for its own drawing.

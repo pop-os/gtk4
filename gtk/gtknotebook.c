@@ -126,30 +126,33 @@
  *     ╰── <child>
  * ]|
  *
- * GtkNotebook has a main CSS node with name notebook, a subnode
- * with name header and below that a subnode with name tabs which
- * contains one subnode per tab with name tab.
+ * GtkNotebook has a main CSS node with name `notebook`, a subnode
+ * with name `header` and below that a subnode with name `tabs` which
+ * contains one subnode per tab with name `tab`.
  *
  * If action widgets are present, their CSS nodes are placed next
- * to the tabs node. If the notebook is scrollable, CSS nodes with
- * name arrow are placed as first and last child of the tabs node.
+ * to the `tabs` node. If the notebook is scrollable, CSS nodes with
+ * name `arrow` are placed as first and last child of the `tabs` node.
  *
- * The main node gets the .frame style class when the notebook
+ * The main node gets the `.frame` style class when the notebook
  * has a border (see gtk_notebook_set_show_border()).
  *
- * The header node gets one of the style class .top, .bottom,
- * .left or .right, depending on where the tabs are placed. For
- * reorderable pages, the tab node gets the .reorderable-page class.
+ * The header node gets one of the style class `.top`, `.bottom`,
+ * `.left` or `.right`, depending on where the tabs are placed. For
+ * reorderable pages, the tab node gets the `.reorderable-page` class.
  *
- * A tab node gets the .dnd style class while it is moved with drag-and-drop.
+ * A `tab` node gets the `.dnd` style class while it is moved with drag-and-drop.
  *
  * The nodes are always arranged from left-to-right, regardless of text direction.
  *
  * # Accessibility
  *
- * GtkNotebook uses the #GTK_ACCESSIBLE_ROLE_TAB_LIST and
- * #GTK_ACCESSIBLE_ROLE_TAB roles for its list of tabs and the
- * #GTK_ACCESSIBLE_ROLE_TAB_PANEL for the pages.
+ * GtkNotebook uses the following roles:
+ *
+ *  - %GTK_ACCESSIBLE_ROLE_GROUP for the notebook widget
+ *  - %GTK_ACCESSIBLE_ROLE_TAB_LIST for the list of tabs
+ *  - %GTK_ACCESSIBLE_ROLE_TAB role for each tab
+ *  - %GTK_ACCESSIBLE_ROLE_TAB_PANEL for each page
  */
 
 
@@ -1369,6 +1372,7 @@ gtk_notebook_class_init (GtkNotebookClass *class)
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
   gtk_widget_class_set_css_name (widget_class, I_("notebook"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_GROUP);
 }
 
 static void
@@ -1420,6 +1424,9 @@ gtk_notebook_init (GtkNotebook *notebook)
                                                    (GtkGizmoGrabFocusFunc)gtk_widget_grab_focus_self);
   gtk_widget_set_hexpand (notebook->tabs_widget, TRUE);
   gtk_box_append (GTK_BOX (notebook->header_widget), notebook->tabs_widget);
+  gtk_accessible_update_property (GTK_ACCESSIBLE (notebook->tabs_widget),
+                                  GTK_ACCESSIBLE_PROPERTY_LABEL, _("Tab list"),
+                                  -1);
 
   notebook->stack_widget = gtk_stack_new ();
   gtk_widget_set_hexpand (notebook->stack_widget, TRUE);
@@ -3111,8 +3118,8 @@ update_arrow_nodes (GtkNotebook *notebook)
                 }
 
               notebook->arrow_widget[i] = g_object_new (GTK_TYPE_BUTTON,
-                                                    "css-name", "arrow",
-                                                    NULL);
+                                                        "css-name", "arrow",
+                                                        NULL);
               controller = gtk_drop_controller_motion_new ();
               g_signal_connect (controller, "enter", G_CALLBACK (gtk_notebook_arrow_drag_enter), notebook);
               g_signal_connect (controller, "leave", G_CALLBACK (gtk_notebook_arrow_drag_leave), notebook);
@@ -3134,6 +3141,15 @@ update_arrow_nodes (GtkNotebook *notebook)
             gtk_button_set_icon_name (GTK_BUTTON (notebook->arrow_widget[i]), down_icon_name);
           else
             gtk_button_set_icon_name (GTK_BUTTON (notebook->arrow_widget[i]), up_icon_name);
+
+          if (i == ARROW_LEFT_BEFORE || i == ARROW_LEFT_AFTER)
+            gtk_accessible_update_property (GTK_ACCESSIBLE (notebook->arrow_widget[i]),
+                                            GTK_ACCESSIBLE_PROPERTY_LABEL, _("Previous tab"),
+                                            -1);
+          else
+            gtk_accessible_update_property (GTK_ACCESSIBLE (notebook->arrow_widget[i]),
+                                            GTK_ACCESSIBLE_PROPERTY_LABEL, _("Next tab"),
+                                            -1);
         }
       else
         {
@@ -3951,6 +3967,9 @@ gtk_notebook_insert_notebook_page (GtkNotebook *notebook,
   g_signal_connect (controller, "enter", G_CALLBACK (gtk_notebook_tab_drop_enter), page);
   g_signal_connect (controller, "leave", G_CALLBACK (gtk_notebook_tab_drop_leave), page);
   gtk_widget_add_controller (page->tab_widget, controller);
+  gtk_accessible_update_property (GTK_ACCESSIBLE (page->tab_widget),
+                                  GTK_ACCESSIBLE_PROPERTY_LABEL, _("Tab"),
+                                  -1);
 
   page->expand = FALSE;
   page->fill = TRUE;
@@ -3968,7 +3987,10 @@ gtk_notebook_insert_notebook_page (GtkNotebook *notebook,
 
   stack_page = gtk_stack_get_page (GTK_STACK (notebook->stack_widget), page->child);
   gtk_accessible_update_relation (GTK_ACCESSIBLE (page->tab_widget),
-                                  GTK_ACCESSIBLE_RELATION_CONTROLS, g_list_append (NULL, stack_page),
+                                  GTK_ACCESSIBLE_RELATION_CONTROLS, stack_page, NULL,
+                                  -1);
+  gtk_accessible_update_relation (GTK_ACCESSIBLE (stack_page),
+                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, page->tab_widget, NULL,
                                   -1);
 
   gtk_accessible_update_state (GTK_ACCESSIBLE (page->tab_widget),

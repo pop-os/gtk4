@@ -12,6 +12,11 @@ GDK_WINDOWING_MACOS
 GDK_WINDOWING_WAYLAND
 
 <SUBSECTION>
+GDK_MAJOR_VERSION
+GDK_MICRO_VERSION
+GDK_MINOR_VERSION
+
+<SUBSECTION>
 GDK_VERSION_4_0
 GDK_VERSION_MIN_REQUIRED
 GDK_VERSION_MAX_ALLOWED
@@ -24,6 +29,8 @@ GDK_TYPE_GRAB_STATUS
 GDK_TYPE_STATUS
 GdkStatus
 GDKVAR
+GDK_VERSION_3_92
+GDK_VERSION_3_94
 gdk_axis_use_get_type
 gdk_byte_order_get_type
 gdk_crossing_mode_get_type
@@ -196,7 +203,6 @@ gdk_surface_get_cursor
 gdk_surface_set_input_region
 gdk_surface_get_width
 gdk_surface_get_height
-gdk_surface_set_shadow_width
 gdk_surface_get_device_position
 GdkModifierType
 GDK_MODIFIER_MASK
@@ -522,7 +528,6 @@ GDK_IS_EVENT
 gdk_event_get_type
 gdk_event_sequence_get_type
 gdk_button_event_get_type
-gdk_configure_event_get_type
 gdk_crossing_event_get_type
 gdk_delete_event_get_type
 gdk_dnd_event_get_type
@@ -827,11 +832,14 @@ gdk_x11_display_error_trap_pop_ignored
 gdk_x11_display_set_cursor_theme
 gdk_x11_display_set_surface_scale
 gdk_x11_display_get_glx_version
+gdk_x11_display_get_primary_monitor
+gdk_x11_display_get_screen
+gdk_x11_monitor_get_output
+gdk_x11_monitor_get_workarea
 gdk_x11_screen_get_screen_number
 gdk_x11_screen_get_xscreen
 gdk_x11_screen_get_window_manager_name
 gdk_x11_screen_get_monitor_output
-gdk_x11_screen_lookup_visual
 gdk_x11_screen_supports_net_wm_hint
 gdk_x11_screen_get_number_of_desktops
 gdk_x11_screen_get_current_desktop
@@ -846,9 +854,9 @@ gdk_x11_surface_set_utf8_property
 gdk_x11_surface_set_frame_sync_enabled
 gdk_x11_surface_set_group
 gdk_x11_surface_get_group
-gdk_x11_keymap_get_group_for_state
-gdk_x11_keymap_key_is_modifier
-gdk_x11_visual_get_xvisual
+gdk_x11_surface_set_skip_pager_hint
+gdk_x11_surface_set_skip_taskbar_hint
+gdk_x11_surface_set_urgency_hint
 gdk_x11_get_xatom_by_name_for_display
 gdk_x11_get_xatom_name_for_display
 gdk_x11_set_sm_client_id
@@ -901,29 +909,18 @@ GDK_X11_DRAG_CONTEXT_CLASS
 GDK_IS_X11_DRAG_CONTEXT
 GDK_IS_X11_DRAG_CONTEXT_CLASS
 GDK_X11_DRAG_CONTEXT_GET_CLASS
-GDK_TYPE_X11_KEYMAP
-GDK_X11_KEYMAP
-GDK_X11_KEYMAP_CLASS
-GDK_IS_X11_KEYMAP
-GDK_IS_X11_KEYMAP_CLASS
-GDK_X11_KEYMAP_GET_CLASS
 GDK_TYPE_X11_GL_CONTEXT
 GDK_X11_GL_CONTEXT
 GDK_X11_GL_CONTEXT_CLASS
 GDK_IS_X11_GL_CONTEXT
 GDK_IS_X11_GL_CONTEXT_CLASS
-GDK_TYPE_X11_SCREEN
-GDK_X11_SCREEN
-GDK_X11_SCREEN_CLASS
-GDK_IS_X11_SCREEN
-GDK_IS_X11_SCREEN_CLASS
-GDK_X11_SCREEN_GET_CLASS
-GDK_TYPE_X11_VISUAL
-GDK_X11_VISUAL
-GDK_X11_VISUAL_CLASS
-GDK_IS_X11_VISUAL
-GDK_IS_X11_VISUAL_CLASS
-GDK_X11_VISUAL_GET_CLASS
+GDK_TYPE_X11_DRAG
+GDK_X11_DRAG
+GDK_IS_X11_DRAG
+GDK_IS_X11_DRAG_CLASS
+GDK_TYPE_X11_MONITOR
+GDK_X11_MONITOR
+GDK_IS_X11_MONITOR
 GDK_TYPE_X11_SURFACE
 GDK_X11_SURFACE
 GDK_X11_SURFACE_CLASS
@@ -941,9 +938,10 @@ gdk_x11_device_xi_get_type
 gdk_x11_display_get_type
 gdk_x11_display_manager_get_type
 gdk_x11_drag_context_get_type
-gdk_x11_keymap_get_type
+gdk_x11_drag_get_type
+gdk_x11_gl_context_get_type
+gdk_x11_monitor_get_type
 gdk_x11_screen_get_type
-gdk_x11_visual_get_type
 gdk_x11_surface_get_type
 gdk_surface_impl_x11_get_type
 </SECTION>
@@ -958,14 +956,13 @@ gdk_wayland_display_query_registry
 gdk_wayland_display_set_cursor_theme
 gdk_wayland_display_get_startup_notification_id
 gdk_wayland_display_set_startup_notification_id
-gdk_wayland_display_query_registry
 
 <SUBSECTION Device>
 gdk_wayland_seat_get_wl_seat
 gdk_wayland_device_get_wl_seat
 gdk_wayland_device_get_wl_pointer
 gdk_wayland_device_get_wl_keyboard
-gdk_wayland_device_get_node_ath
+gdk_wayland_device_get_node_path
 
 <SUBSECTION Monitor>
 gdk_wayland_monitor_get_wl_output
@@ -1008,8 +1005,12 @@ GDK_IS_WAYLAND_SURFACE_CLASS
 gdk_wayland_device_get_type
 gdk_wayland_display_get_type
 gdk_wayland_display_manager_get_type
+gdk_wayland_gl_context_get_type
+gdk_wayland_monitor_get_type
+gdk_wayland_popup_get_type
+gdk_wayland_seat_get_type
 gdk_wayland_surface_get_type
-
+gdk_wayland_toplevel_get_type
 </SECTION>
 
 <SECTION>

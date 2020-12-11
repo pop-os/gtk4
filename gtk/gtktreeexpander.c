@@ -25,6 +25,7 @@
 #include "gtkboxlayout.h"
 #include "gtkbuiltiniconprivate.h"
 #include "gtkdropcontrollermotion.h"
+#include "gtkenums.h"
 #include "gtkgestureclick.h"
 #include "gtkintl.h"
 #include "gtktreelistmodel.h"
@@ -66,6 +67,12 @@
  * If the node is not expandable, an "indent" node will be displayed instead.
  *
  * For every level of depth, another "indent" node is prepended.
+ *
+ * # Accessibility
+ *
+ * GtkTreeExpander uses the %GTK_ACCESSIBLE_ROLE_GROUP role. The expander icon
+ * is represented as a %GTK_ACCESSIBLE_ROLE_BUTTON, labelled by the expander's
+ * child, and toggling it will change the %GTK_ACCESSIBLE_STATE_EXPANDED state.
  */
 
 struct _GtkTreeExpander
@@ -158,7 +165,11 @@ gtk_tree_expander_update_for_list_row (GtkTreeExpander *self)
             {
               GtkGesture *gesture;
 
-              self->expander = gtk_builtin_icon_new ("expander");
+              self->expander =
+                g_object_new (GTK_TYPE_BUILTIN_ICON,
+                              "css-name", "expander",
+                              "accessible-role", GTK_ACCESSIBLE_ROLE_BUTTON,
+                              NULL);
 
               gesture = gtk_gesture_click_new ();
               gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
@@ -178,11 +189,30 @@ gtk_tree_expander_update_for_list_row (GtkTreeExpander *self)
               gtk_widget_insert_before (self->expander,
                                         GTK_WIDGET (self),
                                         self->child);
+
+              gtk_accessible_update_property (GTK_ACCESSIBLE (self->expander),
+                                              GTK_ACCESSIBLE_PROPERTY_LABEL, _("Expand"),
+                                              -1);
+              gtk_accessible_update_relation (GTK_ACCESSIBLE (self->expander),
+                                              GTK_ACCESSIBLE_RELATION_LABELLED_BY, self->child, NULL,
+                                              -1);
             }
+
           if (gtk_tree_list_row_get_expanded (self->list_row))
-            gtk_widget_set_state_flags (self->expander, GTK_STATE_FLAG_CHECKED, FALSE);
+            {
+              gtk_widget_set_state_flags (self->expander, GTK_STATE_FLAG_CHECKED, FALSE);
+              gtk_accessible_update_state (GTK_ACCESSIBLE (self->expander),
+                                           GTK_ACCESSIBLE_STATE_EXPANDED, TRUE,
+                                           -1);
+            }
           else
-            gtk_widget_unset_state_flags (self->expander, GTK_STATE_FLAG_CHECKED);
+            {
+              gtk_widget_unset_state_flags (self->expander, GTK_STATE_FLAG_CHECKED);
+              gtk_accessible_update_state (GTK_ACCESSIBLE (self->expander),
+                                           GTK_ACCESSIBLE_STATE_EXPANDED, FALSE,
+                                           -1);
+            }
+
           child = gtk_widget_get_prev_sibling (self->expander);
         }
       else
@@ -201,14 +231,13 @@ gtk_tree_expander_update_for_list_row (GtkTreeExpander *self)
             child = gtk_widget_get_prev_sibling (child);
           else
             {
-              GtkWidget *indent = gtk_builtin_icon_new ("indent");
+              GtkWidget *indent =
+                g_object_new (GTK_TYPE_BUILTIN_ICON,
+                              "css-name", "indent",
+                              "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
+                              NULL);
 
               gtk_widget_insert_after (indent, GTK_WIDGET (self), NULL);
-
-              /* The indent icon is not visible in the accessibility tree */
-              gtk_accessible_update_state (GTK_ACCESSIBLE (indent),
-                                           GTK_ACCESSIBLE_STATE_HIDDEN, TRUE,
-                                           -1);
             }
         }
 
@@ -231,9 +260,19 @@ gtk_tree_expander_list_row_notify_cb (GtkTreeListRow  *list_row,
       if (self->expander)
         {
           if (gtk_tree_list_row_get_expanded (list_row))
-            gtk_widget_set_state_flags (self->expander, GTK_STATE_FLAG_CHECKED, FALSE);
+            {
+              gtk_widget_set_state_flags (self->expander, GTK_STATE_FLAG_CHECKED, FALSE);
+              gtk_accessible_update_state (GTK_ACCESSIBLE (self->expander),
+                                           GTK_ACCESSIBLE_STATE_EXPANDED, TRUE,
+                                           -1);
+            }
           else
-            gtk_widget_unset_state_flags (self->expander, GTK_STATE_FLAG_CHECKED);
+            {
+              gtk_widget_unset_state_flags (self->expander, GTK_STATE_FLAG_CHECKED);
+              gtk_accessible_update_state (GTK_ACCESSIBLE (self->expander),
+                                           GTK_ACCESSIBLE_STATE_EXPANDED, FALSE,
+                                           -1);
+            }
         }
     }
   else if (pspec->name == g_intern_static_string ("item"))
@@ -340,7 +379,7 @@ gtk_tree_expander_get_property (GObject    *object,
       break;
 
     case PROP_ITEM:
-      g_value_set_object (value, gtk_tree_expander_get_item (self));
+      g_value_take_object (value, gtk_tree_expander_get_item (self));
       break;
 
     case PROP_LIST_ROW:
@@ -575,6 +614,7 @@ gtk_tree_expander_class_init (GtkTreeExpanderClass *klass)
 
   gtk_widget_class_set_layout_manager_type (widget_class, GTK_TYPE_BOX_LAYOUT);
   gtk_widget_class_set_css_name (widget_class, I_("treeexpander"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_GROUP);
 }
 
 static gboolean
@@ -697,10 +737,13 @@ gtk_tree_expander_set_child (GtkTreeExpander *self,
  *
  * Forwards the item set on the #GtkTreeListRow that @self is managing.
  *
- * This call is essentially equivalent to calling
- * `gtk_tree_list_row_get_item (gtk_tree_expander_get_list_row (@self))`.
+ * This call is essentially equivalent to calling:
  *
- * Returns: (nullable) (transfer none): The item of the row
+ * |[<!-- language="C" -->
+ *   gtk_tree_list_row_get_item (gtk_tree_expander_get_list_row (@self));
+ * ]|
+ *
+ * Returns: (nullable) (transfer full) (type GObject): The item of the row
  **/
 gpointer
 gtk_tree_expander_get_item (GtkTreeExpander *self)

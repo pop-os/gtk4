@@ -56,6 +56,7 @@
 #include "gtkrenderbackgroundprivate.h"
 #include "gtkrenderborderprivate.h"
 #include "gtkrootprivate.h"
+#include "gtknativeprivate.h"
 #include "gtkscrollable.h"
 #include "gtksettingsprivate.h"
 #include "gtkshortcut.h"
@@ -249,15 +250,8 @@
  * # GtkWidget as GtkBuildable
  *
  * The GtkWidget implementation of the #GtkBuildable interface supports a
- * custom `<accelerator>` element, which has attributes named ”key”, ”modifiers”
- * and ”signal” and allows to specify accelerators.
- *
- * An example of a UI definition fragment specifying an accelerator:
- * |[
- * <object class="GtkButton">
- *   <accelerator key="q" modifiers="GDK_CONTROL_MASK" signal="clicked"/>
- * </object>
- * ]|
+ * custom elements to specify various aspects of widgets that are not
+ * directly expressed as properties.
  *
  * If the parent widget uses a #GtkLayoutManager, #GtkWidget supports a
  * custom `<layout>` element, used to define layout properties:
@@ -640,6 +634,9 @@ static void             gtk_widget_buildable_custom_finished    (GtkBuildable   
 static void             gtk_widget_buildable_parser_finished    (GtkBuildable       *buildable,
                                                                  GtkBuilder         *builder);
 
+static void                     gtk_widget_set_accessible_role  (GtkWidget          *self,
+                                                                 GtkAccessibleRole   role);
+static GtkAccessibleRole        gtk_widget_get_accessible_role  (GtkWidget          *self);
 
 static GtkSizeRequestMode gtk_widget_real_get_request_mode      (GtkWidget        *widget);
 
@@ -768,8 +765,6 @@ gtk_widget_base_class_init (gpointer g_class)
           g_object_unref (shortcut);
         }
     }
-
-  priv->accessible_role = GTK_ACCESSIBLE_ROLE_WIDGET;
 }
 
 static void
@@ -891,7 +886,6 @@ gtk_widget_class_init (GtkWidgetClass *klass)
   gobject_class->set_property = gtk_widget_set_property;
   gobject_class->get_property = gtk_widget_get_property;
 
-  klass->activate_signal = 0;
   klass->show = gtk_widget_real_show;
   klass->hide = gtk_widget_real_hide;
   klass->map = gtk_widget_real_map;
@@ -1621,6 +1615,7 @@ gtk_widget_class_init (GtkWidgetClass *klass)
                               _gtk_marshal_BOOLEAN__INT_INT_BOOLEAN_OBJECTv);
 
   gtk_widget_class_set_css_name (klass, I_("widget"));
+  gtk_widget_class_set_accessible_role (klass, GTK_ACCESSIBLE_ROLE_WIDGET);
 }
 
 static void
@@ -1731,21 +1726,7 @@ gtk_widget_set_property (GObject         *object,
       gtk_widget_set_layout_manager (widget, g_value_dup_object (value));
       break;
     case PROP_ACCESSIBLE_ROLE:
-      if (priv->at_context == NULL || !gtk_at_context_is_realized (priv->at_context))
-        {
-          priv->accessible_role = g_value_get_enum (value);
-          if (priv->at_context)
-            g_object_set (priv->at_context, "accessible-role", priv->accessible_role, NULL);
-          g_object_notify_by_pspec (object, pspec);
-        }
-      else
-        {
-          char *role_str = g_enum_to_string (GTK_TYPE_ACCESSIBLE_ROLE, priv->accessible_role);
-          g_critical ("Widget of type “%s” already has an accessible role of type “%s”",
-                      G_OBJECT_TYPE_NAME (object),
-                      role_str);
-          g_free (role_str);
-        }
+      gtk_widget_set_accessible_role (widget, g_value_get_enum (value));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -1878,14 +1859,7 @@ gtk_widget_get_property (GObject         *object,
       g_value_set_object (value, gtk_widget_get_layout_manager (widget));
       break;
     case PROP_ACCESSIBLE_ROLE:
-      {
-        GtkAccessibleRole role = priv->accessible_role;
-
-        if (priv->accessible_role == GTK_ACCESSIBLE_ROLE_WIDGET)
-          role = gtk_widget_class_get_accessible_role (GTK_WIDGET_GET_CLASS (widget));
-
-        g_value_set_enum (value, role);
-      }
+      g_value_set_enum (value, gtk_widget_get_accessible_role (widget));
       break;
     default:
       G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
@@ -2318,6 +2292,34 @@ gtk_widget_init (GTypeInstance *instance, gpointer g_class)
       gtk_event_controller_set_name (controller, "gtk-widget-class-shortcuts");
       gtk_widget_add_controller (widget, controller);
     }
+
+  priv->at_context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (widget));
+}
+
+static void
+gtk_widget_realize_at_context (GtkWidget *self)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (self);
+  GtkAccessibleRole role = priv->accessible_role;
+
+  if (priv->at_context == NULL || gtk_at_context_is_realized (priv->at_context))
+    return;
+
+  /* Realize the root ATContext first */
+  if (!GTK_IS_ROOT (self))
+    gtk_widget_realize_at_context (GTK_WIDGET (priv->root));
+
+  /* Reset the accessible role to its current value */
+  if (role == GTK_ACCESSIBLE_ROLE_WIDGET)
+    {
+      GtkWidgetClassPrivate *class_priv = GTK_WIDGET_GET_CLASS (self)->priv;
+
+      role = class_priv->accessible_role;
+    }
+
+  gtk_at_context_set_accessible_role (priv->at_context, role);
+  gtk_at_context_set_display (priv->at_context, gtk_root_get_display (priv->root));
+  gtk_at_context_realize (priv->at_context);
 }
 
 void
@@ -2348,15 +2350,7 @@ gtk_widget_root (GtkWidget *widget)
   if (priv->layout_manager)
     gtk_layout_manager_set_root (priv->layout_manager, priv->root);
 
-  if (priv->at_context != NULL)
-    {
-      GtkATContext *root_context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (priv->root));
-
-      if (root_context)
-        gtk_at_context_realize (root_context);
-
-      gtk_at_context_realize (priv->at_context);
-    }
+  gtk_widget_realize_at_context (widget);
 
   GTK_WIDGET_GET_CLASS (widget)->root (widget);
 
@@ -2382,8 +2376,11 @@ gtk_widget_unroot (GtkWidget *widget)
 
   GTK_WIDGET_GET_CLASS (widget)->unroot (widget);
 
-  if (priv->at_context)
-    gtk_at_context_unrealize (priv->at_context);
+  if (priv->at_context != NULL)
+    {
+      gtk_at_context_set_display (priv->at_context, gdk_display_get_default ());
+      gtk_at_context_unrealize (priv->at_context);
+    }
 
   if (priv->context)
     gtk_style_context_set_display (priv->context, gdk_display_get_default ());
@@ -3247,7 +3244,7 @@ gtk_widget_remove_surface_transform_changed_callback (GtkWidget *widget,
     }
 }
 
-static GdkSurface *
+GdkSurface *
 gtk_widget_get_surface (GtkWidget *widget)
 {
   GtkNative *native = gtk_widget_get_native (widget);
@@ -4299,11 +4296,31 @@ gtk_widget_mnemonic_activate (GtkWidget *widget,
   return handled;
 }
 
+/*< private >
+ * gtk_widget_can_activate:
+ * @self: a #GtkWidget
+ *
+ * Checks whether a #GtkWidget can be activated using
+ * gtk_widget_activate().
+ */
+gboolean
+gtk_widget_can_activate (GtkWidget *self)
+{
+  g_return_val_if_fail (GTK_IS_WIDGET (self), FALSE);
+
+  GtkWidgetClass *widget_class = GTK_WIDGET_GET_CLASS (self);
+
+  if (widget_class->priv->activate_signal != 0)
+    return TRUE;
+
+  return FALSE;
+}
+
 static gboolean
 gtk_widget_real_mnemonic_activate (GtkWidget *widget,
                                    gboolean   group_cycling)
 {
-  if (!group_cycling && GTK_WIDGET_GET_CLASS (widget)->activate_signal)
+  if (!group_cycling && gtk_widget_can_activate (widget))
     gtk_widget_activate (widget);
   else if (gtk_widget_get_can_focus (widget))
     return gtk_widget_grab_focus (widget);
@@ -4566,13 +4583,95 @@ gtk_widget_event (GtkWidget *widget,
 }
 
 /**
+ * gtk_widget_class_get_activate_signal:
+ * @widget_class: a #GtkWidgetClass
+ *
+ * Retrieves the signal id for the activation signal set using
+ * gtk_widget_class_set_activate_signal().
+ *
+ * Returns: a signal id, or 0 if the widget class does not
+ *   specify an activation signal
+ */
+guint
+gtk_widget_class_get_activate_signal (GtkWidgetClass *widget_class)
+{
+  g_return_val_if_fail (GTK_IS_WIDGET_CLASS (widget_class), 0);
+
+  return widget_class->priv->activate_signal;
+}
+
+/**
+ * gtk_widget_class_set_activate_signal:
+ * @widget_class: a #GtkWidgetClass
+ * @signal_id: the id for the activate signal
+ *
+ * Sets the #GtkWidgetClass.activate_signal field with the
+ * given @signal_id; the signal will be emitted when calling
+ * gtk_widget_activate().
+ *
+ * The @signal_id must have been registered with g_signal_new()
+ * or g_signal_newv() before calling this function.
+ */
+void
+gtk_widget_class_set_activate_signal (GtkWidgetClass *widget_class,
+                                      guint           signal_id)
+{
+  g_return_if_fail (GTK_IS_WIDGET_CLASS (widget_class));
+  g_return_if_fail (signal_id != 0);
+
+  widget_class->priv->activate_signal = signal_id;
+}
+
+/**
+ * gtk_widget_class_set_activate_signal_from_name:
+ * @widget_class: a #GtkWidgetClass
+ * @signal_name: the name of the activate signal of @widget_type
+ *
+ * Sets the #GtkWidgetClass.activate_signal field with the signal id for
+ * the given @signal_name; the signal will be emitted when calling
+ * gtk_widget_activate().
+ *
+ * The @signal_name of @widget_type must have been registered with
+ * g_signal_new() or g_signal_newv() before calling this function.
+ */
+void
+gtk_widget_class_set_activate_signal_from_name (GtkWidgetClass *widget_class,
+                                                const char     *signal_name)
+{
+  guint signal_id;
+
+  g_return_if_fail (GTK_IS_WIDGET_CLASS (widget_class));
+  g_return_if_fail (signal_name != NULL);
+
+  signal_id = g_signal_lookup (signal_name, G_TYPE_FROM_CLASS (widget_class));
+  if (signal_id == 0)
+    {
+      g_critical ("Widget type “%s” does not have a “%s” signal",
+                  G_OBJECT_CLASS_NAME (widget_class),
+                  signal_name);
+      return;
+    }
+
+  widget_class->priv->activate_signal = signal_id;
+}
+
+/**
  * gtk_widget_activate:
  * @widget: a #GtkWidget that’s activatable
  *
  * For widgets that can be “activated” (buttons, menu items, etc.)
- * this function activates them. Activation is what happens when you
- * press Enter on a widget during key navigation. If @widget isn't
- * activatable, the function returns %FALSE.
+ * this function activates them. The activation will emit the signal
+ * set using gtk_widget_class_set_activate_signal() during class
+ * initialization.
+ *
+ * Activation is what happens when you press Enter on a widget during
+ * key navigation.
+ *
+ * If you wish to handle the activation keybinding yourself, it is
+ * recommended to use gtk_widget_class_add_shortcut() with an action
+ * created with gtk_signal_action_new().
+ *
+ * If @widget isn't activatable, the function returns %FALSE.
  *
  * Returns: %TRUE if the widget was activatable
  **/
@@ -4581,10 +4680,11 @@ gtk_widget_activate (GtkWidget *widget)
 {
   g_return_val_if_fail (GTK_IS_WIDGET (widget), FALSE);
 
-  if (GTK_WIDGET_GET_CLASS (widget)->activate_signal)
+  if (gtk_widget_can_activate (widget))
     {
+      GtkWidgetClass *widget_class = GTK_WIDGET_GET_CLASS (widget);
       /* FIXME: we should eventually check the signals signature here */
-      g_signal_emit (widget, GTK_WIDGET_GET_CLASS (widget)->activate_signal, 0);
+      g_signal_emit (widget, widget_class->priv->activate_signal, 0);
 
       return TRUE;
     }
@@ -5284,7 +5384,7 @@ gtk_widget_set_name (GtkWidget	 *widget,
  * Retrieves the name of a widget. See gtk_widget_set_name() for the
  * significance of widget names.
  *
- * Returns: name of the widget. This string is owned by GTK and
+ * Returns: (nullable): name of the widget. This string is owned by GTK and
  * should not be modified or freed
  **/
 const char *
@@ -5772,6 +5872,9 @@ gtk_widget_reposition_after (GtkWidget *widget,
 
   _gtk_widget_update_parent_muxer (widget);
 
+  if (parent->priv->root && priv->root == NULL)
+    gtk_widget_root (widget);
+
   if (parent->priv->children_observer)
     {
       if (prev_previous)
@@ -5779,9 +5882,6 @@ gtk_widget_reposition_after (GtkWidget *widget,
       else
         gtk_list_list_model_item_added (parent->priv->children_observer, widget);
     }
-
-  if (parent->priv->root && priv->root == NULL)
-    gtk_widget_root (widget);
 
   if (prev_parent == NULL)
     g_object_notify_by_pspec (G_OBJECT (widget), widget_props[PROP_PARENT]);
@@ -7046,6 +7146,7 @@ gtk_widget_dispose (GObject *object)
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
   GSList *sizegroups;
   GtkActionMuxer *muxer;
+  GtkATContext *at_context;
 
   muxer = g_object_get_qdata (G_OBJECT (widget), quark_action_muxer);
   if (muxer != NULL)
@@ -7058,8 +7159,6 @@ gtk_widget_dispose (GObject *object)
 
   if (priv->parent)
     gtk_widget_unparent (widget);
-  else if (_gtk_widget_get_visible (widget))
-    gtk_widget_hide (widget);
 
   while (priv->paintables)
     gtk_widget_paintable_set_widget (priv->paintables->data, NULL);
@@ -7067,8 +7166,6 @@ gtk_widget_dispose (GObject *object)
   if (priv->layout_manager != NULL)
     gtk_layout_manager_set_widget (priv->layout_manager, NULL);
   g_clear_object (&priv->layout_manager);
-
-  g_clear_object (&priv->at_context);
 
   priv->visible = FALSE;
   if (_gtk_widget_get_realized (widget))
@@ -7093,6 +7190,10 @@ gtk_widget_dispose (GObject *object)
       sizegroups = sizegroups->next;
       gtk_size_group_remove_widget (size_group, widget);
     }
+
+  at_context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (widget));
+  if (at_context != NULL)
+    gtk_at_context_unrealize (at_context);
 
   g_object_set_qdata (object, quark_action_muxer, NULL);
 
@@ -7255,6 +7356,7 @@ gtk_widget_finalize (GObject *object)
   g_object_unref (priv->cssnode);
 
   g_clear_object (&priv->context);
+  g_clear_object (&priv->at_context);
 
   _gtk_size_request_cache_free (&priv->requests);
 
@@ -8123,33 +8225,36 @@ gtk_widget_accessible_get_at_context (GtkAccessible *accessible)
 {
   GtkWidget *self = GTK_WIDGET (accessible);
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (self);
+  GtkWidgetClass *widget_class = GTK_WIDGET_GET_CLASS (self);
+  GtkWidgetClassPrivate *class_priv = widget_class->priv;
+  GtkAccessibleRole role;
 
   if (priv->in_destruction)
-    return NULL;
-
-  if (priv->at_context == NULL)
     {
-      GtkWidgetClass *widget_class = GTK_WIDGET_GET_CLASS (self);
-      GtkWidgetClassPrivate *class_priv = widget_class->priv;
-      GdkDisplay *display = _gtk_widget_get_display (self);
-      GtkAccessibleRole role;
-
-      /* Widgets have two options to set the accessible role: either they
-       * define it in their class_init() function, and the role applies to
-       * all instances; or an instance is created with the :accessible-role
-       * property (from GtkAccessible) set to anything other than the default
-       * GTK_ACCESSIBLE_ROLE_WIDGET value.
-       *
-       * In either case, the accessible role cannot be set post-construction.
-       */
-      if (priv->accessible_role != GTK_ACCESSIBLE_ROLE_WIDGET)
-        role = priv->accessible_role;
-      else
-        role = class_priv->accessible_role;
-
-      priv->accessible_role = role;
-      priv->at_context = gtk_at_context_create (role, accessible, display);
+      GTK_NOTE (A11Y, g_message ("ATContext for widget “%s” [%p] accessed during destruction",
+                                 G_OBJECT_TYPE_NAME (self),
+                                 self));
+      return NULL;
     }
+
+  if (priv->at_context != NULL)
+    return priv->at_context;
+
+  /* Widgets have two options to set the accessible role: either they
+   * define it in their class_init() function, and the role applies to
+   * all instances; or an instance is created with the :accessible-role
+   * property (from GtkAccessible) set to anything other than the default
+   * GTK_ACCESSIBLE_ROLE_WIDGET value.
+   *
+   * In either case, the accessible role cannot be set post-construction.
+   */
+  if (priv->accessible_role != GTK_ACCESSIBLE_ROLE_WIDGET)
+    role = priv->accessible_role;
+  else
+    role = class_priv->accessible_role;
+
+  priv->accessible_role = role;
+  priv->at_context = gtk_at_context_create (role, accessible, gdk_display_get_default ());
 
   return priv->at_context;
 }
@@ -9347,7 +9452,8 @@ gtk_widget_add_mnemonic_label (GtkWidget *widget,
                                GtkWidget *label)
 {
   GSList *old_list, *new_list;
-  GList *list;
+  GtkAccessibleRelation relation = GTK_ACCESSIBLE_RELATION_LABELLED_BY;
+  GValue value = G_VALUE_INIT;
 
   g_return_if_fail (GTK_IS_WIDGET (widget));
   g_return_if_fail (GTK_IS_WIDGET (label));
@@ -9358,10 +9464,13 @@ gtk_widget_add_mnemonic_label (GtkWidget *widget,
   g_object_set_qdata_full (G_OBJECT (widget), quark_mnemonic_labels,
 			   new_list, (GDestroyNotify) g_slist_free);
 
-  list = gtk_widget_list_mnemonic_labels (widget);
-  gtk_accessible_update_relation (GTK_ACCESSIBLE (widget),
-                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, list,
-                                  -1);
+  /* The ATContext takes ownership of the GList returned by list_mnemonic_labels(),
+   * so we don't need to free it
+   */
+  gtk_accessible_relation_init_value (relation, &value);
+  g_value_set_pointer (&value, gtk_widget_list_mnemonic_labels (widget));
+  gtk_accessible_update_relation_value (GTK_ACCESSIBLE (widget), 1, &relation, &value);
+  g_value_unset (&value);
 }
 
 /**
@@ -10217,9 +10326,11 @@ gtk_widget_set_alloc_needed (GtkWidget *widget)
       if (!priv->visible)
         break;
 
+      if (GTK_IS_NATIVE (widget))
+        gtk_native_queue_relayout (GTK_NATIVE (widget));
+
       if (!priv->parent && GTK_IS_ROOT (widget))
         {
-          gtk_root_start_layout (GTK_ROOT (widget));
           break;
         }
 
@@ -10343,7 +10454,8 @@ _gtk_widget_get_sizegroups (GtkWidget    *widget)
  * Sets the name to be used for CSS matching of widgets.
  *
  * If this function is not called for a given class, the name
- * of the parent class is used.
+ * set on the parent class is used. By default, GtkWidget uses
+ * the name "widget".
  */
 void
 gtk_widget_class_set_css_name (GtkWidgetClass *widget_class,
@@ -12564,6 +12676,50 @@ gtk_widget_update_orientation (GtkWidget      *widget,
                                   -1);
 }
 
+static void
+gtk_widget_set_accessible_role (GtkWidget         *self,
+                                GtkAccessibleRole  role)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (self);
+
+  if (priv->at_context == NULL || !gtk_at_context_is_realized (priv->at_context))
+    {
+      priv->accessible_role = role;
+
+      if (priv->at_context != NULL)
+        gtk_at_context_set_accessible_role (priv->at_context, role);
+
+      g_object_notify (G_OBJECT (self), "accessible-role");
+    }
+  else
+    {
+      char *role_str = g_enum_to_string (GTK_TYPE_ACCESSIBLE_ROLE, priv->accessible_role);
+
+      g_critical ("Widget of type “%s” already has an accessible role of type “%s”",
+                  G_OBJECT_TYPE_NAME (self),
+                  role_str);
+      g_free (role_str);
+    }
+}
+
+static GtkAccessibleRole
+gtk_widget_get_accessible_role (GtkWidget *self)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (self);
+  GtkATContext *context = gtk_accessible_get_at_context (GTK_ACCESSIBLE (self));
+  GtkWidgetClassPrivate *class_priv;
+
+  if (context != NULL && gtk_at_context_is_realized (context))
+    return gtk_at_context_get_accessible_role (context);
+
+  if (priv->accessible_role != GTK_ACCESSIBLE_ROLE_WIDGET)
+    return priv->accessible_role;
+
+  class_priv = GTK_WIDGET_GET_CLASS (self)->priv;
+
+  return class_priv->accessible_role;
+}
+
 /**
  * gtk_widget_class_set_accessible_role:
  * @widget_class: a #GtkWidgetClass
@@ -12608,4 +12764,30 @@ gtk_widget_class_get_accessible_role (GtkWidgetClass *widget_class)
 
   priv = widget_class->priv;
   return priv->accessible_role;
+}
+
+void
+gtk_widget_set_active_state (GtkWidget *widget,
+                             gboolean   active)
+{
+  GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
+
+  if (active)
+    {
+      priv->n_active++;
+      gtk_widget_set_state_flags (widget, GTK_STATE_FLAG_ACTIVE, FALSE);
+    }
+  else
+    {
+      if (priv->n_active == 0)
+        {
+          g_warning ("Broken accounting of active state for widget %p(%s)",
+                     widget, G_OBJECT_TYPE_NAME (widget));
+        }
+      else
+        priv->n_active--;
+
+      if (priv->n_active == 0)
+        gtk_widget_unset_state_flags (widget, GTK_STATE_FLAG_ACTIVE);
+    }
 }
