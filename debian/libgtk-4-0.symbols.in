@@ -47,8 +47,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_clipboard_set_value@Base 3.99.0
  gdk_clipboard_store_async@Base 3.99.0
  gdk_clipboard_store_finish@Base 3.99.0
- gdk_configure_event_get_size@Base 3.99.0
- gdk_configure_event_get_type@Base 3.99.0
  gdk_content_deserialize_async@Base 3.99.0
  gdk_content_deserialize_finish@Base 3.99.0
  gdk_content_deserializer_get_cancellable@Base 3.99.0
@@ -443,12 +441,12 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_surface_new_popup@Base 3.99.0
  gdk_surface_new_toplevel@Base 3.99.0
  gdk_surface_queue_render@Base 3.99.0
+ gdk_surface_request_layout@Base 3.99.5
  gdk_surface_request_motion@Base 3.99.1
  gdk_surface_set_cursor@Base 3.99.0
  gdk_surface_set_device_cursor@Base 3.99.0
  gdk_surface_set_input_region@Base 3.99.0
  gdk_surface_set_opaque_region@Base 3.99.0
- gdk_surface_set_shadow_width@Base 3.99.0
  gdk_surface_translate_coordinates@Base 3.99.0
  gdk_texture_download@Base 3.99.0
  gdk_texture_get_height@Base 3.99.0
@@ -492,6 +490,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_toplevel_size_get_bounds@Base 3.99.1
  gdk_toplevel_size_get_type@Base 3.99.1
  gdk_toplevel_size_set_min_size@Base 3.99.1
+ gdk_toplevel_size_set_shadow_width@Base 3.99.5
  gdk_toplevel_size_set_size@Base 3.99.1
  gdk_toplevel_state_get_type@Base 3.99.2
  gdk_toplevel_supports_edge_constraints@Base 3.99.0
@@ -623,31 +622,37 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_blur_node_get_radius@Base 3.99.0
  gsk_blur_node_get_type@Base 3.99.0
  gsk_blur_node_new@Base 3.99.0
+ gsk_border_node_get_colors@Base 3.99.5
+ gsk_border_node_get_outline@Base 3.99.5
  gsk_border_node_get_type@Base 3.99.0
+ gsk_border_node_get_widths@Base 3.99.5
  gsk_border_node_new@Base 3.99.0
- gsk_border_node_peek_colors@Base 3.99.0
- gsk_border_node_peek_outline@Base 3.99.0
- gsk_border_node_peek_widths@Base 3.99.0
  gsk_broadway_renderer_get_type@Base 3.99.0
  gsk_broadway_renderer_new@Base 3.99.0
  gsk_cairo_node_get_draw_context@Base 3.99.0
+ gsk_cairo_node_get_surface@Base 3.99.5
  gsk_cairo_node_get_type@Base 3.99.0
  gsk_cairo_node_new@Base 3.99.0
- gsk_cairo_node_peek_surface@Base 3.99.0
  gsk_cairo_renderer_get_type@Base 3.99.0
  gsk_cairo_renderer_new@Base 3.99.0
  gsk_clip_node_get_child@Base 3.99.0
+ gsk_clip_node_get_clip@Base 3.99.5
  gsk_clip_node_get_type@Base 3.99.0
  gsk_clip_node_new@Base 3.99.0
- gsk_clip_node_peek_clip@Base 3.99.0
  gsk_color_matrix_node_get_child@Base 3.99.0
+ gsk_color_matrix_node_get_color_matrix@Base 3.99.5
+ gsk_color_matrix_node_get_color_offset@Base 3.99.5
  gsk_color_matrix_node_get_type@Base 3.99.0
  gsk_color_matrix_node_new@Base 3.99.0
- gsk_color_matrix_node_peek_color_matrix@Base 3.99.0
- gsk_color_matrix_node_peek_color_offset@Base 3.99.0
+ gsk_color_node_get_color@Base 3.99.5
  gsk_color_node_get_type@Base 3.99.0
  gsk_color_node_new@Base 3.99.0
- gsk_color_node_peek_color@Base 3.99.0
+ gsk_conic_gradient_node_get_center@Base 3.99.5
+ gsk_conic_gradient_node_get_color_stops@Base 3.99.5
+ gsk_conic_gradient_node_get_n_color_stops@Base 3.99.5
+ gsk_conic_gradient_node_get_rotation@Base 3.99.5
+ gsk_conic_gradient_node_get_type@Base 3.99.5
+ gsk_conic_gradient_node_new@Base 3.99.5
  gsk_container_node_get_child@Base 3.99.0
  gsk_container_node_get_n_children@Base 3.99.0
  gsk_container_node_get_type@Base 3.99.0
@@ -694,31 +699,33 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_gl_shader_node_new@Base 3.99.2
  gsk_gl_uniform_type_get_type@Base 3.99.2
  gsk_inset_shadow_node_get_blur_radius@Base 3.99.0
+ gsk_inset_shadow_node_get_color@Base 3.99.5
  gsk_inset_shadow_node_get_dx@Base 3.99.0
  gsk_inset_shadow_node_get_dy@Base 3.99.0
+ gsk_inset_shadow_node_get_outline@Base 3.99.5
  gsk_inset_shadow_node_get_spread@Base 3.99.0
  gsk_inset_shadow_node_get_type@Base 3.99.0
  gsk_inset_shadow_node_new@Base 3.99.0
- gsk_inset_shadow_node_peek_color@Base 3.99.0
- gsk_inset_shadow_node_peek_outline@Base 3.99.0
+ gsk_linear_gradient_node_get_color_stops@Base 3.99.5
+ gsk_linear_gradient_node_get_end@Base 3.99.5
  gsk_linear_gradient_node_get_n_color_stops@Base 3.99.0
+ gsk_linear_gradient_node_get_start@Base 3.99.5
  gsk_linear_gradient_node_get_type@Base 3.99.0
  gsk_linear_gradient_node_new@Base 3.99.0
- gsk_linear_gradient_node_peek_color_stops@Base 3.99.0
- gsk_linear_gradient_node_peek_end@Base 3.99.0
- gsk_linear_gradient_node_peek_start@Base 3.99.0
  gsk_opacity_node_get_child@Base 3.99.0
  gsk_opacity_node_get_opacity@Base 3.99.0
  gsk_opacity_node_get_type@Base 3.99.0
  gsk_opacity_node_new@Base 3.99.0
  gsk_outset_shadow_node_get_blur_radius@Base 3.99.0
+ gsk_outset_shadow_node_get_color@Base 3.99.5
  gsk_outset_shadow_node_get_dx@Base 3.99.0
  gsk_outset_shadow_node_get_dy@Base 3.99.0
+ gsk_outset_shadow_node_get_outline@Base 3.99.5
  gsk_outset_shadow_node_get_spread@Base 3.99.0
  gsk_outset_shadow_node_get_type@Base 3.99.0
  gsk_outset_shadow_node_new@Base 3.99.0
- gsk_outset_shadow_node_peek_color@Base 3.99.0
- gsk_outset_shadow_node_peek_outline@Base 3.99.0
+ gsk_radial_gradient_node_get_center@Base 3.99.5
+ gsk_radial_gradient_node_get_color_stops@Base 3.99.5
  gsk_radial_gradient_node_get_end@Base 3.99.2
  gsk_radial_gradient_node_get_hradius@Base 3.99.2
  gsk_radial_gradient_node_get_n_color_stops@Base 3.99.2
@@ -726,8 +733,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_radial_gradient_node_get_type@Base 3.99.2
  gsk_radial_gradient_node_get_vradius@Base 3.99.2
  gsk_radial_gradient_node_new@Base 3.99.2
- gsk_radial_gradient_node_peek_center@Base 3.99.2
- gsk_radial_gradient_node_peek_color_stops@Base 3.99.2
  gsk_render_node_deserialize@Base 3.99.0
  gsk_render_node_draw@Base 3.99.0
  gsk_render_node_get_bounds@Base 3.99.0
@@ -747,17 +752,17 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_renderer_render_texture@Base 3.99.0
  gsk_renderer_unrealize@Base 3.99.0
  gsk_repeat_node_get_child@Base 3.99.0
+ gsk_repeat_node_get_child_bounds@Base 3.99.5
  gsk_repeat_node_get_type@Base 3.99.0
  gsk_repeat_node_new@Base 3.99.0
- gsk_repeat_node_peek_child_bounds@Base 3.99.0
  gsk_repeating_linear_gradient_node_get_type@Base 3.99.0
  gsk_repeating_linear_gradient_node_new@Base 3.99.0
  gsk_repeating_radial_gradient_node_get_type@Base 3.99.2
  gsk_repeating_radial_gradient_node_new@Base 3.99.2
  gsk_rounded_clip_node_get_child@Base 3.99.0
+ gsk_rounded_clip_node_get_clip@Base 3.99.5
  gsk_rounded_clip_node_get_type@Base 3.99.0
  gsk_rounded_clip_node_new@Base 3.99.0
- gsk_rounded_clip_node_peek_clip@Base 3.99.0
  gsk_rounded_rect_contains_point@Base 3.99.0
  gsk_rounded_rect_contains_rect@Base 3.99.0
  gsk_rounded_rect_init@Base 3.99.0
@@ -786,16 +791,16 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_shader_args_builder_unref@Base 3.99.2
  gsk_shadow_node_get_child@Base 3.99.0
  gsk_shadow_node_get_n_shadows@Base 3.99.0
+ gsk_shadow_node_get_shadow@Base 3.99.5
  gsk_shadow_node_get_type@Base 3.99.0
  gsk_shadow_node_new@Base 3.99.0
- gsk_shadow_node_peek_shadow@Base 3.99.0
+ gsk_text_node_get_color@Base 3.99.5
+ gsk_text_node_get_font@Base 3.99.5
+ gsk_text_node_get_glyphs@Base 3.99.5
  gsk_text_node_get_num_glyphs@Base 3.99.0
  gsk_text_node_get_offset@Base 3.99.0
  gsk_text_node_get_type@Base 3.99.0
  gsk_text_node_new@Base 3.99.0
- gsk_text_node_peek_color@Base 3.99.0
- gsk_text_node_peek_font@Base 3.99.0
- gsk_text_node_peek_glyphs@Base 3.99.0
  gsk_texture_node_get_texture@Base 3.99.0
  gsk_texture_node_get_type@Base 3.99.0
  gsk_texture_node_new@Base 3.99.0
@@ -879,13 +884,16 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_accessible_get_type@Base 3.99.0
  gtk_accessible_invalid_state_get_type@Base 3.99.0
  gtk_accessible_property_get_type@Base 3.99.0
+ gtk_accessible_property_init_value@Base 3.99.5
  gtk_accessible_relation_get_type@Base 3.99.0
+ gtk_accessible_relation_init_value@Base 3.99.5
  gtk_accessible_reset_property@Base 3.99.0
  gtk_accessible_reset_relation@Base 3.99.0
  gtk_accessible_reset_state@Base 3.99.0
  gtk_accessible_role_get_type@Base 3.99.0
  gtk_accessible_sort_get_type@Base 3.99.0
  gtk_accessible_state_get_type@Base 3.99.0
+ gtk_accessible_state_init_value@Base 3.99.5
  gtk_accessible_tristate_get_type@Base 3.99.0
  gtk_accessible_update_property@Base 3.99.0
  gtk_accessible_update_property_value@Base 3.99.0
@@ -1603,6 +1611,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_disable_setlocale@Base 3.99.0
  gtk_distribute_natural_allocation@Base 3.99.0
  gtk_drag_check_threshold@Base 3.99.0
+ gtk_drag_icon_create_widget_for_value@Base 3.99.5
  gtk_drag_icon_get_child@Base 3.99.0
  gtk_drag_icon_get_for_drag@Base 3.99.0
  gtk_drag_icon_get_type@Base 3.99.0
@@ -1869,15 +1878,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_file_chooser_add_choice@Base 3.99.0
  gtk_file_chooser_add_filter@Base 3.99.0
  gtk_file_chooser_add_shortcut_folder@Base 3.99.0
- gtk_file_chooser_button_get_modal@Base 3.99.0
- gtk_file_chooser_button_get_title@Base 3.99.0
- gtk_file_chooser_button_get_type@Base 3.99.0
- gtk_file_chooser_button_get_width_chars@Base 3.99.0
- gtk_file_chooser_button_new@Base 3.99.0
- gtk_file_chooser_button_new_with_dialog@Base 3.99.0
- gtk_file_chooser_button_set_modal@Base 3.99.0
- gtk_file_chooser_button_set_title@Base 3.99.0
- gtk_file_chooser_button_set_width_chars@Base 3.99.0
  gtk_file_chooser_dialog_get_type@Base 3.99.0
  gtk_file_chooser_dialog_new@Base 3.99.0
  gtk_file_chooser_error_get_type@Base 3.99.0
@@ -2615,7 +2615,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_menu_button_set_menu_model@Base 3.99.0
  gtk_menu_button_set_popover@Base 3.99.0
  gtk_menu_button_set_use_underline@Base 3.99.0
- gtk_menu_direction_type_get_type@Base 3.99.0
  gtk_message_dialog_format_secondary_markup@Base 3.99.0
  gtk_message_dialog_format_secondary_text@Base 3.99.0
  gtk_message_dialog_get_message_area@Base 3.99.0
@@ -2651,7 +2650,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_named_action_get_action_name@Base 3.99.0
  gtk_named_action_get_type@Base 3.99.0
  gtk_named_action_new@Base 3.99.0
- gtk_native_check_resize@Base 3.99.0
  gtk_native_dialog_destroy@Base 3.99.0
  gtk_native_dialog_get_modal@Base 3.99.0
  gtk_native_dialog_get_title@Base 3.99.0
@@ -2668,6 +2666,8 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_native_get_surface@Base 3.99.0
  gtk_native_get_surface_transform@Base 3.99.0
  gtk_native_get_type@Base 3.99.0
+ gtk_native_realize@Base 3.99.5
+ gtk_native_unrealize@Base 3.99.5
  gtk_never_trigger_get@Base 3.99.0
  gtk_never_trigger_get_type@Base 3.99.0
  gtk_no_selection_get_model@Base 3.99.0
@@ -2875,9 +2875,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_picture_set_paintable@Base 3.99.0
  gtk_picture_set_pixbuf@Base 3.99.0
  gtk_picture_set_resource@Base 3.99.0
- gtk_places_open_flags_get_type@Base 3.99.0
  gtk_policy_type_get_type@Base 3.99.0
- gtk_popover_constraint_get_type@Base 3.99.0
  gtk_popover_get_autohide@Base 3.99.0
  gtk_popover_get_cascade_popdown@Base 3.99.4
  gtk_popover_get_child@Base 3.99.0
@@ -2904,6 +2902,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_popover_new@Base 3.99.0
  gtk_popover_popdown@Base 3.99.0
  gtk_popover_popup@Base 3.99.0
+ gtk_popover_present@Base 3.99.5
  gtk_popover_set_autohide@Base 3.99.0
  gtk_popover_set_cascade_popdown@Base 3.99.4
  gtk_popover_set_child@Base 3.99.0
@@ -3498,6 +3497,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_snapshot_append_border@Base 3.99.0
  gtk_snapshot_append_cairo@Base 3.99.0
  gtk_snapshot_append_color@Base 3.99.0
+ gtk_snapshot_append_conic_gradient@Base 3.99.5
  gtk_snapshot_append_inset_shadow@Base 3.99.0
  gtk_snapshot_append_layout@Base 3.99.0
  gtk_snapshot_append_linear_gradient@Base 3.99.0
@@ -3796,7 +3796,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_text_buffer_set_max_undo_levels@Base 3.99.0
  gtk_text_buffer_set_modified@Base 3.99.0
  gtk_text_buffer_set_text@Base 3.99.0
- gtk_text_buffer_target_info_get_type@Base 3.99.0
  gtk_text_buffer_undo@Base 3.99.0
  gtk_text_byte_begins_utf8_char@Base 3.99.0
  gtk_text_child_anchor_get_deleted@Base 3.99.0
@@ -4417,12 +4416,15 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_widget_class_bind_template_callback_full@Base 3.99.0
  gtk_widget_class_bind_template_child_full@Base 3.99.0
  gtk_widget_class_get_accessible_role@Base 3.99.0
+ gtk_widget_class_get_activate_signal@Base 3.99.5
  gtk_widget_class_get_css_name@Base 3.99.0
  gtk_widget_class_get_layout_manager_type@Base 3.99.0
  gtk_widget_class_install_action@Base 3.99.0
  gtk_widget_class_install_property_action@Base 3.99.0
  gtk_widget_class_query_action@Base 3.99.0
  gtk_widget_class_set_accessible_role@Base 3.99.0
+ gtk_widget_class_set_activate_signal@Base 3.99.5
+ gtk_widget_class_set_activate_signal_from_name@Base 3.99.5
  gtk_widget_class_set_css_name@Base 3.99.0
  gtk_widget_class_set_layout_manager_type@Base 3.99.0
  gtk_widget_class_set_template@Base 3.99.0
@@ -4609,7 +4611,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_window_get_mnemonics_visible@Base 3.99.0
  gtk_window_get_modal@Base 3.99.0
  gtk_window_get_resizable@Base 3.99.0
- gtk_window_get_size@Base 3.99.0
  gtk_window_get_title@Base 3.99.0
  gtk_window_get_titlebar@Base 3.99.0
  gtk_window_get_toplevels@Base 3.99.0
@@ -4626,6 +4627,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_window_handle_set_child@Base 3.99.0
  gtk_window_has_group@Base 3.99.0
  gtk_window_is_active@Base 3.99.0
+ gtk_window_is_fullscreen@Base 3.99.5
  gtk_window_is_maximized@Base 3.99.0
  gtk_window_list_toplevels@Base 3.99.0
  gtk_window_maximize@Base 3.99.0
@@ -4633,7 +4635,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_window_new@Base 3.99.0
  gtk_window_present@Base 3.99.0
  gtk_window_present_with_time@Base 3.99.0
- gtk_window_resize@Base 3.99.0
  gtk_window_set_application@Base 3.99.0
  gtk_window_set_auto_startup_notification@Base 3.99.0
  gtk_window_set_child@Base 3.99.0
