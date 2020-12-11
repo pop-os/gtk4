@@ -58,7 +58,7 @@ Build-Depends-Indep: gtk-doc-tools (>= 1.33),
                      libpango1.0-doc,
                      pandoc,
 Rules-Requires-Root: no
-Standards-Version: 4.5.0
+Standards-Version: 4.5.1
 Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
 Vcs-Git: https://salsa.debian.org/gnome-team/gtk4.git
 Homepage: https://www.gtk.org/
