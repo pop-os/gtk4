@@ -17,11 +17,6 @@ export GDK_BACKEND=x11
 
 tests=$(gnome-desktop-testing-runner -l gtk-4.0 |
     cut -f1 -d' ' |
-    grep -v '^gtk-4.0/a11y/children.test$' |
-    grep -v '^gtk-4.0/a11y/tests.test$' |
-    grep -v '^gtk-4.0/a11y/tree.test$' |
-    grep -v '^gtk-4.0/gtk/displayclose.test$' |
-    grep -v '^gtk-4.0/gtk/icontheme.test$' |
     grep -v '^gtk-4.0/gtk/templates.test$')
 
 exec dbus-run-session -- \

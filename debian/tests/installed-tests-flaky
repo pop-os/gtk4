@@ -27,9 +27,4 @@ xvfb-run -a -s "-screen 0 1024x768x24" \
 gnome-desktop-testing-runner \
 --report-directory="$AUTOPKGTEST_ARTIFACTS" \
 --tap \
-gtk-4.0/a11y/children.test \
-gtk-4.0/a11y/tree.test \
-gtk-4.0/a11y/tests.test \
-gtk-4.0/gtk/displayclose.test \
-gtk-4.0/gtk/icontheme.test \
 gtk-4.0/gtk/templates.test
