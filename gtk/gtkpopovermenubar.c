@@ -320,7 +320,7 @@ gtk_popover_menu_bar_item_size_allocate (GtkWidget *widget,
                             &(GtkAllocation) { 0, 0, width, height },
                             baseline);
 
-  gtk_native_check_resize (GTK_NATIVE (item->popover));
+  gtk_popover_present (GTK_POPOVER (item->popover));
 }
 
 static void
@@ -341,8 +341,8 @@ gtk_popover_menu_bar_item_root (GtkWidget *widget)
   GTK_WIDGET_CLASS (gtk_popover_menu_bar_item_parent_class)->root (widget);
 
   gtk_accessible_update_relation (GTK_ACCESSIBLE (widget),
-                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, g_list_append (NULL, item->label),
-                                  GTK_ACCESSIBLE_RELATION_CONTROLS, g_list_append (NULL, item->popover),
+                                  GTK_ACCESSIBLE_RELATION_LABELLED_BY, item->label, NULL,
+                                  GTK_ACCESSIBLE_RELATION_CONTROLS, item->popover, NULL,
                                   -1);
   gtk_accessible_update_property (GTK_ACCESSIBLE (widget),
                                   GTK_ACCESSIBLE_PROPERTY_HAS_POPUP, TRUE,
@@ -354,6 +354,7 @@ gtk_popover_menu_bar_item_class_init (GtkPopoverMenuBarItemClass *klass)
 {
   GObjectClass *object_class = G_OBJECT_CLASS (klass);
   GtkWidgetClass *widget_class = GTK_WIDGET_CLASS (klass);
+  guint activate_signal;
 
   object_class->dispose = gtk_popover_menu_bar_item_dispose;
   object_class->finalize = gtk_popover_menu_bar_item_finalize;
@@ -364,7 +365,7 @@ gtk_popover_menu_bar_item_class_init (GtkPopoverMenuBarItemClass *klass)
 
   klass->activate = gtk_popover_menu_bar_item_activate;
 
-  widget_class->activate_signal =
+  activate_signal =
     g_signal_new (I_("activate"),
                   G_OBJECT_CLASS_TYPE (object_class),
                   G_SIGNAL_RUN_FIRST,
@@ -375,6 +376,7 @@ gtk_popover_menu_bar_item_class_init (GtkPopoverMenuBarItemClass *klass)
 
   gtk_widget_class_set_css_name (widget_class, I_("item"));
   gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_MENU_ITEM);
+  gtk_widget_class_set_activate_signal (widget_class, activate_signal);
 }
 enum
 {

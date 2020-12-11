@@ -115,6 +115,8 @@ struct _GtkWidgetPrivate
   guint8 verifying_invariants_count;
 #endif
 
+  guint8 n_active;
+
   int width_request;
   int height_request;
 
@@ -213,6 +215,7 @@ struct _GtkWidgetClassPrivate
   GType layout_manager_type;
   GtkWidgetAction *actions;
   GtkAccessibleRole accessible_role;
+  guint activate_signal;
 };
 
 void          gtk_widget_root               (GtkWidget *widget);
@@ -225,6 +228,8 @@ gboolean     gtk_widget_needs_allocate      (GtkWidget *widget);
 void         gtk_widget_ensure_resize       (GtkWidget *widget);
 void         gtk_widget_ensure_allocate     (GtkWidget *widget);
 void          _gtk_widget_scale_changed     (GtkWidget *widget);
+
+GdkSurface * gtk_widget_get_surface         (GtkWidget *widget);
 
 void         gtk_widget_render              (GtkWidget            *widget,
                                              GdkSurface           *surface,
@@ -324,6 +329,9 @@ void              gtk_widget_get_surface_allocation         (GtkWidget *widget,
 GtkWidget *       gtk_widget_common_ancestor               (GtkWidget *widget_a,
                                                             GtkWidget *widget_b);
 
+void              gtk_widget_set_active_state              (GtkWidget *widget,
+                                                            gboolean   active);
+
 void              gtk_widget_cancel_event_sequence         (GtkWidget             *widget,
                                                             GtkGesture            *gesture,
                                                             GdkEventSequence      *sequence,
@@ -350,6 +358,8 @@ guint             gtk_widget_add_surface_transform_changed_callback (GtkWidget  
 
 void              gtk_widget_remove_surface_transform_changed_callback (GtkWidget *widget,
                                                                         guint      id);
+
+gboolean          gtk_widget_can_activate       (GtkWidget *widget);
 
 /* focus vfuncs for non-focusable containers with focusable children */
 gboolean gtk_widget_grab_focus_child (GtkWidget        *widget);
@@ -472,12 +482,6 @@ static inline gboolean
 _gtk_widget_is_sensitive (GtkWidget *widget)
 {
   return !(widget->priv->state_flags & GTK_STATE_FLAG_INSENSITIVE);
-}
-
-static inline GskTransform *
-gtk_widget_get_transform (GtkWidget *widget)
-{
-  return widget->priv->transform;
 }
 
 G_END_DECLS

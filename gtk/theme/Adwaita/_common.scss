@@ -9,9 +9,9 @@ $button_transition: all 200ms $ease-out-quad;
 $focus_transition: outline-width 200ms $ease-out-quad, outline-offset 200ms $ease-out-quad;
 $button_radius: 5px;
 $menu_radius: 5px;
+$menu_margin: $menu_radius; //margin around menuitems & sidebar items
 $window_radius: $button_radius + 3;
 $popover_radius: $button_radius + 4;
-$button_fill: null; // global var defined within a parameter driven mixin. See issue #2703
 
 /***************
  * Base States *
@@ -186,16 +186,18 @@ label {
 
 window.assistant {
   .sidebar {
-    background-color: $base_color;
+    padding: $menu-margin;
     border-top: 1px solid $borders_color;
-
   }
 
   &.csd .sidebar { border-top-style: none; }
 
   .sidebar > label { padding: 6px 12px; }
 
-  .sidebar > label.highlight { background-color: mix($bg_color, $fg_color, 80%); }
+  .sidebar > label.highlight {
+    background-color: $menu_selected_color;
+    border-radius: $menu-margin;
+  }
 }
 
 %osd,
@@ -993,6 +995,7 @@ spinbutton {
     @extend %entry;
 
     padding: 0;
+    border-spacing: 0;
 
     %spinbutton_horz_entry {
       min-width: 28px;
@@ -1030,7 +1033,7 @@ spinbutton {
 
       &:hover {
         color: $fg_color;
-        background-color: $base_hover_color;
+        background-color: darken($bg_color,5%);
       }
 
       &:disabled {
@@ -1073,7 +1076,7 @@ spinbutton {
 
         color: $osd_fg_color;
         border-color: transparentize(opacify($osd_borders_color, 1), 0.5);
-        background-color: transparentize($osd_fg_color, 0.9);
+        background-color: darken($osd_bg_color,10%);
         -gtk-icon-shadow: 0 1px black;
         box-shadow: none;
       }
@@ -1849,6 +1852,148 @@ magnifier {
   background-color: $base_color;
 }
 
+/**********************
+ * Popover Base Menus *
+ **********************/
+
+$_menu-padding: 12px; //inner menuitem padding
+//global $menu-margin for outside menuitems
+
+popover.menu {
+  padding: 0;
+
+  box.inline-buttons {
+    padding: 0 $_menu-padding;
+
+    button.image-button.model {
+      @include button(undecorated);
+
+      min-height: 30px;
+      min-width: 30px;
+      padding: 0;
+      border: none;
+      outline: none;
+      transition: none;
+
+      &:selected { background: image($menu_selected_color); }
+    }
+  }
+
+  box.circular-buttons {
+    padding: $_menu-padding $_menu-padding 6px;
+
+    button.circular.image-button.model {
+      @extend %list_button;
+
+      padding: 11px;
+      &:focus {
+         background-color: $menu_selected_color;
+         border-color: $menu_selected_color;
+      }
+    }
+  }
+
+  & > arrow,
+  &.background > contents {
+    background-color: $menu_color;
+    padding: $menu-margin;
+  }
+
+  &.background separator {
+    margin: 6px 0;
+  }
+
+  accelerator {
+    color: gtkalpha(currentColor,0.55);
+
+    &:dir(ltr) { margin-left: $_menu-padding; }
+    &:dir(rtl) { margin-right: $_menu-padding; }
+  }
+
+  check,
+  radio {
+    @include check('menu', 'transparent', $text_color);
+
+    &:hover { @include check('menu-active', 'transparent', $text_color); }
+    &:active { @include check('menu-active', 'transparent', $text_color); }
+  }
+
+  //only menu radios have a border
+  radio { border-color: $borders_color;
+    &:active { border-color: transparentize($borders_color,0.5); }
+  }
+
+  arrow.left,
+  radio.left,
+  check.left {
+    margin-left: -2px;
+    margin-right: 6px;
+  }
+
+  arrow.right,
+  radio.right,
+  check.right {
+    margin-left: 6px;
+    margin-right: -2px;
+  }
+
+  modelbutton {
+    min-height: 30px;
+    min-width: 40px;
+    padding: 0 $_menu-padding;
+    border-radius: $menu-margin;
+
+    &:selected {
+      color: $text-color;
+      background-color: $menu_selected_color;
+    }
+    &:selected:active {
+      //@extend %selected_items;
+      //color: $selected_fg_color;
+      background-color: darken($bg_color,14%); // matching buttons
+    }
+  }
+
+  label.title {
+    font-weight: bold;
+    padding: 4px ($_menu-padding + 20px); //this will fall apart with font sizing
+  }
+}
+
+// initial styling for popover menu and bar
+menubar {
+  padding: 0px;
+  box-shadow: inset 0 -1px transparentize(black, 0.9);
+
+  > item {
+    min-height: 16px;
+    padding: 4px 8px;
+
+    &:selected { //Seems like it :hover even with keyboard focus
+      box-shadow: inset 0 -3px $selected_bg_color;
+      color: $link_color;
+    }
+
+    &:disabled {
+      color: $insensitive_fg_color;
+      box-shadow: none;
+    }
+  }
+
+  & > item popover.menu.background > contents {
+    padding: $menu-margin;
+  }
+  //nested submenus
+  & > item popover.menu popover.menu {
+    padding: 0 0 4px 0;
+  }
+  & > item popover.menu.background popover.menu.background > contents {
+    margin: 0;
+    border-radius: $popover_radius; //including top
+  }
+}
+
+
 /*************
  * Notebooks *
  *************/
@@ -1992,7 +2137,7 @@ notebook {
 
       &:hover {
         color: $fg_color;
-        background-color: darken($bg_color,4%);
+        background-color: darken($dark_fill,4%);
 
         &.reorderable-page {
           border-color: transparentize($borders_color, 0.7);
@@ -2224,12 +2369,7 @@ switch {
   > image { color: transparent; } /* only show i / o for the accessible theme */
 
   &:hover > slider {
-    @if $variant == 'light' {
-      @include button(hover-alt, $edge: $shadow_color);
-    }
-    @else {
-      @include button(hover-alt, $c: lighten($bg_color,6%), $edge: $shadow_color);
-    }
+    @include button(hover, $edge: $shadow_color);
   }
 
   &:checked > slider { border: 1px solid $switch_borders_color; }
@@ -2529,7 +2669,7 @@ scale {
     transition: $button_transition;
     transition-property: background, border, box-shadow;
 
-    &:hover { @include button(hover-alt, $edge: $shadow_color); }
+    &:hover { @include button(hover, $edge: $shadow_color); }
 
     &:active { border-color: $selected_borders_color; }
 
@@ -3098,13 +3238,13 @@ list {
   > row.expander { padding: 0px; }
   > row.expander .row-header { padding: 2px; }
 
-  &.horizontal row.separator:not(:first-child),
-  &.separators.horizontal > row:not(:first-child) {
+  &.horizontal row.separator,
+  &.separators.horizontal > row:not(.separator) {
     border-left: 1px solid $_treeview_borders_color;
   }
-  &:not(.horizontal) row.separator:not(:first-child),
-  &.separators:not(.horizontal) > row:not(:first-child) {
-    border-top: 1px solid $_treeview_borders_color;
+  &:not(.horizontal) row.separator,
+  &.separators:not(.horizontal) > row:not(.separator) {
+    border-bottom: 1px solid $_treeview_borders_color;
   }
 }
 
@@ -3162,6 +3302,10 @@ columnview {
     padding-top: 2px;
     padding-bottom: 2px;
   }
+}
+
+treeexpander {
+  border-spacing: 4px;
 }
 
 /********************************************************
@@ -3389,7 +3533,6 @@ filechooserbutton:drop(active) {
  * Sidebar *
  ***********/
 .sidebar {
-  border-style: none;
   background-color: mix($bg_color, $base_color, 50%);
 
   &:not(separator) {
@@ -3409,12 +3552,17 @@ filechooserbutton:drop(active) {
     }
   }
 
+  listview.view,
   list { background-color: transparent; }
 
   paned & { &.left, &.right, &.left:dir(rtl), &:dir(rtl), &:dir(ltr), & { border-style: none; }}
 }
 
 stacksidebar {
+  //not a regular list
+  list.separators:not(.horizontal) > row:not(.separator) {
+    border-bottom: none;
+  }
   row {
     padding: 10px 4px;
 
@@ -3425,8 +3573,23 @@ stacksidebar {
 
     &.needs-attention > label {
       @extend %needs_attention;
-
-      background-size: 6px 6px, 0 0;
+       background-size: 6px 6px, 0 0;
+    }
+    &:selected {
+      background-color: $menu_selected_color;
+      border-radius: $menu_radius;
+      color: $fg_color;
+    }
+    &:selected:hover:dir(ltr), &:selected:hover:dir(rtl) {
+      background-color: darken($menu_selected_color,5%);
+    }
+    &:focus:focus-visible {
+      outline-width: 0;
+      background-color: $selected_bg_color;
+      color: $selected_fg_color;
+    }
+    &.activatable:active, &.activatable:selected:active {
+      box-shadow: none; // #3413
     }
   }
 }
@@ -3441,25 +3604,30 @@ separator.sidebar {
  **********************/
 
 .navigation-sidebar {
+  padding: $menu-margin 0; //only vertical padding. horizontal row size would clip
+
+  > separator {
+    margin: $menu-margin;
+  }
 
   > row {
-    // Needs overriding of the GtkListBoxRow padding
     min-height: 36px;
-    padding: 0px 8px;
+    padding: 0 8px;
+    border-radius: $menu-margin;
+    margin: 0 $menu-margin;
 
-    // Using margins/padding directly in the SidebarRow
-    // will make the animation of the new bookmark row jump
-    > revealer { padding: 0 14px; }
-
-    expander {
-      margin: 0 8px 0 0;
-
-      &:dir(rtl) { margin: 0 0 0 8px; }
+    &:hover,
+    &:focus-visible:focus-within {
+      background-color: darken($menu_selected_color, 5%);
     }
 
     &:selected {
-      background-color: desaturate($selected_bg_color,100%);
-      color: $selected_fg_color;
+      background-color: $menu_selected_color;
+      color: inherit;
+
+      &:hover {
+        background-color: darken($menu_selected_color,5%);
+      }
 
       &:focus-visible:focus-within {
         outline-width: 0;
@@ -3467,15 +3635,6 @@ separator.sidebar {
         background-color: $selected_bg_color;
         &:hover { background-color: darken($selected_bg_color,10%); }
       }
-      &:hover:not(:last-child) { /* FIXME: dirty specificity bump */
-        color: $selected_fg_color;
-        background-color: darken(desaturate($selected_bg_color,100%),10%);
-      }
-    }
-
-    &:hover {
-      color: $fg_color;
-      background-color: $menu_selected_color;
     }
 
     &:disabled { color: $insensitive_fg_color; }
@@ -3498,8 +3657,13 @@ row image.sidebar-icon { opacity: $_placesidebar_icons_opacity; } // dim the sid
 */
 
 placessidebar {
-  row:not(:last-child) { //FIXME: specificty bump hack
+  .navigation-sidebar > row {
+    // Needs overriding of the `.navigation-sidebar > row` padding
     padding: 0;
+
+    // Using margins/padding directly in the SidebarRow
+    // will make the animation of the new bookmark row jump
+    > revealer { padding: 0 14px; }
 
     image.sidebar-icon {
       &:dir(ltr) { padding-right: 8px; }
@@ -3658,10 +3822,9 @@ tooltip {
     color: white;
   }
 
-  padding: 10px;
-  border-radius: 5px;
+  padding: 6px 10px;
+  border-radius: $window_radius;
   box-shadow: none; // otherwise it gets inherited by windowframe.csd
-  text-shadow: 0 1px black;
 
   > box {
     border-spacing: 6px;
@@ -3885,16 +4048,28 @@ window {
                   0 0 0 1px $_wm_border_backdrop;
       transition: $backdrop_transition;
     }
-  }
 
-  &.solid-csd {
-    margin: 0;
-    padding: 0;
-    border: solid 1px $borders_color;
-    border-radius: 0;
-    box-shadow: inset 0 0 0 3px $headerbar_color, inset 0 1px $top_hilight;
+    &.popup {
+      border-radius: $menu_radius;
+      box-shadow: 0 1px 2px transparentize(black, 0.8),
+                  0 0 0 1px transparentize($_wm_border, 0.1);
+    }
 
-    &:backdrop { box-shadow: inset 0 0 0 3px $backdrop_bg_color, inset 0 1px $top_hilight; }
+    &.dialog.message {
+      border-radius: $window_radius;
+      box-shadow: 0 1px 2px transparentize(black, 0.8),
+                  0 0 0 1px transparentize($_wm_border, 0.1);
+    }
+
+    &.solid-csd {
+      margin: 0;
+      padding: 0;
+      border: solid 1px $borders_color;
+      border-radius: 0;
+      box-shadow: inset 0 0 0 3px $headerbar_color, inset 0 1px $top_hilight;
+
+      &:backdrop { box-shadow: inset 0 0 0 3px $backdrop_bg_color, inset 0 1px $top_hilight; }
+    }
   }
 
   &.maximized,
@@ -3909,18 +4084,6 @@ window {
 
   // server-side decorations as used by mutter
   &.ssd { box-shadow: 0 0 0 1px $_wm_border; } //just doing borders, wm draws actual shadows
-
-  &.csd.popup {
-    border-radius: $menu_radius;
-    box-shadow: 0 1px 2px transparentize(black, 0.8),
-                0 0 0 1px transparentize($_wm_border, 0.1);
-  }
-
-  &.dialog.message.csd {
-    border-radius: $window_radius;
-    box-shadow: 0 1px 2px transparentize(black, 0.8),
-                0 0 0 1px transparentize($_wm_border, 0.1);
-  }
 
 }
 
@@ -3940,12 +4103,6 @@ tooltip.csd {
     @at-root %selected_items_disabled,
     &:disabled { color: mix($selected_fg_color, $selected_bg_color, 50%); }
 
-    @at-root %selected_items_backdrop,
-    &:backdrop {
-      color: $backdrop_selected_fg_color;
-
-      &:disabled { color: mix($backdrop_selected_fg_color, $selected_bg_color, 30%); }
-    }
   }
 }
 
@@ -4134,143 +4291,6 @@ emoji-completion-row emoji:hover {
 
 popover.entry-completion > contents {
   padding: 0;
-}
-
-// initial styling for popover menu and bar
-menubar {
-  padding: 0px;
-  box-shadow: inset 0 -1px transparentize(black, 0.9);
-
-  > item {
-    min-height: 16px;
-    padding: 4px 8px;
-
-    &:selected { //Seems like it :hover even with keyboard focus
-      box-shadow: inset 0 -3px $selected_bg_color;
-      color: $link_color;
-    }
-
-    &:disabled {
-      color: $insensitive_fg_color;
-      box-shadow: none;
-    }
-  }
-  // remove padding and rounding from menubar submenu decoration
-  .csd.popup decoration { border-radius:0; }
-  // only bottom part rounded for menubar menus
-  & > item popover.menu.background > contents {
-    margin-top: -1px; //nudge it into the menubar
-    border-top-left-radius: 0;
-    border-top-right-radius: 0;
-    padding: 0 0 $menu_radius 0;
-  }
-  //nested submenus
-  & > item popover.menu.background popover.menu.background > contents {
-    margin: 0;
-    border-radius: 0;
-  }
-}
-
-$_menu-padding: 12px;
-
-popover.menu {
-  padding: 0px;
-
-  box.inline-buttons {
-    padding: 0 $_menu-padding;
-
-    button.image-button.model {
-      @include button(undecorated);
-
-      min-height: 30px;
-      min-width: 30px;
-      padding: 0;
-      border: none;
-      outline: none;
-      transition: none;
-
-      &:selected { background: image($menu_selected_color); }
-    }
-  }
-
-  box.circular-buttons {
-    padding: 6px $_menu-padding;
-
-    button.circular.image-button.model {
-      @extend %list_button;
-
-      padding: 11px;
-    }
-  }
-
-  & > arrow,
-  &.background > contents {
-    background-color: $menu_color;
-  }
-
-  &.background > contents {
-    padding: 8px 0;
-  }
-
-  &.background separator {
-    margin: 6px 0;
-  }
-
-  accelerator {
-    color: gtkalpha(currentColor,0.55);
-
-    &:dir(ltr) { margin-left: $_menu-padding; }
-    &:dir(rtl) { margin-right: $_menu-padding; }
-  }
-
-  check,
-  radio {
-    @include check('menu', 'transparent', $text_color);
-
-    &:hover { @include check('menu-active', 'transparent', $text_color); }
-    &:active { @include check('menu-active', 'transparent', $text_color); }
-  }
-
-  //only menu radios have a border
-  radio { border-color: $borders_color;
-    &:active { border-color: transparentize($borders_color,0.5); }
-  }
-
-  arrow.left,
-  radio.left,
-  check.left {
-    margin-left: -2px;
-    margin-right: 6px;
-  }
-
-  arrow.right,
-  radio.right,
-  check.right {
-    margin-left: 6px;
-    margin-right: -2px;
-  }
-
-  modelbutton {
-    min-height: 30px;
-    min-width: 40px;
-    padding: $_menu-padding/6 $_menu-padding;
-    border-radius: 0;
-
-    &:selected {
-      color: $text-color;
-      background-color: $menu_selected_color;
-    }
-    &:selected:active {
-      //@extend %selected_items;
-      //color: $selected_fg_color;
-      background-color: darken($bg_color,14%); // matching buttons
-    }
-  }
-
-  label.title {
-    font-weight: bold;
-    padding: 4px ($_menu-padding + 20px); //this will fall apart with font sizing
-  }
 }
 
 statusbar {

@@ -113,7 +113,7 @@ gtk_emoji_chooser_child_size_allocate (GtkWidget *widget,
 
   GTK_WIDGET_CLASS (gtk_emoji_chooser_child_parent_class)->size_allocate (widget, width, height, baseline);
   if (child->variations)
-    gtk_native_check_resize (GTK_NATIVE (child->variations));
+    gtk_popover_present (GTK_POPOVER (child->variations));
 }
 
 static gboolean
@@ -672,7 +672,7 @@ populate_emoji_chooser (gpointer data)
   GVariant *item;
   gint64 start, now;
 
-  start = GDK_PROFILER_CURRENT_TIME;
+  start = g_get_monotonic_time ();
 
   if (!chooser->data)
     {
@@ -718,10 +718,10 @@ populate_emoji_chooser (gpointer data)
       add_emoji (chooser->box, FALSE, item, 0, chooser);
       g_variant_unref (item);
 
-      now = GDK_PROFILER_CURRENT_TIME;
-      if (now > start + 2000000) /* 2 ms */
+      now = g_get_monotonic_time ();
+      if (now > start + 200) /* 2 ms */
         {
-          gdk_profiler_add_mark (start, (now - start), "emojichooser", "populate");
+          gdk_profiler_add_mark (start * 1000, (now - start) * 1000, "emojichooser", "populate");
           return G_SOURCE_CONTINUE;
         }
     }

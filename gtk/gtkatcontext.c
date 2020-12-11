@@ -111,7 +111,7 @@ gtk_at_context_set_property (GObject      *gobject,
       break;
 
     case PROP_DISPLAY:
-      self->display = g_value_get_object (value);
+      gtk_at_context_set_display (self, g_value_get_object (value));
       break;
 
     default:
@@ -245,8 +245,8 @@ gtk_at_context_class_init (GtkATContextClass *klass)
                          "The display connection",
                          GDK_TYPE_DISPLAY,
                          G_PARAM_READWRITE |
-                         G_PARAM_CONSTRUCT_ONLY |
-                         G_PARAM_STATIC_STRINGS);
+                         G_PARAM_STATIC_STRINGS |
+                         G_PARAM_EXPLICIT_NOTIFY);
 
   /**
    * GtkATContext::state-change:
@@ -385,15 +385,15 @@ gtk_at_context_init (GtkATContext *self)
   self->accessible_role = GTK_ACCESSIBLE_ROLE_NONE;
 
   self->properties =
-    gtk_accessible_attribute_set_new (N_PROPERTIES,
+    gtk_accessible_attribute_set_new (G_N_ELEMENTS (property_attrs),
                                       property_attrs,
                                       (GtkAccessibleAttributeDefaultFunc) gtk_accessible_value_get_default_for_property);
   self->relations =
-    gtk_accessible_attribute_set_new (N_RELATIONS,
+    gtk_accessible_attribute_set_new (G_N_ELEMENTS (relation_attrs),
                                       relation_attrs,
                                       (GtkAccessibleAttributeDefaultFunc) gtk_accessible_value_get_default_for_relation);
   self->states =
-    gtk_accessible_attribute_set_new (N_STATES,
+    gtk_accessible_attribute_set_new (G_N_ELEMENTS (state_attrs),
                                       state_attrs,
                                       (GtkAccessibleAttributeDefaultFunc) gtk_accessible_value_get_default_for_state);
 }
@@ -414,6 +414,30 @@ gtk_at_context_get_accessible (GtkATContext *self)
   return self->accessible;
 }
 
+/*< private >
+ * gtk_at_context_set_accessible_role:
+ * @self: a #GtkATContext
+ * @role: the accessible role for the context
+ *
+ * Sets the accessible role for the given #GtkATContext.
+ *
+ * This function can only be called if the #GtkATContext is unrealized.
+ */
+void
+gtk_at_context_set_accessible_role (GtkATContext      *self,
+                                    GtkAccessibleRole  role)
+{
+  g_return_if_fail (GTK_IS_AT_CONTEXT (self));
+  g_return_if_fail (!self->realized);
+
+  if (self->accessible_role == role)
+    return;
+
+  self->accessible_role = role;
+
+  g_object_notify_by_pspec (G_OBJECT (self), obj_props[PROP_ACCESSIBLE_ROLE]);
+}
+
 /**
  * gtk_at_context_get_accessible_role:
  * @self: a #GtkATContext
@@ -428,6 +452,34 @@ gtk_at_context_get_accessible_role (GtkATContext *self)
   g_return_val_if_fail (GTK_IS_AT_CONTEXT (self), GTK_ACCESSIBLE_ROLE_NONE);
 
   return self->accessible_role;
+}
+
+/*< private >
+ * gtk_at_context_set_display:
+ * @self: a #GtkATContext
+ * @display: a #GdkDisplay
+ *
+ * Sets the #GdkDisplay used by the #GtkATContext.
+ *
+ * This function can only be called if the #GtkATContext is
+ * not realized.
+ */
+void
+gtk_at_context_set_display (GtkATContext *self,
+                            GdkDisplay   *display)
+{
+  g_return_if_fail (GTK_IS_AT_CONTEXT (self));
+  g_return_if_fail (display == NULL || GDK_IS_DISPLAY (display));
+
+  if (self->display == display)
+    return;
+
+  if (self->realized)
+    return;
+
+  self->display = display;
+
+  g_object_notify_by_pspec (G_OBJECT (self), obj_props[PROP_DISPLAY]);
 }
 
 /*< private >
@@ -448,17 +500,19 @@ gtk_at_context_get_display (GtkATContext *self)
 
 static const struct {
   const char *name;
+  const char *env_name;
   GtkATContext * (* create_context) (GtkAccessibleRole accessible_role,
                                      GtkAccessible    *accessible,
                                      GdkDisplay       *display);
 } a11y_backends[] = {
 #if defined(GDK_WINDOWING_WAYLAND)
-  { "AT-SPI (Wayland)", gtk_at_spi_create_context },
+  { "AT-SPI (Wayland)", "atspi", gtk_at_spi_create_context },
 #endif
 #if defined(GDK_WINDOWING_X11)
-  { "AT-SPI (X11)", gtk_at_spi_create_context },
+  { "AT-SPI (X11)", "atspi", gtk_at_spi_create_context },
 #endif
-  { NULL, NULL },
+  { "Test", "test", gtk_test_at_context_new },
+  { NULL, NULL, NULL },
 };
 
 /**
@@ -480,35 +534,31 @@ gtk_at_context_create (GtkAccessibleRole  accessible_role,
                        GtkAccessible     *accessible,
                        GdkDisplay        *display)
 {
-  static const char *gtk_test_accessible;
-  static const char *gtk_no_a11y;
+  static const char *gtk_a11y_env;
 
-  if (G_UNLIKELY (gtk_test_accessible == NULL))
+  if (gtk_a11y_env == NULL)
     {
-      const char *env = g_getenv ("GTK_TEST_ACCESSIBLE");
-
-      if (env != NULL && *env !='\0')
-        gtk_test_accessible = "1";
-      else
-        gtk_test_accessible = "0";
+      gtk_a11y_env = g_getenv ("GTK_A11Y");
+      if (gtk_a11y_env == NULL)
+        gtk_a11y_env = "0";
     }
 
-  if (G_UNLIKELY (gtk_no_a11y == NULL))
-    {
-      const char *env = g_getenv ("GTK_NO_A11Y");
-
-      if (env != NULL && *env != '\0')
-        gtk_no_a11y = "1";
-      else
-        gtk_no_a11y = "0";
-    }
-
-  /* Shortcut everything if we're running with the test AT context */
-  if (gtk_test_accessible[0] == '1')
-    return gtk_test_at_context_new (accessible_role, accessible);
-
-  if (gtk_no_a11y[0] == '1')
+  /* Short-circuit disabling the accessibility support */
+  if (g_ascii_strcasecmp (gtk_a11y_env, "none") == 0)
     return NULL;
+
+  if (g_ascii_strcasecmp (gtk_a11y_env, "help") == 0)
+    {
+      g_print ("Supported arguments for GTK_A11Y environment variable:\n");
+
+#if defined(GDK_WINDOWING_X11) || defined(GDK_WINDOWING_WAYLAND)
+      g_print ("   atspi - Use the AT-SPI accessibility backend\n");
+#endif
+      g_print ("    test - Use the test accessibility backend\n");
+      g_print ("    none - Disable the accessibility backend\n");
+      g_print ("    help - Print this help\n\n");
+      g_print ("Other arguments will cause a warning and be ignored.\n");
+    }
 
   GtkATContext *res = NULL;
 
@@ -517,13 +567,17 @@ gtk_at_context_create (GtkAccessibleRole  accessible_role,
       if (a11y_backends[i].name == NULL)
         break;
 
-      if (a11y_backends[i].create_context != NULL)
+      if (a11y_backends[i].create_context != NULL &&
+          (*gtk_a11y_env == '0' || g_ascii_strcasecmp (a11y_backends[i].env_name, gtk_a11y_env) == 0))
         {
           res = a11y_backends[i].create_context (accessible_role, accessible, display);
           if (res != NULL)
             break;
         }
     }
+
+  if (*gtk_a11y_env != '0' && res == NULL)
+    g_warning ("Unrecognized accessibility backend \"%s\". Try GTK_A11Y=help", gtk_a11y_env);
 
   /* Fall back to the test context, so we can get debugging data */
   if (res == NULL)
@@ -533,7 +587,61 @@ gtk_at_context_create (GtkAccessibleRole  accessible_role,
                         "display", display,
                         NULL);
 
-  /* FIXME: Add GIOExtension for AT contexts */
+  return res;
+}
+
+/*< private >
+ * gtk_at_context_clone: (constructor)
+ * @self: the #GtkATContext to clone
+ * @role: the accessible role of the clone, or %GTK_ACCESSIBLE_ROLE_NONE to
+ *   use the same accessible role of @self
+ * @accessible: (nullable): the accessible creating the context, or %NULL to
+ *   use the same #GtkAccessible of @self
+ * @display: (nullable): the display connection, or %NULL to use the same
+ *   #GdkDisplay of @self
+ *
+ * Clones the state of the given #GtkATContext, using @role, @accessible,
+ * and @display.
+ *
+ * If @self is realized, the returned #GtkATContext will also be realized.
+ *
+ * Returns: (transfer full): the newly created #GtkATContext
+ */
+GtkATContext *
+gtk_at_context_clone (GtkATContext      *self,
+                      GtkAccessibleRole  role,
+                      GtkAccessible     *accessible,
+                      GdkDisplay        *display)
+{
+  g_return_val_if_fail (self == NULL || GTK_IS_AT_CONTEXT (self), NULL);
+  g_return_val_if_fail (accessible == NULL || GTK_IS_ACCESSIBLE (accessible), NULL);
+  g_return_val_if_fail (display == NULL || GDK_IS_DISPLAY (display), NULL);
+
+  if (self != NULL && role == GTK_ACCESSIBLE_ROLE_NONE)
+    role = self->accessible_role;
+
+  if (self != NULL && accessible == NULL)
+    accessible = self->accessible;
+
+  if (self != NULL && display == NULL)
+    display = self->display;
+
+  GtkATContext *res = gtk_at_context_create (role, accessible, display);
+
+  if (self != NULL)
+    {
+      g_clear_pointer (&res->states, gtk_accessible_attribute_set_unref);
+      g_clear_pointer (&res->properties, gtk_accessible_attribute_set_unref);
+      g_clear_pointer (&res->relations, gtk_accessible_attribute_set_unref);
+
+      res->states = gtk_accessible_attribute_set_ref (self->states);
+      res->properties = gtk_accessible_attribute_set_ref (self->properties);
+      res->relations = gtk_accessible_attribute_set_ref (self->relations);
+
+      if (self->realized)
+        gtk_at_context_realize (res);
+    }
+
   return res;
 }
 
@@ -806,6 +914,31 @@ gtk_at_context_get_accessible_relation (GtkATContext          *self,
   return gtk_accessible_attribute_set_get_value (self->relations, relation);
 }
 
+static gboolean
+is_structural_role (GtkAccessibleRole role)
+{
+  /* Keep the switch small while avoiding the compiler warning for
+   * unhandled enumeration values
+   */
+  switch ((int) role)
+    {
+    case GTK_ACCESSIBLE_ROLE_FORM:
+    case GTK_ACCESSIBLE_ROLE_GROUP:
+    case GTK_ACCESSIBLE_ROLE_GENERIC:
+    case GTK_ACCESSIBLE_ROLE_LANDMARK:
+    case GTK_ACCESSIBLE_ROLE_LIST_ITEM:
+    case GTK_ACCESSIBLE_ROLE_REGION:
+    case GTK_ACCESSIBLE_ROLE_SEARCH:
+    case GTK_ACCESSIBLE_ROLE_SEPARATOR:
+      return TRUE;
+
+    default:
+      break;
+    }
+
+  return FALSE;
+}
+
 /* See the WAI-ARIA § 4.3, "Accessible Name and Description Computation" */
 static void
 gtk_at_context_get_name_accumulate (GtkATContext *self,
@@ -881,7 +1014,8 @@ gtk_at_context_get_name_accumulate (GtkATContext *self,
   if (names->len != 0)
     return;
 
-  if (self->accessible)
+  /* Ignore structural elements, namely: generic containers */
+  if (self->accessible != NULL && !is_structural_role (role))
     g_ptr_array_add (names, (char *)G_OBJECT_TYPE_NAME (self->accessible));
 }
 

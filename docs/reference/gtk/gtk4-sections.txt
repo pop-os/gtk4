@@ -1340,31 +1340,6 @@ GtkFileChooserWidgetPrivate
 </SECTION>
 
 <SECTION>
-<FILE>gtkfilechooserbutton</FILE>
-<TITLE>GtkFileChooserButton</TITLE>
-GtkFileChooserButton
-gtk_file_chooser_button_new
-gtk_file_chooser_button_new_with_dialog
-gtk_file_chooser_button_get_title
-gtk_file_chooser_button_set_title
-gtk_file_chooser_button_get_width_chars
-gtk_file_chooser_button_set_width_chars
-gtk_file_chooser_button_get_modal
-gtk_file_chooser_button_set_modal
-
-<SUBSECTION Standard>
-GTK_FILE_CHOOSER_BUTTON
-GTK_IS_FILE_CHOOSER_BUTTON
-GTK_TYPE_FILE_CHOOSER_BUTTON
-GTK_FILE_CHOOSER_BUTTON_CLASS
-GTK_IS_FILE_CHOOSER_BUTTON_CLASS
-GTK_FILE_CHOOSER_BUTTON_GET_CLASS
-<SUBSECTION Private>
-gtk_file_chooser_button_get_type
-GtkFileChooserButtonPrivate
-</SECTION>
-
-<SECTION>
 <FILE>gtkfilefilter</FILE>
 GtkFileFilter
 gtk_file_filter_new
@@ -1432,6 +1407,7 @@ GTK_TYPE_BOOKMARK_LIST
 <FILE>gtkfilter</FILE>
 <TITLE>GtkFilter</TITLE>
 GtkFilter
+GtkFilterMatch
 gtk_filter_match
 gtk_filter_get_strictness
 <SUBSECTION>
@@ -2107,6 +2083,7 @@ gtk_native_dialog_get_type
 <TITLE>GtkNotebook</TITLE>
 GtkNotebook
 GtkNotebookPage
+GtkNotebookTab
 gtk_notebook_new
 gtk_notebook_get_page
 gtk_notebook_get_pages
@@ -2163,7 +2140,6 @@ GTK_NOTEBOOK_GET_CLASS
 <SUBSECTION Private>
 gtk_notebook_get_type
 gtk_notebook_page_get_type
-GtkNotebookTab
 GtkNotebookPrivate
 </SECTION>
 
@@ -4328,6 +4304,7 @@ gtk_snapshot_append_color
 gtk_snapshot_append_layout
 gtk_snapshot_append_linear_gradient
 gtk_snapshot_append_repeating_linear_gradient
+gtk_snapshot_append_conic_gradient
 gtk_snapshot_append_border
 gtk_snapshot_append_inset_shadow
 gtk_snapshot_append_outset_shadow
@@ -4335,7 +4312,6 @@ gtk_snapshot_render_background
 gtk_snapshot_render_frame
 gtk_snapshot_render_focus
 gtk_snapshot_render_layout
-gtk_snapshot_render_insertion_cursor
 <SUBSECTION Private>
 gtk_snapshot_get_type
 </SECTION>
@@ -4390,6 +4366,9 @@ gtk_widget_class_add_binding_signal
 gtk_widget_class_add_binding_action
 gtk_widget_class_set_layout_manager_type
 gtk_widget_class_get_layout_manager_type
+gtk_widget_class_set_activate_signal
+gtk_widget_class_set_activate_signal_from_name
+gtk_widget_class_get_activate_signal
 gtk_widget_activate
 gtk_widget_is_focus
 gtk_widget_grab_focus
@@ -4613,6 +4592,7 @@ gtk_window_set_destroy_with_parent
 gtk_window_set_display
 gtk_window_is_active
 gtk_window_is_maximized
+gtk_window_is_fullscreen
 gtk_window_get_toplevels
 gtk_window_list_toplevels
 gtk_window_get_focus
@@ -4639,12 +4619,10 @@ gtk_window_get_default_size
 gtk_window_get_destroy_with_parent
 gtk_window_get_icon_name
 gtk_window_get_modal
-gtk_window_get_size
 gtk_window_get_title
 gtk_window_get_transient_for
 gtk_window_get_group
 gtk_window_has_group
-gtk_window_resize
 gtk_window_set_default_icon_name
 gtk_window_set_icon_name
 gtk_window_set_auto_startup_notification
@@ -4845,7 +4823,6 @@ gtk_render_line
 gtk_render_option
 gtk_render_activity
 gtk_render_icon
-gtk_render_insertion_cursor
 
 <SUBSECTION Standard>
 GTK_TYPE_STYLE_CONTEXT
@@ -6138,6 +6115,7 @@ GtkPopover
 gtk_popover_new
 gtk_popover_popup
 gtk_popover_popdown
+gtk_popover_present
 gtk_popover_set_child
 gtk_popover_get_child
 gtk_popover_set_pointing_to
@@ -6995,7 +6973,6 @@ GtkNative
 gtk_native_get_for_surface
 gtk_native_get_surface
 gtk_native_get_renderer
-gtk_native_check_resize
 gtk_native_get_surface_transform
 
 <SUBSECTION Private>

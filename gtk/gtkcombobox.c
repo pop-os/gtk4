@@ -376,7 +376,7 @@ gtk_combo_box_size_allocate (GtkWidget *widget,
   gtk_widget_set_size_request (priv->popup_widget,
                                MAX (width, menu_width), -1);
 
-  gtk_native_check_resize (GTK_NATIVE (priv->popup_widget));
+  gtk_popover_present (GTK_POPOVER (priv->popup_widget));
 }
 
 static void
@@ -449,7 +449,7 @@ gtk_combo_box_class_init (GtkComboBoxClass *klass)
    * @scroll_type: a #GtkScrollType
    *
    * The ::move-active signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to move the active selection.
    */
   combo_box_signals[MOVE_ACTIVE] =
@@ -467,7 +467,7 @@ gtk_combo_box_class_init (GtkComboBoxClass *klass)
    * @widget: the object that received the signal
    *
    * The ::popup signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to popup the combo box list.
    *
    * The default binding for this signal is Alt+Down.
@@ -485,7 +485,7 @@ gtk_combo_box_class_init (GtkComboBoxClass *klass)
    * @button: the object which received the signal
    *
    * The ::popdown signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to popdown the combo box list.
    *
    * The default bindings for this signal are Alt+Up and Escape.
@@ -2142,7 +2142,7 @@ out:
  *
  * Returns the #GtkTreeModel which is acting as data source for @combo_box.
  *
- * Returns: (transfer none): A #GtkTreeModel which was passed
+ * Returns: (nullable) (transfer none): A #GtkTreeModel which was passed
  *     during construction.
  */
 GtkTreeModel *
@@ -2541,7 +2541,7 @@ gtk_combo_box_get_popup_fixed_width (GtkComboBox *combo_box)
  *
  * Returns the current row separator function.
  *
- * Returns: the current row separator function.
+ * Returns: (nullable): the current row separator function.
  */
 GtkTreeViewRowSeparatorFunc
 gtk_combo_box_get_row_separator_func (GtkComboBox *combo_box)
@@ -2556,7 +2556,7 @@ gtk_combo_box_get_row_separator_func (GtkComboBox *combo_box)
 /**
  * gtk_combo_box_set_row_separator_func:
  * @combo_box: a #GtkComboBox
- * @func: a #GtkTreeViewRowSeparatorFunc
+ * @func: (nullable): a #GtkTreeViewRowSeparatorFunc
  * @data: (allow-none): user data to pass to @func, or %NULL
  * @destroy: (allow-none): destroy notifier for @data, or %NULL
  *

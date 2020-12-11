@@ -142,6 +142,10 @@
  *
  * If both scrollbars are visible, the area where they meet is drawn
  * with a subnode named junction.
+ *
+ * # Accessibility
+ *
+ * GtkScrolledWindow uses the %GTK_ACCESSIBLE_ROLE_GROUP role.
  */
 
 
@@ -184,6 +188,9 @@
 #define MAX_OVERSHOOT_DISTANCE 100
 #define DECELERATION_FRICTION 4
 #define OVERSHOOT_FRICTION 20
+#define VELOCITY_ACCUMULATION_FLOOR 0.33
+#define VELOCITY_ACCUMULATION_CEIL 1.0
+#define VELOCITY_ACCUMULATION_MAX 6.0
 
 /* Animated scrolling */
 #define ANIMATION_DURATION 200
@@ -274,6 +281,9 @@ typedef struct
   /* Kinetic scrolling */
   GtkGesture *long_press_gesture;
   GtkGesture *swipe_gesture;
+  GtkKineticScrolling *hscrolling;
+  GtkKineticScrolling *vscrolling;
+  gint64 last_deceleration_time;
 
   /* These two gestures are mutually exclusive */
   GtkGesture *drag_gesture;
@@ -293,15 +303,6 @@ typedef struct
   double                 unclamped_hadj_value;
   double                 unclamped_vadj_value;
 } GtkScrolledWindowPrivate;
-
-typedef struct
-{
-  GtkScrolledWindow     *scrolled_window;
-  gint64                 last_deceleration_time;
-
-  GtkKineticScrolling   *hscrolling;
-  GtkKineticScrolling   *vscrolling;
-} KineticScrollData;
 
 enum {
   PROP_0,
@@ -768,7 +769,7 @@ gtk_scrolled_window_class_init (GtkScrolledWindowClass *class)
    *   horizontally or not
    *
    * The ::scroll-child signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted when a keybinding that scrolls is pressed.
    * The horizontal or vertical adjustment is updated which triggers a
    * signal that the scrolled window’s child may listen to and scroll itself.
@@ -791,7 +792,7 @@ gtk_scrolled_window_class_init (GtkScrolledWindowClass *class)
    *   %GTK_DIR_TAB_BACKWARD
    *
    * The ::move-focus-out signal is a
-   * [keybinding signal][GtkBindingSignal] which gets
+   * [keybinding signal][GtkSignalAction] which gets
    * emitted when focus is moved away from the scrolled window by a
    * keybinding. The #GtkWidget::move-focus signal is emitted with
    * @direction_type on this scrolled window’s toplevel parent in the
@@ -871,6 +872,7 @@ gtk_scrolled_window_class_init (GtkScrolledWindowClass *class)
   add_tab_bindings (widget_class, GDK_CONTROL_MASK | GDK_SHIFT_MASK, GTK_DIR_TAB_BACKWARD);
 
   gtk_widget_class_set_css_name (widget_class, I_("scrolledwindow"));
+  gtk_widget_class_set_accessible_role (widget_class, GTK_ACCESSIBLE_ROLE_GROUP);
 }
 
 static gboolean
@@ -2578,6 +2580,9 @@ gtk_scrolled_window_dispose (GObject *object)
       priv->deceleration_id = 0;
     }
 
+  g_clear_pointer (&priv->hscrolling, gtk_kinetic_scrolling_free);
+  g_clear_pointer (&priv->vscrolling, gtk_kinetic_scrolling_free);
+
   if (priv->scroll_events_overshoot_id)
     {
       g_source_remove (priv->scroll_events_overshoot_id);
@@ -3193,41 +3198,40 @@ scrolled_window_deceleration_cb (GtkWidget         *widget,
                                  GdkFrameClock     *frame_clock,
                                  gpointer           user_data)
 {
-  KineticScrollData *data = user_data;
-  GtkScrolledWindow *scrolled_window = data->scrolled_window;
+  GtkScrolledWindow *scrolled_window = user_data;
   GtkScrolledWindowPrivate *priv = gtk_scrolled_window_get_instance_private (scrolled_window);
   GtkAdjustment *hadjustment, *vadjustment;
   gint64 current_time;
   double position, elapsed;
 
   current_time = gdk_frame_clock_get_frame_time (frame_clock);
-  elapsed = (current_time - data->last_deceleration_time) / 1000000.0;
-  data->last_deceleration_time = current_time;
+  elapsed = (current_time - priv->last_deceleration_time) / (double)G_TIME_SPAN_SECOND;
+  priv->last_deceleration_time = current_time;
 
   hadjustment = gtk_scrollbar_get_adjustment (GTK_SCROLLBAR (priv->hscrollbar));
   vadjustment = gtk_scrollbar_get_adjustment (GTK_SCROLLBAR (priv->vscrollbar));
 
   gtk_scrolled_window_invalidate_overshoot (scrolled_window);
 
-  if (data->hscrolling &&
-      gtk_kinetic_scrolling_tick (data->hscrolling, elapsed, &position))
+  if (priv->hscrolling &&
+      gtk_kinetic_scrolling_tick (priv->hscrolling, elapsed, &position, NULL))
     {
       priv->unclamped_hadj_value = position;
       gtk_adjustment_set_value (hadjustment, position);
     }
-  else if (data->hscrolling)
-    g_clear_pointer (&data->hscrolling, gtk_kinetic_scrolling_free);
+  else if (priv->hscrolling)
+    g_clear_pointer (&priv->hscrolling, gtk_kinetic_scrolling_free);
 
-  if (data->vscrolling &&
-      gtk_kinetic_scrolling_tick (data->vscrolling, elapsed, &position))
+  if (priv->vscrolling &&
+      gtk_kinetic_scrolling_tick (priv->vscrolling, elapsed, &position, NULL))
     {
       priv->unclamped_vadj_value = position;
       gtk_adjustment_set_value (vadjustment, position);
     }
-  else if (data->vscrolling)
-    g_clear_pointer (&data->vscrolling, gtk_kinetic_scrolling_free);
+  else if (priv->vscrolling)
+    g_clear_pointer (&priv->vscrolling, gtk_kinetic_scrolling_free);
 
-  if (!data->hscrolling && !data->vscrolling)
+  if (!priv->hscrolling && !priv->vscrolling)
     {
       gtk_scrolled_window_cancel_deceleration (scrolled_window);
       return G_SOURCE_REMOVE;
@@ -3252,14 +3256,29 @@ gtk_scrolled_window_cancel_deceleration (GtkScrolledWindow *scrolled_window)
 }
 
 static void
-kinetic_scroll_data_free (KineticScrollData *data)
+kinetic_scroll_stop_notify (GtkScrolledWindow *scrolled_window)
 {
-  if (data->hscrolling)
-    gtk_kinetic_scrolling_free (data->hscrolling);
-  if (data->vscrolling)
-    gtk_kinetic_scrolling_free (data->vscrolling);
+  GtkScrolledWindowPrivate *priv = gtk_scrolled_window_get_instance_private (scrolled_window);
+  priv->deceleration_id = 0;
+}
 
-  g_free (data);
+static void
+gtk_scrolled_window_accumulate_velocity (GtkKineticScrolling **scrolling, double elapsed, double *velocity)
+{
+    if (!*scrolling)
+      return;
+
+    double last_velocity;
+    gtk_kinetic_scrolling_tick (*scrolling, elapsed, NULL, &last_velocity);
+    if (((*velocity >= 0) == (last_velocity >= 0)) &&
+        (fabs (*velocity) >= fabs (last_velocity) * VELOCITY_ACCUMULATION_FLOOR))
+      {
+        double min_velocity = last_velocity * VELOCITY_ACCUMULATION_FLOOR;
+        double max_velocity = last_velocity * VELOCITY_ACCUMULATION_CEIL;
+        double accumulation_multiplier = (*velocity - min_velocity) / (max_velocity - min_velocity);
+        *velocity += last_velocity * fmin (accumulation_multiplier, VELOCITY_ACCUMULATION_MAX);
+      }
+    g_clear_pointer (scrolling, gtk_kinetic_scrolling_free);
 }
 
 static void
@@ -3267,26 +3286,29 @@ gtk_scrolled_window_start_deceleration (GtkScrolledWindow *scrolled_window)
 {
   GtkScrolledWindowPrivate *priv = gtk_scrolled_window_get_instance_private (scrolled_window);
   GdkFrameClock *frame_clock;
-  KineticScrollData *data;
+  gint64 current_time;
+  double elapsed;
 
   g_return_if_fail (priv->deceleration_id == 0);
 
   frame_clock = gtk_widget_get_frame_clock (GTK_WIDGET (scrolled_window));
 
-  data = g_new0 (KineticScrollData, 1);
-  data->scrolled_window = scrolled_window;
-  data->last_deceleration_time = gdk_frame_clock_get_frame_time (frame_clock);
+  current_time = gdk_frame_clock_get_frame_time (frame_clock);
+  elapsed = (current_time - priv->last_deceleration_time) / (double)G_TIME_SPAN_SECOND;
+  priv->last_deceleration_time = current_time;
 
   if (may_hscroll (scrolled_window))
     {
       double lower,upper;
       GtkAdjustment *hadjustment;
 
+      gtk_scrolled_window_accumulate_velocity (&priv->hscrolling, elapsed, &priv->x_velocity);
+
       hadjustment = gtk_scrollbar_get_adjustment (GTK_SCROLLBAR (priv->hscrollbar));
       lower = gtk_adjustment_get_lower (hadjustment);
       upper = gtk_adjustment_get_upper (hadjustment);
       upper -= gtk_adjustment_get_page_size (hadjustment);
-      data->hscrolling =
+      priv->hscrolling =
         gtk_kinetic_scrolling_new (lower,
                                    upper,
                                    MAX_OVERSHOOT_DISTANCE,
@@ -3295,17 +3317,21 @@ gtk_scrolled_window_start_deceleration (GtkScrolledWindow *scrolled_window)
                                    priv->unclamped_hadj_value,
                                    priv->x_velocity);
     }
+  else
+    g_clear_pointer (&priv->hscrolling, gtk_kinetic_scrolling_free);
 
   if (may_vscroll (scrolled_window))
     {
       double lower,upper;
       GtkAdjustment *vadjustment;
 
+      gtk_scrolled_window_accumulate_velocity (&priv->vscrolling, elapsed, &priv->y_velocity);
+
       vadjustment = gtk_scrollbar_get_adjustment (GTK_SCROLLBAR (priv->vscrollbar));
       lower = gtk_adjustment_get_lower(vadjustment);
       upper = gtk_adjustment_get_upper(vadjustment);
       upper -= gtk_adjustment_get_page_size(vadjustment);
-      data->vscrolling =
+      priv->vscrolling =
         gtk_kinetic_scrolling_new (lower,
                                    upper,
                                    MAX_OVERSHOOT_DISTANCE,
@@ -3314,10 +3340,12 @@ gtk_scrolled_window_start_deceleration (GtkScrolledWindow *scrolled_window)
                                    priv->unclamped_vadj_value,
                                    priv->y_velocity);
     }
+  else
+    g_clear_pointer (&priv->vscrolling, gtk_kinetic_scrolling_free);
 
   priv->deceleration_id = gtk_widget_add_tick_callback (GTK_WIDGET (scrolled_window),
-                                                        scrolled_window_deceleration_cb, data,
-                                                        (GDestroyNotify) kinetic_scroll_data_free);
+                                                        scrolled_window_deceleration_cb, scrolled_window,
+                                                        (GDestroyNotify) kinetic_scroll_stop_notify);
 }
 
 static gboolean
@@ -4083,7 +4111,6 @@ gtk_scrolled_window_set_child (GtkScrolledWindow *scrolled_window,
 {
   GtkScrolledWindowPrivate *priv = gtk_scrolled_window_get_instance_private (scrolled_window);
   GtkWidget *scrollable_child;
-  GList *list;
 
   g_return_if_fail (GTK_IS_SCROLLED_WINDOW (scrolled_window));
 
@@ -4140,16 +4167,21 @@ gtk_scrolled_window_set_child (GtkScrolledWindow *scrolled_window,
     }
 
   if (priv->child)
-    list = g_list_append (NULL, priv->child);
+    {
+      gtk_accessible_update_relation (GTK_ACCESSIBLE (priv->hscrollbar),
+                                      GTK_ACCESSIBLE_RELATION_CONTROLS, priv->child, NULL,
+                                      -1);
+      gtk_accessible_update_relation (GTK_ACCESSIBLE (priv->vscrollbar),
+                                      GTK_ACCESSIBLE_RELATION_CONTROLS, priv->child, NULL,
+                                      -1);
+    }
   else
-    list = NULL;
-  gtk_accessible_update_relation (GTK_ACCESSIBLE (priv->hscrollbar),
-                                  GTK_ACCESSIBLE_RELATION_CONTROLS, list,
-                                  -1);
-  gtk_accessible_update_relation (GTK_ACCESSIBLE (priv->vscrollbar),
-                                  GTK_ACCESSIBLE_RELATION_CONTROLS, list,
-                                  -1);
-  g_list_free (list);
+    {
+      gtk_accessible_reset_relation (GTK_ACCESSIBLE (priv->hscrollbar),
+                                     GTK_ACCESSIBLE_RELATION_CONTROLS);
+      gtk_accessible_reset_relation (GTK_ACCESSIBLE (priv->vscrollbar),
+                                     GTK_ACCESSIBLE_RELATION_CONTROLS);
+    }
 
   g_object_notify_by_pspec (G_OBJECT (scrolled_window), properties[PROP_CHILD]);
 }

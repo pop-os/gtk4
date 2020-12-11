@@ -17,9 +17,6 @@
     </section>
   </menu>
   <object class="GtkApplicationWindow" id="window">
-    <style>
-      <class name="devel"/>
-    </style>
     <property name="default-width">800</property>
     <property name="default-height">600</property>
     <child type="titlebar">
@@ -29,6 +26,16 @@
             <property name="valign">center</property>
             <property name="action-name">win.run</property>
             <property name="label" translatable="yes">Run</property>
+          </object>
+        </child>
+        <child>
+          <object class="GtkToggleButton">
+            <property name="icon-name">edit-find-symbolic</property>
+            <property name="valign">center</property>
+            <property name="active" bind-source="searchbar" bind-property="search-mode-enabled" bind-flags="bidirectional|sync-create"/>
+            <accessibility>
+              <property name="label" translatable="yes">Search</property>
+            </accessibility>
           </object>
         </child>
         <child type="end">
@@ -47,6 +54,9 @@
       <object class="GtkBox">
         <child>
           <object class="GtkScrolledWindow">
+            <style>
+              <class name="sidebar"/>
+            </style>
             <property name="width-request">120</property>
             <property name="hscrollbar-policy">never</property>
             <property name="min-content-width">150</property>
@@ -59,7 +69,11 @@
                   <object class="GtkSearchBar" id="searchbar">
                     <property name="key-capture-widget">window</property>
                     <child>
-                      <object class="GtkSearchEntry" id="search-entry"/>
+                      <object class="GtkSearchEntry" id="search-entry">
+                        <accessibility>
+                          <relation name="controls">listview</relation>
+                        </accessibility>
+                      </object>
                     </child>
                   </object>
                 </child>
@@ -74,15 +88,16 @@
                         <property name="resource">/ui/main-listitem.ui</property>
                       </object>
                     </property>
+                    <accessibility>
+                      <property name="label" translatable="yes">Demo list</property>
+                      <relation name="controls">notebook</relation>
+                    </accessibility>
                   </object>
                 </child>
 
               </object>
             </child>
           </object>
-        </child>
-        <child>
-          <object class="GtkSeparator"/>
         </child>
         <child>
           <object class="GtkNotebook" id="notebook">
@@ -108,6 +123,10 @@
                         <property name="editable">0</property>
                         <property name="wrap-mode">word</property>
                         <property name="cursor-visible">0</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Info</property>
+                          <property name="description" translatable="yes">A description of the demo</property>
+                        </accessibility>
                       </object>
                     </child>
                   </object>
@@ -138,6 +157,10 @@
                         <property name="wrap-mode">word</property>
                         <property name="pixels-above-lines">2</property>
                         <property name="pixels-below-lines">2</property>
+                        <accessibility>
+                          <property name="label" translatable="yes">Source</property>
+                          <property name="description" translatable="yes">The source code of the demo</property>
+                        </accessibility>
                       </object>
                     </child>
                   </object>

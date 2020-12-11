@@ -403,7 +403,7 @@ gtk_info_bar_class_init (GtkInfoBarClass *klass)
    * GtkInfoBar::close:
    *
    * The ::close signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted when the user uses a keybinding to dismiss
    * the info bar.
    *
@@ -551,7 +551,7 @@ gtk_info_bar_add_action_widget (GtkInfoBar *info_bar,
   if (GTK_IS_BUTTON (child))
     signal_id = g_signal_lookup ("clicked", GTK_TYPE_BUTTON);
   else
-    signal_id = GTK_WIDGET_GET_CLASS (child)->activate_signal;
+    signal_id = gtk_widget_class_get_activate_signal (GTK_WIDGET_GET_CLASS (child));
 
   if (signal_id)
     {
@@ -1019,7 +1019,7 @@ gtk_info_bar_buildable_custom_finished (GtkBuildable *buildable,
       if (GTK_IS_BUTTON (object))
         signal_id = g_signal_lookup ("clicked", GTK_TYPE_BUTTON);
       else
-        signal_id = GTK_WIDGET_GET_CLASS (object)->activate_signal;
+        signal_id = gtk_widget_class_get_activate_signal (GTK_WIDGET_GET_CLASS (object));
 
       if (signal_id)
         {

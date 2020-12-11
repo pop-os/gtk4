@@ -63,6 +63,7 @@ gtk_private_sources = files([
   'gtkcssfontfeaturesvalue.c',
   'gtkcssfontvariationsvalue.c',
   'gtkcssimage.c',
+  'gtkcssimageconic.c',
   'gtkcssimagecrossfade.c',
   'gtkcssimagefallback.c',
   'gtkcssimageicontheme.c',
@@ -241,7 +242,6 @@ gtk_public_sources = files([
   'gtkexpander.c',
   'gtkexpression.c',
   'gtkfilechooser.c',
-  'gtkfilechooserbutton.c',
   'gtkfilechooserdialog.c',
   'gtkfilechoosernative.c',
   'gtkfilechooserwidget.c',
@@ -437,6 +437,7 @@ gtk_public_sources = files([
 gtk_private_type_headers = files([
   'gtkcsstypesprivate.h',
   'gtktexthandleprivate.h',
+  'gtkplacessidebarprivate.h',
 ])
 
 gtk_public_headers = files([
@@ -528,7 +529,6 @@ gtk_public_headers = files([
   'gtkexpander.h',
   'gtkexpression.h',
   'gtkfilechooser.h',
-  'gtkfilechooserbutton.h',
   'gtkfilechooserdialog.h',
   'gtkfilechoosernative.h',
   'gtkfilechooserwidget.h',
@@ -925,6 +925,7 @@ typefuncs = custom_target('gtktypefuncs.inc',
                           depends: [ gdkenum_h, gskenum_h, ],
                           output: 'gtktypefuncs.inc',
                           input: gdk_headers +
+                            gsk_public_headers +
                             gtk_public_headers +
                             gtk_deprecated_headers +
                             [ gtktypebuiltins_h, ] +
@@ -974,14 +975,11 @@ gtk_sources += [
 
 gtk_deps = [
   gmodule_dep,
-  glib_dep,
   gobject_dep,
   platform_gio_dep,
   pangocairo_dep,
-  pango_dep,
   fribidi_dep,
   cairogobj_dep,
-  cairo_dep,
   fontconfig_dep,
   pixbuf_dep,
   epoxy_dep,
@@ -1096,7 +1094,7 @@ libgtk = library('gtk-4',
                  c_args: gtk_cargs + common_cflags,
                  include_directories: [confinc, gdkinc, gskinc, gtkinc],
                  dependencies: gtk_deps + [libgtk_css_dep, libgdk_dep, libgsk_dep],
-                 link_with: [libgtk_css, libgdk, libgsk, ],
+                 link_whole: [libgtk_css, libgdk, libgsk, ],
                  link_args: common_ldflags + gtk_ldflags,
                  install: true)
 
@@ -1161,7 +1159,7 @@ if build_gir
                                      includes: [ gdk_gir[0], 'xlib-2.0', ],
                                      install: true,
                                      dependencies: gdk_gir_dep,
-                                     header: 'gdk/gdkx.h',
+                                     header: 'gdk/x11/gdkx.h',
                                      extra_args: gir_args,
     )
     gtk_dep_sources += gdk_x11_gir
@@ -1178,7 +1176,7 @@ if build_gir
                                          includes: [ gdk_gir[0], ],
                                          install: true,
                                          dependencies: gdk_gir_dep,
-                                         header: 'gdk/gdkwayland.h',
+                                         header: 'gdk/wayland/gdkwayland.h',
                                          extra_args: gir_args,
     )
     gtk_dep_sources += gdk_wayland_gir

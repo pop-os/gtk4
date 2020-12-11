@@ -1,25 +1,7 @@
-/* testsvg.c
- * Copyright (C) 2020 Red Hat, Inc.
- *
- * This library is free software; you can redistribute it and/or
- * modify it under the terms of the GNU Library General Public
- * License as published by the Free Software Foundation; either
- * version 2 of the License, or (at your option) any later version.
- *
- * This library is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * Library General Public License for more details.
- *
- * You should have received a copy of the GNU Library General Public
- * License along with this library. If not, see <http://www.gnu.org/licenses/>.
- */
+#include "svgpaintable.h"
+
 #include <gtk/gtk.h>
 #include <librsvg/rsvg.h>
-
-#define SVG_TYPE_PAINTABLE (svg_paintable_get_type ())
-
-G_DECLARE_FINAL_TYPE (SvgPaintable, svg_paintable, SVG, PAINTABLE, GObject)
 
 struct _SvgPaintable
 {
@@ -175,69 +157,10 @@ svg_paintable_class_init (SvgPaintableClass *class)
                                                         G_PARAM_READWRITE));
 }
 
-static SvgPaintable *
+GdkPaintable *
 svg_paintable_new (GFile *file)
 {
   return g_object_new (SVG_TYPE_PAINTABLE,
                        "file", file,
                        NULL);
-}
-
-static void
-file_set (GtkFileChooserButton *button,
-          GtkWidget            *picture)
-{
-  GFile *file;
-  SvgPaintable *paintable;
-
-  file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button));
-
-  paintable = svg_paintable_new (file);
-  gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (paintable));
-
-  g_object_unref (paintable);
-  g_object_unref (file);
-}
-
-int
-main (int argc, char *argv[])
-{
-  GtkWidget *window;
-  GtkWidget *header;
-  GtkWidget *picture;
-  GtkFileFilter *filter;
-  GtkWidget *button;
-
-  gtk_init ();
-
-  window = gtk_window_new ();
-  header = gtk_header_bar_new ();
-  gtk_window_set_titlebar (GTK_WINDOW (window), header);
-  button = gtk_file_chooser_button_new ("Select an SVG file", GTK_FILE_CHOOSER_ACTION_OPEN);
-  filter = gtk_file_filter_new ();
-  gtk_file_filter_add_mime_type (filter, "image/svg+xml");
-  gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (button), filter);
-  gtk_header_bar_pack_start (GTK_HEADER_BAR (header), button);
-
-  picture = gtk_picture_new ();
-  gtk_picture_set_can_shrink (GTK_PICTURE (picture), TRUE);
-
-  g_signal_connect (button, "file-set", G_CALLBACK (file_set), picture);
-
-  gtk_window_set_child (GTK_WINDOW (window), picture);
-
-  gtk_window_present (GTK_WINDOW (window));
-
-  if (argc > 1)
-    {
-      GFile *file = g_file_new_for_commandline_arg (argv[1]);
-      gtk_file_chooser_set_file (GTK_FILE_CHOOSER (button), file, NULL);
-      file_set (GTK_FILE_CHOOSER_BUTTON (button), picture);
-      g_object_unref (file);
-    }
-
-  while (g_list_model_get_n_items (gtk_window_get_toplevels ()) > 0)
-    g_main_context_iteration (NULL, TRUE);
-
-  return 0;
 }

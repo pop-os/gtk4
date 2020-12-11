@@ -94,7 +94,7 @@
 
 #define MIN_SYSTEM_BELL_DELAY_MS 20
 
-#define GTK_SHELL1_VERSION       2
+#define GTK_SHELL1_VERSION       3
 #define OUTPUT_VERSION_WITH_DONE 2
 #define NO_XDG_OUTPUT_DONE_SINCE_VERSION 3
 
@@ -1076,6 +1076,8 @@ get_cursor_theme (GdkWaylandDisplay *display_wayland,
 /**
  * gdk_wayland_display_set_cursor_theme:
  * @display: (type GdkWaylandDisplay): a #GdkDisplay
+ * @name: the new cursor theme
+ * @size: the size to use for cursors
  *
  * Sets the cursor theme for the given @display.
  */

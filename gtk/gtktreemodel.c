@@ -731,9 +731,10 @@ gtk_tree_path_new_from_indicesv (int *indices,
  *
  * This string is a “:” separated list of numbers.
  * For example, “4:10:0:3” would be an acceptable
- * return value for this string.
+ * return value for this string. If the path has
+ * depth 0, %NULL is returned.
  *
- * Returns: A newly-allocated string.
+ * Returns: (nullable): A newly-allocated string.
  *     Must be freed with g_free().
  */
 char *
@@ -1316,7 +1317,7 @@ gtk_tree_model_get_iter_from_string (GtkTreeModel *tree_model,
  * For example, “4:10:0:3” would be an acceptable
  * return value for this string.
  *
- * Returns: a newly-allocated string.
+ * Returns: (nullable): a newly-allocated string.
  *     Must be freed with g_free().
  */
 char *
@@ -1426,7 +1427,7 @@ gtk_tree_model_get_value (GtkTreeModel *tree_model,
 /**
  * gtk_tree_model_iter_next:
  * @tree_model: a #GtkTreeModel
- * @iter: (inout): the #GtkTreeIter-struct
+ * @iter: (in): the #GtkTreeIter-struct
  *
  * Sets @iter to point to the node following it at the current level.
  *
@@ -1474,7 +1475,7 @@ gtk_tree_model_iter_previous_default (GtkTreeModel *tree_model,
 /**
  * gtk_tree_model_iter_previous:
  * @tree_model: a #GtkTreeModel
- * @iter: (inout): the #GtkTreeIter-struct
+ * @iter: (in): the #GtkTreeIter-struct
  *
  * Sets @iter to point to the previous node at the current level.
  *

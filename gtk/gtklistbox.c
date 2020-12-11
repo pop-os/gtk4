@@ -560,7 +560,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
    * GtkListBox::select-all:
    * @box: the #GtkListBox on which the signal is emitted
    *
-   * The ::select-all signal is a [keybinding signal][GtkBindingSignal]
+   * The ::select-all signal is a [keybinding signal][GtkSignalAction]
    * which gets emitted to select all children of the box, if the selection
    * mode permits it.
    *
@@ -578,7 +578,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
    * GtkListBox::unselect-all:
    * @box: the #GtkListBox on which the signal is emitted
    * 
-   * The ::unselect-all signal is a [keybinding signal][GtkBindingSignal]
+   * The ::unselect-all signal is a [keybinding signal][GtkSignalAction]
    * which gets emitted to unselect all children of the box, if the selection
    * mode permits it.
    *
@@ -637,7 +637,7 @@ gtk_list_box_class_init (GtkListBoxClass *klass)
                               G_TYPE_FROM_CLASS (klass),
                               _gtk_marshal_VOID__ENUM_INT_BOOLEAN_BOOLEANv);
 
-  widget_class->activate_signal = signals[ACTIVATE_CURSOR_ROW];
+  gtk_widget_class_set_activate_signal (widget_class, signals[ACTIVATE_CURSOR_ROW]);
 
   gtk_list_box_add_move_binding (widget_class, GDK_KEY_Home, 0,
                                  GTK_MOVEMENT_BUFFER_ENDS, -1);
@@ -3466,7 +3466,7 @@ gtk_list_box_row_class_init (GtkListBoxRowClass *klass)
                   NULL,
                   G_TYPE_NONE, 0);
 
-  widget_class->activate_signal = row_signals[ROW__ACTIVATE];
+  gtk_widget_class_set_activate_signal (widget_class, row_signals[ROW__ACTIVATE]);
 
   /**
    * GtkListBoxRow:activatable:

@@ -563,6 +563,8 @@ void
 gtk_center_layout_set_orientation (GtkCenterLayout *self,
                                    GtkOrientation   orientation)
 {
+  g_return_if_fail (GTK_IS_CENTER_LAYOUT (self));
+
   if (orientation != self->orientation)
     {
       self->orientation = orientation;
@@ -581,6 +583,8 @@ gtk_center_layout_set_orientation (GtkCenterLayout *self,
 GtkOrientation
 gtk_center_layout_get_orientation (GtkCenterLayout *self)
 {
+  g_return_val_if_fail (GTK_IS_CENTER_LAYOUT (self), GTK_ORIENTATION_HORIZONTAL);
+
   return self->orientation;
 }
 
@@ -595,6 +599,8 @@ void
 gtk_center_layout_set_baseline_position (GtkCenterLayout     *self,
                                          GtkBaselinePosition  baseline_position)
 {
+  g_return_if_fail (GTK_IS_CENTER_LAYOUT (self));
+
   if (baseline_position != self->baseline_pos)
     {
       self->baseline_pos = baseline_position;
@@ -613,21 +619,32 @@ gtk_center_layout_set_baseline_position (GtkCenterLayout     *self,
 GtkBaselinePosition
 gtk_center_layout_get_baseline_position (GtkCenterLayout *self)
 {
+  g_return_val_if_fail (GTK_IS_CENTER_LAYOUT (self), GTK_BASELINE_POSITION_TOP);
+
   return self->baseline_pos;
 }
 
 /**
  * gtk_center_layout_set_start_widget:
  * @self: a #GtkCenterLayout
- * @widget: the new start widget
+ * @widget: (nullable): the new start widget
  *
  * Sets the new start widget of @self.
+ *
+ * To remove the existing start widget, pass %NULL.
  */
 void
 gtk_center_layout_set_start_widget (GtkCenterLayout *self,
                                     GtkWidget       *widget)
 {
+  g_return_if_fail (GTK_IS_CENTER_LAYOUT (self));
+  g_return_if_fail (widget == NULL || GTK_IS_WIDGET (widget));
+
+  if (self->start_widget == widget)
+    return;
+
   self->start_widget = widget;
+  gtk_layout_manager_layout_changed (GTK_LAYOUT_MANAGER (self));
 }
 
 /**
@@ -636,26 +653,37 @@ gtk_center_layout_set_start_widget (GtkCenterLayout *self,
  *
  * Returns the start widget fo the layout.
  *
- * Returns: (transfer none): The current start widget of @self
+ * Returns: (nullable) (transfer none): The current start widget of @self
  */
 GtkWidget *
 gtk_center_layout_get_start_widget (GtkCenterLayout *self)
 {
+  g_return_val_if_fail (GTK_IS_CENTER_LAYOUT (self), NULL);
+
   return self->start_widget;
 }
 
 /**
  * gtk_center_layout_set_center_widget:
  * @self: a #GtkCenterLayout
- * @widget: the new center widget
+ * @widget: (nullable): the new center widget
  *
- * Sets the new center widget of @self
+ * Sets the new center widget of @self.
+ *
+ * To remove the existing center widget, pass %NULL.
  */
 void
 gtk_center_layout_set_center_widget (GtkCenterLayout *self,
                                      GtkWidget       *widget)
 {
+  g_return_if_fail (GTK_IS_CENTER_LAYOUT (self));
+  g_return_if_fail (widget == NULL || GTK_IS_WIDGET (widget));
+
+  if (self->center_widget == widget)
+    return;
+
   self->center_widget = widget;
+  gtk_layout_manager_layout_changed (GTK_LAYOUT_MANAGER (self));
 }
 
 /**
@@ -664,26 +692,37 @@ gtk_center_layout_set_center_widget (GtkCenterLayout *self,
  *
  * Returns the center widget of the layout.
  *
- * Returns: (transfer none): the current center widget of @self
+ * Returns: (nullable) (transfer none): the current center widget of @self
  */
 GtkWidget *
 gtk_center_layout_get_center_widget (GtkCenterLayout *self)
 {
+  g_return_val_if_fail (GTK_IS_CENTER_LAYOUT (self), NULL);
+
   return self->center_widget;
 }
 
 /**
  * gtk_center_layout_set_end_widget:
  * @self: a #GtkCenterLayout
- * @widget: (transfer none): the new end widget
+ * @widget: (nullable) (transfer none): the new end widget
  *
- * Sets the new end widget of @self
+ * Sets the new end widget of @self.
+ *
+ * To remove the existing center widget, pass %NULL.
  */
 void
 gtk_center_layout_set_end_widget (GtkCenterLayout *self,
                                   GtkWidget       *widget)
 {
+  g_return_if_fail (GTK_IS_CENTER_LAYOUT (self));
+  g_return_if_fail (widget == NULL || GTK_IS_WIDGET (widget));
+
+  if (self->end_widget == widget)
+    return;
+
   self->end_widget = widget;
+  gtk_layout_manager_layout_changed (GTK_LAYOUT_MANAGER (self));
 }
 
 /**
@@ -692,10 +731,12 @@ gtk_center_layout_set_end_widget (GtkCenterLayout *self,
  *
  * Returns the end widget of the layout.
  *
- * Returns: (transfer none): the current end widget of @self
+ * Returns: (nullable) (transfer none): the current end widget of @self
  */
 GtkWidget *
 gtk_center_layout_get_end_widget (GtkCenterLayout *self)
 {
+  g_return_val_if_fail (GTK_IS_CENTER_LAYOUT (self), NULL);
+
   return self->end_widget;
 }

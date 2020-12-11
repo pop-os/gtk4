@@ -95,6 +95,7 @@ gtk_test_at_context_init (GtkTestATContext *self)
  * gtk_test_at_context_new:
  * @accessible_role: the #GtkAccessibleRole for the AT context
  * @accessible: the #GtkAccessible instance which owns the AT context
+ * @display: a #GdkDisplay
  *
  * Creates a new #GtkTestATContext instance for @accessible, using the
  * given @accessible_role.
@@ -103,11 +104,13 @@ gtk_test_at_context_init (GtkTestATContext *self)
  */
 GtkATContext *
 gtk_test_at_context_new (GtkAccessibleRole  accessible_role,
-                         GtkAccessible     *accessible)
+                         GtkAccessible     *accessible,
+                         GdkDisplay        *display)
 {
   return g_object_new (GTK_TYPE_TEST_AT_CONTEXT,
                        "accessible-role", accessible_role,
                        "accessible", accessible,
+                       "display", display,
                        NULL);
 }
 
@@ -115,15 +118,9 @@ gboolean
 gtk_test_accessible_has_role (GtkAccessible     *accessible,
                               GtkAccessibleRole  role)
 {
-  GtkATContext *context;
-
   g_return_val_if_fail (GTK_IS_ACCESSIBLE (accessible), FALSE);
 
-  context = gtk_accessible_get_at_context (accessible);
-  if (context == NULL)
-    return FALSE;
-
-  return gtk_at_context_get_accessible_role (context) == role;
+  return gtk_accessible_get_accessible_role (accessible) == role;
 }
 
 gboolean
@@ -168,7 +165,12 @@ gtk_test_accessible_check_property (GtkAccessible         *accessible,
 
   va_end (args);
 
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      res = g_strdup (error->message);
+      g_error_free (error);
+      return res;
+    }
 
   if (check_value == NULL)
     check_value = gtk_accessible_value_get_default_for_property (property);
@@ -230,7 +232,12 @@ gtk_test_accessible_check_state (GtkAccessible      *accessible,
 
   va_end (args);
 
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      res = g_strdup (error->message);
+      g_error_free (error);
+      return res;
+    }
 
   if (check_value == NULL)
     check_value = gtk_accessible_value_get_default_for_state (state);
@@ -292,7 +299,12 @@ gtk_test_accessible_check_relation (GtkAccessible         *accessible,
 
   va_end (args);
 
-  g_assert_no_error (error);
+  if (error != NULL)
+    {
+      res = g_strdup (error->message);
+      g_error_free (error);
+      return res;
+    }
 
   if (check_value == NULL)
     check_value = gtk_accessible_value_get_default_for_relation (relation);

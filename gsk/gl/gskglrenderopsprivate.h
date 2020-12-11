@@ -13,7 +13,7 @@
 #include "opbuffer.h"
 
 #define GL_N_VERTICES 6
-#define GL_N_PROGRAMS 14
+#define GL_N_PROGRAMS 15
 #define GL_MAX_GRADIENT_STOPS 6
 
 typedef struct
@@ -90,6 +90,8 @@ typedef struct
 
 struct _Program
 {
+  const char *name;
+
   int index;        /* Into the renderer's program array -1 for custom */
 
   int id;
@@ -127,6 +129,12 @@ struct _Program
       int end_location;
       int radius_location;
     } radial_gradient;
+    struct {
+      int num_color_stops_location;
+      int color_stops_location;
+      int center_location;
+      int rotation_location;
+    } conic_gradient;
     struct {
       int blur_radius_location;
       int blur_size_location;
@@ -191,6 +199,7 @@ typedef struct {
       Program inset_shadow_program;
       Program linear_gradient_program;
       Program radial_gradient_program;
+      Program conic_gradient_program;
       Program outset_shadow_program;
       Program repeat_program;
       Program unblurred_outset_shadow_program;
@@ -325,6 +334,12 @@ void              ops_set_radial_gradient (RenderOpBuilder        *self,
                                            float                   end,
                                            float                   hradius,
                                            float                   vradius);
+void              ops_set_conic_gradient  (RenderOpBuilder        *self,
+                                           guint                   n_color_stops,
+                                           const GskColorStop     *color_stops,
+                                           float                   center_x,
+                                           float                   center_y,
+                                           float                   rotation);
 
 GskQuadVertex *   ops_draw               (RenderOpBuilder        *builder,
                                           const GskQuadVertex     vertex_data[GL_N_VERTICES]);

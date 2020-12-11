@@ -142,16 +142,39 @@ load_file (GtkStringList *list,
 }
 
 static void
-file_selected_cb (GtkWidget     *button,
-                  GtkStringList *stringlist)
+open_response_cb (GtkNativeDialog *dialog,
+                  int              response,
+                  GtkStringList   *stringlist)
 {
-  GFile *file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button));
+  gtk_native_dialog_hide (dialog);
 
-  if (file)
+  if (response == GTK_RESPONSE_ACCEPT)
     {
+      GFile *file;
+
+      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
       load_file (stringlist, file);
       g_object_unref (file);
     }
+
+  gtk_native_dialog_destroy (dialog);
+}
+
+static void
+file_open_cb (GtkWidget     *button,
+              GtkStringList *stringlist)
+{
+  GtkFileChooserNative *dialog;
+
+  dialog = gtk_file_chooser_native_new ("Open file",
+                                        GTK_WINDOW (gtk_widget_get_root (button)),
+                                        GTK_FILE_CHOOSER_ACTION_OPEN,
+                                        "_Load",
+                                        "_Cancel");
+  gtk_native_dialog_set_modal (GTK_NATIVE_DIALOG (dialog), TRUE);
+
+  g_signal_connect (dialog, "response", G_CALLBACK (open_response_cb), stringlist);
+  gtk_native_dialog_show (GTK_NATIVE_DIALOG (dialog));
 }
 
 GtkWidget *
@@ -189,8 +212,8 @@ do_listview_words (GtkWidget *do_widget)
 
       header = gtk_header_bar_new ();
       gtk_header_bar_set_show_title_buttons (GTK_HEADER_BAR (header), TRUE);
-      open_button = gtk_file_chooser_button_new ("_Open", GTK_FILE_CHOOSER_ACTION_OPEN);
-      g_signal_connect (open_button, "file-set", G_CALLBACK (file_selected_cb), stringlist);
+      open_button = gtk_button_new_with_mnemonic ("_Open");
+      g_signal_connect (open_button, "clicked", G_CALLBACK (file_open_cb), stringlist);
       gtk_header_bar_pack_start (GTK_HEADER_BAR (header), open_button);
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
 

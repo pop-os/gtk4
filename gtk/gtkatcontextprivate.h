@@ -145,7 +145,16 @@ struct _GtkATContextClass
   void (* unrealize)     (GtkATContext *self);
 };
 
+GtkATContext *          gtk_at_context_clone                    (GtkATContext          *self,
+                                                                 GtkAccessibleRole      role,
+                                                                 GtkAccessible         *accessible,
+                                                                 GdkDisplay            *display);
+
+void                    gtk_at_context_set_display              (GtkATContext          *self,
+                                                                 GdkDisplay            *display);
 GdkDisplay *            gtk_at_context_get_display              (GtkATContext          *self);
+void                    gtk_at_context_set_accessible_role      (GtkATContext          *self,
+                                                                 GtkAccessibleRole      role);
 
 void                    gtk_at_context_realize                  (GtkATContext          *self);
 void                    gtk_at_context_unrealize                (GtkATContext          *self);

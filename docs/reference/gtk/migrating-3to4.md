@@ -165,7 +165,7 @@ for this change.
 | ::key-release-event | #GtkEventControllerKey |
 | ::enter-notify-event | #GtkEventControllerMotion |
 | ::leave-notify-event | #GtkEventControllerMotion |
-| ::configure-event | replaced by #GdkSurface::size-changed |
+| ::configure-event | replaced by #GdkSurface::layout |
 | ::focus-in-event | #GtkEventControllerFocus |
 | ::focus-out-event | #GtkEventControllerFocus |
 | ::map-event | replaced by #GdkSurface:mapped |
@@ -445,6 +445,9 @@ gtk4-builder-tool simplify command can perform many of the
 necessary changes automatically, when called with the --3to4
 option. You should always review the resulting changes.
 
+The <requires> tag now supports for the 'lib' attribute the
+'gtk' value only, instead of the 'gtk+' one previously.
+
 ### Adapt to event controller API changes
 
 A few changes to the event controller and #GtkGesture APIs
@@ -507,8 +510,13 @@ gtk_window_set_gravity(), gtk_window_move(), gtk_window_parse_geometry(),
 gtk_window_set_keep_above(), gtk_window_set_keep_below(),
 gtk_window_begin_resize_drag(), gtk_window_begin_move_drag().
 Most likely, you should just stop using them. In some cases, you can
-fall back to using the underlying #GdkToplevel APIS (for example,
+fall back to using the underlying #GdkToplevel APIs (for example,
 gdk_toplevel_begin_resize()).
+
+The APIs for controlling GtkWindow size have changed to be better aligned
+with the way size changes are integrated in the frame cycle. gtk_window_resize()
+and gtk_window_get_size() have been removed. Instead, use
+gtk_window_set_default_size() and gtk_window_get_default_size().
 
 ### Adapt to GtkHeaderBar and GtkActionBar API changes
 
@@ -1132,6 +1140,14 @@ gtk_buildable_get_buildable_id().
 
 GtkAboutDialog now directly derives from GtkWindow, the GtkDialog API can no
 longer be used on it.
+
+### Adapt to GtkTreeView and GtkIconView tooltip context changes
+
+The getter functions for retrieving the data from #GtkTreeView
+and #GtkIconView inside a #GtkWidget::query-tooltip signal do not take the
+pointer coordinates as inout arguments any more, but as normal in ones.
+
+See: gtk_tree_view_get_tooltip_context(), gtk_icon_view_get_tooltip_context()
 
 ## Changes to consider after the switch
 

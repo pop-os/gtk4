@@ -9,186 +9,50 @@
 #include <gtk/gtk.h>
 #include <librsvg/rsvg.h>
 
-#define SVG_TYPE_PAINTABLE (svg_paintable_get_type ())
+#include "svgpaintable.h"
 
-G_DECLARE_FINAL_TYPE (SvgPaintable, svg_paintable, SVG, PAINTABLE, GObject)
-
-struct _SvgPaintable
-{
-  GObject parent_instance;
-  GFile *file;
-  RsvgHandle *handle;
-};
-
-struct _SvgPaintableClass
-{
-  GObjectClass parent_class;
-};
-
-enum {
-  PROP_FILE = 1,
-  NUM_PROPERTIES
-};
 
 static void
-svg_paintable_snapshot (GdkPaintable *paintable,
-                        GdkSnapshot  *snapshot,
-                        double        width,
-                        double        height)
+open_response_cb (GtkNativeDialog *dialog,
+                  int              response,
+                  GtkPicture      *picture)
 {
-  SvgPaintable *self = SVG_PAINTABLE (paintable);
-  cairo_t *cr;
-  GError *error = NULL;
+  gtk_native_dialog_hide (dialog);
 
-  cr = gtk_snapshot_append_cairo (GTK_SNAPSHOT (snapshot),
-                                  &GRAPHENE_RECT_INIT (0, 0, width, height));
-
-  if (!rsvg_handle_render_document (self->handle, cr,
-                                    &(RsvgRectangle) {0, 0, width, height},
-                                    &error))
+  if (response == GTK_RESPONSE_ACCEPT)
     {
-      g_error ("%s", error->message);
+      GFile *file;
+      GdkPaintable *paintable;
+
+      file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (dialog));
+      paintable = svg_paintable_new (file);
+      gtk_picture_set_paintable (GTK_PICTURE (picture), paintable);
+      g_object_unref (paintable);
+      g_object_unref (file);
     }
 
-  cairo_destroy (cr);
-}
-
-static int
-svg_paintable_get_intrinsic_width (GdkPaintable *paintable)
-{
-  SvgPaintable *self = SVG_PAINTABLE (paintable);
-  RsvgDimensionData data;
-
-  rsvg_handle_get_dimensions (self->handle, &data);
-
-  return data.width;
-}
-
-static int
-svg_paintable_get_intrinsic_height (GdkPaintable *paintable)
-{
-  SvgPaintable *self = SVG_PAINTABLE (paintable);
-  RsvgDimensionData data;
-
-  rsvg_handle_get_dimensions (self->handle, &data);
-
-  return data.height;
+  gtk_native_dialog_destroy (dialog);
 }
 
 static void
-svg_paintable_init_interface (GdkPaintableInterface *iface)
+show_file_open (GtkWidget  *button,
+                GtkPicture *picture)
 {
-  iface->snapshot = svg_paintable_snapshot;
-  iface->get_intrinsic_width = svg_paintable_get_intrinsic_width;
-  iface->get_intrinsic_height = svg_paintable_get_intrinsic_height;
-}
+  GtkFileFilter *filter;
+  GtkFileChooserNative *dialog;
 
-G_DEFINE_TYPE_WITH_CODE (SvgPaintable, svg_paintable, G_TYPE_OBJECT,
-                         G_IMPLEMENT_INTERFACE (GDK_TYPE_PAINTABLE,
-                                                svg_paintable_init_interface))
+  dialog = gtk_file_chooser_native_new ("Open node file",
+                                        GTK_WINDOW (gtk_widget_get_root (button)),
+                                        GTK_FILE_CHOOSER_ACTION_OPEN,
+                                        "_Load",
+                                        "_Cancel");
 
-static void
-svg_paintable_init (SvgPaintable *self)
-{
-}
-
-static void
-svg_paintable_dispose (GObject *object)
-{
-  SvgPaintable *self = SVG_PAINTABLE (object);
-
-  g_clear_object (&self->file);
-  g_clear_object (&self->handle);
-
-  G_OBJECT_CLASS (svg_paintable_parent_class)->dispose (object);
-}
-
-static void
-svg_paintable_set_property (GObject      *object,
-                            guint         prop_id,
-                            const GValue *value,
-                            GParamSpec   *pspec)
-{
-  SvgPaintable *self = SVG_PAINTABLE (object);
-
-  switch (prop_id)
-    {
-    case PROP_FILE:
-      {
-        GFile *file = g_value_get_object (value);
-        RsvgHandle *handle = rsvg_handle_new_from_gfile_sync (file,
-                                                              RSVG_HANDLE_FLAGS_NONE,
-                                                              NULL,
-                                                              NULL);
-        rsvg_handle_set_dpi (handle, 90);
-
-        g_set_object (&self->file, file);
-        g_set_object (&self->handle, handle);
-      }
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-static void
-svg_paintable_get_property (GObject    *object,
-                            guint       prop_id,
-                            GValue     *value,
-                            GParamSpec *pspec)
-{
-  SvgPaintable *self = SVG_PAINTABLE (object);
-
-  switch (prop_id)
-    {
-    case PROP_FILE:
-      g_value_set_object (value, self->file);
-      break;
-
-    default:
-      G_OBJECT_WARN_INVALID_PROPERTY_ID (object, prop_id, pspec);
-    }
-}
-
-
-static void
-svg_paintable_class_init (SvgPaintableClass *class)
-{
-  GObjectClass *object_class = G_OBJECT_CLASS (class);
-
-  object_class->dispose = svg_paintable_dispose;
-  object_class->set_property = svg_paintable_set_property;
-  object_class->get_property = svg_paintable_get_property;
-
-  g_object_class_install_property (object_class, PROP_FILE,
-                                   g_param_spec_object ("file", "File", "File",
-                                                        G_TYPE_FILE,
-                                                        G_PARAM_READWRITE));
-}
-
-static SvgPaintable *
-svg_paintable_new (GFile *file)
-{
-  return g_object_new (SVG_TYPE_PAINTABLE,
-                       "file", file,
-                       NULL);
-}
-
-static void
-file_set (GtkFileChooserButton *button,
-          GtkWidget            *picture)
-{
-  GFile *file;
-  SvgPaintable *paintable;
-
-  file = gtk_file_chooser_get_file (GTK_FILE_CHOOSER (button));
-
-  paintable = svg_paintable_new (file);
-  gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (paintable));
-
-  g_object_unref (paintable);
-  g_object_unref (file);
+  filter = gtk_file_filter_new ();
+  gtk_file_filter_add_mime_type (filter, "image/svg+xml");
+  gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (dialog), filter);
+  gtk_native_dialog_set_modal (GTK_NATIVE_DIALOG (dialog), TRUE);
+  g_signal_connect (dialog, "response", G_CALLBACK (open_response_cb), picture);
+  gtk_native_dialog_show (GTK_NATIVE_DIALOG (dialog));
 }
 
 static GtkWidget *window;
@@ -198,36 +62,33 @@ do_paintable_svg (GtkWidget *do_widget)
 {
   GtkWidget *header;
   GtkWidget *picture;
-  GtkFileFilter *filter;
   GtkWidget *button;
   GFile *file;
-  SvgPaintable *paintable;
+  GdkPaintable *paintable;
 
   if (!window)
     {
       window = gtk_window_new ();
       header = gtk_header_bar_new ();
       gtk_window_set_titlebar (GTK_WINDOW (window), header);
-      gtk_window_set_default_size (GTK_WINDOW (window), 300, 200);
+      gtk_window_set_default_size (GTK_WINDOW (window), 330, 330);
+      gtk_window_set_title (GTK_WINDOW (window), "Paintable — SVG");
       g_object_add_weak_pointer (G_OBJECT (window), (gpointer *)&window);
 
-      button = gtk_file_chooser_button_new ("Select an SVG file", GTK_FILE_CHOOSER_ACTION_OPEN);
-      filter = gtk_file_filter_new ();
-      gtk_file_filter_add_mime_type (filter, "image/svg+xml");
-      gtk_file_chooser_set_filter (GTK_FILE_CHOOSER (button), filter);
+      button = gtk_button_new_with_mnemonic ("_Open");
       gtk_header_bar_pack_start (GTK_HEADER_BAR (header), button);
 
       picture = gtk_picture_new ();
       gtk_picture_set_can_shrink (GTK_PICTURE (picture), TRUE);
       gtk_widget_set_size_request (picture, 16, 16);
 
-      g_signal_connect (button, "file-set", G_CALLBACK (file_set), picture);
+      g_signal_connect (button, "clicked", G_CALLBACK (show_file_open), picture);
 
       gtk_window_set_child (GTK_WINDOW (window), picture);
 
       file = g_file_new_for_uri ("resource:///paintable_svg/org.gtk.gtk4.NodeEditor.Devel.svg");
       paintable = svg_paintable_new (file);
-      gtk_picture_set_paintable (GTK_PICTURE (picture), GDK_PAINTABLE (paintable));
+      gtk_picture_set_paintable (GTK_PICTURE (picture), paintable);
       g_object_unref (paintable);
       g_object_unref (file);
     }

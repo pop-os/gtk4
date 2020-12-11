@@ -7,9 +7,9 @@ demos = files([
   'clipboard.c',
   'combobox.c',
   'constraints.c',
-  'constraints2.c',
-  'constraints3.c',
-  'constraints4.c',
+  'constraints_interactive.c',
+  'constraints_vfl.c',
+  'constraints_builder.c',
   'css_accordion.c',
   'css_basics.c',
   'css_blendmodes.c',
@@ -19,7 +19,6 @@ demos = files([
   'cursors.c',
   'dialog.c',
   'drawingarea.c',
-  'dropdown.c',
   'dnd.c',
   'editable_cells.c',
   'entry_completion.c',
@@ -45,7 +44,7 @@ demos = files([
   'layoutmanager2.c',
   'links.c',
   'listbox.c',
-  'listbox2.c',
+  'listbox_controls.c',
   'menu.c',
   'flowbox.c',
   'list_store.c',
@@ -54,12 +53,14 @@ demos = files([
   'listview_colors.c',
   'listview_filebrowser.c',
   'listview_minesweeper.c',
+  'dropdown.c',
   'listview_settings.c',
+  'listview_ucd.c',
   'listview_weather.c',
   'listview_words.c',
   'markup.c',
   'overlay.c',
-  'overlay2.c',
+  'overlay_decorative.c',
   'paint.c',
   'paintable.c',
   'paintable_animated.c',
@@ -120,11 +121,14 @@ extra_demo_sources = files(['main.c',
                             'four_point_transform.c',
                             'demo2widget.c',
                             'demo3widget.c',
-                            'pixbufpaintable.c'])
+                            'pixbufpaintable.c',
+                            'script-names.c',
+                            'unicode-names.c',
+                            'suggestionentry.c'])
 
 if harfbuzz_dep.found() and pangoft_dep.found()
-  demos += files(['font_features.c', 'listview_ucd.c'])
-  extra_demo_sources += files(['script-names.c', 'language-names.c', 'unicode-names.c'])
+  demos += files(['font_features.c'])
+  extra_demo_sources += files(['language-names.c'])
   gtkdemo_deps += [ harfbuzz_dep, epoxy_dep ]
 endif
 
@@ -136,6 +140,7 @@ librsvg_dep = dependency('librsvg-2.0', version: '>= 2.46.0', required: false)
 
 if librsvg_dep.found()
   demos += files('paintable_svg.c')
+  extra_demo_sources += files(['svgpaintable.c'])
   gtkdemo_deps += [ librsvg_dep ]
 endif
 

@@ -319,7 +319,7 @@ gtk_menu_button_size_allocate (GtkWidget *widget,
                             &(GtkAllocation) { 0, 0, width, height },
                             baseline);
   if (self->popover)
-    gtk_native_check_resize (GTK_NATIVE (self->popover));
+    gtk_popover_present (GTK_POPOVER (self->popover));
 }
 
 static gboolean
@@ -520,8 +520,7 @@ update_sensitivity (GtkMenuButton *self)
                                   -1);
   if (self->popover != NULL)
     gtk_accessible_update_relation (GTK_ACCESSIBLE (self),
-                                    GTK_ACCESSIBLE_RELATION_CONTROLS,
-                                        g_list_append (NULL, self->popover),
+                                    GTK_ACCESSIBLE_RELATION_CONTROLS, self->popover, NULL,
                                     -1);
   else
     gtk_accessible_reset_relation (GTK_ACCESSIBLE (self),

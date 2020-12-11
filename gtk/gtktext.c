@@ -972,7 +972,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @extend: %TRUE if the move should extend the selection
    *
    * The ::move-cursor signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted when the user initiates a cursor movement.
    * If the cursor is not visible in @self, this signal causes
    * the viewport to be moved instead.
@@ -1007,7 +1007,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @string: the string to insert
    *
    * The ::insert-at-cursor signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted when the user initiates the insertion of a
    * fixed string at the cursor.
    *
@@ -1030,7 +1030,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @count: the number of @type units to delete
    *
    * The ::delete-from-cursor signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted when the user initiates a text deletion.
    *
    * If the @type is %GTK_DELETE_CHARS, GTK deletes the selection
@@ -1057,7 +1057,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @self: the object which received the signal
    *
    * The ::backspace signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted when the user asks for it.
    *
    * The default bindings for this signal are
@@ -1077,7 +1077,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @self: the object which received the signal
    *
    * The ::cut-clipboard signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to cut the selection to the clipboard.
    *
    * The default bindings for this signal are
@@ -1097,7 +1097,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @self: the object which received the signal
    *
    * The ::copy-clipboard signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to copy the selection to the clipboard.
    *
    * The default bindings for this signal are
@@ -1117,7 +1117,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @self: the object which received the signal
    *
    * The ::paste-clipboard signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to paste the contents of the clipboard
    * into the text view.
    *
@@ -1138,7 +1138,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @self: the object which received the signal
    *
    * The ::toggle-overwrite signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to toggle the overwrite mode of the self.
    *
    * The default bindings for this signal is Insert.
@@ -1177,7 +1177,7 @@ gtk_text_class_init (GtkTextClass *class)
    * @self: the object which received the signal
    *
    * The ::insert-emoji signal is a
-   * [keybinding signal][GtkBindingSignal]
+   * [keybinding signal][GtkSignalAction]
    * which gets emitted to present the Emoji chooser for the @self.
    *
    * The default bindings for this signal are Ctrl-. and Ctrl-;
@@ -2448,27 +2448,27 @@ gtk_text_size_allocate (GtkWidget *widget,
 
   chooser = g_object_get_data (G_OBJECT (self), "gtk-emoji-chooser");
   if (chooser)
-    gtk_native_check_resize (GTK_NATIVE (chooser));
+    gtk_popover_present (GTK_POPOVER (chooser));
 
   gtk_text_update_handles (self);
 
   if (priv->emoji_completion)
-    gtk_native_check_resize (GTK_NATIVE (priv->emoji_completion));
+    gtk_popover_present (GTK_POPOVER (priv->emoji_completion));
 
   if (priv->magnifier_popover)
-    gtk_native_check_resize (GTK_NATIVE (priv->magnifier_popover));
+    gtk_popover_present (GTK_POPOVER (priv->magnifier_popover));
 
   if (priv->popup_menu)
-    gtk_native_check_resize (GTK_NATIVE (priv->popup_menu));
+    gtk_popover_present (GTK_POPOVER (priv->popup_menu));
 
   if (priv->selection_bubble)
-    gtk_native_check_resize (GTK_NATIVE (priv->selection_bubble));
+    gtk_popover_present (GTK_POPOVER (priv->selection_bubble));
 
   if (priv->text_handles[TEXT_HANDLE_CURSOR])
-    gtk_native_check_resize (GTK_NATIVE (priv->text_handles[TEXT_HANDLE_CURSOR]));
+    gtk_text_handle_present (priv->text_handles[TEXT_HANDLE_CURSOR]);
 
   if (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND])
-    gtk_native_check_resize (GTK_NATIVE (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND]));
+    gtk_text_handle_present (priv->text_handles[TEXT_HANDLE_SELECTION_BOUND]);
 }
 
 static void
@@ -6564,7 +6564,7 @@ gtk_text_set_placeholder_text (GtkText    *self,
  *
  * Retrieves the text that will be displayed when @self is empty and unfocused
  *
- * Returns: (nullable) (transfer none):a pointer to the placeholder text as a string.
+ * Returns: (nullable) (transfer none): a pointer to the placeholder text as a string.
  *   This string points to internally allocated storage in the widget and must
  *   not be freed, modified or stored. If no placeholder text has been set,
  *   %NULL will be returned.
@@ -6866,7 +6866,7 @@ gtk_text_set_extra_menu (GtkText    *self,
  *
  * Gets the menu model set with gtk_text_set_extra_menu().
  *
- * Returns: (transfer none): (nullable): the menu model
+ * Returns: (transfer none) (nullable): the menu model
  */
 GMenuModel *
 gtk_text_get_extra_menu (GtkText *self)

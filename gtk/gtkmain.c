@@ -244,7 +244,6 @@ gtk_simulate_touchscreen (void)
   return (gtk_get_debug_flags () & GTK_DEBUG_TOUCHSCREEN) != 0;
 }
 
-#ifdef G_ENABLE_DEBUG
 static const GdkDebugKey gtk_debug_keys[] = {
   { "keybindings", GTK_DEBUG_KEYBINDINGS, "Information about keyboard shortcuts" },
   { "modules", GTK_DEBUG_MODULES, "Information about modules and extensions" },
@@ -260,12 +259,11 @@ static const GdkDebugKey gtk_debug_keys[] = {
   { "builder", GTK_DEBUG_BUILDER, "Trace GtkBuilder operation" },
   { "builder-objects", GTK_DEBUG_BUILDER_OBJECTS, "Log unused GtkBuilder objects" },
   { "no-css-cache", GTK_DEBUG_NO_CSS_CACHE, "Disable style property cache" },
-  { "interactive", GTK_DEBUG_INTERACTIVE, "Enable the GTK inspector" },
+  { "interactive", GTK_DEBUG_INTERACTIVE, "Enable the GTK inspector", TRUE },
   { "touchscreen", GTK_DEBUG_TOUCHSCREEN, "Pretend the pointer is a touchscreen" },
   { "snapshot", GTK_DEBUG_SNAPSHOT, "Generate debug render nodes" },
   { "accessibility", GTK_DEBUG_A11Y, "Information about accessibility state changes" },
 };
-#endif /* G_ENABLE_DEBUG */
 
 /* This checks to see if the process is running suid or sgid
  * at the current time. If so, we don’t allow GTK to be initialized.
@@ -546,15 +544,10 @@ do_pre_parse_initialization (void)
 
   gdk_pre_parse ();
 
-#ifdef G_ENABLE_DEBUG
   debug_flags[0].flags = gdk_parse_debug_var ("GTK_DEBUG",
                                               gtk_debug_keys,
                                               G_N_ELEMENTS (gtk_debug_keys));
   any_display_debug_flags_set = debug_flags[0].flags > 0;
-#else
-  if (g_getenv ("GTK_DEBUG"))
-    g_warning ("GTK_DEBUG set but ignored because GTK isn't built with G_ENABLE_DEBUG");
-#endif  /* G_ENABLE_DEBUG */
 
   env_string = g_getenv ("GTK_SLOWDOWN");
   if (env_string)
@@ -1362,9 +1355,9 @@ set_widget_active_state (GtkWidget       *target,
   while (w)
     {
       if (release)
-        gtk_widget_unset_state_flags (w, GTK_STATE_FLAG_ACTIVE);
+        gtk_widget_set_active_state (w, FALSE);
       else
-        gtk_widget_set_state_flags (w, GTK_STATE_FLAG_ACTIVE, FALSE);
+        gtk_widget_set_active_state (w, TRUE);
 
       w = _gtk_widget_get_parent (w);
     }
@@ -1381,6 +1374,7 @@ handle_pointing_event (GdkEvent *event)
   double native_x, native_y;
   GtkWidget *native;
   GdkEventType type;
+  gboolean has_implicit;
 
   event_widget = gtk_get_event_widget (event);
   device = gdk_event_get_device (event);
@@ -1413,7 +1407,9 @@ handle_pointing_event (GdkEvent *event)
     case GDK_TOUCH_END:
     case GDK_TOUCH_CANCEL:
       old_target = update_pointer_focus_state (toplevel, event, NULL);
-      if (type == GDK_LEAVE_NOTIFY)
+      if (type == GDK_TOUCH_END || type == GDK_TOUCH_CANCEL)
+        set_widget_active_state (old_target, TRUE);
+      else if (type == GDK_LEAVE_NOTIFY)
         gtk_synthesize_crossing_events (GTK_ROOT (toplevel), GTK_CROSSING_POINTER, old_target, NULL,
                                         event, gdk_crossing_event_get_mode (event), NULL);
       break;
@@ -1465,7 +1461,10 @@ handle_pointing_event (GdkEvent *event)
           gtk_drop_end_event (drop);
         }
       else if (type == GDK_TOUCH_BEGIN)
-        gtk_window_set_pointer_focus_grab (toplevel, device, sequence, target);
+        {
+          gtk_window_set_pointer_focus_grab (toplevel, device, sequence, target);
+          set_widget_active_state (target, FALSE);
+        }
 
       /* Let it take the effective pointer focus anyway, as it may change due
        * to implicit grabs.
@@ -1477,6 +1476,11 @@ handle_pointing_event (GdkEvent *event)
       target = gtk_window_lookup_effective_pointer_focus_widget (toplevel,
                                                                  device,
                                                                  sequence);
+      has_implicit =
+        gtk_window_lookup_pointer_focus_implicit_grab (toplevel,
+                                                       device,
+                                                       sequence) != NULL;
+
       gtk_window_set_pointer_focus_grab (toplevel, device, sequence,
                                          type == GDK_BUTTON_PRESS ?  target : NULL);
 
@@ -1493,7 +1497,10 @@ handle_pointing_event (GdkEvent *event)
           update_pointer_focus_state (toplevel, event, new_target);
         }
 
-      set_widget_active_state (target, type == GDK_BUTTON_RELEASE);
+      if (type == GDK_BUTTON_PRESS)
+        set_widget_active_state (target, FALSE);
+      else if (has_implicit)
+        set_widget_active_state (target, TRUE);
 
       break;
     case GDK_SCROLL:
@@ -1501,10 +1508,13 @@ handle_pointing_event (GdkEvent *event)
     case GDK_TOUCHPAD_SWIPE:
       break;
     case GDK_GRAB_BROKEN:
-      target = gtk_window_lookup_effective_pointer_focus_widget (toplevel,
-                                                                 device,
-                                                                 sequence);
-      set_widget_active_state (target, TRUE);
+      if (gdk_grab_broken_event_get_implicit (event))
+        {
+          target = gtk_window_lookup_effective_pointer_focus_widget (toplevel,
+                                                                     device,
+                                                                     sequence);
+          set_widget_active_state (target, TRUE);
+        }
       break;
     default:
       g_assert_not_reached ();

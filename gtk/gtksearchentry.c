@@ -338,7 +338,7 @@ gtk_search_entry_class_init (GtkSearchEntryClass *klass)
    * GtkSearchEntry::next-match:
    * @entry: the entry on which the signal was emitted
    *
-   * The ::next-match signal is a [keybinding signal][GtkBindingSignal]
+   * The ::next-match signal is a [keybinding signal][GtkSignalAction]
    * which gets emitted when the user initiates a move to the next match
    * for the current search string.
    *
@@ -360,7 +360,7 @@ gtk_search_entry_class_init (GtkSearchEntryClass *klass)
    * GtkSearchEntry::previous-match:
    * @entry: the entry on which the signal was emitted
    *
-   * The ::previous-match signal is a [keybinding signal][GtkBindingSignal]
+   * The ::previous-match signal is a [keybinding signal][GtkSignalAction]
    * which gets emitted when the user initiates a move to the previous match
    * for the current search string.
    *
@@ -382,7 +382,7 @@ gtk_search_entry_class_init (GtkSearchEntryClass *klass)
    * GtkSearchEntry::stop-search:
    * @entry: the entry on which the signal was emitted
    *
-   * The ::stop-search signal is a [keybinding signal][GtkBindingSignal]
+   * The ::stop-search signal is a [keybinding signal][GtkSignalAction]
    * which gets emitted when the user stops a search via keyboard input.
    *
    * Applications should connect to it, to implement hiding the search
@@ -554,8 +554,9 @@ gtk_search_entry_init (GtkSearchEntry *entry)
   GtkWidget *icon;
   GtkGesture *press;
 
+  /* The search icon is purely presentational */
   icon = g_object_new (GTK_TYPE_IMAGE,
-                       "accessible-role", GTK_ACCESSIBLE_ROLE_NONE,
+                       "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
                        "icon-name", "system-search-symbolic",
                        NULL);
   gtk_widget_set_parent (icon, GTK_WIDGET (entry));
@@ -570,7 +571,10 @@ gtk_search_entry_init (GtkSearchEntry *entry)
   g_signal_connect (entry->entry, "notify", G_CALLBACK (notify_cb), entry);
   g_signal_connect (entry->entry, "activate", G_CALLBACK (activate_cb), entry);
 
-  entry->icon = gtk_image_new_from_icon_name ("edit-clear-all-symbolic");
+  entry->icon = g_object_new (GTK_TYPE_IMAGE,
+                              "accessible-role", GTK_ACCESSIBLE_ROLE_PRESENTATION,
+                              "icon-name", "edit-clear-symbolic",
+                              NULL);
   gtk_widget_set_tooltip_text (entry->icon, _("Clear entry"));
   gtk_widget_set_parent (entry->icon, GTK_WIDGET (entry));
   gtk_widget_set_child_visible (entry->icon, FALSE);
