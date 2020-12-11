@@ -1,6 +1,13 @@
 gtk+4.0 (3.99.5-1) UNRELEASED; urgency=medium
 
   * New upstream release
+  * Preferentially build-depend on libgdk-pixbuf-2.0-dev.
+    We don't need the deprecated Xlib integration that is also pulled in
+    by the older libgdk-pixbuf2.0-dev package (see #974870).
+  * d/changelog: Remove trailing whitespace
+  * Replace XC-Package-Type with Package-Type
+  * Use https for Homepage
+  * d/watch: ".." is not a version number
 
  -- Simon McVittie <smcv@debian.org>  Fri, 11 Dec 2020 10:17:06 +0000
 
