@@ -230,6 +230,7 @@ Depends: ${gir:Depends},
 Breaks: python-gi (<< 3.18),
         python3-gi (<< 3.18)
 Provides: gir1.2-gdk-4.0 (= ${binary:Version}),
+          gir1.2-gdkwayland-4.0 (= ${binary:Version}) [linux-any],
           gir1.2-gdkx11-4.0 (= ${binary:Version}),
           gir1.2-gsk-4.0 (= ${binary:Version})
 Description: GTK graphical user interface library -- gir bindings
