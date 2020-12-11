@@ -1,4 +1,4 @@
-gtk+4.0 (3.99.5-1) UNRELEASED; urgency=medium
+gtk+4.0 (3.99.5-1) experimental; urgency=medium
 
   * New upstream release
   * Preferentially build-depend on libgdk-pixbuf-2.0-dev.
@@ -8,8 +8,10 @@ gtk+4.0 (3.99.5-1) UNRELEASED; urgency=medium
   * Replace XC-Package-Type with Package-Type
   * Use https for Homepage
   * d/watch: ".." is not a version number
+  * Bump build-dependency on Glib to 2.66
+  * Update symbols file
 
- -- Simon McVittie <smcv@debian.org>  Fri, 11 Dec 2020 10:17:06 +0000
+ -- Simon McVittie <smcv@debian.org>  Fri, 11 Dec 2020 11:33:40 +0000
 
 gtk+4.0 (3.99.4-1) experimental; urgency=medium
 
