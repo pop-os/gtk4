@@ -205,7 +205,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		--builddirectory=debian/build/deb \
 		-- \
 		--setup=x11 \
-		|| true
+	${NULL}
 endif
 
 override_dh_auto_install:
