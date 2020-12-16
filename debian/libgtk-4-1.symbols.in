@@ -1547,7 +1547,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_constraint_vfl_parser_error_get_type@Base 4.0.0
  gtk_constraint_vfl_parser_error_quark@Base 4.0.0
  gtk_corner_type_get_type@Base 4.0.0
- gtk_crossing_data_get_type@Base 4.0.0
  gtk_css_parser_error_get_type@Base 4.0.0
  gtk_css_parser_error_quark@Base 4.0.0
  gtk_css_parser_warning_get_type@Base 4.0.0
@@ -3719,12 +3718,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_test_list_all_types@Base 4.0.0
  gtk_test_register_all_types@Base 4.0.0
  gtk_test_widget_wait_for_draw@Base 4.0.0
- gtk_text_attributes_copy@Base 4.0.0
- gtk_text_attributes_copy_values@Base 4.0.0
- gtk_text_attributes_get_type@Base 4.0.0
- gtk_text_attributes_new@Base 4.0.0
- gtk_text_attributes_ref@Base 4.0.0
- gtk_text_attributes_unref@Base 4.0.0
  gtk_text_buffer_add_mark@Base 4.0.0
  gtk_text_buffer_add_selection_clipboard@Base 4.0.0
  gtk_text_buffer_apply_tag@Base 4.0.0
