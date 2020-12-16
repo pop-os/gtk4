@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '3.99.5',
+        version: '4.0.0',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -30,15 +30,26 @@ add_project_arguments('-DG_LOG_USE_STRUCTURED=1', language: 'c')
 add_project_arguments('-DGLIB_DISABLE_DEPRECATION_WARNINGS', language: 'c')
 
 # Making releases:
-#  1. gtk_micro_version += 1;
-#  2. gtk_interface_age += 1;
-#  3. if any functions have been added, set gtk_interface_age to 0.
-#  4. if backwards compatibility has been broken, we're in trouble
+#  1. new development cycle:
+#    a. gtk_minor_version += 1
+#    b. gtk_micro_version = 0
+#  2. new stable cycle:
+#    a. gtk_minor_version += 1
+#    b. gtk_micro_version = 0
+#  3. every new release:
+#    a. gtk_micro_version += 1
 gtk_version       = meson.project_version()
 gtk_major_version = gtk_version.split('.')[0].to_int()
 gtk_minor_version = gtk_version.split('.')[1].to_int()
 gtk_micro_version = gtk_version.split('.')[2].to_int()
-gtk_interface_age = 0
+
+# Interface age gets reset during development cycles, when
+# we add new API; new micro versions of the same minor
+# stable cycle will have the same interface age
+#
+# If new API is added during a stable cycle, reset to 0
+gtk_interface_age = gtk_minor_version.is_odd() ? 0 : gtk_micro_version
+
 add_project_arguments('-DGTK_VERSION="@0@"'.format(meson.project_version()), language: 'c')
 
 add_project_arguments('-D_GNU_SOURCE', language: 'c')
@@ -68,8 +79,8 @@ gtk_binary_version = '4.0.0'
 
 gtk_binary_age = 100 * gtk_minor_version + gtk_micro_version
 
-gtk_soversion = '0'
-gtk_library_version = '0.@0@.@1@'.format(gtk_binary_age - gtk_interface_age, gtk_interface_age)
+gtk_soversion = '1'
+gtk_library_version = '1.@0@.@1@'.format(gtk_binary_age - gtk_interface_age, gtk_interface_age)
 
 gtk_api_version = '4.0'
 
@@ -308,15 +319,11 @@ if get_option('default_library') != 'static'
   endif
 endif
 
-common_ldflags = []
-
-if os_unix and not os_darwin
-  foreach ldflag: [ '-Wl,-Bsymbolic', '-Wl,-z,relro', '-Wl,-z,now', ]
-    if cc.links('int main () { return 0; }', name: ldflag, args: ldflag)
-      common_ldflags += [ ldflag ]
-    endif
-  endforeach
-endif
+common_ldflags = cc.get_supported_link_arguments([
+  '-Wl,-Bsymbolic',
+  '-Wl,-z,relro',
+  '-Wl,-z,now',
+])
 
 confinc = include_directories('.')
 gdkinc = include_directories('gdk')
@@ -360,7 +367,7 @@ endif
 
 if win32_enabled
   # for GTK_IM_CONTEXT_IME
-  pangowin32_dep  = dependency('pangowin32')
+  pangowin32_dep = dependency('pangowin32')
 endif
 
 pangocairo_dep = dependency('pangocairo', version: pango_req,
@@ -403,8 +410,6 @@ else
 endif
 
 
-backend_immodules = []
-
 pc_gdk_extra_libs = []
 
 cairo_backends = []
@@ -446,7 +451,6 @@ if wayland_enabled
   wlclientdep    = dependency('wayland-client', version:  wayland_req)
   wlprotocolsdep = dependency('wayland-protocols', version: wayland_proto_req, required: false)
   wlegldep       = dependency('wayland-egl')
-  backend_immodules += ['wayland']
 
   if not wlprotocolsdep.found()
     wlproto_dir = subproject('wayland-protocols').get_variable('wayland_protocols_srcdir')
@@ -475,8 +479,6 @@ if x11_enabled
   xfixes_dep     = dependency('xfixes', required: false)
   xcomposite_dep = dependency('xcomposite', required: false)
   fontconfig_dep = dependency('fontconfig')
-
-  backend_immodules += ['xim']
 
   x11_pkgs = ['fontconfig', 'x11', 'xext', 'xi', 'xrandr']
 
@@ -540,12 +542,10 @@ endif
 
 if broadway_enabled
   pc_gdk_extra_libs += ['-lz']
-  backend_immodules += ['broadway']
 endif
 
 if macos_enabled
   pc_gdk_extra_libs += ['-framework Cocoa', '-framework Carbon']
-  backend_immodules += ['quartz']
 endif
 
 extra_demo_ldflags = []
@@ -560,7 +560,6 @@ if win32_enabled
     pc_gdk_extra_libs += ['-Wl,-luuid']
   endif
   pc_gdk_extra_libs += ['-lwinmm', '-ldwmapi', '-lsetupapi', '-lcfgmgr32']
-  backend_immodules += ['ime']
 
   # Check whether libepoxy is built with EGL support on Windows
   win32_has_egl = epoxy_dep.get_variable(

@@ -96,6 +96,8 @@ _gdk_macos_toplevel_surface_present (GdkToplevel       *toplevel,
   GdkGeometry geometry;
   GdkSurfaceHints mask;
   NSWindowStyleMask style_mask;
+  gboolean maximize;
+  gboolean fullscreen
 
   g_assert (GDK_IS_MACOS_TOPLEVEL_SURFACE (self));
   g_assert (GDK_IS_MACOS_WINDOW (nswindow));
@@ -157,11 +159,11 @@ _gdk_macos_toplevel_surface_present (GdkToplevel       *toplevel,
 
   if (size.shadow.is_valid)
     {
-      _gdk_macos_surface_set_shadow_width (surface,
-                                           size.shadow.left,
-                                           size.shadow.right,
-                                           size.shadow.top,
-                                           size.shadow.bottom);
+      _gdk_macos_surface_set_shadow (GDK_MACOS_SURFACE (surface),
+                                     size.shadow.top,
+                                     size.shadow.right,
+                                     size.shadow.bottom,
+                                     size.shadow.left);
     }
 
   _gdk_macos_surface_set_geometry_hints (GDK_MACOS_SURFACE (self), &geometry, mask);
@@ -169,16 +171,22 @@ _gdk_macos_toplevel_surface_present (GdkToplevel       *toplevel,
   _gdk_macos_surface_resize (GDK_MACOS_SURFACE (self), width, height);
 
   /* Maximized state */
-  if (gdk_toplevel_layout_get_maximized (layout))
-    _gdk_macos_toplevel_surface_maximize (self);
-  else
-    _gdk_macos_toplevel_surface_unmaximize (self);
+  if (gdk_toplevel_layout_get_maximized (layout, &maximize))
+    {
+      if (maximize)
+        _gdk_macos_toplevel_surface_maximize (self);
+      else
+        _gdk_macos_toplevel_surface_unmaximize (self);
+    }
 
   /* Fullscreen state */
-  if (gdk_toplevel_layout_get_fullscreen (layout))
-    _gdk_macos_toplevel_surface_fullscreen (self);
-  else
-    _gdk_macos_toplevel_surface_unfullscreen (self);
+  if (gdk_toplevel_layout_get_fullscreen (layout, &fullscreen))
+    {
+      if (fullscreen)
+        _gdk_macos_toplevel_surface_fullscreen (self);
+      else
+        _gdk_macos_toplevel_surface_unfullscreen (self);
+    }
 
   if (GDK_SURFACE (self)->transient_for != NULL)
     {
