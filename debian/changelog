@@ -1,6 +1,12 @@
-gtk+4.0 (4.0.0-1) UNRELEASED; urgency=medium
+gtk4 (4.0.0-1) UNRELEASED; urgency=medium
 
   * New upstream release
+    - Bump SONAME to libgtk-4.so.1 to reflect incompatibility with 3.9x.y
+      development releases
+  * Rename source package to gtk4 while we're going through NEW anyway.
+    This reflects the upstream name of the library (formerly GTK+,
+    now GTK) and avoids "+" being misinterpreted as a space in URLs.
+  * Bump required version for all symbols to 4.0.0
   * Add Provides for gir1.2-gdkwayland-4.0 on Linux
   * d/copyright: Remove unused GPL-2+ paragraph
   * d/copyright: Remove unused autoconf-archive paragraph
@@ -21,9 +27,8 @@ gtk+4.0 (4.0.0-1) UNRELEASED; urgency=medium
   * Use https for Homepage
   * d/watch: ".." is not a version number
   * Bump build-dependency on Glib to 2.66
-  * Update symbols file
 
- -- Simon McVittie <smcv@debian.org>  Wed, 16 Dec 2020 21:25:00 +0000
+ -- Simon McVittie <smcv@debian.org>  Wed, 16 Dec 2020 21:30:56 +0000
 
 gtk+4.0 (3.99.4-1) experimental; urgency=medium
 
