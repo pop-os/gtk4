@@ -1,4 +1,4 @@
-Source: gtk+4.0
+Source: gtk4
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
