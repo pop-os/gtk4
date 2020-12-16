@@ -65,7 +65,7 @@ Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
 Vcs-Git: https://salsa.debian.org/gnome-team/gtk4.git
 Homepage: https://www.gtk.org/
 
-Package: libgtk-4-0
+Package: libgtk-4-1
 Architecture: any
 Multi-Arch: same
 Depends: adwaita-icon-theme,
@@ -90,7 +90,7 @@ Description: GTK graphical user interface library
  .
  This package contains the shared libraries.
 
-Package: libgtk-4-0-udeb
+Package: libgtk-4-1-udeb
 Build-Profiles: <!noudeb>
 Package-Type: udeb
 Section: debian-installer
@@ -115,7 +115,7 @@ Architecture: all
 Multi-Arch: foreign
 Depends: libgtk-3-common,
          ${misc:Depends}
-Recommends: libgtk-4-0
+Recommends: libgtk-4-1
 Description: common files for the GTK graphical user interface library
  GTK is a multi-platform toolkit for creating graphical user
  interfaces. Offering a complete set of widgets, GTK is suitable
@@ -133,7 +133,7 @@ Depends: gtk-update-icon-cache,
          ${misc:Depends},
          ${shlibs:Depends},
          libgtk-4-common (>= ${source:Version}),
-         libgtk-4-0 (>= ${source:Version})
+         libgtk-4-1 (>= ${source:Version})
 Breaks: gtk-4-examples (<< 3.96.0-3~)
 Replaces: gtk-4-examples (<< 3.96.0-3~)
 Description: programs for the GTK graphical user interface library
@@ -175,7 +175,7 @@ Depends: gir1.2-gtk-4.0 (= ${binary:Version}),
          ${misc:Depends},
          ${shlibs:Depends},
          libgtk-4-common,
-         libgtk-4-0 (= ${binary:Version})
+         libgtk-4-1 (= ${binary:Version})
 Suggests: libgtk-4-doc
 Description: development files for the GTK library
  GTK is a multi-platform toolkit for creating graphical user
@@ -211,7 +211,7 @@ Architecture: any
 Depends: gtk-3-examples,
          ${misc:Depends},
          ${shlibs:Depends},
-         libgtk-4-0 (= ${binary:Version})
+         libgtk-4-1 (= ${binary:Version})
 Recommends: fonts-cantarell,
             librsvg2-common,
 Description: example files for GTK 4

@@ -16,7 +16,7 @@ all_binaries := $(shell sed -ne 's/^Package: *//p' < debian/control)
 LDFLAGS += -Wl,-O1
 
 APIVER := 4
-SONAME := 0
+SONAME := 1
 
 LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 
