@@ -265,7 +265,7 @@
  *         <property name="column">0</property>
  *         <property name="row">0</property>
  *         <property name="row-span">1</property>
- *         <property name="col-span">1</property>
+ *         <property name="column-span">1</property>
  *       </layout>
  *     </object>
  *   </child>
@@ -275,7 +275,7 @@
  *         <property name="column">1</property>
  *         <property name="row">0</property>
  *         <property name="row-span">1</property>
- *         <property name="col-span">1</property>
+ *         <property name="column-span">1</property>
  *       </layout>
  *     </object>
  *   </child>
@@ -1535,7 +1535,9 @@ gtk_widget_class_init (GtkWidgetClass *klass)
   /**
    * GtkWidget::move-focus:
    * @widget: the object which received the signal.
-   * @direction:
+   * @direction: the direction of the focus move
+   *
+   * Emitted when the focus is moved.
    */
   widget_signals[MOVE_FOCUS] =
     g_signal_new (I_("move-focus"),

@@ -681,6 +681,8 @@ gdk_surface_finalize (GObject *object)
 {
   GdkSurface *surface = GDK_SURFACE (object);
 
+  g_clear_handle_id (&surface->request_motion_id, g_source_remove);
+
   g_signal_handlers_disconnect_by_func (surface->display,
                                         seat_removed_cb, surface);
 
@@ -1354,6 +1356,13 @@ gdk_surface_layout_on_clock (GdkFrameClock *clock,
   g_signal_emit (surface, signals[LAYOUT], 0, surface->width, surface->height);
 }
 
+/**
+ * gdk_surface_request_layout:
+ * @surface: a #GdkSurface
+ *
+ * Request a %GDK_FRAME_CLOCK_PHASE_LAYOUT from the surface's
+ * frame clock. See gdk_frame_clock_request_phase().
+ */
 void
 gdk_surface_request_layout (GdkSurface *surface)
 {
@@ -1553,6 +1562,20 @@ gdk_surface_freeze_updates (GdkSurface *surface)
     _gdk_frame_clock_uninhibit_freeze (surface->frame_clock);
 }
 
+static gboolean
+request_motion_cb (void *data)
+{
+  GdkSurface *surface = GDK_SURFACE (data);
+  GdkFrameClock *clock = gdk_surface_get_frame_clock (surface);
+
+  if (clock)
+    gdk_frame_clock_request_phase (clock, GDK_FRAME_CLOCK_PHASE_FLUSH_EVENTS);
+  surface->request_motion_id = 0;
+
+  return G_SOURCE_REMOVE;
+}
+
+
 /*
  * gdk_surface_thaw_updates:
  * @surface: a #GdkSurface
@@ -1576,6 +1599,13 @@ gdk_surface_thaw_updates (GdkSurface *surface)
 
       if (surface->pending_phases)
         gdk_frame_clock_request_phase (frame_clock, surface->pending_phases);
+
+      if (surface->request_motion && surface->request_motion_id == 0)
+        {
+          surface->request_motion_id =
+            g_idle_add_full (GDK_PRIORITY_REDRAW + 20,
+                             request_motion_cb, surface, NULL);
+        }
     }
 }
 
@@ -2912,13 +2942,7 @@ gdk_surface_handle_event (GdkEvent *event)
 void
 gdk_surface_request_motion (GdkSurface *surface)
 {
-  GdkFrameClock *frame_clock;
-
   surface->request_motion = TRUE;
-
-  frame_clock = gdk_surface_get_frame_clock (surface);
-  if (frame_clock)
-    gdk_frame_clock_request_phase (frame_clock, GDK_FRAME_CLOCK_PHASE_FLUSH_EVENTS);
 }
 
 /**
