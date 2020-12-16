@@ -1,12 +1,18 @@
 gtk+4.0 (4.0.0-1) UNRELEASED; urgency=medium
 
   * New upstream release
-
- -- Simon McVittie <smcv@debian.org>  Wed, 16 Dec 2020 19:37:15 +0000
-
-gtk+4.0 (3.99.5-1) experimental; urgency=medium
-
-  * New upstream release
+  * Add Provides for gir1.2-gdkwayland-4.0 on Linux
+  * d/copyright: Remove unused GPL-2+ paragraph
+  * d/copyright: Remove unused autoconf-archive paragraph
+  * Standards-Version: 4.5.1 (no changes required)
+  * Add a Lintian override for #970275
+  * d/tests: Reduce number of tests marked as flaky
+  * Add iso-codes as a Recommends, and depend on it for tests
+  * Disable gvfs and other GIO modules for build-time tests.
+    If running on a developer system, we don't want to interact with
+    "larger" components like gnome-online-accounts.
+  * Make build-time test failures fatal
+  * Add missing libxdamage-dev (build-)dependency
   * Preferentially build-depend on libgdk-pixbuf-2.0-dev.
     We don't need the deprecated Xlib integration that is also pulled in
     by the older libgdk-pixbuf2.0-dev package (see #974870).
@@ -17,7 +23,7 @@ gtk+4.0 (3.99.5-1) experimental; urgency=medium
   * Bump build-dependency on Glib to 2.66
   * Update symbols file
 
- -- Simon McVittie <smcv@debian.org>  Fri, 11 Dec 2020 11:33:40 +0000
+ -- Simon McVittie <smcv@debian.org>  Wed, 16 Dec 2020 21:25:00 +0000
 
 gtk+4.0 (3.99.4-1) experimental; urgency=medium
 
