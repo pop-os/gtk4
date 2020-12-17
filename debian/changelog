@@ -27,8 +27,22 @@ gtk4 (4.0.0-1) UNRELEASED; urgency=medium
   * Use https for Homepage
   * d/watch: ".." is not a version number
   * Bump build-dependency on Glib to 2.66
+  * Split gtk-4-tests into its own package
+  * libgtk-4-1 Breaks/Replaces experimental libgtk-4-0.
+    Both packages contain the print backends, which do not contain the
+    SONAME in their names. We anticipate that if the SONAME was bumped in
+    future, the "4.0.0" in the module loading path would also change, so
+    this isn't a problem for Policy §8.2; the only reason the path didn't
+    already change here is that versions prior to 4.0.0 were development
+    snapshots and explicitly not API- or ABI-stable.
+    Moving the print backends to a separate package would create a circular
+    dependency (since libgtk-4-1 would need at least a Recommends on the
+    print backends, and the print backends depend on the main library),
+    and would not actually help co-installability with a future libgtk-4-2,
+    since they should be upgraded in lockstep.
+  * Remove obsolete Breaks copied from GTK 3
 
- -- Simon McVittie <smcv@debian.org>  Wed, 16 Dec 2020 21:30:56 +0000
+ -- Simon McVittie <smcv@debian.org>  Thu, 17 Dec 2020 13:49:02 +0000
 
 gtk+4.0 (3.99.4-1) experimental; urgency=medium
 
