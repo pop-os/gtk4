@@ -40,6 +40,7 @@ UDEB_PKG := $(SHARED_PKG)-udeb
 DOC_PKG := libgtk-$(APIVER)-doc
 BIN_PKG := libgtk-$(APIVER)-bin
 EXAMPLES_PKG := gtk-$(APIVER)-examples
+TESTS_PKG := gtk-$(APIVER)-tests
 
 # files larger than 4k in size will be compressed by dh_compress
 # so append a .gz suffix to avoid dangling symlinks
@@ -64,6 +65,7 @@ debian/%: debian/%.in
 		-e "s#@DOC_PKG@#$(DOC_PKG)#g" \
 		-e "s#@BIN_PKG@#$(BIN_PKG)#g" \
 		-e "s#@EXAMPLES_PKG@#$(EXAMPLES_PKG)#g" \
+		-e "s#@TESTS_PKG@#$(TESTS_PKG)#g" \
 		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
 		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
 		-e "s#@LIBDIR@#$(LIBDIR)#g" \
@@ -111,10 +113,14 @@ endif
 ifeq ($(filter %-examples,$(built_binaries)),)
 configure_flags_deb += -Dbuild-examples=false
 configure_flags_deb += -Ddemos=false
-configure_flags_deb += -Dinstall-tests=false
 else
 configure_flags_deb += -Dbuild-examples=true
 configure_flags_deb += -Ddemos=true
+endif
+
+ifeq ($(filter %-tests,$(built_binaries)),)
+configure_flags_deb += -Dinstall-tests=false
+else
 configure_flags_deb += -Dinstall-tests=true
 endif
 

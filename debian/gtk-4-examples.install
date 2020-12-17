@@ -3,7 +3,6 @@ usr/bin/gtk4-demo-application
 usr/bin/gtk4-icon-browser
 usr/bin/gtk4-print-editor
 usr/bin/gtk4-widget-factory
-usr/libexec/installed-tests/gtk-4.0
 usr/share/applications/org.gtk.Demo4.desktop
 usr/share/applications/org.gtk.IconBrowser4.desktop
 usr/share/applications/org.gtk.PrintEditor4.desktop
@@ -13,7 +12,6 @@ usr/share/icons/hicolor/*/*/org.gtk.Demo4*
 usr/share/icons/hicolor/*/*/org.gtk.IconBrowser4*
 usr/share/icons/hicolor/*/*/org.gtk.PrintEditor4*
 usr/share/icons/hicolor/*/*/org.gtk.WidgetFactory4*
-usr/share/installed-tests/gtk-4.0
 usr/share/man/*/gtk4-demo-application.*
 usr/share/man/*/gtk4-demo.*
 usr/share/man/*/gtk4-icon-browser.*
