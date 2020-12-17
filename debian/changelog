@@ -1,5 +1,6 @@
-gtk4 (4.0.0-1) UNRELEASED; urgency=medium
+gtk4 (4.0.0-1) experimental; urgency=medium
 
+  * Team upload
   * New upstream release
     - Bump SONAME to libgtk-4.so.1 to reflect incompatibility with 3.9x.y
       development releases
@@ -42,7 +43,7 @@ gtk4 (4.0.0-1) UNRELEASED; urgency=medium
     since they should be upgraded in lockstep.
   * Remove obsolete Breaks copied from GTK 3
 
- -- Simon McVittie <smcv@debian.org>  Thu, 17 Dec 2020 13:49:02 +0000
+ -- Simon McVittie <smcv@debian.org>  Sun, 27 Dec 2020 00:23:58 +0000
 
 gtk+4.0 (3.99.4-1) experimental; urgency=medium
 
