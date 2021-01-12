@@ -20,16 +20,22 @@
 #include "config.h"
 
 #include "gtkgstpaintableprivate.h"
-
 #include "gtkgstsinkprivate.h"
 
+#include <gtk/gtk.h>
 #include <gst/player/gstplayer-video-renderer.h>
+#include <gsk/gl/gskglrenderer.h>
+
+#include <math.h>
 
 struct _GtkGstPaintable
 {
   GObject parent_instance;
 
   GdkPaintable *image;
+  double pixel_aspect_ratio;
+
+  GdkGLContext *context;
 };
 
 struct _GtkGstPaintableClass
@@ -66,7 +72,8 @@ gtk_gst_paintable_paintable_get_intrinsic_width (GdkPaintable *paintable)
   GtkGstPaintable *self = GTK_GST_PAINTABLE (paintable);
 
   if (self->image)
-    return gdk_paintable_get_intrinsic_width (self->image);
+    return round (self->pixel_aspect_ratio *
+      gdk_paintable_get_intrinsic_width (self->image));
 
   return 0;
 }
@@ -88,7 +95,8 @@ gtk_gst_paintable_paintable_get_intrinsic_aspect_ratio (GdkPaintable *paintable)
   GtkGstPaintable *self = GTK_GST_PAINTABLE (paintable);
 
   if (self->image)
-    return gdk_paintable_get_intrinsic_aspect_ratio (self->image);
+    return self->pixel_aspect_ratio *
+      gdk_paintable_get_intrinsic_aspect_ratio (self->image);
 
   return 0.0;
 };
@@ -108,10 +116,34 @@ gtk_gst_paintable_video_renderer_create_video_sink (GstPlayerVideoRenderer *rend
                                                     GstPlayer              *player)
 {
   GtkGstPaintable *self = GTK_GST_PAINTABLE (renderer);
+  GstElement *sink, *glsinkbin;
 
-  return g_object_new (GTK_TYPE_GST_SINK,
+#if GST_GL_HAVE_WINDOW_WIN32 && GST_GL_HAVE_PLATFORM_WGL && defined (GDK_WINDOWING_WIN32)
+  /*
+   * Unfortunately, we can't connect the GstGLContext with our GDKGLContext,
+   * since gdk_gl_context_make_current(), which calls wglMakeCurrent(), does not
+   * allow us to share WGL contexts across threads, which will cause a crash.
+   * See MR !3034, so no WGL in the gstreamer media backend :(
+   */
+  sink = g_object_new (GTK_TYPE_GST_SINK,
                        "paintable", self,
                        NULL);
+  return sink;
+#else
+  sink = g_object_new (GTK_TYPE_GST_SINK,
+                       "paintable", self,
+                       "gl-context", self->context,
+                       NULL);
+
+  if (self->context == NULL)
+    return sink;
+
+  glsinkbin = gst_element_factory_make ("glsinkbin", NULL);
+
+  g_object_set (glsinkbin, "sink", sink, NULL);
+
+  return glsinkbin;
+#endif
 }
 
 static void
@@ -155,9 +187,61 @@ gtk_gst_paintable_new (void)
   return g_object_new (GTK_TYPE_GST_PAINTABLE, NULL);
 }
 
+void
+gtk_gst_paintable_realize (GtkGstPaintable *self,
+                           GdkSurface      *surface)
+{
+  GError *error = NULL;
+  GtkNative *native;
+  GskRenderer *renderer;
+
+  if (self->context)
+    return;
+
+  native = gtk_native_get_for_surface (surface);
+  renderer = gtk_native_get_renderer (native);
+  if (!GSK_IS_GL_RENDERER (renderer))
+    {
+      GST_INFO ("not using GL with a %s renderer\n", G_OBJECT_TYPE_NAME (renderer));
+      return;
+    }
+
+  self->context = gdk_surface_create_gl_context (surface, &error);
+  if (self->context == NULL)
+    {
+      GST_INFO ("failed to create GDK GL context: %s", error->message);
+      g_error_free (error);
+      return;
+    }
+
+  if (!gdk_gl_context_realize (self->context, &error))
+    {
+      GST_INFO ("failed to realize GDK GL context: %s", error->message);
+      g_clear_object (&self->context);
+      g_error_free (error);
+      return;
+    }
+}
+
+void
+gtk_gst_paintable_unrealize (GtkGstPaintable *self,
+                             GdkSurface      *surface)
+{
+  /* XXX: We could be smarter here and:
+   * - track how often we were realized with that surface
+   * - track alternate surfaces
+   */
+  if (self->context == NULL)
+    return;
+
+  if (gdk_gl_context_get_surface (self->context) == surface)
+    g_clear_object (&self->context);
+}
+
 static void
 gtk_gst_paintable_set_paintable (GtkGstPaintable *self,
-                                 GdkPaintable    *paintable)
+                                 GdkPaintable    *paintable,
+                                 double           pixel_aspect_ratio)
 {
   gboolean size_changed;
 
@@ -165,7 +249,8 @@ gtk_gst_paintable_set_paintable (GtkGstPaintable *self,
     return;
 
   if (self->image == NULL ||
-      gdk_paintable_get_intrinsic_width (self->image) != gdk_paintable_get_intrinsic_width (paintable) ||
+      self->pixel_aspect_ratio * gdk_paintable_get_intrinsic_width (self->image) !=
+      pixel_aspect_ratio * gdk_paintable_get_intrinsic_width (paintable) ||
       gdk_paintable_get_intrinsic_height (self->image) != gdk_paintable_get_intrinsic_height (paintable) ||
       gdk_paintable_get_intrinsic_aspect_ratio (self->image) != gdk_paintable_get_intrinsic_aspect_ratio (paintable))
     size_changed = TRUE;
@@ -173,6 +258,7 @@ gtk_gst_paintable_set_paintable (GtkGstPaintable *self,
     size_changed = FALSE;
 
   g_set_object (&self->image, paintable);
+  self->pixel_aspect_ratio = pixel_aspect_ratio;
 
   if (size_changed)
     gdk_paintable_invalidate_size (GDK_PAINTABLE (self));
@@ -185,6 +271,7 @@ typedef struct _SetTextureInvocation SetTextureInvocation;
 struct _SetTextureInvocation {
   GtkGstPaintable *paintable;
   GdkTexture      *texture;
+  double           pixel_aspect_ratio;
 };
 
 static void
@@ -202,20 +289,23 @@ gtk_gst_paintable_set_texture_invoke (gpointer data)
   SetTextureInvocation *invoke = data;
 
   gtk_gst_paintable_set_paintable (invoke->paintable,
-                                   GDK_PAINTABLE (invoke->texture));
+                                   GDK_PAINTABLE (invoke->texture),
+                                   invoke->pixel_aspect_ratio);
 
   return G_SOURCE_REMOVE;
 }
 
 void
 gtk_gst_paintable_queue_set_texture (GtkGstPaintable *self,
-                                     GdkTexture      *texture)
+                                     GdkTexture      *texture,
+                                     double           pixel_aspect_ratio)
 {
   SetTextureInvocation *invoke;
 
   invoke = g_slice_new0 (SetTextureInvocation);
   invoke->paintable = g_object_ref (self);
   invoke->texture = g_object_ref (texture);
+  invoke->pixel_aspect_ratio = pixel_aspect_ratio;
 
   g_main_context_invoke_full (NULL,
                               G_PRIORITY_DEFAULT,

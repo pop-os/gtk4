@@ -210,8 +210,10 @@ gdk_vulkan_strerror (VkResult result)
       return "An unknown error has occurred; either the application has provided invalid input, or an implementation failure has occurred.";
 #endif
 #if VK_HEADER_VERSION >= 135
+#if VK_HEADER_VERSION < 162
     case VK_ERROR_INCOMPATIBLE_VERSION_KHR:
-      return "Acceleration structure serialized with version as the version information is not compatible with device.";
+      return "This error was removed by the Vulkan gods.";
+#endif
     case VK_THREAD_IDLE_KHR:
       return "A deferred operation is not complete but there is currently no work for this thread to do at the time of this call.";
     case VK_THREAD_DONE_KHR:

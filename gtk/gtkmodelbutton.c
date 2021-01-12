@@ -73,7 +73,7 @@
  * and #GtkModelButton:icon properties.
  *
  * The appearance of model buttons can be influenced with the
- * #GtkModelButton:centered and #GtkModelButton:iconic properties.
+ * #GtkModelButton:iconic property.
  *
  * Model buttons have built-in support for submenus in #GtkPopoverMenu.
  * To make a GtkModelButton that opens a submenu when activated, set
@@ -177,7 +177,6 @@ struct _GtkModelButton
   GtkEventController *controller;
 
   guint active : 1;
-  guint centered : 1;
   guint iconic : 1;
   guint keep_open : 1;
 };
@@ -490,7 +489,7 @@ update_node_name (GtkModelButton *self)
     {
     case GTK_BUTTON_ROLE_TITLE:
       start_name = "arrow";
-      end_name = NULL;
+      end_name = "";
       break;
     case GTK_BUTTON_ROLE_NORMAL:
       start_name = NULL;
@@ -759,8 +758,6 @@ gtk_model_button_set_iconic (GtkModelButton *self,
       gtk_widget_remove_css_class (widget, "image-button");
       gtk_widget_add_css_class (widget, "flat");
     }
-
-  self->centered = iconic;
 
   if (!iconic)
     {

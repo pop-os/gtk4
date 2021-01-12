@@ -36,12 +36,19 @@
  * SECTION:gtkvideo
  * @title: GtkVideo
  * @short_description: A widget for displaying video
- * @see_also: #GtkMediaControls
+ * @see_also: #GtkMediaControls, #GtkMediaStream
  *
- * GtkVideo is a widget to show a #GtkMediaStream.
+ * GtkVideo is a widget to show a #GtkMediaStream with media controls
+ * as provided by #GtkMediaControls. If you just want to display a
+ * video without controls, you can treat it like any other paintable
+ * and for example put it into a #GtkPicture.
  *
- * It is commonly combined with #GtkMediaControls to give the
- * user a way to control the playback.
+ * GtkVideo aims to cover use cases such as previews, embedded animations,
+ * etc. It supports autoplay, looping, and simple media controls. It does
+ * not have support for video overlays, multichannel audio, device
+ * selection, or input. If you are writing a full-fledged video player,
+ * you may want to use the #GdkPaintable API and a media framework such
+ * as Gstreamer directly.
  */
 
 struct _GtkVideo
@@ -131,6 +138,9 @@ gtk_video_unrealize (GtkWidget *widget)
 {
   GtkVideo *self = GTK_VIDEO (widget);
 
+  if (self->autoplay && self->media_stream)
+    gtk_media_stream_pause (self->media_stream);
+
   if (self->media_stream)
     {
       GdkSurface *surface;
@@ -149,7 +159,9 @@ gtk_video_map (GtkWidget *widget)
 
   GTK_WIDGET_CLASS (gtk_video_parent_class)->map (widget);
 
-  if (self->autoplay && self->media_stream)
+  if (self->autoplay &&
+      self->media_stream &&
+      gtk_media_stream_is_prepared (self->media_stream))
     gtk_media_stream_play (self->media_stream);
 }
 
@@ -165,9 +177,18 @@ gtk_video_unmap (GtkWidget *widget)
       gtk_revealer_set_reveal_child (GTK_REVEALER (self->controls_revealer), FALSE);
     }
 
-  /* XXX: pause video here? */
-
   GTK_WIDGET_CLASS (gtk_video_parent_class)->unmap (widget);
+}
+
+static void
+gtk_video_hide (GtkWidget *widget)
+{
+  GtkVideo *self = GTK_VIDEO (widget);
+
+  if (self->autoplay && self->media_stream)
+    gtk_media_stream_pause (self->media_stream);
+
+  GTK_WIDGET_CLASS (gtk_video_parent_class)->hide (widget);
 }
 
 static void
@@ -268,6 +289,7 @@ gtk_video_class_init (GtkVideoClass *klass)
   widget_class->unrealize = gtk_video_unrealize;
   widget_class->map = gtk_video_map;
   widget_class->unmap = gtk_video_unmap;
+  widget_class->hide = gtk_video_hide;
   widget_class->set_focus_child = gtk_video_set_focus_child;
 
   gobject_class->dispose = gtk_video_dispose;
@@ -545,6 +567,13 @@ gtk_video_notify_cb (GtkMediaStream *stream,
     gtk_video_update_error (self);
   if (g_str_equal (pspec->name, "playing"))
     gtk_video_update_playing (self);
+  if (g_str_equal (pspec->name, "prepared"))
+    {
+      if (self->autoplay &&
+          gtk_media_stream_is_prepared (stream) &&
+          gtk_widget_get_mapped (GTK_WIDGET (self)))
+        gtk_media_stream_play (stream);
+    }
 }
 
 /**
@@ -571,6 +600,8 @@ gtk_video_set_media_stream (GtkVideo       *self,
 
   if (self->media_stream)
     {
+      if (self->autoplay)
+        gtk_media_stream_pause (self->media_stream);
       g_signal_handlers_disconnect_by_func (self->media_stream,
                                             gtk_video_notify_cb,
                                             self);
@@ -600,7 +631,9 @@ gtk_video_set_media_stream (GtkVideo       *self,
                         "notify",
                         G_CALLBACK (gtk_video_notify_cb),
                         self);
-      if (self->autoplay)
+      if (self->autoplay &&
+          gtk_media_stream_is_prepared (stream) &&
+          gtk_widget_get_mapped (GTK_WIDGET (self)))
         gtk_media_stream_play (stream);
     }
 
@@ -655,7 +688,13 @@ gtk_video_set_file (GtkVideo *self,
       stream = gtk_media_file_new ();
 
       if (gtk_widget_get_realized (GTK_WIDGET (self)))
-        gtk_media_file_set_file (GTK_MEDIA_FILE (stream), file);
+        {
+          GdkSurface *surface;
+
+          surface = gtk_native_get_surface (gtk_widget_get_native (GTK_WIDGET (self)));
+          gtk_media_stream_realize (stream, surface);
+          gtk_media_file_set_file (GTK_MEDIA_FILE (stream), file);
+        }
       gtk_video_set_media_stream (self, stream);
 
       g_object_unref (stream);

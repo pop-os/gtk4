@@ -47,7 +47,46 @@
  * The most basic way to use a #GtkDropTarget to receive drops on a
  * widget is to create it via gtk_drop_target_new() passing in the
  * #GType of the data you want to receive and connect to the
- * GtkDropTarget::drop signal to receive the data.
+ * #GtkDropTarget::drop signal to receive the data:
+ *
+ * |[<!-- language="C" -->
+ * static gboolean
+ * on_drop (GtkDropTarget *target,
+ *          const GValue  *value,
+ *          double         x,
+ *          double         y,
+ *          gpointer       data)
+ * {
+ *   MyWidget *self = data;
+ *
+ *   // Call the appropriate setter depending on the type of data
+ *   // that we received
+ *   if (G_VALUE_HOLDS (value, G_TYPE_FILE))
+ *     my_widget_set_file (self, g_value_get_object (value));
+ *   else if (G_VALUE_HOLDS (value, GDK_TYPE_PIXBUF))
+ *     my_widget_set_pixbuf (self, g_value_get_object (value));
+ *   else
+ *     return FALSE;
+ *
+ *   return TRUE;
+ * }
+ *
+ * static void
+ * my_widget_init (MyWidget *self)
+ * {
+ *   GtkDropTarget *target =
+ *     gtk_drop_target_new (G_TYPE_INVALID, GDK_ACTION_COPY);
+ *
+ *   // This widget accepts two types of drop types: GFile objects
+ *   // and GdkPixbuf objects
+ *   gtk_drop_target_set_gtypes (target, (GTypes [2]) {
+ *     G_TYPE_FILE,
+ *     GDK_TYPE_PIXBUF,
+ *   }, 2);
+ *
+ *   gtk_widget_add_controller (GTK_WIDGET (self), GTK_EVENT_CONTROLLER (target));
+ * }
+ * ]|
  *
  * #GtkDropTarget supports more options, such as:
  *
@@ -638,9 +677,9 @@ gtk_drop_target_class_init (GtkDropTargetClass *class)
    * The value for this drop operation or %NULL if the data has not been
    * loaded yet or no drop operation is going on.
    *
-   * Data may be available before the GtkDropTarget::drop signal gets emitted -
-   * for example when the GtkDropTarget:preload property is set.
-   * You can use the GObject::notify signal to be notified of available data.
+   * Data may be available before the #GtkDropTarget::drop signal gets emitted -
+   * for example when the #GtkDropTarget:preload property is set.
+   * You can use the #GObject::notify signal to be notified of available data.
    */
   properties[PROP_VALUE] =
        g_param_spec_boxed ("value",
@@ -657,20 +696,20 @@ gtk_drop_target_class_init (GtkDropTargetClass *class)
    * @drop: the #GdkDrop
    *
    * The ::accept signal is emitted on the drop site when a drop operation
-   * is about to begin.  
+   * is about to begin.
    * If the drop is not accepted, %FALSE will be returned and the drop target
    * will ignore the drop. If %TRUE is returned, the drop is accepted for now
    * but may be rejected later via a call to gtk_drop_target_reject() or
-   * ultimately by returning %FALSE from GtkDropTarget::drop
+   * ultimately by returning %FALSE from #GtkDropTarget::drop.
    *
    * The default handler for this signal decides whether to accept the drop
    * based on the formats provided by the @drop.
    *
-   * If the decision whether the drop will be accepted or rejected needs
-   * inspecting the data, this function should return %TRUE, the 
-   * GtkDropTarget:preload property should be set and the value
-   * should be inspected via the GObject::notify:value signal and then call
-   * gtk_drop_target_reject().
+   * If the decision whether the drop will be accepted or rejected depends
+   * on the data, this function should return %TRUE, the #GtkDropTarget:preload
+   * property should be set and the value should be inspected via the
+   * #GObject::notify:value signal, calling gtk_drop_target_reject() if
+   * required.
    *
    * Returns: %TRUE if @drop is accepted
    */
@@ -835,8 +874,6 @@ gtk_drop_target_get_formats (GtkDropTarget *self)
  * @n_types: number of @types
  *
  * Sets the supported #GTypes for this drop target.
- *
- * The GtkDropTarget::drop signal will 
  **/
 void
 gtk_drop_target_set_gtypes (GtkDropTarget *self,

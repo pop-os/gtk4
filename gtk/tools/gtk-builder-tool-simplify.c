@@ -507,8 +507,8 @@ set_attribute_value (Element *element,
     }
 
   len = g_strv_length (element->attribute_names);
-  element->attribute_names = g_realloc (element->attribute_names, len + 2);
-  element->attribute_values = g_realloc (element->attribute_values, len + 2);
+  element->attribute_names = g_realloc_n (element->attribute_names, len + 2, sizeof (char *));
+  element->attribute_values = g_realloc_n (element->attribute_values, len + 2, sizeof (char *));
   element->attribute_names[len] = g_strdup (name);
   element->attribute_values[len] = g_strdup (value);
   element->attribute_names[len + 1] = NULL;
@@ -660,6 +660,7 @@ property_has_been_removed (Element      *element,
     { "GtkBox", "pack-type", PROP_KIND_PACKING },
     { "GtkHeaderBar", "position", PROP_KIND_PACKING },
     { "GtkPopoverMenu", "position",PROP_KIND_PACKING },
+    { "GtkCheckButton", "draw-indicator", PROP_KIND_OBJECT },
   };
   char *canonical_name;
   gboolean found;
@@ -1721,6 +1722,20 @@ rewrite_toolbar (Element      *element,
   Element *style = NULL;
 
   set_attribute_value (element, "class", "GtkBox");
+
+  for (l = element->children; l; l = l->next)
+    {
+      Element *child = l->data;
+
+      if (g_str_equal (child->element_name, "property") &&
+          (has_attribute (child, "name", "toolbar_style") ||
+           has_attribute (child, "name", "toolbar-style")))
+        {
+          element->children = g_list_remove (element->children, child);
+          free_element (child);
+          break;
+        }
+    }
 
   for (l = element->children; l; l = l->next)
     {
