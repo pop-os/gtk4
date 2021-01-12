@@ -1,9 +1,10 @@
-gtk4 (4.0.1-1) UNRELEASED; urgency=medium
+gtk4 (4.0.1-1) experimental; urgency=medium
 
+  * Team upload
   * New upstream release
-  * d/rules: Specifically enable recompilation of CSS with sassc
+  * d/rules: Force recompilation of CSS with sassc
 
- -- Simon McVittie <smcv@debian.org>  Tue, 12 Jan 2021 09:30:59 +0000
+ -- Simon McVittie <smcv@debian.org>  Tue, 12 Jan 2021 18:45:15 +0000
 
 gtk4 (4.0.0-1) experimental; urgency=medium
 
