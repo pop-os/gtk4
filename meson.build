@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '4.0.0',
+        version: '4.0.1',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -127,6 +127,7 @@ gtk_libdir = join_paths(gtk_prefix, get_option('libdir'))
 gtk_datadir = join_paths(gtk_prefix, get_option('datadir'))
 gtk_localedir = join_paths(gtk_prefix, get_option('localedir'))
 gtk_sysconfdir = join_paths(gtk_prefix, get_option('sysconfdir'))
+gtk_bindir = join_paths(gtk_prefix, get_option('bindir'))
 gtk_applicationsdir = join_paths(gtk_datadir, 'applications')
 gtk_schemasdir = join_paths(gtk_datadir, 'glib-2.0/schemas')
 gtk_appdatadir = join_paths(gtk_datadir, 'metainfo')
@@ -347,7 +348,8 @@ endif
 gmodule_dep    = dependency('gmodule-2.0', version: glib_req,
                             fallback : ['glib', 'libgmodule_dep'])
 cairo_dep      = dependency('cairo', version: cairo_req,
-                            fallback : ['cairo', 'libcairo_dep'])
+                            fallback : ['cairo', 'libcairo_dep'],
+                            default_options: ['zlib=enabled'])
 cairogobj_dep  = dependency('cairo-gobject', version: cairo_req,
                             fallback : ['cairo', 'libcairogobject_dep'])
 pango_dep      = dependency('pango', version: pango_req,
@@ -373,14 +375,22 @@ endif
 pangocairo_dep = dependency('pangocairo', version: pango_req,
                             fallback : ['pango', 'libpangocairo_dep'])
 pixbuf_dep     = dependency('gdk-pixbuf-2.0', version: gdk_pixbuf_req,
-                            fallback : ['gdk-pixbuf', 'gdkpixbuf_dep'])
+                            fallback : ['gdk-pixbuf', 'gdkpixbuf_dep'],
+                            default_options: ['man=false'])
 epoxy_dep      = dependency('epoxy', version: epoxy_req,
                             fallback: ['libepoxy', 'libepoxy_dep'])
 harfbuzz_dep   = dependency('harfbuzz', version: '>= 0.9', required: false,
-                            fallback: ['harfbuzz', 'libharfbuzz_dep'])
+                            fallback: ['harfbuzz', 'libharfbuzz_dep'],
+                            default_options: ['coretext=enabled'])
 xkbdep         = dependency('xkbcommon', version: xkbcommon_req, required: wayland_enabled)
-graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
-                            fallback: ['graphene', 'graphene_dep'])
+if os_darwin
+  graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
+                              fallback: ['graphene', 'graphene_dep'],
+                              default_options: ['introspection=false'])
+else
+  graphene_dep   = dependency('graphene-gobject-1.0', version: graphene_req,
+                              fallback: ['graphene', 'graphene_dep'])
+endif
 iso_codes_dep  = dependency('iso-codes', required: false)
 
 gtk_doc_dep    = dependency('gtk-doc', version: '>=1.33',
@@ -721,7 +731,7 @@ if cairogobj_pkg_found
 endif
 
 if vulkan_pkg_found
-  gdk_packages += 'vulkan'
+  gdk_packages += ' vulkan'
 endif
 
 pkgconf.set('GDK_PACKAGES', gdk_packages)
@@ -787,7 +797,8 @@ if not meson.is_cross_build()
                            gtk_api_version,
                            gtk_binary_version,
                            gtk_libdir,
-                           gtk_datadir)
+                           gtk_datadir,
+                           gtk_bindir)
 else
   message('Not executing post-install steps automatically when cross compiling')
 endif

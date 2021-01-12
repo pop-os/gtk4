@@ -180,7 +180,7 @@ label {
 }
 
 .dim-label {
-  opacity: 0.55;
+  opacity: $dim_label_opacity;
   text-shadow: none;
 }
 
@@ -536,7 +536,8 @@ button {
         transition: $button_transition;
         transition-duration: 500ms;
       }
-      &:active {
+      &:active,
+      &:checked {
         @include button(undecorated-active);
         transition: $button_transition;
       }
@@ -1396,9 +1397,10 @@ windowcontrols {
     min-height: 0;
     &:hover {
       //special case hover colors inside a headerbar
-      @include button(undecorated-hover,$c:$headerbar_bg_color);
+      @include button(undecorated-hover,$c:darken($headerbar_bg_color,6%));
     }
-    &:active { @include button(undecorated-active,$c:$headerbar_bg_color); }
+    &:active,
+    &:checked { @include button(undecorated-active,$c:darken($headerbar_bg_color,10%)); }
   }
 }
 
@@ -1829,7 +1831,10 @@ popover.background {
       background-color: transparent;
     }
 
-    separator { margin: 3px; }
+    separator {
+      background-color: mix($bg_color, $borders_color, 30%);
+      margin: 3px;
+    }
 
     list separator { margin: 0; }
   }
@@ -2345,6 +2350,8 @@ switch {
 
   @include focus-ring($offset: 0, $outer: true);
 
+  headerbar & { background-color: darken($dark_fill,8%); } //3504
+
   &:checked {
     color: $selected_fg_color;
     border-color: $switch_borders_color;
@@ -2541,6 +2548,8 @@ treeview.view radio:selected { &:focus, & { @extend %radio; }} // This is a work
   border: 1px solid $borders_color;
   border-radius: 3px;
   background-color: $dark_fill;
+
+  headerbar & { background-color: darken($dark_fill,8%); } //3504
 
   &:disabled {
    background-color: $insensitive_bg_color;

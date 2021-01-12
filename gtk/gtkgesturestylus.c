@@ -35,6 +35,7 @@
 #include "gtkintl.h"
 #include "gtkmarshalers.h"
 #include "gtkmain.h"
+#include "gtknative.h"
 
 G_DEFINE_TYPE (GtkGestureStylus, gtk_gesture_stylus, GTK_TYPE_GESTURE_SINGLE)
 
@@ -319,6 +320,10 @@ gtk_gesture_stylus_get_backlog (GtkGestureStylus  *gesture,
   GArray *backlog_array;
   GdkTimeCoord *history = NULL;
   guint n_coords = 0, i;
+  double surf_x, surf_y;
+  GtkNative *native;
+  GtkWidget *event_widget;
+  GtkWidget *controller_widget;
 
   g_return_val_if_fail (GTK_IS_GESTURE_STYLUS (gesture), FALSE);
   g_return_val_if_fail (backlog != NULL && n_elems != NULL, FALSE);
@@ -331,28 +336,30 @@ gtk_gesture_stylus_get_backlog (GtkGestureStylus  *gesture,
   if (!history)
     return FALSE;
 
+  native = gtk_widget_get_native (gtk_get_event_widget (event));
+  gtk_native_get_surface_transform (native, &surf_x, &surf_y);
+
   backlog_array = g_array_new (FALSE, FALSE, sizeof (GdkTimeCoord));
+  event_widget = gtk_get_event_widget (event);
+  controller_widget = gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture));
   for (i = 0; i < n_coords; i++)
     {
-      GdkTimeCoord *time_coord = &history[i];
+      const GdkTimeCoord *time_coord = &history[i];
       graphene_point_t p;
 
-      g_array_append_val (backlog_array, *time_coord);
-      time_coord = &g_array_index (backlog_array, GdkTimeCoord, backlog_array->len - 1);
-      if (gtk_widget_compute_point (gtk_get_event_widget (event),
-                                    gtk_event_controller_get_widget (GTK_EVENT_CONTROLLER (gesture)),
-                                    &GRAPHENE_POINT_INIT (time_coord->axes[GDK_AXIS_X],
-                                                          time_coord->axes[GDK_AXIS_Y]),
+      if (gtk_widget_compute_point (event_widget, controller_widget,
+                                    &GRAPHENE_POINT_INIT (time_coord->axes[GDK_AXIS_X] - surf_x,
+                                                          time_coord->axes[GDK_AXIS_Y] - surf_y),
                                     &p))
         {
-          time_coord->axes[GDK_AXIS_X] = p.x;
-          time_coord->axes[GDK_AXIS_Y] = p.y;
+          GdkTimeCoord translated_coord = *time_coord;
+
+          translated_coord.axes[GDK_AXIS_X] = p.x;
+          translated_coord.axes[GDK_AXIS_Y] = p.y;
+
+          g_array_append_val (backlog_array, translated_coord);
         }
-      else
-        {
-          g_array_set_size (backlog_array, backlog_array->len - 1);
-        }
-    }
+      }
 
   *n_elems = backlog_array->len;
   *backlog = (GdkTimeCoord *) g_array_free (backlog_array, FALSE);

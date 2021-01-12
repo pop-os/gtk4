@@ -317,8 +317,8 @@ gtk_box_buildable_iface_init (GtkBuildableIface *iface)
 
 /**
  * gtk_box_new:
- * @orientation: the box’s orientation.
- * @spacing: the number of pixels to place by default between children.
+ * @orientation: the box’s orientation
+ * @spacing: the number of pixels to place by default between children
  *
  * Creates a new #GtkBox.
  *
@@ -346,7 +346,7 @@ gtk_box_new (GtkOrientation orientation,
  */
 void
 gtk_box_set_homogeneous (GtkBox  *box,
-			 gboolean homogeneous)
+                         gboolean homogeneous)
 {
   GtkBoxLayout *box_layout;
 
@@ -393,7 +393,7 @@ gtk_box_get_homogeneous (GtkBox *box)
  */
 void
 gtk_box_set_spacing (GtkBox *box,
-		     int     spacing)
+                     int     spacing)
 {
   GtkBoxLayout *box_layout;
 
@@ -441,7 +441,7 @@ gtk_box_get_spacing (GtkBox *box)
  */
 void
 gtk_box_set_baseline_position (GtkBox             *box,
-			       GtkBaselinePosition position)
+                               GtkBaselinePosition position)
 {
   GtkBoxLayout *box_layout;
 
@@ -479,7 +479,7 @@ gtk_box_get_baseline_position (GtkBox *box)
  * gtk_box_insert_child_after:
  * @box: a #GtkBox
  * @child: the #GtkWidget to insert
- * @sibling: (nullable): the sibling to move @child after, or %NULL
+ * @sibling: (nullable): the sibling after which to insert @child
  *
  * Inserts @child in the position after @sibling in the list
  * of @box children. If @sibling is %NULL, insert @child at

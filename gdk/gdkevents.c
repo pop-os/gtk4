@@ -210,7 +210,7 @@ gdk_event_init (GdkEvent *self)
 GType
 gdk_event_get_type (void)
 {
-  static volatile gsize event_type__volatile;
+  static gsize event_type__volatile;
 
   if (g_once_init_enter (&event_type__volatile))
     {
@@ -374,7 +374,7 @@ static GType gdk_event_types[GDK_EVENT_LAST];
 GType \
 type_name ## _get_type (void) \
 { \
-  static volatile gsize gdk_define_event_type_id__volatile; \
+  static gsize gdk_define_event_type_id__volatile; \
   if (g_once_init_enter (&gdk_define_event_type_id__volatile)) \
     { \
       GType gdk_define_event_type_id = \
@@ -452,7 +452,7 @@ gdk_event_init_types_once (void)
 void
 gdk_event_init_types (void)
 {
-  static volatile gsize event_types__volatile;
+  static gsize event_types__volatile;
 
   if (g_once_init_enter (&event_types__volatile))
     {
@@ -1136,6 +1136,22 @@ gdk_event_get_axes (GdkEvent  *event,
   g_return_val_if_fail (GDK_IS_EVENT (event), FALSE);
 
   return GDK_EVENT_GET_CLASS (event)->get_axes (event, axes, n_axes);
+}
+
+double *
+gdk_event_dup_axes (GdkEvent *event)
+{
+  double *axes;
+  guint n_axes;
+
+  if (gdk_event_get_axes (event, &axes, &n_axes))
+    {
+      double *axes_copy = g_memdup (axes, n_axes * sizeof (double));
+
+      return axes_copy;
+    }
+
+  return NULL;
 }
 
 /**

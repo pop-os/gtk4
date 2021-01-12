@@ -264,14 +264,6 @@ therefore can no longer be used to break reference cycles. A typical sign
 of a reference cycle involving a toplevel window is when closing the window
 does not make the application quit.
 
-A good rule to follow is: If you set a widget pointer with
-gtk_widget_class_bind_template_child() in class_init(), you need to
-unparent it in dispose(). The slight complication here is that you need
-to respect the widget hierarchy while doing so. Ie if you set both `field1`
-and `field2`, but `field1` is an ancestor of `field2`, then you only need
-to unparent `field1` — doing so will remove the the entire subtree below
-`field1`, including `field2`.
-
 ### Stop using GdkScreen
 
 The GdkScreen object has been removed in GTK 4. Most of its APIs already
@@ -407,7 +399,7 @@ and gdk_keymap_get_entries_for_keyval().
 GTK 3 has the idea that use of modifiers may differ between different
 platforms, and has a #GdkModifierIntent api to let platforms provide
 hint about how modifiers are expected to be used. It also promoted
-the use of <Primary> instead of <Control> to specify accelerators that
+the use of `<Primary>` instead of `<Control>` to specify accelerators that
 adapt to platform conventions.
 
 In GTK 4, the meaning of modifiers has been fixed, and backends are
@@ -426,13 +418,88 @@ GDK_CONTROL_MASK|GDK_ALT_MASK
  : Prevent text input
 
 Consequently, #GdkModifierIntent and related APIs have been removed,
-and <Control> is preferred over <Primary> in accelerators.
+and `<Control>` is preferred over `<Primary>` in accelerators.
 
 A related change is that GTK 4 no longer supports the use of archaic
 X11 'real' modifiers with the names Mod1,..., Mod5, and %GDK_MOD1_MASK
 has been renamed to %GDK_ALT_MASK.
 
-### Stop using gtk_get_current_... APIs
+### Replace GtkClipboard with GdkClipboard
+
+The `GtkClipboard` API has been removed, and replaced by #GdkClipboard.
+There is not direct 1:1 mapping between the old an the new API, so it cannot
+be a mechanical replacement; the new API is based on object types and #GValue
+like object properties, instead of opaque identifiers, so it should be easier
+to use.
+
+For instance, the example below copies the contents of an entry into the
+clipboard:
+
+```
+static void
+copy_text (GtkWidget *widget)
+{
+  GtkEditable *editable = GTK_EDITABLE (widget);
+
+  // Initialize a GValue with the contents of the widget
+  GValue value = G_VALUE_INIT;
+  g_value_init (&value, G_TYPE_STRING);
+  g_value_set_string (&value, gtk_editable_get_text (editable));
+
+  // Store the value in the clipboard object
+  GdkClipboard *clipboard = gtk_widget_get_clipboard (widget);
+  gdk_clipboard_set_value (clipboard, &value);
+
+  g_value_unset (&value);
+}
+```
+
+whereas the example below pastes the contents into the entry:
+
+```
+static void
+paste_text (GtkWidget *widget)
+{
+  GtkEditable *editable = GTK_EDITABLE (widget);
+
+  // Initialize a GValue to receive text
+  GValue value = G_VALUE_INIT;
+  g_value_init (&value, G_TYPE_STRING);
+
+  // Get the content provider for the clipboard, and ask it for text
+  GdkClipboard *clipboard = gtk_widget_get_clipboard (widget);
+  GdkContentProvider *provider = gdk_clipboard_get_content (clipboard);
+
+  // If the content provider does not contain text, we are not interested
+  if (!gdk_content_provider_get_value (provider, &value, NULL))
+    return;
+
+  const char *str = g_value_get_string (&value);
+
+  gtk_editable_set_text (editable, str);
+
+  g_value_unset (&value);
+}
+```
+
+The convenience API for specific target types in `GtkClipboard` has been
+replaced by their corresponding GType:
+
+| GtkClipboard                         | GType                 |
+| ----------------------------------- | ---------------------- |
+| `gtk_clipboard_request_text()`      | `G_TYPE_STRING`        |
+| `gtk_clipboard_request_rich_text()` | `GTK_TYPE_TEXT_BUFFER` |
+| `gtk_clipboard_request_image()`     | `GDK_TYPE_PIXBUF`      |
+| `gtk_clipboard_request_uris()`      |` GDK_TYPE_FILE_LIST`   |
+
+**Note**: Support for rich text serialization across different processes
+for #GtkTextBuffer is not available any more.
+
+If you are copying the contents of an image, it is recommended to use
+GDK_TYPE_PAINTABLE instead of GDK_TYPE_PIXBUF, to minimize the amount of
+potential copies.
+
+### Stop using `gtk_get_current_...` APIs
 
 The function gtk_get_current_event() and its variants have been
 replaced by equivalent event controller APIs:
@@ -448,6 +515,25 @@ option. You should always review the resulting changes.
 The <requires> tag now supports for the 'lib' attribute the
 'gtk' value only, instead of the 'gtk+' one previously.
 
+## Adapt to GtkBuilder API changes
+
+gtk_builder_connect_signals() no longer exists. Instead, signals are
+always connected automatically. If you need to add user data to your
+signals, gtk_builder_set_current_object() must be called. An important
+caveat is that you have to do this before loading any XML. This means if
+you need to use gtk_builder_set_current_object(), you can no longer use
+gtk_builder_new_from_file(), gtk_builder_new_from_resource(), or
+gtk_builder_new_from_string(). Instead, you must use vanilla gtk_builder_new(),
+then call gtk_builder_set_current_object(), then load the XML using
+gtk_builder_add_from_file(), gtk_builder_add_from_resource(), or
+gtk_builder_add_from_string(). You must check the return value for
+failure and manually abort with g_error() if something went wrong.
+
+You only have to worry about this if you were previously using
+gtk_builder_connect_signals(). If you are using templates, then
+gtk_widget_init_template() will call gtk_builder_set_current_object()
+for you, so templates work like before.
+
 ### Adapt to event controller API changes
 
 A few changes to the event controller and #GtkGesture APIs
@@ -457,6 +543,23 @@ and #GtkEventControllerMotion::leave signals have gained new arguments.
 Another is that #GtkGestureMultiPress has been renamed to #GtkGestureClick,
 and has lost its area property. A #GtkEventControllerFocus has been
 split off from #GtkEventcontrollerKey.
+
+In GTK 3, #GtkEventController:widget was a construct-only property, so
+a #GtkWidget was provided whenever constructing a #GtkEventController.
+In GTK 4, #GtkEventController:widget is now read-only. Use
+gtk_widget_add_controller() to add an event controller to a widget.
+
+In GTK 3, widgets did not own their event controllers, and event
+controllers did not own their widgets, so developers were responsible
+for manually keeping event controllers alive for the lifetime of their
+associated widgets. In GTK 4, widgets own their event controllers.
+gtk_widget_add_controller() takes ownership of the event controller, so
+there is no longer any need to store a reference to the event controller
+after it has been added to a widget.
+
+Although not normally needed, an event controller could be removed from
+a widget in GTK 3 by destroying the event controller with g_object_unref().
+In GTK 4, you must use gtk_widget_remove_controller().
 
 ### Focus handling changes
 
@@ -1062,7 +1165,7 @@ to start a drag manually, call gdk_drag_begin().
 The ::drag-data-get signal has been replaced by the #GtkDragSource::prepare
 signal, which returns a #GdkContentProvider for the drag operation.
 
-The destination-side Drag-and-Drop  apis in GTK 4 have also been changed
+The destination-side Drag-and-Drop API in GTK 4 have also been changed
 to use an event controller, #GtkDropTarget. Instead of calling
 gtk_drag_dest_set() and connecting to #GtkWidget signals, you create
 a #GtkDropTarget object, attach it to the widget with
@@ -1156,6 +1259,11 @@ the user interaction. You can replace it with a simple #GtkButton that
 shows a #GtkFileChooserNative dialog when clicked; once the file selection
 has completed, you can update the label of the #GtkButton with the selected
 file.
+
+### Adapt to changed GtkSettings properties
+
+In GTK 3 the #GtkSettings:gtk-cursor-aspect-ratio property of #GtkSettings was
+a float. In GTK 4 this has been changed to a double.
 
 ## Changes to consider after the switch
 

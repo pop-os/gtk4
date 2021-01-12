@@ -1263,15 +1263,22 @@ gsk_border_node_diff (GskRenderNode  *node1,
       gdk_rgba_equal (&self1->border_color[0], &self2->border_color[0]))
     return;
 
-  if (gsk_rounded_rect_equal (&self1->outline, &self2->outline) &&
+  /* Different uniformity -> diff impossible */
+  if (self1->uniform ^ self2->uniform)
+    {
+      gsk_render_node_diff_impossible (node1, node2, region);
+      return;
+    }
+
+  if (self1->border_width[0] == self2->border_width[0] &&
+      self1->border_width[1] == self2->border_width[1] &&
+      self1->border_width[2] == self2->border_width[2] &&
+      self1->border_width[3] == self2->border_width[3] &&
       gdk_rgba_equal (&self1->border_color[0], &self2->border_color[0]) &&
       gdk_rgba_equal (&self1->border_color[1], &self2->border_color[1]) &&
       gdk_rgba_equal (&self1->border_color[2], &self2->border_color[2]) &&
       gdk_rgba_equal (&self1->border_color[3], &self2->border_color[3]) &&
-      self1->border_width[0] == self2->border_width[0] &&
-      self1->border_width[1] == self2->border_width[1] &&
-      self1->border_width[2] == self2->border_width[2] &&
-      self1->border_width[3] == self2->border_width[3])
+      gsk_rounded_rect_equal (&self1->outline, &self2->outline))
     return;
 
   gsk_render_node_diff_impossible (node1, node2, region);
@@ -2755,6 +2762,16 @@ gsk_transform_node_draw (GskRenderNode *node,
                             ctm.xx, ctm.yx,
                             ctm.xy, ctm.yy,
                             ctm.x0, ctm.y0));
+  if (xx * yy == xy * yx)
+    {
+      /* broken matrix here. This can happen during transitions
+       * (like when flipping an axis at the point where scale == 0)
+       * and just means that nothing should be drawn.
+       * But Cairo thows lots of ugly errors instead of silently
+       * going on. So We silently go on.
+       */
+      return;
+    }
   cairo_transform (cr, &ctm);
 
   gsk_render_node_draw (self->child, cr);
@@ -5632,7 +5649,7 @@ gsk_render_node_init_types_once (void)
 void
 gsk_render_node_init_types (void)
 {
-  static volatile gsize register_types__volatile;
+  static gsize register_types__volatile;
 
   if (g_once_init_enter (&register_types__volatile))
     {

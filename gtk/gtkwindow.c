@@ -158,6 +158,8 @@
  * instead.
  */
 
+typedef struct _GtkWindowGeometryInfo GtkWindowGeometryInfo;
+
 typedef struct
 {
   GtkWidget             *child;
@@ -6479,6 +6481,8 @@ gtk_window_destroy (GtkWindow *window)
                                -1);
 
   g_list_store_remove (toplevel_list, i);
+
+  gtk_window_release_application (window);
 
   gtk_widget_unrealize (GTK_WIDGET (window));
 

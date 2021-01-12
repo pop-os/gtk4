@@ -251,9 +251,8 @@ static GdkPixbuf *
 load_symbolic_svg (const char     *escaped_file_data,
                    int             width,
                    int             height,
-                   double          scale,
-                   int             icon_width,
-                   int             icon_height,
+                   const char     *icon_width_str,
+                   const char     *icon_height_str,
                    const char     *fg_string,
                    const char     *success_color_string,
                    const char     *warning_color_string,
@@ -263,22 +262,13 @@ load_symbolic_svg (const char     *escaped_file_data,
   GInputStream *stream;
   GdkPixbuf *pixbuf;
   char *data;
-  char *svg_width, *svg_height;
-
-  if (width == 0)
-    width = icon_width * scale;
-  if (height == 0)
-    height = icon_height * scale;
-
-  svg_width = g_strdup_printf ("%d", icon_width);
-  svg_height = g_strdup_printf ("%d", icon_height);
 
   data = g_strconcat ("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"?>\n"
                       "<svg version=\"1.1\"\n"
                       "     xmlns=\"http://www.w3.org/2000/svg\"\n"
                       "     xmlns:xi=\"http://www.w3.org/2001/XInclude\"\n"
-                      "     width=\"", svg_width, "\"\n"
-                      "     height=\"", svg_height, "\">\n"
+                      "     width=\"", icon_width_str, "\"\n"
+                      "     height=\"", icon_height_str, "\">\n"
                       "  <style type=\"text/css\">\n"
                       "    rect,circle,path {\n"
                       "      fill: ", fg_string," !important;\n"
@@ -296,8 +286,6 @@ load_symbolic_svg (const char     *escaped_file_data,
                       "  <xi:include href=\"data:text/xml;base64,", escaped_file_data, "\"/>\n"
                       "</svg>",
                       NULL);
-  g_free (svg_width);
-  g_free (svg_height);
 
   stream = g_memory_input_stream_new_from_data (data, -1, g_free);
   pixbuf = gdk_pixbuf_new_from_stream_at_scale (stream, width, height, TRUE, NULL, error);
@@ -441,11 +429,14 @@ gtk_make_symbolic_pixbuf_from_data (const char  *file_data,
                                     int          width,
                                     int          height,
                                     double       scale,
+                                    const char  *debug_output_basename,
                                     GError     **error)
 
 {
   const char *r_string = "rgb(255,0,0)";
   const char *g_string = "rgb(0,255,0)";
+  char *icon_width_str;
+  char *icon_height_str;
   GdkPixbuf *loaded;
   GdkPixbuf *pixbuf = NULL;
   int plane;
@@ -468,6 +459,13 @@ gtk_make_symbolic_pixbuf_from_data (const char  *file_data,
   }
 
   escaped_file_data = g_base64_encode ((guchar *) file_data, file_len);
+  icon_width_str = g_strdup_printf ("%d", icon_width);
+  icon_height_str = g_strdup_printf ("%d", icon_height);
+
+  if (width == 0)
+    width = icon_width * scale;
+  if (height == 0)
+    height = icon_height * scale;
 
   for (plane = 0; plane < 3; plane++)
     {
@@ -483,16 +481,26 @@ gtk_make_symbolic_pixbuf_from_data (const char  *file_data,
        * channels, with the color of the fg being implicitly
        * the "rest", as all color fractions should add up to 1.
        */
-      loaded = load_symbolic_svg (escaped_file_data, width, height, scale,
-                                  icon_width,
-                                  icon_height,
+      loaded = load_symbolic_svg (escaped_file_data, width, height,
+                                  icon_width_str,
+                                  icon_height_str,
                                   g_string,
                                   plane == 0 ? r_string : g_string,
                                   plane == 1 ? r_string : g_string,
                                   plane == 2 ? r_string : g_string,
                                   error);
       if (loaded == NULL)
-        return NULL;
+        goto out;
+
+      if (debug_output_basename)
+        {
+          char *filename;
+
+          filename = g_strdup_printf ("%s.debug%d.png", debug_output_basename, plane);
+          g_print ("Writing %s\n", filename);
+          gdk_pixbuf_save (loaded, filename, "png", NULL, NULL);
+          g_free (filename);
+        }
 
       if (pixbuf == NULL)
         {
@@ -511,6 +519,10 @@ gtk_make_symbolic_pixbuf_from_data (const char  *file_data,
     }
 
   g_free (escaped_file_data);
+
+out:
+  g_free (icon_width_str);
+  g_free (icon_height_str);
 
   return pixbuf;
 }
@@ -533,7 +545,7 @@ gtk_make_symbolic_pixbuf_from_resource (const char  *path,
 
   data = g_bytes_get_data (bytes, &size);
 
-  pixbuf = gtk_make_symbolic_pixbuf_from_data (data, size, width, height, scale, error);
+  pixbuf = gtk_make_symbolic_pixbuf_from_data (data, size, width, height, scale, NULL, error);
 
   g_bytes_unref (bytes);
 
@@ -554,7 +566,7 @@ gtk_make_symbolic_pixbuf_from_path (const char  *path,
   if (!g_file_get_contents (path, &data, &size, error))
     return NULL;
 
-  pixbuf = gtk_make_symbolic_pixbuf_from_data (data, size, width, height, scale, error);
+  pixbuf = gtk_make_symbolic_pixbuf_from_data (data, size, width, height, scale, NULL, error);
 
   g_free (data);
 
@@ -575,7 +587,7 @@ gtk_make_symbolic_pixbuf_from_file (GFile       *file,
   if (!g_file_load_contents (file, NULL, &data, &size, NULL, error))
     return NULL;
 
-  pixbuf = gtk_make_symbolic_pixbuf_from_data (data, size, width, height, scale, error);
+  pixbuf = gtk_make_symbolic_pixbuf_from_data (data, size, width, height, scale, NULL, error);
 
   g_free (data);
 

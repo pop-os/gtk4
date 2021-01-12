@@ -1097,15 +1097,16 @@ handle_property_change (GdkX11DeviceManagerXI2 *device_manager,
       if (ev->what != XIPropertyDeleted &&
           device_get_tool_serial_and_id (device, &serial_id, &tool_id))
         {
+          GdkDeviceToolType tool_type;
+
           seat = gdk_device_get_seat (device);
-          tool = gdk_seat_get_tool (seat, serial_id, tool_id);
+          tool_type = device_get_tool_type (device);
 
-          if (!tool && serial_id > 0)
+          if (tool_type != GDK_DEVICE_TOOL_TYPE_UNKNOWN)
             {
-              GdkDeviceToolType tool_type;
+              tool = gdk_seat_get_tool (seat, serial_id, tool_id, tool_type);
 
-              tool_type = device_get_tool_type (device);
-              if (tool_type != GDK_DEVICE_TOOL_TYPE_UNKNOWN)
+              if (!tool && serial_id > 0)
                 {
                   tool = gdk_device_tool_new (serial_id, tool_id, tool_type, 0);
                   gdk_seat_default_add_tool (GDK_SEAT_DEFAULT (seat), tool);
@@ -1716,19 +1717,49 @@ gdk_x11_device_manager_xi2_translate_event (GdkEventTranslator *translator,
             scroll_valuators_changed (GDK_X11_DEVICE_XI2 (source_device),
                                       &xev->valuators, &delta_x, &delta_y))
           {
+            GdkModifierType state;
+
             GDK_DISPLAY_NOTE (display, EVENTS,
                      g_message ("smooth scroll: \n\tdevice: %u\n\tsource device: %u\n\twindow %ld\n\tdeltas: %f %f",
                                 xev->deviceid, xev->sourceid,
                                 xev->event, delta_x, delta_y));
 
-            event = gdk_scroll_event_new (surface,
-                                          device,
-                                          NULL,
-                                          xev->time,
-                                          _gdk_x11_device_xi2_translate_state (&xev->mods, &xev->buttons, &xev->group),
-                                          delta_x,
-                                          delta_y,
-                                          delta_x == 0.0 && delta_y == 0.0);
+            state = _gdk_x11_device_xi2_translate_state (&xev->mods, &xev->buttons, &xev->group);
+
+            if (gdk_device_get_source (source_device) != GDK_SOURCE_TOUCHPAD &&
+                ((delta_x == 0.0 && ABS (delta_y) == 1.0) ||
+                 (ABS (delta_x) == 1.0 && delta_y == 0.0)))
+              {
+                GdkScrollDirection direction;
+
+                if (delta_x > 0)
+                  direction = GDK_SCROLL_RIGHT;
+                else if (delta_x < 0)
+                  direction = GDK_SCROLL_LEFT;
+                else if (delta_y > 0)
+                  direction = GDK_SCROLL_DOWN;
+                else
+                  direction = GDK_SCROLL_UP;
+
+                event = gdk_scroll_event_new_discrete (surface,
+                                                       device,
+                                                       NULL,
+                                                       xev->time,
+                                                       state,
+                                                       direction,
+                                                       FALSE);
+              }
+            else
+              {
+                event = gdk_scroll_event_new (surface,
+                                              device,
+                                              NULL,
+                                              xev->time,
+                                              state,
+                                              delta_x,
+                                              delta_y,
+                                              delta_x == 0.0 && delta_y == 0.0);
+              }
             break;
           }
 
