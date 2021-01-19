@@ -212,7 +212,11 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		--builddirectory=debian/build/deb \
 		-- \
 		--setup=x11 \
-	${NULL}
+	|| { \
+		e=$$?; \
+		tail -v -n +0 debian/build/deb/meson-logs/testlog-x11.txt; \
+		exit $$e; \
+	}
 endif
 
 override_dh_auto_install:
