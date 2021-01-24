@@ -2,7 +2,7 @@ Source: gtk4
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Emilio Pozuelo Monfort <pochu@debian.org>, Jeremy Bicha <jbicha@debian.org>
+Uploaders: Jeremy Bicha <jbicha@debian.org>
 Build-Depends: adwaita-icon-theme <!nocheck>,
                at-spi2-core <!nocheck>,
                dbus <!nocheck>,
@@ -76,9 +76,9 @@ Depends: adwaita-icon-theme,
          libgtk-4-common (>= ${source:Version})
 Provides: gtk4-binver-4.0.0
 Recommends: libgtk-4-bin,
-            iso-codes
+            iso-codes,
+            librsvg2-common,
 Suggests: gvfs,
-          librsvg2-common
 Breaks: libgtk-4-0 (<< 4.0.0),
 Replaces: libgtk-4-0 (<< 4.0.0),
 Pre-Depends: ${misc:Pre-Depends}

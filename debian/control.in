@@ -76,9 +76,9 @@ Depends: adwaita-icon-theme,
          @COMMON_PKG@ (>= ${source:Version})
 Provides: @GTK_BINVER_DEP@
 Recommends: @BIN_PKG@,
-            iso-codes
+            iso-codes,
+            librsvg2-common,
 Suggests: gvfs,
-          librsvg2-common
 Breaks: libgtk-4-0 (<< 4.0.0),
 Replaces: libgtk-4-0 (<< 4.0.0),
 Pre-Depends: ${misc:Pre-Depends}
