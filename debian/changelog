@@ -1,4 +1,4 @@
-gtk4 (4.0.1-2) UNRELEASED; urgency=medium
+gtk4 (4.0.2-1) UNRELEASED; urgency=medium
 
   * d/rules: Show test log if build-time test fails.
     dh_auto_test would automatically show meson-logs/testlog.txt, but
@@ -12,8 +12,9 @@ gtk4 (4.0.1-2) UNRELEASED; urgency=medium
     adwaita-icon-theme already Recommends librsvg2-common, but people who
     routinely do not install recommended packages will get a better hint
     about how much will be broken by its removal if GTK also recommends it.
+  * New upstream release
 
- -- Simon McVittie <smcv@debian.org>  Fri, 29 Jan 2021 18:17:07 +0000
+ -- Simon McVittie <smcv@debian.org>  Fri, 29 Jan 2021 18:19:26 +0000
 
 gtk4 (4.0.1-1) experimental; urgency=medium
 
