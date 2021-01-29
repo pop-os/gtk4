@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '4.0.1',
+        version: '4.0.2',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -802,6 +802,8 @@ if not meson.is_cross_build()
 else
   message('Not executing post-install steps automatically when cross compiling')
 endif
+
+meson.add_dist_script('build-aux/meson/dist-theme.py')
 
 if host_machine.system() != 'windows'
   # Install Valgrind suppression files (except on Windows,

@@ -101,6 +101,12 @@
  *                        "title", _("About ExampleCode"),
  *                        NULL);
  * ]|
+ *
+ * # CSS nodes
+ *
+ * GtkAboutDialog has a single CSS node with the name window and style
+ * class .aboutdialog.
+
  */
 
 typedef struct
@@ -310,6 +316,17 @@ stack_visible_child_notify (GtkStack       *stack,
 }
 
 static void
+gtk_about_dialog_map (GtkWidget *widget)
+{
+  GtkAboutDialog *about = GTK_ABOUT_DIALOG (widget);
+
+  if (gtk_widget_get_visible (about->stack_switcher))
+    gtk_widget_grab_focus (gtk_widget_get_first_child (about->stack_switcher));
+
+  GTK_WIDGET_CLASS (gtk_about_dialog_parent_class)->map (widget);
+}
+
+static void
 gtk_about_dialog_class_init (GtkAboutDialogClass *klass)
 {
   GObjectClass *object_class;
@@ -322,6 +339,8 @@ gtk_about_dialog_class_init (GtkAboutDialogClass *klass)
   object_class->get_property = gtk_about_dialog_get_property;
 
   object_class->finalize = gtk_about_dialog_finalize;
+
+  widget_class->map = gtk_about_dialog_map;
 
   klass->activate_link = gtk_about_dialog_activate_link;
 
@@ -1644,41 +1663,7 @@ gtk_about_dialog_set_logo_icon_name (GtkAboutDialog *about,
   if (gtk_image_get_storage_type (GTK_IMAGE (about->logo_image)) == GTK_IMAGE_PAINTABLE)
     g_object_notify_by_pspec (G_OBJECT (about), props[PROP_LOGO]);
 
-  if (icon_name)
-    {
-      GtkIconTheme *icon_theme = gtk_icon_theme_get_for_display (gtk_widget_get_display (GTK_WIDGET (about)));
-      int *sizes = gtk_icon_theme_get_icon_sizes (icon_theme, icon_name);
-      int i, best_size = 0;
-
-      for (i = 0; sizes[i]; i++)
-        {
-          if (sizes[i] >= 128 || sizes[i] == -1)
-            {
-              best_size = 128;
-              break;
-            }
-          else if (sizes[i] >= 96)
-            {
-              best_size = MAX (96, best_size);
-            }
-          else if (sizes[i] >= 64)
-            {
-              best_size = MAX (64, best_size);
-            }
-          else
-            {
-              best_size = MAX (48, best_size);
-            }
-        }
-      g_free (sizes);
-
-      gtk_image_set_from_icon_name (GTK_IMAGE (about->logo_image), icon_name);
-      gtk_image_set_pixel_size (GTK_IMAGE (about->logo_image), best_size);
-    }
-  else
-    {
-      gtk_image_clear (GTK_IMAGE (about->logo_image));
-    }
+  gtk_image_set_from_icon_name (GTK_IMAGE (about->logo_image), icon_name);
 
   g_object_notify_by_pspec (G_OBJECT (about), props[PROP_LOGO_ICON_NAME]);
 

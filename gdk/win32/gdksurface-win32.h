@@ -265,24 +265,17 @@ struct _GdkWin32Surface
   int initial_y;
 
   /* left/right/top/bottom width of the shadow/resize-grip around the window */
-  RECT margins;
+  RECT shadow;
 
-  /* left+right and top+bottom from @margins */
-  int margins_x;
-  int margins_y;
+  /* left+right and top+bottom from @shadow */
+  int shadow_x;
+  int shadow_y;
 
-  /* Set to TRUE when GTK tells us that margins are 0 everywhere.
-   * We don't actually set margins to 0, we just set this bit.
+  /* Set to TRUE when GTK tells us that shadow are 0 everywhere.
+   * We don't actually set shadow to 0, we just set this bit.
    */
-  guint zero_margins : 1;
+  guint zero_shadow : 1;
   guint inhibit_configure : 1;
-
-  /* Set to TRUE if window is using true layered mode adjustments
-   * via UpdateLayeredWindow().
-   * Layered windows that get SetLayeredWindowAttributes() called
-   * on them are not true layered windows.
-   */
-  guint layered : 1;
 
   /* If TRUE, the @temp_styles is set to the styles that were temporarily
    * added to this window.
@@ -309,12 +302,6 @@ struct _GdkWin32Surface
   int              dib_width;
   int              dib_height;
 
-  /* If the client wants uniformly-transparent window,
-   * we remember the opacity value here and apply it
-   * during UpdateLayredWindow() call, for layered windows.
-   */
-  double           layered_opacity;
-
   HDC              hdc;
   int              hdc_count;
   HBITMAP          saved_dc_bitmap; /* Original bitmap for dc */
@@ -340,9 +327,6 @@ struct _GdkWin32Surface
   /* Enable all decorations? */
   gboolean decorate_all;
 
-  /* No. of windows to force layered windows off */
-  guint suppress_layered;
-
   /* Temporary styles that this window got for the purpose of
    * handling WM_SYSMENU.
    * They are removed at the first opportunity (usually WM_INITMENU).
@@ -353,6 +337,13 @@ struct _GdkWin32Surface
   int surface_scale;
   int unscaled_width;
   int unscaled_height;
+
+  GdkToplevelLayout *toplevel_layout;
+  struct {
+    int configured_width;
+    int configured_height;
+  } next_layout;
+  gboolean resized;
 
 #ifdef GDK_WIN32_ENABLE_EGL
   EGLSurface egl_surface;
@@ -375,11 +366,6 @@ int   _gdk_win32_surface_get_scale_factor    (GdkSurface *window);
 void  _gdk_win32_get_window_client_area_rect (GdkSurface *window,
                                               int         scale,
                                               RECT       *rect);
-void  _gdk_win32_update_layered_window_from_cache (GdkSurface *window,
-                                                   RECT       *client_rect,
-                                                   gboolean    do_move,
-                                                   gboolean    do_resize,
-                                                   gboolean    do_paint);
 
 void gdk_win32_surface_move (GdkSurface *surface,
                              int         x,
