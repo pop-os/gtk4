@@ -3900,7 +3900,10 @@ gtk_widget_allocate (GtkWidget    *widget,
   priv->allocated_height = height;
   priv->allocated_size_baseline = baseline;
 
-  adjusted.x = priv->margin.left;
+  if (_gtk_widget_get_direction (widget) == GTK_TEXT_DIR_LTR)
+    adjusted.x = priv->margin.left;
+  else
+    adjusted.x = priv->margin.right;
   adjusted.y = priv->margin.top;
   adjusted.width = width - priv->margin.left - priv->margin.right;
   adjusted.height = height - priv->margin.top - priv->margin.bottom;
@@ -4182,7 +4185,7 @@ void
 gtk_widget_class_add_binding (GtkWidgetClass  *widget_class,
                               guint            keyval,
                               GdkModifierType  mods,
-                              GtkShortcutFunc  func,
+                              GtkShortcutFunc  callback,
                               const char      *format_string,
                               ...)
 {
@@ -4191,7 +4194,7 @@ gtk_widget_class_add_binding (GtkWidgetClass  *widget_class,
   g_return_if_fail (GTK_IS_WIDGET_CLASS (widget_class));
 
   shortcut = gtk_shortcut_new (gtk_keyval_trigger_new (keyval, mods),
-                               gtk_callback_action_new (func, NULL, NULL));
+                               gtk_callback_action_new (callback, NULL, NULL));
   if (format_string)
     {
       va_list args;
@@ -9120,14 +9123,12 @@ GtkAlign
 gtk_widget_get_halign (GtkWidget *widget)
 {
   GtkWidgetPrivate *priv = gtk_widget_get_instance_private (widget);
-  GtkAlign align;
 
   g_return_val_if_fail (GTK_IS_WIDGET (widget), GTK_ALIGN_FILL);
 
-  align = priv->halign;
-  if (align == GTK_ALIGN_BASELINE)
+  if (priv->halign == GTK_ALIGN_BASELINE)
     return GTK_ALIGN_FILL;
-  return align;
+  return priv->halign;
 }
 
 /**
