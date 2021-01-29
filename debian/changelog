@@ -1,3 +1,20 @@
+gtk4 (4.0.1-2) UNRELEASED; urgency=medium
+
+  * d/rules: Show test log if build-time test fails.
+    dh_auto_test would automatically show meson-logs/testlog.txt, but
+    because we're running with --setup=x11, we get
+    meson-logs/testlog-x11.txt instead.
+  * Increase dependency on librsvg2-common from Suggests to Recommends.
+    This is not a hard dependency, but should be installed in nearly all
+    cases. Increasingly many icons are provided in SVG format, so
+    applications will appear broken if the SVG pixbuf loader is not
+    installed. See #980396 for more information.
+    adwaita-icon-theme already Recommends librsvg2-common, but people who
+    routinely do not install recommended packages will get a better hint
+    about how much will be broken by its removal if GTK also recommends it.
+
+ -- Simon McVittie <smcv@debian.org>  Fri, 29 Jan 2021 18:17:07 +0000
+
 gtk4 (4.0.1-1) experimental; urgency=medium
 
   * Team upload
