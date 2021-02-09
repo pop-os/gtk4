@@ -1,4 +1,4 @@
-gtk4 (4.0.2-1) UNRELEASED; urgency=medium
+gtk4 (4.0.3-1) UNRELEASED; urgency=medium
 
   * d/rules: Show test log if build-time test fails.
     dh_auto_test would automatically show meson-logs/testlog.txt, but
@@ -14,7 +14,7 @@ gtk4 (4.0.2-1) UNRELEASED; urgency=medium
     about how much will be broken by its removal if GTK also recommends it.
   * New upstream release
 
- -- Simon McVittie <smcv@debian.org>  Fri, 29 Jan 2021 18:19:26 +0000
+ -- Simon McVittie <smcv@debian.org>  Tue, 09 Feb 2021 19:56:06 +0000
 
 gtk4 (4.0.1-1) experimental; urgency=medium
 
