@@ -1,5 +1,5 @@
 project('gtk', 'c',
-        version: '4.0.2',
+        version: '4.0.3',
         default_options: [
           'buildtype=debugoptimized',
           'warning_level=1',
@@ -83,6 +83,13 @@ gtk_soversion = '1'
 gtk_library_version = '1.@0@.@1@'.format(gtk_binary_age - gtk_interface_age, gtk_interface_age)
 
 gtk_api_version = '4.0'
+
+module_suffix = []
+# GModule requires file extension to be .so, not .dylib on Mac.
+# https://gitlab.gnome.org/GNOME/glib/issues/520
+if ['darwin', 'ios'].contains(host_machine.system())
+  module_suffix = 'so'
+endif
 
 x11_enabled      = get_option('x11-backend')
 wayland_enabled  = get_option('wayland-backend')
@@ -349,7 +356,7 @@ gmodule_dep    = dependency('gmodule-2.0', version: glib_req,
                             fallback : ['glib', 'libgmodule_dep'])
 cairo_dep      = dependency('cairo', version: cairo_req,
                             fallback : ['cairo', 'libcairo_dep'],
-                            default_options: ['zlib=enabled'])
+                            default_options: ['zlib=enabled', 'tests=disabled'])
 cairogobj_dep  = dependency('cairo-gobject', version: cairo_req,
                             fallback : ['cairo', 'libcairogobject_dep'])
 pango_dep      = dependency('pango', version: pango_req,
