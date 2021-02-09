@@ -393,6 +393,18 @@ popover.menu box.circular-buttons button.circular.image-button.model:hover, list
 
 popover.menu box.circular-buttons button.circular.image-button.model:active, popover.menu box.circular-buttons button.circular.image-button.model:checked, list > row button.image-button:not(.flat):active, list > row button.image-button:not(.flat):checked { color: #2e3436; border-color: #cdc7c2; background-image: image(#dad6d2); box-shadow: none; }
 
+popover.menu box.circular-buttons button.suggested-action.circular.image-button.model, list > row button.image-button:not(.flat).suggested-action { color: white; outline-color: rgba(255, 255, 255, 0.8); border-color: #15539e; background-image: linear-gradient(to top, #2c7fe3 2px, #3584e4); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07); }
+
+popover.menu box.circular-buttons button.suggested-action.circular.image-button.model, list > row button.image-button:not(.flat).suggested-action { outline: 0 solid transparent; outline-offset: 4px; }
+
+popover.menu box.circular-buttons button.suggested-action.circular.image-button.model:focus:focus-visible, list > row button.image-button:not(.flat).suggested-action:focus:focus-visible { outline-color: rgba(255, 255, 255, 0.8); outline-width: 2px; outline-offset: -2px; }
+
+popover.menu box.circular-buttons button.destructive-action.circular.image-button.model, list > row button.image-button:not(.flat).destructive-action { color: white; outline-color: rgba(255, 255, 255, 0.8); border-color: #851015; background-image: linear-gradient(to top, #d71a23 2px, #e01b24); box-shadow: 0 1px 2px rgba(0, 0, 0, 0.07); }
+
+popover.menu box.circular-buttons button.destructive-action.circular.image-button.model, list > row button.image-button:not(.flat).destructive-action { outline: 0 solid transparent; outline-offset: 4px; }
+
+popover.menu box.circular-buttons button.destructive-action.circular.image-button.model:focus:focus-visible, list > row button.image-button:not(.flat).destructive-action:focus:focus-visible { outline-color: rgba(255, 255, 255, 0.8); outline-width: 2px; outline-offset: -2px; }
+
 /********* Links * */
 button.link, link { color: #1b6acb; text-decoration: underline; }
 
