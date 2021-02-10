@@ -1,5 +1,6 @@
 gtk4 (4.0.3-1) UNRELEASED; urgency=medium
 
+  * New upstream release
   * d/rules: Show test log if build-time test fails.
     dh_auto_test would automatically show meson-logs/testlog.txt, but
     because we're running with --setup=x11, we get
@@ -12,9 +13,15 @@ gtk4 (4.0.3-1) UNRELEASED; urgency=medium
     adwaita-icon-theme already Recommends librsvg2-common, but people who
     routinely do not install recommended packages will get a better hint
     about how much will be broken by its removal if GTK also recommends it.
-  * New upstream release
+  * Bump graphene build-dependency to 1.10.4 on i386.
+    Earlier versions used SSE, which has stricter alignment requirements
+    that cause many of the build-time tests to fail (in addition to not
+    being available on Debian's baseline CPU).
+  * d/rules: Add a note of the test failures that need investigation
+  * d/rules: Extend test timeout on slower architectures
+  * Add myself to Uploaders
 
- -- Simon McVittie <smcv@debian.org>  Tue, 09 Feb 2021 19:56:06 +0000
+ -- Simon McVittie <smcv@debian.org>  Wed, 10 Feb 2021 12:22:46 +0000
 
 gtk4 (4.0.1-1) experimental; urgency=medium
 
