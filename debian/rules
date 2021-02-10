@@ -182,6 +182,27 @@ ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_auto_build --builddirectory=debian/build/udeb
 endif
 
+# TODO: Known failures:
+# amd64: none
+# arm64: none
+# armel: (4.0.1) gtk:reftest / reftest pseudoclass-on-box.ui
+# armhf: (4.0.1) gtk:reftest / reftest border-image-url.ui
+#        (4.0.1) gtk:reftest / reftest quit-mnemonic.ui
+# i386: (4.0.3) gtk:reftest / reftest label-attribute-preference.ui
+# mips64el: (4.0.1) gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-normal
+#           (4.0.1) gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-difference
+#           (4.0.1) gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-normal
+#           (4.0.1) gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-difference
+#           (4.0.1) gtk:gtk / templates
+#           (4.0.1) gtk:tools / simplify-3to4
+#           (4.0.1) gtk:reftest / reftest quit-mnemonic.ui
+# mipsel: (4.0.1) many failures (endianness?)
+#         (4.0.1) many timeouts
+# ppc64el: (4.0.1) gtk:reftest / reftest border-image-url.ui
+#          (4.0.1) gtk:reftest / reftest label-wrap-justify.ui
+# s390x: (4.0.1) gtk:tools / simplify-3to4
+#        (4.0.1) gtk:reftest / reftest quit-mnemonic.ui
+#        (4.0.1) many failures (endianness?)
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	# Mark reftests with known failures as non-fatal
