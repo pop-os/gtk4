@@ -182,6 +182,18 @@ ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_auto_build --builddirectory=debian/build/udeb
 endif
 
+test_timeout_multiplier = 1
+
+ifneq ($(filter arm hppa mips% sparc%,$(DEB_HOST_ARCH_CPU)),)
+$(info Slow architecture detected, increasing test timeout)
+test_timeout_multiplier = 10
+endif
+
+ifneq ($(filter m68k riscv64 sh4,$(DEB_HOST_ARCH_CPU)),)
+$(info Architecture with qemu buildds detected, increasing test timeout a lot)
+test_timeout_multiplier = 20
+endif
+
 # TODO: Known failures:
 # amd64: none
 # arm64: none
@@ -233,6 +245,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		--builddirectory=debian/build/deb \
 		-- \
 		--setup=x11 \
+		--timeout-multiplier $(test_timeout_multiplier) \
 	|| { \
 		e=$$?; \
 		tail -v -n +0 debian/build/deb/meson-logs/testlog-x11.txt; \
