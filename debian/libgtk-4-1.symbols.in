@@ -2123,7 +2123,6 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_gl_area_set_has_stencil_buffer@Base 4.0.0
  gtk_gl_area_set_required_version@Base 4.0.0
  gtk_gl_area_set_use_es@Base 4.0.0
- gtk_glade_catalog_init@Base 4.0.0
  gtk_grid_attach@Base 4.0.0
  gtk_grid_attach_next_to@Base 4.0.0
  gtk_grid_get_baseline_row@Base 4.0.0
