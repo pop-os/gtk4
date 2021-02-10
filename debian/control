@@ -2,7 +2,7 @@ Source: gtk4
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Jeremy Bicha <jbicha@debian.org>
+Uploaders: 
 Build-Depends: adwaita-icon-theme <!nocheck>,
                at-spi2-core <!nocheck>,
                dbus <!nocheck>,
@@ -26,6 +26,7 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                libgirepository1.0-dev (>= 1.39.0),
                libglib2.0-dev (>= 2.66.0),
                libgraphene-1.0-dev (>= 1.9.1),
+               libgraphene-1.0-dev (>= 1.10.4~) [any-i386],
                libharfbuzz-dev (>= 0.9),
                libjson-glib-dev,
                libpango1.0-dev (>= 1.47.0),
