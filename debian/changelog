@@ -1,6 +1,9 @@
-gtk4 (4.0.3-1) UNRELEASED; urgency=medium
+gtk4 (4.0.3-1) experimental; urgency=medium
 
   * New upstream release
+  * symbols: Ignore removal of gtk_glade_catalog_init.
+    This symbol appeared in the ABI, but not in any header files, and is
+    considered private.
   * d/rules: Show test log if build-time test fails.
     dh_auto_test would automatically show meson-logs/testlog.txt, but
     because we're running with --setup=x11, we get
@@ -21,7 +24,7 @@ gtk4 (4.0.3-1) UNRELEASED; urgency=medium
   * d/rules: Extend test timeout on slower architectures
   * Add myself to Uploaders
 
- -- Simon McVittie <smcv@debian.org>  Wed, 10 Feb 2021 12:22:46 +0000
+ -- Simon McVittie <smcv@debian.org>  Fri, 12 Feb 2021 10:05:16 +0000
 
 gtk4 (4.0.1-1) experimental; urgency=medium
 
