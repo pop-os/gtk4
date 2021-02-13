@@ -194,6 +194,14 @@ $(info Architecture with qemu buildds detected, increasing test timeout a lot)
 test_timeout_multiplier = 20
 endif
 
+fuzzy_reftests = \
+	border-image-url \
+	label-attribute-preference \
+	label-wrap-justify \
+	pseudoclass-on-box \
+	quit-mnemonic \
+	$(NULL)
+
 # TODO: Known failures:
 # amd64: none
 # arm64: none
@@ -218,6 +226,10 @@ endif
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	rm -f debian/tests-failed
+	set -e; for reftest in $(fuzzy_reftests); do \
+		cp debian/close-enough.keyfile \
+			testsuite/reftests/$$reftest.keyfile; \
+	done
 	# Mark reftests with known failures as non-fatal
 	#touch testsuite/reftests/nonresizable-size.ui.known_fail
 	#touch testsuite/reftests/window-show-contents-on-map.ui.known_fail
@@ -250,6 +262,9 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	|| touch debian/tests-failed
 	tail -v -n +0 debian/build/deb/meson-logs/testlog-x11.txt
 	debian/log-reftests.py
+	set -e; for reftest in $(fuzzy_reftests); do \
+		rm -f testsuite/reftests/$$reftest.keyfile; \
+	done
 	if test -e debian/tests-failed; then exit 1; fi
 endif
 
