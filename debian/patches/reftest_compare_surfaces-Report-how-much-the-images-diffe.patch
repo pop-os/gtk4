@@ -8,6 +8,7 @@ indistinguishable. Report how many pixels differ and by how much, so we
 can get an idea of what's a rounding error and what's a serious problem.
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
+Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3195
 ---
  testsuite/gsk/compare-render.c       | 10 +++++++++-
  testsuite/reftests/gtk-reftest.c     |  9 ++++++++-

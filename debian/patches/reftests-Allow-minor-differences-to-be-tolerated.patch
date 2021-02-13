@@ -27,6 +27,7 @@ the .diff.png for analysis, and use g_test_incomplete() to record the
 test-case as "TODO".
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
+Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3195
 ---
  testsuite/gsk/compare-render.c     | 43 ++++++++++++++++++++++++++++++++++++--
  testsuite/reftests/gtk-reftest.c   | 43 ++++++++++++++++++++++++++++++++++++--
