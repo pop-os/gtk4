@@ -1,0 +1,176 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Sat, 13 Feb 2021 16:19:10 +0000
+Subject: reftests: Allow minor differences to be tolerated
+
+Based on an earlier patch by Michael Biebl, as used in Debian's GTK 3
+packaging, with additional inspiration from librsvg's reftests.
+
+Each .ui or .node reftest can have an accompanying .keyfile file
+like this:
+
+    [reftest]
+    accepted-diff-level=2
+    accepted-diff-pixels=100
+    tolerated-diff-level=20
+    tolerated-diff-pixels=1000
+
+If the number of pixels that differ from the reference is no more than
+accepted-diff-pixels, and each channel in each of those pixels differs
+from the reference by no more than accepted-diff-level, then we consider
+that to be a full success, and don't even save the .diff.png for
+analysis.
+
+If that check fails, but the number of pixels that differ is no more
+than tolerated-diff-pixels and the differences are no more than
+tolerated-diff-level, then we treat it as a success with warnings, save
+the .diff.png for analysis, and use g_test_incomplete() to record the
+test-case as "TODO".
+
+Signed-off-by: Simon McVittie <smcv@debian.org>
+---
+ testsuite/gsk/compare-render.c     | 43 ++++++++++++++++++++++++++++++++++++--
+ testsuite/reftests/gtk-reftest.c   | 43 ++++++++++++++++++++++++++++++++++++--
+ testsuite/reftests/image-compare.c |  2 +-
+ 3 files changed, 83 insertions(+), 5 deletions(-)
+
+diff --git a/testsuite/gsk/compare-render.c b/testsuite/gsk/compare-render.c
+index da6f9e2..a4afd75 100644
+--- a/testsuite/gsk/compare-render.c
++++ b/testsuite/gsk/compare-render.c
+@@ -98,6 +98,12 @@ get_output_file (const char *file,
+   return result;
+ }
+ 
++static char *
++get_test_keyfile (const char *node_file)
++{
++  return file_replace_extension (node_file, ".node", ".keyfile");
++}
++
+ static void
+ save_image (cairo_surface_t *surface,
+             const char      *test_name,
+@@ -242,12 +248,45 @@ main (int argc, char **argv)
+ 
+       if (diff_surface)
+         {
++          char *keyfile_path = get_test_keyfile (node_file);
++          GKeyFile *keyfile = g_key_file_new ();
++          guint64 tolerated_diff = 0;
++          guint64 tolerated_pixels = 0;
++          guint64 accepted_diff = 0;
++          guint64 accepted_pixels = 0;
++
++          if (keyfile_path != NULL && g_file_test (keyfile_path, G_FILE_TEST_EXISTS))
++            {
++              GError *error = NULL;
++              g_key_file_load_from_file (keyfile, keyfile_path, G_KEY_FILE_NONE, &error);
++              g_assert_no_error (error);
++              accepted_diff = g_key_file_get_uint64 (keyfile, "reftest", "accepted-diff-level", NULL);
++              g_print ("Maximum difference accepted: %" G_GUINT64_FORMAT " levels\n", accepted_diff);
++              accepted_pixels = g_key_file_get_uint64 (keyfile, "reftest", "accepted-diff-pixels", NULL);
++              g_print ("Different pixels accepted: %" G_GUINT64_FORMAT "\n", accepted_pixels);
++              tolerated_diff = g_key_file_get_uint64 (keyfile, "reftest", "tolerated-diff-level", NULL);
++              g_print ("Maximum difference tolerated: %" G_GUINT64_FORMAT " levels\n", tolerated_diff);
++              tolerated_pixels = g_key_file_get_uint64 (keyfile, "reftest", "tolerated-diff-pixels", NULL);
++              g_print ("Different pixels tolerated: %" G_GUINT64_FORMAT "\n", tolerated_pixels);
++            }
++
+           g_print ("%u (out of %u) pixels differ from reference by up to %u levels\n",
+                    pixels_changed, pixels, max_diff);
+ 
+-          save_image (diff_surface, node_file, ".diff.png");
++          if (max_diff > accepted_diff || pixels_changed > accepted_pixels)
++            save_image (diff_surface, node_file, ".diff.png");
++
+           cairo_surface_destroy (diff_surface);
+-          success = FALSE;
++
++          if (max_diff <= accepted_diff && pixels_changed <= accepted_pixels)
++            g_print ("differences are within acceptable range\n");
++          else if (max_diff <= tolerated_diff && pixels_changed <= tolerated_pixels)
++            g_print ("not right, but close enough\n");
++          else
++            g_test_fail ();
++
++          g_key_file_unref (keyfile);
++          g_free (keyfile_path);
+         }
+     }
+ 
+diff --git a/testsuite/reftests/gtk-reftest.c b/testsuite/reftests/gtk-reftest.c
+index 6ef17aa..791e95c 100644
+--- a/testsuite/reftests/gtk-reftest.c
++++ b/testsuite/reftests/gtk-reftest.c
+@@ -290,6 +290,12 @@ save_image (cairo_surface_t *surface,
+   g_free (filename);
+ }
+ 
++static char *
++get_test_keyfile (const char *ui_file)
++{
++  return get_test_file (ui_file, ".keyfile", TRUE);
++}
++
+ static void
+ test_ui_file (GFile *file)
+ {
+@@ -326,10 +332,43 @@ test_ui_file (GFile *file)
+ 
+   if (diff_image)
+     {
++      char *keyfile_path = get_test_keyfile (ui_file);
++      GKeyFile *keyfile = g_key_file_new ();
++      guint64 tolerated_diff = 0;
++      guint64 tolerated_pixels = 0;
++      guint64 accepted_diff = 0;
++      guint64 accepted_pixels = 0;
++
++      if (keyfile_path != NULL)
++        {
++          GError *error = NULL;
++          g_key_file_load_from_file (keyfile, keyfile_path, G_KEY_FILE_NONE, &error);
++          g_assert_no_error (error);
++          accepted_diff = g_key_file_get_uint64 (keyfile, "reftest", "accepted-diff-level", NULL);
++          g_test_message ("Maximum difference accepted: %" G_GUINT64_FORMAT " levels", accepted_diff);
++          accepted_pixels = g_key_file_get_uint64 (keyfile, "reftest", "accepted-diff-pixels", NULL);
++          g_test_message ("Different pixels accepted: %" G_GUINT64_FORMAT, accepted_pixels);
++          tolerated_diff = g_key_file_get_uint64 (keyfile, "reftest", "tolerated-diff-level", NULL);
++          g_test_message ("Maximum difference tolerated: %" G_GUINT64_FORMAT " levels", tolerated_diff);
++          tolerated_pixels = g_key_file_get_uint64 (keyfile, "reftest", "tolerated-diff-pixels", NULL);
++          g_test_message ("Different pixels tolerated: %" G_GUINT64_FORMAT, tolerated_pixels);
++        }
++
+       g_test_message ("%u (out of %u) pixels differ from reference by up to %u levels",
+                       pixels_changed, pixels, max_diff);
+-      save_image (diff_image, ui_file, ".diff.png");
+-      g_test_fail ();
++
++      if (max_diff > accepted_diff || pixels_changed > accepted_pixels)
++        save_image (diff_image, ui_file, ".diff.png");
++
++      if (max_diff <= accepted_diff && pixels_changed <= accepted_pixels)
++        g_test_message ("differences are within acceptable range");
++      else if (max_diff <= tolerated_diff && pixels_changed <= tolerated_pixels)
++        g_test_incomplete ("not right, but close enough");
++      else
++        g_test_fail ();
++
++      g_key_file_unref (keyfile);
++      g_free (keyfile_path);
+     }
+ 
+   remove_extra_css (provider);
+diff --git a/testsuite/reftests/image-compare.c b/testsuite/reftests/image-compare.c
+index 07bb79e..714f4fc 100644
+--- a/testsuite/reftests/image-compare.c
++++ b/testsuite/reftests/image-compare.c
+@@ -41,7 +41,7 @@ main (int argc, char **argv)
+   image1 = cairo_image_surface_create_from_png (argv[1]);
+   image2 = cairo_image_surface_create_from_png (argv[2]);
+ 
+-  diff = reftest_compare_surfaces (image1, image2);
++  diff = reftest_compare_surfaces (image1, image2, NULL, NULL, NULL);
+ 
+   if (opt_filename && diff)
+     cairo_surface_write_to_png (diff, opt_filename);
