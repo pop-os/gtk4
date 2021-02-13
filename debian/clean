@@ -1,2 +1,3 @@
+debian/tests-failed
 gtk/gtkdbusgenerated.c
 gtk/gtkdbusgenerated.h

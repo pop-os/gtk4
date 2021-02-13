@@ -217,6 +217,7 @@ endif
 #        (4.0.1) many failures (endianness?)
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
+	rm -f debian/tests-failed
 	# Mark reftests with known failures as non-fatal
 	#touch testsuite/reftests/nonresizable-size.ui.known_fail
 	#touch testsuite/reftests/window-show-contents-on-map.ui.known_fail
@@ -246,11 +247,9 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		-- \
 		--setup=x11 \
 		--timeout-multiplier $(test_timeout_multiplier) \
-	|| { \
-		e=$$?; \
-		tail -v -n +0 debian/build/deb/meson-logs/testlog-x11.txt; \
-		exit $$e; \
-	}
+	|| touch debian/tests-failed
+	tail -v -n +0 debian/build/deb/meson-logs/testlog-x11.txt
+	if test -e debian/tests-failed; then exit 1; fi
 endif
 
 override_dh_auto_install:
