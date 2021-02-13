@@ -249,6 +249,7 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		--timeout-multiplier $(test_timeout_multiplier) \
 	|| touch debian/tests-failed
 	tail -v -n +0 debian/build/deb/meson-logs/testlog-x11.txt
+	debian/log-reftests.py
 	if test -e debian/tests-failed; then exit 1; fi
 endif
 
