@@ -9,6 +9,7 @@ can get an idea of what's a rounding error and what's a serious problem.
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
 Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3195
+Applied-upstream: no, upstream want reftests to be a strict pass/fail with identical results required
 ---
  testsuite/gsk/compare-render.c       | 10 +++++++++-
  testsuite/reftests/gtk-reftest.c     |  9 ++++++++-
