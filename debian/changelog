@@ -1,3 +1,14 @@
+gtk4 (4.0.3-2) experimental; urgency=medium
+
+  * Tolerate minor differences in some reftests
+  * d/rules: Show the detailed test log even if tests all succeed
+  * d/rules: Dump reftest differences into the log as base64.
+    Debian package builds don't have an equivalent of $AUTOPKGTEST_ARTIFACTS
+    (as requested in https://bugs.launchpad.net/launchpad/+bug/1845159) so
+    this is the best we can do right now.
+
+ -- Simon McVittie <smcv@debian.org>  Sun, 14 Feb 2021 14:28:39 +0000
+
 gtk4 (4.0.3-1) experimental; urgency=medium
 
   * New upstream release
