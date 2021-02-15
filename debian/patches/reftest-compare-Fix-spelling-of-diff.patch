@@ -6,7 +6,7 @@ This is the only non-whitespace difference between the copies in
 testsuite/reftests/ and testsuite/gsk/.
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
-Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3195
+Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3203
 ---
  testsuite/reftests/reftest-compare.c | 18 +++++++++---------
  1 file changed, 9 insertions(+), 9 deletions(-)

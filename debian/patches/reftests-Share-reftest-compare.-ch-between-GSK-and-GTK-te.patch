@@ -6,7 +6,7 @@ The only non-whitespace difference is that the copy in GSK does not
 set the symbol's visibility.
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
-Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3195
+Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3203
 ---
  testsuite/gsk/compare-render.c  |   2 +-
  testsuite/gsk/meson.build       |   2 +-
