@@ -2,10 +2,9 @@ From: Simon McVittie <smcv@debian.org>
 Date: Sat, 13 Feb 2021 18:26:24 +0000
 Subject: reftest_compare_surfaces: Report how much the images differ
 
-Some of the reftests don't produce *identical* results on all
-architectures, but do produce results that are visually
-indistinguishable. Report how many pixels differ and by how much, so we
-can get an idea of what's a rounding error and what's a serious problem.
+In unattended/non-interactive/autobuilder environments where the images
+are not trivially accessible, this provides a way to distinguish between
+totally different rendering and more subtle issues.
 
 Signed-off-by: Simon McVittie <smcv@debian.org>
 Forwarded: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3195

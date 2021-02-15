@@ -1,5 +1,3 @@
 [reftest]
-accepted-diff-level=1
-accepted-diff-pixels=50
 tolerated-diff-level=10
 tolerated-diff-pixels=100
