@@ -28,7 +28,7 @@ Applied-upstream: no, upstream want reftests to be a strict pass/fail with ident
  3 files changed, 62 insertions(+), 3 deletions(-)
 
 diff --git a/testsuite/gsk/compare-render.c b/testsuite/gsk/compare-render.c
-index da6f9e2..237b8c4 100644
+index da6f9e2..daea8a1 100644
 --- a/testsuite/gsk/compare-render.c
 +++ b/testsuite/gsk/compare-render.c
 @@ -98,6 +98,12 @@ get_output_file (const char *file,
@@ -74,7 +74,7 @@ index da6f9e2..237b8c4 100644
 +          if (max_diff <= tolerated_diff && pixels_changed <= tolerated_pixels)
 +            g_print ("not right, but close enough?\n");
 +          else
-+            g_test_fail ();
++            success = FALSE;
 +
 +          g_key_file_unref (keyfile);
 +          g_free (keyfile_path);
