@@ -1,3 +1,20 @@
+gtk4 (4.0.3-3) experimental; urgency=medium
+
+  * d/patches: Adjust forwarding URL for refactoring
+  * d/patches: Never mark rendering differences as accepted, only tolerated.
+    Upstream consider absolutely any difference in rendering to be an error,
+    so we should always record the diff for inspection.
+  * Force installation of fontconfig's preferred fonts for tests.
+    The experimental dependency resolver is non-deterministic and can
+    choose various different fonts, some of which make the reftests fail.
+    Force its hand by choosing the fonts that fontconfig prioritizes highest,
+    so that we get deterministic results.
+  * d/patches: Fix error reporting in gsk reftests.
+    The gsk reftests don't use the GTest framework, so g_test_fail will have
+    no effect here.
+
+ -- Simon McVittie <smcv@debian.org>  Mon, 15 Feb 2021 10:46:01 +0000
+
 gtk4 (4.0.3-2) experimental; urgency=medium
 
   * Tolerate minor differences in some reftests
