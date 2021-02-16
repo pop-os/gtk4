@@ -202,6 +202,11 @@ fuzzy_reftests = \
 	quit-mnemonic \
 	$(NULL)
 
+xfail_reftests = \
+	label-sizing \
+	sizegroups-evolution-identity-page \
+	$(NULL)
+
 # TODO: Known failures:
 # amd64: none
 # arm64: none
@@ -261,7 +266,15 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		--timeout-multiplier $(test_timeout_multiplier) \
 	|| touch debian/tests-failed
 	tail -v -n +0 debian/build/deb/meson-logs/testlog-x11.txt
+	# Don't base64-encode the image results for tests that upstream
+	# expect to fail
+	set -e; for reftest in $(xfail_reftests); do \
+		rm -f debian/build/deb/testsuite/reftests/output/x11/$$reftest.diff.png; \
+	done
+	# Put the rest in the log as base64 since we don't have an
+	# equivalent of AUTOPKGTEST_ARTIFACTS for buildds
 	debian/log-reftests.py
+	# Avoid incremental builds with -nc leaking settings into the next build
 	set -e; for reftest in $(fuzzy_reftests); do \
 		rm -f testsuite/reftests/$$reftest.keyfile; \
 	done
