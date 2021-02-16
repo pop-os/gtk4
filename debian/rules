@@ -207,27 +207,12 @@ xfail_reftests = \
 	sizegroups-evolution-identity-page \
 	$(NULL)
 
-# TODO: Known failures:
-# amd64: none
-# arm64: none
-# armel: (4.0.1) gtk:reftest / reftest pseudoclass-on-box.ui
-# armhf: (4.0.1) gtk:reftest / reftest border-image-url.ui
-#        (4.0.1) gtk:reftest / reftest quit-mnemonic.ui
-# i386: (4.0.3) gtk:reftest / reftest label-attribute-preference.ui
-# mips64el: (4.0.1) gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-normal
-#           (4.0.1) gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-difference
-#           (4.0.1) gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-normal
-#           (4.0.1) gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-difference
-#           (4.0.1) gtk:gtk / templates
-#           (4.0.1) gtk:tools / simplify-3to4
-#           (4.0.1) gtk:reftest / reftest quit-mnemonic.ui
-# mipsel: (4.0.1) many failures (endianness?)
-#         (4.0.1) many timeouts
-# ppc64el: (4.0.1) gtk:reftest / reftest border-image-url.ui
-#          (4.0.1) gtk:reftest / reftest label-wrap-justify.ui
-# s390x: (4.0.1) gtk:tools / simplify-3to4
-#        (4.0.1) gtk:reftest / reftest quit-mnemonic.ui
-#        (4.0.1) many failures (endianness?)
+# TODO: Known failures without a bug filed:
+# mips(64)el: gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-normal
+#             gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-difference
+#             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-normal
+#             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-difference
+# s390x: many (endianness?)
 override_dh_auto_test:
 ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	rm -f debian/tests-failed
@@ -235,11 +220,6 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		cp debian/close-enough.keyfile \
 			testsuite/reftests/$$reftest.keyfile; \
 	done
-	# Mark reftests with known failures as non-fatal
-	#touch testsuite/reftests/nonresizable-size.ui.known_fail
-	#touch testsuite/reftests/window-show-contents-on-map.ui.known_fail
-	#touch testsuite/reftests/inherit-and-initial.ui.known_fail
-	#touch testsuite/reftests/textview-margins.ui.known_fail
 	# So that gsettings can find the (uninstalled) gtk schemas
 	mkdir -p debian/build/glib-2.0/schemas/
 	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/
