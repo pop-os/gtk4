@@ -1,3 +1,13 @@
+gtk4 (4.0.3-4) experimental; urgency=medium
+
+  * d/log-reftests.py: Collect more test results
+  * d/rules: Don't export build results for tests that upstream expect
+    to fail
+  * d/rules: Update comments regarding failing tests that need to be
+    processed
+
+ -- Simon McVittie <smcv@debian.org>  Mon, 22 Feb 2021 10:56:12 +0000
+
 gtk4 (4.0.3-3) experimental; urgency=medium
 
   * d/patches: Adjust forwarding URL for refactoring
