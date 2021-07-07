@@ -1,3 +1,10 @@
+gtk4 (4.3.1-1) UNRELEASED; urgency=medium
+
+  * New upstream release:
+    - Ignore XErrors from the COW (LP: #1911036)
+
+ -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Wed, 07 Jul 2021 19:12:20 +0200
+
 gtk4 (4.0.3-4) experimental; urgency=medium
 
   * d/log-reftests.py: Collect more test results
