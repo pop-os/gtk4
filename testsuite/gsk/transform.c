@@ -266,7 +266,7 @@ test_invert (void)
               transform = apply_test_transform (transform, j);
               transform = apply_test_transform (transform, k);
               inverse = gsk_transform_invert (gsk_transform_ref (transform));
-              g_assert (inverse != NULL || transform == NULL);
+              g_assert_true (inverse != NULL || transform == NULL);
 
               identity = gsk_transform_transform (gsk_transform_ref (transform), inverse);
               graphene_assert_fuzzy_transform_equal (identity, NULL, EPSILON);
@@ -372,6 +372,7 @@ test_print_parse (void)
   GskTransform *transform, *parsed;
   guint i, j, k;
   char *str1, *str2;
+  gboolean ret;
 
   for (i = 0; i < G_N_ELEMENTS (test_transforms); i++)
     {
@@ -384,14 +385,15 @@ test_print_parse (void)
               transform = apply_test_transform (transform, k);
 
               str1 = gsk_transform_to_string (transform);
-              g_assert (str1);
-              g_assert (strlen (str1) > 0);
+              g_assert_nonnull (str1);
+              g_assert_true (strlen (str1) > 0);
 
               str2 = gsk_transform_to_string (transform);
               g_assert_cmpstr (str1, ==, str2);
               g_free (str2);
 
-              g_assert (gsk_transform_parse (str1, &parsed));
+              ret = gsk_transform_parse (str1, &parsed);
+              g_assert_true (ret);
               graphene_assert_fuzzy_transform_equal (parsed, transform, EPSILON);
 
               str2 = gsk_transform_to_string (parsed);
@@ -522,6 +524,49 @@ test_axis_aligned (void)
   gsk_transform_unref (transform);
 }
 
+static void
+test_to_affine (void)
+{
+  GskTransform *transform;
+  float sx, sy, dx, dy;
+
+  transform = gsk_transform_scale (NULL, 10.0, 5.0);
+  gsk_transform_to_affine (transform, &sx, &sy, &dx, &dy);
+  gsk_transform_unref (transform);
+
+  g_assert_cmpfloat (sx, ==, 10.0);
+  g_assert_cmpfloat (sy, ==, 5.0);
+  g_assert_cmpfloat (dx, ==, 0.0);
+  g_assert_cmpfloat (dy, ==, 0.0);
+
+  transform = gsk_transform_translate (NULL, &GRAPHENE_POINT_INIT (10.0, 5.0));
+  gsk_transform_to_affine (transform, &sx, &sy, &dx, &dy);
+  gsk_transform_unref (transform);
+
+  g_assert_cmpfloat (sx, ==, 1.0);
+  g_assert_cmpfloat (sy, ==, 1.0);
+  g_assert_cmpfloat (dx, ==, 10.0);
+  g_assert_cmpfloat (dy, ==, 5.0);
+
+  transform = gsk_transform_translate (gsk_transform_scale (NULL, 2.0, 3.0), &GRAPHENE_POINT_INIT (10.0, 5.0));
+  gsk_transform_to_affine (transform, &sx, &sy, &dx, &dy);
+  gsk_transform_unref (transform);
+
+  g_assert_cmpfloat (sx, ==, 2.0);
+  g_assert_cmpfloat (sy, ==, 3.0);
+  g_assert_cmpfloat (dx, ==, 2.0 * 10.0);
+  g_assert_cmpfloat (dy, ==, 3.0 * 5.0);
+
+  transform = gsk_transform_scale (gsk_transform_translate (NULL, &GRAPHENE_POINT_INIT (10.0, 5.0)), 2.0, 3.0);
+  gsk_transform_to_affine (transform, &sx, &sy, &dx, &dy);
+  gsk_transform_unref (transform);
+
+  g_assert_cmpfloat (sx, ==, 2.0);
+  g_assert_cmpfloat (sy, ==, 3.0);
+  g_assert_cmpfloat (dx, ==, 10.0);
+  g_assert_cmpfloat (dy, ==, 5.0);
+}
+
 int
 main (int   argc,
       char *argv[])
@@ -535,6 +580,7 @@ main (int   argc,
   g_test_add_func ("/transform/invert", test_invert);
   g_test_add_func ("/transform/print-parse", test_print_parse);
   g_test_add_func ("/transform/check-axis-aligneness", test_axis_aligned);
+  g_test_add_func ("/transform/to-affine", test_to_affine);
 
   return g_test_run ();
 }

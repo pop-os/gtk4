@@ -3,7 +3,7 @@ testdatadir = join_paths(installed_test_datadir, 'gsk')
 
 compare_render = executable(
   'compare-render',
-  ['compare-render.c', 'reftest-compare.c'],
+  ['compare-render.c', '../reftests/reftest-compare.c'],
   dependencies: libgtk_dep,
   c_args: common_cflags,
   install: get_option('install-tests'),
@@ -20,14 +20,23 @@ node_parser = executable(
 )
 
 compare_render_tests = [
-  'blend-normal',
   'blend-difference',
+  'blend-invisible-child',
+  'blend-normal',
+  'borders-rotated',
+  'borders-scaled',
   'clip-coordinates-2d',
   'clip-coordinates-3d',
+  'clip-in-rounded-clip1',
+  'clip-in-rounded-clip2',
+  'clip-in-rounded-clip3',
+  'clipped-repeat-3d-ngl',
   'clipped_rounded_clip',
+  'clip-nested1',
   'color-blur0',
   'color-matrix-identity',
   'cross-fade-in-opacity',
+  'css-background',
   'empty-blend',
   'empty-blur',
   'empty-border',
@@ -48,33 +57,28 @@ compare_render_tests = [
   'empty-shadow',
   'empty-texture',
   'empty-transform',
+  'inset-shadow-multiple',
   'invalid-transform',
+  'issue-3615',
+  'nested-rounded-clips',
   'opacity_clip',
+  'opacity-overlapping-children',
   'outset_shadow_offset_both',
   'outset_shadow_offset_x',
   'outset_shadow_offset_y',
   'outset_shadow_rounded_top',
   'outset_shadow_simple',
   'scaled-cairo',
+  'scale-up-down',
   'shadow-in-opacity',
   'texture-url',
-  'color-matrix-identity',
-  'clip-nested1',
-  'scale-up-down',
-  'opacity-overlapping-children',
   'repeat',
-  'repeat-texture',
   'repeat-no-repeat',
   'repeat-negative-coords',
-  'inset-shadow-multiple',
-  'borders-rotated',
-  'blend-invisible-child',
+  'repeat-texture',
   'transform-in-transform',
   'transform-in-transform-in-transform',
-  'nested-rounded-clips',
-  'clip-in-rounded-clip1',
-  'clip-in-rounded-clip2',
-  'clip-in-rounded-clip3',
+  'rounded-clip-in-clip-3d', # not really 3d, but cairo fails it
 ]
 
 # these are too sensitive to differences in the renderers
@@ -87,7 +91,8 @@ informative_render_tests = [
 
 renderers = [
   # name      exclude term
-  [ 'opengl', ''    ],
+  [ 'gl', '-ngl'    ],
+  [ 'ngl', ''    ],
   [ 'broadway',  '-3d' ],
   [ 'cairo',  '-3d' ],
 ]
@@ -227,3 +232,36 @@ foreach t : tests
     suite: 'gsk',
   )
 endforeach
+
+internal_tests = [
+  ['diff']
+]
+
+foreach t : internal_tests
+  test_name = t.get(0)
+  test_srcs = ['@0@.c'.format(test_name)] + t.get(1, [])
+  test_extra_cargs = t.get(2, [])
+  test_extra_ldflags = t.get(3, [])
+
+  test_exe = executable(test_name, test_srcs,
+    c_args : test_cargs + test_extra_cargs + common_cflags,
+    link_args : test_extra_ldflags,
+    dependencies : libgtk_static_dep,
+    install: get_option('install-tests'),
+    install_dir: testexecdir,
+  )
+
+  test(test_name, test_exe,
+    args: [ '--tap', '-k' ],
+    protocol: 'tap',
+    env: [
+      'GSK_RENDERER=cairo',
+      'GTK_A11Y=test',
+      'G_TEST_SRCDIR=@0@'.format(meson.current_source_dir()),
+      'G_TEST_BUILDDIR=@0@'.format(meson.current_build_dir())
+    ],
+    suite: 'gsk',
+  )
+endforeach
+
+

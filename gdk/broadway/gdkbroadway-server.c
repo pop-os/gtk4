@@ -13,6 +13,8 @@
 #include "gdkbroadway-server.h"
 
 #include "gdkprivate-broadway.h"
+#include "gdk-private.h"
+
 #include <gdk/gdktextureprivate.h>
 
 #include <glib.h>
@@ -245,7 +247,7 @@ parse_all_input (GdkBroadwayServer *server)
       if (p + size > end)
         break;
 
-      reply = g_memdup (p, size);
+      reply = g_memdup2 (p, size);
       p += size;
 
       server->incoming = g_list_append (server->incoming, reply);

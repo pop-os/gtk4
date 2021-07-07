@@ -1,0 +1,315 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }}.{{ interface.name }}{% endblock %}
+
+{% block meta_other %}
+  <meta property="og:title" content="{{ namespace.name }}.{{ interface.name }}"/>
+  <meta property="og:description" content="Reference for {{ namespace.name }}.{{ interface.name }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}.{{ interface.name }}"/>
+  <meta name="twitter:description" content="Reference for {{ namespace.name }}.{{ interface.name }}"/>
+{% endblock %}
+
+{% macro sidebar_block(elements, iface_name, section_title, section_class, section_fragment) -%}
+{% if elements|length > 0 %}
+<div class="section">
+  <h5>{{ section_title }}</h5>
+  <div class="links">
+  {% for m in elements %}
+    <a class="{{ section_class }}" href="{{ section_fragment }}.{{ iface_name }}.{{ m.name }}.html">{{ m.name }}</a>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% block sidebar %}
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="iface.{{ interface.name }}.html#description">{{ interface.name }}</a>
+  </div>
+</div>
+
+{{ sidebar_block(interface.methods, interface.name, "Instance methods", "method", "method") }}
+{{ sidebar_block(interface.properties, interface.name, "Properties", "property", "property") }}
+{{ sidebar_block(interface.signals, interface.name, "Signals", "signal", "signal") }}
+{{ sidebar_block(interface.class_methods, interface.name, "Interface methods", "method", "class_method") }}
+{{ sidebar_block(interface.type_funcs, interface.name, "Functions", "func", "type_func") }}
+{{ sidebar_block(interface.virtual_methods, interface.name, "Virtual methods", "method", "vfunc") }}
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <header>
+    <h3>Interface</h3>
+    <h1><a href="index.html">{{ namespace.name }}</a><span class="sep"></span>{{ interface.name }}</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          {% if CONFIG.source_location_url and interface.docs_location %}
+          <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(interface.docs_location) }}">[src]</a>
+          {% endif %}
+        </h4>
+
+        <pre><code>{{ interface.c_decl }}</code></pre>
+
+        <div class="docblock">
+          {{ interface.description }}
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            {% if interface.stability %}
+            <tr><td>Stability:</td><td>{{ interface.stability }}</td></tr>
+            {% endif %}
+            {% if interface.available_since %}
+            <tr><td>Available since:</td><td>{{ interface.available_since }}</td></tr>
+            {% endif %}
+            {% if interface.deprecated_since %}
+            <tr><td>Deprecated since:</td><td>{{ interface.deprecated_since.version }}</td></tr>
+            <tr><td colspan="2">{{ interface.deprecated_since.message }}</td></tr>
+            {% endif %}
+          </table>
+        </div>
+
+        {% if interface.attributes %}
+        <div class="docblock">
+          <table class="attributes">
+          {% for (key, value) in interface.attributes.items() %}
+            <tr><td>{{ key|escape }}</td><td>{{ value|escape }}</td></tr>
+          {% endfor %}
+          </table>
+        </div>
+        {% endif %}
+      </div>
+    </summary>
+
+    {% if interface.methods %}
+    <div class="methods toggle-wrapper">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for method in interface.methods %}
+      <div class="{% if method.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="method.{{ interface.name}}.{{ method.name }}.html">{{ method.identifier }}</a></h6>
+
+        <div class="docblock">
+          {{ method.summary }}
+        </div>
+
+        {% if method.available_since or method.deprecated_since -%}
+        <div class="docblock">
+        {%- if method.available_since -%}
+        <p>Available since: {{ method.available_since }}</p>
+        {%- endif -%}
+        {%- if method.deprecated_since -%}
+        <p>Deprecated since: {{ method.deprecated_since }}</p>
+        {%- endif -%}
+        </div>
+        {%- endif %}
+      </div>
+      {% endfor %}
+      </div>
+
+    </div>
+    {% endif %}
+
+    {% if interface.properties %}
+    <div class="properties toggle-wrapper">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for property in interface.properties %}
+      <div class="{% if property.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="property.{{ interface.name }}.{{ property.name }}.html">{{ interface.fqtn }}:{{ property.name }}</a></h6>
+
+        <div class="docblock">
+          {{ property.summary }}
+        </div>
+
+        {% if property.available_since or property.deprecated_since -%}
+        <div class="docblock">
+        {%- if property.available_since -%}
+        <p>Available since: {{ property.available_since }}</p>
+        {%- endif -%}
+        {%- if property.deprecated_since -%}
+        <p>Deprecated since: {{ property.deprecated_since }}</p>
+        {%- endif -%}
+        </div>
+        {%- endif %}
+      </div>
+      {% endfor %}
+      </div>
+
+    </div>
+    {% endif %}
+
+    {% if interface.signals %}
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for signal in interface.signals %}
+      <div class="{% if signal.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="signal.{{ interface.name }}.{{ signal.name }}.html">{{ interface.fqtn }}::{{ signal.name }}</a></h6>
+
+        <div class="docblock">
+          {{ signal.summary }}
+        </div>
+
+        {% if signal.available_since or signal.deprecated_since -%}
+        <div class="docblock">
+        {%- if signal.available_since -%}
+        <p>Available since: {{ signal.available_since }}</p>
+        {%- endif -%}
+        {%- if signal.deprecated_since -%}
+        <p>Deprecated since: {{ signal.deprecated_since }}</p>
+        {%- endif -%}
+        </div>
+        {%- endif %}
+      </div>
+      {% endfor %}
+
+    </div>
+    {% endif %}
+
+    {% if interface.class_name %}
+    <div class="interface toggle-wrapper default-hide">
+      <h4 style="display:flex;" id="interface-struct">
+        Interface structure
+        <a href="#interface-struct" class="anchor"></a>
+        {% if CONFIG.source_location_url and interface.source_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(interface.source_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct {{ namespace.name}}{{ interface.class_name }} {
+  {% for field in interface.class_fields %}
+  {%- if field.is_callback -%}
+  {{ field.type_cname }};
+  {%- else -%}
+  {{ field.type_cname }} {{ field.name }};
+  {%- endif %}
+  {% else %}/* no available fields */{% endfor %}
+}</code></pre>
+      </div>
+
+      {% if interface.class_fields %}
+      <div class="docblock">
+        <h6>Interface members</h6>
+
+        <table>
+        {% for field in interface.class_fields %}
+        <tr>
+          <td style="vertical-align:top"><code>{{ field.name }}</code></td>
+          <td style="vertical-align:top"><pre><code>{{ field.type_cname }}</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td><td style="vertical-align:top">{{ field.description }}</td>
+        </tr>
+        {% endfor %}
+        </table>
+      {% endif %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if interface.class_methods %}
+    <div class="toggle-wrapper methods">
+      <h4 id="interface-methods">
+        Interface methods
+        <a href="#interface-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for method in interface.class_methods %}
+      <div class="{% if method.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="class_method.{{ interface.name }}.{{ method.name }}.html">{{ method.identifier }}</a></h6>
+
+        <div class="docblock">
+          {{ method.summary }}
+        </div>
+
+        {% if method.deprecated_since %}
+        <div class="docblock"><p>Deprecated since: {{ method.deprecated_since.version }}</p></div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if interface.type_funcs %}
+    <div class="methods toggle-wrapper">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for func in interface.type_funcs %}
+      <div class="{% if func.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="type_func.{{ interface.name }}.{{ func.name }}.html">{{ func.identifier }}</a></h6>
+
+        <div class="docblock">
+          {{ func.summary }}
+        </div>
+
+        {% if func.deprecated_since %}
+        <div class="docblock"><p>Deprecated since: {{ func.deprecated_since.version }}</p></div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if interface.virtual_methods %}
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for method in interface.virtual_methods %}
+      <div class="{% if method.deprecated_since %}deprecated{% endif %}">
+        <h6 id="vfunc-{{ method.name }}"><a href="vfunc.{{ interface.name }}.{{ method.name }}.html">{{ namespace.name }}.{{ interface.name }}.{{ method.name }}</a></h6>
+
+        <div class="docblock">
+          {{ method.summary }}
+        </div>
+
+        {% if method.deprecated_since %}
+        <div class="docblock"><p>Deprecated since: {{ method.deprecated_since.version }}</p></div>
+        {% endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </section>
+</section>
+{% endblock %}

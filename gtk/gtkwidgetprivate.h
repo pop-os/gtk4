@@ -139,7 +139,7 @@ struct _GtkWidgetPrivate
   char *name;
 
   /* The root this widget belongs to or %NULL if widget is not
-   * rooted or is a #GtkRoot itself.
+   * rooted or is a GtkRoot itself.
    */
   GtkRoot *root;
 
@@ -247,8 +247,6 @@ void              _gtk_widget_set_has_grab                 (GtkWidget *widget,
                                                             gboolean   has_grab);
 
 gboolean          gtk_widget_has_grab                      (GtkWidget *widget);
-void              _gtk_widget_grab_notify                  (GtkWidget *widget,
-                                                            gboolean   was_grabbed);
 
 void              _gtk_widget_propagate_display_changed    (GtkWidget  *widget,
                                                             GdkDisplay *previous_display);
@@ -277,10 +275,6 @@ void              gtk_system_setting_changed               (GdkDisplay          
 void              _gtk_widget_update_parent_muxer          (GtkWidget    *widget);
 GtkActionMuxer *  _gtk_widget_get_action_muxer             (GtkWidget    *widget,
                                                             gboolean      create);
-
-gboolean          gtk_widget_consumes_motion               (GtkWidget        *widget,
-                                                            GtkWidget        *parent,
-                                                            GdkEventSequence *sequence);
 
 gboolean          gtk_widget_has_tick_callback             (GtkWidget *widget);
 

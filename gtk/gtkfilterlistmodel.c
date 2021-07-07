@@ -26,19 +26,17 @@
 #include "gtkprivate.h"
 
 /**
- * SECTION:gtkfilterlistmodel
- * @title: GtkFilterListModel
- * @short_description: A list model that filters its items
- * @see_also: #GListModel, #GtkFilter
+ * GtkFilterListModel:
  *
- * #GtkFilterListModel is a list model that filters a given other
- * listmodel.
+ * `GtkFilterListModel` is a list model that filters the elements of
+ * the underlying model according to a `GtkFilter`.
+ *
  * It hides some elements from the other model according to
- * criteria given by a #GtkFilter.
+ * criteria given by a `GtkFilter`.
  *
  * The model can be set up to do incremental searching, so that
  * filtering long lists doesn't block the UI. See
- * gtk_filter_list_model_set_incremental() for details.
+ * [method@Gtk.FilterListModel.set_incremental] for details.
  */
 
 enum {
@@ -434,14 +432,11 @@ gtk_filter_list_model_refilter (GtkFilterListModel *self,
         default:
         case GTK_FILTER_MATCH_SOME:
           {
-            guint start, end, n_before, n_after;
+            guint n_before, n_after;
 
             gtk_filter_list_model_stop_filtering (self);
             self->strictness = new_strictness;
             n_after = g_list_model_get_n_items (G_LIST_MODEL (self));
-            start = gtk_bitset_get_minimum (self->matches);
-            end = gtk_bitset_get_maximum (self->matches);
-
             n_before = gtk_bitset_get_size (self->matches);
             if (n_before == n_after)
               {
@@ -450,6 +445,7 @@ gtk_filter_list_model_refilter (GtkFilterListModel *self,
             else
               {
                 GtkBitset *inverse;
+                guint start, end;
 
                 inverse = gtk_bitset_new_range (0, n_after);
                 gtk_bitset_subtract (inverse, self->matches);
@@ -556,9 +552,9 @@ gtk_filter_list_model_class_init (GtkFilterListModelClass *class)
   gobject_class->dispose = gtk_filter_list_model_dispose;
 
   /**
-   * GtkFilterListModel:filter:
+   * GtkFilterListModel:filter: (attributes org.gtk.Property.get=gtk_filter_list_model_get_filter org.gtk.Property.set=gtk_filter_list_model_set_filter)
    *
-   * The filter for this model
+   * The filter for this model.
    */
   properties[PROP_FILTER] =
       g_param_spec_object ("filter",
@@ -568,9 +564,9 @@ gtk_filter_list_model_class_init (GtkFilterListModelClass *class)
                            GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkFilterListModel:incremental:
+   * GtkFilterListModel:incremental: (attributes org.gtk.Property.get=gtk_filter_list_model_get_incremental org.gtk.Property.set=gtk_filter_list_model_set_incremental)
    *
-   * If the model should filter items incrementally
+   * If the model should filter items incrementally.
    */
   properties[PROP_INCREMENTAL] =
       g_param_spec_boolean ("incremental",
@@ -580,9 +576,9 @@ gtk_filter_list_model_class_init (GtkFilterListModelClass *class)
                             GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkFilterListModel:model:
+   * GtkFilterListModel:model: (attributes org.gtk.Property.get=gtk_filter_list_model_get_model org.gtk.Property.set=gtk_filter_list_model_set_model)
    *
-   * The model being filtered
+   * The model being filtered.
    */
   properties[PROP_MODEL] =
       g_param_spec_object ("model",
@@ -592,9 +588,9 @@ gtk_filter_list_model_class_init (GtkFilterListModelClass *class)
                            GTK_PARAM_READWRITE | G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkFilterListModel:pending:
+   * GtkFilterListModel:pending: (attributes org.gtk.Property.get=gtk_filter_list_model_get_pending)
    *
-   * Number of items not yet filtered
+   * Number of items not yet filtered.
    */
   properties[PROP_PENDING] =
       g_param_spec_uint ("pending",
@@ -614,13 +610,13 @@ gtk_filter_list_model_init (GtkFilterListModel *self)
 
 /**
  * gtk_filter_list_model_new:
- * @model: (allow-none) (transfer full): the model to sort, or %NULL
- * @filter: (allow-none) (transfer full): filter or %NULL to not filter items
+ * @model: (nullable) (transfer full): the model to sort
+ * @filter: (nullable) (transfer full): filter
  *
- * Creates a new #GtkFilterListModel that will filter @model using the given
+ * Creates a new `GtkFilterListModel` that will filter @model using the given
  * @filter.
  *
- * Returns: a new #GtkFilterListModel
+ * Returns: a new `GtkFilterListModel`
  **/
 GtkFilterListModel *
 gtk_filter_list_model_new (GListModel *model,
@@ -644,9 +640,9 @@ gtk_filter_list_model_new (GListModel *model,
 }
 
 /**
- * gtk_filter_list_model_set_filter:
- * @self: a #GtkFilterListModel
- * @filter: (allow-none) (transfer none): filter to use or %NULL to not filter items
+ * gtk_filter_list_model_set_filter: (attributes org.gtk.Method.set_property=filter)
+ * @self: a `GtkFilterListModel`
+ * @filter: (nullable) (transfer none): filter to use
  *
  * Sets the filter used to filter items.
  **/
@@ -677,14 +673,13 @@ gtk_filter_list_model_set_filter (GtkFilterListModel *self,
 }
 
 /**
- * gtk_filter_list_model_get_filter:
- * @self: a #GtkFilterListModel
+ * gtk_filter_list_model_get_filter: (attributes org.gtk.Method.get_property=filter)
+ * @self: a `GtkFilterListModel`
  *
- * Gets the #GtkFilter currently set on @self.
+ * Gets the `GtkFilter` currently set on @self.
  *
  * Returns: (nullable) (transfer none): The filter currently in use
- *     or %NULL if the list isn't filtered
- **/
+ */
 GtkFilter *
 gtk_filter_list_model_get_filter (GtkFilterListModel *self)
 {
@@ -694,9 +689,9 @@ gtk_filter_list_model_get_filter (GtkFilterListModel *self)
 }
 
 /**
- * gtk_filter_list_model_set_model:
- * @self: a #GtkFilterListModel
- * @model: (allow-none): The model to be filtered
+ * gtk_filter_list_model_set_model: (attributes org.gtk.Method.set_property=model)
+ * @self: a `GtkFilterListModel`
+ * @model: (nullable): The model to be filtered
  *
  * Sets the model to be filtered.
  *
@@ -704,7 +699,7 @@ gtk_filter_list_model_get_filter (GtkFilterListModel *self)
  * the item type of @self. It assumes that the caller knows what they
  * are doing and have set up an appropriate filter to ensure that item
  * types match.
- **/
+ */
 void
 gtk_filter_list_model_set_model (GtkFilterListModel *self,
                                  GListModel         *model)
@@ -755,13 +750,13 @@ gtk_filter_list_model_set_model (GtkFilterListModel *self,
 }
 
 /**
- * gtk_filter_list_model_get_model:
- * @self: a #GtkFilterListModel
+ * gtk_filter_list_model_get_model: (attributes org.gtk.Method.get_property=model)
+ * @self: a `GtkFilterListModel`
  *
  * Gets the model currently filtered or %NULL if none.
  *
  * Returns: (nullable) (transfer none): The model that gets filtered
- **/
+ */
 GListModel *
 gtk_filter_list_model_get_model (GtkFilterListModel *self)
 {
@@ -771,11 +766,13 @@ gtk_filter_list_model_get_model (GtkFilterListModel *self)
 }
 
 /**
- * gtk_filter_list_model_set_incremental:
- * @self: a #GtkFilterListModel
+ * gtk_filter_list_model_set_incremental: (attributes org.gtk.Method.set_property=incremental)
+ * @self: a `GtkFilterListModel`
  * @incremental: %TRUE to enable incremental filtering
  *
- * When incremental filtering is enabled, the GtkFilterListModel will not
+ * Sets the filter model to do an incremental sort.
+ *
+ * When incremental filtering is enabled, the `GtkFilterListModel` will not
  * run filters immediately, but will instead queue an idle handler that
  * incrementally filters the items and adds them to the list. This of course
  * means that items are not instantly added to the list, but only appear
@@ -787,7 +784,7 @@ gtk_filter_list_model_get_model (GtkFilterListModel *self)
  *
  * By default, incremental filtering is disabled.
  *
- * See gtk_filter_list_model_get_pending() for progress information
+ * See [method@Gtk.FilterListModel.get_pending] for progress information
  * about an ongoing incremental filtering operation.
  **/
 void
@@ -818,14 +815,15 @@ gtk_filter_list_model_set_incremental (GtkFilterListModel *self,
 }
 
 /**
- * gtk_filter_list_model_get_incremental:
- * @self: a #GtkFilterListModel
+ * gtk_filter_list_model_get_incremental: (attributes org.gtk.Method.get_property=incremental)
+ * @self: a `GtkFilterListModel`
  *
- * Returns whether incremental filtering was enabled via
- * gtk_filter_list_model_set_incremental().
+ * Returns whether incremental filtering is enabled.
+ *
+ * See [method@Gtk.FilterListModel.set_incremental].
  *
  * Returns: %TRUE if incremental filtering is enabled
- **/
+ */
 gboolean
 gtk_filter_list_model_get_incremental (GtkFilterListModel *self)
 {
@@ -835,8 +833,8 @@ gtk_filter_list_model_get_incremental (GtkFilterListModel *self)
 }
 
 /**
- * gtk_filter_list_model_get_pending:
- * @self: a #GtkFilterListModel
+ * gtk_filter_list_model_get_pending: (attributes org.gtk.Method.get_property=pending)
+ * @self: a `GtkFilterListModel`
  *
  * Returns the number of items that have not been filtered yet.
  *
@@ -845,17 +843,18 @@ gtk_filter_list_model_get_incremental (GtkFilterListModel *self)
  * of the filter remaining by dividing the return value by the total
  * number of items in the underlying model:
  *
- * |[
- *   pending = gtk_filter_list_model_get_pending (self);
- *   model = gtk_filter_list_model_get_model (self);
- *   percentage = pending / (double) g_list_model_get_n_items (model);
- * ]|
+ * ```c
+ * pending = gtk_filter_list_model_get_pending (self);
+ * model = gtk_filter_list_model_get_model (self);
+ * percentage = pending / (double) g_list_model_get_n_items (model);
+ * ```
  *
  * If no filter operation is ongoing - in particular when
- * #GtkFilterListModel:incremental is %FALSE - this function returns 0.
+ * [property@Gtk.FilterListModel:incremental] is %FALSE - this
+ * function returns 0.
  *
  * Returns: The number of items not yet filtered
- **/
+ */
 guint
 gtk_filter_list_model_get_pending (GtkFilterListModel *self)
 {

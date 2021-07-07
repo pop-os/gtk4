@@ -27,49 +27,44 @@
 #include "gtkpaned.h"
 
 #include "gtkcssboxesprivate.h"
-#include "gtkcssstylepropertyprivate.h"
 #include "gtkeventcontrollermotion.h"
 #include "gtkgesturepan.h"
 #include "gtkgesturesingle.h"
-#include "gtkgizmoprivate.h"
+#include "gtkpanedhandleprivate.h"
 #include "gtkintl.h"
 #include "gtkmarshalers.h"
 #include "gtkorientable.h"
 #include "gtkprivate.h"
-#include "gtkrendericonprivate.h"
-#include "gtkstylecontextprivate.h"
 #include "gtktypebuiltins.h"
 #include "gtkwidgetprivate.h"
-#include "gtkcssboxesprivate.h"
 #include "gtkbuildable.h"
 
 #include <math.h>
 
 /**
- * SECTION:gtkpaned
- * @Short_description: A widget with two adjustable panes
- * @Title: GtkPaned
+ * GtkPaned:
  *
- * #GtkPaned has two panes, arranged either
- * horizontally or vertically. The division between
- * the two panes is adjustable by the user by dragging
- * a handle.
+ * `GtkPaned` has two panes, arranged either horizontally or vertically.
+ *
+ * ![An example GtkPaned](panes.png)
+ *
+ * The division between the two panes is adjustable by the user
+ * by dragging a handle.
  *
  * Child widgets are added to the panes of the widget with
- * gtk_paned_set_start_child() and gtk_paned_set_end_child().
- * The division between the two children is set by default
- * from the size requests of the children, but it can be adjusted by the
- * user.
+ * [method@Gtk.Paned.set_start_child] and [method@Gtk.Paned.set_end_child].
+ * The division between the two children is set by default from the size
+ * requests of the children, but it can be adjusted by the user.
  *
  * A paned widget draws a separator between the two child widgets and a
  * small handle that the user can drag to adjust the division. It does not
  * draw any relief around the children or around the separator. (The space
  * in which the separator is called the gutter.) Often, it is useful to put
- * each child inside a #GtkFrame so that the gutter appears as a ridge.
- * No separator is drawn if one of the children is missing.
+ * each child inside a [class@Gtk.Frame] so that the gutter appears as a
+ * ridge. No separator is drawn if one of the children is missing.
  *
  * Each child has two options that can be set, @resize and @shrink. If
- * @resize is true, then when the #GtkPaned is resized, that child will
+ * @resize is true, then when the `GtkPaned` is resized, that child will
  * expand or shrink along with the paned widget. If @shrink is true, then
  * that child can be made smaller than its requisition by the user.
  * Setting @shrink to %FALSE allows the application to set a minimum size.
@@ -77,18 +72,18 @@
  * @resize is true for both children.
  *
  * The application can set the position of the slider as if it were set
- * by the user, by calling gtk_paned_set_position().
+ * by the user, by calling [method@Gtk.Paned.set_position].
  *
  * # CSS nodes
  *
- * |[<!-- language="plain" -->
+ * ```
  * paned
  * ├── <child>
  * ├── separator[.wide]
  * ╰── <child>
- * ]|
+ * ```
  *
- * GtkPaned has a main CSS node with name paned, and a subnode for
+ * `GtkPaned` has a main CSS node with name paned, and a subnode for
  * the separator with name separator. The subnode gets a .wide style
  * class when the paned is supposed to be wide.
  *
@@ -99,7 +94,7 @@
  *
  * ## Creating a paned widget with minimum sizes.
  *
- * |[<!-- language="C" -->
+ * ```c
  * GtkWidget *hpaned = gtk_paned_new (GTK_ORIENTATION_HORIZONTAL);
  * GtkWidget *frame1 = gtk_frame_new (NULL);
  * GtkWidget *frame2 = gtk_frame_new (NULL);
@@ -115,7 +110,7 @@
  * gtk_paned_set_end_child_resize (GTK_PANED (hpaned), FALSE);
  * gtk_paned_set_end_child_shrink (GTK_PANED (hpaned), FALSE);
  * gtk_widget_set_size_request (frame2, 50, -1);
- * ]|
+ * ```
  */
 
 #define HANDLE_EXTRA_SIZE 6
@@ -301,26 +296,6 @@ get_handle_area (GtkPaned        *paned,
   graphene_rect_inset (area, - extra, - extra);
 }
 
-static gboolean
-gtk_paned_handle_contains (GtkGizmo *handle,
-                           double    x,
-                           double    y)
-{
-  GtkWidget *paned;
-  GtkCssBoxes boxes;
-  graphene_rect_t area;
-
-  gtk_css_boxes_init (&boxes, GTK_WIDGET (handle));
-
-  graphene_rect_init_from_rect (&area, gtk_css_boxes_get_border_rect (&boxes));
-
-  paned = gtk_widget_get_parent (GTK_WIDGET (handle));
-  if (!gtk_paned_get_wide_handle (GTK_PANED (paned)))
-    graphene_rect_inset (&area, - HANDLE_EXTRA_SIZE, - HANDLE_EXTRA_SIZE);
-
-  return graphene_rect_contains_point (&area, &GRAPHENE_POINT_INIT (x, y));
-}
-
 static void
 gtk_paned_compute_expand (GtkWidget *widget,
                           gboolean  *hexpand,
@@ -441,6 +416,11 @@ gtk_paned_class_init (GtkPanedClass *class)
   class->accept_position = gtk_paned_accept_position;
   class->cancel_position = gtk_paned_cancel_position;
 
+  /**
+   * GtkPaned:position: (attributes org.gtk.Property.get=gtk_paned_get_position org.gtk.Property.set=gtk_paned_set_position)
+   *
+   * Position of the separator in pixels, from the left/top.
+   */
   paned_props[PROP_POSITION] =
     g_param_spec_int ("position",
                       P_("Position"),
@@ -448,6 +428,11 @@ gtk_paned_class_init (GtkPanedClass *class)
                       0, G_MAXINT, 0,
                       GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * GtkPaned:position-set:
+   *
+   * %TRUE if the `position` property has been set.
+   */
   paned_props[PROP_POSITION_SET] =
     g_param_spec_boolean ("position-set",
                           P_("Position Set"),
@@ -459,6 +444,7 @@ gtk_paned_class_init (GtkPanedClass *class)
    * GtkPaned:min-position:
    *
    * The smallest possible value for the position property.
+   *
    * This property is derived from the size and shrinkability
    * of the widget's children.
    */
@@ -473,6 +459,7 @@ gtk_paned_class_init (GtkPanedClass *class)
    * GtkPaned:max-position:
    *
    * The largest possible value for the position property.
+   *
    * This property is derived from the size and shrinkability
    * of the widget's children.
    */
@@ -484,11 +471,12 @@ gtk_paned_class_init (GtkPanedClass *class)
                       GTK_PARAM_READABLE|G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkPaned:wide-handle:
+   * GtkPaned:wide-handle: (attributes org.gtk.Property.get=gtk_paned_get_wide_handle org.gtk.Property.set=gtk_paned_set_wide_handle)
    *
-   * Setting this property to %TRUE indicates that the paned needs
-   * to provide stronger visual separation (e.g. because it separates
-   * between two notebooks, whose tab rows would otherwise merge visually).
+   * Whether the `GtkPaned` should provide a stronger visual separation.
+   *
+   * For example, this could be set when a paned contains two
+   * [class@Gtk.Notebook]s, whose tab rows would otherwise merge visually.
    */
   paned_props[PROP_WIDE_HANDLE] =
     g_param_spec_boolean ("wide-handle",
@@ -498,10 +486,10 @@ gtk_paned_class_init (GtkPanedClass *class)
                           GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkPaned:resize-start-child:
+   * GtkPaned:resize-start-child: (attributes org.gtk.Property.get=gtk_paned_get_resize_start_child org.gtk.Property.set=gtk_paned_set_resize_start_child)
    *
-   * The "resize-start-child" property determines whether the first child expands and
-   * shrinks along with the paned widget.
+   * Determines whether the first child expands and shrinks
+   * along with the paned widget.
    */
   paned_props[PROP_RESIZE_START_CHILD] =
     g_param_spec_boolean ("resize-start-child",
@@ -511,10 +499,10 @@ gtk_paned_class_init (GtkPanedClass *class)
                           GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkPaned:resize-end-child:
+   * GtkPaned:resize-end-child: (attributes org.gtk.Property.get=gtk_paned_get_resize_end_child org.gtk.Property.set=gtk_paned_set_resize_end_child)
    *
-   * The "resize-end-child" property determines whether the second child expands and
-   * shrinks along with the paned widget.
+   * Determines whether the second child expands and shrinks
+   * along with the paned widget.
    */
   paned_props[PROP_RESIZE_END_CHILD] =
     g_param_spec_boolean ("resize-end-child",
@@ -524,10 +512,10 @@ gtk_paned_class_init (GtkPanedClass *class)
                           GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkPaned:shrink-start-child:
+   * GtkPaned:shrink-start-child: (attributes org.gtk.Property.get=gtk_paned_get_shrink_start_child org.gtk.Property.set=gtk_paned_set_shrink_start_child)
    *
-   * The "shrink-start-child" property determines whether the first child can be made
-   * smaller than its requisition.
+   * Determines whether the first child can be made smaller
+   * than its requisition.
    */
   paned_props[PROP_SHRINK_START_CHILD] =
     g_param_spec_boolean ("shrink-start-child",
@@ -537,10 +525,10 @@ gtk_paned_class_init (GtkPanedClass *class)
                           GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkPaned:shrink-end-child:
+   * GtkPaned:shrink-end-child: (attributes org.gtk.Property.get=gtk_paned_get_shrink_end_child org.gtk.Property.set=gtk_paned_set_shrink_end_child)
    *
-   * The "shrink-end-child" property determines whether the second child can be made
-   * smaller than its requisition.
+   * Determines whether the second child can be made smaller
+   * than its requisition.
    */
   paned_props[PROP_SHRINK_END_CHILD] =
     g_param_spec_boolean ("shrink-end-child",
@@ -549,6 +537,11 @@ gtk_paned_class_init (GtkPanedClass *class)
                           TRUE,
                           GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * GtkPaned:start-child: (attributes org.gtk.Property.get=gtk_paned_get_start_child org.gtk.Property.set=gtk_paned_set_start_child)
+   *
+   * The first child.
+   */
   paned_props[PROP_START_CHILD] =
     g_param_spec_object ("start-child",
                           P_("First child"),
@@ -556,6 +549,11 @@ gtk_paned_class_init (GtkPanedClass *class)
                           GTK_TYPE_WIDGET,
                           GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * GtkPaned:end-child: (attributes org.gtk.Property.get=gtk_paned_get_end_child org.gtk.Property.set=gtk_paned_set_end_child)
+   *
+   * The second child.
+   */
   paned_props[PROP_END_CHILD] =
     g_param_spec_object ("end-child",
                           P_("Second child"),
@@ -571,11 +569,11 @@ gtk_paned_class_init (GtkPanedClass *class)
    * @widget: the object that received the signal
    * @reversed: whether cycling backward or forward
    *
-   * The ::cycle-child-focus signal is a
-   * [keybinding signal][GtkSignalAction]
-   * which gets emitted to cycle the focus between the children of the paned.
+   * Emitted to cycle the focus between the children of the paned.
    *
-   * The default binding is f6.
+   * This is a [keybinding signal](class.SignalAction.html).
+   *
+   * The default binding is F6.
    */
   signals [CYCLE_CHILD_FOCUS] =
     g_signal_new (I_("cycle-child-focus"),
@@ -591,10 +589,10 @@ gtk_paned_class_init (GtkPanedClass *class)
    * GtkPaned::toggle-handle-focus:
    * @widget: the object that received the signal
    *
-   * The ::toggle-handle-focus is a
-   * [keybinding signal][GtkSignalAction]
-   * which gets emitted to accept the current position of the handle and then
+   * Emitted to accept the current position of the handle and then
    * move focus to the next widget in the focus chain.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * The default binding is Tab.
    */
@@ -610,12 +608,11 @@ gtk_paned_class_init (GtkPanedClass *class)
   /**
    * GtkPaned::move-handle:
    * @widget: the object that received the signal
-   * @scroll_type: a #GtkScrollType
+   * @scroll_type: a `GtkScrollType`
    *
-   * The ::move-handle signal is a
-   * [keybinding signal][GtkSignalAction]
-   * which gets emitted to move the handle when the user is using key bindings
-   * to move it.
+   * Emitted to move the handle with key bindings.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    */
   signals[MOVE_HANDLE] =
     g_signal_new (I_("move-handle"),
@@ -632,12 +629,12 @@ gtk_paned_class_init (GtkPanedClass *class)
    * @widget: the object that received the signal
    * @reversed: whether cycling backward or forward
    *
-   * The ::cycle-handle-focus signal is a
-   * [keybinding signal][GtkSignalAction]
-   * which gets emitted to cycle whether the paned should grab focus to allow
+   * Emitted to cycle whether the paned should grab focus to allow
    * the user to change position of the handle by using key bindings.
    *
-   * The default binding for this signal is f8.
+   * This is a [keybinding signal](class.SignalAction.html).
+   *
+   * The default binding for this signal is F8.
    */
   signals [CYCLE_HANDLE_FOCUS] =
     g_signal_new (I_("cycle-handle-focus"),
@@ -653,10 +650,10 @@ gtk_paned_class_init (GtkPanedClass *class)
    * GtkPaned::accept-position:
    * @widget: the object that received the signal
    *
-   * The ::accept-position signal is a
-   * [keybinding signal][GtkSignalAction]
-   * which gets emitted to accept the current position of the handle when
+   * Emitted to accept the current position of the handle when
    * moving it using key bindings.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * The default binding for this signal is Return or Space.
    */
@@ -673,11 +670,13 @@ gtk_paned_class_init (GtkPanedClass *class)
    * GtkPaned::cancel-position:
    * @widget: the object that received the signal
    *
-   * The ::cancel-position signal is a
-   * [keybinding signal][GtkSignalAction]
-   * which gets emitted to cancel moving the position of the handle using key
-   * bindings. The position of the handle will be reset to the value prior to
+   * Emitted to cancel moving the position of the handle using key
+   * bindings.
+   *
+   * The position of the handle will be reset to the value prior to
    * moving it.
+   *
+   * This is a [keybinding signal](class.SignalAction.html).
    *
    * The default binding for this signal is Escape.
    */
@@ -1409,21 +1408,6 @@ gtk_paned_unrealize (GtkWidget *widget)
 }
 
 static void
-gtk_paned_render_handle (GtkGizmo    *gizmo,
-                         GtkSnapshot *snapshot)
-{
-  GtkWidget *widget = GTK_WIDGET (gizmo);
-  GtkCssStyle *style = gtk_css_node_get_style (gtk_widget_get_css_node (widget));
-  int width, height;
-
-  width = gtk_widget_get_width (widget);
-  height = gtk_widget_get_height (widget);
-
-  if (width > 0 && height > 0)
-    gtk_css_style_snapshot_icon (style, snapshot, width, height);
-}
-
-static void
 connect_drag_gesture_signals (GtkPaned   *paned,
                               GtkGesture *gesture)
 {
@@ -1480,7 +1464,7 @@ gtk_paned_init (GtkPaned *paned)
   gtk_widget_add_controller (GTK_WIDGET (paned), GTK_EVENT_CONTROLLER (gesture));
   paned->drag_gesture = gesture;
 
-  paned->handle_widget = gtk_gizmo_new ("separator", NULL, NULL, gtk_paned_render_handle, gtk_paned_handle_contains, NULL, NULL);
+  paned->handle_widget = gtk_paned_handle_new ();
   gtk_widget_set_parent (paned->handle_widget, GTK_WIDGET (paned));
   gtk_widget_set_cursor_from_name (paned->handle_widget, "col-resize");
 }
@@ -1551,10 +1535,10 @@ gtk_paned_css_changed (GtkWidget         *widget,
  * gtk_paned_new:
  * @orientation: the paned’s orientation.
  *
- * Creates a new #GtkPaned widget.
+ * Creates a new `GtkPaned` widget.
  *
- * Returns: a new #GtkPaned.
- **/
+ * Returns: a new `GtkPaned`.
+ */
 GtkWidget *
 gtk_paned_new (GtkOrientation orientation)
 {
@@ -1564,8 +1548,8 @@ gtk_paned_new (GtkOrientation orientation)
 }
 
 /**
- * gtk_paned_set_start_child:
- * @paned: a #GtkPaned
+ * gtk_paned_set_start_child: (attributes org.gtk.Method.set_property=start-child)
+ * @paned: a `GtkPaned`
  * @child: the widget to add
  *
  * Sets the start child of @paned to @child.
@@ -1589,12 +1573,12 @@ gtk_paned_set_start_child (GtkPaned *paned,
 }
 
 /**
- * gtk_paned_get_start_child:
- * @paned: a #GtkPaned
+ * gtk_paned_get_start_child: (attributes org.gtk.Method.get_property=start-child)
+ * @paned: a `GtkPaned`
  *
- * Retrieves the start child of the given #GtkPaned.
+ * Retrieves the start child of the given `GtkPaned`.
  *
- * See also: #GtkPaned:start-child
+ * See also: `GtkPaned`:start-child
  *
  * Returns: (transfer none) (nullable): the start child widget
  */
@@ -1607,11 +1591,11 @@ gtk_paned_get_start_child (GtkPaned *paned)
 }
 
 /**
- * gtk_paned_set_resize_start_child:
- * @paned: a #GtkPaned
+ * gtk_paned_set_resize_start_child: (attributes org.gtk.Method.set_property=resize-start-child)
+ * @paned: a `GtkPaned`
  * @resize: %TRUE to let the start child be resized
  *
- * Sets the #GtkPaned:resize-start-child property
+ * Sets the `GtkPaned`:resize-start-child property
  */
 void
 gtk_paned_set_resize_start_child (GtkPaned *paned,
@@ -1628,8 +1612,8 @@ gtk_paned_set_resize_start_child (GtkPaned *paned,
 }
 
 /**
- * gtk_paned_get_resize_start_child:
- * @paned: a #GtkPaned
+ * gtk_paned_get_resize_start_child: (attributes org.gtk.Method.get_property=resize-start-child)
+ * @paned: a `GtkPaned`
  *
  * Returns whether the start child can be resized.
  *
@@ -1644,11 +1628,11 @@ gtk_paned_get_resize_start_child (GtkPaned *paned)
 }
 
 /**
- * gtk_paned_set_shrink_start_child:
- * @paned: a #GtkPaned
+ * gtk_paned_set_shrink_start_child: (attributes org.gtk.Method.set_property=shrink-start-child)
+ * @paned: a `GtkPaned`
  * @resize: %TRUE to let the start child be shrunk
  *
- * Sets the #GtkPaned:shrink-start-child property
+ * Sets the `GtkPaned`:shrink-start-child property
  */
 void
 gtk_paned_set_shrink_start_child (GtkPaned *paned,
@@ -1665,8 +1649,8 @@ gtk_paned_set_shrink_start_child (GtkPaned *paned,
 }
 
 /**
- * gtk_paned_get_shrink_start_child:
- * @paned: a #GtkPaned
+ * gtk_paned_get_shrink_start_child: (attributes org.gtk.Method.get_property=shrink-start-child)
+ * @paned: a `GtkPaned`
  *
  * Returns whether the start child can be shrunk.
  *
@@ -1681,8 +1665,8 @@ gtk_paned_get_shrink_start_child (GtkPaned *paned)
 }
 
 /**
- * gtk_paned_set_end_child:
- * @paned: a #GtkPaned
+ * gtk_paned_set_end_child: (attributes org.gtk.Method.set_property=end-child)
+ * @paned: a `GtkPaned`
  * @child: the widget to add
  *
  * Sets the end child of @paned to @child.
@@ -1706,12 +1690,12 @@ gtk_paned_set_end_child (GtkPaned *paned,
 }
 
 /**
- * gtk_paned_get_end_child:
- * @paned: a #GtkPaned
+ * gtk_paned_get_end_child: (attributes org.gtk.Method.get_property=end-child)
+ * @paned: a `GtkPaned`
  *
- * Retrieves the end child of the given #GtkPaned.
+ * Retrieves the end child of the given `GtkPaned`.
  *
- * See also: #GtkPaned:end-child
+ * See also: `GtkPaned`:end-child
  *
  * Returns: (transfer none) (nullable): the end child widget
  */
@@ -1724,11 +1708,11 @@ gtk_paned_get_end_child (GtkPaned *paned)
 }
 
 /**
- * gtk_paned_set_resize_end_child:
- * @paned: a #GtkPaned
+ * gtk_paned_set_resize_end_child: (attributes org.gtk.Method.set_property=resize-end-child)
+ * @paned: a `GtkPaned`
  * @resize: %TRUE to let the end child be resized
  *
- * Sets the #GtkPaned:resize-end-child property
+ * Sets the `GtkPaned`:resize-end-child property
  */
 void
 gtk_paned_set_resize_end_child (GtkPaned *paned,
@@ -1745,8 +1729,8 @@ gtk_paned_set_resize_end_child (GtkPaned *paned,
 }
 
 /**
- * gtk_paned_get_resize_end_child:
- * @paned: a #GtkPaned
+ * gtk_paned_get_resize_end_child: (attributes org.gtk.Method.get_property=resize-end-child)
+ * @paned: a `GtkPaned`
  *
  * Returns whether the end child can be resized.
  *
@@ -1761,11 +1745,11 @@ gtk_paned_get_resize_end_child (GtkPaned *paned)
 }
 
 /**
- * gtk_paned_set_shrink_end_child:
- * @paned: a #GtkPaned
+ * gtk_paned_set_shrink_end_child: (attributes org.gtk.Method.set_property=shrink-end-child)
+ * @paned: a `GtkPaned`
  * @resize: %TRUE to let the end child be shrunk
  *
- * Sets the #GtkPaned:shrink-end-child property
+ * Sets the `GtkPaned`:shrink-end-child property
  */
 void
 gtk_paned_set_shrink_end_child (GtkPaned *paned,
@@ -1782,8 +1766,8 @@ gtk_paned_set_shrink_end_child (GtkPaned *paned,
 }
 
 /**
- * gtk_paned_get_shrink_end_child:
- * @paned: a #GtkPaned
+ * gtk_paned_get_shrink_end_child: (attributes org.gtk.Method.get_property=shrink-end-child)
+ * @paned: a `GtkPaned`
  *
  * Returns whether the end child can be shrunk.
  *
@@ -1798,8 +1782,8 @@ gtk_paned_get_shrink_end_child (GtkPaned *paned)
 }
 
 /**
- * gtk_paned_get_position:
- * @paned: a #GtkPaned widget
+ * gtk_paned_get_position: (attributes org.gtk.Method.get_property=position)
+ * @paned: a `GtkPaned` widget
  *
  * Obtains the position of the divider between the two panes.
  *
@@ -1814,10 +1798,10 @@ gtk_paned_get_position (GtkPaned  *paned)
 }
 
 /**
- * gtk_paned_set_position:
- * @paned: a #GtkPaned widget
+ * gtk_paned_set_position: (attributes org.gtk.Method.set_property=position)
+ * @paned: a `GtkPaned` widget
  * @position: pixel position of divider, a negative value means that the position
- *            is unset.
+ *   is unset
  *
  * Sets the position of the divider between the two panes.
  **/
@@ -2487,11 +2471,11 @@ gtk_paned_toggle_handle_focus (GtkPaned *paned)
 }
 
 /**
- * gtk_paned_set_wide_handle:
- * @paned: a #GtkPaned
- * @wide: the new value for the #GtkPaned:wide-handle property
+ * gtk_paned_set_wide_handle: (attributes org.gtk.Method.set_propery=wide-handle)
+ * @paned: a `GtkPaned`
+ * @wide: the new value for the [property@Gtk.Paned:wide-handle] property
  *
- * Sets the #GtkPaned:wide-handle property.
+ * Sets whether the separator should be wide.
  */
 void
 gtk_paned_set_wide_handle (GtkPaned *paned,
@@ -2514,10 +2498,10 @@ gtk_paned_set_wide_handle (GtkPaned *paned,
 }
 
 /**
- * gtk_paned_get_wide_handle:
- * @paned: a #GtkPaned
+ * gtk_paned_get_wide_handle: (attributes org.gtk.Method.get_property=wide-handle)
+ * @paned: a `GtkPaned`
  *
- * Gets the #GtkPaned:wide-handle property.
+ * Gets whether the separator should be wide.
  *
  * Returns: %TRUE if the paned should have a wide handle
  */

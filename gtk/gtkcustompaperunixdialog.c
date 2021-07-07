@@ -385,12 +385,12 @@ gtk_custom_paper_unix_dialog_finalize (GObject *object)
 
 /**
  * gtk_custom_paper_unix_dialog_new:
- * @title: (allow-none): the title of the dialog, or %NULL
- * @parent: (allow-none): transient parent of the dialog, or %NULL
+ * @title: (nullable): the title of the dialog
+ * @parent: (nullable): transient parent of the dialog
  *
  * Creates a new custom paper dialog.
  *
- * Returns: the new #GtkCustomPaperUnixDialog
+ * Returns: the new `GtkCustomPaperUnixDialog`
  */
 GtkWidget *
 _gtk_custom_paper_unix_dialog_new (GtkWindow   *parent,

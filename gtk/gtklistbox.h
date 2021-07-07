@@ -91,7 +91,7 @@ typedef gboolean (*GtkListBoxFilterFunc) (GtkListBoxRow *row,
  * Compare two rows to determine which should be first.
  *
  * Returns: < 0 if @row1 should be before @row2, 0 if they are
- *     equal and > 0 otherwise
+ *   equal and > 0 otherwise
  */
 typedef int (*GtkListBoxSortFunc) (GtkListBoxRow *row1,
                                    GtkListBoxRow *row2,
@@ -100,13 +100,14 @@ typedef int (*GtkListBoxSortFunc) (GtkListBoxRow *row1,
 /**
  * GtkListBoxUpdateHeaderFunc:
  * @row: the row to update
- * @before: (allow-none): the row before @row, or %NULL if it is first
+ * @before: (nullable): the row before @row, or %NULL if it is first
  * @user_data: (closure): user data
  *
  * Whenever @row changes or which row is before @row changes this
- * is called, which lets you update the header on @row. You may
- * remove or set a new one via gtk_list_box_row_set_header() or
- * just change the state of the current header widget.
+ * is called, which lets you update the header on @row.
+ *
+ * You may remove or set a new one via [method@Gtk.ListBoxRow.set_header]
+ * or just change the state of the current header widget.
  */
 typedef void (*GtkListBoxUpdateHeaderFunc) (GtkListBoxRow *row,
                                             GtkListBoxRow *before,
@@ -117,10 +118,10 @@ typedef void (*GtkListBoxUpdateHeaderFunc) (GtkListBoxRow *row,
  * @item: (type GObject): the item from the model for which to create a widget for
  * @user_data: (closure): user data
  *
- * Called for list boxes that are bound to a #GListModel with
+ * Called for list boxes that are bound to a `GListModel` with
  * gtk_list_box_bind_model() for each item that gets added to the model.
  *
- * Returns: (transfer full): a #GtkWidget that represents @item
+ * Returns: (transfer full): a `GtkWidget` that represents @item
  */
 typedef GtkWidget * (*GtkListBoxCreateWidgetFunc) (gpointer item,
                                                    gpointer user_data);

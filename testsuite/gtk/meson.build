@@ -27,34 +27,18 @@ tests = [
   { 'name': 'adjustment' },
   { 'name': 'bitset' },
   {
-    'name': 'bitmask',
-    'sources': ['../../gtk/gtkallocatedbitmask.c'],
-    'c_args': ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG'],
-  },
-  {
     'name': 'builder',
     'link_args': gtk_tests_export_dynamic_ldflag,
   },
   { 'name': 'builderparser' },
+  { 'name': 'calendar' },
   { 'name': 'cellarea' },
   { 'name': 'check-icon-names' },
-  {
-    'name': 'constraint-solver',
-    'sources': [
-      '../../gtk/gtkconstraintsolver.c',
-      '../../gtk/gtkconstraintexpression.c',
-    ],
-    'c_args': ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG'],
-  },
   { 'name': 'cssprovider' },
-  {
-    'name': 'rbtree-crash',
-    'sources': ['../../gtk/gtkrbtree.c'],
-    'c_args': ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG'],
-  },
   { 'name': 'defaultvalue' },
   { 'name': 'entry' },
   { 'name': 'expression' },
+  { 'name': 'filefilter' },
   { 'name': 'filter' },
   { 'name': 'filterlistmodel' },
   {
@@ -68,6 +52,7 @@ tests = [
   { 'name': 'grid' },
   { 'name': 'grid-layout' },
   { 'name': 'icontheme' },
+  { 'name': 'label' },
   { 'name': 'listbox' },
   { 'name': 'main' },
   { 'name': 'maplistmodel' },
@@ -78,16 +63,6 @@ tests = [
   { 'name': 'objects-finalize' },
   { 'name': 'papersize' },
   #{ 'name': 'popover' },
-  {
-    'name': 'propertylookuplistmodel',
-    'sources': ['../../gtk/gtkpropertylookuplistmodel.c'],
-    'c_args': ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG'],
-  },
-  {
-    'name': 'rbtree',
-    'sources': ['../../gtk/gtktreerbtree.c'],
-    'c_args': ['-DGTK_COMPILATION', '-UG_ENABLE_DEBUG'],
-  },
   { 'name': 'recentmanager' },
   { 'name': 'regression-tests' },
   { 'name': 'scrolledwindow' },
@@ -104,10 +79,6 @@ tests = [
   { 'name': 'textbuffer' },
   { 'name': 'textiter' },
   { 'name': 'theme-validate' },
-  {
-    'name': 'timsort',
-    'sources': ['timsort.c', '../../gtk/timsort/gtktimsort.c'],
-  },
   { 'name': 'tooltips' },
   { 'name': 'treelistmodel' },
   {
@@ -130,6 +101,25 @@ tests = [
   { 'name': 'revealer-size' },
   { 'name': 'widgetorder' },
   { 'name': 'widget-refcount' },
+]
+
+# Tests that test private apis and therefore are linked against libgtk-4.a
+internal_tests = [
+  { 'name': 'bitmask' },
+  {
+    'name': 'composetable',
+    'sources': [
+      'composetable.c',
+      '../testutils.c'
+    ],
+  },
+  { 'name': 'constraint-solver' },
+  { 'name': 'rbtree-crash' },
+  { 'name': 'propertylookuplistmodel' },
+  { 'name': 'rbtree' },
+  { 'name': 'timsort' },
+  { 'name': 'texthistory' },
+  { 'name': 'fnmatch' },
 ]
 
 # Tests that are expected to fail
@@ -199,11 +189,43 @@ foreach t : tests
   )
 endforeach
 
+foreach t : internal_tests
+  test_name = t.get('name')
+  test_srcs = ['@0@.c'.format(test_name)] + t.get('sources', [])
+  test_extra_cargs = t.get('c_args', [])
+  test_extra_ldflags = t.get('link_args', [])
+  test_extra_suites = t.get('suites', [])
+  test_timeout = 60
+
+  test_exe = executable(test_name,
+    sources: test_srcs,
+    c_args: test_cargs + test_extra_cargs,
+    link_args: test_extra_ldflags,
+    dependencies: libgtk_static_dep,
+    install: get_option('install-tests'),
+    install_dir: testexecdir,
+  )
+
+  expect_fail = xfail.contains(test_name)
+
+  if test_extra_suites.contains('slow')
+    test_timeout = 90
+  endif
+
+  test(test_name, test_exe,
+    args: [ '--tap', '-k' ],
+    protocol: 'tap',
+    timeout: test_timeout,
+    env: test_env,
+    suite: ['gtk'] + test_extra_suites,
+    should_fail: expect_fail,
+  )
+endforeach
+
 # FIXME: if objc autotestkeywords_CPPFLAGS += -DHAVE_OBJC=1 -x objective-c++
 if add_languages('cpp', required: false, native: false)
   test_exe = executable('autotestkeywords',
     sources: 'autotestkeywords.cc',
-    c_args: test_cargs + ['-Idummy-headers'],
     dependencies: libgtk_dep,
     install: get_option('install-tests'),
     install_dir: testexecdir,
@@ -235,8 +257,9 @@ focus_chain_tests = [
   [ 'basic', 'right' ],
   [ 'widget-factory', 'tab' ],
   [ 'widget-factory', 'tab-backward' ],
-  [ 'widget-factory', 'up' ],
-  [ 'widget-factory', 'down' ],
+  # flaky
+  # [ 'widget-factory', 'up' ],
+  # [ 'widget-factory', 'down' ],
   [ 'widget-factory', 'left' ],
   # this one is flaky in ci, for unclear reasons
   #[ 'widget-factory', 'right' ],
@@ -250,7 +273,7 @@ focus_chain_tests = [
 
 focus_chain = executable(
   'test-focus-chain',
-  sources: ['test-focus-chain.c'],
+  sources: ['test-focus-chain.c', '../testutils.c'],
   dependencies: libgtk_dep,
   c_args: common_cflags,
   install: get_option('install-tests'),

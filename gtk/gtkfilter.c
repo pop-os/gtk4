@@ -25,29 +25,26 @@
 #include "gtktypebuiltins.h"
 
 /**
- * SECTION:gtkfilter
- * @Title: GtkFilter
- * @Short_description: Filtering items
- * @See_also: #GtkFilterListModel
+ * GtkFilter:
  *
- * A #GtkFilter object describes the filtering to be performed by a
- * #GtkFilterListModel.
+ * A `GtkFilter` object describes the filtering to be performed by a
+ * `GtkFilterListModel`.
  *
  * The model will use the filter to determine if it should include items
- * or not by calling gtk_filter_match() for each item and only keeping the
- * ones that the function returns %TRUE for.
+ * or not by calling [method@Gtk.Filter.match] for each item and only
+ * keeping the ones that the function returns %TRUE for.
  *
  * Filters may change what items they match through their lifetime. In that
- * case, they will emit the #GtkFilter::changed signal to notify that previous
- * filter results are no longer valid and that items should be checked again
- * via gtk_filter_match().
+ * case, they will emit the [signal@Gtk.Filter::changed] signal to notify
+ * that previous filter results are no longer valid and that items should
+ * be checked again via [method@Gtk.Filter.match].
  *
  * GTK provides various pre-made filter implementations for common filtering
  * operations. These filters often include properties that can be linked to
  * various widgets to easily allow searches.
  *
  * However, in particular for large lists or complex search methods, it is
- * also possible to subclass #GtkFilter and provide one's own filter.
+ * also possible to subclass `GtkFilter` and provide one's own filter.
  */
 
 enum {
@@ -84,16 +81,19 @@ gtk_filter_class_init (GtkFilterClass *class)
 
   /**
    * GtkFilter::changed:
-   * @self: The #GtkFilter
+   * @self: The `GtkFilter`
    * @change: how the filter changed
    *
-   * This signal is emitted whenever the filter changed. Users of the filter
-   * should then check items again via gtk_filter_match().
+   * Emitted whenever the filter changed.
    *
-   * #GtkFilterListModel handles this signal automatically.
+   * Users of the filter should then check items again via
+   * [method@Gtk.Filter.match].
    *
-   * Depending on the @change parameter, not all items need to be changed, but
-   * only some. Refer to the #GtkFilterChange documentation for details.
+   * `GtkFilterListModel` handles this signal automatically.
+   *
+   * Depending on the @change parameter, not all items need
+   * to be checked, but only some. Refer to the [enum@Gtk.FilterChange]
+   * documentation for details.
    */
   signals[CHANGED] =
     g_signal_new (I_("changed"),
@@ -116,13 +116,13 @@ gtk_filter_init (GtkFilter *self)
 
 /**
  * gtk_filter_match:
- * @self: a #GtkFilter
+ * @self: a `GtkFilter`
  * @item: (type GObject) (transfer none): The item to check
  *
  * Checks if the given @item is matched by the filter or not.
  *
  * Returns: %TRUE if the filter matches the item and a filter model should
- *     keep it, %FALSE if not.
+ *   keep it, %FALSE if not.
  */
 gboolean
 gtk_filter_match (GtkFilter *self,
@@ -136,18 +136,20 @@ gtk_filter_match (GtkFilter *self,
 
 /**
  * gtk_filter_get_strictness:
- * @self: a #GtkFilter
+ * @self: a `GtkFilter`
  *
- * Gets the known strictness of @filters. If the strictness is not known,
- * %GTK_FILTER_MATCH_SOME is returned.
+ * Gets the known strictness of @filters.
  *
- * This value may change after emission of the #GtkFilter::changed signal.
+ * If the strictness is not known, %GTK_FILTER_MATCH_SOME is returned.
+ *
+ * This value may change after emission of the [signal@Gtk.Filter::changed]
+ * signal.
  *
  * This function is meant purely for optimization purposes, filters can
- * choose to omit implementing it, but #GtkFilterListModel uses it.
+ * choose to omit implementing it, but `GtkFilterListModel` uses it.
  *
  * Returns: the strictness of @self
- **/
+ */
 GtkFilterMatch
 gtk_filter_get_strictness (GtkFilter *self)
 {
@@ -158,18 +160,21 @@ gtk_filter_get_strictness (GtkFilter *self)
 
 /**
  * gtk_filter_changed:
- * @self: a #GtkFilter
+ * @self: a `GtkFilter`
  * @change: How the filter changed
  *
- * Emits the #GtkFilter::changed signal to notify all users of the filter that
- * the filter changed. Users of the filter should then check items again via
- * gtk_filter_match().
+ * Notifies all users of the filter that it has changed.
  *
- * Depending on the @change parameter, not all items need to be changed, but
- * only some. Refer to the #GtkFilterChange documentation for details.
+ * This emits the [signal@Gtk.Filter::changed] signal. Users
+ * of the filter should then check items again via
+ * [method@Gtk.Filter.match].
  *
- * This function is intended for implementors of #GtkFilter subclasses and
- * should not be called from other functions.
+ * Depending on the @change parameter, not all items need to
+ * be changed, but only some. Refer to the [enum@Gtk.FilterChange]
+ * documentation for details.
+ *
+ * This function is intended for implementors of `GtkFilter`
+ * subclasses and should not be called from other functions.
  */
 void
 gtk_filter_changed (GtkFilter       *self,

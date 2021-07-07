@@ -26,11 +26,7 @@
 G_BEGIN_DECLS
 
 /*
- * SECTION:gtkcountingbloomfilter
- * @Short_description: A counting bloom filter
- * @Title: GtkCountingBloomFilter
- * @See_also: https://en.wikipedia.org/wiki/Bloom_filter,
- *            https://en.wikipedia.org/wiki/Counting_Bloom_filter
+ * GtkCountingBloomFilter:
  *
  * This implements a counting bloom filter. A bloom filter is a space-efficient
  * probabilistic data structure that is used to test whether an element may be
@@ -45,6 +41,9 @@ G_BEGIN_DECLS
  * are 16bit hash values.  
  * It is possible to use 32bit hash values or a different number of bits, should this
  * be considered useful.
+ *
+ * See: [Bloom filter](https://en.wikipedia.org/wiki/Bloom_filter),
+ *   [Counting Bloom filter](https://en.wikipedia.org/wiki/Counting_Bloom_filter)
  */
 
 /* The number of bits from the hash we care about */
@@ -83,7 +82,7 @@ static inline gboolean  gtk_counting_bloom_filter_may_contain   (const GtkCounti
 
 /*
  * gtk_counting_bloom_filter_add:
- * @self: a #GtkCountingBloomFilter
+ * @self: a `GtkCountingBloomFilter`
  * @hash: a hash value to add to the filter
  *
  * Adds the hash value to the filter.
@@ -106,7 +105,7 @@ gtk_counting_bloom_filter_add (GtkCountingBloomFilter *self,
 
 /*
  * gtk_counting_bloom_filter_remove:
- * @self: a #GtkCountingBloomFilter
+ * @self: a `GtkCountingBloomFilter`
  * @hash: a hash value to remove from the filter
  *
  * Removes a hash value from the filter that has previously
@@ -128,7 +127,7 @@ gtk_counting_bloom_filter_remove (GtkCountingBloomFilter *self,
 
 /*
  * gtk_counting_bloom_filter_may_contain:
- * @self: a #GtkCountingBloomFilter
+ * @self: a `GtkCountingBloomFilter`
  * @hash: the hash value to check
  *
  * Checks if @hash may be contained in @self.

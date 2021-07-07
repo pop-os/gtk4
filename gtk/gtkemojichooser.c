@@ -31,7 +31,6 @@
 #include "gtkpopover.h"
 #include "gtkscrolledwindow.h"
 #include "gtkintl.h"
-#include "gtkprivate.h"
 #include "gtksearchentryprivate.h"
 #include "gtktext.h"
 #include "gtknative.h"
@@ -41,18 +40,19 @@
 #include "gtkprivate.h"
 
 /**
- * SECTION:gtkemojichooser
- * @Title: GtkEmojiChooser
- * @Short_description: A popover to choose an Emoji character
+ * GtkEmojiChooser:
  *
- * The #GtkEmojiChooser popover is used by text widgets such as #GtkEntry or
- * #GtkTextView to offer users a convenient way to insert Emoji characters.
+ * The `GtkEmojiChooser` is used by text widgets such as `GtkEntry` or
+ * `GtkTextView` to let users insert Emoji characters.
  *
- * GtkEmojiChooser emits the #GtkEmojiChooser::emoji-picked signal when an
- * Emoji is selected.
+ * ![An example GtkEmojiChooser](emojichooser.png)
+ *
+ * `GtkEmojiChooser` emits the [signal@Gtk.EmojiChooser::emoji-picked]
+ * signal when an Emoji is selected.
  *
  * # CSS nodes
- * |[<!-- language="plain" -->
+ *
+ * ```
  * popover
  * ├── box.emoji-searchbar
  * │   ╰── entry.search
@@ -60,9 +60,9 @@
  *     ├── button.image-button.emoji-section
  *     ├── ...
  *     ╰── button.image-button.emoji-section
- * ]|
+ * ```
  *
- * Every #GtkEmojiChooser consists of a main node called popover.
+ * Every `GtkEmojiChooser` consists of a main node called popover.
  * The contents of the popover are largely implementation defined
  * and supposed to inherit general styles.
  * The top searchbar used to search emoji and gets the .emoji-searchbar
@@ -70,7 +70,6 @@
  * The bottom toolbar used to switch between different emoji categories
  * consists of buttons with the .emoji-section style class and gets the
  * .emoji-toolbar style class itself.
- *
  */
 
 #define BOX_SPACE 6
@@ -596,24 +595,12 @@ add_emoji (GtkWidget    *box,
   gtk_flow_box_insert (GTK_FLOW_BOX (box), child, prepend ? 0 : -1);
 }
 
-GBytes *
-get_emoji_data (void)
+static GBytes *
+get_emoji_data_by_language (const char *lang)
 {
   GBytes *bytes;
-  const char *lang;
-  char q[10];
   char *path;
   GError *error = NULL;
-
-  lang = pango_language_to_string (gtk_get_default_language ());
-  if (strchr (lang, '-'))
-    {
-      int i;
-      for (i = 0; lang[i] != '-' && i < 9; i++)
-        q[i] = lang[i];
-      q[i] = '\0';
-      lang = q;
-    }
 
   path = g_strconcat ("/org/gtk/libgtk/emoji/", lang, ".data", NULL);
   bytes = g_resources_lookup_data (path, 0, &error);
@@ -627,11 +614,15 @@ get_emoji_data (void)
   if (g_error_matches (error, G_RESOURCE_ERROR, G_RESOURCE_ERROR_NOT_FOUND))
     {
       char *filename;
+      char *gresource_name;
       GMappedFile *file;
 
       g_clear_error (&error);
 
-      filename = g_strconcat ("/usr/share/gtk-4.0/emoji/", lang, ".gresource", NULL);
+      gresource_name = g_strconcat (lang, ".gresource", NULL);
+      filename = g_build_filename (_gtk_get_data_prefix (), "share", "gtk-4.0",
+                                   "emoji", gresource_name, NULL);
+      g_clear_pointer (&gresource_name, g_free);
       file = g_mapped_file_new (filename, FALSE, NULL);
 
       if (file)
@@ -663,10 +654,40 @@ get_emoji_data (void)
     }
 
   g_clear_error (&error);
-
   g_free (path);
 
-  return g_resources_lookup_data ("/org/gtk/libgtk/emoji/en.data", 0, NULL);
+  return NULL;
+}
+
+GBytes *
+get_emoji_data (void)
+{
+  GBytes *bytes;
+  const char *lang;
+
+  lang = pango_language_to_string (gtk_get_default_language ());
+  bytes = get_emoji_data_by_language (lang);
+  if (bytes)
+    return bytes;
+
+  if (strchr (lang, '-'))
+    {
+      char q[5];
+      int i;
+
+      for (i = 0; lang[i] != '-' && i < 4; i++)
+        q[i] = lang[i];
+      q[i] = '\0';
+
+      bytes = get_emoji_data_by_language (q);
+      if (bytes)
+        return bytes;
+    }
+
+  bytes = get_emoji_data_by_language ("en");
+  g_assert (bytes);
+
+  return bytes;
 }
 
 static gboolean
@@ -1081,15 +1102,36 @@ keynav_failed (GtkWidget        *box,
                GtkEmojiChooser  *chooser)
 {
   EmojiSection *next;
-  GtkWidget *focus; 
+  GtkWidget *focus;
   GtkWidget *child;
   GtkWidget *sibling;
   int i;
   int column;
+  int n_columns = 7;
+  int child_x;
 
   focus = gtk_root_get_focus (gtk_widget_get_root (box));
   if (focus == NULL)
     return FALSE;
+
+  /* determine the number of columns */
+  child_x = -1;
+  for (i = 0; i < 20; i++)
+    {
+      GtkAllocation alloc;
+
+      gtk_widget_get_allocation (GTK_WIDGET (gtk_flow_box_get_child_at_index (GTK_FLOW_BOX (box), i)),
+                                 &alloc);
+      if (alloc.x > child_x)
+        child_x = alloc.x;
+      else
+        {
+          n_columns = i;
+          break;
+        }
+    }
+
+  n_columns = MAX (n_columns, 1);
 
   child = gtk_widget_get_ancestor (focus, GTK_TYPE_EMOJI_CHOOSER_CHILD);
 
@@ -1099,7 +1141,7 @@ keynav_failed (GtkWidget        *box,
        sibling = gtk_widget_get_next_sibling (sibling))
     i++;
 
-  column = i % 7;
+  column = i % n_columns;
 
   if (direction == GTK_DIR_DOWN)
     {
@@ -1131,7 +1173,7 @@ keynav_failed (GtkWidget        *box,
            sibling;
            sibling = gtk_widget_get_next_sibling (sibling), i++)
         {
-          if ((i % 7) == column)
+          if ((i % n_columns) == column)
             child = sibling;
         }
       if (child)
@@ -1166,11 +1208,10 @@ gtk_emoji_chooser_class_init (GtkEmojiChooserClass *klass)
 
   /**
    * GtkEmojiChooser::emoji-picked:
-   * @chooser: the #GtkEmojiChooser
+   * @chooser: the `GtkEmojiChooser`
    * @text: the Unicode sequence for the picked Emoji, in UTF-8
    *
-   * The ::emoji-picked signal is emitted when the user selects an
-   * Emoji.
+   * Emitted when the user selects an Emoji.
    */
   signals[EMOJI_PICKED] = g_signal_new ("emoji-picked",
                                         G_OBJECT_CLASS_TYPE (object_class),
@@ -1250,9 +1291,9 @@ gtk_emoji_chooser_class_init (GtkEmojiChooserClass *klass)
 /**
  * gtk_emoji_chooser_new:
  *
- * Creates a new #GtkEmojiChooser.
+ * Creates a new `GtkEmojiChooser`.
  *
- * Returns: a new #GtkEmojiChooser
+ * Returns: a new `GtkEmojiChooser`
  */
 GtkWidget *
 gtk_emoji_chooser_new (void)

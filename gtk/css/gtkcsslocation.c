@@ -23,16 +23,14 @@
  * GtkCssLocation:
  * @bytes: number of bytes parsed since the beginning
  * @chars: number of characters parsed since the beginning
- * @lines: number of full lines that have been parsed
- *     If you want to display this as a line number, you
- *     need to add 1 to this.
+ * @lines: number of full lines that have been parsed. If you want to
+ *   display this as a line number, you need to add 1 to this.
  * @line_bytes: Number of bytes parsed since the last line break
- * @line_chars: Number of characters parsed since the last line
- *     break
+ * @line_chars: Number of characters parsed since the last line break
  *
- * #GtkCssLocation is used to present a location in a file - or other
- * source of data parsed by the CSS engine.
- * 
+ * Represents a location in a file or other source of data parsed
+ * by the CSS engine.
+ *
  * The @bytes and @line_bytes offsets are meant to be used to
  * programmatically match data. The @lines and @line_chars offsets
  * can be used for printing the location in a file.

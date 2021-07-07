@@ -424,7 +424,6 @@ static EGLDisplay
 _gdk_win32_get_egl_display (GdkWin32Display *display)
 {
   EGLDisplay disp;
-  gboolean success = FALSE;
 
   if (epoxy_has_egl_extension (NULL, "EGL_EXT_platform_base"))
     {
@@ -555,6 +554,37 @@ _gdk_win32_display_init_gl (GdkDisplay *display)
   return TRUE;
 }
 
+/**
+ * gdk_win32_display_get_egl_display:
+ * @display: (type GdkWin32Display): a Win32 display
+ *
+ * Retrieves the EGL display connection object for the given GDK display.
+ *
+ * Returns: (nullable): the EGL display
+ */
+gpointer
+gdk_win32_display_get_egl_display (GdkDisplay *display)
+{
+  GdkWin32Display *display_win32;
+
+  g_return_val_if_fail (GDK_IS_WIN32_DISPLAY (display), NULL);
+
+#ifdef GDK_WIN32_ENABLE_EGL
+  if (!_gdk_win32_display_init_gl (display))
+    return NULL;
+
+  display_win32 = GDK_WIN32_DISPLAY (display);
+
+  if (display_win32->have_wgl)
+    return NULL;
+
+  return display_win32->egl_disp;
+#else
+  /* no EGL support */
+  return NULL;
+#endif
+}
+
 /* Setup the legacy context after creating it */
 static gboolean
 _ensure_legacy_gl_context (HDC           hdc,
@@ -644,7 +674,7 @@ _create_gl_context (HDC           hdc,
     }
   else
     {
-      HGLRC hglrc;
+      HGLRC hglrc = NULL;
 
       if (!wglMakeCurrent (hdc, hglrc_base))
         {
@@ -652,13 +682,33 @@ _create_gl_context (HDC           hdc,
           goto gl_fail;
         }
 
-      hglrc = _create_gl_context_with_attribs (hdc,
-                                               hglrc_base,
-                                               share,
-                                               flags,
-                                               major,
-                                               minor,
-                                               is_legacy);
+      /*
+       * We need a Core GL 4.1 context in order to use the GL support in
+       * the GStreamer media widget backend, but wglCreateContextAttribsARB()
+       * may only give us the GL context version that we ask for here, and
+       * nothing more.  So, if we are asking for a pre-GL 4.1 context,
+       * try to ask for a 4.1 context explicitly first.  If that is not supported,
+       * then we fall back to whatever version that we were asking for (or, even a
+       * legacy context if that fails), at a price of not able to have GL support
+       * for the media GStreamer backend.
+       */
+      if (major < 4 || (major == 4 && minor < 1))
+        hglrc = _create_gl_context_with_attribs (hdc,
+                                                 hglrc_base,
+                                                 share,
+                                                 flags,
+                                                 4,
+                                                 1,
+                                                 is_legacy);
+
+      if (hglrc == NULL)
+        hglrc = _create_gl_context_with_attribs (hdc,
+                                                 hglrc_base,
+                                                 share,
+                                                 flags,
+                                                 major,
+                                                 minor,
+                                                 is_legacy);
 
       /* return the legacy context we have if it could be setup properly, in case the 3.0+ context creation failed */
       if (hglrc == NULL)
@@ -712,20 +762,30 @@ _set_pixformat_for_hdc (HDC              hdc,
                         int             *best_idx,
                         GdkWin32Display *display)
 {
-  PIXELFORMATDESCRIPTOR pfd;
-  gboolean set_pixel_format_result = FALSE;
+  gboolean already_checked = TRUE;
+  *best_idx = GetPixelFormat (hdc);
 
   /* one is only allowed to call SetPixelFormat(), and so ChoosePixelFormat()
    * one single time per window HDC
    */
-  *best_idx = _get_wgl_pfd (hdc, &pfd, display);
+  if (*best_idx == 0)
+    {
+      PIXELFORMATDESCRIPTOR pfd;
+      gboolean set_pixel_format_result = FALSE;
 
-  if (*best_idx != 0)
-    set_pixel_format_result = SetPixelFormat (hdc, *best_idx, &pfd);
+      GDK_NOTE (OPENGL, g_print ("requesting pixel format...\n"));
+	  already_checked = FALSE;
+      *best_idx = _get_wgl_pfd (hdc, &pfd, display);
 
-  /* ChoosePixelFormat() or SetPixelFormat() failed, bail out */
-  if (*best_idx == 0 || !set_pixel_format_result)
-    return FALSE;
+      if (*best_idx != 0)
+        set_pixel_format_result = SetPixelFormat (hdc, *best_idx, &pfd);
+
+      /* ChoosePixelFormat() or SetPixelFormat() failed, bail out */
+      if (*best_idx == 0 || !set_pixel_format_result)
+        return FALSE;
+    }
+
+  GDK_NOTE (OPENGL, g_print ("%s""requested and set pixel format: %d\n", already_checked ? "already " : "", *best_idx));
 
   return TRUE;
 }
@@ -1178,7 +1238,7 @@ _gdk_win32_display_make_gl_context_current (GdkDisplay *display,
 
 /**
  * gdk_win32_display_get_wgl_version:
- * @display: a #GdkDisplay
+ * @display: a `GdkDisplay`
  * @major: (out): return location for the WGL major version
  * @minor: (out): return location for the WGL minor version
  *

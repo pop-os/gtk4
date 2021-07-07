@@ -961,12 +961,12 @@ get_page_setup_dialog (GtkWindow        *parent,
 
 /**
  * gtk_print_run_page_setup_dialog:
- * @parent: (allow-none): transient parent
- * @page_setup: (allow-none): an existing #GtkPageSetup
- * @settings: a #GtkPrintSettings
+ * @parent: (nullable): transient parent
+ * @page_setup: (nullable): an existing `GtkPageSetup`
+ * @settings: a `GtkPrintSettings`
  *
  * Runs a page setup dialog, letting the user modify the values from
- * @page_setup. If the user cancels the dialog, the returned #GtkPageSetup
+ * @page_setup. If the user cancels the dialog, the returned `GtkPageSetup`
  * is identical to the passed in @page_setup, otherwise it contains the 
  * modifications done in the dialog.
  *
@@ -974,7 +974,7 @@ get_page_setup_dialog (GtkWindow        *parent,
  * setup dialog. See gtk_print_run_page_setup_dialog_async() if this is 
  * a problem.
  * 
- * Returns: (transfer full): a new #GtkPageSetup
+ * Returns: (transfer full): a new `GtkPageSetup`
  */
 GtkPageSetup *
 gtk_print_run_page_setup_dialog (GtkWindow        *parent,
@@ -1012,17 +1012,17 @@ gtk_print_run_page_setup_dialog (GtkWindow        *parent,
 
 /**
  * gtk_print_run_page_setup_dialog_async:
- * @parent: (allow-none): transient parent, or %NULL
- * @page_setup: (allow-none): an existing #GtkPageSetup, or %NULL
- * @settings: a #GtkPrintSettings
+ * @parent: (nullable): transient parent
+ * @page_setup: (nullable): an existing `GtkPageSetup`
+ * @settings: a `GtkPrintSettings`
  * @done_cb: (scope async): a function to call when the user saves
- *           the modified page setup
+ *    the modified page setup
  * @data: user data to pass to @done_cb
- * 
- * Runs a page setup dialog, letting the user modify the values from @page_setup. 
  *
- * In contrast to gtk_print_run_page_setup_dialog(), this function  returns after 
- * showing the page setup dialog on platforms that support this, and calls @done_cb 
+ * Runs a page setup dialog, letting the user modify the values from @page_setup.
+ *
+ * In contrast to gtk_print_run_page_setup_dialog(), this function  returns after
+ * showing the page setup dialog on platforms that support this, and calls @done_cb
  * from a signal handler for the ::response signal of the dialog.
  */
 void
@@ -1080,7 +1080,7 @@ find_printer_idle (gpointer data)
     printer = NULL;
 
   finder->func (printer, finder->data);
-  
+
   printer_finder_free (finder);
 
   return G_SOURCE_REMOVE;
@@ -1204,7 +1204,7 @@ printer_finder_free (PrinterFinder *finder)
   g_free (finder);
 }
 
-static void 
+static void
 find_printer (const char *printer,
 	      GFunc        func,
 	      gpointer     data)
@@ -1217,7 +1217,7 @@ find_printer (const char *printer,
   finder->printer_name = g_strdup (printer);
   finder->func = func;
   finder->data = data;
-  
+
   finder->backends = NULL;
   if (g_module_supported ())
     finder->backends = gtk_print_backend_load_modules ();
@@ -1230,6 +1230,8 @@ find_printer (const char *printer,
 
   if (finder->backends == NULL && !finder->found_printer)
     g_idle_add (find_printer_idle, finder);
+  else
+    printer_finder_free (finder);
 }
 
 

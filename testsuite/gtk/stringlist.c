@@ -61,7 +61,7 @@ items_changed (GListModel *model,
                guint       added,
                GString    *changes)
 {
-  g_assert (removed != 0 || added != 0);
+  g_assert_true (removed != 0 || added != 0);
 
   if (changes->len)
     g_string_append (changes, ", ");
@@ -167,7 +167,7 @@ test_create_builder (void)
   list = GTK_STRING_LIST (gtk_builder_get_object (builder, "list"));
   assert_model (list, "a b c");
 
-  g_object_unref (list);
+  g_object_unref (builder);
 }
 
 static void
@@ -245,7 +245,7 @@ test_take (void)
 int
 main (int argc, char *argv[])
 {
-  g_test_init (&argc, &argv, NULL);
+  (g_test_init) (&argc, &argv, NULL);
 
   changes_quark = g_quark_from_static_string ("What did I see? Can I believe what I saw?");
 

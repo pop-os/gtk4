@@ -1,0 +1,591 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }}.{{ class.name }}{% endblock %}
+
+{% block meta_other %}
+  <meta property="og:title" content="{{ namespace.name }}.{{ class.name }}"/>
+  <meta property="og:description" content="Reference for {{ namespace.name }}.{{ class.name }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}.{{ class.name }}"/>
+  <meta name="twitter:description" content="Reference for {{ namespace.name }}.{{ class.name }}"/>
+{% endblock %}
+
+{% macro sidebar_block(elements, class_name, section_title, section_class, section_fragment) -%}
+{% if elements|length > 0 %}
+<div class="section">
+  <h5>{{ section_title }}</h5>
+  <div class="links">
+  {% for m in elements %}
+    <a class="{{ section_class }}" href="{{ section_fragment }}.{{ class_name }}.{{ m.name }}.html">{{ m.name }}</a>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% block sidebar %}
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.{{ class.name }}.html#description">{{ class.name }}</a>
+  </div>
+</div>
+
+{{ sidebar_block(class.ctors, class.name, "Constructors", "ctor", "ctor") }}
+{{ sidebar_block(class.methods, class.name, "Instance methods", "method", "method") }}
+{{ sidebar_block(class.properties, class.name, "Properties", "property", "property") }}
+{{ sidebar_block(class.signals, class.name, "Signals", "signal", "signal") }}
+{{ sidebar_block(class.class_methods, class.name, "Class methods", "method", "class_method") }}
+{{ sidebar_block(class.type_funcs, class.name, "Functions", "func", "type_func") }}
+{{ sidebar_block(class.virtual_methods, class.name, "Virtual methods", "method", "vfunc") }}
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">{{ namespace.name }}</a><span class="sep" role="presentation"></span>{{ class.name }}</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          {% if CONFIG.source_location_url and class.docs_location %}
+          <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(class.docs_location) }}">[src]</a>
+          {% endif %}
+        </h4>
+
+        <pre><code>{{ class.c_decl }}</pre></code>
+
+        <div class="docblock">
+          {{ class.description }}
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            {% if class.stability %}
+            <tr><td>Stability:</td><td>{{ class.stability }}</td></tr>
+            {% endif %}
+            {% if class.available_since %}
+            <tr><td>Available since:</td><td>{{ class.available_since }}</td></tr>
+            {% endif %}
+            {% if class.deprecated_since %}
+            <tr><td>Deprecated since:</td><td>{{ class.deprecated_since.version }}</td></tr>
+            <tr><td colspan="2">{{ class.deprecated_since.message }}</td></tr>
+            {% endif %}
+          </table>
+        </div>
+
+        {% if class.attributes %}
+        <div class="docblock">
+          <table class="attributes">
+          {% for (key, value) in class.attributes.items() %}
+            <tr><td>{{ key|escape }}</td><td>{{ value|escape }}</td></tr>
+          {% endfor %}
+          </table>
+        </div>
+        {% endif %}
+      </div>
+    </summary>
+
+    {% if CONFIG.show_class_hierarchy and (class.ancestors or class.interfaces) %}
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for {{ class.fqtn }}">
+        {{ class.hierarchy_svg|safe }}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if class.ancestors %}
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        {% for ancestor in class.ancestors %}
+          {% if ancestor.namespace == namespace.name %}
+          <li class="class"><a href="class.{{ ancestor.name }}.html" title="{{ ancestor.name }}">{{ ancestor.type_cname }}</a></li>
+          {% else %}
+          <li class="class">{{ ancestor.type_cname }}</a></li>
+          {% endif %}
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if class.interfaces %}
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        {% for iface in class.interfaces %}
+          {% if iface.namespace == namespace.name %}
+          <li class="interface"><a href="iface.{{ iface.name }}.html" title="{{ iface.name }}">{{ iface.type_cname }}</a></li>
+          {% else %}
+          <li class="interface">{{ iface.type_cname }}</a></li>
+          {% endif %}
+        {% endfor %}
+        </ul>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if class.ctors %}
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for ctor in class.ctors %}
+        <div class="{% if ctor.deprecated_since %}deprecated{% endif %}">
+          <h6><a href="ctor.{{ class.name }}.{{ ctor.name }}.html">{{ ctor.identifier }}</a></h6>
+
+          <div class="docblock">
+            {{ ctor.summary }}
+          </div>
+
+          {% if ctor.available_since or ctor.deprecated_since -%}
+          <div class="docblock">
+          {%- if ctor.available_since -%}
+          <p>Available since: {{ ctor.available_since }}</p>
+          {%- endif -%}
+          {%- if ctor.deprecated_since -%}
+          <p>Deprecated since: {{ ctor.deprecated_since }}</p>
+          {%- endif -%}
+          </div>
+          {%- endif %}
+        </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if class.methods %}
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for method in class.methods %}
+        <div class="{% if method.deprecated_since %}deprecated{% endif %}">
+          <h6><a href="method.{{ class.name}}.{{ method.name }}.html">{{ method.identifier }}</a></h6>
+          <div class="docblock">
+            {{ method.summary }}
+          </div>
+          {% if method.available_since or method.deprecated_since -%}
+          <div class="docblock">
+          {%- if method.available_since -%}
+          <p>Available since: {{ method.available_since }}</p>
+          {%- endif -%}
+          {%- if method.deprecated_since -%}
+          <p>Deprecated since: {{ method.deprecated_since }}</p>
+          {%- endif -%}
+          </div>
+          {%- endif %}
+        </div>
+      {% endfor %}
+      </div>
+
+      {% for ancestor in class.ancestors %}
+        {% if ancestor.namespace == namespace.name and ancestor.n_methods > 0 %}
+        <div class="{% if ancestor.methods %}toggle-wrapper default-hide{% endif %} ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="class.{{ ancestor.name }}.html">{{ ancestor.type_cname }}</a> ({{ ancestor.n_methods }})</h5>
+
+          {% if ancestor.methods %}
+          <div class="docblock">
+          {% for method in ancestor.methods %}
+            <h6><a href="method.{{ ancestor.name }}.{{ method.name }}.html">{{ method.identifier }}</a></h6>
+            <div class="docblock">
+              {{ method.summary }}
+            </div>
+            {% if method.available_since or method.deprecated_since -%}
+            <div class="docblock">
+            {%- if method.available_since -%}
+              <p>Available since: {{ method.available_since }}</p>
+            {%- endif -%}
+            {%- if method.deprecated_since -%}
+              <p>Deprecated since: {{ method.deprecated_since }}</p>
+            {%- endif -%}
+            </div>
+            {%- endif %}
+          {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+
+      {% for iface in class.interfaces %}
+        {% if iface.namespace == namespace.name and iface.n_methods > 0 %}
+        <div class="{% if iface.methods %}toggle-wrapper default-hide{% endif %} ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.{{ iface.name }}.html">{{ iface.type_cname }}</a> ({{ iface.n_methods }})</h5>
+
+          {% if iface.methods %}
+          <div class="docblock">
+          {% for method in iface.methods %}
+            <h6><a href="method.{{ iface.name }}.{{ method.name }}.html">{{ method.identifier }}</a></h6>
+            <div class="docblock">
+              {{ method.summary }}
+            </div>
+            {% if method.available_since or method.deprecated_since -%}
+            <div class="docblock">
+            {%- if method.available_since -%}
+              <p>Available since: {{ method.available_since }}</p>
+            {%- endif -%}
+            {%- if method.deprecated_since -%}
+              <p>Deprecated since: {{ method.deprecated_since }}</p>
+            {%- endif -%}
+            </div>
+            {%- endif %}
+          {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% if class.properties %}
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for property in class.properties %}
+        <div class="{% if property.deprecated_since %}deprecated{% endif %}">
+          <h6><a href="property.{{ class.name }}.{{ property.name }}.html">{{ class.fqtn }}:{{ property.name }}</a></h6>
+
+          <div class="docblock">
+            {{ property.summary }}
+          </div>
+
+          {% if property.available_since or property.deprecated_since -%}
+          <div class="docblock">
+          {%- if property.available_since -%}
+          <p>Available since: {{ property.available_since }}</p>
+          {%- endif -%}
+          {%- if property.deprecated_since -%}
+          <p>Deprecated since: {{ property.deprecated_since }}</p>
+          {%- endif -%}
+          </div>
+          {%- endif %}
+        </div>
+      {% endfor %}
+      </div>
+
+      {% for ancestor in class.ancestors %}
+        {% if ancestor.namespace == namespace.name and ancestor.n_properties > 0 %}
+        <div class="{% if ancestor.properties %}toggle-wrapper default-hide{% endif %} ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="class.{{ ancestor.name }}.html">{{ ancestor.type_cname }}</a> ({{ ancestor.n_properties }})</h5>
+
+          {% if ancestor.properties %}
+          <div class="docblock">
+          {% for property in ancestor.properties %}
+            <h6><a href="property.{{ ancestor.name }}.{{ property.name }}.html">{{ ancestor.fqtn }}:{{ property.name }}</a></h6>
+            <div class="docblock">
+              {{ property.summary }}
+            </div>
+            {% if property.available_since or property.deprecated_since -%}
+            <div class="docblock">
+            {%- if property.available_since -%}
+              <p>Available since: {{ property.available_since }}</p>
+            {%- endif -%}
+            {%- if property.deprecated_since -%}
+              <p>Deprecated since: {{ property.deprecated_since }}</p>
+            {%- endif -%}
+            </div>
+            {%- endif %}
+          {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+
+      {% for iface in class.interfaces %}
+        {% if iface.namespace == namespace.name and iface.n_properties > 0 %}
+        <div class="{% if iface.properties %}toggle-wrapper default-hide{% endif %} ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="iface.{{ iface.name }}.html">{{ iface.type_cname }}</a> ({{ iface.n_properties }})</h5>
+
+          {% if iface.properties %}
+          <div class="docblock">
+          {% for property in iface.properties %}
+            <h6><a href="property.{{ iface.name }}.{{ property.name }}.html">{{ iface.fqtn }}:{{ property.name }}</a></h6>
+            <div class="docblock">
+              {{ property.summary }}
+            </div>
+            {% if property.available_since or property.deprecated_since -%}
+            <div class="docblock">
+            {%- if property.available_since -%}
+              <p>Available since: {{ property.available_since }}</p>
+            {%- endif -%}
+            {%- if property.deprecated_since -%}
+              <p>Deprecated since: {{ property.deprecated_since }}</p>
+            {%- endif -%}
+            </div>
+            {%- endif %}
+          {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+
+    </div>
+    {% endif %}
+
+    {% if class.signals %}
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for signal in class.signals %}
+        <div class="{% if signal.deprecated_since %}deprecated{% endif %}">
+          <h6><a href="signal.{{ class.name }}.{{ signal.name }}.html">{{ class.fqtn }}::{{ signal.name }}</a></h6>
+          <div class="docblock">
+            {{ signal.summary }}
+          </div>
+          {% if signal.available_since or signal.deprecated_since -%}
+          <div class="docblock">
+          {%- if signal.available_since -%}
+          <p>Available since: {{ signal.available_since }}</p>
+          {%- endif -%}
+          {%- if signal.deprecated_since -%}
+          <p>Deprecated since: {{ signal.deprecated_since }}</p>
+          {%- endif -%}
+          </div>
+          {%- endif %}
+        </div>
+      {% endfor %}
+      </div>
+
+      {% for ancestor in class.ancestors %}
+        {% if ancestor.namespace == namespace.name and ancestor.n_signals > 0 %}
+        <div class="{% if ancestor.signals %}toggle-wrapper default-hide{% endif %} ancestor-signals">
+          <h5 style="display:block;">Signals inherited from <a href="class.{{ ancestor.name }}.html">{{ ancestor.type_cname }}</a> ({{ ancestor.n_signals }})</h5>
+
+          {% if ancestor.signals %}
+          <div class="docblock">
+          {% for signal in ancestor.signals %}
+            <h6><a href="signal.{{ ancestor.name }}.{{ signal.name }}.html">{{ ancestor.fqtn }}::{{ signal.name }}</a></h6>
+            <div class="docblock">
+              {{ signal.summary }}
+            </div>
+            {% if signal.available_since or signal.deprecated_since -%}
+            <div class="docblock">
+            {%- if signal.available_since -%}
+              <p>Available since: {{ signal.available_since }}</p>
+            {%- endif -%}
+            {%- if signal.deprecated_since -%}
+              <p>Deprecated since: {{ signal.deprecated_since }}</p>
+            {%- endif -%}
+            </div>
+            {%- endif %}
+          {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+
+      {% for iface in class.interfaces %}
+        {% if iface.namespace == namespace.name and iface.n_signals %}
+        <div class="{% if iface.signals %}toggle-wrapper default-hide{% endif %} ancestor-signals">
+          <h5 style="display:block;">Signals inherited from <a href="iface.{{ iface.name }}.html">{{ iface.type_cname }}</a> ({{ iface.n_signals }})</h5>
+
+          {% if iface.signals %}
+          <div class="docblock">
+          {% for signal in iface.signals %}
+            <h6><a href="signal.{{ iface.name }}.{{ signal.name }}.html">{{ iface.fqtn }}::{{ signal.name }}</a></h6>
+            <div class="docblock">
+              {{ signal.summary }}
+            </div>
+            {% if signal.available_since or signal.deprecated_since -%}
+            <div class="docblock">
+            {%- if signal.available_since -%}
+              <p>Available since: {{ signal.available_since }}</p>
+            {%- endif -%}
+            {%- if signal.deprecated_since -%}
+              <p>Deprecated since: {{ signal.deprecated_since }}</p>
+            {%- endif -%}
+            </div>
+            {%- endif %}
+          {% endfor %}
+          </div>
+          {% endif %}
+        </div>
+        {% endif %}
+      {% endfor %}
+
+    </div>
+    {% endif %}
+
+    {% if class.class_name %}
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct {{ namespace.name}}{{ class.class_name }} {
+  {% for field in class.class_fields %}
+  {%- if field.is_callback -%}
+  {{ field.type_cname }};
+  {%- else -%}
+  {{ field.type_cname }} {{ field.name }};
+  {%- endif %}
+  {% else %}/* no available fields */{% endfor %}
+}</code></pre>
+      </div>
+
+      {% if class.class_fields %}
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <table class="members">
+        {% for field in class.class_fields %}
+        <tr>
+          <td style="vertical-align:top"><code>{{ field.name }}</code></td>
+          <td style="vertical-align:top"><pre><code>{{ field.type_cname }}</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">{{ field.description }}</td>
+        </td>
+        {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+
+    {% if class.virtual_methods %}
+    <div class="toggle-wrapper methods">
+      <h4 id="virtual-methods">
+        Virtual methods
+        <a href="#virtual-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for method in class.virtual_methods %}
+      <div class="{% if method.deprecated_since %}deprecated{% endif %}">
+        <h6 id="vfunc-{{ method.name }}"><a href="vfunc.{{ class.name }}.{{ method.name }}.html">{{ namespace.name }}.{{ class.class_name }}.{{ method.name }}</a></h6>
+
+        <div class="docblock">
+          {{ method.summary }}
+        </div>
+
+          {% if method.available_since or method.deprecated_since -%}
+          <div class="docblock">
+          {%- if method.available_since -%}
+          <p>Available since: {{ method.available_since }}</p>
+          {%- endif -%}
+          {%- if method.deprecated_since -%}
+          <p>Deprecated since: {{ method.deprecated_since }}</p>
+          {%- endif -%}
+          </div>
+          {%- endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if class.class_methods %}
+    <div class="toggle-wrapper methods">
+      <h4 id="class-methods">
+        Class methods
+        <a href="#class-methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for method in class.class_methods %}
+      <div class="{% if method.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="class_method.{{ class.name }}.{{ method.name }}.html">{{ method.identifier }}</a></h6>
+
+        <div class="docblock">
+          {{ method.summary }}
+        </div>
+
+        {% if method.available_since or method.deprecated_since -%}
+        <div class="docblock">
+        {%- if method.available_since -%}
+        <p>Available since: {{ method.available_since }}</p>
+        {%- endif -%}
+        {%- if method.deprecated_since -%}
+        <p>Deprecated since: {{ method.deprecated_since }}</p>
+        {%- endif -%}
+        </div>
+        {%- endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %} 
+
+    {% if class.type_funcs %}
+    <div class="toggle-wrapper methods">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for func in class.type_funcs %}
+      <div class="{% if func.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="type_func.{{ class.name }}.{{ func.name }}.html">{{ func.identifier }}</a></h6>
+
+        <div class="docblock">
+          {{ func.summary }}
+        </div>
+
+        {% if func.available_since or func.deprecated_since -%}
+        <div class="docblock">
+        {%- if func.available_since -%}
+        <p>Available since: {{ func.available_since }}</p>
+        {%- endif -%}
+        {%- if func.deprecated_since -%}
+        <p>Deprecated since: {{ func.deprecated_since }}</p>
+        {%- endif -%}
+        </div>
+        {%- endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </section>
+</section>
+{% endblock %}

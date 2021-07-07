@@ -31,47 +31,48 @@
 #include "gtkimage.h"
 #include "gtkintl.h"
 #include "gtkmarshalers.h"
-#include "gtkpasswordentrybufferprivate.h"
+#include "gtkpasswordentrybuffer.h"
 #include "gtkprivate.h"
 #include "gtkwidgetprivate.h"
 #include "gtkcsspositionvalueprivate.h"
-#include "gtkstylecontextprivate.h"
+#include "gtkcssnodeprivate.h"
 
 
 /**
- * SECTION:gtkpasswordentry
- * @Short_description: An entry for secrets
- * @Title: GtkPasswordEntry
+ * GtkPasswordEntry:
  *
- * #GtkPasswordEntry is entry that has been tailored for entering secrets.
+ * `GtkPasswordEntry` is an entry that has been tailored for entering secrets.
+ *
+ * ![An example GtkPasswordEntry](password-entry.png)
+ *
  * It does not show its contents in clear text, does not allow to copy it
  * to the clipboard, and it shows a warning when Caps Lock is engaged. If
- * the underlying platform allows it, GtkPasswordEntry will also place the
- * text in a non-pageable memory area, to avoid it being written out to
- * disk by the operating system.
+ * the underlying platform allows it, `GtkPasswordEntry` will also place
+ * the text in a non-pageable memory area, to avoid it being written out
+ * to disk by the operating system.
  *
  * Optionally, it can offer a way to reveal the contents in clear text.
  *
- * GtkPasswordEntry provides only minimal API and should be used with the
- * #GtkEditable API.
+ * `GtkPasswordEntry` provides only minimal API and should be used with
+ * the [iface@Gtk.Editable] API.
  *
  * # CSS Nodes
  *
- * |[<!-- language="plain" -->
+ * ```
  * entry.password
  * ╰── text
  *     ├── image.caps-lock-indicator
  *     ┊
- * ]|
+ * ```
  *
- * GtkPasswordEntry has a single CSS node with name entry that carries
+ * `GtkPasswordEntry` has a single CSS node with name entry that carries
  * a .passwordstyle class. The text Css node below it has a child with
  * name image and style class .caps-lock-indicator for the Caps Lock
  * icon, and possibly other children.
  *
  * # Accessibility
  *
- * GtkPasswordEntry uses the #GTK_ACCESSIBLE_ROLE_TEXT_BOX role.
+ * `GtkPasswordEntry` uses the %GTK_ACCESSIBLE_ROLE_TEXT_BOX role.
  */
 
 struct _GtkPasswordEntry
@@ -141,7 +142,7 @@ focus_changed (GtkWidget *widget)
 
 /*< private >
  * gtk_password_entry_toggle_peek:
- * @entry: a #GtkPasswordEntry
+ * @entry: a `GtkPasswordEntry`
  *
  * Toggles the text visibility.
  */
@@ -431,6 +432,12 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
   widget_class->grab_focus = gtk_widget_grab_focus_child;
   widget_class->focus = gtk_widget_focus_child;
 
+  /**
+   * GtkPasswordEntry:placeholder-text:
+   *
+   * The text that will be displayed in the `GtkPasswordEntry`
+   * when it is empty and unfocused.
+   */
   props[PROP_PLACEHOLDER_TEXT] =
       g_param_spec_string ("placeholder-text",
                            P_("Placeholder text"),
@@ -438,6 +445,11 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
                            NULL,
                            GTK_PARAM_READWRITE);
 
+  /**
+   * GtkPasswordEntry:activates-default:
+   *
+   * Whether to activate the default widget when Enter is pressed.
+   */
   props[PROP_ACTIVATES_DEFAULT] =
       g_param_spec_boolean ("activates-default",
                             P_("Activates default"),
@@ -445,6 +457,11 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
                             FALSE,
                             GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * GtkPasswordEntry:show-peek-icon: (attributes org.gtk.Property.get=gtk_password_entry_get_show_peek_icon org.gtk.Property.set=gtk_password_entry_set_show_peek_icon)
+   *
+   * Whether to show an icon for revealing the content.
+   */
   props[PROP_SHOW_PEEK_ICON] =
       g_param_spec_boolean ("show-peek-icon",
                             P_("Show Peek Icon"),
@@ -453,7 +470,7 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
                             GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
   /**
-   * GtkPasswordEntry:extra-menu:
+   * GtkPasswordEntry:extra-menu: (attributes org.gtk.Property.get=gtk_password_entry_get_extra_menu org.gtk.Property.set=gtk_password_entry_set_extra_menu)
    *
    * A menu model whose contents will be appended to
    * the context menu.
@@ -469,12 +486,12 @@ gtk_password_entry_class_init (GtkPasswordEntryClass *klass)
   gtk_editable_install_properties (object_class, NUM_PROPERTIES);
 
   /**
-   * GtkPasswordEntry:activate:
+   * GtkPasswordEntry::activate:
    * @self: The widget on which the signal is emitted
    *
-   * The ::activate signal is forwarded from the
-   * #GtkText::activated signal, which is a keybinding
-   * signal for all forms of the Enter key.
+   * Emitted when the entry is activated.
+   *
+   * The keybindings for this signal are all forms of the Enter key.
    */
   signals[ACTIVATE] =
     g_signal_new (I_("activate"),
@@ -515,6 +532,8 @@ gtk_password_entry_accessible_get_platform_state (GtkAccessible              *se
       return gtk_widget_get_focusable (GTK_WIDGET (entry->entry));
     case GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSED:
       return gtk_widget_has_focus (GTK_WIDGET (entry->entry));
+    case GTK_ACCESSIBLE_PLATFORM_STATE_ACTIVE:
+      return FALSE;
     default:
       g_assert_not_reached ();
     }
@@ -530,11 +549,11 @@ gtk_password_entry_accessible_init (GtkAccessibleInterface *iface)
 
 /*< private >
  * gtk_password_entry_get_text_widget
- * @entry: a #GtkPasswordEntry
+ * @entry: a `GtkPasswordEntry`
  *
- * Retrieves the #GtkText delegate of the #GtkPasswordEntry.
+ * Retrieves the `GtkText` delegate of the `GtkPasswordEntry`.
  *
- * Returns: (transfer none): the #GtkText delegate widget
+ * Returns: (transfer none): the `GtkText` delegate widget
  */
 GtkText *
 gtk_password_entry_get_text_widget (GtkPasswordEntry *entry)
@@ -547,9 +566,9 @@ gtk_password_entry_get_text_widget (GtkPasswordEntry *entry)
 /**
  * gtk_password_entry_new:
  *
- * Creates a #GtkPasswordEntry.
+ * Creates a `GtkPasswordEntry`.
  *
- * Returns: a new #GtkPasswordEntry
+ * Returns: a new `GtkPasswordEntry`
  */
 GtkWidget *
 gtk_password_entry_new (void)
@@ -558,12 +577,12 @@ gtk_password_entry_new (void)
 }
 
 /**
- * gtk_password_entry_set_show_peek_icon:
- * @entry: a #GtkPasswordEntry
+ * gtk_password_entry_set_show_peek_icon: (attributes org.gtk.Method.set_property=show-peek-icon)
+ * @entry: a `GtkPasswordEntry`
  * @show_peek_icon: whether to show the peek icon
  *
  * Sets whether the entry should have a clickable icon
- * to show the contents of the entry in clear text.
+ * to reveal the contents.
  *
  * Setting this to %FALSE also hides the text again.
  */
@@ -611,11 +630,11 @@ gtk_password_entry_set_show_peek_icon (GtkPasswordEntry *entry,
 }
 
 /**
- * gtk_password_entry_get_show_peek_icon:
- * @entry: a #GtkPasswordEntry
+ * gtk_password_entry_get_show_peek_icon: (attributes org.gtk.Method.get_property=show-peek-icon)
+ * @entry: a `GtkPasswordEntry`
  *
- * Returns whether the entry is showing a clickable icon
- * to reveal the contents of the entry in clear text.
+ * Returns whether the entry is showing an icon to
+ * reveal the contents.
  *
  * Returns: %TRUE if an icon is shown
  */
@@ -628,9 +647,9 @@ gtk_password_entry_get_show_peek_icon (GtkPasswordEntry *entry)
 }
 
 /**
- * gtk_password_entry_set_extra_menu:
- * @entry: a #GtkPasswordEntry
- * @model: (allow-none): a #GMenuModel
+ * gtk_password_entry_set_extra_menu: (attributes org.gtk.Method.set_property=extra-menu)
+ * @entry: a `GtkPasswordEntry`
+ * @model: (nullable): a `GMenuModel`
  *
  * Sets a menu model to add when constructing
  * the context menu for @entry.
@@ -674,8 +693,8 @@ gtk_password_entry_set_extra_menu (GtkPasswordEntry *entry,
 }
 
 /**
- * gtk_password_entry_get_extra_menu:
- * @entry: a #GtkText
+ * gtk_password_entry_get_extra_menu: (attributes org.gtk.Method.get_property=extra-menu)
+ * @entry: a `GtkPasswordEntry`
  *
  * Gets the menu model set with gtk_password_entry_set_extra_menu().
  *

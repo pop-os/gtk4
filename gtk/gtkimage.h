@@ -46,16 +46,17 @@ typedef struct _GtkImage              GtkImage;
  * GtkImageType:
  * @GTK_IMAGE_EMPTY: there is no image displayed by the widget
  * @GTK_IMAGE_ICON_NAME: the widget contains a named icon
- * @GTK_IMAGE_GICON: the widget contains a #GIcon
- * @GTK_IMAGE_PAINTABLE: the widget contains a #GdkPaintable
+ * @GTK_IMAGE_GICON: the widget contains a `GIcon`
+ * @GTK_IMAGE_PAINTABLE: the widget contains a `GdkPaintable`
  *
- * Describes the image data representation used by a #GtkImage. If you
- * want to get the image from the widget, you can only get the
- * currently-stored representation. e.g.  if the
- * gtk_image_get_storage_type() returns #GTK_IMAGE_PAINTABLE, then you can
- * call gtk_image_get_paintable().  For empty images, you can request any
- * storage type (call any of the "get" functions), but they will all
- * return %NULL values.
+ * Describes the image data representation used by a [class@Gtk.Image].
+ *
+ * If you want to get the image from the widget, you can only get the
+ * currently-stored representation; for instance, if the gtk_image_get_storage_type()
+ * returns %GTK_IMAGE_PAINTABLE, then you can call gtk_image_get_paintable().
+ *
+ * For empty images, you can request any storage type (call any of the "get"
+ * functions), but they will all return %NULL values.
  */
 typedef enum
 {

@@ -1,0 +1,90 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }}.{{ constant.name }}{% endblock %}
+
+{% block meta_other %}
+  <meta property="og:title" content="{{ namespace.name }}.{{ constant.name }}"/>
+  <meta property="og:description" content="Reference for {{ namespace.name }}.{{ constant.name }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}.{{ constant.name }}"/>
+  <meta name="twitter:description" content="Reference for {{ namespace.name }}.{{ constant.name }}"/>
+{% endblock %}
+
+{% block sidebar %}
+<div class="section">
+  <h5>Constant</h5>
+  <div class="links">
+    <a class="current" href="const.{{ constant.name }}.html">{{ constant.name }}</a>
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <header>
+    <h3>Constant</h3>
+    <h1><a href="index.html">{{ namespace.name }}</a><span class="sep"></span>{{ constant.name }}</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 id="declaration" style="display:flex;">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+        {% if CONFIG.source_location_url and constant.source_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(constant.source_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+        <pre><code>{{ constant.c_decl }}</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 id="description">
+        Description
+        <a href="#description" class="anchor"></a>
+        {% if CONFIG.source_location_url and constant.docs_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(constant.docs_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+        {{ constant.description }}
+      </div>
+
+      <div class="docblock">
+        <table>
+          {% if constant.stability %}
+          <tr><td>Stability:</td><td>{{ constant.stability }}</td></tr>
+          {% endif %}
+          {% if constant.available_since %}
+          <tr><td>Available since:</td><td>{{ constant.available_since }}</td></tr>
+          {% endif %}
+          {% if constant.deprecated_since %}
+          <tr><td>Deprecated since:</td><td>{{ constant.deprecated_since.version }}</td></tr>
+          <tr><td colspan="2">{{ constant.deprecated_since.message }}</td></tr>
+          {% endif %}
+        </table>
+      </div>
+
+      {% if constant.attributes %}
+      <div class="docblock">
+        <table>
+        {% for (key, value) in constant.attributes.items() %}
+          <tr><td>{{ key|escape }}</td><td>{{ value|escape }}</td></tr>
+        {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+  </section>
+</section>
+{% endblock %}

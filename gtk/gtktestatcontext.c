@@ -79,11 +79,36 @@ gtk_test_at_context_state_change (GtkATContext                *self,
 }
 
 static void
+gtk_test_at_context_platform_change (GtkATContext                *self,
+                                     GtkAccessiblePlatformChange  changed_platform)
+{
+  if (GTK_DEBUG_CHECK (A11Y))
+    {
+      GtkAccessible *accessible;
+
+      accessible = gtk_at_context_get_accessible (self);
+
+      g_print ("*** Accessible platform state changed for accessible “%s”:\n",
+               G_OBJECT_TYPE_NAME (accessible));
+      if (changed_platform & GTK_ACCESSIBLE_PLATFORM_CHANGE_FOCUSABLE)
+        g_print ("***  focusable = %d\n",
+                 gtk_accessible_get_platform_state (accessible, GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSABLE));
+      if (changed_platform & GTK_ACCESSIBLE_PLATFORM_CHANGE_FOCUSED)
+        g_print ("***    focused = %d\n",
+                 gtk_accessible_get_platform_state (accessible, GTK_ACCESSIBLE_PLATFORM_STATE_FOCUSED));
+      if (changed_platform & GTK_ACCESSIBLE_PLATFORM_CHANGE_ACTIVE)
+        g_print ("***    active = %d\n",
+                 gtk_accessible_get_platform_state (accessible, GTK_ACCESSIBLE_PLATFORM_STATE_ACTIVE));
+    }
+}
+
+static void
 gtk_test_at_context_class_init (GtkTestATContextClass *klass)
 {
   GtkATContextClass *context_class = GTK_AT_CONTEXT_CLASS (klass);
 
   context_class->state_change = gtk_test_at_context_state_change;
+  context_class->platform_change = gtk_test_at_context_platform_change;
 }
 
 static void
@@ -93,14 +118,14 @@ gtk_test_at_context_init (GtkTestATContext *self)
 
 /*< private >
  * gtk_test_at_context_new:
- * @accessible_role: the #GtkAccessibleRole for the AT context
- * @accessible: the #GtkAccessible instance which owns the AT context
- * @display: a #GdkDisplay
+ * @accessible_role: the `GtkAccessibleRole` for the AT context
+ * @accessible: the `GtkAccessible` instance which owns the AT context
+ * @display: a `GdkDisplay`
  *
- * Creates a new #GtkTestATContext instance for @accessible, using the
+ * Creates a new `GtkTestATContext` instance for @accessible, using the
  * given @accessible_role.
  *
- * Returns: (transfer full): the newly created #GtkTestATContext instance
+ * Returns: (transfer full): the newly created `GtkTestATContext` instance
  */
 GtkATContext *
 gtk_test_at_context_new (GtkAccessibleRole  accessible_role,
@@ -116,10 +141,10 @@ gtk_test_at_context_new (GtkAccessibleRole  accessible_role,
 
 /**
  * gtk_test_accessible_has_role:
- * @accessible: a #GtkAccessible
- * @role: a #GtkAccessibleRole
+ * @accessible: a `GtkAccessible`
+ * @role: a `GtkAccessibleRole`
  *
- * Checks whether the #GtkAccessible:accessible-role of the accessible
+ * Checks whether the `GtkAccessible:accessible-role` of the accessible
  * is @role.
  *
  * Returns: %TRUE if the role matches
@@ -135,10 +160,10 @@ gtk_test_accessible_has_role (GtkAccessible     *accessible,
 
 /**
  * gtk_test_accessible_has_property:
- * @accessible: a #GtkAccessible
- * @property: a #GtkAccessibleProperty
+ * @accessible: a `GtkAccessible`
+ * @property: a `GtkAccessibleProperty`
  *
- * Checks whether the #GtkAccessible has @property set.
+ * Checks whether the `GtkAccessible` has @property set.
  *
  * Returns: %TRUE if the @property is set in the @accessible
  */
@@ -159,8 +184,8 @@ gtk_test_accessible_has_property (GtkAccessible         *accessible,
 
 /**
  * gtk_test_accessible_check_property:
- * @accessible: a #GtkAccessible
- * @property: a #GtkAccessibleProperty
+ * @accessible: a `GtkAccessible`
+ * @property: a `GtkAccessibleProperty`
  * @...: the expected value of @property
  *
  * Checks whether the accessible @property of @accessible is set to
@@ -211,10 +236,10 @@ out:
 
 /**
  * gtk_test_accessible_has_state:
- * @accessible: a #GtkAccessible
- * @state: a #GtkAccessibleState
+ * @accessible: a `GtkAccessible`
+ * @state: a `GtkAccessibleState`
  *
- * Checks whether the #GtkAccessible has @state set.
+ * Checks whether the `GtkAccessible` has @state set.
  *
  * Returns: %TRUE if the @state is set in the @accessible
  */
@@ -235,8 +260,8 @@ gtk_test_accessible_has_state (GtkAccessible      *accessible,
 
 /**
  * gtk_test_accessible_check_state:
- * @accessible: a #GtkAccessible
- * @state: a #GtkAccessibleState
+ * @accessible: a `GtkAccessible`
+ * @state: a `GtkAccessibleState`
  * @...: the expected value of @state
  *
  * Checks whether the accessible @state of @accessible is set to
@@ -287,10 +312,10 @@ out:
 
 /**
  * gtk_test_accessible_has_relation:
- * @accessible: a #GtkAccessible
- * @relation: a #GtkAccessibleRelation
+ * @accessible: a `GtkAccessible`
+ * @relation: a `GtkAccessibleRelation`
  *
- * Checks whether the #GtkAccessible has @relation set.
+ * Checks whether the `GtkAccessible` has @relation set.
  *
  * Returns: %TRUE if the @relation is set in the @accessible
  */
@@ -311,8 +336,8 @@ gtk_test_accessible_has_relation (GtkAccessible         *accessible,
 
 /**
  * gtk_test_accessible_check_relation:
- * @accessible: a #GtkAccessible
- * @relation: a #GtkAccessibleRelation
+ * @accessible: a `GtkAccessible`
+ * @relation: a `GtkAccessibleRelation`
  * @...: the expected value of @relation
  *
  * Checks whether the accessible @relation of @accessible is set to
@@ -368,9 +393,9 @@ out:
  * @line: the line in @file
  * @func: a function name in @file
  * @expr: the expression being tested
- * @accessible: a #GtkAccessible
- * @expected_role: the expected #GtkAccessibleRole
- * @actual_role: the actual #GtkAccessibleRole
+ * @accessible: a `GtkAccessible`
+ * @expected_role: the expected `GtkAccessibleRole`
+ * @actual_role: the actual `GtkAccessibleRole`
  *
  * Prints an assertion message for gtk_test_accessible_assert_role().
  */

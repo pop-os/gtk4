@@ -1,0 +1,277 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TextBuffer::remove-tag</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.TextBuffer::remove-tag"/>
+  <meta property="og:description" content="Reference for signal Gtk.TextBuffer::remove-tag"/>
+  <meta name="twitter:title" content="Gtk.TextBuffer::remove-tag"/>
+  <meta name="twitter:description" content="Reference for signal Gtk.TextBuffer::remove-tag"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.1</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.TextBuffer.html">TextBuffer</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.TextBuffer.apply-tag.html">apply-tag</a>
+  
+    <a class="signal" href="signal.TextBuffer.begin-user-action.html">begin-user-action</a>
+  
+    <a class="signal" href="signal.TextBuffer.changed.html">changed</a>
+  
+    <a class="signal" href="signal.TextBuffer.delete-range.html">delete-range</a>
+  
+    <a class="signal" href="signal.TextBuffer.end-user-action.html">end-user-action</a>
+  
+    <a class="signal" href="signal.TextBuffer.insert-child-anchor.html">insert-child-anchor</a>
+  
+    <a class="signal" href="signal.TextBuffer.insert-paintable.html">insert-paintable</a>
+  
+    <a class="signal" href="signal.TextBuffer.insert-text.html">insert-text</a>
+  
+    <a class="signal" href="signal.TextBuffer.mark-deleted.html">mark-deleted</a>
+  
+    <a class="signal" href="signal.TextBuffer.mark-set.html">mark-set</a>
+  
+    <a class="signal" href="signal.TextBuffer.modified-changed.html">modified-changed</a>
+  
+    <a class="signal" href="signal.TextBuffer.paste-done.html">paste-done</a>
+  
+    <a class="signal" href="signal.TextBuffer.redo.html">redo</a>
+  
+    <a class="signal current" href="signal.TextBuffer.remove-tag.html">remove-tag</a>
+  
+    <a class="signal" href="signal.TextBuffer.undo.html">undo</a>
+  
+  </div>
+</div>
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Signal</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.TextBuffer.html">TextBuffer</a>::remove-tag</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 id="declaration">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="n">remove_tag</span> <span class="p">(</span>
+  <span class="n">GtkTextBuffer</span> <span class="n">self</span><span class="p">,</span>
+  <span class="n">GtkTextTag</span><span class="o">*</span> <span class="n">tag</span><span class="p">,</span>
+  <span class="k">const</span> <span class="n">GtkTextIter</span><span class="o">*</span> <span class="n">start</span><span class="p">,</span>
+  <span class="k">const</span> <span class="n">GtkTextIter</span><span class="o">*</span> <span class="n">end</span><span class="p">,</span>
+  <span class="n">gpointer</span> <span class="n">user_data</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 id="description" style="display:flex;">
+        Description
+        <a href="#description" class="anchor"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtktextbuffer.c#L797">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>Emitted to remove all occurrences of <code>tag</code> from a range
+of text in a <code>GtkTextBuffer</code>.</p>
+<p>Removal actually occurs in the default&nbsp;handler.</p>
+<p>Note that if your handler runs before the default handler
+it must not invalidate the <code>start</code> and <code>end</code> iters (or has
+to revalidate&nbsp;them).</p>
+<p>See also: <a href="method.TextBuffer.remove_tag.html">gtk_text_buffer_remove_tag()</a>.</p>
+      </div>
+
+      <div class="docblock">
+        <table>
+          <tr><td>Default handler:</td><td> <p>The default handler is called after the handlers added via <code>g_signal_connect()</code>.</p></td></tr>
+          
+          
+          
+          
+          
+          
+          
+        </table>
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="arguments">
+          
+          <tr class="arg-name">
+            <td><code>tag</code></td>
+            <td><a href="class.TextTag.html"><code>GtkTextTag</code></a></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The tag to be&nbsp;removed.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          <tr class="arg-name">
+            <td><code>start</code></td>
+            <td><a href="struct.TextIter.html"><code>GtkTextIter</code></a></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The start of the range the tag is removed&nbsp;from.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          <tr class="arg-name">
+            <td><code>end</code></td>
+            <td><a href="struct.TextIter.html"><code>GtkTextIter</code></a></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The end of the range the tag is removed&nbsp;from.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          
+        </table>
+      </div>
+    </div>
+    
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

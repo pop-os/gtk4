@@ -32,9 +32,16 @@ Discussion forum
   - https://discourse.gnome.org/c/platform/core/
 
 Nightly documentation can be found at
-  - Gtk: https://gnome.pages.gitlab.gnome.org/gtk/gtk/
-  - Gdk: https://gnome.pages.gitlab.gnome.org/gtk/gdk/
-  - Gsk: https://gnome.pages.gitlab.gnome.org/gtk/gsk/
+  - Gtk: https://gnome.pages.gitlab.gnome.org/gtk/gtk4/
+  - Gdk: https://gnome.pages.gitlab.gnome.org/gtk/gdk4/
+  - Gsk: https://gnome.pages.gitlab.gnome.org/gtk/gsk4/
+
+Nightly flatpaks of our demos can be installed from the
+[GNOME Nightly](https://wiki.gnome.org/Apps/Nightly) repository:
+  - `flatpak remote-add --if-not-exists gnome-nightly https://nightly.gnome.org/gnome-nightly.flatpakrepo` 
+  - `flatpak install gnome-nightly org.gtk.Demo4`
+  - `flatpak install gnome-nightly org.gtk.WidgetFactory4`
+  - `flatpak install gnome-nightly org.gtk.IconBrowser4`
 
 Building and installing
 -----------------------
@@ -150,8 +157,8 @@ Release notes
 The release notes for GTK are part of the migration guide in the API
 reference. See:
 
- - [3.x release notes](https://developer.gnome.org/gtk3/unstable/gtk-migrating-2-to-3.html)
- - [4.x release notes](https://developer.gnome.org/gtk4/unstable/gtk-migrating-3-to-4.html)
+ - [3.x release notes](https://developer.gnome.org/gtk3/stable/gtk-migrating-2-to-3.html)
+ - [4.x release notes](https://docs.gtk.org/gtk4/migrating-3to4.html)
 
 Licensing terms
 ---------------

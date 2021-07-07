@@ -275,6 +275,7 @@ save_image (cairo_surface_t *surface,
 {
   GError *error = NULL;
   char *filename;
+  int ret;
   
   filename = get_output_file (test_name, extension, &error);
   if (filename == NULL)
@@ -285,7 +286,8 @@ save_image (cairo_surface_t *surface,
     }
 
   g_test_message ("Storing test result image at %s", filename);
-  g_assert (cairo_surface_write_to_png (surface, filename) == CAIRO_STATUS_SUCCESS);
+  ret = cairo_surface_write_to_png (surface, filename);
+  g_assert_true (ret == CAIRO_STATUS_SUCCESS);
 
   g_free (filename);
 }
@@ -322,12 +324,16 @@ test_ui_file (GFile *file)
   if (diff_image)
     {
       save_image (diff_image, ui_file, ".diff.png");
+      cairo_surface_destroy (diff_image);
       g_test_fail ();
     }
 
   remove_extra_css (provider);
 
   g_free (ui_file);
+
+  cairo_surface_destroy (ui_image);
+  cairo_surface_destroy (reference_image);
 }
 
 static int

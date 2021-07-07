@@ -20,13 +20,17 @@ def replace_if_changed(new, old):
   else:
     os.remove(new)
 
-source_shaders = []
+gl_source_shaders = []
+ngl_source_shaders = []
 vulkan_compiled_shaders = []
 vulkan_shaders = []
 
 for f in sys.argv[2:]:
   if f.endswith('.glsl'):
-    source_shaders.append(f)
+    if f.startswith('ngl'):
+      ngl_source_shaders.append(f);
+    else:
+      gl_source_shaders.append(f)
   elif f.endswith('.spv'):
     vulkan_compiled_shaders.append(f)
   elif f.endswith('.frag') or f.endswith('.vert'):
@@ -40,18 +44,23 @@ xml = '''<?xml version='1.0' encoding='UTF-8'?>
 
 '''
 
-for f in source_shaders:
-  xml += '    <file alias=\'glsl/{0}\'>resources/glsl/{0}</file>\n'.format(os.path.basename(f))
+for f in gl_source_shaders:
+  xml += '    <file alias=\'gl/{0}\'>gl/resources/{0}</file>\n'.format(os.path.basename(f))
+
+xml += '\n'
+
+for f in ngl_source_shaders:
+  xml += '    <file alias=\'ngl/{0}\'>ngl/resources/{0}</file>\n'.format(os.path.basename(f))
 
 xml += '\n'
 
 for f in vulkan_compiled_shaders:
-  xml += '    <file alias=\'vulkan/{0}\'>resources/vulkan/{0}</file>\n'.format(os.path.basename(f))
+  xml += '    <file alias=\'vulkan/{0}\'>vulkan/resources/{0}</file>\n'.format(os.path.basename(f))
 
 xml += '\n'
 
 for f in vulkan_shaders:
-  xml += '    <file alias=\'vulkan/{0}\'>resources/vulkan/{0}</file>\n'.format(os.path.basename(f))
+  xml += '    <file alias=\'vulkan/{0}\'>vulkan/resources/{0}</file>\n'.format(os.path.basename(f))
 
 xml += '''
   </gresource>

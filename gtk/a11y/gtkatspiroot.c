@@ -503,7 +503,7 @@ on_registration_reply (GObject      *gobject,
     }
 
   /* Register the cache object */
-  self->cache = gtk_at_spi_cache_new (self->connection, ATSPI_CACHE_PATH);
+  self->cache = gtk_at_spi_cache_new (self->connection, ATSPI_CACHE_PATH, self);
 
   /* Drain the list of queued GtkAtSpiContexts, and add them to the cache */
   if (self->queued_contexts != NULL)
@@ -585,7 +585,7 @@ root_register (gpointer data)
 
 /*< private >
  * gtk_at_spi_root_queue_register:
- * @self: a #GtkAtSpiRoot
+ * @self: a `GtkAtSpiRoot`
  *
  * Queues the registration of the root object on the AT-SPI bus.
  */
@@ -761,11 +761,11 @@ gtk_at_spi_root_get_cache (GtkAtSpiRoot *self)
 
 /*< private >
  * gtk_at_spi_root_to_ref:
- * @self: a #GtkAtSpiRoot
+ * @self: a `GtkAtSpiRoot`
  *
- * Returns an ATSPI object reference for the #GtkAtSpiRoot node.
+ * Returns an ATSPI object reference for the `GtkAtSpiRoot` node.
  *
- * Returns: (transfer floating): a #GVariant with the root reference
+ * Returns: (transfer floating): a `GVariant` with the root reference
  */
 GVariant *
 gtk_at_spi_root_to_ref (GtkAtSpiRoot *self)

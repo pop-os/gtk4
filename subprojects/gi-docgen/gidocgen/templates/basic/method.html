@@ -1,0 +1,185 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }}.{{ class.name }}.{{ method.name }}{% endblock %}
+
+{% block meta_other %}
+  <meta priority="og:title" content="{{ namespace.name }}.{{ class.name }}.{{ method.name }}"/>
+  <meta priority="og:description" content="Reference for {{ namespace.name }}.{{ class.name }}.{{ method.name }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}.{{ class.name }}.{{ method.name }}"/>
+  <meta name="twitter:description" content="Reference for {{ namespace.name }}.{{ class.name }}.{{ method.name }}"/>
+{% endblock %}
+
+{% block sidebar %}
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="{{ class.link_prefix }}.{{ class.name }}.html">{{ class.name }}</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Methods</h5>
+  <div class="links">
+  {% for m in class.methods %}
+    <a class="method{% if method.name == m.name %} current{% endif %}" href="method.{{ class.name }}.{{ m.name }}.html">{{ m.name }}</a>
+  {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <header>
+    <h3>Method</h3>
+    <h1><a href="index.html">{{ namespace.name }}</a><span class="sep"></span><a href="{{ class.link_prefix }}.{{ class.name }}.html">{{ class.name }}</a><span class="sep"></span>{{ method.name }}</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a class="anchor" href="#declaration"></a>
+        {% if CONFIG.source_location_url and method.source_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(method.source_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock c-decl">
+        <pre><code>{{ method.c_decl|safe }}</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a class="anchor" href="#description"></a>
+        {% if CONFIG.source_location_url and method.docs_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(method.docs_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+        {{ method.description|safe }}
+      </div>
+
+      <div class="docblock">
+        <table>
+          {% if method.stability %}
+          <tr><td>Stability:</td><td>{{ method.stability }}</td></tr>
+          {% endif %}
+          {% if method.available_since %}
+          <tr><td>Available since:</td><td>{{ method.available_since }}</td></tr>
+          {% endif %}
+          {% if method.deprecated_since %}
+          <tr><td>Deprecated since:</td><td>{{ method.deprecated_since.version }}</td></tr>
+          <tr><td colspan="2">{{ method.deprecated_since.message|safe }}</td></tr>
+          {% endif %}
+        </table>
+      </div>
+
+      {% if method.attributes %}
+      <div class="docblock">
+        <table>
+        {% for (key, value) in method.attributes.items() %}
+          <tr><td>{{ key|escape }}</td><td>{{ value|escape }}</td></tr>
+        {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if method.arguments|length != 0 %}
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="arguments">
+          {% for arg in method.arguments %}
+          <tr class="arg-name">
+            <td><code>{{ arg.name }}</code></td>
+            <td>
+            {%- if arg.is_array -%}An array of&nbsp;{%- endif -%}
+            {%- if arg.is_list -%}A list of&nbsp;{%- endif -%}
+            {%- if arg.link -%}
+            {{ arg.link|safe }}
+            {%- else -%}
+            <code>{{ arg.type_cname }}</code>
+            {%- endif -%}
+            </td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td>{{ arg.description|safe }}</td>
+          </tr>
+          {% if arg.direction != "in" %}<tr><td>&nbsp;</td><td title="direction: {{ arg.direction}}">{{ arg.direction_note }}</td></tr>{% endif %}
+          {% if arg.direction == "in" and arg.is_pointer and arg.nullable %}<tr><td>&nbsp;</td><td>The argument can be <code>NULL</code>.</td></tr>{% endif %}
+          {% if arg.direction == "out" and arg.is_pointer and arg.nullable %}<tr><td>&nbsp;</td><td>The argument can be set to <code>NULL</code>.</td></tr>{% endif %}
+          {% if arg.optional %}<tr><td>&nbsp;</td><td>The argument can be <code>NULL</code>.</td></tr>{% endif %}
+          {% if arg.is_array and arg.zero_terminated %}<tr><td>&nbsp;</td><td>The array must be <code>NULL</code>-terminated.</td></tr>{% endif %}
+          {% if arg.is_array and arg.fixed_size > 0 %}<tr><td>&nbsp;</td><td>The array must have {{ arg.fixed_size }} elements.</td></tr>{% endif %}
+          {% if arg.is_array and arg.len_arg %}<tr><td>&nbsp;</td><td>The length of the array is specified in the <code>{{ arg.len_arg }}</code> argument.</td></tr>{% endif %}
+          {% if arg.is_pointer %}<tr><td>&nbsp;</td><td title="transfer: {{ arg.transfer }}">{{ arg.transfer_note }}</td></tr>{% endif %}
+          {% if arg.string_note %}<tr><td>&nbsp;</td><td>{{ arg.string_note }}</td></tr>{% endif %}
+          {% endfor %}
+          {% if method.throws %}
+          <tr class="arg-name">
+            <td><code>error</code></td>
+            <td><code>GError **</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td>The return location for a <code>GError*</code>, or <code>NULL</code>.</td>
+          </tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if method.return_value %}
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="returns">
+          <tr class="arg-name">
+            <td>Returns:</td>
+            <td>
+            {%- if method.return_value.is_array -%}An array of&nbsp;{%- endif -%}
+            {%- if method.return_value.is_list -%}A list of&nbsp;{%- endif -%}
+            {%- if method.return_value.link -%}
+            {{ method.return_value.link|safe }}
+            {%- else -%}
+            <code>{{ method.return_value.type_cname }}</code>
+            {%- endif -%}
+            </td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td>{{ method.return_value.description|safe }}</td>
+          </tr>
+          {% if method.return_value.is_array and method.return_value.zero_terminated %}<tr><td>&nbsp;</td><td>The array is <code>NULL</code>-terminated.</td></tr>{% endif %}
+          {% if method.return_value.is_array and method.return_value.fixed_size > 0 %}<tr><td>&nbsp;</td><td>The array has {{ method.return_value.fixed_size }} elements.</td></tr>{% endif %}
+          {% if method.return_value.is_array and method.return_value.len_arg %}<tr><td>&nbsp;</td><td>The length of the array is in the <code>{{ method.return_value.len_arg }}</code> argument.</td></tr>{% endif %}
+          {% if method.return_value.is_pointer %}<tr><td>&nbsp;</td><td title="transfer: {{ method.return_value.transfer }}">{{ method.return_value.transfer_note }}</td></tr>{% endif %}
+          {% if method.return_value.is_pointer and method.return_value.nullable %}<tr><td>&nbsp;</td><td>The return value can be <code>NULL</code>.</td></tr>{% endif %}
+          {% if method.return_value.string_note %}<tr><td>&nbsp;</td><td>{{ method.return_value.string_note }}</td></tr>{% endif %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+  </section>
+</section>
+{% endblock %}

@@ -177,35 +177,46 @@ _gdk_x11_surface_get_toplevel (GdkSurface *surface)
   return impl->toplevel;
 }
 
-/**
- * _gdk_x11_surface_update_size:
- * @impl: a #GdkX11Surface.
- * 
+/*
+ * gdk_x11_surface_update_size:
+ * @self: a `GdkX11Surface`
+ * @width: the new width of the surface
+ * @height: the new height of the surface
+ * @scale: the new scale of the surface
+ *
  * Updates the state of the surface (in particular the drawable's
  * cairo surface) when its size has changed.
- **/
-void
-_gdk_x11_surface_update_size (GdkX11Surface *impl)
+ *
+ * Returns: %TRUE if the surface was updated, %FALSE if no updates
+ *   where necessary
+ */
+static gboolean
+gdk_x11_surface_update_size (GdkX11Surface *self,
+                             int            width,
+                             int            height,
+                             int            scale)
 {
-  if (impl->cairo_surface)
+  GdkSurface *surface = GDK_SURFACE (self);
+
+  if (surface->width == width &&
+      surface->height == height &&
+      self->surface_scale == scale)
+    return FALSE;
+
+  surface->width = width;
+  surface->height = height;
+  self->surface_scale = scale;
+
+  _gdk_surface_update_size (surface);
+
+  if (self->cairo_surface)
     {
-      cairo_xlib_surface_set_size (impl->cairo_surface,
-                                   impl->unscaled_width, impl->unscaled_height);
+      cairo_xlib_surface_set_size (self->cairo_surface,
+                                   self->unscaled_width, self->unscaled_height);
+      cairo_surface_set_device_scale (self->cairo_surface, scale, scale);
     }
-}
 
-static void
-gdk_x11_surface_get_unscaled_size (GdkSurface *surface,
-                                  int *unscaled_width,
-                                  int *unscaled_height)
-{
-  GdkX11Surface *impl = GDK_X11_SURFACE (surface);
-
-  if (unscaled_width)
-    *unscaled_width = impl->unscaled_width;
-
-  if (unscaled_height)
-    *unscaled_height = impl->unscaled_height;
+  return TRUE;
 }
 
 static void
@@ -385,10 +396,10 @@ gdk_x11_surface_compute_size (GdkSurface *surface)
 
       if (surface->resize_count == 0)
         {
-          surface->width = impl->next_layout.configured_width;
-          surface->height = impl->next_layout.configured_height;
-          _gdk_surface_update_size (surface);
-          _gdk_x11_surface_update_size (impl);
+          gdk_x11_surface_update_size (impl,
+                                       impl->next_layout.configured_width,
+                                       impl->next_layout.configured_height,
+                                       impl->surface_scale);
         }
 
       impl->next_layout.surface_geometry_dirty = FALSE;
@@ -396,11 +407,10 @@ gdk_x11_surface_compute_size (GdkSurface *surface)
     }
   else
     {
-      surface->width = impl->next_layout.configured_width;
-      surface->height = impl->next_layout.configured_height;
-
-      _gdk_surface_update_size (surface);
-      _gdk_x11_surface_update_size (impl);
+      gdk_x11_surface_update_size (impl,
+                                   impl->next_layout.configured_width,
+                                   impl->next_layout.configured_height,
+                                   impl->surface_scale);
 
       impl->next_layout.surface_geometry_dirty = FALSE;
     }
@@ -614,10 +624,12 @@ maybe_sync_counter_for_end_frame (GdkSurface *surface)
 {
   GdkX11Surface *impl = GDK_X11_SURFACE (surface);
   gboolean frame_sync_negotiated = _gdk_x11_surface_syncs_frames (surface);
-  gboolean frame_done_painting = !impl->toplevel->frame_pending;
+  gboolean frame_done_painting;
 
 #ifdef HAVE_XDAMAGE
   frame_done_painting = !impl->toplevel->frame_still_painting && frame_sync_negotiated;
+#else
+  frame_done_painting = !impl->toplevel->frame_pending;
 #endif
 
   if (!impl->toplevel->frame_pending)
@@ -1572,7 +1584,6 @@ gdk_x11_surface_show (GdkSurface *surface, gboolean already_mapped)
   GdkToplevelX11 *toplevel;
   Display *xdisplay = GDK_SURFACE_XDISPLAY (surface);
   Window xwindow = GDK_SURFACE_XID (surface);
-  GdkX11Surface *impl = GDK_X11_SURFACE (surface);
 
   if (!already_mapped)
     set_initial_hints (surface);
@@ -1588,6 +1599,7 @@ gdk_x11_surface_show (GdkSurface *surface, gboolean already_mapped)
 
  if (GDK_PROFILER_IS_RUNNING)
    {
+     GdkX11Surface *impl = GDK_X11_SURFACE (surface);
      if (impl->map_time == 0)
        impl->map_time = g_get_monotonic_time ();
    }
@@ -1812,7 +1824,20 @@ gdk_x11_surface_layout_popup (GdkSurface     *surface,
 
   monitor = gdk_surface_get_layout_monitor (surface, layout,
                                             gdk_x11_monitor_get_workarea);
-  gdk_x11_monitor_get_workarea (monitor, &bounds);
+  if (monitor)
+    gdk_x11_monitor_get_workarea (monitor, &bounds);
+  else
+    {
+      monitor = gdk_surface_get_layout_monitor (surface, layout,
+                                                gdk_monitor_get_geometry);
+      gdk_monitor_get_geometry (monitor, &bounds);
+    }
+
+  gdk_popup_layout_get_shadow_width (layout, 
+                                     &impl->shadow_left,
+                                     &impl->shadow_right,
+                                     &impl->shadow_top,
+                                     &impl->shadow_bottom);
 
   gdk_surface_layout_popup_helper (surface,
                                    width,
@@ -1977,7 +2002,7 @@ gdk_x11_surface_enter_leave_monitors (GdkSurface *surface)
 
 void
 _gdk_x11_surface_set_surface_scale (GdkSurface *surface,
-				  int scale)
+				    int scale)
 {
   GdkX11Surface *impl;
   GdkToplevelX11 *toplevel;
@@ -1985,10 +2010,8 @@ _gdk_x11_surface_set_surface_scale (GdkSurface *surface,
 
   impl = GDK_X11_SURFACE (surface);
 
-  impl->surface_scale = scale;
-  if (impl->cairo_surface)
-    cairo_surface_set_device_scale (impl->cairo_surface, impl->surface_scale, impl->surface_scale);
-  _gdk_surface_update_size (surface);
+  if (!gdk_x11_surface_update_size (impl, surface->width, surface->height, scale))
+    return;
 
   toplevel = _gdk_x11_surface_get_toplevel (surface);
   if (toplevel)
@@ -2046,7 +2069,7 @@ gdk_x11_surface_lower (GdkSurface *surface)
 
 /**
  * gdk_x11_surface_move_to_current_desktop:
- * @surface: (type GdkX11Surface): a #GdkSurface
+ * @surface: (type GdkX11Surface): a `GdkSurface`
  * 
  * Moves the surface to the correct workspace when running under a 
  * window manager that supports multiple workspaces, as described
@@ -2109,7 +2132,7 @@ get_netwm_cardinal_property (GdkSurface   *surface,
 
 /**
  * gdk_x11_surface_get_desktop:
- * @surface: (type GdkX11Surface): a #GdkSurface
+ * @surface: (type GdkX11Surface): a `GdkSurface`
  *
  * Gets the number of the workspace @surface is on.
  *
@@ -2125,7 +2148,7 @@ gdk_x11_surface_get_desktop (GdkSurface *surface)
 
 /**
  * gdk_x11_surface_move_to_desktop:
- * @surface: (type GdkX11Surface): a #GdkSurface
+ * @surface: (type GdkX11Surface): a `GdkSurface`
  * @desktop: the number of the workspace to move the surface to
  *
  * Moves the surface to the given workspace when running unde a
@@ -2328,7 +2351,7 @@ gdk_x11_surface_set_modal_hint (GdkSurface *surface,
 
 /**
  * gdk_x11_surface_set_skip_taskbar_hint:
- * @surface: (type GdkX11Surface): a native #GdkSurface
+ * @surface: (type GdkX11Surface): a native `GdkSurface`
  * @skips_taskbar: %TRUE to skip taskbars
  *
  * Sets a hint on @surface that taskbars should not
@@ -2354,7 +2377,7 @@ gdk_x11_surface_set_skip_taskbar_hint (GdkSurface *surface,
 
 /**
  * gdk_x11_surface_set_skip_pager_hint:
- * @surface: (type GdkX11Surface): a #GdkSurface
+ * @surface: (type GdkX11Surface): a `GdkSurface`
  * @skips_pager: %TRUE to skip pagers
  *
  * Sets a hint on @surface that pagers should not
@@ -2380,7 +2403,7 @@ gdk_x11_surface_set_skip_pager_hint (GdkSurface *surface,
 
 /**
  * gdk_x11_surface_set_urgency_hint:
- * @surface: (type GdkX11Surface): a native #GdkSurface
+ * @surface: (type GdkX11Surface): a native `GdkSurface`
  * @urgent: %TRUE to indicate urgenct attention needed
  *
  * Sets a hint on @surface that it needs user attention.
@@ -2972,7 +2995,7 @@ gdk_x11_surface_set_input_region (GdkSurface     *surface,
 
 /**
  * gdk_x11_surface_set_user_time:
- * @surface: (type GdkX11Surface): A toplevel #GdkSurface
+ * @surface: (type GdkX11Surface): A toplevel `GdkSurface`
  * @timestamp: An XServer timestamp to which the property should be set
  *
  * The application can use this call to update the _NET_WM_USER_TIME
@@ -3034,9 +3057,9 @@ gdk_x11_surface_set_user_time (GdkSurface *surface,
 
 /**
  * gdk_x11_surface_set_utf8_property:
- * @surface: (type GdkX11Surface): a #GdkSurface
+ * @surface: (type GdkX11Surface): a `GdkSurface`
  * @name: Property name, will be interned as an X atom
- * @value: (allow-none): Property value, or %NULL to delete
+ * @value: (nullable): Property value, or %NULL to delete
  *
  * This function modifies or removes an arbitrary X11 window
  * property of type UTF8_STRING.  If the given @surface is
@@ -3069,7 +3092,7 @@ gdk_x11_surface_set_utf8_property  (GdkSurface *surface,
 
 /**
  * gdk_x11_surface_set_theme_variant:
- * @surface: (type GdkX11Surface): a #GdkSurface
+ * @surface: (type GdkX11Surface): a `GdkSurface`
  * @variant: the theme variant to export
  *
  * GTK applications can request a dark theme variant. In order to
@@ -3514,7 +3537,7 @@ gdk_x11_surface_unfullscreen (GdkSurface *surface)
 
 /**
  * gdk_x11_surface_get_group:
- * @surface: (type GdkX11Surface): The #GdkSurface
+ * @surface: (type GdkX11Surface): The `GdkSurface`
  *
  * Returns the group this surface belongs to.
  *
@@ -3535,8 +3558,8 @@ gdk_x11_surface_get_group (GdkSurface *surface)
 
 /**
  * gdk_x11_surface_set_group:
- * @surface: (type GdkX11Surface): a native #GdkSurface
- * @leader: a #GdkSurface
+ * @surface: (type GdkX11Surface): a native `GdkSurface`
+ * @leader: a `GdkSurface`
  *
  * Sets the group leader of @surface to be @leader.
  * See the ICCCM for details.
@@ -4232,7 +4255,7 @@ _gdk_x11_moveresize_handle_event (const XEvent *event)
             *mv_resize->moveresize_pending_event = *event;
           else
             mv_resize->moveresize_pending_event =
-              g_memdup (event, sizeof (XEvent));
+              g_memdup2 (event, sizeof (XEvent));
 
           break;
         }
@@ -4353,6 +4376,7 @@ create_moveresize_surface (MoveResizeData *mv_resize,
                                        NULL,
                                        -100, -100, 1, 1);
 
+  gdk_surface_set_is_mapped (mv_resize->moveresize_emulation_surface, TRUE);
   gdk_x11_surface_show (mv_resize->moveresize_emulation_surface, FALSE);
 
   status = gdk_seat_grab (gdk_device_get_seat (mv_resize->device),
@@ -4528,6 +4552,9 @@ gdk_x11_surface_beep (GdkSurface *surface)
 
   display = GDK_SURFACE_DISPLAY (surface);
 
+  if (!GDK_X11_DISPLAY (display)->trusted_client)
+    return FALSE;
+
 #ifdef HAVE_XKB
   if (GDK_X11_DISPLAY (display)->use_xkb)
     {
@@ -4595,15 +4622,14 @@ timestamp_predicate (Display *display,
 
 /**
  * gdk_x11_get_server_time:
- * @surface: (type GdkX11Surface): a #GdkSurface, used for communication
- *          with the server.  The surface must have
- *          GDK_PROPERTY_CHANGE_MASK in its events mask or a hang will
- *          result.
+ * @surface: (type GdkX11Surface): a `GdkSurface`, used for communication
+ *   with the server. The surface must have `GDK_PROPERTY_CHANGE_MASK` in
+ *   its events mask or a hang will result.
  *
  * Routine to get the current X server time stamp.
  *
- * Returns: the time stamp.
- **/
+ * Returns: the time stamp
+ */
 guint32
 gdk_x11_get_server_time (GdkSurface *surface)
 {
@@ -4634,9 +4660,9 @@ gdk_x11_get_server_time (GdkSurface *surface)
 
 /**
  * gdk_x11_surface_get_xid:
- * @surface: (type GdkX11Surface): a native #GdkSurface.
+ * @surface: (type GdkX11Surface): a native `GdkSurface`.
  * 
- * Returns the X resource (surface) belonging to a #GdkSurface.
+ * Returns the X resource (surface) belonging to a `GdkSurface`.
  * 
  * Returns: the ID of @drawable’s X resource.
  **/
@@ -4659,7 +4685,7 @@ gdk_x11_surface_get_scale_factor (GdkSurface *surface)
 
 /**
  * gdk_x11_surface_set_frame_sync_enabled:
- * @surface: (type GdkX11Surface): a native #GdkSurface
+ * @surface: (type GdkX11Surface): a native `GdkSurface`
  * @frame_sync_enabled: whether frame-synchronization should be enabled
  *
  * This function can be used to disable frame synchronization for a surface.
@@ -4796,7 +4822,6 @@ gdk_x11_surface_class_init (GdkX11SurfaceClass *klass)
   impl_class->get_scale_factor = gdk_x11_surface_get_scale_factor;
   impl_class->set_opaque_region = gdk_x11_surface_set_opaque_region;
   impl_class->create_gl_context = gdk_x11_surface_create_gl_context;
-  impl_class->get_unscaled_size = gdk_x11_surface_get_unscaled_size;
   impl_class->request_layout = gdk_x11_surface_request_layout;
   impl_class->compute_size = gdk_x11_surface_compute_size;
 }

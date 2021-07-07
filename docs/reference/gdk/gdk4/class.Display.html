@@ -1,0 +1,707 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gdk.Display</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gdk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gdk.Display"/>
+  <meta property="og:description" content="Reference for Gdk.Display"/>
+  <meta name="twitter:title" content="Gdk.Display"/>
+  <meta name="twitter:description" content="Reference for Gdk.Display"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gdk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.1</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.Display.html#description">Display</a>
+  </div>
+</div>
+
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.Display.beep.html">beep</a>
+  
+    <a class="method" href="method.Display.close.html">close</a>
+  
+    <a class="method" href="method.Display.device_is_grabbed.html">device_is_grabbed</a>
+  
+    <a class="method" href="method.Display.flush.html">flush</a>
+  
+    <a class="method" href="method.Display.get_app_launch_context.html">get_app_launch_context</a>
+  
+    <a class="method" href="method.Display.get_clipboard.html">get_clipboard</a>
+  
+    <a class="method" href="method.Display.get_default_seat.html">get_default_seat</a>
+  
+    <a class="method" href="method.Display.get_monitor_at_surface.html">get_monitor_at_surface</a>
+  
+    <a class="method" href="method.Display.get_monitors.html">get_monitors</a>
+  
+    <a class="method" href="method.Display.get_name.html">get_name</a>
+  
+    <a class="method" href="method.Display.get_primary_clipboard.html">get_primary_clipboard</a>
+  
+    <a class="method" href="method.Display.get_setting.html">get_setting</a>
+  
+    <a class="method" href="method.Display.get_startup_notification_id.html">get_startup_notification_id</a>
+  
+    <a class="method" href="method.Display.is_closed.html">is_closed</a>
+  
+    <a class="method" href="method.Display.is_composited.html">is_composited</a>
+  
+    <a class="method" href="method.Display.is_rgba.html">is_rgba</a>
+  
+    <a class="method" href="method.Display.list_seats.html">list_seats</a>
+  
+    <a class="method" href="method.Display.map_keycode.html">map_keycode</a>
+  
+    <a class="method" href="method.Display.map_keyval.html">map_keyval</a>
+  
+    <a class="method" href="method.Display.notify_startup_complete.html">notify_startup_complete</a>
+  
+    <a class="method" href="method.Display.put_event.html">put_event</a>
+  
+    <a class="method" href="method.Display.supports_input_shapes.html">supports_input_shapes</a>
+  
+    <a class="method" href="method.Display.sync.html">sync</a>
+  
+    <a class="method" href="method.Display.translate_key.html">translate_key</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.Display.composited.html">composited</a>
+  
+    <a class="property" href="property.Display.input-shapes.html">input-shapes</a>
+  
+    <a class="property" href="property.Display.rgba.html">rgba</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.Display.closed.html">closed</a>
+  
+    <a class="signal" href="signal.Display.opened.html">opened</a>
+  
+    <a class="signal" href="signal.Display.seat-added.html">seat-added</a>
+  
+    <a class="signal" href="signal.Display.seat-removed.html">seat-removed</a>
+  
+    <a class="signal" href="signal.Display.setting-changed.html">setting-changed</a>
+  
+  </div>
+</div>
+
+
+
+
+
+<div class="section">
+  <h5>Functions</h5>
+  <div class="links">
+  
+    <a class="func" href="type_func.Display.get_default.html">get_default</a>
+  
+    <a class="func" href="type_func.Display.open.html">open</a>
+  
+  </div>
+</div>
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gdk</a><span class="sep" role="presentation"></span>Display</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gdk/gdkdisplay.c#L41">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gdk.Display : GObject.Object {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GdkDisplay</code> objects are the <span class="caps">GDK</span> representation of a&nbsp;workstation.</p>
+<p>Their purpose are&nbsp;two-fold:</p>
+<ul>
+<li>To manage and provide information about input devices (pointers, keyboards,&nbsp;etc)</li>
+<li>To manage and provide information about output devices (monitors, projectors,&nbsp;etc)</li>
+</ul>
+<p>Most of the input device handling has been factored out into separate
+<a href="class.Seat.html"><code>GdkSeat</code></a> objects. Every display has a one or more seats, which
+can be accessed with <a href="method.Display.get_default_seat.html">gdk_display_get_default_seat()</a> and
+<a href="method.Display.list_seats.html">gdk_display_list_seats()</a>.</p>
+<p>Output devices are represented by <a href="class.Monitor.html"><code>GdkMonitor</code></a> objects, which can
+be accessed with <a href="method.Display.get_monitor_at_surface.html">gdk_display_get_monitor_at_surface()</a> and similar&nbsp;APIs.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gdk.Display">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="103pt" height="116pt"
+ viewBox="0.00 0.00 103.00 116.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 112)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GdkDisplay">
+<path fill="none" stroke="black" d="M83,-36C83,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 83,0 83,0 89,0 95,-6 95,-12 95,-12 95,-24 95,-24 95,-30 89,-36 83,-36"/>
+<text text-anchor="middle" x="47.5" y="-14.3" font-family="Times-Roman" font-size="14.00">GdkDisplay</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M71.5,-108C71.5,-108 23.5,-108 23.5,-108 17.5,-108 11.5,-102 11.5,-96 11.5,-96 11.5,-84 11.5,-84 11.5,-78 17.5,-72 23.5,-72 23.5,-72 71.5,-72 71.5,-72 77.5,-72 83.5,-78 83.5,-84 83.5,-84 83.5,-96 83.5,-96 83.5,-102 77.5,-108 71.5,-108"/>
+<text text-anchor="middle" x="47.5" y="-86.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M47.5,-71.7C47.5,-60.85 47.5,-46.92 47.5,-36.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.Display.beep.html">gdk_display_beep</a></h6>
+          <div class="docblock">
+            <p>Emits a short beep on <code>display</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.close.html">gdk_display_close</a></h6>
+          <div class="docblock">
+            <p>Closes the connection to the windowing system for the given&nbsp;display.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.device_is_grabbed.html">gdk_display_device_is_grabbed</a></h6>
+          <div class="docblock">
+            <p>Returns <code>TRUE</code> if there is an ongoing grab on <code>device</code> for <code>display</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.flush.html">gdk_display_flush</a></h6>
+          <div class="docblock">
+            <p>Flushes any requests queued for the windowing&nbsp;system.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_app_launch_context.html">gdk_display_get_app_launch_context</a></h6>
+          <div class="docblock">
+            <p>Returns a <code>GdkAppLaunchContext</code> suitable for launching
+applications on the given&nbsp;display.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_clipboard.html">gdk_display_get_clipboard</a></h6>
+          <div class="docblock">
+            <p>Gets the clipboard used for copy/paste&nbsp;operations.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_default_seat.html">gdk_display_get_default_seat</a></h6>
+          <div class="docblock">
+            <p>Returns the default <code>GdkSeat</code> for this&nbsp;display.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_monitor_at_surface.html">gdk_display_get_monitor_at_surface</a></h6>
+          <div class="docblock">
+            <p>Gets the monitor in which the largest area of <code>surface</code>
+resides.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_monitors.html">gdk_display_get_monitors</a></h6>
+          <div class="docblock">
+            <p>Gets the list of monitors associated with this&nbsp;display.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_name.html">gdk_display_get_name</a></h6>
+          <div class="docblock">
+            <p>Gets the name of the&nbsp;display.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_primary_clipboard.html">gdk_display_get_primary_clipboard</a></h6>
+          <div class="docblock">
+            <p>Gets the clipboard used for the primary&nbsp;selection.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_setting.html">gdk_display_get_setting</a></h6>
+          <div class="docblock">
+            <p>Retrieves a desktop-wide setting such as double-click time
+for the <code>display</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.get_startup_notification_id.html">gdk_display_get_startup_notification_id</a></h6>
+          <div class="docblock">
+            <p>Gets the startup notification <span class="caps">ID</span> for a Wayland display, or <code>NULL</code>
+if no <span class="caps">ID</span> has been&nbsp;defined.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.is_closed.html">gdk_display_is_closed</a></h6>
+          <div class="docblock">
+            <p>Finds out if the display has been&nbsp;closed.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.is_composited.html">gdk_display_is_composited</a></h6>
+          <div class="docblock">
+            <p>Returns whether surfaces can reasonably be expected to have
+their alpha channel drawn correctly on the&nbsp;screen.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.is_rgba.html">gdk_display_is_rgba</a></h6>
+          <div class="docblock">
+            <p>Returns whether surfaces on this <code>display</code> are created with an
+alpha&nbsp;channel.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.list_seats.html">gdk_display_list_seats</a></h6>
+          <div class="docblock">
+            <p>Returns the list of seats known to <code>display</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.map_keycode.html">gdk_display_map_keycode</a></h6>
+          <div class="docblock">
+            <p>Returns the keyvals bound to <code>keycode</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.map_keyval.html">gdk_display_map_keyval</a></h6>
+          <div class="docblock">
+            <p>Obtains a list of keycode/group/level combinations that will
+generate <code>keyval</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.notify_startup_complete.html">gdk_display_notify_startup_complete</a></h6>
+          <div class="docblock">
+            <p>Indicates to the <span class="caps">GUI</span> environment that the application has
+finished loading, using a given&nbsp;identifier.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.put_event.html">gdk_display_put_event</a></h6>
+          <div class="docblock">
+            <p>Appends the given event onto the front of the event
+queue for <code>display</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.supports_input_shapes.html">gdk_display_supports_input_shapes</a></h6>
+          <div class="docblock">
+            <p>Returns <code>TRUE</code> if the display supports input&nbsp;shapes.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.sync.html">gdk_display_sync</a></h6>
+          <div class="docblock">
+            <p>Flushes any requests queued for the windowing system and waits until all
+requests have been&nbsp;handled.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.translate_key.html">gdk_display_translate_key</a></h6>
+          <div class="docblock">
+            <p>Translates the contents of a <code>GdkEventKey</code> into a keyval, effective group,
+and&nbsp;level.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.Display.composited.html">Gdk.Display:composited</a></h6>
+
+          <div class="docblock">
+            <p><code>TRUE</code> if the display properly composites the alpha&nbsp;channel.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Display.input-shapes.html">Gdk.Display:input-shapes</a></h6>
+
+          <div class="docblock">
+            <p><code>TRUE</code> if the display supports input&nbsp;shapes.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.Display.rgba.html">Gdk.Display:rgba</a></h6>
+
+          <div class="docblock">
+            <p><code>TRUE</code> if the display supports an alpha&nbsp;channel.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+    <div class="signals toggle-wrapper">
+      <h4 id="signals">
+        Signals
+        <a href="#signals" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="signal.Display.closed.html">Gdk.Display::closed</a></h6>
+          <div class="docblock">
+            <p>Emitted when the connection to the windowing system for <code>display</code> is&nbsp;closed.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Display.opened.html">Gdk.Display::opened</a></h6>
+          <div class="docblock">
+            <p>Emitted when the connection to the windowing system for <code>display</code> is&nbsp;opened.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Display.seat-added.html">Gdk.Display::seat-added</a></h6>
+          <div class="docblock">
+            <p>Emitted whenever a new seat is made known to the windowing&nbsp;system.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Display.seat-removed.html">Gdk.Display::seat-removed</a></h6>
+          <div class="docblock">
+            <p>Emitted whenever a seat is removed by the windowing&nbsp;system.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="signal.Display.setting-changed.html">Gdk.Display::setting-changed</a></h6>
+          <div class="docblock">
+            <p>Emitted whenever a setting changes its&nbsp;value.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+
+    
+
+     
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+      <div class="">
+        <h6><a href="type_func.Display.get_default.html">gdk_display_get_default</a></h6>
+
+        <div class="docblock">
+          <p>Gets the default <code>GdkDisplay</code>.</p>
+        </div>
+
+        
+      </div>
+      
+      <div class="">
+        <h6><a href="type_func.Display.open.html">gdk_display_open</a></h6>
+
+        <div class="docblock">
+          <p>Opens a&nbsp;display.</p>
+        </div>
+
+        
+      </div>
+      
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

@@ -29,6 +29,7 @@ demos = files([
   'fishbowl.c',
   'fixed.c',
   'fontrendering.c',
+  'frames.c',
   'gears.c',
   'gestures.c',
   'glarea.c',
@@ -167,6 +168,8 @@ foreach flag: common_cflags
   endif
 endforeach
 
+gtkdemo_deps += [ demo_conf_h ]
+
 executable('gtk4-demo',
   sources: [demos, demos_h, extra_demo_sources, gtkdemo_resources],
   c_args: gtkdemo_args + demo_cflags,
@@ -202,4 +205,9 @@ install_data('org.gtk.Demo4.gschema.xml', install_dir: gtk_schemasdir)
 gnome.compile_schemas()
 
 # appdata
-install_data('org.gtk.Demo4.appdata.xml', install_dir: gtk_appdatadir)
+configure_file(
+  input: 'org.gtk.Demo4.appdata.xml.in',
+  output: 'org.gtk.Demo4.appdata.xml',
+  configuration: appdata_config,
+  install_dir: gtk_appdatadir
+)

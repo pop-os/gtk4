@@ -1,0 +1,171 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }}.{{ enum.name }}{% endblock %}
+
+{% block meta_other %}
+  <meta property="og:title" content="{{ namespace.name }}.{{ enum.name }}"/>
+  <meta property="og:description" content="Reference for {{ namespace.name }}.{{ enum.name }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}.{{ enum.name }}"/>
+  <meta name="twitter:description" content="Reference for {{ namespace.name }}.{{ enum.name }}"/>
+{% endblock %}
+
+{% macro sidebar_block(elements, enum_name, section_title, section_class, section_fragment) -%}
+{% if elements|length > 0 %}
+<div class="section">
+  <h5>{{ section_title }}</h5>
+  <div class="links">
+  {% for m in elements %}
+    <a class="{{ section_class }}" href="{{ section_fragment }}.{{ enum_name }}.{{ m.name }}.html">{{ m.name }}</a>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% block sidebar %}
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="{{ enum.link_prefix }}.{{ enum.name }}.html">{{ enum.name }}</a>
+  </div>
+</div>
+
+{{ sidebar_block(enum.type_funcs, enum.name, "Type functions", "func", "type_func") }}
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <header>
+    <h3>Enumeration</h3>
+    <h1><a href="index.html">{{ namespace.name }}</a><span class="sep"></span>{{ enum.name }}</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+        {% if CONFIG.source_location_url and enum.source_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(enum.source_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+        <pre><code>{{ enum.c_decl }}</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a href="#description" class="anchor"></a>
+        {% if CONFIG.source_location_url and enum.docs_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(enum.docs_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+      {{ enum.description }}
+      </div>
+
+      <div class="docblock">
+        <table class="attributes">
+          {% if enum.stability %}
+          <tr><td>Stability:</td><td>{{ enum.stability }}</td></tr>
+          {% endif %}
+          {% if enum.available_since %}
+          <tr><td>Available since:</td><td>{{ enum.available_since }}</td></tr>
+          {% endif %}
+          {% if enum.deprecated_since %}
+          <tr><td>Deprecated since:</td><td>{{ enum.deprecated_since.version }}</td></tr>
+          <tr><td colspan="2">{{ enum.deprecated_since.message }}</td></tr>
+          {% endif %}
+        </table>
+      </div>
+
+      {% if enum.attributes %}
+      <div class="docblock">
+        <table class="attributes">
+        {% for (key, value) in enum.attributes.items() %}
+          <tr><td>{{ key|escape }}</td><td>{{ value|escape }}</td></tr>
+        {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="members toggle-wrapper">
+      <h4 id="members">
+        Members
+        <a href="#members" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      <table class="enum-members">
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+        </tr>
+      {% for member in enum.members %}
+        <tr>
+          <td><code title="Value: {{ member.value }}">{{ member.name }}</code></td>
+          <td>{{ member.description }}</td>
+        </tr>
+      {% endfor %}
+      </table>
+      </div>
+    </div>
+
+    {% if enum.error_domain %}
+    <div class="error-domain toggle-wrapper">
+      <h4 id="error-domain">
+        Error domain
+        <a href="#error-domain" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>&quot;{{ enum.domain }}&quot;</code></pre>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if enum.type_funcs %}
+    <div class="type-funcs toggle-wrapper">
+      <h4 id="type-functions">
+        Type functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for func in enum.type_funcs %}
+        <div class="{% if func.deprecated_since %}deprecated{% endif %}">
+          <h6><a href="type_func.{{ enum.name }}.{{ func.name }}.html">{{ func.identifier }}</a></h6>
+
+          <div class="docblock">
+            {{ func.summary }}
+          </div>
+
+          {% if func.available_since or func.deprecated_since -%}
+          <div class="docblock">
+          {%- if func.available_since -%}
+          <p>Available since: {{ func.available_since }}</p>
+          {%- endif -%}
+          {%- if func.deprecated_since -%}
+          <p>Deprecated since: {{ func.deprecated_since }}</p>
+          {%- endif -%}
+          </div>
+          {%- endif %}
+        </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+  </section>
+</section>
+{% endblock %}

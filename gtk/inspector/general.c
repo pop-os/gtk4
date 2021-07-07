@@ -38,10 +38,16 @@
 #ifdef GDK_WINDOWING_X11
 #include "x11/gdkx.h"
 #include <epoxy/glx.h>
+#include <epoxy/egl.h>
 #endif
 
 #ifdef GDK_WINDOWING_WIN32
 #include "win32/gdkwin32.h"
+#include <epoxy/wgl.h>
+#endif
+
+#ifdef GDK_WIN32_ENABLE_EGL
+#include <epoxy/egl.h>
 #endif
 
 #ifdef GDK_WINDOWING_MACOS
@@ -51,6 +57,7 @@
 #ifdef GDK_WINDOWING_WAYLAND
 #include "wayland/gdkwayland.h"
 #include <epoxy/egl.h>
+#include <xkbcommon/xkbcommon.h>
 #endif
 
 #ifdef GDK_WINDOWING_BROADWAY
@@ -147,6 +154,8 @@ init_version (GtkInspectorGeneral *gen)
     renderer = "Vulkan";
   else if (strcmp (G_OBJECT_TYPE_NAME (gsk_renderer), "GskGLRenderer") == 0)
     renderer = "GL";
+  else if (strcmp (G_OBJECT_TYPE_NAME (gsk_renderer), "GskNglRenderer") == 0)
+    renderer = "NGL";
   else if (strcmp (G_OBJECT_TYPE_NAME (gsk_renderer), "GskCairoRenderer") == 0)
     renderer = "Cairo";
   else
@@ -244,7 +253,18 @@ append_glx_extension_row (GtkInspectorGeneral *gen,
 }
 #endif
 
-#ifdef GDK_WINDOWING_WAYLAND
+#ifdef GDK_WINDOWING_WIN32
+static void
+append_wgl_extension_row (GtkInspectorGeneral *gen,
+                          const char          *ext)
+{
+  HDC hdc = 0;
+
+  add_check_row (gen, GTK_LIST_BOX (gen->gl_box), ext, epoxy_has_wgl_extension (hdc, ext), 0);
+}
+#endif
+
+#if defined(GDK_WINDOWING_WAYLAND) || defined (GDK_WINDOWING_X11) || (defined (GDK_WINDOWING_WIN32) && defined(GDK_WIN32_ENABLE_EGL))
 static void
 append_egl_extension_row (GtkInspectorGeneral *gen,
                           EGLDisplay          dpy,
@@ -254,50 +274,63 @@ append_egl_extension_row (GtkInspectorGeneral *gen,
 }
 
 static EGLDisplay
-wayland_get_display (struct wl_display *wl_display)
+get_egl_display (GdkDisplay *display)
 {
-  EGLDisplay dpy = NULL;
-
-  if (epoxy_has_egl_extension (NULL, "EGL_KHR_platform_base"))
-    {
-      PFNEGLGETPLATFORMDISPLAYPROC getPlatformDisplay =
-        (void *) eglGetProcAddress ("eglGetPlatformDisplay");
-
-      if (getPlatformDisplay)
-        dpy = getPlatformDisplay (EGL_PLATFORM_WAYLAND_EXT,
-                                  wl_display,
-                                  NULL);
-      if (dpy)
-        return dpy;
-    }
-
-  if (epoxy_has_egl_extension (NULL, "EGL_EXT_platform_base"))
-    {
-      PFNEGLGETPLATFORMDISPLAYEXTPROC getPlatformDisplay =
-        (void *) eglGetProcAddress ("eglGetPlatformDisplayEXT");
-
-      if (getPlatformDisplay)
-        dpy = getPlatformDisplay (EGL_PLATFORM_WAYLAND_EXT,
-                                  wl_display,
-                                  NULL);
-      if (dpy)
-        return dpy;
-    }
-
-  return eglGetDisplay ((EGLNativeDisplayType)wl_display);
+#ifdef GDK_WINDOWING_WAYLAND
+  if (GDK_IS_WAYLAND_DISPLAY (display))
+    return gdk_wayland_display_get_egl_display (display);
+  else
+#endif
+#ifdef GDK_WINDOWING_X11
+  if (GDK_IS_X11_DISPLAY (display))
+    return gdk_x11_display_get_egl_display (display);
+  else
+#endif
+#ifdef GDK_WINDOWING_WIN32
+  if (GDK_IS_WIN32_DISPLAY (display))
+    return gdk_win32_display_get_egl_display (display);
+  else
+#endif
+   return NULL;
 }
 #endif
-
 
 static void
 init_gl (GtkInspectorGeneral *gen)
 {
+  if (gdk_display_get_debug_flags (gen->display) & GDK_DEBUG_GL_DISABLE)
+    {
+      gtk_label_set_text (GTK_LABEL (gen->gl_version), C_("GL version", "Disabled"));
+      gtk_label_set_text (GTK_LABEL (gen->gl_vendor), C_("GL vendor", "Disabled"));
+      return;
+    }
+
+#if defined(GDK_WINDOWING_X11) || defined(GDK_WINDOWING_WAYLAND) || (defined(GDK_WINDOWING_WIN32) && defined(GDK_WIN32_ENABLE_EGL))
+  EGLDisplay egl_display = get_egl_display (gen->display);
+  if (egl_display)
+    {
+      char *version;
+
+      version = g_strconcat ("EGL ", eglQueryString (egl_display, EGL_VERSION), NULL);
+      gtk_label_set_text (GTK_LABEL (gen->gl_version), version);
+      g_free (version);
+
+      gtk_label_set_text (GTK_LABEL (gen->gl_vendor), eglQueryString (egl_display, EGL_VENDOR));
+
+      append_egl_extension_row (gen, egl_display, "EGL_KHR_create_context");
+      append_egl_extension_row (gen, egl_display, "EGL_EXT_buffer_age");
+      append_egl_extension_row (gen, egl_display, "EGL_EXT_swap_buffers_with_damage");
+      append_egl_extension_row (gen, egl_display, "EGL_KHR_surfaceless_context");
+    }
+  else
+#endif
 #ifdef GDK_WINDOWING_X11
   if (GDK_IS_X11_DISPLAY (gen->display))
     {
       Display *dpy = GDK_DISPLAY_XDISPLAY (gen->display);
       int error_base, event_base;
       char *version;
+
       if (!glXQueryExtension (dpy, &error_base, &event_base))
         return;
 
@@ -317,27 +350,23 @@ init_gl (GtkInspectorGeneral *gen)
     }
   else
 #endif
-#ifdef GDK_WINDOWING_WAYLAND
-  if (GDK_IS_WAYLAND_DISPLAY (gen->display))
+#ifdef GDK_WINDOWING_WIN32
+  if (GDK_IS_WIN32_DISPLAY (gen->display))
     {
-      EGLDisplay dpy;
-      EGLint major, minor;
+      int gl_version;
       char *version;
 
-      dpy = wayland_get_display (gdk_wayland_display_get_wl_display (gen->display));
-
-      if (!eglInitialize (dpy, &major, &minor))
-        return;
-
-      version = g_strconcat ("EGL ", eglQueryString (dpy, EGL_VERSION), NULL);
+      gl_version = epoxy_gl_version ();
+      version = g_strdup_printf ("WGL %d.%d", gl_version / 10, gl_version % 10, NULL);
       gtk_label_set_text (GTK_LABEL (gen->gl_version), version);
       g_free (version);
-      gtk_label_set_text (GTK_LABEL (gen->gl_vendor), eglQueryString (dpy, EGL_VENDOR));
+      gtk_label_set_text (GTK_LABEL (gen->gl_vendor), glGetString (GL_VENDOR));
 
-      append_egl_extension_row (gen, dpy, "EGL_KHR_create_context");
-      append_egl_extension_row (gen, dpy, "EGL_EXT_buffer_age");
-      append_egl_extension_row (gen, dpy, "EGL_EXT_swap_buffers_with_damage");
-      append_egl_extension_row (gen, dpy, "EGL_KHR_surfaceless_context");
+      append_wgl_extension_row (gen, "WGL_EXT_create_context");
+      append_wgl_extension_row (gen, "WGL_EXT_swap_control");
+      append_wgl_extension_row (gen, "WGL_OML_sync_control");
+      append_wgl_extension_row (gen, "WGL_ARB_pixel_format");
+      append_wgl_extension_row (gen, "WGL_ARB_multisample");
     }
   else
 #endif
@@ -391,6 +420,14 @@ init_vulkan (GtkInspectorGeneral *gen)
 #ifdef GDK_RENDERING_VULKAN
   GdkSurface *surface;
   GdkVulkanContext *context;
+
+  if (gdk_display_get_debug_flags (gen->display) & GDK_DEBUG_VULKAN_DISABLE)
+    {
+      gtk_label_set_text (GTK_LABEL (gen->vk_device), C_("Vulkan device", "Disabled"));
+      gtk_label_set_text (GTK_LABEL (gen->vk_api_version), C_("Vulkan version", "Disabled"));
+      gtk_label_set_text (GTK_LABEL (gen->vk_driver_version), C_("Vulkan version", "Disabled"));
+      return;
+    }
 
   surface = gdk_surface_new_toplevel (gen->display);
   context = gdk_surface_create_vulkan_context (surface, NULL);
@@ -547,26 +584,23 @@ populate_display (GdkDisplay *display, GtkInspectorGeneral *gen)
                           gdk_display_is_composited (display));
 }
 
-static GtkWidget *
-populate_monitor (gpointer item,
-                  gpointer gen)
+static void
+add_monitor (GtkInspectorGeneral *gen,
+             GdkMonitor          *monitor,
+             guint                i)
 {
   GtkListBox *list;
-  GdkMonitor *monitor = item;
-  char *name;
   char *value;
   GdkRectangle rect;
   int scale;
+  char *name;
   char *scale_str = NULL;
   const char *manufacturer;
   const char *model;
 
-  list = GTK_LIST_BOX (gtk_list_box_new ());
-  gtk_widget_add_css_class (GTK_WIDGET (list), "rich-list");
-  gtk_list_box_set_selection_mode (list, GTK_SELECTION_NONE);
+  list = GTK_LIST_BOX (gen->monitor_box);
 
-  /* XXX: add monitor # here when porting to listview */
-  name = g_strdup_printf ("Monitor %d", 1);
+  name = g_strdup_printf ("Monitor %u", i);
   manufacturer = gdk_monitor_get_manufacturer (monitor);
   model = gdk_monitor_get_model (monitor);
   value = g_strdup_printf ("%s%s%s",
@@ -574,13 +608,15 @@ populate_monitor (gpointer item,
                            manufacturer || model ? " " : "",
                            model ? model : "");
   add_label_row (gen, list, name, value, 0);
-  g_free (name);
   g_free (value);
+  g_free (name);
+
+  add_label_row (gen, list, "Connector", gdk_monitor_get_connector (monitor), 10);
 
   gdk_monitor_get_geometry (monitor, &rect);
   scale = gdk_monitor_get_scale_factor (monitor);
   if (scale != 1)
-    scale_str = g_strdup_printf (" @ %d", scale);
+    scale_str = g_strdup_printf (" @ %d", scale);
 
   value = g_strdup_printf ("%d × %d%s at %d, %d",
                            rect.width, rect.height,
@@ -590,25 +626,46 @@ populate_monitor (gpointer item,
   g_free (value);
   g_free (scale_str);
 
-  value = g_strdup_printf ("%d × %d mm²",
+  value = g_strdup_printf ("%d × %d mm²",
                            gdk_monitor_get_width_mm (monitor),
                            gdk_monitor_get_height_mm (monitor));
   add_label_row (gen, list, "Size", value, 10);
   g_free (value);
 
   if (gdk_monitor_get_refresh_rate (monitor) != 0)
-    value = g_strdup_printf ("%.2f Hz",
-                             0.001 * gdk_monitor_get_refresh_rate (monitor));
-  else
-    value = g_strdup ("unknown");
-  add_label_row (gen, list, "Refresh rate", value, 10);
-  g_free (value);
+    {
+      value = g_strdup_printf ("%.2f Hz",
+                               0.001 * gdk_monitor_get_refresh_rate (monitor));
+      add_label_row (gen, list, "Refresh rate", value, 10);
+      g_free (value);
+    }
 
-  value = g_strdup (translate_subpixel_layout (gdk_monitor_get_subpixel_layout (monitor)));
-  add_label_row (gen, list, "Subpixel layout", value, 10);
-  g_free (value);
+  if (gdk_monitor_get_subpixel_layout (monitor) != GDK_SUBPIXEL_LAYOUT_UNKNOWN)
+    {
+      add_label_row (gen, list, "Subpixel layout",
+                     translate_subpixel_layout (gdk_monitor_get_subpixel_layout (monitor)),
+                     10);
+    }
+}
 
-  return GTK_WIDGET (list);
+static void
+populate_monitors (GdkDisplay          *display,
+                   GtkInspectorGeneral *gen)
+{
+  GtkWidget *child;
+  GListModel *list;
+
+  while ((child = gtk_widget_get_first_child (gen->monitor_box)))
+    gtk_list_box_remove (GTK_LIST_BOX (gen->monitor_box), child);
+
+  list = gdk_display_get_monitors (gen->display);
+
+  for (guint i = 0; i < g_list_model_get_n_items (list); i++)
+    {
+      GdkMonitor *monitor = g_list_model_get_item (list, i);
+      add_monitor (gen, monitor, i);
+      g_object_unref (monitor);
+    }
 }
 
 static void
@@ -620,15 +677,24 @@ populate_display_notify_cb (GdkDisplay          *display,
 }
 
 static void
+monitors_changed_cb (GListModel          *monitors,
+                     guint                position,
+                     guint                removed,
+                     guint                added,
+                     GtkInspectorGeneral *gen)
+{
+  populate_monitors (gen->display, gen);
+}
+
+static void
 init_display (GtkInspectorGeneral *gen)
 {
   g_signal_connect (gen->display, "notify", G_CALLBACK (populate_display_notify_cb), gen);
-  gtk_list_box_bind_model (GTK_LIST_BOX (gen->monitor_box),
-                           gdk_display_get_monitors (gen->display),
-                           populate_monitor,
-                           gen, NULL);
+  g_signal_connect (gdk_display_get_monitors (gen->display), "items-changed",
+                    G_CALLBACK (monitors_changed_cb), gen);
 
   populate_display (gen->display, gen);
+  populate_monitors (gen->display, gen);
 }
 
 static void
@@ -732,6 +798,26 @@ add_device (GtkInspectorGeneral *gen,
       add_label_row (gen, GTK_LIST_BOX (gen->device_box), "Touches", text, 20);
       g_free (text);
     }
+
+#ifdef GDK_WINDOWING_WAYLAND
+  if (GDK_IS_WAYLAND_DEVICE (device) &&
+      gdk_device_get_source (device) == GDK_SOURCE_KEYBOARD)
+    {
+      struct xkb_keymap *keymap = gdk_wayland_device_get_xkb_keymap (device);
+      GString *s;
+
+      s = g_string_new ("");
+      for (int i = 0; i < xkb_keymap_num_layouts (keymap); i++)
+        {
+          if (s->len > 0)
+            g_string_append (s, ", ");
+          g_string_append (s, xkb_keymap_layout_get_name (keymap, i));
+        }
+
+      add_label_row (gen, GTK_LIST_BOX (gen->device_box), "Layouts", s->str, 20);
+      g_string_free (s, TRUE);
+    }
+#endif
 
   g_type_class_unref (class);
 }
@@ -932,6 +1018,8 @@ gtk_inspector_general_dispose (GObject *object)
 
   g_signal_handlers_disconnect_by_func (gen->display, G_CALLBACK (seat_added), gen);
   g_signal_handlers_disconnect_by_func (gen->display, G_CALLBACK (seat_removed), gen);
+  g_signal_handlers_disconnect_by_func (gen->display, G_CALLBACK (populate_display_notify_cb), gen);
+  g_signal_handlers_disconnect_by_func (gdk_display_get_monitors (gen->display), G_CALLBACK (monitors_changed_cb), gen);
 
   list = gdk_display_list_seats (gen->display);
   for (l = list; l; l = l->next)

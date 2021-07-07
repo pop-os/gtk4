@@ -35,11 +35,11 @@
 
 
 /**
- * SECTION:gtkcellrendererprogress
- * @Short_description: Renders numbers as progress bars
- * @Title: GtkCellRendererProgress
+ * GtkCellRendererProgress:
  *
- * #GtkCellRendererProgress renders a numeric value as a progress par in a cell.
+ * Renders numbers as progress bars
+ *
+ * `GtkCellRendererProgress` renders a numeric value as a progress par in a cell.
  * Additionally, it can display a text on top of the progress bar.
  */
 
@@ -727,7 +727,7 @@ gtk_cell_renderer_progress_init (GtkCellRendererProgress *cellprogress)
 /**
  * gtk_cell_renderer_progress_new:
  *
- * Creates a new #GtkCellRendererProgress.
+ * Creates a new `GtkCellRendererProgress`.
  *
  * Returns: the new cell renderer
  **/

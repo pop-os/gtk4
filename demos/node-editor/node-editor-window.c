@@ -25,6 +25,7 @@
 
 #include "gsk/gskrendernodeparserprivate.h"
 #include "gsk/gl/gskglrenderer.h"
+#include "gsk/ngl/gsknglrenderer.h"
 #ifdef GDK_WINDOWING_BROADWAY
 #include "gsk/broadway/gskbroadwayrenderer.h"
 #endif
@@ -635,6 +636,24 @@ export_image_cb (GtkWidget        *button,
 }
 
 static void
+clip_image_cb (GtkWidget        *button,
+               NodeEditorWindow *self)
+{
+  GdkTexture *texture;
+  GdkClipboard *clipboard;
+
+  texture = create_texture (self);
+  if (texture == NULL)
+    return;
+
+  clipboard = gtk_widget_get_clipboard (GTK_WIDGET (self));
+
+  gdk_clipboard_set_texture (clipboard, texture);
+
+  g_object_unref (texture);
+}
+
+static void
 testcase_name_entry_changed_cb (GtkWidget        *button,
                                 GParamSpec       *pspec,
                                 NodeEditorWindow *self)
@@ -701,6 +720,16 @@ out:
 }
 
 static void
+dark_mode_cb (GtkToggleButton *button,
+              GParamSpec      *pspec,
+              NodeEditorWindow *self)
+{
+  g_object_set (gtk_widget_get_settings (GTK_WIDGET (self)),
+                "gtk-application-prefer-dark-theme", gtk_toggle_button_get_active (button),
+                NULL);
+}
+
+static void
 node_editor_window_finalize (GObject *object)
 {
   NodeEditorWindow *self = (NodeEditorWindow *)object;
@@ -752,6 +781,9 @@ node_editor_window_realize (GtkWidget *widget)
   node_editor_window_add_renderer (self,
                                    gsk_gl_renderer_new (),
                                    "OpenGL");
+  node_editor_window_add_renderer (self,
+                                   gsk_ngl_renderer_new (),
+                                   "NGL");
 #ifdef GDK_RENDERING_VULKAN
   node_editor_window_add_renderer (self,
                                    gsk_vulkan_renderer_new (),
@@ -812,8 +844,10 @@ node_editor_window_class_init (NodeEditorWindowClass *class)
   gtk_widget_class_bind_template_callback (widget_class, open_cb);
   gtk_widget_class_bind_template_callback (widget_class, save_cb);
   gtk_widget_class_bind_template_callback (widget_class, export_image_cb);
+  gtk_widget_class_bind_template_callback (widget_class, clip_image_cb);
   gtk_widget_class_bind_template_callback (widget_class, testcase_save_clicked_cb);
   gtk_widget_class_bind_template_callback (widget_class, testcase_name_entry_changed_cb);
+  gtk_widget_class_bind_template_callback (widget_class, dark_mode_cb);
 }
 
 static GtkWidget *
@@ -910,6 +944,26 @@ node_editor_window_init (NodeEditorWindow *self)
   self->text_buffer = gtk_text_buffer_new (self->tag_table);
   g_signal_connect (self->text_buffer, "changed", G_CALLBACK (text_changed), self);
   gtk_text_view_set_buffer (GTK_TEXT_VIEW (self->text_view), self->text_buffer);
+
+  /* Default */
+  gtk_text_buffer_set_text (self->text_buffer,
+         "shadow {\n"
+         "  child: texture {\n"
+         "    bounds: 0 0 128 128;\n"
+         "    texture: url(\"resource:///org/gtk/gtk4/node-editor/icons/apps/org.gtk.gtk4.NodeEditor.svg\");\n"
+         "  }\n"
+         "  shadows: rgba(0,0,0,0.5) 0 1 12;\n"
+         "}\n"
+         "\n"
+         "transform {\n"
+         "  child: text {\n"
+         "    color: rgb(46,52,54);\n"
+         "    font: \"Cantarell Bold 11\";\n"
+         "    glyphs: \"GTK Node Editor\";\n"
+         "    offset: 8 14.418;\n"
+         "  }\n"
+         "  transform: translate(0, 140);\n"
+         "}", -1);
 }
 
 NodeEditorWindow *

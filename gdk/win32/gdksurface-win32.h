@@ -335,15 +335,13 @@ struct _GdkWin32Surface
 
   /* scale of window on HiDPI */
   int surface_scale;
-  int unscaled_width;
-  int unscaled_height;
 
   GdkToplevelLayout *toplevel_layout;
   struct {
     int configured_width;
     int configured_height;
+    RECT configured_rect;
   } next_layout;
-  gboolean resized;
 
 #ifdef GDK_WIN32_ENABLE_EGL
   EGLSurface egl_surface;

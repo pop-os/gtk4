@@ -35,12 +35,10 @@ G_BEGIN_DECLS
 
 /**
  * GtkDialogFlags:
- * @GTK_DIALOG_MODAL: Make the constructed dialog modal,
- *     see gtk_window_set_modal()
- * @GTK_DIALOG_DESTROY_WITH_PARENT: Destroy the dialog when its
- *     parent is destroyed, see gtk_window_set_destroy_with_parent()
+ * @GTK_DIALOG_MODAL: Make the constructed dialog modal
+ * @GTK_DIALOG_DESTROY_WITH_PARENT: Destroy the dialog when its parent is destroyed
  * @GTK_DIALOG_USE_HEADER_BAR: Create dialog with actions in header
- *     bar instead of action area
+ *   bar instead of action area
  *
  * Flags used to influence dialog construction.
  */
@@ -54,7 +52,7 @@ typedef enum
 /**
  * GtkResponseType:
  * @GTK_RESPONSE_NONE: Returned if an action widget has no response id,
- *     or if the dialog gets programmatically hidden or destroyed
+ *   or if the dialog gets programmatically hidden or destroyed
  * @GTK_RESPONSE_REJECT: Generic response id, not used by GTK dialogs
  * @GTK_RESPONSE_ACCEPT: Generic response id, not used by GTK dialogs
  * @GTK_RESPONSE_DELETE_EVENT: Returned if the dialog is deleted
@@ -67,6 +65,7 @@ typedef enum
  * @GTK_RESPONSE_HELP: Returned by Help buttons in GTK dialogs
  *
  * Predefined values for use as response ids in gtk_dialog_add_button().
+ *
  * All predefined values are negative; GTK leaves values of 0 or greater for
  * application-defined response ids.
  */
@@ -97,12 +96,6 @@ typedef enum
 typedef struct _GtkDialog              GtkDialog;
 typedef struct _GtkDialogClass         GtkDialogClass;
 
-/**
- * GtkDialog:
- *
- * The #GtkDialog-struct contains only private fields
- * and should not be directly accessed.
- */
 struct _GtkDialog
 {
   GtkWindow parent_instance;

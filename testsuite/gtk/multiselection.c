@@ -30,7 +30,7 @@ get (GListModel *model,
 {
   GObject *object = g_list_model_get_item (model, position);
   guint ret;
-  g_assert (object != NULL);
+  g_assert_nonnull (object);
   ret = GPOINTER_TO_UINT (g_object_get_qdata (object, number_quark));
   g_object_unref (object);
   return ret;
@@ -82,7 +82,7 @@ make_object (guint number)
   GObject *object;
 
   /* 0 cannot be differentiated from NULL, so don't use it */
-  g_assert (number != 0);
+  g_assert_cmpint (number, !=, 0);
 
   object = g_object_new (G_TYPE_OBJECT, NULL);
   g_object_set_qdata (object, number_quark, GUINT_TO_POINTER (number));
@@ -201,7 +201,7 @@ items_changed (GListModel *model,
                guint       added,
                GString    *changes)
 {
-  g_assert (removed != 0 || added != 0);
+  g_assert_true (removed != 0 || added != 0);
 
   if (changes->len)
     g_string_append (changes, ", ");
@@ -300,6 +300,17 @@ test_create (void)
   assert_changes (selection, "");
   assert_selection (selection, "");
   assert_selection_changes (selection, "");
+
+  g_object_unref (selection);
+}
+
+static void
+test_create_empty (void)
+{
+  GtkMultiSelection *selection;
+
+  selection = gtk_multi_selection_new (NULL);
+  g_assert_cmpint (g_list_model_get_n_items (G_LIST_MODEL (selection)), ==, 0);
 
   g_object_unref (selection);
 }
@@ -673,7 +684,7 @@ test_set_model (void)
 int
 main (int argc, char *argv[])
 {
-  g_test_init (&argc, &argv, NULL);
+  (g_test_init) (&argc, &argv, NULL);
   setlocale (LC_ALL, "C");
   g_test_bug_base ("http://bugzilla.gnome.org/show_bug.cgi?id=%s");
 
@@ -682,6 +693,7 @@ main (int argc, char *argv[])
   selection_quark = g_quark_from_static_string ("Mana mana, badibidibi");
 
   g_test_add_func ("/multiselection/create", test_create);
+  g_test_add_func ("/multiselection/create-empty", test_create_empty);
 #if GLIB_CHECK_VERSION (2, 58, 0) /* g_list_store_splice() is broken before 2.58 */
   g_test_add_func ("/multiselection/changes", test_changes);
 #endif

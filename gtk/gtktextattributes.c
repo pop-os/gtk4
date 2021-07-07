@@ -55,11 +55,11 @@
 /**
  * gtk_text_attributes_new:
  * 
- * Creates a #GtkTextAttributes, which describes
+ * Creates a `GtkTextAttributes`, which describes
  * a set of properties on some text.
  * 
- * Returns: a new #GtkTextAttributes,
- *     free with gtk_text_attributes_unref().
+ * Returns: a new `GtkTextAttributes`,
+ *   free with gtk_text_attributes_unref().
  */
 GtkTextAttributes*
 gtk_text_attributes_new (void)
@@ -82,12 +82,12 @@ gtk_text_attributes_new (void)
 
 /**
  * gtk_text_attributes_copy:
- * @src: a #GtkTextAttributes to be copied
+ * @src: a `GtkTextAttributes` to be copied
  *
- * Copies @src and returns a new #GtkTextAttributes.
+ * Copies @src and returns a new `GtkTextAttributes`.
  *
  * Returns: a copy of @src,
- *     free with gtk_text_attributes_unref()
+ *   free with gtk_text_attributes_unref()
  */
 GtkTextAttributes*
 gtk_text_attributes_copy (GtkTextAttributes *src)
@@ -102,8 +102,8 @@ gtk_text_attributes_copy (GtkTextAttributes *src)
 
 /**
  * gtk_text_attributes_copy_values:
- * @src: a #GtkTextAttributes
- * @dest: another #GtkTextAttributes
+ * @src: a `GtkTextAttributes`
+ * @dest: another `GtkTextAttributes`
  *
  * Copies the values from @src to @dest so that @dest has
  * the same values as @src. Frees existing values in @dest.
@@ -184,11 +184,11 @@ gtk_text_attributes_copy_values (GtkTextAttributes *src,
 
 /**
  * gtk_text_attributes_ref:
- * @values: a #GtkTextAttributes
+ * @values: a `GtkTextAttributes`
  *
  * Increments the reference count on @values.
  *
- * Returns: the #GtkTextAttributes that were passed in
+ * Returns: the `GtkTextAttributes` that were passed in
  **/
 GtkTextAttributes *
 gtk_text_attributes_ref (GtkTextAttributes *values)
@@ -202,7 +202,7 @@ gtk_text_attributes_ref (GtkTextAttributes *values)
 
 /**
  * gtk_text_attributes_unref:
- * @values: a #GtkTextAttributes
+ * @values: a `GtkTextAttributes`
  * 
  * Decrements the reference count on @values, freeing the structure
  * if the reference count reaches 0.
@@ -250,22 +250,19 @@ gtk_text_attributes_unref (GtkTextAttributes *values)
 
 void
 _gtk_text_attributes_fill_from_tags (GtkTextAttributes *dest,
-                                     GtkTextTag**       tags,
-                                     guint              n_tags)
+                                     GPtrArray         *tags)
 {
-  guint n = 0;
-
   guint left_margin_accumulative = 0;
   guint right_margin_accumulative = 0;
 
-  while (n < n_tags)
+  for (guint n = 0; n < tags->len; n++)
     {
-      GtkTextTag *tag = tags[n];
+      GtkTextTag *tag = g_ptr_array_index (tags, n);
       GtkTextAttributes *vals = tag->priv->values;
 
       g_assert (tag->priv->table != NULL);
       if (n > 0)
-        g_assert (tags[n]->priv->priority > tags[n-1]->priv->priority);
+        g_assert (((GtkTextTag*)g_ptr_array_index (tags, n))->priv->priority > ((GtkTextTag *)g_ptr_array_index (tags, n - 1))->priv->priority);
 
       if (tag->priv->bg_color_set)
         {
@@ -438,8 +435,6 @@ _gtk_text_attributes_fill_from_tags (GtkTextAttributes *dest,
 
       if (tag->priv->insert_hyphens_set)
         dest->no_hyphens = vals->no_hyphens;
-
-      ++n;
     }
 
   dest->left_margin += left_margin_accumulative;

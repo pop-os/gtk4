@@ -1,0 +1,26 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }} &ndash; {{ namespace.version }}: {{ content.title }}{% endblock %}
+
+{% block meta_other %}
+  <meta property="og:title" content="{{ namespace.name }}: {{ content.title }}"/>
+  <meta property="og:description" content="Reference for {{ namespace.name }}-{{ namespace.version }}: {{ content.title }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}: {{ content.title }}"/>
+  <meta name="twitter:description" content="Reference for {{ namespace.name }}-{{ namespace.version }}: {{ content.title }}"/>
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <section>
+    <div class="docblock">
+    {{ content.data }}
+    </div>
+  </section>
+</section>
+{% endblock %}

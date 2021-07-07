@@ -23,13 +23,12 @@
 
 
 /**
- * SECTION:gtktreesortable
- * @Short_description: The interface for sortable models used by GtkTreeView
- * @Title: GtkTreeSortable
- * @See_also:#GtkTreeModel, #GtkTreeView
+ * GtkTreeSortable:
  *
- * #GtkTreeSortable is an interface to be implemented by tree models which
- * support sorting. The #GtkTreeView uses the methods provided by this interface
+ * The interface for sortable models used by GtkTreeView
+ *
+ * `GtkTreeSortable` is an interface to be implemented by tree models which
+ * support sorting. The `GtkTreeView` uses the methods provided by this interface
  * to sort the model.
  */
 
@@ -94,9 +93,9 @@ gtk_tree_sortable_base_init (gpointer g_class)
 
 /**
  * gtk_tree_sortable_sort_column_changed:
- * @sortable: A #GtkTreeSortable
+ * @sortable: A `GtkTreeSortable`
  * 
- * Emits a #GtkTreeSortable::sort-column-changed signal on @sortable.
+ * Emits a `GtkTreeSortable::sort-column-changed` signal on @sortable.
  */
 void
 gtk_tree_sortable_sort_column_changed (GtkTreeSortable *sortable)
@@ -108,9 +107,9 @@ gtk_tree_sortable_sort_column_changed (GtkTreeSortable *sortable)
 
 /**
  * gtk_tree_sortable_get_sort_column_id:
- * @sortable: A #GtkTreeSortable
+ * @sortable: A `GtkTreeSortable`
  * @sort_column_id: (out): The sort column id to be filled in
- * @order: (out): The #GtkSortType to be filled in
+ * @order: (out): The `GtkSortType` to be filled in
  * 
  * Fills in @sort_column_id and @order with the current sort column and the
  * order. It returns %TRUE unless the @sort_column_id is 
@@ -139,13 +138,13 @@ gtk_tree_sortable_get_sort_column_id (GtkTreeSortable  *sortable,
 
 /**
  * gtk_tree_sortable_set_sort_column_id:
- * @sortable: A #GtkTreeSortable
+ * @sortable: A `GtkTreeSortable`
  * @sort_column_id: the sort column id to set
  * @order: The sort order of the column
  * 
  * Sets the current sort column to be @sort_column_id. The @sortable will
  * resort itself to reflect this change, after emitting a
- * #GtkTreeSortable::sort-column-changed signal. @sort_column_id may either be
+ * `GtkTreeSortable::sort-column-changed` signal. @sort_column_id may either be
  * a regular column id, or one of the following special values:
  * 
  * - %GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID: the default sort function
@@ -172,11 +171,11 @@ gtk_tree_sortable_set_sort_column_id (GtkTreeSortable  *sortable,
 
 /**
  * gtk_tree_sortable_set_sort_func:
- * @sortable: A #GtkTreeSortable
+ * @sortable: A `GtkTreeSortable`
  * @sort_column_id: the sort column id to set the function for
  * @sort_func: The comparison function
- * @user_data: (closure): User data to pass to @sort_func, or %NULL
- * @destroy: (allow-none): Destroy notifier of @user_data, or %NULL
+ * @user_data: (closure): User data to pass to @sort_func
+ * @destroy: (nullable): Destroy notifier of @user_data
  * 
  * Sets the comparison function used when sorting to be @sort_func. If the
  * current sort column id of @sortable is the same as @sort_column_id, then 
@@ -205,10 +204,10 @@ gtk_tree_sortable_set_sort_func (GtkTreeSortable        *sortable,
 
 /**
  * gtk_tree_sortable_set_default_sort_func:
- * @sortable: A #GtkTreeSortable
+ * @sortable: A `GtkTreeSortable`
  * @sort_func: The comparison function
- * @user_data: (closure): User data to pass to @sort_func, or %NULL
- * @destroy: (allow-none): Destroy notifier of @user_data, or %NULL
+ * @user_data: (closure): User data to pass to @sort_func
+ * @destroy: (nullable): Destroy notifier of @user_data
  * 
  * Sets the default comparison function used when sorting to be @sort_func.  
  * If the current sort column id of @sortable is
@@ -240,7 +239,7 @@ gtk_tree_sortable_set_default_sort_func (GtkTreeSortable        *sortable,
 
 /**
  * gtk_tree_sortable_has_default_sort_func:
- * @sortable: A #GtkTreeSortable
+ * @sortable: A `GtkTreeSortable`
  * 
  * Returns %TRUE if the model has a default sort function. This is used
  * primarily by GtkTreeViewColumns in order to determine if a model can 
