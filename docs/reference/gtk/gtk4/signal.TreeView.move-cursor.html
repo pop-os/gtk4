@@ -1,0 +1,331 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.TreeView::move-cursor</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.TreeView::move-cursor"/>
+  <meta property="og:description" content="Reference for signal Gtk.TreeView::move-cursor"/>
+  <meta name="twitter:title" content="Gtk.TreeView::move-cursor"/>
+  <meta name="twitter:description" content="Reference for signal Gtk.TreeView::move-cursor"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.1</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="class.TreeView.html">TreeView</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Signals</h5>
+  <div class="links">
+  
+    <a class="signal" href="signal.TreeView.columns-changed.html">columns-changed</a>
+  
+    <a class="signal" href="signal.TreeView.cursor-changed.html">cursor-changed</a>
+  
+    <a class="signal" href="signal.TreeView.expand-collapse-cursor-row.html">expand-collapse-cursor-row</a>
+  
+    <a class="signal current" href="signal.TreeView.move-cursor.html">move-cursor</a>
+  
+    <a class="signal" href="signal.TreeView.row-activated.html">row-activated</a>
+  
+    <a class="signal" href="signal.TreeView.row-collapsed.html">row-collapsed</a>
+  
+    <a class="signal" href="signal.TreeView.row-expanded.html">row-expanded</a>
+  
+    <a class="signal" href="signal.TreeView.select-all.html">select-all</a>
+  
+    <a class="signal" href="signal.TreeView.select-cursor-parent.html">select-cursor-parent</a>
+  
+    <a class="signal" href="signal.TreeView.select-cursor-row.html">select-cursor-row</a>
+  
+    <a class="signal" href="signal.TreeView.start-interactive-search.html">start-interactive-search</a>
+  
+    <a class="signal" href="signal.TreeView.test-collapse-row.html">test-collapse-row</a>
+  
+    <a class="signal" href="signal.TreeView.test-expand-row.html">test-expand-row</a>
+  
+    <a class="signal" href="signal.TreeView.toggle-cursor-row.html">toggle-cursor-row</a>
+  
+    <a class="signal" href="signal.TreeView.unselect-all.html">unselect-all</a>
+  
+  </div>
+</div>
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Signal</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.TreeView.html">TreeView</a>::move-cursor</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 id="declaration">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code><div class="highlight"><pre><span></span><span class="n">gboolean</span>
+<span class="n">move_cursor</span> <span class="p">(</span>
+  <span class="n">GtkTreeView</span> <span class="n">self</span><span class="p">,</span>
+  <span class="n">GtkMovementStep</span><span class="o">*</span> <span class="n">step</span><span class="p">,</span>
+  <span class="n">gint</span> <span class="n">direction</span><span class="p">,</span>
+  <span class="n">gboolean</span> <span class="n">extend</span><span class="p">,</span>
+  <span class="n">gboolean</span> <span class="n">modify</span><span class="p">,</span>
+  <span class="n">gpointer</span> <span class="n">user_data</span>
+<span class="p">)</span>
+</pre></div>
+</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 id="description" style="display:flex;">
+        Description
+        <a href="#description" class="anchor"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtktreeview.c#L1324">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+        <p>The <code>GtkTreeView</code>::move-cursor signal is a [keybinding
+signal][GtkSignalAction] which gets emitted when the user
+presses one of the cursor&nbsp;keys.</p>
+<p>Applications should not connect to it, but may emit it with
+g_signal_emit_by_name() if they need to control the cursor
+programmatically. In contrast to gtk_tree_view_set_cursor() and
+gtk_tree_view_set_cursor_on_cell() when moving horizontally
+<code>GtkTreeView</code>::move-cursor does not reset the current&nbsp;selection.</p>
+      </div>
+
+      <div class="docblock">
+        <table>
+          <tr><td>Default handler:</td><td> <p>The default handler is called after the handlers added via <code>g_signal_connect()</code>.</p></td></tr>
+          
+          
+          <tr><td colspan="2">The signal can be emitted directly</td></tr>
+          
+          
+          
+          
+          
+          
+        </table>
+      </div>
+
+      
+    </div>
+
+    
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="arguments">
+          
+          <tr class="arg-name">
+            <td><code>step</code></td>
+            <td><a href="enum.MovementStep.html"><code>GtkMovementStep</code></a></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The granularity of the move, as a <code>GtkMovementStep</code>.
+    <code>GTK_MOVEMENT_LOGICAL_POSITIONS</code>, <code>GTK_MOVEMENT_VISUAL_POSITIONS</code>,
+    <code>GTK_MOVEMENT_DISPLAY_LINES</code>, <code>GTK_MOVEMENT_PAGES</code> and
+    <code>GTK_MOVEMENT_BUFFER_ENDS</code> are supported.
+    <code>GTK_MOVEMENT_LOGICAL_POSITIONS</code> and <code>GTK_MOVEMENT_VISUAL_POSITIONS</code>
+    are treated&nbsp;identically.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          <tr><td>&nbsp;</td><td title="transfer: none">The data is owned by the caller of the function.</td></tr>
+          
+          
+          <tr class="arg-name">
+            <td><code>direction</code></td>
+            <td><code>gint</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>The direction to move: +1 to move forwards; -1 to move
+    backwards. The resulting movement is undefined for all other&nbsp;values.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <tr class="arg-name">
+            <td><code>extend</code></td>
+            <td><code>gboolean</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>Whether to extend the&nbsp;selection.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          <tr class="arg-name">
+            <td><code>modify</code></td>
+            <td><code>gboolean</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p>Whether to modify the&nbsp;selection.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+          
+        </table>
+      </div>
+    </div>
+    
+
+    
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="returns">
+          <tr class="arg-name">
+            <td>Returns:</td>
+            <td><code>gboolean</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td><p><code>TRUE</code> if <code>step</code> is supported, <code>FALSE</code> otherwise.</p></td>
+          </tr>
+          
+          
+          
+          
+          
+          
+        </table>
+      </div>
+    </div>
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

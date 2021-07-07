@@ -1,0 +1,803 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.CellRendererSpin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.CellRendererSpin"/>
+  <meta property="og:description" content="Reference for Gtk.CellRendererSpin"/>
+  <meta name="twitter:title" content="Gtk.CellRendererSpin"/>
+  <meta name="twitter:description" content="Reference for Gtk.CellRendererSpin"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.1</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.CellRendererSpin.html#description">CellRendererSpin</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.CellRendererSpin.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+
+
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.CellRendererSpin.adjustment.html">adjustment</a>
+  
+    <a class="property" href="property.CellRendererSpin.climb-rate.html">climb-rate</a>
+  
+    <a class="property" href="property.CellRendererSpin.digits.html">digits</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>CellRendererSpin</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkcellrendererspin.c#L33">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gtk.CellRendererSpin : Gtk.CellRendererText {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p>Renders a spin button in a&nbsp;cell</p>
+<p><code>GtkCellRendererSpin</code> renders text in a cell like <code>GtkCellRendererText</code> from
+which it is derived. But while <code>GtkCellRendererText</code> offers a simple entry to
+edit the text, <code>GtkCellRendererSpin</code> offers a <code>GtkSpinButton</code> widget. Of course,
+that means that the text has to be parseable as a floating point&nbsp;number.</p>
+<p>The range of the spinbutton is taken from the adjustment property of the
+cell renderer, which can be set explicitly or mapped to a column in the
+tree model, like all properties of cell renders. <code>GtkCellRendererSpin</code>
+also has properties for the <code>GtkCellRendererSpin:climb-rate</code> and the number
+of <code>GtkCellRendererSpin:digits</code> to display. Other <code>GtkSpinButton</code> properties
+can be set in a handler for the <code>GtkCellRenderer::editing-started</code> signal.</p>
+<p>The <code>GtkCellRendererSpin</code> cell renderer was added in <span class="caps">GTK</span>&nbsp;2.10.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.CellRendererSpin">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="168pt" height="332pt"
+ viewBox="0.00 0.00 168.00 332.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 328)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkCellRendererSpin">
+<path fill="none" stroke="black" d="M148,-36C148,-36 12,-36 12,-36 6,-36 0,-30 0,-24 0,-24 0,-12 0,-12 0,-6 6,0 12,0 12,0 148,0 148,0 154,0 160,-6 160,-12 160,-12 160,-24 160,-24 160,-30 154,-36 148,-36"/>
+<text text-anchor="middle" x="80" y="-14.3" font-family="Times-Roman" font-size="14.00">GtkCellRendererSpin</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node link">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:href="class.CellRendererText.html" xlink:title="GtkCellRendererText">
+<path fill="none" stroke="black" d="M146.5,-108C146.5,-108 13.5,-108 13.5,-108 7.5,-108 1.5,-102 1.5,-96 1.5,-96 1.5,-84 1.5,-84 1.5,-78 7.5,-72 13.5,-72 13.5,-72 146.5,-72 146.5,-72 152.5,-72 158.5,-78 158.5,-84 158.5,-84 158.5,-96 158.5,-96 158.5,-102 152.5,-108 146.5,-108"/>
+<text text-anchor="middle" x="80" y="-86.3" font-family="Times-Roman" font-size="14.00">GtkCellRendererText</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge4" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M80,-71.7C80,-60.85 80,-46.92 80,-36.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node link">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:href="class.CellRenderer.html" xlink:title="GtkCellRenderer">
+<path fill="none" stroke="black" d="M132.5,-180C132.5,-180 27.5,-180 27.5,-180 21.5,-180 15.5,-174 15.5,-168 15.5,-168 15.5,-156 15.5,-156 15.5,-150 21.5,-144 27.5,-144 27.5,-144 132.5,-144 132.5,-144 138.5,-144 144.5,-150 144.5,-156 144.5,-156 144.5,-168 144.5,-168 144.5,-174 138.5,-180 132.5,-180"/>
+<text text-anchor="middle" x="80" y="-158.3" font-family="Times-Roman" font-size="14.00">GtkCellRenderer</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge3" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M80,-143.7C80,-132.85 80,-118.92 80,-108.1"/>
+</g>
+<!-- ancestor_2 -->
+<g id="node4" class="node">
+<title>ancestor_2</title>
+<g id="a_node4"><a xlink:title="GObject.InitiallyUnowned">
+<path fill="none" stroke="black" d="M139.5,-252C139.5,-252 20.5,-252 20.5,-252 14.5,-252 8.5,-246 8.5,-240 8.5,-240 8.5,-228 8.5,-228 8.5,-222 14.5,-216 20.5,-216 20.5,-216 139.5,-216 139.5,-216 145.5,-216 151.5,-222 151.5,-228 151.5,-228 151.5,-240 151.5,-240 151.5,-246 145.5,-252 139.5,-252"/>
+<text text-anchor="middle" x="80" y="-230.3" font-family="Times-Roman" font-size="14.00">GInitiallyUnowned</text>
+</a>
+</g>
+</g>
+<!-- ancestor_2&#45;&#45;ancestor_1 -->
+<g id="edge2" class="edge">
+<title>ancestor_2&#45;&#45;ancestor_1</title>
+<path fill="none" stroke="black" d="M80,-215.7C80,-204.85 80,-190.92 80,-180.1"/>
+</g>
+<!-- ancestor_3 -->
+<g id="node5" class="node">
+<title>ancestor_3</title>
+<g id="a_node5"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M104,-324C104,-324 56,-324 56,-324 50,-324 44,-318 44,-312 44,-312 44,-300 44,-300 44,-294 50,-288 56,-288 56,-288 104,-288 104,-288 110,-288 116,-294 116,-300 116,-300 116,-312 116,-312 116,-318 110,-324 104,-324"/>
+<text text-anchor="middle" x="80" y="-302.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_3&#45;&#45;ancestor_2 -->
+<g id="edge1" class="edge">
+<title>ancestor_3&#45;&#45;ancestor_2</title>
+<path fill="none" stroke="black" d="M80,-287.7C80,-276.85 80,-262.92 80,-252.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a href="class.CellRendererText.html" title="CellRendererText">GtkCellRendererText</a></li>
+          
+        
+          
+          <li class="class"><a href="class.CellRenderer.html" title="CellRenderer">GtkCellRenderer</a></li>
+          
+        
+          
+          <li class="class">GInitiallyUnowned</a></li>
+          
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.CellRendererSpin.new.html">gtk_cell_renderer_spin_new</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new <code>GtkCellRendererSpin</code>.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.CellRendererSpin.adjustment.html">Gtk.CellRendererSpin:adjustment</a></h6>
+
+          <div class="docblock">
+            <p>The adjustment that holds the value of the spinbutton.
+This must be non-<code>NULL</code> for the cell renderer to be&nbsp;editable.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRendererSpin.climb-rate.html">Gtk.CellRendererSpin:climb-rate</a></h6>
+
+          <div class="docblock">
+            <p>The acceleration rate when you hold down a&nbsp;button.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.CellRendererSpin.digits.html">Gtk.CellRendererSpin:digits</a></h6>
+
+          <div class="docblock">
+            <p>The number of decimal places to&nbsp;display.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="class.CellRendererText.html">GtkCellRendererText</a> (46)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="property.CellRendererText.align-set.html">Gtk.CellRendererText:align-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.alignment.html">Gtk.CellRendererText:alignment</a></h6>
+            <div class="docblock">
+              <p>Specifies how to align the lines of text with respect to each&nbsp;other.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.attributes.html">Gtk.CellRendererText:attributes</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.background.html">Gtk.CellRendererText:background</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.background-rgba.html">Gtk.CellRendererText:background-rgba</a></h6>
+            <div class="docblock">
+              <p>Background color as a <code>GdkRGBA</code>.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.background-set.html">Gtk.CellRendererText:background-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.editable.html">Gtk.CellRendererText:editable</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.editable-set.html">Gtk.CellRendererText:editable-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.ellipsize.html">Gtk.CellRendererText:ellipsize</a></h6>
+            <div class="docblock">
+              <p>Specifies the preferred place to ellipsize the string, if the cell renderer
+does not have enough room to display the entire string. Setting it to
+<code>PANGO_ELLIPSIZE_NONE</code> turns off ellipsizing. See the wrap-width property
+for another way of making the text fit into a given&nbsp;width.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.ellipsize-set.html">Gtk.CellRendererText:ellipsize-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.family.html">Gtk.CellRendererText:family</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.family-set.html">Gtk.CellRendererText:family-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.font.html">Gtk.CellRendererText:font</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.font-desc.html">Gtk.CellRendererText:font-desc</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.foreground.html">Gtk.CellRendererText:foreground</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.foreground-rgba.html">Gtk.CellRendererText:foreground-rgba</a></h6>
+            <div class="docblock">
+              <p>Foreground color as a <code>GdkRGBA</code>.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.foreground-set.html">Gtk.CellRendererText:foreground-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.language.html">Gtk.CellRendererText:language</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.language-set.html">Gtk.CellRendererText:language-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.markup.html">Gtk.CellRendererText:markup</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.max-width-chars.html">Gtk.CellRendererText:max-width-chars</a></h6>
+            <div class="docblock">
+              <p>The desired maximum width of the cell, in characters. If this property
+is set to -1, the width will be calculated&nbsp;automatically.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.placeholder-text.html">Gtk.CellRendererText:placeholder-text</a></h6>
+            <div class="docblock">
+              <p>The text that will be displayed in the <code>GtkCellRenderer</code> if
+<code>GtkCellRendererText:editable</code> is <code>TRUE</code> and the cell is&nbsp;empty.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.rise.html">Gtk.CellRendererText:rise</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.rise-set.html">Gtk.CellRendererText:rise-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.scale.html">Gtk.CellRendererText:scale</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.scale-set.html">Gtk.CellRendererText:scale-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.single-paragraph-mode.html">Gtk.CellRendererText:single-paragraph-mode</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.size.html">Gtk.CellRendererText:size</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.size-points.html">Gtk.CellRendererText:size-points</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.size-set.html">Gtk.CellRendererText:size-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.stretch.html">Gtk.CellRendererText:stretch</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.stretch-set.html">Gtk.CellRendererText:stretch-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.strikethrough.html">Gtk.CellRendererText:strikethrough</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.strikethrough-set.html">Gtk.CellRendererText:strikethrough-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.style.html">Gtk.CellRendererText:style</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.style-set.html">Gtk.CellRendererText:style-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.text.html">Gtk.CellRendererText:text</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.underline.html">Gtk.CellRendererText:underline</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.underline-set.html">Gtk.CellRendererText:underline-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.variant.html">Gtk.CellRendererText:variant</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.variant-set.html">Gtk.CellRendererText:variant-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.weight.html">Gtk.CellRendererText:weight</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.weight-set.html">Gtk.CellRendererText:weight-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.width-chars.html">Gtk.CellRendererText:width-chars</a></h6>
+            <div class="docblock">
+              <p>The desired width of the cell, in characters. If this property is set to
+-1, the width will be calculated automatically, otherwise the cell will
+request either 3 characters or the property value, whichever is&nbsp;greater.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.wrap-mode.html">Gtk.CellRendererText:wrap-mode</a></h6>
+            <div class="docblock">
+              <p>Specifies how to break the string into multiple lines, if the cell
+renderer does not have enough room to display the entire string.
+This property has no effect unless the wrap-width property is&nbsp;set.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRendererText.wrap-width.html">Gtk.CellRendererText:wrap-width</a></h6>
+            <div class="docblock">
+              <p>Specifies the minimum width at which the text is wrapped. The wrap-mode property can
+be used to influence at what character positions the line breaks can be placed.
+Setting wrap-width to -1 turns wrapping&nbsp;off.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="class.CellRenderer.html">GtkCellRenderer</a> (15)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="property.CellRenderer.cell-background.html">Gtk.CellRenderer:cell-background</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.cell-background-rgba.html">Gtk.CellRenderer:cell-background-rgba</a></h6>
+            <div class="docblock">
+              <p>Cell background as a <code>GdkRGBA</code>.</p>
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.cell-background-set.html">Gtk.CellRenderer:cell-background-set</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.editing.html">Gtk.CellRenderer:editing</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.height.html">Gtk.CellRenderer:height</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.is-expanded.html">Gtk.CellRenderer:is-expanded</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.is-expander.html">Gtk.CellRenderer:is-expander</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.mode.html">Gtk.CellRenderer:mode</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.sensitive.html">Gtk.CellRenderer:sensitive</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.visible.html">Gtk.CellRenderer:visible</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.width.html">Gtk.CellRenderer:width</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.xalign.html">Gtk.CellRenderer:xalign</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.xpad.html">Gtk.CellRenderer:xpad</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.yalign.html">Gtk.CellRenderer:yalign</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+            <h6><a href="property.CellRenderer.ypad.html">Gtk.CellRenderer:ypad</a></h6>
+            <div class="docblock">
+              No description available.
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+      
+        
+      
+
+      
+
+    </div>
+    
+
+    
+
+    
+
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

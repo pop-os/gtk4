@@ -38,16 +38,16 @@ typedef struct _GdkTimeCoord GdkTimeCoord;
 /**
  * GdkInputSource:
  * @GDK_SOURCE_MOUSE: the device is a mouse. (This will be reported for the core
- *                    pointer, even if it is something else, such as a trackball.)
+ *   pointer, even if it is something else, such as a trackball.)
  * @GDK_SOURCE_PEN: the device is a stylus of a graphics tablet or similar device.
  * @GDK_SOURCE_KEYBOARD: the device is a keyboard.
  * @GDK_SOURCE_TOUCHSCREEN: the device is a direct-input touch device, such
- *     as a touchscreen or tablet
+ *   as a touchscreen or tablet
  * @GDK_SOURCE_TOUCHPAD: the device is an indirect touch device, such
- *     as a touchpad
+ *   as a touchpad
  * @GDK_SOURCE_TRACKPOINT: the device is a trackpoint
  * @GDK_SOURCE_TABLET_PAD: the device is a "pad", a collection of buttons,
- *     rings and strips found in drawing tablets
+ *   rings and strips found in drawing tablets
  *
  * An enumeration describing the type of an input device in general terms.
  */
@@ -64,11 +64,11 @@ typedef enum
 
 /**
  * GdkTimeCoord:
- * @time: The timestamp for this event.
+ * @time: The timestamp for this event
  * @flags: Flags indicating what axes are present
  * @axes: (array fixed-size=12): axis values
  *
- * A #GdkTimeCoord stores a single event in a motion history.
+ * A `GdkTimeCoord` stores a single event in a motion history.
  */
 struct _GdkTimeCoord
 {
@@ -117,6 +117,9 @@ GDK_AVAILABLE_IN_ALL
 GdkSurface *        gdk_device_get_surface_at_position  (GdkDevice *device,
                                                          double    *win_x,
                                                          double    *win_y);
+
+GDK_AVAILABLE_IN_4_2
+guint32             gdk_device_get_timestamp            (GdkDevice *device);
 G_END_DECLS
 
 #endif /* __GDK_DEVICE_H__ */

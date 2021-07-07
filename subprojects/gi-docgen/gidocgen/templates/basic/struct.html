@@ -1,0 +1,216 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }}.{{ struct.name }}{% endblock %}
+
+{% block meta_other %}
+  <meta property="og:title" content="{{ namespace.name }}.{{ struct.name }}"/>
+  <meta property="og:description" content="Reference for {{ namespace.name }}.{{ struct.name }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}.{{ struct.name }}"/>
+  <meta name="twitter:description" content="Reference for {{ namespace.name }}.{{ struct.name }}"/>
+{% endblock %}
+
+{% macro sidebar_block(elements, struct_name, section_title, section_class, section_fragment) -%}
+{% if elements|length > 0 %}
+<div class="section">
+  <h5>{{ section_title }}</h5>
+  <div class="links">
+  {% for m in elements %}
+    <a class="{{ section_class }}" href="{{ section_fragment }}.{{ struct_name }}.{{ m.name }}.html">{{ m.name }}</a>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endmacro %}
+
+{% block sidebar %}
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="struct.{{ struct.name }}.html#description">{{ struct.name }}</a>
+  </div>
+</div>
+
+{{ sidebar_block(struct.ctors, struct.name, "Constructors", "ctor", "ctor") }}
+{{ sidebar_block(struct.methods, struct.name, "Instance methods", "method", "method") }}
+{{ sidebar_block(struct.type_funcs, struct.name, "Functions", "func", "type_func") }}
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <header>
+    <h3>Struct</h3>
+    <h1><a href="index.html">{{ namespace.name }}</a><span class="sep"></span>{{ struct.name }}</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 style="display:flex;" id="description">
+          Description
+          <a href="#description" class="anchor"></a>
+          {% if CONFIG.source_location_url and struct.docs_location %}
+          <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(struct.docs_location) }}">[src]</a>
+          {% endif %}
+        </h4>
+
+        <pre><code>{{ struct.c_decl }}</code></pre>
+
+        <div class="docblock">
+          {{ struct.description }}
+        </div>
+
+        {% if struct.fields %}
+        <div class="toggle-wrapper">
+          <h6 style="display:flex;">
+            Structure members
+            {% if CONFIG.source_location_url and struct.source_location %}
+            <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(struct.source_location) }}">[src]</a>
+            {% endif %}
+          </h6>
+
+          <div class="docblock">
+            <table>
+            {% for field in struct.fields %}
+              <tr>
+                <td><code>{{ field.name }}</code></td>
+                <td>{{ field.description }}</td>
+              </tr>
+            {% endfor %}
+            </table>
+          </div>
+        </div>
+        {% endif %}
+
+        <div class="docblock">
+          <table class="attributes">
+            {% if struct.stability %}
+            <tr><td>Stability:</td><td>{{ struct.stability }}</td></tr>
+            {% endif %}
+            {% if struct.available_since %}
+            <tr><td>Available since:</td><td>{{ struct.available_since }}</td></tr>
+            {% endif %}
+            {% if struct.deprecated_since %}
+            <tr><td>Deprecated since:</td><td>{{ struct.deprecated_since.version }}</td></tr>
+            <tr><td colspan="2">{{ struct.deprecated_since.message }}</td></tr>
+            {% endif %}
+          </table>
+        </div>
+
+        {% if struct.attributes %}
+        <div class="docblock">
+          <table class="attributes">
+          {% for (key, value) in struct.attributes.items() %}
+            <tr><td>{{ key|escape }}</td><td>{{ value|escape }}</td></tr>
+          {% endfor %}
+          </table>
+        </div>
+        {% endif %}
+      </div>
+    </summary>
+
+    {% if struct.ctors %}
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for ctor in struct.ctors %}
+        <div class="{% if ctor.deprecated_since %}deprecated{% endif %}">
+          <h6><a href="ctor.{{ struct.name }}.{{ ctor.name }}.html">{{ ctor.identifier }}</a></h6>
+
+          <div class="docblock">
+            {{ ctor.summary }}
+          </div>
+
+          {% if ctor.available_since or ctor.deprecated_since -%}
+          <div class="docblock">
+          {%- if ctor.available_since -%}
+          <p>Available since: {{ ctor.available_since }}</p>
+          {%- endif -%}
+          {%- if ctor.deprecated_since -%}
+          <p>Deprecated since: {{ ctor.deprecated_since }}</p>
+          {%- endif -%}
+          </div>
+          {%- endif %}
+        </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+    {% if struct.methods %}
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for method in struct.methods %}
+        <div class="{% if method.deprecated_since %}deprecated{% endif %}">
+          <h6><a href="method.{{ struct.name}}.{{ method.name }}.html">{{ method.identifier }}</a></h6>
+
+          <div class="docblock">
+            {{ method.summary }}
+          </div>
+
+          {% if method.available_since or method.deprecated_since -%}
+          <div class="docblock">
+          {%- if method.available_since -%}
+          <p>Available since: {{ method.available_since }}</p>
+          {%- endif -%}
+          {%- if method.deprecated_since -%}
+          <p>Deprecated since: {{ method.deprecated_since }}</p>
+          {%- endif -%}
+          </div>
+          {%- endif %}
+        </div>
+      {% endfor %}
+      </div>
+
+    </div>
+    {% endif %}
+
+    {% if struct.type_funcs %}
+    <div class="toggle-wrapper methods">
+      <h4 id="type-functions">
+        Functions
+        <a href="#type-functions" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      {% for func in struct.type_funcs %}
+      <div class="{% if func.deprecated_since %}deprecated{% endif %}">
+        <h6><a href="type_func.{{ struct.name }}.{{ func.name }}.html">{{ func.identifier }}</a></h6>
+
+        <div class="docblock">
+          {{ func.summary }}
+        </div>
+
+        {% if func.available_since or func.deprecated_since -%}
+        <div class="docblock">
+        {%- if func.available_since -%}
+        <p>Available since: {{ func.available_since }}</p>
+        {%- endif -%}
+        {%- if func.deprecated_since -%}
+        <p>Deprecated since: {{ func.deprecated_since }}</p>
+        {%- endif -%}
+        </div>
+        {%- endif %}
+      </div>
+      {% endfor %}
+      </div>
+    </div>
+    {% endif %}
+
+  </section>
+</section>
+{% endblock %}

@@ -21,6 +21,7 @@
 #include <string.h>
 #include <wayland-client-protocol.h>
 
+#include "gtk/gtkdragsourceprivate.h"
 #include "gtk/gtkimcontextwayland.h"
 #include "gtk/gtkintl.h"
 #include "gtk/gtkimmoduleprivate.h"
@@ -524,10 +525,10 @@ released_cb (GtkGestureClick     *gesture,
   if (global->focused &&
       n_press == 1 &&
       (hints & GTK_INPUT_HINT_INHIBIT_OSK) == 0 &&
-      !gtk_drag_check_threshold (context->widget,
-                                 context->press_x,
-                                 context->press_y,
-                                 x, y))
+      !gtk_drag_check_threshold_double (context->widget,
+                                        context->press_x,
+                                        context->press_y,
+                                        x, y))
     {
       zwp_text_input_v3_enable (global->text_input);
       g_signal_emit_by_name (global->current, "retrieve-surrounding", &result);
@@ -558,6 +559,7 @@ gtk_im_context_wayland_set_client_widget (GtkIMContext *context,
       GtkGesture *gesture;
 
       gesture = gtk_gesture_click_new ();
+      gtk_event_controller_set_name (GTK_EVENT_CONTROLLER (gesture), "wayland-im-context-click");
       gtk_event_controller_set_propagation_phase (GTK_EVENT_CONTROLLER (gesture),
                                                   GTK_PHASE_CAPTURE);
       g_signal_connect (gesture, "pressed",
@@ -569,6 +571,38 @@ gtk_im_context_wayland_set_client_widget (GtkIMContext *context,
     }
 }
 
+/* We want a unified experience between GtkIMContextSimple and IBus / Wayland
+ * when it comes to Compose sequences. IBus initial implementation of preedit
+ * for Compose sequences shows U+2384, which has been described as 'distracting'.
+ * This function tries to detect this case, and tweaks the text to match what
+ * GtkIMContextSimple produces.
+ */
+static char *
+tweak_preedit (const char *text)
+{
+  GString *s;
+  guint len;
+
+  s = g_string_new ("");
+
+  len = g_utf8_strlen (text, -1);
+
+  for (const char *p = text; *p; p = g_utf8_next_char (p))
+    {
+      gunichar ch = g_utf8_get_char (p);
+
+      if (ch == 0x2384)
+        {
+          if (len == 1 || p > text)
+            g_string_append (s, "·");
+        }
+      else
+        g_string_append_unichar (s, ch);
+    }
+
+  return g_string_free (s, FALSE);
+}
+
 static void
 gtk_im_context_wayland_get_preedit_string (GtkIMContext   *context,
                                            char          **str,
@@ -576,7 +610,7 @@ gtk_im_context_wayland_get_preedit_string (GtkIMContext   *context,
                                            int            *cursor_pos)
 {
   GtkIMContextWayland *context_wayland = GTK_IM_CONTEXT_WAYLAND (context);
-  const char *preedit_str;
+  char *preedit_str;
 
   if (attrs)
     *attrs = NULL;
@@ -595,20 +629,31 @@ gtk_im_context_wayland_get_preedit_string (GtkIMContext   *context,
     }
 
   preedit_str =
-    context_wayland->current_preedit.text ? context_wayland->current_preedit.text : "";
+    tweak_preedit (context_wayland->current_preedit.text ? context_wayland->current_preedit.text : "");
 
-  if (str)
-    *str = g_strdup (preedit_str);
   if (cursor_pos)
     *cursor_pos = g_utf8_strlen (preedit_str,
                                  context_wayland->current_preedit.cursor_begin);
 
   if (attrs)
     {
+      PangoAttribute *attr;
+      guint len = strlen (preedit_str);
+
       if (!*attrs)
         *attrs = pango_attr_list_new ();
-      pango_attr_list_insert (*attrs,
-                              pango_attr_underline_new (PANGO_UNDERLINE_SINGLE));
+
+      attr = pango_attr_underline_new (PANGO_UNDERLINE_SINGLE);
+      attr->start_index = 0;
+      attr->end_index = len;
+      pango_attr_list_insert (*attrs, attr);
+
+      /* enable fallback, since IBus will send us things like ⎄ */
+      attr = pango_attr_fallback_new (TRUE);
+      attr->start_index = 0;
+      attr->end_index = len;
+      pango_attr_list_insert (*attrs, attr);
+
       if (context_wayland->current_preedit.cursor_begin
           != context_wayland->current_preedit.cursor_end)
         {
@@ -619,6 +664,10 @@ gtk_im_context_wayland_get_preedit_string (GtkIMContext   *context,
           pango_attr_list_insert (*attrs, cursor);
         }
     }
+  if (str)
+    *str = preedit_str;
+  else
+    g_free (preedit_str);
 }
 
 static gboolean
@@ -861,7 +910,8 @@ static void
 gtk_im_context_wayland_set_surrounding (GtkIMContext *context,
                                         const char   *text,
                                         int           len,
-                                        int           cursor_index)
+                                        int           cursor_index,
+                                        int           selection_bound)
 {
   GtkIMContextWayland *context_wayland;
 
@@ -870,8 +920,7 @@ gtk_im_context_wayland_set_surrounding (GtkIMContext *context,
   g_free (context_wayland->surrounding.text);
   context_wayland->surrounding.text = g_strndup (text, len);
   context_wayland->surrounding.cursor_idx = cursor_index;
-  /* Anchor is not exposed via the set_surrounding interface, emulating. */
-  context_wayland->surrounding.anchor_idx = cursor_index;
+  context_wayland->surrounding.anchor_idx = selection_bound;
 
   notify_surrounding_text (context_wayland);
   /* State changes coming from reset don't have any other opportunity to get
@@ -884,7 +933,8 @@ gtk_im_context_wayland_set_surrounding (GtkIMContext *context,
 static gboolean
 gtk_im_context_wayland_get_surrounding (GtkIMContext  *context,
                                         char         **text,
-                                        int           *cursor_index)
+                                        int           *cursor_index,
+                                        int           *selection_bound)
 {
   GtkIMContextWayland *context_wayland;
 
@@ -895,6 +945,7 @@ gtk_im_context_wayland_get_surrounding (GtkIMContext  *context,
 
   *text = context_wayland->surrounding.text;
   *cursor_index = context_wayland->surrounding.cursor_idx;
+  *selection_bound = context_wayland->surrounding.anchor_idx;
   return TRUE;
 }
 
@@ -914,8 +965,8 @@ gtk_im_context_wayland_class_init (GtkIMContextWaylandClass *klass)
   im_context_class->reset = gtk_im_context_wayland_reset;
   im_context_class->set_cursor_location = gtk_im_context_wayland_set_cursor_location;
   im_context_class->set_use_preedit = gtk_im_context_wayland_set_use_preedit;
-  im_context_class->set_surrounding = gtk_im_context_wayland_set_surrounding;
-  im_context_class->get_surrounding = gtk_im_context_wayland_get_surrounding;
+  im_context_class->set_surrounding_with_selection = gtk_im_context_wayland_set_surrounding;
+  im_context_class->get_surrounding_with_selection = gtk_im_context_wayland_get_surrounding;
 }
 
 static void

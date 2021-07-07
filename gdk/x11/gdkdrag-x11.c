@@ -67,7 +67,7 @@ typedef enum {
  * @GDK_DRAG_PROTO_ROOTWIN: An extension to the Xdnd protocol for
  *  unclaimed root window drops.
  *
- * Used in #GdkDrag to indicate the protocol according to
+ * Used in `GdkDrag` to indicate the protocol according to
  * which DND is done.
  */
 typedef enum
@@ -581,12 +581,14 @@ gdk_surface_cache_new (GdkDisplay *display)
    */
   if (gdk_display_is_composited (display))
     {
+      gdk_x11_display_error_trap_push (display);
       cow = XCompositeGetOverlayWindow (xdisplay, xroot_window);
       gdk_surface_cache_add (result, cow, 0, 0,
 			    WidthOfScreen (GDK_X11_SCREEN (screen)->xscreen),
 			    HeightOfScreen (GDK_X11_SCREEN (screen)->xscreen),
 			    TRUE);
       XCompositeReleaseOverlayWindow (xdisplay, xroot_window);
+      gdk_x11_display_error_trap_pop_ignored (display);
     }
 #endif
 

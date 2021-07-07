@@ -25,7 +25,9 @@
 
 G_BEGIN_DECLS
 
-#define GTK_TYPE_EXPRESSION     (gtk_expression_get_type ())
+#define GTK_TYPE_EXPRESSION (gtk_expression_get_type ())
+#define GTK_TYPE_EXPRESSION_WATCH (gtk_expression_watch_get_type())
+
 #define GTK_IS_EXPRESSION(obj)  (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_EXPRESSION))
 #define GTK_EXPRESSION(obj)     (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_EXPRESSION, GtkExpression))
 
@@ -69,6 +71,8 @@ GtkExpressionWatch *    gtk_expression_bind                     (GtkExpression  
                                                                  const char *                    property,
                                                                  gpointer                        this_);
 
+GDK_AVAILABLE_IN_4_2
+GType                   gtk_expression_watch_get_type           (void) G_GNUC_CONST;
 GDK_AVAILABLE_IN_ALL
 GtkExpressionWatch *    gtk_expression_watch_ref                (GtkExpressionWatch             *watch);
 GDK_AVAILABLE_IN_ALL
@@ -156,7 +160,7 @@ GtkExpression *         gtk_cclosure_expression_new             (GType          
 
 /**
  * GTK_VALUE_HOLDS_EXPRESSION:
- * @value: a #GValue
+ * @value: a `GValue`
  *
  * Evaluates to %TRUE if @value was initialized with %GTK_TYPE_EXPRESSION.
  */
@@ -180,7 +184,7 @@ GtkExpression * gtk_value_dup_expression        (const GValue  *value);
 /**
  * GtkParamSpecExpression:
  *
- * A #GParamSpec for properties holding a #GtkExpression.
+ * A `GParamSpec` for properties holding a `GtkExpression`.
  */
 typedef struct {
   /*< private >*/

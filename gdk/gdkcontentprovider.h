@@ -38,12 +38,6 @@ G_BEGIN_DECLS
 
 typedef struct _GdkContentProviderClass GdkContentProviderClass;
 
-/**
- * GdkContentProvider:
- *
- * Should not be directly accessed.
- */
-
 struct _GdkContentProvider
 {
   GObject parent;
@@ -51,9 +45,9 @@ struct _GdkContentProvider
 
 /**
  * GdkContentProviderClass:
- * @content_changed: Signal class closure for #GdkContentProvider::content-changed
+ * @content_changed: Signal class closure for `GdkContentProvider::content-changed`
  *
- * Class structure for #GdkContentProvider.
+ * Class structure for `GdkContentProvider`.
  */
 struct _GdkContentProviderClass
 {

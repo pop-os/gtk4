@@ -27,6 +27,7 @@
 #include "gdkprivate-x11.h"
 #include "gdkscreen-x11.h"
 #include "gdkvisual-x11.h"
+#include "gdkglcontext-x11.h"
 
 #include <X11/Xlib.h>
 #include <X11/Xutil.h>
@@ -249,9 +250,10 @@ _gdk_x11_screen_init_visuals (GdkX11Screen *x11_screen,
   x11_screen->nvisuals = nvisuals;
 
   /* If GL is available we want to pick better default/rgba visuals,
-     as we care about glx details such as alpha/depth/stencil depth,
-     stereo and double buffering */
-  _gdk_x11_screen_update_visuals_for_gl (x11_screen);
+   * as we care about GLX details such as alpha/depth/stencil depth,
+   * stereo and double buffering
+   */
+  gdk_x11_screen_update_visuals_for_glx (x11_screen);
 
   if (setup_display)
     {
@@ -283,13 +285,12 @@ _gdk_x11_screen_init_visuals (GdkX11Screen *x11_screen,
 
 /*< private >
  * gdk_x11_screen_lookup_visual:
- * @screen: a #GdkX11Screen.
+ * @screen: a `GdkX11Screen`
  * @xvisualid: an X Visual ID.
  *
- * Looks up the #GdkVisual for a particular screen and X Visual ID.
+ * Looks up the `GdkVisual` for a particular screen and X Visual ID.
  *
- * Returns: (transfer none) (type GdkX11Visual): the #GdkVisual (owned by the screen
- *   object), or %NULL if the visual ID wasn’t found.
+ * Returns: (transfer none) (nullable) (type GdkX11Visual): the `GdkVisual`
  */
 GdkX11Visual *
 gdk_x11_screen_lookup_visual (GdkX11Screen *x11_screen,
@@ -306,9 +307,9 @@ gdk_x11_screen_lookup_visual (GdkX11Screen *x11_screen,
 
 /*< private >
  * gdk_x11_visual_get_xvisual:
- * @visual: a #GdkX11Visual.
+ * @visual: a `GdkX11Visual`
  *
- * Returns the X visual belonging to a #GdkX11Visual.
+ * Returns the X visual belonging to a `GdkX11Visual`.
  *
  * Returns: (transfer none): an Xlib Visual*.
  **/

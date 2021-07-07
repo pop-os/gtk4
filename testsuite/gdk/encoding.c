@@ -26,8 +26,8 @@ test_to_text_list (void)
       length = 25;
       n = gdk_x11_display_text_property_to_text_list (display, encoding, format, text, length, &list);
       g_assert_cmpint (n, ==, 2);
-      g_assert (g_str_has_prefix (list[0], "abcdef "));
-      g_assert (g_str_has_prefix (list[1], "ABCDEF "));
+      g_assert_true (g_str_has_prefix (list[0], "abcdef "));
+      g_assert_true (g_str_has_prefix (list[1], "ABCDEF "));
 
       gdk_x11_free_text_list (list);
     }
@@ -37,7 +37,7 @@ test_to_text_list (void)
 int
 main (int argc, char *argv[])
 {
-  g_test_init (&argc, &argv, NULL);
+  (g_test_init) (&argc, &argv, NULL);
   gtk_init ();
 
   g_test_add_func ("/encoding/to-text-list", test_to_text_list);

@@ -26,7 +26,7 @@
  * GskRenderNodeType:
  * @GSK_NOT_A_RENDER_NODE: Error type. No node will ever have this type.
  * @GSK_CONTAINER_NODE: A node containing a stack of children
- * @GSK_CAIRO_NODE: A node drawing a #cairo_surface_t
+ * @GSK_CAIRO_NODE: A node drawing a `cairo_surface_t`
  * @GSK_COLOR_NODE: A node drawing a single color rectangle
  * @GSK_LINEAR_GRADIENT_NODE: A node drawing a linear gradient
  * @GSK_REPEATING_LINEAR_GRADIENT_NODE: A node drawing a repeating linear gradient
@@ -34,7 +34,7 @@
  * @GSK_REPEATING_RADIAL_GRADIENT_NODE: A node drawing a repeating radial gradient
  * @GSK_CONIC_GRADIENT_NODE: A node drawing a conic gradient
  * @GSK_BORDER_NODE: A node stroking a border around an area
- * @GSK_TEXTURE_NODE: A node drawing a #GdkTexture
+ * @GSK_TEXTURE_NODE: A node drawing a `GdkTexture`
  * @GSK_INSET_SHADOW_NODE: A node drawing an inset shadow
  * @GSK_OUTSET_SHADOW_NODE: A node drawing an outset shadow
  * @GSK_TRANSFORM_NODE: A node that renders its child after applying a matrix transform
@@ -128,7 +128,7 @@ typedef enum {
  * The implementation of each blend mode is deferred to the
  * rendering pipeline.
  *
- * See https://www.w3.org/TR/compositing-1/#blending for more information
+ * See <https://www.w3.org/TR/compositing-1/#blending> for more information
  * on blending and blend modes.
  */
 typedef enum {
@@ -158,7 +158,7 @@ typedef enum {
  * @GSK_CORNER_BOTTOM_RIGHT: The bottom right corner
  * @GSK_CORNER_BOTTOM_LEFT: The bottom left corner
  *
- * The corner indices used by #GskRoundedRect.
+ * The corner indices used by `GskRoundedRect`.
  */
 typedef enum {
   GSK_CORNER_TOP_LEFT,
@@ -169,12 +169,11 @@ typedef enum {
 
 /**
  * GskSerializationError:
- * @GSK_SERIALIZATION_UNSUPPORTED_FORMAT: The format can not be
- *     identified
- * @GSK_SERIALIZATION_UNSUPPORTED_VERSION: The version of the data
- *     is not understood
+ * @GSK_SERIALIZATION_UNSUPPORTED_FORMAT: The format can not be identified
+ * @GSK_SERIALIZATION_UNSUPPORTED_VERSION: The version of the data is not
+ *   understood
  * @GSK_SERIALIZATION_INVALID_DATA: The given data may not exist in
- *     a proper serialization
+ *   a proper serialization
  *
  * Errors that can happen during (de)serialization.
  */
@@ -187,28 +186,29 @@ typedef enum {
 /**
  * GskTransformCategory:
  * @GSK_TRANSFORM_CATEGORY_UNKNOWN: The category of the matrix has not been
- *     determined.
+ *   determined.
  * @GSK_TRANSFORM_CATEGORY_ANY: Analyzing the matrix concluded that it does
- *     not fit in any other category.
+ *   not fit in any other category.
  * @GSK_TRANSFORM_CATEGORY_3D: The matrix is a 3D matrix. This means that
- *     the w column (the last column) has the values (0, 0, 0, 1).
+ *   the w column (the last column) has the values (0, 0, 0, 1).
  * @GSK_TRANSFORM_CATEGORY_2D: The matrix is a 2D matrix. This is equivalent
- *     to graphene_matrix_is_2d() returning %TRUE. In particular, this
- *     means that Cairo can deal with the matrix.
+ *   to graphene_matrix_is_2d() returning %TRUE. In particular, this
+ *   means that Cairo can deal with the matrix.
  * @GSK_TRANSFORM_CATEGORY_2D_AFFINE: The matrix is a combination of 2D scale
- *     and 2D translation operations. In particular, this means that any
- *     rectangle can be transformed exactly using this matrix.
+ *   and 2D translation operations. In particular, this means that any
+ *   rectangle can be transformed exactly using this matrix.
  * @GSK_TRANSFORM_CATEGORY_2D_TRANSLATE: The matrix is a 2D translation.
  * @GSK_TRANSFORM_CATEGORY_IDENTITY: The matrix is the identity matrix.
  *
- * The categories of matrices relevant for GSK and GTK. Note that any
- * category includes matrices of all later categories. So if you want
- * to for example check if a matrix is a 2D matrix,
+ * The categories of matrices relevant for GSK and GTK.
+ *
+ * Note that any category includes matrices of all later categories.
+ * So if you want to for example check if a matrix is a 2D matrix,
  * `category >= GSK_TRANSFORM_CATEGORY_2D` is the way to do this.
  *
  * Also keep in mind that rounding errors may cause matrices to not
  * conform to their categories. Otherwise, matrix operations done via
- * mutliplication will not worsen categories. So for the matrix
+ * multiplication will not worsen categories. So for the matrix
  * multiplication `C = A * B`, `category(C) = MIN (category(A), category(B))`.
  */
 typedef enum
@@ -233,8 +233,10 @@ typedef enum
  * @GSK_GL_UNIFORM_TYPE_VEC3: A GLSL vec3 / graphene_vec3_t uniform
  * @GSK_GL_UNIFORM_TYPE_VEC4: A GLSL vec4 / graphene_vec4_t uniform
  *
- * This defines the types of the uniforms that #GskGLShaders
- * declare. It defines both what the type is called in the GLSL shader
+ * This defines the types of the uniforms that `GskGLShaders`
+ * declare.
+ *
+ * It defines both what the type is called in the GLSL shader
  * code, and what the corresponding C type is on the Gtk side.
  */
 typedef enum

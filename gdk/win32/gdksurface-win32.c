@@ -352,12 +352,14 @@ RegisterGdkClass (GdkSurfaceType wtype)
     {
       char sLoc [MAX_PATH+1];
 
-      if (0 != GetModuleFileName (_gdk_dll_hinstance, sLoc, MAX_PATH))
+      // try to load first icon of executable program
+      if (0 != GetModuleFileName (NULL, sLoc, MAX_PATH))
         {
           ExtractIconEx (sLoc, 0, &hAppIcon, &hAppIconSm, 1);
 
           if (0 == hAppIcon && 0 == hAppIconSm)
             {
+              // fallback : load icon from GTK DLL
               if (0 != GetModuleFileName (_gdk_dll_hinstance, sLoc, MAX_PATH))
 		{
 		  ExtractIconEx (sLoc, 0, &hAppIcon, &hAppIconSm, 1);
@@ -520,8 +522,6 @@ _gdk_win32_display_create_surface (GdkDisplay     *display,
   surface->height = height;
 
   impl->surface_scale = _gdk_win32_display_get_monitor_scale_factor (display_win32, NULL, NULL, NULL);
-  impl->unscaled_width = width * impl->surface_scale;
-  impl->unscaled_height = height * impl->surface_scale;
 
   dwExStyle = 0;
   owner = NULL;
@@ -1201,6 +1201,12 @@ gdk_win32_surface_move (GdkSurface *surface,
   gdk_win32_surface_move_resize_internal (surface, TRUE, x, y, -1, -1);
 }
 
+static void gdk_win32_surface_set_shadow_width (GdkSurface *window,
+                                                int        left,
+                                                int        right,
+                                                int        top,
+                                                int        bottom);
+
 static void
 gdk_win32_surface_layout_popup (GdkSurface     *surface,
                                 int             width,
@@ -1212,10 +1218,22 @@ gdk_win32_surface_layout_popup (GdkSurface     *surface,
   GdkRectangle bounds;
   GdkRectangle final_rect;
   int x, y;
+  int shadow_left, shadow_right, shadow_top, shadow_bottom;
 
   monitor = gdk_surface_get_layout_monitor (surface, layout,
                                             gdk_win32_monitor_get_workarea);
   gdk_win32_monitor_get_workarea (monitor, &bounds);
+
+  gdk_popup_layout_get_shadow_width (layout,
+                                     &shadow_left,
+                                     &shadow_right,
+                                     &shadow_top,
+                                     &shadow_bottom);
+  gdk_win32_surface_set_shadow_width (surface,
+                                      shadow_left,
+                                      shadow_right,
+                                      shadow_top,
+                                      shadow_bottom);
 
   gdk_surface_layout_popup_helper (surface,
                                    width,
@@ -1633,42 +1651,48 @@ gdk_win32_surface_get_geometry (GdkSurface *window,
       RECT rect;
       GdkWin32Surface *impl = GDK_WIN32_SURFACE (window);
 
-      API_CALL (GetClientRect, (GDK_SURFACE_HWND (window), &rect));
-
-	  POINT pt;
+      if (GDK_IS_TOPLEVEL (window) && impl->drag_move_resize_context.native_move_resize_pending)
+         rect = impl->next_layout.configured_rect;
+      else
+        {
+          POINT pt;
           GdkSurface *parent;
-         
+
           if (GDK_IS_TOPLEVEL (window))
             parent = NULL;
           else if (GDK_IS_POPUP (window))
             parent = gdk_popup_get_parent (GDK_POPUP (window));
           else
             parent = NULL;
-         
 
-	  pt.x = rect.left;
-	  pt.y = rect.top;
-	  ClientToScreen (GDK_SURFACE_HWND (window), &pt);
+          API_CALL (GetClientRect, (GDK_SURFACE_HWND (window), &rect));
+
+          pt.x = rect.left;
+          pt.y = rect.top;
+	      ClientToScreen (GDK_SURFACE_HWND (window), &pt);
           if (parent)
-	    ScreenToClient (GDK_SURFACE_HWND (parent), &pt);
-	  rect.left = pt.x;
-	  rect.top = pt.y;
+            ScreenToClient (GDK_SURFACE_HWND (parent), &pt);
 
-	  pt.x = rect.right;
-	  pt.y = rect.bottom;
-	  ClientToScreen (GDK_SURFACE_HWND (window), &pt);
+          rect.left = pt.x;
+          rect.top = pt.y;
+
+          pt.x = rect.right;
+          pt.y = rect.bottom;
+          ClientToScreen (GDK_SURFACE_HWND (window), &pt);
           if (parent)
-	    ScreenToClient (GDK_SURFACE_HWND (parent), &pt);
-	  rect.right = pt.x;
-	  rect.bottom = pt.y;
+            ScreenToClient (GDK_SURFACE_HWND (parent), &pt);
 
-	  if (parent == NULL)
-	    {
-	      rect.left += _gdk_offset_x * impl->surface_scale;
-	      rect.top += _gdk_offset_y * impl->surface_scale;
-	      rect.right += _gdk_offset_x * impl->surface_scale;
-	      rect.bottom += _gdk_offset_y * impl->surface_scale;
-	    }
+          rect.right = pt.x;
+          rect.bottom = pt.y;
+
+	      if (parent == NULL)
+	        {
+	          rect.left += _gdk_offset_x * impl->surface_scale;
+	          rect.top += _gdk_offset_y * impl->surface_scale;
+	          rect.right += _gdk_offset_x * impl->surface_scale;
+	          rect.bottom += _gdk_offset_y * impl->surface_scale;
+	        }
+        }
 
       if (x)
 	*x = rect.left / impl->surface_scale;
@@ -2273,7 +2297,6 @@ snap_up (GdkSurface *window)
   impl = GDK_WIN32_SURFACE (window);
 
   impl->snap_state = GDK_WIN32_AEROSNAP_STATE_FULLUP;
-  impl->resized = FALSE;
 
   stash_window (window, impl);
 
@@ -2311,7 +2334,6 @@ snap_left (GdkSurface  *window,
   impl = GDK_WIN32_SURFACE (window);
 
   impl->snap_state = GDK_WIN32_AEROSNAP_STATE_HALFLEFT;
-  impl->resized = FALSE;
 
   gdk_win32_monitor_get_workarea (snap_monitor, &rect);
 
@@ -2340,7 +2362,6 @@ snap_right (GdkSurface  *window,
   impl = GDK_WIN32_SURFACE (window);
 
   impl->snap_state = GDK_WIN32_AEROSNAP_STATE_HALFRIGHT;
-  impl->resized = FALSE;
 
   gdk_win32_monitor_get_workarea (snap_monitor, &rect);
 
@@ -3948,11 +3969,9 @@ gdk_win32_surface_do_move_resize_drag (GdkSurface *window,
         {
           int scale = impl->surface_scale;
 
-          impl->unscaled_width = new_rect.right - new_rect.left;
-          impl->unscaled_height = new_rect.bottom - new_rect.top;
-          impl->next_layout.configured_width = (impl->unscaled_width + scale - 1) / scale;
-          impl->next_layout.configured_height = (impl->unscaled_height + scale - 1) / scale;
-          impl->resized = TRUE;
+          impl->next_layout.configured_rect = new_rect;
+          impl->next_layout.configured_width = (new_rect.right - new_rect.left + scale - 1) / scale;
+          impl->next_layout.configured_height = (new_rect.bottom - new_rect.top + scale - 1) / scale;
         }
 
       context->native_move_resize_pending = TRUE;
@@ -4105,7 +4124,6 @@ gdk_win32_surface_maximize (GdkSurface *window)
 			   _gdk_win32_surface_state_to_string (window->state)));
 
   impl = GDK_WIN32_SURFACE (window);
-  impl->resized = FALSE;
 
   if (GDK_SURFACE_IS_MAPPED (window))
     GtkShowWindow (window, SW_MAXIMIZE);
@@ -4258,14 +4276,15 @@ gdk_win32_surface_is_win32 (GdkSurface *window)
 }
 
 static gboolean
-gdk_win32_surface_show_window_menu (GdkSurface *window,
-                                   GdkEvent  *event)
+gdk_win32_surface_show_window_menu (GdkSurface *surface,
+                                    GdkEvent  *event)
 {
   double event_x, event_y;
   int x, y;
-  GdkWin32Surface *impl = GDK_WIN32_SURFACE (window);
+  GdkWin32Surface *impl = GDK_WIN32_SURFACE (surface);
+  GdkEventType event_type = gdk_event_get_event_type (event);
 
-  switch ((int) event->event_type)
+  switch ((int) event_type)
     {
     case GDK_BUTTON_PRESS:
     case GDK_BUTTON_RELEASE:
@@ -4277,10 +4296,9 @@ gdk_win32_surface_show_window_menu (GdkSurface *window,
     }
 
   gdk_event_get_position (event, &event_x, &event_y);
-  x = round (event_x);
-  y = round (event_y);
+  gdk_win32_surface_get_root_coords (surface, event_x, event_y, &x, &y);
 
-  SendMessage (GDK_SURFACE_HWND (window),
+  SendMessage (GDK_SURFACE_HWND (surface),
                WM_SYSMENU,
                0,
                MAKELPARAM (x * impl->surface_scale, y * impl->surface_scale));
@@ -4455,19 +4473,6 @@ _gdk_win32_surface_get_scale_factor (GdkSurface *window)
     }
 }
 
-void
-_gdk_win32_surface_get_unscaled_size (GdkSurface *window,
-                                    int       *unscaled_width,
-                                    int       *unscaled_height)
-{
-  GdkWin32Surface *impl = GDK_WIN32_SURFACE (window);
-
-  if (unscaled_width)
-    *unscaled_width = impl->unscaled_width;
-  if (unscaled_height)
-    *unscaled_height = impl->unscaled_height;
-}
-
 static void
 gdk_win32_surface_set_input_region (GdkSurface     *window,
                                     cairo_region_t *input_region)
@@ -4550,7 +4555,7 @@ _gdk_win32_surface_request_layout (GdkSurface *surface)
   int scale = impl->surface_scale;
   RECT rect;
 
-  if (GDK_IS_TOPLEVEL (surface) && impl->resized)
+  if (GDK_IS_TOPLEVEL (surface) && impl->drag_move_resize_context.native_move_resize_pending)
     {
       surface->width = impl->next_layout.configured_width;
       surface->height = impl->next_layout.configured_height;
@@ -4559,11 +4564,8 @@ _gdk_win32_surface_request_layout (GdkSurface *surface)
     {
       _gdk_win32_get_window_rect (surface, &rect);
 
-      impl->unscaled_width = rect.right - rect.left;
-      impl->unscaled_height = rect.bottom - rect.top;
-
-      impl->next_layout.configured_width = (impl->unscaled_width + scale - 1) / scale;
-      impl->next_layout.configured_height = (impl->unscaled_height + scale - 1) / scale;
+      impl->next_layout.configured_width = (rect.right - rect.left + scale - 1) / scale;
+      impl->next_layout.configured_height = (rect.bottom - rect.top + scale - 1) / scale;
       surface->x = rect.left / scale;
       surface->y = rect.top / scale;
     }
@@ -4578,7 +4580,7 @@ _gdk_win32_surface_compute_size (GdkSurface *surface)
   if (GDK_IS_TOPLEVEL (surface))
     compute_toplevel_size (surface, TRUE, &width, &height);
 
-  if (!impl->resized)
+  if (!impl->drag_move_resize_context.native_move_resize_pending)
     {
       surface->width = impl->next_layout.configured_width;
       surface->height = impl->next_layout.configured_height;
@@ -4614,7 +4616,6 @@ gdk_win32_surface_class_init (GdkWin32SurfaceClass *klass)
   impl_class->drag_begin = _gdk_win32_surface_drag_begin;
   impl_class->create_gl_context = _gdk_win32_surface_create_gl_context;
   impl_class->get_scale_factor = _gdk_win32_surface_get_scale_factor;
-  impl_class->get_unscaled_size = _gdk_win32_surface_get_unscaled_size;
   impl_class->request_layout = _gdk_win32_surface_request_layout;
   impl_class->compute_size = _gdk_win32_surface_compute_size;
 }

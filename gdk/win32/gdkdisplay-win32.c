@@ -51,7 +51,7 @@ static int debug_indent = 0;
 
 /**
  * gdk_win32_display_add_filter:
- * @display: a #GdkWin32Display
+ * @display: a `GdkWin32Display`
  * @function: filter callback
  * @data: data to pass to filter callback
  *
@@ -94,7 +94,7 @@ gdk_win32_display_add_filter (GdkWin32Display           *display,
 
 /**
  * _gdk_win32_message_filter_unref:
- * @display: A #GdkWin32Display
+ * @display: A `GdkWin32Display`
  * @filter: A message filter
  *
  * Release a reference to @filter.  Note this function may
@@ -136,7 +136,7 @@ _gdk_win32_message_filter_unref (GdkWin32Display       *display,
 
 /**
  * gdk_win32_display_remove_filter:
- * @display: A #GdkWin32Display
+ * @display: A `GdkWin32Display`
  * @function: previously-added filter function
  * @data: user data for previously-added filter function
  *
@@ -327,20 +327,20 @@ _gdk_win32_display_init_monitors (GdkWin32Display *win32_display)
 
 /**
  * gdk_win32_display_set_cursor_theme:
- * @display: (type GdkWin32Display): a #GdkDisplay
- * @name: (allow-none): the name of the cursor theme to use, or %NULL to unset
- *         a previously set value
+ * @display: (type GdkWin32Display): a `GdkDisplay`
+ * @name: (nullable): the name of the cursor theme to use, or %NULL
+ *   to unset a previously set value
  * @size: the cursor size to use, or 0 to keep the previous size
  *
  * Sets the cursor theme from which the images for cursor
  * should be taken.
  *
  * If the windowing system supports it, existing cursors created
- * with gdk_cursor_new_from_name() are updated to reflect the theme
- * change. Custom cursors constructed with gdk_cursor_new_from_texture()
+ * with [ctor@Gdk.Cursor.new_from_name] are updated to reflect the theme
+ * change. Custom cursors constructed with [ctor@Gdk.Cursor.new_from_texture]
  * will have to be handled by the application (GTK applications can
  * learn about cursor theme changes by listening for change notification
- * for the corresponding #GtkSetting).
+ * for the corresponding `GtkSetting`).
  */
 void
 gdk_win32_display_set_cursor_theme (GdkDisplay  *display,

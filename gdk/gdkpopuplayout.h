@@ -69,11 +69,6 @@ typedef enum
   GDK_ANCHOR_RESIZE   = GDK_ANCHOR_RESIZE_X | GDK_ANCHOR_RESIZE_Y,
 } GdkAnchorHints;
 
-/**
- * GdkPopupLayout:
- *
- * Struct containing information for gdk_popup_present()
- */
 typedef struct _GdkPopupLayout GdkPopupLayout;
 
 #define GDK_TYPE_POPUP_LAYOUT (gdk_popup_layout_get_type ())
@@ -136,6 +131,20 @@ GDK_AVAILABLE_IN_ALL
 void                    gdk_popup_layout_get_offset             (GdkPopupLayout         *layout,
                                                                  int                    *dx,
                                                                  int                    *dy);
+
+GDK_AVAILABLE_IN_4_2
+void                    gdk_popup_layout_set_shadow_width       (GdkPopupLayout     *layout,
+                                                                 int                 left,
+                                                                 int                 right,
+                                                                 int                 top,
+                                                                 int                 bottom);
+GDK_AVAILABLE_IN_4_2
+void                    gdk_popup_layout_get_shadow_width       (GdkPopupLayout     *layout,
+                                                                 int                *left,
+                                                                 int                *right,
+                                                                 int                *top,
+                                                                 int                *bottom);
+
 
 G_END_DECLS
 

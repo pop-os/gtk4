@@ -22,7 +22,8 @@
 #include "gtkcsscornervalueprivate.h"
 #include "gtkcssnumbervalueprivate.h"
 #include "gtkcsstypesprivate.h"
-#include "gtkstylecontextprivate.h"
+
+#include "gtkprivate.h"
 
 #include <string.h>
 
@@ -107,7 +108,7 @@ append_arc (cairo_t *cr, double angle1, double angle2, gboolean negative)
         cairo_arc (tmp, 0.0, 0.0, 1.0, angle1, angle2);
 
       arc = fixup_path (cairo_copy_path (tmp));
-      g_hash_table_insert (arc_path_cache, g_memdup (&key, sizeof (key)), arc);
+      g_hash_table_insert (arc_path_cache, g_memdup2 (&key, sizeof (key)), arc);
 
       cairo_destroy (tmp);
       cairo_surface_destroy (surface);

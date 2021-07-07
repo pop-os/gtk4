@@ -113,18 +113,10 @@ struct _GtkTextLayout
   int width;
   int height;
 
-  /* Pixel offsets from the left and from the top to be used when we
-   * draw; these allow us to create left/top margins. We don't need
-   * anything special for bottom/right margins, because those don't
-   * affect drawing.
-   */
-  /* int left_edge; */
-  /* int top_edge; */
-
-  GtkTextBuffer *buffer;
-
   int left_padding;
   int right_padding;
+
+  GtkTextBuffer *buffer;
 
   /* Default style used if no tags override it */
   GtkTextAttributes *default_style;
@@ -140,7 +132,7 @@ struct _GtkTextLayout
 
   /* Whether we are allowed to wrap right now */
   int wrap_loop_count;
-  
+
   /* Whether to show the insertion cursor */
   guint cursor_visible : 1;
 
@@ -262,10 +254,6 @@ gboolean gtk_text_layout_get_cursor_visible (GtkTextLayout     *layout);
 void    gtk_text_layout_get_size  (GtkTextLayout  *layout,
                                    int            *width,
                                    int            *height);
-GSList* gtk_text_layout_get_lines (GtkTextLayout  *layout,
-                                   int             top_y,
-                                   int             bottom_y,
-                                   int            *first_line_y);
 
 void gtk_text_layout_wrap_loop_start (GtkTextLayout *layout);
 void gtk_text_layout_wrap_loop_end   (GtkTextLayout *layout);
@@ -299,6 +287,7 @@ void gtk_text_layout_invalidate        (GtkTextLayout     *layout,
 void gtk_text_layout_invalidate_cursors(GtkTextLayout     *layout,
                                         const GtkTextIter *start,
                                         const GtkTextIter *end);
+void gtk_text_layout_invalidate_selection (GtkTextLayout  *layout);
 void gtk_text_layout_free_line_data    (GtkTextLayout     *layout,
                                         GtkTextLine       *line,
                                         GtkTextLineData   *line_data);

@@ -1,0 +1,470 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.StringList</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.StringList"/>
+  <meta property="og:description" content="Reference for Gtk.StringList"/>
+  <meta name="twitter:title" content="Gtk.StringList"/>
+  <meta name="twitter:description" content="Reference for Gtk.StringList"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.1</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.StringList.html#description">StringList</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.StringList.new.html">new</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.StringList.append.html">append</a>
+  
+    <a class="method" href="method.StringList.get_string.html">get_string</a>
+  
+    <a class="method" href="method.StringList.remove.html">remove</a>
+  
+    <a class="method" href="method.StringList.splice.html">splice</a>
+  
+    <a class="method" href="method.StringList.take.html">take</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>StringList</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkstringlist.c#L29">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gtk.StringList : GObject.Object {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GtkStringList</code> is a list model that wraps an array of&nbsp;strings.</p>
+<p>The objects in the model have a &#8220;string&#8221;&nbsp;property.</p>
+<p><code>GtkStringList</code> is well-suited for any place where you would
+typically use a <code>char*[]</code>, but need a list&nbsp;model.</p>
+<h1 id="gtkstringlist-as-gtkbuildable">GtkStringList as GtkBuildable<a class="md-anchor" href="#gtkstringlist-as-gtkbuildable" title="Permanent link"></a></h1>
+<p>The <code>GtkStringList</code> implementation of the <code>GtkBuildable</code> interface
+supports adding items directly using the <items> element and
+specifying <item> elements for each item. Each <item> element
+supports the regular translation attributes “translatable”,
+“context” and&nbsp;“comments”.</p>
+<p>Here is a <span class="caps">UI</span> definition fragment specifying a <code>GtkStringList</code></p>
+<p><span class="dquo">&#8220;</span>`xml</p>
+<object class="GtkStringList">
+  <items>
+    <item translatable="yes">Factory</item>
+    <item translatable="yes">Home</item>
+    <item translatable="yes">Subway</item>
+  </items>
+</object>
+<p><span class="dquo">&#8220;</span>`.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.StringList">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="224pt" height="188pt"
+ viewBox="0.00 0.00 223.50 188.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkStringList">
+<path fill="none" stroke="black" d="M145.5,-108C145.5,-108 62.5,-108 62.5,-108 56.5,-108 50.5,-102 50.5,-96 50.5,-96 50.5,-84 50.5,-84 50.5,-78 56.5,-72 62.5,-72 62.5,-72 145.5,-72 145.5,-72 151.5,-72 157.5,-78 157.5,-84 157.5,-84 157.5,-96 157.5,-96 157.5,-102 151.5,-108 145.5,-108"/>
+<text text-anchor="middle" x="104" y="-86.3" font-family="Times-Roman" font-size="14.00">GtkStringList</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node3" class="node">
+<title>implements_0</title>
+<g id="a_node3"><a xlink:title="Gio.ListModel">
+<polygon fill="none" stroke="black" points="92,-36 0,-36 0,0 92,0 92,-36"/>
+<text text-anchor="middle" x="46" y="-14.3" font-family="sans-serif" font-size="14.00">GListModel</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge2" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M89.66,-71.7C80.67,-60.85 69.13,-46.92 60.17,-36.1"/>
+</g>
+<!-- implements_1 -->
+<g id="node4" class="node link">
+<title>implements_1</title>
+<g id="a_node4"><a xlink:href="class.Buildable.html" xlink:title="GtkBuildable">
+<polygon fill="none" stroke="black" points="215.5,-36 110.5,-36 110.5,0 215.5,0 215.5,-36"/>
+<text text-anchor="middle" x="163" y="-14.3" font-family="sans-serif" font-size="14.00">GtkBuildable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge3" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M118.58,-71.7C127.73,-60.85 139.47,-46.92 148.58,-36.1"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M128,-180C128,-180 80,-180 80,-180 74,-180 68,-174 68,-168 68,-168 68,-156 68,-156 68,-150 74,-144 80,-144 80,-144 128,-144 128,-144 134,-144 140,-150 140,-156 140,-156 140,-168 140,-168 140,-174 134,-180 128,-180"/>
+<text text-anchor="middle" x="104" y="-158.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge1" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M104,-143.7C104,-132.85 104,-118.92 104,-108.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface">GListModel</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.Buildable.html" title="Buildable">GtkBuildable</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.StringList.new.html">gtk_string_list_new</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new <code>GtkStringList</code> with the given <code>strings</code>.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.StringList.append.html">gtk_string_list_append</a></h6>
+          <div class="docblock">
+            <p>Appends <code>string</code> to <code>self</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.StringList.get_string.html">gtk_string_list_get_string</a></h6>
+          <div class="docblock">
+            <p>Gets the string that is at <code>position</code> in <code>self</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.StringList.remove.html">gtk_string_list_remove</a></h6>
+          <div class="docblock">
+            <p>Removes the string at <code>position</code> from <code>self</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.StringList.splice.html">gtk_string_list_splice</a></h6>
+          <div class="docblock">
+            <p>Changes <code>self</code> by removing <code>n_removals</code> strings and adding <code>additions</code>
+to&nbsp;it.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.StringList.take.html">gtk_string_list_take</a></h6>
+          <div class="docblock">
+            <p>Adds <code>string</code> to self at the end, and takes
+ownership of&nbsp;it.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+      
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Buildable.html">GtkBuildable</a> (1)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="method.Buildable.get_buildable_id.html">gtk_buildable_get_buildable_id</a></h6>
+            <div class="docblock">
+              <p>Gets the <span class="caps">ID</span> of the <code>buildable</code> object.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+    </div>
+    
+
+    
+
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkStringListClass {
+  GObjectClass parent_class;
+  
+}</code></pre>
+      </div>
+
+      
+      <div class="docblock">
+        <h6>Class members</h6>
+
+        <table class="members">
+        
+        <tr>
+          <td style="vertical-align:top"><code>parent_class</code></td>
+          <td style="vertical-align:top"><pre><code>GObjectClass</code></pre></td>
+        </tr>
+        <tr>
+          <td>&nbsp;</td>
+          <td style="vertical-align:top">No description available.</td>
+        </td>
+        
+        </table>
+      </div>
+      
+    </div>
+    
+
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

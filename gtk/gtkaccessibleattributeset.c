@@ -29,44 +29,41 @@ struct _GtkAccessibleAttributeSet
 {
   gsize n_attributes;
 
+  GtkAccessibleAttributeNameFunc name_func;
   GtkAccessibleAttributeDefaultFunc default_func;
 
   GtkBitmask *attributes_set;
 
-  char **attribute_names;
   GtkAccessibleValue **attribute_values;
 };
 
 static GtkAccessibleAttributeSet *
 gtk_accessible_attribute_set_init (GtkAccessibleAttributeSet          *self,
                                    gsize                               n_attributes,
-                                   const char                        **attribute_names,
+                                   GtkAccessibleAttributeNameFunc      name_func,
                                    GtkAccessibleAttributeDefaultFunc   default_func)
 {
   self->n_attributes = n_attributes;
+  self->name_func = name_func;
   self->default_func = default_func;
-  self->attribute_names = g_new (char *, n_attributes);
   self->attribute_values = g_new (GtkAccessibleValue *, n_attributes);
   self->attributes_set = _gtk_bitmask_new ();
 
   /* Initialize all attribute values, so we can always get the full attribute */
   for (int i = 0; i < self->n_attributes; i++)
-    {
-      self->attribute_names[i] = g_strdup (attribute_names[i]);
-      self->attribute_values[i] = (* self->default_func) (i);
-    }
+    self->attribute_values[i] = (* self->default_func) (i);
 
   return self;
 }
 
 GtkAccessibleAttributeSet *
 gtk_accessible_attribute_set_new (gsize                               n_attributes,
-                                  const char                        **attribute_names,
+                                  GtkAccessibleAttributeNameFunc      name_func,
                                   GtkAccessibleAttributeDefaultFunc   default_func)
 {
   GtkAccessibleAttributeSet *set = g_rc_box_new0 (GtkAccessibleAttributeSet);
 
-  return gtk_accessible_attribute_set_init (set, n_attributes, attribute_names, default_func);
+  return gtk_accessible_attribute_set_init (set, n_attributes, name_func, default_func);
 }
 
 GtkAccessibleAttributeSet *
@@ -84,13 +81,10 @@ gtk_accessible_attribute_set_free (gpointer data)
 
   for (int i = 0; i < self->n_attributes; i++)
     {
-      g_free (self->attribute_names[i]);
-
       if (self->attribute_values[i] != NULL)
         gtk_accessible_value_unref (self->attribute_values[i]);
     }
 
-  g_free (self->attribute_names);
   g_free (self->attribute_values);
 
   _gtk_bitmask_free (self->attributes_set);
@@ -104,9 +98,9 @@ gtk_accessible_attribute_set_unref (GtkAccessibleAttributeSet *self)
 
 /*< private >
  * gtk_accessible_attribute_set_add:
- * @self: a #GtkAccessibleAttributeSet
+ * @self: a `GtkAccessibleAttributeSet`
  * @attribute: the attribute to set
- * @value: (nullable): a #GtkAccessibleValue
+ * @value: (nullable): a `GtkAccessibleValue`
  *
  * Adds @attribute to the attributes set, and sets its value.
  *
@@ -149,10 +143,11 @@ gtk_accessible_attribute_set_add (GtkAccessibleAttributeSet *self,
 
 /*< private >
  * gtk_accessible_attribute_set_remove:
- * @self: a #GtkAccessibleAttributeSet
+ * @self: a `GtkAccessibleAttributeSet`
  * @attribute: the attribute to be removed
  *
- * Resets the @attribute in the given #GtkAccessibleAttributeSet to its default value.
+ * Resets the @attribute in the given `GtkAccessibleAttributeSet`
+ * to its default value.
  *
  * Returns: %TRUE if the set was modified, and %FALSE otherwise
  */
@@ -184,7 +179,7 @@ gtk_accessible_attribute_set_contains (GtkAccessibleAttributeSet *self,
 
 /*< private >
  * gtk_accessible_attribute_set_get_value:
- * @self: a #GtkAccessibleAttributeSet
+ * @self: a `GtkAccessibleAttributeSet`
  * @attribute: the attribute to retrieve
  *
  * Retrieves the value of the given @attribute in the set.
@@ -222,11 +217,11 @@ gtk_accessible_attribute_set_get_changed (GtkAccessibleAttributeSet *self)
 
 /*< private >
  * gtk_accessible_attribute_set_print:
- * @self: a #GtkAccessibleAttributeSet
+ * @self: a `GtkAccessibleAttributeSet`
  * @only_set: %TRUE if only the set attributes should be printed
- * @buffer: a #GString
+ * @buffer: a `GString`
  *
- * Prints the contents of the #GtkAccessibleAttributeSet into @buffer.
+ * Prints the contents of the `GtkAccessibleAttributeSet` into @buffer.
  */
 void
 gtk_accessible_attribute_set_print (GtkAccessibleAttributeSet *self,
@@ -247,7 +242,7 @@ gtk_accessible_attribute_set_print (GtkAccessibleAttributeSet *self,
         continue;
 
       g_string_append (buffer, "    ");
-      g_string_append (buffer, self->attribute_names[i]);
+      g_string_append (buffer, self->name_func (i));
       g_string_append (buffer, ": ");
 
       gtk_accessible_value_print (self->attribute_values[i], buffer);
@@ -260,12 +255,12 @@ gtk_accessible_attribute_set_print (GtkAccessibleAttributeSet *self,
 
 /*< private >
  * gtk_accessible_attribute_set_to_string:
- * @self: a #GtkAccessibleAttributeSet
+ * @self: a `GtkAccessibleAttributeSet`
  *
- * Prints the contents of a #GtkAccessibleAttributeSet into a string.
+ * Prints the contents of a `GtkAccessibleAttributeSet` into a string.
  *
  * Returns: (transfer full): a newly allocated string with the contents
- *   of the #GtkAccessibleAttributeSet
+ *   of the `GtkAccessibleAttributeSet`
  */
 char *
 gtk_accessible_attribute_set_to_string (GtkAccessibleAttributeSet *self)

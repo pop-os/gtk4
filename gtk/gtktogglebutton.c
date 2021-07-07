@@ -36,39 +36,48 @@
 #include "gtkprivate.h"
 
 /**
- * SECTION:gtktogglebutton
- * @Short_description: Create buttons which retain their state
- * @Title: GtkToggleButton
- * @See_also: #GtkButton, #GtkCheckButton
+ * GtkToggleButton:
  *
- * A #GtkToggleButton is a #GtkButton which will remain “pressed-in” when
- * clicked. Clicking again will cause the toggle button to return to its
- * normal state.
+ * A `GtkToggleButton` is a button which remains “pressed-in” when
+ * clicked.
  *
- * A toggle button is created by calling either gtk_toggle_button_new() or
- * gtk_toggle_button_new_with_label(). If using the former, it is advisable to
- * pack a widget, (such as a #GtkLabel and/or a #GtkImage), into the toggle
- * button’s container. (See #GtkButton for more information).
+ * Clicking again will cause the toggle button to return to its normal state.
  *
- * The state of a #GtkToggleButton can be set specifically using
- * gtk_toggle_button_set_active(), and retrieved using
- * gtk_toggle_button_get_active().
+ * A toggle button is created by calling either [ctor@Gtk.ToggleButton.new] or
+ * [ctor@Gtk.ToggleButton.new_with_label]. If using the former, it is advisable
+ * to pack a widget, (such as a `GtkLabel` and/or a `GtkImage`), into the toggle
+ * button’s container. (See [class@Gtk.Button] for more information).
  *
- * To simply switch the state of a toggle button, use gtk_toggle_button_toggled().
+ * The state of a `GtkToggleButton` can be set specifically using
+ * [method@Gtk.ToggleButton.set_active], and retrieved using
+ * [method@Gtk.ToggleButton.get_active].
+ *
+ * To simply switch the state of a toggle button, use
+ * [method@Gtk.ToggleButton.toggled].
+ *
+ * # Grouping
+ *
+ * Toggle buttons can be grouped together, to form mutually exclusive
+ * groups - only one of the buttons can be toggled at a time, and toggling
+ * another one will switch the currently toggled one off.
+ *
+ * To add a `GtkToggleButton` to a group, use [method@Gtk.ToggleButton.set_group].
  *
  * # CSS nodes
  *
- * GtkToggleButton has a single CSS node with name button. To differentiate
- * it from a plain #GtkButton, it gets the .toggle style class.
+ * `GtkToggleButton` has a single CSS node with name button. To differentiate
+ * it from a plain `GtkButton`, it gets the .toggle style class.
  *
- * ## Creating two #GtkToggleButton widgets.
+ * ## Creating two `GtkToggleButton` widgets.
  *
- * |[<!-- language="C" -->
- * static void output_state (GtkToggleButton *source, gpointer user_data) {
+ * ```c
+ * static void output_state (GtkToggleButton *source, gpointer user_data)
+ * {
  *   printf ("Active: %d\n", gtk_toggle_button_get_active (source));
  * }
  *
- * void make_toggles (void) {
+ * void make_toggles (void)
+ * {
  *   GtkWidget *window, *toggle1, *toggle2;
  *   GtkWidget *box;
  *   const char *text;
@@ -94,7 +103,7 @@
  *   gtk_window_set_child (GTK_WINDOW (window), box);
  *   gtk_widget_show (window);
  * }
- * ]|
+ * ```
  */
 
 typedef struct _GtkToggleButtonPrivate       GtkToggleButtonPrivate;
@@ -175,7 +184,7 @@ gtk_toggle_button_mnemonic_activate (GtkWidget *widget,
    * gtk_widget_real_mnemonic_activate() in order to focus the widget even
    * if there is no mnemonic conflict.
    */
-  if (gtk_widget_get_can_focus (widget))
+  if (gtk_widget_get_focusable (widget))
     gtk_widget_grab_focus (widget);
 
   if (!group_cycling)
@@ -189,6 +198,9 @@ gtk_toggle_button_clicked (GtkButton *button)
 {
   GtkToggleButton *toggle_button = GTK_TOGGLE_BUTTON (button);
   GtkToggleButtonPrivate *priv = gtk_toggle_button_get_instance_private (toggle_button);
+
+  if (priv->active && (priv->group_prev || priv->group_next))
+    return;
 
   gtk_toggle_button_set_active (toggle_button, !priv->active);
 }
@@ -254,6 +266,11 @@ gtk_toggle_button_class_init (GtkToggleButtonClass *class)
 
   class->toggled = NULL;
 
+  /**
+   * GtkToggleButton:active: (attributes org.gtk.Property.get=gtk_toggle_button_get_active org.gtk.Property.set=gtk_toggle_button_set_active)
+   *
+   * If the toggle button should be pressed in.
+   */
   toggle_button_props[PROP_ACTIVE] =
       g_param_spec_boolean ("active",
                             P_("Active"),
@@ -261,6 +278,11 @@ gtk_toggle_button_class_init (GtkToggleButtonClass *class)
                             FALSE,
                             GTK_PARAM_READWRITE|G_PARAM_EXPLICIT_NOTIFY);
 
+  /**
+   * GtkToggleButton:group: (attributes org.gtk.Property.set=gtk_toggle_button_set_group)
+   *
+   * The toggle button whose group this widget belongs to.
+   */
   toggle_button_props[PROP_GROUP] =
       g_param_spec_object ("group",
                            P_("Group"),
@@ -274,8 +296,7 @@ gtk_toggle_button_class_init (GtkToggleButtonClass *class)
    * GtkToggleButton::toggled:
    * @togglebutton: the object which received the signal.
    *
-   * Should be connected if you wish to perform an action whenever the
-   * #GtkToggleButton's state is changed.
+   * Emitted whenever the `GtkToggleButton`'s state is changed.
    */
   toggle_button_signals[TOGGLED] =
     g_signal_new (I_("toggled"),
@@ -303,7 +324,9 @@ gtk_toggle_button_init (GtkToggleButton *toggle_button)
 /**
  * gtk_toggle_button_new:
  *
- * Creates a new toggle button. A widget should be packed into the button, as in gtk_button_new().
+ * Creates a new toggle button.
+ *
+ * A widget should be packed into the button, as in [ctor@Gtk.Button.new].
  *
  * Returns: a new toggle button.
  */
@@ -330,13 +353,14 @@ gtk_toggle_button_new_with_label (const char *label)
 /**
  * gtk_toggle_button_new_with_mnemonic:
  * @label: the text of the button, with an underscore in front of the
- *         mnemonic character
+ *   mnemonic character
  *
- * Creates a new #GtkToggleButton containing a label. The label
- * will be created using gtk_label_new_with_mnemonic(), so underscores
- * in @label indicate the mnemonic for the button.
+ * Creates a new `GtkToggleButton` containing a label.
  *
- * Returns: a new #GtkToggleButton
+ * The label will be created using [ctor@Gtk.Label.new_with_mnemonic],
+ * so underscores in @label indicate the mnemonic for the button.
+ *
+ * Returns: a new `GtkToggleButton`
  */
 GtkWidget *
 gtk_toggle_button_new_with_mnemonic (const char *label)
@@ -348,15 +372,17 @@ gtk_toggle_button_new_with_mnemonic (const char *label)
 }
 
 /**
- * gtk_toggle_button_set_active:
- * @toggle_button: a #GtkToggleButton.
+ * gtk_toggle_button_set_active: (attributes org.gtk.Method.set_property=active)
+ * @toggle_button: a `GtkToggleButton`.
  * @is_active: %TRUE or %FALSE.
  *
- * Sets the status of the toggle button. Set to %TRUE if you want the
- * GtkToggleButton to be “pressed in”, and %FALSE to raise it.
+ * Sets the status of the toggle button.
+ *
+ * Set to %TRUE if you want the `GtkToggleButton` to be “pressed in”,
+ * and %FALSE to raise it.
  *
  * If the status of the button changes, this action causes the
- * #GtkToggleButton::toggled signal to be emitted.
+ * [signal@GtkToggleButton::toggled] signal to be emitted.
  */
 void
 gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
@@ -403,13 +429,15 @@ gtk_toggle_button_set_active (GtkToggleButton *toggle_button,
 }
 
 /**
- * gtk_toggle_button_get_active:
- * @toggle_button: a #GtkToggleButton.
+ * gtk_toggle_button_get_active: (attributes org.gtk.Method.get_property=active)
+ * @toggle_button: a `GtkToggleButton`.
  *
- * Queries a #GtkToggleButton and returns its current state. Returns %TRUE if
- * the toggle button is pressed in and %FALSE if it is raised.
+ * Queries a `GtkToggleButton` and returns its current state.
  *
- * Returns: a #gboolean value.
+ * Returns %TRUE if the toggle button is pressed in and %FALSE
+ * if it is raised.
+ *
+ * Returns: whether the button is pressed
  */
 gboolean
 gtk_toggle_button_get_active (GtkToggleButton *toggle_button)
@@ -423,11 +451,11 @@ gtk_toggle_button_get_active (GtkToggleButton *toggle_button)
 
 /**
  * gtk_toggle_button_toggled:
- * @toggle_button: a #GtkToggleButton.
+ * @toggle_button: a `GtkToggleButton`.
  *
- * Emits the #GtkToggleButton::toggled signal on the
- * #GtkToggleButton. There is no good reason for an
- * application ever to call this function.
+ * Emits the ::toggled signal on the `GtkToggleButton`.
+ *
+ * There is no good reason for an application ever to call this function.
  */
 void
 gtk_toggle_button_toggled (GtkToggleButton *toggle_button)
@@ -438,19 +466,22 @@ gtk_toggle_button_toggled (GtkToggleButton *toggle_button)
 }
 
 /**
- * gtk_toggle_button_set_group:
- * @toggle_button: a #GtkToggleButton
- * @group: (nullable) (transfer none): another #GtkToggleButton to
+ * gtk_toggle_button_set_group: (attributes org.gtk.Method.set_property=group)
+ * @toggle_button: a `GtkToggleButton`
+ * @group: (nullable) (transfer none): another `GtkToggleButton` to
  *   form a group with
  *
- * Adds @self to the group of @group. In a group of multiple toggle buttons,
- * only one button can be active at a time.
+ * Adds @self to the group of @group.
  *
- * Note that the same effect can be achieved via the #GtkActionable
- * api, by using the same action with parameter type and state type 's'
+ * In a group of multiple toggle buttons, only one button can be active
+ * at a time.
+ *
+ * Setting up groups in a cycle leads to undefined behavior.
+ *
+ * Note that the same effect can be achieved via the [iface@Gtk.Actionable]
+ * API, by using the same action with parameter type and state type 's'
  * for all buttons in the group, and giving each button its own target
  * value.
-
  */
 void
 gtk_toggle_button_set_group (GtkToggleButton *toggle_button,
@@ -460,6 +491,7 @@ gtk_toggle_button_set_group (GtkToggleButton *toggle_button,
   GtkToggleButtonPrivate *group_priv = gtk_toggle_button_get_instance_private (group);
 
   g_return_if_fail (GTK_IS_TOGGLE_BUTTON (toggle_button));
+  g_return_if_fail (toggle_button != group);
 
   if (!group)
     {

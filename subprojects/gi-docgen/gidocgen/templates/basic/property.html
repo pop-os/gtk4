@@ -1,0 +1,120 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }}.{{ class.name }}:{{ property.name }}{% endblock %}
+
+{% block meta_other %}
+  <meta property="og:title" content="{{ namespace.name }}.{{ class.name }}:{{ property.name }}"/>
+  <meta property="og:description" content="Reference for property {{ namespace.name }}.{{ class.name }}:{{ property.name }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}.{{ class.name }}:{{ property.name }}"/>
+  <meta name="twitter:description" content="Reference for property {{ namespace.name }}.{{ class.name }}:{{ property.name }}"/>
+{% endblock %}
+
+{% block sidebar %}
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a href="{{ class.link_prefix }}.{{ class.name }}.html">{{ class.name }}</a>
+  </div>
+</div>
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  {% for p in class.properties %}
+    <a class="property{% if p.name == property.name %} current{% endif %}"href="property.{{ class.name }}.{{ p.name }}.html">{{ p.name }}</a>
+  {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <header>
+    <h3>Property</h3>
+    <h1><a href="index.html">{{ namespace.name }}</a><span class="sep"></span><a href="{{ class.link_prefix }}.{{ class.name }}.html">{{ class.name }}</a>:{{ property.name }}</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 id="declaration">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>{{ property.c_decl|safe }}</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 id="description">
+        Description
+        <a href="#description" class="anchor"></a>
+        {% if CONFIG.source_location_url and property.docs_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(property.docs_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+        {{ property.description }}
+      </div>
+
+      <div class="docblock">
+        <table>
+          <tr><td>Type:</td>
+            <td>
+            {%- if property.link -%}
+            {{ property.link|safe }}
+            {%- else -%}
+            <code>{{ property.type_cname }}</code>
+            {%- endif -%}
+            </td>
+          </tr>
+          {% if property.stability %}
+          <tr><td>Stability:</td><td>{{ property.stability }}</td></tr>
+          {% endif %}
+          {% if property.available_since %}
+          <tr><td>Available since:</td><td>{{ property.available_since }}</td></tr>
+          {% endif %}
+          {% if property.deprecated_since %}
+          <tr><td>Deprecated since:</td><td>{{ property.deprecated_since.version }}</td></tr>
+          <tr><td colspan="2">{{ property.deprecated_since.message }}</td></tr>
+          {% endif %}
+        </table>
+      </div>
+
+      {% if property.attributes %}
+      <div class="docblock">
+        <table>
+        {% for (key, value) in property.attributes.items() %}
+          <tr><td>{{ key|escape }}</td><td>{{ value|escape }}</td></tr>
+        {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    <div class="flags toggle-wrapper">
+      <h4 id="flags">
+        Flags
+        <a href="#flags" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      <table>
+        <tr><td>Readable</td><td>{% if property.readable %}<b>yes</b>{% else %}<b>no</b>{% endif %}</td></tr>
+        <tr><td>Writable</td><td>{% if property.writable %}<b>yes</b>{% else %}<b>no</b>{% endif %}</td></tr>
+        <tr><td>Construct</td><td>{% if property.construct %}<b>yes</b>{% else %}<b>no</b>{% endif %}</td></tr>
+        <tr><td>Construct only</td><td>{% if property.construct_only %}<b>yes</b>{% else %}<b>no</b>{% endif %}</td></tr>
+      </table>
+      </div>
+    </div>
+
+  </section>
+</section>
+{% endblock %}

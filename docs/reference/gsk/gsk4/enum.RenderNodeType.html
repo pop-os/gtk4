@@ -1,0 +1,304 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gsk.RenderNodeType</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gsk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gsk.RenderNodeType"/>
+  <meta property="og:description" content="Reference for Gsk.RenderNodeType"/>
+  <meta name="twitter:title" content="Gsk.RenderNodeType"/>
+  <meta name="twitter:description" content="Reference for Gsk.RenderNodeType"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gsk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.1</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="enum.RenderNodeType.html">RenderNodeType</a>
+  </div>
+</div>
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Enumeration</h3>
+    <h1><a href="index.html">Gsk</a><span class="sep"></span>RenderNodeType</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+        
+      </h4>
+
+      <div class="docblock">
+        <pre><code>enum Gsk.RenderNodeType</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a href="#description" class="anchor"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gsk/gskenums.h#L25">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+      <p>The type of a node determines what the node is&nbsp;rendering.</p>
+      </div>
+
+      <div class="docblock">
+        <table class="attributes">
+          
+          
+          
+        </table>
+      </div>
+
+      
+    </div>
+
+    <div class="members toggle-wrapper">
+      <h4 id="members">
+        Members
+        <a href="#members" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      <table class="enum-members">
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 0">GSK_NOT_A_RENDER_NODE</code></td>
+          <td><p>Error type. No node will ever have this&nbsp;type.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 1">GSK_CONTAINER_NODE</code></td>
+          <td><p>A node containing a stack of&nbsp;children.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 2">GSK_CAIRO_NODE</code></td>
+          <td><p>A node drawing a <code>cairo_surface_t</code>.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 3">GSK_COLOR_NODE</code></td>
+          <td><p>A node drawing a single color&nbsp;rectangle.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 4">GSK_LINEAR_GRADIENT_NODE</code></td>
+          <td><p>A node drawing a linear&nbsp;gradient.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 5">GSK_REPEATING_LINEAR_GRADIENT_NODE</code></td>
+          <td><p>A node drawing a repeating linear&nbsp;gradient.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 6">GSK_RADIAL_GRADIENT_NODE</code></td>
+          <td><p>A node drawing a radial&nbsp;gradient.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 7">GSK_REPEATING_RADIAL_GRADIENT_NODE</code></td>
+          <td><p>A node drawing a repeating radial&nbsp;gradient.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 8">GSK_CONIC_GRADIENT_NODE</code></td>
+          <td><p>A node drawing a conic&nbsp;gradient.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 9">GSK_BORDER_NODE</code></td>
+          <td><p>A node stroking a border around an&nbsp;area.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 10">GSK_TEXTURE_NODE</code></td>
+          <td><p>A node drawing a <code>GdkTexture</code>.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 11">GSK_INSET_SHADOW_NODE</code></td>
+          <td><p>A node drawing an inset&nbsp;shadow.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 12">GSK_OUTSET_SHADOW_NODE</code></td>
+          <td><p>A node drawing an outset&nbsp;shadow.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 13">GSK_TRANSFORM_NODE</code></td>
+          <td><p>A node that renders its child after applying a matrix&nbsp;transform.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 14">GSK_OPACITY_NODE</code></td>
+          <td><p>A node that changes the opacity of its&nbsp;child.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 15">GSK_COLOR_MATRIX_NODE</code></td>
+          <td><p>A node that applies a color matrix to every&nbsp;pixel.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 16">GSK_REPEAT_NODE</code></td>
+          <td><p>A node that repeats the child&#8217;s&nbsp;contents.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 17">GSK_CLIP_NODE</code></td>
+          <td><p>A node that clips its child to a rectangular&nbsp;area.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 18">GSK_ROUNDED_CLIP_NODE</code></td>
+          <td><p>A node that clips its child to a rounded&nbsp;rectangle.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 19">GSK_SHADOW_NODE</code></td>
+          <td><p>A node that draws a shadow below its&nbsp;child.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 20">GSK_BLEND_NODE</code></td>
+          <td><p>A node that blends two children&nbsp;together.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 21">GSK_CROSS_FADE_NODE</code></td>
+          <td><p>A node that cross-fades between two&nbsp;children.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 22">GSK_TEXT_NODE</code></td>
+          <td><p>A node containing a glyph&nbsp;string.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 23">GSK_BLUR_NODE</code></td>
+          <td><p>A node that applies a&nbsp;blur.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 24">GSK_DEBUG_NODE</code></td>
+          <td><p>Debug information that does not affect the&nbsp;rendering.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 25">GSK_GL_SHADER_NODE</code></td>
+          <td><p>A node that uses OpenGL fragment shaders to&nbsp;render.</p></td>
+        </tr>
+      
+      </table>
+      </div>
+    </div>
+
+    
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

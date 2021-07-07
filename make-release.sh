@@ -9,17 +9,14 @@ if [ -d ${release_build_dir} ]; then
   exit 1
 fi
 
+# make sure included subprojects are current
+meson subprojects update gi-docgen
+
 # make the release tarball
-meson setup ${release_build_dir} || exit
-meson dist -C${release_build_dir} || exit
+meson setup -Dgtk_doc=true --force-fallback-for gi-docgen ${release_build_dir} || exit
+meson compile -C${release_build_dir} || exit
+meson dist -C${release_build_dir} --include-subprojects || exit
 
-# now build the docs
-meson configure -Dgtk_doc=true ${release_build_dir} || exit
-ninja -C${release_build_dir} gdk4-doc gsk4-doc gtk4-doc || exit
-
-tar cf ${release_build_dir}/meson-dist/gdk-docs-${version}.tar.xz -C${release_build_dir} docs/reference/gdk
-tar cf ${release_build_dir}/meson-dist/gsk-docs-${version}.tar.xz -C${release_build_dir} docs/reference/gsk
-tar cf ${release_build_dir}/meson-dist/gtk-docs-${version}.tar.xz -C${release_build_dir} docs/reference/gtk
 
 echo -e "\n\nGTK ${version} release on branch ${branch} in ./${release_build_dir}/:\n"
 

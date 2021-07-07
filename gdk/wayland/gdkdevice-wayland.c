@@ -39,6 +39,8 @@
 #include "gdkdropprivate.h"
 #include "gdkprimary-wayland.h"
 #include "gdkseatprivate.h"
+#include "gdk-private.h"
+
 #include "pointer-gestures-unstable-v1-client-protocol.h"
 #include "tablet-unstable-v2-client-protocol.h"
 
@@ -51,6 +53,28 @@
 #elif defined(HAVE_LINUX_INPUT_H)
 #include <linux/input.h>
 #endif
+
+/**
+ * GdkWaylandDevice:
+ *
+ * The Wayland implementation of `GdkDevice`.
+ *
+ * Beyond the regular [class@Gdk.Device] API, the Wayland implementation
+ * provides access to Wayland objects such as the `wl_seat` with
+ * [method@GdkWayland.WaylandDevice.get_wl_seat], the `wl_keyboard` with
+ * [method@GdkWayland.WaylandDevice.get_wl_keyboard] and the `wl_pointer` with
+ * [method@GdkWayland.WaylandDevice.get_wl_pointer].
+ */
+
+/**
+ * GdkWaylandSeat:
+ *
+ * The Wayland implementation of `GdkSeat`.
+ *
+ * Beyond the regular [class@Gdk.Seat] API, the Wayland implementation
+ * provides access to the Wayland `wl_seat` object with
+ * [method@GdkWayland.WaylandSeat.get_wl_seat].
+ */
 
 #define BUTTON_BASE (BTN_LEFT - 1) /* Used to translate to 1-indexed buttons */
 
@@ -632,7 +656,7 @@ device_emit_grab_crossing (GdkDevice       *device,
     }
 }
 
-static GdkSurface *
+GdkSurface *
 gdk_wayland_device_get_focus (GdkDevice *device)
 {
   GdkWaylandSeat *wayland_seat = GDK_WAYLAND_SEAT (gdk_device_get_seat (device));
@@ -824,7 +848,12 @@ gdk_wayland_device_pad_get_n_groups (GdkDevicePad *pad)
 
   data = gdk_wayland_seat_find_pad (GDK_WAYLAND_SEAT (seat),
                                     GDK_DEVICE (pad));
+#ifdef G_DISABLE_ASSERT
+  if (data == NULL)
+    return 0;
+#else
   g_assert (data != NULL);
+#endif
 
   return g_list_length (data->mode_groups);
 }
@@ -839,7 +868,12 @@ gdk_wayland_device_pad_get_group_n_modes (GdkDevicePad *pad,
 
   data = gdk_wayland_seat_find_pad (GDK_WAYLAND_SEAT (seat),
                                     GDK_DEVICE (pad));
+#ifdef G_DISABLE_ASSERT
+  if (data == NULL)
+    return 0;
+#else
   g_assert (data != NULL);
+#endif
 
   group = g_list_nth_data (data->mode_groups, n_group);
   if (!group)
@@ -885,7 +919,12 @@ gdk_wayland_device_pad_get_feature_group (GdkDevicePad        *pad,
 
   data = gdk_wayland_seat_find_pad (GDK_WAYLAND_SEAT (seat),
                                     GDK_DEVICE (pad));
+#ifdef G_DISABLE_ASSERT
+  if (data == NULL)
+    return -1;
+#else
   g_assert (data != NULL);
+#endif
 
   for (l = data->mode_groups, i = 0; l; l = l->next, i++)
     {
@@ -943,11 +982,11 @@ gdk_wayland_device_pad_init (GdkWaylandDevicePad *pad)
 
 /**
  * gdk_wayland_device_get_wl_seat: (skip)
- * @device: (type GdkWaylandDevice): a #GdkDevice
+ * @device: (type GdkWaylandDevice): a `GdkDevice`
  *
- * Returns the Wayland wl_seat of a #GdkDevice.
+ * Returns the Wayland `wl_seat` of a `GdkDevice`.
  *
- * Returns: (transfer none): a Wayland wl_seat
+ * Returns: (transfer none): a Wayland `wl_seat`
  */
 struct wl_seat *
 gdk_wayland_device_get_wl_seat (GdkDevice *device)
@@ -962,11 +1001,11 @@ gdk_wayland_device_get_wl_seat (GdkDevice *device)
 
 /**
  * gdk_wayland_device_get_wl_pointer: (skip)
- * @device: (type GdkWaylandDevice): a #GdkDevice
+ * @device: (type GdkWaylandDevice): a `GdkDevice`
  *
- * Returns the Wayland wl_pointer of a #GdkDevice.
+ * Returns the Wayland `wl_pointer` of a `GdkDevice`.
  *
- * Returns: (transfer none): a Wayland wl_pointer
+ * Returns: (transfer none): a Wayland `wl_pointer`
  */
 struct wl_pointer *
 gdk_wayland_device_get_wl_pointer (GdkDevice *device)
@@ -981,11 +1020,11 @@ gdk_wayland_device_get_wl_pointer (GdkDevice *device)
 
 /**
  * gdk_wayland_device_get_wl_keyboard: (skip)
- * @device: (type GdkWaylandDevice): a #GdkDevice
+ * @device: (type GdkWaylandDevice): a `GdkDevice`
  *
- * Returns the Wayland wl_keyboard of a #GdkDevice.
+ * Returns the Wayland `wl_keyboard` of a `GdkDevice`.
  *
- * Returns: (transfer none): a Wayland wl_keyboard
+ * Returns: (transfer none): a Wayland `wl_keyboard`
  */
 struct wl_keyboard *
 gdk_wayland_device_get_wl_keyboard (GdkDevice *device)
@@ -996,6 +1035,23 @@ gdk_wayland_device_get_wl_keyboard (GdkDevice *device)
 
   seat = GDK_WAYLAND_SEAT (gdk_device_get_seat (device));
   return seat->wl_keyboard;
+}
+
+/**
+ * gdk_wayland_device_get_xkb_keymap:
+ * @device: (type GdkWaylandDevice): a `GdkDevice`
+ *
+ * Returns the `xkb_keymap` of a `GdkDevice`.
+ *
+ * Returns: (transfer none): a `struct xkb_keymap`
+ *
+ * Since: 4.4
+ */
+struct xkb_keymap *
+gdk_wayland_device_get_xkb_keymap (GdkDevice *device)
+{
+  GdkWaylandSeat *seat = GDK_WAYLAND_SEAT (gdk_device_get_seat (device));
+  return _gdk_wayland_keymap_get_xkb_keymap (seat->keymap);
 }
 
 GdkKeymap *
@@ -1494,6 +1550,7 @@ pointer_handle_leave (void              *data,
   GdkWaylandSeat *seat = data;
   GdkEvent *event;
   GdkWaylandDisplay *display_wayland = GDK_WAYLAND_DISPLAY (seat->display);
+  GdkDeviceGrabInfo *grab;
 
   if (!surface)
     return;
@@ -1505,8 +1562,11 @@ pointer_handle_leave (void              *data,
     return;
 
   _gdk_wayland_display_update_serial (display_wayland, serial);
+  grab = _gdk_display_get_last_device_grab (seat->display,
+                                            seat->logical_pointer);
 
-  if (seat->pointer_info.button_modifiers != 0)
+  if (seat->pointer_info.button_modifiers != 0 &&
+      grab && grab->implicit)
     {
       gulong display_serial;
 
@@ -1822,6 +1882,36 @@ pointer_handle_axis_discrete (void              *data,
                        get_axis_name (axis), value, seat));
 }
 
+static int
+get_active_layout (GdkKeymap *keymap)
+{
+  struct xkb_keymap *xkb_keymap;
+  struct xkb_state *xkb_state;
+
+  xkb_keymap = _gdk_wayland_keymap_get_xkb_keymap (keymap);
+  xkb_state = _gdk_wayland_keymap_get_xkb_state (keymap);
+
+  for (int i = 0; i < xkb_keymap_num_layouts (xkb_keymap); i++)
+    {
+      if (xkb_state_layout_index_is_active (xkb_state, i, XKB_STATE_LAYOUT_EFFECTIVE))
+        return i;
+    }
+
+  return -1;
+}
+
+#ifdef G_ENABLE_DEBUG
+static const char *
+get_active_layout_name (GdkKeymap *keymap)
+{
+  struct xkb_keymap *xkb_keymap;
+
+  xkb_keymap = _gdk_wayland_keymap_get_xkb_keymap (keymap);
+
+  return xkb_keymap_layout_get_name (xkb_keymap, get_active_layout (keymap));
+}
+#endif
+
 static void
 keyboard_handle_keymap (void               *data,
                         struct wl_keyboard *keyboard,
@@ -1845,6 +1935,23 @@ keyboard_handle_keymap (void               *data,
   modifiers = gdk_keymap_get_modifier_state (seat->keymap);
 
   _gdk_wayland_keymap_update_from_fd (seat->keymap, format, fd, size);
+
+  GDK_DISPLAY_NOTE(seat->keymap->display, INPUT,
+    {
+      GString *s = g_string_new ("");
+      struct xkb_keymap *xkb_keymap = _gdk_wayland_keymap_get_xkb_keymap (seat->keymap);
+      struct xkb_state *xkb_state = _gdk_wayland_keymap_get_xkb_state (seat->keymap);
+      for (int i = 0; i < xkb_keymap_num_layouts (xkb_keymap); i++)
+        {
+          if (s->len > 0)
+            g_string_append (s, ", ");
+          if (xkb_state_layout_index_is_active (xkb_state, i, XKB_STATE_LAYOUT_EFFECTIVE))
+            g_string_append (s, "*");
+          g_string_append (s, xkb_keymap_layout_get_name (xkb_keymap, i));
+        }
+      g_print ("layouts: %s\n", s->str);
+      g_string_free (s, TRUE);
+    });
 
   g_signal_emit_by_name (seat->keymap, "keys-changed");
   g_signal_emit_by_name (seat->keymap, "state-changed");
@@ -2191,17 +2298,18 @@ keyboard_handle_modifiers (void               *data,
   gboolean num_lock;
   gboolean scroll_lock;
   GdkModifierType modifiers;
+  int layout;
 
   keymap = seat->keymap;
   xkb_state = _gdk_wayland_keymap_get_xkb_state (keymap);
 
-  direction = gdk_keymap_get_direction (seat->keymap);
-  bidi = gdk_keymap_have_bidi_layouts (seat->keymap);
-  caps_lock = gdk_keymap_get_caps_lock_state (seat->keymap);
-  num_lock = gdk_keymap_get_num_lock_state (seat->keymap);
-  scroll_lock = gdk_keymap_get_scroll_lock_state (seat->keymap);
-  modifiers = gdk_keymap_get_modifier_state (seat->keymap);
-
+  direction = gdk_keymap_get_direction (keymap);
+  bidi = gdk_keymap_have_bidi_layouts (keymap);
+  caps_lock = gdk_keymap_get_caps_lock_state (keymap);
+  num_lock = gdk_keymap_get_num_lock_state (keymap);
+  scroll_lock = gdk_keymap_get_scroll_lock_state (keymap);
+  modifiers = gdk_keymap_get_modifier_state (keymap);
+  layout = get_active_layout (keymap);
 
   /* Note: the docs for xkb_state_update mask state that all parameters
    * must be passed, or we may end up with an 'incoherent' state. But the
@@ -2223,20 +2331,26 @@ keyboard_handle_modifiers (void               *data,
   seat->key_modifiers = gdk_keymap_get_modifier_state (keymap);
 
   g_signal_emit_by_name (keymap, "state-changed");
-  if (direction != gdk_keymap_get_direction (keymap))
-    g_signal_emit_by_name (keymap, "direction-changed");
+  if (layout != get_active_layout (keymap))
+    {
+      GDK_DISPLAY_NOTE(keymap->display, INPUT, g_print ("active layout now: %s\n", get_active_layout_name (keymap)));
 
-  if (direction != gdk_keymap_get_direction (seat->keymap))
-    g_object_notify (G_OBJECT (seat->logical_keyboard), "direction");
-  if (bidi != gdk_keymap_have_bidi_layouts (seat->keymap))
+      g_signal_emit_by_name (keymap, "keys-changed");
+    }
+  if (direction != gdk_keymap_get_direction (keymap))
+    {
+      g_signal_emit_by_name (keymap, "direction-changed");
+      g_object_notify (G_OBJECT (seat->logical_keyboard), "direction");
+    }
+  if (bidi != gdk_keymap_have_bidi_layouts (keymap))
     g_object_notify (G_OBJECT (seat->logical_keyboard), "has-bidi-layouts");
-  if (caps_lock != gdk_keymap_get_caps_lock_state (seat->keymap))
+  if (caps_lock != gdk_keymap_get_caps_lock_state (keymap))
     g_object_notify (G_OBJECT (seat->logical_keyboard), "caps-lock-state");
-  if (num_lock != gdk_keymap_get_num_lock_state (seat->keymap))
+  if (num_lock != gdk_keymap_get_num_lock_state (keymap))
     g_object_notify (G_OBJECT (seat->logical_keyboard), "num-lock-state");
-  if (scroll_lock != gdk_keymap_get_scroll_lock_state (seat->keymap))
+  if (scroll_lock != gdk_keymap_get_scroll_lock_state (keymap))
     g_object_notify (G_OBJECT (seat->logical_keyboard), "scroll-lock-state");
-  if (modifiers != gdk_keymap_get_modifier_state (seat->keymap))
+  if (modifiers != gdk_keymap_get_modifier_state (keymap))
     g_object_notify (G_OBJECT (seat->logical_keyboard), "modifier-state");
 }
 
@@ -2534,7 +2648,7 @@ emit_gesture_swipe_event (GdkWaylandSeat          *seat,
   seat->pointer_info.time = _time;
 
   event = gdk_touchpad_event_new_swipe (seat->pointer_info.focus,
-                                        seat->pointer,
+                                        seat->logical_pointer,
                                         _time,
                                         device_get_modifiers (seat->logical_pointer),
                                         phase,
@@ -2630,7 +2744,7 @@ emit_gesture_pinch_event (GdkWaylandSeat          *seat,
   seat->pointer_info.time = _time;
 
   event = gdk_touchpad_event_new_pinch (seat->pointer_info.focus,
-                                        seat->pointer,
+                                        seat->logical_pointer,
                                         _time,
                                         device_get_modifiers (seat->logical_pointer),
                                         phase,
@@ -3472,8 +3586,7 @@ tablet_tool_handle_proximity_out (void                      *data,
 static double *
 tablet_copy_axes (GdkWaylandTabletData *tablet)
 {
-  return g_memdup (tablet->axes,
-                   sizeof (double) * GDK_AXIS_LAST);
+  return g_memdup2 (tablet->axes, sizeof (double) * GDK_AXIS_LAST);
 }
 
 static void
@@ -4174,7 +4287,14 @@ tablet_pad_handle_button (void                     *data,
                        wp_tablet_pad, button, state));
 
   group = tablet_pad_lookup_button_group (pad, button);
+
+#ifdef G_DISABLE_ASSERT
+  if (group == NULL)
+    return;
+#else
   g_assert (group != NULL);
+#endif
+
   n_group = g_list_index (pad->mode_groups, group);
 
   event = gdk_pad_event_new_button (state == ZWP_TABLET_PAD_V2_BUTTON_STATE_PRESSED
@@ -5032,9 +5152,11 @@ gdk_wayland_seat_set_drag (GdkSeat *seat,
 
 /**
  * gdk_wayland_device_get_data_device: (skip)
- * @gdk_device: (type GdkWaylandDevice): a #GdkDevice
+ * @gdk_device: (type GdkWaylandDevice): a `GdkDevice`
  *
- * ...
+ * Returns the Wayland `wl_data_device` of a `GdkDevice`.
+ *
+ * Returns: (transfer none): a Wayland `wl_data_device`
  */
 struct wl_data_device *
 gdk_wayland_device_get_data_device (GdkDevice *gdk_device)
@@ -5049,10 +5171,13 @@ gdk_wayland_device_get_data_device (GdkDevice *gdk_device)
 
 /**
  * gdk_wayland_device_set_selection: (skip)
- * @gdk_device: (type GdkWaylandDevice): a #GdkDevice
+ * @gdk_device: (type GdkWaylandDevice): a `GdkDevice`
  * @source: the data source for the selection
  *
- * ...
+ * Sets the selection of the `GdkDevice.
+ *
+ * This is calling wl_data_device_set_selection() on
+ * the `wl_data_device` of @gdk_device.
  */
 void
 gdk_wayland_device_set_selection (GdkDevice             *gdk_device,
@@ -5072,9 +5197,9 @@ gdk_wayland_device_set_selection (GdkDevice             *gdk_device,
 
 /**
  * gdk_wayland_seat_get_wl_seat: (skip)
- * @seat: (type GdkWaylandSeat): a #GdkSeat
+ * @seat: (type GdkWaylandSeat): a `GdkSeat`
  *
- * Returns the Wayland `wl_seat` of a #GdkSeat.
+ * Returns the Wayland `wl_seat` of a `GdkSeat`.
  *
  * Returns: (transfer none): a Wayland `wl_seat`
  */
@@ -5088,18 +5213,19 @@ gdk_wayland_seat_get_wl_seat (GdkSeat *seat)
 
 /**
  * gdk_wayland_device_get_node_path:
- * @device: (type GdkWaylandDevice): a #GdkDevice
+ * @device: (type GdkWaylandDevice): a `GdkDevice`
  *
  * Returns the `/dev/input/event*` path of this device.
  *
- * For #GdkDevices that possibly coalesce multiple hardware
+ * For `GdkDevice`s that possibly coalesce multiple hardware
  * devices (eg. mouse, keyboard, touch,...), this function
  * will return %NULL.
  *
  * This is most notably implemented for devices of type
  * %GDK_SOURCE_PEN, %GDK_SOURCE_TABLET_PAD.
  *
- * Returns: (nullable) (transfer none): the `/dev/input/event*` path of this device
+ * Returns: (nullable) (transfer none): the `/dev/input/event*`
+ *   path of this device
  */
 const char *
 gdk_wayland_device_get_node_path (GdkDevice *device)
@@ -5130,9 +5256,11 @@ gdk_wayland_device_get_node_path (GdkDevice *device)
  * @feature_idx: 0-indexed index of the feature to set the feedback label for
  * @label: Feedback label
  *
- * Sets the feedback label for the given feature/index. This may be used by the
- * compositor to provide user feedback of the actions available/performed.
- **/
+ * Sets the feedback label for the given feature/index.
+ *
+ * This may be used by the compositor to provide user feedback
+ * of the actions available/performed.
+ */
 void
 gdk_wayland_device_pad_set_feedback (GdkDevice           *device,
                                      GdkDevicePadFeature  feature,

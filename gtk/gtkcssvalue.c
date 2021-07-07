@@ -260,8 +260,8 @@ _gtk_css_value_transition (GtkCssValue *start,
                            guint        property_id,
                            double       progress)
 {
-  gtk_internal_return_val_if_fail (start != NULL, FALSE);
-  gtk_internal_return_val_if_fail (end != NULL, FALSE);
+  gtk_internal_return_val_if_fail (start != NULL, NULL);
+  gtk_internal_return_val_if_fail (end != NULL, NULL);
 
   if (start->class != end->class)
     return NULL;
@@ -315,7 +315,7 @@ _gtk_css_value_print (const GtkCssValue *value,
 
 /**
  * gtk_css_value_is_dynamic:
- * @value: a #GtkCssValue
+ * @value: a `GtkCssValue`
  *
  * A "dynamic" value has a different value at different times. This means that
  * the value needs to be animated when time is progressing.
@@ -339,7 +339,7 @@ gtk_css_value_is_dynamic (const GtkCssValue *value)
 
 /**
  * gtk_css_value_get_dynamic_value:
- * @value: a #GtkCssValue
+ * @value: a `GtkCssValue`
  * @monotonic_time: the timestamp for which to get the dynamic value
  *
  * Gets the dynamic value for a given timestamp. If @monotonic_time is 0,
@@ -348,8 +348,8 @@ gtk_css_value_is_dynamic (const GtkCssValue *value)
  * See gtk_css_value_is_dynamic() for details about dynamic values.
  *
  * Returns: (transfer full): The dynamic value for @value at the given
- *     timestamp
- **/
+ *   timestamp
+ */
 GtkCssValue *
 gtk_css_value_get_dynamic_value (GtkCssValue *value,
                                  gint64       monotonic_time)

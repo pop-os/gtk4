@@ -19,8 +19,7 @@
  */
 
 /*<private>
- * SECTION:data-url
- * @title: data: URLs
+ * # Data URLs
  *
  * These function allow encoding and decoding of data: URLs, see
  * [RFC 2397](http://tools.ietf.org/html/rfc2397) for more information.
@@ -38,13 +37,13 @@
  * gtk_css_data_url_parse:
  * @url: the URL to parse
  * @out_mimetype: (out nullable optional): Return location to set the contained
- *     mime type to. If no mime type was specified, this value is set to %NULL.
- * @error: error location or %NULL for none
+ *   mime type to. If no mime type was specified, this value is set to %NULL.
+ * @error: error location
  *
  * Decodes a data URL according to RFC2397 and returns the decoded data.
  *
- * Returns: a new #GBytes with the decoded data or %NULL on error
- **/
+ * Returns: a new `GBytes` with the decoded data
+ */
 GBytes *
 gtk_css_data_url_parse (const char  *url,
                         char       **out_mimetype,

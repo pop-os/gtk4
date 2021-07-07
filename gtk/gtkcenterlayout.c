@@ -23,17 +23,17 @@
 #include "gtklayoutchild.h"
 #include "gtkprivate.h"
 #include "gtksizerequest.h"
-#include "gtkstylecontextprivate.h"
 #include "gtkwidgetprivate.h"
+#include "gtkcssnodeprivate.h"
 
 /**
- * SECTION:gtkcenterlayout
- * @Title: GtkCenterLayout
- * @Short_description: A centering layout
+ * GtkCenterLayout:
  *
- * A #GtkCenterLayout is a layout manager that manages up to three children.
- * The start widget is allocated at the start of the layout (left in LRT
- * layouts and right in RTL ones), and the end widget at the end.
+ * `GtkCenterLayout` is a layout manager that manages up to three children.
+ *
+ * The start widget is allocated at the start of the layout (left in
+ * left-to-right locales and right in right-to-left ones), and the end
+ * widget at the end.
  *
  * The center widget is centered regarding the full width of the layout's.
  */
@@ -58,12 +58,13 @@ G_DEFINE_TYPE (GtkCenterLayout, gtk_center_layout, GTK_TYPE_LAYOUT_MANAGER)
 
 static int
 get_spacing (GtkCenterLayout *self,
-             GtkStyleContext *style_context)
+             GtkCssNode      *node)
 {
+  GtkCssStyle *style = gtk_css_node_get_style (node);
   GtkCssValue *border_spacing;
   int css_spacing;
 
-  border_spacing = _gtk_style_context_peek_property (style_context, GTK_CSS_PROPERTY_BORDER_SPACING);
+  border_spacing = style->size->border_spacing;
   if (self->orientation == GTK_ORIENTATION_HORIZONTAL)
     css_spacing = _gtk_css_position_value_get_x (border_spacing, 100);
   else
@@ -226,7 +227,7 @@ gtk_center_layout_measure_orientation (GtkCenterLayout *self,
   int spacing;
   int i;
 
-  spacing = get_spacing (self, _gtk_widget_get_style_context (widget));
+  spacing = get_spacing (self, gtk_widget_get_css_node (widget));
 
   for (i = 0; i < 3; i ++)
     {
@@ -386,7 +387,7 @@ gtk_center_layout_allocate (GtkLayoutManager *layout_manager,
   int i;
   int spacing;
 
-  spacing = get_spacing (self, _gtk_widget_get_style_context (widget));
+  spacing = get_spacing (self, gtk_widget_get_css_node (widget));
 
   if (self->orientation == GTK_ORIENTATION_HORIZONTAL)
     {
@@ -542,9 +543,9 @@ gtk_center_layout_init (GtkCenterLayout *self)
 /**
  * gtk_center_layout_new:
  *
- * Creates a new #GtkCenterLayout.
+ * Creates a new `GtkCenterLayout`.
  *
- * Returns: the newly created #GtkCenterLayout
+ * Returns: the newly created `GtkCenterLayout`
  */
 GtkLayoutManager *
 gtk_center_layout_new (void)
@@ -554,7 +555,7 @@ gtk_center_layout_new (void)
 
 /**
  * gtk_center_layout_set_orientation:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  * @orientation: the new orientation
  *
  * Sets the orientation of @self.
@@ -574,7 +575,7 @@ gtk_center_layout_set_orientation (GtkCenterLayout *self,
 
 /**
  * gtk_center_layout_get_orientation:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  *
  * Gets the current orienration of the layout manager.
  *
@@ -590,7 +591,7 @@ gtk_center_layout_get_orientation (GtkCenterLayout *self)
 
 /**
  * gtk_center_layout_set_baseline_position:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  * @baseline_position: the new baseline position
  *
  * Sets the new baseline position of @self
@@ -610,7 +611,7 @@ gtk_center_layout_set_baseline_position (GtkCenterLayout     *self,
 
 /**
  * gtk_center_layout_get_baseline_position:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  *
  * Returns the baseline position of the layout.
  *
@@ -626,7 +627,7 @@ gtk_center_layout_get_baseline_position (GtkCenterLayout *self)
 
 /**
  * gtk_center_layout_set_start_widget:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  * @widget: (nullable): the new start widget
  *
  * Sets the new start widget of @self.
@@ -649,7 +650,7 @@ gtk_center_layout_set_start_widget (GtkCenterLayout *self,
 
 /**
  * gtk_center_layout_get_start_widget:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  *
  * Returns the start widget fo the layout.
  *
@@ -665,7 +666,7 @@ gtk_center_layout_get_start_widget (GtkCenterLayout *self)
 
 /**
  * gtk_center_layout_set_center_widget:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  * @widget: (nullable): the new center widget
  *
  * Sets the new center widget of @self.
@@ -688,7 +689,7 @@ gtk_center_layout_set_center_widget (GtkCenterLayout *self,
 
 /**
  * gtk_center_layout_get_center_widget:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  *
  * Returns the center widget of the layout.
  *
@@ -704,7 +705,7 @@ gtk_center_layout_get_center_widget (GtkCenterLayout *self)
 
 /**
  * gtk_center_layout_set_end_widget:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  * @widget: (nullable) (transfer none): the new end widget
  *
  * Sets the new end widget of @self.
@@ -727,7 +728,7 @@ gtk_center_layout_set_end_widget (GtkCenterLayout *self,
 
 /**
  * gtk_center_layout_get_end_widget:
- * @self: a #GtkCenterLayout
+ * @self: a `GtkCenterLayout`
  *
  * Returns the end widget of the layout.
  *

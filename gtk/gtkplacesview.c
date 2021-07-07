@@ -32,14 +32,11 @@
 #include "gtkeventcontrollerkey.h"
 #include "gtkpopovermenu.h"
 
-/*
- * SECTION:gtkplacesview
- * @Short_description: Widget that displays persistent drives and manages mounted networks
- * @Title: GtkPlacesView
- * @See_also: #GtkFileChooser
+/*< private >
+ * GtkPlacesView:
  *
- * #GtkPlacesView is a widget that displays a list of persistent drives
- * such as harddisk partitions and networks.  #GtkPlacesView does not monitor
+ * GtkPlacesView is a widget that displays a list of persistent drives
+ * such as harddisk partitions and networks.  GtkPlacesView does not monitor
  * removable devices.
  *
  * The places view displays drives and networks, and will automatically mount
@@ -48,7 +45,7 @@
  * shown at the network list.
  *
  * To make use of the places view, an application at least needs to connect
- * to the #GtkPlacesView::open-location signal. This is emitted when the user
+ * to the GtkPlacesView::open-location signal. This is emitted when the user
  * selects a location to open in the view.
  */
 
@@ -553,7 +550,7 @@ populate_servers (GtkPlacesView *view)
 
   /* clear previous items */
   while ((child = gtk_widget_get_first_child (GTK_WIDGET (view->recent_servers_listbox))))
-    gtk_list_box_remove (GTK_LIST_BOX (view->listbox), child);
+    gtk_list_box_remove (GTK_LIST_BOX (view->recent_servers_listbox), child);
 
   gtk_list_store_clear (view->completion_store);
 
@@ -986,9 +983,14 @@ network_enumeration_next_files_finished (GObject      *source_object,
 
   if (error)
     {
-      if (!g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
-        g_warning ("Failed to fetch network locations: %s", error->message);
+      if (g_error_matches (error, G_IO_ERROR, G_IO_ERROR_CANCELLED))
+        {
+          g_clear_error (&error);
+          g_object_unref (view);
+          return;
+        }
 
+      g_warning ("Failed to fetch network locations: %s", error->message);
       g_clear_error (&error);
     }
   else
@@ -999,16 +1001,11 @@ network_enumeration_next_files_finished (GObject      *source_object,
       g_list_free_full (detected_networks, g_object_unref);
     }
 
-  g_object_unref (view);
+  update_network_state (view);
+  monitor_network (view);
+  update_loading (view);
 
-  /* avoid to update widgets if we are already destroyed
-     (and got cancelled s a result of that) */
-  if (!view->destroyed)
-    {
-      update_network_state (view);
-      monitor_network (view);
-      update_loading (view);
-    }
+  g_object_unref (view);
 }
 
 static void
@@ -1218,12 +1215,14 @@ server_mount_ready_cb (GObject      *source_file,
       g_clear_error (&error);
     }
 
-  if (view->destroyed) {
-    g_object_unref (view);
-    return;
-  }
+  if (view->destroyed)
+    {
+      g_object_unref (view);
+      return;
+    }
 
   view->should_pulse_entry = FALSE;
+  gtk_entry_set_progress_fraction (GTK_ENTRY (view->address_entry), 0);
 
   /* Restore from Cancel to Connect */
   gtk_button_set_label (GTK_BUTTON (view->connect_button), _("Con_nect"));
@@ -1246,6 +1245,11 @@ server_mount_ready_cb (GObject      *source_file,
           GMount *mount;
           GFile *root;
 
+          /*
+           * If the mount is not found at this point, it is probably user-
+           * invisible, which happens e.g for smb-browse, but the location
+           * should be opened anyway...
+           */
           mount = g_file_find_enclosing_mount (location, view->cancellable, NULL);
           if (mount)
             {
@@ -1255,6 +1259,10 @@ server_mount_ready_cb (GObject      *source_file,
 
               g_object_unref (root);
               g_object_unref (mount);
+            }
+          else
+            {
+              emit_open_location (view, location, view->open_flags);
             }
         }
     }
@@ -1391,8 +1399,7 @@ pulse_entry_cb (gpointer user_data)
     }
   else
     {
-      gtk_entry_set_progress_pulse_step (GTK_ENTRY (view->address_entry), 0.0);
-      gtk_entry_set_progress_fraction (GTK_ENTRY (view->address_entry), 0.0);
+      gtk_entry_set_progress_fraction (GTK_ENTRY (view->address_entry), 0);
       view->entry_pulse_timeout_id = 0;
 
       return G_SOURCE_REMOVE;
@@ -1446,6 +1453,7 @@ mount_server (GtkPlacesView *view,
 
   view->should_pulse_entry = TRUE;
   gtk_entry_set_progress_pulse_step (GTK_ENTRY (view->address_entry), 0.1);
+  gtk_entry_set_progress_fraction (GTK_ENTRY (view->address_entry), 0.1);
   /* Allow to cancel the operation */
   gtk_button_set_label (GTK_BUTTON (view->connect_button), _("Cance_l"));
   gtk_widget_set_sensitive (view->address_entry, FALSE);
@@ -2190,8 +2198,8 @@ gtk_places_view_class_init (GtkPlacesViewClass *klass)
   /*
    * GtkPlacesView::open-location:
    * @view: the object which received the signal.
-   * @location: (type Gio.File): #GFile to which the caller should switch.
-   * @open_flags: a single value from #GtkPlacesOpenFlags specifying how the @location
+   * @location: (type Gio.File): GFile to which the caller should switch.
+   * @open_flags: a single value from GtkPlacesOpenFlags specifying how the @location
    * should be opened.
    *
    * The places view emits this signal when the user selects a location
@@ -2369,13 +2377,13 @@ gtk_places_view_init (GtkPlacesView *self)
 /*
  * gtk_places_view_new:
  *
- * Creates a new #GtkPlacesView widget.
+ * Creates a new GtkPlacesView widget.
  *
  * The application should connect to at least the
- * #GtkPlacesView::open-location signal to be notified
+ * GtkPlacesView::open-location signal to be notified
  * when the user makes a selection in the view.
  *
- * Returns: a newly created #GtkPlacesView
+ * Returns: a newly created GtkPlacesView
  */
 GtkWidget *
 gtk_places_view_new (void)
@@ -2385,7 +2393,7 @@ gtk_places_view_new (void)
 
 /*
  * gtk_places_view_set_open_flags:
- * @view: a #GtkPlacesView
+ * @view: a GtkPlacesView
  * @flags: Bitmask of modes in which the calling application can open locations
  *
  * Sets the way in which the calling application can open new locations from
@@ -2397,11 +2405,11 @@ gtk_places_view_new (void)
  * application can open new locations, so that the view can display (or not)
  * the “Open in new tab” and “Open in new window” menu items as appropriate.
  *
- * When the #GtkPlacesView::open-location signal is emitted, its flags
+ * When the GtkPlacesView::open-location signal is emitted, its flags
  * argument will be set to one of the @flags that was passed in
  * gtk_places_view_set_open_flags().
  *
- * Passing 0 for @flags will cause #GTK_PLACES_OPEN_NORMAL to always be sent
+ * Passing 0 for @flags will cause GTK_PLACES_OPEN_NORMAL to always be sent
  * to callbacks for the “open-location” signal.
  */
 void
@@ -2425,11 +2433,11 @@ gtk_places_view_set_open_flags (GtkPlacesView      *view,
 
 /*
  * gtk_places_view_get_open_flags:
- * @view: a #GtkPlacesSidebar
+ * @view: a GtkPlacesSidebar
  *
  * Gets the open flags.
  *
- * Returns: the #GtkPlacesOpenFlags of @view
+ * Returns: the GtkPlacesOpenFlags of @view
  */
 GtkPlacesOpenFlags
 gtk_places_view_get_open_flags (GtkPlacesView *view)
@@ -2441,7 +2449,7 @@ gtk_places_view_get_open_flags (GtkPlacesView *view)
 
 /*
  * gtk_places_view_get_search_query:
- * @view: a #GtkPlacesView
+ * @view: a GtkPlacesView
  *
  * Retrieves the current search query from @view.
  *
@@ -2457,7 +2465,7 @@ gtk_places_view_get_search_query (GtkPlacesView *view)
 
 /*
  * gtk_places_view_set_search_query:
- * @view: a #GtkPlacesView
+ * @view: a GtkPlacesView
  * @query_text: the query, or NULL.
  *
  * Sets the search query of @view. The search is immediately performed
@@ -2483,7 +2491,7 @@ gtk_places_view_set_search_query (GtkPlacesView *view,
 
 /*
  * gtk_places_view_get_loading:
- * @view: a #GtkPlacesView
+ * @view: a GtkPlacesView
  *
  * Returns %TRUE if the view is loading locations.
  */

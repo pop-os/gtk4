@@ -45,22 +45,25 @@ G_BEGIN_DECLS
 /**
  * GTK_INPUT_ERROR:
  *
- * Constant to return from a signal handler for the #GtkSpinButton::input
+ * Constant to return from a signal handler for the ::input
  * signal in case of conversion failure.
+ *
+ * See [signal@Gtk.SpinButton::input].
  */
 #define GTK_INPUT_ERROR -1
 
 /**
  * GtkSpinButtonUpdatePolicy:
- * @GTK_UPDATE_ALWAYS: When refreshing your #GtkSpinButton, the value is
- *     always displayed
- * @GTK_UPDATE_IF_VALID: When refreshing your #GtkSpinButton, the value is
- *     only displayed if it is valid within the bounds of the spin button's
- *     adjustment
+ * @GTK_UPDATE_ALWAYS: When refreshing your `GtkSpinButton`, the value is
+ *   always displayed
+ * @GTK_UPDATE_IF_VALID: When refreshing your `GtkSpinButton`, the value is
+ *   only displayed if it is valid within the bounds of the spin button's
+ *   adjustment
  *
- * The spin button update policy determines whether the spin button displays
- * values even if they are outside the bounds of its adjustment.
- * See gtk_spin_button_set_update_policy().
+ * Determines whether the spin button displays values outside the adjustment
+ * bounds.
+ *
+ * See [method@Gtk.SpinButton.set_update_policy].
  */
 typedef enum
 {

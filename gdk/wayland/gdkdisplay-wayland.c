@@ -58,38 +58,31 @@
 
 #include "gdk/gdk-private.h"
 
+/* Keep g_assert() defined even if we disable it globally,
+ * as we use it in many places as a handy mechanism to check
+ * for non-NULL
+ */
+#ifdef G_DISABLE_ASSERT
+# undef g_assert
+# define g_assert(expr)                  G_STMT_START { \
+                                           if G_LIKELY (expr) ; else \
+                                             g_assertion_message_expr (G_LOG_DOMAIN, __FILE__, __LINE__, G_STRFUNC, \
+                                                                       #expr); \
+                                         } G_STMT_END
+#endif
+
 /**
- * SECTION:wayland_interaction
- * @Short_description: Wayland backend-specific functions
- * @Title: Wayland Interaction
- * @Include: gdk/wayland/gdkwayland.h
+ * GdkWaylandDisplay:
  *
- * The functions in this section are specific to the GDK Wayland backend.
- * To use them, you need to include the `<gdk/wayland/gdkwayland.h>` header and
- * use the Wayland-specific pkg-config `gtk4-wayland` file to build your
- * application.
+ * The Wayland implementation of `GdkDisplay`.
  *
- * To make your code compile with other GDK backends, guard backend-specific
- * calls by an ifdef as follows. Since GDK may be built with multiple
- * backends, you should also check for the backend that is in use (e.g. by
- * using the GDK_IS_WAYLAND_DISPLAY() macro).
- * |[<!-- language="C" -->
- * #ifdef GDK_WINDOWING_WAYLAND
- *   if (GDK_IS_WAYLAND_DISPLAY (display))
- *     {
- *       // make Wayland-specific calls here
- *     }
- *   else
- * #endif
- * #ifdef GDK_WINDOWING_X11
- *   if (GDK_IS_X11_DISPLAY (display))
- *     {
- *       // make X11-specific calls here
- *     }
- *   else
- * #endif
- *   g_error ("Unsupported GDK backend");
- * ]|
+ * Beyond the regular [class@Gdk.Display] API, the Wayland implementation
+ * provides access to Wayland objects such as the `wl_display` with
+ * [method@GdkWayland.WaylandDisplay.get_wl_display], the `wl_compositor` with
+ * [method@GdkWayland.WaylandDisplay.get_wl_compositor].
+ *
+ * You can find out what Wayland globals are supported by a display
+ * with [method@GdkWayland.WaylandDisplay.query_registry].
  */
 
 #define MIN_SYSTEM_BELL_DELAY_MS 20
@@ -97,6 +90,7 @@
 #define GTK_SHELL1_VERSION       4
 #define OUTPUT_VERSION_WITH_DONE 2
 #define NO_XDG_OUTPUT_DONE_SINCE_VERSION 3
+#define XDG_ACTIVATION_VERSION   1
 
 static void _gdk_wayland_display_load_cursor_theme (GdkWaylandDisplay *display_wayland);
 
@@ -276,80 +270,23 @@ postpone_on_globals_closure (GdkWaylandDisplay *display_wayland,
 #ifdef G_ENABLE_DEBUG
 
 static const char *
-get_format_name (enum wl_shm_format format)
+get_format_name (uint32_t format,
+                 char     name[10])
 {
-  int i;
-#define FORMAT(s) { WL_SHM_FORMAT_ ## s, #s }
-  struct { int format; const char *name; } formats[] = {
-    FORMAT(ARGB8888),
-    FORMAT(XRGB8888),
-    FORMAT(C8),
-    FORMAT(RGB332),
-    FORMAT(BGR233),
-    FORMAT(XRGB4444),
-    FORMAT(XBGR4444),
-    FORMAT(RGBX4444),
-    FORMAT(BGRX4444),
-    FORMAT(ARGB4444),
-    FORMAT(ABGR4444),
-    FORMAT(RGBA4444),
-    FORMAT(BGRA4444),
-    FORMAT(XRGB1555),
-    FORMAT(XBGR1555),
-    FORMAT(RGBX5551),
-    FORMAT(BGRX5551),
-    FORMAT(ARGB1555),
-    FORMAT(ABGR1555),
-    FORMAT(RGBA5551),
-    FORMAT(BGRA5551),
-    FORMAT(RGB565),
-    FORMAT(BGR565),
-    FORMAT(RGB888),
-    FORMAT(BGR888),
-    FORMAT(XBGR8888),
-    FORMAT(RGBX8888),
-    FORMAT(BGRX8888),
-    FORMAT(ABGR8888),
-    FORMAT(RGBA8888),
-    FORMAT(BGRA8888),
-    FORMAT(XRGB2101010),
-    FORMAT(XBGR2101010),
-    FORMAT(RGBX1010102),
-    FORMAT(BGRX1010102),
-    FORMAT(ARGB2101010),
-    FORMAT(ABGR2101010),
-    FORMAT(RGBA1010102),
-    FORMAT(BGRA1010102),
-    FORMAT(YUYV),
-    FORMAT(YVYU),
-    FORMAT(UYVY),
-    FORMAT(VYUY),
-    FORMAT(AYUV),
-    FORMAT(NV12),
-    FORMAT(NV21),
-    FORMAT(NV16),
-    FORMAT(NV61),
-    FORMAT(YUV410),
-    FORMAT(YVU410),
-    FORMAT(YUV411),
-    FORMAT(YVU411),
-    FORMAT(YUV420),
-    FORMAT(YVU420),
-    FORMAT(YUV422),
-    FORMAT(YVU422),
-    FORMAT(YUV444),
-    FORMAT(YVU444),
-    { 0xffffffff, NULL }
-  };
-#undef FORMAT
+  if (format == 0)
+    g_strlcpy (name, "ARGB8888", 10);
+  else if (format == 1)
+    g_strlcpy (name, "XRGB8888", 10);
+  else
+    g_snprintf (name, 10, "4cc %c%c%c%c",
+               (char) (format & 0xff),
+               (char) ((format >> 8) & 0xff),
+               (char) ((format >> 16) & 0xff),
+               (char) ((format >> 24) & 0xff));
 
-  for (i = 0; formats[i].name; i++)
-    {
-      if (formats[i].format == format)
-        return formats[i].name;
-    }
-  return NULL;
+  return name;
 }
+
 #endif
 
 static void
@@ -357,7 +294,10 @@ wl_shm_format (void          *data,
                struct wl_shm *wl_shm,
                uint32_t       format)
 {
-  GDK_NOTE (MISC, g_message ("supported pixel format %s", get_format_name (format)));
+  GDK_NOTE (MISC,
+            char buf[10];
+            g_message ("supported pixel format %s", get_format_name (format, buf));
+            );
 }
 
 static const struct wl_shm_listener wl_shm_listener = {
@@ -386,7 +326,7 @@ static const struct org_kde_kwin_server_decoration_manager_listener server_decor
 
 /*
  * gdk_wayland_display_prefers_ssd:
- * @display: (type GdkWaylandDisplay): a #GdkDisplay
+ * @display: (type GdkWaylandDisplay): a `GdkDisplay`
  *
  * Checks whether the Wayland compositor prefers to draw the window
  * decorations or if it leaves decorations to the application.
@@ -466,26 +406,19 @@ gdk_registry_handle_global (void               *data,
     }
   else if (strcmp (interface, "wl_seat") == 0)
     {
+      SeatAddedClosure *closure;
       static const char *required_device_manager_globals[] = {
         "wl_compositor",
         "wl_data_device_manager",
         NULL
       };
 
-      if (has_required_globals (display_wayland,
-                                required_device_manager_globals))
-        _gdk_wayland_display_add_seat (display_wayland, id, version);
-      else
-        {
-          SeatAddedClosure *closure;
-
-          closure = g_new0 (SeatAddedClosure, 1);
-          closure->base.handler = seat_added_closure_run;
-          closure->base.required_globals = required_device_manager_globals;
-          closure->id = id;
-          closure->version = version;
-          postpone_on_globals_closure (display_wayland, &closure->base);
-        }
+      closure = g_new0 (SeatAddedClosure, 1);
+      closure->base.handler = seat_added_closure_run;
+      closure->base.required_globals = required_device_manager_globals;
+      closure->id = id;
+      closure->version = version;
+      postpone_on_globals_closure (display_wayland, &closure->base);
     }
   else if (strcmp (interface, "wl_data_device_manager") == 0)
     {
@@ -561,11 +494,18 @@ gdk_registry_handle_global (void               *data,
         wl_registry_bind (display_wayland->wl_registry, id,
                           &zwp_idle_inhibit_manager_v1_interface, 1);
     }
+  else if (strcmp (interface, "xdg_activation_v1") == 0)
+    {
+      display_wayland->xdg_activation_version =
+        MIN (version, XDG_ACTIVATION_VERSION);
+      display_wayland->xdg_activation =
+        wl_registry_bind (display_wayland->wl_registry, id,
+                          &xdg_activation_v1_interface,
+                          display_wayland->xdg_activation_version);
+    }
 
   g_hash_table_insert (display_wayland->known_globals,
                        GUINT_TO_POINTER (id), g_strdup (interface));
-
-  process_on_globals_closures (display_wayland);
 }
 
 static void
@@ -657,8 +597,13 @@ _gdk_wayland_display_open (const char *display_name)
 
   display_wayland->wl_registry = wl_display_get_registry (display_wayland->wl_display);
   wl_registry_add_listener (display_wayland->wl_registry, &registry_listener, display_wayland);
+  if (wl_display_roundtrip (display_wayland->wl_display) < 0)
+    {
+      g_object_unref (display);
+      return NULL;
+    }
 
-  _gdk_wayland_display_async_roundtrip (display_wayland);
+  process_on_globals_closures (display_wayland);
 
   /* Wait for initializing to complete. This means waiting for all
    * asynchronous roundtrips that were triggered during initial roundtrip. */
@@ -868,12 +813,12 @@ gdk_wayland_display_get_next_serial (GdkDisplay *display)
 
 /**
  * gdk_wayland_display_get_startup_notification_id:
- * @display: (type GdkWaylandDisplay): a #GdkDisplay
+ * @display: (type GdkWaylandDisplay): a `GdkDisplay`
  *
  * Gets the startup notification ID for a Wayland display, or %NULL
  * if no ID has been defined.
  *
- * Returns: (nullable): the startup notification ID for @display, or %NULL
+ * Returns: (nullable): the startup notification ID for @display
  */
 const char *
 gdk_wayland_display_get_startup_notification_id (GdkDisplay  *display)
@@ -883,19 +828,19 @@ gdk_wayland_display_get_startup_notification_id (GdkDisplay  *display)
 
 /**
  * gdk_wayland_display_set_startup_notification_id:
- * @display: (type GdkWaylandDisplay): a #GdkDisplay
+ * @display: (type GdkWaylandDisplay): a `GdkDisplay`
  * @startup_id: the startup notification ID (must be valid utf8)
  *
  * Sets the startup notification ID for a display.
  *
- * This is usually taken from the value of the DESKTOP_STARTUP_ID
+ * This is usually taken from the value of the `DESKTOP_STARTUP_ID`
  * environment variable, but in some cases (such as the application not
  * being launched using exec()) it can come from other sources.
  *
  * The startup ID is also what is used to signal that the startup is
  * complete (for example, when opening a window or when calling
- * gdk_display_notify_startup_complete()).
- **/
+ * [method@Gdk.Display.notify_startup_complete]).
+ */
 void
 gdk_wayland_display_set_startup_notification_id (GdkDisplay *display,
                                                  const char *startup_id)
@@ -922,7 +867,7 @@ gdk_wayland_display_notify_startup_complete (GdkDisplay  *display,
         return;
     }
 
-  if (display_wayland->gtk_shell)
+  if (!display_wayland->xdg_activation && display_wayland->gtk_shell)
     gtk_shell1_set_startup_id (display_wayland->gtk_shell, startup_id);
 
   g_free (free_this);
@@ -1075,7 +1020,7 @@ get_cursor_theme (GdkWaylandDisplay *display_wayland,
 
 /**
  * gdk_wayland_display_set_cursor_theme:
- * @display: (type GdkWaylandDisplay): a #GdkDisplay
+ * @display: (type GdkWaylandDisplay): a `GdkDisplay`
  * @name: the new cursor theme
  * @size: the size to use for cursors
  *
@@ -1172,11 +1117,11 @@ _gdk_wayland_display_update_serial (GdkWaylandDisplay *display_wayland,
 
 /**
  * gdk_wayland_display_get_wl_display: (skip)
- * @display: (type GdkWaylandDisplay): a #GdkDisplay
+ * @display: (type GdkWaylandDisplay): a `GdkDisplay`
  *
- * Returns the Wayland wl_display of a #GdkDisplay.
+ * Returns the Wayland `wl_display` of a `GdkDisplay`.
  *
- * Returns: (transfer none): a Wayland wl_display
+ * Returns: (transfer none): a Wayland `wl_display`
  */
 struct wl_display *
 gdk_wayland_display_get_wl_display (GdkDisplay *display)
@@ -1188,11 +1133,11 @@ gdk_wayland_display_get_wl_display (GdkDisplay *display)
 
 /**
  * gdk_wayland_display_get_wl_compositor: (skip)
- * @display: (type GdkWaylandDisplay): a #GdkDisplay
+ * @display: (type GdkWaylandDisplay): a `GdkDisplay`
  *
- * Returns the Wayland global singleton compositor of a #GdkDisplay.
+ * Returns the Wayland `wl_compositor` of a `GdkDisplay`.
  *
- * Returns: (transfer none): a Wayland wl_compositor
+ * Returns: (transfer none): a Wayland `wl_compositor`
  */
 struct wl_compositor *
 gdk_wayland_display_get_wl_compositor (GdkDisplay *display)
@@ -1548,15 +1493,11 @@ update_xft_settings (GdkDisplay *display)
     }
   else
     {
-      GSettingsSchemaSource *source;
-      GSettingsSchema *schema;
+      TranslationEntry *entry;
 
-      source = g_settings_schema_source_get_default ();
-      schema = g_settings_schema_source_lookup (source,
-                                                "org.gnome.desktop.interface",
-                                                FALSE);
+      entry = find_translation_entry_by_schema ("org.gnome.desktop.interface", "font-antialiasing");
 
-      if (schema && g_settings_schema_has_key (schema, "font-antialiasing"))
+      if (entry && entry->valid)
         {
           settings = g_hash_table_lookup (display_wayland->settings,
                                           "org.gnome.desktop.interface");
@@ -1579,9 +1520,6 @@ update_xft_settings (GdkDisplay *display)
           hinting = GSD_FONT_HINTING_MEDIUM;
           order = GSD_FONT_RGBA_ORDER_RGB;
         }
-
-      if (schema)
-        g_settings_schema_unref (schema);
 
       dpi = get_dpi_from_gsettings (display_wayland) * 1024;
     }
@@ -1697,19 +1635,20 @@ static TranslationEntry translations[] = {
   { FALSE, "org.gnome.desktop.privacy", "recent-files-max-age", "gtk-recent-files-max-age", G_TYPE_INT, { .i = 30 } },
   { FALSE, "org.gnome.desktop.privacy", "remember-recent-files",    "gtk-recent-files-enabled", G_TYPE_BOOLEAN, { .b = TRUE } },
   { FALSE, "org.gnome.desktop.wm.preferences", "button-layout",    "gtk-decoration-layout", G_TYPE_STRING, { .s = "menu:close" } },
-  { FALSE, "org.gnome.desktop.interface", "font-antialiasing", "gtk-xft-antialias", G_TYPE_NONE, { .i = 0 } },
-  { FALSE, "org.gnome.desktop.interface", "font-hinting", "gtk-xft-hinting", G_TYPE_NONE, { .i = 0 } },
-  { FALSE, "org.gnome.desktop.interface", "font-hinting", "gtk-xft-hintstyle", G_TYPE_NONE, { .i = 0 } },
+  { FALSE, "org.gnome.desktop.interface", "font-antialiasing", "gtk-xft-antialias", G_TYPE_NONE, { .i = 1 } },
+  { FALSE, "org.gnome.desktop.interface", "font-hinting", "gtk-xft-hinting", G_TYPE_NONE, { .i = 1 } },
+  { FALSE, "org.gnome.desktop.interface", "font-hinting", "gtk-xft-hintstyle", G_TYPE_NONE, { .i = 1 } },
   { FALSE, "org.gnome.desktop.interface", "font-rgba-order", "gtk-xft-rgba", G_TYPE_NONE, { .i = 0 } },
-  { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "antialiasing", "gtk-xft-antialias", G_TYPE_NONE, { .i = 0 } },
-  { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "hinting", "gtk-xft-hinting", G_TYPE_NONE, { .i = 0 } },
-  { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "hinting", "gtk-xft-hintstyle", G_TYPE_NONE, { .i = 0 } },
+  { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "antialiasing", "gtk-xft-antialias", G_TYPE_NONE, { .i = 1 } },
+  { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "hinting", "gtk-xft-hinting", G_TYPE_NONE, { .i = 1 } },
+  { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "hinting", "gtk-xft-hintstyle", G_TYPE_NONE, { .i = 1 } },
   { FALSE, "org.gnome.settings-daemon.plugins.xsettings", "rgba-order", "gtk-xft-rgba", G_TYPE_NONE, { .i = 0 } },
   { FALSE, "org.gnome.desktop.interface", "text-scaling-factor", "gtk-xft-dpi" , G_TYPE_NONE, { .i = 0 } }, /* We store the factor as 16.16 */
   { FALSE, "org.gnome.desktop.wm.preferences", "action-double-click-titlebar", "gtk-titlebar-double-click", G_TYPE_STRING, { .s = "toggle-maximize" } },
   { FALSE, "org.gnome.desktop.wm.preferences", "action-middle-click-titlebar", "gtk-titlebar-middle-click", G_TYPE_STRING, { .s = "none" } },
   { FALSE, "org.gnome.desktop.wm.preferences", "action-right-click-titlebar", "gtk-titlebar-right-click", G_TYPE_STRING, { .s = "menu" } },
   { FALSE, "org.gnome.desktop.a11y", "always-show-text-caret", "gtk-keynav-use-caret", G_TYPE_BOOLEAN, { .b = FALSE } },
+  /* Note, this setting doesn't exist, the portal and gsd fake it */
   { FALSE, "org.gnome.fontconfig", "serial", "gtk-fontconfig-timestamp", G_TYPE_NONE, { .i = 0 } },
 };
 
@@ -1906,6 +1845,14 @@ init_settings (GdkDisplay *display)
 
       g_variant_get (ret, "(a{sa{sv}})", &iter);
 
+      if (g_variant_n_children (ret) == 0)
+        {
+          g_debug ("Received no portal settings");
+          g_clear_pointer (&ret, g_variant_unref);
+
+          goto fallback;
+        }
+
       while (g_variant_iter_loop (iter, "{s@a{sv}}", &schema_str, &val))
         {
           GVariantIter *iter2 = g_variant_iter_new (val);
@@ -1920,6 +1867,7 @@ init_settings (GdkDisplay *display)
                   char *a = g_variant_print (v, FALSE);
                   g_debug ("Using portal setting for %s %s: %s\n", schema_str, key, a);
                   g_free (a);
+                  entry->valid = TRUE;
                   apply_portal_setting (entry, v, display);
                 }
               else
@@ -2433,7 +2381,21 @@ output_handle_geometry (void             *data,
 
   monitor->x = x;
   monitor->y = y;
-  gdk_monitor_set_physical_size (GDK_MONITOR (monitor), physical_width, physical_height);
+
+  switch (transform)
+    {
+    case WL_OUTPUT_TRANSFORM_90:
+    case WL_OUTPUT_TRANSFORM_270:
+    case WL_OUTPUT_TRANSFORM_FLIPPED_90:
+    case WL_OUTPUT_TRANSFORM_FLIPPED_270:
+      gdk_monitor_set_physical_size (GDK_MONITOR (monitor),
+				     physical_height, physical_width);
+      break;
+    default:
+      gdk_monitor_set_physical_size (GDK_MONITOR (monitor),
+				     physical_width, physical_height);
+    }
+
   gdk_monitor_set_subpixel_layout (GDK_MONITOR (monitor), subpixel);
   gdk_monitor_set_manufacturer (GDK_MONITOR (monitor), make);
   gdk_monitor_set_model (GDK_MONITOR (monitor), model);
@@ -2637,14 +2599,14 @@ gdk_wayland_display_get_output_scale (GdkWaylandDisplay *display_wayland,
 
 /**
  * gdk_wayland_display_query_registry:
- * @display: (type GdkWaylandDisplay): a #GdkDisplay
+ * @display: (type GdkWaylandDisplay): a `GdkDisplay`
  * @global: global interface to query in the registry
  *
  * Returns %TRUE if the the interface was found in the display
  * `wl_registry.global` handler.
  *
  * Returns: %TRUE if the global is offered by the compositor
- **/
+ */
 gboolean
 gdk_wayland_display_query_registry (GdkDisplay  *display,
 				    const char *global)

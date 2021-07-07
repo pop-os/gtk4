@@ -27,11 +27,9 @@
 #include <string.h>
 
 /*< private >
- * SECTION:gtkmenutrackeritem
- * @Title: GtkMenuTrackerItem
- * @Short_description: Small helper for model menu items
+ * GtkMenuTrackerItem:
  *
- * A #GtkMenuTrackerItem is a small helper class used by #GtkMenuTracker to
+ * A GtkMenuTrackerItem is a small helper class used by GtkMenuTracker to
  * represent menu items. It has one of three classes: normal item, separator,
  * or submenu.
  *
@@ -52,11 +50,11 @@
  * GtkMenuTrackerItem::is-separator and GtkMenuTrackerItem::has-submenu are
  * allowed to change, so listen to the notify signals to update your item's
  * appearance. When using a GObject library, this can conveniently be done
- * with g_object_bind_property() and #GBinding, and this is how this is
- * implemented in GTK; the appearance side is implemented in #GtkModelMenuItem.
+ * with g_object_bind_property() and GBinding, and this is how this is
+ * implemented in GTK; the appearance side is implemented in GtkModelMenuItem.
  *
  * When an item is clicked, simply call gtk_menu_tracker_item_activated() in
- * response. The #GtkMenuTrackerItem will take care of everything related to
+ * response. The GtkMenuTrackerItem will take care of everything related to
  * activating the item and will itself update the state of all items in
  * response.
  *
@@ -579,11 +577,11 @@ _gtk_menu_tracker_item_get_observable (GtkMenuTrackerItem *self)
 
 /*< private >
  * gtk_menu_tracker_item_get_is_separator:
- * @self: A #GtkMenuTrackerItem instance
+ * @self: A GtkMenuTrackerItem instance
  *
  * Returns: whether the menu item is a separator. If so, only
  * certain properties may need to be obeyed. See the documentation
- * for #GtkMenuTrackerItem.
+ * for GtkMenuTrackerItem.
  */
 gboolean
 gtk_menu_tracker_item_get_is_separator (GtkMenuTrackerItem *self)
@@ -593,11 +591,11 @@ gtk_menu_tracker_item_get_is_separator (GtkMenuTrackerItem *self)
 
 /*< private >
  * gtk_menu_tracker_item_get_has_submenu:
- * @self: A #GtkMenuTrackerItem instance
+ * @self: A GtkMenuTrackerItem instance
  *
  * Returns: whether the menu item has a submenu. If so, only
  * certain properties may need to be obeyed. See the documentation
- * for #GtkMenuTrackerItem.
+ * for GtkMenuTrackerItem.
  */
 gboolean
 gtk_menu_tracker_item_get_has_link (GtkMenuTrackerItem *self,
@@ -811,12 +809,56 @@ gtk_menu_tracker_item_activated (GtkMenuTrackerItem *self)
     g_variant_unref (action_target);
 }
 
-typedef struct
-{
+typedef struct {
+  GObject parent;
+
   GtkMenuTrackerItem *item;
   char               *submenu_action;
   gboolean            first_time;
 } GtkMenuTrackerOpener;
+
+typedef struct {
+  GObjectClass parent_class;
+} GtkMenuTrackerOpenerClass;
+
+static void gtk_menu_tracker_opener_observer_iface_init (GtkActionObserverInterface *iface);
+
+GType gtk_menu_tracker_opener_get_type (void) G_GNUC_CONST;
+
+G_DEFINE_TYPE_WITH_CODE (GtkMenuTrackerOpener, gtk_menu_tracker_opener, G_TYPE_OBJECT,
+                         G_IMPLEMENT_INTERFACE (GTK_TYPE_ACTION_OBSERVER, gtk_menu_tracker_opener_observer_iface_init))
+
+static void
+gtk_menu_tracker_opener_init (GtkMenuTrackerOpener *self)
+{
+}
+
+static void
+gtk_menu_tracker_opener_finalize (GObject *object)
+{
+  GtkMenuTrackerOpener *opener = (GtkMenuTrackerOpener *)object;
+
+  gtk_action_observable_unregister_observer (opener->item->observable,
+                                             opener->submenu_action,
+                                             (GtkActionObserver *)opener);
+
+  if (GTK_IS_ACTION_MUXER (opener->item->observable))
+    gtk_action_muxer_change_action_state (GTK_ACTION_MUXER (opener->item->observable),
+                                          opener->submenu_action,
+                                          g_variant_new_boolean (FALSE));
+
+  gtk_menu_tracker_item_set_submenu_shown (opener->item, FALSE);
+
+  g_free (opener->submenu_action);
+
+  G_OBJECT_CLASS (gtk_menu_tracker_opener_parent_class)->finalize (object);
+}
+
+static void
+gtk_menu_tracker_opener_class_init (GtkMenuTrackerOpenerClass *class)
+{
+  G_OBJECT_CLASS (class)->finalize = gtk_menu_tracker_opener_finalize;
+}
 
 static void
 gtk_menu_tracker_opener_update (GtkMenuTrackerOpener *opener)
@@ -864,57 +906,49 @@ gtk_menu_tracker_opener_update (GtkMenuTrackerOpener *opener)
 }
 
 static void
-gtk_menu_tracker_opener_added (GActionGroup *group,
-                               const char   *action_name,
-                               gpointer      user_data)
+gtk_menu_tracker_opener_added (GtkActionObserver   *observer,
+                               GtkActionObservable *observable,
+                               const char          *action_name,
+                               const GVariantType  *parameter_type,
+                               gboolean             enabled,
+                               GVariant            *state)
 {
-  GtkMenuTrackerOpener *opener = user_data;
-
-  if (g_str_equal (action_name, opener->submenu_action))
-    gtk_menu_tracker_opener_update (opener);
+  gtk_menu_tracker_opener_update ((GtkMenuTrackerOpener *)observer);
 }
 
 static void
-gtk_menu_tracker_opener_removed (GActionGroup *action_group,
-                                 const char   *action_name,
-                                 gpointer      user_data)
+gtk_menu_tracker_opener_removed (GtkActionObserver   *observer,
+                                 GtkActionObservable *observable,
+                                 const char          *action_name)
 {
-  GtkMenuTrackerOpener *opener = user_data;
-
-  if (g_str_equal (action_name, opener->submenu_action))
-    gtk_menu_tracker_opener_update (opener);
+  gtk_menu_tracker_opener_update ((GtkMenuTrackerOpener *)observer);
 }
 
 static void
-gtk_menu_tracker_opener_changed (GActionGroup *action_group,
-                                 const char   *action_name,
-                                 GVariant     *new_state,
-                                 gpointer      user_data)
+gtk_menu_tracker_opener_enabled_changed (GtkActionObserver   *observer,
+                                         GtkActionObservable *observable,
+                                         const char          *action_name,
+                                         gboolean             enabled)
 {
-  GtkMenuTrackerOpener *opener = user_data;
-
-  if (g_str_equal (action_name, opener->submenu_action))
-    gtk_menu_tracker_opener_update (opener);
+  gtk_menu_tracker_opener_update ((GtkMenuTrackerOpener *)observer);
 }
 
 static void
-gtk_menu_tracker_opener_free (gpointer data)
+gtk_menu_tracker_opener_state_changed (GtkActionObserver   *observer,
+                                       GtkActionObservable *observable,
+                                       const char          *action_name,
+                                       GVariant            *state)
 {
-  GtkMenuTrackerOpener *opener = data;
+  gtk_menu_tracker_opener_update ((GtkMenuTrackerOpener *)observer);
+}
 
-  g_signal_handlers_disconnect_by_func (opener->item->observable, gtk_menu_tracker_opener_added, opener);
-  g_signal_handlers_disconnect_by_func (opener->item->observable, gtk_menu_tracker_opener_removed, opener);
-  g_signal_handlers_disconnect_by_func (opener->item->observable, gtk_menu_tracker_opener_changed, opener);
-
-  g_action_group_change_action_state (G_ACTION_GROUP (opener->item->observable),
-                                      opener->submenu_action,
-                                      g_variant_new_boolean (FALSE));
-
-  gtk_menu_tracker_item_set_submenu_shown (opener->item, FALSE);
-
-  g_free (opener->submenu_action);
-
-  g_slice_free (GtkMenuTrackerOpener, opener);
+static void
+gtk_menu_tracker_opener_observer_iface_init (GtkActionObserverInterface *iface)
+{
+  iface->action_added = gtk_menu_tracker_opener_added;
+  iface->action_removed = gtk_menu_tracker_opener_removed;
+  iface->action_enabled_changed = gtk_menu_tracker_opener_enabled_changed;
+  iface->action_state_changed = gtk_menu_tracker_opener_state_changed;
 }
 
 static GtkMenuTrackerOpener *
@@ -923,7 +957,8 @@ gtk_menu_tracker_opener_new (GtkMenuTrackerItem *item,
 {
   GtkMenuTrackerOpener *opener;
 
-  opener = g_slice_new (GtkMenuTrackerOpener);
+  opener = g_object_new (gtk_menu_tracker_opener_get_type (), NULL);
+
   opener->first_time = TRUE;
   opener->item = item;
 
@@ -932,9 +967,9 @@ gtk_menu_tracker_opener_new (GtkMenuTrackerItem *item,
   else
     opener->submenu_action = g_strdup (submenu_action);
 
-  g_signal_connect (item->observable, "action-added", G_CALLBACK (gtk_menu_tracker_opener_added), opener);
-  g_signal_connect (item->observable, "action-removed", G_CALLBACK (gtk_menu_tracker_opener_removed), opener);
-  g_signal_connect (item->observable, "action-state-changed", G_CALLBACK (gtk_menu_tracker_opener_changed), opener);
+  gtk_action_observable_register_observer (item->observable,
+                                           opener->submenu_action,
+                                           (GtkActionObserver *)opener);
 
   gtk_menu_tracker_opener_update (opener);
 
@@ -964,7 +999,7 @@ gtk_menu_tracker_item_request_submenu_shown (GtkMenuTrackerItem *self,
       if (shown)
         g_object_set_data_full (G_OBJECT (self), "submenu-opener",
                                 gtk_menu_tracker_opener_new (self, submenu_action),
-                                gtk_menu_tracker_opener_free);
+                                g_object_unref);
       else
         g_object_set_data (G_OBJECT (self), "submenu-opener", NULL);
     }
@@ -974,7 +1009,7 @@ gtk_menu_tracker_item_request_submenu_shown (GtkMenuTrackerItem *self,
 
 /*
  * gtk_menu_tracker_item_get_is_visible:
- * @self: A #GtkMenuTrackerItem instance
+ * @self: A GtkMenuTrackerItem instance
  *
  * Don't use this unless you're tracking items for yourself -- normally
  * the tracker will emit add/remove automatically when this changes.
@@ -989,7 +1024,7 @@ gtk_menu_tracker_item_get_is_visible (GtkMenuTrackerItem *self)
 
 /*
  * gtk_menu_tracker_item_may_disappear:
- * @self: A #GtkMenuTrackerItem instance
+ * @self: A GtkMenuTrackerItem instance
  *
  * Returns: if the item may disappear (ie: is-visible property may change)
  */

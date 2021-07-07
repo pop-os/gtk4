@@ -61,6 +61,7 @@ static DefaultCursor default_cursors[] = {
   { "text", IDC_IBEAM },
   { "move", IDC_SIZEALL },
   { "not-allowed", IDC_NO },
+  { "all-scroll", IDC_SIZEALL },
   { "ew-resize", IDC_SIZEWE },
   { "e-resize", IDC_SIZEWE },
   { "w-resize", IDC_SIZEWE },
@@ -1492,17 +1493,17 @@ _gdk_win32_pixbuf_to_hcursor (GdkPixbuf *pixbuf,
 
 /**
  * gdk_win32_display_get_win32hcursor:
- * @display: (type GdkWin32Display): a #GdkDisplay
- * @cursor: a #GdkCursor.
- * 
- * Returns the Win32 HCURSOR wrapper object belonging to a #GdkCursor,
+ * @display: (type GdkWin32Display): a `GdkDisplay`
+ * @cursor: a `GdkCursor`
+ *
+ * Returns the Win32 HCURSOR wrapper object belonging to a `GdkCursor`,
  * potentially creating the cursor object.
  *
  * Be aware that the returned cursor may not be unique to @cursor.
  * It may for example be shared with its fallback cursor.
- * 
- * Returns: a GdkWin32HCursor.
- **/
+ *
+ * Returns: a GdkWin32HCursor
+ */
 GdkWin32HCursor *
 gdk_win32_display_get_win32hcursor (GdkWin32Display *display,
                                     GdkCursor       *cursor)

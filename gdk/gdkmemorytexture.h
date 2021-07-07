@@ -31,11 +31,11 @@ G_BEGIN_DECLS
 /**
  * GdkMemoryFormat:
  * @GDK_MEMORY_B8G8R8A8_PREMULTIPLIED: 4 bytes; for blue, green, red, alpha.
- *     The color values are premultiplied with the alpha value.
+ *   The color values are premultiplied with the alpha value.
  * @GDK_MEMORY_A8R8G8B8_PREMULTIPLIED: 4 bytes; for alpha, red, green, blue.
- *     The color values are premultiplied with the alpha value.
+ *   The color values are premultiplied with the alpha value.
  * @GDK_MEMORY_R8G8B8A8_PREMULTIPLIED: 4 bytes; for red, green, blue, alpha
- *     The color values are premultiplied with the alpha value.
+ *   The color values are premultiplied with the alpha value.
  * @GDK_MEMORY_B8G8R8A8: 4 bytes; for blue, green, red, alpha.
  * @GDK_MEMORY_A8R8G8B8: 4 bytes; for alpha, red, green, blue.
  * @GDK_MEMORY_R8G8B8A8: 4 bytes; for red, green, blue, alpha.
@@ -43,18 +43,18 @@ G_BEGIN_DECLS
  * @GDK_MEMORY_R8G8B8: 3 bytes; for red, green, blue. The data is opaque.
  * @GDK_MEMORY_B8G8R8: 3 bytes; for blue, green, red. The data is opaque.
  * @GDK_MEMORY_N_FORMATS: The number of formats. This value will change as
- *     more formats get added, so do not rely on its concrete integer.
+ *   more formats get added, so do not rely on its concrete integer.
  *
- * #GdkMemoryFormat describes a format that bytes can have in memory.
+ * `GdkMemoryFormat` describes a format that bytes can have in memory.
  *
  * It describes formats by listing the contents of the memory passed to it.
  * So GDK_MEMORY_A8R8G8B8 will be 1 byte (8 bits) of alpha, followed by a
  * byte each of red, green and blue. It is not endian-dependent, so
- * CAIRO_FORMAT_ARGB32 is represented by different #GdkMemoryFormats on
- * architectures with different endiannesses.
- * 
- * Its naming is modelled after VkFormat (see
- * https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#VkFormat
+ * CAIRO_FORMAT_ARGB32 is represented by different `GdkMemoryFormats`
+ * on architectures with different endiannesses.
+ *
+ * Its naming is modelled after
+ * [VkFormat](https://www.khronos.org/registry/vulkan/specs/1.0/html/vkspec.html#VkFormat)
  * for details).
  */
 typedef enum {
@@ -74,12 +74,13 @@ typedef enum {
 /**
  * GDK_MEMORY_DEFAULT:
  *
- * This is the default memory format used by GTK and is the format
- * provided by gdk_texture_download(). It is equal to
- * %CAIRO_FORMAT_ARGB32.
+ * The default memory format used by GTK.
  *
- * Be aware that unlike the #GdkMemoryFormat values, this format is
- * different for different endianness.
+ * This is the format provided by [method@Gdk.Texture.download].
+ * It is equal to %CAIRO_FORMAT_ARGB32.
+ *
+ * Be aware that unlike the `GdkMemoryFormat` values, this format
+ * is different for different endianness.
  */
 #if G_BYTE_ORDER == G_LITTLE_ENDIAN
 #define GDK_MEMORY_DEFAULT GDK_MEMORY_B8G8R8A8_PREMULTIPLIED
@@ -94,11 +95,6 @@ typedef enum {
 #define GDK_MEMORY_TEXTURE(obj)             (G_TYPE_CHECK_INSTANCE_CAST ((obj), GDK_TYPE_MEMORY_TEXTURE, GdkMemoryTexture))
 #define GDK_IS_MEMORY_TEXTURE(obj)          (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GDK_TYPE_MEMORY_TEXTURE))
 
-/**
- * GdkMemoryTexture:
- *
- * A #GdkTexture representing image data in memory.
- */
 typedef struct _GdkMemoryTexture        GdkMemoryTexture;
 typedef struct _GdkMemoryTextureClass   GdkMemoryTextureClass;
 

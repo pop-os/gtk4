@@ -28,6 +28,8 @@
 #include "gtkversion.h"
 #include "gdkprofilerprivate.h"
 
+#include "gtkprivate.h"
+
 #include <gio/gio.h>
 #include <string.h>
 
@@ -204,14 +206,14 @@ gtk_buildable_parse_context_parse (GtkBuildableParseContext *context,
 
 /**
  * gtk_buildable_parse_context_push:
- * @context: a #GtkBuildableParseContext
- * @parser: a #GtkBuildableParser
- * @user_data: user data to pass to #GtkBuildableParser functions
+ * @context: a `GtkBuildableParseContext`
+ * @parser: a `GtkBuildableParser`
+ * @user_data: user data to pass to `GtkBuildableParser` functions
  *
  * Temporarily redirects markup data to a sub-parser.
  *
  * This function may only be called from the start_element handler of
- * a #GtkBuildableParser. It must be matched with a corresponding call to
+ * a `GtkBuildableParser`. It must be matched with a corresponding call to
  * gtk_buildable_parse_context_pop() in the matching end_element handler
  * (except in the case that the parser aborts due to an error).
  *
@@ -260,7 +262,7 @@ gtk_buildable_parse_context_push (GtkBuildableParseContext *context,
 
 /**
  * gtk_buildable_parse_context_pop:
- * @context: a #GtkBuildableParseContext
+ * @context: a `GtkBuildableParseContext`
  *
  * Completes the process of a temporary sub-parser redirection.
  *
@@ -298,7 +300,7 @@ gtk_buildable_parse_context_pop (GtkBuildableParseContext *context)
 
 /**
  * gtk_buildable_parse_context_get_element:
- * @context: a #GtkBuildablParseContext
+ * @context: a `GtkBuildablParseContext`
  *
  * Retrieves the name of the currently open element.
  *
@@ -306,7 +308,7 @@ gtk_buildable_parse_context_pop (GtkBuildableParseContext *context)
  * give the element_name as passed to those functions. For the parent
  * elements, see gtk_buildable_parse_context_get_element_stack().
  *
- * Returns: (nullable): the name of the currently open element, or %NULL
+ * Returns: (nullable): the name of the currently open element
  */
 const char *
 gtk_buildable_parse_context_get_element (GtkBuildableParseContext *context)
@@ -318,11 +320,11 @@ gtk_buildable_parse_context_get_element (GtkBuildableParseContext *context)
 
 /**
  * gtk_buildable_parse_context_get_element_stack:
- * @context: a #GtkBuildableParseContext
+ * @context: a `GtkBuildableParseContext`
  *
  * Retrieves the element stack from the internal state of the parser.
  *
- * The returned #GPtrArray is an array of strings where the last item is
+ * The returned `GPtrArray` is an array of strings where the last item is
  * the currently open tag (as would be returned by
  * gtk_buildable_parse_context_get_element()) and the previous item is its
  * immediate parent.
@@ -342,9 +344,9 @@ gtk_buildable_parse_context_get_element_stack (GtkBuildableParseContext *context
 
 /**
  * gtk_buildable_parse_context_get_position:
- * @context: a #GtkBuildableParseContext
- * @line_number: (out) (optional): return location for a line number, or %NULL
- * @char_number: (out) (optional): return location for a char-on-line number, or %NULL
+ * @context: a `GtkBuildableParseContext`
+ * @line_number: (out) (optional): return location for a line number
+ * @char_number: (out) (optional): return location for a char-on-line number
  *
  * Retrieves the current line number and the number of the character on
  * that line. Intended for use in error messages; there are no strict
@@ -1610,7 +1612,7 @@ create_subparser (GObject       *object,
   subparser->child = child;
   subparser->tagname = g_strdup (element_name);
   subparser->start = element_name;
-  subparser->parser = g_memdup (parser, sizeof (GtkBuildableParser));
+  subparser->parser = g_memdup2 (parser, sizeof (GtkBuildableParser));
   subparser->data = user_data;
 
   return subparser;
@@ -2004,6 +2006,7 @@ end_element (GtkBuildableParseContext  *context,
           PropertyInfo *prop_info = (PropertyInfo *) parent_info;
 
           prop_info->value = expression_info_construct (data->builder, expression_info, error);
+          free_expression_info (expression_info);
         }
       else if (parent_info->tag_type == TAG_EXPRESSION)
         {

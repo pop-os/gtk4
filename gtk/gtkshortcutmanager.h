@@ -35,23 +35,16 @@ GDK_AVAILABLE_IN_ALL
 G_DECLARE_INTERFACE (GtkShortcutManager, gtk_shortcut_manager, GTK, SHORTCUT_MANAGER, GtkWidget)
 
 /**
- * GtkShortcutManager:
- *
- * This object is used to implement support for #GtkShortcutScopes. Every
- * widget that implements #GtkShortcutManager will be used as a
- * %GTK_SHORTCUT_SCOPE_MANAGED.
- */
-
-/**
  * GtkShortcutManagerInterface:
- * @add_controller: Add a #GtkShortcutController to be managed.
- * @remove_controller: Remove a #GtkShortcutController that had previously
- *     been added.
+ * @add_controller: Add a `GtkShortcutController` to be managed.
+ * @remove_controller: Remove a `GtkShortcutController` that had previously
+ *   been added
  *
- * The list of functions that can be implemented for the #GtkShortcutManager interface.
+ * The list of functions that can be implemented for the `GtkShortcutManager`
+ * interface.
  *
- * Note that no function is mandatory to implement, the default implementation will work
- * fine.
+ * Note that no function is mandatory to implement, the default implementation
+ * will work fine.
  */
 struct _GtkShortcutManagerInterface
 {

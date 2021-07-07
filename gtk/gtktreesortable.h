@@ -31,27 +31,24 @@ G_BEGIN_DECLS
 
 #define GTK_TYPE_TREE_SORTABLE            (gtk_tree_sortable_get_type ())
 #define GTK_TREE_SORTABLE(obj)            (G_TYPE_CHECK_INSTANCE_CAST ((obj), GTK_TYPE_TREE_SORTABLE, GtkTreeSortable))
-#define GTK_TREE_SORTABLE_CLASS(obj)      (G_TYPE_CHECK_CLASS_CAST ((obj), GTK_TYPE_TREE_SORTABLE, GtkTreeSortableIface))
 #define GTK_IS_TREE_SORTABLE(obj)         (G_TYPE_CHECK_INSTANCE_TYPE ((obj), GTK_TYPE_TREE_SORTABLE))
 #define GTK_TREE_SORTABLE_GET_IFACE(obj)  (G_TYPE_INSTANCE_GET_INTERFACE ((obj), GTK_TYPE_TREE_SORTABLE, GtkTreeSortableIface))
 
 /**
  * GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID:
  *
- * The GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID can be used to make a
- * #GtkTreeSortable use the default sort function.
+ * Uses the default sort function in a [iface@Gtk.TreeSortable].
  *
- * See also gtk_tree_sortable_set_sort_column_id()
+ * See also: [method@Gtk.TreeSortable.set_sort_column_id]
  */
 #define GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID (-1)
 
 /**
  * GTK_TREE_SORTABLE_UNSORTED_SORT_COLUMN_ID:
  *
- * The GTK_TREE_SORTABLE_UNSORTED_SORT_COLUMN_ID can be used to make a
- * #GtkTreeSortable use no sorting.
+ * Disables sorting in a [iface@Gtk.TreeSortable].
  *
- * See also gtk_tree_sortable_set_sort_column_id()
+ * See also: [method@Gtk.TreeSortable.set_sort_column_id]
  */
 #define GTK_TREE_SORTABLE_UNSORTED_SORT_COLUMN_ID (-2)
 
@@ -60,16 +57,18 @@ typedef struct _GtkTreeSortableIface GtkTreeSortableIface;
 
 /**
  * GtkTreeIterCompareFunc:
- * @model: The #GtkTreeModel the comparison is within
- * @a: A #GtkTreeIter in @model
- * @b: Another #GtkTreeIter in @model
+ * @model: The `GtkTreeModel` the comparison is within
+ * @a: A `GtkTreeIter` in @model
+ * @b: Another `GtkTreeIter` in @model
  * @user_data: Data passed when the compare func is assigned e.g. by
  *  gtk_tree_sortable_set_sort_func()
  *
  * A GtkTreeIterCompareFunc should return a negative integer, zero, or a positive
  * integer if @a sorts before @b, @a sorts with @b, or @a sorts after @b
- * respectively. If two iters compare as equal, their order in the sorted model
- * is undefined. In order to ensure that the #GtkTreeSortable behaves as
+ * respectively.
+ *
+ * If two iters compare as equal, their order in the sorted model
+ * is undefined. In order to ensure that the `GtkTreeSortable` behaves as
  * expected, the GtkTreeIterCompareFunc must define a partial order on
  * the model, i.e. it must be reflexive, antisymmetric and transitive.
  *

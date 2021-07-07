@@ -22,73 +22,6 @@
  * GTK+ at ftp://ftp.gtk.org/pub/gtk/. 
  */
 
-/**
- * SECTION:gtkmain
- * @Short_description: Library initialization and main loop
- * @Title: Initialization
- * @See_also: See the GLib manual, especially #GMainLoop and signal-related
- *    functions such as g_signal_connect()
- *
- * Before using GTK, you need to initialize it using gtk_init(); this
- * connects to the windowing system, sets up the locale and performs other
- * initialization tasks. gtk_init() exits the application if errors occur;
- * to avoid this, you can use gtk_init_check(), which allows you to recover
- * from a failed GTK initialization - you might start up your application
- * in text mode instead.
- *
- * Like all GUI toolkits, GTK uses an event-driven programming model. When the
- * user is doing nothing, GTK sits in the “main loop” and waits for input.
- * If the user performs some action - say, a mouse click - then the main loop
- * “wakes up” and delivers an event to GTK. GTK forwards the event to one or
- * more widgets.
- *
- * When widgets receive an event, they frequently emit one or more “signals”.
- * Signals notify your program that "something interesting happened" by invoking
- * functions you’ve connected to the signal with g_signal_connect(). Functions
- * connected to a signal are often called “callbacks”.
- *
- * When your callbacks are invoked, you would typically take some action - for
- * example, when an Open button is clicked you might display a
- * #GtkFileChooserDialog. After a callback finishes, GTK will return to the
- * main loop and await more user input.
- *
- * ## Typical main() function for a GTK application
- *
- * |[<!-- language="C" -->
- * int
- * main (int argc, char **argv)
- * {
- *  GtkWidget *window;
- *   // Initialize i18n support with bindtextdomain(), etc.
- *
- *   // ...
- *
- *   // Initialize the widget set
- *   gtk_init ();
- *
- *   // Create the main window
- *   window = gtk_window_new ();
- *
- *   // Set up our GUI elements
- *
- *   // ...
- *
- *   // Show the application window
- *   gtk_widget_show (window);
- *
- *   // Enter the main event loop, and wait for user interaction
- *   while (!done)
- *     g_main_context_iteration (NULL, TRUE);
- *
- *   // The user lost interest
- *   return 0;
- * }
- * ]|
- *
- * See #GMainLoop in the GLib documentation to learn more about
- * main loops and their features.
- */
-
 #include "config.h"
 
 #include "gdk/gdk.h"
@@ -129,7 +62,7 @@
 #include "gtkwindowprivate.h"
 #include "gtkwindowgroup.h"
 #include "gtkprintbackendprivate.h"
-#include "gtkimmodule.h"
+#include "gtkimmoduleprivate.h"
 #include "gtkroot.h"
 #include "gtknative.h"
 #include "gtkpopcountprivate.h"
@@ -264,6 +197,7 @@ static const GdkDebugKey gtk_debug_keys[] = {
   { "touchscreen", GTK_DEBUG_TOUCHSCREEN, "Pretend the pointer is a touchscreen" },
   { "snapshot", GTK_DEBUG_SNAPSHOT, "Generate debug render nodes" },
   { "accessibility", GTK_DEBUG_A11Y, "Information about accessibility state changes" },
+  { "iconfallback", GTK_DEBUG_ICONFALLBACK, "Information about icon fallback" },
 };
 
 /* This checks to see if the process is running suid or sgid
@@ -311,10 +245,10 @@ static gboolean do_setlocale = TRUE;
 /**
  * gtk_disable_setlocale:
  *
- * Prevents gtk_init(), gtk_init_check() and
- * gtk_parse_args() from automatically
- * calling `setlocale (LC_ALL, "")`. You would
- * want to use this function if you wanted to set the locale for
+ * Prevents [id@gtk_init] and [id@gtk_init_check] from automatically calling
+ * `setlocale (LC_ALL, "")`.
+ *
+ * You would want to use this function if you wanted to set the locale for
  * your program to something other than the user’s locale, or if
  * you wanted to set different values for different locale categories.
  *
@@ -636,7 +570,7 @@ do_post_parse_initialization (void)
  * interface.
  *
  * Returns: %TRUE if the windowing system has been successfully
- *     initialized, %FALSE otherwise
+ *   initialized, %FALSE otherwise
  */
 gboolean
 gtk_init_check (void)
@@ -673,8 +607,8 @@ gtk_init_check (void)
  * applications.  It will initialize everything needed to operate the
  * toolkit and parses some standard command line options.
  *
- * If you are using #GtkApplication, you don't have to call gtk_init()
- * or gtk_init_check(); the #GApplication::startup handler
+ * If you are using `GtkApplication`, you don't have to call gtk_init()
+ * or gtk_init_check(); the `GApplication::startup` handler
  * does it for you.
  *
  * This function will terminate your program if it was unable to
@@ -804,7 +738,7 @@ gtk_is_initialized (void)
  * gtk_widget_set_default_direction (direction);
  * ]|
  *
- * Returns: the #GtkTextDirection of the current locale
+ * Returns: the `GtkTextDirection` of the current locale
  */
 GtkTextDirection
 gtk_get_locale_direction (void)
@@ -828,17 +762,22 @@ gtk_get_locale_direction (void)
 /**
  * gtk_get_default_language:
  *
- * Returns the #PangoLanguage for the default language currently in
- * effect. (Note that this can change over the life of an
- * application.) The default language is derived from the current
- * locale. It determines, for example, whether GTK uses the
- * right-to-left or left-to-right text direction.
+ * Returns the `PangoLanguage` for the default language
+ * currently in effect.
  *
- * This function is equivalent to pango_language_get_default().
+ * Note that this can change over the life of an
+ * application.
+ *
+ * The default language is derived from the current
+ * locale. It determines, for example, whether GTK uses
+ * the right-to-left or left-to-right text direction.
+ *
+ * This function is equivalent to
+ * [func@Pango.Language.get_default].
  * See that function for details.
  *
- * Returns: (transfer none): the default language as a #PangoLanguage,
- *     must not be freed
+ * Returns: (transfer none): the default language as a
+ *   `PangoLanguage`
  */
 PangoLanguage *
 gtk_get_default_language (void)
@@ -1848,14 +1787,14 @@ gtk_get_current_event_time (void)
 
 /**
  * gtk_get_event_widget:
- * @event: a #GdkEvent
+ * @event: a `GdkEvent`
  *
  * If @event is %NULL or the event was not associated with any widget,
  * returns %NULL, otherwise returns the widget that received the event
  * originally.
  *
  * Returns: (transfer none) (nullable): the widget that originally
- *     received @event, or %NULL
+ *   received @event
  */
 GtkWidget *
 gtk_get_event_widget (GdkEvent *event)
@@ -1958,14 +1897,14 @@ gtk_propagate_event_internal (GtkWidget *widget,
 
 /**
  * gtk_propagate_event:
- * @widget: a #GtkWidget
+ * @widget: a `GtkWidget`
  * @event: an event
  *
  * Sends an event to a widget, propagating the event to parent widgets
  * if the event remains unhandled. This function will emit the event
  * through all the hierarchy of @widget through all propagation phases.
  *
- * Events received by GTK from GDK normally begin at a #GtkRoot widget.
+ * Events received by GTK from GDK normally begin at a `GtkRoot` widget.
  * Depending on the type of event, existence of modal dialogs, grabs, etc.,
  * the event may be propagated; if so, this function is used.
  *

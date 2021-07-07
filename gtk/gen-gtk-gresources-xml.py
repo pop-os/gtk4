@@ -32,48 +32,44 @@ def get_files(subdir,extension):
 
 xml += '''
     <file>theme/Empty/gtk.css</file>
-    <file>theme/Adwaita/gtk.css</file>
-    <file>theme/Adwaita/gtk-dark.css</file>
-    <file alias='theme/Adwaita-dark/gtk.css'>theme/Adwaita/gtk-dark.css</file>
-    <file>theme/Adwaita/Adwaita.css</file>
-    <file>theme/Adwaita/Adwaita-dark.css</file>
+
+    <file>theme/Default/gtk.css</file>
+    <file alias='theme/Default-dark/gtk.css'>theme/Default/gtk-dark.css</file>
+    <file alias='theme/Default-hc/gtk.css'>theme/Default/gtk-hc.css</file>
+    <file alias='theme/Default-hc-dark/gtk.css'>theme/Default/gtk-hc-dark.css</file>
+
+    <file>theme/Default/gtk-light.css</file>
+    <file>theme/Default/gtk-dark.css</file>
+    <file>theme/Default/gtk-hc.css</file>
+    <file>theme/Default/gtk-hc-dark.css</file>
+    <file>theme/Default/Default-light.css</file>
+    <file>theme/Default/Default-dark.css</file>
+    <file>theme/Default/Default-hc.css</file>
+    <file>theme/Default/Default-hc-dark.css</file>
 '''
 
-for f in get_files('theme/Adwaita/assets', '.png'):
-  xml += '    <file>theme/Adwaita/assets/{0}</file>\n'.format(f)
+for f in get_files('theme/Default/assets', '.png'):
+  xml += '    <file>theme/Default/assets/{0}</file>\n'.format(f)
 
 xml += '\n'
 
-for f in get_files('theme/Adwaita/assets', '.svg'):
-  xml += '    <file>theme/Adwaita/assets/{0}</file>\n'.format(f)
+for f in get_files('theme/Default/assets', '.svg'):
+  xml += '    <file>theme/Default/assets/{0}</file>\n'.format(f)
 
-xml += '''
-    <file>theme/HighContrast/gtk.css</file>
-    <file>theme/HighContrast/gtk-dark.css</file>
-    <file alias='theme/HighContrastInverse/gtk.css'>theme/HighContrast/gtk-dark.css</file>
-    <file>theme/HighContrast/HighContrast.css</file>
-    <file>theme/HighContrast/HighContrast-dark.css</file>
-'''
-
-for f in get_files('theme/HighContrast/assets', '.png'):
-  xml += '    <file>theme/HighContrast/assets/{0}</file>\n'.format(f)
+for f in get_files('theme/Default/assets-hc', '.png'):
+  xml += '    <file>theme/Default/assets-hc/{0}</file>\n'.format(f)
 
 xml += '\n'
 
-for f in get_files('theme/HighContrast/assets', '.svg'):
-  xml += '    <file>theme/HighContrast/assets/{0}</file>\n'.format(f)
-
-for f in get_files('gesture', '.symbolic.png'):
-  xml += '    <file alias=\'icons/64x64/actions/{0}\'>gesture/{0}</file>\n'.format(f)
-
-xml += '\n'
+for f in get_files('theme/Default/assets-hc', '.svg'):
+  xml += '    <file>theme/Default/assets-hc/{0}</file>\n'.format(f)
 
 for f in get_files('ui', '.ui'):
   xml += '    <file preprocess=\'xml-stripblanks\'>ui/{0}</file>\n'.format(f)
 
 xml += '\n'
 
-for s in ['16x16', '24x24', '32x32', '48x48', 'scalable']:
+for s in ['16x16', '32x32', '64x64', 'scalable']:
   for c in ['actions', 'categories', 'emblems', 'emotes', 'devices', 'mimetypes', 'places', 'status']:
     icons_dir = 'icons/{0}/{1}'.format(s,c)
     if os.path.exists(os.path.join(srcdir,icons_dir)):

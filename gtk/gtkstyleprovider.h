@@ -57,9 +57,9 @@ G_BEGIN_DECLS
  * GTK_STYLE_PROVIDER_PRIORITY_SETTINGS:
  *
  * The priority used for style information provided
- * via #GtkSettings.
+ * via `GtkSettings`.
  *
- * This priority is higher than #GTK_STYLE_PROVIDER_PRIORITY_THEME
+ * This priority is higher than %GTK_STYLE_PROVIDER_PRIORITY_THEME
  * to let settings override themes.
  */
 #define GTK_STYLE_PROVIDER_PRIORITY_SETTINGS    400
@@ -67,7 +67,7 @@ G_BEGIN_DECLS
 /**
  * GTK_STYLE_PROVIDER_PRIORITY_APPLICATION:
  *
- * A priority that can be used when adding a #GtkStyleProvider
+ * A priority that can be used when adding a `GtkStyleProvider`
  * for application-specific style information.
  */
 #define GTK_STYLE_PROVIDER_PRIORITY_APPLICATION 600

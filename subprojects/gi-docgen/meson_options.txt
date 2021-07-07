@@ -1,0 +1,8 @@
+# SPDX-FileCopyrightText: 2021 Simon McVittie
+#
+# SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+
+option('development_tests',
+       type : 'boolean',
+       value : true,
+       description : 'run tests that are appropriate during gi-docgen development but not during packaging')

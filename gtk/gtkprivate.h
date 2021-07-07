@@ -61,7 +61,11 @@ const char * _gtk_get_data_prefix        (void);
 
 gboolean      _gtk_fnmatch                (const char *pattern,
                                            const char *string,
-                                           gboolean    no_leading_period);
+                                           gboolean    no_leading_period,
+                                           gboolean    casefold);
+
+char *        _gtk_make_ci_glob_pattern   (const char *pattern);
+
 
 char        * _gtk_get_lc_ctype           (void);
 
@@ -143,6 +147,8 @@ GBytes *get_emoji_data (void);
 #define GTK_DISPLAY_NOTE(display,type,action)
 
 #endif /* G_ENABLE_DEBUG */
+
+char * _gtk_elide_underscores (const char *original);
 
 G_END_DECLS
 

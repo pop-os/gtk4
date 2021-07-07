@@ -1,0 +1,9 @@
+# SPDX-FileCopyrightText: 2021 GNOME Foundation
+#
+# SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+
+[flake8]
+max-line-length = 140
+doctests = True
+exclude =  .git, .eggs, __pycache__, tests/, docs/, build/, dist/
+ignore = E402, F405, W503

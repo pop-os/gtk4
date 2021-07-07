@@ -268,7 +268,7 @@ gtk_css_value_font_size_compute (GtkCssValue      *value,
         font_size = _gtk_css_number_value_get (parent_style->core->font_size, 100);
       else
         font_size = gtk_css_font_size_get_default_px (provider, style);
-      /* XXX: This is what WebKit does... */
+      /* This is what WebKit does... */
       font_size /= 1.2;
       break;
     case GTK_CSS_FONT_SIZE_LARGER:
@@ -276,7 +276,7 @@ gtk_css_value_font_size_compute (GtkCssValue      *value,
         font_size = _gtk_css_number_value_get (parent_style->core->font_size, 100);
       else
         font_size = gtk_css_font_size_get_default_px (provider, style);
-      /* XXX: This is what WebKit does... */
+      /* This is what WebKit does... */
       font_size *= 1.2;
       break;
   }
@@ -541,57 +541,6 @@ PangoStretch
 _gtk_css_font_stretch_value_get (const GtkCssValue *value)
 {
   g_return_val_if_fail (value->class == &GTK_CSS_VALUE_FONT_STRETCH, PANGO_STRETCH_NORMAL);
-
-  return value->value;
-}
-
-/* GtkTextDecorationLine */
-
-static const GtkCssValueClass GTK_CSS_VALUE_TEXT_DECORATION_LINE = {
-  "GtkCssTextDecorationLineValue",
-  gtk_css_value_enum_free,
-  gtk_css_value_enum_compute,
-  gtk_css_value_enum_equal,
-  gtk_css_value_enum_transition,
-  NULL,
-  NULL,
-  gtk_css_value_enum_print
-};
-
-static GtkCssValue text_decoration_line_values[] = {
-  { &GTK_CSS_VALUE_TEXT_DECORATION_LINE, 1, TRUE, GTK_CSS_TEXT_DECORATION_LINE_NONE, "none" },
-  { &GTK_CSS_VALUE_TEXT_DECORATION_LINE, 1, TRUE, GTK_CSS_TEXT_DECORATION_LINE_UNDERLINE, "underline" },
-  { &GTK_CSS_VALUE_TEXT_DECORATION_LINE, 1, TRUE, GTK_CSS_TEXT_DECORATION_LINE_LINE_THROUGH, "line-through" },
-};
-
-GtkCssValue *
-_gtk_css_text_decoration_line_value_new (GtkTextDecorationLine line)
-{
-  g_return_val_if_fail (line < G_N_ELEMENTS (text_decoration_line_values), NULL);
-
-  return _gtk_css_value_ref (&text_decoration_line_values[line]);
-}
-
-GtkCssValue *
-_gtk_css_text_decoration_line_value_try_parse (GtkCssParser *parser)
-{
-  guint i;
-
-  g_return_val_if_fail (parser != NULL, NULL);
-
-  for (i = 0; i < G_N_ELEMENTS (text_decoration_line_values); i++)
-    {
-      if (gtk_css_parser_try_ident (parser, text_decoration_line_values[i].name))
-        return _gtk_css_value_ref (&text_decoration_line_values[i]);
-    }
-
-  return NULL;
-}
-
-GtkTextDecorationLine
-_gtk_css_text_decoration_line_value_get (const GtkCssValue *value)
-{
-  g_return_val_if_fail (value->class == &GTK_CSS_VALUE_TEXT_DECORATION_LINE, GTK_CSS_TEXT_DECORATION_LINE_NONE);
 
   return value->value;
 }
@@ -1201,6 +1150,99 @@ gtk_css_value_flags_print (const FlagsValue  *values,
           sep = " ";
         }
     }
+}
+
+/* GtkTextDecorationLine */
+
+static FlagsValue text_decoration_line_values[] = {
+  { GTK_CSS_TEXT_DECORATION_LINE_NONE, "none" },
+  { GTK_CSS_TEXT_DECORATION_LINE_UNDERLINE, "underline" },
+  { GTK_CSS_TEXT_DECORATION_LINE_OVERLINE, "overline" },
+  { GTK_CSS_TEXT_DECORATION_LINE_LINE_THROUGH, "line-through" },
+};
+
+static void
+gtk_css_text_decoration_line_value_print (const GtkCssValue *value,
+                                          GString           *string)
+{
+  gtk_css_value_flags_print (text_decoration_line_values,
+                             G_N_ELEMENTS (text_decoration_line_values),
+                             value, string);
+}
+
+static const GtkCssValueClass GTK_CSS_VALUE_TEXT_DECORATION_LINE = {
+  "GtkCssTextDecorationLine",
+  gtk_css_value_enum_free,
+  gtk_css_value_enum_compute,
+  gtk_css_value_flags_equal,
+  gtk_css_value_enum_transition,
+  NULL,
+  NULL,
+  gtk_css_text_decoration_line_value_print
+};
+
+static gboolean
+text_decoration_line_is_valid (GtkTextDecorationLine line)
+{
+  if ((line & GTK_CSS_TEXT_DECORATION_LINE_NONE) &&
+      (line != GTK_CSS_TEXT_DECORATION_LINE_NONE))
+    return FALSE;
+
+  return TRUE;
+}
+
+GtkCssValue *
+_gtk_css_text_decoration_line_value_new (GtkTextDecorationLine line)
+{
+  GtkCssValue *value;
+
+  if (!text_decoration_line_is_valid (line))
+    return NULL;
+
+  value = _gtk_css_value_new (GtkCssValue, &GTK_CSS_VALUE_TEXT_DECORATION_LINE);
+  value->value = line;
+  value->name = NULL;
+  value->is_computed = TRUE;
+
+  return value;
+}
+
+GtkTextDecorationLine
+_gtk_css_text_decoration_line_try_parse_one (GtkCssParser          *parser,
+                                             GtkTextDecorationLine  base)
+{
+  guint i;
+  GtkTextDecorationLine value = 0;
+
+  g_return_val_if_fail (parser != NULL, 0);
+
+  for (i = 0; i < G_N_ELEMENTS (text_decoration_line_values); i++)
+    {
+      if (gtk_css_parser_try_ident (parser, text_decoration_line_values[i].name))
+        {
+          value = text_decoration_line_values[i].value;
+          break;
+        }
+    }
+
+  if (value == 0)
+    return base; /* not parsing this value */
+
+  if ((base | value) == base)
+    return 0; /* repeated value */
+
+  if (!text_decoration_line_is_valid (base | value))
+    return 0; /* bad combination */
+
+  return base | value;
+}
+
+GtkTextDecorationLine
+_gtk_css_text_decoration_line_value_get (const GtkCssValue *value)
+{
+  g_return_val_if_fail (value->class == &GTK_CSS_VALUE_TEXT_DECORATION_LINE, GTK_CSS_TEXT_DECORATION_LINE_NONE);
+
+  return value->value;
 }
 
 /* GtkCssFontVariantLigature */

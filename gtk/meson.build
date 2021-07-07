@@ -15,7 +15,7 @@ gtk_cargs = [
 # introspected
 gtk_private_sources = files([
   'fnmatch.c',
-  'tools/gdkpixbufutils.c',
+  'gdkpixbufutils.c',
   'gsettings-mapping.c',
   'gtkaccessibleattributeset.c',
   'gtkaccessiblevalue.c',
@@ -112,13 +112,14 @@ gtk_private_sources = files([
   'gtkgizmo.c',
   'gtkhsla.c',
   'gtkiconcache.c',
-  'tools/gtkiconcachevalidator.c',
+  'gtkiconcachevalidator.c',
   'gtkiconhelper.c',
   'gtkkineticscrolling.c',
   'gtkmagnifier.c',
   'gtkmenusectionbox.c',
   'gtkmenutracker.c',
   'gtkmenutrackeritem.c',
+  'gtkpanedhandle.c',
   'gtkpango.c',
   'gskpango.c',
   'gtkpasswordentrybuffer.c',
@@ -127,6 +128,7 @@ gtk_private_sources = files([
   'gtkplacesview.c',
   'gtkplacesviewrow.c',
   'gtkpointerfocus.c',
+  'gtkpopovercontent.c',
   'gtkprintutils.c',
   'gtkprivate.c',
   'gtkprogresstracker.c',
@@ -602,6 +604,7 @@ gtk_public_headers = files([
   'gtkpaned.h',
   'gtkpapersize.h',
   'gtkpasswordentry.h',
+  'gtkpasswordentrybuffer.h',
   'gtkpicture.h',
   'gtkpopover.h',
   'gtkpopovermenu.h',
@@ -776,6 +779,7 @@ if os_unix
 endif
 
 if os_win32
+  gtk_win32_print_headers = []
   gtk_win32_print_sources = files([
     'gtkprint-win32.c',
     'gtkprintoperation-win32.c',
@@ -811,7 +815,6 @@ endif
 if macos_enabled
   gtk_sources += files([
     'gtksearchenginequartz.c',
-    'gtkmountoperation-stub.c',
     'gtkapplication-quartz.c',
     'gtkapplication-quartz-menu.c',
     'gtkfilechoosernativequartz.c',
@@ -822,7 +825,7 @@ if macos_enabled
   gtk_cargs += ['-xobjective-c']  # FIXME? maybe add_languages() instead?
 endif
 
-if not (x11_enabled or win32_enabled or macos_enabled)
+if not (x11_enabled or win32_enabled)
   gtk_sources += ['gtkmountoperation-stub.c', ]
 endif
 
@@ -845,12 +848,10 @@ endif
 if sassc.found()
   sassc_opts = [ '-a', '-M', '-t', 'compact' ]
 
-  subdir('theme/Adwaita')
-  subdir('theme/HighContrast')
+  subdir('theme/Default')
 
   theme_deps = [
-    adwaita_theme_deps,
-    hc_theme_deps,
+    default_theme_deps,
   ]
 else
   theme_deps = []
@@ -1105,15 +1106,39 @@ darwin_versions = [
 ]
 
 # Library
-libgtk = library('gtk-4',
-  soversion: gtk_soversion,
-  version: gtk_library_version,
+libgtk_static = static_library('gtk',
   sources: [typefuncs, gtk_sources, gtkmarshal_h, gtkprivatetypebuiltins_h],
   c_args: gtk_cargs + common_cflags,
   include_directories: [confinc, gdkinc, gskinc, gtkinc],
   dependencies: gtk_deps + [libgtk_css_dep, libgdk_dep, libgsk_dep],
-  link_whole: [libgtk_css, libgdk, libgsk, ],
+  link_with: [libgtk_css, libgdk, libgsk ],
+)
+
+# `link_whole:` is actually only supported on Visual Studio 2015 Update 2
+# or later via the linker flag `/WHOLEARCHIVE:<static_lib>`, so we need
+# to work around it for Visual Studio 2013.  Note that all needed static
+# libs are required so that we grab the object files from each of them to
+# link the final GTK DLL.
+whole_archives = []
+gtk4_objs = []
+
+if cc.get_id() == 'msvc' and cc.version().split('.').get(0) < '19'
+  foreach target : [ libgtk_static, libgtk_css, libgdk, libgdk_win32, libgsk, libgsk_f16c ]
+    gtk4_objs += target.extract_all_objects(recursive: false)
+  endforeach
+else
+  whole_archives = [libgtk_static, libgtk_css, libgdk, libgsk ]
+endif
+
+libgtk = shared_library('gtk-4',
+  c_args: gtk_cargs + common_cflags,
+  include_directories: [confinc, gdkinc, gskinc, gtkinc],
+  dependencies: gtk_deps + [libgtk_css_dep, libgdk_dep, libgsk_dep],
+  link_whole: whole_archives,
+  objects: gtk4_objs,
   link_args: common_ldflags,
+  soversion: gtk_soversion,
+  version: gtk_library_version,
   darwin_versions: darwin_versions,
   install: true,
 )
@@ -1128,18 +1153,13 @@ if build_gir
   gir_args = [
     '-DGTK_COMPILATION',
     '--quiet',
+    '--warn-error',
   ]
 
   # We may build some of the dependencies as sub-projects; this means
   # that we need to depend on the built introspection data, instead of
   # the installed one
   gdk_gir_inc = [ 'cairo-1.0', 'Gio-2.0', ]
-
-  if graphene_dep.type_name() == 'internal'
-    gdk_gir_inc += subproject('graphene').get_variable('graphene_gir').get(0)
-  else
-    gdk_gir_inc += 'Graphene-1.0'
-  endif
 
   if pixbuf_dep.type_name() == 'internal'
     gdk_gir_inc += subproject('gdk-pixbuf').get_variable('gdkpixbuf_gir').get(0)
@@ -1149,8 +1169,9 @@ if build_gir
 
   if pango_dep.type_name() == 'internal'
     gdk_gir_inc += subproject('pango').get_variable('pango_gir').get(0)
+    gdk_gir_inc += subproject('pango').get_variable('pangocairo_gir').get(0)
   else
-    gdk_gir_inc += 'Pango-1.0'
+    gdk_gir_inc += ['Pango-1.0', 'PangoCairo-1.0']
   endif
 
   gdk_gir = gnome.generate_gir(libgtk,
@@ -1204,6 +1225,12 @@ if build_gir
 
   gsk_gir_inc = [ gdk_gir[0] ]
 
+  if graphene_dep.type_name() == 'internal'
+    gsk_gir_inc += subproject('graphene').get_variable('graphene_gir').get(0)
+  else
+    gsk_gir_inc += 'Graphene-1.0'
+  endif
+
   gsk_gir = gnome.generate_gir(libgtk,
     sources: gsk_public_headers + gsk_public_sources + [ gskenum_h ],
     namespace: 'Gsk',
@@ -1233,11 +1260,11 @@ if build_gir
   ]
 
   if os_unix
-    gtk_introspection_sources += gtk_unix_print_sources
+    gtk_introspection_sources += [ gtk_unix_print_headers, gtk_unix_print_sources ]
   endif
 
   if os_win32
-    gtk_introspection_sources += gtk_win32_print_sources
+    gtk_introspection_sources += [ gtk_win32_print_headers, gtk_win32_print_sources ]
   endif
 
   gtk_gir = gnome.generate_gir(libgtk,
@@ -1263,4 +1290,9 @@ libgtk_dep = declare_dependency(sources: gtk_dep_sources,
   link_args: common_ldflags,
 )
 
-subdir('tools')
+libgtk_static_dep = declare_dependency(sources: gtk_dep_sources,
+  include_directories: [confinc, gtkinc],
+  dependencies: gtk_deps + [libgtk_css_dep, libgdk_dep, libgsk_dep],
+  link_with: [libgtk_static, libgtk_css, libgdk, libgsk ],
+  link_args: common_ldflags,
+)

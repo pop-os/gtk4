@@ -1,0 +1,189 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+{% extends "base.html" %}
+
+{% block title %}{{ namespace.name }}.{{ func.name }}{% endblock %}
+
+{% block meta_other %}
+  <meta property="og:title" content="{{ namespace.name }}.{{ func.name }}"/>
+  <meta property="og:description" content="Reference for {{ namespace.name }}.{{ func.name }}"/>
+  <meta name="twitter:title" content="{{ namespace.name }}.{{ func.name }}"/>
+  <meta name="twitter:description" content="Reference for {{ namespace.name }}.{{ func.name }}"/>
+{% endblock %}
+
+{% block sidebar %}
+{% if func.is_macro %}
+<div class="section">
+  <h5>Function Macros</h5>
+  <div class="links">
+  {% for f in namespace.function_macross %}
+    <a class="function{% if func.name == f.name %} current{% endif %}" href="func.{{ f.name }}.html">{{ f.name }}</a>
+  {% endfor %}
+  </div>
+</div>
+{% else %}
+<div class="section">
+  <h5>Functions</h5>
+  <div class="links">
+  {% for f in namespace.functions %}
+    <a class="function{% if func.name == f.name %} current{% endif %}" href="func.{{ f.name }}.html">{{ f.name }}</a>
+  {% endfor %}
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<section id="main" class="content">
+  <header>
+    <h3>Function {% if func.is_macro %}Macro{% endif %}</h3>
+    <h1><a href="index.html">{{ namespace.name }}</a><span class="sep"></span>{{ func.name }}</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 id="declaration" style="display:flex;">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+        {% if CONFIG.source_location_url and func.source_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(func.source_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+        <pre><code>{{ func.c_decl }}</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 id="description" style="display:flex;">
+        Description
+        <a href="#description" class="anchor"></a>
+        {% if CONFIG.source_location_url and func.docs_location %}
+        <a class="srclink" title="go to source location" href="{{ CONFIG.source_link(func.docs_location) }}">[src]</a>
+        {% endif %}
+      </h4>
+
+      <div class="docblock">
+        {{ func.description }}
+      </div>
+
+      <div class="docblock">
+        <table>
+          {% if func.stability %}
+          <tr><td>Stability:</td><td>{{ func.stability }}</td></tr>
+          {% endif %}
+          {% if func.available_since %}
+          <tr><td>Available since:</td><td>{{ func.available_since }}</td></tr>
+          {% endif %}
+          {% if func.deprecated_since %}
+          <tr><td>Deprecated since:</td><td>{{ func.deprecated_since.version }}</td></tr>
+          <tr><td colspan="2">{{ func.deprecated_since.message }}</td></tr>
+          {% endif %}
+        </table>
+      </div>
+
+      {% if func.attributes %}
+      <div class="docblock">
+        <table>
+        {% for (key, value) in func.attributes.items() %}
+          <tr><td>{{ key|escape }}</td><td>{{ value|escape }}</td></tr>
+        {% endfor %}
+        </table>
+      </div>
+      {% endif %}
+    </div>
+
+    {% if func.arguments|length != 0 %}
+    <div class="parameters toggle-wrapper">
+      <h4 id="parameters">
+        Parameters
+        <a href="#parameters" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="arguments">
+          {% for arg in func.arguments %}
+          <tr class="arg-name">
+            <td><code>{{ arg.name }}</code></td>
+            <td>
+            {%- if arg.is_array -%}An array of&nbsp;{%- endif -%}
+            {%- if arg.is_list -%}A list of&nbsp;{%- endif -%}
+            {%- if arg.link -%}
+            {{ arg.link|safe }}
+            {%- else -%}
+            <code>{{ arg.type_cname }}</code>
+            {%- endif -%}
+            </td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td>{{ arg.description|safe }}</td>
+          </tr>
+          {% if arg.direction != "in" %}<tr><td>&nbsp;</td><td title="direction: {{ arg.direction}}">{{ arg.direction_note }}</td></tr>{% endif %}
+          {% if arg.direction == "in" and arg.is_pointer and arg.nullable %}<tr><td>&nbsp;</td><td>The argument can be <code>NULL</code>.</td></tr>{% endif %}
+          {% if arg.direction == "out" and arg.is_pointer and arg.nullable %}<tr><td>&nbsp;</td><td>The argument can be set to <code>NULL</code>.</td></tr>{% endif %}
+          {% if arg.optional %}<tr><td>&nbsp;</td><td>The argument can be <code>NULL</code>.</td></tr>{% endif %}
+          {% if arg.is_array and arg.zero_terminated %}<tr><td>&nbsp;</td><td>The array must be <code>NULL</code>-terminated.</td></tr>{% endif %}
+          {% if arg.is_array and arg.fixed_size > 0 %}<tr><td>&nbsp;</td><td>The array must have {{ arg.fixed_size }} elements.</td></tr>{% endif %}
+          {% if arg.is_array and arg.len_arg %}<tr><td>&nbsp;</td><td>The length of the array is specified in the <code>{{ arg.len_arg }}</code> argument.</td></tr>{% endif %}
+          {% if arg.is_pointer %}<tr><td>&nbsp;</td><td title="transfer: {{ arg.transfer }}">{{ arg.transfer_note }}</td></tr>{% endif %}
+          {% if arg.string_note %}<tr><td>&nbsp;</td><td>{{ arg.string_note }}</td></tr>{% endif %}
+          {% endfor %}
+          {% if func.throws %}
+          <tr class="arg-name">
+            <td><code>error</code></td>
+            <td><code>GError **</code></td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td>The return location for a <code>GError*</code>, or <code>NULL</code>.</td>
+          </tr>
+          {% endif %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
+
+    {% if func.return_value %}
+    <div class="return-value toggle-wrapper">
+      <h4 id="return-value">
+        Return value
+        <a href="#return-value" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <table class="returns">
+          <tr class="arg-name">
+            <td>Returns:</td>
+            <td>
+            {%- if func.return_value.is_array -%}An array of&nbsp;{%- endif -%}
+            {%- if func.return_value.is_list -%}A list of&nbsp;{%- endif -%}
+            {%- if func.return_value.link -%}
+            {{ func.return_value.link|safe }}
+            {%- else -%}
+            <code>{{ func.return_value.type_cname }}</code>
+            {%- endif -%}
+            </td>
+          </tr>
+          <tr class="arg-description">
+            <td>&nbsp;</td>
+            <td>{{ func.return_value.description|safe }}</td>
+          </tr>
+          {% if func.return_value.is_array and func.return_value.zero_terminated %}<tr><td>&nbsp;</td><td>The array is <code>NULL</code>-terminated.</td></tr>{% endif %}
+          {% if func.return_value.is_array and func.return_value.fixed_size > 0 %}<tr><td>&nbsp;</td><td>The array has {{ func.return_value.fixed_size }} elements.</td></tr>{% endif %}
+          {% if func.return_value.is_array and func.return_value.len_arg %}<tr><td>&nbsp;</td><td>The length of the array is in the <code>{{ func.return_value.len_arg }}</code> argument.</td></tr>{% endif %}
+          {% if func.return_value.is_pointer %}<tr><td>&nbsp;</td><td title="transfer: {{ func.return_value.transfer }}">{{ func.return_value.transfer_note }}</td></tr>{% endif %}
+          {% if func.return_value.is_pointer and func.return_value.nullable %}<tr><td>&nbsp;</td><td>The return value can be <code>NULL</code>.</td></tr>{% endif %}
+          {% if func.return_value.string_note %}<tr><td>&nbsp;</td><td>{{ func.return_value.string_note }}</td></tr>{% endif %}
+        </table>
+      </div>
+    </div>
+    {% endif %}
+  </section>
+</section>
+{% endblock %}

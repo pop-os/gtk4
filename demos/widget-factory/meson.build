@@ -8,7 +8,7 @@ widgetfactory_resources = gnome.compile_resources('widgetfactory_resources',
 executable('gtk4-widget-factory',
   sources: ['widget-factory.c', widgetfactory_resources],
   c_args: common_cflags,
-  dependencies: libgtk_dep,
+  dependencies: [ libgtk_dep, demo_conf_h ],
   include_directories: confinc,
   gui_app: true,
   link_args: extra_demo_ldflags,
@@ -26,4 +26,9 @@ foreach size: ['scalable', 'symbolic']
 endforeach
 
 # appdata
-install_data('org.gtk.WidgetFactory4.appdata.xml', install_dir: gtk_appdatadir)
+configure_file(
+  input: 'org.gtk.WidgetFactory4.appdata.xml.in',
+  output: 'org.gtk.WidgetFactory4.appdata.xml',
+  configuration: appdata_config,
+  install_dir: gtk_appdatadir
+)

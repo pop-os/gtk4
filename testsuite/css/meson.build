@@ -6,6 +6,7 @@ csstest_env.set('G_TEST_BUILDDIR', meson.current_build_dir())
 csstest_env.set('GIO_USE_VFS', 'local')
 csstest_env.set('GSETTINGS_BACKEND', 'memory')
 csstest_env.set('G_ENABLE_DIAGNOSTIC', '0')
+csstest_env.set('GDK_DEBUG', 'default-settings')
 
 subdir('parser')
 subdir('nodes')
@@ -29,10 +30,10 @@ test('api', test_api,
   suite: 'css',
 )
 
-test_data = executable('data', ['data.c', '../../gtk/css/gtkcssdataurl.c'],
+test_data = executable('data', 'data.c',
   c_args: common_cflags,
   include_directories: [confinc, ],
-  dependencies: gtk_deps,
+  dependencies: libgtk_static_dep,
   install: get_option('install-tests'),
   install_dir: testexecdir,
 )
@@ -44,11 +45,33 @@ test('data', test_data,
   suite: 'css',
 )
 
+transition = executable('transition', 'transition.c',
+  c_args: common_cflags,
+  dependencies: libgtk_static_dep,
+  install: get_option('install-tests'),
+  install_dir: testexecdir,
+)
+
+test('transition', transition,
+     args: [ '--tap', '-k' ],
+     protocol: 'tap',
+     env: csstest_env,
+     suite: 'css'
+)
+
 if get_option('install-tests')
   conf = configuration_data()
   conf.set('libexecdir', gtk_libexecdir)
   configure_file(input: 'api.test.in',
     output: 'api.test',
+    configuration: conf,
+    install_dir: testdatadir,
+  )
+
+  conf = configuration_data()
+  conf.set('libexecdir', gtk_libexecdir)
+  configure_file(input: 'data.test.in',
+    output: 'data.test',
     configuration: conf,
     install_dir: testdatadir,
   )

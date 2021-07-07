@@ -1,0 +1,261 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gsk.BlendMode</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gsk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gsk.BlendMode"/>
+  <meta property="og:description" content="Reference for Gsk.BlendMode"/>
+  <meta name="twitter:title" content="Gsk.BlendMode"/>
+  <meta name="twitter:description" content="Reference for Gsk.BlendMode"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gsk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.1</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="enum.BlendMode.html">BlendMode</a>
+  </div>
+</div>
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Enumeration</h3>
+    <h1><a href="index.html">Gsk</a><span class="sep"></span>BlendMode</h1>
+  </header>
+
+  <section>
+    <div class="declaration toggle-wrapper">
+      <h4 style="display:flex;" id="declaration">
+        Declaration
+        <a href="#declaration" class="anchor"></a>
+        
+      </h4>
+
+      <div class="docblock">
+        <pre><code>enum Gsk.BlendMode</code></pre>
+      </div>
+    </div>
+
+    <div class="description toggle-wrapper">
+      <h4 style="display:flex;" id="description">
+        Description
+        <a href="#description" class="anchor"></a>
+        
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gsk/gskenums.h#L104">[src]</a>
+        
+      </h4>
+
+      <div class="docblock">
+      <p>The blend modes available for render&nbsp;nodes.</p>
+<p>The implementation of each blend mode is deferred to the
+rendering&nbsp;pipeline.</p>
+<p>See <a href="https://www.w3.org/TR/compositing-1/#blending">https://www.w3.org/<span class="caps">TR</span>/compositing-1/#blending</a> for more information
+on blending and blend&nbsp;modes.</p>
+      </div>
+
+      <div class="docblock">
+        <table class="attributes">
+          
+          
+          
+        </table>
+      </div>
+
+      
+    </div>
+
+    <div class="members toggle-wrapper">
+      <h4 id="members">
+        Members
+        <a href="#members" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      <table class="enum-members">
+        <tr>
+          <th>Name</th>
+          <th>Description</th>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 0">GSK_BLEND_MODE_DEFAULT</code></td>
+          <td><p>The default blend mode, which specifies no&nbsp;blending.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 1">GSK_BLEND_MODE_MULTIPLY</code></td>
+          <td><p>The source color is multiplied by the destination
+  and replaces the&nbsp;destination.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 2">GSK_BLEND_MODE_SCREEN</code></td>
+          <td><p>Multiplies the complements of the destination and source
+  color values, then complements the&nbsp;result.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 3">GSK_BLEND_MODE_OVERLAY</code></td>
+          <td><p>Multiplies or screens the colors, depending on the
+  destination color value. This is the inverse of&nbsp;hard-list.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 4">GSK_BLEND_MODE_DARKEN</code></td>
+          <td><p>Selects the darker of the destination and source&nbsp;colors.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 5">GSK_BLEND_MODE_LIGHTEN</code></td>
+          <td><p>Selects the lighter of the destination and source&nbsp;colors.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 6">GSK_BLEND_MODE_COLOR_DODGE</code></td>
+          <td><p>Brightens the destination color to reflect the source&nbsp;color.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 7">GSK_BLEND_MODE_COLOR_BURN</code></td>
+          <td><p>Darkens the destination color to reflect the source&nbsp;color.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 8">GSK_BLEND_MODE_HARD_LIGHT</code></td>
+          <td><p>Multiplies or screens the colors, depending on the source color&nbsp;value.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 9">GSK_BLEND_MODE_SOFT_LIGHT</code></td>
+          <td><p>Darkens or lightens the colors, depending on the source color&nbsp;value.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 10">GSK_BLEND_MODE_DIFFERENCE</code></td>
+          <td><p>Subtracts the darker of the two constituent colors from the lighter&nbsp;color.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 11">GSK_BLEND_MODE_EXCLUSION</code></td>
+          <td><p>Produces an effect similar to that of the difference mode but lower in&nbsp;contrast.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 12">GSK_BLEND_MODE_COLOR</code></td>
+          <td><p>Creates a color with the hue and saturation of the source color and the luminosity of the destination&nbsp;color.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 13">GSK_BLEND_MODE_HUE</code></td>
+          <td><p>Creates a color with the hue of the source color and the saturation and luminosity of the destination&nbsp;color.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 14">GSK_BLEND_MODE_SATURATION</code></td>
+          <td><p>Creates a color with the saturation of the source color and the hue and luminosity of the destination&nbsp;color.</p></td>
+        </tr>
+      
+        <tr>
+          <td><code title="Value: 15">GSK_BLEND_MODE_LUMINOSITY</code></td>
+          <td><p>Creates a color with the luminosity of the source color and the hue and saturation of the destination&nbsp;color.</p></td>
+        </tr>
+      
+      </table>
+      </div>
+    </div>
+
+    
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>

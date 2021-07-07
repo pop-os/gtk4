@@ -84,7 +84,7 @@ test_parse (gconstpointer data)
       g_assert_nonnull (bytes);
       g_assert_no_error (error);
       if (test->mimetype == NULL)
-        g_assert (mimetype == NULL);
+        g_assert_null (mimetype);
       else
         g_assert_cmpstr (mimetype, ==, test->mimetype);
 
@@ -105,7 +105,7 @@ main (int argc, char *argv[])
 {
   guint i;
 
-  g_test_init (&argc, &argv, NULL);
+  (g_test_init) (&argc, &argv, NULL);
   setlocale (LC_ALL, "C");
 
   for (i = 0; i < G_N_ELEMENTS (tests); i++)

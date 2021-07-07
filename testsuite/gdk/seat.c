@@ -21,7 +21,7 @@ test_list_seats (void)
       seat = l->data;
 
       g_assert_true (GDK_IS_SEAT (seat));
-      g_assert (gdk_seat_get_display (seat) == display);
+      g_assert_true (gdk_seat_get_display (seat) == display);
 
       if (seat == seat0)
         found_default = TRUE;
@@ -127,7 +127,7 @@ test_default_seat (void)
 int
 main (int argc, char *argv[])
 {
-  g_test_init (&argc, &argv, NULL);
+  (g_test_init) (&argc, &argv, NULL);
 
   gtk_init ();
 

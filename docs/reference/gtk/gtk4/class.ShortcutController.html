@@ -1,0 +1,692 @@
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!--
+SPDX-FileCopyrightText: 2021 GNOME Foundation
+
+SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+-->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Gtk.ShortcutController</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <meta charset="utf-8" />
+
+  
+  <meta property="og:type" content="website"/>
+
+  
+  <meta property="og:image:width" content="256"/>
+  <meta property="og:image:height" content="256"/>
+  <meta property="og:image:secure_url" content="gtk-logo.svg"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
+  
+
+  
+  <meta property="og:title" content="Gtk.ShortcutController"/>
+  <meta property="og:description" content="Reference for Gtk.ShortcutController"/>
+  <meta name="twitter:title" content="Gtk.ShortcutController"/>
+  <meta name="twitter:description" content="Reference for Gtk.ShortcutController"/>
+
+
+  
+  <meta name="twitter:card" content="summary"/>
+
+  
+
+  <link rel="stylesheet" href="style.css" type="text/css" />
+
+  
+
+  
+  <script src="urlmap.js"></script>
+  
+  
+  <script src="fzy.js"></script>
+  <script src="search.js"></script>
+  
+  <script src="main.js"></script>
+  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+</head>
+
+<body>
+  <div id="body-wrapper" tabindex="-1">
+
+    <nav class="sidebar devhelp-hidden">
+      
+      <div class="section">
+        <img src="gtk-logo.svg" class="logo"/>
+      </div>
+      
+      
+      <div class="search section">
+        <form id="search-form" autocomplete="off">
+          <input id="search-input" type="text" name="do-not-autocomplete" placeholder="Click, or press 's' to search" autocomplete="off"/>
+        </form>
+      </div>
+      
+      <div class="section namespace">
+        <h3><a href="index.html">Gtk</a></h3>
+        <p>API Version: 4.0</p>
+        
+        <p>Library Version: 4.3.1</p>
+        
+      </div>
+      
+<div class="section">
+  <h5>Type</h5>
+  <div class="links">
+    <a class="current" href="class.ShortcutController.html#description">ShortcutController</a>
+  </div>
+</div>
+
+
+<div class="section">
+  <h5>Constructors</h5>
+  <div class="links">
+  
+    <a class="ctor" href="ctor.ShortcutController.new.html">new</a>
+  
+    <a class="ctor" href="ctor.ShortcutController.new_for_model.html">new_for_model</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Instance methods</h5>
+  <div class="links">
+  
+    <a class="method" href="method.ShortcutController.add_shortcut.html">add_shortcut</a>
+  
+    <a class="method" href="method.ShortcutController.get_mnemonics_modifiers.html">get_mnemonics_modifiers</a>
+  
+    <a class="method" href="method.ShortcutController.get_scope.html">get_scope</a>
+  
+    <a class="method" href="method.ShortcutController.remove_shortcut.html">remove_shortcut</a>
+  
+    <a class="method" href="method.ShortcutController.set_mnemonics_modifiers.html">set_mnemonics_modifiers</a>
+  
+    <a class="method" href="method.ShortcutController.set_scope.html">set_scope</a>
+  
+  </div>
+</div>
+
+
+
+<div class="section">
+  <h5>Properties</h5>
+  <div class="links">
+  
+    <a class="property" href="property.ShortcutController.mnemonic-modifiers.html">mnemonic-modifiers</a>
+  
+    <a class="property" href="property.ShortcutController.model.html">model</a>
+  
+    <a class="property" href="property.ShortcutController.scope.html">scope</a>
+  
+  </div>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+    </nav>
+
+    
+    <button id="btn-to-top" class="hidden"><span class="up-arrow"></span></button>
+    
+
+    
+<section id="main" class="content">
+  <header>
+    <h3>Class</h3>
+    <h1 aria-label="Name"><a href="index.html">Gtk</a><span class="sep" role="presentation"></span>ShortcutController</h1>
+  </header>
+
+  <section>
+    <summary>
+      <div class="toggle-wrapper">
+        <h4 id="description" style="display:flex;">
+          Description
+          <a href="#description" class="anchor"></a>
+          
+          <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkshortcutcontroller.c#L21">[src]</a>
+          
+        </h4>
+
+        <pre><code>final class Gtk.ShortcutController : Gtk.EventController {
+  /* No available fields */
+}</pre></code>
+
+        <div class="docblock">
+          <p><code>GtkShortcutController</code> is an event controller that manages&nbsp;shortcuts.</p>
+<p>Most common shortcuts are using this controller implicitly, e.g. by
+adding a mnemonic underline to a <code>GtkLabel</code>, or by installing a key
+binding using <a href="class_method.Widget.add_binding.html">gtk_widget_class_add_binding()</a>, or by adding accelerators
+to global actions using <a href="method.Application.set_accels_for_action.html">gtk_application_set_accels_for_action()</a>.</p>
+<p>But it is possible to create your own shortcut controller, and add
+shortcuts to&nbsp;it.</p>
+<p><code>GtkShortcutController</code> implements <code>GListModel</code> for querying the
+shortcuts that have been added to&nbsp;it.</p>
+<h1 id="gtkshortcutcontroller-as-a-gtkbuildable">GtkShortcutController as a GtkBuildable<a class="md-anchor" href="#gtkshortcutcontroller-as-a-gtkbuildable" title="Permanent link"></a></h1>
+<p><code>GtkShortcutControllers</code> can be creates in ui files to set up
+shortcuts in the same place as the&nbsp;widgets.</p>
+<p>An example of a <span class="caps">UI</span> definition fragment with <code>GtkShortcutController</code>:</p>
+<div class="codehilite"><pre><span></span><code>  <span class="nt">&lt;object</span> <span class="na">class=</span><span class="s">&#39;GtkButton&#39;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;child&gt;</span>
+      <span class="nt">&lt;object</span> <span class="na">class=</span><span class="s">&#39;GtkShortcutController&#39;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#39;scope&#39;</span><span class="nt">&gt;</span>managed<span class="nt">&lt;/property&gt;</span>
+        <span class="nt">&lt;child&gt;</span>
+          <span class="nt">&lt;object</span> <span class="na">class=</span><span class="s">&#39;GtkShortcut&#39;</span><span class="nt">&gt;</span>
+            <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#39;trigger&#39;</span><span class="nt">&gt;</span><span class="ni">&amp;lt;</span>Control<span class="ni">&amp;gt;</span>k<span class="nt">&lt;/property&gt;</span>
+            <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&#39;action&#39;</span><span class="nt">&gt;</span>activate<span class="nt">&lt;/property&gt;</span>
+          <span class="nt">&lt;/object&gt;</span>
+        <span class="nt">&lt;/child&gt;</span>
+      <span class="nt">&lt;/object&gt;</span>
+    <span class="nt">&lt;/child&gt;</span>
+  <span class="nt">&lt;/object&gt;</span>
+</code></pre></div>
+
+<p>This example creates a <a href="class.ActivateAction.html"><code>GtkActivateAction</code></a> for triggering the
+<code>activate</code> signal of the <code>GtkButton</code>. See <a href="ctor.ShortcutAction.parse_string.html">gtk_shortcut_action_parse_string()</a>
+for the syntax for other kinds of <code>GtkShortcutAction</code>. See
+<a href="ctor.ShortcutTrigger.parse_string.html">gtk_shortcut_trigger_parse_string()</a> to learn more about the syntax
+for&nbsp;triggers.</p>
+        </div>
+
+        <div class="docblock">
+          <table class="attributes">
+            
+            
+            
+          </table>
+        </div>
+
+        
+      </div>
+    </summary>
+
+    
+    <div class="toggle-wrapper hierarchy">
+      <h4 id="hierarchy">
+        Hierarchy
+        <a href="#hierarchy" class="anchor"></a>
+      </h4>
+      <div class="docblock" alt="Hierarchy for Gtk.ShortcutController">
+        <?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.44.0 (0)
+ -->
+<!-- Title: hierarchy Pages: 1 -->
+<svg width="224pt" height="260pt"
+ viewBox="0.00 0.00 223.50 260.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 256)">
+<title>hierarchy</title>
+<!-- this -->
+<g id="node1" class="node">
+<title>this</title>
+<g id="a_node1"><a xlink:title="GtkShortcutController">
+<path fill="none" stroke="black" d="M175.5,-108C175.5,-108 32.5,-108 32.5,-108 26.5,-108 20.5,-102 20.5,-96 20.5,-96 20.5,-84 20.5,-84 20.5,-78 26.5,-72 32.5,-72 32.5,-72 175.5,-72 175.5,-72 181.5,-72 187.5,-78 187.5,-84 187.5,-84 187.5,-96 187.5,-96 187.5,-102 181.5,-108 175.5,-108"/>
+<text text-anchor="middle" x="104" y="-86.3" font-family="Times-Roman" font-size="14.00">GtkShortcutController</text>
+</a>
+</g>
+</g>
+<!-- implements_0 -->
+<g id="node4" class="node">
+<title>implements_0</title>
+<g id="a_node4"><a xlink:title="Gio.ListModel">
+<polygon fill="none" stroke="black" points="92,-36 0,-36 0,0 92,0 92,-36"/>
+<text text-anchor="middle" x="46" y="-14.3" font-family="sans-serif" font-size="14.00">GListModel</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_0 -->
+<g id="edge3" class="edge">
+<title>this&#45;&#45;implements_0</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M89.66,-71.7C80.67,-60.85 69.13,-46.92 60.17,-36.1"/>
+</g>
+<!-- implements_1 -->
+<g id="node5" class="node link">
+<title>implements_1</title>
+<g id="a_node5"><a xlink:href="class.Buildable.html" xlink:title="GtkBuildable">
+<polygon fill="none" stroke="black" points="215.5,-36 110.5,-36 110.5,0 215.5,0 215.5,-36"/>
+<text text-anchor="middle" x="163" y="-14.3" font-family="sans-serif" font-size="14.00">GtkBuildable</text>
+</a>
+</g>
+</g>
+<!-- this&#45;&#45;implements_1 -->
+<g id="edge4" class="edge">
+<title>this&#45;&#45;implements_1</title>
+<path fill="none" stroke="black" stroke-dasharray="1,5" d="M118.58,-71.7C127.73,-60.85 139.47,-46.92 148.58,-36.1"/>
+</g>
+<!-- ancestor_0 -->
+<g id="node2" class="node link">
+<title>ancestor_0</title>
+<g id="a_node2"><a xlink:href="class.EventController.html" xlink:title="GtkEventController">
+<path fill="none" stroke="black" d="M166,-180C166,-180 42,-180 42,-180 36,-180 30,-174 30,-168 30,-168 30,-156 30,-156 30,-150 36,-144 42,-144 42,-144 166,-144 166,-144 172,-144 178,-150 178,-156 178,-156 178,-168 178,-168 178,-174 172,-180 166,-180"/>
+<text text-anchor="middle" x="104" y="-158.3" font-family="Times-Roman" font-size="14.00">GtkEventController</text>
+</a>
+</g>
+</g>
+<!-- ancestor_0&#45;&#45;this -->
+<g id="edge2" class="edge">
+<title>ancestor_0&#45;&#45;this</title>
+<path fill="none" stroke="black" d="M104,-143.7C104,-132.85 104,-118.92 104,-108.1"/>
+</g>
+<!-- ancestor_1 -->
+<g id="node3" class="node">
+<title>ancestor_1</title>
+<g id="a_node3"><a xlink:title="GObject.Object">
+<path fill="none" stroke="black" d="M128,-252C128,-252 80,-252 80,-252 74,-252 68,-246 68,-240 68,-240 68,-228 68,-228 68,-222 74,-216 80,-216 80,-216 128,-216 128,-216 134,-216 140,-222 140,-228 140,-228 140,-240 140,-240 140,-246 134,-252 128,-252"/>
+<text text-anchor="middle" x="104" y="-230.3" font-family="Times-Roman" font-size="14.00">GObject</text>
+</a>
+</g>
+</g>
+<!-- ancestor_1&#45;&#45;ancestor_0 -->
+<g id="edge1" class="edge">
+<title>ancestor_1&#45;&#45;ancestor_0</title>
+<path fill="none" stroke="black" d="M104,-215.7C104,-204.85 104,-190.92 104,-180.1"/>
+</g>
+</g>
+</svg>
+
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper ancestors">
+      <h4 id="ancestors">
+        Ancestors
+        <a href="#ancestors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="class"><a href="class.EventController.html" title="EventController">GtkEventController</a></li>
+          
+        
+          
+          <li class="class">GObject</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper implements">
+      <h4 id="implements">
+        Implements
+        <a href="#implements" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <ul>
+        
+          
+          <li class="interface">GListModel</a></li>
+          
+        
+          
+          <li class="interface"><a href="iface.Buildable.html" title="Buildable">GtkBuildable</a></li>
+          
+        
+        </ul>
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper constructors">
+      <h4 id="constructors">
+        Constructors
+        <a href="#constructors" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="ctor.ShortcutController.new.html">gtk_shortcut_controller_new</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new shortcut&nbsp;controller.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="ctor.ShortcutController.new_for_model.html">gtk_shortcut_controller_new_for_model</a></h6>
+
+          <div class="docblock">
+            <p>Creates a new shortcut controller that takes its shortcuts from
+the given list&nbsp;model.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+    </div>
+    
+
+    
+    <div class="toggle-wrapper methods">
+      <h4 id="methods">
+        Instance methods
+        <a href="#methods" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="method.ShortcutController.add_shortcut.html">gtk_shortcut_controller_add_shortcut</a></h6>
+          <div class="docblock">
+            <p>Adds <code>shortcut</code> to the list of shortcuts handled by <code>self</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.ShortcutController.get_mnemonics_modifiers.html">gtk_shortcut_controller_get_mnemonics_modifiers</a></h6>
+          <div class="docblock">
+            <p>Gets the mnemonics modifiers for when this controller activates its&nbsp;shortcuts.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.ShortcutController.get_scope.html">gtk_shortcut_controller_get_scope</a></h6>
+          <div class="docblock">
+            <p>Gets the scope for when this controller activates its&nbsp;shortcuts.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.ShortcutController.remove_shortcut.html">gtk_shortcut_controller_remove_shortcut</a></h6>
+          <div class="docblock">
+            <p>Removes <code>shortcut</code> from the list of shortcuts handled by <code>self</code>.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.ShortcutController.set_mnemonics_modifiers.html">gtk_shortcut_controller_set_mnemonics_modifiers</a></h6>
+          <div class="docblock">
+            <p>Sets the controller to use the given modifier for&nbsp;mnemonics.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.ShortcutController.set_scope.html">gtk_shortcut_controller_set_scope</a></h6>
+          <div class="docblock">
+            <p>Sets the controller to have the given <code>scope</code>.</p>
+          </div>
+          
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="class.EventController.html">GtkEventController</a> (12)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="method.EventController.get_current_event.html">gtk_event_controller_get_current_event</a></h6>
+            <div class="docblock">
+              <p>Returns the event that is currently being handled by the&nbsp;controller.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.get_current_event_device.html">gtk_event_controller_get_current_event_device</a></h6>
+            <div class="docblock">
+              <p>Returns the device of the event that is currently being
+handled by the&nbsp;controller.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.get_current_event_state.html">gtk_event_controller_get_current_event_state</a></h6>
+            <div class="docblock">
+              <p>Returns the modifier state of the event that is currently being
+handled by the&nbsp;controller.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.get_current_event_time.html">gtk_event_controller_get_current_event_time</a></h6>
+            <div class="docblock">
+              <p>Returns the timestamp of the event that is currently being
+handled by the&nbsp;controller.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.get_name.html">gtk_event_controller_get_name</a></h6>
+            <div class="docblock">
+              <p>Gets the name of <code>controller</code>.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.get_propagation_limit.html">gtk_event_controller_get_propagation_limit</a></h6>
+            <div class="docblock">
+              <p>Gets the propagation limit of the event&nbsp;controller.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.get_propagation_phase.html">gtk_event_controller_get_propagation_phase</a></h6>
+            <div class="docblock">
+              <p>Gets the propagation phase at which <code>controller</code> handles&nbsp;events.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.get_widget.html">gtk_event_controller_get_widget</a></h6>
+            <div class="docblock">
+              <p>Returns the <code>GtkWidget</code> this controller relates&nbsp;to.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.reset.html">gtk_event_controller_reset</a></h6>
+            <div class="docblock">
+              <p>Resets the <code>controller</code> to a clean&nbsp;state.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.set_name.html">gtk_event_controller_set_name</a></h6>
+            <div class="docblock">
+              <p>Sets a name on the controller that can be used for&nbsp;debugging.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.set_propagation_limit.html">gtk_event_controller_set_propagation_limit</a></h6>
+            <div class="docblock">
+              <p>Sets the event propagation limit on the event&nbsp;controller.</p>
+            </div>
+            
+          
+            <h6><a href="method.EventController.set_propagation_phase.html">gtk_event_controller_set_propagation_phase</a></h6>
+            <div class="docblock">
+              <p>Sets the propagation phase at which a controller handles&nbsp;events.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+      
+
+      
+        
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-methods">
+          <h5 style="display:block;">Methods inherited from <a href="iface.Buildable.html">GtkBuildable</a> (1)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="method.Buildable.get_buildable_id.html">gtk_buildable_get_buildable_id</a></h6>
+            <div class="docblock">
+              <p>Gets the <span class="caps">ID</span> of the <code>buildable</code> object.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+    </div>
+    
+
+    
+    <div class="toggle-wrapper properties">
+      <h4 id="properties">
+        Properties
+        <a href="#properties" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+      
+        <div class="">
+          <h6><a href="property.ShortcutController.mnemonic-modifiers.html">Gtk.ShortcutController:mnemonic-modifiers</a></h6>
+
+          <div class="docblock">
+            <p>The modifiers that need to be pressed to allow mnemonics&nbsp;activation.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.ShortcutController.model.html">Gtk.ShortcutController:model</a></h6>
+
+          <div class="docblock">
+            <p>A list model to take shortcuts&nbsp;from.</p>
+          </div>
+
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="property.ShortcutController.scope.html">Gtk.ShortcutController:scope</a></h6>
+
+          <div class="docblock">
+            <p>What scope the shortcuts will be handled&nbsp;in.</p>
+          </div>
+
+          
+        </div>
+      
+      </div>
+
+      
+        
+        <div class="toggle-wrapper default-hide ancestor-properties">
+          <h5 style="display:block;">Properties inherited from <a href="class.EventController.html">GtkEventController</a> (4)</h5>
+
+          
+          <div class="docblock">
+          
+            <h6><a href="property.EventController.name.html">Gtk.EventController:name</a></h6>
+            <div class="docblock">
+              <p>The name for this controller, typically used for debugging&nbsp;purposes.</p>
+            </div>
+            
+          
+            <h6><a href="property.EventController.propagation-limit.html">Gtk.EventController:propagation-limit</a></h6>
+            <div class="docblock">
+              <p>The limit for which events this controller will&nbsp;handle.</p>
+            </div>
+            
+          
+            <h6><a href="property.EventController.propagation-phase.html">Gtk.EventController:propagation-phase</a></h6>
+            <div class="docblock">
+              <p>The propagation phase at which this controller will handle&nbsp;events.</p>
+            </div>
+            
+          
+            <h6><a href="property.EventController.widget.html">Gtk.EventController:widget</a></h6>
+            <div class="docblock">
+              <p>The widget receiving the <code>GdkEvents</code> that the controller will&nbsp;handle.</p>
+            </div>
+            
+          
+          </div>
+          
+        </div>
+        
+      
+        
+      
+
+      
+        
+      
+        
+      
+
+    </div>
+    
+
+    
+
+    
+    <div class="class toggle-wrapper default-hide">
+      <h4 id="class-struct">
+        Class structure
+        <a href="#class-struct" class="anchor"></a>
+      </h4>
+
+      <div class="docblock">
+        <pre><code>struct GtkShortcutControllerClass {
+  /* no available fields */
+}</code></pre>
+      </div>
+
+      
+    </div>
+    
+
+    
+
+     
+
+    
+
+  </section>
+</section>
+
+
+    <section id="search" class="content hidden"></section>
+
+    <footer>
+    
+    </footer>
+  </div>
+</body>
+</html>
