@@ -3,7 +3,7 @@ Depends: build-essential, libgtk-4-dev, xauth, xvfb
 Restrictions: allow-stderr, superficial
 
 Tests: python3-gi
-Depends: dbus, gir1.2-gtk-4.0, python3-gi, xauth, xvfb
+Depends: dbus, gir1.2-gtk-4.0, python3-gi (>= 3.40), xauth, xvfb
 # https://gitlab.gnome.org/GNOME/pygobject/-/merge_requests/81, !145, etc.
 Restrictions: flaky, superficial
 
