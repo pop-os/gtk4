@@ -28,7 +28,7 @@ Applied-upstream: no, upstream want reftests to be a strict pass/fail with ident
  3 files changed, 62 insertions(+), 3 deletions(-)
 
 diff --git a/testsuite/gsk/compare-render.c b/testsuite/gsk/compare-render.c
-index da6f9e2..daea8a1 100644
+index f3c3568..6766a01 100644
 --- a/testsuite/gsk/compare-render.c
 +++ b/testsuite/gsk/compare-render.c
 @@ -98,6 +98,12 @@ get_output_file (const char *file,
@@ -44,7 +44,7 @@ index da6f9e2..daea8a1 100644
  static void
  save_image (cairo_surface_t *surface,
              const char      *test_name,
-@@ -242,12 +248,35 @@ main (int argc, char **argv)
+@@ -244,12 +250,35 @@ main (int argc, char **argv)
  
        if (diff_surface)
          {
@@ -82,10 +82,10 @@ index da6f9e2..daea8a1 100644
      }
  
 diff --git a/testsuite/reftests/gtk-reftest.c b/testsuite/reftests/gtk-reftest.c
-index 6ef17aa..3ef6d32 100644
+index 947eb2a..76b184d 100644
 --- a/testsuite/reftests/gtk-reftest.c
 +++ b/testsuite/reftests/gtk-reftest.c
-@@ -290,6 +290,12 @@ save_image (cairo_surface_t *surface,
+@@ -292,6 +292,12 @@ save_image (cairo_surface_t *surface,
    g_free (filename);
  }
  
@@ -98,7 +98,7 @@ index 6ef17aa..3ef6d32 100644
  static void
  test_ui_file (GFile *file)
  {
-@@ -326,10 +332,34 @@ test_ui_file (GFile *file)
+@@ -328,11 +334,35 @@ test_ui_file (GFile *file)
  
    if (diff_image)
      {
@@ -122,6 +122,7 @@ index 6ef17aa..3ef6d32 100644
                        pixels_changed, pixels, max_diff);
 +
        save_image (diff_image, ui_file, ".diff.png");
+       cairo_surface_destroy (diff_image);
 -      g_test_fail ();
 +
 +      if (max_diff <= tolerated_diff && pixels_changed <= tolerated_pixels)
