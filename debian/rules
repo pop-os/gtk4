@@ -170,14 +170,6 @@ endif
 
 override_dh_auto_build:
 	dh_auto_build --builddirectory=debian/build/deb
-ifneq ($(filter %-doc,$(built_binaries)),)
-	# Explicitly build the documentation: otherwise it's done as a
-	# side-effect of the install step, which doesn't respect the
-	# dependencies that generate Docbook files from markdown.
-	# https://github.com/mesonbuild/meson/issues/1844
-	# https://github.com/mesonbuild/meson/issues/5793
-	dh_auto_build --builddirectory=debian/build/deb -- gdk4-doc gsk4-doc gtk4-doc
-endif
 ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_auto_build --builddirectory=debian/build/udeb
 endif
