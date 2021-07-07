@@ -214,7 +214,6 @@ xfail_reftests = \
 #             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-difference
 # s390x: many (endianness?)
 override_dh_auto_test:
-ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 	rm -f debian/tests-failed
 	set -e; for reftest in $(fuzzy_reftests); do \
 		cp debian/close-enough.keyfile \
@@ -259,7 +258,6 @@ ifeq (,$(filter nocheck,$(DEB_BUILD_OPTIONS)))
 		rm -f testsuite/reftests/$$reftest.keyfile; \
 	done
 	if test -e debian/tests-failed; then exit 1; fi
-endif
 
 override_dh_auto_install:
 	dh_auto_install --builddirectory=debian/build/deb --destdir=debian/install/deb
