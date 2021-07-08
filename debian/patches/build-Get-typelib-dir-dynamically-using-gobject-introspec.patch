@@ -1,0 +1,42 @@
+From: =?utf-8?b?Ik1hcmNvIFRyZXZpc2FuIChUcmV2acOxbyki?= <mail@3v1n0.net>
+Date: Thu, 8 Jul 2021 04:33:16 +0200
+Subject: build: Get typelib dir dynamically using gobject-introspection
+ dependency
+
+We hardcoded the typelib directory for only an arch (and a distro),
+while we can just get it from gobject-introspection pkg config if tests
+are enabled.
+
+Origin: https://gitlab.gnome.org/GNOME/gtk/-/merge_requests/3737
+---
+ meson.build                         | 3 +++
+ testsuite/introspection/meson.build | 3 ++-
+ 2 files changed, 5 insertions(+), 1 deletion(-)
+
+diff --git a/meson.build b/meson.build
+index dc78358..b10e0fd 100644
+--- a/meson.build
++++ b/meson.build
+@@ -406,6 +406,9 @@ iso_codes_dep  = dependency('iso-codes', required: false)
+ gidocgen_dep    = dependency('gi-docgen', version: '>= 2021.1',
+                              fallback: ['gi-docgen', 'dummy_dep'],
+                              required: get_option('gtk_doc'))
++gi_dep         = dependency('gobject-introspection-1.0', version: introspection_req,
++                            required: get_option('introspection').enabled() and
++                                      get_option('build-tests'))
+ 
+ fontconfig_dep = [] # only used in x11 backend
+ 
+diff --git a/testsuite/introspection/meson.build b/testsuite/introspection/meson.build
+index 58eea5a..6202fb7 100644
+--- a/testsuite/introspection/meson.build
++++ b/testsuite/introspection/meson.build
+@@ -3,6 +3,7 @@ test('api',
+      find_program('api.py', dirs: meson.current_source_dir()),
+      suite: ['introspection'],
+      env: [
+-       'GI_TYPELIB_PATH=@0@/gtk:/usr/lib64/girepository-1.0'.format(project_build_root),
++       'GI_TYPELIB_PATH=@0@/gtk:@1@'.format(project_build_root,
++          gi_dep.get_pkgconfig_variable('typelibdir')),
+        'LD_PRELOAD=@0@/gtk/libgtk-4.so'.format(project_build_root),
+      ])

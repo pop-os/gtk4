@@ -1,4 +1,5 @@
 reftest_compare_surfaces-Report-how-much-the-images-diffe.patch
 reftests-Allow-minor-differences-to-be-tolerated.patch
+build-Get-typelib-dir-dynamically-using-gobject-introspec.patch
 debian/Disable-web-fonts-for-now.patch
 debian/templates-Remove-html5shiv.patch
