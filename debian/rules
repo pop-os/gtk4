@@ -205,49 +205,10 @@ xfail_reftests = \
 #             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-difference
 # s390x: many (endianness?)
 override_dh_auto_test:
-	rm -f debian/tests-failed
-	set -e; for reftest in $(fuzzy_reftests); do \
-		cp debian/close-enough.keyfile \
-			testsuite/reftests/$$reftest.keyfile; \
-	done
-	# So that gsettings can find the (uninstalled) gtk schemas
-	mkdir -p debian/build/glib-2.0/schemas/
-	cp gtk/org.gtk.* debian/build/glib-2.0/schemas/
-	glib-compile-schemas debian/build/glib-2.0/schemas/
-	# Remove LD_PRELOAD so we don't run with fakeroot, which makes dbus-related tests fail
-	env \
-		-u LD_PRELOAD \
-		GIO_MODULE_DIR=/nonexistent \
-		GIO_USE_VFS=local \
-		GIO_USE_VOLUME_MONITOR=unix \
-	dbus-run-session -- \
-	xvfb-run -a -s "-screen 0 1024x768x24 -noreset" \
-	debian/tests/run-with-locales \
-		--generate de_DE.UTF-8 \
-		--generate en_GB.UTF-8 \
-		--generate en_US.UTF-8 \
-		--generate sv_SE \
-		-- \
-	dh_auto_test \
-		--builddirectory=debian/build/deb \
-		-- \
-		--setup=x11 \
-		--timeout-multiplier $(test_timeout_multiplier) \
-	|| touch debian/tests-failed
-	tail -v -n +0 debian/build/deb/meson-logs/testlog-x11.txt
-	# Don't base64-encode the image results for tests that upstream
-	# expect to fail
-	set -e; for reftest in $(xfail_reftests); do \
-		rm -f debian/build/deb/testsuite/reftests/output/x11/$$reftest.diff.png; \
-	done
-	# Put the rest in the log as base64 since we don't have an
-	# equivalent of AUTOPKGTEST_ARTIFACTS for buildds
-	debian/log-reftests.py
-	# Avoid incremental builds with -nc leaking settings into the next build
-	set -e; for reftest in $(fuzzy_reftests); do \
-		rm -f testsuite/reftests/$$reftest.keyfile; \
-	done
-	if test -e debian/tests-failed; then exit 1; fi
+	env BUILDDIR=debian/build/deb \
+		FUZZY_REFTESTS="$(fuzzy_reftests)" \
+		XFAIL_REFTESTS="$(xfail_reftests)" \
+			debian/run-tests.sh -t $(test_timeout_multiplier)
 
 override_dh_auto_install:
 	dh_auto_install --builddirectory=debian/build/deb --destdir=debian/install/deb
