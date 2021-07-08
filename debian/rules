@@ -9,8 +9,7 @@ built_binaries := $(shell dh_listpackages)
 all_binaries := $(shell sed -ne 's/^Package: *//p' < debian/control)
 
 # Ensure the build aborts when there are still references to undefined symbols
-# currently fails at least in the im-multipress im module
-#LDFLAGS += -Wl,-z,defs
+LDFLAGS += -Wl,-z,defs
 
 # Make the linker work a bit harder so dynamic loading can be done faster
 LDFLAGS += -Wl,-O1
