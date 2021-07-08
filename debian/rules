@@ -173,7 +173,12 @@ ifneq ($(filter %-udeb,$(built_binaries)),)
 	dh_auto_build --builddirectory=debian/build/udeb
 endif
 
+test_backends = x11
 test_timeout_multiplier = 1
+
+ifeq (linux,$(DEB_HOST_ARCH_OS))
+	test_backends += wayland
+endif
 
 ifneq ($(filter arm hppa mips% sparc%,$(DEB_HOST_ARCH_CPU)),)
 $(info Slow architecture detected, increasing test timeout)
@@ -204,11 +209,15 @@ xfail_reftests = \
 #             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-normal
 #             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-difference
 # s390x: many (endianness?)
+
 override_dh_auto_test:
-	env BUILDDIR=debian/build/deb \
-		FUZZY_REFTESTS="$(fuzzy_reftests)" \
-		XFAIL_REFTESTS="$(xfail_reftests)" \
-			debian/run-tests.sh -t $(test_timeout_multiplier)
+	set -e; for backend in $(test_backends); do \
+		env BUILDDIR=debian/build/deb \
+			FUZZY_REFTESTS="$(fuzzy_reftests)" \
+			XFAIL_REFTESTS="$(xfail_reftests)" \
+			BACKEND=$$backend \
+				debian/run-tests.sh -t $(test_timeout_multiplier); \
+	done
 
 override_dh_auto_install:
 	dh_auto_install --builddirectory=debian/build/deb --destdir=debian/install/deb

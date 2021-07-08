@@ -11,11 +11,11 @@ if __name__ == '__main__':
         for outputs in (
             Path(
                 'debian', 'build', 'deb', 'testsuite', 'gsk', 'compare',
-                'opengl', 'x11',
+                'opengl', 'x11', 'wayland'
             ),
             Path(
                 'debian', 'build', 'deb', 'testsuite', 'gsk', 'compare',
-                'broadway', 'x11',
+                'broadway', 'x11', 'wayland'
             ),
         ):
             diff = (outputs / (node.stem + '.diff.png'))
@@ -39,7 +39,7 @@ if __name__ == '__main__':
         for outputs in (
             Path(
                 'debian', 'build', 'deb', 'testsuite', 'reftests',
-                'output', 'x11',
+                'output', 'x11', 'wayland'
             ),
         ):
             diff = (outputs / (ui.stem + '.diff.png'))

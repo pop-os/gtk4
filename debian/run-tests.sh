@@ -48,7 +48,7 @@ env \
     GIO_USE_VFS=local \
     GIO_USE_VOLUME_MONITOR=unix \
     dbus-run-session -- \
-        xvfb-run -a -s "-screen 0 1024x768x24 -noreset" \
+        debian/tests/run-with-display "$BACKEND" \
             debian/tests/run-with-locales \
                 --generate de_DE.UTF-8 \
                 --generate en_GB.UTF-8 \
