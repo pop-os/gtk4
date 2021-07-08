@@ -1,3 +1,3 @@
-usr/share/gtk-doc/html/gtk*
-usr/share/gtk-doc/html/gdk*
-usr/share/gtk-doc/html/gsk*
+usr/share/doc/gtk4*
+usr/share/doc/gdk4*
+usr/share/doc/gsk4*

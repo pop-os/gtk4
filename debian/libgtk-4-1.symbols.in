@@ -12,6 +12,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_broadway_cairo_context_get_type@Base 4.0.0
  gdk_broadway_display_get_type@Base 4.0.0
  gdk_broadway_display_hide_keyboard@Base 4.0.0
+ gdk_broadway_display_set_surface_scale@Base 4.3.1
  gdk_broadway_display_show_keyboard@Base 4.0.0
  gdk_broadway_draw_context_get_type@Base 4.0.0
  gdk_broadway_monitor_get_type@Base 4.0.0
@@ -144,6 +145,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_device_get_seat@Base 4.0.0
  gdk_device_get_source@Base 4.0.0
  gdk_device_get_surface_at_position@Base 4.0.0
+ gdk_device_get_timestamp@Base 4.3.1
  gdk_device_get_type@Base 4.0.0
  gdk_device_get_vendor_id@Base 4.0.0
  gdk_device_has_bidi_layouts@Base 4.0.0
@@ -377,6 +379,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_popup_layout_get_anchor_rect@Base 4.0.0
  gdk_popup_layout_get_offset@Base 4.0.0
  gdk_popup_layout_get_rect_anchor@Base 4.0.0
+ gdk_popup_layout_get_shadow_width@Base 4.3.1
  gdk_popup_layout_get_surface_anchor@Base 4.0.0
  gdk_popup_layout_get_type@Base 4.0.0
  gdk_popup_layout_new@Base 4.0.0
@@ -385,6 +388,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_popup_layout_set_anchor_rect@Base 4.0.0
  gdk_popup_layout_set_offset@Base 4.0.0
  gdk_popup_layout_set_rect_anchor@Base 4.0.0
+ gdk_popup_layout_set_shadow_width@Base 4.3.1
  gdk_popup_layout_set_surface_anchor@Base 4.0.0
  gdk_popup_layout_unref@Base 4.0.0
  gdk_popup_present@Base 4.0.0
@@ -524,6 +528,8 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  (arch=linux-any)gdk_wayland_device_get_wl_keyboard@Base 4.0.0
  (arch=linux-any)gdk_wayland_device_get_wl_pointer@Base 4.0.0
  (arch=linux-any)gdk_wayland_device_get_wl_seat@Base 4.0.0
+ gdk_wayland_device_get_xkb_keymap@Base 4.3.1
+ gdk_wayland_display_get_egl_display@Base 4.3.1
  (arch=linux-any)gdk_wayland_display_get_startup_notification_id@Base 4.0.0
  (arch=linux-any)gdk_wayland_display_get_type@Base 4.0.0
  (arch=linux-any)gdk_wayland_display_get_wl_compositor@Base 4.0.0
@@ -556,6 +562,8 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gdk_x11_display_error_trap_pop_ignored@Base 4.0.0
  gdk_x11_display_error_trap_push@Base 4.0.0
  gdk_x11_display_get_default_group@Base 4.0.0
+ gdk_x11_display_get_egl_display@Base 4.3.1
+ gdk_x11_display_get_egl_version@Base 4.3.1
  gdk_x11_display_get_glx_version@Base 4.0.0
  gdk_x11_display_get_primary_monitor@Base 4.0.0
  gdk_x11_display_get_screen@Base 4.0.0
@@ -647,6 +655,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_color_node_get_color@Base 4.0.0
  gsk_color_node_get_type@Base 4.0.0
  gsk_color_node_new@Base 4.0.0
+ gsk_conic_gradient_node_get_angle@Base 4.3.1
  gsk_conic_gradient_node_get_center@Base 4.0.0
  gsk_conic_gradient_node_get_color_stops@Base 4.0.0
  gsk_conic_gradient_node_get_n_color_stops@Base 4.0.0
@@ -712,6 +721,8 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_linear_gradient_node_get_start@Base 4.0.0
  gsk_linear_gradient_node_get_type@Base 4.0.0
  gsk_linear_gradient_node_new@Base 4.0.0
+ gsk_ngl_renderer_get_type@Base 4.3.1
+ gsk_ngl_renderer_new@Base 4.3.1
  gsk_opacity_node_get_child@Base 4.0.0
  gsk_opacity_node_get_opacity@Base 4.0.0
  gsk_opacity_node_get_type@Base 4.0.0
@@ -800,6 +811,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gsk_text_node_get_num_glyphs@Base 4.0.0
  gsk_text_node_get_offset@Base 4.0.0
  gsk_text_node_get_type@Base 4.0.0
+ gsk_text_node_has_color_glyphs@Base 4.3.1
  gsk_text_node_new@Base 4.0.0
  gsk_texture_node_get_texture@Base 4.0.0
  gsk_texture_node_get_type@Base 4.0.0
@@ -1870,6 +1882,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_expression_unref@Base 4.0.0
  gtk_expression_watch@Base 4.0.0
  gtk_expression_watch_evaluate@Base 4.0.0
+ gtk_expression_watch_get_type@Base 4.3.1
  gtk_expression_watch_ref@Base 4.0.0
  gtk_expression_watch_unref@Base 4.0.0
  gtk_expression_watch_unwatch@Base 4.0.0
@@ -1915,6 +1928,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_file_filter_add_mime_type@Base 4.0.0
  gtk_file_filter_add_pattern@Base 4.0.0
  gtk_file_filter_add_pixbuf_formats@Base 4.0.0
+ gtk_file_filter_add_suffix@Base 4.3.1
  gtk_file_filter_get_attributes@Base 4.0.0
  gtk_file_filter_get_name@Base 4.0.0
  gtk_file_filter_get_type@Base 4.0.0
@@ -2215,6 +2229,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_icon_theme_get_search_path@Base 4.0.0
  gtk_icon_theme_get_theme_name@Base 4.0.0
  gtk_icon_theme_get_type@Base 4.0.0
+ gtk_icon_theme_has_gicon@Base 4.3.1
  gtk_icon_theme_has_icon@Base 4.0.0
  gtk_icon_theme_lookup_by_gicon@Base 4.0.0
  gtk_icon_theme_lookup_icon@Base 4.0.0
@@ -2294,11 +2309,13 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_im_context_focus_out@Base 4.0.0
  gtk_im_context_get_preedit_string@Base 4.0.0
  gtk_im_context_get_surrounding@Base 4.0.0
+ gtk_im_context_get_surrounding_with_selection@Base 4.3.1
  gtk_im_context_get_type@Base 4.0.0
  gtk_im_context_reset@Base 4.0.0
  gtk_im_context_set_client_widget@Base 4.0.0
  gtk_im_context_set_cursor_location@Base 4.0.0
  gtk_im_context_set_surrounding@Base 4.0.0
+ gtk_im_context_set_surrounding_with_selection@Base 4.3.1
  gtk_im_context_set_use_preedit@Base 4.0.0
  gtk_im_context_simple_add_compose_file@Base 4.0.0
  gtk_im_context_simple_add_table@Base 4.0.0
@@ -2600,6 +2617,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_menu_button_get_label@Base 4.0.0
  gtk_menu_button_get_menu_model@Base 4.0.0
  gtk_menu_button_get_popover@Base 4.0.0
+ gtk_menu_button_get_primary@Base 4.3.1
  gtk_menu_button_get_type@Base 4.0.0
  gtk_menu_button_get_use_underline@Base 4.0.0
  gtk_menu_button_new@Base 4.0.0
@@ -2612,6 +2630,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_menu_button_set_label@Base 4.0.0
  gtk_menu_button_set_menu_model@Base 4.0.0
  gtk_menu_button_set_popover@Base 4.0.0
+ gtk_menu_button_set_primary@Base 4.3.1
  gtk_menu_button_set_use_underline@Base 4.0.0
  gtk_message_dialog_format_secondary_markup@Base 4.0.0
  gtk_message_dialog_format_secondary_text@Base 4.0.0
@@ -2845,6 +2864,8 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_paper_size_to_key_file@Base 4.0.0
  gtk_param_expression_get_type@Base 4.0.0
  gtk_param_spec_expression@Base 4.0.0
+ gtk_password_entry_buffer_get_type@Base 4.3.1
+ gtk_password_entry_buffer_new@Base 4.3.1
  gtk_password_entry_get_extra_menu@Base 4.0.0
  gtk_password_entry_get_show_peek_icon@Base 4.0.0
  gtk_password_entry_get_type@Base 4.0.0
@@ -4598,6 +4619,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_window_get_focus@Base 4.0.0
  gtk_window_get_focus_visible@Base 4.0.0
  gtk_window_get_group@Base 4.0.0
+ gtk_window_get_handle_menubar_accel@Base 4.3.1
  gtk_window_get_hide_on_close@Base 4.0.0
  gtk_window_get_icon_name@Base 4.0.0
  gtk_window_get_mnemonics_visible@Base 4.0.0
@@ -4639,6 +4661,7 @@ libgtk-@APIVER@.so.@SONAME@ @SHARED_PKG@ #MINVER#
  gtk_window_set_display@Base 4.0.0
  gtk_window_set_focus@Base 4.0.0
  gtk_window_set_focus_visible@Base 4.0.0
+ gtk_window_set_handle_menubar_accel@Base 4.3.1
  gtk_window_set_hide_on_close@Base 4.0.0
  gtk_window_set_icon_name@Base 4.0.0
  gtk_window_set_interactive_debugging@Base 4.0.0
