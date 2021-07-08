@@ -229,7 +229,6 @@ override_dh_auto_test:
 		--generate sv_SE \
 		-- \
 	dh_auto_test \
-		--no-parallel \
 		--builddirectory=debian/build/deb \
 		-- \
 		--setup=x11 \
