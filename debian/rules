@@ -258,17 +258,6 @@ ifneq ($(filter %-udeb,$(built_binaries)),)
 endif
 
 override_dh_install:
-	rm -frv debian/install/deb/etc/emacs/site-start.d/*gtk-doc-tools.el
-	rm -frv debian/install/deb/usr/bin/gtkdoc*
-	rm -frv debian/install/deb/usr/share/aclocal/gtk-doc.m4
-	rm -frv debian/install/deb/usr/share/cmake/GtkDoc
-	rm -frv debian/install/deb/usr/share/emacs/site-lisp/gtk-doc-tools
-	rm -frv debian/install/deb/usr/share/gtk-doc/data
-	rm -frv debian/install/deb/usr/share/gtk-doc/python
-	rm -frv debian/install/deb/usr/share/man/man1/gtkdoc*
-	rm -frv debian/install/deb/usr/share/pkgconfig/gtk-doc.pc
-	rm -frv debian/install/deb/usr/share/sgml/gtk-doc
-	:
 	rm -fv debian/install/udeb/usr/bin/gtk4-update-icon-cache
 	rm -frv debian/install/udeb/usr/share/gtk-4.0/valgrind
 	rm -frv debian/install/udeb/usr/share/metainfo
