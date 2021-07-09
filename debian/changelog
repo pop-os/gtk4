@@ -2,8 +2,41 @@ gtk4 (4.3.1-1) UNRELEASED; urgency=medium
 
   * New upstream release:
     - Ignore XErrors from the COW (LP: #1911036)
+  * debian/control: Update build-dependencies
+  * debian/patches: Refresh
+  * debian/control: Add dependencies to use upstream provided gi-docgen
+    gi-docgen is still in NEW for some months now, so until that we can
+    manually use the upstream provided version as subproject.
+  * debian/patches: Prevent usage of web-fonts and external links in docs
+  * debian/rules: Do not check for nocheck with dh 13
+  * debian/rules: Do not manually build docs at build phase.
+    This is now handled by gi-docgen that is called at build phase, not at
+    install phase.
+  * debian/control: Add python3-gi as test build dependency.
+    It's needed by introspection tests
+  * debian/libgtk-4-1.symbols.in: Add new symbols
+  * debian/libgtk-4-doc.*: Adapt install files and links to gi-docgen paths.
+    Docs are installed all in /usr/share/docs/libgtk-4-doc subfolders and
+    linked to /usr/share/gtk-doc to keep devhelp support
+  * debian/patches: Get typelib path from pkg-config
+  * debian/rules: Ensure all symbols are defined.
+    This is now working fine with all the components
+  * debian/rules: Do not reset xvfb on running tests
+  * debian/rules: Support running tests in parallel.
+    This works fine now, so let's enable it again
+  * debian/rules: Move test script to an easier to maintain external file.
+    We're doing lots of operations to run tests, it's better to have the
+    setup in an external script that it's easier to run, debug and maintain
+  * debian/run-tests.sh: Only print full log on errors.
+    No need to output the whole log if there have been no failures
+  * debian: Run tests under wayland too in linux.
+    It's now becoming the default backend so better to also test the library
+    there.
+  * debian/patches: Initialize the textbtree tags counting causing s390x fails
+  * debian/rules: Skip some broken comparison tests in big endian archs
+  * debian/tests: Port to Gtk4 and run them both in wayland and x11
 
- -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Wed, 07 Jul 2021 19:12:20 +0200
+ -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Fri, 09 Jul 2021 07:35:00 +0200
 
 gtk4 (4.0.3-4) experimental; urgency=medium
 
