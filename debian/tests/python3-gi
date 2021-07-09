@@ -1,22 +1,24 @@
 #!/bin/sh
 
-# We don't test under Wayland yet, because we don't have a Wayland
-# equivalent of xvfb-run
-export GDK_BACKEND=x11
-
-xvfb-run -a -s "-screen 0 1024x768x24" \
+debian/tests/run-with-display $GDK_BACKEND \
+dbus-run-session \
 python3 <<EOF
+import gi
+gi.require_version('Gtk', '4.0')
 from gi.repository import GLib, Gtk
 
+loop = GLib.MainLoop()
+
 def do_quit(user_data):
-    Gtk.main_quit()
+    window.destroy()
+    loop.quit()
     return GLib.SOURCE_REMOVE
 
-dialog = Gtk.Dialog()
-dialog.set_title('Test dialog')
-dialog.add_button(Gtk.STOCK_OK, Gtk.ResponseType.ACCEPT)
-dialog.show_all()
+window = Gtk.Window()
+window.set_title('Test Window')
+window.show()
 GLib.timeout_add_seconds(1, do_quit, None)
-Gtk.main()
+
+loop.run()
 EOF
 

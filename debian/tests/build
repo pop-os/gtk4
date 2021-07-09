@@ -11,10 +11,7 @@ set -e
 set -u
 set -x
 
-# We don't test under Wayland yet, because we don't have a Wayland
-# equivalent of xvfb-run
-export GDK_BACKEND=x11
-
+TESTDIR="$PWD/$(dirname $0)"
 WORKDIR=$(mktemp -d)
 cleanup () {
     rm -fr "$WORKDIR"
@@ -72,6 +69,6 @@ EOF
 "${CROSS_COMPILE}gcc" -o gtktest gtktest.c $("${CROSS_COMPILE}pkg-config" --cflags --libs gtk4)
 echo "build: OK"
 [ -x gtktest ]
-xvfb-run -a -s "-screen 0 1024x768x24" \
+"$TESTDIR"/run-with-display $GDK_BACKEND \
 ./gtktest
 echo "run: OK"
