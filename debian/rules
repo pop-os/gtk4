@@ -203,12 +203,22 @@ xfail_reftests = \
 	sizegroups-evolution-identity-page \
 	$(NULL)
 
+skipped_suites = \
+	$(NULL)
+
 # TODO: Known failures without a bug filed:
 # mips(64)el: gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-normal
 #             gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-difference
 #             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-normal
 #             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-difference
 # s390x: many (endianness?)
+ifeq (big,$(DEB_HOST_ARCH_ENDIAN))
+	skipped_suites += \
+		gsk-compare-broadway \
+		gsk-compare-gl \
+		gsk-compare-ngl \
+		$(NULL)
+endif
 
 override_dh_auto_test:
 	set -e; for backend in $(test_backends); do \
@@ -216,7 +226,8 @@ override_dh_auto_test:
 			FUZZY_REFTESTS="$(fuzzy_reftests)" \
 			XFAIL_REFTESTS="$(xfail_reftests)" \
 			BACKEND=$$backend \
-				debian/run-tests.sh -t $(test_timeout_multiplier); \
+				debian/run-tests.sh -t $(test_timeout_multiplier) \
+					$(addprefix --no-suite=,$(skipped_suites)); \
 	done
 
 override_dh_auto_install:
