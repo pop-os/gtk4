@@ -13,7 +13,6 @@ mkdir -p "$test_data"
 
 cleanup() {
     rm -rf "$test_data"
-    rm -f "$BUILDDIR/meson-logs/testlog-$BACKEND.txt"
 
     # Avoid incremental builds with -nc leaking settings into the next build
     for reftest in $FUZZY_REFTESTS; do
@@ -57,11 +56,10 @@ env \
                 --generate sv_SE \
                 -- \
                     meson test -C "$BUILDDIR" \
+                    --print-errorlogs \
                     --setup="$BACKEND" \
                     "$@" \
         || touch "$test_data/tests-failed"
-
-tail -v -n +0 "$BUILDDIR/meson-logs/testlog-$BACKEND.txt" || true
 
 # Don't base64-encode the image results for tests that upstream
 # expect to fail
