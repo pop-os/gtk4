@@ -1,0 +1,22 @@
+From: Simon McVittie <smcv@debian.org>
+Date: Thu, 15 Apr 2021 14:09:42 +0100
+Subject: templates: Remove html5shiv
+
+Internet Explorer is dead, or really should be, so let's not generate
+references to external resources that can be a privacy breach.
+---
+ subprojects/gi-docgen/gidocgen/templates/basic/base.html | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/subprojects/gi-docgen/gidocgen/templates/basic/base.html b/subprojects/gi-docgen/gidocgen/templates/basic/base.html
+index e353208..7c83cae 100644
+--- a/subprojects/gi-docgen/gidocgen/templates/basic/base.html
++++ b/subprojects/gi-docgen/gidocgen/templates/basic/base.html
+@@ -47,7 +47,6 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
+   <script src="search.js"></script>
+   {% endif %}
+   <script src="main.js"></script>
+-  <!--[if IE]><script src="http://html5shiv.googlecode.com/svn/trunk/html5.js"></script><![endif]-->
+ </head>
+ 
+ <body>
