@@ -1,5 +1,6 @@
 reftest_compare_surfaces-Report-how-much-the-images-diffe.patch
 reftests-Allow-minor-differences-to-be-tolerated.patch
 build-Get-typelib-dir-dynamically-using-gobject-introspec.patch
+textbtree-Initialize-to-zero-the-tags-counting-array.patch
 debian/Disable-web-fonts-for-now.patch
 debian/templates-Remove-html5shiv.patch
