@@ -1,4 +1,4 @@
-gtk4 (4.3.1-1) UNRELEASED; urgency=medium
+gtk4 (4.3.1-1) experimental; urgency=medium
 
   * New upstream release:
     - Ignore XErrors from the COW (LP: #1911036)
@@ -36,7 +36,7 @@ gtk4 (4.3.1-1) UNRELEASED; urgency=medium
   * debian/rules: Skip some broken comparison tests in big endian archs
   * debian/tests: Port to Gtk4 and run them both in wayland and x11
 
- -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Fri, 09 Jul 2021 07:35:00 +0200
+ -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Fri, 09 Jul 2021 16:31:39 +0200
 
 gtk4 (4.0.3-4) experimental; urgency=medium
 
