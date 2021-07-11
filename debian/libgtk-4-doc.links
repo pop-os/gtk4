@@ -1,0 +1,16 @@
+usr/share/doc/${env:DOC_PKG}/gdk4 usr/share/doc/${env:DEV_PKG}/gdk4
+usr/share/doc/${env:DOC_PKG}/gdk4 usr/share/gtk-doc/html/gdk4
+usr/share/doc/${env:DOC_PKG}/gdk4-wayland usr/share/doc/${env:DEV_PKG}/gdk4-wayland
+usr/share/doc/${env:DOC_PKG}/gdk4-wayland usr/share/gtk-doc/html/gdk4-wayland
+usr/share/doc/${env:DOC_PKG}/gdk4-x11 usr/share/doc/${env:DEV_PKG}/gdk4-x11
+usr/share/doc/${env:DOC_PKG}/gdk4-x11 usr/share/gtk-doc/html/gdk4-x11
+usr/share/doc/${env:DOC_PKG}/gsk4 usr/share/doc/${env:DEV_PKG}/gsk4
+usr/share/doc/${env:DOC_PKG}/gsk4 usr/share/gtk-doc/html/gsk4
+usr/share/doc/${env:DOC_PKG}/gtk4 usr/share/doc/${env:DEV_PKG}/gtk4
+usr/share/doc/${env:DOC_PKG}/gtk4 usr/share/gtk-doc/html/gtk4
+usr/share/doc/libglib2.0-doc/glib usr/share/doc/${env:DEV_PKG}/glib
+usr/share/doc/libglib2.0-doc/glib usr/share/doc/${env:DOC_PKG}/glib
+usr/share/doc/libglib2.0-doc/gobject usr/share/doc/${env:DEV_PKG}/gobject
+usr/share/doc/libglib2.0-doc/gobject usr/share/doc/${env:DOC_PKG}/gobject
+usr/share/doc/libpango1.0-doc/pango usr/share/doc/${env:DEV_PKG}/pango
+usr/share/doc/libpango1.0-doc/pango usr/share/doc/${env:DOC_PKG}/pango

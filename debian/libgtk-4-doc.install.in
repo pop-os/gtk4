@@ -1,5 +1,0 @@
-usr/share/doc/gdk4 usr/share/doc/@DOC_PKG@
-usr/share/doc/gdk4-wayland usr/share/doc/@DOC_PKG@
-usr/share/doc/gdk4-x11 usr/share/doc/@DOC_PKG@
-usr/share/doc/gsk4 usr/share/doc/@DOC_PKG@
-usr/share/doc/gtk4 usr/share/doc/@DOC_PKG@

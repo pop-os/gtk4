@@ -1,2 +1,0 @@
-@MODULES_BASE_PATH@/printbackends/*.so
-@LIBDIR@/libgtk*.so.*

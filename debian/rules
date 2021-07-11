@@ -14,32 +14,32 @@ LDFLAGS += -Wl,-z,defs
 # Make the linker work a bit harder so dynamic loading can be done faster
 LDFLAGS += -Wl,-O1
 
-APIVER := 4
-SONAME := 1
+export APIVER := 4
+export SONAME := 1
 
-LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
+export LIBDIR := usr/lib/$(DEB_HOST_MULTIARCH)
 
 # earliest version that this release has backwards binary compatibility for
-GTK_BINARY_VERSION := 4.0.0
+export GTK_BINARY_VERSION := 4.0.0
 
 # Gtk binary version virtual Provide
-GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION)
+export GTK_BINVER_DEP := gtk$(APIVER)-binver-$(GTK_BINARY_VERSION)
 
 # relative base directory for configuration
-CONFDIR := etc/gtk-4.0
+export CONFDIR := etc/gtk-4.0
 
 # relative base directory for all types of modules
-MODULES_BASE_PATH := $(LIBDIR)/gtk-4.0/$(GTK_BINARY_VERSION)
+export MODULES_BASE_PATH := $(LIBDIR)/gtk-4.0/$(GTK_BINARY_VERSION)
 
 # package names
-SHARED_PKG := libgtk-$(APIVER)-$(SONAME)
-COMMON_PKG := libgtk-$(APIVER)-common
-DEV_PKG := libgtk-$(APIVER)-dev
-UDEB_PKG := $(SHARED_PKG)-udeb
-DOC_PKG := libgtk-$(APIVER)-doc
-BIN_PKG := libgtk-$(APIVER)-bin
-EXAMPLES_PKG := gtk-$(APIVER)-examples
-TESTS_PKG := gtk-$(APIVER)-tests
+export SHARED_PKG := libgtk-$(APIVER)-$(SONAME)
+export COMMON_PKG := libgtk-$(APIVER)-common
+export DEV_PKG := libgtk-$(APIVER)-dev
+export UDEB_PKG := $(SHARED_PKG)-udeb
+export DOC_PKG := libgtk-$(APIVER)-doc
+export BIN_PKG := libgtk-$(APIVER)-bin
+export EXAMPLES_PKG := gtk-$(APIVER)-examples
+export TESTS_PKG := gtk-$(APIVER)-tests
 
 # files larger than 4k in size will be compressed by dh_compress
 # so append a .gz suffix to avoid dangling symlinks
@@ -55,7 +55,6 @@ debian/%: debian/%.in
 	sed \
 		-e "s#@SONAME@#$(SONAME)#g" \
 		-e "s#@APIVER@#$(APIVER)#g" \
-		-e "s#@VERSION@#$(DEB_VERSION_UPSTREAM)#g" \
 		-e "s#@GTK_BINVER_DEP@#$(GTK_BINVER_DEP)#g" \
 		-e "s#@SHARED_PKG@#$(SHARED_PKG)#g" \
 		-e "s#@COMMON_PKG@#$(COMMON_PKG)#g" \
@@ -66,12 +65,8 @@ debian/%: debian/%.in
 		-e "s#@EXAMPLES_PKG@#$(EXAMPLES_PKG)#g" \
 		-e "s#@TESTS_PKG@#$(TESTS_PKG)#g" \
 		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
-		-e "s#@GTK_BINARY_VERSION@#$(GTK_BINARY_VERSION)#g" \
 		-e "s#@LIBDIR@#$(LIBDIR)#g" \
-		-e 's#@CONFDIR@#$(CONFDIR)#g' \
 		-e "s#@MODULES_BASE_PATH@#$(MODULES_BASE_PATH)#g" \
-		-e "s#@NEWS@#$(NEWS)#g" \
-		-e "s#@README.md@#$(README.md)#g" \
 		$@.in > $@
 
 configure_flags_common = \

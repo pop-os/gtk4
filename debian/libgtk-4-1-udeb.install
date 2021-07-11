@@ -1,1 +1,1 @@
-usr/lib/*/libg?k*.so.*
+${env:LIBDIR}/libg?k*.so.*

@@ -1,0 +1,2 @@
+${env:MODULES_BASE_PATH}/printbackends/*.so
+${env:LIBDIR}/libgtk*.so.*
