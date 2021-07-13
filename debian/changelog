@@ -1,3 +1,15 @@
+gtk4 (4.3.1+ds-1) UNRELEASED; urgency=medium
+
+  * debian: Use dh 13 substitutions for install files instead of .in files
+  * debian/control: move gi-docgen dependencies to bd-indep and remove warn
+  * debian/log-reftests.py: Remove wrong wayland paths
+  * debian/copyright: Update copyright for gi-docgen excluding fonts
+  * debian/watch: Repack using ds suffix as per the d/copyright exclusions
+  * debian/libgtk4-doc.links: Add links as devhelp books instead of gtk-doc
+  * Repack excluding web font files
+
+ -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Wed, 14 Jul 2021 03:47:21 +0200
+
 gtk4 (4.3.1-1) experimental; urgency=medium
 
   * New upstream release:
