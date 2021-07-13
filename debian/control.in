@@ -59,20 +59,16 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                xauth <!nocheck>,
                xsltproc,
                xvfb <!nocheck>,
-# These dependencies are needed by the gi-docgen subproject, replace them
-# with the proper gi-docgen version once it will be available in debian
-               python3 (>= 3.6) <!nodoc>,
-               python3-jinja2 <!nodoc>,
-               python3-markdown <!nodoc>,
-               python3-markupsafe <!nodoc>,
-               python3-pygments <!nodoc>,
-               python3-toml <!nodoc>,
-               python3-typogrify <!nodoc>,
-Build-Depends-Indep: gtk-doc-tools (>= 1.33),
-                     libcairo2-doc,
+Build-Depends-Indep: libcairo2-doc,
                      libglib2.0-doc,
                      libpango1.0-doc,
                      pandoc,
+                     python3 (>= 3.6) <!nodoc>,
+                     python3-jinja2 <!nodoc>,
+                     python3-markdown <!nodoc>,
+                     python3-pygments <!nodoc>,
+                     python3-toml <!nodoc>,
+                     python3-typogrify <!nodoc>,
 Rules-Requires-Root: no
 Standards-Version: 4.5.1
 Vcs-Browser: https://salsa.debian.org/gnome-team/gtk4
