@@ -1,4 +1,4 @@
-gtk4 (4.3.1+ds-1) UNRELEASED; urgency=medium
+gtk4 (4.3.1+ds-1) experimental; urgency=medium
 
   * debian: Use dh 13 substitutions for install files instead of .in files
   * debian/control: move gi-docgen dependencies to bd-indep and remove warn
@@ -8,7 +8,7 @@ gtk4 (4.3.1+ds-1) UNRELEASED; urgency=medium
   * debian/libgtk4-doc.links: Add links as devhelp books instead of gtk-doc
   * Repack excluding web font files
 
- -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Wed, 14 Jul 2021 03:47:21 +0200
+ -- Marco Trevisan (Treviño) <marco@ubuntu.com>  Wed, 14 Jul 2021 05:35:40 +0200
 
 gtk4 (4.3.1-1) experimental; urgency=medium
 
