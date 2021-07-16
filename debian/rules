@@ -79,7 +79,8 @@ configure_flags_deb = \
 	-Dcloudproviders=disabled \
 	-Dintrospection=enabled \
 	-Dman-pages=true \
-	-Dmedia=none \
+	-Dmedia-ffmpeg=disabled \
+	-Dmedia-gstreamer=disabled \
 	-Dprint-backends=all \
 	-Dx11-backend=true \
 	-Dxinerama=enabled \
@@ -131,7 +132,8 @@ configure_flags_udeb = \
 	-Dintrospection=disabled \
 	-Dprint-backends=none \
 	-Dcolord=disabled \
-	-Dmedia=none
+	-Dmedia-ffmpeg=disabled \
+	-Dmedia-gstreamer=disabled
 
 %:
 	dh $@ --with gir --buildsystem=meson
