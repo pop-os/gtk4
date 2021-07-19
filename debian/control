@@ -16,6 +16,10 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                gobject-introspection (>= 1.41.3),
                gsettings-desktop-schemas <!nocheck>,
                iso-codes <!nocheck>,
+               libavcodec-dev (>= 7:4.1.0),
+               libavfilter-dev (>= 7:4.1.0),
+               libavformat-dev (>= 7:4.1.0),
+               libavutil-dev (>= 7:4.1.0),
                libcairo2-dev (>= 1.14.0),
                libcolord-dev (>= 0.1.9),
                libcups2-dev (>= 2.0),
@@ -36,6 +40,7 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                librest-dev,
                librsvg2-common <!nocheck>,
                librsvg2-dev,
+               libswscale-dev (>= 7:4.1.0),
                libvulkan-dev [linux-any],
                libwayland-dev (>= 1.14.91) [linux-any],
                libx11-dev,
@@ -91,7 +96,7 @@ Recommends: libgtk-4-bin,
             iso-codes,
             librsvg2-common,
 Suggests: gvfs,
-          libgtk-4-media-gstreamer,
+          libgtk-4-media-gstreamer | libgtk-4-media-ffmpeg,
 Breaks: libgtk-4-0 (<< 4.0.0),
 Replaces: libgtk-4-0 (<< 4.0.0),
 Pre-Depends: ${misc:Pre-Depends}
@@ -230,6 +235,20 @@ Description: GStreamer media backend for the GTK graphical user interface librar
  suites.
  .
  This package contains the media module that uses GStreamer as backend.
+
+Package: libgtk-4-media-ffmpeg
+Section: x11
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Description: FFmpeg media backend for the GTK graphical user interface library
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
+ for projects ranging from small one-off tools to complete application
+ suites.
+ .
+ This package contains the media module that uses FFmpeg as backend.
 
 Package: gtk-4-examples
 Build-Profiles: <!noinsttest>
