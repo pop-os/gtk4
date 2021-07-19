@@ -203,7 +203,7 @@ xfail_reftests = \
 skipped_suites = \
 	$(NULL)
 
-# TODO: Known failures without a bug filed:
+# TODO: Known failures: https://gitlab.gnome.org/GNOME/gtk/-/issues/4110
 # mips(64)el: gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-normal
 #             gtk:gsk+gsk-compare+gsk-opengl+gsk-compare-opengl / opengl blend-difference
 #             gtk:gsk+gsk-compare+gsk-broadway+gsk-compare-broadway / broadway blend-normal
