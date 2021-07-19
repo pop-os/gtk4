@@ -81,7 +81,6 @@ configure_flags_common = \
 configure_flags_deb = \
 	--auto-features enabled \
 	-Dbroadway-backend=true \
-	-Dcloudproviders=disabled \
 	-Dman-pages=true \
 	-Dx11-backend=true \
 	${NULL}
@@ -117,6 +116,11 @@ ifeq ($(filter %-tests,$(built_binaries)),)
 configure_flags_deb += -Dinstall-tests=false
 else
 configure_flags_deb += -Dinstall-tests=true
+endif
+
+ifeq ($(shell dpkg-vendor --derives-from Ubuntu && echo yes), yes)
+# Not in main repository
+configure_flags_deb += -Dcloudproviders=disabled
 endif
 
 configure_flags_udeb = \
