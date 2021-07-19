@@ -129,6 +129,7 @@ configure_flags_udeb = \
 	-Dbroadway-backend=false \
 	-Dbuild-examples=false \
 	-Ddemos=false \
+	-Dbuild-tests=false \
 	-Dinstall-tests=false \
 	-Dwayland-backend=false \
 	-Dx11-backend=true \
