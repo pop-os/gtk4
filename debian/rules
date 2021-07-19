@@ -94,6 +94,7 @@ endif
 ifeq (linux,$(DEB_HOST_ARCH_OS))
 configure_flags_deb += -Dwayland-backend=true
 else
+configure_flags_deb += -Dsysprof=disabled
 configure_flags_deb += -Dvulkan=disabled
 configure_flags_deb += -Dwayland-backend=false
 endif
