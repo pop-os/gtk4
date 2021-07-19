@@ -75,15 +75,13 @@ configure_flags_common = \
 	${NULL}
 
 configure_flags_deb = \
+	--auto-features enabled \
 	-Dbroadway-backend=true \
 	-Dcloudproviders=disabled \
-	-Dintrospection=enabled \
 	-Dman-pages=true \
 	-Dmedia-ffmpeg=disabled \
 	-Dmedia-gstreamer=disabled \
-	-Dprint-backends=all \
 	-Dx11-backend=true \
-	-Dxinerama=enabled \
 	${NULL}
 
 ifeq (,$(filter stage1,$(DEB_BUILD_PROFILES)))
@@ -93,7 +91,6 @@ configure_flags_deb += -Dcolord=disabled
 endif
 
 ifeq (linux,$(DEB_HOST_ARCH_OS))
-configure_flags_deb += -Dvulkan=enabled
 configure_flags_deb += -Dwayland-backend=true
 else
 configure_flags_deb += -Dvulkan=disabled
@@ -121,19 +118,14 @@ configure_flags_deb += -Dinstall-tests=true
 endif
 
 configure_flags_udeb = \
+	--auto-features disabled \
 	-Dbroadway-backend=false \
 	-Dbuild-examples=false \
-	-Dcloudproviders=disabled \
 	-Ddemos=false \
 	-Dinstall-tests=false \
 	-Dwayland-backend=false \
 	-Dx11-backend=true \
-	-Dxinerama=disabled \
-	-Dintrospection=disabled \
-	-Dprint-backends=none \
-	-Dcolord=disabled \
-	-Dmedia-ffmpeg=disabled \
-	-Dmedia-gstreamer=disabled
+	$(NULL)
 
 %:
 	dh $@ --with gir --buildsystem=meson
