@@ -28,6 +28,8 @@ Build-Depends: adwaita-icon-theme <!nocheck>,
                libglib2.0-dev (>= 2.66.0),
                libgraphene-1.0-dev (>= 1.9.1),
                libgraphene-1.0-dev (>= 1.10.4~) [any-i386],
+               libgstreamer1.0-dev (>= 1.12.3),
+               libgstreamer-plugins-bad1.0-dev (>= 1.12.3),
                libharfbuzz-dev (>= 0.9),
                libjson-glib-dev,
                libpango1.0-dev (>= 1.47.0),
@@ -89,6 +91,7 @@ Recommends: libgtk-4-bin,
             iso-codes,
             librsvg2-common,
 Suggests: gvfs,
+          libgtk-4-media-gstreamer,
 Breaks: libgtk-4-0 (<< 4.0.0),
 Replaces: libgtk-4-0 (<< 4.0.0),
 Pre-Depends: ${misc:Pre-Depends}
@@ -213,6 +216,20 @@ Description: documentation for the GTK graphical user interface library
  .
  This package contains the HTML documentation for the GTK library
  in /usr/share/doc/libgtk-4-doc/ .
+
+Package: libgtk-4-media-gstreamer
+Section: x11
+Architecture: any
+Multi-Arch: foreign
+Depends: ${misc:Depends},
+         ${shlibs:Depends},
+Description: GStreamer media backend for the GTK graphical user interface library
+ GTK is a multi-platform toolkit for creating graphical user
+ interfaces. Offering a complete set of widgets, GTK is suitable
+ for projects ranging from small one-off tools to complete application
+ suites.
+ .
+ This package contains the media module that uses GStreamer as backend.
 
 Package: gtk-4-examples
 Build-Profiles: <!noinsttest>

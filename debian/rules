@@ -38,6 +38,7 @@ export DEV_PKG := libgtk-$(APIVER)-dev
 export UDEB_PKG := $(SHARED_PKG)-udeb
 export DOC_PKG := libgtk-$(APIVER)-doc
 export BIN_PKG := libgtk-$(APIVER)-bin
+export MEDIA_GSTREAMER_PKG := libgtk-$(APIVER)-media-gstreamer
 export EXAMPLES_PKG := gtk-$(APIVER)-examples
 export TESTS_PKG := gtk-$(APIVER)-tests
 
@@ -62,6 +63,7 @@ debian/%: debian/%.in
 		-e "s#@UDEB_PKG@#$(UDEB_PKG)#g" \
 		-e "s#@DOC_PKG@#$(DOC_PKG)#g" \
 		-e "s#@BIN_PKG@#$(BIN_PKG)#g" \
+		-e "s#@MEDIA_GSTREAMER_PKG@#$(MEDIA_GSTREAMER_PKG)#g" \
 		-e "s#@EXAMPLES_PKG@#$(EXAMPLES_PKG)#g" \
 		-e "s#@TESTS_PKG@#$(TESTS_PKG)#g" \
 		-e "s#@GNOME_TEAM@#$(UPLOADERS)#g" \
@@ -80,7 +82,6 @@ configure_flags_deb = \
 	-Dcloudproviders=disabled \
 	-Dman-pages=true \
 	-Dmedia-ffmpeg=disabled \
-	-Dmedia-gstreamer=disabled \
 	-Dx11-backend=true \
 	${NULL}
 
