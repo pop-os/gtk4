@@ -1,3 +1,27 @@
+gtk4 (4.3.1+ds-2) UNRELEASED; urgency=medium
+
+  [ Marco Trevisan (Treviño) ]
+  * debian/rules: Add upstream bug mentioning test failures
+  * debian/rules: Use Enable auto-features for debs and disable them for
+    udebs. Avoid listing managing this manually, while explicitly disable or
+    enable when something is required.
+  * debian: Add libgtk-4-media-gstreamer package to provide a media module
+  * debian: Add libgtk-4-media-ffmpeg package to provide a media module
+  * debian: Add support for libcloudproviders in debian. While keep this
+    disabled for ubuntu as it's not in main repo.
+  * debian: Enable sysprof support under linux. We need to manually add
+    sysprof dev dependencies as these are only suggestions.
+  * debian/rules: Do not build tests in udeb case
+
+  [ Iain Lane ]
+  * rules: Only skip the cloud providers on Ubuntu itself. For everything
+    else the main/universe distinction doesn't apply. Fixup to Marco's earlier
+    change.
+  * copyright: Fix dep5-copyright-license-name-not-unique. CC0-1.0 was
+    defined twice
+
+ -- Iain Lane <laney@debian.org>  Mon, 26 Jul 2021 11:50:36 +0100
+
 gtk4 (4.3.1+ds-1) experimental; urgency=medium
 
   * debian: Use dh 13 substitutions for install files instead of .in files
