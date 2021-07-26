@@ -119,7 +119,7 @@ else
 configure_flags_deb += -Dinstall-tests=true
 endif
 
-ifeq ($(shell dpkg-vendor --derives-from Ubuntu && echo yes), yes)
+ifeq ($(shell dpkg-vendor --is Ubuntu && echo yes), yes)
 # Not in main repository
 configure_flags_deb += -Dcloudproviders=disabled
 endif
