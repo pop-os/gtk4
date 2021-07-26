@@ -495,8 +495,6 @@ Files:
  demos/widget-factory/org.gtk.WidgetFactory4.appdata.xml
 Copyright: unspecified
 License: CC0-1.0
- On Debian systems, a copy of the Creative Commons Zero license version 1.0
- can be found in /usr/share/common-licenses/CC0-1.0.
 
 Files:
  subprojects/gi-docgen/*
