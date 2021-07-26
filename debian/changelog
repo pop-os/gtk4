@@ -1,4 +1,4 @@
-gtk4 (4.3.1+ds-2) UNRELEASED; urgency=medium
+gtk4 (4.3.1+ds-2) experimental; urgency=medium
 
   [ Marco Trevisan (Treviño) ]
   * debian/rules: Add upstream bug mentioning test failures
@@ -20,7 +20,7 @@ gtk4 (4.3.1+ds-2) UNRELEASED; urgency=medium
   * copyright: Fix dep5-copyright-license-name-not-unique. CC0-1.0 was
     defined twice
 
- -- Iain Lane <laney@debian.org>  Mon, 26 Jul 2021 11:50:36 +0100
+ -- Iain Lane <laney@debian.org>  Mon, 26 Jul 2021 12:56:55 +0100
 
 gtk4 (4.3.1+ds-1) experimental; urgency=medium
 
