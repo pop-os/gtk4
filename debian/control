@@ -2,7 +2,7 @@ Source: gtk4
 Section: libs
 Priority: optional
 Maintainer: Debian GNOME Maintainers <pkg-gnome-maintainers@lists.alioth.debian.org>
-Uploaders: Simon McVittie <smcv@debian.org>, 
+Uploaders: Simon McVittie <smcv@debian.org>, Iain Lane <laney@debian.org>, Marco Trevisan (Treviño) <marco@ubuntu.com>
 Build-Depends: adwaita-icon-theme <!nocheck>,
                at-spi2-core <!nocheck>,
                dbus <!nocheck>,
