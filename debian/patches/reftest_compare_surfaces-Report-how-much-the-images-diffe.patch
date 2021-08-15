@@ -42,7 +42,7 @@ index 5494c61..f3c3568 100644
            cairo_surface_destroy (diff_surface);
            success = FALSE;
 diff --git a/testsuite/reftests/gtk-reftest.c b/testsuite/reftests/gtk-reftest.c
-index efe48e6..947eb2a 100644
+index cd15396..3ae5413 100644
 --- a/testsuite/reftests/gtk-reftest.c
 +++ b/testsuite/reftests/gtk-reftest.c
 @@ -298,6 +298,9 @@ test_ui_file (GFile *file)

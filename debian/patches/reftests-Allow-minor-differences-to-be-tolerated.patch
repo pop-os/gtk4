@@ -82,7 +82,7 @@ index f3c3568..6766a01 100644
      }
  
 diff --git a/testsuite/reftests/gtk-reftest.c b/testsuite/reftests/gtk-reftest.c
-index 947eb2a..76b184d 100644
+index 3ae5413..f2fd60e 100644
 --- a/testsuite/reftests/gtk-reftest.c
 +++ b/testsuite/reftests/gtk-reftest.c
 @@ -292,6 +292,12 @@ save_image (cairo_surface_t *surface,
