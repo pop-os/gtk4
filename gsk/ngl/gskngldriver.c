@@ -24,7 +24,9 @@
 #include "config.h"
 
 #include <gdk/gdkglcontextprivate.h>
+#include <gdk/gdkdisplayprivate.h>
 #include <gdk/gdktextureprivate.h>
+#include <gdk/gdkprofilerprivate.h>
 #include <gsk/gskdebugprivate.h>
 #include <gsk/gskglshaderprivate.h>
 #include <gsk/gskrendererprivate.h>
@@ -328,6 +330,7 @@ gsk_ngl_driver_load_programs (GskNglDriver  *self,
 {
   GskNglCompiler *compiler;
   gboolean ret = FALSE;
+  G_GNUC_UNUSED gint64 start_time = GDK_PROFILER_CURRENT_TIME;
 
   g_assert (GSK_IS_NGL_DRIVER (self));
   g_assert (GSK_IS_NGL_COMMAND_QUEUE (self->command_queue));
@@ -395,6 +398,8 @@ gsk_ngl_driver_load_programs (GskNglDriver  *self,
 failure:
   g_clear_object (&compiler);
 
+  gdk_profiler_end_mark (start_time, "load programs", NULL);
+
   return ret;
 }
 
@@ -421,8 +426,11 @@ gsk_ngl_driver_new (GskNglCommandQueue  *command_queue,
 {
   GskNglDriver *self;
   GdkGLContext *context;
+  gint64 before G_GNUC_UNUSED;
 
   g_return_val_if_fail (GSK_IS_NGL_COMMAND_QUEUE (command_queue), NULL);
+
+  before = GDK_PROFILER_CURRENT_TIME;
 
   context = gsk_ngl_command_queue_get_context (command_queue);
 
@@ -443,33 +451,39 @@ gsk_ngl_driver_new (GskNglCommandQueue  *command_queue,
   self->icons = gsk_ngl_icon_library_new (self);
   self->shadows = gsk_ngl_shadow_library_new (self);
 
+  gdk_profiler_end_mark (before, "create GskNglDriver", NULL);
+
   return g_steal_pointer (&self);
 }
 
 /**
- * gsk_ngl_driver_from_shared_context:
- * @context: a shared `GdkGLContext` retrieved with gdk_gl_context_get_shared_context()
+ * gsk_ngl_driver_for_display:
+ * @display: A #GdkDisplay that is known to support GL
  * @debug_shaders: if debug information for shaders should be displayed
  * @error: location for error information
  *
- * Retrieves a driver for a shared context. Generally this is shared across all GL
+ * Retrieves a driver for a shared display. Generally this is shared across all GL
  * contexts for a display so that fewer programs are necessary for driving output.
  *
  * Returns: (transfer full): a `GskNglDriver` if successful; otherwise %NULL and
  *   @error is set.
  */
 GskNglDriver *
-gsk_ngl_driver_from_shared_context (GdkGLContext  *context,
-                                    gboolean       debug_shaders,
-                                    GError       **error)
+gsk_ngl_driver_for_display (GdkDisplay  *display,
+                            gboolean     debug_shaders,
+                            GError     **error)
 {
+  GdkGLContext *context;
   GskNglCommandQueue *command_queue = NULL;
   GskNglDriver *driver;
 
-  g_return_val_if_fail (GDK_IS_GL_CONTEXT (context), NULL);
+  g_return_val_if_fail (GDK_IS_DISPLAY (display), NULL);
 
-  if ((driver = g_object_get_data (G_OBJECT (context), "GSK_NGL_DRIVER")))
+  if ((driver = g_object_get_data (G_OBJECT (display), "GSK_NGL_DRIVER")))
     return g_object_ref (driver);
+
+  context = gdk_display_get_gl_context (display);
+  g_assert (context);
 
   gdk_gl_context_make_current (context);
 
@@ -484,7 +498,7 @@ gsk_ngl_driver_from_shared_context (GdkGLContext  *context,
   if (!(driver = gsk_ngl_driver_new (command_queue, debug_shaders, error)))
     goto failure;
 
-  g_object_set_data_full (G_OBJECT (context),
+  g_object_set_data_full (G_OBJECT (display),
                           "GSK_NGL_DRIVER",
                           g_object_ref (driver),
                           g_object_unref);
@@ -736,16 +750,13 @@ gsk_ngl_driver_load_texture (GskNglDriver *self,
 
   if (GDK_IS_GL_TEXTURE (texture))
     {
-      GdkGLContext *texture_context = gdk_gl_texture_get_context ((GdkGLTexture *)texture);
-      GdkGLContext *shared_context = gdk_gl_context_get_shared_context (context);
+      GdkGLTexture *gl_texture = (GdkGLTexture *) texture;
+      GdkGLContext *texture_context = gdk_gl_texture_get_context (gl_texture);
 
-      if (texture_context == context ||
-          (shared_context != NULL &&
-           shared_context == gdk_gl_context_get_shared_context (texture_context)))
-
+      if (gdk_gl_context_is_shared (context, texture_context))
         {
           /* A GL texture from the same GL context is a simple task... */
-          return gdk_gl_texture_get_id ((GdkGLTexture *)texture);
+          return gdk_gl_texture_get_id (gl_texture);
         }
       else
         {

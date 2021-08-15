@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -272,17 +272,17 @@ if you had more than a simple message in the&nbsp;dialog.</p>
 <h1 id="gtkdialog-as-gtkbuildable">GtkDialog as GtkBuildable<a class="md-anchor" href="#gtkdialog-as-gtkbuildable" title="Permanent link"></a></h1>
 <p>The <code>GtkDialog</code> implementation of the <code>GtkBuildable</code> interface exposes the
 <code>content_area</code> as an internal child with the name&nbsp;“content_area”.</p>
-<p><code>GtkDialog</code> supports a custom <action-widgets> element, which can contain
-multiple <action-widget> elements. The “response” attribute specifies a
+<p><code>GtkDialog</code> supports a custom <code>&lt;action-widgets&gt;</code> element, which can contain
+multiple <code>&lt;action-widget&gt;</code> elements. The “response” attribute specifies a
 numeric response, and the content of the element is the id of widget
 (which should be a child of the dialogs <code>action_area</code>). To mark a response
-as default, set the “default“ attribute of the <action-widget> element
+as default, set the “default” attribute of the <code>&lt;action-widget&gt;</code> element
 to&nbsp;true.</p>
-<p><code>GtkDialog</code> supports adding action widgets by specifying “action“ as
-the “type“ attribute of a <child> element. The widget will be added
+<p><code>GtkDialog</code> supports adding action widgets by specifying “action” as
+the “type” attribute of a <code>&lt;child&gt;</code> element. The widget will be added
 either to the action area or the headerbar of the dialog, depending
-on the “use-header-bar“ property. The response id has to be associated
-with the action widget using the <action-widgets>&nbsp;element.</p>
+on the “use-header-bar” property. The response id has to be associated
+with the action widget using the <code>&lt;action-widgets&gt;</code> element.</p>
 <p>An example of a <code>GtkDialog</code> <span class="caps">UI</span> definition&nbsp;fragment:</p>
 <div class="codehilite"><pre><span></span><code><span class="nt">&lt;object</span> <span class="na">class=</span><span class="s">&quot;GtkDialog&quot;</span> <span class="na">id=</span><span class="s">&quot;dialog1&quot;</span><span class="nt">&gt;</span>
   <span class="nt">&lt;child</span> <span class="na">type=</span><span class="s">&quot;action&quot;</span><span class="nt">&gt;</span>

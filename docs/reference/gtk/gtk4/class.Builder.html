@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -330,13 +330,14 @@ be compiled with the -Wl,&#8212;export-dynamic <code>CFLAGS</code>, and linked a
 <h1 id="a-gtkbuilder-ui-definition">A GtkBuilder UI Definition<a class="md-anchor" href="#a-gtkbuilder-ui-definition" title="Permanent link"></a></h1>
 <div class="codehilite"><pre><span></span><code><span class="nt">&lt;interface&gt;</span>
   <span class="nt">&lt;object</span> <span class="na">class=</span><span class="s">&quot;GtkDialog&quot;</span> <span class="na">id=</span><span class="s">&quot;dialog1&quot;</span><span class="nt">&gt;</span>
-    <span class="nt">&lt;child</span> <span class="na">internal-child=</span><span class="s">&quot;vbox&quot;</span><span class="nt">&gt;</span>
+    <span class="nt">&lt;child</span> <span class="na">internal-child=</span><span class="s">&quot;content_area&quot;</span><span class="nt">&gt;</span>
       <span class="nt">&lt;object</span> <span class="na">class=</span><span class="s">&quot;GtkBox&quot;</span> <span class="na">id=</span><span class="s">&quot;vbox1&quot;</span><span class="nt">&gt;</span>
         <span class="nt">&lt;child</span> <span class="na">internal-child=</span><span class="s">&quot;action_area&quot;</span><span class="nt">&gt;</span>
           <span class="nt">&lt;object</span> <span class="na">class=</span><span class="s">&quot;GtkBox&quot;</span> <span class="na">id=</span><span class="s">&quot;hbuttonbox1&quot;</span><span class="nt">&gt;</span>
             <span class="nt">&lt;child&gt;</span>
               <span class="nt">&lt;object</span> <span class="na">class=</span><span class="s">&quot;GtkButton&quot;</span> <span class="na">id=</span><span class="s">&quot;ok_button&quot;</span><span class="nt">&gt;</span>
-                <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;label&quot;</span><span class="nt">&gt;</span>gtk-ok<span class="nt">&lt;/property&gt;</span>
+                <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;label&quot;</span> <span class="na">translatable=</span><span class="s">&quot;yes&quot;</span><span class="nt">&gt;</span>_Ok<span class="nt">&lt;/property&gt;</span>
+                <span class="nt">&lt;property</span> <span class="na">name=</span><span class="s">&quot;use-underline&quot;</span><span class="nt">&gt;</span>True<span class="nt">&lt;/property&gt;</span>
                 <span class="nt">&lt;signal</span> <span class="na">name=</span><span class="s">&quot;clicked&quot;</span> <span class="na">handler=</span><span class="s">&quot;ok_button_clicked&quot;</span><span class="nt">/&gt;</span>
               <span class="nt">&lt;/object&gt;</span>
             <span class="nt">&lt;/child&gt;</span>

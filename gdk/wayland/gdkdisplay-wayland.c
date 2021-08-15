@@ -432,12 +432,12 @@ gdk_registry_handle_global (void               *data,
       display_wayland->subcompositor =
         wl_registry_bind (display_wayland->wl_registry, id, &wl_subcompositor_interface, 1);
     }
-  else if (strcmp (interface, "zwp_pointer_gestures_v1") == 0 &&
-           version == GDK_ZWP_POINTER_GESTURES_V1_VERSION)
+  else if (strcmp (interface, "zwp_pointer_gestures_v1") == 0)
     {
       display_wayland->pointer_gestures =
         wl_registry_bind (display_wayland->wl_registry,
-                          id, &zwp_pointer_gestures_v1_interface, version);
+                          id, &zwp_pointer_gestures_v1_interface,
+                          MIN (version, GDK_ZWP_POINTER_GESTURES_V1_VERSION));
     }
   else if (strcmp (interface, "zwp_primary_selection_device_manager_v1") == 0)
     {
@@ -969,7 +969,7 @@ gdk_wayland_display_class_init (GdkWaylandDisplayClass *class)
   display_class->create_surface = _gdk_wayland_display_create_surface;
   display_class->get_keymap = _gdk_wayland_display_get_keymap;
 
-  display_class->make_gl_context_current = gdk_wayland_display_make_gl_context_current;
+  display_class->init_gl = gdk_wayland_display_init_gl;
 
   display_class->get_monitors = gdk_wayland_display_get_monitors;
   display_class->get_monitor_at_surface = gdk_wayland_display_get_monitor_at_surface;
@@ -992,6 +992,26 @@ gdk_wayland_display_get_toplevel_surfaces (GdkDisplay *display)
 }
 
 static struct wl_cursor_theme *
+try_load_theme (GdkWaylandDisplay *display_wayland,
+                const char        *dir,
+                gboolean           dotdir,
+                const char        *name,
+                int                size)
+{
+  struct wl_cursor_theme *theme = NULL;
+  char *path;
+
+  path = g_build_filename (dir, dotdir ? ".icons" : "icons", name, "cursors", NULL);
+
+  if (g_file_test (path, G_FILE_TEST_IS_DIR))
+    theme = wl_cursor_theme_create (path, size, display_wayland->shm);
+
+  g_free (path);
+
+  return theme;
+}
+
+static struct wl_cursor_theme *
 get_cursor_theme (GdkWaylandDisplay *display_wayland,
                   const char *name,
                   int size)
@@ -1000,16 +1020,18 @@ get_cursor_theme (GdkWaylandDisplay *display_wayland,
   struct wl_cursor_theme *theme = NULL;
   int i;
 
+  theme = try_load_theme (display_wayland, g_get_user_data_dir (), FALSE, name, size);
+  if (theme)
+    return theme;
+
+  theme = try_load_theme (display_wayland, g_get_home_dir (), TRUE, name, size);
+  if (theme)
+    return theme;
+
   xdg_data_dirs = g_get_system_data_dirs ();
   for (i = 0; xdg_data_dirs[i]; i++)
     {
-      char *path = g_build_filename (xdg_data_dirs[i], "icons", name, "cursors", NULL);
-
-      if (g_file_test (path, G_FILE_TEST_IS_DIR))
-        theme = wl_cursor_theme_create (path, size, display_wayland->shm);
-
-      g_free (path);
-
+      theme = try_load_theme (display_wayland, xdg_data_dirs[i], FALSE, name, size);
       if (theme)
         return theme;
     }

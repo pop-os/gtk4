@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -148,6 +148,12 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     <a class="method" href="method.MediaStream.set_playing.html">set_playing</a>
   
     <a class="method" href="method.MediaStream.set_volume.html">set_volume</a>
+  
+    <a class="method" href="method.MediaStream.stream_ended.html">stream_ended</a>
+  
+    <a class="method" href="method.MediaStream.stream_prepared.html">stream_prepared</a>
+  
+    <a class="method" href="method.MediaStream.stream_unprepared.html">stream_unprepared</a>
   
     <a class="method" href="method.MediaStream.unprepared.html">unprepared</a>
   
@@ -390,12 +396,12 @@ not be used in applications:
 
       <div class="docblock">
       
-        <div class="">
+        <div class="deprecated">
           <h6><a href="method.MediaStream.ended.html">gtk_media_stream_ended</a></h6>
           <div class="docblock">
             <p>Pauses the media stream and marks it as&nbsp;ended.</p>
           </div>
-          
+          <div class="docblock"><p>Deprecated since: 4.4</p></div>
         </div>
       
         <div class="">
@@ -543,13 +549,12 @@ explaining that&nbsp;state.</p>
           
         </div>
       
-        <div class="">
+        <div class="deprecated">
           <h6><a href="method.MediaStream.prepared.html">gtk_media_stream_prepared</a></h6>
           <div class="docblock">
-            <p>Called by <code>GtkMediaStream</code> implementations to advertise the stream
-being ready to play and providing details about the&nbsp;stream.</p>
+            <p>Same as&nbsp;gtk_media_stream_stream_prepared().</p>
           </div>
-          
+          <div class="docblock"><p>Deprecated since: 4.4</p></div>
         </div>
       
         <div class="">
@@ -617,11 +622,36 @@ being ready to play and providing details about the&nbsp;stream.</p>
         </div>
       
         <div class="">
-          <h6><a href="method.MediaStream.unprepared.html">gtk_media_stream_unprepared</a></h6>
+          <h6><a href="method.MediaStream.stream_ended.html">gtk_media_stream_stream_ended</a></h6>
+          <div class="docblock">
+            <p>Pauses the media stream and marks it as&nbsp;ended.</p>
+          </div>
+          <div class="docblock"><p>Available since: 4.4</p></div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.MediaStream.stream_prepared.html">gtk_media_stream_stream_prepared</a></h6>
+          <div class="docblock">
+            <p>Called by <code>GtkMediaStream</code> implementations to advertise the stream
+being ready to play and providing details about the&nbsp;stream.</p>
+          </div>
+          <div class="docblock"><p>Available since: 4.4</p></div>
+        </div>
+      
+        <div class="">
+          <h6><a href="method.MediaStream.stream_unprepared.html">gtk_media_stream_stream_unprepared</a></h6>
           <div class="docblock">
             <p>Resets a given media stream&nbsp;implementation.</p>
           </div>
-          
+          <div class="docblock"><p>Available since: 4.4</p></div>
+        </div>
+      
+        <div class="deprecated">
+          <h6><a href="method.MediaStream.unprepared.html">gtk_media_stream_unprepared</a></h6>
+          <div class="docblock">
+            <p>Same as&nbsp;gtk_media_stream_stream_unprepared().</p>
+          </div>
+          <div class="docblock"><p>Deprecated since: 4.4</p></div>
         </div>
       
         <div class="">

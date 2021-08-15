@@ -13,7 +13,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <title>Gsk.VulkanRenderer.new</title>
+  <title>Gtk.ColorButton::activate</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
   <meta charset="utf-8" />
@@ -25,14 +25,14 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   <meta property="og:image:width" content="256"/>
   <meta property="og:image:height" content="256"/>
   <meta property="og:image:secure_url" content="gtk-logo.svg"/>
-  <meta property="og:image:alt" content="Gsk-4.0"/>
+  <meta property="og:image:alt" content="Gtk-4.0"/>
   
 
   
-  <meta property="og:title" content="Gsk.VulkanRenderer.new"/>
-  <meta property="og:description" content="Reference for Gsk.VulkanRenderer.new"/>
-  <meta name="twitter:title" content="Gsk.VulkanRenderer.new"/>
-  <meta name="twitter:description" content="Reference for Gsk.VulkanRenderer.new"/>
+  <meta property="og:title" content="Gtk.ColorButton::activate"/>
+  <meta property="og:description" content="Reference for signal Gtk.ColorButton::activate"/>
+  <meta name="twitter:title" content="Gtk.ColorButton::activate"/>
+  <meta name="twitter:description" content="Reference for signal Gtk.ColorButton::activate"/>
 
 
   
@@ -72,24 +72,26 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
       </div>
       
       <div class="section namespace">
-        <h3><a href="index.html">Gsk</a></h3>
+        <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
 <div class="section">
   <h5>Type</h5>
   <div class="links">
-    <a href="class.VulkanRenderer.html">VulkanRenderer</a>
+    <a href="class.ColorButton.html">ColorButton</a>
   </div>
 </div>
 <div class="section">
-  <h5>Constructors</h5>
+  <h5>Signals</h5>
   <div class="links">
   
-    <a class="method current" href="ctor.VulkanRenderer.new.html">new</a>
+    <a class="signal current" href="signal.ColorButton.activate.html">activate</a>
+  
+    <a class="signal" href="signal.ColorButton.color-set.html">color-set</a>
   
   </div>
 </div>
@@ -103,24 +105,22 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     
 <section id="main" class="content">
   <header>
-    <h3>Constructor</h3>
-    <h1><a href="index.html">Gsk</a><span class="sep"></span><a href="class.VulkanRenderer.html">VulkanRenderer</a><span class="sep"></span>new</h1>
+    <h3>Signal</h3>
+    <h1><a href="index.html">Gtk</a><span class="sep"></span><a href="class.ColorButton.html">ColorButton</a>::activate</h1>
   </header>
 
   <section>
     <div class="declaration toggle-wrapper">
-      <h4 id="declaration" style="display:flex;">
+      <h4 id="declaration">
         Declaration
         <a href="#declaration" class="anchor"></a>
-        
-        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gsk/vulkan/gskvulkanrenderer.h#L50">[src]</a>
-        
       </h4>
 
       <div class="docblock">
-        <pre><code><div class="highlight"><pre><span></span><span class="n">GskRenderer</span><span class="o">*</span>
-<span class="n">gsk_vulkan_renderer_new</span> <span class="p">(</span>
-  <span class="kt">void</span>
+        <pre><code><div class="highlight"><pre><span></span><span class="kt">void</span>
+<span class="n">activate</span> <span class="p">(</span>
+  <span class="n">GtkColorButton</span> <span class="n">self</span><span class="p">,</span>
+  <span class="n">gpointer</span> <span class="n">user_data</span>
 <span class="p">)</span>
 </pre></div>
 </code></pre>
@@ -132,15 +132,28 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         Description
         <a href="#description" class="anchor"></a>
         
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkcolorbutton.c#L206">[src]</a>
+        
       </h4>
 
       <div class="docblock">
-        No description available.
+        <p>Emitted to when the color button is&nbsp;activated.</p>
+<p>The <code>::activate</code> signal on <code>GtkMenuButton</code> is an action signal and
+emitting it causes the button to pop up its&nbsp;dialog.</p>
       </div>
 
       <div class="docblock">
         <table>
+          <tr><td>Default handler:</td><td> <p>The default handler is called before the handlers added via <code>g_signal_connect()</code>.</p></td></tr>
           
+          
+          <tr><td colspan="2">The signal can be emitted directly</td></tr>
+          
+          
+          
+          
+          
+          <tr><td>Available since:</td><td>4.4</td></tr>
           
           
         </table>
@@ -152,32 +165,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     
 
     
-    <div class="return-value toggle-wrapper">
-      <h4 id="return-value">
-        Return value
-        <a href="#return-value" class="anchor"></a>
-      </h4>
 
-      <div class="docblock">
-        <table class="returns">
-          <tr class="arg-name">
-            <td>Returns:</td>
-            <td><a href="class.Renderer.html"><code>GskRenderer</code></a></td>
-          </tr>
-          <tr class="arg-description">
-            <td>&nbsp;</td>
-            <td>No description available.</td>
-          </tr>
-          
-          
-          
-          <tr><td>&nbsp;</td><td title="transfer: full">The caller of the function takes ownership of the data, and is responsible for freeing it.</td></tr>
-          
-          
-        </table>
-      </div>
-    </div>
-    
   </section>
 </section>
 

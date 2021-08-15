@@ -1854,6 +1854,8 @@ popover.entry-completion > contents { padding: 0; }
 
 statusbar { padding: 6px 10px 6px 10px; }
 
+menubutton > button > box { border-spacing: 6px; }
+
 menubutton arrow { min-height: 16px; min-width: 16px; }
 
 menubutton arrow.none { -gtk-icon-source: -gtk-icontheme("open-menu-symbolic"); }

@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -165,6 +165,10 @@ sure that your code works with such visuals. At the same time,
 you should stop using <code>GdkVisual</code> APIs, since this object not longer
 exists in <span class="caps">GTK</span> 4. Most of its APIs are deprecated already and not
 useful when dealing with <span class="caps">RGBA</span>&nbsp;visuals.</p>
+<h3 id="stop-using-gtk_widget_set_app_paintable">Stop using <code>gtk_widget_set_app_paintable</code><a class="md-anchor" href="#stop-using-gtk_widget_set_app_paintable" title="Permanent link"></a></h3>
+<p>This is gone in <span class="caps">GTK4</span> with no direct replacement. But for some usecases there
+are alternatives. If you want to make the background transparent, you can set
+the background color to, for example, <code>rgba(255, 255, 255, 0)</code> using <span class="caps">CSS</span>&nbsp;instead.</p>
 <h3 id="stop-using-gtkbox-padding-fill-and-expand-child-properties">Stop using <code>GtkBox</code> padding, fill and expand child properties<a class="md-anchor" href="#stop-using-gtkbox-padding-fill-and-expand-child-properties" title="Permanent link"></a></h3>
 <p><span class="caps">GTK</span> 4 removes these <a href="class.Box.html"><code>GtkBox</code></a> child properties, so you should stop using
 them. You can replace <code>GtkBox:padding</code> using <code>GtkWidget</code><span class="quo">&#8216;</span>s <code>margin-*</code> properties
@@ -192,7 +196,7 @@ up the&nbsp;hierarchy.</p>
 or <code>gtk_style_context_get_color()</code> only accept the context&#8217;s current
 state for their state argument. You should update all callers to pass
 the current&nbsp;state.</p>
-<h3 id="stop-using-gdk_pixbuf_get_from_window-and-gdk_cairo_set_source_surface">Stop using <code>gdk_pixbuf_get_from_window()</code> and <code>gdk_cairo_set_source_surface()</code><a class="md-anchor" href="#stop-using-gdk_pixbuf_get_from_window-and-gdk_cairo_set_source_surface" title="Permanent link"></a></h3>
+<h3 id="stop-using-gdk_pixbuf_get_from_window-and-gdk_cairo_set_source_window">Stop using <code>gdk_pixbuf_get_from_window()</code> and <code>gdk_cairo_set_source_window()</code><a class="md-anchor" href="#stop-using-gdk_pixbuf_get_from_window-and-gdk_cairo_set_source_window" title="Permanent link"></a></h3>
 <p>These functions are not supported in <span class="caps">GTK</span> 4. Instead, either use
 backend-specific APIs, or render your widgets using
 <a href="vfunc.Widget.snapshot.html"><code>Gtk.WidgetClass.snapshot</code></a>, once you are using <span class="caps">GTK</span>&nbsp;4.</p>
@@ -376,6 +380,8 @@ until all windows have been&nbsp;closed:</p>
 in <span class="caps">GTK</span> 3, you can prepare for the switch by using <code>gtk_widget_destroy()</code>
 only on toplevel windows, and replace all other uses with
 <code>gtk_container_remove()</code> or <code>g_object_unref()</code>.</p>
+<h3 id="stop-using-the-gtkwidgetdestroy-vfunc">Stop using the GtkWidget.destroy vfunc<a class="md-anchor" href="#stop-using-the-gtkwidgetdestroy-vfunc" title="Permanent link"></a></h3>
+<p>Instead of implementing GtkWidget.destroy, you can implement&nbsp;GObject.dispose.</p>
 <h3 id="reduce-the-use-of-generic-container-apis">Reduce the use of generic container APIs<a class="md-anchor" href="#reduce-the-use-of-generic-container-apis" title="Permanent link"></a></h3>
 <p><span class="caps">GTK</span> 4 removes <code>gtk_container_add()</code> and <code>gtk_container_remove()</code>. While there
 is not always a replacement for <code>gtk_container_remove()</code> in <span class="caps">GTK</span> 3, you can

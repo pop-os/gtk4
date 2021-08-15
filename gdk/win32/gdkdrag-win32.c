@@ -793,7 +793,7 @@ gdk_drag_new (GdkDisplay         *display,
               GdkDragProtocol     protocol)
 {
   GdkWin32Drag *drag_win32;
-  GdkWin32Display *win32_display = GDK_WIN32_DISPLAY (display);
+  GdkWin32Display *display_win32 = GDK_WIN32_DISPLAY (display);
   GdkDrag *drag;
 
   drag_win32 = g_object_new (GDK_TYPE_WIN32_DRAG,
@@ -805,10 +805,10 @@ gdk_drag_new (GdkDisplay         *display,
 
   drag = GDK_DRAG (drag_win32);
 
-  if (win32_display->has_fixed_scale)
-    drag_win32->scale = win32_display->surface_scale;
+  if (display_win32->has_fixed_scale)
+    drag_win32->scale = display_win32->surface_scale;
   else
-    drag_win32->scale = _gdk_win32_display_get_monitor_scale_factor (win32_display, NULL, NULL, NULL);
+    drag_win32->scale = gdk_win32_display_get_monitor_scale_factor (display_win32, NULL, NULL);
 
   drag_win32->protocol = protocol;
 
@@ -2345,8 +2345,8 @@ gdk_dnd_handle_motion_event (GdkDrag  *drag,
   state = gdk_event_get_modifier_state (event);
   gdk_event_get_position (event, &x, &y);
 
-  x_root = x + _gdk_offset_x;
-  y_root = y + _gdk_offset_y;
+  x_root = event->surface->x + x;
+  y_root = event->surface->y + y;
 
   if (drag_win32->drag_surface)
     move_drag_surface (drag, x_root, y_root);

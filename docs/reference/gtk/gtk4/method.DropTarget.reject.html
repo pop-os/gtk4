@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -90,6 +90,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   <div class="links">
   
     <a class="method" href="method.DropTarget.get_actions.html">get_actions</a>
+  
+    <a class="method" href="method.DropTarget.get_current_drop.html">get_current_drop</a>
   
     <a class="method" href="method.DropTarget.get_drop.html">get_drop</a>
   
@@ -131,7 +133,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         Declaration
         <a class="anchor" href="#declaration"></a>
         
-        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkdroptarget.h#L81">[src]</a>
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkdroptarget.h#L84">[src]</a>
         
       </h4>
 
@@ -150,13 +152,13 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkdroptarget.c#L1041">[src]</a>
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkdroptarget.c#L1083">[src]</a>
         
       </h4>
 
       <div class="docblock">
         <p>Rejects the ongoing drop&nbsp;operation.</p>
-<p>If no drop operation is ongoing, i.e when <a href="property.DropTarget.drop.html"><code>GtkDropTarget:drop</code></a>
+<p>If no drop operation is ongoing, i.e when <a href="property.DropTarget.current-drop.html"><code>GtkDropTarget:current-drop</code></a>
 is <code>NULL</code>, this function does&nbsp;nothing.</p>
 <p>This function should be used when delaying the decision
 on whether to accept a drag or not until after reading

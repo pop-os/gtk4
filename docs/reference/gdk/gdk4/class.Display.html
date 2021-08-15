@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gdk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -132,6 +132,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     <a class="method" href="method.Display.map_keyval.html">map_keyval</a>
   
     <a class="method" href="method.Display.notify_startup_complete.html">notify_startup_complete</a>
+  
+    <a class="method" href="method.Display.prepare_gl.html">prepare_gl</a>
   
     <a class="method" href="method.Display.put_event.html">put_event</a>
   
@@ -497,6 +499,17 @@ generate <code>keyval</code>.</p>
 finished loading, using a given&nbsp;identifier.</p>
           </div>
           
+        </div>
+      
+        <div class="">
+          <h6><a href="method.Display.prepare_gl.html">gdk_display_prepare_gl</a></h6>
+          <div class="docblock">
+            <p>Checks that OpenGL is available for <code>self</code> and ensures that it is
+properly initialized.
+When this fails, an <code>error</code> will be set describing the error and this
+function returns <code>FALSE</code>.</p>
+          </div>
+          <div class="docblock"><p>Available since: 4.4</p></div>
         </div>
       
         <div class="">

@@ -617,6 +617,7 @@ gsk_ngl_command_queue_end_draw (GskNglCommandQueue *self)
       last_batch->any.viewport.height == batch->any.viewport.height &&
       last_batch->draw.framebuffer == batch->draw.framebuffer &&
       last_batch->draw.vbo_offset + last_batch->draw.vbo_count == batch->draw.vbo_offset &&
+      last_batch->draw.vbo_count + batch->draw.vbo_count <= 0xffff &&
       snapshots_equal (self, last_batch, batch))
     {
       last_batch->draw.vbo_count += batch->draw.vbo_count;
@@ -1375,7 +1376,7 @@ gsk_ngl_command_queue_upload_texture (GskNglCommandQueue *self,
 
   bpp = gdk_memory_format_bytes_per_pixel (data_format);
 
-  /* Swtich to texture0 as 2D. We'll restore it later. */
+  /* Switch to texture0 as 2D. We'll restore it later. */
   glActiveTexture (GL_TEXTURE0);
   glBindTexture (GL_TEXTURE_2D, texture_id);
 

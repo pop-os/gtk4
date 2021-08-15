@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -145,6 +145,12 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   
     <a class="method" href="method.MediaStream.set_volume.html">set_volume</a>
   
+    <a class="method" href="method.MediaStream.stream_ended.html">stream_ended</a>
+  
+    <a class="method" href="method.MediaStream.stream_prepared.html">stream_prepared</a>
+  
+    <a class="method" href="method.MediaStream.stream_unprepared.html">stream_unprepared</a>
+  
     <a class="method" href="method.MediaStream.unprepared.html">unprepared</a>
   
     <a class="method" href="method.MediaStream.unrealize.html">unrealize</a>
@@ -196,25 +202,21 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkmediastream.c#L1014">[src]</a>
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gtk/gtkmediastream.c#L1142">[src]</a>
         
       </h4>
 
       <div class="docblock">
-        <p>Called by <code>GtkMediaStream</code> implementations to advertise the stream
-being ready to play and providing details about the&nbsp;stream.</p>
-<p>Note that the arguments are hints. If the stream implementation
-cannot determine the correct values, it is better to err on the
-side of caution and return <code>TRUE</code>. User interfaces will use those
-values to determine what controls to&nbsp;show.</p>
-<p>This function may not be called again until the stream has been
-reset via <a href="method.MediaStream.unprepared.html">gtk_media_stream_unprepared()</a>.</p>
+        <p>Same as&nbsp;gtk_media_stream_stream_prepared().</p>
       </div>
 
       <div class="docblock">
         <table>
           
           
+          
+          <tr><td>Deprecated since:</td><td>4.4</td></tr>
+          <tr><td colspan="2"><p>Use <a href="method.MediaStream.stream_prepared.html">gtk_media_stream_stream_prepared()</a>&nbsp;instead.</p></td></tr>
           
         </table>
       </div>

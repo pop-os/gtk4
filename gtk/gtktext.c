@@ -64,6 +64,7 @@
 #include "gtkwindow.h"
 #include "gtknative.h"
 #include "gtkactionmuxerprivate.h"
+#include "gtkjoinedmenuprivate.h"
 
 #include <cairo-gobject.h>
 #include <string.h>
@@ -2661,24 +2662,19 @@ in_selection (GtkText *self,
   return retval;
 }
 
-static void
+static int
 gesture_get_current_point_in_layout (GtkGestureSingle *gesture,
-                                     GtkText          *self,
-                                     int              *x,
-                                     int              *y)
+                                     GtkText          *self)
 {
-  int tx, ty;
+  int tx;
   GdkEventSequence *sequence;
-  double px, py;
+  double px;
 
   sequence = gtk_gesture_single_get_current_sequence (gesture);
-  gtk_gesture_get_point (GTK_GESTURE (gesture), sequence, &px, &py);
-  gtk_text_get_layout_offsets (self, &tx, &ty);
+  gtk_gesture_get_point (GTK_GESTURE (gesture), sequence, &px, NULL);
+  gtk_text_get_layout_offsets (self, &tx, NULL);
 
-  if (x)
-    *x = px - tx;
-  if (y)
-    *y = py - ty;
+  return px - tx;
 }
 
 static void
@@ -2736,7 +2732,8 @@ gtk_text_click_gesture_pressed (GtkGestureClick *gesture,
   current = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
   event = gtk_gesture_get_last_event (GTK_GESTURE (gesture), current);
 
-  gesture_get_current_point_in_layout (GTK_GESTURE_SINGLE (gesture), self, &x, &y);
+  x = gesture_get_current_point_in_layout (GTK_GESTURE_SINGLE (gesture), self);
+  y = widget_y;
   gtk_text_reset_blink_time (self);
 
   if (!gtk_widget_has_focus (widget))
@@ -2988,10 +2985,14 @@ gtk_text_drag_gesture_update (GtkGestureDrag *gesture,
   GdkEventSequence *sequence;
   GdkEvent *event;
   int x, y;
+  double start_y;
 
   gtk_text_selection_bubble_popup_unset (self);
 
-  gesture_get_current_point_in_layout (GTK_GESTURE_SINGLE (gesture), self, &x, &y);
+  x = gesture_get_current_point_in_layout (GTK_GESTURE_SINGLE (gesture), self);
+  gtk_gesture_drag_get_start_point (gesture, NULL, &start_y);
+  y = start_y + offset_y;
+
   sequence = gtk_gesture_single_get_current_sequence (GTK_GESTURE_SINGLE (gesture));
   event = gtk_gesture_get_last_event (GTK_GESTURE (gesture), sequence);
 
@@ -3580,7 +3581,8 @@ update_placeholder_visibility (GtkText *self)
   if (priv->placeholder)
     gtk_widget_set_child_visible (priv->placeholder,
                                   priv->preedit_length == 0 &&
-                                  gtk_entry_buffer_get_length (priv->buffer) == 0);
+                                  (priv->buffer == NULL ||
+                                   gtk_entry_buffer_get_length (priv->buffer) == 0));
 }
 
 /* GtkEntryBuffer signal handlers
@@ -6034,9 +6036,11 @@ static GMenuModel *
 gtk_text_get_menu_model (GtkText *self)
 {
   GtkTextPrivate *priv = gtk_text_get_instance_private (self);
+  GtkJoinedMenu *joined;
   GMenu *menu, *section;
   GMenuItem *item;
 
+  joined = gtk_joined_menu_new ();
   menu = g_menu_new ();
 
   section = g_menu_new ();
@@ -6074,10 +6078,13 @@ gtk_text_get_menu_model (GtkText *self)
   g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
   g_object_unref (section);
 
-  if (priv->extra_menu)
-    g_menu_append_section (menu, NULL, priv->extra_menu);
+  gtk_joined_menu_append_menu (joined, G_MENU_MODEL (menu));
+  g_object_unref (menu);
 
-  return G_MENU_MODEL (menu);
+  if (priv->extra_menu)
+    gtk_joined_menu_append_menu (joined, priv->extra_menu);
+
+  return G_MENU_MODEL (joined);
 }
 
 static gboolean
@@ -6652,6 +6659,8 @@ gtk_text_set_placeholder_text (GtkText    *self,
       gtk_label_set_text (GTK_LABEL (priv->placeholder), text);
     }
 
+  update_placeholder_visibility (self);
+
   g_object_notify_by_pspec (G_OBJECT (self), text_props[PROP_PLACEHOLDER_TEXT]);
 }
 
@@ -7112,6 +7121,69 @@ gtk_text_get_truncate_multiline (GtkText *self)
   g_return_val_if_fail (GTK_IS_TEXT (self), FALSE);
 
   return priv->truncate_multiline;
+}
+
+/**
+ * gtk_text_compute_cursor_extents:
+ * @self: a `GtkText`
+ * @position: the character position
+ * @strong: (out) (optional): location to store the strong cursor position
+ * @weak: (out) (optional): location to store the weak cursor position
+ *
+ * Determine the positions of the strong and weak cursors if the
+ * insertion point in the layout is at @position.
+ *
+ * The position of each cursor is stored as a zero-width rectangle.
+ * The strong cursor location is the location where characters of
+ * the directionality equal to the base direction are inserted.
+ * The weak cursor location is the location where characters of
+ * the directionality opposite to the base direction are inserted.
+ *
+ * The rectangle positions are in widget coordinates.
+ *
+ * Since: 4.4
+ */
+void
+gtk_text_compute_cursor_extents (GtkText         *self,
+                                 gsize            position,
+                                 graphene_rect_t *strong,
+                                 graphene_rect_t *weak)
+{
+  PangoLayout *layout;
+  PangoRectangle pango_strong_pos;
+  PangoRectangle pango_weak_pos;
+  int offset_x, offset_y, index;
+  const char *text;
+
+  g_return_if_fail (GTK_IS_TEXT (self));
+
+  layout = gtk_text_ensure_layout (self, TRUE);
+  text = pango_layout_get_text (layout);
+  position = CLAMP (position, 0, g_utf8_strlen (text, -1));
+  index = g_utf8_offset_to_pointer (text, position) - text;
+
+  pango_layout_get_cursor_pos (layout, index,
+                               strong ? &pango_strong_pos : NULL,
+                               weak ? &pango_weak_pos : NULL);
+  gtk_text_get_layout_offsets (self, &offset_x, &offset_y);
+
+  if (strong)
+    {
+      graphene_rect_init (strong,
+                          offset_x + pango_strong_pos.x / PANGO_SCALE,
+                          offset_y + pango_strong_pos.y / PANGO_SCALE,
+                          0,
+                          pango_strong_pos.height / PANGO_SCALE);
+    }
+
+  if (weak)
+    {
+      graphene_rect_init (weak,
+                          offset_x + pango_weak_pos.x / PANGO_SCALE,
+                          offset_y + pango_weak_pos.y / PANGO_SCALE,
+                          0,
+                          pango_weak_pos.height / PANGO_SCALE);
+    }
 }
 
 static void

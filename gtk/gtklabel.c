@@ -52,6 +52,7 @@
 #include "gtkdragsourceprivate.h"
 #include "gtkdragicon.h"
 #include "gtkcsscolorvalueprivate.h"
+#include "gtkjoinedmenuprivate.h"
 
 #include <math.h>
 #include <string.h>
@@ -2981,8 +2982,18 @@ gtk_label_recalculate (GtkLabel *self)
   gtk_label_clear_layout (self);
   gtk_label_clear_select_info (self);
 
-  if (self->use_markup || self->use_underline)
-    gtk_label_set_markup_internal (self, self->label, self->use_underline);
+  if (self->use_markup)
+    {
+      gtk_label_set_markup_internal (self, self->label, self->use_underline);
+    }
+  else if (self->use_underline)
+    {
+      char *text;
+
+      text = g_markup_escape_text (self->label, -1);
+      gtk_label_set_markup_internal (self, text, TRUE);
+      g_free (text);
+    }
   else
     {
       g_clear_pointer (&self->markup_attrs, pango_attr_list_unref);
@@ -5458,9 +5469,11 @@ gtk_label_move_cursor (GtkLabel       *self,
 static GMenuModel *
 gtk_label_get_menu_model (GtkLabel *self)
 {
+  GtkJoinedMenu *joined;
   GMenu *menu, *section;
   GMenuItem *item;
 
+  joined = gtk_joined_menu_new ();
   menu = g_menu_new ();
 
   section = g_menu_new ();
@@ -5488,10 +5501,13 @@ gtk_label_get_menu_model (GtkLabel *self)
   g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
   g_object_unref (section);
 
-  if (self->extra_menu)
-    g_menu_append_section (menu, NULL, self->extra_menu);
+  gtk_joined_menu_append_menu (joined, G_MENU_MODEL (menu));
+  g_object_unref (menu);
 
-  return G_MENU_MODEL (menu);
+  if (self->extra_menu)
+    gtk_joined_menu_append_menu (joined, self->extra_menu);
+
+  return G_MENU_MODEL (joined);
 }
 
 static void

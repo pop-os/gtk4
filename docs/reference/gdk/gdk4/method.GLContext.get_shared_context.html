@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gdk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -106,6 +106,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     <a class="method" href="method.GLContext.get_version.html">get_version</a>
   
     <a class="method" href="method.GLContext.is_legacy.html">is_legacy</a>
+  
+    <a class="method" href="method.GLContext.is_shared.html">is_shared</a>
   
     <a class="method" href="method.GLContext.make_current.html">make_current</a>
   
@@ -160,18 +162,24 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         Description
         <a class="anchor" href="#description"></a>
         
-        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gdk/gdkglcontext.c#L1156">[src]</a>
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gdk/gdkglcontext.c#L1225">[src]</a>
         
       </h4>
 
       <div class="docblock">
-        <p>Retrieves the <code>GdkGLContext</code> that this <code>context</code> share data&nbsp;with.</p>
+        <p>Used to retrieves the <code>GdkGLContext</code> that this <code>context</code> share data&nbsp;with.</p>
+<p>As many contexts can share data now and no single shared context exists
+anymore, this function has been deprecated and now always returns <code>NULL</code>.</p>
       </div>
 
       <div class="docblock">
         <table>
           
           
+          
+          <tr><td>Deprecated since:</td><td>4.4</td></tr>
+          <tr><td colspan="2"><p>Use <a href="method.GLContext.is_shared.html">gdk_gl_context_is_shared()</a> to check if contexts
+  can be&nbsp;shared.</p></td></tr>
           
         </table>
       </div>
@@ -204,7 +212,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
           </tr>
           <tr class="arg-description">
             <td>&nbsp;</td>
-            <td><p>A <code>GdkGLContext</code>.</p></td>
+            <td><p><code>NULL</code>.</p></td>
           </tr>
           
           

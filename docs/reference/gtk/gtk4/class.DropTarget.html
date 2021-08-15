@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -103,6 +103,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   <div class="links">
   
     <a class="method" href="method.DropTarget.get_actions.html">get_actions</a>
+  
+    <a class="method" href="method.DropTarget.get_current_drop.html">get_current_drop</a>
   
     <a class="method" href="method.DropTarget.get_drop.html">get_drop</a>
   
@@ -132,6 +134,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
   <div class="links">
   
     <a class="property" href="property.DropTarget.actions.html">actions</a>
+  
+    <a class="property" href="property.DropTarget.current-drop.html">current-drop</a>
   
     <a class="property" href="property.DropTarget.drop.html">drop</a>
   
@@ -406,11 +410,19 @@ use <a href="class.DropControllerMotion.html"><code>GtkDropControllerMotion</cod
         </div>
       
         <div class="">
+          <h6><a href="method.DropTarget.get_current_drop.html">gtk_drop_target_get_current_drop</a></h6>
+          <div class="docblock">
+            <p>Gets the currently handled drop&nbsp;operation.</p>
+          </div>
+          <div class="docblock"><p>Available since: 4.4</p></div>
+        </div>
+      
+        <div class="deprecated">
           <h6><a href="method.DropTarget.get_drop.html">gtk_drop_target_get_drop</a></h6>
           <div class="docblock">
             <p>Gets the currently handled drop&nbsp;operation.</p>
           </div>
-          
+          <div class="docblock"><p>Deprecated since: 4.4</p></div>
         </div>
       
         <div class="">
@@ -594,13 +606,23 @@ handled by the&nbsp;controller.</p>
         </div>
       
         <div class="">
+          <h6><a href="property.DropTarget.current-drop.html">Gtk.DropTarget:current-drop</a></h6>
+
+          <div class="docblock">
+            <p>The <code>GdkDrop</code> that is currently being&nbsp;performed.</p>
+          </div>
+
+          <div class="docblock"><p>Available since: 4.4</p></div>
+        </div>
+      
+        <div class="deprecated">
           <h6><a href="property.DropTarget.drop.html">Gtk.DropTarget:drop</a></h6>
 
           <div class="docblock">
             <p>The <code>GdkDrop</code> that is currently being&nbsp;performed.</p>
           </div>
 
-          
+          <div class="docblock"><p>Deprecated since: 4.4</p></div>
         </div>
       
         <div class="">

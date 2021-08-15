@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gdk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -124,12 +124,14 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         Description
         <a href="#description" class="anchor"></a>
         
-        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gdk/gdkglcontext.c#L414">[src]</a>
+        <a class="srclink" title="go to source location" href="https://gitlab.gnome.org/GNOME/gtk/-/blob/master/gdk/gdkglcontext.c#L417">[src]</a>
         
       </h4>
 
       <div class="docblock">
-        <p>The <code>GdkGLContext</code> that this context is sharing data with, or <code>NULL</code>.</p>
+        <p>Always <code>NULL</code></p>
+<p>As many contexts can share data now and no single shared context exists
+anymore, this function has been deprecated and now always returns <code>NULL</code>.</p>
       </div>
 
       <div class="docblock">
@@ -139,6 +141,10 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
           </tr>
           
           
+          
+          <tr><td>Deprecated since:</td><td>4.4</td></tr>
+          <tr><td colspan="2"><p>Use <a href="method.GLContext.is_shared.html">gdk_gl_context_is_shared()</a> to check if contexts
+  can be&nbsp;shared.</p></td></tr>
           
         </table>
       </div>

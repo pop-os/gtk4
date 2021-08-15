@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gtk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -219,19 +219,19 @@ this example is called <em>Hello, World</em>.</p>
 <span class="p">{</span>
   <span class="n">GtkWidget</span> <span class="o">*</span><span class="n">window</span><span class="p">;</span>
   <span class="n">GtkWidget</span> <span class="o">*</span><span class="n">button</span><span class="p">;</span>
-  <span class="n">GtkWidget</span> <span class="o">*</span><span class="n">box</span><span class="p">;</span>
 
   <span class="n">window</span> <span class="o">=</span> <span class="n">gtk_application_window_new</span> <span class="p">(</span><span class="n">app</span><span class="p">);</span>
   <span class="n">gtk_window_set_title</span> <span class="p">(</span><span class="n">GTK_WINDOW</span> <span class="p">(</span><span class="n">window</span><span class="p">),</span> <span class="s">&quot;Window&quot;</span><span class="p">);</span>
   <span class="n">gtk_window_set_default_size</span> <span class="p">(</span><span class="n">GTK_WINDOW</span> <span class="p">(</span><span class="n">window</span><span class="p">),</span> <span class="mi">200</span><span class="p">,</span> <span class="mi">200</span><span class="p">);</span>
 
-  <span class="n">box</span> <span class="o">=</span> <span class="n">gtk_box_new</span> <span class="p">(</span><span class="n">GTK_ORIENTATION_HORIZONTAL</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
-  <span class="n">gtk_window_set_child</span> <span class="p">(</span><span class="n">GTK_WINDOW</span> <span class="p">(</span><span class="n">window</span><span class="p">),</span> <span class="n">box</span><span class="p">);</span>
-
   <span class="n">button</span> <span class="o">=</span> <span class="n">gtk_button_new_with_label</span> <span class="p">(</span><span class="s">&quot;Hello World&quot;</span><span class="p">);</span>
+  <span class="n">gtk_widget_set_halign</span> <span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="n">GTK_ALIGN_CENTER</span><span class="p">);</span>
+  <span class="n">gtk_widget_set_valign</span> <span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="n">GTK_ALIGN_CENTER</span><span class="p">);</span>
+
   <span class="n">g_signal_connect</span> <span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="s">&quot;clicked&quot;</span><span class="p">,</span> <span class="n">G_CALLBACK</span> <span class="p">(</span><span class="n">print_hello</span><span class="p">),</span> <span class="nb">NULL</span><span class="p">);</span>
   <span class="n">g_signal_connect_swapped</span> <span class="p">(</span><span class="n">button</span><span class="p">,</span> <span class="s">&quot;clicked&quot;</span><span class="p">,</span> <span class="n">G_CALLBACK</span> <span class="p">(</span><span class="n">gtk_window_destroy</span><span class="p">),</span> <span class="n">window</span><span class="p">);</span>
-  <span class="n">gtk_box_append</span> <span class="p">(</span><span class="n">GTK_BOX</span> <span class="p">(</span><span class="n">box</span><span class="p">),</span> <span class="n">button</span><span class="p">);</span>
+
+  <span class="n">gtk_window_set_child</span> <span class="p">(</span><span class="n">GTK_WINDOW</span> <span class="p">(</span><span class="n">window</span><span class="p">),</span> <span class="n">button</span><span class="p">);</span>
 
   <span class="n">gtk_widget_show</span> <span class="p">(</span><span class="n">window</span><span class="p">);</span>
 <span class="p">}</span>

@@ -99,6 +99,12 @@ you should stop using `GdkVisual` APIs, since this object not longer
 exists in GTK 4. Most of its APIs are deprecated already and not
 useful when dealing with RGBA visuals.
 
+### Stop using `gtk_widget_set_app_paintable`
+
+This is gone in GTK4 with no direct replacement. But for some usecases there
+are alternatives. If you want to make the background transparent, you can set
+the background color to, for example, `rgba(255, 255, 255, 0)` using CSS instead.
+
 ### Stop using `GtkBox` padding, fill and expand child properties
 
 GTK 4 removes these [class@Gtk.Box] child properties, so you should stop using
@@ -133,7 +139,7 @@ or `gtk_style_context_get_color()` only accept the context's current
 state for their state argument. You should update all callers to pass
 the current state.
 
-### Stop using `gdk_pixbuf_get_from_window()` and `gdk_cairo_set_source_surface()`
+### Stop using `gdk_pixbuf_get_from_window()` and `gdk_cairo_set_source_window()`
 
 These functions are not supported in GTK 4. Instead, either use
 backend-specific APIs, or render your widgets using
@@ -242,6 +248,10 @@ GTK 4 introduces a [method@Gtk.Window.destroy] api. While that is not available
 in GTK 3, you can prepare for the switch by using `gtk_widget_destroy()`
 only on toplevel windows, and replace all other uses with
 `gtk_container_remove()` or `g_object_unref()`.
+
+### Stop using the GtkWidget.destroy vfunc
+
+Instead of implementing GtkWidget.destroy, you can implement GObject.dispose.
 
 ### Reduce the use of generic container APIs
 
@@ -1349,3 +1359,4 @@ of tree models, and widgets instead of cell renderers.
 
 To learn more about the new list widgets, you can read the [List Widget
 Overview](#ListWidget).
+

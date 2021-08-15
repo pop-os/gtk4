@@ -36,6 +36,7 @@
 #include "gtkwidgetprivate.h"
 #include "gtkcsspositionvalueprivate.h"
 #include "gtkcssnodeprivate.h"
+#include "gtkjoinedmenuprivate.h"
 
 
 /**
@@ -163,12 +164,12 @@ visibility_toggled (GObject          *object,
   if (gtk_text_get_visibility (GTK_TEXT (entry->entry)))
     {
       gtk_image_set_from_icon_name (GTK_IMAGE (entry->peek_icon), "eye-open-negative-filled-symbolic");
-      gtk_widget_set_tooltip_text (entry->peek_icon, _("Hide text"));
+      gtk_widget_set_tooltip_text (entry->peek_icon, _("Hide Text"));
     }
   else
     {
       gtk_image_set_from_icon_name (GTK_IMAGE (entry->peek_icon), "eye-not-looking-symbolic");
-      gtk_widget_set_tooltip_text (entry->peek_icon, _("Show text"));
+      gtk_widget_set_tooltip_text (entry->peek_icon, _("Show Text"));
     }
 
   if (entry->keyboard)
@@ -602,7 +603,7 @@ gtk_password_entry_set_show_peek_icon (GtkPasswordEntry *entry,
       GtkGesture *press;
 
       entry->peek_icon = gtk_image_new_from_icon_name ("eye-not-looking-symbolic");
-      gtk_widget_set_tooltip_text (entry->peek_icon, _("Show text"));
+      gtk_widget_set_tooltip_text (entry->peek_icon, _("Show Text"));
       gtk_widget_set_parent (entry->peek_icon, GTK_WIDGET (entry));
 
       press = gtk_gesture_click_new ();
@@ -658,6 +659,7 @@ void
 gtk_password_entry_set_extra_menu (GtkPasswordEntry *entry,
                                    GMenuModel       *model)
 {
+  GtkJoinedMenu *joined;
   GMenu *menu;
   GMenu *section;
   GMenuItem *item;
@@ -671,6 +673,7 @@ gtk_password_entry_set_extra_menu (GtkPasswordEntry *entry,
         return;
     }
 
+  joined = gtk_joined_menu_new ();
   menu = g_menu_new ();
 
   section = g_menu_new ();
@@ -682,12 +685,15 @@ gtk_password_entry_set_extra_menu (GtkPasswordEntry *entry,
   g_menu_append_section (menu, NULL, G_MENU_MODEL (section));
   g_object_unref (section);
 
-  if (model)
-    g_menu_append_section (menu, NULL, model);
-
-  gtk_text_set_extra_menu (GTK_TEXT (entry->entry), G_MENU_MODEL (menu));
-
+  gtk_joined_menu_append_menu (joined, G_MENU_MODEL (menu));
   g_object_unref (menu);
+
+  if (model)
+    gtk_joined_menu_append_menu (joined, model);
+
+  gtk_text_set_extra_menu (GTK_TEXT (entry->entry), G_MENU_MODEL (joined));
+
+  g_object_unref (joined);
 
   g_object_notify_by_pspec (G_OBJECT (entry), props[PROP_EXTRA_MENU]);
 }

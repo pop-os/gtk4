@@ -69,6 +69,7 @@ compare_render_tests = [
   'outset_shadow_rounded_top',
   'outset_shadow_simple',
   'scaled-cairo',
+  'scale-textures-negative-ngl',
   'scale-up-down',
   'shadow-in-opacity',
   'texture-url',
@@ -234,7 +235,8 @@ foreach t : tests
 endforeach
 
 internal_tests = [
-  ['diff']
+  [ 'diff' ],
+  [ 'half-float' ],
 ]
 
 foreach t : internal_tests

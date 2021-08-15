@@ -75,7 +75,7 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
         <h3><a href="index.html">Gdk</a></h3>
         <p>API Version: 4.0</p>
         
-        <p>Library Version: 4.3.1</p>
+        <p>Library Version: 4.3.2</p>
         
       </div>
       
@@ -110,6 +110,8 @@ SPDX-License-Identifier: Apache-2.0 OR GPL-3.0-or-later
     <a class="method" href="method.GLContext.get_version.html">get_version</a>
   
     <a class="method" href="method.GLContext.is_legacy.html">is_legacy</a>
+  
+    <a class="method" href="method.GLContext.is_shared.html">is_shared</a>
   
     <a class="method" href="method.GLContext.make_current.html">make_current</a>
   
@@ -367,12 +369,12 @@ that is currently set by calling <a href="type_func.GLContext.clear_current.html
           
         </div>
       
-        <div class="">
+        <div class="deprecated">
           <h6><a href="method.GLContext.get_shared_context.html">gdk_gl_context_get_shared_context</a></h6>
           <div class="docblock">
-            <p>Retrieves the <code>GdkGLContext</code> that this <code>context</code> share data&nbsp;with.</p>
+            <p>Used to retrieves the <code>GdkGLContext</code> that this <code>context</code> share data&nbsp;with.</p>
           </div>
-          
+          <div class="docblock"><p>Deprecated since: 4.4</p></div>
         </div>
       
         <div class="">
@@ -403,6 +405,14 @@ that is currently set by calling <a href="type_func.GLContext.clear_current.html
           <h6><a href="method.GLContext.is_legacy.html">gdk_gl_context_is_legacy</a></h6>
           <div class="docblock">
             <p>Whether the <code>GdkGLContext</code> is in legacy mode or&nbsp;not.</p>
+          </div>
+          
+        </div>
+      
+        <div class="">
+          <h6><a href="method.GLContext.is_shared.html">gdk_gl_context_is_shared</a></h6>
+          <div class="docblock">
+            <p>Checks if the two <span class="caps">GL</span> contexts can share&nbsp;resources.</p>
           </div>
           
         </div>
@@ -524,14 +534,14 @@ on the <code>context</code><span class="quo">&#8216;</span>s&nbsp;surface.</p>
 
       <div class="docblock">
       
-        <div class="">
+        <div class="deprecated">
           <h6><a href="property.GLContext.shared-context.html">Gdk.GLContext:shared-context</a></h6>
 
           <div class="docblock">
-            <p>The <code>GdkGLContext</code> that this context is sharing data with, or <code>NULL</code>.</p>
+            <p>Always <code>NULL</code>.</p>
           </div>
 
-          
+          <div class="docblock"><p>Deprecated since: 4.4</p></div>
         </div>
       
       </div>

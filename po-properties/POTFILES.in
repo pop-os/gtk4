@@ -33,6 +33,8 @@ gdk/win32/gdkclipdrop-win32.c
 gdk/win32/gdkcursor-win32.c
 gdk/win32/gdkdrop-win32.c
 gdk/win32/gdkglcontext-win32.c
+gdk/win32/gdkglcontext-win32-egl.c
+gdk/win32/gdkglcontext-win32-wgl.c
 gdk/win32/gdkhdataoutputstream-win32.c
 gdk/win32/gdkmain-win32.c
 gdk/x11/gdkapplaunchcontext-x11.c
@@ -344,11 +346,9 @@ gtk/paper_names_offsets.c
 gtk/script-names.c
 modules/media/gtkffmediafile.c
 modules/media/gtkgstsink.c
-modules/printbackends/gtkprintbackendcloudprint.c
 modules/printbackends/gtkprintbackendcups.c
 modules/printbackends/gtkprintbackendfile.c
 modules/printbackends/gtkprintbackendlpr.c
-modules/printbackends/gtkprintercloudprint.c
 modules/printbackends/gtkprintercups.c
 tools/encodesymbolic.c
 tools/gtk-builder-tool.c
